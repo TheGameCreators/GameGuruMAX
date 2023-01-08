@@ -129,3 +129,31 @@ GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/ReleaseForSteam/Template_Windows.vcx
 GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/ReleaseForSteam/Wicked-MAX.res
 GameGuruMAX-MissingLIBs.zip
 *.ipch
+GameGuru Core/SDK/DirectXTex/.vs/DirectXTex_Desktop_2022/v17/.suo
+*.pdb
+*.obj
+*.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/BC.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/BC4BC5.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/BC6HBC7.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/BCDirectCompute.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex.Build.CppClean.log
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex.pch
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex.pdb
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex_Desktop_2017.log
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexCompress.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexCompressGPU.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexConvert.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexD3D11.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexDDS.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexFlipRotate.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexHDR.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexImage.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexMipMaps.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexMisc.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexNormalMaps.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexPMAlpha.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexResize.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexTGA.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexUtil.obj
+GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexWIC.obj

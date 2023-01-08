@@ -8,7 +8,7 @@ GameGuru MAX is a 3D game maker for simple first person games and is available t
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2022 Community Edition. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2022.
+This source code requires Visual Studio 2022 Community Edition. Select the "Desktop Development with C++" theme. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2022. Also untick the Windows 11 SDKs and tick the most recent Windows 10 SDK. You can also untiuck the Boost and Google Tests. The install should be about 10GB.
 
 Steps to compiling and running GameGuru MAX:
 

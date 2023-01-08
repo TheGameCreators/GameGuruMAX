@@ -15,16 +15,17 @@ Steps to compiling and running GameGuru MAX:
 Compiling WICKED ENGINE:
 
 1. Create a DEV folder somewhere close to a root drive with lots of storage
-2. Use GitHub and go click the green CODE button to copy the repo URL: https://github.com/TheGameCreators/WickedRepo
-3. Use GitHub Desktop to CLONE this repository and name it WICKEDREPO located in the DEV folder (i.e. D:\DEV\WICKEDREPO)
-4. You will need to register a GitHub account and log in when installed GitHub Desktop
-5. Select CLONE a repository from the internet and select UTL, enter the URL you copied earlier
-6. Change the LOCAL PATH to your DEV folder and name this repo folder WICKEDREPO (i.e. D:\DEV\WICKEDREPO)
-7. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" (use VS2022) and right click 'WickedEngine_Windows' project and select "Set as Startup Project" 
-8. Set the Solution Configuration from "Debug" to "ReleaseForGG". Now right click 'WickedEngine_Windows' project and select Properties
-9. Ensure your project properties "Output Directory" in General looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
-10. Right click 'WickedEngine_Windows' project and select REBUILD, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
-11. Close Visual Studio
+2. Install GitHub Desktop and log in with a previously registered GitHub account
+3. Use GitHub and go click the green CODE button to copy the repo URL: https://github.com/TheGameCreators/WickedRepo
+4. Use GitHub Desktop to CLONE this repository and name it WICKEDREPO located in the DEV folder (i.e. D:\DEV\WICKEDREPO)
+5. You will need to log into your GitHub account within GitHub Desktop
+6. Select CLONE a repository from the internet and select UTL, enter the URL you copied earlier
+7. Change the LOCAL PATH to your DEV folder and name this repo folder WICKEDREPO (i.e. D:\DEV\WICKEDREPO)
+8. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" (use VS2022) and right click 'WickedEngine_Windows' project and select "Set as Startup Project" 
+9. Set the Solution Configuration from "Debug" to "ReleaseForGG". Now right click 'WickedEngine_Windows' project and select Properties
+10. Ensure your project properties "Output Directory" in General looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
+11. Right click 'WickedEngine_Windows' project and select REBUILD, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
+12. Close Visual Studio
 
 Cloning ASSIMP:
 
@@ -40,8 +41,7 @@ Compiling GAMEGURU MAX:
 4. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
 5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
 6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
-7. Now to go the CODE tab above, then click the CODE button and copy the Repository URL into your clipboard
-8. Install GitHub Desktop and log in with a previously registered GitHub account
+7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in a folder called DEV (i.e. D:|DEV\GAMEGURUMAXREPO)
 11. Ensure both GAMEGURUMAXREPO and WICKEDREPO folders are next to each other in the DEV folder and they are populated with files

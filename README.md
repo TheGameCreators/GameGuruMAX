@@ -22,6 +22,13 @@ Compiling WICKED ENGINE:
 6. 6. Ensure your project properties "Output Directory" in Geberal looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
 7. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
 
+Cloning ASSIMP:
+
+1. The accompanying LIB zip contains the required ASSIMP.LIB file, but you will need ASSIMP repo side by side with the other repo folder
+2. Use GitHub to clone the following URL: https://github.com/TheGameCreators/assimp
+3. Ensure the name you give for the local folder is ASSIMP (i.e. D:\DEV\ASSIMP)
+4. Check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
+
 Compiling GAMEGURU MAX:
 
 1. Buy GameGuru MAX from Steam and install. Download VS2022 and install.
@@ -29,7 +36,7 @@ Compiling GAMEGURU MAX:
 3. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
 4. Copy contents of the MAX root (default "D:\SteamLibrary\steamapps\common\GameGuru MAX" to new BUILD folder of your choice
 5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder of your choice
-6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\"
+6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH)
 7. Now to go the CODE tab above, then click the CODE button and copy the Repository URL into your clipboard
 8. Install GitHub Desktop and log in with a previously registered GitHub account
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
@@ -42,5 +49,8 @@ Compiling GAMEGURU MAX:
 16. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
 17. Right click "Wicked-MAX" again and select REBUILD
 18. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
+
+Understahding GG_MAX_BUILD_PATH:
+This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to out working copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you need to create a DEV folder to place all your many dev files, and then in there create a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it in in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH parh you specify should only point to the build folder, the VS project will do the rest.
 
 To report issues, we have consolidated issues from GameGuru Classic and GameGuru MAX into a single issues board, you can find it here: https://github.com/TheGameCreators/GameGuruRepo/issues?q=is%3Aopen+is%3Aissue+label%3AMax

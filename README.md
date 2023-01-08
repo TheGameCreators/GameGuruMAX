@@ -24,6 +24,7 @@ Compiling WICKED ENGINE:
 8. Set the Solution Configuration from "Debug" to "ReleaseForGG". Now right click 'WickedEngine_Windows' project and select Properties
 9. Ensure your project properties "Output Directory" in General looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
 10. Right click 'WickedEngine_Windows' project and select REBUILD, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
+11. Close Visual Studio
 
 Cloning ASSIMP:
 
@@ -52,6 +53,7 @@ Compiling GAMEGURU MAX:
 16. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
 17. Right click "Wicked-MAX" again and select REBUILD
 18. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
+
 
 Understahding GG_MAX_BUILD_PATH:
 

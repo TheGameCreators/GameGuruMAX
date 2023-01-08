@@ -15,12 +15,15 @@ Steps to compiling and running GameGuru MAX:
 Compiling WICKED ENGINE:
 
 1. Create a DEV folder somewhere close to a root drive with lots of storage
-2. Use GitHub and go to this repository, copy the URL to the clipboard: https://github.com/TheGameCreators/WickedRepo
+2. Use GitHub and go click the green CODE button to copy the repo URL: https://github.com/TheGameCreators/WickedRepo
 3. Use GitHub Desktop to CLONE this repository and name it WICKEDREPO located in the DEV folder (i.e. D:\DEV\WICKEDREPO)
-4. Open "WickedEngine.sln" and select "Set as Startup Project" on the 'WickedEngine_Windows' project
-5. Set the Solution Configuration from "Debug" to "ReleaseForGG"
-6. 6. Ensure your project properties "Output Directory" in Geberal looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
-7. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
+4. You will need to register a GitHub account and log in when installed GitHub Desktop
+5. Select CLONE a repository from the internet and select UTL, enter the URL you copied earlier
+6. Change the LOCAL PATH to your DEV folder and name this repo folder WICKEDREPO (i.e. D:\DEV\WICKEDREPO)
+7. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" and select "Set as Startup Project" on the 'WickedEngine_Windows' project
+8. Set the Solution Configuration from "Debug" to "ReleaseForGG"
+9. Ensure your project properties "Output Directory" in Geberal looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
+10. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
 
 Cloning ASSIMP:
 

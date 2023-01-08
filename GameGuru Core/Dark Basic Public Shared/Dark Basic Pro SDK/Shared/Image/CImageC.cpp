@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <direct.h>
 #include <vector>
+#include <string>
 #include <map>
 #include ".\..\Core\SteamCheckForWorkshop.h"
 

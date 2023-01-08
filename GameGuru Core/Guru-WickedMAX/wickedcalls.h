@@ -4,6 +4,9 @@
 
 // Includes
 #include <memory>
+#include <vector>
+#include <string>
+
 #include "..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\Objects\CObjectDataC.h"
 
 // Custom Layers

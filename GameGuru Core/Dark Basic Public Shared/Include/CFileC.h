@@ -157,6 +157,8 @@ DARKSDK int FGetActualTypeValue(int flagvalue);
 DARKSDK BOOL DB_FileExist(char* Filename);
 
 #include <vector>
+#include <string>
+
 DARKSDK int CollectFilesWithExtension(char* extension, char* directory, std::vector<std::string>* result);
 
 #ifdef DARKSDK_COMPILE

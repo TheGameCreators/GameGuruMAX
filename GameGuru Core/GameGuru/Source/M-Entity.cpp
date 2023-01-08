@@ -1379,7 +1379,7 @@ bool entity_load (bool bCalledFromLibrary)
 									OffsetLimb(t.entobj, t.entityprofile[t.entid].addhandlelimb, 0, 2 + t.tyoffset_f, 0);
 								t.texhandleid = loadinternaltexture(t.thandlefile_s.Get());
 								TextureLimb(t.entobj, t.entityprofile[t.entid].addhandlelimb, t.texhandleid);
-								SetLimbEffect(t.entobj, t.entityprofile[t.entid].addhandlelimb, t.entityprofile[t.entid].usingeffect);
+								//SetLimbEffect(t.entobj, t.entityprofile[t.entid].addhandlelimb, t.entityprofile[t.entid].usingeffect);
 								if (ObjectExist(g.entityworkobjectoffset) == 1)  DeleteObject(g.entityworkobjectoffset);
 								if (GetMeshExist(g.entityworkobjectoffset) == 1)  DeleteMesh(g.entityworkobjectoffset);
 								if (t.game.gameisexe == 1)
@@ -2891,6 +2891,8 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].isviolent = t.value1;
 					cmpStrConst( t_field_s, "isobjective" );
 					if (  matched  )  t.entityprofile[t.entid].isobjective = t.value1;
+					cmpStrConst(t_field_s, "iscollectable");
+					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
 					cmpStrConst( t_field_s, "alwaysactive" );
 					if (  matched  )  t.entityprofile[t.entid].phyalways = t.value1;
 
@@ -4316,7 +4318,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.cantakeweapon=t.entityprofile[t.entid].cantakeweapon;
 	t.grideleprof.hasweapon_s=t.entityprofile[t.entid].hasweapon_s;
 	t.grideleprof.quantity=t.entityprofile[t.entid].quantity;
-	t.grideleprof.isobjective=t.entityprofile[t.entid].isobjective;
+	t.grideleprof.isobjective = t.entityprofile[t.entid].isobjective;
 	t.grideleprof.hurtfall=t.entityprofile[t.entid].hurtfall;
 	t.grideleprof.speed=t.entityprofile[t.entid].speed;
 	t.grideleprof.animspeed=t.entityprofile[t.entid].animspeed;
@@ -4447,7 +4449,7 @@ void entity_updatetextureandeffectfromeleprof ( void )
 	t.entityprofile[t.entid].texdid=t.entityelement[t.e].eleprof.texdid;
 	t.entityprofile[t.entid].texaltdid=t.entityelement[t.e].eleprof.texaltdid;
 	t.entityprofile[t.entid].effect_s=t.entityelement[t.e].eleprof.effect_s;
-	t.entityprofile[t.entid].usingeffect=t.entityelement[t.e].eleprof.usingeffect;
+	t.entityprofile[t.entid].iscollectable =t.entityelement[t.e].eleprof.iscollectable;
 	t.entityprofile[t.entid].texnid=t.entityelement[t.e].eleprof.texnid;
 	t.entityprofile[t.entid].texsid=t.entityelement[t.e].eleprof.texsid;
 	t.entityprofile[t.entid].texidmax=t.entityelement[t.e].eleprof.texidmax;
@@ -4459,7 +4461,7 @@ void entity_updatetextureandeffectfromeleprof ( void )
 	t.entityelement[t.e].eleprof.texdid=t.entityprofile[t.entid].texdid;
 	t.entityelement[t.e].eleprof.texaltdid=t.entityprofile[t.entid].texaltdid;
 	t.entityelement[t.e].eleprof.effect_s=t.entityprofile[t.entid].effect_s;
-	t.entityelement[t.e].eleprof.usingeffect=t.entityprofile[t.entid].usingeffect;
+	t.entityelement[t.e].eleprof.iscollectable =t.entityprofile[t.entid].iscollectable;
 	t.entityelement[t.e].eleprof.texnid=t.entityprofile[t.entid].texnid;
 	t.entityelement[t.e].eleprof.texsid=t.entityprofile[t.entid].texsid;
 	t.entityelement[t.e].eleprof.texidmax=t.entityprofile[t.entid].texidmax;
@@ -4478,7 +4480,7 @@ void entity_updatetextureandeffectfromgrideleprof ( void )
 	t.entityprofile[t.entid].texdid=t.grideleprof.texdid;
 	t.entityprofile[t.entid].texaltdid=t.grideleprof.texaltdid;
 	t.entityprofile[t.entid].effect_s=t.grideleprof.effect_s;
-	t.entityprofile[t.entid].usingeffect=t.grideleprof.usingeffect;
+	t.entityprofile[t.entid].iscollectable =t.grideleprof.iscollectable;
 	t.entityprofile[t.entid].texnid=t.grideleprof.texnid;
 	t.entityprofile[t.entid].texsid=t.grideleprof.texsid;
 	t.entityprofile[t.entid].texidmax=t.grideleprof.texidmax;
@@ -4490,7 +4492,7 @@ void entity_updatetextureandeffectfromgrideleprof ( void )
 	t.grideleprof.texdid=t.entityprofile[t.entid].texdid;
 	t.grideleprof.texaltdid=t.entityprofile[t.entid].texaltdid;
 	t.grideleprof.effect_s=t.entityprofile[t.entid].effect_s;
-	t.grideleprof.usingeffect=t.entityprofile[t.entid].usingeffect;
+	t.grideleprof.iscollectable =t.entityprofile[t.entid].iscollectable;
 	t.grideleprof.texnid=t.entityprofile[t.entid].texnid;
 	t.grideleprof.texsid=t.entityprofile[t.entid].texsid;
 	t.grideleprof.texidmax=t.entityprofile[t.entid].texidmax;
@@ -4593,7 +4595,7 @@ void entity_loadtexturesandeffect ( void )
 	}
 	#ifdef WICKEDENGINE
 	// Wicked does not support old method of loading images/effects
-	t.entityprofile[t.entid].usingeffect=0;
+	//t.entityprofile[t.entid].usingeffect=0;
 	t.entityprofile[t.entid].texaltdid=0;
 	#else
 	if ( t.tfile_s != "" ) 

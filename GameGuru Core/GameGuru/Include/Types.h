@@ -5613,7 +5613,7 @@ struct entityprofiletype
 	int texidmax;
 	cstr effect_s;
 	int effectprofile;
-	int usingeffect;
+	int iscollectable; // was usingeffect
 	int castshadow;
 	int smoothangle;
 	int transparency;
@@ -5959,7 +5959,7 @@ struct entityprofiletype
 		 transparency = 0;
 		 smoothangle = 0;
 		 castshadow = 0;
-		 usingeffect = 0;
+		 iscollectable = 0; // was usingeffect = 0;
 		 effect_s = "";
 		 texidmax = 0;
 		 texaltdid = 0;
@@ -6094,7 +6094,7 @@ struct entityeleproftype
 	int texaltdid;
 	int texidmax;
 	cstr effect_s;
-	int usingeffect;
+	int iscollectable; // was usingeffect;
 	int transparency;
 	int strength;
 	int isimmobile;
@@ -6338,7 +6338,7 @@ struct entityeleproftype
 		 isimmobile = 0;
 		 strength = 0;
 		 transparency = 0;
-		 usingeffect = 0;
+		 iscollectable = 0; // was usingeffect = 0;
 		 effect_s = "";
 		 texidmax = 0;
 		 texaltdid = 0;

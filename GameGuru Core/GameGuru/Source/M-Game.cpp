@@ -2151,7 +2151,7 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									HideObject(t.obj);
 									HideObject(glueobj);
 
-									SetObjectEffect(t.entityelement[t.e].draw_call_obj, t.entityprofile[t.entid].usingeffect );
+									//SetObjectEffect(t.entityelement[t.e].draw_call_obj, t.entityprofile[t.entid].usingeffect );
 									ShowObject(t.entityelement[t.e].draw_call_obj);
 
 									g.merged_new_objects++;

@@ -1053,6 +1053,24 @@ luaMessage** ppLuaMessages = NULL;
 	t.entityelement[iIndex].activated = lua_tonumber(L, 2);
 	return 0;
  }
+ int SetEntityHasKey(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iIndex = lua_tonumber(L, 1);
+	 t.entityelement[iIndex].lua.haskey = lua_tonumber(L, 2);
+	 return 0;
+ }
+ int SetEntityCollectable(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iIndex = lua_tonumber(L, 1);
+	 t.entityelement[iIndex].eleprof.iscollectable = lua_tonumber(L, 2);
+	 return 0;
+ }
  int SetEntityCollected(lua_State *L)
  {
 	lua = L;
@@ -1062,14 +1080,33 @@ luaMessage** ppLuaMessages = NULL;
 	t.entityelement[iIndex].collected = lua_tonumber(L, 2);
 	return 0;
  }
- int SetEntityHasKey(lua_State *L)
+ int GetEntityCollectable(lua_State* L)
  {
-	lua = L;
-	int n = lua_gettop(L);
-	if ( n < 2 ) return 0;
-	int iIndex = lua_tonumber(L, 1);
-	t.entityelement[iIndex].lua.haskey = lua_tonumber(L, 2);
-	return 0;
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iReturnValue = 0;
+	 if (e > 0)
+	 {
+		 iReturnValue = t.entityelement[e].eleprof.iscollectable;
+	 }
+	 lua_pushinteger(L, iReturnValue);
+	 return 1;
+ }
+ int GetEntityCollected(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iReturnValue = 0;
+	 if (e > 0)
+	 {
+		 iReturnValue = t.entityelement[e].collected;
+	 }
+	 lua_pushinteger(L, iReturnValue);
+	 return 1;
  }
  int GetEntityWhoActivated(lua_State *L)
  {
@@ -8059,7 +8096,10 @@ void addFunctions()
 
 	lua_register(lua, "SetEntityActive", SetEntityActive);
 	lua_register(lua, "SetEntityActivated", SetEntityActivated);
+	lua_register(lua, "SetEntityCollectable", SetEntityCollectable);
 	lua_register(lua, "SetEntityCollected", SetEntityCollected);
+	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
+	lua_register(lua, "GetEntityCollected", GetEntityCollected);
 	lua_register(lua, "SetEntityHasKey", SetEntityHasKey);
 	lua_register(lua, "GetEntityActive", GetEntityActive);
 	lua_register(lua, "GetEntityWhoActivated", GetEntityWhoActivated);

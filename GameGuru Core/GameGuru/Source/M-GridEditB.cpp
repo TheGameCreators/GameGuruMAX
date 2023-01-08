@@ -25771,7 +25771,7 @@ void DisplayFPEMedia(bool readonly, int entid, entityeleproftype *edit_gridelepr
 				{
 					if (mediaactive[0])
 					{
-#ifdef WICKEDENGINE
+						#ifdef WICKEDENGINE
 						#define IMGFILEID (PROPERTIES_CACHE_ICONS+998)
 						static cstr imgfile = "";
 						static int imgfile_preview_id = 0;
@@ -25916,6 +25916,19 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 			replaceAll(newtext, " to YES", "");
 			ImGui::SetTooltip("%s", newtext.c_str());
 		}
+
+		// collectable dropdown - hmm not called or used
+		//btmp = edit_grideleprof->iscollectable;
+		//ImGui::Checkbox("Is Collectable?", &btmp);
+		//edit_grideleprof->iscollectable = btmp;
+		//desc = t.strarr_s[583];
+		//if (ImGui::IsItemHovered() && desc.Len() > 0)
+		//{
+		//	std::string newtext = desc.Get();
+		//	replaceAll(newtext, "Set to YES", "If set");
+		//	replaceAll(newtext, " to YES", "");
+		//	ImGui::SetTooltip("%s", newtext.c_str());
+		//}
 
 		//t.grideleprof.phyweight = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.phyweight), t.strarr_s[584].Get(), t.strarr_s[585].Get()));
 		ImGui::TextCenter("Weight of Object");
@@ -29402,6 +29415,18 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	ImGui::Checkbox("Always Active?", &btmp);
 	edit_grideleprof->phyalways = btmp;
 	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will always be active, no matter how far away the player might be");
+	ImGui::Indent(-10);
+
+	// Is Collectable general properties
+	ImGui::Indent(10);
+	bool bCollectable = false;
+	if (edit_grideleprof->iscollectable != 0) bCollectable = true;
+	ImGui::Checkbox("Is Collectable?", &bCollectable);
+	if (bCollectable == true )
+		edit_grideleprof->iscollectable = 1;
+	else
+		edit_grideleprof->iscollectable = 0;
+	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
 	ImGui::Indent(-10);
 
 	// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work

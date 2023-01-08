@@ -8735,10 +8735,17 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 
+								// special color change when object is a collectable
+								if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+								else
+									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+
 								ImGui::Indent(10);
 								t.entityelement[iEntityIndex].eleprof.name_s = imgui_setpropertystring2_v2(t.group, t.entityelement[iEntityIndex].eleprof.name_s.Get(), "", t.strarr_s[204].Get(), false);
 								ImGui::Indent(-10);
 
+								ImGui::PopStyleColor();
 								ImGui::Separator();
 							}
 						}
@@ -9986,6 +9993,86 @@ void mapeditorexecutable_loop(void)
 						}
 						#endif
 
+						// Collectbale Settings if required
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+						{
+							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
+							{
+								ImGui::Indent(10);
+								ImGui::TextCenter("Item Attributes");
+
+								// store all data in entityelement eleprof (and add to save/load system)
+
+								static cstr invitemattrib1name;
+								static int invitemattrib1 = 42;
+								//ImGui::Text( "Attribute A:" );
+								invitemattrib1name = imgui_setpropertystring2_v2(t.group, invitemattrib1name.Get(), "", "Set an attribute label for this inventory item", false);
+								ImGui::MaxSliderInputInt("##invitemattrib1", &invitemattrib1, 0, 999, "Set attribute to a value");
+
+								static cstr invitemattrib2name;
+								static int invitemattrib2 = 22;
+								//ImGui::Text( "Attribute B:");
+								invitemattrib2name = imgui_setpropertystring2_v2(t.group, invitemattrib2name.Get(), "", "Set an attribute label for this inventory item", false);
+								ImGui::MaxSliderInputInt("##invitemattrib2", &invitemattrib2, 0, 999, "Set attribute to a value");
+
+								static cstr invitemattribCname;
+								static int invitemattribC = 22;
+								//ImGui::Text("Attribute C:");
+								invitemattribCname = imgui_setpropertystring2_v2(t.group, invitemattribCname.Get(), "", "Set an attribute label for this inventory item", false);
+								ImGui::MaxSliderInputInt("##invitemattrib3", &invitemattribC, 0, 999, "Set attribute to a value");
+
+								static cstr invitemiconfilename[2] = { "", "" };
+								for (int iInvIconFileIndex = 0; iInvIconFileIndex < 2; iInvIconFileIndex++)
+								{
+									if (iInvIconFileIndex == 0)
+										ImGui::TextCenter("Item Small Icon");
+									else
+										ImGui::TextCenter("Item Large Icon");
+									int iInvIconFileID = PROPERTIES_CACHE_ICONS + 900 + iInvIconFileIndex;
+									static cstr inviconfile[10] = { "", "", "", "", "", "", "", "", "", "" };
+									static int inviconfile_preview_id[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+									cstr iconfile = invitemiconfilename[iInvIconFileIndex];
+									if (iconfile != inviconfile[iInvIconFileIndex])
+									{
+										//Load new image preview.
+										inviconfile_preview_id[iInvIconFileIndex] = 0;
+										if (iconfile != "")
+										{
+											image_setlegacyimageloading(true);
+											LoadImage((char*)iconfile.Get(), iInvIconFileID);
+											image_setlegacyimageloading(false);
+											inviconfile_preview_id[iInvIconFileIndex] = iInvIconFileID;
+											if (!GetImageExistEx(iInvIconFileID))
+											{
+												inviconfile_preview_id[iInvIconFileIndex] = 0;
+											}
+										}
+										inviconfile[iInvIconFileIndex] = iconfile;
+									}
+									iconfile = imgui_setpropertyfile2_v2(1, iconfile.Get(), "", "Select image to represent the item in the inventory HUD", "imagebank\\", false);
+									invitemiconfilename[iInvIconFileIndex] = iconfile;
+									if (inviconfile_preview_id[iInvIconFileIndex] > 0 && GetImageExistEx(inviconfile_preview_id[iInvIconFileIndex]))
+									{
+										extern ImVec4 drawCol_back;
+										extern ImVec4 drawCol_normal;
+										extern ImVec4 drawCol_hover;
+										extern ImVec4 drawCol_Down;
+										float w = ImGui::GetContentRegionAvailWidth();
+										float iwidth = w;
+										float ImgW = ImageWidth(inviconfile_preview_id[iInvIconFileIndex]);
+										float ImgH = ImageHeight(inviconfile_preview_id[iInvIconFileIndex]);
+										float fHighRatio = ImgH / ImgW;
+										ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (iwidth * 0.5), 0.0f));
+										ImGui::ImgBtn(inviconfile_preview_id[iInvIconFileIndex], ImVec2(iwidth - 18.0f, (iwidth - 18.0f) * fHighRatio), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
+									}
+								}
+
+								ImGui::Indent(-10);
+								iLastOpenHeader = 28;
+							}
+						}
+
 						bool bMaterialsUsed = true;
 						cStr HeaderName = "Behavior##2";
 						if (t.entityprofile[iMasterID].ismarker == 1)
@@ -10100,87 +10187,6 @@ void mapeditorexecutable_loop(void)
 									t.importer.cModelMeshNames.clear();
 								}
 
-								//if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
-								//{
-								//	//t.grideleprof.WEMaterial.MaterialActive = false;
-								//
-								//	if (ImGui::Checkbox("Enable Custom Materials##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
-								//	{
-								//		bNeedMaterialUpdate = true;
-								//	}
-								//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("This can break instancing and add additional draw calls");
-								//
-								//	t.importer.bModelMeshNamesSet = false;
-								//	t.importer.cModelMeshNames.clear();
-								//	////PE: Copy master material settings to t.grideleprof.WEMaterial
-								//	//if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
-								//	//{
-								//	//	//PE: reset mesh names, as we got a new object.
-								//	//	t.importer.bModelMeshNamesSet = false;
-								//	//	t.importer.cModelMeshNames.clear();
-								//	//
-								//	//	//PE: Get defaults from wicked directly.
-								//	//	Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	//	//PE: Set materials (variables) from new WEMaterial.
-								//	//	Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	//	t.entityelement[iEntityIndex].eleprof.WEMaterial.MaterialActive = true;
-								//	//}
-								//}
-								//else
-								//{
-								//	if (ImGui::Checkbox("Enable Custom Materials##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
-								//	{
-								//		bNeedMaterialUpdate = true;
-								//	}
-								//	t.importer.bModelMeshNamesSet = false;
-								//	t.importer.cModelMeshNames.clear();
-								//	//t.grideleprof.WEMaterial.MaterialActive = true;
-								//	//if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
-								//	//{
-								//	//	//PE: reset mesh names, as we got a new object.
-								//	//	t.importer.bModelMeshNamesSet = false;
-								//	//	t.importer.cModelMeshNames.clear();
-								//	//
-								//	//	//PE: Get material from master object. and copy to t.entityelement[iEntityIndex].eleprof.
-								//	//	sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
-								//	//	Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	//	if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-								//	//		SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
-								//	//
-								//	//	Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	//}
-								//	//else
-								//	//{
-								//	//	t.grideleprof.WEMaterial.MaterialActive = false;
-								//	//}
-								//
-								//	//// detect if object changed while showing materials, ensure the switch happens in the UI
-								//	//static void* pLastObjectPtr;
-								//	//if ((void*)pObject != pLastObjectPtr)
-								//	//{
-								//	//	//PE: reset mesh names, as we got a new object.
-								//	//	t.importer.bModelMeshNamesSet = false;
-								//	//	t.importer.cModelMeshNames.clear();
-								//
-								//	//	Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	//	pLastObjectPtr = (void*)pObject;
-								//	//}
-								//
-								//	#ifdef WICKEDENGINE
-								//	WickedSetEntityId(iMasterID);
-								//	WickedSetElementId(iEntityIndex);
-								//	#endif
-								//	
-								//	// display custom material settings
-								//	Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-								//	
-								//	#ifdef WICKEDENGINE
-								//	WickedSetEntityId(-1);
-								//	WickedSetElementId(0);
-								//	#endif
-								//
-								//}
-
 								if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
 								{
 									#ifdef WICKEDENGINE
@@ -10222,28 +10228,6 @@ void mapeditorexecutable_loop(void)
 								}
 							}
 						}
-
-						#ifndef WICKEDENGINE
-						bool bGeneralActive = false;
-						if ((t.entityprofile[iMasterID].ismarker == 0 /*|| t.entityprofile[iMasterID].islightmarker == 1 */|| t.tflagspawn == 1) )
-							bGeneralActive = true;
-						if (t.tflagchar == 0 && t.tflagvis == 1 && t.tflagsimpler == 0)
-							bGeneralActive = true;
-
-						if (bGeneralActive)
-						{
-							char title[24] = "General##2";
-							if (t.entityprofile[iMasterID].ischaracter == 1)
-								strcpy(title, "Character Settings##2");
-							//if (t.tflaglight == 0)
-							//{
-								if (ImGui::StyleCollapsingHeader(title, ImGuiTreeNodeFlags_None)) //ImGuiTreeNodeFlags_DefaultOpen
-								{
-									DisplayFPEGeneral(false, iMasterID, &t.entityelement[iEntityIndex].eleprof, iEntityIndex);
-								}
-							//}
-						}
-						#endif
 
 						#ifdef WICKEDENGINE
 						// Moved into its own settings.

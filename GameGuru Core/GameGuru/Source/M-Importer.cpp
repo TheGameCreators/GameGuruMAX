@@ -9497,39 +9497,6 @@ void importer_save_fpe(void)
 	t.tString = "" ; t.tString = t.tString + importerPadString("effect") + "= " + t.importer.objectFPE.effect ;WriteString (  1 , t.tString.Get() );
 	t.tString = ""; WriteString (1, t.tString.Get());
 
-	/* no longer used
-	t.tString = ";physics shapes"; WriteString (1, t.tString.Get());
-	if ( t.importer.objectFPE.collisionmode != "40" )
-	{
-		// no physics box collision
-		t.tString = ""; t.tString = t.tString + importerPadString("physicscount") + "= 0"; WriteString ( 1, t.tString.Get() );
-	}
-	else
-	{
-		// physics box collision used, so export details
-		t.tString = ""; t.tString = t.tString + importerPadString("physicscount") + "= " + Str(t.importer.collisionShapeCount) ; WriteString (  1, t.tString.Get() );
-		t.tExportScale_f = 100.0 / t.importer.objectScaleForEditing;
-		for ( t.tPCount = 0 ; t.tPCount<=  t.importer.collisionShapeCount - 1; t.tPCount++ )
-		{
-			t.strwork = ""; t.strwork = t.strwork + "physics" + Str(t.tPCount);
-			t.tString = ""; t.tString = t.tString+importerPadString( t.strwork.Get() ) + "= " + Chr(34);
-			t.tString = t.tString + "0,";
-			t.tString = t.tString + Str(t.importerCollision[t.tPCount].sizex * t.tExportScale_f) + ",";
-			t.tString = t.tString + Str(t.importerCollision[t.tPCount].sizey * t.tExportScale_f) + ",";
-			t.tString = t.tString + Str(t.importerCollision[t.tPCount].sizez * t.tExportScale_f) + ",";
-			t.tString = t.tString + Str(ObjectPositionX(t.importerCollision[t.tPCount].object2) * t.tExportScale_f) + ",";
-			t.tString = t.tString + Str((ObjectPositionY(t.importerCollision[t.tPCount].object2)* t.tExportScale_f) ) + ",";
-			t.tString = t.tString + Str(ObjectPositionZ(t.importerCollision[t.tPCount].object2) * t.tExportScale_f) + ",";
-			t.tString = t.tString + Str(ObjectAngleX(t.importerCollision[t.tPCount].object2)) + ",";
-			t.tString = t.tString + Str(ObjectAngleY(t.importerCollision[t.tPCount].object2)) + ",";
-			t.tString = t.tString + Str(ObjectAngleZ(t.importerCollision[t.tPCount].object2));
-			t.tString = t.tString + Chr(34);
-			WriteString (  1, t.tString.Get() );
-		}
-	}
-	t.tString = "" ;WriteString (  1 , t.tString.Get() );
-	*/
-
 	t.tString = ";identity details" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("ischaracter") + "= " + t.importer.objectFPE.ischaracter ;WriteString (  1 , t.tString.Get() );
 

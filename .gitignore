@@ -70,3 +70,4 @@ GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloa
 GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/SimonReloaded.vcxproj.FileListAbsolute.txt
 GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/Release/Template_Windows.vcxproj.FileListAbsolute.txt
 GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/Release/Wicked-MAX.res
+*.bin

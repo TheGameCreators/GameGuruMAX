@@ -61,6 +61,6 @@ This is what is called an environmental variable that can be read by the whole s
 
 Required LIBs:
 
-Even though you can compile these LIBs yourself, we have provided them pre-compiled to make things easier. Here is a handy link to them, download the zip, extract and copy to your project area: https://github.com/TheGameCreators/GameGuruMAX/releases/tag/VS2022
+Even though you can compile these LIBs yourself, we have provided them pre-compiled to make things easier. Here is a handy link to them, download the zip, extract and overwrite your 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core' folder. Link: https://github.com/TheGameCreators/GameGuruMAX/releases/tag/VS2022
 
 To report issues, we have consolidated issues from GameGuru Classic and GameGuru MAX into a single issues board, you can find it here: https://github.com/TheGameCreators/GameGuruRepo/issues?q=is%3Aopen+is%3Aissue+label%3AMax

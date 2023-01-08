@@ -54,4 +54,8 @@ Understahding GG_MAX_BUILD_PATH:
 
 This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to out working copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you need to create a DEV folder to place all your many dev files, and then in there create a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it in in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH parh you specify should only point to the build folder, the VS project will do the rest.
 
+Required LIBs:
+
+Even though you can compile these LIBs yourself, we have provided them pre-compiled to make things easier. Here is a handy link to them, download the zip, extract and copy to your project area: https://github.com/TheGameCreators/GameGuruMAX/releases/tag/VS2022
+
 To report issues, we have consolidated issues from GameGuru Classic and GameGuru MAX into a single issues board, you can find it here: https://github.com/TheGameCreators/GameGuruRepo/issues?q=is%3Aopen+is%3Aissue+label%3AMax

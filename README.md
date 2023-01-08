@@ -32,3 +32,5 @@ Steps to compiling and running GameGuru MAX:
 18. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
 19. Right click "Wicked-MAX" again and select REBUILD
 20. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
+
+To report issues, we have consolidated issues from GameGuru Classic and GameGuru MAX into a single issues board, you can find it here: https://github.com/TheGameCreators/GameGuruRepo/issues?q=is%3Aopen+is%3Aissue+label%3AMax

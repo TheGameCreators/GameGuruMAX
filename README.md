@@ -6,6 +6,4 @@ GameGuru MAX is a 3D game maker for simple first person games and is available t
 
 You will need the media files associated with the above product to use this repository.
 
-This source code requires Visual Studio 2017 Community Edition. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2017.
-
-NOTE: This source code repository is currently being upgraded to use DirectX 12. You can browse the code for now, but hold off on making compiles until we announce everything is up and running, tested and ready for you to grab a fork :)
+This source code requires Visual Studio 2022 Community Edition. Ensure you add Visual C++ MFC for x86 and x64 to a clean install of VS2022.

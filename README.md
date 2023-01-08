@@ -37,11 +37,11 @@ Cloning ASSIMP:
 Compiling GAMEGURU MAX:
 
 1. Buy GameGuru MAX from Steam and install. Steam destioation 'MAX root' might be: "D:\SteamLibrary\steamapps\common\GameGuru MAX"
-2. Copy contents of the 'MAX root' to new 'BUILD\GameGuru Wicked MAX Build Area' folder created inside DEV folder (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
+2. Copy contents of the 'MAX root' to new 'BUILD\GameGuru Wicked MAX Build Area\Max' folder created inside DEV folder (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
 3. In Windows 10, type ENV in the search box in the bottom left and hit ENTER
 4. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
-5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
-6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
+5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
+6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
 7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in the DEV folder (i.e. D:\DEV\GAMEGURUMAXREPO).
@@ -57,7 +57,7 @@ Compiling GAMEGURU MAX:
 
 Understahding GG_MAX_BUILD_PATH:
 
-This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to our build copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you'll have created a DEV folder to place all your many dev files, and then in there created a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it is in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH path you specify should only point to the build folder, the VS project will do the rest. The default might be: "D:\DEV\BUILD\GameGuru Wicked MAX Build Area"
+This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to our build copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you'll have created a DEV folder to place all your many dev files, and then in there created a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it is from here that all our compiled files will be copied. When you copy the Steam files over, make sure you put them in their own folder called Max, so it might look like "D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max". The GG_MAX_BUILD_PATH path you specify should only point to the build folder, the VS project will do the rest. The default might be: "D:\DEV\BUILD\GameGuru Wicked MAX Build Area"
 
 Required LIBs:
 

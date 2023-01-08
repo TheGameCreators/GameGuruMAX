@@ -19,7 +19,8 @@ Compiling WICKED ENGINE:
 3. Use GitHub Desktop to CLONE this repository and name it WICKEDREPO located in the DEV folder (i.e. D:\DEV\WICKEDREPO)
 4. Open "WickedEngine.sln" and select "Set as Startup Project" on the 'WickedEngine_Windows' project
 5. Set the Solution Configuration from "Debug" to "ReleaseForGG"
-6. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
+6. 6. Ensure your project properties "Output Directory" in Geberal looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
+7. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
 
 Compiling GAMEGURU MAX:
 

@@ -46,12 +46,12 @@
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\OpenVR\headers;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)SDK\OpenVR\lib\win32;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\..\..\Lib64\Release</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\EAX2\Include\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\OpenVR\headers;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)SDK\OpenVR\lib\win32;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\..\..\Lib64\Debug</OutDir>
   </PropertyGroup>

@@ -23,7 +23,7 @@ Compiling WICKED ENGINE:
 7. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" (use VS2022) and right click 'WickedEngine_Windows' project and select "Set as Startup Project" 
 8. Set the Solution Configuration from "Debug" to "ReleaseForGG". Now right click 'WickedEngine_Windows' project and select Properties
 9. Ensure your project properties "Output Directory" in General looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
-10. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
+10. Right click 'WickedEngine_Windows' project and select REBUILD, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
 
 Cloning ASSIMP:
 

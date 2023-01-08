@@ -32,6 +32,7 @@ Cloning ASSIMP:
 1. The "GameGuru MAX Missing LIBs" zip (see below) contains the required ASSIMP.LIB file, but you will need ASSIMP repo side by side with the other repos
 2. Use GitHub to get the CODE URL so you can clone the following URL: https://github.com/TheGameCreators/assimp
 3. Ensure the name you give for the local folder inside DEV is ASSIMP (i.e. D:\DEV\ASSIMP). Use capitals.
+4. Always respond you are using the repo fior YOUR OWN PURPOSES
 
 Compiling GAMEGURU MAX:
 

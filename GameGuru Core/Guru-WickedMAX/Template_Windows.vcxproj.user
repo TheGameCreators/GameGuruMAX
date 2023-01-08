@@ -9,7 +9,7 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseForSteam|x64'">
-    <LocalDebuggerWorkingDirectory>$(GG_MAX_BUILD_PATH)\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(GG_MAX_BUILD_PATH)\Max\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

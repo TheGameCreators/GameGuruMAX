@@ -55,7 +55,6 @@ Compiling GAMEGURU MAX:
 18. Right click "Wicked-MAX" again and select REBUILD
 19. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
 
-
 Understahding GG_MAX_BUILD_PATH:
 
 This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to out working copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you need to create a DEV folder to place all your many dev files, and then in there create a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it in in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH parh you specify should only point to the build folder, the VS project will do the rest.

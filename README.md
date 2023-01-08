@@ -21,7 +21,7 @@ Steps to compiling and running GameGuru MAX:
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in a folder called DEV (i.e. D:|DEV\GAMEGURUMAXREPO)
 11. Use back to GitHub and go to this repository, copy the URL to the clipboard: https://github.com/TheGameCreators/WickedRepo
-12. As above, copy its URL then use GitHub Desktop to CLONE the repository and use the folder WICKEDREPO located in the DEV folder (i.e. D:|DEV\WICKEDREPO)
+12. Use GitHub Desktop to CLONE this repository and use the folder WICKEDREPO located in the DEV folder (i.e. D:|DEV\WICKEDREPO)
 13. Ensure both GAMEGURUMAXREPO and WICKEDREPO folders are next to each other in the DEV folder and they are populated with files
 14. Download the "GameGuruMAX-MissingLIBs.zip" zip and extract to copy in missing LIB files to make compiling quicker
 15. For the above, the "GameGuru Core" folder should overwrite the one found at: "\DEV\GAMEGURUMAXREPO\GameGuru Core"

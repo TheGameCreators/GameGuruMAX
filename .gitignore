@@ -165,3 +165,10 @@ GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexU
 GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTexWIC.obj
 *.ipch
 GameGuru Core/SDK/DirectXTex/DirectXTex/Bin/Desktop_2022/x64/Release/DirectXTex_Desktop_2022.vcxproj.FileListAbsolute.txt
+GameGuru Launcher MAX/.vs/GameGuru Launcher MAX/v17/.suo
+GameGuru Launcher MAX/GameGuru Launcher MAX/x64/Release/GameGuru Launcher MAX.vcxproj.FileListAbsolute.txt
+GameGuru Launcher MAX/GameGuru Launcher MAX/x64/Release/GameGuru Launcher.ipdb
+GameGuru Launcher MAX/GameGuru Launcher MAX/x64/Release/GameGuru Launcher.res
+Simple Sound Recorder/.vs/voicerecorder/v17/.suo
+Simple Sound Recorder/Win32/Release/SoundRec.res
+Simple Sound Recorder/Win32/Release/SoundRec.vcxproj.FileListAbsolute.txt

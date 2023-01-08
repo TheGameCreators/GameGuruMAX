@@ -34,12 +34,12 @@ Cloning ASSIMP:
 
 Compiling GAMEGURU MAX:
 
-1. Buy GameGuru MAX from Steam and install. Download VS2022 and install.
-2. In Windows 10, type ENV in the search box in the bottom left and hit ENTER
-3. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
-4. Copy contents of the MAX root (default "D:\SteamLibrary\steamapps\common\GameGuru MAX" to new BUILD folder of your choice
-5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder of your choice
-6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH)
+1. Buy GameGuru MAX from Steam and install. Steam destioation 'MAX root' might be: "D:\SteamLibrary\steamapps\common\GameGuru MAX"
+2. Copy contents of the 'MAX root' to new 'BUILD\GameGuru Wicked MAX Build Area' folder created inside DEV folder (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
+3. In Windows 10, type ENV in the search box in the bottom left and hit ENTER
+4. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
+5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
+6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
 7. Now to go the CODE tab above, then click the CODE button and copy the Repository URL into your clipboard
 8. Install GitHub Desktop and log in with a previously registered GitHub account
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied

@@ -47,12 +47,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)SDK\OpenVR\lib\win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\BaseClasses\;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\..\..\Lib64\Release</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\NVAPI;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)SDK\OpenVR\lib\win32;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)SDK\DirectX\Lib\x86;$(SolutionDir)SDK\BaseClasses\;$(LibraryPath)</LibraryPath>
     <OutDir>$(ProjectDir)..\..\..\Lib64\Debug</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

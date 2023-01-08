@@ -1094,9 +1094,9 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\weather-snow.png", ENV_SNOW);
 	LoadImage("editors\\uiv3\\weather.png", ENV_WEATHER);
 
-	LoadImage("editors\\uiv3\\rpg-game.png", TOOL_RPG);
-	LoadImage("editors\\uiv3\\puzzle.png", TOOL_PUZZLE);
-	LoadImage("editors\\uiv3\\shooter.png", TOOL_SHOOTER);
+	//LoadImage("editors\\uiv3\\rpg-game.png", TOOL_RPG);
+	//LoadImage("editors\\uiv3\\puzzle.png", TOOL_PUZZLE);
+	LoadImage("editors\\uiv3\\logic.png", TOOL_LOGIC);// shooter.png", TOOL_SHOOTER);
 	
 	LoadImage("entitybank\\_markers\\Trigger Zone.bmp", TOOL_TRIGGERZONE);
 	LoadImage("entitybank\\_markers\\flag.bmp", TOOL_FLAG);
@@ -2901,7 +2901,7 @@ void mapeditorexecutable_loop(void)
 			//LB: Shooter now a filter mode
 			//if (Shooter_Tools_Window)
 			//{
-			//	current_mode = TOOL_SHOOTER;
+			//	current_mode = TOOL_LOGIC;//TOOL_SHOOTER;
 			//}
 			//else
 			#endif
@@ -3297,9 +3297,9 @@ void mapeditorexecutable_loop(void)
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
 		drawCol_Selection = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		CheckTutorialAction("TOOL_ENTITY", -10.0f); //Tutorial: check if we are waiting for this action
-		if (current_mode == TOOL_ENTITY || current_mode == TOOL_SHOOTER) drawCol_tmp = drawCol_back_entities * drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
-		if ((current_mode == TOOL_ENTITY || current_mode == TOOL_SHOOTER ) && pref.current_style == 25) drawCol_Selection = drawCol_Divider_Selected;
-		if ((current_mode == TOOL_ENTITY || current_mode == TOOL_SHOOTER ) && pref.current_style >= 0) window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
+		if (current_mode == TOOL_ENTITY || current_mode == TOOL_LOGIC) drawCol_tmp = drawCol_back_entities * drawCol_back_active; else drawCol_tmp = drawCol_back_entities;
+		if ((current_mode == TOOL_ENTITY || current_mode == TOOL_LOGIC) && pref.current_style == 25) drawCol_Selection = drawCol_Divider_Selected;
+		if ((current_mode == TOOL_ENTITY || current_mode == TOOL_LOGIC) && pref.current_style >= 0) window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 		if (ImGui::ImgBtn(TOOL_ENTITY, iToolbarIconSize, drawCol_tmp, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down,0, 0, 0, 0, false, toolbar_gradiant,false,false,false, bBoostIconColors)) {
 
 			CloseAllOpenTools();
@@ -3621,6 +3621,7 @@ void mapeditorexecutable_loop(void)
 
 		ImVec4 toggle_color;
 
+		/* new design does not need separate RPG and PUZZLE toolbars
 		//RPG Start
 		bool bRPGToggle = false; // = RPG_Tools_Window (when ready to be used).
 		ImGui::SetCursorPos(ImVec2(rightx - right_border - (precise_icon_width * 8), ImGui::GetCursorPos().y));
@@ -3631,7 +3632,8 @@ void mapeditorexecutable_loop(void)
 			toggle_color = drawCol_back_test;
 		}
 
-		if (ImGui::ImgBtn(TOOL_RPG, iToolbarIconSize, toggle_color, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) {
+		if (ImGui::ImgBtn(TOOL_RPG, iToolbarIconSize, toggle_color, drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) 
+		{
 			bInfo_Window = true;
 			cInfoMessage = "Future Feature: New Game Elements and Behavior logic will be added during the Early Access development phase that will allow you to create RPG style games.";
 			if (0) //PE: Set to 1 when window ready.
@@ -3698,7 +3700,7 @@ void mapeditorexecutable_loop(void)
 			toggle_color = drawCol_back_test;
 		}
 
-		if (ImGui::ImgBtn(TOOL_PUZZLE, iToolbarIconSize, toggle_color, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) {
+		if (ImGui::ImgBtn(TOOL_PUZZLE, iToolbarIconSize, toggle_color, drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) {
 			bInfo_Window = true;
 			cInfoMessage = "Future Feature: New Game Elements and Behavior logic will be added during the Early Access development phase that will allow you to create Puzzle style games.";
 			if (0) //PE: Set to 1 when window ready.
@@ -3753,8 +3755,9 @@ void mapeditorexecutable_loop(void)
 		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Puzzle Games (This feature not yet available)");
 		ImGui::SameLine();
 		//Puzzle End
+		*/
 
-		//Shooter Start
+		// Logic Toolbar - was Shooter Start
 		ImGui::SetCursorPos(ImVec2(rightx - right_border - (precise_icon_width * 6), ImGui::GetCursorPos().y));
 		toggle_color = drawCol_toogle;
 		if (pref.current_style == 25) drawCol_Selection = drawCol_Divider_Selected;
@@ -3767,62 +3770,15 @@ void mapeditorexecutable_loop(void)
 		{
 			window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 		}
-		if (ImGui::ImgBtn(TOOL_SHOOTER, iToolbarIconSize, toggle_color, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) 
+		if (ImGui::ImgBtn(TOOL_LOGIC, iToolbarIconSize, toggle_color, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors))
 		{
 			//LB: Shooter now a filter mode toggle only
 			if (Shooter_Tools_Window)
 				Shooter_Tools_Window = false;
 			else
 				Shooter_Tools_Window = true;
-			/*
-			//Display shooter window.
-			if (iRestoreLastWindow == 0 && !pref.iEnableSingleRightPanelAdvanced)
-			{
-				if (bTerrain_Tools_Window)
-					iRestoreLastWindow = 1;
-				else
-					iRestoreLastWindow = 2;
-			}
-			if (!pref.iEnableSingleRightPanelAdvanced)
-				CloseAllOpenTools();
-
-			if (Shooter_Tools_Window) 
-			{
-				Shooter_Tools_Window = false;
-				if (iRestoreLastWindow >= 0 && !pref.iEnableSingleRightPanelAdvanced)
-				{
-					if (iRestoreLastWindow == 1)
-					{
-						bTerrain_Tools_Window = true;
-						t.grideditselect = 0;
-					}
-					else
-					{
-						bForceKey = true;
-						csForceKey = "e";
-						Entity_Tools_Window = true;
-					}
-					iRestoreLastWindow = 0;
-				}
-			}
-			else 
-			{
-				Shooter_Tools_Window = true;
-				if (!pref.iEnableSingleRightPanelAdvanced)
-				{
-					if (Weather_Tools_Window)
-						Weather_Tools_Window = false;
-					if (Visuals_Tools_Window)
-						Visuals_Tools_Window = false;
-					Entity_Tools_Window = false;
-				}
-				t.inputsys.dowaypointview = 0;
-				t.gridentitymarkersmodeonly = 0;
-				t.grideditselect = 5;
-			}
-			*/
 		}
-		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Shooter Games");
+		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Visual Logic Connections");
 		ImGui::SameLine();
 		//Shooter End
 

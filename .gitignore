@@ -1,0 +1,72 @@
+
+*.vsidx
+*.lock
+*.db
+*.db-shm
+*.db-wal
+*.opendb
+*.pdb
+*.log
+*.recipe
+*.tlog
+*.obj
+*.pch
+*.sbr
+*.iobj
+*.lib
+*.bsc
+GameGuru Core/.vs/GameGuruWickedMAX/v17/.suo
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Animation/x64/Release/Animation.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Animation/x64/Release/Animation.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Basic2D/x64/Release/Basic2D.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Basic2D/x64/Release/Basic2D.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bitmap/x64/Release/Bitmap.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bitmap/x64/Release/Bitmap.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bullet/x64/Release/Bullet.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bullet/x64/Release/Script1.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Camera/x64/Release/Camera.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Camera/x64/Release/Camera.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/ConvX/x64/Release/ConvX.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Core/x64/Release/DBDLLCore.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Core/x64/Release/DBDLLCore.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/File/x64/Release/File.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/File/x64/Release/FilePlus.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/FTP/x64/Release/Ftp.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/FTP/x64/Release/FTP.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Image/x64/Release/Image.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Image/x64/Release/Image.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Input/x64/Release/Input.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Input/x64/Release/Input.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Light/x64/Release/Light.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Light/x64/Release/Light.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Memblocks/x64/Release/Memblocks.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Memblocks/x64/Release/Memblocks.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Objects/x64/Release/Objects.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Objects/x64/Release/ObjectsPlus.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Setup/x64/Release/Setup.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Setup/x64/Release/Setup.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sound/x64/Release/Sound.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sound/x64/Release/Sound.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sprites/x64/Release/Sprites.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sprites/x64/Release/Sprites.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/System/x64/Release/System.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/System/x64/Release/System.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Text/x64/Release/Text.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Text/x64/Release/Text.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Vectors/x64/Release/Vectors.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Vectors/x64/Release/Vectors.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/CPU3D/x64/Release/CPU3DTest.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/CPU3D/x64/Release/Resource.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkAI/x64/Release/DarkMind.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkAI/x64/Release/stringtable.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkLUA/x64/Release/DarkLUA.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkLUA/x64/Release/DarkLUA.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/Enhancements/x64/Release/commands.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/Enhancements/x64/Release/Main.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/GGVR/x64/Release/GGVR.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/PhotonMultiplayer/x64/Release/PhotonMultiplayer.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/PhotonMultiplayer/x64/Release/PhotonMultiplayer.vcxproj.FileListAbsolute.txt
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/SimonReloaded.res
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/SimonReloaded.vcxproj.FileListAbsolute.txt
+GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/Release/Template_Windows.vcxproj.FileListAbsolute.txt
+GameGuru Core/Guru-WickedMAX/Wicked-MAX/x64/Release/Wicked-MAX.res

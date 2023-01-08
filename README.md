@@ -44,24 +44,23 @@ Compiling GAMEGURU MAX:
 6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
 7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
-10. Ensure folder you specify is called GAMEGURUMAXREPO, located in a folder called DEV (i.e. D:|DEV\GAMEGURUMAXREPO)
-11. Ensure both GAMEGURUMAXREPO and WICKEDREPO folders are next to each other in the DEV folder and they are populated with files
-12. Download the "GameGuruMAX-MissingLIBs.zip" zip and extract to copy in missing LIB files to make compiling quicker
-13. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
-14. For the above, the "GameGuru Core" folder should overwrite the one found at: "\DEV\GAMEGURUMAXREPO\GameGuru Core"
-15. Now open the project "GameGuruWickedMAX.sln" using VS2022
+10. Ensure folder you specify is called GAMEGURUMAXREPO, located in the DEV folder (i.e. D:\DEV\GAMEGURUMAXREPO).
+11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone.
+12. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
+13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. Find the folder 'GameGuru Core' and copy it to GAMEGURUMAXREPO
+14. For the above, you should be looking to overwrite this folder 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core'. It will add some extra LIBs.
+15. Now open the project "GameGuru Core\GameGuruWickedMAX.sln" using VS2022
 16. Set the Solution Configuration from "Debug" to "Release"
-17. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
+17. Right click the "Wicked-MAX" project (at the bottom) and select "Set as Startup Project"
 18. Right click "Wicked-MAX" again and select REBUILD
 19. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
 
-
 Understahding GG_MAX_BUILD_PATH:
 
-This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to out working copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you need to create a DEV folder to place all your many dev files, and then in there create a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it in in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH parh you specify should only point to the build folder, the VS project will do the rest.
+This is what is called an environmental variable that can be read by the whole system, including VS projects. We use this to store the path to our build copy of GameGuru MAX for working on the software. We do not use the official Steam folder location as we want to keep that clean. To this end, you'll have created a DEV folder to place all your many dev files, and then in there created a folder called BUILD. Inside that you can create a folder called "GameGuru Wicked MAX Build Area" and it is in here that all our MAX root files will be copied from the Steam version (which you need to do manually). The GG_MAX_BUILD_PATH path you specify should only point to the build folder, the VS project will do the rest. The default might be: "D:\DEV\BUILD\GameGuru Wicked MAX Build Area"
 
 Required LIBs:
 
-Even though you can compile these LIBs yourself, we have provided them pre-compiled to make things easier. Here is a handy link to them, download the zip, extract and copy to your project area: https://github.com/TheGameCreators/GameGuruMAX/releases/tag/VS2022
+Even though you can compile these LIBs yourself, we have provided them pre-compiled to make things easier. Here is a handy link to them, download the zip, extract and overwrite your 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core' folder. Link: https://github.com/TheGameCreators/GameGuruMAX/releases/tag/VS2022
 
 To report issues, we have consolidated issues from GameGuru Classic and GameGuru MAX into a single issues board, you can find it here: https://github.com/TheGameCreators/GameGuruRepo/issues?q=is%3Aopen+is%3Aissue+label%3AMax

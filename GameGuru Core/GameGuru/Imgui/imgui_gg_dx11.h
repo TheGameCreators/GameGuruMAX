@@ -150,9 +150,9 @@ IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
 #define ENV_SNOW UIV3IMAGES+88
 #define ENV_WEATHER UIV3IMAGES+89
 
-#define TOOL_RPG UIV3IMAGES+90
-#define TOOL_PUZZLE UIV3IMAGES+91
-#define TOOL_SHOOTER UIV3IMAGES+92
+//#define TOOL_RPG UIV3IMAGES+90
+//#define TOOL_PUZZLE UIV3IMAGES+91
+#define TOOL_LOGIC UIV3IMAGES+92
 
 #define TOOL_TRIGGERZONE UIV3IMAGES+93
 #define TOOL_FLAG UIV3IMAGES+94
@@ -828,7 +828,8 @@ struct StoryboardNodesStruct
 	int widget_type[STORYBOARD_MAXWIDGETS]; // but,text,image,video...
 	int widget_read_only[STORYBOARD_MAXWIDGETS];
 	int widget_layer[STORYBOARD_MAXWIDGETS];
-	int widget_output_pin[STORYBOARD_MAXWIDGETS]; //off,level,screen.
+	//int widget_output_pin[STORYBOARD_MAXWIDGETS]; //off,level,screen. 2023 - does not seem to be used
+	int widget_initial_value[STORYBOARD_MAXWIDGETS]; //off,level,screen.
 	char widget_name[STORYBOARD_MAXWIDGETS][256]; //for generating final images in titlebank/default/...
 	//PE: Lets do some fillers, so when starting to save project we can just expend it later.
 	//PE: You just add a new one, a line before the filler and cound the filler down.

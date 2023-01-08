@@ -5842,11 +5842,35 @@ int GetStoryboardActive(lua_State *L)
 }
 
 int iSpecialLuaReturn = -1;
-int DisplayScreen(lua_State *L)
+int InitScreen(lua_State* L)
+{
+	// write to active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
+	char pScreenName[512];
+	strcpy(pScreenName, lua_tostring(L, 1));
+	int nodeid = FindLuaScreenNode(pScreenName);
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		for (int i = 0; i < STORYBOARD_MAXWIDGETS; i++)
+		{
+			if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+			{
+				std::string readout = Storyboard.widget_readout[nodeid][i];
+				if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+				{
+					char pUserDefinedGlobal[256];
+					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
+					LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
+				}
+			}
+		}
+	}
+	return 0;
+}
+int DisplayScreen(lua_State* L)
 {
 	char pScreenName[512];
 	strcpy(pScreenName, lua_tostring(L, 1));
-	int screen_editor(int nodeid, bool standalone = false, char *screen = NULL);
+	int screen_editor(int nodeid, bool standalone = false, char* screen = NULL);
 	screen_editor(-1, true, pScreenName);
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
@@ -8960,6 +8984,7 @@ void addFunctions()
 
 	#ifdef STORYBOARD
 	//Storyboard
+	lua_register(lua, "InitScreen", InitScreen);
 	lua_register(lua, "DisplayScreen", DisplayScreen);
 	lua_register(lua, "GetStoryboardActive", GetStoryboardActive);
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);

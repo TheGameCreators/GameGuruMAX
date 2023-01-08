@@ -21,6 +21,7 @@
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -71,7 +72,7 @@
       </HeaderFileName>
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <AdditionalIncludeDirectories>.\..\..\Shared\Bullet\Ragdoll\DBPro\include;.\..\..\ode\include;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;.\..\..\..\..\SDK\BULLET\bullet-3.19\src;$(ProjectDir)..\..\..\..\GameGuru\Include\;.\..\..\..\..\SDK\BULLET\bullet-3.19\Extras\VHACD\inc</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ODE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>

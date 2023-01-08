@@ -37307,7 +37307,8 @@ void reset_single_node(int node)
 		Storyboard.Nodes[i].widget_font_size[ll] = 1.0;
 		Storyboard.Nodes[i].widget_type[ll] = 0; // 0=none,but,text,image,video...
 		Storyboard.Nodes[i].widget_layer[ll] = 0;
-		Storyboard.Nodes[i].widget_output_pin[ll] = 0; //off,level,screen.
+		//Storyboard.Nodes[i].widget_output_pin[ll] = 0; //off,level,screen.
+		Storyboard.Nodes[i].widget_initial_value[ll] = 0;
 		strcpy(Storyboard.Nodes[i].widget_name[ll], "");
 		Storyboard.Nodes[i].widget_read_only[ll] = 0; //off,level,screen.
 		
@@ -38987,7 +38988,8 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					thisNode.widget_type[j] = source.widget_type[j];
 					thisNode.widget_read_only[j] = source.widget_read_only[j];
 					thisNode.widget_layer[j] = source.widget_layer[j];
-					thisNode.widget_output_pin[j] = source.widget_output_pin[j];
+					//thisNode.widget_output_pin[j] = source.widget_output_pin[j];
+					thisNode.widget_initial_value[j] = source.widget_initial_value[j];
 					strcpy(thisNode.widget_name[j], source.widget_name[j]);
 					Storyboard.widget_colors[node][j] = templateStoryboard.widget_colors[orgnode][j];
 					strcpy(Storyboard.widget_readout[node][j], templateStoryboard.widget_readout[orgnode][j]);
@@ -44864,7 +44866,9 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 	{
 		if (readoutTitle.length() > 0)
 		{
-			strcpy(node.widget_label[widgetSlot], "999");
+			char valueStr[64];
+			sprintf(valueStr, "%d", node.widget_initial_value[widgetSlot]);
+			strcpy(node.widget_label[widgetSlot], valueStr);// "999");
 			node.widget_font_size[widgetSlot] = 0.8f;
 		}
 	}
@@ -44957,7 +44961,8 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 		node.widget_type[i] = node.widget_type[i + 1];
 		node.widget_read_only[i] = node.widget_read_only[i + 1];
 		node.widget_layer[i] = node.widget_layer[i + 1];
-		node.widget_output_pin[i] = node.widget_output_pin[i + 1];
+		//node.widget_output_pin[i] = node.widget_output_pin[i + 1];
+		node.widget_initial_value[i] = node.widget_initial_value[i + 1];
 		strcpy(node.widget_name[i], node.widget_name[i + 1]);
 		Storyboard.widget_colors[nodeID][i] = Storyboard.widget_colors[nodeID][i + 1];
 		strcpy(Storyboard.widget_readout[nodeID][i], Storyboard.widget_readout[nodeID][i + 1]);
@@ -45141,7 +45146,8 @@ void SwapWidgets(int nodeID, int widgetA, int widgetB)
 	std::swap(node.widget_type[widgetA], node.widget_type[widgetB]);
 	std::swap(node.widget_read_only[widgetA], node.widget_read_only[widgetB]);
 	std::swap(node.widget_layer[widgetA], node.widget_layer[widgetB]);
-	std::swap(node.widget_output_pin[widgetA], node.widget_output_pin[widgetB]);
+	//std::swap(node.widget_output_pin[widgetA], node.widget_output_pin[widgetB]);
+	std::swap(node.widget_initial_value[widgetA], node.widget_initial_value[widgetB]);	
 	std::swap(node.widget_name[widgetA], node.widget_name[widgetB]);
 	std::swap(Storyboard.widget_colors[nodeID][widgetA], Storyboard.widget_colors[nodeID][widgetB]);
 	std::swap(Storyboard.widget_readout[nodeID][widgetA], Storyboard.widget_readout[nodeID][widgetB]);
@@ -46233,7 +46239,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					if (bImGuiInTestGame==false)
 					{
 						// placeholder shown in screen editor
-						text = "999";
+						char valueStr[64];
+						sprintf(valueStr, "%d", Storyboard.Nodes[nodeid].widget_initial_value[index]);
+						text = valueStr;
 					}
 					else
 					{
@@ -46938,7 +46946,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImGui::Indent(-10);
 				}
 			}
-			//ImGui::Text("");
 			if (ImGui::StyleCollapsingHeader("Grid Settings", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
@@ -46958,7 +46965,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 				ImGui::Indent(-10);
 			}
-			//ImGui::Text("");
 
 			cstr sLabel = "Button Settings";
 			cstr sPositionText = "Current Position";
@@ -47330,6 +47336,31 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 				ImGui::Indent(-10);
 			}
+
+			// from here, initial values can be set for all detected user global variables in this screen (nice place for them)
+			cstr sUserGlobalLabel = "User Defined Global Settings";
+			if (ImGui::StyleCollapsingHeader(sUserGlobalLabel.Get(), ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::Indent(10);
+				for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+				{
+					if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT )
+					{
+						std::string readout = Storyboard.widget_readout[nodeid][i];
+						if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+						{
+							ImGui::TextCenter(Storyboard.Nodes[nodeid].widget_label[i]);
+							char pUDGVar[256];
+							sprintf(pUDGVar, "##WidgetUDG%d", i);
+							float fValue = Storyboard.Nodes[nodeid].widget_initial_value[i];
+							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
+							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
+						}
+					}
+				}
+				ImGui::Indent(-10);
+			}
+
 			if (bReadOnly)
 			{
 				ImGui::PopItemFlag();

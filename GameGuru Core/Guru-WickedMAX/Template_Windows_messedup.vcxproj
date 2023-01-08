@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{76AA3D37-3252-4785-9334-3FC6B8CC07DE}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>Template_Windows</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Wicked-MAX</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(GG_MAX_BUILD_PATH)\Max\</OutDir>
+    <TargetName>GameGuruMAX</TargetName>
+    <IncludePath>$(SolutionDir)SDK\DirectXTex\DirectXTex;$(SolutionDir)SDK\OGG\include;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\OpenXR\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)SDK\PhotonSDK\Common-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\LoadBalancing-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\Photon-cpp\lib\;$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\OGG\lib64\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Release\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(SolutionDir)SDK\OpenXR\lib64\Release;$(LibraryPath)</LibraryPath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\</OutDir>
+    <TargetName>GameGuruMAX</TargetName>
+    <IncludePath>$(SolutionDir)SDK\DirectX\;$(SolutionDir)SDK\DirectX\Include\;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>GGREDUCED;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../../WICKEDREPO/WickedEngine;../Dark Basic Public Shared/Include/;../Dark Wicked Shared/Include;../GameGuru/Include/;../SDK/DirectX/;../Guru-WickedMAX;../Dark Wicked Shared/DWTerrain/;../SDK/BULLET/bullet-3.19/src;../SDK/Steamworks SDK/public/;..\SDK\RecastContrib;..\SDK\RecastContrib\fastlz;../Guru-WickedMAX/GGRecastDetour/DebugUtils/Include;../Guru-WickedMAX/GGRecastDetour/Detour/Include;../Guru-WickedMAX/GGRecastDetour/DetourCrowd/Include;../Guru-WickedMAX/GGRecastDetour/DetourTileCache/Include;../Guru-WickedMAX/GGRecastDetour/Recast/Include;..\SDK\RecastContrib\SDL\include;../Guru-WickedMAX/GGRecastDetour/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BrowseInformation>false</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2017\x64\Release\;../Guru-WickedMAX/$(Platform)/$(Configuration);../Dark Basic Public Shared/Lib64/;../Dark Wicked Shared/Lib64/;$(VULKAN_SDK)/Lib;../SDK/RecastContrib/SDL/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shcore.lib;openxr_loader.lib;steam_api64.lib;D3dxof.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;DXGI.lib;D3DCompiler.lib;DBDLLCore.lib;Enhancements.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;DarkAI.lib;Psapi.lib;system.lib;Text.lib;input.lib;Bullet.lib;setup.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;PhotonMultiplayer.lib;Common-cpp_vc14_release_windows_mt_x64.lib;LoadBalancing-cpp_vc14_release_windows_mt_x64.lib;Photon-cpp_vc14_release_windows_mt_x64.lib;mf.lib;mfplat.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <GenerateMapFile>true</GenerateMapFile>
+      <StackReserveSize>4194304</StackReserveSize>
+    </Link>
+    <Manifest>
+      <AdditionalManifestFiles>%(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
+    <PostBuildEvent>
+      <Command>signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 /f "$(SIGN_CERT)" -p $(SIGN_PASSWORD) "$(TargetPath)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>GGREDUCED;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../../../WICKEDREPO/WickedEngine;../Dark Basic Public Shared/Include/;../GameGuru/Include/;../SDK/DirectX/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <BrowseInformation>true</BrowseInformation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../Guru-WickedMAX/$(Platform)/$(Configuration);../Dark Basic Public Shared/Lib/;$(VULKAN_SDK)/Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Image.lib;File.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GameGuru\Include\Common-File.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Fonts.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Images.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Input.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Keys.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Sounds.h" />
+    <ClInclude Include="..\GameGuru\Include\Common-Strings.h" />
+    <ClInclude Include="..\GameGuru\Include\Common.h" />
+    <ClInclude Include="..\GameGuru\Include\cStr.h" />
+    <ClInclude Include="..\GameGuru\Include\G-Entity.h" />
+    <ClInclude Include="..\GameGuru\Include\G-Gun.h" />
+    <ClInclude Include="..\GameGuru\Include\G-Lighting.h" />
+    <ClInclude Include="..\GameGuru\Include\gameguru.h" />
+    <ClInclude Include="..\GameGuru\Include\M-AudioVolume.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Bulletholes.h" />
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlus.h" />
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlusTTS.h" />
+    <ClInclude Include="..\GameGuru\Include\M-CharacterKit.h" />
+    <ClInclude Include="..\GameGuru\Include\M-CharacterSound.h" />
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKit.h" />
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKitEdit.h" />
+    <ClInclude Include="..\GameGuru\Include\M-DAINew.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Debug.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Decal.h" />
+    <ClInclude Include="..\GameGuru\Include\M-EBE.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Entity.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Explosion&amp;Fire.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Game.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Grass.h" />
+    <ClInclude Include="..\GameGuru\Include\M-GridEdit.h" />
+    <ClInclude Include="..\GameGuru\Include\M-GridEditB.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Gun.h" />
+    <ClInclude Include="..\GameGuru\Include\M-HUD.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Importer.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Interactive.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Lighting.h" />
+    <ClInclude Include="..\GameGuru\Include\M-LUA-Entity.h" />
+    <ClInclude Include="..\GameGuru\Include\M-LUA-General.h" />
+    <ClInclude Include="..\GameGuru\Include\M-LUA.h" />
+    <ClInclude Include="..\GameGuru\Include\M-MapFile.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Material.h" />
+    <ClInclude Include="..\GameGuru\Include\M-MP.h" />
+    <ClInclude Include="..\GameGuru\Include\M-OBS.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Panel.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Particles.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Physics.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Postprocess.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Sky.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Sliders.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Titles.h" />
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys-Object.h" />
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys-Terrain.h" />
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Visuals.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Waypoint.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Weapon.h" />
+    <ClInclude Include="..\GameGuru\Include\M-WelcomeSystem.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Widget.h" />
+    <ClInclude Include="..\GameGuru\Include\MapEditor.h" />
+    <ClInclude Include="..\GameGuru\Include\miniz.h" />
+    <ClInclude Include="..\GameGuru\Include\preprocessor-moreflags.h" />
+    <ClInclude Include="..\GameGuru\Include\Types.h" />
+    <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h" />
+    <ClInclude Include="..\SDK\OpenXR\include\openxr.h" />
+    <ClInclude Include="GameGuruEngine.h" />
+    <ClInclude Include="GameGuruMain.h" />
+    <ClInclude Include="GGRecastDetour\ChunkyTriMesh.h" />
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\DebugDraw.h" />
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\DetourDebugDraw.h" />
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\RecastDebugDraw.h" />
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\RecastDump.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourCrowd.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourLocalBoundary.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourObstacleAvoidance.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourPathCorridor.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourPathQueue.h" />
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourProximityGrid.h" />
+    <ClInclude Include="GGRecastDetour\DetourTileCache\Include\DetourTileCache.h" />
+    <ClInclude Include="GGRecastDetour\DetourTileCache\Include\DetourTileCacheBuilder.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourAlloc.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourAssert.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourCommon.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourMath.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMesh.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMeshBuilder.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMeshQuery.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNode.h" />
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourStatus.h" />
+    <ClInclude Include="GGRecastDetour\GGRecastDetour.h" />
+    <ClInclude Include="GGRecastDetour\InputGeom.h" />
+    <ClInclude Include="GGRecastDetour\MeshLoaderObj.h" />
+    <ClInclude Include="GGRecastDetour\NavMeshTesterTool.h" />
+    <ClInclude Include="GGRecastDetour\PerfTimer.h" />
+    <ClInclude Include="GGRecastDetour\Recast\Include\Recast.h" />
+    <ClInclude Include="GGRecastDetour\Recast\Include\RecastAlloc.h" />
+    <ClInclude Include="GGRecastDetour\Recast\Include\RecastAssert.h" />
+    <ClInclude Include="GGRecastDetour\Sample.h" />
+    <ClInclude Include="GGRecastDetour\SampleInterfaces.h" />
+    <ClInclude Include="GGRecastDetour\Sample_SoloMesh.h" />
+    <ClInclude Include="GGRecastDetour\Sample_TileMesh.h" />
+    <ClInclude Include="GGTerrainDataStructures.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Core.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Mode.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Pca.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Tables.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\IO.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Metrics.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\pch.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetComputeOpaqueSubset2.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetComputeOpaqueSubset3.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetDecompressIndexedSubset.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetHorizontalSum4.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetInsertRemoveZeroBit.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsBuffer.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsBufferHalf.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsMinimum.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetStoreNodeShort.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetTargetSSSE3.h" />
+    <ClInclude Include="GGTerrain\BC7Compress\Worker.h" />
+    <ClInclude Include="GGTerrain\GGGrass.h" />
+    <ClInclude Include="GGTerrain\GGTerrain.h" />
+    <ClInclude Include="GGTerrain\GGTerrainFile.h" />
+    <ClInclude Include="GGTerrain\GGTerrainPageSettings.h" />
+    <ClInclude Include="GGTerrain\GGTrees.h" />
+    <ClInclude Include="GGTerrain\JSONElement.h" />
+    <ClInclude Include="GGTerrain\Shaders\PBR\ConstantBufferMapping.h" />
+    <ClInclude Include="GGTerrain\Shaders\PBR\ResourceMapping.h" />
+    <ClInclude Include="GGTerrain\Shaders\PBR\SamplerMapping.h" />
+    <ClInclude Include="GGTerrain\Shaders\PBR\ShaderInterop.h" />
+    <ClInclude Include="GGTerrain\Shaders\PBR\ShaderInterop_Renderer.h" />
+    <ClInclude Include="GGTerrain\SimplexNoise.h" />
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD0.h" />
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD1.h" />
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD2.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD0.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD1.h" />
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD2.h" />
+    <ClInclude Include="GPUParticles.h" />
+    <ClInclude Include="GGThread.h" />
+    <ClInclude Include="master.h" />
+    <ClInclude Include="Nlohmann JSON\json.hpp" />
+    <ClInclude Include="Particles\Models\gpup_part_1024.h" />
+    <ClInclude Include="Particles\Models\gpup_part_4096.h" />
+    <ClInclude Include="PNGToDDSTypes.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="Wicked-MAX\BulletDebugDrawer.h" />
+    <ClInclude Include="wickedcalls.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\GameGuru\Imgui\imgui.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_gg_dx11.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\GameGuru\Imgui\imnodes.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-File.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Fonts.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Images.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Input.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Keys.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Sounds.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common-Strings.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Common.cpp" />
+    <ClCompile Include="..\GameGuru\Source\cStr.cpp" />
+    <ClCompile Include="..\GameGuru\Source\G-Entity.cpp" />
+    <ClCompile Include="..\GameGuru\Source\G-Gun.cpp" />
+    <ClCompile Include="..\GameGuru\Source\G-Lighting.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-AudioVolume.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Bulletholes.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlus.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlusTTS.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-CharacterKit.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-CharacterSound.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKit.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKitEdit.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-DAINew.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Debug.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Decal.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-EBE.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Entity.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Explosion&amp;Fire.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Game.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Grass.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-GridEdit.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-GridEditB.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Gun.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-HUD.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Importer.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Interactive.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Lighting.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-LUA-Entity.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-LUA-General.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-LUA.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-MapFile.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Material.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-MPPhoton.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-OBS.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Panel.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Particles.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Physics.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Postprocess.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Sky.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Titles.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys-Object.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys-Terrain.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Visuals.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Waypoint.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Weapon.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-WelcomeSystem.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Widget.cpp" />
+    <ClCompile Include="..\GameGuru\Source\MapEditor.cpp" />
+    <ClCompile Include="..\GameGuru\Source\miniz.c" />
+    <ClCompile Include="..\GameGuru\Source\sha1.cpp" />
+    <ClCompile Include="..\GameGuru\Source\sha2.cpp" />
+    <ClCompile Include="..\GameGuru\Source\Types.cpp" />
+    <ClCompile Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.cpp" />
+    <ClCompile Include="..\SDK\DirectX\directx-macros.cpp" />
+    <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp" />
+    <ClCompile Include="GameGuruMain.cpp" />
+    <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp" />
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\DebugDraw.cpp" />
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\DetourDebugDraw.cpp" />
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\RecastDebugDraw.cpp" />
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\RecastDump.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourCrowd.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourLocalBoundary.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourObstacleAvoidance.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourPathCorridor.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourPathQueue.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourProximityGrid.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourTileCache\Source\DetourTileCache.cpp" />
+    <ClCompile Include="GGRecastDetour\DetourTileCache\Source\DetourTileCacheBuilder.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourAlloc.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourAssert.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourCommon.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMesh.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMeshBuilder.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMeshQuery.cpp" />
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNode.cpp" />
+    <ClCompile Include="GGRecastDetour\GGRecastDetour.cpp" />
+    <ClCompile Include="GGRecastDetour\InputGeom.cpp" />
+    <ClCompile Include="GGRecastDetour\MeshLoaderObj.cpp" />
+    <ClCompile Include="GGRecastDetour\NavMeshTesterTool.cpp" />
+    <ClCompile Include="GGRecastDetour\PerfTimer.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\Recast.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastAlloc.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastArea.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastAssert.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastContour.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastFilter.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastLayers.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastMesh.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastMeshDetail.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastRasterization.cpp" />
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastRegion.cpp" />
+    <ClCompile Include="GGRecastDetour\Sample.cpp" />
+    <ClCompile Include="GGRecastDetour\SampleInterfaces.cpp" />
+    <ClCompile Include="GGRecastDetour\Sample_SoloMesh.cpp" />
+    <ClCompile Include="GGRecastDetour\Sample_TileMesh.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Compress.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Core.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode0.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode1.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode2.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode3.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode4.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode5.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode6.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode6Index2.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode7.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7PcaEigen.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Tables.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\IO.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Metrics.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\pch.cpp" />
+    <ClCompile Include="GGTerrain\BC7Compress\Worker.cpp" />
+    <ClCompile Include="GGTerrain\GGGrass.cpp" />
+    <ClCompile Include="GGTerrain\GGTerrain.cpp" />
+    <ClCompile Include="GGTerrain\GGTerrainFile.cpp" />
+    <ClCompile Include="GGTerrain\GGTrees.cpp" />
+    <ClCompile Include="GGTerrain\JSONElement.cpp" />
+    <ClCompile Include="GGTerrain\SimplexNoise.cpp" />
+    <ClCompile Include="GPUParticles.cpp" />
+    <ClCompile Include="master.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Wicked-MAX\BulletDebugDrawer.cpp" />
+    <ClCompile Include="wickedcalls.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Wicked-MAX.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico" />
+    <Image Include="Wicked-MAX.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPrepassPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPrepassVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassShadowMapPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassShadowMapVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEditBoxPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEditBoxVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEnvProbePS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEnvProbeVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainOverlayPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainOverlayVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPageGenPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPageGenVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassRefVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainRampPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainRampVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackCS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackMSCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainQuadPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainQuadVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainShadowMapVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSpherePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSpherePrepassPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSphereVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainVirtualPBR_PS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighEnvProbePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighEnvProbeVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPrepassPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPrepassVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighShadowMapPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighShadowMapVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighEnvProbePS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighEnvProbeVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPrepassPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPrepassVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighShadowMapPS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighShadowMapVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPrepassPS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPrepassVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesShadowMapPS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesShadowMapVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\GGTreesVS.hlsl" />
+    <FxCompile Include="GGTerrain\Shaders\terraintestPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\terraintestVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_MainPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_MainVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_NoisePS.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_PosPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_QuadVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_SpeedPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\QuadDefaultPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\testPS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\testVS.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GGTerrain\Shaders\GGCommonFunctions.hlsli" />
+    <None Include="GGTerrain\Shaders\GGGrassConstants.hlsli" />
+    <None Include="GGTerrain\Shaders\GGTerrainConstants.hlsli" />
+    <None Include="GGTerrain\Shaders\GGTreesConstants.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\brdf.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\globals.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\lightingHF.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\skyAtmosphere.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\skyHF.hlsli" />
+    <None Include="GGTerrain\Shaders\PBR\voxelConeTracingHF.hlsli" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

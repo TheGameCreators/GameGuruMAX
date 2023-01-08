@@ -1,0 +1,1087 @@
+﻿  DirectXTexUtil.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\winbase.h(7679,48): warning C5039: 'TpSetCallbackCleanupGroup': pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4158,17): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4188,18): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4223,18): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4224,19): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4252,18): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\d3d11.h(4253,19): warning C5219: implicit conversion from 'UINT' to 'FLOAT', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(283,54): warning C5039: 'InitOnceExecuteOnce': pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(271): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(254): message : index '' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(271): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1381): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1378): message : index 'item' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1381): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1406): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1401): message : index 'slice' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(1406): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(264): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(254): message : index '' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexUtil.cpp(264): message : feeds call on this line
+  BC.cpp
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(925,45): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(925,64): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(930,45): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(930,64): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(979,57): warning C5219: implicit conversion from 'int32_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1072,43): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1072,61): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1088,43): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1088,61): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+  BC4BC5.cpp
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(62,37): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(62,58): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(71,37): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(71,58): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(121,37): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(121,58): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(130,37): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC4BC5.cpp(130,58): warning C5219: implicit conversion from 'size_t' to 'float', possible loss of data
+  BC6HBC7.cpp
+  BCDirectCompute.cpp
+  DirectXTexCompress.cpp
+  DirectXTexCompressGPU.cpp
+  DirectXTexConvert.cpp
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(1304,27): warning C5219: implicit conversion from 'unsigned int' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(1340,27): warning C5219: implicit conversion from 'unsigned int' to 'float', possible loss of data
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2915,33): warning C5039: 'bsearch_s': pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2948,33): warning C5039: 'bsearch_s': pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2951,33): warning C5039: 'bsearch_s': pointer or reference to potentially throwing function passed to 'extern "C"' function under -EHc. Undefined behavior may occur if this function throws an exception.
+  DirectXTexD3D11.cpp
+  DirectXTexDDS.cpp
+  DirectXTexFlipRotate.cpp
+  DirectXTexHDR.cpp
+  DirectXTexImage.cpp
+  DirectXTexMipMaps.cpp
+  DirectXTexMisc.cpp
+  DirectXTexNormalMaps.cpp
+  DirectXTexPMAlpha.cpp
+  DirectXTexResize.cpp
+  DirectXTexTGA.cpp
+  DirectXTexWIC.cpp
+  Generating Code...
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(423): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(382): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(425): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(419): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(409): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(419): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(398): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(397): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(398): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(396): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(382): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(396): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(385): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(382): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(385): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(383): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(382): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(383): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(751): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(750): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(751): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(749): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(749): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(746): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(745): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(746): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(743): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(743): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(738): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(738): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(736): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(736): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(720): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(716): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(720): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(702): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(702): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(576): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(691): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(576): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(692): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(691): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(692): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(690): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(686): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(690): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(687): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(686): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(687): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(685): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(682): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(685): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(683): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(682): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(683): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(681): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(675): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(681): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(676): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(675): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(676): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(483): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(445): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(555): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(538): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(515): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(555): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(446): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(445): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexWIC.cpp(446): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(736): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(735): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(736): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(676): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(675): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(676): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1270): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1266): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1291): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1291): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1248): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1291): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1267): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1266): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1267): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1249): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1248): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(1249): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(568): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(567): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(568): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(432): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(431): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(432): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(966): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(963): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(966): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(960): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(941): message : index 'offset' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(960): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(956): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(941): message : index 'offset' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(956): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(952): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(951): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(952): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(939): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(938): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexTGA.cpp(939): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(79): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(67): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(124): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(103): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(80): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(124): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(64): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(50): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(124): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(114): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(114): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(108): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(67): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(108): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(92): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(67): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(92): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(72): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(67): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(72): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(164): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(159): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(164): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(895): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(892): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(895): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(889): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(866): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(889): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(884): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(866): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(884): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(879): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(866): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(879): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(869): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(866): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(869): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(867): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(866): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(867): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(865): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(853): message : index 'width$GSCopy' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(865): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(945): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(945): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(953): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(953): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(959): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(959): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(965): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(965): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(991): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(988): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(991): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(985): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(943): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(985): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(979): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(943): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(979): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(974): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(943): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(974): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(950): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(950): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1050): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1047): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1050): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1044): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1002): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1044): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1038): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1002): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1038): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1033): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1002): message : index 'srcIndex' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(1033): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(927): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(926): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexResize.cpp(927): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(238): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(235): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(238): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(233): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(217): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(233): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(229): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(217): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(229): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(223): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(217): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(223): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(220): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(217): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(220): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(218): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(217): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(218): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(296): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(296): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(308): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(308): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(323): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(320): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(323): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(284): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(318): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(287): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(287): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(280): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(280): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(276): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(275): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp(276): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(310): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(307): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(310): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(306): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(272): message : index '' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(306): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(302): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(296): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(302): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(299): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(296): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(299): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(297): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(296): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(297): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(378): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(378): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(384): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(384): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(392): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(389): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(392): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(388): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(336): message : index '' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(388): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(364): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(388): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(367): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(367): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(360): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(360): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(356): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(355): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp(356): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(116): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(114): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(121): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(111): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(87): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(111): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(91): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(87): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(91): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(246): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(243): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(376): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(260): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(257): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(376): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(273): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(270): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(376): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(287): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(284): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(376): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(369): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(366): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(369): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_memcpy_s.h(62): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_memcpy_s.h(52): message : index 'colorBytesInPixel' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_memcpy_s.h(62): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(290): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(288): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(290): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(277): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(274): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(277): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(263): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(261): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(263): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(250): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(247): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(250): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2668): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2662): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2668): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2667): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2666): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2667): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2663): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2662): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2663): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2678): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2672): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2678): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2677): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2676): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2677): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2673): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2672): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2673): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2688): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2682): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2688): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2687): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2686): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2687): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2683): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2682): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2683): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2658): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2652): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2658): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2657): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2656): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2657): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2653): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2652): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2653): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2698): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2692): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2698): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2697): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2696): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2697): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2693): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2692): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2693): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2613): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2593): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2613): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2601): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2593): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2613): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2585): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2582): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2585): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2583): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2582): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2583): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2988): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2982): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2988): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2987): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2986): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2987): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2983): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2982): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2983): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2998): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2992): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2998): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2997): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2996): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2997): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2993): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2992): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2993): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3008): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3002): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3008): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3007): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3006): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3007): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3003): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3002): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3003): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2978): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2972): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2978): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2977): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2976): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2977): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2973): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2972): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(2973): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3018): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3012): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3018): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3017): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3016): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3017): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3013): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3012): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexMipMaps.cpp(3013): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(746): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(700): message : index 'mip' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(746): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(359): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(358): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(359): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(478): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(477): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(478): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(594): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(593): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexImage.cpp(594): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_math.h(696): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(305): message : index '' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\ucrt\corecrt_math.h(696): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(634): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(634): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(779): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(787): message : feeds memory load on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(764): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(764): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(624): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(753): message : feeds memory load on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(724): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(724): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(732): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(732): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(650): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(650): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(661): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(661): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(689): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(689): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(673): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(673): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(620): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(620): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(617): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(617): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(610): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(609): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(610): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(598): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexHDR.cpp(599): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(50): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(46): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(81): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(123): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(118): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(123): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(215): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(212): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(215): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(209): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(190): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(209): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(204): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(190): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(204): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(196): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(190): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(196): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(193): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(190): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(193): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(191): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(190): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(191): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(297): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(297): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(319): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(319): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(338): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(335): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(338): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(282): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(332): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(311): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(311): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(285): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(285): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(278): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(278): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(274): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(273): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp(274): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(245): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(241): message : index 'index' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(263): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1576): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1573): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1576): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1566): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1531): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1566): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1552): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1551): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1552): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1532): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1531): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexDDS.cpp(1532): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(715): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(649): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(721): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(656): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(649): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(656): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(964): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(961): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(964): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(793): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(790): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(793): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(776): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(749): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(776): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(899): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(896): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(899): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(881): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(801): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(881): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(855): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(832): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(855): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(846): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(801): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(846): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(846): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(832): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(846): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(831): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(817): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(831): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(952): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(949): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(952): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(934): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(907): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexD3D11.cpp(934): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(53): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(33): message : index 'IValue' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(53): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(119): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(99): message : index 'IValue' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(119): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2317): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2307): message : index 'x' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2317): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2314): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2307): message : index 'x' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2314): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2311): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2307): message : index 'x' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2311): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2308): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2307): message : index 'x' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2308): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2306): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2305): message : index 'x' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2306): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4943): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4940): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4943): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4939): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4929): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4939): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4935): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4929): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4935): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4932): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4929): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4932): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4930): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4929): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4930): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5000): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5000): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5012): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5012): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5020): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5017): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5020): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4988): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(5016): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4991): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4991): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4984): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4984): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4430): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4415): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4444): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4980): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4979): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4980): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4436): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4423): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4436): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2605): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2605): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2613): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2613): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2621): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2621): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2588): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2626): message : feeds memory load on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2591): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2591): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2584): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2584): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2580): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2579): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2580): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2555): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2552): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2555): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2520): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2541): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2524): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2524): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2541): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2524): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2542): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2541): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2542): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2497): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2497): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2485): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2495): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2488): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2488): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2481): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2481): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2478): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2478): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2476): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2475): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(2476): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4209): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4235): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4203): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4203): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4200): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4200): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4200): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4158): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4153): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4180): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4146): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4146): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4146): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4103): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4098): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4125): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4054): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4049): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4076): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4043): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4043): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4040): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4040): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4037): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4037): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4034): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4034): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4031): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4031): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4028): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4028): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4025): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4025): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4022): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4022): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4019): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4019): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4015): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4015): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4012): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4012): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4009): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4009): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4006): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4006): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3962): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3988): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3952): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3952): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3949): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3949): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3946): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3946): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3943): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3943): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3940): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3940): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3937): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3937): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3934): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3934): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3931): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3931): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3884): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3909): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3873): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3873): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3870): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3870): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3867): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3867): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3864): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3864): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2573): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3861): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3861): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\DirectXMathVector.inl(2599): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3858): message : index 'count' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(3858): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4743): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4740): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4743): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4737): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4737): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4733): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4733): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4731): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4731): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4726): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4726): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4723): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4723): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4721): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4720): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4721): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4806): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4806): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4812): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4812): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4821): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4821): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4837): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4834): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4837): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4787): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4831): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4852): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4852): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4859): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4859): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4865): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4865): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4874): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4874): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4890): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4887): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4890): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4901): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4901): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4790): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4790): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4783): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4783): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4779): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4778): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexConvert.cpp(4779): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(131): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(131): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(119): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(135): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(122): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(122): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(115): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(115): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(112): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(112): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(110): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(109): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp(110): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(772): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(757): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(772): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(770): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(769): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(770): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(763): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(757): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(763): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(760): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(757): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(760): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(758): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(757): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(758): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(836): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(836): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(842): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(842): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(850): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(847): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(850): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(822): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(846): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(825): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(825): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(818): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(818): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(814): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(813): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(814): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(637): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(637): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(635): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(634): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(635): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(631): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(631): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(626): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(626): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(616): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(616): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(613): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(613): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(611): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(610): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(611): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(689): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(665): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(689): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(715): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(712): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(715): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(674): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(665): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(711): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(704): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(701): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(704): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(677): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(665): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(677): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(670): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(665): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(670): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(666): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(665): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\DirectXTexCompress.cpp(666): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(171): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(170): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(171): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(169): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(165): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(169): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(166): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(165): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(166): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(164): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(160): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(164): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(161): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(160): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(161): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(159): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(155): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(159): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(156): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(155): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(156): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(154): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(148): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(154): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(149): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(148): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(149): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(147): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(143): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(147): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(144): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(143): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(144): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(142): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(138): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(142): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(139): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(138): message : index 'hr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(139): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(137): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(106): message : index 'fl' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(137): message : feeds call on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\winrt\wrl\client.h(223): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(106): message : index 'fl' range checked by comparison on this line
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\winrt\wrl\client.h(223): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(116): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(112): message : index 'fl' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BCDirectCompute.cpp(116): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(1691): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(1668): message : index '' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(1775): message : feeds memory load on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(2171): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(2172): message : index 'fErr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(2171): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(3026): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(3027): message : index 'fErr' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC6HBC7.cpp(3026): message : feeds call on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(642): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(639): message : index 'fDot' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(651): message : feeds memory load on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1120): warning C5045: Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1117): message : index 'fDot' range checked by comparison on this line
+C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\BC.cpp(1126): message : feeds memory load on this line
+  DirectXTex_Desktop_2017.vcxproj -> C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Release\DirectXTex.lib

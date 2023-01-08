@@ -1,0 +1,1254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Code">
+      <UniqueIdentifier>{7f6954b9-3868-47ed-8e6c-0dd52e678236}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameGuruEngine">
+      <UniqueIdentifier>{3ad52c9f-4770-461a-b256-c0f861086042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameGuruEngine\GameGuruSourceCode">
+      <UniqueIdentifier>{b45941c7-e5b4-4232-bd1b-8a1636aa21a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IMGUI">
+      <UniqueIdentifier>{5a4c5370-1393-45b3-b8fe-480c3b118379}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUParticles">
+      <UniqueIdentifier>{91666715-0551-4f8c-8821-1edb39b116ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GPUParticles\Shaders">
+      <UniqueIdentifier>{d63cf310-3bc4-4882-a179-d997e026f49b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain">
+      <UniqueIdentifier>{64041851-2936-40ab-b1c4-791a37dc4d11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain\Shaders">
+      <UniqueIdentifier>{1a4ea56b-7e0e-4871-a5d8-901612b13ac8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain\Shaders\PBR">
+      <UniqueIdentifier>{35f11bf9-62f3-430c-8cab-dc65aecb26f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour">
+      <UniqueIdentifier>{cf016a37-f225-469b-94b7-f754f890c613}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour\DebugUtils">
+      <UniqueIdentifier>{91278487-355d-47a7-b5e1-8893bc7370c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour\Detour">
+      <UniqueIdentifier>{6cde3b2b-1bc9-43a0-80e1-6465fffcf39b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour\DetourCrowd">
+      <UniqueIdentifier>{eaa174d8-39bd-4225-86b3-11c1d3d1f3c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour\DetourTileCache">
+      <UniqueIdentifier>{bc4a382a-a48f-4a53-852b-67e2a64e09b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGRecastDetour\Recast">
+      <UniqueIdentifier>{292ea046-24bf-4fcc-8915-761006789c65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain\TreeMeshes">
+      <UniqueIdentifier>{4882f3a9-26cc-4ecb-9e85-8baf8688afd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain\VegMeshes">
+      <UniqueIdentifier>{df1a8309-eb61-4aca-bbce-ac34e5325e26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="JSON">
+      <UniqueIdentifier>{2bb1430a-d176-4c73-9cdf-fcb0f749e572}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GGTerrain\BC7Compress">
+      <UniqueIdentifier>{60a71410-34b7-431b-9c2d-63f64b717f9c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="master.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGuruEngine.h">
+      <Filter>GameGuruEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="GameGuruMain.h">
+      <Filter>GameGuruEngine</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\gameguru.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\cStr.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Debug.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-GridEdit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-File.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Fonts.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Images.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Input.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Keys.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Sounds.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Common-Strings.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Gun.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\G-Lighting.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\MapEditor.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-AudioVolume.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlus.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterCreatorPlusTTS.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterKit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-CharacterSound.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-ConstructionKitEdit.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Decal.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-EBE.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Explosion&amp;Fire.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Game.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Gun.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-HUD.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Importer.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Interactive.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Lighting.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA-Entity.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-LUA-General.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-MapFile.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Material.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-MP.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-OBS.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Panel.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Particles.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Physics.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Postprocess.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Sliders.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Titles.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Visuals.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Waypoint.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Weapon.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-WelcomeSystem.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Widget.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\Types.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\preprocessor-moreflags.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SDK\OpenXR\include\openxr.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="wickedcalls.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Sky.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Grass.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\Models\gpup_part_1024.h">
+      <Filter>GPUParticles</Filter>
+    </ClInclude>
+    <ClInclude Include="Particles\Models\gpup_part_4096.h">
+      <Filter>GPUParticles</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUParticles.h">
+      <Filter>GPUParticles</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\miniz.h">
+      <Filter>Code</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\GGTerrain.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\SimplexNoise.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys-Object.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-UndoSys-Terrain.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\GGTerrainPageSettings.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\Shaders\PBR\ConstantBufferMapping.h">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\Shaders\PBR\ResourceMapping.h">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\Shaders\PBR\SamplerMapping.h">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\Shaders\PBR\ShaderInterop.h">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\Shaders\PBR\ShaderInterop_Renderer.h">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-DAINew.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\DebugDraw.h">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\DetourDebugDraw.h">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\RecastDebugDraw.h">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DebugUtils\Include\RecastDump.h">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourAlloc.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourAssert.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourCommon.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourMath.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMesh.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMeshBuilder.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNavMeshQuery.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourNode.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Detour\Include\DetourStatus.h">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourCrowd.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourLocalBoundary.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourObstacleAvoidance.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourPathCorridor.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourPathQueue.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourCrowd\Include\DetourProximityGrid.h">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourTileCache\Include\DetourTileCache.h">
+      <Filter>GGRecastDetour\DetourTileCache</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\DetourTileCache\Include\DetourTileCacheBuilder.h">
+      <Filter>GGRecastDetour\DetourTileCache</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Recast\Include\Recast.h">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Recast\Include\RecastAlloc.h">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Recast\Include\RecastAssert.h">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\NavMeshTesterTool.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Sample.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Sample_SoloMesh.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\InputGeom.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\ChunkyTriMesh.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\MeshLoaderObj.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\SampleInterfaces.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\PerfTimer.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\GGRecastDetour.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="Wicked-MAX\BulletDebugDrawer.h" />
+    <ClInclude Include="GGTerrain\JSONElement.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\GGTerrainFile.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\GGTrees.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Bulletholes.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrainDataStructures.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var1_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var2_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var3_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var4_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var5_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var6_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var7_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD0.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD1.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\VegMeshes\bush_var8_LOD2.h">
+      <Filter>GGTerrain\VegMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\GGGrass.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-GridEditB.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD0.h">
+      <Filter>GGTerrain\TreeMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD1.h">
+      <Filter>GGTerrain\TreeMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\TreeMeshes\TreeMeshesLOD2.h">
+      <Filter>GGTerrain\TreeMeshes</Filter>
+    </ClInclude>
+    <ClInclude Include="GGRecastDetour\Sample_TileMesh.h">
+      <Filter>GGRecastDetour</Filter>
+    </ClInclude>
+    <ClInclude Include="GGThread.h">
+      <Filter>GGTerrain</Filter>
+    </ClInclude>
+    <ClInclude Include="Nlohmann JSON\json.hpp">
+      <Filter>JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Core.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Mode.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Pca.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Bc7Tables.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\IO.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Metrics.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\pch.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetComputeOpaqueSubset2.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetComputeOpaqueSubset3.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetDecompressIndexedSubset.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetHorizontalSum4.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetInsertRemoveZeroBit.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsBuffer.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsBufferHalf.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetLevelsMinimum.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetStoreNodeShort.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\SnippetTargetSSSE3.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="GGTerrain\BC7Compress\Worker.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="PNGToDDSTypes.h">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dark Wicked Shared\DWTerrain\tiny_obj_loader.h" />
+    <ClInclude Include="..\GameGuru\Include\M-TerrainNew.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="master.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="GameGuruMain.cpp">
+      <Filter>GameGuruEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\cStr.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Debug.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\DirectX\directx-macros.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_draw.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_gg_dx11.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_impl_win32.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imgui_widgets.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-GridEdit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-File.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Fonts.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Images.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Input.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Sounds.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Strings.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Gun.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\G-Lighting.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\MapEditor.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-AudioVolume.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlus.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterCreatorPlusTTS.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterKit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-CharacterSound.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-ConstructionKitEdit.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Decal.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-EBE.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Explosion&amp;Fire.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Game.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Gun.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-HUD.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Importer.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Interactive.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Lighting.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA-Entity.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-LUA-General.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-MapFile.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Material.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-MPPhoton.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-OBS.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Panel.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Particles.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Physics.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Postprocess.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Titles.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Visuals.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Waypoint.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Weapon.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-WelcomeSystem.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Widget.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Types.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="wickedcalls.cpp">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Sky.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Grass.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUParticles.cpp">
+      <Filter>GPUParticles</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\sha2.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\sha1.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\miniz.c">
+      <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\GGTerrain.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\SimplexNoise.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys-Object.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-UndoSys-Terrain.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-DAINew.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\DebugDraw.cpp">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\DetourDebugDraw.cpp">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\RecastDebugDraw.cpp">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DebugUtils\Source\RecastDump.cpp">
+      <Filter>GGRecastDetour\DebugUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourAlloc.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourAssert.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourCommon.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMesh.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMeshBuilder.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNavMeshQuery.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Detour\Source\DetourNode.cpp">
+      <Filter>GGRecastDetour\Detour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourCrowd.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourLocalBoundary.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourObstacleAvoidance.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourPathCorridor.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourPathQueue.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourCrowd\Source\DetourProximityGrid.cpp">
+      <Filter>GGRecastDetour\DetourCrowd</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourTileCache\Source\DetourTileCache.cpp">
+      <Filter>GGRecastDetour\DetourTileCache</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\DetourTileCache\Source\DetourTileCacheBuilder.cpp">
+      <Filter>GGRecastDetour\DetourTileCache</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\Recast.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastAlloc.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastArea.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastAssert.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastContour.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastFilter.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastLayers.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastMesh.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastMeshDetail.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastRasterization.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Recast\Source\RecastRegion.cpp">
+      <Filter>GGRecastDetour\Recast</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\NavMeshTesterTool.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Sample.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Sample_SoloMesh.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\InputGeom.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\MeshLoaderObj.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\SampleInterfaces.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\PerfTimer.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\GGRecastDetour.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="Wicked-MAX\BulletDebugDrawer.cpp" />
+    <ClCompile Include="GGTerrain\JSONElement.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\GGTerrainFile.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\GGTrees.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Bulletholes.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\GGGrass.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-GridEditB.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Imgui\imnodes.cpp">
+      <Filter>IMGUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GGRecastDetour\Sample_TileMesh.cpp">
+      <Filter>GGRecastDetour</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Compress.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Core.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode0.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode1.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode2.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode3.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode4.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode5.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode6.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode6Index2.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7CoreMode7.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7PcaEigen.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Bc7Tables.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\IO.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Metrics.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\pch.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="GGTerrain\BC7Compress\Worker.cpp">
+      <Filter>GGTerrain\BC7Compress</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-TerrainNew.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\Common-Keys.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Wicked-MAX.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Wicked-MAX.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Particles\Shaders\GPUP_MainPS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_MainVS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_NoisePS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_PosPS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_QuadVS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\GPUP_SpeedPS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\QuadDefaultPS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\testPS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Particles\Shaders\testVS.hlsl">
+      <Filter>GPUParticles\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainQuadPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainQuadVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\terraintestPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\terraintestVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainShadowMapVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackCS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainReadBackMSCS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPageGenVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPageGenPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainVirtualPBR_PS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainPrepassRefVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEditBoxVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEditBoxPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainOverlayPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainOverlayVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesPrepassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesShadowMapPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesShadowMapVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPrepassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighShadowMapPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighShadowMapVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEnvProbePS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainEnvProbeVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainRampPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainRampVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPrepassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassShadowMapPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassShadowMapVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGGrassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPrepassVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighShadowMapPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighShadowMapVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSpherePrepassPS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSphereVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTerrainSpherePS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighEnvProbeVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreesHighEnvProbePS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighEnvProbePS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighEnvProbeVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GGTerrain\Shaders\PBR\brdf.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\PBR\globals.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\PBR\lightingHF.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\PBR\skyAtmosphere.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\PBR\skyHF.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\PBR\voxelConeTracingHF.hlsli">
+      <Filter>GGTerrain\Shaders\PBR</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\GGTerrainConstants.hlsli">
+      <Filter>GGTerrain\Shaders</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\GGTreesConstants.hlsli">
+      <Filter>GGTerrain\Shaders</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\GGGrassConstants.hlsli">
+      <Filter>GGTerrain\Shaders</Filter>
+    </None>
+    <None Include="GGTerrain\Shaders\GGCommonFunctions.hlsli">
+      <Filter>GGTerrain\Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>

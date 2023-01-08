@@ -20,9 +20,9 @@ Compiling WICKED ENGINE:
 4. You will need to register a GitHub account and log in when installed GitHub Desktop
 5. Select CLONE a repository from the internet and select UTL, enter the URL you copied earlier
 6. Change the LOCAL PATH to your DEV folder and name this repo folder WICKEDREPO (i.e. D:\DEV\WICKEDREPO)
-7. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" and select "Set as Startup Project" on the 'WickedEngine_Windows' project
-8. Set the Solution Configuration from "Debug" to "ReleaseForGG"
-9. Ensure your project properties "Output Directory" in Geberal looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
+7. Open "D:\DEV\WICKEDREPO\WickedEngine.sln" (use VS2022) and right click 'WickedEngine_Windows' project and select "Set as Startup Project" 
+8. Set the Solution Configuration from "Debug" to "ReleaseForGG". Now right click 'WickedEngine_Windows' project and select Properties
+9. Ensure your project properties "Output Directory" in General looks like: "$(SolutionDir)..\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\"
 10. Compile to test, it should produce a file "DEV\GAMEGURUMAXREPO\GameGuru Core\Guru-WickedMAX\x64\Release\WickedEngine_Windows.lib".
 
 Cloning ASSIMP:

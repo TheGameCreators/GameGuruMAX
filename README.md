@@ -2,7 +2,7 @@
 
 This is not open source and remains the copyright of The Game Creators Ltd, see Wiki for more information on license matters. This repository contains the current source code to GameGuru MAX and is still under development as an Early Access project.
 
-GameGuru MAX is a 3D game maker for simple first person games and is available to buy from Steam.
+GameGuru MAX is a 3D game maker for simple first person games and is available to buy from Steam: https://store.steampowered.com/app/1247290?utm_source=github&utm_campaign=general&utm_medium=web
 
 You will need the media files associated with the above product to use this repository.
 

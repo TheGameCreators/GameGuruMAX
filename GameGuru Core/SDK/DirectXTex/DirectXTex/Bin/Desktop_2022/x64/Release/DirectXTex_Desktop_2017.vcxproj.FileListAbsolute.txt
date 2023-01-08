@@ -1,1 +1,0 @@
-C:\DEV\GAMEGURUMAXREPO\GameGuru Core\SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Release\DirectXTex.lib

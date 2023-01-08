@@ -31,7 +31,6 @@ Cloning ASSIMP:
 1. The "GameGuru MAX Missing LIBs" zip (see below) contains the required ASSIMP.LIB file, but you will need ASSIMP repo side by side with the other repos
 2. Use GitHub to get the CODE URL so you can clone the following URL: https://github.com/TheGameCreators/assimp
 3. Ensure the name you give for the local folder inside DEV is ASSIMP (i.e. D:\DEV\ASSIMP). Use capitals.
-4. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
 
 Compiling GAMEGURU MAX:
 
@@ -47,12 +46,13 @@ Compiling GAMEGURU MAX:
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in a folder called DEV (i.e. D:|DEV\GAMEGURUMAXREPO)
 11. Ensure both GAMEGURUMAXREPO and WICKEDREPO folders are next to each other in the DEV folder and they are populated with files
 12. Download the "GameGuruMAX-MissingLIBs.zip" zip and extract to copy in missing LIB files to make compiling quicker
-13. For the above, the "GameGuru Core" folder should overwrite the one found at: "\DEV\GAMEGURUMAXREPO\GameGuru Core"
-14. Now open the project "GameGuruWickedMAX.sln" using VS2022
-15. Set the Solution Configuration from "Debug" to "Release"
-16. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
-17. Right click "Wicked-MAX" again and select REBUILD
-18. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
+13. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
+14. For the above, the "GameGuru Core" folder should overwrite the one found at: "\DEV\GAMEGURUMAXREPO\GameGuru Core"
+15. Now open the project "GameGuruWickedMAX.sln" using VS2022
+16. Set the Solution Configuration from "Debug" to "Release"
+17. Right click the "Wicked-MAX" on the left and select "Set as Startup Project"
+18. Right click "Wicked-MAX" again and select REBUILD
+19. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio
 
 
 Understahding GG_MAX_BUILD_PATH:

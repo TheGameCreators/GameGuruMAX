@@ -29417,22 +29417,33 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will always be active, no matter how far away the player might be");
 	ImGui::Indent(-10);
 
-	// Is Collectable general properties
-	ImGui::Indent(10);
-	bool bCollectable = false;
-	if (edit_grideleprof->iscollectable != 0) bCollectable = true;
-	ImGui::Checkbox("Is Collectable?", &bCollectable);
-	if (bCollectable == true )
-		edit_grideleprof->iscollectable = 1;
-	else
-		edit_grideleprof->iscollectable = 0;
-	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
-	ImGui::Indent(-10);
+	// Is Collectable general properties (if dynamic)
+	if (t.entityelement[elementID].staticflag == 0)
+	{
+		ImGui::Indent(10);
+		bool bCollectable = false;
+		if (edit_grideleprof->iscollectable != 0) bCollectable = true;
+		ImGui::Checkbox("Is Collectable?", &bCollectable);
+		if (bCollectable == true)
+			edit_grideleprof->iscollectable = 1;
+		else
+			edit_grideleprof->iscollectable = 0;
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
+		ImGui::Indent(-10);
 
-	// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
-	ImGui::Indent(10);
-	edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
-	ImGui::Indent(-10);
+		// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
+		ImGui::Indent(10);
+		edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
+		ImGui::Indent(-10);
+	}
+	else
+	{
+		ImGui::Indent(10);
+		ImGui::Text("NOTE: Static objects are always immobile");
+		ImGui::Text("and cannot be collected by the player");
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip("When the object is set to static, it cannot be set as a collectable or move in any way");
+		ImGui::Indent(-10);
+	}
 }
 
 void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_grideleprof, int elementID)
@@ -44712,13 +44723,17 @@ void storyboard_control_widget(int nodeid, int index, ImVec2 pos, ImVec2 size, I
 				{
 					float fAdjust = ImGui::GetIO().MouseDelta.x / 350.0;
 					fAdjust += ImGui::GetIO().MouseDelta.y / 350.0;
-					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON 
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
 					{
 						Storyboard.Nodes[nodeid].widget_size[index].x += fAdjust;
 						if (Storyboard.Nodes[nodeid].widget_size[index].x > 4.0) Storyboard.Nodes[nodeid].widget_size[index].x = 4.0;
 						Storyboard.Nodes[nodeid].widget_size[index].y = Storyboard.Nodes[nodeid].widget_size[index].x;
 					}
-					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT 
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 					{
 						Storyboard.Nodes[nodeid].widget_font_size[index] += fAdjust;
 						if (Storyboard.Nodes[nodeid].widget_font_size[index] > 3.0) Storyboard.Nodes[nodeid].widget_font_size[index] = 3.0;
@@ -44726,16 +44741,20 @@ void storyboard_control_widget(int nodeid, int index, ImVec2 pos, ImVec2 size, I
 					}
 				}
 				else if (iMoveType == 2)
-				{
+				{			
 					float fAdjust = ImGui::GetIO().MouseDelta.x / 350.0;
 					fAdjust += ImGui::GetIO().MouseDelta.y / 350.0;
-					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON 
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
 					{
 						Storyboard.Nodes[nodeid].widget_size[index].x -= fAdjust;
 						if (Storyboard.Nodes[nodeid].widget_size[index].x > 4.0) Storyboard.Nodes[nodeid].widget_size[index].x = 4.0;
 						Storyboard.Nodes[nodeid].widget_size[index].y = Storyboard.Nodes[nodeid].widget_size[index].x;
 					}
-					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT 
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 					{
 						Storyboard.Nodes[nodeid].widget_font_size[index] -= fAdjust;
 						if (Storyboard.Nodes[nodeid].widget_font_size[index] > 3.0) Storyboard.Nodes[nodeid].widget_font_size[index] = 3.0;
@@ -44961,6 +44980,11 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 		strcpy(node.widget_normal_thumb[widgetSlot], "editors\\templates\\buttons\\slider-bar-empty.png");
 		strcpy(node.widget_highlight_thumb[widgetSlot], "editors\\templates\\buttons\\slider-bar-full.png");
 	}
+	else if (type == STORYBOARD_WIDGET_BAR)
+	{
+		strcpy(node.widget_normal_thumb[widgetSlot], "editors\\templates\\bars\\bar-empty.png");
+		strcpy(node.widget_highlight_thumb[widgetSlot], "editors\\templates\\bars\\bar-full.png");
+	}
 
 	iUpdateWidgetThumbNode = widgetSlot;
 	iUpdateWidgetThumbButton = widgetSlot;
@@ -45046,14 +45070,16 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 	iCurrentSelectedWidget = -1;
 }
 
-//int g_iUserGlobal = 0; // eventually a whole list of them!
-
 // TODO: this is very unsafe, would be better to have the desired type as a parameter to ensure we only return expected types
 void* GetReadoutAddress(char* readoutTitle)
 {
 	if (strcmp(readoutTitle, "User Defined Global") == 0)
 	{
-		return nullptr;// (void*)&g_iUserGlobal;
+		return nullptr;
+	}
+	else if (strcmp(readoutTitle, "User Defined Global Pair") == 0)
+	{
+		return nullptr;
 	}
 	else if (strcmp(readoutTitle, "Health Remaining") == 0)
 	{
@@ -45877,8 +45903,12 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_RADIOTYPE)
 					{
 						imgID = SCREENEDITOR_RADIOBUTTON;
-					}
+					}		
 					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_SLIDER)
+					{
+						imgID = SCREENEDITOR_SLIDER;
+					}
+					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_BAR)
 					{
 						imgID = SCREENEDITOR_SLIDER;
 					}
@@ -46140,13 +46170,18 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			float font_scale = WidgetSelectUsedFont(nodeid, index);
 			ImGui::SetWindowFontScale(font_scale*vScale.x * Storyboard.Nodes[nodeid].widget_font_size[index]);
 
+			//Is a kind of progress bar?
 			bool bProgressbar = false;
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
-			{
+			if (   Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
 				bProgressbar = true;
-			}
+
 			//Widget Button
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON || bProgressbar || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
+			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON 
+			|| bProgressbar 
+			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE 
+			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
 			{
 				if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]))
 				{
@@ -46165,17 +46200,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				bool bHovered = false;
 				if (ImGui::IsItemHovered())
 				{
-					// LB latest
-					////if (ImGui::IsMouseReleased(0) )
-					//if (!bWidgetMouseDraggin && ImGui::IsMouseDown(0))
-					//{
-					//	if (iSkipWidgetSelectionForFrames == 0 && index > iWidgetSelectedThisFrame)
-					//	{
-					//		iCurrentSelectedWidget = index;
-					//		iWidgetSelectedThisFrame = index;
-					//	}
-					//}
-					//ImGui::SetTooltip("%s", "Select Button");
 					bHovered = true;
 				}
 				//Button Image
@@ -46227,7 +46251,47 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					if (lpTexture)
 					{
 						static float fProgress = 0.0;
-						if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
+						if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
+						{
+							if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Pair") == NULL)
+							{
+								// split label (first;second) so can read globals separately
+								char storeFirstEntry[MAX_PATH];
+								strcpy(storeFirstEntry, "");
+								strcpy(storeFirstEntry, Storyboard.Nodes[nodeid].widget_label[index]);
+								char storeSecondEntry[MAX_PATH];
+								strcpy(storeSecondEntry, "");
+								char* pDelimit = strstr(storeFirstEntry, ";");
+								if (pDelimit)
+								{
+									strcpy(storeSecondEntry, pDelimit + 1);
+									*pDelimit = 0;
+								}
+
+								// placeholder for all user defined global values
+								if (bImGuiInTestGame == false)
+								{
+									// placeholder shown in screen editor
+									fProgress = Storyboard.Nodes[nodeid].widget_initial_value[index];
+								}
+								else
+								{
+									// read from active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
+									char pUserDefinedGlobal[256];
+									sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
+									int readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+									sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeSecondEntry);
+									int readoutValueFromLUA2 = LuaGetInt(pUserDefinedGlobal);
+									fProgress = ((float)readoutValueFromLUA1/(float)readoutValueFromLUA2)*100.0f;
+								}
+							}
+							else
+							{
+								// no value if not from user global
+								fProgress = 0.0f;
+							}
+						}
+						else if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
 						{
 							//Must be changeable.
 							if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
@@ -46262,9 +46326,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + vSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
 					}
 				}
-				//if (!bProgressbar)
+
+				//Text Label
+				if ( Storyboard.Nodes[nodeid].widget_type[index] != STORYBOARD_WIDGET_BAR )
 				{
-					//Text Label
 					ImVec2 fTextAdjust = ImVec2(0.0f, 0.0f);
 					ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
 					if (iTextAdjustment == 0)
@@ -46282,7 +46347,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 			}
 			
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT || Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT
+			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 			{
 				cstr text = Storyboard.Nodes[nodeid].widget_label[index];
 				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global") == NULL)
@@ -46324,7 +46390,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 				}
-				if (!bPreviewScreen && text.Len() <= 0) text = "Empty Text"; //PE: Cant have empty text, we cant see it, where to select it.
+
+				//PE: Cant have empty text, we cant see it, where to select it.
+				if (!bPreviewScreen && text.Len() <= 0) text = "Empty Text";
 
 				widget_size = ImGui::CalcTextSize(text.Get());
 				if (bUsePivotXCenter)
@@ -46335,16 +46403,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				bool bHovered = false;
 				if (ImGui::IsItemHovered())
 				{
-					////if (ImGui::IsMouseReleased(0))
-					//if (!bWidgetMouseDraggin && ImGui::IsMouseDown(0)) //Direct fast select.
-					//{
-					//	if (iSkipWidgetSelectionForFrames == 0 && index > iWidgetSelectedThisFrame)
-					//	{
-					//		iCurrentSelectedWidget = index;
-					//		iWidgetSelectedThisFrame = index;
-					//	}
-					//}
-					//ImGui::SetTooltip("%s", "Select Text");
 					bHovered = true;
 				}
 
@@ -46669,7 +46727,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			}
 
 			//Set Slider Values.
-			//Storyboard.NodeSliderValues[nodeid][index];
 			if (!bReadOnly && iQuitWindowLoop <= 0 && (bPreviewScreen || standalone) )
 			{
 				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
@@ -47021,11 +47078,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			cstr sLabel = "Button Settings";
 			cstr sPositionText = "Current Position";
 			cstr sTextText = "Text";
+			cstr sButtonText = "Button";
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXT) { sLabel = "Text Settings"; sPositionText = "Current Text Position"; }
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_IMAGE)  sLabel = "Image Settings";
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_VIDEO)  sLabel = "Video Settings";
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS)  sLabel = "Progress Bar Settings";
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_SLIDER)  sLabel = "Slider Settings";
+			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BAR) { sLabel = "Status Bar Settings"; sTextText = ""; sButtonText = "Bar"; }
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXTAREA) { sLabel = "Text Area Settings"; sPositionText = "Current Text Position"; }
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON) { sPositionText = "Current Button Position"; sTextText = "Button Text"; }
 			if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_RADIOTYPE) { sLabel = "Radio Button Settings"; sTextText = "Radio Button Text"; }
@@ -47059,139 +47118,143 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Position Y");
 				ImGui::PopItemWidth();
 
+				// Determine if the widget is 'a'User Defined Global' powered (if so we nick the name field for our global var name) 
+				int iUserDefinedGlobal = 0;
+				std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
+				if (stricmp(readout.c_str(), "User Defined Global") == NULL) iUserDefinedGlobal = 1;
+				if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL) iUserDefinedGlobal = 2;
+
+				// skip text config if no text!
 				int widgetType = Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget];
-				if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
+				if ( strlen(sTextText.Get())>0 )
 				{
-					if (!bSpecialNoText)
+					if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
 					{
-						std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
-						bool bUserDefinedGlobal = false;
-						if (stricmp(readout.c_str(), "User Defined Global") == NULL)
-						{
-							ImGui::TextCenter("User Defined Global Name");
-							bUserDefinedGlobal = true;
-						}
-						else
+						if (!bSpecialNoText && iUserDefinedGlobal == 0)
 						{
 							ImGui::TextCenter(sTextText.Get());
+							cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+							ImGui::PushItemWidth(-10);
+							if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXTAREA)
+							{
+								ImGui::InputTextMultiline(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImVec2(0, 6.0 * ImGui::GetFontSize()), ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
+							}
+							else
+							{
+								ImGui::InputText(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
+							}
+							if (ImGui::MaxIsItemFocused())
+							{
+								bImGuiGotFocus = true;
+							}
+							ImGui::PopItemWidth();
 						}
-						cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+
+						ImGui::TextCenter("Text Font");
+						//	extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
+						char FontSelected[MAX_PATH];
+						strcpy(FontSelected, Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget]);
+
 						ImGui::PushItemWidth(-10);
-						if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXTAREA)
-						{
-							ImGui::InputTextMultiline(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImVec2(0, 6.0*ImGui::GetFontSize()), ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
-						}
-						else
-						{
-							ImGui::InputText(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
-						}
-						if (bUserDefinedGlobal==true && ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global to display. Pre-defined globals include; MyArmour, MyArmourToughness, MyStamina, MyStaminaMaximum.");
-						if (ImGui::MaxIsItemFocused())
-						{
-							bImGuiGotFocus = true;
-						}
-						ImGui::PopItemWidth();
-					}
+						WidgetSelectUsedFont(nodeid, iCurrentSelectedWidget);
+						ImGui::SetWindowFontScale(0.75);
 
-					ImGui::TextCenter("Text Font");
-					//	extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
-					char FontSelected[MAX_PATH];
-					strcpy(FontSelected, Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget]);
-
-					ImGui::PushItemWidth(-10);
-					WidgetSelectUsedFont(nodeid, iCurrentSelectedWidget);
-					ImGui::SetWindowFontScale(0.75);
-
-					if (ImGui::BeginCombo("##TextFontStoryboard", FontSelected)) // The second parameter is the label previewed before opening the combo.
-					{
-						bool bIsSelected = false;
-						if (strcmp(FontSelected, "Default Font") == NULL) bIsSelected = true;
-						ImGui::PushFont(customfontlarge);  //defaultfont
-						if (ImGui::Selectable("Default Font", bIsSelected))
-						{
-							strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], "Default Font");
-						}
-						ImGui::PopFont();
-						for (int i = 0; i < StoryboardFonts.size(); i++)
+						if (ImGui::BeginCombo("##TextFontStoryboard", FontSelected)) // The second parameter is the label previewed before opening the combo.
 						{
 							bool bIsSelected = false;
-							if (strcmp(StoryboardFonts[i].second.c_str(), FontSelected) == NULL) bIsSelected = true;
-
-							ImGui::PushFont(StoryboardFonts[i].first);  //defaultfont
-							if (ImGui::Selectable(StoryboardFonts[i].second.c_str(), bIsSelected))
+							if (strcmp(FontSelected, "Default Font") == NULL) bIsSelected = true;
+							ImGui::PushFont(customfontlarge);  //defaultfont
+							if (ImGui::Selectable("Default Font", bIsSelected))
 							{
-								strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], StoryboardFonts[i].second.c_str());
+								strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], "Default Font");
 							}
-							//ImGui::PushFont(customfont);  //defaultfont
 							ImGui::PopFont();
+							for (int i = 0; i < StoryboardFonts.size(); i++)
+							{
+								bool bIsSelected = false;
+								if (strcmp(StoryboardFonts[i].second.c_str(), FontSelected) == NULL) bIsSelected = true;
+
+								ImGui::PushFont(StoryboardFonts[i].first);  //defaultfont
+								if (ImGui::Selectable(StoryboardFonts[i].second.c_str(), bIsSelected))
+								{
+									strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], StoryboardFonts[i].second.c_str());
+								}
+								//ImGui::PushFont(customfont);  //defaultfont
+								ImGui::PopFont();
+							}
+							ImGui::EndCombo();
+							//ImGui::PopFont();
 						}
-						ImGui::EndCombo();
-						//ImGui::PopFont();
+						ImGui::PopItemWidth();
+
+						ImGui::SetWindowFontScale(1.0);
+						//ImGui::PushFont(customfont);  //select defaultfont
+						ImGui::PopFont();
+
+						ImGui::TextCenter("Text Color");
+						bool open_popup = ImGui::ColorButton("##StoryboardWidgetTextColor", Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
+						if (open_popup)
+							ImGui::OpenPopup("##StoryboardWidgetTextColor");
+						if (ImGui::BeginPopup("##StoryboardWidgetTextColor", ImGuiWindowFlags_NoMove))
+						{
+							if (ImGui::ColorPicker4("##StoryboardPickerTextColor", (float*)&Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+							{
+								//
+							}
+							ImGui::EndPopup();
+						}
+						//Add pencil
+						ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_PENCIL);
+						if (lpTexture)
+						{
+							ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize() * 1.5f) - 3.0f };
+							window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+						}
+
+						ImGui::TextCenter("Text Size");
+						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
+						ImGui::MaxSliderInputFloat("##WidgetTextSize", &Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget], 0.00f, 3.50f, "Set Text Font Size", 1.0, 100);
+						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
+						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] <= 0) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 0.0001;
 					}
-					ImGui::PopItemWidth();
 
-					ImGui::SetWindowFontScale(1.0);
-					//ImGui::PushFont(customfont);  //select defaultfont
-					ImGui::PopFont();
-
-					ImGui::TextCenter("Text Color");
-					bool open_popup = ImGui::ColorButton("##StoryboardWidgetTextColor", Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
-					if (open_popup)
-						ImGui::OpenPopup("##StoryboardWidgetTextColor");
-					if (ImGui::BeginPopup("##StoryboardWidgetTextColor", ImGuiWindowFlags_NoMove))
+					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
+						&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
 					{
-						if (ImGui::ColorPicker4("##StoryboardPickerTextColor", (float*)&Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+						ImGui::TextCenter("Text Offset");
+
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+						ImGui::Text("Offset X");
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+						if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
 						{
 							//
 						}
-						ImGui::EndPopup();
+						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset X");
+						ImGui::PopItemWidth();
+						ImGui::SameLine();
+						ImGui::Text("Offset Y");
+						ImGui::SameLine();
+						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+						if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
+						{
+							//
+						}
+						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset Y");
+						ImGui::PopItemWidth();
 					}
-					//Add pencil
-					ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_PENCIL);
-					if (lpTexture)
-					{
-						ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-						window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-					}
-
-					ImGui::TextCenter("Text Size");
-					if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
-					ImGui::MaxSliderInputFloat("##WidgetTextSize", &Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget], 0.00f, 3.50f, "Set Text Font Size", 1.0, 100);
-					if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
-					if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] <= 0) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 0.0001;
-
 				}
 
-				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT && Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
+				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON 
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS 
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_SLIDER
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BAR
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_RADIOTYPE
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TICKBOX)
 				{
-					ImGui::TextCenter("Text Offset");
-
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-					ImGui::Text("Offset X");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-					ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 -scrollSizeX);
-					if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
-					{
-						//
-					}
-					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset X");
-					ImGui::PopItemWidth();
-					ImGui::SameLine();
-					ImGui::Text("Offset Y");
-					ImGui::SameLine();
-					ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
-					if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
-					{
-						//
-					}
-					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset Y");
-					ImGui::PopItemWidth();
-				}
-
-				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON || Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS || Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_SLIDER || Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_RADIOTYPE || Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TICKBOX)
-				{
-					ImGui::TextCenter("Button Size");
+					ImGui::TextCenter(cstr(sButtonText+cstr(" Size")).Get());
 					float fTmp = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x;
 					if (fTmp > 4.0) fTmp = 4.0;
 					ImGui::MaxSliderInputFloat("##WidgetButtonSize", &fTmp, 0.00f, 4.00f, "Set Image Size", 1.0, 100);
@@ -47200,14 +47263,17 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = fTmp;
 
 					int iButtons = 3;
-					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS || Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_SLIDER) iButtons = 2;
+					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS 
+						|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_SLIDER
+						|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BAR)
+						iButtons = 2;
 
 					//Button Image Regular
 					for (int i = 0; i < iButtons; i++) //PE: Selected not really used yet, to enable it just set < 3 :)
 					{
-						if (i == 0) ImGui::TextCenter("Button Image Regular");
-						if (i == 1) ImGui::TextCenter("Button Image Highlighted");
-						if (i == 2) ImGui::TextCenter("Button Image Selected");
+						if (i == 0) ImGui::TextCenter(cstr(sButtonText + cstr(" Image Regular")).Get());
+						if (i == 1) ImGui::TextCenter(cstr(sButtonText + cstr(" Image Highlighted")).Get());
+						if (i == 2) ImGui::TextCenter(cstr(sButtonText + cstr(" Image Selected")).Get());
 
 						cstr UniqueRegularButtonSelect = "##StoryboardUniqueRegularButtonSelect";
 						if (i == 1) UniqueRegularButtonSelect = "##StoryboardUniqueHighligtedButtonSelect";
@@ -47272,12 +47338,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 						}
 					}
-
-					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_PROGRESS && Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_SLIDER)
+		
+					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_PROGRESS 
+					&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_SLIDER
+					&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_BAR)
 					{
-						//ImGui::TextCenter("Button Sound");
 						cstr cursound = Storyboard.Nodes[nodeid].widget_click_sound[iCurrentSelectedWidget];
-						cstr butsound = imgui_setpropertyfile2_v2(0, cursound.Get(), "Button Sound", "Select Button Sound", "audiobank\\", false);
+						
+							
+						cstr butsound = imgui_setpropertyfile2_v2(0, cursound.Get(), cstr(sButtonText + cstr(" Sound")).Get(), cstr(cstr("Select ")+sButtonText+cstr(" Image Regular")).Get(), "audiobank\\", false);
 						if (butsound != cursound)
 						{
 							strcpy(Storyboard.Nodes[nodeid].widget_click_sound[iCurrentSelectedWidget], butsound.Get());
@@ -47346,13 +47415,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 						ImGui::EndPopup();
 					}
-					////Add pencil
-					//void* lpTexture = GetImagePointer(TOOL_PENCIL);
-					//if (lpTexture)
-					//{
-					//	ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-					//	window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-					//}
 
 					ImGui::TextCenter("Image Size");
 					if (ImGui::MaxSliderInputFloat("##imgsize", &Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x, 0.01f, 4.0f, ""))
@@ -47385,6 +47447,60 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
+
+					// moved enry of 'widget_label' down here to match readout selection
+					if (iUserDefinedGlobal > 0)
+					{
+						if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
+						{
+							// label
+							if( iUserDefinedGlobal==1 )
+								ImGui::TextCenter("User Defined Global Name");
+							else
+								ImGui::TextCenter("User Defined Global Names");
+
+							// one or two (single or pair handling)
+							char storeFirstEntry[MAX_PATH];
+							strcpy(storeFirstEntry, "");
+							strcpy(storeFirstEntry, Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget]);
+							char storeSecondEntry[MAX_PATH];
+							strcpy(storeSecondEntry, "");
+							char* pDelimit = strstr(storeFirstEntry, ";");
+							if (pDelimit)
+							{
+								strcpy(storeSecondEntry, pDelimit + 1);
+								*pDelimit = 0;
+							}
+
+							// field
+							cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+							ImGui::PushItemWidth(-10);
+							ImGui::InputText(UniqueTextFiledName.Get(), storeFirstEntry, 250, ImGuiInputTextFlags_None);
+							if ( ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global to display. Pre-defined globals include; MyArmour, MyArmourToughness, MyStamina.");
+							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+							ImGui::PopItemWidth();
+
+							// globals pairs are used for things like status bars (current value var and max var)
+							if (iUserDefinedGlobal == 2)
+							{
+								// ask for a second on its own
+								cstr UniqueTextFiledNameSecond = cstr("##WidgetTextStoryboardInputSecond") + cstr(iCurrentSelectedWidget);
+								ImGui::PushItemWidth(-10);
+								ImGui::InputText(UniqueTextFiledNameSecond.Get(), storeSecondEntry, 250, ImGuiInputTextFlags_None);
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global to assist with the final display. Pre-defined globals include; MyStaminaMaximum.");
+								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+								ImGui::PopItemWidth();
+							}
+
+							// global pairs reconstruct first and second and store for later use
+							strcpy(Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], storeFirstEntry);
+							if (strlen(storeSecondEntry) > 0)
+							{
+								strcat(Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], ";");
+								strcat(Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], storeSecondEntry);
+							}
+						}
+					}
 				}
 				ImGui::Indent(-10);
 			}
@@ -47408,6 +47524,17 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
 							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
 						}
+						/* no initial values set for pair, do this with singles (reason: we cannot cram two values into widget_initial_value)
+						if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL)
+						{
+							ImGui::TextCenter(Storyboard.Nodes[nodeid].widget_label[i]);
+							char pUDGVar[256];
+							sprintf(pUDGVar, "##WidgetUDG%d", i);
+							float fValue = Storyboard.Nodes[nodeid].widget_initial_value[i];
+							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Values for this User Defined Global Pair", 0, 100);
+							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
+						}
+						*/
 					}
 				}
 				ImGui::Indent(-10);

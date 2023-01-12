@@ -5898,6 +5898,11 @@ int InitScreen(lua_State* L)
 					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
 					LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
 				}
+				/* global pairs do not init, only single ones can
+				if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL)
+				{
+				}
+				*/
 			}
 		}
 	}

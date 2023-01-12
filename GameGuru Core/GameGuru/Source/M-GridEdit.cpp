@@ -33690,6 +33690,12 @@ void init_readouts()
 	readoutTypes.push_back(READOUT_INT);
 	readoutCallbacks.push_back(nullptr);
 
+	readoutTitles.push_back("User Defined Global Pair");
+	readoutWidgetTypes.push_back(STORYBOARD_WIDGET_BAR);
+	readoutLayers.push_back(READOUT_GAMEPLAY);
+	readoutTypes.push_back(READOUT_INT);
+	readoutCallbacks.push_back(nullptr);
+
 	readoutTitles.push_back("Health Remaining");
 	readoutWidgetTypes.push_back(STORYBOARD_WIDGET_TEXT);
 	readoutLayers.push_back(READOUT_GAMEPLAY);

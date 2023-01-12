@@ -42408,6 +42408,16 @@ void process_storeboard(bool bInitOnly)
 						{
 							bEditGameSettings = true;
 						}
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+						if (ImGui::StyleButton("Reset HUD Screens", ImVec2(buttonwide, 0.0f)))
+						{
+							// Force a reset of the In-Game HUD screen, and reset node position
+							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
+							int nodeWidth = 180;
+							int nodeHeight = 150;
+							storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, true);
+							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[13].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+						}
 					}
 					#endif
 					//PE: Auto connect node.
@@ -44267,7 +44277,7 @@ void load_storyboard(char *name)
 			iLoadGameNodeID = 3;
 			iTitleScreenNodeID = 1;
 			iGamePausedNodeID = 8;
-			//iHUDScreenNodeID
+			iHUDScreenNodeID = 13;
 			Storyboard = checkproject;
 			bStoryboardFirstRunSetInitPos = false; //Load new thumbs, and reposition new nodes.
 			Storyboard.iChanged = false;
@@ -44312,6 +44322,23 @@ void load_storyboard(char *name)
 	{
 		strcpy(cTriggerMessage, "Could not find project.");
 		bTriggerMessage = true;
+	}
+
+	// Reset all node and image IDs to default - they don't need their state retained by saving, and under some circumstances when loading them, they can be duplicated, causing problems with selecting nodes and images.
+	int iUniqueIds = STORYBOARD_THUMBS;
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		Storyboard.Nodes[i].id = iUniqueIds;
+		Storyboard.Nodes[i].thumb_id = iUniqueIds;
+		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+		{
+			Storyboard.Nodes[i].widget_normal_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 600;
+			Storyboard.Nodes[i].widget_highlight_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 700;
+			Storyboard.Nodes[i].widget_selected_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 800;
+		}
+		Storyboard.Nodes[i].screen_backdrop_id = iUniqueIds + 500;
+
+		iUniqueIds++;
 	}
 
 	iLastNode = -1;

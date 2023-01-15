@@ -4875,7 +4875,9 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::MenuItem("Read User Manual")) 
 				{
 					#ifdef WICKEDENGINE
-					ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);
+					//ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);
+					// User guide has been moved to offline only
+					ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
 					#else
 					cstr pPDFPath = g.fpscrootdir_s + "\\Files\\languagebank\\english\\artwork\\Getting Started Guide.pdf";
 					ExecuteFile (pPDFPath.Get(), "", "", 0);

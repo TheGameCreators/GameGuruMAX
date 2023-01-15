@@ -197,3 +197,15 @@ GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkLUA/x6
 GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/Enhancements/x64/Release/RCa02380
 GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/PhotonMultiplayer/x64/Release/RCa06700
 GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/RCa29024
+GameGuru Core/SDK/OGG/.vs/ogg_vorbis_static/v17/.suo
+GameGuru Core/SDK/OGG/lib64/Debug/ogg_static.idb
+GameGuru Core/SDK/OGG/lib64/Debug/vorbis_static.idb
+GameGuru Core/SDK/OGG/lib64/Debug/vorbisfile_static.idb
+GameGuru Core/SDK/OGG/libogg/win32/VS2022/libogg.vcxproj.user
+GameGuru Core/SDK/OGG/libogg/win32/VS2022/x64/Debug/libogg.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/libogg/win32/VS2022/x64/Release/libogg.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbis/libvorbis_static.vcxproj.user
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbis/x64/Debug/libvorbis_static.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbis/x64/Release/libvorbis_static.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbisfile/x64/Debug/libvorbisfile_static.vcxproj.FileListAbsolute.txt
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbisfile/x64/Release/libvorbisfile_static.vcxproj.FileListAbsolute.txt

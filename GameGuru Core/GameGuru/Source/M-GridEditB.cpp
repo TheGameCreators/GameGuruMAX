@@ -35560,7 +35560,9 @@ void Welcome_Screen(void)
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x, vPreviewSize.x + 17.0f), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
 						//ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
-						ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
+						//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
+						// User guide has been moved to offline only
+						ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
 					}
 				}
 				ImGui::Text("");
@@ -36182,7 +36184,9 @@ void Welcome_Screen(void)
 				{
 					//Goto
 					/*ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);*/
-					ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
+					//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
+					// User guide has been moved to offline only
+					ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "View the GameGuru MAX User Guide online"); //Weekly Live Stream
 			}
@@ -44028,7 +44032,9 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 
 			if (ImGui::MenuItem("Read User Manual"))
 			{
-				ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);
+				/*ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);*/
+				// User guide has been moved to offline only
+				ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 

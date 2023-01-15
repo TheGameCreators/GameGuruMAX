@@ -46112,7 +46112,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
 				widget_size = widget_size * vScale;
 				float font_scale = WidgetSelectUsedFont(nodeid, i);
-				ImGui::SetWindowFontScale(font_scale*vScale.x * Storyboard.Nodes[nodeid].widget_font_size[i]);
+				ImGui::SetWindowFontScale(font_scale*vScale.x * fabs(Storyboard.Nodes[nodeid].widget_font_size[i]));
 				if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]))
 				{
 					widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
@@ -46174,7 +46174,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 			//One widget can only use one font, so select it now and use for all functions.
 			float font_scale = WidgetSelectUsedFont(nodeid, index);
-			ImGui::SetWindowFontScale(font_scale*vScale.x * Storyboard.Nodes[nodeid].widget_font_size[index]);
+			ImGui::SetWindowFontScale(font_scale*vScale.x * fabs(Storyboard.Nodes[nodeid].widget_font_size[index]));
 
 			//Is a kind of progress bar?
 			bool bProgressbar = false;
@@ -46348,8 +46348,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
 					}
 					fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-					ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-					ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], Storyboard.Nodes[nodeid].widget_label[index]);
+					if (Storyboard.Nodes[nodeid].widget_font_size[index] > 0)
+					{
+						ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], Storyboard.Nodes[nodeid].widget_label[index]);
+					}
 				}
 			}
 			
@@ -46402,7 +46405,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 				widget_size = ImGui::CalcTextSize(text.Get());
 				if (bUsePivotXCenter)
-					widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0));
+					widget_pos = (widget_pos - ImVec2((widget_size.x * 0.5), 0.0));
 
 				ImGui::SetCursorPos(vMonitorStart + widget_pos);
 				ImGui::Dummy(widget_size);
@@ -46413,11 +46416,21 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 
 				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				if(Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 					ImGui::PushTextWrapPos(0.0f);
 
-				//Storyboard.Nodes[node].widget_label[button], ""
-				ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index] , text.Get());
+				// show text if in edit mode, do not show text in game and hidden
+				LPSTR pTextToShow = text.Get();
+				if (bImGuiInTestGame == false)
+				{
+					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+				}
+				else
+				{
+					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = NULL;
+				}
+				if(pTextToShow) ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
+
 				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 					ImGui::PopTextWrapPos();
 			}
@@ -46472,26 +46485,25 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					//ImVec2 img_pos = ImGui::GetWindowPos() + vMonitorStart + widget_pos;
 					//img_pos.y -= ImGui::GetScrollY();
 					//window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + widget_size, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]]));
-				
 				}
 				
+				//Text Label
+				LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
+				if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+				ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
+				ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
+				if (iTextAdjustment == 0)
+					fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
+				else if (iTextAdjustment == 1)
+					fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
+				else if (iTextAdjustment == 2)
 				{
-					//Text Label
-					ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
-					ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
-					if (iTextAdjustment == 0)
-						fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
-					else if (iTextAdjustment == 1)
-						fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
-					else if (iTextAdjustment == 2)
-					{
-						fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
-						fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
-					}
-					fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-					ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-					ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], Storyboard.Nodes[nodeid].widget_label[index]);
+					fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
+					fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
 				}
+				fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
+				ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+				ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
 			}
 
 			bool bLuaPageClosing = false;
@@ -47136,92 +47148,109 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
 					{
-						if (!bSpecialNoText && iUserDefinedGlobal == 0)
+						// text size determines size and if visible in HUD
+						float fTextSize = Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget];
+
+						// Can hide text from HUD (using negative text size trick)
+						bool bHidingText = false;
+						if (fTextSize < 0) bHidingText = true;
+						if (ImGui::Checkbox("Hide Text", &bHidingText))
 						{
-							ImGui::TextCenter(sTextText.Get());
-							cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
-							ImGui::PushItemWidth(-10);
-							if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXTAREA)
-							{
-								ImGui::InputTextMultiline(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImVec2(0, 6.0 * ImGui::GetFontSize()), ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
-							}
-							else
-							{
-								ImGui::InputText(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
-							}
-							if (ImGui::MaxIsItemFocused())
-							{
-								bImGuiGotFocus = true;
-							}
-							ImGui::PopItemWidth();
+							fTextSize = fabs(fTextSize);
+							if (bHidingText == true) fTextSize = -fTextSize;
+							Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = fTextSize;
 						}
 
-						ImGui::TextCenter("Text Font");
-						//	extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
-						char FontSelected[MAX_PATH];
-						strcpy(FontSelected, Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget]);
-
-						ImGui::PushItemWidth(-10);
-						WidgetSelectUsedFont(nodeid, iCurrentSelectedWidget);
-						ImGui::SetWindowFontScale(0.75);
-
-						if (ImGui::BeginCombo("##TextFontStoryboard", FontSelected)) // The second parameter is the label previewed before opening the combo.
+						// Normal text handling if not hidden
+						if ( fTextSize > 0.0f )
 						{
-							bool bIsSelected = false;
-							if (strcmp(FontSelected, "Default Font") == NULL) bIsSelected = true;
-							ImGui::PushFont(customfontlarge);  //defaultfont
-							if (ImGui::Selectable("Default Font", bIsSelected))
+							if (!bSpecialNoText && iUserDefinedGlobal == 0)
 							{
-								strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], "Default Font");
+								ImGui::TextCenter(sTextText.Get());
+								cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+								ImGui::PushItemWidth(-10);
+								if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TEXTAREA)
+								{
+									ImGui::InputTextMultiline(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImVec2(0, 6.0 * ImGui::GetFontSize()), ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
+								}
+								else
+								{
+									ImGui::InputText(UniqueTextFiledName.Get(), Storyboard.Nodes[nodeid].widget_label[iCurrentSelectedWidget], 250, ImGuiInputTextFlags_None); //ImGuiInputTextFlags_ReadOnly
+								}
+								if (ImGui::MaxIsItemFocused())
+								{
+									bImGuiGotFocus = true;
+								}
+								ImGui::PopItemWidth();
 							}
-							ImGui::PopFont();
-							for (int i = 0; i < StoryboardFonts.size(); i++)
+
+							ImGui::TextCenter("Text Font");
+							//	extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
+							char FontSelected[MAX_PATH];
+							strcpy(FontSelected, Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget]);
+
+							ImGui::PushItemWidth(-10);
+							WidgetSelectUsedFont(nodeid, iCurrentSelectedWidget);
+							ImGui::SetWindowFontScale(0.75);
+
+							if (ImGui::BeginCombo("##TextFontStoryboard", FontSelected)) // The second parameter is the label previewed before opening the combo.
 							{
 								bool bIsSelected = false;
-								if (strcmp(StoryboardFonts[i].second.c_str(), FontSelected) == NULL) bIsSelected = true;
-
-								ImGui::PushFont(StoryboardFonts[i].first);  //defaultfont
-								if (ImGui::Selectable(StoryboardFonts[i].second.c_str(), bIsSelected))
+								if (strcmp(FontSelected, "Default Font") == NULL) bIsSelected = true;
+								ImGui::PushFont(customfontlarge);  //defaultfont
+								if (ImGui::Selectable("Default Font", bIsSelected))
 								{
-									strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], StoryboardFonts[i].second.c_str());
+									strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], "Default Font");
 								}
-								//ImGui::PushFont(customfont);  //defaultfont
 								ImGui::PopFont();
+								for (int i = 0; i < StoryboardFonts.size(); i++)
+								{
+									bool bIsSelected = false;
+									if (strcmp(StoryboardFonts[i].second.c_str(), FontSelected) == NULL) bIsSelected = true;
+
+									ImGui::PushFont(StoryboardFonts[i].first);  //defaultfont
+									if (ImGui::Selectable(StoryboardFonts[i].second.c_str(), bIsSelected))
+									{
+										strcpy(Storyboard.Nodes[nodeid].widget_font[iCurrentSelectedWidget], StoryboardFonts[i].second.c_str());
+									}
+									//ImGui::PushFont(customfont);  //defaultfont
+									ImGui::PopFont();
+								}
+								ImGui::EndCombo();
+								//ImGui::PopFont();
 							}
-							ImGui::EndCombo();
-							//ImGui::PopFont();
-						}
-						ImGui::PopItemWidth();
+							ImGui::PopItemWidth();
 
-						ImGui::SetWindowFontScale(1.0);
-						//ImGui::PushFont(customfont);  //select defaultfont
-						ImGui::PopFont();
+							ImGui::SetWindowFontScale(1.0);
+							//ImGui::PushFont(customfont);  //select defaultfont
+							ImGui::PopFont();
 
-						ImGui::TextCenter("Text Color");
-						bool open_popup = ImGui::ColorButton("##StoryboardWidgetTextColor", Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
-						if (open_popup)
-							ImGui::OpenPopup("##StoryboardWidgetTextColor");
-						if (ImGui::BeginPopup("##StoryboardWidgetTextColor", ImGuiWindowFlags_NoMove))
-						{
-							if (ImGui::ColorPicker4("##StoryboardPickerTextColor", (float*)&Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+							ImGui::TextCenter("Text Color");
+							bool open_popup = ImGui::ColorButton("##StoryboardWidgetTextColor", Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
+							if (open_popup)
+								ImGui::OpenPopup("##StoryboardWidgetTextColor");
+							if (ImGui::BeginPopup("##StoryboardWidgetTextColor", ImGuiWindowFlags_NoMove))
 							{
-								//
+								if (ImGui::ColorPicker4("##StoryboardPickerTextColor", (float*)&Storyboard.Nodes[nodeid].widget_font_color[iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+								{
+									//
+								}
+								ImGui::EndPopup();
 							}
-							ImGui::EndPopup();
-						}
-						//Add pencil
-						ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_PENCIL);
-						if (lpTexture)
-						{
-							ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize() * 1.5f) - 3.0f };
-							window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-						}
+							//Add pencil
+							ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_PENCIL);
+							if (lpTexture)
+							{
+								ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize() * 1.5f) - 3.0f };
+								window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+							}
 
-						ImGui::TextCenter("Text Size");
-						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
-						ImGui::MaxSliderInputFloat("##WidgetTextSize", &Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget], 0.00f, 3.50f, "Set Text Font Size", 1.0, 100);
-						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
-						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] <= 0) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 0.0001;
+							ImGui::TextCenter("Text Size");
+							if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
+							ImGui::MaxSliderInputFloat("##WidgetTextSize", &Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget], 0.00f, 3.50f, "Set Text Font Size", 1.0, 100);
+							if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] > 3.5) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 3.5;
+							if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] <= 0) Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = 0.0001;
+						}
 					}
 
 					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT

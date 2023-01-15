@@ -35386,11 +35386,11 @@ void Welcome_Screen(void)
 					ImGui::Indent(10);
 					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
-					ImGui::TextWrapped("The GameGuru MAX online user guide is a comprehensive guide to the software.");
+					ImGui::TextWrapped("The GameGuru MAX user guide is a comprehensive guide to the software.");
 					ImGui::Text("");
-					ImGui::TextWrapped("With easy left side navigation and instant search at the top, you can easily find the advice and help you are looking for.");
+					ImGui::TextWrapped("Provided as a simple PDF file, you can easily find the advice and help you are looking for.");
 					ImGui::Text("");
-					ImGui::TextWrapped("Regular updates will ensure the guide is up to date and offering the best advice to new and experienced game developers.");
+					ImGui::TextWrapped("We hope this user guide offers the best advice to new and experienced game developers.");
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 					ImGui::Indent(-10);
@@ -35562,7 +35562,7 @@ void Welcome_Screen(void)
 						//ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
 						//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 						// User guide has been moved to offline only
-						ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
+						ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
 					}
 				}
 				ImGui::Text("");
@@ -36186,9 +36186,9 @@ void Welcome_Screen(void)
 					/*ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);*/
 					//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 					// User guide has been moved to offline only
-					ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
+					ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "View the GameGuru MAX User Guide online"); //Weekly Live Stream
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "View the GameGuru MAX User Guide"); //Weekly Live Stream
 			}
 			else if (iCurrentOpenTab == 5)
 			{
@@ -44034,7 +44034,7 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 			{
 				/*ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);*/
 				// User guide has been moved to offline only
-				ExecuteFile("..\\Guides\\User Manual\\GameGuruMaxUserManual.pdf", "", "", 0);
+				ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 

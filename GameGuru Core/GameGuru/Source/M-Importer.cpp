@@ -2205,6 +2205,159 @@ void importer_loadmodel_wicked(void)
 		bTriggerMessage = true;
 	}
 
+	// LB: go through all frames of imported model
+	bool bConvertedBoneNames = false;
+	for (int iFrame = 0; iFrame < pImportedObject->iFrameCount; iFrame++)
+	{
+		sFrame* pFrame = pImportedObject->ppFrameList[iFrame];
+		if (pFrame)
+		{
+			LPSTR pOldFrameName = pFrame->szName;
+			if (pOldFrameName)
+			{
+				if (strlen(pOldFrameName) > 0)
+				{
+					// look for common bone names, and transform to GG standard skeleton name
+					const char* pNewName = "";
+					if (stricmp(pOldFrameName, "mixamorig_Hips") == NULL) pNewName = "Bip01_Pelvis";
+					if (stricmp(pOldFrameName, "mixamorig_Spine") == NULL) pNewName = "Bip01_Spine";
+					if (stricmp(pOldFrameName, "mixamorig_LeftUpLeg") == NULL) pNewName = "Bip01_L_Thigh";
+					if (stricmp(pOldFrameName, "mixamorig_LeftLeg") == NULL) pNewName = "Bip01_L_Calf";
+					if (stricmp(pOldFrameName, "mixamorig_LeftFoot") == NULL) pNewName = "Bip01_L_Foot";
+					if (stricmp(pOldFrameName, "mixamorig_LeftToeBase") == NULL) pNewName = "Bip01_L_Toe0";
+					if (stricmp(pOldFrameName, "mixamorig_RightUpLeg") == NULL) pNewName = "Bip01_R_Thigh";
+					if (stricmp(pOldFrameName, "mixamorig_RightLeg") == NULL) pNewName = "Bip01_R_Calf";
+					if (stricmp(pOldFrameName, "mixamorig_RightFoot") == NULL) pNewName = "Bip01_R_Foot";
+					if (stricmp(pOldFrameName, "mixamorig_RightToeBase") == NULL) pNewName = "Bip01_R_Toe0";
+					if (stricmp(pOldFrameName, "mixamorig_Spine1") == NULL) pNewName = "Bip01_Spine1";
+					if (stricmp(pOldFrameName, "mixamorig_Spine2") == NULL) pNewName = "Bip01_Spine2";
+					if (stricmp(pOldFrameName, "mixamorig_Neck") == NULL) pNewName = "Bip01_Neck";
+					if (stricmp(pOldFrameName, "mixamorig_LeftShoulder") == NULL) pNewName = "Bip01_L_Clavicle";
+					if (stricmp(pOldFrameName, "mixamorig_RightShoulder") == NULL) pNewName = "Bip01_R_Clavicle";
+					if (stricmp(pOldFrameName, "mixamorig_Head") == NULL) pNewName = "Bip01_Head";
+					if (stricmp(pOldFrameName, "mixamorig_HeadTop_End") == NULL) pNewName = "Bip01_HeadTop";
+					if (stricmp(pOldFrameName, "mixamorig_LeftArm") == NULL) pNewName = "Bip01_L_UpperArm";
+					if (stricmp(pOldFrameName, "mixamorig_LeftForeArm") == NULL) pNewName = "Bip01_L_Forearm";
+					if (stricmp(pOldFrameName, "mixamorig_RightArm") == NULL) pNewName = "Bip01_R_UpperArm";
+					if (stricmp(pOldFrameName, "mixamorig_RightForeArm") == NULL) pNewName = "Bip01_R_Forearm";
+					if (stricmp(pOldFrameName, "mixamorig_LeftHand") == NULL) pNewName = "Bip01_L_Hand";
+					if (stricmp(pOldFrameName, "mixamorig_RightHand") == NULL) pNewName = "Bip01_R_Hand";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandThumb1") > 0) pNewName = "Bip01_L_Finger0";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandThumb2") > 0) pNewName = "Bip01_L_Finger01";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandThumb3") > 0) pNewName = "Bip01_L_Finger02";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandThumb4") > 0) pNewName = "Bip01_L_Finger03";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandIndex1") > 0) pNewName = "Bip01_L_Finger1";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandIndex2") > 0) pNewName = "Bip01_L_Finger11";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandIndex3") > 0) pNewName = "Bip01_L_Finger12";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandIndex4") > 0) pNewName = "Bip01_L_Finger13";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandMiddle1") > 0) pNewName = "Bip01_L_Finger2";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandMiddle2") > 0) pNewName = "Bip01_L_Finger21";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandMiddle3") > 0) pNewName = "Bip01_L_Finger22";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandMiddle4") > 0) pNewName = "Bip01_L_Finger23";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandRing1") > 0) pNewName = "Bip01_L_Finger3";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandRing2") > 0) pNewName = "Bip01_L_Finger31";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandRing3") > 0) pNewName = "Bip01_L_Finger32";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandRing4") > 0) pNewName = "Bip01_L_Finger33";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandPinky1") > 0) pNewName = "Bip01_L_Finger4";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandPinky2") > 0) pNewName = "Bip01_L_Finger41";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandPinky3") > 0) pNewName = "Bip01_L_Finger42";
+					if (strstr(pOldFrameName, "mixamorig_LeftHandPinky4") > 0) pNewName = "Bip01_L_Finger43";
+					if (strstr(pOldFrameName, "mixamorig_RightHandThumb1") > 0) pNewName = "Bip01_R_Finger0";
+					if (strstr(pOldFrameName, "mixamorig_RightHandThumb2") > 0) pNewName = "Bip01_R_Finger01";
+					if (strstr(pOldFrameName, "mixamorig_RightHandThumb3") > 0) pNewName = "Bip01_R_Finger02";
+					if (strstr(pOldFrameName, "mixamorig_RightHandThumb4") > 0) pNewName = "Bip01_R_Finger03";
+					if (strstr(pOldFrameName, "mixamorig_RightHandIndex1") > 0) pNewName = "Bip01_R_Finger1";
+					if (strstr(pOldFrameName, "mixamorig_RightHandIndex2") > 0) pNewName = "Bip01_R_Finger11";
+					if (strstr(pOldFrameName, "mixamorig_RightHandIndex3") > 0) pNewName = "Bip01_R_Finger12";
+					if (strstr(pOldFrameName, "mixamorig_RightHandIndex4") > 0) pNewName = "Bip01_R_Finger13";
+					if (strstr(pOldFrameName, "mixamorig_RightHandMiddle1") > 0) pNewName = "Bip01_R_Finger2";
+					if (strstr(pOldFrameName, "mixamorig_RightHandMiddle2") > 0) pNewName = "Bip01_R_Finger21";
+					if (strstr(pOldFrameName, "mixamorig_RightHandMiddle3") > 0) pNewName = "Bip01_R_Finger22";
+					if (strstr(pOldFrameName, "mixamorig_RightHandMiddle4") > 0) pNewName = "Bip01_R_Finger23";
+					if (strstr(pOldFrameName, "mixamorig_RightHandRing1") > 0) pNewName = "Bip01_R_Finger3";
+					if (strstr(pOldFrameName, "mixamorig_RightHandRing2") > 0) pNewName = "Bip01_R_Finger31";
+					if (strstr(pOldFrameName, "mixamorig_RightHandRing3") > 0) pNewName = "Bip01_R_Finger32";
+					if (strstr(pOldFrameName, "mixamorig_RightHandRing4") > 0) pNewName = "Bip01_R_Finger33";
+					if (strstr(pOldFrameName, "mixamorig_RightHandPinky1") > 0) pNewName = "Bip01_R_Finger4";
+					if (strstr(pOldFrameName, "mixamorig_RightHandPinky2") > 0) pNewName = "Bip01_R_Finger41";
+					if (strstr(pOldFrameName, "mixamorig_RightHandPinky3") > 0) pNewName = "Bip01_R_Finger42";
+					if (strstr(pOldFrameName, "mixamorig_RightHandPinky4") > 0) pNewName = "Bip01_R_Finger43";
+
+					// also look for any spaces used in the bone name
+					bool bFoundASpace = false;
+					char constructNewName[MAX_PATH];
+					strcpy(constructNewName, pOldFrameName);
+					if (strlen(constructNewName) > 0)
+					{
+						for (int n = 0; n < strlen(constructNewName); n++)
+						{
+							if (constructNewName[n] == ' ')
+							{
+								constructNewName[n] = '_';
+								bFoundASpace = true;
+							}
+						}
+						if(bFoundASpace==true) pNewName = constructNewName;
+					}
+
+					// replace all instances of this name (if found)
+					if (strlen(pNewName) > 0)
+					{
+						// rename animation reference name too
+						if (pImportedObject->pAnimationSet)
+						{
+							sAnimation* pCurrent = pImportedObject->pAnimationSet->pAnimation;
+							while (pCurrent)
+							{
+								if (pCurrent->szName)
+								{
+									if (stricmp(pCurrent->szName, pFrame->szName) == NULL)
+									{
+										strcpy(pCurrent->szName, pNewName);
+										break;
+									}
+								}
+								pCurrent = pCurrent->pNext;
+							}
+						}
+
+						// also rename bone names within each mesh
+						for (int iMesh = 0; iMesh < pImportedObject->iMeshCount; iMesh++)
+						{
+							sMesh* pMesh = pImportedObject->ppMeshList[iMesh];
+							if (pMesh)
+							{
+								if (pMesh->pBones)
+								{
+									for (int iBone = 0; iBone < pMesh->dwBoneCount; iBone++)
+									{
+										if (pMesh->pBones[iBone].szName)
+										{
+											if (stricmp(pMesh->pBones[iBone].szName, pFrame->szName) == NULL)
+											{
+												strcpy(pMesh->pBones[iBone].szName, pNewName);
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+
+						// finally rename frame
+						strcpy(pFrame->szName, pNewName);
+						bConvertedBoneNames = true;
+					}
+				}
+			}
+		}
+	}
+	if (bConvertedBoneNames==true)
+	{
+		strcpy(cTriggerMessage, "The imported model had unconventional bone names (included spaces, etc), these have been converted to standard MAX rig bone names.");
+		bTriggerMessage = true;
+	}
+
 	// if flagged, use real object col center to shift mesh data to centralize the object
 	if ( t.importer.centermodelbyshiftingmesh == 1 )
 	{
@@ -10090,6 +10243,7 @@ void importer_save_entity ( char *filename )
 				DeleteObject ( objectnumberforframedatacopy );
 			}
 
+			/* LB: moving this to JUST when the importer loads the file as then we can see the animation in the importer
 			// go through all frames of imported model
 			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
 			{
@@ -10218,6 +10372,7 @@ void importer_save_entity ( char *filename )
 					}
 				}
 			}
+			*/
 
 			// now insert Bip01 into the frame hierarchy between Sceene Root and Pelvis
 			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )

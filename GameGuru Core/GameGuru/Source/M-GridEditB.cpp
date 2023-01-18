@@ -45087,6 +45087,10 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return nullptr;
 	}
+	else if (strcmp(readoutTitle, "User Defined Global Panel") == 0 && t.playerContainer.size()>0 && t.entityelement[t.playerContainer[0].e].active == 1)
+	{
+		return (void*)&t.iTmpImgID;
+	}
 	else if (strcmp(readoutTitle, "Health Remaining") == 0)
 	{
 		return (void*)&t.player[t.plrid].health;

@@ -1078,6 +1078,26 @@ luaMessage** ppLuaMessages = NULL;
 	if ( n < 2 ) return 0;
 	int iIndex = lua_tonumber(L, 1);
 	t.entityelement[iIndex].collected = lua_tonumber(L, 2);
+	if (t.entityelement[iIndex].collected > 0 )
+	{
+		// add item to inventory
+		inventoryContainerType item;
+		item.e = iIndex;
+		item.value = 1;
+		t.playerContainer.push_back(item);
+	}
+	else
+	{
+		// find and remove from inventory
+		for (int n = 0; n < t.playerContainer.size(); n++)
+		{
+			if (t.playerContainer[n].e == iIndex)
+			{
+				t.playerContainer.erase(t.playerContainer.begin()+n);
+				break;
+			}
+		}
+	}
 	return 0;
  }
  int GetEntityCollectable(lua_State* L)

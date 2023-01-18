@@ -71,6 +71,12 @@ void lua_init ( void )
 	g.projectileEventType_radius = 0;
 	g.projectileEventType_damage = 0;
 	g.projectileEventType_entityhit = 0;
+
+	//LB: more clearances
+	t.plrkeyForceKeystate = 0;
+
+	// Clear player inventory uere (needs to be move game init, otherwise plr inv will disappear for each new level)
+	t.playerContainer.clear();
 }
 
 void lua_loadscriptin ( void )

@@ -2232,6 +2232,13 @@ struct Sglobals
 
 extern Sglobals g;
 
+// LB: base inventory structure for inventory containers
+struct inventoryContainerType
+{
+	int e;
+	int value;
+};
+
 // Temp Struct
 struct Stemps
 {
@@ -5826,6 +5833,7 @@ struct Stemps
 	std::vector<unsigned int> iPhysicsDebugObjectsToUpdate;
 	int activerelationobjectid;
 	int iTmpImgID = 0;
+	std::vector <inventoryContainerType> playerContainer;
 #endif
 
 	// Constructor

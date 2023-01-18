@@ -4306,7 +4306,8 @@ void entity_fillgrideleproffromprofile ( void )
 	//  Strength and Quantity
 	t.grideleprof.strength=t.entityprofile[t.entid].strength;
 	t.grideleprof.lives=t.entityprofile[t.entid].lives;
-	t.grideleprof.isimmobile=t.entityprofile[t.entid].isimmobile;
+	t.grideleprof.isimmobile = t.entityprofile[t.entid].isimmobile;
+	t.grideleprof.iscollectable = t.entityprofile[t.entid].iscollectable;
 	t.grideleprof.lodmodifier=t.entityprofile[t.entid].lodmodifier;
 	t.grideleprof.isocluder=t.entityprofile[t.entid].isocluder;
 	t.grideleprof.isocludee=t.entityprofile[t.entid].isocludee;
@@ -5595,7 +5596,7 @@ void c_entity_loadelementsdata ( void )
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 331; //329;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 332; //329;//327;// 323; // 322; //319;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -6186,7 +6187,10 @@ void c_entity_loadelementsdata ( void )
 					{
 						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.overrideanimset_s = t.a_s;
 					}
-
+					if (t.versionnumberload >= 332)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.iscollectable = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -6437,7 +6441,7 @@ void entity_loadelementsdata(void)
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 331;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 332;//327;// 323; // 322; //319;
 	#endif
 
 	if (FileExist(t.elementsfilename_s.Get()) == 1)
@@ -7028,6 +7032,10 @@ void entity_loadelementsdata(void)
 					{
 						t.a_s = ReadString(1); t.entityelement[t.e].eleprof.overrideanimset_s = t.a_s;
 					}					
+					if (t.versionnumberload >= 332)
+					{
+						t.a = ReadLong(1); t.entityelement[t.e].eleprof.iscollectable = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -7348,7 +7356,7 @@ void entity_saveelementsdata ( void )
 	t.versionnumbersave = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersave = 331; //329; //327;// 323; //322; //319;
+	t.versionnumbersave = 332; //329; //327;// 323; //322; //319;
 	#endif
 
 	EntityWriter writer;
@@ -7859,6 +7867,10 @@ void entity_saveelementsdata ( void )
 				if (t.versionnumbersave >= 331)
 				{
 					writer.WriteString(t.entityelement[ent].eleprof.overrideanimset_s.Get());
+				}
+				if (t.versionnumbersave >= 332)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.iscollectable);
 				}
 				#endif
 			}

@@ -3602,6 +3602,7 @@ struct gametype
 	cstr jumplevel_s;
 	int onceonlyshadow;
 	int takingsnapshotpress;
+	int activeStoryboardScreen;
 
 	// Constructor
 	gametype ( )
@@ -3628,6 +3629,7 @@ struct gametype
 		 memset ( pSwitchToPage, 0, sizeof(pSwitchToPage) );
 		 memset ( pSwitchToLastPage, 0, sizeof(pSwitchToLastPage) );
 		 memset ( pAdvanceWarningOfLevelFilename, 0, sizeof(pAdvanceWarningOfLevelFilename) );
+		 activeStoryboardScreen = -1;
 	}
 	// End of Constructor
 

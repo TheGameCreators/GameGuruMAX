@@ -42267,6 +42267,41 @@ void process_storeboard(bool bInitOnly)
 							iAutoConnectNode = node;
 						}
 					}
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
+					{
+						// Find first free storyboard node that we can use for the new screen.
+						int node = -1;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used == 0)
+							{
+								// Reset node to default state, in case any old data remains.
+								node = i;
+								reset_single_node(node);
+
+								// New node defaults to a HUD screen
+								Storyboard.Nodes[node].used = true;
+								Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
+								Storyboard.Nodes[node].restore_position = ImVec2(100, STORYBOARD_YSTART + 100);
+								Storyboard.Nodes[node].iEditEnable = true;
+								strcpy(Storyboard.Nodes[node].title, "HUD Screen");
+								//strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\hud.lua.png");
+								strcpy(Storyboard.Nodes[node].lua_name, "hud.lua");
+								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
+								Storyboard.Nodes[node].screen_backdrop_transparent = true;
+								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE;
+								Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY;
+								break;
+							}
+						}
+
+						if (node < 0)
+						{
+							bTriggerMessage = true;
+							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+						}
+					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Add Existing Level", ImVec2(buttonwide, 0.0f)) || iStoryboardExecuteKey == 'L')
 					{
@@ -45297,6 +45332,61 @@ void SendWidgetToBack(int nodeID, int widgetID)
 	iCurrentSelectedWidget = 0;
 }
 
+unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int bufferLength) {
+
+	// bit 16 - 23 contains the first byte of the scancode
+	// bit 24 indicates that the scancode is 2 bytes(extended)
+	unsigned int result = 0;
+	unsigned int extended = scancode & 0xffff00;
+	unsigned int lParam = 0;
+
+	if (extended) 
+	{
+		if (extended == 0xE11D00) 
+		{
+			lParam = 0x45 << 16;
+		}
+		else 
+		{
+			lParam = (0x100 | (scancode & 0xff)) << 16;
+		}
+	}
+	else 
+	{
+		lParam = scancode << 16;
+		if (scancode == 0x45) 
+		{
+			lParam |= (0x1 << 24);
+		}
+	}
+
+	result = GetKeyNameTextA(lParam, buffer, bufferLength);
+	return result;
+}
+
+// Check all of the storyboard nodes for their key to toggle them. If it matches the keyboard input then make the screen appear
+void TriggerScreenFromKeyPress()
+{
+	int scan = ScanCode();
+	if (scan <= 0)
+	{
+		return;
+	}
+
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		StoryboardNodesStruct& node = Storyboard.Nodes[i];
+		if (node.used && node.toggleKey == scan)
+		{
+			t.game.titleloop = 0;
+			strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
+			t.game.activeStoryboardScreen = i;
+			/*t.game.activeStoryboardScreen*/
+			return;
+		}
+	}
+}
+
 float LuaMousePosPercentX, LuaMousePosX, LuaMousePosPercentY, LuaMousePosY;
 int LuaMouseClick = 0;
 static char LoadGameTitle[9][256];
@@ -45317,6 +45407,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 	int iRet = -1;
 	int nodeidStore = nodeid;
+	static bool bScreenToggleKeyWindow = false;
 
 	ImGuiWindow* window = NULL; //ImGui::GetCurrentWindow();
 	if (standalone)
@@ -47057,6 +47148,27 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					ImGui::Indent(10);
 					Storyboard.Nodes[nodeid].screen_backdrop_transparent = true;
+
+					// Display key that will make this screen appear in-game
+					Storyboard.Nodes[nodeid].toggleKey;
+					char* toggleKey = "NONE";
+					if (Storyboard.Nodes[nodeid].toggleKey > 0)
+					{
+						char scanCodeName[128];
+						int result = GetScancodeName(Storyboard.Nodes[nodeid].toggleKey, scanCodeName, 128);
+						toggleKey = scanCodeName;
+					}
+					
+					ImGui::Text("Screen Toggle Key: %s", toggleKey);
+					if (ImGui::Button("Change Toggle Key"))
+					{
+						bScreenToggleKeyWindow = true;
+					}
+					bool bShowAtStart = Storyboard.Nodes[nodeid].showAtStart;
+					if (ImGui::Checkbox("Show Screen At Start", &bShowAtStart))
+					{
+						Storyboard.Nodes[nodeid].showAtStart = bShowAtStart;
+					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvail().x - 14.0)*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Preview Screen", ImVec2(buttonwide, 0.0f)))
 					{
@@ -47800,6 +47912,44 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			}
 			ImGui::EndPopup();
 		}
+	}
+
+	// Modal window, waits for user to press a key. The key that they press will be used to toggle the visibility of the current screen
+	if (bScreenToggleKeyWindow)
+	{
+		bImGuiGotFocus = true;
+		ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+		ImGui::SetNextWindowSize(ImVec2(512, 256));
+		ImGui::OpenPopup("##screenkeytogglepopup");
+		ImGui::BeginPopupModal("##screenkeytogglepopup", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
+
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::TextCenter("Press the key that you would like to make this screen appear in-game.");
+
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
+		t.inputsys.kscancode = ScanCode();
+		if (t.inputsys.kscancode > 0)
+		{
+			Storyboard.Nodes[nodeid].toggleKey = t.inputsys.kscancode;
+			ImGui::CloseCurrentPopup();
+			bScreenToggleKeyWindow = false;
+		}
+		/*for(int i = 0; i < 128; i++)
+		{
+			if (ImGui::GetIO().KeysDown[i])
+			{
+				ImGui::CloseCurrentPopup();
+				bScreenToggleKeyWindow = false;
+				Storyboard.Nodes[nodeid].toggleKey = i;
+			}
+		}*/
+		ImGui::PopStyleColor();
+		ImGui::Text("");
+		ImGui::EndPopup();
 	}
 
 	return iRet;

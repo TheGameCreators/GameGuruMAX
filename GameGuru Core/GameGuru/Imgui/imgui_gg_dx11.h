@@ -837,7 +837,9 @@ struct StoryboardNodesStruct
 	int screen_backdrop_transparent;
 	int readouts_available = 0;
 	int widgets_available = ALLOW_TEXT | ALLOW_IMAGE;
-	int iFiller20[17];
+	int toggleKey = 0;
+	int showAtStart = 0;
+	int iFiller20[15];
 	float fFiller20[20];
 	int iFillerMaxOutputs20[20][STORYBOARD_MAXOUTPUTS];
 	char FillerCharMaxOutput20[20][STORYBOARD_MAXOUTPUTS][256];

@@ -5938,6 +5938,28 @@ int DisplayScreen(lua_State* L)
 	return 1;
 	//return 0;
 }
+int DisplayCurrentScreen(lua_State* L)
+{
+	int screen_editor(int nodeid, bool standalone = false, char* screen = NULL);
+	if (t.game.activeStoryboardScreen >= 0)
+	{
+		screen_editor(t.game.activeStoryboardScreen, true);
+	}
+	lua_pushnumber(L, iSpecialLuaReturn);
+	return 1;
+	//return 0;
+}
+int CheckScreenToggles(lua_State* L)
+{
+	extern void TriggerScreenFromKeyPress();
+	TriggerScreenFromKeyPress();
+	return 1;
+}
+int GetCurrentScreen(lua_State* L)
+{
+	lua_pushnumber(L, t.game.activeStoryboardScreen);
+	return 1;
+}
 int GetScreenWidgetValue(lua_State *L)
 {
 	float fRet = -99999.0;
@@ -9051,6 +9073,9 @@ void addFunctions()
 	//Storyboard
 	lua_register(lua, "InitScreen", InitScreen);
 	lua_register(lua, "DisplayScreen", DisplayScreen);
+	lua_register(lua, "DisplayCurrentScreen", DisplayCurrentScreen);
+	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
+	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
 	lua_register(lua, "GetStoryboardActive", GetStoryboardActive);
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetValue", SetScreenWidgetValue);

@@ -42305,7 +42305,7 @@ void process_storeboard(bool bInitOnly)
 								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
 								Storyboard.Nodes[node].screen_backdrop_transparent = true;
 								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE;
-								Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY;
+								Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY | READOUT_GRAPHICS | READOUT_INPUT | READOUT_SOUND;
 								break;
 							}
 						}

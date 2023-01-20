@@ -39548,7 +39548,9 @@ void process_storeboard(bool bInitOnly)
 							{
 								//Save into thumbbank , and save thumb filename in node.
 								//PE: Needed to add Storyboard.gamename so we dont get duplicates.
-								cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].lua_name);
+								/*cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].lua_name);*/
+								// name of thumb is now based on screen title, to prevent multiple screens with same thumb name
+								cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].title);
 								CreateBackBufferCacheName(name.Get(), 512, 288);
 								SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iWaitFor2DEditorNode].thumb_id);
 								if (FileExist(BackBufferCacheName.Get()))
@@ -42270,6 +42272,16 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
 					{
+						int hudScreenCount = 0;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+							{
+								hudScreenCount++;
+							}
+						}
+						char cHudCount[8];
+						sprintf_s(cHudCount, "%d", hudScreenCount+1);
 						// Find first free storyboard node that we can use for the new screen.
 						int node = -1;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
@@ -42283,9 +42295,11 @@ void process_storeboard(bool bInitOnly)
 								// New node defaults to a HUD screen
 								Storyboard.Nodes[node].used = true;
 								Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
-								Storyboard.Nodes[node].restore_position = ImVec2(100, STORYBOARD_YSTART + 100);
+								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[13].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[13].restore_position.y);
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 								Storyboard.Nodes[node].iEditEnable = true;
-								strcpy(Storyboard.Nodes[node].title, "HUD Screen");
+								strcpy(Storyboard.Nodes[node].title, "HUD Screen ");
+								strcat(Storyboard.Nodes[node].title, cHudCount);
 								//strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\hud.lua.png");
 								strcpy(Storyboard.Nodes[node].lua_name, "hud.lua");
 								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
@@ -42300,6 +42314,16 @@ void process_storeboard(bool bInitOnly)
 						{
 							bTriggerMessage = true;
 							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+						}
+						else
+						{
+							// Trigger creation of a new thumbnail for the newly created screen
+							iWaitFor2DEditor = 5;
+							iWaitFor2DEditorNode = node;
+							if (BitmapExist(99))
+							{
+								DeleteBitmapEx(99);
+							}
 						}
 					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
@@ -42462,6 +42486,13 @@ void process_storeboard(bool bInitOnly)
 						if (ImGui::StyleButton("Reset HUD Screens", ImVec2(buttonwide, 0.0f)))
 						{
 							// Force a reset of the In-Game HUD screen, and reset node position
+							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							{
+								if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+								{
+									Storyboard.Nodes[i].used = false;
+								}
+							}
 							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
 							int nodeWidth = 180;
 							int nodeHeight = 150;
@@ -44295,6 +44326,9 @@ static int iLastNode = -1;
 
 void load_storyboard(char *name)
 {
+	extern void ResetStoryboardListenForKeys();
+	ResetStoryboardListenForKeys();
+
 	if (!name) return;
 	if (strlen(name) <= 0) return;
 
@@ -45365,26 +45399,98 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 }
 
 // Check all of the storyboard nodes for their key to toggle them. If it matches the keyboard input then make the screen appear
+static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	int scan = ScanCode();
-	if (scan <= 0)
+	static std::vector<int> scans;
+	if (listenForKeys.empty())
+	{
+		// Initialise listenForKeys - we only want to check for keys that will toggle a screen, if we let e.g. player movement keys through, then it will trigger the wait to release it before allowing us to toggle a screen.
+		// This will allow us to trigger screens whilst moving  
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			int keyToListenFor = Storyboard.Nodes[i].toggleKey;
+			if (keyToListenFor > 0)
+			{
+				listenForKeys.push_back(keyToListenFor);
+			}
+		}
+	}
+
+	// Early exit: this project has no screens that are toggled with keypresses.
+	if (listenForKeys.empty())
 	{
 		return;
 	}
 
-	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	// Need to check all keys, in case we need to ignore any in m_KeyBuffer, that come before our toggle keys
+	scans.clear();
+	UpdateKeyboard();
+	extern unsigned char m_KeyBuffer[256];
+	for (int i = 0; i < 256; i++)
 	{
-		StoryboardNodesStruct& node = Storyboard.Nodes[i];
-		if (node.used && node.toggleKey == scan)
+		if (m_KeyBuffer[i] > 0)
 		{
-			t.game.titleloop = 0;
-			strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
-			t.game.activeStoryboardScreen = i;
-			/*t.game.activeStoryboardScreen*/
+			scans.push_back(i);
+		}
+	}
+
+	static bool bWaitForKeyRelease = false;
+	if (scans.empty())
+	{
+		// No keys pressed
+		bWaitForKeyRelease = false;
+		return;
+	}
+
+	int scan = 0;
+	// Check if the keys that are pressed are used for toggling screens
+	for (int i = 0; i < scans.size(); i++)
+	{
+		if (std::find(listenForKeys.begin(), listenForKeys.end(), scans[i]) != listenForKeys.end())
+		{
+			scan = scans[i];
+			break;
+		}
+		if (i == scans.size() - 1)
+		{
+			// No keys are pressed that are being 'listened' to
+			bWaitForKeyRelease = false;
 			return;
 		}
 	}
+	
+	if (bWaitForKeyRelease == false)
+	{
+		// If we reached here, then a key is pressed that should toggle a screen, find the screen to toggle.
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			StoryboardNodesStruct& node = Storyboard.Nodes[i];
+			if (node.used && scan > 0 && node.toggleKey == scan)
+			{
+				bWaitForKeyRelease = true;
+
+				if (t.game.activeStoryboardScreen == i)
+				{
+					// Screen is already active, turn it off
+					t.game.activeStoryboardScreen = -1;
+				}
+				else
+				{
+					t.game.activeStoryboardScreen = i;
+				}
+				// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
+				//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
+				//t.game.titleloop = 0;
+				return;
+			}
+		}
+	}
+}
+
+void ResetStoryboardListenForKeys()
+{
+	listenForKeys.clear();
 }
 
 float LuaMousePosPercentX, LuaMousePosX, LuaMousePosPercentY, LuaMousePosY;
@@ -46478,7 +46584,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 				else
 				{
-					if (nodeidStore == -1 && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+					if ((bImGuiInTestGame || standalone)/*nodeidStore == -1*/ && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
 					{
 						// Display the variable value that this readout represents
 						int readoutValue = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
@@ -47149,25 +47255,30 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImGui::Indent(10);
 					Storyboard.Nodes[nodeid].screen_backdrop_transparent = true;
 
-					// Display key that will make this screen appear in-game
-					Storyboard.Nodes[nodeid].toggleKey;
-					char* toggleKey = "NONE";
-					if (Storyboard.Nodes[nodeid].toggleKey > 0)
+					// "In-Game HUD" is the default HUD screen, and currently cannot have its visibility conditions changed
+					// If we plan to make any HUD screen a possible default then hud0.lua will need changed to accomodate this
+					if (strcmp(Storyboard.Nodes[nodeid].title, "In-Game HUD") != 0)
 					{
-						char scanCodeName[128];
-						int result = GetScancodeName(Storyboard.Nodes[nodeid].toggleKey, scanCodeName, 128);
-						toggleKey = scanCodeName;
-					}
-					
-					ImGui::Text("Screen Toggle Key: %s", toggleKey);
-					if (ImGui::Button("Change Toggle Key"))
-					{
-						bScreenToggleKeyWindow = true;
-					}
-					bool bShowAtStart = Storyboard.Nodes[nodeid].showAtStart;
-					if (ImGui::Checkbox("Show Screen At Start", &bShowAtStart))
-					{
-						Storyboard.Nodes[nodeid].showAtStart = bShowAtStart;
+						// Display key that will make this screen appear in-game
+						Storyboard.Nodes[nodeid].toggleKey;
+						char* toggleKey = "NONE";
+						if (Storyboard.Nodes[nodeid].toggleKey > 0)
+						{
+							char scanCodeName[128];
+							int result = GetScancodeName(Storyboard.Nodes[nodeid].toggleKey, scanCodeName, 128);
+							toggleKey = scanCodeName;
+						}
+
+						ImGui::Text("Screen Toggle Key: %s", toggleKey);
+						if (ImGui::Button("Change Toggle Key"))
+						{
+							bScreenToggleKeyWindow = true;
+						}
+						bool bShowAtStart = Storyboard.Nodes[nodeid].showAtStart;
+						if (ImGui::Checkbox("Show Screen At Start", &bShowAtStart))
+						{
+							Storyboard.Nodes[nodeid].showAtStart = bShowAtStart;
+						}
 					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvail().x - 14.0)*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Preview Screen", ImVec2(buttonwide, 0.0f)))
@@ -47936,17 +48047,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		{
 			Storyboard.Nodes[nodeid].toggleKey = t.inputsys.kscancode;
 			ImGui::CloseCurrentPopup();
+			ResetStoryboardListenForKeys();
 			bScreenToggleKeyWindow = false;
 		}
-		/*for(int i = 0; i < 128; i++)
-		{
-			if (ImGui::GetIO().KeysDown[i])
-			{
-				ImGui::CloseCurrentPopup();
-				bScreenToggleKeyWindow = false;
-				Storyboard.Nodes[nodeid].toggleKey = i;
-			}
-		}*/
 		ImGui::PopStyleColor();
 		ImGui::Text("");
 		ImGui::EndPopup();

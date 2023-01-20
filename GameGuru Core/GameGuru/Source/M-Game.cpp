@@ -3357,6 +3357,17 @@ void game_masterroot_initcode(int iUseVRTest)
 	timestampactivity(0,"_game_oneoff_nongraphics");
 	game_oneoff_nongraphics ( );
 
+	// Pick the HUD screen that should be shown at the start of the level
+	t.game.activeStoryboardScreen = -1;
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		if (Storyboard.Nodes[i].showAtStart)
+		{
+			t.game.activeStoryboardScreen = i;
+			break;
+		}
+	}
+
 	//  Master loop will run until whole game terminated
 	t.game.masterloop=1;
 }

@@ -407,9 +407,9 @@ void widget_movezonesandlights(int e)
 			{
 				#ifdef WICKEDENGINE
 				//PE: In wicked we use the rotation vector for spot light.
-				t.infinilight[g.infinilightmax].f_angle_x = pObject->position.vecRotate.x;
-				t.infinilight[g.infinilightmax].f_angle_y = pObject->position.vecRotate.y;
-				t.infinilight[g.infinilightmax].f_angle_z = pObject->position.vecRotate.z;
+				t.infinilight[iLightIndex].f_angle_x = pObject->position.vecRotate.x;
+				t.infinilight[iLightIndex].f_angle_y = pObject->position.vecRotate.y;
+				t.infinilight[iLightIndex].f_angle_z = pObject->position.vecRotate.z;
 				#else
 				t.infinilight[iLightIndex].f_angle_x = pObject->position.vecLook.x;
 				t.infinilight[iLightIndex].f_angle_y = pObject->position.vecLook.y;

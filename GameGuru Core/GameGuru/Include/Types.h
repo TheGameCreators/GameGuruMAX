@@ -6208,6 +6208,7 @@ struct entityeleproftype
 	cstr soundset6_s;
 	int iUseSoundVariants;
 	cstr overrideanimset_s;
+	int iSwimSpeed;
 	#endif
 
 	// Constructor
@@ -6259,6 +6260,7 @@ struct entityeleproftype
 		soundset6_s = "";
 		iUseSoundVariants = 1;
 		overrideanimset_s = "";
+		iSwimSpeed = 3;
 		#endif
 
 		 //phydw5 = 0;

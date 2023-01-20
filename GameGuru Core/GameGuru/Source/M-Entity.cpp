@@ -5596,7 +5596,7 @@ void c_entity_loadelementsdata ( void )
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 332; //329;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 333; //329;//327;// 323; // 322; //319;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -6191,6 +6191,10 @@ void c_entity_loadelementsdata ( void )
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.iscollectable = t.a;
 					}
+					if (t.versionnumberload >= 333)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.iSwimSpeed = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -6441,7 +6445,7 @@ void entity_loadelementsdata(void)
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 332;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 333;//327;// 323; // 322; //319;
 	#endif
 
 	if (FileExist(t.elementsfilename_s.Get()) == 1)
@@ -7036,6 +7040,10 @@ void entity_loadelementsdata(void)
 					{
 						t.a = ReadLong(1); t.entityelement[t.e].eleprof.iscollectable = t.a;
 					}
+					if (t.versionnumberload >= 333)
+					{
+						t.a = ReadLong(1); t.entityelement[t.e].eleprof.iSwimSpeed = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -7356,7 +7364,7 @@ void entity_saveelementsdata ( void )
 	t.versionnumbersave = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersave = 332; //329; //327;// 323; //322; //319;
+	t.versionnumbersave = 333; //329; //327;// 323; //322; //319;
 	#endif
 
 	EntityWriter writer;
@@ -7871,6 +7879,10 @@ void entity_saveelementsdata ( void )
 				if (t.versionnumbersave >= 332)
 				{
 					writer.WriteLong(t.entityelement[ent].eleprof.iscollectable);
+				}
+				if (t.versionnumbersave >= 333)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.iSwimSpeed);
 				}
 				#endif
 			}

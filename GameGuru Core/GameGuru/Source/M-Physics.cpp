@@ -2426,6 +2426,7 @@ void physics_player_init ( void )
 				#ifdef WICKEDENGINE
 				t.playercontrol.fWeaponDamageMultiplier = t.entityelement[t.e].eleprof.weapondamagemultiplier;
 				t.playercontrol.fMeleeDamageMultiplier = t.entityelement[t.e].eleprof.meleedamagemultiplier;
+				t.playercontrol.fSwimSpeed = t.entityelement[t.e].eleprof.iSwimSpeed;
 				#endif
 
 				// new property of player start marker to disable flashlight

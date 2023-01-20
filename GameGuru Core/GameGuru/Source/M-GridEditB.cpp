@@ -28073,9 +28073,10 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		#ifdef WICKEDENGINE
 		ImGui::TextCenter("Swimming Speed");
 		ImGui::PushItemWidth(-10);
-		int iSwimSpeed = t.playercontrol.fSwimSpeed;
-		ImGui::MaxSliderInputInt("##SwimSpeedSimpleInput", &iSwimSpeed, 1, 100, "Modifies how much distance is travelled with each swimming stroke");
-		t.playercontrol.fSwimSpeed = iSwimSpeed;
+		//int iSwimSpeed = t.playercontrol.fSwimSpeed;
+		/*ImGui::MaxSliderInputInt("##SwimSpeedSimpleInput", &iSwimSpeed, 1, 100, "Modifies how much distance is travelled with each swimming stroke");*/
+		ImGui::MaxSliderInputInt("##SwimSpeedSimpleInput", &edit_grideleprof->iSwimSpeed, 1, 100, "Modifies how much distance is travelled with each swimming stroke");
+		//t.playercontrol.fSwimSpeed = iSwimSpeed;
 		ImGui::PopItemWidth();
 
 		
@@ -45002,6 +45003,13 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 
 void RemoveWidgetFromScreen(int nodeID, int widgetID)
 {
+	if (Storyboard.Nodes[nodeID].type != STORYBOARD_TYPE_HUD)
+	{
+		// TEMP: users can delete the buttons in the default screens, but cannot add them back because we don't yet have buttons.
+		// Once buttons can be added, this code can be removed.
+		return;
+	}
+
 	// First, check that the widget is actually on the screen and able to be removed.
 	int indexToActiveWidget = -1;
 	for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
@@ -45535,8 +45543,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				iUpdateBackDropNode = i;
 				if (Storyboard.Nodes[iUpdateBackDropNode].type == STORYBOARD_TYPE_SCREEN)
 				{
-					//PE: Not transparent screens.
-					if (!Storyboard.Nodes[iUpdateBackDropNode].screen_backdrop_transparent)
+					///PE: Not transparent screens.
+					//if (!Storyboard.Nodes[iUpdateBackDropNode].screen_backdrop_transparent)
 					{
 						if (ImageExist(Storyboard.Nodes[iUpdateBackDropNode].screen_backdrop_id)) DeleteImage(Storyboard.Nodes[iUpdateBackDropNode].screen_backdrop_id);
 

@@ -5918,11 +5918,6 @@ int InitScreen(lua_State* L)
 					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
 					LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
 				}
-				/* global pairs do not init, only single ones can
-				if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL)
-				{
-				}
-				*/
 			}
 		}
 	}
@@ -5936,7 +5931,6 @@ int DisplayScreen(lua_State* L)
 	screen_editor(-1, true, pScreenName);
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
-	//return 0;
 }
 int DisplayCurrentScreen(lua_State* L)
 {
@@ -5947,7 +5941,6 @@ int DisplayCurrentScreen(lua_State* L)
 	}
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
-	//return 0;
 }
 int CheckScreenToggles(lua_State* L)
 {
@@ -6014,6 +6007,42 @@ int SetScreenWidgetSelection(lua_State *L)
 	lua_pushnumber(L, iRet);
 	return 1;
 	//return 0;
+}
+int GetScreenElement(lua_State* L)
+{
+	int iButton = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		char pElementName[512];
+		strcpy(pElementName, lua_tostring(L, 1));
+		for(int n=0; n < STORYBOARD_MAXWIDGETS; n++ )
+		{
+			if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName)==NULL)
+			{
+				iButton = n;
+				break;
+			}
+		}
+	}
+	lua_pushnumber(L, iButton);
+	return 1;
+}
+int SetScreenElementPosition(lua_State* L)
+{
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iButton = lua_tonumber(L, 1);
+		if (iButton >= 0 && iButton < STORYBOARD_MAXWIDGETS)
+		{
+			float fX = lua_tonumber(L, 2);
+			float fY = lua_tonumber(L, 3);
+			Storyboard.Nodes[nodeid].widget_pos[iButton].x = fX;
+			Storyboard.Nodes[nodeid].widget_pos[iButton].y = fY;
+		}
+	}
+	return 0;
 }
 
 #endif
@@ -9080,6 +9109,8 @@ void addFunctions()
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetValue", SetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetSelection", SetScreenWidgetSelection);
+	lua_register(lua, "GetScreenElement", GetScreenElement);
+	lua_register(lua, "SetScreenElementPosition", SetScreenElementPosition);
 	#endif
 
 	lua_register(lua, "SetCharacterDirectionOverride", SetCharacterDirectionOverride);

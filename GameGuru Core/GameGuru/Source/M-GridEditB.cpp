@@ -7244,32 +7244,12 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Ambient Occlusion power (default=1.0)");
 					ImGui::PopItemWidth();
-					/*
-					tab_tab_Column_text("AO Range", fTabColumnWidth);
-					ImGui::PushItemWidth(-10);
-					if ( ImGui::SliderFloat("##setAmbientOcclusionRange", &master.fAORange, 1.0f, 300.0f, "%.2f", 1.5f) )
-					{
-						master.masterrenderer.setAORange( master.fAORange );
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Ambient Occlusion range (default=40.0)");
-					ImGui::PopItemWidth();
-
-					tab_tab_Column_text("AO Samples", fTabColumnWidth);
-					ImGui::PushItemWidth(-10);
-					if ( ImGui::SliderInt("##setAmbientOcclusionSamples", &master.iAOSamples, 1, 64) )
-					{
-						master.masterrenderer.setAOSampleCount( master.iAOSamples );
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set number of Ambient Occlusion samples (default=16)");
-					ImGui::PopItemWidth();
-					*/
 				}
-
 				ImGui::Indent(-10);
 			}
-#ifdef ADVANCEDCOLORS
+			#ifdef ADVANCEDCOLORS
 			ImGui::PopStyleColor();
-#endif
+			#endif
 		}
 
 		if (pref.iEnableAdvancedShadows)
@@ -7433,51 +7413,6 @@ void tab_tab_visuals(int iPage, int iMode)
 					bForceRefreshLightCount = true;
 					bVisualUpdated = true;
 				}
-
-//				void SetTransparentShadowsEnabled(float value) { TRANSPARENTSHADOWSENABLED = value; }
-//				float GetTransparentShadowsEnabled()
-
-
-
-				/* Shadow Bias not currently active
-				static bool bSetBias = false;
-				//tab_tab_Column_text("Shadow Bias", fTabColumnWidth);
-				ImGui::PushItemWidth(-10);
-				ImGui::Checkbox("Shadow Bias##bSetBias", &bSetBias);
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enable You to Change The Shadow Bias");
-
-				if (bSetBias)
-				{
-					if (ImGui::SliderFloat("##fSunShadowBias:", &t.visuals.fSunShadowBias, -0.0005, 0.0005, "%.5f"))
-					{
-						//Need saving in visuals.ini
-						t.gamevisuals.fSunShadowBias = t.visuals.fSunShadowBias;
-						bVisualUpdated = true;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sun Shadow Bias Default: 0.00005");
-				}
-				ImGui::PopItemWidth();
-				*/
-
-				/*
-				extern float fWickedMaxCenterTest;
-				tab_tab_Column_text("Sun Shadow Range", fTabColumnWidth);
-				ImGui::PushItemWidth(-10);
-				if (ImGui::SliderFloat("##WickedfShadowFarPlane", &t.visuals.fShadowFarPlane, 50000.0f, DEFAULT_FAR_PLANE, "%.2f", 2.0f))
-				{
-					t.gamevisuals.fShadowFarPlane = t.visuals.fShadowFarPlane;
-					bVisualUpdated = true;
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Max distance the sun will cast shadows");
-				*/
-
-				/* Remove for now , can be used to adjust leaks in top of houses.
-				if (ImGui::SliderFloat("##WickedfWickedMaxCenterTest", &fWickedMaxCenterTest, 0.0f, DEFAULT_FAR_PLANE, "%.3f", 2.0f))
-				{
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Orthographic Matrix Adjust Minimum And Maximum Z");
-				*/
-
 				ImGui::PopItemWidth();
 				ImGui::Indent(-10);
 			}
@@ -7515,7 +7450,7 @@ void tab_tab_visuals(int iPage, int iMode)
 
 		if (!bRenderTabTab && !pref.bHideTutorials)
 		{
-#ifndef REMOVED_EARLYACCESS
+			#ifndef REMOVED_EARLYACCESS
 			if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
@@ -7538,7 +7473,7 @@ void tab_tab_visuals(int iPage, int iMode)
 
 				ImGui::Indent(-10);
 			}
-#endif
+			#endif
 		}
 
 		//Reset
@@ -7566,7 +7501,6 @@ void tab_tab_visuals(int iPage, int iMode)
 			ImGui::Text("");
 			ImGui::Text("");
 		}
-
 		ImGui::End();
 	}
 
@@ -7604,7 +7538,6 @@ void tab_tab_visuals(int iPage, int iMode)
 		// Window layout and dimensions
 		float fMargin = 15.0f;
 		float w = ImGui::GetWindowContentRegionWidth();
-		//instruction_centerline = (w - (fMargin * 2)) / 2.0f;
 		instruction_centerline = fMargin;
 
 		// detect if width changes (need to trigger right shift recalc)
@@ -7827,16 +7760,6 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 					else
 					{
-						// when not calculating new right most shift distance, use it to move whole state to the right
-						//float fDistanceToShiftRight = ((w-fMargin) - pState->fRightMostX);
-
-						// allow for single column instruction layout (only shift if start to get WIDE)
-						//fDistanceToShiftRight -= 80.0f;
-						//if (fDistanceToShiftRight < 0) fDistanceToShiftRight = 0;
-
-						// do the shift
-						//vTopCenterPos.x += fDistanceToShiftRight;
-
 						// a little one to get better position in right panel
 						vTopCenterPos.x += 20;
 					}
@@ -7889,9 +7812,6 @@ void tab_tab_visuals(int iPage, int iMode)
 				float but_gadget_size = ImGui::GetFontSize() * 10.0;
 				ImVec2 be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
 				ImGui::SetCursorPos(be_button_pos);
-				//float but_gadget_size = ImGui::GetFontSize()*10.0;
-				//float fNewMargin = fMargin;// +instruction_centerline - (but_gadget_size / 2.0f);
-				//ImGui::Indent(fNewMargin);
 				if (ImGui::Button("Add New State##BehaviorEditor", ImVec2(but_gadget_size, 0)))
 				{
 					// Add new state
@@ -8055,8 +7975,6 @@ void tab_tab_visuals(int iPage, int iMode)
 		if ((pNextAlso && pNextElse) || (pParentInstruction==NULL && pNextAlso==NULL && pNextElse ==NULL) )
 		{
 			// reason is, where does the other instruction chain go - not showing
-			//strcpy(cTriggerMessage, "Cannot delete an instruction if it has both ALSO and ELSE instructions.");
-			//bTriggerMessage = true;
 			// end now, no delete today!
 			instruction_deletethis = NULL;
 		}
@@ -45172,7 +45090,8 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return nullptr;
 	}
-	else if (strcmp(readoutTitle, "User Defined Global Panel") == 0 && t.playerContainer.size()>0 && t.entityelement[t.playerContainer[0].e].active == 1)
+	//else if (strcmp(readoutTitle, "User Defined Global Panel") == 0 && t.playerContainer.size() > 0 && t.entityelement[t.playerContainer[0].e].active == 1)
+	else if (strcmp(readoutTitle, "User Defined Global Panel") == 0)
 	{
 		return (void*)&t.iTmpImgID;
 	}
@@ -46689,38 +46608,39 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				//Display Image
 				void* lpTexture = GetImagePointer(imgID);
 				if (lpTexture)
-				{
-					
-					ImGui::SetCursorPos(vMonitorStart + widget_pos);
-					
-					///ImGui::Image((ImTextureID)lpTexture, widget_size, ImVec2(0,0), ImVec2(1,1), Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]], ImVec4(0,0,0,0));
+				{			
+					ImGui::SetCursorPos(vMonitorStart + widget_pos);		
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 					ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
 					ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
 					ImGui::PopItemFlag();
-					// Should eventually restore this code, once a cause for freeze is found
-					//ImVec2 img_pos = ImGui::GetWindowPos() + vMonitorStart + widget_pos;
-					//img_pos.y -= ImGui::GetScrollY();
-					//window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + widget_size, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]]));
 				}
-				
+
+				// no text if a global panel
+				bool bShowText = true;
+				cstr text = Storyboard.Nodes[nodeid].widget_label[index];
+				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
+
 				//Text Label
-				LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
-				if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
-				ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
-				ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
-				if (iTextAdjustment == 0)
-					fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
-				else if (iTextAdjustment == 1)
-					fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
-				else if (iTextAdjustment == 2)
+				if (bShowText == true)
 				{
-					fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
-					fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+					LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
+					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+					ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
+					ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
+					if (iTextAdjustment == 0)
+						fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
+					else if (iTextAdjustment == 1)
+						fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
+					else if (iTextAdjustment == 2)
+					{
+						fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
+						fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+					}
+					fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
+					ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+					ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
 				}
-				fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-				ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-				ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
 			}
 
 			bool bLuaPageClosing = false;
@@ -47384,6 +47304,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
 				if (stricmp(readout.c_str(), "User Defined Global") == NULL) iUserDefinedGlobal = 1;
 				if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL) iUserDefinedGlobal = 2;
+				if (stricmp(readout.c_str(), "User Defined Global Panel") == NULL) iUserDefinedGlobal = 3;	
 
 				// skip text config if no text!
 				int widgetType = Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget];
@@ -47729,13 +47650,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					// moved enry of 'widget_label' down here to match readout selection
 					if (iUserDefinedGlobal > 0)
 					{
-						if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
+						if (widgetType != STORYBOARD_WIDGET_PROGRESS )//&& widgetType != STORYBOARD_WIDGET_IMAGE)
 						{
 							// label
-							if( iUserDefinedGlobal==1 )
-								ImGui::TextCenter("User Defined Global Name");
-							else
+							if( iUserDefinedGlobal==2 )
 								ImGui::TextCenter("User Defined Global Names");
+							else
+								ImGui::TextCenter("User Defined Global Name");
 
 							// one or two (single or pair handling)
 							char storeFirstEntry[MAX_PATH];

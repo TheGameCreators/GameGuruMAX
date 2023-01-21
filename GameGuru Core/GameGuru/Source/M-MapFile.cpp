@@ -1621,6 +1621,11 @@ void mapfile_loadplayerconfig ( void )
 
 		CloseFile (  1 );
 	}
+
+	// No third person mode in MAX
+	#ifdef WICKEDENGINE
+	t.playercontrol.thirdperson.enabled = 0;
+	#endif
 }
 
 void mapfile_saveplayerconfig ( void )

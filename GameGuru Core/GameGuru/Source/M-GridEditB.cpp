@@ -5417,13 +5417,15 @@ float gridedit_instruction_calculatewidth_rec (sLeafNode* pinstruction)
 	if (pinstruction->pAlso==NULL && pinstruction->pElse==NULL)
 	{
 		// leaf node
-		fTotalWidthNeededForChildren += 0.55f;
+		fTotalWidthNeededForChildren += 0.55f + 0.05f;
 	}
 	else
 	{
 		// new system needed, this is a little hard to navigate when have LARGE behaviors!!
-		if (pinstruction->pAlso) fTotalWidthNeededForChildren += 0.05f + gridedit_instruction_calculatewidth_rec(pinstruction->pAlso);
-		if (pinstruction->pElse) fTotalWidthNeededForChildren += 0.1f + gridedit_instruction_calculatewidth_rec(pinstruction->pElse);
+		//if (pinstruction->pAlso) fTotalWidthNeededForChildren += 0.05f + gridedit_instruction_calculatewidth_rec(pinstruction->pAlso);
+		//if (pinstruction->pElse) fTotalWidthNeededForChildren += 0.1f + gridedit_instruction_calculatewidth_rec(pinstruction->pElse);
+		if (pinstruction->pAlso) fTotalWidthNeededForChildren += gridedit_instruction_calculatewidth_rec(pinstruction->pAlso);
+		if (pinstruction->pElse) fTotalWidthNeededForChildren += gridedit_instruction_calculatewidth_rec(pinstruction->pElse);
 		// works but is massively wide!!
 		// parent node
 		//float fLeftSide = 0.0f; if (pinstruction->pAlso) fLeftSide = gridedit_instruction_calculatewidth_rec(pinstruction->pAlso);
@@ -5608,7 +5610,7 @@ void gridedit_instruction_populateanimationlist ( int iObj )
 void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, LPSTR pStateName, sLeafNode* pinstruction, float fMargin, int iRowIndex)
 {
 	// Insert instruction block
-	float fAbsInstructionLeftX = vTopCenterPos.x - (instruction_block_width / 2);
+	float fAbsInstructionLeftX = vTopCenterPos.x;// -(instruction_block_width / 2);
 	ImGui::SetCursorPos(ImVec2(fAbsInstructionLeftX, vTopCenterPos.y));
 	ImVec2 vInstructionPos = ImGui::GetCurrentWindow()->DC.CursorPos;
 	ImVec2 vOutline = vInstructionPos - ImVec2(instruction_border, instruction_border);
@@ -5679,6 +5681,7 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 	// Draw outline of instruction block
 	ImGui::GetCurrentWindow()->DrawList->AddRectFilled(instruction_bb.Min, instruction_bb.Max, ImGui::GetColorU32(block_col), 0.0f, 15);
 	ImGui::GetCurrentWindow()->DrawList->AddRect(instruction_bb.Min, instruction_bb.Max, ImGui::GetColorU32(block_col_border), 0.0f, 15, 2.0f);
+
 	// condition combo
 	char pInstructionDisplay[1024];
 	sprintf(pInstructionDisplay, "##BehaviorEditorCondition%s%d", pStateName, pinstruction->iInstructionIndex);
@@ -5822,7 +5825,11 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 			if (pinstruction->pElse) bHaveAnotherInstruction = true;
 		}
 		float fDestinationAdjustmentX = 0.0f;
-		if (buttonindex == 0 && pinstruction->pAlso && pinstruction->pElse) fDestinationAdjustmentX -= (pinstruction->pAlso->fWidthRequired) * instruction_block_width;
+		float fDestinationAdjustmentForButtonX = 0.0f;
+		if (buttonindex == 0 && pinstruction->pAlso && pinstruction->pElse)
+		{
+			// going to keep left aligned, and expand right
+		}
 		if (buttonindex == 1 && pinstruction->pElse)
 		{
 			if (pinstruction->iAction == 0 || pinstruction->iAction == 1)
@@ -5831,24 +5838,24 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 			}
 			else
 			{
-				fDestinationAdjustmentX += (pinstruction->pElse->fWidthRequired) * instruction_block_width;
+				if(pinstruction->pAlso) fDestinationAdjustmentX += ((pinstruction->pAlso->fWidthRequired) * instruction_block_width) * 2.0f;
+				fDestinationAdjustmentForButtonX += 10;
 			}
 		}
-		float fAdjustLabelX = 0.0f;
-		if (buttonindex == 0)
-			fAdjustLabelX = -10.0f;
-		else
-			fAdjustLabelX = 10.0f;
-		ImVec2 vLineFrom = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fAdjustLabelX, instruction_block_height + instruction_border);
-		ImVec2 vLineTo = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fDestinationAdjustmentX, instruction_block_height + instruction_border + 10);
+		ImVec2 vLineFrom = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4), instruction_block_height + instruction_border);
+		ImVec2 vLineTo = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fDestinationAdjustmentForButtonX, instruction_block_height + instruction_border + 10);
+
 		bool bFirstLineIsInstructionJump = false;
 		if (buttonindex == 0 && pinstruction->pGoToInstruction) bFirstLineIsInstructionJump = true;
 		if (bFirstLineIsInstructionJump == true)
 		{
-			// returen to start and goto instruction have shorter vert line to 'miss' the regular line (if on right - phewy)
+			// return to start and goto instruction have shorter vert line to 'miss' the regular line (if on right - phewy)
 			vLineTo.y -= 5.0f;
 		}
+
+		// line from instruction block to button
 		ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+
 		if (buttonindex == 0)
 			fLeftALSOBranchX = fDestinationAdjustmentX;
 		else
@@ -5859,13 +5866,12 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 			vLineFrom = vLineTo;
 
 			// left side or right side
-			ImVec2 vShiftToSide = ImVec2(-((instruction_block_width/4)+(instruction_block_width/2)), 0);
+			ImVec2 vShiftToSide = vInstructionPos - ImVec2(8.0f,0);
 			ImVec2 vConnectTo = pinstruction->pGoToInstruction->vReturnPointPos;
 			float fDecidingXPos = vLineFrom.x;
 			if (buttonindex == 0) fDecidingXPos += instruction_block_width;
 			if (fDecidingXPos > instruction_centerline_absolutex)
 			{
-				vShiftToSide = ImVec2(instruction_block_width+(instruction_block_width/2), 0);
 				vConnectTo.x += instruction_block_width + (instruction_border/2);
 			}
 
@@ -5873,27 +5879,27 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 			if (pinstruction->iAction == 0)
 			{
 				// when jump to new state, no connecting line to the new state component (yet)
-				vLineTo.x += vShiftToSide.x / 5.0f;
-				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+				vLineTo.x = vShiftToSide.x;
+				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)), 2.0f);
 
 				// mark state jump with square
 				ImVec2 vEndOfLine = vLineTo;
 				vLineFrom = ImVec2(vEndOfLine.x - 5.0f, vEndOfLine.y - 2.5f);
 				vLineTo = ImVec2(vEndOfLine.x, vEndOfLine.y + 2.5f);
-				ImGui::GetCurrentWindow()->DrawList->AddRect(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+				ImGui::GetCurrentWindow()->DrawList->AddRect(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)), 2.0f);
 			}
 			if (pinstruction->iAction == 1)
 			{
 				// if 'go to' instruction block, protrude a line left/rightward
-				vLineTo.x += vShiftToSide.x;
-				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+				vLineTo.x = vShiftToSide.x;
+				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)), 2.0f);
 
 				// then draw a line up or down to destination Y pos
 				ImVec2 vLevelWith = ImVec2(vLineTo.x, vConnectTo.y);
-				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineTo, vLevelWith, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineTo, vLevelWith, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)), 2.0f);
 
 				// and to destination
-				ImGui::GetCurrentWindow()->DrawList->AddLine(vLevelWith, vConnectTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
+				ImGui::GetCurrentWindow()->DrawList->AddLine(vLevelWith, vConnectTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)), 2.0f);
 			}
 		}
 		else
@@ -5901,22 +5907,22 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 			if (bHaveAnotherInstruction == true)
 			{
 				// insert an instruction at this point
-				sprintf(pInstructionDisplay, "Insert##BehaviorEditorInsert%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
+				sprintf(pInstructionDisplay, "+##BehaviorEditorInsert%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
 
-				// and a line dropping down to instruction below
-				vLineFrom = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fAdjustLabelX + fDestinationAdjustmentX, instruction_block_height + instruction_border + 10);
-				vLineTo = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fDestinationAdjustmentX, fVertYPosToNextInstruction + instruction_border);
+				// and a line dropping down from [+] button to instruction below
+				vLineFrom = vInstructionPos + ImVec2(fWhichHalf + (instruction_block_width / 4) + fDestinationAdjustmentForButtonX, instruction_block_height + instruction_border + 10 + 10);
+				vLineTo = vInstructionPos + ImVec2((instruction_block_width / 2) + fDestinationAdjustmentX, fVertYPosToNextInstruction + instruction_border);
 				ImGui::GetCurrentWindow()->DrawList->AddLine(vLineFrom, vLineTo, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.75f)), 2.0f);
 			}
 			else
 			{
 				// add a new instruction button
 				if (buttonindex == 0)
-					sprintf(pInstructionDisplay, "True##BehaviorEditorAdd%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
+					sprintf(pInstructionDisplay, "T##BehaviorEditorAdd%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
 				else
-					sprintf(pInstructionDisplay, "False##BehaviorEditorAdd%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
+					sprintf(pInstructionDisplay, "F##BehaviorEditorAdd%s%d%d", pStateName, buttonindex, pinstruction->iInstructionIndex);
 			}
-			ImGui::SetCursorPos(ImVec2(fButtonMargin + fWhichHalf + fAbsInstructionLeftX + fDestinationAdjustmentX, fButtonPosY));
+			ImGui::SetCursorPos(ImVec2(fButtonMargin + fWhichHalf + fAbsInstructionLeftX + fDestinationAdjustmentForButtonX, fButtonPosY));
 			if (ImGui::Button(pInstructionDisplay, ImVec2(fAddButtonWidth, 0)))
 			{
 				// check if special case with user selecting node to connect instruction to
@@ -7597,8 +7603,9 @@ void tab_tab_visuals(int iPage, int iMode)
 
 		// Window layout and dimensions
 		float fMargin = 15.0f;
-		float w = ImGui::GetWindowContentRegionWidth() * 2;
-		instruction_centerline = (w - (fMargin * 2)) / 2.0f;
+		float w = ImGui::GetWindowContentRegionWidth();
+		//instruction_centerline = (w - (fMargin * 2)) / 2.0f;
+		instruction_centerline = fMargin;
 
 		// detect if width changes (need to trigger right shift recalc)
 		static float lastw = -1.0f;
@@ -7742,7 +7749,8 @@ void tab_tab_visuals(int iPage, int iMode)
 			ImGui::PopItemWidth();
 
 			float but_gadget_size = ImGui::GetFontSize()*10.0;
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
+			ImVec2 be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
+			ImGui::SetCursorPos(be_button_pos);
 			if (ImGui::StyleButton("Close Behavior Editor##TabTabCloseBehaviorEditor", ImVec2(but_gadget_size, 0)))
 			{
 				extern bool g_bBehaviorEditorActive;
@@ -7755,21 +7763,6 @@ void tab_tab_visuals(int iPage, int iMode)
 		if (instruction_running_e > 0) bIsBehaviorToEditValid = true;
 		if (bIsBehaviorToEditValid == true)
 		{
-			/* not for EA
-			if (ImGui::StyleCollapsingHeader("Behavior Description##BehaviorEditor", wflags))
-			{
-				ImGui::Indent(fMargin);
-				float TextHeight = ImGui::GetFontSize()*7.5f;
-				static char cBehaviorDescription[4096] = { "Will show script behavior description along with DLUA values (feature not yet complete)" };
-				extern int CLB(ImGuiTextEditCallbackData* data);
-				ImGui::PushItemWidth(w - 20);
-				ImGui::InputTextMultiline("##cBehaviorDescription", &cBehaviorDescription[0], 4096, ImVec2(0, TextHeight), ImGuiInputTextFlags_CallbackAlways, CLB, &(w));
-				ImGui::PopItemWidth();
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Shows the description for this behavior (feature not yet complete)");
-				ImGui::Indent(-fMargin);
-			}
-			*/
-
 			// which state are we in right now?
 			int iCurrentlyInsideState = -1;
 			if (instruction_freezewheneditingbehavior == false)
@@ -7835,14 +7828,17 @@ void tab_tab_visuals(int iPage, int iMode)
 					else
 					{
 						// when not calculating new right most shift distance, use it to move whole state to the right
-						float fDistanceToShiftRight = ((w-fMargin) - pState->fRightMostX);
+						//float fDistanceToShiftRight = ((w-fMargin) - pState->fRightMostX);
 
 						// allow for single column instruction layout (only shift if start to get WIDE)
-						fDistanceToShiftRight -= 80.0f;
-						if (fDistanceToShiftRight < 0) fDistanceToShiftRight = 0;
+						//fDistanceToShiftRight -= 80.0f;
+						//if (fDistanceToShiftRight < 0) fDistanceToShiftRight = 0;
 
 						// do the shift
-						vTopCenterPos.x += fDistanceToShiftRight;
+						//vTopCenterPos.x += fDistanceToShiftRight;
+
+						// a little one to get better position in right panel
+						vTopCenterPos.x += 20;
 					}
 
 					// go through all intructions for this state
@@ -7888,9 +7884,14 @@ void tab_tab_visuals(int iPage, int iMode)
 			// Behavior management buttons
 			if (ImGui::StyleCollapsingHeader("Behavior Management##BehaviorEditor", wflags))
 			{
-				float but_gadget_size = ImGui::GetFontSize()*10.0;
-				float fNewMargin = fMargin + instruction_centerline - (but_gadget_size / 2.0f);
-				ImGui::Indent(fNewMargin);
+				ImGui::Indent(fMargin);
+
+				float but_gadget_size = ImGui::GetFontSize() * 10.0;
+				ImVec2 be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
+				ImGui::SetCursorPos(be_button_pos);
+				//float but_gadget_size = ImGui::GetFontSize()*10.0;
+				//float fNewMargin = fMargin;// +instruction_centerline - (but_gadget_size / 2.0f);
+				//ImGui::Indent(fNewMargin);
 				if (ImGui::Button("Add New State##BehaviorEditor", ImVec2(but_gadget_size, 0)))
 				{
 					// Add new state
@@ -7899,6 +7900,8 @@ void tab_tab_visuals(int iPage, int iMode)
 					instruction_freezewheneditingbehavior = true;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add a new state to this behavior");
+				be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
+				ImGui::SetCursorPos(be_button_pos);
 				if (ImGui::Button("Update Behavior##BehaviorEditor", ImVec2(but_gadget_size, 0)))
 				{
 					// Save behavior byte code file
@@ -7923,6 +7926,8 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Save any changes that have been made to this behavior");
+				be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
+				ImGui::SetCursorPos(be_button_pos);
 				if (ImGui::Button("Restart Behavior##BehaviorEditor", ImVec2(but_gadget_size, 0)))
 				{
 					if (instruction_running_e > 0)
@@ -7934,6 +7939,8 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Restarts the behavior to the first state");
+				be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
+				ImGui::SetCursorPos(be_button_pos);
 				if (ImGui::Button("Stop Behavior##BehaviorEditor", ImVec2(but_gadget_size, 0)))
 				{
 					// freeze so can edit
@@ -7947,7 +7954,8 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Restarts the behavior to the first state");
-				ImGui::Indent(-fNewMargin);
+
+				ImGui::Indent(-fMargin);
 			}
 		}
 

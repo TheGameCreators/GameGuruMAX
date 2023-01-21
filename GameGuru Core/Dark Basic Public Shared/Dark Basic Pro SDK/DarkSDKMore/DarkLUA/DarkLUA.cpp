@@ -6008,38 +6008,138 @@ int SetScreenWidgetSelection(lua_State *L)
 	return 1;
 	//return 0;
 }
-int GetScreenElement(lua_State* L)
+int GetScreenElements(lua_State* L)
 {
-	int iButton = 0;
+	int iQty = 0;
 	int nodeid = t.game.activeStoryboardScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pElementName[512];
 		strcpy(pElementName, lua_tostring(L, 1));
-		for(int n=0; n < STORYBOARD_MAXWIDGETS; n++ )
+		if (strlen(pElementName) > 0)
 		{
-			if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName)==NULL)
+			for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
 			{
-				iButton = n;
-				break;
+				if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+				{
+					iQty++;
+				}
 			}
 		}
 	}
-	lua_pushnumber(L, iButton);
+	lua_pushnumber(L, iQty);
 	return 1;
 }
+int GetScreenElementID(lua_State* L)
+{
+	int iCount = 0;
+	int iElementID = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		char pElementName[512];
+		strcpy(pElementName, lua_tostring(L, 1));
+		int iIndex = lua_tonumber(L, 2);
+		for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+		{
+			if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+			{
+				iCount++;
+				if (iCount == iIndex)
+				{
+					// found valid element
+					iElementID = 1 + n;
+
+					// done
+					break;
+				}
+			}
+		}
+	}
+	lua_pushnumber(L, iElementID);
+	return 1;
+}
+int GetScreenElementArea(lua_State* L)
+{
+	float fAreaX = 0;
+	float fAreaY = 0;
+	float fAreaWidth = 0;
+	float fAreaHeight = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			fAreaX = Storyboard.Nodes[nodeid].widget_pos[iElementID].x;
+			fAreaY = Storyboard.Nodes[nodeid].widget_pos[iElementID].y;
+			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
+			float widgetsizey = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
+			fAreaWidth = widgetsizex * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
+			fAreaHeight = widgetsizey * Storyboard.Nodes[nodeid].widget_size[iElementID].y;
+			// convert to percentage system
+			fAreaWidth = fabs(fAreaWidth / (float)g_dwScreenWidth) * 100.0f;
+			fAreaHeight = fabs(fAreaHeight / (float)g_dwScreenHeight) * 100.0f;
+			// position anchor is in middle of image!
+			fAreaX -= fAreaWidth / 2.0f;
+		}
+	}
+	lua_pushnumber(L, fAreaX);
+	lua_pushnumber(L, fAreaY);
+	lua_pushnumber(L, fAreaWidth);
+	lua_pushnumber(L, fAreaHeight);
+	return 4;
+}
+int SetScreenElementVisibility(lua_State* L)
+{
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			Storyboard.Nodes[nodeid].widget_pos[iElementID].x = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
+			Storyboard.Nodes[nodeid].widget_pos[iElementID].y = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
+
+			// can hide inventory item element if not in inventory or not active in level
+			bool bHideElementFromView = false;
+			if (t.playerContainer.size() > 0)
+			{
+				if (t.entityelement[t.playerContainer[0].e].active == 0) bHideElementFromView = true;
+			}
+			else
+			{
+				bHideElementFromView = true;
+			}
+
+			if(bHideElementFromView==true)
+			{
+				Storyboard.Nodes[nodeid].widget_pos[iElementID].x = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
+				Storyboard.Nodes[nodeid].widget_pos[iElementID].y = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
+			}
+		}
+	}
+	return 0;
+}
+
 int SetScreenElementPosition(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
-		int iButton = lua_tonumber(L, 1);
-		if (iButton >= 0 && iButton < STORYBOARD_MAXWIDGETS)
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
 			float fX = lua_tonumber(L, 2);
 			float fY = lua_tonumber(L, 3);
-			Storyboard.Nodes[nodeid].widget_pos[iButton].x = fX;
-			Storyboard.Nodes[nodeid].widget_pos[iButton].y = fY;
+			// and add back half of image width!
+			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
+			float fAreaWidth = widgetsizex * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
+			fAreaWidth = fabs(fAreaWidth / (float)g_dwScreenWidth) * 100.0f;
+			fX += fAreaWidth / 2.0f;
+
+			Storyboard.Nodes[nodeid].widget_pos[iElementID].x = fX;
+			Storyboard.Nodes[nodeid].widget_pos[iElementID].y = fY;
 		}
 	}
 	return 0;
@@ -9109,9 +9209,12 @@ void addFunctions()
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetValue", SetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetSelection", SetScreenWidgetSelection);
-	lua_register(lua, "GetScreenElement", GetScreenElement);
+	lua_register(lua, "GetScreenElements", GetScreenElements);
+	lua_register(lua, "GetScreenElementID", GetScreenElementID);
+	lua_register(lua, "GetScreenElementArea", GetScreenElementArea);
+	lua_register(lua, "SetScreenElementVisibility", SetScreenElementVisibility);
 	lua_register(lua, "SetScreenElementPosition", SetScreenElementPosition);
-	#endif
+#endif
 
 	lua_register(lua, "SetCharacterDirectionOverride", SetCharacterDirectionOverride);
 	lua_register(lua, "LimitSwimmingVerticalMovement", LimitSwimmingVerticalMovement);

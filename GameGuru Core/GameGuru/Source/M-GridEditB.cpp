@@ -21,6 +21,8 @@
 #include "miniz.h"
 #include "Nlohmann JSON/json.hpp"
 
+#include "M-RPG.h"
+
 //#define PETESTING
 #ifdef PETESTING
 #include "..\Imgui\imgui_demo.cpp"
@@ -43,15 +45,6 @@ using namespace GGTerrain;
 using namespace GGTrees;
 #include "GGTerrain/GGGrass.h"
 using namespace GGGrass;
-#endif
-
-#ifdef RPG_GAMES
-void ProcessRPGSetupWindow(void);
-bool IsRPGActive(void);
-bool save_rpg_system(char *name);
-bool load_rpg_system(char *name);
-void init_rpg_system(void);
-extern bool bRPGSetup_Window;
 #endif
 
 #ifdef STORYBOARD
@@ -44206,11 +44199,14 @@ void save_storyboard(char *name,bool bSaveAs)
 	strcat(project, savename.Get());
 	strcat(project, "\\project.dat");
 	FILE* projectfile = GG_fopen(project, "wb+");
-	if (projectfile) {
+	if (projectfile) 
+	{
 		fwrite(&Storyboard, 1, sizeof(Storyboard), projectfile);
 		fclose(projectfile);
 		strcpy(pref.cLastUsedStoryboardProject, savename.Get());
 
+		// save all RPG data (MAX can amend collection lists, and labels, etc)
+		save_rpg_system(savename.Get());
 		#ifdef RPG_GAMES
 		bool save_rpg_system(char *name);
 		save_rpg_system(savename.Get());
@@ -44259,21 +44255,15 @@ void load_storyboard(char *name)
 	if (!name) return;
 	if (strlen(name) <= 0) return;
 
-	//PE: We have a problem. if project folder renamed it dont match Storyboard.gamename. update if reasdonly project.
-	//Zombie Cellar Demo
-	//Escape from the Zombie Cellar
-
+	bool bProjectLoaded = false;
 	char project[MAX_PATH];
 	strcpy(project, "projectbank\\");
 	strcat(project, name);
 	strcat(project, "\\project.dat");
-
 	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
 	{
 		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
-		//Valid pref:
-		
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 		{
@@ -44323,6 +44313,9 @@ void load_storyboard(char *name)
 			init_rpg_system();
 			load_rpg_system(name);
 			#endif
+
+			// project loaded successfully
+			bProjectLoaded = true;
 		}
 		else
 		{
@@ -44354,6 +44347,11 @@ void load_storyboard(char *name)
 		iUniqueIds++;
 	}
 
+	// and load game project rpg databases, including item collection data
+	init_rpg_system();
+	load_rpg_system(name);
+
+	// complete
 	iLastNode = -1;
 }
 
@@ -44934,6 +44932,8 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 		{
 			strcpy(node.widget_normal_thumb[widgetSlot], "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-health-panel.png");
 		}
+		// used as GRID ROW and COLUMN default (1x1)
+		Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(1, 1);
 	}
 	else if (type == STORYBOARD_WIDGET_TEXT)
 	{
@@ -45086,11 +45086,18 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return nullptr;
 	}
-	else if (strcmp(readoutTitle, "User Defined Global Pair") == 0)
+	if (strcmp(readoutTitle, "User Defined Global Text") == 0)
 	{
 		return nullptr;
 	}
-	//else if (strcmp(readoutTitle, "User Defined Global Panel") == 0 && t.playerContainer.size() > 0 && t.entityelement[t.playerContainer[0].e].active == 1)
+	else if (strcmp(readoutTitle, "User Defined Global Statusbar") == 0)
+	{
+		return nullptr;
+	}
+	else if (strcmp(readoutTitle, "User Defined Global Imagw") == 0)
+	{
+		return (void*)&t.iTmpImgID;
+	}
 	else if (strcmp(readoutTitle, "User Defined Global Panel") == 0)
 	{
 		return (void*)&t.iTmpImgID;
@@ -46395,7 +46402,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						static float fProgress = 0.0;
 						if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
 						{
-							if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Pair") == NULL)
+							if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Statusbar") == NULL)
 							{
 								// split label (first;second) so can read globals separately
 								char storeFirstEntry[MAX_PATH];
@@ -46517,6 +46524,27 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						text = valueStr;
 					}
 				}
+				else if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Text") == NULL)
+				{
+					// placeholder for all user defined global values
+					if (bImGuiInTestGame == false)
+					{
+						// placeholder shown in screen editor
+						char valueStr[64];
+						sprintf(valueStr, "%s", "[text]");// Storyboard.Nodes[nodeid].widget_initial_value[index]);
+						text = valueStr;
+					}
+					else
+					{
+						// read from active LUA
+						char pUserDefinedGlobal[256];
+						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[index]);
+						char pDestStr[MAX_PATH];
+						strcpy(pDestStr, "");
+						LuaGetString(pUserDefinedGlobal, pDestStr);
+						text = pDestStr;
+					}
+				}
 				else
 				{
 					if ((bImGuiInTestGame || standalone)/*nodeidStore == -1*/ && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
@@ -46619,6 +46647,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				// no text if a global panel
 				bool bShowText = true;
 				cstr text = Storyboard.Nodes[nodeid].widget_label[index];
+				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Image") == NULL) bShowText = false;
 				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
 
 				//Text Label
@@ -47303,8 +47332,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				int iUserDefinedGlobal = 0;
 				std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
 				if (stricmp(readout.c_str(), "User Defined Global") == NULL) iUserDefinedGlobal = 1;
-				if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL) iUserDefinedGlobal = 2;
-				if (stricmp(readout.c_str(), "User Defined Global Panel") == NULL) iUserDefinedGlobal = 3;	
+				if (stricmp(readout.c_str(), "User Defined Global Text") == NULL) iUserDefinedGlobal = 1;
+				if (stricmp(readout.c_str(), "User Defined Global Statusbar") == NULL) iUserDefinedGlobal = 2;
+				if (stricmp(readout.c_str(), "User Defined Global Image") == NULL) iUserDefinedGlobal = 3;
+				if (stricmp(readout.c_str(), "User Defined Global Panel") == NULL) iUserDefinedGlobal = 4;
 
 				// skip text config if no text!
 				int widgetType = Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget];
@@ -47420,10 +47451,23 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
 						&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
 					{
-						ImGui::TextCenter("Text Offset");
+						LPSTR pTitle = "Text Offset";
+						LPSTR pLabelX = "Offset X";
+						LPSTR pLabelTipX = "Change Widget Text Offset X";
+						LPSTR pLabelY = "Offset Y";
+						LPSTR pLabelTipY = "Change Widget Text Offset Y";
+						if (iUserDefinedGlobal == 4)
+						{
+							pTitle = "Panel Grid Size";
+							pLabelX = "Rows";
+							pLabelTipX = "Change the total number of rows";
+							pLabelY = "Columns";
+							pLabelTipY = "Change the total number of bolumns";
+						}
+						ImGui::TextCenter(pTitle);
 
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-						ImGui::Text("Offset X");
+						ImGui::Text(pLabelX);
 						ImGui::SameLine();
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
 						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
@@ -47431,17 +47475,17 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						{
 							//
 						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset X");
+						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipX);
 						ImGui::PopItemWidth();
 						ImGui::SameLine();
-						ImGui::Text("Offset Y");
+						ImGui::Text(pLabelY);
 						ImGui::SameLine();
 						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
 						if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
 						{
 							//
 						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Change Widget Text Offset Y");
+						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
 						ImGui::PopItemWidth();
 					}
 				}
@@ -47723,17 +47767,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
 							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
 						}
-						/* no initial values set for pair, do this with singles (reason: we cannot cram two values into widget_initial_value)
-						if (stricmp(readout.c_str(), "User Defined Global Pair") == NULL)
-						{
-							ImGui::TextCenter(Storyboard.Nodes[nodeid].widget_label[i]);
-							char pUDGVar[256];
-							sprintf(pUDGVar, "##WidgetUDG%d", i);
-							float fValue = Storyboard.Nodes[nodeid].widget_initial_value[i];
-							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Values for this User Defined Global Pair", 0, 100);
-							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
-						}
-						*/
 					}
 				}
 				ImGui::Indent(-10);

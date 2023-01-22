@@ -152,7 +152,7 @@
     <ClCompile Include="lua\lzio.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Include\DarkLUA.h" />
+    <ClInclude Include="..\..\..\Include\DarkLUA.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />

@@ -2236,7 +2236,7 @@ extern Sglobals g;
 struct inventoryContainerType
 {
 	int e;
-	int value;
+	int collectionID;
 };
 
 // Temp Struct

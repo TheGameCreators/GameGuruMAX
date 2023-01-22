@@ -122,11 +122,14 @@ DARKLUA_API int LuaReturnInt ( void );
 DARKLUA_API float LuaGetFloat ( LPSTR pString , int id );
 DARKLUA_API float LuaGetFloat ( LPSTR pString );
 DARKLUA_API float LuaReturnFloat ( int id );
-DARKLUA_API float LuaReturnFloat ( void );
+DARKLUA_API float LuaReturnFloat(void);
+
+DARKLUA_API void LuaGetString(LPSTR pA, LPSTR pB);
 //DARKLUA_API DWORD LuaGetString ( DWORD pOldString, LPSTR pString , int id );
 //DARKLUA_API DWORD LuaGetString ( DWORD pOldString, LPSTR pString );
 //DARKLUA_API DWORD LuaReturnString ( DWORD pOldString, int id );
 //DARKLUA_API DWORD LuaReturnString ( DWORD pOldString );
+
 DARKLUA_API void LuaSetInt ( LPSTR pString , int value, int id );
 DARKLUA_API void LuaSetInt ( LPSTR pString , int value );
 DARKLUA_API void LuaPushInt ( int value, int id );

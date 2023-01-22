@@ -212,7 +212,7 @@
     <ClInclude Include="lua\lzio.h">
       <Filter>LUA</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\Include\DarkLUA.h">
+    <ClInclude Include="..\..\..\Include\DarkLUA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1902,10 +1902,10 @@ void entity_loop ( void )
 					}
 				}
 
-				//  attempt to remove collision object
+				// attempt to remove collision object
 				entity_lua_collisionoff ( );
 
-				//  possible remove character
+				// possible remove character
 				entity_lua_findcharanimstate ( );
 				if (  t.tcharanimindex != -1 ) 
 				{
@@ -1920,6 +1920,16 @@ void entity_loop ( void )
 				{
 					//  can still have non-character ragdoll (zombie), so remove ragdoll if so
 					t.tphyobj=t.obj ; ragdoll_destroy ( );
+				}
+
+				// find and remove if in any inventory
+				for (int n = 0; n < t.playerContainer.size(); n++)
+				{
+					if (t.playerContainer[n].e == t.e)
+					{
+						t.playerContainer.erase(t.playerContainer.begin() + n);
+						break;
+					}
 				}
 			}
 		}

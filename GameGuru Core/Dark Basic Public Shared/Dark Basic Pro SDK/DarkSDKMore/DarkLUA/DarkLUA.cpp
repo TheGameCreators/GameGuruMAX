@@ -24,6 +24,8 @@
 //#include "CFileC.h"
 //#include "CSoundC.h"
 
+#include "M-RPG.h"
+
 // DarkLUA needs access to the T global (but could be in two locations)
 #include "..\..\..\..\GameGuru\Include\gameguru.h"
 
@@ -1076,22 +1078,36 @@ luaMessage** ppLuaMessages = NULL;
 	lua = L;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
-	int iIndex = lua_tonumber(L, 1);
-	t.entityelement[iIndex].collected = lua_tonumber(L, 2);
-	if (t.entityelement[iIndex].collected > 0 )
+	int iEntityIndex = lua_tonumber(L, 1);
+	t.entityelement[iEntityIndex].collected = lua_tonumber(L, 2);
+	if (t.entityelement[iEntityIndex].collected > 0 )
 	{
-		// add item to inventory
-		inventoryContainerType item;
-		item.e = iIndex;
-		item.value = 1;
-		t.playerContainer.push_back(item);
+		// if not already collected
+		int n = 0;
+		for (n = 0; n < t.playerContainer.size(); n++)
+			if (t.playerContainer[n].e == iEntityIndex)
+				break;
+
+		if (n >= t.playerContainer.size() )
+		{
+			// add item to inventory
+			inventoryContainerType item;
+			item.e = iEntityIndex;
+			// hack
+			item.collectionID = 1;
+			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "Herbal Stamina") == NULL) item.collectionID = 1;
+			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "Herbal Poultice") == NULL) item.collectionID = 2;
+			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "gloves") == NULL) item.collectionID = 3;
+			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "boots") == NULL) item.collectionID = 4;
+			t.playerContainer.push_back(item);
+		}
 	}
 	else
 	{
 		// find and remove from inventory
 		for (int n = 0; n < t.playerContainer.size(); n++)
 		{
-			if (t.playerContainer[n].e == iIndex)
+			if (t.playerContainer[n].e == iEntityIndex)
 			{
 				t.playerContainer.erase(t.playerContainer.begin()+n);
 				break;
@@ -5918,6 +5934,12 @@ int InitScreen(lua_State* L)
 					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
 					LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
 				}
+				if (stricmp(readout.c_str(), "User Defined Global Text") == NULL)
+				{
+					char pUserDefinedGlobal[256];
+					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
+					LuaSetString(pUserDefinedGlobal, ""); // can we get from initial_value in screen editor?
+				}
 			}
 		}
 	}
@@ -6006,7 +6028,94 @@ int SetScreenWidgetSelection(lua_State *L)
 	}
 	lua_pushnumber(L, iRet);
 	return 1;
-	//return 0;
+}
+int GetScreenElementsType(lua_State* L)
+{
+	int iQty = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		char pReadoutName[512];
+		strcpy(pReadoutName, lua_tostring(L, 1));
+		if (strlen(pReadoutName) > 0)
+		{
+			int iPatternLength = strlen(pReadoutName) - 1;
+			if (pReadoutName[iPatternLength] == '*')
+			{
+				// find pattern match with string passed in
+				for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+				{
+					if (strnicmp(Storyboard.widget_readout[nodeid][n], pReadoutName, iPatternLength) == NULL)
+					{
+						iQty++;
+					}
+				}
+			}
+			else
+			{
+				// exact match
+				for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+				{
+					if (stricmp(Storyboard.widget_readout[nodeid][n], pReadoutName) == NULL)
+					{
+						iQty++;
+					}
+				}
+			}
+		}
+	}
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetScreenElementTypeID(lua_State* L)
+{
+	int iCount = 0;
+	int iElementID = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		char pReadoutName[512];
+		strcpy(pReadoutName, lua_tostring(L, 1));
+		int iIndex = lua_tonumber(L, 2);
+		for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+		{
+			int iPatternLength = strlen(pReadoutName) - 1;
+			if (pReadoutName[iPatternLength] == '*')
+			{
+				// find pattern match with string passed in
+				if (strnicmp(Storyboard.widget_readout[nodeid][n], pReadoutName, iPatternLength) == NULL)
+				{
+					iCount++;
+					if (iCount == iIndex)
+					{
+						// found valid element from readout type match
+						iElementID = 1 + n;
+
+						// done
+						break;
+					}
+				}
+			}
+			else
+			{
+				// exact match
+				if (stricmp(Storyboard.widget_readout[nodeid][n], pReadoutName) == NULL)
+				{
+					iCount++;
+					if (iCount == iIndex)
+					{
+						// found valid element from readout type match
+						iElementID = 1 + n;
+
+						// done
+						break;
+					}
+				}
+			}
+		}
+	}
+	lua_pushnumber(L, iElementID);
+	return 1;
 }
 int GetScreenElements(lua_State* L)
 {
@@ -6018,11 +6127,27 @@ int GetScreenElements(lua_State* L)
 		strcpy(pElementName, lua_tostring(L, 1));
 		if (strlen(pElementName) > 0)
 		{
-			for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+			int iPatternLength = strlen(pElementName) - 1;
+			if (pElementName[iPatternLength] == '*')
 			{
-				if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+				// find pattern match
+				for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
 				{
-					iQty++;
+					if (strnicmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName, iPatternLength) == NULL)
+					{
+						iQty++;
+					}
+				}
+			}
+			else
+			{
+				// exact match
+				for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+				{
+					if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+					{
+						iQty++;
+					}
 				}
 			}
 		}
@@ -6042,16 +6167,45 @@ int GetScreenElementID(lua_State* L)
 		int iIndex = lua_tonumber(L, 2);
 		for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
 		{
-			if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+			if (pElementName[0] == 's')
 			{
-				iCount++;
-				if (iCount == iIndex)
-				{
-					// found valid element
-					iElementID = 1 + n;
+				strcpy(pElementName, pElementName);
+			}
 
-					// done
-					break;
+			int iPatternLength = strlen(pElementName) - 1;
+			if (pElementName[iPatternLength] == '*')
+			{
+				// find pattern match
+				for (int n = 0; n < STORYBOARD_MAXWIDGETS; n++)
+				{
+					if (strnicmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName, iPatternLength) == NULL)
+					{
+						iCount++;
+						if (iCount == iIndex)
+						{
+							// found valid element
+							iElementID = 1 + n;
+
+							// done
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				// exact match
+				if (stricmp(Storyboard.Nodes[nodeid].widget_label[n], pElementName) == NULL)
+				{
+					iCount++;
+					if (iCount == iIndex)
+					{
+						// found valid element
+						iElementID = 1 + n;
+
+						// done
+						break;
+					}
 				}
 			}
 		}
@@ -6090,6 +6244,42 @@ int GetScreenElementArea(lua_State* L)
 	lua_pushnumber(L, fAreaHeight);
 	return 4;
 }
+int GetScreenElementDetails(lua_State* L)
+{
+	float fRows = 0;
+	float fColumns = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			fRows = Storyboard.widget_textoffset[nodeid][iElementID].x;
+			fColumns = Storyboard.widget_textoffset[nodeid][iElementID].y;
+		}
+	}
+	lua_pushnumber(L, fRows);
+	lua_pushnumber(L, fColumns);
+	return 2;
+}
+
+int GetScreenElementName(lua_State* L)
+{
+	// prep return string
+	char pReturnData[512];
+	strcpy(pReturnData, "");
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			strcpy(pReturnData, Storyboard.Nodes[nodeid].widget_label[iElementID]);
+		}
+	}
+	lua_pushstring(L, pReturnData);
+	return 1;
+}
 int SetScreenElementVisibility(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
@@ -6098,11 +6288,12 @@ int SetScreenElementVisibility(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
+			bool bHideElementFromView = false;
 			Storyboard.Nodes[nodeid].widget_pos[iElementID].x = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
 			Storyboard.Nodes[nodeid].widget_pos[iElementID].y = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
 
+			/* disabled for now until built-in item management done within container panel
 			// can hide inventory item element if not in inventory or not active in level
-			bool bHideElementFromView = false;
 			if (t.playerContainer.size() > 0)
 			{
 				if (t.entityelement[t.playerContainer[0].e].active == 0) bHideElementFromView = true;
@@ -6111,6 +6302,7 @@ int SetScreenElementVisibility(lua_State* L)
 			{
 				bHideElementFromView = true;
 			}
+			*/
 
 			if(bHideElementFromView==true)
 			{
@@ -6121,7 +6313,6 @@ int SetScreenElementVisibility(lua_State* L)
 	}
 	return 0;
 }
-
 int SetScreenElementPosition(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
@@ -6143,6 +6334,99 @@ int SetScreenElementPosition(lua_State* L)
 		}
 	}
 	return 0;
+}
+int SetScreenElementText(lua_State* L)
+{
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			char* pLabel = (char*)lua_tostring(L, 2);
+			char pUserDefinedGlobal[MAX_PATH];
+			sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[iElementID]);
+			LuaSetString(pUserDefinedGlobal, pLabel);
+		}
+	}
+	return 0;
+}
+
+int GetCollectionAttributeQuantity(lua_State* L)
+{
+	int iQty = g_collectionLabels.size();
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetCollectionAttributeLabel(lua_State* L)
+{
+	// prep return string
+	char pReturnData[512];
+	strcpy(pReturnData, "");
+
+	// collection label
+	int iCollectionLabelIndex = lua_tonumber(L, 1);
+	if (iCollectionLabelIndex > 0 && iCollectionLabelIndex <= g_collectionLabels.size())
+	{
+		strcpy(pReturnData, g_collectionLabels[iCollectionLabelIndex-1].Get());
+	}
+	lua_pushstring(L, pReturnData);
+	return 1;
+}
+int GetCollectionItemQuantity(lua_State* L)
+{
+	int iQty = g_collectionList.size();
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetCollectionItemAttribute(lua_State* L)
+{
+	// prep return string
+	char pReturnData[512];
+	strcpy(pReturnData, "");
+
+	// which collection item
+	int iCollectionListIndex = lua_tonumber(L, 1);
+	if (iCollectionListIndex > 0 && iCollectionListIndex <= g_collectionList.size())
+	{
+		// find attribute label index
+		int iLabelIndex = 0;
+		char pAttributeLabel[512];
+		strcpy(pAttributeLabel, lua_tostring(L, 2));
+		for (iLabelIndex = 0; iLabelIndex < g_collectionLabels.size(); iLabelIndex++)
+			if (stricmp(g_collectionLabels[iLabelIndex].Get(), pAttributeLabel) == NULL)
+				break;
+
+		// can pull field data from collection list item
+		if (iLabelIndex < g_collectionLabels.size())
+		{
+			strcpy(pReturnData, g_collectionList[iCollectionListIndex - 1].collectionFields[iLabelIndex].Get());
+		}
+	}
+	lua_pushstring(L, pReturnData);
+	return 1;
+}
+
+int GetInventoryQuantity(lua_State* L)
+{
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int iQty = t.playerContainer.size();
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetInventoryItem(lua_State* L)
+{
+	int iCollectionItemID = 0;
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int iInventoryIndex = lua_tonumber(L, 2);
+	if (iInventoryIndex > 0 && iInventoryIndex <= t.playerContainer.size())
+	{
+		iCollectionItemID = t.playerContainer[iInventoryIndex-1].collectionID;
+	}
+	lua_pushnumber(L, iCollectionItemID);
+	return 1;
 }
 
 #endif
@@ -9209,12 +9493,23 @@ void addFunctions()
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetValue", SetScreenWidgetValue);
 	lua_register(lua, "SetScreenWidgetSelection", SetScreenWidgetSelection);
+	lua_register(lua, "GetScreenElementsType", GetScreenElementsType);
+	lua_register(lua, "GetScreenElementTypeID", GetScreenElementTypeID);
 	lua_register(lua, "GetScreenElements", GetScreenElements);
 	lua_register(lua, "GetScreenElementID", GetScreenElementID);
 	lua_register(lua, "GetScreenElementArea", GetScreenElementArea);
+	lua_register(lua, "GetScreenElementDetails", GetScreenElementDetails);
+	lua_register(lua, "GetScreenElementName", GetScreenElementName);
 	lua_register(lua, "SetScreenElementVisibility", SetScreenElementVisibility);
 	lua_register(lua, "SetScreenElementPosition", SetScreenElementPosition);
-#endif
+	lua_register(lua, "SetScreenElementText", SetScreenElementText);
+	lua_register(lua, "GetCollectionAttributeQuantity", GetCollectionAttributeQuantity);
+	lua_register(lua, "GetCollectionAttributeLabel", GetCollectionAttributeLabel);
+	lua_register(lua, "GetCollectionItemQuantity", GetCollectionItemQuantity);
+	lua_register(lua, "GetCollectionItemAttribute", GetCollectionItemAttribute);
+	lua_register(lua, "GetInventoryQuantity", GetInventoryQuantity);
+	lua_register(lua, "GetInventoryItem", GetInventoryItem);
+	#endif
 
 	lua_register(lua, "SetCharacterDirectionOverride", SetCharacterDirectionOverride);
 	lua_register(lua, "LimitSwimmingVerticalMovement", LimitSwimmingVerticalMovement);
@@ -10326,6 +10621,29 @@ DARKLUA_API void LuaCallSilent()
 	float fValue = (float)lua_tonumber(lua, -1);
 	lua_pop(lua,1);
 	return fValue;
+ }
+
+ DARKLUA_API void LuaGetString(LPSTR pString, LPSTR pDestStr)
+ {
+	 int id = defaultState;
+	 if (id > maxLuaStates + 1)
+	 {
+		 return;
+	 }
+	 if (ppLuaStates[id] == NULL)
+	 {
+		 return;
+	 }
+
+	 lua = ppLuaStates[id]->state;
+	 lua_getglobal(lua, pString);
+
+	 const char* pValue = lua_tostring(lua, -1);
+	 if (pDestStr && pValue)
+	 {
+		 strcpy(pDestStr, pValue);
+	 }
+	 lua_pop(lua, 1);
  }
 
  DARKLUA_API void LuaSetInt ( LPSTR pString , int value, int id )

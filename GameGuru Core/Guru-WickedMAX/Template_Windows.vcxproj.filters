@@ -582,6 +582,9 @@
     <ClInclude Include="..\GameGuru\Include\M-TerrainNew.h">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-RPG.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1009,6 +1012,9 @@
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClCompile>
     <ClCompile Include="..\GameGuru\Source\Common-Keys.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-RPG.cpp">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClCompile>
   </ItemGroup>

@@ -247,6 +247,7 @@
     <ClInclude Include="..\GameGuru\Include\M-Physics.h" />
     <ClInclude Include="..\GameGuru\Include\M-Postprocess.h" />
     <ClInclude Include="..\GameGuru\Include\M-Ragdoll.h" />
+    <ClInclude Include="..\GameGuru\Include\M-RPG.h" />
     <ClInclude Include="..\GameGuru\Include\M-Sky.h" />
     <ClInclude Include="..\GameGuru\Include\M-Sliders.h" />
     <ClInclude Include="..\GameGuru\Include\M-TerrainNew.h" />
@@ -427,6 +428,7 @@
     <ClCompile Include="..\GameGuru\Source\M-Physics.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Postprocess.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Ragdoll.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-RPG.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Sky.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Sliders.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-TerrainNew.cpp" />

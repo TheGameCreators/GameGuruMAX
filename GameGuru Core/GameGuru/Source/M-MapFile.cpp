@@ -2117,6 +2117,9 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 #ifdef WICKEDENGINE
 	addtocollection("scriptbank\\perlin_noise.lua");
 	addtocollection("scriptbank\\hud0.lua");
+	addtocollection("scriptbank\\gameplayerhealth.lua");
+	addtocollection("scriptbank\\gameplayerspeed.lua");
+	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
 #endif
 
 #ifdef WICKEDENGINE

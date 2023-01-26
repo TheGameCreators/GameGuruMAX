@@ -8350,7 +8350,10 @@ int SetMaterialData(lua_State *L, int mode)
 				// 21-30 texture commands
 				case 21:
 				{
-					// change texture of this object
+					// Before changing the basecolor texture, ensure we remove all other textures for this object, to trigger the WickedCall_TextureObject() function to try and find the new ones.
+					WickedCall_RemoveObjectTextures(pObject);
+
+					// change texture of this object 
 					int iImageID = (int)fValue;
 					TextureObject(t.entityelement[iEntityID].obj, iImageID);
 					WickedCall_TextureObject(pObject, NULL);

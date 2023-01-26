@@ -6214,3 +6214,37 @@ void WickedCall_UpdateWaterHeight(float height)
 		weather->oceanParameters.waterHeight = height;
 	}
 }
+
+void WickedCall_RemoveObjectTextures(sObject* pObject)
+{
+	for (int i = 0; i < pObject->iMeshCount; i++)
+	{
+		sMesh* pMesh = pObject->ppMeshList[i];
+		if (pMesh)
+		{
+			// Remove mesh texures
+			for (int slot = 0; slot < pMesh->dwTextureCount; slot++)
+			{
+				pMesh->pTextures[slot].pName[0] = 0;
+			}
+
+			// Remove Wicked material textures
+			wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
+			if (mesh)
+			{
+				// get material from mesh
+				uint64_t materialEntity = mesh->subsets[0].materialID;
+				wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+				if (pObjectMaterial)
+				{
+					for (int slot = 0; slot < wiScene::MaterialComponent::TEXTURESLOT_COUNT; slot++)
+					{
+						pObjectMaterial->textures[slot].name = "";
+						pObjectMaterial->textures[slot].resource = nullptr;
+						pObjectMaterial->SetDirty();
+					}
+				}
+			}
+		}
+	}
+}

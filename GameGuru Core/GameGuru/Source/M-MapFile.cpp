@@ -2301,11 +2301,38 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
 		}
 
+		// Now find any levels that are on the Storyboard, but have not been marked for collection (not connected to any screens - loaded from Winzone)
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+			{
+				cStr levelName = Storyboard.Nodes[i].level_name;
+				bool bAlreadyCollected = false;
+
+				// Check if this Storyboard level has already been marked for collection of its files
+				for (int j = 0; j < t.levelmax; j++)
+				{
+					if (strcmp(levelName.Get(), t.levellist_s[j].Get()) == 0)
+					{
+						bAlreadyCollected = true;
+						break;
+					}
+				}
+
+				if (!bAlreadyCollected)
+				{
+					// This level has not yet been marked for collection
+					++t.levelmax;
+					t.levellist_s[t.levelmax] = levelName;
+					addtocollection(levelName.Get());
+				}
+			}
+		}
+
 		//Restore to first level.
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-
 
 		//Use project name as exename
 		if (strlen(Storyboard.gamename) > 0)

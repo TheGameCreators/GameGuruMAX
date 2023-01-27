@@ -5869,6 +5869,16 @@ int GetIsTestgame(lua_State *L) {
 //Dynamic sun.
 
 int SetSunDirection(lua_State *L) {
+
+#ifdef WICKEDENGINE
+	float fAx = lua_tonumber(L, 1);
+	float fAy = lua_tonumber(L, 2);
+	float fAz = lua_tonumber(L, 3);
+	t.visuals.SunAngleX = fAx;
+	t.visuals.SunAngleY = fAy;
+	t.visuals.SunAngleZ = fAz;
+	WickedCall_SetSunDirection(t.visuals.SunAngleX, t.visuals.SunAngleY, t.visuals.SunAngleZ);
+#else
 	//Set sun direction -1 to 1 in all directions.
 
 	//Sun use a position and then points to 0,0,0: so just expand in the direction set.
@@ -5884,8 +5894,11 @@ int SetSunDirection(lua_State *L) {
 	t.terrain.sundirectiony_f = t.terrain.sundirectiony_f / t.tav_f;
 	t.terrain.sundirectionz_f = t.terrain.sundirectionz_f / t.tav_f;
 
+
+
 	//PE: When moving the sun we need to disable speedshadows.
 	g.globals.speedshadows = 0;
+#endif
 	return 0;
 }
 

@@ -22110,13 +22110,16 @@ void process_entity_library_v2(void)
 									ImGui::Text("%s", sFinal.c_str());
 									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", sFinal.c_str());
 
-									if (myfiles->m_sDLuaDescription != "")
+									if (myfiles && myfiles->m_sDLuaDescription.Get())
 									{
-										//Always use same size box on all DLUA boxes. looks better.
-										ImGui::BeginChild("##DLUADescriptionbox", ImVec2(media_icon_size, (ImGui::GetTextLineHeight() * 5)-7.0f ), true, ImGuiWindowFlags_NoMove); //| ImGuiWindowFlags_AlwaysUseWindowPadding
-										ImGui::TextWrapped(myfiles->m_sDLuaDescription.Get());
-										ImGui::EndChild();
-										ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + 3.0f));
+										if (myfiles->m_sDLuaDescription != "")
+										{
+											//Always use same size box on all DLUA boxes. looks better.
+											ImGui::BeginChild("##DLUADescriptionbox", ImVec2(media_icon_size, (ImGui::GetTextLineHeight() * 5) - 7.0f), true, ImGuiWindowFlags_NoMove); //| ImGuiWindowFlags_AlwaysUseWindowPadding
+											ImGui::TextWrapped(myfiles->m_sDLuaDescription.Get()); // TODO: crash here if m_sDLuaDescription contains % characters - ImGui tries to format into another string
+											ImGui::EndChild();
+											ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x, ImGui::GetCursorPos().y + 3.0f));
+										}
 									}
 								}
 								else

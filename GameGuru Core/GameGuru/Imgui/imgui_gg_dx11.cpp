@@ -7755,7 +7755,7 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 				if (stricmp (tmpeleprof->PropertiesVariable.Variable[i], "RetreatRange") == NULL) pTooltipForIntegerSlider = "Set the distance the character will retreat to before stopping";
 				if (stricmp (tmpeleprof->PropertiesVariable.Variable[i], "ChaseModes") == NULL) pTooltipForIntegerSlider = "The first three modes are slow walkers and the last two are fast walkers";
 				cstr id = cstr("##") + tmpeleprof->PropertiesVariable.VariableScript/*tmpeleprof->name_s*/ + cstr(tmpeleprof->PropertiesVariable.Variable[i]);
-				if (tmpeleprof->PropertiesVariable.VariableValueFrom[i] > 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
+				if (tmpeleprof->PropertiesVariable.VariableValueFrom[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
 				{
 					if (ImGui::MaxSliderInputInt(id.Get(), &tmpint, (int)tmpeleprof->PropertiesVariable.VariableValueFrom[i], (int)tmpeleprof->PropertiesVariable.VariableValueTo[i], pTooltipForIntegerSlider))
 					{

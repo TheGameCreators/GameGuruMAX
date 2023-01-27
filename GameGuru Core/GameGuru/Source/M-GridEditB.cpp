@@ -6632,6 +6632,7 @@ void tab_tab_visuals(int iPage, int iMode)
 		if (ImGui::StyleCollapsingHeader("Filter Effect", wflags))
 		{
 			ImGui::Indent(10);
+			ImGui::BeginChild("##filtereffectchild", ImVec2(ImGui::GetContentRegionAvailWidth(), 500), false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
 			iLastOpenHeader = 10;
 			static int iFilterThumbnailCount = 0;
 
@@ -6876,6 +6877,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				ImGui::PopItemWidth();
 			}
 
+			ImGui::EndChild();
 			ImGui::Indent(-10);
 		}
 

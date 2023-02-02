@@ -8500,6 +8500,30 @@ int SetLevelFadeoutEnabled(lua_State* L)
 	return 1;
 }
 
+extern void WickedCall_SetSunColors(float fRed, float fGreen, float fBlue, float fEnergy, float fFov, float fShadowBias);
+int SetSunLightingColor(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float r = lua_tonumber(L, 1);
+	float g = lua_tonumber(L, 2);
+	float b = lua_tonumber(L, 3);
+	t.visuals.SunRed_f = r;
+	t.visuals.SunGreen_f = g;
+	t.visuals.SunBlue_f = b;
+	WickedCall_SetSunColors(r, g, b, t.visuals.SunIntensity_f, 1.0f, 1.0f);
+	return 1;
+}
+
+int SetSunIntensity(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float intensity = lua_tonumber(L, 1);
+	t.visuals.SunIntensity_f = intensity;
+	WickedCall_SetSunColors(t.visuals.SunRed_f, t.visuals.SunGreen_f, t.visuals.SunBlue_f, t.visuals.SunIntensity_f, 1.0f, 1.0f);
+	return 1;
+}
 // LUA command names
 void addFunctions()
 {

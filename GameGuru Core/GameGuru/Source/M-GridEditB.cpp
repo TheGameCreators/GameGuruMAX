@@ -9728,6 +9728,13 @@ void ProcessPreferences(void)
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Flattens the terrain and clears any trees and grass when placing large objects");
 
+			bool iCheckFileModifications = pref.iCheckFilesModifiedOnFocus;
+			if (ImGui::Checkbox("Auto replace objects when files are modified", &iCheckFileModifications))
+			{
+				pref.iCheckFilesModifiedOnFocus = iCheckFileModifications;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("When the software regains focus, any objects that use outdated files will be reloaded");
+
 			ImGui::Indent(-10);
 			ImGui::Text("Graphic Settings");
 			ImGui::Indent(10);
@@ -48737,4 +48744,165 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 	}
 
 	free(lpBuf);
+}
+
+// Check if any files have been modified since we launched Max (note: this only checks files in MainEntityList) - any other files will not be detected.
+void CheckExistingFilesModified()
+{
+	return; // Will remove once this feature is finished!
+
+	if (pref.iCheckFilesModifiedOnFocus == 0)
+	{
+		// Users can turn this feature off if it causes slowdowns.
+		return;
+	}
+
+	static std::vector<std::string> modifiedFiles;
+	extern cFolderItem MainEntityList;
+	cFolderItem* pFolder = &MainEntityList;
+	if (pFolder)
+	{
+		// Check each folder for any files that have been modified since we last checked.
+		while (pFolder)
+		{
+			if (pFolder->m_pFirstFile)
+			{
+				// This folder contains files, check all of them.
+				char folderPath[MAX_PATH];
+				strcpy(folderPath, pFolder->m_sFolderFullPath.Get());
+				cFolderItem::sFolderFiles* pFolderFile = pFolder->m_pFirstFile;
+				pFolderFile = pFolder->m_pFirstFile->m_pNext;
+				while (pFolderFile)
+				{
+					char filePath[MAX_PATH];
+					strcpy(filePath, folderPath);
+					strcat(filePath, "\\");
+					strcat(filePath, pFolderFile->m_sName.Get());
+					struct stat sb;
+					// Get the time that the file was last modified.
+					if (stat(filePath, &sb) == 0)
+					{
+						if (sb.st_mtime != pFolderFile->m_tFileModify)
+						{
+							// This file has been modified. Add to list of modified files (we will update any entities using them later)
+							pFolderFile->m_tFileModify = sb.st_mtime;
+							modifiedFiles.push_back(filePath);
+						}
+					}
+					pFolderFile = pFolderFile->m_pNext;
+				}
+			}
+			pFolder = pFolder->m_pNext;
+		}
+	}
+	
+	// Update any entities that use the modified files.
+	for (auto& file : modifiedFiles)
+	{
+		// Check what type of file has been modified and handle accordingly.
+
+		// FPE
+		if (strcmp(file.c_str() + file.length() - 3, "fpe") == 0)
+		{
+			// Find the index of the fpe file into t.entityprofile
+			int entIndex = -1;
+			char entitybankName[MAX_PATH];
+			char* entityPath = strstr((char*)file.c_str(), "entitybank");
+			if (entityPath)
+			{
+				for (int i = 0; i < t.entitybank_s.size(); i++)
+				{
+					if (strcmp(t.entitybank_s[i].Get(), entityPath + strlen("entitybank\\")) == 0)
+					{
+						// Found the index of the entity.
+						entIndex = i;
+						t.entid = i;
+						break;
+					}
+				}
+			}
+
+			if (entIndex < 0)
+			{
+				// Could not find the entity index for this fpe, so cannot reload it.
+				// It might not have been used in the current map, or the FPE is not in the entitybank folder.
+				continue;
+			}
+
+			// Make a backup of the old parent entity, so that we can check what settings have been changed in the entityelements
+			entityprofiletype entityBackup = t.entityprofile[entIndex];
+
+			// delete parent entity object as we are going to reload it.
+			int parentObj = g.entitybankoffset + entIndex;
+			t.entobj = g.entitybankoffset + entIndex;
+			if (ObjectExist(t.entobj) == 1) DeleteObject(t.entobj);
+
+			// set entity name and reload it in
+			t.entdir_s = "entitybank\\";
+			t.ent_s = t.entitybank_s[entIndex];
+			t.entpath_s = getpath(t.ent_s.Get());
+
+			//LB: massive ommission - was this deleted, totally needed to detect and load 'groups'
+			extern int g_iAbortedAsEntityIsGroupFileMode;
+			g_iAbortedAsEntityIsGroupFileMode = 1;
+
+			entity_load();
+
+			// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
+			for (int i = 0; i < t.entityelement.size(); i++)
+			{
+				if (t.entityelement[i].bankindex == entIndex)
+				{
+					// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
+					t.e = i;
+					t.tupdatee = i;
+					t.tentid = entIndex;
+					t.tupdatee = i; 
+					entity_updateentityobj();
+
+					entitytype& element = t.entityelement[i];
+
+					//// TODO: If the scale of the element was not customised, then we should also update the scale to reflect whatever the new default is
+					//float prevScale = entityBackup.scale;
+					//if ((element.scalex == 0 && element.scaley == 0 && element.scalez == 0) || (element.scalex == prevScale-100 && element.scaley == prevScale-100 && element.scalez == prevScale-100))
+					//{
+					//	float newScale = t.entityprofile[entIndex].scale;
+					//	element.scalex = newScale;
+					//	element.scaley = newScale;
+					//	element.scalez = newScale;
+					//	t.tobj = element.obj;
+					//	t.tte = i;
+					//}
+					t.tobj = element.obj;
+					t.tte = i;
+					entity_positionandscale();
+				}
+			}
+		}
+		// Looks like we can only detect fpe changes for now. That is fine for updating the model and textures, since they should only be updated via either the Importer, or Building Editor, both of which will modify the FPE.
+		// However, it oculd pose a problem for updating Lua scripts that are attached to entities.
+		//// DBO
+		//else if (strcmp(file.c_str() + file.length() - 3, "dbo") == 0)
+		//{
+
+		//}
+		//// DDS
+		//else if (strcmp(file.c_str() + file.length() - 3, "dds") == 0)
+		//{
+
+		//}
+		//// PNG
+		//else if (strcmp(file.c_str() + file.length() - 3, "png") == 0)
+		//{
+
+		//}
+		//// LUA
+		//else if (strcmp(file.c_str() + file.length() - 3, "lua") == 0)
+		//{
+
+		//}
+	}
+
+	// All modified files have been updated in Max, reset for next time.
+	modifiedFiles.clear();
 }

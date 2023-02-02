@@ -632,6 +632,7 @@ struct preferences {
 	float fEditorGridSizeY = 100.0f;
 	float fEditorGridSizeZ = 100.0f;
 	int iDevToolsOpen = 0;
+	int iCheckFilesModifiedOnFocus = 1;
 };
 
 // can be moved to preferences (Lee needs to know the sequence to add to prefs properly, and the consequences) :)
@@ -662,7 +663,7 @@ bool fpe_thread_in_progress(void);
 #endif
 
 int cstring_cmp_folder(const void *a, const void *b);
-void RefreshEntityFolder(char* folder_s, void *pFolder);
+void RefreshEntityFolder(char* folder_s, void* pFolder, bool bUpdateSubFolders = false);
 
 // done in cStr
 //void replaceAll(std::string& str, const std::string& from, const std::string& to);

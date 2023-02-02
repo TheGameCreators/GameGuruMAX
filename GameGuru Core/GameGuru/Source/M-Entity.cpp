@@ -4414,10 +4414,10 @@ void entity_fillgrideleproffromprofile ( void )
 
 	#ifdef WICKEDENGINE
 	//PE: Make sure when we create we use default variables in eleprof.
-	if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
+	/*if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
 		t.grideleprof.bCustomWickedMaterialActive = true;
 	else
-		t.grideleprof.bCustomWickedMaterialActive = false;
+		t.grideleprof.bCustomWickedMaterialActive = false;*/
 	t.grideleprof.WEMaterial = t.entityprofile[t.entid].WEMaterial;
 
 	//Need default particle setup here. or if will use the last inside "t.grideleprof".

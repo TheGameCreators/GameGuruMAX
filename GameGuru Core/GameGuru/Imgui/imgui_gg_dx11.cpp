@@ -6274,7 +6274,7 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 	}
 }
 
-void RefreshEntityFolder(char* folder_s, void *pFolder)
+void RefreshEntityFolder(char* folder_s, void *pFolder, bool bUpdateSubFolders)
 {
 	int tt = 0;
 	cstr file_s = "";
@@ -8560,6 +8560,7 @@ void coreResetIMGUIFunctionalityPrefs(void)
 	pref.iDevToolsOpen = 0;
 	extern int g_iDevToolsOpen;
 	g_iDevToolsOpen = 0;
+	pref.iCheckFilesModifiedOnFocus = 1;
 
 	#endif
 }

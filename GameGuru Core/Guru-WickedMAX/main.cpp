@@ -46,6 +46,7 @@ const char *pestrcasestr(const char *arg1, const char *arg2);
 // global flag to reduce workload if window not in focus (solves stutter slowdown?)
 bool g_bActiveApp = true;
 bool g_bAppActiveStat = true;
+bool g_bLostFocus = false;
 
 // Encapsulates all other classes for Wicked Engine control
 Master master;
@@ -318,12 +319,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			//g_bAppActiveStat = true;
 			if (wParam == WA_INACTIVE)
 			{
+				g_bLostFocus = true;
+
 				// LB: only do this functionality after 45 seconds, allowing the launch process to 
 				// proceed uninterupted, even if user has not focused on the app
 				if (timeGetTime() > dwLaunchTimer + 45000)
 				{
 					g_bActiveApp = false;
 					g_bAppActiveStat = false;
+				}
+			}
+			else
+			{
+				if (g_bLostFocus)
+				{
+					g_bLostFocus = false;
+					extern void CheckExistingFilesModified();
+					CheckExistingFilesModified();
 				}
 			}
 		}

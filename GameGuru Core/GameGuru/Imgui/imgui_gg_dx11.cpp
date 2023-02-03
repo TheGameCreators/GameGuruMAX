@@ -6274,7 +6274,7 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 	}
 }
 
-void RefreshEntityFolder(char* folder_s, void *pFolder, bool bUpdateSubFolders)
+void RefreshEntityFolder(char* folder_s, void *pFolder)
 {
 	int tt = 0;
 	cstr file_s = "";

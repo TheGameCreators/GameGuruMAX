@@ -663,7 +663,7 @@ bool fpe_thread_in_progress(void);
 #endif
 
 int cstring_cmp_folder(const void *a, const void *b);
-void RefreshEntityFolder(char* folder_s, void* pFolder, bool bUpdateSubFolders = false);
+void RefreshEntityFolder(char* folder_s, void* pFolder);
 
 // done in cStr
 //void replaceAll(std::string& str, const std::string& from, const std::string& to);

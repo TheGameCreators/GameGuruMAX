@@ -5925,7 +5925,7 @@ void imgui_importer_loop(void)
 			//	Let the user know they set an invalid save file path.
 			if (ImGui::BeginPopup("##InvalidSavePath"))
 			{
-				ImGui::Text("Path must be within 'Max\\Files\\entitybank\\user\\'");
+				ImGui::Text("Path must be within 'Max\\Files\\entitybank\\'");
 				ImGui::EndPopup();
 			}
 
@@ -5934,10 +5934,22 @@ void imgui_importer_loop(void)
 				//PE: filedialogs change dir so.
 				cStr tOldDir = GetDir();
 				char * cFileSelected;
-				cstr fulldir = tOldDir + "\\entitybank\\user\\";
-				cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0",fulldir.Get(), "", true, NULL);
-
+				//cstr fulldir = tOldDir + "\\entitybank\\user\\";
+				char defaultPath[MAX_PATH];
+				strcpy(defaultPath, GG_GetWritePath());
+				strcat(defaultPath, "Files\\entitybank\\user");
+				cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", defaultPath, "", true, NULL);
 				SetDir(tOldDir.Get());
+
+				// Now that user has chosen a new path, refresh the folders, in case any new folders have been added 
+				// If this proves to be too slow, we can just manually add the new folders that have been created, and the auto file scan should do the rest.
+				extern bool bExternal_Entities_Init;
+				bExternal_Entities_Init = false;
+				extern void mapeditorexecutable_full_folder_refresh(void);
+				mapeditorexecutable_full_folder_refresh();
+				// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
+				extern bool bTreeViewInitInNextFrame;
+				bTreeViewInitInNextFrame = true;
 
 				if (cFileSelected && strlen(cFileSelected) > 0) {
 

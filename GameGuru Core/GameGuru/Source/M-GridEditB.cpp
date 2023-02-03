@@ -22699,7 +22699,7 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sImageName = "";
-						sImageName = "imagebank\\";
+						if(strnicmp(final_name,"projectbank",11)!=NULL) sImageName = "imagebank\\";
 						sImageName = sImageName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sImageName = sImageName + selectedmediafile->m_sName.Get();
@@ -44362,6 +44362,10 @@ void load_storyboard(char *name)
 	// and load game project rpg databases, including item collection data
 	init_rpg_system();
 	load_rpg_system(name);
+
+	// also trigger a refresh of files lists, the project folder contributes to library file choices!
+	extern void RefreshPurchasedFolder (void);
+	RefreshPurchasedFolder();
 
 	// complete
 	iLastNode = -1;

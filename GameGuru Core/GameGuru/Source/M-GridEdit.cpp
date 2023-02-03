@@ -1874,9 +1874,18 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 
 void mapeditorexecutable_full_folder_refresh(void)
 {
+	static char cFullProjectWriteBasePath[MAX_PATH];
+	strcpy(cFullProjectWriteBasePath, "projectbank\\");
+	strcat(cFullProjectWriteBasePath, Storyboard.gamename);
+	static char cFullProjectWritePath[MAX_PATH];
 	static char cFullWritePath[MAX_PATH];
+
 	if (!bExternal_Entities_Init)
 	{
+		// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
+		extern bool bTreeViewInitInNextFrame;
+		bTreeViewInitInNextFrame = true;
+
 		//First get those in document folder.
 		strcpy(cFullWritePath, "entitybank");
 		GG_GetRealPath(cFullWritePath, 1);
@@ -1947,13 +1956,27 @@ void mapeditorexecutable_full_folder_refresh(void)
 		}
 		if (!bSkipDocWriteFolder)
 		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 2);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
+			// project folder
+			strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
+			strcat(cFullProjectWritePath, "\\Files\\imagebank");
+			GG_GetRealPath(cFullProjectWritePath, 1);
+			GetMainEntityList(cFullProjectWritePath, "", NULL, "w:", true, 2);
+			cFolderItem* pLastFolder = &MainEntityList;
 			while (pLastFolder->m_pNext)
 			{
 				pLastFolder = pLastFolder->m_pNext;
 			}
+
+			// writables folder
+			GetMainEntityList(cFullWritePath, "", pLastFolder, "w:", true, 2);
+			pLastFolder = &MainEntityList;
+			while (pLastFolder->m_pNext)
+			{
+				pLastFolder = pLastFolder->m_pNext;
+			}
+
+			// root folder
+			SetDir(pOld);
 			GetMainEntityList("imagebank", "", pLastFolder, "", false, 2);
 		}
 		else

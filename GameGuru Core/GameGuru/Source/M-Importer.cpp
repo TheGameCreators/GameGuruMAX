@@ -5947,9 +5947,10 @@ void imgui_importer_loop(void)
 				bExternal_Entities_Init = false;
 				extern void mapeditorexecutable_full_folder_refresh(void);
 				mapeditorexecutable_full_folder_refresh();
+				//,pvec code below intside the refresh call
 				// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
-				extern bool bTreeViewInitInNextFrame;
-				bTreeViewInitInNextFrame = true;
+				//extern bool bTreeViewInitInNextFrame;
+				//bTreeViewInitInNextFrame = true;
 
 				if (cFileSelected && strlen(cFileSelected) > 0) {
 

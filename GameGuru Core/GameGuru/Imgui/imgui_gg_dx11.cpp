@@ -5927,6 +5927,14 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 				pNewItem->m_iEntityOffset = n + strlen(pFind);
 				break;
 			}
+
+			// project folder passed in override specific detection above
+			LPSTR pFindProjectBankFolder = "\\projectbank";
+			if (strnicmp(pPathSearch + n, pFindProjectBankFolder, strlen(pFindProjectBankFolder)) == NULL)
+			{
+				pNewItem->m_iEntityOffset = n;
+				break;
+			}
 		}
 
 
@@ -6677,6 +6685,10 @@ void RefreshPurchasedFolder ( void )
 		RefreshEntityFolder(pFolderFullPath, pNewFolder);
 		pNewFolder = pNewFolder->m_pNext;
 	}
+
+	// ensure the sorted list that is static in the main loop is reset to avoid crash if contents changes mid-loop
+	extern bool bUpdateSearchSorting;
+	bUpdateSearchSorting = true;
 }
 
 char defaultWriteFolder[260];

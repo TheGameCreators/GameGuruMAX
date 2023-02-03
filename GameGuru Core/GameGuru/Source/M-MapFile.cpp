@@ -2610,6 +2610,37 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				}
 			}
 
+			// Also add any custom material textures
+			if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			{
+				sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
+				if (pObject)
+				{
+					for (int i = 0; i < pObject->iFrameCount; i++)
+					{
+						sFrame* pFrame = pObject->ppFrameList[i];
+						if (pFrame)
+						{
+							sMesh* pMesh = pFrame->pMesh;
+							if (pMesh)
+							{
+								wiScene::MaterialComponent* pMaterialComponent = wiScene::GetScene().materials.GetComponent(pMesh->wickedmaterialindex);
+								if (pMaterialComponent)
+								{
+									if (pMaterialComponent->textures[0].name.length() > 0)
+									{
+										addtocollection((char*)pMaterialComponent->textures[0].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[1].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[2].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[3].name.c_str());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 			// gives t.entid and adds ALL entity profile related files to the collection
 			addthisentityprofilesfilestocollection();
 			/*

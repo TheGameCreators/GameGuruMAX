@@ -2593,6 +2593,23 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				}
 			}
 
+			// Ensure we also collect any textures for Building Editor entities - they are not included with the export
+			entityprofiletype& entProfile = t.entityprofile[t.entityelement[t.e].bankindex];
+			if (strstr(entProfile.model_s.Get(), "smartchild"))
+			{
+				WickedMaterial& material = entProfile.WEMaterial;
+				for (int i = 0; i < MAXMESHMATERIALS; i++)
+				{
+					if (material.baseColorMapName[i].Len() > 0)
+					{
+						addtocollection(material.baseColorMapName[i].Get());
+						addtocollection(material.normalMapName[i].Get());
+						addtocollection(material.emissiveMapName[i].Get());
+						addtocollection(material.surfaceMapName[i].Get());
+					}
+				}
+			}
+
 			// gives t.entid and adds ALL entity profile related files to the collection
 			addthisentityprofilesfilestocollection();
 			/*

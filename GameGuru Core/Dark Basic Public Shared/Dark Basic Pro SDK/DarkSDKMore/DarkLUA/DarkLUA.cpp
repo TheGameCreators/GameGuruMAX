@@ -8524,6 +8524,17 @@ int SetSunIntensity(lua_State* L)
 	WickedCall_SetSunColors(t.visuals.SunRed_f, t.visuals.SunGreen_f, t.visuals.SunBlue_f, t.visuals.SunIntensity_f, 1.0f, 1.0f);
 	return 1;
 }
+
+int SetExposure(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	float exposure = lua_tonumber(L, 1);
+	t.visuals.fExposure = exposure;
+	WickedCall_SetExposure(exposure);
+	return 1;
+}
+
 // LUA command names
 void addFunctions()
 {
@@ -9595,6 +9606,10 @@ void addFunctions()
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);
 
 	lua_register(lua, "SetLevelFadeoutEnabled", SetLevelFadeoutEnabled);
+
+	lua_register(lua, "SetSunLightingColor", SetSunLightingColor);
+	lua_register(lua, "SetSunIntensity", SetSunIntensity);
+	lua_register(lua, "SetExposure", SetExposure);
 }
 
  /*

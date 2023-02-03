@@ -6248,3 +6248,8 @@ void WickedCall_RemoveObjectTextures(sObject* pObject)
 		}
 	}
 }
+
+void WickedCall_SetExposure(float exposure)
+{
+	master.masterrenderer.setExposure(exposure);
+}

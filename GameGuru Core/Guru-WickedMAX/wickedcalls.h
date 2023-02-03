@@ -203,3 +203,5 @@ void WickedCall_SetRenderTargetMouseFocus(bool focus);
 void WickedCall_UpdateWaterHeight(float height);
 
 void WickedCall_RemoveObjectTextures(sObject* pObject);
+
+void WickedCall_SetExposure(float exposure);

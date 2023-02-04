@@ -221,7 +221,6 @@ void material_loadsounds ( int iInitial )
 							// if sound within range of available slots
 							if (t.tbase < g.materialsoundoffsetend - 5)
 							{
-								//t.snd_s = "audiobank\\materials\\0grassA1.WAV";
 								Load3DSound (t.snd_s.Get(), t.tbase);
 								SetSoundSpeed (t.tbase, t.material[t.m].freq + g.soundfrequencymodifier);
 								t.msoundassign = t.tbase;

@@ -2552,8 +2552,11 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 								// Parse the lua script so we can check if it contains any string variables (for filenames).
 								InitParseLuaScript(&tempeleprof);
-								cstr script_name = "scriptbank\\";
+
+								cstr script_name = "";
+								if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
 								script_name += tempeleprof.aimain_s;
+
 								ParseLuaScript(&tempeleprof, script_name.Get());
 
 								// This script loads an image, now retrieve the filename and add it to the collection.
@@ -3862,7 +3865,11 @@ int mapfile_savestandalone_stage2c ( void )
 				}
 			}
 			//  script files
-			t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aimain_s ; addtocollection(t.tfile_s.Get());
+			cstr script_name = "";
+			if (strnicmp(t.entityelement[t.e].eleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			script_name += t.entityelement[t.e].eleprof.aimain_s;
+			t.tfile_s = script_name;// cstr("scriptbank\\") + t.entityelement[t.e].eleprof.aimain_s;
+			addtocollection(t.tfile_s.Get());
 			//  for the script associated, scan it and include any references to other scripts
 			scanscriptfileandaddtocollection(t.tfile_s.Get());
 			//  sound files

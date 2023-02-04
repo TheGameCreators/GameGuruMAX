@@ -5937,7 +5937,6 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 			}
 		}
 
-
 		strcpy(pNewItem->cfolder, pNewItem->m_sFolderFullPath.Get() );
 
 		#ifdef WICKEDENGINE

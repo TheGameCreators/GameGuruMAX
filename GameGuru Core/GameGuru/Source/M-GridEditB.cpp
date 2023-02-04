@@ -8956,53 +8956,8 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 			}
 		}
 
-		//PE: Dont init first in this system , wait until we need it.
-/*
-		if (!bSmallVideoInit[iVideoEntry])
+		if (1)
 		{
-			
-			if (iSmallVideoSlot[iVideoEntry] > 0) {
-				if (AnimationExist(iSmallVideoSlot[iVideoEntry])) {
-					if (AnimationPlaying(iSmallVideoSlot[iVideoEntry]))
-						StopAnimation(iSmallVideoSlot[iVideoEntry]);
-					DeleteAnimation(iSmallVideoSlot[iVideoEntry]);
-					iSmallVideoSlot[iVideoEntry] = 0;
-				}
-			}
-
-			t.tvideofile_s = cSmallVideoPath;
-			iSmallVideoSlot[iVideoEntry] = 0;
-			t.text_s = Lower(Right(t.tvideofile_s.Get(), 4));
-			if (t.text_s == ".ogv" || t.text_s == ".mp4")
-			{
-				for (int itl = 1; itl <= 32; itl++)
-				{
-					if (AnimationExist(itl) == 0) { iSmallVideoSlot[iVideoEntry] = itl; break; }
-				}
-				if (LoadAnimation(t.tvideofile_s.Get(), iSmallVideoSlot[iVideoEntry], g.videoprecacheframes, g.videodelayedload, 1) == false)
-				{
-					iSmallVideoSlot[iVideoEntry] = -999;
-				}
-			}
-			if (iSmallVideoSlot[iVideoEntry] > 0) {
-				PlaceAnimation(iSmallVideoSlot[iVideoEntry], -1, -1, -1, -1);
-				SetRenderAnimToImage(iSmallVideoSlot[iVideoEntry], true);
-				//Try to get first frame.
-				StopAnimation(iSmallVideoSlot[iVideoEntry]);
-				PlayAnimation(iSmallVideoSlot[iVideoEntry]);
-				SetRenderAnimToImage(iSmallVideoSlot[iVideoEntry], true);
-				iSmallVideoFindFirstFrame[iVideoEntry] = 4;
-				SetVideoVolume(0);
-				UpdateAllAnimation();
-				bSmallVideoResumePossible[iVideoEntry] = false;
-				bSmallVideoPerccentStart[iVideoEntry] = false;
-			}
-			bSmallVideoInit[iVideoEntry] = true;
-		}
-*/
-		if (1) //iSmallVideoSlot[iVideoEntry] > 0)
-		{
-
 			if (iSmallVideoFindFirstFrame[iVideoEntry] > 0) {
 				if (iSmallVideoFindFirstFrame[iVideoEntry] == 1) {
 					PauseAnim(iSmallVideoSlot[iVideoEntry]);
@@ -15727,6 +15682,10 @@ void process_entity_library(void)
 																	{
 																		t.entdir_s = "";
 																	}
+																	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
+																	{
+																		t.entdir_s = "";
+																	}
 
 																	t.talreadyloaded = 0;
 																	for (t.t = 1; t.t <= g.entidmaster; t.t++)
@@ -19050,9 +19009,6 @@ void process_entity_library_v2(void)
 		if (bViewAllFolders)
 			bDisplayFavorite = false;
 
-		//if (sMakeDefaultSelecting != "")
-
-
 		if (ImGui::Selectable("View All", bViewAllFolders) || bSelectLibraryViewAll )
 		{
 			bSelectLibraryViewAll = false;
@@ -19167,10 +19123,8 @@ void process_entity_library_v2(void)
 		static bool bInContextThumb;
 		bInContextThumb = false;
 
-
-		if (1) //
+		if (1)
 		{
-
 			static std::vector< std::pair<std::string, cFolderItem::sFolderFiles *>> sorted_files;
 			if (sorted_files.size() == 0)
 				bUpdateSearchSorting = true;
@@ -20189,7 +20143,8 @@ void process_entity_library_v2(void)
 										if (iDisplayLibraryType == 5)
 										{
 											//PE: Changed to support subfolders.
-											sFpeName = "particlesbank\\";
+											sFpeName = "";
+											if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sFpeName = "particlesbank\\";
 											sFpeName = sFpeName + path_for_filename.c_str();
 											sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 											replaceAll(sFpeName, "\\\\", "\\");
@@ -20311,8 +20266,6 @@ void process_entity_library_v2(void)
 
 												//Test
 												float centerx = -1000, centery = 39000, centerz = -1000;
-												//PositionObject(50001, centerx, centery, centerz);
-												//ShowObject(50001);
 
 												std::string sParticleName = myfiles->m_sPath.Get();
 												char cTmp[MAX_PATH];
@@ -20595,12 +20548,14 @@ void process_entity_library_v2(void)
 							if (sMakeDefaultSelecting != "")
 							{
 								std::string sMediaName = "";
-								if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
-								if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
-								if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
-								//if (iDisplayLibraryType == 4) sMediaName = "scriptbank\\";
-								if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
-								if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
+								if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+								{
+									if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
+									if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
+									if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
+									if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
+									if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
+								}
 								sMediaName = sMediaName + path_for_filename.c_str();
 								if (path_for_filename.length() == 0)
 									sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -20616,12 +20571,9 @@ void process_entity_library_v2(void)
 							}
 							if (myfiles->iFlags == 1 || selectedmediafile == myfiles )
 							{
-								//ImVec4 bg_col = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram]; // { 0.0, 0.0, 0.0, 1.0 };
-
 								int gcpy = ImGui::GetCursorPosY();
 								if (bIsVisible && gcpy < (iIconVisiblePosY ) && gcpy >= (ImGui::GetScrollY() - (media_icon_size*0.5)))
 								{
-
 									ImVec2 padding = { 0.0, 0.0 };
 									ImGuiWindow* window = ImGui::GetCurrentWindow();
 									float cw = ImGui::GetContentRegionAvailWidth();
@@ -21016,12 +20968,14 @@ void process_entity_library_v2(void)
 									}
 
 									std::string sMediaName = "";
-									if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
-									if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
-									if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
-									//if (iDisplayLibraryType == 4) sMediaName = "scriptbank\\";
-									if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
-									if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
+									if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+									{
+										if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
+										if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
+										if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
+										if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
+										if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
+									}
 									sMediaName = sMediaName + path_for_filename.c_str();
 									if(path_for_filename.length() == 0)
 										sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -21222,7 +21176,8 @@ void process_entity_library_v2(void)
 											StopSound(g.temppreviewsoundoffset);
 											DeleteSound(g.temppreviewsoundoffset);
 										}
-										std::string sSoundName = "audiobank\\";
+										std::string sSoundName = "";
+										if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
 										sSoundName = sSoundName + path_for_filename.c_str();
 										sSoundName = sSoundName + "\\" + myfiles->m_sName.Get();
 										LoadSound((char *) sSoundName.c_str(), g.temppreviewsoundoffset);
@@ -21231,7 +21186,6 @@ void process_entity_library_v2(void)
 											playingiles = myfiles;
 											PlaySound(g.temppreviewsoundoffset);
 											SetSoundVolume(g.temppreviewsoundoffset, 100.0);
-											//soundtruevolume(100) returns 0 ?
 										}
 									}
 									ImGui::SetCursorPos(opos);
@@ -21699,6 +21653,10 @@ void process_entity_library_v2(void)
 												t.addentityfile_s = Right(t.addentityfile_s.Get(), Len(t.addentityfile_s.Get()) - 11);
 											}
 											if (cstr(Lower(Left(t.addentityfile_s.Get(), 8))) == "ebebank\\")
+											{
+												t.entdir_s = "";
+											}
+											if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 											{
 												t.entdir_s = "";
 											}
@@ -22594,7 +22552,10 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sSoundName = "";
-						if(iDisplayLibraryType == 1) sSoundName = "audiobank\\";
+						if (iDisplayLibraryType == 1)
+						{
+							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
+						}
 						sSoundName = sSoundName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sSoundName = sSoundName + selectedmediafile->m_sName.Get();
@@ -22696,7 +22657,6 @@ void process_entity_library_v2(void)
 						if (*final_name == '\\')
 							final_name++;
 
-
 						std::string path_for_filename = final_name;
 						std::string sImageName = "";
 						if(strnicmp(final_name,"projectbank",11)!=NULL) sImageName = "imagebank\\";
@@ -22762,7 +22722,10 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sVideoName = "";
-						if (iDisplayLibraryType == 3) sVideoName = "videobank\\";
+						if (iDisplayLibraryType == 3)
+						{
+							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sVideoName = "videobank\\";
+						}
 						sVideoName = sVideoName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sVideoName = sVideoName + selectedmediafile->m_sName.Get();
@@ -23038,7 +23001,7 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sScriptName = "";
-						sScriptName = "particlesbank\\";
+						if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sScriptName = "particlesbank\\";
 						sScriptName = sScriptName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sScriptName = sScriptName + selectedmediafile->m_sName.Get();
@@ -23376,14 +23339,6 @@ void process_entity_library_v2(void)
 	}
 	else 
 	{
-		/*if (g_bPreviewLighting)
-		{
-			restore_visuals(t.visuals, t.visualsStorage);
-			restore_visuals(t.editorvisuals, t.visualsStorage);
-			g_bPreviewLighting = false;
-			Wicked_Update_Visuals(&t.editorvisuals);
-		}*/
-
 		//Window closed.
 		FreeTempImageList();
 		if (iVideoThumbID > 0 && AnimationExist(iVideoThumbID))
@@ -26119,11 +26074,15 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		if (fpe_current_loaded_script != item_current_type_selection)
 		{
 			//Load in lua and check for custom properties.
-			cstr script_name = "scriptbank\\";
+			cstr script_name_append = "";
 			if (item_current_type_selection < g_scriptpeople_item_count - 1)
-				script_name += (char *)scriptList_s[item_current_type_selection].Get();
+				script_name_append += (char *)scriptList_s[item_current_type_selection].Get();
 			else
-				script_name += edit_grideleprof->aimain_s;
+				script_name_append += edit_grideleprof->aimain_s;
+
+			cstr script_name = "";
+			if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			script_name += script_name_append;
 
 			#ifdef USENEWMEDIASELECTWINDOWS
 			fpe_current_loaded_script_image = PROPERTIES_CACHE_ICONS + fpe_current_loaded_script_image_count;
@@ -26316,7 +26275,8 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		if (fpe_current_loaded_script == -1 || current_loaded_script != edit_grideleprof->aimain_s)
 		{
 			//Load in lua and check for custom properties.
-			cstr script_name = "scriptbank\\";
+			cstr script_name = "";
+			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			fpe_current_loaded_script = 9999;
@@ -27930,7 +27890,8 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		if (fpe_current_loaded_script != fpe_current_selected_script)
 		{
 			//Load in lua and check for custom properties.
-			cstr script_name = "scriptbank\\";
+			cstr script_name = "";
+			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			//Try to parse script.
@@ -28286,11 +28247,14 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 			if (fpe_current_loaded_script != item_current_type_selection)
 			{
 				//Load in lua and check for custom properties.
-				cstr script_name = "scriptbank\\";
+				cstr script_name_appendage = "";
 				if (item_current_type_selection < g_scriptobjects_item_count - 1) //PE: Need to check for custom
-					script_name += scriptList_s[item_current_type_selection];
+					script_name_appendage += scriptList_s[item_current_type_selection];
 				else
-					script_name += edit_grideleprof->aimain_s;
+					script_name_appendage += edit_grideleprof->aimain_s;
+				cstr script_name = "";
+				if (strnicmp(script_name_appendage.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				script_name += script_name_appendage;
 
 				#ifdef USENEWMEDIASELECTWINDOWS
 				fpe_current_loaded_script_image = PROPERTIES_CACHE_ICONS + fpe_current_loaded_script_image_count;
@@ -28484,7 +28448,8 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 				if (fpe_current_loaded_script != fpe_current_selected_script) 
 				{
 					//Load in lua and check for custom properties.
-					cstr script_name = "scriptbank\\";
+					cstr script_name = "";
+					if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
 					script_name += edit_grideleprof->aimain_s;
 
 					#ifdef USENEWMEDIASELECTWINDOWS
@@ -44362,6 +44327,39 @@ void load_storyboard(char *name)
 	// and load game project rpg databases, including item collection data
 	init_rpg_system();
 	load_rpg_system(name);
+
+	// ensure basic project specific media folders are present
+	LPSTR pOldDir = GetDir();
+	if (Storyboard.project_readonly == 0 && bProjectLoaded == true)
+	{
+		// go to writable project folder
+		char projectfolder[MAX_PATH];
+		strcpy(projectfolder, "projectbank\\");
+		strcat(projectfolder, name);
+		GG_GetRealPath(projectfolder, 1);
+		SetDir(projectfolder);
+
+		// files folder
+		if (PathExist("Files") == 0) CreateDirectoryA("Files", NULL);
+		SetDir("Files");
+
+		// all media folders
+		char mediafolder[MAX_PATH];
+		LPSTR pProjFilesRoot = GetDir();
+		for (int iAllMediaFolders = 0; iAllMediaFolders <= 4; iAllMediaFolders++)
+		{
+			if (iAllMediaFolders == 0) strcpy(mediafolder, "audiobank");
+			if (iAllMediaFolders == 1) strcpy(mediafolder, "entitybank");
+			if (iAllMediaFolders == 2) strcpy(mediafolder, "imagebank");
+			if (iAllMediaFolders == 3) strcpy(mediafolder, "scriptbank");
+			if (iAllMediaFolders == 4) strcpy(mediafolder, "videobank");
+			SetDir(pProjFilesRoot);
+			if (PathExist(mediafolder) == 0) CreateDirectoryA(mediafolder, NULL);
+			SetDir(mediafolder);
+			if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
+		}
+	}
+	SetDir(pOldDir);
 
 	// also trigger a refresh of files lists, the project folder contributes to library file choices!
 	extern void RefreshPurchasedFolder (void);

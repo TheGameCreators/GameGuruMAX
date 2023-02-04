@@ -1874,18 +1874,83 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 
 void mapeditorexecutable_full_folder_refresh(void)
 {
+	// work out the project folder path for third location of assets
 	static char cFullProjectWriteBasePath[MAX_PATH];
 	strcpy(cFullProjectWriteBasePath, "projectbank\\");
 	strcat(cFullProjectWriteBasePath, Storyboard.gamename);
 	static char cFullProjectWritePath[MAX_PATH];
 	static char cFullWritePath[MAX_PATH];
 
+	// only update folders and files if flagged
 	if (!bExternal_Entities_Init)
 	{
-		// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
+		// do entities init once when flagged
+		bExternal_Entities_Init = true;
+
+		// eventually ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
 		extern bool bTreeViewInitInNextFrame;
 		bTreeViewInitInNextFrame = true;
 
+		// Go through all media folders
+		LPSTR pOld = GetDir();
+		for (int iMediaFolderType = 0; iMediaFolderType <= 6; iMediaFolderType++)
+		{
+			// folders to check
+			LPSTR pMediaFolderPattern = "";
+			if (iMediaFolderType == 0) pMediaFolderPattern = "entitybank";
+			if (iMediaFolderType == 1) pMediaFolderPattern = "audiobank";
+			if (iMediaFolderType == 2) pMediaFolderPattern = "imagebank";
+			if (iMediaFolderType == 3) pMediaFolderPattern = "videobank";
+			if (iMediaFolderType == 4) pMediaFolderPattern = "scriptbank";
+			if (iMediaFolderType == 5) pMediaFolderPattern = "particlesbank";
+			if (iMediaFolderType == 6) pMediaFolderPattern = "charactercreatorplus\\animations";
+			
+			// use GetMainEntityList to add root, writables and project folder files
+			strcpy(cFullWritePath, pMediaFolderPattern);
+			GG_GetRealPath(cFullWritePath, 1);
+			cStr CurrentPath = cStr(pOld) + cStr("\\") + cStr(pMediaFolderPattern);
+			if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
+			{
+				// same folder means no separate writables area, i.e. GG_GetRealPath create mode failed
+				// only root folder for non-writable systems
+				GetMainEntityList(pMediaFolderPattern, "", NULL, "", true, iMediaFolderType);
+			}
+			else
+			{
+				// tracks folder creations
+				cFolderItem* pLastFolder = &MainEntityList;
+
+				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
+				cFolderItem* pFirstOfTheLastFolder = NULL;
+				if (iMediaFolderType >= 0 && iMediaFolderType <= 4)
+				{
+					strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
+					strcat(cFullProjectWritePath, "\\Files\\");
+					strcat(cFullProjectWritePath, pMediaFolderPattern);
+					GG_GetRealPath(cFullProjectWritePath, 1);
+					GetMainEntityList(cFullProjectWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
+					while (pLastFolder->m_pNext)
+					{
+						pLastFolder = pLastFolder->m_pNext;
+					}
+					pFirstOfTheLastFolder = pLastFolder;
+				}
+
+				// writables folder
+				GetMainEntityList(cFullWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
+				pLastFolder = &MainEntityList;
+				while (pLastFolder->m_pNext)
+				{
+					pLastFolder = pLastFolder->m_pNext;
+				}
+
+				// root folder
+				SetDir(pOld);
+				GetMainEntityList(pMediaFolderPattern, "", pLastFolder, "", false, iMediaFolderType);
+			}
+		}
+
+		/* replaced with above loop
 		//First get those in document folder.
 		strcpy(cFullWritePath, "entitybank");
 		GG_GetRealPath(cFullWritePath, 1);
@@ -1943,7 +2008,7 @@ void mapeditorexecutable_full_folder_refresh(void)
 			GetMainEntityList("audiobank", "", NULL, "", true, 1);
 		}
 
-		//Images
+		//Images - updated to handle project bank folder
 		strcpy(cFullWritePath, "imagebank");
 		GG_GetRealPath(cFullWritePath, 1);
 		pOld = GetDir();
@@ -1951,7 +2016,7 @@ void mapeditorexecutable_full_folder_refresh(void)
 		bSkipDocWriteFolder = false;
 		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
 		{
-			//Same Dirs.
+			// same folder means no separate writables area
 			bSkipDocWriteFolder = true;
 		}
 		if (!bSkipDocWriteFolder)
@@ -1981,6 +2046,7 @@ void mapeditorexecutable_full_folder_refresh(void)
 		}
 		else
 		{
+			// only root folder for non-writable systems
 			GetMainEntityList("imagebank", "", NULL, "", true, 2);
 		}
 
@@ -2093,11 +2159,10 @@ void mapeditorexecutable_full_folder_refresh(void)
 		}
 		#endif
 		#endif
-
-		SetDir(pOld);
-		bExternal_Entities_Init = true;
+		*/
 
 		//Sort folder entrys.
+		SetDir(pOld);
 		cFolderItem *pNewFolder = (cFolderItem *)&MainEntityList;
 		cFolderItem *m_pfirstFolder = NULL;
 		int mc = 0;
@@ -6156,12 +6221,16 @@ void mapeditorexecutable_loop(void)
 						{
 							if (AnimationExist(itl) == 0) { tut.bVideoID = itl; break; }
 						}
-						if (LoadAnimation(t.tvideofile_s.Get(), tut.bVideoID, g.videoprecacheframes, g.videodelayedload, 1) == false)
+						char pFinalVideoFilePath[MAX_PATH];
+						strcpy(pFinalVideoFilePath, t.tvideofile_s.Get());
+						GG_GetRealPath(pFinalVideoFilePath, 0);
+						if (LoadAnimation(pFinalVideoFilePath, tut.bVideoID, g.videoprecacheframes, g.videodelayedload, 1) == false)
 						{
 							tut.bVideoID = -999;
 						}
 					}
-					if (tut.bVideoID > 0) {
+					if (tut.bVideoID > 0) 
+					{
 						PlaceAnimation(tut.bVideoID, -1, -1, -1, -1);
 						SetRenderAnimToImage(tut.bVideoID, true);
 						//Try to get first frame.
@@ -11854,11 +11923,16 @@ void mapeditorexecutable_loop(void)
 									if (current_loaded_script != item_current_type_selection) 
 									{
 										//Load in lua and check for custom properties.
-										cstr script_name = "scriptbank\\";
+										cstr script_name_append = "";
 										if (item_current_type_selection < g_scriptpeople_item_count - 1)
-											script_name += (char *) scriptList_s[item_current_type_selection].Get();
+											script_name_append += (char *) scriptList_s[item_current_type_selection].Get();
 										else
-											script_name += t.grideleprof.aimain_s;
+											script_name_append += t.grideleprof.aimain_s;
+
+										cstr script_name = "";
+										if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+										script_name += script_name_append;
+
 										//Try to parse script.
 										ParseLuaScript(&t.grideleprof,script_name.Get());
 										current_loaded_script = item_current_type_selection;

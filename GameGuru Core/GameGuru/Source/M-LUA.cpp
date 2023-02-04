@@ -92,14 +92,23 @@ void lua_loadscriptin ( void )
 			{
 				t.tscriptname_s=t.tscriptname_s+".lua";
 			}
-			t.tfile_s = "" ; t.tfile_s=t.tfile_s+"scriptbank\\"+t.tscriptname_s;
+
+			cstr script_name = "";
+			if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			script_name += t.tscriptname_s;
+
+			t.tfile_s = ""; t.tfile_s = t.tfile_s + script_name;// "scriptbank\\" + t.tscriptname_s;
 			if (FileExist(t.tfile_s.Get()) == 0)
 			{
 				//LB: scripts can be moved and so not found, in this case have the engine find the parent behavior and load that instead
 				int entid = t.entityelement[t.e].bankindex;
 				t.tscriptname_s = t.entityprofile[entid].aimain_s;
-				//t.entityelement[t.e].eleprof.aimain_s; = t.tscriptname_s; suggest not overwriting the instance field in case of accidental movement of script file!!
-				t.tfile_s = ""; t.tfile_s = t.tfile_s + "scriptbank\\" + t.tscriptname_s;
+
+				script_name = "";
+				if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				script_name += t.tscriptname_s;
+
+				t.tfile_s = ""; t.tfile_s = t.tfile_s + script_name;// "scriptbank\\" + t.tscriptname_s;
 			}
 			if ( FileExist(t.tfile_s.Get()) == 1 )
 			{

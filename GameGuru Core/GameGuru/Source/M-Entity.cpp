@@ -133,6 +133,10 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	{
 		t.entdir_s = "";
 	}
+	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
+	{
+		t.entdir_s = "";
+	}
 
 	//  Check if entity already loaded in
 	t.talreadyloaded=0;
@@ -515,6 +519,10 @@ bool entity_load_thread_prepare(LPSTR pFpeFile)
 		sFpeFile = Right(sFpeFile.Get(), Len(sFpeFile.Get()) - 11);
 	}
 	if (cstr(Lower(Left(sFpeFile.Get(), 8))) == "ebebank\\")
+	{
+		sEntityBank = "";
+	}
+	if (cstr(Lower(Left(sFpeFile.Get(), 12))) == "projectbank\\")
 	{
 		sEntityBank = "";
 	}
@@ -3986,7 +3994,10 @@ void entity_loadvideoid ( void )
 			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
 		#ifdef VRTECH
-		if ( LoadAnimation(t.tvideofile_s.Get(), t.tvideoid, g.videoprecacheframes, g.videodelayedload, 1) == false )
+		char pFinalVideoFilePath[MAX_PATH];
+		strcpy(pFinalVideoFilePath, t.tvideofile_s.Get());
+		GG_GetRealPath(pFinalVideoFilePath, 0);
+		if ( LoadAnimation(pFinalVideoFilePath, t.tvideoid, g.videoprecacheframes, g.videodelayedload, 1) == false )
 		{
 			t.tvideoid = -999;
 		}

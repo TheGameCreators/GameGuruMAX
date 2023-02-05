@@ -48751,44 +48751,80 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 // Check if any files have been modified since we launched Max (note: this only checks files in MainEntityList) - any other files will not be detected.
 void CheckExistingFilesModified()
 {
-	return; // Will remove once this feature is finished!
-
+	// Users can turn this feature off if it causes slowdowns.
 	if (pref.iCheckFilesModifiedOnFocus == 0)
-	{
-		// Users can turn this feature off if it causes slowdowns.
 		return;
-	}
 
-	static std::vector<std::string> modifiedFiles;
+	// lists to monitor level media changes (cannot use folderfiles structure as DBOs are not listed)
+	std::vector<int> currentLevelObjectID;
+	std::vector<std::string> currentLevelFiles;
+	std::vector<std::string> currentLevelFilesAbsolute;
+
+	// static map for retaining timestamps of last collection
+	static std::map<std::string, time_t> currentLevelTimeStamp;
+
+	// scan for all media to find FPEs used in current level
 	extern cFolderItem MainEntityList;
 	cFolderItem* pFolder = &MainEntityList;
 	if (pFolder)
 	{
-		// Check each folder for any files that have been modified since we last checked.
 		while (pFolder)
 		{
 			if (pFolder->m_pFirstFile)
 			{
-				// This folder contains files, check all of them.
 				char folderPath[MAX_PATH];
 				strcpy(folderPath, pFolder->m_sFolderFullPath.Get());
+				char folderRelPath[MAX_PATH];
+				strcpy(folderRelPath, pFolder->m_sFolderFullPath.Get() + pFolder->m_iEntityOffset + 1);
 				cFolderItem::sFolderFiles* pFolderFile = pFolder->m_pFirstFile;
 				pFolderFile = pFolder->m_pFirstFile->m_pNext;
 				while (pFolderFile)
 				{
-					char filePath[MAX_PATH];
-					strcpy(filePath, folderPath);
-					strcat(filePath, "\\");
-					strcat(filePath, pFolderFile->m_sName.Get());
-					struct stat sb;
-					// Get the time that the file was last modified.
-					if (stat(filePath, &sb) == 0)
+					if (strcmp(pFolderFile->m_sName.Get() + strlen(pFolderFile->m_sName.Get()) - 3, "fpe") == 0)
 					{
-						if (sb.st_mtime != pFolderFile->m_tFileModify)
+						// construct matching path and entity name
+						char pSearchPattern[MAX_PATH];
+						strcpy(pSearchPattern, folderRelPath);
+						strcat(pSearchPattern, "\\");
+						strcat(pSearchPattern, pFolderFile->m_sName.Get());
+
+						// found an FPE, determine if in current level
+						for (int entid = 0; entid < t.entitybank_s.size(); entid++)
 						{
-							// This file has been modified. Add to list of modified files (we will update any entities using them later)
-							pFolderFile->m_tFileModify = sb.st_mtime;
-							modifiedFiles.push_back(filePath);
+							if (stricmp(pSearchPattern, t.entitybank_s[entid].Get()) == NULL)
+							{
+								// add FPE for check
+								char pFileToAdd[MAX_PATH];
+								strcpy(pFileToAdd, folderRelPath);
+								strcat(pFileToAdd, "\\");
+								strcat(pFileToAdd, pFolderFile->m_sName.Get());
+								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+								char pFullFileAbsPath[MAX_PATH];
+								strcpy(pFullFileAbsPath, folderPath);
+								strcat(pFullFileAbsPath, "\\");
+								strcat(pFullFileAbsPath, pFolderFile->m_sName.Get());
+								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+
+								// add model DBO inside FPE
+								strcpy(pFileToAdd, folderRelPath);
+								strcat(pFileToAdd, "\\");
+								strcat(pFileToAdd, t.entityprofile[entid].model_s.Get());
+								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+								strcpy(pFullFileAbsPath, folderPath);
+								strcat(pFullFileAbsPath, "\\");
+								strcat(pFullFileAbsPath, t.entityprofile[entid].model_s.Get());
+								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+
+								// add any texture used by FPE
+								strcpy(pFileToAdd, folderRelPath);
+								strcat(pFileToAdd, "\\");
+								strcat(pFileToAdd, t.entityprofile[entid].texd_s.Get());
+								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+								strcpy(pFullFileAbsPath, folderPath);
+								strcat(pFullFileAbsPath, "\\");
+								strcat(pFullFileAbsPath, t.entityprofile[entid].texd_s.Get());
+								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+							}
 						}
 					}
 					pFolderFile = pFolderFile->m_pNext;
@@ -48797,114 +48833,147 @@ void CheckExistingFilesModified()
 			pFolder = pFolder->m_pNext;
 		}
 	}
-	
-	// Update any entities that use the modified files.
-	for (auto& file : modifiedFiles)
+
+	// special static map can track timestamp changes
+	if (currentLevelTimeStamp.size() == 0)
 	{
-		// Check what type of file has been modified and handle accordingly.
-
-		// FPE
-		if (strcmp(file.c_str() + file.length() - 3, "fpe") == 0)
+		for (int iIndex = 0; iIndex < currentLevelFilesAbsolute.size(); iIndex++)
 		{
-			// Find the index of the fpe file into t.entityprofile
-			int entIndex = -1;
-			char entitybankName[MAX_PATH];
-			char* entityPath = strstr((char*)file.c_str(), "entitybank");
-			if (entityPath)
+			LPSTR filePath = (LPSTR)currentLevelFilesAbsolute[iIndex].c_str();
+			bool bFoundInMap = false;
+			std::map<std::string, time_t>::iterator it = currentLevelTimeStamp.begin();
+			while (it != currentLevelTimeStamp.end())
 			{
-				for (int i = 0; i < t.entitybank_s.size(); i++)
+				if (stricmp(filePath, it->first.c_str()) == NULL)
 				{
-					if (strcmp(t.entitybank_s[i].Get(), entityPath + strlen("entitybank\\")) == 0)
-					{
-						// Found the index of the entity.
-						entIndex = i;
-						t.entid = i;
-						break;
-					}
+					bFoundInMap = true;
+					break;
 				}
+				it++;
 			}
-
-			if (entIndex < 0)
+			if (bFoundInMap == false)
 			{
-				// Could not find the entity index for this fpe, so cannot reload it.
-				// It might not have been used in the current map, or the FPE is not in the entitybank folder.
-				continue;
-			}
-
-			// Make a backup of the old parent entity, so that we can check what settings have been changed in the entityelements
-			entityprofiletype entityBackup = t.entityprofile[entIndex];
-
-			// delete parent entity object as we are going to reload it.
-			int parentObj = g.entitybankoffset + entIndex;
-			t.entobj = g.entitybankoffset + entIndex;
-			if (ObjectExist(t.entobj) == 1) DeleteObject(t.entobj);
-
-			// set entity name and reload it in
-			t.entdir_s = "entitybank\\";
-			t.ent_s = t.entitybank_s[entIndex];
-			t.entpath_s = getpath(t.ent_s.Get());
-
-			//LB: massive ommission - was this deleted, totally needed to detect and load 'groups'
-			extern int g_iAbortedAsEntityIsGroupFileMode;
-			g_iAbortedAsEntityIsGroupFileMode = 1;
-
-			entity_load();
-
-			// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
-			for (int i = 0; i < t.entityelement.size(); i++)
-			{
-				if (t.entityelement[i].bankindex == entIndex)
-				{
-					// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
-					t.e = i;
-					t.tupdatee = i;
-					t.tentid = entIndex;
-					t.tupdatee = i; 
-					entity_updateentityobj();
-
-					entitytype& element = t.entityelement[i];
-
-					//// TODO: If the scale of the element was not customised, then we should also update the scale to reflect whatever the new default is
-					//float prevScale = entityBackup.scale;
-					//if ((element.scalex == 0 && element.scaley == 0 && element.scalez == 0) || (element.scalex == prevScale-100 && element.scaley == prevScale-100 && element.scalez == prevScale-100))
-					//{
-					//	float newScale = t.entityprofile[entIndex].scale;
-					//	element.scalex = newScale;
-					//	element.scaley = newScale;
-					//	element.scalez = newScale;
-					//	t.tobj = element.obj;
-					//	t.tte = i;
-					//}
-					t.tobj = element.obj;
-					t.tte = i;
-					entity_positionandscale();
-				}
+				struct stat sb;
+				stat(filePath, &sb);
+				currentLevelTimeStamp.insert(std::make_pair(filePath, sb.st_mtime));
 			}
 		}
-		// Looks like we can only detect fpe changes for now. That is fine for updating the model and textures, since they should only be updated via either the Importer, or Building Editor, both of which will modify the FPE.
-		// However, it oculd pose a problem for updating Lua scripts that are attached to entities.
-		//// DBO
-		//else if (strcmp(file.c_str() + file.length() - 3, "dbo") == 0)
-		//{
-
-		//}
-		//// DDS
-		//else if (strcmp(file.c_str() + file.length() - 3, "dds") == 0)
-		//{
-
-		//}
-		//// PNG
-		//else if (strcmp(file.c_str() + file.length() - 3, "png") == 0)
-		//{
-
-		//}
-		//// LUA
-		//else if (strcmp(file.c_str() + file.length() - 3, "lua") == 0)
-		//{
-
-		//}
 	}
 
-	// All modified files have been updated in Max, reset for next time.
-	modifiedFiles.clear();
+	// scan all current level files, detect any changes
+	std::vector<int> modifiedEntityObject;
+	for (int iIndex = 0; iIndex < currentLevelFilesAbsolute.size(); iIndex++)
+	{
+		// Get the time that the file was last modified.
+		struct stat sb;
+		LPSTR pFileToCheck = (LPSTR)currentLevelFilesAbsolute[iIndex].c_str();
+		if (stat(pFileToCheck, &sb) == 0)
+		{
+			bool bFoundInMap = false;
+			std::map<std::string, time_t>::iterator it = currentLevelTimeStamp.begin();
+			while (it != currentLevelTimeStamp.end())
+			{
+				if (stricmp(pFileToCheck, it->first.c_str()) == NULL)
+				{
+					bFoundInMap = true;
+					if (sb.st_mtime != it->second)
+					{
+						// This file has been modified. Add to list of modified files (we will update any entities using them later)
+						it->second = sb.st_mtime;
+						modifiedEntityObject.push_back(currentLevelObjectID[iIndex]);
+
+						// can take extra actions for specific media to be updated
+						// textures will not update, they will reference previously loaded, so delete the image from that list
+						WickedCall_DeleteImage((LPSTR)currentLevelFiles[iIndex].c_str());
+					}
+					break;
+				}
+				it++;
+			}
+			if (bFoundInMap == false)
+			{
+				// new file to add to timestamp map
+				currentLevelTimeStamp.insert(std::make_pair(pFileToCheck, sb.st_mtime));
+				modifiedEntityObject.push_back(currentLevelObjectID[iIndex]);
+			}
+		}
+	}
+
+	// Remove all duplicate entIDs and add to new sorted list
+	std::vector<int> modifiedEntityObjectReduced;
+	for (int i = 0; i < modifiedEntityObject.size(); i++)
+	{
+		int iUniqueEntityID = modifiedEntityObject[i];
+		if (iUniqueEntityID > 0)
+		{
+			for (int i2 = 0; i2 < modifiedEntityObject.size(); i2++)
+			{
+				if (modifiedEntityObject[i2] == iUniqueEntityID)
+				{
+					modifiedEntityObject[i2] = 0;
+					i = 0;
+				}
+			}
+			modifiedEntityObjectReduced.push_back(iUniqueEntityID);
+		}
+	}
+
+	// Update any entities that use the modified files
+	for (auto& entIndex : modifiedEntityObjectReduced)
+	{
+		// update these entities
+		t.entid = entIndex;
+
+		// Make a backup of the old parent entity, so that we can check what settings have been changed in the entityelements
+		entityprofiletype entityBackup = t.entityprofile[entIndex];
+
+		// delete parent entity object as we are going to reload it.
+		int parentObj = g.entitybankoffset + entIndex;
+		t.entobj = g.entitybankoffset + entIndex;
+		if (ObjectExist(t.entobj) == 1) DeleteObject(t.entobj);
+
+		// set entity name and reload it in
+		t.entdir_s = "";
+		if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) t.entdir_s = "entitybank\\";
+		t.ent_s = t.entitybank_s[entIndex];
+		t.entpath_s = getpath(t.ent_s.Get());
+
+		//LB: massive ommission - was this deleted, totally needed to detect and load 'groups'
+		extern int g_iAbortedAsEntityIsGroupFileMode;
+		g_iAbortedAsEntityIsGroupFileMode = 1;
+
+		entity_load();
+
+		// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
+		for (int i = 0; i < t.entityelement.size(); i++)
+		{
+			if (t.entityelement[i].bankindex == entIndex)
+			{
+				// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
+				t.e = i;
+				t.tupdatee = i;
+				t.tentid = entIndex;
+				t.tupdatee = i;
+				entity_updateentityobj();
+
+				entitytype& element = t.entityelement[i];
+
+				//// TODO: If the scale of the element was not customised, then we should also update the scale to reflect whatever the new default is
+				//float prevScale = entityBackup.scale;
+				//if ((element.scalex == 0 && element.scaley == 0 && element.scalez == 0) || (element.scalex == prevScale-100 && element.scaley == prevScale-100 && element.scalez == prevScale-100))
+				//{
+				//	float newScale = t.entityprofile[entIndex].scale;
+				//	element.scalex = newScale;
+				//	element.scaley = newScale;
+				//	element.scalez = newScale;
+				//	t.tobj = element.obj;
+				//	t.tte = i;
+				//}
+
+				t.tobj = element.obj;
+				t.tte = i;
+				entity_positionandscale();
+			}
+		}
+	}
 }

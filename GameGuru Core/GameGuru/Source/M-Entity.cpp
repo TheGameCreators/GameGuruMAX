@@ -1890,6 +1890,9 @@ void entity_loaddata ( void )
 	//  Protectf BIN file if no FPE backup (standalone run)
 	t.tprotectBINfile=0;
 	if (t.ent_s.Get()[1] == ':') t.entdir_s = "";
+
+	if (strnicmp(t.ent_s.Get(), "projectbank", 11) == NULL) t.entdir_s = "";
+
 	t.tFPEName_s=t.entdir_s+t.ent_s;
 	if (  FileExist(t.tFPEName_s.Get()) == 0 ) 
 	{

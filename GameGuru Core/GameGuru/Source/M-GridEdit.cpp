@@ -14125,12 +14125,12 @@ void mapeditorexecutable_loop(void)
 							else
 							{
 #endif
-#ifdef WICKEDENGINE
+								#ifdef WICKEDENGINE
 								// no longer list markers in left entity panel, we have the game elements buttons now
 								if ((iloop == 0 && t.entityprofile[it->second].ismarker == 0 && t.entityprofile[it->second].ischildofgroup == 0))
-#else
+								#else
 								if ((iloop == 0 && t.entityprofile[it->second].ismarker == 0) || (iloop == 1 && t.entityprofile[it->second].ismarker > 0))
-#endif
+								#endif
 								{
 									bool DisplayEntry = true;
 									char cName[512];
@@ -24417,7 +24417,7 @@ void editor_constructionselection ( void )
 				if (t.entityprofile[t.gridentity].groupreference != -1)
 				{
 					// this entity is a group, create new child group for selection
-					//int iParentGroupID = t.entityprofile[t.gridentity].groupreference;
+					//int iParentGroupID = t.entityprofile[t.gridentity].groupreference; !! group IDs can MOVE!!
 					// look for group that matches the group object entity FPE name
 					extern int GetGroupIndexFromName (cstr sLookFor);
 					cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[t.gridentity];
@@ -31715,6 +31715,10 @@ void gridedit_load_map ( void )
 	// Level has finished loading, so no longer need to store the smart object dummy OBJs
 	extern std::vector<int> g_smartObjectDummyEntities;
 	g_smartObjectDummyEntities.clear();
+
+	// call files modify check function and reset file timestamp map
+	extern void CheckExistingFilesModified(bool);
+	CheckExistingFilesModified(true);
 }
 
 void gridedit_changemodifiedflag ( void )

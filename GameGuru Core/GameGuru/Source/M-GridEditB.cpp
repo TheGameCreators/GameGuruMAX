@@ -21670,7 +21670,7 @@ void process_entity_library_v2(void)
 										if (t.talreadyloaded == 1)
 										{
 											//PE: Check ,if group.
-											if (t.entityprofile[t.entid].model_s == "group" && t.entityprofile[t.entid].groupreference >= 0)
+											if (t.entityprofile[t.entid].model_s == "group" && t.entityprofile[t.entid].groupreference == 1)
 											{
 												cstr tmp = cstr("entitybank\\") + t.addentityfile_s;
 												extern int GetGroupIndexFromName(cstr sLookFor);
@@ -23669,7 +23669,6 @@ void AddGroupListToRubberBand(int l)
 
 void CheckGroupListForRubberbandSelections(int entityindex)
 {
-
 	int grouplist = isEntityInGroupList(entityindex);
 	if (grouplist >= 0)
 	{
@@ -24186,15 +24185,6 @@ int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList,
 			g_fHoldGridEntityPosX = t.gridentityposx_f;
 			g_fHoldGridEntityPosY = t.gridentityposy_f;
 			g_fHoldGridEntityPosZ = t.gridentityposz_f;
-
-			/*LB: This caused complex groups dragged in when widget mode on to stick to left of screen (fHitOffsetY of zero allows inital dragging)
-			//PE: Make sure cursor offset is set at bottom of selection list.
-			float seletion_height = higesty - lowesty;
-			if (seletion_height > 1.0f && seletion_height < 5000.0f)
-			{
-				fHitOffsetY = seletion_height;
-			}
-			*/
 
 			//LB: should not change modes without users permission
 			//PE: Always start in horizontal mode.
@@ -24817,12 +24807,16 @@ std::vector<int> g_smartObjectDummyEntities;
 
 bool LoadGroup(LPSTR pAbsFilename)
 {
+	// group data and entities already loaded, we can skip a new group creation here
+	extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
+
 	// init vars and clear rubberband list
 	cstr sGroupObjectName;
 	int iGroupCount = 0;
 	bool bGroupFileValid = false;
 	g.entityrubberbandlist.clear();
 	sObjTable* pObjTable = NULL;
+	std::vector<int> entityIDsNewlyCreated;
 
 	// parse group file to get all objects
 	if (FileExist(pAbsFilename) == 1)
@@ -24834,7 +24828,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 		std::vector <cstr> groupdata_s;
 		Dim (groupdata_s, 9999);
 		LoadArray (pAbsFilename, groupdata_s);
-		for ( int groupline = 0; groupline < 9999; groupline++)
+		for (int groupline = 0; groupline < 9999; groupline++)
 		{
 			cstr line_s = groupdata_s[groupline];
 			if (Len(line_s.Get()) > 0)
@@ -24894,14 +24888,14 @@ bool LoadGroup(LPSTR pAbsFilename)
 									// get path of main smart object file
 									char pMainSmartFilePath[MAX_PATH];
 									strcpy(pMainSmartFilePath, pAbsFilename);
-									for (int n = strlen(pMainSmartFilePath)-1; n>0; n--)
+									for (int n = strlen(pMainSmartFilePath) - 1; n > 0; n--)
 									{
 										if (pMainSmartFilePath[n] == '\\' || pMainSmartFilePath[n] == '/')
 										{
 											pMainSmartFilePath[n] = 0;
 											break;
 										}
-									}					
+									}
 
 									// add a path to this local smaert object to load child of smart object
 									strcpy(pEntityFilePath, pMainSmartFilePath);
@@ -24910,6 +24904,9 @@ bool LoadGroup(LPSTR pAbsFilename)
 									t.addentityfile_s = pEntityFilePath;
 								}
 								entity_adduniqueentity(false);
+
+								// using this list to assign child states to them
+								entityIDsNewlyCreated.push_back(t.entid);
 							}
 							else
 							{
@@ -24918,7 +24915,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 							}
 							pObjTable[iOptionalIndex].entid = t.entid;
 
-							// add new entity element
+							// entity details
 							t.gridentity = t.entid;
 							t.gridentityeditorfixed = 0;
 							t.entitymaintype = 1;
@@ -24940,7 +24937,21 @@ bool LoadGroup(LPSTR pAbsFilename)
 							t.gridentityscaley_f = 100;
 							t.gridentityscalez_f = 100;
 							entity_fillgrideleproffromprofile();
-							entity_addentitytomap();
+
+							t.e = 0;
+							if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1)
+							{
+								int iParentGroupID = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
+								if (iParentGroupID != -1)
+								{
+									t.e = vEntityGroupList[iParentGroupID][iOptionalIndex].e;
+								}
+							}
+							else
+							{
+								// add new entity element
+								entity_addentitytomap();
+							}
 
 							// add to rubberband list (e for now, rest populated later)
 							int e = t.e;
@@ -24987,7 +24998,6 @@ bool LoadGroup(LPSTR pAbsFilename)
 
 		// location to place the entityelements for this group load
 		float fBaseX = 0;
-		//float fBaseY = 600;
 		float fBaseY = -500000; //PE: Hide master group.
 		float fBaseZ = 0;
 
@@ -24999,7 +25009,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 			if (t.entityelement[e].y < fLowest)
 				fLowest = t.entityelement[e].y;
 		}
-		if (fLowest<0.0f ) fBaseY -= fLowest;
+		if (fLowest < 0.0f) fBaseY -= fLowest;
 
 		// populate rubberband list items
 		for (int i = 0; i < g.entityrubberbandlist.size(); i++)
@@ -25014,7 +25024,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 
 			// update entity object from its new settings
 			t.tupdatee = e; entity_updateentityobj();
-			
+
 			t.entityelement[e].iIsSmarkobjectDummyObj = 1; //PE: We need a way so we dont display these, in the detailed object list.
 
 			// update lights and particles too
@@ -25044,10 +25054,10 @@ bool LoadGroup(LPSTR pAbsFilename)
 			g.entityrubberbandlist[i].rx = t.entityelement[e].rx;
 			g.entityrubberbandlist[i].ry = t.entityelement[e].ry;
 			g.entityrubberbandlist[i].rz = t.entityelement[e].rz;
-			
+
 			// calculate quat from ROTXYZ in smart object child
 			entity_updatequatfromeuler(e);
-			
+
 			g.entityrubberbandlist[i].quatmode = t.entityelement[e].quatmode;
 			g.entityrubberbandlist[i].quatx = t.entityelement[e].quatx;
 			g.entityrubberbandlist[i].quaty = t.entityelement[e].quaty;
@@ -25058,11 +25068,33 @@ bool LoadGroup(LPSTR pAbsFilename)
 			g.entityrubberbandlist[i].scalez = t.entityelement[e].scalez;
 		}
 
-		// create group from list
-		CreateNewGroup(-1, false, cstr(pAbsFilename));
+		if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
+		{
+			// group data and entities already loaded, we can skip a new group creation here
+			if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1)
+			{
+				int iParentGroupID = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
+				if (iParentGroupID != -1)
+				{
+					vEntityGroupList[iParentGroupID] = g.entityrubberbandlist;
+				}
+			}
+		}
+		else
+		{
+			// create group from list
+			CreateNewGroup(-1, false, cstr(pAbsFilename));
+		}
 
 		//LB: back to regular mode, instances can be autoflatten again!
 		g_bCreatingHiddenGroupInstance = false;
+
+		// any entities created here should be assigned current_selected_group
+		for (auto& entityID : entityIDsNewlyCreated)
+		{
+			t.entityprofile[entityID].ischildofgroup = 1;
+		}
+		entityIDsNewlyCreated.clear();
 	}
 	else
 	{
@@ -48749,7 +48781,7 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 }
 
 // Check if any files have been modified since we launched Max (note: this only checks files in MainEntityList) - any other files will not be detected.
-void CheckExistingFilesModified()
+void CheckExistingFilesModified(bool bResetTimeStamp)
 {
 	// Users can turn this feature off if it causes slowdowns.
 	if (pref.iCheckFilesModifiedOnFocus == 0)
@@ -48762,6 +48794,7 @@ void CheckExistingFilesModified()
 
 	// static map for retaining timestamps of last collection
 	static std::map<std::string, time_t> currentLevelTimeStamp;
+	if (bResetTimeStamp == true) currentLevelTimeStamp.clear();
 
 	// scan for all media to find FPEs used in current level
 	extern cFolderItem MainEntityList;
@@ -48794,36 +48827,75 @@ void CheckExistingFilesModified()
 							if (stricmp(pSearchPattern, t.entitybank_s[entid].Get()) == NULL)
 							{
 								// add FPE for check
-								char pFileToAdd[MAX_PATH];
-								strcpy(pFileToAdd, folderRelPath);
-								strcat(pFileToAdd, "\\");
-								strcat(pFileToAdd, pFolderFile->m_sName.Get());
-								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
 								char pFullFileAbsPath[MAX_PATH];
 								strcpy(pFullFileAbsPath, folderPath);
 								strcat(pFullFileAbsPath, "\\");
 								strcat(pFullFileAbsPath, pFolderFile->m_sName.Get());
-								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+								if (FileExist(pFullFileAbsPath))
+								{
+									currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+									char pFileToAdd[MAX_PATH];
+									strcpy(pFileToAdd, folderRelPath);
+									strcat(pFileToAdd, "\\");
+									strcat(pFileToAdd, pFolderFile->m_sName.Get());
+									currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
 
-								// add model DBO inside FPE
-								strcpy(pFileToAdd, folderRelPath);
-								strcat(pFileToAdd, "\\");
-								strcat(pFileToAdd, t.entityprofile[entid].model_s.Get());
-								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
-								strcpy(pFullFileAbsPath, folderPath);
-								strcat(pFullFileAbsPath, "\\");
-								strcat(pFullFileAbsPath, t.entityprofile[entid].model_s.Get());
-								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+									// add model DBO inside FPE
+									if (strlen(t.entityprofile[entid].model_s.Get()) > 0)
+									{
+										strcpy(pFileToAdd, folderRelPath);
+										strcat(pFileToAdd, "\\");
+										strcat(pFileToAdd, t.entityprofile[entid].model_s.Get());
+										currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+										strcpy(pFullFileAbsPath, folderPath);
+										strcat(pFullFileAbsPath, "\\");
+										strcat(pFullFileAbsPath, t.entityprofile[entid].model_s.Get());
+										currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+									}
 
-								// add any texture used by FPE
-								strcpy(pFileToAdd, folderRelPath);
-								strcat(pFileToAdd, "\\");
-								strcat(pFileToAdd, t.entityprofile[entid].texd_s.Get());
-								currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
-								strcpy(pFullFileAbsPath, folderPath);
-								strcat(pFullFileAbsPath, "\\");
-								strcat(pFullFileAbsPath, t.entityprofile[entid].texd_s.Get());
-								currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+									// add any textures used by FPE
+									if (strlen(t.entityprofile[entid].texd_s.Get()) > 0)
+									{
+										strcpy(pFileToAdd, folderRelPath);
+										strcat(pFileToAdd, "\\");
+										strcat(pFileToAdd, t.entityprofile[entid].texd_s.Get());
+										currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+										strcpy(pFullFileAbsPath, folderPath);
+										strcat(pFullFileAbsPath, "\\");
+										strcat(pFullFileAbsPath, t.entityprofile[entid].texd_s.Get());
+										currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+									}
+
+									// and include all textures referenced with new PBR texture sets
+									for (int iAllObjectTexturesIndex = 0; iAllObjectTexturesIndex <= 5; iAllObjectTexturesIndex++)
+									{
+										for (int i = 0; i < MAXMESHMATERIALS; i++)
+										{
+											// work out pImgFileRef
+											LPSTR pImgFileRef = "";
+											if (iAllObjectTexturesIndex == 0) pImgFileRef = t.entityprofile[entid].WEMaterial.baseColorMapName[i].Get();
+											if (iAllObjectTexturesIndex == 1) pImgFileRef = t.entityprofile[entid].WEMaterial.normalMapName[i].Get();
+											if (iAllObjectTexturesIndex == 2) pImgFileRef = t.entityprofile[entid].WEMaterial.surfaceMapName[i].Get();
+											if (iAllObjectTexturesIndex == 3) pImgFileRef = t.entityprofile[entid].WEMaterial.emissiveMapName[i].Get();
+											if (iAllObjectTexturesIndex == 4) pImgFileRef = t.entityprofile[entid].WEMaterial.displacementMapName[i].Get();
+											#ifndef DISABLEOCCLUSIONMAP
+											if (iAllObjectTexturesIndex == 5) pImgFileRef = t.entityprofile[entid].WEMaterial.occlusionMapName[i].Get();
+											#endif
+											if (pImgFileRef && strlen(pImgFileRef) > 0)
+											{
+												// add DDS texture file
+												strcpy(pFileToAdd, folderRelPath);
+												strcat(pFileToAdd, "\\");
+												strcat(pFileToAdd, pImgFileRef);
+												currentLevelObjectID.push_back(entid); currentLevelFiles.push_back(pFileToAdd);
+												strcpy(pFullFileAbsPath, folderPath);
+												strcat(pFullFileAbsPath, "\\");
+												strcat(pFullFileAbsPath, pImgFileRef);
+												currentLevelFilesAbsolute.push_back(pFullFileAbsPath);
+											}
+										}
+									}
+								}
 							}
 						}
 					}
@@ -48870,8 +48942,8 @@ void CheckExistingFilesModified()
 		if (stat(pFileToCheck, &sb) == 0)
 		{
 			bool bFoundInMap = false;
-			std::map<std::string, time_t>::iterator it = currentLevelTimeStamp.begin();
-			while (it != currentLevelTimeStamp.end())
+			std::map<std::string, time_t>::iterator it = currentLevelTimeStamp.find(pFileToCheck);
+			if (it != currentLevelTimeStamp.end())
 			{
 				if (stricmp(pFileToCheck, it->first.c_str()) == NULL)
 				{
@@ -48883,18 +48955,23 @@ void CheckExistingFilesModified()
 						modifiedEntityObject.push_back(currentLevelObjectID[iIndex]);
 
 						// can take extra actions for specific media to be updated
-						// textures will not update, they will reference previously loaded, so delete the image from that list
-						WickedCall_DeleteImage((LPSTR)currentLevelFiles[iIndex].c_str());
+						if (stricmp(pFileToCheck + strlen(pFileToCheck) - 3, "dds") == NULL)
+						{
+							// textures will not update, they will reference previously loaded, so delete the image from that list
+							char pImageFile[MAX_PATH];
+							strcpy(pImageFile, "");
+							LPSTR pFile = (LPSTR)currentLevelFiles[iIndex].c_str();
+							if (strnicmp(pFile, "projectbank", 11) != NULL) strcat(pImageFile, "entitybank\\");
+							strcat(pImageFile, pFile);
+							WickedCall_DeleteImage(pImageFile);
+						}
 					}
-					break;
 				}
-				it++;
 			}
 			if (bFoundInMap == false)
 			{
 				// new file to add to timestamp map
 				currentLevelTimeStamp.insert(std::make_pair(pFileToCheck, sb.st_mtime));
-				modifiedEntityObject.push_back(currentLevelObjectID[iIndex]);
 			}
 		}
 	}
@@ -48942,38 +49019,169 @@ void CheckExistingFilesModified()
 		extern int g_iAbortedAsEntityIsGroupFileMode;
 		g_iAbortedAsEntityIsGroupFileMode = 1;
 
-		entity_load();
-
-		// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
-		for (int i = 0; i < t.entityelement.size(); i++)
+		// find parent group ID so stub mode can update group data
+		int iParentGroupID = -1;
+		extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
+		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
 		{
-			if (t.entityelement[i].bankindex == entIndex)
+			cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
+			extern int GetGroupIndexFromName (cstr sLookFor);
+			iParentGroupID = GetGroupIndexFromName(sLookFor);
+			if (iParentGroupID != -1)
 			{
-				// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
-				t.e = i;
-				t.tupdatee = i;
-				t.tentid = entIndex;
-				t.tupdatee = i;
-				entity_updateentityobj();
-
-				entitytype& element = t.entityelement[i];
-
-				//// TODO: If the scale of the element was not customised, then we should also update the scale to reflect whatever the new default is
-				//float prevScale = entityBackup.scale;
-				//if ((element.scalex == 0 && element.scaley == 0 && element.scalez == 0) || (element.scalex == prevScale-100 && element.scaley == prevScale-100 && element.scalez == prevScale-100))
-				//{
-				//	float newScale = t.entityprofile[entIndex].scale;
-				//	element.scalex = newScale;
-				//	element.scaley = newScale;
-				//	element.scalez = newScale;
-				//	t.tobj = element.obj;
-				//	t.tte = i;
-				//}
-
-				t.tobj = element.obj;
-				t.tte = i;
-				entity_positionandscale();
+				g_iAbortedAsEntityIsGroupFileModeStubOnly = 2 + iParentGroupID;
 			}
 		}
+
+		// now load the modified entity parent in
+		entity_load();
+
+		// ensures no new groups are created, just refreshed
+		g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
+
+		// if entity was a group/smart object
+		bool bObjectIsASmartObject = false;
+		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
+		{
+			// special treatment to repair smart object/group
+			bObjectIsASmartObject = true;
+
+			// parent group ID if smart object
+			if (iParentGroupID != -1)
+			{
+				// go through all elements, find the smart object body and update child elements hanging off it
+				int iSizeOfList = t.entityelement.size();
+				bool* pDoneThisOne = new bool[iSizeOfList];
+				memset(pDoneThisOne, false, sizeof(bool)* iSizeOfList);
+				for (int pickede = 1; pickede < iSizeOfList; pickede++)
+				{
+					if (pDoneThisOne[pickede] == false)
+					{
+						pDoneThisOne[pickede] = true;
+						int groupid = isEntityInGroupList(pickede);
+						if (groupid >= 0)
+						{
+							// get all childs of this group
+							g.entityrubberbandlist.clear();
+							CheckGroupListForRubberbandSelections(pickede);
+
+							// relative center of group
+							float fBaseX = vEntityGroupList[iParentGroupID][0].x;
+							float fBaseY = vEntityGroupList[iParentGroupID][0].y;
+							float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
+
+							// update relative positions from base
+							int iGroupItemCount = vEntityGroupList[groupid].size();
+							for (int i = 1; i < iGroupItemCount; i++)
+							{
+								// element from group to adjust
+								int e = g.entityrubberbandlist[i].e;
+
+								// new adjustment from base center
+								float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
+								float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
+								float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
+
+								// each child element
+								t.entityelement[e].x = t.entityelement[pickede].x + fAdjX;
+								t.entityelement[e].y = t.entityelement[pickede].y + fAdjY;
+								t.entityelement[e].z = t.entityelement[pickede].z + fAdjZ;
+
+								// update element
+								t.e = e;
+								t.tte = e;
+								t.tupdatee = e;
+								t.tentid = t.entityelement[e].bankindex;
+								t.tobj = t.entityelement[e].obj;
+								entity_updateentityobj();
+
+								// mark this off
+								pDoneThisOne[e] = true;
+							}
+						}
+					}
+				}
+				delete[] pDoneThisOne;
+				pDoneThisOne = NULL;
+
+				/*
+				// remove all entity elements associated with this group
+				int iGroupItemCount = vEntityGroupList[iParentGroupID].size();
+				if (iGroupItemCount > 0)
+				{
+					float fBaseX = vEntityGroupList[iParentGroupID][0].x;
+					float fBaseY = vEntityGroupList[iParentGroupID][0].y;
+					float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
+					for (int i = 1; i < iGroupItemCount; i++)
+					{
+						float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
+						float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
+						float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
+						int e = vEntityGroupList[iParentGroupID][i].e;
+						int thisentid = t.entityelement[e].bankindex;
+						for (int e = 1; e < t.entityelement.size(); e++)
+						{
+							if (t.entityelement[e].bankindex == thisentid)
+							{
+								int eBase = -1;
+								for (int i = 0; i < iGroupItemCount; i++)
+								{
+									int e = vEntityGroupList[iParentGroupID][i].e;
+									int thisentid = t.entityelement[e].bankindex;
+									if (thisentid == entIndex)
+									{
+										eBase = e;
+										break;
+									}
+								}
+								if (eBase != -1)
+								{
+									// adjust element to new relative positions
+									t.entityelement[e].x = t.entityelement[eBase].x + fAdjX;
+									t.entityelement[e].y = t.entityelement[eBase].y + fAdjY;
+									t.entityelement[e].z = t.entityelement[eBase].z + fAdjZ;
+
+									// hack
+									t.e = e;
+									t.tte = e;
+									t.tupdatee = e;
+									t.tentid = thisentid;
+									t.tobj = t.entityelement[e].obj;
+									entity_updateentityobj();
+								}
+							}
+						}
+					}
+				}
+				*/
+			}
+		}
+		else
+		{
+			// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
+			for (int e = 1; e < t.entityelement.size(); e++)
+			{
+				if (t.entityelement[e].bankindex == entIndex)
+				{
+					// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
+					// we deliberately NOT change/reset the properties of this entity element as they are user-defined values
+					// we only swap in the new model and textures as this is often what an artist is tweaking!
+					t.e = e;
+					t.tte = e;
+					t.tupdatee = e;
+					t.tentid = entIndex;
+					t.tobj = t.entityelement[e].obj;
+					entity_updateentityobj();
+				}
+			}
+		}
+	}
+
+	// final prompt to inform user of the updated media
+	if (modifiedEntityObjectReduced.size() > 0)
+	{
+		bTriggerMessage = true;
+		sprintf(cTriggerMessage, "External media changes detected. %d items of media updated!", modifiedEntityObjectReduced.size());
+		modifiedEntityObjectReduced.clear();
 	}
 }

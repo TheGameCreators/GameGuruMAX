@@ -28,6 +28,7 @@ int g_iWickedElementId = 0;
 int g_iWickedMeshNumber = 0;
 bool g_bUseEditorGrideleprof = false;
 int g_iAbortedAsEntityIsGroupFileMode = 0;
+int g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
 cstr g_sTempGroupForThumbnail = "";
 
 float g_fFlattenMargin = 100.0f;
@@ -149,34 +150,41 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	}
 	if (t.talreadyloaded == 0)
 	{
-		//  Allocate one more entity item in array
-		if (g.entidmaster > g.entitybankmax - 4)
+		if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
 		{
-			Dim (t.tempentitybank_s, g.entitybankmax);
-			for (t.t = 0; t.t <= g.entitybankmax; t.t++) t.tempentitybank_s[t.t] = t.entitybank_s[t.t];
-			++g.entitybankmax;
-			UnDim (t.entitybank_s);
-			Dim (t.entitybank_s, g.entitybankmax);
-			for (t.t = 0; t.t <= g.entitybankmax - 1; t.t++) t.entitybank_s[t.t] = t.tempentitybank_s[t.t];
+			// group data and entities already loaded, we can skip a new group creation here
 		}
+		else
+		{
+			//  Allocate one more entity item in array
+			if (g.entidmaster > g.entitybankmax - 4)
+			{
+				Dim (t.tempentitybank_s, g.entitybankmax);
+				for (t.t = 0; t.t <= g.entitybankmax; t.t++) t.tempentitybank_s[t.t] = t.entitybank_s[t.t];
+				++g.entitybankmax;
+				UnDim (t.entitybank_s);
+				Dim (t.entitybank_s, g.entitybankmax);
+				for (t.t = 0; t.t <= g.entitybankmax - 1; t.t++) t.entitybank_s[t.t] = t.tempentitybank_s[t.t];
+			}
 
-		//  Add entity to bank
-		++g.entidmaster; entity_validatearraysize ();
-		t.entitybank_s[g.entidmaster] = t.addentityfile_s;
+			//  Add entity to bank
+			++g.entidmaster; entity_validatearraysize ();
+			t.entitybank_s[g.entidmaster] = t.addentityfile_s;
 
-		// trigger the creation of a 'group' entity if detected
-		if (g_iAbortedAsEntityIsGroupFileMode != 3 )
-			g_iAbortedAsEntityIsGroupFileMode = 1;
+			// trigger the creation of a 'group' entity if detected
+			if (g_iAbortedAsEntityIsGroupFileMode != 3)
+				g_iAbortedAsEntityIsGroupFileMode = 1;
 
-		//  Load extra entity
-		t.entid = g.entidmaster;
-		t.ent_s = t.entitybank_s[t.entid];
-		t.entpath_s = getpath(t.ent_s.Get());
-		entity_load ();
+			//  Load extra entity
+			t.entid = g.entidmaster;
+			t.ent_s = t.entitybank_s[t.entid];
+			t.entpath_s = getpath(t.ent_s.Get());
+			entity_load ();
 
-		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
-		if ( stricmp ( t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe" ) == NULL )
-			t.talreadyloaded = 1;
+			// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
+			if (stricmp (t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe") == NULL)
+				t.talreadyloaded = 1;
+		}
 	}
 }
 
@@ -629,12 +637,6 @@ bool entity_load_thread_prepare(LPSTR pFpeFile)
 		}
 		if (strcmp(Lower(Right(sFile.Get(), 4)), ".dbo") == 0)
 		{
-			// DBO we can thread load it
-			//PE: Disabled for now until thread safe.
-			//object_preload_files_start();
-			//object_preload_files_add(sFile.Get());
-			//object_preload_files_finish();
-
 			// also scan FPE for all references to textures and preload those
 			image_preload_files_start();
 			for (int iTexLineScan = 0; iTexLineScan < 100; iTexLineScan++)
@@ -734,8 +736,9 @@ bool entity_load (bool bCalledFromLibrary)
 	#ifdef WICKEDENGINE
 	if (g_iAbortedAsEntityIsGroupFileMode == 3)
 	{
-		// these entities are loaded by the group!
-		t.entityprofile[t.entid].ischildofgroup = 1;
+		// these entities are loaded by the group (store which group this child belongs)
+		extern int current_selected_group;
+		t.entityprofile[t.entid].ischildofgroup = 1 + current_selected_group;
 	}
 	cstr LastGroupFilename_s = "";
 	if (g_iAbortedAsEntityIsGroupFileMode == 2)
@@ -774,11 +777,6 @@ bool entity_load (bool bCalledFromLibrary)
 		// after group created, need to clear reminants from cursor
 		g.thumbentityrubberbandlist = g.entityrubberbandlist;
 		g.entityrubberbandlist.clear();
-
-		//PE: Setting current_selected_group = -1 , break the groups, and the t.entityprofile[iGroupEntID].groupreference never get set.
-		//PE: @Lee moved this to below after groupreference is set :)
-//		extern int current_selected_group; // fixes cellar issue sticky candle and switch escape crash
-//		current_selected_group = -1;
 
 		//Make sure any selection are removed
 		t.gridentity = 0;
@@ -867,7 +865,7 @@ bool entity_load (bool bCalledFromLibrary)
 #endif
 
 		// if a group, make a modified entity that references a group
-#ifdef WICKEDENGINE
+		#ifdef WICKEDENGINE
 		if (bWeAreAGroup == true)
 		{
 			// the group entity
@@ -879,7 +877,7 @@ bool entity_load (bool bCalledFromLibrary)
 			t.entityprofile[iGroupEntID].model_s = "group";
 
 			// record this group into entity parent profile
-			t.entityprofile[iGroupEntID].groupreference = current_selected_group;
+			t.entityprofile[iGroupEntID].groupreference = 1; // group indexes can MOVE!
 
 			// test object!
 			g_iWickedEntityId = iGroupEntID;
@@ -898,7 +896,7 @@ bool entity_load (bool bCalledFromLibrary)
 			// and go no further
 			return false;
 		}
-#endif
+		#endif
 
 		//  Load the model
 		if (t.entityprofile[t.entid].ischaractercreator == 0)
@@ -5610,7 +5608,7 @@ void c_entity_loadelementsdata ( void )
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 333; //329;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 334; //329;//327;// 323; // 322; //319;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -5642,6 +5640,7 @@ void c_entity_loadelementsdata ( void )
 				Dim2(  t.entityshadervar,g.entityelementmax, g.globalselectedshadermax  );
 				Dim (  t.entitydebug_s,g.entityelementmax  );
 				#endif
+				bool bFirstTimeOnlyToGrabGroupDataOops = true;
 				for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 				{
 					#ifdef VRTECH
@@ -6056,21 +6055,17 @@ void c_entity_loadelementsdata ( void )
 						//PE: So level with 1000 objects , WILL setup groups and load ALL group images 1000 times ?
 						//PE: We cant change old level now, so use this hack.
 						//PE: Also this was leaking mem , not sure where. anyway this hack fix it. New maps will only save it under t.e == 1
-
-						bool bFirstTime = false;
-						if (t.e == 1) bFirstTime = true;
-
-						extern int g_iUniqueGroupID;
-						t.a = c_ReadLong(1); g_iUniqueGroupID = t.a;
 						#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
 						extern std::vector<sRubberBandType> vEntityGroupList[MAXGROUPSLISTS];
+						extern int g_iUniqueGroupID;
+						t.a = c_ReadLong(1); g_iUniqueGroupID = t.a;
 						int iNumberOfGroups = 0;
 						t.a = c_ReadLong(1); iNumberOfGroups = t.a;
 						for (int gi = 0; gi < iNumberOfGroups; gi++)
 						{
+							if (bFirstTimeOnlyToGrabGroupDataOops == true) vEntityGroupList[gi].clear();
 							int iItemsInThisGroup = 0;
 							t.a = c_ReadLong(1); iItemsInThisGroup = t.a;
-							if(bFirstTime) vEntityGroupList[gi].clear();
 							for (int i = 0; i < iItemsInThisGroup; i++)
 							{
 								sRubberBandType item;
@@ -6084,16 +6079,16 @@ void c_entity_loadelementsdata ( void )
 								t.a = c_ReadFloat(1); item.quatAngle.y = t.a;
 								t.a = c_ReadFloat(1); item.quatAngle.z = t.a;
 								t.a = c_ReadFloat(1); item.quatAngle.w = t.a;
-								if (bFirstTime) vEntityGroupList[gi].push_back(item);
+								if (bFirstTimeOnlyToGrabGroupDataOops == true) vEntityGroupList[gi].push_back(item);
 							}
 						}
 						// and load in group thumb images, and load them into the iEntityGroupListImage image list (so can see them in groups tab)
 						extern int iEntityGroupListImage[MAXGROUPSLISTS];
 						for (int gi = 0; gi < iNumberOfGroups; gi++)
 						{
-							if (bFirstTime) iEntityGroupListImage[gi] = 0;
+							if (bFirstTimeOnlyToGrabGroupDataOops==true) iEntityGroupListImage[gi] = 0;
 							t.a = c_ReadLong(1); int iHasImage = t.a;
-							if ( iHasImage == 1 && bFirstTime )
+							if (iHasImage == 1 && bFirstTimeOnlyToGrabGroupDataOops == true)
 							{
 								char pGroupImgFilename[MAX_PATH];
 								sprintf(pGroupImgFilename, "%sgroupimg%d.png", g.mysystem.levelBankTestMap_s.Get(), gi);
@@ -6116,7 +6111,7 @@ void c_entity_loadelementsdata ( void )
 												break;
 											}
 										}
-										if (!bAlreadyUsed) 
+										if (!bAlreadyUsed)
 										{
 											iImageID = iNewImageID;
 											break;
@@ -6132,6 +6127,9 @@ void c_entity_loadelementsdata ( void )
 								}
 							}
 						}
+
+						// subsequent entities will just read the data but do nothing with vEntityGroupList!
+						bFirstTimeOnlyToGrabGroupDataOops = false;
 					}
 
 					if (t.versionnumberload >= 320)
@@ -6208,6 +6206,16 @@ void c_entity_loadelementsdata ( void )
 					if (t.versionnumberload >= 333)
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.iSwimSpeed = t.a;
+					}
+					if (t.versionnumberload >= 334)
+					{
+						extern cstr sEntityGroupListName[MAXGROUPSLISTS];
+						int iNumberOfGroups = c_ReadLong(1);
+						for (int gi = 0; gi < iNumberOfGroups; gi++)
+						{
+							t.a_s = c_ReadString(1);
+							sEntityGroupListName[gi] = t.a_s;
+						}
 					}
 					#endif
 
@@ -6445,6 +6453,8 @@ void entity_loadelementsdata(void)
 	c_entity_loadelementsdata();
 	return;
 	#endif
+
+	/* nolt used any more
 	//  Free any old elements
 	entity_deleteelementsdata();
 
@@ -6459,7 +6469,7 @@ void entity_loadelementsdata(void)
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 333;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 334;//327;// 323; // 322; //319;
 	#endif
 
 	if (FileExist(t.elementsfilename_s.Get()) == 1)
@@ -7283,6 +7293,7 @@ void entity_loadelementsdata(void)
 			}
 		}
 	}
+	*/
 }
 
 // class to write in two passes, first adds up total size, second creates and fills the data buffer
@@ -7378,7 +7389,7 @@ void entity_saveelementsdata ( void )
 	t.versionnumbersave = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersave = 333; //329; //327;// 323; //322; //319;
+	t.versionnumbersave = 334; //329; //327;// 323; //322; //319;
 	#endif
 
 	EntityWriter writer;
@@ -7777,7 +7788,7 @@ void entity_saveelementsdata ( void )
 					else
 					{
 						writer.WriteLong( g_iUniqueGroupID );
-	#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
+						#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
 						extern std::vector<sRubberBandType> vEntityGroupList[MAXGROUPSLISTS];
 						int iNumberOfGroups = MAXGROUPSLISTS;
 						writer.WriteLong( iNumberOfGroups );
@@ -7898,6 +7909,16 @@ void entity_saveelementsdata ( void )
 				{
 					writer.WriteLong(t.entityelement[ent].eleprof.iSwimSpeed);
 				}
+				if (t.versionnumbersave >= 334)
+				{
+					extern cstr sEntityGroupListName[MAXGROUPSLISTS];
+					int iNumberOfGroups = MAXGROUPSLISTS;
+					writer.WriteLong(iNumberOfGroups);
+					for (int gi = 0; gi < iNumberOfGroups; gi++)
+					{
+						writer.WriteString(sEntityGroupListName[gi].Get());
+					}
+				}
 				#endif
 			}
 		} 
@@ -7936,11 +7957,20 @@ void entity_savebank ( void )
 			{
 				if (  t.entitybankused[t.tttentid] == 0 ) 
 				{
-					// free RLE data in profile
-					ebe_freecubedata ( t.tttentid );
-			
-					//  remove entity entry if not used when save FPM
-					t.entitybank_s[t.tttentid]="";
+					// do not remove if a smart object
+					if (t.entityprofile[t.tttentid].model_s == "group")
+					{
+						// must retain group entries
+						t.entitybankused[t.tttentid] = 1;
+					}
+					else
+					{
+						// free RLE data in profile
+						ebe_freecubedata (t.tttentid);
+
+						//  remove entity entry if not used when save FPM
+						t.entitybank_s[t.tttentid] = "";
+					}
 				}
 			}
 			//  shuffle to remove empty entries
@@ -8349,12 +8379,18 @@ void entity_loadentitiesnow ( void )
 				t.entpath_s = "";
 			}
 
-			//LB: massive ommission - was this deleted, totally needed to detect and load 'groups'
+			// when loading entities, all instances already in place, just need to create a STUB for the smart object
 			extern int g_iAbortedAsEntityIsGroupFileMode;
+			extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 			g_iAbortedAsEntityIsGroupFileMode = 1;
+			g_iAbortedAsEntityIsGroupFileModeStubOnly = 1;
 
 			// regular FPE entity
 			entity_load ( );
+
+			// only used for when loading entities
+			g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
+
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			if (  t.desc_s == "" ) 
 			{

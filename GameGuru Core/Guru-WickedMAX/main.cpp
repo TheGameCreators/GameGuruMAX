@@ -334,8 +334,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				if (g_bLostFocus)
 				{
 					g_bLostFocus = false;
-					extern void CheckExistingFilesModified();
-					CheckExistingFilesModified();
+					extern void CheckExistingFilesModified(bool);
+					CheckExistingFilesModified(false);
 				}
 			}
 		}

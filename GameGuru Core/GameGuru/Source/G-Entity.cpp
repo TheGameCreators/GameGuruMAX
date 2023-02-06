@@ -5393,6 +5393,9 @@ void entity_updateentityobj ( void )
 		{
 			if (  ObjectExist(t.obj) == 1  )  DeleteObject (  t.obj );
 			t.entityelement[t.tupdatee].obj=0;
+
+			//LB: this ensures the deleted OBJ ID can be reused immediately so they entity element OBJ ID is the same when refreshed (modifying media while running level)
+			g.entityviewcurrentobj = t.obj;
 		}
 		if (  t.entityelement[t.tupdatee].obj == 0 ) 
 		{

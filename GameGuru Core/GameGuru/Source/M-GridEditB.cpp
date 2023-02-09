@@ -24997,9 +24997,9 @@ bool LoadGroup(LPSTR pAbsFilename)
 		UnDim(groupdata_s);
 
 		// location to place the entityelements for this group load
-		float fBaseX = -500000;//0; Moved outside of editable area, so that it cannot be seen after being loaded from object library - this should also get rid of any 'random' holes that appear in terrain
+		float fBaseX = 0;
 		float fBaseY = -500000; //PE: Hide master group.
-		float fBaseZ = -500000;//0;
+		float fBaseZ = 0;
 
 		// raise baseY so lowest object in the group is one floor
 		float fLowest = 0.0f;

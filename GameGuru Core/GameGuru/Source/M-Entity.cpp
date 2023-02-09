@@ -9538,10 +9538,6 @@ void entity_autoFlattenWhenAdded(int e, int obj)
 			{
 				return;
 			}
-			if (t.entityelement[e].x == -500000 && t.entityelement[e].y == -500000 && t.entityelement[e].z == -500000)
-			{
-				return;
-			}
 
 			float x = t.entityelement[e].x + (GetObjectCollisionCenterX(iObj) * (ObjectScaleX(iObj) / 100.0f));
 			float y = t.entityelement[e].y + (GetObjectCollisionCenterY(iObj) * (ObjectScaleY(iObj) / 100.0f)) - (ObjectSizeY(iObj) / 2, 1);

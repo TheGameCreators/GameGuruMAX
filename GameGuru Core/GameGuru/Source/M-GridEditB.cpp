@@ -48995,6 +48995,8 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		}
 	}
 
+	static std::vector<int> groupsThatCannotBeHotSwapped;
+
 	// Update any entities that use the modified files
 	for (auto& entIndex : modifiedEntityObjectReduced)
 	{
@@ -49037,6 +49039,14 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		bool bSkipLoadingThisGroup = false;
 		if (iParentGroupID != -1)
 		{
+			for (auto& groupID : groupsThatCannotBeHotSwapped)
+			{
+				if (groupID == iParentGroupID)
+				{
+					// Do not try to hot swap this group, its size was previously changed and we currently do not support altering the group size
+					return;
+				}
+			}
 			int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
 			cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
 			// Now check how many entities the newly modified group has - if it has changed we cannot continue
@@ -49060,14 +49070,7 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 							}
 							t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
 							t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
-							/*for (t.c = 0; t.c < Len(t.value_s.Get()); t.c++)
-							{
-								if (t.value_s.Get()[t.c] == ',') { t.mid = t.c + 1; break; }
-							}*/
 							t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
-							//t.value2_s = removeedgespaces(Right(t.value_s.Get(), Len(t.value_s.Get()) - t.mid));
-							//if (Len(t.value2_s.Get()) > 0)  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
-
 							// populate with values found
 							t.tryfield_s = "groupobjcount";
 							if (t.field_s == t.tryfield_s)
@@ -49076,6 +49079,11 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 								if (entityCount != iPrevGroupEntityCount)
 								{
 									bSkipLoadingThisGroup = true;
+									if (std::find(groupsThatCannotBeHotSwapped.begin(), groupsThatCannotBeHotSwapped.end(), iParentGroupID) == groupsThatCannotBeHotSwapped.end())
+									{
+										// Store the group index for future, to ensure that we don't try to load in the group when the entity count is the same, but the entities themselves have been changed.
+										groupsThatCannotBeHotSwapped.push_back(iParentGroupID);
+									}
 									break;
 								}
 							}

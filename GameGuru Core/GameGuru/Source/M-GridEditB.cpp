@@ -48784,7 +48784,7 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 void CheckExistingFilesModified(bool bResetTimeStamp)
 {
 	// Users can turn this feature off if it causes slowdowns.
-	if (pref.iCheckFilesModifiedOnFocus == 0)
+	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1)
 		return;
 
 	// lists to monitor level media changes (cannot use folderfiles structure as DBOs are not listed)

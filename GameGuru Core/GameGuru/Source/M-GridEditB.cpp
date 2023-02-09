@@ -49024,6 +49024,7 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
 		{
+			
 			cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
 			extern int GetGroupIndexFromName (cstr sLookFor);
 			iParentGroupID = GetGroupIndexFromName(sLookFor);
@@ -49033,6 +49034,61 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 			}
 		}
 
+		bool bSkipLoadingThisGroup = false;
+		if (iParentGroupID != -1)
+		{
+			int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
+			cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
+			// Now check how many entities the newly modified group has - if it has changed we cannot continue
+			if (FileExist(groupFilename.Get()))
+			{
+				std::vector <cstr> groupdata_s;
+				Dim(groupdata_s, 9999);
+				LoadArray(groupFilename.Get(), groupdata_s);
+				for (int groupline = 0; groupline < 9999; groupline++)
+				{
+					cstr line_s = groupdata_s[groupline];
+					if (Len(line_s.Get()) > 0)
+					{
+						LPSTR pLine = line_s.Get();
+						if (pLine[0] != ';')
+						{
+							// take fieldname and values
+							for (t.c = 0; t.c < Len(pLine); t.c++)
+							{
+								if (pLine[t.c] == '=') { t.mid = t.c + 1; break; }
+							}
+							t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
+							t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
+							/*for (t.c = 0; t.c < Len(t.value_s.Get()); t.c++)
+							{
+								if (t.value_s.Get()[t.c] == ',') { t.mid = t.c + 1; break; }
+							}*/
+							t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
+							//t.value2_s = removeedgespaces(Right(t.value_s.Get(), Len(t.value_s.Get()) - t.mid));
+							//if (Len(t.value2_s.Get()) > 0)  t.value2 = ValF(t.value2_s.Get()); else t.value2 = -1;
+
+							// populate with values found
+							t.tryfield_s = "groupobjcount";
+							if (t.field_s == t.tryfield_s)
+							{
+								int entityCount = t.value1;
+								if (entityCount != iPrevGroupEntityCount)
+								{
+									bSkipLoadingThisGroup = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (bSkipLoadingThisGroup)
+		{
+			return;
+		}
 		// now load the modified entity parent in
 		entity_load();
 

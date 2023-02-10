@@ -2488,9 +2488,27 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			// Check for custom images loaded in lua script
+			// Check for files required by the script
 			if ( t.entityelement[t.e].eleprof.aimain_s != "" )
 			{
+				// TODO: Add this once loading of t.entityelement[].eleprof.PropertiesVariable works!
+				//// Ensure that any files specified via DLua are copied over
+				//PropertiesVariables props = t.entityelement[t.e].eleprof.PropertiesVariable;
+				//for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
+				//{
+				//	if (props.VariableType[i] == 2)
+				//	{
+				//		// This properties variable is a string
+				//		int variableLength = strlen(props.VariableValue[i]);
+				//		// Check that it has a file extension
+				//		if (variableLength > 4 && props.VariableValue[i][variableLength - 4] == '.')
+				//		{
+				//			addtocollection(props.VariableValue[i]);
+				//		}
+				//	}
+				//}
+
+				// Copy any files specified directly in Lua script
 				cstr tLuaScript = g.fpscrootdir_s+"\\Files\\scriptbank\\";
 				tLuaScript += t.entityelement[t.e].eleprof.aimain_s;
 				FILE* tLuaScriptFile = GG_fopen ( tLuaScript.Get() , "r" );
@@ -2542,6 +2560,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 							#ifdef WICKEDENGINE
 							if (!bExtractedImageFilesThisScript)
 							{
+								// TODO: Remove this once loading of t.entityelement[].eleprof.PropertiesVariable works!
 								bExtractedImageFilesThisScript = true;
 
 								extern void InitParseLuaScript(entityeleproftype *tmpeleprof);

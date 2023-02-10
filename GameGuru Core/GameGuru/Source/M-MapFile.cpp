@@ -2213,6 +2213,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("databank\\extendedblood");
 	#endif
 	addfoldertocollection("particlesbank");
+
+	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	addfoldertocollection("particlesbank\\user");
 
 	addtocollection("effectbank\\common\\noise64.png");
@@ -6294,6 +6296,15 @@ void addfoldertocollection ( char* path_s )
 	{
 		SetDir (usePath.Get());
 		ChecklistForFiles (  );
+		if (ChecklistQuantity() <= 2)
+		{
+			// Try writable folder instead (sometimes, there will be an empty user folder in the max install, which causes this process to ignore the writable user folder!)
+			extern char szWriteDir[MAX_PATH];
+			cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
+			SetDir(told_s.Get());
+			SetDir(testPath.Get());
+			ChecklistForFiles();
+		}
 		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
 		{
 			if (  ChecklistValueA(c) == 0 ) 

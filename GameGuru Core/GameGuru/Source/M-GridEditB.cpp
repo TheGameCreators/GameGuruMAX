@@ -25835,19 +25835,6 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 			ImGui::SetTooltip("%s", newtext.c_str());
 		}
 
-		// collectable dropdown - hmm not called or used
-		//btmp = edit_grideleprof->iscollectable;
-		//ImGui::Checkbox("Is Collectable?", &btmp);
-		//edit_grideleprof->iscollectable = btmp;
-		//desc = t.strarr_s[583];
-		//if (ImGui::IsItemHovered() && desc.Len() > 0)
-		//{
-		//	std::string newtext = desc.Get();
-		//	replaceAll(newtext, "Set to YES", "If set");
-		//	replaceAll(newtext, " to YES", "");
-		//	ImGui::SetTooltip("%s", newtext.c_str());
-		//}
-
 		//t.grideleprof.phyweight = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.phyweight), t.strarr_s[584].Get(), t.strarr_s[585].Get()));
 		ImGui::TextCenter("Weight of Object");
 		desc = t.strarr_s[585];
@@ -30568,13 +30555,21 @@ char * imgui_setpropertystring2_v2(int group, char* data_s, char* field_s, char*
 	}
 	ImGui::PushItemWidth(-10);
 
-	int inputFlags = 0;
-
 	strcpy(cTmpInput, ldata_s.Get());
-	if (ImGui::InputText(uniquiField.c_str(), &cTmpInput[0], MAXTEXTINPUT, inputFlags)) {
-		bImGuiGotFocus = true;
+	int inputFlags = 0;
+	if (readonly == true)
+	{
+		inputFlags != ImGuiInputTextFlags_ReadOnly;
+		ImGui::Text(&cTmpInput[0]);
+		if (ImGui::IsItemHovered() && ldesc_s != "") ImGui::SetTooltip("%s", ldesc_s.Get());
 	}
-	if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered() && ldesc_s != "") ImGui::SetTooltip("%s", ldesc_s.Get());
+	else
+	{
+		if (ImGui::InputText(uniquiField.c_str(), &cTmpInput[0], MAXTEXTINPUT, inputFlags)) {
+			bImGuiGotFocus = true;
+		}
+		if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered() && ldesc_s != "") ImGui::SetTooltip("%s", ldesc_s.Get());
+	}
 	if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 
 	ImVec2 cpos = ImGui::GetCursorPos();
@@ -38928,7 +38923,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].lua_name, "hud0.lua");
 			strcpy(Storyboard.Nodes[node].screen_backdrop, "");
 			Storyboard.Nodes[node].screen_backdrop_transparent = true;
-			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE;
+			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE | ALLOW_BUTTON;
 			Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY;
 
 			// Storyboard does not yet have a HUD screen, so add one (copy from default template HUD in below filepath)
@@ -42233,7 +42228,7 @@ void process_storeboard(bool bInitOnly)
 								strcpy(Storyboard.Nodes[node].lua_name, "hud.lua");
 								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
 								Storyboard.Nodes[node].screen_backdrop_transparent = true;
-								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE;
+								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE | ALLOW_BUTTON;
 								Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY | READOUT_GRAPHICS | READOUT_INPUT | READOUT_SOUND;
 								break;
 							}
@@ -45949,7 +45944,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			if (ImGui::StyleCollapsingHeader("Visuals##screeneditorvisual", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
-			//	ImGui::Indent(30);
 				vIconSize = { 45,45 };
 				const StoryboardNodesStruct& node = Storyboard.Nodes[nodeid];
 				int widgetsOnDisplay = 0;
@@ -45981,8 +45975,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					widgetsOnDisplay++;
 				}
-				// Removed until Lua integration with Screen Editor
-				/*if (node.widgets_available & ALLOW_BUTTON)
+				if (node.widgets_available & ALLOW_BUTTON)
 				{
 					if ((widgetsOnDisplay % 4) != 0)
 					{
@@ -45998,6 +45991,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					widgetsOnDisplay++;
 				}
+				// Removed until Lua integration with Screen Editor
+				/*
 				if (node.widgets_available & ALLOW_RADIOTYPE)
 				{
 					if ((widgetsOnDisplay % 4) != 0)
@@ -46062,7 +46057,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					widgetsOnDisplay++;
 				}*/
-				//ImGui::Indent(-30);
 				ImGui::Indent(-10);
 			}
 			if (ImGui::StyleCollapsingHeader("Readouts##screeneditorreadout", ImGuiTreeNodeFlags_DefaultOpen))
@@ -47505,10 +47499,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (iUserDefinedGlobal == 4)
 						{
 							pTitle = "Panel Grid Size";
-							pLabelX = "Rows";
-							pLabelTipX = "Change the total number of rows";
-							pLabelY = "Columns";
-							pLabelTipY = "Change the total number of bolumns";
+							pLabelX = "Columns";
+							pLabelTipX = "Change the total number of columns";
+							pLabelY = "Rows";
+							pLabelTipY = "Change the total number of rows";
 						}
 						ImGui::TextCenter(pTitle);
 
@@ -47648,15 +47642,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (iCurAction == STORYBOARD_ACTIONS_NONE) strcpy(ActionSelected, "None");
 						if (iCurAction == STORYBOARD_ACTIONS_STARTGAME) strcpy(ActionSelected, "Start Game");
 						if (iCurAction == STORYBOARD_ACTIONS_EXITGAME) strcpy(ActionSelected, "Exit Game");
-						if (iCurAction == STORYBOARD_ACTIONS_CONTINUE) strcpy(ActionSelected, "Continue Game Or Back");
-						if (iCurAction == STORYBOARD_ACTIONS_BACK) strcpy(ActionSelected, "Close Screen");
 						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREEN) strcpy(ActionSelected, "Go To Another Screen");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOLEVEL) strcpy(ActionSelected, "Go To Another Level");
+						if (iCurAction == STORYBOARD_ACTIONS_CONTINUE) strcpy(ActionSelected, "Continue Game");
+						if (iCurAction == STORYBOARD_ACTIONS_BACK) strcpy(ActionSelected, "Close Screen");
 						if (iCurAction == STORYBOARD_ACTIONS_LEAVEGAME) strcpy(ActionSelected, "Leave Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RESUMEGAME) strcpy(ActionSelected, "Resume Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RETURNVALUETOLUA) strcpy(ActionSelected, "Return Button ID to Lua");
 
-						
-						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Continue Game Or Back", "Close Screen" ,"Go To Another Screen","Leave Game","Resume Game","Return Button ID to Lua" };
+						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua" };
 						//if (ImGui::Combo("##BehavioursSimpleInput", &item_current_type_selection, items_align, IM_ARRAYSIZE(items_align))) {
 						ImGui::PushItemWidth(-10);
 						if (ImGui::BeginCombo("##StoryboardAction", ActionSelected)) // The second parameter is the label previewed before opening the combo.

@@ -544,7 +544,7 @@ void entity_reset_defaults(void)
 	t.entityelement[t.e].limbhurt = 0;
 	t.entityelement[t.e].plrvisible = 0;
 	t.entityelement[t.e].isclone = 0;
-	t.entityelement[t.e].delaytimeactive = 0;
+	t.entityelement[t.e].consumed = 0;
 	//t.entityelement[t.e].delaydestroytimer = 0;
 	//t.entityelement[t.e].delaydestroy = 0;
 	t.entityelement[t.e].distance = 0;
@@ -1880,6 +1880,7 @@ void entity_loop ( void )
 			if ( t.entityelement[t.e].destroyme == 1 ) 
 			{
 				// remove entity from game play
+				t.entityelement[t.e].eleprof.phyalways = 0;
 				t.entityelement[t.e].destroyme = 0;
 				t.entityelement[t.e].active = 0;
 				t.entityelement[t.e].health = 0;

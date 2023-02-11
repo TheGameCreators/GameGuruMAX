@@ -6654,7 +6654,7 @@ struct entitytype
 	int distance;
 	//int delaydestroy;
 	//int delaydestroytimer;
-	int delaytimeactive;
+	int consumed;
 	entityluastatestype lua;
 	//entityluadatastatestype luadata;
 	int isclone;
@@ -6784,7 +6784,7 @@ struct entitytype
 		 limbhurt = 0;
 		 plrvisible = 0;
 		 isclone = 0;
-		 delaytimeactive = 0;
+		 consumed = 0;
 		 //delaydestroytimer = 0;
 		 //delaydestroy = 0;
 		 distance = 0;

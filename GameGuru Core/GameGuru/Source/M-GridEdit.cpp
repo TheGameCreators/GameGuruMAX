@@ -11,6 +11,7 @@
 #include "M-Widget.h"
 #include "GGVR.h"
 #include "M-GridEditB.h"
+#include "M-RPG.h"
 
 #ifdef STORYBOARD
 //#include "..\..\GameGuru\Imgui\imnodes.cpp" now added to project to compile the CPP
@@ -8821,13 +8822,21 @@ void mapeditorexecutable_loop(void)
 								}
 
 								// special color change when object is a collectable
+								LPSTR pDescTooltip = t.strarr_s[204].Get();
+								bool bObjectIsACollectableAndReadOnlyName = false;
 								if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+								{
 									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+									bObjectIsACollectableAndReadOnlyName = true;
+									pDescTooltip = "This object has been set as an item collectable";
+								}
 								else
+								{
 									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+								}
 
 								ImGui::Indent(10);
-								t.entityelement[iEntityIndex].eleprof.name_s = imgui_setpropertystring2_v2(t.group, t.entityelement[iEntityIndex].eleprof.name_s.Get(), "", t.strarr_s[204].Get(), false);
+								t.entityelement[iEntityIndex].eleprof.name_s = imgui_setpropertystring2_v2(t.group, t.entityelement[iEntityIndex].eleprof.name_s.Get(), "", pDescTooltip, bObjectIsACollectableAndReadOnlyName);
 								ImGui::Indent(-10);
 
 								ImGui::PopStyleColor();
@@ -10079,12 +10088,39 @@ void mapeditorexecutable_loop(void)
 						#endif
 
 						// Collectbale Settings if required
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable > 0)
 						{
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
 							{
 								ImGui::Indent(10);
+
+								// a drop down to select the collectable from the collection table
+								ImGui::TextCenter("Assigned Item From Collection");
+
+								int iContainerItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
+								char* containerItemSelected = "As Named";
+								if (iContainerItemIndex >= 2 ) containerItemSelected = g_collectionList[iContainerItemIndex-2].collectionFields[0].Get();
+								ImGui::PushItemWidth(-10);
+								if (ImGui::BeginCombo("##ChosenCollectableItem", containerItemSelected))
+								{
+									for (int i = 0; i < 1+g_collectionList.size(); i++)
+									{
+										char* pThisItem = "As Named";
+										if ( i > 0 ) pThisItem = g_collectionList[i - 1].collectionFields[0].Get();
+										bool bIsSelected = false;
+										if (strcmp(pThisItem, containerItemSelected) == NULL) bIsSelected = true;
+										if (ImGui::Selectable(pThisItem, bIsSelected, 0))
+										{
+											t.entityelement[iEntityIndex].eleprof.iscollectable = 1 + i;
+											t.entityelement[iEntityIndex].eleprof.name_s = pThisItem;
+										}
+									}
+									ImGui::EndCombo();
+								}
+								ImGui::PopItemWidth();
+
+								/* simplified
 								ImGui::TextCenter("Item Attributes");
 
 								// store all data in entityelement eleprof (and add to save/load system)
@@ -10152,6 +10188,7 @@ void mapeditorexecutable_loop(void)
 										ImGui::ImgBtn(inviconfile_preview_id[iInvIconFileIndex], ImVec2(iwidth - 18.0f, (iwidth - 18.0f) * fHighRatio), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
 									}
 								}
+								*/
 
 								ImGui::Indent(-10);
 								iLastOpenHeader = 28;

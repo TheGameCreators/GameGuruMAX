@@ -1079,8 +1079,8 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
 	int iEntityIndex = lua_tonumber(L, 1);
-	t.entityelement[iEntityIndex].collected = lua_tonumber(L, 2);
-	if (t.entityelement[iEntityIndex].collected > 0 )
+	int iCollectState = lua_tonumber(L, 2);
+	if (iCollectState > 0 )
 	{
 		// if not already collected
 		int n = 0;
@@ -1093,13 +1093,27 @@ luaMessage** ppLuaMessages = NULL;
 			// add item to inventory
 			inventoryContainerType item;
 			item.e = iEntityIndex;
-			// hack
-			item.collectionID = 1;
-			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "Herbal Stamina") == NULL) item.collectionID = 1;
-			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "Herbal Poultice") == NULL) item.collectionID = 2;
-			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "gloves") == NULL) item.collectionID = 3;
-			if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), "boots") == NULL) item.collectionID = 4;
+			// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
+			item.collectionID = 0;
+			for (int n = 0; n < g_collectionList.size(); n++)
+			{
+				if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
+				{
+					item.collectionID = 1+n;
+					break;
+				}
+			}
 			t.playerContainer.push_back(item);
+			// move object away from earthly access
+			if (t.entityelement[iEntityIndex].collected == 0)
+			{
+				t.entityelement[iEntityIndex].collected = iCollectState;
+				t.entityelement[iEntityIndex].x -= 999999;
+				t.entityelement[iEntityIndex].y -= 999999;
+				t.entityelement[iEntityIndex].z -= 999999;
+				t.entityelement[iEntityIndex].eleprof.phyalways = 1;
+				PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+			}
 		}
 	}
 	else
@@ -1109,12 +1123,32 @@ luaMessage** ppLuaMessages = NULL;
 		{
 			if (t.playerContainer[n].e == iEntityIndex)
 			{
-				t.playerContainer.erase(t.playerContainer.begin()+n);
+				t.playerContainer.erase(t.playerContainer.begin() + n);
 				break;
 			}
 		}
+		// when NOT collected, put back in real world
+		if (t.entityelement[iEntityIndex].collected != 0)
+		{
+			t.entityelement[iEntityIndex].collected = 0;
+			t.entityelement[iEntityIndex].x += 999999;
+			t.entityelement[iEntityIndex].y += 999999;
+			t.entityelement[iEntityIndex].z += 999999;
+			t.entityelement[iEntityIndex].eleprof.phyalways = 1;
+			PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+		}
 	}
 	return 0;
+ }
+ int SetEntityUsed(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 int iUsedState = lua_tonumber(L, 2);
+	 t.entityelement[iEntityIndex].consumed = iUsedState;
+	 return 0;
  }
  int GetEntityCollectable(lua_State* L)
  {
@@ -1140,6 +1174,20 @@ luaMessage** ppLuaMessages = NULL;
 	 if (e > 0)
 	 {
 		 iReturnValue = t.entityelement[e].collected;
+	 }
+	 lua_pushinteger(L, iReturnValue);
+	 return 1;
+ }
+ int GetEntityUsed(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iReturnValue = 0;
+	 if (e > 0)
+	 {
+		 iReturnValue = t.entityelement[e].consumed;
 	 }
 	 lua_pushinteger(L, iReturnValue);
 	 return 1;
@@ -6436,9 +6484,22 @@ int GetInventoryItem(lua_State* L)
 	int iInventoryIndex = lua_tonumber(L, 2);
 	if (iInventoryIndex > 0 && iInventoryIndex <= t.playerContainer.size())
 	{
-		iCollectionItemID = t.playerContainer[iInventoryIndex-1].collectionID;
+		iCollectionItemID = t.playerContainer[iInventoryIndex - 1].collectionID;
 	}
 	lua_pushnumber(L, iCollectionItemID);
+	return 1;
+}
+int GetInventoryItemID(lua_State* L)
+{
+	int iItemEntityID = 0;
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int iInventoryIndex = lua_tonumber(L, 2);
+	if (iInventoryIndex > 0 && iInventoryIndex <= t.playerContainer.size())
+	{
+		iItemEntityID = t.playerContainer[iInventoryIndex - 1].e;
+	}
+	lua_pushnumber(L, iItemEntityID);
 	return 1;
 }
 
@@ -8609,8 +8670,10 @@ void addFunctions()
 	lua_register(lua, "SetEntityActivated", SetEntityActivated);
 	lua_register(lua, "SetEntityCollectable", SetEntityCollectable);
 	lua_register(lua, "SetEntityCollected", SetEntityCollected);
+	lua_register(lua, "SetEntityUsed", SetEntityUsed);
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);
+	lua_register(lua, "GetEntityUsed", GetEntityUsed);
 	lua_register(lua, "SetEntityHasKey", SetEntityHasKey);
 	lua_register(lua, "GetEntityActive", GetEntityActive);
 	lua_register(lua, "GetEntityWhoActivated", GetEntityWhoActivated);
@@ -9560,7 +9623,8 @@ void addFunctions()
 	lua_register(lua, "GetCollectionItemAttribute", GetCollectionItemAttribute);
 	lua_register(lua, "GetInventoryQuantity", GetInventoryQuantity);
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
-	#endif
+	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
+#endif
 
 	lua_register(lua, "SetCharacterDirectionOverride", SetCharacterDirectionOverride);
 	lua_register(lua, "LimitSwimmingVerticalMovement", LimitSwimmingVerticalMovement);

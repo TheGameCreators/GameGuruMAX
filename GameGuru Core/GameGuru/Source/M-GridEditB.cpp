@@ -48778,7 +48778,7 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 void CheckExistingFilesModified(bool bResetTimeStamp)
 {
 	// Users can turn this feature off if it causes slowdowns.
-	if (pref.iCheckFilesModifiedOnFocus == 0)
+	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1)
 		return;
 
 	// lists to monitor level media changes (cannot use folderfiles structure as DBOs are not listed)
@@ -48989,6 +48989,8 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		}
 	}
 
+	static std::vector<int> groupsThatCannotBeHotSwapped;
+
 	// Update any entities that use the modified files
 	for (auto& entIndex : modifiedEntityObjectReduced)
 	{
@@ -49018,6 +49020,7 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
 		{
+			
 			cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
 			extern int GetGroupIndexFromName (cstr sLookFor);
 			iParentGroupID = GetGroupIndexFromName(sLookFor);
@@ -49027,6 +49030,67 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 			}
 		}
 
+		bool bSkipLoadingThisGroup = false;
+		if (iParentGroupID != -1)
+		{
+			for (auto& groupID : groupsThatCannotBeHotSwapped)
+			{
+				if (groupID == iParentGroupID)
+				{
+					// Do not try to hot swap this group, its size was previously changed and we currently do not support altering the group size
+					return;
+				}
+			}
+			int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
+			cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
+			// Now check how many entities the newly modified group has - if it has changed we cannot continue
+			if (FileExist(groupFilename.Get()))
+			{
+				std::vector <cstr> groupdata_s;
+				Dim(groupdata_s, 9999);
+				LoadArray(groupFilename.Get(), groupdata_s);
+				for (int groupline = 0; groupline < 9999; groupline++)
+				{
+					cstr line_s = groupdata_s[groupline];
+					if (Len(line_s.Get()) > 0)
+					{
+						LPSTR pLine = line_s.Get();
+						if (pLine[0] != ';')
+						{
+							// take fieldname and values
+							for (t.c = 0; t.c < Len(pLine); t.c++)
+							{
+								if (pLine[t.c] == '=') { t.mid = t.c + 1; break; }
+							}
+							t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
+							t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
+							t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
+							// populate with values found
+							t.tryfield_s = "groupobjcount";
+							if (t.field_s == t.tryfield_s)
+							{
+								int entityCount = t.value1;
+								if (entityCount != iPrevGroupEntityCount)
+								{
+									bSkipLoadingThisGroup = true;
+									if (std::find(groupsThatCannotBeHotSwapped.begin(), groupsThatCannotBeHotSwapped.end(), iParentGroupID) == groupsThatCannotBeHotSwapped.end())
+									{
+										// Store the group index for future, to ensure that we don't try to load in the group when the entity count is the same, but the entities themselves have been changed.
+										groupsThatCannotBeHotSwapped.push_back(iParentGroupID);
+									}
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (bSkipLoadingThisGroup)
+		{
+			return;
+		}
 		// now load the modified entity parent in
 		entity_load();
 

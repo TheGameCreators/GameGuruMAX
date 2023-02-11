@@ -8596,6 +8596,12 @@ int SetExposure(lua_State* L)
 	return 1;
 }
 
+int GetExposure(lua_State* L)
+{
+	lua_pushnumber(L, t.visuals.fExposure);
+	return 1;
+}
+
 // LUA command names
 void addFunctions()
 {
@@ -9674,6 +9680,7 @@ void addFunctions()
 	lua_register(lua, "SetSunLightingColor", SetSunLightingColor);
 	lua_register(lua, "SetSunIntensity", SetSunIntensity);
 	lua_register(lua, "SetExposure", SetExposure);
+	lua_register(lua, "GetExposure", GetExposure);
 }
 
  /*

@@ -19071,6 +19071,17 @@ void process_entity_library_v2(void)
 			}
 		}
 
+		if (ImGui::Selectable("Project Media", &bDisplayFavorite, 0))
+		{
+			seleted_tree_item = -1;
+			strcpy(cSearchAllEntities[0], "projectbank");
+			bDisplayFavorite = false;
+			bViewAllFolders = false;
+			bViewShowcase = false;
+			bUpdateSearchSorting = true;
+			bUpdateSearchScrollbar = true;
+		}
+
 		if (ImGui::Selectable("Favorites", &bDisplayFavorite, 0))
 		{
 			seleted_tree_item = -1;
@@ -44382,8 +44393,10 @@ void load_storyboard(char *name)
 			if (iAllMediaFolders == 4) strcpy(mediafolder, "videobank");
 			SetDir(pProjFilesRoot);
 			if (PathExist(mediafolder) == 0) CreateDirectoryA(mediafolder, NULL);
-			SetDir(mediafolder);
-			if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
+
+			// no one thought this was a good idea.
+			// SetDir(mediafolder);
+			// if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
 		}
 	}
 	SetDir(pOldDir);

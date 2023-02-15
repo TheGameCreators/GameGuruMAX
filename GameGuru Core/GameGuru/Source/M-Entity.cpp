@@ -9798,6 +9798,40 @@ cStr WickedGetEmissiveName(void)
 cStr WickedGetOcclusionName(void)
 {
 	#ifdef DISABLEOCCLUSIONMAP
+	if (g_iWickedEntityId < 0) return "";
+	if (t.entityprofile[g_iWickedEntityId].WEMaterial.baseColorMapName[g_iWickedMeshNumber].Len() > 0)
+	{
+		LPSTR pBaseTextureFilename = t.entityprofile[g_iWickedEntityId].WEMaterial.baseColorMapName[g_iWickedMeshNumber].Get();
+		LPSTR pBaseColorFileExt = "_color.dds";
+		if (strnicmp(pBaseTextureFilename + strlen(pBaseTextureFilename) - strlen(pBaseColorFileExt), pBaseColorFileExt, strlen(pBaseColorFileExt)-3) != NULL)
+		{
+			pBaseColorFileExt = "_basecolor.dds";
+			if (strnicmp(pBaseTextureFilename + strlen(pBaseTextureFilename) - strlen(pBaseColorFileExt), pBaseColorFileExt, strlen(pBaseColorFileExt) - 3) != NULL)
+			{
+				// no matches found (ignoring file extension (dds,png))
+				pBaseColorFileExt = "";
+			}
+		}
+		if(strlen(pBaseColorFileExt)>0)
+		{
+			char pFullOcclusionFilename[MAX_PATH];
+			strcpy(pFullOcclusionFilename, pBaseTextureFilename);
+			pFullOcclusionFilename[strlen(pBaseTextureFilename) - strlen(pBaseColorFileExt)] = 0;
+			char pFinalFilename[MAX_PATH];
+			strcpy(pFinalFilename, pFullOcclusionFilename);
+			strcat(pFinalFilename, "_height.dds");
+			extern std::string g_pWickedTexturePath;
+			cstr ensureCorrectFormatExt = cstr((LPSTR)g_pWickedTexturePath.c_str()) + pFinalFilename;
+			if (FileExist((LPSTR)ensureCorrectFormatExt.Get()) == 0)
+			{
+				strcpy(pFinalFilename, pFullOcclusionFilename);
+				strcat(pFinalFilename, "_height.png");
+				ensureCorrectFormatExt = cstr((LPSTR)g_pWickedTexturePath.c_str()) + pFinalFilename;
+			}
+			cStr fullOcclusionFilename_s = ensureCorrectFormatExt;
+			return fullOcclusionFilename_s;
+		}
+	}
 	return "";
 	#else
 	if (g_iWickedEntityId < 0) return "";

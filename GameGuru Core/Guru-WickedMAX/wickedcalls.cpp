@@ -1608,8 +1608,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetNormalName().Get();
 								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
-									//PE: Check not needed sFoundTexturePath empty.
-									//sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetNormalName().Get();
 									sFoundFinalPathAndFilename = WickedGetNormalName().Get();
 								}
 							}
@@ -1651,8 +1649,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetSurfaceName().Get();
 								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
-									//PE: Check not needed sFoundTexturePath empty.
-									//sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetSurfaceName().Get();
 									sFoundFinalPathAndFilename = WickedGetSurfaceName().Get();
 								}
 							}
@@ -1691,6 +1687,46 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = "";
+							}
+
+							// Parallax Occlusion Mapping (if HEIGHT TEXTURE used)
+							bool bPOMShaderRequired = false;
+							if (sFoundTexturePath.size() <= 0)
+							{
+								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
+								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								{
+									sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
+								}
+							}
+							else
+							{
+								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetOcclusionName().Get();
+								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								{
+									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
+									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+										sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
+								}
+							}
+							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
+							{
+								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = nullptr;
+								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = "";
+								pObjectMaterial->SetDirty();
+								wiJobSystem::context ctx;
+								wiJobSystem::Wait(ctx);
+							}
+							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = sFoundFinalPathAndFilename;
+							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
+							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
+							{
+								pObjectMaterial->parallaxOcclusionMapping = 0.05f;
+								bPOMShaderRequired = true;
+							}
+							else
+							{
+								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = "";
 							}
 
 							//Displacement.
@@ -1865,7 +1901,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 							else
 							{
-								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
+								if(bPOMShaderRequired==true)
+									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+								else
+									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
 							}
 
 							bool bCastShadows = WickedGetCastShadows();

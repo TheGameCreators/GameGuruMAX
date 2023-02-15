@@ -513,9 +513,11 @@ void CSpriteManager::RenderDrawList(tagSpriteData** pList, int iListSize, int iF
 
 				if (lpTexture)
 				{
+					//LB: Allow user control of draw order, place spites first to allow HUDs to render over them
+					//but enable special ability to PASTE a sprite after everything else (priority -1)
 					//PE: We need to render above everything else.
 					ImDrawList* dl = ImGui::GetForegroundDrawList();
-					if (dl)
+					if (dl && pCurrent->iPriority==-1)
 					{
 						dl->AddImageQuad((ImTextureID)lpTexture, p0, p1, p2, p3, uv0, uv1, uv2, uv3, ImGui::GetColorU32(drawCol_normal));
 					}

@@ -3677,6 +3677,20 @@ int SetSpritePosition(lua_State *L)
 	return 0;
 }
 
+int SetSpritePriorityForLUA(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int iID = lua_tointeger(L, 1);
+	int iPriority = lua_tointeger(L, 2);
+	if (SpriteExist (iID) == 1)
+	{
+		SetSpritePriority (iID, iPriority);
+	}
+	return 0;
+}
+
 int SetSpriteDepth(lua_State *L)
 {
 	lua = L;
@@ -6272,6 +6286,21 @@ int GetScreenElementID(lua_State* L)
 		}
 	}
 	lua_pushnumber(L, iElementID);
+	return 1;
+}
+int GetScreenElementImage(lua_State* L)
+{
+	int iImgID = 0;
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			iImgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID];
+		}
+	}
+	lua_pushnumber(L, iImgID);
 	return 1;
 }
 int GetScreenElementArea(lua_State* L)
@@ -8871,7 +8900,8 @@ void addFunctions()
 	lua_register(lua, "CreateSprite" , CreateSprite );
 	lua_register(lua, "PasteSprite" , PasteSprite );
 	lua_register(lua, "PasteSpritePosition" , PasteSpritePosition );
-	lua_register(lua, "SetSpritePosition" , SetSpritePosition );
+	lua_register(lua, "SetSpritePosition", SetSpritePosition);
+	lua_register(lua, "SetSpritePriority" , SetSpritePriorityForLUA);
 	lua_register(lua, "SetSpriteSize" , SetSpriteSize );
 	lua_register(lua, "SetSpriteDepth" , SetSpriteDepth );
 	lua_register(lua, "SetSpriteColor" , SetSpriteColor );	
@@ -9617,6 +9647,7 @@ void addFunctions()
 	lua_register(lua, "GetScreenElementTypeID", GetScreenElementTypeID);
 	lua_register(lua, "GetScreenElements", GetScreenElements);
 	lua_register(lua, "GetScreenElementID", GetScreenElementID);
+	lua_register(lua, "GetScreenElementImage", GetScreenElementImage);
 	lua_register(lua, "GetScreenElementArea", GetScreenElementArea);
 	lua_register(lua, "GetScreenElementDetails", GetScreenElementDetails);
 	lua_register(lua, "GetScreenElementName", GetScreenElementName);

@@ -1492,6 +1492,12 @@ void lua_loop_finish ( void )
 		
 	}
 
+	// extra stage allowing global to render things LAST (such as in-game HUD screens)
+	if (t.playercontrol.gameloopinitflag == 0)
+	{
+		t.tnothing = LuaExecute(cstr (cstr("GlobalLoopFinish(") + cstr(t.game.gameloop) + cstr(")")).Get());
+	}
+
 	// update engine global at end of all LUA activity this cycle
 	g.projectileEventType_explosion = LuaGetInt("g_projectileevent_explosion");
 

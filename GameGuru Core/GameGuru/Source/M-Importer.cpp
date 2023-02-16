@@ -13806,6 +13806,14 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	{
 		for (int i = 0; i < pObject->iMeshCount; i++)
 		{
+			if (pObject->ppMeshList == nullptr)
+			{
+				// Got a crash here, check for valid mesh list
+				// Not getting the crash in debug, and have a valid mesh list the following frame
+				// Likely related to this issue:https://github.com/TheGameCreators/GameGuruRepo/issues/3276
+				//   Memory corruption occurs somewhere during the entity copy and paste process
+				return;
+			}
 			sMesh* pMesh = pObject->ppMeshList[i];
 			if (pMesh && pMesh->wickedmeshindex > 0)
 			{

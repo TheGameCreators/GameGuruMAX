@@ -2490,34 +2490,44 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			// Check for files required by the script
 			if ( t.entityelement[t.e].eleprof.aimain_s != "" )
 			{
-				// TODO: Add this once loading of t.entityelement[].eleprof.PropertiesVariable works!
-				//// Ensure that any files specified via DLua are copied over
-				//PropertiesVariables props = t.entityelement[t.e].eleprof.PropertiesVariable;
-				//for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
-				//{
-				//	if (props.VariableType[i] == 2)
-				//	{
-				//		// This properties variable is a string
-				//		int variableLength = strlen(props.VariableValue[i]);
-				//		// Check that it has a file extension
-				//		if (variableLength > 4 && props.VariableValue[i][variableLength - 4] == '.')
-				//		{
-				//			addtocollection(props.VariableValue[i]);
-				//		}
-				//	}
-				//}
+				// Check for files required by the script via DLua
+				extern void InitParseLuaScript(entityeleproftype* tmpeleprof);
+				extern void ParseLuaScript(entityeleproftype* tmpeleprof, char* script);
+
+				// PropertiesVariables are not filled automatically for t.entityelement[t.e], so create a temp variable and parse the script to fill the values
+				// PropertiesVariables may eventually be saved with entityelement data, so we could remove this step in future
+				entityeleproftype tempeleprof = t.entityelement[t.e].eleprof;
+				InitParseLuaScript(&tempeleprof);
+				cstr script_name = "";
+				if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				script_name += tempeleprof.aimain_s;
+				ParseLuaScript(&tempeleprof, script_name.Get());
+
+				// We now have the properties variables
+				for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
+				{
+					// Check the lua variable is a string.
+					if (tempeleprof.PropertiesVariable.VariableType[i] == 2)
+					{
+						// Check if the string contains a file.
+						int variableLength = strlen(tempeleprof.PropertiesVariable.VariableValue[i]);
+						if (variableLength > 4 && tempeleprof.PropertiesVariable.VariableValue[i][variableLength - 4] == '.')
+						{
+							addtocollection(tempeleprof.PropertiesVariable.VariableValue[i]);
+						}
+					}
+				}
 
 				// Copy any files specified directly in Lua script
-				cstr tLuaScript = g.fpscrootdir_s+"\\Files\\scriptbank\\";
+				cstr tLuaScript = g.fpscrootdir_s + "\\Files\\scriptbank\\";
 				tLuaScript += t.entityelement[t.e].eleprof.aimain_s;
 				FILE* tLuaScriptFile = GG_fopen ( tLuaScript.Get() , "r" );
 				if ( tLuaScriptFile )
 				{
 					#ifdef WICKEDENGINE
-					bool bExtractedImageFilesThisScript = false;
+					/*bool bExtractedDLuaFiles = false;*/
 					#endif
 
 					char tTempLine[2048];
@@ -2560,42 +2570,42 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 							}
 
 							#ifdef WICKEDENGINE
-							if (!bExtractedImageFilesThisScript)
-							{
-								// TODO: Remove this once loading of t.entityelement[].eleprof.PropertiesVariable works!
-								bExtractedImageFilesThisScript = true;
+							//if (!bExtractedDLuaFiles)
+							//{
+							//	bExtractedDLuaFiles = true;
 
-								extern void InitParseLuaScript(entityeleproftype *tmpeleprof);
-								extern void ParseLuaScript(entityeleproftype *tmpeleprof, char * script);
+							//	extern void InitParseLuaScript(entityeleproftype *tmpeleprof);
+							//	extern void ParseLuaScript(entityeleproftype *tmpeleprof, char * script);
 
-								// PropertiesVariables are not filled for t.entityelement[t.e], so create a temp variable to fill the values just in case we change anything we shouldn't.
-								entityeleproftype tempeleprof = t.entityelement[t.e].eleprof;
+							//	// PropertiesVariables are not filled for t.entityelement[t.e], so create a temp variable to fill the values just in case we change anything we shouldn't.
+							//	entityeleproftype tempeleprof = t.entityelement[t.e].eleprof;
 
-								// Parse the lua script so we can check if it contains any string variables (for filenames).
-								InitParseLuaScript(&tempeleprof);
+							//	// Parse the lua script so we can check if it contains any string variables (for filenames).
+							//	InitParseLuaScript(&tempeleprof);
 
-								cstr script_name = "";
-								if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
-								script_name += tempeleprof.aimain_s;
+							//	cstr script_name = "";
+							//	if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+							//	script_name += tempeleprof.aimain_s;
 
-								ParseLuaScript(&tempeleprof, script_name.Get());
+							//	ParseLuaScript(&tempeleprof, script_name.Get());
 
-								// This script loads an image, now retrieve the filename and add it to the collection.
-								for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
-								{
-									// Check the lua variable is a string.
-									if (tempeleprof.PropertiesVariable.VariableType[i] == 2)
-									{
-										// Check if the string contains an image file.
-										char* pLuaString = &tempeleprof.PropertiesVariable.VariableValue[i][0];
-										if (strstr(pLuaString, ".png") || strstr(pLuaString, ".jpg") || strstr(pLuaString, ".dds"))
-										{
-											// This string is the name of an image file, add it to the collection.
-											addtocollection(pLuaString);
-										}
-									}
-								}
-							}
+							//	// This script loads an image, now retrieve the filename and add it to the collection.
+							//	for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
+							//	{
+							//		// Check the lua variable is a string.
+							//		if (tempeleprof.PropertiesVariable.VariableType[i] == 2)
+							//		{
+							//			// Check if 
+							//			// Check if the string contains an image file.
+							//			char* pLuaString = &tempeleprof.PropertiesVariable.VariableValue[i][0];
+							//			if (strstr(pLuaString, ".png") || strstr(pLuaString, ".jpg") || strstr(pLuaString, ".dds"))
+							//			{
+							//				// This string is the name of an image file, add it to the collection.
+							//				addtocollection(pLuaString);
+							//			}
+							//		}
+							//	}
+							//}
 							#endif
 						}
 						if (strstr(tTempLine, "SetSkyTo(" )) {
@@ -4183,11 +4193,11 @@ void mapfile_savestandalone_stage4 ( void )
 		char pRealSrc[MAX_PATH];
 		strcpy(pRealSrc, t.src_s.Get());
 		GG_GetRealPath(pRealSrc, 0);
-		if ( FileExist(pRealSrc) == 1 ) 
+		if (FileExist(pRealSrc) == 1)
 		{
-			t.dest_s = t.exepath_s+t.exename_s+"\\Files\\"+t.src_s;
-			if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
-			CopyAFile ( pRealSrc, t.dest_s.Get() );
+			t.dest_s = t.exepath_s + t.exename_s + "\\Files\\" + t.src_s;
+			if (FileExist(t.dest_s.Get()) == 1) DeleteAFile(t.dest_s.Get());
+			CopyAFile(pRealSrc, t.dest_s.Get());
 		}
 	}
 

@@ -6373,6 +6373,11 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 					if (foldertype == 5 && pestrcasestr(file_s.Get(), ".arx"))
 						bValid = true;
 
+					// The animation library was not displaying any animations, sorted_files was not populated with the animation files
+					// This ensures that they are included
+					if (foldertype == 6 && pestrcasestr(file_s.Get(), ".dbo"))
+						bValid = true;
+
 					#endif
 
 					if (bValid) {

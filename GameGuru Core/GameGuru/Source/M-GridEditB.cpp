@@ -19071,7 +19071,8 @@ void process_entity_library_v2(void)
 			}
 		}
 
-		if (ImGui::Selectable("Project Media", &bDisplayFavorite, 0))
+		bool bProjectMediaSelected = strstr(cSearchAllEntities[0], "project");
+		if (ImGui::Selectable("Project Media##projectmedia", &bProjectMediaSelected, 0))
 		{
 			seleted_tree_item = -1;
 			strcpy(cSearchAllEntities[0], "projectbank");
@@ -19082,7 +19083,7 @@ void process_entity_library_v2(void)
 			bUpdateSearchScrollbar = true;
 		}
 
-		if (ImGui::Selectable("Favorites", &bDisplayFavorite, 0))
+		if (ImGui::Selectable("Favorites##favourites", &bDisplayFavorite, 0))
 		{
 			seleted_tree_item = -1;
 			strcpy(cSearchAllEntities[0], "");

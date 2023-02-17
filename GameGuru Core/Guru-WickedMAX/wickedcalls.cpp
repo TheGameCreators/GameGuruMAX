@@ -1721,7 +1721,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
 							{
-								pObjectMaterial->parallaxOcclusionMapping = 0.05f;
+								pObjectMaterial->parallaxOcclusionMapping = 0.025f;
 								bPOMShaderRequired = true;
 							}
 							else

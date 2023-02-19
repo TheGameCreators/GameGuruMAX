@@ -5833,7 +5833,9 @@ struct Stemps
 	std::vector<unsigned int> iPhysicsDebugObjectsToUpdate;
 	int activerelationobjectid;
 	int iTmpImgID = 0;
-	std::vector <inventoryContainerType> playerContainer;
+	#define MAX_INVENTORY_CONTAINERS 100
+	std::vector <cStr> inventoryContainers;
+	std::vector <inventoryContainerType> inventoryContainer[MAX_INVENTORY_CONTAINERS];
 #endif
 
 	// Constructor

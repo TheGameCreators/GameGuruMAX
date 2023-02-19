@@ -1078,64 +1078,75 @@ luaMessage** ppLuaMessages = NULL;
 	lua = L;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
-	int iEntityIndex = lua_tonumber(L, 1);
-	int iCollectState = lua_tonumber(L, 2);
-	if (iCollectState > 0 )
+	bool bItemHandled = false;
+	for (int bothplayercontainers = 0; bothplayercontainers < 2; bothplayercontainers++)
 	{
-		// if not already collected
-		int n = 0;
-		for (n = 0; n < t.playerContainer.size(); n++)
-			if (t.playerContainer[n].e == iEntityIndex)
-				break;
-
-		if (n >= t.playerContainer.size() )
+		int iEntityIndex = lua_tonumber(L, 1);
+		int iCollectState = lua_tonumber(L, 2);
+		if (iCollectState > 0)
 		{
-			// add item to inventory
-			inventoryContainerType item;
-			item.e = iEntityIndex;
-			// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
-			item.collectionID = 0;
-			for (int n = 0; n < g_collectionList.size(); n++)
+			if ( bItemHandled == false )
 			{
-				if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
+				// if not already collected
+				int n = 0;
+				for (n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+					if (t.inventoryContainer[bothplayercontainers][n].e == iEntityIndex)
+						break;
+
+				if (n >= t.inventoryContainer[bothplayercontainers].size())
 				{
-					item.collectionID = 1+n;
-					break;
+					// add item to inventory
+					inventoryContainerType item;
+					item.e = iEntityIndex;
+					// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
+					item.collectionID = 0;
+					for (int n = 0; n < g_collectionList.size(); n++)
+					{
+						if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
+						{
+							item.collectionID = 1 + n;
+							break;
+						}
+					}
+					t.inventoryContainer[bothplayercontainers].push_back(item);
+					bItemHandled = true;
+					if (t.entityelement[iEntityIndex].collected == 0)
+					{
+						t.entityelement[iEntityIndex].collected = iCollectState;
+						t.entityelement[iEntityIndex].x -= 999999;
+						t.entityelement[iEntityIndex].y -= 999999;
+						t.entityelement[iEntityIndex].z -= 999999;
+						t.entityelement[iEntityIndex].eleprof.phyalways = 1;
+						PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+					}
 				}
 			}
-			t.playerContainer.push_back(item);
-			// move object away from earthly access
-			if (t.entityelement[iEntityIndex].collected == 0)
-			{
-				t.entityelement[iEntityIndex].collected = iCollectState;
-				t.entityelement[iEntityIndex].x -= 999999;
-				t.entityelement[iEntityIndex].y -= 999999;
-				t.entityelement[iEntityIndex].z -= 999999;
-				t.entityelement[iEntityIndex].eleprof.phyalways = 1;
-				PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
-			}
 		}
-	}
-	else
-	{
-		// find and remove from inventory
-		for (int n = 0; n < t.playerContainer.size(); n++)
+		else
 		{
-			if (t.playerContainer[n].e == iEntityIndex)
+			// find and remove from inventory
+			if (bItemHandled == false)
 			{
-				t.playerContainer.erase(t.playerContainer.begin() + n);
-				break;
+				for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+				{
+					if (t.inventoryContainer[bothplayercontainers][n].e == iEntityIndex)
+					{
+						t.inventoryContainer[bothplayercontainers].erase(t.inventoryContainer[bothplayercontainers].begin() + n);
+						bItemHandled = true;
+						break;
+					}
+				}
+				// when NOT collected, put back in real world
+				if (t.entityelement[iEntityIndex].collected != 0)
+				{
+					t.entityelement[iEntityIndex].collected = 0;
+					t.entityelement[iEntityIndex].x += 999999;
+					t.entityelement[iEntityIndex].y += 999999;
+					t.entityelement[iEntityIndex].z += 999999;
+					t.entityelement[iEntityIndex].eleprof.phyalways = 1;
+					PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+				}
 			}
-		}
-		// when NOT collected, put back in real world
-		if (t.entityelement[iEntityIndex].collected != 0)
-		{
-			t.entityelement[iEntityIndex].collected = 0;
-			t.entityelement[iEntityIndex].x += 999999;
-			t.entityelement[iEntityIndex].y += 999999;
-			t.entityelement[iEntityIndex].z += 999999;
-			t.entityelement[iEntityIndex].eleprof.phyalways = 1;
-			PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
 		}
 	}
 	return 0;
@@ -6108,6 +6119,7 @@ int GetScreenElementsType(lua_State* L)
 {
 	int iQty = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pReadoutName[512];
@@ -6147,6 +6159,7 @@ int GetScreenElementTypeID(lua_State* L)
 	int iCount = 0;
 	int iElementID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pReadoutName[512];
@@ -6196,6 +6209,7 @@ int GetScreenElements(lua_State* L)
 {
 	int iQty = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pElementName[512];
@@ -6235,6 +6249,7 @@ int GetScreenElementID(lua_State* L)
 	int iCount = 0;
 	int iElementID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pElementName[512];
@@ -6292,6 +6307,7 @@ int GetScreenElementImage(lua_State* L)
 {
 	int iImgID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6310,6 +6326,7 @@ int GetScreenElementArea(lua_State* L)
 	float fAreaWidth = 0;
 	float fAreaHeight = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6339,6 +6356,7 @@ int GetScreenElementDetails(lua_State* L)
 	float fRows = 0;
 	float fColumns = 0;
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6359,6 +6377,7 @@ int GetScreenElementName(lua_State* L)
 	char pReturnData[512];
 	strcpy(pReturnData, "");
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6373,6 +6392,7 @@ int GetScreenElementName(lua_State* L)
 int SetScreenElementVisibility(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6406,6 +6426,7 @@ int SetScreenElementVisibility(lua_State* L)
 int SetScreenElementPosition(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6428,6 +6449,7 @@ int SetScreenElementPosition(lua_State* L)
 int SetScreenElementText(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6497,11 +6519,30 @@ int GetCollectionItemAttribute(lua_State* L)
 	return 1;
 }
 
+int FindInventoryIndex (LPSTR pNameOfInventory)
+{
+	int bothplayercontainers = -1;
+	for (int n = 0; n < t.inventoryContainers.size(); n++)
+	{
+		if (stricmp(t.inventoryContainers[n].Get(), pNameOfInventory) == NULL)
+		{
+			bothplayercontainers = n;
+			break;
+		}
+	}
+	return bothplayercontainers;
+}
+
 int GetInventoryQuantity(lua_State* L)
 {
+	int iQty = 0;
 	char pNameOfInventory[512];
 	strcpy(pNameOfInventory, lua_tostring(L, 1));
-	int iQty = t.playerContainer.size();
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
+	{
+		iQty = t.inventoryContainer[bothplayercontainers].size();
+	}
 	lua_pushnumber(L, iQty);
 	return 1;
 }
@@ -6510,10 +6551,14 @@ int GetInventoryItem(lua_State* L)
 	int iCollectionItemID = 0;
 	char pNameOfInventory[512];
 	strcpy(pNameOfInventory, lua_tostring(L, 1));
-	int iInventoryIndex = lua_tonumber(L, 2);
-	if (iInventoryIndex > 0 && iInventoryIndex <= t.playerContainer.size())
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
 	{
-		iCollectionItemID = t.playerContainer[iInventoryIndex - 1].collectionID;
+		int iInventoryIndex = lua_tonumber(L, 2);
+		if (iInventoryIndex > 0 && iInventoryIndex <= t.inventoryContainer[bothplayercontainers].size())
+		{
+			iCollectionItemID = t.inventoryContainer[bothplayercontainers][iInventoryIndex - 1].collectionID;
+		}
 	}
 	lua_pushnumber(L, iCollectionItemID);
 	return 1;
@@ -6523,13 +6568,51 @@ int GetInventoryItemID(lua_State* L)
 	int iItemEntityID = 0;
 	char pNameOfInventory[512];
 	strcpy(pNameOfInventory, lua_tostring(L, 1));
-	int iInventoryIndex = lua_tonumber(L, 2);
-	if (iInventoryIndex > 0 && iInventoryIndex <= t.playerContainer.size())
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
 	{
-		iItemEntityID = t.playerContainer[iInventoryIndex - 1].e;
+		int iInventoryIndex = lua_tonumber(L, 2);
+		if (iInventoryIndex > 0 && iInventoryIndex <= t.inventoryContainer[bothplayercontainers].size())
+		{
+			iItemEntityID = t.inventoryContainer[bothplayercontainers][iInventoryIndex - 1].e;
+		}
 	}
 	lua_pushnumber(L, iItemEntityID);
 	return 1;
+}
+int MoveInventoryItem (lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	char pNameOfInventoryFrom[512];
+	strcpy(pNameOfInventoryFrom, lua_tostring(L, 1));
+	int bothplayercontainersfrom = FindInventoryIndex(pNameOfInventoryFrom);
+	if (bothplayercontainersfrom >= 0)
+	{
+		char pNameOfInventoryTo[512];
+		strcpy(pNameOfInventoryTo, lua_tostring(L, 2));
+		int bothplayercontainersto = FindInventoryIndex(pNameOfInventoryTo);
+		if (bothplayercontainersto >= 0)
+		{
+			int collectionindex = lua_tonumber(L, 3);
+			for (int n = 0; t.inventoryContainer[bothplayercontainersfrom].size(); n++)
+			{
+				if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+				{
+					// add to new
+					inventoryContainerType item;
+					item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
+					item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
+					t.inventoryContainer[bothplayercontainersto].push_back(item);
+					// remove from old
+					t.inventoryContainer[bothplayercontainersfrom].erase(t.inventoryContainer[bothplayercontainersfrom].begin() + n);
+					break;
+				}
+			}
+		}
+	}
+	return 0;
 }
 
 #endif
@@ -9661,6 +9744,7 @@ void addFunctions()
 	lua_register(lua, "GetInventoryQuantity", GetInventoryQuantity);
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
 	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
+	lua_register(lua, "MoveInventoryItem", MoveInventoryItem);
 #endif
 
 	lua_register(lua, "SetCharacterDirectionOverride", SetCharacterDirectionOverride);

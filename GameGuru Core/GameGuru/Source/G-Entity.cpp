@@ -1924,12 +1924,15 @@ void entity_loop ( void )
 				}
 
 				// find and remove if in any inventory
-				for (int n = 0; n < t.playerContainer.size(); n++)
+				for (int inventoryindex = 0; inventoryindex < t.inventoryContainers.size(); inventoryindex++)
 				{
-					if (t.playerContainer[n].e == t.e)
+					for (int n = 0; n < t.inventoryContainer[inventoryindex].size(); n++)
 					{
-						t.playerContainer.erase(t.playerContainer.begin() + n);
-						break;
+						if (t.inventoryContainer[inventoryindex][n].e == t.e)
+						{
+							t.inventoryContainer[inventoryindex].erase(t.inventoryContainer[inventoryindex].begin() + n);
+							break;
+						}
 					}
 				}
 			}

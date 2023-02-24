@@ -308,7 +308,15 @@ void entity_configueelementforuse ( void )
 	//  Configure health from strength
 	if (  t.entityelement[t.e].eleprof.strength>0 ) 
 	{
-		t.entityelement[t.e].health=t.entityelement[t.e].eleprof.strength;
+		if (strcmp(t.entityelement[t.e].eleprof.aimain_s.Get(), "animals\\bird.lua") == 0)
+		{
+			// Birds will freeze when health reaches 0. We can remove this if script is updated to handle death.
+			t.entityelement[t.e].health = 99999999;
+		}
+		else
+		{
+			t.entityelement[t.e].health = t.entityelement[t.e].eleprof.strength;
+		}
 	}
 	else
 	{

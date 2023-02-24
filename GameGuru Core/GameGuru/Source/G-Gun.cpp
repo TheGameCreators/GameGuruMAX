@@ -3129,13 +3129,15 @@ void gun_flash ( void )
 		{
 			// hide early
 			#ifdef WICKEDENGINE
-			//PE: We cant rely on the gunid order, changed to names.
-			if (t.gun[t.gunid].name_s == "enhanced\\m29s" ||
-				t.gun[t.gunid].name_s == "enhanced\mk19t" ||
-				t.gun[t.gunid].name_s == "enhanced\r870" ) //Revolver, tactical revolver && shotgun need to have their flash hidden faster due to longer animations
-			{
-				t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-			}
+			////PE: We cant rely on the gunid order, changed to names.
+			//if (t.gun[t.gunid].name_s == "enhanced\\m29s" ||
+			//	t.gun[t.gunid].name_s == "enhanced\mk19t" ||
+			//	t.gun[t.gunid].name_s == "enhanced\r870" ) //Revolver, tactical revolver && shotgun need to have their flash hidden faster due to longer animations
+			//{
+			//	t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
+			//}
+			// Just hide all of them early 
+			t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
 			#endif //WICKEDENGINE
 			HideObject (  g.hudbankoffset+5 );
 			HideObject (  g.hudbankoffset+32 );

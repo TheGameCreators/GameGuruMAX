@@ -3745,8 +3745,8 @@ void entity_hasbulletrayhit(void)
 	}
 
 	#ifdef WICKEDENGINE
-	// if hitting a material, leave a bullethole
-	if (t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16)
+	// if hitting a material, leave a bullethole (not for melee combat 'weapon')
+	if (!strstr(t.gun[t.gunid].name_s.Get(), "gloves_unarmed") && t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16)
 	{
 		if (t.bulletrayhite == 0 || t.entityelement[t.bulletrayhite].staticflag == 1)
 		{

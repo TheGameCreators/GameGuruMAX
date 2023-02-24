@@ -2634,6 +2634,14 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecAxe") == NULL) bIncludeThisWeapon = true;
 			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecDagger") == NULL) bIncludeThisWeapon = true;
 			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecSpear") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Hammer") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Handsaw") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Shovel") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\Crowbar") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeScrewdriver") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeSpanner") == NULL) bIncludeThisWeapon = true;
+			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LumpHammer") == NULL) bIncludeThisWeapon = true;
+			if (strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\weapons\\", 18) == NULL) bIncludeThisWeapon = true;
 		}
 		if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\M67") == NULL) bIncludeThisWeapon = false;
 		if (forcharacters == true)
@@ -2643,7 +2651,8 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\SledgeHammer") == NULL) bIncludeThisWeapon = false;
 		}
 		// any another category should be revealed for all cases (restrict later as new items come in - via gunspec!)
-		if (strnicmp(t.gun[gunid].name_s.Get(), "enhanced\\", 9) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "aztec\\", 6) != NULL)
+		if (strnicmp(t.gun[gunid].name_s.Get(), "enhanced\\", 9) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "aztec\\", 6) != NULL 
+			&& strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\", 10) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "tools\\", 6) != NULL)
 		{
 			bIncludeThisWeapon = true;
 		}

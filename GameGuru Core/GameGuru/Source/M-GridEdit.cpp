@@ -22599,7 +22599,10 @@ void input_calculatelocalcursor ( void )
 	{
 		bDisableRubberBandMoving = true;
 	}
-	if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode && bDraggingActive)
+	//if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode)//&& bDraggingActive)
+	bool bHideObjectsWeWantToIgnore = false;
+	if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode) bHideObjectsWeWantToIgnore = true;
+	if ( bHideObjectsWeWantToIgnore == true )
 	{
 		//PE: MUST disable collision on ALL rubberband objects.
 		entityvisible = g.entityrubberbandlist;
@@ -22948,7 +22951,8 @@ void input_calculatelocalcursor ( void )
 	}
 	t.inputsys.picksystemused=2;
 
-	if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode && bDraggingActive)
+	//if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode && bDraggingActive)
+	if (bHideObjectsWeWantToIgnore == true)
 	{
 		//PE: Enable rubberband collision again.
 		if (entityvisible.size() > 0)

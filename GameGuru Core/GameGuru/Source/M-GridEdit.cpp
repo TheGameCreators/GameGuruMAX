@@ -9977,6 +9977,14 @@ void mapeditorexecutable_loop(void)
 										// and also rotate the selected!
 										SetStartPositionsForRubberBand(iObj);
 										RotateAndMoveRubberBand(iObj, 0, 0, 0, quatRotationEvent);
+
+										// ensure the root object (active object) also gets its rotation!
+										if (t.ttte > 0)
+										{
+											t.entityelement[t.ttte].rx = ObjectAngleX(iActiveObj);
+											t.entityelement[t.ttte].ry = ObjectAngleY(iActiveObj);
+											t.entityelement[t.ttte].rz = ObjectAngleZ(iActiveObj);
+										}
 									}
 									else
 									{

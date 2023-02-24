@@ -5502,7 +5502,7 @@ void WickedCall_EnableThumbLight(bool On)
 	{
 		if (!g_entityThumbLight)
 		{
-			g_entityThumbLight = WickedCall_AddLight(2);
+			//g_entityThumbLight = WickedCall_AddLight(2);
 			g_entityThumbLight = wiScene::GetScene().Entity_CreateLight("thumbLight", XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1), 8, 2900);
 			LightComponent* lightCamera = wiScene::GetScene().lights.GetComponent(g_entityThumbLight);
 			lightCamera->SetCastShadow(false); //PE: No need for shadows its a editor light.
@@ -5512,7 +5512,7 @@ void WickedCall_EnableThumbLight(bool On)
 		}
 		if (!g_entityThumbLight2)
 		{
-			g_entityThumbLight2 = WickedCall_AddLight(2);
+			//g_entityThumbLight2 = WickedCall_AddLight(2);
 			g_entityThumbLight2 = wiScene::GetScene().Entity_CreateLight("thumbLight2", XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1), 8, 2900);
 			LightComponent* lightCamera = wiScene::GetScene().lights.GetComponent(g_entityThumbLight2);
 			lightCamera->SetCastShadow(false); //PE: No need for shadows its a editor light.

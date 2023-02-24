@@ -76,7 +76,11 @@ void lua_init ( void )
 	t.plrkeyForceKeystate = 0;
 
 	// Clear player inventory uere (needs to be move game init, otherwise plr inv will disappear for each new level)
-	t.playerContainer.clear();
+	t.inventoryContainers.clear();
+	t.inventoryContainers.push_back("inventory:player");
+	t.inventoryContainers.push_back("inventory:hotkeys");
+	for ( int n=0; n<MAX_INVENTORY_CONTAINERS;n++)
+		t.inventoryContainer[n].clear();
 }
 
 void lua_loadscriptin ( void )

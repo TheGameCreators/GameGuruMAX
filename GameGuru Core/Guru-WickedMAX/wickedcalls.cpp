@@ -1691,6 +1691,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 							// Parallax Occlusion Mapping (if HEIGHT TEXTURE used)
 							bool bPOMShaderRequired = false;
+							/* use displament code
 							if (sFoundTexturePath.size() <= 0)
 							{
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
@@ -1709,6 +1710,14 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 										sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
 								}
 							}
+							*/
+							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetDisplacementName().Get();
+							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							{
+								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetDisplacementName().Get();
+								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									sFoundFinalPathAndFilename = WickedGetDisplacementName().Get();
+							}
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
 							{
 								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = nullptr;
@@ -1721,7 +1730,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
 							{
-								pObjectMaterial->parallaxOcclusionMapping = 0.025f;
+								pObjectMaterial->parallaxOcclusionMapping = 0.05f;
 								bPOMShaderRequired = true;
 							}
 							else
@@ -1901,7 +1910,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 							else
 							{
-								if(bPOMShaderRequired==true)
+								if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
 									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
 								else
 									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
@@ -1963,7 +1972,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 							else
 							{
-								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
+								if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+								else
+									pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
 							}
 
 							bool bCastShadows = WickedGetCastShadows();
@@ -2022,7 +2034,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						}
 						else
 						{
-							pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
+							if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+							else
+								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
 						}
 
 						bool bCastShadows = WickedGetCastShadows();
@@ -3211,7 +3226,10 @@ void WickedCall_SetObjectPlanerReflection(sObject* pObject, bool bPlanerReflecti
 						}
 						else
 						{
-							pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
+							if(pObjectMaterial->parallaxOcclusionMapping > 0.0f )
+								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+							else
+								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
 						}
 					}
 				}

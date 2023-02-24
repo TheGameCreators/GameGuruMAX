@@ -2885,6 +2885,7 @@ struct importertype
 	bool bMeshesHaveDifferentNormal;
 	bool bMeshesHaveDifferentSurface;
 	bool bMeshesHaveDifferentEmissive;
+	bool bMeshesHaveDifferentDisplacement;
 	std::vector<cstr> cModelMeshNames;
 	bool bModelMeshNamesSet;
 	bool bQuitForReload;
@@ -2985,6 +2986,7 @@ struct importertype
 		 bMeshesHaveDifferentNormal = true;;
 		 bMeshesHaveDifferentSurface = true;
 		 bMeshesHaveDifferentEmissive = true;
+		 bMeshesHaveDifferentDisplacement = true;
 		 bModelMeshNamesSet = false;
 		 bQuitForReload = false;
 		 iViewCollisionShapes = 0;

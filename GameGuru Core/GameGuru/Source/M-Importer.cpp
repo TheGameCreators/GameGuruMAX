@@ -5008,7 +5008,7 @@ void imgui_importer_loop(void)
 					if (pSelectedMaterial->textures[MaterialComponentTEXTURESLOT::DISPLACEMENTMAP].resource)
 					{
 						//worked activate.
-						pSelectedMaterial->SetDisplacementMapping(0.1f); //Default.
+						pSelectedMaterial->SetParallaxOcclusionMapping(0.05f);// SetDisplacementMapping(0.1f); //Default.
 						pSelectedMaterial->SetDirty();
 						wiJobSystem::context ctx;
 						wiJobSystem::Wait(ctx);
@@ -5025,6 +5025,7 @@ void imgui_importer_loop(void)
 					}
 				}
 			}
+			t.importer.bMeshesHaveDifferentDisplacement = true;
 			iDelayedExecute = 0;
 			break;
 		}
@@ -5390,13 +5391,28 @@ void imgui_importer_loop(void)
 				break;
 			}
 
+			if (!pSelectedMesh->pTextures)
+			{
+				bHaveMaterialUpdate = false;
+				iDelayedExecute = 0;
+				break;
+			}
+
+			if (!pSelectedMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName)
+			{
+				bHaveMaterialUpdate = false;
+				iDelayedExecute = 0;
+				break;
+			}
+
+			int iFoundFilename = -1;
 			char newNormalMapFile[MAX_PATH];
 			strcpy(newNormalMapFile, GG_GetWritePath());
-			strcat(newNormalMapFile, "imported_models\\");
 			char originalFile[MAX_PATH];
+			strcpy(originalFile, "");
+			strcat(newNormalMapFile, "imported_models\\");
 			strcpy(originalFile, pSelectedMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName);
 			// Find filename without path or file extension.
-			int iFoundFilename = -1;
 			for (int n = strlen(originalFile) - 1; n > 0; n--)
 			{
 				if (originalFile[n] == '\\' || originalFile[n] == '/')
@@ -5482,6 +5498,14 @@ void imgui_importer_loop(void)
 		{
 			importer_texture_all_meshes(MaterialComponentTEXTURESLOT::EMISSIVEMAP);
 			t.importer.bMeshesHaveDifferentEmissive = false;
+			iDelayedExecute = 0;
+			break;
+		}
+		// Apply displacement map to all meshes.
+		case 54:
+		{
+			importer_texture_all_meshes(MaterialComponentTEXTURESLOT::DISPLACEMENTMAP);
+			t.importer.bMeshesHaveDifferentDisplacement = false;
 			iDelayedExecute = 0;
 			break;
 		}
@@ -13949,7 +13973,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				}
 
 				// loop through all textures required
-				for (int texslot = 0; texslot < 6; texslot++)
+				for (int texslot = 0; texslot < 7; texslot++)
 				{
 					// texture gadget labels
 					LPSTR pInputLabel = "", pInputBtnLabel = "", pInputControlLabel = "";
@@ -13977,6 +14001,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							if (texslot == 4) { pInputLabel = "##InputMeshOcclusion"; pInputBtnLabel = "...##InputMeshOcclusionFile"; pInputControlLabel = "##OcclusionStrength"; }						
 					}
 					if (texslot == 5) { pInputLabel = "##InputMeshEmissive"; pInputBtnLabel = "...##InputMeshEmissiveFile"; pInputControlLabel = "##EmissiveStrength"; }
+					if (texslot == 6) { pInputLabel = "##InputMeshHeight"; pInputBtnLabel = "...##InputMeshHeightFile"; pInputControlLabel = "##HeightStrength"; }
 
 					// texture types
 					LPSTR pTitle = "", pTip = "";
@@ -13995,6 +14020,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						if (texslot == 4) { pTitle = "Occlusion"; pTip = "Allows you to change the ambient occlusion texture of the object."; }
 					}
 					if (texslot == 5) { pTitle = "Emissive"; pTip = "Allows you to change the emissive texture of the object."; }
+					if (texslot == 6) { pTitle = "Height"; pTip = "Allows you to change the displacement height texture of the object."; }
 
 					// control title and desc
 					LPSTR pControlTitle = "", pControlTip = "";
@@ -14004,6 +14030,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					if (texslot == 3) { pControlTitle = "Metalness Strength";  pControlTip = "Controls how much of the metalness texture is applied to the object."; }
 					if (texslot == 4) { pControlTitle = "";  pControlTip = ""; }
 					if (texslot == 5) { pControlTitle = "Emissive Strength";  pControlTip = "Controls how much of the emissive texture is applied to the object."; }
+					if (texslot == 6) { pControlTitle = "";  pControlTip = ""; }
 
 					// extra info message and image
 					LPSTR pTexSlotInfo = "", pTexSlotInfoImage = "";
@@ -14022,6 +14049,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						if (texslot == 4) { pTexSlotInfo = "An ambient occlusion (AO) map describes how much baked-in shadows are part of the surface, and can be used to add very small scale lighting information to compliment the global lighting system. Ambient Occlusion is placed into the red channel of the surface texture."; pTexSlotInfoImage = ""; }
 					}
 					if (texslot == 5) { pTexSlotInfo = "An emissive map describes which parts of the object will generate its own light. By varying the emissive strength, you can alter how much of the surface color is projected outward from the object. Example use cases include using an emissive map to produce a glow effect, or adding lighting to a TV screen placed in your level."; pTexSlotInfoImage = ""; }
+					if (texslot == 6) { pTexSlotInfo = "A displacement height map describes the vertical height of the detail of the texture. This texture used to be called a bump map as a lighter color would represent a higher bump than a darker lower pixel."; pTexSlotInfoImage = ""; }
 
 					// the actual wicked slot, and iDelayedExecute update code
 					int iDelayedExecuteCodeForThisSlot = 0;
@@ -14069,12 +14097,19 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						if (texslot == 3) { wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; iDelayedExecuteCodeForThisSlot = 43; }
 						if (texslot == 4) { wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; iDelayedExecuteCodeForThisSlot = 41; }
 					}
-					if (texslot == 5) 
-					{ 
+					if (texslot == 5)
+					{
 						wickedTextureSlot = MaterialComponentTEXTURESLOT::EMISSIVEMAP;
-						iDelayedExecuteCodeForThisSlot = 34; 
+						iDelayedExecuteCodeForThisSlot = 34;
 						if (t.importer.bEditAllMesh)
 							iDelayedExecuteCodeForThisSlot = 53;
+					}
+					if (texslot == 6)
+					{
+						wickedTextureSlot = MaterialComponentTEXTURESLOT::DISPLACEMENTMAP;
+						iDelayedExecuteCodeForThisSlot = 33;
+						if (t.importer.bEditAllMesh)
+							iDelayedExecuteCodeForThisSlot = 54;
 					}
 
 					// current texture name
@@ -14371,6 +14406,12 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 										strcat(cTextureSettingTooltip, "emissive texture");
 										break;
 									}
+									case MaterialComponentTEXTURESLOT::DISPLACEMENTMAP:
+									{
+										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentDisplacement;
+										strcat(cTextureSettingTooltip, "height texture");
+										break;
+									}
 								}
 
 								if (t.importer.bEditAllMesh && bMeshesHaveDifferentTex)
@@ -14404,11 +14445,8 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 											{
 												// Using the image button will not take texture data from a single channel, so should not copy the channel to a new texture. It should replace it entirely.
 												iDelayedExecuteCodeForThisSlot = 44;
-												//if (bFromCustomMaterials)
-												//{
-													// Editing all meshes.
-													launch_file = true;
-												//}
+												// Editing all meshes.
+												launch_file = true;
 											}
 											else
 											{
@@ -14749,7 +14787,10 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						}
 						else 
 						{
-							pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+							if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+							else
+								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
 						}
 
 						importer_set_all_material_planar_reflection(bPlanerReflection);
@@ -15034,10 +15075,17 @@ void Wicked_Set_Material_From_grideleprof_ThisMesh(void* pVObject, int mode, ent
 
 			// planar reflections (buggy?)
 			bPlanerReflection = edit_grideleprof->WEMaterial.bPlanerReflection[iSelectedMesh];
-			if (bPlanerReflection) 
+			if (bPlanerReflection)
+			{
 				pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
-			else 
-				pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+			}
+			else
+			{
+				if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+					pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+				else
+					pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+			}
 
 			// double sided
 			bDoubleSided = edit_grideleprof->WEMaterial.bDoubleSided[iSelectedMesh];
@@ -15675,7 +15723,10 @@ void importer_set_all_material_planar_reflection(bool planarReflection)
 				}
 				else
 				{
-					pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+					if (pMeshMaterial->parallaxOcclusionMapping > 0.0f)
+						pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+					else
+						pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
 				}
 			}
 		}

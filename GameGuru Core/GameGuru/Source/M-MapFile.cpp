@@ -2640,6 +2640,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 						addtocollection(material.normalMapName[i].Get());
 						addtocollection(material.emissiveMapName[i].Get());
 						addtocollection(material.surfaceMapName[i].Get());
+						addtocollection(material.displacementMapName[i].Get());
 					}
 				}
 			}

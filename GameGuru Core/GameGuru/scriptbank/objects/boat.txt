@@ -1,0 +1,21 @@
+Boat
+
+To use add this script to to the desired boat object.
+Set Physics=ON, Gravity=OFF, IsImobile=YES
+
+Set the behaviours: 
+- Prompt Text for entering boat
+- Boat Range 			- for Embarking
+- Minimum 			- Speed the boat can go
+- Maximum 			- Speed the boat can go
+- Turn Speed 			- for how fast it can turn
+- Drag 				- how much drag in the water
+- Player Z postition		- to tweak the players forward/backward popsition on boat
+- Player Y postition		- to tweak the players height on boat
+- Boat Rotation			- Adjust the rotation of the boat
+- Boat Draft 			- Set depth of boat in water
+- Boat Power			- Set power accelleration
+- Boat Brake			- Set the braking speed
+- Sound 1			- Set the Entry/Exit sound
+- Sound 2			- Set the Moving Loop sound
+- Sound 3			- Set the Run Aground sound

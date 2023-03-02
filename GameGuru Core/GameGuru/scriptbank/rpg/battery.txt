@@ -1,0 +1,13 @@
+Battery
+
+The attached object will give the player a energy resource if collected. 
+
+Behavior options:
+Set the PROMPT TEXT example: "E to collect battery"
+Set the ENERGY_LEVEL of the battery
+Set the PICKUP_RANGE of the battery to pickup
+<Sound0> plays when picked up.
+
+Energy Level is saved in 'g_energy" variable for use
+with multiple objects that uses that global variable.
+Eg: Flashlight, Car, any battery powered device etc.

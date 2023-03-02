@@ -1,0 +1,15 @@
+Stealth Shield
+The Stealth shield object will give the player Stealth capability while activated?
+
+To use place the Stealthshield object on the map or use your own.
+The Stealthshield object is pre attached to the behaviour, if using
+your own model attach the stealthshield behaviour to it.
+
+Edit the behaviour settings as required.
+- Shield Style 1=Pickup Shield or 2= Already Collected)]
+- On/Off activation key set to use choices are 1=INS-On DEL-off or 2=PAGEUP-On PAGEDN-Off
+- Change the Stealth ON_TEXT
+- Change the Stealth OFF_TEXT
+- The Stealth Mode 1=Timed 2=Random
+- Timed Duration 1-30 seconds
+- Change Stealth discovery Range

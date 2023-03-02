@@ -1,0 +1,10 @@
+Winswitch behavior
+
+This object will be treated as a switch object to end the level.
+
+Behavior options:
+Edit the PROMPT TEXT eg: "to End Level"
+Play the audio <Sound0> when the object is switched ON by the player.
+Select ToLevelMode for 'Use Storyboard Logic" or 'Go to Specific Level' to control
+whether the next level in the Storyboard, or another level is loaded after the 
+switch is turned on.

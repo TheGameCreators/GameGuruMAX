@@ -1,0 +1,34 @@
+Task Behaviors
+A two part behavior set for requiring a object to complete the task.
+
+There are two separate but related behaviors
+1. The Task Object
+The Task_Object behavior attaches to a selected object to be the recipient
+of the required task tool to switch/activate other objects or zones.
+Can be used with an animated object with "ON" named animation.
+Set the behavior options:-
+TASK TEXT: For text about task requirement (will appear after the auto filled Tools Name)
+USE RANGE: For the use range
+TOOL REQUIRED: Select the tool required to activate, either a preset or Named Tool
+TOOL NAME: Name if a Named Tool is selected
+TASK USE TEXT: Task to use text (when tool aquired)
+TASK DONE TEXT: Task completed text
+<Sound0> for the using tool sound
+<Sound1> for the task complete sound
+
+2. The Task Tool
+The Task_Tool behavior attaches to any selected object to act as the
+required task tool to activate the Task Object.
+Set the behavior options:-
+PROMPT TEXT: For the use prompt text
+PICKUP RANGE: For the pickup range
+AUTO PICKUP: Range pickup instead of E to pick up.
+TOOL TYPE: Select the tool type, either a preset or Named Tool
+TOOL NAME: Name if a Named Tool is selected
+<Sound0> when picked up.
+
+Link the Task Object with the logic connector to whatever you wish to activate.
+
+The Task Object cannot operate until the Task Tool is possessed. If in possession of
+a Task Tool and within range of the the Task Object then using the Task Object, the
+Task Object will activate the linked object.

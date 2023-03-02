@@ -1,0 +1,32 @@
+Sentry 
+
+This Script can be attached to any object used for the gun turret.
+1. Place the Sentry gun base, if using it.
+2. Place the Sentry gun on the base or independent if not using it
+3. Apply the behaviour to the Sentry gun object.
+4. Place the Muzzle Flash object on the map infront of the gun muzzle, it will be hidden on startup.
+5. If you rename the Muzzle Flash Object you must update the Behaviour to match.
+6. Open the Behaviour on the Sentry gun and modify settings and sounds to suit. Now your set to go.
+
+Behaviour Options:
+Change the Prompt Text when alerted.
+Change the Detection Range
+Change the Scan Radius
+Change the Scan Speed
+Change if the  Sentry alarms nearby enemies
+Change the Sentry Alarm Range
+Change the Damage inflicted to player
+Enter the Muzzle Name (if changed from default).
+Change the Y offset for the Muzzle Flash if required
+Change the Z offset for the Muzzle Flash if required
+Change wether the gun is Visible or Invisible
+Set the alliegence of the gun
+- Enemy will kill player
+- Ally will kill enemies
+- Neutral kills nothing
+<Sound0> - Sentry scan Loop
+<Sound1> - Sentry Firing
+
+The guns allegience can be changed in the game by 
+sneaking up behind it and hack (change) it when prompted.
+

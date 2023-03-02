@@ -1,0 +1,16 @@
+Collapsing Floor Behaviour
+
+Can be used on any floor tiles or section object.
+Creates a collapsing Floor area oject when walked on. Physics=ON, Gravity=ON
+
+Behavior options:
+
+Set the PROMPT TEXT  eg: "Floor is collapsing"
+Set the COLLAPSE TYPE to Collapsing or Fading
+Set the ACTIVE TIME to collapse
+Set the ACTIVE RANGE toe collapsing section/object
+Set the fall DAMAGE TYPE to either Fixed Fall or Natural Fall 
+Set the DAMAGE HEIGHT for commencement of fall damage
+Set the COLLISION SCALE to adjust physics collision scale of object
+for tight fitting object/sections
+ 

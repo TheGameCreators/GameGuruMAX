@@ -79,6 +79,14 @@ bool load_rpg_system(char* name)
 		}
 		fclose(collectionFile);
 	}
+	else
+	{
+		// if not user defined collection, out of the box fields
+		g_collectionLabels.clear();
+		g_collectionLabels.push_back("title");
+		g_collectionLabels.push_back("image");
+		g_collectionLabels.push_back("description");
+	}
 
 	// make a copy to regular gaming list
 	g_collectionList = g_collectionMasterList;

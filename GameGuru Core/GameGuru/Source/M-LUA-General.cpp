@@ -1252,19 +1252,20 @@ void lua_removeplayerweapon ( void )
 	// t.v is slot index (1-10)
 	t.ws = t.v;
 
-	// put away weapon if held
-	if ( t.weaponslot[t.ws].got != 0 ) g.autoloadgun = 0;
-
-	// clear weapon and ammo
-	t.weaponslot[t.ws].got=0;
-	t.weaponammo[t.ws]=0;
-	t.tgunid=t.weaponslot[t.ws].pref;
-	if (  t.tgunid>0 ) 
+	// only if valid weapon slot
+	if (t.ws >= 1 && t.ws <= 10)
 	{
-		t.tpool=g.firemodes[t.tgunid][0].settings.poolindex;
-		t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
-		if (  t.tpool == 0  )  t.weaponclipammo[t.ws] = 0; else t.ammopool[t.tpool].ammo = 0;
-		if (  t.altpool == 0  )  t.weaponclipammo[t.ws+10] = 0; else t.ammopool[t.altpool].ammo = 0;
+		t.gunid = t.weaponslot[t.ws].got;
+		if (t.gunid > 0)
+		{
+			// store ammo before remove from slot
+			t.gun[t.gunid].storeammo = t.weaponammo[t.ws];
+			t.gun[t.gunid].storeclipammo = t.weaponclipammo[t.ws];
+
+			// clear weapon
+			t.weaponindex = t.gunid;
+			physics_player_removeweapon ();
+		}
 	}
 }
 
@@ -1272,7 +1273,8 @@ void lua_removeplayerweapons (void)
 {
 	//  put away weapon if held
 	g.autoloadgun = 0;
-	//  clear all weapons and ammo
+
+	//  clear all weapons and ammo (even if not collecte yet, why we are using pref)
 	for (t.ws = 1; t.ws <= 10; t.ws++)
 	{
 		t.weaponslot[t.ws].got = 0;
@@ -1284,9 +1286,12 @@ void lua_removeplayerweapons (void)
 			t.altpool = g.firemodes[t.tgunid][1].settings.poolindex;
 			if (t.tpool == 0)  t.weaponclipammo[t.ws] = 0; else t.ammopool[t.tpool].ammo = 0;
 			if (t.altpool == 0)  t.weaponclipammo[t.ws + 10] = 0; else t.ammopool[t.altpool].ammo = 0;
+			t.gun[t.tgunid].storeammo = 0;
+			t.gun[t.tgunid].storeclipammo = 0;
 		}
 	}
-	//  some common resets (as often called when want to reset player)
+
+	// some common resets (as often called when want to reset player)
 	t.playercontrol.camerashake_f = 0;
 	t.playercontrol.flinchx_f = 0;
 	t.playercontrol.flinchy_f = 0;

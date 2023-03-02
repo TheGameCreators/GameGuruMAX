@@ -37,6 +37,11 @@ void gun_restart ( void )
 	{
 		t.ammopool[t.i].ammo=0;
 	}
+	for (t.tgunid = 1; t.tgunid <= g.gunmax; t.tgunid++)
+	{
+		t.gun[t.tgunid].storeammo = 0;
+		t.gun[t.tgunid].storeclipammo = 0;
+	}
 
 	//  set maximum slots allowed (for games that allow only a few weapons to be carried)
 	//  LEE, find out if these are set elsewhere and remove (and move this code to coirrect place)
@@ -358,7 +363,8 @@ void gun_manager ( void )
 			if (  g.weaponammoindex>0 ) 
 			{
 				//  only if 'different weapon'
-				if (  t.weaponslot[g.weaponammoindex].pref != t.sel ) 
+				///if (t.weaponslot[g.weaponammoindex].pref != t.sel)
+				if (t.weaponslot[g.weaponammoindex].got != t.sel)
 				{
 					t.gunmode=31 ; t.gunselectionafterhide=t.sel;
 					t.gunandmelee.tmouseheld=0;
@@ -3913,51 +3919,6 @@ void gun_setup ( void )
 	gun_create_hud ( );
 }
 
-void gun_gatherslotorder_classic ( void )
-{
-	t.tslotmax=0;
-	g.gunslotmax=0;
-	Dim (  t.data_s,100  );
-	t.filename_s="..\\";
-	t.filename_s += g.setupfilename_s;
-	LoadArray (  t.filename_s.Get(),t.data_s );
-	for ( t.l = 0 ; t.l<=  99; t.l++ )
-	{
-		t.line_s=t.data_s[t.l];
-		if (  Len(t.line_s.Get())>0 ) 
-		{
-			if (  strcmp ( Left(t.line_s.Get(),1) , ";" ) != 0 ) 
-			{
-
-				//  take fieldname and value
-				for ( t.c = 0 ; t.c < Len(t.line_s.Get()); t.c++ )
-				{
-					if ( t.line_s.Get()[t.c] == '=' )  { t.mid = t.c+1  ; break; }
-				}
-				t.field_s=Lower(removeedgespaces(Left(t.line_s.Get(),t.mid-1)));
-				t.value_s=removeedgespaces(Right(t.line_s.Get(),Len(t.line_s.Get())-t.mid));
-
-				//  gather gun type from slot
-				for ( t.tww = 1 ; t.tww<=  9; t.tww++ )
-				{
-					t.tryfield_s="slot";
-					t.tryfield_s += Str(t.tww);
-					if (  t.field_s == t.tryfield_s ) 
-					{
-						//  find gun id from name
-						t.findgun_s=t.value_s;
-						gun_findweaponindexbyname ( );
-						t.weaponslot[t.tww].pref=t.foundgunid;
-						if (  t.foundgunid>0  )  g.gunslotmax = t.tww;
-					}
-				}
-
-			}
-		}
-	}
-	UnDim (  t.data_s );
-}
-
 void gun_gatherslotorder_load(void)
 {
 	t.tslotmax = 0;
@@ -4026,11 +3987,7 @@ void gun_gatherslotorder_save(void)
 
 void gun_gatherslotorder (void)
 {
-	#ifdef WICKEDENGINE
 	gun_gatherslotorder_load();
-	#else
-	gun_gatherslotorder_classic();
-	#endif
 }
 
 void gun_selectandorload ( void )

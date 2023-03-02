@@ -2546,11 +2546,6 @@ void physics_player_init ( void )
 	}
 
 	// Select weapon if start marker specifies it
-	//for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
-	//{
-	//	t.weaponslot[t.ws].got=0;
-	//	t.weaponslot[t.ws].pref=0;
-	//}
 	if ( t.game.levelplrstatsetup == 1 )
 	{
 		//Sometimes the player would spawn with a "phantom weapon" where the weapon slot would be occupied and obstruct collecting/using weapons
@@ -4186,14 +4181,15 @@ void physics_player_addweapon ( void )
 	{
 		if (  t.weaponslot[t.ws].got == t.weaponindex  )  t.gotweapon = t.ws;
 	}
-	if (  t.gotweapon == 0 ) 
+	if ( t.gotweapon == 0 ) 
 	{
-		//  check if we have a slot preference
+		// check if we have a slot preference
 		t.tweaponisnew=1;
 		t.gotweaponpref=0;
-		for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+		for ( t.ws = 1 ; t.ws <= 10; t.ws++ )
 		{
-			if (  t.weaponslot[t.ws].pref == t.weaponindex  )  t.gotweaponpref = t.ws;
+			if (  t.weaponslot[t.ws].pref == t.weaponindex )  
+				t.gotweaponpref = t.ws;
 		}
 		// check if we are forcing a suggested slot: g_iSuggestedSlot
 		if (t.gotweaponpref == 0)
@@ -4207,21 +4203,24 @@ void physics_player_addweapon ( void )
 				}
 			}
 		}
-		//  add weapon
+		// add weapon
 		if (t.gotweaponpref == 0)
 		{
-			//  find free slot
+			// find free slot
 			for ( t.ws = 1 ; t.ws <= 10; t.ws++ )
 			{
 				if (t.weaponslot[t.ws].pref == 0)
 					break;
 			}
+
+			// force a slot
 			if (  g.forcedslot != 0 ) { t.ws = g.forcedslot  ; t.gotweaponpref = t.ws ; g.forcedslot = 0; }
-			//  count weapons for maximum slots. If exceeded, prevent pick up.
+
+			// count weapons for maximum slots. If exceeded, prevent pick up.
 			t.weaps=0;
 			for ( t.count = 1 ; t.count <= 10 ; t.count++ )
 			{
-				if (  t.weaponslot[t.count].pref != 0  )  ++t.weaps;
+				if (t.weaponslot[t.count].pref != 0)  ++t.weaps;
 			}
 			if (  t.weaps >= g.maxslots  )  t.ws = 100;
 			if (  t.ws <= 10 ) 
@@ -4229,6 +4228,7 @@ void physics_player_addweapon ( void )
 				//  add weapon into free slot and create pref for it
 				t.weaponslot[t.ws].pref=t.weaponindex;
 				t.weaponhud[t.ws]=t.gun[t.weaponindex].hudimage;
+
 				//  mark weapon with 'possible' entity that held this weapon (for equipment activation)
 				g.firemodes[t.weaponindex][0].settings.equipmententityelementindex=t.autoentityusedtoholdweapon;
 			}
@@ -4243,10 +4243,10 @@ void physics_player_addweapon ( void )
 			t.ws=t.gotweaponpref;
 		}
 
-		//  switch to collected weapon
-		if (  g.autoswap == 1 && t.ws>0 ) 
+		// switch to collected weapon
+		if ( g.autoswap == 1 && t.ws>0 ) 
 		{
-			//  insert as slot weapon
+			// insert as slot weapon
 			t.weaponslot[t.ws].got=t.weaponindex;
 			t.weaponslot[t.ws].invpos=t.weaponinvposition;
 			g.autoloadgun=t.weaponindex;
@@ -4273,22 +4273,32 @@ void physics_player_addweapon ( void )
 		}
 	}
 
-	//  weapons start with some ammo
-	if (  t.gotweapon>0 ) 
+	// weapons start with some ammo
+	if ( t.gotweapon>0 ) 
 	{
-		t.tgunid=t.weaponslot[t.gotweapon].pref;
-		if (  t.gun[t.tgunid].settings.weaponisammo == 0 ) 
+		// ammo for weapon
+		t.tgunid = t.weaponslot[t.gotweapon].got;
+		if ( t.gun[t.tgunid].settings.weaponisammo == 0 )
 		{
-			//if (  t.tqty == 0  )  t.tqty = 1;
-			if (t.tqty < 0)  t.tqty = 0; //PE: no ammo should be possible.
-			if (  t.weaponammo[t.gotweapon] == 0 && t.tweaponisnew == 1 ) 
+			// no ammo should be possible
+			if (t.tqty < 0) t.tqty = 0; 
+
+			// when new weapon starts, get ammo from store (in case was moved to container and is brought back)
+			if (t.tweaponisnew == 1)
 			{
-				//  provide some alternative ammo (weaponammo+10)
-				if (  t.gun[t.tgunid].settings.modessharemags == 0 ) 
+				t.weaponammo[t.gotweapon] = t.gun[t.tgunid].storeammo;
+				t.weaponclipammo[t.gotweapon] = t.gun[t.tgunid].storeclipammo;
+			}
+
+			t.taltqty = 0;
+			if (t.weaponammo[t.gotweapon] == 0 && t.tweaponisnew == 1)
+			{
+				// provide some alternative ammo (weaponammo+10)
+				if ( t.gun[t.tgunid].settings.modessharemags == 0 ) 
 				{
 					//  080415 - only if not sharing ammo
-					t.taltqty=t.tqty;
-					if (  t.taltqty>g.firemodes[t.tgunid][1].settings.reloadqty ) 
+					t.taltqty = t.tqty;
+					if (  t.taltqty>g.firemodes[t.tgunid][1].settings.reloadqty )
 					{
 						t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
 						t.weaponammo[t.gotweapon+10]=g.firemodes[t.tgunid][1].settings.reloadqty;
@@ -4388,29 +4398,25 @@ return;
 
 void physics_player_removeweapon ( void )
 {
-
-	//  check all weapon slots
+	// check all weapon slots
 	for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
 	{
-		if (  t.weaponslot[t.ws].got == t.weaponindex  )  break;
+		if ( t.weaponslot[t.ws].got == t.weaponindex  )  break;
 	}
 	if (  t.ws <= 10 ) 
 	{
-		//  Ensure gun is removed (if applicable)
-		if (  t.gunid>0 && t.weaponslot[t.ws].got == t.gunid ) 
+		// Ensure gun is removed (if applicable)
+		if ( t.gunid>0 && t.weaponslot[t.ws].got == t.gunid ) 
 		{
 			g.autoloadgun=0;
 		}
-		//  drop weapon from slot
+		// drop weapon from slot
 		t.weaponslot[t.ws].got=0;
 		t.weaponslot[t.ws].invpos=0;
 	}
 
 	//  refresh gun count
 	physics_player_refreshcount ( );
-
-return;
-
 }
 
 void physics_player_resetWeaponSlots( void )

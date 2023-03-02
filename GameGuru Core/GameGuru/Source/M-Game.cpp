@@ -3860,9 +3860,12 @@ void game_preparelevel ( void )
 	decal_loadonlyactivedecals ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
-	//  load required scripts
+	// load required scripts
 	lua_init ( );
 	lua_scanandloadactivescripts ( );
+
+	// make up collection list for this level, includes master list plus any collectables in entity list of this level
+	append_collection_from_entities();
 
 	#ifdef VRTECH
 	// if still generating LIP file, wait here

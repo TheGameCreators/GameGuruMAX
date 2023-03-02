@@ -76,6 +76,10 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].settings.fVRWeaponOffsetY = 0;
 	t.gun[t.gunid].settings.fVRWeaponOffsetZ = 0;
 
+	// stores legacy ammo/clip values when move slot weapons to player containers for storage
+	t.gun[t.gunid].storeammo = 0;
+	t.gun[t.gunid].storeclipammo = 0;
+
 	//  two basic firemodes (i.e semi+full auto or shotgun+grenade)
 	for ( t.i = 0 ; t.i <= 1; t.i++ )
 	{

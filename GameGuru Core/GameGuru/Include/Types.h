@@ -7849,10 +7849,14 @@ struct guntype
 	float handrotz_f;
 	int alwaysshowenemyweapon;
 	cstr animsetoverride;
+	int storeammo;
+	int storeclipammo;
 
 	// Constructor
 	guntype ( )
 	{
+		 storeammo = 0;
+		 storeclipammo = 0;
 		 animsetoverride = "";
 		 alwaysshowenemyweapon = 0;
 		 handscale_f = 100.0f;

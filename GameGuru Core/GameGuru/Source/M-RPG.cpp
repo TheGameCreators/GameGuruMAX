@@ -9,12 +9,14 @@
 
 // Globals
 std::vector<cstr> g_collectionLabels;
+std::vector<collectionItemType> g_collectionMasterList;
 std::vector<collectionItemType> g_collectionList;
 
 // Functions
 void init_rpg_system(void)
 {
 	// clear collection list
+	g_collectionMasterList.clear();
 	g_collectionList.clear();
 }
 
@@ -72,10 +74,58 @@ bool load_rpg_system(char* name)
 			// add populated item to collection list
 			if (bPopulateLabels == false)
 			{
-				g_collectionList.push_back(item);
+				g_collectionMasterList.push_back(item);
 			}
 		}
 		fclose(collectionFile);
+	}
+
+	// make a copy to regular gaming list
+	g_collectionList = g_collectionMasterList;
+
+	// success
+	return true;
+}
+
+bool append_collection_from_entities(void)
+{
+	// start with game project master list
+	g_collectionList = g_collectionMasterList;
+
+	// go through all entities and add per-level items to collection (weapons, objects marked as collectable but not in master list)
+	for ( int e = 1; e <= g.entityelementlist; e++)
+	{
+		int entid = t.entityelement[e].bankindex;
+		if (entid > 0)
+		{
+			if (t.entityprofile[entid].isweapon > 0)
+			{
+				// weapons are automatically collectale
+				collectionItemType item;
+				item.collectionFields.clear();
+				for (int l = 0; l < g_collectionLabels.size(); l++)
+				{
+					int iKnownLabel = 0;
+					LPSTR pLabel = g_collectionLabels[l].Get();
+					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (iKnownLabel > 0 )
+					{
+						// field we can populate automatically
+						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 2) item.collectionFields.push_back(cstr("gamecore\\guns\\")+ t.entityprofile[entid].isweapon_s+cstr("\\item.png"));
+						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+					}
+					else
+					{
+						// empty field
+						item.collectionFields.push_back("");
+					}
+				}
+				g_collectionList.push_back(item);
+			}
+		}
 	}
 
 	// success

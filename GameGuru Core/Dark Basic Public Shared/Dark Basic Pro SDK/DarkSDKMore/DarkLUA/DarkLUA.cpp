@@ -1119,10 +1119,13 @@ luaMessage** ppLuaMessages = NULL;
 					item.collectionID = 0;
 					for (int n = 0; n < g_collectionList.size(); n++)
 					{
-						if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
+						if (g_collectionList[n].collectionFields.size() > 0)
 						{
-							item.collectionID = 1 + n;
-							break;
+							if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
+							{
+								item.collectionID = 1 + n;
+								break;
+							}
 						}
 					}
 

@@ -42,6 +42,7 @@
 #include "M-LUA-Entity.h"
 #include "M-LUA-General.h"
 #include "M-LUA.h"
+#include "M-RPG.h"
 #include "M-MapFile.h"
 #include "M-Material.h"
 #include "M-OBS.h"

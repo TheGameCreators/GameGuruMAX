@@ -2901,6 +2901,7 @@ void entity_lua_addplayerweapon(void)
 	g_iSuggestedSlot = t.v;
 	physics_player_addweapon();
 	g_iSuggestedSlot = 0;
+	t.entityelement[t.e].eleprof.quantity = 0;// and keep the ammo elsewhere :)
 }
 
 void entity_lua_changeplayerweapon(void)

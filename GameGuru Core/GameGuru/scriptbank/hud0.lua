@@ -63,7 +63,7 @@ function hud0.refreshHUD()
 					local titemimg = GetCollectionItemAttribute(tcollectionindex,"image")
 					if string.len(titemimg) > 0 then
 						hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
-						hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage("imagebank\\HUD Library\\" .. titemimg)
+						hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
 						itemindex=itemindex+1
 					end
 				end
@@ -93,7 +93,7 @@ function hud0.refreshHUD()
 								if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] == nil then
 									-- add this new arrival
 									hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
-									hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage("imagebank\\HUD Library\\" .. titemimg)
+									hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
 								end
 							end
 						end

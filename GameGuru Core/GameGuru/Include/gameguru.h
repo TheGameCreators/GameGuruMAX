@@ -2237,6 +2237,7 @@ struct inventoryContainerType
 {
 	int e;
 	int collectionID;
+	int slot;
 };
 
 // Temp Struct

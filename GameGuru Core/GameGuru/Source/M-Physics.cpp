@@ -4177,6 +4177,7 @@ void physics_player_thirdpersonreset ( void )
 
 void physics_player_addweapon ( void )
 {
+	extern int g_iSuggestedSlot;
 	//  takes weaponindex
 	t.tweaponisnew=0;
 	//  check all weapon slots
@@ -4194,13 +4195,26 @@ void physics_player_addweapon ( void )
 		{
 			if (  t.weaponslot[t.ws].pref == t.weaponindex  )  t.gotweaponpref = t.ws;
 		}
+		// check if we are forcing a suggested slot: g_iSuggestedSlot
+		if (t.gotweaponpref == 0)
+		{
+			// is there a suggested slot?
+			if (g_iSuggestedSlot > 0)
+			{
+				if (t.weaponslot[g_iSuggestedSlot].got == 0)
+				{
+					t.gotweaponpref = g_iSuggestedSlot;
+				}
+			}
+		}
 		//  add weapon
-		if (  t.gotweaponpref == 0 ) 
+		if (t.gotweaponpref == 0)
 		{
 			//  find free slot
-			for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+			for ( t.ws = 1 ; t.ws <= 10; t.ws++ )
 			{
-				if (  t.weaponslot[t.ws].pref == 0  )  break;
+				if (t.weaponslot[t.ws].pref == 0)
+					break;
 			}
 			if (  g.forcedslot != 0 ) { t.ws = g.forcedslot  ; t.gotweaponpref = t.ws ; g.forcedslot = 0; }
 			//  count weapons for maximum slots. If exceeded, prevent pick up.
@@ -4253,6 +4267,9 @@ void physics_player_addweapon ( void )
 				g.autoloadgun=t.weaponindex;
 				t.weaponkeyselection=t.ws;
 			}
+
+			// when slot suggested (editing hot keys, no need for pref init position)
+			if (g_iSuggestedSlot > 0 ) t.weaponslot[t.ws].pref = 0; 
 		}
 	}
 

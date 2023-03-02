@@ -2890,13 +2890,17 @@ void entity_lua_switchscript ( void )
 	#endif
 }
 
+int g_iSuggestedSlot = 0;
+
 void entity_lua_addplayerweapon(void)
 {
-	//  collect this weapon
+	// collect this weapon
 	t.tentid = t.entityelement[t.e].bankindex;
 	t.weaponindex = t.entityprofile[t.tentid].isweapon;
 	t.tqty = t.entityelement[t.e].eleprof.quantity;
+	g_iSuggestedSlot = t.v;
 	physics_player_addweapon();
+	g_iSuggestedSlot = 0;
 }
 
 void entity_lua_changeplayerweapon(void)

@@ -1285,7 +1285,6 @@ void lua_loop_finish ( void )
 
 		else if ( strcmp ( t.luaaction_s.Get() , "setplayerhealthcore" ) == 0 ) {  t.v= LuaMessageFloat() ; lua_setplayerhealthcore() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setplayerlives" ) == 0 ) {  t.v= LuaMessageFloat() ; lua_setplayerlives() ; }
-		else if ( strcmp ( t.luaaction_s.Get() , "removeplayerweapons" ) == 0 ) { t.v=LuaMessageInt() ; lua_removeplayerweapons() ; }
 
 		else if ( strcmp ( t.luaaction_s.Get() , "disablemusicreset" ) == 0 ) { t.v=LuaMessageInt() ; lua_disablemusicreset() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "musicload" ) == 0 ) { t.m=LuaMessageIndex(); t.s_s=LuaMessageString(); lua_musicload() ; }
@@ -1396,10 +1395,12 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "setanimationframe" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationframe() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setanimationspeed" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationspeed() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "collected" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_collected() ; }
-		else if (strcmp(t.luaaction_s.Get(), "addplayerweapon") == 0) { t.e = LuaMessageInt(); entity_lua_addplayerweapon(); }
+		else if (strcmp(t.luaaction_s.Get(), "addplayerweapon") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); }
 		else if (strcmp(t.luaaction_s.Get(), "changeplayerweapon") == 0) { t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); }
 		else if (strcmp(t.luaaction_s.Get(), "changeplayerweaponid") == 0) { t.v = LuaMessageInt(); entity_lua_changeplayerweaponid(); }
 		else if ( strcmp ( t.luaaction_s.Get() , "replaceplayerweapon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_replaceplayerweapon() ; }
+		else if (strcmp (t.luaaction_s.Get(), "removeplayerweapon") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapon(); }
+		else if (strcmp (t.luaaction_s.Get(), "removeplayerweapons") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapons(); }
 		else if ( strcmp ( t.luaaction_s.Get() , "addplayerammo" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_addplayerammo() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "addplayerhealth" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_addplayerhealth() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "addplayerjetpack" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_addplayerjetpack() ; }

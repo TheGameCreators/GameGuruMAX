@@ -647,6 +647,17 @@ luaMessage** ppLuaMessages = NULL;
 	lua_pushinteger ( L, iReturnValue );
 	return 1;
  }
+ int GetWeaponSlotPref(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iWeaponID = 0;
+	 int iSlotIndex = lua_tonumber(L, 1);
+	 iWeaponID = t.weaponslot[iSlotIndex].pref;
+	 lua_pushinteger (L, iWeaponID);
+	 return 1;
+ }
 
  // Weapon Modding Commands
  int GetPlayerWeaponID(lua_State *L)
@@ -1077,15 +1088,20 @@ luaMessage** ppLuaMessages = NULL;
  {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 2 ) return 0;
+	if ( n < 3 ) return 0;
+	int iReturnSlot = -1;
 	bool bItemHandled = false;
+	int iEntityIndex = lua_tonumber(L, 1);
+	int iCollectState = lua_tonumber(L, 2);
+	int iSlotIndex = lua_tonumber(L, 3);
 	for (int bothplayercontainers = 0; bothplayercontainers < 2; bothplayercontainers++)
 	{
-		int iEntityIndex = lua_tonumber(L, 1);
-		int iCollectState = lua_tonumber(L, 2);
 		if (iCollectState > 0)
 		{
-			if ( bItemHandled == false )
+			bool bAllowInHere = false;
+			if (iCollectState == 1 && bothplayercontainers == 0) bAllowInHere = true; // main inventrory
+			if (iCollectState == 2 && bothplayercontainers == 1) bAllowInHere = true; // hotkeys inventory
+			if (bAllowInHere == true && bItemHandled == false )
 			{
 				// if not already collected
 				int n = 0;
@@ -1098,6 +1114,7 @@ luaMessage** ppLuaMessages = NULL;
 					// add item to inventory
 					inventoryContainerType item;
 					item.e = iEntityIndex;
+
 					// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
 					item.collectionID = 0;
 					for (int n = 0; n < g_collectionList.size(); n++)
@@ -1108,16 +1125,60 @@ luaMessage** ppLuaMessages = NULL;
 							break;
 						}
 					}
-					t.inventoryContainer[bothplayercontainers].push_back(item);
-					bItemHandled = true;
-					if (t.entityelement[iEntityIndex].collected == 0)
+
+					// manage slot for this item
+					item.slot = -1;
+					if (iSlotIndex == -1)
 					{
-						t.entityelement[iEntityIndex].collected = iCollectState;
-						t.entityelement[iEntityIndex].x -= 999999;
-						t.entityelement[iEntityIndex].y -= 999999;
-						t.entityelement[iEntityIndex].z -= 999999;
-						t.entityelement[iEntityIndex].eleprof.phyalways = 1;
-						PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+						// look for free slot index
+						iReturnSlot = 0;
+						for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+						{
+							if (t.inventoryContainer[bothplayercontainers][n].slot == iReturnSlot)
+							{
+								// being used - try if next slot free
+								iReturnSlot++;
+								n = -1;
+							}
+						}
+						item.slot = iReturnSlot;
+					}
+					else
+					{
+						// ensure slot not used
+						bool bCanUseSlot = true;
+						for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+						{
+							if (t.inventoryContainer[bothplayercontainers][n].slot == iSlotIndex)
+							{
+								// being used - cannot use this one
+								bCanUseSlot = false;
+								break;
+							}
+						}
+						if (bCanUseSlot == true)
+						{
+							item.slot = iSlotIndex;
+							iReturnSlot = iSlotIndex;
+						}
+					}
+
+					// finally add to list
+					if (iReturnSlot != -1)
+					{
+						t.inventoryContainer[bothplayercontainers].push_back(item);
+
+						// handle entity itself
+						bItemHandled = true;
+						if (t.entityelement[iEntityIndex].collected == 0)
+						{
+							t.entityelement[iEntityIndex].collected = iCollectState;
+							t.entityelement[iEntityIndex].x -= 999999;
+							t.entityelement[iEntityIndex].y -= 999999;
+							t.entityelement[iEntityIndex].z -= 999999;
+							t.entityelement[iEntityIndex].eleprof.phyalways = 1;
+							PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+						}
 					}
 				}
 			}
@@ -1149,7 +1210,8 @@ luaMessage** ppLuaMessages = NULL;
 			}
 		}
 	}
-	return 0;
+	lua_pushinteger(L, iReturnSlot);
+	return 1;
  }
  int SetEntityUsed(lua_State* L)
  {
@@ -6580,11 +6642,28 @@ int GetInventoryItemID(lua_State* L)
 	lua_pushnumber(L, iItemEntityID);
 	return 1;
 }
+int GetInventoryItemSlot(lua_State* L)
+{
+	int iItemSlot = 0;
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
+	{
+		int iInventoryIndex = lua_tonumber(L, 2);
+		if (iInventoryIndex > 0 && iInventoryIndex <= t.inventoryContainer[bothplayercontainers].size())
+		{
+			iItemSlot = t.inventoryContainer[bothplayercontainers][iInventoryIndex - 1].slot;
+		}
+	}
+	lua_pushnumber(L, iItemSlot);
+	return 1;
+}
 int MoveInventoryItem (lua_State* L)
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if (n < 3) return 0;
+	if (n < 4) return 0;
 	char pNameOfInventoryFrom[512];
 	strcpy(pNameOfInventoryFrom, lua_tostring(L, 1));
 	int bothplayercontainersfrom = FindInventoryIndex(pNameOfInventoryFrom);
@@ -6596,20 +6675,36 @@ int MoveInventoryItem (lua_State* L)
 		if (bothplayercontainersto >= 0)
 		{
 			int collectionindex = lua_tonumber(L, 3);
-			for (int n = 0; t.inventoryContainer[bothplayercontainersfrom].size(); n++)
+			int slotindex = lua_tonumber(L, 4);
+			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+			for (int n = 0; n < iListSize; n++)
 			{
 				if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
 				{
-					// add to new
+					// create item
 					inventoryContainerType item;
 					item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
 					item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
+					item.slot = slotindex;
+					// remove from old (below)
+					t.inventoryContainer[bothplayercontainersfrom][n].e = -1;
+					// add to new
 					t.inventoryContainer[bothplayercontainersto].push_back(item);
-					// remove from old
-					t.inventoryContainer[bothplayercontainersfrom].erase(t.inventoryContainer[bothplayercontainersfrom].begin() + n);
 					break;
 				}
 			}
+			// recreate container list without the deleted item
+			std::vector <inventoryContainerType> inventoryContainerTemp;
+			inventoryContainerTemp.clear();
+			iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+			for (int n = 0; n < iListSize; n++)
+			{
+				if (t.inventoryContainer[bothplayercontainersfrom][n].e != -1)
+				{
+					inventoryContainerTemp.push_back(t.inventoryContainer[bothplayercontainersfrom][n]);
+				}
+			}
+			t.inventoryContainer[bothplayercontainersfrom] = inventoryContainerTemp;
 		}
 	}
 	return 0;
@@ -8745,6 +8840,7 @@ void addFunctions()
 	lua_register(lua, "SetWeaponPoolAmmo", SetWeaponPoolAmmo);
 
 	lua_register(lua, "GetWeaponSlot", GetWeaponSlot);
+	lua_register(lua, "GetWeaponSlotPref", GetWeaponSlotPref);
 	lua_register(lua, "GetPlayerWeaponID", GetPlayerWeaponID);
 	lua_register(lua, "GetWeaponID", GetWeaponID);
 	lua_register(lua, "GetEntityWeaponID", GetEntityWeaponID);
@@ -9744,6 +9840,7 @@ void addFunctions()
 	lua_register(lua, "GetInventoryQuantity", GetInventoryQuantity);
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
 	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
+	lua_register(lua, "GetInventoryItemSlot", GetInventoryItemSlot);
 	lua_register(lua, "MoveInventoryItem", MoveInventoryItem);
 #endif
 

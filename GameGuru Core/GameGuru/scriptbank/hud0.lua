@@ -246,6 +246,7 @@ function hud0.main()
 										local panelnameTo = GetScreenElementName(thegridTo)
 										
 										-- if entity removed from collection, need entity index
+										local cancelmove = 0
 										local entityindex = 0
 										
 										-- shuffled inside hotkey, handle weapons
@@ -257,18 +258,24 @@ function hud0.main()
 												for tinventoryindex = 1, tinventoryqty, 1 do
 													local tcollectionindex = GetInventoryItem(panelname,tinventoryindex)
 													if tcollectionindex == findcollectionindex then 
-														if panelnameFrom == "inventory:hotkeys" then
-															-- remove from hot key location
-															if hud0_gridSelectedIndex >= 0 and hud0_gridSelectedIndex <= 9 then
-																RemovePlayerWeapon(1+hud0_gridSelectedIndex)
-																entityindex = GetInventoryItemID(panelname,tinventoryindex)
-																SetEntityCollected(entityindex,0,0)
-															end
+														local tcollectionentity = GetInventoryItemID(panelname,tinventoryindex)
+														if tcollectionentity == 0 then
+															-- this item is FIXED and cannot be moved (i.e. start weapon)
+															cancelmove = 1
 														else
-															-- removing to place in hot key location
-															if panelnameTo == "inventory:hotkeys" then
-																entityindex = GetInventoryItemID(panelname,tinventoryindex)
-																SetEntityCollected(entityindex,0,0)
+															if panelnameFrom == "inventory:hotkeys" then
+																-- remove from hot key location
+																if hud0_gridSelectedIndex >= 0 and hud0_gridSelectedIndex <= 9 then
+																	RemovePlayerWeapon(1+hud0_gridSelectedIndex)
+																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
+																	SetEntityCollected(entityindex,0,0)
+																end
+															else
+																-- removing to place in hot key location
+																if panelnameTo == "inventory:hotkeys" then
+																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
+																	SetEntityCollected(entityindex,0,0)
+																end
 															end
 														end
 														break
@@ -276,31 +283,31 @@ function hud0.main()
 												end
 											end
 										end
-										
-										-- moved item to new inventory container
-										if gridi ~= hud0_gridSelected then
-											local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-											MoveInventoryItem(panelnameFrom,panelnameTo,collectionindex,placedatitemindex)
-										end
-										
-										-- add to new location as we removed it above
-										if entityindex > 0 then
-											local suggestedslotvalid = -1
-											if panelnameTo == "inventory:hotkeys" then
-												suggestedslotvalid = SetEntityCollected(entityindex,2,placedatitemindex)
-												AddPlayerWeaponSuggestSlot(entityindex,1+placedatitemindex)
+										if cancelmove == 0 then
+											-- moved item to new inventory container
+											if gridi ~= hud0_gridSelected then
+												local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+												MoveInventoryItem(panelnameFrom,panelnameTo,collectionindex,placedatitemindex)
 											end
-											if suggestedslotvalid == -1 then
-												SetEntityCollected(entityindex,1,placedatitemindex)
+											-- add to new location as we removed it above
+											if entityindex > 0 then
+												local suggestedslotvalid = -1
+												if panelnameTo == "inventory:hotkeys" then
+													suggestedslotvalid = SetEntityCollected(entityindex,2,placedatitemindex)
+													AddPlayerWeaponSuggestSlot(entityindex,1+placedatitemindex)
+												end
+												if suggestedslotvalid == -1 then
+													SetEntityCollected(entityindex,1,placedatitemindex)
+												end
 											end
+											-- finish movement																		
+											hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
+											hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
+											hud0_gridSelected = gridi
+											hud0_gridSelectedIndex = placedatitemindex
 										end
-																														
-										hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-										hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-										hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
-										hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
-										hud0_gridSelected = gridi
-										hud0_gridSelectedIndex = placedatitemindex
 									end
 								end
 								hud0_pulledoutofslot = 0
@@ -424,8 +431,30 @@ function hud0.main()
 			end			
 		end			
 	end
+	
+	-- handle any logic ascribed to global text elements
+	local telementqty = GetScreenElementsType("user defined global text")
+	for elementi = 1, telementqty, 1 do
+		local elementid = GetScreenElementTypeID("user defined global text",elementi)
+		if elementid > 0 then
+			local elementName = GetScreenElementName(elementid)
+			if elementName == "MyNewPointsText" then 
+				local pointavailable = 0
+				if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
+				if pointavailable == 0 then
+					SetScreenElementText(elementid,"")
+				else
+					if pointavailable == 1 then
+						SetScreenElementText(elementid,"You can upgrade your stats, 1 point remains")
+					else
+						SetScreenElementText(elementid,"You can upgrade your stats, "..pointavailable.." points remain")
+					end
+				end
+			end
+		end
+	end
 
-	-- handle any button activity
+	-- handle any button activity for INVENTORY = DROP, USE, etc
 	if buttonElementID ~= -1 then
 		local buttonElementName = GetScreenElementName(1+buttonElementID)
 		if string.len(buttonElementName) > 0 then
@@ -469,6 +498,57 @@ function hud0.main()
 				end
 			end
 		end
+	end
+	-- handle any button activity for GLOBAL VALUES = AWARD, etc
+	local updatePlayerLimits = 0
+	if buttonElementID ~= -1 then
+		local buttonElementName = GetScreenElementName(1+buttonElementID)
+		if string.len(buttonElementName) > 0 then
+			local functionOnObject = 0
+			local functionName = string.sub(buttonElementName, 1, 6)
+			local functionParameter = ""
+			if functionName == "AWARD:" then 
+				functionOnObject = 1 
+				functionParameter = string.sub(buttonElementName, 7, -1)
+			end
+			if functionOnObject > 0 then
+				if functionOnObject == 1 then
+					-- AWARD = Spend a POINT to increase a global value
+					local pointavailable = 0
+					if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
+					local valuetoamend = 0
+					if _G["g_UserGlobal['"..functionParameter.."']"] ~= nil then valuetoamend = _G["g_UserGlobal['"..functionParameter.."']"] end
+					local valuetoamendmax = 100
+					if _G["g_UserGlobal['"..functionParameter.."Max".."']"] ~= nil then valuetoamendmax = _G["g_UserGlobal['"..functionParameter.."Max".."']"] end
+					local amounttoamend = 1
+					if pointavailable > 0 and valuetoamend < valuetoamendmax then
+						_G["g_UserGlobal['"..functionParameter.."']"] = valuetoamend + amounttoamend
+						_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable - amounttoamend
+						updatePlayerLimits = 1
+					end
+				end
+			end
+		end
+	end
+	
+	-- handle any adjustments to player limits and maximums	
+	if updatePlayerLimits == 1 then
+		-- these can be amended via custom scripts for more sophisticated mechanics
+		local modifyglobal = ""
+		-- strength increases max health
+		local currentstrength = 0 if _G["g_UserGlobal['".."MyStrength".."']"] ~= nil then currentstrength = _G["g_UserGlobal['".."MyStrength".."']"] end
+		local initialhealthmax = 100 if _G["g_UserGlobal['".."MyHealthInitial".."']"] ~= nil then initialhealthmax = _G["g_UserGlobal['".."MyHealthInitial".."']"] end
+		local newhealthmax = initialhealthmax + (currentstrength*100)
+		SetGamePlayerControlStartStrength(newhealthmax)
+		g_gameloop_StartHealth = newhealthmax
+		-- intelligence increases max mana
+		local currentintelligence = 0 if _G["g_UserGlobal['".."MyIntelligence".."']"] ~= nil then currentintelligence = _G["g_UserGlobal['".."MyIntelligence".."']"] end
+		local initialmanamax = 100 if _G["g_UserGlobal['".."MyManaInitial".."']"] ~= nil then initialmanamax = _G["g_UserGlobal['".."MyManaInitial".."']"] end
+		modifyglobal = "MyManaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialmanamax + (currentintelligence*100)
+		-- dexterity increases stamina
+		local currentdexterity = 0 if _G["g_UserGlobal['".."MyDexterity".."']"] ~= nil then currentdexterity = _G["g_UserGlobal['".."MyDexterity".."']"] end
+		local initialstaminamax = 100 if _G["g_UserGlobal['".."MyStaminaInitial".."']"] ~= nil then initialstaminamax = _G["g_UserGlobal['".."MyStaminaInitial".."']"] end
+		modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
 	end
 	
 	-- draw mouse pointer last
@@ -535,6 +615,61 @@ function hud0.main()
    
   end
   
+  -- handle awarding of XP points
+  local entitykilled = GetNearestEntityDestroyed(0)
+  if entitykilled > 0 then
+    -- determine what has been destroyed
+	local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
+	if allegiance == 0 then
+		local scoredXP = 100
+		local currentXP = 0 if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then currentXP = _G["g_UserGlobal['".."MyXP".."']"] end
+		currentXP = currentXP + scoredXP
+		local maximumXP = 0 if _G["g_UserGlobal['".."MyXPMax".."']"] ~= nil then maximumXP = _G["g_UserGlobal['".."MyXPMax".."']"] end
+		if currentXP >= maximumXP then
+			-- levelling up!
+			triggerElementPrompt = "MyLevelUpText"
+			triggerElementPromptText = "YOU'VE LEVELLED UP!"
+			triggerElementPromptTimer = Timer()
+			-- reset current XP
+			currentXP = currentXP - maximumXP
+			-- increase new points available
+			local pointavailable = 0 if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
+			_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable + 2
+			-- increase player level
+			local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+			playerlevel = playerlevel + 1
+			_G["g_UserGlobal['".."MyPlayerLevel".."']"] = playerlevel
+			-- new XP threshold for new player level
+			maximumXP = playerlevel * 500
+		end
+		modifyglobal = "MyXP" _G["g_UserGlobal['"..modifyglobal.."']"] = currentXP
+		modifyglobal = "MyXPMax" _G["g_UserGlobal['"..modifyglobal.."']"] = maximumXP
+	end
+  end
+  
+  -- handle any general element text work
+  if triggerElementPrompt ~= nil then
+	local telementqty = GetScreenElementsType("user defined global text")
+	local elementbeingused = -1
+	for elementi = 1, telementqty, 1 do
+		local elementid = GetScreenElementTypeID("user defined global text",elementi)
+		if elementid > 0 then
+			local elementName = GetScreenElementName(elementid)
+			if elementName == triggerElementPrompt then 
+				elementbeingused = elementid
+			end
+		end
+	end
+	if elementbeingused > -1 then
+		if Timer() < triggerElementPromptTimer + 3000 then
+			SetScreenElementText(elementbeingused,triggerElementPromptText)
+		else
+			SetScreenElementText(elementbeingused,"")
+			triggerElementPrompt = nil
+		end
+	end
+  end 
+ 
   -- remove sprite pasters
   if hud0_pointerSpriteID ~= nil then SetSpritePosition(hud0_pointerSpriteID,-99999,-99999) end
   if hud0_gridSpriteID ~= nil then SetSpritePosition(hud0_gridSpriteID,-99999,-99999) end

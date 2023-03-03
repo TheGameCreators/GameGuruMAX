@@ -2289,8 +2289,8 @@ GetRippleWaterSpeed() -- gets water setting attributes
 
 ** Object Relationship Commands
 GetEntityMarkerMode(e) -- get the marker mode value
-SetEntityAllegiance(e) -- set the allegiance value for this object (0-ally, 1-enemy, 2-neutral)
-GetEntityAllegiance(e) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
+SetEntityAllegiance(e) -- set the allegiance value for this object ("0=Enemy", "1=Ally", "2=Neutral")
+GetEntityAllegiance(e) -- get the allegiance value for this object ("-1=None", "0=Enemy", "1=Ally", "2=Neutral")
 GetEntityPatrolMode(e) -- get the patrol mode for this object
 GetEntityRelationshipID(e,i) -- get one of ten other connected entID
 GetEntityRelationshipType(e,i) -- get the type of connection for an entID
@@ -2303,6 +2303,8 @@ GetEntityMoveSpeed(e) -- get the move speed of the object
 GetEntityTurnSpeed(e) -- get the turn speed of the object
 SetEntityMoveSpeed(e) -- set the move speed of the object
 SetEntityTurnSpeed(e) -- set the turn speed of the object
+
+GetNearestEntityDestroyed : e = GetNearestEntityDestroyed(mode) -- returns the closest entity that was destroyed. Mode reserved.
 
 ** New AI SOund Commands
 GetNearestSoundDistance : distance, whoe = GetNearestSoundDistance(x,y,z,category) -- returns the closest distance greater than zero if a sound heard made by category of game architype

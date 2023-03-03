@@ -312,6 +312,9 @@ void entity_configueelementforuse ( void )
 		{
 			// Birds will freeze when health reaches 0. We can remove this if script is updated to handle death.
 			t.entityelement[t.e].health = 99999999;
+
+			// Birds are also interfering with ally enemy detection (and cannot be killed at the moment, so no point in them having their allegiance changed)
+			t.entityelement[t.e].eleprof.iCharAlliance = 2;//Neutral
 		}
 		else
 		{

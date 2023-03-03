@@ -1,11 +1,11 @@
 -- DESCRIPTION: The object will give the player an armour boost or deduction if used.
--- Armour v5
+-- Armour v7
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
--- DESCRIPTION: [USEAGE_TEXT$="Armour applied"]
+-- DESCRIPTION: [USEAGE_TEXT$="Armour worn"]
 -- DESCRIPTION: [QUANTITY=10(1,100)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyArmour"]
 -- DESCRIPTION: <Sound0> for collection sound.
@@ -29,7 +29,7 @@ function armour_init(e)
 	armour[e] = g_Entity[e]
 	armour[e].prompt_text = "E to Use"
 	armour[e].prompt_if_collectable = "E to collect"
-	armour[e].useage_text = "Armour applied"
+	armour[e].useage_text = "Armour worn"
 	armour[e].quantity = 10
 	armour[e].pickup_range = 80
 	armour[e].pickup_style = 1
@@ -59,23 +59,18 @@ function armour_main(e)
 				if GetEntityCollected(e) == 0 then
 					Prompt(armour[e].prompt_if_collectable)
 					if g_KeyPressE == 1 then
-						Hide(e)
-						CollisionOff(e)
-						SetEntityCollected(e,1)
+						SetEntityCollected(e,1,-1)
 					end
 				end
 			end
 		end
 	end
-	
-	-- proper handling to USE an item
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
 		PromptDuration(armour[e].useage_text,2000)
 		use_item_now[e] = 1
 		SetEntityUsed(e,tusedvalue*-1)
 	end
-	
 	local addquantity = 0
 	if use_item_now[e] == 1 then
 		PlaySound(e,0)
@@ -84,7 +79,6 @@ function armour_main(e)
 		if armour[e].effect == 2 then addquantity = 2 end
 		Destroy(e)
 	end
-	
 	local currentvalue = 0
 	if addquantity == 1 then
 		if armour[e].user_global_affected > "" then 
@@ -98,5 +92,4 @@ function armour_main(e)
 			_G["g_UserGlobal['"..armour[e].user_global_affected.."']"] = currentvalue - armour[e].quantity
 		end
 	end
-	
 end

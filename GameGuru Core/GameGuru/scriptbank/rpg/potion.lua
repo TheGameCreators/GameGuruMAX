@@ -5,7 +5,7 @@
 -- DESCRIPTION: [USEAGE_TEXT$="Potion consumed"]
 -- DESCRIPTION: [QUANTITY=10(1,100)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
 -- DESCRIPTION: <Sound0> for collection sound.
@@ -59,33 +59,26 @@ function potion_main(e)
 				if GetEntityCollected(e) == 0 then
 					Prompt(potion[e].prompt_if_collectable)
 					if g_KeyPressE == 1 then
-						-- adding to inventory simply hides from the world this object, the behaviour is still active
-						-- and can be triggered for use at any time
 						SetEntityCollected(e,1,-1)
 					end
 				end
 			end
 		end
 	end
-
-	-- proper handling to USE an item
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
 		PromptDuration(potion[e].useage_text,1000)
 		use_item_now[e] = 1
 		SetEntityUsed(e,tusedvalue*-1)
 	end
-	
 	local addquantity = 0
 	if use_item_now[e] == 1 then
-		use_item_now[e] = 0
 		PlaySound(e,0)
 		PerformLogicConnections(e)
 		if potion[e].effect == 1 then addquantity = 1 end
 		if potion[e].effect == 2 then addquantity = 2 end
 		Destroy(e)
 	end
-	
 	local currentvalue = 0
 	if addquantity == 1 then
 		if potion[e].user_global_affected > "" then 
@@ -99,5 +92,4 @@ function potion_main(e)
 			_G["g_UserGlobal['"..potion[e].user_global_affected.."']"] = currentvalue - potion[e].quantity
 		end
 	end
-	
 end

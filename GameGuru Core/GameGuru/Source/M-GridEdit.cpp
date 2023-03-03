@@ -28423,6 +28423,14 @@ void gridedit_mapediting ( void )
 								//if (fHitPointY == 0.0f) 
 								{
 									if (bDraggingActive == false) bDraggingActiveInitial = false;
+									if (ImGui::GetIO().MouseReleased[1])
+									{
+										// Wait for mouse position to update before performing pick
+										// When we hold RMB to look around with an entity on the cursor, the mouse position is reset to the centre of the screen temporarily
+										// When the RMB is released, the initial mouse pick will always be from the center of the screen, rather than where the mouse was before it was hidden
+										// This causes the entity to flicker. Skipping this function after a RMB release will prevent the flicker.
+										return;
+									}
 									if (t.inputsys.localselectedrayhit == true && (bDraggingActive == false || bDraggingActiveInitial == true || iObjectMoveMode == 2))
 									{
 										fHitPointY = t.inputsys.localcurrentterrainheight_f;

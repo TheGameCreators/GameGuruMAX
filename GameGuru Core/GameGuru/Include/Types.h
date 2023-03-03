@@ -3605,10 +3605,13 @@ struct gametype
 	int onceonlyshadow;
 	int takingsnapshotpress;
 	int activeStoryboardScreen;
+	int ingameHUDScreen;
 
 	// Constructor
 	gametype ( )
 	{
+		 ingameHUDScreen = 13;
+		 activeStoryboardScreen = 0;
 		 takingsnapshotpress = 0;
 		 onceonlyshadow = 0;
 		 jumplevel_s = "";

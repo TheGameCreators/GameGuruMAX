@@ -17,6 +17,8 @@ using namespace GPUParticles;
 extern GGRecastDetour g_RecastDetour;
 #endif
 
+// Globals
+std::vector<int> g_iDestroyedEntitiesList;
 
 // 
 //  ENTITY GAME CODE
@@ -24,6 +26,9 @@ extern GGRecastDetour g_RecastDetour;
 
 void entity_init ( void )
 {
+	// all entities initialised, and any old destroy list items cleared
+	g_iDestroyedEntitiesList.clear();
+	 
 	//  pre-create element data (load from eleprof)
 	timestampactivity(0,"Configure entity instances for use");
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -1887,9 +1892,12 @@ void entity_loop ( void )
 			// flag to destroy entity dead (can be set from LUA command or explosion trigger)
 			if ( t.entityelement[t.e].destroyme == 1 ) 
 			{
+				// mark as destroyed officially
+				t.entityelement[t.e].destroyme = 0;
+				entity_adddestroyevent(t.e);
+
 				// remove entity from game play
 				t.entityelement[t.e].eleprof.phyalways = 0;
-				t.entityelement[t.e].destroyme = 0;
 				t.entityelement[t.e].active = 0;
 				t.entityelement[t.e].health = 0;
 				t.entityelement[t.e].lua.flagschanged = 2;
@@ -2759,6 +2767,23 @@ void entity_find_charanimindex_fromttte ( void )
 	}
 }
 
+void entity_adddestroyevent(int e)
+{
+	bool bUniqueForList = true;
+	for (int n = 0; n < g_iDestroyedEntitiesList.size(); n++)
+	{
+		if (g_iDestroyedEntitiesList[n] == e)
+		{
+			bUniqueForList = false;
+			break;
+		}
+	}
+	if (bUniqueForList == true)
+	{
+		g_iDestroyedEntitiesList.push_back(e);
+	}
+}
+
 void entity_applydamage ( void )
 {
 	if ( t.entityelement[t.ttte].obj <= 0 ) return;
@@ -2998,6 +3023,9 @@ void entity_applydamage ( void )
 	// when health drops to zero
 	if (t.entityelement[t.ttte].health <= 0)
 	{
+		// counting any entity damage at or below zero a destroy event (for counting XP)
+		entity_adddestroyevent(t.ttte);
+
 		//  if explodble, have a delayed reaction
 		if (t.entityelement[t.ttte].eleprof.explodable != 0)
 		{

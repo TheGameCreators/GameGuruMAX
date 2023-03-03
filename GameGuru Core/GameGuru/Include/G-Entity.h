@@ -21,6 +21,7 @@ void entity_updatepos ( void );
 void entity_determinedamagemultiplier ( void );
 void entity_determinegunforce ( void );
 void entity_find_charanimindex_fromttte ( void );
+void entity_adddestroyevent(int e);
 void entity_applydamage ( void );
 void entity_gettruecamera ( void );
 void entity_gettrueplayerpos(void);

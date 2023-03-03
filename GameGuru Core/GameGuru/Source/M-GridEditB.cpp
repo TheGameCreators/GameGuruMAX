@@ -28092,7 +28092,7 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 
 				for (int gunid = 1; gunid <= g.gunmax; gunid++)
 				{
-					if (t.weaponSlotPreferrenceSettings[key] > 0 && t.weaponSlotPreferrenceSettings[key] == gunid)
+					if (t.weaponSlotPreferrenceSettings[key-1] > 0 && t.weaponSlotPreferrenceSettings[key-1] == gunid)
 					{
 						slot_s = t.gun[gunid].name_s;
 						break;
@@ -28106,7 +28106,7 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 					// assign a new preference
 					if (stricmp(slot_s.Get(), "") == NULL) //When "No Preference" option is selected slot_s is set to ""
 					{
-						t.weaponSlotPreferrenceSettings[key] = 0;
+						t.weaponSlotPreferrenceSettings[key-1] = 0;
 						t.weaponslot[key].pref = 0;
 					}
 					else
@@ -28115,7 +28115,18 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 						{
 							if (stricmp(slot_s.Get(), t.gun[gunid].name_s.Get()) == NULL)
 							{
-								t.weaponSlotPreferrenceSettings[key] = gunid;
+								// erase old preference if already assigned
+								for (int n = 0; n < 9; n++)
+								{
+									if ( n != (key-1) && t.weaponSlotPreferrenceSettings[n] == gunid)
+									{
+										t.weaponSlotPreferrenceSettings[n] = 0;
+										t.weaponslot[1+n].pref = 0;
+									}
+								}
+								
+								// add new preference
+								t.weaponSlotPreferrenceSettings[key-1] = gunid;
 								t.weaponslot[key].pref = gunid;
 								break;
 							}
@@ -30108,19 +30119,19 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 			{
 				if (strlen (thisLabel.Get()) == 0) thisLabel = "No Weapon";
 			}
-			if (stricmp (thisLabel.Get(), "enhanced\\Gloves_Unarmed") == NULL) thisLabel = "Melee Combat";
-			//if (stricmp (thisLabel.Get(), "enhanced\\M67") == NULL) thisLabel = "Grenades Only";
-			if (stricmp (thisLabel.Get(), "enhanced\\AK") == NULL) thisLabel = "Assault Rifle";
-			if (stricmp (thisLabel.Get(), "enhanced\\AR") == NULL) thisLabel = "Patrol Rifle";
-			if (stricmp (thisLabel.Get(), "enhanced\\B810") == NULL) thisLabel = "Pocket Knife";
-			if (stricmp (thisLabel.Get(), "enhanced\\M29S") == NULL) thisLabel = "Snubnose Revolver";
-			if (stricmp (thisLabel.Get(), "enhanced\\Mk18") == NULL) thisLabel = "Compact Assault Rifle";
-			if (stricmp (thisLabel.Get(), "enhanced\\Mk19T") == NULL) thisLabel = "Magnum Pistol";
-			if (stricmp (thisLabel.Get(), "enhanced\\R870") == NULL) thisLabel = "Tactical Pump Shotgun";
-			if (stricmp (thisLabel.Get(), "enhanced\\SledgeHammer") == NULL) thisLabel = "SledgeHammer";
-			if (stricmp (thisLabel.Get(), "aztec\\AztecAxe") == NULL) thisLabel = "Aztec Axe";
-			if (stricmp (thisLabel.Get(), "aztec\\AztecDagger") == NULL) thisLabel = "Aztec Dagger";
-			if (stricmp (thisLabel.Get(), "aztec\\AztecSpear") == NULL) thisLabel = "Aztec Spear";
+			thisLabel = gun_names_tonormal(thisLabel.Get());
+			//if (stricmp (thisLabel.Get(), "enhanced\\Gloves_Unarmed") == NULL) thisLabel = "Melee Combat";
+			//if (stricmp (thisLabel.Get(), "enhanced\\AK") == NULL) thisLabel = "Assault Rifle";
+			//if (stricmp (thisLabel.Get(), "enhanced\\AR") == NULL) thisLabel = "Patrol Rifle";
+			//if (stricmp (thisLabel.Get(), "enhanced\\B810") == NULL) thisLabel = "Pocket Knife";
+			//if (stricmp (thisLabel.Get(), "enhanced\\M29S") == NULL) thisLabel = "Snubnose Revolver";
+			//if (stricmp (thisLabel.Get(), "enhanced\\Mk18") == NULL) thisLabel = "Compact Assault Rifle";
+			//if (stricmp (thisLabel.Get(), "enhanced\\Mk19T") == NULL) thisLabel = "Magnum Pistol";
+			//if (stricmp (thisLabel.Get(), "enhanced\\R870") == NULL) thisLabel = "Tactical Pump Shotgun";
+			//if (stricmp (thisLabel.Get(), "enhanced\\SledgeHammer") == NULL) thisLabel = "SledgeHammer";
+			//if (stricmp (thisLabel.Get(), "aztec\\AztecAxe") == NULL) thisLabel = "Aztec Axe";
+			//if (stricmp (thisLabel.Get(), "aztec\\AztecDagger") == NULL) thisLabel = "Aztec Dagger";
+			//if (stricmp (thisLabel.Get(), "aztec\\AztecSpear") == NULL) thisLabel = "Aztec Spear";
 			if (n == -1)
 				ldata_s = thisLabel;
 			else
@@ -30276,22 +30287,22 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 				thisLabel = ldata_s;
 			else
 				thisLabel = t.list_s[n];
-			if (stricmp (thisLabel.Get(), "No Weapon") == NULL) thisLabel = "";
-			if (stricmp (thisLabel.Get(), "No Preference") == NULL) thisLabel = "";
-			if (stricmp (thisLabel.Get(), "Melee Combat") == NULL) thisLabel = "enhanced\\Gloves_Unarmed";
-			if (stricmp (thisLabel.Get(), "Grenades Only") == NULL) thisLabel = "enhanced\\M67";
-			if (stricmp (thisLabel.Get(), "Assault Rifle") == NULL) thisLabel = "enhanced\\AK";
-			if (stricmp (thisLabel.Get(), "Patrol Rifle") == NULL) thisLabel = "enhanced\\AR";
-			if (stricmp (thisLabel.Get(), "Pocket Knife") == NULL) thisLabel = "enhanced\\B810";
-			if (stricmp (thisLabel.Get(), "Snubnose Revolver") == NULL) thisLabel = "enhanced\\M29S";
-			if (stricmp (thisLabel.Get(), "Compact Assault Rifle") == NULL) thisLabel = "enhanced\\Mk18";
-			if (stricmp (thisLabel.Get(), "Magnum Pistol") == NULL) thisLabel = "enhanced\\Mk19T";
-			if (stricmp (thisLabel.Get(), "Tactical Pump Shotgun") == NULL) thisLabel = "enhanced\\R870";
-			if (stricmp (thisLabel.Get(), "SledgeHammer") == NULL) thisLabel = "enhanced\\SledgeHammer";
-
-			if (stricmp (thisLabel.Get(), "Aztec Axe") == NULL) thisLabel = "aztec\\AztecAxe";
-			if (stricmp (thisLabel.Get(), "Aztec Dagger") == NULL) thisLabel = "aztec\\AztecDagger";
-			if (stricmp (thisLabel.Get(), "Aztec Spear") == NULL) thisLabel = "aztec\\AztecSpear";
+			thisLabel = gun_names_tointernal(thisLabel.Get());
+			//if (stricmp (thisLabel.Get(), "No Weapon") == NULL) thisLabel = "";
+			//if (stricmp (thisLabel.Get(), "No Preference") == NULL) thisLabel = "";
+			//if (stricmp (thisLabel.Get(), "Melee Combat") == NULL) thisLabel = "enhanced\\Gloves_Unarmed";
+			//if (stricmp (thisLabel.Get(), "Grenades Only") == NULL) thisLabel = "enhanced\\M67";
+			//if (stricmp (thisLabel.Get(), "Assault Rifle") == NULL) thisLabel = "enhanced\\AK";
+			//if (stricmp (thisLabel.Get(), "Patrol Rifle") == NULL) thisLabel = "enhanced\\AR";
+			//if (stricmp (thisLabel.Get(), "Pocket Knife") == NULL) thisLabel = "enhanced\\B810";
+			//if (stricmp (thisLabel.Get(), "Snubnose Revolver") == NULL) thisLabel = "enhanced\\M29S";
+			//if (stricmp (thisLabel.Get(), "Compact Assault Rifle") == NULL) thisLabel = "enhanced\\Mk18";
+			//if (stricmp (thisLabel.Get(), "Magnum Pistol") == NULL) thisLabel = "enhanced\\Mk19T";
+			//if (stricmp (thisLabel.Get(), "Tactical Pump Shotgun") == NULL) thisLabel = "enhanced\\R870";
+			//if (stricmp (thisLabel.Get(), "SledgeHammer") == NULL) thisLabel = "enhanced\\SledgeHammer";
+			//if (stricmp (thisLabel.Get(), "Aztec Axe") == NULL) thisLabel = "aztec\\AztecAxe";
+			//if (stricmp (thisLabel.Get(), "Aztec Dagger") == NULL) thisLabel = "aztec\\AztecDagger";
+			//if (stricmp (thisLabel.Get(), "Aztec Spear") == NULL) thisLabel = "aztec\\AztecSpear";
 
 			if (n == -1)
 				ldata_s = thisLabel;
@@ -47816,19 +47827,94 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			if (ImGui::StyleCollapsingHeader(sUserGlobalLabel.Get(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
-				for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+				// only for HUD screens
+				std::vector<int> gameGlobalListNodeId;
+				std::vector<int> gameGlobalListIndex;
+				std::vector<int> gameGlobalListValue;
+				gameGlobalListNodeId.clear();
+				gameGlobalListIndex.clear();
+				gameGlobalListValue.clear();
+				for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 				{
-					if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT )
+					if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name,"hud",3) == NULL)
 					{
-						std::string readout = Storyboard.widget_readout[nodeid][i];
-						if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+						for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
 						{
-							ImGui::TextCenter(Storyboard.Nodes[nodeid].widget_label[i]);
-							char pUDGVar[256];
-							sprintf(pUDGVar, "##WidgetUDG%d", i);
-							float fValue = Storyboard.Nodes[nodeid].widget_initial_value[i];
-							ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
-							Storyboard.Nodes[nodeid].widget_initial_value[i] = fValue;
+							if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+							{
+								std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+								if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+								{
+									// only add unique ones to game global list
+									LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+									for (int n = 0; n < gameGlobalListNodeId.size(); n++)
+									{
+										int thisnodeid = gameGlobalListNodeId[n];
+										int index = gameGlobalListIndex[n];
+										LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+										if (strcmp(pNewName, pThisName) == NULL)
+										{
+											// already exists
+											pNewName = "";
+											break;
+										}
+									}
+									if (strlen(pNewName) > 0)
+									{
+										gameGlobalListNodeId.push_back(allhudscreensnodeid);
+										gameGlobalListIndex.push_back(i);
+										gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+									}
+								}
+							}
+						}
+					}
+				}
+				bool bChangedAGameGlobal = false;
+				for (int n = 0; n < gameGlobalListNodeId.size(); n++)
+				{
+					int allhudscreensnodeid = gameGlobalListNodeId[n];
+					int i = gameGlobalListIndex[n];
+					ImGui::TextCenter(Storyboard.Nodes[allhudscreensnodeid].widget_label[i]);
+					char pUDGVar[256];
+					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
+					float fValue = gameGlobalListValue[n];
+					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
+					if (fValue != gameGlobalListValue[n])
+					{
+						gameGlobalListValue[n] = fValue;
+						bChangedAGameGlobal = true;
+					}
+				}
+				if (bChangedAGameGlobal == true)
+				{
+					for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+					{
+						if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
+						{
+							for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+							{
+								if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+								{
+									std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+									if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+									{
+										// only add unique ones to game global list
+										LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+										for (int n = 0; n < gameGlobalListNodeId.size(); n++)
+										{
+											int thisnodeid = gameGlobalListNodeId[n];
+											int index = gameGlobalListIndex[n];
+											LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+											if (strcmp(pNewName, pThisName) == NULL)
+											{
+												Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = gameGlobalListValue[n];
+												break;
+											}
+										}
+									}
+								}
+							}
 						}
 					}
 				}

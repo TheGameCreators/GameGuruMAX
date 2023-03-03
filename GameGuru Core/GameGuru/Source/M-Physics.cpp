@@ -2548,24 +2548,31 @@ void physics_player_init ( void )
 	// Select weapon if start marker specifies it
 	if ( t.game.levelplrstatsetup == 1 )
 	{
-		//Sometimes the player would spawn with a "phantom weapon" where the weapon slot would be occupied and obstruct collecting/using weapons
-		//This makes sure that the player start the level with no weapons and unoccupied weapon slots
+		// sometimes the player would spawn with a "phantom weapon" where the weapon slot would be occupied and obstruct collecting/using weapons
+		// this makes sure that the player start the level with no weapons and unoccupied weapon slots
 		physics_player_resetWeaponSlots();
 
-		// Noite for MD - be aware that the code is also used by other products, so wrap new code with the WICKEDENGINE ifdef
-		#ifdef WICKEDENGINE
-		// Adds Unarmoured Gloves to players inventory on spawn
-		// This 'fix' was unnecessary as the user can specify what weaponm the player starts with, including the unarmed gloves (see Weapon propery in player start)
-		// t.weaponindex = 1;
-		// physics_player_addweapon();
-		// Note for MD - also worth testing the section after adding code, you would have seen selecting the Rifle to start with gets overridden with this code in a nasty way :)
-		#endif
-
+		// if starting with a weapon, grant it here
 		if (  t.playercontrol.starthasweapon>0 ) 
 		{
+			// weapon added to weapon slot 1
 			t.weaponindex=t.playercontrol.starthasweapon;
 			t.tqty=t.playercontrol.starthasweaponqty;
 			physics_player_addweapon ( );
+
+			// need to add this to the colleciton list
+			cstr thisLabel = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
+			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
+			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
+
+			// as this was never a level-object weapon, we force it into the slot 
+			// and ensure it cannot be removed or dropped, there is no object associated with it
+			inventoryContainerType item;
+			item.e = 0;
+			item.collectionID = find_rpg_collectionindex(thisLabel.Get());
+			item.slot = 0;
+			for (int n = 1; n <= 10; n++) { if (t.weaponslot[n].pref == t.weaponindex) { item.slot = n - 1; break; } }
+			t.inventoryContainer[1].push_back(item);
 		}
 	}
 	else

@@ -3954,7 +3954,7 @@ void gun_gatherslotorder_load(void)
 							t.findgun_s = t.value_s;
 							gun_findweaponindexbyname ();
 							t.weaponslot[t.tww].pref = t.foundgunid;
-							t.weaponSlotPreferrenceSettings[t.tww] = t.foundgunid;
+							t.weaponSlotPreferrenceSettings[t.tww-1] = t.foundgunid;
 							if (t.foundgunid > 0)  g.gunslotmax = t.tww;
 						}
 					}
@@ -3974,7 +3974,7 @@ void gun_gatherslotorder_save(void)
 	{
 		t.data_s[t.tww] = cstr("slot") + cstr(t.tww) + "=";
 		//t.foundgunid = t.weaponslot[t.tww].pref;
-		t.foundgunid = t.weaponSlotPreferrenceSettings[t.tww];
+		t.foundgunid = t.weaponSlotPreferrenceSettings[t.tww-1];
 		if (t.foundgunid > 0)
 		{
 			t.data_s[t.tww] = t.data_s[t.tww] + cstr(Lower(t.gun[t.foundgunid].name_s.Get()));

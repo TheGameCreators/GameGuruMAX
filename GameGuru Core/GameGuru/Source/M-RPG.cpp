@@ -136,7 +136,39 @@ bool append_collection_from_entities(void)
 		}
 	}
 
+	// for init on each game project, where is the INGAME HUD screen (can change as working in storyboard after initial opening)
+	extern int FindLuaScreenNode(char* name);
+	t.game.ingameHUDScreen = FindLuaScreenNode("HUD0");
+
 	// success
+	return true;
+}
+
+bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
+{
+	collectionItemType item;
+	item.collectionFields.clear();
+	for (int l = 0; l < g_collectionLabels.size(); l++)
+	{
+		int iKnownLabel = 0;
+		LPSTR pLabel = g_collectionLabels[l].Get();
+		if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+		if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+		if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+		if (iKnownLabel > 0)
+		{
+			// field we can populate automatically
+			if (iKnownLabel == 1) item.collectionFields.push_back(pTitle);
+			if (iKnownLabel == 2) item.collectionFields.push_back(pImage);
+			if (iKnownLabel == 3) item.collectionFields.push_back(pDesc);
+		}
+		else
+		{
+			// empty field
+			item.collectionFields.push_back("");
+		}
+	}
+	g_collectionList.push_back(item);
 	return true;
 }
 
@@ -148,7 +180,22 @@ bool save_rpg_system(char* name)
 	return true;
 }
 
-
+int find_rpg_collectionindex (char* pName)
+{
+	int collectionID = 0;
+	for (int n = 0; n < g_collectionList.size(); n++)
+	{
+		if (g_collectionList[n].collectionFields.size() > 0)
+		{
+			if (stricmp(pName, g_collectionList[n].collectionFields[0].Get()) == NULL)
+			{
+				collectionID = 1 + n;
+				break;
+			}
+		}
+	}
+	return collectionID;
+}
 
 
 //##################

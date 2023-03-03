@@ -12,3 +12,5 @@ void gun_sortintoorder ( void );
 void gun_findweaponindexbyname_core ( void );
 void gun_scaninall_findnewlyaddedgun ( void );
 void gun_findweaponindexbyname ( void );
+cstr gun_names_tonormal(cstr thisLabel);
+cstr gun_names_tointernal(cstr thisLabel);

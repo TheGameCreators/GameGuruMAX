@@ -2026,3 +2026,41 @@ void gun_findweaponindexbyname ( void )
 		gun_findweaponindexbyname_core ( );
 	}
 }
+
+cstr gun_names_tonormal(cstr thisLabel)
+{
+	cstr normalName_s = NULL;
+	if (stricmp (thisLabel.Get(), "enhanced\\Gloves_Unarmed") == NULL) thisLabel = "Melee Combat";
+	if (stricmp (thisLabel.Get(), "enhanced\\AK") == NULL) thisLabel = "Assault Rifle";
+	if (stricmp (thisLabel.Get(), "enhanced\\AR") == NULL) thisLabel = "Patrol Rifle";
+	if (stricmp (thisLabel.Get(), "enhanced\\B810") == NULL) thisLabel = "Pocket Knife";
+	if (stricmp (thisLabel.Get(), "enhanced\\M29S") == NULL) thisLabel = "Snubnose Revolver";
+	if (stricmp (thisLabel.Get(), "enhanced\\Mk18") == NULL) thisLabel = "Compact Assault Rifle";
+	if (stricmp (thisLabel.Get(), "enhanced\\Mk19T") == NULL) thisLabel = "Magnum Pistol";
+	if (stricmp (thisLabel.Get(), "enhanced\\R870") == NULL) thisLabel = "Tactical Pump Shotgun";
+	if (stricmp (thisLabel.Get(), "enhanced\\SledgeHammer") == NULL) thisLabel = "SledgeHammer";
+	if (stricmp (thisLabel.Get(), "aztec\\AztecAxe") == NULL) thisLabel = "Aztec Axe";
+	if (stricmp (thisLabel.Get(), "aztec\\AztecDagger") == NULL) thisLabel = "Aztec Dagger";
+	if (stricmp (thisLabel.Get(), "aztec\\AztecSpear") == NULL) thisLabel = "Aztec Spear";
+	return thisLabel;
+}
+
+cstr gun_names_tointernal(cstr thisLabel)
+{
+	if (stricmp (thisLabel.Get(), "No Weapon") == NULL) thisLabel = "";
+	if (stricmp (thisLabel.Get(), "No Preference") == NULL) thisLabel = "";
+	if (stricmp (thisLabel.Get(), "Melee Combat") == NULL) thisLabel = "enhanced\\Gloves_Unarmed";
+	if (stricmp (thisLabel.Get(), "Grenades Only") == NULL) thisLabel = "enhanced\\M67";
+	if (stricmp (thisLabel.Get(), "Assault Rifle") == NULL) thisLabel = "enhanced\\AK";
+	if (stricmp (thisLabel.Get(), "Patrol Rifle") == NULL) thisLabel = "enhanced\\AR";
+	if (stricmp (thisLabel.Get(), "Pocket Knife") == NULL) thisLabel = "enhanced\\B810";
+	if (stricmp (thisLabel.Get(), "Snubnose Revolver") == NULL) thisLabel = "enhanced\\M29S";
+	if (stricmp (thisLabel.Get(), "Compact Assault Rifle") == NULL) thisLabel = "enhanced\\Mk18";
+	if (stricmp (thisLabel.Get(), "Magnum Pistol") == NULL) thisLabel = "enhanced\\Mk19T";
+	if (stricmp (thisLabel.Get(), "Tactical Pump Shotgun") == NULL) thisLabel = "enhanced\\R870";
+	if (stricmp (thisLabel.Get(), "SledgeHammer") == NULL) thisLabel = "enhanced\\SledgeHammer";
+	if (stricmp (thisLabel.Get(), "Aztec Axe") == NULL) thisLabel = "aztec\\AztecAxe";
+	if (stricmp (thisLabel.Get(), "Aztec Dagger") == NULL) thisLabel = "aztec\\AztecDagger";
+	if (stricmp (thisLabel.Get(), "Aztec Spear") == NULL) thisLabel = "aztec\\AztecSpear";
+	return thisLabel;
+}

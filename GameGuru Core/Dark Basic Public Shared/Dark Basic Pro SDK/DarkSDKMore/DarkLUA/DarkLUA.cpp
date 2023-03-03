@@ -1116,18 +1116,7 @@ luaMessage** ppLuaMessages = NULL;
 					item.e = iEntityIndex;
 
 					// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
-					item.collectionID = 0;
-					for (int n = 0; n < g_collectionList.size(); n++)
-					{
-						if (g_collectionList[n].collectionFields.size() > 0)
-						{
-							if (stricmp(t.entityelement[iEntityIndex].eleprof.name_s.Get(), g_collectionList[n].collectionFields[0].Get()) == NULL)
-							{
-								item.collectionID = 1 + n;
-								break;
-							}
-						}
-					}
+					item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
 
 					// manage slot for this item
 					item.slot = -1;
@@ -1784,6 +1773,46 @@ luaMessage** ppLuaMessages = NULL;
  #endif
 
  #ifdef WICKEDENGINE
+ extern std::vector<int> g_iDestroyedEntitiesList;
+ int GetNearestEntityDestroyed(lua_State* L)
+ {
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iMode = lua_tonumber(L, 1);
+	 int iBestE = 0;
+	 if (g_iDestroyedEntitiesList.size() > 0)
+	 {
+		 int entrytoremove = -1;
+		 float fBestDist = 999999.9f;
+		 for (int n = 0; n < g_iDestroyedEntitiesList.size(); n++)
+		 {
+			 int e = g_iDestroyedEntitiesList[n];
+			 float fX = t.entityelement[e].x;
+			 float fY = t.entityelement[e].y;
+			 float fZ = t.entityelement[e].z;
+			 float fPlrX = ObjectPositionX(t.aisystem.objectstartindex);
+			 float fPlrY = ObjectPositionY(t.aisystem.objectstartindex);
+			 float fPlrZ = ObjectPositionZ(t.aisystem.objectstartindex);
+			 float fDX = fPlrX - fPlrX;
+			 float fDY = fPlrY - fPlrY;
+			 float fDZ = fPlrZ - fPlrZ;
+			 float fDist = sqrt(fabs(fDX* fDX) + fabs(fDY* fDY) + fabs(fDZ* fDZ));
+			 if (fDist < fBestDist)
+			 {
+				 entrytoremove = n;
+				 fBestDist = fDist;
+				 iBestE = e;
+			 }
+		 }
+		 if (entrytoremove > -1)
+		 {
+			 g_iDestroyedEntitiesList.erase(g_iDestroyedEntitiesList.begin() + entrytoremove);
+			 entrytoremove = -1;
+		 }
+	 }
+	 lua_pushnumber (L, iBestE);
+	 return 1;
+ }
  int GetNearestSoundDistance(lua_State *L)
  {
 	 int n = lua_gettop(L);
@@ -6071,25 +6100,28 @@ int InitScreen(lua_State* L)
 	// write to active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
 	char pScreenName[512];
 	strcpy(pScreenName, lua_tostring(L, 1));
-	int nodeid = FindLuaScreenNode(pScreenName);
-	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	//int nodeid = FindLuaScreenNode(pScreenName);
+	for (int nodeid = 0; nodeid < STORYBOARD_MAXNODES; nodeid++)
 	{
-		for (int i = 0; i < STORYBOARD_MAXWIDGETS; i++)
+		if (strlen(Storyboard.Nodes[nodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[nodeid].lua_name, "hud", 3) == NULL)
 		{
-			if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+			for (int i = 0; i < STORYBOARD_MAXWIDGETS; i++)
 			{
-				std::string readout = Storyboard.widget_readout[nodeid][i];
-				if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+				if (Storyboard.Nodes[nodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 				{
-					char pUserDefinedGlobal[256];
-					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
-					LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
-				}
-				if (stricmp(readout.c_str(), "User Defined Global Text") == NULL)
-				{
-					char pUserDefinedGlobal[256];
-					sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
-					LuaSetString(pUserDefinedGlobal, ""); // can we get from initial_value in screen editor?
+					std::string readout = Storyboard.widget_readout[nodeid][i];
+					if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+					{
+						char pUserDefinedGlobal[256];
+						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
+						LuaSetInt(pUserDefinedGlobal, Storyboard.Nodes[nodeid].widget_initial_value[i]);
+					}
+					if (stricmp(readout.c_str(), "User Defined Global Text") == NULL)
+					{
+						char pUserDefinedGlobal[256];
+						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[i]);
+						LuaSetString(pUserDefinedGlobal, ""); // can we get from initial_value in screen editor?
+					}
 				}
 			}
 		}
@@ -6184,7 +6216,7 @@ int GetScreenElementsType(lua_State* L)
 {
 	int iQty = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pReadoutName[512];
@@ -6224,7 +6256,7 @@ int GetScreenElementTypeID(lua_State* L)
 	int iCount = 0;
 	int iElementID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pReadoutName[512];
@@ -6274,7 +6306,7 @@ int GetScreenElements(lua_State* L)
 {
 	int iQty = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pElementName[512];
@@ -6314,7 +6346,7 @@ int GetScreenElementID(lua_State* L)
 	int iCount = 0;
 	int iElementID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		char pElementName[512];
@@ -6372,7 +6404,7 @@ int GetScreenElementImage(lua_State* L)
 {
 	int iImgID = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6391,7 +6423,7 @@ int GetScreenElementArea(lua_State* L)
 	float fAreaWidth = 0;
 	float fAreaHeight = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6421,7 +6453,7 @@ int GetScreenElementDetails(lua_State* L)
 	float fRows = 0;
 	float fColumns = 0;
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6442,7 +6474,7 @@ int GetScreenElementName(lua_State* L)
 	char pReturnData[512];
 	strcpy(pReturnData, "");
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6457,7 +6489,7 @@ int GetScreenElementName(lua_State* L)
 int SetScreenElementVisibility(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6491,7 +6523,7 @@ int SetScreenElementVisibility(lua_State* L)
 int SetScreenElementPosition(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -6514,7 +6546,7 @@ int SetScreenElementPosition(lua_State* L)
 int SetScreenElementText(lua_State* L)
 {
 	int nodeid = t.game.activeStoryboardScreen;
-	if (nodeid == -1) nodeid = 13; // default to in-game HUD if none specified
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
 	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 	{
 		int iElementID = lua_tonumber(L, 1) - 1;
@@ -8880,7 +8912,6 @@ void addFunctions()
 	lua_register(lua, "GetCameraLookAtY", GetCameraLookAtY);
 	lua_register(lua, "GetCameraLookAtZ", GetCameraLookAtZ);
 
-
 	lua_register(lua, "ForcePlayer", ForcePlayer);
 
 	lua_register(lua, "SetEntityActive", SetEntityActive);
@@ -8937,6 +8968,7 @@ void addFunctions()
 	#endif
 
 	#ifdef WICKEDENGINE
+	lua_register(lua, "GetNearestEntityDestroyed", GetNearestEntityDestroyed);
 	lua_register(lua, "GetNearestSoundDistance", GetNearestSoundDistance);
 	lua_register(lua, "MakeAISound", MakeAISound);
 	#endif

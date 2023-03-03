@@ -22,7 +22,7 @@ extern std::vector<collectionItemType> g_collectionList;
 // Prototypes
 void init_rpg_system(void);
 bool load_rpg_system(char* name);
-bool append_collection_from_entities(void);
+bool refresh_collection_from_entities(void);
 bool add_collection_internal(char* pTitle, char* pImage, char* pDesc);
 bool save_rpg_system(char* name);
 int find_rpg_collectionindex (char* pName);

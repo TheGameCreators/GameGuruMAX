@@ -59,8 +59,6 @@ function armour_main(e)
 				if GetEntityCollected(e) == 0 then
 					Prompt(armour[e].prompt_if_collectable)
 					if g_KeyPressE == 1 then
-						-- adding to inventory simply hides from the world this object, the behaviour is still active
-						-- and can be triggered for use at any time
 						Hide(e)
 						CollisionOff(e)
 						SetEntityCollected(e,1)
@@ -70,13 +68,12 @@ function armour_main(e)
 		end
 	end
 	
-	if GetEntityCollected(e) == 1 then
-		Prompt("TEST ITEM : ".."Item in Inventory. Press Q to use the item in your inventory")
-		ResetPosition(e,g_PlayerX,g_PlayerY,g_PlayerZ)		
-		if g_KeyPressQ == 1 then  -- Q=temporary key -- Configured Quick use key Option to be used here
-			PromptDuration(armour[e].useage_text,1000)
-			use_item_now[e] = 1
-		end
+	-- proper handling to USE an item
+	local tusedvalue = GetEntityUsed(e)
+	if tusedvalue > 0 then
+		PromptDuration(armour[e].useage_text,2000)
+		use_item_now[e] = 1
+		SetEntityUsed(e,tusedvalue*-1)
 	end
 	
 	local addquantity = 0

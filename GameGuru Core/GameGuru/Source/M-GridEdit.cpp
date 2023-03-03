@@ -10094,7 +10094,8 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 						#endif
-
+						
+						/* no need for this right now, maybe when allow attrib changes per collectionitem
 						// Collectbale Settings if required
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable > 0)
 						{
@@ -10108,7 +10109,13 @@ void mapeditorexecutable_loop(void)
 
 								int iContainerItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
 								char* containerItemSelected = "As Named";
-								if (iContainerItemIndex >= 2 ) containerItemSelected = g_collectionList[iContainerItemIndex-2].collectionFields[0].Get();
+								if (iContainerItemIndex >= 2)
+								{
+									if ((iContainerItemIndex-2) < g_collectionList.size())
+									{
+										containerItemSelected = g_collectionList[iContainerItemIndex - 2].collectionFields[0].Get();
+									}
+								}
 								ImGui::PushItemWidth(-10);
 								if (ImGui::BeginCombo("##ChosenCollectableItem", containerItemSelected))
 								{
@@ -10127,81 +10134,11 @@ void mapeditorexecutable_loop(void)
 									ImGui::EndCombo();
 								}
 								ImGui::PopItemWidth();
-
-								/* simplified
-								ImGui::TextCenter("Item Attributes");
-
-								// store all data in entityelement eleprof (and add to save/load system)
-
-								static cstr invitemattrib1name;
-								static int invitemattrib1 = 42;
-								//ImGui::Text( "Attribute A:" );
-								invitemattrib1name = imgui_setpropertystring2_v2(t.group, invitemattrib1name.Get(), "", "Set an attribute label for this inventory item", false);
-								ImGui::MaxSliderInputInt("##invitemattrib1", &invitemattrib1, 0, 999, "Set attribute to a value");
-
-								static cstr invitemattrib2name;
-								static int invitemattrib2 = 22;
-								//ImGui::Text( "Attribute B:");
-								invitemattrib2name = imgui_setpropertystring2_v2(t.group, invitemattrib2name.Get(), "", "Set an attribute label for this inventory item", false);
-								ImGui::MaxSliderInputInt("##invitemattrib2", &invitemattrib2, 0, 999, "Set attribute to a value");
-
-								static cstr invitemattribCname;
-								static int invitemattribC = 22;
-								//ImGui::Text("Attribute C:");
-								invitemattribCname = imgui_setpropertystring2_v2(t.group, invitemattribCname.Get(), "", "Set an attribute label for this inventory item", false);
-								ImGui::MaxSliderInputInt("##invitemattrib3", &invitemattribC, 0, 999, "Set attribute to a value");
-
-								static cstr invitemiconfilename[2] = { "", "" };
-								for (int iInvIconFileIndex = 0; iInvIconFileIndex < 2; iInvIconFileIndex++)
-								{
-									if (iInvIconFileIndex == 0)
-										ImGui::TextCenter("Item Small Icon");
-									else
-										ImGui::TextCenter("Item Large Icon");
-									int iInvIconFileID = PROPERTIES_CACHE_ICONS + 900 + iInvIconFileIndex;
-									static cstr inviconfile[10] = { "", "", "", "", "", "", "", "", "", "" };
-									static int inviconfile_preview_id[10] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-									cstr iconfile = invitemiconfilename[iInvIconFileIndex];
-									if (iconfile != inviconfile[iInvIconFileIndex])
-									{
-										//Load new image preview.
-										inviconfile_preview_id[iInvIconFileIndex] = 0;
-										if (iconfile != "")
-										{
-											image_setlegacyimageloading(true);
-											LoadImage((char*)iconfile.Get(), iInvIconFileID);
-											image_setlegacyimageloading(false);
-											inviconfile_preview_id[iInvIconFileIndex] = iInvIconFileID;
-											if (!GetImageExistEx(iInvIconFileID))
-											{
-												inviconfile_preview_id[iInvIconFileIndex] = 0;
-											}
-										}
-										inviconfile[iInvIconFileIndex] = iconfile;
-									}
-									iconfile = imgui_setpropertyfile2_v2(1, iconfile.Get(), "", "Select image to represent the item in the inventory HUD", "imagebank\\", false);
-									invitemiconfilename[iInvIconFileIndex] = iconfile;
-									if (inviconfile_preview_id[iInvIconFileIndex] > 0 && GetImageExistEx(inviconfile_preview_id[iInvIconFileIndex]))
-									{
-										extern ImVec4 drawCol_back;
-										extern ImVec4 drawCol_normal;
-										extern ImVec4 drawCol_hover;
-										extern ImVec4 drawCol_Down;
-										float w = ImGui::GetContentRegionAvailWidth();
-										float iwidth = w;
-										float ImgW = ImageWidth(inviconfile_preview_id[iInvIconFileIndex]);
-										float ImgH = ImageHeight(inviconfile_preview_id[iInvIconFileIndex]);
-										float fHighRatio = ImgH / ImgW;
-										ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (iwidth * 0.5), 0.0f));
-										ImGui::ImgBtn(inviconfile_preview_id[iInvIconFileIndex], ImVec2(iwidth - 18.0f, (iwidth - 18.0f) * fHighRatio), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
-									}
-								}
-								*/
-
 								ImGui::Indent(-10);
 								iLastOpenHeader = 28;
 							}
 						}
+						*/
 
 						bool bMaterialsUsed = true;
 						cStr HeaderName = "Behavior##2";

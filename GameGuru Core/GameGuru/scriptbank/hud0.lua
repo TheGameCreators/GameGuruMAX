@@ -31,6 +31,16 @@ function hud0.init()
  InitScreen("HUD0")
  -- create resources for HUD
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
+ -- init in-game HUD base container for hotkeys panel if any
+ hud0_playercontainer_screenID = 0
+ if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] == nil then 
+	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] = {}
+	hud0_playercontainer_img[hud0_playercontainer_screenID] = {}
+ end
+ if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] == nil then 
+	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] = {}
+	hud0_playercontainer_img[hud0_playercontainer_screenID][1] = {}
+ end
 end
 
 function hud0.refreshHUD()
@@ -370,7 +380,7 @@ function hud0.main()
 	end
 	
 	-- draw any user defined global overlays (hud0_gridSelectedIndex)
-	local displayingselecteditem = -1
+	local displayingselecteditem = 0
 	if hud0_gridSelectedIndex >= 0 and hud0_gridSelected > 0 then
 		if hud0_playercontainer_img[hud0_playercontainer_screenID] ~= nil then
 			if hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected] ~= nil then
@@ -390,7 +400,7 @@ function hud0.main()
 									SetSpriteSize(hud0_gridSpriteID,telementwidth,-1)
 									SetSpritePriority(hud0_gridSpriteID,-1)
 									PasteSprite(hud0_gridSpriteID)
-									displayingselecteditem = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+									displayingselecteditem = 1
 								end
 							else
 								local tcollectionattribqty = GetCollectionAttributeQuantity()
@@ -402,6 +412,7 @@ function hud0.main()
 											local tcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											local tattrubutedata = GetCollectionItemAttribute(tcollectionindex,attributelabel)
 											SetScreenElementText(elementTextID,tattrubutedata)
+											displayingselecteditem = 1
 										end
 									end
 								end
@@ -412,7 +423,7 @@ function hud0.main()
 			end			
 		end
 	end
-	if displayingselecteditem == -1 then
+	if displayingselecteditem == 0 then
 		local iqty = GetScreenElements("selected:*")
 		for ti = 1, iqty, 1 do
 			local elementID = GetScreenElementID("selected:*",ti)
@@ -463,7 +474,7 @@ function hud0.main()
 			if buttonElementName == "USE" then actionOnObject = 2 end
 			if actionOnObject > 0 then
 				-- DROP OR USE OBJECT FROM INVENTORY
-				if hud0_gridSelected > 0 and hud0_gridSelected > 0 then
+				if hud0_gridSelected > 0 and hud0_gridSelectedIndex >= 0 then
 					local thisdisplayingselecteditem = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 					local thegridelementID = GetScreenElementTypeID("user defined global panel",hud0_gridSelected)
 					if thegridelementID > 0 then	
@@ -477,7 +488,8 @@ function hud0.main()
 							local tinventoryqty = GetInventoryQuantity(panelname)
 							for tinventoryindex = 1, tinventoryqty, 1 do
 								local tcollectionindex = GetInventoryItem(panelname,tinventoryindex)
-								if tcollectionindex == selecteditemcontainerID then
+								local tcollectionslot = GetInventoryItemSlot(panelname,tinventoryindex)
+								if tcollectionindex == selecteditemcontainerID and tcollectionslot == hud0_gridSelectedIndex then
 									local entityindex = GetInventoryItemID(panelname,tinventoryindex)
 									if actionOnObject == 1 then
 										-- DROP
@@ -491,6 +503,7 @@ function hud0.main()
 											SetEntityUsed(entityindex,1)
 										end
 									end
+									break
 								end
 							end
 						end
@@ -614,6 +627,15 @@ function hud0.main()
 	end
    
   end
+  
+  -- handle slow absorbsion of magic
+  local currentmana = 0 
+  if _G["g_UserGlobal['".."MyMana".."']"] ~= nil then currentmana = _G["g_UserGlobal['".."MyMana".."']"] end
+  local maxiumummana = 100 if _G["g_UserGlobal['".."MyManaMax".."']"] ~= nil then maxiumummana = _G["g_UserGlobal['".."MyManaMax".."']"] end
+  if currentmana < maxiumummana then
+	currentmana = currentmana + 0.01
+  end
+  _G["g_UserGlobal['".."MyMana".."']"] = currentmana
   
   -- handle awarding of XP points
   local entitykilled = GetNearestEntityDestroyed(0)

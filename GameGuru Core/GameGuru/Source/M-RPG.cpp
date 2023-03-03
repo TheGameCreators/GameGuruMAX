@@ -95,7 +95,7 @@ bool load_rpg_system(char* name)
 	return true;
 }
 
-bool append_collection_from_entities(void)
+bool refresh_collection_from_entities(void)
 {
 	// start with game project master list
 	g_collectionList = g_collectionMasterList;
@@ -106,9 +106,9 @@ bool append_collection_from_entities(void)
 		int entid = t.entityelement[e].bankindex;
 		if (entid > 0)
 		{
+			// weapons are automatically collectale
 			if (t.entityprofile[entid].isweapon > 0)
 			{
-				// weapons are automatically collectale
 				collectionItemType item;
 				item.collectionFields.clear();
 				for (int l = 0; l < g_collectionLabels.size(); l++)
@@ -132,6 +132,59 @@ bool append_collection_from_entities(void)
 					}
 				}
 				g_collectionList.push_back(item);
+			}
+
+			// any entities marked to be collected (and As Named)
+			int iContainerItemIndex = t.entityelement[e].eleprof.iscollectable;
+			if ( iContainerItemIndex != 0)
+			{
+				collectionItemType item;
+				item.collectionFields.clear();
+				for (int l = 0; l < g_collectionLabels.size(); l++)
+				{
+					int iKnownLabel = 0;
+					LPSTR pLabel = g_collectionLabels[l].Get();
+					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (iKnownLabel > 0)
+					{
+						// field we can populate automatically
+						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 2)
+						{
+							char pBMPPNGImage[256];
+							strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
+							pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
+							char pBMPPNGImageFile[256];
+							sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
+							cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
+							if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+							item.collectionFields.push_back(pFinalImgFile);
+						}
+						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+					}
+					else
+					{
+						// empty field
+						item.collectionFields.push_back("");
+					}
+				}
+
+				// before we add, confirm this does not already exist
+				bool bNewItemIsUnqiue = true;
+				for (int n = 0; n < g_collectionList.size(); n++)
+				{
+					if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
+					{
+						bNewItemIsUnqiue = false;
+						break;
+					}
+				}
+				if (bNewItemIsUnqiue == true)
+				{
+					g_collectionList.push_back(item);
+				}
 			}
 		}
 	}

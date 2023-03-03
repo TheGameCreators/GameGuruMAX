@@ -157,7 +157,7 @@ function mousecontrol_main(e)
 					gunstate = 1
 				end
 				SetGamePlayerStatePlrKeyForceKeystate(18)
-				PlaySound(e,0)			
+				--PlaySound(e,0)	-- making noise even if nothing actually collected!		
 				clicked[e] = 1
 				clicktime[e] = GetTimer(e)			
 			end
@@ -168,25 +168,25 @@ function mousecontrol_main(e)
 					gunstate = 1
 				end		
 				SetGamePlayerStatePlrKeyForceKeystate(18)
-				PlaySound(e,0)	
+				--PlaySound(e,0)	-- making noise even if nothing actually collected!		
 				clicked[e] = 1
 				clicktime[e] = GetTimer(e)			
 			end		
 			if g_MouseClick == 2 and clicked[e] == 0 and mousecontrol[e].action_control == 2 then
 				SetGamePlayerStatePlrKeyForceKeystate(18)
-				PlaySound(e,0)			
+				--PlaySound(e,0)	-- making noise even if nothing actually collected!		
 				clicked[e] = 1
 				clicktime[e] = GetTimer(e)
 			end
 			if g_MouseClick == 2 and clicked[e] == 0 and mousecontrol[e].action_control == 3 then			
 				SetGamePlayerStatePlrKeyForceKeystate(18)
-				PlaySound(e,0)			
+				--PlaySound(e,0)	-- making noise even if nothing actually collected!		
 				clicked[e] = 1
 				clicktime[e] = GetTimer(e)
 			end		
 			if g_MouseClick == 3  and clicked[e] == 0 and mousecontrol[e].action_control == 4 then			
 				SetGamePlayerStatePlrKeyForceKeystate(18)
-				PlaySound(e,0)			
+				--PlaySound(e,0)	-- making noise even if nothing actually collected!		
 				clicked[e] = 1
 				clicktime[e] = GetTimer(e)
 			end			

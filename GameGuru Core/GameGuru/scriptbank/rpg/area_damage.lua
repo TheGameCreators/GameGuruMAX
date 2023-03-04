@@ -26,6 +26,7 @@ function area_damage_init(e)
 	area_damage[e].pickup_range = 80
 	area_damage[e].user_global_affected = "MyMana"
 	area_damage[e].mana_cost = 10
+	area_damage[e].cast_timeout = 0
 end
 
 function area_damage_main(e)
@@ -37,14 +38,20 @@ function area_damage_main(e)
 			if GetEntityCollected(e) == 0 then
 				PromptDuration(area_damage[e].prompt_text,1000)
 				if g_KeyPressE == 1 then
-					Hide(e)
-					CollisionOff(e)
-					SetEntityCollected(e,1)
+					SetEntityCollected(e,1,-1)
 				end
 			end
 		end
 	end
 	local tusedvalue = GetEntityUsed(e)
+	if area_damage[e].cast_timeout > 0 then
+		if Timer() > area_damage[e].cast_timeout + 2100 then
+			area_damage[e].cast_timeout = 0
+		else
+			tusedvalue = 0
+		end
+		SetEntityUsed(e,0)
+	end
 	if tusedvalue > 0 then
 		-- attempt effect
 		local mymana = 0 if _G["g_UserGlobal['"..area_damage[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..area_damage[e].user_global_affected.."']"] end
@@ -52,7 +59,6 @@ function area_damage_main(e)
 			-- enough mana, deduct from player
 			mymana = mymana - area_damage[e].mana_cost
 			-- do the magic
-			PlaySound(e,0)
 			for ee = 1, g_EntityElementMax, 1 do
 				if e ~= ee then
 					if g_Entity[ee] ~= nil then
@@ -75,12 +81,12 @@ function area_damage_main(e)
 			end			
 			-- prompt we did it
 			PromptDuration(area_damage[e].useage_text,2000)
-			-- destroy object
-			Destroy(e)
+			area_damage[e].cast_timeout = Timer()
+			PlaySound(e,0)
 		else
 			-- not successful
-			SetEntityUsed(e,0)
 			PromptDuration("Not enough mana",2000)
+			SetEntityUsed(e,0)
 			PlaySound(e,1)
 		end
 		_G["g_UserGlobal['"..area_damage[e].user_global_affected.."']"] = mymana

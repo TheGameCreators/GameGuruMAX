@@ -1088,12 +1088,13 @@ luaMessage** ppLuaMessages = NULL;
  {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 3 ) return 0;
+	if ( n < 2 || n > 3 ) return 0;
 	int iReturnSlot = -1;
 	bool bItemHandled = false;
 	int iEntityIndex = lua_tonumber(L, 1);
 	int iCollectState = lua_tonumber(L, 2);
-	int iSlotIndex = lua_tonumber(L, 3);
+	int iSlotIndex = -1;
+	if(n==3 ) iSlotIndex = lua_tonumber(L, 3);
 	for (int bothplayercontainers = 0; bothplayercontainers < 2; bothplayercontainers++)
 	{
 		if (iCollectState > 0)

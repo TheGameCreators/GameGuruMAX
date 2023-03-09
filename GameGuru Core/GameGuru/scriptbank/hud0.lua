@@ -26,6 +26,11 @@ hud0_playercontainer_img = {}
 hud0_lastgoodplayerinventory0qty = 0
 hud0_lastgoodplayerinventory1qty = 0
 
+hud0_mapView_WindowX = 0
+hud0_mapView_WindowY = 0
+hud0_mapView_WindowW = 0
+hud0_mapView_WindowH = 0
+
 function hud0.init()
  -- initialise all globals
  InitScreen("HUD0")
@@ -625,7 +630,47 @@ function hud0.main()
 			end
 		end
 	end
-   
+	
+  end
+
+  -- display contents of any user defined images for map views 
+  local tqty = GetScreenElementsType("user defined global image")
+  for ii = 1, tqty, 1 do
+	local theelementID = GetScreenElementTypeID("user defined global image",ii)
+	if theelementID > 0 then
+		local imagename = GetScreenElementName(theelementID)
+		local isMap = string.sub(imagename, 1, 4)
+		if isMap == "map:" then
+			scrx,scry,tscrwidth,tscrheight = GetScreenElementArea(theelementID)    
+			SetScreenElementVisibility(theelementID,0)
+			local mapName = string.sub(imagename, 5, -1)
+			if mapName == "window" then
+				hud0_mapView_WindowX = scrx
+				hud0_mapView_WindowY = scry
+				hud0_mapView_WindowW = tscrwidth
+				hud0_mapView_WindowH = tscrheight
+			end
+			if mapName == "image" then
+				--scrx = hud0_mapView_WindowX
+				--scry = hud0_mapView_WindowY
+				--tscrwidth = hud0_mapView_WindowW
+				--tscrheight = hud0_mapView_WindowH
+			end
+			if hud0_gridSpriteID ~= nil then		
+				local scrimg = GetScreenElementImage(theelementID)
+				if scrimg > 0 then
+					SetSpritePosition(hud0_gridSpriteID,scrx,scry)
+					SetSpriteImage(hud0_gridSpriteID,scrimg)
+					SetSpriteSize(hud0_gridSpriteID,tscrwidth,tscrheight)
+					SetSpriteColor(hud0_gridSpriteID,255,255,255,255)
+					SetSpritePriority(hud0_gridSpriteID,-1)
+					SetSpriteScissor(hud0_mapView_WindowX,hud0_mapView_WindowY,hud0_mapView_WindowW,hud0_mapView_WindowH)
+					PasteSprite(hud0_gridSpriteID)
+					SetSpriteScissor(0,0,0,0)
+				end
+			end
+		end
+	end
   end
   
   -- handle slow absorbsion of magic

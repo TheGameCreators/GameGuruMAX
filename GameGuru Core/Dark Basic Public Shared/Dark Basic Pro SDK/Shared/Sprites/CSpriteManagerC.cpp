@@ -158,6 +158,42 @@ int g_iStoreSpriteBatchCount = 0;
 int g_iStoreSpriteBatchMax = 10000;
 tagSpriteData* g_pStoreSpriteBatch[10000];
 
+void CSpriteManager::ScissorArea (float fX, float fY, float fW, float fH)
+{
+	if (fX == 0 && fY == 0 && fW == 0 && fH == 0)
+	{
+		// scissor off
+		ImDrawList* dl = ImGui::GetForegroundDrawList();
+		if (dl)
+		{
+			dl->PopClipRect();
+		}
+		else
+		{
+			ImGui::GetCurrentWindow()->DrawList->PopClipRect();
+		}
+		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
+		//device->SetScissorArea(cmd, area);
+	}
+	else
+	{
+		// scissor on
+		ImVec2 min = ImVec2(fX, fY);
+		ImVec2 max = ImVec2(fX+ fW, fY+ fH);
+		ImDrawList* dl = ImGui::GetForegroundDrawList();
+		if (dl)
+		{
+			dl->PushClipRect(min, max, true);
+		}
+		else
+		{
+			ImGui::GetCurrentWindow()->DrawList->PushClipRect(min, max, true);
+		}
+		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
+		//device->SetScissorArea(cmd, area);
+	}
+}
+
 void CSpriteManager::DrawImmediate ( tagSpriteData* pData )
 {
 	// determine if immediate or batcher in effect
@@ -177,9 +213,7 @@ void CSpriteManager::DrawImmediate ( tagSpriteData* pData )
 		tagSpriteData* pSpriteList[1] = { pData };
 
 		// Render it
-#ifdef WICKEDENGINE
 		RenderDrawList ( pSpriteList, 1, m_FilterMode );
-#endif
 	}
 }
 

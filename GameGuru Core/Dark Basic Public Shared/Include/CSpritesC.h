@@ -83,7 +83,8 @@ DARKSDK void PasteTextureToRect ( LPGGTEXTUREREF pTexture, float fU, float fV, R
 DARKSDK void SetSprite ( int iID, int iBacksave, int iTransparent );
 DARKSDK void Sprite ( int iID, float fX, float fY, int iImage );
 DARKSDK void Sprite ( int iID, int iX, int iY, int iImage );		// create a sprite
-DARKSDK void PasteSprite ( int iID, int iX, int iY );					// paste sprite on the screen
+DARKSDK void ScissorSpriteArea (float fX, float fY, float fW, float fH);
+DARKSDK void PasteSprite (int iID, int iX, int iY);					// paste sprite on the screen
 DARKSDK void PasteSprite ( int iID, int iX, int iY, int iDrawImmediately );
 DARKSDK void ResetSpriteBatcher ( void );
 DARKSDK void DrawSpriteBatcher ( void );

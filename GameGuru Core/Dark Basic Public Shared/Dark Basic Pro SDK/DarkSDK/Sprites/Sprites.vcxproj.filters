@@ -39,7 +39,7 @@
       <Filter>Sprites</Filter>
     </ClInclude>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="..\..\..\..\Include\CSpritesC.h">
+    <ClInclude Include="..\..\..\Include\CSpritesC.h">
       <Filter>Sprites</Filter>
     </ClInclude>
   </ItemGroup>

@@ -176,7 +176,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Include\CSpritesC.h" />
+    <ClInclude Include="..\..\..\Include\CSpritesC.h" />
     <ClInclude Include="..\..\Shared\Error\CError.h" />
     <ClInclude Include="..\..\Shared\Error\CRuntimeErrors.h" />
     <ClInclude Include="..\..\Shared\Sprites\CSpriteDataC.h" />

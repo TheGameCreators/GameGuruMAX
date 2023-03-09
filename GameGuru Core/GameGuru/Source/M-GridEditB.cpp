@@ -45483,7 +45483,7 @@ void TriggerScreenFromKeyPress()
 		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 		{
 			StoryboardNodesStruct& node = Storyboard.Nodes[i];
-			if (node.used && scan > 0 && node.toggleKey == scan)
+			if (node.used && scan > 0 && node.toggleKey == scan && strlen(node.level_name) == 0 ) // only HUDs
 			{
 				bWaitForKeyRelease = true;
 

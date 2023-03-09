@@ -6514,13 +6514,10 @@ int SetScreenElementVisibility(lua_State* L)
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
 			int iVisibility = lua_tonumber(L, 2);
-			Storyboard.Nodes[nodeid].widget_pos[iElementID].x = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
-			Storyboard.Nodes[nodeid].widget_pos[iElementID].y = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
-			if ( iVisibility == 0 )
-			{
-				Storyboard.Nodes[nodeid].widget_pos[iElementID].x = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
-				Storyboard.Nodes[nodeid].widget_pos[iElementID].y = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
-			}
+			if ( iVisibility == 1 )
+				Storyboard.widget_ingamehidden[nodeid][iElementID] = 0;
+			else
+				Storyboard.widget_ingamehidden[nodeid][iElementID] = 1;
 		}
 	}
 	return 0;

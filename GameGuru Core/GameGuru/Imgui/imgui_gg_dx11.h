@@ -868,6 +868,7 @@ struct StoryboardStruct
 	ImVec4 widget_colors[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 	char widget_readout[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS][128];
 	ImVec2 widget_textoffset[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
+	int widget_ingamehidden[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 
 	//PE: To add new variables add them here, always add to botton of list.
 

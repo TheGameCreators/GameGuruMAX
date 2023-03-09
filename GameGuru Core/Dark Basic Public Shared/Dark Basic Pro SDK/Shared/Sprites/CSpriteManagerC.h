@@ -34,6 +34,7 @@ class CSpriteManager
 		bool  Delete        ( int iID );
 		int   Count         ( void ) const          { return m_List.size();  }
 
+        void  ScissorArea (float fX, float fY, float fW, float fH);
 		void  DrawImmediate ( tagSpriteData* pData );
 		void  DrawBatchImmediate ( void );
 

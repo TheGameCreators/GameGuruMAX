@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a potion boost or deduction if consumed.
--- Potion v3
+-- Potion v7
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Potion consumed"]
@@ -11,6 +11,14 @@
 -- DESCRIPTION: <Sound0> for collection sound.
 
 local potion = {}
+local prompt_text = {}
+local prompt_if_collectable = {}
+local useage_text = {}
+local quantity = {}
+local pickup_range = {}
+local pickup_style = {}
+local effect = {}
+local user_global_affected = {}
 local use_item_now = {}
 
 function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected)

@@ -1161,19 +1161,6 @@ DARKSDK void PasteSprite ( int iID, int iX, int iY )
 			return;
 		}
 
-		// support for stereo side by side
-		/*
-		GGVIEWPORT SaveViewport;
-		if ( g_fGlobalSpriteStretchX != 1.0f )
-		{
-			m_pD3D->GetViewport(&SaveViewport);
-			GGVIEWPORT StretchedViewport = SaveViewport;
-			StretchedViewport.X = (int)g_fGlobalSpriteOffsetX;
-			StretchedViewport.Width = (int)(SaveViewport.Width * g_fGlobalSpriteStretchX);
-			m_pD3D->SetViewport(&StretchedViewport);
-		}
-		*/
-
 		// now update the vertices based on this info
 		SetVertexDataForSprite( iX, iY );
 
@@ -1189,13 +1176,12 @@ DARKSDK void PasteSprite ( int iID, int iX, int iY )
 
 		// mike - 220406 - must update original sprite again
 		RotateSprite ( iID, m_ptr->fAngle );
-
-		/*
-		// support for stereo side by side
-		if ( g_fGlobalSpriteStretchX != 1.0f )
-			m_pD3D->SetViewport(&SaveViewport);
-		*/
 	}
+}
+
+DARKSDK void ScissorSpriteArea (float fX, float fY, float fW, float fH)
+{
+	m_SpriteManager.ScissorArea(fX, fY, fW, fH);
 }
 
 DARKSDK void PasteSprite ( int iID, int iX, int iY, int iDrawImmediately )

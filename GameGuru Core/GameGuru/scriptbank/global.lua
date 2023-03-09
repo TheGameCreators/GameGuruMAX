@@ -1438,6 +1438,7 @@ CreateSprite: mySprite = CreateSprite ( myImage )
 PasteSprite: PasteSprite ( mySprite ) -- pastes the sprite at its current location (good for pasting sprite BEHIND text)
 PasteSpritePosition: PasteSpritePosition ( mySprite , x , y ) -- as above but pasted at a specified XY coordinate
 DeleteSprite: DeleteSprite ( mySprite )
+SetSpriteScissor: SetSpriteScissor ( x , y, width, height ) -- sets an area to clip future sprite pastes into. Use 0,0,0,0 to remove scissor
 SetSpritePosition: SetSpritePosition ( mySprite , x , y )
 SetSpritePriority: SetSpritePriority ( mySprite , value ) -- where value can be -1 to force pasted sprites on top of everything else, even HUDs
 SetSpriteSize: SetSpriteSize ( mySprite , sizeX , sizeZ ) -- passing -1 as one of the params ensure the sprite retains its aspect ratio

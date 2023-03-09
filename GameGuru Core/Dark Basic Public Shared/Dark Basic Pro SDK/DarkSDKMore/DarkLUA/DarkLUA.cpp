@@ -3734,6 +3734,23 @@ int PasteSpritePosition(lua_State *L)
 	return 0;
 }
 
+int SetSpriteScissor(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fW = lua_tonumber(L, 3);
+	float fH = lua_tonumber(L, 4);
+	fX = (fX / 100.0f) * g_dwScreenWidth;
+	fY = (fY / 100.0f) * g_dwScreenHeight;
+	fW = (fW / 100.0f) * g_dwScreenWidth;
+	fH = (fH / 100.0f) * g_dwScreenHeight;
+	ScissorSpriteArea (fX, fY, fW, fH);
+	return 0;
+}
+
 int SetSpriteImage(lua_State *L)
 {
 	lua = L;
@@ -6430,8 +6447,8 @@ int GetScreenElementArea(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
-			fAreaX = Storyboard.Nodes[nodeid].widget_pos[iElementID].x;
-			fAreaY = Storyboard.Nodes[nodeid].widget_pos[iElementID].y;
+			fAreaX = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x); // FABS to eliminate negative pos which is used to HIDE the widget
+			fAreaY = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y); // FABS to eliminate negative pos which is used to HIDE the widget
 			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
 			float widgetsizey = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
 			fAreaWidth = widgetsizex * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
@@ -6496,23 +6513,10 @@ int SetScreenElementVisibility(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
-			bool bHideElementFromView = false;
+			int iVisibility = lua_tonumber(L, 2);
 			Storyboard.Nodes[nodeid].widget_pos[iElementID].x = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
 			Storyboard.Nodes[nodeid].widget_pos[iElementID].y = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
-
-			/* disabled for now until built-in item management done within container panel
-			// can hide inventory item element if not in inventory or not active in level
-			if (t.playerContainer.size() > 0)
-			{
-				if (t.entityelement[t.playerContainer[0].e].active == 0) bHideElementFromView = true;
-			}
-			else
-			{
-				bHideElementFromView = true;
-			}
-			*/
-
-			if(bHideElementFromView==true)
+			if ( iVisibility == 0 )
 			{
 				Storyboard.Nodes[nodeid].widget_pos[iElementID].x = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x);
 				Storyboard.Nodes[nodeid].widget_pos[iElementID].y = -fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y);
@@ -9123,8 +9127,9 @@ void addFunctions()
 	lua_register(lua, "SetSpriteAngle" , SetSpriteAngle );	
 	lua_register(lua, "SetSpriteOffset" , SetSpriteOffset );
 	lua_register(lua, "DeleteSprite" , DeleteSprite );
-	lua_register(lua, "SetSpriteImage" , SetSpriteImage );	
-	lua_register(lua, "DrawSpritesFirst" , DrawSpritesFirstForLUA );	
+	lua_register(lua, "SetSpriteScissor", SetSpriteScissor);
+	lua_register(lua, "SetSpriteImage", SetSpriteImage);
+	lua_register(lua, "DrawSpritesFirst" , DrawSpritesFirstForLUA );
 	lua_register(lua, "DrawSpritesLast" , DrawSpritesLastForLUA );	
 	lua_register(lua, "BackdropOff" , BackdropOffForLUA );	
 	lua_register(lua, "BackdropOn" , BackdropOnForLUA );	

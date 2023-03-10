@@ -8875,7 +8875,7 @@ void mapeditorexecutable_loop(void)
 					{
 						// Object tools headers range from 14-20.
 						// Default to the positioning header when selecting an object for the first time.
-						if (g_selected_editor_object && g_last_selected_editor_object != g_selected_editor_object && (iLastOpenHeader < 13 || iLastOpenHeader > 18))
+						if (g_selected_editor_object && g_last_selected_editor_object != g_selected_editor_object && (iLastOpenHeader < 13 || (iLastOpenHeader > 18 && iLastOpenHeader != 28)))
 							iLastOpenHeader = 14;
 
 						if (pref.bAutoClosePropertySections && iLastOpenHeader != 14)
@@ -10101,10 +10101,64 @@ void mapeditorexecutable_loop(void)
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
 							{
-								ImGui::Indent(10);
-								int iCollectionItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
-								if (iCollectionItemIndex != 0)
+								iLastOpenHeader = 28;
+								bool bChangedGameCollectionList = false;
+								int iCollectionItemIndex = -1;
+								for (int ci = 0; ci < g_collectionMasterList.size(); ci++)
 								{
+									if ( stricmp (g_collectionMasterList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL )
+									{
+										iCollectionItemIndex = ci;
+									}
+								}
+								if (iCollectionItemIndex == -1)
+								{
+									// No Master Collection List entry, enable user to create an entry ( will be saved below ) 
+									float w = ImGui::GetWindowContentRegionWidth();
+									float but_gadget_size = ImGui::GetFontSize() * 15.0;
+									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+									if (ImGui::StyleButton("Create Collection Item", ImVec2(but_gadget_size, 0)))
+									{
+										collectionItemType item;
+										item.collectionFields.clear();
+										for (int l = 0; l < g_collectionLabels.size(); l++)
+										{
+											int iKnownLabel = 0;
+											LPSTR pLabel = g_collectionLabels[l].Get();
+											if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+											if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+											if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+											if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+											if (iKnownLabel > 0)
+											{
+												// field we can populate automatically
+												if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
+												if (iKnownLabel == 2)
+												{
+													char pBMPPNGImage[256];
+													strcpy(pBMPPNGImage, t.entitybank_s[iMasterID].Get());
+													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
+													char pBMPPNGImageFile[256];
+													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
+													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
+													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+													item.collectionFields.push_back(pFinalImgFile);
+												}
+												if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
+												if (iKnownLabel == 4) item.collectionFields.push_back(10);
+											}
+											else
+											{
+												// empty field
+												item.collectionFields.push_back("");
+											}
+										}
+										g_collectionMasterList.push_back(item);
+									}
+								}
+								else
+								{
+									ImGui::Indent(10);
 									for (int l = 0; l < g_collectionLabels.size(); l++)
 									{
 										int iKnownLabel = 0;
@@ -10116,59 +10170,71 @@ void mapeditorexecutable_loop(void)
 										if (iKnownLabel > 0)
 										{
 											// Attrib Label
-											char pNameOfAttrib[MAX_PATH];
-											strcpy(pNameOfAttrib, "Item ");
-											strcat(pNameOfAttrib, pLabel);
-											if (iKnownLabel == 1)
+											if (iKnownLabel == 1 || iKnownLabel == 2)
 											{
 												// do not change title, this links the object by name
-												//g_collectionList[iCollectionItemIndex].collectionFields[l].Get()
+												/* not yet
+												if (iKnownLabel == 2)
+												{
+													char pBMPPNGImage[256];
+													strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
+													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
+													char pBMPPNGImageFile[256];
+													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
+													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
+													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+													item.collectionFields.push_back(pFinalImgFile);
+												}
+												*/
 											}
 											else
 											{
-												LPSTR pShowTop = NULL;
-												bool bAllowEditing = false;
-												if (iKnownLabel == 3) { pShowTop = "Enter a description for this item that may appear in your HUD screens";  bAllowEditing = true; }
-												if (iKnownLabel == 4) { pShowTop = "Enter a cost for this item that may appear in your HUD screens"; bAllowEditing = true; }
+												LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
+												if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
+												if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
+												bool bAllowEditing = true;
 												if (bAllowEditing == true)
 												{
+													char pNameOfAttrib[MAX_PATH];
+													strcpy(pNameOfAttrib, "Item ");
+													char pCap[2];
+													pCap[0] = pLabel[0];
+													pCap[1] = 0;
+													strupr(pCap);
+													strcat(pNameOfAttrib, pCap);
+													strcat(pNameOfAttrib, pLabel+1);
 													ImGui::TextCenter(pNameOfAttrib);
 													ImGui::PushItemWidth(-10);
 													char cTmpInput[MAX_PATH];
-													strcpy(cTmpInput, g_collectionList[iCollectionItemIndex].collectionFields[l].Get());
+													strcpy(cTmpInput, g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get());
 													int inputFlags = 0;
-													strcat(pNameOfAttrib, "Collectable");
-													if (ImGui::InputText(pNameOfAttrib, &cTmpInput[0], MAXTEXTINPUT, inputFlags))
+													char pNameOfAttribUnique[MAX_PATH];
+													strcpy(pNameOfAttribUnique, "##CollectableItem");
+													strcat(pNameOfAttribUnique, pLabel);
+													if (ImGui::InputText(pNameOfAttribUnique, &cTmpInput[0], MAXTEXTINPUT, inputFlags))
 													{
-														g_collectionList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
 														bImGuiGotFocus = true;
+														bChangedGameCollectionList = true;
 													}
 													if (ImGui::IsItemHovered() && pShowTop ) ImGui::SetTooltip(pShowTop);
+													if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 													ImGui::PopItemWidth();
-													ImGui::TextCenter("");
 												}
 											}
-											/* not yet
-											if (iKnownLabel == 2)
-											{
-												char pBMPPNGImage[256];
-												strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
-												pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-												char pBMPPNGImageFile[256];
-												sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-												cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
-												if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-												item.collectionFields.push_back(pFinalImgFile);
-											}
-											*/
 										}
 									}
+									ImGui::Indent(-10);
+								}
+								if (bChangedGameCollectionList == true)
+								{
+									// save any changes to game collection list 
+									save_rpg_system(pref.cLastUsedStoryboardProject);
 								}
 
 								/* objects are as named (always!!)
 								// a drop down to select the collectable from the collection table
 								ImGui::TextCenter("Assigned Item From Collection");
-
 								int iContainerItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
 								char* containerItemSelected = "As Named";
 								if (iContainerItemIndex >= 2)
@@ -10197,9 +10263,6 @@ void mapeditorexecutable_loop(void)
 								}
 								ImGui::PopItemWidth();
 								*/
-
-								ImGui::Indent(-10);
-								iLastOpenHeader = 28;
 							}
 						}
 

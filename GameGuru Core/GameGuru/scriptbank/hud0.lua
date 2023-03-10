@@ -57,6 +57,12 @@ function hud0.init()
 	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] = {}
 	hud0_playercontainer_img[hud0_playercontainer_screenID][1] = {}
  end
+ -- create shop items from all collection for game
+ MakeInventoryContainer("inventory:shop")
+ local tcollectionmax = GetCollectionItemQuantity()
+ for tcollectionindex = 1, tcollectionmax, 1 do
+	SpawnInventoryItem ( "inventory:shop", tcollectionindex, tcollectionindex-1 )
+ end
 end
 
 function hud0.refreshHUD()
@@ -94,10 +100,11 @@ function hud0.refreshHUD()
 					end
 				end
 			else
-				-- show an inventory or hotkey container
+				-- refresh containers
 				local playercontainer = 0
 				if panelname == "inventory:player" then playercontainer = 1 end
 				if panelname == "inventory:hotkeys" then playercontainer = 2 end
+				if panelname == "inventory:shop" then playercontainer = 3 end
 				if playercontainer > 0 then
 					local itemcount = totalinrow*totalincolumn
 					local tinventoryqty = GetInventoryQuantity(panelname)
@@ -297,13 +304,17 @@ function hud0.main()
 																if hud0_gridSelectedIndex >= 0 and hud0_gridSelectedIndex <= 9 then
 																	RemovePlayerWeapon(1+hud0_gridSelectedIndex)
 																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
-																	SetEntityCollected(entityindex,0,0)
+																	if entityindex > 0 then
+																		SetEntityCollected(entityindex,0,0)
+																	end
 																end
 															else
 																-- removing to place in hot key location
 																if panelnameTo == "inventory:hotkeys" then
 																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
-																	SetEntityCollected(entityindex,0,0)
+																	if entityindex > 0 then
+																		SetEntityCollected(entityindex,0,0)
+																	end
 																end
 															end
 														end
@@ -491,6 +502,7 @@ function hud0.main()
 			local actionOnObject = 0
 			if buttonElementName == "DROP" then actionOnObject = 1 end
 			if buttonElementName == "USE" then actionOnObject = 2 end
+			if buttonElementName == "BUY" then actionOnObject = 3 end
 			if actionOnObject > 0 then
 				-- DROP OR USE OBJECT FROM INVENTORY
 				if hud0_gridSelected > 0 and hud0_gridSelectedIndex >= 0 then
@@ -499,8 +511,13 @@ function hud0.main()
 					if thegridelementID > 0 then	
 						local thispanelname = GetScreenElementName(thegridelementID)
 						local panelname = ""
-						if thispanelname == "inventory:player" then panelname = "inventory:player" end
-						if thispanelname == "inventory:hotkeys" then panelname = "inventory:hotkeys" end
+						if actionOnObject == 1 or actionOnObject == 2 then
+							if thispanelname == "inventory:player" then panelname = thispanelname end
+							if thispanelname == "inventory:hotkeys" then panelname = thispanelname end
+						end
+						if actionOnObject == 3 then
+							if thispanelname == "inventory:shop" then panelname = thispanelname end
+						end
 						local selecteditemcontainerID = -1
 						if thispanelname == panelname then selecteditemcontainerID = thisdisplayingselecteditem end
 						if selecteditemcontainerID ~= -1 then
@@ -509,17 +526,36 @@ function hud0.main()
 								local tcollectionindex = GetInventoryItem(panelname,tinventoryindex)
 								local tcollectionslot = GetInventoryItemSlot(panelname,tinventoryindex)
 								if tcollectionindex == selecteditemcontainerID and tcollectionslot == hud0_gridSelectedIndex then
-									local entityindex = GetInventoryItemID(panelname,tinventoryindex)
 									if actionOnObject == 1 then
 										-- DROP
-										SetEntityCollected(entityindex,0,0)
-										local floorlevelfordrop = RDGetYFromMeshPosition(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-										ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+										local entityindex = GetInventoryItemID(panelname,tinventoryindex)
+										if entityindex > 0 then
+											SetEntityCollected(entityindex,0,0)
+											local floorlevelfordrop = RDGetYFromMeshPosition(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+											ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+										end
 									end
 									if actionOnObject == 2 then
 										-- USE
-										if GetEntityUsed(entityindex) == 0 then
-											SetEntityUsed(entityindex,1)
+										local entityindex = GetInventoryItemID(panelname,tinventoryindex)
+										if entityindex > 0 then
+											if GetEntityUsed(entityindex) == 0 then
+												SetEntityUsed(entityindex,1)
+											end
+										end
+									end
+									if actionOnObject == 3 then
+										-- BUY
+										local thisCost = tonumber(GetCollectionItemAttribute(tcollectionindex,"cost"))
+										local myMoney = 0
+										if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
+										if thisCost < myMoney then
+											myMoney = myMoney - thisCost
+											_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
+											MoveInventoryItem(panelname,"inventory:player",tcollectionindex,-1)
+											Prompt("Sold to you")
+										else
+											Prompt("Cannot afford to buy this item")
 										end
 									end
 									break

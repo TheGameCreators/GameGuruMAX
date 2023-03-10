@@ -2563,7 +2563,7 @@ void physics_player_init ( void )
 			// need to add this to the colleciton list
 			cstr thisLabel = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get(), 10);
+			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get(), "10");
 
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it

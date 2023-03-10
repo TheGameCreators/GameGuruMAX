@@ -14,6 +14,10 @@ function ambienceinzone_properties(e, onlyplayinzone, zoneheight)
 end 
 
 function ambienceinzone_main(e)
+ if g_PlayerHealth <= 0 then
+  g_ambienceinzone_soundlooping = 0
+ end
+
  if g_ambienceinzone[e]['zoneheight'] == nil then g_ambienceinzone[e]['zoneheight'] = 100 end
  if g_ambienceinzone[e]['zoneheight'] ~= nil then
   if g_Entity[e]['plrinzone']==1 and g_PlayerPosY+65 > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_ambienceinzone[e]['zoneheight'] then

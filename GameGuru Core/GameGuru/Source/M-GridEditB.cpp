@@ -29379,6 +29379,24 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
 		ImGui::Indent(-10);
 
+		ImGui::Indent(10);
+		bool bObjective = false;
+		if (edit_grideleprof->isobjective != 0) bObjective = true;
+		ImGui::Checkbox("Is Objective?", &bObjective);
+		if (bObjective == true)
+		{
+			if (t.entityprofile[entid].ismarker == 3 )
+				edit_grideleprof->isobjective = 2;
+			else
+				edit_grideleprof->isobjective = 1;
+		}
+		else
+		{
+			edit_grideleprof->isobjective = 0;
+		}
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be an objective for the player");
+		ImGui::Indent(-10);
+
 		// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
 		ImGui::Indent(10);
 		edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);

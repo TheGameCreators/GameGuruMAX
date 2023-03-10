@@ -10095,7 +10095,6 @@ void mapeditorexecutable_loop(void)
 						}
 						#endif
 						
-						/* no need for this right now, maybe when allow attrib changes per collectionitem
 						// Collectbale Settings if required
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable > 0)
 						{
@@ -10103,7 +10102,70 @@ void mapeditorexecutable_loop(void)
 							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
 							{
 								ImGui::Indent(10);
+								int iCollectionItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
+								if (iCollectionItemIndex != 0)
+								{
+									for (int l = 0; l < g_collectionLabels.size(); l++)
+									{
+										int iKnownLabel = 0;
+										LPSTR pLabel = g_collectionLabels[l].Get();
+										if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+										if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+										if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+										if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+										if (iKnownLabel > 0)
+										{
+											// Attrib Label
+											char pNameOfAttrib[MAX_PATH];
+											strcpy(pNameOfAttrib, "Item ");
+											strcat(pNameOfAttrib, pLabel);
+											if (iKnownLabel == 1)
+											{
+												// do not change title, this links the object by name
+												//g_collectionList[iCollectionItemIndex].collectionFields[l].Get()
+											}
+											else
+											{
+												LPSTR pShowTop = NULL;
+												bool bAllowEditing = false;
+												if (iKnownLabel == 3) { pShowTop = "Enter a description for this item that may appear in your HUD screens";  bAllowEditing = true; }
+												if (iKnownLabel == 4) { pShowTop = "Enter a cost for this item that may appear in your HUD screens"; bAllowEditing = true; }
+												if (bAllowEditing == true)
+												{
+													ImGui::TextCenter(pNameOfAttrib);
+													ImGui::PushItemWidth(-10);
+													char cTmpInput[MAX_PATH];
+													strcpy(cTmpInput, g_collectionList[iCollectionItemIndex].collectionFields[l].Get());
+													int inputFlags = 0;
+													strcat(pNameOfAttrib, "Collectable");
+													if (ImGui::InputText(pNameOfAttrib, &cTmpInput[0], MAXTEXTINPUT, inputFlags))
+													{
+														g_collectionList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+														bImGuiGotFocus = true;
+													}
+													if (ImGui::IsItemHovered() && pShowTop ) ImGui::SetTooltip(pShowTop);
+													ImGui::PopItemWidth();
+													ImGui::TextCenter("");
+												}
+											}
+											/* not yet
+											if (iKnownLabel == 2)
+											{
+												char pBMPPNGImage[256];
+												strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
+												pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
+												char pBMPPNGImageFile[256];
+												sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
+												cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
+												if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+												item.collectionFields.push_back(pFinalImgFile);
+											}
+											*/
+										}
+									}
+								}
 
+								/* objects are as named (always!!)
 								// a drop down to select the collectable from the collection table
 								ImGui::TextCenter("Assigned Item From Collection");
 
@@ -10134,11 +10196,12 @@ void mapeditorexecutable_loop(void)
 									ImGui::EndCombo();
 								}
 								ImGui::PopItemWidth();
+								*/
+
 								ImGui::Indent(-10);
 								iLastOpenHeader = 28;
 							}
 						}
-						*/
 
 						bool bMaterialsUsed = true;
 						cStr HeaderName = "Behavior##2";

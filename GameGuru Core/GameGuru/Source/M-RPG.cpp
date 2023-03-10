@@ -86,6 +86,7 @@ bool load_rpg_system(char* name)
 		g_collectionLabels.push_back("title");
 		g_collectionLabels.push_back("image");
 		g_collectionLabels.push_back("description");
+		g_collectionLabels.push_back("cost");
 	}
 
 	// make a copy to regular gaming list
@@ -118,12 +119,14 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (iKnownLabel > 0 )
 					{
 						// field we can populate automatically
 						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
 						if (iKnownLabel == 2) item.collectionFields.push_back(cstr("gamecore\\guns\\")+ t.entityprofile[entid].isweapon_s+cstr("\\item.png"));
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 					}
 					else
 					{
@@ -147,6 +150,7 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (iKnownLabel > 0)
 					{
 						// field we can populate automatically
@@ -163,6 +167,7 @@ bool refresh_collection_from_entities(void)
 							item.collectionFields.push_back(pFinalImgFile);
 						}
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 					}
 					else
 					{
@@ -197,7 +202,7 @@ bool refresh_collection_from_entities(void)
 	return true;
 }
 
-bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
+bool add_collection_internal(char* pTitle, char* pImage, char* pDesc, char* pCost)
 {
 	collectionItemType item;
 	item.collectionFields.clear();
@@ -208,12 +213,14 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 		if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 		if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+		if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 		if (iKnownLabel > 0)
 		{
 			// field we can populate automatically
 			if (iKnownLabel == 1) item.collectionFields.push_back(pTitle);
 			if (iKnownLabel == 2) item.collectionFields.push_back(pImage);
 			if (iKnownLabel == 3) item.collectionFields.push_back(pDesc);
+			if (iKnownLabel == 4) item.collectionFields.push_back(pCost);
 		}
 		else
 		{

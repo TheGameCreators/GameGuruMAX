@@ -1,6 +1,8 @@
 -- DESCRIPTION: A global script that controls the in-game HUD. Do not assign to an object.
 
 cursorControl = require "scriptbank\\huds\\cursorcontrol"
+local U = require "scriptbank\\utillib"
+
 g_sprCursorPtrX = 50
 g_sprCursorPtrY = 33
 g_sprCursorPtrClick = 0
@@ -34,7 +36,11 @@ hud0_mapView_ImageX = 0
 hud0_mapView_ImageY = 0
 hud0_mapView_ImageW = 0
 hud0_mapView_ImageH = 0
+hud0_mapView_ImageOW = 0
+hud0_mapView_ImageOH = 0
+hud0_mapView_ScrollX = 0
 hud0_mapView_ScrollY = 0
+hud0_mapView_Scale = 1.0
 
 function hud0.init()
  -- initialise all globals
@@ -169,6 +175,9 @@ function hud0.main()
   else
 	hud0_playercontainer_screenID = 0
   end
+  
+  -- flag mouse pointer drawing below
+  local drawMousePointer = 0
  
   -- If there is an active screen (resulting from CheckScreenToggles()) then display that screen, otherwise dispay the default HUD screen
   if GetCurrentScreen() > -1 then
@@ -574,18 +583,8 @@ function hud0.main()
 		modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
 	end
 	
-	-- draw mouse pointer last
-	if hud0_pointerID == -1 then hud0_pointerID = GetScreenElementID("pointer",1) end
-	if hud0_pointerID > 0 then
-		-- use custom HUD pointer image if available
-		SetScreenElementPosition(hud0_pointerID,g_sprCursorPtrX,g_sprCursorPtrY)
-		hud0_pointerSpriteImageID = GetScreenElementImage(hud0_pointerID)
-	end
-	if hud0_pointerSpriteImageID == 0 then hud0_pointerSpriteImageID = LoadImage("imagebank\\HUD\\cursor-medium.png") end
-	if hud0_pointerSpriteID == nil then hud0_pointerSpriteID = CreateSprite ( hud0_pointerSpriteImageID ) end
-	SetSpritePosition ( hud0_pointerSpriteID, g_sprCursorPtrX, g_sprCursorPtrY )
-	SetSpritePriority(hud0_pointerSpriteID,-1)
-	PasteSprite(hud0_pointerSpriteID)
+	-- draw mouse pointer below
+	drawMousePointer = 1
 	
   else
   
@@ -639,6 +638,7 @@ function hud0.main()
   end
 
   -- display contents of any user defined images for map views 
+  local realmapsize = 50000
   local tqty = GetScreenElementsType("user defined global image")
   for ii = 1, tqty, 1 do
 	local theelementID = GetScreenElementTypeID("user defined global image",ii)
@@ -650,6 +650,7 @@ function hud0.main()
 			local scrimg = GetScreenElementImage(theelementID)
 			SetScreenElementVisibility(theelementID,0)
 			local mapName = string.sub(imagename, 5, -1)
+			local scritems = -1
 			if mapName == "window" then
 				hud0_mapView_WindowX = scrx
 				hud0_mapView_WindowY = scry
@@ -657,46 +658,132 @@ function hud0.main()
 				hud0_mapView_WindowH = tscrheight
 			end
 			if mapName == "image" then
-				hud0_mapView_ImageX = hud0_mapView_WindowX
-				hud0_mapView_ImageY = hud0_mapView_WindowY - hud0_mapView_ScrollY
 				scrx = hud0_mapView_ImageX
 				scry = hud0_mapView_ImageY
 				tscrwidth = hud0_mapView_WindowW
 				tscrheight = tscrwidth * (GetImageHeight(scrimg)/GetImageWidth(scrimg))
-				hud0_mapView_ImageW = tscrwidth
-				hud0_mapView_ImageH = tscrheight
+				hud0_mapView_ImageOW = tscrwidth
+				hud0_mapView_ImageOH = tscrheight
+				tscrwidth=tscrwidth*hud0_mapView_Scale
+				tscrheight=tscrheight*hud0_mapView_Scale
 			end
-			if mapName == "player" or mapName == "marker" then
-				realmapsize = 50000
-				if mapName == "player" then
-					placex =  g_PlayerPosX
-					placez =  g_PlayerPosZ
-					scrollylimit = (hud0_mapView_ImageH/2.15)
-					hud0_mapView_ScrollY = (scrollylimit/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
-					Prompt(hud0_mapView_ScrollY)
-					if hud0_mapView_ScrollY < 0 then hud0_mapView_ScrollY = 0 end
-					if hud0_mapView_ScrollY > scrollylimit then hud0_mapView_ScrollY = scrollylimit end
-				else
-					placex =  0
-					placez =  0
-				end
+			if mapName == "player" then
+				placex =  g_PlayerPosX
+				placez =  g_PlayerPosZ
 				scrx = (hud0_mapView_ImageX + (hud0_mapView_ImageW/2)) - (tscrwidth/2) + (placex/realmapsize)*(hud0_mapView_ImageW/2)
 				scry = (hud0_mapView_ImageY + (hud0_mapView_ImageH/2)) - (tscrheight/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
 			end
-			if hud0_gridSpriteID ~= nil then		
-				if scrimg > 0 then
-					SetSpritePosition(hud0_gridSpriteID,scrx,scry)
-					SetSpriteImage(hud0_gridSpriteID,scrimg)
-					SetSpriteSize(hud0_gridSpriteID,tscrwidth,tscrheight)
-					SetSpriteColor(hud0_gridSpriteID,255,255,255,255)
-					SetSpritePriority(hud0_gridSpriteID,-1)
-					SetSpriteScissor(hud0_mapView_WindowX,hud0_mapView_WindowY,hud0_mapView_WindowW,hud0_mapView_WindowH)
-					PasteSprite(hud0_gridSpriteID)
-					SetSpriteScissor(0,0,0,0)
+			local itemstodraw = {}
+			if mapName == "character" or mapName == "objective" or mapName == "winzone" then
+				local entlist = U.ClosestEntities( realmapsize )
+				scritems = 0
+				for entlistindex = 1, #entlist, 1 do
+					local ee = entlist[entlistindex]
+					if ee > 0 then
+						if g_Entity[ee].active > 0 then
+							if mapName == "character" then
+								local thisallegiance = GetEntityAllegiance(ee)
+								if thisallegiance >= 0 then
+									scritems = scritems + 1
+									itemstodraw[scritems] = ee
+								end
+							end
+							if mapName == "objective" then
+								local thisobjective = GetEntityObjective(ee)
+								if thisobjective == 1 then
+									scritems = scritems + 1
+									itemstodraw[scritems] = ee
+								end
+							end
+							if mapName == "winzone" then
+								local thisobjective = GetEntityObjective(ee)
+								if thisobjective == 2 then
+									scritems = scritems + 1
+									itemstodraw[scritems] = ee
+								end
+							end
+						end
+					end
+				end
+			end
+			if hud0_gridSpriteID ~= nil then
+				local drawthelot = scritems
+				if scritems == -1 and drawthelot < 1 then drawthelot = 1 end
+				for titem = 1, drawthelot, 1 do
+					if scritems > 0 then
+						placex = g_Entity[itemstodraw[titem]].x
+						placez = g_Entity[itemstodraw[titem]].z
+						scrx = (hud0_mapView_ImageX + (hud0_mapView_ImageW/2)) - (tscrwidth/2) + (placex/realmapsize)*(hud0_mapView_ImageW/2)
+						scry = (hud0_mapView_ImageY + (hud0_mapView_ImageH/2)) - (tscrheight/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
+					end
+					if scrimg > 0 then
+						SetSpritePosition(hud0_gridSpriteID,scrx,scry)
+						SetSpriteImage(hud0_gridSpriteID,scrimg)
+						SetSpriteSize(hud0_gridSpriteID,tscrwidth,tscrheight)
+						SetSpriteColor(hud0_gridSpriteID,255,255,255,255)
+						SetSpritePriority(hud0_gridSpriteID,-1)
+						SetSpriteScissor(hud0_mapView_WindowX,hud0_mapView_WindowY,hud0_mapView_WindowW,hud0_mapView_WindowH)
+						PasteSprite(hud0_gridSpriteID)
+						SetSpriteScissor(0,0,0,0)
+					end
 				end
 			end
 		end
 	end
+  end
+  -- map controls and scroller update
+  local updateMapViewImage = 1
+  if 1 then
+	myuserglobal = "MyMapMiniZoom"
+	if GetCurrentScreen() > -1 then
+		if _G["g_UserGlobal['"..myuserglobal.."']"] ~= nil then hud0_mapView_Scale = _G["g_UserGlobal['"..myuserglobal.."']"]/100.0 end
+		if g_MouseWheel > 0 then
+			hud0_mapView_Scale = hud0_mapView_Scale + 0.2
+			if hud0_mapView_Scale > 50 then hud0_mapView_Scale = 50 end
+		end
+		if g_MouseWheel < 0 then
+			hud0_mapView_Scale = hud0_mapView_Scale - 0.2
+			if hud0_mapView_Scale < 1 then hud0_mapView_Scale = 1 end
+		end
+		_G["g_UserGlobal['"..myuserglobal.."']"] = hud0_mapView_Scale * 100.0
+	else
+		if _G["g_UserGlobal['"..myuserglobal.."']"] ~= nil then hud0_mapView_Scale = _G["g_UserGlobal['"..myuserglobal.."']"]/100.0 end
+	end
+  end
+  if updateMapViewImage == 1 then
+	tscrwidth = hud0_mapView_ImageOW
+	tscrheight = hud0_mapView_ImageOH
+	tscrwidth=tscrwidth*hud0_mapView_Scale
+	tscrheight=tscrheight*hud0_mapView_Scale
+	hud0_mapView_ImageW = tscrwidth
+	hud0_mapView_ImageH = tscrheight
+	placex =  g_PlayerPosX
+	placez =  g_PlayerPosZ
+	scrollxlimit = (hud0_mapView_ImageW/2) - (hud0_mapView_WindowW/2)
+	hud0_mapView_ScrollX = (placex/realmapsize)*(hud0_mapView_ImageW/2)
+	if hud0_mapView_ScrollX < scrollxlimit*-1 then hud0_mapView_ScrollX = scrollxlimit*-1 end
+	if hud0_mapView_ScrollX > scrollxlimit then hud0_mapView_ScrollX = scrollxlimit end
+	scrollylimit = (hud0_mapView_ImageH/2) - (hud0_mapView_WindowH/2)	
+	hud0_mapView_ScrollY = ((placez*-1)/realmapsize)*(hud0_mapView_ImageH/2)
+	if hud0_mapView_ScrollY < scrollylimit*-1 then hud0_mapView_ScrollY = scrollylimit*-1 end
+	if hud0_mapView_ScrollY > scrollylimit then hud0_mapView_ScrollY = scrollylimit end
+	hud0_mapView_ImageX = hud0_mapView_WindowX - ((hud0_mapView_ImageW-hud0_mapView_WindowW)/2) - hud0_mapView_ScrollX
+	hud0_mapView_ImageY = hud0_mapView_WindowY - ((hud0_mapView_ImageH-hud0_mapView_WindowH)/2) - hud0_mapView_ScrollY
+  end
+  
+  -- draw mouse pointer last
+  if drawMousePointer == 1 then
+	if hud0_pointerID == -1 then hud0_pointerID = GetScreenElementID("pointer",1) end
+	if hud0_pointerID > 0 then
+		-- use custom HUD pointer image if available
+		SetScreenElementPosition(hud0_pointerID,g_sprCursorPtrX,g_sprCursorPtrY)
+		hud0_pointerSpriteImageID = GetScreenElementImage(hud0_pointerID)
+	end
+	if hud0_pointerSpriteImageID == 0 then hud0_pointerSpriteImageID = LoadImage("imagebank\\HUD\\cursor-medium.png") end
+	if hud0_pointerSpriteID == nil then hud0_pointerSpriteID = CreateSprite ( hud0_pointerSpriteImageID ) end
+	SetSpritePosition ( hud0_pointerSpriteID, g_sprCursorPtrX, g_sprCursorPtrY )
+	SetSpritePriority(hud0_pointerSpriteID,-1)
+	PasteSprite(hud0_pointerSpriteID)
   end
   
   -- handle slow absorbsion of magic

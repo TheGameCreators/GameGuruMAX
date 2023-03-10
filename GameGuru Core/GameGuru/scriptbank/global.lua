@@ -1349,8 +1349,10 @@ SetEntityActive: SetEntityActive ( e, active flag ) -- Sets the entity data dire
 SetEntityActivated: SetEntityActivated ( e, activated flag ) -- Sets the entity data directly, e is entity index
 SetEntityHasKey : SetEntityHasKey ( e, haskey flag ) -- Sets the entity data directly, e is entity index
 
+SetEntityObjective: SetEntityObjective ( e, anobjective ) -- Will mark entity as an objective if set to 1
 SetEntityCollectable: SetEntityCollectable ( e, cancollect ) -- Can collect this if cancollect is set to 1
 SetEntityCollected: SetEntityCollected ( e, collectedflag ) -- Sets that the entity has been collected
+GetEntityObjective: isobjective = GetEntityObjective ( e ) -- Gets whether the entity is an objective
 GetEntityCollectable: cancollect = GetEntityCollectable ( e ) -- Gets whether the entity can be collected
 GetEntityCollected: collectedflag = GetEntityCollected ( e ) -- Gets whether the entity has been collected
 SetEntityUsed: SetEntityUsed ( e, usedflag ) -- Sets that the entity has been used

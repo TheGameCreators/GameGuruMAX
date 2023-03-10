@@ -30,6 +30,11 @@ hud0_mapView_WindowX = 0
 hud0_mapView_WindowY = 0
 hud0_mapView_WindowW = 0
 hud0_mapView_WindowH = 0
+hud0_mapView_ImageX = 0
+hud0_mapView_ImageY = 0
+hud0_mapView_ImageW = 0
+hud0_mapView_ImageH = 0
+hud0_mapView_ScrollY = 0
 
 function hud0.init()
  -- initialise all globals
@@ -642,6 +647,7 @@ function hud0.main()
 		local isMap = string.sub(imagename, 1, 4)
 		if isMap == "map:" then
 			scrx,scry,tscrwidth,tscrheight = GetScreenElementArea(theelementID)    
+			local scrimg = GetScreenElementImage(theelementID)
 			SetScreenElementVisibility(theelementID,0)
 			local mapName = string.sub(imagename, 5, -1)
 			if mapName == "window" then
@@ -651,13 +657,33 @@ function hud0.main()
 				hud0_mapView_WindowH = tscrheight
 			end
 			if mapName == "image" then
-				--scrx = hud0_mapView_WindowX
-				--scry = hud0_mapView_WindowY
-				--tscrwidth = hud0_mapView_WindowW
-				--tscrheight = hud0_mapView_WindowH
+				hud0_mapView_ImageX = hud0_mapView_WindowX
+				hud0_mapView_ImageY = hud0_mapView_WindowY - hud0_mapView_ScrollY
+				scrx = hud0_mapView_ImageX
+				scry = hud0_mapView_ImageY
+				tscrwidth = hud0_mapView_WindowW
+				tscrheight = tscrwidth * (GetImageHeight(scrimg)/GetImageWidth(scrimg))
+				hud0_mapView_ImageW = tscrwidth
+				hud0_mapView_ImageH = tscrheight
+			end
+			if mapName == "player" or mapName == "marker" then
+				realmapsize = 50000
+				if mapName == "player" then
+					placex =  g_PlayerPosX
+					placez =  g_PlayerPosZ
+					scrollylimit = (hud0_mapView_ImageH/2.15)
+					hud0_mapView_ScrollY = (scrollylimit/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
+					Prompt(hud0_mapView_ScrollY)
+					if hud0_mapView_ScrollY < 0 then hud0_mapView_ScrollY = 0 end
+					if hud0_mapView_ScrollY > scrollylimit then hud0_mapView_ScrollY = scrollylimit end
+				else
+					placex =  0
+					placez =  0
+				end
+				scrx = (hud0_mapView_ImageX + (hud0_mapView_ImageW/2)) - (tscrwidth/2) + (placex/realmapsize)*(hud0_mapView_ImageW/2)
+				scry = (hud0_mapView_ImageY + (hud0_mapView_ImageH/2)) - (tscrheight/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
 			end
 			if hud0_gridSpriteID ~= nil then		
-				local scrimg = GetScreenElementImage(theelementID)
 				if scrimg > 0 then
 					SetSpritePosition(hud0_gridSpriteID,scrx,scry)
 					SetSpriteImage(hud0_gridSpriteID,scrimg)

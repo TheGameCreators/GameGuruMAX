@@ -107,6 +107,10 @@ function ladder_main(e)
 	elseif
 		ladder.state == 'active' then
 		
+		if g_PlayerHealth <= 0 then
+			ladder.state = 'idle'
+		end
+		
 		if ladder.use_prompt == 1 then Prompt( ladder.prompt_text ) end				
 		
 		SetFreezePosition( ladder.x, ladder.ypos + playerheight, ladder.z ) 

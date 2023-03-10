@@ -38990,6 +38990,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					Storyboard.widget_colors[node][j] = templateStoryboard.widget_colors[orgnode][j];
 					strcpy(Storyboard.widget_readout[node][j], templateStoryboard.widget_readout[orgnode][j]);
 					Storyboard.widget_textoffset[node][j] = templateStoryboard.widget_textoffset[orgnode][j];
+					Storyboard.widget_ingamehidden[node][j] = templateStoryboard.widget_ingamehidden[orgnode][j];
 				}
 			}
 		}
@@ -44969,7 +44970,6 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 
 	// Set widget defaults
 	node.widget_type[widgetSlot] = type;
-	Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(0.0f, 0.0f);
 	Storyboard.widget_colors[nodeID][widgetSlot] = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 	Storyboard.Nodes[nodeID].widget_size[widgetSlot] = ImVec2(1.0f, 1.0f);
 	node.widget_pos[widgetSlot].x = 200 / ImGui::GetMainViewport()->Size.x * 100;
@@ -44983,6 +44983,8 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 		// Reset in case this widget was previously used as a readout but no longer is
 		Storyboard.widget_readout[nodeID][widgetSlot][0] = 0;
 	}
+	Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(0.0f, 0.0f);
+	Storyboard.widget_ingamehidden[nodeID][widgetSlot] = 0;
 
 	// Settings specific to widget type:
 	if (type == STORYBOARD_WIDGET_IMAGE)
@@ -45127,6 +45129,7 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 		Storyboard.widget_colors[nodeID][i] = Storyboard.widget_colors[nodeID][i + 1];
 		strcpy(Storyboard.widget_readout[nodeID][i], Storyboard.widget_readout[nodeID][i + 1]);
 		Storyboard.widget_textoffset[nodeID][i] = Storyboard.widget_textoffset[nodeID][i + 1];
+		Storyboard.widget_ingamehidden[nodeID][i] = Storyboard.widget_ingamehidden[nodeID][i + 1];
 	}
 
 	// Reload any images after the deleted widget, to ensure they remain in the correct slot
@@ -46707,15 +46710,18 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					bHovered = true;
 				}
-				//Display Image
-				void* lpTexture = GetImagePointer(imgID);
-				if (lpTexture)
-				{			
-					ImGui::SetCursorPos(vMonitorStart + widget_pos);		
-					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-					ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
-					ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
-					ImGui::PopItemFlag();
+				if (bImGuiInTestGame == false || (bImGuiInTestGame == true && Storyboard.widget_ingamehidden[nodeid][Storyboard_ActiveWidgets[i]] == 0) )
+				{
+					//Display Image
+					void* lpTexture = GetImagePointer(imgID);
+					if (lpTexture)
+					{
+						ImGui::SetCursorPos(vMonitorStart + widget_pos);
+						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+						ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
+						ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
+						ImGui::PopItemFlag();
+					}
 				}
 
 				// no text if a global panel
@@ -47719,6 +47725,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
 						iUpdateWidgetThumbNode = iCurrentSelectedWidget;
 						iUpdateWidgetThumbButton = iCurrentSelectedWidget;
+					}	
+					bool bHidingImageInGame = false;
+					if (Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] == 1 ) bHidingImageInGame = true;
+					if (ImGui::Checkbox("Hide Image In Game", &bHidingImageInGame))
+					{
+						if(bHidingImageInGame==true)
+							Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 1;
+						else
+							Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 0;
 					}
 					ImGui::TextCenter("Image Color");
 					bool open_popup = ImGui::ColorButton("##StoryboardWidgetImageColor", Storyboard.widget_colors[nodeid][iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));

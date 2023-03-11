@@ -74,7 +74,10 @@ bool load_rpg_system(char* name)
 			// add populated item to collection list
 			if (bPopulateLabels == false)
 			{
-				g_collectionMasterList.push_back(item);
+				if (item.collectionFields.size() > 2)
+				{
+					g_collectionMasterList.push_back(item);
+				}
 			}
 		}
 		fclose(collectionFile);
@@ -86,10 +89,58 @@ bool load_rpg_system(char* name)
 		g_collectionLabels.push_back("title");
 		g_collectionLabels.push_back("image");
 		g_collectionLabels.push_back("description");
+		g_collectionLabels.push_back("cost");
 	}
 
 	// make a copy to regular gaming list
 	g_collectionList = g_collectionMasterList;
+
+	// success
+	return true;
+}
+
+bool save_rpg_system(char* name)
+{
+	// save master collection in file (contains all items in all game levels)
+	char collectionfilename[MAX_PATH];
+	strcpy(collectionfilename, "projectbank\\");
+	strcat(collectionfilename, name);
+	strcat(collectionfilename, "\\collection - items.tsv");
+	DeleteFileA(collectionfilename);
+	FILE* collectionFile = GG_fopen(collectionfilename, "w");
+	if (collectionFile)
+	{
+		// write all lines in TAB DELIMITED FILE
+		char pTab[2]; pTab[0] = 9; pTab[1] = 0;
+		char pCR[2]; pCR[0] = 10; pCR[1] = 0;
+		char theline[MAX_PATH];
+
+		// first write collection labels
+		strcpy(theline, "");
+		for (int l = 0; l < g_collectionLabels.size(); l++)
+		{
+			strcat(theline, g_collectionLabels[l].Get());
+			strcat(theline, pTab);
+		}
+		theline[strlen(theline) - 1] = 0;
+		strcat(theline, pCR);
+		fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
+
+		// then for each item a line is created with all attribs
+		for (int i = 0; i < g_collectionMasterList.size(); i++)
+		{
+			strcpy(theline, "");
+			for (int l = 0; l < g_collectionMasterList[i].collectionFields.size(); l++)
+			{
+				strcat(theline, g_collectionMasterList[i].collectionFields[l].Get());
+				strcat(theline, pTab);
+			}
+			theline[strlen(theline) - 1] = 0;
+			strcat(theline, pCR);
+			fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
+		}
+		fclose(collectionFile);
+	}
 
 	// success
 	return true;
@@ -118,12 +169,14 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (iKnownLabel > 0 )
 					{
 						// field we can populate automatically
 						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
 						if (iKnownLabel == 2) item.collectionFields.push_back(cstr("gamecore\\guns\\")+ t.entityprofile[entid].isweapon_s+cstr("\\item.png"));
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 					}
 					else
 					{
@@ -147,6 +200,7 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (iKnownLabel > 0)
 					{
 						// field we can populate automatically
@@ -163,6 +217,7 @@ bool refresh_collection_from_entities(void)
 							item.collectionFields.push_back(pFinalImgFile);
 						}
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
+						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 					}
 					else
 					{
@@ -197,7 +252,7 @@ bool refresh_collection_from_entities(void)
 	return true;
 }
 
-bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
+bool add_collection_internal(char* pTitle, char* pImage, char* pDesc, char* pCost)
 {
 	collectionItemType item;
 	item.collectionFields.clear();
@@ -208,12 +263,14 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
 		if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 		if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+		if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 		if (iKnownLabel > 0)
 		{
 			// field we can populate automatically
 			if (iKnownLabel == 1) item.collectionFields.push_back(pTitle);
 			if (iKnownLabel == 2) item.collectionFields.push_back(pImage);
 			if (iKnownLabel == 3) item.collectionFields.push_back(pDesc);
+			if (iKnownLabel == 4) item.collectionFields.push_back(pCost);
 		}
 		else
 		{
@@ -222,14 +279,6 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		}
 	}
 	g_collectionList.push_back(item);
-	return true;
-}
-
-bool save_rpg_system(char* name)
-{
-	//MessageBoxA(NULL, "save collection changes", "", MB_OK);
-
-	// success
 	return true;
 }
 

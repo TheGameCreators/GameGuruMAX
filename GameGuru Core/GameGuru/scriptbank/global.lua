@@ -2446,7 +2446,10 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetCollectionAttributeLabel :, GetCollectionAttributeLabel
 -- GetCollectionItemQuantity : GetCollectionItemQuantity
 -- GetCollectionItemAttribute : GetCollectionItemAttribute
+-- MakeInventoryContainer : MakeInventoryContainer
+-- GetInventoryExist : GetInventoryExist
 -- GetInventoryQuantity : GetInventoryQuantity
 -- GetInventoryItem : GetInventoryItem
 -- GetInventoryItemID : GetInventoryItemID
--- MoveInventoryItem : MoveInventoryItem
+-- SpawnInventoryItem : SpawnInventoryItem ( to, collectionID, slot )
+-- MoveInventoryItem : MoveInventoryItem ( from, to, collectionID, slot ) 

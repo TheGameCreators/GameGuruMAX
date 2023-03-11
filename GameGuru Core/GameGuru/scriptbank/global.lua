@@ -297,30 +297,32 @@ end
 
 function UpdateEntity(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,ani,hea,frm,pdst,avd,lmb,lmi)
  g_Entity[e] = {x=x; y=y; z=z; anglex=rx; angley=ry; anglez=rz; active=ave; activated=act; animating=ani; collected=col; haskey=key; plrinzone=zon; entityinzone=ezon; plrvisible=plrvis; obj=object; health=hea; strength=hea; frame=frm; timer=0; plrdist=pdst; avoid=avd; limbhit=lmb; limbhitindex=lmi; debuggermode=0;}
- g_EntityExtra[e] = {visible=1; spawnatstart=1;}
+ g_EntityExtra[e] = {visible=1; spawnatstart=1; beingreset=0;}
 end
 
 function UpdateEntityRT(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,hea,frm,pdst,avd,lmb,lmi)
- g_Entity[e]['x'] = x;
- g_Entity[e]['y'] = y;
- g_Entity[e]['z'] = z;
- g_Entity[e]['anglex'] = rx;
- g_Entity[e]['angley'] = ry;
- g_Entity[e]['anglez'] = rz;
- g_Entity[e]['obj'] = object;
- g_Entity[e]['active'] = ave;
- g_Entity[e]['activated'] = act;
- g_Entity[e]['collected'] = col;
- g_Entity[e]['haskey'] = key;
- g_Entity[e]['plrinzone'] = zon;
- g_Entity[e]['entityinzone'] = ezon;
- g_Entity[e]['plrvisible'] = plrvis;
- g_Entity[e]['health'] = hea;
- g_Entity[e]['frame'] = frm;
- g_Entity[e]['plrdist'] = pdst;
- g_Entity[e]['avoid'] = avd;
- g_Entity[e]['limbhit'] = lmb;
- g_Entity[e]['limbhitindex'] = lmi;
+ if g_Entity[e] ~= nil then
+  g_Entity[e]['x'] = x;
+  g_Entity[e]['y'] = y;
+  g_Entity[e]['z'] = z;
+  g_Entity[e]['anglex'] = rx;
+  g_Entity[e]['angley'] = ry;
+  g_Entity[e]['anglez'] = rz;
+  g_Entity[e]['obj'] = object;
+  g_Entity[e]['active'] = ave;
+  g_Entity[e]['activated'] = act;
+  g_Entity[e]['collected'] = col;
+  g_Entity[e]['haskey'] = key;
+  g_Entity[e]['plrinzone'] = zon;
+  g_Entity[e]['entityinzone'] = ezon;
+  g_Entity[e]['plrvisible'] = plrvis;
+  g_Entity[e]['health'] = hea;
+  g_Entity[e]['frame'] = frm;
+  g_Entity[e]['plrdist'] = pdst;
+  g_Entity[e]['avoid'] = avd;
+  g_Entity[e]['limbhit'] = lmb;
+  g_Entity[e]['limbhitindex'] = lmi;
+ end
 end
 
 function UpdateEntityDebugger(e,mode)
@@ -776,15 +778,21 @@ function SetHoverFactor(e,v)
 end
 
 function SetPosition(e,x,y,z)
- SendMessageF("setpositionx",e,x);
- SendMessageF("setpositiony",e,y);
- SendMessageF("setpositionz",e,z);
+ if g_EntityExtra[e]['beingreset'] > 0 then 
+  g_EntityExtra[e]['beingreset']=g_EntityExtra[e]['beingreset']-1
+ else
+  SendMessageF("setpositionx",e,x);
+  SendMessageF("setpositiony",e,y);
+  SendMessageF("setpositionz",e,z);
+ end
 end
 function ResetPosition(e,x,y,z)
+ g_EntityExtra[e]['beingreset'] = 2
  SendMessageF("resetpositionx",e,x);
  SendMessageF("resetpositiony",e,y);
  SendMessageF("resetpositionz",e,z);
 end
+
 function SetRotation(e,x,y,z)
  SendMessageF("setrotationx",e,x);
  SendMessageF("setrotationy",e,y);
@@ -1371,6 +1379,11 @@ GetAnimationSpeed : speed = GetAnimationSpeed ( e ) -- where e is the entity num
 SetAnimationSpeedModulation : SetAnimationSpeedModulation ( e, speed ) -- where e is the entity number and speed is animation speed modulator
 GetAnimationSpeedModulation : speed = GetAnimationSpeedModulation ( e ) -- where e is the entity number and speed is the animation speed modulator
 GetMovementDelta : delta = GetMovementDelta ( e ) -- where e is the entity number and delta is the movement distance since the last cycle
+GetEntityCollBox : GetEntityCollBox ( e ) -- useful command
+GetEntityScales : GetEntityScales ( e ) -- useful command
+GetEntityName : string = GetEntityName ( e ) -- will return the name of the entity specified by e
+GetEntityScales : GetEntityScales ( e ) -- useful command
+GetMovementDeltaManually : GetMovementDeltaManually ( e ) -- useful command
 
 AdjustLookSettingHorizLimit : AdjustLookSettingHorizLimit ( e, hlimit ) -- where e is the entity number and param sets the horizontal limit
 AdjustLookSettingHorizOffset : AdjustLookSettingHorizOffset ( e, hoffset ) -- where e is the entity number and param sets the horizontal offset
@@ -1403,6 +1416,13 @@ GetEntityAnimationFound : flag = GetEntityAnimationFound ( e, animsetindex ) -- 
 GetObjectAnimationFinished : flag = GetObjectAnimationFinished ( e ) -- returns a 1 if the specified entity has finished playing the specified animation
 GetObjectAnimationFinished : flag = GetObjectAnimationFinished ( e, shaveendframes ) -- as above but shaves specified number of frames off the end of the animation
 
+Entity Creation and Destruction
+-------------------------------
+SpawnNewEntity : newe = SpawnNewEntity ( currente ) -- will create a new entity by copying the entity specified by currente
+DeleteNewEntity : DeleteNewEntity ( e ) -- will delete any entity specified by e newly created during the level, but no original ones
+
+Other Things
+------------
 GetAmmoClip : ammoclip = GetAmmoClip ( e ) -- returns the current ammo in clip for the held weapon of the entity
 SetAmmoClip : SetAmmoClip ( e, ammoquantity ) -- sets the ammo clip quantity for the held weapon of the entity
 	
@@ -2451,5 +2471,5 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetInventoryQuantity : GetInventoryQuantity
 -- GetInventoryItem : GetInventoryItem
 -- GetInventoryItemID : GetInventoryItemID
--- SpawnInventoryItem : SpawnInventoryItem ( to, collectionID, slot )
+-- AddInventoryItem : AddInventoryItem ( to, collectionID, newe, slot )
 -- MoveInventoryItem : MoveInventoryItem ( from, to, collectionID, slot ) 

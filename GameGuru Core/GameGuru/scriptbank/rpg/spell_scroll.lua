@@ -11,7 +11,6 @@
 local spell_scroll = {}
 
 function spell_scroll_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost)
-	spell_scroll[e] = g_Entity[e]	
 	spell_scroll[e].prompt_text = prompt_text
 	spell_scroll[e].useage_text = useage_text
 	spell_scroll[e].pickup_range = pickup_range
@@ -20,7 +19,7 @@ function spell_scroll_properties(e, prompt_text, useage_text, pickup_range, user
 end
 
 function spell_scroll_init(e)
-	spell_scroll[e] = g_Entity[e]
+	spell_scroll[e] = {}
 	spell_scroll[e].prompt_text = "E to Collect"
 	spell_scroll[e].useage_text = "Spell cast"
 	spell_scroll[e].pickup_range = 80
@@ -30,7 +29,6 @@ function spell_scroll_init(e)
 end
 
 function spell_scroll_main(e)
-	spell_scroll[e] = g_Entity[e]
 	PlayerDist = GetPlayerDistance(e)	
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if LookingAt == 1 and PlayerDist < spell_scroll[e].pickup_range then

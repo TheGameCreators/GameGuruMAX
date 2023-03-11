@@ -5,7 +5,7 @@
 #include "cstr.h"
 
 void entity_init ( void );
-void entity_bringnewentitiestolife ( void );
+void entity_bringnewentitiestolife ( bool bAllNewOnes );
 void entity_initafterphysics ( void );
 void entity_configueelementforuse ( void );
 void entity_freeragdoll ( void );

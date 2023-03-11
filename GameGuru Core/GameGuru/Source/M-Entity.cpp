@@ -8560,6 +8560,10 @@ void entity_addentitytomap_core ( void )
 		t.e = t.gridentityoverwritemode;
 	}
 
+	// noticed newly created can have old garbage in them, clear to be safe
+	//memset(&t.entityelement[t.e], 0, sizeof(t.entityelement[t.e])); too destructuve to init values
+	t.entityelement[t.e].collected = 0;
+
 	//  Fill entity element details
 	t.entityelement[t.e].editorfixed=t.gridentityeditorfixed;
 	t.entityelement[t.e].maintype=t.entitymaintype;
@@ -8615,12 +8619,6 @@ void entity_addentitytomap ( void )
 	t.entitymaintype=1;
 	t.entitybankindex=t.gridentity;
 	entity_addentitytomap_core ( );
-
-	//Debug mem use per object added.
-	//void timestampactivity(int i, char* desc_s);
-	//char timestampMsg[1024];
-	//sprintf(timestampMsg, "Add Entity: (%ld) %s", t.e,t.entitybank_s[t.entid].Get());
-	//timestampactivity(0, timestampMsg);
 
 	// transfer waypoint zone index to entityelement
 	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;

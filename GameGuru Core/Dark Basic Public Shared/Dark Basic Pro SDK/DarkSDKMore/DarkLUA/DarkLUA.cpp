@@ -1097,29 +1097,32 @@ luaMessage** ppLuaMessages = NULL;
  {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 2 || n > 3 ) return 0;
+	if ( n < 2 || n > 4 ) return 0;
 	int iReturnSlot = -1;
 	bool bItemHandled = false;
 	int iEntityIndex = lua_tonumber(L, 1);
 	int iCollectState = lua_tonumber(L, 2);
 	int iSlotIndex = -1;
-	if(n==3 ) iSlotIndex = lua_tonumber(L, 3);
-	for (int bothplayercontainers = 0; bothplayercontainers < 2; bothplayercontainers++)
+	const char* pSpecifiedContainer = "";
+	if (n == 3) iSlotIndex = lua_tonumber(L, 3);
+	if (n == 4) pSpecifiedContainer = lua_tostring(L, 4);
+	for (int containerindex = 0; containerindex < t.inventoryContainers.size(); containerindex++)
 	{
 		if (iCollectState > 0)
 		{
 			bool bAllowInHere = false;
-			if (iCollectState == 1 && bothplayercontainers == 0) bAllowInHere = true; // main inventrory
-			if (iCollectState == 2 && bothplayercontainers == 1) bAllowInHere = true; // hotkeys inventory
+			if (iCollectState == 1 && containerindex == 0) bAllowInHere = true; // main inventrory
+			if (iCollectState == 2 && containerindex == 1) bAllowInHere = true; // hotkeys inventory
+			if (iCollectState == 3 && stricmp(pSpecifiedContainer, t.inventoryContainers[containerindex].Get()) == NULL) bAllowInHere = true; // specified container
 			if (bAllowInHere == true && bItemHandled == false )
 			{
 				// if not already collected
 				int n = 0;
-				for (n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
-					if (t.inventoryContainer[bothplayercontainers][n].e == iEntityIndex)
+				for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+					if (t.inventoryContainer[containerindex][n].e == iEntityIndex)
 						break;
 
-				if (n >= t.inventoryContainer[bothplayercontainers].size())
+				if (n >= t.inventoryContainer[containerindex].size())
 				{
 					// add item to inventory
 					inventoryContainerType item;
@@ -1134,9 +1137,9 @@ luaMessage** ppLuaMessages = NULL;
 					{
 						// look for free slot index
 						iReturnSlot = 0;
-						for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+						for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
 						{
-							if (t.inventoryContainer[bothplayercontainers][n].slot == iReturnSlot)
+							if (t.inventoryContainer[containerindex][n].slot == iReturnSlot)
 							{
 								// being used - try if next slot free
 								iReturnSlot++;
@@ -1149,9 +1152,9 @@ luaMessage** ppLuaMessages = NULL;
 					{
 						// ensure slot not used
 						bool bCanUseSlot = true;
-						for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+						for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
 						{
-							if (t.inventoryContainer[bothplayercontainers][n].slot == iSlotIndex)
+							if (t.inventoryContainer[containerindex][n].slot == iSlotIndex)
 							{
 								// being used - cannot use this one
 								bCanUseSlot = false;
@@ -1168,7 +1171,7 @@ luaMessage** ppLuaMessages = NULL;
 					// finally add to list
 					if (iReturnSlot != -1)
 					{
-						t.inventoryContainer[bothplayercontainers].push_back(item);
+						t.inventoryContainer[containerindex].push_back(item);
 
 						// handle entity itself
 						bItemHandled = true;
@@ -1193,11 +1196,11 @@ luaMessage** ppLuaMessages = NULL;
 			// find and remove from inventory
 			if (bItemHandled == false)
 			{
-				for (int n = 0; n < t.inventoryContainer[bothplayercontainers].size(); n++)
+				for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
 				{
-					if (t.inventoryContainer[bothplayercontainers][n].e == iEntityIndex)
+					if (t.inventoryContainer[containerindex][n].e == iEntityIndex)
 					{
-						t.inventoryContainer[bothplayercontainers].erase(t.inventoryContainer[bothplayercontainers].begin() + n);
+						t.inventoryContainer[containerindex].erase(t.inventoryContainer[containerindex].begin() + n);
 						bItemHandled = true;
 						break;
 					}
@@ -2309,6 +2312,110 @@ luaMessage** ppLuaMessages = NULL;
 	 lua_pushinteger (L, iReturnValue);
 	 return 1;
  }
+
+ // Entity creation and destruction
+
+ int SpawnNewEntity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iNewE = -1;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int storee = t.e;
+		 int storeentid = t.entid;
+		 int entid = t.entityelement[iEntityIndex].bankindex;
+		 t.gridentity = entid;
+		 t.gridentityeditorfixed = 0;
+		 t.gridentitystaticmode = t.entityelement[iEntityIndex].staticflag;
+		 t.gridentityposx_f = t.entityelement[iEntityIndex].x;
+		 t.gridentityposy_f = t.entityelement[iEntityIndex].y;
+		 t.gridentityposz_f = t.entityelement[iEntityIndex].z;
+		 t.gridentityrotatex_f = t.entityelement[iEntityIndex].rx;
+		 t.gridentityrotatey_f = t.entityelement[iEntityIndex].ry;
+		 t.gridentityrotatez_f = t.entityelement[iEntityIndex].rz;
+		 t.gridentityrotatequatmode = t.entityelement[iEntityIndex].quatmode;
+		 t.gridentityrotatequatx_f = t.entityelement[iEntityIndex].quatx;
+		 t.gridentityrotatequaty_f = t.entityelement[iEntityIndex].quaty;
+		 t.gridentityrotatequatz_f = t.entityelement[iEntityIndex].quatz;
+		 t.gridentityrotatequatw_f = t.entityelement[iEntityIndex].quatw;
+		 t.gridentityscalex_f = ObjectScaleX(t.entityelement[iEntityIndex].obj);
+		 t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
+		 t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
+		 t.entid = entid; entity_fillgrideleproffromprofile();
+		 entity_addentitytomap ();
+		 t.e = t.tupdatee;
+		 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
+		 t.entityelement[t.e].scalex = t.entityelement[iEntityIndex].scalex;
+		 t.entityelement[t.e].scaley = t.entityelement[iEntityIndex].scaley;
+		 t.entityelement[t.e].scalez = t.entityelement[iEntityIndex].scalez;
+		 t.entityelement[t.e].soundset = t.entityelement[iEntityIndex].soundset;
+		 t.entityelement[t.e].soundset1 = t.entityelement[iEntityIndex].soundset1;
+		 t.entityelement[t.e].soundset2 = t.entityelement[iEntityIndex].soundset2;
+		 t.entityelement[t.e].soundset3 = t.entityelement[iEntityIndex].soundset3;
+		 t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
+		 t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
+		 t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
+		 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
+		 iNewE = t.e;
+		 physics_prepareentityforphysics ();
+		 t.entityelement[t.e].lua.firsttime = 0;
+		 // special limbo mode to skip activating this entity until next lua_begin cycle
+		 t.entityelement[iNewE].active = 0;
+		 t.entityelement[iNewE].lua.flagschanged = 123;
+		 t.e = storee;
+		 t.entid = storeentid;
+		 t.gridentity = 0;
+	 }
+	 lua_pushinteger (L, iNewE);
+	 return 1;
+ }
+ int DeleteNewEntity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 if (iEntityIndex > t.storedentityelementlist)
+		 {
+			 // was created at run-time, can delete
+			 int storee = t.e;
+			 int storeentid = t.entid;
+			 t.tentitytoselect = iEntityIndex;
+			 t.entid = t.entityelement[t.tentitytoselect].bankindex;
+			 if (t.entityelement[t.tentitytoselect].usingphysicsnow == 1)
+			 {
+				 t.tphyobj = t.entityelement[t.tentitytoselect].obj;
+				 physics_disableobject ();
+				 t.entityelement[t.tentitytoselect].usingphysicsnow = 0;
+			 }
+			 t.entityelement[t.tentitytoselect].editorlock = 0;
+			 for (g.charanimindex = 1; g.charanimindex <= g.charanimindexmax; g.charanimindex++)
+			 {
+				 if (t.tentitytoselect == t.charanimstates[g.charanimindex].e)
+				 {
+					 t.charanimstates[g.charanimindex].e = 0; 
+					 t.charanimstates[g.charanimindex].obj = 0;
+				 }
+			 }
+			 if (t.entityelement[t.tentitytoselect].attachmentobj > 0)
+			 {
+				 HideObject (t.entityelement[t.tentitytoselect].attachmentobj);
+				 t.entityelement[t.tentitytoselect].attachmentobj = 0;
+			 }
+			 entity_deleteentityfrommap ();
+			 t.e = storee;
+			 t.entid = storeentid;
+		 }
+	 }
+	 return 0;
+ }
+
+ // Other stuff
 
  int GetAmmoClipMax(lua_State *L)
  {
@@ -6773,24 +6880,27 @@ int GetInventoryItemSlot(lua_State* L)
 	lua_pushnumber(L, iItemSlot);
 	return 1;
 }
-int SpawnInventoryItem (lua_State* L)
+int AddInventoryItem (lua_State* L)
 {
+	/* is this needed or correct - SetEntityCollected does this functionality
 	lua = L;
 	int n = lua_gettop(L);
-	if (n < 3) return 0;
+	if (n < 4) return 0;
 	char pNameOfInventoryTo[512];
 	strcpy(pNameOfInventoryTo, lua_tostring(L, 1));
 	int bothplayercontainersto = FindInventoryIndex(pNameOfInventoryTo);
 	if (bothplayercontainersto >= 0)
 	{
 		int collectionindex = lua_tonumber(L, 2);
-		int slotindex = lua_tonumber(L, 3);
+		int newe = lua_tonumber(L, 3);
+		int slotindex = lua_tonumber(L, 4);
 		inventoryContainerType item;
-		item.e = -1; // spawns dont have existence in 3D world (no entity element)
+		item.e = newe;
 		item.collectionID = collectionindex;
 		item.slot = slotindex;
 		t.inventoryContainer[bothplayercontainersto].push_back(item);
 	}
+	*/
 	return 0;
 }
 int MoveInventoryItem (lua_State* L)
@@ -9129,6 +9239,9 @@ void addFunctions()
 	lua_register(lua, "GetEntityAnimationNameExistAndPlaying", GetEntityAnimationNameExistAndPlaying);
 	lua_register(lua, "GetEntityAnimationTriggerFrame", GetEntityAnimationTriggerFrame);
 	
+	// Entity creation/destruction
+	lua_register(lua, "SpawnNewEntity", SpawnNewEntity);
+	lua_register(lua, "DeleteNewEntity", DeleteNewEntity);
 
 	lua_register(lua, "GetAmmoClipMax", GetAmmoClipMax);
 	lua_register(lua, "GetAmmoClip", GetAmmoClip);
@@ -10000,7 +10113,7 @@ void addFunctions()
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
 	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
 	lua_register(lua, "GetInventoryItemSlot", GetInventoryItemSlot);
-	lua_register(lua, "SpawnInventoryItem", SpawnInventoryItem);
+	lua_register(lua, "AddInventoryItem", AddInventoryItem);
 	lua_register(lua, "MoveInventoryItem", MoveInventoryItem);
 #endif
 

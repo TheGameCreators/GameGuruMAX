@@ -42,6 +42,8 @@ hud0_mapView_ScrollX = 0
 hud0_mapView_ScrollY = 0
 hud0_mapView_Scale = 1.0
 
+hud0_populateallcontainers = 1
+
 function hud0.init()
  -- initialise all globals
  InitScreen("HUD0")
@@ -56,12 +58,6 @@ function hud0.init()
  if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] == nil then 
 	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] = {}
 	hud0_playercontainer_img[hud0_playercontainer_screenID][1] = {}
- end
- -- create shop items from all collection for game
- MakeInventoryContainer("inventory:shop")
- local tcollectionmax = GetCollectionItemQuantity()
- for tcollectionindex = 1, tcollectionmax, 1 do
-	SpawnInventoryItem ( "inventory:shop", tcollectionindex, tcollectionindex-1 )
  end
 end
 
@@ -161,6 +157,35 @@ function hud0.main()
 
  -- This section controls which HUD screens are shown to the player whilst in-game (not paused or in a menu screen)
  if IsPlayerInGame() then
+ 
+  if hud0_populateallcontainers == 1 then 
+	-- create shop items from all collection for game
+	MakeInventoryContainer("inventory:shop")
+	local tcollectionmax = GetCollectionItemQuantity()
+	for tcollectionindex = 1, tcollectionmax, 1 do
+		local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+		local anyee = 0
+		for ee = 1, g_EntityElementMax, 1 do
+			if e ~= ee then
+				if g_Entity[ee] ~= nil then
+					if g_Entity[ee]['active'] > 0 then
+						if GetEntityName(ee) == tname then
+							anyee = ee
+							break
+						end
+					end
+				end
+			end
+		end
+		if anyee > 0 then
+			-- item object is in 3D world, create a clone for the shop
+			local newe = SpawnNewEntity(anyee)
+			SetEntityCollected(newe,3,-1,"inventory:shop")
+		end
+	end			
+	-- finished creating container items and entities
+	hud0_populateallcontainers = 0
+  end
  
   -- Some screens can be toggled on/off with a key press, if the required key press is detected then that screen will be set to the current screen and appear in-game
   CheckScreenToggles()
@@ -324,13 +349,14 @@ function hud0.main()
 											end
 										end
 										if cancelmove == 0 then
-											-- moved item to new inventory container
-											if gridi ~= hud0_gridSelected then
-												local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-												MoveInventoryItem(panelnameFrom,panelnameTo,collectionindex,placedatitemindex)
-											end
-											-- add to new location as we removed it above
-											if entityindex > 0 then
+											if entityindex == 0 then
+												-- moved item to new inventory container
+												if gridi ~= hud0_gridSelected then
+													local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+													MoveInventoryItem(panelnameFrom,panelnameTo,collectionindex,placedatitemindex)
+												end
+											else
+												-- add to new location as we removed it above
 												local suggestedslotvalid = -1
 												if panelnameTo == "inventory:hotkeys" then
 													suggestedslotvalid = SetEntityCollected(entityindex,2,placedatitemindex)
@@ -553,7 +579,6 @@ function hud0.main()
 											myMoney = myMoney - thisCost
 											_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
 											MoveInventoryItem(panelname,"inventory:player",tcollectionindex,-1)
-											Prompt("Sold to you")
 										else
 											Prompt("Cannot afford to buy this item")
 										end

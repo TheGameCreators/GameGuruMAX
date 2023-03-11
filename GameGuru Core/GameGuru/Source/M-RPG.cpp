@@ -157,10 +157,13 @@ bool refresh_collection_from_entities(void)
 		int entid = t.entityelement[e].bankindex;
 		if (entid > 0)
 		{
+			// find things to add to collection
+			bool bAddThisItem = false;
+			collectionItemType item;
+
 			// weapons are automatically collectale
 			if (t.entityprofile[entid].isweapon > 0)
 			{
-				collectionItemType item;
 				item.collectionFields.clear();
 				for (int l = 0; l < g_collectionLabels.size(); l++)
 				{
@@ -184,14 +187,13 @@ bool refresh_collection_from_entities(void)
 						item.collectionFields.push_back("");
 					}
 				}
-				g_collectionList.push_back(item);
+				bAddThisItem = true;
 			}
 
 			// any entities marked to be collected (and As Named)
 			int iContainerItemIndex = t.entityelement[e].eleprof.iscollectable;
 			if ( iContainerItemIndex != 0)
 			{
-				collectionItemType item;
 				item.collectionFields.clear();
 				for (int l = 0; l < g_collectionLabels.size(); l++)
 				{
@@ -225,7 +227,10 @@ bool refresh_collection_from_entities(void)
 						item.collectionFields.push_back("");
 					}
 				}
-
+				bAddThisItem = true;
+			}
+			if (bAddThisItem == true)
+			{
 				// before we add, confirm this does not already exist
 				bool bNewItemIsUnqiue = true;
 				for (int n = 0; n < g_collectionList.size(); n++)

@@ -521,7 +521,7 @@ function hud0.main()
 		end
 	end
 
-	-- handle any button activity for INVENTORY = DROP, USE, etc
+	-- handle any button activity for INVENTORY = DROP, USE, BUY, SELL, etc
 	if buttonElementID ~= -1 then
 		local buttonElementName = GetScreenElementName(1+buttonElementID)
 		if string.len(buttonElementName) > 0 then
@@ -529,6 +529,7 @@ function hud0.main()
 			if buttonElementName == "DROP" then actionOnObject = 1 end
 			if buttonElementName == "USE" then actionOnObject = 2 end
 			if buttonElementName == "BUY" then actionOnObject = 3 end
+			if buttonElementName == "SELL" then actionOnObject = 4 end
 			if actionOnObject > 0 then
 				-- DROP OR USE OBJECT FROM INVENTORY
 				if hud0_gridSelected > 0 and hud0_gridSelectedIndex >= 0 then
@@ -541,7 +542,8 @@ function hud0.main()
 							if thispanelname == "inventory:player" then panelname = thispanelname end
 							if thispanelname == "inventory:hotkeys" then panelname = thispanelname end
 						end
-						if actionOnObject == 3 then
+						if actionOnObject == 3 or actionOnObject == 4 then
+							if thispanelname == "inventory:player" then panelname = thispanelname end
 							if thispanelname == "inventory:shop" then panelname = thispanelname end
 						end
 						local selecteditemcontainerID = -1
@@ -572,15 +574,28 @@ function hud0.main()
 									end
 									if actionOnObject == 3 then
 										-- BUY
-										local thisCost = tonumber(GetCollectionItemAttribute(tcollectionindex,"cost"))
-										local myMoney = 0
-										if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
-										if thisCost < myMoney then
-											myMoney = myMoney - thisCost
+										if panelname == "inventory:shop" then
+											local thisCost = tonumber(GetCollectionItemAttribute(tcollectionindex,"cost"))
+											local myMoney = 0
+											if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
+											if thisCost < myMoney then
+												myMoney = myMoney - thisCost
+												_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
+												MoveInventoryItem(panelname,"inventory:player",tcollectionindex,-1)
+											else
+												Prompt("Cannot afford to buy this item")
+											end
+										end
+									end
+									if actionOnObject == 4 then
+										-- SELL
+										if panelname == "inventory:player" then
+											local thisValue = tonumber(GetCollectionItemAttribute(tcollectionindex,"value"))
+											local myMoney = 0
+											if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
+											myMoney = myMoney + thisValue
 											_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
-											MoveInventoryItem(panelname,"inventory:player",tcollectionindex,-1)
-										else
-											Prompt("Cannot afford to buy this item")
+											MoveInventoryItem(panelname,"inventory:shop",tcollectionindex,-1)
 										end
 									end
 									break

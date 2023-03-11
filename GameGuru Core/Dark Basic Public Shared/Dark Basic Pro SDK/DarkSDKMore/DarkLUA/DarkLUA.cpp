@@ -1122,6 +1122,25 @@ luaMessage** ppLuaMessages = NULL;
 					if (t.inventoryContainer[containerindex][n].e == iEntityIndex)
 						break;
 
+				// hotkeys only permits one of each type (so duplicate weapons are deflected to main inv)
+				if (iCollectState == 2)
+				{
+					int itemCollectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+					for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+					{
+						int ee = t.inventoryContainer[containerindex][n].e;
+						if (ee != iEntityIndex)
+						{
+							int eeCollectionID = find_rpg_collectionindex(t.entityelement[ee].eleprof.name_s.Get());
+							if (itemCollectionID == eeCollectionID)
+							{
+								// already one here, so do NOT add
+								break;
+							}
+						}
+					}
+				}
+
 				if (n >= t.inventoryContainer[containerindex].size())
 				{
 					// add item to inventory

@@ -11,7 +11,6 @@
 local area_damage = {}
 
 function area_damage_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost)
-	area_damage[e] = g_Entity[e]	
 	area_damage[e].prompt_text = prompt_text
 	area_damage[e].useage_text = useage_text
 	area_damage[e].pickup_range = pickup_range
@@ -20,7 +19,7 @@ function area_damage_properties(e, prompt_text, useage_text, pickup_range, user_
 end
 
 function area_damage_init(e)
-	area_damage[e] = g_Entity[e]
+	area_damage[e] = {}
 	area_damage[e].prompt_text = "E to Collect"
 	area_damage[e].useage_text = "Area Damage Inflicted"
 	area_damage[e].pickup_range = 80
@@ -30,7 +29,6 @@ function area_damage_init(e)
 end
 
 function area_damage_main(e)
-	area_damage[e] = g_Entity[e]
 	PlayerDist = GetPlayerDistance(e)	
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if LookingAt == 1 and PlayerDist < area_damage[e].pickup_range then

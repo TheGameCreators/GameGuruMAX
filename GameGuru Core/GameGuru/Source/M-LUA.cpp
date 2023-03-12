@@ -676,6 +676,22 @@ void lua_loop_begin ( void )
 	LuaSetInt("g_projectileevent_radius", g.projectileEventType_radius);
 	LuaSetInt("g_projectileevent_damage", g.projectileEventType_damage);
 	LuaSetInt("g_projectileevent_entityhit", g.projectileEventType_entityhit);
+
+	// at new LUA loop start, can activate any newly created spawned entities currently in limbo
+	bool bBringNewOnesToLife = false;
+	for ( int e = 1; e <= g.entityelementlist; e++)
+	{
+		if (t.entityelement[e].active == 0 && t.entityelement[e].lua.flagschanged == 123 )
+		{
+			t.entityelement[e].lua.flagschanged = 1;
+			t.entityelement[e].active = 2;
+			bBringNewOnesToLife = true;
+		}
+	}
+	if (bBringNewOnesToLife == true)
+	{
+		entity_bringnewentitiestolife(true);
+	}
 }
 
 void lua_quitting ( void )

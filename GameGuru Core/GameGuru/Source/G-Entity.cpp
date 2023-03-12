@@ -166,7 +166,7 @@ void entity_init ( void )
 	//timestampactivity(0, "Configure entity attachments and AI obstacles: DONE");
 }
 
-void entity_bringnewentitiestolife ( void )
+void entity_bringnewentitiestolife (bool bAllNewOnes)
 {
 	//  F9 additions mark new entities with active=2
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
@@ -185,7 +185,7 @@ void entity_bringnewentitiestolife ( void )
 						if ( ObjectExist(t.tobj) == 1 ) 
 						{
 							// Only redo script for characters (as they were wiped out)
-							if ( t.entityprofile[t.entid].ischaracter==1 )
+							if ( t.entityprofile[t.entid].ischaracter==1 || bAllNewOnes == true )
 							{
 								//  Launch the entity AI
 								lua_loadscriptin ( );

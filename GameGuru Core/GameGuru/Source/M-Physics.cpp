@@ -1553,6 +1553,7 @@ void physics_prepareentityforphysics ( void )
 		if (  t.entityelement[t.e].eleprof.physics == 2  )  t.tnophysics = 1;
 		if (  t.entityprofile[t.entid].isammo == 1  )  t.tnophysics = 1;
 		if (  Len(t.entityprofile[t.entid].isweapon_s.Get())>1  )  t.tnophysics = 1;
+		if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1;
 		if (  t.tnophysics == 1 ) 
 		{
 			//  no physics
@@ -2563,7 +2564,7 @@ void physics_player_init ( void )
 			// need to add this to the colleciton list
 			cstr thisLabel = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get(), "10");
+			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
 
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it

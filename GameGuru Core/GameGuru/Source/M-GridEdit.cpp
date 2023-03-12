@@ -10129,6 +10129,10 @@ void mapeditorexecutable_loop(void)
 											if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 											if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
 											if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
+											if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+											if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+											if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 											if (iKnownLabel > 0)
 											{
 												// field we can populate automatically
@@ -10146,6 +10150,10 @@ void mapeditorexecutable_loop(void)
 												}
 												if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
 												if (iKnownLabel == 4) item.collectionFields.push_back(10);
+												if (iKnownLabel == 5) item.collectionFields.push_back(5);
+												if (iKnownLabel == 6) item.collectionFields.push_back("shop");
+												if (iKnownLabel == 7) item.collectionFields.push_back("none");
+												if (iKnownLabel == 8) item.collectionFields.push_back("none");
 											}
 											else
 											{
@@ -10167,6 +10175,10 @@ void mapeditorexecutable_loop(void)
 										if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 										if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
 										if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+										if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
+										if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+										if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+										if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 										if (iKnownLabel > 0)
 										{
 											// Attrib Label

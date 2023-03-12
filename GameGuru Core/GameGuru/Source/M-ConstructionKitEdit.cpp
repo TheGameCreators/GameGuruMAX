@@ -445,6 +445,7 @@ void conkitedit_loop ( void )
 						//  add this entity to scene
 						if (  ObjectExist(t.conkit.objectstartnumber+1) == 1 ) 
 						{
+							// also used in SpawnNewEntity LUA command (modified of course) (may combine in future)
 							t.gridentity=t.conkit.edit.entityindex;
 							t.gridentityeditorfixed=0;
 							t.gridentitystaticmode=t.conkit.edit.entityeditstaticmode;
@@ -459,16 +460,11 @@ void conkitedit_loop ( void )
 							t.gridentityrotatequaty_f = 0;
 							t.gridentityrotatequatz_f = 0;
 							t.gridentityrotatequatw_f = 1;
-							//  scalexyz are full OBJ SCALES (100=full)
 							t.gridentityscalex_f=t.conkit.edit.scalex;
 							t.gridentityscaley_f=t.conkit.edit.scaley;
 							t.gridentityscalez_f=t.conkit.edit.scalez;
 							t.entid=t.conkit.edit.entityindex;
-
-#ifdef WICKEDENGINE
-							//PE: Make sure when we create we use default variables in eleprof.
 							entity_fillgrideleproffromprofile();
-#endif
 							entity_addentitytomap ( );
 							g.projectmodified=1 ; gridedit_changemodifiedflag ( );
 							g.projectmodifiedstatic = 0; if ( t.gridentitystaticmode == 1 ) g.projectmodifiedstatic = 1;
@@ -1183,7 +1179,7 @@ void conkitedit_switchoff ( void )
 	t.gridentity=0;
 
 	//  Ensure any newly introduced entities are incorporated into game
-	entity_bringnewentitiestolife ( );
+	entity_bringnewentitiestolife ( false );
 
 	//  Uses ragdollified to ignore dead characters
 	for ( t.e = 1 ; t.e<=  g.entityelementmax; t.e++ )

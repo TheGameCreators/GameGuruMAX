@@ -64,8 +64,8 @@ function health_main(e)
 				if GetEntityCollected(e) == 0 then
 					Prompt(health[e].prompt_if_collectable)
 					if g_KeyPressE == 1 then
-						Hide(e)
-						CollisionOff(e)
+						--Hide(e)
+						--CollisionOff(e)
 						SetEntityCollected(e,1)
 					end
 				end

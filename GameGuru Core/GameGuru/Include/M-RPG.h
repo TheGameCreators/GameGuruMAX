@@ -24,5 +24,5 @@ void init_rpg_system(void);
 bool load_rpg_system(char* name);
 bool save_rpg_system(char* name);
 bool refresh_collection_from_entities(void);
-bool add_collection_internal(char* pTitle, char* pImage, char* pDesc, char* pCost);
+bool add_collection_internal(char* pTitle, char* pImage, char* pDesc);
 int find_rpg_collectionindex (char* pName);

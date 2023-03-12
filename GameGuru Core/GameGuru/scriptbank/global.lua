@@ -57,6 +57,7 @@ g_PlayerAngZ = 0
 g_PlayerObjNo = 0
 g_PlayerHealth = 0 -- handled in gameplayerhealth
 g_UserGlobal = {}
+g_UserGlobalContainer = ""
 g_PlayerLives = 0
 g_PlayerFlashlight = 0
 g_PlayerGunCount = 0
@@ -2448,6 +2449,7 @@ GetTerrainCollisionDetails( objectId, num )
 -- DisplayCurrentScreen : DisplayCurrentScreen
 -- GetCurrentScreen : GetCurrentScreen
 -- CheckScreenToggles : CheckScreenToggles
+-- ScreenToggle : ScreenToggle ( HUD Screen Name ) -- switch to the specified HUD screen
 -- GetStoryboardActive : GetStoryboardActive
 -- GetScreenWidgetValue : GetScreenWidgetValue
 -- SetScreenWidgetValue : SetScreenWidgetValue

@@ -43544,6 +43544,23 @@ int FindLuaScreenNode(char *name)
 	return -1;
 }
 
+int FindLuaScreenTitleNode(char* name)
+{
+	if (strlen(Storyboard.gamename) <= 0) return(-1);
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		if (Storyboard.Nodes[i].used)
+		{
+			std::string check_lua_title = Storyboard.Nodes[i].title;
+			if (stricmp(check_lua_title.c_str(), name) == NULL)
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
 void FindFirstLevel(int &iFirstLevelNode, char *level_name, bool bFailIfNoLink)
 {
 	//Get loading screen connected to:
@@ -45440,92 +45457,94 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	static std::vector<int> scans;
-	if (listenForKeys.empty())
+	if (bRenderTabTab == false)
 	{
-		// Initialise listenForKeys - we only want to check for keys that will toggle a screen, if we let e.g. player movement keys through, then it will trigger the wait to release it before allowing us to toggle a screen.
-		// This will allow us to trigger screens whilst moving  
-		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		static std::vector<int> scans;
+		if (listenForKeys.empty())
 		{
-			int keyToListenFor = Storyboard.Nodes[i].toggleKey;
-			if (keyToListenFor > 0)
+			// Initialise listenForKeys - we only want to check for keys that will toggle a screen, if we let e.g. player movement keys through, then it will trigger the wait to release it before allowing us to toggle a screen.
+			// This will allow us to trigger screens whilst moving  
+			for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 			{
-				listenForKeys.push_back(keyToListenFor);
+				int keyToListenFor = Storyboard.Nodes[i].toggleKey;
+				if (keyToListenFor > 0)
+				{
+					listenForKeys.push_back(keyToListenFor);
+				}
 			}
 		}
-	}
 
-	// Early exit: this project has no screens that are toggled with keypresses.
-	if (listenForKeys.empty())
-	{
-		return;
-	}
-
-	// Need to check all keys, in case we need to ignore any in m_KeyBuffer, that come before our toggle keys
-	scans.clear();
-	UpdateKeyboard();
-	extern unsigned char m_KeyBuffer[256];
-	for (int i = 0; i < 256; i++)
-	{
-		if (m_KeyBuffer[i] > 0)
+		// Early exit: this project has no screens that are toggled with keypresses.
+		if (listenForKeys.empty())
 		{
-			scans.push_back(i);
+			return;
 		}
-	}
 
-	static bool bWaitForKeyRelease = false;
-	if (scans.empty())
-	{
-		// No keys pressed
-		bWaitForKeyRelease = false;
-		return;
-	}
-
-	int scan = 0;
-	// Check if the keys that are pressed are used for toggling screens
-	for (int i = 0; i < scans.size(); i++)
-	{
-		if (std::find(listenForKeys.begin(), listenForKeys.end(), scans[i]) != listenForKeys.end())
+		// Need to check all keys, in case we need to ignore any in m_KeyBuffer, that come before our toggle keys
+		scans.clear();
+		UpdateKeyboard();
+		extern unsigned char m_KeyBuffer[256];
+		for (int i = 0; i < 256; i++)
 		{
-			scan = scans[i];
-			break;
+			if (m_KeyBuffer[i] > 0)
+			{
+				scans.push_back(i);
+			}
 		}
-		if (i == scans.size() - 1)
+
+		static bool bWaitForKeyRelease = false;
+		if (scans.empty())
 		{
-			// No keys are pressed that are being 'listened' to
+			// No keys pressed
 			bWaitForKeyRelease = false;
 			return;
 		}
-	}
-	
-	if (bWaitForKeyRelease == false)
-	{
-		// If we reached here, then a key is pressed that should toggle a screen, find the screen to toggle.
-		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-		{
-			StoryboardNodesStruct& node = Storyboard.Nodes[i];
-			if (node.used && scan > 0 && node.toggleKey == scan && strlen(node.level_name) == 0 ) // only HUDs
-			{
-				bWaitForKeyRelease = true;
 
-				if (t.game.activeStoryboardScreen == i)
-				{
-					// Screen is already active, turn it off
-					t.game.activeStoryboardScreen = -1;
-				}
-				else
-				{
-					t.game.activeStoryboardScreen = i;
-				}
-				// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
-				//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
-				//t.game.titleloop = 0;
+		int scan = 0;
+		// Check if the keys that are pressed are used for toggling screens
+		for (int i = 0; i < scans.size(); i++)
+		{
+			if (std::find(listenForKeys.begin(), listenForKeys.end(), scans[i]) != listenForKeys.end())
+			{
+				scan = scans[i];
+				break;
+			}
+			if (i == scans.size() - 1)
+			{
+				// No keys are pressed that are being 'listened' to
+				bWaitForKeyRelease = false;
 				return;
+			}
+		}
+
+		if (bWaitForKeyRelease == false)
+		{
+			// If we reached here, then a key is pressed that should toggle a screen, find the screen to toggle.
+			for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+			{
+				StoryboardNodesStruct& node = Storyboard.Nodes[i];
+				if (node.used && scan > 0 && node.toggleKey == scan && strlen(node.level_name) == 0) // only HUDs
+				{
+					bWaitForKeyRelease = true;
+
+					if (t.game.activeStoryboardScreen == i)
+					{
+						// Screen is already active, turn it off
+						t.game.activeStoryboardScreen = -1;
+					}
+					else
+					{
+						t.game.activeStoryboardScreen = i;
+					}
+					// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
+					//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
+					//t.game.titleloop = 0;
+					return;
+				}
 			}
 		}
 	}
 }
-
 void ResetStoryboardListenForKeys()
 {
 	listenForKeys.clear();

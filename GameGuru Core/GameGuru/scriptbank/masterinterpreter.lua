@@ -71,6 +71,8 @@ g_masterinterpreter_cond_targetdestwithin = 57 -- Target Dest Within (Is True wh
 g_masterinterpreter_cond_checktimerwithfirerate = 58 -- Check Timer With Firerate (Is true when previously started timer is greater than current weapons firerate delay)
 g_masterinterpreter_cond_haveammo = 59 -- Check Have Ammo (Is true when this character has ammo for their weapon)
 g_masterinterpreter_cond_havealerttarget = 60 -- Have Alert Target (Is true an alert target has been set and not yet reset)
+g_masterinterpreter_cond_keypressed = 61 -- Key Pressed (Is true when the E key is pressed)
+g_masterinterpreter_cond_usinghud = 62 -- Using HUD (Is true when using a HUD screen)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -174,6 +176,10 @@ g_masterinterpreter_act_loopbyname = 97 -- Loop Animation By Name (Loop the anim
 g_masterinterpreter_act_hurttargetwithshake = 98 -- Hurt Target With Shake (Apply specified damage to the assigned target, causing more shake if player)
 g_masterinterpreter_act_reloadammo = 99 -- Reload Ammo (Reload ammo of characters weapon with a full clip)
 g_masterinterpreter_act_resetalerttarget = 100 -- Reset Alert Target (Reset the alert target to forget last known alert target)
+g_masterinterpreter_act_showtext = 101 -- Show Text (Show a Text Prompt at the bottom of the screen)
+g_masterinterpreter_act_showhud = 102 -- Show HUD (Show the specified HUD screen and remain there until player leaves)
+g_masterinterpreter_act_changeglobal = 103 -- Change Global (Change the value of a global using LUA formatted string)
+g_masterinterpreter_act_changecontainer = 104 -- Change Container (Change the non-player container for the next time a HUD screen is used)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -826,7 +832,17 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
    return 1
   end
  end 
- 
+ if conditiontype == g_masterinterpreter_cond_keypressed then 
+  if g_KeyPressE == 1 then
+   return 1
+  end
+ end 
+ if conditiontype == g_masterinterpreter_cond_usinghud then 
+  if GetCurrentScreen() > -1 then
+   return 1
+  end
+ end 
+
  -- Condition is false
  return 0
 
@@ -2033,7 +2049,38 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  if actiontype == g_masterinterpreter_act_resetalerttarget then
   output_e['wholastactivated'] = -1
  end 
-  
+ 
+ -- Show Text
+ if actiontype == g_masterinterpreter_act_showtext then
+  if actionparam1 ~= nil then
+   Prompt(tostring(actionparam1value))
+  end
+ end 
+ 
+ -- Show HUD
+ if actiontype == g_masterinterpreter_act_showhud then
+  if actionparam1value ~= nil then
+   ScreenToggle(tostring(actionparam1value))
+  end
+ end 
+   
+ -- Change Global
+ if actiontype == g_masterinterpreter_act_changeglobal then
+  local i,j_ = string.find(actionparam1,"=")
+  if i ~= nil then
+   if i > 0 then
+    local tuserglobal = string.sub(actionparam1,1,i-1)
+    local tuservalue = string.sub(actionparam1,i+1,-1)
+    _G["g_UserGlobal['"..tuserglobal.."']"] = tuservalue
+   end
+  end
+ end 
+ 
+ -- Change Container
+ if actiontype == g_masterinterpreter_act_changecontainer then
+  g_UserGlobalContainer = actionparam1value
+ end 
+
 end
 
 function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )

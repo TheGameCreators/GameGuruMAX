@@ -1,4 +1,4 @@
--- Chest v1
+-- Crafting Table v1
 -- DESCRIPTION: When player is within [RANGE=100] distance, show [CRAFT_PROMPT$="Press E to start crafting"] and when E is pressed, player will open [CRAFT_SCREEN$="HUD Screen 7"] using [CRAFT_CONTAINER$="chest"].
 -- DESCRIPTION: <Sound0> when crafting started.
 

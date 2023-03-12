@@ -92,6 +92,8 @@ bool load_rpg_system(char* name)
 		g_collectionLabels.push_back("cost");
 		g_collectionLabels.push_back("value");
 		g_collectionLabels.push_back("container");
+		g_collectionLabels.push_back("ingredients");
+		g_collectionLabels.push_back("style");
 	}
 
 	// make a copy to regular gaming list
@@ -177,6 +179,8 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
 					if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+					if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+					if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 					if (iKnownLabel > 0 )
 					{
 						// field we can populate automatically
@@ -186,6 +190,8 @@ bool refresh_collection_from_entities(void)
 						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 						if (iKnownLabel == 5) item.collectionFields.push_back(5);
 						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
+						if (iKnownLabel == 7) item.collectionFields.push_back("none");
+						if (iKnownLabel == 8) item.collectionFields.push_back("none");
 					}
 					else
 					{
@@ -211,6 +217,8 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 					if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
 					if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+					if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+					if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 					if (iKnownLabel > 0)
 					{
 						// field we can populate automatically
@@ -230,6 +238,8 @@ bool refresh_collection_from_entities(void)
 						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 						if (iKnownLabel == 5) item.collectionFields.push_back(5);
 						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
+						if (iKnownLabel == 7) item.collectionFields.push_back("none");
+						if (iKnownLabel == 8) item.collectionFields.push_back("none");
 					}
 					else
 					{
@@ -281,6 +291,8 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
 		if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
 		if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+		if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+		if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 		if (iKnownLabel > 0)
 		{
 			// field we can populate automatically
@@ -290,6 +302,8 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 			if (iKnownLabel == 4) item.collectionFields.push_back("10");
 			if (iKnownLabel == 5) item.collectionFields.push_back("5");
 			if (iKnownLabel == 6) item.collectionFields.push_back("shop");
+			if (iKnownLabel == 7) item.collectionFields.push_back("none");
+			if (iKnownLabel == 8) item.collectionFields.push_back("none");
 		}
 		else
 		{

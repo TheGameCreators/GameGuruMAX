@@ -224,7 +224,7 @@ function hud0.main()
   -- detect any inventory changes
   local tinventory0qty = GetInventoryQuantity("inventory:player")
   local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerLast == ""then 
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty then --or g_UserGlobalContainerLast == ""then 
 	hud0_lastgoodplayerinventory0qty = tinventory0qty
 	hud0_lastgoodplayerinventory1qty = tinventory1qty
 	hud0.refreshHUD()
@@ -362,6 +362,17 @@ function hud0.main()
 												cancelmove = 1
 											end
 										end					
+										
+										-- cancel if moving item into recipe that is not a recipe
+										if panelnameTo == "inventory:craft" then
+											local findcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											if findcollectionindex ~= -1 then
+												local tstyle = GetCollectionItemAttribute(findcollectionindex,"style")
+												if tstyle ~= "recipe" then
+													cancelmove = 1
+												end
+											end
+										end															
 										
 										-- shuffled inside hotkey, handle weapons
 										if cancelmove == 0 and (panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys") then
@@ -690,6 +701,9 @@ function hud0.main()
 			local actionOnScreen = 0
 			if buttonElementName == "LEAVE" then actionOnScreen = 101 end
 			if buttonElementName == "TAKE ALL" then actionOnScreen = 102 end
+			if buttonElementName == "CRAFT" then actionOnScreen = 103 end
+			if buttonElementName == "ACCEPT" then actionOnScreen = 104 end
+			if buttonElementName == "CANCEL" then actionOnScreen = 105 end
 			if actionOnScreen > 0 then
 				if actionOnScreen == 101 then
 					-- LEAVE HUD screen
@@ -709,6 +723,130 @@ function hud0.main()
 						end
 					end
 					g_UserGlobalContainerLast = ""
+				end
+				if actionOnScreen == 103 then
+					-- CRAFT recipe from inventory:craft
+					local inventorycontainer = "inventory:craft"
+					local tinventoryindex = GetInventoryQuantity(inventorycontainer)
+					if tinventoryindex == 1 then
+						-- determine if can craft 'nameofitemtomake'
+						local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
+						local nameofitemtomake = GetCollectionItemAttribute(tcollectionindex,"description")
+						local anyee = 0
+						for ee = 1, g_EntityElementMax, 1 do
+							if e ~= ee then
+								if g_Entity[ee] ~= nil then
+									if g_Entity[ee]['active'] > 0 then
+										if GetEntityName(ee) == nameofitemtomake then
+											anyee = ee
+											break
+										end
+									end
+								end
+							end
+						end
+						if anyee > 0 then
+							-- check then eat ingredients
+							local listofitems = {}
+							local listofitemscount = 0							
+							local haveallingredients = 0
+							for twopasses = 1, 2, 1 do
+								haveallingredients = 1
+								local ingredientsneeded = GetCollectionItemAttribute(tcollectionindex,"ingredients")
+								while string.len(ingredientsneeded) > 0 do
+									i, j = string.find(ingredientsneeded,",")
+									if i ~= nil then
+										nextingredient = string.sub(ingredientsneeded,1,i-1)
+										ingredientsneeded = string.sub(ingredientsneeded,i+1,-1)
+									else
+										nextingredient = ingredientsneeded
+										ingredientsneeded = ""
+									end
+									if string.len(nextingredient) > 0 then
+										local inventorycontainer = "inventory:"..g_UserGlobalContainer
+										local tinventoryqty = GetInventoryQuantity(inventorycontainer)
+										local wehavethisone = 0
+										for tinventoryindex = 1, tinventoryqty, 1 do
+											local dowehavethisitem = GetInventoryItem(inventorycontainer,tinventoryindex)
+											local nameofingredientitem = GetCollectionItemAttribute(dowehavethisitem,"title")
+											i, k = string.find(string.upper(nextingredient),string.upper(nameofingredientitem))
+											if i ~= nil then
+												wehavethisone = 1
+												if twopasses == 2 then
+													-- mark for consumption
+													local entityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
+													if entityindex > 0 then
+														listofitemscount=listofitemscount+1
+														listofitems[listofitemscount] = entityindex
+													end
+												end
+											end
+										end
+										if wehavethisone == 0 then
+											haveallingredients = 0
+											break
+										end
+									end
+								end
+								if twopasses == 1 and haveallingredients == 0 then
+									break
+								end
+							end
+							if haveallingredients == 1 then
+								-- consume used items
+								local inventorycontainer = "inventory:"..g_UserGlobalContainer
+								local cycleuntilnomoretransfers = 1
+								while cycleuntilnomoretransfers == 1 do
+									cycleuntilnomoretransfers = 0 
+									local tinventoryqty = GetInventoryQuantity(inventorycontainer)
+									for tinventoryindex = 1, tinventoryqty, 1 do
+										local entityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
+										for tlistindex = 1, listofitemscount, 1 do
+											if listofitems[tlistindex] == entityindex then
+												local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
+												SetEntityCollected(entityindex,0,0)
+												Destroy(entityindex)
+												cycleuntilnomoretransfers = 1
+											end
+										end
+									end
+								end
+								-- create new item
+								local newe = SpawnNewEntity(anyee)
+								SetEntityCollected(newe,1,-1)
+								-- a refresh
+								g_UserGlobalContainerLast = ""
+							end
+						end
+					end
+				end
+				if actionOnScreen == 104 then
+					-- ACCEPT on QUEST screen
+					local findee = 0
+					for ee = 1, g_EntityElementMax, 1 do
+						if e ~= ee then
+							if g_Entity[ee] ~= nil then
+								if g_Entity[ee]['active'] > 0 then
+									if GetEntityName(ee) == g_UserGlobalQuestTitleShowingObject then
+										findee = ee
+										break
+									end
+								end
+							end
+						end
+					end
+					if findee > 0 then
+						g_UserGlobalQuestTitleActive = g_UserGlobalQuestTitleShowing
+						g_UserGlobalQuestTitleActiveE = findee
+						ScreenToggle("")
+					end
+				end
+				if actionOnScreen == 105 then
+					-- CANCEL current QUEST
+					g_UserGlobalQuestTitleActive = ""
+					g_UserGlobalQuestTitleActiveObject = ""
+					g_UserGlobalQuestTitleActiveE = 0
+					ScreenToggle("")
 				end
 			end
 		end
@@ -832,6 +970,7 @@ function hud0.main()
 		if isMap == "map:" then
 			scrx,scry,tscrwidth,tscrheight = GetScreenElementArea(theelementID)    
 			local scrimg = GetScreenElementImage(theelementID)
+			local scruseoffset = 0
 			SetScreenElementVisibility(theelementID,0)
 			local mapName = string.sub(imagename, 5, -1)
 			local scritems = -1
@@ -858,6 +997,7 @@ function hud0.main()
 				scry = (hud0_mapView_ImageY + (hud0_mapView_ImageH/2)) - (tscrheight/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
 			end
 			local itemstodraw = {}
+			local itemstodrawscale = {}
 			if mapName == "character" or mapName == "objective" or mapName == "winzone" then
 				local entlist = U.ClosestEntities( realmapsize )
 				scritems = 0
@@ -870,13 +1010,18 @@ function hud0.main()
 								if thisallegiance >= 0 then
 									scritems = scritems + 1
 									itemstodraw[scritems] = ee
+									itemstodrawscale[scritems] = 1.0
 								end
 							end
 							if mapName == "objective" then
 								local thisobjective = GetEntityObjective(ee)
 								if thisobjective == 1 then
-									scritems = scritems + 1
-									itemstodraw[scritems] = ee
+									if g_UserGlobalQuestTitleActiveE > 0 and g_UserGlobalQuestTitleActiveE == ee then
+										scritems = scritems + 1
+										itemstodraw[scritems] = ee
+										itemstodrawscale[scritems] = 2.0 + math.cos(Timer()/500.0)
+										scruseoffset = 1
+									end
 								end
 							end
 							if mapName == "winzone" then
@@ -884,6 +1029,7 @@ function hud0.main()
 								if thisobjective == 2 then
 									scritems = scritems + 1
 									itemstodraw[scritems] = ee
+									itemstodrawscale[scritems] = 1.0
 								end
 							end
 						end
@@ -900,10 +1046,21 @@ function hud0.main()
 						scrx = (hud0_mapView_ImageX + (hud0_mapView_ImageW/2)) - (tscrwidth/2) + (placex/realmapsize)*(hud0_mapView_ImageW/2)
 						scry = (hud0_mapView_ImageY + (hud0_mapView_ImageH/2)) - (tscrheight/2) - (placez/realmapsize)*(hud0_mapView_ImageH/2)
 					end
+					local tusescrwidth = tscrwidth
+					local tusescrheight = tscrheight
+					if scritems > 0 then
+						tusescrwidth = tusescrwidth * itemstodrawscale[scritems]
+						tusescrheight = tusescrheight * itemstodrawscale[scritems]
+					end
 					if scrimg > 0 then
 						SetSpritePosition(hud0_gridSpriteID,scrx,scry)
 						SetSpriteImage(hud0_gridSpriteID,scrimg)
-						SetSpriteSize(hud0_gridSpriteID,tscrwidth,tscrheight)
+						if scruseoffset == 1 then
+							SetSpriteOffset(hud0_gridSpriteID,tusescrwidth/2,-1)
+						else
+							SetSpriteOffset(hud0_gridSpriteID,0,0)
+						end
+						SetSpriteSize(hud0_gridSpriteID,tusescrwidth,tusescrheight)
 						SetSpriteColor(hud0_gridSpriteID,255,255,255,255)
 						SetSpritePriority(hud0_gridSpriteID,-1)
 						SetSpriteScissor(hud0_mapView_WindowX,hud0_mapView_WindowY,hud0_mapView_WindowW,hud0_mapView_WindowH)

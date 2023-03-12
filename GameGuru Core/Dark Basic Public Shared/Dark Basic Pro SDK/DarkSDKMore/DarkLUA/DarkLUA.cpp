@@ -1198,6 +1198,9 @@ luaMessage** ppLuaMessages = NULL;
 						{
 							if (t.entityelement[iEntityIndex].collected == 0)
 							{
+								int store = t.e; t.e = iEntityIndex;
+								entity_lua_collisionoff();
+								t.e = store;
 								t.entityelement[iEntityIndex].collected = iCollectState;
 								t.entityelement[iEntityIndex].x -= 999999;
 								t.entityelement[iEntityIndex].y -= 999999;
@@ -1235,6 +1238,9 @@ luaMessage** ppLuaMessages = NULL;
 						t.entityelement[iEntityIndex].z += 999999;
 						t.entityelement[iEntityIndex].eleprof.phyalways = 1;
 						PositionObject(t.entityelement[iEntityIndex].obj, t.entityelement[iEntityIndex].x, t.entityelement[iEntityIndex].y, t.entityelement[iEntityIndex].z);
+						int store = t.e; t.e = iEntityIndex;
+						entity_lua_collisionon();
+						t.e = store;
 					}
 				}
 			}

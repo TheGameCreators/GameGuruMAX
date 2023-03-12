@@ -185,7 +185,7 @@ bool refresh_collection_from_entities(void)
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
 						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 						if (iKnownLabel == 5) item.collectionFields.push_back(5);
-						if (iKnownLabel == 6) item.collectionFields.push_back("all");
+						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
 					}
 					else
 					{
@@ -229,7 +229,7 @@ bool refresh_collection_from_entities(void)
 						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
 						if (iKnownLabel == 4) item.collectionFields.push_back(10);
 						if (iKnownLabel == 5) item.collectionFields.push_back(5);
-						if (iKnownLabel == 6) item.collectionFields.push_back("all");
+						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
 					}
 					else
 					{
@@ -289,7 +289,7 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 			if (iKnownLabel == 3) item.collectionFields.push_back(pDesc);
 			if (iKnownLabel == 4) item.collectionFields.push_back("10");
 			if (iKnownLabel == 5) item.collectionFields.push_back("5");
-			if (iKnownLabel == 6) item.collectionFields.push_back("all");
+			if (iKnownLabel == 6) item.collectionFields.push_back("shop");
 		}
 		else
 		{

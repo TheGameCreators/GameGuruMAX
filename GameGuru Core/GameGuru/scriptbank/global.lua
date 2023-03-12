@@ -58,6 +58,7 @@ g_PlayerObjNo = 0
 g_PlayerHealth = 0 -- handled in gameplayerhealth
 g_UserGlobal = {}
 g_UserGlobalContainer = ""
+g_UserGlobalContainerLast = ""
 g_PlayerLives = 0
 g_PlayerFlashlight = 0
 g_PlayerGunCount = 0

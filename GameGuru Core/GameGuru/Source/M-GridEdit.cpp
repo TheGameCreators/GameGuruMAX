@@ -10149,7 +10149,7 @@ void mapeditorexecutable_loop(void)
 												if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
 												if (iKnownLabel == 4) item.collectionFields.push_back(10);
 												if (iKnownLabel == 5) item.collectionFields.push_back(5);
-												if (iKnownLabel == 6) item.collectionFields.push_back("all");
+												if (iKnownLabel == 6) item.collectionFields.push_back("shop");
 											}
 											else
 											{

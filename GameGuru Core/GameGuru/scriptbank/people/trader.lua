@@ -10,7 +10,7 @@ function trader_init(e)
  g_trader[e] = {}
  g_trader[e]["bycfilename"] = "scriptbank\\people\\trader.byc"
  g_trader_behavior_count = master_interpreter_core.masterinterpreter_load (g_trader[e], g_trader_behavior )
- trader_properties(e,100,"Press E to trade","E","HUD Screen 5","","")
+ trader_properties(e,100,"Press E to trade","HUD Screen 5","","")
 end
 
 function trader_properties(e, range, tradeprompt, tradescreen, shopcontainer, speech1)

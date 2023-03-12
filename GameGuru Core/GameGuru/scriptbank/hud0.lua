@@ -59,8 +59,9 @@ function hud0.init()
 	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] = {}
 	hud0_playercontainer_img[hud0_playercontainer_screenID][1] = {}
  end
- -- default container shows ALL items
- g_UserGlobalContainer = "all"
+ -- default container is a shop container
+ g_UserGlobalContainer = "shop"
+ g_UserGlobalContainerLast = ""
 end
 
 function hud0.refreshHUD()
@@ -106,6 +107,18 @@ function hud0.refreshHUD()
 				if panelname == "inventory:container" then playercontainer = 3 inventorycontainer = "inventory:"..g_UserGlobalContainer end
 				if playercontainer > 0 then
 					local itemcount = totalinrow*totalincolumn
+					if playercontainer == 3 and g_UserGlobalContainer ~= g_UserGlobalContainerLast then
+						-- if this did not exist at start of level, create it now
+						local tcontainerfullname = "inventory:"
+						tcontainerfullname = tcontainerfullname .. g_UserGlobalContainer
+						MakeInventoryContainer(tcontainerfullname)
+						-- must clear container if previously used for something else
+						g_UserGlobalContainerLast = g_UserGlobalContainer
+						for itemindex = 0, itemcount, 1 do
+							hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = nil
+							hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = nil								
+						end
+					end
 					local tinventoryqty = GetInventoryQuantity(inventorycontainer)
 					for tinventoryindex = 1, tinventoryqty, 1 do
 						local itemindex = -1
@@ -192,7 +205,7 @@ function hud0.main()
 		if anyee > 0 then
 			-- item object is in 3D world, create a clone for the shop
 			local newe = SpawnNewEntity(anyee)
-			local tcontainerfullname = "inventory:all"
+			local tcontainerfullname = "inventory:shop"
 			local tcontainername = GetCollectionItemAttribute(tcollectionindex,"container")
 			if tcontainername ~= nil then
 				tcontainerfullname = "inventory:"
@@ -211,7 +224,7 @@ function hud0.main()
   -- detect any inventory changes
   local tinventory0qty = GetInventoryQuantity("inventory:player")
   local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty then 
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerLast == ""then 
 	hud0_lastgoodplayerinventory0qty = tinventory0qty
 	hud0_lastgoodplayerinventory1qty = tinventory1qty
 	hud0.refreshHUD()
@@ -284,13 +297,26 @@ function hud0.main()
 						if g_sprCursorPtrClick == 1 then
 							hud0_gridSelectedIndex = itemindex
 							hud0_gridSelected = gridi
-							hud0_pulledoutofslot = 1
+							local panelname = GetScreenElementName(thegrid)
+							if panelname == "inventory:container" then
+								if string.sub(g_UserGlobalContainer,1,5) == "chest" then
+									-- chests are free for all
+									hud0_pulledoutofslot = 1
+								else	
+									-- owned by other
+								end
+							else
+								-- player inventories are okay
+								hud0_pulledoutofslot = 1
+							end
 						end
 					else
 						if g_sprCursorPtrClick == 1 then
 							if hud0_pulledoutofslot == 1 then
 								hud0_pulledoutofslotfromX = g_sprCursorPtrX
 								hud0_pulledoutofslotfromY = g_sprCursorPtrY
+								hud0_pulledoutofslotfromW = gridtilewidth
+								hud0_pulledoutofslotfromH = gridtileheight
 								hud0_pulledoutofslot = 2
 							end
 							local whenoutofslot = 1
@@ -329,8 +355,16 @@ function hud0.main()
 										local cancelmove = 0
 										local entityindex = 0
 										
+										-- cancel if dragging into a container not owned by player
+										if panelnameTo == "inventory:container" then
+											if string.sub(g_UserGlobalContainer,1,5) ~= "chest" then
+												-- owned by other - cannot move item here
+												cancelmove = 1
+											end
+										end					
+										
 										-- shuffled inside hotkey, handle weapons
-										if panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys" then
+										if cancelmove == 0 and (panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys") then
 											local panelname = panelnameFrom
 											local findcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											if findcollectionindex ~= -1 then
@@ -372,7 +406,11 @@ function hud0.main()
 												-- moved item to new inventory container
 												if gridi ~= hud0_gridSelected then
 													local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-													MoveInventoryItem(panelnameFrom,panelnameTo,collectionindex,placedatitemindex)
+													local inventorycontainerFrom = panelnameFrom
+													local inventorycontainerTo = panelnameTo
+													if inventorycontainerFrom == "inventory:container" then inventorycontainerFrom = "inventory:"..g_UserGlobalContainer end
+													if inventorycontainerTo == "inventory:container" then inventorycontainerTo = "inventory:"..g_UserGlobalContainer end
+													MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,collectionindex,placedatitemindex)
 												end
 											else
 												-- add to new location as we removed it above
@@ -441,7 +479,7 @@ function hud0.main()
 				if scrimg ~= nil then
 					SetSpritePosition(hud0_gridSpriteID,scrx,scry)
 					SetSpriteImage(hud0_gridSpriteID,scrimg)
-					SetSpriteSize(hud0_gridSpriteID,gridtilewidth,-1)
+					SetSpriteSize(hud0_gridSpriteID,hud0_pulledoutofslotfromW,-1)--gridtilewidth,-1)
 					SetSpriteColor(hud0_gridSpriteID,255,255,255,255)
 					SetSpritePriority(hud0_gridSpriteID,-1)
 					PasteSprite(hud0_gridSpriteID)
@@ -516,6 +554,29 @@ function hud0.main()
 				end
 			end			
 		end			
+	end
+	
+	-- handle any craft text	
+	local iqty = GetScreenElements("craft:*")
+	for ti = 1, iqty, 1 do
+		local elementID = GetScreenElementID("craft:*",ti)
+		local elementName = GetScreenElementName(elementID)
+		local tcollectionattribqty = GetCollectionAttributeQuantity()
+		for tattribindex = 1, tcollectionattribqty, 1 do
+			local attributelabel = GetCollectionAttributeLabel(tattribindex)
+			if elementName == "craft:"..attributelabel then
+				local tcontainerfullname = "inventory:craft"
+				MakeInventoryContainer(tcontainerfullname)
+				local tinventoryindex = GetInventoryQuantity(tcontainerfullname)
+				if tinventoryindex == 1 then
+					local tcollectionindex = GetInventoryItem(tcontainerfullname,tinventoryindex)
+					local tattrubutedata = GetCollectionItemAttribute(tcollectionindex,attributelabel)
+					SetScreenElementText(elementID,tattrubutedata)
+				else
+					SetScreenElementText(elementID,"")
+				end
+			end
+		end
 	end
 	
 	-- handle any logic ascribed to global text elements
@@ -628,10 +689,26 @@ function hud0.main()
 			end
 			local actionOnScreen = 0
 			if buttonElementName == "LEAVE" then actionOnScreen = 101 end
+			if buttonElementName == "TAKE ALL" then actionOnScreen = 102 end
 			if actionOnScreen > 0 then
 				if actionOnScreen == 101 then
-					-- leave HUD screen
+					-- LEAVE HUD screen
 					ScreenToggle("")
+				end
+				if actionOnScreen == 102 then
+					-- TAKE ALL Contents
+					local cycleuntilnomoretransfers = 1
+					while cycleuntilnomoretransfers == 1 do
+						cycleuntilnomoretransfers = 0 
+						local inventorycontainer = "inventory:"..g_UserGlobalContainer
+						local tinventoryqty = GetInventoryQuantity(inventorycontainer)
+						for tinventoryindex = 1, tinventoryqty, 1 do
+							local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
+							MoveInventoryItem(inventorycontainer,"inventory:player",tcollectionindex,-1)
+							cycleuntilnomoretransfers = 1
+						end
+					end
+					g_UserGlobalContainerLast = ""
 				end
 			end
 		end

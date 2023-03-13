@@ -196,15 +196,15 @@ bool refresh_collection_from_entities(void)
 					else
 					{
 						// empty field
-						item.collectionFields.push_back("");
+						item.collectionFields.push_back("none");
 					}
 				}
 				bAddThisItem = true;
 			}
 
 			// any entities marked to be collected (and As Named)
-			int iContainerItemIndex = t.entityelement[e].eleprof.iscollectable;
-			if ( iContainerItemIndex != 0)
+			int isCollectableObject = t.entityelement[e].eleprof.iscollectable;
+			if (isCollectableObject != 0)
 			{
 				item.collectionFields.clear();
 				for (int l = 0; l < g_collectionLabels.size(); l++)
@@ -244,7 +244,7 @@ bool refresh_collection_from_entities(void)
 					else
 					{
 						// empty field
-						item.collectionFields.push_back("");
+						item.collectionFields.push_back("none");
 					}
 				}
 				bAddThisItem = true;
@@ -308,7 +308,7 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		else
 		{
 			// empty field
-			item.collectionFields.push_back("");
+			item.collectionFields.push_back("none");
 		}
 	}
 	g_collectionList.push_back(item);

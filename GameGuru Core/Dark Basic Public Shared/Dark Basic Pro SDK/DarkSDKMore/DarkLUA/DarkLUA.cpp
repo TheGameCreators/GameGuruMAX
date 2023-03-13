@@ -1150,6 +1150,23 @@ luaMessage** ppLuaMessages = NULL;
 					// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
 					item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
 
+					// if resource and no slot specified (collected in game), merge with any existing
+					if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2 && iSlotIndex == -1)
+					{
+						for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+						{
+							if (t.inventoryContainer[containerindex][n].collectionID == item.collectionID)
+							{
+								// already have this resource in container
+								iSlotIndex = t.inventoryContainer[containerindex][n].slot;
+								break;
+							}
+						}
+					}
+
+					// remove entity from game for now
+					bool bRemoveEntityFromGame = false;
+
 					// manage slot for this item
 					item.slot = -1;
 					if (iSlotIndex == -1)
@@ -1175,7 +1192,25 @@ luaMessage** ppLuaMessages = NULL;
 						{
 							if (t.inventoryContainer[containerindex][n].slot == iSlotIndex)
 							{
-								// being used - cannot use this one
+								if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+								{
+									// being used by resource - can merge these
+									int existingee = t.inventoryContainer[containerindex][n].e;
+									if (existingee > 0)
+									{
+										if (t.entityelement[existingee].eleprof.iscollectable == 2)
+										{
+											// merge both objects into the present one in the container
+											t.entityelement[existingee].eleprof.quantity += t.entityelement[iEntityIndex].eleprof.quantity;
+
+											// hide other object until need again
+											t.entityelement[iEntityIndex].eleprof.quantity = 0;
+											bRemoveEntityFromGame = true;
+										}
+									}
+								}
+
+								// being used by non resource - cannot overwrite this one
 								bCanUseSlot = false;
 								break;
 							}
@@ -1191,7 +1226,10 @@ luaMessage** ppLuaMessages = NULL;
 					if (iReturnSlot != -1)
 					{
 						t.inventoryContainer[containerindex].push_back(item);
-
+						bRemoveEntityFromGame = true;
+					}
+					if (bRemoveEntityFromGame == true )
+					{
 						// handle entity itself
 						bItemHandled = true;
 						if (iEntityIndex > 0)
@@ -1318,6 +1356,34 @@ luaMessage** ppLuaMessages = NULL;
 	 lua_pushinteger(L, iReturnValue);
 	 return 1;
  }
+ int SetEntityQuantity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int iQty = lua_tonumber(L, 2);
+		 t.entityelement[iEntityIndex].eleprof.quantity = iQty;
+	 }
+	 return 0;
+ }
+ int GetEntityQuantity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iQty = 0;
+	 if (e > 0)
+	 {
+		 iQty = t.entityelement[e].eleprof.quantity;
+	 }
+	 lua_pushinteger(L, iQty);
+	 return 1;
+ }
+
  int GetEntityWhoActivated(lua_State *L)
  {
 	 lua = L;
@@ -6961,6 +7027,7 @@ int MoveInventoryItem (lua_State* L)
 	int bothplayercontainersfrom = FindInventoryIndex(pNameOfInventoryFrom);
 	if (bothplayercontainersfrom >= 0)
 	{
+		bool bNeedToRecreateContainerFrom = false;
 		char pNameOfInventoryTo[512];
 		strcpy(pNameOfInventoryTo, lua_tostring(L, 2));
 		int bothplayercontainersto = FindInventoryIndex(pNameOfInventoryTo);
@@ -6968,47 +7035,107 @@ int MoveInventoryItem (lua_State* L)
 		{
 			int collectionindex = lua_tonumber(L, 3);
 			int slotindex = lua_tonumber(L, 4);
+			if (bothplayercontainersfrom == bothplayercontainersto)
+			{
+				// moved within same container
+				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+				for (int n = 0; n < iListSize; n++)
+				{
+					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex && slotindex != -1)
+					{
+						t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
+						break;
+					}
+				}
+			}
+			else
+			{
+				// different containers
+				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+				for (int n = 0; n < iListSize; n++)
+				{
+					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+					{
+						// create item
+						inventoryContainerType item;
+						item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
+						item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
+						item.slot = slotindex;
+						if (item.slot == -1)
+						{
+							item.slot = 0;
+							while (1)
+							{
+								bool bCanIUseThisSlot = true;
+								for (int nn = 0; nn < t.inventoryContainer[bothplayercontainersto].size(); nn++)
+								{
+									if (t.inventoryContainer[bothplayercontainersto][nn].slot == item.slot)
+									{
+										bCanIUseThisSlot = false;
+										break;
+									}
+								}
+								if (bCanIUseThisSlot == false)
+									item.slot++;
+								else
+									break;
+							}
+						}
+						// remove from old (below)
+						t.inventoryContainer[bothplayercontainersfrom][n].e = -2;
+						bNeedToRecreateContainerFrom = true;
+						// add new item or increase resource quantity
+						bool bWeAddedToQuantityOfAnother = false;
+						if ( item.e > 0 && t.entityelement[item.e].eleprof.iscollectable == 2)
+						{
+							int iListToSize = t.inventoryContainer[bothplayercontainersto].size();
+							for (int n = 0; n < iListToSize; n++)
+							{
+								if (t.inventoryContainer[bothplayercontainersto][n].collectionID == item.collectionID)
+								{
+									// can add to resource, no need to create new item in dest
+									int ee = t.inventoryContainer[bothplayercontainersto][n].e;
+									if (ee > 0)
+									{
+										t.entityelement[ee].eleprof.quantity += t.entityelement[item.e].eleprof.quantity;
+										t.entityelement[item.e].eleprof.quantity = 0;
+										bWeAddedToQuantityOfAnother = true;
+										break;
+									}
+								}
+							}
+						}
+						if (bWeAddedToQuantityOfAnother == false )
+						{
+							// add new item to dest
+							t.inventoryContainer[bothplayercontainersto].push_back(item);
+						}
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			// moving item to limbo (for resources that hit zero quantity)
+			int collectionindex = lua_tonumber(L, 3);
 			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 			for (int n = 0; n < iListSize; n++)
 			{
 				if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
 				{
-					// create item
-					inventoryContainerType item;
-					item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
-					item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
-					item.slot = slotindex;
-					if (item.slot == -1)
-					{
-						item.slot = 0;
-						while (1)
-						{
-							bool bCanIUseThisSlot = true;
-							for (int nn = 0; nn < t.inventoryContainer[bothplayercontainersto].size(); nn++)
-							{
-								if (t.inventoryContainer[bothplayercontainersto][nn].slot == item.slot)
-								{
-									bCanIUseThisSlot = false;
-									break;
-								}
-							}
-							if (bCanIUseThisSlot == false)
-								item.slot++;
-							else
-								break;
-						}
-					}
-					// remove from old (below)
+					// remove (below)
 					t.inventoryContainer[bothplayercontainersfrom][n].e = -2;
-					// add to new
-					t.inventoryContainer[bothplayercontainersto].push_back(item);
+					bNeedToRecreateContainerFrom = true;
 					break;
 				}
 			}
-			// recreate container list without the deleted item
+		}
+		if ( bNeedToRecreateContainerFrom == true)
+		{
 			std::vector <inventoryContainerType> inventoryContainerTemp;
 			inventoryContainerTemp.clear();
-			iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 			for (int n = 0; n < iListSize; n++)
 			{
 				if (t.inventoryContainer[bothplayercontainersfrom][n].e != -2)
@@ -9201,6 +9328,8 @@ void addFunctions()
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);
 	lua_register(lua, "GetEntityUsed", GetEntityUsed);
+	lua_register(lua, "SetEntityQuantity", SetEntityQuantity);
+	lua_register(lua, "GetEntityQuantity", GetEntityQuantity);
 	lua_register(lua, "SetEntityHasKey", SetEntityHasKey);
 	lua_register(lua, "GetEntityActive", GetEntityActive);
 	lua_register(lua, "GetEntityWhoActivated", GetEntityWhoActivated);

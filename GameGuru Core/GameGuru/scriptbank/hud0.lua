@@ -24,6 +24,7 @@ hud0_freezeforpointer = 0
 hud0_playercontainer_screenID = 0
 hud0_playercontainer_collectionindex = {}
 hud0_playercontainer_img = {}
+hud0_playercontainer_e = {}
 
 hud0_lastgoodplayerinventory0qty = 0
 hud0_lastgoodplayerinventory1qty = 0
@@ -54,10 +55,12 @@ function hud0.init()
  if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] == nil then 
 	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] = {}
 	hud0_playercontainer_img[hud0_playercontainer_screenID] = {}
+	hud0_playercontainer_e[hud0_playercontainer_screenID] = {}
  end
  if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] == nil then 
 	hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][1] = {}
 	hud0_playercontainer_img[hud0_playercontainer_screenID][1] = {}
+	hud0_playercontainer_e[hud0_playercontainer_screenID][1] = {}
  end
  -- default container is a shop container
  g_UserGlobalContainer = "shop"
@@ -74,10 +77,12 @@ function hud0.refreshHUD()
 			if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] == nil then 
 				hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] = {}
 				hud0_playercontainer_img[hud0_playercontainer_screenID] = {}
+				hud0_playercontainer_e[hud0_playercontainer_screenID] = {}
 			end
 			if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi] == nil then 
 				hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi] = {}
 				hud0_playercontainer_img[hud0_playercontainer_screenID][gridi] = {}
+				hud0_playercontainer_e[hud0_playercontainer_screenID][gridi] = {}
 			end
 			-- provide by panel settings (row, column)
 			totalinrow, totalincolumn = GetScreenElementDetails(thegridelementID)
@@ -95,6 +100,7 @@ function hud0.refreshHUD()
 					if string.len(titemimg) > 0 then
 						hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
 						hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
+						hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = 0
 						itemindex=itemindex+1
 					end
 				end
@@ -117,6 +123,7 @@ function hud0.refreshHUD()
 						for itemindex = 0, itemcount, 1 do
 							hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = nil
 							hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = nil								
+							hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = 0								
 						end
 					end
 					local tinventoryqty = GetInventoryQuantity(inventorycontainer)
@@ -139,6 +146,8 @@ function hud0.refreshHUD()
 									-- add this new arrival
 									hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
 									hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
+									local tentityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
+									hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tentityindex
 								end
 							end
 						end
@@ -160,6 +169,7 @@ function hud0.refreshHUD()
 							if foundininventoryandrightslot == 0 then
 								hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = nil
 								hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = nil								
+								hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = 0								
 							end
 						end
 					end
@@ -224,7 +234,7 @@ function hud0.main()
   -- detect any inventory changes
   local tinventory0qty = GetInventoryQuantity("inventory:player")
   local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty then --or g_UserGlobalContainerLast == ""then 
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerLast == "" then
 	hud0_lastgoodplayerinventory0qty = tinventory0qty
 	hud0_lastgoodplayerinventory1qty = tinventory1qty
 	hud0.refreshHUD()
@@ -415,20 +425,23 @@ function hud0.main()
 										if cancelmove == 0 then
 											if entityindex == 0 then
 												-- moved item to new inventory container
-												if gridi ~= hud0_gridSelected then
-													local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-													local inventorycontainerFrom = panelnameFrom
-													local inventorycontainerTo = panelnameTo
-													if inventorycontainerFrom == "inventory:container" then inventorycontainerFrom = "inventory:"..g_UserGlobalContainer end
-													if inventorycontainerTo == "inventory:container" then inventorycontainerTo = "inventory:"..g_UserGlobalContainer end
-													MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,collectionindex,placedatitemindex)
-												end
+												local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+												local inventorycontainerFrom = panelnameFrom
+												local inventorycontainerTo = panelnameTo
+												if inventorycontainerFrom == "inventory:container" then inventorycontainerFrom = "inventory:"..g_UserGlobalContainer end
+												if inventorycontainerTo == "inventory:container" then inventorycontainerTo = "inventory:"..g_UserGlobalContainer end
+												MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,collectionindex,placedatitemindex)
+												g_UserGlobalContainerLast = ""
 											else
 												-- add to new location as we removed it above
 												local suggestedslotvalid = -1
 												if panelnameTo == "inventory:hotkeys" then
 													suggestedslotvalid = SetEntityCollected(entityindex,2,placedatitemindex)
-													AddPlayerWeaponSuggestSlot(entityindex,1+placedatitemindex)
+													if GetEntityCollectable(entityindex) == 2 then
+														-- resources can never be weapons
+													else
+														AddPlayerWeaponSuggestSlot(entityindex,1+placedatitemindex)
+													end
 												end
 												if suggestedslotvalid == -1 then
 													SetEntityCollected(entityindex,1,placedatitemindex)
@@ -437,8 +450,10 @@ function hud0.main()
 											-- finish movement																		
 											hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][placedatitemindex] = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
 											hud0_playercontainer_img[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = nil
+											hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex] = 0
 											hud0_gridSelected = gridi
 											hud0_gridSelectedIndex = placedatitemindex
 										end
@@ -535,6 +550,13 @@ function hud0.main()
 										if elementTextID > 0 then
 											local tcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											local tattrubutedata = GetCollectionItemAttribute(tcollectionindex,attributelabel)
+											local tentityindex = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											if tentityindex > 0 then
+												if GetEntityCollectable(tentityindex) == 2 and attributelabel == "title" then
+													local tQty = GetEntityQuantity(tentityindex)
+													tattrubutedata = tattrubutedata .. " (" .. tQty .. ")"
+												end
+											end
 											SetScreenElementText(elementTextID,tattrubutedata)
 											displayingselecteditem = 1
 										end
@@ -664,31 +686,79 @@ function hud0.main()
 											end
 										end
 									end
-									if actionOnObject == 3 then
-										-- BUY
-										if panelname == "inventory:container" then
-											local thisCost = tonumber(GetCollectionItemAttribute(tcollectionindex,"cost"))
-											local myMoney = 0
-											if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
-											if thisCost < myMoney then
-												myMoney = myMoney - thisCost
-												_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
-												MoveInventoryItem(inventorycontainer,"inventory:player",tcollectionindex,-1)
-											else
-												Prompt("Cannot afford to buy this item")
-											end
+									if actionOnObject == 3 or actionOnObject == 4 then
+										-- BUY or SELL
+										local tinventorysource = ""
+										local tinventorydest = ""
+										local thisValue = 0
+										if actionOnObject == 3 and panelname == "inventory:container" then 
+											-- BUY
+											tinventorysource = "inventory:"..g_UserGlobalContainer
+											tinventorydest = "inventory:player"
+											thisValue = tonumber(GetCollectionItemAttribute(tcollectionindex,"cost"))
 										end
-									end
-									if actionOnObject == 4 then
-										-- SELL
-										if panelname == "inventory:player" then
-											local thisValue = tonumber(GetCollectionItemAttribute(tcollectionindex,"value"))
-											local myMoney = 0
-											if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
-											myMoney = myMoney + thisValue
+										if actionOnObject == 4 and panelname == "inventory:player" then 
+											-- SELL
+											tinventorysource = "inventory:player"
+											tinventorydest = "inventory:"..g_UserGlobalContainer
+											thisValue = tonumber(GetCollectionItemAttribute(tcollectionindex,"value"))
+										end
+										-- money check
+										local myMoney = 0
+										if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
+										if (actionOnObject==3 and thisValue <= myMoney) or actionOnObject == 4 then
+											-- spend or gain money
+											if actionOnObject == 3 then
+												myMoney = myMoney - thisValue
+											end
+											if actionOnObject == 4 then
+												myMoney = myMoney + thisValue
+											end
 											_G["g_UserGlobal['".."MyMoney".."']"] = myMoney
-											local sendtousinginventorycontainer = "inventory:"..g_UserGlobalContainer
-											MoveInventoryItem(panelname,sendtousinginventorycontainer,tcollectionindex,-1)
+											-- find destination entity if any
+											local entityindexto = 0
+											local tinventorytoqty = GetInventoryQuantity(tinventorydest)
+											for tinventorytoindex = 1, tinventorytoqty, 1 do
+												local tcollectiontoindex = GetInventoryItem(tinventorydest,tinventorytoindex)
+												if tcollectiontoindex == tcollectionindex then
+													entityindexto = GetInventoryItemID(tinventorydest,tinventorytoindex)
+													if GetEntityCollectable(entityindexto) ~= 2 then
+														entityindexto = 0
+													end
+												end
+											end
+											-- deduct from source
+											local entityindexfrom = GetInventoryItemID(tinventorysource,tinventoryindex)
+											if entityindexfrom > 0 then
+												if GetEntityCollectable(entityindexfrom) == 2 then
+													local tqtyfrom = GetEntityQuantity(entityindexfrom)
+													tqtyfrom = tqtyfrom - 1
+													SetEntityQuantity(entityindexfrom,tqtyfrom)
+													if tqtyfrom == 0 then
+														MoveInventoryItem(tinventorysource,"",tcollectionindex,-1)
+														g_UserGlobalContainerLast = ""
+													end
+												else
+													entityindexfrom = 0
+												end
+											end
+											-- add to dest or move to dest
+											if entityindexfrom > 0 then
+												if entityindexto > 0 then
+													local tqtyto = 1
+													tqtyto = GetEntityQuantity(entityindexto)
+													tqtyto = tqtyto + 1
+													SetEntityQuantity(entityindexto,tqtyto)
+												else
+													-- need to create new resource item in destination (as source still needs its item as not depleted)
+													local newe = SpawnNewEntity(entityindexfrom)
+													SetEntityCollected(newe,3,-1,tinventorydest)
+													g_UserGlobalContainerLast = ""
+												end
+											else
+												MoveInventoryItem(tinventorysource,tinventorydest,tcollectionindex,-1)
+												g_UserGlobalContainerLast = ""
+											end
 										end
 									end
 									break
@@ -719,10 +789,10 @@ function hud0.main()
 						for tinventoryindex = 1, tinventoryqty, 1 do
 							local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
 							MoveInventoryItem(inventorycontainer,"inventory:player",tcollectionindex,-1)
+							g_UserGlobalContainerLast = ""
 							cycleuntilnomoretransfers = 1
 						end
 					end
-					g_UserGlobalContainerLast = ""
 				end
 				if actionOnScreen == 103 then
 					-- CRAFT recipe from inventory:craft
@@ -769,8 +839,9 @@ function hud0.main()
 										for tinventoryindex = 1, tinventoryqty, 1 do
 											local dowehavethisitem = GetInventoryItem(inventorycontainer,tinventoryindex)
 											local nameofingredientitem = GetCollectionItemAttribute(dowehavethisitem,"title")
-											i, k = string.find(string.upper(nextingredient),string.upper(nameofingredientitem))
-											if i ~= nil then
+											local tstring1 = string.upper(nextingredient)
+											local tstring2 = string.upper(nameofingredientitem)
+											if tstring1 == tstring2 then
 												wehavethisone = 1
 												if twopasses == 2 then
 													-- mark for consumption
@@ -804,9 +875,21 @@ function hud0.main()
 										for tlistindex = 1, listofitemscount, 1 do
 											if listofitems[tlistindex] == entityindex then
 												local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
-												SetEntityCollected(entityindex,0,0)
-												Destroy(entityindex)
-												cycleuntilnomoretransfers = 1
+												local tqty = 1
+												if GetEntityCollectable(entityindex) == 2 then
+													tqty = GetEntityQuantity(entityindex)
+												end
+												tqty = tqty - 1
+												if tqty <= 0 then
+													SetEntityCollected(entityindex,0,0)
+													Destroy(entityindex)
+													cycleuntilnomoretransfers = 1
+													break
+												else
+													if GetEntityCollectable(entityindex) == 2 then
+														SetEntityQuantity(entityindex,tqty)
+													end
+												end
 											end
 										end
 									end
@@ -814,8 +897,6 @@ function hud0.main()
 								-- create new item
 								local newe = SpawnNewEntity(anyee)
 								SetEntityCollected(newe,1,-1)
-								-- a refresh
-								g_UserGlobalContainerLast = ""
 							end
 						end
 					end

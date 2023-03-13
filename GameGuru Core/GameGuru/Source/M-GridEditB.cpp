@@ -29333,6 +29333,11 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	ImGui::Indent(-10);
 	#endif
 
+	// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
+	ImGui::Indent(10);
+	edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
+	ImGui::Indent(-10);
+
 	// Character Has Weapon
 	// moved to detection within LUA script via 'bShootingWeaponMentioned'
 	if (ImGui::IsAnyItemFocused()) bImGuiGotFocus = true;
@@ -29365,42 +29370,68 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will always be active, no matter how far away the player might be");
 	ImGui::Indent(-10);
 
+	ImGui::Indent(10);
+	bool bObjective = false;
+	if (edit_grideleprof->isobjective != 0) bObjective = true;
+	ImGui::Checkbox("Is Objective?", &bObjective);
+	if (bObjective == true)
+	{
+		if (t.entityprofile[entid].ismarker == 3)
+			edit_grideleprof->isobjective = 2;
+		else
+			edit_grideleprof->isobjective = 1;
+	}
+	else
+	{
+		edit_grideleprof->isobjective = 0;
+	}
+	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be an objective for the player");
+	ImGui::Indent(-10);
+
 	// Is Collectable general properties (if dynamic)
 	if (t.entityelement[elementID].staticflag == 0)
 	{
 		ImGui::Indent(10);
 		bool bCollectable = false;
 		if (edit_grideleprof->iscollectable != 0) bCollectable = true;
-		ImGui::Checkbox("Is Collectable?", &bCollectable);
-		if (bCollectable == true)
-			edit_grideleprof->iscollectable = 1;
-		else
-			edit_grideleprof->iscollectable = 0;
+		if (ImGui::Checkbox("Is Collectable?", &bCollectable))
+		{
+			if (bCollectable == true)
+				edit_grideleprof->iscollectable = 1;
+			else
+				edit_grideleprof->iscollectable = 0;
+		}
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
 		ImGui::Indent(-10);
 
-		ImGui::Indent(10);
-		bool bObjective = false;
-		if (edit_grideleprof->isobjective != 0) bObjective = true;
-		ImGui::Checkbox("Is Objective?", &bObjective);
-		if (bObjective == true)
+		if (edit_grideleprof->iscollectable != 0)
 		{
-			if (t.entityprofile[entid].ismarker == 3 )
-				edit_grideleprof->isobjective = 2;
-			else
-				edit_grideleprof->isobjective = 1;
-		}
-		else
-		{
-			edit_grideleprof->isobjective = 0;
-		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be an objective for the player");
-		ImGui::Indent(-10);
+			ImGui::Indent(10);
+			bool bCollectableResource = false;
+			if (edit_grideleprof->iscollectable == 2) bCollectableResource = true;
+			if (ImGui::Checkbox("Is Resource?", &bCollectableResource))
+			{
+				if (bCollectableResource == true)
+					edit_grideleprof->iscollectable = 2;
+				else
+					edit_grideleprof->iscollectable = 1;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the collectable is a resource and can be merged with similar objects");
+			ImGui::Indent(-10);
 
-		// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
-		ImGui::Indent(10);
-		edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
-		ImGui::Indent(-10);
+			/* done in resource behavior for more control (see quantity)
+			if ( edit_grideleprof->iscollectable == 2 )
+			{
+				// resources can start with a specific quantity built in
+				ImGui::TextCenter("Resource Quantity");
+				float fQty = edit_grideleprof->quantity;
+				if (ImGui::MaxSliderInputFloat("##CollectableResourceQty", &fQty, 0.0f, 100.0f, "Set the quantity of resources for this object when the game starts", 1.0, 100))
+				{
+					edit_grideleprof->quantity = fQty;
+				}
+			}
+			*/
+		}
 	}
 	else
 	{

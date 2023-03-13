@@ -103,8 +103,8 @@ g_MouseWheel = 0
 g_MouseClick = 0
 g_EntityElementMax = 0
 g_PlayerUnderwaterMode = 0
-g_PlayerCastTime = 0
-g_PlayerCastLast = 0
+g_PlayerCastTime = {}
+g_PlayerCastLast = {}
 g_PlayerTargetSlot1 = 0
 g_PlayerTargetSlot2 = 0
 g_PlayerTargetSlot3 = 0
@@ -384,7 +384,7 @@ function GetDistanceTo( e, tx, ty, tz )
     return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
 end
 
-function GetPlrLookingAtEx( e, uselineofsight )
+function GetPlrLookingAtExThreshold( e, uselineofsight, detectthreshold )
  local LookingAt = 0
  if GetHeadTracker() == 1 then
   local pObj = MotionControllerLaserGuidedEntityObj()
@@ -408,8 +408,9 @@ function GetPlrLookingAtEx( e, uselineofsight )
   if Result < 90.0 then
     -- additional line of sight test
 	if uselineofsight == 1 then
-	 if Timer() > g_PlayerCastTime then
-	  g_PlayerCastTime = Timer() + 250
+	 if g_PlayerCastTime[e] == nil then g_PlayerCastTime[e] = Timer() end
+	 if Timer() > g_PlayerCastTime[e] then
+	  g_PlayerCastTime[e] = Timer() + 250
 	  local minx,miny,minz,maxx,maxy,maxz = GetEntityCollBox(e)
 	  local destx = g_Entity[e]['x'] + (minx+((maxx-minx)/2))
 	  local desty = g_Entity[e]['y'] + (miny+((maxy-miny)/2))
@@ -421,16 +422,23 @@ function GetPlrLookingAtEx( e, uselineofsight )
 	  dx = dx / dist
 	  dy = dy / dist
 	  dz = dz / dist
-	  destx = destx + (dx*2)
-	  desty = desty + (dy*2)
-	  destz = destz + (dz*2)
- 	  local tresult = IntersectAll(GetCameraPositionX(0),GetCameraPositionY(0),GetCameraPositionZ(0),destx,desty,destz,0)
-	  if tresult == 0 or tresult == g_Entity[e]['obj'] then
- 	    LookingAt = 1
+	  destx = destx + (dx*detectthreshold)
+	  desty = desty + (dy*detectthreshold)
+	  destz = destz + (dz*detectthreshold)
+      LookingAt = 0
+	  if dist < 120 then
+	   local tresult = IntersectAll(GetCameraPositionX(0),GetCameraPositionY(0),GetCameraPositionZ(0),destx,desty,destz,0)
+	   if tresult == 0 or tresult == g_Entity[e]['obj'] then
+	    LookingAt = 1
+	   end
 	  end
-	  g_PlayerCastLast = LookingAt
+	  g_PlayerCastLast[e] = LookingAt
+	 else
+	  if g_PlayerCastLast[e] == nil then g_PlayerCastLast[e] = 0 end
+	  if g_PlayerCastLast[e] ~= nil then
+	   LookingAt = g_PlayerCastLast[e]
+	  end
 	 end
-	 LookingAt = g_PlayerCastLast
 	else
 	 LookingAt = 1
 	end
@@ -438,7 +446,9 @@ function GetPlrLookingAtEx( e, uselineofsight )
  end
  return LookingAt
 end
-
+function GetPlrLookingAtEx( e, uselineofsight )
+	return GetPlrLookingAtExThreshold( e, uselineofsight, 2 )
+end
 function GetPlrLookingAt( e )
  return GetPlrLookingAtEx(e,0) 
 end
@@ -1372,6 +1382,8 @@ GetEntityCollectable: cancollect = GetEntityCollectable ( e ) -- Gets whether th
 GetEntityCollected: collectedflag = GetEntityCollected ( e ) -- Gets whether the entity has been collected
 SetEntityUsed: SetEntityUsed ( e, usedflag ) -- Sets that the entity has been used
 GetEntityUsed: usedflag = GetEntityUsed ( e ) -- Gets whether the entity has been used
+SetEntityQuantity: SetEntityQuantity ( e, qty ) -- Sets the entity quantity value
+GetEntityQuantity: qty = GetEntityQuantity ( e ) -- Get the entity quantity value
 
 GetEntityVisibility : vis = GetEntityVisibility ( e ) -- where e is the entity number and return vis (0-hidden,1-shown)
 GetEntityActive : flag = GetEntityActive ( e ) -- returns 1 if the entity is active and not in process of dying

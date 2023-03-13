@@ -10096,7 +10096,7 @@ void mapeditorexecutable_loop(void)
 						#endif
 						
 						// Collectbale Settings if required
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable > 0)
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
 						{
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
@@ -10158,7 +10158,7 @@ void mapeditorexecutable_loop(void)
 											else
 											{
 												// empty field
-												item.collectionFields.push_back("");
+												item.collectionFields.push_back("none");
 											}
 										}
 										g_collectionMasterList.push_back(item);
@@ -10243,38 +10243,6 @@ void mapeditorexecutable_loop(void)
 									// save any changes to game collection list 
 									save_rpg_system(pref.cLastUsedStoryboardProject);
 								}
-
-								/* objects are as named (always!!)
-								// a drop down to select the collectable from the collection table
-								ImGui::TextCenter("Assigned Item From Collection");
-								int iContainerItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
-								char* containerItemSelected = "As Named";
-								if (iContainerItemIndex >= 2)
-								{
-									if ((iContainerItemIndex-2) < g_collectionList.size())
-									{
-										containerItemSelected = g_collectionList[iContainerItemIndex - 2].collectionFields[0].Get();
-									}
-								}
-								ImGui::PushItemWidth(-10);
-								if (ImGui::BeginCombo("##ChosenCollectableItem", containerItemSelected))
-								{
-									for (int i = 0; i < 1+g_collectionList.size(); i++)
-									{
-										char* pThisItem = "As Named";
-										if ( i > 0 ) pThisItem = g_collectionList[i - 1].collectionFields[0].Get();
-										bool bIsSelected = false;
-										if (strcmp(pThisItem, containerItemSelected) == NULL) bIsSelected = true;
-										if (ImGui::Selectable(pThisItem, bIsSelected, 0))
-										{
-											t.entityelement[iEntityIndex].eleprof.iscollectable = 1 + i;
-											t.entityelement[iEntityIndex].eleprof.name_s = pThisItem;
-										}
-									}
-									ImGui::EndCombo();
-								}
-								ImGui::PopItemWidth();
-								*/
 							}
 						}
 

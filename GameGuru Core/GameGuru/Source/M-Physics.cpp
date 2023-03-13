@@ -1553,7 +1553,7 @@ void physics_prepareentityforphysics ( void )
 		if (  t.entityelement[t.e].eleprof.physics == 2  )  t.tnophysics = 1;
 		if (  t.entityprofile[t.entid].isammo == 1  )  t.tnophysics = 1;
 		if (  Len(t.entityprofile[t.entid].isweapon_s.Get())>1  )  t.tnophysics = 1;
-		if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1;
+		//if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1; do we let users choose and lose their items sometimes
 		if (  t.tnophysics == 1 ) 
 		{
 			//  no physics

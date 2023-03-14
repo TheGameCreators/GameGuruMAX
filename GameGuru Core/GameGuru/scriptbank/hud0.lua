@@ -45,6 +45,18 @@ hud0_mapView_Scale = 1.0
 
 hud0_populateallcontainers = 1
 
+hud0_scrollbar_forscreen = 0
+hud0_scrollbar_mode = 0
+hud0_scrollbar_boxx = 0
+hud0_scrollbar_boxy = 0
+hud0_scrollbar_boxw = 0
+hud0_scrollbar_boxh = 0
+hud0_scrollbar_percentage = 0
+hud0_itemindexmaxslotused = 0
+hud0_itemindexscrolloffset = 0
+hud0_scrollpanel_mainrow = 0
+hud0_scrollpanel_maincolumn = 0
+
 function hud0.init()
  -- initialise all globals
  InitScreen("HUD0")
@@ -66,6 +78,9 @@ function hud0.init()
  g_UserGlobalContainer = "shop"
  g_UserGlobalContainerLast = ""
  g_UserGlobalContainerRefresh = 0
+ -- default settings
+ hud0_scrollbar_mode = -1
+ hud0_scrollbar_boxw = 0
 end
 
 function hud0.refreshHUD()
@@ -109,11 +124,16 @@ function hud0.refreshHUD()
 				-- refresh containers
 				local playercontainer = 0
 				local inventorycontainer = panelname
-				if panelname == "inventory:player" then playercontainer = 1 end
+				local thisitemindexoffset = 0
+				local itemcount = totalinrow*totalincolumn
+				if panelname == "inventory:player" then 
+					playercontainer = 1 
+					thisitemindexoffset = hud0_itemindexscrolloffset
+					itemcount = hud0_itemindexmaxslotused
+				end
 				if panelname == "inventory:hotkeys" then playercontainer = 2 end
 				if panelname == "inventory:container" then playercontainer = 3 inventorycontainer = "inventory:"..g_UserGlobalContainer end
 				if playercontainer > 0 then
-					local itemcount = totalinrow*totalincolumn
 					if playercontainer == 3 and g_UserGlobalContainer ~= g_UserGlobalContainerLast then
 						-- if this did not exist at start of level, create it now
 						local tcontainerfullname = "inventory:"
@@ -272,6 +292,61 @@ function hud0.main()
 	-- use mouse pointer
 	g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick = cursorControl.getinput(g_sprCursorPtrX,g_sprCursorPtrY,g_sprCursorPtrClick)
 	
+	-- detect ineraction with scroll bars (controls panel grid offsets)
+	if hud0_scrollbar_forscreen ~= hud0_playercontainer_screenID then
+		hud0_scrollbar_forscreen = hud0_playercontainer_screenID
+		hud0_scrollbar_mode = -1
+		hud0_scrollbar_boxw = 0
+	end	
+	if hud0_pulledoutofslot == 0 then
+		local timgqty = GetScreenElementsType("user defined global image")
+		for tindex = 1, timgqty, 1 do
+			local elementID = GetScreenElementTypeID("user defined global image",tindex)
+			if elementID > 0 then
+				if hud0_scrollbar_boxw == 0 then
+					if GetScreenElementName(elementID) == "scrollbar:box" then
+						hud0_scrollbar_boxx,hud0_scrollbar_boxy,hud0_scrollbar_boxw,hud0_scrollbar_boxh = GetScreenElementArea(elementID)    
+					end
+				end
+				if GetScreenElementName(elementID) == "scrollbar:handle" then
+					tareax,tareay,tareaw,tareah = GetScreenElementArea(elementID)    
+					if hud0_scrollbar_mode == -1 then
+						SetScreenElementPosition(elementID,hud0_scrollbar_boxx,hud0_scrollbar_boxy)
+						hud0_scrollbar_percentage = 0
+						hud0_scrollbar_mode = 0
+					end
+					if hud0_scrollbar_mode == 0 then		
+						if hud0_itemindexmaxslotused - (hud0_scrollpanel_mainrow*hud0_scrollpanel_maincolumn) > 0 then
+							SetScreenElementVisibility(elementID,1)
+						else
+							SetScreenElementVisibility(elementID,0)
+						end
+						if g_sprCursorPtrClick == 1 then
+							if g_sprCursorPtrX >= tareax and g_sprCursorPtrX <= tareax+tareaw then
+								if g_sprCursorPtrY >= tareay and g_sprCursorPtrY <= tareay+tareah then
+									hud0_scrollbar_mode = 1
+								end
+							end
+						end
+					else
+						local toffsety = g_sprCursorPtrY-hud0_scrollbar_boxy
+						if toffsety < 0 then toffsety = 0 end
+						if toffsety > hud0_scrollbar_boxh-tareah then toffsety = hud0_scrollbar_boxh-tareah end
+						SetScreenElementPosition(elementID,hud0_scrollbar_boxx,hud0_scrollbar_boxy+toffsety)
+						hud0_scrollbar_percentage = toffsety / (hud0_scrollbar_boxh-tareah)
+						local gridrowstoscroll = (hud0_scrollpanel_mainrow+(hud0_itemindexmaxslotused - (hud0_scrollpanel_mainrow*hud0_scrollpanel_maincolumn)))*hud0_scrollbar_percentage
+						local gridrowslimit = math.floor(gridrowstoscroll/hud0_scrollpanel_mainrow)
+						if gridrowslimit < 0 then gridrowslimit = 0 end
+						hud0_itemindexscrolloffset = gridrowslimit * hud0_scrollpanel_mainrow
+						if g_sprCursorPtrClick == 0 then
+							hud0_scrollbar_mode = 0
+						end
+					end
+				end
+			end
+		end
+	end
+							
 	-- detect when select and let go of an element for each grid
 	local tgridqty = GetScreenElementsType("user defined global panel")
 	for gridi = 1, tgridqty, 1 do
@@ -291,9 +366,21 @@ function hud0.main()
 			local gridtilewidth = tgridwidth/totalinrow
 			local gridtileheight = tgridheight/totalincolumn
 			
+			-- get main inventory for scroll activity
+			local thisitemindexoffset = 0
+			if GetScreenElementName(thegrid) == "inventory:player" then
+				hud0_scrollpanel_mainrow = totalinrow
+				hud0_scrollpanel_maincolumn = totalincolumn
+				thisitemindexoffset = hud0_itemindexscrolloffset
+				local maininvqty = GetInventoryQuantity("inventory:player")
+				if maininvqty > hud0_itemindexmaxslotused then
+					hud0_itemindexmaxslotused = maininvqty
+				end
+			end
+		
 			-- if in panel, control contents
 			if g_sprCursorPtrX >= tgridx and g_sprCursorPtrX <= tgridx+tgridwidth then
-				if g_sprCursorPtrY >= tgridy and g_sprCursorPtrY <= tgridy+tgridheight then
+				if g_sprCursorPtrY >= tgridy and g_sprCursorPtrY <= tgridy+tgridheight and hud0_scrollbar_mode == 0 then
 				
 					-- where in grid
 					local itemindex = 0
@@ -301,7 +388,7 @@ function hud0.main()
 					local gridsloty = g_sprCursorPtrY - tgridy
 					gridslotx=math.floor(gridslotx/gridtilewidth)
 					gridsloty=math.floor(gridsloty/gridtileheight)
-					itemindex=gridslotx+(gridsloty*totalinrow)
+					itemindex=thisitemindexoffset+(gridslotx+(gridsloty*totalinrow))
 
 					-- handle click/drag/release
 					if hud0_pulledoutofslot == 0 and gridi > 0 then
@@ -428,11 +515,12 @@ function hud0.main()
 											if entityindex == 0 then
 												-- moved item to new inventory container
 												local collectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+												local entityindex = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 												local inventorycontainerFrom = panelnameFrom
 												local inventorycontainerTo = panelnameTo
 												if inventorycontainerFrom == "inventory:container" then inventorycontainerFrom = "inventory:"..g_UserGlobalContainer end
 												if inventorycontainerTo == "inventory:container" then inventorycontainerTo = "inventory:"..g_UserGlobalContainer end
-												MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,collectionindex,placedatitemindex)
+												MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,-1,entityindex,placedatitemindex)
 												g_UserGlobalContainerRefresh = 1
 											else
 												-- add to new location as we removed it above
@@ -472,7 +560,7 @@ function hud0.main()
 			if hud0_gridSpriteID ~= nil then
 				for yy = 0, totalincolumn-1, 1 do
 					for xx = 0, totalinrow-1, 1 do
-						local itemindex = xx+(yy*totalinrow)
+						local itemindex = thisitemindexoffset+(xx+(yy*totalinrow))
 						if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID] ~= nil then
 							if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi] ~= nil then
 								if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] ~= nil then
@@ -737,7 +825,7 @@ function hud0.main()
 													tqtyfrom = tqtyfrom - 1
 													SetEntityQuantity(entityindexfrom,tqtyfrom)
 													if tqtyfrom == 0 then
-														MoveInventoryItem(tinventorysource,"",tcollectionindex,-1)
+														MoveInventoryItem(tinventorysource,"",-1,entityindexfrom,-1)
 														g_UserGlobalContainerRefresh = 1
 													end
 												else
@@ -758,7 +846,12 @@ function hud0.main()
 													g_UserGlobalContainerRefresh = 1
 												end
 											else
-												MoveInventoryItem(tinventorysource,tinventorydest,tcollectionindex,-1)
+												local entityindexfrom = GetInventoryItemID(tinventorysource,tinventoryindex)
+												if entityindexfrom > 0 then
+													MoveInventoryItem(tinventorysource,tinventorydest,-1,entityindexfrom,-1)
+												else
+													MoveInventoryItem(tinventorysource,tinventorydest,tcollectionindex,0,-1)
+												end
 												g_UserGlobalContainerRefresh = 1
 											end
 										end
@@ -790,7 +883,8 @@ function hud0.main()
 						local tinventoryqty = GetInventoryQuantity(inventorycontainer)
 						for tinventoryindex = 1, tinventoryqty, 1 do
 							local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
-							MoveInventoryItem(inventorycontainer,"inventory:player",tcollectionindex,-1)
+							local tentityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
+							MoveInventoryItem(inventorycontainer,"inventory:player",-1,tentityindex,-1)
 							g_UserGlobalContainerRefresh = 1
 							cycleuntilnomoretransfers = 1
 						end

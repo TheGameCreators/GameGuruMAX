@@ -7021,9 +7021,11 @@ int MoveInventoryItem (lua_State* L)
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if (n < 4) return 0;
+	if (n < 5) return 0;
 	char pNameOfInventoryFrom[512];
 	strcpy(pNameOfInventoryFrom, lua_tostring(L, 1));
+	int collectionindex = lua_tonumber(L, 3);
+	int entityindex = lua_tonumber(L, 4);
 	int bothplayercontainersfrom = FindInventoryIndex(pNameOfInventoryFrom);
 	if (bothplayercontainersfrom >= 0)
 	{
@@ -7033,18 +7035,31 @@ int MoveInventoryItem (lua_State* L)
 		int bothplayercontainersto = FindInventoryIndex(pNameOfInventoryTo);
 		if (bothplayercontainersto >= 0)
 		{
-			int collectionindex = lua_tonumber(L, 3);
-			int slotindex = lua_tonumber(L, 4);
+			int slotindex = lua_tonumber(L, 5);
 			if (bothplayercontainersfrom == bothplayercontainersto)
 			{
 				// moved within same container
 				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 				for (int n = 0; n < iListSize; n++)
 				{
-					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex && slotindex != -1)
+					if (slotindex != -1)
 					{
-						t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
-						break;
+						if (collectionindex == -1)
+						{
+							if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+							{
+								t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
+								break;
+							}
+						}
+						else
+						{
+							if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+							{
+								t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -7054,7 +7069,18 @@ int MoveInventoryItem (lua_State* L)
 				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 				for (int n = 0; n < iListSize; n++)
 				{
-					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+					bool bMatch = false;
+					if (collectionindex == -1)
+					{
+						if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+							bMatch = true;
+					}
+					else
+					{
+						if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+							bMatch = true;
+					}
+					if (bMatch==true)
 					{
 						// create item
 						inventoryContainerType item;
@@ -7118,11 +7144,21 @@ int MoveInventoryItem (lua_State* L)
 		else
 		{
 			// moving item to limbo (for resources that hit zero quantity)
-			int collectionindex = lua_tonumber(L, 3);
 			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 			for (int n = 0; n < iListSize; n++)
 			{
-				if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+				bool bMatch = false;
+				if (collectionindex == -1)
+				{
+					if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+						bMatch = true;
+				}
+				else
+				{
+					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+						bMatch = true;
+				}
+				if (bMatch == true)
 				{
 					// remove (below)
 					t.inventoryContainer[bothplayercontainersfrom][n].e = -2;

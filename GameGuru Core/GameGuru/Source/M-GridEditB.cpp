@@ -22230,7 +22230,7 @@ void process_entity_library_v2(void)
 												t.addentityfile_s = sFpeName.c_str();
 
 
-												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+												CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
 												if (FileExist(BackBufferCacheName.Get()))
 												{
 													DeleteAFile(BackBufferCacheName.Get());
@@ -24754,7 +24754,7 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			if (find)
 			{
 				cstr fname = (find + 11);
-				CreateBackBufferCacheName(fname.Get(), 512, 288);
+				CreateBackBufferCacheNameEx(fname.Get(), 512, 288, true);
 				SaveImage(BackBufferCacheName.Get(), iEntityGroupListImage[current_selected_group]);
 			}
 		}
@@ -33874,7 +33874,7 @@ void GetProjectThumbnails()
 								{
 									if (strlen(checkproject.Nodes[i].level_name) > 0)
 									{
-										CreateBackBufferCacheName(checkproject.Nodes[i].level_name, 512, 288);
+										CreateBackBufferCacheNameEx(checkproject.Nodes[i].level_name, 512, 288, true);
 										if (CreateProjectCacheName(checkproject.gamename, BackBufferCacheName.Get()) &&
 											FileExist(ProjectCacheName.Get()))
 										{
@@ -39529,7 +39529,7 @@ void process_storeboard(bool bInitOnly)
 								/*cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].lua_name);*/
 								// name of thumb is now based on screen title, to prevent multiple screens with same thumb name
 								cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].title);
-								CreateBackBufferCacheName(name.Get(), 512, 288);
+								CreateBackBufferCacheNameEx(name.Get(), 512, 288, true);
 								SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iWaitFor2DEditorNode].thumb_id);
 								if (FileExist(BackBufferCacheName.Get()))
 								{
@@ -39637,7 +39637,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
 								{
 									//Save into thumbbank , and save thumb filename in node.
-									CreateBackBufferCacheName(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288);
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288, true);
 									SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iScreenshotNode].thumb_id);
 									if (FileExist(BackBufferCacheName.Get()))
 									{
@@ -39847,7 +39847,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(Storyboard.Nodes[iDuplicateNode].thumb_id))
 								{
 									//Save old thumb to new thumb.
-									CreateBackBufferCacheName(Storyboard.Nodes[node].level_name, 512, 288);
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
 									SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iDuplicateNode].thumb_id);
 									if (FileExist(BackBufferCacheName.Get()))
 									{
@@ -42422,7 +42422,7 @@ void process_storeboard(bool bInitOnly)
 											ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 											iAutoConnectNode = node;
 											//Check if level already got a thumb.
-											CreateBackBufferCacheName(Storyboard.Nodes[node].level_name, 512, 288);
+											CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
 											if (FileExist(BackBufferCacheName.Get()))
 											{
 												if (CopyToProjectFolder(BackBufferCacheName.Get()))
@@ -43107,7 +43107,7 @@ int save_level_as( void )
 
 							if (bGotAThumb)
 							{
-								CreateBackBufferCacheName(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288);
+								CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
 								SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
 								if (FileExist(BackBufferCacheName.Get()))
 								{
@@ -44648,7 +44648,7 @@ void GetProjectList(char *path, bool bGetThumbs)
 										{
 											if (strlen(checkproject.Nodes[i].level_name) > 0)
 											{
-												CreateBackBufferCacheName(checkproject.Nodes[i].level_name, 512, 288);
+												CreateBackBufferCacheNameEx(checkproject.Nodes[i].level_name, 512, 288, true);
 												if (CreateProjectCacheName(checkproject.gamename, BackBufferCacheName.Get()) &&
 													FileExist(ProjectCacheName.Get()))
 												{

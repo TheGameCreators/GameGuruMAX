@@ -10121,48 +10121,6 @@ void mapeditorexecutable_loop(void)
 									{
 										collectionItemType item;
 										fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
-										/*
-										item.collectionFields.clear();
-										for (int l = 0; l < g_collectionLabels.size(); l++)
-										{
-											int iKnownLabel = 0;
-											LPSTR pLabel = g_collectionLabels[l].Get();
-											if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
-											if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-											if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
-											if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
-											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
-											if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
-											if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
-											if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-											if (iKnownLabel > 0)
-											{
-												// field we can populate automatically
-												if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
-												if (iKnownLabel == 2)
-												{
-													cstr entityfile = t.entitybank_s[iMasterID];
-													CreateBackBufferCacheName(entityfile.Get(), 288, 288);
-													char pIconFile[MAX_PATH];
-													strcpy(pIconFile, BackBufferCacheName.Get());
-													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pIconFile);
-													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-													item.collectionFields.push_back(pFinalImgFile);
-												}
-												if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
-												if (iKnownLabel == 4) item.collectionFields.push_back(10);
-												if (iKnownLabel == 5) item.collectionFields.push_back(5);
-												if (iKnownLabel == 6) item.collectionFields.push_back("shop");
-												if (iKnownLabel == 7) item.collectionFields.push_back("none");
-												if (iKnownLabel == 8) item.collectionFields.push_back("none");
-											}
-											else
-											{
-												// empty field
-												item.collectionFields.push_back("none");
-											}
-										}
-										*/
 										g_collectionMasterList.push_back(item);
 									}
 								}
@@ -16499,7 +16457,7 @@ void mapeditorexecutable_loop(void)
 						g_LastGroupSaved_s = pObjectSavedFilename;
 
 						//PE: If we already have the original image use that no need for large preview. just goto the folder where it was created.
-						CreateBackBufferCacheName(g_LastGroupSaved_s.Get(), 512, 288);
+						CreateBackBufferCacheNameEx(g_LastGroupSaved_s.Get(), 512, 288, true);
 						if (!FileExist(BackBufferCacheName.Get()))
 						{
 							extern cstr sGotoPreviewWithFile;

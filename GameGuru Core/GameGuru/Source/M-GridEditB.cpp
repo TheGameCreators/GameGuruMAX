@@ -13984,6 +13984,7 @@ int current_backbuffer_height = 0;
 
 void GrabBackBufferCopy(void)
 {
+	// reject backbuffer copy under certain conditions
 	if (iFogChangedFramesBeforeRestore > 0)
 	{
 		if(iFogChangedFramesBeforeRestore == 1) Wicked_Update_Visuals((void *)&t.visuals);
@@ -13993,19 +13994,16 @@ void GrabBackBufferCopy(void)
 		return;
 
 	if ((BackBufferObjectID <= 0 && !BackBufferSnapShotMode && !BackBufferParticlesMode) || BackBufferImageID <= 0)
-	{
 		return;
-	}
+
 	if (BackBufferParticlesMode && iBackBufferParticlesTrigger > 0)
 	{
-		//Wait some frames before capture.
+		// wait some frames before capture.
 		iBackBufferParticlesTrigger--;
 		return;
 	}
 
-	//PE: Restore 10 frames after last call.
-	if (iFogChangedFramesBeforeRestore > 0)
-		iFogChangedFramesBeforeRestore = 5;
+	if (iFogChangedFramesBeforeRestore > 0) iFogChangedFramesBeforeRestore = 5;
 
 	if (!BackBufferParticlesMode && BackBufferParticleEmitter != -1)
 	{
@@ -14013,12 +14011,13 @@ void GrabBackBufferCopy(void)
 		BackBufferParticleEmitter = -1;
 	}
 
+	// can detect backbuffer size changes
 	extern int iLastResolutionWidth;
 	extern int iLastResolutionHeight;
 
+	// make sure new rendertarget is the same as the backbuffer size.
 	if (!BitmapExist(99) || (iLastResolutionWidth != current_backbuffer_width || iLastResolutionHeight != current_backbuffer_height))
 	{
-		//PE: Make sure new rendertarget is the same as the backbuffer size.
 		current_backbuffer_height = iLastResolutionHeight;
 		current_backbuffer_width = iLastResolutionWidth;
 		if (wiRenderer::GetDevice())
@@ -14028,8 +14027,6 @@ void GrabBackBufferCopy(void)
 			{
 				GGSURFACE_DESC ddsd;
 				pBackBuffer->GetDesc(&ddsd);
-				//PE: Try fixed size.
-				#ifdef USEFIXEDBACKBUFFERSIZE
 				//PE: This is the resolution all current thumbs has used.
 				if (bProceduralLevel || bFullScreenBackbuffer)
 				{
@@ -14040,19 +14037,15 @@ void GrabBackBufferCopy(void)
 				{
 					MakeBitmap(99, 1920, 1017);
 				}
-				#else
-				MakeBitmap(99, ddsd.Width, ddsd.Height);
-				#endif
 			}
 		}
 	}
 
-	//PE: Using a render target in g_DefaultGGFORMAT is way faster.
+	// using a render target in g_DefaultGGFORMAT is way faster.
 	LPGGRENDERTARGETVIEW rendertarget;
 	rendertarget = (LPGGRENDERTARGETVIEW)GetBitmapRenderTarget(99);
 
-	//wiRenderer::GetDevice()->WaitForGPU();
-
+	// store current camera pos and angle
 	if (!bBackdropSettingsSet || bSnapShotModeUseCamera || BackBufferParticlesMode)
 	{
 		composx = CameraPositionX(0);
@@ -14063,12 +14056,10 @@ void GrabBackBufferCopy(void)
 		comangz = CameraAngleZ(0);
 	}
 
+	// get water state
 	bool bOldWater = t.visuals.bWaterEnable;
-	//wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-	//weather->SetOceanEnabled(false); //PE: Ocean gets regenerated later so we cant just disable it like this.
-	//t.visuals.bWaterEnable = false;
-	//Wicked_Update_Visuals((void *)&t.visuals);
 
+	// get backbuffer size as grab size
 	float grabx = BackBufferSizeX;
 	float graby = BackBufferSizeY;
 	if (grabx <= 0 || graby <= 0)
@@ -14077,15 +14068,16 @@ void GrabBackBufferCopy(void)
 		graby = 288;
 	}
 
+	// vars for below
 	int displayobj, entid;
 	float fOldObjPosX, fOldObjAngX, fOldObjPosY, fOldObjAngY, fOldObjPosZ, fOldObjAngZ;
 	bool bDisplayObjVisible = false;
 	bool bWaterVisible = false;
 
-	//PE: If we move the camera to far we get "black" flicking dots , so wicked got a bug somewhere (need double ?).
-//	float centerx = -256000, centery = -256000, centerz = -256000;
+	// move camera for the grab, but not too far given camera resolution
 	float centerx = -1000, centery = 39000, centerz = -1000;
 
+	// if backbuffer ready to grab
 	int backdropobj = BACKDROPMAGE;
 	if (!BackBufferSnapShotMode && !BackBufferParticlesMode)
 	{
@@ -14106,18 +14098,16 @@ void GrabBackBufferCopy(void)
 			}
 		}
 
-		//Place Object.
-		displayobj = BackBufferObjectID; //g.entitybankoffset + BackBufferObjectID;
+		// place Object to be the subject of the grab
+		displayobj = BackBufferObjectID;
 		entid = displayobj - g.entitybankoffset;
 		fOldObjPosX = ObjectPositionX(displayobj); fOldObjPosY = ObjectPositionY(displayobj); fOldObjPosZ = ObjectPositionZ(displayobj);
 		fOldObjAngX = ObjectAngleX(displayobj); fOldObjAngY = ObjectAngleY(displayobj); fOldObjAngZ = ObjectAngleZ(displayobj);
-
-		if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)
-			bDisplayObjVisible = true;
-
+		if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)	bDisplayObjVisible = true;
 		float fOffsetX = 0.0f, fOffsetY = 0.0f, fOffsetZ = 0.0f;
 		sObject* pObject = g_ObjectList[displayobj];
-		if (pObject) { //&& t.entityprofile[entid].ischaracter != 1
+		if (pObject) 
+		{
 			float fAdjustScaleX = 1.0, fAdjustScaleY = 1.0, fAdjustScaleZ = 1.0;
 			if (pObject->pInstanceOfObject)
 			{
@@ -14133,46 +14123,41 @@ void GrabBackBufferCopy(void)
 				fValue = ApplyPivot(pObject, 0, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 				fValue = fValue * pObject->position.vecScale[0] * fAdjustScaleX;
 				fOffsetX = fValue * 0.5f;
-
 				fValue = (pObject->collision.vecMax[2] + pObject->collision.vecMin[2]);
 				fValue = ApplyPivot(pObject, 2, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 				fValue = fValue * pObject->position.vecScale[2] * fAdjustScaleZ;
 				fOffsetZ = fValue * 0.5f;
 			}
-
 			fValue = (pObject->collision.vecMax[1] + pObject->collision.vecMin[1]);
 			fValue = ApplyPivot(pObject, 1, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 			fValue = fValue * pObject->position.vecScale[1] * fAdjustScaleY;
 			fOffsetY = fValue * 0.5f;
-
 			if (pObject->pFrame)
 			{
 				fOffsetX += -(pObject->pFrame->vecOffset.x * fAdjustScaleX);
 				fOffsetY += -(pObject->pFrame->vecOffset.y * fAdjustScaleY);
 				fOffsetZ += -(pObject->pFrame->vecOffset.z * fAdjustScaleZ);
 			}
-
 		}
 
+		// find largest dimension
 		float fLargestY = ObjectSizeY(displayobj, 1);
 		float fLargestX = ObjectSizeX(displayobj, 1);
 		float fLargestZ = ObjectSizeZ(displayobj, 1);
 		float fLargest = fLargestX;
-		if (fLargestZ > fLargest)
-			fLargest = fLargestZ;
-		if (fLargestY > fLargest)
-			fLargest = fLargestY;
+		if (fLargestZ > fLargest) fLargest = fLargestZ;
+		if (fLargestY > fLargest) fLargest = fLargestY;
 
-		if (fLargest < 15.0) fLargest = 15.0; //Handle small objects.
+		// handle small objects.
+		if (fLargest < 15.0) fLargest = 15.0; 
 		if (fLargest >= 2500.0) fLargest = 2500.0;
 
+		// set object up
 		PositionObject(displayobj, centerx, centery, centerz);
-
 		if (t.entityprofile[entid].bIsDecal)
 		{
 			PositionObject(displayobj, centerx + (fLargestX*0.5), centery + (fLargestY*0.5), centerz);
 		}
-
 		if (t.entityprofile[entid].ismarker != 0 || t.entityprofile[entid].zdepth == 0)
 		{
 			SetObjectMask(displayobj, 1);
@@ -14181,16 +14166,15 @@ void GrabBackBufferCopy(void)
 		{
 			SetObjectMask(displayobj, 1 + (1 << 31));
 		}
-
 		ShowObject(displayobj);
-
 		RotateObject(displayobj, fOldObjAngX, fOldObjAngY + 15, fOldObjAngZ);
 
+		// set camera up
 		RotateCamera(0, 0, 0);
 		PositionCamera(centerx, centery, centerz);
 		PointCamera(centerx, centery, centerz);
 
-
+		// adjustments needed
 		float fAdjustRange = 5.0;
 		fAdjustRange -= (grabx + graby) / 512.0;
 		if (fAdjustRange < 0.5)
@@ -14200,21 +14184,17 @@ void GrabBackBufferCopy(void)
 		if ((grabx + graby) >= 2048)
 			fAdjustRange += 0.5;
 
-		float fCamMove = fLargest * (fAdjustRange + 0.1); // PE: 512x288=3.5 - This really depend on the image size we capture to.
+		// 512x288=3.5 - This really depend on the image size we capture to.
+		float fCamMove = fLargest * (fAdjustRange + 0.1);
 		MoveCamera(-(fCamMove));
 		BackBufferCamMove = fCamMove * 2.0;
 
-		//magnum: fCamMove=30.5 , fLargestY = 2.078 , fAdjustRange = 1.875 , fLargest = 15.43
-		//fLargest != 15.0 , we need object to be bigger to increase hight.
-
-
+		// adjust camera based on object largest calc and adjustment
 		if (fLargest != 15.0 && fLargestY < 4.0) fLargestY += 200.0;
 		if (fLargest != 15.0 &&fLargestY < 7.0) fLargestY += 100.0;
 		if (fLargest != 15.0 && fLargestY < 40.0) fLargestY = 40.0;
 		if (fLargestY < 10.0) fLargestY = 10.0;
-
 		float fAdjustY = fAdjustRange * 0.5;
-
 		if (fLargestY >= 2500.0) fLargestY = 2500.0;
 		if (t.entityprofile[entid].isebe == 1)
 		{
@@ -14223,25 +14203,23 @@ void GrabBackBufferCopy(void)
 		PositionCamera(CameraPositionX(0), CameraPositionY(0) + (fLargestY*fAdjustY), CameraPositionZ(0));
 		PointCamera(centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
 
+		// work out if need rotation on the Z
 		bool bNeedZRotation = false;
-
-		if (1)
+		float cangx = CameraAngleX();
+		float cangy = CameraAngleY();
+		float cangz = CameraAngleZ();
+		if (cangx > 39 && cangx < 300 )
 		{
-			float cangx = CameraAngleX();
-			float cangy = CameraAngleY();
-			float cangz = CameraAngleZ();
-			if (cangx > 39 && cangx < 300 )
-			{
-				bNeedZRotation = true;
-			}
+			bNeedZRotation = true;
 		}
 
-
+		// restore backbuffer camera
 		if (bBackBufferRestoreCamera)
 		{
 			//Restore camera settings from FPE. Only trigger this one time.
 			BackBufferRotateY = RestoreBackBufferRotateY;
-			if (t.entityprofile[entid].ischaracter == 0) {
+			if (t.entityprofile[entid].ischaracter == 0) 
+			{
 				BackBufferRotateX = RestoreBackBufferRotateX;
 			}
 			else
@@ -14253,23 +14231,20 @@ void GrabBackBufferCopy(void)
 			BackBufferZoom = RestoreBackBufferZoom;
 			if (BackBufferSizeX < 1024)
 			{
-				//Adjust to new resolution.
-				//BackBufferZoom *= 1.85f;
-				//BackBufferCamUp *= 0.75f;
-				//BackBufferCamLeft *= 0.85f;
 				BackBufferZoom *= 1.7f;
 				BackBufferCamUp *= 0.95f;
 			}
-
 		}
 
+		// apply camera zoom and shift
 		MoveCamera(BackBufferZoom);
-
 		MoveCameraLeft(0, BackBufferCamLeft);
 		MoveCameraUp(0, BackBufferCamUp);
 
+		// if backbuffer in loop or restore mode
 		if (bLoopBackBuffer || bBackBufferRestoreCamera)
 		{
+			/* rework this down the road
 			if (0) // bRotateBackBuffer)
 			{
 				//@Lee Rotate on world y axis. is this correct ?
@@ -14297,110 +14272,78 @@ void GrabBackBufferCopy(void)
 			}
 			else
 			{
-				if (bBackBufferAnimated)
+			*/
+
+			// object animation speed
+			if (bBackBufferAnimated)
+			{
+				t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
+				if (ObjectExist(BackBufferObjectID) == 1)
 				{
-					t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
-					if (ObjectExist(BackBufferObjectID) == 1)
-					{
-						#ifdef WICKEDENGINE
-						SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
-						#else
-						SetObjectSpeed(BackBufferObjectID, g.timeelapsed_f*t.tanimspeed_f);
-						#endif
-					}
+					#ifdef WICKEDENGINE
+					SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
+					#else
+					SetObjectSpeed(BackBufferObjectID, g.timeelapsed_f*t.tanimspeed_f);
+					#endif
 				}
-				if (bRotateBackBuffer && !bBackBufferAnimated )
+			}
+
+			// rotation mode
+			if (bRotateBackBuffer && !bBackBufferAnimated )
+			{
+				if (bNeedZRotation)
 				{
-					if (bNeedZRotation)
-					{
-						BackBufferRotateZ += 3.0*g.timeelapsed_f;
-						if (BackBufferRotateZ > 360.0)
-							BackBufferRotateZ -= 360.0;
-					}
-					else
-					{
-						BackBufferRotateY += 3.0*g.timeelapsed_f;
-						if (BackBufferRotateY > 360.0)
-							BackBufferRotateY -= 360.0;
-					}
-				}
-
-
-				float ox = ObjectPositionX(displayobj);
-				float oy = ObjectPositionY(displayobj);
-				float oz = ObjectPositionZ(displayobj);
-				float cx = CameraPositionX();
-				float cy = CameraPositionY();
-				float cz = CameraPositionZ();
-				float dist = GetDistance(cx, cy, cz, ox, oy, oz);
-
-				//WIP: Test Orbit around object.
-				/*
-				#define TESTORBIT
-				int orbitobj = DOTARCSOBJECTID + 1234;
-				CreateDotArcObject(orbitobj); //Test
-				PositionObject(orbitobj, cx, cy, cz);
-				PointObject(orbitobj, centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
-				MoveObject(orbitobj, dist*0.75);
-				ShowObject(orbitobj);
-				ox = centerx + fOffsetX;
-				oy = centery + fOffsetY;
-				oz = centerz + fOffsetZ;
-				float movey = (BackBufferRotateY / 360.0) * PI*2.0;
-				static float angletest = 50.0f;
-				float ax, ay, az;
-				GetAngleFromPoint(cx, cy, cz, ox, oy, oz, &ax, &ay, &az);
-				float diffy = fabs(cy - oy);
-				if (movey > PI*2.0) movey -= PI*2.0;
-				ox = ox + (sin(movey) * dist*0.35);
-				//WIP: Need y to match angle from camera ax.
-				oy = oy + ( (sin((movey-ax)*PI/180.0f) ) * diffy);
-				oz = oz + (cos(movey) * dist*0.35);
-				PositionObject(orbitobj,ox,oy,oz);
-				PointObject(displayobj, ox, oy, oz);
-				*/
-
-				#ifndef TESTORBIT
-				RotateObject(displayobj, 0, 0, 0);
-				if (pObject && pObject->position.bApplyPivot)
-				{
-					PitchObjectUpWorld(displayobj, BackBufferRotateX);
-					TurnObjectRightWorld(displayobj, BackBufferRotateY);
-					if(bNeedZRotation)
-						RollObjectLeftWorld(displayobj, BackBufferRotateZ);
-					//PitchObjectUp(displayobj, BackBufferRotateX);
-					//TurnObjectRight(displayobj, BackBufferRotateY);
+					BackBufferRotateZ += 3.0*g.timeelapsed_f;
+					if (BackBufferRotateZ > 360.0)
+						BackBufferRotateZ -= 360.0;
 				}
 				else
 				{
-					PitchObjectDownWorld(displayobj, BackBufferRotateX);
-					TurnObjectRightWorld(displayobj, BackBufferRotateY);
-					if (bNeedZRotation)
-						RollObjectLeftWorld(displayobj, BackBufferRotateZ);
-					//PitchObjectDown(displayobj, BackBufferRotateX);
-					//TurnObjectRight(displayobj, BackBufferRotateY);
+					BackBufferRotateY += 3.0*g.timeelapsed_f;
+					if (BackBufferRotateY > 360.0)
+						BackBufferRotateY -= 360.0;
 				}
-				#endif
 			}
-			bBackBufferRestoreCamera = false;
-		}
 
+			// object and camera stats
+			float ox = ObjectPositionX(displayobj);
+			float oy = ObjectPositionY(displayobj);
+			float oz = ObjectPositionZ(displayobj);
+			float cx = CameraPositionX();
+			float cy = CameraPositionY();
+			float cz = CameraPositionZ();
+			float dist = GetDistance(cx, cy, cz, ox, oy, oz);
+
+			// apply object handling
+			RotateObject(displayobj, 0, 0, 0);
+			if (pObject && pObject->position.bApplyPivot)
+			{
+				PitchObjectUpWorld(displayobj, BackBufferRotateX);
+				TurnObjectRightWorld(displayobj, BackBufferRotateY);
+				if(bNeedZRotation) RollObjectLeftWorld(displayobj, BackBufferRotateZ);
+			}
+			else
+			{
+				PitchObjectDownWorld(displayobj, BackBufferRotateX);
+				TurnObjectRightWorld(displayobj, BackBufferRotateY);
+				if (bNeedZRotation)	RollObjectLeftWorld(displayobj, BackBufferRotateZ);
+			}
+		}
+		bBackBufferRestoreCamera = false;
+		//}
+
+		// using backdrop object
 		if (bUseBackDropImage && ObjectExist(backdropobj))
 		{
-//			PositionObject(backdropobj, centerx, centery, centerz);
 			MoveCamera(2.0f);
 			PositionObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 			MoveCamera(-2.0f);
 			PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
-//			MoveObject(backdropobj, -10600.0f);
-			//PE: We cant move it to far away, as backdrop pixel quality get lower the further it is away from the camera.
-			MoveObject(backdropobj, -21200.0f); //Large objects get clipped, move further away.
+			MoveObject(backdropobj, -21200.0f);
 			PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
-			#ifdef TURNBACKDROP180
-			TurnObjectLeft(backdropobj, 180);
-			#endif
 		}
-		//PE: Switch away from editor light , so we dont interfere with the current light on the scene.
+
+		// wwitch away from editor light , so we dont interfere with the current light on the scene.
 		extern wiECS::Entity g_entityThumbLight, g_entityThumbLight2;
 		if (g_entityThumbLight)
 		{
@@ -14422,11 +14365,10 @@ void GrabBackBufferCopy(void)
 			transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
 			transformLightCamera->SetDirty();
 		}
-
 	}
 	else
 	{
-		//Snap shop mode.
+		// snap shop mode.
 		if (BackBufferParticlesMode)
 		{
 			RotateCamera(0, 0, 0);
@@ -14435,15 +14377,11 @@ void GrabBackBufferCopy(void)
 			MoveCamera(-BackBufferZoom);
 			MoveCameraUp(0, BackBufferCamUp);
 			PointCamera(centerx, centery, centerz);
-
 			if (bUseBackDropImage && ObjectExist(backdropobj))
 			{
-				if (BackBufferSizeX >= 1024)
-					ScaleObject(backdropobj, 100, 100, 100);
-				else if (BackBufferSizeX <= 512)
-					ScaleObject(backdropobj, 50, 50, 50);
+				if (BackBufferSizeX >= 1024) ScaleObject(backdropobj, 100, 100, 100);
+				else if (BackBufferSizeX <= 512) ScaleObject(backdropobj, 50, 50, 50);
 				ShowObject(backdropobj);
-
 				MoveCamera(2.0f);
 				PositionObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 				MoveCamera(-2.0f);
@@ -14451,18 +14389,15 @@ void GrabBackBufferCopy(void)
 				MoveObject(backdropobj, -21200.0f); //Large objects get clipped, move further away.
 				PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 			}
-
 		}
 		if (bSnapShotModeUseCamera )
 		{
-			//Place camera.
 			PositionCamera(fSnapShotModeCameraX, fSnapShotModeCameraY, fSnapShotModeCameraZ);
 			RotateCamera(fSnapShotModeCameraAngX, fSnapShotModeCameraAngY, fSnapShotModeCameraAngZ);
 		}
 	}
 
-
-	//Render.
+	// render settings
 	extern bool g_bNoSwapchainPresent;
 	bool ioldstate = g_bNoSwapchainPresent;
 	g_bNoSwapchainPresent = true;
@@ -14475,41 +14410,35 @@ void GrabBackBufferCopy(void)
 	extern bool g_bNoTerrainRender;
 	bool bOldg_bNoTerrainRender = g_bNoTerrainRender;
 	if (bProceduralLevel)
-	{
 		g_bNoTerrainRender = false;
-	}
 	else
-	{
 		g_bNoTerrainRender = true;
-	}
 
-
+	// handlw wide screen scenario
 	bool bIsWideScreen = false;
 	float gpw = master.masterrenderer.GetWidth3D();
 	float gph = master.masterrenderer.GetHeight3D();
 	if (( (float)gpw / (float) gph) > 2.1 && gpw > 1920)
-	{
-		//PE: Use fov to adjust camera. so it fit fixed backbuffer.
 		bIsWideScreen = true;
-	}
 
+	// fit fixed backbuffer and thumb resolution
 	if (bIsWideScreen && !bFullScreenBackbuffer)
 	{
-		float fCameraFov = XM_PI / ((45.0) / 15.0f); //Fit fixed backbuffer and thumb resolution.
+		float fCameraFov = XM_PI / ((45.0) / 15.0f); 
 		wiScene::GetCamera().CreatePerspective( 1920.0f, 1017.0f, t.visuals.CameraNEAR_f, t.visuals.CameraFAR_f, fCameraFov);
 		wiScene::GetCamera().SetDirty(true);
 	}
 
-
+	// force a render of the backbuffer to do the grab
 	bool renderstate = master.ForceRender(rendertarget);
 
+	// restore render settings after the forced render
 	if (bIsWideScreen && !bFullScreenBackbuffer)
 	{
 		float fCameraFov = XM_PI / ((t.visuals.CameraFOV_f) / 15.0f); //Fit GG settings.
 		wiScene::GetCamera().CreatePerspective((float)master.masterrenderer.GetLogicalWidth(), (float)master.masterrenderer.GetLogicalHeight(), t.visuals.CameraNEAR_f, t.visuals.CameraFAR_f, fCameraFov);
 		wiScene::GetCamera().SetDirty(true);
 	}
-
 	if (bProceduralLevel)
 	{
 		extern bool g_bNoTerrainRender;
@@ -14520,26 +14449,10 @@ void GrabBackBufferCopy(void)
 		g_bNoTerrainRender = bOldg_bNoTerrainRender;
 	}
 	g_bNo2DRender = false;
-
-	//if (!bBackdropSettingsSet)
-	//	g_bNoSwapchainPresent = ioldstate;
-	//else
-	//	g_bNoSwapchainPresent = old_g_bNoSwapchainPresent;
-
-	//g_bNoSwapchainPresent = false;
 	g_bNoSwapchainPresent = ioldstate;
-
-
 	bBackdropSettingsSet = false;
 
-	//weather->SetOceanEnabled(bOldWater);
-	//t.visuals.bWaterEnable = bOldWater;
-	//Wicked_Update_Visuals((void *)&t.visuals);
-
-	//TEST END
-	//wiJobSystem::context ctx;
-	//wiJobSystem::Wait(ctx);
-
+	// restore after grab process
 	if (!BackBufferSnapShotMode && !BackBufferParticlesMode)
 	{
 		if (bUseBackDropImage && ObjectExist(backdropobj))
@@ -14551,7 +14464,6 @@ void GrabBackBufferCopy(void)
 				WickedCall_UpdateProbes();
 			}
 		}
-
 		if (!bLoopBackBuffer)
 		{
 			WickedCall_SetSunDirection(t.visuals.SunAngleX, t.visuals.SunAngleY, t.visuals.SunAngleZ);
@@ -14559,11 +14471,8 @@ void GrabBackBufferCopy(void)
 			WickedCall_MoveReflectionProbe(GGORIGIN_X, GGORIGIN_Y + 5000, GGORIGIN_Z, "editorProbe", 500);
 			WickedCall_EnableThumbLight(false);
 		}
-
-
 		PositionCamera(composx, composy, composz);
 		RotateCamera(comangx, comangy, comangz);
-
 		PositionObject(displayobj, fOldObjPosX, fOldObjPosY, fOldObjPosZ);
 		RotateObject(displayobj, fOldObjAngX, fOldObjAngY, fOldObjAngZ);
 		if (bDisplayObjVisible)
@@ -14573,88 +14482,138 @@ void GrabBackBufferCopy(void)
 	}
 	else
 	{
-
 		if (bUseBackDropImage && ObjectExist(backdropobj))
 		{
 			HideObject(backdropobj);
 		}
-
 		if (bSnapShotModeUseCamera || BackBufferParticlesMode)
 		{
-			//Restore camera.
 			PositionCamera(composx, composy, composz);
 			RotateCamera(comangx, comangy, comangz);
 		}
-
-		//if BackBufferSnapShotMode
 		if (t.widget.pickedEntityIndex > 0 && t.widget.activeObject > 0)
 		{
 			widget_show_widget();
 		}
 	}
-
 	if (!renderstate)
 	{
-//		if(BackBufferSnapShotMode)
-//			g.entityrubberbandlist.clear();
 		BackBufferSnapShotMode = false;
 		BackBufferParticlesMode = false;
 		return;
 	}
 
-	static int loop = 0;
+	// if not snaposhot mode - save a second file to act as our ICON image (RPG inventory usage mainly)
+	if (!BackBufferSnapShotMode)
+	{
+		if (BackBufferSaveCacheName != "")
+		{
+			// ensure the grab results in a square icon
+			int iIconImageID = BackBufferImageID;
+			extern GlobStruct* g_pGlob;
+			LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
+			ID3D11Texture2D* pBackBuffer = NULL;
+			if (rendertarget)
+			{
+				pBackBuffer = (ID3D11Texture2D*)GetBitmapTexture2D(99);
+				if (!pBackBuffer) pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+			}
+			else
+			{
+				pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+			}
+			g_pGlob->pCurrentBitmapSurface = pBackBuffer;
+			SetGrabImageMode(1);
 
+			// get surface size to ensure grab not larger
+			int grabiconx = 288;
+			int grabicony = 288;
+			GGSURFACE_DESC ddsd;
+			pBackBuffer->GetDesc(&ddsd);
+			if (grabiconx > ddsd.Width) grabiconx = ddsd.Width;
+			if (grabicony > ddsd.Height) grabicony = ddsd.Height;
+			float imgcx = (ddsd.Width * 0.5) - (grabiconx * 0.5);
+			float imgcy = (ddsd.Height * 0.5) - (grabicony * 0.5);
+			if (imgcy < 0) imgcy = 0;
+			if (imgcx < 0) imgcx = 0;
+			if (imgcx + grabiconx > ddsd.Width)	grabiconx = (ddsd.Width - imgcx) - 1.0f;
+			if (imgcy + grabicony > ddsd.Height) grabicony = (ddsd.Height - imgcy) - 1.0f;
+			if (grabiconx > 0 && grabicony > 0)
+			{
+				GrabImage(iIconImageID, imgcx, imgcy, imgcx + grabiconx, imgcy + grabicony, 3);
+			}
+
+			// restore bitmap pointer
+			SetGrabImageMode(0);
+			g_pGlob->pCurrentBitmapSurface = pTmpSurface;
+				
+			// ensure we save to writables area only
+			if (ImageExist(iIconImageID))
+			{
+				char pRealICONFile[MAX_PATH];
+				strcpy(pRealICONFile, BackBufferSaveCacheName.Get());
+				pRealICONFile[strlen(pRealICONFile) - 4] = 0;
+				strcat(pRealICONFile, ".png");
+				GG_GetRealPath(pRealICONFile, 1);
+				if (FileExist(pRealICONFile) == 1) DeleteAFile(pRealICONFile);
+				SaveImage(pRealICONFile, iIconImageID);
+			}
+		}
+	}
+
+	// handle loop grab mode
+	static int loop = 0;
 	if(loop++ % 2 == 0 || !bLoopBackBuffer || bLoopFullFPS || BackBufferSnapShotMode || BackBufferParticlesMode)
 	{
-		//int iPerEntityImageID = BACKBUFFERIMAGE;
+		// get backbuffer pointer
 		int iPerEntityImageID = BackBufferImageID;
-
 		extern GlobStruct* g_pGlob;
 		LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
 		ID3D11Texture2D *pBackBuffer = NULL;
 		if (rendertarget)
 		{
 			pBackBuffer = (ID3D11Texture2D *) GetBitmapTexture2D(99);
-			if (!pBackBuffer)
-				pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
+			if (!pBackBuffer) pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
 		}
 		else
-			pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
-
+		{
+			pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+		}
 		g_pGlob->pCurrentBitmapSurface = pBackBuffer;
 
+		// get surface size to ensure grab not larger
 		GGSURFACE_DESC ddsd;
 		pBackBuffer->GetDesc(&ddsd);
-
 		SetGrabImageMode(1);
 		if (graby > ddsd.Height)
 			graby = ddsd.Height;
 		if (grabx > ddsd.Width)
 			grabx = ddsd.Width;
 
+		// handle image size
 		float imgcx = (ddsd.Width*0.5) - (grabx*0.5);
 		float imgcy = (ddsd.Height*0.5) - (graby*0.5);
-
 		if (imgcy < 0) imgcy = 0;
 		if (imgcx < 0) imgcx = 0;
 
+		// if snapshot mode
 		if (BackBufferSnapShotMode)
 		{
 			if (fLastRubberBandX2 > fLastRubberBandX1 && fLastRubberBandY2 > fLastRubberBandY1)
 			{
 				imgcx = fLastRubberBandX1;
 				imgcy = fLastRubberBandY1;
-				imgcy -= 10.0f; //Seams y is not precise.
+				imgcy -= 10.0f;
 				if (imgcx < 1.0f) imgcx = 1.0f;
 				if (imgcy < 1.0f) imgcy = 1.0f;
 				float fRatio = graby / grabx;
-				if ((fLastRubberBandX2 - fLastRubberBandX1) > ((fLastRubberBandY2 - fLastRubberBandY1)*1.3)) //Y count more.
+				if ((fLastRubberBandX2 - fLastRubberBandX1) > ((fLastRubberBandY2 - fLastRubberBandY1)*1.3))
 				{
 					grabx = fLastRubberBandX2 - fLastRubberBandX1;
 					graby = grabx * fRatio;
 					float fObjectsHeight = fLastRubberBandY2 - fLastRubberBandY1;
 					if (graby > fObjectsHeight)
-						imgcy -= ((graby - fObjectsHeight)*0.5); //Center Y in image.
+						imgcy -= ((graby - fObjectsHeight)*0.5);
 					if (imgcy < 0) imgcy = 0;
 				}
 				else
@@ -14664,38 +14623,46 @@ void GrabBackBufferCopy(void)
 					float fObjectsWidth = fLastRubberBandX2 - fLastRubberBandX1;
 					grabx = graby * fRatio;
 					if(grabx > fObjectsWidth)
-						imgcx -= ((grabx-fObjectsWidth)*0.5); //Center X in image.
+						imgcx -= ((grabx-fObjectsWidth)*0.5);
 					if (imgcx < 0) imgcx = 0;
 				}
 			}
 		}
-		//Make sure we are not going outside image.
+		// make sure we are not going outside image.
 		if (imgcy + graby > ddsd.Height)
 			graby = (ddsd.Height - imgcy) - 1.0f;
 		if (imgcx + grabx > ddsd.Width)
 			grabx = (ddsd.Width - imgcx) - 1.0f;
 
-		if(graby > 0 && grabx > 0)
-			GrabImage(iPerEntityImageID, imgcx, imgcy, imgcx+ grabx, imgcy+ graby, 3);
+		if (graby > 0 && grabx > 0)
+		{
+			GrabImage(iPerEntityImageID, imgcx, imgcy, imgcx + grabx, imgcy + graby, 3);
+		}
 		SetGrabImageMode(0);
 
+		// restore bitmap pointer
 		g_pGlob->pCurrentBitmapSurface = pTmpSurface;
-
-		//WickedCall_PresetObjectTextureFromImagePtr(false, 0);
 	}
 
+	// if not snaposhot mode and we want to save the grab
 	if (!BackBufferSnapShotMode)
 	{
 		if (BackBufferSaveCacheName != "")
 		{
-			//PE: Save out to the cache.
 			if (ImageExist(BackBufferImageID))
 			{
-				SaveImage(BackBufferSaveCacheName.Get(), BackBufferImageID);
+				// ensure we save to writables area only
+				char pRealThumbFile[MAX_PATH];
+				strcpy(pRealThumbFile, BackBufferSaveCacheName.Get());
+				GG_GetRealPath(pRealThumbFile, 1);
+				if (FileExist(pRealThumbFile) == 1) DeleteAFile(pRealThumbFile);
+				SaveImage(pRealThumbFile, BackBufferImageID);
 			}
 			BackBufferSaveCacheName = "";
 		}
 	}
+
+	// restore other settings after grab
 	if (!bLoopBackBuffer)
 	{
 		BackBufferImageID = 0;
@@ -14709,14 +14676,9 @@ void GrabBackBufferCopy(void)
 			BackBufferZoom = 0.0f;
 			BackBufferCamUp = 0.0f;
 		}
-
 	}
-//	if (BackBufferSnapShotMode)
-//		g.entityrubberbandlist.clear();
-
 	BackBufferSnapShotMode = false;
 	BackBufferParticlesMode = false;
-
 }
 
 void RevertBackbufferCubemap(void)
@@ -14783,7 +14745,7 @@ bool CopyToProjectFolder(char *file)
 	ProjectCacheName = tmp; //PE: Should be relative.
 	return bRet;
 }
-bool CreateBackBufferCacheName(char *file,int width,int height)
+bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForSaving)
 {
 	// returns true if have own thumb or a group that does not generate one
 	bool bHasOwnLocalThumb = false;
@@ -14795,7 +14757,16 @@ bool CreateBackBufferCacheName(char *file,int width,int height)
 	replaceAll(cache_name, "/", "_");
 	replaceAll(cache_name, "\"", ""); //Got this when deleting a file in user, if fpe not found and already in list.
 	std::string cache_final_name = cache_name;
-	cache_final_name = g.mysystem.thumbbank_s.Get() + cache_final_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	if (bUsedForSaving == false)
+	{
+		std::string src_thumbbank_path = g.fpscrootdir_s.Get();
+		src_thumbbank_path = src_thumbbank_path + "\\Files\\thumbbank\\";
+		cache_final_name = src_thumbbank_path + cache_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	}
+	else
+	{
+		cache_final_name = g.mysystem.thumbbank_s.Get() + cache_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	}
 	BackBufferCacheName = cache_final_name.c_str();
 
 	// LB: We have pre-generated all stock assets thumbs, so copy over if we have them to save time
@@ -14854,6 +14825,10 @@ bool CreateBackBufferCacheName(char *file,int width,int height)
 
 	// determined to have own thumb
 	return bHasOwnLocalThumb;
+}
+bool CreateBackBufferCacheName(char* file, int width, int height)
+{
+	return CreateBackBufferCacheNameEx(file, width, height, false);
 }
 #endif
 
@@ -17272,22 +17247,6 @@ void process_entity_library_v2(void)
 										//bool bret = CopyFileA(&dest[0], backup.Get(), false);
 									}
 
-									//Wicked dont support DX10 but only DXT1 so try to convert cubemap.
-									//PE: Did not work, still DX10 after save.
-									/*
-									image_setlegacyimageloading(true);
-									SetMipmapNum(1); //PE: mipmaps not needed.
-									LoadImage(cTmp.Get(), BACKDROPMAGE-1);
-									SaveImage(dest, BACKDROPMAGE-1,1); //1=DTX1
-									SetMipmapNum(-1);
-									image_setlegacyimageloading(false);
-									if (!FileExist(dest))
-									{
-										//Did not work , just copy.
-										bool bret = CopyFileA(cTmp.Get(), &dest[0], false);
-									}
-									*/
-
 									// copy chosen cube map to the new entity texture _cube.dds 
 									bool bret = CopyFileA(cTmp.Get(), &pDestinationFile[0], false);
 
@@ -17395,7 +17354,7 @@ void process_entity_library_v2(void)
 							t.addentityfile_s = t.entitybank_s[BackBufferEntityID];
 						}
 
-						CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+						CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
 						bool bGetOut = false;
 
 						// delete old thumb image and give chance for new one to be saved (g_bThumbBankCopyMode)
@@ -21467,7 +21426,11 @@ void process_entity_library_v2(void)
 										{
 											//Start rotate instant.
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-											BackBufferSaveCacheName = BackBufferCacheName;
+											if (FileExist(BackBufferCacheName.Get()) == 0)
+											{
+												// only save new thumb if not exist in root
+												BackBufferSaveCacheName = BackBufferCacheName;
+											}
 											bDoBackbufferUpdate = true;
 											iTooltipTimer = iTooltipHoveredTimer - 750;
 											iTooltipObjectReady = true;
@@ -21495,7 +21458,11 @@ void process_entity_library_v2(void)
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
 												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-												BackBufferSaveCacheName = BackBufferCacheName;
+												if (FileExist(BackBufferCacheName.Get()) == 0)
+												{
+													// only save new thumb if not exist in root
+													BackBufferSaveCacheName = BackBufferCacheName;
+												}
 												bDoBackbufferUpdate = true;
 											}
 										}
@@ -21636,7 +21603,12 @@ void process_entity_library_v2(void)
 									if (!bDoBackbufferUpdate && !bLoadedInNewFormat)
 									{
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-										BackBufferSaveCacheName = BackBufferCacheName;
+										if (FileExist(BackBufferCacheName.Get()) == 0)
+										{
+											// only save new thumb if not exist in root
+											BackBufferSaveCacheName = BackBufferCacheName;
+										}
+
 										//PE: Triggered auto.
 										if (myfiles->iBigPreview == 0)
 										{
@@ -48089,8 +48061,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 					if (bValid)
 					{
-						//GrabImage(STORYBOARD_THUMBS + 400, 0, 0, ddsd.Width, ddsd.Height, 3);
-						//SaveImage("d:\\MAX-DocWrite\\400.png", STORYBOARD_THUMBS + 400);
 						//PE: We need a unique id for this STORYBOARD_THUMBS+400
 						GrabImage(STORYBOARD_THUMBS + 400, imgcx, imgcy, imgcx + grabx, imgcy + graby, 3);
 						SetGrabImageMode(0);

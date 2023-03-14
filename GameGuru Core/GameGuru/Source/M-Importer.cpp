@@ -10827,22 +10827,6 @@ void importer_save_entity ( char *filename )
 						CopyAFile ( t.strwork.Get() , pRealDestFileName );
 					}
 				}
-				#ifndef WICKEDENGINE
-				else
-				{
-					t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-					if (  t.tDestFileName  !=  t.strwork ) 
-					{
-						if (  ImageExist (t.importerTextures[tCount].imageID) ) 
-						{
-							if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-							{
-								SaveImage (  t.tDestFileName.Get() , t.importerTextures[tCount].imageID );
-							}
-						}
-					}
-				}
-				#endif
 			}
 		}
 
@@ -11069,6 +11053,7 @@ void importer_save_entity ( char *filename )
 			grab_image = IMPORTER_TMP_IMAGE+1;
 		#endif
 
+		/* MAX no longer uses BMP thumb files
 		if (GetImageExistEx(grab_image))
 		{
 			//Already generated so.
@@ -11080,7 +11065,9 @@ void importer_save_entity ( char *filename )
 			import_generate_thumb();
 			SaveImage(pRealSavethumb, grab_image);
 		}
-		DeleteImage(grab_image);
+		*/
+		if (GetImageExistEx(grab_image))
+			DeleteImage(grab_image);
 	}
 
 	#ifdef WICKEDENGINE

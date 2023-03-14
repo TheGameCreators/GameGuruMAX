@@ -65,6 +65,7 @@ function hud0.init()
  -- default container is a shop container
  g_UserGlobalContainer = "shop"
  g_UserGlobalContainerLast = ""
+ g_UserGlobalContainerRefresh = 0
 end
 
 function hud0.refreshHUD()
@@ -234,12 +235,13 @@ function hud0.main()
   -- detect any inventory changes
   local tinventory0qty = GetInventoryQuantity("inventory:player")
   local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerLast == "" then
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerRefresh == 1then
 	hud0_lastgoodplayerinventory0qty = tinventory0qty
 	hud0_lastgoodplayerinventory1qty = tinventory1qty
 	hud0.refreshHUD()
 	hud0_gridSelected = 0
 	hud0_gridSelectedIndex = -1
+	g_UserGlobalContainerRefresh = 0
   end
 
   -- needed to separate HUD panels
@@ -431,7 +433,7 @@ function hud0.main()
 												if inventorycontainerFrom == "inventory:container" then inventorycontainerFrom = "inventory:"..g_UserGlobalContainer end
 												if inventorycontainerTo == "inventory:container" then inventorycontainerTo = "inventory:"..g_UserGlobalContainer end
 												MoveInventoryItem(inventorycontainerFrom,inventorycontainerTo,collectionindex,placedatitemindex)
-												g_UserGlobalContainerLast = ""
+												g_UserGlobalContainerRefresh = 1
 											else
 												-- add to new location as we removed it above
 												local suggestedslotvalid = -1
@@ -736,7 +738,7 @@ function hud0.main()
 													SetEntityQuantity(entityindexfrom,tqtyfrom)
 													if tqtyfrom == 0 then
 														MoveInventoryItem(tinventorysource,"",tcollectionindex,-1)
-														g_UserGlobalContainerLast = ""
+														g_UserGlobalContainerRefresh = 1
 													end
 												else
 													entityindexfrom = 0
@@ -753,11 +755,11 @@ function hud0.main()
 													-- need to create new resource item in destination (as source still needs its item as not depleted)
 													local newe = SpawnNewEntity(entityindexfrom)
 													SetEntityCollected(newe,3,-1,tinventorydest)
-													g_UserGlobalContainerLast = ""
+													g_UserGlobalContainerRefresh = 1
 												end
 											else
 												MoveInventoryItem(tinventorysource,tinventorydest,tcollectionindex,-1)
-												g_UserGlobalContainerLast = ""
+												g_UserGlobalContainerRefresh = 1
 											end
 										end
 									end
@@ -789,7 +791,7 @@ function hud0.main()
 						for tinventoryindex = 1, tinventoryqty, 1 do
 							local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
 							MoveInventoryItem(inventorycontainer,"inventory:player",tcollectionindex,-1)
-							g_UserGlobalContainerLast = ""
+							g_UserGlobalContainerRefresh = 1
 							cycleuntilnomoretransfers = 1
 						end
 					end

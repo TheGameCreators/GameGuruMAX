@@ -3036,7 +3036,16 @@ DARKSDK bool SaveImageCoreAsTexSurface(char* szFilename, LPGGSURFACE* pTexSurfac
 			wchar_t wTexSaveFilename[512];
 			MultiByteToWideChar(CP_ACP, 0, szFilename, -1, wTexSaveFilename, sizeof(wTexSaveFilename));
 			//hRes = DirectX::SaveToDDSFile(convertedImage->GetImages(), convertedImage->GetImageCount(), convertedImage->GetMetadata(), DirectX::DDS_FLAGS_NONE, wTexSaveFilename);
-			hRes = DirectX::SaveToDDSFile(imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), DirectX::DDS_FLAGS_NONE, wTexSaveFilename);
+			if (DestFormat == D3DX11_IFF_PNG)
+			{
+				// save as PNG for the ICON images at least :)
+				hRes = DirectX::SaveToWICFile(imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), DirectX::DDS_FLAGS_NONE, GUID_ContainerFormatPng, wTexSaveFilename, NULL);
+			}
+			else
+			{
+				// oops, it seems even JPG is being saved as DDS (which is why the thumbbank JPGs cannot be opened in PSP)
+				hRes = DirectX::SaveToDDSFile(imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), imageTexturePlate.GetMetadata(), DirectX::DDS_FLAGS_NONE, wTexSaveFilename);
+			}
 			#else
 			hRes = D3DX11SaveTextureToFile(m_pImmediateContext, *pTexSurface, DestFormat, szFilename);
 			if (FAILED(hRes))

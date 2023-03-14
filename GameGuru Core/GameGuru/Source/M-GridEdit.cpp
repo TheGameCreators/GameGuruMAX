@@ -10120,6 +10120,8 @@ void mapeditorexecutable_loop(void)
 									if (ImGui::StyleButton("Create Collection Item", ImVec2(but_gadget_size, 0)))
 									{
 										collectionItemType item;
+										fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
+										/*
 										item.collectionFields.clear();
 										for (int l = 0; l < g_collectionLabels.size(); l++)
 										{
@@ -10139,12 +10141,11 @@ void mapeditorexecutable_loop(void)
 												if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
 												if (iKnownLabel == 2)
 												{
-													char pBMPPNGImage[256];
-													strcpy(pBMPPNGImage, t.entitybank_s[iMasterID].Get());
-													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-													char pBMPPNGImageFile[256];
-													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
+													cstr entityfile = t.entitybank_s[iMasterID];
+													CreateBackBufferCacheName(entityfile.Get(), 288, 288);
+													char pIconFile[MAX_PATH];
+													strcpy(pIconFile, BackBufferCacheName.Get());
+													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pIconFile);
 													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
 													item.collectionFields.push_back(pFinalImgFile);
 												}
@@ -10161,6 +10162,7 @@ void mapeditorexecutable_loop(void)
 												item.collectionFields.push_back("none");
 											}
 										}
+										*/
 										g_collectionMasterList.push_back(item);
 									}
 								}

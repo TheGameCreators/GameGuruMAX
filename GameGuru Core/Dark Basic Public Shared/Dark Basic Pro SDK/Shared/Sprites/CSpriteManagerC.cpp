@@ -170,7 +170,10 @@ void CSpriteManager::ScissorArea (float fX, float fY, float fW, float fH)
 		}
 		else
 		{
-			ImGui::GetCurrentWindow()->DrawList->PopClipRect();
+			if (ImGui::GetCurrentWindow())
+			{
+				ImGui::GetCurrentWindow()->DrawList->PopClipRect();
+			}
 		}
 		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
 		//device->SetScissorArea(cmd, area);
@@ -187,7 +190,10 @@ void CSpriteManager::ScissorArea (float fX, float fY, float fW, float fH)
 		}
 		else
 		{
-			ImGui::GetCurrentWindow()->DrawList->PushClipRect(min, max, true);
+			if (ImGui::GetCurrentWindow())
+			{
+				ImGui::GetCurrentWindow()->DrawList->PushClipRect(min, max, true);
+			}
 		}
 		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
 		//device->SetScissorArea(cmd, area);

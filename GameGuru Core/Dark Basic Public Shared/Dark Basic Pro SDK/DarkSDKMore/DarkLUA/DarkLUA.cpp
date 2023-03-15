@@ -14,16 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-
-//new includes (now donein gameguru.h)
-//#include "PhotonCommands.h"
-//#include "SteamCommands.h"
-//#include "DarkAI.h"
-//#include "CTextC.h"
-//#include "CImageC.h"
-//#include "CFileC.h"
-//#include "CSoundC.h"
-
 #include "M-RPG.h"
 
 // DarkLUA needs access to the T global (but could be in two locations)
@@ -2645,6 +2635,50 @@ luaMessage** ppLuaMessages = NULL;
 	 }
 	 #endif
 
+	 // instead, use nav mesh which accounts for terrain AND objects on it, no need for massive obj scan
+	 float HitY1 = 0.0;
+	 float HitY2 = 0.0;
+	 float fX = ObjectPositionX(t.aisystem.objectstartindex);
+	 float fY = ObjectPositionY(t.aisystem.objectstartindex);
+	 float fZ = ObjectPositionZ(t.aisystem.objectstartindex);
+	 float fHitX, fHitY, fHitZ;
+	 fHitY = 0.0f;
+	 float fMargin = 5.0f;
+	 float fMaximumDrop = 100.0f;
+	 bool bFailed = false;
+	 if (g_RecastDetour.isWithinNavMesh(fX, fY + fMargin, fZ) == true)
+	 {
+		 HitY1 = g_RecastDetour.getYFromPos(fX, fY + fMargin, fZ);
+	 }
+	 else
+	 {
+		 bFailed = true;
+	 }
+	 if (!bFailed)
+	 {
+		 float fX2 = NewXValue(fX, t.playercontrol.movey_f, 1.0);
+		 float fZ2 = NewZValue(fZ, t.playercontrol.movey_f, 1.0);
+		 if (g_RecastDetour.isWithinNavMesh(fX2, fY + fMargin, fZ2) == true)
+		 {
+			 HitY2 = g_RecastDetour.getYFromPos(fX2, fY + fMargin, fZ2);
+		 }
+		 else
+		 {
+			 bFailed = true;
+		 }
+		 float tangle = 0.0;
+		 if (!bFailed)
+		 {
+			 tangle = ((HitY2 - HitY1) / 1.0) * 22.0;
+			 if (tangle < -45) tangle = -45;
+			 if (tangle > 45) tangle = 45;
+			 lasttangle = tangle;
+		 }
+		 if (bFailed) tangle = lasttangle;
+		 t.tjetpackverticalmove_f = tangle;
+	 }
+
+	 /* horrendously slow even in non-opt release mode
 	 float HitY1 = 0.0;
 	 float HitY2 = 0.0;
 	 float fX = ObjectPositionX(t.aisystem.objectstartindex);
@@ -2690,6 +2724,7 @@ luaMessage** ppLuaMessages = NULL;
 
 		 t.tjetpackverticalmove_f = tangle;
 	 }
+	 */
 	 return 0;
  }
 

@@ -3440,7 +3440,10 @@ ImDrawList* ImGui::GetForegroundDrawList(ImGuiViewport* viewport)
 ImDrawList* ImGui::GetForegroundDrawList()
 {
     ImGuiWindow* window = GImGui->CurrentWindow;
-    return GetForegroundDrawList(window->Viewport);
+    if (window)
+        return GetForegroundDrawList(window->Viewport);
+    else
+        return NULL;
 }
 
 ImDrawListSharedData* ImGui::GetDrawListSharedData()

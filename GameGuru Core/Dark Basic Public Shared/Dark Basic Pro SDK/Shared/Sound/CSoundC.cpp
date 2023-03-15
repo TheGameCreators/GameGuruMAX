@@ -1552,6 +1552,11 @@ DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 	}
 }
 
+// listener is a hog - only update if changes
+float g_fListenQuickScale = 0.0f;
+GGVECTOR3 g_vListenQuickPos = GGVECTOR3(-1, -1, -1);
+GGVECTOR3 g_vListenQuickAngle = GGVECTOR3(-1, -1, -1);
+
 DARKSDK void PositionListener ( float fX, float fY, float fZ )
 {
 	if ( pDSListener )
@@ -1563,7 +1568,11 @@ DARKSDK void PositionListener ( float fX, float fY, float fZ )
 
 		// store the position and set it
 		vecListenerPosition = GGVECTOR3 ( fX, fY, fZ );
-		pDSListener->SetPosition ( fX, fY, fZ, DS3D_DEFERRED );
+		if (GGVec3Length(&(vecListenerPosition - g_vListenQuickPos)) > 5.0f)
+		{
+			g_vListenQuickPos = vecListenerPosition;
+			pDSListener->SetPosition (fX, fY, fZ, DS3D_DEFERRED);
+		}
 	}
 }
 
@@ -1576,41 +1585,50 @@ DARKSDK void RotateListener ( float fX, float fY, float fZ )
 		vecListenerAngle.y = fY;
 		vecListenerAngle.z = fZ;
 
-		// Set Angle Rotation
-		GGMATRIX matFront, matTop, matTemp, matRot;
+		// quicker method
+		float fOldAngle = fabs(vecListenerAngle.x) + fabs(vecListenerAngle.y) + fabs(vecListenerAngle.z);
+		float fNewAngle = fabs(g_vListenQuickAngle.x) + fabs(g_vListenQuickAngle.y) + fabs(g_vListenQuickAngle.z);
+		if ((fNewAngle - fOldAngle)>5.0f)
+		{
+			// record new angle
+			g_vListenQuickPos = vecListenerAngle;
 
-		// Convert angle formats
-		fX = GGToRadian ( fX );
-		fY = GGToRadian ( fY );
-		fZ = GGToRadian ( fZ );
+			// Set Angle Rotation
+			GGMATRIX matFront, matTop, matTemp, matRot;
 
-		// Set Front and Top
-		ZeroMemory(&matFront, sizeof(GGMATRIX));
-		matFront._41=0.0f;
-		matFront._42=0.0f;
-		matFront._43=1.0f;
-		ZeroMemory(&matTop, sizeof(GGMATRIX));
-		matTop._41=0.0f;
-		matTop._42=1.0f;
-		matTop._43=0.0f;
+			// Convert angle formats
+			fX = GGToRadian (fX);
+			fY = GGToRadian (fY);
+			fZ = GGToRadian (fZ);
 
-		// Produce and combine the rotation matrices.
-		GGMatrixIdentity(&matRot);
-		GGMatrixRotationX(&matTemp, fX );
-		GGMatrixMultiply(&matRot, &matTemp, &matRot );
-		GGMatrixRotationY(&matTemp, fY );
-		GGMatrixMultiply(&matRot, &matTemp, &matRot );
-		GGMatrixRotationZ(&matTemp, fZ );
-		GGMatrixMultiply(&matRot, &matTemp, &matRot );
+			// Set Front and Top
+			ZeroMemory(&matFront, sizeof(GGMATRIX));
+			matFront._41 = 0.0f;
+			matFront._42 = 0.0f;
+			matFront._43 = 1.0f;
+			ZeroMemory(&matTop, sizeof(GGMATRIX));
+			matTop._41 = 0.0f;
+			matTop._42 = 1.0f;
+			matTop._43 = 0.0f;
 
-		// Apply the rotation matrices to complete the matrix.
-		GGMatrixMultiply(&matFront,&matFront,&matRot);
-		GGMatrixMultiply(&matTop,&matTop,&matRot);
+			// Produce and combine the rotation matrices.
+			GGMatrixIdentity(&matRot);
+			GGMatrixRotationX(&matTemp, fX);
+			GGMatrixMultiply(&matRot, &matTemp, &matRot);
+			GGMatrixRotationY(&matTemp, fY);
+			GGMatrixMultiply(&matRot, &matTemp, &matRot);
+			GGMatrixRotationZ(&matTemp, fZ);
+			GGMatrixMultiply(&matRot, &matTemp, &matRot);
 
-		// rotate the listener data
-		pDSListener->SetOrientation(	matFront._41, matFront._42, matFront._43,
-										matTop._41, matTop._42, matTop._43,
-										DS3D_DEFERRED );
+			// Apply the rotation matrices to complete the matrix.
+			GGMatrixMultiply(&matFront, &matFront, &matRot);
+			GGMatrixMultiply(&matTop, &matTop, &matRot);
+
+			// rotate the listener data
+			pDSListener->SetOrientation(matFront._41, matFront._42, matFront._43,
+				matTop._41, matTop._42, matTop._43,
+				DS3D_DEFERRED);
+		}
 	}
 }
 
@@ -1618,23 +1636,27 @@ DARKSDK void ScaleListener ( float fScale )
 {
 	if ( pDSListener )
 	{
-		// check all sounds and alter min/max defaults
-		link* check = m_SDKSoundManager.GetList();
-		while(check)
+		if (fScale != g_fListenQuickScale )
 		{
-			sSoundData* ptr = NULL;
-			ptr = m_SDKSoundManager.GetData ( check->id );
-			if ( ptr == NULL ) continue;
-
-			// scale min and max (3000 is the default scene camera range)
-			if(ptr->pDSBuffer3D)
+			// check all sounds and alter min/max defaults
+			g_fListenQuickScale = fScale;
+			link* check = m_SDKSoundManager.GetList();
+			while (check)
 			{
-				ptr->pDSBuffer3D->SetMinDistance(DS3D_DEFAULTMINDISTANCE*fScale, DS3D_DEFERRED);
-				ptr->pDSBuffer3D->SetMaxDistance(3000.0f*fScale, DS3D_DEFERRED);
-			}
+				sSoundData* ptr = NULL;
+				ptr = m_SDKSoundManager.GetData (check->id);
+				if (ptr == NULL) continue;
 
-			// Next sound
-			check = check->next;
+				// scale min and max (3000 is the default scene camera range)
+				if (ptr->pDSBuffer3D)
+				{
+					ptr->pDSBuffer3D->SetMinDistance(DS3D_DEFAULTMINDISTANCE * fScale, DS3D_DEFERRED);
+					ptr->pDSBuffer3D->SetMaxDistance(3000.0f * fScale, DS3D_DEFERRED);
+				}
+
+				// Next sound
+				check = check->next;
+			}
 		}
 	}
 }

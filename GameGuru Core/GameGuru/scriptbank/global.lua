@@ -105,6 +105,7 @@ g_EntityElementMax = 0
 g_PlayerUnderwaterMode = 0
 g_PlayerCastTime = {}
 g_PlayerCastLast = {}
+g_PlayerCastDoneOneForThisCycle = 0
 g_PlayerTargetSlot1 = 0
 g_PlayerTargetSlot2 = 0
 g_PlayerTargetSlot3 = 0
@@ -206,6 +207,8 @@ function GlobalLoop(gameloopflag)
    end
   end
  end
+ -- one cycle only flags
+ g_PlayerCastDoneOneForThisCycle = 0
  -- call per-game loop script (player health control)
  gameloop = require "scriptbank\\gameloop"
  gameloop.main()
@@ -407,9 +410,10 @@ function GetPlrLookingAtExThreshold( e, uselineofsight, detectthreshold )
   end	
   if Result < 90.0 then
     -- additional line of sight test
-	if uselineofsight == 1 then
+	if uselineofsight == 1 and g_PlayerCastDoneOneForThisCycle == 0 then
 	 if g_PlayerCastTime[e] == nil then g_PlayerCastTime[e] = Timer() end
 	 if Timer() > g_PlayerCastTime[e] then
+	  g_PlayerCastDoneOneForThisCycle = 1
 	  g_PlayerCastTime[e] = Timer() + 250
 	  local minx,miny,minz,maxx,maxy,maxz = GetEntityCollBox(e)
 	  local destx = g_Entity[e]['x'] + (minx+((maxx-minx)/2))

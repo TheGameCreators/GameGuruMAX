@@ -47176,7 +47176,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 		if (!bPreviewScreen && iCurrentSelectedWidget >= 0)
 		{
-			float w = ImGui::GetContentRegionAvailWidth();
+			float w = ImGui::GetContentRegionAvailWidth(); 
 			bool bReadOnly = Storyboard.Nodes[nodeid].widget_read_only[iCurrentSelectedWidget];
 			bool bSpecialNoText = false;
 			if (bReadOnly)

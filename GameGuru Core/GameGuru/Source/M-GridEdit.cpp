@@ -70,6 +70,9 @@ bool g_bParticleEditorPresent = false;
 bool g_bBuildingEditorPresent = false;
 DWORD g_dwParticleEditorProcessHandle = NULL;
 
+int g_iIconImageInProperties = 0;
+int g_iIconImageInPropertiesLastEntID = 0;
+
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
 #include <string>
@@ -10141,31 +10144,103 @@ void mapeditorexecutable_loop(void)
 										if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 										if (iKnownLabel > 0)
 										{
+											// Any tip
+											LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
+											if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
+											if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
+											if (iKnownLabel == 5) pShowTop = "Enter a value for this item that may appear in your HUD screens";
+											if (iKnownLabel == 6) pShowTop = "Enter a container for this item that determines where the item will start in the game";
+											if (iKnownLabel == 7) pShowTop = "Enter ingredients separated my comma to be used by a recipe item";
+											if (iKnownLabel == 8) pShowTop = "Enter a style for this item such as recipe or spell";
+
 											// Attrib Label
-											if (iKnownLabel == 1 || iKnownLabel == 2)
+											if (iKnownLabel == 2)
 											{
-												// do not change title, this links the object by name
-												/* not yet
-												if (iKnownLabel == 2)
+												// can change image
+												ImGui::TextCenter("Item Icon Image");
+												float w = ImGui::GetContentRegionAvailWidth();
+												cstr UniqueCollectionItemImage = "##UniqueCollectionItemImage";
+												if (iSelectedLibraryStingReturnID == window->GetID(UniqueCollectionItemImage.Get()))
 												{
-													char pBMPPNGImage[256];
-													strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
-													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-													char pBMPPNGImageFile[256];
-													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
-													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-													item.collectionFields.push_back(pFinalImgFile);
+													g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+													sSelectedLibrarySting = "";
+													iSelectedLibraryStingReturnID = -1; //disable.
+													g_iIconImageInPropertiesLastEntID = 0;// trigger reload
 												}
-												*/
+												if (g_iIconImageInPropertiesLastEntID != iMasterID)
+												{
+													g_iIconImageInPropertiesLastEntID = iMasterID;
+													g_iIconImageInProperties = 0;
+												}
+												LPSTR pIconImageInProperties = g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get();
+												if (g_iIconImageInProperties == 0)
+												{
+													cstr actualImgFile_s = "";
+													if (stricmp(pIconImageInProperties, "default") == NULL)
+													{
+														// replace with actual img file if viewing property
+														cstr entityfile = t.entitybank_s[iMasterID];
+														actualImgFile_s = get_rpg_imagefinalfile(entityfile);
+														pIconImageInProperties = actualImgFile_s.Get();
+														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+													}
+													g_iIconImageInProperties = g.iconimagebankoffset;
+													if (FileExist(pIconImageInProperties)==1)
+													{
+														if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
+														image_setlegacyimageloading(true);
+														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
+														image_setlegacyimageloading(false);
+													}
+												}
+												int iTextureID = g_iIconImageInProperties;
+												ImVec2 ImageSize = ImVec2(w - ImGui::GetCurrentWindow()->ScrollbarSizes.x, ImGui::GetFontSize());
+												ID3D11ShaderResourceView* lpTexture = GetImagePointerView(iTextureID);
+												if (lpTexture)
+												{
+													float img_w = ImageWidth(iTextureID);
+													float img_h = ImageHeight(iTextureID);
+													ImageSize.y = img_h * (ImageSize.x / img_w);
+												}
+												ImVec2 vImagePos = ImGui::GetCursorPos();
+												ImGui::Dummy(ImageSize);
+												ImVec4 color = ImVec4(1.0, 1.0, 1.0, 1.0);
+												ImVec4 back_color = ImVec4(0.2, 0.2, 0.2, 0.75);
+												if (ImGui::IsItemHovered())
+												{
+													color.w = 0.75;
+													if (ImGui::IsMouseReleased(0))
+													{
+														sStartLibrarySearchString = "Icon";
+														bExternal_Entities_Window = true;
+														iDisplayLibraryType = 2; //Image
+														iLibraryStingReturnToID = window->GetID(UniqueCollectionItemImage.Get());
+													}
+												}
+												ImVec2 img_pos = ImGui::GetWindowPos() + vImagePos;
+												img_pos.y -= ImGui::GetScrollY();
+												window->DrawList->AddRectFilled(img_pos, img_pos + ImageSize, ImGui::GetColorU32(back_color));
+												if (lpTexture)
+												{
+													window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + ImageSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(color));
+												}
+												else
+												{
+													window->DrawList->AddRectFilled(img_pos, img_pos + ImageSize, ImGui::GetColorU32(color));
+												}
+												lpTexture = GetImagePointerView(TOOL_PENCIL); //Add pencil
+												if (lpTexture)
+												{
+													ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - ImageSize.y - 3.0f };
+													window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+												}
+												if (ImGui::IsItemHovered() && pShowTop) ImGui::SetTooltip(pShowTop);
 											}
 											else
 											{
-												LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
-												if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
-												if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
 												bool bAllowEditing = true;
-												if (bAllowEditing == true)
+												if ( iKnownLabel == 1) bAllowEditing = false;
+												if ( bAllowEditing == true )
 												{
 													char pNameOfAttrib[MAX_PATH];
 													strcpy(pNameOfAttrib, "Item ");
@@ -10174,7 +10249,7 @@ void mapeditorexecutable_loop(void)
 													pCap[1] = 0;
 													strupr(pCap);
 													strcat(pNameOfAttrib, pCap);
-													strcat(pNameOfAttrib, pLabel+1);
+													strcat(pNameOfAttrib, pLabel + 1);
 													ImGui::TextCenter(pNameOfAttrib);
 													ImGui::PushItemWidth(-10);
 													char cTmpInput[MAX_PATH];
@@ -10189,7 +10264,7 @@ void mapeditorexecutable_loop(void)
 														bImGuiGotFocus = true;
 														bChangedGameCollectionList = true;
 													}
-													if (ImGui::IsItemHovered() && pShowTop ) ImGui::SetTooltip(pShowTop);
+													if (ImGui::IsItemHovered() && pShowTop) ImGui::SetTooltip(pShowTop);
 													if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 													ImGui::PopItemWidth();
 												}

@@ -953,6 +953,7 @@ void common_init_globals ( void )
 	g.conkitimagebankoffset = 60000;
 	g.luadrawredirectimageoffset = 62999;
 	g.tempimageoffset = 63000;
+	g.iconimagebankoffset = 63090;
 	g.widgetimagebankoffset = 63100;
 	g.huddamageimageoffset = 63200;
 	//g.importerextraimageoffset = 63249;	//	For sphere in model importer.

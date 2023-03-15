@@ -368,6 +368,7 @@ struct Sglobals
 	int ragdollplussystemobjfinish;
 	DWORD timebasepercyclestamp;
 	int vegetationvectorindex;
+	int iconimagebankoffset;
 	int widgetimagebankoffset;
 	int charactersoundoffset;
 	int csi_cautiousmovefore;
@@ -2044,6 +2045,7 @@ struct Sglobals
 		 csi_choosealertstate = 0;
 		 csi_cautiousmovefore = 0;
 		 charactersoundoffset = 0;
+		 iconimagebankoffset = 0;
 		 widgetimagebankoffset = 0;
 		 vegetationvectorindex = 0;
 		 timebasepercyclestamp = 0;

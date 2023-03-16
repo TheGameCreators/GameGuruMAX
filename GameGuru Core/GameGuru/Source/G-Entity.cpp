@@ -4271,11 +4271,8 @@ void entity_monitorattachments ( void )
 								//  got weapon already, so collect ammo
 								t.tqty=t.entityelement[t.e].eleprof.quantity;
 								physics_player_addweapon ( );
-								//playinternalsoundinterupt(t.playercontrol.soundstartindex+16);
-								//  eventually this should be done in script
 								t.luaglobal.scriptprompttime=Timer()+3000;
-								t.luaglobal.scriptprompt_s="Collected enemy ammo";
-								//  weapon collected so remove from physics and visible world
+								t.luaglobal.scriptprompt_s="Collected ammo";
 								ODEDestroyObject (  t.tobj );
 								HideObject (  t.tobj );
 							}

@@ -1553,7 +1553,7 @@ void physics_prepareentityforphysics ( void )
 		if (  t.entityelement[t.e].eleprof.physics == 2  )  t.tnophysics = 1;
 		if (  t.entityprofile[t.entid].isammo == 1  )  t.tnophysics = 1;
 		if (  Len(t.entityprofile[t.entid].isweapon_s.Get())>1  )  t.tnophysics = 1;
-		if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1;
+		//if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1; do we let users choose and lose their items sometimes
 		if (  t.tnophysics == 1 ) 
 		{
 			//  no physics
@@ -2561,16 +2561,20 @@ void physics_player_init ( void )
 			t.tqty=t.playercontrol.starthasweaponqty;
 			physics_player_addweapon ( );
 
+			// LB: all this could be replaced when the collectionlist entity parents are all loaded for each level
+			// it would just be a case of adding the start weapon to the collection before the collection refresh/load
 			// need to add this to the colleciton list
-			cstr thisLabel = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
+			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
-
+			//add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
+			collectionItemType collectionitem;
+			fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
+			g_collectionList.push_back(collectionitem);
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it
 			inventoryContainerType item;
 			item.e = 0;
-			item.collectionID = find_rpg_collectionindex(thisLabel.Get());
+			item.collectionID = find_rpg_collectionindex(thisWeaponTitle.Get());
 			item.slot = 0;
 			for (int n = 1; n <= 10; n++) { if (t.weaponslot[n].pref == t.weaponindex) { item.slot = n - 1; break; } }
 			t.inventoryContainer[1].push_back(item);

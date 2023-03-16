@@ -1652,13 +1652,6 @@ function gameplayercontrol.control()
 
    -- Get current player ground height stood on (MAX for now)
    SetGamePlayerStateTerrainHeight(0.0)
-   --if ( GetGamePlayerStateTerrainID()>0 ) then 
-   --   SetGamePlayerStateTerrainHeight(GetGroundHeight(GetPlrObjectPositionX(),GetPlrObjectPositionZ()))
-   --else
-   --   SetGamePlayerStateTerrainHeight(600.0)
-   --end
-   
-   -- System to detect when player drops below terrain - hard coded
 
    -- Control player using Physics character controller
    ttgotonewheight=0
@@ -1728,7 +1721,7 @@ function gameplayercontrol.control()
          SetGamePlayerControlMovey(CurveAngle(GetCameraAngleY(0),GetGamePlayerControlMovey(),5.0))
       end
    end
-
+   
    -- handle slope climb prevention
    if ( ttgotonewheight == 0 ) then 
       -- Player direction and speed
@@ -1825,7 +1818,7 @@ function gameplayercontrol.control()
          SetCameraAngle ( 0, 90, GetCameraAngleY(0), GetCameraAngleZ(0) )
       end
    end
-   
+
    -- Place camera at player object position (stood or ducking) then
    if ( GetGamePlayerStatePlayerDucking() ~= 0 ) then 
       ttsubtleeyeadjustment=10.0

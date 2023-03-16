@@ -70,6 +70,9 @@ bool g_bParticleEditorPresent = false;
 bool g_bBuildingEditorPresent = false;
 DWORD g_dwParticleEditorProcessHandle = NULL;
 
+int g_iIconImageInProperties = 0;
+int g_iIconImageInPropertiesLastEntIndex = 0;
+
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
 #include <string>
@@ -10096,7 +10099,7 @@ void mapeditorexecutable_loop(void)
 						#endif
 						
 						// Collectbale Settings if required
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable > 0)
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
 						{
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
@@ -10120,47 +10123,7 @@ void mapeditorexecutable_loop(void)
 									if (ImGui::StyleButton("Create Collection Item", ImVec2(but_gadget_size, 0)))
 									{
 										collectionItemType item;
-										item.collectionFields.clear();
-										for (int l = 0; l < g_collectionLabels.size(); l++)
-										{
-											int iKnownLabel = 0;
-											LPSTR pLabel = g_collectionLabels[l].Get();
-											if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
-											if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-											if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
-											if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
-											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
-											if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
-											if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
-											if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-											if (iKnownLabel > 0)
-											{
-												// field we can populate automatically
-												if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
-												if (iKnownLabel == 2)
-												{
-													char pBMPPNGImage[256];
-													strcpy(pBMPPNGImage, t.entitybank_s[iMasterID].Get());
-													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-													char pBMPPNGImageFile[256];
-													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
-													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-													item.collectionFields.push_back(pFinalImgFile);
-												}
-												if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[iEntityIndex].eleprof.name_s);
-												if (iKnownLabel == 4) item.collectionFields.push_back(10);
-												if (iKnownLabel == 5) item.collectionFields.push_back(5);
-												if (iKnownLabel == 6) item.collectionFields.push_back("shop");
-												if (iKnownLabel == 7) item.collectionFields.push_back("none");
-												if (iKnownLabel == 8) item.collectionFields.push_back("none");
-											}
-											else
-											{
-												// empty field
-												item.collectionFields.push_back("");
-											}
-										}
+										fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
 										g_collectionMasterList.push_back(item);
 									}
 								}
@@ -10181,31 +10144,111 @@ void mapeditorexecutable_loop(void)
 										if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
 										if (iKnownLabel > 0)
 										{
+											// Any tip
+											LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
+											if (iKnownLabel == 2) pShowTop = "Select an image that will be used to represent this object in your HUD screens";
+											if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
+											if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
+											if (iKnownLabel == 5) pShowTop = "Enter a value for this item that may appear in your HUD screens";
+											if (iKnownLabel == 6) pShowTop = "Enter a container for this item that determines where the item will start in the game";
+											if (iKnownLabel == 7) pShowTop = "Enter ingredients separated my comma to be used by a recipe item";
+											if (iKnownLabel == 8) pShowTop = "Enter a style for this item such as recipe or spell";
+
 											// Attrib Label
-											if (iKnownLabel == 1 || iKnownLabel == 2)
+											if (iKnownLabel == 2)
 											{
-												// do not change title, this links the object by name
-												/* not yet
-												if (iKnownLabel == 2)
+												// can change image
+												ImGui::TextCenter("Item Icon Image");
+												float w = ImGui::GetContentRegionAvailWidth();
+												cstr UniqueCollectionItemImage = "##UniqueCollectionItemImage";
+												if (iSelectedLibraryStingReturnID == window->GetID(UniqueCollectionItemImage.Get()))
 												{
-													char pBMPPNGImage[256];
-													strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
-													pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-													char pBMPPNGImageFile[256];
-													sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-													cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
-													if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-													item.collectionFields.push_back(pFinalImgFile);
+													g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+													sSelectedLibrarySting = "";
+													iSelectedLibraryStingReturnID = -1; //disable.
+													g_iIconImageInPropertiesLastEntIndex = 0;// trigger reload
 												}
-												*/
+												if (g_iIconImageInPropertiesLastEntIndex != iEntityIndex)
+												{
+													g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
+													g_iIconImageInProperties = 0;
+												}
+												LPSTR pIconImageInProperties = g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get();
+												if (g_iIconImageInProperties == 0)
+												{
+													cstr actualImgFile_s = "";
+													if (stricmp(pIconImageInProperties, "default") == NULL)
+													{
+														// replace with actual img file if viewing property
+														cstr entityfile = t.entitybank_s[iMasterID];
+														actualImgFile_s = get_rpg_imagefinalfile(entityfile);
+														pIconImageInProperties = actualImgFile_s.Get();
+														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+													}
+													g_iIconImageInProperties = g.iconimagebankoffset;
+													if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
+													image_setlegacyimageloading(true);
+													if (FileExist(pIconImageInProperties)==1)
+													{
+														// actual icon image
+														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
+													}
+													else
+													{
+														// specified image not found, use placeholder
+														pIconImageInProperties = "imagebank\\HUD Library\\MAX\\object.png";
+														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
+													}
+													image_setlegacyimageloading(false);
+												}
+												int iTextureID = g_iIconImageInProperties;
+												ImVec2 ImageSize = ImVec2(w - ImGui::GetCurrentWindow()->ScrollbarSizes.x, ImGui::GetFontSize());
+												ID3D11ShaderResourceView* lpTexture = GetImagePointerView(iTextureID);
+												if (lpTexture)
+												{
+													float img_w = ImageWidth(iTextureID);
+													float img_h = ImageHeight(iTextureID);
+													ImageSize.y = img_h * (ImageSize.x / img_w);
+												}
+												ImVec2 vImagePos = ImGui::GetCursorPos();
+												ImGui::Dummy(ImageSize);
+												ImVec4 color = ImVec4(1.0, 1.0, 1.0, 1.0);
+												ImVec4 back_color = ImVec4(0.2, 0.2, 0.2, 0.75);
+												if (ImGui::IsItemHovered())
+												{
+													color.w = 0.75;
+													if (ImGui::IsMouseReleased(0))
+													{
+														sStartLibrarySearchString = "Icon";
+														bExternal_Entities_Window = true;
+														iDisplayLibraryType = 2; //Image
+														iLibraryStingReturnToID = window->GetID(UniqueCollectionItemImage.Get());
+													}
+												}
+												ImVec2 img_pos = ImGui::GetWindowPos() + vImagePos;
+												img_pos.y -= ImGui::GetScrollY();
+												window->DrawList->AddRectFilled(img_pos, img_pos + ImageSize, ImGui::GetColorU32(back_color));
+												if (lpTexture)
+												{
+													window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + ImageSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(color));
+												}
+												else
+												{
+													window->DrawList->AddRectFilled(img_pos, img_pos + ImageSize, ImGui::GetColorU32(color));
+												}
+												lpTexture = GetImagePointerView(TOOL_PENCIL); //Add pencil
+												if (lpTexture)
+												{
+													ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - ImageSize.y - 3.0f };
+													window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+												}
+												if (ImGui::IsItemHovered() && pShowTop) ImGui::SetTooltip(pShowTop);
 											}
 											else
 											{
-												LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
-												if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
-												if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
 												bool bAllowEditing = true;
-												if (bAllowEditing == true)
+												if ( iKnownLabel == 1) bAllowEditing = false;
+												if ( bAllowEditing == true )
 												{
 													char pNameOfAttrib[MAX_PATH];
 													strcpy(pNameOfAttrib, "Item ");
@@ -10214,7 +10257,7 @@ void mapeditorexecutable_loop(void)
 													pCap[1] = 0;
 													strupr(pCap);
 													strcat(pNameOfAttrib, pCap);
-													strcat(pNameOfAttrib, pLabel+1);
+													strcat(pNameOfAttrib, pLabel + 1);
 													ImGui::TextCenter(pNameOfAttrib);
 													ImGui::PushItemWidth(-10);
 													char cTmpInput[MAX_PATH];
@@ -10229,7 +10272,7 @@ void mapeditorexecutable_loop(void)
 														bImGuiGotFocus = true;
 														bChangedGameCollectionList = true;
 													}
-													if (ImGui::IsItemHovered() && pShowTop ) ImGui::SetTooltip(pShowTop);
+													if (ImGui::IsItemHovered() && pShowTop) ImGui::SetTooltip(pShowTop);
 													if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 													ImGui::PopItemWidth();
 												}
@@ -10243,38 +10286,6 @@ void mapeditorexecutable_loop(void)
 									// save any changes to game collection list 
 									save_rpg_system(pref.cLastUsedStoryboardProject);
 								}
-
-								/* objects are as named (always!!)
-								// a drop down to select the collectable from the collection table
-								ImGui::TextCenter("Assigned Item From Collection");
-								int iContainerItemIndex = t.entityelement[iEntityIndex].eleprof.iscollectable;
-								char* containerItemSelected = "As Named";
-								if (iContainerItemIndex >= 2)
-								{
-									if ((iContainerItemIndex-2) < g_collectionList.size())
-									{
-										containerItemSelected = g_collectionList[iContainerItemIndex - 2].collectionFields[0].Get();
-									}
-								}
-								ImGui::PushItemWidth(-10);
-								if (ImGui::BeginCombo("##ChosenCollectableItem", containerItemSelected))
-								{
-									for (int i = 0; i < 1+g_collectionList.size(); i++)
-									{
-										char* pThisItem = "As Named";
-										if ( i > 0 ) pThisItem = g_collectionList[i - 1].collectionFields[0].Get();
-										bool bIsSelected = false;
-										if (strcmp(pThisItem, containerItemSelected) == NULL) bIsSelected = true;
-										if (ImGui::Selectable(pThisItem, bIsSelected, 0))
-										{
-											t.entityelement[iEntityIndex].eleprof.iscollectable = 1 + i;
-											t.entityelement[iEntityIndex].eleprof.name_s = pThisItem;
-										}
-									}
-									ImGui::EndCombo();
-								}
-								ImGui::PopItemWidth();
-								*/
 							}
 						}
 
@@ -16529,7 +16540,7 @@ void mapeditorexecutable_loop(void)
 						g_LastGroupSaved_s = pObjectSavedFilename;
 
 						//PE: If we already have the original image use that no need for large preview. just goto the folder where it was created.
-						CreateBackBufferCacheName(g_LastGroupSaved_s.Get(), 512, 288);
+						CreateBackBufferCacheNameEx(g_LastGroupSaved_s.Get(), 512, 288, true);
 						if (!FileExist(BackBufferCacheName.Get()))
 						{
 							extern cstr sGotoPreviewWithFile;

@@ -1466,6 +1466,8 @@ void sliders_draw ( void )
 	}
 
 	//  LUA PROMPT on HUD (set from within script)
+	static cstr HUDPromptUsing_s = "";
+	bool bHUDPromptCurrentlyActive = false;
 	if (  t.luaglobal.scriptprompttime>0 && t.conkit.editmodeactive == 0 ) 
 	{
 		if ( (DWORD)(Timer())<t.luaglobal.scriptprompttime+500 ) 
@@ -1473,26 +1475,42 @@ void sliders_draw ( void )
 			t.tscriptprompttextsize=t.luaglobal.scriptprompttextsize;
 			t.tscriptprompttextsizeyoffset=t.tscriptprompttextsize*20;
 			if (  t.tscriptprompttextsize == 0 ) { t.tscriptprompttextsize = 3  ; t.tscriptprompttextsizeyoffset = 50; }
-			t.tscriptpromptx=(GetDisplayWidth()-getbitmapfontwidth(t.luaglobal.scriptprompt_s.Get(),t.tscriptprompttextsize))/2;
-			//if ( g_VR920RenderStereoNow == true )
-			//{
-			//	// friendlier text for VR stereo rendering
-			//	t.tscriptprompttextsize = 5; // LARGE TEXT - NOT IDEAL THIS!
-			//	if ( g_StereoEyeToggle == 0 ) 
-			//		t.tscriptpromptx -= 2;
-			//	else
-			//		t.tscriptpromptx += 2;
-			//	pastebitmapfont(t.luaglobal.scriptprompt_s.Get(),t.tscriptpromptx,GetDisplayHeight()/2,t.tscriptprompttextsize,255);
-			//}
-			//else
-			//{
-			pastebitmapfont(t.luaglobal.scriptprompt_s.Get(),t.tscriptpromptx,GetDisplayHeight()-t.tscriptprompttextsizeyoffset,t.tscriptprompttextsize,255);
-			//}
+			// attempt to send prompt to HUD Screeen "prompt:main"
+			int nodeid = t.game.ingameHUDScreen;
+			for (int iElementID = 0; iElementID < STORYBOARD_MAXWIDGETS; iElementID++)
+			{
+				extern StoryboardStruct Storyboard;
+				if (Storyboard.Nodes[nodeid].widget_used[iElementID] != 0)
+				{
+					LPSTR pLabel = "prompt:main";
+					if (stricmp(Storyboard.Nodes[nodeid].widget_label[iElementID], pLabel) == NULL)
+					{
+						char pUserDefinedGlobal[MAX_PATH];
+						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", pLabel);
+						LuaSetString(pUserDefinedGlobal, t.luaglobal.scriptprompt_s.Get());
+						HUDPromptUsing_s = pUserDefinedGlobal;
+						bHUDPromptCurrentlyActive = true;
+						break;
+					}
+				}
+			}
+			if (bHUDPromptCurrentlyActive == false)
+			{
+				// default to legacy bitmap font text system
+				t.tscriptpromptx = (GetDisplayWidth() - getbitmapfontwidth(t.luaglobal.scriptprompt_s.Get(), t.tscriptprompttextsize)) / 2;
+				pastebitmapfont(t.luaglobal.scriptprompt_s.Get(), t.tscriptpromptx, GetDisplayHeight() - t.tscriptprompttextsizeyoffset, t.tscriptprompttextsize, 255);
+			}
 		}
 		else
 		{
 			t.luaglobal.scriptprompttime=0;
 		}
+	}
+	if (bHUDPromptCurrentlyActive == false && strlen(HUDPromptUsing_s.Get()) > 0)
+	{
+		// remove string when prompt goes away
+		LuaSetString(HUDPromptUsing_s.Get(), "");
+		HUDPromptUsing_s = "";
 	}
 
 	// manage prompt 3D

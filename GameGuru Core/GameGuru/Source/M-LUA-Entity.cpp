@@ -290,42 +290,58 @@ void entity_lua_getentityinzone ( void )
 
 void entity_lua_hide ( void )
 {
-	t.tobj=t.entityelement[t.e].obj;
-	if (  t.tobj>0 ) 
+	if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
 	{
-		if (  ObjectExist(t.tobj) == 1 ) 
-		{
-			HideObject (  t.tobj );
-		}
+		t.entityelement[t.e].eleprof.newparticle.bParticle_Show_At_Start = false;
+		entity_updateparticleemitter(t.e);
 	}
-	t.tattobj=t.entityelement[t.e].attachmentobj;
-	if (  t.tattobj>0 ) 
+	else
 	{
-		if (  ObjectExist(t.tattobj) == 1 ) 
+		t.tobj = t.entityelement[t.e].obj;
+		if (t.tobj > 0)
 		{
-			HideObject (  t.tattobj );
+			if (ObjectExist(t.tobj) == 1)
+			{
+				HideObject (t.tobj);
+			}
+		}
+		t.tattobj = t.entityelement[t.e].attachmentobj;
+		if (t.tattobj > 0)
+		{
+			if (ObjectExist(t.tattobj) == 1)
+			{
+				HideObject (t.tattobj);
+			}
 		}
 	}
 }
 
 void entity_lua_show ( void )
 {
-	if ( t.entityelement[t.e].active != 0 )
+	if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
 	{
-		t.tobj=t.entityelement[t.e].obj;
-		if (  t.tobj>0 ) 
+		t.entityelement[t.e].eleprof.newparticle.bParticle_Show_At_Start = true;
+		entity_updateparticleemitter(t.e);
+	}
+	else
+	{
+		if (t.entityelement[t.e].active != 0)
 		{
-			if (  ObjectExist(t.tobj) == 1 ) 
+			t.tobj = t.entityelement[t.e].obj;
+			if (t.tobj > 0)
 			{
-				ShowObject (  t.tobj );
+				if (ObjectExist(t.tobj) == 1)
+				{
+					ShowObject (t.tobj);
+				}
 			}
-		}
-		t.tattobj=t.entityelement[t.e].attachmentobj;
-		if (  t.tattobj>0 ) 
-		{
-			if (  ObjectExist(t.tattobj) == 1 ) 
+			t.tattobj = t.entityelement[t.e].attachmentobj;
+			if (t.tattobj > 0)
 			{
-				ShowObject (  t.tattobj );
+				if (ObjectExist(t.tattobj) == 1)
+				{
+					ShowObject (t.tattobj);
+				}
 			}
 		}
 	}
@@ -1452,8 +1468,16 @@ void entity_lua_rotateupdate ( void )
 
 void entity_lua_scaleupdate ( void )
 {
-	t.obj=t.entityelement[t.e].obj;
-	ScaleObject (  t.obj,t.entityelement[t.e].eleprof.scale,t.entityelement[t.e].eleprof.scale,t.entityelement[t.e].eleprof.scale );
+	if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
+	{
+		t.entityelement[t.e].scalex = t.entityelement[t.e].eleprof.scale - 100.0f;
+		entity_updateparticleemitter(t.e);
+	}
+	else
+	{
+		t.obj = t.entityelement[t.e].obj;
+		ScaleObject (t.obj, t.entityelement[t.e].eleprof.scale, t.entityelement[t.e].eleprof.scale, t.entityelement[t.e].eleprof.scale);
+	}
 }
 
 void entity_lua_moveup ( void )
@@ -2897,11 +2921,14 @@ void entity_lua_addplayerweapon(void)
 	// collect this weapon
 	t.tentid = t.entityelement[t.e].bankindex;
 	t.weaponindex = t.entityprofile[t.tentid].isweapon;
-	t.tqty = t.entityelement[t.e].eleprof.quantity;
-	g_iSuggestedSlot = t.v;
-	physics_player_addweapon();
-	g_iSuggestedSlot = 0;
-	t.entityelement[t.e].eleprof.quantity = 0;// and keep the ammo elsewhere :)
+	if (t.weaponindex != 0)
+	{
+		t.tqty = t.entityelement[t.e].eleprof.quantity;
+		g_iSuggestedSlot = t.v;
+		physics_player_addweapon();
+		g_iSuggestedSlot = 0;
+		t.entityelement[t.e].eleprof.quantity = 0;// and keep the ammo elsewhere :)
+	}
 }
 
 void entity_lua_changeplayerweapon(void)

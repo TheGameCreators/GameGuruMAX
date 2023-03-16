@@ -530,6 +530,12 @@ bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
 #endif
 
+// helps track myglobals and use them in dropdowns for storyboard screen editor
+bool g_bRefreshGlobalList = false;
+std::vector<int> g_gameGlobalListNodeId;
+std::vector<int> g_gameGlobalListIndex;
+std::vector<int> g_gameGlobalListValue;
+
 #ifdef ENABLEIMGUI
 void imgui_set_openproperty_flags(int iMasterID)
 {
@@ -13984,6 +13990,7 @@ int current_backbuffer_height = 0;
 
 void GrabBackBufferCopy(void)
 {
+	// reject backbuffer copy under certain conditions
 	if (iFogChangedFramesBeforeRestore > 0)
 	{
 		if(iFogChangedFramesBeforeRestore == 1) Wicked_Update_Visuals((void *)&t.visuals);
@@ -13993,19 +14000,16 @@ void GrabBackBufferCopy(void)
 		return;
 
 	if ((BackBufferObjectID <= 0 && !BackBufferSnapShotMode && !BackBufferParticlesMode) || BackBufferImageID <= 0)
-	{
 		return;
-	}
+
 	if (BackBufferParticlesMode && iBackBufferParticlesTrigger > 0)
 	{
-		//Wait some frames before capture.
+		// wait some frames before capture.
 		iBackBufferParticlesTrigger--;
 		return;
 	}
 
-	//PE: Restore 10 frames after last call.
-	if (iFogChangedFramesBeforeRestore > 0)
-		iFogChangedFramesBeforeRestore = 5;
+	if (iFogChangedFramesBeforeRestore > 0) iFogChangedFramesBeforeRestore = 5;
 
 	if (!BackBufferParticlesMode && BackBufferParticleEmitter != -1)
 	{
@@ -14013,12 +14017,13 @@ void GrabBackBufferCopy(void)
 		BackBufferParticleEmitter = -1;
 	}
 
+	// can detect backbuffer size changes
 	extern int iLastResolutionWidth;
 	extern int iLastResolutionHeight;
 
+	// make sure new rendertarget is the same as the backbuffer size.
 	if (!BitmapExist(99) || (iLastResolutionWidth != current_backbuffer_width || iLastResolutionHeight != current_backbuffer_height))
 	{
-		//PE: Make sure new rendertarget is the same as the backbuffer size.
 		current_backbuffer_height = iLastResolutionHeight;
 		current_backbuffer_width = iLastResolutionWidth;
 		if (wiRenderer::GetDevice())
@@ -14028,8 +14033,6 @@ void GrabBackBufferCopy(void)
 			{
 				GGSURFACE_DESC ddsd;
 				pBackBuffer->GetDesc(&ddsd);
-				//PE: Try fixed size.
-				#ifdef USEFIXEDBACKBUFFERSIZE
 				//PE: This is the resolution all current thumbs has used.
 				if (bProceduralLevel || bFullScreenBackbuffer)
 				{
@@ -14040,19 +14043,15 @@ void GrabBackBufferCopy(void)
 				{
 					MakeBitmap(99, 1920, 1017);
 				}
-				#else
-				MakeBitmap(99, ddsd.Width, ddsd.Height);
-				#endif
 			}
 		}
 	}
 
-	//PE: Using a render target in g_DefaultGGFORMAT is way faster.
+	// using a render target in g_DefaultGGFORMAT is way faster.
 	LPGGRENDERTARGETVIEW rendertarget;
 	rendertarget = (LPGGRENDERTARGETVIEW)GetBitmapRenderTarget(99);
 
-	//wiRenderer::GetDevice()->WaitForGPU();
-
+	// store current camera pos and angle
 	if (!bBackdropSettingsSet || bSnapShotModeUseCamera || BackBufferParticlesMode)
 	{
 		composx = CameraPositionX(0);
@@ -14063,12 +14062,10 @@ void GrabBackBufferCopy(void)
 		comangz = CameraAngleZ(0);
 	}
 
+	// get water state
 	bool bOldWater = t.visuals.bWaterEnable;
-	//wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-	//weather->SetOceanEnabled(false); //PE: Ocean gets regenerated later so we cant just disable it like this.
-	//t.visuals.bWaterEnable = false;
-	//Wicked_Update_Visuals((void *)&t.visuals);
 
+	// get backbuffer size as grab size
 	float grabx = BackBufferSizeX;
 	float graby = BackBufferSizeY;
 	if (grabx <= 0 || graby <= 0)
@@ -14077,15 +14074,16 @@ void GrabBackBufferCopy(void)
 		graby = 288;
 	}
 
+	// vars for below
 	int displayobj, entid;
 	float fOldObjPosX, fOldObjAngX, fOldObjPosY, fOldObjAngY, fOldObjPosZ, fOldObjAngZ;
 	bool bDisplayObjVisible = false;
 	bool bWaterVisible = false;
 
-	//PE: If we move the camera to far we get "black" flicking dots , so wicked got a bug somewhere (need double ?).
-//	float centerx = -256000, centery = -256000, centerz = -256000;
+	// move camera for the grab, but not too far given camera resolution
 	float centerx = -1000, centery = 39000, centerz = -1000;
 
+	// if backbuffer ready to grab
 	int backdropobj = BACKDROPMAGE;
 	if (!BackBufferSnapShotMode && !BackBufferParticlesMode)
 	{
@@ -14106,18 +14104,16 @@ void GrabBackBufferCopy(void)
 			}
 		}
 
-		//Place Object.
-		displayobj = BackBufferObjectID; //g.entitybankoffset + BackBufferObjectID;
+		// place Object to be the subject of the grab
+		displayobj = BackBufferObjectID;
 		entid = displayobj - g.entitybankoffset;
 		fOldObjPosX = ObjectPositionX(displayobj); fOldObjPosY = ObjectPositionY(displayobj); fOldObjPosZ = ObjectPositionZ(displayobj);
 		fOldObjAngX = ObjectAngleX(displayobj); fOldObjAngY = ObjectAngleY(displayobj); fOldObjAngZ = ObjectAngleZ(displayobj);
-
-		if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)
-			bDisplayObjVisible = true;
-
+		if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)	bDisplayObjVisible = true;
 		float fOffsetX = 0.0f, fOffsetY = 0.0f, fOffsetZ = 0.0f;
 		sObject* pObject = g_ObjectList[displayobj];
-		if (pObject) { //&& t.entityprofile[entid].ischaracter != 1
+		if (pObject) 
+		{
 			float fAdjustScaleX = 1.0, fAdjustScaleY = 1.0, fAdjustScaleZ = 1.0;
 			if (pObject->pInstanceOfObject)
 			{
@@ -14133,46 +14129,41 @@ void GrabBackBufferCopy(void)
 				fValue = ApplyPivot(pObject, 0, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 				fValue = fValue * pObject->position.vecScale[0] * fAdjustScaleX;
 				fOffsetX = fValue * 0.5f;
-
 				fValue = (pObject->collision.vecMax[2] + pObject->collision.vecMin[2]);
 				fValue = ApplyPivot(pObject, 2, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 				fValue = fValue * pObject->position.vecScale[2] * fAdjustScaleZ;
 				fOffsetZ = fValue * 0.5f;
 			}
-
 			fValue = (pObject->collision.vecMax[1] + pObject->collision.vecMin[1]);
 			fValue = ApplyPivot(pObject, 1, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
 			fValue = fValue * pObject->position.vecScale[1] * fAdjustScaleY;
 			fOffsetY = fValue * 0.5f;
-
 			if (pObject->pFrame)
 			{
 				fOffsetX += -(pObject->pFrame->vecOffset.x * fAdjustScaleX);
 				fOffsetY += -(pObject->pFrame->vecOffset.y * fAdjustScaleY);
 				fOffsetZ += -(pObject->pFrame->vecOffset.z * fAdjustScaleZ);
 			}
-
 		}
 
+		// find largest dimension
 		float fLargestY = ObjectSizeY(displayobj, 1);
 		float fLargestX = ObjectSizeX(displayobj, 1);
 		float fLargestZ = ObjectSizeZ(displayobj, 1);
 		float fLargest = fLargestX;
-		if (fLargestZ > fLargest)
-			fLargest = fLargestZ;
-		if (fLargestY > fLargest)
-			fLargest = fLargestY;
+		if (fLargestZ > fLargest) fLargest = fLargestZ;
+		if (fLargestY > fLargest) fLargest = fLargestY;
 
-		if (fLargest < 15.0) fLargest = 15.0; //Handle small objects.
+		// handle small objects.
+		if (fLargest < 15.0) fLargest = 15.0; 
 		if (fLargest >= 2500.0) fLargest = 2500.0;
 
+		// set object up
 		PositionObject(displayobj, centerx, centery, centerz);
-
 		if (t.entityprofile[entid].bIsDecal)
 		{
 			PositionObject(displayobj, centerx + (fLargestX*0.5), centery + (fLargestY*0.5), centerz);
 		}
-
 		if (t.entityprofile[entid].ismarker != 0 || t.entityprofile[entid].zdepth == 0)
 		{
 			SetObjectMask(displayobj, 1);
@@ -14181,16 +14172,15 @@ void GrabBackBufferCopy(void)
 		{
 			SetObjectMask(displayobj, 1 + (1 << 31));
 		}
-
 		ShowObject(displayobj);
-
 		RotateObject(displayobj, fOldObjAngX, fOldObjAngY + 15, fOldObjAngZ);
 
+		// set camera up
 		RotateCamera(0, 0, 0);
 		PositionCamera(centerx, centery, centerz);
 		PointCamera(centerx, centery, centerz);
 
-
+		// adjustments needed
 		float fAdjustRange = 5.0;
 		fAdjustRange -= (grabx + graby) / 512.0;
 		if (fAdjustRange < 0.5)
@@ -14200,21 +14190,17 @@ void GrabBackBufferCopy(void)
 		if ((grabx + graby) >= 2048)
 			fAdjustRange += 0.5;
 
-		float fCamMove = fLargest * (fAdjustRange + 0.1); // PE: 512x288=3.5 - This really depend on the image size we capture to.
+		// 512x288=3.5 - This really depend on the image size we capture to.
+		float fCamMove = fLargest * (fAdjustRange + 0.1);
 		MoveCamera(-(fCamMove));
 		BackBufferCamMove = fCamMove * 2.0;
 
-		//magnum: fCamMove=30.5 , fLargestY = 2.078 , fAdjustRange = 1.875 , fLargest = 15.43
-		//fLargest != 15.0 , we need object to be bigger to increase hight.
-
-
+		// adjust camera based on object largest calc and adjustment
 		if (fLargest != 15.0 && fLargestY < 4.0) fLargestY += 200.0;
 		if (fLargest != 15.0 &&fLargestY < 7.0) fLargestY += 100.0;
 		if (fLargest != 15.0 && fLargestY < 40.0) fLargestY = 40.0;
 		if (fLargestY < 10.0) fLargestY = 10.0;
-
 		float fAdjustY = fAdjustRange * 0.5;
-
 		if (fLargestY >= 2500.0) fLargestY = 2500.0;
 		if (t.entityprofile[entid].isebe == 1)
 		{
@@ -14223,25 +14209,23 @@ void GrabBackBufferCopy(void)
 		PositionCamera(CameraPositionX(0), CameraPositionY(0) + (fLargestY*fAdjustY), CameraPositionZ(0));
 		PointCamera(centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
 
+		// work out if need rotation on the Z
 		bool bNeedZRotation = false;
-
-		if (1)
+		float cangx = CameraAngleX();
+		float cangy = CameraAngleY();
+		float cangz = CameraAngleZ();
+		if (cangx > 39 && cangx < 300 )
 		{
-			float cangx = CameraAngleX();
-			float cangy = CameraAngleY();
-			float cangz = CameraAngleZ();
-			if (cangx > 39 && cangx < 300 )
-			{
-				bNeedZRotation = true;
-			}
+			bNeedZRotation = true;
 		}
 
-
+		// restore backbuffer camera
 		if (bBackBufferRestoreCamera)
 		{
 			//Restore camera settings from FPE. Only trigger this one time.
 			BackBufferRotateY = RestoreBackBufferRotateY;
-			if (t.entityprofile[entid].ischaracter == 0) {
+			if (t.entityprofile[entid].ischaracter == 0) 
+			{
 				BackBufferRotateX = RestoreBackBufferRotateX;
 			}
 			else
@@ -14253,23 +14237,20 @@ void GrabBackBufferCopy(void)
 			BackBufferZoom = RestoreBackBufferZoom;
 			if (BackBufferSizeX < 1024)
 			{
-				//Adjust to new resolution.
-				//BackBufferZoom *= 1.85f;
-				//BackBufferCamUp *= 0.75f;
-				//BackBufferCamLeft *= 0.85f;
 				BackBufferZoom *= 1.7f;
 				BackBufferCamUp *= 0.95f;
 			}
-
 		}
 
+		// apply camera zoom and shift
 		MoveCamera(BackBufferZoom);
-
 		MoveCameraLeft(0, BackBufferCamLeft);
 		MoveCameraUp(0, BackBufferCamUp);
 
+		// if backbuffer in loop or restore mode
 		if (bLoopBackBuffer || bBackBufferRestoreCamera)
 		{
+			/* rework this down the road
 			if (0) // bRotateBackBuffer)
 			{
 				//@Lee Rotate on world y axis. is this correct ?
@@ -14297,110 +14278,78 @@ void GrabBackBufferCopy(void)
 			}
 			else
 			{
-				if (bBackBufferAnimated)
+			*/
+
+			// object animation speed
+			if (bBackBufferAnimated)
+			{
+				t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
+				if (ObjectExist(BackBufferObjectID) == 1)
 				{
-					t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
-					if (ObjectExist(BackBufferObjectID) == 1)
-					{
-						#ifdef WICKEDENGINE
-						SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
-						#else
-						SetObjectSpeed(BackBufferObjectID, g.timeelapsed_f*t.tanimspeed_f);
-						#endif
-					}
+					#ifdef WICKEDENGINE
+					SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
+					#else
+					SetObjectSpeed(BackBufferObjectID, g.timeelapsed_f*t.tanimspeed_f);
+					#endif
 				}
-				if (bRotateBackBuffer && !bBackBufferAnimated )
+			}
+
+			// rotation mode
+			if (bRotateBackBuffer && !bBackBufferAnimated )
+			{
+				if (bNeedZRotation)
 				{
-					if (bNeedZRotation)
-					{
-						BackBufferRotateZ += 3.0*g.timeelapsed_f;
-						if (BackBufferRotateZ > 360.0)
-							BackBufferRotateZ -= 360.0;
-					}
-					else
-					{
-						BackBufferRotateY += 3.0*g.timeelapsed_f;
-						if (BackBufferRotateY > 360.0)
-							BackBufferRotateY -= 360.0;
-					}
-				}
-
-
-				float ox = ObjectPositionX(displayobj);
-				float oy = ObjectPositionY(displayobj);
-				float oz = ObjectPositionZ(displayobj);
-				float cx = CameraPositionX();
-				float cy = CameraPositionY();
-				float cz = CameraPositionZ();
-				float dist = GetDistance(cx, cy, cz, ox, oy, oz);
-
-				//WIP: Test Orbit around object.
-				/*
-				#define TESTORBIT
-				int orbitobj = DOTARCSOBJECTID + 1234;
-				CreateDotArcObject(orbitobj); //Test
-				PositionObject(orbitobj, cx, cy, cz);
-				PointObject(orbitobj, centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
-				MoveObject(orbitobj, dist*0.75);
-				ShowObject(orbitobj);
-				ox = centerx + fOffsetX;
-				oy = centery + fOffsetY;
-				oz = centerz + fOffsetZ;
-				float movey = (BackBufferRotateY / 360.0) * PI*2.0;
-				static float angletest = 50.0f;
-				float ax, ay, az;
-				GetAngleFromPoint(cx, cy, cz, ox, oy, oz, &ax, &ay, &az);
-				float diffy = fabs(cy - oy);
-				if (movey > PI*2.0) movey -= PI*2.0;
-				ox = ox + (sin(movey) * dist*0.35);
-				//WIP: Need y to match angle from camera ax.
-				oy = oy + ( (sin((movey-ax)*PI/180.0f) ) * diffy);
-				oz = oz + (cos(movey) * dist*0.35);
-				PositionObject(orbitobj,ox,oy,oz);
-				PointObject(displayobj, ox, oy, oz);
-				*/
-
-				#ifndef TESTORBIT
-				RotateObject(displayobj, 0, 0, 0);
-				if (pObject && pObject->position.bApplyPivot)
-				{
-					PitchObjectUpWorld(displayobj, BackBufferRotateX);
-					TurnObjectRightWorld(displayobj, BackBufferRotateY);
-					if(bNeedZRotation)
-						RollObjectLeftWorld(displayobj, BackBufferRotateZ);
-					//PitchObjectUp(displayobj, BackBufferRotateX);
-					//TurnObjectRight(displayobj, BackBufferRotateY);
+					BackBufferRotateZ += 3.0*g.timeelapsed_f;
+					if (BackBufferRotateZ > 360.0)
+						BackBufferRotateZ -= 360.0;
 				}
 				else
 				{
-					PitchObjectDownWorld(displayobj, BackBufferRotateX);
-					TurnObjectRightWorld(displayobj, BackBufferRotateY);
-					if (bNeedZRotation)
-						RollObjectLeftWorld(displayobj, BackBufferRotateZ);
-					//PitchObjectDown(displayobj, BackBufferRotateX);
-					//TurnObjectRight(displayobj, BackBufferRotateY);
+					BackBufferRotateY += 3.0*g.timeelapsed_f;
+					if (BackBufferRotateY > 360.0)
+						BackBufferRotateY -= 360.0;
 				}
-				#endif
 			}
-			bBackBufferRestoreCamera = false;
-		}
 
+			// object and camera stats
+			float ox = ObjectPositionX(displayobj);
+			float oy = ObjectPositionY(displayobj);
+			float oz = ObjectPositionZ(displayobj);
+			float cx = CameraPositionX();
+			float cy = CameraPositionY();
+			float cz = CameraPositionZ();
+			float dist = GetDistance(cx, cy, cz, ox, oy, oz);
+
+			// apply object handling
+			RotateObject(displayobj, 0, 0, 0);
+			if (pObject && pObject->position.bApplyPivot)
+			{
+				PitchObjectUpWorld(displayobj, BackBufferRotateX);
+				TurnObjectRightWorld(displayobj, BackBufferRotateY);
+				if(bNeedZRotation) RollObjectLeftWorld(displayobj, BackBufferRotateZ);
+			}
+			else
+			{
+				PitchObjectDownWorld(displayobj, BackBufferRotateX);
+				TurnObjectRightWorld(displayobj, BackBufferRotateY);
+				if (bNeedZRotation)	RollObjectLeftWorld(displayobj, BackBufferRotateZ);
+			}
+		}
+		bBackBufferRestoreCamera = false;
+		//}
+
+		// using backdrop object
 		if (bUseBackDropImage && ObjectExist(backdropobj))
 		{
-//			PositionObject(backdropobj, centerx, centery, centerz);
 			MoveCamera(2.0f);
 			PositionObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 			MoveCamera(-2.0f);
 			PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
-//			MoveObject(backdropobj, -10600.0f);
-			//PE: We cant move it to far away, as backdrop pixel quality get lower the further it is away from the camera.
-			MoveObject(backdropobj, -21200.0f); //Large objects get clipped, move further away.
+			MoveObject(backdropobj, -21200.0f);
 			PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
-			#ifdef TURNBACKDROP180
-			TurnObjectLeft(backdropobj, 180);
-			#endif
 		}
-		//PE: Switch away from editor light , so we dont interfere with the current light on the scene.
+
+		// wwitch away from editor light , so we dont interfere with the current light on the scene.
 		extern wiECS::Entity g_entityThumbLight, g_entityThumbLight2;
 		if (g_entityThumbLight)
 		{
@@ -14422,11 +14371,10 @@ void GrabBackBufferCopy(void)
 			transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
 			transformLightCamera->SetDirty();
 		}
-
 	}
 	else
 	{
-		//Snap shop mode.
+		// snap shop mode.
 		if (BackBufferParticlesMode)
 		{
 			RotateCamera(0, 0, 0);
@@ -14435,15 +14383,11 @@ void GrabBackBufferCopy(void)
 			MoveCamera(-BackBufferZoom);
 			MoveCameraUp(0, BackBufferCamUp);
 			PointCamera(centerx, centery, centerz);
-
 			if (bUseBackDropImage && ObjectExist(backdropobj))
 			{
-				if (BackBufferSizeX >= 1024)
-					ScaleObject(backdropobj, 100, 100, 100);
-				else if (BackBufferSizeX <= 512)
-					ScaleObject(backdropobj, 50, 50, 50);
+				if (BackBufferSizeX >= 1024) ScaleObject(backdropobj, 100, 100, 100);
+				else if (BackBufferSizeX <= 512) ScaleObject(backdropobj, 50, 50, 50);
 				ShowObject(backdropobj);
-
 				MoveCamera(2.0f);
 				PositionObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 				MoveCamera(-2.0f);
@@ -14451,18 +14395,15 @@ void GrabBackBufferCopy(void)
 				MoveObject(backdropobj, -21200.0f); //Large objects get clipped, move further away.
 				PointObject(backdropobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 			}
-
 		}
 		if (bSnapShotModeUseCamera )
 		{
-			//Place camera.
 			PositionCamera(fSnapShotModeCameraX, fSnapShotModeCameraY, fSnapShotModeCameraZ);
 			RotateCamera(fSnapShotModeCameraAngX, fSnapShotModeCameraAngY, fSnapShotModeCameraAngZ);
 		}
 	}
 
-
-	//Render.
+	// render settings
 	extern bool g_bNoSwapchainPresent;
 	bool ioldstate = g_bNoSwapchainPresent;
 	g_bNoSwapchainPresent = true;
@@ -14475,41 +14416,35 @@ void GrabBackBufferCopy(void)
 	extern bool g_bNoTerrainRender;
 	bool bOldg_bNoTerrainRender = g_bNoTerrainRender;
 	if (bProceduralLevel)
-	{
 		g_bNoTerrainRender = false;
-	}
 	else
-	{
 		g_bNoTerrainRender = true;
-	}
 
-
+	// handlw wide screen scenario
 	bool bIsWideScreen = false;
 	float gpw = master.masterrenderer.GetWidth3D();
 	float gph = master.masterrenderer.GetHeight3D();
 	if (( (float)gpw / (float) gph) > 2.1 && gpw > 1920)
-	{
-		//PE: Use fov to adjust camera. so it fit fixed backbuffer.
 		bIsWideScreen = true;
-	}
 
+	// fit fixed backbuffer and thumb resolution
 	if (bIsWideScreen && !bFullScreenBackbuffer)
 	{
-		float fCameraFov = XM_PI / ((45.0) / 15.0f); //Fit fixed backbuffer and thumb resolution.
+		float fCameraFov = XM_PI / ((45.0) / 15.0f); 
 		wiScene::GetCamera().CreatePerspective( 1920.0f, 1017.0f, t.visuals.CameraNEAR_f, t.visuals.CameraFAR_f, fCameraFov);
 		wiScene::GetCamera().SetDirty(true);
 	}
 
-
+	// force a render of the backbuffer to do the grab
 	bool renderstate = master.ForceRender(rendertarget);
 
+	// restore render settings after the forced render
 	if (bIsWideScreen && !bFullScreenBackbuffer)
 	{
 		float fCameraFov = XM_PI / ((t.visuals.CameraFOV_f) / 15.0f); //Fit GG settings.
 		wiScene::GetCamera().CreatePerspective((float)master.masterrenderer.GetLogicalWidth(), (float)master.masterrenderer.GetLogicalHeight(), t.visuals.CameraNEAR_f, t.visuals.CameraFAR_f, fCameraFov);
 		wiScene::GetCamera().SetDirty(true);
 	}
-
 	if (bProceduralLevel)
 	{
 		extern bool g_bNoTerrainRender;
@@ -14520,26 +14455,10 @@ void GrabBackBufferCopy(void)
 		g_bNoTerrainRender = bOldg_bNoTerrainRender;
 	}
 	g_bNo2DRender = false;
-
-	//if (!bBackdropSettingsSet)
-	//	g_bNoSwapchainPresent = ioldstate;
-	//else
-	//	g_bNoSwapchainPresent = old_g_bNoSwapchainPresent;
-
-	//g_bNoSwapchainPresent = false;
 	g_bNoSwapchainPresent = ioldstate;
-
-
 	bBackdropSettingsSet = false;
 
-	//weather->SetOceanEnabled(bOldWater);
-	//t.visuals.bWaterEnable = bOldWater;
-	//Wicked_Update_Visuals((void *)&t.visuals);
-
-	//TEST END
-	//wiJobSystem::context ctx;
-	//wiJobSystem::Wait(ctx);
-
+	// restore after grab process
 	if (!BackBufferSnapShotMode && !BackBufferParticlesMode)
 	{
 		if (bUseBackDropImage && ObjectExist(backdropobj))
@@ -14551,7 +14470,6 @@ void GrabBackBufferCopy(void)
 				WickedCall_UpdateProbes();
 			}
 		}
-
 		if (!bLoopBackBuffer)
 		{
 			WickedCall_SetSunDirection(t.visuals.SunAngleX, t.visuals.SunAngleY, t.visuals.SunAngleZ);
@@ -14559,11 +14477,8 @@ void GrabBackBufferCopy(void)
 			WickedCall_MoveReflectionProbe(GGORIGIN_X, GGORIGIN_Y + 5000, GGORIGIN_Z, "editorProbe", 500);
 			WickedCall_EnableThumbLight(false);
 		}
-
-
 		PositionCamera(composx, composy, composz);
 		RotateCamera(comangx, comangy, comangz);
-
 		PositionObject(displayobj, fOldObjPosX, fOldObjPosY, fOldObjPosZ);
 		RotateObject(displayobj, fOldObjAngX, fOldObjAngY, fOldObjAngZ);
 		if (bDisplayObjVisible)
@@ -14573,88 +14488,138 @@ void GrabBackBufferCopy(void)
 	}
 	else
 	{
-
 		if (bUseBackDropImage && ObjectExist(backdropobj))
 		{
 			HideObject(backdropobj);
 		}
-
 		if (bSnapShotModeUseCamera || BackBufferParticlesMode)
 		{
-			//Restore camera.
 			PositionCamera(composx, composy, composz);
 			RotateCamera(comangx, comangy, comangz);
 		}
-
-		//if BackBufferSnapShotMode
 		if (t.widget.pickedEntityIndex > 0 && t.widget.activeObject > 0)
 		{
 			widget_show_widget();
 		}
 	}
-
 	if (!renderstate)
 	{
-//		if(BackBufferSnapShotMode)
-//			g.entityrubberbandlist.clear();
 		BackBufferSnapShotMode = false;
 		BackBufferParticlesMode = false;
 		return;
 	}
 
-	static int loop = 0;
+	// if not snaposhot mode - save a second file to act as our ICON image (RPG inventory usage mainly)
+	if (!BackBufferSnapShotMode)
+	{
+		if (BackBufferSaveCacheName != "")
+		{
+			// ensure the grab results in a square icon
+			int iIconImageID = BackBufferImageID;
+			extern GlobStruct* g_pGlob;
+			LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
+			ID3D11Texture2D* pBackBuffer = NULL;
+			if (rendertarget)
+			{
+				pBackBuffer = (ID3D11Texture2D*)GetBitmapTexture2D(99);
+				if (!pBackBuffer) pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+			}
+			else
+			{
+				pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+			}
+			g_pGlob->pCurrentBitmapSurface = pBackBuffer;
+			SetGrabImageMode(1);
 
+			// get surface size to ensure grab not larger
+			int grabiconx = 288;
+			int grabicony = 288;
+			GGSURFACE_DESC ddsd;
+			pBackBuffer->GetDesc(&ddsd);
+			if (grabiconx > ddsd.Width) grabiconx = ddsd.Width;
+			if (grabicony > ddsd.Height) grabicony = ddsd.Height;
+			float imgcx = (ddsd.Width * 0.5) - (grabiconx * 0.5);
+			float imgcy = (ddsd.Height * 0.5) - (grabicony * 0.5);
+			if (imgcy < 0) imgcy = 0;
+			if (imgcx < 0) imgcx = 0;
+			if (imgcx + grabiconx > ddsd.Width)	grabiconx = (ddsd.Width - imgcx) - 1.0f;
+			if (imgcy + grabicony > ddsd.Height) grabicony = (ddsd.Height - imgcy) - 1.0f;
+			if (grabiconx > 0 && grabicony > 0)
+			{
+				GrabImage(iIconImageID, imgcx, imgcy, imgcx + grabiconx, imgcy + grabicony, 3);
+			}
+
+			// restore bitmap pointer
+			SetGrabImageMode(0);
+			g_pGlob->pCurrentBitmapSurface = pTmpSurface;
+				
+			// ensure we save to writables area only
+			if (ImageExist(iIconImageID))
+			{
+				char pRealICONFile[MAX_PATH];
+				strcpy(pRealICONFile, BackBufferSaveCacheName.Get());
+				pRealICONFile[strlen(pRealICONFile) - 4] = 0;
+				strcat(pRealICONFile, ".png");
+				GG_GetRealPath(pRealICONFile, 1);
+				if (FileExist(pRealICONFile) == 1) DeleteAFile(pRealICONFile);
+				SaveImage(pRealICONFile, iIconImageID);
+			}
+		}
+	}
+
+	// handle loop grab mode
+	static int loop = 0;
 	if(loop++ % 2 == 0 || !bLoopBackBuffer || bLoopFullFPS || BackBufferSnapShotMode || BackBufferParticlesMode)
 	{
-		//int iPerEntityImageID = BACKBUFFERIMAGE;
+		// get backbuffer pointer
 		int iPerEntityImageID = BackBufferImageID;
-
 		extern GlobStruct* g_pGlob;
 		LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
 		ID3D11Texture2D *pBackBuffer = NULL;
 		if (rendertarget)
 		{
 			pBackBuffer = (ID3D11Texture2D *) GetBitmapTexture2D(99);
-			if (!pBackBuffer)
-				pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
+			if (!pBackBuffer) pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
 		}
 		else
-			pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
-
+		{
+			pBackBuffer = (ID3D11Texture2D*)wiRenderer::GetDevice()->GetBackBufferForGG(&master.swapChain);
+		}
 		g_pGlob->pCurrentBitmapSurface = pBackBuffer;
 
+		// get surface size to ensure grab not larger
 		GGSURFACE_DESC ddsd;
 		pBackBuffer->GetDesc(&ddsd);
-
 		SetGrabImageMode(1);
 		if (graby > ddsd.Height)
 			graby = ddsd.Height;
 		if (grabx > ddsd.Width)
 			grabx = ddsd.Width;
 
+		// handle image size
 		float imgcx = (ddsd.Width*0.5) - (grabx*0.5);
 		float imgcy = (ddsd.Height*0.5) - (graby*0.5);
-
 		if (imgcy < 0) imgcy = 0;
 		if (imgcx < 0) imgcx = 0;
 
+		// if snapshot mode
 		if (BackBufferSnapShotMode)
 		{
 			if (fLastRubberBandX2 > fLastRubberBandX1 && fLastRubberBandY2 > fLastRubberBandY1)
 			{
 				imgcx = fLastRubberBandX1;
 				imgcy = fLastRubberBandY1;
-				imgcy -= 10.0f; //Seams y is not precise.
+				imgcy -= 10.0f;
 				if (imgcx < 1.0f) imgcx = 1.0f;
 				if (imgcy < 1.0f) imgcy = 1.0f;
 				float fRatio = graby / grabx;
-				if ((fLastRubberBandX2 - fLastRubberBandX1) > ((fLastRubberBandY2 - fLastRubberBandY1)*1.3)) //Y count more.
+				if ((fLastRubberBandX2 - fLastRubberBandX1) > ((fLastRubberBandY2 - fLastRubberBandY1)*1.3))
 				{
 					grabx = fLastRubberBandX2 - fLastRubberBandX1;
 					graby = grabx * fRatio;
 					float fObjectsHeight = fLastRubberBandY2 - fLastRubberBandY1;
 					if (graby > fObjectsHeight)
-						imgcy -= ((graby - fObjectsHeight)*0.5); //Center Y in image.
+						imgcy -= ((graby - fObjectsHeight)*0.5);
 					if (imgcy < 0) imgcy = 0;
 				}
 				else
@@ -14664,38 +14629,46 @@ void GrabBackBufferCopy(void)
 					float fObjectsWidth = fLastRubberBandX2 - fLastRubberBandX1;
 					grabx = graby * fRatio;
 					if(grabx > fObjectsWidth)
-						imgcx -= ((grabx-fObjectsWidth)*0.5); //Center X in image.
+						imgcx -= ((grabx-fObjectsWidth)*0.5);
 					if (imgcx < 0) imgcx = 0;
 				}
 			}
 		}
-		//Make sure we are not going outside image.
+		// make sure we are not going outside image.
 		if (imgcy + graby > ddsd.Height)
 			graby = (ddsd.Height - imgcy) - 1.0f;
 		if (imgcx + grabx > ddsd.Width)
 			grabx = (ddsd.Width - imgcx) - 1.0f;
 
-		if(graby > 0 && grabx > 0)
-			GrabImage(iPerEntityImageID, imgcx, imgcy, imgcx+ grabx, imgcy+ graby, 3);
+		if (graby > 0 && grabx > 0)
+		{
+			GrabImage(iPerEntityImageID, imgcx, imgcy, imgcx + grabx, imgcy + graby, 3);
+		}
 		SetGrabImageMode(0);
 
+		// restore bitmap pointer
 		g_pGlob->pCurrentBitmapSurface = pTmpSurface;
-
-		//WickedCall_PresetObjectTextureFromImagePtr(false, 0);
 	}
 
+	// if not snaposhot mode and we want to save the grab
 	if (!BackBufferSnapShotMode)
 	{
 		if (BackBufferSaveCacheName != "")
 		{
-			//PE: Save out to the cache.
 			if (ImageExist(BackBufferImageID))
 			{
-				SaveImage(BackBufferSaveCacheName.Get(), BackBufferImageID);
+				// ensure we save to writables area only
+				char pRealThumbFile[MAX_PATH];
+				strcpy(pRealThumbFile, BackBufferSaveCacheName.Get());
+				GG_GetRealPath(pRealThumbFile, 1);
+				if (FileExist(pRealThumbFile) == 1) DeleteAFile(pRealThumbFile);
+				SaveImage(pRealThumbFile, BackBufferImageID);
 			}
 			BackBufferSaveCacheName = "";
 		}
 	}
+
+	// restore other settings after grab
 	if (!bLoopBackBuffer)
 	{
 		BackBufferImageID = 0;
@@ -14709,14 +14682,9 @@ void GrabBackBufferCopy(void)
 			BackBufferZoom = 0.0f;
 			BackBufferCamUp = 0.0f;
 		}
-
 	}
-//	if (BackBufferSnapShotMode)
-//		g.entityrubberbandlist.clear();
-
 	BackBufferSnapShotMode = false;
 	BackBufferParticlesMode = false;
-
 }
 
 void RevertBackbufferCubemap(void)
@@ -14783,7 +14751,7 @@ bool CopyToProjectFolder(char *file)
 	ProjectCacheName = tmp; //PE: Should be relative.
 	return bRet;
 }
-bool CreateBackBufferCacheName(char *file,int width,int height)
+bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForSaving)
 {
 	// returns true if have own thumb or a group that does not generate one
 	bool bHasOwnLocalThumb = false;
@@ -14795,7 +14763,16 @@ bool CreateBackBufferCacheName(char *file,int width,int height)
 	replaceAll(cache_name, "/", "_");
 	replaceAll(cache_name, "\"", ""); //Got this when deleting a file in user, if fpe not found and already in list.
 	std::string cache_final_name = cache_name;
-	cache_final_name = g.mysystem.thumbbank_s.Get() + cache_final_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	if (bUsedForSaving == false)
+	{
+		std::string src_thumbbank_path = g.fpscrootdir_s.Get();
+		src_thumbbank_path = src_thumbbank_path + "\\Files\\thumbbank\\";
+		cache_final_name = src_thumbbank_path + cache_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	}
+	else
+	{
+		cache_final_name = g.mysystem.thumbbank_s.Get() + cache_name + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
+	}
 	BackBufferCacheName = cache_final_name.c_str();
 
 	// LB: We have pre-generated all stock assets thumbs, so copy over if we have them to save time
@@ -14854,6 +14831,10 @@ bool CreateBackBufferCacheName(char *file,int width,int height)
 
 	// determined to have own thumb
 	return bHasOwnLocalThumb;
+}
+bool CreateBackBufferCacheName(char* file, int width, int height)
+{
+	return CreateBackBufferCacheNameEx(file, width, height, false);
 }
 #endif
 
@@ -17272,22 +17253,6 @@ void process_entity_library_v2(void)
 										//bool bret = CopyFileA(&dest[0], backup.Get(), false);
 									}
 
-									//Wicked dont support DX10 but only DXT1 so try to convert cubemap.
-									//PE: Did not work, still DX10 after save.
-									/*
-									image_setlegacyimageloading(true);
-									SetMipmapNum(1); //PE: mipmaps not needed.
-									LoadImage(cTmp.Get(), BACKDROPMAGE-1);
-									SaveImage(dest, BACKDROPMAGE-1,1); //1=DTX1
-									SetMipmapNum(-1);
-									image_setlegacyimageloading(false);
-									if (!FileExist(dest))
-									{
-										//Did not work , just copy.
-										bool bret = CopyFileA(cTmp.Get(), &dest[0], false);
-									}
-									*/
-
 									// copy chosen cube map to the new entity texture _cube.dds 
 									bool bret = CopyFileA(cTmp.Get(), &pDestinationFile[0], false);
 
@@ -17395,7 +17360,7 @@ void process_entity_library_v2(void)
 							t.addentityfile_s = t.entitybank_s[BackBufferEntityID];
 						}
 
-						CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+						CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
 						bool bGetOut = false;
 
 						// delete old thumb image and give chance for new one to be saved (g_bThumbBankCopyMode)
@@ -21467,7 +21432,11 @@ void process_entity_library_v2(void)
 										{
 											//Start rotate instant.
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-											BackBufferSaveCacheName = BackBufferCacheName;
+											if (FileExist(BackBufferCacheName.Get()) == 0)
+											{
+												// only save new thumb if not exist in root
+												BackBufferSaveCacheName = BackBufferCacheName;
+											}
 											bDoBackbufferUpdate = true;
 											iTooltipTimer = iTooltipHoveredTimer - 750;
 											iTooltipObjectReady = true;
@@ -21495,7 +21464,11 @@ void process_entity_library_v2(void)
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
 												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-												BackBufferSaveCacheName = BackBufferCacheName;
+												if (FileExist(BackBufferCacheName.Get()) == 0)
+												{
+													// only save new thumb if not exist in root
+													BackBufferSaveCacheName = BackBufferCacheName;
+												}
 												bDoBackbufferUpdate = true;
 											}
 										}
@@ -21636,7 +21609,12 @@ void process_entity_library_v2(void)
 									if (!bDoBackbufferUpdate && !bLoadedInNewFormat)
 									{
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
-										BackBufferSaveCacheName = BackBufferCacheName;
+										if (FileExist(BackBufferCacheName.Get()) == 0)
+										{
+											// only save new thumb if not exist in root
+											BackBufferSaveCacheName = BackBufferCacheName;
+										}
+
 										//PE: Triggered auto.
 										if (myfiles->iBigPreview == 0)
 										{
@@ -22258,7 +22236,7 @@ void process_entity_library_v2(void)
 												t.addentityfile_s = sFpeName.c_str();
 
 
-												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+												CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
 												if (FileExist(BackBufferCacheName.Get()))
 												{
 													DeleteAFile(BackBufferCacheName.Get());
@@ -24782,7 +24760,7 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			if (find)
 			{
 				cstr fname = (find + 11);
-				CreateBackBufferCacheName(fname.Get(), 512, 288);
+				CreateBackBufferCacheNameEx(fname.Get(), 512, 288, true);
 				SaveImage(BackBufferCacheName.Get(), iEntityGroupListImage[current_selected_group]);
 			}
 		}
@@ -29333,6 +29311,11 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	ImGui::Indent(-10);
 	#endif
 
+	// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
+	ImGui::Indent(10);
+	edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
+	ImGui::Indent(-10);
+
 	// Character Has Weapon
 	// moved to detection within LUA script via 'bShootingWeaponMentioned'
 	if (ImGui::IsAnyItemFocused()) bImGuiGotFocus = true;
@@ -29365,42 +29348,68 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will always be active, no matter how far away the player might be");
 	ImGui::Indent(-10);
 
+	ImGui::Indent(10);
+	bool bObjective = false;
+	if (edit_grideleprof->isobjective != 0) bObjective = true;
+	ImGui::Checkbox("Is Objective?", &bObjective);
+	if (bObjective == true)
+	{
+		if (t.entityprofile[entid].ismarker == 3)
+			edit_grideleprof->isobjective = 2;
+		else
+			edit_grideleprof->isobjective = 1;
+	}
+	else
+	{
+		edit_grideleprof->isobjective = 0;
+	}
+	if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be an objective for the player");
+	ImGui::Indent(-10);
+
 	// Is Collectable general properties (if dynamic)
 	if (t.entityelement[elementID].staticflag == 0)
 	{
 		ImGui::Indent(10);
 		bool bCollectable = false;
 		if (edit_grideleprof->iscollectable != 0) bCollectable = true;
-		ImGui::Checkbox("Is Collectable?", &bCollectable);
-		if (bCollectable == true)
-			edit_grideleprof->iscollectable = 1;
-		else
-			edit_grideleprof->iscollectable = 0;
+		if (ImGui::Checkbox("Is Collectable?", &bCollectable))
+		{
+			if (bCollectable == true)
+				edit_grideleprof->iscollectable = 1;
+			else
+				edit_grideleprof->iscollectable = 0;
+		}
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be collectable by the player and added to the inventory");
 		ImGui::Indent(-10);
 
-		ImGui::Indent(10);
-		bool bObjective = false;
-		if (edit_grideleprof->isobjective != 0) bObjective = true;
-		ImGui::Checkbox("Is Objective?", &bObjective);
-		if (bObjective == true)
+		if (edit_grideleprof->iscollectable != 0)
 		{
-			if (t.entityprofile[entid].ismarker == 3 )
-				edit_grideleprof->isobjective = 2;
-			else
-				edit_grideleprof->isobjective = 1;
-		}
-		else
-		{
-			edit_grideleprof->isobjective = 0;
-		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the object will be an objective for the player");
-		ImGui::Indent(-10);
+			ImGui::Indent(10);
+			bool bCollectableResource = false;
+			if (edit_grideleprof->iscollectable == 2) bCollectableResource = true;
+			if (ImGui::Checkbox("Is Resource?", &bCollectableResource))
+			{
+				if (bCollectableResource == true)
+					edit_grideleprof->iscollectable = 2;
+				else
+					edit_grideleprof->iscollectable = 1;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the collectable is a resource and can be merged with similar objects");
+			ImGui::Indent(-10);
 
-		// Is Immobile a useful tick to have in general and especially for freezing character positions in place for specific animations to work
-		ImGui::Indent(10);
-		edit_grideleprof->isimmobile = imgui_setpropertylist2(t.group, t.controlindex, Str(edit_grideleprof->isimmobile), t.strarr_s[457].Get(), t.strarr_s[247].Get(), 0);
-		ImGui::Indent(-10);
+			/* done in resource behavior for more control (see quantity)
+			if ( edit_grideleprof->iscollectable == 2 )
+			{
+				// resources can start with a specific quantity built in
+				ImGui::TextCenter("Resource Quantity");
+				float fQty = edit_grideleprof->quantity;
+				if (ImGui::MaxSliderInputFloat("##CollectableResourceQty", &fQty, 0.0f, 100.0f, "Set the quantity of resources for this object when the game starts", 1.0, 100))
+				{
+					edit_grideleprof->quantity = fQty;
+				}
+			}
+			*/
+		}
 	}
 	else
 	{
@@ -33871,7 +33880,7 @@ void GetProjectThumbnails()
 								{
 									if (strlen(checkproject.Nodes[i].level_name) > 0)
 									{
-										CreateBackBufferCacheName(checkproject.Nodes[i].level_name, 512, 288);
+										CreateBackBufferCacheNameEx(checkproject.Nodes[i].level_name, 512, 288, true);
 										if (CreateProjectCacheName(checkproject.gamename, BackBufferCacheName.Get()) &&
 											FileExist(ProjectCacheName.Get()))
 										{
@@ -39526,7 +39535,7 @@ void process_storeboard(bool bInitOnly)
 								/*cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].lua_name);*/
 								// name of thumb is now based on screen title, to prevent multiple screens with same thumb name
 								cstr name = cstr("screen_") + cstr(Storyboard.gamename) + cstr("_") + cstr(Storyboard.Nodes[iWaitFor2DEditorNode].title);
-								CreateBackBufferCacheName(name.Get(), 512, 288);
+								CreateBackBufferCacheNameEx(name.Get(), 512, 288, true);
 								SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iWaitFor2DEditorNode].thumb_id);
 								if (FileExist(BackBufferCacheName.Get()))
 								{
@@ -39634,7 +39643,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
 								{
 									//Save into thumbbank , and save thumb filename in node.
-									CreateBackBufferCacheName(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288);
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288, true);
 									SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iScreenshotNode].thumb_id);
 									if (FileExist(BackBufferCacheName.Get()))
 									{
@@ -39844,7 +39853,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(Storyboard.Nodes[iDuplicateNode].thumb_id))
 								{
 									//Save old thumb to new thumb.
-									CreateBackBufferCacheName(Storyboard.Nodes[node].level_name, 512, 288);
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
 									SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iDuplicateNode].thumb_id);
 									if (FileExist(BackBufferCacheName.Get()))
 									{
@@ -41620,7 +41629,53 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
 							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
-
+						}
+						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+						{
+							ImGui::PopStyleColor();
+							ImGui::PopStyleVar();
+							ImGui::PopStyleVar();
+							const char* items_storyboard_hud[] = { "Delete HUD Screen" };
+							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
+							int selection = 0;
+							char iUniqueString[255];
+							sprintf(iUniqueString, "##ComboStoryboardHUD%d", i);
+							int iComboEntries = 1;
+							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
+							ImGui::PushItemWidth(20);
+							if (ImGui::BeginCombo(iUniqueString, "", comboflags))
+							{
+								for (int n = 0; n < iComboEntries; n++)
+								{
+									if (ImGui::Selectable(items_storyboard_hud[n], false))
+									{
+										Storyboard.iChanged = true;
+										bBlockNextMouseCheck = true;
+										selection = n;
+										if (selection == 0)
+										{
+											int iAction = askBoxCancel("This will delete the HUD screen from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												reset_single_node(i);
+												Storyboard.Nodes[i].used = false;
+												bBlockNextMouseCheck = true;
+											}
+										}
+									}
+								}
+								ImGui::EndCombo();
+							}
+							if (ImGui::IsItemHovered()) 
+							{
+								bBlockNextMouseCheck = true;
+								vTooltipPos = ImGui::GetCursorPos();
+								sTooltip = " Delete HUD screen ";
+							}
+							ImGui::PopItemWidth();
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
+							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
 						}
 
 						bool bExecutePencelEdit = false;
@@ -42419,7 +42474,7 @@ void process_storeboard(bool bInitOnly)
 											ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 											iAutoConnectNode = node;
 											//Check if level already got a thumb.
-											CreateBackBufferCacheName(Storyboard.Nodes[node].level_name, 512, 288);
+											CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
 											if (FileExist(BackBufferCacheName.Get()))
 											{
 												if (CopyToProjectFolder(BackBufferCacheName.Get()))
@@ -42473,6 +42528,158 @@ void process_storeboard(bool bInitOnly)
 							int nodeHeight = 150;
 							storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, true);
 							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[13].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+						}
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+						if (ImGui::StyleButton("Add RPG Screens", ImVec2(buttonwide, 0.0f)))
+						{
+							// check if RPG screens already exist
+							bool bRPGHUDSMissing[10];
+							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));
+							bool bAllRPGScreensAlreadyExist = true;
+							for (int hudi = 1; hudi <= 8; hudi++)
+							{
+								// assume HUD screen missing
+								bRPGHUDSMissing[hudi] = true;
+								char pTitleLabel[256];
+								if (hudi == 1)
+								{
+									sprintf(pTitleLabel, "In-Game HUD");
+								}
+								else
+								{
+									sprintf(pTitleLabel, "HUD Screen %d", hudi);
+								}
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (Storyboard.Nodes[i].used)
+									{
+										if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+										{
+											if (pestrcasestr(Storyboard.Nodes[i].title, pTitleLabel))
+											{
+												// found the HUD, not missing
+												bRPGHUDSMissing[hudi] = false;
+												break;
+											}
+										}
+									}
+								}
+								if (bRPGHUDSMissing[hudi] == true)
+								{
+									bAllRPGScreensAlreadyExist = false;
+								}
+							}
+							if (bAllRPGScreensAlreadyExist == false)
+							{
+								// load in template screens from "RPG Template" project
+								char project[MAX_PATH];
+								strcpy(project, "projectbank\\RPG Template\\project.dat");
+								FILE* projectfile = GG_fopen(project, "rb");
+								if (projectfile)
+								{
+									StoryboardStruct* checkproject = new StoryboardStruct;
+									size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
+									char sig[12] = "Storyboard\0";
+									if (checkproject->sig[0] == 'S' && checkproject->sig[8] == 'r')
+									{
+										// go through and find all HUD Screens related to RPG
+										for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+										{
+											if (checkproject->Nodes[i].used)
+											{
+												if (checkproject->Nodes[i].type == STORYBOARD_TYPE_HUD)
+												{
+													for (int hudi = 1; hudi <= 8; hudi++)
+													{
+														// only add those that are missing
+														if (bRPGHUDSMissing[hudi] == true )
+														{
+															char pTitleLabel[256];
+															if ( hudi == 1 )
+																sprintf(pTitleLabel, "In-Game HUD");
+															else
+																sprintf(pTitleLabel, "HUD Screen %d", hudi);
+															if (pestrcasestr(checkproject->Nodes[i].title, pTitleLabel))
+															{
+																// find spare node
+																int newnodeid = 0;
+																for (int i = 14; i < STORYBOARD_MAXNODES; i++)
+																{
+																	if (Storyboard.Nodes[i].used == 0 )
+																	{
+																		newnodeid = i;
+																		break;
+																	}
+																}
+																if (newnodeid > 0)
+																{
+																	// must use unique NODEIDs for IMNODE
+																	int iFoundNodeID = 0;
+																	int iTryNodeID = STORYBOARD_THUMBS;
+																	while (iFoundNodeID == 0)
+																	{
+																		int i = 0;
+																		for (; i < STORYBOARD_MAXNODES; i++)
+																		{
+																			if (Storyboard.Nodes[i].used)
+																			{
+																				if (Storyboard.Nodes[i].id == iTryNodeID)
+																				{
+																					iTryNodeID++;
+																					break;
+																				}
+																			}
+																		}
+																		if (i >= STORYBOARD_MAXNODES)
+																		{
+																			iFoundNodeID = iTryNodeID;
+																		}
+																	}
+																	if (iFoundNodeID > 0)
+																	{
+																		// copy node from RPG Template project to current storyboard
+																		Storyboard.Nodes[newnodeid] = checkproject->Nodes[i];
+																		Storyboard.Nodes[newnodeid].id = iFoundNodeID;
+																		Storyboard.NodeRadioButtonSelected[newnodeid] = checkproject->NodeRadioButtonSelected[i];
+																		for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
+																		{
+																			Storyboard.NodeSliderValues[newnodeid][iWidgetIndex] = checkproject->NodeSliderValues[i][iWidgetIndex];
+																			Storyboard.widget_colors[newnodeid][iWidgetIndex] = checkproject->widget_colors[i][iWidgetIndex];
+																			for (int n = 0; n < 128; n++)
+																			{
+																				Storyboard.widget_readout[newnodeid][iWidgetIndex][n] = checkproject->widget_readout[i][iWidgetIndex][n];
+																			}
+																			Storyboard.widget_textoffset[newnodeid][iWidgetIndex] = checkproject->widget_textoffset[i][iWidgetIndex];
+																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = checkproject->widget_ingamehidden[i][iWidgetIndex];
+																		}
+
+																		// update thumbs
+																		SetMipmapNum(1);
+																		image_setlegacyimageloading(true);
+																		LoadImageSize(Storyboard.Nodes[newnodeid].thumb, Storyboard.Nodes[newnodeid].thumb_id, 512, 288);
+																		image_setlegacyimageloading(false);
+																		SetMipmapNum(-1);
+
+																		// indicate a change
+																		ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[newnodeid].id, Storyboard.Nodes[newnodeid].restore_position);
+																		Storyboard.iChanged = true;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+										fclose(projectfile);
+									}
+									if (checkproject)
+									{
+										delete checkproject;
+										checkproject = NULL;
+									}
+								}
+							}
 						}
 					}
 					#endif
@@ -43104,7 +43311,7 @@ int save_level_as( void )
 
 							if (bGotAThumb)
 							{
-								CreateBackBufferCacheName(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288);
+								CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
 								SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
 								if (FileExist(BackBufferCacheName.Get()))
 								{
@@ -43116,7 +43323,7 @@ int save_level_as( void )
 									}
 
 									//Load to correct id.
-									SetMipmapNum(1); //PE: mipmaps not needed.
+									SetMipmapNum(1);
 									image_setlegacyimageloading(true);
 									LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
 									image_setlegacyimageloading(false);
@@ -44645,7 +44852,7 @@ void GetProjectList(char *path, bool bGetThumbs)
 										{
 											if (strlen(checkproject.Nodes[i].level_name) > 0)
 											{
-												CreateBackBufferCacheName(checkproject.Nodes[i].level_name, 512, 288);
+												CreateBackBufferCacheNameEx(checkproject.Nodes[i].level_name, 512, 288, true);
 												if (CreateProjectCacheName(checkproject.gamename, BackBufferCacheName.Get()) &&
 													FileExist(ProjectCacheName.Get()))
 												{
@@ -45457,7 +45664,7 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	if (bRenderTabTab == false)
+	if (g.tabmode == 0 )//bRenderTabTab == false)
 	{
 		static std::vector<int> scans;
 		if (listenForKeys.empty())
@@ -47173,7 +47380,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 		if (!bPreviewScreen && iCurrentSelectedWidget >= 0)
 		{
-			float w = ImGui::GetContentRegionAvailWidth();
+			float w = ImGui::GetContentRegionAvailWidth(); 
 			bool bReadOnly = Storyboard.Nodes[nodeid].widget_read_only[iCurrentSelectedWidget];
 			bool bSpecialNoText = false;
 			if (bReadOnly)
@@ -47796,10 +48003,12 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					// Display and allow editing of readouts
 					ImGui::TextCenter("Readout");
-					ImGui::PushItemWidth(-10);					
+					ImGui::PushItemWidth(-10);
 					std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
 					if (ImGui::BeginCombo("##readoutcombo", readout.c_str()))
 					{
+						ImGui::Selectable(readout.c_str(), true);
+						/* no choices, keep readout fixed to original gadget choice
 						int readoutIndex = GetReadoutIndex((char*)readout.c_str());
 						STORYBOARD_WIDGET_ type = readoutWidgetTypes[readoutIndex];
 						for (int i = 0; i < readoutTitles.size(); i++)
@@ -47813,6 +48022,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								}
 							}
 						}
+						*/
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
@@ -47820,13 +48030,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					// moved enry of 'widget_label' down here to match readout selection
 					if (iUserDefinedGlobal > 0)
 					{
-						if (widgetType != STORYBOARD_WIDGET_PROGRESS )//&& widgetType != STORYBOARD_WIDGET_IMAGE)
+						if (widgetType != STORYBOARD_WIDGET_PROGRESS )
 						{
 							// label
 							if( iUserDefinedGlobal==2 )
-								ImGui::TextCenter("User Defined Global Names");
+								ImGui::TextCenter("User Defined Global Values");
 							else
-								ImGui::TextCenter("User Defined Global Name");
+								ImGui::TextCenter("User Defined Global Value");
 
 							// one or two (single or pair handling)
 							char storeFirstEntry[MAX_PATH];
@@ -47841,13 +48051,212 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								*pDelimit = 0;
 							}
 
-							// field
-							cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+							// field (use dropdown for common values)
 							ImGui::PushItemWidth(-10);
-							ImGui::InputText(UniqueTextFiledName.Get(), storeFirstEntry, 250, ImGuiInputTextFlags_None);
-							if ( ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global to display. Pre-defined globals include; MyArmour, MyArmourToughness, MyStamina.");
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+							bool bShowCustomValueBox = false;
+							std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
+							if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+							{
+								bool bKnownValue = false;
+								const char* pSelectedComboItem = "";
+								for (int n = 0; n <= g_gameGlobalListNodeId.size(); n++)
+								{
+									LPSTR pThisGlobItem = "";
+									if (n < g_gameGlobalListNodeId.size())
+									{
+										int i = g_gameGlobalListIndex[n];
+										int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+										pThisGlobItem = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+										if (stricmp(pThisGlobItem, storeFirstEntry) == NULL)
+										{
+											pSelectedComboItem = pThisGlobItem;
+											bKnownValue = true;
+											break;
+										}
+									}
+								}
+								if ( strlen(pSelectedComboItem) == 0 )
+								{
+									pSelectedComboItem = "Custom Value";
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::BeginCombo("##comboRPGGlobalKinds", pSelectedComboItem))
+								{
+									for (int n = 0; n <= g_gameGlobalListNodeId.size(); n++)
+									{
+										LPSTR pThisGlobItem = "";
+										if (n < g_gameGlobalListNodeId.size())
+										{
+											int i = g_gameGlobalListIndex[n];
+											int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+											pThisGlobItem = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+										}
+										else
+										{
+											pThisGlobItem = "Custom Value";
+										}
+										bool bIsSelected = false;
+										if (stricmp(pThisGlobItem, storeFirstEntry) == NULL) bIsSelected = true;
+										if (ImGui::Selectable(pThisGlobItem, bIsSelected))
+										{
+											if (n < g_gameGlobalListNodeId.size())
+											{
+												strcpy(storeFirstEntry, pThisGlobItem);
+											}
+											else
+											{
+												if (bKnownValue == true) strcpy(storeFirstEntry, "");
+											}
+											g_bRefreshGlobalList = true;
+											break;
+										}
+									}
+									ImGui::EndCombo();
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Text") == NULL)
+							{
+								const char* rpginventorykinds[] = { "prompt:main", "selected:title", "selected:description", "selected:cost", "selected:value", "selected:ingredients", "craft:title", "craft:ingredients", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGInventoryKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection == -1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify the user global value used by this text");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Image") == NULL)
+							{
+								const char* rpginventorykinds[] = { "selected:image", "scrollbar:box", "scrollbar:handle", "map:window", "map:image", "map:player", "map:winzone", "map:character", "map:objective", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGImageKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection == -1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value used by this image");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Panel") == NULL)
+							{
+								const char* rpginventorykinds[] = { "inventory:player", "inventory:hotkeys", "inventory:container", "inventory:chest", "inventory:craft", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGInventoryKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection==-1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify the user global value used by this panel");
+							}
 							ImGui::PopItemWidth();
+							if (strcmp(readout.c_str(), "User Defined Global Statusbar") == NULL)
+							{
+								bShowCustomValueBox = true;
+							}
+							if (bShowCustomValueBox == true )
+							{
+								cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+								ImGui::PushItemWidth(-10);
+								static char tempinputFirstEntry[251];
+								static int ilastSelectedWidget = -1;
+								if (iCurrentSelectedWidget+(nodeid*1000) != ilastSelectedWidget)
+								{
+									ilastSelectedWidget = iCurrentSelectedWidget + (nodeid * 1000);
+									strcpy(tempinputFirstEntry, storeFirstEntry);
+								}
+								if (ImGui::InputText(UniqueTextFiledName.Get(), tempinputFirstEntry, 250, ImGuiInputTextFlags_EnterReturnsTrue))
+								{
+									strcpy(storeFirstEntry, tempinputFirstEntry);
+									g_bRefreshGlobalList = true;
+								}
+								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+								ImGui::PopItemWidth();
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global");
+							}
 
 							// globals pairs are used for things like status bars (current value var and max var)
 							if (iUserDefinedGlobal == 2)
@@ -47855,8 +48264,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								// ask for a second on its own
 								cstr UniqueTextFiledNameSecond = cstr("##WidgetTextStoryboardInputSecond") + cstr(iCurrentSelectedWidget);
 								ImGui::PushItemWidth(-10);
-								ImGui::InputText(UniqueTextFiledNameSecond.Get(), storeSecondEntry, 250, ImGuiInputTextFlags_None);
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global to assist with the final display. Pre-defined globals include; MyStaminaMaximum.");
+								if (ImGui::InputText(UniqueTextFiledNameSecond.Get(), storeSecondEntry, 250, ImGuiInputTextFlags_EnterReturnsTrue))
+								{
+									g_bRefreshGlobalList = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global");
 								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 								ImGui::PopItemWidth();
 							}
@@ -47880,66 +48292,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			{
 				ImGui::Indent(10);
 				// only for HUD screens
-				std::vector<int> gameGlobalListNodeId;
-				std::vector<int> gameGlobalListIndex;
-				std::vector<int> gameGlobalListValue;
-				gameGlobalListNodeId.clear();
-				gameGlobalListIndex.clear();
-				gameGlobalListValue.clear();
-				for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+				if (g_bRefreshGlobalList == true)
 				{
-					if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name,"hud",3) == NULL)
-					{
-						for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
-						{
-							if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
-							{
-								std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-								if (stricmp(readout.c_str(), "User Defined Global") == NULL)
-								{
-									// only add unique ones to game global list
-									LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-									for (int n = 0; n < gameGlobalListNodeId.size(); n++)
-									{
-										int thisnodeid = gameGlobalListNodeId[n];
-										int index = gameGlobalListIndex[n];
-										LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-										if (strcmp(pNewName, pThisName) == NULL)
-										{
-											// already exists
-											pNewName = "";
-											break;
-										}
-									}
-									if (strlen(pNewName) > 0)
-									{
-										gameGlobalListNodeId.push_back(allhudscreensnodeid);
-										gameGlobalListIndex.push_back(i);
-										gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
-									}
-								}
-							}
-						}
-					}
-				}
-				bool bChangedAGameGlobal = false;
-				for (int n = 0; n < gameGlobalListNodeId.size(); n++)
-				{
-					int allhudscreensnodeid = gameGlobalListNodeId[n];
-					int i = gameGlobalListIndex[n];
-					ImGui::TextCenter(Storyboard.Nodes[allhudscreensnodeid].widget_label[i]);
-					char pUDGVar[256];
-					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
-					float fValue = gameGlobalListValue[n];
-					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
-					if (fValue != gameGlobalListValue[n])
-					{
-						gameGlobalListValue[n] = fValue;
-						bChangedAGameGlobal = true;
-					}
-				}
-				if (bChangedAGameGlobal == true)
-				{
+					g_gameGlobalListNodeId.clear();
+					g_gameGlobalListIndex.clear();
+					g_gameGlobalListValue.clear();
 					for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 					{
 						if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
@@ -47953,15 +48310,73 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									{
 										// only add unique ones to game global list
 										LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-										for (int n = 0; n < gameGlobalListNodeId.size(); n++)
+										for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 										{
-											int thisnodeid = gameGlobalListNodeId[n];
-											int index = gameGlobalListIndex[n];
+											int thisnodeid = g_gameGlobalListNodeId[n];
+											int index = g_gameGlobalListIndex[n];
 											LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
 											if (strcmp(pNewName, pThisName) == NULL)
 											{
-												Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = gameGlobalListValue[n];
+												// already exists
+												pNewName = "";
 												break;
+											}
+										}
+										if (strlen(pNewName) > 0)
+										{
+											g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
+											g_gameGlobalListIndex.push_back(i);
+											g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				bool bChangedAGameGlobal = false;
+				for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+				{
+					int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+					int i = g_gameGlobalListIndex[n];
+					ImGui::TextCenter(Storyboard.Nodes[allhudscreensnodeid].widget_label[i]);
+					char pUDGVar[256];
+					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
+					float fValue = g_gameGlobalListValue[n];
+					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
+					if (fValue != g_gameGlobalListValue[n])
+					{
+						g_gameGlobalListValue[n] = fValue;
+						bChangedAGameGlobal = true;
+					}
+				}
+				if (g_bRefreshGlobalList == true)
+				{
+					if (bChangedAGameGlobal == true)
+					{
+						for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+						{
+							if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
+							{
+								for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+								{
+									if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+									{
+										std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+										if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+										{
+											// only add unique ones to game global list
+											LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+											{
+												int thisnodeid = g_gameGlobalListNodeId[n];
+												int index = g_gameGlobalListIndex[n];
+												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+												if (strcmp(pNewName, pThisName) == NULL)
+												{
+													Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
+													break;
+												}
 											}
 										}
 									}
@@ -47970,6 +48385,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 				}
+				g_bRefreshGlobalList = false;
 				ImGui::Indent(-10);
 			}
 
@@ -48058,8 +48474,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 					if (bValid)
 					{
-						//GrabImage(STORYBOARD_THUMBS + 400, 0, 0, ddsd.Width, ddsd.Height, 3);
-						//SaveImage("d:\\MAX-DocWrite\\400.png", STORYBOARD_THUMBS + 400);
 						//PE: We need a unique id for this STORYBOARD_THUMBS+400
 						GrabImage(STORYBOARD_THUMBS + 400, imgcx, imgcy, imgcx + grabx, imgcy + graby, 3);
 						SetGrabImageMode(0);

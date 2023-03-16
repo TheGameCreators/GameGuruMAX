@@ -99,6 +99,10 @@ bool load_rpg_system(char* name)
 	// make a copy to regular gaming list
 	g_collectionList = g_collectionMasterList;
 
+	// trigger initial filling of global list (better location for this somewhere)
+	extern bool g_bRefreshGlobalList;
+	g_bRefreshGlobalList = true;
+
 	// success
 	return true;
 }
@@ -150,6 +154,112 @@ bool save_rpg_system(char* name)
 	return true;
 }
 
+cstr get_rpg_imagefinalfile(cstr entityfile)
+{
+	extern cstr BackBufferCacheName;
+	bool CreateBackBufferCacheName(char* file, int width, int height);
+	CreateBackBufferCacheName(entityfile.Get(), 512, 288);
+	LPSTR pAbsPathToFile = BackBufferCacheName.Get();
+	cstr pRootDir = g.fpscrootdir_s + "\\Files\\";
+	char pIconFile[MAX_PATH];
+	strcpy(pIconFile, pAbsPathToFile + strlen(pRootDir.Get()));
+	pIconFile[strlen(pIconFile) - 4] = 0;
+	strcat(pIconFile, ".png");
+	cstr pFinalImgFile = pIconFile;
+	if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+	return pFinalImgFile;
+}
+
+bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e, LPSTR pPassedInTitle, LPSTR pPassedInImageFile)
+{
+	// only some entities can make an item
+	int iAddThisItem = false;
+	if (entid > 0 && e > 0)
+	{
+		if (t.entityprofile[entid].isweapon > 0) iAddThisItem = 1;
+		if (t.entityelement[e].eleprof.iscollectable != 0) iAddThisItem = 2;
+	}
+	else
+	{
+		if (pPassedInTitle && pPassedInImageFile) iAddThisItem = 3;
+	}
+	if (iAddThisItem > 0)
+	{
+		pItem->collectionFields.clear();
+		for (int l = 0; l < g_collectionLabels.size(); l++)
+		{
+			int iKnownLabel = 0;
+			LPSTR pLabel = g_collectionLabels[l].Get();
+			if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+			if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+			if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+			if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+			if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
+			if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+			if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+			if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
+			if (iKnownLabel > 0)
+			{
+				if (iKnownLabel == 1)
+				{
+					LPSTR pTitle = "";
+					if (iAddThisItem == 1) pTitle = t.entityelement[e].eleprof.name_s.Get();
+					if (iAddThisItem == 2) pTitle = t.entityelement[e].eleprof.name_s.Get();
+					if (iAddThisItem == 3) pTitle = pPassedInTitle;
+					pItem->collectionFields.push_back(pTitle);
+				}
+				if (iKnownLabel == 2)
+				{
+					cstr pFinalImgFile = "";
+					cstr localiconfile = "";
+					if (iAddThisItem == 1) localiconfile = cstr("gamecore\\guns\\") + t.entityprofile[entid].isweapon_s + cstr("\\item.png");
+					if (iAddThisItem == 3) localiconfile = pPassedInImageFile;
+					if (FileExist(localiconfile.Get()) == 1)
+					{
+						// use locally specified icon
+						pFinalImgFile = localiconfile;
+					}
+					else
+					{
+						// use default out of the box icon
+						cstr entityfile = t.entitybank_s[entid];
+						pFinalImgFile = get_rpg_imagefinalfile(entityfile);
+					}
+					pItem->collectionFields.push_back(pFinalImgFile);
+				}
+				if (iKnownLabel == 3)
+				{
+					LPSTR pDesc = "";
+					if (iAddThisItem == 1) pDesc = t.entityelement[e].eleprof.name_s.Get();
+					if (iAddThisItem == 2) pDesc = t.entityelement[e].eleprof.name_s.Get();
+					if (iAddThisItem == 3) pDesc = pPassedInTitle;
+					pItem->collectionFields.push_back(pDesc);
+				}
+				if (iKnownLabel == 4) pItem->collectionFields.push_back(10);
+				if (iKnownLabel == 5) pItem->collectionFields.push_back(5);
+				if (iKnownLabel == 6) pItem->collectionFields.push_back("shop");
+				if (iKnownLabel == 7) pItem->collectionFields.push_back("none");
+				if (iKnownLabel == 8) pItem->collectionFields.push_back("none");
+			}
+			else
+			{
+				// empty field
+				pItem->collectionFields.push_back("none");
+			}
+		}
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool fill_rpg_item_defaults(collectionItemType* pItem, int entid, int e)
+{
+	return fill_rpg_item_defaults_passedin(pItem, entid, e, NULL, NULL);
+}
+
 bool refresh_collection_from_entities(void)
 {
 	// start with game project master list
@@ -162,93 +272,8 @@ bool refresh_collection_from_entities(void)
 		if (entid > 0)
 		{
 			// find things to add to collection
-			bool bAddThisItem = false;
 			collectionItemType item;
-
-			// weapons are automatically collectale
-			if (t.entityprofile[entid].isweapon > 0)
-			{
-				item.collectionFields.clear();
-				for (int l = 0; l < g_collectionLabels.size(); l++)
-				{
-					int iKnownLabel = 0;
-					LPSTR pLabel = g_collectionLabels[l].Get();
-					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
-					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
-					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
-					if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
-					if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
-					if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
-					if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-					if (iKnownLabel > 0 )
-					{
-						// field we can populate automatically
-						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
-						if (iKnownLabel == 2) item.collectionFields.push_back(cstr("gamecore\\guns\\")+ t.entityprofile[entid].isweapon_s+cstr("\\item.png"));
-						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
-						if (iKnownLabel == 4) item.collectionFields.push_back(10);
-						if (iKnownLabel == 5) item.collectionFields.push_back(5);
-						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
-						if (iKnownLabel == 7) item.collectionFields.push_back("none");
-						if (iKnownLabel == 8) item.collectionFields.push_back("none");
-					}
-					else
-					{
-						// empty field
-						item.collectionFields.push_back("");
-					}
-				}
-				bAddThisItem = true;
-			}
-
-			// any entities marked to be collected (and As Named)
-			int iContainerItemIndex = t.entityelement[e].eleprof.iscollectable;
-			if ( iContainerItemIndex != 0)
-			{
-				item.collectionFields.clear();
-				for (int l = 0; l < g_collectionLabels.size(); l++)
-				{
-					int iKnownLabel = 0;
-					LPSTR pLabel = g_collectionLabels[l].Get();
-					if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
-					if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-					if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
-					if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
-					if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
-					if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
-					if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
-					if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-					if (iKnownLabel > 0)
-					{
-						// field we can populate automatically
-						if (iKnownLabel == 1) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
-						if (iKnownLabel == 2)
-						{
-							char pBMPPNGImage[256];
-							strcpy(pBMPPNGImage, t.entitybank_s[entid].Get());
-							pBMPPNGImage[strlen(pBMPPNGImage) - 4] = 0;
-							char pBMPPNGImageFile[256];
-							sprintf(pBMPPNGImageFile, "%s.png", pBMPPNGImage);
-							cstr pFinalImgFile = cstr("entitybank\\") + cstr(pBMPPNGImageFile);
-							if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
-							item.collectionFields.push_back(pFinalImgFile);
-						}
-						if (iKnownLabel == 3) item.collectionFields.push_back(t.entityelement[e].eleprof.name_s);
-						if (iKnownLabel == 4) item.collectionFields.push_back(10);
-						if (iKnownLabel == 5) item.collectionFields.push_back(5);
-						if (iKnownLabel == 6) item.collectionFields.push_back("shop");
-						if (iKnownLabel == 7) item.collectionFields.push_back("none");
-						if (iKnownLabel == 8) item.collectionFields.push_back("none");
-					}
-					else
-					{
-						// empty field
-						item.collectionFields.push_back("");
-					}
-				}
-				bAddThisItem = true;
-			}
+			bool bAddThisItem = fill_rpg_item_defaults(&item, entid, e);
 			if (bAddThisItem == true)
 			{
 				// before we add, confirm this does not already exist
@@ -269,6 +294,44 @@ bool refresh_collection_from_entities(void)
 		}
 	}
 
+	// replace any default images with correct paths
+	for (int n = 0; n < g_collectionList.size(); n++)
+	{
+		if (g_collectionList[n].collectionFields.size() > 0)
+		{
+			if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+			{
+				cstr entityfile = "";
+				LPSTR pFind = g_collectionList[n].collectionFields[0].Get();
+				for (int ee = 1; ee < g.entityelementmax; ee++)
+				{
+					LPSTR pThisEnt = t.entityelement[ee].eleprof.name_s.Get();
+					if (stricmp (pThisEnt, pFind) == NULL)
+					{
+						int entid = t.entityelement[ee].bankindex;
+						entityfile = t.entitybank_s[entid].Get();
+						break;
+					}
+				}
+				/* only finds original parent names, need renamed ones the level, i.e. recipe
+				for (int entid = 1; entid < t.entitybank_s.size(); entid++)
+				{
+					LPSTR pThisEnt = t.entitybank_s[entid].Get();
+					if (strnicmp (pThisEnt + strlen(pThisEnt) - strlen(pFind) - 4, pFind, strlen(pFind)) == NULL)
+					{
+						entityfile = pThisEnt;
+						break;
+					}
+				}
+				*/
+				if (strlen(entityfile.Get()) > 0)
+				{
+					g_collectionList[n].collectionFields[1] = get_rpg_imagefinalfile(entityfile);
+				}
+			}
+		}
+	}
+
 	// for init on each game project, where is the INGAME HUD screen (can change as working in storyboard after initial opening)
 	extern int FindLuaScreenNode(char* name);
 	t.game.ingameHUDScreen = FindLuaScreenNode("HUD0");
@@ -277,6 +340,7 @@ bool refresh_collection_from_entities(void)
 	return true;
 }
 
+/*
 bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 {
 	collectionItemType item;
@@ -308,12 +372,13 @@ bool add_collection_internal(char* pTitle, char* pImage, char* pDesc)
 		else
 		{
 			// empty field
-			item.collectionFields.push_back("");
+			item.collectionFields.push_back("none");
 		}
 	}
 	g_collectionList.push_back(item);
 	return true;
 }
+*/
 
 int find_rpg_collectionindex (char* pName)
 {

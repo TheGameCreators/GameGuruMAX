@@ -5595,35 +5595,6 @@ void game_sync ( void )
 		}
 	}
 
-	#ifdef WICKEDENGINE
-	#else
-	//  Screen shot feature (redundant on Steam)
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handling screenshot taking");
-	if (  KeyState(g.keymap[68]) == 0  )  t.game.takingsnapshotpress = 0;
-	if (  KeyState(g.keymap[68]) == 1 && t.game.takingsnapshotpress == 0 ) 
-	{
-		//  Grab current screen and save out under unique filename
-		if (  ImageExist(g.savescreenshotimage) == 1  )  DeleteImage (  g.savescreenshotimage );
-		GrabImage (  g.savescreenshotimage,0,0,GetDisplayWidth(),GetDisplayHeight(),1 );
-		file_createmydocsfolder ( );
-		t.tfilenum=1;
-		while (  FileExist( cstr(g.myownrootdir_s+"\\snapshot"+Str(t.tfilenum)+".jpg").Get() ) == 1 ) 
-		{
-			++t.tfilenum;
-
-			// GOCTHA!!
-			t.strwork = ""; t.strwork = t.strwork + g.myownrootdir_s + "\\snapshot" + Str(t.tfilenum) + ".jpg";
-		}
-		t.strwork = ""; t.strwork += g.myownrootdir_s+"\\snapshot"+Str(t.tfilenum)+".jpg";
-		if ( ImageExist(g.savescreenshotimage) == 1 )
-		{
-			SaveImage ( t.strwork.Get(), g.savescreenshotimage, 0 );
-			DeleteImage (  g.savescreenshotimage );
-		}
-		t.game.takingsnapshotpress=1;
-	}
-	#endif
-
 	//  Work out performance metrics
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders readall");
 	t.slidersmenuindex=t.slidersmenunames.performance  ; sliders_readall ( );

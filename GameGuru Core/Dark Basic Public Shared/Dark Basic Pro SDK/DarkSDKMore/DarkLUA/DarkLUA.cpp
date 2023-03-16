@@ -14,16 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
-
-//new includes (now donein gameguru.h)
-//#include "PhotonCommands.h"
-//#include "SteamCommands.h"
-//#include "DarkAI.h"
-//#include "CTextC.h"
-//#include "CImageC.h"
-//#include "CFileC.h"
-//#include "CSoundC.h"
-
 #include "M-RPG.h"
 
 // DarkLUA needs access to the T global (but could be in two locations)
@@ -1150,6 +1140,23 @@ luaMessage** ppLuaMessages = NULL;
 					// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
 					item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
 
+					// if resource and no slot specified (collected in game), merge with any existing
+					if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2 && iSlotIndex == -1)
+					{
+						for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+						{
+							if (t.inventoryContainer[containerindex][n].collectionID == item.collectionID)
+							{
+								// already have this resource in container
+								iSlotIndex = t.inventoryContainer[containerindex][n].slot;
+								break;
+							}
+						}
+					}
+
+					// remove entity from game for now
+					bool bRemoveEntityFromGame = false;
+
 					// manage slot for this item
 					item.slot = -1;
 					if (iSlotIndex == -1)
@@ -1175,7 +1182,25 @@ luaMessage** ppLuaMessages = NULL;
 						{
 							if (t.inventoryContainer[containerindex][n].slot == iSlotIndex)
 							{
-								// being used - cannot use this one
+								if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+								{
+									// being used by resource - can merge these
+									int existingee = t.inventoryContainer[containerindex][n].e;
+									if (existingee > 0)
+									{
+										if (t.entityelement[existingee].eleprof.iscollectable == 2)
+										{
+											// merge both objects into the present one in the container
+											t.entityelement[existingee].eleprof.quantity += t.entityelement[iEntityIndex].eleprof.quantity;
+
+											// hide other object until need again
+											t.entityelement[iEntityIndex].eleprof.quantity = 0;
+											bRemoveEntityFromGame = true;
+										}
+									}
+								}
+
+								// being used by non resource - cannot overwrite this one
 								bCanUseSlot = false;
 								break;
 							}
@@ -1191,7 +1216,10 @@ luaMessage** ppLuaMessages = NULL;
 					if (iReturnSlot != -1)
 					{
 						t.inventoryContainer[containerindex].push_back(item);
-
+						bRemoveEntityFromGame = true;
+					}
+					if (bRemoveEntityFromGame == true )
+					{
 						// handle entity itself
 						bItemHandled = true;
 						if (iEntityIndex > 0)
@@ -1318,6 +1346,34 @@ luaMessage** ppLuaMessages = NULL;
 	 lua_pushinteger(L, iReturnValue);
 	 return 1;
  }
+ int SetEntityQuantity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 int iQty = lua_tonumber(L, 2);
+		 t.entityelement[iEntityIndex].eleprof.quantity = iQty;
+	 }
+	 return 0;
+ }
+ int GetEntityQuantity(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iQty = 0;
+	 if (e > 0)
+	 {
+		 iQty = t.entityelement[e].eleprof.quantity;
+	 }
+	 lua_pushinteger(L, iQty);
+	 return 1;
+ }
+
  int GetEntityWhoActivated(lua_State *L)
  {
 	 lua = L;
@@ -2579,6 +2635,50 @@ luaMessage** ppLuaMessages = NULL;
 	 }
 	 #endif
 
+	 // instead, use nav mesh which accounts for terrain AND objects on it, no need for massive obj scan
+	 float HitY1 = 0.0;
+	 float HitY2 = 0.0;
+	 float fX = ObjectPositionX(t.aisystem.objectstartindex);
+	 float fY = ObjectPositionY(t.aisystem.objectstartindex);
+	 float fZ = ObjectPositionZ(t.aisystem.objectstartindex);
+	 float fHitX, fHitY, fHitZ;
+	 fHitY = 0.0f;
+	 float fMargin = 5.0f;
+	 float fMaximumDrop = 100.0f;
+	 bool bFailed = false;
+	 if (g_RecastDetour.isWithinNavMesh(fX, fY + fMargin, fZ) == true)
+	 {
+		 HitY1 = g_RecastDetour.getYFromPos(fX, fY + fMargin, fZ);
+	 }
+	 else
+	 {
+		 bFailed = true;
+	 }
+	 if (!bFailed)
+	 {
+		 float fX2 = NewXValue(fX, t.playercontrol.movey_f, 1.0);
+		 float fZ2 = NewZValue(fZ, t.playercontrol.movey_f, 1.0);
+		 if (g_RecastDetour.isWithinNavMesh(fX2, fY + fMargin, fZ2) == true)
+		 {
+			 HitY2 = g_RecastDetour.getYFromPos(fX2, fY + fMargin, fZ2);
+		 }
+		 else
+		 {
+			 bFailed = true;
+		 }
+		 float tangle = 0.0;
+		 if (!bFailed)
+		 {
+			 tangle = ((HitY2 - HitY1) / 1.0) * 22.0;
+			 if (tangle < -45) tangle = -45;
+			 if (tangle > 45) tangle = 45;
+			 lasttangle = tangle;
+		 }
+		 if (bFailed) tangle = lasttangle;
+		 t.tjetpackverticalmove_f = tangle;
+	 }
+
+	 /* horrendously slow even in non-opt release mode
 	 float HitY1 = 0.0;
 	 float HitY2 = 0.0;
 	 float fX = ObjectPositionX(t.aisystem.objectstartindex);
@@ -2624,6 +2724,7 @@ luaMessage** ppLuaMessages = NULL;
 
 		 t.tjetpackverticalmove_f = tangle;
 	 }
+	 */
 	 return 0;
  }
 
@@ -6955,60 +7056,157 @@ int MoveInventoryItem (lua_State* L)
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if (n < 4) return 0;
+	if (n < 5) return 0;
 	char pNameOfInventoryFrom[512];
 	strcpy(pNameOfInventoryFrom, lua_tostring(L, 1));
+	int collectionindex = lua_tonumber(L, 3);
+	int entityindex = lua_tonumber(L, 4);
 	int bothplayercontainersfrom = FindInventoryIndex(pNameOfInventoryFrom);
 	if (bothplayercontainersfrom >= 0)
 	{
+		bool bNeedToRecreateContainerFrom = false;
 		char pNameOfInventoryTo[512];
 		strcpy(pNameOfInventoryTo, lua_tostring(L, 2));
 		int bothplayercontainersto = FindInventoryIndex(pNameOfInventoryTo);
 		if (bothplayercontainersto >= 0)
 		{
-			int collectionindex = lua_tonumber(L, 3);
-			int slotindex = lua_tonumber(L, 4);
+			int slotindex = lua_tonumber(L, 5);
+			if (bothplayercontainersfrom == bothplayercontainersto)
+			{
+				// moved within same container
+				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+				for (int n = 0; n < iListSize; n++)
+				{
+					if (slotindex != -1)
+					{
+						if (collectionindex == -1)
+						{
+							if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+							{
+								t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
+								break;
+							}
+						}
+						else
+						{
+							if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+							{
+								t.inventoryContainer[bothplayercontainersfrom][n].slot = slotindex;
+								break;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// different containers
+				int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+				for (int n = 0; n < iListSize; n++)
+				{
+					bool bMatch = false;
+					if (collectionindex == -1)
+					{
+						if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+							bMatch = true;
+					}
+					else
+					{
+						if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+							bMatch = true;
+					}
+					if (bMatch==true)
+					{
+						// create item
+						inventoryContainerType item;
+						item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
+						item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
+						item.slot = slotindex;
+						if (item.slot == -1)
+						{
+							item.slot = 0;
+							while (1)
+							{
+								bool bCanIUseThisSlot = true;
+								for (int nn = 0; nn < t.inventoryContainer[bothplayercontainersto].size(); nn++)
+								{
+									if (t.inventoryContainer[bothplayercontainersto][nn].slot == item.slot)
+									{
+										bCanIUseThisSlot = false;
+										break;
+									}
+								}
+								if (bCanIUseThisSlot == false)
+									item.slot++;
+								else
+									break;
+							}
+						}
+						// remove from old (below)
+						t.inventoryContainer[bothplayercontainersfrom][n].e = -2;
+						bNeedToRecreateContainerFrom = true;
+						// add new item or increase resource quantity
+						bool bWeAddedToQuantityOfAnother = false;
+						if ( item.e > 0 && t.entityelement[item.e].eleprof.iscollectable == 2)
+						{
+							int iListToSize = t.inventoryContainer[bothplayercontainersto].size();
+							for (int n = 0; n < iListToSize; n++)
+							{
+								if (t.inventoryContainer[bothplayercontainersto][n].collectionID == item.collectionID)
+								{
+									// can add to resource, no need to create new item in dest
+									int ee = t.inventoryContainer[bothplayercontainersto][n].e;
+									if (ee > 0)
+									{
+										t.entityelement[ee].eleprof.quantity += t.entityelement[item.e].eleprof.quantity;
+										t.entityelement[item.e].eleprof.quantity = 0;
+										bWeAddedToQuantityOfAnother = true;
+										break;
+									}
+								}
+							}
+						}
+						if (bWeAddedToQuantityOfAnother == false )
+						{
+							// add new item to dest
+							t.inventoryContainer[bothplayercontainersto].push_back(item);
+						}
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			// moving item to limbo (for resources that hit zero quantity)
 			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 			for (int n = 0; n < iListSize; n++)
 			{
-				if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+				bool bMatch = false;
+				if (collectionindex == -1)
 				{
-					// create item
-					inventoryContainerType item;
-					item.e = t.inventoryContainer[bothplayercontainersfrom][n].e;
-					item.collectionID = t.inventoryContainer[bothplayercontainersfrom][n].collectionID;
-					item.slot = slotindex;
-					if (item.slot == -1)
-					{
-						item.slot = 0;
-						while (1)
-						{
-							bool bCanIUseThisSlot = true;
-							for (int nn = 0; nn < t.inventoryContainer[bothplayercontainersto].size(); nn++)
-							{
-								if (t.inventoryContainer[bothplayercontainersto][nn].slot == item.slot)
-								{
-									bCanIUseThisSlot = false;
-									break;
-								}
-							}
-							if (bCanIUseThisSlot == false)
-								item.slot++;
-							else
-								break;
-						}
-					}
-					// remove from old (below)
+					if (t.inventoryContainer[bothplayercontainersfrom][n].e == entityindex)
+						bMatch = true;
+				}
+				else
+				{
+					if (t.inventoryContainer[bothplayercontainersfrom][n].collectionID == collectionindex)
+						bMatch = true;
+				}
+				if (bMatch == true)
+				{
+					// remove (below)
 					t.inventoryContainer[bothplayercontainersfrom][n].e = -2;
-					// add to new
-					t.inventoryContainer[bothplayercontainersto].push_back(item);
+					bNeedToRecreateContainerFrom = true;
 					break;
 				}
 			}
-			// recreate container list without the deleted item
+		}
+		if ( bNeedToRecreateContainerFrom == true)
+		{
 			std::vector <inventoryContainerType> inventoryContainerTemp;
 			inventoryContainerTemp.clear();
-			iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
+			int iListSize = t.inventoryContainer[bothplayercontainersfrom].size();
 			for (int n = 0; n < iListSize; n++)
 			{
 				if (t.inventoryContainer[bothplayercontainersfrom][n].e != -2)
@@ -9201,6 +9399,8 @@ void addFunctions()
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);
 	lua_register(lua, "GetEntityUsed", GetEntityUsed);
+	lua_register(lua, "SetEntityQuantity", SetEntityQuantity);
+	lua_register(lua, "GetEntityQuantity", GetEntityQuantity);
 	lua_register(lua, "SetEntityHasKey", SetEntityHasKey);
 	lua_register(lua, "GetEntityActive", GetEntityActive);
 	lua_register(lua, "GetEntityWhoActivated", GetEntityWhoActivated);

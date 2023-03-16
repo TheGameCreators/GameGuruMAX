@@ -1,33 +1,44 @@
--- Crafting Table v1
--- DESCRIPTION: When player is within [RANGE=100] distance, show [CRAFT_PROMPT$="Press E to start crafting"] and when E is pressed, player will open [CRAFT_SCREEN$="HUD Screen 7"] using [CRAFT_CONTAINER$="chest"].
+-- Crafting Table v3
+-- DESCRIPTION: The attached object can be used as a crafting table.
+-- DESCRIPTION: When player is within [USE_RANGE=100] distance,
+-- DESCRIPTION: show [USE_PROMPT$="Press E to begin crafting"] and
+-- DESCRIPTION: when use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
+-- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
 -- DESCRIPTION: <Sound0> when crafting started.
 
-local g_crafting_table = {}
+local crafting_table 	= {}
+local use_range 		= {}
+local use_prompt 		= {}
+local craft_screen 		= {}
+local craft_container 	= {}
 
-function crafting_table_init(e)
-	g_crafting_table[e] = {}
-	crafting_table_properties(e,100,"Press E to start crafting","HUD Screen 7","chest")
+function crafting_table_properties(e, use_range, use_prompt, craft_screen, craft_container)
+	crafting_table[e].use_range = use_range
+	crafting_table[e].use_prompt = use_prompt
+	crafting_table[e].craft_screen = craft_screen
+	crafting_table[e].craft_container = craft_container
 end
 
-function crafting_table_properties(e, range, craftprompt, craftscreen, craftcontainer)
-	g_crafting_table[e]['range'] = range
-	g_crafting_table[e]['craftprompt'] = craftprompt
-	g_crafting_table[e]['craftscreen'] = craftscreen
-	g_crafting_table[e]['craftcontainer'] = craftcontainer
+function crafting_table_init(e)
+	crafting_table[e] = {}
+	crafting_table[e].use_range = 100
+	crafting_table[e].use_prompt = "Press E to begin crafting"
+	crafting_table[e].craft_screen = "HUD Screen 7"
+	crafting_table[e].craft_container = "chest"
 end
 
 function crafting_table_main(e)
 	if GetCurrentScreen() == -1 then
 		-- in the game
 		PlayerDist = GetPlayerDistance(e)
-		if PlayerDist < g_crafting_table[e]['range'] then
-			PromptDuration(g_crafting_table[e]['craftprompt'] ,1000)	
+		if PlayerDist < crafting_table[e].use_range then
+			PromptDuration(crafting_table[e].use_prompt ,1000)	
 			if g_KeyPressE == 1 then
-				g_UserGlobalContainer = g_crafting_table[e]['craftcontainer']
-				ScreenToggle(g_crafting_table[e]['craftscreen'])
+				g_UserGlobalContainer = crafting_table[e].craft_container
+				ScreenToggle(crafting_table[e].craft_screen)
 			end
 		end
 	else
 		-- in craft screen
-	end
+	end	
 end

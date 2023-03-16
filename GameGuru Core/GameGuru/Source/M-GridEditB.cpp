@@ -530,6 +530,12 @@ bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
 #endif
 
+// helps track myglobals and use them in dropdowns for storyboard screen editor
+bool g_bRefreshGlobalList = false;
+std::vector<int> g_gameGlobalListNodeId;
+std::vector<int> g_gameGlobalListIndex;
+std::vector<int> g_gameGlobalListValue;
+
 #ifdef ENABLEIMGUI
 void imgui_set_openproperty_flags(int iMasterID)
 {
@@ -41623,7 +41629,53 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
 							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
-
+						}
+						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+						{
+							ImGui::PopStyleColor();
+							ImGui::PopStyleVar();
+							ImGui::PopStyleVar();
+							const char* items_storyboard_hud[] = { "Delete HUD Screen" };
+							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
+							int selection = 0;
+							char iUniqueString[255];
+							sprintf(iUniqueString, "##ComboStoryboardHUD%d", i);
+							int iComboEntries = 1;
+							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
+							ImGui::PushItemWidth(20);
+							if (ImGui::BeginCombo(iUniqueString, "", comboflags))
+							{
+								for (int n = 0; n < iComboEntries; n++)
+								{
+									if (ImGui::Selectable(items_storyboard_hud[n], false))
+									{
+										Storyboard.iChanged = true;
+										bBlockNextMouseCheck = true;
+										selection = n;
+										if (selection == 0)
+										{
+											int iAction = askBoxCancel("This will delete the HUD screen from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												reset_single_node(i);
+												Storyboard.Nodes[i].used = false;
+												bBlockNextMouseCheck = true;
+											}
+										}
+									}
+								}
+								ImGui::EndCombo();
+							}
+							if (ImGui::IsItemHovered()) 
+							{
+								bBlockNextMouseCheck = true;
+								vTooltipPos = ImGui::GetCursorPos();
+								sTooltip = " Delete HUD screen ";
+							}
+							ImGui::PopItemWidth();
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
+							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
 						}
 
 						bool bExecutePencelEdit = false;
@@ -42477,6 +42529,158 @@ void process_storeboard(bool bInitOnly)
 							storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, true);
 							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[13].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
 						}
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+						if (ImGui::StyleButton("Add RPG Screens", ImVec2(buttonwide, 0.0f)))
+						{
+							// check if RPG screens already exist
+							bool bRPGHUDSMissing[10];
+							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));
+							bool bAllRPGScreensAlreadyExist = true;
+							for (int hudi = 1; hudi <= 8; hudi++)
+							{
+								// assume HUD screen missing
+								bRPGHUDSMissing[hudi] = true;
+								char pTitleLabel[256];
+								if (hudi == 1)
+								{
+									sprintf(pTitleLabel, "In-Game HUD");
+								}
+								else
+								{
+									sprintf(pTitleLabel, "HUD Screen %d", hudi);
+								}
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (Storyboard.Nodes[i].used)
+									{
+										if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+										{
+											if (pestrcasestr(Storyboard.Nodes[i].title, pTitleLabel))
+											{
+												// found the HUD, not missing
+												bRPGHUDSMissing[hudi] = false;
+												break;
+											}
+										}
+									}
+								}
+								if (bRPGHUDSMissing[hudi] == true)
+								{
+									bAllRPGScreensAlreadyExist = false;
+								}
+							}
+							if (bAllRPGScreensAlreadyExist == false)
+							{
+								// load in template screens from "RPG Template" project
+								char project[MAX_PATH];
+								strcpy(project, "projectbank\\RPG Template\\project.dat");
+								FILE* projectfile = GG_fopen(project, "rb");
+								if (projectfile)
+								{
+									StoryboardStruct* checkproject = new StoryboardStruct;
+									size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
+									char sig[12] = "Storyboard\0";
+									if (checkproject->sig[0] == 'S' && checkproject->sig[8] == 'r')
+									{
+										// go through and find all HUD Screens related to RPG
+										for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+										{
+											if (checkproject->Nodes[i].used)
+											{
+												if (checkproject->Nodes[i].type == STORYBOARD_TYPE_HUD)
+												{
+													for (int hudi = 1; hudi <= 8; hudi++)
+													{
+														// only add those that are missing
+														if (bRPGHUDSMissing[hudi] == true )
+														{
+															char pTitleLabel[256];
+															if ( hudi == 1 )
+																sprintf(pTitleLabel, "In-Game HUD");
+															else
+																sprintf(pTitleLabel, "HUD Screen %d", hudi);
+															if (pestrcasestr(checkproject->Nodes[i].title, pTitleLabel))
+															{
+																// find spare node
+																int newnodeid = 0;
+																for (int i = 14; i < STORYBOARD_MAXNODES; i++)
+																{
+																	if (Storyboard.Nodes[i].used == 0 )
+																	{
+																		newnodeid = i;
+																		break;
+																	}
+																}
+																if (newnodeid > 0)
+																{
+																	// must use unique NODEIDs for IMNODE
+																	int iFoundNodeID = 0;
+																	int iTryNodeID = STORYBOARD_THUMBS;
+																	while (iFoundNodeID == 0)
+																	{
+																		int i = 0;
+																		for (; i < STORYBOARD_MAXNODES; i++)
+																		{
+																			if (Storyboard.Nodes[i].used)
+																			{
+																				if (Storyboard.Nodes[i].id == iTryNodeID)
+																				{
+																					iTryNodeID++;
+																					break;
+																				}
+																			}
+																		}
+																		if (i >= STORYBOARD_MAXNODES)
+																		{
+																			iFoundNodeID = iTryNodeID;
+																		}
+																	}
+																	if (iFoundNodeID > 0)
+																	{
+																		// copy node from RPG Template project to current storyboard
+																		Storyboard.Nodes[newnodeid] = checkproject->Nodes[i];
+																		Storyboard.Nodes[newnodeid].id = iFoundNodeID;
+																		Storyboard.NodeRadioButtonSelected[newnodeid] = checkproject->NodeRadioButtonSelected[i];
+																		for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
+																		{
+																			Storyboard.NodeSliderValues[newnodeid][iWidgetIndex] = checkproject->NodeSliderValues[i][iWidgetIndex];
+																			Storyboard.widget_colors[newnodeid][iWidgetIndex] = checkproject->widget_colors[i][iWidgetIndex];
+																			for (int n = 0; n < 128; n++)
+																			{
+																				Storyboard.widget_readout[newnodeid][iWidgetIndex][n] = checkproject->widget_readout[i][iWidgetIndex][n];
+																			}
+																			Storyboard.widget_textoffset[newnodeid][iWidgetIndex] = checkproject->widget_textoffset[i][iWidgetIndex];
+																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = checkproject->widget_ingamehidden[i][iWidgetIndex];
+																		}
+
+																		// update thumbs
+																		SetMipmapNum(1);
+																		image_setlegacyimageloading(true);
+																		LoadImageSize(Storyboard.Nodes[newnodeid].thumb, Storyboard.Nodes[newnodeid].thumb_id, 512, 288);
+																		image_setlegacyimageloading(false);
+																		SetMipmapNum(-1);
+
+																		// indicate a change
+																		ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[newnodeid].id, Storyboard.Nodes[newnodeid].restore_position);
+																		Storyboard.iChanged = true;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+										fclose(projectfile);
+									}
+									if (checkproject)
+									{
+										delete checkproject;
+										checkproject = NULL;
+									}
+								}
+							}
+						}
 					}
 					#endif
 					//PE: Auto connect node.
@@ -43119,7 +43323,7 @@ int save_level_as( void )
 									}
 
 									//Load to correct id.
-									SetMipmapNum(1); //PE: mipmaps not needed.
+									SetMipmapNum(1);
 									image_setlegacyimageloading(true);
 									LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
 									image_setlegacyimageloading(false);
@@ -45460,7 +45664,7 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	if (bRenderTabTab == false)
+	if (g.tabmode == 0 )//bRenderTabTab == false)
 	{
 		static std::vector<int> scans;
 		if (listenForKeys.empty())
@@ -47799,10 +48003,12 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					// Display and allow editing of readouts
 					ImGui::TextCenter("Readout");
-					ImGui::PushItemWidth(-10);					
+					ImGui::PushItemWidth(-10);
 					std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
 					if (ImGui::BeginCombo("##readoutcombo", readout.c_str()))
 					{
+						ImGui::Selectable(readout.c_str(), true);
+						/* no choices, keep readout fixed to original gadget choice
 						int readoutIndex = GetReadoutIndex((char*)readout.c_str());
 						STORYBOARD_WIDGET_ type = readoutWidgetTypes[readoutIndex];
 						for (int i = 0; i < readoutTitles.size(); i++)
@@ -47816,6 +48022,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								}
 							}
 						}
+						*/
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
@@ -47823,13 +48030,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					// moved enry of 'widget_label' down here to match readout selection
 					if (iUserDefinedGlobal > 0)
 					{
-						if (widgetType != STORYBOARD_WIDGET_PROGRESS )//&& widgetType != STORYBOARD_WIDGET_IMAGE)
+						if (widgetType != STORYBOARD_WIDGET_PROGRESS )
 						{
 							// label
 							if( iUserDefinedGlobal==2 )
-								ImGui::TextCenter("User Defined Global Names");
+								ImGui::TextCenter("User Defined Global Values");
 							else
-								ImGui::TextCenter("User Defined Global Name");
+								ImGui::TextCenter("User Defined Global Value");
 
 							// one or two (single or pair handling)
 							char storeFirstEntry[MAX_PATH];
@@ -47844,13 +48051,212 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								*pDelimit = 0;
 							}
 
-							// field
-							cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+							// field (use dropdown for common values)
 							ImGui::PushItemWidth(-10);
-							ImGui::InputText(UniqueTextFiledName.Get(), storeFirstEntry, 250, ImGuiInputTextFlags_None);
-							if ( ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global to display. Pre-defined globals include; MyArmour, MyArmourToughness, MyStamina.");
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+							bool bShowCustomValueBox = false;
+							std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];
+							if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+							{
+								bool bKnownValue = false;
+								const char* pSelectedComboItem = "";
+								for (int n = 0; n <= g_gameGlobalListNodeId.size(); n++)
+								{
+									LPSTR pThisGlobItem = "";
+									if (n < g_gameGlobalListNodeId.size())
+									{
+										int i = g_gameGlobalListIndex[n];
+										int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+										pThisGlobItem = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+										if (stricmp(pThisGlobItem, storeFirstEntry) == NULL)
+										{
+											pSelectedComboItem = pThisGlobItem;
+											bKnownValue = true;
+											break;
+										}
+									}
+								}
+								if ( strlen(pSelectedComboItem) == 0 )
+								{
+									pSelectedComboItem = "Custom Value";
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::BeginCombo("##comboRPGGlobalKinds", pSelectedComboItem))
+								{
+									for (int n = 0; n <= g_gameGlobalListNodeId.size(); n++)
+									{
+										LPSTR pThisGlobItem = "";
+										if (n < g_gameGlobalListNodeId.size())
+										{
+											int i = g_gameGlobalListIndex[n];
+											int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+											pThisGlobItem = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+										}
+										else
+										{
+											pThisGlobItem = "Custom Value";
+										}
+										bool bIsSelected = false;
+										if (stricmp(pThisGlobItem, storeFirstEntry) == NULL) bIsSelected = true;
+										if (ImGui::Selectable(pThisGlobItem, bIsSelected))
+										{
+											if (n < g_gameGlobalListNodeId.size())
+											{
+												strcpy(storeFirstEntry, pThisGlobItem);
+											}
+											else
+											{
+												if (bKnownValue == true) strcpy(storeFirstEntry, "");
+											}
+											g_bRefreshGlobalList = true;
+											break;
+										}
+									}
+									ImGui::EndCombo();
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Text") == NULL)
+							{
+								const char* rpginventorykinds[] = { "prompt:main", "selected:title", "selected:description", "selected:cost", "selected:value", "selected:ingredients", "craft:title", "craft:ingredients", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGInventoryKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection == -1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify the user global value used by this text");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Image") == NULL)
+							{
+								const char* rpginventorykinds[] = { "selected:image", "scrollbar:box", "scrollbar:handle", "map:window", "map:image", "map:player", "map:winzone", "map:character", "map:objective", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGImageKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection == -1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value used by this image");
+							}
+							if (strcmp(readout.c_str(), "User Defined Global Panel") == NULL)
+							{
+								const char* rpginventorykinds[] = { "inventory:player", "inventory:hotkeys", "inventory:container", "inventory:chest", "inventory:craft", "Custom Value" };
+								int rpginventorykinds_selection = -1;
+								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+								{
+									if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+									{
+										rpginventorykinds_selection = n;
+										break;
+									}
+								}
+								int ishowselectionincombo = rpginventorykinds_selection;
+								if (ishowselectionincombo == -1) ishowselectionincombo = IM_ARRAYSIZE(rpginventorykinds) - 1;
+								if (ImGui::Combo("##comboRPGInventoryKinds", &ishowselectionincombo, rpginventorykinds, IM_ARRAYSIZE(rpginventorykinds)))
+								{
+									if (ishowselectionincombo <= IM_ARRAYSIZE(rpginventorykinds) - 2)
+									{
+										strcpy (storeFirstEntry, rpginventorykinds[ishowselectionincombo]);
+									}
+									else
+									{
+										for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
+										{
+											if (stricmp(rpginventorykinds[n], storeFirstEntry) == NULL)
+											{
+												strcpy(storeFirstEntry, "");
+												break;
+											}
+										}
+										rpginventorykinds_selection = -1;
+									}
+								}
+								if (rpginventorykinds_selection==-1)
+								{
+									bShowCustomValueBox = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify the user global value used by this panel");
+							}
 							ImGui::PopItemWidth();
+							if (strcmp(readout.c_str(), "User Defined Global Statusbar") == NULL)
+							{
+								bShowCustomValueBox = true;
+							}
+							if (bShowCustomValueBox == true )
+							{
+								cstr UniqueTextFiledName = cstr("##WidgetTextStoryboardInput") + cstr(iCurrentSelectedWidget);
+								ImGui::PushItemWidth(-10);
+								static char tempinputFirstEntry[251];
+								static int ilastSelectedWidget = -1;
+								if (iCurrentSelectedWidget+(nodeid*1000) != ilastSelectedWidget)
+								{
+									ilastSelectedWidget = iCurrentSelectedWidget + (nodeid * 1000);
+									strcpy(tempinputFirstEntry, storeFirstEntry);
+								}
+								if (ImGui::InputText(UniqueTextFiledName.Get(), tempinputFirstEntry, 250, ImGuiInputTextFlags_EnterReturnsTrue))
+								{
+									strcpy(storeFirstEntry, tempinputFirstEntry);
+									g_bRefreshGlobalList = true;
+								}
+								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+								ImGui::PopItemWidth();
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global");
+							}
 
 							// globals pairs are used for things like status bars (current value var and max var)
 							if (iUserDefinedGlobal == 2)
@@ -47858,8 +48264,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								// ask for a second on its own
 								cstr UniqueTextFiledNameSecond = cstr("##WidgetTextStoryboardInputSecond") + cstr(iCurrentSelectedWidget);
 								ImGui::PushItemWidth(-10);
-								ImGui::InputText(UniqueTextFiledNameSecond.Get(), storeSecondEntry, 250, ImGuiInputTextFlags_None);
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global to assist with the final display. Pre-defined globals include; MyStaminaMaximum.");
+								if (ImGui::InputText(UniqueTextFiledNameSecond.Get(), storeSecondEntry, 250, ImGuiInputTextFlags_EnterReturnsTrue))
+								{
+									g_bRefreshGlobalList = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global");
 								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 								ImGui::PopItemWidth();
 							}
@@ -47883,66 +48292,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			{
 				ImGui::Indent(10);
 				// only for HUD screens
-				std::vector<int> gameGlobalListNodeId;
-				std::vector<int> gameGlobalListIndex;
-				std::vector<int> gameGlobalListValue;
-				gameGlobalListNodeId.clear();
-				gameGlobalListIndex.clear();
-				gameGlobalListValue.clear();
-				for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+				if (g_bRefreshGlobalList == true)
 				{
-					if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name,"hud",3) == NULL)
-					{
-						for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
-						{
-							if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
-							{
-								std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-								if (stricmp(readout.c_str(), "User Defined Global") == NULL)
-								{
-									// only add unique ones to game global list
-									LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-									for (int n = 0; n < gameGlobalListNodeId.size(); n++)
-									{
-										int thisnodeid = gameGlobalListNodeId[n];
-										int index = gameGlobalListIndex[n];
-										LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-										if (strcmp(pNewName, pThisName) == NULL)
-										{
-											// already exists
-											pNewName = "";
-											break;
-										}
-									}
-									if (strlen(pNewName) > 0)
-									{
-										gameGlobalListNodeId.push_back(allhudscreensnodeid);
-										gameGlobalListIndex.push_back(i);
-										gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
-									}
-								}
-							}
-						}
-					}
-				}
-				bool bChangedAGameGlobal = false;
-				for (int n = 0; n < gameGlobalListNodeId.size(); n++)
-				{
-					int allhudscreensnodeid = gameGlobalListNodeId[n];
-					int i = gameGlobalListIndex[n];
-					ImGui::TextCenter(Storyboard.Nodes[allhudscreensnodeid].widget_label[i]);
-					char pUDGVar[256];
-					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
-					float fValue = gameGlobalListValue[n];
-					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
-					if (fValue != gameGlobalListValue[n])
-					{
-						gameGlobalListValue[n] = fValue;
-						bChangedAGameGlobal = true;
-					}
-				}
-				if (bChangedAGameGlobal == true)
-				{
+					g_gameGlobalListNodeId.clear();
+					g_gameGlobalListIndex.clear();
+					g_gameGlobalListValue.clear();
 					for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
 					{
 						if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
@@ -47956,15 +48310,73 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									{
 										// only add unique ones to game global list
 										LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-										for (int n = 0; n < gameGlobalListNodeId.size(); n++)
+										for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 										{
-											int thisnodeid = gameGlobalListNodeId[n];
-											int index = gameGlobalListIndex[n];
+											int thisnodeid = g_gameGlobalListNodeId[n];
+											int index = g_gameGlobalListIndex[n];
 											LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
 											if (strcmp(pNewName, pThisName) == NULL)
 											{
-												Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = gameGlobalListValue[n];
+												// already exists
+												pNewName = "";
 												break;
+											}
+										}
+										if (strlen(pNewName) > 0)
+										{
+											g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
+											g_gameGlobalListIndex.push_back(i);
+											g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+				bool bChangedAGameGlobal = false;
+				for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+				{
+					int allhudscreensnodeid = g_gameGlobalListNodeId[n];
+					int i = g_gameGlobalListIndex[n];
+					ImGui::TextCenter(Storyboard.Nodes[allhudscreensnodeid].widget_label[i]);
+					char pUDGVar[256];
+					sprintf(pUDGVar, "##WidgetUDG%d-%d", allhudscreensnodeid, i);
+					float fValue = g_gameGlobalListValue[n];
+					ImGui::MaxSliderInputFloat(pUDGVar, &fValue, 0, 100, "Set Initial Value for this User Defined Global", 0, 100);
+					if (fValue != g_gameGlobalListValue[n])
+					{
+						g_gameGlobalListValue[n] = fValue;
+						bChangedAGameGlobal = true;
+					}
+				}
+				if (g_bRefreshGlobalList == true)
+				{
+					if (bChangedAGameGlobal == true)
+					{
+						for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+						{
+							if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
+							{
+								for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+								{
+									if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+									{
+										std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+										if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+										{
+											// only add unique ones to game global list
+											LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+											{
+												int thisnodeid = g_gameGlobalListNodeId[n];
+												int index = g_gameGlobalListIndex[n];
+												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+												if (strcmp(pNewName, pThisName) == NULL)
+												{
+													Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
+													break;
+												}
 											}
 										}
 									}
@@ -47973,6 +48385,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 				}
+				g_bRefreshGlobalList = false;
 				ImGui::Indent(-10);
 			}
 

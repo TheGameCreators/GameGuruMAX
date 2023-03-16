@@ -99,6 +99,10 @@ bool load_rpg_system(char* name)
 	// make a copy to regular gaming list
 	g_collectionList = g_collectionMasterList;
 
+	// trigger initial filling of global list (better location for this somewhere)
+	extern bool g_bRefreshGlobalList;
+	g_bRefreshGlobalList = true;
+
 	// success
 	return true;
 }

@@ -71,7 +71,7 @@ bool g_bBuildingEditorPresent = false;
 DWORD g_dwParticleEditorProcessHandle = NULL;
 
 int g_iIconImageInProperties = 0;
-int g_iIconImageInPropertiesLastEntID = 0;
+int g_iIconImageInPropertiesLastEntIndex = 0;
 
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
@@ -10146,6 +10146,7 @@ void mapeditorexecutable_loop(void)
 										{
 											// Any tip
 											LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
+											if (iKnownLabel == 2) pShowTop = "Select an image that will be used to represent this object in your HUD screens";
 											if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
 											if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
 											if (iKnownLabel == 5) pShowTop = "Enter a value for this item that may appear in your HUD screens";
@@ -10165,11 +10166,11 @@ void mapeditorexecutable_loop(void)
 													g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
 													sSelectedLibrarySting = "";
 													iSelectedLibraryStingReturnID = -1; //disable.
-													g_iIconImageInPropertiesLastEntID = 0;// trigger reload
+													g_iIconImageInPropertiesLastEntIndex = 0;// trigger reload
 												}
-												if (g_iIconImageInPropertiesLastEntID != iMasterID)
+												if (g_iIconImageInPropertiesLastEntIndex != iEntityIndex)
 												{
-													g_iIconImageInPropertiesLastEntID = iMasterID;
+													g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
 													g_iIconImageInProperties = 0;
 												}
 												LPSTR pIconImageInProperties = g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get();
@@ -10185,13 +10186,20 @@ void mapeditorexecutable_loop(void)
 														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
 													}
 													g_iIconImageInProperties = g.iconimagebankoffset;
+													if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
+													image_setlegacyimageloading(true);
 													if (FileExist(pIconImageInProperties)==1)
 													{
-														if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
-														image_setlegacyimageloading(true);
+														// actual icon image
 														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
-														image_setlegacyimageloading(false);
 													}
+													else
+													{
+														// specified image not found, use placeholder
+														pIconImageInProperties = "imagebank\\HUD Library\\MAX\\object.png";
+														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
+													}
+													image_setlegacyimageloading(false);
 												}
 												int iTextureID = g_iIconImageInProperties;
 												ImVec2 ImageSize = ImVec2(w - ImGui::GetCurrentWindow()->ScrollbarSizes.x, ImGui::GetFontSize());

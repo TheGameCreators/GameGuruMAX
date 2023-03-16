@@ -1132,7 +1132,7 @@ function hud0.main()
 			end
 		end
 	end
-	
+
   end
 
   -- display contents of any user defined images for map views 
@@ -1243,6 +1243,7 @@ function hud0.main()
 						SetSpriteScissor(hud0_mapView_WindowX,hud0_mapView_WindowY,hud0_mapView_WindowW,hud0_mapView_WindowH)
 						PasteSprite(hud0_gridSpriteID)
 						SetSpriteScissor(0,0,0,0)
+						SetSpriteOffset(hud0_gridSpriteID,0,0)
 					end
 				end
 			end
@@ -1289,7 +1290,7 @@ function hud0.main()
 	hud0_mapView_ImageY = hud0_mapView_WindowY - ((hud0_mapView_ImageH-hud0_mapView_WindowH)/2) - hud0_mapView_ScrollY
    end
   end
-  
+
   -- draw mouse pointer last
   if drawMousePointer == 1 then
 	if hud0_pointerID == -1 then hud0_pointerID = GetScreenElementID("pointer",1) end

@@ -346,7 +346,7 @@ function hud0.main()
 			end
 		end
 	end
-							
+					
 	-- detect when select and let go of an element for each grid
 	local tgridqty = GetScreenElementsType("user defined global panel")
 	for gridi = 1, tgridqty, 1 do
@@ -460,7 +460,7 @@ function hud0.main()
 												-- owned by other - cannot move item here
 												cancelmove = 1
 											end
-										end					
+										end		
 										
 										-- cancel if moving item into recipe that is not a recipe
 										if panelnameTo == "inventory:craft" then

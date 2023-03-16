@@ -1,33 +1,46 @@
--- Chest v1
--- DESCRIPTION: When player is within [RANGE=100] distance, show [CHEST_PROMPT$="Press E to open"] and when E is pressed, player will open [CHEST_SCREEN$="HUD Screen 6"] using [CHEST_CONTAINER$="chest"].
+-- Chest v3
+-- DESCRIPTION: When player is within [USE_RANGE=100], show
+-- DESCRIPTION: [USE_PROMPT$="Press E to open"] when use key is pressed,
+-- DESCRIPTION: will display [CHEST_SCREEN$="HUD Screen 6"],
+-- DESCRIPTION: using [CHEST_CONTAINER$="chest"].
 -- DESCRIPTION: <Sound0> for opening sound.
 
-local g_chest = {}
+local chest = {}
+local use_range = {}
+local use_prompt = {}
+local chest_screen = {}
+local chest_container = {}
 
-function chest_init(e)
-	g_chest[e] = {}
-	chest_properties(e,100,"Press E to open","HUD Screen 6","chest")
+function chest_properties(e, use_range, use_prompt, chest_screen, chest_container)
+	chest[e].use_range = use_range
+	chest[e].use_prompt = use_prompt
+	chest[e].chest_screen = chest_screen
+	chest[e].chest_container = chest_container
 end
 
-function chest_properties(e, range, chestprompt, chestscreen, chestcontainer)
-	g_chest[e]['range'] = range
-	g_chest[e]['chestprompt'] = chestprompt
-	g_chest[e]['chestscreen'] = chestscreen
-	g_chest[e]['chestcontainer'] = chestcontainer
+function chest_init(e)
+	chest[e] = {}
+	chest[e].use_range = 100
+	chest[e].use_prompt = "Press E to open"
+	chest[e].chest_screen = "HUD Screen 6"
+	chest[e].chest_container = "chest"
 end
 
 function chest_main(e)
 	if GetCurrentScreen() == -1 then
 		-- in the game
 		PlayerDist = GetPlayerDistance(e)
-		if PlayerDist < g_chest[e]['range'] then
-			PromptDuration(g_chest[e]['chestprompt'] ,1000)	
+		if PlayerDist < chest[e].use_range then
+			PromptDuration(chest[e].use_prompt, 1000)
 			if g_KeyPressE == 1 then
-				g_UserGlobalContainer = g_chest[e]['chestcontainer']
-				ScreenToggle(g_chest[e]['chestscreen'])
+				SetAnimationName(e,"open")
+				PlayAnimation(e)
+				PlaySound(e,0)
+				g_UserGlobalContainer = chest[e].chest_container
+				ScreenToggle(chest[e].chest_screen)
 			end
 		end
 	else
-		-- in chest screen
+		-- in chest hud screen
 	end
 end

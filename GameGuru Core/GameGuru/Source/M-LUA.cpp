@@ -801,6 +801,11 @@ void lua_loop_allentities ( void )
 		int thisentid = t.entityelement[t.e].bankindex;
 		if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
 		{
+			// must skip entity element if collected by shop or other container
+			// only player and hotkeys collections can run logic!
+			if (t.entityelement[t.e].collected >= 3)
+				continue;
+
 			// provided by darkai_loop control (avoids desync of use of maximumnonefreezedistance)
 			#ifdef WICKEDENGINE
 			if (t.entityelement[t.e].lua.outofrangefreeze == 1)

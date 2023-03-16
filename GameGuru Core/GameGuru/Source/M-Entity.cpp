@@ -9427,9 +9427,12 @@ void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, fl
 void entity_updateparticleemitter ( int e )
 {
 	// also handle particle emitter entity
-	if (t.entityprofile[t.entityelement[e].bankindex].ismarker == 10)
+	if (e > 0)
 	{
-		entity_updateparticleemitterbyID(&t.entityelement[e].eleprof, t.entityelement[e].obj, t.entityelement[e].scalex, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+		if (t.entityprofile[t.entityelement[e].bankindex].ismarker == 10)
+		{
+			entity_updateparticleemitterbyID(&t.entityelement[e].eleprof, t.entityelement[e].obj, t.entityelement[e].scalex, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+		}
 	}
 }
 

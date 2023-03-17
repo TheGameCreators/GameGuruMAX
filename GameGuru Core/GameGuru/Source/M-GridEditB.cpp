@@ -10248,12 +10248,12 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Allow tabbed sections in the right panel");
 
 			bTmp = pref.iEnableAdvancedEntityList;
-			if (ImGui::Checkbox("Allow Selection of Detailed Object List", &bTmp)) {
+			if (ImGui::Checkbox("Allow Selection of Detailed & Collection List", &bTmp)) {
 				current_sort_order = 0;
 				pref.iEnableAdvancedEntityList = bTmp;
 				bCheckedInitialState = false;
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the detailed object list filter in the level objects window");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the detailed and collection list filter in the level objects window");
 
 			void ToggleDPIAwareness(bool);
 			// DPI Awareness Flag
@@ -45664,7 +45664,7 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	if (g.tabmode == 0 )//bRenderTabTab == false)
+	if (g.tabmode == 0 )
 	{
 		static std::vector<int> scans;
 		if (listenForKeys.empty())

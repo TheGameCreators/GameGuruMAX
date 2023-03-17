@@ -10,7 +10,9 @@
 #define COLLECTIONDEFINED
 struct collectionItemType
 {
-	std::vector<cstr> collectionFields;
+	int iEntityID; // points to present levels ENTID
+	int iEntityElementE; // holds the cloned identical details of this modified collectable object in ELEPROF
+	std::vector<cstr> collectionFields; // all attribute fields
 };
 #endif
 

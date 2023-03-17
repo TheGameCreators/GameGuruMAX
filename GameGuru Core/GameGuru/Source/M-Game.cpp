@@ -3864,9 +3864,6 @@ void game_preparelevel ( void )
 	lua_init ( );
 	lua_scanandloadactivescripts ( );
 
-	// make up collection list for this level, includes master list plus any collectables in entity list of this level
-	refresh_collection_from_entities();
-
 	#ifdef VRTECH
 	// if still generating LIP file, wait here
 	t.screenprompt_s="GENERATING LIP SYNC DATA";

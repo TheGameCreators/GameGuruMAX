@@ -8390,7 +8390,6 @@ void mapeditorexecutable_loop(void)
 
 				bImGuiGotFocus = true;
 
-
 				//#######################################################
 				//#### Modal Popup Information , must do it this way ####
 				//#######################################################
@@ -8408,62 +8407,6 @@ void mapeditorexecutable_loop(void)
 						ImGui::SetWindowFontScale(1.75f);
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 4));
 						ImGui::TextWrapped(cInfoMessage.Get());
-
-						/* PE: This dont work if we have \n\n in the text.
-						//char newLine[MAX_PATH];
-						//char textToDisplay[MAX_PATH];
-						//strcpy(textToDisplay, cInfoMessage.Get());
-						ImVec2 windowSize = ImGui::GetWindowSize();
-						ImVec2 textSize = ImGui::CalcTextSize(cInfoMessage.Get());
-
-						int iTotalLinesAllowed = windowSize.y / textSize.y;
-						iTotalLinesAllowed++;
-
-						// Reduce window size in calculations for margins.
-						windowSize.x *= 0.8f;
-
-						int iNumberOfLines = textSize.x / windowSize.x;
-						// Add another line to accomodate for anything after the decimal place.
-						iNumberOfLines++;
-
-						// Work out where cursor should be placed to have the text block centered.
-						ImGui::SetCursorPosY((iTotalLinesAllowed - iNumberOfLines) * 0.5f * textSize.y);
-
-						int iOffset = 0;
-						int iLength = cInfoMessage.Len();
-
-						// Work out the target number of characters per line.
-						int iIncrement = iLength / iNumberOfLines;
-						iIncrement++;
-
-						int iPreviousOffset = 0;
-
-						// Split cInfoMessage to display centered text over multiple lines.
-						for (int i = 0; i < iNumberOfLines; i++)
-						{
-							strcpy(newLine, cInfoMessage.Get() + iOffset);
-							iPreviousOffset = iOffset;
-							iOffset += iIncrement;
-
-							// Find a suitable place to end the line.
-							for (int j = iOffset; j < iLength; j++)
-							{
-								if (textToDisplay[j] == ' ')
-								{
-									if (textToDisplay[j + 1] == '.' || textToDisplay[j + 1] == ',')
-										iOffset++;
-									break;
-								}
-								else if (textToDisplay[j] == '.' || textToDisplay[j] == ',')
-									break;
-								else
-									iOffset++;
-							}
-							newLine[iOffset - iPreviousOffset] = 0;
-							ImGui::TextCenter(newLine);
-
-						}
-						*/
 						ImGui::SetWindowFontScale(1.0f);
 						ImGui::Indent(-10);
 						ImGui::EndPopup();
@@ -8478,9 +8421,7 @@ void mapeditorexecutable_loop(void)
 		//######################
 		//#### Object Tools ####
 		//######################
-
-#ifdef USE_ENTITY_TOOL_WINDOW
-
+		#ifdef USE_ENTITY_TOOL_WINDOW
 		#ifdef WICKEDENGINE
 		g_selected_editor_object = NULL;
 		if (t.widget.pickedObject > 0) {
@@ -8500,44 +8441,36 @@ void mapeditorexecutable_loop(void)
 			}
 		}
 
-		//bool bTriggerScrollToTop = false;
 		static sObject* g_last_selected_editor_object = NULL;
-		//PE: Dont change window if Game Genre tools is open.
-		//LB: Shooter now a filter mode if (!Shooter_Tools_Window)
+		if (g_selected_editor_object && g_last_selected_editor_object != g_selected_editor_object)
 		{
-			if (g_selected_editor_object && g_last_selected_editor_object != g_selected_editor_object)
+			g_last_selected_editor_object = g_selected_editor_object;
+			ImGui::SetWindowFocus("Object Tools##EntityToolsWindow");
+
+			// Check if we no longer have a group selected and then switch back to the " Current Objects" tab if so
+			if (current_selected_group >= 0)
 			{
-				g_last_selected_editor_object = g_selected_editor_object;
-				ImGui::SetWindowFocus("Object Tools##EntityToolsWindow");
+				bool bIsNewObjectInGroup = false;
 
-				// Check if we no longer have a group selected and then switch back to the " Current Objects" tab if so
-				if (current_selected_group >= 0)
+				for (int j = 0; j < MAXGROUPSLISTS; j++)
 				{
-					bool bIsNewObjectInGroup = false;
-
-					for (int j = 0; j < MAXGROUPSLISTS; j++)
+					for (int i = 0; i < vEntityGroupList[j].size(); i++)
 					{
-						for (int i = 0; i < vEntityGroupList[j].size(); i++)
+						if (t.widget.pickedObject == vEntityGroupList[j].at(i).e)
 						{
-							if (t.widget.pickedObject == vEntityGroupList[j].at(i).e)
-							{
-								bIsNewObjectInGroup = true;
-								break;
-							}
+							bIsNewObjectInGroup = true;
+							break;
 						}
 					}
-
-					if (!bIsNewObjectInGroup)
-						i_switch_group_tab = 1;
-					else
-						i_switch_group_tab = 2;
 				}
-				else
-				{
+				if (!bIsNewObjectInGroup)
 					i_switch_group_tab = 1;
-				}
-					
-				//bTriggerScrollToTop = true;
+				else
+					i_switch_group_tab = 2;
+			}
+			else
+			{
+				i_switch_group_tab = 1;
 			}
 		}
 		#endif
@@ -8550,7 +8483,6 @@ void mapeditorexecutable_loop(void)
 		}
 		else 
 		{
-
 			int iEntityIndex = t.widget.pickedEntityIndex;
 			int iActiveObj = t.widget.activeObject;
 			bool bUpdateGrideleprof = false;
@@ -8585,10 +8517,8 @@ void mapeditorexecutable_loop(void)
 					}
 				}
 			}
-
 			active_tools_obj = iActiveObj;
 			active_tools_entity_index = iEntityIndex;
-
 			#endif
 
 			if (Entity_Tools_Window && ( current_mode == TOOL_ENTITY || current_mode == TOOL_MARKERS || (t.gridentity > 0 && t.entityprofile[t.gridentity].isebe != 0)  )) 
@@ -8612,8 +8542,6 @@ void mapeditorexecutable_loop(void)
 
 				#ifdef PEWORKINGONPROPERTIES
 				int iMasterID = t.entityelement[iEntityIndex].bankindex;
-
-				#ifdef WICKEDENGINE
 				if (bDraggingActive && t.widget.pickedEntityIndex > 0 && t.gridentity > 0)
 				{
 					//PE: Keep displaying old info, while dragging a gridentity around.
@@ -8621,12 +8549,18 @@ void mapeditorexecutable_loop(void)
 				}
 				#endif
 
-				#endif
+				// detect ANY change inside entityelement (inc eleprof) so can trigger instance cloing of collectables
+				bool bSnappedEntityElementCopy = false;
+				static entitytype snapshotentityelement;
+				if (iEntityIndex > 0)
+				{
+					memcpy(&snapshotentityelement, &t.entityelement[iEntityIndex], sizeof(entitytype));
+					bSnappedEntityElementCopy = true;
+				}
 
 				bool bWithNoScrollbar = false;
 				if (iEntityIndex > 0 && iMasterID > 0 && iActiveObj > 0 && ObjectExist(iActiveObj) && pref.iEnableIdentityProperties )
 				{
-					//
 					ImGui::Begin("Object Tools##EntityToolsWindow", &Entity_Tools_Window, iGenralWindowsFlags | ImGuiWindowFlags_NoScrollbar);
 					bWithNoScrollbar = true;
 				}
@@ -10065,8 +9999,6 @@ void mapeditorexecutable_loop(void)
 						}
 					}
 
-					// GRID SETTINGS WAS HERE ON 27/04/22!
-
 					#ifdef PEWORKINGONPROPERTIES
 					//#############################
 					//#### PE: New properties. ####
@@ -10107,9 +10039,9 @@ void mapeditorexecutable_loop(void)
 								iLastOpenHeader = 28;
 								bool bChangedGameCollectionList = false;
 								int iCollectionItemIndex = -1;
-								for (int ci = 0; ci < g_collectionMasterList.size(); ci++)
+								for (int ci = 0; ci < g_collectionList.size(); ci++)
 								{
-									if ( stricmp (g_collectionMasterList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL )
+									if ( stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL )
 									{
 										iCollectionItemIndex = ci;
 									}
@@ -10124,7 +10056,8 @@ void mapeditorexecutable_loop(void)
 									{
 										collectionItemType item;
 										fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
-										g_collectionMasterList.push_back(item);
+										g_collectionList.push_back(item);
+										bChangedGameCollectionList = true;
 									}
 								}
 								else
@@ -10132,9 +10065,10 @@ void mapeditorexecutable_loop(void)
 									ImGui::Indent(10);
 									for (int l = 0; l < g_collectionLabels.size(); l++)
 									{
-										int iKnownLabel = 0;
+										int iKnownLabel = -1;
 										LPSTR pLabel = g_collectionLabels[l].Get();
-										if (stricmp(pLabel, "title") == NULL) iKnownLabel = 1;
+										if (stricmp(pLabel, "title") == NULL) iKnownLabel = 0;
+										//if (stricmp(pLabel, "profile") == NULL) iKnownLabel = 1;
 										if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
 										if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
 										if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
@@ -10142,7 +10076,7 @@ void mapeditorexecutable_loop(void)
 										if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
 										if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
 										if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-										if (iKnownLabel > 0)
+										if (iKnownLabel >= 0)
 										{
 											// Any tip
 											LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
@@ -10163,7 +10097,10 @@ void mapeditorexecutable_loop(void)
 												cstr UniqueCollectionItemImage = "##UniqueCollectionItemImage";
 												if (iSelectedLibraryStingReturnID == window->GetID(UniqueCollectionItemImage.Get()))
 												{
-													g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+													g_collectionList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+													g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+													g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+													bChangedGameCollectionList = true;
 													sSelectedLibrarySting = "";
 													iSelectedLibraryStingReturnID = -1; //disable.
 													g_iIconImageInPropertiesLastEntIndex = 0;// trigger reload
@@ -10173,7 +10110,7 @@ void mapeditorexecutable_loop(void)
 													g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
 													g_iIconImageInProperties = 0;
 												}
-												LPSTR pIconImageInProperties = g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get();
+												LPSTR pIconImageInProperties = g_collectionList[iCollectionItemIndex].collectionFields[l].Get();
 												if (g_iIconImageInProperties == 0)
 												{
 													cstr actualImgFile_s = "";
@@ -10183,7 +10120,10 @@ void mapeditorexecutable_loop(void)
 														cstr entityfile = t.entitybank_s[iMasterID];
 														actualImgFile_s = get_rpg_imagefinalfile(entityfile);
 														pIconImageInProperties = actualImgFile_s.Get();
-														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+														g_collectionList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+														g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+														g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+														bChangedGameCollectionList = true;
 													}
 													g_iIconImageInProperties = g.iconimagebankoffset;
 													if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
@@ -10247,7 +10187,7 @@ void mapeditorexecutable_loop(void)
 											else
 											{
 												bool bAllowEditing = true;
-												if ( iKnownLabel == 1) bAllowEditing = false;
+												if (iKnownLabel == 0 || iKnownLabel == 1 ) bAllowEditing = false;
 												if ( bAllowEditing == true )
 												{
 													char pNameOfAttrib[MAX_PATH];
@@ -10261,14 +10201,16 @@ void mapeditorexecutable_loop(void)
 													ImGui::TextCenter(pNameOfAttrib);
 													ImGui::PushItemWidth(-10);
 													char cTmpInput[MAX_PATH];
-													strcpy(cTmpInput, g_collectionMasterList[iCollectionItemIndex].collectionFields[l].Get());
+													strcpy(cTmpInput, g_collectionList[iCollectionItemIndex].collectionFields[l].Get());
 													int inputFlags = 0;
 													char pNameOfAttribUnique[MAX_PATH];
 													strcpy(pNameOfAttribUnique, "##CollectableItem");
 													strcat(pNameOfAttribUnique, pLabel);
 													if (ImGui::InputText(pNameOfAttribUnique, &cTmpInput[0], MAXTEXTINPUT, inputFlags))
 													{
-														g_collectionMasterList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+														g_collectionList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+														g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+														g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
 														bImGuiGotFocus = true;
 														bChangedGameCollectionList = true;
 													}
@@ -10467,6 +10409,7 @@ void mapeditorexecutable_loop(void)
 					}
 					#endif
 
+					/* remove all this
 					//if (!pref.iEnableDragDropEntityMode)
 					#ifdef WICKEDENGINE
 					#ifdef HIDEOBJECTMODES
@@ -10539,55 +10482,6 @@ void mapeditorexecutable_loop(void)
 										if (iIconID == TOOL_ENT_LOCK)
 										{
 											bClickedTheLockUnlockButton = true;
-											/*
-											// entity lock/unlock
-											if (iEntityIndex > 0)
-											{
-												int iLoopMax = 1;
-												if (g.entityrubberbandlist.size() > 0) iLoopMax = g.entityrubberbandlist.size();
-												for (int i = 0; i < iLoopMax; i++)
-												{
-													// get entity index
-													int e = iEntityIndex;
-													if (g.entityrubberbandlist.size() > 0)
-														e = g.entityrubberbandlist[i].e;
-
-													// toggle lock flag
-													t.entityelement[e].editorlock = 1 - t.entityelement[e].editorlock;
-
-													sObject* pObject;
-													if (t.entityelement[e].obj > 0) 
-													{
-														pObject = g_ObjectList[t.entityelement[e].obj];
-														if (pObject) 
-														{
-															if (t.entityelement[e].editorlock) 
-															{
-																#ifndef ALLOWSELECTINGLOCKEDOBJECTS
-																WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_CURSOROBJECT);
-																#endif
-																sRubberBandType vEntityLockedItem;
-																vEntityLockedItem.e = e;
-																vEntityLockedList.push_back(vEntityLockedItem);
-															}
-															else {
-																//Delete from list.
-																for (int i = 0; i < vEntityLockedList.size(); i++)
-																{
-																	if (vEntityLockedList[i].e == e) {
-																		vEntityLockedList.erase(vEntityLockedList.begin() + i);
-																		break;
-																	}
-																}
-																WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-															}
-														}
-													}
-
-												}
-												gridedit_clearentityrubberbandlist();
-											}
-											*/
 											// exit widget when lock entity
 											t.widget.pickedSection = 0;
 											widget_show_widget();
@@ -10615,6 +10509,7 @@ void mapeditorexecutable_loop(void)
 							ImGui::Indent(-indent);
 						}
 					}
+					*/
 				}
 
 				// entity lock/unlock
@@ -10795,55 +10690,6 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 
-						/* this will eventually be in the advanced object rotation section
-						ImGui::Checkbox("Calculate Pivot", &bExtractFixPivot);
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Calculate Objects Pivot");
-
-						//							ImGui::RadioButton("Normal Y", &iExtractMode, 0);
-						//							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Adjust Y Depending on Object Selection System");
-						if (!pref.iEnableDragDropEntityMode)
-						{
-							ImGui::RadioButton("Find Floor", &iExtractMode, 0);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Place Object on Floor");
-
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(w*0.5, ImGui::GetCursorPos().y));
-							ImGui::Text("(%.3f)", t.gridentityposy_f);
-
-							ImGui::RadioButton("Extracted Y", &iExtractMode, 1);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Place Object Using Extracted Y");
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(w*0.5, ImGui::GetCursorPos().y));
-							ImGui::Text("(%.3f)", fExtractYValue);
-
-							ImGui::RadioButton("Fixed Y", &iExtractMode, 2);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Place Object Using Fixed Y");
-							ImGui::SameLine();
-
-							ImGui::SetCursorPos(ImVec2(w*0.5, ImGui::GetCursorPos().y));
-							ImGui::InputFloat("##FixedYExtract", &fExtractFixedYValue, 0.5);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Object Fixed Y");
-						}
-						else
-						{
-							iExtractMode = 0;
-							static bool bUseFixedY = false;
-
-							ImGui::Checkbox("Fixed Y", &bUseFixedY);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Place Object Using Fixed Y");
-							if (bUseFixedY)
-							{
-								ImGui::SameLine();
-								ImGui::SetCursorPos(ImVec2(w*0.5, ImGui::GetCursorPos().y));
-								ImGui::InputFloat("##FixedYExtract", &fExtractFixedYValue, 0.5);
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Object Fixed Y");
-							}
-							if (bUseFixedY)
-								iExtractMode = 2;
-
-						}
-						*/
-
 						// button to unlock any objects in locked list
 						if (vEntityLockedList.size() > 0)
 						{
@@ -10873,6 +10719,64 @@ void mapeditorexecutable_loop(void)
 						}
 						ImGui::Indent(-10);
 						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+					}
+				}
+
+				// detect ANY change inside entityelement (inc eleprof) so can trigger instance cloing of collectables
+				if (iEntityIndex > 0 && bSnappedEntityElementCopy == true)
+				{
+					bool bEntityElementChanged = false;
+					char* pMemDataOld = (char*)&snapshotentityelement;
+					char* pMemDataNew = (char*)&t.entityelement[iEntityIndex];
+					for (int n = 0; n < sizeof(entitytype); n++)
+					{
+						if (*pMemDataOld != *pMemDataNew)
+						{
+							// change in entity element or eleprof detected
+							bEntityElementChanged = true;
+							break;
+						}
+						pMemDataOld++;
+						pMemDataNew++;
+					}
+					if (bEntityElementChanged == true)
+					{
+						// now scan all entities in common with this entity, and clone all details
+						// to them (there should only be one collectale entity element/eleprof identity)
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+						{
+							LPSTR pMasterEntityName = t.entityelement[iEntityIndex].eleprof.name_s.Get();
+							for (int ee = 1; ee <= g.entityelementmax; ee++)
+							{
+								if (ee != iEntityIndex)
+								{
+									int masterid = t.entityelement[ee].bankindex;
+									if (masterid > 0)
+									{
+										if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+										{
+											// clone currently edited entity
+											t.entityelement[ee].eleprof = t.entityelement[iEntityIndex].eleprof;
+											sObject* pObject = GetObjectData(t.entityelement[ee].obj);
+											if (pObject)
+											{
+												WickedSetEntityId(masterid);
+												WickedSetElementId(ee);
+												for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+												{
+													Wicked_Set_Material_From_grideleprof_ThisMesh (pObject, 0, &t.entityelement[ee].eleprof, iMesh);
+												}
+												WickedSetEntityId(-1);
+												WickedSetElementId(0);
+											}
+										}
+									}
+								}
+							}
+						}
+
+						// any entity change should invalidate project change flag so can save even small changes
+						g.projectmodified = 1;
 					}
 				}
 
@@ -10917,47 +10821,6 @@ void mapeditorexecutable_loop(void)
 				// insert a keyboard shortcut component into panel
 				UniversalKeyboardShortcut(eKST_ObjectMode);
 
-				/* will be a new method for unlocking
-				if (ImGui::StyleCollapsingHeader("Keyboard Shortcuts", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-					ImGui::Text("R=Rotate Entity");
-					ImGui::Text("Enter=Find Floor");
-
-					if (vEntityLockedList.size() > 0)
-					{
-						ImGui::Separator();
-						float w = ImGui::GetWindowContentRegionWidth();
-						float but_gadget_size = ImGui::GetFontSize()*10.0;
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-
-						cStr unlockstr = cStr("Unlock ") + cStr( (int) vEntityLockedList.size()) + cStr(" Objects");
-						if (ImGui::StyleButton(unlockstr.Get(), ImVec2(but_gadget_size, 0) )) {
-							for (int i = 0; i < vEntityLockedList.size(); i++)
-							{
-								int e = vEntityLockedList[i].e;
-								t.entityelement[e].editorlock = 0;
-								sObject* pObject;
-								if (t.entityelement[e].obj > 0) {
-									pObject = g_ObjectList[t.entityelement[e].obj];
-									if (pObject) {
-										WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-									}
-								}
-							}
-							vEntityLockedList.clear();
-						}
-					}
-
-					ImGui::Separator();
-					ImGui::TextCenter(t.statusbar_s.Get());
-					ImGui::Separator();
-
-					ImGui::Indent(-10);
-					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				}
-				*/
-
 				if (bRunExtractDuplicate) 
 				{
 					t.tentitytoselect = iEntityIndex;
@@ -10974,8 +10837,6 @@ void mapeditorexecutable_loop(void)
 					{
 						if (t.entityelement[t.tentitytoselect].editorfixed == 0)
 						{
-//							int iExtractMode = 0; //0 = find floor, 1 = extracted y value. , 3 = fixed y value.
-//							float fExtractYValue = 0, fExtractFixedYValue = GGORIGIN_Y;
 							fExtractYValue = t.entityelement[t.tentitytoselect].y;
 
 							t.gridentityeditorfixed = t.entityelement[t.tentitytoselect].editorfixed;
@@ -11068,14 +10929,14 @@ void mapeditorexecutable_loop(void)
 
 				CheckMinimumDockSpaceSize(250.0f);
 
-				if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
-					//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+				if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0)
+				{
 					ImGui::Text("");
 					ImGui::Text("");
 				}
 
 				//PE: End child here if active
-				//bChildWindowOpen = true;
 				if (bWithNoScrollbar)
 				{
 					ImGui::EndChild();
@@ -11084,8 +10945,7 @@ void mapeditorexecutable_loop(void)
 				ImGui::End();
 			}
 		}
-
-#endif
+		#endif
 
 		//############################
 		//#### Save To Level Cloud ###
@@ -13773,7 +13633,7 @@ void mapeditorexecutable_loop(void)
 			//}
 #ifdef WICKEDENGINE
 			ImGui::SetCursorPos(ImVec2(restore_pos.x-8.0f, restore_pos.y));
-			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List" };
+			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List" };
 
 			int isortbySize = IM_ARRAYSIZE(sortby_modes);
 			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
@@ -14030,7 +13890,7 @@ void mapeditorexecutable_loop(void)
 				iColumns_leftpanel = 1;
 
 			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-			if(current_sort_order == 4) //PE: Detailed display in one column.
+			if(current_sort_order == 4 || current_sort_order == 5) //PE: Detailed display in one column.
 				iColumns_leftpanel = 1;
 			#endif
 
@@ -14087,11 +13947,72 @@ void mapeditorexecutable_loop(void)
 						}
 						else if (it->second > 0)
 						{
-#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-							if (iloop == 0 && current_sort_order == 4)
+							#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
+							if (iloop == 0 && current_sort_order == 5)
+							{
+								// prep for drawinf list
+								ImGui::SetWindowFontScale(1.0);
+
+								// should we show this item
+								int entid = it->second;
+								char cName[512];
+								strcpy(cName, t.entityprofileheader[entid].desc_s.Get());
+								bool DisplayEntry = false;
+								int iCollectionItemIndex = -1;
+								for (int c = 0; c < g_collectionList.size(); c++)
+								{
+									if (g_collectionList[c].iEntityID == entid)
+									{
+										iCollectionItemIndex = c;
+										break;
+									}
+								}
+								if ( iCollectionItemIndex != -1 )
+								{
+									DisplayEntry = true;
+									if (strlen(cSearchEntities) > 0)
+									{
+										if (!pestrcasestr(cName, cSearchEntities))
+											DisplayEntry = false;
+									}
+									if (t.entityprofile[entid].groupreference != -1)
+									{
+										DisplayEntry = false;
+									}
+								}
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char* cFind = strstr(cName, "###");
+									if (cFind) cFind[0] = '\0';
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow; //Got sub selections.
+									bool bSelected = false;
+									ImGui::PushItemWidth(-20.0);
+									std::string treename = cName;
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(entid + 99000), node_flags, treename.c_str());
+									bool bHovered = ImGui::IsItemHovered();
+									ImGui::PopItemWidth();
+									if (TreeNodeOpen)
+									{
+										ImGui::Indent(-5);
+										DoTreeNodeEntity(entid);
+										ImGui::Indent(5);
+										ImGui::TreePop();
+									}
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
+							else if (iloop == 0 && current_sort_order == 4)
 							{
 								//Display detailed list of entities.
-
 								ImGui::SetWindowFontScale(1.0);
 
 								bool DisplayEntry = true;
@@ -14168,10 +14089,8 @@ void mapeditorexecutable_loop(void)
 									bool bHovered = ImGui::IsItemHovered();
 									ImGui::PopItemWidth();
 
-#ifdef WICKEDENGINE
 									cstr find = t.entitybank_s[it->second];
 									BeginDragDropFPE(find.Get(), iTextureID, bToolTipActive, vIconSize);
-#endif
 									if (!bHoveredUsed && bHovered && bToolTipActive && !bDraggingActive)
 									{
 										bHoveredUsed = true;
@@ -14183,13 +14102,8 @@ void mapeditorexecutable_loop(void)
 
 									bool bTreeNodeSelected = false;
 
-									//if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
-									//{
-									//	//Only allow drag/drop.
-									//	//bTreeNodeSelected = true;
-									//}
-
-									if (TreeNodeOpen) {
+									if (TreeNodeOpen) 
+									{
 										ImGui::Indent(-5);
 										//Display any sub nodes
 										DoTreeNodeEntity(it->second);
@@ -14206,21 +14120,15 @@ void mapeditorexecutable_loop(void)
 											if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
 											if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 
-#ifdef WICKEDENGINE
 											FreeTempImageList();
-#endif
 
 											DeleteWaypointsAddedToCurrentCursor();
 											//CheckTooltipObjectDelete();
 											CloseDownEditorProperties();
 											//Make sure we are in entity mode.
 											bForceKey = true;
-#ifdef WICKEDENGINE
 											csForceKey = "o";
 											iExtractMode = 0; //PE: Always start in find floor mode.
-#else
-											csForceKey = "e";
-#endif
 											t.gridentity = it->second;
 											t.inputsys.constructselection = it->second;
 											t.inputsys.domodeentity = 1;
@@ -14251,11 +14159,10 @@ void mapeditorexecutable_loop(void)
 									preview_count++;
 									ImGui::NextColumn();
 								}
-
 							}
 							else
 							{
-#endif
+							#endif
 								#ifdef WICKEDENGINE
 								// no longer list markers in left entity panel, we have the game elements buttons now
 								if ((iloop == 0 && t.entityprofile[it->second].ismarker == 0 && t.entityprofile[it->second].ischildofgroup == 0))

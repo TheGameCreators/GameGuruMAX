@@ -4426,10 +4426,13 @@ void entity_fillgrideleproffromprofile ( void )
 
 	#ifdef WICKEDENGINE
 	//PE: Make sure when we create we use default variables in eleprof.
-	if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
-		t.grideleprof.bCustomWickedMaterialActive = true;
-	else
-		t.grideleprof.bCustomWickedMaterialActive = false;
+	//if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
+	//	t.grideleprof.bCustomWickedMaterialActive = true;
+	//else
+	//	t.grideleprof.bCustomWickedMaterialActive = false;
+	// Users don't want to have to enable custom materials before editing materials
+	// ...non-custom materials are also causing issues with emissive, so just enable by default
+	t.grideleprof.bCustomWickedMaterialActive = true;
 	t.grideleprof.WEMaterial = t.entityprofile[t.entid].WEMaterial;
 
 	//Need default particle setup here. or if will use the last inside "t.grideleprof".

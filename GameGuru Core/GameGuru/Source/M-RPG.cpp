@@ -130,7 +130,12 @@ bool save_rpg_system(char* name)
 			strcat(theline, g_collectionLabels[l].Get());
 			strcat(theline, pTab);
 		}
-		theline[strlen(theline) - 1] = 0;
+		// Got a crash here when creating a new game project
+		int lineLength = strlen(theline);
+		if (lineLength > 0)
+		{
+			theline[strlen(theline) - 1] = 0;
+		}
 		strcat(theline, pCR);
 		fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
 

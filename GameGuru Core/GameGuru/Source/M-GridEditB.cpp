@@ -44526,6 +44526,24 @@ void save_storyboard(char *name,bool bSaveAs)
 
 static int iLastNode = -1;
 
+// When storyboards were loaded, they were not zeroed out first, so any new arrays that were added would be filled with garbage data after load...
+// ...The storyboards are now zeroed before load, but still need to ensure there is no garbage data in old projects...
+void storyboard_reset_ingamehidden(StoryboardStruct* pStoryboard)
+{
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
+		{
+			// Any garbage data can be reset here:
+			// widget_ingamehidden is 1 if set by user, if it's not 0 or 1, its garbage data
+			if (pStoryboard->widget_ingamehidden[i][j] != 1)
+			{
+				pStoryboard->widget_ingamehidden[i][j] = 0;
+			}
+		}
+	}
+}
+
 void load_storyboard(char *name)
 {
 	extern void ResetStoryboardListenForKeys();
@@ -44542,6 +44560,7 @@ void load_storyboard(char *name)
 	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
 	{
+		memset(&checkproject, 0, sizeof(StoryboardStruct));
 		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
@@ -44592,6 +44611,8 @@ void load_storyboard(char *name)
 			init_rpg_system();
 			load_rpg_system(name);
 			#endif
+
+			storyboard_reset_ingamehidden(&Storyboard);
 
 			// project loaded successfully
 			bProjectLoaded = true;
@@ -44686,12 +44707,14 @@ bool load_checkproject_storyboard(char *name)
 	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
 	{
+		memset(&checkproject, 0, sizeof(StoryboardStruct));
 		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 		//Valid pref:
 		fclose(projectfile);
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 		{
+			storyboard_reset_ingamehidden(&checkproject);
 			return true;
 		}
 	}
@@ -44706,6 +44729,7 @@ bool load__storyboard_into_struct(const char *filepath, StoryboardStruct& storyb
 	FILE* projectfile = GG_fopen(filepath, "rb");
 	if (projectfile)
 	{
+		memset(&storyboard, 0, sizeof(StoryboardStruct));
 		size_t size = fread(&storyboard, 1, sizeof(storyboard), projectfile);
 		//Valid pref:
 		fclose(projectfile);
@@ -46954,7 +46978,12 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					bHovered = true;
 				}
-				if (bImGuiInTestGame == false || (bImGuiInTestGame == true && Storyboard.widget_ingamehidden[nodeid][Storyboard_ActiveWidgets[i]] == 0) )
+				bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][Storyboard_ActiveWidgets[i]];
+				if (bIsWidgetHidden)
+				{
+					// Hide images
+				}
+				else
 				{
 					//Display Image
 					void* lpTexture = GetImagePointer(imgID);

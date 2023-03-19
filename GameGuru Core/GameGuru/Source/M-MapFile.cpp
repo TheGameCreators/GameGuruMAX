@@ -2270,7 +2270,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	// HUD elements
 	addfoldertocollection("imagebank\\HUD");
-	addfoldertocollection("imagebank\\HUD Library");
+	addfoldertocollection("imagebank\\HUD Library\\MAX");
 
 	// include original FPM
 	addtocollection(t.tmasterlevelfile_s.Get());
@@ -2291,6 +2291,20 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
 	#endif
 	#ifdef STORYBOARD
+
+	// Add images from collection list (can be stored in thumbbank)
+	for (int n = 0; n < g_collectionList.size(); n++)
+	{
+		LPSTR pImageFile = g_collectionList[n].collectionFields[2].Get();
+		if (strlen(pImageFile) > 0)
+		{
+			if (stricmp(pImageFile, "default") != NULL && stricmp(pImageFile, "image") != NULL)
+			{
+				addtocollection(pImageFile);
+			}
+		}
+	}
+
 	//Add all storyboard files to scan list.
 	if (g.bUseStoryBoardSetup)
 	{

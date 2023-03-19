@@ -228,54 +228,90 @@ function GameLoopQuit()
 end
 
 function GameLoopSaveStats()
- file = io.open("savegames\\standalonelevelstats.dat", "w+")
- io.output(file)
- io.write("v1\n")
- io.write(g_PlayerHealth .. "\n")
- io.write(g_PlayerLives .. "\n")
- WeaponID = GetPlayerWeaponID()
- io.write(WeaponID .. "\n")
- for index = 1, 10, 1 do
-  WeaponID = GetWeaponSlot ( index )
-  io.write(WeaponID .. "\n")
-  WeaponAmmoQty = GetWeaponAmmo ( index )
-  io.write(WeaponAmmoQty .. "\n")
-  WeaponAmmoClipQty = GetWeaponClipAmmo ( index )
-  io.write(WeaponAmmoClipQty .. "\n")
-  WeaponAmmoPoolQty = GetWeaponPoolAmmo ( index )
-  io.write(WeaponAmmoPoolQty .. "\n")
- end
- io.close(file)
+
+ -- reuse save system to preserve state of the level just before we leave
+ gamedata = require "titlesbank\\gamedata"
+ gamedata.mode(1)
+ local levellabel = string.sub(g_LevelFilename,1,string.len(g_LevelFilename)-4)
+ gamedata.save("0-"..levellabel,"levelstate-"..levellabel)
+ gamedata.mode(0)
+
+ -- nope, lets reuse save system!
+ -- save current state of game
+ --file = io.open("savegames\\standalonelevelstats.dat", "w+")
+ --io.output(file)
+ --io.write("v1\n")
+ -- core stats
+ --io.write(g_PlayerHealth .. "\n")
+ --io.write(g_PlayerLives .. "\n")
+ -- weapon info
+ --WeaponID = GetPlayerWeaponID()
+ --io.write(WeaponID .. "\n")
+ --for index = 1, 10, 1 do
+ -- WeaponID = GetWeaponSlot ( index )
+ -- io.write(WeaponID .. "\n")
+ -- WeaponAmmoQty = GetWeaponAmmo ( index )
+ -- io.write(WeaponAmmoQty .. "\n")
+ -- WeaponAmmoClipQty = GetWeaponClipAmmo ( index )
+ -- io.write(WeaponAmmoClipQty .. "\n")
+ -- WeaponAmmoPoolQty = GetWeaponPoolAmmo ( index )
+ -- io.write(WeaponAmmoPoolQty .. "\n")
+ --end
+ --io.close(file)
 end
 
-function GameLoopLoadStats()
- file = io.open("savegames\\standalonelevelstats.dat", "r")
- if file ~= nil then
-  io.input(file)
-  versionString = io.read()
-  g_PlayerHealth = tonumber(io.read())
-  g_PlayerLives = tonumber(io.read())
-  SetPlayerHealthCore(g_PlayerHealth)
-  SetPlayerLives(g_PlayerLives)
-  CurrentlyHeldWeaponID = tonumber(io.read())
-  for index = 1, 10, 1 do
-   WeaponID = tonumber(io.read())
-   if WeaponID > 0 then
-    SetWeaponSlot ( index, WeaponID, WeaponID )
-    ChangePlayerWeaponID(WeaponID)
-   else
-    SetWeaponSlot ( index, 0, 0 )
-   end
-   WeaponAmmoQty = tonumber(io.read())
-   SetWeaponAmmo ( index, WeaponAmmoQty ) 
-   WeaponAmmoClipQty = tonumber(io.read())
-   SetWeaponClipAmmo ( index, WeaponAmmoClipQty )
-   WeaponAmmoPoolQty = tonumber(io.read())
-   SetWeaponPoolAmmo ( index, WeaponAmmoPoolQty )
-  end
-  io.close(file)
-  ChangePlayerWeaponID(CurrentlyHeldWeaponID)
- end
+function GameLoopLoadStats(levelloaded)
+
+ -- reuse save system to reload state of the level from last time we left it
+ gamedata = require "titlesbank\\gamedata"
+ gamedata.mode(0)
+ local levellabel = ""
+ if levelloaded ~= nil then levellabel = string.sub(levelloaded,1,string.len(levelloaded)-4) end
+ gamedata.load("0-"..levellabel)
+ gamedata.mode(0)
+
+ -- use above data to restore level to that state
+ --iPlayerPosX=g_PlayerPosX
+ --iPlayerPosY=g_PlayerPosY
+ --iPlayerPosZ=g_PlayerPosZ
+ --iPlayerAngX=g_PlayerAngX
+ --iPlayerAngY=g_PlayerAngY
+ --iPlayerAngZ=g_PlayerAngZ
+ restoregame = require "titlesbank\\restoregame"
+ restoregame.mode(1)
+ restoregame.now()
+ restoregame.mode(0)
+
+ -- nope, lets reuse save system!
+ --file = io.open("savegames\\standalonelevelstats.dat", "r")
+ --if file ~= nil then
+ -- io.input(file)
+ -- versionString = io.read()
+ -- -- core stats
+ -- g_PlayerHealth = tonumber(io.read())
+ -- g_PlayerLives = tonumber(io.read())
+ -- SetPlayerHealthCore(g_PlayerHealth)
+ -- SetPlayerLives(g_PlayerLives)
+ -- -- weapon info
+ -- CurrentlyHeldWeaponID = tonumber(io.read())
+ -- for index = 1, 10, 1 do
+ --  WeaponID = tonumber(io.read())
+ --  if WeaponID > 0 then
+ --   SetWeaponSlot ( index, WeaponID, WeaponID )
+ --   ChangePlayerWeaponID(WeaponID)
+ --  else
+ --   SetWeaponSlot ( index, 0, 0 )
+ --  end
+ --  WeaponAmmoQty = tonumber(io.read())
+ --  SetWeaponAmmo ( index, WeaponAmmoQty ) 
+ --  WeaponAmmoClipQty = tonumber(io.read())
+ --  SetWeaponClipAmmo ( index, WeaponAmmoClipQty )
+ --  WeaponAmmoPoolQty = tonumber(io.read())
+ --  SetWeaponPoolAmmo ( index, WeaponAmmoPoolQty )
+ -- end
+ -- io.close(file)
+ --end 
+
 end
 
 function PlayerControl()

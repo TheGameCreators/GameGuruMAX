@@ -110,7 +110,7 @@ bool load_rpg_system(char* name)
 	return true;
 }
 
-bool save_rpg_system(char* name)
+bool save_rpg_system(char* name, bool bIncludeELEFile)
 {
 	// save master collection in file (contains all items in all game levels)
 	char collectionfilename[MAX_PATH];
@@ -154,47 +154,50 @@ bool save_rpg_system(char* name)
 	}
 
 	// also save an up to date copy of the needed elements
-	cstr storeoldELEfile = t.elementsfilename_s;
-	char collectionELEfilename[MAX_PATH];
-	strcpy(collectionELEfilename, "projectbank\\");
-	strcat(collectionELEfilename, name);
-	strcat(collectionELEfilename, "\\collection - items.ele");
-	GG_GetRealPath(collectionELEfilename, 1);
-	if (FileExist(collectionELEfilename) == 1) DeleteFileA(collectionELEfilename);
-	t.elementsfilename_s = collectionELEfilename;
-	int iEntitiesToSaveCount = g_collectionList.size();
-	if (iEntitiesToSaveCount > g.entityelementlist) iEntitiesToSaveCount = g.entityelementlist;
-	if (iEntitiesToSaveCount > 0)
+	if (bIncludeELEFile == true)
 	{
-		entitytype* pStoreEntEle = new entitytype[iEntitiesToSaveCount];
-		entitytype* pTempEntEle = new entitytype[iEntitiesToSaveCount];
-		for (int storee = 0; storee < iEntitiesToSaveCount; storee++)
+		cstr storeoldELEfile = t.elementsfilename_s;
+		char collectionELEfilename[MAX_PATH];
+		strcpy(collectionELEfilename, "projectbank\\");
+		strcat(collectionELEfilename, name);
+		strcat(collectionELEfilename, "\\collection - items.ele");
+		GG_GetRealPath(collectionELEfilename, 1);
+		if (FileExist(collectionELEfilename) == 1) DeleteFileA(collectionELEfilename);
+		t.elementsfilename_s = collectionELEfilename;
+		int iEntitiesToSaveCount = g_collectionList.size();
+		if (iEntitiesToSaveCount > g.entityelementlist) iEntitiesToSaveCount = g.entityelementlist;
+		if (iEntitiesToSaveCount > 0)
 		{
-			pStoreEntEle[storee] = t.entityelement[storee];
+			entitytype* pStoreEntEle = new entitytype[iEntitiesToSaveCount];
+			entitytype* pTempEntEle = new entitytype[iEntitiesToSaveCount];
+			for (int storee = 0; storee < iEntitiesToSaveCount; storee++)
+			{
+				pStoreEntEle[storee] = t.entityelement[1 + storee];
+			}
+			for (int c = 0; c < iEntitiesToSaveCount; c++)
+			{
+				int sourcee = g_collectionList[c].iEntityElementE;
+				if (sourcee > 0)
+					pTempEntEle[c] = t.entityelement[sourcee];
+				else
+					pTempEntEle[c] = t.entityelement[0];
+			}
+			for (int e = 0; e < iEntitiesToSaveCount; e++)
+			{
+				t.entityelement[1 + e] = pTempEntEle[e];
+			}
+			int iStoreEntEleCount = g.entityelementlist;
+			g.entityelementlist = iEntitiesToSaveCount;
+			entity_saveelementsdata();
+			for (int storee = 0; storee < iEntitiesToSaveCount; storee++)
+			{
+				t.entityelement[1 + storee] = pStoreEntEle[storee];
+			}
+			g.entityelementlist = iStoreEntEleCount;
+			t.elementsfilename_s = storeoldELEfile;
+			delete[] pStoreEntEle;
+			delete[] pTempEntEle;
 		}
-		for (int c = 0; c < iEntitiesToSaveCount; c++)
-		{
-			int sourcee = g_collectionList[c].iEntityElementE;
-			if (sourcee > 0)
-				pTempEntEle[c] = t.entityelement[sourcee];
-			else
-				pTempEntEle[c] = t.entityelement[0];
-		}
-		for (int e = 0; e < iEntitiesToSaveCount; e++)
-		{
-			t.entityelement[e] = pTempEntEle[e];
-		}
-		int iStoreEntEleCount = g.entityelementlist;
-		g.entityelementlist = iEntitiesToSaveCount;
-		entity_saveelementsdata();
-		for (int storee = 0; storee < iEntitiesToSaveCount; storee++)
-		{
-			t.entityelement[storee] = pStoreEntEle[storee];
-		}
-		g.entityelementlist = iStoreEntEleCount;
-		t.elementsfilename_s = storeoldELEfile;
-		delete[] pStoreEntEle;
-		delete[] pTempEntEle;
 	}
 
 	// success

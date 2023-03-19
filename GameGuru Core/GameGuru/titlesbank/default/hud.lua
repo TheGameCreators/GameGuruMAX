@@ -8,5 +8,5 @@ function hud_main()
    DisplayCurrentScreen()  -- display the active storyboard screen.
 end
 
-function hud_free()
+function about_free()
 end

@@ -2351,14 +2351,15 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	DoTextureListSort ( );
 
 	// if reloading standalone level, need to restore basic stats from LUA save file
-	if ( g.iStandaloneIsReloading == 2 )
-	{
-		// call LUA function from game which updates stats via LUA script
-		char pLUACustomLoadCall[256];
-		strcpy ( pLUACustomLoadCall, "GameLoopLoadStats" );
-		LuaSetFunction ( pLUACustomLoadCall, 0, 0 ); 
-		LuaCall ( );
-	}
+	//if ( g.iStandaloneIsReloading == 2 )
+	//{
+	// must now reload preserved state of level when enter it (g_LevelFilename)
+	char pLUACustomLoadCall[256];
+	strcpy ( pLUACustomLoadCall, "GameLoopLoadStats" );
+	LuaSetFunction ( pLUACustomLoadCall, 1, 0 );
+	LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
+	LuaCall ( );
+	//}
 
 	// one final command to improve static physics performance
 	physics_finalize ( );
@@ -2814,13 +2815,14 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 {
 	// first save current level stats before reset LUA
-	if ( t.game.allowfragmentation == 2 )
-	{
-		char pLUACustomSaveCall[256];
-		strcpy ( pLUACustomSaveCall, "GameLoopSaveStats" );
-		LuaSetFunction ( pLUACustomSaveCall, 0, 0 ); 
-		LuaCall ( );
-	}
+	//if ( t.game.allowfragmentation == 2 )
+	//{
+	// must now preserve state of level when leave it
+	char pLUACustomSaveCall[256];
+	strcpy ( pLUACustomSaveCall, "GameLoopSaveStats" );
+	LuaSetFunction ( pLUACustomSaveCall, 0, 0 ); 
+	LuaCall ( );
+	//}
 
 	// free any lua activity (restore FOV if ingame activity there)
 	timestampactivity(0,"finalising LUA system before reset");

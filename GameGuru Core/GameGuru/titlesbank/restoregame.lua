@@ -2,11 +2,19 @@
 
 local restoregame = {}
 
+g_restoregame_mode = 0
+
+function restoregame.mode(mode)
+ g_restoregame_mode = mode
+end
+
 function restoregame.now()
  -- trigger entire game to restore to saved game state
- SetFreezePosition(iPlayerPosX,iPlayerPosY,iPlayerPosZ)
- SetFreezeAngle(iPlayerAngX,iPlayerAngY,iPlayerAngZ)
- TransportToFreezePosition()
+ if g_restoregame_mode == 0 then
+  SetFreezePosition(iPlayerPosX,iPlayerPosY,iPlayerPosZ)
+  SetFreezeAngle(iPlayerAngX,iPlayerAngY,iPlayerAngZ)
+  TransportToFreezePosition()
+ end
  SetPlayerHealth(iPlayerHealth)
  SetPlayerLives(iPlayerLives)
  -- restore weapon stats

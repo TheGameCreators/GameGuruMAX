@@ -4,58 +4,62 @@
 
 local gamedata = {}
 
+g_gamedata_levelstatemode = 0
+
+function gamedata.mode(savelevelstatemode)
+	g_gamedata_levelstatemode = savelevelstatemode
+end
+
 function gamedata.save(slotnumber,uniquename)
+
 	-- save slot file
 	file = io.open("savegames\\gameslot" .. slotnumber .. ".dat", "w")
 	io.output(file)
+	
 	-- header for game ID (untouched for compatablity )
 	io.write(123 .. "\n")
 	io.write(g_iGameNameNumber .. "\n")
 	io.write(uniquename .. "\n")
 	io.write(g_LevelFilename .. "\n")
 	io.write(0 .. "\n")
--- try to only use save from now on. Any changes to data save format will then only have to be made once
 
 	-- player stats
-	save("iPlayerPosX",g_PlayerPosX)
-	save("iPlayerPosY",g_PlayerPosY)
-	save("iPlayerPosZ",g_PlayerPosZ)
-
-	save("iPlayerAngX",g_PlayerAngX)
-	save("iPlayerAngY",g_PlayerAngY)
-	save("iPlayerAngZ",g_PlayerAngZ)
-
+	if g_gamedata_levelstatemode == 0 then
+		save("iPlayerPosX",g_PlayerPosX)
+		save("iPlayerPosY",g_PlayerPosY)
+		save("iPlayerPosZ",g_PlayerPosZ)
+		save("iPlayerAngX",g_PlayerAngX)
+		save("iPlayerAngY",g_PlayerAngY)
+		save("iPlayerAngZ",g_PlayerAngZ)
+	end
 	save("iPlayerHealth",g_PlayerHealth)
 	save("iPlayerLives",g_PlayerLives)
 	save("strPlayerGunName",g_PlayerGunName)
 
-	-- weapon stats
-	UpdateWeaponStats() -- make sure weapon info at latest
+	-- make sure weapon info at latest
+	UpdateWeaponStats() 
 
+	-- all entity elements
 	for e = 1, g_EntityElementMax, 1 do
 		if g_Entity[e] ~= nil then
 			save("g_Entity[" .. e .. "]['x']", g_Entity[e]['x'])
 			save("g_Entity[" .. e .. "]['y']", g_Entity[e]['y'])
 			save("g_Entity[" .. e .. "]['z']", g_Entity[e]['z'])
-
 			save("g_Entity[" .. e .. "]['anglex']", GetEntityAngleX(e))
 			save("g_Entity[" .. e .. "]['angley']", GetEntityAngleY(e))
 			save("g_Entity[" .. e .. "]['anglez']", GetEntityAngleZ(e))
-
 			save("g_Entity[" .. e .. "]['active']", GetEntityActive(e))
  			save("g_Entity[" .. e .. "]['activated']",g_Entity[e]['activated'])
-
-   		save("g_Entity[" .. e .. "]['collected']", g_Entity[e]['collected'])
-   		save("g_Entity[" .. e .. "]['haskey']", g_Entity[e]['haskey'])
-   		save("g_Entity[" .. e .. "]['health']", g_Entity[e]['health'])
-   		save("g_Entity[" .. e .. "]['frame']", g_Entity[e]['frame'])
-
+			save("g_Entity[" .. e .. "]['collected']", g_Entity[e]['collected'])
+			save("g_Entity[" .. e .. "]['haskey']", g_Entity[e]['haskey'])
+			save("g_Entity[" .. e .. "]['health']", g_Entity[e]['health'])
+			save("g_Entity[" .. e .. "]['frame']", g_Entity[e]['frame'])
 			save("g_EntityExtra[" .. e .. "]['visible']", GetEntityVisibility(e))
 			save("g_EntityExtra[" .. e .. "]['spawnatstart']", GetEntitySpawnAtStart(e))
 		end
 	end
 
--- radarobjectives array
+	-- radarobjectives array
 	if radarObjectives ~= nil then
 		save ("radarObjectives", radarObjectives)
 	end
@@ -204,8 +208,9 @@ function gamedata.save(slotnumber,uniquename)
 		end
 	end
 
-	io.write("successful=1\n") -- will mean load returning successful means whole file read
-	io.close(file)-- end of file
+	-- will mean load returning successful means whole file read
+	io.write("successful=1\n") 
+	io.close(file)
 
 end
 

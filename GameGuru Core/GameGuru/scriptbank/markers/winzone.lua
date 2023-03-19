@@ -41,7 +41,7 @@ function winzone_main(e)
 	if g_Entity[e]['activated'] == 1 then	
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+winzone[e].zoneheight then				
 			Prompt(winzone[e].prompt_text)
-			Destroy(e)
+			--Destroy(e)
 			PerformLogicConnections(e)
 			JumpToLevelIfUsed(e)		
 		end	

@@ -47,6 +47,7 @@ public:
 	float fFallDistance;
 	int iFallDistance;
 	bool m_bDidJump;
+	int iImmuneToFalling;
 
 protected:
 

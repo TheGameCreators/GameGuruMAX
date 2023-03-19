@@ -786,6 +786,10 @@ void mapfile_saveproject_fpm ( void )
 	UnDim (lstlist_s);
 	#endif
 
+	// save any changes to game collection list and ELE file
+	extern preferences pref;
+	save_rpg_system(pref.cLastUsedStoryboardProject, true);
+
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
 	#ifdef VRTECH

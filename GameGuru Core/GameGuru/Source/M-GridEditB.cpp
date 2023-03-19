@@ -36750,7 +36750,6 @@ void editor_toggle_element_vis(bool bIsVisible)
 		}
 	}
 
-#ifdef WICKEDENGINE
 	// clear any gridentity light if gridentity no longer used
 	if (t.gridentity == 0)
 	{
@@ -36760,15 +36759,10 @@ void editor_toggle_element_vis(bool bIsVisible)
 			t.gridentitywickedlightindex = 0;
 		}
 	}
-#endif
-	// editor refresh
-	//ditor_refresheditmarkers();
 }
 
-
-bool DoTreeNodeEntity(int masterid)
+bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 {
-
 	for (int i = 1; i < t.entityelement.size(); i++)
 	{
 		bool bValid = true;
@@ -36777,7 +36771,6 @@ bool DoTreeNodeEntity(int masterid)
 		{
 			if (masterid > 0 && t.entityelement[i].bankindex == masterid || (t.widget.pickedEntityIndex == i && t.gridentity == masterid))
 			{
-
 				char cName[512];
 				strcpy(cName, t.entityprofileheader[masterid].desc_s.Get());
 				if(t.entityelement[i].eleprof.name_s.Len()  > 0 )
@@ -36802,7 +36795,7 @@ bool DoTreeNodeEntity(int masterid)
 					treename = treename + " (Cursor) " + cName;
 				else
 					treename = treename + " " + cName;
-				//treename[0] = toupper(treename[0]);
+
 				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
 				ImGui::PopItemWidth();
 
@@ -36826,42 +36819,39 @@ bool DoTreeNodeEntity(int masterid)
 							CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
 						}
 
-						float zoom = ObjectSize(t.entityelement[i].obj, 1)*2.0;
-						if (zoom < 30.0f) zoom = 30.0f;
-						float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
-						float camy = realcamy;
-						if (camy < 30.0f) camy = 30.0f;
-
-						if (t.entityprofile[masterid].ismarker > 0)
+						if (bMoveCameraToObjectPosition == true)
 						{
-							//Markers, just move a bit away.
-							zoom = 100.0;
-							camy = 50.0;
-						}
-						//PE: Move camera keep camera Y.
-						//float camy = CameraPositionY(0);
-						PositionCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
-						PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
-						MoveCamera(0, -zoom);
-						PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
-						PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy*0.5), t.entityelement[i].z);
-						t.editorfreeflight.c.x_f = CameraPositionX();
-						t.editorfreeflight.c.y_f = CameraPositionY();
-						t.editorfreeflight.c.z_f = CameraPositionZ();
-						t.editorfreeflight.c.angx_f = CameraAngleX();
-						t.editorfreeflight.c.angy_f = CameraAngleY();
-						//t.editorfreeflight.c.angz_f = CameraAngleZ();
-						//RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
+							float zoom = ObjectSize(t.entityelement[i].obj, 1) * 2.0;
+							if (zoom < 30.0f) zoom = 30.0f;
+							float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
+							float camy = realcamy;
+							if (camy < 30.0f) camy = 30.0f;
 
-						t.cx_f = t.editorfreeflight.c.x_f;
-						t.cy_f = t.editorfreeflight.c.z_f;
+							if (t.entityprofile[masterid].ismarker > 0)
+							{
+								zoom = 100.0;
+								camy = 50.0;
+							}
+
+							//PE: Move camera keep camera Y.
+							PositionCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							MoveCamera(0, -zoom);
+							PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy * 0.5), t.entityelement[i].z);
+							t.editorfreeflight.c.x_f = CameraPositionX();
+							t.editorfreeflight.c.y_f = CameraPositionY();
+							t.editorfreeflight.c.z_f = CameraPositionZ();
+							t.editorfreeflight.c.angx_f = CameraAngleX();
+							t.editorfreeflight.c.angy_f = CameraAngleY();
+							t.cx_f = t.editorfreeflight.c.x_f;
+							t.cy_f = t.editorfreeflight.c.z_f;
+						}
 					}
 				}
 
-				if (TreeNodeOpen) {
-					//ImGui::Indent(-5);
-					//Display any sub nodes. smart objects.
-					//ImGui::Indent(5);
+				if (TreeNodeOpen) 
+				{
 					ImGui::TreePop();
 				}
 			}
@@ -36869,7 +36859,6 @@ bool DoTreeNodeEntity(int masterid)
 	}
 	return(0);
 }
-
 
 void SetupDecalObject(int obj, int elementID)
 {
@@ -44485,11 +44474,7 @@ void save_storyboard(char *name,bool bSaveAs)
 		strcpy(pref.cLastUsedStoryboardProject, savename.Get());
 
 		// save all RPG data (MAX can amend collection lists, and labels, etc)
-		save_rpg_system(savename.Get());
-		#ifdef RPG_GAMES
-		bool save_rpg_system(char *name);
-		save_rpg_system(savename.Get());
-		#endif
+		save_rpg_system(savename.Get(),false);
 	}
 	else
 	{

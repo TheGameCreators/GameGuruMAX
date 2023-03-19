@@ -8551,10 +8551,10 @@ void mapeditorexecutable_loop(void)
 
 				// detect ANY change inside entityelement (inc eleprof) so can trigger instance cloing of collectables
 				bool bSnappedEntityElementCopy = false;
-				static entitytype snapshotentityelement;
+				static entityeleproftype snapshotentityelement;
 				if (iEntityIndex > 0)
 				{
-					memcpy(&snapshotentityelement, &t.entityelement[iEntityIndex], sizeof(entitytype));
+					memcpy(&snapshotentityelement, &t.entityelement[iEntityIndex].eleprof, sizeof(entityeleproftype));
 					bSnappedEntityElementCopy = true;
 				}
 
@@ -10226,7 +10226,7 @@ void mapeditorexecutable_loop(void)
 								if (bChangedGameCollectionList == true)
 								{
 									// save any changes to game collection list 
-									save_rpg_system(pref.cLastUsedStoryboardProject);
+									save_rpg_system(pref.cLastUsedStoryboardProject, true);
 								}
 							}
 						}
@@ -10727,12 +10727,14 @@ void mapeditorexecutable_loop(void)
 				{
 					bool bEntityElementChanged = false;
 					char* pMemDataOld = (char*)&snapshotentityelement;
-					char* pMemDataNew = (char*)&t.entityelement[iEntityIndex];
-					for (int n = 0; n < sizeof(entitytype); n++)
+					char* pMemDataNew = (char*)&t.entityelement[iEntityIndex].eleprof;
+					int iWhereWeDetectedChange = 0;
+					for (int n = 0; n < sizeof(entityeleproftype); n++)
 					{
 						if (*pMemDataOld != *pMemDataNew)
 						{
 							// change in entity element or eleprof detected
+							iWhereWeDetectedChange = n;
 							bEntityElementChanged = true;
 							break;
 						}
@@ -10743,6 +10745,8 @@ void mapeditorexecutable_loop(void)
 					{
 						// now scan all entities in common with this entity, and clone all details
 						// to them (there should only be one collectale entity element/eleprof identity)
+						//char pDebugMe[512];
+						//sprintf(pDebugMe, "%d", iWhereWeDetectedChange);
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
 						{
 							LPSTR pMasterEntityName = t.entityelement[iEntityIndex].eleprof.name_s.Get();
@@ -14001,7 +14005,8 @@ void mapeditorexecutable_loop(void)
 									if (TreeNodeOpen)
 									{
 										ImGui::Indent(-5);
-										DoTreeNodeEntity(entid);
+										bool bMoveCameraToObjectPosition = false;
+										DoTreeNodeEntity(entid, bMoveCameraToObjectPosition);
 										ImGui::Indent(5);
 										ImGui::TreePop();
 									}
@@ -14106,7 +14111,7 @@ void mapeditorexecutable_loop(void)
 									{
 										ImGui::Indent(-5);
 										//Display any sub nodes
-										DoTreeNodeEntity(it->second);
+										DoTreeNodeEntity(it->second,true);
 										ImGui::Indent(5);
 										ImGui::TreePop();
 									}

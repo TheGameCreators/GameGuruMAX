@@ -827,32 +827,40 @@ void entity_lua_refreshentity ( void )
 		{
 			// determine if should 1=destroy, 2=create, 3=createbutnotspawnedyet or 0=leave
 			int iRefreshMode = 0;
-			if ( t.entityelement[t.e].active == 0 )
+			if (t.entityelement[t.e].collected != 0)
 			{
-				// do not destroy if entity yet to spawn
-				if ( t.entityelement[t.e].eleprof.spawnatstart == 0 )
-				{
-					// not spawned yet, so needs creating for future spawn
-					iRefreshMode = 3;
-				}
-				else
-				{
-					if ( t.entityelement[t.e].eleprof.spawnatstart == 2 && t.entityelement[t.e].health <= 0 )
-					{
-						// has been spawned, and killed, should be destroyed
-						iRefreshMode = 1;
-					}
-					else
-					{
-						// entity has been destroyed
-						iRefreshMode = 1;
-					}
-				}
+				// entity was collected, leave alone
+				iRefreshMode = 4;
 			}
 			else
 			{
-				// entity needs creating
-				iRefreshMode = 2;
+				if (t.entityelement[t.e].active == 0)
+				{
+					// do not destroy if entity yet to spawn
+					if (t.entityelement[t.e].eleprof.spawnatstart == 0)
+					{
+						// not spawned yet, so needs creating for future spawn
+						iRefreshMode = 3;
+					}
+					else
+					{
+						if (t.entityelement[t.e].eleprof.spawnatstart == 2 && t.entityelement[t.e].health <= 0)
+						{
+							// has been spawned, and killed, should be destroyed
+							iRefreshMode = 1;
+						}
+						else
+						{
+							// entity has been destroyed
+							iRefreshMode = 1;
+						}
+					}
+				}
+				else
+				{
+					// entity needs creating
+					iRefreshMode = 2;
+				}
 			}
 
 			// activate flag switchies entities on and off

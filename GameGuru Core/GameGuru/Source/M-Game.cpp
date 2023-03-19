@@ -2357,7 +2357,8 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	char pLUACustomLoadCall[256];
 	strcpy ( pLUACustomLoadCall, "GameLoopLoadStats" );
 	LuaSetFunction ( pLUACustomLoadCall, 1, 0 );
-	LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
+	LuaPushInt(g_Storyboard_Current_Level);
+	//LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
 	LuaCall ( );
 	//}
 
@@ -2815,14 +2816,26 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 {
 	// first save current level stats before reset LUA
-	//if ( t.game.allowfragmentation == 2 )
-	//{
 	// must now preserve state of level when leave it
 	char pLUACustomSaveCall[256];
 	strcpy ( pLUACustomSaveCall, "GameLoopSaveStats" );
-	LuaSetFunction ( pLUACustomSaveCall, 0, 0 ); 
-	LuaCall ( );
-	//}
+	LuaSetFunction ( pLUACustomSaveCall, 1, 0 ); 
+	LuaPushInt(g_Storyboard_Current_Level);
+	/*
+	int iStoryboardNodeID = 0;
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		if (Storyboard.Nodes[i].used)
+		{
+			if (pestrcasestr(Storyboard.Nodes[i].level_name, g_Storyboard_Current_fpm.Get()) != 0)
+			{
+				g_Storyboard_Current_Level = i;
+				strcpy(g_Storyboard_Current_fpm, Storyboard.Nodes[i].level_name);
+			}
+		}
+	}
+	*/
+	LuaCall ();
 
 	// free any lua activity (restore FOV if ingame activity there)
 	timestampactivity(0,"finalising LUA system before reset");

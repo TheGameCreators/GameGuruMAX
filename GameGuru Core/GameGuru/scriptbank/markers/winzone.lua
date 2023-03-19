@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v2   by Necrym59
+-- Winzone v3 by Necrym59
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
 -- DESCRIPTION: Link to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="Win Zone"]
@@ -31,17 +31,14 @@ end
  
 function winzone_main(e)	
 	winzone[e] = g_Entity[e]	
-	
 	if status[e] == "init" then
 		if winzone[e].SpawnAtStart == 1 then SetActivated(e,1) end
 		if winzone[e].SpawnAtStart == 0 then SetActivated(e,0) end
 		status[e] = "endinit"
 	end
-	
 	if g_Entity[e]['activated'] == 1 then	
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+winzone[e].zoneheight then				
 			Prompt(winzone[e].prompt_text)
-			--Destroy(e)
 			PerformLogicConnections(e)
 			JumpToLevelIfUsed(e)		
 		end	

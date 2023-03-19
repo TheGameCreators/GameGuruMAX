@@ -2648,27 +2648,11 @@ void entity_updatepos ( void )
 	}
 	else
 	{
-		if (t.entityelement[t.te].nogravity == 0)
+		if (t.entityelement[t.te].nogravity == 0 && t.entityelement[t.te].collected == 0)
 		{
-			#ifdef WICKEDENGINE
 			// non physics objects stick with the floor
 			t.tterrainfloorposy_f = BT_GetGroundHeight (t.terrain.TerrainID, t.entityelement[t.te].x, t.entityelement[t.te].z);
 			t.entityelement[t.te].y = t.tterrainfloorposy_f;
-			#else
-			if (t.terrain.TerrainID > 0)
-			{
-				// work out Floor (  position )
-				t.tterrainfloorposy_f = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(t.tobj), ObjectPositionZ(t.tobj));
-			}
-			else
-			{
-				t.tterrainfloorposy_f = g.gdefaultterrainheight;
-			}
-			if (t.entityelement[t.te].y < t.tterrainfloorposy_f)
-			{
-				t.entityelement[t.te].y = t.tterrainfloorposy_f;
-			}
-			#endif
 		}
 		else
 		{

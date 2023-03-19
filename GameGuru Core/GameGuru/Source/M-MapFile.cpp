@@ -2268,6 +2268,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1080").Get() );
 	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1200").Get() );
 
+	// HUD elements
+	addfoldertocollection("imagebank\\HUD");
+	addfoldertocollection("imagebank\\HUD Library");
+
 	// include original FPM
 	addtocollection(t.tmasterlevelfile_s.Get());
 

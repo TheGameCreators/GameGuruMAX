@@ -506,15 +506,16 @@ void lua_loop_begin ( void )
 				fFinalPercX = -10000.0f;
 				fFinalPercY = -10000.0f;
 				fFinalWheel = 0.0f;
-				sObject* pObject = g_ObjectList [ GGVR_Player.LaserGuideActive ];
+				sObject* pLaserObject = g_ObjectList [ GGVR_Player.LaserGuideActive ];
+				WickedCall_SetObjectCastShadows(pLaserObject, false);
 				MoveObject(GGVR_Player.LaserGuideActive, -100);
-				float fX = pObject->position.vecPosition.x;
-				float fY = pObject->position.vecPosition.y;
-				float fZ = pObject->position.vecPosition.z;
+				float fX = pLaserObject->position.vecPosition.x;
+				float fY = pLaserObject->position.vecPosition.y;
+				float fZ = pLaserObject->position.vecPosition.z;
 				MoveObject(GGVR_Player.LaserGuideActive, 200);
-				float fNewX = pObject->position.vecPosition.x;
-				float fNewY = pObject->position.vecPosition.y;
-				float fNewZ = pObject->position.vecPosition.z;
+				float fNewX = pLaserObject->position.vecPosition.x;
+				float fNewY = pLaserObject->position.vecPosition.y;
+				float fNewZ = pLaserObject->position.vecPosition.z;
 				MoveObject(GGVR_Player.LaserGuideActive, -100);
 				int tthitvalue = IntersectAllEx(g.luadrawredirectobjectoffset, g.luadrawredirectobjectoffset, fX, fY, fZ, fNewX, fNewY, fNewZ, 0, 0, 0, 0, 1);
 				if (tthitvalue != 0)

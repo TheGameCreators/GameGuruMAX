@@ -436,7 +436,6 @@ void postprocess_on ( void )
 
 void postprocess_preterrain ( void )
 {
-	#ifdef WICKEDENGINE
 	// Most rendering done in master for wicked, but some code from below remains for alignment of controls
 	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
@@ -459,58 +458,23 @@ void postprocess_preterrain ( void )
 			g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
 
 			// handle teleport
-			float fTelePortDestX = 0.0f;
-			float fTelePortDestY = 0.0f;
-			float fTelePortDestZ = 0.0f;
-			float fTelePortDestAngleY = 0.0f;
-			bool VRteleport = GGVR_HandlePlayerTeleport ( &fTelePortDestX, &fTelePortDestY, &fTelePortDestZ, &fTelePortDestAngleY );
-			if ( VRteleport )
+			bool bAllowPlayerTeleport = false;
+			if (bAllowPlayerTeleport == true)
 			{
-				physics_disableplayer ( );
-				t.terrain.playerx_f=fTelePortDestX;
-				t.terrain.playery_f=fTelePortDestY+30;
-				t.terrain.playerz_f=fTelePortDestZ;
-				physics_setupplayer ( );
-			}
-
-			/* done in global player script!
-			float leftStickY = OpenXRGetLeftStickY();
-			float rightStickY = OpenXRGetRightStickY();
-			if ( abs(rightStickY) > abs(leftStickY) ) leftStickY = rightStickY;
-			int blinkTurn = 1;
-			if ( abs(leftStickY) > 0.4 ) blinkTurn = 0;
-			if ( blinkTurn )
-			{
-				int VRturn = GGVR_GetTurnDirection();
-				if ( VRturn != 0 )
+				float fTelePortDestX = 0.0f;
+				float fTelePortDestY = 0.0f;
+				float fTelePortDestZ = 0.0f;
+				float fTelePortDestAngleY = 0.0f;
+				bool VRteleport = GGVR_HandlePlayerTeleport (&fTelePortDestX, &fTelePortDestY, &fTelePortDestZ, &fTelePortDestAngleY);
+				if (VRteleport)
 				{
-					t.terrain.playerax_f=0;
-					t.camangy_f += (VRturn * 30.0f);
-					t.terrain.playeray_f = t.camangy_f;
-					t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
-					t.terrain.playeraz_f=0;
+					physics_disableplayer ();
+					t.terrain.playerx_f = fTelePortDestX;
+					t.terrain.playery_f = fTelePortDestY + 30;
+					t.terrain.playerz_f = fTelePortDestZ;
+					physics_setupplayer ();
 				}
 			}
-			else
-			{			
-				// continuous turning
-				float leftStickX = OpenXRGetLeftStickX();
-				float rightStickX = OpenXRGetRightStickX();
-				if ( abs(rightStickX) > abs(leftStickX) ) leftStickX = rightStickX;
-				int sign = 1;
-				if ( leftStickX < 0 ) 
-				{
-					sign = -1;
-					leftStickX = -leftStickX;
-				}
-				leftStickX = (leftStickX - 0.1f) * 1.11111f;
-				leftStickX = leftStickX * leftStickX;
-				leftStickX *= sign;
-				t.camangy_f += leftStickX;
-				t.terrain.playeray_f = t.camangy_f;
-				t.playercontrol.finalcameraangley_f = t.terrain.playeray_f;
-			}
-			*/
 
 			// update HMD position and controller feedback
 			bool bPlayerDucking = false;
@@ -523,298 +487,6 @@ void postprocess_preterrain ( void )
 			GGVR_SetOpenXRValuesForMAX();
 		}
 	}
-	#else
-	//  Render pre-terrain post process cameras for 'glightraycameraid' and 'rift mode' (below)
-	if (  g.gpostprocessing>0 && t.glightraycameraid>0 && t.visuals.lightraymode>0 ) 
-	{
-		//  switch to black textures technique (fast)
-		if (  t.terrain.vegetationshaderindex>0 ) 
-		{
-			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"blacktextured" );
-		}
-		if (  GetEffectExist(t.terrain.terrainshaderindex) == 1  )  SetEffectTechnique (  t.terrain.terrainshaderindex,"blacktextured" );
-		for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
-		{
-			if ( t.t == -6  )  t.teffectid = g.lightmappbreffectillum;
-			#ifdef VRTECH
-			if ( t.t == -5  ) t.teffectid = g.controllerpbreffect;
-			#else
-			if ( t.t == -5  ) continue;
-			#endif
-			if ( t.t == -4  )  t.teffectid = g.lightmappbreffect;
-			if ( t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
-			if ( t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;
-			if ( t.t == -1  )  t.teffectid = g.staticlightmapeffectoffset;
-			if ( t.t == 0  )  t.teffectid = g.staticshadowlightmapeffectoffset;
-			if ( t.t>0  )  t.teffectid = g.effectbankoffset+t.t;
-			if ( GetEffectExist(t.teffectid) == 1 ) 
-			{
-				SetEffectTechnique ( t.teffectid, "blacktextured" );
-			}
-		}
-		// remove sky from lightray
-		if (  ObjectExist(t.terrain.objectstartindex+4) == 1 ) 
-		{
-			t.tskyobj1v=GetVisible(t.terrain.objectstartindex+4);
-			HideObject (  t.terrain.objectstartindex+4 );
-		}
-		if (  ObjectExist(t.terrain.objectstartindex+8) == 1 ) 
-		{
-			t.tskyobj2v=GetVisible(t.terrain.objectstartindex+8);
-			HideObject (  t.terrain.objectstartindex+8 );
-		}
-		if (  ObjectExist(t.terrain.objectstartindex+9) == 1 ) 
-		{
-			t.tskyobj3v=GetVisible(t.terrain.objectstartindex+9);
-			HideObject (  t.terrain.objectstartindex+9 );
-		}
-
-		// 051016 - moved here as still need to render lightray even if no terrain
-		if ( t.hardwareinfoglobals.noterrain == 0 ) 
-		{
-			//  render light ray camera terrain
-			if (  t.terrain.TerrainID>0 ) 
-			{
-				BT_SetCurrentCamera ( t.glightraycameraid );
-				BT_UpdateTerrainLOD ( t.terrain.TerrainID );
-				BT_UpdateTerrainCull ( t.terrain.TerrainID );
-				BT_RenderTerrain ( t.terrain.TerrainID );
-			}
-		}
-
-		//  Update whole camera view inc. masked in objects
-		SyncMask ( 1 << t.glightraycameraid );
-		FastSync ( );
-
-		// show sky box again
-		if ( t.hardwareinfoglobals.nosky == 0 ) 
-		{
-			if ( ObjectExist(t.terrain.objectstartindex+4) == 1 && t.tskyobj1v == 1 ) ShowObject ( t.terrain.objectstartindex+4 );
-			if ( ObjectExist(t.terrain.objectstartindex+8) == 1 && t.tskyobj2v == 1 ) ShowObject ( t.terrain.objectstartindex+8 );
-			if ( ObjectExist(t.terrain.objectstartindex+9) == 1 && t.tskyobj3v == 1 ) ShowObject ( t.terrain.objectstartindex+9 );
-		}
-		//  restore to original technique
-		if ( t.terrain.vegetationshaderindex>0 ) 
-		{
-			if (  GetEffectExist(t.terrain.vegetationshaderindex) == 1 ) 
-			{
-				visuals_shaderlevels_vegetation_update ( );
-			}
-		}
-		if ( GetEffectExist(t.terrain.terrainshaderindex) == 1 ) 
-		{
-			visuals_shaderlevels_terrain_update ( );
-		}
-		visuals_shaderlevels_entities_update ( );
-
-		// restore camera Sync (  )
-		SyncMask ( 0xfffffff9 );
-		BT_SetCurrentCamera (  0 );
-	}
-
-	#ifdef VRTECH
-	// VR Support - render VR cameras
-	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
-	{
-		if ( !GGVR_IsRuntimeFound() ) GGVR_ReInit();
-		
-		if ( !GGVR_IsRuntimeFound() )
-		{
-			t.visuals.generalpromptstatetimer = Timer()+1000;
-			t.visuals.generalprompt_s = "32-bit OpenXR runtime not found";
-		}
-		else
-		{
-			// position VR player at location of main camera
-			GGVR_SetPlayerPosition(t.tFinalCamX_f, t.tFinalCamY_f, t.tFinalCamZ_f);
-
-			// this sets the origin based on the current camera zero (ARG!)
-			// should only set based on player angle (minus HMD influence) as HMD added later at right time for smooth headset viewing!
-			GGVR_SetPlayerAngleY(t.camangy_f);
-
-			// update seated/standing flag
-			g.vrglobals.GGVRStandingMode = GGVR_GetTrackingSpace();
-
-			int iDebugMode = 0;
-			if ( g.gproducelogfiles > 0 ) 
-			{
-				static bool bDoThisPreSubmitDebugLineOnce = false;
-				if ( bDoThisPreSubmitDebugLineOnce == false )
-				{
-					timestampactivity(0,"Calling GGVR_PreSubmit VR");
-					bDoThisPreSubmitDebugLineOnce = true;
-				}
-				iDebugMode = 1;
-			}
-
-			// will return -1 to skip rendering this frame, not an error
-			int iErrorCode = GGVR_PreSubmit(iDebugMode);
-			if ( iErrorCode > 0 )
-			{
-				char pErrorStr[1024];
-				sprintf ( pErrorStr, "Error running VR : Code %d", iErrorCode );
-				timestampactivity(0,pErrorStr);
-			}
-			else
-			{
-				// determine if headset missing
-				if ( iErrorCode == -3 )
-				{
-					t.visuals.generalpromptstatetimer = Timer()+1000;
-					t.visuals.generalprompt_s = "VR headset not found";
-				}
-				else if ( iErrorCode == -2 )
-				{
-					t.visuals.generalpromptstatetimer = Timer()+1000;
-					t.visuals.generalprompt_s = "VR headset is currently inactive";
-				}
-			}
-			
-			// OpenXR may want us to skip rendering this frame, so only render if error code is 0
-			if ( iErrorCode == 0 )
-			{
-				// handle teleport
-				float fTelePortDestX = 0.0f;
-				float fTelePortDestY = 0.0f;
-				float fTelePortDestZ = 0.0f;
-				float fTelePortDestAngleY = 0.0f;
-				bool VRteleport = GGVR_HandlePlayerTeleport ( &fTelePortDestX, &fTelePortDestY, &fTelePortDestZ, &fTelePortDestAngleY );
-				if ( VRteleport )
-				{
-					physics_disableplayer ( );
-					t.terrain.playerx_f=fTelePortDestX;
-					t.terrain.playery_f=fTelePortDestY+30;
-					t.terrain.playerz_f=fTelePortDestZ;
-					physics_setupplayer ( );
-				}
-
-				float leftStickY = OpenXRGetLeftStickY();
-				float rightStickY = OpenXRGetRightStickY();
-				if ( abs(rightStickY) > abs(leftStickY) ) leftStickY = rightStickY;
-				int blinkTurn = 1;
-				if ( abs(leftStickY) > 0.4 ) blinkTurn = 0;
-
-				if ( blinkTurn )
-				{
-					int VRturn = GGVR_GetTurnDirection();
-					if ( VRturn != 0 )
-					{
-						t.terrain.playerax_f=0;
-						t.camangy_f += (VRturn * 30.0f);
-						t.terrain.playeray_f = t.camangy_f;
-						//t.terrain.playeray_f = t.camangy_f;// CameraAngleY(0);
-						t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
-						t.terrain.playeraz_f=0;
-					}
-				}
-				else
-				{			
-					// continuous turning
-					float leftStickX = OpenXRGetLeftStickX();
-					float rightStickX = OpenXRGetRightStickX();
-					if ( abs(rightStickX) > abs(leftStickX) ) leftStickX = rightStickX;
-					int sign = 1;
-					if ( leftStickX < 0 ) 
-					{
-						sign = -1;
-						leftStickX = -leftStickX;
-					}
-					leftStickX = (leftStickX - 0.1f) * 1.11111f;
-					leftStickX = leftStickX * leftStickX;
-					leftStickX *= sign;
-					t.camangy_f += leftStickX;
-					t.terrain.playeray_f = t.camangy_f;
-					t.playercontrol.finalcameraangley_f = t.terrain.playeray_f;
-				}
-
-				/*
-				// continuous movement with thumbsticks, doesn't seem to work very well
-				float leftMoveX = OpenXRGetLeftStickX();
-				float leftMoveY = OpenXRGetLeftStickY();
-				float rightMoveX = OpenXRGetRightStickX();
-				float rightMoveY = OpenXRGetRightStickY();
-				if ( abs(rightMoveX) > abs(leftMoveX) ) leftMoveX = rightMoveX;
-				if ( abs(rightMoveY) > abs(leftMoveY) ) leftMoveY = rightMoveY;
-
-				float angY = GGVR_GetHMDAngleY();
-				float sinAngY = sin(angY * PI / 180.0f );
-				float cosAngY = cos(angY * PI / 180.0f );
-
-				physics_disableplayer ( );
-				t.terrain.playerz_f += cosAngY*leftMoveY - sinAngY*leftMoveY;
-				t.terrain.playerx_f += cosAngY*leftMoveY + sinAngY*leftMoveY;
-				physics_setupplayer ( );
-				*/
-
-				// update HMD position and controller feedback
-				bool bPlayerDucking = false;
-				if ( t.aisystem.playerducking != 0 ) bPlayerDucking = true;
-				int iBatchStart = g.batchobjectoffset;
-				int iBatchEnd = g.batchobjectoffset + g.merged_new_objects + 1;
-				GGVR_UpdatePlayer(bPlayerDucking,t.terrain.TerrainID,g.lightmappedobjectoffset,g.lightmappedobjectoffsetfinish,g.entityviewstartobj,g.entityviewendobj,iBatchStart,iBatchEnd);
-						
-				// render left and right eyes
-				for (t.leftright = 0; t.leftright <= 1; t.leftright++)
-				{
-					//  left and right camera in turn
-					if (t.leftright == 0)  
-					{
-						t.tcamindex = t.glefteyecameraid;
-						GGVR_StartRender( 0 );
-					}
-					if (t.leftright == 1)  
-					{
-						t.tcamindex = t.grighteyecameraid;
-						GGVR_StartRender( 1 );
-					}
-
-					//  adjust sky objects to center on this camera
-					if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
-					if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex), CameraPositionZ(t.tcamindex));
-					if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.tcamindex), CameraPositionY(t.tcamindex) + 7000, CameraPositionZ(t.tcamindex));
-
-					// render terrain for this camera
-					BT_SetCurrentCamera(t.tcamindex);
-					BT_UpdateTerrainCull(t.terrain.TerrainID);
-					BT_UpdateTerrainLOD(t.terrain.TerrainID);
-					if ( t.hardwareinfoglobals.noterrain == 0 && t.terrain.TerrainID > 0 )
-						BT_RenderTerrain(t.terrain.TerrainID);
-					else
-						BT_NoRenderTerrain(t.terrain.TerrainID);
-
-					// and now render
-					SyncMask((1 << t.tcamindex));
-					FastSync();
-
-					GGVR_EndRender();
-				}
-
-				// restore skies
-				if (ObjectExist(t.terrain.objectstartindex + 4) == 1)  PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
-				if (ObjectExist(t.terrain.objectstartindex + 8) == 1)  PositionObject(t.terrain.objectstartindex + 8, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera), CameraPositionZ(t.terrain.gameplaycamera));
-				if (ObjectExist(t.terrain.objectstartindex + 9) == 1)  PositionObject(t.terrain.objectstartindex + 9, CameraPositionX(t.terrain.gameplaycamera), CameraPositionY(t.terrain.gameplaycamera) + 7000, CameraPositionZ(t.terrain.gameplaycamera));
-
-				// restore camera
-				SetCurrentCamera(0);
-			}
-
-			// finialize VR frame, must be called even if we don't render
-			if ( iErrorCode == -1 || iErrorCode == 0 ) GGVR_Submit();
-
-			//  I should use LAST camera pos/angle as the stereo appears in a post process render
-			t.oldoldcamx_f = CameraPositionX(0);
-			t.oldoldcamy_f = CameraPositionY(0);
-			t.oldoldcamz_f = CameraPositionZ(0);
-			t.oldoldcamax_f = CameraAngleX(0);
-			t.oldoldcamay_f = CameraAngleY(0);
-
-			//  restore camera Sync (  )
-			SyncMask(0xfffffff9);
-			BT_SetCurrentCamera(0);
-		}
-	}
-	#endif
-	#endif
 }
 
 void postprocess_apply ( void )

@@ -724,11 +724,11 @@ void gun_update_hud ( void )
 		}
 		if (  g.globals.riftmode == 0 ) 
 		{
-			bool bNormalOrVRMode = false;
+			bool bVRMode = false;
 			#ifdef WICKEDENGINE
-			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
+			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bVRMode = true;
 			#endif
-			if (bNormalOrVRMode == false)
+			if (bVRMode == false)
 			{
 				t.gunax_f = CameraAngleX(); t.gunay_f = CameraAngleY();
 				RotateObject(g.hudbankoffset + 2, t.gunax_f, t.gunay_f, 0);
@@ -736,7 +736,6 @@ void gun_update_hud ( void )
 			}
 			else
 			{
-				#ifdef WICKEDENGINE
 				// VR Mode
 				int iControllerObj = GGVR_GetRightHandObject();
 				if ( iControllerObj > 0 )
@@ -746,7 +745,7 @@ void gun_update_hud ( void )
 						if ( t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1 && GetVisible(t.currentgunobj) == 1)
 						{
 							// scale VR weapon
-							float fScl = 75.0f;
+							float fScl = 100.0f;// 75.0f;
 							if (t.gun[t.gunid].settings.iVRWeaponMode > 0)
 							{
 								fScl = t.gun[t.gunid].settings.fVRWeaponScale;
@@ -776,27 +775,117 @@ void gun_update_hud ( void )
 							GGVECTOR3 vecWorldPos;
 							vecWorldPos = GGVECTOR3(ObjectPositionX(iControllerObj), ObjectPositionY(iControllerObj), ObjectPositionZ(iControllerObj));
 
+							// quick way to edit VR WEAPON SETTINGS and save gunspec new settings
+							PerformCheckListForLimbs(t.currentgunobj);
+							int iGunLimbCount = ChecklistQuantity();
+							/*
+							bool bAllowKeyEditingLive = false;
+							if (bAllowKeyEditingLive == true)
+							{
+								// always need mode on when here for this weapon
+								t.gun[t.gunid].settings.iVRWeaponMode = 1;
+
+								int iKeyPressed = 0;
+								bool bOneKeyDown = false;
+								static int iKeyPressedDown = 0;
+								for (int keyi = 2; keyi <= 11; keyi++)
+								{
+									if (KeyState(keyi) == 1) 
+									{ 
+										bOneKeyDown = true;
+										if (iKeyPressedDown == 0)
+										{
+											iKeyPressed = keyi;
+											iKeyPressedDown = 1;
+										}
+									}
+								}
+								if(bOneKeyDown==false)
+								{
+									iKeyPressedDown = 0;
+								}
+								if (iKeyPressed == 2) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon--;
+								if (iKeyPressed == 3) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon++;
+								if (iKeyPressed == 4) t.gun[t.gunid].settings.iVRWeaponStaticFrame--;
+								if (iKeyPressed == 5) t.gun[t.gunid].settings.iVRWeaponStaticFrame++;
+								if (iKeyPressed == 6) t.gun[t.gunid].settings.fVRWeaponOffsetX--;
+								if (iKeyPressed == 7) t.gun[t.gunid].settings.fVRWeaponOffsetX++;
+								if (iKeyPressed == 8) t.gun[t.gunid].settings.fVRWeaponOffsetY--;
+								if (iKeyPressed == 9) t.gun[t.gunid].settings.fVRWeaponOffsetY++;
+								if (iKeyPressed == 10) t.gun[t.gunid].settings.fVRWeaponOffsetZ--;
+								if (iKeyPressed == 11)
+								{
+									LPSTR pSaveSettingsLocal = "quickweaponsettings.txt";
+									if (FileExist(pSaveSettingsLocal) == 1) DeleteFileA(pSaveSettingsLocal);
+									OpenToWrite(3, pSaveSettingsLocal);
+									char pLineToWrite[256];
+									sprintf(pLineToWrite, ";// VR Support"); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponmode=%d", t.gun[t.gunid].settings.iVRWeaponMode); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponlimbofweapon=%d", t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponstaticframe=%d", t.gun[t.gunid].settings.iVRWeaponStaticFrame); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponoffsetx=%d", (int)t.gun[t.gunid].settings.fVRWeaponOffsetX); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponoffsety=%d", (int)t.gun[t.gunid].settings.fVRWeaponOffsetY); WriteString(3, pLineToWrite);
+									sprintf(pLineToWrite, "vrweaponoffsetz=%d", (int)t.gun[t.gunid].settings.fVRWeaponOffsetZ); WriteString(3, pLineToWrite);
+									CloseFile(3);
+								}
+							}
+
+							// limits
+							if (t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon < 0) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = 0;
+							if (t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon > iGunLimbCount-1) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = iGunLimbCount-1;
+							if (t.gun[t.gunid].settings.iVRWeaponStaticFrame < 0) t.gun[t.gunid].settings.iVRWeaponStaticFrame = 0;
+							*/
+
 							// get offset from base currentgunobj to FIRESPOT (common amongst weapons and indicator of where hand might be)
-							static GGVECTOR3 vecVRWeaponOffsetSetting;
-							vecVRWeaponOffsetSetting.x = -7.5f;
-							vecVRWeaponOffsetSetting.y = 4.0f;
-							vecVRWeaponOffsetSetting.z = -20.0f;
+							GGVECTOR3 vecVRWeaponOffsetSetting;
+							vecVRWeaponOffsetSetting.x = 0;
+							vecVRWeaponOffsetSetting.y = 0;
+							vecVRWeaponOffsetSetting.z = 0;
 							if ( t.gun[t.gunid].settings.iVRWeaponMode > 0 )
 							{
 								vecVRWeaponOffsetSetting.x = t.gun[t.gunid].settings.fVRWeaponOffsetX;
 								vecVRWeaponOffsetSetting.y = t.gun[t.gunid].settings.fVRWeaponOffsetY;
 								vecVRWeaponOffsetSetting.z = t.gun[t.gunid].settings.fVRWeaponOffsetZ;
 							}
-							GGVECTOR3 vecVRWeaponOffset = vecVRWeaponOffsetSetting;
 
 							// rotate offset by orientation of weapon HUD 
 							sObject* pWeaponHUDObj = GetObjectData(g.hudbankoffset + 2);
 							GGMATRIX matHUDRot = pWeaponHUDObj->position.matObjectNoTran;
+							GGVECTOR3 vecVRWeaponOffset = vecVRWeaponOffsetSetting;
 							GGVec3TransformCoord(&vecVRWeaponOffset, &vecVRWeaponOffset, &matHUDRot);
 
 							// apply rotated offset to world
 							vecWorldPos += vecVRWeaponOffset;
 							PositionObject(g.hudbankoffset + 2, vecWorldPos.x, vecWorldPos.y, vecWorldPos.z);
+
+							// VR supported or not
+							if (t.gun[t.gunid].settings.iVRWeaponMode == 1)
+							{
+								// also eliminate all animations and fix on known rig frame
+								StopObject(t.currentgunobj);
+								SetObjectInterpolation (t.currentgunobj, 100);
+								SetObjectFrame (t.currentgunobj, t.gun[t.gunid].settings.iVRWeaponStaticFrame);
+								SetObjectSpeed(t.currentgunobj, 0);
+
+								// only show specified limb (so can hide hands,etc)
+								for (int c = 1; c <= iGunLimbCount; c++)
+								{
+									int iLimbID = c - 1;
+									if (iLimbID == t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon)
+										ShowLimb(t.currentgunobj, iLimbID);
+									else
+										HideLimb(t.currentgunobj, iLimbID);
+								}
+							}
+							else
+							{
+								// no specific VR support, keep object but hide all limbs so cannot see anything bad
+								for (int c = 1; c <= iGunLimbCount; c++)
+								{
+									int iLimbID = c - 1;
+									HideLimb(t.currentgunobj, iLimbID);
+								}
+							}
 
 							// then look to hide the VR controller
 							GGVR_LeftIsBest(true); // only left used for motion
@@ -816,7 +905,6 @@ void gun_update_hud ( void )
 						}
 					}
 				}
-				#endif
 			}
 		}
 	}

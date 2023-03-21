@@ -7481,6 +7481,8 @@ struct gunsettingstype
 	int zoomhidecrosshair;
 
 	int iVRWeaponMode;
+	int iVRWeaponStaticFrame;
+	int iVRWeaponLimbOfWeapon;
 	float fVRWeaponOffsetX;
 	float fVRWeaponOffsetY;
 	float fVRWeaponOffsetZ;
@@ -7495,6 +7497,8 @@ struct gunsettingstype
 	// Constructor
 	gunsettingstype ( )
 	{
+		 iVRWeaponLimbOfWeapon = 0;
+		 iVRWeaponStaticFrame = 0;
 		 iVRWeaponMode = 0;
 		 fVRWeaponOffsetX = 0;
 		 fVRWeaponOffsetY = 0;

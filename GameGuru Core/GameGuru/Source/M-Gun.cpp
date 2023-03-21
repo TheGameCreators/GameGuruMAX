@@ -72,9 +72,16 @@ void gun_loaddata ( void )
 
 	// reset VR specificgun settings
 	t.gun[t.gunid].settings.iVRWeaponMode = 0;
+	t.gun[t.gunid].settings.iVRWeaponStaticFrame = 0;
+	t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = 0;
 	t.gun[t.gunid].settings.fVRWeaponOffsetX = 0;
 	t.gun[t.gunid].settings.fVRWeaponOffsetY = 0;
 	t.gun[t.gunid].settings.fVRWeaponOffsetZ = 0;
+	t.gun[t.gunid].settings.fVRWeaponScale = 100;
+	t.gun[t.gunid].settings.fVRWeaponAngleX = 0;
+	t.gun[t.gunid].settings.fVRWeaponAngleY = 0;
+	t.gun[t.gunid].settings.fVRWeaponAngleZ = 0;
+	
 
 	// stores legacy ammo/clip values when move slot weapons to player containers for storage
 	t.gun[t.gunid].storeammo = 0;
@@ -1543,8 +1550,12 @@ void gun_loaddata ( void )
 					}
 
 					// VR specific details
-					cmpStrConst( t_field_s, "vrweaponmode" );
-					if( matched ) t.gun[t.gunid].settings.iVRWeaponMode = t.value1;
+					cmpStrConst(t_field_s, "vrweaponmode");
+					if (matched) t.gun[t.gunid].settings.iVRWeaponMode = t.value1;
+					cmpStrConst(t_field_s, "vrweaponlimbofweapon");
+					if (matched) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = t.value1;
+					cmpStrConst(t_field_s, "vrweaponstaticframe");
+					if (matched) t.gun[t.gunid].settings.iVRWeaponStaticFrame = t.value1;
 					cmpStrConst( t_field_s, "vrweaponoffsetx" );
 					if( matched ) t.gun[t.gunid].settings.fVRWeaponOffsetX = t.value1;
 					cmpStrConst( t_field_s, "vrweaponoffsety" );

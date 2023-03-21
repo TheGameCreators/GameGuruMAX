@@ -1536,8 +1536,7 @@ bool welcome_get_change_log(void)
 	char pURLText[10240];
 	strcpy(pURLText, "");
 
-	// also show announcement each time during the pre-order phase so always know what is in 
-	// each version as these early builds are to ONLY TEST the build features 'completed'
+	// also show announcement each time a build changes
 	char pChangeLogFile[1024];
 	strcpy(pChangeLogFile, g.fpscrootdir_s.Get());
 	strcat(pChangeLogFile, "\\changelog.txt");

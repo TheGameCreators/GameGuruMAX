@@ -5910,19 +5910,6 @@ void imgui_Customize_Terrain_v3(int mode)
 			ImGui::SetTooltip("Restore the texture folder and default texture set to their original states");
 		}
 		#endif
-		//if (iUsedImages < 32)
-		//{
-		//	// Removed for early access.
-		//	////ImGui::Text(""); //ImGui::Separator();
-		//	//float but_gadget_size = ImGui::GetFontSize()*10.0;
-		//	//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-		//	//
-		//	//if (ImGui::StyleButton("Add New Texture", ImVec2(but_gadget_size, 0))) {
-		//	//	iSelectTexture = 99;
-		//	//}
-		//	//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add New Texture");
-		//	////ImGui::Separator();
-		//}
 #endif
 
 

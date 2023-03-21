@@ -20,7 +20,9 @@ function gamedata.save(slotnumber,uniquename)
 	
 	-- header for game ID (untouched for compatablity )
 	io.write(123 .. "\n")
-	io.write(g_iGameNameNumber .. "\n")
+	local tgnn = 0
+	if g_iGameNameNumber ~= nil then tgnn = g_iGameNameNumber end
+	io.write(tgnn .. "\n")
 	io.write(uniquename .. "\n")
 	io.write(g_LevelFilename .. "\n")
 	io.write(0 .. "\n")

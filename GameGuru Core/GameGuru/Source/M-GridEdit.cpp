@@ -1035,7 +1035,7 @@ void mapeditorexecutable_init ( void )
 	#ifdef USETOOLBARHEADER
 	LoadImage("editors\\uiv3\\theader.png", TOOL_HEADER);
 	#endif
-	#ifdef WICKEDENGINE
+	/*
 	if (FileExist("editors\\uiv3\\gameguru-max-logo-ea2.png"))
 	{
 		LoadImage("editors\\uiv3\\gameguru-max-logo-ea2.png", ABOUT_LOGO);
@@ -1043,12 +1043,13 @@ void mapeditorexecutable_init ( void )
 	}
 	else
 	{
+		gameguru - max - logo
 		LoadImage("editors\\uiv3\\gameguru-max-logo-ea.png", ABOUT_LOGO);
 		iAboutLogoType = 0;
 	}
-	#else
-	LoadImage("editors\\uiv3\\ABOUT-Logo.png", ABOUT_LOGO);
-	#endif
+	*/	
+	LoadImage("editors\\uiv3\\gameguru-max-logo.png", ABOUT_LOGO);
+	iAboutLogoType = 0;
 	LoadImage("editors\\uiv3\\ABOUT-TGC.png", ABOUT_TGC);
 	LoadImage("editors\\uiv3\\ABOUT-Country.png", ABOUT_HB);
 	LoadImage("editors\\uiv3\\ebe-control1.png", EBE_CONTROL1);
@@ -1194,16 +1195,17 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\freetrial\\header-sale-oneday.png", FREETRIAL_COUNTER_ONEDAY);			
 	LoadImage("editors\\uiv3\\filler-rounded.png", WELCOME_FILLERROUNDED);
 
-	LPSTR pWelcomeHeaderHUB = "editors\\uiv3\\welcome-header-ea3.png";
+	LPSTR pWelcomeHeaderHUB = "editors\\uiv3\\welcome-header.png";
 	if (g_bFreeTrialVersion == true)
 	{
-		pWelcomeHeaderHUB = "editors\\freetrial\\welcome-header-ea3.png";
+		pWelcomeHeaderHUB = "editors\\freetrial\\welcome-header.png";
 	}
 	if (FileExist(pWelcomeHeaderHUB))
 	{
 		LoadImage(pWelcomeHeaderHUB, WELCOME_HEADER);
 		iWelcomeHeaderType = 3;
 	}
+	/*
 	else if (FileExist("editors\\uiv3\\welcome-header-ea2.png"))
 	{
 		LoadImage("editors\\uiv3\\welcome-header-ea2.png", WELCOME_HEADER);
@@ -1219,6 +1221,7 @@ void mapeditorexecutable_init ( void )
 		LoadImage("editors\\uiv3\\welcome-header.png", WELCOME_HEADER);
 		iWelcomeHeaderType = 0;
 	}
+	*/
 
 	LoadImage("editors\\uiv3\\filetype-ogg.png", FILETYPE_OGG);
 	LoadImage("editors\\uiv3\\filetype-wav.png", FILETYPE_WAV);
@@ -1266,27 +1269,28 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\terrain-write.png", TERRAIN_WRITE);
 	LoadImage("editors\\uiv3\\terrain-restore.png", TERRAIN_RESTORE);
 
-	//
-	if (FileExist("editors\\uiv3\\storyboard-header5-ea.png"))
+	if (FileExist("editors\\uiv3\\storyboard-header5.png"))
 	{
-		LoadImage("editors\\uiv3\\storyboard-header5-ea.png", STORYBOARD_HEADER);
+		LoadImage("editors\\uiv3\\storyboard-header5.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 114.0f; //PE: Way better on ultra wide monitors.
 	}
-	else if (FileExist("editors\\uiv3\\storyboard-header4-ea.png"))
+	/*
+	else if (FileExist("editors\\uiv3\\storyboard-header4.png"))
 	{
-		LoadImage("editors\\uiv3\\storyboard-header4-ea.png", STORYBOARD_HEADER);
+		LoadImage("editors\\uiv3\\storyboard-header4.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 130.0f; //PE: Way better on ultra wide monitors.
 	}
-	else if (FileExist("editors\\uiv3\\storyboard-header3-ea.png"))
+	else if (FileExist("editors\\uiv3\\storyboard-header3.png"))
 	{
-		LoadImage("editors\\uiv3\\storyboard-header3-ea.png", STORYBOARD_HEADER);
+		LoadImage("editors\\uiv3\\storyboard-header3.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 130.0f; //PE: Way better on ultra wide monitors.
 	}
 	else
 	{
-		LoadImage("editors\\uiv3\\storyboard-header2-ea.png", STORYBOARD_HEADER);
+		LoadImage("editors\\uiv3\\storyboard-header2.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 150.0f;
 	}
+	*/
 	LoadImage("editors\\uiv3\\entity_image2.png", STORYBOARD_BACKDROP);
 	LoadImage("editors\\uiv3\\entity_music2.png", STORYBOARD_MUSIC);
 	LoadImage("editors\\uiv3\\entity_checkpoint2.png", STORYBOARD_PREVIEW);
@@ -8029,7 +8033,6 @@ void mapeditorexecutable_loop(void)
 		//#### Export Standalone ####
 		//###########################
 		static bool bModalInformation = false;
-
 		if (g_bFreeTrialVersion == true)
 		{
 			if (bExport_Standalone_Window == true)
@@ -8043,82 +8046,29 @@ void mapeditorexecutable_loop(void)
 			static char cStandalonePath[MAX_PATH] = "\0";
 			static int iStandaloneCycle = 0;
 			if (cStandalonePath[0] == 0) {
-				g.exedir_s = g.myownrootdir_s;//GetDir();
+				g.exedir_s = g.myownrootdir_s;
 				if(cstr(Right(g.myownrootdir_s.Get(), 1)) == "\\" )
 					g.exedir_s += "My Games\\";
 				else
 					g.exedir_s += "\\My Games\\";
 				strcpy(cStandalonePath, g.exedir_s.Get());
 
-				//PE: Last saved overwrite default path.
 				if (strlen(pref.cDefaultStandalonePath) > 0)
 				{
 					strcpy(cStandalonePath,pref.cDefaultStandalonePath);
 				}
-
 			}
 
-			/*ImGui::OpenPopup("Save Standalone##SaveStandaloneWindow");*/
 			ImGui::OpenPopup("Export: Save Standalone Game##SaveStandaloneWindow");
-
-			//ImGui::SetNextWindowPos(viewPortPos + ImVec2(180, 140), ImGuiCond_Appearing);// ImGuiCond_Once); //ImGuiCond_FirstUseEver
-#ifdef WICKEDENGINE
-			ImGui::SetNextWindowSize(ImVec2(43 * ImGui::GetFontSize(), 32 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver (was 13)
-#else
-			ImGui::SetNextWindowSize(ImVec2(34 * ImGui::GetFontSize(), 24 * ImGui::GetFontSize()), ImGuiCond_Once); //ImGuiCond_FirstUseEver (was 13)
-#endif
+			ImGui::SetNextWindowSize(ImVec2(43 * ImGui::GetFontSize(), 32 * ImGui::GetFontSize()), ImGuiCond_Once);
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Appearing);// ImGuiCond_Once);
-
-			if (ImGui::BeginPopupModal("Export: Save Standalone Game##SaveStandaloneWindow", &bExport_Standalone_Window, 0)) { //ImGuiWindowFlags_AlwaysAutoResize
-
+			if (ImGui::BeginPopupModal("Export: Save Standalone Game##SaveStandaloneWindow", &bExport_Standalone_Window, 0)) 
+			{
 				ImGui::Indent(10);
 				float col_start = 80.0f;
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 
-				#ifndef WICKEDENGINE
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Choose where you would like your standalone to be saved:");
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Path");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				//ImGui::PushItemWidth(-10);
-
-				float path_gadget_size = ImGui::GetFontSize()*2.0;
-
-				ImGui::PushItemWidth(-10 - path_gadget_size);
-				ImGui::InputText("##InputPathCCP", &cStandalonePath[0], 250, ImGuiInputTextFlags_ReadOnly);
-				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-				ImGui::PopItemWidth();
-
-				ImGui::SameLine();
-				ImGui::PushItemWidth(path_gadget_size);
-				if (ImGui::StyleButton("...##ccppath")) {
-					//PE: filedialogs change dir so.
-					cStr tOldDir = GetDir();
-					char * cFileSelected;
-					cstr fulldir = cStandalonePath;
-
-					cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", fulldir.Get() , NULL);
-
-					SetDir(tOldDir.Get());
-
-					if (cFileSelected && strlen(cFileSelected) > 0) {
-						strcpy(cStandalonePath, cFileSelected);
-						if (cStandalonePath[strlen(cStandalonePath) - 1] != '\\')
-							strcat(cStandalonePath, "\\");
-						strcpy(pref.cDefaultStandalonePath, cStandalonePath);
-					}
-				}
-				ImGui::PopItemWidth();
-				#endif
-
-
 				#ifdef WICKEDENGINE
-				#ifndef REMOVED_EARLYACCESS
-				ImGui::Text("Standalone Settings:");
-				#endif
 				/*
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()+35, ImGui::GetCursorPosY() + 3));
 				ImGui::Text("Single Player");
@@ -8144,28 +8094,34 @@ void mapeditorexecutable_loop(void)
 					g_bStandaloneSinglePlayer = false;
 					#endif
 				}
-				*/
 				g_bStandaloneSinglePlayer = true;
 				g_bStandaloneMultiPlayer = false;
+				*/
 
-				#ifndef REMOVED_EARLYACCESS
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()+35, ImGui::GetCursorPosY() + 3));
-				ImGui::Text(" VR Mode");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(20, ImGui::GetCursorPosY() - 3));
-				if (ImGui::Checkbox("##setVRModeEnabled", &g_bStandaloneVRMode)) 
-				{
-					// VR Mode changed
-				}
-				#endif
-
-				//ImGui::Text("");
 				ImGui::SetWindowFontScale(1.2);
-				ImGui::Text("You can export your chosen levels as a self-contained standalone game that can");
-				ImGui::Text("then be shared and played without the need for GameGuru MAX:");
+				ImGui::TextWrapped("You can export your game project as a self-contained standalone game that can then be shared and played without the need for GameGuru MAX.");
+
+				/*
+				ImGui::PushID(iInfoUniqueId++);
+				if (ImGui::ImgBtn(ICON_INFO, ImVec2(20, 20), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
+				{
+					cInfoMessage = "When your game has been saved as a standalone game, Windows File Explorer will open to the folder where your game has been saved.\n\nThe path will be similar to this:\nC:\\Users\\username_\Documents\\GameGuruApps\\GameGuruMAX\\My Games\\nameofgame\n\nYou can then run your game from that location without using GameGuru MAX and you can share the game with friends and family.";
+					cInfoImage = "";
+					bModalInformation = true;
+				}
+				ImGui::PopID();
+				*/
+				/*
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("%s", "Click For More Information");
+				}
+				ImGui::SameLine();
+				*/
+				ImGui::TextWrapped("When your game has been saved as a standalone game, Windows File Explorer can be used to find the folder where your game has been saved, typically similar to: 'C:\\Users\\username_\Documents\\GameGuruApps\\GameGuruMAX\\My Games\\nameofgame'. You can then run your game from that location and you can share the game with friends and family.");
 				ImGui::Text("");
-				#ifdef WICKEDENGINE
-				
+
+				/*
 				ImGui::TextWrapped("PLEASE NOTE:  During the Early Access development phase, all games saved as standalone are considered test games. The games will include a startup message informing users that the game has been made with the Early Access version. If you would like to apply for the EA restriction to be lifted please follow this LINK and fill out the short form. Note you don't need to do this for personal non-commercial purposes.");
 				ImVec2 prevCursor = ImGui::GetCursorPos();
 				ImGui::SetCursorPos(prevCursor + ImVec2(431, -50));
@@ -8175,47 +8131,27 @@ void mapeditorexecutable_loop(void)
 				}
 				ImGui::SetCursorPos(prevCursor);
 				ImGui::Text("");
-				ImGui::PushID(iInfoUniqueId++);
-				if (ImGui::ImgBtn(ICON_INFO, ImVec2(20, 20), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
+				*/
+
+				// VR mode
+//				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 35, ImGui::GetCursorPosY() + 3));
+//				ImGui::Text("Save with Virtual Reality Mode");
+//				ImGui::SameLine();
+//				ImGui::SetCursorPos(ImVec2(20, ImGui::GetCursorPosY() - 3));
+				if (ImGui::Checkbox("Save with Virtual Reality Mode##setVRModeEnabled", &g_bStandaloneVRMode))
 				{
-					//PE: We are modal here, so need the special modal information window.
-					cInfoMessage = "Games made with GameGuru MAX are designed for PCs with this minimum specification:\n\nWindows 10\nIntel Dual-Core 2GHz or AMD Dual-Core 2GHz CPU\n8 GB Ram\nNVIDIA GeForce GTX960 or similar\nDirectX 11\n30 GB device storage\nDirectX Compatabible Sound Card";
-					cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-					//bInfo_Window = true; //Open information window.
-					bModalInformation = true;
+					// VR Mode changed
 				}
-				ImGui::PopID();
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("%s", "Click For More Information");
+					ImGui::SetTooltip("%s", "Setting your standalone to VR mode will attempt to launch the game on any available OpenXR device");
 				}
-				ImGui::SameLine();
 
-				ImGui::TextWrapped("Ensure that anyone you share your standalone game with has a PC system that meets the minimum requirements of GameGuru MAX.");
-				ImGui::Text("");
-				#endif
-
-				ImGui::PushID(iInfoUniqueId++);
-				if (ImGui::ImgBtn(ICON_INFO, ImVec2(20, 20), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
-				{
-					//PE: We are modal here, so need the special modal information window.
-					cInfoMessage = "When your game has been saved as a standalone game, Windows File Explorer will open to the folder where your game has been saved.\n\nThe path will be similar to this:\nC:\\Users\\username_\Documents\\GameGuruApps\\GameGuruMAX\\My Games\\nameofgame\n\nYou can then run your game from that location without using GameGuru MAX and you can share the game with friends and family.";
-					cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-					//bInfo_Window = true; //Open information window.
-					bModalInformation = true;
-				}
-				ImGui::PopID();
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("%s", "Click For More Information");
-				}
-				ImGui::SameLine();
+				// Option to open folder automatically after saving standalone
 				static bool bOpenFolder = false;
 				ImGui::Checkbox("Open folder after game has been saved and close GameGuru MAX", &bOpenFolder);
 				ImGui::Text("");
-
 				ImGui::SetWindowFontScale(1.0);
-
 				#endif
 
 				// Save or Cancel button
@@ -8228,17 +8164,10 @@ void mapeditorexecutable_loop(void)
 				{
 					extern float g_mapfile_fProgress;
 					g_mapfile_fProgress = 0.0f;
-					#ifdef WICKEDENGINE
-					if (ImGui::StyleButton("SAVE TEST STANDALONE", ImVec2(save_gadget_size, 0))) {
-						g.exedir_s = cStandalonePath;
-						iStandaloneCycle = 1;
-					}
-					#else
 					if (ImGui::StyleButton("SAVE STANDALONE", ImVec2(save_gadget_size, 0))) {
 						g.exedir_s = cStandalonePath;
 						iStandaloneCycle = 1;
 					}
-					#endif
 				}
 				else 
 				{
@@ -8251,6 +8180,23 @@ void mapeditorexecutable_loop(void)
 				#ifdef WICKEDENGINE
 				ImGui::Text("");
 				#endif
+
+				ImGui::PushID(iInfoUniqueId++);
+				if (ImGui::ImgBtn(ICON_INFO, ImVec2(20, 20), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
+				{
+					//PE: We are modal here, so need the special modal information window.
+					cInfoMessage = "Games made with GameGuru MAX are designed for PCs with this minimum specification:\n\nWindows 10\nIntel Dual-Core 2GHz or AMD Dual-Core 2GHz CPU\n8 GB Ram\nNVIDIA GeForce GTX960 or similar\nDirectX 11\n30 GB device storage\nDirectX Compatabible Sound Card";
+					bModalInformation = true;
+					cInfoImage = "";
+				}
+				ImGui::PopID();
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::SetTooltip("%s", "Click For More Information");
+				}
+				ImGui::SameLine();
+				ImGui::TextWrapped("Ensure that anyone you share your standalone game with has a PC system that meets the minimum requirements of GameGuru MAX.");
+				ImGui::Text("");
 
 				ImGui::Indent(10);
 
@@ -8277,8 +8223,8 @@ void mapeditorexecutable_loop(void)
 
 					ImGui::SameLine();
 					ImGui::PushItemWidth(path_gadget_size);
-					if (ImGui::StyleButton("...##ccppath")) {
-						//PE: filedialogs change dir so.
+					if (ImGui::StyleButton("...##ccppath")) 
+					{
 						cStr tOldDir = GetDir();
 						char * cFileSelected;
 						cstr fulldir = cStandalonePath;
@@ -8353,12 +8299,9 @@ void mapeditorexecutable_loop(void)
 					{
 						t.dest_s = t.exepath_s + t.exename_s + "\\" + t.exename_s + ".exe";
 						InjectIconToExe(projectico, t.dest_s.Get(), 1);
-						//PE: Update window 10 icon cache.
 						HINSTANCE hinstance = ShellExecuteA(NULL, "open", "ie4uinit.exe", "-show", "", SW_SHOWDEFAULT);
 						Sleep(100); //PE: Let it update
 					}
-
-
 					if (bOpenFolder)
 					{
 						cstr open_folder = cStandalonePath;
@@ -14427,82 +14370,6 @@ void mapeditorexecutable_loop(void)
 				}
 			}
 			*/
-#ifdef STORYBOARD
-			/* Test code
-						//PE: Test code for standalone.
-						static bool bTestStandalone = false;
-						static int iFakeLoadGameTest = 0;
-						static bool bStartLoadingGame = false;
-						static char startpage[255], lastpage[255], msgpage[255] = "\0";
-						if (strlen(msgpage) > 0) ImGui::Text(msgpage);
-						if (ImGui::Checkbox("Test Standalone", &bTestStandalone))
-						{
-							if (bTestStandalone)
-							{
-								load_storyboard("cold game demo");
-								strcpy(startpage, "title");
-								strcpy(lastpage, "title");
-								strcpy(msgpage, "");
-							}
-						}
-						if (bStartLoadingGame)
-						{
-							if (iFakeLoadGameTest-- > 0)
-							{
-								strcpy(lastpage, startpage);
-								strcpy(startpage, "loading");
-								int iret = screen_editor(-1, true, startpage);
-							}
-							else
-							{
-								bTestStandalone = false;
-								bStartLoadingGame = false;
-							}
-						}
-						else if (bTestStandalone)
-						{
-							int iret = screen_editor(-1, true, startpage);
-							//STORYBOARD_ACTIONS_GOTOLEVEL
-							if (iret == STORYBOARD_ACTIONS_CONTINUE)
-							{
-								//Restart
-								strcpy(startpage, "title");
-								strcpy(lastpage, "title");
-								strcpy(msgpage, "");
-							}
-							if (iret == STORYBOARD_ACTIONS_BACK)
-							{
-								strcpy(startpage, lastpage);
-							}
-							if (iret == STORYBOARD_ACTIONS_EXITGAME)
-							{
-								bTestStandalone = false;
-							}
-							if (iret == STORYBOARD_ACTIONS_STARTGAME)
-							{
-								bStartLoadingGame = true;
-								iFakeLoadGameTest = 300;
-								//strcpy(lastpage, startpage);
-								//strcpy(startpage, "loading");
-								//strcpy(msgpage, "Loading level 1");
-								//bTestStandalone = false;
-							}
-							if (iret == STORYBOARD_ACTIONS_GOTOSCREEN)
-							{
-								if (strlen(t.game.pSwitchToPage) == 0)
-								{
-									strcpy(lastpage, startpage);
-									strcpy(startpage, "loading");
-								}
-								else
-								{
-									strcpy(lastpage, startpage);
-									strcpy(startpage, t.game.pSwitchToPage);
-								}
-							}
-						}
-			*/
-#endif
 
 			//PE: Test Performance modes.
 			/*

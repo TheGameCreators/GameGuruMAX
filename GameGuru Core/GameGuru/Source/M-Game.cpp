@@ -3175,6 +3175,7 @@ bool game_masterroot_levelloop_initcode(int iUseVRTest)
 	}
 
 	//  Setup level progression settings
+	t.game.firstlevelinitializesanygameprojectlua = 123;
 	t.game.level=1;
 	t.game.levelmax=1;
 	t.game.levelloop=1;
@@ -3388,11 +3389,14 @@ void game_masterroot_initcode(int iUseVRTest)
 }
 
 #ifdef WICKEDENGINE
+#ifdef STANDALONENOTICE
 bool bDisplayedEarlyAccess = false;
+#endif
 #endif
 bool game_masterroot_loopcode(int iUseVRTest)
 {
 	#ifdef WICKEDENGINE
+	#ifdef STANDALONENOTICE
 	extern bool bSpecialStandalone;
 	if (t.game.gameisexe == 1 && !bDisplayedEarlyAccess && !bSpecialStandalone)
 	{
@@ -3401,6 +3405,7 @@ bool game_masterroot_loopcode(int iUseVRTest)
 		early_access_strandalone_welcome();
 		bDisplayedEarlyAccess = true;
 	}
+	#endif
 	#endif
 
 	// state engine to handle nested loops (master / level / gameloop)

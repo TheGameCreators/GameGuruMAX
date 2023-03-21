@@ -313,7 +313,15 @@ void lua_launchallinitscripts ( void )
 	// call the INIT function of the GLOBAL GAMELOOP INIT
 	if ( t.playercontrol.gameloopinitflag == 10 )
 	{
-		// calls Init once per game
+		// when game is first started a new, erase all temp level states and player global stats in LUA
+		if (t.game.firstlevelinitializesanygameprojectlua == 123)
+		{
+			t.game.firstlevelinitializesanygameprojectlua = 0;
+			LuaSetFunction ("GameLoopClearGlobalStates", 0, 0);
+			LuaCall();
+		}
+
+		// calls Init once per game (level?)
 		LuaSetFunction ( "GameLoopInit", 5, 0 );
 		extern bool bInvulnerableMode;
 		LuaPushInt ( (int)bInvulnerableMode );

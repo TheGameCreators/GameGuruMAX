@@ -852,7 +852,7 @@ void Master::Update(float dt)
 			if (bSpecialEditorFromStandalone == true)
 				sprintf(fileName, "Files\\editors\\%s\\loadingsplash-fromstandalone.jpg", pFolderToUse);
 			else
-				sprintf(fileName, "Files\\editors\\%s\\loadingsplash-ea.jpg", pFolderToUse);
+				sprintf(fileName, "Files\\editors\\%s\\loadingsplash.jpg", pFolderToUse);
 
 			#ifdef STORYBOARD
 			//PE: Do we have a storyboard ?

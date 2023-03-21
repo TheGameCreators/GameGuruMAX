@@ -2152,7 +2152,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\character\\soldier\\onIdle");
 	addfoldertocollection("audiobank\\character\\soldier\\onInteract");
 	addfoldertocollection("databank");
-	addfoldertocollection("savegames");
+	//addfoldertocollection("savegames");
 	addfoldertocollection("titlesbank\\default\\");
 	addtocollection("titlesbank\\cursorcontrol.lua");
 	addtocollection("titlesbank\\resolutions.lua");
@@ -2310,8 +2310,11 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	{
 		addfoldertocollection("editors\\templates\\fonts");
 		addtocollection("editors\\uiv3\\Roboto-Medium.ttf");
+
+		#ifdef STANDALONENOTICE
 		addtocollection("editors\\uiv3\\standalone_ea.png");
 		addtocollection("editors\\uiv3\\standalone_ea-ea.png");
+		#endif
 
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;

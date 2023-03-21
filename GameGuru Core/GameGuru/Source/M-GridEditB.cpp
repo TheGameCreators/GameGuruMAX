@@ -10217,12 +10217,14 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					}
 					else
 					{
+						/* removed, annoying everyone - added warning to user manual instead
 						int iAction = askBoxCancel("Are you sure you want to change settings in here? This will add a lot of additional features to the software.", "Warning"); //1==Yes 2=Cancel 0=No
 						if (iAction != 1)
 						{
 							iAdvCountDown = 10;
 							iSetSettingsFocusTab = 1;
 						}
+						*/
 					}
 				}
 			}
@@ -10635,12 +10637,14 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					}
 					else
 					{
+						/* removed, annoying everyone - added warning to user manual instead
 						int iAction = askBoxCancel("Be aware these settings are for developers only, Are you very sure you want to change any of these settings ?", "Warning"); //1==Yes 2=Cancel 0=No
 						if (iAction != 1)
 						{
 							iDevCountDown = 10;
 							iSetSettingsFocusTab = 1;
 						}
+						*/
 					}
 				}
 			}
@@ -10851,7 +10855,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					pref.iResetAutoRunVideosOnNextStartup = 1;
 					bPreferences_Window = false;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset introduction videos for each section");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset introduction videos for so they play automatically once as though a new user");
 				ImGui::Indent(-10);
 			}
 
@@ -35519,7 +35523,7 @@ void Welcome_Screen(void)
 						//ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
 						//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 						// User guide has been moved to offline only
-						ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
+						ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 					}
 				}
 				ImGui::Text("");
@@ -36143,7 +36147,7 @@ void Welcome_Screen(void)
 					/*ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);*/
 					//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 					// User guide has been moved to offline only
-					ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
+					ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "View the GameGuru MAX User Guide"); //Weekly Live Stream
 			}
@@ -38731,7 +38735,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 
 
 			button = 5;
-			strcpy(Storyboard.Nodes[node].widget_label[button], "Actions");
+			strcpy(Storyboard.Nodes[node].widget_label[button], "Action");
 			Storyboard.Nodes[node].widget_used[button] = 1;
 			Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_TEXT;
 			Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
@@ -44264,7 +44268,7 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 			{
 				/*ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);*/
 				// User guide has been moved to offline only
-				ExecuteFile("..\\Guides\\User Manual\\GameGuruMax-UserGuide.pdf", "", "", 0);
+				ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -47733,6 +47737,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 
+					/* appears not to do anything when looking at an image gadget
 					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
 						&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
 					{
@@ -47773,6 +47778,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
 						ImGui::PopItemWidth();
 					}
+					*/
 				}
 
 				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON 
@@ -47880,7 +47886,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							strcpy(Storyboard.Nodes[nodeid].widget_click_sound[iCurrentSelectedWidget], butsound.Get());
 						}
 
-						ImGui::TextCenter("Actions");
+						ImGui::TextCenter("Action");
 						char ActionSelected[255];
 
 						int iCurAction = Storyboard.Nodes[nodeid].widget_action[iCurrentSelectedWidget];

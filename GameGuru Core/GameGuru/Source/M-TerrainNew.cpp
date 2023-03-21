@@ -9320,9 +9320,7 @@ void imgui_Customize_Weather_V2(int mode)
 		//}
 		//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Fog Height");
 
-		//PE:HorizonColor seams to be fog color ?
-
-		ImGui::TextCenter("Fog Color");
+		ImGui::TextCenter("Horizon/Fog Color");
 		ImVec4 mycolor = ImVec4(t.visuals.FogR_f / 255.0, t.visuals.FogG_f / 255.0, t.visuals.FogB_f / 255.0, 1.0);
 		bool open_popup = ImGui::ColorButton("##NewV2WickedfHorizonColor", mycolor, 0, ImVec2(w - 20.0, 0));
 		if (open_popup)

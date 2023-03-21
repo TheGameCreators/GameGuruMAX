@@ -2745,14 +2745,7 @@ void physics_player_gatherkeycontrols ( void )
 		if ( GGVR_RightController_Grip() == 1 || GGVR_LeftController_Grip() == 1 )
 			t.plrkeySHIFT = 1;
 
-		// Using PGUP/PGDN to control this value
-		//int iCode = ScanCode();
-		//if (iCode > 0)
-		//{
-		//	char see[256];
-		//	sprintf(see, "%d", iCode);
-		//	MessageBoxA(NULL, "", see, MB_OK);
-		//}
+		// Using PGUP/PGDN to control gvrsitteradjust that modifies the VR sitting position for the eye of the player/user
 		int iVRSitterAdjustMode = 0;
 		if (KeyState(201)) iVRSitterAdjustMode = 1;
 		if (KeyState(209)) iVRSitterAdjustMode = 2;

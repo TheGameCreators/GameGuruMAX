@@ -473,26 +473,40 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 		DisableObjectZDepth(GGVR_Player.ObjRightHand);
 	}
 
-	// show controller if data coming through
-	if (OpenXRGetLeftHandActive())
+	// can hide and show controller model templates
+	bool bNoNeeForControllersInFinalTests = true;
+	if (bNoNeeForControllersInFinalTests == true )
 	{
-		if ( GGVR_Player.bMakeLeftHandInvisible == false )
-			ShowObject ( GGVR_Player.ObjLeftHand );
-		else
-			HideObject ( GGVR_Player.ObjLeftHand );
+		// do not show controller 3D models in V1 (rely on weapon collections and laser)
+		HideObject (GGVR_Player.ObjLeftHand);
+		HideObject (GGVR_Player.ObjRightHand);
 	}
 	else
-		HideObject ( GGVR_Player.ObjLeftHand );
-
-	if (OpenXRGetRightHandActive())
 	{
-		if ( GGVR_Player.bMakeRightHandInvisible == false )
-			ShowObject ( GGVR_Player.ObjRightHand );
+		// show controller if data coming through
+		if (OpenXRGetLeftHandActive())
+		{
+			if (GGVR_Player.bMakeLeftHandInvisible == false)
+				ShowObject (GGVR_Player.ObjLeftHand);
+			else
+				HideObject (GGVR_Player.ObjLeftHand);
+		}
 		else
-			HideObject ( GGVR_Player.ObjRightHand );
+		{
+			HideObject (GGVR_Player.ObjLeftHand);
+		}
+		if (OpenXRGetRightHandActive())
+		{
+			if (GGVR_Player.bMakeRightHandInvisible == false)
+				ShowObject (GGVR_Player.ObjRightHand);
+			else
+				HideObject (GGVR_Player.ObjRightHand);
+		}
+		else
+		{
+			HideObject (GGVR_Player.ObjRightHand);
+		}
 	}
-	else
-		HideObject ( GGVR_Player.ObjRightHand );
 
 	// prefer right hand, but allow left if touch pad touched (for motion controller action)
 	// this also keeps the laser right on the right side where the gun is
@@ -510,14 +524,14 @@ void GGVR_UpdatePlayer ( bool bPlayerDucking, int iTerrainID, int iLMObjStart, i
 			bPreferLeftHand = true;
 	if ( bPreferLeftHand==true )
 	{
-		x = ObjectPositionX ( GGVR_Player.ObjLeftHand );
-		y = ObjectPositionY ( GGVR_Player.ObjLeftHand );
-		z = ObjectPositionZ ( GGVR_Player.ObjLeftHand );
-		MoveObject ( GGVR_Player.ObjLeftHand, 10.0f );
-		nx = ObjectPositionX ( GGVR_Player.ObjLeftHand ) - x;
-		ny = ObjectPositionY ( GGVR_Player.ObjLeftHand ) - y;
-		nz = ObjectPositionZ ( GGVR_Player.ObjLeftHand ) - z;
-		MoveObject ( GGVR_Player.ObjLeftHand, -10.0f );
+		x = ObjectPositionX (GGVR_Player.ObjLeftHand);
+		y = ObjectPositionY (GGVR_Player.ObjLeftHand);
+		z = ObjectPositionZ (GGVR_Player.ObjLeftHand);
+		MoveObject (GGVR_Player.ObjLeftHand, 10.0f);
+		nx = ObjectPositionX (GGVR_Player.ObjLeftHand) - x;
+		ny = ObjectPositionY (GGVR_Player.ObjLeftHand) - y;
+		nz = ObjectPositionZ (GGVR_Player.ObjLeftHand) - z;
+		MoveObject (GGVR_Player.ObjLeftHand, -10.0f);
 	}
 
 	// create teleport arc control points or laser

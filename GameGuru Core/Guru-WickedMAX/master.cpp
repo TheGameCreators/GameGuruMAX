@@ -438,13 +438,12 @@ void Master::InitializeSecondaries()
 		if(MAXVERSION == 26) pref.iDisableObjectLibraryViewport = 1;
 	}
 
-	//PE: Debug reset each time.
-	//if (pref.iResetAutoRunVideosOnNextStartup == 1)
-	//{
+	if (pref.iResetAutoRunVideosOnNextStartup == 1)
+	{
 		for (int i = 0; i < 20; i++)
 			pref.iPlayedVideoSection[i] = 0;
 		pref.iResetAutoRunVideosOnNextStartup = 0;
-	//}
+	}
 
 	g_bEnableAutoFlattenSystem = pref.iEnableAutoFlattenSystem;
 

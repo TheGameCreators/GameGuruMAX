@@ -3590,6 +3590,7 @@ struct gametype
 	int masterloop;
 	int titleloop;
 	int levelloop;
+	int firstlevelinitializesanygameprojectlua;
 	int level;
 	int levelplrstatsetup;
 	int levelmax;

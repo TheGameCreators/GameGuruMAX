@@ -64,6 +64,12 @@ g_UserGlobalQuestTitleActiveObject = ""
 g_UserGlobalQuestTitleActiveE = 0
 g_UserGlobalQuestTitleShowing = ""
 g_UserGlobalQuestTitleShowingObject = ""
+g_UserContainerTotal = 0
+g_UserContainerName = {}
+g_UserContainerCount = {}
+g_UserContainerIndex = {}
+g_UserContainerSlot = {}
+g_UserContainerQty = {}
 g_PlayerLives = 0
 g_PlayerFlashlight = 0
 g_PlayerGunCount = 0
@@ -227,55 +233,67 @@ function GameLoopQuit()
  hud0.quit()
 end
 
-function GameLoopSaveStats()
- file = io.open("savegames\\standalonelevelstats.dat", "w+")
- io.output(file)
- io.write("v1\n")
- io.write(g_PlayerHealth .. "\n")
- io.write(g_PlayerLives .. "\n")
- WeaponID = GetPlayerWeaponID()
- io.write(WeaponID .. "\n")
- for index = 1, 10, 1 do
-  WeaponID = GetWeaponSlot ( index )
-  io.write(WeaponID .. "\n")
-  WeaponAmmoQty = GetWeaponAmmo ( index )
-  io.write(WeaponAmmoQty .. "\n")
-  WeaponAmmoClipQty = GetWeaponClipAmmo ( index )
-  io.write(WeaponAmmoClipQty .. "\n")
-  WeaponAmmoPoolQty = GetWeaponPoolAmmo ( index )
-  io.write(WeaponAmmoPoolQty .. "\n")
- end
- io.close(file)
+function file_exists(name)
+   local f = io.open(name, "r")
+   return f ~= nil and io.close(f)
 end
 
-function GameLoopLoadStats()
- file = io.open("savegames\\standalonelevelstats.dat", "r")
- if file ~= nil then
-  io.input(file)
-  versionString = io.read()
-  g_PlayerHealth = tonumber(io.read())
-  g_PlayerLives = tonumber(io.read())
-  SetPlayerHealthCore(g_PlayerHealth)
-  SetPlayerLives(g_PlayerLives)
-  CurrentlyHeldWeaponID = tonumber(io.read())
-  for index = 1, 10, 1 do
-   WeaponID = tonumber(io.read())
-   if WeaponID > 0 then
-    SetWeaponSlot ( index, WeaponID, WeaponID )
-    ChangePlayerWeaponID(WeaponID)
-   else
-    SetWeaponSlot ( index, 0, 0 )
-   end
-   WeaponAmmoQty = tonumber(io.read())
-   SetWeaponAmmo ( index, WeaponAmmoQty ) 
-   WeaponAmmoClipQty = tonumber(io.read())
-   SetWeaponClipAmmo ( index, WeaponAmmoClipQty )
-   WeaponAmmoPoolQty = tonumber(io.read())
-   SetWeaponPoolAmmo ( index, WeaponAmmoPoolQty )
-  end
-  io.close(file)
-  ChangePlayerWeaponID(CurrentlyHeldWeaponID)
+function GameLoopClearGlobalStates()
+	local slotnumber = "0-globals"
+	local tfile = "savegames\\gameslot" .. slotnumber .. ".dat"
+	if file_exists(tfile) then
+		os.remove(tfile)
+	end
+	for storyboardnodeid = 0, 999, 1 do
+		slotnumber = "0-"..storyboardnodeid
+		tfile = "savegames\\gameslot" .. slotnumber .. ".dat"
+		if file_exists(tfile) then
+			os.remove(tfile)
+		end
+	end
+end
+
+function GameLoopSaveStats(storyboardnodeid)
+
+ -- only when dealing with real levels
+ if storyboardnodeid >=0 then
+ 
+	 -- reuse save system to preserve state of the level just before we leave
+	 gamedata = require "titlesbank\\gamedata"
+	 gamedata.mode(1)
+	 gamedata.save("0-"..storyboardnodeid,"levelnodeid-"..storyboardnodeid)
+
+	 -- and also save state of all player attributes (health, weapon, containers, userglobals)
+	 gamedata.mode(2)
+	 gamedata.save("0-globals","playerstate")
+	 gamedata.mode(0)
+
  end
+
+end
+
+function GameLoopLoadStats(storyboardnodeid)
+
+ -- only when dealing with real levels
+ if storyboardnodeid >=0 then
+ 
+	 -- reload state of the level from last time we left it
+	 gamedata = require "titlesbank\\gamedata"
+	 gamedata.mode(0)
+	 local restoretochanges = 0
+	 if gamedata.load("0-"..storyboardnodeid) == 1 then restoretochanges = 1 end
+	 if gamedata.load("0-globals") == 1 then restoretochanges = 1 end
+
+	 -- use above data to restore level to that state
+	 if restoretochanges == 1 then
+		 restoregame = require "titlesbank\\restoregame"
+		 restoregame.mode(1)
+		 restoregame.now()
+		 restoregame.mode(0)
+	 end
+	 
+ end
+
 end
 
 function PlayerControl()
@@ -2491,9 +2509,12 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetCollectionItemQuantity : GetCollectionItemQuantity
 -- GetCollectionItemAttribute : GetCollectionItemAttribute
 -- MakeInventoryContainer : MakeInventoryContainer
+-- GetInventoryTotal : GetInventoryTotal
+-- GetInventoryName : GetInventoryName
 -- GetInventoryExist : GetInventoryExist
 -- GetInventoryQuantity : GetInventoryQuantity
 -- GetInventoryItem : GetInventoryItem
 -- GetInventoryItemID : GetInventoryItemID
--- AddInventoryItem : AddInventoryItem ( to, collectionID, newe, slot )
 -- MoveInventoryItem : MoveInventoryItem ( from, to, collectionID, slot ) 
+-- DeleteAllInventoryContainers : DeleteAllInventoryContainers()
+-- AddInventoryItem : AddInventoryItem ( to, collectionID, newe, slot )

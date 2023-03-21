@@ -233,7 +233,7 @@ DB void Draw ( void )
 ResetTimer();
 #endif
 
-	// if no render ist ptr, early exit
+	// if no render ist ptr, exit
 	if ( !pRendlist )
 		return;
 
@@ -721,7 +721,7 @@ DB void OccludeeCheck( int id , bool isCharacter )
 
 	original_radius = max_radius;
 
-	//Stop characters dissapearing early and fix objects that dissapear from store
+	//Stop characters dissapearing and fix objects that dissapear from store
 	if ( isCharacter )
 		max_radius *= 3;
 	else

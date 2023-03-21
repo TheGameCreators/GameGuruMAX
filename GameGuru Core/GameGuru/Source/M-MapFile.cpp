@@ -786,6 +786,10 @@ void mapfile_saveproject_fpm ( void )
 	UnDim (lstlist_s);
 	#endif
 
+	// save any changes to game collection list and ELE file
+	extern preferences pref;
+	save_rpg_system(pref.cLastUsedStoryboardProject, true);
+
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
 	#ifdef VRTECH
@@ -2148,7 +2152,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\character\\soldier\\onIdle");
 	addfoldertocollection("audiobank\\character\\soldier\\onInteract");
 	addfoldertocollection("databank");
-	addfoldertocollection("savegames");
+	//addfoldertocollection("savegames");
 	addfoldertocollection("titlesbank\\default\\");
 	addtocollection("titlesbank\\cursorcontrol.lua");
 	addtocollection("titlesbank\\resolutions.lua");
@@ -2264,6 +2268,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1080").Get() );
 	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1200").Get() );
 
+	// HUD elements
+	addfoldertocollection("imagebank\\HUD");
+	addfoldertocollection("imagebank\\HUD Library\\MAX");
+
 	// include original FPM
 	addtocollection(t.tmasterlevelfile_s.Get());
 
@@ -2283,13 +2291,30 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
 	#endif
 	#ifdef STORYBOARD
+
+	// Add images from collection list (can be stored in thumbbank)
+	for (int n = 0; n < g_collectionList.size(); n++)
+	{
+		LPSTR pImageFile = g_collectionList[n].collectionFields[2].Get();
+		if (strlen(pImageFile) > 0)
+		{
+			if (stricmp(pImageFile, "default") != NULL && stricmp(pImageFile, "image") != NULL)
+			{
+				addtocollection(pImageFile);
+			}
+		}
+	}
+
 	//Add all storyboard files to scan list.
 	if (g.bUseStoryBoardSetup)
 	{
 		addfoldertocollection("editors\\templates\\fonts");
 		addtocollection("editors\\uiv3\\Roboto-Medium.ttf");
+
+		#ifdef STANDALONENOTICE
 		addtocollection("editors\\uiv3\\standalone_ea.png");
 		addtocollection("editors\\uiv3\\standalone_ea-ea.png");
+		#endif
 
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;

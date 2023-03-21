@@ -10,7 +10,9 @@
 #define COLLECTIONDEFINED
 struct collectionItemType
 {
-	std::vector<cstr> collectionFields;
+	int iEntityID; // points to present levels ENTID
+	int iEntityElementE; // holds the cloned identical details of this modified collectable object in ELEPROF
+	std::vector<cstr> collectionFields; // all attribute fields
 };
 #endif
 
@@ -22,7 +24,7 @@ extern std::vector<collectionItemType> g_collectionList;
 // Prototypes
 void init_rpg_system(void);
 bool load_rpg_system(char* name);
-bool save_rpg_system(char* name);
+bool save_rpg_system(char* name, bool bIncludeELEFile);
 cstr get_rpg_imagefinalfile(cstr entityfile);
 bool fill_rpg_item_defaults_passedin(collectionItemType* item, int entid, int e, LPSTR pTitle, LPSTR pImageFile);
 bool fill_rpg_item_defaults(collectionItemType* item, int entid, int e);

@@ -183,7 +183,7 @@ bool imgui_AddMinMaxButton(int win, bool bRestore);
 bool imgui_GetMinMaxButtonState(int win);
 void Welcome_Screen(void);
 void About_Screen(void);
-bool DoTreeNodeEntity(int masterid);
+bool DoTreeNodeEntity(int masterid, bool bMoveCameraToObjectPosition);
 void SetupDecalObject(int obj, int elementID);
 void SetIconSet(bool bInstant = false);
 void SetIconSetCheck(bool bInstant = false);

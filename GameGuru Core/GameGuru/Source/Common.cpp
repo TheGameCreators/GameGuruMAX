@@ -4286,7 +4286,7 @@ void FPSC_Setup(void)
 	FPSC_LoadSETUPVRINI();
 
 #ifdef WICKEDENGINE
-	//PE: setup overwrite for test standalone.
+	//PE: setup overwrite for standalone.
 	extern bool bSpecialStandalone;
 	extern int g_iDevToolsOpen;
 	extern preferences pref;

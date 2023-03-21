@@ -63,7 +63,7 @@ void cThread::Start( )
 	PlatformStop();
 }
 
-// sleep for a specified time but will wake early if the thread is told to stop, check m_bTerminate after this command
+// sleep for a specified time but will wake if the thread is told to stop, check m_bTerminate after this command
 void cThread::SleepSafe( unsigned int milliseconds )
 {
 	PlatformSleepSafe( milliseconds );

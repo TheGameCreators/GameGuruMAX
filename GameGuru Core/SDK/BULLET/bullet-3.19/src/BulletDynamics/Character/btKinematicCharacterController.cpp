@@ -489,6 +489,12 @@ void btKinematicCharacterController::stepDown ( btCollisionWorld* collisionWorld
 			fThisFloorYPos = m_currentPosition.getY();
 			fFallDistance = (fLastFloorYPos - fThisFloorYPos);
 			iFallDistance = (iLastFloorYPos - ((int)(fThisFloorYPos*1000.0)) );
+			if ( iImmuneToFalling > 0)
+			{
+				iImmuneToFalling--;
+				fFallDistance = 0;
+				iFallDistance = 0;
+			}
 
 			// get the arb value stored for this physics body
 			int iArbValue = callback.GetArbValue();
@@ -811,4 +817,5 @@ void btKinematicCharacterController::resetFallStuff ( void )
 	fLastFloorYPos=0;
 	fThisFloorYPos=0;
 	fFallDistance=0;
+	iImmuneToFalling = 10;
 }

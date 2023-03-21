@@ -10248,12 +10248,12 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Allow tabbed sections in the right panel");
 
 			bTmp = pref.iEnableAdvancedEntityList;
-			if (ImGui::Checkbox("Allow Selection of Detailed Object List", &bTmp)) {
+			if (ImGui::Checkbox("Allow Selection of Detailed & Collection List", &bTmp)) {
 				current_sort_order = 0;
 				pref.iEnableAdvancedEntityList = bTmp;
 				bCheckedInitialState = false;
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the detailed object list filter in the level objects window");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the detailed and collection list filter in the level objects window");
 
 			void ToggleDPIAwareness(bool);
 			// DPI Awareness Flag
@@ -10704,7 +10704,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			ImGui::Text("as OpenXR needs to know which VR device you are using:");
 			bool bVRFlag = false;
 			if (g.gvrmode > 0) bVRFlag = true;
-			if (ImGui::Checkbox("Enable Experimental Preview", &bVRFlag))
+			if (ImGui::Checkbox("Enable VR Initialization", &bVRFlag))
 			{
 				// toggle vr support
 				if (bVRFlag == true) 
@@ -10722,7 +10722,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				// prompt user to relaunch MAX
 				//MessageBoxA(NULL, "You will need to relaunch GameGuru MAX for VR Support Switching. Ensure your OpenXR runtime is correctly configured.", "VR Support", MB_OK);
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Activates support for early experimental VR support");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Activates support for VR support via OpenXR");
 			ImGui::Indent(-10);
 
 			//
@@ -10733,16 +10733,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			{
 				//ImGui::PushItemWidth(-10);
 				ImGui::Text("");
-				ImGui::Indent(-10);
 				ImGui::Text("Developer Mode Tools");
-				ImGui::Indent(10);
-				//ImGui::Text("");
-				
-				//ImGui::PopItemWidth();
-				//ImGui::NextColumn();
-				//ImGui::Text("");
-				//ImGui::Text("");
-				//ImGui::NextColumn();
 
 				float save_gadget_size = ImGui::GetFontSize()*10.0;
 				float w = ImGui::GetWindowContentRegionWidth();
@@ -10798,18 +10789,16 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				ImGui::NextColumn();
 				*/
 				
+				/*
 				w = ImGui::GetContentRegionAvailWidth();
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Legacy Structure Editor", ImVec2(save_gadget_size*1.3, 0))) {
+				if (ImGui::StyleButton("Legacy Structure Editor", ImVec2(save_gadget_size*1.3, 0))) 
+				{
 					CloseAllOpenTools();
 					DeleteWaypointsAddedToCurrentCursor();
-					//CheckTooltipObjectDelete();
 					CloseDownEditorProperties();
 					t.inputsys.constructselection = 0;
 					t.inputsys.constructselection = 0;
-#ifdef WICKEDENGINE
 					iLastEntityOnCursor = 0;
-#endif
 
 					if (t.ebebank_s[1].Len() > 0)
 					{
@@ -10835,15 +10824,11 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 						bForceKey = true;
 						csForceKey = "o";
 						bBuilder_Left_Window = true;
-#ifdef USELEFTPANELSTRUCTUREEDITOR
-						ImGui::SetWindowFocus("Structure Editor##LeftPanel");
-#endif
 					}
 					bPreferences_Window = false;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Use the legacy structure editor within the Level Editor");
-				//ImGui::Text("");
-				//ImGui::NextColumn();
+				*/
 
 				/*
 				w = ImGui::GetContentRegionAvailWidth();
@@ -10858,29 +10843,19 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				ImGui::NextColumn();
 				*/
 
+				ImGui::Indent(10);
 				w = ImGui::GetContentRegionAvailWidth();
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Reset Auto Start Videos", ImVec2(save_gadget_size*1.3, 0))) {
+				if (ImGui::StyleButton("Reset Auto Start Videos", ImVec2(save_gadget_size*1.3, 0))) 
+				{
 					CloseAllOpenTools();
 					pref.iResetAutoRunVideosOnNextStartup = 1;
 					bPreferences_Window = false;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset introduction videos for each section (This feature is not yet available)");
-				//ImGui::Text("");
-				//ImGui::NextColumn();
-
-#ifdef PETESTING
-				static bool bDisplayDemo = false;
-				ImGui::Checkbox("Display Demo", &bDisplayDemo);
-				if (bDisplayDemo)
-					ImGui::ShowDemoWindow();
-#endif
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset introduction videos for each section");
+				ImGui::Indent(-10);
 			}
 
 			ImGui::NextColumn();
-			//ImGui::Text("");
-			//ImGui::Text("");
-			//ImGui::NextColumn();
 			ImGui::Indent(10);
 
 			//ImGui::Text("");
@@ -34116,8 +34091,7 @@ void Welcome_Screen(void)
 				ImGui::SetWindowFontScale(2.2);
 				ImGui::TextCenter("WELCOME TO GAMEGURU MAX!");
 				ImGui::SetWindowFontScale(1.4);
-				ImGui::TextCenter("GameGuru MAX is still in development - this is an Early Access version");
-				ImGui::TextCenter("Regular updates will be released until we reach full release.");
+				ImGui::TextCenter("Happy Game Making!");
 				ImGui::SetWindowFontScale(1.0);
 				ImGui::Text("");
 				ImGui::Separator();
@@ -36321,7 +36295,7 @@ void About_Screen(void)
 		ImGui::TextCenter("");
 
 		ImGui::SetWindowFontScale(1.25);
-		ImGui::TextCenter("(c) Copyright 2020-2022 The Game Creators Ltd. All Rights Reserved");
+		ImGui::TextCenter("(c) Copyright 2020-2023 The Game Creators Ltd. All Rights Reserved");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::TextCenter("GameGuru MAX, TheGameCreators, and their respective logos are trademarks or registred trademarks of The Game Creators Ltd.");
 		
@@ -36329,14 +36303,16 @@ void About_Screen(void)
 		ImGui::Text("");
 		ImVec2 cp = ImGui::GetCursorPos() + ImVec2(fRegionWidth*0.5 , 0.0f);
 		ImGui::SetCursorPos(cp + ImVec2(-200.0f, 0.0f));
-		if (ImGui::StyleButton("View Credits", ImVec2(100.0f, 0.0f))) {
+		if (ImGui::StyleButton("View Credits", ImVec2(100.0f, 0.0f))) 
+		{
 			bCredits_Window = true;
 			bAbout_Window = false;
 			bCredits_Window_First_Run = true;
 		}
 		ImGui::SameLine();
 		ImGui::SetCursorPos(cp + ImVec2(100.0f, 0.0f));
-		if (ImGui::StyleButton("OK", ImVec2(100.0f, 0.0f))) {
+		if (ImGui::StyleButton("OK", ImVec2(100.0f, 0.0f))) 
+		{
 			bAbout_Window = false;
 		}
 		ImGui::Text("");
@@ -36387,24 +36363,26 @@ void About_Screen(void)
 		ImGui::TextCenter("Programming Team");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::Text("");
-		ImGui::TextCenter("Lee Bamber");
-		ImGui::TextCenter("Preben Eeriksen");
-		ImGui::TextCenter("Mike Johnson");
-		ImGui::TextCenter("Paul Johnston");
-		ImGui::TextCenter("Zak Judges");
-		ImGui::TextCenter("Maciej Dowbor");
+		ImGui::TextCenter("Lee Bamber & Zak Judges");
+		ImGui::TextCenter("Preben Eriksen & Paul Johnston");
+		ImGui::TextCenter("Maciej Dowbor & Mike Johnson");
+		ImGui::Text("");
+
+		ImGui::SetWindowFontScale(1.5);
+		ImGui::TextCenter("Community Contributors");
+		ImGui::SetWindowFontScale(1.0);
+		ImGui::Text("");
+		ImGui::TextCenter("Necrym59 for Behaviors");
+		ImGui::TextCenter("Tom Frakey for User Manual");
 		ImGui::Text("");
 
 		ImGui::SetWindowFontScale(1.5);
 		ImGui::TextCenter("Art & Media Team");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::Text("");
-		ImGui::TextCenter("Mark Blosser");
-		ImGui::TextCenter("Martin Oliver");
-		ImGui::TextCenter("Glynn Taylor");
-		ImGui::TextCenter("Peter Jovanovic");
-		ImGui::TextCenter("Ugur Gokus");
-		ImGui::TextCenter("Ispas Gabriela Cristina");
+		ImGui::TextCenter("Mark Blosser & Peter Jovanovic");
+		ImGui::TextCenter("Martin Oliver & Glynn Taylor");
+		ImGui::TextCenter("Ugur Gokus & Ispas Gabriela Cristina");
 		ImGui::TextCenter("Volkov Studio");
 		ImGui::Text("");
 
@@ -36412,10 +36390,8 @@ void About_Screen(void)
 		ImGui::TextCenter("Design Team");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::Text("");
-		ImGui::TextCenter("Lee Bamber");
-		ImGui::TextCenter("Richard Vanner");
-		ImGui::TextCenter("Meash Meakin");
-		ImGui::TextCenter("Stuart Scott");
+		ImGui::TextCenter("Lee Bamber & Richard Vanner");
+		ImGui::TextCenter("Meash Meakin & Stuart Scott");
 		
 		ImGui::Text("");
 		ImGui::SetWindowFontScale(1.5);
@@ -36750,7 +36726,6 @@ void editor_toggle_element_vis(bool bIsVisible)
 		}
 	}
 
-#ifdef WICKEDENGINE
 	// clear any gridentity light if gridentity no longer used
 	if (t.gridentity == 0)
 	{
@@ -36760,15 +36735,10 @@ void editor_toggle_element_vis(bool bIsVisible)
 			t.gridentitywickedlightindex = 0;
 		}
 	}
-#endif
-	// editor refresh
-	//ditor_refresheditmarkers();
 }
 
-
-bool DoTreeNodeEntity(int masterid)
+bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 {
-
 	for (int i = 1; i < t.entityelement.size(); i++)
 	{
 		bool bValid = true;
@@ -36777,7 +36747,6 @@ bool DoTreeNodeEntity(int masterid)
 		{
 			if (masterid > 0 && t.entityelement[i].bankindex == masterid || (t.widget.pickedEntityIndex == i && t.gridentity == masterid))
 			{
-
 				char cName[512];
 				strcpy(cName, t.entityprofileheader[masterid].desc_s.Get());
 				if(t.entityelement[i].eleprof.name_s.Len()  > 0 )
@@ -36802,7 +36771,7 @@ bool DoTreeNodeEntity(int masterid)
 					treename = treename + " (Cursor) " + cName;
 				else
 					treename = treename + " " + cName;
-				//treename[0] = toupper(treename[0]);
+
 				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
 				ImGui::PopItemWidth();
 
@@ -36826,42 +36795,39 @@ bool DoTreeNodeEntity(int masterid)
 							CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
 						}
 
-						float zoom = ObjectSize(t.entityelement[i].obj, 1)*2.0;
-						if (zoom < 30.0f) zoom = 30.0f;
-						float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
-						float camy = realcamy;
-						if (camy < 30.0f) camy = 30.0f;
-
-						if (t.entityprofile[masterid].ismarker > 0)
+						if (bMoveCameraToObjectPosition == true)
 						{
-							//Markers, just move a bit away.
-							zoom = 100.0;
-							camy = 50.0;
-						}
-						//PE: Move camera keep camera Y.
-						//float camy = CameraPositionY(0);
-						PositionCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
-						PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
-						MoveCamera(0, -zoom);
-						PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
-						PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy*0.5), t.entityelement[i].z);
-						t.editorfreeflight.c.x_f = CameraPositionX();
-						t.editorfreeflight.c.y_f = CameraPositionY();
-						t.editorfreeflight.c.z_f = CameraPositionZ();
-						t.editorfreeflight.c.angx_f = CameraAngleX();
-						t.editorfreeflight.c.angy_f = CameraAngleY();
-						//t.editorfreeflight.c.angz_f = CameraAngleZ();
-						//RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
+							float zoom = ObjectSize(t.entityelement[i].obj, 1) * 2.0;
+							if (zoom < 30.0f) zoom = 30.0f;
+							float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
+							float camy = realcamy;
+							if (camy < 30.0f) camy = 30.0f;
 
-						t.cx_f = t.editorfreeflight.c.x_f;
-						t.cy_f = t.editorfreeflight.c.z_f;
+							if (t.entityprofile[masterid].ismarker > 0)
+							{
+								zoom = 100.0;
+								camy = 50.0;
+							}
+
+							//PE: Move camera keep camera Y.
+							PositionCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							MoveCamera(0, -zoom);
+							PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy * 0.5), t.entityelement[i].z);
+							t.editorfreeflight.c.x_f = CameraPositionX();
+							t.editorfreeflight.c.y_f = CameraPositionY();
+							t.editorfreeflight.c.z_f = CameraPositionZ();
+							t.editorfreeflight.c.angx_f = CameraAngleX();
+							t.editorfreeflight.c.angy_f = CameraAngleY();
+							t.cx_f = t.editorfreeflight.c.x_f;
+							t.cy_f = t.editorfreeflight.c.z_f;
+						}
 					}
 				}
 
-				if (TreeNodeOpen) {
-					//ImGui::Indent(-5);
-					//Display any sub nodes. smart objects.
-					//ImGui::Indent(5);
+				if (TreeNodeOpen) 
+				{
 					ImGui::TreePop();
 				}
 			}
@@ -36869,7 +36835,6 @@ bool DoTreeNodeEntity(int masterid)
 	}
 	return(0);
 }
-
 
 void SetupDecalObject(int obj, int elementID)
 {
@@ -37429,7 +37394,7 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 	Storyboard.Nodes[node].restore_position = ImVec2(area_width*0.5-(node_width*0.5)-((node_width + NODE_WIDTH_PADDING)*4.0), STORYBOARD_YSTART +(node_height+ NODE_HEIGHT_PADDING)*node);
 	Storyboard.Nodes[node].iEditEnable = true;
 	strcpy(Storyboard.Nodes[node].title, "Splash Screen");
-	strcpy(Storyboard.Nodes[node].thumb, "editors\\uiv3\\loadingsplash-ea.jpg");
+	strcpy(Storyboard.Nodes[node].thumb, "editors\\uiv3\\loadingsplash.jpg");
 	strcpy(Storyboard.Nodes[node].lua_name, ""); //No script.
 	strcpy(Storyboard.Nodes[node].output_title[0], " Connect to Scene ");
 	strcpy(Storyboard.Nodes[node].output_action[0], "loadscene"); //Not defined this yet.
@@ -37766,7 +37731,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 
 	//General.
 	if( strlen(Storyboard.Nodes[0].thumb) > 0 && pestrcasestr(Storyboard.Nodes[0].thumb,"loadingsplash.jpg"))
-		strcpy(Storyboard.Nodes[0].thumb, "editors\\uiv3\\loadingsplash-ea.jpg");
+		strcpy(Storyboard.Nodes[0].thumb, "editors\\uiv3\\loadingsplash.jpg");
 
 	if (orgnode == 8)
 	{
@@ -40380,7 +40345,7 @@ void process_storeboard(bool bInitOnly)
 			{
 				//PE: On splash load directly. Splash always get a center positons.
 				bool bUseRealSplash = true;
-				if ( strcmp(Storyboard.Nodes[UpdateThumbOnNode].thumb, "editors\\uiv3\\loadingsplash-ea.jpg") == 0)
+				if ( strcmp(Storyboard.Nodes[UpdateThumbOnNode].thumb, "editors\\uiv3\\loadingsplash.jpg") == 0)
 				{
 					LoadImage("editors\\uiv3\\user-splash-screen.png", Storyboard.Nodes[UpdateThumbOnNode].thumb_id);
 					if(ImageExist(Storyboard.Nodes[UpdateThumbOnNode].thumb_id)) bUseRealSplash = false;
@@ -40495,7 +40460,7 @@ void process_storeboard(bool bInitOnly)
 						{
 							//PE: On splash load directly. Splash always get a center positons.
 							bool bUseRealSplash = true;
-							if (strcmp(Storyboard.Nodes[i].thumb, "editors\\uiv3\\loadingsplash-ea.jpg") == 0)
+							if (strcmp(Storyboard.Nodes[i].thumb, "editors\\uiv3\\loadingsplash.jpg") == 0)
 							{
 								LoadImage("editors\\uiv3\\user-splash-screen.png", Storyboard.Nodes[i].thumb_id);
 								if (ImageExist(Storyboard.Nodes[i].thumb_id)) bUseRealSplash = false;
@@ -42728,7 +42693,7 @@ void process_storeboard(bool bInitOnly)
 					float tw = ImGui::CalcTextSize("Standalone Test All Levels").x;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (tw*0.5) - (ImGui::GetFrameHeight()*0.5), 0.0f));
 					ImGui::Checkbox("Standalone Test All Levels", &bStandalone);
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "NOTE: This will exit the editor and start a full test standalone version of your game.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "NOTE: This will exit the editor and start a full standalone version of your game.");
 
 					cstr but1 = "Normal Single Level";
 					cstr but2 = "Invulnerable Single Level";
@@ -44485,11 +44450,7 @@ void save_storyboard(char *name,bool bSaveAs)
 		strcpy(pref.cLastUsedStoryboardProject, savename.Get());
 
 		// save all RPG data (MAX can amend collection lists, and labels, etc)
-		save_rpg_system(savename.Get());
-		#ifdef RPG_GAMES
-		bool save_rpg_system(char *name);
-		save_rpg_system(savename.Get());
-		#endif
+		save_rpg_system(savename.Get(),false);
 	}
 	else
 	{
@@ -45688,7 +45649,7 @@ unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int b
 static std::vector<int> listenForKeys;
 void TriggerScreenFromKeyPress()
 {
-	if (g.tabmode == 0 )//bRenderTabTab == false)
+	if (g.tabmode == 0 )
 	{
 		static std::vector<int> scans;
 		if (listenForKeys.empty())
@@ -48830,6 +48791,7 @@ void update_per_frame_effects(void)
 
 
 #ifdef WICKEDENGINE
+#ifdef STANDALONENOTICE
 void early_access_strandalone_welcome( void )
 {
 	void StartForceRender(void);
@@ -48965,6 +48927,7 @@ void early_access_strandalone_welcome( void )
 	bBlockImGuiUntilNewFrame = true;
 
 }
+#endif
 #endif
 
 #endif

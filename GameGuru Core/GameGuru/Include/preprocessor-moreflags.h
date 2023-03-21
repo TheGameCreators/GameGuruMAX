@@ -110,10 +110,11 @@
 	//PE: Add storyboard features.
 	#define STORYBOARD
 
-	// ZJ: To keep track of things that were removed for early access, but will be added back later.
 	#define REMOVED_EARLYACCESS
 
 	#define EA_WELCOME_SCREEN
+
+	//#define STANDALONENOTICE
 
 	// Removed for EA to allow for further work (needs to be volmetric for indoor/outdoor & player movement through particulates)
 	//#define POSTPROCESSRAIN

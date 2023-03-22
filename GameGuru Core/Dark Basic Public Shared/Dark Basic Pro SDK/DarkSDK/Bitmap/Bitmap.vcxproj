@@ -169,7 +169,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\Include\CBitmapC.h" />
+    <ClInclude Include="..\..\..\Include\CBitmapC.h" />
     <ClInclude Include="..\..\Shared\Error\CError.h" />
     <ClInclude Include="..\..\Shared\Core\globstruct.h" />
     <ClInclude Include="resource.h" />

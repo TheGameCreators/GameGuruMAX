@@ -5860,8 +5860,8 @@ void mapeditorexecutable_loop(void)
 			ImGui::DockBuilderDockWindow("Terrain Tools##Paint Terrain##TerrainToolsWindow", dock_id_right);
 			ImGui::DockBuilderDockWindow("Terrain Tools##Add Vegetation##TerrainToolsWindow", dock_id_right);
 			ImGui::DockBuilderDockWindow("Terrain Tools##Add Trees##TerrainToolsWindow", dock_id_right);
-			ImGui::DockBuilderDockWindow("Terrain Tools##Add Bushes##TerrainToolsWindow", dock_id_right);
-			
+			ImGui::DockBuilderDockWindow("Terrain Tools##Add Bushes##TerrainToolsWindow", dock_id_right);		
+
 			ImGui::DockBuilderDockWindow("Waypoints##WaypointsToolsWindow", dock_id_right);
 
 #ifdef USE_ENTITY_TOOL_WINDOW

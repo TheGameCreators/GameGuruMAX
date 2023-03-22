@@ -1078,13 +1078,14 @@ void common_init_globals ( void )
 	#ifdef WICKEDENGINE
 	g.debugraycastvisual = 4009;
 	g.debugconeofsightstart = 4010;
-	g.debugconeofsightfinish = 5999;
+	g.debugconeofsightfinish = 5996;
 	#else
 	g.debugandmiscobjects = 1000; // 1000-4100
 	// 1000+3005 - debugconeofsightobj
 	// 1000+3100 - building object
 	// 1000+4001/5000 = 5001-6000 - visual character VWEAP object
 	#endif
+	g.hudscreen3dobjectoffset = 5997;
 	#ifdef VRTECH
 	g.video3dobjectoffset = 5998;
 	#endif

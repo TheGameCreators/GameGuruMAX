@@ -13972,17 +13972,117 @@ int current_backbuffer_grabimg = 0;
 
 void GrabBackBufferForAnImage(void)
 {
+	// instruct to grab screen
 	BackBufferSaveCacheName = "";
 	current_backbuffer_grabimg = g.importermenuimageoffset + 50;
 	BackBufferImageID = current_backbuffer_grabimg;
 	BackBufferZoom = 1.0f;
 	BackBufferCamLeft = 0.0f;
 	BackBufferCamUp = 0.0f;
-	bRotateBackBuffer = true;
+	bRotateBackBuffer = false;
 	bLoopBackBuffer = true;
 	bUseBackDropImage = false;
 	BackBufferObjectID = 0;
 	BackBufferGrabGameScreen = true;
+	BackBufferSizeX = 1920;
+	BackBufferSizeY = 1080;
+	bFullScreenBackbuffer = true;
+
+	// quad to view HUD screen
+	bool bShowMe = true;
+	if(bShowMe == true)
+	{
+		if (ObjectExist(g.hudscreen3dobjectoffset) == 0 )
+		{
+			float fCorrectWidth = 192.0f / 5.0f;
+			float fCorrectHeight = 108.0f / 5.0f;
+			int backdropobj = g.hudscreen3dobjectoffset;
+			MakeObjectPlane(backdropobj, fCorrectWidth, fCorrectHeight);
+			LockVertexDataForLimbCore(backdropobj, 0, 1);
+			SetVertexDataNormals(0, 0, 1, 0);
+			SetVertexDataNormals(1, 0, 1, 0);
+			SetVertexDataNormals(2, 0, 1, 0);
+			SetVertexDataNormals(3, 0, 1, 0);
+			SetVertexDataNormals(4, 0, 1, 0);
+			SetVertexDataNormals(5, 0, 1, 0);
+			UnlockVertexData();
+			float U_f = 0.0f, V_f = 0.0f, D_f = 1.0f;
+			LockVertexDataForLimb(backdropobj, 0);
+			SetVertexDataUV(0, U_f, V_f);
+			SetVertexDataUV(1, U_f + D_f, V_f);
+			SetVertexDataUV(2, U_f + D_f, V_f + 1.0f);
+			SetVertexDataUV(3, U_f + D_f, V_f + 1.0f);
+			SetVertexDataUV(4, U_f, V_f + 1.0f);
+			SetVertexDataUV(5, U_f, V_f);
+			UnlockVertexData();
+			FixObjectPivot(backdropobj);
+			SetObjectTransparency(backdropobj, 1);
+			SetObjectCollisionOff(backdropobj);
+			SetObjectTextureMode(backdropobj, 0, 0);
+			SetObjectLight(backdropobj, 0);
+			SetObjectMask(backdropobj, 1);
+			SetObjectCull(backdropobj, 0);
+			sObject* pBackObject = GetObjectData(backdropobj);
+			if (pBackObject)
+			{
+				if (pBackObject->ppMeshList)
+				{
+					sMesh* pMesh = pBackObject->ppMeshList[0];
+					if (pMesh) WickedCall_UpdateMeshVertexData(pMesh);
+				}
+				WickedCall_SetObjectCastShadows(pBackObject, false);
+				float fColorR, fColorG, fColorB;
+				fColorR = 1.0f;
+				fColorG = 1.0f;
+				fColorB = 1.0f;
+				for (int iMesh = 0; iMesh < pBackObject->iMeshCount; iMesh++)
+				{
+					sMesh* pMesh = pBackObject->ppMeshList[iMesh];
+					if (pMesh)
+					{
+						pMesh->mMaterial.Diffuse.r = fColorR; // *1.0f;
+						pMesh->mMaterial.Diffuse.g = fColorG; // *1.0f;
+						pMesh->mMaterial.Diffuse.b = fColorB; // *1.0f;
+						pMesh->mMaterial.Diffuse.a = 1.0f;
+						wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
+						if (mesh)
+						{
+							uint64_t materialEntity = mesh->subsets[0].materialID;
+							wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+							if (pObjectMaterial)
+							{
+								pObjectMaterial->SetReflectance(0.0f);
+								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_UNLIT;
+								pObjectMaterial->SetDirty(true);
+							}
+						}
+					}
+					WickedCall_SetMeshMaterial(pMesh);
+				}
+				WickedCall_SetObjectMetalness(pBackObject, 0.0f);
+				WickedCall_SetObjectRoughness(pBackObject, 0.0f);
+			}
+			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+				SetObjectMask (g.hudscreen3dobjectoffset, (1 << 6) + (1 << 7) + 1);
+			else
+				SetObjectMask (g.hudscreen3dobjectoffset, 1);
+		}
+		if (ObjectExist(g.hudscreen3dobjectoffset) == 1)
+		{
+			float fX = CameraPositionX(0);
+			float fY = CameraPositionY(0);
+			float fZ = CameraPositionZ(0);
+			PositionObject (g.hudscreen3dobjectoffset, fX, fY, fZ);
+			SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
+			MoveObject(g.hudscreen3dobjectoffset, 20.0f);
+			sObject* pHUDScreenObject = GetObjectData(g.hudscreen3dobjectoffset);
+			if (pHUDScreenObject)
+			{
+				TextureObject (g.hudscreen3dobjectoffset, current_backbuffer_grabimg);
+				WickedCall_TextureObjectWithImagePtr(pHUDScreenObject, 0);
+			}
+		}
+	}
 }
 
 void GrabBackBufferCopy(void)
@@ -14038,7 +14138,7 @@ void GrabBackBufferCopy(void)
 				GGSURFACE_DESC ddsd;
 				pBackBuffer->GetDesc(&ddsd);
 				//PE: This is the resolution all current thumbs has used.
-				if (bProceduralLevel || bFullScreenBackbuffer)
+				if (bProceduralLevel || bFullScreenBackbuffer || BackBufferGrabGameScreen)
 				{
 					//Use current backbuffer size on this.
 					MakeBitmap(99, ddsd.Width, ddsd.Height);
@@ -14049,6 +14149,11 @@ void GrabBackBufferCopy(void)
 				}
 			}
 		}
+	}
+	if (BitmapExist(99))
+	{
+		SetCurrentBitmap(99);
+		SETUPClearEx(0, 0, 0, 0);
 	}
 
 	// using a render target in g_DefaultGGFORMAT is way faster.
@@ -14394,7 +14499,7 @@ void GrabBackBufferCopy(void)
 
 	extern bool g_bNo2DRender;
 	g_bNo2DRender = true;
-	if(bSnapShotModeUse2D)
+	if(bSnapShotModeUse2D || BackBufferGrabGameScreen)
 		g_bNo2DRender = false;
 
 	extern bool g_bNoTerrainRender;
@@ -14497,7 +14602,7 @@ void GrabBackBufferCopy(void)
 	}
 
 	// if not snaposhot mode - save a second file to act as our ICON image (RPG inventory usage mainly)
-	if (!BackBufferSnapShotMode)
+	if (!BackBufferSnapShotMode && !BackBufferGrabGameScreen)
 	{
 		if (BackBufferSaveCacheName != "")
 		{
@@ -14589,6 +14694,15 @@ void GrabBackBufferCopy(void)
 		if (imgcy < 0) imgcy = 0;
 		if (imgcx < 0) imgcx = 0;
 
+		// all screen for BackBufferGrabGameScreen
+		if (BackBufferObjectID == 0 && BackBufferGrabGameScreen)
+		{
+			imgcy = 0;
+			imgcx = 0;
+			grabx = ddsd.Width;
+			graby = ddsd.Height;
+		}
+
 		// if snapshot mode
 		if (BackBufferSnapShotMode)
 		{
@@ -14672,6 +14786,7 @@ void GrabBackBufferCopy(void)
 	}
 	BackBufferSnapShotMode = false;
 	BackBufferParticlesMode = false;
+	BackBufferGrabGameScreen = false;
 }
 
 void RevertBackbufferCubemap(void)

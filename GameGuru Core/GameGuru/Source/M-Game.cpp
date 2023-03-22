@@ -4346,6 +4346,9 @@ void game_freelevel ( void )
 	// remove any bulletholes
 	bulletholes_free();
 
+	// free any HUD screen objects
+	if (ObjectExist(g.hudscreen3dobjectoffset) == 1) DeleteObject (g.hudscreen3dobjectoffset);
+
 	//Reset loading bar percentage
 	extern int g_iLastProgressPercentage;
 	g_iLastProgressPercentage = 0;

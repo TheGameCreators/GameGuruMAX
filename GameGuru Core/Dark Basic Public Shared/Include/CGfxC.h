@@ -151,7 +151,9 @@ DARKSDK void 				StartSwapChain	 					( int iID );
 DARKSDK void 				EndSwapChain    					( int iID );
 DARKSDK void 				UpdateSwapChain 					( int iID );
 
-DARKSDK void 				SETUPClear 							( int   iR, int   iG, int   iB );
+DARKSDK void 				SETUPClear 							(int   iR, int   iG, int   iB);
+DARKSDK void 				SETUPClearEx 						(int   iR, int   iG, int   iB, int iA);
+
 DARKSDK void 				GetGamma 							( int* piR, int* piG, int* piB );
 
 DARKSDK bool 				CheckDisplayMode 					( int iWidth, int iHeight );

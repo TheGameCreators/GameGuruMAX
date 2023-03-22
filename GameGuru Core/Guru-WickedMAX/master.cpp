@@ -1020,13 +1020,21 @@ bool Master::ForceRender(void* rt)
 		}
 		extern bool bPopModalOpenProcedural;
 		extern bool bSnapShotModeUse2D;
-		if (!bPopModalOpenProcedural && !bSnapShotModeUse2D)
+		extern bool BackBufferGrabGameScreen;
+		if (!bPopModalOpenProcedural && !bSnapShotModeUse2D && !BackBufferGrabGameScreen)
 		{
 			masterrenderer.ComposeSimple(cmd);
 		}
 		else
 		{
-			masterrenderer.Compose(cmd); //Also do 2d compose
+			if (BackBufferGrabGameScreen)
+			{
+				masterrenderer.ComposeSimple2D(cmd); //only 2D
+			}
+			else
+			{
+				masterrenderer.Compose(cmd); //Also do 2d compose
+			}
 		}
 
 	}

@@ -5491,6 +5491,14 @@ void game_main_loop ( void )
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
 	darkai_finalsettingofcharacterobjects ( );
+
+	// trigger screen to be grabbed for a HUD image
+	bool bGrabSceneToStoreInImage = true;
+	if (bGrabSceneToStoreInImage == true)
+	{
+		extern void GrabBackBufferForAnImage (void);
+		GrabBackBufferForAnImage();
+	}
 }
 
 extern int howManyOccluders;

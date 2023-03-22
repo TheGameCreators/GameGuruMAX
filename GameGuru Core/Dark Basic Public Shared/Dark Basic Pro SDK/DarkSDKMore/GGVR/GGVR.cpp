@@ -1393,22 +1393,22 @@ void GGVR_LeftIsBest(bool bEnabled)
 float GGVR_BestController_JoyX(void)
 {
 	float fValue = OpenXRGetLeftStickX();
-	if (GGVR_bLeftIsBest == false)
-	{
-		float fValueR = OpenXRGetRightStickX();
-		if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
-	}
+	//if (GGVR_bLeftIsBest == false)
+	//{
+	//	float fValueR = OpenXRGetRightStickX();
+	//	if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
+	//}
 	return fValue;
 }
 
 float GGVR_BestController_JoyY(void)
 {
 	float fValue = OpenXRGetLeftStickY();
-	if (GGVR_bLeftIsBest == false)
-	{
-		float fValueR = OpenXRGetRightStickY();
-		if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
-	}
+	//if (GGVR_bLeftIsBest == false)
+	//{
+	//	float fValueR = OpenXRGetRightStickY();
+	//	if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
+	//}
 	return fValue;
 }
 

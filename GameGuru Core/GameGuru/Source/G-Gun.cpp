@@ -692,6 +692,8 @@ void gun_change ( void )
 	}
 }
 
+bool g_bNeedToRestoreLimbsAfterVR = false;
+
 void gun_update_hud ( void )
 {
 	#ifdef WICKEDENGINE
@@ -730,9 +732,24 @@ void gun_update_hud ( void )
 			#endif
 			if (bVRMode == false)
 			{
+				// non-VR mode
 				t.gunax_f = CameraAngleX(); t.gunay_f = CameraAngleY();
 				RotateObject(g.hudbankoffset + 2, t.gunax_f, t.gunay_f, 0);
 				PositionObject(g.hudbankoffset + 2, CameraPositionX(), CameraPositionY() + t.tsimwoddle_f, CameraPositionZ());
+				if (g_bNeedToRestoreLimbsAfterVR == true)
+				{
+					if (t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1)
+					{
+						PerformCheckListForLimbs(t.currentgunobj);
+						int iGunLimbCount = ChecklistQuantity();
+						for (int c = 1; c <= iGunLimbCount; c++)
+						{
+							int iLimbID = c - 1;
+							ShowLimb(t.currentgunobj, iLimbID);
+						}
+					}
+					g_bNeedToRestoreLimbsAfterVR = false;
+				}
 			}
 			else
 			{
@@ -861,11 +878,11 @@ void gun_update_hud ( void )
 							// VR supported or not
 							if (t.gun[t.gunid].settings.iVRWeaponMode == 1)
 							{
-								// also eliminate all animations and fix on known rig frame
-								StopObject(t.currentgunobj);
-								SetObjectInterpolation (t.currentgunobj, 100);
-								SetObjectFrame (t.currentgunobj, t.gun[t.gunid].settings.iVRWeaponStaticFrame);
-								SetObjectSpeed(t.currentgunobj, 0);
+								// also eliminate all animations and fix on known rig frame (nah, animation actually works nice and keeps weapon actions consistent)
+								//StopObject(t.currentgunobj);
+								//SetObjectInterpolation (t.currentgunobj, 100);
+								//SetObjectFrame (t.currentgunobj, t.gun[t.gunid].settings.iVRWeaponStaticFrame);
+								//SetObjectSpeed(t.currentgunobj, 0);
 
 								// only show specified limb (so can hide hands,etc)
 								for (int c = 1; c <= iGunLimbCount; c++)
@@ -886,6 +903,7 @@ void gun_update_hud ( void )
 									HideLimb(t.currentgunobj, iLimbID);
 								}
 							}
+							g_bNeedToRestoreLimbsAfterVR = true;
 
 							// then look to hide the VR controller
 							GGVR_LeftIsBest(true); // only left used for motion
@@ -909,7 +927,7 @@ void gun_update_hud ( void )
 		}
 	}
 
-	//  and update visibility
+	// and update visibility
 	gun_update_hud_visibility ( );
 }
 

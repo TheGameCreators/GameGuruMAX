@@ -7829,7 +7829,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 194 : lua_pushnumber ( L, GGVR_RightController_Trigger() ); break;
 		case 195 : lua_pushnumber ( L, GGVR_RightController_Grip() ); break;
 		case 196 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;
-		case 197 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;
+		case 197 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;
 		case 251 : lua_pushnumber ( L, GGVR_GetBestHandX() ); break;
 		case 252 : lua_pushnumber ( L, GGVR_GetBestHandY() ); break;
 		case 253 : lua_pushnumber ( L, GGVR_GetBestHandZ() ); break;

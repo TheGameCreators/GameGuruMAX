@@ -2871,8 +2871,10 @@ void physics_player_gatherkeycontrols ( void )
 		}
 		if (g.walkonkeys == 1)
 		{
-			if ( GGVR_RightController_JoyY() >  0.5 || GGVR_LeftController_JoyY() >  0.5 ) t.plrkeyW = 1;
-			if ( GGVR_RightController_JoyY() < -0.5 || GGVR_LeftController_JoyY() < -0.5)  t.plrkeyS = 1;
+			//if ( GGVR_RightController_JoyY() >  0.5 || GGVR_LeftController_JoyY() >  0.5 ) t.plrkeyW = 1; // right used for weapons!
+			//if ( GGVR_RightController_JoyY() < -0.5 || GGVR_LeftController_JoyY() < -0.5)  t.plrkeyS = 1;
+			if (GGVR_LeftController_JoyY() > 0.5) t.plrkeyW = 1;
+			if (GGVR_LeftController_JoyY() < -0.5)  t.plrkeyS = 1;
 		}
 		g.vrglobals.GGVR_XposOffset = GGVR_GetHMDOffsetX();
 		g.vrglobals.GGVR_ZposOffset = GGVR_GetHMDOffsetZ();

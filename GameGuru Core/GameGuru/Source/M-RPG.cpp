@@ -351,16 +351,16 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 				if (iKnownLabel == 3)
 				{
 					LPSTR pDesc = "";
-					if (iAddThisItem == 1) pDesc = t.entityelement[e].eleprof.name_s.Get();
-					if (iAddThisItem == 2) pDesc = t.entityelement[e].eleprof.name_s.Get();
+					if (iAddThisItem == 1) pDesc = t.entityprofile[entid].collectable.description.Get();
+					if (iAddThisItem == 2) pDesc = t.entityprofile[entid].collectable.description.Get();
 					if (iAddThisItem == 3) pDesc = pPassedInTitle;
 					pItem->collectionFields.push_back(pDesc);
 				}
-				if (iKnownLabel == 4) pItem->collectionFields.push_back(10);
-				if (iKnownLabel == 5) pItem->collectionFields.push_back(5);
-				if (iKnownLabel == 6) pItem->collectionFields.push_back("shop");
-				if (iKnownLabel == 7) pItem->collectionFields.push_back("none");
-				if (iKnownLabel == 8) pItem->collectionFields.push_back("none");
+				if (iKnownLabel == 4) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.cost);
+				if (iKnownLabel == 5) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.value);
+				if (iKnownLabel == 6) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.container.Get());
+				if (iKnownLabel == 7) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.ingredients.Get());
+				if (iKnownLabel == 8) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.style.Get());
 			}
 			else
 			{

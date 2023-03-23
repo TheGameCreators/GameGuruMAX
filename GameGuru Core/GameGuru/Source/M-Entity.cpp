@@ -2126,16 +2126,6 @@ void entity_loaddata ( void )
 			t.entityprofile[t.entid].WEMaterial.fReflectance[i] = 0.04f;// 0.002f;
 		}
 
-		//Resolve conflicts.
-		//t.entityprofile[t.entid].WEMaterial.MaterialActive = false;
-		//t.entityprofile[t.entid].WEMaterial.bCastShadows = true;
-		//t.entityprofile[t.entid].WEMaterial.bFlipNormalMap = false;
-		//t.entityprofile[t.entid].WEMaterial.bPlanerReflection = false;
-		//t.entityprofile[t.entid].WEMaterial.bTransparency = false;
-		//t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor = -1;
-		//t.entityprofile[t.entid].WEMaterial.dwBaseColor = -1;
-		//t.entityprofile[t.entid].WEMaterial.fReflectance = 0.002f; //PE: Turn down reflectance on default materials.
-
 		t.entityprofile[t.entid].thumbnailbackdrop = "";
 		t.entityprofile[t.entid].BackBufferZoom = -1.0f;
 		t.entityprofile[t.entid].BackBufferCamLeft = -1.0f;
@@ -2146,6 +2136,14 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].keywords_s = "";
 		
 		t.entityprofile[t.entid].effect_s = ""; //bIsDecal , needed reset.
+
+		t.entityprofile[t.entid].collectable.description = t.entityprofileheader[t.entid].desc_s;
+		t.entityprofile[t.entid].collectable.cost = 10;
+		t.entityprofile[t.entid].collectable.value = 5;
+		t.entityprofile[t.entid].collectable.container = "none";
+		t.entityprofile[t.entid].collectable.ingredients = "none";
+		t.entityprofile[t.entid].collectable.style = "none";
+
 		#endif
 
 		//  temp variable to hold which physics object we are on from the importer
@@ -2900,10 +2898,23 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].isviolent = t.value1;
 					cmpStrConst( t_field_s, "isobjective" );
 					if (  matched  )  t.entityprofile[t.entid].isobjective = t.value1;
-					cmpStrConst(t_field_s, "iscollectable");
-					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
 					cmpStrConst( t_field_s, "alwaysactive" );
 					if (  matched  )  t.entityprofile[t.entid].phyalways = t.value1;
+
+					cmpStrConst(t_field_s, "iscollectable");
+					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
+					cmpStrConst(t_field_s, "collectdescription");
+					if (matched)  t.entityprofile[t.entid].collectable.description = t.value_s;
+					cmpStrConst(t_field_s, "collectcost");
+					if (matched)  t.entityprofile[t.entid].collectable.cost = t.value1;
+					cmpStrConst(t_field_s, "collectvalue");
+					if (matched)  t.entityprofile[t.entid].collectable.value = t.value1;
+					cmpStrConst(t_field_s, "collectcontainer");
+					if (matched)  t.entityprofile[t.entid].collectable.container = t.value_s;
+					cmpStrConst(t_field_s, "collectingredients");
+					if (matched)  t.entityprofile[t.entid].collectable.ingredients = t.value_s;
+					cmpStrConst(t_field_s, "collectstyle");
+					if (matched)  t.entityprofile[t.entid].collectable.style = t.value_s;
 
 					cmpStrConst( t_field_s, "ischaracter" );
 					if (  matched  )  t.entityprofile[t.entid].ischaracter = t.value1;

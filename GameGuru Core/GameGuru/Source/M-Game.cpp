@@ -4346,6 +4346,9 @@ void game_freelevel ( void )
 	// remove any bulletholes
 	bulletholes_free();
 
+	// free any HUD screen objects
+	if (ObjectExist(g.hudscreen3dobjectoffset) == 1) DeleteObject (g.hudscreen3dobjectoffset);
+
 	//Reset loading bar percentage
 	extern int g_iLastProgressPercentage;
 	g_iLastProgressPercentage = 0;
@@ -5491,6 +5494,14 @@ void game_main_loop ( void )
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
 	darkai_finalsettingofcharacterobjects ( );
+
+	// trigger screen to be grabbed for a HUD image
+	bool bGrabSceneToStoreInImage = true;
+	if (bGrabSceneToStoreInImage == true)
+	{
+		extern void GrabBackBufferForAnImage (void);
+		GrabBackBufferForAnImage();
+	}
 }
 
 extern int howManyOccluders;

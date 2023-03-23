@@ -2666,6 +2666,30 @@ DARKSDK void SETUPClear ( int iR, int iG, int iB )
 	#endif
 }
 
+DARKSDK void SETUPClearEx (int iR, int iG, int iB, int iA)
+{
+	if (g_pGlob->pCurrentRenderView)
+	{
+		// clear the screen to the specified colour
+		float ClearColor[4];
+		ClearColor[0] = iR / 255.0f;
+		ClearColor[1] = iG / 255.0f;
+		ClearColor[2] = iB / 255.0f;
+		ClearColor[3] = iA / 255.0f;
+		if (m_bZBuffer == false)
+		{
+			// clear the full screen
+			m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, ClearColor);
+		}
+		else
+		{
+			// clear the full screen and the zbuffer
+			m_pImmediateContext->ClearRenderTargetView(g_pGlob->pCurrentRenderView, ClearColor);
+			m_pImmediateContext->ClearDepthStencilView(g_pGlob->pCurrentDepthView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		}
+	}
+}
+
 DARKSDK void GetGamma ( int* piR, int* piG, int* piB )
 {
 	// retrieve the current gamma settings

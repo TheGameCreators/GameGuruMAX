@@ -35,8 +35,21 @@ g_gameplayercontrol_lastTimeMoved=123
 g_gameplayercontrol_powerjump=0
 g_swimimpulsetimer = 0
 g_swimeffects = 0
+g_VRswitchweapondelay = 0
+g_vrthumbx = 0
+g_vrthumby = 0
 
 function gameplayercontrol.main()
+ -- grab thumb state just once
+ g_vrthumbx = 0
+ g_vrthumby = 0
+ if GetHeadTracker() == 1 then
+  if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
+	g_vrthumbx = CombatControllerThumbstickX()
+	g_vrthumby = CombatControllerThumbstickY()
+  end
+ end
+ -- do functions   
  gameplayercontrol.jetpack()
  gameplayercontrol.weaponfire()
  gameplayercontrol.weaponselectzoom()
@@ -45,6 +58,12 @@ function gameplayercontrol.main()
  gameplayercontrol.combatmusic()							
  if ( g_Scancode == 87 and IsTestGame()) then g_specialPBRDebugView = 1 end
  if ( g_specialPBRDebugView == 1 ) then gameplayercontrol.debug() end
+ -- General VR thumb interaction delay so not too quick
+ if GetHeadTracker() == 1 and g_VRswitchweapondelay == 1 then
+  if math.abs(g_vrthumbx) < 0.5 and math.abs(g_vrthumby) < 0.5 then
+   g_VRswitchweapondelay = 0
+  end
+ end
 end
    
 function gameplayercontrol.jetpack()
@@ -371,13 +390,11 @@ function gameplayercontrol.weaponfire()
          end
       end
 
-      -- Reload can be from key or from VR grip button
+      -- Reload can be from key or from VR thumb down
       local tRealReloadKey = g_PlrKeyR
-      if GetHeadTracker() == 1 then
+      if GetHeadTracker() == 1 and g_VRswitchweapondelay == 0 then
          if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
-            if CombatControllerGrip() > 0.5 then
-               tRealReloadKey = 1
-            end
+			if g_vrthumby < -0.5 then tRealReloadKey = 1 g_VRswitchweapondelay = 1 end
          end
       end      
       
@@ -426,6 +443,13 @@ function gameplayercontrol.weaponselectzoom()
          end
       end
    end
+   
+   -- VR can alt swap if push upward
+   if GetHeadTracker() == 1 and g_VRswitchweapondelay == 0 then
+      if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
+         if g_vrthumby > 0.5 then g_forcealtswap = 1 g_VRswitchweapondelay = 1 end
+      end
+   end      
 
    -- Keyboard
    taltswapkeycalled = 0
@@ -516,10 +540,10 @@ function gameplayercontrol.weaponselectzoom()
    end
    
    -- Weapon Select can be from VR right joystick left/right stick (see below)
-   if GetHeadTracker() == 1 then
+   if GetHeadTracker() == 1 and g_VRswitchweapondelay == 0 then
       if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
-         if CombatControllerThumbstickX() < -0.5 then ttmz = -10 end
-         if CombatControllerThumbstickX() > 0.5 then ttmz = 10 end
+         if g_vrthumbx < -0.5 then ttmz = -10 g_VRswitchweapondelay = 1 end
+         if g_vrthumbx > 0.5 then ttmz = 10 g_VRswitchweapondelay = 1 end
       end
    end      
 

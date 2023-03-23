@@ -1020,13 +1020,21 @@ bool Master::ForceRender(void* rt)
 		}
 		extern bool bPopModalOpenProcedural;
 		extern bool bSnapShotModeUse2D;
-		if (!bPopModalOpenProcedural && !bSnapShotModeUse2D)
+		extern bool BackBufferGrabGameScreen;
+		if (!bPopModalOpenProcedural && !bSnapShotModeUse2D && !BackBufferGrabGameScreen)
 		{
 			masterrenderer.ComposeSimple(cmd);
 		}
 		else
 		{
-			masterrenderer.Compose(cmd); //Also do 2d compose
+			if (BackBufferGrabGameScreen)
+			{
+				masterrenderer.ComposeSimple2D(cmd); //only 2D
+			}
+			else
+			{
+				masterrenderer.Compose(cmd); //Also do 2d compose
+			}
 		}
 
 	}
@@ -1133,22 +1141,9 @@ void Master::RunCustom()
 
 	if ( bRequireVRRendering == false )
 	{
-		/*
-		// hide the VR controllers
-		Entity leftEntity = wiScene::GetScene().Entity_FindByName( "VR_Controller_Left" );
-		ObjectComponent* leftObject = wiScene::GetScene().objects.GetComponent( leftEntity );
-		leftObject->SetRenderable( false );
-
-		Entity rightEntity = wiScene::GetScene().Entity_FindByName( "VR_Controller_Right" );
-		ObjectComponent* rightObject = wiScene::GetScene().objects.GetComponent( rightEntity );
-		rightObject->SetRenderable( false );
-		*/
-
 		// regular run calls update() and render() (above)
 		masterrenderer.SetRenderingVR(false);
 		Run();
-		void GrabBackBufferCopy(void);
-		GrabBackBufferCopy();
 	}
 	else
 	{
@@ -1478,7 +1473,8 @@ void Master::RunCustom()
 					viewport.Width = (float)swapChain.desc.width;
 					viewport.Height = (float)swapChain.desc.height;
 					wiRenderer::GetDevice()->BindViewports(1, &viewport, cmd);
-					Compose(cmd);
+					//Compose(cmd);
+					masterrenderer.ComposeSimple(cmd); // no 2D stuff, done through forcerender to quad plane
 					wiRenderer::GetDevice()->RenderPassEnd(cmd);
 					wiProfiler::EndFrame(cmd); // End before Present() so that GPU queries are properly recorded
 				}
@@ -1493,6 +1489,8 @@ void Master::RunCustom()
 			Run();
 		}
 	}
+	void GrabBackBufferCopy(void);
+	GrabBackBufferCopy();
 }
 
 void Master::StopVR()

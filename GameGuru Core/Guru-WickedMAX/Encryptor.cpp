@@ -21,6 +21,6 @@ CEncryptor::~CEncryptor()
 
 bool CEncryptor::EncryptFileData(LPSTR filebuffer, DWORD filebuffersize, bool bEncryptIfTrue)
 {
-	// wouldn't you like to know!
+	// not here, sorry
 	return true;
 }

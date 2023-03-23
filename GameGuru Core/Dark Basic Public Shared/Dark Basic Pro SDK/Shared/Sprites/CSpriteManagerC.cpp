@@ -168,13 +168,14 @@ void CSpriteManager::ScissorArea (float fX, float fY, float fW, float fH)
 		{
 			dl->PopClipRect();
 		}
-		else
-		{
-			if (ImGui::GetCurrentWindow())
-			{
-				ImGui::GetCurrentWindow()->DrawList->PopClipRect();
-			}
-		}
+		//else removed when we stopped rendering HUD0 for VR (220323)
+		//else
+		//{
+		//	if (ImGui::GetCurrentWindow())
+		//	{
+		//		ImGui::GetCurrentWindow()->DrawList->PopClipRect();
+		//	}
+		//}
 		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
 		//device->SetScissorArea(cmd, area);
 	}
@@ -188,13 +189,13 @@ void CSpriteManager::ScissorArea (float fX, float fY, float fW, float fH)
 		{
 			dl->PushClipRect(min, max, true);
 		}
-		else
-		{
-			if (ImGui::GetCurrentWindow())
-			{
-				ImGui::GetCurrentWindow()->DrawList->PushClipRect(min, max, true);
-			}
-		}
+		//else removed when we stopped rendering HUD0 for VR (220323)
+		//{
+		//	if (ImGui::GetCurrentWindow())
+		//	{
+		//		ImGui::GetCurrentWindow()->DrawList->PushClipRect(min, max, true);
+		//	}
+		//}
 		//area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
 		//device->SetScissorArea(cmd, area);
 	}

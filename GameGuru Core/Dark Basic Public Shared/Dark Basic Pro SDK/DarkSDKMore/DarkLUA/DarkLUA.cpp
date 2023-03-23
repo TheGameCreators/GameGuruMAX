@@ -7829,14 +7829,16 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 194 : lua_pushnumber ( L, GGVR_RightController_Trigger() ); break;
 		case 195 : lua_pushnumber ( L, GGVR_RightController_Grip() ); break;
 		case 196 : lua_pushnumber ( L, GGVR_RightController_JoyX() ); break;
-		case 197 : lua_pushnumber ( L, GGVR_RightController_JoyY() ); break;
+		case 197: lua_pushnumber (L, GGVR_RightController_JoyY()); break;
+		case 198: lua_pushnumber (L, GGVR_RightController_Button1()); break;
+		case 199: lua_pushnumber (L, GGVR_RightController_Button2()); break;
 		case 251 : lua_pushnumber ( L, GGVR_GetBestHandX() ); break;
 		case 252 : lua_pushnumber ( L, GGVR_GetBestHandY() ); break;
 		case 253 : lua_pushnumber ( L, GGVR_GetBestHandZ() ); break;
 		case 254 : lua_pushnumber ( L, GGVR_GetBestHandAngleX() ); break;
 		case 255 : lua_pushnumber ( L, GGVR_GetBestHandAngleY() ); break;
 		case 256 : lua_pushnumber ( L, GGVR_GetBestHandAngleZ() ); break;
-		case 257: lua_pushnumber ( L, GGVR_GetLaserGuidedEntityObj(g.entityviewstartobj,g.entityviewendobj) ); break;
+		case 257: lua_pushnumber (L, GGVR_GetLaserGuidedEntityObj(g.entityviewstartobj, g.entityviewendobj)); break;
 		#else
 		case 190 : 
 		case 191 : 
@@ -8312,6 +8314,8 @@ int CombatControllerTrigger ( lua_State *L ) { return GetGamePlayerControlData (
 int CombatControllerGrip ( lua_State *L ) { return GetGamePlayerControlData ( L, 195 ); }
 int CombatControllerThumbstickX ( lua_State *L ) { return GetGamePlayerControlData ( L, 196 ); }
 int CombatControllerThumbstickY ( lua_State *L ) { return GetGamePlayerControlData ( L, 197 ); }
+int CombatControllerButtonA (lua_State* L) { return GetGamePlayerControlData (L, 198); }
+int CombatControllerButtonB (lua_State* L) { return GetGamePlayerControlData (L, 199); }
 
 int SetGamePlayerStateFlashlightRange (lua_State *L) { return SetGamePlayerControlData (L, 401); }
 int GetGamePlayerStateFlashlightRange (lua_State *L) { return GetGamePlayerControlData (L, 401); }
@@ -8430,6 +8434,21 @@ int GetEntityProfileJumpResume ( lua_State *L ) { return GetGamePlayerControlDat
 
 int GetEntityAnimStart ( lua_State *L ) { return GetGamePlayerControlData ( L, 1001 ); }
 int GetEntityAnimFinish ( lua_State *L ) { return GetGamePlayerControlData ( L, 1002 ); }
+
+int CombatControllerLaserGuidedHit(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iObjToHit = lua_tonumber(L, 1);
+	float fX=0, fY=0, fZ=0;
+	int iHitIt = GGVR_GetLaserGuidedHit (iObjToHit, &fX, &fY, &fZ);
+	lua_pushnumber (L, iHitIt);
+	lua_pushnumber (L, fX);
+	lua_pushnumber (L, fY);
+	lua_pushnumber (L, fZ);
+	return 4;
+}
 
 int SetRotationYSlowly ( lua_State *L ) 
 {
@@ -10163,7 +10182,9 @@ void addFunctions()
 	lua_register(lua, "MotionControllerThumbstickX" , MotionControllerThumbstickX );
 	lua_register(lua, "MotionControllerThumbstickY" , MotionControllerThumbstickY );
 	lua_register(lua, "CombatControllerTrigger" , CombatControllerTrigger );
-	lua_register(lua, "CombatControllerGrip" , CombatControllerGrip );
+	lua_register(lua, "CombatControllerGrip", CombatControllerGrip);
+	lua_register(lua, "CombatControllerButtonA", CombatControllerButtonA);
+	lua_register(lua, "CombatControllerButtonB", CombatControllerButtonB);
 	lua_register(lua, "CombatControllerThumbstickX" , CombatControllerThumbstickX );
 	lua_register(lua, "CombatControllerThumbstickY" , CombatControllerThumbstickY );
 	lua_register(lua, "MotionControllerBestX" , MotionControllerBestX );
@@ -10172,8 +10193,9 @@ void addFunctions()
 	lua_register(lua, "MotionControllerBestAngleX" , MotionControllerBestAngleX );
 	lua_register(lua, "MotionControllerBestAngleY" , MotionControllerBestAngleY );
 	lua_register(lua, "MotionControllerBestAngleZ" , MotionControllerBestAngleZ );
-	lua_register(lua, "MotionControllerLaserGuidedEntityObj" , MotionControllerLaserGuidedEntityObj );
-	
+	lua_register(lua, "MotionControllerLaserGuidedEntityObj", MotionControllerLaserGuidedEntityObj);
+	lua_register(lua, "CombatControllerLaserGuidedHit", CombatControllerLaserGuidedHit);
+
 	lua_register(lua, "SetGamePlayerStateIsMelee" , SetGamePlayerStateIsMelee );
 	lua_register(lua, "GetGamePlayerStateIsMelee" , GetGamePlayerStateIsMelee );
 	lua_register(lua, "SetGamePlayerStateAlternate" , SetGamePlayerStateAlternate );

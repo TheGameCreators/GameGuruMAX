@@ -276,7 +276,7 @@ function hud0.main()
  
   -- If there is an active screen (resulting from CheckScreenToggles()) then display that screen, otherwise dispay the default HUD screen
   if GetCurrentScreen() > -1 then
-
+  
 	-- switch to mouse mode  
 	if hud0_freezeforpointer == 0 then 
 		SetCameraOverride(3)
@@ -1083,6 +1083,20 @@ function hud0.main()
 	-- draw mouse pointer below
 	drawMousePointer = 1
 	
+	-- VR controller can leave any HUD Screen 9 (VR MENU)
+	if GetHeadTracker() == 1 then
+		if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
+			if CombatControllerButtonB() == 1 then
+				if g_VRHUDToggle == 0 then
+					g_VRHUDToggle = 1
+					ScreenToggle("")
+				end
+			else
+				g_VRHUDToggle = 0
+			end
+		end
+	end
+	
   else
   
 	-- leave mouse mode
@@ -1093,9 +1107,23 @@ function hud0.main()
 		hud0_freezeforpointer = 0
 		hud0.refreshHUD()
 	end
-
+  
 	-- display main in-game HUD screen
 	DisplayScreen("HUD0")
+
+	-- VR controller can call up HUD Screen 9 (VR MENU)
+	if GetHeadTracker() == 1 then
+		if GetGamePlayerStateMotionController() == 1 and GetGamePlayerStateMotionControllerType() == 2 then -- OPENXR
+			if CombatControllerButtonB() == 1 then
+				if g_VRHUDToggle == 0 then
+					ScreenToggle("HUD Screen 9")	
+					g_VRHUDToggle = 1
+				end
+			else
+				g_VRHUDToggle = 0
+			end
+		end
+	end
 
 	-- display contents of any hot key panels in the main in-game HUD too (although need to get order from hotkey shortcut)
 	local tgridqty = GetScreenElementsType("user defined global panel")

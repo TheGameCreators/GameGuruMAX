@@ -13972,115 +13972,123 @@ int current_backbuffer_grabimg = 0;
 
 void GrabBackBufferForAnImage(void)
 {
-	// instruct to grab screen
-	BackBufferSaveCacheName = "";
-	current_backbuffer_grabimg = g.importermenuimageoffset + 50;
-	BackBufferImageID = current_backbuffer_grabimg;
-	BackBufferZoom = 1.0f;
-	BackBufferCamLeft = 0.0f;
-	BackBufferCamUp = 0.0f;
-	bRotateBackBuffer = false;
-	bLoopBackBuffer = true;
-	bUseBackDropImage = false;
-	BackBufferObjectID = 0;
-	BackBufferGrabGameScreen = true;
-	BackBufferSizeX = 1920;
-	BackBufferSizeY = 1080;
-	bFullScreenBackbuffer = true;
-
-	// quad to view HUD screen
-	bool bShowMe = true;
-	if(bShowMe == true)
+	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 && t.game.activeStoryboardScreen > -1)
 	{
-		if (ObjectExist(g.hudscreen3dobjectoffset) == 0 )
+		// instruct to grab screen
+		BackBufferSaveCacheName = "";
+		current_backbuffer_grabimg = g.importermenuimageoffset + 50;
+		BackBufferImageID = current_backbuffer_grabimg;
+		BackBufferZoom = 1.0f;
+		BackBufferCamLeft = 0.0f;
+		BackBufferCamUp = 0.0f;
+		bRotateBackBuffer = false;
+		bLoopBackBuffer = true;
+		BackBufferObjectID = 0;
+		BackBufferGrabGameScreen = true;
+		BackBufferSizeX = 1920;
+		BackBufferSizeY = 1080;
+		bFullScreenBackbuffer = true;
+
+		// quad to view HUD screen
+		bool bShowMe = true;
+		if (bShowMe == true)
 		{
-			float fCorrectWidth = 192.0f / 5.0f;
-			float fCorrectHeight = 108.0f / 5.0f;
-			int backdropobj = g.hudscreen3dobjectoffset;
-			MakeObjectPlane(backdropobj, fCorrectWidth, fCorrectHeight);
-			LockVertexDataForLimbCore(backdropobj, 0, 1);
-			SetVertexDataNormals(0, 0, 1, 0);
-			SetVertexDataNormals(1, 0, 1, 0);
-			SetVertexDataNormals(2, 0, 1, 0);
-			SetVertexDataNormals(3, 0, 1, 0);
-			SetVertexDataNormals(4, 0, 1, 0);
-			SetVertexDataNormals(5, 0, 1, 0);
-			UnlockVertexData();
-			float U_f = 0.0f, V_f = 0.0f, D_f = 1.0f;
-			LockVertexDataForLimb(backdropobj, 0);
-			SetVertexDataUV(0, U_f, V_f);
-			SetVertexDataUV(1, U_f + D_f, V_f);
-			SetVertexDataUV(2, U_f + D_f, V_f + 1.0f);
-			SetVertexDataUV(3, U_f + D_f, V_f + 1.0f);
-			SetVertexDataUV(4, U_f, V_f + 1.0f);
-			SetVertexDataUV(5, U_f, V_f);
-			UnlockVertexData();
-			FixObjectPivot(backdropobj);
-			SetObjectTransparency(backdropobj, 1);
-			SetObjectCollisionOff(backdropobj);
-			SetObjectTextureMode(backdropobj, 0, 0);
-			SetObjectLight(backdropobj, 0);
-			SetObjectMask(backdropobj, 1);
-			SetObjectCull(backdropobj, 0);
-			sObject* pBackObject = GetObjectData(backdropobj);
-			if (pBackObject)
+			if (ObjectExist(g.hudscreen3dobjectoffset) == 0)
 			{
-				if (pBackObject->ppMeshList)
+				float fCorrectWidth = 192.0f / 5.0f;
+				float fCorrectHeight = 108.0f / 5.0f;
+				int backdropobj = g.hudscreen3dobjectoffset;
+				MakeObjectPlane(backdropobj, fCorrectWidth, fCorrectHeight);
+				LockVertexDataForLimbCore(backdropobj, 0, 1);
+				SetVertexDataNormals(0, 0, 1, 0);
+				SetVertexDataNormals(1, 0, 1, 0);
+				SetVertexDataNormals(2, 0, 1, 0);
+				SetVertexDataNormals(3, 0, 1, 0);
+				SetVertexDataNormals(4, 0, 1, 0);
+				SetVertexDataNormals(5, 0, 1, 0);
+				UnlockVertexData();
+				float U_f = 0.0f, V_f = 0.0f, D_f = 1.0f;
+				LockVertexDataForLimb(backdropobj, 0);
+				SetVertexDataUV(0, U_f, V_f);
+				SetVertexDataUV(1, U_f + D_f, V_f);
+				SetVertexDataUV(2, U_f + D_f, V_f + 1.0f);
+				SetVertexDataUV(3, U_f + D_f, V_f + 1.0f);
+				SetVertexDataUV(4, U_f, V_f + 1.0f);
+				SetVertexDataUV(5, U_f, V_f);
+				UnlockVertexData();
+				FixObjectPivot(backdropobj);
+				SetObjectTransparency(backdropobj, 0);// 1); transparency mode (preferred) is WAT TOO DIM!
+				SetObjectCollisionOff(backdropobj);
+				SetObjectTextureMode(backdropobj, 0, 0);
+				SetObjectLight(backdropobj, 0);
+				SetObjectCull(backdropobj, 0);
+				sObject* pBackObject = GetObjectData(backdropobj);
+				if (pBackObject)
 				{
-					sMesh* pMesh = pBackObject->ppMeshList[0];
-					if (pMesh) WickedCall_UpdateMeshVertexData(pMesh);
-				}
-				WickedCall_SetObjectCastShadows(pBackObject, false);
-				float fColorR, fColorG, fColorB;
-				fColorR = 1.0f;
-				fColorG = 1.0f;
-				fColorB = 1.0f;
-				for (int iMesh = 0; iMesh < pBackObject->iMeshCount; iMesh++)
-				{
-					sMesh* pMesh = pBackObject->ppMeshList[iMesh];
-					if (pMesh)
+					if (pBackObject->ppMeshList)
 					{
-						pMesh->mMaterial.Diffuse.r = fColorR; // *1.0f;
-						pMesh->mMaterial.Diffuse.g = fColorG; // *1.0f;
-						pMesh->mMaterial.Diffuse.b = fColorB; // *1.0f;
-						pMesh->mMaterial.Diffuse.a = 1.0f;
-						wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
-						if (mesh)
+						sMesh* pMesh = pBackObject->ppMeshList[0];
+						if (pMesh) WickedCall_UpdateMeshVertexData(pMesh);
+					}
+					WickedCall_SetObjectCastShadows(pBackObject, false);
+					float fColorR, fColorG, fColorB;
+					fColorR = 1.0f;
+					fColorG = 1.0f;
+					fColorB = 1.0f;
+					for (int iMesh = 0; iMesh < pBackObject->iMeshCount; iMesh++)
+					{
+						sMesh* pMesh = pBackObject->ppMeshList[iMesh];
+						if (pMesh)
 						{
-							uint64_t materialEntity = mesh->subsets[0].materialID;
-							wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-							if (pObjectMaterial)
+							pMesh->mMaterial.Diffuse.r = fColorR; // *1.0f;
+							pMesh->mMaterial.Diffuse.g = fColorG; // *1.0f;
+							pMesh->mMaterial.Diffuse.b = fColorB; // *1.0f;
+							pMesh->mMaterial.Diffuse.a = 1.0f;
+							wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
+							if (mesh)
 							{
-								pObjectMaterial->SetReflectance(0.0f);
-								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_UNLIT;
-								pObjectMaterial->SetDirty(true);
+								uint64_t materialEntity = mesh->subsets[0].materialID;
+								wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+								if (pObjectMaterial)
+								{
+									pObjectMaterial->SetReflectance(0.0f);
+									pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_UNLIT;
+									pObjectMaterial->SetDirty(true);
+								}
 							}
 						}
+						WickedCall_SetMeshMaterial(pMesh);
 					}
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetObjectMetalness(pBackObject, 0.0f);
+					WickedCall_SetObjectRoughness(pBackObject, 0.0f);
 				}
-				WickedCall_SetObjectMetalness(pBackObject, 0.0f);
-				WickedCall_SetObjectRoughness(pBackObject, 0.0f);
-			}
-			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
 				SetObjectMask (g.hudscreen3dobjectoffset, (1 << 6) + (1 << 7) + 1);
-			else
-				SetObjectMask (g.hudscreen3dobjectoffset, 1);
+			}
+			if (ObjectExist(g.hudscreen3dobjectoffset) == 1)
+			{
+				float fX = CameraPositionX(0);
+				float fY = CameraPositionY(0);
+				float fZ = CameraPositionZ(0);
+				PositionObject (g.hudscreen3dobjectoffset, fX, fY, fZ);
+				SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
+				MoveObject(g.hudscreen3dobjectoffset, 20.0f);
+				sObject* pHUDScreenObject = GetObjectData(g.hudscreen3dobjectoffset);
+				if (pHUDScreenObject)
+				{
+					TextureObject (g.hudscreen3dobjectoffset, current_backbuffer_grabimg);
+					WickedCall_TextureObjectWithImagePtr(pHUDScreenObject, 0);
+				}
+				ShowObject(g.hudscreen3dobjectoffset);
+				if (t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1) HideObject(t.currentgunobj);
+			}
 		}
+	}
+	else
+	{
 		if (ObjectExist(g.hudscreen3dobjectoffset) == 1)
 		{
-			float fX = CameraPositionX(0);
-			float fY = CameraPositionY(0);
-			float fZ = CameraPositionZ(0);
-			PositionObject (g.hudscreen3dobjectoffset, fX, fY, fZ);
-			SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
-			MoveObject(g.hudscreen3dobjectoffset, 20.0f);
-			sObject* pHUDScreenObject = GetObjectData(g.hudscreen3dobjectoffset);
-			if (pHUDScreenObject)
-			{
-				TextureObject (g.hudscreen3dobjectoffset, current_backbuffer_grabimg);
-				WickedCall_TextureObjectWithImagePtr(pHUDScreenObject, 0);
-			}
+			HideObject(g.hudscreen3dobjectoffset);
+			if (t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1) ShowObject(t.currentgunobj);
 		}
 	}
 }
@@ -14153,7 +14161,7 @@ void GrabBackBufferCopy(void)
 	if (BitmapExist(99))
 	{
 		SetCurrentBitmap(99);
-		SETUPClearEx(0, 0, 0, 0);
+		SETUPClearEx(64, 64, 64, 64);
 	}
 
 	// using a render target in g_DefaultGGFORMAT is way faster.
@@ -47092,10 +47100,40 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
 				{
 					ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
-					if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea))
+					bool bIsPointerHoveringOver = false;
+					bool bIsPointerReleased = false;
+					if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+					{
+						// VR support
+						int iObjToHit = 5997;
+						float fX = 0, fY = 0, fZ = 0;
+						int iHitIt = GGVR_GetLaserGuidedHit (iObjToHit, &fX, &fY, &fZ);
+						float fptrrealX = ((fX + 19.0f) / 38.0f) * (rMonitorArea.Max.x - rMonitorArea.Min.x);
+						float fptrrealY = ((11.0f - fY) / 22.0f) * (rMonitorArea.Max.y - rMonitorArea.Min.y);
+						if (GGVR_RightController_Trigger() > 0.5f)
+						{
+							bIsPointerReleased = true;
+							ImVec2 topLeft = rMonitorArea.Min + widget_pos - vLargerGrabArea;
+							ImVec2 bottomRight = rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea;
+							if (fptrrealX > topLeft.x && fptrrealY < bottomRight.x)
+							{
+								if (fptrrealY > topLeft.y && fptrrealY < bottomRight.y)
+								{
+									bIsPointerHoveringOver = true;
+								}
+							}
+						}
+					}
+					else
+					{
+						// non VR
+						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea)) bIsPointerHoveringOver = true;
+						if (ImGui::IsMouseReleased(0)) bIsPointerReleased = true;
+					}
+					if (bIsPointerHoveringOver)
 					{
 						//if mouse release.
-						if (ImGui::IsMouseReleased(0))
+						if (bIsPointerReleased)
 						{
 							if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
 							{
@@ -47267,6 +47305,29 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 											}
 										}
 
+									}
+								}
+							}
+							int iActionID = Storyboard.Nodes[nodeid].widget_action[index];
+							if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2
+							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3
+							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4)
+							{
+								// Toggle to new HUD screen ( can be improved this 'ard use of widget_action )
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									StoryboardNodesStruct& node = Storyboard.Nodes[i];
+									if (node.used && strlen(node.level_name) == 0) // only HUDs
+									{
+										bool bFoundHUDScreen = false;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
+										if (bFoundHUDScreen == true )
+										{
+											t.game.activeStoryboardScreen = i;
+											break;
+										}
 									}
 								}
 							}
@@ -47859,48 +47920,49 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 
-					/* appears not to do anything when looking at an image gadget
-					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
-						&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
+					if (iUserDefinedGlobal == 4) // needed for panel grid row and column
 					{
-						LPSTR pTitle = "Text Offset";
-						LPSTR pLabelX = "Offset X";
-						LPSTR pLabelTipX = "Change Widget Text Offset X";
-						LPSTR pLabelY = "Offset Y";
-						LPSTR pLabelTipY = "Change Widget Text Offset Y";
-						if (iUserDefinedGlobal == 4)
+						if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
+							&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
 						{
-							pTitle = "Panel Grid Size";
-							pLabelX = "Columns";
-							pLabelTipX = "Change the total number of columns";
-							pLabelY = "Rows";
-							pLabelTipY = "Change the total number of rows";
-						}
-						ImGui::TextCenter(pTitle);
+							LPSTR pTitle = "Text Offset";
+							LPSTR pLabelX = "Offset X";
+							LPSTR pLabelTipX = "Change Widget Text Offset X";
+							LPSTR pLabelY = "Offset Y";
+							LPSTR pLabelTipY = "Change Widget Text Offset Y";
+							if (iUserDefinedGlobal == 4)
+							{
+								pTitle = "Panel Grid Size";
+								pLabelX = "Columns";
+								pLabelTipX = "Change the total number of columns";
+								pLabelY = "Rows";
+								pLabelTipY = "Change the total number of rows";
+							}
+							ImGui::TextCenter(pTitle);
 
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-						ImGui::Text(pLabelX);
-						ImGui::SameLine();
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
-						if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
-						{
-							//
+							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+							ImGui::Text(pLabelX);
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+							ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+							if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
+							{
+								//
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipX);
+							ImGui::PopItemWidth();
+							ImGui::SameLine();
+							ImGui::Text(pLabelY);
+							ImGui::SameLine();
+							ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+							if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
+							{
+								//
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
+							ImGui::PopItemWidth();
 						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipX);
-						ImGui::PopItemWidth();
-						ImGui::SameLine();
-						ImGui::Text(pLabelY);
-						ImGui::SameLine();
-						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
-						if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
-						{
-							//
-						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
-						ImGui::PopItemWidth();
 					}
-					*/
 				}
 
 				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON 
@@ -48022,8 +48084,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (iCurAction == STORYBOARD_ACTIONS_LEAVEGAME) strcpy(ActionSelected, "Leave Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RESUMEGAME) strcpy(ActionSelected, "Resume Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RETURNVALUETOLUA) strcpy(ActionSelected, "Return Button ID to Lua");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD2) strcpy(ActionSelected, "Go To HUD Screen 2");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD3) strcpy(ActionSelected, "Go To HUD Screen 3");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD4) strcpy(ActionSelected, "Go To HUD Screen 4");
 
-						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua" };
+						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua", "Go To HUD Screen 2" , "Go To HUD Screen 3" , "Go To HUD Screen 4" };
 						//if (ImGui::Combo("##BehavioursSimpleInput", &item_current_type_selection, items_align, IM_ARRAYSIZE(items_align))) {
 						ImGui::PushItemWidth(-10);
 						if (ImGui::BeginCombo("##StoryboardAction", ActionSelected)) // The second parameter is the label previewed before opening the combo.

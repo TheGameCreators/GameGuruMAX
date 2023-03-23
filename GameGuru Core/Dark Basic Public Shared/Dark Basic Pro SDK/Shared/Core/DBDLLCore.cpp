@@ -2174,14 +2174,25 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 							sprintf ( p, "%s\\", szCurrentDirectory );
 							strcpy ( f , data.cFileName );
 
-							char originalFolder[MAX_PATH];
-							GetCurrentDirectory ( MAX_PATH, originalFolder );						
-							SetCurrentDirectory ( szCurrentDirectory );
-							bool bEncryptedOkay = EncryptNewFile( f );
-							SetCurrentDirectory ( originalFolder );
-							UpdateWindow ( NULL );
-							sprintf ( p, "%s\\%s", szCurrentDirectory , f );
-							if ( bEncryptedOkay==true ) DeleteFile ( p );
+							// do not encrypt certain folders
+							LPSTR pMatch = "";
+							bool bDoEnc = true;
+							pMatch = "Files\\editors";  if (strstr (szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
+							pMatch = "Files\\effectbank";  if (strstr (szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
+							pMatch = "Files\\terraintextures";  if (strstr (szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
+							pMatch = "Files\\treebank";  if (strstr (szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
+							pMatch = "Files\\grassbank";  if (strstr (szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
+							if (bDoEnc == true)
+							{
+								char originalFolder[MAX_PATH];
+								GetCurrentDirectory (MAX_PATH, originalFolder);
+								SetCurrentDirectory (szCurrentDirectory);
+								bool bEncryptedOkay = EncryptNewFile(f);
+								SetCurrentDirectory (originalFolder);
+								UpdateWindow (NULL);
+								sprintf (p, "%s\\%s", szCurrentDirectory, f);
+								if (bEncryptedOkay == true) DeleteFile (p);
+							}
 						}
 					}
 					else 

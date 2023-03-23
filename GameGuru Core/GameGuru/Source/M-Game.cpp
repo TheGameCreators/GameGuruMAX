@@ -2599,6 +2599,12 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	bool bControllerEscape = false;
 	if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
+	// VR support can escape to in-game menu with button A
+	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+	{
+		if (GGVR_RightController_Button1() == 1) bControllerEscape == true;
+	}
+
 	//  trigger options page or exit test level
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"escape button check");
 	if ( EscapeKey() == 1 || bControllerEscape == true ) 

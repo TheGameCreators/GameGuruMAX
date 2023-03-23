@@ -210,3 +210,5 @@ GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbis/x64/Release/libvorbis_sta
 GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbisfile/x64/Debug/libvorbisfile_static.vcxproj.FileListAbsolute.txt
 GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbisfile/x64/Release/libvorbisfile_static.vcxproj.FileListAbsolute.txt
 GameGuru Core/.vs/GameGuruWickedMAX/v15/.suo
+GameGuru Core/UseENCRYPTIONANDSECURITYCODES.bat
+GameGuru Core/UseNONE.bat

@@ -22,7 +22,20 @@ void init_rpg_system(void)
 
 bool load_rpg_system(char* name)
 {
+	// out of the box mandatory labels
+	g_collectionLabels.clear();
+	g_collectionLabels.push_back("title");
+	g_collectionLabels.push_back("profile");
+	g_collectionLabels.push_back("image");
+	g_collectionLabels.push_back("description");
+	g_collectionLabels.push_back("cost");
+	g_collectionLabels.push_back("value");
+	g_collectionLabels.push_back("container");
+	g_collectionLabels.push_back("ingredients");
+	g_collectionLabels.push_back("style");
+
 	// load in collection file (contains all items in all game levels)
+	std::vector<cstr> g_localCollectionLabels;
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");
 	strcat(collectionfilename, name);
@@ -31,6 +44,7 @@ bool load_rpg_system(char* name)
 	if (collectionFile)
 	{
 		// read all lines in TAB DELIMITED FILE
+		bool bPopulateLabels = true;
 		while (!feof(collectionFile))
 		{
 			// read a line
@@ -43,19 +57,34 @@ bool load_rpg_system(char* name)
 			collectionItemType item;
 			item.iEntityID = 0;
 			item.iEntityElementE = 0;
-			bool bPopulateLabels = false;
-			if (g_collectionLabels.size() == 0)
+			if (bPopulateLabels == true)
 			{
-				// first line contains the collection labels (title,image,desc,cost)
-				bPopulateLabels = true;
+				// first line are all the labels
+				g_localCollectionLabels.clear();
 			}
 			else
 			{
-				// remaining lines are the collection
+				// remaining lines are the collection, prepopulate with correct number of them
 				item.collectionFields.clear();
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("default");
+				item.collectionFields.push_back("default");
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("10");
+				item.collectionFields.push_back("5");
+				item.collectionFields.push_back("shop");
+				item.collectionFields.push_back("none");
+				item.collectionFields.push_back("none");
+				int iLAIndex = item.collectionFields.size();
+				while (iLAIndex < g_collectionLabels.size())
+				{
+					item.collectionFields.push_back("none");
+					iLAIndex++;
+				}
 			}
 
 			// go through tab delimited fields
+			int iColumnIndex = 0;
 			char pTab[2]; pTab[0] = 9; pTab[1] = 0;
 			const char* delimiter = pTab;
 			char* token = std::strtok(theline, delimiter);
@@ -63,40 +92,71 @@ bool load_rpg_system(char* name)
 			{
 				if (bPopulateLabels == true)
 				{
-					// forms the full list of attributes per item
-					g_collectionLabels.push_back(token);
+					// record local order of the labels from the import
+					g_localCollectionLabels.push_back(token);
+
+					// add unique ones to end of labels list
+					bool bFoundThisOne = false;
+					for (int la = 0; la < g_collectionLabels.size(); la++)
+					{
+						if (stricmp(g_collectionLabels[la].Get(), token) == NULL)
+						{
+							bFoundThisOne = true;
+							break;
+						}
+					}
+					if (bFoundThisOne == false)
+					{
+						// add to end of main list of labels
+						g_collectionLabels.push_back(token);
+					}
 				}
 				else
 				{
-					item.collectionFields.push_back(token);
+					// add to correct location in item collection fields (respect main labels list, not local import)
+					if (iColumnIndex < g_localCollectionLabels.size())
+					{
+						LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
+						iColumnIndex++;
+						for (int la = 0; la < g_collectionLabels.size(); la++)
+						{
+							if (stricmp(g_collectionLabels[la].Get(), pLabelAssociated) == NULL)
+							{
+								item.collectionFields[la] = token;
+								break;
+							}
+						}
+					}
 				}
 				token = std::strtok(nullptr, delimiter);
 			}
 
 			// add populated item to collection list
-			if (bPopulateLabels == false)
+			if (bPopulateLabels == false && item.collectionFields.size()>2)
 			{
-				if (item.collectionFields.size() > 2)
+				if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
 				{
+					// seems we have duplicated the header row, so ignore (title, profile, image, etc)
+				}
+				else
+				{
+					// quick sanity check, reset any corrupt entries for image (might be FPE from old tabbed files)
+					LPSTR pImageEntry = item.collectionFields[2].Get();
+					if (strnicmp(pImageEntry + strlen(pImageEntry) - 4, ".fpe", 4) == NULL)
+					{
+						// restore to default, thank you!
+						item.collectionFields[2] = "default";
+					}
+
+					// real entry, add it
 					g_collectionMasterList.push_back(item);
 				}
 			}
+
+			// first line over
+			bPopulateLabels = false;
 		}
 		fclose(collectionFile);
-	}
-	else
-	{
-		// if not user defined collection, out of the box fields
-		g_collectionLabels.clear();
-		g_collectionLabels.push_back("title");
-		g_collectionLabels.push_back("profile");
-		g_collectionLabels.push_back("image");
-		g_collectionLabels.push_back("description");
-		g_collectionLabels.push_back("cost");
-		g_collectionLabels.push_back("value");
-		g_collectionLabels.push_back("container");
-		g_collectionLabels.push_back("ingredients");
-		g_collectionLabels.push_back("style");
 	}
 
 	// make a copy to regular gaming list
@@ -112,6 +172,10 @@ bool load_rpg_system(char* name)
 
 bool save_rpg_system(char* name, bool bIncludeELEFile)
 {
+	// nothing to save if no collection to save
+	if (g_collectionLabels.size() == 0)
+		return false;
+
 	// save master collection in file (contains all items in all game levels)
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");

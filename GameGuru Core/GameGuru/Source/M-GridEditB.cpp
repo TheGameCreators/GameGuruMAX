@@ -36506,8 +36506,10 @@ void About_Screen(void)
 		ImGui::TextCenter("Community Contributors");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::Text("");
-		ImGui::TextCenter("Necrym59 for Behaviors");
-		ImGui::TextCenter("Tom Frakey for User Manual");
+		ImGui::TextCenter("Synchromesh & Dave Hawkins for Support");
+		ImGui::TextCenter("Necrym59 for Behaviors and Design");
+		ImGui::TextCenter("Tom from Blood Moon Interactive for User Manual");
+		ImGui::TextCenter("GraphiX for Art Support");
 		ImGui::Text("");
 
 		ImGui::SetWindowFontScale(1.5);
@@ -36526,7 +36528,7 @@ void About_Screen(void)
 		ImGui::Text("");
 		ImGui::TextCenter("Lee Bamber & Richard Vanner");
 		ImGui::TextCenter("Meash Meakin & Stuart Scott");
-		
+
 		ImGui::Text("");
 		ImGui::SetWindowFontScale(1.5);
 		ImGui::TextCenter("Wicked Engine");
@@ -36535,7 +36537,6 @@ void About_Screen(void)
 		ImGui::TextCenter("Janos Turanszki");
 		ImGui::TextCenter("www.wickedengine.net");
 
-		ImGui::Text("");
 		ImGui::Text("");
 		ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((fRegionWidth*0.5) - (100.0f*0.5), 0.0f));
 		if (ImGui::StyleButton("OK", ImVec2(100.0f, 0.0f))) {

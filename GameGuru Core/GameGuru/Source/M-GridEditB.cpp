@@ -42628,10 +42628,27 @@ void process_storeboard(bool bInitOnly)
 							int nodeHeight = 150;
 							storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, true);
 							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[13].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+							// Also ensure that any user defined globals are removed when resetting HUD screens
+							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+							{
+								if (strnicmp(Storyboard.Nodes[i].lua_name, "hud", 3) == NULL)
+								{
+									for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
+									{
+										if (strnicmp(Storyboard.widget_readout[i][j], "user defined", 12) == 0)
+										{
+											Storyboard.widget_readout[i][j][0] = 0;
+										}
+									}
+								}
+							}
+							g_bRefreshGlobalList = true;
 						}
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 						if (ImGui::StyleButton("Add RPG Screens", ImVec2(buttonwide, 0.0f)))
 						{
+							g_bRefreshGlobalList = true;
+
 							// check if RPG screens already exist
 							bool bRPGHUDSMissing[10];
 							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));

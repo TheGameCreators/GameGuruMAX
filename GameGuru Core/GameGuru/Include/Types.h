@@ -5529,6 +5529,15 @@ struct WickedMaterial
 	bool bCastShadows[MAXMESHMATERIALS];
 	float fReflectance[MAXMESHMATERIALS];
 };
+struct CollectableType
+{
+	cStr description;
+	int cost;
+	int value;
+	cStr container;
+	cStr ingredients;
+	cStr style;
+};
 #endif
 
 struct headspinetrackertype
@@ -5789,6 +5798,7 @@ struct entityprofiletype
 	cstr soundset6_s;
 	#ifdef WICKEDENGINE
 	cstr ammopool_s;
+	CollectableType collectable;
 	#endif
 #endif
 

@@ -2126,16 +2126,6 @@ void entity_loaddata ( void )
 			t.entityprofile[t.entid].WEMaterial.fReflectance[i] = 0.04f;// 0.002f;
 		}
 
-		//Resolve conflicts.
-		//t.entityprofile[t.entid].WEMaterial.MaterialActive = false;
-		//t.entityprofile[t.entid].WEMaterial.bCastShadows = true;
-		//t.entityprofile[t.entid].WEMaterial.bFlipNormalMap = false;
-		//t.entityprofile[t.entid].WEMaterial.bPlanerReflection = false;
-		//t.entityprofile[t.entid].WEMaterial.bTransparency = false;
-		//t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor = -1;
-		//t.entityprofile[t.entid].WEMaterial.dwBaseColor = -1;
-		//t.entityprofile[t.entid].WEMaterial.fReflectance = 0.002f; //PE: Turn down reflectance on default materials.
-
 		t.entityprofile[t.entid].thumbnailbackdrop = "";
 		t.entityprofile[t.entid].BackBufferZoom = -1.0f;
 		t.entityprofile[t.entid].BackBufferCamLeft = -1.0f;
@@ -2146,6 +2136,14 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].keywords_s = "";
 		
 		t.entityprofile[t.entid].effect_s = ""; //bIsDecal , needed reset.
+
+		t.entityprofile[t.entid].collectable.description = t.entityprofileheader[t.entid].desc_s;
+		t.entityprofile[t.entid].collectable.cost = 10;
+		t.entityprofile[t.entid].collectable.value = 5;
+		t.entityprofile[t.entid].collectable.container = "none";
+		t.entityprofile[t.entid].collectable.ingredients = "none";
+		t.entityprofile[t.entid].collectable.style = "none";
+
 		#endif
 
 		//  temp variable to hold which physics object we are on from the importer
@@ -2900,10 +2898,23 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].isviolent = t.value1;
 					cmpStrConst( t_field_s, "isobjective" );
 					if (  matched  )  t.entityprofile[t.entid].isobjective = t.value1;
-					cmpStrConst(t_field_s, "iscollectable");
-					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
 					cmpStrConst( t_field_s, "alwaysactive" );
 					if (  matched  )  t.entityprofile[t.entid].phyalways = t.value1;
+
+					cmpStrConst(t_field_s, "iscollectable");
+					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
+					cmpStrConst(t_field_s, "collectdescription");
+					if (matched)  t.entityprofile[t.entid].collectable.description = t.value_s;
+					cmpStrConst(t_field_s, "collectcost");
+					if (matched)  t.entityprofile[t.entid].collectable.cost = t.value1;
+					cmpStrConst(t_field_s, "collectvalue");
+					if (matched)  t.entityprofile[t.entid].collectable.value = t.value1;
+					cmpStrConst(t_field_s, "collectcontainer");
+					if (matched)  t.entityprofile[t.entid].collectable.container = t.value_s;
+					cmpStrConst(t_field_s, "collectingredients");
+					if (matched)  t.entityprofile[t.entid].collectable.ingredients = t.value_s;
+					cmpStrConst(t_field_s, "collectstyle");
+					if (matched)  t.entityprofile[t.entid].collectable.style = t.value_s;
 
 					cmpStrConst( t_field_s, "ischaracter" );
 					if (  matched  )  t.entityprofile[t.entid].ischaracter = t.value1;
@@ -6490,174 +6501,177 @@ void entity_loadelementsdata(void)
 	c_entity_loadelementsdata();
 
 	// after all entity profiles and elements in, can refresh collection list that references entities
-	if (refresh_collection_from_entities() == true)
+	if(g_collectionLabels.size()>0)
 	{
-		// refresh detected some entity profile/elements are missing
-		// these will be needed for multi-level consistency and carrying items around the whole game
-		timestampactivity(0, "Loading additional entities for collection item list");
-
-		// build list of required entity profiles
-		std::vector<int> g_entityBankAdditionsCollectionIndex;
-		std::vector<cstr> g_entityBankAdditions;
-		for (int n = 0; n < g_collectionList.size(); n++)
+		if (refresh_collection_from_entities() == true)
 		{
-			if (g_collectionList[n].collectionFields.size() > 1)
-			{
-				LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-				LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
-				if (strlen(pCollectionItemTitle) > 0)
-				{
-					if ( g_collectionList[n].iEntityID == 0 )
-					{
-						bool bFoundIt = false;
-						if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
-						{
-							// try desc as a clue to finding it
-							for (int entid = 1; entid <= g.entidmastermax; entid++)
-							{
-								if (stricmp (t.entityprofileheader[entid].desc_s.Get(), pCollectionItemTitle) == NULL)
-								{
-									g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
-									g_collectionList[n].iEntityID = entid;
-									bFoundIt = true;
-									break;
-								}
-							}
-							pCollectionItemProfile = "";
-						}
-						else
-						{
-							// do a direct search for it
-							LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
-							for (int entid = 1; entid <= g.entidmastermax; entid++)
-							{
-								if (stricmp (t.entitybank_s[entid].Get(), pCollectionItemProfile) == NULL)
-								{
-									g_collectionList[n].iEntityID = entid;
-									bFoundIt = true;
-									break;
-								}
-							}
-						}
-						if (bFoundIt == false && strlen(pCollectionItemProfile) > 0)
-						{
-							g_entityBankAdditions.push_back(pCollectionItemProfile);
-							g_entityBankAdditionsCollectionIndex.push_back(n);
-						}
-					}
-				}
-			}
-		}
+			// refresh detected some entity profile/elements are missing
+			// these will be needed for multi-level consistency and carrying items around the whole game
+			timestampactivity(0, "Loading additional entities for collection item list");
 
-		// merge load entity profiles
-		if (g_entityBankAdditions.size() > 0)
-		{
-			extern int g_iAddEntitiesModeFrom;
-			g_iAddEntitiesModeFrom = g.entidmaster + 1;
-			for (int i = 0; i < g_entityBankAdditions.size(); i++)
-			{
-				// Look for this
-				cstr entProfileToAdd_s = g_entityBankAdditions[i];
-
-				// add if not exist in bank
-				int iFoundMatchEntID = 0;
-				for (int entid = 1; entid <= g.entidmaster-1; entid++)
-				{
-					if (stricmp(t.entitybank_s[entid].Get(), entProfileToAdd_s.Get()) == NULL)
-					{
-						iFoundMatchEntID = entid;
-						break;
-					}
-				}
-				if (iFoundMatchEntID == 0)
-				{
-					g.entidmaster++;
-					entity_validatearraysize ();
-					t.entitybank_s[g.entidmaster] = entProfileToAdd_s;
-					iFoundMatchEntID = g.entidmaster;
-				}
-				g_collectionList[g_entityBankAdditionsCollectionIndex[i]].iEntityID = iFoundMatchEntID;
-			}
-			extern int g_iAddEntitiesMode;
-			g_iAddEntitiesMode = 1;
-			entity_loadentitiesnow();
-			g_iAddEntitiesMode = 0;
-		}
-
-		// load in game project elements file to end of current elements
-		cstr storeoldELEfile = t.elementsfilename_s;
-		char collectionELEfilename[MAX_PATH];
-		strcpy(collectionELEfilename, "projectbank\\");
-		extern StoryboardStruct Storyboard;
-		strcat(collectionELEfilename, Storyboard.gamename);
-		strcat(collectionELEfilename, "\\collection - items.ele");
-		t.elementsfilename_s = collectionELEfilename;
-		extern int g_iAddEntityElementsMode;
-		extern int g_iAddEntityElementsModeFrom;
-		g_iAddEntityElementsMode = 1;
-		g_iAddEntityElementsModeFrom = g.entityelementlist + 1;
-		c_entity_loadelementsdata();
-		t.elementsfilename_s = storeoldELEfile;
-		g_iAddEntityElementsMode = 0;
-
-		// associate new entity elements with collection entry
-		for (int e = g_iAddEntityElementsModeFrom; e <= g.entityelementlist; e++)
-		{
-			int iCollectionIndexFound = -1;
-			LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
+			// build list of required entity profiles
+			std::vector<int> g_entityBankAdditionsCollectionIndex;
+			std::vector<cstr> g_entityBankAdditions;
 			for (int n = 0; n < g_collectionList.size(); n++)
 			{
 				if (g_collectionList[n].collectionFields.size() > 1)
 				{
 					LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-					if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+					LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
+					if (strlen(pCollectionItemTitle) > 0)
 					{
-						// the newly loaded element will be used for this collection item
-						g_collectionList[n].iEntityElementE = e;
-
-						// now hide it away in the level
-						t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
-						t.entityelement[e].x = -9999;
-						t.entityelement[e].y = -9999;
-						t.entityelement[e].z = -9999;
-
-						// found, so can quit
-						iCollectionIndexFound = n;
-						break;
-					}
-				}
-			}
-
-			// now scan all entities in common with this collection item entity just loaded from the ELE file
-			// and clone all details to them (there should only be one collectale entity element/eleprof identity)
-			int iDeletingThisElementSoUseFoundE = 0;
-			bool bDeleteThisNewElementNotNeeded = false;
-			LPSTR pMasterEntityName = t.entityelement[e].eleprof.name_s.Get();
-			for (int ee = 1; ee <= g.entityelementmax; ee++)
-			{
-				if (ee != e)
-				{
-					int masterid = t.entityelement[ee].bankindex;
-					if (masterid > 0)
-					{
-						if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+						if (g_collectionList[n].iEntityID == 0)
 						{
-							t.entityelement[ee].eleprof = t.entityelement[e].eleprof;
-							iDeletingThisElementSoUseFoundE = ee;
-							bDeleteThisNewElementNotNeeded = true;
+							bool bFoundIt = false;
+							if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+							{
+								// try desc as a clue to finding it
+								for (int entid = 1; entid <= g.entidmastermax; entid++)
+								{
+									if (stricmp (t.entityprofileheader[entid].desc_s.Get(), pCollectionItemTitle) == NULL)
+									{
+										g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+										g_collectionList[n].iEntityID = entid;
+										bFoundIt = true;
+										break;
+									}
+								}
+								pCollectionItemProfile = "";
+							}
+							else
+							{
+								// do a direct search for it
+								LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
+								for (int entid = 1; entid <= g.entidmastermax; entid++)
+								{
+									if (stricmp (t.entitybank_s[entid].Get(), pCollectionItemProfile) == NULL)
+									{
+										g_collectionList[n].iEntityID = entid;
+										bFoundIt = true;
+										break;
+									}
+								}
+							}
+							if (bFoundIt == false && strlen(pCollectionItemProfile) > 0)
+							{
+								g_entityBankAdditions.push_back(pCollectionItemProfile);
+								g_entityBankAdditionsCollectionIndex.push_back(n);
+							}
 						}
 					}
 				}
 			}
-			if (bDeleteThisNewElementNotNeeded == true)
-			{
-				// delete element, not needed for this level
-				t.entityelement[e].bankindex = 0;
 
-				// and reassign collection item E to the existing one
-				if (iCollectionIndexFound != -1)
+			// merge load entity profiles
+			if (g_entityBankAdditions.size() > 0)
+			{
+				extern int g_iAddEntitiesModeFrom;
+				g_iAddEntitiesModeFrom = g.entidmaster + 1;
+				for (int i = 0; i < g_entityBankAdditions.size(); i++)
 				{
-					g_collectionList[iCollectionIndexFound].iEntityElementE = iDeletingThisElementSoUseFoundE;
+					// Look for this
+					cstr entProfileToAdd_s = g_entityBankAdditions[i];
+
+					// add if not exist in bank
+					int iFoundMatchEntID = 0;
+					for (int entid = 1; entid <= g.entidmaster - 1; entid++)
+					{
+						if (stricmp(t.entitybank_s[entid].Get(), entProfileToAdd_s.Get()) == NULL)
+						{
+							iFoundMatchEntID = entid;
+							break;
+						}
+					}
+					if (iFoundMatchEntID == 0)
+					{
+						g.entidmaster++;
+						entity_validatearraysize ();
+						t.entitybank_s[g.entidmaster] = entProfileToAdd_s;
+						iFoundMatchEntID = g.entidmaster;
+					}
+					g_collectionList[g_entityBankAdditionsCollectionIndex[i]].iEntityID = iFoundMatchEntID;
+				}
+				extern int g_iAddEntitiesMode;
+				g_iAddEntitiesMode = 1;
+				entity_loadentitiesnow();
+				g_iAddEntitiesMode = 0;
+			}
+
+			// load in game project elements file to end of current elements
+			cstr storeoldELEfile = t.elementsfilename_s;
+			char collectionELEfilename[MAX_PATH];
+			strcpy(collectionELEfilename, "projectbank\\");
+			extern StoryboardStruct Storyboard;
+			strcat(collectionELEfilename, Storyboard.gamename);
+			strcat(collectionELEfilename, "\\collection - items.ele");
+			t.elementsfilename_s = collectionELEfilename;
+			extern int g_iAddEntityElementsMode;
+			extern int g_iAddEntityElementsModeFrom;
+			g_iAddEntityElementsMode = 1;
+			g_iAddEntityElementsModeFrom = g.entityelementlist + 1;
+			c_entity_loadelementsdata();
+			t.elementsfilename_s = storeoldELEfile;
+			g_iAddEntityElementsMode = 0;
+
+			// associate new entity elements with collection entry
+			for (int e = g_iAddEntityElementsModeFrom; e <= g.entityelementlist; e++)
+			{
+				int iCollectionIndexFound = -1;
+				LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
+				for (int n = 0; n < g_collectionList.size(); n++)
+				{
+					if (g_collectionList[n].collectionFields.size() > 1)
+					{
+						LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+						if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+						{
+							// the newly loaded element will be used for this collection item
+							g_collectionList[n].iEntityElementE = e;
+
+							// now hide it away in the level
+							t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
+							t.entityelement[e].x = -9999;
+							t.entityelement[e].y = -9999;
+							t.entityelement[e].z = -9999;
+
+							// found, so can quit
+							iCollectionIndexFound = n;
+							break;
+						}
+					}
+				}
+
+				// now scan all entities in common with this collection item entity just loaded from the ELE file
+				// and clone all details to them (there should only be one collectale entity element/eleprof identity)
+				int iDeletingThisElementSoUseFoundE = 0;
+				bool bDeleteThisNewElementNotNeeded = false;
+				LPSTR pMasterEntityName = t.entityelement[e].eleprof.name_s.Get();
+				for (int ee = 1; ee <= g.entityelementmax; ee++)
+				{
+					if (ee != e)
+					{
+						int masterid = t.entityelement[ee].bankindex;
+						if (masterid > 0)
+						{
+							if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+							{
+								t.entityelement[ee].eleprof = t.entityelement[e].eleprof;
+								iDeletingThisElementSoUseFoundE = ee;
+								bDeleteThisNewElementNotNeeded = true;
+							}
+						}
+					}
+				}
+				if (bDeleteThisNewElementNotNeeded == true)
+				{
+					// delete element, not needed for this level
+					t.entityelement[e].bankindex = 0;
+
+					// and reassign collection item E to the existing one
+					if (iCollectionIndexFound != -1)
+					{
+						g_collectionList[iCollectionIndexFound].iEntityElementE = iDeletingThisElementSoUseFoundE;
+					}
 				}
 			}
 		}

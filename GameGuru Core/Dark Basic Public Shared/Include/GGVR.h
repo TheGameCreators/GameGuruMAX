@@ -105,7 +105,8 @@ float GGVR_GetBestHandAngleX( );
 float GGVR_GetBestHandAngleY( );
 float GGVR_GetBestHandAngleZ( );
 
-int GGVR_GetLaserGuidedEntityObj( int entityviewstartobj, int entityviewendobj );
+int GGVR_GetLaserGuidedEntityObj(int entityviewstartobj, int entityviewendobj);
+int GGVR_GetLaserGuidedHit (int iObjToHit, float* pfX, float* pfY, float* pfZ);
 void GGVR_SetLaserForwardDistance(float fDist);
 
 // Generic Controller

@@ -2172,6 +2172,8 @@ MotionControllerThumbnstickX: MotionControllerThumbnstickX() -- returns X axis o
 MotionControllerThumbnstickY: MotionControllerThumbnstickY() -- returns Y axis of thumbstick on motion controller
 CombatControllerTrigger: CombatControllerTrigger() -- detects when the trigger is pressed
 CombatControllerGrip: CombatControllerGrip -- detects when the grip button is pressed
+CombatControllerButtonA: CombatControllerButtonA -- detects when the A button is pressed
+CombatControllerButtonB: CombatControllerButtonB -- detects when the B button is pressed
 CombatControllerThumbstickX -- returns X axis of thumbstick on motion controller
 CombatControllerThumbstickY -- returns Y axis of thumbstick on motion controller
 MotionControllerBestX -- returns X position of currently active motion controller
@@ -2181,6 +2183,7 @@ MotionControllerBestAngleX -- returns X angle of currently active motion control
 MotionControllerBestAngleY -- returns Y angle of currently active motion controller
 MotionControllerBestAngleZ -- returns Z angle of currently active motion controller
 MotionControllerLaserGuidedEntityObj -- returns the object number of the entity the laser is correctly intersecting
+CombatControllerLaserGuidedHit -- returns 1 if the specified object was hit, and also returns X Y Z values of the coordinate of the hit
 
 Entity Material Commands
 ------------------------

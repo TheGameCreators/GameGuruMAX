@@ -268,22 +268,46 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 		GG_GetRealPath(pRealFilenameToLoad, 0);
 		pFilenameToLoad = pRealFilenameToLoad;
 
+		bool bDecrypted = false;
+		char VirtualFilename[_MAX_PATH];
+		strcpy(VirtualFilename, pFilenameToLoad.c_str());
+		//if (strstr(VirtualFilename, "gamecore\\bulletholes") != NULL
+		//|| strstr(VirtualFilename, "gamecore\\decals") != NULL)
+		//{
+		//	// ignore some folders that are not encrypted
+		//}
+		//else
+		//{
+		extern bool CheckForWorkshopFile(LPSTR);
+		CheckForWorkshopFile (VirtualFilename);
+		g_pGlob->Decrypt(VirtualFilename);
+		bDecrypted = true;
+		//}
+
 		//PE: We are calling this very often trying to locate textures, no need to bother wicked if not exists.
 		bool bFileExists = false;
-		HANDLE hfile = GG_CreateFile(pFilenameToLoad.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		//HANDLE hfile = GG_CreateFile(pFilenameToLoad.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE hfile = GG_CreateFile(VirtualFilename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hfile != INVALID_HANDLE_VALUE)
 		{
 			CloseHandle(hfile);
 			bFileExists = true;
 		}
-
 		if( bFileExists )
 		{
 			// if not, load it
 			wiResourceManager::SetErrorCode(0);
 			DARKSDK int SMEMAvailable(int iMode);
 			int startmem = SMEMAvailable(1);
-			image = wiResourceManager::Load(pFilenameToLoad);
+
+			// handle encrypted image files when loading
+			//image = wiResourceManager::Load(pFilenameToLoad);
+			std::vector<uint8_t> data;
+			if (wiHelper::FileRead(VirtualFilename, data))
+			{
+				image = wiResourceManager::Load(pFilenameToLoad, 0, data.data(), data.size());
+				data.clear();
+			}
 			if (image != NULL)
 			{
 				// add image list item
@@ -304,6 +328,12 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 					}
 				}
 			}
+		}
+
+		// and re-encrypt before proceeding
+		if (bDecrypted == true)
+		{
+			g_pGlob->Encrypt(VirtualFilename);
 		}
 	}
 

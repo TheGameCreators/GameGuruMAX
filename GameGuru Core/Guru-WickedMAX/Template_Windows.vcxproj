@@ -266,6 +266,7 @@
     <ClInclude Include="..\GameGuru\Include\Types.h" />
     <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h" />
     <ClInclude Include="..\SDK\OpenXR\include\openxr.h" />
+    <ClInclude Include="Encryptor.h" />
     <ClInclude Include="GameGuruEngine.h" />
     <ClInclude Include="GameGuruMain.h" />
     <ClInclude Include="GGRecastDetour\ChunkyTriMesh.h" />
@@ -449,6 +450,7 @@
     <ClCompile Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.cpp" />
     <ClCompile Include="..\SDK\DirectX\directx-macros.cpp" />
     <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp" />
+    <ClCompile Include="Encryptor.cpp" />
     <ClCompile Include="GameGuruMain.cpp" />
     <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp" />
     <ClCompile Include="GGRecastDetour\DebugUtils\Source\DebugDraw.cpp" />

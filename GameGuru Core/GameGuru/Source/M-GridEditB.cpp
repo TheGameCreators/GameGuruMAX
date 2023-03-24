@@ -152,6 +152,7 @@ extern bool g_bDotsAreVisible;
 #define BACKBUFFERIMAGE (g.perentitypromptimageoffset+9000)
 extern int BackBufferObjectID;
 extern bool BackBufferSnapShotMode;
+extern bool BackBufferGrabGameScreen;
 extern bool BackBufferParticlesMode;
 extern int iBackBufferParticlesTrigger;
 extern int BackBufferParticleEmitter;
@@ -13964,8 +13965,133 @@ void StartForceRender(void)
 	bSkipAllGameLogic = false;
 	return;
 }
+
 int current_backbuffer_width = 0;
 int current_backbuffer_height = 0;
+int current_backbuffer_grabimg = 0;
+
+void GrabBackBufferForAnImage(void)
+{
+	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 && t.game.activeStoryboardScreen > -1)
+	{
+		// instruct to grab screen
+		BackBufferSaveCacheName = "";
+		current_backbuffer_grabimg = g.importermenuimageoffset + 50;
+		BackBufferImageID = current_backbuffer_grabimg;
+		BackBufferZoom = 1.0f;
+		BackBufferCamLeft = 0.0f;
+		BackBufferCamUp = 0.0f;
+		bRotateBackBuffer = false;
+		bLoopBackBuffer = true;
+		BackBufferObjectID = 0;
+		BackBufferGrabGameScreen = true;
+		BackBufferSizeX = 1920;
+		BackBufferSizeY = 1080;
+		bFullScreenBackbuffer = true;
+
+		// quad to view HUD screen
+		bool bShowMe = true;
+		if (bShowMe == true)
+		{
+			if (ObjectExist(g.hudscreen3dobjectoffset) == 0)
+			{
+				float fCorrectWidth = 192.0f / 5.0f;
+				float fCorrectHeight = 108.0f / 5.0f;
+				int backdropobj = g.hudscreen3dobjectoffset;
+				MakeObjectPlane(backdropobj, fCorrectWidth, fCorrectHeight);
+				LockVertexDataForLimbCore(backdropobj, 0, 1);
+				SetVertexDataNormals(0, 0, 1, 0);
+				SetVertexDataNormals(1, 0, 1, 0);
+				SetVertexDataNormals(2, 0, 1, 0);
+				SetVertexDataNormals(3, 0, 1, 0);
+				SetVertexDataNormals(4, 0, 1, 0);
+				SetVertexDataNormals(5, 0, 1, 0);
+				UnlockVertexData();
+				float U_f = 0.0f, V_f = 0.0f, D_f = 1.0f;
+				LockVertexDataForLimb(backdropobj, 0);
+				SetVertexDataUV(0, U_f, V_f);
+				SetVertexDataUV(1, U_f + D_f, V_f);
+				SetVertexDataUV(2, U_f + D_f, V_f + 1.0f);
+				SetVertexDataUV(3, U_f + D_f, V_f + 1.0f);
+				SetVertexDataUV(4, U_f, V_f + 1.0f);
+				SetVertexDataUV(5, U_f, V_f);
+				UnlockVertexData();
+				FixObjectPivot(backdropobj);
+				SetObjectTransparency(backdropobj, 0);// 1); transparency mode (preferred) is WAT TOO DIM!
+				SetObjectCollisionOff(backdropobj);
+				SetObjectTextureMode(backdropobj, 0, 0);
+				SetObjectLight(backdropobj, 0);
+				SetObjectCull(backdropobj, 0);
+				sObject* pBackObject = GetObjectData(backdropobj);
+				if (pBackObject)
+				{
+					if (pBackObject->ppMeshList)
+					{
+						sMesh* pMesh = pBackObject->ppMeshList[0];
+						if (pMesh) WickedCall_UpdateMeshVertexData(pMesh);
+					}
+					WickedCall_SetObjectCastShadows(pBackObject, false);
+					float fColorR, fColorG, fColorB;
+					fColorR = 1.0f;
+					fColorG = 1.0f;
+					fColorB = 1.0f;
+					for (int iMesh = 0; iMesh < pBackObject->iMeshCount; iMesh++)
+					{
+						sMesh* pMesh = pBackObject->ppMeshList[iMesh];
+						if (pMesh)
+						{
+							pMesh->mMaterial.Diffuse.r = fColorR; // *1.0f;
+							pMesh->mMaterial.Diffuse.g = fColorG; // *1.0f;
+							pMesh->mMaterial.Diffuse.b = fColorB; // *1.0f;
+							pMesh->mMaterial.Diffuse.a = 1.0f;
+							wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
+							if (mesh)
+							{
+								uint64_t materialEntity = mesh->subsets[0].materialID;
+								wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+								if (pObjectMaterial)
+								{
+									pObjectMaterial->SetReflectance(0.0f);
+									pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_UNLIT;
+									pObjectMaterial->SetDirty(true);
+								}
+							}
+						}
+						WickedCall_SetMeshMaterial(pMesh);
+					}
+					WickedCall_SetObjectMetalness(pBackObject, 0.0f);
+					WickedCall_SetObjectRoughness(pBackObject, 0.0f);
+				}
+				SetObjectMask (g.hudscreen3dobjectoffset, (1 << 6) + (1 << 7) + 1);
+			}
+			if (ObjectExist(g.hudscreen3dobjectoffset) == 1)
+			{
+				float fX = CameraPositionX(0);
+				float fY = CameraPositionY(0);
+				float fZ = CameraPositionZ(0);
+				PositionObject (g.hudscreen3dobjectoffset, fX, fY, fZ);
+				SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
+				MoveObject(g.hudscreen3dobjectoffset, 20.0f);
+				sObject* pHUDScreenObject = GetObjectData(g.hudscreen3dobjectoffset);
+				if (pHUDScreenObject)
+				{
+					TextureObject (g.hudscreen3dobjectoffset, current_backbuffer_grabimg);
+					WickedCall_TextureObjectWithImagePtr(pHUDScreenObject, 0);
+				}
+				ShowObject(g.hudscreen3dobjectoffset);
+				if (t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1) HideObject(t.currentgunobj);
+			}
+		}
+	}
+	else
+	{
+		if (ObjectExist(g.hudscreen3dobjectoffset) == 1)
+		{
+			HideObject(g.hudscreen3dobjectoffset);
+			if (t.currentgunobj > 0 && ObjectExist(t.currentgunobj) == 1) ShowObject(t.currentgunobj);
+		}
+	}
+}
 
 void GrabBackBufferCopy(void)
 {
@@ -13978,8 +14104,15 @@ void GrabBackBufferCopy(void)
 	if (!bImGuiInitDone)
 		return;
 
-	if ((BackBufferObjectID <= 0 && !BackBufferSnapShotMode && !BackBufferParticlesMode) || BackBufferImageID <= 0)
-		return;
+	if (BackBufferObjectID == 0 && BackBufferGrabGameScreen)
+	{
+		// allow no object if grabbing whole game scene
+	}
+	else
+	{
+		if ((BackBufferObjectID <= 0 && !BackBufferSnapShotMode && !BackBufferParticlesMode) || BackBufferImageID <= 0)
+			return;
+	}
 
 	if (BackBufferParticlesMode && iBackBufferParticlesTrigger > 0)
 	{
@@ -14013,7 +14146,7 @@ void GrabBackBufferCopy(void)
 				GGSURFACE_DESC ddsd;
 				pBackBuffer->GetDesc(&ddsd);
 				//PE: This is the resolution all current thumbs has used.
-				if (bProceduralLevel || bFullScreenBackbuffer)
+				if (bProceduralLevel || bFullScreenBackbuffer || BackBufferGrabGameScreen)
 				{
 					//Use current backbuffer size on this.
 					MakeBitmap(99, ddsd.Width, ddsd.Height);
@@ -14024,6 +14157,11 @@ void GrabBackBufferCopy(void)
 				}
 			}
 		}
+	}
+	if (BitmapExist(99))
+	{
+		SetCurrentBitmap(99);
+		SETUPClearEx(64, 64, 64, 64);
 	}
 
 	// using a render target in g_DefaultGGFORMAT is way faster.
@@ -14083,239 +14221,216 @@ void GrabBackBufferCopy(void)
 			}
 		}
 
-		// place Object to be the subject of the grab
-		displayobj = BackBufferObjectID;
-		entid = displayobj - g.entitybankoffset;
-		fOldObjPosX = ObjectPositionX(displayobj); fOldObjPosY = ObjectPositionY(displayobj); fOldObjPosZ = ObjectPositionZ(displayobj);
-		fOldObjAngX = ObjectAngleX(displayobj); fOldObjAngY = ObjectAngleY(displayobj); fOldObjAngZ = ObjectAngleZ(displayobj);
-		if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)	bDisplayObjVisible = true;
-		float fOffsetX = 0.0f, fOffsetY = 0.0f, fOffsetZ = 0.0f;
-		sObject* pObject = g_ObjectList[displayobj];
-		if (pObject) 
-		{
-			float fAdjustScaleX = 1.0, fAdjustScaleY = 1.0, fAdjustScaleZ = 1.0;
-			if (pObject->pInstanceOfObject)
-			{
-				fAdjustScaleX = pObject->position.vecScale[0];
-				fAdjustScaleY = pObject->position.vecScale[1];
-				fAdjustScaleZ = pObject->position.vecScale[2];
-				pObject = pObject->pInstanceOfObject;
-			}
-			float fValue;
-			if (t.entityprofile[entid].ischaracter != 1)
-			{
-				fValue = (pObject->collision.vecMax[0] + pObject->collision.vecMin[0]);
-				fValue = ApplyPivot(pObject, 0, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
-				fValue = fValue * pObject->position.vecScale[0] * fAdjustScaleX;
-				fOffsetX = fValue * 0.5f;
-				fValue = (pObject->collision.vecMax[2] + pObject->collision.vecMin[2]);
-				fValue = ApplyPivot(pObject, 2, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
-				fValue = fValue * pObject->position.vecScale[2] * fAdjustScaleZ;
-				fOffsetZ = fValue * 0.5f;
-			}
-			fValue = (pObject->collision.vecMax[1] + pObject->collision.vecMin[1]);
-			fValue = ApplyPivot(pObject, 1, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
-			fValue = fValue * pObject->position.vecScale[1] * fAdjustScaleY;
-			fOffsetY = fValue * 0.5f;
-			if (pObject->pFrame)
-			{
-				fOffsetX += -(pObject->pFrame->vecOffset.x * fAdjustScaleX);
-				fOffsetY += -(pObject->pFrame->vecOffset.y * fAdjustScaleY);
-				fOffsetZ += -(pObject->pFrame->vecOffset.z * fAdjustScaleZ);
-			}
-		}
-
-		// find largest dimension
-		float fLargestY = ObjectSizeY(displayobj, 1);
-		float fLargestX = ObjectSizeX(displayobj, 1);
-		float fLargestZ = ObjectSizeZ(displayobj, 1);
-		float fLargest = fLargestX;
-		if (fLargestZ > fLargest) fLargest = fLargestZ;
-		if (fLargestY > fLargest) fLargest = fLargestY;
-
-		// handle small objects.
-		if (fLargest < 15.0) fLargest = 15.0; 
-		if (fLargest >= 2500.0) fLargest = 2500.0;
-
-		// set object up
-		PositionObject(displayobj, centerx, centery, centerz);
-		if (t.entityprofile[entid].bIsDecal)
-		{
-			PositionObject(displayobj, centerx + (fLargestX*0.5), centery + (fLargestY*0.5), centerz);
-		}
-		if (t.entityprofile[entid].ismarker != 0 || t.entityprofile[entid].zdepth == 0)
-		{
-			SetObjectMask(displayobj, 1);
-		}
-		else
-		{
-			SetObjectMask(displayobj, 1 + (1 << 31));
-		}
-		ShowObject(displayobj);
-		RotateObject(displayobj, fOldObjAngX, fOldObjAngY + 15, fOldObjAngZ);
-
-		// set camera up
-		RotateCamera(0, 0, 0);
-		PositionCamera(centerx, centery, centerz);
-		PointCamera(centerx, centery, centerz);
-
-		// adjustments needed
-		float fAdjustRange = 5.0;
-		fAdjustRange -= (grabx + graby) / 512.0;
-		if (fAdjustRange < 0.5)
-			fAdjustRange = 0.5;
-		if ((grabx + graby) <= 256)
-			fAdjustRange += 2.0;
-		if ((grabx + graby) >= 2048)
-			fAdjustRange += 0.5;
-
-		// 512x288=3.5 - This really depend on the image size we capture to.
-		float fCamMove = fLargest * (fAdjustRange + 0.1);
-		MoveCamera(-(fCamMove));
-		BackBufferCamMove = fCamMove * 2.0;
-
-		// adjust camera based on object largest calc and adjustment
-		if (fLargest != 15.0 && fLargestY < 4.0) fLargestY += 200.0;
-		if (fLargest != 15.0 &&fLargestY < 7.0) fLargestY += 100.0;
-		if (fLargest != 15.0 && fLargestY < 40.0) fLargestY = 40.0;
-		if (fLargestY < 10.0) fLargestY = 10.0;
-		float fAdjustY = fAdjustRange * 0.5;
-		if (fLargestY >= 2500.0) fLargestY = 2500.0;
-		if (t.entityprofile[entid].isebe == 1)
-		{
-			fLargestY += 140.0;
-		}
-		PositionCamera(CameraPositionX(0), CameraPositionY(0) + (fLargestY*fAdjustY), CameraPositionZ(0));
-		PointCamera(centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
-
-		// work out if need rotation on the Z
+		// if object used
+		sObject* pObject = NULL;
 		bool bNeedZRotation = false;
-		float cangx = CameraAngleX();
-		float cangy = CameraAngleY();
-		float cangz = CameraAngleZ();
-		if (cangx > 39 && cangx < 300 )
+		float fLargestY = 111;
+		float fLargestX = 111;
+		float fLargestZ = 111;
+		float fLargest = 111;
+		if (BackBufferObjectID > 0)
 		{
-			bNeedZRotation = true;
-		}
-
-		// restore backbuffer camera
-		if (bBackBufferRestoreCamera)
-		{
-			//Restore camera settings from FPE. Only trigger this one time.
-			BackBufferRotateY = RestoreBackBufferRotateY;
-			if (t.entityprofile[entid].ischaracter == 0) 
+			// place Object to be the subject of the grab
+			displayobj = BackBufferObjectID;
+			entid = displayobj - g.entitybankoffset;
+			fOldObjPosX = ObjectPositionX(displayobj); fOldObjPosY = ObjectPositionY(displayobj); fOldObjPosZ = ObjectPositionZ(displayobj);
+			fOldObjAngX = ObjectAngleX(displayobj); fOldObjAngY = ObjectAngleY(displayobj); fOldObjAngZ = ObjectAngleZ(displayobj);
+			if (g_ObjectList[displayobj] && g_ObjectList[displayobj]->bVisible)	bDisplayObjVisible = true;
+			float fOffsetX = 0.0f, fOffsetY = 0.0f, fOffsetZ = 0.0f;
+			pObject = g_ObjectList[displayobj];
+			if (pObject)
 			{
-				BackBufferRotateX = RestoreBackBufferRotateX;
+				float fAdjustScaleX = 1.0, fAdjustScaleY = 1.0, fAdjustScaleZ = 1.0;
+				if (pObject->pInstanceOfObject)
+				{
+					fAdjustScaleX = pObject->position.vecScale[0];
+					fAdjustScaleY = pObject->position.vecScale[1];
+					fAdjustScaleZ = pObject->position.vecScale[2];
+					pObject = pObject->pInstanceOfObject;
+				}
+				float fValue;
+				if (t.entityprofile[entid].ischaracter != 1)
+				{
+					fValue = (pObject->collision.vecMax[0] + pObject->collision.vecMin[0]);
+					fValue = ApplyPivot(pObject, 0, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
+					fValue = fValue * pObject->position.vecScale[0] * fAdjustScaleX;
+					fOffsetX = fValue * 0.5f;
+					fValue = (pObject->collision.vecMax[2] + pObject->collision.vecMin[2]);
+					fValue = ApplyPivot(pObject, 2, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
+					fValue = fValue * pObject->position.vecScale[2] * fAdjustScaleZ;
+					fOffsetZ = fValue * 0.5f;
+				}
+				fValue = (pObject->collision.vecMax[1] + pObject->collision.vecMin[1]);
+				fValue = ApplyPivot(pObject, 1, GGVECTOR3(pObject->collision.vecMax - pObject->collision.vecMin), fValue);
+				fValue = fValue * pObject->position.vecScale[1] * fAdjustScaleY;
+				fOffsetY = fValue * 0.5f;
+				if (pObject->pFrame)
+				{
+					fOffsetX += -(pObject->pFrame->vecOffset.x * fAdjustScaleX);
+					fOffsetY += -(pObject->pFrame->vecOffset.y * fAdjustScaleY);
+					fOffsetZ += -(pObject->pFrame->vecOffset.z * fAdjustScaleZ);
+				}
+			}
+
+			// find largest dimension
+			fLargestY = ObjectSizeY(displayobj, 1);
+			fLargestX = ObjectSizeX(displayobj, 1);
+			fLargestZ = ObjectSizeZ(displayobj, 1);
+			fLargest = fLargestX;
+			if (fLargestZ > fLargest) fLargest = fLargestZ;
+			if (fLargestY > fLargest) fLargest = fLargestY;
+
+			// handle small objects.
+			if (fLargest < 15.0) fLargest = 15.0;
+			if (fLargest >= 2500.0) fLargest = 2500.0;
+
+			// set object up
+			PositionObject(displayobj, centerx, centery, centerz);
+			if (t.entityprofile[entid].bIsDecal)
+			{
+				PositionObject(displayobj, centerx + (fLargestX * 0.5), centery + (fLargestY * 0.5), centerz);
+			}
+			if (t.entityprofile[entid].ismarker != 0 || t.entityprofile[entid].zdepth == 0)
+			{
+				SetObjectMask(displayobj, 1);
 			}
 			else
 			{
-				BackBufferRotateX = 0.0;
+				SetObjectMask(displayobj, 1 + (1 << 31));
 			}
-			BackBufferCamUp = RestoreBackBufferCamUp;
-			BackBufferCamLeft = RestoreBackBufferCamLeft;
-			BackBufferZoom = RestoreBackBufferZoom;
-			if (BackBufferSizeX < 1024)
-			{
-				BackBufferZoom *= 1.7f;
-				BackBufferCamUp *= 0.95f;
-			}
-		}
+			ShowObject(displayobj);
+			RotateObject(displayobj, fOldObjAngX, fOldObjAngY + 15, fOldObjAngZ);
 
-		// apply camera zoom and shift
-		MoveCamera(BackBufferZoom);
-		MoveCameraLeft(0, BackBufferCamLeft);
-		MoveCameraUp(0, BackBufferCamUp);
+			// set camera up
+			RotateCamera(0, 0, 0);
+			PositionCamera(centerx, centery, centerz);
+			PointCamera(centerx, centery, centerz);
+
+			// adjustments needed
+			float fAdjustRange = 5.0;
+			fAdjustRange -= (grabx + graby) / 512.0;
+			if (fAdjustRange < 0.5)
+				fAdjustRange = 0.5;
+			if ((grabx + graby) <= 256)
+				fAdjustRange += 2.0;
+			if ((grabx + graby) >= 2048)
+				fAdjustRange += 0.5;
+
+			// 512x288=3.5 - This really depend on the image size we capture to.
+			float fCamMove = fLargest * (fAdjustRange + 0.1);
+			MoveCamera(-(fCamMove));
+			BackBufferCamMove = fCamMove * 2.0;
+
+			// adjust camera based on object largest calc and adjustment
+			if (fLargest != 15.0 && fLargestY < 4.0) fLargestY += 200.0;
+			if (fLargest != 15.0 && fLargestY < 7.0) fLargestY += 100.0;
+			if (fLargest != 15.0 && fLargestY < 40.0) fLargestY = 40.0;
+			if (fLargestY < 10.0) fLargestY = 10.0;
+			float fAdjustY = fAdjustRange * 0.5;
+			if (fLargestY >= 2500.0) fLargestY = 2500.0;
+			if (t.entityprofile[entid].isebe == 1)
+			{
+				fLargestY += 140.0;
+			}
+			PositionCamera(CameraPositionX(0), CameraPositionY(0) + (fLargestY * fAdjustY), CameraPositionZ(0));
+			PointCamera(centerx + fOffsetX, centery + fOffsetY, centerz + fOffsetZ);
+
+			// work out if need rotation on the Z
+			float cangx = CameraAngleX();
+			float cangy = CameraAngleY();
+			float cangz = CameraAngleZ();
+			if (cangx > 39 && cangx < 300)
+			{
+				bNeedZRotation = true;
+			}
+
+			// restore backbuffer camera
+			if (bBackBufferRestoreCamera)
+			{
+				//Restore camera settings from FPE. Only trigger this one time.
+				BackBufferRotateY = RestoreBackBufferRotateY;
+				if (t.entityprofile[entid].ischaracter == 0)
+				{
+					BackBufferRotateX = RestoreBackBufferRotateX;
+				}
+				else
+				{
+					BackBufferRotateX = 0.0;
+				}
+				BackBufferCamUp = RestoreBackBufferCamUp;
+				BackBufferCamLeft = RestoreBackBufferCamLeft;
+				BackBufferZoom = RestoreBackBufferZoom;
+				if (BackBufferSizeX < 1024)
+				{
+					BackBufferZoom *= 1.7f;
+					BackBufferCamUp *= 0.95f;
+				}
+			}
+
+			// apply camera zoom and shift
+			MoveCamera(BackBufferZoom);
+			MoveCameraLeft(0, BackBufferCamLeft);
+			MoveCameraUp(0, BackBufferCamUp);
+		}
 
 		// if backbuffer in loop or restore mode
 		if (bLoopBackBuffer || bBackBufferRestoreCamera)
 		{
-			/* rework this down the road
-			if (0) // bRotateBackBuffer)
+			if (BackBufferObjectID > 0)
 			{
-				//@Lee Rotate on world y axis. is this correct ?
-				float fMoveAngY = 3.0*g.timeelapsed_f;;
-				float fMoveAngX = 0.0;
-				float fOldZ = BackBufferRotateZ;
-				GGQUATERNION quatRotationEvent = { 0,0,0,0 };
-				GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
-				GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(0));
-				GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(fMoveAngY));
-				GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(0));
-				quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
-				GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(BackBufferRotateX));
-				GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(BackBufferRotateY));
-				GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(BackBufferRotateZ));
-				GGQUATERNION quatCurrentOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
-				GGQUATERNION quatNewOrientation;
-				GGQuaternionMultiply(&quatNewOrientation, &quatCurrentOrientation, &quatRotationEvent);
-				RotateObjectQuat(displayobj, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
-
-				//PE: Matrix to eular conversion is not really good. as it can get a gimbal lock and flip z 0=180, this can give strange eular values when doing this.
-				BackBufferRotateX = ObjectAngleX(displayobj);
-				BackBufferRotateY = ObjectAngleY(displayobj);
-				BackBufferRotateZ = ObjectAngleZ(displayobj);
-			}
-			else
-			{
-			*/
-
-			// object animation speed
-			if (bBackBufferAnimated)
-			{
-				t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
-				if (ObjectExist(BackBufferObjectID) == 1)
+				// object animation speed
+				if (bBackBufferAnimated)
 				{
-					#ifdef WICKEDENGINE
-					SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
-					#else
-					SetObjectSpeed(BackBufferObjectID, g.timeelapsed_f*t.tanimspeed_f);
-					#endif
+					t.tanimspeed_f = t.entityprofile[BackBufferEntityID].animspeed;
+					if (ObjectExist(BackBufferObjectID) == 1)
+					{
+						SetObjectSpeed(BackBufferObjectID, t.tanimspeed_f);
+					}
 				}
-			}
 
-			// rotation mode
-			if (bRotateBackBuffer && !bBackBufferAnimated )
-			{
-				if (bNeedZRotation)
+				// rotation mode
+				if (bRotateBackBuffer && !bBackBufferAnimated)
 				{
-					BackBufferRotateZ += 3.0*g.timeelapsed_f;
-					if (BackBufferRotateZ > 360.0)
-						BackBufferRotateZ -= 360.0;
+					if (bNeedZRotation)
+					{
+						BackBufferRotateZ += 3.0 * g.timeelapsed_f;
+						if (BackBufferRotateZ > 360.0)
+							BackBufferRotateZ -= 360.0;
+					}
+					else
+					{
+						BackBufferRotateY += 3.0 * g.timeelapsed_f;
+						if (BackBufferRotateY > 360.0)
+							BackBufferRotateY -= 360.0;
+					}
+				}
+
+				// object and camera stats
+				float ox = ObjectPositionX(displayobj);
+				float oy = ObjectPositionY(displayobj);
+				float oz = ObjectPositionZ(displayobj);
+				float cx = CameraPositionX();
+				float cy = CameraPositionY();
+				float cz = CameraPositionZ();
+				float dist = GetDistance(cx, cy, cz, ox, oy, oz);
+
+				// apply object handling
+				RotateObject(displayobj, 0, 0, 0);
+				if (pObject && pObject->position.bApplyPivot)
+				{
+					PitchObjectUpWorld(displayobj, BackBufferRotateX);
+					TurnObjectRightWorld(displayobj, BackBufferRotateY);
+					if (bNeedZRotation) RollObjectLeftWorld(displayobj, BackBufferRotateZ);
 				}
 				else
 				{
-					BackBufferRotateY += 3.0*g.timeelapsed_f;
-					if (BackBufferRotateY > 360.0)
-						BackBufferRotateY -= 360.0;
+					PitchObjectDownWorld(displayobj, BackBufferRotateX);
+					TurnObjectRightWorld(displayobj, BackBufferRotateY);
+					if (bNeedZRotation)	RollObjectLeftWorld(displayobj, BackBufferRotateZ);
 				}
-			}
-
-			// object and camera stats
-			float ox = ObjectPositionX(displayobj);
-			float oy = ObjectPositionY(displayobj);
-			float oz = ObjectPositionZ(displayobj);
-			float cx = CameraPositionX();
-			float cy = CameraPositionY();
-			float cz = CameraPositionZ();
-			float dist = GetDistance(cx, cy, cz, ox, oy, oz);
-
-			// apply object handling
-			RotateObject(displayobj, 0, 0, 0);
-			if (pObject && pObject->position.bApplyPivot)
-			{
-				PitchObjectUpWorld(displayobj, BackBufferRotateX);
-				TurnObjectRightWorld(displayobj, BackBufferRotateY);
-				if(bNeedZRotation) RollObjectLeftWorld(displayobj, BackBufferRotateZ);
-			}
-			else
-			{
-				PitchObjectDownWorld(displayobj, BackBufferRotateX);
-				TurnObjectRightWorld(displayobj, BackBufferRotateY);
-				if (bNeedZRotation)	RollObjectLeftWorld(displayobj, BackBufferRotateZ);
 			}
 		}
 		bBackBufferRestoreCamera = false;
-		//}
 
 		// using backdrop object
 		if (bUseBackDropImage && ObjectExist(backdropobj))
@@ -14329,26 +14444,29 @@ void GrabBackBufferCopy(void)
 		}
 
 		// wwitch away from editor light , so we dont interfere with the current light on the scene.
-		extern wiECS::Entity g_entityThumbLight, g_entityThumbLight2;
-		if (g_entityThumbLight)
+		if (BackBufferObjectID > 0)
 		{
-			wiScene::TransformComponent* transformLightCamera = wiScene::GetScene().transforms.GetComponent(g_entityThumbLight);
-			transformLightCamera->ClearTransform();
-			float fCamX = CameraPositionX(0);
-			float fCamY = CameraPositionY(0);
-			float fCamZ = CameraPositionZ(0);
-			transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
-			transformLightCamera->SetDirty();
-		}
-		if (g_entityThumbLight2)
-		{
-			wiScene::TransformComponent* transformLightCamera = wiScene::GetScene().transforms.GetComponent(g_entityThumbLight2);
-			transformLightCamera->ClearTransform();
-			float fCamX = ObjectPositionX(displayobj) - (fLargestX*2.0);
-			float fCamY = ObjectPositionY(displayobj);
-			float fCamZ = ObjectPositionZ(displayobj) + (fLargestZ*2.0); // move behind object
-			transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
-			transformLightCamera->SetDirty();
+			extern wiECS::Entity g_entityThumbLight, g_entityThumbLight2;
+			if (g_entityThumbLight)
+			{
+				wiScene::TransformComponent* transformLightCamera = wiScene::GetScene().transforms.GetComponent(g_entityThumbLight);
+				transformLightCamera->ClearTransform();
+				float fCamX = CameraPositionX(0);
+				float fCamY = CameraPositionY(0);
+				float fCamZ = CameraPositionZ(0);
+				transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
+				transformLightCamera->SetDirty();
+			}
+			if (g_entityThumbLight2)
+			{
+				wiScene::TransformComponent* transformLightCamera = wiScene::GetScene().transforms.GetComponent(g_entityThumbLight2);
+				transformLightCamera->ClearTransform();
+				float fCamX = ObjectPositionX(displayobj) - (fLargestX * 2.0);
+				float fCamY = ObjectPositionY(displayobj);
+				float fCamZ = ObjectPositionZ(displayobj) + (fLargestZ * 2.0); // move behind object
+				transformLightCamera->Translate(XMFLOAT3(fCamX, fCamY + 20.0f, fCamZ));
+				transformLightCamera->SetDirty();
+			}
 		}
 	}
 	else
@@ -14389,7 +14507,7 @@ void GrabBackBufferCopy(void)
 
 	extern bool g_bNo2DRender;
 	g_bNo2DRender = true;
-	if(bSnapShotModeUse2D)
+	if(bSnapShotModeUse2D || BackBufferGrabGameScreen)
 		g_bNo2DRender = false;
 
 	extern bool g_bNoTerrainRender;
@@ -14458,12 +14576,15 @@ void GrabBackBufferCopy(void)
 		}
 		PositionCamera(composx, composy, composz);
 		RotateCamera(comangx, comangy, comangz);
-		PositionObject(displayobj, fOldObjPosX, fOldObjPosY, fOldObjPosZ);
-		RotateObject(displayobj, fOldObjAngX, fOldObjAngY, fOldObjAngZ);
-		if (bDisplayObjVisible)
-			ShowObject(displayobj);
-		else
-			HideObject(displayobj);
+		if (BackBufferObjectID > 0)
+		{
+			PositionObject(displayobj, fOldObjPosX, fOldObjPosY, fOldObjPosZ);
+			RotateObject(displayobj, fOldObjAngX, fOldObjAngY, fOldObjAngZ);
+			if (bDisplayObjVisible)
+				ShowObject(displayobj);
+			else
+				HideObject(displayobj);
+		}
 	}
 	else
 	{
@@ -14489,7 +14610,7 @@ void GrabBackBufferCopy(void)
 	}
 
 	// if not snaposhot mode - save a second file to act as our ICON image (RPG inventory usage mainly)
-	if (!BackBufferSnapShotMode)
+	if (!BackBufferSnapShotMode && !BackBufferGrabGameScreen)
 	{
 		if (BackBufferSaveCacheName != "")
 		{
@@ -14548,7 +14669,7 @@ void GrabBackBufferCopy(void)
 
 	// handle loop grab mode
 	static int loop = 0;
-	if(loop++ % 2 == 0 || !bLoopBackBuffer || bLoopFullFPS || BackBufferSnapShotMode || BackBufferParticlesMode)
+	if(loop++ % 2 == 0 || !bLoopBackBuffer || bLoopFullFPS || BackBufferGrabGameScreen || BackBufferSnapShotMode || BackBufferParticlesMode)
 	{
 		// get backbuffer pointer
 		int iPerEntityImageID = BackBufferImageID;
@@ -14580,6 +14701,15 @@ void GrabBackBufferCopy(void)
 		float imgcy = (ddsd.Height*0.5) - (graby*0.5);
 		if (imgcy < 0) imgcy = 0;
 		if (imgcx < 0) imgcx = 0;
+
+		// all screen for BackBufferGrabGameScreen
+		if (BackBufferObjectID == 0 && BackBufferGrabGameScreen)
+		{
+			imgcy = 0;
+			imgcx = 0;
+			grabx = ddsd.Width;
+			graby = ddsd.Height;
+		}
 
 		// if snapshot mode
 		if (BackBufferSnapShotMode)
@@ -14664,6 +14794,7 @@ void GrabBackBufferCopy(void)
 	}
 	BackBufferSnapShotMode = false;
 	BackBufferParticlesMode = false;
+	BackBufferGrabGameScreen = false;
 }
 
 void RevertBackbufferCubemap(void)
@@ -21951,7 +22082,6 @@ void process_entity_library_v2(void)
 													iLargePreviewImageID = BackBufferImageID;
 													bLoopBackBuffer = true;
 												}
-
 											}
 
 											if (bForceUpdate)
@@ -36376,8 +36506,10 @@ void About_Screen(void)
 		ImGui::TextCenter("Community Contributors");
 		ImGui::SetWindowFontScale(1.0);
 		ImGui::Text("");
-		ImGui::TextCenter("Necrym59 for Behaviors");
-		ImGui::TextCenter("Tom Frakey for User Manual");
+		ImGui::TextCenter("Synchromesh & Dave Hawkins for Support");
+		ImGui::TextCenter("Necrym59 for Behaviors and Design");
+		ImGui::TextCenter("Tom from Blood Moon Interactive for User Manual");
+		ImGui::TextCenter("GraphiX for Art Support");
 		ImGui::Text("");
 
 		ImGui::SetWindowFontScale(1.5);
@@ -36396,7 +36528,7 @@ void About_Screen(void)
 		ImGui::Text("");
 		ImGui::TextCenter("Lee Bamber & Richard Vanner");
 		ImGui::TextCenter("Meash Meakin & Stuart Scott");
-		
+
 		ImGui::Text("");
 		ImGui::SetWindowFontScale(1.5);
 		ImGui::TextCenter("Wicked Engine");
@@ -36405,7 +36537,6 @@ void About_Screen(void)
 		ImGui::TextCenter("Janos Turanszki");
 		ImGui::TextCenter("www.wickedengine.net");
 
-		ImGui::Text("");
 		ImGui::Text("");
 		ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((fRegionWidth*0.5) - (100.0f*0.5), 0.0f));
 		if (ImGui::StyleButton("OK", ImVec2(100.0f, 0.0f))) {
@@ -46999,10 +47130,40 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
 				{
 					ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
-					if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea))
+					bool bIsPointerHoveringOver = false;
+					bool bIsPointerReleased = false;
+					if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+					{
+						// VR support
+						int iObjToHit = 5997;
+						float fX = 0, fY = 0, fZ = 0;
+						int iHitIt = GGVR_GetLaserGuidedHit (iObjToHit, &fX, &fY, &fZ);
+						float fptrrealX = ((fX + 19.0f) / 38.0f) * (rMonitorArea.Max.x - rMonitorArea.Min.x);
+						float fptrrealY = ((11.0f - fY) / 22.0f) * (rMonitorArea.Max.y - rMonitorArea.Min.y);
+						if (GGVR_RightController_Trigger() > 0.5f)
+						{
+							bIsPointerReleased = true;
+							ImVec2 topLeft = rMonitorArea.Min + widget_pos - vLargerGrabArea;
+							ImVec2 bottomRight = rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea;
+							if (fptrrealX > topLeft.x && fptrrealY < bottomRight.x)
+							{
+								if (fptrrealY > topLeft.y && fptrrealY < bottomRight.y)
+								{
+									bIsPointerHoveringOver = true;
+								}
+							}
+						}
+					}
+					else
+					{
+						// non VR
+						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea)) bIsPointerHoveringOver = true;
+						if (ImGui::IsMouseReleased(0)) bIsPointerReleased = true;
+					}
+					if (bIsPointerHoveringOver)
 					{
 						//if mouse release.
-						if (ImGui::IsMouseReleased(0))
+						if (bIsPointerReleased)
 						{
 							if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
 							{
@@ -47174,6 +47335,29 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 											}
 										}
 
+									}
+								}
+							}
+							int iActionID = Storyboard.Nodes[nodeid].widget_action[index];
+							if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2
+							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3
+							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4)
+							{
+								// Toggle to new HUD screen ( can be improved this 'ard use of widget_action )
+								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								{
+									StoryboardNodesStruct& node = Storyboard.Nodes[i];
+									if (node.used && strlen(node.level_name) == 0) // only HUDs
+									{
+										bool bFoundHUDScreen = false;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
+										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
+										if (bFoundHUDScreen == true )
+										{
+											t.game.activeStoryboardScreen = i;
+											break;
+										}
 									}
 								}
 							}
@@ -47766,48 +47950,49 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 
-					/* appears not to do anything when looking at an image gadget
-					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
-						&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
+					if (iUserDefinedGlobal == 4) // needed for panel grid row and column
 					{
-						LPSTR pTitle = "Text Offset";
-						LPSTR pLabelX = "Offset X";
-						LPSTR pLabelTipX = "Change Widget Text Offset X";
-						LPSTR pLabelY = "Offset Y";
-						LPSTR pLabelTipY = "Change Widget Text Offset Y";
-						if (iUserDefinedGlobal == 4)
+						if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXT
+							&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_TEXTAREA)
 						{
-							pTitle = "Panel Grid Size";
-							pLabelX = "Columns";
-							pLabelTipX = "Change the total number of columns";
-							pLabelY = "Rows";
-							pLabelTipY = "Change the total number of rows";
-						}
-						ImGui::TextCenter(pTitle);
+							LPSTR pTitle = "Text Offset";
+							LPSTR pLabelX = "Offset X";
+							LPSTR pLabelTipX = "Change Widget Text Offset X";
+							LPSTR pLabelY = "Offset Y";
+							LPSTR pLabelTipY = "Change Widget Text Offset Y";
+							if (iUserDefinedGlobal == 4)
+							{
+								pTitle = "Panel Grid Size";
+								pLabelX = "Columns";
+								pLabelTipX = "Change the total number of columns";
+								pLabelY = "Rows";
+								pLabelTipY = "Change the total number of rows";
+							}
+							ImGui::TextCenter(pTitle);
 
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-						ImGui::Text(pLabelX);
-						ImGui::SameLine();
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
-						if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
-						{
-							//
+							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+							ImGui::Text(pLabelX);
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+							ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+							if (ImGui::InputFloat("##StoryboardTextOffsetX", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].x, 0.0f, 0.0f, "%.0f")) //"%.2f"
+							{
+								//
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipX);
+							ImGui::PopItemWidth();
+							ImGui::SameLine();
+							ImGui::Text(pLabelY);
+							ImGui::SameLine();
+							ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
+							if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
+							{
+								//
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
+							ImGui::PopItemWidth();
 						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipX);
-						ImGui::PopItemWidth();
-						ImGui::SameLine();
-						ImGui::Text(pLabelY);
-						ImGui::SameLine();
-						ImGui::PushItemWidth(w * 0.5 - (ImGui::GetFontSize() * 2.0) - 40 - scrollSizeX);
-						if (ImGui::InputFloat("##StoryboardTextOffsetY", &Storyboard.widget_textoffset[nodeid][iCurrentSelectedWidget].y, 0.0f, 0.0f, "%.0f")) //"%.2f"
-						{
-							//
-						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelTipY);
-						ImGui::PopItemWidth();
 					}
-					*/
 				}
 
 				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_BUTTON 
@@ -47929,8 +48114,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (iCurAction == STORYBOARD_ACTIONS_LEAVEGAME) strcpy(ActionSelected, "Leave Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RESUMEGAME) strcpy(ActionSelected, "Resume Game");
 						if (iCurAction == STORYBOARD_ACTIONS_RETURNVALUETOLUA) strcpy(ActionSelected, "Return Button ID to Lua");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD2) strcpy(ActionSelected, "Go To HUD Screen 2");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD3) strcpy(ActionSelected, "Go To HUD Screen 3");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD4) strcpy(ActionSelected, "Go To HUD Screen 4");
 
-						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua" };
+						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua", "Go To HUD Screen 2" , "Go To HUD Screen 3" , "Go To HUD Screen 4" };
 						//if (ImGui::Combo("##BehavioursSimpleInput", &item_current_type_selection, items_align, IM_ARRAYSIZE(items_align))) {
 						ImGui::PushItemWidth(-10);
 						if (ImGui::BeginCombo("##StoryboardAction", ActionSelected)) // The second parameter is the label previewed before opening the combo.

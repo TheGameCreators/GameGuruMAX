@@ -1368,6 +1368,47 @@ int GGVR_GetLaserGuidedEntityObj ( int entityviewstartobj, int entityviewendobj 
 	return iEntObjectNumber;
 }
 
+int GGVR_GetLaserGuidedHit (int iObjToHit, float* pfX, float* pfY, float* pfZ)
+{
+	int iHitIt = 0;
+	if (GGVR_Player.LaserGuideActive > 0)
+	{
+		int o = GGVR_Player.LaserGuideActive;
+		if (ObjectExist (o) == 1)
+		{
+			// work out ray cast from laser object
+			MoveObject (o, -100.0f);
+			float fX = ObjectPositionX (o);
+			float fY = ObjectPositionY (o);
+			float fZ = ObjectPositionZ (o);
+			MoveObject (o, 200.0f);
+			float fNewX = ObjectPositionX (o);
+			float fNewY = ObjectPositionY (o);
+			float fNewZ = ObjectPositionZ (o);
+			MoveObject (o, -100.0f);
+
+			// use this laser object to trace line and detect any entity object in its path
+			int iIgnoreObjNo = GGVR_Player.LaserGuideActive;
+			int ttt = IntersectAll(0, 0, 0, 0, 0, 0, 0, 0, -123);
+			int tthitvalue = IntersectAll(iObjToHit, iObjToHit, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo);
+			if (tthitvalue > 0)
+			{
+				GGVECTOR3 vecHit = GGVECTOR3(ChecklistFValueA(6), ChecklistFValueB(6), ChecklistFValueC(6));
+				sObject* pObject = GetObjectData(iObjToHit);
+				GGMATRIX matWorldInv = pObject->position.matWorld;
+				float fDet = 0.0f;
+				GGMatrixInverse(&matWorldInv, &fDet, &matWorldInv);
+				GGVec3TransformCoord(&vecHit, &vecHit, &matWorldInv);
+				*pfX = vecHit.x;
+				*pfY = vecHit.y;
+				*pfZ = vecHit.z;
+				iHitIt = 1;
+			}
+		}
+	}
+	return iHitIt;
+}
+
 void GGVR_SetLaserForwardDistance(float fDist)
 {
 	GGVR_Player.fLaserForwardDistance = fDist;
@@ -1393,22 +1434,22 @@ void GGVR_LeftIsBest(bool bEnabled)
 float GGVR_BestController_JoyX(void)
 {
 	float fValue = OpenXRGetLeftStickX();
-	if (GGVR_bLeftIsBest == false)
-	{
-		float fValueR = OpenXRGetRightStickX();
-		if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
-	}
+	//if (GGVR_bLeftIsBest == false)
+	//{
+	//	float fValueR = OpenXRGetRightStickX();
+	//	if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
+	//}
 	return fValue;
 }
 
 float GGVR_BestController_JoyY(void)
 {
 	float fValue = OpenXRGetLeftStickY();
-	if (GGVR_bLeftIsBest == false)
-	{
-		float fValueR = OpenXRGetRightStickY();
-		if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
-	}
+	//if (GGVR_bLeftIsBest == false)
+	//{
+	//	float fValueR = OpenXRGetRightStickY();
+	//	if (fabs(fValueR) > fabs(fValue)) fValue = fValueR;
+	//}
 	return fValue;
 }
 

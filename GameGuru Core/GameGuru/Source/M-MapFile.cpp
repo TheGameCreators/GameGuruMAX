@@ -4710,9 +4710,9 @@ float mapfile_savestandalone_getprogress ( void )
 
 void mapfile_savestandalone_finish ( void )
 {
-	#ifdef WICKEDENGINE
+	//#ifdef WICKEDENGINE
 	// disable encryption for now, wicked cannot load encrypted images!
-	#else
+	//#else
 	// encrypt media
 	t.dest_s=t.exepath_s+t.exename_s;
 	if ( g.gexportassets == 0 ) 
@@ -4723,7 +4723,7 @@ void mapfile_savestandalone_finish ( void )
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
 		}
 	}
-	#endif
+	//#endif
 
 	//  if not tignorelevelbankfiles, copy unencrypted files
 	if (  t.tignorelevelbankfiles == 0 ) 

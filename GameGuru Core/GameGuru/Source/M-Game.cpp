@@ -2599,6 +2599,12 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	bool bControllerEscape = false;
 	if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
+	// VR support can escape to in-game menu with button A
+	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+	{
+		if (GGVR_RightController_Button1() == 1) bControllerEscape == true;
+	}
+
 	//  trigger options page or exit test level
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"escape button check");
 	if ( EscapeKey() == 1 || bControllerEscape == true ) 
@@ -4346,6 +4352,9 @@ void game_freelevel ( void )
 	// remove any bulletholes
 	bulletholes_free();
 
+	// free any HUD screen objects
+	if (ObjectExist(g.hudscreen3dobjectoffset) == 1) DeleteObject (g.hudscreen3dobjectoffset);
+
 	//Reset loading bar percentage
 	extern int g_iLastProgressPercentage;
 	g_iLastProgressPercentage = 0;
@@ -5491,6 +5500,14 @@ void game_main_loop ( void )
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
 	darkai_finalsettingofcharacterobjects ( );
+
+	// trigger screen to be grabbed for a HUD image
+	bool bGrabSceneToStoreInImage = true;
+	if (bGrabSceneToStoreInImage == true)
+	{
+		extern void GrabBackBufferForAnImage (void);
+		GrabBackBufferForAnImage();
+	}
 }
 
 extern int howManyOccluders;

@@ -435,6 +435,7 @@ struct Sglobals
 	int savescreenshotimage;
 	int temporarymeshobject;
 	int terraineffectoffset;
+	int hudscreen3dobjectoffset;
 	int video3dobjectoffset;
 	int prompt3dobjectoffset;
 	int terrainobjectoffset;

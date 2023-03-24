@@ -1,7 +1,7 @@
--- Recipe v1
--- DESCRIPTION: The object will give the player a recipe to collect. Object must be set to 'Collectable'.
+-- Recipe v2
+-- DESCRIPTION: This object will give the player a crafting recipe. Object must be set to 'Collectable'.
 -- DESCRIPTION: [PICKUP_TEXT$="E to collect"]
--- DESCRIPTION: [COLLECTED_TEXT$="Recipe collected"]
+-- DESCRIPTION: [COLLECTED_TEXT$="Crafting Recipe collected"]
 -- DESCRIPTION: [QUANTITY=1(1,5)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: <Sound0> for collected sound.
@@ -17,7 +17,7 @@ end
 
 function recipe_init(e)
 	g_recipe[e] = {}
-	recipe_properties(e, "E to collect", "Recipe collected", 1, 80)
+	recipe_properties(e, "E to collect", "Crafting Recipe collected", 1, 80)
 end
 
 function recipe_main(e)

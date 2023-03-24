@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v13
+-- Heal Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -33,7 +33,7 @@ function heal_spell_properties(e, prompt_text, useage_text, pickup_range, user_g
 	g_heal_spell[e].useage_text = useage_text
 	g_heal_spell[e].pickup_range = pickup_range
 	g_heal_spell[e].user_global_affected = user_global_affected
-	g_heal_spell[e].mana_cost = 10
+	g_heal_spell[e].mana_cost = mana_cost
 	g_heal_spell[e].cast_value = cast_value
 	g_heal_spell[e].cast_radius = cast_radius
 	g_heal_spell[e].particle1_name = lower(particle1_name)

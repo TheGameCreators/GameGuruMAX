@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v13
+-- Area Damage Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -31,7 +31,7 @@ function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range,
 	g_area_damage_spell[e].useage_text = useage_text
 	g_area_damage_spell[e].pickup_range = pickup_range
 	g_area_damage_spell[e].user_global_affected = user_global_affected
-	g_area_damage_spell[e].mana_cost = 10
+	g_area_damage_spell[e].mana_cost = mana_cost
 	g_area_damage_spell[e].cast_damage = cast_damage
 	g_area_damage_spell[e].cast_radius = cast_radius
 	g_area_damage_spell[e].particle1_name = lower(particle1_name)

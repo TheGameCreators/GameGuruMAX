@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
--- Freeze Spell v13
+-- Freeze Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -38,7 +38,7 @@ function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	g_freeze_spell[e].useage_text = useage_text
 	g_freeze_spell[e].pickup_range = pickup_range
 	g_freeze_spell[e].user_global_affected = user_global_affected
-	g_freeze_spell[e].mana_cost = 10
+	g_freeze_spell[e].mana_cost = mana_cost
 	g_freeze_spell[e].cast_damage = cast_damage
 	g_freeze_spell[e].cast_radius = cast_radius
 	g_freeze_spell[e].particle1_name = lower(particle1_name)

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v13
+-- Poison Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -36,7 +36,7 @@ function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	g_poison_spell[e].useage_text = useage_text
 	g_poison_spell[e].pickup_range = pickup_range
 	g_poison_spell[e].user_global_affected = user_global_affected
-	g_poison_spell[e].mana_cost = 10
+	g_poison_spell[e].mana_cost = mana_cost
 	g_poison_spell[e].cast_damage = cast_damage
 	g_poison_spell[e].cast_radius = cast_radius
 	g_poison_spell[e].particle1_name = lower(particle1_name)

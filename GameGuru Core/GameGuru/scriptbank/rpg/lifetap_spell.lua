@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v13
+-- Lifetap Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -34,7 +34,7 @@ function lifetap_spell_properties(e, prompt_text, useage_text, pickup_range, use
 	g_lifetap_spell[e].useage_text = useage_text
 	g_lifetap_spell[e].pickup_range = pickup_range
 	g_lifetap_spell[e].user_global_affected = user_global_affected
-	g_lifetap_spell[e].mana_cost = 10
+	g_lifetap_spell[e].mana_cost = mana_cost
 	g_lifetap_spell[e].cast_damage = cast_damage
 	g_lifetap_spell[e].cast_radius = cast_radius
 	g_lifetap_spell[e].particle1_name = lower(particle1_name)

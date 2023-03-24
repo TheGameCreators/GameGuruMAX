@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v13
+-- Direct Damage Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -34,7 +34,7 @@ function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_rang
 	g_direct_damage_spell[e].useage_text = useage_text
 	g_direct_damage_spell[e].pickup_range = pickup_range
 	g_direct_damage_spell[e].user_global_affected = user_global_affected
-	g_direct_damage_spell[e].mana_cost = 10
+	g_direct_damage_spell[e].mana_cost = mana_cost
 	g_direct_damage_spell[e].cast_damage = cast_damage
 	g_direct_damage_spell[e].cast_radius = cast_radius
 	g_direct_damage_spell[e].particle1_name = lower(particle1_name)

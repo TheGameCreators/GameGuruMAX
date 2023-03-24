@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to restrain the target for a period.
--- Root Spell v13
+-- Root Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -38,7 +38,7 @@ function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_g
 	g_root_spell[e].useage_text = useage_text
 	g_root_spell[e].pickup_range = pickup_range
 	g_root_spell[e].user_global_affected = user_global_affected
-	g_root_spell[e].mana_cost = 10
+	g_root_spell[e].mana_cost = mana_cost
 	g_root_spell[e].cast_damage = cast_damage
 	g_root_spell[e].cast_radius = cast_radius
 	g_root_spell[e].particle1_name = lower(particle1_name)

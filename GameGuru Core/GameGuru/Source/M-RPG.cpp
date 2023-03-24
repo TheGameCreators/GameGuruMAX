@@ -203,6 +203,8 @@ bool save_rpg_system(char* name, bool bIncludeELEFile)
 			delete[] pStoreEntEle;
 			delete[] pTempEntEle;
 		}
+		//PE: If g_collectionList == 0 , save map did not work. but was stored in projectbank/name/collection - items.ele
+		t.elementsfilename_s = storeoldELEfile;
 	}
 
 	// success

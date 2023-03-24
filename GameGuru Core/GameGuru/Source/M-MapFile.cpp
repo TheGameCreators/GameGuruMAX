@@ -2557,6 +2557,24 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 						if (variableLength > 4 && tempeleprof.PropertiesVariable.VariableValue[i][variableLength - 4] == '.')
 						{
 							addtocollection(tempeleprof.PropertiesVariable.VariableValue[i]);
+
+							//PE: if .dds or.png also add - _normal and _emissive and _surface (behavior: Change Texture).
+							if (pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".dds") || pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".png"))
+							{
+								if (pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], "_color"))
+								{
+									std::string sParseName = tempeleprof.PropertiesVariable.VariableValue[i];
+									replaceAll(sParseName, "_color.", "_normal.");
+									addtocollection((char*)sParseName.c_str());
+									replaceAll(sParseName, "_normal.", "_surface.");
+									addtocollection((char*)sParseName.c_str());
+									replaceAll(sParseName, "_surface.", "_emissive.");
+									addtocollection((char*)sParseName.c_str());
+									replaceAll(sParseName, "_emissive.", "_illumination.");
+									addtocollection((char*)sParseName.c_str());
+								}
+							}
+
 						}
 					}
 				}

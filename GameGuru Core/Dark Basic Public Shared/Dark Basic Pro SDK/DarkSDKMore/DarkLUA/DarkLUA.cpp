@@ -6753,12 +6753,13 @@ int GetScreenElementArea(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
+			float fGlobalScale = (float)g_dwScreenWidth / 1920.0f;
 			fAreaX = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x); // FABS to eliminate negative pos which is used to HIDE the widget
 			fAreaY = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y); // FABS to eliminate negative pos which is used to HIDE the widget
 			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
 			float widgetsizey = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
-			fAreaWidth = widgetsizex * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
-			fAreaHeight = widgetsizey * Storyboard.Nodes[nodeid].widget_size[iElementID].y;
+			fAreaWidth = widgetsizex * fGlobalScale * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
+			fAreaHeight = widgetsizey * fGlobalScale * Storyboard.Nodes[nodeid].widget_size[iElementID].y;
 			// convert to percentage system
 			fAreaWidth = fabs(fAreaWidth / (float)g_dwScreenWidth) * 100.0f;
 			fAreaHeight = fabs(fAreaHeight / (float)g_dwScreenHeight) * 100.0f;

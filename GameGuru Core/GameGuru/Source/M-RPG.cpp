@@ -334,6 +334,7 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 					cstr pFinalImgFile = "";
 					cstr localiconfile = "";
 					if (iAddThisItem == 1) localiconfile = cstr("gamecore\\guns\\") + t.entityprofile[entid].isweapon_s + cstr("\\item.png");
+					if (iAddThisItem == 2) localiconfile = t.entityprofile[entid].collectable.image.Get();
 					if (iAddThisItem == 3) localiconfile = pPassedInImageFile;
 					if (FileExist(localiconfile.Get()) == 1)
 					{

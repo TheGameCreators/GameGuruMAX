@@ -2121,6 +2121,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 #ifdef WICKEDENGINE
 	addtocollection("scriptbank\\perlin_noise.lua");
 	addtocollection("scriptbank\\hud0.lua");
+	addtocollection("scriptbank\\utillib.lua"); //PE: hud0 use  utillib.lua
+	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
 	addtocollection("scriptbank\\gameplayerhealth.lua");
 	addtocollection("scriptbank\\gameplayerspeed.lua");
 	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
@@ -2365,10 +2367,24 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		if (strlen(Storyboard.gamename) > 0)
 		{
 			//Add project.
-			char project[MAX_PATH];
+			char project[MAX_PATH], project_files[MAX_PATH];
 			strcpy(project, "projectbank\\");
 			strcat(project, Storyboard.gamename);
 			addfoldertocollection(project);
+
+			//PE: Also add everything from the project files folder.
+			strcpy(project_files, project);
+			strcat(project_files, "\\files");
+			extern char szWriteDir[MAX_PATH];
+			cstr usePath = cstr(szWriteDir) + "Files\\";
+			if (PathExist(usePath.Get()))
+			{
+				cstr olddir = GetDir();
+				SetDir(usePath.Get());
+				addallinfoldertocollection(project_files, project_files);
+				SetDir(olddir.Get());
+			}
+
 			//strcat(project, "\\project.dat");
 			//addtocollection("editors\\uiv3\\loadingsplash.jpg");
 

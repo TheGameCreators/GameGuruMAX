@@ -1,7 +1,7 @@
--- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v13
+-- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
+-- Poison Spell v13
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
--- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
+-- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
 -- DESCRIPTION: [MANA_COST=10(1,100)]
@@ -12,7 +12,7 @@
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
 
-g_lifetap_spell = {}
+g_poison_spell = {}
 
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
@@ -27,34 +27,36 @@ local tTarget = {}
 local status = {}
 local cradius = {}
 local casttarget = {}
+local poison_time = {}
+local current_time = {}
 local entaffected = {}
 
-function lifetap_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, particle1_name, particle2_name)
-	g_lifetap_spell[e].prompt_text = prompt_text
-	g_lifetap_spell[e].useage_text = useage_text
-	g_lifetap_spell[e].pickup_range = pickup_range
-	g_lifetap_spell[e].user_global_affected = user_global_affected
-	g_lifetap_spell[e].mana_cost = 10
-	g_lifetap_spell[e].cast_damage = cast_damage
-	g_lifetap_spell[e].cast_radius = cast_radius
-	g_lifetap_spell[e].particle1_name = lower(particle1_name)
-	g_lifetap_spell[e].particle2_name = lower(particle2_name)
+function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, particle1_name, particle2_name)
+	g_poison_spell[e].prompt_text = prompt_text
+	g_poison_spell[e].useage_text = useage_text
+	g_poison_spell[e].pickup_range = pickup_range
+	g_poison_spell[e].user_global_affected = user_global_affected
+	g_poison_spell[e].mana_cost = 10
+	g_poison_spell[e].cast_damage = cast_damage
+	g_poison_spell[e].cast_radius = cast_radius
+	g_poison_spell[e].particle1_name = lower(particle1_name)
+	g_poison_spell[e].particle2_name = lower(particle2_name)
 end
 
-function lifetap_spell_init(e)
-	g_lifetap_spell[e] = {}
-	g_lifetap_spell[e].prompt_text = "E to Collect"
-	g_lifetap_spell[e].useage_text = "Direct Damage Inflicted"
-	g_lifetap_spell[e].pickup_range = 90
-	g_lifetap_spell[e].user_global_affected = "MyMana"
-	g_lifetap_spell[e].mana_cost = 10
-	g_lifetap_spell[e].cast_damage = 25
-	g_lifetap_spell[e].cast_radius = 5
-	g_lifetap_spell[e].particle1_name = ""
-	g_lifetap_spell[e].particle2_name = ""
-	g_lifetap_spell[e].particle1_number = 0
-	g_lifetap_spell[e].particle2_number = 0
-	g_lifetap_spell[e].cast_timeout = 0	
+function poison_spell_init(e)
+	g_poison_spell[e] = {}
+	g_poison_spell[e].prompt_text = "E to Collect"
+	g_poison_spell[e].useage_text = "Direct Damage Inflicted"
+	g_poison_spell[e].pickup_range = 90
+	g_poison_spell[e].user_global_affected = "MyMana"
+	g_poison_spell[e].mana_cost = 10
+	g_poison_spell[e].cast_damage = 25
+	g_poison_spell[e].cast_radius = 5
+	g_poison_spell[e].particle1_name = ""
+	g_poison_spell[e].particle2_name = ""
+	g_poison_spell[e].particle1_number = 0
+	g_poison_spell[e].particle2_number = 0
+	g_poison_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
 	tEnt[e] = 0
@@ -63,15 +65,17 @@ function lifetap_spell_init(e)
 	tTarget[e] = 0
 	cradius[e] = 0
 	casttarget[e] = 0
+	poison_time[e] = 500
+	current_time[e] = 0
 end
 
-function lifetap_spell_main(e)
+function poison_spell_main(e)
 	-- get particles for spell effects
-	if g_lifetap_spell[e].particle1_number == 0 or nil then
+	if g_poison_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == g_lifetap_spell[e].particle1_name then
-					g_lifetap_spell[e].particle1_number = n
+				if lower(GetEntityName(n)) == g_poison_spell[e].particle1_name then
+					g_poison_spell[e].particle1_number = n
 					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
 					Hide(n)
 					break
@@ -79,11 +83,11 @@ function lifetap_spell_main(e)
 			end
 		end
 	end
-	if g_lifetap_spell[e].particle2_number == 0 or nil then
+	if g_poison_spell[e].particle2_number == 0 or nil then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == g_lifetap_spell[e].particle2_name then
-					g_lifetap_spell[e].particle2_number = m
+				if lower(GetEntityName(m)) == g_poison_spell[e].particle2_name then
+					g_poison_spell[e].particle2_number = m
 					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
 					Hide(m)
 					break
@@ -93,16 +97,16 @@ function lifetap_spell_main(e)
 	end
 	-- handle states
 	if status[e] == "init" then
-		cradius[e] = 180.0 - g_lifetap_spell[e].cast_radius
+		cradius[e] = 100.0 - g_poison_spell[e].cast_radius
 		status[e] = "collect_spell"		
 	end
 	if status[e] == "collect_spell" then
 		PlayerDist = GetPlayerDistance(e)
 		local LookingAt = GetPlrLookingAtEx(e,1)
-		if LookingAt == 1 and PlayerDist < g_lifetap_spell[e].pickup_range then
+		if LookingAt == 1 and PlayerDist < g_poison_spell[e].pickup_range then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(g_lifetap_spell[e].prompt_text,1000)
+					PromptDuration(g_poison_spell[e].prompt_text,1000)
 					if g_KeyPressE == 1 then
 						SetEntityCollected(e,1,-1)
 						status[e] = "have_spell"
@@ -131,18 +135,18 @@ function lifetap_spell_main(e)
 		end	
 
 		local tusedvalue = GetEntityUsed(e)
-		if g_lifetap_spell[e].cast_timeout > 0 then
-			if Timer() > g_lifetap_spell[e].cast_timeout + 2100 then
-				g_lifetap_spell[e].cast_timeout = 0
+		if g_poison_spell[e].cast_timeout > 0 then
+			if Timer() > g_poison_spell[e].cast_timeout + 2100 then
+				g_poison_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if g_lifetap_spell[e].particle1_number > 0 or nil then Hide(g_lifetap_spell[e].particle1_number) end
-				if g_lifetap_spell[e].particle2_number > 0 or nil then Hide(g_lifetap_spell[e].particle2_number) end
+				if g_poison_spell[e].particle1_number > 0 or nil then Hide(g_poison_spell[e].particle1_number) end
+				if g_poison_spell[e].particle2_number > 0 or nil then Hide(g_poison_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
-				local tscaleradius = 5.0 + ((Timer()-g_lifetap_spell[e].cast_timeout)/cradius[e])
-				if g_lifetap_spell[e].particle1_number > 0 then Scale(g_lifetap_spell[e].particle1_number,tscaleradius) end
-				if g_lifetap_spell[e].particle2_number > 0 then Scale(g_lifetap_spell[e].particle2_number,tscaleradius) end
+				local tscaleradius = 5.0 + ((Timer()-g_poison_spell[e].cast_timeout)/cradius[e])
+				if g_poison_spell[e].particle1_number > 0 then Scale(g_poison_spell[e].particle1_number,tscaleradius) end
+				if g_poison_spell[e].particle2_number > 0 then Scale(g_poison_spell[e].particle2_number,tscaleradius) end
 				-- apply effect as radius increases from targeted point of origin
 				-- do the magic
 				for ee = 1, g_EntityElementMax, 1 do
@@ -158,11 +162,8 @@ function lifetap_spell_main(e)
 										local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosey*thowclosey)+math.abs(thowclosez*thowclosez))
 										if thowclosedd < tscaleradius*2.0 then
 											if entaffected[ee] == 0 then
-												entaffected[ee] = 1											
-												SetEntityHealth(ee,g_Entity[ee]['health']-0) 												-- Set negative damage to nearby entities
-												if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-g_lifetap_spell[e].cast_damage) end	-- Take health from targeted entity
-												SetPlayerHealth(g_PlayerHealth + g_lifetap_spell[e].cast_damage)							-- Give health to player
-												if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end	-- Check player health doesnt exceeed start health (Not sure if this is still standard)
+												entaffected[ee] = 1
+												SetEntityHealth(ee,g_Entity[ee]['health']-g_poison_spell[e].cast_damage/3)	-- Give smaller damage to nearby entities
 												if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
 											end
 										end
@@ -172,43 +173,51 @@ function lifetap_spell_main(e)
 						end
 					end
 				end
-				-- cannot use while in effect
+				-- cannot use while in effects				
 				tusedvalue = 0
-			end		
-			SetEntityUsed(e,0)
-		end
+			end			
+			if current_time[e] < poison_time[e] then
+				if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-g_poison_spell[e].cast_damage/poison_time[e]) end	-- Take health from targeted entity over time
+				if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
+				current_time[e] = current_time[e] + 1				
+			end
+			if current_time[e] >= poison_time[e] then 
+				SetEntityUsed(e,0)
+				current_time[e] = 0
+			end			
+		end		
 		
 		if tusedvalue > 0 and tTarget[e] ~= 0 then
 			casttarget[e] = 1
 			-- attempt effect
-			local mymana = 0 if _G["g_UserGlobal['"..g_lifetap_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..g_lifetap_spell[e].user_global_affected.."']"] end
-			if mymana >= g_lifetap_spell[e].mana_cost then
+			local mymana = 0 if _G["g_UserGlobal['"..g_poison_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..g_poison_spell[e].user_global_affected.."']"] end
+			if mymana >= g_poison_spell[e].mana_cost then
 				-- enough mana, deduct from player
-				mymana = mymana - g_lifetap_spell[e].mana_cost
+				mymana = mymana - g_poison_spell[e].mana_cost
 				-- setup and show the spell effect particles
-				if g_lifetap_spell[e].particle1_number > 0 or nil then
-					ResetPosition(g_lifetap_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
-					Show(g_lifetap_spell[e].particle1_number)
+				if g_poison_spell[e].particle1_number > 0 or nil then
+					ResetPosition(g_poison_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
+					Show(g_poison_spell[e].particle1_number)
 				end
-				if g_lifetap_spell[e].particle2_number > 0 or nil then
-					ResetPosition(g_lifetap_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
-					Show(g_lifetap_spell[e].particle2_number)
+				if g_poison_spell[e].particle2_number > 0 or nil then
+					ResetPosition(g_poison_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
+					Show(g_poison_spell[e].particle2_number)
 				end			
 				-- prepare spell cast
 				for ee = 1, g_EntityElementMax, 1 do
 					entaffected[ee] = 0
 				end
 				-- prompt we did it
-				PromptDuration(g_lifetap_spell[e].useage_text,2000)
-				g_lifetap_spell[e].cast_timeout = Timer()
-				PlaySound(e,0)
+				PromptDuration(g_poison_spell[e].useage_text,2000)
+				g_poison_spell[e].cast_timeout = Timer()
+				PlaySound(e,0)				
 			else
 				-- not successful
 				PromptDuration("Not enough mana",2000)
 				SetEntityUsed(e,0)
 				PlaySound(e,1)
-			end
-			_G["g_UserGlobal['"..g_lifetap_spell[e].user_global_affected.."']"] = mymana
-		end
+			end			
+			_G["g_UserGlobal['"..g_poison_spell[e].user_global_affected.."']"] = mymana
+		end		
 	end
 end

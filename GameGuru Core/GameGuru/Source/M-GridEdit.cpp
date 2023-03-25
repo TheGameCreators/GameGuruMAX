@@ -288,6 +288,7 @@ std::map<std::string, int> selected_library_fpe;
 bool bProceduralLevel = false;
 bool bProceduralLevelFromStoryboard = false;
 int iBlackoutForFrames = 0;
+int iBlockRenderingForFrames = 0;
 int iQuitProceduralLevel = false;
 bool bProceduralLevelStartup = false;
 int g_iUniqueGroupID = 1000;
@@ -1559,6 +1560,17 @@ bool commonexecutable_loop_for_game(void)
 	//	//Height not available in this are ? , trigger a update.
 	//	iTriggerGrassTreeUpdate = 10;
 	//}
+
+	if (iBlockRenderingForFrames > 0)
+	{
+		extern bool g_bNoSwapchainPresent;
+		iBlockRenderingForFrames--;
+		if (iBlockRenderingForFrames <= 0)
+			g_bNoSwapchainPresent = false;
+		else
+			g_bNoSwapchainPresent = true;
+	}
+
 
 	if (iTriggerGrassTreeUpdate > 0)
 	{

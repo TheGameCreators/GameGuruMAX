@@ -46665,6 +46665,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			}
 		}
 		//ImVec2 vScale = vMonitorSize / ImVec2(1980.0, 1080);
+		float fGlobalScale = vViewportSize.x / 1920.0f;
 		ImVec2 vScale = vMonitorSize / vViewportSize;
 		ImVec2 vMonitorStart = ImVec2(vMonitorCenterX, 0) + vHeaderEnd + vMonitorPos;
 		ImVec2 vMonitorEnd = ImVec2(vMonitorCenterX, 0) + vHeaderEnd + vMonitorPos + vMonitorSize;
@@ -46672,14 +46673,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::SetWindowFontScale(vScale.y);
 
 		ImGui::SetCursorPos(vMonitorStart);
-		//ImGui::Text("START Area");
-		//ImGui::SetWindowFontScale(4.0*vScale.y);
-		//ImGui::Text("Mouse: %f,%f", ImGui::GetMousePos().x, ImGui::GetMousePos().y);
-		//ImGui::Text("Mouse: %d,%d", g_pGlob->iWindowsMouseX, g_pGlob->iWindowsMouseY);
 
 		ImGui::SetWindowFontScale(vScale.y);
 		ImGui::SetCursorPos(vMonitorEnd);
-		//ImGui::Text("END Area");
 
 		if (iCurrentSelectedWidget < 0) iCurrentSelectedWidget = 0;
 		int iSkipWidgetSelectionForFrames = 0;
@@ -46695,13 +46691,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[i] * fOnePercent; //Real screen pos.
 				ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
 				widget_size = widget_size * vScale;
+				widget_size = widget_size * fGlobalScale;
 				float font_scale = WidgetSelectUsedFont(nodeid, i);
-				ImGui::SetWindowFontScale(font_scale*vScale.x * fabs(Storyboard.Nodes[nodeid].widget_font_size[i]));
+				ImGui::SetWindowFontScale(font_scale*vScale.x * fGlobalScale * fabs(Storyboard.Nodes[nodeid].widget_font_size[i]));
 				if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]))
 				{
 					widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
 					widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
 					widget_size = widget_size * vScale; //Scale to visible screen size.
+					widget_size = widget_size * fGlobalScale;
 					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[i];
 				}
 				else
@@ -46755,10 +46753,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			//widget_pos = widget_pos * vScale; //Scale to visible screen size.
 			ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
 			widget_size = widget_size * vScale;
+			widget_size = widget_size * fGlobalScale;
 
 			//One widget can only use one font, so select it now and use for all functions.
 			float font_scale = WidgetSelectUsedFont(nodeid, index);
-			ImGui::SetWindowFontScale(font_scale*vScale.x * fabs(Storyboard.Nodes[nodeid].widget_font_size[index]));
+			ImGui::SetWindowFontScale(font_scale*vScale.x* fGlobalScale* fabs(Storyboard.Nodes[nodeid].widget_font_size[index]));
 
 			//Is a kind of progress bar?
 			bool bProgressbar = false;
@@ -46778,7 +46777,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
 					widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
 					widget_size = widget_size * vScale; //Scale to visible screen size.
-
+					widget_size = widget_size * fGlobalScale;
 					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
 				}
 
@@ -47057,10 +47056,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					widget_size.x = ImageWidth(imgID);
 					widget_size.y = ImageHeight(imgID);
-					//if (!standalone)
-					//{
-						widget_size = widget_size * vScale; //Scale to visible screen size.
-					//}
+					widget_size = widget_size * vScale; //Scale to visible screen size.
+					widget_size = widget_size * fGlobalScale;
 					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
 				}
 
@@ -47490,7 +47487,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			if (iSkipWidgetSelectionForFrames > 0) //PE: Make sure we dont select anything after a window on top.
 				iSkipWidgetSelectionForFrames--;
 
-			ImGui::SetWindowFontScale(1.0*vScale.y);
+			ImGui::SetWindowFontScale(1.0*vScale.y * fGlobalScale);
 			//ImGui::PushFont(customfont);  //select defaultfont
 			ImGui::PopFont();
 		}
@@ -47514,6 +47511,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				widgetSize = ImVec2(500, 74); //Default widget size for text
 			}
 			widgetSize = widgetSize * vScale; //Scale to visible screen size.
+			widgetSize = widgetSize * fGlobalScale;
 			widgetSize = widgetSize * Storyboard.Nodes[nodeid].widget_size[index];
 			ImVec2 fOnePercentScreen = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
 			ImVec2 widgetPos = Storyboard.Nodes[nodeid].widget_pos[index] * fOnePercentScreen; //Real screen pos.

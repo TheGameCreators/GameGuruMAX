@@ -5531,6 +5531,7 @@ struct WickedMaterial
 };
 struct CollectableType
 {
+	cStr image;
 	cStr description;
 	int cost;
 	int value;

@@ -11,6 +11,9 @@
 std::vector<cstr> g_collectionLabels;
 std::vector<collectionItemType> g_collectionMasterList;
 std::vector<collectionItemType> g_collectionList;
+std::vector<cstr> g_collectionQuestLabels;
+std::vector<collectionQuestType> g_collectionQuestMasterList;
+std::vector<collectionQuestType> g_collectionQuestList;
 
 // Functions
 void init_rpg_system(void)
@@ -18,11 +21,13 @@ void init_rpg_system(void)
 	// clear collection list
 	g_collectionMasterList.clear();
 	g_collectionList.clear();
+	g_collectionQuestMasterList.clear();
+	g_collectionQuestList.clear();
 }
 
-bool load_rpg_system(char* name)
+bool load_rpg_system_items(char* name)
 {
-	// out of the box mandatory labels
+	// out of the box mandatory item labels
 	g_collectionLabels.clear();
 	g_collectionLabels.push_back("title");
 	g_collectionLabels.push_back("profile");
@@ -170,11 +175,155 @@ bool load_rpg_system(char* name)
 	return true;
 }
 
-bool save_rpg_system(char* name, bool bIncludeELEFile)
+bool load_rpg_system_quests(char* name)
+{
+	// out of the box labels
+	g_collectionQuestLabels.clear();
+	g_collectionQuestLabels.push_back("title");
+	g_collectionQuestLabels.push_back("profile");
+	g_collectionQuestLabels.push_back("image");
+	g_collectionQuestLabels.push_back("task1");
+	g_collectionQuestLabels.push_back("task2");
+	g_collectionQuestLabels.push_back("task3");
+	g_collectionQuestLabels.push_back("object");
+	g_collectionQuestLabels.push_back("level");
+	g_collectionQuestLabels.push_back("points");
+	g_collectionQuestLabels.push_back("value");
+	g_collectionQuestLabels.push_back("status");
+	std::vector<cstr> g_localCollectionLabels;
+	char collectionfilename[MAX_PATH];
+	strcpy(collectionfilename, "projectbank\\");
+	strcat(collectionfilename, name);
+	strcat(collectionfilename, "\\collection - quests.tsv");
+	FILE* collectionFile = GG_fopen(collectionfilename, "r");
+	if (collectionFile)
+	{
+		bool bPopulateLabels = true;
+		while (!feof(collectionFile))
+		{
+			// read a line
+			char theline[MAX_PATH];
+			fgets(theline, MAX_PATH - 1, collectionFile);
+			if (strlen(theline) > 0 && theline[strlen(theline) - 1] == '\n')
+				theline[strlen(theline) - 1] = 0;
+
+			// determine which list to fill
+			collectionQuestType item;
+			if (bPopulateLabels == true)
+			{
+				// first line are all the labels
+				g_localCollectionLabels.clear();
+			}
+			else
+			{
+				// remaining lines are the collection, prepopulate with correct number of them
+				item.collectionFields.clear();
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("default");
+				item.collectionFields.push_back("default");
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("");
+				item.collectionFields.push_back("none");
+				item.collectionFields.push_back("1");
+				item.collectionFields.push_back("100");
+				item.collectionFields.push_back("100");
+				item.collectionFields.push_back("inactive");
+				int iLAIndex = item.collectionFields.size();
+				while (iLAIndex < g_collectionQuestLabels.size())
+				{
+					item.collectionFields.push_back("none");
+					iLAIndex++;
+				}
+			}
+
+			// go through tab delimited fields
+			int iColumnIndex = 0;
+			char pTab[2]; pTab[0] = 9; pTab[1] = 0;
+			const char* delimiter = pTab;
+			char* token = std::strtok(theline, delimiter);
+			while (token)
+			{
+				if (bPopulateLabels == true)
+				{
+					// record local order of the labels from the import
+					g_localCollectionLabels.push_back(token);
+
+					// add unique ones to end of labels list
+					bool bFoundThisOne = false;
+					for (int la = 0; la < g_collectionQuestLabels.size(); la++)
+					{
+						if (stricmp(g_collectionQuestLabels[la].Get(), token) == NULL)
+						{
+							bFoundThisOne = true;
+							break;
+						}
+					}
+					if (bFoundThisOne == false)
+					{
+						// add to end of main list of labels
+						g_collectionQuestLabels.push_back(token);
+					}
+				}
+				else
+				{
+					// add to correct location in item collection fields (respect main labels list, not local import)
+					if (iColumnIndex < g_localCollectionLabels.size())
+					{
+						LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
+						iColumnIndex++;
+						for (int la = 0; la < g_collectionQuestLabels.size(); la++)
+						{
+							if (stricmp(g_collectionQuestLabels[la].Get(), pLabelAssociated) == NULL)
+							{
+								item.collectionFields[la] = token;
+								break;
+							}
+						}
+					}
+				}
+				token = std::strtok(nullptr, delimiter);
+			}
+
+			// add populated item to collection list
+			if (bPopulateLabels == false && item.collectionFields.size() > 2 && iColumnIndex > 7)
+			{
+				if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
+				{
+					// seems we have duplicated the header row, so ignore (title, profile, image, etc)
+				}
+				else
+				{
+					// real entry, add it
+					g_collectionQuestMasterList.push_back(item);
+				}
+			}
+
+			// first line over
+			bPopulateLabels = false;
+		}
+		fclose(collectionFile);
+	}
+
+	// make a copy to regular list
+	g_collectionQuestList = g_collectionQuestMasterList;
+
+	// success
+	return true;
+}
+
+bool load_rpg_system(char* name)
+{
+	load_rpg_system_items(name);
+	load_rpg_system_quests(name);
+	return true;
+}
+
+bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 {
 	// nothing to save if no collection to save
 	if (g_collectionLabels.size() == 0)
-		return false;
+		return true;
 
 	// save master collection in file (contains all items in all game levels)
 	char collectionfilename[MAX_PATH];
@@ -212,7 +361,12 @@ bool save_rpg_system(char* name, bool bIncludeELEFile)
 			strcpy(theline, "");
 			for (int l = 0; l < g_collectionList[i].collectionFields.size(); l++)
 			{
-				strcat(theline, g_collectionList[i].collectionFields[l].Get());
+				LPSTR pStrToAdd = g_collectionList[i].collectionFields[l].Get();
+				if (strlen(pStrToAdd) > 0)
+					strcat(theline, pStrToAdd);
+				else
+					strcat(theline, " ");
+
 				strcat(theline, pTab);
 			}
 			theline[strlen(theline) - 1] = 0;
@@ -271,6 +425,72 @@ bool save_rpg_system(char* name, bool bIncludeELEFile)
 
 	// success
 	return true;
+}
+
+bool save_rpg_system_quests(char* name)
+{
+	// nothing to save if no collection to save
+	if (g_collectionQuestLabels.size() == 0)
+		return true;
+
+	// save master collection in file (contains all items in all game levels)
+	char collectionfilename[MAX_PATH];
+	strcpy(collectionfilename, "projectbank\\");
+	strcat(collectionfilename, name);
+	strcat(collectionfilename, "\\collection - quests.tsv");
+	DeleteFileA(collectionfilename);
+	FILE* collectionFile = GG_fopen(collectionfilename, "w");
+	if (collectionFile)
+	{
+		// write all lines in TAB DELIMITED FILE
+		char pTab[2]; pTab[0] = 9; pTab[1] = 0;
+		char pCR[2]; pCR[0] = 10; pCR[1] = 0;
+		char theline[MAX_PATH];
+
+		// first write collection labels
+		strcpy(theline, "");
+		for (int l = 0; l < g_collectionQuestLabels.size(); l++)
+		{
+			strcat(theline, g_collectionQuestLabels[l].Get());
+			strcat(theline, pTab);
+		}
+		theline[strlen(theline) - 1] = 0;
+		strcat(theline, pCR);
+		fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
+
+		// then for each item a line is created with all attribs - was g_collectionMasterList
+		for (int i = 0; i < g_collectionQuestList.size(); i++)
+		{
+			strcpy(theline, "");
+			for (int l = 0; l < g_collectionQuestList[i].collectionFields.size(); l++)
+			{
+				LPSTR pStrToAdd = g_collectionQuestList[i].collectionFields[l].Get();
+				if(strlen(pStrToAdd)>0)
+					strcat(theline, pStrToAdd);
+				else
+					strcat(theline, " ");
+				strcat(theline, pTab);
+			}
+			theline[strlen(theline) - 1] = 0;
+			strcat(theline, pCR);
+			fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
+		}
+		fclose(collectionFile);
+	}
+
+	// success
+	return true;
+}
+
+bool save_rpg_system(char* name, bool bIncludeELEFile)
+{
+	if (save_rpg_system_items(name, bIncludeELEFile) == true)
+	{
+		save_rpg_system_quests(name);
+		return true;
+	}
+	else
+		return false;
 }
 
 cstr get_rpg_imagefinalfile(cstr entityfile)
@@ -339,6 +559,7 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 					cstr pFinalImgFile = "";
 					cstr localiconfile = "";
 					if (iAddThisItem == 1) localiconfile = cstr("gamecore\\guns\\") + t.entityprofile[entid].isweapon_s + cstr("\\item.png");
+					if (iAddThisItem == 2) localiconfile = t.entityprofile[entid].collectable.image.Get();
 					if (iAddThisItem == 3) localiconfile = pPassedInImageFile;
 					if (FileExist(localiconfile.Get()) == 1)
 					{
@@ -384,6 +605,70 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 bool fill_rpg_item_defaults(collectionItemType* pItem, int entid, int e)
 {
 	return fill_rpg_item_defaults_passedin(pItem, entid, e, NULL, NULL);
+}
+
+bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
+{
+	pItem->collectionFields.clear();
+	for (int l = 0; l < g_collectionQuestLabels.size(); l++)
+	{
+		int iKnownLabel = -1;
+		LPSTR pLabel = g_collectionQuestLabels[l].Get();
+		if (stricmp(pLabel, "title") == NULL) iKnownLabel = 0;
+		if (stricmp(pLabel, "profile") == NULL) iKnownLabel = 1;
+		if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
+		if (stricmp(pLabel, "task1") == NULL) iKnownLabel = 51;
+		if (stricmp(pLabel, "task2") == NULL) iKnownLabel = 52;
+		if (stricmp(pLabel, "task3") == NULL) iKnownLabel = 53;
+		if (stricmp(pLabel, "object") == NULL) iKnownLabel = 54;
+		if (stricmp(pLabel, "level") == NULL) iKnownLabel = 55;
+		if (stricmp(pLabel, "points") == NULL) iKnownLabel = 56;
+		if (stricmp(pLabel, "value") == NULL) iKnownLabel = 57;
+		if (stricmp(pLabel, "status") == NULL) iKnownLabel = 58;
+		if (iKnownLabel >= 0)
+		{
+			if (iKnownLabel == 0)
+			{
+				LPSTR pTitle = t.entityelement[e].eleprof.name_s.Get();
+				pItem->collectionFields.push_back(pTitle);
+			}
+			if (iKnownLabel == 1)
+			{
+				pItem->collectionFields.push_back("default");
+			}
+			if (iKnownLabel == 2)
+			{
+				cstr pFinalImgFile = "";
+				cstr localiconfile = t.entityprofile[entid].collectable.image.Get();
+				if (FileExist(localiconfile.Get()) == 1)
+				{
+					// use locally specified icon
+					pFinalImgFile = localiconfile;
+				}
+				else
+				{
+					// use default out of the box icon
+					cstr entityfile = t.entitybank_s[entid];
+					pFinalImgFile = get_rpg_imagefinalfile(entityfile);
+				}
+				pItem->collectionFields.push_back(pFinalImgFile);
+			}
+			if (iKnownLabel == 51) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 52) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 53) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 54) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 55) pItem->collectionFields.push_back("1");
+			if (iKnownLabel == 56) pItem->collectionFields.push_back("100");
+			if (iKnownLabel == 57) pItem->collectionFields.push_back("100");
+			if (iKnownLabel == 58) pItem->collectionFields.push_back("inactive");
+		}
+		else
+		{
+			// empty field
+			pItem->collectionFields.push_back("none");
+		}
+	}
+	return true;
 }
 
 bool refresh_collection_from_entities(void)

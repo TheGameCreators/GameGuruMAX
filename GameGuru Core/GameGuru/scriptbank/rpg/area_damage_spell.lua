@@ -1,11 +1,12 @@
--- DESCRIPTION: When collected can be cast as an Area Damage effect to damaging anything within an area surrounding the target.
--- Area Damage Spell v7
+-- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
+-- Area Damage Spell v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
 -- DESCRIPTION: [MANA_COST=10(1,100)]
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
+-- DESCRIPTION: [CAST_RADIUS=50(1,100))]
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
 -- DESCRIPTION: <Sound0> when effect successful
@@ -22,22 +23,32 @@ local tAllegiance = {}
 local tEnt = {}
 local tName = {}
 local status = {}
+local cradius = {}
 local entaffected = {}
 
-function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, particle1_name, particle2_name)
+function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, particle1_name, particle2_name)
 	g_area_damage_spell[e].prompt_text = prompt_text
 	g_area_damage_spell[e].useage_text = useage_text
 	g_area_damage_spell[e].pickup_range = pickup_range
 	g_area_damage_spell[e].user_global_affected = user_global_affected
-	g_area_damage_spell[e].mana_cost = 10
+	g_area_damage_spell[e].mana_cost = mana_cost
 	g_area_damage_spell[e].cast_damage = cast_damage
+	g_area_damage_spell[e].cast_radius = cast_radius
 	g_area_damage_spell[e].particle1_name = lower(particle1_name)
 	g_area_damage_spell[e].particle2_name = lower(particle2_name)
 end
 
 function area_damage_spell_init(e)
 	g_area_damage_spell[e] = {}
-	area_damage_spell_properties(e, "E to Collect", "Area Damage Inflicted", 80, "MyMana", 10, 0, "SpellParticle1", "SpellParticle2")
+	g_area_damage_spell[e].prompt_text = "E to Collect"
+	g_area_damage_spell[e].useage_text = "Area Damage Inflicted"
+	g_area_damage_spell[e].pickup_range = 80
+	g_area_damage_spell[e].user_global_affected = "MyMana"
+	g_area_damage_spell[e].mana_cost = 10
+	g_area_damage_spell[e].cast_damage = 500
+	g_area_damage_spell[e].cast_radius = 90
+	g_area_damage_spell[e].particle1_name = "SpellParticle1"
+	g_area_damage_spell[e].particle2_name = "SpellParticle2"
 	g_area_damage_spell[e].particle1_number = 0
 	g_area_damage_spell[e].particle2_number = 0
 	g_area_damage_spell[e].cast_timeout = 0	
@@ -45,6 +56,7 @@ function area_damage_spell_init(e)
 	tAllegiance[e] = 0
 	tEnt[e] = 0
 	tName[e] = ""
+	cradius[e] = 0
 end
 
 function area_damage_spell_main(e)
@@ -75,6 +87,7 @@ function area_damage_spell_main(e)
 	end
 	-- handle states
 	if status[e] == "init" then
+		cradius[e] = 100.0 - g_area_damage_spell[e].cast_radius
 		status[e] = "collect_spell"		
 	end
 	if status[e] == "collect_spell" then
@@ -99,12 +112,12 @@ function area_damage_spell_main(e)
 			g_area_damage_spell[e].cast_timeout = 0
 			-- hide the spell effect particles again
 			if g_area_damage_spell[e].particle1_number > 0 or nil then Hide(g_area_damage_spell[e].particle1_number) end
-			if g_area_damage_spell[e].particle1_number > 0 or nil then Hide(g_area_damage_spell[e].particle2_number) end
+			if g_area_damage_spell[e].particle2_number > 0 or nil then Hide(g_area_damage_spell[e].particle2_number) end
 		else
 			-- scale spell to see it radiate outward
-			local tscaleradius = 5.0 + ((Timer()-g_area_damage_spell[e].cast_timeout)/10.0)
+			local tscaleradius = 5.0 + ((Timer()-g_area_damage_spell[e].cast_timeout)/cradius[e])
 			if g_area_damage_spell[e].particle1_number > 0 then Scale(g_area_damage_spell[e].particle1_number,tscaleradius) end
-			if g_area_damage_spell[e].particle1_number > 0 then Scale(g_area_damage_spell[e].particle2_number,tscaleradius) end
+			if g_area_damage_spell[e].particle2_number > 0 then Scale(g_area_damage_spell[e].particle2_number,tscaleradius) end
 			-- apply effect as radius increases
 			-- do the magic
 			for ee = 1, g_EntityElementMax, 1 do

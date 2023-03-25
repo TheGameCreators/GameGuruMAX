@@ -6753,12 +6753,13 @@ int GetScreenElementArea(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
+			float fGlobalScale = (float)g_dwScreenWidth / 1920.0f;
 			fAreaX = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x); // FABS to eliminate negative pos which is used to HIDE the widget
 			fAreaY = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y); // FABS to eliminate negative pos which is used to HIDE the widget
 			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
 			float widgetsizey = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
-			fAreaWidth = widgetsizex * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
-			fAreaHeight = widgetsizey * Storyboard.Nodes[nodeid].widget_size[iElementID].y;
+			fAreaWidth = widgetsizex * fGlobalScale * Storyboard.Nodes[nodeid].widget_size[iElementID].x;
+			fAreaHeight = widgetsizey * fGlobalScale * Storyboard.Nodes[nodeid].widget_size[iElementID].y;
 			// convert to percentage system
 			fAreaWidth = fabs(fAreaWidth / (float)g_dwScreenWidth) * 100.0f;
 			fAreaHeight = fabs(fAreaHeight / (float)g_dwScreenHeight) * 100.0f;
@@ -6869,6 +6870,8 @@ int SetScreenElementText(lua_State* L)
 	return 0;
 }
 
+// Collection Items
+
 int GetCollectionAttributeQuantity(lua_State* L)
 {
 	int iQty = g_collectionLabels.size();
@@ -6924,6 +6927,61 @@ int GetCollectionItemAttribute(lua_State* L)
 	return 1;
 }
 
+// Collection Quests
+
+int GetCollectionQuestAttributeQuantity(lua_State* L)
+{
+	int iQty = g_collectionQuestLabels.size();
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetCollectionQuestAttributeLabel(lua_State* L)
+{
+	// collection label
+	char pReturnData[512];
+	strcpy(pReturnData, "");
+	int iCollectionLabelIndex = lua_tonumber(L, 1);
+	if (iCollectionLabelIndex > 0 && iCollectionLabelIndex <= g_collectionQuestLabels.size())
+	{
+		strcpy(pReturnData, g_collectionQuestLabels[iCollectionLabelIndex - 1].Get());
+	}
+	lua_pushstring(L, pReturnData);
+	return 1;
+}
+int GetCollectionQuestQuantity(lua_State* L)
+{
+	int iQty = g_collectionQuestList.size();
+	lua_pushnumber(L, iQty);
+	return 1;
+}
+int GetCollectionQuestAttribute(lua_State* L)
+{
+	// which collection quest
+	char pReturnData[512];
+	strcpy(pReturnData, "");
+	int iCollectionListIndex = lua_tonumber(L, 1);
+	if (iCollectionListIndex > 0 && iCollectionListIndex <= g_collectionQuestList.size())
+	{
+		// find attribute label index
+		int iLabelIndex = 0;
+		char pAttributeLabel[512];
+		strcpy(pAttributeLabel, lua_tostring(L, 2));
+		for (iLabelIndex = 0; iLabelIndex < g_collectionQuestLabels.size(); iLabelIndex++)
+			if (stricmp(g_collectionQuestLabels[iLabelIndex].Get(), pAttributeLabel) == NULL)
+				break;
+
+		// can pull field data from collection list quest
+		if (iLabelIndex < g_collectionQuestList[iCollectionListIndex - 1].collectionFields.size())
+		{
+			strcpy(pReturnData, g_collectionQuestList[iCollectionListIndex - 1].collectionFields[iLabelIndex].Get());
+		}
+	}
+	lua_pushstring(L, pReturnData);
+	return 1;
+}
+
+// Inventory containers
+
 int FindInventoryIndex (LPSTR pNameOfInventory)
 {
 	int bothplayercontainers = -1;
@@ -6937,7 +6995,6 @@ int FindInventoryIndex (LPSTR pNameOfInventory)
 	}
 	return bothplayercontainers;
 }
-
 int MakeInventoryContainer (lua_State* L)
 {
 	int containerindex = -1;
@@ -10408,6 +10465,10 @@ void addFunctions()
 	lua_register(lua, "GetCollectionAttributeLabel", GetCollectionAttributeLabel);
 	lua_register(lua, "GetCollectionItemQuantity", GetCollectionItemQuantity);
 	lua_register(lua, "GetCollectionItemAttribute", GetCollectionItemAttribute);	
+	lua_register(lua, "GetCollectionQuestAttributeQuantity", GetCollectionQuestAttributeQuantity);
+	lua_register(lua, "GetCollectionQuestAttributeLabel", GetCollectionQuestAttributeLabel);
+	lua_register(lua, "GetCollectionQuestQuantity", GetCollectionQuestQuantity);
+	lua_register(lua, "GetCollectionQuestAttribute", GetCollectionQuestAttribute);
 	lua_register(lua, "MakeInventoryContainer", MakeInventoryContainer);
 	lua_register(lua, "GetInventoryTotal", GetInventoryTotal);
 	lua_register(lua, "GetInventoryName", GetInventoryName);

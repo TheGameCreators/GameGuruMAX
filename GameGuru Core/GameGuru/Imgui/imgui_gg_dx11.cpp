@@ -39,6 +39,7 @@
 #include "..\..\Guru-WickedMAX\wickedcalls.h"
 #endif
 
+#include "M-RPG.h"
 
 char launchLoadOnStartup[260] = "\0";
 
@@ -6895,6 +6896,7 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 								{
 									/* e.g. (1=Slow, 2=Fast, 3=Very Fast)*/
 									/* or.  (0=AnimSetList)*/
+									/* or.  (0=QuestList)*/
 
 									// Determine range.
 									tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables]
@@ -6945,7 +6947,7 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 										}
 									}
 
-									// can intercept label list here if special indicator that it is an animset list
+									// can intercept label list here if special indicator that it is an animset or questlist list
 									if (labels.size()==2 && iObjID > 0 )
 									{
 										if(stricmp(labels[1].c_str(),"animsetlist")==NULL)
@@ -6976,6 +6978,28 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 											{
 												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
 												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iAnimSetIndex;
+											}
+											else
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+											}
+										}
+										if (stricmp(labels[1].c_str(), "questlist") == NULL)
+										{
+											labels.clear();
+											labels.push_back(cVariable);
+											int iQuestListIndex = 1;
+											labels.push_back("None");
+											for (int n = 0; n < g_collectionQuestList.size(); n++)
+											{
+												iQuestListIndex++;
+												labels.push_back(g_collectionQuestList[n].collectionFields[0].Get());
+											}
+											if (iQuestListIndex > 0)
+											{
+												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iQuestListIndex;
 											}
 											else
 											{
@@ -7557,9 +7581,7 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 						// Create combo now
 						if (ImGui::BeginCombo("##DLUACOMBO", preview))
 						{
-							//int iCount = tmpeleprof->PropertiesVariable.VariableValueTo[i] - tmpeleprof->PropertiesVariable.VariableValueFrom[i] + 1;
 							for(int j = 1; j < labels.size(); j++)
-							//for (int j = 0; j < iCount; j++)
 							{
 								bool bSelected = false;
 								char labelID[128];
@@ -7573,10 +7595,30 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 								
 								strcpy(label, labels[j].c_str());
 								
-
 								if (ImGui::Selectable(label, bSelected))
 								{
 									strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], labelID);
+
+									// if quest list selection, change the object name to identify the quest chosen
+									bool bIsAQuestList = false;
+									for (int v = 0; v < tmpeleprof->PropertiesVariable.iVariables; v++)
+									{
+										if (strstr(tmpeleprof->PropertiesVariable.Variable[v], "QuestChoice") != NULL)
+										{
+											bIsAQuestList = true;
+											break;
+										}
+									}
+									if (bIsAQuestList==true)
+									{
+										int iQuestIndex = atoi(labelID);
+										tmpeleprof->name_s = "Quest";
+										if (iQuestIndex >= 2 && iQuestIndex <= 1+g_collectionQuestList.size())
+										{
+											tmpeleprof->name_s = g_collectionQuestList[iQuestIndex - 2].collectionFields[0];
+										}
+									}
+
 									bUpdateMainString = true;
 								}
 								if (bSelected) ImGui::SetItemDefaultFocus();

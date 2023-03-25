@@ -8642,6 +8642,7 @@ void mapeditorexecutable_loop(void)
 					int iObject = t.entityelement[iEntityIndex].obj;
 					int media_icon_size = 64;
 					sObject* pObject = g_ObjectList[iActiveObj];
+					int iCollectionQuestIndex = -1;
 
 					if (iEntityIndex > 0 && iMasterID > 0 && ObjectExist(iActiveObj))
 					{
@@ -8702,14 +8703,32 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 
-								// special color change when object is a collectable
-								LPSTR pDescTooltip = t.strarr_s[204].Get();
-								bool bObjectIsACollectableAndReadOnlyName = false;
-								if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+								// detect if this object is a quest holder
+								for (int n = 0; n < t.entityelement[iEntityIndex].eleprof.PropertiesVariable.iVariables; n++)
 								{
-									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+									if (pestrcasestr(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.Variable[n], "QuestChoice"))
+									{
+										iCollectionQuestIndex = 0;
+										int iQuestIndex = atoi(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.VariableValue[n]);
+										if (iQuestIndex >= 2 && iQuestIndex <= 1 + g_collectionQuestList.size())
+										{
+											iCollectionQuestIndex = iQuestIndex - 1;
+										}
+										break;
+									}
+								}
+
+								// special color change when object is a collectable
+								bool bObjectIsACollectableAndReadOnlyName = false;
+								LPSTR pDescTooltip = t.strarr_s[204].Get();
+								if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0 || iCollectionQuestIndex > 0 )
+								{
 									bObjectIsACollectableAndReadOnlyName = true;
-									pDescTooltip = "This object has been set as an item collectable";
+									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+									if(iCollectionQuestIndex>0)
+										pDescTooltip = "This object has been set as a quest giver";
+									else
+										pDescTooltip = "This object has been set as an item collectable";
 								}
 								else
 								{
@@ -9949,8 +9968,7 @@ void mapeditorexecutable_loop(void)
 					//#############################
 
 					if (iEntityIndex > 0 && iMasterID > 0 && ObjectExist(iActiveObj))
-					{		
-						#ifdef WICKEDENGINE
+					{
 						bool bGeneralActive = false;
 						if ((t.entityprofile[iMasterID].ismarker == 0 /*|| t.entityprofile[iMasterID].islightmarker == 1 */ || t.tflagspawn == 1))
 							bGeneralActive = true;
@@ -9972,22 +9990,39 @@ void mapeditorexecutable_loop(void)
 								DisplayFPEGeneral(false, iMasterID, &t.entityelement[iEntityIndex].eleprof, iEntityIndex);
 							}
 						}
-						#endif
-						
+
 						// Collectbale Settings if required
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
+						int iCollectableSettingsMode = 0;
+						LPSTR pCollectySettingsLabel = "Additional Settings##1";
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0) { iCollectableSettingsMode = 1; pCollectySettingsLabel = "Collectable Settings##1"; }
+						if(iCollectionQuestIndex>=0)
+						{
+							pCollectySettingsLabel = "Quest Settings##1";
+							iCollectableSettingsMode = 2;
+						}
+						if (iCollectableSettingsMode>0)
 						{
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-							if (ImGui::StyleCollapsingHeader("Collectable Settings##1", ImGuiTreeNodeFlags_None))
+							if (ImGui::StyleCollapsingHeader(pCollectySettingsLabel, ImGuiTreeNodeFlags_None))
 							{
 								iLastOpenHeader = 28;
 								bool bChangedGameCollectionList = false;
 								int iCollectionItemIndex = -1;
-								for (int ci = 0; ci < g_collectionList.size(); ci++)
+								if (iCollectableSettingsMode == 1)
 								{
-									if ( stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL )
+									for (int ci = 0; ci < g_collectionList.size(); ci++)
 									{
-										iCollectionItemIndex = ci;
+										if (stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL)
+										{
+											iCollectionItemIndex = ci;
+										}
+									}
+								}
+								if (iCollectableSettingsMode == 2)
+								{
+									if (iCollectionQuestIndex > 0)
+									{
+										iCollectionItemIndex = iCollectionQuestIndex - 1;
 									}
 								}
 								if (iCollectionItemIndex == -1)
@@ -9996,54 +10031,149 @@ void mapeditorexecutable_loop(void)
 									float w = ImGui::GetWindowContentRegionWidth();
 									float but_gadget_size = ImGui::GetFontSize() * 15.0;
 									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
-									if (ImGui::StyleButton("Create Collection Item", ImVec2(but_gadget_size, 0)))
+									LPSTR pCreateButtonLabel = "Create Collection Item";
+									if (iCollectableSettingsMode == 2) pCreateButtonLabel = "Create Quest";
+									if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
 									{
-										collectionItemType item;
-										fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
-										g_collectionList.push_back(item);
+										if (iCollectableSettingsMode == 1)
+										{
+											collectionItemType item;
+											fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
+											g_collectionList.push_back(item);
+										}
+										if (iCollectableSettingsMode == 2)
+										{
+											collectionQuestType item;
+											fill_rpg_quest_defaults(&item, iMasterID, iEntityIndex);
+
+											// only add unique quest titles
+											bool bFoundMatch = false;
+											for (int q = 0; q < g_collectionQuestList.size(); q++)
+											{
+												if (stricmp(g_collectionQuestList[q].collectionFields[0].Get(), item.collectionFields[0].Get()) == NULL)
+												{
+													bFoundMatch = true;
+												}
+											}
+											if (bFoundMatch == false)
+											{
+												// add unique to quest list
+												g_collectionQuestList.push_back(item);
+												int iQuestIndexAdded = g_collectionQuestList.size();
+
+												// inject into behaviour choice so can reflect as existing
+												for (int n = 0; n < t.entityelement[iEntityIndex].eleprof.PropertiesVariable.iVariables; n++)
+												{
+													if (pestrcasestr(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.Variable[n], "QuestChoice"))
+													{
+														sprintf(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.VariableValue[n], "%d", iQuestIndexAdded);
+														break;
+													}
+												}
+
+												// refresh behaviour and the quest dropdown
+												fpe_current_loaded_script = -1;
+											}
+										}
 										bChangedGameCollectionList = true;
 									}
 								}
 								else
 								{
 									ImGui::Indent(10);
-									for (int l = 0; l < g_collectionLabels.size(); l++)
+									int iCount = g_collectionLabels.size();
+									if (iCollectableSettingsMode == 2) iCount = g_collectionQuestLabels.size();
+									for (int l = 0; l < iCount; l++)
 									{
 										int iKnownLabel = -1;
-										LPSTR pLabel = g_collectionLabels[l].Get();
+										LPSTR pLabel = "";
+										if (iCollectableSettingsMode == 1)
+										{
+											pLabel = g_collectionLabels[l].Get();
+										}
+										if (iCollectableSettingsMode == 2)
+										{
+											pLabel = g_collectionQuestLabels[l].Get();
+										}
 										if (stricmp(pLabel, "title") == NULL) iKnownLabel = 0;
-										//if (stricmp(pLabel, "profile") == NULL) iKnownLabel = 1;
 										if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-										if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
-										if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
-										if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
-										if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
-										if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
-										if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
+										if (iCollectableSettingsMode == 1)
+										{
+											if (stricmp(pLabel, "description") == NULL) iKnownLabel = 3;
+											if (stricmp(pLabel, "cost") == NULL) iKnownLabel = 4;
+											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 5;
+											if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
+											if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
+											if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
+										}
+										if (iCollectableSettingsMode == 2)
+										{
+											if (stricmp(pLabel, "task1") == NULL) iKnownLabel = 51;
+											if (stricmp(pLabel, "task2") == NULL) iKnownLabel = 52;
+											if (stricmp(pLabel, "task3") == NULL) iKnownLabel = 53;
+											if (stricmp(pLabel, "object") == NULL) iKnownLabel = 54;
+											if (stricmp(pLabel, "level") == NULL) iKnownLabel = 55;
+											if (stricmp(pLabel, "points") == NULL) iKnownLabel = 56;
+											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 57;
+											if (stricmp(pLabel, "status") == NULL) iKnownLabel = 58;
+										}
 										if (iKnownLabel >= 0)
 										{
 											// Any tip
-											LPSTR pShowTop = "Enter a value for this item that may appear in your HUD screens";
-											if (iKnownLabel == 2) pShowTop = "Select an image that will be used to represent this object in your HUD screens";
-											if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
-											if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
-											if (iKnownLabel == 5) pShowTop = "Enter a value for this item that may appear in your HUD screens";
-											if (iKnownLabel == 6) pShowTop = "Enter a container for this item that determines where the item will start in the game";
-											if (iKnownLabel == 7) pShowTop = "Enter ingredients separated my comma to be used by a recipe item";
-											if (iKnownLabel == 8) pShowTop = "Enter a style for this item such as recipe or spell";
+											LPSTR pShowTop = "";
+											if (iCollectableSettingsMode == 1)
+											{
+												pShowTop = "Enter a value for this item that may appear in your HUD screens";
+												if (iKnownLabel == 2) pShowTop = "Select an image that will be used to represent this object in your HUD screens";
+												if (iKnownLabel == 3) pShowTop = "Enter a description for this item that may appear in your HUD screens";
+												if (iKnownLabel == 4) pShowTop = "Enter a cost for this item that may appear in your HUD screens";
+												if (iKnownLabel == 5) pShowTop = "Enter a value for this item that may appear in your HUD screens";
+												if (iKnownLabel == 6) pShowTop = "Enter a container for this item that determines where the item will start in the game";
+												if (iKnownLabel == 7) pShowTop = "Enter ingredients separated my comma to be used by a recipe item";
+												if (iKnownLabel == 8) pShowTop = "Enter a style for this item such as recipe or spell";
+											}
+											if (iCollectableSettingsMode == 2)
+											{
+												pShowTop = "Enter a value for this quest";
+												if (iKnownLabel == 2) pShowTop = "Select an image that will be used to represent this quest in your HUD screens";
+												if (iKnownLabel == 51) pShowTop = "Enter a description for the quest task";
+												if (iKnownLabel == 52) pShowTop = "Enter a description for the quest task";
+												if (iKnownLabel == 53) pShowTop = "Enter a description for the quest task";
+												if (iKnownLabel == 54) pShowTop = "Enter the name of an object that will represent the quest object ";
+												if (iKnownLabel == 55) pShowTop = "Enter the player level required to activate this quest";
+												if (iKnownLabel == 56) pShowTop = "Enter the number of XP points awarded when this quest is completed";
+												if (iKnownLabel == 57) pShowTop = "Enter the money earned by completing this quest";
+												if (iKnownLabel == 58) pShowTop = "Enter the initial status of this quest when the game starts";
+											}
 
 											// Attrib Label
 											if (iKnownLabel == 2)
 											{
 												// can change image
-												ImGui::TextCenter("Item Icon Image");
+												LPSTR pImageLabel = "";
+												if (iCollectableSettingsMode == 1)
+												{
+													pImageLabel = "Item Icon Image";
+												}
+												if (iCollectableSettingsMode == 2)
+												{
+													pImageLabel = "Quest Icon Image";
+												}
+												ImGui::TextCenter(pImageLabel);
 												float w = ImGui::GetContentRegionAvailWidth();
 												cstr UniqueCollectionItemImage = "##UniqueCollectionItemImage";
 												if (iSelectedLibraryStingReturnID == window->GetID(UniqueCollectionItemImage.Get()))
 												{
-													g_collectionList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
-													g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
-													g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+													if (iCollectableSettingsMode == 1)
+													{
+														g_collectionList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+														g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+														g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+													}
+													if (iCollectableSettingsMode == 2)
+													{
+														g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
+													}
 													bChangedGameCollectionList = true;
 													sSelectedLibrarySting = "";
 													iSelectedLibraryStingReturnID = -1; //disable.
@@ -10054,7 +10184,15 @@ void mapeditorexecutable_loop(void)
 													g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
 													g_iIconImageInProperties = 0;
 												}
-												LPSTR pIconImageInProperties = g_collectionList[iCollectionItemIndex].collectionFields[l].Get();
+												LPSTR pIconImageInProperties = "";
+												if (iCollectableSettingsMode == 1)
+												{
+													pIconImageInProperties = g_collectionList[iCollectionItemIndex].collectionFields[l].Get();
+												}
+												if (iCollectableSettingsMode == 2)
+												{
+													pIconImageInProperties = g_collectionQuestList[iCollectionItemIndex].collectionFields[l].Get();
+												}
 												if (g_iIconImageInProperties == 0)
 												{
 													cstr actualImgFile_s = "";
@@ -10064,9 +10202,16 @@ void mapeditorexecutable_loop(void)
 														cstr entityfile = t.entitybank_s[iMasterID];
 														actualImgFile_s = get_rpg_imagefinalfile(entityfile);
 														pIconImageInProperties = actualImgFile_s.Get();
-														g_collectionList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
-														g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
-														g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+														if (iCollectableSettingsMode == 1)
+														{
+															g_collectionList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+															g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+															g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+														}
+														if (iCollectableSettingsMode == 2)
+														{
+															g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
+														}
 														bChangedGameCollectionList = true;
 													}
 													g_iIconImageInProperties = g.iconimagebankoffset;
@@ -10135,7 +10280,14 @@ void mapeditorexecutable_loop(void)
 												if ( bAllowEditing == true )
 												{
 													char pNameOfAttrib[MAX_PATH];
-													strcpy(pNameOfAttrib, "Item ");
+													if (iCollectableSettingsMode == 1)
+													{
+														strcpy(pNameOfAttrib, "Item ");
+													}
+													if (iCollectableSettingsMode == 2)
+													{
+														strcpy(pNameOfAttrib, "Quest ");
+													}
 													char pCap[2];
 													pCap[0] = pLabel[0];
 													pCap[1] = 0;
@@ -10145,16 +10297,30 @@ void mapeditorexecutable_loop(void)
 													ImGui::TextCenter(pNameOfAttrib);
 													ImGui::PushItemWidth(-10);
 													char cTmpInput[MAX_PATH];
-													strcpy(cTmpInput, g_collectionList[iCollectionItemIndex].collectionFields[l].Get());
+													if (iCollectableSettingsMode == 1)
+													{
+														strcpy(cTmpInput, g_collectionList[iCollectionItemIndex].collectionFields[l].Get());
+													}
+													if (iCollectableSettingsMode == 2)
+													{
+														strcpy(cTmpInput, g_collectionQuestList[iCollectionItemIndex].collectionFields[l].Get());
+													}
 													int inputFlags = 0;
 													char pNameOfAttribUnique[MAX_PATH];
 													strcpy(pNameOfAttribUnique, "##CollectableItem");
 													strcat(pNameOfAttribUnique, pLabel);
 													if (ImGui::InputText(pNameOfAttribUnique, &cTmpInput[0], MAXTEXTINPUT, inputFlags))
 													{
-														g_collectionList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
-														g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
-														g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+														if (iCollectableSettingsMode == 1)
+														{
+															g_collectionList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+															g_collectionList[iCollectionItemIndex].iEntityID = iMasterID;
+															g_collectionList[iCollectionItemIndex].iEntityElementE = iEntityIndex;
+														}
+														if (iCollectableSettingsMode == 2)
+														{
+															g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
+														}
 														bImGuiGotFocus = true;
 														bChangedGameCollectionList = true;
 													}

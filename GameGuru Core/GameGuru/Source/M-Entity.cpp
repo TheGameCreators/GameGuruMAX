@@ -2137,6 +2137,7 @@ void entity_loaddata ( void )
 		
 		t.entityprofile[t.entid].effect_s = ""; //bIsDecal , needed reset.
 
+		t.entityprofile[t.entid].collectable.image = "default";
 		t.entityprofile[t.entid].collectable.description = t.entityprofileheader[t.entid].desc_s;
 		t.entityprofile[t.entid].collectable.cost = 10;
 		t.entityprofile[t.entid].collectable.value = 5;
@@ -2903,6 +2904,8 @@ void entity_loaddata ( void )
 
 					cmpStrConst(t_field_s, "iscollectable");
 					if (matched)  t.entityprofile[t.entid].iscollectable = t.value1;
+					cmpStrConst(t_field_s, "collectimage");
+					if (matched)  t.entityprofile[t.entid].collectable.image = t.value_s;
 					cmpStrConst(t_field_s, "collectdescription");
 					if (matched)  t.entityprofile[t.entid].collectable.description = t.value_s;
 					cmpStrConst(t_field_s, "collectcost");

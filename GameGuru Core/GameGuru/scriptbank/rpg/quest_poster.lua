@@ -1,26 +1,51 @@
 -- Quest Poster v1
--- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"] featuring [QUEST_TITLE$="My Quest Title"] and [QUEST_DESCRIPTION1$="Go to the location marked"] [QUEST_DESCRIPTION2$="Go to the location marked for you on the map"] [QUEST_DESCRIPTION3$="and collect the item."] and using [QUEST_OBJECT$=""].
+-- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"].
+-- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: <Sound0> when viewing the quest.
 
 local g_quest_poster = {}
 
 function quest_poster_init(e)
 	g_quest_poster[e] = {}
-	quest_poster_properties(e,100,"Press E to view this quest","HUD Screen 8","My Quest Title","Go to the location marked","for you on the map","and collect the item.","")
+	quest_poster_properties(e,100,"Press E to view this quest","HUD Screen 8","")
 end
 
-function quest_poster_properties(e, range, questprompt, questscreen, questtitle, questdescription1, questdescription2, questdescription3, questobject)
+function quest_poster_properties(e, range, questprompt, questscreen, questchoice)
 	g_quest_poster[e]['range'] = range
 	g_quest_poster[e]['questprompt'] = questprompt
 	g_quest_poster[e]['questscreen'] = questscreen
-	g_quest_poster[e]['questtitle'] = questtitle
-	g_quest_poster[e]['questdescription1'] = questdescription1
-	g_quest_poster[e]['questdescription2'] = questdescription2
-	g_quest_poster[e]['questdescription3'] = questdescription3
-	g_quest_poster[e]['questobject'] = questobject
+	g_quest_poster[e]['questchoice'] = questchoice
+	g_quest_poster[e]['questtitle'] = ""
+	g_quest_poster[e]['questdescription1'] = ""
+	g_quest_poster[e]['questdescription2'] = ""
+	g_quest_poster[e]['questdescription3'] = ""
+	g_quest_poster[e]['questobject'] = ""
 end
 
 function quest_poster_main(e)
+
+	if g_quest_poster[e]['questtitle'] == "" then
+		local totalquests = GetCollectionQuestQuantity()
+		if totalquests ~= nil then
+			local i = tonumber(g_quest_poster[e]['questchoice'])-1
+			if i ~= nil then
+				if i > 0 and i < totalquests then
+					g_quest_poster[e]['questtitle'] = GetCollectionQuestAttribute(i,"title")
+					g_quest_poster[e]['questdescription1'] = GetCollectionQuestAttribute(i,"task1")
+					g_quest_poster[e]['questdescription2'] = GetCollectionQuestAttribute(i,"task2")
+					g_quest_poster[e]['questdescription3'] = GetCollectionQuestAttribute(i,"task3")
+					g_quest_poster[e]['questobject'] = GetCollectionQuestAttribute(i,"object")
+					local a = GetCollectionQuestAttribute(i,"level")
+					local b = GetCollectionQuestAttribute(i,"points")
+					local c = GetCollectionQuestAttribute(i,"value")
+					local d = GetCollectionQuestAttribute(i,"status")
+				end
+			else
+				PromptDuration(g_quest_poster[e]['questchoice'],5000)
+			end
+		end
+	end
+	
 	if g_UserGlobalQuestTitleActive ~= nil then
 		if g_quest_poster[e]['questtitle'] ~= g_UserGlobalQuestTitleActive then
 			-- show in the game, not our current one
@@ -52,7 +77,7 @@ function quest_poster_main(e)
 					g_UserGlobalQuestTitleActiveObject = ""
 					g_UserGlobalQuestTitleActiveE = 0
 					-- finished with quest_poster_init
-					Destroy(e)
+					--Destroy(e)
 				end
 			end
 		end

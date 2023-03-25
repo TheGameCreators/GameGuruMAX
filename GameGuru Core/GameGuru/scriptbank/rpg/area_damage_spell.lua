@@ -112,12 +112,12 @@ function area_damage_spell_main(e)
 			g_area_damage_spell[e].cast_timeout = 0
 			-- hide the spell effect particles again
 			if g_area_damage_spell[e].particle1_number > 0 or nil then Hide(g_area_damage_spell[e].particle1_number) end
-			if g_area_damage_spell[e].particle1_number > 0 or nil then Hide(g_area_damage_spell[e].particle2_number) end
+			if g_area_damage_spell[e].particle2_number > 0 or nil then Hide(g_area_damage_spell[e].particle2_number) end
 		else
 			-- scale spell to see it radiate outward
 			local tscaleradius = 5.0 + ((Timer()-g_area_damage_spell[e].cast_timeout)/cradius[e])
 			if g_area_damage_spell[e].particle1_number > 0 then Scale(g_area_damage_spell[e].particle1_number,tscaleradius) end
-			if g_area_damage_spell[e].particle1_number > 0 then Scale(g_area_damage_spell[e].particle2_number,tscaleradius) end
+			if g_area_damage_spell[e].particle2_number > 0 then Scale(g_area_damage_spell[e].particle2_number,tscaleradius) end
 			-- apply effect as radius increases
 			-- do the magic
 			for ee = 1, g_EntityElementMax, 1 do

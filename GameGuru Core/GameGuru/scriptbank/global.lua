@@ -2511,6 +2511,10 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetCollectionAttributeLabel :, GetCollectionAttributeLabel
 -- GetCollectionItemQuantity : GetCollectionItemQuantity
 -- GetCollectionItemAttribute : GetCollectionItemAttribute
+-- GetCollectionQuestAttributeQuantity : totalattribs = GetCollectionQuestAttributeQuantity() -- returns the total number of quest attribute labels used
+-- GetCollectionQuestAttributeLabel : value = GetCollectionQuestAttributeLabel(attribindex) -- returns the label string stored at this position in the attribute list
+-- GetCollectionQuestQuantity : totalquests = GetCollectionQuestQuantity() -- returns total number of quests in the game
+-- GetCollectionQuestAttribute : value = GetCollectionQuestAttribute(questindex,"attrib") -- returns the value stored in the attrib label of the specified quest
 -- MakeInventoryContainer : MakeInventoryContainer
 -- GetInventoryTotal : GetInventoryTotal
 -- GetInventoryName : GetInventoryName

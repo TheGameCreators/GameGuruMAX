@@ -2487,6 +2487,7 @@ GetTerrainCollisionDetails( objectId, num )
 --]]
 
 -- Storyboard commands
+-- SetScreenHUDGlobalScale : SetScreenHUDGlobalScale
 -- InitScreen : InitScreen
 -- DisplayScreen : DisplayScreen
 -- DisplayCurrentScreen : DisplayCurrentScreen

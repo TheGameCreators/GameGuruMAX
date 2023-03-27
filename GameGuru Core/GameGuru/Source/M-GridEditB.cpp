@@ -45899,6 +45899,16 @@ int LuaMouseClick = 0;
 static char LoadGameTitle[9][256];
 char cCopyToAllScreens[MAX_PATH];
 
+float g_fAdjustGlobalHUDScreenScale = 1.0f;
+void screen_editor_setscalemod (float fGlobalScaleMod)
+{
+	g_fAdjustGlobalHUDScreenScale = fGlobalScaleMod;
+}
+float screen_editor_scalemod (float fGlobalScaleIn)
+{
+	return fGlobalScaleIn * g_fAdjustGlobalHUDScreenScale;
+}
+
 int screen_editor(int nodeid, bool standalone, char *screen)
 {
 	extern bool g_bNoGGUntilGameGuruMainCalled;
@@ -46681,8 +46691,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 			}
 		}
-		//ImVec2 vScale = vMonitorSize / ImVec2(1980.0, 1080);
-		float fGlobalScale = vViewportSize.x / 1920.0f;
+
+		extern float screen_editor_scalemod (float);
+		float fGlobalScale = screen_editor_scalemod(vViewportSize.x / 1920.0f);
+
 		ImVec2 vScale = vMonitorSize / vViewportSize;
 		ImVec2 vMonitorStart = ImVec2(vMonitorCenterX, 0) + vHeaderEnd + vMonitorPos;
 		ImVec2 vMonitorEnd = ImVec2(vMonitorCenterX, 0) + vHeaderEnd + vMonitorPos + vMonitorSize;

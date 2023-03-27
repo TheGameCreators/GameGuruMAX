@@ -57,10 +57,16 @@ hud0_itemindexscrolloffset = 0
 hud0_scrollpanel_mainrow = 0
 hud0_scrollpanel_maincolumn = 0
 
+hud0_sounds = 1000
+hud0_sounds_levelup = 1001
+
 function hud0.init()
  -- initialise all globals
  InitScreen("HUD0")
  -- create resources for HUD
+ hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
+ -- load sound resources
+ LoadGlobalSound("audiobank\\misc\\levelup.wav",hud0_sounds_levelup)
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
  -- init in-game HUD base container for hotkeys panel if any
  hud0_playercontainer_screenID = 0
@@ -1358,6 +1364,8 @@ function hud0.main()
 			triggerElementPrompt = "MyLevelUpText"
 			triggerElementPromptText = "YOU'VE LEVELLED UP!"
 			triggerElementPromptTimer = Timer()
+			Prompt(hud0_sounds_levelup)
+			if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
 			-- reset current XP
 			currentXP = currentXP - maximumXP
 			-- increase new points available

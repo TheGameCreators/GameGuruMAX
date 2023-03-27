@@ -2185,7 +2185,6 @@ DARKSDK void EncryptAllFiles(char* dwStringAddress)
 							//PE: particlesbank use GPUP_LoadTexture that do not support decrypt.
 							pMatch = "Files\\particlesbank";  if (strstr(szCurrentDirectory, pMatch) != NULL) bDoEnc = false;
 
-							//c:\Program Files (x86)\Steam\steamapps\common\GameGuru MAX\Files\particlesbank\fire_and_smoke.arx
 							if (bDoEnc == true)
 							{
 								char originalFolder[MAX_PATH];

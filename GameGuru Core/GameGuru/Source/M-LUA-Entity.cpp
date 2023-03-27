@@ -332,7 +332,10 @@ void entity_lua_show ( void )
 			{
 				if (ObjectExist(t.tobj) == 1)
 				{
-					ShowObject (t.tobj);
+					//PE: LuaNext() is getting "show" on marker object after second level has loaded.
+					//PE: Expect this has something to do with activating object in rpg ?
+					if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 0)
+						ShowObject (t.tobj);
 				}
 			}
 			t.tattobj = t.entityelement[t.e].attachmentobj;

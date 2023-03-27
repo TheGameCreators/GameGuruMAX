@@ -180,16 +180,18 @@ bool load_rpg_system_quests(char* name)
 	// out of the box labels
 	g_collectionQuestLabels.clear();
 	g_collectionQuestLabels.push_back("title");
-	g_collectionQuestLabels.push_back("profile");
+	g_collectionQuestLabels.push_back("type");
 	g_collectionQuestLabels.push_back("image");
-	g_collectionQuestLabels.push_back("task1");
-	g_collectionQuestLabels.push_back("task2");
-	g_collectionQuestLabels.push_back("task3");
+	g_collectionQuestLabels.push_back("desc1");
+	g_collectionQuestLabels.push_back("desc2");
+	g_collectionQuestLabels.push_back("desc3");
 	g_collectionQuestLabels.push_back("object");
+	g_collectionQuestLabels.push_back("receiver");
 	g_collectionQuestLabels.push_back("level");
 	g_collectionQuestLabels.push_back("points");
 	g_collectionQuestLabels.push_back("value");
 	g_collectionQuestLabels.push_back("status");
+	g_collectionQuestLabels.push_back("activate");
 	std::vector<cstr> g_localCollectionLabels;
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");
@@ -219,16 +221,18 @@ bool load_rpg_system_quests(char* name)
 				// remaining lines are the collection, prepopulate with correct number of them
 				item.collectionFields.clear();
 				item.collectionFields.push_back("");
-				item.collectionFields.push_back("default");
+				item.collectionFields.push_back("collect");
 				item.collectionFields.push_back("default");
 				item.collectionFields.push_back("");
 				item.collectionFields.push_back("");
 				item.collectionFields.push_back("");
 				item.collectionFields.push_back("none");
+				item.collectionFields.push_back("none");
 				item.collectionFields.push_back("1");
 				item.collectionFields.push_back("100");
 				item.collectionFields.push_back("100");
 				item.collectionFields.push_back("inactive");
+				item.collectionFields.push_back("none");
 				int iLAIndex = item.collectionFields.size();
 				while (iLAIndex < g_collectionQuestLabels.size())
 				{
@@ -615,16 +619,18 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
 		int iKnownLabel = -1;
 		LPSTR pLabel = g_collectionQuestLabels[l].Get();
 		if (stricmp(pLabel, "title") == NULL) iKnownLabel = 0;
-		if (stricmp(pLabel, "profile") == NULL) iKnownLabel = 1;
+		if (stricmp(pLabel, "type") == NULL) iKnownLabel = 51;
 		if (stricmp(pLabel, "image") == NULL) iKnownLabel = 2;
-		if (stricmp(pLabel, "task1") == NULL) iKnownLabel = 51;
-		if (stricmp(pLabel, "task2") == NULL) iKnownLabel = 52;
-		if (stricmp(pLabel, "task3") == NULL) iKnownLabel = 53;
-		if (stricmp(pLabel, "object") == NULL) iKnownLabel = 54;
-		if (stricmp(pLabel, "level") == NULL) iKnownLabel = 55;
-		if (stricmp(pLabel, "points") == NULL) iKnownLabel = 56;
-		if (stricmp(pLabel, "value") == NULL) iKnownLabel = 57;
-		if (stricmp(pLabel, "status") == NULL) iKnownLabel = 58;
+		if (stricmp(pLabel, "desc1") == NULL) iKnownLabel = 52;
+		if (stricmp(pLabel, "desc2") == NULL) iKnownLabel = 53;
+		if (stricmp(pLabel, "desc3") == NULL) iKnownLabel = 54;
+		if (stricmp(pLabel, "object") == NULL) iKnownLabel = 55;
+		if (stricmp(pLabel, "receiver") == NULL) iKnownLabel = 56;
+		if (stricmp(pLabel, "level") == NULL) iKnownLabel = 57;
+		if (stricmp(pLabel, "points") == NULL) iKnownLabel = 58;
+		if (stricmp(pLabel, "value") == NULL) iKnownLabel = 59;
+		if (stricmp(pLabel, "status") == NULL) iKnownLabel = 60;
+		if (stricmp(pLabel, "activate") == NULL) iKnownLabel = 61;
 		if (iKnownLabel >= 0)
 		{
 			if (iKnownLabel == 0)
@@ -632,9 +638,9 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
 				LPSTR pTitle = t.entityelement[e].eleprof.name_s.Get();
 				pItem->collectionFields.push_back(pTitle);
 			}
-			if (iKnownLabel == 1)
+			if (iKnownLabel == 51)
 			{
-				pItem->collectionFields.push_back("default");
+				pItem->collectionFields.push_back("collect");
 			}
 			if (iKnownLabel == 2)
 			{
@@ -653,14 +659,16 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
 				}
 				pItem->collectionFields.push_back(pFinalImgFile);
 			}
-			if (iKnownLabel == 51) pItem->collectionFields.push_back("");
 			if (iKnownLabel == 52) pItem->collectionFields.push_back("");
 			if (iKnownLabel == 53) pItem->collectionFields.push_back("");
 			if (iKnownLabel == 54) pItem->collectionFields.push_back("");
-			if (iKnownLabel == 55) pItem->collectionFields.push_back("1");
-			if (iKnownLabel == 56) pItem->collectionFields.push_back("100");
-			if (iKnownLabel == 57) pItem->collectionFields.push_back("100");
-			if (iKnownLabel == 58) pItem->collectionFields.push_back("inactive");
+			if (iKnownLabel == 55) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 56) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 57) pItem->collectionFields.push_back("1");
+			if (iKnownLabel == 58) pItem->collectionFields.push_back("100");
+			if (iKnownLabel == 59) pItem->collectionFields.push_back("100");
+			if (iKnownLabel == 60) pItem->collectionFields.push_back("inactive");
+			if (iKnownLabel == 61) pItem->collectionFields.push_back("none");
 		}
 		else
 		{

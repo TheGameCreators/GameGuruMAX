@@ -1229,6 +1229,7 @@ DARKSDK void SetDir( LPSTR pString )
 				case ENAMETOOLONG: wsprintf(strstr, "The path argument exceeds {PATH_MAX} in length of '%s", (LPSTR)pString); break;
 				case ENOENT: wsprintf(strstr, "A component of path does not name an existing directory or path is an empty for '%s", (LPSTR)pString); break;
 				case ENOTDIR: wsprintf(strstr, "A component of the pathname is not a directory for '%s", (LPSTR)pString); break;
+				default: wsprintf(strstr, "Error: %ld Folder: %s", errno , (LPSTR)pString); break;
 			}
 			char cwd[MAX_PATH];
 			getcwd(cwd, MAX_PATH);

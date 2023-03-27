@@ -6376,8 +6376,13 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 
 					// The animation library was not displaying any animations, sorted_files was not populated with the animation files
 					// This ensures that they are included
-					if (foldertype == 6 && pestrcasestr(file_s.Get(), ".dbo"))
+					//if (foldertype == 6 && pestrcasestr(file_s.Get(), ".dbo"))
+					//	bValid = true;
+
+					//PE: Should be .fpe, that also means that it displays the thumbs and you can preview animations :)
+					if (foldertype == 6 && pestrcasestr(file_s.Get(), ".fpe"))
 						bValid = true;
+
 
 					#endif
 

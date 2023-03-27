@@ -49,7 +49,8 @@ function about_init()
 
  -- cursor
  g_imgAboutCursor = LoadImage("titlesbank\\" .. g_strStyleFolder .. "\\cursor.png")
- g_sprAboutCursor = CreateSprite ( g_imgAboutCursor ) 
+ g_sprAboutCursor = CreateSprite ( g_imgAboutCursor )
+ SetSpritePriority(g_sprAboutCursor, -1)  
  ActivateMouse()
 end
 

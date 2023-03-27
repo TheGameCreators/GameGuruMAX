@@ -3227,6 +3227,34 @@ DARKSDK_DLL void MakeObjectCone ( int iID, float fSize )
 
 DARKSDK_DLL void AppendObject ( LPSTR pString, int iID, int iFrame )
 {
+	//PE: Support Decrypt/Encrypt when adding animations. (standalone).
+	char VirtualFilename[_MAX_PATH];
+	strcpy(VirtualFilename, pString);
+
+	// store current folder (typically mode dir)
+	char pStoreCurrentDir[_MAX_PATH];
+	GetCurrentDirectory(_MAX_PATH, pStoreCurrentDir);
+
+	// determine if loading an encrypted model file
+	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile(VirtualFilename);
+
+	// get path of original model file passed in
+	char pPathToOriginalFile[_MAX_PATH];
+	strcpy(pPathToOriginalFile, "");
+	if (strlen(VirtualFilename) > 0)
+	{
+		// get relative path from current
+		strcpy(pPathToOriginalFile, VirtualFilename);
+		for (DWORD n = strlen(pPathToOriginalFile) - 1; n > 0; n--)
+		{
+			if (pPathToOriginalFile[n] == '\\' || pPathToOriginalFile[n] == '/' || (unsigned char)(pPathToOriginalFile[n]) < 32)
+			{
+				pPathToOriginalFile[n] = 0;
+				break;
+			}
+		}
+	}
+
 	// check the object exists
 	if ( !ConfirmObject ( iID ) )
 		return;
@@ -3240,11 +3268,17 @@ DARKSDK_DLL void AppendObject ( LPSTR pString, int iID, int iFrame )
 	}
 
 	// Append animation from file to model
-	if ( !AppendAnimationFromFile ( pObject, (LPSTR)pString, iFrame ) )
+	if (g_pGlob->Decrypt) g_pGlob->Decrypt(VirtualFilename);
+
+	if ( !AppendAnimationFromFile ( pObject, (LPSTR)VirtualFilename, iFrame ) )
 	{
+		if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
 		RunTimeError(RUNTIMEERROR_B3DOBJECTAPPENDFAILED);
 		return;
 	}
+	if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
+
+
 }
 
 DARKSDK_DLL void PlayObject ( int iID )

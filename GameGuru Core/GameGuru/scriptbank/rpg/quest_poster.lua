@@ -17,16 +17,13 @@ function quest_poster_properties(e, range, questprompt, questscreen, questchoice
 	g_quest_poster[e]['questchoice'] = questchoice
 	g_quest_poster[e]['questtitle'] = ""
 	g_quest_poster[e]['questtype'] = ""
-	g_quest_poster[e]['questdescription1'] = ""
-	g_quest_poster[e]['questdescription2'] = ""
-	g_quest_poster[e]['questdescription3'] = ""
 	g_quest_poster[e]['questobject'] = ""
 	g_quest_poster[e]['questreceiver'] = ""
 	g_quest_poster[e]['questlevel'] = ""
 	g_quest_poster[e]['questpoints'] = ""
 	g_quest_poster[e]['questvalue'] = ""
-	g_quest_poster[e]['queststatus'] = ""
 	g_quest_poster[e]['questactivate'] = ""
+	g_quest_poster[e]['queststarted'] = 0
 end
 
 function quest_poster_main(e)
@@ -38,15 +35,11 @@ function quest_poster_main(e)
 				if i > 0 and i <= totalquests then
 					g_quest_poster[e]['questtitle'] = GetCollectionQuestAttribute(i,"title")
 					g_quest_poster[e]['questtype'] = GetCollectionQuestAttribute(i,"type")
-					g_quest_poster[e]['questdescription1'] = GetCollectionQuestAttribute(i,"desc1")
-					g_quest_poster[e]['questdescription2'] = GetCollectionQuestAttribute(i,"desc2")
-					g_quest_poster[e]['questdescription3'] = GetCollectionQuestAttribute(i,"desc3")
 					g_quest_poster[e]['questobject'] = GetCollectionQuestAttribute(i,"object")
 					g_quest_poster[e]['questreceiver'] = GetCollectionQuestAttribute(i,"receiver")
 					g_quest_poster[e]['questlevel'] = GetCollectionQuestAttribute(i,"level")
 					g_quest_poster[e]['questpoints'] = GetCollectionQuestAttribute(i,"points")
 					g_quest_poster[e]['questvalue'] = GetCollectionQuestAttribute(i,"value")
-					g_quest_poster[e]['queststatus'] = GetCollectionQuestAttribute(i,"status")
 					g_quest_poster[e]['questactivate'] = GetCollectionQuestAttribute(i,"activate")
 				end
 			else
@@ -56,25 +49,39 @@ function quest_poster_main(e)
 	end
 	if g_UserGlobalQuestTitleActive == nil then g_UserGlobalQuestTitleActive = "" end
 	if g_UserGlobalQuestTitleActive ~= nil then
-		if g_quest_poster[e]['questtitle'] ~= g_UserGlobalQuestTitleActive then
-			-- show in the game, not our current one
+		if g_quest_poster[e]['queststarted'] == 0 then
 			Show(e)
+			for tquestindex = 1, hud0_quest_qty, 1 do
+				if GetCollectionQuestAttribute(tquestindex,"title") == g_quest_poster[e]['questtitle'] then
+					if hud0_quest_status[tquestindex] == "active" then
+						g_quest_poster[e]['queststarted'] = 1
+					end
+					break
+				end
+			end
 			PlayerDist = GetPlayerDistance(e)
 			if PlayerDist < g_quest_poster[e]['range'] then
 				PromptDuration(g_quest_poster[e]['questprompt'] ,1000)	
 				if g_KeyPressE == 1 then
-					_G["g_UserGlobal['".."MyQuestShowTitle".."']"] = g_quest_poster[e]['questtitle']
-					_G["g_UserGlobal['".."MyQuestShowTask1".."']"] = g_quest_poster[e]['questdescription1']
-					_G["g_UserGlobal['".."MyQuestShowTask2".."']"] = g_quest_poster[e]['questdescription2']
-					_G["g_UserGlobal['".."MyQuestShowTask3".."']"] = g_quest_poster[e]['questdescription3']
+					-- set game to this quest
 					g_UserGlobalQuestTitleShowing = g_quest_poster[e]['questtitle']
 					g_UserGlobalQuestTitleShowingObject = g_quest_poster[e]['questobject']
 					ScreenToggle(g_quest_poster[e]['questscreen'])
 				end
 			end
 		else
-			-- hide in game, we have accepted this one and doing it now
 			Hide(e)
+			for tquestindex = 1, hud0_quest_qty, 1 do
+				if GetCollectionQuestAttribute(tquestindex,"title") == g_quest_poster[e]['questtitle'] then
+					if hud0_quest_status[tquestindex] == "inactive" then
+						g_quest_poster[e]['queststarted'] = 0
+					end
+					break
+				end
+			end
+		end
+		if g_quest_poster[e]['questtitle'] == g_UserGlobalQuestTitleActive then
+			-- hide in game, we have accepted this one and doing it now
 			if g_UserGlobalQuestTitleActiveE > 0 then
 				local tquestcomplete = 0
 				if g_quest_poster[e]['questtype'] == "collect" then
@@ -85,7 +92,7 @@ function quest_poster_main(e)
 				end
 				if g_quest_poster[e]['questtype'] == "destroy" then
 					-- DESTROY
-					if g_Entity[g_UserGlobalQuestTitleActiveE]['active'] == 0 then
+					if g_Entity[g_UserGlobalQuestTitleActiveE]['health'] <= 0 then
 						tquestcomplete = 1
 					end
 				end
@@ -119,6 +126,15 @@ function quest_poster_main(e)
 					-- to complete a quest means to destroy it
 					PerformLogicConnections(e)
 					Destroy(e)
+					-- and update quest status
+					if g_UserGlobalQuestTitleActive ~= nil then
+						for tquestindex = 1, hud0_quest_qty, 1 do
+							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleActive then
+								hud0_quest_status[tquestindex] = "complete"
+								break
+							end
+						end
+					end
 					-- and reset quest
 					g_UserGlobalQuestTitleActive = ""
 					g_UserGlobalQuestTitleActiveObject = ""

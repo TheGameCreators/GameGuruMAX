@@ -507,11 +507,26 @@ cstr get_rpg_imagefinalfile(cstr entityfile)
 	LPSTR pAbsPathToFile = BackBufferCacheName.Get();
 	cstr pRootDir = g.fpscrootdir_s + "\\Files\\";
 	char pIconFile[MAX_PATH];
-	strcpy(pIconFile, pAbsPathToFile + strlen(pRootDir.Get()));
-	pIconFile[strlen(pIconFile) - 4] = 0;
-	strcat(pIconFile, ".png");
-	cstr pFinalImgFile = pIconFile;
-	if (FileExist(pFinalImgFile.Get()) == 0) pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+	strcpy(pIconFile, entityfile.Get());
+	cstr pFinalImgFile;
+	if (FileExist(pIconFile) == 1)
+	{
+		// found right away
+		pFinalImgFile = pIconFile;
+	}
+	else
+	{
+		// find it elsewhere
+		strcpy(pIconFile, pAbsPathToFile + strlen(pRootDir.Get()));
+		pIconFile[strlen(pIconFile) - 4] = 0;
+		strcat(pIconFile, ".png");
+		pFinalImgFile = pIconFile;
+		if (FileExist(pFinalImgFile.Get()) == 0)
+		{
+			// fall back
+			pFinalImgFile = "imagebank\\HUD Library\\MAX\\object.png";
+		}
+	}
 	return pFinalImgFile;
 }
 
@@ -613,7 +628,7 @@ bool fill_rpg_item_defaults(collectionItemType* pItem, int entid, int e)
 	return fill_rpg_item_defaults_passedin(pItem, entid, e, NULL, NULL);
 }
 
-bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
+bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName)
 {
 	pItem->collectionFields.clear();
 	for (int l = 0; l < g_collectionQuestLabels.size(); l++)
@@ -637,7 +652,7 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
 		{
 			if (iKnownLabel == 0)
 			{
-				LPSTR pTitle = t.entityelement[e].eleprof.name_s.Get();
+				LPSTR pTitle = pName;
 				pItem->collectionFields.push_back(pTitle);
 			}
 			if (iKnownLabel == 51)
@@ -646,19 +661,7 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, int entid, int e)
 			}
 			if (iKnownLabel == 2)
 			{
-				cstr pFinalImgFile = "";
-				cstr localiconfile = t.entityprofile[entid].collectable.image.Get();
-				if (FileExist(localiconfile.Get()) == 1)
-				{
-					// use locally specified icon
-					pFinalImgFile = localiconfile;
-				}
-				else
-				{
-					// use default out of the box icon
-					cstr entityfile = t.entitybank_s[entid];
-					pFinalImgFile = get_rpg_imagefinalfile(entityfile);
-				}
+				cstr pFinalImgFile = get_rpg_imagefinalfile("imagebank\\HUD Library\\RPG\\quest_scroll.png");
 				pItem->collectionFields.push_back(pFinalImgFile);
 			}
 			if (iKnownLabel == 52) pItem->collectionFields.push_back("");

@@ -46773,6 +46773,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 			}
 
+			// can hide any widget if flagged as so
+			bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][index];
+			if (bIsWidgetHidden == true)
+				continue;
+
 			//ImVec2 fOnePercent = ImVec2(1920.0 / 100.0, 1080.0 / 100.0); //PE: This can be changed in the future to support different screen ratio settings.
 			ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
 			bool bUsePivotXCenter = true;
@@ -46946,10 +46951,23 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 
 				//Text Label
-				if ( Storyboard.Nodes[nodeid].widget_type[index] != STORYBOARD_WIDGET_BAR )
+				if (Storyboard.Nodes[nodeid].widget_type[index] != STORYBOARD_WIDGET_BAR)
 				{
+					// is this a special button
+					char pDestStr[MAX_PATH];
+					strcpy(pDestStr, "");
+					LPSTR pWidgetLabel = Storyboard.Nodes[nodeid].widget_label[index];
+					if (strnicmp(pWidgetLabel, "quest:", 6) == NULL && bImGuiInTestGame)
+					{
+						char pUserDefinedGlobal[256];
+						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", pWidgetLabel);
+						LuaGetString(pUserDefinedGlobal, pDestStr);
+						pWidgetLabel = pDestStr;
+					}
+
+					// render text for button and other things
 					ImVec2 fTextAdjust = ImVec2(0.0f, 0.0f);
-					ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
+					ImVec2 fTextSize = ImGui::CalcTextSize(pWidgetLabel); //Already scaled.
 					if (iTextAdjustment == 0)
 						fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
 					else if (iTextAdjustment == 1)
@@ -46963,7 +46981,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					if (Storyboard.Nodes[nodeid].widget_font_size[index] > 0)
 					{
 						ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], Storyboard.Nodes[nodeid].widget_label[index]);
+						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pWidgetLabel);
 					}
 				}
 			}

@@ -60,6 +60,9 @@ hud0_scrollpanel_maincolumn = 0
 hud0_sounds = 1000
 hud0_sounds_levelup = 1001
 
+hud0_quest_qty = 0
+hud0_quest_status = {}
+
 function hud0.init()
  -- initialise all globals
  SetScreenHUDGlobalScale(1.0)
@@ -88,6 +91,11 @@ function hud0.init()
  -- default settings
  hud0_scrollbar_mode = -1
  hud0_scrollbar_boxw = 0
+ -- init quest states
+ hud0_quest_qty = GetCollectionQuestQuantity()
+ for tquestindex = 1, hud0_quest_qty, 1 do
+	hud0_quest_status[tquestindex] = GetCollectionQuestAttribute(tquestindex,"status")
+ end
 end
 
 function hud0.refreshHUD()
@@ -709,6 +717,64 @@ function hud0.main()
 		end
 	end
 	
+	-- handle any quest text
+	local iqty = GetScreenElements("quest:*")
+	for ti = 1, iqty, 1 do
+		local elementID = GetScreenElementID("quest:*",ti)
+		local elementName = GetScreenElementName(elementID)
+		if elementID > 0 then
+			for tlisti = 1, 5, 1 do
+				if elementName == "quest:list:"..tlisti then
+					local ttextvalue = ""
+					local tactivelistcount = 0
+					for tquestindex = 1, hud0_quest_qty, 1 do
+						if hud0_quest_status[tquestindex] == "active" then
+							tactivelistcount=tactivelistcount+1
+							if tactivelistcount == tlisti then
+								ttextvalue = GetCollectionQuestAttribute(tquestindex,"title")
+								if ttextvalue == g_UserGlobalQuestTitleActive then
+									ttextvalue = "["..g_UserGlobalQuestTitleActive.."]"
+								end
+							end
+						end
+					end
+					if ttextvalue == "" then
+						SetScreenElementVisibility(elementID,0)
+					else
+						SetScreenElementVisibility(elementID,1)
+					end
+					SetScreenElementText(elementID,ttextvalue)
+				end
+			end
+			if string.sub(elementName,1,11) == "quest:show:" then
+				ttextvalue = ""
+				if g_UserGlobalQuestTitleShowing ~= nil then
+					if elementName == "quest:show:title" then
+						ttextvalue = g_UserGlobalQuestTitleShowing
+					else
+						for tquestindex = 1, hud0_quest_qty, 1 do
+							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleShowing then
+								if elementName == "quest:show:completed" then
+									if hud0_quest_status[tquestindex] == "complete" then
+										ttextvalue = "Quest Completed"
+									else
+										ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." XP points and "..GetCollectionQuestAttribute(tquestindex,"value").." money"
+									end
+								else
+									if elementName == "quest:show:desc1" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc1") end
+									if elementName == "quest:show:desc2" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc2") end
+									if elementName == "quest:show:desc3" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc3") end
+								end
+								break
+							end
+						end
+					end
+				end
+				SetScreenElementText(elementID,ttextvalue)
+			end
+		end	
+	end			
+	
 	-- handle any logic ascribed to global text elements
 	local telementqty = GetScreenElementsType("user defined global text")
 	for elementi = 1, telementqty, 1 do
@@ -725,6 +791,50 @@ function hud0.main()
 						SetScreenElementText(elementid,"You can upgrade your stats, 1 point remains")
 					else
 						SetScreenElementText(elementid,"You can upgrade your stats, "..pointavailable.." points remain")
+					end
+				end
+			end
+		end
+	end
+	
+	-- handle hiding and showing of buttons
+	local iqty = GetScreenElements("*")
+	for ti = 1, iqty, 1 do
+		local elementID = GetScreenElementID("*",ti)
+		local buttonElementName = GetScreenElementName(elementID)
+		if string.len(buttonElementName) > 0 then
+			local buttonOnScreen = 0
+			if buttonElementName == "ACCEPT" then buttonOnScreen = 104 end
+			if buttonElementName == "CANCEL" then buttonOnScreen = 105 end
+			if buttonOnScreen > 0 then
+				if buttonOnScreen == 104 or buttonOnScreen == 105 then
+					SetScreenElementVisibility(elementID,0)
+					if g_UserGlobalQuestTitleShowing ~= "" then
+						if buttonOnScreen == 104 then
+							if g_UserGlobalQuestTitleShowing ~= g_UserGlobalQuestTitleActive then
+								-- allow accepting of quest
+								for tquestindex = 1, hud0_quest_qty, 1 do
+									if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleShowing then
+										if hud0_quest_status[tquestindex] == "active" then
+											-- switch to another active quest
+											SetScreenElementVisibility(elementID,1)
+											break
+										end
+										if hud0_quest_status[tquestindex] == "inactive" then
+											-- allow inactive quest to be accepted
+											SetScreenElementVisibility(elementID,1)
+											break
+										end
+									end
+								end
+							end
+						end
+						if buttonOnScreen == 105 then
+							if g_UserGlobalQuestTitleShowing == g_UserGlobalQuestTitleActive then
+								-- allow canceling of quest
+								SetScreenElementVisibility(elementID,1)
+							end
+						end
 					end
 				end
 			end
@@ -1010,27 +1120,64 @@ function hud0.main()
 					for ee = 1, g_EntityElementMax, 1 do
 						if e ~= ee then
 							if g_Entity[ee] ~= nil then
-								if g_Entity[ee]['active'] > 0 then
+								--if g_Entity[ee]['active'] > 0 then
 									if GetEntityName(ee) == g_UserGlobalQuestTitleShowingObject then
 										findee = ee
 										break
 									end
-								end
+								--end
 							end
 						end
 					end
 					if findee > 0 then
+						-- set new current quest now
 						g_UserGlobalQuestTitleActive = g_UserGlobalQuestTitleShowing
 						g_UserGlobalQuestTitleActiveE = findee
+						-- update game quest status
+						for tquestindex = 1, hud0_quest_qty, 1 do
+							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleShowing then
+								hud0_quest_status[tquestindex] = "active"
+								break
+							end
+						end
 						ScreenToggle("")
 					end
 				end
 				if actionOnScreen == 105 then
 					-- CANCEL current QUEST
+					if g_UserGlobalQuestTitleActive ~= nil then
+						for tquestindex = 1, hud0_quest_qty, 1 do
+							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleActive then
+								hud0_quest_status[tquestindex] = "inactive"
+								break
+							end
+						end
+					end
+					-- no current quest
 					g_UserGlobalQuestTitleActive = ""
 					g_UserGlobalQuestTitleActiveObject = ""
 					g_UserGlobalQuestTitleActiveE = 0
+					g_UserGlobalQuestTitleShowing = ""
+					g_UserGlobalQuestTitleShowingObject = ""
+					-- close the HUD
 					ScreenToggle("")
+				end
+			end
+			-- if still no action, see if special button
+			if actionOnScreen == 0 then
+				for tlisti = 1, 5, 1 do
+					if buttonElementName == "quest:list:"..tlisti then
+						local tactivelistcount = 0
+						for tquestindex = 1, hud0_quest_qty, 1 do
+							if hud0_quest_status[tquestindex] == "active" then
+								tactivelistcount=tactivelistcount+1
+								if tactivelistcount == tlisti then
+									g_UserGlobalQuestTitleShowing = GetCollectionQuestAttribute(tquestindex,"title")
+									g_UserGlobalQuestTitleShowingObject = GetCollectionQuestAttribute(tquestindex,"object")								
+								end
+							end
+						end
+					end
 				end
 			end
 		end
@@ -1182,7 +1329,6 @@ function hud0.main()
 		if isMap == "map:" then
 			scrx,scry,tscrwidth,tscrheight = GetScreenElementArea(theelementID)    
 			local scrimg = GetScreenElementImage(theelementID)
-			local scruseoffset = 0
 			SetScreenElementVisibility(theelementID,0)
 			local mapName = string.sub(imagename, 5, -1)
 			local scritems = -1
@@ -1210,6 +1356,7 @@ function hud0.main()
 			end
 			local itemstodraw = {}
 			local itemstodrawscale = {}
+			local itemstodrawscaleoffset = {}
 			if mapName == "character" or mapName == "objective" or mapName == "winzone" then
 				local entlist = U.ClosestEntities( realmapsize )
 				scritems = 0
@@ -1217,23 +1364,25 @@ function hud0.main()
 					local ee = entlist[entlistindex]
 					if ee > 0 then
 						if g_Entity[ee].active > 0 then
+							local tscaleit = 0
 							if mapName == "character" then
 								local thisallegiance = GetEntityAllegiance(ee)
 								if thisallegiance >= 0 then
 									scritems = scritems + 1
 									itemstodraw[scritems] = ee
 									itemstodrawscale[scritems] = 1.0
+									itemstodrawscaleoffset[scritems] = 0
+									tscaleit = 1
 								end
 							end
 							if mapName == "objective" then
 								local thisobjective = GetEntityObjective(ee)
 								if thisobjective == 1 then
-									if g_UserGlobalQuestTitleActiveE > 0 and g_UserGlobalQuestTitleActiveE == ee then
-										scritems = scritems + 1
-										itemstodraw[scritems] = ee
-										itemstodrawscale[scritems] = 2.0 + math.cos(Timer()/500.0)
-										scruseoffset = 1
-									end
+									scritems = scritems + 1
+									itemstodraw[scritems] = ee
+									itemstodrawscale[scritems] = 1.0
+									itemstodrawscaleoffset[scritems] = 0
+									tscaleit = 1
 								end
 							end
 							if mapName == "winzone" then
@@ -1242,6 +1391,14 @@ function hud0.main()
 									scritems = scritems + 1
 									itemstodraw[scritems] = ee
 									itemstodrawscale[scritems] = 1.0
+									itemstodrawscaleoffset[scritems] = 0
+									tscaleit = 1
+								end
+							end
+							if tscaleit == 1 then
+								if g_UserGlobalQuestTitleActiveE > 0 and g_UserGlobalQuestTitleActiveE == ee then
+									itemstodrawscale[scritems] = 2.0 + math.cos(Timer()/500.0)
+									itemstodrawscaleoffset[scritems] = 1
 								end
 							end
 						end
@@ -1261,13 +1418,13 @@ function hud0.main()
 					local tusescrwidth = tscrwidth
 					local tusescrheight = tscrheight
 					if scritems > 0 then
-						tusescrwidth = tusescrwidth * itemstodrawscale[scritems]
-						tusescrheight = tusescrheight * itemstodrawscale[scritems]
+						tusescrwidth = tusescrwidth * itemstodrawscale[titem]
+						tusescrheight = tusescrheight * itemstodrawscale[titem]
 					end
 					if scrimg > 0 then
 						SetSpritePosition(hud0_gridSpriteID,scrx,scry)
 						SetSpriteImage(hud0_gridSpriteID,scrimg)
-						if scruseoffset == 1 then
+						if itemstodrawscaleoffset[titem] == 1 then
 							SetSpriteOffset(hud0_gridSpriteID,tusescrwidth/2,-1)
 						else
 							SetSpriteOffset(hud0_gridSpriteID,0,0)
@@ -1365,7 +1522,6 @@ function hud0.main()
 			triggerElementPrompt = "MyLevelUpText"
 			triggerElementPromptText = "YOU'VE LEVELLED UP!"
 			triggerElementPromptTimer = Timer()
-			Prompt(hud0_sounds_levelup)
 			if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
 			-- reset current XP
 			currentXP = currentXP - maximumXP

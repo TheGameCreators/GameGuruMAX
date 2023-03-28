@@ -62,7 +62,7 @@ hud0_sounds_levelup = 1001
 
 function hud0.init()
  -- initialise all globals
- SetScreenHUDGlobalScale(0.5)
+ SetScreenHUDGlobalScale(1.0)
  InitScreen("HUD0")
  -- create resources for HUD
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )

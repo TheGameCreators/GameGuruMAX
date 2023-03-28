@@ -16,36 +16,45 @@ function quest_poster_properties(e, range, questprompt, questscreen, questchoice
 	g_quest_poster[e]['questscreen'] = questscreen
 	g_quest_poster[e]['questchoice'] = questchoice
 	g_quest_poster[e]['questtitle'] = ""
+	g_quest_poster[e]['questtype'] = ""
 	g_quest_poster[e]['questdescription1'] = ""
 	g_quest_poster[e]['questdescription2'] = ""
 	g_quest_poster[e]['questdescription3'] = ""
 	g_quest_poster[e]['questobject'] = ""
+	g_quest_poster[e]['questreceiver'] = ""
+	g_quest_poster[e]['questlevel'] = ""
+	g_quest_poster[e]['questpoints'] = ""
+	g_quest_poster[e]['questvalue'] = ""
+	g_quest_poster[e]['queststatus'] = ""
+	g_quest_poster[e]['questactivate'] = ""
 end
 
 function quest_poster_main(e)
-
 	if g_quest_poster[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then
 			local i = tonumber(g_quest_poster[e]['questchoice'])-1
 			if i ~= nil then
-				if i > 0 and i < totalquests then
+				if i > 0 and i <= totalquests then
 					g_quest_poster[e]['questtitle'] = GetCollectionQuestAttribute(i,"title")
-					g_quest_poster[e]['questdescription1'] = GetCollectionQuestAttribute(i,"task1")
-					g_quest_poster[e]['questdescription2'] = GetCollectionQuestAttribute(i,"task2")
-					g_quest_poster[e]['questdescription3'] = GetCollectionQuestAttribute(i,"task3")
+					g_quest_poster[e]['questtype'] = GetCollectionQuestAttribute(i,"type")
+					g_quest_poster[e]['questdescription1'] = GetCollectionQuestAttribute(i,"desc1")
+					g_quest_poster[e]['questdescription2'] = GetCollectionQuestAttribute(i,"desc2")
+					g_quest_poster[e]['questdescription3'] = GetCollectionQuestAttribute(i,"desc3")
 					g_quest_poster[e]['questobject'] = GetCollectionQuestAttribute(i,"object")
-					local a = GetCollectionQuestAttribute(i,"level")
-					local b = GetCollectionQuestAttribute(i,"points")
-					local c = GetCollectionQuestAttribute(i,"value")
-					local d = GetCollectionQuestAttribute(i,"status")
+					g_quest_poster[e]['questreceiver'] = GetCollectionQuestAttribute(i,"receiver")
+					g_quest_poster[e]['questlevel'] = GetCollectionQuestAttribute(i,"level")
+					g_quest_poster[e]['questpoints'] = GetCollectionQuestAttribute(i,"points")
+					g_quest_poster[e]['questvalue'] = GetCollectionQuestAttribute(i,"value")
+					g_quest_poster[e]['queststatus'] = GetCollectionQuestAttribute(i,"status")
+					g_quest_poster[e]['questactivate'] = GetCollectionQuestAttribute(i,"activate")
 				end
 			else
 				PromptDuration(g_quest_poster[e]['questchoice'],5000)
 			end
 		end
 	end
-	
+	if g_UserGlobalQuestTitleActive == nil then g_UserGlobalQuestTitleActive = "" end
 	if g_UserGlobalQuestTitleActive ~= nil then
 		if g_quest_poster[e]['questtitle'] ~= g_UserGlobalQuestTitleActive then
 			-- show in the game, not our current one
@@ -67,17 +76,53 @@ function quest_poster_main(e)
 			-- hide in game, we have accepted this one and doing it now
 			Hide(e)
 			if g_UserGlobalQuestTitleActiveE > 0 then
-				if g_Entity[g_UserGlobalQuestTitleActiveE]['active'] == 0 then
-					-- collect reward 
+				local tquestcomplete = 0
+				if g_quest_poster[e]['questtype'] == "collect" then
+					-- COLLECT
+					if g_Entity[g_UserGlobalQuestTitleActiveE]['active'] == 0 then
+						tquestcomplete = 1
+					end
+				end
+				if g_quest_poster[e]['questtype'] == "destroy" then
+					-- DESTROY
+					if g_Entity[g_UserGlobalQuestTitleActiveE]['active'] == 0 then
+						tquestcomplete = 1
+					end
+				end
+				if g_quest_poster[e]['questtype'] == "deliver" then
+					-- DELIVER
+					if g_Entity[g_UserGlobalQuestTitleActiveE]['active'] == 0 then
+						tquestcomplete = 1
+					end
+				end
+				if tquestcomplete == 1 then
+					-- award value 
 					local myMoney = 0
 					if _G["g_UserGlobal['".."MyMoney".."']"] ~= nil then myMoney = _G["g_UserGlobal['".."MyMoney".."']"] end
-					_G["g_UserGlobal['".."MyMoney".."']"] = myMoney + 1000
+					_G["g_UserGlobal['".."MyMoney".."']"] = myMoney + tonumber(g_quest_poster[e]['questvalue'])
+					-- award XP 
+					local myXP = 0
+					if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then myXP = _G["g_UserGlobal['".."MyXP".."']"] end
+					_G["g_UserGlobal['".."MyXP".."']"] = myXP + tonumber(g_quest_poster[e]['questpoints'])
+					-- activate another object
+					for ee = 1, g_EntityElementMax do
+						if ee ~= nil and g_Entity[ee] ~= nil then
+							if GetEntityName(ee) ~= nil then
+								if string.lower(GetEntityName(ee)) == string.lower(g_quest_poster[e]['questactivate']) then
+									SetActivated(ee,1)
+									PerformLogicConnections(ee)
+									break
+								end
+							end
+						end
+					end
+					-- to complete a quest means to destroy it
+					PerformLogicConnections(e)
+					Destroy(e)
 					-- and reset quest
 					g_UserGlobalQuestTitleActive = ""
 					g_UserGlobalQuestTitleActiveObject = ""
 					g_UserGlobalQuestTitleActiveE = 0
-					-- finished with quest_poster_init
-					--Destroy(e)
 				end
 			end
 		end

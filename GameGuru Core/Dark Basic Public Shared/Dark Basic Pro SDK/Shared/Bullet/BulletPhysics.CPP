@@ -2201,6 +2201,9 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	#ifdef WICKEDENGINE
 	GGMATRIX matModelOffset;
 	GGMatrixIdentity(&matModelOffset);
+	GGMATRIX matIdentity;
+	GGMatrixIdentity(&matIdentity);
+
 	if (pObject->pFrame)
 	{
 		// work out the inverse of the model frame zero transform - we need to remove the offset from the raw mesh data further down
@@ -2256,6 +2259,13 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				ScaleObject(iObjectUsedToExtractPhysicsMesh, ObjectScaleX(iObjectNumber), ObjectScaleY(iObjectNumber), ObjectScaleZ(iObjectNumber));
 				pObjectUsedToExtractPhysicsMesh = GetObjectData(iObjectUsedToExtractPhysicsMesh);
 				bObjectUsesOBJCollisionMesh = true;
+
+				if(pObjectUsedToExtractPhysicsMesh)
+				{
+					//PE: New loaded .obj collision mesh dont match original frame zero transform, so set to MatrixIdentity
+					GGMatrixIdentity(&matModelOffset);
+				}
+
 			}
 		}
 
@@ -2354,7 +2364,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 						// LB: reverse ANY effect of the frame zero transform, then restore the rotation required
 						// this removes the offset portion from the mesh data, and will be returned with moving the physics object directly
 						#ifdef WICKEDENGINE
-						GGMatrixMultiply (&matFinal, &matFinal, &matModelOffset);
+						//PE: Using matModelOffset * matFinal on frame 0 invert changes and return a Identity matix, so they even themself out.
+						//PE: Other frames with Identity matix do not need this.
+						if(matFinal != matIdentity)
+							GGMatrixMultiply (&matFinal, &matFinal, &matModelOffset);
 						GGMatrixMultiply (&matFinal, &matFinal, &matRootRotOnly);
 						#endif
 

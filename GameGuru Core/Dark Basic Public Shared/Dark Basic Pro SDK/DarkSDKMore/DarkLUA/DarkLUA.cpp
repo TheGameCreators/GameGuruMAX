@@ -5062,7 +5062,7 @@ int IntersectCore ( lua_State *L, int iMode )
 	else
 		int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
 	#endif
-	if (ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1) tthitvalue = -1;
+	if (iLifeInMilliseconds != -1 && ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1) tthitvalue = -1;
 	if (tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iMode, iIndexInIntersectDatabase, iLifeInMilliseconds, iIgnorePlayerCapsule);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;

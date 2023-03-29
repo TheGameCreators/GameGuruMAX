@@ -5169,6 +5169,55 @@ void game_main_loop ( void )
 		}
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
+
+		//PE: Test Terrain Collision.
+		if (0)
+		{
+			//Test code for terrain hit.
+			float camx = CameraPositionX(t.terrain.gameplaycamera);
+			float camy = CameraPositionY(t.terrain.gameplaycamera);
+			float camz = CameraPositionZ(t.terrain.gameplaycamera);
+
+			float lookx, looky, lookz;
+			lookx = GetCameraLookX(t.terrain.gameplaycamera);
+			looky = GetCameraLookY(t.terrain.gameplaycamera);
+			lookz = GetCameraLookZ(t.terrain.gameplaycamera);
+			float rayx, rayy, rayz;
+			rayx = camx + (lookx * 10000.0f);
+			rayy = camy + (looky * 10000.0f);
+			rayz = camz + (lookz * 10000.0f);
+
+			if (!ObjectExist(g.debugraycastvisual + 20))
+			{
+				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+				WickedCall_PresetObjectPutInEmissive(1);
+				MakeObjectBox(g.debugraycastvisual + 20, 40, 40, 40);
+				PositionObject(g.debugraycastvisual + 20, -999999, -999999, -999999);
+				sObject* pObject = GetObjectData(g.debugraycastvisual + 20);
+				WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
+				WickedCall_SetObjectCastShadows(pObject, false);
+				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+				WickedCall_PresetObjectPutInEmissive(0);
+			}
+
+			if (ODERayTerrain(camx, camy, camz, rayx, rayy, rayz, true) == 1)
+			{
+				if (ObjectExist(g.debugraycastvisual + 20))
+				{
+					ShowObject(g.debugraycastvisual + 20);
+					PositionObject(g.debugraycastvisual + 20, ODEGetRayCollisionX(), ODEGetRayCollisionY(), ODEGetRayCollisionZ());
+				}
+			}
+			else
+			{
+				if (ObjectExist(g.debugraycastvisual + 20))
+				{
+					ShowObject(g.debugraycastvisual + 20);
+					PositionObject(g.debugraycastvisual + 20, 0, 0, 0);
+				}
+			}
+		}
+
 		// In-Game Mode (moved from above so LUA is AFTER physics)
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
 		if ( t.conkit.editmodeactive == 0 ) 

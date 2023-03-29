@@ -407,11 +407,19 @@ void DBProRagDoll::Finalize()
 			btVector3 localInertia(0.0,0.0,0.0);
 			body->getCollisionShape()->calculateLocalInertia(mass,localInertia);
 			body->setMassProps(mass, localInertia);
+
+			body->setFriction(0.75f);
+			body->setDamping(m_linearDamping, m_angularDamping);
+			body->setDeactivationTime(m_deactivationTime);
+			body->setSleepingThresholds(m_linearSleepingThresholds, m_angularSleepingThresholds);
+
+			body->setCcdMotionThreshold(0.1f);
+			body->setCcdSweptSphereRadius(0.1f);
 		}
-		m_ragDollBoneArray[i]->GetRigidBody()->setFriction(0.75f);
-		m_ragDollBoneArray[i]->GetRigidBody()->setDamping(m_linearDamping, m_angularDamping);
-		m_ragDollBoneArray[i]->GetRigidBody()->setDeactivationTime(m_deactivationTime);
-		m_ragDollBoneArray[i]->GetRigidBody()->setSleepingThresholds(m_linearSleepingThresholds, m_angularSleepingThresholds);
+		//m_ragDollBoneArray[i]->GetRigidBody()->setFriction(0.75f);
+		//m_ragDollBoneArray[i]->GetRigidBody()->setDamping(m_linearDamping, m_angularDamping);
+		//m_ragDollBoneArray[i]->GetRigidBody()->setDeactivationTime(m_deactivationTime);
+		//m_ragDollBoneArray[i]->GetRigidBody()->setSleepingThresholds(m_linearSleepingThresholds, m_angularSleepingThresholds);
 	}
 	//Set the object model to use CustomBoneMatrix for Rag doll
 	//We can now move the models limbs with matCombined

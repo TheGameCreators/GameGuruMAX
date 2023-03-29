@@ -7641,6 +7641,10 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 		if (iLifeInMilliseconds == -1)
 		{
 			// skip database early exit so can generate new result right after target switch
+
+			//PE: No need to do the actual raycast.
+			g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() - 1.0;
+			return g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase];
 		}
 		else
 		{

@@ -6877,6 +6877,27 @@ int SetScreenElementText(lua_State* L)
 	}
 	return 0;
 }
+int SetScreenElementColor(lua_State* L)
+{
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			float fX = lua_tonumber(L, 2);
+			float fY = lua_tonumber(L, 3);
+			float fZ = lua_tonumber(L, 4);
+			float fW = lua_tonumber(L, 5);
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].x = fX;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].y = fY;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].z = fZ;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].w = fW;
+		}
+	}
+	return 0;
+}
 
 // Collection Items
 
@@ -10470,6 +10491,7 @@ void addFunctions()
 	lua_register(lua, "SetScreenElementVisibility", SetScreenElementVisibility);
 	lua_register(lua, "SetScreenElementPosition", SetScreenElementPosition);
 	lua_register(lua, "SetScreenElementText", SetScreenElementText);
+	lua_register(lua, "SetScreenElementColor", SetScreenElementColor);
 	lua_register(lua, "GetCollectionAttributeQuantity", GetCollectionAttributeQuantity);
 	lua_register(lua, "GetCollectionAttributeLabel", GetCollectionAttributeLabel);
 	lua_register(lua, "GetCollectionItemQuantity", GetCollectionItemQuantity);

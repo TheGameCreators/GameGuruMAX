@@ -65,7 +65,6 @@ hud0_quest_status = {}
 
 function hud0.init()
  -- initialise all globals
- SetScreenHUDGlobalScale(1.0)
  InitScreen("HUD0")
  -- create resources for HUD
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
@@ -734,6 +733,9 @@ function hud0.main()
 								ttextvalue = GetCollectionQuestAttribute(tquestindex,"title")
 								if ttextvalue == g_UserGlobalQuestTitleActive then
 									ttextvalue = "["..g_UserGlobalQuestTitleActive.."]"
+									SetScreenElementColor(elementID, 1, 1, 0, 1 )
+								else
+									SetScreenElementColor(elementID, 1, 1, 1, 1 )
 								end
 							end
 						end
@@ -1120,25 +1122,31 @@ function hud0.main()
 					for ee = 1, g_EntityElementMax, 1 do
 						if e ~= ee then
 							if g_Entity[ee] ~= nil then
-								--if g_Entity[ee]['active'] > 0 then
-									if GetEntityName(ee) == g_UserGlobalQuestTitleShowingObject then
-										findee = ee
-										break
-									end
-								--end
+								if GetEntityName(ee) == g_UserGlobalQuestTitleShowingObject then
+									findee = ee
+									break
+								end
 							end
 						end
 					end
 					if findee > 0 then
-						-- set new current quest now
-						g_UserGlobalQuestTitleActive = g_UserGlobalQuestTitleShowing
-						g_UserGlobalQuestTitleActiveE = findee
 						-- update game quest status
+						local tquestwasinactive = 0
 						for tquestindex = 1, hud0_quest_qty, 1 do
 							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleShowing then
+								g_UserGlobalQuestTitleShowingObject = GetCollectionQuestAttribute(tquestindex,"object")
+								if hud0_quest_status[tquestindex] == "inactive" then
+									tquestwasinactive = 1
+								end
 								hud0_quest_status[tquestindex] = "active"
 								break
 							end
+						end
+						-- set new current quest now if no quest 
+						if g_UserGlobalQuestTitleActive == "" or tquestwasinactive == 0 then
+							g_UserGlobalQuestTitleActive = g_UserGlobalQuestTitleShowing
+							g_UserGlobalQuestTitleActiveObject = g_UserGlobalQuestTitleShowingObject
+							g_UserGlobalQuestTitleActiveE = findee
 						end
 						ScreenToggle("")
 					end

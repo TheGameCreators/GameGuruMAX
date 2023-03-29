@@ -2508,6 +2508,7 @@ GetTerrainCollisionDetails( objectId, num )
 -- SetScreenElementVisibility : SetScreenElementVisibility
 -- SetScreenElementPosition : SetScreenElementPosition
 -- SetScreenElementText : SetScreenElementText
+-- SetScreenElementColor : SetScreenElementColor ( elementID, r, g, b, a )
 -- GetCollectionAttributeQuantity : GetCollectionAttributeQuantity
 -- GetCollectionAttributeLabel :, GetCollectionAttributeLabel
 -- GetCollectionItemQuantity : GetCollectionItemQuantity

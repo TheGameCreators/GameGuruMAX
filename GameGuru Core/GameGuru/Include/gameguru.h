@@ -1258,10 +1258,12 @@ struct Sglobals
 	int buildingeditorobjoffset;
 	int buildingeditoroffsetmax;
 	#endif
+	float globalhudscale;
 
 	// Constructor
 	Sglobals ( )
 	{
+		 globalhudscale = 1.0f;
 		 projectileEventType_explosion = 0;
 		 projectileEventType_name = "";
 		 projectileEventType_x = 0;

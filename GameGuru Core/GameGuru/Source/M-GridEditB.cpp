@@ -45899,14 +45899,13 @@ int LuaMouseClick = 0;
 static char LoadGameTitle[9][256];
 char cCopyToAllScreens[MAX_PATH];
 
-float g_fAdjustGlobalHUDScreenScale = 1.0f;
 void screen_editor_setscalemod (float fGlobalScaleMod)
 {
-	g_fAdjustGlobalHUDScreenScale = fGlobalScaleMod;
+	g.globalhudscale = fGlobalScaleMod;
 }
 float screen_editor_scalemod (float fGlobalScaleIn)
 {
-	return fGlobalScaleIn * g_fAdjustGlobalHUDScreenScale;
+	return fGlobalScaleIn * g.globalhudscale;
 }
 
 int screen_editor(int nodeid, bool standalone, char *screen)

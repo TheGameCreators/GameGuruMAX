@@ -8475,7 +8475,32 @@ void mapeditorexecutable_loop(void)
 			}
 			active_tools_obj = iActiveObj;
 			active_tools_entity_index = iEntityIndex;
+			//PE: Make sure the object we edit are a clone , fix many of the problems where material changes was also going to the master object.
+			if (iEntityIndex > 0 && iEntityIndex == t.widget.pickedEntityIndex && iActiveObj > 0)
+			{
+				sObject* pObject = g_ObjectList[iActiveObj];
+				if (pObject)
+				{
+					for (int iMesh = 0; iMesh < (int)pObject->iMeshCount; iMesh++)
+					{
+						sMesh* pMesh = pObject->ppMeshList[iMesh];
+						if (pMesh)
+						{
+							if (pMesh->master_wickedmeshindex > 0)
+							{
+								//PE: Make sure selected object is a clone.
+								t.tupdatee = iEntityIndex;
+								entity_updateentityobj();
+							}
+							//PE: only checking first mesh needed.
+							break;
+						}
+					}
+				}
+			}
 			#endif
+
+			static int iLastActiveEntityIndex = -1, iLastActiveObj = -1;
 
 			if (Entity_Tools_Window && ( current_mode == TOOL_ENTITY || current_mode == TOOL_MARKERS || (t.gridentity > 0 && t.entityprofile[t.gridentity].isebe != 0)  )) 
 			{
@@ -8660,7 +8685,6 @@ void mapeditorexecutable_loop(void)
 					{
 						grideleprof_uniqui_id = 35000;
 
-						static int iLastActiveEntityIndex = -1, iLastActiveObj = -1;
 						if (iLastActiveEntityIndex != iEntityIndex || iLastActiveObj != iActiveObj)
 						{
 							if (iLastActiveObj != 70000 && iLastActiveEntityIndex > 0)
@@ -10717,6 +10741,8 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 						gridedit_clearentityrubberbandlist();
+						iLastActiveEntityIndex = -1;
+						iLastActiveObj = -1;
 					}
 				}
 				//##############################
@@ -14509,7 +14535,6 @@ void mapeditorexecutable_loop(void)
 //			ImGui::Text("bDraggingActive: %d", bDraggingActive);
 //			ImGuiContext& gui = *GImGui;
 //			ImGui::Text("DragDropActive: %d", gui.DragDropActive);
-
 			//ImGui::Text("t.widget.pickedEntityIndex: %d", t.widget.pickedEntityIndex);
 			//ImGui::Text("t.tentitytoselect: %d", t.tentitytoselect);
 			//ImGui::Text("t.gridentityobj: %ld", t.gridentityobj);

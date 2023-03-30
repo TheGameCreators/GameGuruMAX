@@ -38,7 +38,10 @@ void LoadFBX ( LPSTR szFilename, int iID );
 
 //. externs
 extern std::vector<int> g_ObjectHighlightList;
-
+#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
+extern std::vector<sRubberBandType> vEntityGroupList[MAXGROUPSLISTS];
+extern cstr sEntityGroupListName[MAXGROUPSLISTS];
+extern int GetGroupIndexFromName(cstr sLookFor);
 
 // 
 //  ENTITY COMMON CODE (not game specific)
@@ -5628,7 +5631,7 @@ void c_entity_loadelementsdata ( void )
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 334; //329;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 335; //329;//327;// 323; // 322; //319;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -6103,10 +6106,9 @@ void c_entity_loadelementsdata ( void )
 						//PE: So level with 1000 objects , WILL setup groups and load ALL group images 1000 times ?
 						//PE: We cant change old level now, so use this hack.
 						//PE: Also this was leaking mem , not sure where. anyway this hack fix it. New maps will only save it under t.e == 1
-						#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
-						extern std::vector<sRubberBandType> vEntityGroupList[MAXGROUPSLISTS];
 						extern int g_iUniqueGroupID;
-						t.a = c_ReadLong(1); g_iUniqueGroupID = t.a;
+						t.a = c_ReadLong(1); 
+						if (t.a > 0) g_iUniqueGroupID = t.a; // strange bug that resets this t.a to zero, the writer dumped in zeros!!
 						int iNumberOfGroups = 0;
 						t.a = c_ReadLong(1); iNumberOfGroups = t.a;
 						for (int gi = 0; gi < iNumberOfGroups; gi++)
@@ -6264,6 +6266,10 @@ void c_entity_loadelementsdata ( void )
 							t.a_s = c_ReadString(1);
 							sEntityGroupListName[gi] = t.a_s;
 						}
+					}
+					if (t.versionnumberload >= 335)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].creationOfGroupID = t.a;
 					}
 					#endif
 
@@ -6469,6 +6475,16 @@ void c_entity_loadelementsdata ( void )
 	}
 	else
 	{
+		// clean up for grouplist corruption
+		for (int gi = 0; gi < MAXGROUPSLISTS; gi++)
+		{
+			if (vEntityGroupList[gi].size() == 0)
+			{
+				sEntityGroupListName[gi] = "";
+			}
+		}
+
+		// clean up for entityelement corruption
 		if (g_iAddEntityElementsMode == 0)
 		{
 			for (t.e = 1; t.e <= g.entityelementlist; t.e++)
@@ -6774,7 +6790,7 @@ void entity_saveelementsdata ( void )
 	t.versionnumbersave = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersave = 334; //329; //327;// 323; //322; //319;
+	t.versionnumbersave = 335; //329; //327;// 323; //322; //319;
 	#endif
 
 	EntityWriter writer;
@@ -7173,8 +7189,6 @@ void entity_saveelementsdata ( void )
 					else
 					{
 						writer.WriteLong( g_iUniqueGroupID );
-						#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp (would replace this when the group list is dynamic)
-						extern std::vector<sRubberBandType> vEntityGroupList[MAXGROUPSLISTS];
 						int iNumberOfGroups = MAXGROUPSLISTS;
 						writer.WriteLong( iNumberOfGroups );
 						for (int gi = 0; gi < iNumberOfGroups; gi++)
@@ -7304,10 +7318,13 @@ void entity_saveelementsdata ( void )
 						writer.WriteString(sEntityGroupListName[gi].Get());
 					}
 				}
+				if (t.versionnumbersave >= 335)
+				{
+					writer.WriteLong(t.entityelement[ent].creationOfGroupID);
+				}
 				#endif
 			}
 		} 
-
 		if ( pass == 0 ) writer.AllocateDataForWrite();
 	} // pass loop
 
@@ -7338,24 +7355,116 @@ void entity_savebank ( void )
 					t.entitybankused[t.tttentid]=1;
 				}
 			}
+			bool bEntErasedDueToGroupCheckIfStillBeingUsed = false;
 			for ( t.tttentid = 1 ; t.tttentid <= g.entidmaster; t.tttentid++ )
 			{
 				if (  t.entitybankused[t.tttentid] == 0 ) 
 				{
-					// do not remove if a smart object
+					// do not remove if a smart object if still being used in level
 					if (t.entityprofile[t.tttentid].model_s == "group")
 					{
-						// must retain group entries
-						t.entitybankused[t.tttentid] = 1;
-					}
-					else
-					{
-						// free RLE data in profile
-						ebe_freecubedata (t.tttentid);
+						// what group ID is this smart object?
+						cstr tmp = cstr("entitybank\\") + t.entitybank_s[t.tttentid];
+						int iSmartObjectGroupIndex = GetGroupIndexFromName(tmp);
+						if (iSmartObjectGroupIndex >= 0 && iSmartObjectGroupIndex < MAXGROUPSLISTS)
+						{
+							// scan to see if this smart object group is being used in the level
+							bool bBeingUsed = false;
+							if (vEntityGroupList[iSmartObjectGroupIndex].size() > 0)
+							{
+								int iUniqueGroupID = vEntityGroupList[iSmartObjectGroupIndex][0].iGroupID;
+								for (int ee = 1; ee <= g.entityelementlist; ee++)
+								{
+									if (t.entityelement[ee].bankindex > 0)
+									{
+										if (t.entityelement[ee].y > -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
+										{
+											int thisGroupID = t.entityelement[ee].creationOfGroupID;
+											if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+											{
+												bBeingUsed = true;
+											}
+										}
+									}
+								}
+							}
+							if (bBeingUsed == true)
+							{
+								// we keep the group entity parent in place to access smart object from left panel
+								t.entitybankused[t.tttentid] = 1;
+							}
+							else
+							{
+								// all instnces of smart object use removed from level, so finally remove the hidden elements as no longer needed
+								if (vEntityGroupList[iSmartObjectGroupIndex].size() > 0)
+								{
+									int iUniqueGroupID = vEntityGroupList[iSmartObjectGroupIndex][0].iGroupID;
+									for (int ee = 1; ee <= g.entityelementlist; ee++)
+									{
+										if (t.entityelement[ee].bankindex > 0)
+										{
+											if (t.entityelement[ee].y <= -48000.0f)
+											{
+												int thisGroupID = t.entityelement[ee].creationOfGroupID;
+												if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+												{
+													// original smart object elements buried deep, no longer needed
+													int entid = t.entityelement[ee].bankindex;
+													if (entid > 0)
+													{
+														t.entitybankused[entid] = 0;
+														bEntErasedDueToGroupCheckIfStillBeingUsed = true;
+													}
+													t.entityelement[ee].bankindex = 0;
+													t.entityelement[ee].creationOfGroupID = -1;
+												}
+											}
+										}
+									}
+								}
 
-						//  remove entity entry if not used when save FPM
-						t.entitybank_s[t.tttentid] = "";
+								// and finally remove from group list records
+								vEntityGroupList[iSmartObjectGroupIndex].clear();
+								sEntityGroupListName[iSmartObjectGroupIndex] = "";
+							}
+						}
 					}
+				}
+			}
+			// however, put back if the object was NOT part of a smart object
+			if (bEntErasedDueToGroupCheckIfStillBeingUsed == true)
+			{
+				for (t.tttentid = 1; t.tttentid <= g.entidmaster; t.tttentid++)
+				{
+					if (t.entitybankused[t.tttentid] == 0)
+					{
+						// can remove the entity associated with the smart object
+						bool bIsASmartObjectChildPart = true;
+						for (int eee = 1; eee <= g.entityelementlist; eee++)
+						{
+							if (t.entityelement[eee].bankindex == t.tttentid && t.entityelement[eee].creationOfGroupID == -1)
+							{
+								bIsASmartObjectChildPart = false;
+								break;
+							}
+						}
+						if (bIsASmartObjectChildPart == false)
+						{
+							// do not remove, it may be in a smart object but also in the level independently
+							t.entitybankused[t.tttentid] = 1;
+						}
+					}
+				}
+			}
+			for (t.tttentid = 1; t.tttentid <= g.entidmaster; t.tttentid++)
+			{
+				if (t.entitybankused[t.tttentid] == 0)
+				{
+					// free RLE data in profile
+					ebe_freecubedata (t.tttentid);
+
+					//  remove entity entry if not used when save FPM
+					t.entitybank_s[t.tttentid] = "";
 				}
 			}
 			//  shuffle to remove empty entries

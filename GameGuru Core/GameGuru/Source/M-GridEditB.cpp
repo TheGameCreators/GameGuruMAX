@@ -24246,6 +24246,11 @@ int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList,
 				entity_updateparticleemitter(t.e);
 			}
 
+			//LB: in order to determine when last of smart objects deleted from level, so the smart object parent can be removed from entitybank, mark
+			// the entity elements with the group ID as they are created here
+			int iUniqueGroupID = vEntityDuplicateList[i].iGroupID;
+			t.entityelement[t.e].creationOfGroupID = iUniqueGroupID;
+
 			// and add to new rubber band group
 			sRubberBandType rubberbandItem;
 			rubberbandItem.e = t.e;
@@ -25181,10 +25186,10 @@ bool LoadGroup(LPSTR pAbsFilename)
 			// group data and entities already loaded, we can skip a new group creation here
 			if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1)
 			{
-				int iParentGroupID = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
-				if (iParentGroupID != -1)
+				int iParentGroupIndex = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
+				if (iParentGroupIndex != -1)
 				{
-					vEntityGroupList[iParentGroupID] = g.entityrubberbandlist;
+					vEntityGroupList[iParentGroupIndex] = g.entityrubberbandlist;
 				}
 			}
 		}
@@ -25192,6 +25197,20 @@ bool LoadGroup(LPSTR pAbsFilename)
 		{
 			// create group from list
 			CreateNewGroup(-1, false, cstr(pAbsFilename));
+
+			// populate newly created hidden elements of group with associated groupID
+			int iUniqueGroupID = -1;
+			int iGroupIndex = GetGroupIndexFromName(pAbsFilename);
+			if (vEntityGroupList[iGroupIndex].size() > 0)
+			{
+				iUniqueGroupID = vEntityGroupList[iGroupIndex][0].iGroupID;
+			}
+			for (int i = 0; i < g.entityrubberbandlist.size(); i++)
+			{
+				// first update object from final entity element data
+				int ee = g.entityrubberbandlist[i].e;
+				t.entityelement[ee].creationOfGroupID = iUniqueGroupID;
+			}
 		}
 
 		//LB: back to regular mode, instances can be autoflatten again!

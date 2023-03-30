@@ -6726,7 +6726,7 @@ struct entitytype
 	bool dc_merged;
 	float dc_distance;
 	bool bPlrVisibleCheckDone;
-#ifdef WICKEDENGINE
+	#ifdef WICKEDENGINE
 	int iCurrentColorType;
 	int iIsSmarkobjectDummyObj;
 	float fDecalFrame;
@@ -6742,11 +6742,10 @@ struct entitytype
 	float quaty;
 	float quatz;
 	float quatw;
-
-	void *RPG_System; //Not used yet.
-	int RPG_PlayerID;
-	int RPG_LevelID; //Parse from Storyboard.Nodes[node].levelnumber (0) if no storyboard used.
-#endif
+	void *pReservey1;
+	int iReservey2;
+	int creationOfGroupID;
+	#endif
 	// Constructor
 	entitytype ( )
 	{
@@ -6998,16 +6997,16 @@ struct entitytype
 		 dc_entid[6] = 0;
 		 draw_call_obj = 0;
 		 dc_merged = false;
-#ifdef WICKEDENGINE
+		 #ifdef WICKEDENGINE
 		 iCurrentColorType = -1;
 		 iIsSmarkobjectDummyObj = 0;
 		 fDecalFrame = 0;
 		 fDecalSpeed = 1.0;
 		 fDecalOpacity = 1.0;
-		 RPG_System = NULL;
-		 RPG_PlayerID = -1;
-		 RPG_LevelID = 0;
-#endif
+		 pReservey1 = NULL;
+		 iReservey2 = 0;
+		 creationOfGroupID = -1;
+		 #endif
 	}
 	// End of Constructor
 };

@@ -6519,6 +6519,56 @@ void entity_loadelementsdata(void)
 	// fast loading of ELE file
 	c_entity_loadelementsdata();
 
+	// now entitybank and entityelement and vEntityGroupList are loaded, we need to refresh any smart objects (they may have changed externally, i.e BE)
+	for (int iGroupIndex = 0; iGroupIndex < MAXGROUPSLISTS; iGroupIndex++)
+	{
+		if (vEntityGroupList[iGroupIndex].size() > 0)
+		{
+			int iUniqueGroupID = vEntityGroupList[iGroupIndex][0].iGroupID;
+			if (iUniqueGroupID > 0)
+			{
+				// delete the hidden elements of this parent group
+				for (int ee = 1; ee <= g.entityelementlist; ee++)
+				{
+					if (t.entityelement[ee].bankindex > 0)
+					{
+						if (t.entityelement[ee].y <= -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
+						{
+							int thisGroupID = t.entityelement[ee].creationOfGroupID;
+							if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+							{
+								t.tentitytoselect = ee;
+								entity_deleteentityfrommap();
+								ee = 1;
+							}
+						}
+					}
+				}
+
+				// load a fresh copy of this smart object (will ultimately call LoadGroup to populate with needed elements for below)
+				int iFoundEntID = 0;
+				for (int entIndex = 1; entIndex <= g.entidmaster; entIndex++)
+				{
+					cstr tmp = cstr("entitybank\\") + t.entitybank_s[entIndex];
+					int iSmartObjectGroupIndex = GetGroupIndexFromName(tmp);
+					if (iSmartObjectGroupIndex >= 0 && iSmartObjectGroupIndex < MAXGROUPSLISTS)
+					{
+						if (vEntityGroupList[iSmartObjectGroupIndex].size() > 0)
+						{
+							if (vEntityGroupList[iSmartObjectGroupIndex][0].iGroupID == iUniqueGroupID)
+							{
+								iFoundEntID = entIndex;
+								break;
+							}
+						}
+					}
+				}
+				extern void ReloadEntityIDInSitu(int);
+				ReloadEntityIDInSitu (iFoundEntID);
+			}
+		}
+	}
+
 	// after all entity profiles and elements in, can refresh collection list that references entities
 	if(g_collectionLabels.size()>0)
 	{

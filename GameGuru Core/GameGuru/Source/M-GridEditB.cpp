@@ -25179,6 +25179,9 @@ bool LoadGroup(LPSTR pAbsFilename)
 			g.entityrubberbandlist[i].scalex = t.entityelement[e].scalex;
 			g.entityrubberbandlist[i].scaley = t.entityelement[e].scaley;
 			g.entityrubberbandlist[i].scalez = t.entityelement[e].scalez;
+
+			g.entityrubberbandlist[i].iGroupID = -1;
+			g.entityrubberbandlist[i].iParentGroupID = -1;
 		}
 
 		if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
@@ -49598,6 +49601,276 @@ void InjectIconToExe(char *icon, char *exe,int intresourcenumber)
 	free(lpBuf);
 }
 
+// We call this from when hot swapping entities, and when a smart object is being loaded to a level (see below 'entity_loadelementsdata' for handling of this)
+void ReloadEntityIDInSitu ( int entIndex)
+{
+	// this entity to refreshload
+	t.entid = entIndex;
+
+	// Make a backup of the old parent entity, so that we can check what settings have been changed in the entityelements
+	entityprofiletype entityBackup = t.entityprofile[entIndex];
+
+	// delete parent entity object as we are going to reload it.
+	int parentObj = g.entitybankoffset + entIndex;
+	t.entobj = g.entitybankoffset + entIndex;
+	if (ObjectExist(t.entobj) == 1) DeleteObject(t.entobj);
+
+	// set entity name and reload it in
+	t.entdir_s = "";
+	if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) t.entdir_s = "entitybank\\";
+	t.ent_s = t.entitybank_s[entIndex];
+	t.entpath_s = getpath(t.ent_s.Get());
+
+	// need to detect and load 'groups'
+	extern int g_iAbortedAsEntityIsGroupFileMode;
+	g_iAbortedAsEntityIsGroupFileMode = 1;
+
+	// find parent group ID so stub mode can update group data
+	int iUniqueGroupID = 0;
+	int iParentGroupIndex = -1;
+	extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
+	if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
+	{
+		cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
+		extern int GetGroupIndexFromName (cstr sLookFor);
+		iParentGroupIndex = GetGroupIndexFromName(sLookFor);
+		if (iParentGroupIndex >=0 && iParentGroupIndex < MAXGROUPSLISTS)
+		{
+			if (vEntityGroupList[iParentGroupIndex].size() > 0)
+			{
+				iUniqueGroupID = vEntityGroupList[iParentGroupIndex][0].iGroupID;
+				g_iAbortedAsEntityIsGroupFileModeStubOnly = 2 + iParentGroupIndex;
+			}
+		}
+	}
+
+	/* we can now hot swap all groups!
+	bool bSkipLoadingThisGroup = false;
+	if (iParentGroupID != -1)
+	{
+		for (auto& groupID : groupsThatCannotBeHotSwapped)
+		{
+			if (groupID == iParentGroupID)
+			{
+				// Do not try to hot swap this group, its size was previously changed and we currently do not support altering the group size
+				return;
+			}
+		}
+		int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
+		cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
+		// Now check how many entities the newly modified group has - if it has changed we cannot continue
+		if (FileExist(groupFilename.Get()))
+		{
+			std::vector <cstr> groupdata_s;
+			Dim(groupdata_s, 9999);
+			LoadArray(groupFilename.Get(), groupdata_s);
+			for (int groupline = 0; groupline < 9999; groupline++)
+			{
+				cstr line_s = groupdata_s[groupline];
+				if (Len(line_s.Get()) > 0)
+				{
+					LPSTR pLine = line_s.Get();
+					if (pLine[0] != ';')
+					{
+						// take fieldname and values
+						for (t.c = 0; t.c < Len(pLine); t.c++)
+						{
+							if (pLine[t.c] == '=') { t.mid = t.c + 1; break; }
+						}
+						t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
+						t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
+						t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
+						// populate with values found
+						t.tryfield_s = "groupobjcount";
+						if (t.field_s == t.tryfield_s)
+						{
+							int entityCount = t.value1;
+							if (entityCount != iPrevGroupEntityCount)
+							{
+								bSkipLoadingThisGroup = true;
+								if (std::find(groupsThatCannotBeHotSwapped.begin(), groupsThatCannotBeHotSwapped.end(), iParentGroupID) == groupsThatCannotBeHotSwapped.end())
+								{
+									// Store the group index for future, to ensure that we don't try to load in the group when the entity count is the same, but the entities themselves have been changed.
+									groupsThatCannotBeHotSwapped.push_back(iParentGroupID);
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (bSkipLoadingThisGroup)
+	{
+		return;
+	}
+	*/
+
+	// now load the modified entity parent in
+	entity_load();
+
+	// ensures no new groups are created, just refreshed
+	g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
+
+	// if entity was a group/smart object
+	bool bObjectIsASmartObject = false;
+	if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
+	{
+		// populate with correct group IDs
+		if (iParentGroupIndex >= 0 && iParentGroupIndex < MAXGROUPSLISTS)
+		{
+			for (int n = 0; n < vEntityGroupList[iParentGroupIndex].size(); n++)
+			{
+				vEntityGroupList[iParentGroupIndex][n].iGroupID = iUniqueGroupID;
+			}
+		}
+
+		// now find all the children of this parent
+		std::vector<sRubberBandType> childrenToRemake;
+		childrenToRemake.clear();
+		for (int iChildGroupIndex = 0; iChildGroupIndex < MAXGROUPSLISTS; iChildGroupIndex++)
+		{
+			if (vEntityGroupList[iChildGroupIndex].size() > 0)
+			{
+				int iThisChildsParentGroupID = vEntityGroupList[iChildGroupIndex][0].iParentGroupID;
+				if (iThisChildsParentGroupID > 0 && iThisChildsParentGroupID == iUniqueGroupID)
+				{
+					// found a child of this changed parent group, collect significant data
+					// get leading element of this child group to orient new replacement
+					int iThisE = vEntityGroupList[iChildGroupIndex][0].e;
+					sRubberBandType item;
+					item.iGroupID = iChildGroupIndex;// WARN - just nicking this field for now, replaced with -1 below!
+					item.x = t.entityelement[iThisE].x;
+					item.y = t.entityelement[iThisE].y;
+					item.z = t.entityelement[iThisE].z;
+					item.iParentGroupID = iUniqueGroupID;
+					childrenToRemake.push_back(item);
+
+					// delete all the elements of this child group
+					for (int eee = 1; eee <= g.entityelementlist; eee++)
+					{
+						if (t.entityelement[eee].bankindex > 0)
+						{
+							if (t.entityelement[eee].y > -48000.0f)
+							{
+								int thisGroupID = t.entityelement[eee].creationOfGroupID;
+								if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+								{
+									t.tentitytoselect = eee;
+									entity_deleteentityfrommap();
+									eee = 1;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// and replace them in the same places but with their new shape and elements
+		if (childrenToRemake.size() > 0)
+		{
+			for (int i = 0; i < childrenToRemake.size(); i++)
+			{
+				// for each new child to create, make a duplicate of the parent
+				int iAnchorEntityIndex = DuplicateFromListToCursor(vEntityGroupList[iParentGroupIndex], false);
+
+				// place entity elements into the level using same places as old ones
+				childrenToRemake[i].iGroupID = -1;
+				//childrenToRemake[i].x;
+				//childrenToRemake[i].y;
+				//childrenToRemake[i].z;
+				//childrenToRemake[i].iParentGroupID;
+			}
+			childrenToRemake.clear();
+		}
+
+		/* replaced with above code which does it more devastatingly!
+		// special treatment to repair smart object/group
+		bObjectIsASmartObject = true;
+
+		// parent group ID if smart object
+		if (iParentGroupID != -1)
+		{
+			// go through all elements, find the smart object body and update child elements hanging off it
+			int iSizeOfList = t.entityelement.size();
+			bool* pDoneThisOne = new bool[iSizeOfList];
+			memset(pDoneThisOne, false, sizeof(bool) * iSizeOfList);
+			for (int pickede = 1; pickede < iSizeOfList; pickede++)
+			{
+				if (pDoneThisOne[pickede] == false)
+				{
+					pDoneThisOne[pickede] = true;
+					int groupid = isEntityInGroupList(pickede);
+					if (groupid >= 0)
+					{
+						// get all childs of this group
+						g.entityrubberbandlist.clear();
+						CheckGroupListForRubberbandSelections(pickede);
+
+						// relative center of group
+						float fBaseX = vEntityGroupList[iParentGroupID][0].x;
+						float fBaseY = vEntityGroupList[iParentGroupID][0].y;
+						float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
+
+						// update relative positions from base
+						int iGroupItemCount = vEntityGroupList[groupid].size();
+						for (int i = 1; i < iGroupItemCount; i++)
+						{
+							// element from group to adjust
+							int e = g.entityrubberbandlist[i].e;
+
+							// new adjustment from base center
+							float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
+							float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
+							float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
+
+							// each child element
+							t.entityelement[e].x = t.entityelement[pickede].x + fAdjX;
+							t.entityelement[e].y = t.entityelement[pickede].y + fAdjY;
+							t.entityelement[e].z = t.entityelement[pickede].z + fAdjZ;
+
+							// update element
+							t.e = e;
+							t.tte = e;
+							t.tupdatee = e;
+							t.tentid = t.entityelement[e].bankindex;
+							t.tobj = t.entityelement[e].obj;
+							entity_updateentityobj();
+
+							// mark this off
+							pDoneThisOne[e] = true;
+						}
+					}
+				}
+			}
+			delete[] pDoneThisOne;
+			pDoneThisOne = NULL;
+		}
+		*/
+	}
+	else
+	{
+		// The parent non-smart entity has now been reloaded, so we are free to also reload any entities that use its model
+		for (int e = 1; e < t.entityelement.size(); e++)
+		{
+			if (t.entityelement[e].bankindex == entIndex)
+			{
+				// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
+				// we deliberately NOT change/reset the properties of this entity element as they are user-defined values
+				// we only swap in the new model and textures as this is often what an artist is tweaking!
+				t.e = e;
+				t.tte = e;
+				t.tupdatee = e;
+				t.tentid = entIndex;
+				t.tobj = t.entityelement[e].obj;
+				entity_updateentityobj();
+			}
+		}
+	}
+}
+
 // Check if any files have been modified since we launched Max (note: this only checks files in MainEntityList) - any other files will not be detected.
 void CheckExistingFilesModified(bool bResetTimeStamp)
 {
@@ -49813,250 +50086,13 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		}
 	}
 
-	static std::vector<int> groupsThatCannotBeHotSwapped;
+	//static std::vector<int> groupsThatCannotBeHotSwapped;
 
 	// Update any entities that use the modified files
 	for (auto& entIndex : modifiedEntityObjectReduced)
 	{
-		// update these entities
-		t.entid = entIndex;
-
-		// Make a backup of the old parent entity, so that we can check what settings have been changed in the entityelements
-		entityprofiletype entityBackup = t.entityprofile[entIndex];
-
-		// delete parent entity object as we are going to reload it.
-		int parentObj = g.entitybankoffset + entIndex;
-		t.entobj = g.entitybankoffset + entIndex;
-		if (ObjectExist(t.entobj) == 1) DeleteObject(t.entobj);
-
-		// set entity name and reload it in
-		t.entdir_s = "";
-		if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) t.entdir_s = "entitybank\\";
-		t.ent_s = t.entitybank_s[entIndex];
-		t.entpath_s = getpath(t.ent_s.Get());
-
-		//LB: massive ommission - was this deleted, totally needed to detect and load 'groups'
-		extern int g_iAbortedAsEntityIsGroupFileMode;
-		g_iAbortedAsEntityIsGroupFileMode = 1;
-
-		// find parent group ID so stub mode can update group data
-		int iParentGroupID = -1;
-		extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
-		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
-		{
-			
-			cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
-			extern int GetGroupIndexFromName (cstr sLookFor);
-			iParentGroupID = GetGroupIndexFromName(sLookFor);
-			if (iParentGroupID != -1)
-			{
-				g_iAbortedAsEntityIsGroupFileModeStubOnly = 2 + iParentGroupID;
-			}
-		}
-
-		bool bSkipLoadingThisGroup = false;
-		if (iParentGroupID != -1)
-		{
-			for (auto& groupID : groupsThatCannotBeHotSwapped)
-			{
-				if (groupID == iParentGroupID)
-				{
-					// Do not try to hot swap this group, its size was previously changed and we currently do not support altering the group size
-					return;
-				}
-			}
-			int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
-			cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
-			// Now check how many entities the newly modified group has - if it has changed we cannot continue
-			if (FileExist(groupFilename.Get()))
-			{
-				std::vector <cstr> groupdata_s;
-				Dim(groupdata_s, 9999);
-				LoadArray(groupFilename.Get(), groupdata_s);
-				for (int groupline = 0; groupline < 9999; groupline++)
-				{
-					cstr line_s = groupdata_s[groupline];
-					if (Len(line_s.Get()) > 0)
-					{
-						LPSTR pLine = line_s.Get();
-						if (pLine[0] != ';')
-						{
-							// take fieldname and values
-							for (t.c = 0; t.c < Len(pLine); t.c++)
-							{
-								if (pLine[t.c] == '=') { t.mid = t.c + 1; break; }
-							}
-							t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
-							t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
-							t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
-							// populate with values found
-							t.tryfield_s = "groupobjcount";
-							if (t.field_s == t.tryfield_s)
-							{
-								int entityCount = t.value1;
-								if (entityCount != iPrevGroupEntityCount)
-								{
-									bSkipLoadingThisGroup = true;
-									if (std::find(groupsThatCannotBeHotSwapped.begin(), groupsThatCannotBeHotSwapped.end(), iParentGroupID) == groupsThatCannotBeHotSwapped.end())
-									{
-										// Store the group index for future, to ensure that we don't try to load in the group when the entity count is the same, but the entities themselves have been changed.
-										groupsThatCannotBeHotSwapped.push_back(iParentGroupID);
-									}
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (bSkipLoadingThisGroup)
-		{
-			return;
-		}
-		// now load the modified entity parent in
-		entity_load();
-
-		// ensures no new groups are created, just refreshed
-		g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
-
-		// if entity was a group/smart object
-		bool bObjectIsASmartObject = false;
-		if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
-		{
-			// special treatment to repair smart object/group
-			bObjectIsASmartObject = true;
-
-			// parent group ID if smart object
-			if (iParentGroupID != -1)
-			{
-				// go through all elements, find the smart object body and update child elements hanging off it
-				int iSizeOfList = t.entityelement.size();
-				bool* pDoneThisOne = new bool[iSizeOfList];
-				memset(pDoneThisOne, false, sizeof(bool)* iSizeOfList);
-				for (int pickede = 1; pickede < iSizeOfList; pickede++)
-				{
-					if (pDoneThisOne[pickede] == false)
-					{
-						pDoneThisOne[pickede] = true;
-						int groupid = isEntityInGroupList(pickede);
-						if (groupid >= 0)
-						{
-							// get all childs of this group
-							g.entityrubberbandlist.clear();
-							CheckGroupListForRubberbandSelections(pickede);
-
-							// relative center of group
-							float fBaseX = vEntityGroupList[iParentGroupID][0].x;
-							float fBaseY = vEntityGroupList[iParentGroupID][0].y;
-							float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
-
-							// update relative positions from base
-							int iGroupItemCount = vEntityGroupList[groupid].size();
-							for (int i = 1; i < iGroupItemCount; i++)
-							{
-								// element from group to adjust
-								int e = g.entityrubberbandlist[i].e;
-
-								// new adjustment from base center
-								float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
-								float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
-								float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
-
-								// each child element
-								t.entityelement[e].x = t.entityelement[pickede].x + fAdjX;
-								t.entityelement[e].y = t.entityelement[pickede].y + fAdjY;
-								t.entityelement[e].z = t.entityelement[pickede].z + fAdjZ;
-
-								// update element
-								t.e = e;
-								t.tte = e;
-								t.tupdatee = e;
-								t.tentid = t.entityelement[e].bankindex;
-								t.tobj = t.entityelement[e].obj;
-								entity_updateentityobj();
-
-								// mark this off
-								pDoneThisOne[e] = true;
-							}
-						}
-					}
-				}
-				delete[] pDoneThisOne;
-				pDoneThisOne = NULL;
-
-				/*
-				// remove all entity elements associated with this group
-				int iGroupItemCount = vEntityGroupList[iParentGroupID].size();
-				if (iGroupItemCount > 0)
-				{
-					float fBaseX = vEntityGroupList[iParentGroupID][0].x;
-					float fBaseY = vEntityGroupList[iParentGroupID][0].y;
-					float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
-					for (int i = 1; i < iGroupItemCount; i++)
-					{
-						float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
-						float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
-						float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
-						int e = vEntityGroupList[iParentGroupID][i].e;
-						int thisentid = t.entityelement[e].bankindex;
-						for (int e = 1; e < t.entityelement.size(); e++)
-						{
-							if (t.entityelement[e].bankindex == thisentid)
-							{
-								int eBase = -1;
-								for (int i = 0; i < iGroupItemCount; i++)
-								{
-									int e = vEntityGroupList[iParentGroupID][i].e;
-									int thisentid = t.entityelement[e].bankindex;
-									if (thisentid == entIndex)
-									{
-										eBase = e;
-										break;
-									}
-								}
-								if (eBase != -1)
-								{
-									// adjust element to new relative positions
-									t.entityelement[e].x = t.entityelement[eBase].x + fAdjX;
-									t.entityelement[e].y = t.entityelement[eBase].y + fAdjY;
-									t.entityelement[e].z = t.entityelement[eBase].z + fAdjZ;
-
-									// hack
-									t.e = e;
-									t.tte = e;
-									t.tupdatee = e;
-									t.tentid = thisentid;
-									t.tobj = t.entityelement[e].obj;
-									entity_updateentityobj();
-								}
-							}
-						}
-					}
-				}
-				*/
-			}
-		}
-		else
-		{
-			// The parent entity has now been reloaded, so we are free to also reload any entities that use its model
-			for (int e = 1; e < t.entityelement.size(); e++)
-			{
-				if (t.entityelement[e].bankindex == entIndex)
-				{
-					// The model for this entity uses the model that we just reloaded, so we also need to reload this entities obj
-					// we deliberately NOT change/reset the properties of this entity element as they are user-defined values
-					// we only swap in the new model and textures as this is often what an artist is tweaking!
-					t.e = e;
-					t.tte = e;
-					t.tupdatee = e;
-					t.tentid = entIndex;
-					t.tobj = t.entityelement[e].obj;
-					entity_updateentityobj();
-				}
-			}
-		}
+		// update this entity
+		ReloadEntityIDInSitu(entIndex);
 	}
 
 	// final prompt to inform user of the updated media

@@ -7562,9 +7562,12 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 						break;
 					}
 				}
-				
 				if (bGotLabels)
 				{
+					// type of dropdown
+					bool bIsAQuestList = false;
+					int iQuestIndex = 0;
+
 					// Determine the label for the currently selected value.
 					int iSelectedIndex = atol(tmpeleprof->PropertiesVariable.VariableValue[i]) - tmpeleprof->PropertiesVariable.VariableValueFrom[i];
 
@@ -7603,32 +7606,120 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 								if (ImGui::Selectable(label, bSelected))
 								{
 									strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], labelID);
-
-									// if quest list selection, change the object name to identify the quest chosen
-									bool bIsAQuestList = false;
-									for (int v = 0; v < tmpeleprof->PropertiesVariable.iVariables; v++)
-									{
-										if (strstr(tmpeleprof->PropertiesVariable.Variable[v], "QuestChoice") != NULL)
-										{
-											bIsAQuestList = true;
-											break;
-										}
-									}
-									if (bIsAQuestList==true)
-									{
-										int iQuestIndex = atoi(labelID);
-										tmpeleprof->name_s = "Quest";
-										if (iQuestIndex >= 2 && iQuestIndex <= 1+g_collectionQuestList.size())
-										{
-											tmpeleprof->name_s = g_collectionQuestList[iQuestIndex - 2].collectionFields[0];
-										}
-									}
-
 									bUpdateMainString = true;
 								}
 								if (bSelected) ImGui::SetItemDefaultFocus();
 							}
 							ImGui::EndCombo();
+						}
+					}
+
+					// additional option to create a new quest under Quest Choice
+					bIsAQuestList = false;
+					for (int v = 0; v < tmpeleprof->PropertiesVariable.iVariables; v++)
+					{
+						if (strstr(tmpeleprof->PropertiesVariable.Variable[v], "QuestChoice") != NULL)
+						{
+							bIsAQuestList = true;
+							break;
+						}
+					}
+					if (bIsAQuestList == true)
+					{
+						iQuestIndex = atoi(tmpeleprof->PropertiesVariable.VariableValue[i]);
+						if (bUpdateMainString == true)
+						{
+							if (iQuestIndex == 1)
+							{
+								tmpeleprof->name_s = "Quest Giver";
+							}
+							if (iQuestIndex >= 2 && iQuestIndex <= 1 + g_collectionQuestList.size())
+							{
+								// if quest list selection, change the object name to identify the quest chosen
+								tmpeleprof->name_s = g_collectionQuestList[iQuestIndex - 2].collectionFields[0];
+							}
+						}
+					}
+					if (bIsAQuestList == true && iQuestIndex > 0)
+					{
+						bool bDoARefresh = false;
+						float but_gadget_size = ImGui::GetFontSize() * 12.0;
+						float w = ImGui::GetWindowContentRegionWidth() - 10.0;
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+						if (iQuestIndex == 1)
+						{
+							// prescan to ensure name unique
+							bool bFoundMatch = false;
+							for (int q = 0; q < g_collectionQuestList.size(); q++)
+							{
+								if (stricmp(g_collectionQuestList[q].collectionFields[0].Get(), tmpeleprof->name_s.Get()) == NULL)
+								{
+									bFoundMatch = true;
+								}
+							}
+							LPSTR pCreateButtonLabel = "Create New Quest";
+							if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
+							{
+								collectionQuestType item;
+								fill_rpg_quest_defaults(&item, tmpeleprof->name_s.Get());
+
+								// only add unique quest titles
+								if (bFoundMatch == false)
+								{
+									// add unique to quest list
+									g_collectionQuestList.push_back(item);
+									int iQuestIndexAdded = 1 + g_collectionQuestList.size();
+
+									// inject into behaviour choice so can reflect as existing
+									for (int n = 0; n < tmpeleprof->PropertiesVariable.iVariables; n++)
+									{
+										if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[n], "QuestChoice"))
+										{
+											sprintf(tmpeleprof->PropertiesVariable.VariableValue[n], "%d", iQuestIndexAdded);
+											break;
+										}
+									}
+
+									// refresh behaviour and the quest dropdown
+									bDoARefresh = true;
+								}
+							}
+							if (ImGui::IsItemHovered())
+							{
+								if(bFoundMatch==true)
+									ImGui::SetTooltip("This quest name already exists in the main quest list!");
+								else
+									ImGui::SetTooltip("Use the name of this object to add a new quest to the main quest list");
+							}
+						}
+						else
+						{
+							LPSTR pCreateButtonLabel = "Delete Quest";
+							if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
+							{
+								// create new quest list without the one deleted
+								std::vector<collectionQuestType> newCollectionQuestList;
+								for (int q = 0; q < g_collectionQuestList.size(); q++)
+								{
+									if (q != iQuestIndex-2)
+									{
+										newCollectionQuestList.push_back(g_collectionQuestList[q]);
+									}
+								}
+								g_collectionQuestList = newCollectionQuestList;
+								sprintf(tmpeleprof->PropertiesVariable.VariableValue[i], "%d", 1);
+								bDoARefresh = true;
+							}
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Delete this quest from the main quest list of the game project");
+						}
+						if (bDoARefresh == true)
+						{
+							// refresh behaviour and the quest dropdown
+							extern int fpe_current_loaded_script;
+							extern bool g_bChangedGameCollectionList;
+							fpe_current_loaded_script = -1;
+							g_bChangedGameCollectionList = true;
+							bUpdateMainString = true;
 						}
 					}
 

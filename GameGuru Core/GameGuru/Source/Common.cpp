@@ -3315,7 +3315,6 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					t.tryfield_s = "graphicshighgrass"; if (t.field_s == t.tryfield_s)  g.graphicshighgrass_s = t.value_s;
 
 					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
-#ifdef WICKEDENGINE
 					extern int g_iDevToolsOpen;
 					t.tryfield_s = "superdevelopermode"; if (t.field_s == t.tryfield_s)
 					{
@@ -3329,7 +3328,10 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 							// Will use the pref value instead
 						}
 					}
-#endif
+
+					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
+					t.tryfield_s = "globalhudscale"; if (t.field_s == t.tryfield_s)  g.globalhudscale = t.value1 / 100.0f;
+					
 				}
 			}
 		}

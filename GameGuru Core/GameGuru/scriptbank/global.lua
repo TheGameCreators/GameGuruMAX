@@ -2487,6 +2487,7 @@ GetTerrainCollisionDetails( objectId, num )
 --]]
 
 -- Storyboard commands
+-- SetScreenHUDGlobalScale : SetScreenHUDGlobalScale
 -- InitScreen : InitScreen
 -- DisplayScreen : DisplayScreen
 -- DisplayCurrentScreen : DisplayCurrentScreen
@@ -2507,6 +2508,7 @@ GetTerrainCollisionDetails( objectId, num )
 -- SetScreenElementVisibility : SetScreenElementVisibility
 -- SetScreenElementPosition : SetScreenElementPosition
 -- SetScreenElementText : SetScreenElementText
+-- SetScreenElementColor : SetScreenElementColor ( elementID, r, g, b, a )
 -- GetCollectionAttributeQuantity : GetCollectionAttributeQuantity
 -- GetCollectionAttributeLabel :, GetCollectionAttributeLabel
 -- GetCollectionItemQuantity : GetCollectionItemQuantity

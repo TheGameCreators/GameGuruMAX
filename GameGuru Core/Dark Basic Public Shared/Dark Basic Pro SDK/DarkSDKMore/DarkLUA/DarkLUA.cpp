@@ -6397,6 +6397,13 @@ int GetStoryboardActive(lua_State *L)
 }
 
 int iSpecialLuaReturn = -1;
+int SetScreenHUDGlobalScale(lua_State* L)
+{
+	float fGlobalScaleMod = lua_tonumber(L, 1);
+	extern void screen_editor_setscalemod(float);
+	screen_editor_setscalemod (fGlobalScaleMod);
+	return 0;
+}
 int InitScreen(lua_State* L)
 {
 	// write to active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
@@ -6753,7 +6760,8 @@ int GetScreenElementArea(lua_State* L)
 		int iElementID = lua_tonumber(L, 1) - 1;
 		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
 		{
-			float fGlobalScale = (float)g_dwScreenWidth / 1920.0f;
+			extern float screen_editor_scalemod (float);
+			float fGlobalScale = screen_editor_scalemod((float)g_dwScreenWidth / 1920.0f);
 			fAreaX = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].x); // FABS to eliminate negative pos which is used to HIDE the widget
 			fAreaY = fabs(Storyboard.Nodes[nodeid].widget_pos[iElementID].y); // FABS to eliminate negative pos which is used to HIDE the widget
 			float widgetsizex = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iElementID]);
@@ -6865,6 +6873,27 @@ int SetScreenElementText(lua_State* L)
 			char pUserDefinedGlobal[MAX_PATH];
 			sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[iElementID]);
 			LuaSetString(pUserDefinedGlobal, pLabel);
+		}
+	}
+	return 0;
+}
+int SetScreenElementColor(lua_State* L)
+{
+	int nodeid = t.game.activeStoryboardScreen;
+	if (nodeid == -1) nodeid = t.game.ingameHUDScreen;
+	if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
+	{
+		int iElementID = lua_tonumber(L, 1) - 1;
+		if (iElementID >= 0 && iElementID < STORYBOARD_MAXWIDGETS)
+		{
+			float fX = lua_tonumber(L, 2);
+			float fY = lua_tonumber(L, 3);
+			float fZ = lua_tonumber(L, 4);
+			float fW = lua_tonumber(L, 5);
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].x = fX;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].y = fY;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].z = fZ;
+			Storyboard.Nodes[nodeid].widget_font_color[iElementID].w = fW;
 		}
 	}
 	return 0;
@@ -10439,6 +10468,7 @@ void addFunctions()
 
 	#ifdef STORYBOARD
 	//Storyboard
+	lua_register(lua, "SetScreenHUDGlobalScale", SetScreenHUDGlobalScale);
 	lua_register(lua, "InitScreen", InitScreen);
 	lua_register(lua, "DisplayScreen", DisplayScreen);
 	lua_register(lua, "DisplayCurrentScreen", DisplayCurrentScreen);
@@ -10461,6 +10491,7 @@ void addFunctions()
 	lua_register(lua, "SetScreenElementVisibility", SetScreenElementVisibility);
 	lua_register(lua, "SetScreenElementPosition", SetScreenElementPosition);
 	lua_register(lua, "SetScreenElementText", SetScreenElementText);
+	lua_register(lua, "SetScreenElementColor", SetScreenElementColor);
 	lua_register(lua, "GetCollectionAttributeQuantity", GetCollectionAttributeQuantity);
 	lua_register(lua, "GetCollectionAttributeLabel", GetCollectionAttributeLabel);
 	lua_register(lua, "GetCollectionItemQuantity", GetCollectionItemQuantity);

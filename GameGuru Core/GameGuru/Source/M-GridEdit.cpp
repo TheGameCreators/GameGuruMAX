@@ -72,6 +72,7 @@ DWORD g_dwParticleEditorProcessHandle = NULL;
 
 int g_iIconImageInProperties = 0;
 int g_iIconImageInPropertiesLastEntIndex = 0;
+bool g_bChangedGameCollectionList = false;
 
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
@@ -10027,22 +10028,102 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 
-						// Collectbale Settings if required
+						bool bMaterialsUsed = true;
+						cStr HeaderName = "Behavior##2";
+						if (t.entityprofile[iMasterID].ismarker == 1)
+						{
+							HeaderName = "Customize##2";
+						}
+						if (t.tflaglight == 1 || t.entityprofile[iMasterID].ismarker == 2)
+						{
+							HeaderName = "Color Palette##2";
+						}
+						if (t.entityprofile[iMasterID].ismarker == 10)
+						{
+							HeaderName = "Particles##2";
+							bMaterialsUsed = false;
+						}
+						if (t.entityprofile[iMasterID].bIsDecal)
+						{
+							HeaderName = "Decal##99";
+						}
+
+						bool bAllowBehaviorChange = true;
+						bool bIsThisAnEBE = false;
+						if (t.entityprofile[iMasterID].isebe != 0 && t.widget.pickedEntityIndex > 0)
+						{
+							HeaderName = "Structure Editor Object##99";
+							bIsThisAnEBE = true;
+						}
+						else
+						{
+							if (t.entityprofile[iMasterID].ismarker == 0)
+							{
+								if (t.entityelement[iEntityIndex].staticflag != 0)
+								{
+									// cannot change behavior of a static object!
+									bAllowBehaviorChange = false;
+								}
+							}
+						}
+
+						// rubber band awareness
+						bool bRubberbandActive = false;
+						if (g.entityrubberbandlist.size() > 0) bRubberbandActive = true;
+						if (g.entityrubberbandlist.size() == 1 && g.entityrubberbandlist[0].e == iEntityIndex) bRubberbandActive = false;
+						if (!bRubberbandActive )
+						{
+							if (pref.bAutoClosePropertySections && iLastOpenHeader != 16)
+								ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
+							if (ImGui::StyleCollapsingHeader(HeaderName.Get(), ImGuiTreeNodeFlags_DefaultOpen))//ImGuiTreeNodeFlags_None))
+							{
+								iLastOpenHeader = 16;
+
+								ImGui::Indent(10);
+								if (bIsThisAnEBE == true)
+								{
+									// Edit Structure Editor Object
+									float edit_gadget_size = ImGui::GetFontSize()*10.0;
+									float w = ImGui::GetWindowContentRegionWidth();
+									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (edit_gadget_size*0.5), 0.0f));
+									if (ImGui::StyleButton("Edit Structure Object", ImVec2(edit_gadget_size, 0)))
+									{
+										t.widget.propertybuttonselected = 1;
+										t.ebe.bReleaseMouseFirst = true;
+									}
+								}
+								else
+								{
+									if (bAllowBehaviorChange == true)
+									{
+										DisplayFPEBehavior(false, iMasterID, &t.entityelement[iEntityIndex].eleprof, iEntityIndex);
+									}
+									else
+									{
+										// inform user cannot use behaviors for static objects
+										ImGui::TextCenter("No Behavior For Static Objects");
+									}
+								}
+								ImGui::Indent(-10);
+							}
+						}
+
+						// Collectbale/Quest Settings if required
 						int iCollectableSettingsMode = 0;
 						LPSTR pCollectySettingsLabel = "Additional Settings##1";
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0) { iCollectableSettingsMode = 1; pCollectySettingsLabel = "Collectable Settings##1"; }
-						if(iCollectionQuestIndex>=0)
+						if (iCollectionQuestIndex > 0)
 						{
 							pCollectySettingsLabel = "Quest Settings##1";
 							iCollectableSettingsMode = 2;
 						}
-						if (iCollectableSettingsMode>0)
+						if (iCollectableSettingsMode > 0)
 						{
 							if (pref.bAutoClosePropertySections && iLastOpenHeader != 28) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 							if (ImGui::StyleCollapsingHeader(pCollectySettingsLabel, ImGuiTreeNodeFlags_None))
 							{
 								iLastOpenHeader = 28;
-								bool bChangedGameCollectionList = false;
 								int iCollectionItemIndex = -1;
 								if (iCollectableSettingsMode == 1)
 								{
@@ -10068,7 +10149,7 @@ void mapeditorexecutable_loop(void)
 									float but_gadget_size = ImGui::GetFontSize() * 15.0;
 									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
 									LPSTR pCreateButtonLabel = "Create Collection Item";
-									if (iCollectableSettingsMode == 2) pCreateButtonLabel = "Create Quest";
+									//if (iCollectableSettingsMode == 2) pCreateButtonLabel = "Create Quest"; now done in behaviour quest choice dropdown
 									if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
 									{
 										if (iCollectableSettingsMode == 1)
@@ -10076,7 +10157,9 @@ void mapeditorexecutable_loop(void)
 											collectionItemType item;
 											fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
 											g_collectionList.push_back(item);
+											g_bChangedGameCollectionList = true;
 										}
+										/* moved to quest choice dropdown
 										if (iCollectableSettingsMode == 2)
 										{
 											collectionQuestType item;
@@ -10109,9 +10192,10 @@ void mapeditorexecutable_loop(void)
 
 												// refresh behaviour and the quest dropdown
 												fpe_current_loaded_script = -1;
+												bChangedGameCollectionList = true;
 											}
 										}
-										bChangedGameCollectionList = true;
+										*/
 									}
 								}
 								else
@@ -10216,7 +10300,7 @@ void mapeditorexecutable_loop(void)
 													{
 														g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = sSelectedLibrarySting.Get();
 													}
-													bChangedGameCollectionList = true;
+													g_bChangedGameCollectionList = true;
 													sSelectedLibrarySting = "";
 													iSelectedLibraryStingReturnID = -1; //disable.
 													g_iIconImageInPropertiesLastEntIndex = 0;// trigger reload
@@ -10254,12 +10338,12 @@ void mapeditorexecutable_loop(void)
 														{
 															g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = pIconImageInProperties;
 														}
-														bChangedGameCollectionList = true;
+														g_bChangedGameCollectionList = true;
 													}
 													g_iIconImageInProperties = g.iconimagebankoffset;
 													if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
 													image_setlegacyimageloading(true);
-													if (FileExist(pIconImageInProperties)==1)
+													if (FileExist(pIconImageInProperties) == 1)
 													{
 														// actual icon image
 														LoadImage(pIconImageInProperties, g_iIconImageInProperties);
@@ -10391,7 +10475,7 @@ void mapeditorexecutable_loop(void)
 																g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = cTmpInput;
 															}
 															bImGuiGotFocus = true;
-															bChangedGameCollectionList = true;
+															g_bChangedGameCollectionList = true;
 														}
 														if (ImGui::IsItemHovered() && pShowTop) ImGui::SetTooltip(pShowTop);
 														if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
@@ -10403,93 +10487,14 @@ void mapeditorexecutable_loop(void)
 									}
 									ImGui::Indent(-10);
 								}
-								if (bChangedGameCollectionList == true)
-								{
-									// save any changes to game collection list 
-									save_rpg_system(pref.cLastUsedStoryboardProject, true);
-								}
 							}
 						}
 
-						bool bMaterialsUsed = true;
-						cStr HeaderName = "Behavior##2";
-						if (t.entityprofile[iMasterID].ismarker == 1)
+						// save any changes to game collection list 
+						if (g_bChangedGameCollectionList == true)
 						{
-							HeaderName = "Customize##2";
-						}
-						if (t.tflaglight == 1 || t.entityprofile[iMasterID].ismarker == 2)
-						{
-							HeaderName = "Color Palette##2";
-						}
-						if (t.entityprofile[iMasterID].ismarker == 10)
-						{
-							HeaderName = "Particles##2";
-							bMaterialsUsed = false;
-						}
-						if (t.entityprofile[iMasterID].bIsDecal)
-						{
-							HeaderName = "Decal##99";
-						}
-
-						bool bAllowBehaviorChange = true;
-						bool bIsThisAnEBE = false;
-						if (t.entityprofile[iMasterID].isebe != 0 && t.widget.pickedEntityIndex > 0)
-						{
-							HeaderName = "Structure Editor Object##99";
-							bIsThisAnEBE = true;
-						}
-						else
-						{
-							if (t.entityprofile[iMasterID].ismarker == 0)
-							{
-								if (t.entityelement[iEntityIndex].staticflag != 0)
-								{
-									// cannot change behavior of a static object!
-									bAllowBehaviorChange = false;
-								}
-							}
-						}
-
-						// rubber band awareness
-						bool bRubberbandActive = false;
-						if (g.entityrubberbandlist.size() > 0) bRubberbandActive = true;
-						if (g.entityrubberbandlist.size() == 1 && g.entityrubberbandlist[0].e == iEntityIndex) bRubberbandActive = false;
-						if (!bRubberbandActive )
-						{
-							if (pref.bAutoClosePropertySections && iLastOpenHeader != 16)
-								ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-
-							if (ImGui::StyleCollapsingHeader(HeaderName.Get(), ImGuiTreeNodeFlags_DefaultOpen))//ImGuiTreeNodeFlags_None))
-							{
-								iLastOpenHeader = 16;
-
-								ImGui::Indent(10);
-								if (bIsThisAnEBE == true)
-								{
-									// Edit Structure Editor Object
-									float edit_gadget_size = ImGui::GetFontSize()*10.0;
-									float w = ImGui::GetWindowContentRegionWidth();
-									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (edit_gadget_size*0.5), 0.0f));
-									if (ImGui::StyleButton("Edit Structure Object", ImVec2(edit_gadget_size, 0)))
-									{
-										t.widget.propertybuttonselected = 1;
-										t.ebe.bReleaseMouseFirst = true;
-									}
-								}
-								else
-								{
-									if (bAllowBehaviorChange == true)
-									{
-										DisplayFPEBehavior(false, iMasterID, &t.entityelement[iEntityIndex].eleprof, iEntityIndex);
-									}
-									else
-									{
-										// inform user cannot use behaviors for static objects
-										ImGui::TextCenter("No Behavior For Static Objects");
-									}
-								}
-								ImGui::Indent(-10);
-							}
+							save_rpg_system(pref.cLastUsedStoryboardProject, true);
+							g_bChangedGameCollectionList = false;
 						}
 
 						// Custom Materials now an advanced feature

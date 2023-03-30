@@ -42770,6 +42770,18 @@ void process_storeboard(bool bInitOnly)
 																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = checkproject->widget_ingamehidden[i][iWidgetIndex];
 																		}
 
+																		//PE: unique ids are wrong in checkproject so assign new here.
+																		int iUniqueId = STORYBOARD_THUMBS + newnodeid;
+																		Storyboard.Nodes[newnodeid].id = iUniqueId;
+																		Storyboard.Nodes[newnodeid].thumb_id = iUniqueId;
+																		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+																		{
+																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
+																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
+																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+																		}
+																		Storyboard.Nodes[newnodeid].screen_backdrop_id = iUniqueId + 500;
+
 																		// update thumbs
 																		SetMipmapNum(1);
 																		image_setlegacyimageloading(true);

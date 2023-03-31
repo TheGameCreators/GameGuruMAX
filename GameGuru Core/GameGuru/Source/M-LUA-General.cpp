@@ -1255,16 +1255,20 @@ void lua_removeplayerweapon ( void )
 	// only if valid weapon slot
 	if (t.ws >= 1 && t.ws <= 10)
 	{
-		t.gunid = t.weaponslot[t.ws].got;
-		if (t.gunid > 0)
+		//PE: This could be a armour/spell/other and not a weapon. so check. Problem we cant have t.gunid=0 when we have a weapon.
+		if (t.weaponslot[t.ws].got > 0)
 		{
-			// store ammo before remove from slot
-			t.gun[t.gunid].storeammo = t.weaponammo[t.ws];
-			t.gun[t.gunid].storeclipammo = t.weaponclipammo[t.ws];
+			t.gunid = t.weaponslot[t.ws].got;
+			if (t.gunid > 0)
+			{
+				// store ammo before remove from slot
+				t.gun[t.gunid].storeammo = t.weaponammo[t.ws];
+				t.gun[t.gunid].storeclipammo = t.weaponclipammo[t.ws];
 
-			// clear weapon
-			t.weaponindex = t.gunid;
-			physics_player_removeweapon ();
+				// clear weapon
+				t.weaponindex = t.gunid;
+				physics_player_removeweapon();
+			}
 		}
 	}
 }

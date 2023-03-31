@@ -5498,11 +5498,12 @@ void mapeditorexecutable_loop(void)
 
 							// Can't copy object relations so ensure previous are cleared
 							t.entityelement[t.e].eleprof.iObjectLinkID = 0;
+							//PE: This caused a crash iObjectRelationshipsData[j] > 10 (should have been j) made memory overwrite inside eleprof
 							for (int j = 0; j < 10; j++)
 							{
-								t.entityelement[t.e].eleprof.iObjectRelationships[i] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsType[i] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsData[i] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationships[j] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationshipsType[j] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationshipsData[j] = 0;
 							}
 
 							// and add to new rubber band group
@@ -8476,7 +8477,32 @@ void mapeditorexecutable_loop(void)
 			}
 			active_tools_obj = iActiveObj;
 			active_tools_entity_index = iEntityIndex;
+			//PE: Make sure the object we edit are a clone , fix many of the problems where material changes was also going to the master object.
+			if (iEntityIndex > 0 && iEntityIndex == t.widget.pickedEntityIndex && iActiveObj > 0)
+			{
+				sObject* pObject = g_ObjectList[iActiveObj];
+				if (pObject)
+				{
+					for (int iMesh = 0; iMesh < (int)pObject->iMeshCount; iMesh++)
+					{
+						sMesh* pMesh = pObject->ppMeshList[iMesh];
+						if (pMesh)
+						{
+							if (pMesh->master_wickedmeshindex > 0)
+							{
+								//PE: Make sure selected object is a clone.
+								t.tupdatee = iEntityIndex;
+								entity_updateentityobj();
+							}
+							//PE: only checking first mesh needed.
+							break;
+						}
+					}
+				}
+			}
 			#endif
+
+			static int iLastActiveEntityIndex = -1, iLastActiveObj = -1;
 
 			if (Entity_Tools_Window && ( current_mode == TOOL_ENTITY || current_mode == TOOL_MARKERS || (t.gridentity > 0 && t.entityprofile[t.gridentity].isebe != 0)  )) 
 			{
@@ -8661,7 +8687,6 @@ void mapeditorexecutable_loop(void)
 					{
 						grideleprof_uniqui_id = 35000;
 
-						static int iLastActiveEntityIndex = -1, iLastActiveObj = -1;
 						if (iLastActiveEntityIndex != iEntityIndex || iLastActiveObj != iActiveObj)
 						{
 							if (iLastActiveObj != 70000 && iLastActiveEntityIndex > 0)
@@ -10722,6 +10747,8 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 						gridedit_clearentityrubberbandlist();
+						iLastActiveEntityIndex = -1;
+						iLastActiveObj = -1;
 					}
 				}
 				//##############################
@@ -14514,7 +14541,6 @@ void mapeditorexecutable_loop(void)
 //			ImGui::Text("bDraggingActive: %d", bDraggingActive);
 //			ImGuiContext& gui = *GImGui;
 //			ImGui::Text("DragDropActive: %d", gui.DragDropActive);
-
 			//ImGui::Text("t.widget.pickedEntityIndex: %d", t.widget.pickedEntityIndex);
 			//ImGui::Text("t.tentitytoselect: %d", t.tentitytoselect);
 			//ImGui::Text("t.gridentityobj: %ld", t.gridentityobj);

@@ -1425,10 +1425,25 @@ void GetSizePositionRotation(sObject* pObject, float &fXSize, float &fYSize, flo
 			vObjectOffset.y = vecPosOffset.y;
 			vObjectOffset.z = vecPosOffset.z;
 
-			// apply offset of root frame
-			fXPos += vObjectOffset.x;
-			fYPos += vObjectOffset.y;
-			fZPos += vObjectOffset.z;
+			bool bOUseffset = false;
+			if (pObject->pFrame)
+			{
+				//PE: check if offset is already in frame zero transform, or it will also get added there.
+				if (pObject->pFrame->matCombined._41 == 0 &&
+					pObject->pFrame->matCombined._42 == 0 &&
+					pObject->pFrame->matCombined._43 == 0)
+				{
+					bOUseffset = true;
+				}
+			
+			}
+			if (bOUseffset)
+			{
+				// apply offset of root frame
+				fXPos += vObjectOffset.x;
+				fYPos += vObjectOffset.y;
+				fZPos += vObjectOffset.z;
+			}
 		}
 		#endif
 	}
@@ -2366,8 +2381,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 						#ifdef WICKEDENGINE
 						//PE: Using matModelOffset * matFinal on frame 0 invert changes and return a Identity matix, so they even themself out.
 						//PE: Other frames with Identity matix do not need this.
-						if(matFinal != matIdentity)
-							GGMatrixMultiply (&matFinal, &matFinal, &matModelOffset);
+						if (matFinal != matIdentity)
+						{
+							GGMatrixMultiply(&matFinal, &matFinal, &matModelOffset);
+						}
 						GGMatrixMultiply (&matFinal, &matFinal, &matRootRotOnly);
 						#endif
 

@@ -4476,7 +4476,7 @@ void entity_createobj ( void )
 			extern sObject* g_selected_editor_object;
 			//PE: Cursor always real clone , if changing materials ...
 			//g_selected_editor_object == g_ObjectList[t.obj]
-			if ( t.obj == 70000 || t.gridentityobj == t.obj || active_tools_obj == t.obj || active_tools_entity_index == t.tupdatee || t.tentitytoselect == t.tupdatee)
+			if (t.widget.pickedEntityIndex == t.tentid || t.obj == 70000 || t.gridentityobj == t.obj || active_tools_obj == t.obj || active_tools_entity_index == t.tupdatee || t.tentitytoselect == t.tupdatee)
 			{
 				bUseInstancing = false;
 			}

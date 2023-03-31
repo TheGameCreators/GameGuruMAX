@@ -8116,6 +8116,7 @@ void entity_addentitytomap ( void )
 	if (t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 || t.entityelement[t.e].eleprof.usespotlighting)
 	{
 		lighting_refresh();
+		entity_updatelightobj(t.e, t.entityelement[t.e].obj);
 	}
 
 	// if new particle emitter, update it when created (to start the particle emission)

@@ -24821,6 +24821,13 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			MakeFPELine(pLine, "objrotx", i, cstr(t.entityelement[e].rx)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objroty", i, cstr(t.entityelement[e].ry)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objrotz", i, cstr(t.entityelement[e].rz)); WriteString (1, pLine);
+
+			MakeFPELine(pLine, "objquatmode", i, cstr(t.entityelement[e].quatmode)); WriteString(1, pLine);
+			MakeFPELine(pLine, "objquatx", i, cstr(t.entityelement[e].quatx)); WriteString(1, pLine);
+			MakeFPELine(pLine, "objquaty", i, cstr(t.entityelement[e].quaty)); WriteString(1, pLine);
+			MakeFPELine(pLine, "objquatz", i, cstr(t.entityelement[e].quatz)); WriteString(1, pLine);
+			MakeFPELine(pLine, "objquatw", i, cstr(t.entityelement[e].quatw)); WriteString(1, pLine);
+
 			MakeFPELine(pLine, "objscalex", i, cstr(t.entityelement[e].scalex)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objscaley", i, cstr(t.entityelement[e].scaley)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objscalez", i, cstr(t.entityelement[e].scalez)); WriteString (1, pLine);
@@ -24855,6 +24862,7 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 				MakeFPELine(pLine, "objlightcast", i, cstr(t.entityelement[e].eleprof.castshadow)); WriteString (1, pLine);
 				LPSTR pBehaviorName = t.entityelement[e].eleprof.aimain_s.Get();
 				MakeFPELine(pLine, "objlightlogic", i, cstr(pBehaviorName)); WriteString (1, pLine);
+				MakeFPELine(pLine, "objlightspot", i, cstr(t.entityelement[e].eleprof.usespotlighting)); WriteString(1, pLine);
 			}
 		}
 		WriteString (1, "");
@@ -25098,6 +25106,12 @@ bool LoadGroup(LPSTR pAbsFilename)
 						if (ReadFPELine("objlightradius", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.offsetup = t.value1;
 						if (ReadFPELine("objlightcast", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.castshadow = t.value1;
 						if (ReadFPELine("objlightlogic", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.aimain_s = t.value_s;
+						if (ReadFPELine("objlightspot", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.usespotlighting = t.value1;
+						if (ReadFPELine("objquatmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatmode = t.value1;
+						if (ReadFPELine("objquatx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatx = t.value1;
+						if (ReadFPELine("objquaty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quaty = t.value1;
+						if (ReadFPELine("objquatz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatz = t.value1;
+						if (ReadFPELine("objquatw", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatw = t.value1;
 					}
 				}
 			}
@@ -25145,6 +25159,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 			{
 				t.entityelement[e].eleprof.light.index = 0;
 				lighting_refresh();
+				entity_updatelightobj(e, t.entityelement[e].obj);
 			}
 			if (t.entityprofile[entid].ismarker == 10)
 			{
@@ -25164,7 +25179,8 @@ bool LoadGroup(LPSTR pAbsFilename)
 			g.entityrubberbandlist[i].rz = t.entityelement[e].rz;
 
 			// calculate quat from ROTXYZ in smart object child
-			entity_updatequatfromeuler(e);
+			if(t.entityelement[e].quatmode == 0)
+				entity_updatequatfromeuler(e);
 
 			g.entityrubberbandlist[i].quatmode = t.entityelement[e].quatmode;
 			g.entityrubberbandlist[i].quatx = t.entityelement[e].quatx;

@@ -5498,11 +5498,12 @@ void mapeditorexecutable_loop(void)
 
 							// Can't copy object relations so ensure previous are cleared
 							t.entityelement[t.e].eleprof.iObjectLinkID = 0;
+							//PE: This caused a crash iObjectRelationshipsData[j] > 10 (should have been j) made memory overwrite inside eleprof
 							for (int j = 0; j < 10; j++)
 							{
-								t.entityelement[t.e].eleprof.iObjectRelationships[i] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsType[i] = 0;
-								t.entityelement[t.e].eleprof.iObjectRelationshipsData[i] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationships[j] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationshipsType[j] = 0;
+								t.entityelement[t.e].eleprof.iObjectRelationshipsData[j] = 0;
 							}
 
 							// and add to new rubber band group

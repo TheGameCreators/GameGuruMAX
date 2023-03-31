@@ -16200,157 +16200,18 @@ void mapeditorexecutable_loop(void)
 							}
 							ImGui::SetCursorPos(opos);
 							ImGui::PopID();
-							#else
-							//Process.
-							ImVec2 vCurPos = ImGui::GetCursorPos();
-							ImGui::PushItemWidth(-50);
-							bool bTreeOpen = false;
-							//					if (ImGui::TreeNode(sGroupString.Get()))
-							if (ImGui::TreeNodeEx((void*)(intptr_t)&vEntityGroupList[l], 0, sGroupString.Get()))
-							{
-								bTreeOpen = true;
-								if (ImGui::IsItemHovered()) {
-									entityselectionlist = vEntityGroupList[l];
-								}
-
-								for (int i = 0; i < vEntityGroupList[l].size(); i++)
-								{
-									bool bHighlightObject = false;
-									int e = vEntityGroupList[l][i].e;
-									int bankindex = t.entityelement[e].bankindex;
-
-									cstr sObjectString = cstr(" (") + cstr(e) + cstr(")");
-									cstr sTreeName = t.entityprofileheader[bankindex].desc_s + sObjectString;
-									cstr sUngroupName = cstr("Ungroup") + sObjectString;
-									//ImGui::Text(sTreeName.Get());
-									if (t.gridentityinzoomview == e)
-									{
-										sTreeName = "In Properties";
-									}
-									bool is_selected = false;
-									ImVec2 vCurItemPos = ImGui::GetCursorPos();
-									ImGui::Indent(-10);
-									ImGui::TreeNodeEx((void*)(intptr_t)i, ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen, sTreeName.Get());
-									if (ImGui::IsItemClicked())
-									{
-										AddEntityToCursor(e);
-									}
-									if (ImGui::IsItemHovered()) {
-										bHighlightObject = true;
-									}
-									ImGui::Indent(10);
-
-									ImVec2 vOldItemPos = ImGui::GetCursorPos();
-									ImGui::PushID(iUniqueTreeId++);
-									ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurItemPos.y));
-									ImGui::SetItemAllowOverlap();
-									if (ImGui::ImgBtn(TOOL_UNGROUP, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-									{
-										vEntityGroupList[l].erase(vEntityGroupList[l].begin() + i);
-										iEntityGroupListImage[l] = 0;
-									}
-									if (ImGui::IsItemHovered() && bToolTipActive) {
-										ImGui::SetTooltip(sUngroupName.Get());
-										bHighlightObject = true;
-									}
-									ImGui::PopID();
-									ImGui::SetCursorPos(vOldItemPos);
-
-									if (bHighlightObject)
-									{
-										//PE: Mark item in editor.
-										sObject* pObject;
-										if (t.entityelement[e].obj > 0) {
-											pObject = g_ObjectList[t.entityelement[e].obj];
-											if (pObject) {
-												g_highlight_pobject = pObject;
-											}
-										}
-									}
-								}
-
-								ImGui::TreePop();
-							}
-							if (!bTreeOpen && ImGui::IsItemHovered()) {
-								entityselectionlist = vEntityGroupList[l];
-							}
-
-							ImGui::PopItemWidth();
-
-
-							ImVec2 vOldPos = ImGui::GetCursorPos();
-
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurPos.y));
-							ImGui::PushID(iUniqueTreeId++);
-							ImGui::SetItemAllowOverlap();
-							if (ImGui::ImgBtn(TOOL_TRASHCAN, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-							{
-								vEntityGroupList[l].clear();
-								iEntityGroupListImage[l] = 0;
-							}
-							if (ImGui::IsItemHovered() && bToolTipActive) {
-								ImGui::SetTooltip("Delete Group");
-								entityselectionlist = vEntityGroupList[l];
-							}
-							ImGui::PopID();
-
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurPos.y));
-							ImGui::PushID(iUniqueTreeId++);
-							ImGui::SetItemAllowOverlap();
-							if (ImGui::ImgBtn(TOOL_UNGROUP, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-							{
-								g.entityrubberbandlist = vEntityGroupList[l];
-								//vEntityGroupList[l].clear();
-								//Set widget on first item in list.
-								int e = g.entityrubberbandlist[0].e;
-								if (e > 0)
-								{
-									t.widget.pickedEntityIndex = e;
-									t.widget.pickedObject = t.entityelement[e].obj;
-								}
-
-							}
-							if (ImGui::IsItemHovered() && bToolTipActive) {
-								ImGui::SetTooltip("UnGroup to Cursor");
-								entityselectionlist = vEntityGroupList[l];
-							}
-							ImGui::PopID();
-
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - 18.0f - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurPos.y));
-							ImGui::PushID(iUniqueTreeId++);
-							ImGui::SetItemAllowOverlap();
-							if (ImGui::ImgBtn(TOOL_ENT_DUPLICATE, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-							{
-								DuplicateFromList(vEntityGroupList[l]);
-							}
-							if (ImGui::IsItemHovered() && bToolTipActive) {
-								ImGui::SetTooltip("Duplicate to Cursor");
-								entityselectionlist = vEntityGroupList[l];
-							}
-							ImGui::PopID();
-
-
-							ImGui::SetCursorPos(vOldPos);
-
-#endif
+							#endif
 							ImGui::NextColumn();
-
 						}
 					}
-					//ImGui::Indent(-10);
 					ImGui::PopStyleVar();
-
 					ImGui::Columns(1);
-
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
-						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
+						// Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
 					}
-
 					ImGui::EndTabItem();
 				}
 				
@@ -16360,132 +16221,6 @@ void mapeditorexecutable_loop(void)
 					i_switch_group_tab = 0;
 					tabflags = ImGuiTabItemFlags_SetSelected;
 				}
-				//PE: Not sure what TRASH is , some kind of undo/redo system ?
-				/*
-				if (ImGui::BeginTabItem(" Trash ", NULL, tabflags))
-				{
-					iInsideTab = 3;
-
-					//Locked objects moved in new design.
-					//#### Locked Objects ####
-					if (vEntityLockedList.size() > 0)
-					{
-						//Tree view.
-						cstr sLockedString = cstr("Locked Objects (") + cstr((int)vEntityLockedList.size()) + cstr(")");
-						ImVec2 vCurPos = ImGui::GetCursorPos();
-						bool bTreeOpen = false;
-						ImGui::PushItemWidth(-50);
-						//				if (ImGui::TreeNode(sLockedString.Get()))
-						if (ImGui::TreeNodeEx((void*)(intptr_t)&vEntityLockedList, 0, sLockedString.Get()))
-						{
-							bTreeOpen = true;
-							if (ImGui::IsItemHovered()) {
-								entityselectionlist = vEntityLockedList;
-							}
-
-							for (int i = 0; i < vEntityLockedList.size(); i++)
-							{
-								bool bHighlightObject = false;
-								int e = vEntityLockedList[i].e;
-								int bankindex = t.entityelement[e].bankindex;
-
-								cstr sObjectString = cstr(" (") + cstr(e) + cstr(")");
-								cstr sTreeName = t.entityprofileheader[bankindex].desc_s + sObjectString;
-								cstr sUnlockName = cstr("Unlock") + sObjectString;
-								//ImGui::Text(sTreeName.Get());
-								bool is_selected = false;
-								ImVec2 vCurItemPos = ImGui::GetCursorPos();
-								ImGui::Indent(-10);
-								ImGui::TreeNodeEx((void*)(intptr_t)i, ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_NoTreePushOnOpen, sTreeName.Get());
-								if (ImGui::IsItemHovered()) {
-									bHighlightObject = true;
-								}
-								ImGui::Indent(10);
-
-								ImVec2 vOldItemPos = ImGui::GetCursorPos();
-								ImGui::PushID(iUniqueTreeId++);
-								ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurItemPos.y));
-								ImGui::SetItemAllowOverlap();
-								if (ImGui::ImgBtn(TOOL_UNLOCK, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-								{
-									t.entityelement[e].editorlock = 0;
-									sObject* pObject;
-									if (t.entityelement[e].obj > 0) {
-										pObject = g_ObjectList[t.entityelement[e].obj];
-										if (pObject) {
-											WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-										}
-									}
-									vEntityLockedList.erase(vEntityLockedList.begin() + i);
-								}
-								if (ImGui::IsItemHovered() && bToolTipActive) {
-									ImGui::SetTooltip(sUnlockName.Get());
-									bHighlightObject = true;
-								}
-								ImGui::PopID();
-								ImGui::SetCursorPos(vOldItemPos);
-
-								if (bHighlightObject)
-								{
-									//PE: Mark item in editor.
-									sObject* pObject;
-									if (t.entityelement[e].obj > 0) {
-										pObject = g_ObjectList[t.entityelement[e].obj];
-										if (pObject) {
-											g_highlight_pobject = pObject;
-										}
-									}
-								}
-								//sObject* pObject;
-								//if (t.entityelement[e].obj > 0) {
-								//	pObject = g_ObjectList[t.entityelement[e].obj];
-								//}
-							}
-							ImGui::TreePop();
-						}
-						if (!bTreeOpen && ImGui::IsItemHovered()) {
-							entityselectionlist = vEntityLockedList;
-						}
-
-						ImGui::PopItemWidth();
-
-						ImVec2 vOldPos = ImGui::GetCursorPos();
-						ImGui::SameLine();
-
-						ImGui::SetCursorPos(ImVec2(content_avail.x - 18.0f - ImGui::GetCurrentWindow()->ScrollbarSizes.x, vCurPos.y));
-						ImGui::PushID(iUniqueTreeId++);
-						ImGui::SetItemAllowOverlap();
-						if (ImGui::ImgBtn(TOOL_UNLOCK, ImVec2(16, 16), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false))
-						{
-							for (int i = 0; i < vEntityLockedList.size(); i++)
-							{
-								int e = vEntityLockedList[i].e;
-								t.entityelement[e].editorlock = 0;
-								sObject* pObject;
-								if (t.entityelement[e].obj > 0) {
-									pObject = g_ObjectList[t.entityelement[e].obj];
-									if (pObject) {
-										WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-									}
-								}
-							}
-							vEntityLockedList.clear();
-						}
-						if (ImGui::IsItemHovered() && bToolTipActive) ImGui::SetTooltip("Unlock All Objects");
-						ImGui::PopID();
-
-						ImGui::SetCursorPos(vOldPos);
-					}
-
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
-						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
-						ImGui::Text("");
-						ImGui::Text("");
-					}
-
-					ImGui::EndTabItem();
-				}
-				*/		
 				ImGui::EndTabBar(); //PE:Fix Assert error , stacksize.
 			}
 
@@ -24557,7 +24292,7 @@ void editor_constructionselection ( void )
 					if (iParentGroupID != -1)
 					{
 						// and duplicate from that parent group
-						iFromGroupEntityID = DuplicateFromListToCursor(vEntityGroupList[iParentGroupID], false);
+						iFromGroupEntityID = DuplicateFromListToCursor(vEntityGroupList[iParentGroupID], false, -1);
 
 						//PE: Keep scale rot when setup from a group.
 						if(iFromGroupEntityID > 0)

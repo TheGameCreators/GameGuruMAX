@@ -524,6 +524,9 @@ extern std::vector<ReadoutLayers> readoutLayers;
 extern std::vector<ReadoutTypes> readoutTypes;
 extern std::vector<std::function<void()>> readoutCallbacks;
 
+extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
+extern int g_iAbortedAsEntityIsGroupCreate;
+
 bool bDigAHoleToHWND = false;
 
 #ifdef WICKEDENGINE
@@ -23978,6 +23981,7 @@ void DuplicateLogicConnections (std::vector<sRubberBandType> vEntityDuplicateLis
 }
 #endif
 
+/* no longer used
 void DuplicateFromList(std::vector<sRubberBandType> vEntityDuplicateList)
 {
 	//Dublicate all from a list.
@@ -24116,8 +24120,9 @@ void DuplicateFromList(std::vector<sRubberBandType> vEntityDuplicateList)
 		t.gridentity = 0;
 	}
 }
+*/
 
-int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList, bool bRandomShiftXZ)
+int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList, bool bRandomShiftXZ, int iOriginalGroupIndexForChild, bool bAttachToCursor)
 {
 	// anchor to a single object for dragging
 	int iAnchorEntityIndex = -1;
@@ -24280,10 +24285,11 @@ int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList,
 		DuplicateLogicConnections(vEntityDuplicateList);
 
 		// Select and add first entity to cursor, along with the rubberband.
-		if (iAnchorEntityIndex != -1)
+		if (iAnchorEntityIndex != -1 && bAttachToCursor == true)
 		{
 			//PE: Need to set scale from group settings. t.entityelement[iAnchorEntityIndex].scalex
 			AddEntityToCursor(iAnchorEntityIndex, false);
+
 			//Change to just place under cursor.
 			t.inputsys.dragoffsetx_f = 0;
 			t.inputsys.dragoffsety_f = 0;
@@ -24307,13 +24313,19 @@ int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList,
 		}
 
 		//LB: when duplicate, we create a child group spawned from the parent, use unique "iParentGroupID" to keep track of parent and children
-		CreateNewGroup(vEntityDuplicateList[0].iGroupID);
+		CreateNewGroup(vEntityDuplicateList[0].iGroupID, false, "", false, iOriginalGroupIndexForChild);
 
 		//LB: when duplicate, clear last selected so do not double highlight and mess up correct group selection list!
 		iLastSelectedEntityGroup = -1;
 		iLastSelectedEntity = -1;
 	}
-	return(iAnchorEntityIndex);
+	if (bAttachToCursor == false)
+	{
+		// reset any attachments
+		current_selected_group = -1;
+		t.gridentity = 0;
+	}
+	return iAnchorEntityIndex;
 }
 
 void ListGroupContextMenu(bool bPickedOnly, int iEntityId)
@@ -24461,79 +24473,81 @@ void GroupUndoSys(int index, std::vector<sRubberBandType> groupData)
 	CreateNewGroup(-1, true, "", false);
 }
 
-void CreateNewGroup(int iParentGroupID, bool bSnapshotGroupThumb, cstr GroupName_s, bool bGenerateUndo)
+void CreateNewGroup(int iParentGroupID, bool bSnapshotGroupThumb, cstr GroupName_s, bool bGenerateUndo, int iForceIntoIndex)
 {
 	if (g.entityrubberbandlist.size() > 0)
 	{
-		//Check for duplicate.
-		for (int i = 0; i < MAXGROUPSLISTS; i++)
-		{
-			if (vEntityGroupList[i].size() > 0)
-			{
-				if (vEntityGroupList[i].size() == g.entityrubberbandlist.size())
-				{ 
-					bool bAllFound = true;
-					for (int ir = 0; ir < g.entityrubberbandlist.size(); ir++)
-					{
-						int e = g.entityrubberbandlist[ir].e;
-						bool bfound = false;
-
-						for (int il = 0; il < vEntityGroupList[i].size(); il++)
-						{
-							if (vEntityGroupList[i][il].e == e)
-							{
-								bfound = true;
-								break;
-							}
-						}
-						if (!bfound)
-							bAllFound = false;
-					}
-					if (bAllFound) //All found in group.
-						return;
-				}
-
-			}
-		}
-
 		GetRubberbandLowHighValues();
-
-		//Remove empty.
-		int dest = 0;
-		for (int i = 0; i < MAXGROUPSLISTS; i++)
+		if (iForceIntoIndex == -1)
 		{
-			if (vEntityGroupList[i].size() > 0)
+			//Check for duplicate.
+			for (int i = 0; i < MAXGROUPSLISTS; i++)
 			{
-				if (i != dest)
+				if (vEntityGroupList[i].size() > 0)
 				{
-					//move
-					vEntityGroupList[dest] = vEntityGroupList[i];
-					if (current_selected_group == dest)
-						current_selected_group = dest;
-					iEntityGroupListImage[dest] = iEntityGroupListImage[i];
-					iEntityGroupListImage[i] = 0;
-					sEntityGroupListName[dest] = sEntityGroupListName[i];
-					sEntityGroupListName[i] = "";
-					vEntityGroupList[i].clear();
+					if (vEntityGroupList[i].size() == g.entityrubberbandlist.size())
+					{
+						bool bAllFound = true;
+						for (int ir = 0; ir < g.entityrubberbandlist.size(); ir++)
+						{
+							int e = g.entityrubberbandlist[ir].e;
+							bool bfound = false;
+
+							for (int il = 0; il < vEntityGroupList[i].size(); il++)
+							{
+								if (vEntityGroupList[i][il].e == e)
+								{
+									bfound = true;
+									break;
+								}
+							}
+							if (!bfound)
+								bAllFound = false;
+						}
+						if (bAllFound) //All found in group.
+							return;
+					}
+
 				}
-				dest++;
 			}
-		}
-		
-		//Move list down.
-		for (int l = MAXGROUPSLISTS-1; l > 0; l--)
-		{
-			if (vEntityGroupList[l - 1].size() > 0)
+
+			//Remove empty.
+			int dest = 0;
+			for (int i = 0; i < MAXGROUPSLISTS; i++)
 			{
-				vEntityGroupList[l] = vEntityGroupList[l - 1];
-				if (current_selected_group == l - 1)
-					current_selected_group = l;
-				iEntityGroupListImage[l] = iEntityGroupListImage[l - 1];
-				sEntityGroupListName[l] = sEntityGroupListName[l - 1];
+				if (vEntityGroupList[i].size() > 0)
+				{
+					if (i != dest)
+					{
+						//move
+						vEntityGroupList[dest] = vEntityGroupList[i];
+						if (current_selected_group == dest)
+							current_selected_group = dest;
+						iEntityGroupListImage[dest] = iEntityGroupListImage[i];
+						iEntityGroupListImage[i] = 0;
+						sEntityGroupListName[dest] = sEntityGroupListName[i];
+						sEntityGroupListName[i] = "";
+						vEntityGroupList[i].clear();
+					}
+					dest++;
+				}
 			}
+
+			//Move list down.
+			for (int l = MAXGROUPSLISTS - 1; l > 0; l--)
+			{
+				if (vEntityGroupList[l - 1].size() > 0)
+				{
+					vEntityGroupList[l] = vEntityGroupList[l - 1];
+					if (current_selected_group == l - 1)
+						current_selected_group = l;
+					iEntityGroupListImage[l] = iEntityGroupListImage[l - 1];
+					sEntityGroupListName[l] = sEntityGroupListName[l - 1];
+				}
+			}
+			vEntityGroupList[0].clear();
+			sEntityGroupListName[0] = "";
 		}
-		vEntityGroupList[0].clear();
-		sEntityGroupListName[0] = "";
 
 		// only create a thumbnail for parent groups, child groups are never shown
 		int iImageID = 0;
@@ -24561,9 +24575,26 @@ void CreateNewGroup(int iParentGroupID, bool bSnapshotGroupThumb, cstr GroupName
 			if (iImageID == 0) return; //No free imageID.
 		}
 
-		//Find free list.
-		for (int l = 0; l < MAXGROUPSLISTS; l++)
+		//Find free list or force a specific index
+		int iChosenGroupIndex = iForceIntoIndex;
+		if (iChosenGroupIndex == -1)
 		{
+			for (int l = 0; l < MAXGROUPSLISTS; l++)
+			{
+				if (vEntityGroupList[l].size() <= 0)
+				{
+					iChosenGroupIndex = l;
+					break;
+				}
+			}
+		}
+		else
+		{
+			vEntityGroupList[iChosenGroupIndex].clear();
+		}
+		if ( iChosenGroupIndex != -1 )
+		{
+			int l = iChosenGroupIndex;
 			if (vEntityGroupList[l].size() <= 0)
 			{
 				//Free, copy rubberband.
@@ -24640,7 +24671,6 @@ void CreateNewGroup(int iParentGroupID, bool bSnapshotGroupThumb, cstr GroupName
 
 				//Set selection on last created group.
 				current_selected_group = l;
-				break;
 			}
 		}
 
@@ -25052,7 +25082,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 							entity_fillgrideleproffromprofile();
 
 							t.e = 0;
-							if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1)
+							if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1 && g_iAbortedAsEntityIsGroupCreate == 0)
 							{
 								int iParentGroupID = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
 								if (iParentGroupID != -1)
@@ -49628,7 +49658,6 @@ void ReloadEntityIDInSitu ( int entIndex)
 	// find parent group ID so stub mode can update group data
 	int iUniqueGroupID = 0;
 	int iParentGroupIndex = -1;
-	extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 	if (t.entityprofile[entIndex].model_s == "group" && t.entityprofile[entIndex].groupreference == 1)
 	{
 		cstr sLookFor = cstr("entitybank\\") + t.entitybank_s[entIndex];
@@ -49708,7 +49737,9 @@ void ReloadEntityIDInSitu ( int entIndex)
 	*/
 
 	// now load the modified entity parent in
+	g_iAbortedAsEntityIsGroupCreate = 1;
 	entity_load();
+	g_iAbortedAsEntityIsGroupCreate = 0;
 
 	// ensures no new groups are created, just refreshed
 	g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
@@ -49740,10 +49771,16 @@ void ReloadEntityIDInSitu ( int entIndex)
 					// get leading element of this child group to orient new replacement
 					int iThisE = vEntityGroupList[iChildGroupIndex][0].e;
 					sRubberBandType item;
-					item.iGroupID = iChildGroupIndex;// WARN - just nicking this field for now, replaced with -1 below!
+					item.iGroupID = iChildGroupIndex;// WARN - just nicking this field for now, replaced with -1 below (we use it to remember the origial group list index)
+					if (t.entityelement[iThisE].quatmode == 0) entity_updatequatfromeuler(iThisE);
 					item.x = t.entityelement[iThisE].x;
 					item.y = t.entityelement[iThisE].y;
 					item.z = t.entityelement[iThisE].z;
+					item.quatmode = t.entityelement[iThisE].quatmode;
+					item.quatx = t.entityelement[iThisE].quatx;
+					item.quaty = t.entityelement[iThisE].quaty;
+					item.quatz = t.entityelement[iThisE].quatz;
+					item.quatw = t.entityelement[iThisE].quatw;
 					item.iParentGroupID = iUniqueGroupID;
 					childrenToRemake.push_back(item);
 
@@ -49774,14 +49811,65 @@ void ReloadEntityIDInSitu ( int entIndex)
 			for (int i = 0; i < childrenToRemake.size(); i++)
 			{
 				// for each new child to create, make a duplicate of the parent
-				int iAnchorEntityIndex = DuplicateFromListToCursor(vEntityGroupList[iParentGroupIndex], false);
+				bool bAttachToCursor = false;
+				int iOriginalGroupIndexForChild = childrenToRemake[i].iGroupID;
+				int iAnchorEntityIndex = DuplicateFromListToCursor(vEntityGroupList[iParentGroupIndex], false, iOriginalGroupIndexForChild, bAttachToCursor);
 
 				// place entity elements into the level using same places as old ones
+				if(vEntityGroupList[iOriginalGroupIndexForChild].size()>0)
+				{ 
+					// remembered position and angle
+					float fBasePosX = childrenToRemake[i].x - vEntityGroupList[iOriginalGroupIndexForChild][0].x;
+					float fBasePosY = childrenToRemake[i].y - vEntityGroupList[iOriginalGroupIndexForChild][0].y;
+					float fBasePosZ = childrenToRemake[i].z - vEntityGroupList[iOriginalGroupIndexForChild][0].z;
+					int quatmode = childrenToRemake[i].quatmode;
+					float quatx = childrenToRemake[i].quatx;
+					float quaty = childrenToRemake[i].quaty;
+					float quatz = childrenToRemake[i].quatz;
+					float quatw = childrenToRemake[i].quatw;
+					GGQUATERNION qBaseAngle = GGQUATERNION(quatx, quaty, quatz, quatw);
+
+					// go through all entity elements to set them in correct position and assign quats
+					for (int n = 0; n < vEntityGroupList[iOriginalGroupIndexForChild].size(); n++)
+					{
+						// set unrotated start position in correct position
+						int ee = vEntityGroupList[iOriginalGroupIndexForChild][n].e;
+						t.entityelement[ee].x = fBasePosX + vEntityGroupList[iOriginalGroupIndexForChild][n].x;
+						t.entityelement[ee].y = fBasePosY + vEntityGroupList[iOriginalGroupIndexForChild][n].y;
+						t.entityelement[ee].z = fBasePosZ + vEntityGroupList[iOriginalGroupIndexForChild][n].z;
+						t.entityelement[ee].quatmode = vEntityGroupList[iOriginalGroupIndexForChild][n].quatmode;
+						t.entityelement[ee].quatx = vEntityGroupList[iOriginalGroupIndexForChild][n].quatx;
+						t.entityelement[ee].quaty = vEntityGroupList[iOriginalGroupIndexForChild][n].quaty;
+						t.entityelement[ee].quatz = vEntityGroupList[iOriginalGroupIndexForChild][n].quatz;
+						t.entityelement[ee].quatw = vEntityGroupList[iOriginalGroupIndexForChild][n].quatw;
+
+						// ensure the object is updated, needed below
+						PositionObject(t.entityelement[ee].obj, t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z);
+					}
+
+					// now rotate all the elements around the first object
+					int iFirstE = vEntityGroupList[iOriginalGroupIndexForChild][0].e;
+					int iActiveObj = t.entityelement[iFirstE].obj;
+					if (ObjectExist(iActiveObj) == 1)
+					{
+						// rotation event
+						GGQUATERNION quatRotationEvent = qBaseAngle;
+						RotateObjectQuat(iActiveObj, quatx, quaty, quatz, quatw);
+						SetStartPositionsForRubberBand(iActiveObj);
+						RotateAndMoveRubberBand(iActiveObj, 0, 0, 0, quatRotationEvent);
+
+						// ensure the root object (active object) also gets its rotation!
+						t.entityelement[iFirstE].rx = ObjectAngleX(iActiveObj);
+						t.entityelement[iFirstE].ry = ObjectAngleY(iActiveObj);
+						t.entityelement[iFirstE].rz = ObjectAngleZ(iActiveObj);
+
+						// update entity quat as the preferred source rotation
+						entity_updatequatfromeuler(iFirstE);
+					}
+				}
+
+				// and we have finished with this temp value
 				childrenToRemake[i].iGroupID = -1;
-				//childrenToRemake[i].x;
-				//childrenToRemake[i].y;
-				//childrenToRemake[i].z;
-				//childrenToRemake[i].iParentGroupID;
 			}
 			childrenToRemake.clear();
 		}

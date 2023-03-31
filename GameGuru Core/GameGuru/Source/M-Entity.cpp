@@ -29,6 +29,7 @@ int g_iWickedMeshNumber = 0;
 bool g_bUseEditorGrideleprof = false;
 int g_iAbortedAsEntityIsGroupFileMode = 0;
 int g_iAbortedAsEntityIsGroupFileModeStubOnly = 0;
+int g_iAbortedAsEntityIsGroupCreate = 0;
 cstr g_sTempGroupForThumbnail = "";
 
 float g_fFlattenMargin = 100.0f;
@@ -6520,51 +6521,55 @@ void entity_loadelementsdata(void)
 	c_entity_loadelementsdata();
 
 	// now entitybank and entityelement and vEntityGroupList are loaded, we need to refresh any smart objects (they may have changed externally, i.e BE)
-	for (int iGroupIndex = 0; iGroupIndex < MAXGROUPSLISTS; iGroupIndex++)
+	bool bForceSmartObjectRefresh = true;
+	if (bForceSmartObjectRefresh == true)
 	{
-		if (vEntityGroupList[iGroupIndex].size() > 0)
+		for (int iGroupIndex = 0; iGroupIndex < MAXGROUPSLISTS; iGroupIndex++)
 		{
-			int iUniqueGroupID = vEntityGroupList[iGroupIndex][0].iGroupID;
-			if (iUniqueGroupID > 0)
+			if (vEntityGroupList[iGroupIndex].size() > 0)
 			{
-				// delete the hidden elements of this parent group
-				for (int ee = 1; ee <= g.entityelementlist; ee++)
+				int iUniqueGroupID = vEntityGroupList[iGroupIndex][0].iGroupID;
+				if (iUniqueGroupID > 0)
 				{
-					if (t.entityelement[ee].bankindex > 0)
+					// delete the hidden elements of this parent group
+					for (int ee = 1; ee <= g.entityelementlist; ee++)
 					{
-						if (t.entityelement[ee].y <= -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
+						if (t.entityelement[ee].bankindex > 0)
 						{
-							int thisGroupID = t.entityelement[ee].creationOfGroupID;
-							if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+							if (t.entityelement[ee].y <= -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
 							{
-								t.tentitytoselect = ee;
-								entity_deleteentityfrommap();
-								ee = 1;
+								int thisGroupID = t.entityelement[ee].creationOfGroupID;
+								if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
+								{
+									t.tentitytoselect = ee;
+									entity_deleteentityfrommap();
+									ee = 1;
+								}
 							}
 						}
 					}
-				}
 
-				// load a fresh copy of this smart object (will ultimately call LoadGroup to populate with needed elements for below)
-				int iFoundEntID = 0;
-				for (int entIndex = 1; entIndex <= g.entidmaster; entIndex++)
-				{
-					cstr tmp = cstr("entitybank\\") + t.entitybank_s[entIndex];
-					int iSmartObjectGroupIndex = GetGroupIndexFromName(tmp);
-					if (iSmartObjectGroupIndex >= 0 && iSmartObjectGroupIndex < MAXGROUPSLISTS)
+					// load a fresh copy of this smart object (will ultimately call LoadGroup to populate with needed elements for below)
+					int iFoundEntID = 0;
+					for (int entIndex = 1; entIndex <= g.entidmaster; entIndex++)
 					{
-						if (vEntityGroupList[iSmartObjectGroupIndex].size() > 0)
+						cstr tmp = cstr("entitybank\\") + t.entitybank_s[entIndex];
+						int iSmartObjectGroupIndex = GetGroupIndexFromName(tmp);
+						if (iSmartObjectGroupIndex >= 0 && iSmartObjectGroupIndex < MAXGROUPSLISTS)
 						{
-							if (vEntityGroupList[iSmartObjectGroupIndex][0].iGroupID == iUniqueGroupID)
+							if (vEntityGroupList[iSmartObjectGroupIndex].size() > 0)
 							{
-								iFoundEntID = entIndex;
-								break;
+								if (vEntityGroupList[iSmartObjectGroupIndex][0].iGroupID == iUniqueGroupID)
+								{
+									iFoundEntID = entIndex;
+									break;
+								}
 							}
 						}
 					}
+					extern void ReloadEntityIDInSitu(int);
+					ReloadEntityIDInSitu (iFoundEntID);
 				}
-				extern void ReloadEntityIDInSitu(int);
-				ReloadEntityIDInSitu (iFoundEntID);
 			}
 		}
 	}

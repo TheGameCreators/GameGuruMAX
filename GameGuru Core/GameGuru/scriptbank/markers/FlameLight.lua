@@ -22,6 +22,7 @@ function FlameLight_init(e)
 	g_lightflame[e]['cg'] = g
 	g_lightflame[e]['cb'] = b
 	g_lightflame[e]['crange'] = GetLightRange(lightNum)
+	FlameLight_properties(e, 50, 1)
 end
 
 function FlameLight_main(e)

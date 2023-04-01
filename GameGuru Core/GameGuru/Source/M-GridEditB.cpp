@@ -23912,215 +23912,99 @@ int isEntityInGroupListDirect(int e, int group)
 	return(-1);
 }
 
-#ifdef WICKEDENGINE
-void DuplicateLogicConnections (std::vector<sRubberBandType> vEntityDuplicateList )
+int g_iCopiedLogicConnectionsCount = 0;
+struct sCopiedLogicConnections
 {
-	// have 'vEntityDuplicateList' which is the original and g.entityrubberbandlist which is the duplicated copy
-	// just copied logic connections into t.grideleprof
-	// so duplicate them for the newly duplicated
-	bool bDuplicateLogic = true;
-	if (bDuplicateLogic == true)
+	int iObjectLinkID[999];
+	int iObjectRelationships[999][10];
+	int iObjectRelationshipsType[999][10];
+	int iObjectRelationshipsData[999][10];
+};
+std::vector<sCopiedLogicConnections> g_copiedLogicConnectionList;
+
+void DuplicateLogicConnectionsCopyOriginal (std::vector<sRubberBandType> vEntityDuplicateList, int iOriginalGroupIndexSpecified)
+{
+	if (iOriginalGroupIndexSpecified > -1)
 	{
-		// generate new LinkIDs in duplicate
-		for (int listindex = 0; listindex < (int)vEntityDuplicateList.size(); listindex++)
+		// the size of the list 
+		g_iCopiedLogicConnectionsCount = (int)vEntityDuplicateList.size();
+
+		// expand storage to include iOriginalGroupIndexSpecified index
+		while (g_copiedLogicConnectionList.size() <= iOriginalGroupIndexSpecified)
 		{
-			// original and duplicate
+			sCopiedLogicConnections item;
+			g_copiedLogicConnectionList.push_back(item);
+		}
+
+		// store data for group list
+		sCopiedLogicConnections item;
+		for (int listindex = 0; listindex < g_iCopiedLogicConnectionsCount; listindex++)
+		{
+			// original connection data
 			int iOriginalE = vEntityDuplicateList[listindex].e;
-			if (t.entityelement[iOriginalE].eleprof.iObjectLinkID != 0)
+			item.iObjectLinkID[listindex] = t.entityelement[iOriginalE].eleprof.iObjectLinkID;;
+			for (int i = 0; i < 10; i++)
 			{
-				int iDuplicateE = g.entityrubberbandlist[listindex].e;
+				item.iObjectRelationships[listindex][i] = t.entityelement[iOriginalE].eleprof.iObjectRelationships[i];
+				item.iObjectRelationshipsType[listindex][i] = t.entityelement[iOriginalE].eleprof.iObjectRelationshipsType[i];
+				item.iObjectRelationshipsData[listindex][i] = t.entityelement[iOriginalE].eleprof.iObjectRelationshipsData[i];
+			}
+		}
+		g_copiedLogicConnectionList[iOriginalGroupIndexSpecified] = item;
+	}
+}
+
+void DuplicateLogicConnections (std::vector<sRubberBandType> vEntityDuplicateList, int iOriginalGroupIndexSpecified)
+{
+	if (g_iCopiedLogicConnectionsCount > 0)
+	{
+		// have 'vEntityDuplicateList' which is the original and g.entityrubberbandlist which is the duplicated copy
+		sCopiedLogicConnections item = g_copiedLogicConnectionList[iOriginalGroupIndexSpecified];
+		
+		/* preserve linkIDs as can link to external entities using older IDs
+		// generate new LinkIDs in duplicate
+		for (int listindex = 0; listindex < g_iCopiedLogicConnectionsCount; listindex++)
+		{
+			int iDuplicateE = g.entityrubberbandlist[listindex].e;
+			t.entityelement[iDuplicateE].eleprof.iObjectLinkID = 0;
+			if (item.iObjectLinkID[listindex] != 0)
+			{
 				t.entityelement[iDuplicateE].eleprof.iObjectLinkID = GenerateRelationshipUniqueLinkID();
 			}
 		}
+		*/
 
 		// scan old data, find old LinkIDs and replace with new ones
-		int iListsSize = (int)vEntityDuplicateList.size();
-		for (int listindex = 0; listindex < iListsSize; listindex++)
+		for (int listindex = 0; listindex < g_iCopiedLogicConnectionsCount; listindex++)
 		{
-			// original and duplicate
-			int iOriginalE = vEntityDuplicateList[listindex].e;
-			int iDuplicateE = g.entityrubberbandlist[listindex].e;
-
 			// for each entity relationships, assign new LinkIDs
+			int iDuplicateE = g.entityrubberbandlist[listindex].e;
+			t.entityelement[iDuplicateE].eleprof.iObjectLinkID = item.iObjectLinkID[listindex];
 			for (int i = 0; i < 10; i++)
 			{
-				int iRelationshipLinkID = t.entityelement[iOriginalE].eleprof.iObjectRelationships[i];
-				if (iRelationshipLinkID != 0)
-				{
-					// look for the link in the list of original entities
-					int newLinkID = 0;
-					for (int searchlist = 0; searchlist < iListsSize; searchlist++)
-					{
-						int iSearchOriginalE = vEntityDuplicateList[searchlist].e;
-						int iSearchOriginalLinkID = t.entityelement[iSearchOriginalE].eleprof.iObjectLinkID;
-						if (iSearchOriginalLinkID == iRelationshipLinkID)
-						{
-							int iFoundInDuplicateE = g.entityrubberbandlist[searchlist].e;
-							newLinkID = t.entityelement[iFoundInDuplicateE].eleprof.iObjectLinkID;
-							break;
-						}
-					}
-
-					// link to new LinkID for this relationship connection
-					t.entityelement[iDuplicateE].eleprof.iObjectRelationships[i] = newLinkID;
-				}
+				t.entityelement[iDuplicateE].eleprof.iObjectRelationships[i] = item.iObjectRelationships[listindex][i];
+				t.entityelement[iDuplicateE].eleprof.iObjectRelationshipsType[i] = item.iObjectRelationshipsType[listindex][i];
+				t.entityelement[iDuplicateE].eleprof.iObjectRelationshipsData[i] = item.iObjectRelationshipsData[listindex][i];
 			}
 		}
-	}
-	else
-	{
-		// clear all logic connections
-		t.grideleprof.iObjectLinkID = 0;
-		for (int i = 0; i < 10; i++)
+		/*
+		else
 		{
-			t.grideleprof.iObjectRelationships[i] = 0;
-			t.grideleprof.iObjectRelationshipsData[i] = 0;
-			t.grideleprof.iObjectRelationshipsType[i] = 0;
+			// clear all logic connections
+			t.grideleprof.iObjectLinkID = 0;
+			for (int i = 0; i < 10; i++)
+			{
+				t.grideleprof.iObjectRelationships[i] = 0;
+				t.grideleprof.iObjectRelationshipsData[i] = 0;
+				t.grideleprof.iObjectRelationshipsType[i] = 0;
+			}
 		}
+		*/
+
+		// completed logic duplication
+		g_iCopiedLogicConnectionsCount = 0;
 	}
 }
-#endif
-
-/* no longer used
-void DuplicateFromList(std::vector<sRubberBandType> vEntityDuplicateList)
-{
-	//Dublicate all from a list.
-	if (vEntityDuplicateList.size() > 0)
-	{
-		// a small offset so user can see new pasted entity
-		float fShiftOffsetForPasteX = 50.0f + rand() % 50;
-		float fShiftOffsetForPasteZ = 50.0f + rand() % 50;
-		if (rand() % 2 == 0) fShiftOffsetForPasteX = -fShiftOffsetForPasteX;
-		if (rand() % 2 == 0) fShiftOffsetForPasteZ = -fShiftOffsetForPasteZ;
-
-		int iAnchorEntityIndex = -1;
-
-		// we are also going to move rubber band selection to new pasted group
-		g.entityrubberbandlist.clear();
-
-		// for each entity, create a duplicate and offset slightly so we can see it
-		for (int i = 0; i < (int)vEntityDuplicateList.size(); i++)
-		{
-			// duplicate new entity as clone of relevant original clipboard entity
-			int e = vEntityDuplicateList[i].e;
-			t.gridentity = t.entityelement[e].bankindex;
-			#ifdef WICKEDENGINE
-			//PE: all t.gridentity... need to be set for this to work correctly.
-			t.entid = t.gridentity;
-			entity_fillgrideleproffromprofile();  // t.entid
-			t.gridentityposx_f = t.entityelement[e].x;
-			t.gridentityposy_f = t.entityelement[e].y;
-			t.gridentityposz_f = t.entityelement[e].z;
-			t.gridentityrotatex_f = t.entityelement[e].rx;
-			t.gridentityrotatey_f = t.entityelement[e].ry;
-			t.gridentityrotatez_f = t.entityelement[e].rz;
-			t.gridentityrotatequatmode = t.entityelement[e].quatmode;
-			t.gridentityrotatequatx_f = t.entityelement[e].quatx;
-			t.gridentityrotatequaty_f = t.entityelement[e].quaty;
-			t.gridentityrotatequatz_f = t.entityelement[e].quatz;
-			t.gridentityrotatequatw_f = t.entityelement[e].quatw;
-			if (t.entityprofile[t.gridentity].ismarker == 10)
-			{
-				t.gridentityscalex_f = 100.0f + t.entityelement[e].scalex;
-				t.gridentityscaley_f = 100.0f + t.entityelement[e].scaley;
-				t.gridentityscalez_f = 100.0f + t.entityelement[e].scalez;
-			}
-			else
-			{
-				t.gridentityscalex_f = ObjectScaleX(t.entityelement[e].obj);
-				t.gridentityscaley_f = ObjectScaleY(t.entityelement[e].obj);
-				t.gridentityscalez_f = ObjectScaleZ(t.entityelement[e].obj);
-			}
-			// this seems to wipe out what "entity_fillgrideleproffromprofile" did!
-			t.grideleprof = t.entityelement[e].eleprof;
-			entity_cleargrideleprofrelationshipdata();
-			#endif
-
-			#ifdef WICKEDENGINE
-			//PE: InstanceObject - Cursor,Object Tools - objects must always be real clones.
-			extern bool bNextObjectMustBeClone;
-			bNextObjectMustBeClone = true;
-			#endif
-
-			gridedit_addentitytomap();
-
-			#ifdef WICKEDENGINE
-			bNextObjectMustBeClone = false;
-			#endif
-
-			if (iAnchorEntityIndex == -1) iAnchorEntityIndex = t.e;
-			t.entityelement[t.e].x = t.entityelement[e].x + fShiftOffsetForPasteX;
-			t.entityelement[t.e].y = t.entityelement[e].y;
-			t.entityelement[t.e].z = t.entityelement[e].z + fShiftOffsetForPasteZ;
-			t.entityelement[t.e].rx = t.entityelement[e].rx;
-			t.entityelement[t.e].ry = t.entityelement[e].ry;
-			t.entityelement[t.e].rz = t.entityelement[e].rz;
-			t.entityelement[t.e].quatmode = t.entityelement[e].quatmode;
-			t.entityelement[t.e].quatx = t.entityelement[e].quatx;
-			t.entityelement[t.e].quaty = t.entityelement[e].quaty;
-			t.entityelement[t.e].quatz = t.entityelement[e].quatz;
-			t.entityelement[t.e].quatw = t.entityelement[e].quatw;
-			t.entityelement[t.e].editorfixed = t.entityelement[e].editorfixed;
-			t.entityelement[t.e].staticflag = t.entityelement[e].staticflag;
-			t.entityelement[t.e].scalex = t.entityelement[e].scalex;
-			t.entityelement[t.e].scaley = t.entityelement[e].scaley;
-			t.entityelement[t.e].scalez = t.entityelement[e].scalez;
-			t.entityelement[t.e].soundset = t.entityelement[e].soundset;
-			t.entityelement[t.e].soundset1 = t.entityelement[e].soundset1;
-			t.entityelement[t.e].soundset2 = t.entityelement[e].soundset2;
-			t.entityelement[t.e].soundset3 = t.entityelement[e].soundset3;
-			t.entityelement[t.e].soundset4 = t.entityelement[e].soundset4;
-			#ifdef WICKEDENGINE
-			t.entityelement[t.e].soundset5 = t.entityelement[e].soundset5;
-			t.entityelement[t.e].soundset6 = t.entityelement[e].soundset6;
-			#endif
-			t.entityelement[t.e].eleprof = t.entityelement[e].eleprof;
-			PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
-			RotateObject(t.entityelement[t.e].obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
-
-			// and add to new rubber band group
-			sRubberBandType rubberbandItem;
-			rubberbandItem.e = t.e;
-			rubberbandItem.x = t.entityelement[t.e].x;
-			rubberbandItem.y = t.entityelement[t.e].y;
-			rubberbandItem.z = t.entityelement[t.e].z;
-			#ifdef WICKEDENGINE
-			rubberbandItem.px = t.entityelement[t.e].x;
-			rubberbandItem.py = t.entityelement[t.e].y;
-			rubberbandItem.pz = t.entityelement[t.e].z;
-			rubberbandItem.rx = t.entityelement[t.e].rx;
-			rubberbandItem.ry = t.entityelement[t.e].ry;
-			rubberbandItem.rz = t.entityelement[t.e].rz;
-			rubberbandItem.quatmode = t.entityelement[t.e].quatmode;
-			rubberbandItem.quatx = t.entityelement[t.e].quatx;
-			rubberbandItem.quaty = t.entityelement[t.e].quaty;
-			rubberbandItem.quatz = t.entityelement[t.e].quatz;
-			rubberbandItem.quatw = t.entityelement[t.e].quatw;
-			rubberbandItem.scalex = t.entityelement[t.e].scalex;
-			rubberbandItem.scaley = t.entityelement[t.e].scaley;
-			rubberbandItem.scalez = t.entityelement[t.e].scalez;
-			#endif
-			g.entityrubberbandlist.push_back(rubberbandItem);
-		}
-
-		// clone all the logic connections
-		DuplicateLogicConnections(vEntityDuplicateList);
-
-		// switch widget to newly pasted entity so can instantly widget it about
-		if (iAnchorEntityIndex != -1)
-		{
-			if (t.entityelement[iAnchorEntityIndex].editorlock == 0)
-			{
-				t.widget.pickedEntityIndex = iAnchorEntityIndex;
-				t.widget.pickedObject = t.entityelement[iAnchorEntityIndex].obj;
-			}
-		}
-
-		// ensure gridentity cleared after duplication
-		t.gridentity = 0;
-	}
-}
-*/
 
 int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList, bool bRandomShiftXZ, int iOriginalGroupIndexForChild, bool bAttachToCursor)
 {
@@ -24282,7 +24166,7 @@ int DuplicateFromListToCursor(std::vector<sRubberBandType> vEntityDuplicateList,
 		}
 
 		// clone all the logic connections
-		DuplicateLogicConnections(vEntityDuplicateList);
+		DuplicateLogicConnections(vEntityDuplicateList, iOriginalGroupIndexForChild);
 
 		// Select and add first entity to cursor, along with the rubberband.
 		if (iAnchorEntityIndex != -1 && bAttachToCursor == true)
@@ -24958,9 +24842,6 @@ std::vector<int> g_smartObjectDummyEntities;
 
 bool LoadGroup(LPSTR pAbsFilename)
 {
-	// group data and entities already loaded, we can skip a new group creation here
-	extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
-
 	// init vars and clear rubberband list
 	cstr sGroupObjectName;
 	int iGroupCount = 0;
@@ -25058,6 +24939,13 @@ bool LoadGroup(LPSTR pAbsFilename)
 
 								// using this list to assign child states to them
 								entityIDsNewlyCreated.push_back(t.entid);
+
+								// we want to interrogate the group to get the entity profiles added,
+								if (g_iAbortedAsEntityIsGroupFileModeStubOnly == 1)
+								{
+									// but not create entities at this stage
+									continue;
+								}
 							}
 							else
 							{
@@ -25089,20 +24977,8 @@ bool LoadGroup(LPSTR pAbsFilename)
 							t.gridentityscalez_f = 100;
 							entity_fillgrideleproffromprofile();
 
-							t.e = 0;
-							if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 1 && g_iAbortedAsEntityIsGroupCreate == 0)
-							{
-								int iParentGroupID = g_iAbortedAsEntityIsGroupFileModeStubOnly - 2;
-								if (iParentGroupID != -1)
-								{
-									t.e = vEntityGroupList[iParentGroupID][iOptionalIndex].e;
-								}
-							}
-							else
-							{
-								// add new entity element
-								entity_addentitytomap();
-							}
+							// add new entity element (certain modes never reach here, see above code)
+							t.e = 0; entity_addentitytomap();
 
 							// add to rubberband list (e for now, rest populated later)
 							int e = t.e;
@@ -25117,41 +24993,48 @@ bool LoadGroup(LPSTR pAbsFilename)
 							// no leftover fields from entity loaddata (called above)
 							t.field_s = "";
 						}
-						if (ReadFPELine("objoffx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].x = t.value1;
-						if (ReadFPELine("objoffy", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].y = t.value1;
-						if (ReadFPELine("objoffz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].z = t.value1;
-						if (ReadFPELine("objrotx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].rx = t.value1;
-						if (ReadFPELine("objroty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].ry = t.value1;
-						if (ReadFPELine("objrotz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].rz = t.value1;
-						if (ReadFPELine("objscalex", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scalex = t.value1;
-						if (ReadFPELine("objscaley", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scaley = t.value1;
-						if (ReadFPELine("objscalez", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scalez = t.value1;
-						if (ReadFPELine("objphysicsmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.physics = t.value1;
-						if (ReadFPELine("objstaticmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].staticflag = t.value1;
-						if (ReadFPELine("objisimmobile", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.isimmobile = t.value1;
-						if (ReadFPELine("objshowstart", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.bParticle_Show_At_Start = t.value1;
-						if (ReadFPELine("objshowstart", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.spawnatstart = t.value1;
-						if (ReadFPELine("objpartname", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.emittername = t.value_s;
-						if (ReadFPELine("objpartloop", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.bParticle_Looping_Animation = t.value1;
-						if (ReadFPELine("objpartspeed", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.fParticle_Speed = t.value1;
-						if (ReadFPELine("objpartopacity", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.fParticle_Opacity = t.value1;
-						if (ReadFPELine("objlighttype", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.index = t.value1;
-						if (ReadFPELine("objlightcolor", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.color = t.value1;
-						if (ReadFPELine("objlightdist", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.range = t.value1;
-						if (ReadFPELine("objlightradius", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.offsetup = t.value1;
-						if (ReadFPELine("objlightcast", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.castshadow = t.value1;
-						if (ReadFPELine("objlightlogic", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.aimain_s = t.value_s;
-						if (ReadFPELine("objlightspot", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.usespotlighting = t.value1;
-						if (ReadFPELine("objquatmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatmode = t.value1;
-						if (ReadFPELine("objquatx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatx = t.value1;
-						if (ReadFPELine("objquaty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quaty = t.value1;
-						if (ReadFPELine("objquatz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatz = t.value1;
-						if (ReadFPELine("objquatw", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatw = t.value1;
+						if (g_iAbortedAsEntityIsGroupFileModeStubOnly != 1)
+						{
+							if (ReadFPELine("objoffx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].x = t.value1;
+							if (ReadFPELine("objoffy", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].y = t.value1;
+							if (ReadFPELine("objoffz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].z = t.value1;
+							if (ReadFPELine("objrotx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].rx = t.value1;
+							if (ReadFPELine("objroty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].ry = t.value1;
+							if (ReadFPELine("objrotz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].rz = t.value1;
+							if (ReadFPELine("objscalex", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scalex = t.value1;
+							if (ReadFPELine("objscaley", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scaley = t.value1;
+							if (ReadFPELine("objscalez", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].scalez = t.value1;
+							if (ReadFPELine("objphysicsmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.physics = t.value1;
+							if (ReadFPELine("objstaticmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].staticflag = t.value1;
+							if (ReadFPELine("objisimmobile", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.isimmobile = t.value1;
+							if (ReadFPELine("objshowstart", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.bParticle_Show_At_Start = t.value1;
+							if (ReadFPELine("objshowstart", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.spawnatstart = t.value1;
+							if (ReadFPELine("objpartname", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.emittername = t.value_s;
+							if (ReadFPELine("objpartloop", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.bParticle_Looping_Animation = t.value1;
+							if (ReadFPELine("objpartspeed", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.fParticle_Speed = t.value1;
+							if (ReadFPELine("objpartopacity", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.newparticle.fParticle_Opacity = t.value1;
+							if (ReadFPELine("objlighttype", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.index = t.value1;
+							if (ReadFPELine("objlightcolor", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.color = t.value1;
+							if (ReadFPELine("objlightdist", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.range = t.value1;
+							if (ReadFPELine("objlightradius", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.light.offsetup = t.value1;
+							if (ReadFPELine("objlightcast", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.castshadow = t.value1;
+							if (ReadFPELine("objlightlogic", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.aimain_s = t.value_s;
+							if (ReadFPELine("objlightspot", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.usespotlighting = t.value1;
+							if (ReadFPELine("objquatmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatmode = t.value1;
+							if (ReadFPELine("objquatx", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatx = t.value1;
+							if (ReadFPELine("objquaty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quaty = t.value1;
+							if (ReadFPELine("objquatz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatz = t.value1;
+							if (ReadFPELine("objquatw", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatw = t.value1;
+						}
 					}
 				}
 			}
 		}
 		UnDim(groupdata_s);
+
+		// in this mode we just want the entity profiles from any groups, no need to instantiate entity elements yet
+		if (g_iAbortedAsEntityIsGroupFileModeStubOnly == 1)
+			return true;
 
 		// location to place the entityelements for this group load
 		float fBaseX = 0;
@@ -25214,8 +25097,8 @@ bool LoadGroup(LPSTR pAbsFilename)
 			g.entityrubberbandlist[i].rz = t.entityelement[e].rz;
 
 			// calculate quat from ROTXYZ in smart object child
-			if(t.entityelement[e].quatmode == 0)
-				entity_updatequatfromeuler(e);
+			//if(t.entityelement[e].quatmode == 0) // seems quatmode set to 1 but has no quat in there for BE objects
+			entity_updatequatfromeuler(e);
 
 			g.entityrubberbandlist[i].quatmode = t.entityelement[e].quatmode;
 			g.entityrubberbandlist[i].quatx = t.entityelement[e].quatx;
@@ -49699,70 +49582,28 @@ void ReloadEntityIDInSitu ( int entIndex)
 				g_iAbortedAsEntityIsGroupFileModeStubOnly = 2 + iParentGroupIndex;
 			}
 		}
-	}
 
-	/* we can now hot swap all groups!
-	bool bSkipLoadingThisGroup = false;
-	if (iParentGroupID != -1)
-	{
-		for (auto& groupID : groupsThatCannotBeHotSwapped)
-		{
-			if (groupID == iParentGroupID)
+		// delete the hidden elements of this parent group
+		if(iUniqueGroupID>0)
+		{ 
+			for (int ee = 1; ee <= g.entityelementlist; ee++)
 			{
-				// Do not try to hot swap this group, its size was previously changed and we currently do not support altering the group size
-				return;
-			}
-		}
-		int iPrevGroupEntityCount = vEntityGroupList[iParentGroupID].size();
-		cstr groupFilename = cstr("entitybank\\") + t.entitybank_s[entIndex];
-		// Now check how many entities the newly modified group has - if it has changed we cannot continue
-		if (FileExist(groupFilename.Get()))
-		{
-			std::vector <cstr> groupdata_s;
-			Dim(groupdata_s, 9999);
-			LoadArray(groupFilename.Get(), groupdata_s);
-			for (int groupline = 0; groupline < 9999; groupline++)
-			{
-				cstr line_s = groupdata_s[groupline];
-				if (Len(line_s.Get()) > 0)
+				if (t.entityelement[ee].bankindex > 0)
 				{
-					LPSTR pLine = line_s.Get();
-					if (pLine[0] != ';')
+					if (t.entityelement[ee].y <= -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
 					{
-						// take fieldname and values
-						for (t.c = 0; t.c < Len(pLine); t.c++)
+						int thisGroupID = t.entityelement[ee].creationOfGroupID;
+						if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
 						{
-							if (pLine[t.c] == '=') { t.mid = t.c + 1; break; }
-						}
-						t.field_s = Lower(removeedgespaces(Left(pLine, t.mid - 1)));
-						t.value_s = removeedgespaces(Right(pLine, Len(pLine) - t.mid));
-						t.value1 = ValF(removeedgespaces(Left(t.value_s.Get(), t.mid - 1)));
-						// populate with values found
-						t.tryfield_s = "groupobjcount";
-						if (t.field_s == t.tryfield_s)
-						{
-							int entityCount = t.value1;
-							if (entityCount != iPrevGroupEntityCount)
-							{
-								bSkipLoadingThisGroup = true;
-								if (std::find(groupsThatCannotBeHotSwapped.begin(), groupsThatCannotBeHotSwapped.end(), iParentGroupID) == groupsThatCannotBeHotSwapped.end())
-								{
-									// Store the group index for future, to ensure that we don't try to load in the group when the entity count is the same, but the entities themselves have been changed.
-									groupsThatCannotBeHotSwapped.push_back(iParentGroupID);
-								}
-								break;
-							}
+							t.tentitytoselect = ee;
+							entity_deleteentityfrommap();
+							ee = 1;
 						}
 					}
 				}
 			}
 		}
 	}
-	if (bSkipLoadingThisGroup)
-	{
-		return;
-	}
-	*/
 
 	// now load the modified entity parent in
 	g_iAbortedAsEntityIsGroupCreate = 1;
@@ -49781,6 +49622,8 @@ void ReloadEntityIDInSitu ( int entIndex)
 		{
 			for (int n = 0; n < vEntityGroupList[iParentGroupIndex].size(); n++)
 			{
+				int ee = vEntityGroupList[iParentGroupIndex][n].e;
+				t.entityelement[ee].creationOfGroupID = iUniqueGroupID;
 				vEntityGroupList[iParentGroupIndex][n].iGroupID = iUniqueGroupID;
 			}
 		}
@@ -49812,6 +49655,9 @@ void ReloadEntityIDInSitu ( int entIndex)
 					item.iParentGroupID = iUniqueGroupID;
 					childrenToRemake.push_back(item);
 
+					// record this groups logic connections safely before erase child elements
+					DuplicateLogicConnectionsCopyOriginal (vEntityGroupList[iChildGroupIndex], iChildGroupIndex);
+
 					// delete all the elements of this child group
 					for (int eee = 1; eee <= g.entityelementlist; eee++)
 					{
@@ -49823,7 +49669,9 @@ void ReloadEntityIDInSitu ( int entIndex)
 								if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
 								{
 									t.tentitytoselect = eee;
+									g_UndoSysObjectIsBeingMoved = true; // preserve linkIDs to external entity elements!
 									entity_deleteentityfrommap();
+									g_UndoSysObjectIsBeingMoved = false;
 									eee = 1;
 								}
 							}
@@ -49871,6 +49719,9 @@ void ReloadEntityIDInSitu ( int entIndex)
 						t.entityelement[ee].quatz = vEntityGroupList[iOriginalGroupIndexForChild][n].quatz;
 						t.entityelement[ee].quatw = vEntityGroupList[iOriginalGroupIndexForChild][n].quatw;
 
+						// and update to correct unique group ID
+						t.entityelement[ee].creationOfGroupID = iUniqueGroupID;
+
 						// ensure the object is updated, needed below
 						PositionObject(t.entityelement[ee].obj, t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z);
 					}
@@ -49901,70 +49752,6 @@ void ReloadEntityIDInSitu ( int entIndex)
 			}
 			childrenToRemake.clear();
 		}
-
-		/* replaced with above code which does it more devastatingly!
-		// special treatment to repair smart object/group
-		bObjectIsASmartObject = true;
-
-		// parent group ID if smart object
-		if (iParentGroupID != -1)
-		{
-			// go through all elements, find the smart object body and update child elements hanging off it
-			int iSizeOfList = t.entityelement.size();
-			bool* pDoneThisOne = new bool[iSizeOfList];
-			memset(pDoneThisOne, false, sizeof(bool) * iSizeOfList);
-			for (int pickede = 1; pickede < iSizeOfList; pickede++)
-			{
-				if (pDoneThisOne[pickede] == false)
-				{
-					pDoneThisOne[pickede] = true;
-					int groupid = isEntityInGroupList(pickede);
-					if (groupid >= 0)
-					{
-						// get all childs of this group
-						g.entityrubberbandlist.clear();
-						CheckGroupListForRubberbandSelections(pickede);
-
-						// relative center of group
-						float fBaseX = vEntityGroupList[iParentGroupID][0].x;
-						float fBaseY = vEntityGroupList[iParentGroupID][0].y;
-						float fBaseZ = vEntityGroupList[iParentGroupID][0].z;
-
-						// update relative positions from base
-						int iGroupItemCount = vEntityGroupList[groupid].size();
-						for (int i = 1; i < iGroupItemCount; i++)
-						{
-							// element from group to adjust
-							int e = g.entityrubberbandlist[i].e;
-
-							// new adjustment from base center
-							float fAdjX = vEntityGroupList[iParentGroupID][i].x - fBaseX;
-							float fAdjY = vEntityGroupList[iParentGroupID][i].y - fBaseY;
-							float fAdjZ = vEntityGroupList[iParentGroupID][i].z - fBaseZ;
-
-							// each child element
-							t.entityelement[e].x = t.entityelement[pickede].x + fAdjX;
-							t.entityelement[e].y = t.entityelement[pickede].y + fAdjY;
-							t.entityelement[e].z = t.entityelement[pickede].z + fAdjZ;
-
-							// update element
-							t.e = e;
-							t.tte = e;
-							t.tupdatee = e;
-							t.tentid = t.entityelement[e].bankindex;
-							t.tobj = t.entityelement[e].obj;
-							entity_updateentityobj();
-
-							// mark this off
-							pDoneThisOne[e] = true;
-						}
-					}
-				}
-			}
-			delete[] pDoneThisOne;
-			pDoneThisOne = NULL;
-		}
-		*/
 	}
 	else
 	{

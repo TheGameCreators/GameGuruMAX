@@ -9,6 +9,7 @@ function ToggleLight_properties(e, lighton)
 end 
 
 function ToggleLight_init(e)
+ ToggleLight_properties(e, 1)
 end
 
 function ToggleLight_main(e)

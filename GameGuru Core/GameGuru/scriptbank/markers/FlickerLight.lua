@@ -16,6 +16,7 @@ function FlickerLight_init(e)
  g_lightflicker[e]['faults'] = 50
  lightNum = GetEntityLightNumber( e )
  g_lightflicker[e]['range'] = GetLightRange ( lightNum )
+ FlickerLight_properties(e, 50, 1)
 end
 
 function FlickerLight_main(e)

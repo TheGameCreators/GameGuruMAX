@@ -154,11 +154,12 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	}
 	if (t.talreadyloaded == 0)
 	{
-		if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
-		{
-			// group data and entities already loaded, we can skip a new group creation here
-		}
-		else
+		//always load needed entity when called
+		//if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
+		//{
+		//	// group data and entities already loaded, we can skip a new group creation here
+		//}
+		//else
 		{
 			//  Allocate one more entity item in array
 			if (g.entidmaster > g.entitybankmax - 4)
@@ -772,9 +773,11 @@ bool entity_load (bool bCalledFromLibrary)
 				}
 			}
 		}
+		
 		g_iAbortedAsEntityIsGroupFileMode = 3;
 		LoadGroup(pGroupFilename_s.Get());
 		g_iAbortedAsEntityIsGroupFileMode = 0;
+
 		t.entobj = iStoreObj;
 		t.entid = iStoreEntID;
 		bWeAreAGroup = true;
@@ -6531,24 +6534,6 @@ void entity_loadelementsdata(void)
 				int iUniqueGroupID = vEntityGroupList[iGroupIndex][0].iGroupID;
 				if (iUniqueGroupID > 0)
 				{
-					// delete the hidden elements of this parent group
-					for (int ee = 1; ee <= g.entityelementlist; ee++)
-					{
-						if (t.entityelement[ee].bankindex > 0)
-						{
-							if (t.entityelement[ee].y <= -48000.0f) // original smart object elements are buried deep and cloned, they do not count as part of level!
-							{
-								int thisGroupID = t.entityelement[ee].creationOfGroupID;
-								if (thisGroupID > 0 && thisGroupID == iUniqueGroupID)
-								{
-									t.tentitytoselect = ee;
-									entity_deleteentityfrommap();
-									ee = 1;
-								}
-							}
-						}
-					}
-
 					// load a fresh copy of this smart object (will ultimately call LoadGroup to populate with needed elements for below)
 					int iFoundEntID = 0;
 					for (int entIndex = 1; entIndex <= g.entidmaster; entIndex++)
@@ -7912,8 +7897,10 @@ void entity_loadentitiesnow ( void )
 
 			// when loading entities, all instances already in place, just need to create a STUB for the smart object
 			extern int g_iAbortedAsEntityIsGroupFileMode;
-			extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 			g_iAbortedAsEntityIsGroupFileMode = 1;
+
+			// stubs will load the group, and that groups entities, but not instantiate the elements of that smart object (need ALL entities profiles to load in first!)
+			extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 			g_iAbortedAsEntityIsGroupFileModeStubOnly = 1;
 
 			// regular FPE entity

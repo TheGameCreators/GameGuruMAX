@@ -22,6 +22,7 @@ function RotateLight_init(e)
    local lightNum = GetEntityLightNumber( e )
    x, y, z = GetLightAngle(lightNum)
    g_lightrotate[e]['angle'] = y
+   RotateLight_properties(e, 50, 0, 1)
 end
 
 function RotateLight_main(e)

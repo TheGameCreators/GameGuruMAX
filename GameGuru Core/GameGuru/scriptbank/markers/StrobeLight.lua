@@ -12,12 +12,10 @@ function StrobeLight_properties(e, minrange, maxrange,speed,frames, lighton)
 end 
 
 function StrobeLight_init(e)
-	g_lightstrobe[e] = {}
-	g_lightstrobe[e]['minrange'] = 1
-	g_lightstrobe[e]['maxrange'] = 200
-	g_lightstrobe[e]['speed'] = 100
-	g_lightstrobe[e]['crange'] = 0
-	g_lightstrobe[e]['cdirection'] = 0
+ g_lightstrobe[e] = {}
+ g_lightstrobe[e]['crange'] = 0
+ g_lightstrobe[e]['cdirection'] = 0
+ StrobeLight_properties(e, 1, 200, 100)
 end
 
 function StrobeLight_main(e)

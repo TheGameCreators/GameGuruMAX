@@ -72,7 +72,10 @@ DWORD g_dwParticleEditorProcessHandle = NULL;
 
 int g_iIconImageInProperties = 0;
 int g_iIconImageInPropertiesLastEntIndex = 0;
+cstr g_iconImageInPropertiesLastName_s = "";
 bool g_bChangedGameCollectionList = false;
+
+bool g_bUpdateCollectionList = false;
 
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
@@ -2401,6 +2404,13 @@ void mapeditorexecutable_loop(void)
 
 	bLastSmallVideoPlayerMaximized = bSmallVideoPlayerMaximized; //We need to status one frame behind.
 	bSmallVideoPlayerMaximized = false;
+
+	// can update collection list with flag
+	if (g_bUpdateCollectionList == true)
+	{
+		refresh_collection_from_entities();
+		g_bUpdateCollectionList = false;
+	}
 
 	//PE: Moved load here. so no imgui objects on screen.
 	//PE: Some imgui used ShaderResourceViews seams to change while loading a new level in wicked.
@@ -10306,10 +10316,26 @@ void mapeditorexecutable_loop(void)
 													iSelectedLibraryStingReturnID = -1; //disable.
 													g_iIconImageInPropertiesLastEntIndex = 0;// trigger reload
 												}
-												if (g_iIconImageInPropertiesLastEntIndex != iEntityIndex)
+												int entid = 0;
+												if (iEntityIndex > 0) entid = t.entityelement[iEntityIndex].bankindex;
+												if (entid > 0)
 												{
-													g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
-													g_iIconImageInProperties = 0;
+													if (g_iIconImageInPropertiesLastEntIndex != iEntityIndex)
+													{
+														g_iIconImageInPropertiesLastEntIndex = iEntityIndex;
+														g_iconImageInPropertiesLastName_s = "";
+														if (entid > 0) g_iconImageInPropertiesLastName_s = t.entitybank_s[entid];
+														g_iIconImageInProperties = 0;
+													}
+													else
+													{
+														// even if sale element index, can dewlete and quickly create another collectable in same index slot, need to be aware of this
+														if (strcmp (g_iconImageInPropertiesLastName_s.Get(), t.entitybank_s[entid].Get()) != NULL)
+														{
+															g_iconImageInPropertiesLastName_s = t.entitybank_s[entid];
+															g_iIconImageInProperties = 0;
+														}
+													}
 												}
 												LPSTR pIconImageInProperties = "";
 												if (iCollectableSettingsMode == 1)

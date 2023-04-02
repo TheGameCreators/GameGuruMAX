@@ -8274,6 +8274,10 @@ void entity_addentitytomap ( void )
 	else
 		entity_updateautoflatten(t.e); //LB: Fix in case already added (in prepareobj for example)
 	#endif
+
+	// ensure collection list up to date with new entity additions (such as weapons and other implied collectables)
+	extern bool g_bUpdateCollectionList;
+	g_bUpdateCollectionList = true;
 }
 
 void entity_deleteentityfrommap ( void )

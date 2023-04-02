@@ -22669,18 +22669,14 @@ void input_calculatelocalcursor ( void )
 	{
 		// PE: Enable rubberband collision again.
 		// also renable any gameelements (such as start marker) as they can get in the way
-		for (int e = 0; e < g.entityelementmax; e++)
+		for (int e = 1; e <= g.entityelementmax; e++)
 		{
-			int entid = t.entityelement[e].bankindex;
-			if (entid > 0)
+			int obj = t.entityelement[e].obj;
+			if (obj > 0)
 			{
-				if (t.entityprofile[entid].ismarker != 0)
+				if (piEntityVisible[e] == 1)
 				{
-					int obj = t.entityelement[e].obj;
-					if (piEntityVisible[e] == 1)
-					{
-						ShowObject(obj);
-					}
+					ShowObject(obj);
 				}
 			}
 		}

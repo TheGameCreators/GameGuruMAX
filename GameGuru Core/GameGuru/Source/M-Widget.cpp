@@ -2565,7 +2565,7 @@ void widget_check_for_new_object_selection ( void )
 			t.widget.activeObject=t.widget.pickedObject;
 			t.widget.pickedSection=0;
 			t.widget.grabbed=0;
-			t.widget.mode=0;
+			//t.widget.mode=0; // do not reset widget mode, retain current choice for convenience
 			widget_show_widget ( );
 		}
 	}
@@ -2803,7 +2803,7 @@ void widget_switchoff ( void )
 	t.widget.pickedSection=0;
 	t.widget.activeObject=0;
 	t.widget.pickedObject=0;
-	t.widget.mode=0;
+	//t.widget.mode=0; // do not reset widget mode, retain current choice for convenience
 	widget_hide ( );
 }
 
@@ -2813,7 +2813,7 @@ void widget_hide ( void )
 	{
 		if (  ObjectExist (g.widgetobjectoffset+t.a)  )  HideObject (  g.widgetobjectoffset+t.a );
 	}
-	t.widget.mode=0;
+	//t.widget.mode=0; // do not reset widget mode, retain current choice for convenience
 	extern bool bTriggerVisibleWidget;
 	bTriggerVisibleWidget = false;
 }

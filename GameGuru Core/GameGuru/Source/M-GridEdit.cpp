@@ -10594,108 +10594,6 @@ void mapeditorexecutable_loop(void)
 						}
 					}
 					#endif
-
-					/* remove all this
-					//if (!pref.iEnableDragDropEntityMode)
-					#ifdef WICKEDENGINE
-					#ifdef HIDEOBJECTMODES
-					if (0) // Disabled in new design.
-					#endif
-					#endif
-					{
-						if (ImGui::StyleCollapsingHeader("Mode", ImGuiTreeNodeFlags_DefaultOpen))
-						{
-							// new method uses icons
-							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-
-							float w = ImGui::GetWindowContentRegionWidth();
-							int control_image_size = 34;
-							float control_width = (control_image_size + 3.0) * 6.0f + 8.0;
-							int indent = (w*0.5) - (control_width*0.5);
-							if (indent < 10) indent = 10;
-							ImGui::Indent(indent);
-
-							ImVec2 restore_cursorpos = ImGui::GetCursorPos();
-							// five buttons
-							for (int b = 0; b < 6; b++)
-							{
-								int iIconID = 0;
-								LPSTR pLabelToolTip = "";
-								if (b == 0 && bToolEdit) { iIconID = TOOL_ENT_EDIT; pLabelToolTip = "Edit Structure"; }
-								if (b == 0 && bToolProperties) { iIconID = TOOL_ENT_EDIT; pLabelToolTip = "Edit Properties"; }
-								if (b == 1 && bToolExtract) { iIconID = TOOL_ENT_EXTRACT; pLabelToolTip = "Extract to Cursor"; }
-								if (b == 2 && bToolDublicate) { iIconID = TOOL_ENT_DUPLICATE; pLabelToolTip = "Duplicate In-Place"; }
-								if (b == 3 && bToolLock) { iIconID = TOOL_ENT_LOCK; pLabelToolTip = "Lock Entity"; }
-								if (b == 4 && bToolFindFloor) { iIconID = TOOL_ENT_FINDFLOOR; pLabelToolTip = "Find Floor"; }
-								if (b == 5 && bToolDelete) { iIconID = TOOL_ENT_DELETE; pLabelToolTip = "Delete"; }
-
-								if (iIconID > 0)
-								{
-									ImVec2 padding = { 3.0, 3.0 };
-									const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-									//window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-									if (ImGui::ImgBtn(iIconID, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false,false, bBoostIconColors))
-									{
-										// clicked mode button
-										if (iIconID == TOOL_ENT_EDIT)
-										{
-											if (bToolEdit)
-											{
-												// edit structure
-												t.widget.propertybuttonselected = 1;
-												t.ebe.bReleaseMouseFirst = true;
-												widget_show_widget();
-											}
-											else
-											{
-												// entity properties
-												t.widget.propertybuttonselected = 2;
-												widget_show_widget();
-											}
-										}
-										if (iIconID == TOOL_ENT_EXTRACT)
-										{
-											widget_show_widget();
-											bRunExtractDuplicate = true;
-										}
-										if (iIconID == TOOL_ENT_DUPLICATE)
-										{
-											// duplicate 
-											widget_show_widget();
-											bRunExtractDuplicate = true;
-											bDuplicate = true;
-										}
-										if (iIconID == TOOL_ENT_LOCK)
-										{
-											bClickedTheLockUnlockButton = true;
-											// exit widget when lock entity
-											t.widget.pickedSection = 0;
-											widget_show_widget();
-										}
-										if (iIconID == TOOL_ENT_FINDFLOOR)
-										{
-											iForceScancode = 13;
-										}
-										if (iIconID == TOOL_ENT_DELETE)
-										{
-											t.widget.deletebuttonselected = 1;
-											widget_show_widget();
-										}
-									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip(pLabelToolTip);
-									restore_cursorpos = ImGui::GetCursorPos();
-									if (b < 5) ImGui::SameLine();
-									//PE: Support wrapping of icons.
-									float caw = (ImGui::GetContentRegionAvailWidth() + (control_image_size*0.5));
-									if (caw < control_image_size)
-										ImGui::SetCursorPos(restore_cursorpos);
-								}
-							}
-							ImGui::SetCursorPos(restore_cursorpos); //Restore cursor.
-							ImGui::Indent(-indent);
-						}
-					}
-					*/
 				}
 
 				// entity lock/unlock
@@ -10746,7 +10644,7 @@ void mapeditorexecutable_loop(void)
 								}
 							}
 						}
-						gridedit_clearentityrubberbandlist();
+						//gridedit_clearentityrubberbandlist(); // do not clear list, may want to toggle back!
 						iLastActiveEntityIndex = -1;
 						iLastActiveObj = -1;
 					}
@@ -16360,17 +16258,20 @@ void mapeditorexecutable_loop(void)
 				bool bIsASmartObject = false;
 				if (current_selected_group != -1)
 				{
-					int iParentGroupID = vEntityGroupList[current_selected_group][0].iParentGroupID;
-					for (int i = 0; i < MAXGROUPSLISTS; i++)
+					if (vEntityGroupList[current_selected_group].size() > 0)
 					{
-						if (vEntityGroupList[i].size() > 0)
+						int iParentGroupID = vEntityGroupList[current_selected_group][0].iParentGroupID;
+						for (int i = 0; i < MAXGROUPSLISTS; i++)
 						{
-							if (vEntityGroupList[i][0].iGroupID == iParentGroupID)
+							if (vEntityGroupList[i].size() > 0)
 							{
-								if (sEntityGroupListName[i].Len() > 0)
+								if (vEntityGroupList[i][0].iGroupID == iParentGroupID)
 								{
-									// parent is a smart object
-									bIsASmartObject = true;
+									if (sEntityGroupListName[i].Len() > 0)
+									{
+										// parent is a smart object
+										bIsASmartObject = true;
+									}
 								}
 							}
 						}
@@ -21592,9 +21493,13 @@ void imgui_input_getcontrols(void)
 				if (bWidgetEnabled)
 				{
 					// Don't allow characters and markers to be scaled with the widget
-					if (t.entityprofile[t.widget.pickedEntityIndex].ischaracter == 0 && t.entityprofile[t.widget.pickedEntityIndex].ismarker == 0)
+					int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
+					if (entid > 0)
 					{
-						t.widget.mode = 2;
+						if (t.entityprofile[entid].ischaracter == 0 && t.entityprofile[entid].ismarker == 0)
+						{
+							t.widget.mode = 2;
+						}
 					}
 				}
 				else
@@ -22397,14 +22302,10 @@ bool CameraInsideObject (sObject* pObject)
 		return false;
 }
 
-#ifdef WICKEDENGINE
 uint32_t g_iGridEntityFlattener = -1;
-#endif
 
 void input_calculatelocalcursor ( void )
 {
-	#ifdef WICKEDENGINE
-
 	//PE: Dont change anything when right mouse down.
 	if (ImGui::IsMouseDown(1)) return;
 
@@ -22445,19 +22346,19 @@ void input_calculatelocalcursor ( void )
 	float fPickedYAxis = 0.0f;
 	t.inputsys.localselectedrayhit = false;
 
-	std::vector<sRubberBandType> entityvisible;
+	int* piEntityVisible = new int[g.entityelementmax];
+	memset(piEntityVisible, 0, sizeof(int) * g.entityelementmax);
+
 	bool bDisableRubberBandMoving = false;
 	if (current_selected_group >= 0 && group_editing_on)
 	{
 		bDisableRubberBandMoving = true;
 	}
-	//if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode)//&& bDraggingActive)
 	bool bHideObjectsWeWantToIgnore = false;
 	if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode) bHideObjectsWeWantToIgnore = true;
 	if ( bHideObjectsWeWantToIgnore == true )
 	{
 		//PE: MUST disable collision on ALL rubberband objects.
-		entityvisible = g.entityrubberbandlist;
 		if (g.entityrubberbandlist.size() > 0)
 		{
 			for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
@@ -22466,12 +22367,34 @@ void input_calculatelocalcursor ( void )
 				int obj = t.entityelement[e].obj;
 				if (obj > 0 && GetVisible(obj))
 				{
-					entityvisible[i].x = 1;
+					piEntityVisible[e] = 1;
 					HideObject(obj);
 				}
 				else
 				{
-					entityvisible[i].x = 0;
+					piEntityVisible[e] = 0;
+				}
+			}
+		}
+
+		// also disable any gameelements (such as start marker) as they can get in the way
+		for (int e = 1; e <= g.entityelementmax; e++)
+		{
+			int entid = t.entityelement[e].bankindex;
+			if (entid > 0)
+			{
+				if (t.entityprofile[entid].ismarker != 0)
+				{
+					int obj = t.entityelement[e].obj;
+					if (obj > 0 && GetVisible(obj))
+					{
+						piEntityVisible[e] = 1;
+						HideObject(obj);
+					}
+					else
+					{
+						piEntityVisible[e] = 0;
+					}
 				}
 			}
 		}
@@ -22541,16 +22464,6 @@ void input_calculatelocalcursor ( void )
 		if (t.gridentity > 0) iForwardFacing = t.entityprofile[t.gridentity].forwardfacing;
 		if (iObjectMoveMode == 2 && t.gridentityobj > 0 && bMustFaceUpOrDown == true && t.gridentity > 0 && t.entityprofile[t.gridentity].ismarker != 2 && iForwardFacing != 2)
 		{
-			// convert base obj pos to 2D
-			//float fBlockedBaseX = t.gridentityposx_f;
-			//float fBlockedBaseY = t.gridentityposy_f;
-			//float fBlockedBaseZ = t.gridentityposz_f;
-			//ImVec2 v2DPos;
-			//v2DPos = Convert3DTo2D(fBlockedBaseX, fBlockedBaseY, fBlockedBaseZ);
-			//GGVECTOR2 vecBase = GGVECTOR2(v2DPos.x, v2DPos.y);
-			// convert clicked pos to 2D
-			//v2DPos = Convert3DTo2D(fBlockedBaseX + fHitOffsetX, fBlockedBaseY + fHitOffsetY, fBlockedBaseZ + fHitOffsetZ);
-			//GGVECTOR2 vecClickPos = GGVECTOR2(v2DPos.x, v2DPos.y);
 			// work out difference to move virtual mouse pointer to base of object no matter the orientation
 			GGVECTOR2 vecVirtMouseOffset = GGVECTOR2(0, 0); //vecBase - vecClickPos; too clever by half!
 			XMFLOAT4 currentMouse = wiInput::GetPointer();
@@ -22577,57 +22490,6 @@ void input_calculatelocalcursor ( void )
 		if (fPickedYAxis > -1.0f && fPickedYAxis < 1.0f) 
 		{
 			fPickedYAxis = 0.0f;
-		}
-		if (bRayResult == true && t.gridentityobj > 0 && t.gridentity > 0 && t.entityprofile[t.gridentity].ismarker == 0 && iForwardFacing == 0)
-		{
-			/* LB: this causes the judder when smart placing, caused when VERY minor XZ changes happen causing spiral to detect new heights
-			// that when acted on change XZ again causing the same height not to be found, thus vicious cycle!!
-			// if hit an object, such as a corrogated roof or pallet with holes in
-			float fBestY = fPickedYAxis;
-			sObject* pHitObject = NULL;
-			if (hitentity > 0) pHitObject = m_ObjectManager.FindObjectFromWickedObjectEntityID(hitentity);
-
-			// object attached to cursor
-			sObject* pCursorObj = GetObjectData(t.gridentityobj);
-
-			// cast four rays and pick highest Y position as the true coordinate
-			float fSpiralRadiusMax = (ObjectSizeX(t.gridentityobj, 1) + ObjectSizeZ(t.gridentityobj,1)) / 2.0f / 2.0f;
-			float fSpiralRadius = 0.0f;
-			float fSpiralAngle = 0.0f;
-			for (int iFour = 0; iFour < 20; iFour++)
-			{
-				GGVECTOR3 vecPos = pCursorObj->position.vecPosition;
-				vecPos.x += NewXValue(0, fSpiralAngle, fSpiralRadius);
-				vecPos.z += NewZValue(0, fSpiralAngle, fSpiralRadius);
-				fSpiralRadius += (fSpiralRadiusMax / 20.0f);
-				fSpiralAngle += (720.0f / 20.0f);
-				if (pHitObject == NULL)
-				{
-					float fNewPickX = 0;
-					float fNewPickY = 0;
-					float fNewPickZ = 0;
-					WickedCall_SentRay2 (vecPos.x, vecPos.y+10.0f, vecPos.z, 0, -1, 0, &fNewPickX, &fNewPickY, &fNewPickZ, &fNormalX, &fNormalY, &fNormalZ, &hitentity, iLayerMaskForPick);
-					if (hitentity > 0)
-					{
-						// acquired an object at location, use this for further checks
-						pHitObject = m_ObjectManager.FindObjectFromWickedObjectEntityID(hitentity);
-					}
-				}
-				float fDistance = 0.0f;
-				if (pHitObject) fDistance = IntersectObject(pHitObject->dwObjectNumber, vecPos.x, vecPos.y + 10.0f, vecPos.z, vecPos.x, vecPos.y - 10.0f, vecPos.z);
-				if (fDistance > 0.0f)
-				{
-					GGVECTOR3 vecHit = GGVECTOR3(g_pGlob->checklist[5].fvaluea, g_pGlob->checklist[5].fvalueb, g_pGlob->checklist[5].fvaluec);
-					GGVECTOR3 vecHitNormal = GGVECTOR3(g_pGlob->checklist[6].fvaluea, g_pGlob->checklist[6].fvalueb, g_pGlob->checklist[6].fvaluec);
-					if (vecHit.y > fBestY)
-					{
-						fBestY = vecHit.y;
-					}
-				}
-			}
-			// new highest Y position
-			fPickedYAxis = fBestY;
-			*/
 		}
 		if (bApplyHitOffset == true)
 		{
@@ -22803,124 +22665,35 @@ void input_calculatelocalcursor ( void )
 	}
 	t.inputsys.picksystemused=2;
 
-	//if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode && bDraggingActive)
 	if (bHideObjectsWeWantToIgnore == true)
 	{
-		//PE: Enable rubberband collision again.
-		if (entityvisible.size() > 0)
+		// PE: Enable rubberband collision again.
+		// also renable any gameelements (such as start marker) as they can get in the way
+		for (int e = 0; e < g.entityelementmax; e++)
 		{
-			for (int i = 0; i < (int)entityvisible.size(); i++)
+			int entid = t.entityelement[e].bankindex;
+			if (entid > 0)
 			{
-				int e = entityvisible[i].e;
-				int obj = t.entityelement[e].obj;
-				if (entityvisible[i].x == 1)
+				if (t.entityprofile[entid].ismarker != 0)
 				{
-					ShowObject(obj);
+					int obj = t.entityelement[e].obj;
+					if (piEntityVisible[e] == 1)
+					{
+						ShowObject(obj);
+					}
 				}
 			}
 		}
 	}
-
 	t.tilex_f=t.tx_f;
 	t.tiley_f=t.tz_f;
-	#else
-	// Early warning of resource VIDMEM loss, if matrix gone
-	if ( MatrixExist(g.m4_projection) == 0 ) 
-	{
-		editor_detect_invalid_screen ( );
-	}
-	// Local cursor calculation
-	t.inputsys.picksystemused=0;
-	if (  t.grideditselect != 4 ) 
-	{
-		//  do not change these values if in zoom mode
-		SetCurrentCamera (  0 );
-		SetCameraRange (  DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE );
-		t.screenwidth_f=800.0;
-		t.screenheight_f=600.0;
-		GetProjectionMatrix (  g.m4_projection );
-		GetViewMatrix (  g.m4_view );
-		t.blank=InverseMatrix(g.m4_projection,g.m4_projection);
-		t.blank=InverseMatrix(g.m4_view,g.m4_view);
 
-		#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-		//PE: Do not use (800.0x600.0) Just convert , we need any resolution to work.
-		t.tadjustedtoareax_f = ((float) t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
-		t.tadjustedtoareay_f = ((float) t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-		#else
-		//  work out visible part of full backbuffer (i.e. 1212 of 1360)
-		t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-		t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-		//  scale full mouse to fit in visible area
-		t.tadjustedtoareax_f = ((t.inputsys.xmouse + 0.0) / 800.0) / t.tadjustedtoareax_f;
-		t.tadjustedtoareay_f = ((t.inputsys.ymouse + 0.0) / 600.0) / t.tadjustedtoareay_f;
-		#endif
-
-		//  stretch scaled-mouse to projected -1 to +1
-		SetVector4 (  g.v4_far,(t.tadjustedtoareax_f*2)-1,-((t.tadjustedtoareay_f*2)-1),0,1 );
-		t.tx_f=GetXVector4(g.v4_far);
-		t.ty_f=GetYVector4(g.v4_far);
-		t.tz_f=GetZVector4(g.v4_far);
-		TransformVector4 (  g.v4_far,g.v4_far,g.m4_projection );
-		t.tx_f=GetXVector4(g.v4_far);
-		t.ty_f=GetYVector4(g.v4_far);
-		t.tz_f=GetZVector4(g.v4_far);
-		SetVector3 ( g.v3_far, t.tx_f, t.ty_f, t.tz_f );
-		TransformVectorCoordinates3 ( g.v3_far, g.v3_far, g.m4_view );
-		t.tx_f=GetXVector3(g.v3_far);
-		t.ty_f=GetYVector3(g.v3_far);
-		t.tz_f=GetZVector3(g.v3_far);
-		t.fx_f=CameraPositionX(0);
-		t.fy_f=CameraPositionY(0);
-		t.fz_f=CameraPositionZ(0);
-		t.tx_f=t.tx_f-t.fx_f;
-		t.ty_f=t.ty_f-t.fy_f;
-		t.tz_f=t.tz_f-t.fz_f;
-		t.tt_f=abs(t.tx_f)+abs(t.ty_f)+abs(t.tz_f);
-		t.tx_f=t.tx_f/t.tt_f;
-		t.ty_f=t.ty_f/t.tt_f;
-		t.tz_f=t.tz_f/t.tt_f;
-		t.tstep=10000;
-		t.tdiststep_f=t.gridzoom_f;
-		while ( t.tstep>0 ) 
-		{
-			t.fx_f=t.fx_f+(t.tx_f*t.tdiststep_f);
-			t.fy_f=t.fy_f+(t.ty_f*t.tdiststep_f);
-			t.fz_f=t.fz_f+(t.tz_f*t.tdiststep_f);
-			// hit ground at
-			if ( t.terrain.TerrainID>0 ) 
-			{
-				if ( BT_GetGroundHeight(t.terrain.TerrainID,t.fx_f,t.fz_f) > t.fy_f )  break;
-			}
-			else
-			{
-				if ( 1000.0 > t.fy_f )  break;
-			}
-			--t.tstep;
-		}
-		if ( t.tstep == 0 ) 
-		{
-			// no floor to target, have to get coordinate from pick system
-			PickScreen2D23D ( t.inputsys.xmouse, t.inputsys.ymouse, 500 );
-			t.fx_f=GetPickVectorX();
-			t.fy_f=GetPickVectorY();
-			t.fz_f=GetPickVectorZ();
-			t.inputsys.picksystemused=1;
-		}
-		t.tx_f=t.fx_f;
-		t.tz_f=t.fz_f;
-		t.tilex_f=t.tx_f;
-		t.tiley_f=t.tz_f;
-
-		//  restore camera range
-		editor_refreshcamerarange ( );
-	}
-	else
+	// free temp vis array
+	if (piEntityVisible)
 	{
-		t.tx_f=t.tilex_f;
-		t.tz_f=t.tiley_f;
+		delete piEntityVisible;
+		piEntityVisible = NULL;
 	}
-	#endif
 
 	//  World cursor position
 	t.inputsys.localx_f=t.tx_f;
@@ -22934,37 +22707,18 @@ void input_calculatelocalcursor ( void )
 	t.inputsys.mmx=t.tx ; t.inputsys.mmy=t.ty;
 
 	//  layer height is terrain Floor height
-	#ifdef GGTERRAIN_USE_NEW_TERRAIN
 	t.inputsys.localcurrentterrainheight_f = BT_GetGroundHeight(t.terrain.TerrainID,t.tx_f,t.tz_f);
-	#else
-	if (  t.terrain.TerrainID>0 ) 
-	{
-		t.inputsys.localcurrentterrainheight_f=BT_GetGroundHeight(t.terrain.TerrainID,t.tx_f,t.tz_f);
-	}
-	else
-	{
-		t.inputsys.localcurrentterrainheight_f=g.gdefaultterrainheight;
-	}
-	#endif
 
 	// when placing waypoints, include entities as 'ground' to check
 	t.inputsys.originallocalx_f = t.inputsys.localx_f;
 	t.inputsys.originallocaly_f = t.inputsys.localy_f;
 
-	#ifdef VRTECH
 	extern bool bWaypointDrawmode;
 	if ( t.gridentitysurfacesnap == 1 || t.onedrag > 0 || bWaypointDrawmode)
 	{
 		// only when finding place to place entity
 		if ( t.gridentity > 0 || t.onedrag > 0 || bWaypointDrawmode)
 		{
-	#else
-	if ( t.gridentitysurfacesnap == 1 || t.onedrag > 0)
-	{
-		// only when finding place to place entity
-		if ( t.gridentity > 0 || t.onedrag > 0)
-		{
-	#endif
 			// get distance of current terrain hit
 			float fTDX = t.inputsys.localx_f - CameraPositionX();
 			float fTDY = t.inputsys.localcurrentterrainheight_f - CameraPositionY();
@@ -23001,7 +22755,6 @@ void input_calculatelocalcursor ( void )
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	if (t.inputsys.picksystemused == 2)
 	{
 		// wicked pick system provides Y coordinate via terrainheight value
@@ -23018,7 +22771,6 @@ void input_calculatelocalcursor ( void )
 			}
 		}
 	}
-	#endif
 
 	//  height at which zoom editing happens
 	t.layerheight_f=t.zoomviewtargety_f+100.0;

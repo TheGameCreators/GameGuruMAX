@@ -2776,6 +2776,7 @@ void entity_applydamage ( void )
 	if ( t.entityelement[t.ttte].obj <= 0 ) return;
 	if ( ObjectExist ( t.entityelement[t.ttte].obj ) == 0 ) return;
 
+	int iHealthBefore = t.entityelement[t.ttte].health;
 	#ifdef WICKEDENGINE
 	// wicked allows wicked amounts of damage ;)
 	#else
@@ -3011,7 +3012,9 @@ void entity_applydamage ( void )
 	if (t.entityelement[t.ttte].health <= 0)
 	{
 		// counting any entity damage at or below zero a destroy event (for counting XP)
-		entity_adddestroyevent(t.ttte);
+		//PE: Only add this one time or XP just keep increasing. Like "rats" would triggere this constantly even if dead.
+		if(iHealthBefore > 0)
+			entity_adddestroyevent(t.ttte);
 
 		//  if explodble, have a delayed reaction
 		if (t.entityelement[t.ttte].eleprof.explodable != 0)

@@ -115,21 +115,16 @@ local function aCritter( obj )
 	end
 end
 
-local function canSee( critter, dist, x, y, z )
+local function canSee( e, critter, dist, x, y, z )
 	local cx, cy, cz, ax, ay, az = GetObjectPosAng( critter.obj )
 	if x == nil then
 		local xo, yo, zo = U.Rotate3D( 0, 0, dist, rad( ax ), rad( ay ), rad( az ) )
 		x, y, z = cx + xo, cy + yo + 5, cz + zo
 	end
 	--local obj = IntersectAll( cx, cy + 5, cz, x, y, z, critter.obj )
-	local obj = 0
-	if critter.e ~= nil then
-	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, critter.e, 500 )
-	end
+	local obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, e, 500 )
 	
-	if obj == 0 or aCritter( obj ) then	
-		return true
-	end
+	return obj == nil or obj == 0 or aCritter( obj )	
 end
 
 local function pathFound( e, critter )
@@ -144,12 +139,12 @@ local function pathFound( e, critter )
 		end
 	end
 	y = RDGetYFromMeshPosition( critter.tx, y, critter.tz )
-	
 	RDFindPath( critter.x, critter.y, critter.z, critter.tx, y, critter.tz )
 				
 	local pc = RDGetPathPointCount()
+	
 	if pc > 0 then
-		if canSee( critter, 0, RDGetPathPointX(1), RDGetPathPointY(1), RDGetPathPointZ(1) ) then
+		if canSee( e, critter, 0, RDGetPathPointX(1), RDGetPathPointY(1), RDGetPathPointZ(1) ) then
 			StartMoveAndRotateToXYZ( e, 0, 1, 1 )
 			return true
 		end
@@ -211,7 +206,7 @@ local function speciesSpecific( e, critter )
 			for _, v in pairs( critter.critterList ) do
 				if v ~= e then 
 					local other = mammals[ v ]
-					if other ~= nil and
+					if other ~= nil and other.x ~= nil and
 					   other.species == 'fox' and
 					   sqrd( other.x, other.z, critter.x, critter.z )  < 400 * 400 then
 						if selectTargetPos( e, critter, 'predator', other.x, other.z ) then
@@ -283,7 +278,7 @@ function mammal_generic_main( e )
 	if critter.state == 'init' then
 		SetAnimationName( e, 'idle' )
 		LoopAnimationFrom( e, random() * 100 )
-		critter.e     = e
+		critter.e       = e
 		critter.obj     = Ent.obj
 		critter.state   = 'idle'
 		critter.startx  = Ent.x
@@ -336,7 +331,7 @@ function mammal_generic_main( e )
 	   critter.state == 'walk' then
 		local pointindex = MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
 		if pointindex == 0 or 
-		   ( pointindex > 1 and not canSee( critter, 5 * critter.speed ) ) or
+		   ( pointindex > 1 and not canSee( e, critter, 5 * critter.speed ) ) or
 		   U.CloserThan( critter.x,  0, critter.z, 
 		                 critter.tx, 0, critter.tz, 10 ) then
 			MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
@@ -382,7 +377,7 @@ function mammal_generic_main( e )
 		   critter.state == 'flee' then
 			local pointindex = MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
 			if pointindex == 0 or 
-			   ( pointindex > 1 and not canSee( critter, 40 ) ) or
+			   ( pointindex > 1 and not canSee( e, critter, 40 ) ) or
 			   U.CloserThan( critter.x,  0, critter.z, 
 		                     critter.tx, 0, critter.tz, 25 ) then
 				MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 ) 
@@ -435,5 +430,5 @@ function mammal_generic_main( e )
 		SwitchScript( e, 'no_behavior.lua' )
 	end
 	
-	--PromptLocal( e, critter.state .. ", " .. critter.speed )	
+	--PromptLocal( e, critter.state .. ", " .. waterHgt )	
 end

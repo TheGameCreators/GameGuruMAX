@@ -54,112 +54,116 @@ bool load_rpg_system_items(char* name)
 		{
 			// read a line
 			char theline[MAX_PATH];
+			strcpy(theline, "");
 			fgets(theline, MAX_PATH - 1, collectionFile);
 			if (strlen(theline) > 0 && theline[strlen(theline) - 1] == '\n')
 				theline[strlen(theline) - 1] = 0;
 
-			// determine which list to fill
-			collectionItemType item;
-			item.iEntityID = 0;
-			item.iEntityElementE = 0;
-			if (bPopulateLabels == true)
+			//PE: Empty line \n at the bottom would always add the last item 1 additional time, growing the list.
+			if (strlen(theline) > 0)
 			{
-				// first line are all the labels
-				g_localCollectionLabels.clear();
-			}
-			else
-			{
-				// remaining lines are the collection, prepopulate with correct number of them
-				item.collectionFields.clear();
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("default");
-				item.collectionFields.push_back("default");
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("10");
-				item.collectionFields.push_back("5");
-				item.collectionFields.push_back("shop");
-				item.collectionFields.push_back("none");
-				item.collectionFields.push_back("none");
-				int iLAIndex = item.collectionFields.size();
-				while (iLAIndex < g_collectionLabels.size())
-				{
-					item.collectionFields.push_back("none");
-					iLAIndex++;
-				}
-			}
-
-			// go through tab delimited fields
-			int iColumnIndex = 0;
-			char pTab[2]; pTab[0] = 9; pTab[1] = 0;
-			const char* delimiter = pTab;
-			char* token = std::strtok(theline, delimiter);
-			while (token) 
-			{
+				// determine which list to fill
+				collectionItemType item;
+				item.iEntityID = 0;
+				item.iEntityElementE = 0;
 				if (bPopulateLabels == true)
 				{
-					// record local order of the labels from the import
-					g_localCollectionLabels.push_back(token);
-
-					// add unique ones to end of labels list
-					bool bFoundThisOne = false;
-					for (int la = 0; la < g_collectionLabels.size(); la++)
-					{
-						if (stricmp(g_collectionLabels[la].Get(), token) == NULL)
-						{
-							bFoundThisOne = true;
-							break;
-						}
-					}
-					if (bFoundThisOne == false)
-					{
-						// add to end of main list of labels
-						g_collectionLabels.push_back(token);
-					}
+					// first line are all the labels
+					g_localCollectionLabels.clear();
 				}
 				else
 				{
-					// add to correct location in item collection fields (respect main labels list, not local import)
-					if (iColumnIndex < g_localCollectionLabels.size())
+					// remaining lines are the collection, prepopulate with correct number of them
+					item.collectionFields.clear();
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("default");
+					item.collectionFields.push_back("default");
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("10");
+					item.collectionFields.push_back("5");
+					item.collectionFields.push_back("shop");
+					item.collectionFields.push_back("none");
+					item.collectionFields.push_back("none");
+					int iLAIndex = item.collectionFields.size();
+					while (iLAIndex < g_collectionLabels.size())
 					{
-						LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
-						iColumnIndex++;
+						item.collectionFields.push_back("none");
+						iLAIndex++;
+					}
+				}
+
+				// go through tab delimited fields
+				int iColumnIndex = 0;
+				char pTab[2]; pTab[0] = 9; pTab[1] = 0;
+				const char* delimiter = pTab;
+				char* token = std::strtok(theline, delimiter);
+				while (token)
+				{
+					if (bPopulateLabels == true)
+					{
+						// record local order of the labels from the import
+						g_localCollectionLabels.push_back(token);
+
+						// add unique ones to end of labels list
+						bool bFoundThisOne = false;
 						for (int la = 0; la < g_collectionLabels.size(); la++)
 						{
-							if (stricmp(g_collectionLabels[la].Get(), pLabelAssociated) == NULL)
+							if (stricmp(g_collectionLabels[la].Get(), token) == NULL)
 							{
-								item.collectionFields[la] = token;
+								bFoundThisOne = true;
 								break;
 							}
 						}
+						if (bFoundThisOne == false)
+						{
+							// add to end of main list of labels
+							g_collectionLabels.push_back(token);
+						}
 					}
-				}
-				token = std::strtok(nullptr, delimiter);
-			}
-
-			// add populated item to collection list
-			if (bPopulateLabels == false && item.collectionFields.size()>2)
-			{
-				if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
-				{
-					// seems we have duplicated the header row, so ignore (title, profile, image, etc)
-				}
-				else
-				{
-					// quick sanity check, reset any corrupt entries for image (might be FPE from old tabbed files)
-					LPSTR pImageEntry = item.collectionFields[2].Get();
-					if (strnicmp(pImageEntry + strlen(pImageEntry) - 4, ".fpe", 4) == NULL)
+					else
 					{
-						// restore to default, thank you!
-						item.collectionFields[2] = "default";
+						// add to correct location in item collection fields (respect main labels list, not local import)
+						if (iColumnIndex < g_localCollectionLabels.size())
+						{
+							LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
+							iColumnIndex++;
+							for (int la = 0; la < g_collectionLabels.size(); la++)
+							{
+								if (stricmp(g_collectionLabels[la].Get(), pLabelAssociated) == NULL)
+								{
+									item.collectionFields[la] = token;
+									break;
+								}
+							}
+						}
 					}
-
-					// real entry, add it
-					g_collectionMasterList.push_back(item);
+					token = std::strtok(nullptr, delimiter);
 				}
-			}
 
-			// first line over
-			bPopulateLabels = false;
+				// add populated item to collection list
+				if (bPopulateLabels == false && item.collectionFields.size() > 2)
+				{
+					if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
+					{
+						// seems we have duplicated the header row, so ignore (title, profile, image, etc)
+					}
+					else
+					{
+						// quick sanity check, reset any corrupt entries for image (might be FPE from old tabbed files)
+						LPSTR pImageEntry = item.collectionFields[2].Get();
+						if (strnicmp(pImageEntry + strlen(pImageEntry) - 4, ".fpe", 4) == NULL)
+						{
+							// restore to default, thank you!
+							item.collectionFields[2] = "default";
+						}
+
+						// real entry, add it
+						g_collectionMasterList.push_back(item);
+					}
+				}
+				// first line over
+				bPopulateLabels = false;
+			}
 		}
 		fclose(collectionFile);
 	}
@@ -205,106 +209,112 @@ bool load_rpg_system_quests(char* name)
 		{
 			// read a line
 			char theline[MAX_PATH];
+			strcpy(theline, "");
 			fgets(theline, MAX_PATH - 1, collectionFile);
 			if (strlen(theline) > 0 && theline[strlen(theline) - 1] == '\n')
 				theline[strlen(theline) - 1] = 0;
 
-			// determine which list to fill
-			collectionQuestType item;
-			if (bPopulateLabels == true)
+			//PE: Empty line \n at the bottom would always add the last item 1 additional time, growing the list.
+			if (strlen(theline) > 0)
 			{
-				// first line are all the labels
-				g_localCollectionLabels.clear();
-			}
-			else
-			{
-				// remaining lines are the collection, prepopulate with correct number of them
-				item.collectionFields.clear();
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("collect");
-				item.collectionFields.push_back("default");
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("");
-				item.collectionFields.push_back("none");
-				item.collectionFields.push_back("none");
-				item.collectionFields.push_back("1");
-				item.collectionFields.push_back("100");
-				item.collectionFields.push_back("100");
-				item.collectionFields.push_back("inactive");
-				item.collectionFields.push_back("none");
-				int iLAIndex = item.collectionFields.size();
-				while (iLAIndex < g_collectionQuestLabels.size())
-				{
-					item.collectionFields.push_back("none");
-					iLAIndex++;
-				}
-			}
 
-			// go through tab delimited fields
-			int iColumnIndex = 0;
-			char pTab[2]; pTab[0] = 9; pTab[1] = 0;
-			const char* delimiter = pTab;
-			char* token = std::strtok(theline, delimiter);
-			while (token)
-			{
+				// determine which list to fill
+				collectionQuestType item;
 				if (bPopulateLabels == true)
 				{
-					// record local order of the labels from the import
-					g_localCollectionLabels.push_back(token);
-
-					// add unique ones to end of labels list
-					bool bFoundThisOne = false;
-					for (int la = 0; la < g_collectionQuestLabels.size(); la++)
-					{
-						if (stricmp(g_collectionQuestLabels[la].Get(), token) == NULL)
-						{
-							bFoundThisOne = true;
-							break;
-						}
-					}
-					if (bFoundThisOne == false)
-					{
-						// add to end of main list of labels
-						g_collectionQuestLabels.push_back(token);
-					}
+					// first line are all the labels
+					g_localCollectionLabels.clear();
 				}
 				else
 				{
-					// add to correct location in item collection fields (respect main labels list, not local import)
-					if (iColumnIndex < g_localCollectionLabels.size())
+					// remaining lines are the collection, prepopulate with correct number of them
+					item.collectionFields.clear();
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("collect");
+					item.collectionFields.push_back("default");
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("");
+					item.collectionFields.push_back("none");
+					item.collectionFields.push_back("none");
+					item.collectionFields.push_back("1");
+					item.collectionFields.push_back("100");
+					item.collectionFields.push_back("100");
+					item.collectionFields.push_back("inactive");
+					item.collectionFields.push_back("none");
+					int iLAIndex = item.collectionFields.size();
+					while (iLAIndex < g_collectionQuestLabels.size())
 					{
-						LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
-						iColumnIndex++;
+						item.collectionFields.push_back("none");
+						iLAIndex++;
+					}
+				}
+
+				// go through tab delimited fields
+				int iColumnIndex = 0;
+				char pTab[2]; pTab[0] = 9; pTab[1] = 0;
+				const char* delimiter = pTab;
+				char* token = std::strtok(theline, delimiter);
+				while (token)
+				{
+					if (bPopulateLabels == true)
+					{
+						// record local order of the labels from the import
+						g_localCollectionLabels.push_back(token);
+
+						// add unique ones to end of labels list
+						bool bFoundThisOne = false;
 						for (int la = 0; la < g_collectionQuestLabels.size(); la++)
 						{
-							if (stricmp(g_collectionQuestLabels[la].Get(), pLabelAssociated) == NULL)
+							if (stricmp(g_collectionQuestLabels[la].Get(), token) == NULL)
 							{
-								item.collectionFields[la] = token;
+								bFoundThisOne = true;
 								break;
 							}
 						}
+						if (bFoundThisOne == false)
+						{
+							// add to end of main list of labels
+							g_collectionQuestLabels.push_back(token);
+						}
+					}
+					else
+					{
+						// add to correct location in item collection fields (respect main labels list, not local import)
+						if (iColumnIndex < g_localCollectionLabels.size())
+						{
+							LPSTR pLabelAssociated = g_localCollectionLabels[iColumnIndex].Get();
+							iColumnIndex++;
+							for (int la = 0; la < g_collectionQuestLabels.size(); la++)
+							{
+								if (stricmp(g_collectionQuestLabels[la].Get(), pLabelAssociated) == NULL)
+								{
+									item.collectionFields[la] = token;
+									break;
+								}
+							}
+						}
+					}
+					token = std::strtok(nullptr, delimiter);
+				}
+
+				// add populated item to collection list
+				if (bPopulateLabels == false && item.collectionFields.size() > 2 && iColumnIndex > 7)
+				{
+					if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
+					{
+						// seems we have duplicated the header row, so ignore (title, profile, image, etc)
+					}
+					else
+					{
+						// real entry, add it
+						g_collectionQuestMasterList.push_back(item);
 					}
 				}
-				token = std::strtok(nullptr, delimiter);
-			}
 
-			// add populated item to collection list
-			if (bPopulateLabels == false && item.collectionFields.size() > 2 && iColumnIndex > 7)
-			{
-				if (stricmp(item.collectionFields[0].Get(), "title") == NULL && stricmp(item.collectionFields[2].Get(), "image") == NULL)
-				{
-					// seems we have duplicated the header row, so ignore (title, profile, image, etc)
-				}
-				else
-				{
-					// real entry, add it
-					g_collectionQuestMasterList.push_back(item);
-				}
+				// first line over
+				bPopulateLabels = false;
 			}
-
-			// first line over
-			bPopulateLabels = false;
 		}
 		fclose(collectionFile);
 	}

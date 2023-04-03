@@ -2569,7 +2569,21 @@ void physics_player_init ( void )
 			//add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
 			collectionItemType collectionitem;
 			fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
-			g_collectionList.push_back(collectionitem);
+
+			//PE: dont add if already there.
+			bool bNewItemIsUnqiue = true;
+			for (int n = 0; n < g_collectionList.size(); n++)
+			{
+				if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
+				{
+					bNewItemIsUnqiue = false;
+					break;
+				}
+			}
+			if (bNewItemIsUnqiue == true)
+			{
+				g_collectionList.push_back(collectionitem);
+			}
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it
 			inventoryContainerType item;

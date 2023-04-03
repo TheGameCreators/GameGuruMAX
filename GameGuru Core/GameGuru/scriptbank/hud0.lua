@@ -807,7 +807,7 @@ function hud0.main()
 		if string.len(buttonElementName) > 0 then
 			local buttonOnScreen = 0
 			if buttonElementName == "ACCEPT" then buttonOnScreen = 104 end
-			if buttonElementName == "CANCEL" then buttonOnScreen = 105 end
+			if buttonElementName == "ABANDON" then buttonOnScreen = 105 end
 			if buttonOnScreen > 0 then
 				if buttonOnScreen == 104 or buttonOnScreen == 105 then
 					SetScreenElementVisibility(elementID,0)
@@ -987,7 +987,7 @@ function hud0.main()
 			if buttonElementName == "TAKE ALL" then actionOnScreen = 102 end
 			if buttonElementName == "CRAFT" then actionOnScreen = 103 end
 			if buttonElementName == "ACCEPT" then actionOnScreen = 104 end
-			if buttonElementName == "CANCEL" then actionOnScreen = 105 end
+			if buttonElementName == "ABANDON" then actionOnScreen = 105 end
 			if actionOnScreen > 0 then
 				if actionOnScreen == 101 then
 					-- LEAVE HUD screen
@@ -1152,7 +1152,7 @@ function hud0.main()
 					end
 				end
 				if actionOnScreen == 105 then
-					-- CANCEL current QUEST
+					-- ABANDON current QUEST
 					if g_UserGlobalQuestTitleActive ~= nil then
 						for tquestindex = 1, hud0_quest_qty, 1 do
 							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleActive then

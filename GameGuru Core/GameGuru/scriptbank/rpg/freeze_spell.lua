@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
--- Freeze Spell v14
+-- Freeze Spell v16
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -12,7 +12,7 @@
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
 
-g_freeze_spell = {}
+local freeze_spell = {}
 
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
@@ -34,31 +34,32 @@ local current_time = {}
 local entaffected = {}
 
 function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, particle1_name, particle2_name)
-	g_freeze_spell[e].prompt_text = prompt_text
-	g_freeze_spell[e].useage_text = useage_text
-	g_freeze_spell[e].pickup_range = pickup_range
-	g_freeze_spell[e].user_global_affected = user_global_affected
-	g_freeze_spell[e].mana_cost = mana_cost
-	g_freeze_spell[e].cast_damage = cast_damage
-	g_freeze_spell[e].cast_radius = cast_radius
-	g_freeze_spell[e].particle1_name = lower(particle1_name)
-	g_freeze_spell[e].particle2_name = lower(particle2_name)
+	freeze_spell[e] = g_Entity[e]
+	freeze_spell[e].prompt_text = prompt_text
+	freeze_spell[e].useage_text = useage_text
+	freeze_spell[e].pickup_range = pickup_range
+	freeze_spell[e].user_global_affected = user_global_affected
+	freeze_spell[e].mana_cost = mana_cost
+	freeze_spell[e].cast_damage = cast_damage
+	freeze_spell[e].cast_radius = cast_radius
+	freeze_spell[e].particle1_name = lower(particle1_name)
+	freeze_spell[e].particle2_name = lower(particle2_name)
 end
 
 function freeze_spell_init(e)
-	g_freeze_spell[e] = {}
-	g_freeze_spell[e].prompt_text = "E to Collect"
-	g_freeze_spell[e].useage_text = "Direct Damage Inflicted"
-	g_freeze_spell[e].pickup_range = 90
-	g_freeze_spell[e].user_global_affected = "MyMana"
-	g_freeze_spell[e].mana_cost = 10
-	g_freeze_spell[e].cast_damage = 25
-	g_freeze_spell[e].cast_radius = 5
-	g_freeze_spell[e].particle1_name = ""
-	g_freeze_spell[e].particle2_name = ""
-	g_freeze_spell[e].particle1_number = 0
-	g_freeze_spell[e].particle2_number = 0
-	g_freeze_spell[e].cast_timeout = 0	
+	freeze_spell[e] = g_Entity[e]
+	freeze_spell[e].prompt_text = "E to Collect"
+	freeze_spell[e].useage_text = "Direct Damage Inflicted"
+	freeze_spell[e].pickup_range = 90
+	freeze_spell[e].user_global_affected = "MyMana"
+	freeze_spell[e].mana_cost = 10
+	freeze_spell[e].cast_damage = 25
+	freeze_spell[e].cast_radius = 5
+	freeze_spell[e].particle1_name = ""
+	freeze_spell[e].particle2_name = ""
+	freeze_spell[e].particle1_number = 0
+	freeze_spell[e].particle2_number = 0
+	freeze_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
 	tEnt[e] = 0
@@ -74,12 +75,13 @@ function freeze_spell_init(e)
 end
 
 function freeze_spell_main(e)
+	freeze_spell[e] = g_Entity[e]
 	-- get particles for spell effects
-	if g_freeze_spell[e].particle1_number == 0 or nil then
+	if freeze_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
-				if lower(GetEntityName(n)) == g_freeze_spell[e].particle1_name then
-					g_freeze_spell[e].particle1_number = n
+				if lower(GetEntityName(n)) == freeze_spell[e].particle1_name then
+					freeze_spell[e].particle1_number = n
 					SetPosition(n,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
 					Hide(n)
 					break
@@ -87,11 +89,11 @@ function freeze_spell_main(e)
 			end
 		end
 	end
-	if g_freeze_spell[e].particle2_number == 0 or nil then
+	if freeze_spell[e].particle2_number == 0 or nil then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
-				if lower(GetEntityName(m)) == g_freeze_spell[e].particle2_name then
-					g_freeze_spell[e].particle2_number = m
+				if lower(GetEntityName(m)) == freeze_spell[e].particle2_name then
+					freeze_spell[e].particle2_number = m
 					SetPosition(m,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
 					Hide(m)
 					break
@@ -101,18 +103,18 @@ function freeze_spell_main(e)
 	end
 	-- handle states
 	if status[e] == "init" then
-		cradius[e] = 180.0 - g_freeze_spell[e].cast_radius
+		cradius[e] = 180.0 - freeze_spell[e].cast_radius
 		status[e] = "collect_spell"		
 	end
 	if status[e] == "collect_spell" then
 		PlayerDist = GetPlayerDistance(e)
 		local LookingAt = GetPlrLookingAtEx(e,1)
-		if LookingAt == 1 and PlayerDist < g_freeze_spell[e].pickup_range then
+		if LookingAt == 1 and PlayerDist < freeze_spell[e].pickup_range then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
-					PromptDuration(g_freeze_spell[e].prompt_text,1000)
+					PromptDuration(freeze_spell[e].prompt_text,1000)
 					if g_KeyPressE == 1 then
-						SetEntityCollected(e,1,-1)
+						SetEntityCollected(e,1)
 						status[e] = "have_spell"
 					end
 				end
@@ -139,25 +141,25 @@ function freeze_spell_main(e)
 		end	
 
 		local tusedvalue = GetEntityUsed(e)		
-		if g_freeze_spell[e].cast_timeout > 0 then
-			if Timer() > g_freeze_spell[e].cast_timeout + 6100 then
-				g_freeze_spell[e].cast_timeout = 0
+		if freeze_spell[e].cast_timeout > 0 then
+			if Timer() > freeze_spell[e].cast_timeout + 6100 then
+				freeze_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if g_freeze_spell[e].particle1_number > 0 or nil then Hide(g_freeze_spell[e].particle1_number) end
-				if g_freeze_spell[e].particle2_number > 0 or nil then Hide(g_freeze_spell[e].particle2_number) end
+				if freeze_spell[e].particle1_number > 0 or nil then Hide(freeze_spell[e].particle1_number) end
+				if freeze_spell[e].particle2_number > 0 or nil then Hide(freeze_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
-				local tscaleradius = 5.0 + ((Timer()-g_freeze_spell[e].cast_timeout)/cradius[e])
-				if g_freeze_spell[e].particle1_number > 0 then Scale(g_freeze_spell[e].particle1_number,tscaleradius) end
-				if g_freeze_spell[e].particle2_number > 0 then Scale(g_freeze_spell[e].particle2_number,tscaleradius) end
+				local tscaleradius = 5.0 + ((Timer()-freeze_spell[e].cast_timeout)/cradius[e])
+				if freeze_spell[e].particle1_number > 0 then Scale(freeze_spell[e].particle1_number,tscaleradius) end
+				if freeze_spell[e].particle2_number > 0 then Scale(freeze_spell[e].particle2_number,tscaleradius) end
 				-- apply effect as radius increases from targeted point of origin
 				-- do the magic				
 				tusedvalue = 0				
 			end
 			if current_time[e] < freeze_time[e] then
 				if doonce[e] == 0 then 
-					if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-g_freeze_spell[e].cast_damage) end		-- Damage health of targeted entity	
+					if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-freeze_spell[e].cast_damage) end		-- Damage health of targeted entity	
 					if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
 					ModulateSpeed(tTarget[e],0)
 					doonce[e] = 1
@@ -168,9 +170,9 @@ function freeze_spell_main(e)
 				ModulateSpeed(tTarget[e],1)
 				casttarget[e] = 0
 				current_time[e] = 0
-				g_freeze_spell[e].cast_timeout = 0
-				if g_freeze_spell[e].particle1_number > 0 or nil then Hide(g_freeze_spell[e].particle1_number) end
-				if g_freeze_spell[e].particle2_number > 0 or nil then Hide(g_freeze_spell[e].particle2_number) end
+				freeze_spell[e].cast_timeout = 0
+				if freeze_spell[e].particle1_number > 0 or nil then Hide(freeze_spell[e].particle1_number) end
+				if freeze_spell[e].particle2_number > 0 or nil then Hide(freeze_spell[e].particle2_number) end
 				SetEntityUsed(e,0)
 				doonce[e] = 0
 			end
@@ -179,30 +181,31 @@ function freeze_spell_main(e)
 		if tusedvalue > 0 and tTarget[e] ~= 0 then	
 			casttarget[e] = 1
 			-- attempt effect
-			local mymana = 0 if _G["g_UserGlobal['"..g_freeze_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..g_freeze_spell[e].user_global_affected.."']"] end
-			if mymana >= g_freeze_spell[e].mana_cost then
+			local mymana = 0 if _G["g_UserGlobal['"..freeze_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..freeze_spell[e].user_global_affected.."']"] end
+			if mymana >= freeze_spell[e].mana_cost then
 				-- enough mana, deduct from player
-				mymana = mymana - g_freeze_spell[e].mana_cost
+				mymana = mymana - freeze_spell[e].mana_cost
 				-- setup and show the spell effect particles
-				if g_freeze_spell[e].particle1_number > 0 or nil then
-					ResetPosition(g_freeze_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
-					Show(g_freeze_spell[e].particle1_number)
+				if freeze_spell[e].particle1_number > 0 or nil then
+					ResetPosition(freeze_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
+					Show(freeze_spell[e].particle1_number)
 				end
-				if g_freeze_spell[e].particle2_number > 0 or nil then
-					ResetPosition(g_freeze_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
-					Show(g_freeze_spell[e].particle2_number)
+				if freeze_spell[e].particle2_number > 0 or nil then
+					ResetPosition(freeze_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
+					Show(freeze_spell[e].particle2_number)
 				end	
 				-- prompt we did it
-				PromptDuration(g_freeze_spell[e].useage_text,2000)
-				g_freeze_spell[e].cast_timeout = Timer()
+				PromptDuration(freeze_spell[e].useage_text,2000)
+				freeze_spell[e].cast_timeout = Timer()
 				PlaySound(e,0)				
 			else
 				-- not successful
 				PromptDuration("Not enough mana",2000)
 				SetEntityUsed(e,0)
+				casttarget[e] = 0
 				PlaySound(e,1)
 			end			
-			_G["g_UserGlobal['"..g_freeze_spell[e].user_global_affected.."']"] = mymana
+			_G["g_UserGlobal['"..freeze_spell[e].user_global_affected.."']"] = mymana
 		end		
 	end
 end

@@ -2,7 +2,7 @@
 -- DESCRIPTION: When player is within [USE_RANGE=100], show
 -- DESCRIPTION: [USE_PROMPT$="Press E to open"] when use key is pressed,
 -- DESCRIPTION: will display [CHEST_SCREEN$="HUD Screen 6"],
--- DESCRIPTION: using [CHEST_CONTAINER$="chest"].
+-- DESCRIPTION: using [CHEST_CONTAINER$="chestunique"].
 -- DESCRIPTION: <Sound0> for opening chest.
 -- DESCRIPTION: <Sound1> for closing chest.
 
@@ -26,7 +26,7 @@ function chest_init(e)
 	chest[e].use_range = 100
 	chest[e].use_prompt = "Press E to open"
 	chest[e].chest_screen = "HUD Screen 6"
-	chest[e].chest_container = "chest"
+	chest[e].chest_container = "chestunique"
 	status[e] = "closed"
 end
 
@@ -40,7 +40,11 @@ function chest_main(e)
 				SetAnimationName(e,"open")
 				PlayAnimation(e)
 				PlaySound(e,0)
-				g_UserGlobalContainer = chest[e].chest_container
+				if chest[e].chest_container == "chestunique" then
+					g_UserGlobalContainer = "chestuniquetolevelase"..tostring(e)
+				else
+					g_UserGlobalContainer = chest[e].chest_container
+				end
 				ScreenToggle(chest[e].chest_screen)
 				status[e] = "opened"				
 			end

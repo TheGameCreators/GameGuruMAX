@@ -22404,6 +22404,7 @@ void input_calculatelocalcursor ( void )
 		}
 
 		// also disable any gameelements (such as start marker) as they can get in the way
+
 		for (int e = 1; e <= g.entityelementmax; e++)
 		{
 			int entid = t.entityelement[e].bankindex;
@@ -22419,7 +22420,9 @@ void input_calculatelocalcursor ( void )
 					}
 					else
 					{
-						piEntityVisible[e] = 0;
+						//PE: This disables all marker object selected with rubberband and current cursor object. that are at 70000
+						//PE: The above if GetVisible(obj) HideObject should do the trick.
+						//piEntityVisible[e] = 0;
 					}
 				}
 			}
@@ -27071,6 +27074,7 @@ void gridedit_addEntityToRubberBandHighlights ( int e )
 		rubberbandItem.scalez = t.entityelement[e].scalez;
 		#endif
 		g.entityrubberbandlist.push_back ( rubberbandItem );
+
 		if ( t.entityelement[e].staticflag == 0 ) 
 			SetAlphaMappingOn ( tobj, 103 );
 		else
@@ -27137,7 +27141,8 @@ void gridedit_mapediting ( void )
 					{
 						if ( t.inputsys.atrest == 1 || t.inputsys.keyspace == 1 )
 						{
-							iReusePickObjectID = -1; //PE: Do a fresh raycast.
+							if(t.inputsys.mclick != 0)
+								iReusePickObjectID = -1; //PE: Do a fresh raycast.
 							t.tentitytoselect = findentitycursorobj(-1);
 							t.tlasttentitytoselect = t.tentitytoselect;
 							t.inputsys.atrest = 2;
@@ -27146,7 +27151,8 @@ void gridedit_mapediting ( void )
 						{
 							#ifdef WICKEDENGINE
 							// wicked fast enough to do this test each frame
-							iReusePickObjectID = -1; //PE: Do a fresh raycast.
+							if (t.inputsys.mclick != 0)
+								iReusePickObjectID = -1; //PE: Do a fresh raycast.
 							t.tentitytoselect = findentitycursorobj(-1);
 							#else
 							//  quickly check if over SAME object, if so, keep selection

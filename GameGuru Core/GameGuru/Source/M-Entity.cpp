@@ -154,42 +154,34 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	}
 	if (t.talreadyloaded == 0)
 	{
-		//always load needed entity when called
-		//if (g_iAbortedAsEntityIsGroupFileModeStubOnly > 0)
-		//{
-		//	// group data and entities already loaded, we can skip a new group creation here
-		//}
-		//else
+		//  Allocate one more entity item in array
+		if (g.entidmaster > g.entitybankmax - 4)
 		{
-			//  Allocate one more entity item in array
-			if (g.entidmaster > g.entitybankmax - 4)
-			{
-				Dim (t.tempentitybank_s, g.entitybankmax);
-				for (t.t = 0; t.t <= g.entitybankmax; t.t++) t.tempentitybank_s[t.t] = t.entitybank_s[t.t];
-				++g.entitybankmax;
-				UnDim (t.entitybank_s);
-				Dim (t.entitybank_s, g.entitybankmax);
-				for (t.t = 0; t.t <= g.entitybankmax - 1; t.t++) t.entitybank_s[t.t] = t.tempentitybank_s[t.t];
-			}
-
-			//  Add entity to bank
-			++g.entidmaster; entity_validatearraysize ();
-			t.entitybank_s[g.entidmaster] = t.addentityfile_s;
-
-			// trigger the creation of a 'group' entity if detected
-			if (g_iAbortedAsEntityIsGroupFileMode != 3)
-				g_iAbortedAsEntityIsGroupFileMode = 1;
-
-			//  Load extra entity
-			t.entid = g.entidmaster;
-			t.ent_s = t.entitybank_s[t.entid];
-			t.entpath_s = getpath(t.ent_s.Get());
-			entity_load ();
-
-			// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
-			if (stricmp (t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe") == NULL)
-				t.talreadyloaded = 1;
+			Dim (t.tempentitybank_s, g.entitybankmax);
+			for (t.t = 0; t.t <= g.entitybankmax; t.t++) t.tempentitybank_s[t.t] = t.entitybank_s[t.t];
+			++g.entitybankmax;
+			UnDim (t.entitybank_s);
+			Dim (t.entitybank_s, g.entitybankmax);
+			for (t.t = 0; t.t <= g.entitybankmax - 1; t.t++) t.entitybank_s[t.t] = t.tempentitybank_s[t.t];
 		}
+
+		//  Add entity to bank
+		++g.entidmaster; entity_validatearraysize ();
+		t.entitybank_s[g.entidmaster] = t.addentityfile_s;
+
+		// trigger the creation of a 'group' entity if detected
+		if (g_iAbortedAsEntityIsGroupFileMode != 3)
+			g_iAbortedAsEntityIsGroupFileMode = 1;
+
+		//  Load extra entity
+		t.entid = g.entidmaster;
+		t.ent_s = t.entitybank_s[t.entid];
+		t.entpath_s = getpath(t.ent_s.Get());
+		entity_load ();
+
+		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
+		if (stricmp (t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe") == NULL)
+			t.talreadyloaded = 1;
 	}
 }
 
@@ -8286,6 +8278,10 @@ void entity_addentitytomap ( void )
 	else
 		entity_updateautoflatten(t.e); //LB: Fix in case already added (in prepareobj for example)
 	#endif
+
+	// ensure collection list up to date with new entity additions (such as weapons and other implied collectables)
+	extern bool g_bUpdateCollectionList;
+	g_bUpdateCollectionList = true;
 }
 
 void entity_deleteentityfrommap ( void )

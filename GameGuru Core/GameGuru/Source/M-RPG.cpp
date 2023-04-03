@@ -687,7 +687,8 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName)
 bool refresh_collection_from_entities(void)
 {
 	// start with game project master list
-	g_collectionList = g_collectionMasterList;
+	// g_collectionList = g_collectionMasterList; now only used on first RPG init, the list contains more now since that init!
+	// as we call this when a new entity is loaded (could be a weapon that needs to be instantly added to collection list)
 
 	// go through all entities and add per-level items to collection (weapons, objects marked as collectable but not in master list)
 	for ( int e = 1; e <= g.entityelementlist; e++)

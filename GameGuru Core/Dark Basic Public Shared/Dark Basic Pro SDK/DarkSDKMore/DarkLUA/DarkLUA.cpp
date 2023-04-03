@@ -2411,6 +2411,7 @@ luaMessage** ppLuaMessages = NULL;
 	 int iEntityIndex = lua_tonumber(L, 1);
 	 if (iEntityIndex > 0)
 	 {
+		 t.bSpawnCalledFromLua = true;
 		 int storee = t.e;
 		 int storeentid = t.entid;
 		 int entid = t.entityelement[iEntityIndex].bankindex;
@@ -2455,6 +2456,7 @@ luaMessage** ppLuaMessages = NULL;
 		 t.e = storee;
 		 t.entid = storeentid;
 		 t.gridentity = 0;
+		 t.bSpawnCalledFromLua = false;
 	 }
 	 lua_pushinteger (L, iNewE);
 	 return 1;

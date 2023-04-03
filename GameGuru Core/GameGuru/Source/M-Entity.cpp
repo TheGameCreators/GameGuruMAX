@@ -8266,8 +8266,12 @@ void entity_addentitytomap ( void )
 	// update infinilight list with addition
 	if (t.entityprofile[t.entitybankindex].ismarker == 2 || t.entityprofile[t.entitybankindex].ismarker == 5 || t.entityelement[t.e].eleprof.usespotlighting)
 	{
-		lighting_refresh();
-		entity_updatelightobj(t.e, t.entityelement[t.e].obj);
+		//PE: Some weapons have usespotlighting , this ruin all the lua light states.
+		if (!(t.bSpawnCalledFromLua && t.entityprofile[t.entitybankindex].ismarker == 0 ))
+		{
+			lighting_refresh();
+			entity_updatelightobj(t.e, t.entityelement[t.e].obj);
+		}
 	}
 
 	// if new particle emitter, update it when created (to start the particle emission)

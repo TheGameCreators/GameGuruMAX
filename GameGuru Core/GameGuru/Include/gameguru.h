@@ -5843,6 +5843,7 @@ struct Stemps
 	#define MAX_INVENTORY_CONTAINERS 100
 	std::vector <cStr> inventoryContainers;
 	std::vector <inventoryContainerType> inventoryContainer[MAX_INVENTORY_CONTAINERS];
+	bool bSpawnCalledFromLua;
 #endif
 
 	// Constructor
@@ -8819,6 +8820,7 @@ struct Stemps
 		 iPhysicsCreatedStaticMesh = 0;
 		 iPhysicsCreatedDynamicMesh = 0;
 		 activerelationobjectid = -1;
+		 bSpawnCalledFromLua = false;
 		 #endif
 	}
 	// End of Constructor

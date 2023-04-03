@@ -22651,7 +22651,7 @@ void input_calculatelocalcursor ( void )
 		{
 			// if ray test on object, need to adjust plane to follow surface
 			iLastHitObjectID = 0;
-			iReusePickObjectID = 0;
+			iReusePickObjectID = -1;
 			pReusePickObject = 0;
 			iReusePickEntityID = 0;
 			// found object under hovering cursor, match to entity index
@@ -27137,6 +27137,7 @@ void gridedit_mapediting ( void )
 					{
 						if ( t.inputsys.atrest == 1 || t.inputsys.keyspace == 1 )
 						{
+							iReusePickObjectID = -1; //PE: Do a fresh raycast.
 							t.tentitytoselect = findentitycursorobj(-1);
 							t.tlasttentitytoselect = t.tentitytoselect;
 							t.inputsys.atrest = 2;
@@ -27145,6 +27146,7 @@ void gridedit_mapediting ( void )
 						{
 							#ifdef WICKEDENGINE
 							// wicked fast enough to do this test each frame
+							iReusePickObjectID = -1; //PE: Do a fresh raycast.
 							t.tentitytoselect = findentitycursorobj(-1);
 							#else
 							//  quickly check if over SAME object, if so, keep selection

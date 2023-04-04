@@ -49778,7 +49778,7 @@ void ReloadEntityIDInSitu ( int entIndex)
 void CheckExistingFilesModified(bool bResetTimeStamp)
 {
 	// Users can turn this feature off if it causes slowdowns.
-	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1)
+	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1 || bImGuiInTestGame == true )
 		return;
 
 	// lists to monitor level media changes (cannot use folderfiles structure as DBOs are not listed)
@@ -49988,8 +49988,6 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 			modifiedEntityObjectReduced.push_back(iUniqueEntityID);
 		}
 	}
-
-	//static std::vector<int> groupsThatCannotBeHotSwapped;
 
 	// Update any entities that use the modified files
 	for (auto& entIndex : modifiedEntityObjectReduced)

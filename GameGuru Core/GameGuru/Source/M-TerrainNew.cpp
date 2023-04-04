@@ -6406,6 +6406,11 @@ void imgui_Customize_Tree_v3(int mode)
 		bool bGotSelection = false;
 		ImRect image_selected_bb;
 		uint64_t values = ggtrees_global_params.paint_tree_bitfield;
+		if (values > 0x3000000000) //Max 2fffffffff
+		{
+			values = 1; //PE: Somethis is wrong , select default tree.
+			ggtrees_global_params.paint_tree_bitfield = 1;
+		}
 		for (int iL = 0; iL < GGTrees_GetNumTypes(); iL++)
 		{
 			float imageScaleX = GGTrees_GetImageScale( iL );

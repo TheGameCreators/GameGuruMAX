@@ -5426,7 +5426,13 @@ int GGTerrain_LoadSettings( const char* settingsJSON, bool bRestoreWater)
 	if (pElement) { ggtrees_global_params.paint_scale_random_high = ((JSONNumber*)pElement)->m_iValue; }
 
 	pElement = pObject->GetElement("paint_tree_bitfield");
-	if (pElement) { ggtrees_global_params.paint_tree_bitfield = ((JSONNumber*)pElement)->m_iValue; }
+	if (pElement)
+	{
+		if(((JSONNumber*)pElement)->m_iValue == 0xffffffff)
+			ggtrees_global_params.paint_tree_bitfield = 1;
+			else
+			ggtrees_global_params.paint_tree_bitfield = ((JSONNumber*)pElement)->m_iValue;
+	}
 	pElement = pObject->GetElement("grass_paint_density");
 	if (pElement) { gggrass_global_params.paint_density = ((JSONNumber*)pElement)->m_iValue; }
 	pElement = pObject->GetElement("paint_material");

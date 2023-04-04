@@ -6371,6 +6371,10 @@ void c_entity_loadelementsdata ( void )
 						t.entityelement[t.e].eleprof.voicerate=t.entityprofile[t.ttentid].voicerate;
 					}
 					#endif
+					if (t.versionnumberload < 330)
+					{
+						t.entityelement[t.e].eleprof.bAutoFlatten = false;
+					}
 
 					t.entityelement[t.e].entitydammult_f=1.0;
 					t.entityelement[t.e].entityacc=1.0;
@@ -8427,8 +8431,15 @@ void entity_performtheundoaction (eUndoEventType eventtype, void* pEventData)
 			sUndoSysEventObjectDelete* pEvent = (sUndoSysEventObjectDelete*)pEventData;
 			int store = t.e;
 			t.e = pEvent->e;
-			t.grideleprof.trigger.waypointzoneindex = pEvent->grideleprof_trigger_waypointzoneindex;
+
+			//t.entid = t.gridentity;
 			t.entid = pEvent->entitybankindex;
+			t.gridentity = t.entid;
+
+			//PE: Before adding to map , make sure to fillout all informations from master to t.grideleprof.
+			entity_fillgrideleproffromprofile();
+
+			t.grideleprof.trigger.waypointzoneindex = pEvent->grideleprof_trigger_waypointzoneindex;
 			t.entitybankindex = t.entid;
 			t.gridentityeditorfixed = pEvent->gridentityeditorfixed;
 			t.entitymaintype = pEvent->entitymaintype;
@@ -8449,7 +8460,6 @@ void entity_performtheundoaction (eUndoEventType eventtype, void* pEventData)
 			t.gridentityscalex_f = pEvent->gridentityscalex_f + 100;
 			t.gridentityscaley_f = pEvent->gridentityscaley_f + 100;
 			t.gridentityscalez_f = pEvent->gridentityscalez_f + 100;
-			t.gridentity = t.entid;
 			t.gridentityoverwritemode = t.e;
 			entity_addentitytomap ();
 			t.gridentityoverwritemode = 0;

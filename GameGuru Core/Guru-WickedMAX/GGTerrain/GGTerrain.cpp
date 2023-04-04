@@ -6099,6 +6099,9 @@ void GGTerrain_CreateSphere( float diameter, int rows, int columns )
 	
 }
 
+float pHeightMapEditMemMovedOutOfHeap[GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE];
+uint8_t pMaterialMapMemMoveOutOfHeap[GGTERRAIN_MATERIALMAP_SIZE * GGTERRAIN_MATERIALMAP_SIZE];
+
 // initialize the system
 int GGTerrain_Init( wiGraphics::CommandList cmd )
 {
@@ -6444,7 +6447,7 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	*/
 
 	// edtiable heightmap
-	pHeightMapEdit = new float[ GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE ];
+	pHeightMapEdit = &pHeightMapEditMemMovedOutOfHeap[0]; //new float[ GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE ];
 	pHeightMapEditType = new uint8_t[ GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE ];
 	pHeightMapFlatAreas = new uint16_t[ GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE ];
 	for( int i = 0; i < GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE; i++ )
@@ -6459,7 +6462,7 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	GGTerrain_CreateEmptyTexture( 4096, 4096, 1, 1, FORMAT_R8_UNORM, &texMaterialMap );
 	//GGTerrain_CreateFractalTexture( &texMaterialMap, 4096 );
 
-	pMaterialMap = new uint8_t[ GGTERRAIN_MATERIALMAP_SIZE * GGTERRAIN_MATERIALMAP_SIZE ];
+	pMaterialMap = &pMaterialMapMemMoveOutOfHeap[0]; // new uint8_t[GGTERRAIN_MATERIALMAP_SIZE * GGTERRAIN_MATERIALMAP_SIZE];
 	memset( pMaterialMap, 0, GGTERRAIN_MATERIALMAP_SIZE * GGTERRAIN_MATERIALMAP_SIZE );
 	/*
 	for( uint32_t y = 0; y < GGTERRAIN_MATERIALMAP_SIZE; y++ )

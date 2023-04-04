@@ -715,7 +715,12 @@ bool refresh_collection_from_entities(void)
 				bool bNewItemIsUnqiue = true;
 				for (int n = 0; n < g_collectionList.size(); n++)
 				{
-					if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
+					if (item.collectionFields.size() == 0)
+					{
+						//PE: crash if not found in g_collectionLabels.
+						bNewItemIsUnqiue = false;
+					}
+					else if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
 					{
 						bNewItemIsUnqiue = false;
 						break;

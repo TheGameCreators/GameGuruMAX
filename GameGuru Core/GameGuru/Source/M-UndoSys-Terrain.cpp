@@ -23,12 +23,20 @@ uint32_t g_iTreeSize;
 int g_iChunkCount = 0;
 uint32_t g_iChunkSize = 0;
 
+#define GGTERRAIN_HEIGHTMAP_EDIT_SIZE 4096
+//GGTERRAIN_HEIGHTMAP_EDIT_SIZE* GGTERRAIN_HEIGHTMAP_EDIT_SIZE* (sizeof(float) + sizeof(uint8_t)) = 83886080
+#define SCULPTSIZE 83886080
+uint8_t OutOfHeapMem1[157286400];
+uint8_t OutOfHeapMem2[157286400];
+uint8_t OutOfHeapMem3[SCULPTSIZE];
+
 void undosys_terrain_init(uint32_t sculptDataSize, int width)
 {
 	if (t.game.gameisexe == 0)
 	{
+		//83886080
 		// Pre-allocate the memory to store the terrain snapshots in:
-		g_pTerrainSnapshot = new uint8_t[sculptDataSize];
+		g_pTerrainSnapshot = &OutOfHeapMem3[0]; // new uint8_t[sculptDataSize];
 	
 		// minX and minY set higher than they could possible be, so a < comparison is always correct.
 		g_EditBounds.minX = 50000;
@@ -43,12 +51,12 @@ void undosys_terrain_init(uint32_t sculptDataSize, int width)
 		// where the undo and redo share the same memory.
 		
 		uint32_t size = 157286400;// 
-		g_TerrainUndoMem.pMemory = new uint8_t[size];
+		g_TerrainUndoMem.pMemory = &OutOfHeapMem1[0]; // new uint8_t[size];
 		g_TerrainUndoMem.pMin = g_TerrainUndoMem.pMemory;
 		g_TerrainUndoMem.pMax = g_TerrainUndoMem.pMin + (size);
 		g_TerrainUndoMem.pTop = g_TerrainUndoMem.pMin;
 
-		g_TerrainRedoMem.pMemory = new uint8_t[size];
+		g_TerrainRedoMem.pMemory = &OutOfHeapMem2[0]; //new uint8_t[size];
 		g_TerrainRedoMem.pMin = g_TerrainRedoMem.pMemory;
 		g_TerrainRedoMem.pMax = g_TerrainRedoMem.pMin + (size);
 		g_TerrainRedoMem.pTop = g_TerrainRedoMem.pMin;

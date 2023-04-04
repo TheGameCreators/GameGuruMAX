@@ -23973,7 +23973,13 @@ void DuplicateLogicConnections (std::vector<sRubberBandType> vEntityDuplicateLis
 			}
 		}
 		*/
-
+		if (g_iCopiedLogicConnectionsCount != g.entityrubberbandlist.size())
+		{
+			//PE: Somehow g_iCopiedLogicConnectionsCount is larger then g.entityrubberbandlist.size() and you end up with a crash.
+			//@Lee: is g_iCopiedLogicConnectionsCount used any more.
+			//PE: Anyway protect it for now. Happens if you have one large group add another small group and save.
+			g_iCopiedLogicConnectionsCount = g.entityrubberbandlist.size();
+		}
 		// scan old data, find old LinkIDs and replace with new ones
 		for (int listindex = 0; listindex < g_iCopiedLogicConnectionsCount; listindex++)
 		{

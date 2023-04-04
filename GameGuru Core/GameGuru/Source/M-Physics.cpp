@@ -2574,7 +2574,11 @@ void physics_player_init ( void )
 			bool bNewItemIsUnqiue = true;
 			for (int n = 0; n < g_collectionList.size(); n++)
 			{
-				if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
+				if (collectionitem.collectionFields.size() == 0)
+				{
+					bNewItemIsUnqiue = false;
+				}
+				else if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
 				{
 					bNewItemIsUnqiue = false;
 					break;

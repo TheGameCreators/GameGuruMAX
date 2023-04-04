@@ -17491,6 +17491,7 @@ void mapeditorexecutable_loop(void)
 						int entid = t.entityelement[te].bankindex;
 						if (entid > 0)
 						{
+							/*
 							if (t.entityprofile[entid].ismarker == 2)
 							{
 								float fLightProbeScale = t.entityelement[te].eleprof.light.fLightHasProbe;
@@ -17499,12 +17500,12 @@ void mapeditorexecutable_loop(void)
 								else
 									entity_deleteprobe(t.entityelement[te].obj);
 							}
+							*/
 						}
 
 						//MD: Also make sure autoflatten areas are applied
 						entity_autoFlattenWhenAdded(te);
 					}
-
 
 					if (bLaunchTestGameAfterLoad)
 					{
@@ -31798,6 +31799,7 @@ void gridedit_addentitytomap(void)
 
 	// if entity is a light, has a probe
 	#ifdef WICKEDENGINE
+	/*
 	int entid = t.entityelement[t.e].bankindex;
 	if (entid > 0)
 	{
@@ -31810,6 +31812,7 @@ void gridedit_addentitytomap(void)
 				entity_deleteprobe(t.entityelement[t.e].obj);
 		}
 	}
+	*/
 	// clear any gridentity light if gridentity no longer used
 	if (t.gridentitywickedlightindex > 0)
 	{

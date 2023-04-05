@@ -2390,7 +2390,7 @@ DARKSDK_DLL void SetAlphaOverride ( sMesh* pMesh, float fPercentage )
 	}
 
 	#ifdef WICKEDENGINE
-	WickedCall_SetMeshMaterial(pMesh);
+	WickedCall_SetMeshMaterial(pMesh,false);
 	#endif
 }
 
@@ -2419,7 +2419,7 @@ DARKSDK_DLL void SetDiffuseMaterial	( sMesh* pMesh, DWORD dwRGB )
 
 		// apply material changes
 		#ifdef WICKEDENGINE
-		WickedCall_SetMeshMaterial(pMesh);
+		WickedCall_SetMeshMaterial(pMesh,true);
 		#endif
 	}
 }
@@ -2508,7 +2508,7 @@ DARKSDK_DLL void SetEmissiveMaterial ( sMesh* pMesh, DWORD dwRGB )
 
 		// apply material changes
 		#ifdef WICKEDENGINE
-		WickedCall_SetMeshMaterial(pMesh);
+		WickedCall_SetMeshMaterial(pMesh, false);
 		#endif
 	}
 }

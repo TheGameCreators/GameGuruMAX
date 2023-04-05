@@ -428,7 +428,7 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 							pObjectMaterial->SetDirty(true);
 						}
 					}
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetMeshMaterial(pMesh,true);
 				}
 			}
 			WickedCall_SetObjectMetalness(pBackObject, 0.0f);

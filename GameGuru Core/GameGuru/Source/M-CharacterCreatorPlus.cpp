@@ -4652,7 +4652,7 @@ void change_dress_room(int room)
 							pObjectMaterial->SetDirty(true);
 						}
 					}
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetMeshMaterial(pMesh,true);
 				}
 			}
 			WickedCall_SetObjectMetalness(pObject, 0.0f);

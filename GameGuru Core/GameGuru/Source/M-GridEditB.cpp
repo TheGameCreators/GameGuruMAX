@@ -13893,7 +13893,7 @@ void CreateBackdropObject(bool bForceRecreate,cstr newImageFile,cstr fpefile)
 							pObjectMaterial->SetDirty(true);
 						}
 					}
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetMeshMaterial(pMesh,true);
 				}
 			}
 			WickedCall_SetObjectMetalness(pBackObject, 0.0f);
@@ -14060,7 +14060,7 @@ void GrabBackBufferForAnImage(void)
 								}
 							}
 						}
-						WickedCall_SetMeshMaterial(pMesh);
+						WickedCall_SetMeshMaterial(pMesh,true);
 					}
 					WickedCall_SetObjectMetalness(pBackObject, 0.0f);
 					WickedCall_SetObjectRoughness(pBackObject, 0.0f);
@@ -36976,7 +36976,7 @@ void SetupDecalObject(int obj, int elementID)
 							pObjectMaterial->SetDirty(true);
 						}
 					}
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetMeshMaterial(pMesh,true);
 					if (elementID > 0)
 					{
 						WickedCall_SetMeshAlpha(pMesh, t.entityelement[elementID].fDecalOpacity * 100.0);

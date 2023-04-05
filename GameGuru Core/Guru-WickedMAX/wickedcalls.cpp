@@ -1809,7 +1809,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								pMesh->mMaterial.Diffuse.g = ((dwBaseColor & 0x00ff0000) >> 16) / 255.0f;
 								pMesh->mMaterial.Diffuse.b = ((dwBaseColor & 0x0000ff00) >> 8) / 255.0f;
 								pMesh->mMaterial.Diffuse.a = (dwBaseColor & 0x000000ff) / 255.0f;
-								WickedCall_SetMeshMaterial(pMesh);
+								WickedCall_SetMeshMaterial(pMesh,true);
 							}
 
 							//Emissive.
@@ -1857,7 +1857,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									pMesh->mMaterial.Emissive.r = 1.0f;
 									pMesh->mMaterial.Emissive.g = 1.0f;
 									pMesh->mMaterial.Emissive.b = 1.0f;
-									WickedCall_SetMeshMaterial(pMesh);
+									WickedCall_SetMeshMaterial(pMesh, false);
 								}
 
 							}
@@ -1874,7 +1874,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								pMesh->mMaterial.Emissive.b = ((dwEmmisiveColor & 0x0000ff00) >> 8) / 255.0f;
 								pMesh->mMaterial.Emissive.a = (dwEmmisiveColor & 0x000000ff) / 255.0f;
 
-								WickedCall_SetMeshMaterial(pMesh);
+								WickedCall_SetMeshMaterial(pMesh, false);
 							}
 
 							//Occlusion.
@@ -2196,13 +2196,14 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						}
 					}
 
-					if ( pMesh->bTransparency ) pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
+					if ( pMesh->bTransparency )
+						pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
 
 					// default emissive is off (when not custom material)
 					pMesh->mMaterial.Emissive.r = 0.0f;
 					pMesh->mMaterial.Emissive.g = 0.0f;
 					pMesh->mMaterial.Emissive.b = 0.0f;
-					WickedCall_SetMeshMaterial(pMesh);
+					WickedCall_SetMeshMaterial(pMesh, false);
 
 					// if found and loaded base texture, continue with rest
 					if (bFoundTextureToLoad == true)
@@ -3049,7 +3050,10 @@ void WickedCall_UpdateMeshVertexData(sMesh* pDBOMesh)
 void WickedCall_SetObjectAlpha(sObject* pObject, float fPercentage)
 {
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)
+	{
+		WickedSetMeshNumber(iM);
 		WickedCall_SetMeshAlpha(pObject->ppMeshList[iM], fPercentage);
+	}
 }
 
 float WickedCall_GetObjectAlpha(sObject* pObject)
@@ -3146,7 +3150,7 @@ void WickedCall_SetMeshAlphaRef(sMesh* pMesh, float fAlphaRef)
 	}
 }
 
-void WickedCall_SetMeshMaterial ( sMesh* pMesh )
+void WickedCall_SetMeshMaterial ( sMesh* pMesh, bool bForce)
 {
 	if (pMesh)
 	{
@@ -3160,11 +3164,27 @@ void WickedCall_SetMeshMaterial ( sMesh* pMesh )
 			if (pObjectMaterial)
 			{
 				// base color
-				pObjectMaterial->SetBaseColor(XMFLOAT4(pMesh->mMaterial.Diffuse.r, pMesh->mMaterial.Diffuse.g, pMesh->mMaterial.Diffuse.b, pMesh->mMaterial.Diffuse.a));
+				bool bWickedMaterialActive = IsWickedMaterialActive(pMesh);
+				if (!bForce && bWickedMaterialActive)
+				{
+					DWORD dwBaseColor = WickedGetBaseColor();
+					if (dwBaseColor != -1)
+					{
+						pMesh->mMaterial.Diffuse.r = ((dwBaseColor & 0xff000000) >> 24) / 255.0f;;
+						pMesh->mMaterial.Diffuse.g = ((dwBaseColor & 0x00ff0000) >> 16) / 255.0f;
+						pMesh->mMaterial.Diffuse.b = ((dwBaseColor & 0x0000ff00) >> 8) / 255.0f;
+						pMesh->mMaterial.Diffuse.a = (dwBaseColor & 0x000000ff) / 255.0f;
+					}
+					pObjectMaterial->SetBaseColor(XMFLOAT4(pMesh->mMaterial.Diffuse.r, pMesh->mMaterial.Diffuse.g, pMesh->mMaterial.Diffuse.b, pMesh->mMaterial.Diffuse.a));
+				}
+				else
+				{
+					pObjectMaterial->SetBaseColor(XMFLOAT4(pMesh->mMaterial.Diffuse.r, pMesh->mMaterial.Diffuse.g, pMesh->mMaterial.Diffuse.b, pMesh->mMaterial.Diffuse.a));
+				}
+
 				// emissive color
 				//PE: Prevent us for setting emissive color to black ? another way is needed.
 				//PE: Only do trick if we dont have any custom material settings.
-				bool bWickedMaterialActive = IsWickedMaterialActive(pMesh);
 				if (!bWickedMaterialActive && pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource && (pMesh->mMaterial.Emissive.r + pMesh->mMaterial.Emissive.g + pMesh->mMaterial.Emissive.b) == 0)
 				{
 					// a trick so that old mesh materials set to black can be seen in new wicked engine
@@ -3432,7 +3452,7 @@ void WickedCall_SetObjectLightToUnlit(sObject* pObject, int shaderType)
 					pObjectMaterial->SetDirty(true);
 				}
 			}
-			WickedCall_SetMeshMaterial(pMesh);
+			WickedCall_SetMeshMaterial(pMesh, false);
 		}
 	}
 }
@@ -3447,7 +3467,7 @@ void WickedCall_SetObjectBaseColor(sObject* pObject, int r, int g, int b)
 			pMesh->mMaterial.Diffuse.r = r / 255.0f;
 			pMesh->mMaterial.Diffuse.g = g / 255.0f;
 			pMesh->mMaterial.Diffuse.b = b / 255.0f;
-			WickedCall_SetMeshMaterial(pMesh);
+			WickedCall_SetMeshMaterial(pMesh,true);
 		}
 	}
 }
@@ -3477,7 +3497,7 @@ void WickedCall_SetObjectEmissiveColor(sObject* pObject, int r, int g, int b)
 			pMesh->mMaterial.Emissive.r = r / 255.0f;
 			pMesh->mMaterial.Emissive.g = g / 255.0f;
 			pMesh->mMaterial.Emissive.b = b / 255.0f;
-			WickedCall_SetMeshMaterial(pMesh);
+			WickedCall_SetMeshMaterial(pMesh, false);
 		}
 	}
 }

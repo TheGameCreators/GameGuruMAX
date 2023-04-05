@@ -4942,6 +4942,7 @@ DARKSDK_DLL void SetAlphaMappingOn ( int iID, float fPercentage, bool bForceUnTr
 			// apply to all meshes
 			for ( int iMesh = 0; iMesh < pActualObject->iMeshCount; iMesh++ )
 			{
+				WickedSetMeshNumber(iMesh);
 				SetAlphaOverride ( pActualObject->ppMeshList [ iMesh ], fPercentage );
 				SetTransparency ( pActualObject->ppMeshList [ iMesh ], true );
 			}

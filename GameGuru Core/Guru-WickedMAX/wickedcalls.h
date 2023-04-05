@@ -75,7 +75,7 @@ void WickedCall_TextureMesh ( sMesh* pMesh );
 void WickedCall_SetReflectance (sMesh* pMesh, float fReflectance);
 void WickedCall_SetObjectReflectance(sObject* pObject, float fReflectance);
 float WickedCall_GetObjectReflectance(sObject* pObject);
-void WickedCall_SetMeshMaterial ( sMesh* pMesh );
+void WickedCall_SetMeshMaterial(sMesh* pMesh, bool bForce);
 void WickedCall_TextureObjectAsEmissive(sObject* pObject);
 void WickedCall_SetAsEmissiveMaterial(sMesh* pMesh);
 void WickedCall_TextureObject ( sObject* pObject, sMesh* pJustThisMesh );

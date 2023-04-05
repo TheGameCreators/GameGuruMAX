@@ -23199,7 +23199,10 @@ void editor_restoreobjhighlightifnotrubberbanded ( int highlightingtentityobj )
 				if (pObject)
 				{
 					for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
-						WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh]);
+					{
+						WickedSetMeshNumber(iMesh);
+						WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh], false);
+					}
 				}
 				if (!bValid)
 				{
@@ -27024,7 +27027,24 @@ void gridedit_clearentityrubberbandlist ( void )
 						SetupDecalObject(tobj, e);
 					else
 					#endif
+					{
 						SetAlphaMappingOn(tobj, 100);
+						//PE: Restore original material.
+						sObject* pObject = g_ObjectList[tobj];
+						if (pObject)
+						{
+							WickedSetEntityId(mi);
+							WickedSetElementId(e);
+							for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+							{
+								WickedSetMeshNumber(iMesh);
+								WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh], false);
+							}
+							WickedSetEntityId(-1);
+							WickedSetElementId(0);
+						}
+
+					}
 				}
 			}
 		}
@@ -27574,6 +27594,20 @@ void gridedit_mapediting ( void )
 									if ( bThisOneInBox == false )
 									{
 										SetAlphaMappingOn ( tobj, 100 );
+										//PE: Restore original colors.
+										sObject* pObject = g_ObjectList[tobj];
+										if (pObject)
+										{
+											WickedSetEntityId(t.entityelement[e].bankindex);
+											WickedSetElementId(e);
+											for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+											{
+												WickedSetMeshNumber(iMesh);
+												WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh], false);
+											}
+											WickedSetEntityId(-1);
+											WickedSetElementId(0);
+										}
 										g.entityrubberbandlist.erase(g.entityrubberbandlist.begin() + i);
 										i = 0;
 									}
@@ -28706,7 +28740,7 @@ void gridedit_mapediting ( void )
 												pMesh->mMaterial.Diffuse.g = 1.0f;
 												pMesh->mMaterial.Diffuse.b = 1.0f;
 												pMesh->mMaterial.Diffuse.a = 0.2f;
-												WickedCall_SetMeshMaterial (pMesh);
+												WickedCall_SetMeshMaterial (pMesh, false);
 												pMesh->bTransparency = true;
 												WickedCall_SetMeshTransparent(pMesh);
 											}
@@ -28768,7 +28802,7 @@ void gridedit_mapediting ( void )
 												pMesh->mMaterial.Diffuse.g = 1.0f;
 												pMesh->mMaterial.Diffuse.b = 1.0f;
 												pMesh->mMaterial.Diffuse.a = 0.3f;
-												WickedCall_SetMeshMaterial (pMesh);
+												WickedCall_SetMeshMaterial (pMesh, false);
 												pMesh->bTransparency = true;
 												WickedCall_SetMeshTransparent(pMesh);
 											}
@@ -32254,7 +32288,10 @@ void gridedit_recreateentitycursor ( void )
 						if (pObject)
 						{
 							for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
-								WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh]);
+							{
+								WickedSetMeshNumber(iMesh);
+								WickedCall_SetMeshMaterial(pObject->ppMeshList[iMesh], false);
+							}
 						}
 					}		
 					#ifdef WICKEDENGINE

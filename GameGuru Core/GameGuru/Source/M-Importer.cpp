@@ -13944,7 +13944,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							dwBaseColor += ((unsigned int)(BaseColor[1] * 255) << 16);
 							dwBaseColor += ((unsigned int)(BaseColor[2] * 255) << 8);
 							dwBaseColor += ((unsigned int)(BaseColor[3] * 255));
-							WickedCall_SetMeshMaterial(pChosenMesh);
+							WickedCall_SetMeshMaterial(pChosenMesh,true);
 							bHaveMaterialUpdate = true;
 
 							importer_set_all_material_colour(0, BaseColor);
@@ -14568,7 +14568,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 										{
 											pObjectMaterial->SetEmissiveStrength(fValue);
 											pObjectMaterial->SetDirty();
-											WickedCall_SetMeshMaterial(pChosenMesh);
+											WickedCall_SetMeshMaterial(pChosenMesh, false);
 
 											// This only does something if edit all meshes is enabled. 
 											importer_set_all_material_settings(texslot, fValue);
@@ -14623,7 +14623,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[1] * 255) << 16);
 							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[2] * 255) << 8);
 							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[3] * 255));
-							WickedCall_SetMeshMaterial(pChosenMesh);
+							WickedCall_SetMeshMaterial(pChosenMesh, false);
 							bHaveMaterialUpdate = true;
 
 							importer_set_all_material_colour(5, EmmisiveColor);

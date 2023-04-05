@@ -5468,7 +5468,7 @@ struct entitylighttype
 		 color = 0;
 		 islit = 0;
 		 index = 0;
-		 fLightHasProbe = 1.0f;
+		 fLightHasProbe = 0.0f;
 	}
 	// End of Constructor
 
@@ -8339,7 +8339,7 @@ struct infinilighttype
 		 #ifdef WICKEDENGINE
 		 bCanShadow = true;
 		 wickedlightindex = 0;
-		 fLightHasProbe = 1.0f;
+		 fLightHasProbe = 0.0f;
 		 spotlightradius = 45.0f;
 		 #endif
 

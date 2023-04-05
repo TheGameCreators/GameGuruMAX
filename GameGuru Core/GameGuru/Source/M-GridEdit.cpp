@@ -17491,6 +17491,7 @@ void mapeditorexecutable_loop(void)
 						int entid = t.entityelement[te].bankindex;
 						if (entid > 0)
 						{
+							/*
 							if (t.entityprofile[entid].ismarker == 2)
 							{
 								float fLightProbeScale = t.entityelement[te].eleprof.light.fLightHasProbe;
@@ -17499,12 +17500,12 @@ void mapeditorexecutable_loop(void)
 								else
 									entity_deleteprobe(t.entityelement[te].obj);
 							}
+							*/
 						}
 
 						//MD: Also make sure autoflatten areas are applied
 						entity_autoFlattenWhenAdded(te);
 					}
-
 
 					if (bLaunchTestGameAfterLoad)
 					{
@@ -22405,25 +22406,25 @@ void input_calculatelocalcursor ( void )
 		}
 
 		// also disable any gameelements (such as start marker) as they can get in the way
-
-		for (int e = 1; e <= g.entityelementmax; e++)
+		if (bDraggingActive)
 		{
-			int entid = t.entityelement[e].bankindex;
-			if (entid > 0)
+			for (int e = 1; e <= g.entityelementmax; e++)
 			{
-				if (t.entityprofile[entid].ismarker != 0)
+				int entid = t.entityelement[e].bankindex;
+				if (entid > 0)
 				{
-					int obj = t.entityelement[e].obj;
-					if (obj > 0 && GetVisible(obj))
+					if (t.entityprofile[entid].ismarker != 0)
 					{
-						piEntityVisible[e] = 1;
-						HideObject(obj);
-					}
-					else
-					{
-						//PE: This disables all marker object selected with rubberband and current cursor object. that are at 70000
-						//PE: The above if GetVisible(obj) HideObject should do the trick.
-						//piEntityVisible[e] = 0;
+						int obj = t.entityelement[e].obj;
+						if (obj > 0 && GetVisible(obj))
+						{
+							piEntityVisible[e] = 1;
+							HideObject(obj);
+						}
+						else
+						{
+							piEntityVisible[e] = 0;
+						}
 					}
 				}
 			}
@@ -31842,6 +31843,7 @@ void gridedit_addentitytomap(void)
 
 	// if entity is a light, has a probe
 	#ifdef WICKEDENGINE
+	/*
 	int entid = t.entityelement[t.e].bankindex;
 	if (entid > 0)
 	{
@@ -31854,6 +31856,7 @@ void gridedit_addentitytomap(void)
 				entity_deleteprobe(t.entityelement[t.e].obj);
 		}
 	}
+	*/
 	// clear any gridentity light if gridentity no longer used
 	if (t.gridentitywickedlightindex > 0)
 	{

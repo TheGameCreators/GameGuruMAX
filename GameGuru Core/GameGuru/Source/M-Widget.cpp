@@ -2387,11 +2387,15 @@ void widget_loop ( void )
 					{
 						if (t.entityprofile[entid].ismarker == 2)
 						{
+							extern bool g_bLightProbeScaleChanged;
+							g_bLightProbeScaleChanged = true;
+							/*
 							float fLightProbeScale = t.entityelement[t.widget.pickedEntityIndex].eleprof.light.fLightHasProbe;
 							if ( fLightProbeScale > 0 )
 								entity_placeprobe(t.entityelement[t.widget.pickedEntityIndex].obj, fLightProbeScale);
 							else
 								entity_deleteprobe(t.entityelement[t.widget.pickedEntityIndex].obj);
+							*/
 						}
 					}
 				}

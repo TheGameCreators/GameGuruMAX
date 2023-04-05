@@ -23,6 +23,14 @@ struct sUndoSysEventTerrainPaint;
 namespace GGTerrain
 {
 
+struct envProbeItem
+{
+	XMFLOAT3 position;
+	float distance;
+	float range;
+	int used;
+};
+
 void RandomSeed( uint32_t seed );
 uint32_t Random();
 uint32_t Random( uint32_t from, uint32_t to );
@@ -240,6 +248,10 @@ extern int ggterrain_draw_enabled;
 
 int GGTerrain_Init( wiGraphics::CommandList cmd);
 void GGTerrain_WindowResized();
+
+void GGTerrain_ClearEnvProbeList(void);
+void GGTerrain_AddEnvProbeList(float x, float y, float z, float range);
+
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus ); // updates chunks and virtual texture, must not be called from a render pass
 int GGTerrain_IsReady();
 

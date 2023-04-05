@@ -115,6 +115,7 @@ using namespace GGGrass;
 
 extern wiECS::Entity g_entitySunLight;
 extern bool bImGuiGotFocus;
+extern bool bImGuiInTestGame;
 extern preferences pref;
 extern ImVec4 vLastTerrainPickPosition;
 extern ImVec4 vLastRampTerrainPickPosition;
@@ -151,6 +152,11 @@ extern std::vector<int> g_DeferTextureUpdateIncompatibleTextures;
 namespace GGTerrain
 {
 
+#define LOCALENVPROBECOUNT 8
+std::vector<envProbeItem> g_envProbeList;
+int g_iEnvProbeTracking[LOCALENVPROBECOUNT] = { 0 };
+bool g_bEnvProbeTrackingUpdate[LOCALENVPROBECOUNT] = { false };
+
 float* pHeightMapEdit = 0;
 uint8_t* pHeightMapEditType = 0;
 
@@ -159,14 +165,10 @@ uint8_t* pHeightMapFlatAreaWeight = 0;
 
 wiECS::Entity globalEnvProbe;
 XMFLOAT3 globalEnvProbePos = { 0, 0, 0 };
-
-wiECS::Entity localEnvProbe[2];
-XMFLOAT3 localEnvProbePos[2];
+wiECS::Entity localEnvProbe[LOCALENVPROBECOUNT];
+XMFLOAT3 localEnvProbePos[LOCALENVPROBECOUNT];
 uint32_t currLocalEnvProbe = 0;
 uint32_t localEnvProbeTransition = 0;
-
-//void GGTerrainInitTest();
-//void GGTerrainDrawTest( const CameraComponent& camera, CommandList cmd );
 
 bool ggterrain_key_state[ 256 ] = { false };
 bool ggterrain_key_pressed[ 256 ] = { false };
@@ -6954,15 +6956,14 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	undosys_terrain_init(GGTerrain_GetSculptDataSize(),  GGTERRAIN_HEIGHTMAP_EDIT_SIZE);
 	#endif
 
-	// global probe
+	// global probe must be excluded from local list by using a small size
+	float range = 1;
 	globalEnvProbePos = XMFLOAT3( 0, ggterrain_local_params.height, 0 );
-	float range = 1; // global probe must be excluded from local list by using a small size
 	globalEnvProbe = wiScene::GetScene().Entity_CreateEnvironmentProbe("globalEnvProbe", globalEnvProbePos);
 	EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(globalEnvProbe);
 	probe->range = range;
 	probe->userdata = 255;
 	probe->SetDirty();
-
 	wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(globalEnvProbe);
 	pTransform->ClearTransform();
 	pTransform->Translate(globalEnvProbePos);
@@ -6970,22 +6971,18 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	pTransform->UpdateTransform();
 	pTransform->SetDirty();
 
-	// local probe 1
-	for( int i = 0; i < 2; i++ )
+	// local env probe creation
+	for( int i = 0; i < LOCALENVPROBECOUNT; i++ )
 	{
-		if ( i == 0 ) range = GGTerrain_MetersToUnits( GGTERRAIN_ENV_PROBE_RANGE_METERS );
-		else range = 1;
-
+		range = 1;
 		localEnvProbePos[ i ] = XMFLOAT3( 0, 0, 0 );
 		char strName[ 64 ];
 		sprintf_s( strName, "localEnvProbe%d", i ); 
 		localEnvProbe[ i ] = wiScene::GetScene().Entity_CreateEnvironmentProbe(strName, localEnvProbePos[i]);
 		probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[i]);
-		probe->range = range;
-		if ( i == 0 ) probe->userdata = 255;
-		else probe->userdata = 0;
+		probe->range = range; // env cube range
+		probe->userdata = 0; // 0-255 alpha
 		probe->SetDirty();
-
 		pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[i]);
 		pTransform->ClearTransform();
 		pTransform->Translate(localEnvProbePos[i]);
@@ -6994,8 +6991,10 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 		pTransform->SetDirty();
 	}
 
+	// current probe for player to use
 	currLocalEnvProbe = 0;
 	
+	// complete
 	return 1;
 }
 
@@ -7018,51 +7017,6 @@ void GGTerrain_WindowResized()
 	readBackValid = 0;
 	currReadBackTex = 0;
 }
-
-/*
-void PageNeededArray::ReduceDetail()
-{
-	uint32_t count = 0;
-
-	GGTerrainLODSet* pCurrLODs = ggterrain.GetCurrentLODs();
-
-	for( uint32_t i = 0; i < 256; i++ )
-	{
-		UnorderedArray<PageNeeded>& pList = m_pItems[ i ];
-		for( int j = 0; j < (int)pList.NumItems(); j++ )
-		{
-			PageNeeded* pNewPage = &pList[ j ];
-			if ( pNewPage->isResident() ) continue;
-
-			uint32_t detailLevel = pNewPage->GetDetailLevel();
-			if ( detailLevel < 2 )
-			{
-				uint32_t virtX = pNewPage->GetVirtOffsetX();
-				uint32_t virtY = pNewPage->GetVirtOffsetY();
-				uint32_t oldCount = pNewPage->GetRequestedCount();
-
-				float diffX = pCurrLODs->pLevels[ detailLevel ].centerX - pCurrLODs->pLevels[ detailLevel+2 ].centerX;
-				float diffZ = pCurrLODs->pLevels[ detailLevel ].centerZ - pCurrLODs->pLevels[ detailLevel+2 ].centerZ;
-				float LODSize = ggterrain_local_params.segments_per_chunk * pCurrLODs->pLevels[ detailLevel ].segSize * 8;
-				float LODSize2 = LODSize * 4;
-
-				float scaleX = (64 * diffX) / LODSize + 96;
-				float scaleY = (64 * diffZ) / LODSize + 96;
-				uint32_t newVirtX = virtX / 4 + (int) scaleX;
-				uint32_t newVirtY = virtY / 4 + (int) scaleY;
-
-				pList.RemoveIndex( j );
-				j--;
-
-				uint32_t newIdentifier = ((detailLevel + 3) << 16) | (newVirtY << 8) | newVirtX;
-				pNewPage = AddNeededPage( newIdentifier );
-				pNewPage->requestedCount += (oldCount * 3);
-			}
-		}
-	}
-}
-*/
-
 
 void GGTerrain_DrawPages( CommandList cmd )
 {
@@ -8714,6 +8668,27 @@ void GGTerrain_Update_Painting( float pickX, float pickY, float pickZ )
 #endif
 }
 
+// contorl env probe list
+void GGTerrain_ClearEnvProbeList(void)
+{
+	// create new env probe local list
+	g_envProbeList.clear();
+
+	// also clear all real probes so can be updated
+	for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
+	{
+		g_bEnvProbeTrackingUpdate[scan] = true;
+	}
+}
+void GGTerrain_AddEnvProbeList(float x, float y, float z, float range)
+{
+	envProbeItem item;
+	item.position = XMFLOAT3(x, y, z);
+	item.range = range;
+	item.distance = 0;
+	g_envProbeList.push_back(item);
+}
+
 // update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
 {
@@ -8787,10 +8762,289 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		}
 	}
 
-#define GGTERRAIN_ENV_TRANSITION_FRAMES 60
+	//
+	// Environmental Light Probe System
+	// 
 
-	if ( 1 ) // 2 env probes swapping
+	// find the eight closest env light probes to the player
+	bool bUseOld2SwapSystem = true;
+	if (g_envProbeList.size() > 0)
 	{
+		// usingt env probe placement approach (best)
+		bUseOld2SwapSystem = false;
+	}
+
+	// New placed probe system or fallback 2-probe swap system
+	if (bUseOld2SwapSystem == false)
+	{
+		// special system to createw a delta from movement, and use this to transition the alpha influence of env probes
+		// this solves the issue of camera leaving zones of calc for the env causing a pop in the visual
+		static XMFLOAT3 g_vLastPos;
+		float fMovementDelta = 1.0;
+		if (bImGuiInTestGame == true)
+		{
+			fMovementDelta = (fabs(g_vLastPos.x - playerX) + fabs(g_vLastPos.z - playerZ)) / 20.0f;
+			if (fMovementDelta > 0.0f && fMovementDelta < 1.0f) fMovementDelta = 1.0f;
+		}
+		g_vLastPos.x = playerX;
+		g_vLastPos.z = playerZ;
+
+		// Use g_envProbeList to coordinate best use of the LOCALENVPROBECOUNT (8) probes reserved for this
+		for (int p = 0; p < g_envProbeList.size(); p++)
+		{
+			float diffX = g_envProbeList[p].position.x - playerX;
+			float diffY = g_envProbeList[p].position.y - playerY;
+			float diffZ = g_envProbeList[p].position.z - playerZ;
+			float sqrDist = diffX * diffX + diffY * diffY + diffZ * diffZ;
+			g_envProbeList[p].distance = sqrDist;
+			g_envProbeList[p].used = 0;
+		}
+		std::vector<int> envBestProbes;
+		envBestProbes.clear();
+		while (envBestProbes.size() < LOCALENVPROBECOUNT)
+		{
+			int iBestP = -1;
+			float fBestDist = 99999999.9;
+			for (int p = 0; p < g_envProbeList.size(); p++)
+			{
+				if (g_envProbeList[p].distance < fBestDist && g_envProbeList[p].used == 0)
+				{
+					fBestDist = g_envProbeList[p].distance;
+					iBestP = p;
+				}
+			}
+			if (iBestP != -1)
+			{
+				// next best one is added
+				g_envProbeList[iBestP].used = 1;
+				envBestProbes.push_back(iBestP);
+			}
+			else
+			{
+				// can find no more, leave
+				break;
+			}
+		}
+
+		// now maintain and assign real probes
+		if (envBestProbes.size() > 0)
+		{
+			// first clear out any live slots no longer used
+			for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
+			{
+				if (g_iEnvProbeTracking[scan] > 0)
+				{
+					int p = g_iEnvProbeTracking[scan] - 1;
+					if (g_envProbeList[p].used == 0)
+					{
+						g_bEnvProbeTrackingUpdate[scan] = true;
+						g_iEnvProbeTracking[scan] = 0;
+					}
+				}
+			}
+
+			// then maintain live ones from envBestProbes that are already being used, and assign new ones if needed
+			for (int best = 0; best < envBestProbes.size(); best++)
+			{
+				bool bFoundInTrackingList = false;
+				for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
+				{
+					if (g_iEnvProbeTracking[scan] > 0)
+					{
+						int p = g_iEnvProbeTracking[scan] - 1;
+						if (p == envBestProbes[best])
+						{
+							bFoundInTrackingList = true;
+						}
+					}
+				}
+				if (bFoundInTrackingList == false)
+				{
+					// assign this to a spare slot
+					for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
+					{
+						if (g_iEnvProbeTracking[scan] == 0)
+						{
+							int p = envBestProbes[best];
+							g_iEnvProbeTracking[scan] = 1 + p;
+							g_bEnvProbeTrackingUpdate[scan] = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// now update all live probes
+		for (int iRealProbeIndex = 0; iRealProbeIndex < LOCALENVPROBECOUNT; iRealProbeIndex++)
+		{
+			// the real probe ptr
+			EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[iRealProbeIndex]);
+			wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[iRealProbeIndex]);
+			if (probe && pTransform)
+			{
+				// the virtual probe index
+				if (g_bEnvProbeTrackingUpdate[iRealProbeIndex] == true)
+				{
+					if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
+					{
+						// locate correct virtual local probe
+						int p = g_iEnvProbeTracking[iRealProbeIndex] - 1;
+
+						// find position above floor of location to position the probe
+						//XMFLOAT3 vPos = XMFLOAT3(g_envProbeList[p].position.x, g_envProbeList[p].position.y, g_envProbeList[p].position.z);
+						//float terrainHeight;
+						//if (ggterrain.GetHeightLOD(g_envProbeList[p].position.x, g_envProbeList[p].position.z, 4, &terrainHeight))
+						//{
+						//	terrainHeight += 25;
+						//	if (g_envProbeList[p].position.y < terrainHeight) g_envProbeList[p].position.y = terrainHeight;
+						//}
+
+						// new location of this probe based on pos
+						localEnvProbePos[iRealProbeIndex] = g_envProbeList[p].position;
+						probe->position = localEnvProbePos[iRealProbeIndex];
+
+						// move probe and set range
+						int range = g_envProbeList[p].range;
+						probe->range = range;
+						if (probe->userdata < 255)
+						{
+							probe->userdata += fMovementDelta;
+							if (probe->userdata > 255)
+							{
+								g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
+								probe->userdata = 255;
+							}
+						}
+						else
+						{
+							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
+						}
+						probe->SetDirty();
+
+						// update probe with correct scaling
+						pTransform->ClearTransform();
+						pTransform->Translate(localEnvProbePos[iRealProbeIndex]);
+						pTransform->Scale(XMFLOAT3(range, range, range));
+						pTransform->UpdateTransform();
+						pTransform->SetDirty();
+					}
+					else
+					{
+						// when no longer used, can fade it out of usage
+						if (probe->range > 1)
+						{
+							probe->range -= fMovementDelta;
+							if (probe->range < 1) probe->range = 1;
+						}
+						if (probe->userdata > 0)
+						{
+							probe->userdata -= fMovementDelta;
+							if (probe->userdata < 0)
+							{
+								g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
+								probe->userdata = 0;
+							}
+						}
+						else
+						{
+							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
+						}
+						probe->SetDirty();
+						pTransform->ClearTransform();
+						pTransform->Translate(localEnvProbePos[iRealProbeIndex]);
+						pTransform->Scale(XMFLOAT3(probe->range, probe->range, probe->range));
+						pTransform->UpdateTransform();
+						pTransform->SetDirty();
+					}
+				}
+			}
+		}
+
+		/*
+		float diffX = playerX - localEnvProbePos[currLocalEnvProbe].x;
+		float diffY = playerY - localEnvProbePos[currLocalEnvProbe].y;
+		float diffZ = playerZ - localEnvProbePos[currLocalEnvProbe].z;
+		float sqrDist = diffX * diffX + diffY * diffY + diffZ * diffZ;
+		float checkDist = GGTerrain_MetersToUnits(GGTERRAIN_ENV_PROBE_UPDATE_METERS);
+		if (localEnvProbeTransition == 0 && sqrDist > checkDist * checkDist)
+		{
+			// make old probe active and place it at player position
+			currLocalEnvProbe = 1 - currLocalEnvProbe;
+
+			// find position above floor of player location to position the probe
+			float range = GGTerrain_MetersToUnits(GGTERRAIN_ENV_PROBE_RANGE_METERS);
+			XMFLOAT3 playerPos = XMFLOAT3(playerX, playerY, playerZ);
+			float terrainHeight;
+			if (ggterrain.GetHeightLOD(playerX, playerZ, 4, &terrainHeight))
+			{
+				terrainHeight += 25;
+				if (playerPos.y < terrainHeight) playerPos.y = terrainHeight;
+			}
+
+			// move probe and set range
+			EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[currLocalEnvProbe]);
+			probe->position = playerPos;
+			probe->range = range;
+			probe->userdata = 0;
+			probe->SetDirty();
+
+			// update probe with correct scaling
+			wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[currLocalEnvProbe]);
+			pTransform->ClearTransform();
+			pTransform->Translate(playerPos);
+			pTransform->Scale(XMFLOAT3(range, range, range));
+			pTransform->UpdateTransform();
+			pTransform->SetDirty();
+
+			// new location of this probe based on player pos
+			localEnvProbePos[currLocalEnvProbe] = playerPos;
+
+			// start transition between old and new probes
+			localEnvProbeTransition = GGTERRAIN_ENV_TRANSITION_FRAMES;
+		}
+
+		// transition counter will slerp from old to new position
+		if (localEnvProbeTransition > 0)
+		{
+			// count down until finished transition
+			localEnvProbeTransition--;
+
+			// fade between probes
+			int transition1 = (localEnvProbeTransition * 511) / GGTERRAIN_ENV_TRANSITION_FRAMES;
+			if (transition1 > 511) transition1 = 511;
+			int transition2 = transition1 - 256;
+			if (transition2 < 0) transition2 = 0;
+			if (transition1 > 255) transition1 = 255;
+
+			// new probe expands
+			EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[currLocalEnvProbe]);
+			probe->userdata = 255 - transition2;
+
+			// old probe shrinks
+			probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[1 - currLocalEnvProbe]);
+			probe->userdata = transition1;
+
+			// when finished transition
+			if (localEnvProbeTransition == 0)
+			{
+				// make old probe small enough to be excluded
+				probe->range = 1;
+				wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[1 - currLocalEnvProbe]);
+				pTransform->ClearTransform();
+				pTransform->Translate(localEnvProbePos[1 - currLocalEnvProbe]);
+				pTransform->Scale(XMFLOAT3(1, 1, 1));
+				pTransform->UpdateTransform();
+				pTransform->SetDirty();
+			}
+		}
+		*/
+
+	}
+	else
+	{
+		// Dynamic 2-probe swapping system (performant and stable but causes artifacts when moving from one extreme to another)
+		#define GGTERRAIN_ENV_TRANSITION_FRAMES 60
 		float diffX = playerX - localEnvProbePos[currLocalEnvProbe].x;
 		float diffY = playerY - localEnvProbePos[currLocalEnvProbe].y;
 		float diffZ = playerZ - localEnvProbePos[currLocalEnvProbe].z;
@@ -8801,6 +9055,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			// make old probe active and place it at player position
 			currLocalEnvProbe = 1 - currLocalEnvProbe;
 
+			// find position above floor of player location to position the probe
 			float range = GGTerrain_MetersToUnits( GGTERRAIN_ENV_PROBE_RANGE_METERS );
 			XMFLOAT3 playerPos = XMFLOAT3( playerX, playerY, playerZ );
 			float terrainHeight;
@@ -8810,12 +9065,14 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				if ( playerPos.y < terrainHeight ) playerPos.y = terrainHeight;
 			}
 			
+			// move probe and set range
 			EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( localEnvProbe[currLocalEnvProbe] );
 			probe->position = playerPos;
 			probe->range = range;
 			probe->userdata = 0;
 			probe->SetDirty();
 
+			// update probe with correct scaling
 			wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( localEnvProbe[currLocalEnvProbe] );
 			pTransform->ClearTransform();
 			pTransform->Translate( playerPos );
@@ -8823,36 +9080,39 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			pTransform->UpdateTransform();
 			pTransform->SetDirty();
 		
+			// new location of this probe based on player pos
 			localEnvProbePos[currLocalEnvProbe] = playerPos;
 
 			// start transition between old and new probes
 			localEnvProbeTransition = GGTERRAIN_ENV_TRANSITION_FRAMES;
 		}
 
+		// transition counter will slerp from old to new position
 		if ( localEnvProbeTransition > 0 )
 		{
+			// count down until finished transition
 			localEnvProbeTransition--;
 
 			// fade between probes
 			int transition1 = (localEnvProbeTransition * 511) / GGTERRAIN_ENV_TRANSITION_FRAMES;
 			if ( transition1 > 511 ) transition1 = 511;
-
 			int transition2 = transition1 - 256;
 			if ( transition2 < 0 ) transition2 = 0;
-
 			if ( transition1 > 255 ) transition1 = 255;
 
+			// new probe expands
 			EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( localEnvProbe[currLocalEnvProbe] );
 			probe->userdata = 255 - transition2;
 
+			// old probe shrinks
 			probe = wiScene::GetScene().probes.GetComponent( localEnvProbe[1-currLocalEnvProbe] );
 			probe->userdata = transition1;
 
+			// when finished transition
 			if ( localEnvProbeTransition == 0 )
 			{
 				// make old probe small enough to be excluded
 				probe->range = 1;
-
 				wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( localEnvProbe[1-currLocalEnvProbe] );
 				pTransform->ClearTransform();
 				pTransform->Translate( localEnvProbePos[1-currLocalEnvProbe] );
@@ -8860,10 +9120,32 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				pTransform->UpdateTransform();
 				pTransform->SetDirty();
 			}
+
+			// ensure rest of probes cleared
+			for (int iRest = 2; iRest < LOCALENVPROBECOUNT; iRest++)
+			{
+				EnvironmentProbeComponent* restprobe = wiScene::GetScene().probes.GetComponent(localEnvProbe[iRest]);
+				if (restprobe)
+				{
+					restprobe->range = 1;
+					restprobe->userdata = 0;
+					wiScene::TransformComponent* pRestTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[iRest]);
+					if (pRestTransform)
+					{
+						pRestTransform->ClearTransform();
+						pRestTransform->Translate(localEnvProbePos[iRest]);
+						pRestTransform->Scale(XMFLOAT3(1, 1, 1));
+						pRestTransform->UpdateTransform();
+						pRestTransform->SetDirty();
+					}
+				}
+			}
 		}
 	}
-	else // 1 env probe continuously updating
+	/* not used - not very useful
+	else 
 	{
+		// 1 env probe continuously updating
 		float range = GGTerrain_MetersToUnits( GGTERRAIN_ENV_PROBE_RANGE_METERS );
 		XMFLOAT3 playerPos = XMFLOAT3( playerX, playerY, playerZ );
 		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( localEnvProbe[currLocalEnvProbe] );
@@ -8871,7 +9153,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		probe->range = range;
 		probe->userdata = 255;
 		probe->SetDirty();
-
 		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( localEnvProbe[currLocalEnvProbe] );
 		pTransform->ClearTransform();
 		pTransform->Translate( playerPos );
@@ -8879,18 +9160,26 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		pTransform->UpdateTransform();
 		pTransform->SetDirty();
 	}
+	*/
 
+	// update global probe and local env probe when flagged
 	if ( ggterrain_extra_params.bUpdateProbes )
 	{
+		// also clear all real probes so can be updated
+		for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
+		{
+			g_bEnvProbeTrackingUpdate[scan] = true;
+		}
 		ggterrain_extra_params.bUpdateProbes = false;
-
+		/*
 		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( globalEnvProbe );
 		probe->SetDirty();
-
 		probe = wiScene::GetScene().probes.GetComponent( localEnvProbe[currLocalEnvProbe] );
 		probe->SetDirty();
+		*/
 	}
 
+	// handle global probe positioned by globalEnvProbePos
 	float height;
 	GGTerrain_GetHeight( 0, 0, &height );
 	height += GGTerrain_MetersToUnits(30);
@@ -8903,7 +9192,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		probe->range = 1;
 		probe->userdata = 255;
 		probe->SetDirty();
-
 		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( globalEnvProbe );
 		pTransform->ClearTransform();
 		pTransform->Translate( globalEnvProbePos );
@@ -8913,9 +9201,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 
 	if ( !ggterrain_initialised ) return;
-//	if ( !ggterrain_update_enabled ) return;
-
-	//auto range = wiProfiler::BeginRangeCPU("Max - Terrain LOD Check");
 
 	if ( ggterrain_update_enabled ) 
 	{
@@ -8928,16 +9213,13 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		while( pCurrLODs->IsGenerating() && !pCurrLODs->pLevels[ pCurrLODs->GetNumLevels()-1 ].IsReady() && timeout++ < 300 ) Sleep( 1 ); 
 		if (timeout >= 300)
 		{
-			pCurrLODs->iFlags &= ~GGTERRAIN_LOD_GENERATING; //PE: this seams to work, but terrain is not looking correct after this.
-			//PE: This seams to get me out of this loop, 100 was to low to regenrate everything , so increase to 200 and test.
-			ggterrain_global_params.bForceUpdate = 1 - ggterrain_global_params.bForceUpdate; //PE: Test regenerate everything.
+			pCurrLODs->iFlags &= ~GGTERRAIN_LOD_GENERATING; // terrain is not looking correct after this.
+			ggterrain_global_params.bForceUpdate = 1 - ggterrain_global_params.bForceUpdate;
 		}
 	}
 
 	GGTerrainLODSet* pCurrLODs = ggterrain.GetCurrentLODs();
 	GGTerrainLODSet* pNewLODs = ggterrain.GetNewLODs();
-
-	//wiProfiler::EndRange( range );
 
 	// update terrain constants
 	terrainConstantData.terrain_numLODLevels = pCurrLODs->GetNumLevels();
@@ -9127,12 +9409,9 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		terrainConstantData.terrain_mouseHit.y = pickZ;
 
 		#ifdef FULLTERRAINEDITING
-		//PE: Fix conflicts.
-		//terrainConstantData.terrain_brushSize = ggterrain_local_render_params2.brushSize;
 		if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_PICK) terrainConstantData.terrain_brushSize = 100;
 		else terrainConstantData.terrain_brushSize = ggterrain_local_render_params2.brushSize;
 		if (ggterrain_extra_params.edit_mode == GGTERRAIN_EDIT_TREES && ggtrees_global_params.paint_mode == GGTREES_PAINT_ADD) terrainConstantData.terrain_brushSize = 25.0f;
-
 		#else
 		terrainConstantData.terrain_brushSize = 0;
 		#endif
@@ -9180,8 +9459,9 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 
 	if ( !pCurrLODs->IsGenerating() )
 	{
+		// CPU only side of the read back, GPU side is done in prepass render
 		GGTerrain_CheckPageShift();
-		GGTerrain_CheckReadBack(); // CPU only side of the read back, GPU side is done in prepass render
+		GGTerrain_CheckReadBack(); 
 	}
 
 	for( int i = 0; i < (int)pageRefreshList.NumItems(); i++ )
@@ -9200,7 +9480,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 
 	GGTerrain_DrawPages( cmd );
 
-#ifdef GGTERRAIN_UNDOREDO
+	#ifdef GGTERRAIN_UNDOREDO
 	if (ggterrain_internal_params.mouseLeftReleased && g_iCalculatingChangeBounds)
 	{
 		// Create an undo item here.
@@ -9214,7 +9494,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			type = eUndoSys_Terrain_Paint;
 		GGTerrain_CreateUndoRedoAction(type, eUndoSys_UndoList);
 	}
-#endif
+	#endif
 }
 
 int GGTerrain_IsReady()

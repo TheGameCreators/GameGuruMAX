@@ -5464,6 +5464,7 @@ void entity_updateentityobj ( void )
 				#endif
 			}
 
+			/*
 			// if entity is a light, has a probe
 			#ifdef WICKEDENGINE
 			int entid = t.entityelement[t.tupdatee].bankindex;
@@ -5479,6 +5480,7 @@ void entity_updateentityobj ( void )
 				}
 			}
 			#endif
+			*/
 		}
 	}
 	if ( t.tentid == 0 ) 

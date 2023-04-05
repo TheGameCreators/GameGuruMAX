@@ -26626,8 +26626,8 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 			if (bFirstTimeInFindBestChoice == true)
 			{
 				if (edit_grideleprof->usespotlighting == iPredefined_Light_Type[i] &&
-					edit_grideleprof->light.range == iPredefined_Light_Range[i] &&
-					edit_grideleprof->light.fLightHasProbe == fPredefined_Light_ProbeScale[i])
+					edit_grideleprof->light.range == iPredefined_Light_Range[i] )//&&
+					//edit_grideleprof->light.fLightHasProbe == fPredefined_Light_ProbeScale[i])
 				{
 					DWORD color = 0xff000000 + ((unsigned int)(vPredefined_Light_Palette[i].x * 255.0f) << 16) + ((unsigned int)(vPredefined_Light_Palette[i].y * 255.0f) << 8) + +((unsigned int)(vPredefined_Light_Palette[i].z * 255.0f));
 					if (color == edit_grideleprof->light.color)
@@ -26895,12 +26895,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 			bLightChanged = true;
 		}
 		float fTmp = edit_grideleprof->light.range*100;
-		//if (ImGui::MaxSliderInputFloat2("##LightRangeSimpleInput", &fTmp, 0.0f, 300000.0f, t.strarr_s[250].Get(), 0, 300000.0f, 42.0f))
-		//{
-		//	current_light_selected = -1;
-		//	bLightChanged = true;
-		//}
-		//edit_grideleprof->light.range = fTmp/100.0f;
 		ImGui::PopItemWidth();
 
 		#ifdef WICKEDENGINE
@@ -26916,44 +26910,45 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 				current_light_selected = -1;
 				bLightChanged = true;
 			}
-			//float fTmp = edit_grideleprof->light.range * 100;
-			//float fRad = edit_grideleprof->light.offsetup;
-			////fRad = edit_grideleprof->coneangle;
-			//if (ImGui::MaxSliderInputFloat2("##SpotlightRangeSimpleInput", &fRad, 0.0f, 160.0f, "Sets the spotlight radius", 0, 160.0f, 45.0f))
-			//{
-			//	edit_grideleprof->light.offsetup = fRad;
-			//	//edit_grideleprof->coneangle = fRad;
-			//	//edit_grideleprof->coneheight = fRad;
-			//	current_light_selected = -1;
-			//	bLightChanged = true;
-			//}
 			ImGui::PopItemWidth();
 		}
-		
-		// ZJ: Removed for now.
-		//if (pref.iObjectEnableAdvanced)
-		//{
-		//	ImGui::TextCenter("Light Probe Scale");
-		//	ImGui::PushItemWidth(-10);
-		//	int iTmp = edit_grideleprof->light.fLightHasProbe;
-		//	if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iTmp, 0, 500, "Specify the scaling of the environment probe attached to the light"))
-		//	{
-		//		current_light_selected = -1;
-		//		bLightChanged = true;
-		//		g_bLightProbeScaleChanged = true;
-		//		edit_grideleprof->light.fLightHasProbe = iTmp;
-		//	}
-		//	//fTmp = edit_grideleprof->light.fLightHasProbe * 100;
-		//	//if (ImGui::MaxSliderInputFloat2("##fLightProbeScaleSimpleInput", &fTmp, 1.0f, 500.0f, "Specify the scaling of the environment probe attached to the light", 0, 100.0f, 42.0f))
-		//	//{
-		//	//	// triggers probe debug to show
-		//	//	current_light_selected = -1;
-		//	//	g_bLightProbeScaleChanged = true;
-		//	//	bLightChanged = true;
-		//	//}
-		//	//edit_grideleprof->light.fLightHasProbe = fTmp / 100.0f;
-		//	ImGui::PopItemWidth();
-		//}
+
+		// introduce option to have light specify a local env light prove
+		if (pref.iObjectEnableAdvanced)
+		{
+			bool bLightProbe = false;
+			if (edit_grideleprof->light.fLightHasProbe >= 50.0f) bLightProbe = true;
+			if (ImGui::Checkbox("Light Probe", &bLightProbe))
+			{
+				if (bLightProbe == true)
+					edit_grideleprof->light.fLightHasProbe = 100.0f;
+				else
+					edit_grideleprof->light.fLightHasProbe = 0.0f;
+				bLightProbe = true;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets whether an environmental probe is attached to this light");
+			if (bLightProbe == true)
+			{
+				ImGui::TextCenter("Light Probe Scale");
+				ImGui::PushItemWidth(-10);
+				int iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbe;
+				if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iLightProbeRange, 50, 500, "Specify the range of the environment probe attached to the light"))
+				{
+					edit_grideleprof->light.fLightHasProbe = iLightProbeRange;
+					g_bLightProbeScaleChanged = true;
+				}
+				////fTmp = edit_grideleprof->light.fLightHasProbe * 100;
+				//	//if (ImGui::MaxSliderInputFloat2("##fLightProbeScaleSimpleInput", &fTmp, 1.0f, 500.0f, "Specify the scaling of the environment probe attached to the light", 0, 100.0f, 42.0f))
+				//	//{
+				//	//	// triggers probe debug to show
+				//	//	current_light_selected = -1;
+				//	//	g_bLightProbeScaleChanged = true;
+				//	//	bLightChanged = true;
+				//	//}
+				//	//edit_grideleprof->light.fLightHasProbe = fTmp / 100.0f;
+				ImGui::PopItemWidth();
+			}
+		}
 		#endif
 
 		ImGui::TextCenter("Light Color");
@@ -27119,9 +27114,9 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 					bLightChanged = true;
 				}
 			}
-			
-			//Update light is a bit slow so...
-			if (bLightChanged || g_bLightProbeScaleChanged)
+
+			// check if light needs updating in the engine
+			if (bLightChanged)
 			{
 				int ilightIndex = 0;
 				float lightx, lighty, lightz, lightax, lightay, lightaz;
@@ -27202,20 +27197,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 					t.infinilight[ilightIndex].fLightHasProbe = fLightHasProbe;
 					t.infinilight[ilightIndex].bCanShadow = bCastShadow;
 					WickedCall_UpdateLight(iWickedLightIndex, lightx, lighty, lightz, lightax, lightay, lightaz, lightrange, spotlightradius, colr, colg, colb, bCastShadow);
-
-					// and detect if light probe scale changes
-					if (g_bLightProbeScaleChanged)
-					{
-						if (t.entityprofile[t.entityelement[elementID].bankindex].ismarker == 2)
-						{
-							float fLightProbeScale = t.entityelement[elementID].eleprof.light.fLightHasProbe;
-							if (fLightProbeScale > 0)
-								entity_placeprobe(t.entityelement[elementID].obj, fLightProbeScale);
-							else
-								entity_deleteprobe(t.entityelement[elementID].obj);
-						}
-						g_bLightProbeScaleChanged = false;
-					}
 				}
 				else
 				{
@@ -49784,7 +49765,7 @@ void ReloadEntityIDInSitu ( int entIndex)
 void CheckExistingFilesModified(bool bResetTimeStamp)
 {
 	// Users can turn this feature off if it causes slowdowns.
-	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1)
+	if (pref.iCheckFilesModifiedOnFocus == 0 || t.game.gameisexe == 1 || bImGuiInTestGame == true )
 		return;
 
 	// lists to monitor level media changes (cannot use folderfiles structure as DBOs are not listed)
@@ -49994,8 +49975,6 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 			modifiedEntityObjectReduced.push_back(iUniqueEntityID);
 		}
 	}
-
-	//static std::vector<int> groupsThatCannotBeHotSwapped;
 
 	// Update any entities that use the modified files
 	for (auto& entIndex : modifiedEntityObjectReduced)

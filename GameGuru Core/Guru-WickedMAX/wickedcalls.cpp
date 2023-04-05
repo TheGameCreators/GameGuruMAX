@@ -5311,23 +5311,6 @@ void WickedCall_RenderEditorFunctions( void )
 	if (bImGuiInTestGame)
 		return;
 
-	/* stopped instant highlight of hovered object, very distracting was the reports!
-	// if hovering over an object
-	if (g_hovered_pobject && bRenderTargetHasFocus)
-	{
-		// and not pressing right mouse button
-		int iGetMouseClickState(void);
-		if (iGetMouseClickState() != 2)
-		{
-			#ifdef ONLY_USE_OUTLINE_HIGHLIGHT
-			WickedCall_DrawObjctBox(g_hovered_pobject, XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f), false, false);
-			#else
-			WickedCall_DrawObjctBox(g_hovered_pobject, XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f), false, true);
-			#endif
-		}
-	}
-	*/
-
 	// highlight selected object too
 	if (g_selected_pobject) 
 	{
@@ -5355,63 +5338,6 @@ void WickedCall_RenderEditorFunctions( void )
 	Wicked_Highlight_Rubberband();
 	Wicked_Highlight_Selection();
 	Wicked_Highlight_LockedList();
-
-	/* PE: Below to be used to display probe size, light size , wicked master objects (single frame in gg).
-	//if (g_hovered_entity != INVALID_ENTITY)
-	//{
-		//PE: To be used to highlight hover , single frame objects.
-		const ObjectComponent* object = wiScene::GetScene().objects.GetComponent(g_hovered_entity);
-		if (object != nullptr)
-		{
-			const AABB& aabb = *wiScene::GetScene().aabb_objects.GetComponent(g_hovered_entity);
-
-			XMFLOAT4X4 hoverBox;
-			XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
-			wiRenderer::DrawBox(hoverBox, XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f));
-		}
-		//PE: To be used to highliht a single frame from a object.
-		object = wiScene::GetScene().objects.GetComponent(g_selected_entity);
-		if (object != nullptr)
-		{
-			const AABB& aabb = *wiScene::GetScene().aabb_objects.GetComponent(g_selected_entity);
-
-			XMFLOAT4X4 hoverBox;
-			XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
-			wiRenderer::DrawBox(hoverBox, XMFLOAT4(0.25f, 1.0f, 0.25f, 0.5f));
-		}
-		//PE: Below not needed yet, only when resizing light,probes ...
-		const LightComponent* light = wiScene::GetScene().lights.GetComponent(g_hovered_entity);
-		if (light != nullptr)
-		{
-			const AABB& aabb = *wiScene::GetScene().aabb_lights.GetComponent(g_hovered_entity);
-
-			XMFLOAT4X4 hoverBox;
-			XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
-			wiRenderer::DrawBox(hoverBox, XMFLOAT4(0.5f, 0.5f, 0, 0.5f));
-		}
-		const DecalComponent* decal = wiScene::GetScene().decals.GetComponent(g_hovered_entity);
-		if (decal != nullptr)
-		{
-			wiRenderer::DrawBox(decal->world, XMFLOAT4(0.5f, 0, 0.5f, 0.5f));
-		}
-		const EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(g_hovered_entity);
-		if (probe != nullptr)
-		{
-			const AABB& aabb = *wiScene::GetScene().aabb_probes.GetComponent(g_hovered_entity);
-
-			XMFLOAT4X4 hoverBox;
-			XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
-			wiRenderer::DrawBox(hoverBox, XMFLOAT4(0.5f, 0.5f, 0.5f, 0.5f));
-		}
-		const wiHairParticle* hair = wiScene::GetScene().hairs.GetComponent(g_hovered_entity);
-		if (hair != nullptr)
-		{
-			XMFLOAT4X4 hoverBox;
-			XMStoreFloat4x4(&hoverBox, hair->aabb.getAsBoxMatrix());
-			wiRenderer::DrawBox(hoverBox, XMFLOAT4(0, 0.5f, 0, 0.5f));
-		}
-	//}
-	*/
 }
 
 void Wicked_Update_Shadows(void *voidvisual);

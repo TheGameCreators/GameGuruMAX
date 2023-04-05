@@ -6,6 +6,11 @@
 #include "gameguru.h"
 #include "CObjectsC.h"
 
+#ifdef WICKEDENGINE
+#include "GGTerrain/GGTerrain.h"
+#include "GGTerrain/GGGrass.h"
+#endif
+
 // 
 //  LIGHTING
 // 
@@ -193,6 +198,41 @@ void lighting_loop(void)
 		}
 	}
 	#endif
+
+	// and detect if light probe scale changes
+	extern bool g_bLightProbeScaleChanged;
+	if (g_bLightProbeScaleChanged == true)
+	{
+		// we handle env probes in the terrain system, just maintain a list of all needed probes
+		// and that system will take care of assigning the best actual probe for the job
+		GGTerrain::GGTerrain_ClearEnvProbeList();
+		for (int ee = 1; ee <= g.entityelementlist; ee++)
+		{
+			int entid = t.entityelement[ee].bankindex;
+			if (entid > 0)
+			{
+				if (t.entityprofile[entid].ismarker == 2)
+				{
+					float fLightProbeRange = t.entityelement[ee].eleprof.light.fLightHasProbe;
+					if (fLightProbeRange >= 50)
+					{
+						GGTerrain::GGTerrain_AddEnvProbeList(t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z, fLightProbeRange);
+					}
+				}
+			}
+		}
+		g_bLightProbeScaleChanged = false;
+		/*
+		if (t.entityprofile[t.entityelement[elementID].bankindex].ismarker == 2)
+		{
+			float fLightProbeScale = t.entityelement[elementID].eleprof.light.fLightHasProbe;
+			if (fLightProbeScale > 0)
+				entity_placeprobe(t.entityelement[elementID].obj, fLightProbeScale);
+			else
+				entity_deleteprobe(t.entityelement[elementID].obj);
+		}
+		*/
+	}
 }
 
 void lighting_weaponFlash_loop(void)

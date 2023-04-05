@@ -975,7 +975,6 @@ void lm_emptylightmapandttsfilesfolder_wicked( void )
 
 void mapfile_loadproject_fpm ( void )
 {
-
 	//PE: Deselect any objects, if we load a level with less entityties then t.widget.pickedEntityIndex it can crash.
 	t.widget.pickedEntityIndex = 0;
 	t.gridentity = 0;
@@ -1499,6 +1498,10 @@ void mapfile_loadproject_fpm ( void )
 	{
 		t.tloadsuccessfully=0;
 	}
+
+	// fire up light probe update when get new level loaded
+	extern bool g_bLightProbeScaleChanged;
+	g_bLightProbeScaleChanged = true;
 
 	#ifdef WICKEDENGINE
 	// when finished loading an OLD LEVEL FROM CLASSIC, need to copy and convert assets to make it a MAX level

@@ -27231,40 +27231,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 				int obj = t.entityelement[elementID].obj;
 				entity_updatelightobj(elementID,obj);
 			}
-
-			// and detect if light probe scale changes
-			if (g_bLightProbeScaleChanged)
-			{
-				// we handle env probes in the terrain system, just maintain a list of all needed probes
-				// and that system will take care of assigning the best actual probe for the job
-				GGTerrain_ClearEnvProbeList();
-				for (int ee = 1; ee <= g.entityelementlist; ee++)
-				{
-					int entid = t.entityelement[ee].bankindex;
-					if (entid > 0)
-					{
-						if (t.entityprofile[entid].ismarker == 2)
-						{
-							float fLightProbeRange = t.entityelement[ee].eleprof.light.fLightHasProbe;
-							if (fLightProbeRange >= 50)
-							{
-								GGTerrain_AddEnvProbeList(t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z, fLightProbeRange);
-							}
-						}
-					}
-				}
-				g_bLightProbeScaleChanged = false;
-				/*
-				if (t.entityprofile[t.entityelement[elementID].bankindex].ismarker == 2)
-				{
-					float fLightProbeScale = t.entityelement[elementID].eleprof.light.fLightHasProbe;
-					if (fLightProbeScale > 0)
-						entity_placeprobe(t.entityelement[elementID].obj, fLightProbeScale);
-					else
-						entity_deleteprobe(t.entityelement[elementID].obj);
-				}
-				*/
-			}
 		}
 		#endif
 

@@ -22405,22 +22405,25 @@ void input_calculatelocalcursor ( void )
 		}
 
 		// also disable any gameelements (such as start marker) as they can get in the way
-		for (int e = 1; e <= g.entityelementmax; e++)
+		if (bDraggingActive)
 		{
-			int entid = t.entityelement[e].bankindex;
-			if (entid > 0)
+			for (int e = 1; e <= g.entityelementmax; e++)
 			{
-				if (t.entityprofile[entid].ismarker != 0)
+				int entid = t.entityelement[e].bankindex;
+				if (entid > 0)
 				{
-					int obj = t.entityelement[e].obj;
-					if (obj > 0 && GetVisible(obj))
+					if (t.entityprofile[entid].ismarker != 0)
 					{
-						piEntityVisible[e] = 1;
-						HideObject(obj);
-					}
-					else
-					{
-						piEntityVisible[e] = 0;
+						int obj = t.entityelement[e].obj;
+						if (obj > 0 && GetVisible(obj))
+						{
+							piEntityVisible[e] = 1;
+							HideObject(obj);
+						}
+						else
+						{
+							piEntityVisible[e] = 0;
+						}
 					}
 				}
 			}

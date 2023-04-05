@@ -22372,8 +22372,9 @@ void input_calculatelocalcursor ( void )
 	float fPickedYAxis = 0.0f;
 	t.inputsys.localselectedrayhit = false;
 
-	int* piEntityVisible = new int[g.entityelementmax];
-	memset(piEntityVisible, 0, sizeof(int) * g.entityelementmax);
+	//PE: e <= g.entityelementmax so need one additional int, if last object in level was a marker we got a heap error.
+	int* piEntityVisible = new int[g.entityelementmax+1];
+	memset(piEntityVisible, 0, sizeof(int) * (g.entityelementmax+1));
 
 	bool bDisableRubberBandMoving = false;
 	if (current_selected_group >= 0 && group_editing_on)
@@ -22716,7 +22717,8 @@ void input_calculatelocalcursor ( void )
 	// free temp vis array
 	if (piEntityVisible)
 	{
-		delete piEntityVisible;
+		//PE: stille an array so [].
+		delete[] piEntityVisible;
 		piEntityVisible = NULL;
 	}
 

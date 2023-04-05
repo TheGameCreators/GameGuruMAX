@@ -73,6 +73,7 @@ function quest_poster_main(e)
 					-- set game to this quest
 					g_UserGlobalQuestTitleShowing = g_quest_poster[e]['questtitle']
 					g_UserGlobalQuestTitleShowingObject = g_quest_poster[e]['questobject']
+					g_UserGlobalQuestTitleShowingObject2 = g_quest_poster[e]['questreceiver']
 					ScreenToggle(g_quest_poster[e]['questscreen'])
 					PlaySound(e,0)
 				end

@@ -64,6 +64,7 @@ g_UserGlobalQuestTitleActiveObject = ""
 g_UserGlobalQuestTitleActiveE = 0
 g_UserGlobalQuestTitleShowing = ""
 g_UserGlobalQuestTitleShowingObject = ""
+g_UserGlobalQuestTitleShowingObject2 = ""
 g_UserContainerTotal = 0
 g_UserContainerName = {}
 g_UserContainerCount = {}

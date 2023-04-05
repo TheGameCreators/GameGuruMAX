@@ -2071,6 +2071,11 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
    if i > 0 then
     local tuserglobal = string.sub(actionparam1,1,i-1)
     local tuservalue = string.sub(actionparam1,i+1,-1)
+	if tuservalue ~= nil then
+		if output_e[tostring(tuservalue)] ~= nil then
+			tuservalue = output_e[tostring(tuservalue)]
+		end
+	end
     _G["g_UserGlobal['"..tuserglobal.."']"] = tuservalue
    end
   end

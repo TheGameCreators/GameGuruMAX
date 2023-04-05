@@ -760,7 +760,13 @@ function hud0.main()
 									if hud0_quest_status[tquestindex] == "complete" then
 										ttextvalue = "Quest Completed"
 									else
-										ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." XP points and "..GetCollectionQuestAttribute(tquestindex,"value").." money"
+										local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
+										local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+										if playerlevel >= tlevelrequired then
+											ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." XP points and "..GetCollectionQuestAttribute(tquestindex,"value").." money"
+										else
+											ttextvalue = "You need to be level "..tlevelrequired.." to start this quest"
+										end
 									end
 								else
 									if elementName == "quest:show:desc1" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc1") end
@@ -772,6 +778,7 @@ function hud0.main()
 						end
 					end
 				end
+				if ttextvalue == "none" then ttextvalue = "" end
 				SetScreenElementText(elementID,ttextvalue)
 			end
 		end	
@@ -823,8 +830,12 @@ function hud0.main()
 											break
 										end
 										if hud0_quest_status[tquestindex] == "inactive" then
-											-- allow inactive quest to be accepted
-											SetScreenElementVisibility(elementID,1)
+											-- allow inactive quest to be accepted - if reached required level
+											local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
+											local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+											if playerlevel >= tlevelrequired then
+												SetScreenElementVisibility(elementID,1)
+											end
 											break
 										end
 									end
@@ -1146,6 +1157,7 @@ function hud0.main()
 						if g_UserGlobalQuestTitleActive == "" or tquestwasinactive == 0 then
 							g_UserGlobalQuestTitleActive = g_UserGlobalQuestTitleShowing
 							g_UserGlobalQuestTitleActiveObject = g_UserGlobalQuestTitleShowingObject
+							g_UserGlobalQuestTitleActiveObject2 = g_UserGlobalQuestTitleShowingObject2
 							g_UserGlobalQuestTitleActiveE = findee
 						end
 						ScreenToggle("")
@@ -1164,9 +1176,11 @@ function hud0.main()
 					-- no current quest
 					g_UserGlobalQuestTitleActive = ""
 					g_UserGlobalQuestTitleActiveObject = ""
+					g_UserGlobalQuestTitleActiveObject2 = ""
 					g_UserGlobalQuestTitleActiveE = 0
 					g_UserGlobalQuestTitleShowing = ""
 					g_UserGlobalQuestTitleShowingObject = ""
+					g_UserGlobalQuestTitleShowingObject2 = ""
 					-- close the HUD
 					ScreenToggle("")
 				end
@@ -1187,6 +1201,26 @@ function hud0.main()
 						end
 					end
 				end
+			end
+		end
+	end
+	-- monitor active quest object and switch to secondary one if primary is 'handled'
+	if g_UserGlobalQuestTitleActiveE > 0 then
+		local findee = g_UserGlobalQuestTitleActiveE
+		if g_Entity[findee]['active'] == 0 or GetEntityCollected(findee) ~= 0 then
+			findee = 0
+			for ee = 1, g_EntityElementMax, 1 do
+				if e ~= ee then
+					if g_Entity[ee] ~= nil then
+						if GetEntityName(ee) == g_UserGlobalQuestTitleActiveObject2 then
+							findee = ee
+							break
+						end
+					end
+				end
+			end
+			if findee > 0 then
+				g_UserGlobalQuestTitleActiveE = findee
 			end
 		end
 	end

@@ -503,9 +503,8 @@ void charactercreatorplus_imgui(void)
 				widget_hide();
 				ebe_hide();
 				terrain_paintselector_hide();
-				#ifdef WICKEDENGINE
+				t.geditorhighlightingtentityobj = 0;
 				t.geditorhighlightingtentityID = 0;
-				#endif
 				editor_restoreentityhighlightobj();
 				gridedit_clearentityrubberbandlist();
 				waypoint_hideall();
@@ -4723,9 +4722,8 @@ void charactercreatorplus_imgui_v3(void)
 				widget_hide();
 				ebe_hide();
 				terrain_paintselector_hide();
-
+				t.geditorhighlightingtentityobj = 0;
 				t.geditorhighlightingtentityID = 0;
-
 				editor_restoreentityhighlightobj();
 				gridedit_clearentityrubberbandlist();
 				waypoint_hideall();

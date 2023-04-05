@@ -18842,10 +18842,8 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	terrain_paintselector_hide();
 
 	//  switch off any IDE entity highlighting
-	#ifdef WICKEDENGINE
+	t.geditorhighlightingtentityobj = 0;
 	t.geditorhighlightingtentityID = 0;
-	#endif
-
 	editor_restoreentityhighlightobj ( );
 
 	// switch off any rubber band entity highlighting
@@ -23176,24 +23174,22 @@ void editor_restoreobjhighlightifnotrubberbanded ( int highlightingtentityobj )
 			if ( bHighlightedFromRubberBandSelection == false )
 			{
 				// dehighlight primary highlighted entity
-#ifdef WICKEDENGINE
 				bool bValid = true;
 				if (t.geditorhighlightingtentityID > 0)
 				{
 					int mi = t.entityelement[t.geditorhighlightingtentityID].bankindex;
 					if (mi > 0 && t.entityprofile[mi].bIsDecal) bValid = false;
 				}
-				if(bValid)
-#endif
-					SetAlphaMappingOn ( highlightingtentityobj, 100 );
-
+				if (bValid)
+				{
+					SetAlphaMappingOn (highlightingtentityobj, 100);
+				}
 				// and also dehighlight any children that may have been highlighted as well
 				if ( t.tstoreentityindexofprimaryhightlighted > 0 )
 				{
 					gridedit_clearentityrubberbandlist();
 					t.tstoreentityindexofprimaryhightlighted = 0;
 				}
-				#ifdef WICKEDENGINE
 				//PE: SetAlphaMappingOn will overwrite basecolor.w
 				//PE: Restore org colors.
 				sObject* pObject = g_ObjectList[highlightingtentityobj];
@@ -23210,8 +23206,6 @@ void editor_restoreobjhighlightifnotrubberbanded ( int highlightingtentityobj )
 					//Setup decal.
 					SetupDecalObject(highlightingtentityobj, t.geditorhighlightingtentityID);
 				}
-				#endif
-
 			}
 		}
 	}
@@ -23221,7 +23215,17 @@ void editor_restoreentityhighlightobj ( void )
 {
 	if ( t.geditorhighlightingtentityobj>0 ) 
 	{
+		if (t.geditorhighlightingtentityID > 0)
+		{
+			WickedSetEntityId(t.entityelement[t.geditorhighlightingtentityID].bankindex);
+			WickedSetElementId(t.geditorhighlightingtentityID);
+		}
 		editor_restoreobjhighlightifnotrubberbanded ( t.geditorhighlightingtentityobj );
+		if (t.geditorhighlightingtentityID > 0)
+		{
+			WickedSetEntityId(-1);
+			WickedSetElementId(0);
+		}
 		t.geditorhighlightingtentityobj=0;
 	}
 }
@@ -23290,20 +23294,9 @@ void editor_refreshentitycursor ( void )
 			// do not reset if extracted and draggging parent/children around
 			if ( t.gridentityextractedindex == 0 )
 			{
-				#ifdef WICKEDENGINE
-				if (t.tentitytoselect > 0)
-				{
-					WickedSetEntityId(t.entityelement[t.tentitytoselect].bankindex);
-					WickedSetElementId(t.tentitytoselect);
-				}
 				t.geditorhighlightingtentityID = t.tentitytoselect;
-
-				#endif
+				t.geditorhighlightingtentityobj = t.tentityobj;
 				editor_restoreentityhighlightobj();
-				#ifdef WICKEDENGINE
-				WickedSetEntityId(-1);
-				WickedSetElementId(0);
-				#endif
 			}
 
 			// if obj is instance, and using entity_basic shader, this sets GlowIntensity constant
@@ -23339,7 +23332,6 @@ void editor_refreshentitycursor ( void )
 	}
 	else
 	{
-		#ifdef WICKEDENGINE
 		if (t.geditorhighlightingtentityobj > 0)
 		{
 			int foundit = 0;
@@ -23347,19 +23339,12 @@ void editor_refreshentitycursor ( void )
 			{
 				if (t.entityelement[i].obj == t.geditorhighlightingtentityobj)
 				{
-					WickedSetEntityId(t.entityelement[i].bankindex);
-					WickedSetElementId(i);
 					t.geditorhighlightingtentityID = i;
 					editor_restoreentityhighlightobj();
-					WickedSetEntityId(-1);
-					WickedSetElementId(0);
 					break;
 				}
 			}
 		}
-		#else
-		editor_restoreentityhighlightobj ( );
-		#endif
 	}
 }
 
@@ -32250,7 +32235,6 @@ void gridedit_recreateentitycursor ( void )
 				}
 				#endif
 				//  set transparency mode
-				#ifdef WICKEDENGINE
 				if (t.entityprofile[t.entid].islightmarker == 1)
 				{
 					sObject* pObject = g_ObjectList[t.obj];
@@ -32263,7 +32247,6 @@ void gridedit_recreateentitycursor ( void )
 				if ((ele_id > 0) || (ele_id==0 && t.gridentity>0))
 				{
 					//PE: Wicked material can overwrite objects settings.
-					#ifdef WICKEDENGINE
 					WickedSetEntityId(t.gridentity);
 					WickedSetElementId(ele_id);
 					// LB: apply WEMaterial to all meshes of this object, not just the first one
@@ -32281,9 +32264,6 @@ void gridedit_recreateentitycursor ( void )
 							WickedCall_TextureMesh(pMesh);
 						}
 					}
-					#else
-					SetObjectTransparency(t.obj, t.entityelement[ele_id].eleprof.WEMaterial.bTransparency[0]);
-					#endif
 					if (t.obj == 70000) 
 					{
 						//Update mesh materials.
@@ -32297,25 +32277,18 @@ void gridedit_recreateentitycursor ( void )
 							}
 						}
 					}		
-					#ifdef WICKEDENGINE
 					WickedSetEntityId(-1);
 					WickedSetElementId(0);
-					#endif
 				}
 				else
-				#endif
 				{
 					if (t.entityprofile[t.entid].transparency >= 0)
 					{
-						#ifdef WICKEDENGINE
 						WickedSetEntityId(t.gridentity);
 						WickedSetElementId(ele_id);
 						SetObjectTransparency(t.obj, t.entityprofile[t.entid].transparency);
 						WickedSetEntityId(-1);
 						WickedSetElementId(0);
-						#else
-						SetObjectTransparency(t.obj, t.entityprofile[t.entid].transparency);
-						#endif
 					}
 				}
 				// 051115 - only if not using limb visibility for hiding decal arrow
@@ -32370,31 +32343,25 @@ void gridedit_recreateentitycursor ( void )
 		if (t.tescale > 0)
 		{
 			ScaleObject (t.obj, t.tescale, t.tescale, t.tescale);
-			//PE: Particle scale bug fix.
-			//if (t.entityprofile[t.gridentity].ismarker == 10)
-			//{
-			//	// and then reset scale for particle markers
-			//	ScaleObject(t.obj, t.entityprofile[t.gridentity].scale, t.entityprofile[t.gridentity].scale, t.entityprofile[t.gridentity].scale);
-			//}
 		}
 
 		SetObjectCollisionOff (  t.obj );
 		if ( g.entityrubberbandlist.size() == 1 )
 		{
-			#ifdef WICKEDENGINE
 			if (!pref.iEnableDragDropEntityMode)
-			#endif
 			{
 				// only dehighlight if single extract, not if a rubber band / linked entities extraction
-				#ifdef WICKEDENGINE
 				t.geditorhighlightingtentityID = ele_id;
-				#endif
+				t.geditorhighlightingtentityobj = t.obj;
+				WickedSetEntityId(t.gridentity);
+				WickedSetElementId(ele_id);
 				editor_restoreobjhighlightifnotrubberbanded(t.obj);
+				WickedSetEntityId(-1);
+				WickedSetElementId(0);
 			}
 		}
 		t.gridentityobj=t.obj;
 
-#ifdef WICKEDENGINE
 		if (t.entityprofile[t.gridentity].ismarker == 2)
 		{
 			if (ele_id > 0)
@@ -32408,9 +32375,7 @@ void gridedit_recreateentitycursor ( void )
 				entity_updatelightobjtype(t.gridentityobj, 0);
 			}
 		}
-#endif
 
-#ifdef WICKEDENGINE
 		if (t.entityprofile[t.gridentity].islightmarker == 1)
 		{
 			sObject* pObject = g_ObjectList[t.obj];
@@ -32418,20 +32383,17 @@ void gridedit_recreateentitycursor ( void )
 				WickedCall_SetObjectCastShadows(pObject, false);
 			t.entityprofile[t.gridentity].castshadow = -1;
 		}
-#endif
 		
-#ifdef WICKEDENGINE
 		//PE: Old decal support.
 		if (t.entityprofile[t.gridentity].bIsDecal)
 		{
 			SetupDecalObject(t.obj, ele_id);
 		}
-#endif
-
 	}
-#ifdef WICKEDENGINE
+
 	//HighLight instantly.
-	if (t.gridentityobj > 0) {
+	if (t.gridentityobj > 0) 
+	{
 		if (t.gridentityobj < g_iObjectListCount)
 		{
 			if (g_ObjectList[t.gridentityobj])
@@ -32444,8 +32406,6 @@ void gridedit_recreateentitycursor ( void )
 			}
 		}
 	}
-
-#endif
 
 	editor_refreshentitycursor ( );
 }

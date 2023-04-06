@@ -352,6 +352,8 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.fSnowOpacity = 1.0;
 	t.visuals.fSnowOffset = 0.0;
 
+	t.visuals.iEnvProbeResolution = 128;
+
 	if (t.visuals.skyindex == 0)
 	{
 		extern wiECS::Entity g_weatherEntityID;
@@ -977,6 +979,9 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.GrassEndHeightUnderwater=" + Str(GGGrass::gggrass_global_params.max_height_underwater);
 	WriteString(1, t.strwork.Get());
 
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnvProbeResolution=" + Str(t.visuals.iEnvProbeResolution);
+	WriteString(1, t.strwork.Get());
+
 #endif
 
 	WriteString (  1, "" );
@@ -1426,6 +1431,8 @@ void visuals_load ( void )
 			t.try_s = "visuals.GrassMaxHeight"; if (t.tfield_s == t.try_s)  GGGrass::gggrass_global_params.max_height = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.GrassStartHeightUnderwater"; if (t.tfield_s == t.try_s)  GGGrass::gggrass_global_params.min_height_underwater = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.GrassEndHeightUnderwater"; if (t.tfield_s == t.try_s)  GGGrass::gggrass_global_params.max_height_underwater = ValF(t.tvalue_s.Get());
+
+			t.try_s = "visuals.EnvProbeResolution"; if (t.tfield_s == t.try_s)  t.visuals.iEnvProbeResolution = ValF(t.tvalue_s.Get());
 
 			#endif
 

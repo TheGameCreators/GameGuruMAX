@@ -8207,7 +8207,6 @@ void Wicked_Update_Visuals(void *voidvisual)
 {
 	visualstype* visuals = (visualstype *) voidvisual;
 	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-
 	if (weather)
 	{
 		weather->ambient.x = visuals->AmbienceRed_f / 255.0;
@@ -8463,6 +8462,9 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bSetting = t.visuals.bEndableGrassDrawing;
 
 	gggrass_global_params.draw_enabled = bSetting;
+
+	// update env probe resolution if this changes (Wicked only allocates if there is a change)
+	wiScene::GetScene().SetEnvProbeResolution(t.visuals.iEnvProbeResolution);
 }
 
 #endif
@@ -25990,15 +25992,22 @@ void gridedit_makelighthybrid ( void )
 entityeleproftype *lua_grideleprof;
 entityeleproftype lua_readonly_grideleprof; //Temp for readonly dynamic lua parsing.
 
-void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_grideleprof, int elementID)
+void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_grideleprof, int elementID)
 {
 	//FPE Properties.
+	bool bIsLightProbe = false;
 	bool bDisplaySmallIcon = false;
 	bool bDisplayName = false;
 	static int fpe_current_selected_script = 0;
 	static bool fpe_current_loaded_script_has_dlua = false;
 	int media_icon_size = 64;
 	LPSTR pAIRoot = "scriptbank\\";
+
+	// flag if a probe
+	if (entid > 0 && t.entityprofile[entid].ismarker == 2 && edit_grideleprof->light.fLightHasProbe >= 50.0f)
+	{
+		bIsLightProbe = true;
+	}
 
 	if (readonly)
 	{
@@ -26422,7 +26431,8 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		//Display icon.
 		if (bDisplaySmallIcon)
 		{
-			if (t.entityprofile[entid].iThumbnailSmall > 0) {
+			if (t.entityprofile[entid].iThumbnailSmall > 0) 
+			{
 				float w = ImGui::GetContentRegionAvailWidth();
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (media_icon_size*0.5), 0.0f));
 				ImGui::ImgBtn(t.entityprofile[entid].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
@@ -26432,6 +26442,45 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 		//#########################################
 		//#### Display predefined light setup. ####
 		//#########################################
+		if (bIsLightProbe == true)
+		{
+			// control base range which is then later scaled XYZ
+			ImGui::TextCenter("Light Probe Range");
+			ImGui::PushItemWidth(-10);
+			int iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbe;
+			if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iLightProbeRange, 50, 500, "Specify the base range of the environment probe attached to the light"))
+			{
+				edit_grideleprof->light.fLightHasProbe = iLightProbeRange;
+				g_bLightProbeScaleChanged = true;
+				bLightChanged = true;
+			}
+
+			// drop down to control env map resolution
+			ImGui::TextCenter("Global Probe Resolution");
+			const char* items_align[] = { "128", "256", "512", "1024", "2048" };
+			int type_selection = 0;
+			if (t.visuals.iEnvProbeResolution == 128) type_selection = 0;
+			else if (t.visuals.iEnvProbeResolution == 256) type_selection = 1;
+			else if (t.visuals.iEnvProbeResolution == 512) type_selection = 2;
+			else if (t.visuals.iEnvProbeResolution == 1024) type_selection = 3;
+			else if (t.visuals.iEnvProbeResolution == 2048) type_selection = 4;
+			ImGui::PushItemWidth(-10);
+			if (ImGui::Combo("##setenvproberesolution", &type_selection, items_align, IM_ARRAYSIZE(items_align)))
+			{
+				if (type_selection == 0) t.visuals.iEnvProbeResolution = 128;
+				else if (type_selection == 1) t.visuals.iEnvProbeResolution = 256;
+				else if (type_selection == 2) t.visuals.iEnvProbeResolution = 512;
+				else if (type_selection == 3) t.visuals.iEnvProbeResolution = 1024;
+				else if (type_selection == 4) t.visuals.iEnvProbeResolution = 2048;
+				Wicked_Update_Visuals((void*)&t.visuals);
+				g.projectmodified = 1;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Choose a global envrionment map resolution for light probes. Note that this is a per-level global setting and affects all probes in the level");
+			ImGui::PopItemWidth();
+
+			// and done
+			return;
+		}
 
 		//Palette.
 		#define MAXPREDEFINEDSETUPS 32
@@ -26912,43 +26961,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 			}
 			ImGui::PopItemWidth();
 		}
-
-		// introduce option to have light specify a local env light prove
-		if (pref.iObjectEnableAdvanced)
-		{
-			bool bLightProbe = false;
-			if (edit_grideleprof->light.fLightHasProbe >= 50.0f) bLightProbe = true;
-			if (ImGui::Checkbox("Light Probe", &bLightProbe))
-			{
-				if (bLightProbe == true)
-					edit_grideleprof->light.fLightHasProbe = 100.0f;
-				else
-					edit_grideleprof->light.fLightHasProbe = 0.0f;
-				bLightProbe = true;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets whether an environmental probe is attached to this light");
-			if (bLightProbe == true)
-			{
-				ImGui::TextCenter("Light Probe Scale");
-				ImGui::PushItemWidth(-10);
-				int iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbe;
-				if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iLightProbeRange, 50, 500, "Specify the range of the environment probe attached to the light"))
-				{
-					edit_grideleprof->light.fLightHasProbe = iLightProbeRange;
-					g_bLightProbeScaleChanged = true;
-				}
-				////fTmp = edit_grideleprof->light.fLightHasProbe * 100;
-				//	//if (ImGui::MaxSliderInputFloat2("##fLightProbeScaleSimpleInput", &fTmp, 1.0f, 500.0f, "Specify the scaling of the environment probe attached to the light", 0, 100.0f, 42.0f))
-				//	//{
-				//	//	// triggers probe debug to show
-				//	//	current_light_selected = -1;
-				//	//	g_bLightProbeScaleChanged = true;
-				//	//	bLightChanged = true;
-				//	//}
-				//	//edit_grideleprof->light.fLightHasProbe = fTmp / 100.0f;
-				ImGui::PopItemWidth();
-			}
-		}
 		#endif
 
 		ImGui::TextCenter("Light Color");
@@ -27096,10 +27108,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 
 		if (!readonly)
 		{
-			//PE: Make sure to always remove debug probe.
-			if (ImGui::IsMouseDown(0) == 0 && wiRenderer::GetToDrawDebugEnvProbes())
-				wiRenderer::SetToDrawDebugEnvProbes(false);
-
 			// update light if change angles
 			static float fLastLightXAngle = -1.0f;
 			static float fLastLightYAngle = -1.0f;
@@ -27121,8 +27129,9 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 				int ilightIndex = 0;
 				float lightx, lighty, lightz, lightax, lightay, lightaz;
 				if (elementID > 0)
+				{
 					ilightIndex = t.entityelement[elementID].eleprof.light.index;
-
+				}
 				if (!bNoLightRotate && bLightTypeChanged && elementID > 0)
 				{
 					if (edit_grideleprof->usespotlighting == LIGHTTYPESPOT)
@@ -27154,8 +27163,19 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 
 				if (elementID > 0 && ilightIndex > 0)
 				{
-					int iWickedLightIndex = t.infinilight[ilightIndex].wickedlightindex;
+					// any light probes destroy the effect of the light sibling
+					float fLightHasProbe = edit_grideleprof->light.fLightHasProbe;
+					if (fLightHasProbe >= 50.0f)
+					{
+						colors[0] = 0;
+						colors[1] = 0;
+						colors[2] = 0;
+						edit_grideleprof->light.color = 255<<24;
+						edit_grideleprof->light.range = 0;
+						edit_grideleprof->castshadow = 1;
+					}
 
+					int iWickedLightIndex = t.infinilight[ilightIndex].wickedlightindex;
 					if (bLightTypeChanged)
 					{
 						//Recreate light.
@@ -27166,7 +27186,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 						t.infinilight[ilightIndex].wickedlightindex = iWickedLightIndex;
 						bLightTypeChanged = false;
 					}
-
 					lightx = t.entityelement[elementID].x;
 					lighty = t.entityelement[elementID].y;
 					lightz = t.entityelement[elementID].z;
@@ -27175,7 +27194,6 @@ void DisplayFPEBehavior( bool readonly, int entid, entityeleproftype *edit_gride
 					lightaz = t.entityelement[elementID].rz;
 					float lightrange = edit_grideleprof->light.range;
 					float spotlightradius = edit_grideleprof->light.offsetup;
-					float fLightHasProbe = edit_grideleprof->light.fLightHasProbe;
 					int colr = colors[0];
 					int colg = colors[1];
 					int colb = colors[2];
@@ -37215,6 +37233,7 @@ void SetIconSetCheck(bool bInstant)
 		{
 			LoadImage("editors\\uiv3\\entity_particle.png", ENTITY_PARTICLE);
 			LoadImage("editors\\uiv3\\entity_light.png", ENTITY_LIGHT);
+			LoadImage("editors\\uiv3\\entity_probe.png", ENTITY_PROBE);
 			LoadImage("editors\\uiv3\\entity_win.png", ENTITY_WIN);
 			LoadImage("editors\\uiv3\\entity_image.png", ENTITY_IMAGE);
 			LoadImage("editors\\uiv3\\entity_music.png", ENTITY_MUSIC);
@@ -37248,6 +37267,7 @@ void SetIconSetCheck(bool bInstant)
 		{
 			LoadImage("editors\\uiv3\\entity_particle2.png", ENTITY_PARTICLE);
 			LoadImage("editors\\uiv3\\entity_light2.png", ENTITY_LIGHT);
+			LoadImage("editors\\uiv3\\entity_probe2.png", ENTITY_PROBE);
 			LoadImage("editors\\uiv3\\entity_win2.png", ENTITY_WIN);
 			LoadImage("editors\\uiv3\\entity_image2.png", ENTITY_IMAGE);
 			LoadImage("editors\\uiv3\\entity_music2.png", ENTITY_MUSIC);

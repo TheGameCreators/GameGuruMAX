@@ -189,7 +189,6 @@ void lighting_loop(void)
 	}
 
 	// if particle, update it
-	#ifdef WICKEDENGINE
 	if (t.gridentityobj > 0)
 	{
 		if (t.grideleprof.newparticle.emitterid != -1)
@@ -197,7 +196,6 @@ void lighting_loop(void)
 			entity_updateparticleemitterbyID (&t.grideleprof, t.gridentityobj, t.gridentityscalex_f - 100.0f, t.gridentityposx_f, t.gridentityposy_f, t.gridentityposz_f);
 		}
 	}
-	#endif
 
 	// and detect if light probe scale changes
 	extern bool g_bLightProbeScaleChanged;
@@ -216,7 +214,10 @@ void lighting_loop(void)
 					float fLightProbeRange = t.entityelement[ee].eleprof.light.fLightHasProbe;
 					if (fLightProbeRange >= 50)
 					{
-						GGTerrain::GGTerrain_AddEnvProbeList(t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z, fLightProbeRange);
+						float fSX = t.entityelement[ee].scalex;
+						float fSY = t.entityelement[ee].scaley;
+						float fSZ = t.entityelement[ee].scalez;
+						GGTerrain::GGTerrain_AddEnvProbeList(t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z, fLightProbeRange, t.entityelement[ee].quatx, t.entityelement[ee].quaty, t.entityelement[ee].quatz, t.entityelement[ee].quatw, fSX, fSY, fSZ);
 					}
 				}
 			}
@@ -233,6 +234,11 @@ void lighting_loop(void)
 		}
 		*/
 	}
+	extern bool bImGuiInTestGame;
+	if(t.widget.pickedEntityIndex>0 && t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].ismarker == 2 && bImGuiInTestGame==false)
+		wiRenderer::SetToDrawDebugEnvProbes(true);
+	else
+		wiRenderer::SetToDrawDebugEnvProbes(false);
 }
 
 void lighting_weaponFlash_loop(void)

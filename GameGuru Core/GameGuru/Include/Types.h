@@ -3978,11 +3978,15 @@ struct visualstype
 
 	bool bDisableSkybox = false;
 
+	int iEnvProbeResolution = 128;
+
 	cStr customTexturesFolder = "";
 #endif
+
 	// Constructor
 	visualstype ( )
 	{
+		 iEnvProbeResolution = 128;
 		 LensFlare_f = 0.5f;
 		 SAORadius_f = 0.0f;
 		 SAOIntensity_f = 0.0f;

@@ -3488,6 +3488,12 @@ void entity_loaddata ( void )
 			//PE: LMFIX - Light , default to 100.
 			if (t.entityprofile[t.entid].defaultheight == 155)
 				t.entityprofile[t.entid].defaultheight = 80;
+
+			// special code to set this light to black but keep alpha
+			if (t.entityprofile[t.entid].light.color == -100)
+			{
+				t.entityprofile[t.entid].light.color = (255 << 24);
+			}
 		}
 		#endif
 

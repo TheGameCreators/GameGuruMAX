@@ -4705,21 +4705,27 @@ void entity_createobj ( void )
 
 void entity_updatelightobjtype (int obj, int spotlighting)
 {
-	if (spotlighting == 0)
+	if (obj > 0)
 	{
-		// point light
-		ShowLimb(obj,0);
-		ShowLimb(obj,1);
-		ShowLimb(obj,2);
-		HideLimb(obj,3);
-	}
-	else
-	{
-		// spot light
-		HideLimb(obj,0);
-		HideLimb(obj,1);
-		HideLimb(obj,2);
-		ShowLimb(obj,3);
+		if (LimbExist(obj, 3) == 1)
+		{
+			if (spotlighting == 0)
+			{
+				// point light
+				ShowLimb(obj, 0);
+				ShowLimb(obj, 1);
+				ShowLimb(obj, 2);
+				HideLimb(obj, 3);
+			}
+			else
+			{
+				// spot light
+				HideLimb(obj, 0);
+				HideLimb(obj, 1);
+				HideLimb(obj, 2);
+				ShowLimb(obj, 3);
+			}
+		}
 	}
 }
 
@@ -5374,15 +5380,6 @@ void entity_placeprobe(int obj, float fLightProbeScale)
 		//PE: Add remove if already exists.
 		cStr name = cStr(obj);
 		WickedCall_CreateReflectionProbe(fObjCenter.x, fObjCenter.y, fObjCenter.z, name.Get(), fSize);
-
-		// also need a way to define the scope box to make sure
-		// a probe bound box does not leave the confines of 'say', a room or area
-		// as this creates artifacts on the other side of walls
-		extern bool g_bLightProbeScaleChanged;
-		if (g_bLightProbeScaleChanged == true)
-			wiRenderer::SetToDrawDebugEnvProbes(true);
-		else
-			wiRenderer::SetToDrawDebugEnvProbes(false);
 	}
 }
 

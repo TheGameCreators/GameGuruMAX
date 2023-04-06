@@ -5053,7 +5053,6 @@ void charactercreatorplus_imgui_v3(void)
 				float ccp_part_image_size = entity_w / (float)ccp_part_icons_columns;
 				ccp_part_image_size -= ((2.0f) * ccp_part_icons_columns) - 2.0f;
 
-				//entity_icons_columns = 5;
 				int ccp_part_images[] = { CCP_HEAD, CCP_HAIR, CCP_BEARD, CCP_HAT, CCP_GLASSES, CCP_BODY, CCP_LEGS, CCP_FEET };
 				int ccp_part_order[] =  { 2       ,1        ,4         ,0       ,3           ,5        ,6        ,7         };
 				cstr ccp_part_tooltip[] = {

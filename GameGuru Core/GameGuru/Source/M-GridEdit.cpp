@@ -1881,19 +1881,6 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 			t.visuals.iShadowSpotResolution = 512;
 		} break;
 	}
-	/* PE: We cant do this, this will overwrite users settings.
-	t.gamevisuals.bSSREnabled = t.visuals.bSSREnabled;
-	t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled;
-	t.gamevisuals.bLightShafts = t.visuals.bLightShafts;
-	t.gamevisuals.bLensFlare = t.visuals.bLensFlare;
-	t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
-	t.gamevisuals.iShadowSpotCascadeResolution = t.visuals.iShadowSpotCascadeResolution;
-	t.gamevisuals.iShadowPointMax = t.visuals.iShadowPointMax; 
-	t.gamevisuals.iShadowPointResolution = t.visuals.iShadowPointResolution;
-	t.gamevisuals.iShadowSpotMax = t.visuals.iShadowSpotMax;
-	t.gamevisuals.iShadowSpotResolution = t.visuals.iShadowSpotResolution;
-	*/
-
 	Wicked_Update_Visuals( &t.visuals );
 }
 
@@ -8389,10 +8376,12 @@ void mapeditorexecutable_loop(void)
 		//######################
 		//#### Object Tools ####
 		//######################
+		bool bIsLightProbe = false;
 		#ifdef USE_ENTITY_TOOL_WINDOW
 		#ifdef WICKEDENGINE
 		g_selected_editor_object = NULL;
-		if (t.widget.pickedObject > 0) {
+		if (t.widget.pickedObject > 0) 
+		{
 			if (t.widget.pickedObject < g_iObjectListCount)
 			{
 				if (g_ObjectList[t.widget.pickedObject])
@@ -8542,6 +8531,11 @@ void mapeditorexecutable_loop(void)
 				}
 				#endif
 
+				// determine if a provbe or not
+				if(iEntityIndex>0)
+					if (t.entityelement[iEntityIndex].eleprof.light.fLightHasProbe >= 50.0f)
+						bIsLightProbe = true;
+
 				// detect ANY change inside entityelement (inc eleprof) so can trigger instance cloing of collectables
 				bool bSnappedEntityElementCopy = false;
 				static entityeleproftype snapshotentityelement;
@@ -8572,7 +8566,7 @@ void mapeditorexecutable_loop(void)
 				bool bDuplicate = false;
 				bool bChildWindowOpen = false;
 				bool bClickedTheLockUnlockButton = false;
-				
+
 				if (iActiveObj > 0)
 				{
 					bool bIsEBEWidget = false;
@@ -8665,7 +8659,15 @@ void mapeditorexecutable_loop(void)
 						{
 							if (t.entityprofile[iEntID].islightmarker == 1 || t.entityprofile[iEntID].ischaracter == 1)
 							{
+								// regular light or character
 								bToolScale = false;
+
+								// allow probes to have everything
+								if (t.entityprofile[iEntID].ismarker == 2 && t.entityelement[t.ttte].eleprof.light.fLightHasProbe >= 50.0f)
+								{
+									bToolRotation = true;
+									bToolScale = true;
+								}
 							}
 							else if (t.entityprofile[iEntID].ismarker > 0)
 							{
@@ -8725,7 +8727,6 @@ void mapeditorexecutable_loop(void)
 
 							if (ImGui::StyleCollapsingHeader("Identity##2", ImGuiTreeNodeFlags_DefaultOpen)) //ImGuiTreeNodeFlags_None
 							{
-
 								//Display icon.
 								if (pref.iObjectEnableAdvanced == 2)
 								{
@@ -8783,10 +8784,12 @@ void mapeditorexecutable_loop(void)
 									ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
 								}
 
-								ImGui::Indent(10);
-								t.entityelement[iEntityIndex].eleprof.name_s = imgui_setpropertystring2_v2(t.group, t.entityelement[iEntityIndex].eleprof.name_s.Get(), "", pDescTooltip, bObjectIsACollectableAndReadOnlyName);
-								ImGui::Indent(-10);
-
+								if (bIsLightProbe == false)
+								{
+									ImGui::Indent(10);
+									t.entityelement[iEntityIndex].eleprof.name_s = imgui_setpropertystring2_v2(t.group, t.entityelement[iEntityIndex].eleprof.name_s.Get(), "", pDescTooltip, bObjectIsACollectableAndReadOnlyName);
+									ImGui::Indent(-10);
+								}
 								ImGui::PopStyleColor();
 								ImGui::Separator();
 							}
@@ -9755,49 +9758,51 @@ void mapeditorexecutable_loop(void)
 								ImGui::PopStyleVar();
 							}
 
-							// random spray object mode
-							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 4.0f));
-							ImGui::PushItemWidth(fPushItemWidth);
-							bool bSpray = t.gridedit.entityspraymode;
-							if (ImGui::Checkbox("Randomly Spray Objects", &bSpray))
+							if (bIsLightProbe == false)
 							{
-							}
-							t.gridedit.entityspraymode = bSpray;
-							if (t.gridedit.entityspraymode)
-							{
-								ImGui::TextCenter("Spray Radius");
-								if (ImGui::MaxSliderInputInt("##SetSpray Radius", &t.gridedit.entitysprayrange, 30, 1000, "Set Spray Radius"))
+								// random spray object mode
+								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 4.0f));
+								ImGui::PushItemWidth(fPushItemWidth);
+								bool bSpray = t.gridedit.entityspraymode;
+								if (ImGui::Checkbox("Randomly Spray Objects", &bSpray))
 								{
-									iDisplayCircleFrames = 20;
 								}
-							}
-							ImGui::PopItemWidth();
-							static bool bOldSprayMode = t.gridedit.entityspraymode;//t.gridedit.entitysprayrange 50-1000
-							static uint32_t oldflag = 0;
-							static float oldbrushSize = 0;
-
-							if (t.gridedit.entityspraymode)
-							{
-								if (bOldSprayMode != t.gridedit.entityspraymode)
+								t.gridedit.entityspraymode = bSpray;
+								if (t.gridedit.entityspraymode)
 								{
-									oldflag = ggterrain_global_render_params2.flags2;
-									oldbrushSize = ggterrain_global_render_params2.brushSize;
-									bOldSprayMode = t.gridedit.entityspraymode;
+									ImGui::TextCenter("Spray Radius");
+									if (ImGui::MaxSliderInputInt("##SetSpray Radius", &t.gridedit.entitysprayrange, 30, 1000, "Set Spray Radius"))
+									{
+										iDisplayCircleFrames = 20;
+									}
 								}
-								void set_terrain_sculpt_mode(int mode);
-								void set_terrain_edit_mode(int mode);
-								set_terrain_sculpt_mode(0);
-								set_terrain_edit_mode(0);
-								ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_BRUSH_SIZE;
-								ggterrain_global_render_params2.brushSize = (float)t.gridedit.entitysprayrange * 1.5f; //PE: A bit larger.
-							}
-							else
-							{
-								if (bOldSprayMode != t.gridedit.entityspraymode)
+								ImGui::PopItemWidth();
+								static bool bOldSprayMode = t.gridedit.entityspraymode;
+								static uint32_t oldflag = 0;
+								static float oldbrushSize = 0;
+								if (t.gridedit.entityspraymode)
 								{
-									if (oldflag != 0) ggterrain_global_render_params2.flags2 = oldflag;
-									if (oldbrushSize != 0) ggterrain_global_render_params2.brushSize = oldbrushSize;
-									bOldSprayMode = t.gridedit.entityspraymode;
+									if (bOldSprayMode != t.gridedit.entityspraymode)
+									{
+										oldflag = ggterrain_global_render_params2.flags2;
+										oldbrushSize = ggterrain_global_render_params2.brushSize;
+										bOldSprayMode = t.gridedit.entityspraymode;
+									}
+									void set_terrain_sculpt_mode(int mode);
+									void set_terrain_edit_mode(int mode);
+									set_terrain_sculpt_mode(0);
+									set_terrain_edit_mode(0);
+									ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_BRUSH_SIZE;
+									ggterrain_global_render_params2.brushSize = (float)t.gridedit.entitysprayrange * 1.5f; //PE: A bit larger.
+								}
+								else
+								{
+									if (bOldSprayMode != t.gridedit.entityspraymode)
+									{
+										if (oldflag != 0) ggterrain_global_render_params2.flags2 = oldflag;
+										if (oldbrushSize != 0) ggterrain_global_render_params2.brushSize = oldbrushSize;
+										bOldSprayMode = t.gridedit.entityspraymode;
+									}
 								}
 							}
 
@@ -9810,12 +9815,13 @@ void mapeditorexecutable_loop(void)
 							ImGui::PopStyleColor();
 							ImGui::Indent(-10);
 
-							// When the object is locked, a child window is created so a tooltip can display even when the items are disabled.
-							//if (bReadOnlyMode)
-							//{
-								//ImGui::EndChild();
-								//bReadOnlyMode = false;
-							//}
+							// update probe itself if changed
+							if (bIsLightProbe == true)
+							{
+								if (!bReadOnlyMode && bUpdatePosition == true) g_bLightProbeScaleChanged = true;
+								if (!bReadOnlyMode && bUpdateRoataion == true) g_bLightProbeScaleChanged = true;
+								if (!bReadOnlyMode && bUpdateScale == true) g_bLightProbeScaleChanged = true;
+							}
 
 							// update any position, rotation or scale changes
 							if (!bReadOnlyMode && bUpdatePosition == true)
@@ -10047,7 +10053,14 @@ void mapeditorexecutable_loop(void)
 						}
 						if (t.tflaglight == 1 || t.entityprofile[iMasterID].ismarker == 2)
 						{
-							HeaderName = "Color Palette##2";
+							if(bIsLightProbe==true)
+							{
+								HeaderName = "Probe Settings##2";
+							}
+							else
+							{
+								HeaderName = "Color Palette##2";
+							}
 						}
 						if (t.entityprofile[iMasterID].ismarker == 10)
 						{
@@ -10170,43 +10183,6 @@ void mapeditorexecutable_loop(void)
 											g_collectionList.push_back(item);
 											g_bChangedGameCollectionList = true;
 										}
-										/* moved to quest choice dropdown
-										if (iCollectableSettingsMode == 2)
-										{
-											collectionQuestType item;
-											fill_rpg_quest_defaults(&item, iMasterID, iEntityIndex);
-
-											// only add unique quest titles
-											bool bFoundMatch = false;
-											for (int q = 0; q < g_collectionQuestList.size(); q++)
-											{
-												if (stricmp(g_collectionQuestList[q].collectionFields[0].Get(), item.collectionFields[0].Get()) == NULL)
-												{
-													bFoundMatch = true;
-												}
-											}
-											if (bFoundMatch == false)
-											{
-												// add unique to quest list
-												g_collectionQuestList.push_back(item);
-												int iQuestIndexAdded = g_collectionQuestList.size();
-
-												// inject into behaviour choice so can reflect as existing
-												for (int n = 0; n < t.entityelement[iEntityIndex].eleprof.PropertiesVariable.iVariables; n++)
-												{
-													if (pestrcasestr(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.Variable[n], "QuestChoice"))
-													{
-														sprintf(t.entityelement[iEntityIndex].eleprof.PropertiesVariable.VariableValue[n], "%d", iQuestIndexAdded);
-														break;
-													}
-												}
-
-												// refresh behaviour and the quest dropdown
-												fpe_current_loaded_script = -1;
-												bChangedGameCollectionList = true;
-											}
-										}
-										*/
 									}
 								}
 								else
@@ -12139,24 +12115,21 @@ void mapeditorexecutable_loop(void)
 							}
 							else if (t.tflaglight == 1)
 							{
-								if (ImGui::StyleCollapsingHeader("Name", ImGuiTreeNodeFlags_DefaultOpen)) {
-
+								if (ImGui::StyleCollapsingHeader("Name", ImGuiTreeNodeFlags_DefaultOpen)) 
+								{
 									//Display icon.
-									if (t.entityprofile[iParentEntid].iThumbnailSmall > 0) {
+									if (t.entityprofile[iParentEntid].iThumbnailSmall > 0) 
+									{
 										float w = ImGui::GetWindowContentRegionWidth();
 										ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (media_icon_size*0.5), 0.0f));
 										ImGui::ImgBtn(t.entityprofile[iParentEntid].iThumbnailSmall, ImVec2(media_icon_size, media_icon_size), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
 									}
-
 									ImGui::Indent(10);
-
 									//Name and color setup only.
 									ImGui::Text("");
 									t.grideleprof.name_s = imgui_setpropertystring2(t.group, t.grideleprof.name_s.Get(), "Name", t.strarr_s[204].Get());
 									//ImGui::Text("");
-
 									ImGui::Indent(-10);
-
 								}
 
 								if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -13790,7 +13763,8 @@ void mapeditorexecutable_loop(void)
 			if (content_avail.y < fsy) content_avail.y = fsy;
 			
 			// Size of icons.
-			int entity_icons = 12, entity_icons_columns = 6;
+			int entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 13;
+			int entity_icons_columns = 6;
 			float entity_w = ImGui::GetContentRegionAvailWidth() - 10.0f;
 			float fSpacer = 0.0f;
 			float entity_image_size = entity_w / (float)entity_icons_columns;
@@ -13798,7 +13772,7 @@ void mapeditorexecutable_loop(void)
 			if (entity_w > 360)
 			{
 				//Switch to 12 per row.
-				entity_icons_columns = 12;
+				entity_icons_columns = entity_icons;// 12;
 				entity_image_size = entity_w / (float)entity_icons_columns;
 				entity_image_size -= 7.5f;
 			}
@@ -14856,9 +14830,11 @@ void mapeditorexecutable_loop(void)
 //			}
 
 #ifdef NEWGAMEELEMENTGRID
-			entity_icons = 12;
 
-			int entity_images[] = { ENTITY_START, ENTITY_CHECKPOINT, ENTITY_FLAG, ENTITY_TRIGGERZONE, ENTITY_WIN, ENTITY_LIGHT,ENTITY_VIDEO,ENTITY_MUSIC,ENTITY_SOUND,ENTITY_PARTICLE,ENTITY_IMAGE, ENTITY_TEXT };
+			// number of game element buttson shown
+			entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 13;
+
+			int entity_images[] = { ENTITY_START, ENTITY_CHECKPOINT, ENTITY_FLAG, ENTITY_TRIGGERZONE, ENTITY_WIN, ENTITY_LIGHT,ENTITY_VIDEO,ENTITY_MUSIC,ENTITY_SOUND,ENTITY_PARTICLE,ENTITY_IMAGE, ENTITY_TEXT, ENTITY_PROBE };
 			cstr entity_scripts[] = {
 				"_markers\\Player Start.fpe",
 				"_markers\\Player Checkpoint.fpe",
@@ -14871,7 +14847,8 @@ void mapeditorexecutable_loop(void)
 				"_markers\\Audio Zone.fpe",
 				"_markers\\Particles.fpe",
 				"_markers\\Image Zone.fpe",
-				"_markers\\Text Zone.fpe"
+				"_markers\\Text Zone.fpe",
+				"_markers\\Probe.fpe"
 			};
 			cstr entity_tooltip[] = {
 				"Add Player Start Position",
@@ -14885,7 +14862,8 @@ void mapeditorexecutable_loop(void)
 				"Add Audio Zone",
 				"Add Particle",
 				"Add Image Zone",
-				"Add Text Zone"
+				"Add Text Zone",
+				"Add Environment Probe"
 			};
 
 			int offset = 0;
@@ -15197,25 +15175,6 @@ void mapeditorexecutable_loop(void)
 				ImGui::Columns(1);
 			#endif
 			}
-
-
-			// Old way.
-			//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 4.0f));
-			//ImGui::Text("Show:  ");
-			//ImGui::SameLine();
-			//ImGui::SetCursorPos(ImGui::GetCursorPos() - ImVec2(0.0f, 4.0f));
-			//
-			//bShow = t.showeditorelements;
-			//if (ImGui::Checkbox("Editor", &bShow))
-			//{
-			//	t.showeditorelements = bShow;
-			//	editor_toggle_element_vis(bShow);
-			//}
-			//bShow = t.showtestgameelements;
-			//ImGui::SameLine();
-			//if (ImGui::Checkbox("Test Level", &bShow))
-			//	t.showtestgameelements = bShow;
-			//ImGui::Indent(-4);
 
 #else
 						// used to hide game elements so UI not too cluttered when in SHOOTER/RPG/PUZZLE GAMEPLAY panel mode
@@ -19073,6 +19032,8 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.iShadowSpotMax = t.visuals.iShadowSpotMax;
 	t.gamevisuals.iShadowSpotResolution = t.visuals.iShadowSpotResolution;
 
+	t.gamevisuals.iEnvProbeResolution = t.visuals.iEnvProbeResolution;
+
 	#endif
 
 	// copy game visuals to visuals for use in level play
@@ -19801,6 +19762,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.iShadowPointMax = t.gamevisuals.iShadowPointMax;
 	t.visuals.iShadowSpotMax = t.gamevisuals.iShadowSpotMax;
 	t.visuals.bTransparentShadows = t.gamevisuals.bTransparentShadows;
+
+	t.visuals.iEnvProbeResolution = t.gamevisuals.iEnvProbeResolution;
 
 	t.visuals.fShadowFarPlane = t.gamevisuals.fShadowFarPlane;
 
@@ -22441,7 +22404,11 @@ void input_calculatelocalcursor ( void )
 		{
 			if (t.grideleprof.usespotlighting == 0)
 			{
-				t.gridentityrotatex_f = 90;
+				if (t.grideleprof.light.fLightHasProbe >= 50.0f )
+					t.gridentityrotatex_f = 0;
+				else
+					t.gridentityrotatex_f = 90;
+
 				t.gridentityrotatey_f = 0;
 				t.gridentityrotatez_f = 0;
 				t.gridentityrotatequatmode = 0;
@@ -22556,8 +22523,8 @@ void input_calculatelocalcursor ( void )
 						}
 						else
 						{
-							// lights ALWAYS orient to surface
-							if (t.entityprofile[t.gridentity].ismarker == 2)
+							// lights ALWAYS orient to surface (but not probes)
+							if (t.entityprofile[t.gridentity].ismarker == 2 && t.grideleprof.light.fLightHasProbe < 50.0f)
 							{
 								bAdjustAndTilt = true;
 							}
@@ -22620,7 +22587,11 @@ void input_calculatelocalcursor ( void )
 						// all non-smart modes should keep lights hanging down
 						if (t.entityprofile[t.gridentity].ismarker == 2 && t.grideleprof.usespotlighting == 0)
 						{
-							t.gridentityrotatex_f = 270;
+							if (t.grideleprof.light.fLightHasProbe >= 50.0f)
+								t.gridentityrotatex_f = 0;
+							else
+								t.gridentityrotatex_f = 270;
+
 							t.gridentityrotatey_f = 0;
 							t.gridentityrotatez_f = 0;
 							t.gridentityrotatequatmode = 0;

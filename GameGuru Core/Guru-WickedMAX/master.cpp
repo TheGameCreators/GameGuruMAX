@@ -107,6 +107,7 @@ wiECS::Entity g_weatherEntityID = 0;
 Entity g_entitySunLight;
 MasterRenderer * master_renderer;
 wiSprite* pboundbox[4];
+int g_envProbeResolution = 128;
 
 extern ImVec2 renderTargetAreaPos;
 extern ImVec2 renderTargetAreaSize;
@@ -301,7 +302,6 @@ void Master::InitializeSecondaries()
 	infoDisplay.watermark = false;// true;
 	infoDisplay.fpsinfo = false;// true;
 	infoDisplay.resolution = false;// true;
-	//infoDisplay.size = 0;
 	master_renderer = &masterrenderer;
 	//MessageBoxA(NULL, "masterrenderer.Load();", "Debug", 0);
 	masterrenderer.Load();
@@ -311,14 +311,11 @@ void Master::InitializeSecondaries()
 	ActivatePath(&masterrenderer);
 	masterrenderer.Set3DResolution( masterrenderer.GetPhysicalWidth(), masterrenderer.GetPhysicalHeight() );
 
-	//long fps = master_renderer->getDeltaTime();
-
 	// smooth out experience, avoid jerkiness
 	wiEvent::SetVSync(bVsyncEnabled);
 	masterrenderer.setAO(RenderPath3D::AO_MSAO);// AO_DISABLED );
 
 	// occlusion query box has been expanded in an attempt to avoid flickering
-	//wiRenderer::SetOcclusionCullingEnabled(true);
 	wiRenderer::SetOcclusionCullingEnabled(false); // the lag is clearly visible, causing obvious gaps for some level designs (performance hit now disabled)!
 
 	// populate D3D ptrs (for IMGUI)
@@ -455,6 +452,9 @@ void Master::InitializeSecondaries()
 	int iDisplayWidth = masterrenderer.GetPhysicalWidth();
 	int iDisplayHeight = masterrenderer.GetPhysicalHeight();
 	InitDisplayAndGlob(hInst, hMainWnd, gUnpackDirectory, iDisplayWidth, iDisplayHeight);
+
+	// set this size early befiore probe resources created later (moved to SETUP.INI)
+	wiScene::GetScene().SetEnvProbeResolution(128);
 
 	// Some constructor calls still required
 

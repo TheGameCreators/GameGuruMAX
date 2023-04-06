@@ -28,6 +28,8 @@ struct envProbeItem
 	XMFLOAT3 position;
 	float distance;
 	float range;
+	XMFLOAT4 rotation;
+	XMFLOAT3 scale;
 	int used;
 };
 
@@ -250,7 +252,7 @@ int GGTerrain_Init( wiGraphics::CommandList cmd);
 void GGTerrain_WindowResized();
 
 void GGTerrain_ClearEnvProbeList(void);
-void GGTerrain_AddEnvProbeList(float x, float y, float z, float range);
+void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float quatx, float quaty, float quatz, float quatw, float sx, float sy, float sz);
 
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus ); // updates chunks and virtual texture, must not be called from a render pass
 int GGTerrain_IsReady();

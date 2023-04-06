@@ -39352,6 +39352,7 @@ bool bBlockNextMouseCheck = false;
 int iFakeLoadGameTest = 0;
 bool bStartLoadingGame = false;
 int iExecuteMenuCommand = 0;
+static int iCurrentSelectedWidget = -1;
 
 #define INCLUDE_GAME_SETTINGS
 
@@ -42410,7 +42411,8 @@ void process_storeboard(bool bInitOnly)
 								// New node defaults to a HUD screen
 								Storyboard.Nodes[node].used = true;
 								Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
-								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[13].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[13].restore_position.y);
+								//PE: Never used fixed node id (13) it might be at another position.
+								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iHUDScreenNodeID].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[iHUDScreenNodeID].restore_position.y);
 								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 								Storyboard.Nodes[node].iEditEnable = true;
 								strcpy(Storyboard.Nodes[node].title, "HUD Screen ");
@@ -42611,8 +42613,10 @@ void process_storeboard(bool bInitOnly)
 							int areaWidth = ImGui::GetMainViewport()->Size.x - 300;
 							int nodeWidth = 180;
 							int nodeHeight = 150;
-							storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, true);
-							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[13].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+							//PE: We cant force it to 13, it might overwrite another node.
+							iHUDScreenNodeID = storyboard_add_missing_nodex(13,areaWidth , nodeWidth, nodeHeight, false);
+							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iHUDScreenNodeID].id, ImVec2(areaWidth * 0.5 - (nodeWidth * 0.5), STORYBOARD_YSTART + (nodeHeight + NODE_HEIGHT_PADDING) * 3));
+							iCurrentSelectedWidget = -1;
 							// Also ensure that any user defined globals are removed when resetting HUD screens
 							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 							{
@@ -45315,7 +45319,6 @@ float WidgetSelectUsedFont(int nodeid, int index)
 static int iUpdateBackDropNode = -1;
 static int iUpdateWidgetThumbNode = -1;
 static int iUpdateWidgetThumbButton = -1;
-static int iCurrentSelectedWidget = -1;
 static bool bPreviewScreen = false;
 static bool bLastStandalone = false;
 static bool bDisplayGrid = false;

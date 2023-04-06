@@ -1512,6 +1512,7 @@ void  gpup_doit( int enr, CommandList cmd )
 			{
 				gpup_emitter[enr].spawnint = buf * 0.9f * gpup_emitter[enr].emitter_amount;
 				gpup_emitter[enr].emitter_burst_fire = gpup_emitter[enr].emitter_burst_fire - 1;
+				gpup_settings.pauser = 0; //PE: Fire it right now.
 			}
 			if ( gpup_emitter[enr].emitter_burst_auto == 1 && gpup_emitter[enr].emitterActive == 1 )
 			{

@@ -27467,6 +27467,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				if (bValid)
 				{
 					current_particle_selected = i;
+					bUpdateParticle = true;
 					break;
 				}
 
@@ -27709,8 +27710,30 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (ImGui::StyleButton("Reset to Default Particles", ImVec2(particle_w, 0)))
 		{
 			//Dont reset saved.
-			current_particle_selected = -1;
 			bPredefinedParticleInit = false; //Setup everything again.
+			bFindBestParticleChoice = true;
+			iLastParticleEntityElementIDHere = -1;
+			current_particle_selected = 0;
+			int iParticleEmitter = t.entityelement[elementID].eleprof.newparticle.emitterid;
+			if (iParticleEmitter != -1)
+			{
+				gpup_deleteEffect(iParticleEmitter);
+			}
+			t.entityelement[elementID].eleprof.newparticle.emitterid = -1;
+			t.entityelement[elementID].eleprof.newparticle.emittername = Predefined_Particle_Name[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.bParticle_Preview = Predefined_bParticle_Preview[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.bParticle_Show_At_Start = Predefined_bParticle_Show_At_Start[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.bParticle_Looping_Animation = Predefined_bParticle_Looping_Animation[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.bParticle_Full_Screen = Predefined_bParticle_Full_Screen[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.fParticle_Fullscreen_Duration = Predefined_fParticle_Fullscreen_Duration[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.fParticle_Fullscreen_Fadein = Predefined_fParticle_Fullscreen_Fadein[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.fParticle_Fullscreen_Fadeout = Predefined_fParticle_Fullscreen_Fadeout[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.Particle_Fullscreen_Transition = Predefined_Particle_Fullscreen_Transition[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.fParticle_Speed = Predefined_fParticle_Speed[current_particle_selected];
+			t.entityelement[elementID].eleprof.newparticle.fParticle_Opacity = Predefined_fParticle_Opacity[current_particle_selected];
+			edit_grideleprof->newparticle = t.entityelement[elementID].eleprof.newparticle;
+			current_particle_selected = -1;
+
 		}
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset Particles to The Default Settings");
 
@@ -27882,7 +27905,9 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		}
 		#endif
 
-		if (bUpdateParticle && elementID > 0)
+		sObject* pObject = GetObjectData(t.entityelement[elementID].obj);
+
+		if (bUpdateParticle && elementID > 0 && pObject)
 		{
 			t.entityelement[elementID].eleprof.newparticle = edit_grideleprof->newparticle;
 			if (current_particle_selected >= 0)
@@ -27932,7 +27957,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				gpup_setGlobalPosition(iParticleEmitter, t.entityelement[elementID].x, t.entityelement[elementID].y, t.entityelement[elementID].z);
 				gpup_resetLocalPosition(iParticleEmitter);
 				float fSpeedX, fSpeedY, fSpeedZ;
-				sObject* pObject = GetObjectData(t.entityelement[elementID].obj);
 				gpup_getEmitterSpeedAngleAdjustment(iParticleEmitter, &fSpeedX, &fSpeedY, &fSpeedZ);
 				GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
 				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &pObject->position.matRotation);
@@ -27941,6 +27965,9 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				gpup_emitterActive(iParticleEmitter, t.entityelement[elementID].eleprof.newparticle.bParticle_Preview);
 				gpup_setEffectAnimationSpeed(iParticleEmitter, t.entityelement[elementID].eleprof.newparticle.fParticle_Speed);
 				gpup_setEffectOpacity(iParticleEmitter, t.entityelement[elementID].eleprof.newparticle.fParticle_Opacity);
+
+				if(!t.entityelement[elementID].eleprof.newparticle.bParticle_Looping_Animation)
+					gpup_emitterFire(iParticleEmitter);
 			}
 			edit_grideleprof->newparticle = t.entityelement[elementID].eleprof.newparticle;
 		}

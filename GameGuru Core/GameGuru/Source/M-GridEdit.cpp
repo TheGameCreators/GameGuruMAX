@@ -13811,6 +13811,9 @@ void mapeditorexecutable_loop(void)
 
 			//PE: New object tool icons.
 			#ifdef INCLUDELEFTENTITYTOOLICONS
+			//PE: Int round up.
+			int iIconRows = (entity_icons + (entity_icons_columns - 1)) / entity_icons_columns;
+
 			if (1) // t.grideditselect == 5)
 			{
 				#ifdef NEWGAMEELEMENTGRID
@@ -13821,7 +13824,7 @@ void mapeditorexecutable_loop(void)
 				}
 				
 				content_avail.y -= 3.0f;
-				content_avail.y -= ((entity_w / entity_icons_columns) * (entity_icons / entity_icons_columns));
+				content_avail.y -= ((entity_w / entity_icons_columns) * iIconRows);
 				content_avail.y -= 10.0f;
 
 				#else
@@ -13841,8 +13844,8 @@ void mapeditorexecutable_loop(void)
 				}
 				else
 				{
-					content_avail.y -= (entity_image_size * (entity_icons / entity_icons_columns));
-					content_avail.y -= (3.0f * (entity_icons / entity_icons_columns)); //Y padding.
+					content_avail.y -= (entity_image_size * iIconRows);
+					content_avail.y -= (3.0f * iIconRows); //Y padding.
 				}
 				if (entity_w < 100)
 				{
@@ -14871,7 +14874,7 @@ void mapeditorexecutable_loop(void)
 				offset = 205;// 115;
 
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, ImGui::GetContentRegionAvail().y - offset
-				- ((entity_w / entity_icons_columns) * (entity_icons / entity_icons_columns)) - ImGui::GetFontSize() * 4.0f + 10.0f));
+				- ((entity_w / entity_icons_columns) * iIconRows) - ImGui::GetFontSize() * 4.0f + 10.0f));
 			ImGui::TextCenter("Game Elements");
 
 			ImVec4 IconColor = ImVec4(1.0, 1.0, 1.0, 1.0);

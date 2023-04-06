@@ -1425,6 +1425,15 @@ void GetSizePositionRotation(sObject* pObject, float &fXSize, float &fYSize, flo
 			vObjectOffset.y = vecPosOffset.y;
 			vObjectOffset.z = vecPosOffset.z;
 
+			//PE: if offset in matrix , ignore.
+			if (!(floor(pObject->pFrame->matCombined._41) == floor(pObject->pFrame->vecOffset.x) &&
+				floor(pObject->pFrame->matCombined._42) == floor(pObject->pFrame->vecOffset.y) &&
+				floor(pObject->pFrame->matCombined._43) == floor(pObject->pFrame->vecOffset.z)) )
+			{
+				vObjectOffset.x = 0;
+				vObjectOffset.y = 0;
+				vObjectOffset.z = 0;
+			}
 			// apply offset of root frame , PE: we now check for frame indentity mastrix so also add offset.
 			fXPos += vObjectOffset.x;
 			fYPos += vObjectOffset.y;

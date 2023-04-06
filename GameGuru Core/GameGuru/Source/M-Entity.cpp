@@ -3049,7 +3049,13 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].light.offsetz = t.value1;
 					#ifdef WICKEDENGINE
 					cmpStrConst( t_field_s, "lightprobescale" );
-					if (matched)  t.entityprofile[t.entid].light.fLightHasProbe = t.value1;
+					if (matched)
+					{
+						t.entityprofile[t.entid].light.fLightHasProbe = t.value1;
+						t.entityprofile[t.entid].light.fLightHasProbeX = t.value1;
+						t.entityprofile[t.entid].light.fLightHasProbeY = t.value1;
+						t.entityprofile[t.entid].light.fLightHasProbeZ = t.value1;
+					}
 					#endif
 
 					// light type flags
@@ -5633,7 +5639,7 @@ void c_entity_loadelementsdata ( void )
 	t.versionnumbersupported = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 335; //329;//327;// 323; // 322; //319;
+	t.versionnumbersupported = 336; //329;//327;// 323; // 322; //319;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -6037,7 +6043,6 @@ void c_entity_loadelementsdata ( void )
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbe = t.a;
 					}
-
 					if (t.versionnumberload >= 316)
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.iObjectLinkID = t.a;
@@ -6272,6 +6277,12 @@ void c_entity_loadelementsdata ( void )
 					if (t.versionnumberload >= 335)
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].creationOfGroupID = t.a;
+					}
+					if (t.versionnumberload >= 336)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbeX = t.a;
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbeY = t.a;
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbeZ = t.a;
 					}
 					#endif
 
@@ -6832,7 +6843,7 @@ void entity_saveelementsdata ( void )
 	t.versionnumbersave = 312;
 	#endif
 	#ifdef WICKEDENGINE
-	t.versionnumbersave = 335; //329; //327;// 323; //322; //319;
+	t.versionnumbersave = 336; //329; //327;// 323; //322; //319;
 	#endif
 
 	EntityWriter writer;
@@ -7363,6 +7374,12 @@ void entity_saveelementsdata ( void )
 				if (t.versionnumbersave >= 335)
 				{
 					writer.WriteLong(t.entityelement[ent].creationOfGroupID);
+				}
+				if (t.versionnumbersave >= 336)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeX);
+					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeY);
+					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeZ);
 				}
 				#endif
 			}

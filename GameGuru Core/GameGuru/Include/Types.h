@@ -5463,7 +5463,9 @@ struct entitylighttype
 	int offsetup;
 	int offsetz;
 	float fLightHasProbe;
-	// Constructor
+	float fLightHasProbeX;
+	float fLightHasProbeY;
+	float fLightHasProbeZ;
 	entitylighttype ( )
 	{
 		 offsetz = 0;
@@ -5473,9 +5475,10 @@ struct entitylighttype
 		 islit = 0;
 		 index = 0;
 		 fLightHasProbe = 0.0f;
+		 fLightHasProbeX = 0.0f;
+		 fLightHasProbeY = 0.0f;
+		 fLightHasProbeZ = 0.0f;
 	}
-	// End of Constructor
-
 };
 
 struct entitytriggertype

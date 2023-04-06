@@ -212,11 +212,14 @@ void lighting_loop(void)
 				if (t.entityprofile[entid].ismarker == 2)
 				{
 					float fLightProbeRange = t.entityelement[ee].eleprof.light.fLightHasProbe;
+					float fLightProbeRangeX = t.entityelement[ee].eleprof.light.fLightHasProbeX;
+					float fLightProbeRangeY = t.entityelement[ee].eleprof.light.fLightHasProbeY;
+					float fLightProbeRangeZ = t.entityelement[ee].eleprof.light.fLightHasProbeZ;
 					if (fLightProbeRange >= 50)
 					{
-						float fSX = t.entityelement[ee].scalex;
-						float fSY = t.entityelement[ee].scaley;
-						float fSZ = t.entityelement[ee].scalez;
+						float fSX = fLightProbeRangeX;// t.entityelement[ee].scalex;
+						float fSY = fLightProbeRangeY;// t.entityelement[ee].scaley;
+						float fSZ = fLightProbeRangeZ;// t.entityelement[ee].scalez;
 						GGTerrain::GGTerrain_AddEnvProbeList(t.entityelement[ee].x, t.entityelement[ee].y, t.entityelement[ee].z, fLightProbeRange, t.entityelement[ee].quatx, t.entityelement[ee].quaty, t.entityelement[ee].quatz, t.entityelement[ee].quatw, fSX, fSY, fSZ);
 					}
 				}

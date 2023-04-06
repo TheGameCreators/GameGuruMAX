@@ -1651,6 +1651,7 @@ void widget_loop ( void )
 			t.thaveyrot = 0; 
 			if ( t.entityprofile[t.tttentid].ismarker == 1 || t.entityprofile[t.tttentid].ismarker == 6 || t.entityprofile[t.tttentid].ismarker == 7  )  t.thaveyrot = 1;
 			if ( t.entityelement[t.te].eleprof.usespotlighting ) t.thaveyrot = 1;
+			if (t.entityprofile[t.tttentid].ismarker == 2)  t.thaveyrot = 1;
 
 			// allow rotation/scale
 			if ( (t.entityprofile[t.tttentid].ismarker == 0 || t.thaveyrot == 1) && ObjectExist(t.widget.activeObject) == 1 ) 
@@ -2372,37 +2373,34 @@ void widget_loop ( void )
 			//  detect if widget panel off screen, and shift back in
 			widget_correctwidgetpanel ( );
 
+			//PE: If we moved a light, also update probes.
+			if (t.widget.pickedEntityIndex > 0)
+			{
+				int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
+				if (entid > 0)
+				{
+					if (t.entityprofile[entid].ismarker == 2)
+					{
+						extern bool g_bLightProbeScaleChanged;
+						g_bLightProbeScaleChanged = true;
+						/*
+						float fLightProbeScale = t.entityelement[t.widget.pickedEntityIndex].eleprof.light.fLightHasProbe;
+						if ( fLightProbeScale > 0 )
+							entity_placeprobe(t.entityelement[t.widget.pickedEntityIndex].obj, fLightProbeScale);
+						else
+							entity_deleteprobe(t.entityelement[t.widget.pickedEntityIndex].obj);
+						*/
+					}
+				}
+			}
+
 			// user has let go of the mouse, reset section chosen
-			if ( t.inputsys.mclick == 0 ) 
+			if (t.inputsys.mclick == 0)
 			{
 				t.widget.pickedSection = 0;
 				t.widget.grabbed = 0;
-
-				#ifdef WICKEDENGINE
-				//PE: If we moved a light, also update probes.
-				if (t.widget.pickedEntityIndex > 0)
-				{
-					int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
-					if (entid > 0)
-					{
-						if (t.entityprofile[entid].ismarker == 2)
-						{
-							extern bool g_bLightProbeScaleChanged;
-							g_bLightProbeScaleChanged = true;
-							/*
-							float fLightProbeScale = t.entityelement[t.widget.pickedEntityIndex].eleprof.light.fLightHasProbe;
-							if ( fLightProbeScale > 0 )
-								entity_placeprobe(t.entityelement[t.widget.pickedEntityIndex].obj, fLightProbeScale);
-							else
-								entity_deleteprobe(t.entityelement[t.widget.pickedEntityIndex].obj);
-							*/
-						}
-					}
-				}
-
 				// and finally trigger UI to update its euler values to sync with widget rotation!
 				g_bRefreshRotationValuesFromObjectOnce = true;
-				#endif
 			}
 		}
 

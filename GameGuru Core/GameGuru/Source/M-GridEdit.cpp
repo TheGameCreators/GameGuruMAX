@@ -8662,11 +8662,10 @@ void mapeditorexecutable_loop(void)
 								// regular light or character
 								bToolScale = false;
 
-								// allow probes to have everything
-								if (t.entityprofile[iEntID].ismarker == 2 && t.entityelement[t.ttte].eleprof.light.fLightHasProbe >= 50.0f)
+								// allow probes to have rotation
+								if (bIsLightProbe==true)//t.entityprofile[iEntID].ismarker == 2 && t.entityelement[t.ttte].eleprof.light.fLightHasProbe >= 50.0f)
 								{
 									bToolRotation = true;
-									bToolScale = true;
 								}
 							}
 							else if (t.entityprofile[iEntID].ismarker > 0)
@@ -9820,7 +9819,6 @@ void mapeditorexecutable_loop(void)
 							{
 								if (!bReadOnlyMode && bUpdatePosition == true) g_bLightProbeScaleChanged = true;
 								if (!bReadOnlyMode && bUpdateRoataion == true) g_bLightProbeScaleChanged = true;
-								if (!bReadOnlyMode && bUpdateScale == true) g_bLightProbeScaleChanged = true;
 							}
 
 							// update any position, rotation or scale changes
@@ -12146,27 +12144,6 @@ void mapeditorexecutable_loop(void)
 									ImGui::SliderInt("##Light RangeSimpleInput", &t.grideleprof.light.range, 1, 3000);
 									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.strarr_s[250].Get() );
 									ImGui::PopItemWidth();
-
-									#ifdef WICKEDENGINE
-									// ZJ: Removed for now.
-									/*if (pref.iObjectEnableAdvanced)
-									{
-										ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-										ImGui::Text("Light Probe Scale");
-										ImGui::SameLine();
-										ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-										ImGui::SetCursorPos(ImVec2(fPropertiesColoumWidth, ImGui::GetCursorPosY()));
-										ImGui::PushItemWidth(-10);
-										if (ImGui::SliderFloat("##fLightProbeScaleSimpleInput", &t.grideleprof.light.fLightHasProbe, 0.0f, 5.0f, "%.2f") == true)
-										{
-											// triggers probe debug to show
-											g_bLightProbeScaleChanged = true;
-										}
-										if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Specify the scaling of the environment probe attached to the light");
-										ImGui::PopItemWidth();
-									}
-									*/
-									#endif
 
 									ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 									ImGui::Text("Light Color");
@@ -31801,7 +31778,17 @@ void gridedit_addentitytomap(void)
 	#endif
 
 	// if entity is a light, has a probe
-	#ifdef WICKEDENGINE
+	int entid = t.entityelement[t.e].bankindex;
+	if (entid > 0)
+	{
+		if (t.entityprofile[entid].ismarker == 2)
+		{
+			if (t.entityelement[t.e].eleprof.light.fLightHasProbe >= 50.0f)
+			{
+				g_bLightProbeScaleChanged = true;
+			}
+		}
+	}
 	/*
 	int entid = t.entityelement[t.e].bankindex;
 	if (entid > 0)
@@ -31822,7 +31809,6 @@ void gridedit_addentitytomap(void)
 		WickedCall_DeleteLight(t.gridentitywickedlightindex);
 		t.gridentitywickedlightindex = 0;
 	}
-	#endif
 }
 
 void gridedit_deleteentityfrommap ( void )

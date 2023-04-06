@@ -29,7 +29,7 @@ struct envProbeItem
 	float distance;
 	float range;
 	XMFLOAT4 rotation;
-	XMFLOAT3 scale;
+	XMFLOAT3 size;
 	int used;
 };
 

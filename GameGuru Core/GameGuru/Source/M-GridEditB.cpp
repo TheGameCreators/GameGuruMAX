@@ -8464,7 +8464,7 @@ void Wicked_Update_Visuals(void *voidvisual)
 	gggrass_global_params.draw_enabled = bSetting;
 
 	// update env probe resolution if this changes (Wicked only allocates if there is a change)
-	wiScene::GetScene().SetEnvProbeResolution(t.visuals.iEnvProbeResolution);
+	//wiScene::GetScene().SetEnvProbeResolution(t.visuals.iEnvProbeResolution); Wicked Not Entirely Support Changing This (For Now)!
 }
 
 #endif
@@ -26445,16 +26445,51 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (bIsLightProbe == true)
 		{
 			// control base range which is then later scaled XYZ
-			ImGui::TextCenter("Light Probe Range");
+			ImGui::TextCenter("Probe Range");
 			ImGui::PushItemWidth(-10);
 			int iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbe;
-			if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iLightProbeRange, 50, 500, "Specify the base range of the environment probe attached to the light"))
+			if (ImGui::MaxSliderInputInt("##fLightProbeScaleSimpleInput", &iLightProbeRange, 50, 500, "Specify the internal range of the environment probe, defaults to 50"))
 			{
 				edit_grideleprof->light.fLightHasProbe = iLightProbeRange;
 				g_bLightProbeScaleChanged = true;
 				bLightChanged = true;
 			}
+			ImGui::PopItemWidth();
 
+			ImGui::TextCenter("Probe Size X");
+			ImGui::PushItemWidth(-10);
+			iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbeX;
+			if (ImGui::MaxSliderInputInt("##fLightProbeScaleXSimpleInput", &iLightProbeRange, 50, 500, "Specify the X dimension of the environment probe"))
+			{
+				edit_grideleprof->light.fLightHasProbeX = iLightProbeRange;
+				g_bLightProbeScaleChanged = true;
+				bLightChanged = true;
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::TextCenter("Probe Size Y");
+			ImGui::PushItemWidth(-10);
+			iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbeY;
+			if (ImGui::MaxSliderInputInt("##fLightProbeScaleYSimpleInput", &iLightProbeRange, 50, 500, "Specify the Y dimension of the environment probe"))
+			{
+				edit_grideleprof->light.fLightHasProbeY = iLightProbeRange;
+				g_bLightProbeScaleChanged = true;
+				bLightChanged = true;
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::TextCenter("Probe Size Z");
+			ImGui::PushItemWidth(-10);
+			iLightProbeRange = (int)edit_grideleprof->light.fLightHasProbeZ;
+			if (ImGui::MaxSliderInputInt("##fLightProbeScaleZSimpleInput", &iLightProbeRange, 50, 500, "Specify the Z dimension of the environment probe"))
+			{
+				edit_grideleprof->light.fLightHasProbeZ = iLightProbeRange;
+				g_bLightProbeScaleChanged = true;
+				bLightChanged = true;
+			}
+			ImGui::PopItemWidth();
+
+			/* Wicked Not Entirely Support Changing This (For Now)!
 			// drop down to control env map resolution
 			ImGui::TextCenter("Global Probe Resolution");
 			const char* items_align[] = { "128", "256", "512", "1024", "2048" };
@@ -26474,9 +26509,11 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				else if (type_selection == 4) t.visuals.iEnvProbeResolution = 2048;
 				Wicked_Update_Visuals((void*)&t.visuals);
 				g.projectmodified = 1;
+				g_bLightProbeScaleChanged = true;
+				bLightChanged = true;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Choose a global envrionment map resolution for light probes. Note that this is a per-level global setting and affects all probes in the level");
-			ImGui::PopItemWidth();
+			*/
 
 			// and done
 			return;
@@ -26822,24 +26859,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			{
 				int iFreeEntry = -1;
 				bool bIsDuplicate = false;
-
-				//Scan for dups.
-				// LB: allow duplicates!!
-				//for (int il = 0;il < iPredefinedLights; il++)
-				//{
-				//	if (edit_grideleprof->usespotlighting == iPredefined_Light_Type[il] &&
-				//		edit_grideleprof->light.range == iPredefined_Light_Range[il] &&
-				//		edit_grideleprof->light.fLightHasProbe == fPredefined_Light_ProbeScale[il])
-				//	{
-				//		DWORD color = 0xff000000 + ((unsigned int)(vPredefined_Light_Palette[il].x * 255.0f) << 16) + ((unsigned int)(vPredefined_Light_Palette[il].y * 255.0f) << 8) + +((unsigned int)(vPredefined_Light_Palette[il].z * 255.0f));
-				//		if (color == edit_grideleprof->light.color)
-				//		{
-				//			bIsDuplicate = true;
-				//			current_light_selected = il;
-				//			break;
-				//		}
-				//	}
-				//}
 				if (!bIsDuplicate)
 				{
 					for (int il = 0;il < 16; il++)
@@ -26899,26 +26918,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (ImGui::StyleButton("Reset to Default Light", ImVec2(light_w, 0)) )
 		{
 			current_light_selected = -1;
-			//LB: Doies not reset current light, but the palette choices
-			//edit_grideleprof->usespotlighting = 0;
-			//edit_grideleprof->light.color = 0xffffffff;
-			//edit_grideleprof->light.range = 500;
-			//edit_grideleprof->light.fLightHasProbe = 1.0f;
-			//if (elementID > 0)
-			//{
-			//	t.entityelement[elementID].rx = 0.0f;
-			//	if (t.entityelement[elementID].obj > 0)
-			//		RotateObject(t.entityelement[elementID].obj, t.entityelement[elementID].rx, t.entityelement[elementID].ry, t.entityelement[elementID].rz);
-			//
-			//	if (g.entityrubberbandlist.size() == 0)
-			//	{
-			//		if (t.widget.activeObject > 0)
-			//		{
-			//			RotateObject(t.widget.activeObject, t.entityelement[elementID].rx, t.entityelement[elementID].ry, t.entityelement[elementID].rz);
-			//			g_bRefreshRotationValuesFromObjectOnce = true;
-			//		}
-			//	}
-			//}
 			bLightTypeChanged = true;
 			bLightChanged = true;
 			g_bLightProbeScaleChanged = true;

@@ -6750,12 +6750,13 @@ struct entitytype
 	float quatz;
 	float quatw;
 	void *pReservey1;
-	int iReservey2;
+	int specialentityloadflag;
 	int creationOfGroupID;
 	#endif
 	// Constructor
 	entitytype ( )
 	{
+		 specialentityloadflag = 0;
 		 lipset.clear();
 		 lipset1.clear();
 		 lipset2.clear();
@@ -7011,7 +7012,7 @@ struct entitytype
 		 fDecalSpeed = 1.0;
 		 fDecalOpacity = 1.0;
 		 pReservey1 = NULL;
-		 iReservey2 = 0;
+		 specialentityloadflag = 0;
 		 creationOfGroupID = -1;
 		 #endif
 	}

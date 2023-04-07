@@ -480,6 +480,8 @@ public:
 
 	float emitter_animation_speed = 1.0f;
 
+	float currentdistancefromcamera = 0.0f;
+
 	t_gpup_emitter() {}
 	~t_gpup_emitter() {}
 };
@@ -617,8 +619,6 @@ void GPUP_CreateRenderTexture( int width, int height, Texture* tex )
 void GPUP_DeleteTexture( Texture* tex ) 
 {
 	GraphicsDevice* device = wiRenderer::GetDevice();
-
-	// ??
 }
 
 void GPUParticlesDrawQuad( RenderPass* renderPass, CommandList cmd )
@@ -646,73 +646,77 @@ void GPUParticlesDrawQuad( RenderPass* renderPass, CommandList cmd )
 	device->RenderPassEnd( cmd );
 }
 
-// must be extern "C" to allow /alternatename linker flag to be set correctly
-// called from WickedEngine RenderPath3D::RenderTransparents()
-extern "C" void gpup_draw( const CameraComponent& camera, CommandList cmd )
+uint32_t g_emitterSorting[gpup_maxeffects];
+uint32_t g_emitterCurrentIndex = 0;
+
+extern "C" void gpup_draw_init(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd)
 {
-	// cannot do any quad rendering in here as we are already in a render pass by this point
-	// only render final emitter objects
-
-	//PE: For EA increased emitter count to 64.
-	//PE: TODO - After EA increase more and only render the nearest 32 emitters.
-
-	//PE: Quick dist sorting from emitter center to camera.
-	uint32_t emitterSorting[gpup_maxeffects];
+	// calculates all needed particles and distances from camera
 	for (size_t i = 0; i < gpup_maxeffects; ++i)
 	{
-		emitterSorting[i] = 0;
-		emitterSorting[i] |= (uint32_t)i & 0x0000FFFF;
+		g_emitterSorting[i] = 0;
+		g_emitterSorting[i] |= (uint32_t)i & 0x0000FFFF;
 		if (gpup_emitter[i].effectLoaded == 0 || gpup_emitter[i].effectVisible == 0) continue;
 		XMFLOAT3 emitercenter = XMFLOAT3(gpup_emitter[i].globalx[0], gpup_emitter[i].globaly[0], gpup_emitter[i].globalz[0]);
-		float distance = wiMath::DistanceEstimated(emitercenter, camera.Eye);
-		emitterSorting[i] |= ((uint32_t)(distance * 10) & 0x0000FFFF) << 16;
+		float distance = wiMath::DistanceEstimated(XMFLOAT3(emitercenter.x, camera.Eye.y, emitercenter.z), camera.Eye);
+		gpup_emitter[i].currentdistancefromcamera = distance;
+		g_emitterSorting[i] |= ((uint32_t)(distance * 10) & 0x0000FFFF) << 16;
 	}
-	std::sort(std::begin(emitterSorting), std::end(emitterSorting), std::greater<uint32_t>());
+	std::sort(std::begin(g_emitterSorting), std::end(g_emitterSorting), std::greater<uint32_t>());
 
-	for( size_t i = 0; i < gpup_maxeffects; ++i )
+	// we start here, being the particle furthest away
+	g_emitterCurrentIndex = 0;
+}
+
+extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd, float fDistanceFromCamera)
+{
+	// finished rendering particles
+	if (g_emitterCurrentIndex == -1 || g_emitterCurrentIndex >= gpup_maxeffects)
+		return;
+
+	// is called just before a transparent object is rendered at the specified distance
+	// allowing us to insert the particle rendering as needed (i.e. window, particle, window, window, particle, window)
+	int iThisLoopStart = g_emitterCurrentIndex;
+	for (size_t i = iThisLoopStart; i < gpup_maxeffects; ++i)
 	{
-		size_t e = emitterSorting[i] & 0x0000FFFF;
+		size_t e = g_emitterSorting[i] & 0x0000FFFF;
 
-		if ( e < 0 || e >= gpup_maxeffects || gpup_emitter[e].effectLoaded == 0 || gpup_emitter[e].effectVisible == 0 ) continue;
+		// clever bit - if this particle distance is further than the current distance from the camera, 
+		// we need to render it now as the transparent object from Wicked will be rendered next and particle
+		// needs to be behind it!
+		if (e >= 0 && e < gpup_maxeffects && gpup_emitter[e].currentdistancefromcamera > fDistanceFromCamera)
+		{
+			// we carry on and render this particle at least
+			// and will loop around to see if the next particle is 
+			// is further than the current distance
+		}
+		else
+		{
+			// we stop right now, this particle is closer than the current distance
+			// and we cannot render it yet			
+			return;
+		}
+
+		// next time we are ready for next particle after this one
+		g_emitterCurrentIndex = i + 1;
+
+		if (e < 0 || e >= gpup_maxeffects || gpup_emitter[e].effectLoaded == 0 || gpup_emitter[e].effectVisible == 0) continue;
 
 		GraphicsDevice* device = wiRenderer::GetDevice();
 		device->EventBegin("GPUParticles Draw", cmd);
-		
+
 		gpup_emitter[e].mainVSConstantData.Proj = camera.Projection;
 		gpup_emitter[e].mainVSConstantData.View = camera.View;
 
-		XMMATRIX proj( (float*) &camera.Projection );
-		XMMATRIX viewProj( (float*) &camera.View );
+		XMMATRIX proj((float*)&camera.Projection);
+		XMMATRIX viewProj((float*)&camera.View);
 		viewProj *= proj;
-		memcpy( gpup_emitter[e].mainVSConstantData.ViewProj.m, viewProj.r, sizeof(float) * 16 );
+		memcpy(gpup_emitter[e].mainVSConstantData.ViewProj.m, viewProj.r, sizeof(float) * 16);
 
 		gpup_emitter[e].mainVSConstantData.CameraPos.x = camera.Eye.x;
 		gpup_emitter[e].mainVSConstantData.CameraPos.y = camera.Eye.y;
 		gpup_emitter[e].mainVSConstantData.CameraPos.z = camera.Eye.z;
 
-		// LB: Using WORLD to affect global rotation and scale
-		/* ARG!
-		float scale = 1.0f;
-		float fAngleY = gpup_emitter[e].globalRotY;
-		float4x4 World;
-		World.m[0][0] = cos(fAngleY)*scale;
-		World.m[0][1] = 0;
-		World.m[0][2] = sin(fAngleY)*scale;
-		World.m[0][3] = 0;
-		World.m[1][0] = 0;
-		World.m[1][1] = scale;
-		World.m[1][2] = 0;
-		World.m[1][3] = 0;
-		World.m[2][0] = -sin(fAngleY)*scale;
-		World.m[2][1] = 0;
-		World.m[2][2] = cos(fAngleY)*scale;
-		World.m[2][3] = 0;
-		World.m[3][0] = 0;
-		World.m[3][1] = 0;
-		World.m[3][2] = 0;
-		World.m[3][3] = 1;
-		gpup_emitter[e].mainVSConstantData.World = World;
-		*/
 		float scale = 1.0f;
 		gpup_emitter[e].mainVSConstantData.World.m[0][0] = scale;
 		gpup_emitter[e].mainVSConstantData.World.m[0][1] = 0;
@@ -731,7 +735,153 @@ extern "C" void gpup_draw( const CameraComponent& camera, CommandList cmd )
 		//PE: Blend state is not always set when changing from psoAlpha to psoAdd, add different blendfactor's to force change (not visible).
 		//PE: TODO - psoOpaque -> psoAdd has another change problem, must be desc.dss = &depthDesc;
 		//PE: TODO - As we dont use sprites currently, leave this for after EA. ( REMOVED_EARLYACCESS )
+		switch (gpup_emitter[e].blendmode)
+		{
+			case 0: // opaque
+			case 1: // opaque
+			case 2: // opaque
+			{
+				if (gpup_emitter[e].mainPSConstantData.opacity != 1.0f)
+				{
+					device->BindPipelineState(&psoAlpha, cmd); //If using opacity switch to alpha blend.
+					device->BindBlendFactor(1.0, 1.0, 1.0, 1.0, cmd);
+				}
+				else
+				{
+					device->BindPipelineState(&psoOpaque, cmd); //Sprites
+					device->BindBlendFactor(1.0, 1.0, 0.998, 1.0, cmd);
+				}
 
+			} break;
+
+			case 3: // alpha
+			{
+				device->BindPipelineState(&psoAlpha, cmd);
+				device->BindBlendFactor(1.0, 1.0, 1.0, 1.0, cmd);
+			} break;
+
+			case 4: // additive
+			{
+				device->BindPipelineState(&psoAdd, cmd); //Particles
+				device->BindBlendFactor(1.0, 1.0, 0.999, 1.0, cmd);
+			} break;
+
+			default:
+			{
+				device->BindPipelineState(&psoAdd, cmd);
+				device->BindBlendFactor(1.0, 1.0, 0.999, 1.0, cmd);
+			} break;
+		}
+
+		gpup_emitter[e].mainPSConstantData.agk_time = AGKTimer();
+
+		device->UpdateBuffer(&mainPSConstants, &gpup_emitter[e].mainPSConstantData, cmd, sizeof(sMainPSConstantData));
+		device->BindConstantBuffer(VS, &mainVSConstants, 0, cmd);
+		device->BindConstantBuffer(PS, &mainPSConstants, 1, cmd);
+
+		int numIndices = 0;
+		const GPUBuffer* vbs[1];
+		if (gpup_emitter[e].particles == 32)
+		{
+			vbs[0] = &mainVertexBufferObj1;
+			device->BindIndexBuffer(&mainIndexBufferObj1, INDEXFORMAT_16BIT, 0, cmd);
+			numIndices = mainIndexCountObj1;
+		}
+		else
+		{
+			vbs[0] = &mainVertexBufferObj0;
+			device->BindIndexBuffer(&mainIndexBufferObj0, INDEXFORMAT_16BIT, 0, cmd);
+			numIndices = mainIndexCountObj0;
+		}
+
+		uint32_t stride = sizeof(GPUP_1024_Vertex); // 3 position + 2 uv
+		device->BindVertexBuffers(vbs, 0, 1, &stride, 0, cmd);
+
+		// bind textures
+		device->BindResource(VS, &gpup_emitter[e].texPos[gpup_emitter[e].currImage], 0, cmd);
+		device->BindResource(VS, &gpup_emitter[e].gradient_1, 2, cmd);
+		device->BindResource(VS, &gpup_emitter[e].texSpeed[gpup_emitter[e].currImage], 5, cmd);
+		device->BindResource(PS, &gpup_emitter[e].imagex, 1, cmd);
+		device->BindResource(PS, &gpup_emitter[e].image1, 3, cmd);
+		device->BindResource(PS, &texDist2, 4, cmd);
+
+		// bind samplers
+		device->BindSampler(PS, &samplerLinear, 0, cmd);
+		device->BindSampler(PS, &samplerPoint, 1, cmd);
+		device->BindSampler(PS, &samplerLinearWrap, 2, cmd);
+		device->BindSampler(VS, &samplerPoint, 1, cmd);
+
+		int ii = gpup_emitter[e].particles / 64;
+		if (gpup_emitter[e].particles == 32) ii = 1;
+
+		for (int i = 0; i < ii; i++)
+		{
+			for (int j = 0; j < ii; j++)
+			{
+				gpup_emitter[e].mainVSConstantData.World.m[3][0] = 64.0f * i;
+				gpup_emitter[e].mainVSConstantData.World.m[3][1] = 0.0f;
+				gpup_emitter[e].mainVSConstantData.World.m[3][2] = 64.0f * j;
+
+				device->UpdateBuffer(&mainVSConstants, &gpup_emitter[e].mainVSConstantData, cmd, sizeof(sMainVSConstantData));
+
+				device->DrawIndexed(numIndices, 0, 0, cmd);
+			}
+		}
+		device->EventEnd(cmd);
+	}
+}
+
+// must be extern "C" to allow /alternatename linker flag to be set correctly
+// called from WickedEngine RenderPath3D::RenderTransparents()
+extern "C" void gpup_draw( const CameraComponent& camera, CommandList cmd )
+{
+	// cannot do any quad rendering in here as we are already in a render pass by this point
+	// only render final emitter objects
+
+	//PE: For EA increased emitter count to 64.
+	//PE: TODO - After EA increase more and only render the nearest 32 emitters.
+	//PE: Quick dist sorting from emitter center to camera.
+	gpup_draw_init(camera, cmd);
+
+	for( size_t i = 0; i < gpup_maxeffects; ++i )
+	{
+		size_t e = g_emitterSorting[i] & 0x0000FFFF;
+
+		if ( e < 0 || e >= gpup_maxeffects || gpup_emitter[e].effectLoaded == 0 || gpup_emitter[e].effectVisible == 0 ) continue;
+
+		GraphicsDevice* device = wiRenderer::GetDevice();
+		device->EventBegin("GPUParticles Draw", cmd);
+		
+		gpup_emitter[e].mainVSConstantData.Proj = camera.Projection;
+		gpup_emitter[e].mainVSConstantData.View = camera.View;
+
+		XMMATRIX proj( (float*) &camera.Projection );
+		XMMATRIX viewProj( (float*) &camera.View );
+		viewProj *= proj;
+		memcpy( gpup_emitter[e].mainVSConstantData.ViewProj.m, viewProj.r, sizeof(float) * 16 );
+
+		gpup_emitter[e].mainVSConstantData.CameraPos.x = camera.Eye.x;
+		gpup_emitter[e].mainVSConstantData.CameraPos.y = camera.Eye.y;
+		gpup_emitter[e].mainVSConstantData.CameraPos.z = camera.Eye.z;
+
+		float scale = 1.0f;
+		gpup_emitter[e].mainVSConstantData.World.m[0][0] = scale;
+		gpup_emitter[e].mainVSConstantData.World.m[0][1] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[0][2] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[0][3] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[1][0] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[1][1] = scale;
+		gpup_emitter[e].mainVSConstantData.World.m[1][2] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[1][3] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[2][0] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[2][1] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[2][2] = scale;
+		gpup_emitter[e].mainVSConstantData.World.m[2][3] = 0;
+		gpup_emitter[e].mainVSConstantData.World.m[3][3] = 1;
+
+		//PE: Blend state is not always set when changing from psoAlpha to psoAdd, add different blendfactor's to force change (not visible).
+		//PE: TODO - psoOpaque -> psoAdd has another change problem, must be desc.dss = &depthDesc;
+		//PE: TODO - As we dont use sprites currently, leave this for after EA. ( REMOVED_EARLYACCESS )
 		switch( gpup_emitter[e].blendmode )
 		{
 			case 0: // opaque
@@ -827,11 +977,8 @@ extern "C" void gpup_draw( const CameraComponent& camera, CommandList cmd )
 				device->DrawIndexed( numIndices, 0, 0, cmd );
 			}
 		}
-
 		device->EventEnd(cmd);
 	}
-
-	//GPUParticlesDrawTest( camera, cmd );
 }
 
 void gpup_updatesettings( int enr )

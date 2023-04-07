@@ -4715,7 +4715,6 @@ void gun_load ( void )
 		SetEffectConstantV ( t.teffectid,"SurfColor",g.weaponvectorindex );
 	}
 
-	#ifdef WICKEDENGINE
 	// apply all textures applied to this weapon
 	sObject* pGunObject = GetObjectData(t.currentgunobj);
 	if (pGunObject) 
@@ -4724,7 +4723,10 @@ void gun_load ( void )
 		WickedCall_SetObjectCastShadows(pGunObject, false);
 	}
 	SetObjectDiffuseEx(t.currentgunobj, 0xFFFFFFFF, 0);
-	#endif
+
+	// until weapons are provided that have a SEPARATE transparent mesh for semi-opaque
+	// alpha clip transparency out so weapons can be included in the PREPASS to solve lightray issue
+	WickedCall_SetObjectAlphaRef (pGunObject, 0.01f); // Wicked modified so prepass only renders transparent objects that have this LOW alpha ref
 
 	// STANDARD and ALT modes
 	image_setlegacyimageloading(true);
@@ -5356,7 +5358,7 @@ int preparegun ( int gunid, int index)
 	SetObjectFrame (  index,g.firemodes[gunid][0].action.show.s );
 	HideObject (  index );
 
-	#ifdef WICKEDENGINE
+	// guns cast no shadows!
 	sObject* pObject = GetObjectData(index);
 	if (pObject) 
 	{
@@ -5366,7 +5368,6 @@ int preparegun ( int gunid, int index)
 	{
 		SetObjectDiffuseEx(index, 0xFFFFFFFF, 0);
 	}
-	#endif
 
 	// success
 	return 1;
@@ -5419,59 +5420,6 @@ int loadgun (int gunid, char* tfile_s)
 
 			// prepare gun
 			preparegun (gunid, index);
-			/* now in preparegun
-			//  hide any limbs in the weapon which should NEVER be rendered (and cause D3DX shader error)
-			PerformCheckListForLimbs (index);
-			if (t.gun[gunid].settings.minpolytrim > 0)
-			{
-				for (tc = 1; tc <= ChecklistQuantity(); tc++)
-				{
-					tcc_s = Lower(ChecklistString(tc));
-					tflag = 0;
-					if (tcc_s == "firespot")  tflag = 1;
-					if (tcc_s == "firespot02")  tflag = 1;
-					if (tcc_s == "x3ds_firespot")  tflag = 1;
-					if (tcc_s == "brass")  tflag = 1;
-					if (tcc_s == "brass02")  tflag = 1;
-					if (tcc_s == "x3ds_brass")  tflag = 1;
-					if (tcc_s == "_smoke")  tflag = 1;
-					if (tcc_s == "smoke")  tflag = 1;
-					if (tcc_s == "smoke2")  tflag = 1;
-					if (tcc_s == "x3ds_smoke")  tflag = 1;
-					if (tcc_s == "hand")  tflag = 1;
-					if (tcc_s == "x3ds_hand")  tflag = 1;
-					if (tcc_s == "camera01")  tflag = 1;
-					//  lee - 091014 - some weapons have leftovers!! (sniper)
-					if (tcc_s == "lens001")  tflag = 1;
-					if (tcc_s == "omni001")  tflag = 1;
-					if (tcc_s == "omni002")  tflag = 1;
-					//  lee - 071014 - also hide any limbs that are boxes (leftovers from gun marker work)
-					if (GetLimbPolygonCount(index, tc - 1) <= t.gun[gunid].settings.minpolytrim)  tflag = 1;
-					if (tflag == 1)
-					{
-						HideLimb (index, tc - 1);
-					}
-				}
-			}
-
-			//  prepare weapon object
-			SetObjectCollisionOff (index);
-			SetObjectInterpolation (index, 100);
-			SetObjectFrame (index, g.firemodes[gunid][0].action.show.s);
-			HideObject (index);
-
-			#ifdef WICKEDENGINE
-			sObject* pObject = GetObjectData(index);
-			if (pObject)
-			{
-				WickedCall_SetObjectCastShadows(pObject, false);
-			}
-			if (ObjectExist(index))
-			{
-				SetObjectDiffuseEx(index, 0xFFFFFFFF, 0);
-			}
-			#endif
-			*/
 		}
 	}
 	return index;

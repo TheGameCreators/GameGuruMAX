@@ -48,6 +48,9 @@ void gpup_setEffectAnimationSpeed(int ID, float speed);
 void gpup_setBilinear( int ID, int active );
 
 void gpup_update( float frameTime, wiGraphics::CommandList cmd ); // must not be called from a render pass
+
 extern "C" void gpup_draw( const wiScene::CameraComponent& camera, wiGraphics::CommandList cmd ); // must be called from a render pass
+extern "C" void gpup_draw_init(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd); // must be called from a render pass
+extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd, float fDistanceFromCamera); // must be called from a render pass
 
 }

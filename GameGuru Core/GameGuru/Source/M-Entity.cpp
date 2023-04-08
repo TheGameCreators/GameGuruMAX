@@ -5662,14 +5662,13 @@ void c_entity_loadelementsdata ( void )
 			}
 			if (g_iAddEntityElementsMode == 1)
 			{
-				g.entityelementlist += iElementsInFile;
+				//g.entityelementlist += iElementsInFile;
 			}
 		}
-		if (  t.versionnumberload <= t.versionnumbersupported ) 
+		if ( t.versionnumberload <= t.versionnumbersupported ) 
 		{
-			if (  g.entityelementlist>0 ) 
+			if (iElementsInFile > 0)//g.entityelementlist>0 )
 			{
-				int iFrom = 1;
 				bool bFirstTimeOnlyToGrabGroupDataOops = true;
 				if (g_iAddEntityElementsMode == 0)
 				{
@@ -5683,25 +5682,73 @@ void c_entity_loadelementsdata ( void )
 				}
 				if (g_iAddEntityElementsMode == 1)
 				{
-					Dim (t.storeentityelement, g.entityelementmax);
-					for (t.e = 1; t.e <= g.entityelementmax; t.e++)
+					// ensure there are enough free slots
+					int iCount = 0;
+					for (int finde = 1; finde <= g.entityelementlist; finde++)
 					{
-						t.storeentityelement[t.e] = t.entityelement[t.e];
+						if (t.entityelement[finde].bankindex == 0)
+						{
+							iCount++;
+						}
 					}
-					UnDim (t.entityelement);
-					UnDim (t.entityshadervar);
-					int iOldSizeCount = g.entityelementmax;
-					g.entityelementmax = g.entityelementlist + 10;
-					Dim (t.entityelement, g.entityelementmax);
-					Dim2(t.entityshadervar, g.entityelementmax, g.globalselectedshadermax);
-					for (t.e = 1; t.e <= iOldSizeCount; t.e++)
+					if (iCount < iElementsInFile)
 					{
-						t.entityelement[t.e] = t.storeentityelement[t.e];
+						// make more space
+						Dim (t.storeentityelement, g.entityelementmax);
+						for (t.e = 1; t.e <= g.entityelementmax; t.e++)
+						{
+							t.storeentityelement[t.e] = t.entityelement[t.e];
+						}
+						UnDim (t.entityelement);
+						UnDim (t.entityshadervar);
+						int iOldSizeCount = g.entityelementmax;
+						g.entityelementmax += iElementsInFile + 10;
+						Dim (t.entityelement, g.entityelementmax);
+						Dim2(t.entityshadervar, g.entityelementmax, g.globalselectedshadermax);
+						for (t.e = 1; t.e <= iOldSizeCount; t.e++)
+						{
+							t.entityelement[t.e] = t.storeentityelement[t.e];
+						}
 					}
-					iFrom = g_iAddEntityElementsModeFrom;
+					// g_iAddEntityElementsModeFrom - no longer used, we instead fill up available space :)
 				}
-				for ( t.e = iFrom; t.e<=  g.entityelementlist; t.e++ )
+				for ( int n = 1; n <= iElementsInFile; n++ )
 				{
+					if (g_iAddEntityElementsMode == 0)
+					{
+						t.e = n;
+					}
+					if (g_iAddEntityElementsMode == 1)
+					{
+						// find free slot in add mode
+						bool bFoundFreeSlot = false;
+						for (int finde = 1; finde <= g.entityelementlist; finde++)
+						{
+							if (t.entityelement[finde].bankindex == 0)
+							{
+								bFoundFreeSlot = true;
+								t.e = finde;
+								break;
+							}
+						}
+						if (bFoundFreeSlot == false )
+						{
+							// increase max element list
+							if (g.entityelementlist < g.entityelementmax - 1)
+							{
+								g.entityelementlist++;
+								t.e = g.entityelementlist;
+							}
+							else
+							{
+								// this should never happen (see code above), but if so, just overwrite last slot
+								t.e = g.entityelementmax - 1;
+							}
+						}
+
+						// special flag so can handle entity with collection list later
+						t.entityelement[t.e].specialentityloadflag = 123;
+					}
 					#ifdef VRTECH
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 					#endif
@@ -6678,71 +6725,76 @@ void entity_loadelementsdata(void)
 			strcat(collectionELEfilename, "\\collection - items.ele");
 			t.elementsfilename_s = collectionELEfilename;
 			extern int g_iAddEntityElementsMode;
-			extern int g_iAddEntityElementsModeFrom;
+			//extern int g_iAddEntityElementsModeFrom;
 			g_iAddEntityElementsMode = 1;
-			g_iAddEntityElementsModeFrom = g.entityelementlist + 1;
+			//g_iAddEntityElementsModeFrom = g.entityelementlist + 1;
 			c_entity_loadelementsdata();
 			t.elementsfilename_s = storeoldELEfile;
 			g_iAddEntityElementsMode = 0;
 
 			// associate new entity elements with collection entry
-			for (int e = g_iAddEntityElementsModeFrom; e <= g.entityelementlist; e++)
+			//for (int e = g_iAddEntityElementsModeFrom; e <= g.entityelementlist; e++)
+			for (int e = 1; e <= g.entityelementlist; e++)
 			{
-				int iCollectionIndexFound = -1;
-				LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
-				for (int n = 0; n < g_collectionList.size(); n++)
+				if (t.entityelement[e].specialentityloadflag == 123)
 				{
-					if (g_collectionList[n].collectionFields.size() > 1)
+					t.entityelement[e].specialentityloadflag = 0;
+					int iCollectionIndexFound = -1;
+					LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
+					for (int n = 0; n < g_collectionList.size(); n++)
 					{
-						LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-						if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+						if (g_collectionList[n].collectionFields.size() > 1)
 						{
-							// the newly loaded element will be used for this collection item
-							g_collectionList[n].iEntityElementE = e;
-
-							// now hide it away in the level
-							t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
-							t.entityelement[e].x = -9999;
-							t.entityelement[e].y = -9999;
-							t.entityelement[e].z = -9999;
-
-							// found, so can quit
-							iCollectionIndexFound = n;
-							break;
-						}
-					}
-				}
-
-				// now scan all entities in common with this collection item entity just loaded from the ELE file
-				// and clone all details to them (there should only be one collectale entity element/eleprof identity)
-				int iDeletingThisElementSoUseFoundE = 0;
-				bool bDeleteThisNewElementNotNeeded = false;
-				LPSTR pMasterEntityName = t.entityelement[e].eleprof.name_s.Get();
-				for (int ee = 1; ee <= g.entityelementmax; ee++)
-				{
-					if (ee != e)
-					{
-						int masterid = t.entityelement[ee].bankindex;
-						if (masterid > 0)
-						{
-							if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+							LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+							if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
 							{
-								t.entityelement[ee].eleprof = t.entityelement[e].eleprof;
-								iDeletingThisElementSoUseFoundE = ee;
-								bDeleteThisNewElementNotNeeded = true;
+								// the newly loaded element will be used for this collection item
+								g_collectionList[n].iEntityElementE = e;
+
+								// now hide it away in the level
+								t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
+								t.entityelement[e].x = -9999;
+								t.entityelement[e].y = -9999;
+								t.entityelement[e].z = -9999;
+
+								// found, so can quit
+								iCollectionIndexFound = n;
+								break;
 							}
 						}
 					}
-				}
-				if (bDeleteThisNewElementNotNeeded == true)
-				{
-					// delete element, not needed for this level
-					t.entityelement[e].bankindex = 0;
 
-					// and reassign collection item E to the existing one
-					if (iCollectionIndexFound != -1)
+					// now scan all entities in common with this collection item entity just loaded from the ELE file
+					// and clone all details to them (there should only be one collectale entity element/eleprof identity)
+					int iDeletingThisElementSoUseFoundE = 0;
+					bool bDeleteThisNewElementNotNeeded = false;
+					LPSTR pMasterEntityName = t.entityelement[e].eleprof.name_s.Get();
+					for (int ee = 1; ee <= g.entityelementmax; ee++)
 					{
-						g_collectionList[iCollectionIndexFound].iEntityElementE = iDeletingThisElementSoUseFoundE;
+						if (ee != e)
+						{
+							int masterid = t.entityelement[ee].bankindex;
+							if (masterid > 0)
+							{
+								if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+								{
+									t.entityelement[ee].eleprof = t.entityelement[e].eleprof;
+									iDeletingThisElementSoUseFoundE = ee;
+									bDeleteThisNewElementNotNeeded = true;
+								}
+							}
+						}
+					}
+					if (bDeleteThisNewElementNotNeeded == true)
+					{
+						// delete element, not needed for this level
+						t.entityelement[e].bankindex = 0;
+
+						// and reassign collection item E to the existing one
+						if (iCollectionIndexFound != -1)
+						{
+							g_collectionList[iCollectionIndexFound].iEntityElementE = iDeletingThisElementSoUseFoundE;
+						}
 					}
 				}
 			}

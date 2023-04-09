@@ -2457,7 +2457,7 @@ void entity_updatepos ( void )
 			// non-characters subjecty to simpler physics forces
 			float fNewDistanceX = t.entityelement[t.te].x - ObjectPositionX(t.tobj);
 			float fNewDistanceZ = t.entityelement[t.te].z - ObjectPositionZ(t.tobj);
-			float fNewDistanceTotal = Sqrt(fabs(fNewDistanceX*fNewDistanceX) + fabs(fNewDistanceZ*fNewDistanceZ));
+			float fNewDistanceTotal = Sqrt(fabs(fNewDistanceX * fNewDistanceX) + fabs(fNewDistanceZ * fNewDistanceZ));
 			if (fNewDistanceTotal <= 0) return;
 			// work out normalized increment
 			float fForceToApplyX = fNewDistanceX / fNewDistanceTotal;
@@ -2468,8 +2468,25 @@ void entity_updatepos ( void )
 			if (fSpeed > fSpeedMax) fSpeed = fSpeedMax;
 			fForceToApplyX *= (fSpeed * 15.0f);
 			fForceToApplyZ *= (fSpeed * 15.0f);
-			// apply force to physics object to get to new XZ position (eventually)
-			ODESetLinearVelocityXZWithGravity (t.tobj, fForceToApplyX, fForceToApplyZ, t.tvgravity_f);
+
+			if (t.entityelement[t.te].nogravity == 1)
+			{
+				// special case of non character entity with gravity off (pickupable objects)
+				float fNoGravY = t.entityelement[t.te].y - ObjectPositionY(t.tobj);
+				if (fabs(fNoGravY) > 0.0f)
+				{
+					if (fNoGravY > fSpeedMax) fNoGravY = fSpeedMax;
+					if (fNoGravY < -fSpeedMax) fNoGravY = -fSpeedMax;
+					fNoGravY *= 30.0f; // keep it in eye view when look up and down 15.0f;
+				}
+
+				ODESetLinearVelocity(t.tobj, fForceToApplyX, fNoGravY * 2, fForceToApplyZ);
+			}
+			else
+			{
+				// apply force to physics object to get to new XZ position (eventually)
+				ODESetLinearVelocityXZWithGravity(t.tobj, fForceToApplyX, fForceToApplyZ, t.tvgravity_f);
+			}
 		}
 		#else
 		//  control physics object (entity-driven)

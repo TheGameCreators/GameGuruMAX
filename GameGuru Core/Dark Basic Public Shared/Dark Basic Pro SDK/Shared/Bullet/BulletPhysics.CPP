@@ -801,6 +801,8 @@ void ODEFinalizeWorld ( void )
 		btRigidBody* body = g_PhyObjectList[j].body;
 		if (body == NULL) continue;
 		sObject* pObject = GetObjectData (g_PhyObjectList[j].iID);
+		if (g_PhyObjectList[j].iID == 7000) //PE: Fake terrain.
+			continue;
 		if (pObject == NULL) return;
 		if (body != NULL)
 		{
@@ -823,6 +825,8 @@ float ODEProjectActivationWave ( float fDistanceWithinToActivate, float fSlices 
 {
 	// to ease the initial physics burden, cast an activation wave so dynamic things can fall from sky and settle over the initial seconds
 	// after calling this with the desired distance to activate
+	if (!g_bBeenActivatedSinceStart)
+		return fDistanceWithinToActivate;
 	bool bMoveOnWhenAllActivatedInSlice = true;
 	for (int j = ((int)g_PhyObjectList.size()) - 1; j >= 0; j--)
 	{
@@ -3081,6 +3085,10 @@ void ODECreateGGTerrain()
 	// add physics object to system
 	short sCollidesWith = COL_OBJECT | COL_OBJECT_DYNAMIC | COL_CAPSULECHAR;
 	g_dynamicsWorld->addRigidBody ( body, COL_TERRAIN, sCollidesWith);
+
+	//PE: Add fake collision callback for new ggterrain system.
+	ODEAddObject(7000, nullptr, body, false, myMotionState, false, false, NULL, NULL, 1, 1, 100.0f, mass);
+
 }
 
 void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fRestitution )

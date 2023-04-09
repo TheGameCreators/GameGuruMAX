@@ -28,6 +28,7 @@ end
 function FlameLight_main(e)
  if module_lightcontrol.control(e) == 1 then
 	lightNum = GetEntityLightNumber( e )
+	if lightNum ~= nil then
 	local nRandom = math.random(0,2)
 	if nRandom == 0 then
 	 local nVariance = math.random(0,g_lightflame[e]['intensity'])-(g_lightflame[e]['intensity']/2)
@@ -55,5 +56,6 @@ function FlameLight_main(e)
 	if range > g_lightflame[e]['crange'] then range = range - 1 end
     SetLightRGB(lightNum,r,g,b)
 	SetLightRange(lightNum,range)
+	end
  end
 end

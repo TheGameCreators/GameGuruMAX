@@ -73,6 +73,8 @@ g_masterinterpreter_cond_haveammo = 59 -- Check Have Ammo (Is true when this cha
 g_masterinterpreter_cond_havealerttarget = 60 -- Have Alert Target (Is true an alert target has been set and not yet reset)
 g_masterinterpreter_cond_keypressed = 61 -- Key Pressed (Is true when the E key is pressed)
 g_masterinterpreter_cond_usinghud = 62 -- Using HUD (Is true when using a HUD screen)
+g_masterinterpreter_cond_targetreachable = 63 -- Target Reachable (Is true when a valid path can be made to the target)
+g_masterinterpreter_cond_withinnavmesh = 64 -- Within Navmesh (Is true if the object is within a valid navmesh)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -404,6 +406,8 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
  if conditiontype == g_masterinterpreter_cond_ifseeenemy then usestarget = 2 end
  if conditiontype == g_masterinterpreter_cond_withinattackrange then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_targetdestwithin then usestarget = 1 end
+ if conditiontype == g_masterinterpreter_cond_targetpathvalid then usestarget = 1 end
+ if conditiontype == g_masterinterpreter_cond_targetreachable then usestarget = 1 end
  if usestarget ~= 0 then
   local usetargetXYZ = 0
   if usestarget == 1 then
@@ -842,6 +846,22 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
    return 1
   end
  end 
+ if conditiontype == g_masterinterpreter_cond_targetreachable then 
+  if output_e['goodtargetpointindex'] > 0 then 
+   local tdist = 99999
+   if output_e['goodtargetdestinationx'] ~= -1 then 
+    local dx = output_e['goodtargetdestinationx'] - g_PlayerPosX
+    local dy = output_e['goodtargetdestinationy'] - g_PlayerPosY
+    local dz = output_e['goodtargetdestinationz'] - g_PlayerPosZ
+    tdist = math.sqrt(math.abs(dx*dx)+math.abs(dz*dz))
+   end
+   if conditionparam1value == nil then conditionparam1value = 50 end
+   if tdist <= conditionparam1value then return 1 end
+  end
+ end  
+ if conditiontype == g_masterinterpreter_cond_withinnavmesh then 
+  if RDIsWithinMesh(g_Entity[ e ]['x'],g_Entity[ e ]['y'],g_Entity[ e ]['z']) == 1 then return 1 end
+ end
 
  -- Condition is false
  return 0

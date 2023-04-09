@@ -4203,7 +4203,9 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 			iResult = 1;
 		}
 		else
+		{
 			iResult = 0;
+		}
 	}
 	else
 		iResult = 0;

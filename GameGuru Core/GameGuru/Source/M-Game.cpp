@@ -4844,17 +4844,6 @@ void game_main_loop ( void )
 		character_sound_update ( );
 	}
 
-	//  Trigger soundloops to be snapshot (when start level and at checkpoints)
-	//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_main_snapshotsoundloopcheckpoint");
-	//if (  t.playercheckpoint.soundloopcheckpointcountdown>0 ) 
-	//{
-	//	--t.playercheckpoint.soundloopcheckpointcountdown;
-	//	if (  t.playercheckpoint.soundloopcheckpointcountdown == 0 ) 
-	//	{
-	//		game_main_snapshotsoundloopcheckpoint ( );
-	//	}
-	//}
-
 	//  Force a shader update to ensure correct shadows are used at start
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_shaderlevels_update");
 	if (  t.visuals.refreshcountdown>0 ) 
@@ -4878,11 +4867,7 @@ void game_main_loop ( void )
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking levelendingcycle");
 	if ( t.game.levelendingcycle == 0 )
 	{
-		#ifdef VRTECH
 		if ( (t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && (t.game.runasmultiplayer == 0 || bSocialVRDebugTABTAB == true)  ) 
-		#else
-		if ( (t.game.gameisexe == 0 || g.gprofileinstandalone == 1) && (t.game.runasmultiplayer == 0)  ) 
-		#endif
 		{
 			// Test Game Mode
 			// Handle light-mapper key
@@ -4936,7 +4921,6 @@ void game_main_loop ( void )
 					 g.lightmappedterrainoffset=-1;
 					 g.lightmappedterrainoffsetfinish=-1;
 					 //  launch external lightmapper
-					 //SetDir (  ".." );
 					 SetDir ( g.lightmapperexefolder_s.Get() );
 					 timestampactivity(0,"launch external lightmapper") ; t.twas=Timer();
 					 t.tdisableLMprogressreading=1;
@@ -5089,22 +5073,9 @@ void game_main_loop ( void )
 		}
 		#endif
 
-		//  Lighting control
-		//  Entity control
-		//  Particles control
-		//  Flak control
-
 		//  update all projectiles
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling weapon_projectile_loop");
 		weapon_projectile_loop ( );
-
-//		//  update all particles and emitters
-//		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ravey_particles_update");
-//		ravey_particles_update ( );
-
-		//  Decal control
-//		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling decalelement_control");
-//		decalelement_control ( );
 
 		//  Prompt
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking prompts");
@@ -5168,9 +5139,8 @@ void game_main_loop ( void )
 		}
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
-
 		//PE: Test Terrain Collision.
-		if (0)
+		if (1)
 		{
 			//Test code for terrain hit.
 			float camx = CameraPositionX(t.terrain.gameplaycamera);
@@ -5322,18 +5292,14 @@ void game_main_loop ( void )
 	//PE: Moved here for "AmenMoses", issue: https://github.com/TheGameCreators/GameGuruRepo/issues/511
 
 	//  update all particles and emitters
-	#ifdef VRTECH
 	update_env_particles();
-	#endif
 	ravey_particles_update();
 
 	//  Decal control
 	decalelement_control();
 
-	#ifdef WICKEDENGINE
 	// bullethole manegement
 	bulletholes_update();
-	#endif
 
 	//  Steam call moved here as camera changes need to be BEFORE the shadow update
 	if (  t.game.runasmultiplayer == 1 ) 
@@ -5350,13 +5316,6 @@ void game_main_loop ( void )
 		#endif
 	}
 
-	#ifdef VRTECH
-	#else
-	//  if we have character creator stuff in, we setup the characters
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling characterkit_updateCharacters");
-	if ( t.characterkitcontrol.gameHasCharacterCreatorIn == 1 ) characterkit_updateCharacters ( );
-	#endif
-
 	// Handle veg engine, terrain shadow, sky and water
 	// Dave Performance, calling update on veg and terrain shadow every 4 frames rather than every frame
 	static int terrainshadowdelay = 0;
@@ -5368,7 +5327,6 @@ void game_main_loop ( void )
 	{
 		terrainshadowdelay = 4;		
 	}
-
 	if (  t.hardwareinfoglobals.noterrain == 0 ) 
 	{
 		//Dave Performance, calling update on veg and terrain shadow every 4 frames rather than every frame
@@ -5447,12 +5405,8 @@ void game_main_loop ( void )
 	// Handle occlusion if active
 	if ( g.globals.occlusionmode == 1 ) 
 	{
-		#ifdef VRTECH
 		// VR software cannot use occlusion at the moment
 		if ( g.vrqcontrolmode == 0 ) //g.vrglobals.GGVREnabled == 0 )
-		#else
-		if(1)
-		#endif
 		{
 			// detect velocity of XZ motion of player and advance 'virtual camera' ahead of real camera
 			// in order to give occluder time to reveal visible objects in advance of getting there

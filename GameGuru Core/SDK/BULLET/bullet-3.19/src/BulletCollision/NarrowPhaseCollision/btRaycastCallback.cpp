@@ -84,18 +84,21 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle, int partId,
 			btVector3 cp0;
 			cp0 = v0p.cross(v1p);
 
-			if ((btScalar)(cp0.dot(triangleNormal)) >= edge_tolerance)
+			btScalar fWhatIsThisDotValueThatIsTooSmallForTerrainTest1 = (btScalar)(cp0.dot(triangleNormal));
+			if (fWhatIsThisDotValueThatIsTooSmallForTerrainTest1 >= edge_tolerance)
 			{
 				btVector3 v2p;
 				v2p = vert2 - point;
 				btVector3 cp1;
 				cp1 = v1p.cross(v2p);
-				if ((btScalar)(cp1.dot(triangleNormal)) >= edge_tolerance)
+				btScalar fWhatIsThisDotValueThatIsTooSmallForTerrainTest2 = (btScalar)(cp1.dot(triangleNormal));
+				if (fWhatIsThisDotValueThatIsTooSmallForTerrainTest2 >= edge_tolerance)
 				{
 					btVector3 cp2;
 					cp2 = v2p.cross(v0p);
 
-					if ((btScalar)(cp2.dot(triangleNormal)) >= edge_tolerance)
+					btScalar fWhatIsThisDotValueThatIsTooSmallForTerrainTest3 = (btScalar)(cp2.dot(triangleNormal));
+					if (fWhatIsThisDotValueThatIsTooSmallForTerrainTest3 >= edge_tolerance)
 					{
 						//@BP Mod
 						// Triangle normal isn't normalized

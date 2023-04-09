@@ -10361,6 +10361,8 @@ void GGTerrain_Physics_RayCast( void* callback, float worldToPhysScale, float sr
 
 	if ( !pChunk ) return;
 		
+	// LEELEE: This issue is here I suspect, not enough being sent to the raycast to find a hit
+	// so look MUCH CLOSER at how the chunks/segments/triangle handle the ray line coordinates
 	int count = 0;
 	while( result && pChunk && count < 10000 )
 	{

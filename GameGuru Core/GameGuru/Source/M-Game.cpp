@@ -3838,15 +3838,14 @@ void game_preparelevel ( void )
 	entity_init ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
-	// Load weapon system (wicked)
-	#ifdef WICKEDENGINE
+	// Load weapon system
 	t.screenprompt_s = "LOADING NEW WEAPONS";
 	if (t.game.gameisexe == 0)  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0, t.screenprompt_s.Get());
 	gun_activategunsfromentities ();
 	gun_setup ();
 	gun_loadonlypresent ();
-	#endif
+	entity_init_overwritefireratesettings();
 
 	//  create A.I entities for all characters
 	t.screenprompt_s="SETTING UP CHARACTERS";

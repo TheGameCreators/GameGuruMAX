@@ -1447,27 +1447,6 @@ bool entity_load (bool bCalledFromLibrary)
 			PositionObject(t.entobj, 100000, 100000, 100000);
 		}
 
-		/* bitbob system removed and variables used elsewhere
-		//  work out if this is in the bitbob system (1 or -1 automatic (decided based on size) and precalcualte bitbob fade distances
-		if (t.entityprofile[t.entid].ischaracter == 1 && t.entityprofile[t.entid].bitbobon == -1)
-		{
-			//  characters need to remain visible for sniping
-			t.entityprofile[t.entid].bitbobon = 0;
-		}
-		if (t.entityprofile[t.entid].bitbobon != 0 && t.entityprofile[t.entid].ismarker == 0)
-		{
-			t.tLargestSide_f = ObjectSizeX(t.entobj, 1);
-			if (ObjectSizeY(t.entobj, 1) > t.tLargestSide_f)  t.tLargestSide_f = ObjectSizeY(t.entobj, 1);
-			if (ObjectSizeZ(t.entobj, 1) > t.tLargestSide_f)  t.tLargestSide_f = ObjectSizeZ(t.entobj, 1);
-			if (t.tLargestSide_f < BITBOBS_DEFAULT_MAXSIZE)  t.entityprofile[t.entid].bitbobon = 1;
-			if (t.entityprofile[t.entid].bitbobon == 1)
-			{
-				t.entityprofile[t.entid].bitbobnear_f = t.tLargestSide_f * BITBOBS_DEFAULT_FADEIN * t.entityprofile[t.entid].bitbobdistweight_f;
-				t.entityprofile[t.entid].bitbobfar_f = t.tLargestSide_f * BITBOBS_DEFAULT_FADEOUT * t.entityprofile[t.entid].bitbobdistweight_f;
-			}
-		}
-		*/
-
 		//  must hide parent objects
 		HideObject(t.entobj);
 
@@ -5620,7 +5599,6 @@ LPSTR c_ReadStringIncl0xA(int f)
 }
 
 int g_iAddEntityElementsMode = 0;
-int g_iAddEntityElementsModeFrom = 0;
 
 void c_entity_loadelementsdata ( void )
 {
@@ -5710,7 +5688,6 @@ void c_entity_loadelementsdata ( void )
 							t.entityelement[t.e] = t.storeentityelement[t.e];
 						}
 					}
-					// g_iAddEntityElementsModeFrom - no longer used, we instead fill up available space :)
 				}
 				for ( int n = 1; n <= iElementsInFile; n++ )
 				{
@@ -6474,59 +6451,54 @@ void c_entity_loadelementsdata ( void )
 		}
 		#endif
 
-		//  If replacement file active, can swap in new SCRIPT and SOUND references
-		if (  Len(t.editor.replacefilepresent_s.Get())>1 ) 
+		// If replacement file active, can swap in new SCRIPT and SOUND references
+		if(g_iAddEntityElementsMode==0)
 		{
-			//  now go through ELEPROF enrties to update any SCRIPTBANK references and SOUNDSET references
-			for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+			if (Len(t.editor.replacefilepresent_s.Get()) > 1)
 			{
-				#ifdef WICKEDENGINE
-				for (t.tcheck = 1; t.tcheck <= 8; t.tcheck++)
-				#else
-				for (t.tcheck = 1; t.tcheck <= 6; t.tcheck++)
-				#endif
+				// now go through ELEPROF enrties to update any SCRIPTBANK references and SOUNDSET references
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
-					if (  t.tcheck == 1  )  t.tcheck_s = t.entityelement[t.e].eleprof.aimain_s;
-					if (  t.tcheck == 2  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset_s;
-					if (  t.tcheck == 3  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset1_s;
-					if (  t.tcheck == 4  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset2_s;
-					if (  t.tcheck == 5  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset3_s;
-					if (  t.tcheck == 6  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset4_s;
-					#ifdef WICKEDENGINE
-					if (  t.tcheck == 7  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset5_s;
-					if (  t.tcheck == 8  )  t.tcheck_s = t.entityelement[t.e].eleprof.soundset6_s;
-					#endif
-					t.ttry_s="";
-					for ( t.nn = 1 ; t.nn<=  Len(t.tcheck_s.Get()); t.nn++ )
+					for (t.tcheck = 1; t.tcheck <= 8; t.tcheck++)
 					{
-						t.ttry_s=t.ttry_s+Mid(t.tcheck_s.Get(),t.nn);
-						if (  (cstr(Mid(t.tcheck_s.Get(),t.nn)) == "\\" && cstr(Mid(t.tcheck_s.Get(),t.nn+1)) == "\\") || (cstr(Mid(t.tcheck_s.Get(),t.nn)) == "/" && cstr(Mid(t.tcheck_s.Get(),t.nn+1)) == "/") ) 
+						if (t.tcheck == 1)  t.tcheck_s = t.entityelement[t.e].eleprof.aimain_s;
+						if (t.tcheck == 2)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset_s;
+						if (t.tcheck == 3)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset1_s;
+						if (t.tcheck == 4)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset2_s;
+						if (t.tcheck == 5)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset3_s;
+						if (t.tcheck == 6)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset4_s;
+						if (t.tcheck == 7)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset5_s;
+						if (t.tcheck == 8)  t.tcheck_s = t.entityelement[t.e].eleprof.soundset6_s;
+						t.ttry_s = "";
+						for (t.nn = 1; t.nn <= Len(t.tcheck_s.Get()); t.nn++)
 						{
-							++t.nn;
+							t.ttry_s = t.ttry_s + Mid(t.tcheck_s.Get(), t.nn);
+							if ((cstr(Mid(t.tcheck_s.Get(), t.nn)) == "\\" && cstr(Mid(t.tcheck_s.Get(), t.nn + 1)) == "\\") || (cstr(Mid(t.tcheck_s.Get(), t.nn)) == "/" && cstr(Mid(t.tcheck_s.Get(), t.nn + 1)) == "/"))
+							{
+								++t.nn;
+							}
 						}
-					}
-					t.ttry_s=Lower(t.ttry_s.Get());
-					for ( t.tt = 1 ; t.tt<=  t.treplacementmax; t.tt++ )
-					{
-						if (  t.replacements_s[t.tt][0] == t.ttry_s ) 
+						t.ttry_s = Lower(t.ttry_s.Get());
+						for (t.tt = 1; t.tt <= t.treplacementmax; t.tt++)
 						{
-							//  found entry we can replace
-							if (  t.tcheck == 1 ) { t.entityelement[t.e].eleprof.aimain_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							if (  t.tcheck == 2 ) { t.entityelement[t.e].eleprof.soundset_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							if (  t.tcheck == 3 ) { t.entityelement[t.e].eleprof.soundset1_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							if (  t.tcheck == 4 ) { t.entityelement[t.e].eleprof.soundset2_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							if (  t.tcheck == 5 ) { t.entityelement[t.e].eleprof.soundset3_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							if (  t.tcheck == 6 ) { t.entityelement[t.e].eleprof.soundset4_s = t.replacements_s[t.tt][1]  ; t.tt = t.treplacementmax+1; }
-							#ifdef WICKEDENGINE
-							if (  t.tcheck == 7) { t.entityelement[t.e].eleprof.soundset5_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
-							if (t.tcheck == 8) { t.entityelement[t.e].eleprof.soundset6_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
-							#endif
+							if (t.replacements_s[t.tt][0] == t.ttry_s)
+							{
+								//  found entry we can replace
+								if (t.tcheck == 1) { t.entityelement[t.e].eleprof.aimain_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 2) { t.entityelement[t.e].eleprof.soundset_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 3) { t.entityelement[t.e].eleprof.soundset1_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 4) { t.entityelement[t.e].eleprof.soundset2_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 5) { t.entityelement[t.e].eleprof.soundset3_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 6) { t.entityelement[t.e].eleprof.soundset4_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 7) { t.entityelement[t.e].eleprof.soundset5_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+								if (t.tcheck == 8) { t.entityelement[t.e].eleprof.soundset6_s = t.replacements_s[t.tt][1]; t.tt = t.treplacementmax + 1; }
+							}
 						}
 					}
 				}
+				//  free usages
+				UnDim (t.replacements_s);
 			}
-			//  free usages
-			UnDim (  t.replacements_s );
 		}
 	}
 
@@ -6725,15 +6697,12 @@ void entity_loadelementsdata(void)
 			strcat(collectionELEfilename, "\\collection - items.ele");
 			t.elementsfilename_s = collectionELEfilename;
 			extern int g_iAddEntityElementsMode;
-			//extern int g_iAddEntityElementsModeFrom;
 			g_iAddEntityElementsMode = 1;
-			//g_iAddEntityElementsModeFrom = g.entityelementlist + 1;
 			c_entity_loadelementsdata();
 			t.elementsfilename_s = storeoldELEfile;
 			g_iAddEntityElementsMode = 0;
 
 			// associate new entity elements with collection entry
-			//for (int e = g_iAddEntityElementsModeFrom; e <= g.entityelementlist; e++)
 			for (int e = 1; e <= g.entityelementlist; e++)
 			{
 				if (t.entityelement[e].specialentityloadflag == 123)
@@ -8226,7 +8195,6 @@ void entity_addentitytomap ( void )
 	{
 		// populate the actual gun and flak settings (for further weapon entity creations)
 		int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
-		//for ( int firemode = 0; firemode < 2; firemode++ )
 		g.firemodes[t.tgunid][firemode].settings.damage=t.grideleprof.damage;
 		g.firemodes[t.tgunid][firemode].settings.accuracy=t.grideleprof.accuracy;
 		g.firemodes[t.tgunid][firemode].settings.reloadqty=t.grideleprof.reloadqty;

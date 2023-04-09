@@ -4,6 +4,7 @@
 
 #include "cstr.h"
 
+void entity_init_overwritefireratesettings ( void );
 void entity_init ( void );
 void entity_bringnewentitiestolife ( bool bAllNewOnes );
 void entity_initafterphysics ( void );

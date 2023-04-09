@@ -163,10 +163,8 @@ uint8_t* pHeightMapEditType = 0;
 uint16_t* pHeightMapFlatAreas = 0;
 uint8_t* pHeightMapFlatAreaWeight = 0;
 
-/* no longer used
 wiECS::Entity globalEnvProbe;
 XMFLOAT3 globalEnvProbePos = { 0, 0, 0 };
-*/
 wiECS::Entity localEnvProbe[LOCALENVPROBECOUNT];
 XMFLOAT3 localEnvProbePos[LOCALENVPROBECOUNT];
 uint32_t currLocalEnvProbe = 0;
@@ -6958,26 +6956,23 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	undosys_terrain_init(GGTerrain_GetSculptDataSize(),  GGTERRAIN_HEIGHTMAP_EDIT_SIZE);
 	#endif
 
-	// global probe must be excluded from local list by using a small size
-	/* no longer used
+	// global probe used to have at least some kind of correct env map for places where local probes not extending
+	float globalrange = 50000;
 	globalEnvProbePos = XMFLOAT3( 0, ggterrain_local_params.height, 0 );
 	globalEnvProbe = wiScene::GetScene().Entity_CreateEnvironmentProbe("globalEnvProbe", globalEnvProbePos);
 	EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(globalEnvProbe);
-	probe->range = range;
+	probe->range = globalrange;
 	probe->userdata = 255;
 	probe->SetDirty();
 	wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(globalEnvProbe);
 	pTransform->ClearTransform();
 	pTransform->Translate(globalEnvProbePos);
-	pTransform->Scale(XMFLOAT3(range, range, range));
+	pTransform->Scale(XMFLOAT3(globalrange, globalrange, globalrange));
 	pTransform->UpdateTransform();
 	pTransform->SetDirty();
-	*/
 
 	// local env probe creation
 	float range = 1;
-	EnvironmentProbeComponent* probe = NULL;
-	wiScene::TransformComponent* pTransform = NULL;
 	for( int i = 0; i < LOCALENVPROBECOUNT; i++ )
 	{
 		range = 1;
@@ -9093,27 +9088,25 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 
 	// handle global probe positioned by globalEnvProbePos
-	/* no longer used
 	float height;
 	GGTerrain_GetHeight( 0, 0, &height );
 	height += GGTerrain_MetersToUnits(30);
-	float heightDiff = abs( height - globalEnvProbePos.y );
+	float heightDiff = fabs( height - globalEnvProbePos.y );
 	if ( heightDiff > 50 )
 	{
 		globalEnvProbePos = XMFLOAT3( 0, height, 0 );
 		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( globalEnvProbe );
 		probe->position = globalEnvProbePos;
-		probe->range = 1;
+		probe->range = 50000;
 		probe->userdata = 255;
 		probe->SetDirty();
 		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( globalEnvProbe );
 		pTransform->ClearTransform();
 		pTransform->Translate( globalEnvProbePos );
-		pTransform->Scale( XMFLOAT3(1, 1, 1) );
+		pTransform->Scale( XMFLOAT3(probe->range, probe->range, probe->range) );
 		pTransform->UpdateTransform();
 		pTransform->SetDirty();
 	}
-	*/
 
 	if ( !ggterrain_initialised ) return;
 

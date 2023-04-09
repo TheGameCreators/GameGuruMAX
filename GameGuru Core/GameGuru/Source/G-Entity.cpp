@@ -24,6 +24,35 @@ std::vector<int> g_iDestroyedEntitiesList;
 //  ENTITY GAME CODE
 // 
 
+void entity_init_overwritefireratesettings (void)
+{
+	// when all entities loaded, some contain override settings for weapons,
+	// so ensure they are used after the weapon default settings are loaded
+	// so new weapons added to level and tested reflect overrides
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.entid > 0)
+		{
+			//  update gun/flak settings from latest entity properties
+			t.tgunid_s = t.entityprofile[t.entid].isweapon_s;
+			entity_getgunidandflakid ();
+			if (t.tgunid > 0)
+			{
+				// entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
+				int firemode = 0;
+				g.firemodes[t.tgunid][firemode].settings.damage = t.entityelement[t.e].eleprof.damage;
+				g.firemodes[t.tgunid][firemode].settings.accuracy = t.entityelement[t.e].eleprof.accuracy;
+				g.firemodes[t.tgunid][firemode].settings.reloadqty = t.entityelement[t.e].eleprof.reloadqty;
+				g.firemodes[t.tgunid][firemode].settings.iterate = t.entityelement[t.e].eleprof.fireiterations;
+				g.firemodes[t.tgunid][firemode].settings.range = t.entityelement[t.e].eleprof.range;
+				g.firemodes[t.tgunid][firemode].settings.dropoff = t.entityelement[t.e].eleprof.dropoff;
+				g.firemodes[t.tgunid][firemode].settings.usespotlighting = t.entityelement[t.e].eleprof.usespotlighting;
+			}
+		}
+	}
+}
+
 void entity_init ( void )
 {
 	// all entities initialised, and any old destroy list items cleared
@@ -144,26 +173,10 @@ void entity_init ( void )
 					}
 					// ensure correct zdepth when game level starts
 					entity_preparedepth(t.entid, t.tobj);
-					//  update gun/flak settings from latest entity properties
-					t.tgunid_s=t.entityprofile[t.entid].isweapon_s;
-					entity_getgunidandflakid ( );
-					if (  t.tgunid>0 ) 
-					{
-						int firemode = 0; // 110718 - entity properties should only edit first primary gun settings (so we dont mess up enhanced weapons)
-						//for ( int firemode = 0; firemode < 2; firemode++ )
-						g.firemodes[t.tgunid][firemode].settings.damage=t.entityelement[t.e].eleprof.damage;
-						g.firemodes[t.tgunid][firemode].settings.accuracy=t.entityelement[t.e].eleprof.accuracy;
-						g.firemodes[t.tgunid][firemode].settings.reloadqty=t.entityelement[t.e].eleprof.reloadqty;
-						g.firemodes[t.tgunid][firemode].settings.iterate=t.entityelement[t.e].eleprof.fireiterations;
-						g.firemodes[t.tgunid][firemode].settings.range=t.entityelement[t.e].eleprof.range;
-						g.firemodes[t.tgunid][firemode].settings.dropoff=t.entityelement[t.e].eleprof.dropoff;
-						g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.entityelement[t.e].eleprof.usespotlighting;
-					}
 				}
 			}
 		}
 	}
-	//timestampactivity(0, "Configure entity attachments and AI obstacles: DONE");
 }
 
 void entity_bringnewentitiestolife (bool bAllNewOnes)
@@ -896,15 +909,6 @@ void entity_loop ( void )
 			if (t.entityprofile[t.entid].ischaracter == 1)
 			{
 				sObject* pObject = GetObjectData(t.tobj);
-				/* now have QUAT so can improve on this hack!
-				if (fabs(t.entityelement[t.e].rx) >= 170 && fabs(t.entityelement[t.e].rz) >= 170)
-				{
-					//LB: not pretty or ideal, what is the best method of un-inverting a euler rotation from -180,44,-179/etc to 0,44+180,0?
-					t.entityelement[t.e].rx = 0;
-					t.entityelement[t.e].ry += 180.0f;
-					t.entityelement[t.e].rz = 0;
-				}
-				*/
 				float fObjectOriginalRotated = t.entityelement[t.e].ry;
 				int iTempObjectForTest = g.ragdollplussystemdebugobj;
 				if (t.entityelement[t.e].ragdollplusactivate > 0)
@@ -1371,9 +1375,6 @@ void entity_loop ( void )
 								{
 									fScore -= (((vecUnrotatedShapeWorld2.z - vecNavMeshMax.z) / vecSize.z) * fBiasTowardsX);
 								}
-								//distance shift used to switch to ragdoll instead of death anim choice maker
-								//float fWeightForDistanceFromOrigin = (fabs(vecTopLeft.x - vecTopLeftOriginal.x) + fabs(vecTopLeft.z - vecTopLeftOriginal.z)) / 100.0f;
-								//fScore -= fWeightForDistanceFromOrigin; // lower the score the further away the start position for death anim needs to be
 								if (fScore > fBestScore)
 								{
 									fBestScore = fScore;
@@ -1387,8 +1388,6 @@ void entity_loop ( void )
 						}
 						if (iPreferredAnimChosen >= 0)
 						{
-							/*float fThresholdForMovingTooFarX = 30.0f;
-							float fThresholdForMovingTooFarZ = 40.0f;*/
 							float fThresholdForMovingTooFarX = 22.5f;
 							float fThresholdForMovingTooFarZ = 25.0f;
 							if (fabs(vecBestShiftInObjectSpace.x) > fThresholdForMovingTooFarX || fabs(vecBestShiftInObjectSpace.z) > fThresholdForMovingTooFarZ)

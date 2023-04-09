@@ -18,6 +18,7 @@ public:
 	bool isWithinNavMeshEx(float fX, float fY, float fZ, float* pvecNearestPt, bool bMustBeOverPoly);
 	bool isWithinNavMesh (float fX, float fY, float fZ);
 	float getYFromPos (float fX, float fY, float fZ);
+	void forceDebugUpdate (void);
 	void handleDebugRender (void);
 	void cleanupDebugRender(void);
 

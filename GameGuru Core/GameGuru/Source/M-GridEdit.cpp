@@ -31183,6 +31183,9 @@ void gridedit_load_map ( void )
 		terrain_createactualterrain ( );
 		terrain_loaddata ( );
 
+		// ensure firerate settings updated with any overrides set by developer mode changes
+		entity_init_overwritefireratesettings();
+
 		//  Update remaining map data before editing
 		timestampactivity(0, "Reset Editor.");
 		gridedit_updatemapbeforeedit ( );

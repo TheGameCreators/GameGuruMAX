@@ -3,6 +3,9 @@
 #include "CFileC.h"
 #include "DetourCommon.h"
 
+// Globals
+bool g_bNavMeshChanged = false;
+
 // main functions
 GGRecastDetour::GGRecastDetour()
 {
@@ -36,7 +39,6 @@ int GGRecastDetour::buildall (float* pVertices, uint32_t numVertices)
 	freeall();
 
 	// create simple solo mesh sample
-	//sample = new Sample_SoloMesh();
 	sample = new Sample_TileMesh();
 	if (sample)
 	{
@@ -173,10 +175,20 @@ float GGRecastDetour::getYFromPos (float fX, float fY, float fZ)
 		return fY;
 }
 
+void GGRecastDetour::forceDebugUpdate(void)
+{
+	g_bNavMeshChanged = true;
+}
+
 void GGRecastDetour::handleDebugRender(void)
 {
 	if (sample)
 	{
+		if (g_bNavMeshChanged == true)
+		{
+			sample->GetDD()->hideDebugObjects();
+			g_bNavMeshChanged = false;
+		}
 		sample->handleRender();
 	}
 	if (tool)
@@ -238,4 +250,7 @@ void GGRecastDetour::TogglePolys( float x, float y, float z, float radius, bool 
 			}
 		}
 	}
+
+	// when we toggle polys, force a debug update
+	forceDebugUpdate();
 }

@@ -42764,6 +42764,9 @@ void process_storeboard(bool bInitOnly)
 																		Storyboard.Nodes[newnodeid].thumb_id = iUniqueId;
 																		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 																		{
+																			//PE: input_id,output_id ID's broken in checkproject.
+																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueIds + 1000 + (1000 * l);
+																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueIds + 1000 + (1000 * l) + 500;
 																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
 																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
 																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;

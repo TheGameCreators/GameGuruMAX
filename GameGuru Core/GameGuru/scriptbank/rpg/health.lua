@@ -1,5 +1,5 @@
--- DESCRIPTION: The object will give the player an health boost or deduction if used.
--- Health v8
+-- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource.
+-- Health v10
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -22,12 +22,10 @@ local pickup_range = {}
 local pickup_style = {}
 local pickup_range = {}
 local effect = {}
-local use_item_now = {}
 local selectobj = {}
 local tEnt = {}
 
 function health_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect)
-	health[e] = g_Entity[e]	
 	health[e].prompt_text = prompt_text
 	health[e].prompt_if_collectable = prompt_if_collectable
 	health[e].useage_text = useage_text
@@ -38,7 +36,7 @@ function health_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 end
 
 function health_init(e)
-	health[e] = g_Entity[e]
+	health[e] = {}
 	health[e].prompt_text = "E to Use"
 	health[e].prompt_if_collectable = "E to collect"
 	health[e].useage_text = "Health applied"
@@ -46,18 +44,19 @@ function health_init(e)
 	health[e].pickup_range = 80
 	health[e].pickup_style = 1
 	health[e].effect = 1
-	use_item_now[e] = 0
 	tEnt[e] = 0
 	selectobj[e] = 0
 end
 
 function health_main(e)
-	health[e] = g_Entity[e]
+
+	local use_item_now = 0
+	
 	PlayerDist = GetPlayerDistance(e)	
 	if health[e].pickup_style == 1 then
 		if PlayerDist < health[e].pickup_range then
 			PromptDuration(health[e].useage_text,1000)			
-			use_item_now[e] = 1
+			use_item_now = 1
 		end
 	end
 	
@@ -82,11 +81,12 @@ function health_main(e)
 			if GetEntityCollectable(tEnt[e]) == 0 then			
 				PromptDuration(health[e].prompt_text,1000)
 				if g_KeyPressE == 1 then
-					use_item_now[e] = 1
+					use_item_now = 1
 				end
 			end
-			if GetEntityCollectable(tEnt[e]) == 1 then				
-				Prompt(health[e].prompt_if_collectable)
+			PromptLocal(e,GetEntityCollectable(tEnt[e]))
+			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then				
+				-- if collectable or resource
 				if g_KeyPressE == 1 then
 					Hide(e)
 					CollisionOff(e)
@@ -99,18 +99,19 @@ function health_main(e)
 	
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
-		PromptDuration(health[e].useage_text,1000)
+		-- if this is a resource, it will deplete qty and set used to zero
 		SetEntityUsed(e,tusedvalue*-1)
-		use_item_now[e] = 1
+		PromptDuration(health[e].useage_text,1000)
+		use_item_now = 1
 	end
 	
 	local addquantity = 0
-	if use_item_now[e] == 1 then
+	if use_item_now == 1 then
 		PlaySound(e,0)
 		PerformLogicConnections(e)
 		if health[e].effect == 1 then addquantity = 1 end
 		if health[e].effect == 2 then addquantity = 2 end
-		Destroy(e)
+		Destroy(e) -- can only destroy resources that are qty zero
 	end
 	
 	local currentvalue = 0

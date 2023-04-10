@@ -4843,8 +4843,6 @@ void mp_addDestroyedObject ( void )
 		t.mp_destroyedObjectList[g.mp.destroyedObjectCount] = t.e;
 		++g.mp.destroyedObjectCount;
 	}
-return;
-
 }
 
 void mp_add_respawn_timed ( void )

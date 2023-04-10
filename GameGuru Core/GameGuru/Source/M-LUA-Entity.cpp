@@ -48,10 +48,21 @@ void entity_lua_destroy ( void )
 	// remove entity from level
 	if ( t.entityelement[t.e].active != 0 )
 	{
-		t.entityelement[t.e].destroyme = 1;
-		if (  t.game.runasmultiplayer ==  1 ) 
+		bool bCanDestroy = true;
+		if (t.entityelement[t.e].eleprof.iscollectable == 2)
 		{
-			SteamDestroy (  t.e );
+			if (t.entityelement[t.e].eleprof.quantity > 0)
+			{
+				bCanDestroy = false;
+			}
+		}
+		if (bCanDestroy == true)
+		{
+			t.entityelement[t.e].destroyme = 1;
+			if (t.game.runasmultiplayer == 1)
+			{
+				SteamDestroy (t.e);
+			}
 		}
 	}
 }

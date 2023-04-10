@@ -1161,6 +1161,14 @@ luaMessage** ppLuaMessages = NULL;
 							}
 						}
 
+						// if resource can never be less than one
+						if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+						{
+							int iQtyToCheck = t.entityelement[iEntityIndex].eleprof.quantity;
+							if (iQtyToCheck < 1) iQtyToCheck = 1;
+							t.entityelement[iEntityIndex].eleprof.quantity = iQtyToCheck;
+						}
+
 						// manage slot for this item
 						item.slot = -1;
 						if (iSlotIndex == -1)
@@ -1195,7 +1203,9 @@ luaMessage** ppLuaMessages = NULL;
 											if (t.entityelement[existingee].eleprof.iscollectable == 2)
 											{
 												// merge both objects into the present one in the container
-												t.entityelement[existingee].eleprof.quantity += t.entityelement[iEntityIndex].eleprof.quantity;
+												int iQtyToAdd = t.entityelement[iEntityIndex].eleprof.quantity;
+												if (iQtyToAdd < 1) iQtyToAdd = 1;
+												t.entityelement[existingee].eleprof.quantity += iQtyToAdd;
 
 												// hide other object until need again
 												t.entityelement[iEntityIndex].eleprof.quantity = 0;
@@ -1292,6 +1302,16 @@ luaMessage** ppLuaMessages = NULL;
 	 if (iEntityIndex > 0)
 	 {
 		 int iUsedState = lua_tonumber(L, 2);
+		 if (iUsedState < 0 && t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+		 {
+			 // resources can be depleted when entity used is, er, used.
+			 int qty = t.entityelement[iEntityIndex].eleprof.quantity - 1;
+			 if (qty > 0)
+			 {
+				 iUsedState = 0;
+			 }
+			 t.entityelement[iEntityIndex].eleprof.quantity = qty;
+		 }
 		 t.entityelement[iEntityIndex].consumed = iUsedState;
 	 }
 	 return 0;
@@ -7248,7 +7268,9 @@ int MoveInventoryItem (lua_State* L)
 									int ee = t.inventoryContainer[bothplayercontainersto][n].e;
 									if (ee > 0)
 									{
-										t.entityelement[ee].eleprof.quantity += t.entityelement[item.e].eleprof.quantity;
+										int iQtyToAdd = t.entityelement[item.e].eleprof.quantity;
+										if (iQtyToAdd < 1) iQtyToAdd = 1;
+										t.entityelement[ee].eleprof.quantity += iQtyToAdd;
 										t.entityelement[item.e].eleprof.quantity = 0;
 										bWeAddedToQuantityOfAnother = true;
 										break;

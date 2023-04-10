@@ -63,6 +63,8 @@ hud0_sounds_levelup = 1001
 hud0_quest_qty = 0
 hud0_quest_status = {}
 
+hud0_buttonPressed = 0
+
 function hud0.init()
  -- initialise all globals
  InitScreen("HUD0")
@@ -658,7 +660,9 @@ function hud0.main()
 											if tentityindex > 0 then
 												if GetEntityCollectable(tentityindex) == 2 and attributelabel == "title" then
 													local tQty = GetEntityQuantity(tentityindex)
-													tattrubutedata = tattrubutedata .. " (" .. tQty .. ")"
+													if tQty > 1 then
+														tattrubutedata = tattrubutedata .. " (" .. tQty .. ")"
+													end
 												end
 											end
 											SetScreenElementText(elementTextID,tattrubutedata)
@@ -855,7 +859,9 @@ function hud0.main()
 	end
 
 	-- handle any button activity for INVENTORY = DROP, USE, BUY, SELL, etc
-	if buttonElementID ~= -1 then
+	if buttonElementID == -1 and hud0_buttonPressed == 1 then hud0_buttonPressed = 0 end
+	if buttonElementID ~= -1 and hud0_buttonPressed == 0 then
+		hud0_buttonPressed = 1
 		local buttonElementName = GetScreenElementName(1+buttonElementID)
 		if string.len(buttonElementName) > 0 then
 			local actionOnObject = 0

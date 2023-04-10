@@ -5140,13 +5140,14 @@ void game_main_loop ( void )
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
 		//PE: Test Terrain Collision.
-		if (1)
+		//LB: Thanks, this helped visualize the issue
+		/*
+		if (0)
 		{
 			//Test code for terrain hit.
 			float camx = CameraPositionX(t.terrain.gameplaycamera);
 			float camy = CameraPositionY(t.terrain.gameplaycamera);
 			float camz = CameraPositionZ(t.terrain.gameplaycamera);
-
 			float lookx, looky, lookz;
 			lookx = GetCameraLookX(t.terrain.gameplaycamera);
 			looky = GetCameraLookY(t.terrain.gameplaycamera);
@@ -5155,12 +5156,11 @@ void game_main_loop ( void )
 			rayx = camx + (lookx * 10000.0f);
 			rayy = camy + (looky * 10000.0f);
 			rayz = camz + (lookz * 10000.0f);
-
 			if (!ObjectExist(g.debugraycastvisual + 20))
 			{
 				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
 				WickedCall_PresetObjectPutInEmissive(1);
-				MakeObjectBox(g.debugraycastvisual + 20, 40, 40, 40);
+				MakeObjectBox(g.debugraycastvisual + 20, 25, 25, 25);
 				PositionObject(g.debugraycastvisual + 20, -999999, -999999, -999999);
 				sObject* pObject = GetObjectData(g.debugraycastvisual + 20);
 				WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
@@ -5168,7 +5168,6 @@ void game_main_loop ( void )
 				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
 				WickedCall_PresetObjectPutInEmissive(0);
 			}
-
 			if (ODERayTerrain(camx, camy, camz, rayx, rayy, rayz, true) == 1)
 			{
 				if (ObjectExist(g.debugraycastvisual + 20))
@@ -5186,6 +5185,7 @@ void game_main_loop ( void )
 				}
 			}
 		}
+		*/
 
 		// In-Game Mode (moved from above so LUA is AFTER physics)
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");

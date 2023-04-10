@@ -73,7 +73,13 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle, int partId,
 	if (distance < m_hitFraction)
 	{
 		btScalar edge_tolerance = triangleNormal.length2();
-		edge_tolerance *= btScalar(-0.0001);
+		// not at all perfect, may have knock on effect - watch for other polygon raycast issues
+		// better solution is update Bullet to 3 and replace trimesh raycast with something nicer to 
+		// follow. The proj_length and distance calcs from tri normal size is either smart or mumbo
+		// but the raycast into submitted triangles facing forward and up are missing quite a bit!
+		//edge_tolerance *= btScalar(-0.0001);
+		//edge_tolerance *= btScalar(-0.1);
+		edge_tolerance = -0.005;
 		btVector3 point;
 		point.setInterpolate3(m_from, m_to, distance);
 		{

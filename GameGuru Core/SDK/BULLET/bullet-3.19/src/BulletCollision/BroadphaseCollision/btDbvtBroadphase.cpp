@@ -260,13 +260,8 @@ void btDbvtBroadphase::rayTest(const btVector3& rayFrom, const btVector3& rayTo,
 	}
 #endif
 
-	// replace with these to fix the 'missed' polys of the terrain - nope
-	//m_sets[0].rayTest(m_sets[0].m_root, rayFrom, rayTo, callback);
-	//m_sets[1].rayTest(m_sets[0].m_root, rayFrom, rayTo, callback);
-
 	// seems we are not even using the Bullet 3 broadphase - see the Bullet3Collision folder for possible upgrade here!
 	// this code does not like slicing a ray across the plane of the terrain - may relate to how Paul and I presented the terrain data 'live' to bullet
-
 	m_sets[0].rayTestInternal(m_sets[0].m_root,
 							  rayFrom,
 							  rayTo,

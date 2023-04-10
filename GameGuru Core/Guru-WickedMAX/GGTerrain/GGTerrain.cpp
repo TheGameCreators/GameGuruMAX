@@ -2016,7 +2016,8 @@ public:
 		if ( endHeight < startHeight ) rayMinHeight = endHeight;
 		else rayMaxHeight = endHeight;
 
-		if ( rayMaxHeight < minHeight || rayMinHeight > maxHeight ) return 0;
+		// put back once better raycast against triangles solved
+		//if ( rayMaxHeight < minHeight || rayMinHeight > maxHeight ) return 0;
 
 		height00 *= worldToPhysScale;
 		height01 *= worldToPhysScale;
@@ -2112,26 +2113,24 @@ public:
 			}	
 			float edgeDistX = edgeDistZ * absDirX / absDirZ;
 
-			while( beginZ < endZ )
+			while ((iStepZ == 1 && beginZ < endZ) || (iStepZ == -1 && beginZ > endZ))
 			{
-				if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY ) ) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY)) return 1;
 
 				limitX += stepX;
-				if ( limitX >= 0 )
+				if ( limitX >= segSize)
 				{
-					if ( stepX > edgeDistX )
-					{
-						if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX+iStepX, iBeginZ, currY, prevY ) ) return 1;
-					}
-					else
-					{
-						if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ+iStepZ, currY, prevY ) ) return 1;
-					}
-					
 					limitX -= segSize;
 					iBeginX += iStepX;
 				}
-
 				prevY = currY;
 				currY += stepY;
 				iBeginZ += iStepZ;
@@ -2142,7 +2141,7 @@ public:
 		{
 			float stepX = segSize;
 			float stepY = (absDirY / absDirX) * segSize;
-			float stepZ = (absDirZ / absDirX) * segSize;
+			float stepZ = fabs((absDirZ / absDirX) * segSize);
 			int iStepX = 1;
 			int iStepZ = 1;
 			float limitZ;
@@ -2170,26 +2169,24 @@ public:
 			}	
 			float edgeDistZ = edgeDistX * absDirZ / absDirX;
 
-			while( beginX < endX )
+			while( (iStepX == 1 && beginX < endX) || (iStepX == -1 && beginX > endX) )
 			{
-				if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY ) ) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY)) return 1;
 
 				limitZ += stepZ;
-				if ( limitZ >= 0 )
+				if ( limitZ >= segSize)
 				{
-					if ( stepZ > edgeDistZ )
-					{
-						if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ+iStepZ, currY, prevY ) ) return 1;
-					}
-					else
-					{
-						if ( PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX+iStepX, iBeginZ, currY, prevY ) ) return 1;
-					}
-
 					limitZ -= segSize;
 					iBeginZ += iStepZ;
 				}
-
 				prevY = currY;
 				currY += stepY;
 				iBeginX += iStepX;
@@ -10361,13 +10358,15 @@ void GGTerrain_Physics_RayCast( void* callback, float worldToPhysScale, float sr
 
 	if ( !pChunk ) return;
 		
-	// LEELEE: This issue is here I suspect, not enough being sent to the raycast to find a hit
-	// so look MUCH CLOSER at how the chunks/segments/triangle handle the ray line coordinates
 	int count = 0;
 	while( result && pChunk && count < 10000 )
 	{
 		float endDist = pChunk->GetRayExitDist( ray, 0 );
-		float entryDist;
+		if (endDist < 0)
+		{
+			endDist = 0;
+		}
+		float entryDist = 0.0f;
 		int inHeightRange = pChunk->CheckRayHeight( ray, &entryDist );
 
 		if ( inHeightRange && entryDist <= endDist )

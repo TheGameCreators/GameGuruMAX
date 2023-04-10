@@ -280,6 +280,7 @@ void GGTerrainPhysicsShape::performRaycast(btTriangleRaycastCallback* callback, 
 	
 	#ifdef PRODUCTCONVERTER
 	#else
+	btVector3 meshScaling = getLocalScaling();
 	GGTerrain::GGTerrain_Physics_RayCast( callback, m_worldToPhysScale, beginPos.getX(), beginPos.getY(), beginPos.getZ(), endPos.getX(), endPos.getY(), endPos.getZ() );
 	#endif
 }

@@ -5048,7 +5048,12 @@ void FPSC_Setup(void)
 		strcpy(pUserFolder, g.fpscrootdir_s.Get());
 		strcat(pUserFolder, "\\Files\\audiobank\\user\\");
 		GG_GetRealPath(pUserFolder, 1);
-		#endif
+
+		//PE: Video import activated.
+		strcpy(pUserFolder, g.fpscrootdir_s.Get());
+		strcat(pUserFolder, "\\Files\\videobank\\user\\");
+		GG_GetRealPath(pUserFolder, 1);
+#endif
 	
 		//  New security requires Steam client to be running (for ownership check)
 		g.iFreeVersionModeActive = 0;

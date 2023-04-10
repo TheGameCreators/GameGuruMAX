@@ -22736,6 +22736,9 @@ void process_entity_library_v2(void)
 						strcat(destination, tmp.Get());
 						GG_GetRealPath(destination, 1);
 						CopyFileA(import_filename.Get(), destination, false);
+
+						iLastDisplayLibraryType = -1; //Update search and refresh if any new files found.
+						sSelectedLibrarySting = "";
 						sStartLibrarySearchString = "user";
 					}
 				}
@@ -22799,10 +22802,56 @@ void process_entity_library_v2(void)
 
 			if (iDisplayLibraryType == 3) //Video
 			{
-				int buts = 0;
-				if (selectedmediafile != NULL) buts = 1;
+				int buts = 1;
+				if (selectedmediafile != NULL) buts = 2;
 				fButWidth = vContentSize.x / buts;
 				fButWidth -= 10.0f;
+
+
+				if (ImGui::StyleButton("Import Video", ImVec2(fButWidth, fFontSize * 2.0)))
+				{
+					static char video_default_folder[MAX_PATH] = "\0";
+					if (strlen(video_default_folder) <= 0)
+					{
+						//Init. 
+						if ((SHGetFolderPathA(NULL, CSIDL_COMMON_VIDEO, NULL, 0, &video_default_folder[0])) != S_OK)
+						{
+							//Failed try another.
+							if ((SHGetFolderPathA(NULL, CSIDL_MYVIDEO, NULL, 0, &video_default_folder[0])) != S_OK)
+							{
+								//Failed try another.
+								if ((SHGetFolderPathA(NULL, CSIDL_COMMON_DOCUMENTS, NULL, 0, &video_default_folder[0])) != S_OK)
+								{
+									strcpy(video_default_folder, "c:\\");
+								}
+							}
+						}
+					}
+					//
+					cStr tOldDir = GetDir();
+					char* cFileSelected;
+					//WMV,MP4
+					cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "all\0*.*\0MP4\0*.MP4\0WMV\0*.WMV\0", video_default_folder, NULL, true);
+					SetDir(tOldDir.Get());
+					if (cFileSelected && strlen(cFileSelected) > 0)
+					{
+						cstr import_filename = cFileSelected;
+						strcpy(video_default_folder, cFileSelected);
+						//import_name
+						cstr importer_getfilenameonly(LPSTR pFileAndPossiblePath);
+						cstr tmp = importer_getfilenameonly(import_filename.Get());
+
+						char destination[MAX_PATH];
+						strcpy(destination, "videobank\\user\\");
+						strcat(destination, tmp.Get());
+						GG_GetRealPath(destination, 1);
+						CopyFileA(import_filename.Get(), destination, false);
+						iLastDisplayLibraryType = -1; //Update search and refresh if any new files found.
+						sSelectedLibrarySting = "";
+						sStartLibrarySearchString = "user";
+					}
+				}
+
 				/* not in EA
 				if (ImGui::StyleButton("Get More Videos", ImVec2(fButWidth, fFontSize*2.0)))
 				{
@@ -22817,6 +22866,7 @@ void process_entity_library_v2(void)
 
 				if (selectedmediafile != NULL)
 				{
+					ImGui::SameLine();
 					if (ImGui::StyleButton("Add Selected Video", ImVec2(fButWidth, fFontSize*2.0)))
 					{
 						//Sent selection to imgui ID that have last requested a media file.

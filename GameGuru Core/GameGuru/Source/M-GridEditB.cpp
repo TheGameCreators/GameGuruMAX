@@ -39822,11 +39822,11 @@ void process_storeboard(bool bInitOnly)
 				//Quit.
 				iScreenshotNode = -1;
 				extern bool bPopModalOpenProceduralCameraMode;
+				extern bool bPopModalTakeMapSnapshot;
 				bPopModalOpenProceduralCameraMode = false;
+				bPopModalTakeMapSnapshot = false;
 			}
 		}
-
-
 
 		//#########################
 		//#### Duplicate Level ####
@@ -41604,7 +41604,7 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PopStyleVar();   // pop frame padding
 
 							//Combo.
-							const char* items_storyboard_level[] = { "Duplicate Level","Rename Level", "Delete Level", "Take Screenshot" };
+							const char* items_storyboard_level[] = { "Duplicate Level", "Rename Level", "Delete Level", "Take Screenshot", "Take Map Snapshot" };
 							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
 							int selection = 0;
 							char iUniqueString[255];
@@ -41613,8 +41613,8 @@ void process_storeboard(bool bInitOnly)
 							int iComboEntries = 3;
 							if (strlen(Storyboard.Nodes[i].level_name) > 0)
 							{
-								//Only screenshot if we got a level.
-								iComboEntries = 4;
+								// Only screenshot if we got a level.
+								iComboEntries = 5;
 							}
 							//ImGuiComboFlags_NoPreview
 							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
@@ -41634,11 +41634,10 @@ void process_storeboard(bool bInitOnly)
 											if (selection == 0)
 											{
 												//Duplicate Level.
-
 												iDuplicateNode = i;
 												bDuplicateLevel = true;
-												//Load in old level if any.
 
+												//Load in old level if any.
 												if (strlen(Storyboard.Nodes[i].level_name) > 0)
 												{
 													//Load and edit.
@@ -41667,8 +41666,6 @@ void process_storeboard(bool bInitOnly)
 													bRenameLevel = true;
 													iRenameNode = i;
 
-													//cstr importer_getfilenameonly(LPSTR pFileAndPossiblePath);
-													//cstr tmp = importer_getfilenameonly(Storyboard.Nodes[i].level_name);
 													std::string sLevelTitle = Storyboard.Nodes[i].level_name;
 													replaceAll(sLevelTitle, ".fpm", "");
 													replaceAll(sLevelTitle, "mapbank\\", "");
@@ -41688,7 +41685,6 @@ void process_storeboard(bool bInitOnly)
 												int iAction = askBoxCancel("This will delete the level from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
 												if (iAction == 1)
 												{
-
 													//Delete any links to this level.
 													for (int il = 0; il < STORYBOARD_MAXNODES; il++)
 													{
@@ -41714,15 +41710,18 @@ void process_storeboard(bool bInitOnly)
 													reset_single_node(i);
 													Storyboard.Nodes[i].used = false;
 													bBlockNextMouseCheck = true;
-
 												}
-
 											}
-											if (selection == 3)
+											if (selection == 3 || selection == 4)
 											{
 												//Take Screenshot.
 												extern bool bPopModalOpenProceduralCameraMode;
 												bPopModalOpenProceduralCameraMode = true;
+
+												// option to snap a map snapshot
+												extern bool bPopModalTakeMapSnapshot;
+												if (selection == 3) bPopModalTakeMapSnapshot = false;
+												if (selection == 4) bPopModalTakeMapSnapshot = true;
 
 												//PE: Do we need to load this level ?
 												if (strlen(Storyboard.Nodes[i].level_name) > 0)
@@ -41746,14 +41745,14 @@ void process_storeboard(bool bInitOnly)
 
 												//Make sure we have a fresh thumb.
 												if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
-
 											}
 										}
 									}
 								}
 								ImGui::EndCombo();
 							}
-							if (ImGui::IsItemHovered()) {
+							if (ImGui::IsItemHovered()) 
+							{
 								bBlockNextMouseCheck = true;
 								vTooltipPos = ImGui::GetCursorPos();
 								sTooltip = " Duplicate, delete or take a screen shot ";

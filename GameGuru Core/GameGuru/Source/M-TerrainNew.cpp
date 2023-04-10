@@ -91,6 +91,7 @@ extern ImVec4 drawCol_hover;
 extern ImVec4 drawCol_Down;
 bool bPopModalOpenProcedural = false;
 bool bPopModalOpenProceduralCameraMode = false;
+bool bPopModalTakeMapSnapshot = false;
 #endif
 
 #ifdef CUSTOMTEXTURES
@@ -10985,12 +10986,8 @@ void procedural_new_level(void)
 		if (bNeedReloadTextures)
 		{
 			g_iDeferTextureUpdateToNow = 1;
-			//cstr oldDir = GetDir();
-			//SetDir(g.fpscrootdir_s.Get());
-			//GGTerrain::GGTerrain_ReloadTextures();
 			t.visuals.customTexturesFolder = "";
 			bNeedReloadTextures = false;
-			//SetDir(oldDir.Get());
 			for (int i = 0; i < 32; i++)
 			{
 				// Default to all generic material sounds
@@ -11032,7 +11029,6 @@ void procedural_new_level(void)
 			ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 			ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
 			ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_USE_FOG;
-			//ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_USE_FOG;
 			#ifdef NOMINIMAP
 			ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 			#endif
@@ -11090,44 +11086,14 @@ void procedural_new_level(void)
 
 			if (!bPopModalOpenProceduralCameraMode)
 			{
-				//Start in 2D mode
-				/*
-				fSnapShotModeCameraX = GGORIGIN_X;
-				if (!bUseFullScreen)
-					fSnapShotModeCameraY = GGORIGIN_Y + 125000.0f; //108000
-				else
-					fSnapShotModeCameraY = GGORIGIN_Y + 108000.0f;
-
-				fSnapShotModeCameraZ = GGORIGIN_Z;
-				fSnapShotModeCameraAngY = fSnapShotModeCameraAngZ = 0.0f;
-				fSnapShotModeCameraAngX = 90.0f; //Look down.
-				*/
-
-				//PE: Now start in 3D mode.
-				/*
-				fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-				fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-				fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-				fSnapShotModeCameraY = BT_GetGroundHeight(t.terrain.TerrainID, fSnapShotModeCameraX, fSnapShotModeCameraZ);
-				fSnapShotModeCameraY += i3DViewHeight; //PE: A bit above terrain.
-				fSnapShotModeCameraAngY = fSnapShotModeCameraAngZ = 0.0f;
-				fSnapShotModeCameraAngX = 15.0f; //3D Angle.
-				bTriggerStableY = true; //PE: Make sure after terrain generate that the Y is correct.
-				*/
-
 				//PE: Now start up high looking at the editable area.
-				//fSnapShotModeCameraX = 73000;
-				//fSnapShotModeCameraZ = -73000;
-				//fSnapShotModeCameraY = 51000;
 				fSnapShotModeCameraX = 73800; //New distance.
 				fSnapShotModeCameraZ = -74000;
 				fSnapShotModeCameraY = 51600;
-
 				fSnapShotModeCameraAngZ = 0.0f;
 				fSnapShotModeCameraAngY = -37;
 				fSnapShotModeCameraAngX = 25; //PE: New 3D angle, was 34;
 				bTriggerStableY = true; //PE: Make sure after terrain generate that the Y is correct.
-
 			}
 			else
 			{
@@ -11162,40 +11128,20 @@ void procedural_new_level(void)
 
 			oldSkyCloudHeight = t.visuals.SkyCloudHeight;
 
-			//PE: Add fog again.
-			//t.visuals.FogR_f = 255.0; //PE: Try using the default bluish fog.
-			//t.visuals.FogG_f = 255.0;
-			//t.visuals.FogB_f = 255.0;
-			//t.visuals.ZenithRed_f = 46.0;
-			//t.visuals.ZenithGreen_f = 78.0;
-			//t.visuals.ZenithBlue_f = 124.0f;
-
 			//PE: Dont change visuals in bPopModalOpenProceduralCameraMode
 			if (!bPopModalOpenProceduralCameraMode)
 			{
 				t.visuals.FogA_f = 0.30; //0.4; //PE: Just a little fog. so you still can see terrain when way up (2D view).
-
-				//t.visuals.FogDistance_f = 1000000.0f; //Disable fog.
-				//t.visuals.FogNearest_f = 960000.0f;
 				t.visuals.FogNearest_f = 120000; //50000;
 				t.visuals.FogDistance_f = 500000; //700000;
-
 				t.visuals.skyindex = 0; //Disable clouds. just use static skybox settings (new sky not really activated).
-
 				#ifdef DIGAHOLE
 				t.visuals.bDisableSkybox = false; //PE: Test dynamic sky.
-				//t.visuals.SkyCloudHeight = 70000; //A little up higher.
 				#else
 				t.visuals.bDisableSkybox = true;
 				t.visuals.bFXAAEnabled = false; //FXAA ruin custom backbuffer ?
 				#endif
-
 				t.visuals.CameraFAR_f = fMaxCameraY + 100000.0f;
-				//t.visuals.fShadowFarPlane = t.visuals.CameraFAR_f + 100000.0f;
-
-//				t.visuals.SunAngleX = 295.0f; //327.0f;
-//				t.visuals.SunAngleY = 266.0f; //270.0f;
-//				t.visuals.SunAngleZ = 0.0f;
 				fWickedMaxCenterTest = 320000.0f; //PE: Hide ugly shadow.
 				Wicked_Update_Visuals((void *)&t.visuals);
 			}
@@ -11233,7 +11179,6 @@ void procedural_new_level(void)
 				ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 				ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
 				ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_USE_FOG;
-				//ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_USE_FOG; //PE: Now using fog.
 				#ifdef NOMINIMAP
 				ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 				#endif
@@ -11255,23 +11200,20 @@ void procedural_new_level(void)
 				//UI3D_TERRAINMOVER
 				if (!ObjectExist(TERRAINGENERATOR_OBJECT))
 					LoadObject("editors\\uiv3\\terrain mover solid.dbo", TERRAINGENERATOR_OBJECT);
+
 				if (!ObjectExist(TERRAINGENERATOR_OBJECT))
 				{
 					bUseSphere = true;
-				MakeObjectSphere(TERRAINGENERATOR_OBJECT, 200.0f, 30, 30);
+					MakeObjectSphere(TERRAINGENERATOR_OBJECT, 200.0f, 30, 30);
 				}
 				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
 				float fCenterHeight = BT_GetGroundHeight(t.terrain.TerrainID, fSnapShotModeCameraX, fSnapShotModeCameraZ);
 				PositionObject(TERRAINGENERATOR_OBJECT, GGORIGIN_X, fCenterHeight, GGORIGIN_Z);
 
-				//SetObjectCull(g.importerextraobjectoffset, 0);
-
 				if (!bUseSphere && ImageExist(UI3D_TERRAINMOVER))
 				{
 					//PE: Disable transparent, or we cant see it when below water.
-					//SetAlphaMappingOn(TERRAINGENERATOR_OBJECT, 25);
 					SetObjectMask(TERRAINGENERATOR_OBJECT, 1);
-					//SetObjectTransparency(TERRAINGENERATOR_OBJECT, 6);
 					TextureObject(TERRAINGENERATOR_OBJECT, UI3D_TERRAINMOVER);
 					SetObjectDiffuse(TERRAINGENERATOR_OBJECT, Rgb(200, 200, 200));
 					SetObjectEmissive(TERRAINGENERATOR_OBJECT, Rgb(0, 0, 0));
@@ -11279,9 +11221,9 @@ void procedural_new_level(void)
 				}
 				else
 				{
-				SetObjectEmissive(TERRAINGENERATOR_OBJECT, Rgb(200, 200, 0));
-				SetObjectTransparency(TERRAINGENERATOR_OBJECT, 6);
-				SetAlphaMappingOn(TERRAINGENERATOR_OBJECT, 50);
+					SetObjectEmissive(TERRAINGENERATOR_OBJECT, Rgb(200, 200, 0));
+					SetObjectTransparency(TERRAINGENERATOR_OBJECT, 6);
+					SetAlphaMappingOn(TERRAINGENERATOR_OBJECT, 50);
 					SetObjectDiffuse(TERRAINGENERATOR_OBJECT, Rgb(0, 0, 0));
 				}
 				sObject* pObject = GetObjectData(TERRAINGENERATOR_OBJECT);
@@ -11298,7 +11240,6 @@ void procedural_new_level(void)
 			extern bool g_bNoTerrainRender;
 			g_bNoTerrainRender = true;
 			#endif
-
 		}
 		else
 		{
@@ -11330,10 +11271,8 @@ void procedural_new_level(void)
 				}
 				last_preview_size_x = preview_size_x;
 				last_preview_size_y = preview_size_y;
-
 				BackBufferSizeX = preview_size_x;
 				BackBufferSizeY = preview_size_y;
-
 			}
 			#endif
 		}
@@ -11373,6 +11312,7 @@ void procedural_new_level(void)
 				}
 			}
 			if(bDraggingActive) bObjHoverActive = false;
+
 			//PE: Only scale when moving done.
 			if(movecameratotarget == 0)
 			{
@@ -11521,26 +11461,13 @@ void procedural_new_level(void)
 						orgCamera.x = fSnapShotModeCameraX;
 						orgCamera.y = fSnapShotModeCameraZ;
 					}
-					//fSnapShotModeCameraX += (newTargetCamera.x / (float)(iMoveCameraSteps-15.0));
-					//fSnapShotModeCameraZ += (newTargetCamera.y / (float)(iMoveCameraSteps-15.0));
 					fSnapShotModeCameraX += (newTargetCamera.x / (float)(iMoveCameraSteps - 12.0));
 					fSnapShotModeCameraZ += (newTargetCamera.y / (float)(iMoveCameraSteps - 12.0));
 
 					if (movecameratotarget == 14)
 					{
-//						fSnapShotModeCameraX = newTargetCamera.x;
-//						fSnapShotModeCameraZ = newTargetCamera.y;
-
 						fSnapShotModeCameraX = newTargetCamera.x + orgCamera.x;
 						fSnapShotModeCameraZ = newTargetCamera.y + orgCamera.y;
-
-						//fSnapShotModeCameraX = orgCamera.x;
-						//fSnapShotModeCameraZ = orgCamera.y;
-						//float fCenterHeight = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z);
-						//PositionObject(TERRAINGENERATOR_OBJECT, GGORIGIN_X, fCenterHeight + iMoveTerrainObjectHeight, GGORIGIN_Z);
-
-						//float fCenterHeight = BT_GetGroundHeight(t.terrain.TerrainID, fSnapShotModeCameraX, fSnapShotModeCameraZ);
-						//PositionObject(TERRAINGENERATOR_OBJECT, fSnapShotModeCameraX, fCenterHeight + iMoveTerrainObjectHeight, fSnapShotModeCameraZ);
 					}
 				}
 				if (movecameratotarget == 13)
@@ -11584,13 +11511,6 @@ void procedural_new_level(void)
 							fX = ObjectPositionX(TERRAINGENERATOR_OBJECT);
 							fY = ObjectPositionY(TERRAINGENERATOR_OBJECT);
 							fZ = ObjectPositionZ(TERRAINGENERATOR_OBJECT);
-
-							//PE: 2D dont follow camera offsetting so nicely.
-							//if (movecameratotarget > 0)
-							//{
-							//	fX -= (newTargetCamera.x / (float)(iMoveCameraSteps - 12.0));
-							//	fZ -= (newTargetCamera.y / (float)(iMoveCameraSteps - 12.0));
-							//}
 
 							ImVec2 Convert3DTo2D(float x, float y, float z);
 							float fAreaSize = ggterrain_global_render_params2.editable_size;
@@ -11643,8 +11563,6 @@ void procedural_new_level(void)
 								ImVec2 vCenterText = vecmin[0] - (((vecmin[0] - vecmax[0]) * 0.45));
 								ImGuiContext& g = *GImGui;
 
-								//dl->AddText(g.Font, g.FontSize, vCenterText, ImGui::GetColorU32(col), "#"); //Direct Center of line.
-
 								vCenterText -= textsize * 0.5;
 
 								//PE: Special rotation as we use the GetForegroundDrawList that have its own vertex buffer.
@@ -11661,10 +11579,6 @@ void procedural_new_level(void)
 								ImVec2 centerdraw = ImVec2((l.x + u.x) / 2, (l.y + u.y) / 2);
 
 								float rad = atan2(vecmin[0].x - vecmax[0].x, vecmin[0].y - vecmax[0].y) + PI;
-
-								//TAU = PI*2
-								//sprintf(text, "rad: %.2f", rad);
-								//dl->AddText(g.Font, g.FontSize, vCenterText - ImVec2(20,20), ImGui::GetColorU32(col), text);
 
 								//PE: Invert text so we never read upside down.
 								if (rad > 3.20) rad += PI;
@@ -11695,7 +11609,6 @@ void procedural_new_level(void)
 				if (bShowEditArea) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 				else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 			}
-
 		}
 		else
 		{
@@ -11743,8 +11656,8 @@ void procedural_new_level(void)
 			else
 				bPopModalOpenProcedural = ImGui::Begin("##ProceduralPreview", &bProceduralLevel, ImGuiWindowFlags_NoScrollWithMouse |ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoResize);
 		}
-		// terrain will automatically detect if a change has happened and update ggterrain_extra_params.bTerrainChanged
 
+		// terrain will automatically detect if a change has happened and update ggterrain_extra_params.bTerrainChanged
 		if (bPopModalOpenProcedural)
 		{
 			//PE: Make sure "settings" is always on top of this window.
@@ -11754,23 +11667,15 @@ void procedural_new_level(void)
 			float fPreviewImgSize = preview_size_x;
 			float fPreviewImgHeight = preview_size_x *0.5625; //Default.
 
-
 			rClipRect.Min = ImGui::GetWindowPos()+ImVec2(0.0,67.0); //PE: ,67 = add header.
 			rClipRect.Max = ImGui::GetWindowPos() + ImVec2(preview_size_x, preview_size_y);
 
 			#ifdef DIGAHOLE
 			bDigAHoleToHWND = true;
-			//PE: ImGui window pos not relative to HWND , so use fixed values.
-			//rD3D11DigAHole.left = ImGui::GetWindowPos().x + 2.0;
-			//rD3D11DigAHole.top = ImGui::GetWindowPos().y + 44.0; //Header.
-			//rD3D11DigAHole.right = ImGui::GetWindowPos().x + fPreviewImgSize;
-			//rD3D11DigAHole.bottom = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y - 24.0;
-
 			rD3D11DigAHole.left = 2.0;
 			rD3D11DigAHole.top = 67.0;
 			rD3D11DigAHole.right = fPreviewImgSize;
 			rD3D11DigAHole.bottom = ImGui::GetWindowSize().y - 24.0;
-
 			#endif
 
 			ImGui::Columns(2, "ProceduralPreviewColumns", false);  //false no border
@@ -11843,13 +11748,10 @@ void procedural_new_level(void)
 				#endif
 
 				#ifdef USEFULLVIEWPORT
-				//ImGui::GetMainViewport()->Size.x
 				ImRect avail_window_rect;
 				avail_window_rect.Min = ImGui::GetWindowPos();
-				//avail_window_rect.Max = ImGui::GetWindowPos() + ImVec2(fPreviewImgSize, ImgY); //preview_size_x
 				avail_window_rect.Max = ImGui::GetWindowPos() + ImVec2(preview_size_x, preview_size_y); //preview_size_x
 				ImGui::PushClipRect(avail_window_rect.Min + ImVec2(2, 2), avail_window_rect.Max, false);
-				//ImVec2 oldCurPos = ImGui::GetCursorPos();
 				ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
 				#ifndef DIGAHOLE
 				ImGui::ImgBtn(iLargePreviewImageID, ImVec2(ImGui::GetMainViewport()->Size.x, ImGui::GetMainViewport()->Size.y), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0, 0, false);
@@ -11897,20 +11799,6 @@ void procedural_new_level(void)
 					}
 					if (!bDraggingActive && !bIs2DViewHovered && ImGui::IsMouseDown(0) && bIsItemHovered && ImGui::IsMouseDragging(0))
 					{
-						/*
-						//PE: Use inertia slerp
-						fMoveX = fMoveX - ImGui::GetIO().MouseDelta.x / fMoveSpeed * fCamDistance;
-						fSnapShotModeCameraX = ImLerp(fMoveX, camposxold, 0.85);
-						camposxold = fSnapShotModeCameraX;
-
-						fMoveZ = fMoveZ + ImGui::GetIO().MouseDelta.y / fMoveSpeed * fCamDistance;
-						fSnapShotModeCameraZ = ImLerp(fMoveZ, camposzold, 0.85);
-						camposzold = fSnapShotModeCameraZ;
-
-						bLoopFullFPS = true;
-						ImGui::SetMouseCursor(ImGuiMouseCursor_Pan);
-						*/
-
 						float xdiff = ImGui::GetIO().MouseDelta.x / fMoveSpeed * fCamDistance;
 						MoveCameraLeft(0, xdiff);
 						float ydiff = ImGui::GetIO().MouseDelta.y / fMoveSpeed * fCamDistance;
@@ -11921,9 +11809,9 @@ void procedural_new_level(void)
 						bLoopFullFPS = true;
 						#endif
 						ImGui::SetMouseCursor(ImGuiMouseCursor_Pan);
-
 					}
-					else {
+					else 
+					{
 						fMoveX = camposxold = fSnapShotModeCameraX;
 						fMoveZ = camposzold = fSnapShotModeCameraZ;
 					}
@@ -11986,23 +11874,11 @@ void procedural_new_level(void)
 				}
 			}
 
-			//DEBUG
-			//float fCenterHeight = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z);
-			//float fTDX = GGORIGIN_X - CameraPositionX();
-			//float fTDY = fCenterHeight - CameraPositionY();
-			//float fTDZ = GGORIGIN_Z - CameraPositionZ();
-			//float fTerrDist = sqrt(fabs(fTDX*fTDX) + fabs(fTDY*fTDY) + fabs(fTDZ*fTDZ));
-			//ImGui::SetCursorPos(ImVec2(4.0f, 42.0f));
-			//ImGui::Text("Dist: %.2f", fTerrDist);
-			//DEBUG
-
-
 			//PE: Toolbar look.
 			float fToolbarHeight = 90.0f;
 			ImGui::PushClipRect(ImGui::GetWindowPos()+ImVec2(2,2), ImGui::GetWindowPos() + ImVec2(preview_size_x+1.0, fToolbarHeight), false);
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImVec2(-1, -1), ImVec2(preview_size_x+1.0, fToolbarHeight), ImGui::GetColorU32(style_winback), 0.0f, ImDrawCornerFlags_None);
 			ImGui::PopClipRect();
-
 
 			ImVec2 vCurPos = ImGui::GetCursorPos();
 			ImVec2 vIconSize = { (float) ImGui::GetFontSize()*4.0f, (float) ImGui::GetFontSize()*4.0f };
@@ -12014,13 +11890,10 @@ void procedural_new_level(void)
 			ImGui::SetItemAllowOverlap();
 			if (ImGui::ImgBtn(TOOL_GOBACK, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 			{
-				//bProceduralLevel = false;
-				//iQuitProceduralLevel = 5;
 				if (!bPopModalOpenProceduralCameraMode)
 				{
 					if (bProceduralLevelFromStoryboard)
 					{
-
 						//PE: Now just goes back to storyboard with no save as.
 						int iAction = askBoxCancel("Your new terrain is not saved, are you sure ?", "Confirmation"); //1==Yes 2=Cancel 0=No
 						if (iAction == 1)
@@ -12041,58 +11914,51 @@ void procedural_new_level(void)
 			}
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Exit");
 
-
-			//PE: Camera Tool Icon.
-			ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvailWidth() - vIconSize.x , 3.0f));
-			ImGui::SetItemAllowOverlap();
-			if (fSnapShotModeCameraAngX > 85 && fSnapShotModeCameraAngX < 95)
+			// only allow view toggle if not in map snapshot mode
+			if (bPopModalTakeMapSnapshot == false)
 			{
-				if (ImGui::ImgBtn(TOOL_CAMERA, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
+				//PE: Camera Tool Icon.
+				ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvailWidth() - vIconSize.x, 3.0f));
+				ImGui::SetItemAllowOverlap();
+				if (fSnapShotModeCameraAngX > 85 && fSnapShotModeCameraAngX < 95)
 				{
-					if (movecameratotarget == 0)
+					if (ImGui::ImgBtn(TOOL_CAMERA, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 					{
-						if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
-						/* Changed
-						fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-						fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-						fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-						fSnapShotModeCameraY = BT_GetGroundHeight(t.terrain.TerrainID, fSnapShotModeCameraX, fSnapShotModeCameraZ);
-						fSnapShotModeCameraY += i3DViewHeight; //PE: A bit above terrain.
-						fSnapShotModeCameraAngX = 15.0f; //3D Angle.
-						*/
-						//PE: Now start up high looking at the editable area.
-						fSnapShotModeCameraX = 73800;
-						fSnapShotModeCameraZ = -74000;
-						fSnapShotModeCameraY = 51600;
-						fSnapShotModeCameraAngZ = 0.0f;
-						fSnapShotModeCameraAngY = -37;
-						fSnapShotModeCameraAngX = 25; //34;
+						if (movecameratotarget == 0)
+						{
+							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
+							//PE: Now start up high looking at the editable area.
+							fSnapShotModeCameraX = 73800;
+							fSnapShotModeCameraZ = -74000;
+							fSnapShotModeCameraY = 51600;
+							fSnapShotModeCameraAngZ = 0.0f;
+							fSnapShotModeCameraAngY = -37;
+							fSnapShotModeCameraAngX = 25; //34;
+						}
 					}
+					if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Change to 3D View");
 				}
-				if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Change to 3D View");
-			}
-			else
-			{
-				if (ImGui::ImgBtn(TOOL_CAMERA, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
+				else
 				{
-					if (movecameratotarget == 0)
+					if (ImGui::ImgBtn(TOOL_CAMERA, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 					{
-						float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
-						//Reset camera to point at center of edit area.
-						fSnapShotModeCameraY = fTmp * 41000.0f;
-						if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
-						fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-						fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-						fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-						fSnapShotModeCameraAngX = 90.0f; //Look down.
+						if (movecameratotarget == 0)
+						{
+							float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
+							//Reset camera to point at center of edit area.
+							fSnapShotModeCameraY = fTmp * 41000.0f;
+							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
+							fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
+							fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
+							fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
+							fSnapShotModeCameraAngX = 90.0f; //Look down.
+						}
 					}
+					if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Change to Top Down View");
 				}
-				if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Change to Top Down View");
 			}
-
 
 			if (bUseNoTitleBar)
-				//ImGui::SetCursorPos(ImVec2(3.0f, 1.0f + 10.0));
 				ImGui::SetCursorPos(ImVec2(3.0f, 4.0));
 			else
 				ImGui::SetCursorPos(ImVec2(2.0f, 22.0f + 10.0));
@@ -12102,13 +11968,22 @@ void procedural_new_level(void)
 
 			if(customfontlarge) ImGui::PushFont(customfontlarge);
 			ImGui::SetWindowFontScale(2.0);
-			ImGui::TextCenter("Terrain Generator");
+			if (!bPopModalOpenProceduralCameraMode)
+			{
+				ImGui::TextCenter("Terrain Generator");
+			}
+			else
+			{
+				ImGui::TextCenter("Snapshot Mode");
+			}
 			ImGui::SetWindowFontScale(1.0);
 			ImGui::PushFont(customfont);
 
 			#ifdef NOMINIMAP
-			//if (bObjHoverActive) ImGui::SetTooltip("%s", "Drag object to set center of editable area");
-			if(bObjHoverActive) ImGui::SetTooltip("%s", "Grab and move around the terrain to choose the actual playable area you want for your game.");
+			if (!bPopModalOpenProceduralCameraMode && bPopModalTakeMapSnapshot == false)
+			{
+				if (bObjHoverActive) ImGui::SetTooltip("%s", "Grab and move around the terrain to choose the actual playable area you want for your game.");
+			}
 			if(0)
 			#endif
 			{
@@ -12119,7 +11994,6 @@ void procedural_new_level(void)
 					//New 2D Overlay square.
 					float fRatio = 0.18; //Larger
 					float fOverlayOffsetX = 144.0f;
-					//float fOverlayOffsetY = 20.0f;
 					float fOverlayOffsetY = 50.0f; //PE: Without lower buttons.
 					float imgw = fPreviewImgSize * fRatio;
 					float imgh = fPreviewImgSize * fRatio;
@@ -12200,72 +12074,12 @@ void procedural_new_level(void)
 				}
 			}
 
-			//Overlay walk time.
-			/* Walk time not in latesat design
-			ImVec2 vOverlayPos;
-			if(!bUseFullScreen)
-				vOverlayPos = ImVec2(ImGui::GetContentRegionAvail() - ImVec2(214.0f, 0.0f));
-			else
-				vOverlayPos = ImVec2(ImVec2(fPreviewImgSize, fPreviewImgHeight) - ImVec2(214.0f,ImGui::GetFontSize()));
-
-			ImGui::SetCursorPos(vOverlayPos);
-
-			char cWalkTime[255];
-			//Just set it to same as miles for now, until we know how fast the player actually moves.
-			sprintf(cWalkTime, " Terrain Walking Time = %d minutes", (int) fMapSizeMiles);
-			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.15f);
-			ImGui::Selectable("##cWalkTime",true,0,ImVec2(210.0f,0.0f));
-			ImGui::PopItemFlag();
-			ImGui::PopStyleVar();
-			ImGui::SetCursorPos(vOverlayPos);
-			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.75f);
-			ImGui::Text(cWalkTime);
-			ImGui::PopStyleVar();
-			*/
-
 			ImGui::SetCursorPos(vCurPos);
 			ImGui::Spacing();
-
 			ImGui::NextColumn();
-
-
-//			ImGui::Text("cam: %.2f,%.2f,%.2f", fSnapShotModeCameraX, fSnapShotModeCameraY, fSnapShotModeCameraZ);
-//			ImGui::Text("ang: %.2f,%.2f,%.2f", fSnapShotModeCameraAngX, fSnapShotModeCameraAngY, fSnapShotModeCameraAngZ);
-			/*
-			static float fTestDrawOrder = 0.0;
-			ImGui::Text("");
-			if (ImGui::SliderFloat("do:", &fTestDrawOrder, -500000.0, 500000.0))
-			{
-				sObject* pObject = GetObjectData(TERRAINGENERATOR_OBJECT);
-				if (pObject)
-				{
-					WickedCall_SetObjectCastShadows(pObject, false);
-
-					for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
-					{
-						sMesh* pMesh = pObject->ppMeshList[iMesh];
-						if (pMesh)
-						{
-							//void WickedCall_SetRenderOrderBias(sMesh* pMesh, float fDistanceToAdd)
-							sFrame* pFrame = pMesh->pFrameAttachedTo;
-							if (pFrame)
-							{
-								ObjectComponent* object = wiScene::GetScene().objects.GetComponent(pFrame->wickedobjindex);
-								if (object)
-								{
-									object->SetRenderOrderBiasDistance(fTestDrawOrder);
-								}
-							}
-						}
-					}
-				}
-			}
-			*/
 
 			if (!bPopModalOpenProceduralCameraMode)
 			{
-				//ImGui::BeginChild("##ChildProceduralPreview", ImVec2(0, preview_size_y-44), false, ImGuiWindowFlags_ForceRender | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs);
 				//PE: After large "generate..." button.
 				ImGui::BeginChild("##ChildProceduralPreview", ImVec2(0, preview_size_y - 78), false, ImGuiWindowFlags_ForceRender | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs);
 
@@ -12309,7 +12123,6 @@ void procedural_new_level(void)
 							}
 						}
 					}
-					//ImGui::Text("StableY: %d", stable_height_y); //debug
 				}
 
 				static bool bRandomizeTimeOfDay = true;
@@ -12376,7 +12189,6 @@ void procedural_new_level(void)
 						t.visuals.skyindex = 0;
 						t.gamevisuals.skyindex = t.visuals.skyindex;
 						t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox = true;
-						//Wicked_Update_Visuals((void *)&t.visuals);
 						bTriggerSetTimeOfDay = true;
 					}
 					else
@@ -12443,7 +12255,6 @@ void procedural_new_level(void)
 					if (bProceduralLevelStartup == true)
 					{
 						GGTerrain_RemoveAllFlatAreas(); //PE: Remove all flat areas.
-						//iRandomThemeChoice = 1 + (rand() % 7);
 						iRandomThemeChoice = 7; //PE: new design always rainforest.
 						bProceduralLevelStartup = false;
 						bTriggerStableY = true;
@@ -12466,45 +12277,6 @@ void procedural_new_level(void)
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\plains.dat", false);
 						ggterrain_global_params.seed = Random2();
 
-						//PE: We now take all these from the .dat files.
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(5.8f);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(131.5f);
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(131.5f);
-						ggterrain_global_params.noise_power = 1.6f;
-						ggterrain_global_params.noise_fallof_power = 0.27f;
-						ggterrain_global_params.fractal_levels = 6;
-						ggterrain_global_params.fractal_initial_freq = 0.3f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 25;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 24;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 28;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 29;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(145.7f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(205.7f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 26;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 4;
-						ggterrain_global_render_params.slopeStart[0] = 0.1f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.3f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_RIDGES0) | GGTERRAIN_FRACTAL_VALLEYS0;
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS1 | GGTERRAIN_FRACTAL_RIDGES1);
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS2 | GGTERRAIN_FRACTAL_RIDGES2);
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS3 | GGTERRAIN_FRACTAL_RIDGES3);
-						*/
-
-
 						// ggtrees_global_params.draw_enabled = 0; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
@@ -12519,7 +12291,6 @@ void procedural_new_level(void)
 							GGTrees::GGTrees_ChangeDensity(65); //Default density.
 							GGTrees::ggtrees_global_params.hide_until_update = 1;
 							GGTrees::ggtrees_global_params.draw_enabled = 0;
-
 							gggrass_global_params.paint_type = 1; //Default grass
 							gggrass_global_params.paint_density = 100; //Default Density
 							gggrass_global_params.paint_material = 0; //Auto
@@ -12578,42 +12349,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\desert.dat", false);
 						ggterrain_global_params.seed = Random2();
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(45);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(148); //48
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(48);
-						ggterrain_global_params.noise_power = 1.258f;
-						ggterrain_global_params.noise_fallof_power = 1.539f;
-						ggterrain_global_params.fractal_levels = 10;
-						ggterrain_global_params.fractal_initial_freq = 0.282f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 7;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 7;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 7;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 7;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(145.7f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(205.7f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 6;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 6;
-						ggterrain_global_render_params.slopeStart[0] = 0.2f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS0) | GGTERRAIN_FRACTAL_RIDGES0;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS1) | GGTERRAIN_FRACTAL_RIDGES1;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS2) | GGTERRAIN_FRACTAL_RIDGES2;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS3) | GGTERRAIN_FRACTAL_RIDGES3;
-						*/
 						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 25;
 						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 25;
 
@@ -12653,7 +12388,6 @@ void procedural_new_level(void)
 						t.gamevisuals.WaterFogMaxDist = t.visuals.WaterFogMaxDist = 11500;
 						t.gamevisuals.WaterFogMinAmount = t.visuals.WaterFogMinAmount = 0.25;
 
-
 						t.visuals.bWaterEnable = true;
 						t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
 						Wicked_Update_Visuals((void *)&t.visuals);
@@ -12691,43 +12425,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\forest.dat", false);
 						ggterrain_global_params.seed = Random2();
-
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(8.9f);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(131.5f);
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(131.5f);
-						ggterrain_global_params.noise_power = 1.3f;
-						ggterrain_global_params.noise_fallof_power = 0.323f;
-						ggterrain_global_params.fractal_levels = 6;
-						ggterrain_global_params.fractal_initial_freq = 0.3f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 17;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 28;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 29;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 0;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(2.657f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(5.027f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 30;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 30;
-						ggterrain_global_render_params.slopeStart[0] = 0.07f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.2f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS0) | GGTERRAIN_FRACTAL_RIDGES0;
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS1 | GGTERRAIN_FRACTAL_RIDGES1);
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS2 | GGTERRAIN_FRACTAL_RIDGES2);
-						ggterrain_global_params.fractal_flags = ggterrain_global_params.fractal_flags & ~(GGTERRAIN_FRACTAL_VALLEYS3 | GGTERRAIN_FRACTAL_RIDGES3);
-						*/
 
 						// ggtrees_global_params.draw_enabled = 1; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
@@ -12803,44 +12500,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\snow.dat", false);
 						ggterrain_global_params.seed = Random2();
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(0);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(273); //73
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(73);
-						ggterrain_global_params.noise_power = 0.487f;
-						ggterrain_global_params.noise_fallof_power = 0.144f;
-						ggterrain_global_params.fractal_levels = 7;
-						ggterrain_global_params.fractal_initial_freq = 0.282f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 12;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 12;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 12;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 12;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(145.7f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(205.7f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 12;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 12;
-						ggterrain_global_render_params.slopeStart[0] = 0.2f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS0) | GGTERRAIN_FRACTAL_RIDGES0;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS1) | GGTERRAIN_FRACTAL_RIDGES1;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS2) | GGTERRAIN_FRACTAL_RIDGES2;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS3) | GGTERRAIN_FRACTAL_RIDGES3;
-						*/
-
-						//ggtrees_global_params.draw_enabled = 0; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
 
@@ -12913,44 +12572,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\canyon.dat", false);
 						ggterrain_global_params.seed = Random2();
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(87);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(300);
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(300);
-						ggterrain_global_params.noise_power = 0.612f;
-						ggterrain_global_params.noise_fallof_power = 0.299f;
-						ggterrain_global_params.fractal_levels = 10;
-						ggterrain_global_params.fractal_initial_freq = 0.371f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 17;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 20;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 19;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 22;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(145.7f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(205.7f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 18;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 18;
-						ggterrain_global_render_params.slopeStart[0] = 0.2f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_RIDGES0) | GGTERRAIN_FRACTAL_VALLEYS0;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS1) | GGTERRAIN_FRACTAL_RIDGES1;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS2) | GGTERRAIN_FRACTAL_RIDGES2;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS3) | GGTERRAIN_FRACTAL_RIDGES3;
-						*/
-
-						//ggtrees_global_params.draw_enabled = 1;//PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
 
@@ -13023,44 +12644,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\mountain.dat", false);
 						ggterrain_global_params.seed = Random2();
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(21);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(450);
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(450);
-						ggterrain_global_params.noise_power = 1.258f;
-						ggterrain_global_params.noise_fallof_power = 0.146f;
-						ggterrain_global_params.fractal_levels = 10;
-						ggterrain_global_params.fractal_initial_freq = 0.3f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | (23 - 1);
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | (6 - 1);
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | (18 - 1);
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | (23 - 1);
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(266.0f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(424.5f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | (19 - 1);
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | (19 - 1);
-						ggterrain_global_render_params.slopeStart[0] = 0.2f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS0) | GGTERRAIN_FRACTAL_RIDGES0;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS1) | GGTERRAIN_FRACTAL_RIDGES1;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS2) | GGTERRAIN_FRACTAL_RIDGES2;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS3) | GGTERRAIN_FRACTAL_RIDGES3;
-						*/
-
-						//ggtrees_global_params.draw_enabled = 0; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
 
@@ -13132,44 +12715,6 @@ void procedural_new_level(void)
 
 						GGTerrainFile_LoadTerrainData("editors\\biomes\\rainforest.dat", false);
 						ggterrain_global_params.seed = Random2();
-						/*
-						ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(8.3f);
-						ggterrain_global_params.height = GGTerrain_MetersToUnits(234.3f);
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(234.3f);
-						ggterrain_global_params.noise_power = 1.6f;
-						ggterrain_global_params.noise_fallof_power = 0.27f;
-						ggterrain_global_params.fractal_levels = 6;
-						ggterrain_global_params.fractal_initial_freq = 0.3f;
-						ggterrain_global_params.fractal_freq_increase = 2.5f;
-						ggterrain_global_params.fractal_freq_weight = 0.4;
-						ggterrain_global_render_params.baseLayerMaterial = 0x100 | 17;
-						ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 2;
-						ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 0;
-						ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 20;
-						ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0.0f);
-						ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(4.572f);
-						ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(145.7f);
-						ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(1.524f);
-						ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(9.144f);
-						ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(205.7f);
-						ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(1500.0f);
-						ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 4;
-						ggterrain_global_render_params.slopeMatIndex[1] = 0x100 | 4;
-						ggterrain_global_render_params.slopeStart[0] = 0.2f;
-						ggterrain_global_render_params.slopeStart[1] = 1.0f;
-						ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-						ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_RIDGES0) | GGTERRAIN_FRACTAL_VALLEYS0;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_RIDGES1) | GGTERRAIN_FRACTAL_VALLEYS1;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS2) | GGTERRAIN_FRACTAL_RIDGES2;
-						ggterrain_global_params.fractal_flags = (ggterrain_global_params.fractal_flags & ~GGTERRAIN_FRACTAL_VALLEYS3) | GGTERRAIN_FRACTAL_RIDGES3;
-						*/
-
-						// ggtrees_global_params.draw_enabled = 1; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
 
@@ -13296,30 +12841,6 @@ void procedural_new_level(void)
 
 
 					ggterrain_global_render_params2.editable_size = feditable_size;
-					/* removed from design
-					// allow terrain to be changed except for EMPTY mode
-					if (ggterrain_extra_params.iProceduralTerrainType != 0)
-					{
-						if (ImGui::StyleButton("Terraform terrain (randomize)", ImVec2(ImGui::GetContentRegionAvailWidth() , fButSizeY)))
-						{
-							ggterrain_global_params.seed = Random2();
-							float height = pow(RandomFloat(), 0.7);
-							height = height * 590 + 10;
-							ggterrain_global_params.height = GGTerrain_MetersToUnits(height);
-							ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(height);
-							float offsety = pow(RandomFloat(), 1.7);
-							if (Random2() & 0x01) offsety = -offsety;
-							offsety *= 50;
-							if (offsety + height < 5) offsety = 5 - height;
-							ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(offsety);
-							ggterrain_global_params.noise_power = RandomFloat() * 1.5f + 0.5f;
-							ggterrain_global_params.noise_fallof_power = RandomFloat() * 1.2f;
-							ggterrain_global_params.fractal_flags = Random2() % 256;
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to create random terrains");
-					}
-					*/
-
 					ImGui::PopItemWidth();
 				}
 
@@ -13327,110 +12848,20 @@ void procedural_new_level(void)
 				{
 					ImGui::Indent(10);
 
-
-					/* merge issue (Pauls Chosen)
-					ImGui::TextCenter("Height Range");
-
-					//Height Range
-					//FYI: fTerrainHeightStart is missing in ggterrain_global_params.
-					ImGui::PushItemWidth(-10.0f);
-					ImGui::TextCenter("Max Height (meters)");
-					float meterValue = GGTerrain_UnitsToMeters( ggterrain_global_params.height );
-					//if ( ImGui::SliderFloat("##HeightRange", &meterValue, 0.0f, 1000.0f) )
-					if (ImGui::MaxSliderInputFloat("##HeightRange", &meterValue, 0.0f, 1000.0f, nullptr, 0, 1000.0f))
-					{
-						ggterrain_global_params.height = GGTerrain_MetersToUnits( meterValue );
-					}
-
-					ImGui::TextCenter("Min Height Underwater (meters)");
-					meterValue = GGTerrain_UnitsToMeters( ggterrain_global_params.minHeight );
-					//if ( ImGui::SliderFloat("##MinHeightRange", &meterValue, 0.0f, 1000.0f) )
-					if (ImGui::MaxSliderInputFloat("##MinHeightRange", &meterValue, 0.0f, 1000.0f, nullptr, 0, 1000.0f))
-					{
-						ggterrain_global_params.minHeight = GGTerrain_MetersToUnits( meterValue );
-					*/
-					
-					/* Debug sky color.
-					float fAmbience[4], fSunColor[4], fHorizonColor[4], fZenith[4];
-
-					fHorizonColor[0] = t.visuals.FogR_f / 255.0;
-					fHorizonColor[1] = t.visuals.FogG_f / 255.0;
-					fHorizonColor[2] = t.visuals.FogB_f / 255.0;
-					fHorizonColor[3] = 1.0;
-					//ImGui::Text("Horizon - Fog");
-					ImGui::PushItemWidth(-10);
-					if (ImGui::ColorEdit3("##V2WickedfHorizonColor", &fHorizonColor[0], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
-					{
-						t.gamevisuals.FogR_f = t.visuals.FogR_f = fHorizonColor[0] * 255.0;
-						t.gamevisuals.FogG_f = t.visuals.FogG_f = fHorizonColor[1] * 255.0;
-						t.gamevisuals.FogB_f = t.visuals.FogB_f = fHorizonColor[2] * 255.0;
-						g.projectmodified = 1;
-						Wicked_Update_Visuals((void *)&t.visuals);
-						WickedCall_UpdateProbes();
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Horizon Color");
-					ImGui::PopItemWidth();
-
-					fZenith[0] = t.visuals.ZenithRed_f / 255.0;
-					fZenith[1] = t.visuals.ZenithGreen_f / 255.0;
-					fZenith[2] = t.visuals.ZenithBlue_f / 255.0;
-					fZenith[3] = 1.0;
-					ImGui::PushItemWidth(-10);
-					//			ImGui::Text("Zenith");
-					if (ImGui::ColorEdit3("##V2WickedZenithColor", &fZenith[0], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
-					{
-						t.gamevisuals.ZenithRed_f = t.visuals.ZenithRed_f = fZenith[0] * 255.0;
-						t.gamevisuals.ZenithGreen_f = t.visuals.ZenithGreen_f = fZenith[1] * 255.0;
-						t.gamevisuals.ZenithBlue_f = t.visuals.ZenithBlue_f = fZenith[2] * 255.0;
-						g.projectmodified = 1;
-						Wicked_Update_Visuals((void *)&t.visuals);
-						WickedCall_UpdateProbes();
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Zenith Color");
-					ImGui::PopItemWidth();
-
-					*/
-
-
-					/* Debug shadows
-					extern float fWickedMaxCenterTest;
-					ImGui::PushItemWidth(-10);
-					if (ImGui::SliderFloat("##WickedfShadowFarPlane", &t.visuals.fShadowFarPlane, 0.0f, DEFAULT_FAR_PLANE, "%.3f", 2.0f))
-					{
-						t.gamevisuals.fShadowFarPlane = t.visuals.fShadowFarPlane;
-						Wicked_Update_Visuals((void *)&t.visuals);
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sun Shadow Distance");
-
-					if (ImGui::SliderFloat("##WickedfWickedMaxCenterTest", &fWickedMaxCenterTest, 0.0f, DEFAULT_FAR_PLANE, "%.3f", 2.0f))
-					{
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Orthographic Matrix Adjust Minimum And Maximum Z");
-					*/
-
 					ImGui::TextCenter("Editable Area Size");
 					float numericboxwidth = 60.0f;
 
 					ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
 
-					//float meterValue = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2);
-					//if (ImGui::SliderFloat("##EditableSize", &meterValue, 500.0f, 5000.0f))
-					//{
-					//	ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(meterValue / 2);
-					//}
-
-					//float fTmp = (ggterrain_global_render_params2.editable_size / 39.3701 / 1000.0f) * 2.0;
 					float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
 					if (ImGui::SliderFloat("##UI2TerrainEditableSizeKilometers", &fTmp, 0.5, 5.0f, " "))
 					{
 						//Cam zoom. 420000 = 5.0 , 50000 = 0.5 , perhaps 48000 per 0.5
-						//ggterrain_global_render_params2.editable_size = (fTmp * 39.3701 * 1000.0f) / 2.0;
 						ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(fTmp / 2.0) * 1000.0f;
 
 						//Reset camera to point at center of edit area.
 						if (fSnapShotModeCameraY < (fTmp * 41000.0f))
 						{
-							//fSnapShotModeCameraY = fTmp * 2.0 * 41000.0f;
 							fSnapShotModeCameraY = fTmp * 41000.0f;
 							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
 							fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
@@ -13451,47 +12882,12 @@ void procedural_new_level(void)
 					}
 					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
 
-					/* merge issue (Pauls Chosen)
-					float waterHeight = GGTerrain_UnitsToMeters( g.gdefaultwaterheight );
-					if (ImGui::MaxSliderInputFloat("##UI2fWaterHeightMeters", &waterHeight, -500.0, 1500.0f, "Set Water Height in Meters", 0.0f))
-					{
-						g.gdefaultwaterheight = (int)GGTerrain_MetersToUnits(waterHeight);
-						t.terrain.waterliney_f = (float)g.gdefaultwaterheight;
-						Wicked_Update_Visuals((void *)&t.visuals);
-					}
-					if (ImGui::SliderFloat("##UI2fWaterHeightMeters", &waterHeight, -500.0, 1500.0f, "%.1f", 2.0f))
-					{
-						//Cam zoom. 420000 = 5.0 , 50000 = 0.5 , perhaps 48000 per 0.5
-						ggterrain_global_render_params2.editable_size = fTmp * 39.3701 * 1000.0f;
-
-						//Reset camera to point at center of edit area.
-						fSnapShotModeCameraY = fTmp * 2.0 * 48000.0f;
-						fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-						fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-						fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-						fSnapShotModeCameraAngX = 90.0f; //Look down.
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
-					ImGui::PopItemWidth();
-					ImGui::SameLine();
-					ImGui::PushItemWidth(numericboxwidth);
-					if (ImGui::InputFloat("##UI2TerrainEditableSizeKilometersText", &fTmp, 0, 0, "%.1f Km"))
-					{
-						ggterrain_global_render_params2.editable_size = fTmp * 39.3701 * 1000.0f;
-						fSnapShotModeCameraY = fTmp * 2.0 * 48000.0f;
-					}
-					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Height in Meters.");
-					*/
-
 					ImGui::PopItemWidth();
 
 					if (pref.iTerrainAdvanced)
 					{
-						//bShowEditArea = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE) ? 1 : 0;
 						if (ImGui::Checkbox("Show Editable Area", &bShowEditArea))
 						{
-							//if (bShowEditArea) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-							//else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 						}
 						ImGui::SameLine();
 
@@ -13560,7 +12956,6 @@ void procedural_new_level(void)
 						ImGui::TextCenter("Max Height (meters)");
 						float meterValue = GGTerrain_UnitsToMeters(ggterrain_global_params.height);
 						if(ImGui::MaxSliderInputFloatPower("##HeightRange", &meterValue, 0.0f, 1000.0f, 0, 0, 1000, 60, 2.0f, 2 ))
-						//if (ImGui::SliderFloat("##HeightRange", &meterValue, 0.0f, 1000.0f, "%.2f"))
 						{
 							ggterrain_global_params.height = GGTerrain_MetersToUnits(meterValue);
 							bTriggerStableY = true;
@@ -13702,54 +13097,8 @@ void procedural_new_level(void)
 						bool bStateUnchanged = true;
 						ControlAdvancedSetting(pref.iTerrainAdvanced, "advanced terrain tools", &bStateUnchanged);
 
-
-						//PE: Should stay here, make sure settings is on top.
-						//if (!bStateUnchanged)
-						//	iQuitProceduralLevel = 5;
-
-
-						//if (!pref.iTerrainAdvanced)
-						//{
-						//	ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-						//	ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-						//	if (ImGui::HyberlinkButton("Advanced Settings##12", ImVec2(label_size.x, 0)))
-						//	{
-						//		extern int iSetSettingsFocusTab;
-						//		extern bool bPreferences_Window;
-						//		iSetSettingsFocusTab = 2;
-						//		bPreferences_Window = true;
-						//		//This is a modal window, so we need to close it to see the settings window.
-						//		//bProceduralLevel = false;
-						//		iQuitProceduralLevel = 5;
-						//
-						//	}
-						//	//ImGui::Text("");
-						//}
-
 						if (pref.iTerrainAdvanced)
 						{
-							/*
-							// now handled by Min Height
-							//float fWaterDepthMeters = -200.0;
-							ImGui::TextCenter("Water Depth");
-							numericboxwidth = 60.0f;
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fWaterDepthMeters", &fWaterDepthMeters, -1000, 0.0f, " "))
-							{
-
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Depth in Meters.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fWaterDepthMetersText", &fWaterDepthMeters, 0, 0, "%.1f M"))
-							{
-
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Depth in Meters.");
-							ImGui::PopItemWidth();
-							*/
-
 							cstr cSpecialTooltip = "";
 							numericboxwidth = 60.0f;
 
@@ -13779,8 +13128,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Curve.");
 							ImGui::PopItemWidth();
 
-
-							//float ggterrain_global_params.noise_fallof_power = 0.3;
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
 							{
@@ -13806,7 +13153,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Falloff.");
 							ImGui::PopItemWidth();
 
-							//float ggterrain_global_params.fractal_levels = 10.0;
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
 							{
@@ -13835,7 +13181,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Iterations.");
 							ImGui::PopItemWidth();
 
-							//float fFractalInitialFrequence = 0.3;
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
 							{
@@ -13863,8 +13208,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Frequency.");
 							ImGui::PopItemWidth();
 
-
-
 							//PE: Noise Initial Amplitude
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
@@ -13891,8 +13234,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Amplitude.");
 							ImGui::PopItemWidth();
 
-
-							//float fFractalFrequenceIncrease = 2.6;
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
 							{
@@ -13918,8 +13259,6 @@ void procedural_new_level(void)
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Frequency Change.");
 							ImGui::PopItemWidth();
 
-
-							//float fFractalFrequenceWeight = 0.4;
 							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
 							if (ImGui::IsItemHovered())
 							{
@@ -13969,8 +13308,6 @@ void procedural_new_level(void)
 							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 							ImGui::PopItemWidth();
 
-
-
 							if (cSpecialTooltip != "")
 							{
 								//We are modal so special description popup.
@@ -13998,12 +13335,6 @@ void procedural_new_level(void)
 						wiScene::Scene* pScene = &wiScene::GetScene();
 						int iMeshes = pScene->meshes.GetCount();
 						int iMaterials = pScene->materials.GetCount();
-						//int iAnimations = pScene->animations.GetCount();
-						//int iArmatures = pScene->armatures.GetCount();
-						//int iTransforms = pScene->transforms.GetCount();
-						//int iObjects = pScene->objects.GetCount();
-						//int iHierarchy = pScene->hierarchy.GetCount();
-						//int iPrev_transforms = pScene->prev_transforms.GetCount();
 
 						int dc = wiProfiler::GetDrawCalls();
 						int dcs = wiProfiler::GetDrawCallsShadows();
@@ -14012,9 +13343,6 @@ void procedural_new_level(void)
 						int tris = wiProfiler::GetPolygons();
 						int trisShadow = wiProfiler::GetPolygonsShadows();
 						int trisTransparent = wiProfiler::GetPolygonsTransparent();
-
-						//int iSkinable = WickedCall_GetSkinable();
-						//int iSkinableV = WickedCall_GetSkinableVisible();
 
 						ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 						ImGui::Text("DrawCalls: %d", dc);
@@ -14025,15 +13353,8 @@ void procedural_new_level(void)
 						ImGui::Text("TrianglesTransparent: %d", trisTransparent);
 						ImGui::Text("Scene Meshes: %d", iMeshes);
 						ImGui::Text("Scene Materials: %d", iMaterials);
-						//ImGui::Text("Scene Animations: %d", iAnimations);
-						//ImGui::Text("Scene Armatures: %d", iArmatures);
 						ImGui::Text("Scene Transforms: %d", (int)pScene->transforms.GetCount());
-						//ImGui::Text("Scene Objects: %d", iObjects);
 						ImGui::Text("Scene Hierarchy: %d", (int)pScene->hierarchy.GetCount());
-						//ImGui::Text("Scene Prev_transforms: %d", iPrev_transforms);
-						//ImGui::Text("Scene iSkinable: %d", iSkinable);
-						//ImGui::Text("Scene iSkinableV: %d", iSkinableV);
-
 						ImGui::Separator();
 						std::string profiler_data = wiProfiler::GetProfilerData();
 						ImGui::Text(profiler_data.c_str());
@@ -14125,7 +13446,6 @@ void procedural_new_level(void)
 
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This sets the sun at the correct position for the time of day");
 					ImGui::PopItemWidth();
-
 				}
 
 				if (ImGui::StyleCollapsingHeader("Auto Populate Terrain", ImGuiTreeNodeFlags_DefaultOpen))
@@ -14145,7 +13465,6 @@ void procedural_new_level(void)
 							ggtrees_global_params.draw_enabled = 0;
 						}
 					}
-					
 					
 					ImGui::SameLine();
 					ImGui::SetCursorPos(ImVec2(fButtonSizeX*0.5, ImGui::GetCursorPosY()));
@@ -14169,17 +13488,8 @@ void procedural_new_level(void)
 					{
 						gggrass_global_params.draw_enabled = 0;
 					}
-
-					/*
-					bool bAnimals = false;
-					if (ImGui::Checkbox("Animals", &bAnimals))
-					{
-						//PE: ?
-					}
-					*/
 					ImGui::Indent(-10);
 				}
-
 
 				if (ImGui::StyleCollapsingHeader("Import Heightmap", ImGuiTreeNodeFlags_DefaultOpen))
 				{
@@ -14189,17 +13499,6 @@ void procedural_new_level(void)
 						extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
 						ControlAdvancedSetting(pref.iEnableTerrainHeightmaps, "Heightmap Settings");
 						ImGui::PopID();
-
-						/* commented out to resolve merge conflict between P and Z
-						static bool bGenerateOutsideHeightmap = false;
-						if (ImGui::Checkbox("Generate Terrain Outside Heightmap", &bGenerateOutsideHeightmap))
-						{
-							GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
-						}
-						if (!bGenerateOutsideHeightmap) //PE: Works the other way, only if bGenerateOutsideHeightmap is not set.
-						*/
-
-					//PE: We had a huge conflicts below here with dup code ... test everything again.
 
 						//PE: Heightmaps.
 						if (pref.iEnableTerrainHeightmaps)
@@ -14235,15 +13534,14 @@ void procedural_new_level(void)
 							ImGui::RadioButton("Little Endian", &iRawFormat, 1);
 							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Little Endian");
 
-
 							static bool bGenerateOutsideHeightmap = false;
 							if (ImGui::Checkbox("Generate Terrain Outside Heightmap", &bGenerateOutsideHeightmap))
 							{
 								GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
-							bTriggerStableY = true;
+								bTriggerStableY = true;
 							}
 
-						if (!bGenerateOutsideHeightmap)
+							if (!bGenerateOutsideHeightmap)
 							{
 								ImGui::TextCenter("Height Value Outside Heightmap");
 								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
@@ -14262,39 +13560,24 @@ void procedural_new_level(void)
 							}
 
 							ImGui::TextCenter("Height Map Fade Distance");
-						ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-						if (ImGui::SliderFloat("##UI2fheight_outside_fadeslider", &ggterrain_global_params.fade_outside_heightmap, 0, 1000.0f, "%.2f", 2.0f))
-						{
-						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
-						ImGui::PopItemWidth();
-						ImGui::SameLine();
-						ImGui::PushItemWidth(numericboxwidth);
-						if (ImGui::InputFloat("##UI2fheight_outside_fadeText", &ggterrain_global_params.fade_outside_heightmap, 0, 0, "%.2f"))
-						{
-						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
-						ImGui::PopItemWidth();
-
+							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+							if (ImGui::SliderFloat("##UI2fheight_outside_fadeslider", &ggterrain_global_params.fade_outside_heightmap, 0, 1000.0f, "%.2f", 2.0f))
+							{
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
+							ImGui::PopItemWidth();
+							ImGui::SameLine();
+							ImGui::PushItemWidth(numericboxwidth);
+							if (ImGui::InputFloat("##UI2fheight_outside_fadeText", &ggterrain_global_params.fade_outside_heightmap, 0, 0, "%.2f"))
+							{
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
+							ImGui::PopItemWidth();
 
 							//PE: Note - Should be able to import 16bit and 32bit ? and or also 32bit floats ?
-
 							static int mapwidth = 4096, mapheight = 4096;
 							const char* items_mapsize[] = { "1024x1024", "2048x2048", "4096x4096" ,"Custom" }; //PE: ,"Custom" later.
 							static int item_current_mapsize = 2;
-
-						/* conflict
-						ImGui::TextCenter("Heightmap File Format");
-
-						static int iRawFormat = 0;
-
-						//PE: Graphics programs will normally export to little endian, so activate again.
-						ImGui::RadioButton("Big Endian", &iRawFormat, 0);
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Big Endian");
-						ImGui::SameLine();
-						ImGui::RadioButton("Little Endian", &iRawFormat, 1);
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Little Endian");
-						*/
 
 							ImGui::TextCenter("Heightmap Raw Import Size");
 
@@ -14338,10 +13621,8 @@ void procedural_new_level(void)
 
 								}
 								ImGui::PopItemWidth();
-
 							}
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Raw Import Size");
-
 
 							if (ImGui::StyleButton("Choose Heightmap Raw File", ImVec2(fButtonSizeX, 0.0f)))
 							{
@@ -14351,7 +13632,7 @@ void procedural_new_level(void)
 								SetDir(tOldDir.Get());
 								if (cFileSelected && strlen(cFileSelected) > 0)
 								{
-								bTriggerStableY = true;
+									bTriggerStableY = true;
 									cstr import_filename = cFileSelected;
 									bool bImage = false;
 									if (import_filename.Len() > 4)
@@ -14537,16 +13818,9 @@ void procedural_new_level(void)
 							if (ImGui::StyleButton("Remove Heightmap Data", ImVec2(fButtonSizeX, 0.0f)))
 							{
 								GGTerrain_RemoveHeightMap();
-							bTriggerStableY = true;
+								bTriggerStableY = true;
 							}
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Remove Heightmap Data");
-
-							//GGTerrain_RemoveHeightMap();
-
-							//int iRet = GGTerrain_LoadHeightMap("test.raw",4096,4096)
-							//ImGui::TextCenter("Height Map Scale");
-							//ImGui::SliderFloat("##HeightMapScale", &ggterrain_global_params.heightmap_scale, 0.01f, 10.0f, "%.3f", 2.0f);
-
 							ImGui::Indent(-10);
 						}
 					}
@@ -14557,9 +13831,7 @@ void procedural_new_level(void)
 				ImGui::Indent(10);
 				float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
 
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 10.0f));
-				//ImGui::SetWindowFontScale(1.4);
 				if (ImGui::StyleButton("Save Terrain Settings", ImVec2(fButtonSizeX, 0.0f)))
 				{
 					//PE: Make sure folder exists.
@@ -14573,7 +13845,8 @@ void procedural_new_level(void)
 					cStr tOldDir = GetDir();
 					char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "ter\0*.ter\0", destination, NULL, true);
 					SetDir(tOldDir.Get());
-					if (cFileSelected && strlen(cFileSelected) > 0) {
+					if (cFileSelected && strlen(cFileSelected) > 0) 
+					{
 						t.returnstring_s = cFileSelected;
 					}
 					if (t.returnstring_s != "")
@@ -14617,36 +13890,19 @@ void procedural_new_level(void)
 								//Load settings.
 								GGTerrainFile_LoadTerrainData(t.returnstring_s.Get(), true);
 								bTreeGlobalInit = false;
-
 								bTriggerStableY = true;
-
-								//PE: Reset tree setup.
-								//PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
-								//if (ggterrain_extra_params.iProceduralTerrainType == 3 || ggterrain_extra_params.iProceduralTerrainType == 5 || ggterrain_extra_params.iProceduralTerrainType == 7)
-								//	ggtrees_global_params.draw_enabled = 1;
-								//else
-								//	ggtrees_global_params.draw_enabled = 0;
-
 							}
 						}
 					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Load Terrain Settings");
 
-				//PE: Moved.
-				//if (ImGui::StyleButton("Generate Terrain for Level", ImVec2(fButtonSizeX, 0.0f)))
-				//{
-				//	//Code
-				//	iQuitProceduralLevel = 5;
-				//}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Generate Terrain for Level");
-
 				ImGui::SetWindowFontScale(1.0);
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
 				ImGui::Indent(-10);
 				ImGui::EndChild();
-				//## Terrain Buttons END ##
 
+				//## Terrain Buttons END ##
 				if (!pref.bHideTutorials)
 				{
 					if (ImGui::StyleCollapsingHeader("Tutorial", ImGuiTreeNodeFlags_DefaultOpen))
@@ -14668,21 +13924,6 @@ void procedural_new_level(void)
 					}
 				}
 
-				/*
-				if (ImGui::StyleCollapsingHeader("Dev Mode (remove later)", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Camera Y");
-					ImGui::SliderFloat("##TmpCameraY", &fSnapShotModeCameraY, 0.0, fMaxCameraY, "%.0f");
-					ImGui::Text("Seed Used: %d", ggterrain_global_params.seed);
-					ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-					ImGui::Text("");
-					ImGui::PopItemWidth();
-					ImGui::Indent(-10);
-				}
-				*/
-
 				if (fSnapShotModeCameraY > fMaxCameraY) fSnapShotModeCameraY = fMaxCameraY;
 
 				// insert a keyboard shortcut component into panel
@@ -14698,7 +13939,9 @@ void procedural_new_level(void)
 					{
 						WickedCall_EnableCameraLight(bEditorLight);
 					}
-					if (ImGui::StyleButton("Take Screenshot", ImVec2(ImGui::GetContentRegionAvailWidth() - 10.0f, 0.0f)))
+					LPSTR pSnapshotButtonTitle = "Take Screenshot";
+					if(bPopModalTakeMapSnapshot==true) pSnapshotButtonTitle = "Take Map Snapshot";
+					if (ImGui::StyleButton(pSnapshotButtonTitle, ImVec2(ImGui::GetContentRegionAvailWidth() - 10.0f, 0.0f)))
 					{
 						//PE: Just exit, we will have the lastest screenshot available in thumbbank.
 						iQuitProceduralLevel = 5;
@@ -14707,11 +13950,16 @@ void procedural_new_level(void)
 				}
 
 				if (fSnapShotModeCameraY > fMaxCameraY) fSnapShotModeCameraY = fMaxCameraY;
-				// insert a keyboard shortcut component into panel
-				UniversalKeyboardShortcut(eKST_ObjectLibrary);
+
+				if (bPopModalTakeMapSnapshot == false)
+				{
+					// insert a keyboard shortcut component into panel
+					UniversalKeyboardShortcut(eKST_ObjectLibrary);
+				}
 			}
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -14731,7 +13979,6 @@ void procedural_new_level(void)
 				ImGui::EndChild();
 			}
 
-			//
 			if (!bPopModalOpenProceduralCameraMode)
 			{
 				ImGui::SetWindowFontScale(1.4);
@@ -14741,11 +13988,6 @@ void procedural_new_level(void)
 				ImVec2 texthere = ImGui::GetCursorPos();
 				if (ImGui::StyleButton("##Generate Terrain for Level", ImVec2(fButtonSizeX, ImGui::GetFontSize()*3.0)))
 				{
-					//PE: Remove trees in center of level.
-					//GGTrees_Delete_Trees(0.0, 0.0, 1700.0);
-					//PE: Add a player marker.
-					//FreeTempImageList(); //PE: Whenever g.entidmaster can change we must make sure to free any "temp" objects loaded.
-
 					t.addentityfile_s = "_markers\\Player Start.fpe";
 					if (t.addentityfile_s != "")
 					{
@@ -14866,7 +14108,7 @@ void procedural_new_level(void)
 			cstr title;
 			if (!bUseNoTitleBar)
 			{
-				if (!bPopModalOpenProceduralCameraMode)
+				if (bPopModalOpenProceduralCameraMode==false)
 				{
 					title = "Procedural Level Generator";
 				}
@@ -14878,7 +14120,6 @@ void procedural_new_level(void)
 				float xcenter = (ImGui::GetWindowSize().x*0.5) - (fTextSize*0.5);
 				titlebar_pos = ImGui::GetWindowPos() + ImVec2(xcenter, 4);
 			}
-
 
 			//PE:Add help window here, corner.
 			if (pref.iDisplayTerrainGeneratorWelcome)
@@ -14898,12 +14139,9 @@ void procedural_new_level(void)
 					style_winback.w = 0.5f;
 
 					float yspacer = 21.0 * zoomwindow;
-					//ImVec2 window_pos = ImVec2((ImGui::GetWindowPos().x + 10.0), ImGui::GetWindowSize().y - winheight);
 					ImVec2 window_pos = ImVec2((ImGui::GetWindowPos().x + 10.0), (ImGui::GetWindowPos().y+ImGui::GetWindowSize().y) - winheight);
-					//window_pos.y += 20;
 					window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, winheight-10.0), ImGui::GetColorU32(style_winback), 6.0f, 15);
 					window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, 22 * zoomwindow), ImGui::GetColorU32(style_winback), 6.0f, 15);
-					//window_pos += ImVec2(0, 3.0 * zoomwindow);
 					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "About this editor");
 					window_pos += ImVec2(0, 3.0 * zoomwindow);
 					window_pos += ImVec2(0, yspacer);
@@ -14929,43 +14167,7 @@ void procedural_new_level(void)
 					}
 
 					window->DrawList->AddCallback((ImDrawCallback)11, NULL); //disableforce render.
-
 				}
-
-				/* PE: Normal window will go behind when loosing focus. need special render only window.
-				const float DISTANCE = 10.0f;
-				static int corner = 2;
-				ImGuiIO& io = ImGui::GetIO();
-				if (corner != -1)
-				{
-					ImGuiViewport* viewport = ImGui::GetMainViewport();
-					ImVec2 window_pos = ImVec2((corner & 1) ? (viewport->Pos.x + viewport->Size.x - DISTANCE) : (viewport->Pos.x + DISTANCE), (corner & 2) ? (viewport->Pos.y + viewport->Size.y - DISTANCE) : (viewport->Pos.y + DISTANCE));
-					ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
-					ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-					ImGui::SetNextWindowViewport(viewport->ID); //PE: Always main viewport.
-				}
-				ImGui::SetNextWindowBgAlpha(0.45f); // Transparent background
-				bool open = pref.iDisplayTerrainGeneratorWelcome;
-				//ImGuiWindowFlags_NoTitleBar
-				ImGui::SetNextWindowFocus();
-				if (ImGui::Begin("About this editor", &open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
-				{
-					ImGui::Indent(4);
-					ImGui::Dummy(ImVec2(200, 3));
-					ImGui::TextWrapped("With this editor you can create the terrain type for your new level.");
-					ImGui::TextWrapped("The choices you can make with the right panel options include:");
-					ImGui::Text("");
-					ImGui::Text("- The Biome style");
-					ImGui::Text("- Size of level");
-					ImGui::Text("- Trees and vegetation");
-					ImGui::Text("");
-					ImGui::Text("Watch the tutorial for more help.");
-					ImGui::Dummy(ImVec2(200, 3));
-					ImGui::Indent(-4);
-				}
-				pref.iDisplayTerrainGeneratorWelcome = open;
-				ImGui::End();
-				*/
 			}
 
 			if (customfontlarge) ImGui::PopFont();
@@ -14994,12 +14196,10 @@ void procedural_new_level(void)
 		{
 			iQuitProceduralLevel--;
 			//Make a final screenshot. without minimap ...
-			//extern bool g_bNo2DRender;
 			ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 			ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
 			ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 			if (ObjectExist(TERRAINGENERATOR_OBJECT)) HideObject(TERRAINGENERATOR_OBJECT);
-			//g_bNo2DRender = true;
 			if (iQuitProceduralLevel == 0)
 			{
 				//Create Screenshot.
@@ -15056,8 +14256,6 @@ void procedural_new_level(void)
 				if (!bPopModalOpenProceduralCameraMode)
 					bTriggerTerrainSaveAsWindow = true; //Open save as window.
 
-				//g_bNo2DRender = false;
-				
 				//PE: Now default to object mode
 				bForceKey = true;
 				csForceKey = "o";
@@ -15091,10 +14289,6 @@ void procedural_new_level(void)
 
 			#ifdef DIGAHOLE
 			bDigAHoleToHWND = false;
-			//rD3D11DigAHole.left = ImGui::GetWindowPos().x + 2.0;
-			//rD3D11DigAHole.top = ImGui::GetWindowPos().y + 80.0; //Header.
-			//rD3D11DigAHole.right = ImGui::GetWindowPos().x + fPreviewImgSize; //Header.
-			//rD3D11DigAHole.bottom = ImGui::GetWindowPos().y + ImGui::GetWindowSize().y; //Header.
 			#endif
 
 			//Close down modal popup.
@@ -15186,7 +14380,6 @@ void procedural_new_level(void)
 				{
 					PositionCameraForNewLevel();
 				}
-
 			}
 
 			ggterrain_global_render_params2.flags2 = oldflags2;
@@ -15203,7 +14396,6 @@ void procedural_new_level(void)
 			PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
 
 			//int oldcammode = t.cameraviewmode;
-			//t.cameraviewmode = 0;
 			t.editorfreeflight.c.angx_f = fSnapShotModeCameraAngX;
 			t.editorfreeflight.c.angy_f = fSnapShotModeCameraAngY;
 			RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
@@ -15218,7 +14410,6 @@ void procedural_new_level(void)
 	//#################################
 	//#### END Procedural Preview. ####
 	//#################################
-
 }
 #endif
 

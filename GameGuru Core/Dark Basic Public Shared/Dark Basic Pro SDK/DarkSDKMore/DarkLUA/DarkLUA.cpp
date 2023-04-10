@@ -5031,7 +5031,7 @@ int IntersectCore ( lua_State *L, int iMode )
 	int n = lua_gettop(L);
 	if (iMode == 2)
 	{
-		if (n < 10) return 0;
+		if (n < 9) return 0;
 	}
 	else
 	{
@@ -5053,7 +5053,10 @@ int IntersectCore ( lua_State *L, int iMode )
 	{
 		iIndexInIntersectDatabase = lua_tonumber(L, 8);
 		iLifeInMilliseconds = lua_tonumber(L, 9);
-		iIgnorePlayerCapsule = lua_tonumber(L, 10);
+		if(n < 10)
+			iIgnorePlayerCapsule = 1;
+		else
+			iIgnorePlayerCapsule = lua_tonumber(L, 10);
 	}
 
 	// do the expensive ray cast

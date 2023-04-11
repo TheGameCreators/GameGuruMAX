@@ -84,7 +84,16 @@ void gameexecutable_init(void)
 
 
 #endif
-	editor_previewmap_initcode(iEXEGameIsVR);
+	extern bool bSpecialStandalone;
+	if (bSpecialStandalone)
+	{
+		//PE: No VR when running demo games.
+		editor_previewmap_initcode(0);
+	}
+	else
+	{
+		editor_previewmap_initcode(iEXEGameIsVR);
+	}
 	#ifndef PRODUCTCLASSIC
 	iLaunchAfterSync = 201;
 	#endif

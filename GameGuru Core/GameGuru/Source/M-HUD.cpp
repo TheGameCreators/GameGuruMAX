@@ -329,6 +329,7 @@ void blood_damage_init ( void )
 			if (  FileExist(t.a_s.Get()) == 1 ) 
 			{
 				LoadImage (  t.a_s.Get(),t.huddamage.bloodstart+t.mb,0,g.gdividetexturesize );
+				WickedCall_LoadImage(t.a_s.Get()); //PE: Also add to wicked for textureobject that cant use legacy image.
 				#ifdef WICKEDENGINE
 				Sprite(t.huddamage.bloodstart + t.mb, -100000, -100000, t.huddamage.bloodstart + t.mb);
 				#else

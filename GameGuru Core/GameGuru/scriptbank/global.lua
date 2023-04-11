@@ -104,6 +104,7 @@ g_KeyPressSHIFT = 0
 g_Scancode = 0
 g_InKey = ""
 g_LevelFilename = ""
+g_LevelTerrainSize = 0
 g_MouseX = 0
 g_MouseY = 0
 g_MouseWheel = 0

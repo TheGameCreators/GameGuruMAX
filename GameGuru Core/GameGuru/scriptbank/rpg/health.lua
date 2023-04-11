@@ -84,7 +84,6 @@ function health_main(e)
 					use_item_now = 1
 				end
 			end
-			PromptLocal(e,GetEntityCollectable(tEnt[e]))
 			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then				
 				-- if collectable or resource
 				if g_KeyPressE == 1 then

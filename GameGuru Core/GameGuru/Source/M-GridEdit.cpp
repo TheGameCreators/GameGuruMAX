@@ -14384,150 +14384,17 @@ void mapeditorexecutable_loop(void)
 								}
 
 #ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-									}
-#endif
-								}
 							}
+#endif
 						}
-				ImGui::Columns(1);
 					}
+				}
+				ImGui::Columns(1);
+			}
 
 			ImGui::SetWindowFontScale(1.00);
 			if (ImGui::IsWindowHovered() || ImGui::IsAnyItemHovered())
 				bImGuiGotFocus = true;
-
-			//PE: display additional debug information.
-#ifdef WICKEDENGINE
-
-
-
-//if (wiRenderer::GetDevice())
-//{
-//	ID3D11Texture2D *pBackBuffer = (ID3D11Texture2D *)wiRenderer::GetDevice()->GetBackBufferForGG();
-//	if (pBackBuffer)
-//	{
-//		GGSURFACE_DESC ddsd;
-//		pBackBuffer->GetDesc(&ddsd);
-//		ImGui::Text("Back Size: %ld,%ld", (int)ddsd.Width, (int)ddsd.Height);
-//	}
-//}
-
-
-//			ImGui::Text("fDebug: %f", fDebug);
-//			ImGui::Text("fDebug1: %f", fDebug1);
-//			ImGui::Text("fDebug2: %f", fDebug2);
-//			ImGui::Text("fDebug3: %f", fDebug3);
-//			ImGui::Text("bDraggingActive: %d", bDraggingActive);
-//			ImGuiContext& gui = *GImGui;
-//			ImGui::Text("DragDropActive: %d", gui.DragDropActive);
-			//ImGui::Text("t.widget.pickedEntityIndex: %d", t.widget.pickedEntityIndex);
-			//ImGui::Text("t.tentitytoselect: %d", t.tentitytoselect);
-			//ImGui::Text("t.gridentityobj: %ld", t.gridentityobj);
-			//ImGui::Text("t.gridentity: %ld", t.gridentity);
-			//ImGui::Text("bReadyToDropEntity: %ld", bReadyToDropEntity);
-			//ImGui::Text("iDragDropActive: %ld", iDragDropActive);
-
-//			ImGui::Text("originallocalx_f: %f,%f", t.inputsys.originallocalx_f, t.inputsys.originallocaly_f);
-//			ImGui::Text("dragoffsetx_f: %f", t.inputsys.dragoffsetx_f);
-//			ImGui::Text("dragoffsety_f: %f", t.inputsys.dragoffsety_f);
-////			ImGui::Text("bImGuiRenderTargetFocus: %d", bImGuiRenderTargetFocus);
-//			ImGui::Text("fHitPointY: %f", fHitPointY);
-//			ImGui::Text("fHitRayFrom: %f", fHitRayFrom);
-//			ImGui::Text("bMouseInputSystemUsed: %d", bMouseInputSystemUsed);
-//			ImGui::Text("fHitOffsetY: %f", fHitOffsetY);
-//			ImGui::Text("fHitOffsetX: %f", fHitOffsetX);
-//			ImGui::Text("fHitOffsetZ: %f", fHitOffsetZ);
-
-			//if(g_hovered_pobject)
-			//	ImGui::Text("g_hovered_pobject: %ld", g_hovered_pobject->dwObjectNumber);
-			//else
-			//	ImGui::Text("g_hovered_pobject: 0");
-			//ImGui::Text("iLastHitObjectID: %d",iLastHitObjectID);
-			//ImGui::Text("iReusePickEntityID: %d", iReusePickEntityID);
-
-//			ImVec2 test = Convert3DTo2D(GGORIGIN_X, GGORIGIN_Y+200, GGORIGIN_Z);
-//			WickedCall_SetSpriteBoundBox(true, test.x, test.y, test.x+10, test.y+10);
-//			ImGui::Text("XY: %f,%f", test.x, test.y);
-//			ImGui::Text("t.gridentityextractedindex: %ld", t.gridentityextractedindex);
-//			ImGui::Text("t.gridentityposy_f: %f", t.gridentityposy_f);
-//			ImGui::Text("t.gridentitydroptoground: %d", t.gridentitydroptoground);
-			//ImGui::Text("Mouse1: %d", ImGui::IsMouseDown(1));
-//			ImGui::Text("Mouse2: %d", ImGui::IsMouseDown(2)); //mouse wheel but.
-//			ImGui::Text("MouseC2: %d", ImGui::IsMouseClicked(2)); //mouse wheel but.
-			//ImGui::Text("Mouse3: %d", ImGui::IsMouseDown(3));
-
-//			ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true)+ImVec2(8.0f,0.0f);
-//			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-//			ImGui::HyberlinkButton("Advanced Settings",ImVec2(label_size.x,0));
-
-			//for (int i = 0; i < 512; i++)
-			//{
-			//	if (ImGui::IsKeyPressed(i))
-			//		ImGui::Text("Key: %d", i);
-			//}
-
-			//ImGui::Text("bDraggingActive: %d", bDraggingActive);
-			//ImGui::Text("bImGuiGotFocus: %d", bImGuiGotFocus);
-			//ImGui::Text("bLastImGuiGotFocus: %d", bLastImGuiGotFocus);
-
-			/*
-			ImGui::Text("iObjectMoveMode: %d", iObjectMoveMode);
-			ImGui::Text("t.gridentitydroptoground: %d", t.gridentitydroptoground);
-			ImGui::Text("iObjectMoveModeDropSystem: %d", iObjectMoveModeDropSystem);
-			ImGui::Text("t.tforceentityfindfloor: %d", t.tforceentityfindfloor);
-			ImGui::Text("t.gridentityobj: %d", t.gridentityobj);
-			*/
-			// choose all entities and associated files
-
-			/* Debug particle emitter ID's
-			for (int i = 0; i <= g.entityelementlist; i++)
-			{
-				if (t.entityelement[i].bankindex > 0)
-				{
-					if (t.entityprofile[t.entityelement[i].bankindex].ismarker == 10)
-					{
-						char debug[1024];
-						sprintf(debug, "%d: emitterid: %d", i, t.entityelement[i].eleprof.newparticle.emitterid);
-						ImGui::Text(debug);
-					}
-				}
-			}
-			*/
-
-			//PE: Test Performance modes.
-			/*
-			const char* quaity_items[] = { "Graphics Low", "Graphics Medium", "Graphics High", "Graphics Ultra" };
-			static int quaity_item_current_selection = 2; //Default Custom.
-			if (ImGui::Combo("##GraphicsQualityTest", &quaity_item_current_selection, quaity_items, IM_ARRAYSIZE(quaity_items))) {
-				SetGlobalGraphicsSettings(quaity_item_current_selection);
-			}
-			*/
-
-			//bool bTmp2 = t.game.gameisexe;
-			//ImGui::Checkbox("t.game.gameisexe", &bTmp2);
-			//t.game.gameisexe = bTmp2;
-
-			//ImGui::Text("g_iActiveMonitors: %ld", g_iActiveMonitors);
-			//wiRenderer::SetToDrawDebugEnvProbes(true);
-			/* Test fov
-			if (ImGui::MaxSliderInputFloat("##WickedCameraFov", &t.visuals.CameraFOV_f, 20.0f, 110.0f, "Camera FOV"))
-			{
-				t.gamevisuals.CameraFOV_f = t.visuals.CameraFOV_f;
-				float fCameraFov = XM_PI / (t.visuals.CameraFOV_f / 15.0f); //Fit GG settings.
-				if (bImGuiInTestGame == true)
-				{
-					//PE: Visual change also need reerse fov in test game and standalone.
-					// when in game, weapon FOV correction
-					fCameraFov = GGToRadian(t.visuals.CameraFOV_f); // Oops - backwards logic, lower FOV needs lower angle passed in
-				}
-				wiScene::GetCamera().CreatePerspective((float)master.masterrenderer.GetLogicalWidth(), (float)master.masterrenderer.GetLogicalHeight(), t.visuals.CameraNEAR_f, t.visuals.CameraFAR_f, fCameraFov);
-			}
-			*/
-
-			//if (ImGui::StyleButton("Memory Dump")) {
-			//	timestampactivity(0, "Memory Dump:");
-			//	DumpImageList(); // PE: Dump image usage after level.
-			//}
 
 			//PE: Doubble click to move closer to terrain. disabled for objects as we might end up into walls ...
 			extern float fLastTerrainHitX, fLastTerrainHitY, fLastTerrainHitZ;
@@ -14536,10 +14403,6 @@ void mapeditorexecutable_loop(void)
 				if (fLastTerrainHitY > g.gdefaultwaterheight && t.grideditselect == 5)
 				{
 					static float traveltox = 0, traveltoy = 0, traveltoz = 0;
-					//ImGui::Text("traveltox: %f", traveltox);
-					//ImGui::Text("traveltoy: %f", traveltoy);
-					//ImGui::Text("traveltoz: %f", traveltoz);
-
 					if(ImGui::IsMouseDoubleClicked(0))
 					{
 						//PE: Get a fresh.
@@ -14582,7 +14445,6 @@ void mapeditorexecutable_loop(void)
 								t.editorfreeflight.c = t.editorfreeflight.s;
 								PositionCamera(composx, composy, composz);
 								RotateCamera(comangx, comangy, comangz);
-								//PointCamera(fLastTerrainHitX, fLastTerrainHitY, fLastTerrainHitZ);
 							}
 						}
 					}
@@ -14610,9 +14472,6 @@ void mapeditorexecutable_loop(void)
 				int trisShadow = wiProfiler::GetPolygonsShadows();
 				int trisTransparent = wiProfiler::GetPolygonsTransparent();
 
-				//int iSkinable = WickedCall_GetSkinable();
-				//int iSkinableV = WickedCall_GetSkinableVisible();
-
 				ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 				ImGui::Text("DrawCalls: %d", dc);
 				ImGui::Text("DrawCallsShadows: %d", dcs);
@@ -14637,162 +14496,8 @@ void mapeditorexecutable_loop(void)
 
 			}
 
-			//for (int i = 0;i < 255;i++)
-			//{
-			//	if (ImGui::IsKeyDown(i))
-			//	{
-			//		ImGui::Text("Key: %d", i);
-			//	}
-			//}
-#endif
-//ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-//ImGui::Text("DrawCalls: %d", g_pGlob->dwNumberOfPrimCalls);
-//ImGui::Text("Poly: %d", g_pGlob->dwNumberOfPolygonsDrawn);
-
-//ImGui::Text("triggerfindundercursor: %d", triggerfindundercursor);
-//ImGui::Text("bImGuiRenderTargetFocus: %d", (int) bImGuiRenderTargetFocus);
-//ImGui::Text("t.inputsys.mclick: %d", (int)t.inputsys.mclick);
-//ImGui::Text("t.onedrag: %d", t.onedrag);
-//ImGui::Text("io.WantCaptureKeyboard: %d", (int) io.WantCaptureKeyboard);
-//ImGui::Text("IsAnyItemActive(): %d", (int)ImGui::IsAnyItemActive());
-
-
-//				ImGui::Text("object_preload_still_running: %d", (int)object_preload_still_running());
-
-			//PE: enable below for statup time and memory dump function.
-			//PE: Now with wicked textures directly from all resources
-
-			//PE: Memory and wicked scene component counts.
-			/*
-			static int iClickCount = 0;
-			float fGBMemUsed = (float) SMEMAvailable(1) / 1024.0 / 1024.0;
-			char memtmp[255];
-			static int iTargetMem = 0;
-			ImGui::RadioButton("Target 8gb ", &iTargetMem, 0); ImGui::SameLine();
-			ImGui::RadioButton("12gb ", &iTargetMem, 1); ImGui::SameLine();
-			ImGui::RadioButton("16gb", &iTargetMem, 2);
-			float fTotalTarget = 8.0;
-			if( iTargetMem == 1) fTotalTarget = 12.0;
-			if (iTargetMem == 2) fTotalTarget = 16.0;
-			//ImGui::Text("Mem Used GB: %.3f", fGBMemUsed);
-			sprintf(memtmp, "Mem Used GB: %.3f", fGBMemUsed);
-			float percent = fGBMemUsed / fTotalTarget;
-			ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
-			if (percent > 0.85 ) // 1 gb left.
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
 			{
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0,0.5,0.2,0.5));
-			}
-			else
-			{
-				ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(col.x, col.y, col.z, 0.5));
-			}
-			if (percent < 0.0) percent = 0.0;
-			if (percent >= 100.0f) percent = 100.0f;
-			ImGui::ProgressBar(percent, ImVec2(ImGui::GetContentRegionAvailWidth() - 10, 26), memtmp);
-			ImGui::PopStyleColor();
-
-			if (ImGui::StyleButton("Click Mem Reg."))
-			{
-				char tmp[255];
-				sprintf(tmp, "Click Mem Reg. (%d)", iClickCount++);
-				timestampactivity(0, tmp);
-			}
-
-			if (ImGui::StyleButton("Memory Dump")) {
-				timestampactivity(0, "Memory Dump:");
-				DumpImageList(); // PE: Dump image usage after level.
-			}
-
-			wiScene::Scene* pScene = &wiScene::GetScene();
-			auto size = pScene->materials.GetCount();
-			ImGui::Text("pScene->materials: %lld", size);
-			size = pScene->meshes.GetCount();
-			ImGui::Text("pScene->meshes: %lld", size);
-			size = pScene->objects.GetCount();
-			ImGui::Text("pScene->objects: %lld", size);
-			size = pScene->animations.GetCount();
-			ImGui::Text("pScene->animations: %lld", size);
-			size = pScene->animation_datas.GetCount();
-			ImGui::Text("pScene->animation_datas: %lld", size);
-			size = pScene->layers.GetCount();
-			ImGui::Text("pScene->layers: %lld", size);
-			size = pScene->hierarchy.GetCount();
-			ImGui::Text("pScene->hierarchy: %lld", size);
-			size = pScene->transforms.GetCount();
-			ImGui::Text("pScene->transforms: %lld", size);
-
-			*/
-
-			//ImGui::Text("Startup Time: %d", iStartupTime);
-			//extern int LoadImageCoreRetainNameTime;
-			//ImGui::Text("LoadImageTime: %d", LoadImageCoreRetainNameTime);
-
-
-
-			//Test code for direct center hit
-			/*
-			float placeatx_f, placeatz_f;
-			extern ImVec2 OldrenderTargetSize;
-			extern ImVec2 OldrenderTargetPos;
-			ImVec2 vCenterPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.45f) + OldrenderTargetPos.y };
-
-			int omx = t.inputsys.xmouse, omy = t.inputsys.ymouse, oldgridentitysurfacesnap = t.gridentitysurfacesnap, oldonedrag = t.onedrag;;
-			bool owdm = bWaypointDrawmode;
-
-			//Always target terrain only.
-			float RatioX = ((float)GetDisplayWidth() / (float)renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
-			float RatioY = ((float)GetDisplayHeight() / (float)renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-			t.inputsys.xmouse = (vCenterPos.x - renderTargetAreaPos.x) * RatioX;
-			t.inputsys.ymouse = (vCenterPos.y - renderTargetAreaPos.y) * RatioY;
-
-			t.gridentitysurfacesnap = 0; t.onedrag = 0; bWaypointDrawmode = false;
-			input_calculatelocalcursor();
-			placeatx_f = t.inputsys.localx_f;
-			placeatz_f = t.inputsys.localy_f;
-			t.onedrag = oldonedrag;
-			bWaypointDrawmode = owdm;
-			t.gridentitysurfacesnap = oldgridentitysurfacesnap;
-			t.inputsys.xmouse = omx;
-			t.inputsys.ymouse = omy;
-			//Restore real input.
-			input_calculatelocalcursor();
-			if (t.inputsys.picksystemused == 1 || t.inputsys.localcurrentterrainheight_f < 100.0f)
-			{
-
-			}
-//				PickScreen2D23D(vCenterPos.x, vCenterPos.y, 500);
-//				placeatx_f = CameraPositionX() + GetPickVectorX();
-//				placeatz_f = CameraPositionZ() + GetPickVectorZ();
-			float terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, placeatx_f, placeatz_f, 1);
-
-			if (ObjectExist(g.editorwaypointoffset + 0) == 0)
-			{
-				MakeObjectSphere(g.editorwaypointoffset + 0, 25);
-				SetObjectCollisionOff(g.editorwaypointoffset + 0);
-				SetAlphaMappingOn(g.editorwaypointoffset + 0, 25);
-				DisableObjectZRead(g.editorwaypointoffset + 0);
-				//			DisableObjectZWrite(g.editorwaypointoffset + 0);
-				HideObject(g.editorwaypointoffset + 0);
-				SetObjectMask(g.editorwaypointoffset + 0, 1);
-				SetObjectEffect(g.editorwaypointoffset + 0, g.guishadereffectindex);
-				SetObjectEmissive(g.editorwaypointoffset + 0, Rgb(255, 255, 255));
-				SetObjectMask(g.editorwaypointoffset + 0, 1);
-			}
-			//  Show where we draw waypoints
-			if (ObjectExist(g.editorwaypointoffset + 0) == 1)
-			{
-				PositionObject(g.editorwaypointoffset + 0, placeatx_f, terrain_height + 5, placeatz_f);
-				ShowObject(g.editorwaypointoffset + 0);
-			}
-			*/
-
-			//extern int spot_lights_count;
-			//extern int point_lights_count;
-			//ImGui::Text("Shadow Lights: %d", WickedCall_Get2DShadowLights());
-			//ImGui::Text("spot_lights_count: %d", spot_lights_count);
-			//ImGui::Text("point_lights_count: %d", point_lights_count);
-
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -14801,16 +14506,7 @@ void mapeditorexecutable_loop(void)
 
 			ImGui::EndChild();
 
-			//Drag/Drop models.
-//			if (ImGui::BeginDragDropTarget())
-//			{
-//				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_MODEL_DROP_TARGET", 0)) // ImGuiDragDropFlags_AcceptNoDrawDefaultRect
-//				{
-//					AddPayLoad((ImGuiPayload*)payload, false);
-//				}
-//			}
-
-#ifdef NEWGAMEELEMENTGRID
+			#ifdef NEWGAMEELEMENTGRID
 
 			// number of game element buttson shown
 			entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 13;

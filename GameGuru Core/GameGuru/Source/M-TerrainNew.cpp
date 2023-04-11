@@ -11915,7 +11915,42 @@ void procedural_new_level(void)
 			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Exit");
 
 			// only allow view toggle if not in map snapshot mode
-			if (bPopModalTakeMapSnapshot == false)
+			if (bPopModalTakeMapSnapshot == true)
+			{
+				// When in map snapshot mode, always position camera to point at center of edit area.
+				int iEditableSize = ggterrain_global_render_params2.editable_size;
+				if (movecameratotarget == 0)
+				{
+					float fTmp = GGTerrain_UnitsToMeters(iEditableSize * 2.0) / 1000.0f;
+					fSnapShotModeCameraY = fTmp * 41000.0f;
+					if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
+					fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
+					fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
+					fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
+					fSnapShotModeCameraAngX = 90.0f; //Look down.
+				}
+
+				// show edge of game area
+				bool bShow = true;
+				if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
+				else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
+
+				// ensure clouds are off
+				extern wiECS::Entity g_weatherEntityID;
+				wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+				weather->SetRealisticSky(false);
+				weather->SetVolumetricClouds(false);
+
+				// and override camera projection to create an ortho view
+				wiScene::GetCamera().SetCustomProjectionEnabled(true);
+				float fTmp = GGTerrain_UnitsToMeters(iEditableSize * 2.0) / 1000.0f;
+				float fScaleProj = 50000.0f * fTmp;
+				float fRatioProj = (float)master.masterrenderer.GetLogicalWidth() / (float)master.masterrenderer.GetLogicalHeight();
+				XMMATRIX P = XMMatrixOrthographicLH(fScaleProj * fRatioProj, fScaleProj, wiScene::GetCamera().zFarP, wiScene::GetCamera().zNearP);
+				XMStoreFloat4x4(&wiScene::GetCamera().Projection, P);
+				wiScene::GetCamera().UpdateCamera();
+			}
+			else
 			{
 				//PE: Camera Tool Icon.
 				ImGui::SetCursorPos(ImVec2(ImGui::GetContentRegionAvailWidth() - vIconSize.x, 3.0f));
@@ -12906,38 +12941,6 @@ void procedural_new_level(void)
 						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 					}
 					#endif
-
-					/* Hidden in new design
-					float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
-					if (fSnapShotModeCameraAngX > 85 && fSnapShotModeCameraAngX < 95)
-					{
-						if (ImGui::StyleButton("Change View to 3D", ImVec2(fButtonSizeX, 0.0f)))
-						{
-							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
-							fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-							fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-							fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-							fSnapShotModeCameraY = BT_GetGroundHeight(t.terrain.TerrainID, fSnapShotModeCameraX, fSnapShotModeCameraZ);
-							fSnapShotModeCameraY += i3DViewHeight; //PE: A bit above terrain.
-							fSnapShotModeCameraAngX = 15.0f; //3D Angle.
-						}
-					}
-					else
-					{
-						if (ImGui::StyleButton("Change to Top Down view", ImVec2(fButtonSizeX, 0.0f)))
-						{
-
-							float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
-							//Reset camera to point at center of edit area.
-							fSnapShotModeCameraY = fTmp * 41000.0f;
-							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
-							fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-							fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-							fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-							fSnapShotModeCameraAngX = 90.0f; //Look down.
-						}
-					}
-					*/
 					ImGui::Indent(-10);
 				}
 
@@ -14122,51 +14125,54 @@ void procedural_new_level(void)
 			}
 
 			//PE:Add help window here, corner.
-			if (pref.iDisplayTerrainGeneratorWelcome)
+			if (bPopModalOpenProceduralCameraMode==false && bPopModalTakeMapSnapshot == false)
 			{
-				//PE: Render only window, so dont loose focus and go behind other windows.
-				float zoomwindow = 1.2;
-				float winheight = 250 * zoomwindow;
-				float winwidth = 214 * zoomwindow;
-				float margin = 5.0 * zoomwindow;
-				ImGuiWindow* window = ImGui::GetCurrentWindow();
-				extern ImFont* customfont;
-				if (window->DrawList && customfont)
+				if (pref.iDisplayTerrainGeneratorWelcome)
 				{
-					window->DrawList->AddCallback((ImDrawCallback)10, NULL); //force render.
-
-					ImVec4 style_winback = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
-					style_winback.w = 0.5f;
-
-					float yspacer = 21.0 * zoomwindow;
-					ImVec2 window_pos = ImVec2((ImGui::GetWindowPos().x + 10.0), (ImGui::GetWindowPos().y+ImGui::GetWindowSize().y) - winheight);
-					window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, winheight-10.0), ImGui::GetColorU32(style_winback), 6.0f, 15);
-					window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, 22 * zoomwindow), ImGui::GetColorU32(style_winback), 6.0f, 15);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "About this editor");
-					window_pos += ImVec2(0, 3.0 * zoomwindow);
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "With this editor you can create");
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "the terrain type for your new level.");
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "The choices you can make with the");
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "right panel options include:");
-					window_pos += ImVec2(0, yspacer + yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- The Biome style");
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- Size of level");
-					window_pos += ImVec2(0, yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- Trees and vegetation");
-					window_pos += ImVec2(0, yspacer + yspacer);
-					window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "Watch the tutorial for more help.");
-					ImGui::SetItemAllowOverlap();
-					if (ImGui::CloseButton(ImGui::GetCurrentWindow()->GetID("#ClearSearch"), ImGui::GetWindowPos() + ImVec2(winwidth - 13.0, ImGui::GetWindowSize().y - winheight - 3.0)))
+					//PE: Render only window, so dont loose focus and go behind other windows.
+					float zoomwindow = 1.2;
+					float winheight = 250 * zoomwindow;
+					float winwidth = 214 * zoomwindow;
+					float margin = 5.0 * zoomwindow;
+					ImGuiWindow* window = ImGui::GetCurrentWindow();
+					extern ImFont* customfont;
+					if (window->DrawList && customfont)
 					{
-						pref.iDisplayTerrainGeneratorWelcome = false;
-					}
+						window->DrawList->AddCallback((ImDrawCallback)10, NULL); //force render.
 
-					window->DrawList->AddCallback((ImDrawCallback)11, NULL); //disableforce render.
+						ImVec4 style_winback = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
+						style_winback.w = 0.5f;
+
+						float yspacer = 21.0 * zoomwindow;
+						ImVec2 window_pos = ImVec2((ImGui::GetWindowPos().x + 10.0), (ImGui::GetWindowPos().y+ImGui::GetWindowSize().y) - winheight);
+						window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, winheight-10.0), ImGui::GetColorU32(style_winback), 6.0f, 15);
+						window->DrawList->AddRectFilled(window_pos, window_pos + ImVec2(winwidth, 22 * zoomwindow), ImGui::GetColorU32(style_winback), 6.0f, 15);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "About this editor");
+						window_pos += ImVec2(0, 3.0 * zoomwindow);
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "With this editor you can create");
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "the terrain type for your new level.");
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "The choices you can make with the");
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "right panel options include:");
+						window_pos += ImVec2(0, yspacer + yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- The Biome style");
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- Size of level");
+						window_pos += ImVec2(0, yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "- Trees and vegetation");
+						window_pos += ImVec2(0, yspacer + yspacer);
+						window->DrawList->AddText(customfont, 15 * zoomwindow, ImVec2(window_pos.x + margin, window_pos.y + 3.0), IM_COL32(255, 255, 255, 255), "Watch the tutorial for more help.");
+						ImGui::SetItemAllowOverlap();
+						if (ImGui::CloseButton(ImGui::GetCurrentWindow()->GetID("#ClearSearch"), ImGui::GetWindowPos() + ImVec2(winwidth - 13.0, ImGui::GetWindowSize().y - winheight - 3.0)))
+						{
+							pref.iDisplayTerrainGeneratorWelcome = false;
+						}
+
+						window->DrawList->AddCallback((ImDrawCallback)11, NULL); //disableforce render.
+					}
 				}
 			}
 
@@ -14223,6 +14229,12 @@ void procedural_new_level(void)
 					GGSURFACE_DESC ddsd;
 					pBackBuffer->GetDesc(&ddsd);
 					float grabx = 1280, graby = 720;
+					if (bPopModalTakeMapSnapshot == true)
+					{
+						// square that matches the prepared view of the top down map
+						grabx = 800;
+						graby = 800;
+					}
 					if (graby > ddsd.Height)
 						graby = ddsd.Height;
 					if (grabx > ddsd.Width)

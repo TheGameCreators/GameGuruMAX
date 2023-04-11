@@ -3039,7 +3039,11 @@ DARKSDK bool SaveImageCoreAsTexSurface(char* szFilename, LPGGSURFACE* pTexSurfac
 			if (DestFormat == D3DX11_IFF_PNG)
 			{
 				// save as PNG for the ICON images at least :)
-				hRes = DirectX::SaveToWICFile(imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), DirectX::DDS_FLAGS_NONE, GUID_ContainerFormatPng, wTexSaveFilename, NULL);
+				if (hRes = DirectX::SaveToWICFile(imageTexturePlate.GetImages(), imageTexturePlate.GetImageCount(), DirectX::DDS_FLAGS_NONE, GUID_ContainerFormatPng, wTexSaveFilename, NULL) != S_OK)
+				{
+					// fall back is only save one image from what is probably a texture of mipmaps
+					hRes = DirectX::SaveToWICFile(imageTexturePlate.GetImages(), 1, DirectX::DDS_FLAGS_NONE, GUID_ContainerFormatPng, wTexSaveFilename, NULL);
+				}
 			}
 			else
 			{

@@ -39883,7 +39883,11 @@ void process_storeboard(bool bInitOnly)
 							ImGui::Indent(10);
 							ImGui::Text("");
 							ImGui::SetWindowFontScale(1.4);
-							ImGui::TextCenter("Use New Screenshot ?");
+							extern bool bPopModalTakeMapSnapshot;
+							if(bPopModalTakeMapSnapshot==true)
+								ImGui::TextCenter("Use New Map Snapshot ?");
+							else
+								ImGui::TextCenter("Use New Screenshot ?");
 							ImGui::Separator();
 							if (ImageExist(STORYBOARD_THUMBS + 401))
 							{
@@ -39893,28 +39897,75 @@ void process_storeboard(bool bInitOnly)
 							ImGui::SetWindowFontScale(1.0);
 
 							ImGui::SetWindowFontScale(1.4);
-							if (ImGui::StyleButton("Use New Screenshot", ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f)))
+							LPSTR pUseNewSnapTitle = "Use New Screenshot";
+							if (bPopModalTakeMapSnapshot == true) pUseNewSnapTitle = "Use New Map Snapshot";
+							if (ImGui::StyleButton(pUseNewSnapTitle, ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f)))
 							{
-								//Load into node slot.
-								image_setlegacyimageloading(true);
-								LoadImageSize("thumbbank\\lastnewlevel.jpg", Storyboard.Nodes[iScreenshotNode].thumb_id, 512, 288);
-								image_setlegacyimageloading(false);
-
-								if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
+								//screenshot or map snapshot
+								bool bDoScreenshotForThumb = false;
+								if (bPopModalTakeMapSnapshot == true)
 								{
-									//Save into thumbbank , and save thumb filename in node.
-									CreateBackBufferCacheNameEx(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288, true);
-									SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iScreenshotNode].thumb_id);
-									if (FileExist(BackBufferCacheName.Get()))
+									// Load into map snapshot image then save alongside mapbank FPM level file
+									int iMapImageID = Storyboard.Nodes[iScreenshotNode].thumb_id;
+									image_setlegacyimageloading(true);
+									LoadImageSize("thumbbank\\lastnewlevel.jpg", iMapImageID, 2048, 2048);
+									image_setlegacyimageloading(false);
+									if (ImageExist(iMapImageID)==1)
 									{
-										if (CopyToProjectFolder(BackBufferCacheName.Get()))
+										// filename to save map image alongside mapbank FPM file
+										char pMapImageFile[MAX_PATH];
+										strcpy(pMapImageFile, g.fpscrootdir_s.Get());
+										strcat(pMapImageFile, "\\Files\\");
+										strcat(pMapImageFile, Storyboard.Nodes[iScreenshotNode].level_name);
+										if (strnicmp(pMapImageFile + strlen(pMapImageFile) - 4, ".fpm", 4) == NULL)
 										{
-											//PE: Use relative projectbank filename.
-											strcpy(Storyboard.Nodes[iScreenshotNode].thumb, ProjectCacheName.Get());
+											pMapImageFile[strlen(pMapImageFile) - 4] = 0;
 										}
-										else
+										strcat(pMapImageFile, ".png");
+										GG_GetRealPath(pMapImageFile, 1);
+										SaveImage(pMapImageFile, iMapImageID);
+									}
+
+									// and restore screenshot thumb if one exists
+									if (FileExist(Storyboard.Nodes[iScreenshotNode].thumb))
+									{
+										image_setlegacyimageloading(true);
+										LoadImageSize(Storyboard.Nodes[iScreenshotNode].thumb, Storyboard.Nodes[iScreenshotNode].thumb_id, 512, 288);
+										image_setlegacyimageloading(false);
+									}
+									else
+									{
+										// no screenshot when did map snapshot, so do screenshot at same time to have something to show
+										bDoScreenshotForThumb = true;
+									}
+								}
+								else
+								{
+									// screenshot mode
+									bDoScreenshotForThumb = true;
+								}
+								if(bDoScreenshotForThumb==true)
+								{
+									//Load into node slot.
+									image_setlegacyimageloading(true);
+									LoadImageSize("thumbbank\\lastnewlevel.jpg", Storyboard.Nodes[iScreenshotNode].thumb_id, 512, 288);
+									image_setlegacyimageloading(false);
+									if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
+									{
+										//Save into thumbbank , and save thumb filename in node.
+										CreateBackBufferCacheNameEx(Storyboard.Nodes[iScreenshotNode].level_name, 512, 288, true);
+										SaveImage(BackBufferCacheName.Get(), Storyboard.Nodes[iScreenshotNode].thumb_id);
+										if (FileExist(BackBufferCacheName.Get()))
 										{
-											strcpy(Storyboard.Nodes[iScreenshotNode].thumb, BackBufferCacheName.Get());
+											if (CopyToProjectFolder(BackBufferCacheName.Get()))
+											{
+												//PE: Use relative projectbank filename.
+												strcpy(Storyboard.Nodes[iScreenshotNode].thumb, ProjectCacheName.Get());
+											}
+											else
+											{
+												strcpy(Storyboard.Nodes[iScreenshotNode].thumb, BackBufferCacheName.Get());
+											}
 										}
 									}
 								}
@@ -39949,7 +40000,13 @@ void process_storeboard(bool bInitOnly)
 				extern bool bPopModalOpenProceduralCameraMode;
 				extern bool bPopModalTakeMapSnapshot;
 				bPopModalOpenProceduralCameraMode = false;
-				bPopModalTakeMapSnapshot = false;
+				if (bPopModalTakeMapSnapshot == true)
+				{
+					// and restore camera projection override
+					wiScene::GetCamera().SetCustomProjectionEnabled(false);
+					wiScene::GetCamera().UpdateCamera();
+					bPopModalTakeMapSnapshot = false;
+				}
 			}
 		}
 
@@ -47482,6 +47539,21 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						imgID = 0;
 					}
 				}
+				if (bImGuiInTestGame == false)
+				{
+					// only in HUD editor mode
+					if (ImageExist(imgID) == 0)
+					{
+						// if no image, cannot grab widget or delete it, so use a placeholder
+						image_setlegacyimageloading(true);
+						LoadImage("imagebank\\HUD Library\\MAX\\missing.png", imgID);
+						image_setlegacyimageloading(false);
+
+						// also possible it was placed outside of screen if the missing image was large!
+						Storyboard.Nodes[nodeid].widget_pos[index].x = 50.0f;
+						Storyboard.Nodes[nodeid].widget_pos[index].y = 50.0f;
+					}
+				}
 				if (ImageExist(imgID))
 				{
 					widget_size.x = ImageWidth(imgID);
@@ -48478,12 +48550,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_TICKBOX)
 				{
 					ImGui::TextCenter(cstr(sButtonText+cstr(" Size")).Get());
-					float fTmp = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x;
-					if (fTmp > 4.0) fTmp = 4.0;
-					ImGui::MaxSliderInputFloat("##WidgetButtonSize", &fTmp, 0.00f, 4.00f, "Set Image Size", 1.0, 100);
-					if (fTmp <= 0.10) fTmp = 0.1000;
-					Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x = fTmp;
-					Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = fTmp;
+					float fTmp = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x * 100.0f;
+					//if (fTmp > 4.0) fTmp = 4.0;
+					//if (fTmp <= 0.10) fTmp = 0.1000;
+					if (ImGui::MaxSliderInputFloat("##WidgetButtonSize", &fTmp, 0, 100, "Set the size of this widget as a percentage of original size", 0, 100))
+					{
+						if (fTmp < 1) fTmp = 1;
+						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x = fTmp / 100.0f;
+						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = fTmp / 100.0f;
+					}
 
 					int iButtons = 3;
 					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_PROGRESS 
@@ -48619,9 +48694,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_IMAGE)
 				{
 					char name[MAX_PATH];
-					name[0] = 0;
-					cstr cNewImage= imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
-					if (cNewImage.Len() > 0)
+					strcpy (name, Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget]);
+					cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
+					if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get())!=NULL)
 					{
 						// Delete old image and trigger reload of the newly chosen one
 						DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
@@ -48652,9 +48727,12 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 
 					ImGui::TextCenter("Image Size");
-					if (ImGui::MaxSliderInputFloat("##imgsize", &Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x, 0.01f, 4.0f, ""))
+					float fTmp = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x * 100.0f;
+					if( ImGui::MaxSliderInputFloat("##imgsize", &fTmp, 0, 100, "Set the size of this image as a percentage of original size", 0, 100))
 					{
-						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x;
+						if (fTmp < 1) fTmp = 1;
+						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = fTmp / 100.0f;
+						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x = fTmp / 100.0f;
 					}
 				}
 

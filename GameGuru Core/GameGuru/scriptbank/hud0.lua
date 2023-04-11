@@ -29,6 +29,7 @@ hud0_playercontainer_e = {}
 hud0_lastgoodplayerinventory0qty = 0
 hud0_lastgoodplayerinventory1qty = 0
 
+hud0_mapView_LevelImage = -1
 hud0_mapView_WindowX = 0
 hud0_mapView_WindowY = 0
 hud0_mapView_WindowW = 0
@@ -97,6 +98,8 @@ function hud0.init()
  for tquestindex = 1, hud0_quest_qty, 1 do
 	hud0_quest_status[tquestindex] = GetCollectionQuestAttribute(tquestindex,"status")
  end
+ -- signal we need to load our map image in
+ hud0_mapView_LevelImage = -1
 end
 
 function hud0.refreshHUD()
@@ -167,6 +170,7 @@ function hud0.refreshHUD()
 					for tinventoryindex = 1, tinventoryqty, 1 do
 						local itemindex = -1
 						local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
+						local tcollectione = GetInventoryItemID(inventorycontainer,tinventoryindex)
 						local tslotindex = GetInventoryItemSlot(inventorycontainer,tinventoryindex)
 						local titemimg = GetCollectionItemAttribute(tcollectionindex,"image")
 						if string.len(titemimg) > 0 then
@@ -174,6 +178,8 @@ function hud0.refreshHUD()
 								if findifexist == tslotindex and hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][findifexist] == tcollectionindex then
 									-- already know about this one, and in right slot
 									itemindex = findifexist
+									-- however resources can switch places so update the E just in case
+									hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tcollectione
 									break
 								end
 							end
@@ -217,6 +223,17 @@ function hud0.refreshHUD()
 end
 
 function hud0.main()
+
+ -- load in correct map image for level
+ if hud0_mapView_LevelImage == -1 then
+	hud0_mapView_LevelImage = 0
+	local tLevelMapImageFile = g_LevelFilename
+	if tLevelMapImageFile ~= nil then
+		tLevelMapImageFile = string.sub(tLevelMapImageFile,1,string.len(tLevelMapImageFile)-4)
+		tLevelMapImageFile = tLevelMapImageFile .. ".png"
+		hud0_mapView_LevelImage = LoadImage("mapbank\\"..tLevelMapImageFile)
+	end
+ end
 
  -- This section controls which HUD screens are shown to the player whilst in-game (not paused or in a menu screen)
  if IsPlayerInGame() then
@@ -271,7 +288,7 @@ function hud0.main()
   -- detect any inventory changes
   local tinventory0qty = GetInventoryQuantity("inventory:player")
   local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerRefresh == 1then
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerRefresh == 1 then
 	hud0_lastgoodplayerinventory0qty = tinventory0qty
 	hud0_lastgoodplayerinventory1qty = tinventory1qty
 	hud0.refreshHUD()
@@ -898,9 +915,27 @@ function hud0.main()
 										-- DROP
 										local entityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
 										if entityindex > 0 then
-											SetEntityCollected(entityindex,0,0)
 											local floorlevelfordrop = RDGetYFromMeshPosition(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-											ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+											local tdropresourcespawn = 0
+											if GetEntityCollectable(entityindex) == 2 then
+												local tqty = GetEntityQuantity(entityindex)
+												if tqty > 1 then
+													SetEntityCollected(entityindex,0,0)
+													ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+													SetEntityQuantity(entityindex,1)
+													Show(entityindex)
+													local newe = SpawnNewEntity(entityindex)
+													SetEntityQuantity(newe,tqty-1)
+													SetEntityCollected(newe,1,0)
+													tdropresourcespawn = 1
+													g_UserGlobalContainerRefresh = 1
+												end
+											end
+											if tdropresourcespawn == 0 then
+												SetEntityCollected(entityindex,0,0)
+												ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+												Show(entityindex)
+											end
 										end
 									end
 									if actionOnObject == 2 then
@@ -1367,7 +1402,8 @@ function hud0.main()
 
   -- display contents of any user defined images for map views 
   if GetIfUsingTABScreen() == 0 then
-   local realmapsize = 50000
+   local realmapsize = 1000000 --100000
+   if g_LevelTerrainSize > 0 then realmapsize = g_LevelTerrainSize end
    local tqty = GetScreenElementsType("user defined global image")
    for ii = 1, tqty, 1 do
 	local theelementID = GetScreenElementTypeID("user defined global image",ii)
@@ -1390,6 +1426,9 @@ function hud0.main()
 				scrx = hud0_mapView_ImageX
 				scry = hud0_mapView_ImageY
 				tscrwidth = hud0_mapView_WindowW
+				if hud0_mapView_LevelImage > 0 then
+					if GetImageWidth(hud0_mapView_LevelImage) > 0 then scrimg = hud0_mapView_LevelImage end
+				end
 				tscrheight = tscrwidth * (GetImageHeight(scrimg)/GetImageWidth(scrimg))
 				hud0_mapView_ImageOW = tscrwidth
 				hud0_mapView_ImageOH = tscrheight

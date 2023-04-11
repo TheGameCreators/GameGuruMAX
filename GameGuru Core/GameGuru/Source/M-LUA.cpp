@@ -5,6 +5,7 @@
 // Includes
 #include "stdafx.h"
 #include "gameguru.h"
+#include "GGTerrain/GGTerrain.h"
 
 // Externs
 #ifdef VRTECH
@@ -675,6 +676,7 @@ void lua_loop_begin ( void )
 	}
 	LuaSetString("g_InKey", t.strwork.Get());
 	LuaSetString("g_LevelFilename", g.projectfilename_s.Get()+strlen("mapbank\\"));
+	LuaSetInt("g_LevelTerrainSize", GGTerrain::ggterrain_global_render_params2.editable_size);
 
 	// pass in values from projectileexplosionevents
 	LuaSetInt("g_projectileevent_explosion", g.projectileEventType_explosion);

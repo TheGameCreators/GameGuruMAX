@@ -27756,6 +27756,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				ImGui::SetTooltip("Delete selected custom particle");
 		}
 
+		//PE: Not very useful , you can just click the "default particle" in the list, removed for now.
+		/*
 		if (ImGui::StyleButton("Reset to Default Particles", ImVec2(particle_w, 0)))
 		{
 			//Dont reset saved.
@@ -27768,6 +27770,20 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			{
 				gpup_deleteEffect(iParticleEmitter);
 			}
+			Predefined_bParticle_Preview[current_particle_selected] = true;
+			Predefined_bParticle_Show_At_Start[current_particle_selected] = true;
+			if (current_particle_selected == 7)
+				Predefined_bParticle_Looping_Animation[current_particle_selected] = false;
+			else
+				Predefined_bParticle_Looping_Animation[current_particle_selected] = true;
+			Predefined_bParticle_Full_Screen[current_particle_selected] = false;
+			Predefined_fParticle_Fullscreen_Duration[current_particle_selected] = 10.0f;
+			Predefined_fParticle_Fullscreen_Fadein[current_particle_selected] = 1.0f;
+			Predefined_fParticle_Fullscreen_Fadeout[current_particle_selected] = 1.0f;
+			Predefined_Particle_Fullscreen_Transition[current_particle_selected] = "";
+			Predefined_fParticle_Speed[current_particle_selected] = 1.0f;
+			Predefined_fParticle_Opacity[current_particle_selected] = 1.0f;
+
 			t.entityelement[elementID].eleprof.newparticle.emitterid = -1;
 			t.entityelement[elementID].eleprof.newparticle.emittername = Predefined_Particle_Name[current_particle_selected];
 			t.entityelement[elementID].eleprof.newparticle.bParticle_Preview = Predefined_bParticle_Preview[current_particle_selected];
@@ -27785,6 +27801,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 
 		}
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reset Particles to The Default Settings");
+		*/
 
 		ImGui::TextCenter("Particle Values");
 

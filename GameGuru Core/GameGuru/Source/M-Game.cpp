@@ -36,6 +36,7 @@ int old_render_params2 = 0;
 #ifdef STORYBOARD
 extern int g_Storyboard_First_Level_Node;
 extern int g_Storyboard_Current_Level;
+extern bool g_Storyboard_Starting_New_Level;
 extern char g_Storyboard_First_fpm[256];
 extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
@@ -2363,12 +2364,16 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	//if ( g.iStandaloneIsReloading == 2 )
 	//{
 	// must now reload preserved state of level when enter it (g_LevelFilename)
-	char pLUACustomLoadCall[256];
-	strcpy ( pLUACustomLoadCall, "GameLoopLoadStats" );
-	LuaSetFunction ( pLUACustomLoadCall, 1, 0 );
-	LuaPushInt(g_Storyboard_Current_Level);
-	//LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
-	LuaCall ( );
+	if (!g_Storyboard_Starting_New_Level)
+	{
+		char pLUACustomLoadCall[256];
+		strcpy(pLUACustomLoadCall, "GameLoopLoadStats");
+		LuaSetFunction(pLUACustomLoadCall, 1, 0);
+		LuaPushInt(g_Storyboard_Current_Level);
+		//LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
+		LuaCall();
+	}
+	g_Storyboard_Starting_New_Level = false;
 	//}
 
 	// one final command to improve static physics performance

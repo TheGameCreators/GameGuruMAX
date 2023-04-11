@@ -37421,6 +37421,124 @@ int get_hidehudstate()
 //PE: Not needed in save struct.
 int StoryboardiActiveLinksId[STORYBOARD_MAXNODES];
 int StoryboardiActiveLinksIdFrom[STORYBOARD_MAXNODES];
+int iLoadGameNodeID = 3;
+int iTitleScreenNodeID = 1;
+int iGamePausedNodeID = 8;
+int iSaveGameNodeID = 9;
+int iGraphicsNodeID = 10;
+int iSoundsNodeID = 11;
+
+int iControlNodeID = 12;
+
+int iLoadingScreenNodeID = 2;
+int iAboutScreenNodeID = 4;
+int iGameWonScreenNodeID = 5;
+int iGameLostScreenNodeID = 6;
+int iHUDScreenNodeID = 13;
+
+int get_output_linkindex(int node, int index)
+{
+	if (node < 0 || node > STORYBOARD_MAXNODES) return index;
+	int i = node;
+	int outlinknum = 0;
+	if (i == iGamePausedNodeID) return index;
+	if (i == iGraphicsNodeID) return index;
+	if (i == iSoundsNodeID) return index;
+	if (i == iControlNodeID) return index;
+	if (i == iSaveGameNodeID) return index;
+	if (i == iLoadGameNodeID) return index;
+	if (i == iLoadingScreenNodeID) return index; //PE: Special got no button for linking to output.
+
+	if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SPLASH) return index;
+	if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD) return index;
+
+	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
+	{
+		if (ll == index)
+			return outlinknum;
+		if (Storyboard.Nodes[i].widget_used[ll])
+		{
+			if (Storyboard.Nodes[node].widget_type[ll] = STORYBOARD_WIDGET_BUTTON)
+			{
+				if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_STARTGAME || Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOLEVEL)
+				{
+					outlinknum++;
+				}
+				else if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOSCREEN)
+				{
+					outlinknum++;
+				}
+			}
+		}
+	}
+
+	return(index);
+}
+
+void setup_output_links(int node)
+{
+
+	//int iTitleScreenNodeID = 1;
+	//int iAboutScreenNodeID = 4;
+	//int iGameWonScreenNodeID = 5;
+	//int iGameLostScreenNodeID = 6;
+
+	if (node < 0 || node > STORYBOARD_MAXNODES) return;
+	int i = node;
+	int outlinknum = 0;
+	char chr[MAX_PATH];
+	if (i == iGamePausedNodeID) return;
+	if (i == iGraphicsNodeID) return;
+	if (i == iSoundsNodeID) return;
+	if (i == iControlNodeID) return;
+	if (i == iSaveGameNodeID) return;
+	if (i == iLoadGameNodeID) return;
+	if (i == iLoadingScreenNodeID) return; //PE: Special got no button for linking to output.
+
+	if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SPLASH) return;
+	if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD) return;
+
+
+	//PE: reset outlinks.
+	for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+	{
+//		strcpy(Storyboard.Nodes[i].output_action[l], "");
+//		strcpy(Storyboard.Nodes[i].output_title[l], "");
+//		Storyboard.Nodes[i].output_linkto[l] = 0;
+//		Storyboard.Nodes[i].output_can_link_to_type[l] = 0;
+//		strcpy(Storyboard.Nodes[i].input_title[l], "");
+//		strcpy(Storyboard.Nodes[i].input_action[l], "");
+	}
+
+	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
+	{
+		if (Storyboard.Nodes[i].widget_used[ll])
+		{
+			if (Storyboard.Nodes[node].widget_type[ll] = STORYBOARD_WIDGET_BUTTON)
+			{
+				if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_STARTGAME || Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOLEVEL)
+				{
+					strcpy(chr, Storyboard.Nodes[node].widget_label[ll]);
+					strcat(chr, " -> Connect to Level");
+					strcpy(Storyboard.Nodes[node].output_title[outlinknum], chr);
+					strcpy(Storyboard.Nodes[node].output_action[outlinknum], "loadlevel"); //Not defined this yet.
+					Storyboard.Nodes[node].output_can_link_to_type[outlinknum] = STORYBOARD_TYPE_LEVEL;
+					outlinknum++;
+				}
+				else if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOSCREEN)
+				{
+					strcpy(chr, Storyboard.Nodes[node].widget_label[ll]);
+					strcat(chr, " ->  Connect to Scene ");
+					strcpy(Storyboard.Nodes[node].output_title[outlinknum], chr);
+					strcpy(Storyboard.Nodes[node].output_action[outlinknum], "loadscene"); //Not defined this yet.
+					Storyboard.Nodes[node].output_can_link_to_type[outlinknum] = STORYBOARD_TYPE_SCREEN;
+					outlinknum++;
+				}
+			}
+		}
+	}
+}
+
 
 void reset_single_node(int node)
 {
@@ -37491,23 +37609,6 @@ void reset_single_node(int node)
 
 	Storyboard.NodeRadioButtonSelected[i] = -1;
 }
-
-int iLoadGameNodeID = 3;
-int iTitleScreenNodeID = 1;
-int iGamePausedNodeID = 8;
-int iSaveGameNodeID = 9;
-int iGraphicsNodeID = 10;
-int iSoundsNodeID = 11;
-
-int iControlNodeID = 12;
-
-int iLoadingScreenNodeID = 2;
-int iAboutScreenNodeID = 4;
-int iGameWonScreenNodeID = 5;
-int iGameLostScreenNodeID = 6;
-int iHUDScreenNodeID = 13;
-
-
 
 void storeboard_init_nodes(float area_width, float node_width, float node_height)
 {
@@ -37713,7 +37814,7 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 	strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\screen_about.lua.png");
 	strcpy(Storyboard.Nodes[node].lua_name, "about.lua");
 	strcpy(Storyboard.Nodes[node].screen_backdrop, "editors\\templates\\backdrops\\about.png");
-	Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_TEXTAREA;
+	Storyboard.Nodes[node].widgets_available = allWidgets;
 	strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
 	button = 0;
 	strcpy(Storyboard.Nodes[node].widget_label[button], "ABOUT GAME");
@@ -37908,7 +38009,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 	// LB latest
 	int orgnode = node;
 	constexpr int allWidgets = ALLOW_BUTTON | ALLOW_TEXT | ALLOW_IMAGE | ALLOW_RADIOTYPE | ALLOW_SLIDER | ALLOW_TICKBOX | ALLOW_VIDEO | ALLOW_PROGRESS | ALLOW_TEXTAREA;
-	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE;
+	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_BUTTON;
 	bool bUpdateStoryboardToV2 = false;
 	//if (Storyboard.iStoryboardVersion < 203)
 	//{
@@ -38967,7 +39068,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 
 		}
 	}
-
+	
 
 	//Loading screen
 	if (orgnode == 2)
@@ -39133,7 +39234,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].lua_name, "hud0.lua");
 			strcpy(Storyboard.Nodes[node].screen_backdrop, "");
 			Storyboard.Nodes[node].screen_backdrop_transparent = true;
-			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE | ALLOW_BUTTON;
+			Storyboard.Nodes[node].widgets_available = allWidgets;
 			Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY;
 
 			// Storyboard does not yet have a HUD screen, so add one (copy from default template HUD in below filepath)
@@ -39176,6 +39277,13 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 
 	// Temporary for now, ensure that default widget permissions are set for all screens
 	Storyboard.Nodes[node].widgets_available = defaultWidgets;
+	//PE: Screens that dont use this function.
+	Storyboard.Nodes[iAboutScreenNodeID].widgets_available = defaultWidgets;
+	Storyboard.Nodes[iTitleScreenNodeID].widgets_available = defaultWidgets;
+	Storyboard.Nodes[iGameWonScreenNodeID].widgets_available = defaultWidgets;
+	Storyboard.Nodes[iGameLostScreenNodeID].widgets_available = defaultWidgets;
+	Storyboard.Nodes[iLoadingScreenNodeID].widgets_available = ALLOW_TEXT | ALLOW_IMAGE; //PE: Buttons cant work here.
+	
 	if (strcmp(Storyboard.Nodes[node].title, "In-Game HUD") == 0)
 	{
 		Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY;
@@ -39419,6 +39527,7 @@ int iFakeLoadGameTest = 0;
 bool bStartLoadingGame = false;
 int iExecuteMenuCommand = 0;
 static int iCurrentSelectedWidget = -1;
+static bool bTestStandalone = false;
 
 #define INCLUDE_GAME_SETTINGS
 
@@ -39427,7 +39536,6 @@ void process_storeboard(bool bInitOnly)
 	bool bModal = false; //Use a modal window.
 
 	//Emulate standalone.
-	static bool bTestStandalone = false;
 	static int iFramesBeforeEmulate = 0;
 	static char startpage[255], lastpage[255], playerrors[255] = "\0";
 
@@ -41782,6 +41890,55 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
 						}
+
+						bool bIsCustomScreen = pestrcasestr(Storyboard.Nodes[i].title, "Custom Screen");
+						if (bIsCustomScreen)
+						{
+							ImGui::PopStyleColor();
+							ImGui::PopStyleVar();
+							ImGui::PopStyleVar();
+							const char* items_storyboard_hud[] = { "Delete Custom Screen" };
+							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
+							int selection = 0;
+							char iUniqueString[255];
+							sprintf(iUniqueString, "##ComboStoryboardCustom%d", i);
+							int iComboEntries = 1;
+							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
+							ImGui::PushItemWidth(20);
+							if (ImGui::BeginCombo(iUniqueString, "", comboflags))
+							{
+								for (int n = 0; n < iComboEntries; n++)
+								{
+									if (ImGui::Selectable(items_storyboard_hud[n], false))
+									{
+										Storyboard.iChanged = true;
+										bBlockNextMouseCheck = true;
+										selection = n;
+										if (selection == 0)
+										{
+											int iAction = askBoxCancel("This will delete the custom screen from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												reset_single_node(i);
+												Storyboard.Nodes[i].used = false;
+												bBlockNextMouseCheck = true;
+											}
+										}
+									}
+								}
+								ImGui::EndCombo();
+							}
+							if (ImGui::IsItemHovered())
+							{
+								bBlockNextMouseCheck = true;
+								vTooltipPos = ImGui::GetCursorPos();
+								sTooltip = " Delete Custom screen ";
+							}
+							ImGui::PopItemWidth();
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
+							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
+						}
 						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
 						{
 							ImGui::PopStyleColor();
@@ -42451,8 +42608,90 @@ void process_storeboard(bool bInitOnly)
 							iAutoConnectNode = node;
 						}
 					}
+
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
+					{
+						int iScreenCount = 1;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN)
+							{
+								if(pestrcasestr(Storyboard.Nodes[i].title,"Custom Screen"))
+									iScreenCount++;
+							}
+						}
+						char cScreenCount[8];
+						sprintf_s(cScreenCount, "%d", iScreenCount);
+						// Find first free storyboard node that we can use for the new screen.
+						int node = -1;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used == 0)
+							{
+								// Reset node to default state, in case any old data remains.
+								node = i;
+								reset_single_node(node);
+
+								// New node defaults to a HUD screen
+								Storyboard.Nodes[node].used = true;
+								Storyboard.Nodes[node].type = STORYBOARD_TYPE_SCREEN;
+
+								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iAboutScreenNodeID].restore_position.x + 200 * iScreenCount, Storyboard.Nodes[iAboutScreenNodeID].restore_position.y);
+
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
+								Storyboard.Nodes[node].iEditEnable = true;
+								strcpy(Storyboard.Nodes[node].title, "Custom Screen ");
+								strcat(Storyboard.Nodes[node].title, cScreenCount);
+								//strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\hud.lua.png");
+								strcpy(Storyboard.Nodes[node].lua_name, "custom");
+								strcat(Storyboard.Nodes[node].lua_name, cScreenCount);
+								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
+								Storyboard.Nodes[node].screen_backdrop_transparent = true;
+								Storyboard.Nodes[node].readouts_available = 0;
+								Storyboard.Nodes[node].widgets_available = ALLOW_BUTTON | ALLOW_TEXT | ALLOW_IMAGE | ALLOW_RADIOTYPE | ALLOW_SLIDER | ALLOW_TICKBOX | ALLOW_VIDEO | ALLOW_PROGRESS | ALLOW_TEXTAREA;
+
+								strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\screen_about.lua.png");
+								strcpy(Storyboard.Nodes[node].screen_backdrop, "editors\\templates\\backdrops\\about.png");
+
+								strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
+								int button = 0;
+								strcpy(Storyboard.Nodes[node].widget_label[button], "BACK");
+								Storyboard.Nodes[node].widget_used[button] = 1;
+								Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_BUTTON;
+								Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
+								Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 80); //Pos in percent. using pivot center on X only.
+								Storyboard.Nodes[node].widget_action[button] = STORYBOARD_ACTIONS_BACK;
+								Storyboard.Nodes[node].widget_layer[button] = 0;
+								Storyboard.Nodes[node].widget_font_color[button] = ImVec4(1.0, 1.0, 1.0, 1.0);
+								strcpy(Storyboard.Nodes[node].widget_font[button], "Default Font"); // ?
+								strcpy(Storyboard.Nodes[node].widget_normal_thumb[button], "editors\\templates\\buttons\\default.png");
+								strcpy(Storyboard.Nodes[node].widget_highlight_thumb[button], "editors\\templates\\buttons\\default-hover.png");
+								strcpy(Storyboard.Nodes[node].widget_selected_thumb[button], "editors\\templates\\buttons\\default-selected.png");
+								strcpy(Storyboard.Nodes[node].widget_name[button], "continue"); //NOTE: DUP (continue) - Also add "-hover.png" ...
+								break;
+							}
+						}
+
+						if (node < 0)
+						{
+							bTriggerMessage = true;
+							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+						}
+						else
+						{
+							// Trigger creation of a new thumbnail for the newly created screen
+							iWaitFor2DEditor = 5;
+							iWaitFor2DEditorNode = node;
+							if (BitmapExist(99))
+							{
+								DeleteBitmapEx(99);
+							}
+						}
+					}
+
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
 						int hudScreenCount = 0;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
@@ -43230,6 +43469,12 @@ void process_storeboard(bool bInitOnly)
 				// insert a keyboard shortcut component into panel
 				UniversalKeyboardShortcut(eKST_Storyboard);
 
+				if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+					ImGui::Text("");
+					ImGui::Text("");
+				}
+
 				ImGui::Columns(1);
 			}
 
@@ -43280,7 +43525,47 @@ void process_storeboard(bool bInitOnly)
 			else if (bTestStandalone)
 			{
 				int iret = screen_editor(-1, true, startpage);
-				//STORYBOARD_ACTIONS_GOTOLEVEL
+
+				if (iret == STORYBOARD_ACTIONS_GOTOLEVEL)
+				{
+					//PE: Need to load the level before emulating loading.
+					if (g.projectfilename_s != g_Storyboard_Current_fpm)
+					{
+						t.returnstring_s = g_Storyboard_Current_fpm;
+						if (t.returnstring_s != "")
+						{
+							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+							{
+								GGTerrain_CancelRamp();
+								t.gridentity = 0;
+								t.inputsys.constructselection = 0;
+								editor_refresheditmarkers();
+								g.projectfilename_s = t.returnstring_s;
+
+								extern bool g_bAllowBackwardCompatibleConversion;
+								g_bAllowBackwardCompatibleConversion = true;
+								GGTerrain_RemoveAllFlatAreas();
+								gridedit_load_map();
+								g_bAllowBackwardCompatibleConversion = false;
+
+								t.terrain.grassregionx1 = t.terrain.grassregionx2;
+								grass_init();
+
+								iLastUpdateVeg = 0;
+								bUpdateVeg = true;
+								extern int g_iSuperTriggerFullGrassReveal; // hmm, shoved in to get the damn grass showing on initial load!
+								g_iSuperTriggerFullGrassReveal = 10;
+								iLaunchAfterSync = 80; //Update env
+								iSkibFramesBeforeLaunch = 5;
+							}
+						}
+					}
+					bStartLoadingGame = true;
+					iFakeLoadGameTest = 100;
+					extern bool g_Storyboard_Starting_New_Level;
+					g_Storyboard_Starting_New_Level = true; //PE: Always start fresh when linking directly to a level.
+
+				}
 				if (iret == STORYBOARD_ACTIONS_CONTINUE)
 				{
 					//Restart
@@ -43300,6 +43585,8 @@ void process_storeboard(bool bInitOnly)
 				{
 					bStartLoadingGame = true;
 					iFakeLoadGameTest = 100;
+					extern bool g_Storyboard_Starting_New_Level;
+					g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
 				}
 				if (iret == STORYBOARD_ACTIONS_GOTOSCREEN)
 				{
@@ -43798,8 +44085,12 @@ int FindOutputScreenNode(int iNode, int index)
 	//Storyboard.Nodes[iNextNode].lua_name
 	if (iNode >= 0)
 	{
+		int iOutPutLinkTo = index;
+		if (Storyboard.Nodes[iNode].widget_type[index] = STORYBOARD_WIDGET_BUTTON)
+			iOutPutLinkTo = get_output_linkindex(iNode, index);
+
 		//Find connected to:
-		int iLinkTo = Storyboard.Nodes[iNode].output_linkto[index];
+		int iLinkTo = Storyboard.Nodes[iNode].output_linkto[iOutPutLinkTo];
 			//Find input.
 		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 		{
@@ -43830,7 +44121,8 @@ int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 		int iLinkToLost = Storyboard.Nodes[iNextLevelNode].output_linkto[1]; //2=Next Loast screen.
 		int iLinkToWin = Storyboard.Nodes[iNextLevelNode].output_linkto[0]; //2=Next Won screen.
 		int iLinkTo = Storyboard.Nodes[iNextLevelNode].output_linkto[2]; //2=Next level.
-			//Find input.
+
+		//Find input.
 		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 		{
 			if (Storyboard.Nodes[i].used)
@@ -45527,7 +45819,20 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 	{
 		// TEMP: users can delete the buttons in the default screens, but cannot add them back because we don't yet have buttons.
 		// Once buttons can be added, this code can be removed.
-		return;
+
+		//PE: we are ready. on some pages.
+		if (nodeID == iGamePausedNodeID && widgetID <= 7) return;
+		if (nodeID == iGraphicsNodeID && widgetID <= 6) return;
+		if (nodeID == iSoundsNodeID && widgetID <= 5) return;
+		if (nodeID == iSaveGameNodeID && widgetID <= 9) return;
+		if (nodeID == iLoadGameNodeID && widgetID <= 9) return;
+		if (nodeID == iLoadingScreenNodeID && widgetID <= 2) return;
+		if (nodeID == iControlNodeID && widgetID <= 7) return;
+
+		//Also not all pages got add sliders.
+		if(Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_SLIDER) return;
+
+		//return;
 	}
 
 	// First, check that the widget is actually on the screen and able to be removed.
@@ -46630,6 +46935,17 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				window->DrawList->AddRectFilled(DCCursorPos + ImVec2(-1, -1), DCCursorPos + ImVec2(preview_size_x, preview_size_y) + ImVec2(1, 1), ImGui::GetColorU32(monitor_col));
 				window->DrawList->AddRectFilled(image_bb.Min + padding, image_bb.Max - padding, ImGui::GetColorU32(monitor_col));
 			}
+			else
+			{
+				extern bool bMainLoopRunning;
+				extern int g_iInGameMenuState;
+				if ( (!bMainLoopRunning || bTestStandalone) && g_iInGameMenuState != 1 && Storyboard.Nodes[nodeid].screen_backdrop_transparent)
+				{
+					//PE: Hide game screen if not inside game yet ( custom button -> settings screens).
+					ImVec4 monitor_col = ImVec4(0.0, 0, 0, 1.0); //Black for now.
+					window->DrawList->AddRectFilled(ImVec2(-1, -1), ImGui::GetMainViewport()->Size + ImVec2(1, 1), ImGui::GetColorU32(monitor_col));
+				}
+			}
 		}
 		else
 		{
@@ -47323,6 +47639,52 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							{
 								//Support go to level directly ?
 								iRet = STORYBOARD_ACTIONS_GOTOLEVEL;
+								
+								int iNewNode = FindOutputScreenNode(nodeid, index);
+								if (iNewNode >= 0)
+								{
+									t.s_s = "";
+									lua_switchpage();
+									bLuaPageClosing = true;
+
+									if (strlen(Storyboard.Nodes[iNewNode].level_name) > 0)
+									{
+										g_Storyboard_Current_Level = iNewNode;
+										strcpy(g_Storyboard_Current_fpm, Storyboard.Nodes[iNewNode].level_name);
+
+										//Clean name.
+										std::string sLevelTitle = g_Storyboard_Current_fpm;
+										replaceAll(sLevelTitle, ".fpm", "");
+										replaceAll(sLevelTitle, "mapbank\\", "");
+										t.game.jumplevel_s = sLevelTitle.c_str();
+
+										extern bool g_Storyboard_Starting_New_Level;
+										g_Storyboard_Starting_New_Level = true; //PE: Always start fresh when linking directly to a level.
+
+									}
+								}
+								else
+								{
+									//PE: Not linked , start first level.
+									t.s_s = "";
+									lua_switchpage();
+									bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_STARTGAME;
+
+									//PE: Always use first level.
+									FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
+									g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
+									strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
+									//Clean name.
+									std::string sLevelTitle = g_Storyboard_First_fpm;
+									replaceAll(sLevelTitle, ".fpm", "");
+									replaceAll(sLevelTitle, "mapbank\\", "");
+									t.game.jumplevel_s = sLevelTitle.c_str();
+									extern bool g_Storyboard_Starting_New_Level;
+									g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
+								}
+
+
 							}
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_STARTGAME)
 							{
@@ -47340,7 +47702,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								replaceAll(sLevelTitle, ".fpm", "");
 								replaceAll(sLevelTitle, "mapbank\\", "");
 								t.game.jumplevel_s = sLevelTitle.c_str();
-
+								extern bool g_Storyboard_Starting_New_Level;
+								g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
 							}
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_LEAVEGAME)
 							{
@@ -48804,6 +49167,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					DeleteBitmapEx(99);
 				}
+
+				//PE: Change output link based on changes.
+				setup_output_links(nodeid);
 			}
 			else
 			{
@@ -48888,22 +49254,30 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			ImGui::OpenPopup("##rmbmenu");
 		}
 
+		static int iRightClickItem = -1;
 		if (ImGui::BeginPopup("##rmbmenu", ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings))
 		{
+			//PE: When right click and popup open, widget is not hovered and iCurrentSelectedWidget is set to 0.
+			if (iRightClickItem < 0)
+				iRightClickItem = iCurrentSelectedWidget;
 			if (ImGui::Selectable("Delete##rmbdelete"))
 			{
-				RemoveWidgetFromScreen(nodeid, iCurrentSelectedWidget);
+				RemoveWidgetFromScreen(nodeid, iRightClickItem);
 			}
 			ImGui::Separator();
 			if (ImGui::Selectable("Send to Back##rmbtoback"))
 			{
-				SendWidgetToBack(nodeid, iCurrentSelectedWidget);
+				SendWidgetToBack(nodeid, iRightClickItem);
 			}
 			if (ImGui::Selectable("Send to Front##rmbtofront"))
 			{
-				SendWidgetToFront(nodeid, iCurrentSelectedWidget);
+				SendWidgetToFront(nodeid, iRightClickItem);
 			}
 			ImGui::EndPopup();
+		}
+		else
+		{
+			iRightClickItem = -1;
 		}
 	}
 
@@ -48960,6 +49334,19 @@ int autosave_storyboard_project(void)
 		}
 	}
 	return iAction;
+}
+
+int GetStoryboardCustomScreenNode(char *page)
+{
+	if( pestrcasestr(page, "custom") && strlen(page) <= 8 )
+	{
+		int iNode = FindLuaScreenNode(page);
+		if (iNode >= 0 && strlen(Storyboard.gamename) > 0)
+		{
+			return(iNode);
+		}
+	}
+	return -1;
 }
 
 bool bTempDisableRain = false;

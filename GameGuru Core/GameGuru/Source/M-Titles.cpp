@@ -2362,19 +2362,33 @@ void titleslua_main_stage1_init(LPSTR pPageName)
 	strcpy ( g_pTitleCurrentPage, pPageName );
 	strcpy ( t.game.pSwitchToLastPage, g_pTitleCurrentPage );	
 }
+
+int GetStoryboardCustomScreenNode(char* page);
 void titleslua_main_stage2_preloop(void)
 {
 	// title preloop
 	// call init function to set up resources
 	char pLUAInit[256];
-	strcpy ( pLUAInit, cstr(cstr(g_pTitleCurrentPage)+"_init").Get() );
-	strcpy ( g_strErrorClue, pLUAInit );
-	LuaSetFunction ( pLUAInit, 0, 0 ); 
-	LuaCall (  );
 
+	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	if (CustomScreenNode >= 0)
+	{
+		strcpy(pLUAInit,"custom_init");
+		strcpy(g_strErrorClue, pLUAInit);
+		LuaSetFunction(pLUAInit, 1, 0);
+		LuaPushString(g_pTitleCurrentPage);
+		LuaCall();
+	}
+	else
+	{
+		strcpy(pLUAInit, cstr(cstr(g_pTitleCurrentPage) + "_init").Get());
+		strcpy(g_strErrorClue, pLUAInit);
+		LuaSetFunction(pLUAInit, 0, 0);
+		LuaCall();
+	}
 	// stay in main until page is quit
-	strcpy ( g_pTitleLUAMain, cstr(cstr(g_pTitleCurrentPage)+"_main").Get() );
-	strcpy ( g_strErrorClue, g_pTitleLUAMain );
+	strcpy(g_pTitleLUAMain, cstr(cstr(g_pTitleCurrentPage) + "_main").Get());
+	strcpy(g_strErrorClue, g_pTitleLUAMain);
 	t.game.titleloop = 1;
 }
 
@@ -2387,7 +2401,18 @@ void titleslua_main_stage3_inloop(void)
 
 	// run LUA logic
 	lua_loop_begin();
-	LuaSetFunction ( g_pTitleLUAMain, 0, 0 ); LuaCall (  );
+
+	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	if (CustomScreenNode >= 0)
+	{
+		LuaSetFunction("custom_main", 0, 0);
+		LuaCall();
+	}
+	else
+	{
+		LuaSetFunction(g_pTitleLUAMain, 0, 0);
+		LuaCall();
+	}
 	lua_loop_finish();
 
 	// if in game, extra update refreshes
@@ -2447,9 +2472,18 @@ void titleslua_main_stage4_afterloop(void)
 	// call to allow local resources to be freed
 	char pLUAFree[256];
 	strcpy ( pLUAFree, cstr(cstr(g_pTitleCurrentPage)+"_free").Get() );
-	LuaSetFunction ( pLUAFree, 0, 0 ); 
-	LuaCall (  );
-		
+
+	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	if (CustomScreenNode >= 0)
+	{
+		LuaSetFunction("custom_free", 0, 0);
+		LuaCall();
+	}
+	else
+	{
+		LuaSetFunction(pLUAFree, 0, 0);
+		LuaCall();
+	}
 	// switch to new page name
 	if ( strcmp ( t.game.pSwitchToPage, "-1")==NULL )
 		strcpy ( g_pTitleCurrentPage, t.game.pSwitchToLastPage );

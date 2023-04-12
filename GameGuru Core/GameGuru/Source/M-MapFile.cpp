@@ -2321,16 +2321,34 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		addtocollection("editors\\uiv3\\standalone_ea-ea.png");
 		#endif
 
+		// go through and add all FPMs to export
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-		int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
-		while (a == 1)
+		int foundlevel = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
+		while (foundlevel == 1)
 		{
-			++t.levelmax;
-			t.levellist_s[t.levelmax] = g_Storyboard_Current_fpm;
-			addtocollection(g_Storyboard_Current_fpm);
-			a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
+			bool bAlreadyAdded = false;
+			for (int n = 0; n < t.levelmax; n++)
+			{
+				if (stricmp(g_Storyboard_Current_fpm, t.levellist_s[n].Get()) == NULL)
+				{
+					bAlreadyAdded = true;
+					break;
+				}
+			}
+			if (bAlreadyAdded == false)
+			{
+				++t.levelmax;
+				t.levellist_s[t.levelmax] = g_Storyboard_Current_fpm;
+				addtocollection(g_Storyboard_Current_fpm);
+				foundlevel = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
+			}
+			else
+			{
+				// level recursed back on itself, end this loop!
+				foundlevel = 0;
+			}
 		}
 
 		// Now find any levels that are on the Storyboard, but have not been marked for collection (not connected to any screens - loaded from Winzone)
@@ -3445,12 +3463,11 @@ void mapfile_savestandalone_stage2a ( void )
 	#ifdef STORYBOARD
 	if (g.bUseStoryBoardSetup)
 	{
-
-		//Add all storyboard files to scan list.
+		/* this is done in mapfile_collectfoldersandfiles, and this one is bugged as it can infinitely loop if lv1->lvl2>lvl1!!
+		// add all storyboard files to scan list.
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-
 		int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
 		while (a == 1)
 		{
@@ -3459,14 +3476,14 @@ void mapfile_savestandalone_stage2a ( void )
 			addtocollection(g_Storyboard_Current_fpm);
 			a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
 		}
-		//Restore to first level.
+		*/
+
+		// restore to first level.
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-
 	}
 	#endif
-
 
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;

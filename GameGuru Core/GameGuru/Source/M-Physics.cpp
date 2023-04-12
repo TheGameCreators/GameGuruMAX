@@ -2566,7 +2566,6 @@ void physics_player_init ( void )
 			// need to add this to the colleciton list
 			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			//add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
 			collectionItemType collectionitem;
 			fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
 

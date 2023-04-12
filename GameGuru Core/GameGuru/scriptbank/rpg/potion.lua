@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a potion boost or deduction if consumed.
--- Potion v8
+-- Potion v9
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Potion consumed"]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
 -- DESCRIPTION: <Sound0> for useage sound.
 -- DESCRIPTION: <Sound1> for collection sound.
+
 local U = require "scriptbank\\utillib"
 
 local potion = {}
@@ -61,7 +62,7 @@ function potion_main(e)
 			use_item_now[e] = 1
 		end
 	end
-	if potion[e].pickup_style == 2 then
+	if potion[e].pickup_style == 2 and PlayerDist < potion[e].pickup_range then
 		--pinpoint select object--
 		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
 		local rayX, rayY, rayZ = 0,0,potion[e].pickup_range
@@ -84,8 +85,9 @@ function potion_main(e)
 					use_item_now[e] = 1
 				end
 			end
-			if GetEntityCollectable(tEnt[e]) == 1 then
+			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
 				Prompt(potion[e].prompt_if_collectable)
+				-- if collectable or resource
 				if g_KeyPressE == 1 then
 					Hide(e)
 					CollisionOff(e)
@@ -97,18 +99,21 @@ function potion_main(e)
 	end
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
-		PromptDuration(potion[e].useage_text,1000)
-		use_item_now[e] = 1
+		-- if this is a resource, it will deplete qty and set used to zero
+		PromptDuration(potion[e].useage_text,1000)		
 		SetEntityUsed(e,tusedvalue*-1)
+		use_item_now[e] = 1
 	end
+	
 	local addquantity = 0
 	if use_item_now[e] == 1 then
 		PlaySound(e,0)
 		PerformLogicConnections(e)
 		if potion[e].effect == 1 then addquantity = 1 end
 		if potion[e].effect == 2 then addquantity = 2 end
-		Destroy(e)
+		Destroy(e) -- can only destroy resources that are qty zero
 	end
+	
 	local currentvalue = 0
 	if addquantity == 1 then
 		if potion[e].user_global_affected > "" then 

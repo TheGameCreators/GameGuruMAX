@@ -10225,6 +10225,7 @@ void mapeditorexecutable_loop(void)
 											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 59;
 											if (stricmp(pLabel, "status") == NULL) iKnownLabel = 60;
 											if (stricmp(pLabel, "activate") == NULL) iKnownLabel = 61;
+											if (stricmp(pLabel, "quantity") == NULL) iKnownLabel = 62;
 										}
 										if (iKnownLabel >= 0)
 										{
@@ -10256,6 +10257,7 @@ void mapeditorexecutable_loop(void)
 												if (iKnownLabel == 59) pShowTop = "Enter the money earned by completing this quest";
 												if (iKnownLabel == 60) pShowTop = "Enter the initial status of this quest when the game starts";
 												if (iKnownLabel == 61) pShowTop = "Enter the object to activate when this quest is completed";
+												if (iKnownLabel == 62) pShowTop = "Enter a quantity associated with this quest";
 											}
 
 											// Attrib Label

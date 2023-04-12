@@ -1,5 +1,5 @@
--- Teleport v5 - thanks to Necrym59
--- DESCRIPTION: Set [TELEPORT_ZONEHEIGHT=100][@TELEPORT_TYPE=1(1=Instant, 2=Delayed)][@TELEPORT_MODE=1(1=Single-use, 2=Re-useable)][TELEPORT_DELAY=5(1,5))][!TELEPORT_EFFECT=0] [@TELEPORT_DESTINATION=1(1=Local, 2=Level)] [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone. Will play <Sound0> for local teleports to the location of the object you connected with the zone. Will play <Sound1> for level teleport. It is better to use a small object or a flat object to avoid getting stuck when you reappear in the level.
+-- Teleport v6 - thanks to Necrym59
+-- DESCRIPTION: Set [TELEPORT_ZONEHEIGHT=100][@TELEPORT_TYPE=1(1=Instant, 2=Delayed, 3=Delayed + Countdown)][@TELEPORT_MODE=1(1=Single-use, 2=Re-useable)][TELEPORT_DELAY=5(1,5))][!TELEPORT_EFFECT=0] [@TELEPORT_DESTINATION=1(1=Local, 2=Level)] [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone. Will play <Sound0> for local teleports to the location of the object you connected with the zone. Will play <Sound1> for level teleport. It is better to use a small object or a flat object to avoid getting stuck when you reappear in the level.
 
 g_teleport = {}	
 
@@ -80,12 +80,12 @@ function teleport_main(e)
 		end
 	end
 	
-	if g_teleport[e].teleport_type == 2 then
+	if g_teleport[e].teleport_type == 2 or 3 then
 		if g_teleport[e].teleport_destination == 1 then
 			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
 				if g_teleport[e].teleport_target ~= nil then
-					g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()						
-					Prompt("Teleport activating in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")				
+					g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
+					if g_teleport[e].teleport_type == 3 then Prompt("Teleport activating in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")	end
 					if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
 						Prompt("")
 						if g_teleport[e].teleport_effect == 1 then					
@@ -117,8 +117,8 @@ function teleport_main(e)
 		end
 		if g_teleport[e].teleport_destination == 2 then
 			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
-				g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()						
-				Prompt("Level Teleport in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")				
+				g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
+				if g_teleport[e].teleport_type == 3 then Prompt("Level Teleport in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds") end
 				if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
 					if played[e] == 0 then					
 						PlaySound(e,1)

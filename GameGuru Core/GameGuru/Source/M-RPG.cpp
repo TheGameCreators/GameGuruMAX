@@ -75,10 +75,10 @@ bool load_rpg_system_items(char* name)
 				{
 					// remaining lines are the collection, prepopulate with correct number of them
 					item.collectionFields.clear();
-					item.collectionFields.push_back("");
+					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("default");
 					item.collectionFields.push_back("default");
-					item.collectionFields.push_back("");
+					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("10");
 					item.collectionFields.push_back("5");
 					item.collectionFields.push_back("shop");
@@ -131,6 +131,7 @@ bool load_rpg_system_items(char* name)
 							{
 								if (stricmp(g_collectionLabels[la].Get(), pLabelAssociated) == NULL)
 								{
+									// populate correct place in item
 									item.collectionFields[la] = token;
 									break;
 								}
@@ -196,6 +197,7 @@ bool load_rpg_system_quests(char* name)
 	g_collectionQuestLabels.push_back("value");
 	g_collectionQuestLabels.push_back("status");
 	g_collectionQuestLabels.push_back("activate");
+	g_collectionQuestLabels.push_back("quantity");
 	std::vector<cstr> g_localCollectionLabels;
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");
@@ -229,12 +231,12 @@ bool load_rpg_system_quests(char* name)
 				{
 					// remaining lines are the collection, prepopulate with correct number of them
 					item.collectionFields.clear();
-					item.collectionFields.push_back("");
+					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("collect");
 					item.collectionFields.push_back("default");
-					item.collectionFields.push_back("");
-					item.collectionFields.push_back("");
-					item.collectionFields.push_back("");
+					item.collectionFields.push_back("none");
+					item.collectionFields.push_back("none");
+					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("none");
 					item.collectionFields.push_back("1");
@@ -658,6 +660,7 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName)
 		if (stricmp(pLabel, "value") == NULL) iKnownLabel = 59;
 		if (stricmp(pLabel, "status") == NULL) iKnownLabel = 60;
 		if (stricmp(pLabel, "activate") == NULL) iKnownLabel = 61;
+		if (stricmp(pLabel, "quantity") == NULL) iKnownLabel = 62;
 		if (iKnownLabel >= 0)
 		{
 			if (iKnownLabel == 0)
@@ -674,16 +677,17 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName)
 				cstr pFinalImgFile = get_rpg_imagefinalfile("imagebank\\HUD Library\\RPG\\quest_scroll.png");
 				pItem->collectionFields.push_back(pFinalImgFile);
 			}
-			if (iKnownLabel == 52) pItem->collectionFields.push_back("");
-			if (iKnownLabel == 53) pItem->collectionFields.push_back("");
-			if (iKnownLabel == 54) pItem->collectionFields.push_back("");
-			if (iKnownLabel == 55) pItem->collectionFields.push_back("");
-			if (iKnownLabel == 56) pItem->collectionFields.push_back("");
+			if (iKnownLabel == 52) pItem->collectionFields.push_back("none");
+			if (iKnownLabel == 53) pItem->collectionFields.push_back("none");
+			if (iKnownLabel == 54) pItem->collectionFields.push_back("none");
+			if (iKnownLabel == 55) pItem->collectionFields.push_back("none");
+			if (iKnownLabel == 56) pItem->collectionFields.push_back("none");
 			if (iKnownLabel == 57) pItem->collectionFields.push_back("1");
 			if (iKnownLabel == 58) pItem->collectionFields.push_back("100");
 			if (iKnownLabel == 59) pItem->collectionFields.push_back("100");
 			if (iKnownLabel == 60) pItem->collectionFields.push_back("inactive");
 			if (iKnownLabel == 61) pItem->collectionFields.push_back("none");
+			if (iKnownLabel == 62) pItem->collectionFields.push_back("1");
 		}
 		else
 		{

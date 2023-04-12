@@ -256,46 +256,38 @@ function GameLoopClearGlobalStates()
 end
 
 function GameLoopSaveStats(storyboardnodeid)
-
  -- only when dealing with real levels
  if storyboardnodeid >=0 then
- 
-	 -- reuse save system to preserve state of the level just before we leave
-	 gamedata = require "titlesbank\\gamedata"
-	 gamedata.mode(1)
-	 gamedata.save("0-"..storyboardnodeid,"levelnodeid-"..storyboardnodeid)
-
-	 -- and also save state of all player attributes (health, weapon, containers, userglobals)
-	 gamedata.mode(2)
-	 gamedata.save("0-globals","playerstate")
-	 gamedata.mode(0)
-
+	-- reuse save system to preserve state of the level just before we leave
+	gamedata = require "titlesbank\\gamedata"
+	gamedata.mode(1)
+	gamedata.save("0-"..storyboardnodeid,"levelnodeid-"..storyboardnodeid)
+	-- and also save state of all player attributes (health, weapon, containers, userglobals)
+	gamedata.mode(2)
+	gamedata.save("0-globals","playerstate")
+	gamedata.mode(0)
  end
-
 end
 
-function GameLoopLoadStats(storyboardnodeid)
-
+function GameLoopLoadStats(storyboardnodeid,restorepreviouslevelstate)
  -- only when dealing with real levels
  if storyboardnodeid >=0 then
- 
-	 -- reload state of the level from last time we left it
-	 gamedata = require "titlesbank\\gamedata"
-	 gamedata.mode(0)
-	 local restoretochanges = 0
-	 if gamedata.load("0-"..storyboardnodeid) == 1 then restoretochanges = 1 end
-	 if gamedata.load("0-globals") == 1 then restoretochanges = 1 end
-
-	 -- use above data to restore level to that state
-	 if restoretochanges == 1 then
-		 restoregame = require "titlesbank\\restoregame"
-		 restoregame.mode(1)
-		 restoregame.now()
-		 restoregame.mode(0)
-	 end
-	 
+	-- reload state of the level from last time we left it
+	gamedata = require "titlesbank\\gamedata"
+	gamedata.mode(0)
+	local restoretochanges = 0
+	if restorepreviouslevelstate == 1 then
+		if gamedata.load("0-"..storyboardnodeid) == 1 then restoretochanges = 1 end
+	end
+	if gamedata.load("0-globals") == 1 then restoretochanges = 1 end
+	-- use above data to restore level to that state
+	if restoretochanges == 1 then
+		restoregame = require "titlesbank\\restoregame"
+		restoregame.mode(1)
+		restoregame.now()
+		restoregame.mode(0)
+	end
  end
-
 end
 
 function PlayerControl()
@@ -650,6 +642,9 @@ end
 
 function JumpToLevelIfUsed(e)
  SendMessageS("jumptolevel",e,"")
+end
+function JumpToLevelIfUsedEx(e,resetstates)
+ SendMessageS("jumptolevel",e,tostring(resetstates))
 end
 function JumpToLevel(levelname)
  SendMessageS("jumptolevel",0,levelname)

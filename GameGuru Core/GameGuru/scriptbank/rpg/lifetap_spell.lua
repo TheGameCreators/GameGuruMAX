@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v16
+-- Lifetap Spell v17
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -147,26 +147,36 @@ function lifetap_spell_main(e)
 				if lifetap_spell[e].particle2_number > 0 then Scale(lifetap_spell[e].particle2_number,tscaleradius) end
 				-- apply effect as radius increases from targeted point of origin
 				-- do the magic
-				for ee = 1, g_EntityElementMax, 1 do
-					if e ~= ee then
-						if g_Entity[ee] ~= nil then
-							if g_Entity[ee]['active'] > 0 then
-								if g_Entity[ee]['health'] > 0 then
-									local thisallegiance = GetEntityAllegiance(ee)
-									if thisallegiance == 0 then
-										if g_Entity[tTarget[e]]['health'] > 0 then
-											local thowclosex = g_Entity[ ee ]['x'] - g_Entity[tTarget[e]]['x']
-											local thowclosey = g_Entity[ ee ]['y'] - g_Entity[tTarget[e]]['y']
-											local thowclosez = g_Entity[ ee ]['z'] - g_Entity[tTarget[e]]['z']
-											local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosey*thowclosey)+math.abs(thowclosez*thowclosez))
-											if thowclosedd < tscaleradius*2.0 then
-												if entaffected[ee] == 0 then
-													entaffected[ee] = 1											
-													SetEntityHealth(ee,g_Entity[ee]['health']-0) 																							-- Set negative proximity damage to nearby entities
-													if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-lifetap_spell[e].cast_damage) end	-- Take health from targeted entity
-													SetPlayerHealth(g_PlayerHealth + lifetap_spell[e].cast_damage)																			-- Give health to player
-													if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end												-- Check player health doesnt exceeed start health (Not sure if this is still standard)
-													if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
+				if tTarget[e] > 0 then
+					if g_Entity[tTarget[e]]['health'] > 0 then
+						for ee = 1, g_EntityElementMax, 1 do
+							if e ~= ee then
+								if g_Entity[ee] ~= nil then
+									if g_Entity[ee]['active'] > 0 then
+										if g_Entity[ee]['health'] > 0 then
+											local thisallegiance = GetEntityAllegiance(ee)
+											if thisallegiance == 0 then
+												local thowclosex = g_Entity[ ee ]['x'] - g_Entity[tTarget[e]]['x']
+												local thowclosey = g_Entity[ ee ]['y'] - g_Entity[tTarget[e]]['y']
+												local thowclosez = g_Entity[ ee ]['z'] - g_Entity[tTarget[e]]['z']
+												local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosey*thowclosey)+math.abs(thowclosez*thowclosez))
+												if thowclosedd < tscaleradius*2.0 then
+													if entaffected[ee] == 0 then
+														entaffected[ee] = 1
+														-- Take health from targeted entity
+														if ee == tTarget[e] then
+															local thealthtotake = lifetap_spell[e].cast_damage
+															if thealthtotake > g_Entity[ee]['health'] then thealthtotake = g_Entity[ee]['health'] end
+															g_Entity[ee]['health'] = g_Entity[ee]['health'] - thealthtotake
+															SetEntityHealth(ee,g_Entity[ee]['health'])
+															local tnewplayerhealth = g_PlayerHealth + thealthtotake
+															if tnewplayerhealth > g_PlayerStartStrength then tnewplayerhealth = g_PlayerStartStrength end
+															SetPlayerHealth(tnewplayerhealth)																			
+														else
+															-- Most nearby entities are unaffected
+															SetEntityHealth(ee,g_Entity[ee]['health']-0)																						
+														end
+													end
 												end
 											end
 										end
@@ -175,6 +185,7 @@ function lifetap_spell_main(e)
 							end
 						end
 					end
+					if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
 				end
 				-- cannot use while in effect
 				tusedvalue = 0

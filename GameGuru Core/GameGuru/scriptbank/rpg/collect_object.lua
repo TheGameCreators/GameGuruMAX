@@ -1,4 +1,4 @@
--- Collect Object v3
+-- Collect Object v4
 -- DESCRIPTION: Will allow collection of an object. Object must be set to 'Collectable'.
 -- DESCRIPTION: [PICKUP_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -27,25 +27,26 @@ function collect_object_init(e)
 end
 
 function collect_object_main(e)
-	PlayerDist = GetPlayerDistance(e)	
-	--pinpoint select object--
-	local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-	local rayX, rayY, rayZ = 0,0,collect_object[e].pickup_range
-	local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-	rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-	selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-	if selectobj[e] ~= 0 or nil then
-		if g_Entity[e]['obj'] == selectobj[e] then
-			Text(50,50,3,"+") --highliting (with crosshair at present)
-			tEnt[e] = e
-		else
-			tEnt[e] = 0
-		end
-	end	
-	--end pinpoint select object--
-	
+	PlayerDist = GetPlayerDistance(e)
+	if PlayerDist < collect_object[e].pickup_range then
+		--pinpoint select object--
+		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
+		local rayX, rayY, rayZ = 0,0,collect_object[e].pickup_range
+		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
+		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
+		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
+		if selectobj[e] ~= 0 or nil then
+			if g_Entity[e]['obj'] == selectobj[e] then
+				Text(50,50,3,"+") --highliting (with crosshair at present)
+				tEnt[e] = e
+			else
+				tEnt[e] = 0
+			end
+		end	
+		--end pinpoint select object--
+	end
 	if PlayerDist < collect_object[e].pickup_range and tEnt[e] ~= 0 or nil and GetEntityVisibility(e) == 1 then
-		if GetEntityCollectable(tEnt[e]) == 1 then
+		if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
 			if GetEntityCollected(tEnt[e]) == 0 then
 				Prompt(collect_object[e].pickup_text)
 				if g_KeyPressE == 1 then				

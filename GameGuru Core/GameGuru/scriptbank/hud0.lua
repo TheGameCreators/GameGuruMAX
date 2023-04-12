@@ -1475,11 +1475,13 @@ function hud0.main()
 							if mapName == "winzone" then
 								local thisobjective = GetEntityObjective(ee)
 								if thisobjective == 2 then
-									scritems = scritems + 1
-									itemstodraw[scritems] = ee
-									itemstodrawscale[scritems] = 1.0
-									itemstodrawscaleoffset[scritems] = 0
-									tscaleit = 1
+									if g_UserGlobalQuestTitleActiveE > 0 and g_UserGlobalQuestTitleActiveE == ee then
+										scritems = scritems + 1
+										itemstodraw[scritems] = ee
+										itemstodrawscale[scritems] = 1.0
+										itemstodrawscaleoffset[scritems] = 0
+										tscaleit = 1
+									end
 								end
 							end
 							if tscaleit == 1 then

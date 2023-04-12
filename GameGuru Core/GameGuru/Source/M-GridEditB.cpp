@@ -19126,6 +19126,7 @@ void process_entity_library_v2(void)
 			}
 			else
 			{
+				/* removed showcase that had a folder full of duplicates! May return as a better system with no file duplication.
 				if (stricmp(cSearchAllEntities[0], "Showcase") != 0) bViewShowcase = false;
 				if (ImGui::Selectable("Showcase", &bViewShowcase, 0))
 				{
@@ -19138,6 +19139,7 @@ void process_entity_library_v2(void)
 					bUpdateSearchSorting = true;
 					bUpdateSearchScrollbar = true;
 				}
+				*/
 				if (stricmp(cSearchAllEntities[0], "Purchased") != 0) bViewPurchased = false;
 				if (ImGui::Selectable("Purchased", &bViewPurchased, 0))
 				{

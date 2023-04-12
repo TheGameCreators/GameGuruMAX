@@ -586,6 +586,8 @@ void postprocess_setscreencolor ( void )
 			bRenderTabTab = true;
 			bBlockImGuiUntilNewFrame = false;
 			bImGuiRenderWithNoCustomTextures = false;
+			extern bool bSpriteWinVisible;
+			bSpriteWinVisible = false;
 		}
 
 		ImGuiViewport* mainviewport = ImGui::GetMainViewport();

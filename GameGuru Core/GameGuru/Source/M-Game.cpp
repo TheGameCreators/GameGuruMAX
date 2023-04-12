@@ -2773,6 +2773,8 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 				bRenderTabTab = true;
 				bBlockImGuiUntilNewFrame = false;
 				bImGuiRenderWithNoCustomTextures = false;
+				extern bool bSpriteWinVisible;
+				bSpriteWinVisible = false;
 			}
 
 			ImGuiViewport* mainviewport = ImGui::GetMainViewport();

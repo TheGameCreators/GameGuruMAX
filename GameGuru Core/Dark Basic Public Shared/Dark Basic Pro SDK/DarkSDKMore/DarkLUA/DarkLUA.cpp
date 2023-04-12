@@ -2774,11 +2774,6 @@ luaMessage** ppLuaMessages = NULL;
 	 {
 		 fReturnHeight = fHitY;
 	 }
-	 else
-	 {
-		 //PE: Failed.
-		 printf("tmp");
-	 }
 	 #else
 	 fReturnHeight = GetLUATerrainHeightEx(fX, fZ);
 	 #endif

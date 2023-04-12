@@ -3603,6 +3603,7 @@ struct gametype
 	int runasmultiplayer;
 	int cancelmultiplayer;
 	cstr jumplevel_s;
+	int jumplevelresetstates;
 	int onceonlyshadow;
 	int takingsnapshotpress;
 	int activeStoryboardScreen;
@@ -3611,6 +3612,7 @@ struct gametype
 	// Constructor
 	gametype ( )
 	{
+		 jumplevelresetstates = 0;
 		 ingameHUDScreen = 13;
 		 activeStoryboardScreen = 0;
 		 takingsnapshotpress = 0;

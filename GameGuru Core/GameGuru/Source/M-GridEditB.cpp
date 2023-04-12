@@ -29554,19 +29554,6 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the collectable is a resource and can be merged with similar objects");
 			ImGui::Indent(-10);
-
-			/* done in resource behavior for more control (see quantity)
-			if ( edit_grideleprof->iscollectable == 2 )
-			{
-				// resources can start with a specific quantity built in
-				ImGui::TextCenter("Resource Quantity");
-				float fQty = edit_grideleprof->quantity;
-				if (ImGui::MaxSliderInputFloat("##CollectableResourceQty", &fQty, 0.0f, 100.0f, "Set the quantity of resources for this object when the game starts", 1.0, 100))
-				{
-					edit_grideleprof->quantity = fQty;
-				}
-			}
-			*/
 		}
 	}
 	else
@@ -38011,10 +37998,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 	constexpr int allWidgets = ALLOW_BUTTON | ALLOW_TEXT | ALLOW_IMAGE | ALLOW_RADIOTYPE | ALLOW_SLIDER | ALLOW_TICKBOX | ALLOW_VIDEO | ALLOW_PROGRESS | ALLOW_TEXTAREA;
 	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_BUTTON;
 	bool bUpdateStoryboardToV2 = false;
-	//if (Storyboard.iStoryboardVersion < 203)
-	//{
-	//	bUpdateStoryboardToV2 = true;
-	//}
 
 	//General.
 	if( strlen(Storyboard.Nodes[0].thumb) > 0 && pestrcasestr(Storyboard.Nodes[0].thumb,"loadingsplash.jpg"))
@@ -38114,10 +38097,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].screen_backdrop, ""); //No backdrop transparent.
 			Storyboard.Nodes[node].screen_backdrop_transparent = true;
 			Storyboard.Nodes[node].widgets_available = allWidgets;
-
-			//No Input
-			//strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
-			//No Output.
 
 			int button = 0;
 			strcpy(Storyboard.Nodes[node].widget_label[button], "GAME PAUSED");
@@ -38379,12 +38358,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].widget_selected_thumb[button], "editors\\templates\\buttons\\default-selected.png");
 			strcpy(Storyboard.Nodes[node].widget_name[button], "back-load-game"); //NOTE: DUP (back) - Also add "-hover.png" ...
 
-			//PE: re setup title output if we changed node.
-			//strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_title[1], " LOAD GAME -> Connect to Scene ");
-			//strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_action[1], "loadscene"); //Not defined this yet.
-			//Storyboard.Nodes[iTitleScreenNodeID].output_can_link_to_type[1] = STORYBOARD_TYPE_SCREEN;
-			//Storyboard.Nodes[iTitleScreenNodeID].output_linkto[1] = Storyboard.Nodes[node].input_id[0];
-
 			bool bAddLoadGameButton = true;
 			int iFirstFreeButton = -1;
 			for (int i = 0; i < STORYBOARD_MAXWIDGETS;i++)
@@ -38419,12 +38392,10 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_highlight_thumb[iFirstFreeButton], "editors\\templates\\buttons\\default-hover.png");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_selected_thumb[iFirstFreeButton], "editors\\templates\\buttons\\default-selected.png");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_name[iFirstFreeButton], "load-game"); //Also add "-hover.png" ...
-
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_title[iFirstFreeButton], " LOAD GAME -> Connect to Scene ");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_action[iFirstFreeButton], "loadscene"); //Not defined this yet.
 				Storyboard.Nodes[iTitleScreenNodeID].output_can_link_to_type[iFirstFreeButton] = STORYBOARD_TYPE_SCREEN;
 				Storyboard.Nodes[iTitleScreenNodeID].output_linkto[iFirstFreeButton] = Storyboard.Nodes[node].input_id[0];
-
 			}
 
 			//PE: setup output links on "game paused" screen. , they are already there so fixed output links.
@@ -38432,7 +38403,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[iGamePausedNodeID].output_action[0], "loadscene"); //Not defined this yet.
 			Storyboard.Nodes[iGamePausedNodeID].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 			Storyboard.Nodes[iGamePausedNodeID].output_linkto[0] = Storyboard.Nodes[node].input_id[0];
-
 		}
 	}
 
@@ -39263,7 +39233,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					thisNode.widget_type[j] = source.widget_type[j];
 					thisNode.widget_read_only[j] = source.widget_read_only[j];
 					thisNode.widget_layer[j] = source.widget_layer[j];
-					//thisNode.widget_output_pin[j] = source.widget_output_pin[j];
 					thisNode.widget_initial_value[j] = source.widget_initial_value[j];
 					strcpy(thisNode.widget_name[j], source.widget_name[j]);
 					Storyboard.widget_colors[node][j] = templateStoryboard.widget_colors[orgnode][j];
@@ -48136,8 +48105,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if (ImGui::StyleCollapsingHeader("Screen Media", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Indent(10);
-
-					//ImGui::TextCenter("Backdrop Image");
 
 					cstr cBackDrop = Storyboard.Nodes[nodeid].screen_backdrop;
 					if (pestrcasestr(Storyboard.Nodes[nodeid].screen_backdrop, "editors\\"))

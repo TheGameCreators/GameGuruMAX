@@ -2361,20 +2361,18 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	DoTextureListSort ( );
 
 	// if reloading standalone level, need to restore basic stats from LUA save file
-	//if ( g.iStandaloneIsReloading == 2 )
-	//{
 	// must now reload preserved state of level when enter it (g_LevelFilename)
 	if (!g_Storyboard_Starting_New_Level)
 	{
 		char pLUACustomLoadCall[256];
 		strcpy(pLUACustomLoadCall, "GameLoopLoadStats");
-		LuaSetFunction(pLUACustomLoadCall, 1, 0);
+		LuaSetFunction(pLUACustomLoadCall, 2, 0);
 		LuaPushInt(g_Storyboard_Current_Level);
-		//LuaPushString (g.projectfilename_s.Get() + strlen("mapbank\\"));
+		LuaPushInt(t.game.jumplevelresetstates);
+		t.game.jumplevelresetstates = 0;
 		LuaCall();
 	}
 	g_Storyboard_Starting_New_Level = false;
-	//}
 
 	// one final command to improve static physics performance
 	physics_finalize ( );
@@ -5659,12 +5657,13 @@ void game_main_stop ( void )
 	}
 }
 
-void game_jump_to_level_from_lua ( void )
+void game_jump_to_level_from_lua (int iResetStates)
 {
 	if (  t.game.gameisexe == 1 ) 
 	{
 		if (  t.game.gameloop == 1 && t.game.levelendingcycle  ==  0 ) 
 		{
+			t.game.jumplevelresetstates = iResetStates;
 			t.game.jumplevel_s = t.tleveltojump_s;
 			t.game.levelendingcycle = 4000;
 		}

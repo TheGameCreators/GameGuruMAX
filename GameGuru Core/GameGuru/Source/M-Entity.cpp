@@ -5691,6 +5691,7 @@ void c_entity_loadelementsdata ( void )
 				}
 				for ( int n = 1; n <= iElementsInFile; n++ )
 				{
+					bool bIncreasedListSize = false;
 					if (g_iAddEntityElementsMode == 0)
 					{
 						t.e = n;
@@ -5715,6 +5716,7 @@ void c_entity_loadelementsdata ( void )
 							{
 								g.entityelementlist++;
 								t.e = g.entityelementlist;
+								bIncreasedListSize = true;
 							}
 							else
 							{
@@ -6321,6 +6323,34 @@ void c_entity_loadelementsdata ( void )
 						continue;
 					}
 					#endif
+
+					// if added element already exists with same parent in list, we do not need to add it
+					if (g_iAddEntityElementsMode == 1 && t.entityelement[t.e].bankindex > 0 )
+					{
+						bool bElementExists = false;
+						for (int finde = 1; finde <= g.entityelementlist; finde++)
+						{
+							if (finde != t.e && t.entityelement[finde].bankindex == t.entityelement[t.e].bankindex)
+							{
+								bElementExists = true;
+								break;
+							}
+						}
+						if (bElementExists == true)
+						{
+							// we do not keep this element!
+							t.ttentid = 0;
+							t.entityelement[t.e].bankindex = 0;
+							t.entityelement[t.e].specialentityloadflag = 0;
+							// and step back so this list size does not run away from us
+							if (bIncreasedListSize == true)
+							{
+								g.entityelementlist--;
+							}
+							// go to next element in ELE sequence
+							continue;
+						}
+					}
 
 					// fill in the blanks if load older version
 					if (  t.versionnumberload<103 ) 

@@ -86,6 +86,7 @@ function health_main(e)
 			end
 			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then				
 				-- if collectable or resource
+				PromptDuration(health[e].prompt_if_collectable,1000)
 				if g_KeyPressE == 1 then
 					Hide(e)
 					CollisionOff(e)

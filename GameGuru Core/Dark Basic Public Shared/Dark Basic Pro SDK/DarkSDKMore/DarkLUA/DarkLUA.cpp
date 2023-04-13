@@ -5100,7 +5100,7 @@ int IntersectCore (lua_State* L, int iMode)
 }
 int IntersectAll ( lua_State *L )
 {
-	return IntersectCore ( L, 0 );
+	return IntersectCore ( L, 3 );
 }
 int IntersectStatic ( lua_State *L )
 {
@@ -5110,9 +5110,9 @@ int IntersectStaticPerformant (lua_State *L)
 {
 	return IntersectCore (L, 2);
 }
-int IntersectAllSkipTerrain (lua_State* L)
+int IntersectAllIncludeTerrain (lua_State* L)
 {
-	return IntersectCore (L, 3);
+	return IntersectCore (L, 0);
 }
 int GetIntersectCollisionX ( lua_State *L )
 {
@@ -9862,7 +9862,7 @@ void addFunctions()
 	lua_register(lua, "IntersectAll" , IntersectAll );
 	lua_register(lua, "IntersectStatic", IntersectStatic);
 	lua_register(lua, "IntersectStaticPerformant", IntersectStaticPerformant);
-	lua_register(lua, "IntersectAllSkipTerrain", IntersectAllSkipTerrain);
+	lua_register(lua, "IntersectAllIncludeTerrain", IntersectAllIncludeTerrain);
 	lua_register(lua, "GetIntersectCollisionX" , GetIntersectCollisionX );
 	lua_register(lua, "GetIntersectCollisionY" , GetIntersectCollisionY );
 	lua_register(lua, "GetIntersectCollisionZ" , GetIntersectCollisionZ );

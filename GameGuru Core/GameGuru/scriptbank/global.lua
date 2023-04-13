@@ -2521,6 +2521,8 @@ GetTerrainCollisionDetails( objectId, num )
 -- GetInventoryQuantity : GetInventoryQuantity
 -- GetInventoryItem : GetInventoryItem
 -- GetInventoryItemID : GetInventoryItemID
+-- GetInventoryItemSlot : GetInventoryItemSlot
+-- SetInventoryItemSlot : SetInventoryItemSlot
 -- MoveInventoryItem : MoveInventoryItem ( from, to, collectionID, slot ) 
 -- DeleteAllInventoryContainers : DeleteAllInventoryContainers()
 -- AddInventoryItem : AddInventoryItem ( to, collectionID, newe, slot )

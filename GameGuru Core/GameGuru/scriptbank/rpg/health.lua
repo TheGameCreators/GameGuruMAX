@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource.
--- Health v10
+-- Health v12
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -61,6 +61,7 @@ function health_main(e)
 	end
 	
 	if health[e].pickup_style == 2 then
+	
 		--pinpoint select object--
 		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
 		local rayX, rayY, rayZ = 0,0,health[e].pickup_range
@@ -91,7 +92,7 @@ function health_main(e)
 					Hide(e)
 					CollisionOff(e)
 					SetEntityCollected(tEnt[e],1)
-					PlaySound(e,1)
+					PlayNon3DSound(e,1)
 				end
 			end
 		end
@@ -107,7 +108,8 @@ function health_main(e)
 	
 	local addquantity = 0
 	if use_item_now == 1 then
-		PlaySound(e,0)
+		use_item_now = 0
+		PlayNon3DSound(e,0)
 		PerformLogicConnections(e)
 		if health[e].effect == 1 then addquantity = 1 end
 		if health[e].effect == 2 then addquantity = 2 end
@@ -116,12 +118,7 @@ function health_main(e)
 	
 	local currentvalue = 0
 	if addquantity == 1 then
-		if g_PlayerHealth + health[e].quantity > g_PlayerStartStrength then
-			SetPlayerHealth(g_PlayerStartStrength)
-		else
-			SetPlayerHealth(g_PlayerHealth + health[e].quantity)
-		end		
-		if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+		gameplayerhealth.add(health[e].quantity)
 	end
 	if addquantity == 2 then
 		SetPlayerHealth(g_PlayerHealth - health[e].quantity)

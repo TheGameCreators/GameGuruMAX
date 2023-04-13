@@ -179,11 +179,9 @@ function hud0.refreshHUD()
 						local titemimg = GetCollectionItemAttribute(tcollectionindex,"image")
 						if string.len(titemimg) > 0 then
 							for findifexist = 0, itemcount, 1 do
-								if findifexist == tslotindex and hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][findifexist] == tcollectionindex then
-									-- already know about this one, and in right slot
+								if findifexist == tslotindex and hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][findifexist] == tcollectionindex and hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][findifexist] == tcollectione then
+									-- already know about this one, and in right slot, and correct E
 									itemindex = findifexist
-									-- however resources can switch places so update the E just in case
-									hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tcollectione
 									break
 								end
 							end
@@ -202,6 +200,7 @@ function hud0.refreshHUD()
 					-- remove any items if no longer in inventory
 					for itemindex = 0, itemcount, 1 do
 						local thiscontainercollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex]
+						local thiscontainercollectione = hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex]
 						if thiscontainercollectionindex ~= nil then
 							local foundininventoryandrightslot = 0
 							for tinventoryindex = 1, tinventoryqty, 1 do
@@ -209,7 +208,11 @@ function hud0.refreshHUD()
 								if tcollectionindex == thiscontainercollectionindex then
 									local tslotindex = GetInventoryItemSlot(inventorycontainer,tinventoryindex)
 									if tslotindex == itemindex then
-										foundininventoryandrightslot = 1
+										local tcollectione = GetInventoryItemID(inventorycontainer,tinventoryindex)
+										if tcollectione == thiscontainercollectione then
+											foundininventoryandrightslot = 1
+											break
+										end
 									end
 								end
 							end
@@ -423,9 +426,13 @@ function hud0.main()
 				hud0_scrollpanel_mainrow = totalinrow
 				hud0_scrollpanel_maincolumn = totalincolumn
 				thisitemindexoffset = hud0_itemindexscrolloffset
-				local maininvqty = GetInventoryQuantity("inventory:player")
-				if maininvqty > hud0_itemindexmaxslotused then
-					hud0_itemindexmaxslotused = maininvqty
+				hud0_itemindexmaxslotused = 0
+				local tinventoryqty = GetInventoryQuantity("inventory:player")
+				for tinventoryindex = 1, tinventoryqty, 1 do
+					local tcollectionslot = GetInventoryItemSlot("inventory:player",tinventoryindex)
+					if tcollectionslot > hud0_itemindexmaxslotused then
+						hud0_itemindexmaxslotused = tcollectionslot
+					end
 				end
 			end
 		
@@ -527,7 +534,6 @@ function hud0.main()
 										-- shuffled inside hotkey, handle weapons
 										if cancelmove == 0 and (panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys") then
 											local panelname = panelnameFrom
-											--local findcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											local finditeme = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
 											if finditeme ~= -1 then
 												local tinventoryqty = GetInventoryQuantity(panelname)
@@ -948,6 +954,7 @@ function hud0.main()
 													SetEntityCollected(newe,1,0)
 													tdropresourcespawn = 1
 													g_UserGlobalContainerRefresh = 1
+													PromptDuration("g_UserGlobalContainerRefresh",5000)
 												end
 											end
 											if tdropresourcespawn == 0 then

@@ -6797,6 +6797,9 @@ void entity_loadelementsdata(void)
 					}
 				}
 			}
+
+			// and a full pass to convert any parent objects into collectables if the collection list has them
+			refresh_rpg_parents_of_items();
 		}
 	}
 }

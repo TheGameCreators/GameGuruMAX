@@ -698,12 +698,34 @@ bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName)
 	return true;
 }
 
+void refresh_rpg_parents_of_items(void)
+{
+	for (int n = 0; n < g_collectionList.size(); n++)
+	{
+		if (g_collectionList[n].collectionFields.size() > 1)
+		{
+			// also, ensure the parent now in the library shares some attributes in case want to add new collectable items newly to a level
+			int entid = g_collectionList[n].iEntityID;
+			if (entid > 0 && entid < t.entityprofile.size())
+			{
+				// all collectables in list are collectables, and resources are always favoured if flagged
+				int e = g_collectionList[n].iEntityElementE;
+				int iCollectableValue = 0;
+				if (e > 0 && e < t.entityelement.size()) iCollectableValue = t.entityelement[e].eleprof.iscollectable;
+				if (iCollectableValue < 1) iCollectableValue = 1;
+				if (iCollectableValue > t.entityprofile[entid].iscollectable) t.entityprofile[entid].iscollectable = iCollectableValue;
+			}
+		}
+	}
+}
+
 bool refresh_collection_from_entities(void)
 {
 	// start with game project master list
 	// g_collectionList = g_collectionMasterList; now only used on first RPG init, the list contains more now since that init!
 	// as we call this when a new entity is loaded (could be a weapon that needs to be instantly added to collection list)
 
+	/* not going to assume this - leave it to CREATE COLLECTION ITEM button and auto weapon additions done elsewhere
 	// go through all entities and add per-level items to collection (weapons, objects marked as collectable but not in master list)
 	for ( int e = 1; e <= g.entityelementlist; e++)
 	{
@@ -737,6 +759,7 @@ bool refresh_collection_from_entities(void)
 			}
 		}
 	}
+	*/
 
 	// replace any default images with correct paths
 	for (int n = 0; n < g_collectionList.size(); n++)

@@ -36,5 +36,6 @@ cstr get_rpg_imagefinalfile(cstr entityfile);
 bool fill_rpg_item_defaults_passedin(collectionItemType* item, int entid, int e, LPSTR pTitle, LPSTR pImageFile);
 bool fill_rpg_item_defaults(collectionItemType* item, int entid, int e);
 bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName);
+void refresh_rpg_parents_of_items(void);
 bool refresh_collection_from_entities(void);
 int find_rpg_collectionindex (char* pName);

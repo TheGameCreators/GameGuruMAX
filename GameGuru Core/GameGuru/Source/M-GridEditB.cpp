@@ -529,6 +529,8 @@ extern int g_iAbortedAsEntityIsGroupCreate;
 
 bool bDigAHoleToHWND = false;
 
+bool g_bSelectedMapImageTypeSpecialHelp = false;
+
 #ifdef WICKEDENGINE
 bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
@@ -48664,15 +48666,18 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					char name[MAX_PATH];
 					strcpy (name, Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget]);
-					cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
-					if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get())!=NULL)
+					if (g_bSelectedMapImageTypeSpecialHelp == false)
 					{
-						// Delete old image and trigger reload of the newly chosen one
-						DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
-						strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
-						iUpdateWidgetThumbNode = iCurrentSelectedWidget;
-						iUpdateWidgetThumbButton = iCurrentSelectedWidget;
-					}	
+						cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
+						if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get()) != NULL)
+						{
+							// Delete old image and trigger reload of the newly chosen one
+							DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
+							strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
+							iUpdateWidgetThumbNode = iCurrentSelectedWidget;
+							iUpdateWidgetThumbButton = iCurrentSelectedWidget;
+						}
+					}
 					bool bHidingImageInGame = false;
 					if (Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] == 1 ) bHidingImageInGame = true;
 					if (ImGui::Checkbox("Hide Image In Game", &bHidingImageInGame))
@@ -48740,9 +48745,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						{
 							// label
 							if( iUserDefinedGlobal==2 )
-								ImGui::TextCenter("User Defined Global Values");
+								ImGui::TextCenter("User Defined Global Names");
 							else
-								ImGui::TextCenter("User Defined Global Value");
+								ImGui::TextCenter("User Defined Global Name");
 
 							// one or two (single or pair handling)
 							char storeFirstEntry[MAX_PATH];
@@ -48898,6 +48903,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									bShowCustomValueBox = true;
 								}
 								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value used by this image");
+
+								// Extra help in screen editor
+								g_bSelectedMapImageTypeSpecialHelp = false;
+								if ( stricmp(storeFirstEntry,"map:image")==NULL )
+								{
+									ImGui::TextWrapped("NOTE: Map Image will be replaced with the Map Snaphot associated with each level of your game project");
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("You can generate a map snapshot by using the dropdown menu for the level in the Storyboard Editor");
+									g_bSelectedMapImageTypeSpecialHelp = true;
+								}
 							}
 							if (strcmp(readout.c_str(), "User Defined Global Panel") == NULL)
 							{
@@ -49092,6 +49106,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 				}
 				g_bRefreshGlobalList = false;
+				if (bChangedAGameGlobal == true)
+				{
+					// if modify a global, allow another refresh to place in initial_value
+					g_bRefreshGlobalList = true;
+				}
 				ImGui::Indent(-10);
 			}
 

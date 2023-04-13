@@ -7161,6 +7161,22 @@ int GetInventoryItemSlot(lua_State* L)
 	lua_pushnumber(L, iItemSlot);
 	return 1;
 }
+int SetInventoryItemSlot(lua_State* L)
+{
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
+	{
+		int iInventoryIndex = lua_tonumber(L, 2);
+		if (iInventoryIndex > 0 && iInventoryIndex <= t.inventoryContainer[bothplayercontainers].size())
+		{
+			int iNewSlotIndex = lua_tonumber(L, 3);
+			t.inventoryContainer[bothplayercontainers][iInventoryIndex - 1].slot = iNewSlotIndex;
+		}
+	}
+	return 0;
+}
 int MoveInventoryItem (lua_State* L)
 {
 	lua = L;
@@ -10534,6 +10550,7 @@ void addFunctions()
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
 	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
 	lua_register(lua, "GetInventoryItemSlot", GetInventoryItemSlot);
+	lua_register(lua, "SetInventoryItemSlot", SetInventoryItemSlot);
 	lua_register(lua, "MoveInventoryItem", MoveInventoryItem);
 	lua_register(lua, "DeleteAllInventoryContainers", DeleteAllInventoryContainers);
 	lua_register(lua, "AddInventoryItem", AddInventoryItem);

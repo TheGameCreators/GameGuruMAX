@@ -2586,6 +2586,8 @@ void physics_player_init ( void )
 			if (bNewItemIsUnqiue == true)
 			{
 				g_collectionList.push_back(collectionitem);
+				extern bool g_bChangedGameCollectionList;
+				g_bChangedGameCollectionList = true;
 			}
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it

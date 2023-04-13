@@ -4982,6 +4982,10 @@ void mapeditorexecutable_loop(void)
 					ExecuteFile (pPDFPath.Get(), "", "", 0);
 					#endif
 				}
+				if (ImGui::MenuItem("Guides Folder"))
+				{
+					ExecuteFile("..\\Guides\\", "", "", 0);
+				}
 				if (g_bParticleEditorPresent == true)
 				{
 					if (ImGui::MenuItem("Particle Editor User Guide"))
@@ -31570,14 +31574,26 @@ void gridedit_deleteentityfrommap ( void )
 		}
 	}
 
-	// if entity is a light, remove its probe
 	#ifdef WICKEDENGINE
+	// if entity is a light, remove its probe
+	//int entid = t.entityelement[t.tentitytoselect].bankindex;
+	//if (entid > 0)
+	//{
+	//	if (t.entityprofile[entid].ismarker == 2)
+	//	{
+	//		entity_deleteprobe(t.entityelement[t.tentitytoselect].obj);
+	//	}
+	//}
+	// if entity is a light, has a probe
 	int entid = t.entityelement[t.tentitytoselect].bankindex;
 	if (entid > 0)
 	{
 		if (t.entityprofile[entid].ismarker == 2)
 		{
-			entity_deleteprobe(t.entityelement[t.tentitytoselect].obj);
+			if (t.entityelement[t.tentitytoselect].eleprof.light.fLightHasProbe >= 50.0f)
+			{
+				g_bLightProbeScaleChanged = true;
+			}
 		}
 	}
 

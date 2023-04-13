@@ -44805,31 +44805,15 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 
 			if (ImGui::MenuItem("Read User Manual"))
 			{
-				/*ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);*/
-				// User guide has been moved to offline only
 				ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
-			/* ZJ: Moved to the hub.
-			if (ImGui::MenuItem("GameGuru MAX YouTube Channel"))
+			if (ImGui::MenuItem("Guides Folder"))
 			{
-				ExecuteFile("https://www.youtube.com/channel/UC1q1e3Q9IKMk4nDlAGb_5Jg", "", "", 0);
+				ExecuteFile("..\\Guides\\", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("GameGuru MAX Forum"))
-			{
-				ExecuteFile("https://forum.game-guru.com/", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("GameGuru MAX Discord"))
-			{
-				ExecuteFile("https://discord.gg/xnTAbBR", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			*/
 
 			if (g_bUpdateAppAvailable == true)
 			{

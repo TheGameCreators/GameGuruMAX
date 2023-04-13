@@ -238,10 +238,18 @@ void lighting_loop(void)
 		*/
 	}
 	extern bool bImGuiInTestGame;
-	if(t.widget.pickedEntityIndex>0 && t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].ismarker == 2 && bImGuiInTestGame==false)
-		wiRenderer::SetToDrawDebugEnvProbes(true);
+	if (t.widget.pickedEntityIndex > 0 && t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].ismarker == 2 && bImGuiInTestGame == false)
+	{
+		// and only if the light object is a probe
+		if (t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].light.fLightHasProbe >= 50)
+		{
+			wiRenderer::SetToDrawDebugEnvProbes(true);
+		}
+	}
 	else
+	{
 		wiRenderer::SetToDrawDebugEnvProbes(false);
+	}
 }
 
 void lighting_weaponFlash_loop(void)

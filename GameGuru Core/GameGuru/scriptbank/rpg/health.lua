@@ -67,7 +67,7 @@ function health_main(e)
 		local rayX, rayY, rayZ = 0,0,health[e].pickup_range
 		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
 		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAllSkipTerrain(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
+		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
 		if selectobj[e] ~= 0 or nil then
 			if g_Entity[e]['obj'] == selectobj[e] then
 				Text(50,50,3,"+") --highliting (with crosshair at present)

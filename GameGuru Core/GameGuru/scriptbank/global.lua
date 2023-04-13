@@ -823,7 +823,7 @@ function SetPosition(e,x,y,z)
  end
 end
 function ResetPosition(e,x,y,z)
- g_EntityExtra[e]['beingreset'] = 2
+ if g_EntityExtra[e] ~= nil then g_EntityExtra[e]['beingreset'] = 2 end
  SendMessageF("resetpositionx",e,x);
  SendMessageF("resetpositiony",e,y);
  SendMessageF("resetpositionz",e,z);
@@ -1605,8 +1605,8 @@ RayTerrain: r=RayTerrain(x,y,z,x2,y2,z2) -- returns 1 if the ray cast hits the t
 GetRayCollisionX: x=GetRayCollisionX() -- returns the X position of the terrain hit position
 GetRayCollisionY: y=GetRayCollisionY() -- returns the Y position of the terrain hit position
 GetRayCollisionZ: z=GetRayCollisionZ() -- returns the Z position of the terrain hit position
-IntersectAll: x=IntersectAll(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits ANY entity or lightmapped geometry
-IntersectAllSkipTerrain: x=IntersectAllSkipTerrain(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits ANY entity or lightmapped geometry, and adjusts ray to account for terrain and does not report a terrain hit
+IntersectAll: x=IntersectAll(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits ANY entity or lightmapped geometry, and adjusts ray to account for terrain and does not report a terrain hit
+IntersectAllIncludeTerrain: x=IntersectAllIncludeTerrain(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits ANY entity or lightmapped geometry
 IntersectStatic: x=IntersectStatic(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits non-animating entity or lightmapped geometry
 IntersectStaticPerformant: x=IntersectStaticPerformant(x1,y1,z1,x2,y2,z2,IgnoreObj,index,life) -- as above but maintains internal database for faster results, index to identify and life is milliseconds to hold on database
 IntersectAll: x=IntersectAll(x1,y1,z1,x2,y2,z2,IgnoreObj) -- returns 1 if the ray cast hits ANY entity or lightmapped geometry

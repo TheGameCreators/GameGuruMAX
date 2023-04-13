@@ -77,9 +77,10 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle, int partId,
 		// better solution is update Bullet to 3 and replace trimesh raycast with something nicer to 
 		// follow. The proj_length and distance calcs from tri normal size is either smart or mumbo
 		// but the raycast into submitted triangles facing forward and up are missing quite a bit!
-		//edge_tolerance *= btScalar(-0.0001);
-		//edge_tolerance *= btScalar(-0.1);
-		edge_tolerance = -0.005;
+		float fFinalEdgeTolerance = btScalar(-0.0001);
+		if (m_fEdgeTolerance > 0.0f) fFinalEdgeTolerance = -m_fEdgeTolerance;
+		edge_tolerance *= fFinalEdgeTolerance;
+		//edge_tolerance = -0.005; for terrain physics raycast
 		btVector3 point;
 		point.setInterpolate3(m_from, m_to, distance);
 		{

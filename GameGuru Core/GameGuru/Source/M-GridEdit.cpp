@@ -10191,6 +10191,7 @@ void mapeditorexecutable_loop(void)
 								else
 								{
 									// show collectable details
+									bool bQuestTypeIsCollect = false;
 									ImGui::Indent(10);
 									int iCount = g_collectionLabels.size();
 									if (iCollectableSettingsMode == 2) iCount = g_collectionQuestLabels.size();
@@ -10433,12 +10434,20 @@ void mapeditorexecutable_loop(void)
 														if (item_current == 2) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "deliver";
 													}
 													ImGui::PopItemWidth();
+
+													// optional quantity property only applicable to some quest types
+													if (item_current == 0)
+													{
+														// later in loop we use this flag to allow quantity to show
+														bQuestTypeIsCollect = true;
+													}
 												}
 												else
 												{
 													// good old typing out your entry
 													bool bAllowEditing = true;
 													if (iKnownLabel == 0 || iKnownLabel == 1) bAllowEditing = false;
+													if (iCollectableSettingsMode == 2 && iKnownLabel == 62 && bQuestTypeIsCollect == false) bAllowEditing = false;
 													if (bAllowEditing == true)
 													{
 														char pNameOfAttrib[MAX_PATH];

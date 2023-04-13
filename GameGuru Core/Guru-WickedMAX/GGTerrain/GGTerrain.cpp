@@ -1974,7 +1974,7 @@ public:
 	}
 
 	// check the two triangles in this segment against the ray
-	int PhysicsRayCastSegment( void* callback, float worldToPhysScale, int x0, int z0, float startHeight, float endHeight )
+	int PhysicsRayCastSegment( void* callback, float worldToPhysScale, int x0, int z0, float startHeight, float endHeight, float fEdgeThreshold)
 	{
 		btTriangleRaycastCallback* rayCastCallback = (btTriangleRaycastCallback*) callback;
 
@@ -2032,6 +2032,9 @@ public:
 		float fX1 = fX0 + physSegmentSize;
 		float fZ1 = fZ0 + physSegmentSize;
 
+		// special edge tolerance to handle very glancing rays against the terrain (not ideal!)
+		rayCastCallback->m_fEdgeTolerance = fEdgeThreshold;
+
 		vertices[ 0 ].setValue( fX0, height00, fZ0 );
 		vertices[ 1 ].setValue( fX0, height01, fZ1 );
 		vertices[ 2 ].setValue( fX1, height10, fZ0 );
@@ -2043,8 +2046,14 @@ public:
 
 		rayCastCallback->processTriangle( vertices, 2*x0 + 1, z0 );
 
-		if ( rayCastCallback->m_hitFraction < oldDist ) return 1;
-		else return 0;
+		// and restore just in case it messes future raycasts
+		rayCastCallback->m_fEdgeTolerance = 0;
+
+		// return result
+		if ( rayCastCallback->m_hitFraction < oldDist ) 
+			return 1;
+		else 
+			return 0;
 	}
 
 	int PhysicsRayCast( void* callback, float worldToPhysScale, RAY& ray, float startDist, float endDist )
@@ -2075,10 +2084,14 @@ public:
 		float absDirY = abs(ray.direction.y);
 		float absDirZ = abs(ray.direction.z);
 
+		// edge detect threshold - expand edge detect when ray glancing across face of terrain polygons (not ideal, some issue somewhere!)
+		float fEdgeThreshold = 0.0f;
+		if (absDirY < 0.2f) fEdgeThreshold = 0.05f;
+
 		if ( absDirX < 0.001f && absDirZ < 0.001f )
 		{
 			// single segment check
-			return PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ, beginY, endY );
+			return PhysicsRayCastSegment( callback, worldToPhysScale, iBeginX, iBeginZ, beginY, endY, fEdgeThreshold);
 		}
 
 		if ( absDirZ > absDirX )
@@ -2115,15 +2128,15 @@ public:
 
 			while ((iStepZ == 1 && beginZ < endZ) || (iStepZ == -1 && beginZ > endZ))
 			{
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
 
 				limitX += stepX;
 				if ( limitX >= segSize)
@@ -2171,15 +2184,15 @@ public:
 
 			while( (iStepX == 1 && beginX < endX) || (iStepX == -1 && beginX > endX) )
 			{
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY)) return 1;
-				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ - 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX - 1, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
+				if (PhysicsRayCastSegment(callback, worldToPhysScale, iBeginX + 1, iBeginZ + 1, currY, prevY, fEdgeThreshold)) return 1;
 
 				limitZ += stepZ;
 				if ( limitZ >= segSize)

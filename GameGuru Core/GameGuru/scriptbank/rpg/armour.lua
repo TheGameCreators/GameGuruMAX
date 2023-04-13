@@ -90,7 +90,7 @@ function armour_main(e)
 					Hide(e)
 					CollisionOff(e)
 					SetEntityCollected(tEnt[e],1)
-					PlaySound(e,1)
+					PlayNon3DSound(e,1)
 				end
 			end
 		end
@@ -104,7 +104,7 @@ function armour_main(e)
 	end
 	local addquantity = 0
 	if use_item_now[e] == 1 then
-		PlaySound(e,0)
+		PlayNon3DSound(e,0)
 		PerformLogicConnections(e)
 		if armour[e].effect == 1 then addquantity = 1 end
 		if armour[e].effect == 2 then addquantity = 2 end

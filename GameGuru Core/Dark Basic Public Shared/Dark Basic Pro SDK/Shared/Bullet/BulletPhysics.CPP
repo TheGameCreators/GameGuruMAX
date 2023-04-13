@@ -115,8 +115,8 @@ bool physics_playground = false;
 
 // Globals
 extern GlobStruct* g_pGlob;
-char BULLETerrStr [ 256 ];
-int g_debugraycastvisual = 0;
+char BULLETerrStr[256];
+//int g_debugraycastvisual = 0;
 
 void HandleError( char* szMessage )
 {
@@ -4165,6 +4165,7 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 	int iResult = 0;
 	if (g_dynamicsWorld)
 	{
+		/*
 		// show debug if active
 		if (g_debugraycastvisual > 0 && bUpdateDebugObj == true)
 		{
@@ -4184,6 +4185,7 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 				ScaleObject (g_debugraycastvisual, 10, 10, fDistance);
 			}
 		}
+		*/
 
 		// do the cast
 		btVector3 Start, End, Normal;
@@ -4192,6 +4194,7 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 		btCollisionWorld::ClosestRayResultCallback RayCallback(Start, End);
 		RayCallback.m_collisionFilterGroup = 1 << 2;
 		RayCallback.m_collisionFilterMask = iCollisionType;
+		RayCallback.m_fEdgeDetectThreshold = 0; // normal
 		g_dynamicsWorld->rayTest(Start, End, RayCallback);
 		if (RayCallback.hasHit())
 		{
@@ -4213,6 +4216,7 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 	// show debug if active
 	#ifdef PRODUCTCONVERTER
 	#else
+	/*
 	if (g_debugraycastvisual > 0 && bUpdateDebugObj == true)
 	{
 		if (ObjectExist(g_debugraycastvisual) == 1)
@@ -4224,6 +4228,7 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 				WickedCall_SetObjectEmissiveStrength(pObject, 1);
 		}
 	}
+	*/
 	#endif
 
 	// return result

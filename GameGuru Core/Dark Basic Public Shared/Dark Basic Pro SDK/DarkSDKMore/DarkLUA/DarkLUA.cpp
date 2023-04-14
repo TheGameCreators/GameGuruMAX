@@ -5069,6 +5069,12 @@ int IntersectCore ( lua_State *L, int iMode )
 	int iLifeInMilliseconds = 0;
 	int iIgnorePlayerCapsule = 0;
 	int iIgnoreTerrain = 0;
+	if (iMode == 0 && n == 7)
+	{
+		//PE: Now that terrain ray is working all scripts that use IntersectAll now hits terrain. Ignore terrain so it works like before.
+		//PE: IntersectAll can now be set to include terrain parameter 11 , for new scripts.
+		iIgnoreTerrain = 1;
+	}
 	if (iMode == 2)
 	{
 		iIndexInIntersectDatabase = lua_tonumber(L, 8);

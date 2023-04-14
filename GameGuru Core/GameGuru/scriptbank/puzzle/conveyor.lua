@@ -46,7 +46,7 @@ function conveyor_main(e)
 	end
 	
 	-- Conveyor Belt Start	
-	onconveyor[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_Entity[e]['x'],-1,g_Entity[e]['z'],0)
+	onconveyor[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_PlayerPosX,-1,g_PlayerPosZ,0)
 	-- Active conveyor
  	if onconveyor[e] ~= g_Entity[e]['obj'] then onconveyor[e] = 0 end
 	if g_Entity[e]['obj'] == onconveyor[e] then		

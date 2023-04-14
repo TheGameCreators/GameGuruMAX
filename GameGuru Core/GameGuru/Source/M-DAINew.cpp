@@ -261,8 +261,11 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 		else
 			HideObject(g.debugraycastvisual);
 	}
+
+	/*
 	extern int g_debugraycastvisual;
 	g_debugraycastvisual = g.debugraycastvisual;
+	*/
 
 	// Control cone of sight object
 	#ifdef NEWMAXAISYSTEM
@@ -338,38 +341,10 @@ void darkai_calcplrvisible (void)
 				// assume visible unless blocked (below)
 				t.ttokay = 1;
 
-				/* if gun obstructed, or lowered, can register as character not seeing player
-				// player can be seen within inner arc
-				t.tthavegunobject = 0;
-				t.tgunobj = t.entityelement[t.charanimstate.e].attachmentobj;
-				if (t.tgunobj > 0)
-				{
-					if (ObjectExist(t.tgunobj) == 1)
-					{
-						if (GetVisible(t.tgunobj) == 1)
-						{
-							t.brayx1_f = ObjectPositionX(t.tgunobj);
-							t.brayy1_f = ObjectPositionY(t.tgunobj);
-							t.brayz1_f = ObjectPositionZ(t.tgunobj);
-							t.tthavegunobject = 1;
-						}
-					}
-				}
-				if (t.tthavegunobject == 0)
-				{
-					t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
-					t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 20;
-					t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
-					t.tsrcobj = g.entitybankoffset + t.entityelement[t.charanimstate.e].bankindex;
-					if (ObjectExist(t.tsrcobj) == 1) t.brayy1_f = t.brayy1_f + (ObjectSizeY(t.tsrcobj, 1)*0.5f);
-				}
-				*/
 				// match ray cast with masterinterpreter raycasting (baseY+65)
 				t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
-				t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 65;
+				t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 35;// 65 - this fixes characters shooting from the eyeballs!
 				t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
-				//t.tsrcobj = g.entitybankoffset + t.entityelement[t.charanimstate.e].bankindex;
-				//if (ObjectExist(t.tsrcobj) == 1) t.brayy1_f = t.brayy1_f + (ObjectSizeY(t.tsrcobj, 1)*0.5f);
 
 				// location of player (if player camera can see enemy, vice versa)
 				t.tcamerapositionx_f = CameraPositionX(t.terrain.gameplaycamera);
@@ -402,12 +377,6 @@ void darkai_calcplrvisible (void)
 					sObject* pIgnoreVWEAPObject = NULL;
 					if (t.tgunobj > 0) pIgnoreVWEAPObject = GetObjectData(t.tgunobj);
 					if (pIgnoreVWEAPObject) WickedCall_SetObjectRenderLayer(pIgnoreVWEAPObject, GGRENDERLAYERS_CURSOROBJECT);
-					#ifndef WICKEDENGINE
-					if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-						t.ttt = IntersectAll(87000, 87000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-					else
-						t.ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123);
-					#endif
 					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1);
 					if (t.tintersectvalue != 0)
 					{

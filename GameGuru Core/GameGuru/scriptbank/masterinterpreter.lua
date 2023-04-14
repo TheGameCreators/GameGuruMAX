@@ -415,16 +415,14 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
    if output_e['target'] == "flag" or output_e['target'] == "start" then
     usetargetXYZ = 1
    else
-    --if GetEntityAllegiance(e) ~= 2 then
-     if output_e['target'] == "player" then
-      TargetDistance = GetPlayerDistance(e)
-      GetEntityPlayerVisibility(e)
-      TargetVisible = g_Entity[e]['plrvisible']
-     end
-     if output_e['target'] == "hostile" then 
- 	  usetargetXYZ = 1
-     end
-	--end
+    if output_e['target'] == "player" then
+     TargetDistance = GetPlayerDistance(e)
+     GetEntityPlayerVisibility(e)
+     TargetVisible = g_Entity[e]['plrvisible']
+    end
+    if output_e['target'] == "hostile" then 
+ 	 usetargetXYZ = 1
+    end
    end
   end
   if usestarget == 2 then 
@@ -455,9 +453,10 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
     else
      TargetDistance = GetDistanceTo(e,TargetX, TargetY, TargetZ)
      local fromx = g_Entity[ e ]['x']
-     local fromy = g_Entity[ e ]['y']+65
+     local fromy = g_Entity[ e ]['y']+60
      local fromz = g_Entity[ e ]['z']
- 	 if masterinterpreter_rayscan(e, output_e, fromx, fromy, fromz, TargetX, TargetY+65, TargetZ, g_Entity[e]['obj'], 1 ) == 0 then
+	 local distancetoputplayerposbackwherecameraisY = TargetY + 35
+ 	 if masterinterpreter_rayscan(e, output_e, fromx, fromy, fromz, TargetX, distancetoputplayerposbackwherecameraisY, TargetZ, g_Entity[e]['obj'], 1 ) == 0 then
       TargetVisible = 1
 	 end
     end

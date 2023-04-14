@@ -43,6 +43,7 @@ public:
 	unsigned int m_flags;
 
 	btScalar m_hitFraction;
+	float m_fEdgeTolerance;
 
 	btTriangleRaycastCallback(const btVector3& from, const btVector3& to, unsigned int flags = 0);
 

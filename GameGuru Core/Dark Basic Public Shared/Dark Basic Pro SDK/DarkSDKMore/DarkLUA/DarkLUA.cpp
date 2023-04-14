@@ -5044,9 +5044,9 @@ int GetRayCollisionZ ( lua_State *L )
 	return 1;
 }
 
-int IntersectCore ( lua_State *L, int iMode )
+int IntersectCore (lua_State* L, int iMode)
 {
-	// iMode : 0=dynamic, 1=staticonly, 2-performant
+	// iMode : 0=dynamic, 1=staticonly, 2-performant, 3-dynamic and use terrain hit to adjust ray to detect objects only
 	int n = lua_gettop(L);
 	if (iMode == 2)
 	{
@@ -5079,7 +5079,7 @@ int IntersectCore ( lua_State *L, int iMode )
 	{
 		iIndexInIntersectDatabase = lua_tonumber(L, 8);
 		iLifeInMilliseconds = lua_tonumber(L, 9);
-		if(n < 10)
+		if (n < 10)
 			iIgnorePlayerCapsule = 1;
 		else
 			iIgnorePlayerCapsule = lua_tonumber(L, 10);
@@ -5092,20 +5092,27 @@ int IntersectCore ( lua_State *L, int iMode )
 
 	// do the expensive ray cast
 	int tthitvalue = 0;
-	#ifndef WICKEDENGINE
-	if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-		int ttt = IntersectAll(87000, 87000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-	else
-		int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
-	#endif
-	if ( iIgnoreTerrain == 0  && iLifeInMilliseconds != -1  && ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1) tthitvalue = -1;
+	if ( iIgnoreTerrain == 0 && iLifeInMilliseconds != -1 && ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1)
+	{
+		// dynamic and use terrain hit to adjust ray to detect objects only
+		if (iMode == 3)
+		{
+			fNewX = ODEGetRayCollisionX();
+			fNewY = ODEGetRayCollisionY();
+			fNewZ = ODEGetRayCollisionZ();
+		}
+		else
+		{
+			tthitvalue = -1;
+		}
+	}
 	if (tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iMode, iIndexInIntersectDatabase, iLifeInMilliseconds, iIgnorePlayerCapsule);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;
 }
 int IntersectAll ( lua_State *L )
 {
-	return IntersectCore ( L, 0 );
+	return IntersectCore ( L, 3 );
 }
 int IntersectStatic ( lua_State *L )
 {
@@ -5114,6 +5121,10 @@ int IntersectStatic ( lua_State *L )
 int IntersectStaticPerformant (lua_State *L)
 {
 	return IntersectCore (L, 2);
+}
+int IntersectAllIncludeTerrain (lua_State* L)
+{
+	return IntersectCore (L, 0);
 }
 int GetIntersectCollisionX ( lua_State *L )
 {
@@ -9863,6 +9874,7 @@ void addFunctions()
 	lua_register(lua, "IntersectAll" , IntersectAll );
 	lua_register(lua, "IntersectStatic", IntersectStatic);
 	lua_register(lua, "IntersectStaticPerformant", IntersectStaticPerformant);
+	lua_register(lua, "IntersectAllIncludeTerrain", IntersectAllIncludeTerrain);
 	lua_register(lua, "GetIntersectCollisionX" , GetIntersectCollisionX );
 	lua_register(lua, "GetIntersectCollisionY" , GetIntersectCollisionY );
 	lua_register(lua, "GetIntersectCollisionZ" , GetIntersectCollisionZ );

@@ -20,7 +20,6 @@ local wait			= {}
 local waittime 		= {}
 
 function plrinzone_properties(e, zoneheight, multi_trigger, delay, spawnatstart)
-	plrinzone[e] = g_Entity[e]
 	plrinzone[e].zoneheight = zoneheight
 	plrinzone[e].multi_trigger = multi_trigger
 	plrinzone[e].delay = delay
@@ -28,12 +27,11 @@ function plrinzone_properties(e, zoneheight, multi_trigger, delay, spawnatstart)
 end
 
 function plrinzone_init(e)
-	plrinzone[e] = g_Entity[e]
+	plrinzone[e] = {}
 	plrinzone[e].zoneheight = 100
 	plrinzone[e].multi_trigger = 2
 	plrinzone[e].delay = 0
 	plrinzone[e].spawnatstart = 1
-
 	status[e] = "init"
 	doonce[e] = 0
 	multi_switch[e] = 0
@@ -41,16 +39,13 @@ function plrinzone_init(e)
 	wait[e] = math.huge
 end
 
-
 function plrinzone_main(e)
-	plrinzone[e] = g_Entity[e]
 	if status[e] == "init" then
 		if plrinzone[e].delay ~= nil then waittime[e] = plrinzone[e].delay * 1000 end
 		if plrinzone[e].spawnatstart == 1 then SetActivated(e,1) end
 		if plrinzone[e].spawnatstart == 0 then SetActivated(e,0) end
 		status[e] = "endinit"
 	end
-
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and multi_switch[e] == 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+plrinzone[e]['zoneheight'] then
 			if doonce[e] == 0 then

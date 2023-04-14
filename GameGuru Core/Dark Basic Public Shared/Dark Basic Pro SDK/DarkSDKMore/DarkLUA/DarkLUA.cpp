@@ -1122,17 +1122,21 @@ luaMessage** ppLuaMessages = NULL;
 					// hotkeys only permits one of each type (so duplicate weapons are deflected to main inv)
 					if (iCollectState == 2)
 					{
-						int itemCollectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
-						for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+						int entid = t.entityelement[iEntityIndex].bankindex;
+						if (t.entityprofile[entid].isweapon > 0)
 						{
-							int ee = t.inventoryContainer[containerindex][n].e;
-							if (ee != iEntityIndex)
+							int itemCollectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+							for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
 							{
-								int eeCollectionID = find_rpg_collectionindex(t.entityelement[ee].eleprof.name_s.Get());
-								if (itemCollectionID == eeCollectionID)
+								int ee = t.inventoryContainer[containerindex][n].e;
+								if (ee != iEntityIndex)
 								{
-									// already one here, so do NOT add
-									break;
+									int eeCollectionID = find_rpg_collectionindex(t.entityelement[ee].eleprof.name_s.Get());
+									if (itemCollectionID == eeCollectionID)
+									{
+										// already one here, so do NOT add
+										break;
+									}
 								}
 							}
 						}
@@ -7163,6 +7167,22 @@ int GetInventoryItemSlot(lua_State* L)
 	lua_pushnumber(L, iItemSlot);
 	return 1;
 }
+int SetInventoryItemSlot(lua_State* L)
+{
+	char pNameOfInventory[512];
+	strcpy(pNameOfInventory, lua_tostring(L, 1));
+	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+	if (bothplayercontainers >= 0)
+	{
+		int iInventoryIndex = lua_tonumber(L, 2);
+		if (iInventoryIndex > 0 && iInventoryIndex <= t.inventoryContainer[bothplayercontainers].size())
+		{
+			int iNewSlotIndex = lua_tonumber(L, 3);
+			t.inventoryContainer[bothplayercontainers][iInventoryIndex - 1].slot = iNewSlotIndex;
+		}
+	}
+	return 0;
+}
 int MoveInventoryItem (lua_State* L)
 {
 	lua = L;
@@ -10536,6 +10556,7 @@ void addFunctions()
 	lua_register(lua, "GetInventoryItem", GetInventoryItem);
 	lua_register(lua, "GetInventoryItemID", GetInventoryItemID);
 	lua_register(lua, "GetInventoryItemSlot", GetInventoryItemSlot);
+	lua_register(lua, "SetInventoryItemSlot", SetInventoryItemSlot);
 	lua_register(lua, "MoveInventoryItem", MoveInventoryItem);
 	lua_register(lua, "DeleteAllInventoryContainers", DeleteAllInventoryContainers);
 	lua_register(lua, "AddInventoryItem", AddInventoryItem);

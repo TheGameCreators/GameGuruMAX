@@ -4815,7 +4815,10 @@ void entity_prepareobj ( void )
 		if ( t.entityprofile[t.tentid].ismarker != 0 && t.entityprofile[t.tentid].ismarker != 11 )
 		{
 			#ifdef WICKEDENGINE
-			// For Wicked, all 3D elements have no special treatment for now
+			if (t.entityprofile[t.tentid].ismarker == 2)
+			{
+				SetObjectCull(t.tobj, 1);
+			}
 			#else
 			//  special setup for marker objects
 			if ( t.entityprofile[t.tentid].ismarker != 2 )

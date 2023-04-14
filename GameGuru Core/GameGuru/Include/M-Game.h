@@ -42,7 +42,7 @@ void game_main_snapshotsoundresume ( void );
 void game_main_loop ( void );
 void game_sync ( void );
 void game_main_stop ( void );
-void game_jump_to_level_from_lua ( void );
+void game_jump_to_level_from_lua ( int iResetStates );
 void game_finish_level_from_lua ( void );
 void game_end_of_level_check ( void );
 void game_setup_character_shader_entities ( bool bMode );

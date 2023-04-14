@@ -2566,7 +2566,6 @@ void physics_player_init ( void )
 			// need to add this to the colleciton list
 			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			//add_collection_internal(thisLabel.Get(), thisWeaponImage.Get(), thisLabel.Get());
 			collectionItemType collectionitem;
 			fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
 
@@ -2587,6 +2586,8 @@ void physics_player_init ( void )
 			if (bNewItemIsUnqiue == true)
 			{
 				g_collectionList.push_back(collectionitem);
+				extern bool g_bChangedGameCollectionList;
+				g_bChangedGameCollectionList = true;
 			}
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it

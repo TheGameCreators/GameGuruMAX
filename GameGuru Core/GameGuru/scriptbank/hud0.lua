@@ -21,6 +21,8 @@ hud0_pulledoutofslotfromY = 0
 
 hud0_freezeforpointer = 0
 
+hud0_updatePlayerLimits = 0
+
 hud0_playercontainer_screenID = 0
 hud0_playercontainer_collectionindex = {}
 hud0_playercontainer_img = {}
@@ -100,6 +102,8 @@ function hud0.init()
  end
  -- signal we need to load our map image in
  hud0_mapView_LevelImage = -1
+ -- trigger a refresh of player stats to ensure correct maximums
+ hud0_updatePlayerLimits = 1
 end
 
 function hud0.refreshHUD()
@@ -175,11 +179,9 @@ function hud0.refreshHUD()
 						local titemimg = GetCollectionItemAttribute(tcollectionindex,"image")
 						if string.len(titemimg) > 0 then
 							for findifexist = 0, itemcount, 1 do
-								if findifexist == tslotindex and hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][findifexist] == tcollectionindex then
-									-- already know about this one, and in right slot
+								if findifexist == tslotindex and hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][findifexist] == tcollectionindex and hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][findifexist] == tcollectione then
+									-- already know about this one, and in right slot, and correct E
 									itemindex = findifexist
-									-- however resources can switch places so update the E just in case
-									hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tcollectione
 									break
 								end
 							end
@@ -198,6 +200,7 @@ function hud0.refreshHUD()
 					-- remove any items if no longer in inventory
 					for itemindex = 0, itemcount, 1 do
 						local thiscontainercollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex]
+						local thiscontainercollectione = hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex]
 						if thiscontainercollectionindex ~= nil then
 							local foundininventoryandrightslot = 0
 							for tinventoryindex = 1, tinventoryqty, 1 do
@@ -205,7 +208,11 @@ function hud0.refreshHUD()
 								if tcollectionindex == thiscontainercollectionindex then
 									local tslotindex = GetInventoryItemSlot(inventorycontainer,tinventoryindex)
 									if tslotindex == itemindex then
-										foundininventoryandrightslot = 1
+										local tcollectione = GetInventoryItemID(inventorycontainer,tinventoryindex)
+										if tcollectione == thiscontainercollectione then
+											foundininventoryandrightslot = 1
+											break
+										end
 									end
 								end
 							end
@@ -242,8 +249,14 @@ function hud0.main()
     -- create all shop and chest containers
 	local tcollectionmax = GetCollectionItemQuantity()
 	for tcollectionindex = 1, tcollectionmax, 1 do
-		local tcontainername = GetCollectionItemAttribute(tcollectionindex,"container")
-		if tcontainername ~= nil then
+		local tcontainernameunparsed = GetCollectionItemAttribute(tcollectionindex,"container")
+		if tcontainernameunparsed ~= nil then
+			i, j = string.find(tcontainernameunparsed,"=")
+			if i ~= nil then
+				tcontainername = string.sub(tcontainernameunparsed,1,i-1)
+			else
+				tcontainername = tcontainernameunparsed
+			end
 			local tcontainerfullname = "inventory:"
 			tcontainerfullname = tcontainerfullname .. tcontainername
 			MakeInventoryContainer(tcontainerfullname)
@@ -270,8 +283,16 @@ function hud0.main()
 			-- item object is in 3D world, create a clone for the shop
 			local newe = SpawnNewEntity(anyee)
 			local tcontainerfullname = "inventory:shop"
-			local tcontainername = GetCollectionItemAttribute(tcollectionindex,"container")
-			if tcontainername ~= nil then
+			local tcontainernameunparsed = GetCollectionItemAttribute(tcollectionindex,"container")
+			if tcontainernameunparsed ~= nil then
+				i, j = string.find(tcontainernameunparsed,"=")
+				if i ~= nil then
+					tcontainername = string.sub(tcontainernameunparsed,1,i-1)
+					local tqty = string.sub(tcontainernameunparsed,i+1,-1)
+					SetEntityQuantity(newe,tonumber(tqty))
+				else
+					tcontainername = tcontainernameunparsed
+				end
 				tcontainerfullname = "inventory:"
 				tcontainerfullname = tcontainerfullname .. tcontainername
 			end
@@ -405,9 +426,13 @@ function hud0.main()
 				hud0_scrollpanel_mainrow = totalinrow
 				hud0_scrollpanel_maincolumn = totalincolumn
 				thisitemindexoffset = hud0_itemindexscrolloffset
-				local maininvqty = GetInventoryQuantity("inventory:player")
-				if maininvqty > hud0_itemindexmaxslotused then
-					hud0_itemindexmaxslotused = maininvqty
+				hud0_itemindexmaxslotused = 0
+				local tinventoryqty = GetInventoryQuantity("inventory:player")
+				for tinventoryindex = 1, tinventoryqty, 1 do
+					local tcollectionslot = GetInventoryItemSlot("inventory:player",tinventoryindex)
+					if tcollectionslot > hud0_itemindexmaxslotused then
+						hud0_itemindexmaxslotused = tcollectionslot
+					end
 				end
 			end
 		
@@ -509,13 +534,12 @@ function hud0.main()
 										-- shuffled inside hotkey, handle weapons
 										if cancelmove == 0 and (panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys") then
 											local panelname = panelnameFrom
-											local findcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-											if findcollectionindex ~= -1 then
+											local finditeme = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+											if finditeme ~= -1 then
 												local tinventoryqty = GetInventoryQuantity(panelname)
 												for tinventoryindex = 1, tinventoryqty, 1 do
-													local tcollectionindex = GetInventoryItem(panelname,tinventoryindex)
-													if tcollectionindex == findcollectionindex then 
-														local tcollectionentity = GetInventoryItemID(panelname,tinventoryindex)
+													local tcollectionentity = GetInventoryItemID(panelname,tinventoryindex)
+													if tcollectionentity == finditeme then 
 														if tcollectionentity == 0 then
 															-- this item is FIXED and cannot be moved (i.e. start weapon)
 															cancelmove = 1
@@ -524,7 +548,7 @@ function hud0.main()
 																-- remove from hot key location
 																if hud0_gridSelectedIndex >= 0 and hud0_gridSelectedIndex <= 9 then
 																	RemovePlayerWeapon(1+hud0_gridSelectedIndex)
-																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
+																	entityindex = tcollectionentity
 																	if entityindex > 0 then
 																		SetEntityCollected(entityindex,0,0)
 																	end
@@ -532,7 +556,7 @@ function hud0.main()
 															else
 																-- removing to place in hot key location
 																if panelnameTo == "inventory:hotkeys" then
-																	entityindex = GetInventoryItemID(panelname,tinventoryindex)
+																	entityindex = tcollectionentity
 																	if entityindex > 0 then
 																		SetEntityCollected(entityindex,0,0)
 																	end
@@ -568,6 +592,7 @@ function hud0.main()
 												end
 												if suggestedslotvalid == -1 then
 													SetEntityCollected(entityindex,1,placedatitemindex)
+													g_UserGlobalContainerRefresh = 1
 												end
 											end
 											-- finish movement																		
@@ -929,6 +954,7 @@ function hud0.main()
 													SetEntityCollected(newe,1,0)
 													tdropresourcespawn = 1
 													g_UserGlobalContainerRefresh = 1
+													PromptDuration("g_UserGlobalContainerRefresh",5000)
 												end
 											end
 											if tdropresourcespawn == 0 then
@@ -1266,7 +1292,6 @@ function hud0.main()
 		end
 	end
 	-- handle any button activity for GLOBAL VALUES = AWARD, etc
-	local updatePlayerLimits = 0
 	if buttonElementID ~= -1 then
 		local buttonElementName = GetScreenElementName(1+buttonElementID)
 		if string.len(buttonElementName) > 0 then
@@ -1290,31 +1315,11 @@ function hud0.main()
 					if pointavailable > 0 and valuetoamend < valuetoamendmax then
 						_G["g_UserGlobal['"..functionParameter.."']"] = valuetoamend + amounttoamend
 						_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable - amounttoamend
-						updatePlayerLimits = 1
+						hud0_updatePlayerLimits = 1
 					end
 				end
 			end
 		end
-	end
-	
-	-- handle any adjustments to player limits and maximums	
-	if updatePlayerLimits == 1 then
-		-- these can be amended via custom scripts for more sophisticated mechanics
-		local modifyglobal = ""
-		-- strength increases max health
-		local currentstrength = 0 if _G["g_UserGlobal['".."MyStrength".."']"] ~= nil then currentstrength = _G["g_UserGlobal['".."MyStrength".."']"] end
-		local initialhealthmax = 100 if _G["g_UserGlobal['".."MyHealthInitial".."']"] ~= nil then initialhealthmax = _G["g_UserGlobal['".."MyHealthInitial".."']"] end
-		local newhealthmax = initialhealthmax + (currentstrength*100)
-		SetGamePlayerControlStartStrength(newhealthmax)
-		g_gameloop_StartHealth = newhealthmax
-		-- intelligence increases max mana
-		local currentintelligence = 0 if _G["g_UserGlobal['".."MyIntelligence".."']"] ~= nil then currentintelligence = _G["g_UserGlobal['".."MyIntelligence".."']"] end
-		local initialmanamax = 100 if _G["g_UserGlobal['".."MyManaInitial".."']"] ~= nil then initialmanamax = _G["g_UserGlobal['".."MyManaInitial".."']"] end
-		modifyglobal = "MyManaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialmanamax + (currentintelligence*100)
-		-- dexterity increases stamina
-		local currentdexterity = 0 if _G["g_UserGlobal['".."MyDexterity".."']"] ~= nil then currentdexterity = _G["g_UserGlobal['".."MyDexterity".."']"] end
-		local initialstaminamax = 100 if _G["g_UserGlobal['".."MyStaminaInitial".."']"] ~= nil then initialstaminamax = _G["g_UserGlobal['".."MyStaminaInitial".."']"] end
-		modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
 	end
 	
 	-- draw mouse pointer below
@@ -1465,16 +1470,6 @@ function hud0.main()
 							if mapName == "objective" then
 								local thisobjective = GetEntityObjective(ee)
 								if thisobjective == 1 then
-									scritems = scritems + 1
-									itemstodraw[scritems] = ee
-									itemstodrawscale[scritems] = 1.0
-									itemstodrawscaleoffset[scritems] = 0
-									tscaleit = 1
-								end
-							end
-							if mapName == "winzone" then
-								local thisobjective = GetEntityObjective(ee)
-								if thisobjective == 2 then
 									if g_UserGlobalQuestTitleActiveE > 0 and g_UserGlobalQuestTitleActiveE == ee then
 										scritems = scritems + 1
 										itemstodraw[scritems] = ee
@@ -1482,6 +1477,16 @@ function hud0.main()
 										itemstodrawscaleoffset[scritems] = 0
 										tscaleit = 1
 									end
+								end
+							end
+							if mapName == "winzone" then
+								local thisobjective = GetEntityObjective(ee)
+								if thisobjective == 2 then
+									scritems = scritems + 1
+									itemstodraw[scritems] = ee
+									itemstodrawscale[scritems] = 1.0
+									itemstodrawscaleoffset[scritems] = 0
+									tscaleit = 1
 								end
 							end
 							if tscaleit == 1 then
@@ -1571,6 +1576,26 @@ function hud0.main()
 	hud0_mapView_ImageY = hud0_mapView_WindowY - ((hud0_mapView_ImageH-hud0_mapView_WindowH)/2) - hud0_mapView_ScrollY
    end
   end
+	
+  -- handle any adjustments to player limits and maximums	
+  if hud0_updatePlayerLimits == 1 then
+	-- these can be amended via custom scripts for more sophisticated mechanics
+	local modifyglobal = ""
+	-- strength increases max health
+	local currentstrength = 0 if _G["g_UserGlobal['".."MyStrength".."']"] ~= nil then currentstrength = _G["g_UserGlobal['".."MyStrength".."']"] end
+	local initialhealthmax = 100 if _G["g_UserGlobal['".."MyHealthInitial".."']"] ~= nil then initialhealthmax = _G["g_UserGlobal['".."MyHealthInitial".."']"] end
+	local newhealthmax = initialhealthmax + (currentstrength*100)
+	SetGamePlayerControlStartStrength(newhealthmax)
+	g_gameloop_StartHealth = newhealthmax
+	-- intelligence increases max mana
+	local currentintelligence = 0 if _G["g_UserGlobal['".."MyIntelligence".."']"] ~= nil then currentintelligence = _G["g_UserGlobal['".."MyIntelligence".."']"] end
+	local initialmanamax = 100 if _G["g_UserGlobal['".."MyManaInitial".."']"] ~= nil then initialmanamax = _G["g_UserGlobal['".."MyManaInitial".."']"] end
+	modifyglobal = "MyManaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialmanamax + (currentintelligence*100)
+	-- dexterity increases stamina
+	local currentdexterity = 0 if _G["g_UserGlobal['".."MyDexterity".."']"] ~= nil then currentdexterity = _G["g_UserGlobal['".."MyDexterity".."']"] end
+	local initialstaminamax = 100 if _G["g_UserGlobal['".."MyStaminaInitial".."']"] ~= nil then initialstaminamax = _G["g_UserGlobal['".."MyStaminaInitial".."']"] end
+	modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
+  end
 
   -- draw mouse pointer last
   if drawMousePointer == 1 then
@@ -1597,35 +1622,37 @@ function hud0.main()
   _G["g_UserGlobal['".."MyMana".."']"] = currentmana
   
   -- handle awarding of XP points
-  local entitykilled = GetNearestEntityDestroyed(0)
-  if entitykilled > 0 then
-    -- determine what has been destroyed
-	local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
-	if allegiance == 0 then
-		local scoredXP = 100
-		local currentXP = 0 if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then currentXP = _G["g_UserGlobal['".."MyXP".."']"] end
-		currentXP = currentXP + scoredXP
-		local maximumXP = 0 if _G["g_UserGlobal['".."MyXPMax".."']"] ~= nil then maximumXP = _G["g_UserGlobal['".."MyXPMax".."']"] end
-		if currentXP >= maximumXP then
-			-- levelling up!
-			triggerElementPrompt = "MyLevelUpText"
-			triggerElementPromptText = "YOU'VE LEVELLED UP!"
-			triggerElementPromptTimer = Timer()
-			if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
-			-- reset current XP
-			currentXP = currentXP - maximumXP
-			-- increase new points available
-			local pointavailable = 0 if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
-			_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable + 2
-			-- increase player level
-			local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-			playerlevel = playerlevel + 1
-			_G["g_UserGlobal['".."MyPlayerLevel".."']"] = playerlevel
-			-- new XP threshold for new player level
-			maximumXP = playerlevel * 500
+  local maximumXP = 0 if _G["g_UserGlobal['".."MyXPMax".."']"] ~= nil then maximumXP = _G["g_UserGlobal['".."MyXPMax".."']"] end
+  if maximumXP > 0 then
+	local entitykilled = GetNearestEntityDestroyed(0)
+	if entitykilled > 0 then
+		-- determine what has been destroyed
+		local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
+		if allegiance == 0 then
+			local scoredXP = 100
+			local currentXP = 0 if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then currentXP = _G["g_UserGlobal['".."MyXP".."']"] end
+			currentXP = currentXP + scoredXP
+			if currentXP >= maximumXP then
+				-- levelling up!
+				triggerElementPrompt = "MyLevelUpText"
+				triggerElementPromptText = "YOU'VE LEVELLED UP!"
+				triggerElementPromptTimer = Timer()
+				if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
+				-- reset current XP
+				currentXP = currentXP - maximumXP
+				-- increase new points available
+				local pointavailable = 0 if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
+				_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable + 2
+				-- increase player level
+				local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+				playerlevel = playerlevel + 1
+				_G["g_UserGlobal['".."MyPlayerLevel".."']"] = playerlevel
+				-- new XP threshold for new player level
+				maximumXP = playerlevel * 500
+			end
+			modifyglobal = "MyXP" _G["g_UserGlobal['"..modifyglobal.."']"] = currentXP
+			modifyglobal = "MyXPMax" _G["g_UserGlobal['"..modifyglobal.."']"] = maximumXP
 		end
-		modifyglobal = "MyXP" _G["g_UserGlobal['"..modifyglobal.."']"] = currentXP
-		modifyglobal = "MyXPMax" _G["g_UserGlobal['"..modifyglobal.."']"] = maximumXP
 	end
   end
   

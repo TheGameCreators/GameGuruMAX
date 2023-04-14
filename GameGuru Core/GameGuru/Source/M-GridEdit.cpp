@@ -4982,6 +4982,10 @@ void mapeditorexecutable_loop(void)
 					ExecuteFile (pPDFPath.Get(), "", "", 0);
 					#endif
 				}
+				if (ImGui::MenuItem("Guides Folder"))
+				{
+					ExecuteFile("..\\Guides\\", "", "", 0);
+				}
 				if (g_bParticleEditorPresent == true)
 				{
 					if (ImGui::MenuItem("Particle Editor User Guide"))
@@ -10186,6 +10190,7 @@ void mapeditorexecutable_loop(void)
 								}
 								else
 								{
+									// show collectable details
 									ImGui::Indent(10);
 									int iCount = g_collectionLabels.size();
 									if (iCollectableSettingsMode == 2) iCount = g_collectionQuestLabels.size();
@@ -10225,6 +10230,7 @@ void mapeditorexecutable_loop(void)
 											if (stricmp(pLabel, "value") == NULL) iKnownLabel = 59;
 											if (stricmp(pLabel, "status") == NULL) iKnownLabel = 60;
 											if (stricmp(pLabel, "activate") == NULL) iKnownLabel = 61;
+											if (stricmp(pLabel, "quantity") == NULL) iKnownLabel = 62;
 										}
 										if (iKnownLabel >= 0)
 										{
@@ -10256,6 +10262,7 @@ void mapeditorexecutable_loop(void)
 												if (iKnownLabel == 59) pShowTop = "Enter the money earned by completing this quest";
 												if (iKnownLabel == 60) pShowTop = "Enter the initial status of this quest when the game starts";
 												if (iKnownLabel == 61) pShowTop = "Enter the object to activate when this quest is completed";
+												if (iKnownLabel == 62) pShowTop = "Enter a quantity associated with this quest";
 											}
 
 											// Attrib Label
@@ -10488,6 +10495,27 @@ void mapeditorexecutable_loop(void)
 										}
 									}
 									ImGui::Indent(-10);
+
+									// option to delete a collectable from the global list
+									float but_gadget_size = ImGui::GetFontSize() * 12.0;
+									float w = ImGui::GetWindowContentRegionWidth() - 10.0;
+									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+									LPSTR pCreateButtonLabel = "Delete From Collection List";
+									if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
+									{
+										// create new quest list without the one deleted
+										std::vector<collectionItemType> newCollectionList;
+										for (int ci = 0; ci < g_collectionList.size(); ci++)
+										{
+											if (ci != iCollectionItemIndex)
+											{
+												newCollectionList.push_back(g_collectionList[ci]);
+											}
+										}
+										g_collectionList = newCollectionList;
+										g_bChangedGameCollectionList = true;
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Delete this collection item from the main collection list of the game project");
 								}
 							}
 						}
@@ -10495,6 +10523,10 @@ void mapeditorexecutable_loop(void)
 						// save any changes to game collection list 
 						if (g_bChangedGameCollectionList == true)
 						{
+							// go through all object parents to ensure
+							refresh_rpg_parents_of_items();
+							
+							// save collection item list out
 							save_rpg_system(pref.cLastUsedStoryboardProject, true);
 							g_bChangedGameCollectionList = false;
 						}
@@ -31542,14 +31574,26 @@ void gridedit_deleteentityfrommap ( void )
 		}
 	}
 
-	// if entity is a light, remove its probe
 	#ifdef WICKEDENGINE
+	// if entity is a light, remove its probe
+	//int entid = t.entityelement[t.tentitytoselect].bankindex;
+	//if (entid > 0)
+	//{
+	//	if (t.entityprofile[entid].ismarker == 2)
+	//	{
+	//		entity_deleteprobe(t.entityelement[t.tentitytoselect].obj);
+	//	}
+	//}
+	// if entity is a light, has a probe
 	int entid = t.entityelement[t.tentitytoselect].bankindex;
 	if (entid > 0)
 	{
 		if (t.entityprofile[entid].ismarker == 2)
 		{
-			entity_deleteprobe(t.entityelement[t.tentitytoselect].obj);
+			if (t.entityelement[t.tentitytoselect].eleprof.light.fLightHasProbe >= 50.0f)
+			{
+				g_bLightProbeScaleChanged = true;
+			}
 		}
 	}
 

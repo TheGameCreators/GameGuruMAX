@@ -529,6 +529,8 @@ extern int g_iAbortedAsEntityIsGroupCreate;
 
 bool bDigAHoleToHWND = false;
 
+bool g_bSelectedMapImageTypeSpecialHelp = false;
+
 #ifdef WICKEDENGINE
 bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
@@ -19126,6 +19128,7 @@ void process_entity_library_v2(void)
 			}
 			else
 			{
+				/* removed showcase that had a folder full of duplicates! May return as a better system with no file duplication.
 				if (stricmp(cSearchAllEntities[0], "Showcase") != 0) bViewShowcase = false;
 				if (ImGui::Selectable("Showcase", &bViewShowcase, 0))
 				{
@@ -19138,6 +19141,7 @@ void process_entity_library_v2(void)
 					bUpdateSearchSorting = true;
 					bUpdateSearchScrollbar = true;
 				}
+				*/
 				if (stricmp(cSearchAllEntities[0], "Purchased") != 0) bViewPurchased = false;
 				if (ImGui::Selectable("Purchased", &bViewPurchased, 0))
 				{
@@ -29554,19 +29558,6 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("If set the collectable is a resource and can be merged with similar objects");
 			ImGui::Indent(-10);
-
-			/* done in resource behavior for more control (see quantity)
-			if ( edit_grideleprof->iscollectable == 2 )
-			{
-				// resources can start with a specific quantity built in
-				ImGui::TextCenter("Resource Quantity");
-				float fQty = edit_grideleprof->quantity;
-				if (ImGui::MaxSliderInputFloat("##CollectableResourceQty", &fQty, 0.0f, 100.0f, "Set the quantity of resources for this object when the game starts", 1.0, 100))
-				{
-					edit_grideleprof->quantity = fQty;
-				}
-			}
-			*/
 		}
 	}
 	else
@@ -38011,10 +38002,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 	constexpr int allWidgets = ALLOW_BUTTON | ALLOW_TEXT | ALLOW_IMAGE | ALLOW_RADIOTYPE | ALLOW_SLIDER | ALLOW_TICKBOX | ALLOW_VIDEO | ALLOW_PROGRESS | ALLOW_TEXTAREA;
 	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_BUTTON;
 	bool bUpdateStoryboardToV2 = false;
-	//if (Storyboard.iStoryboardVersion < 203)
-	//{
-	//	bUpdateStoryboardToV2 = true;
-	//}
 
 	//General.
 	if( strlen(Storyboard.Nodes[0].thumb) > 0 && pestrcasestr(Storyboard.Nodes[0].thumb,"loadingsplash.jpg"))
@@ -38114,10 +38101,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].screen_backdrop, ""); //No backdrop transparent.
 			Storyboard.Nodes[node].screen_backdrop_transparent = true;
 			Storyboard.Nodes[node].widgets_available = allWidgets;
-
-			//No Input
-			//strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
-			//No Output.
 
 			int button = 0;
 			strcpy(Storyboard.Nodes[node].widget_label[button], "GAME PAUSED");
@@ -38379,12 +38362,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].widget_selected_thumb[button], "editors\\templates\\buttons\\default-selected.png");
 			strcpy(Storyboard.Nodes[node].widget_name[button], "back-load-game"); //NOTE: DUP (back) - Also add "-hover.png" ...
 
-			//PE: re setup title output if we changed node.
-			//strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_title[1], " LOAD GAME -> Connect to Scene ");
-			//strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_action[1], "loadscene"); //Not defined this yet.
-			//Storyboard.Nodes[iTitleScreenNodeID].output_can_link_to_type[1] = STORYBOARD_TYPE_SCREEN;
-			//Storyboard.Nodes[iTitleScreenNodeID].output_linkto[1] = Storyboard.Nodes[node].input_id[0];
-
 			bool bAddLoadGameButton = true;
 			int iFirstFreeButton = -1;
 			for (int i = 0; i < STORYBOARD_MAXWIDGETS;i++)
@@ -38419,12 +38396,10 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_highlight_thumb[iFirstFreeButton], "editors\\templates\\buttons\\default-hover.png");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_selected_thumb[iFirstFreeButton], "editors\\templates\\buttons\\default-selected.png");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].widget_name[iFirstFreeButton], "load-game"); //Also add "-hover.png" ...
-
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_title[iFirstFreeButton], " LOAD GAME -> Connect to Scene ");
 				strcpy(Storyboard.Nodes[iTitleScreenNodeID].output_action[iFirstFreeButton], "loadscene"); //Not defined this yet.
 				Storyboard.Nodes[iTitleScreenNodeID].output_can_link_to_type[iFirstFreeButton] = STORYBOARD_TYPE_SCREEN;
 				Storyboard.Nodes[iTitleScreenNodeID].output_linkto[iFirstFreeButton] = Storyboard.Nodes[node].input_id[0];
-
 			}
 
 			//PE: setup output links on "game paused" screen. , they are already there so fixed output links.
@@ -38432,7 +38407,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[iGamePausedNodeID].output_action[0], "loadscene"); //Not defined this yet.
 			Storyboard.Nodes[iGamePausedNodeID].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 			Storyboard.Nodes[iGamePausedNodeID].output_linkto[0] = Storyboard.Nodes[node].input_id[0];
-
 		}
 	}
 
@@ -39263,7 +39237,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					thisNode.widget_type[j] = source.widget_type[j];
 					thisNode.widget_read_only[j] = source.widget_read_only[j];
 					thisNode.widget_layer[j] = source.widget_layer[j];
-					//thisNode.widget_output_pin[j] = source.widget_output_pin[j];
 					thisNode.widget_initial_value[j] = source.widget_initial_value[j];
 					strcpy(thisNode.widget_name[j], source.widget_name[j]);
 					Storyboard.widget_colors[node][j] = templateStoryboard.widget_colors[orgnode][j];
@@ -44832,31 +44805,15 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 
 			if (ImGui::MenuItem("Read User Manual"))
 			{
-				/*ExecuteFile("https://gameguru-max.document360.io/docs", "", "", 0);*/
-				// User guide has been moved to offline only
 				ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
-			/* ZJ: Moved to the hub.
-			if (ImGui::MenuItem("GameGuru MAX YouTube Channel"))
+			if (ImGui::MenuItem("Guides Folder"))
 			{
-				ExecuteFile("https://www.youtube.com/channel/UC1q1e3Q9IKMk4nDlAGb_5Jg", "", "", 0);
+				ExecuteFile("..\\Guides\\", "", "", 0);
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("GameGuru MAX Forum"))
-			{
-				ExecuteFile("https://forum.game-guru.com/", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("GameGuru MAX Discord"))
-			{
-				ExecuteFile("https://discord.gg/xnTAbBR", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			*/
 
 			if (g_bUpdateAppAvailable == true)
 			{
@@ -48137,8 +48094,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					ImGui::Indent(10);
 
-					//ImGui::TextCenter("Backdrop Image");
-
 					cstr cBackDrop = Storyboard.Nodes[nodeid].screen_backdrop;
 					if (pestrcasestr(Storyboard.Nodes[nodeid].screen_backdrop, "editors\\"))
 					{
@@ -48695,15 +48650,18 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				{
 					char name[MAX_PATH];
 					strcpy (name, Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget]);
-					cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
-					if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get())!=NULL)
+					if (g_bSelectedMapImageTypeSpecialHelp == false)
 					{
-						// Delete old image and trigger reload of the newly chosen one
-						DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
-						strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
-						iUpdateWidgetThumbNode = iCurrentSelectedWidget;
-						iUpdateWidgetThumbButton = iCurrentSelectedWidget;
-					}	
+						cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
+						if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get()) != NULL)
+						{
+							// Delete old image and trigger reload of the newly chosen one
+							DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
+							strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
+							iUpdateWidgetThumbNode = iCurrentSelectedWidget;
+							iUpdateWidgetThumbButton = iCurrentSelectedWidget;
+						}
+					}
 					bool bHidingImageInGame = false;
 					if (Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] == 1 ) bHidingImageInGame = true;
 					if (ImGui::Checkbox("Hide Image In Game", &bHidingImageInGame))
@@ -48771,9 +48729,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						{
 							// label
 							if( iUserDefinedGlobal==2 )
-								ImGui::TextCenter("User Defined Global Values");
+								ImGui::TextCenter("User Defined Global Names");
 							else
-								ImGui::TextCenter("User Defined Global Value");
+								ImGui::TextCenter("User Defined Global Name");
 
 							// one or two (single or pair handling)
 							char storeFirstEntry[MAX_PATH];
@@ -48929,6 +48887,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									bShowCustomValueBox = true;
 								}
 								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global value used by this image");
+
+								// Extra help in screen editor
+								g_bSelectedMapImageTypeSpecialHelp = false;
+								if ( stricmp(storeFirstEntry,"map:image")==NULL )
+								{
+									ImGui::TextWrapped("NOTE: Map Image will be replaced with the Map Snaphot associated with each level of your game project");
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("You can generate a map snapshot by using the dropdown menu for the level in the Storyboard Editor");
+									g_bSelectedMapImageTypeSpecialHelp = true;
+								}
 							}
 							if (strcmp(readout.c_str(), "User Defined Global Panel") == NULL)
 							{
@@ -49123,6 +49090,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 				}
 				g_bRefreshGlobalList = false;
+				if (bChangedAGameGlobal == true)
+				{
+					// if modify a global, allow another refresh to place in initial_value
+					g_bRefreshGlobalList = true;
+				}
 				ImGui::Indent(-10);
 			}
 

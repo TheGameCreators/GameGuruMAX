@@ -1007,10 +1007,9 @@ void lua_setvegetationheight ( void )
 void lua_jumptolevel ( void )
 {
 	t.tleveltojump_s="";
-	if (  Len(t.entityelement[t.e].eleprof.ifused_s.Get())>1 ) 
+	if ( t.e > 0 && Len(t.entityelement[t.e].eleprof.ifused_s.Get())>1 )
 	{
 		t.tleveltojump_s=Lower(t.entityelement[t.e].eleprof.ifused_s.Get());
-		#ifdef WICKEDENGINE
 		//PE: Prefer ifused_s if set. and level exists, otherwise use storyboard.
 		cstr test = g.mysystem.mapbank_s + t.tleveltojump_s;
 		if(pestrcasestr(t.tleveltojump_s.Get(),"mapbank\\"))
@@ -1022,18 +1021,26 @@ void lua_jumptolevel ( void )
 			//PE: OK to use.
 			strcpy(t.game.pAdvanceWarningOfLevelFilename, t.tleveltojump_s.Get());
 		}
-		#endif
-		game_jump_to_level_from_lua ( );
+		int iResetStates = 0;
+		LPSTR pStringIn = t.s_s.Get();
+		if (t.e == 0 && Len(pStringIn) == 1)
+		{
+			if (stricmp(pStringIn, "1") == NULL)
+			{
+				iResetStates = 1;
+			}
+		}
+		game_jump_to_level_from_lua (iResetStates);
 	}
 	else
 	{
-		if (  Len(t.s_s.Get())>1 ) 
+		if ( Len(t.s_s.Get())>1 ) 
 		{
 			t.tleveltojump_s=t.s_s;
-			game_jump_to_level_from_lua ( );
+			game_jump_to_level_from_lua ( 0 );
 		}
 	}
-	if (  t.tleveltojump_s == "" ) 
+	if ( t.tleveltojump_s == "" ) 
 	{
 		game_finish_level_from_lua ( );
 	}

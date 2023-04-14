@@ -8768,9 +8768,9 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 
 	// find the eight closest env light probes to the player
 	bool bUseOld2SwapSystem = true;
-	if (g_envProbeList.size() > 0)
+	if (g_envProbeList.size() > 0 || bImGuiInTestGame==true)
 	{
-		// usingt env probe placement approach (best)
+		// using env probe placement approach (best), and always use when in editor mode (so 2-way trick not seen as not useful in editor)
 		bUseOld2SwapSystem = false;
 	}
 

@@ -8,7 +8,6 @@ function weapon_init_name(e,name)
 end
 
 function weapon_main(e)
-
  if weapon_therecanbeonlyone==-1 then
 	if g_KeyPressE == 0 and g_InKey == ""  then
 		weapon_therecanbeonlyone = 0
@@ -66,7 +65,6 @@ function weapon_main(e)
 						break
 					end
 				end
-				--collectedweapon = 0
 				if preferredslot > -1 then
 				   local suggestedslot = SetEntityCollected(e,2,preferredslot)
 				   if preferredslot == suggestedslot then
@@ -88,7 +86,6 @@ function weapon_main(e)
 				   end
 				end
 				if collectedweapon == 1 then
-					--Prompt("Collected the " .. weapon_name[e])
 					PlaySound(e,0)
 					PerformLogicConnections(e)
 					ActivateIfUsed(e)

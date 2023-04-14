@@ -31,8 +31,13 @@ function restoregame.now()
   SetWeaponPoolAmmo ( i, g_WeaponPoolAmmo[i] )
  end 
  -- restore entity stats
+ CreateEntityIfNotPresent(g_EntityElementMax)
  for i = 1, g_EntityElementMax, 1 do
+  --if g_Entity[i] == nil then 
+--	UpdateEntity(i,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
+  --end
   if g_Entity[i] ~= nil then
+  if g_Entity[i]['x'] ~= nil then
    ResetPosition ( i, g_Entity[i]['x'], g_Entity[i]['y'], g_Entity[i]['z'] )
    ResetRotation ( i, g_Entity[i]['anglex'], g_Entity[i]['angley'], g_Entity[i]['anglez'] )
    SetEntityActive ( i, g_Entity[i]['active'] )
@@ -52,12 +57,12 @@ function restoregame.now()
     Spawn ( i )
    end
   end
+  end
  end 
  -- restore all level containers (first two are always players main and hotkeys)
  if g_UserContainerTotal ~= nil then
 	DeleteAllInventoryContainers()
 	local invtotal = g_UserContainerTotal
-	--if invtotal > 1 then invtotal = 2 end --for now just the players to get it working
 	for c = 0, invtotal-1, 1 do
 		inventorycontainer = g_UserContainerName[c]
 		MakeInventoryContainer(inventorycontainer)
@@ -66,31 +71,32 @@ function restoregame.now()
 			local fulloffset = (c*100000)+tinventoryindex
 			if g_UserContainerIndex[fulloffset] ~= nil then
 				local tcollectionindex = g_UserContainerIndex[fulloffset]
+				local tcollectione = g_UserContainerE[fulloffset]
 				local qty = g_UserContainerQty[fulloffset]
 				local slot = g_UserContainerSlot[fulloffset]
-				local anyee = 0
 				local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-				for ee = 1, g_EntityElementMax, 1 do
-					if e ~= ee then
-						if g_Entity[ee] ~= nil then
-							if g_Entity[ee]['active'] > 0 then
-								if GetEntityName(ee) == tname then
-									anyee = ee
-									break
-								end
-							end
-						end
-					end
-				end
-				if anyee > 0 then
-					local newe = SpawnNewEntity(anyee)
+				--local anyee = 0
+				--for ee = 1, g_EntityElementMax, 1 do
+				--	if e ~= ee then
+				--		if g_Entity[ee] ~= nil then
+				--			if g_Entity[ee]['active'] > 0 then
+				--				if GetEntityName(ee) == tname then
+				--					anyee = ee
+				--					break
+				--				end
+				--			end
+				--		end
+				--	end
+				--end
+				if tcollectione > 0 then
+					--local newe = SpawnNewEntity(anyee)
 					if c == 0 then invindex = 1 end
 					if c == 1 then invindex = 2 end
 					if c >= 2 then invindex = 3 end
 					if invindex > 2 then
-						SetEntityCollected(newe,invindex,slot,inventorycontainer)
+						SetEntityCollectedForce(tcollectione,invindex,slot,inventorycontainer)
 					else
-						SetEntityCollected(newe,invindex,slot)
+						SetEntityCollectedForce(tcollectione,invindex,slot)
 					end
 				end
 			end

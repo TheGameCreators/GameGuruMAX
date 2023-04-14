@@ -22,6 +22,7 @@ end
 function resource_init(e)
 	g_resource[e] = {}
 	resource_properties(e, "E to harvest", "Resource harvested", 1, 80)
+	SetEntityQuantity(e,g_resource[e].quantity)
 end
 
 function resource_main(e)
@@ -35,8 +36,6 @@ function resource_main(e)
 					Prompt(g_resource[e].collected_text)
 					PerformLogicConnections(e)
 					PlaySound(e,0)
-					-- if entity marked as resource, will be merged with any existing object of same type in the players main inventory
-					SetEntityQuantity(e,g_resource[e].quantity)
 					SetEntityCollected(e,1,-1)
 				end
 			end

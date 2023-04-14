@@ -61,16 +61,20 @@ function gamedata.save(slotnumber,uniquename)
 			g_UserContainerIndex[fulloffset] = tcollectionindex
 			g_UserContainerSlot[fulloffset] = tslotindex
 			g_UserContainerQty[fulloffset] = 1
+			g_UserContainerE[fulloffset] = tcollectionindexe
 			save("g_UserContainerIndex[" .. fulloffset .. "]", g_UserContainerIndex[fulloffset])
 			save("g_UserContainerSlot[" .. fulloffset .. "]", g_UserContainerSlot[fulloffset])
 			save("g_UserContainerQty[" .. fulloffset .. "]", g_UserContainerQty[fulloffset])
+			save("g_UserContainerE[" .. fulloffset .. "]", g_UserContainerE[fulloffset])
 		end
 	end
 
 	-- all entity elements
 	if g_gamedata_levelstatemode ~= 2 then
+		save("g_EntityElementMax",g_EntityElementMax)
 		for e = 1, g_EntityElementMax, 1 do
 			if g_Entity[e] ~= nil then
+				save("g_Entity[" .. e .. "]", {})
 				save("g_Entity[" .. e .. "]['x']", g_Entity[e]['x'])
 				save("g_Entity[" .. e .. "]['y']", g_Entity[e]['y'])
 				save("g_Entity[" .. e .. "]['z']", g_Entity[e]['z'])
@@ -240,8 +244,8 @@ function gamedata.save(slotnumber,uniquename)
 							dumpout = 0
 						end
 
-						-- no weapon data needed in level state file (why this not work!)
-						if g_gamedata_levelstatemode ~= 1 then	
+						-- no weapon data needed in level state file
+						if g_gamedata_levelstatemode == 1 then --g_gamedata_levelstatemode ~= 1 then	
 							if string.sub(n,1,8) == "g_Weapon" then dumpout = 0 end
 						end						
 	
@@ -254,6 +258,10 @@ function gamedata.save(slotnumber,uniquename)
 							elseif n == "g_DebugStringPeek" then dumpout = 0
 							elseif n == "g_Scancode" then dumpout = 0
 						end
+						
+						if n == "g_UserContainerTotal" then dumpout = 0 end
+						if n == "g_EntityElementMax" then dumpout = 0 end
+						
 					end
 				end
 				if dumpout == 1 then

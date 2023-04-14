@@ -10176,15 +10176,29 @@ void mapeditorexecutable_loop(void)
 									float but_gadget_size = ImGui::GetFontSize() * 15.0;
 									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
 									LPSTR pCreateButtonLabel = "Create Collection Item";
-									//if (iCollectableSettingsMode == 2) pCreateButtonLabel = "Create Quest"; now done in behaviour quest choice dropdown
 									if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
 									{
 										if (iCollectableSettingsMode == 1)
 										{
 											collectionItemType item;
 											fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
-											g_collectionList.push_back(item);
-											g_bChangedGameCollectionList = true;
+											bool bNewItemIsUnqiue = true;
+											for (int n = 0; n < g_collectionList.size(); n++)
+											{
+												if (item.collectionFields.size() > 0)
+												{
+													if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
+													{
+														bNewItemIsUnqiue = false;
+														break;
+													}
+												}
+											}
+											if (bNewItemIsUnqiue == true)
+											{
+												g_collectionList.push_back(item);
+												g_bChangedGameCollectionList = true;
+											}
 										}
 									}
 								}

@@ -71,6 +71,7 @@ g_UserContainerCount = {}
 g_UserContainerIndex = {}
 g_UserContainerSlot = {}
 g_UserContainerQty = {}
+g_UserContainerE = {}
 g_PlayerLives = 0
 g_PlayerFlashlight = 0
 g_PlayerGunCount = 0
@@ -1456,6 +1457,7 @@ GetObjectAnimationFinished : flag = GetObjectAnimationFinished ( e, shaveendfram
 
 Entity Creation and Destruction
 -------------------------------
+CreateEntityIfNotPresent : CreateEntityIfNotPresent ( e ) -- ensures this entity element index is available by the level
 SpawnNewEntity : newe = SpawnNewEntity ( currente ) -- will create a new entity by copying the entity specified by currente
 DeleteNewEntity : DeleteNewEntity ( e ) -- will delete any entity specified by e newly created during the level, but no original ones
 

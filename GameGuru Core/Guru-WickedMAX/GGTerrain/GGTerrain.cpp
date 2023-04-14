@@ -8959,6 +8959,15 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						{
 							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 						}
+						if (g_bEnvProbeTrackingUpdate[iRealProbeIndex] == false )
+						{
+							// update probe with correct scaling
+							pTransform->ClearTransform();
+							localEnvProbePos[iRealProbeIndex] = XMFLOAT3(-999999, -999999, -999999);
+							pTransform->Translate(localEnvProbePos[iRealProbeIndex]);
+							pTransform->UpdateTransform();
+							pTransform->SetDirty();
+						}
 						probe->SetDirty();
 					}
 				}

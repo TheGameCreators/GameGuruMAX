@@ -2561,6 +2561,7 @@ void physics_player_init ( void )
 			t.tqty=t.playercontrol.starthasweaponqty;
 			physics_player_addweapon ( );
 
+			/* moved to level loading for gun scan
 			// LB: all this could be replaced when the collectionlist entity parents are all loaded for each level
 			// it would just be a case of adding the start weapon to the collection before the collection refresh/load
 			// need to add this to the colleciton list
@@ -2573,14 +2574,13 @@ void physics_player_init ( void )
 			bool bNewItemIsUnqiue = true;
 			for (int n = 0; n < g_collectionList.size(); n++)
 			{
-				if (collectionitem.collectionFields.size() == 0)
+				if (collectionitem.collectionFields.size() > 0)
 				{
-					bNewItemIsUnqiue = false;
-				}
-				else if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
-				{
-					bNewItemIsUnqiue = false;
-					break;
+					if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
+					{
+						bNewItemIsUnqiue = false;
+						break;
+					}
 				}
 			}
 			if (bNewItemIsUnqiue == true)
@@ -2589,10 +2589,12 @@ void physics_player_init ( void )
 				extern bool g_bChangedGameCollectionList;
 				g_bChangedGameCollectionList = true;
 			}
+			*/
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it
 			inventoryContainerType item;
 			item.e = 0;
+			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			item.collectionID = find_rpg_collectionindex(thisWeaponTitle.Get());
 			item.slot = 0;
 			for (int n = 1; n <= 10; n++) { if (t.weaponslot[n].pref == t.weaponindex) { item.slot = n - 1; break; } }

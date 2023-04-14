@@ -945,16 +945,15 @@ function hud0.main()
 											if GetEntityCollectable(entityindex) == 2 then
 												local tqty = GetEntityQuantity(entityindex)
 												if tqty > 1 then
-													SetEntityCollected(entityindex,0,0)
-													ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
-													SetEntityQuantity(entityindex,1)
-													Show(entityindex)
-													local newe = SpawnNewEntity(entityindex)
-													SetEntityQuantity(newe,tqty-1)
-													SetEntityCollected(newe,1,0)
-													tdropresourcespawn = 1
-													g_UserGlobalContainerRefresh = 1
-													PromptDuration("g_UserGlobalContainerRefresh",5000)
+													--SetEntityCollected(entityindex,0,0)
+													--ResetPosition(entityindex,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+													--SetEntityQuantity(entityindex,1)
+													--Show(entityindex)
+													--local newe = SpawnNewEntity(entityindex)
+													--SetEntityQuantity(newe,tqty-1)
+													--SetEntityCollected(newe,1,0)
+													--tdropresourcespawn = 1
+													--g_UserGlobalContainerRefresh = 1
 												end
 											end
 											if tdropresourcespawn == 0 then

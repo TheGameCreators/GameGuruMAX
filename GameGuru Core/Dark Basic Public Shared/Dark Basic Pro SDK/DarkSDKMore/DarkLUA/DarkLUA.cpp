@@ -1083,8 +1083,9 @@ luaMessage** ppLuaMessages = NULL;
 	 t.entityelement[iIndex].eleprof.iscollectable = lua_tonumber(L, 2);
 	 return 0;
  }
- int SetEntityCollected(lua_State *L)
+ int SetEntityCollectedEx(lua_State *L, bool bForceMode)
  {
+	// bForceMode when true will ignore state of entity, only interested in adding to inventory (used for saved game restoring)
 	lua = L;
 	int n = lua_gettop(L);
 	if ( n < 2 || n > 4 ) return 0;
@@ -1240,6 +1241,13 @@ luaMessage** ppLuaMessages = NULL;
 						// handle entity itself
 						if (bRemoveEntityFromGame == true) bItemHandled = true;
 					}
+					else
+					{
+						// this entity was set for collection, but already in inventory, but still 
+						// needs to be removed from the game
+						bRemoveEntityFromGame = true;
+						bItemHandled = true;
+					}
 				}
 			}
 			else
@@ -1257,7 +1265,7 @@ luaMessage** ppLuaMessages = NULL;
 						}
 					}
 					// when NOT collected, put back in real world
-					if (iEntityIndex > 0)
+					if (iEntityIndex > 0 && bForceMode == false)
 					{
 						if (t.entityelement[iEntityIndex].collected != 0)
 						{
@@ -1278,7 +1286,7 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	if (bRemoveEntityFromGame == true)
 	{
-		if (iEntityIndex > 0)
+		if (iEntityIndex > 0 && bForceMode == false)
 		{
 			if (t.entityelement[iEntityIndex].collected == 0)
 			{
@@ -1296,6 +1304,14 @@ luaMessage** ppLuaMessages = NULL;
 	}
 	lua_pushinteger(L, iReturnSlot);
 	return 1;
+ }
+ int SetEntityCollected(lua_State* L)
+ {
+	 return SetEntityCollectedEx(L, false);
+ }
+ int SetEntityCollectedForce(lua_State* L)
+ {
+	 return SetEntityCollectedEx(L, true);
  }
  int SetEntityUsed(lua_State* L)
  {
@@ -2425,6 +2441,36 @@ luaMessage** ppLuaMessages = NULL;
  }
 
  // Entity creation and destruction
+
+ int CreateEntityIfNotPresent(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iNewE = -1;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 if (iEntityIndex > 0)
+	 {
+		 if (iEntityIndex >= t.entityelement.size())
+		 {
+			 Dim (t.storeentityelement, g.entityelementmax);
+			 for (t.e = 1; t.e <= g.entityelementmax; t.e++)
+			 {
+				 t.storeentityelement[t.e] = t.entityelement[t.e];
+			 }
+			 UnDim (t.entityelement);
+			 UnDim (t.entityshadervar);
+			 int iOldMaxCount = g.entityelementmax;
+			 g.entityelementmax = iEntityIndex + 10;
+			 Dim (t.entityelement, g.entityelementmax);
+			 Dim2(t.entityshadervar, g.entityelementmax, g.globalselectedshadermax);
+			 for (t.e = 1; t.e <= iOldMaxCount; t.e++)
+			 {
+				 t.entityelement[t.e] = t.storeentityelement[t.e];
+			 }
+		 }
+	 }
+ }
 
  int SpawnNewEntity(lua_State* L)
  {
@@ -3585,6 +3631,7 @@ int RDGetYFromMeshPosition(lua_State *L)
 	float fZ = lua_tonumber(L, 3);
 	float thisPoint[3] = { 0, 0, 0 };
 	float fNewY = g_RecastDetour.getYFromPos(fX, fY, fZ);
+	fNewY -= 5.0f; // adjust from navmesh Y to real world Y
 	lua_pushnumber (L, fNewY);
 	return 1;
 }
@@ -9593,6 +9640,7 @@ void addFunctions()
 	lua_register(lua, "SetEntityObjective", SetEntityObjective);
 	lua_register(lua, "SetEntityCollectable", SetEntityCollectable);
 	lua_register(lua, "SetEntityCollected", SetEntityCollected);
+	lua_register(lua, "SetEntityCollectedForce", SetEntityCollectedForce);
 	lua_register(lua, "SetEntityUsed", SetEntityUsed);
 	lua_register(lua, "GetEntityObjective", GetEntityObjective);
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
@@ -9687,6 +9735,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityAnimationTriggerFrame", GetEntityAnimationTriggerFrame);
 	
 	// Entity creation/destruction
+	lua_register(lua, "CreateEntityIfNotPresent", CreateEntityIfNotPresent);
 	lua_register(lua, "SpawnNewEntity", SpawnNewEntity);
 	lua_register(lua, "DeleteNewEntity", DeleteNewEntity);
 
@@ -10705,7 +10754,6 @@ char szLuaReturnString[1024];
 
  DARKLUA_API int LuaNext()
  {
-
 	if ( luaMessageCount == 0 ) 
 	{
 		strcpy ( currentMessage.msgDesc, "" );
@@ -10713,30 +10761,35 @@ char szLuaReturnString[1024];
 		currentMessage.msgInt = 0;
 		currentMessage.msgIndex = 0;
 		strcpy ( currentMessage.msgString, "" );
-
 		return 0;
 	}
 	else
 	{
-		strcpy ( currentMessage.msgDesc, ppLuaMessages[0]->msgDesc );
-		currentMessage.msgFloat = ppLuaMessages[0]->msgFloat;
-		currentMessage.msgInt = ppLuaMessages[0]->msgInt;
-		currentMessage.msgIndex = ppLuaMessages[0]->msgIndex;
-		strcpy ( currentMessage.msgString, ppLuaMessages[0]->msgString );
+		if (ppLuaMessages && ppLuaMessages[0]->msgDesc)
+		{
+			strcpy (currentMessage.msgDesc, ppLuaMessages[0]->msgDesc);
+			currentMessage.msgFloat = ppLuaMessages[0]->msgFloat;
+			currentMessage.msgInt = ppLuaMessages[0]->msgInt;
+			currentMessage.msgIndex = ppLuaMessages[0]->msgIndex;
+			strcpy (currentMessage.msgString, ppLuaMessages[0]->msgString);
 
-		delete ppLuaMessages[0];
-		ppLuaMessages[0] = NULL;
+			delete ppLuaMessages[0];
+			ppLuaMessages[0] = NULL;
 
-		for ( int c = 1 ; c < luaMessageCount ; c++ )
-			ppLuaMessages[c-1] = ppLuaMessages[c];
+			for (int c = 1; c < luaMessageCount; c++)
+				ppLuaMessages[c - 1] = ppLuaMessages[c];
 
-		ppLuaMessages[luaMessageCount-1] = NULL;
+			ppLuaMessages[luaMessageCount - 1] = NULL;
 
-		luaMessageCount--;
+			luaMessageCount--;
+		}
+		else
+		{
+			// something erased all/part LUA messages array
+			return 0;
+		}
 	}
-
 	return 1;
-
  }
 
  DARKLUA_API void SetLuaState ( int id )

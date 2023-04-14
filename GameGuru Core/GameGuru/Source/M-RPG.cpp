@@ -573,7 +573,20 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 			if (stricmp(pLabel, "container") == NULL) iKnownLabel = 6;
 			if (stricmp(pLabel, "ingredients") == NULL) iKnownLabel = 7;
 			if (stricmp(pLabel, "style") == NULL) iKnownLabel = 8;
-			if (iKnownLabel >= 0)
+			bool bUseNoneValue = false;
+			if (iAddThisItem == 3)
+			{
+				if (iKnownLabel == 0 || iKnownLabel == 2 || iKnownLabel == 3)
+				{
+					// we can fill these with passed in values
+				}
+				else
+				{
+					// we have no values, use 'None'
+					bUseNoneValue = true;
+				}
+			}
+			if (iKnownLabel >= 0 && bUseNoneValue == false)
 			{
 				if (iKnownLabel == 0)
 				{
@@ -721,45 +734,46 @@ void refresh_rpg_parents_of_items(void)
 
 bool refresh_collection_from_entities(void)
 {
-	// start with game project master list
-	// g_collectionList = g_collectionMasterList; now only used on first RPG init, the list contains more now since that init!
-	// as we call this when a new entity is loaded (could be a weapon that needs to be instantly added to collection list)
-
-	/* not going to assume this - leave it to CREATE COLLECTION ITEM button and auto weapon additions done elsewhere
-	// go through all entities and add per-level items to collection (weapons, objects marked as collectable but not in master list)
-	for ( int e = 1; e <= g.entityelementlist; e++)
+	// must ALWAYS add missing weapons to collection list, user does not manually add these
+	for (int e = 1; e < g.entityelementmax; e++)
 	{
 		int entid = t.entityelement[e].bankindex;
-		if (entid > 0)
+		bool bHaveThisWeaponInList = false;
+		LPSTR pThisWeaponName = t.entityprofile[entid].isweapon_s.Get();
+		if (strlen(pThisWeaponName) == 0) pThisWeaponName = t.entityprofile[entid].hasweapon_s.Get();
+		if (strlen(pThisWeaponName) > 0)
 		{
-			// find things to add to collection
-			collectionItemType item;
-			bool bAddThisItem = fill_rpg_item_defaults(&item, entid, e);
-			if (bAddThisItem == true)
+			// find weapon in list
+			cstr thisWeaponTitle = gun_names_tonormal(pThisWeaponName);
+			for (int n = 0; n < g_collectionList.size(); n++)
 			{
-				// before we add, confirm this does not already exist
-				bool bNewItemIsUnqiue = true;
-				for (int n = 0; n < g_collectionList.size(); n++)
+				if (g_collectionList[n].collectionFields.size() > 1)
 				{
-					if (item.collectionFields.size() == 0)
+					LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+					if (strlen(pCollectionItemTitle) > 0)
 					{
-						//PE: crash if not found in g_collectionLabels.
-						bNewItemIsUnqiue = false;
-					}
-					else if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
-					{
-						bNewItemIsUnqiue = false;
-						break;
+						if (stricmp(thisWeaponTitle.Get(), pCollectionItemTitle) == NULL)
+						{
+							bHaveThisWeaponInList = true;
+							break;
+						}
 					}
 				}
-				if (bNewItemIsUnqiue == true)
-				{
-					g_collectionList.push_back(item);
-				}
+			}
+			if (bHaveThisWeaponInList == false)
+			{
+				// weapon not in list, add it
+				cstr thisWeaponImage = cstr("gamecore\\guns\\") + pThisWeaponName + cstr("\\item.png");
+				collectionItemType collectionitem;
+				fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
+				g_collectionList.push_back(collectionitem);
+
+				// and save to collection list
+				extern bool g_bChangedGameCollectionList;
+				g_bChangedGameCollectionList = true;
 			}
 		}
 	}
-	*/
 
 	// replace any default images with correct paths
 	for (int n = 0; n < g_collectionList.size(); n++)

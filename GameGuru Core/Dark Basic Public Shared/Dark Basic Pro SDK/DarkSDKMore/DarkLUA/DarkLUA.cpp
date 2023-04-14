@@ -5064,6 +5064,7 @@ int IntersectCore ( lua_State *L, int iMode )
 	int iIndexInIntersectDatabase = 0;
 	int iLifeInMilliseconds = 0;
 	int iIgnorePlayerCapsule = 0;
+	int iIgnoreTerrain = 0;
 	if (iMode == 2)
 	{
 		iIndexInIntersectDatabase = lua_tonumber(L, 8);
@@ -5072,6 +5073,11 @@ int IntersectCore ( lua_State *L, int iMode )
 			iIgnorePlayerCapsule = 1;
 		else
 			iIgnorePlayerCapsule = lua_tonumber(L, 10);
+		if (n < 11)
+			iIgnoreTerrain = 0;
+		else
+			iIgnoreTerrain = lua_tonumber(L, 11);
+
 	}
 
 	// do the expensive ray cast
@@ -5082,7 +5088,7 @@ int IntersectCore ( lua_State *L, int iMode )
 	else
 		int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
 	#endif
-	if (iLifeInMilliseconds != -1 && ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1) tthitvalue = -1;
+	if ( iIgnoreTerrain == 0  && iLifeInMilliseconds != -1  && ODERayTerrain(fX, fY, fZ, fNewX, fNewY, fNewZ, true) == 1) tthitvalue = -1;
 	if (tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iMode, iIndexInIntersectDatabase, iLifeInMilliseconds, iIgnorePlayerCapsule);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;

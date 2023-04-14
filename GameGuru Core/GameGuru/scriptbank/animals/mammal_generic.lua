@@ -124,7 +124,7 @@ local function canSee( critter, dist, x, y, z )
 	--local obj = IntersectAll( cx, cy + 5, cz, x, y, z, critter.obj )
 	local obj = 0
 	if critter.e ~= nil then
-	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, critter.e, 500 )
+	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, critter.e, 500 ,1 , 1)
 	end
 	
 	if obj == 0 or aCritter( obj ) then	
@@ -161,11 +161,13 @@ local function pickNewPos( e, critter, dist, typ, tx, tz )
 	tz = tz or ppz
 	for i = 1, 5 do
 		local x, z = U.RandomPos( dist, critter.x, critter.z )
+		if x ~= nil then
 		if ( typ == 'wander' or 
 		     sqrd( x, z, tx, tz ) > sqrd( x, z, critter.x, critter.z ) ) and
 		   waterHgt < GetTerrainHeight( x, z )then
 		    critter.tx, critter.tz = x, z
 			if pathFound( e, critter ) then return true end 
+		end
 		end
 	end
 end
@@ -213,6 +215,7 @@ local function speciesSpecific( e, critter )
 					local other = mammals[ v ]
 					if other ~= nil and
 					   other.species == 'fox' and
+					   other.x ~= nil and
 					   sqrd( other.x, other.z, critter.x, critter.z )  < 400 * 400 then
 						if selectTargetPos( e, critter, 'predator', other.x, other.z ) then
 							changeStateLoop( e, critter, 'flee', 'Move', true )	
@@ -252,6 +255,7 @@ local function processHunger( critter, val )
 end
 	
 function mammal_generic_main( e )
+
 	local critter = mammals[ e ]
 	if critter == nil then return end
 
@@ -435,5 +439,5 @@ function mammal_generic_main( e )
 		SwitchScript( e, 'no_behavior.lua' )
 	end
 	
-	--PromptLocal( e, critter.state .. ", " .. critter.speed )	
+	-- PromptLocal( e, critter.state .. ", " .. critter.speed )	
 end

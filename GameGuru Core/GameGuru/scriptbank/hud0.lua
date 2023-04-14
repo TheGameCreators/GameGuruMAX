@@ -1581,19 +1581,28 @@ function hud0.main()
 	-- these can be amended via custom scripts for more sophisticated mechanics
 	local modifyglobal = ""
 	-- strength increases max health
-	local currentstrength = 0 if _G["g_UserGlobal['".."MyStrength".."']"] ~= nil then currentstrength = _G["g_UserGlobal['".."MyStrength".."']"] end
-	local initialhealthmax = 100 if _G["g_UserGlobal['".."MyHealthInitial".."']"] ~= nil then initialhealthmax = _G["g_UserGlobal['".."MyHealthInitial".."']"] end
-	local newhealthmax = initialhealthmax + (currentstrength*100)
+	local newhealthmax = 0
+	if _G["g_UserGlobal['".."MyHealthInitial".."']"] ~= nil then
+		local currentstrength = 0 if _G["g_UserGlobal['".."MyStrength".."']"] ~= nil then currentstrength = _G["g_UserGlobal['".."MyStrength".."']"] end
+		local initialhealthmax = _G["g_UserGlobal['".."MyHealthInitial".."']"]
+		newhealthmax = initialhealthmax + (currentstrength*100)
+	else
+		newhealthmax = g_PlayerStartStrength
+	end
 	SetGamePlayerControlStartStrength(newhealthmax)
 	g_gameloop_StartHealth = newhealthmax
 	-- intelligence increases max mana
-	local currentintelligence = 0 if _G["g_UserGlobal['".."MyIntelligence".."']"] ~= nil then currentintelligence = _G["g_UserGlobal['".."MyIntelligence".."']"] end
-	local initialmanamax = 100 if _G["g_UserGlobal['".."MyManaInitial".."']"] ~= nil then initialmanamax = _G["g_UserGlobal['".."MyManaInitial".."']"] end
-	modifyglobal = "MyManaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialmanamax + (currentintelligence*100)
+	if _G["g_UserGlobal['".."MyManaInitial".."']"] ~= nil then 
+		local currentintelligence = 0 if _G["g_UserGlobal['".."MyIntelligence".."']"] ~= nil then currentintelligence = _G["g_UserGlobal['".."MyIntelligence".."']"] end
+		local initialmanamax = _G["g_UserGlobal['".."MyManaInitial".."']"]
+		modifyglobal = "MyManaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialmanamax + (currentintelligence*100)
+	end
 	-- dexterity increases stamina
-	local currentdexterity = 0 if _G["g_UserGlobal['".."MyDexterity".."']"] ~= nil then currentdexterity = _G["g_UserGlobal['".."MyDexterity".."']"] end
-	local initialstaminamax = 100 if _G["g_UserGlobal['".."MyStaminaInitial".."']"] ~= nil then initialstaminamax = _G["g_UserGlobal['".."MyStaminaInitial".."']"] end
-	modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
+	if _G["g_UserGlobal['".."MyStaminaInitial".."']"] ~= nil then
+		local currentdexterity = 0 if _G["g_UserGlobal['".."MyDexterity".."']"] ~= nil then currentdexterity = _G["g_UserGlobal['".."MyDexterity".."']"] end
+		local initialstaminamax = _G["g_UserGlobal['".."MyStaminaInitial".."']"]
+		modifyglobal = "MyStaminaMax" _G["g_UserGlobal['"..modifyglobal.."']"] = initialstaminamax + (currentdexterity*100)
+	end
   end
 
   -- draw mouse pointer last

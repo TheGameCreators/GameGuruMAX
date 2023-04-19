@@ -10944,7 +10944,7 @@ void mapeditorexecutable_loop(void)
 
 						ImGui::Indent(10);
 						cstr cShowTutorial = "0201 - Level Editing";
-						char* tutorial_combo_items[] = { "0201 - Level Editing", "0301 - Object Library", "0401 - Object Grouping", "0601 - Terrain Editing", "0202 - Particle Editor" };
+						char* tutorial_combo_items[] = { "0201 - Level Editing", "0301 - Object Library", "0401 - Object Grouping", "0601 - Terrain Editing", "0202 - Particle Editor", "0203 - The Animation Library", "0801 - Character Creator", "0901 - Behaviour AI" };
 						SmallTutorialVideo(cShowTutorial.Get(), tutorial_combo_items, ARRAYSIZE(tutorial_combo_items), SECTION_ENTITY_TOOLS, true );
 						float but_gadget_size = ImGui::GetFontSize()*12.0;
 						float w = ImGui::GetWindowContentRegionWidth() - 10.0;

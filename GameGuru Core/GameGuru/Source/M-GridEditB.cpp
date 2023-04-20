@@ -37416,7 +37416,7 @@ int get_output_linkindex(int node, int index)
 			return outlinknum;
 		if (Storyboard.Nodes[i].widget_used[ll])
 		{
-			if (Storyboard.Nodes[node].widget_type[ll] = STORYBOARD_WIDGET_BUTTON)
+			if (Storyboard.Nodes[node].widget_type[ll] == STORYBOARD_WIDGET_BUTTON)
 			{
 				if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_STARTGAME || Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOLEVEL)
 				{
@@ -37472,7 +37472,7 @@ void setup_output_links(int node)
 	{
 		if (Storyboard.Nodes[i].widget_used[ll])
 		{
-			if (Storyboard.Nodes[node].widget_type[ll] = STORYBOARD_WIDGET_BUTTON)
+			if (Storyboard.Nodes[node].widget_type[ll] == STORYBOARD_WIDGET_BUTTON)
 			{
 				if (Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_STARTGAME || Storyboard.Nodes[node].widget_action[ll] == STORYBOARD_ACTIONS_GOTOLEVEL)
 				{
@@ -44584,7 +44584,7 @@ int FindOutputScreenNode(int iNode, int index)
 	if (iNode >= 0)
 	{
 		int iOutPutLinkTo = index;
-		if (Storyboard.Nodes[iNode].widget_type[index] = STORYBOARD_WIDGET_BUTTON)
+		if (Storyboard.Nodes[iNode].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
 			iOutPutLinkTo = get_output_linkindex(iNode, index);
 
 		//Find connected to:

@@ -10225,12 +10225,12 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Allow tabbed sections in the right panel");
 
 			bTmp = pref.iEnableAdvancedEntityList;
-			if (ImGui::Checkbox("Allow Selection of Detailed & Collection List", &bTmp)) {
+			if (ImGui::Checkbox("Allow Selection of the Collection List", &bTmp)) {
 				current_sort_order = 0;
 				pref.iEnableAdvancedEntityList = bTmp;
 				bCheckedInitialState = false;
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the detailed and collection list filter in the level objects window");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable the collection list filter in the level objects window");
 
 			void ToggleDPIAwareness(bool);
 			// DPI Awareness Flag

@@ -1,0 +1,9 @@
+Fog Behavior
+When activated sets fog to the required settings. 
+Add to an object then link to a Zone to activate, link to a second Zone to de-activate. Or link to a switch.
+
+Behavior Options:-
+Set the PROMPT TEXT eg: "Fog strength is changing" for when fog increases or recedes
+Set the FOG NEAREST distance
+Set the FOG DISTANCE
+Set the fog increase/decrease FOG SPEED

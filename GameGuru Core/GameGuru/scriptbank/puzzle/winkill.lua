@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Win Kill v3 by Necrym59
+-- Win Kill v4 by Necrym59
 -- DESCRIPTION: When all enemies have been killed, level is won and changes to next or selected level.
 -- DESCRIPTION: [@ENEMY_COUNTER=1(1=Off, 2=On)]
 -- DESCRIPTION: [COUNTER_TEXT$="Targets Remaining"]
@@ -55,7 +55,11 @@ function winkill_main(e)
 	
 	if status[e] == 'run' then
 		if winkill[e].enemy_counter == 2 then TextCenterOnX(50,95,3,winkill[e].counter_text.. "  " ..pEntalive[e]) end
-		if pEntalive[e] == 0 then status[e] = 'endlevel' end
+		if pEntalive[e] == 0 then
+			TextCenterOnX(50,50,5,winkill[e].end_text)
+			PlaySound(e,0)
+			status[e] = 'endlevel'
+		end
 		if pEntalive[e] > 0 then		
 			pEntalive[e] = 0
 			status[e] = 'init'
@@ -63,8 +67,6 @@ function winkill_main(e)
 	end
 	
 	if status[e] == 'endlevel' then
-		TextCenterOnX(50,50,5,winkill[e].end_text)
-		PlaySound(e,0)
 		PerformLogicConnections(e)
 		JumpToLevelIfUsed(e)
 	end	

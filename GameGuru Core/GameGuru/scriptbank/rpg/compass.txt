@@ -1,0 +1,14 @@
+Compass Behavior v5
+
+Will give the player a Compass? Set always active ON.
+
+Options:-
+Set the PICKUP_RANGE
+Set the PICKUP_TEXT eg: E to pickup
+Set the COMPASS_TYPE either Digital or Magnetic
+Set the COMPASS_MODE either to Pickup or Always On
+Set the screen  POSITION_X
+Set the screen  POSITION_Y
+Set the analogue compass RADIAL_SIZE
+Set the <Sound0> for pickup
+

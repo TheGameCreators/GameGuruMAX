@@ -1,0 +1,13 @@
+NPC Flashlight Behavior
+
+Place a NPC on the map andb give it a unique name eg: 'Tony1'
+Place a spotlight nearby to the NPC
+In the spotlight settings select the NPC Flashlight
+behavior
+
+Edit the settings
+Set the FLASHLIGHT RANGE
+Attach to NPC OBJECT NAME eg: 'Tony1' (the name of your NPC)
+Set the FLASHLIGHT POSITION to either 'Hand', 'Shoulder', or 'Head'
+(This option may change as functions become available)
+

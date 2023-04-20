@@ -1,0 +1,17 @@
+Generator Behavior
+
+This object will be treated as a switch object for activating other objects
+or game elements. Set Always Active = On
+
+The generator acts as a switch that requires fuel to activate 
+any model can be used. 
+
+Behavior options.
+Set the PROMPT TEXT eg: "to use"
+Set the USE RANGE to activate
+Set the STATUS wether the generator is 'Empty' or 'Full'
+Set the mount of FUEL REQUIRED before the generator will activate.
+Play <Sound0> when starting.
+Play <Sound1> running loop.
+
+Using objects withe the Fuel behavior will collect fuel for this device.

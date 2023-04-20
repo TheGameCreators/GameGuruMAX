@@ -4145,7 +4145,6 @@ void get_tutorials(void)
 	tutorial_videos.insert(std::make_pair(cIntroVideo.Get(), "tutorialbank\\9901-introduction-video.mp4"));
 	tutorial_description.insert(std::make_pair(cIntroVideo.Get(), "Introduction Video"));
 
-
 	SetDir("tutorialbank");
 
 	ChecklistForFiles();
@@ -8891,11 +8890,14 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 					iVideoEntry = i;
 					iCurrentVideoEntry = i;
 					cSmallVideoPath = it->second.c_str();
-					if (cSmallComboSelection[iVideoEntry].Len() > 0) {
+					if (cSmallComboSelection[iVideoEntry].Len() > 0) 
+					{
 						//PE: Overwrite settings.
 						int il = 0;
-						for (std::map<std::string, std::string>::iterator it = tutorial_videos.begin(); it != tutorial_videos.end(); ++it) {
-							if (it->first.length() > 0 && strcmp(it->first.c_str(), cSmallComboSelection[iVideoEntry].Get()) == 0 ) {
+						for (std::map<std::string, std::string>::iterator it = tutorial_videos.begin(); it != tutorial_videos.end(); ++it) 
+						{
+							if (it->first.length() > 0 && strcmp(it->first.c_str(), cSmallComboSelection[iVideoEntry].Get()) == 0 ) 
+							{
 								cSmallVideoPath = it->second.c_str();
 								iCurrentVideoEntry = il;
 								break;
@@ -8912,10 +8914,11 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 	
 	if (bSectionHub && iStopAndFreeThisVideo >= 0)
 	{
-		if (iSmallVideoSlot[iStopAndFreeThisVideo] > 0) {
-			if (AnimationExist(iSmallVideoSlot[iStopAndFreeThisVideo])) {
-				if (AnimationPlaying(iSmallVideoSlot[iStopAndFreeThisVideo]))
-					StopAnimation(iSmallVideoSlot[iStopAndFreeThisVideo]);
+		if (iSmallVideoSlot[iStopAndFreeThisVideo] > 0) 
+		{
+			if (AnimationExist(iSmallVideoSlot[iStopAndFreeThisVideo])) 
+			{
+				if (AnimationPlaying(iSmallVideoSlot[iStopAndFreeThisVideo])) StopAnimation(iSmallVideoSlot[iStopAndFreeThisVideo]);
 				DeleteAnimation(iSmallVideoSlot[iStopAndFreeThisVideo]);
 				iSmallVideoSlot[iStopAndFreeThisVideo] = 0;
 				bSmallVideoPerccentStart[iStopAndFreeThisVideo] = false;
@@ -8927,16 +8930,18 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 		bSmallVideoInit[iVideoEntry] = false;
 	}
 
-	if (iVideoEntry >= 0 && cSmallVideoPath.Len() > 0 ) {
-
+	if (iVideoEntry >= 0 && cSmallVideoPath.Len() > 0 ) 
+	{
 		//PE: Auto launch maximized , if first time in a section.
-
 		if (iCurrentVideoSectionPlaying > 0 && iVideoSection > 0 && iCurrentVideoSectionPlaying != iVideoSection)
 		{
 			//PE: Pause any playing video , when changing section.
-			for (int i = 0; i < MAXTUTORIALS; i++) {
-				if (iSmallVideoSlot[i] > 0) {
-					if (AnimationExist(iSmallVideoSlot[i])) {
+			for (int i = 0; i < MAXTUTORIALS; i++) 
+			{
+				if (iSmallVideoSlot[i] > 0) 
+				{
+					if (AnimationExist(iSmallVideoSlot[i])) 
+					{
 						if (AnimationPlaying(iSmallVideoSlot[i]))
 						{
 							PauseAnim(iSmallVideoSlot[i]);
@@ -8950,7 +8955,6 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 
 		if (iVideoSection > 0 && iVideoSection < 20)
 		{
-			//if (bAutoStart)
 			if (0)
 			{
 				if (pref.iPlayedVideoSection[iVideoSection] == 0)
@@ -9077,11 +9081,7 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 			if (bSmallVideoMaximized[iVideoEntry]) {
 				
 				//	Display the maximised tutorial video window.
-				//if(combo_entries > 0)
-				//	ImGui::SetNextWindowSize(ImVec2(55 * ImGui::GetFontSize(), 44 * ImGui::GetFontSize()), ImGuiCond_Once);
-				//else
 				ImGui::SetNextWindowSize(ImVec2(62 * ImGui::GetFontSize(), 45 * ImGui::GetFontSize()), ImGuiCond_Once);
-
 				ImGui::SetNextWindowPosCenter(ImGuiCond_Once);
 
 				//LB: ImGui::Begin("Tutorial Video##VideosMaxSize", &bSmallVideoMaximized[iVideoEntry], 0);
@@ -9092,18 +9092,11 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 			}
 
 
-			if (combo_items && combo_entries > 0 ) {
+			if (combo_items && combo_entries > 0 ) 
+			{
 				//Display combo.
 				ImGui::PushItemWidth(-10);
 				cstr sUniqueLabel = cstr("##TutorialSimpleInput") + cstr(iVideoEntry);
-				//if (ImGui::Combo(sUniqueLabel.Get(), &combo_current_type_selection, combo_items, combo_entries)) {
-				//	if (combo_items[combo_current_type_selection])
-				//	{
-				//		cSmallComboSelection[iVideoEntry] = combo_items[combo_current_type_selection];
-				//		bSmallVideoInit[iVideoEntry] = false;
-				//		bSmallVideoFrameStart = false; //PE: Wait until next frame.
-				//	}
-				//}
 				if (combo_current_type_selection < combo_entries)
 				{
 					char *findcur = strstr(combo_items[combo_current_type_selection], "-");
@@ -9294,33 +9287,6 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 						bSmallVideoMaximized[iVideoEntry] = 1 - bSmallVideoMaximized[iVideoEntry];
 					}
 				}
-				/*
-				else
-				{
-					if (ImGui::IsMouseReleased(0))
-					{
-						if (bIsPlaying)
-						{
-							//Pause
-							bSmallVideoPerccentStart[iVideoEntry] = true;
-							iSmallVideoDelayExecute[iVideoEntry] = 3; // pause
-							bSmallVideoFrameStart = false; //PE: Wait until next frame.
-						}
-						else
-						{
-							//Play
-							bSmallVideoPerccentStart[iVideoEntry] = true;
-							if (bSmallVideoResumePossible[iVideoEntry]) {
-								iSmallVideoDelayExecute[iVideoEntry] = 2; //resume
-							}
-							else {
-								iSmallVideoDelayExecute[iVideoEntry] = 1; //play - restart.
-							}
-							bSmallVideoFrameStart = false; //PE: Wait until next frame.
-						}
-					}
-				}
-				*/
 			}
 
 			ImGui::EndChild();
@@ -9429,7 +9395,8 @@ void SmallTutorialVideo(char *tutorial, char* combo_items[], int combo_entries,i
 				bImGuiGotFocus = true;
 				ImGui::Indent(-10);
 
-				if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+				if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+				{
 					//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 					ImGui::Text("");
 					ImGui::Text("");
@@ -35360,7 +35327,7 @@ void Welcome_Screen(void)
 				TabStartPos.x += ImGui::TabItemCalcSize(" Tutorials ", false).x + gui.Style.ItemInnerSpacing.x;
 				if (ImGui::BeginTabItem(" Tutorials ", NULL, tabflags))
 				{
-					char* tutorial_order[] = { "9901-introduction-video.mp4", "0101-getting-started.mp4", "0701-game-storyboard.mp4", "0501-terrain-generator.mp4", "0502-terrain-height-maps.mp4", "0201-level-editor.mp4", "0202-particle-editor.mp4", "0203-animation-library.mp4", "0301-object-library.mp4" , "0801-character-creator.mp4" ,"0601-terrain-editing.mp4", "0401-objects-grouping.mp4" };
+					char* tutorial_order[] = { "9901-introduction-video.mp4", "0101-getting-started.mp4", "0701-game-storyboard.mp4", "0501-terrain-generator.mp4", "0502-terrain-height-maps.mp4", "0201-level-editor.mp4", "0202-particle-editor.mp4", "0203-animation-library.mp4", "0301-object-library.mp4" , "0801-character-creator.mp4" ,"0601-terrain-editing.mp4", "0401-objects-grouping.mp4", "0901-behaviour-ai.mp4", "0902-behaviour-demos-1.mp4",  "0903-behaviour-demos-2.mp4" };
 
 					iCurrentOpenTab = 3;
 

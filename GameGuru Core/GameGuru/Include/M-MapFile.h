@@ -19,7 +19,7 @@ float mapfile_savestandalone_getprogress ( void );
 void mapfile_savestandalone_finish ( void );
 void mapfile_savestandalone_restoreandclose ( void );
 //void mapfile_savestandalone ( void );
-void scanscriptfileandaddtocollection ( char* tfile_s );
+void scanscriptfileandaddtocollection ( char* tfile_s , char *pPath = NULL);
 bool addtocollection ( char* file_s );
 void removefromcollection ( char* file_s );
 void removeanymatchingfromcollection ( char* folderorfile_s );

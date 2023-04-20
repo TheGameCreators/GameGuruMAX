@@ -4252,8 +4252,11 @@ void gun_load ( void )
 	#ifdef WICKEDENGINE
 	// We need the object loaded so can get anim start and finish frames if specified by animname
 	t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());
-	gun_loaddata ();
-	preparegun (t.gunid, t.currentgunobj);
+	if (t.currentgunobj > 0)
+	{
+		gun_loaddata();
+		preparegun(t.gunid, t.currentgunobj);
+	}
 	#else
 	gun_loaddata ();
 	t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());

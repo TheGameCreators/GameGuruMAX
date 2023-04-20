@@ -2381,7 +2381,7 @@ void entity_lua_charactercontrolunarmed ( void )
 void entity_lua_charactercontrolarmed ( void )
 {
 	entity_lua_findcharanimstate ( );
-	if (  t.tcharanimindex != -1 ) 
+	if (  t.tcharanimindex != -1 && t.csi_stood.size() > 0)
 	{
 		// 200316 - replaced UNARMED state with STOOD (as this is the armed CSI states!)
 		// check we are not already in that state before sending out lua, so we dont flood

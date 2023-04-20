@@ -10,6 +10,9 @@
 #include "GGTerrain\GGTerrain.h"
 #include "GGTerrain\GGTrees.h"
 #include "GGTerrain\GGGrass.h"
+using namespace GGTerrain;
+using namespace GGTrees;
+using namespace GGGrass;
 #endif
 
 #include "GGThread.h"
@@ -6195,7 +6198,7 @@ void mapfile_savestandalone_restoreandclose ( void )
 }
 #endif
 
-void scanscriptfileandaddtocollection ( char* tfile_s )
+void scanscriptfileandaddtocollection ( char* tfile_s , char *pPath)
 {
 	cstr tscriptname_s =  "";
 	cstr tlinethis_s =  "";
@@ -6273,7 +6276,12 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 
 					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
 						//Newly added , also scan this entry.
-						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+						if (pPath)
+						{
+							scanscriptfileandaddtocollection(cstr(cstr(pPath)+cstr("scriptbank\\") + tscriptname_s).Get(), pPath);
+						}
+						else
+							scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
 					}
 				}
 			}
@@ -6313,7 +6321,11 @@ void scanscriptfileandaddtocollection ( char* tfile_s )
 
 					if (addtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get()) == true) {
 						//Newly added , also scan this entry.
-						scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
+						if (pPath)
+						{
+							scanscriptfileandaddtocollection(cstr(cstr(pPath) + cstr("scriptbank\\") + tscriptname_s).Get(), pPath);
+						}
+							scanscriptfileandaddtocollection(cstr(cstr("scriptbank\\") + tscriptname_s).Get());
 					}
 				}
 			}
@@ -7163,12 +7175,17 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 		//PE: WIP - Dont match 100% yet.
 		//PE: Should be: height - 600 * 2.0 / 10000.0. ?
 		//PE: Got it, looks like it fit now, need'ed ggterrain_global_params.height = 5000.0 :)
+		//meters * 39.37f; // 1 unit = 1 inch
+		//units * 0.0254f;
+		//7,874
+
 		if (1)
 		{
 			uint32_t size1 = 4096 * 4096 * sizeof(uint8_t);
 			uint32_t size2 = 4096 * 4096 * sizeof(float);
 			uint32_t terrain_sculpt_size = GGTerrain::GGTerrain_GetSculptDataSize();
-
+			float fHeightAdjust = 600.0f; //600.0f;
+			float fHeightDivider = 1.0f/5000.0f;
 			char *data = new char[terrain_sculpt_size];
 			if (data)
 			{
@@ -7190,33 +7207,42 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 							float scale = 2.0;
 							int offsetz = 1024; //1536
 							int offsetx = 1024; //1536
-							float fHeight = (ReadMemblockFloat(1, mi) - 600.0) * 2.0; //Test 5000.0 look OK.
-							float fHeight1, fHeight2, fHeight3;
+							//float fHeight = (ReadMemblockFloat(1, mi) - fHeightAdjust) * 2.0; //Test 5000.0 look OK.
+							float fHeight = (ReadMemblockFloat(1, mi) - fHeightAdjust); //Test 5000.0 look OK.
+							float fHeight1= fHeight, fHeight2= fHeight, fHeight3= fHeight;
 							fHeight1 = fHeight2 = fHeight3 = fHeight;
 							if (z < 1023 && x < 1023)
 							{
-								fHeight1 = (ReadMemblockFloat(1, mi + 4) - 600.0) * 2.0;
-								fHeight2 = (ReadMemblockFloat(1, mi + 4 + (1024 * 4)) - 600.0) * 2.0;
-								fHeight3 = (ReadMemblockFloat(1, mi + (1024 * 4)) - 600.0) * 2.0;
+								fHeight1 = (ReadMemblockFloat(1, mi + 4) - fHeightAdjust);
+								fHeight2 = (ReadMemblockFloat(1, mi + 4 + (1024 * 4)) - fHeightAdjust);
+								fHeight3 = (ReadMemblockFloat(1, mi + (1024 * 4)) - fHeightAdjust);
 							}
-
+							
 							if (x > 0 && x < 1023 && z > 0 && z < 1023)
 							{
+
+								x++;
+								z++;
+
 								uint32_t newindex = (4096 - 1 - (offsetz + (z * scale + 0))) * 4096 + (offsetx + (x * scale + 0));
 								pHeightMapEditType[newindex] = 1; //Replace.
-								pHeightMapEdit[newindex] = (fHeight) / 10000.0;
+								pHeightMapEdit[newindex] = (fHeight) *fHeightDivider;
+
 
 								newindex = (4096 - 1 - (offsetz + (z * scale + 0))) * 4096 + (offsetx + (x * scale + 1));
 								pHeightMapEditType[newindex] = 1; //Replace.
-								pHeightMapEdit[newindex] = ((fHeight + fHeight1) * 0.5) / 10000.0;
+								pHeightMapEdit[newindex] = ((fHeight + fHeight1) * 0.5) * fHeightDivider;
 
 								newindex = (4096 - 1 - (offsetz + (z * scale + 1))) * 4096 + (offsetx + (x * scale + 1));
 								pHeightMapEditType[newindex] = 1; //Replace.
-								pHeightMapEdit[newindex] = ((fHeight + fHeight2) * 0.5) / 10000.0;
+								pHeightMapEdit[newindex] = ((fHeight + fHeight2) * 0.5) * fHeightDivider;
 
 								newindex = (4096 - 1 - (offsetz + (z * scale + 1))) * 4096 + (offsetx + (x * scale + 0));
 								pHeightMapEditType[newindex] = 1; //Replace.
-								pHeightMapEdit[newindex] = ((fHeight + fHeight3) * 0.5) / 10000.0;
+								pHeightMapEdit[newindex] = ((fHeight + fHeight3) * 0.5) * fHeightDivider;
+
+								x--;
+								z--;
 
 							}
 							else
@@ -7262,26 +7288,26 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 		int mi = 0;
 		for ( int z = 0; z <= 1023; z++ )
 		{
-			for ( int x = 0; x <= 1023; x++ )
+			for (int x = 0; x <= 1023; x++)
 			{
-				float fHeight = ReadMemblockFloat ( 1, mi );
+				float fHeight = ReadMemblockFloat(1, mi);
 				if (x > 0 && x < 1023 && z > 0 && z < 1023)
-					fSrcHeightData[x+(z*iSrcHeightWidth)] = fHeight;
+					fSrcHeightData[x + (z * iSrcHeightWidth)] = fHeight;
 				else
-					fSrcHeightData[x+(z*iSrcHeightWidth)] = 0.0f;
+					fSrcHeightData[x + (z * iSrcHeightWidth)] = 0.0f;
 				mi += 4;
 			}
 		}
-		DeleteMemblock (  1 );
-		CloseFile (  1 );
+		DeleteMemblock(1);
+		CloseFile(1);
 	}
 
 	// old terrain and new terrain are at different scales, so sample from an offset and scale factor
 	// that lines up center of old terrain with center of terrain node zero (TTR0XR0)
 	float fActualCoverage = (1024.0f / 51200.0f) * 10000.0f;
-	float fSampleStartCorner = 512.0f - (fActualCoverage/2.0f);
+	float fSampleStartCorner = 512.0f - (fActualCoverage / 2.0f);
 	int iNearestSrcXZ = (int)fSampleStartCorner;
-	
+
 	// leelee, hack!
 	iNearestSrcXZ += 3;
 
@@ -7331,20 +7357,20 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 					float fHeight = 0.0f;
 					int iSrcX = (int)(fSrcX);
 					int iSrcZ = (int)(fSrcZ);
-					int iSrcX2 = iSrcX+1;
-					int iSrcZ2 = iSrcZ+1;
+					int iSrcX2 = iSrcX + 1;
+					int iSrcZ2 = iSrcZ + 1;
 					float fMidX = (fSrcX - (float)iSrcX);
 					float fMidZ = (fSrcZ - (float)iSrcZ);
-					float fHeightX1 = fSrcHeightData[iSrcX + (iSrcZ*iSrcHeightWidth)];
-					float fHeightX2 = fSrcHeightData[iSrcX2 + (iSrcZ*iSrcHeightWidth)];
-					float fHeightA =  fHeightX1 + (fHeightX2-fHeightX1)*fMidX;
-					fHeightX1 = fSrcHeightData[iSrcX + (iSrcZ2*iSrcHeightWidth)];
-					fHeightX2 = fSrcHeightData[iSrcX2 + (iSrcZ2*iSrcHeightWidth)];
-					float fHeightB =  fHeightX1 + (fHeightX2-fHeightX1)*fMidX;
-					fHeight = fHeightA + (fHeightB - fHeightA)*fMidZ;
+					float fHeightX1 = fSrcHeightData[iSrcX + (iSrcZ * iSrcHeightWidth)];
+					float fHeightX2 = fSrcHeightData[iSrcX2 + (iSrcZ * iSrcHeightWidth)];
+					float fHeightA = fHeightX1 + (fHeightX2 - fHeightX1) * fMidX;
+					fHeightX1 = fSrcHeightData[iSrcX + (iSrcZ2 * iSrcHeightWidth)];
+					fHeightX2 = fSrcHeightData[iSrcX2 + (iSrcZ2 * iSrcHeightWidth)];
+					float fHeightB = fHeightX1 + (fHeightX2 - fHeightX1) * fMidX;
+					fHeight = fHeightA + (fHeightB - fHeightA) * fMidZ;
 
 					// new terrain nodes raise objects by 600, so deduct this affect
-					if ( fHeight > 0.0f ) fHeight -= 600.0f;
+					if (fHeight > 0.0f) fHeight -= 600.0f;
 
 					// calculate vert
 					XMFLOAT3 pos;
@@ -7381,8 +7407,6 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 	}
 #endif
 
-	// and finally leave node zero folder
-	SetDir("..");
 
 	// load in old terrain textures and vegmask
 	// TODO
@@ -7391,39 +7415,171 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 	// TODO
 
 	// save grass map into terrain node files
-	int iGrassMemblockThreshhold = 74; // Old classic grass not rendered below this value
 	t.tfileveggrass_s = "vegmaskgrass.dat";
-	grass_loadgrass();
-	t.tfileveggrass_s = "TTR0XR0\\vegmaskgrass.dat";
-	if ( MemblockExist(t.terrain.grassmemblock) == 0 ) 
+
+	if (FileExist(t.tfileveggrass_s.Get()) == 1)
 	{
-		MakeMemblock ( t.terrain.grassmemblock, 4+4+4+((MAXTEXTURESIZE*MAXTEXTURESIZE)*4) );
+		OpenToRead(3, t.tfileveggrass_s.Get());
+		if (MemblockExist(t.terrain.grassmemblock)) DeleteMemblock(t.terrain.grassmemblock);
+		ReadMemblock(3, t.terrain.grassmemblock);
+		CloseFile(3);
 	}
-	WriteMemblockDWord ( t.terrain.grassmemblock, 0, MAXTEXTURESIZE );
-	WriteMemblockDWord ( t.terrain.grassmemblock, 4, MAXTEXTURESIZE );
-	WriteMemblockDWord ( t.terrain.grassmemblock, 8, 32 );
-	t.tPindex = 4+4+4;
-	for ( t.tP = 0 ; t.tP <= MAXTEXTURESIZE*MAXTEXTURESIZE - 1; t.tP++ )
+	else
 	{
-		if (ReadMemblockByte(t.terrain.grassmemblock, t.tPindex + 2) >= iGrassMemblockThreshhold )
+		if (MemblockExist(t.terrain.grassmemblock) == 0)
 		{
-			WriteMemblockByte(t.terrain.grassmemblock, t.tPindex + 1, 31); // green - full sized grass
-			WriteMemblockByte(t.terrain.grassmemblock, t.tPindex + 2, 1); // red - only one grass type in classic
+			MakeMemblock(t.terrain.grassmemblock, 4 + 4 + 4 + ((MAXTEXTURESIZE * MAXTEXTURESIZE) * 4));
 		}
-		else
+		WriteMemblockDWord(t.terrain.grassmemblock, 0, MAXTEXTURESIZE);
+		WriteMemblockDWord(t.terrain.grassmemblock, 4, MAXTEXTURESIZE);
+		WriteMemblockDWord(t.terrain.grassmemblock, 8, 32);
+		t.tPindex = 4 + 4 + 4;
+		for (t.tP = 0; t.tP <= MAXTEXTURESIZE * MAXTEXTURESIZE - 1; t.tP++)
 		{
-			WriteMemblockByte(t.terrain.grassmemblock, t.tPindex + 1, 0);
 			WriteMemblockByte(t.terrain.grassmemblock, t.tPindex + 2, 0);
+			t.tPindex += 4;
 		}
-		WriteMemblockByte ( t.terrain.grassmemblock, t.tPindex+0, 0 );
-		WriteMemblockByte ( t.terrain.grassmemblock, t.tPindex+3, 0 );
-		t.tPindex += 4;
 	}
-	grass_savegrass();
+
+
+	//PE: Restore grass Data.
+	uint32_t grass_data_size = GGGrass::GGGrass_GetDataSize();
+	char* data = new char[grass_data_size];
+	memset(data, 0, grass_data_size);
+
+	if (data)
+	{
+		t.tPindex = 4 + 4 + 4;
+		int iGrassMemblockThreshhold = 74; // Old classic grass not rendered below this value
+		int mi = 0;
+		int iScale = 2;
+		for (int z = 0; z < 2048; z++)
+		{
+			for (int x = 0; x < 2048; x++)
+			{
+				float scale = 1.0;
+				int offset = 1024;
+
+				if (x > 0 && x < 2047 && z > 0 && z < 2047)
+				{
+
+					uint32_t newindex = ((offset + (z * scale + 0))) * 4096 + (offset + (x * scale + 0));
+					if (newindex > 0 && newindex < grass_data_size)
+					{
+						if (ReadMemblockByte(t.terrain.grassmemblock, t.tPindex + mi + 2) >= iGrassMemblockThreshhold)
+						{
+							data[newindex] = 2; // realIndex = selected+2
+							if (z > 0 && x > 0 && z < 2047 && x < 2047)
+							{
+								data[newindex + 1] = 2;
+								data[newindex - 1] = 2;
+								newindex = ((offset + (z * scale + 1))) * 4096 + (offset + (x * scale + 0));
+								if (newindex > 0 && newindex < grass_data_size)
+									data[newindex] = 2;
+								newindex = ((offset + (z * scale - 1))) * 4096 + (offset + (x * scale + 0));
+								if (newindex > 0 && newindex < grass_data_size)
+									data[newindex] = 2;
+							}
+
+						}
+						else
+						{
+							data[newindex] = 0;
+						}
+					}
+				}
+
+				mi += 4;
+			}
+		}
+		GGGrass::GGGrass_SetData(grass_data_size, (uint8_t*)data);
+		delete(data);
+		gggrass_global_params.draw_enabled = true;
+		t.showeditorveg = true;
+		t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = true;
+
+	}
+	if (MemblockExist(t.terrain.grassmemblock)) DeleteMemblock(t.terrain.grassmemblock);
 
 	// and delete old grass file from testmap
 	t.tfileveggrass_s = "vegmaskgrass.dat";
 	if (FileExist(t.tfileveggrass_s.Get()) == 1) DeleteFileA(t.tfileveggrass_s.Get());
+
+
+
+	if (FileExist("vegmask.dds") == 1)
+	{
+		uint32_t terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
+		data = new char[terrain_paint_size];
+		memset(data, 0, terrain_paint_size);
+		if (data)
+		{
+
+			image_setlegacyimageloading(true);
+			LoadImage("vegmask.dds", t.terrain.imagestartindex + 2);
+			image_setlegacyimageloading(false);
+			if (ImageExist(t.terrain.imagestartindex + 2))
+			{
+				CreateMemblockFromImage(t.terrain.grassmemblock, t.terrain.imagestartindex + 2);
+				if (MemblockExist(t.terrain.grassmemblock))
+				{
+					//.ptd
+					//Texture terrain.
+
+					t.tPindex = 4 + 4 + 4;
+					int mi = 0;
+					int iScale = 2;
+					for (int z = 0; z < 2048; z++)
+					{
+						for (int x = 0; x < 2048; x++)
+						{
+							float scale = 1.0;
+
+							//int blue = ReadMemblockByte(t.terrain.grassmemblock, t.tPindex + mi + 2);
+							int green = ReadMemblockByte(t.terrain.grassmemblock, t.tPindex + mi + 1);
+							//int red= ReadMemblockByte(t.terrain.grassmemblock, t.tPindex + mi + 0);
+
+							if (x > 0 && x < 2047 && z > 0 && z < 2047)
+							{
+
+								int offset = 1024;
+								uint32_t newindex = ((offset + (z * scale + 0))) * 4096 + (offset + (x * scale + 0));
+
+								if (newindex > 0 && newindex < terrain_paint_size && green > 1)
+								{
+									data[newindex] = 6;
+									
+									if (z > 0 && x > 0 && z < 2047 && x < 2047)
+									{
+										data[newindex + 1] = 6;
+										data[newindex - 1] = 6;
+										newindex = ((offset + (z * scale + 1))) * 4096 + (offset + (x * scale + 0));
+										if (newindex > 0 && newindex < terrain_paint_size)
+										{
+											data[newindex] = 6;
+										}
+										newindex = ((offset + (z * scale - 1))) * 4096 + (offset + (x * scale + 0));
+										if (newindex > 0 && newindex < terrain_paint_size)
+										{
+											data[newindex] = 6;
+										}
+									}
+									
+								}
+							}
+							mi += 4;
+						}
+					}
+				}
+			}
+
+			GGTerrain::GGTerrain_SetPaintData(terrain_paint_size, (uint8_t*)data);
+			delete(data);
+		}
+	}
+
+	// and finally leave node zero folder
+	SetDir("..");
 
 	// Restore folder
 	SetDir(pOldDir);
@@ -7494,6 +7650,13 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 				if(!FileExist(pSrcFile))
 					bCanBeIgnored = true;
 			}
+
+			//PE: Some models ruin wicked , ignore those.
+			{
+				if(pestrcasestr(pSrcFile,"leafy bush (dense)"))
+					bCanBeIgnored = true;
+			}
+
 			if (!bCanBeIgnored)
 			{
 				OpenToRead(1, pSrcFile);
@@ -7564,6 +7727,18 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 					strcat(pDestFile, pModelFile);
 					GG_GetRealPath(pDestFile, 1);
 					CopyFileA(pSrcFile, pDestFile, TRUE);
+					//PE: If .x also copy .dbo
+					if (pSrcFile[strlen(pSrcFile) - 1] == 'x' || pSrcFile[strlen(pSrcFile) - 1] == 'X')
+					{
+						if (pSrcFile[strlen(pSrcFile) - 2] == '.')
+						{
+							pSrcFile[strlen(pSrcFile) - 2] = 0;
+							strcat(pSrcFile, ".dbo");
+							pDestFile[strlen(pDestFile) - 2] = 0;
+							strcat(pDestFile, ".dbo");
+							CopyFileA(pSrcFile, pDestFile, TRUE);
+						}
+					}
 				}
 			}
 
@@ -7687,8 +7862,11 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 						strcpy(pDestFile, "gamecore\\");
 						strcat(pDestFile, pGameCoreFolder);
 						strcat(pDestFile, pFileName);
-						GG_GetRealPath(pDestFile, 1);
-						CopyFileA(pSrcFile, pDestFile, TRUE);
+						if (!FileExist(pDestFile))
+						{
+							GG_GetRealPath(pDestFile, 1);
+							CopyFileA(pSrcFile, pDestFile, TRUE);
+						}
 					}
 				}
 			}

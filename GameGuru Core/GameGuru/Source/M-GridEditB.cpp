@@ -42777,6 +42777,9 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
+					static int ClassicConversion = 0;
+					static char pReconstructGameGuruRootFiles[MAX_PATH];
+
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Add Existing Level", ImVec2(buttonwide, 0.0f)) || iStoryboardExecuteKey == 'L')
 					{
@@ -42831,7 +42834,41 @@ void process_storeboard(bool bInitOnly)
 
 									if (!bValidPath)
 									{
-										MessageBoxA(NULL, "All levels added to storyboard must be saved inside the default 'mapbank' folder.", "Error:", 0);
+										//PE: check if this is a Classic map we need to import.
+										bool bImportClassicMap = false;
+										strcpy(pReconstructGameGuruRootFiles, "");
+										char pReconstructGameGuruFolder[MAX_PATH];
+										strcpy(pReconstructGameGuruFolder, "");
+										char pReconstructGameGuruEXE[MAX_PATH];
+										strcpy(pReconstructGameGuruEXE, cFileSelected);
+										LPSTR pFindClassicFolder = strstr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
+										if (pFindClassicFolder != NULL)
+										{
+											pFindClassicFolder[0] = 0;
+											strcpy(pReconstructGameGuruRootFiles, pReconstructGameGuruEXE);
+											strcat(pReconstructGameGuruRootFiles, "Game Guru\\Files\\");
+											strcpy(pReconstructGameGuruFolder, pReconstructGameGuruEXE);
+											strcat(pReconstructGameGuruFolder, "Game Guru\\Files\\entitybank\\");
+											strcat(pReconstructGameGuruEXE, "Game Guru\\GameGuru.exe");
+											if (FileExist(pReconstructGameGuruEXE) == 1)
+											{
+												bImportClassicMap = true;
+											}
+										}
+										if (bImportClassicMap)
+										{
+											int iAction = askBoxCancel("You have selected a classic map, do you want to import this level ?", "GameGuru Classic Map!"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												//Import map.
+												ClassicConversion = 1;
+												sNextLevelToLoad = t.returnstring_s;
+											}
+										}
+										else
+										{
+											MessageBoxA(NULL, "All levels added to storyboard must be saved inside the default 'mapbank' folder.", "Error:", 0);
+										}
 									}
 									if (bValidPath)
 									{
@@ -42924,7 +42961,472 @@ void process_storeboard(bool bInitOnly)
 						}
 
 					}
+					if (ClassicConversion > 0)
+					{
+						if (ClassicConversion <= 3)
+						{
+							strcpy(cTriggerMessage, "Importing Classic Level ...");
+							bTriggerMessage = true;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+							if(ClassicConversion == 1) iMessageTimer = 0;
+							ClassicConversion++;
+						}
+						else if (ClassicConversion == 4)
+						{
+							//PE: Load fpm from original location.
+							g.projectfilename_s = sNextLevelToLoad;
 
+							extern bool g_bAllowBackwardCompatibleConversion;
+							g_bAllowBackwardCompatibleConversion = true;
+							GGTerrain_RemoveAllFlatAreas();
+							gridedit_load_map();
+							g_bAllowBackwardCompatibleConversion = false;
+							strcpy(cTriggerMessage, "Converting Settings ...");
+							bTriggerMessage = true;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+							iMessageTimer = 0;
+
+							ClassicConversion++;
+						}
+						else if (ClassicConversion == 5)
+						{
+							//PE: Converting settings.
+							//PE: ALL ai_ lua scripts will not work in wicked.
+
+							Undim(t.filecollection_s);
+							g.filecollectionmax = 0;
+							Dim(t.filecollection_s, 500);
+
+							for (int i = 1; i <= g.entityelementmax; i++)
+							{
+								t.e = i;
+								int masterid = t.entityelement[t.e].bankindex;
+								if (masterid > 0)
+								{
+									if (t.entityprofile[masterid].ischaractercreator == 1)
+									{
+										//Delete Old Character Creator
+										t.tentitytoselect = t.e;
+										g_UndoSysObjectIsBeingMoved = false;
+										entity_deleteentityfrommap();
+										//gridedit_deleteentityfrommap();
+									}
+									if (t.entityelement[t.e].eleprof.aimain_s.Len() > 0)
+									{
+										t.entityelement[t.e].eleprof.soundset5_s = t.entityelement[t.e].eleprof.soundset4_s;
+										t.entityelement[t.e].eleprof.soundset4_s = "";
+
+										//PE: Map scripts.
+										if (t.entityelement[t.e].eleprof.aimain_s != "no_behavior_selected.lua")
+										{
+											char script[MAX_PATH];
+
+											strcpy(script, t.entityelement[t.e].eleprof.aimain_s.Get());
+											bool bIncludeMarker = pestrcasestr(script, "markers");
+											bool bIncludeObjects = pestrcasestr(script, "objects");
+											
+											//PE: Convert old script to new DLUA versions.
+											if (!bIncludeMarker && pestrcasestr(script, "winzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\winzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "teleport.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\teleport.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "plrinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\plrinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "FlameLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlameLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "soundinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "ToggleLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ToggleLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "StrobeLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\StrobeLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "FlickerLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlickerLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "RotateLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\RotateLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "ambienceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "imageinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\imageinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "fadezone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\fadezone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "electrocute.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\electrocute.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "textinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\textinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "envirozone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\envirozone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "hurt.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\hurt.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "npcinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\npcinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "heal.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\heal.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "stealthzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\stealthzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "watercontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\watercontrol.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "slip.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\slip.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "bounce.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\bounce.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "FreezePlayer.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FreezePlayer.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "videoinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\videoinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "checkpoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\checkpoint.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "ambienceonceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceonceinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "soundrepeatinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundrepeatinzone.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "module_lightcontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\module_lightcontrol.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "ConstantLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ConstantLight.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "sendpulse.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\sendpulse.lua";
+											else if (!bIncludeMarker && pestrcasestr(script, "particle.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\particle.lua";
+											//PE: new DLUA in Objects.
+											else if (!bIncludeObjects && pestrcasestr(script, "proximity_mine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\proximity_mine.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "ladder.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\ladder.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "healthbar.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\healthbar.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "change_texture.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\change_texture.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "door_rotate.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_rotate.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "secmon.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\secmon.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "winswitch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\winswitch.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "spin.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\spin.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "dynamite.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\dynamite.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "seccam.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\seccam.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "hideshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hideshow.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "boat.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\boat.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "door_sliding.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_sliding.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "carry_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\carry_object.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "door.lua"))
+											{
+												//door_properties(0\"70\",0\"1000\",3\"0\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")
+												//g_Entity[e]['haskey'] ?
+												t.entityelement[t.e].eleprof.soundset4_s = "door_properties(0\"70\",0\"1000\",3\"1\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")";
+												t.entityelement[t.e].eleprof.aimain_s = "objects\\door.lua";
+											}
+											else if (!bIncludeObjects && pestrcasestr(script, "decalshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\decalshow.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "sentry.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\sentry.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "mines.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "proximine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "face_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\face_object.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "document.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\document.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "switch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\switch.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "move_near.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_near.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "invisible.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "move_away.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_away.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "loopwaypoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\loopwaypoint.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "invisibleprompt.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisibleprompt.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "hover.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hover.lua";
+
+											else if (!bIncludeObjects && pestrcasestr(script, "health.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\health.lua";
+											else if (!bIncludeObjects && pestrcasestr(script, "radar.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\radar.lua";
+
+											else if (pestrcasestr(script, "invisible_wall.lua"))
+												t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
+											else if (pestrcasestr(script, "ai_") && t.entityprofile[masterid].ischaracter == 1)
+											{
+												//PE: No old AI_ is working in max.
+												t.entityelement[t.e].eleprof.aimain_s = "";
+											}
+											else if (pestrcasestr(script, "stories\\T"))
+											{
+												//PE: TBE stories dont work., LoadImages("The Big Escape",0)
+												t.entityelement[t.e].eleprof.aimain_s = "";
+											}
+											else
+											{
+												//PE: Missing. copy to docwrite script folder , old lua script might work.
+												//PE: Check if its already in max scripts.
+												char scriptfile[MAX_PATH];
+												strcpy(scriptfile, "scriptbank\\");
+												strcat(scriptfile, t.entityelement[t.e].eleprof.aimain_s.Get());
+												if (!FileExist(scriptfile))
+												{
+													char WriteTo[MAX_PATH];
+													char ReadFrom[MAX_PATH];
+													strcpy(WriteTo, scriptfile);
+													GG_GetRealPath(WriteTo, 1);
+													strcpy(ReadFrom, pReconstructGameGuruRootFiles);
+													strcat(ReadFrom, scriptfile);
+													bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
+
+													scanscriptfileandaddtocollection(ReadFrom, &pReconstructGameGuruRootFiles[0]);
+												}
+											}
+										}
+									}
+									char pGameCoreAsset[MAX_PATH];
+									strcpy(pGameCoreAsset, "");
+									//#define INCLUDECLASSICWEAPONS
+									#ifdef INCLUDECLASSICWEAPONS
+									if (t.entityprofile[masterid].ischaracter == 1)
+									{
+										strcpy(pGameCoreAsset, t.entityprofile[masterid].hasweapon_s.Get());
+									}
+									if (t.entityprofile[masterid].ismarker == 1)
+									{
+										strcpy(pGameCoreAsset, t.entityelement[t.e].eleprof.hasweapon_s.Get());
+									}
+									#endif
+									if (strlen(pGameCoreAsset) > 0)
+									{
+										char pGameCoreFolder[MAX_PATH];
+										strcpy(pGameCoreFolder, pGameCoreAsset);
+										LPSTR pOldDir = GetDir();
+										char pSrcFolder[MAX_PATH];
+										strcpy(pSrcFolder, pReconstructGameGuruRootFiles);
+										strcat(pSrcFolder, "gamecore\\guns\\");
+										strcat(pSrcFolder, pGameCoreFolder);
+										if (PathExist(pSrcFolder))
+										{
+											SetDir(pSrcFolder);
+											ChecklistForFiles();
+											SetDir(pOldDir);
+											strcat(pGameCoreFolder, "\\");
+											strcat(pSrcFolder, "\\");
+											for (int c = 1; c <= ChecklistQuantity(); c++)
+											{
+												LPSTR pFileName = ChecklistString(c);
+												if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
+												{
+													char pSrcFile[MAX_PATH];
+													char pDestFile[MAX_PATH];
+													strcpy(pSrcFile, pSrcFolder);
+													strcat(pSrcFile, pFileName);
+													strcpy(pDestFile, "gamecore\\guns\\");
+													strcat(pDestFile, pGameCoreFolder);
+													strcat(pDestFile, pFileName);
+													if (!FileExist(pDestFile))
+													{
+														GG_GetRealPath(pDestFile, 1);
+														CopyFileA(pSrcFile, pDestFile, TRUE);
+													}
+												}
+											}
+										}
+									}
+
+								}
+							}
+
+							if (g.filecollectionmax > 0)
+							{
+								for (int i = 0; i <= g.filecollectionmax; i++)
+								{
+									LPSTR pThisFile = t.filecollection_s[i].Get();
+									int iThisSize = strlen(pThisFile);
+									if (iThisSize > 0)
+									{
+										// must have a file specified
+										if (pThisFile[iThisSize - 1] == '\\' || pThisFile[iThisSize - 1] == '/')
+										{
+											// ignore folders
+										}
+										else
+										{
+											char ReadFrom[MAX_PATH];
+											strcpy(ReadFrom, pReconstructGameGuruRootFiles);
+											strcat(ReadFrom, pThisFile);
+											if (FileExist(ReadFrom) == 1)
+											{
+												char WriteTo[MAX_PATH];
+												strcpy(WriteTo, pThisFile);
+												if (!FileExist(pThisFile))
+												{
+													GG_GetRealPath(WriteTo, 1);
+													bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
+												}
+											}
+										}
+									}
+								}
+								Undim(t.filecollection_s);
+								g.filecollectionmax = 0;
+								Dim(t.filecollection_s, 500);
+
+							}
+
+							t.tentitytoselect = 0;
+
+							strcpy(cTriggerMessage, "Creating New Level ...");
+							bTriggerMessage = true;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+							iMessageTimer = 0;
+
+							ClassicConversion++;
+						}
+						else if (ClassicConversion == 6)
+						{
+							//PE: saving new level.
+							char pNewGameGuruLevel[MAX_PATH];
+							strcpy(pNewGameGuruLevel, g.projectfilename_s.Get());
+							char* level = (char *) pestrcasestr(pNewGameGuruLevel, "mapbank\\");
+							if (level > 0)
+							{
+								char tmp[MAX_PATH];
+								strcpy(tmp, g.mysystem.mapbankAbs_s.Get());
+								//Relative.
+								char* find = (char*)pestrcasestr(tmp, "mapbank\\");
+								if (find && find != &tmp[0]) strcpy(&tmp[0], find);
+								strcat(tmp, level+8);
+
+								t.returnstring_s = tmp;
+								g.projectfilename_s = tmp;
+								g.projectmodifiedstatic = 1;
+								g.projectmodifiedstatic = 1;
+
+								for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+								{
+									t.entid = t.entityelement[t.e].bankindex;
+									if (t.entityprofile[t.entid].ismarker == 1)
+									{
+										//PE: set camera to Player Start Marker Settings
+										PositionCamera( t.entityelement[t.e].x, t.entityelement[t.e].y+50, t.entityelement[t.e].z);
+										t.cx_f = t.editorfreeflight.c.x_f = GetCameraPosition().x;
+										t.editorfreeflight.c.y_f = GetCameraPosition().y;
+										t.cy_f = t.editorfreeflight.c.z_f = GetCameraPosition().z;
+										break;
+									}
+								}
+
+								gridedit_save_map();
+								g.projectmodified = 0; gridedit_changemodifiedflag();
+								g.projectmodifiedstatic = 0;
+								ClassicConversion++;
+								strcpy(cTriggerMessage, "Loading Converted Level ...");
+								bTriggerMessage = true;
+								iMessageTimer = 0;
+								iTriggerMessageDelay = 0;
+								iTriggerMessageY = 0;
+							}
+							else
+							{
+								ClassicConversion = 10;
+							}
+						}
+						else if (ClassicConversion == 7)
+						{
+							strcpy(cTriggerMessage, "Loading Converted Level ...");
+							bTriggerMessage = true;
+							iMessageTimer = 0;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+
+							ClassicConversion++;
+						}
+						else if (ClassicConversion == 8)
+						{
+							//PE: Loading new converted map.
+
+							char tmp[MAX_PATH];
+							strcpy(tmp, g.projectfilename_s.Get());
+
+							char* find = (char*)pestrcasestr(tmp, "mapbank\\");
+							if (find && find != &tmp[0]) strcpy(&tmp[0], find);
+
+							int iPos;
+							for (iPos = strlen(tmp); iPos >= 0; iPos--)
+								if (tmp[iPos] == '\\') break;
+							if (iPos > 0) iPos++;
+							std::string sLevelTitle = &tmp[iPos];
+							replaceAll(sLevelTitle, ".fpm", "");
+
+							std::string sLevelPath = &tmp[0];
+
+							//PE: Find next level from nodes.
+							int iNextLevel = 0, levelname = -1, iFirstNodeFree = -1;
+							FindFreeLevelNode(iNextLevel, levelname, iFirstNodeFree);
+
+							if (iFirstNodeFree >= 0)
+							{
+								//Create new level.
+								char tmp[255];
+								int node = iFirstNodeFree;
+								int nodeposy = iNextLevel;
+								if (levelname > 0)
+								{
+									sprintf(tmp, "Level %d", levelname);
+									nodeposy = levelname - 1;
+								}
+								else
+									sprintf(tmp, "Level %d", iNextLevel + 1);
+
+								//PE: Make sure any old data is removed, also thumbs.
+								reset_single_node(node);
+
+								Storyboard.Nodes[node].used = true;
+								Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
+								Storyboard.Nodes[node].restore_position = ImVec2(preview_size_x * 0.5 - (fNodeWidth * 0.5) + ((fNodeWidth + NODE_WIDTH_PADDING) * 2.0), STORYBOARD_YSTART + ((fNodeHeight + 20.0 + NODE_HEIGHT_PADDING) * (nodeposy)));
+								Storyboard.Nodes[node].iEditEnable = true;
+								strcpy(Storyboard.Nodes[node].title, sLevelTitle.c_str());
+								strcpy(Storyboard.Nodes[node].level_name, sLevelPath.c_str());
+								strcpy(Storyboard.Nodes[node].levelnumber, tmp);
+
+								strcpy(Storyboard.Nodes[node].thumb, "");
+								//Input.
+								strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
+								//Output.
+								strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+								strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
+								Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
+								Storyboard.Nodes[node].output_linkto[0] = 0;
+
+								strcpy(Storyboard.Nodes[node].output_title[1], " GAME OVER -> Connect to Scene ");
+								strcpy(Storyboard.Nodes[node].output_action[1], "loadlevel"); //Not defined this yet.
+								Storyboard.Nodes[node].output_can_link_to_type[1] = STORYBOARD_TYPE_SCREEN;
+								Storyboard.Nodes[node].output_linkto[1] = 0;
+
+								strcpy(Storyboard.Nodes[node].output_title[2], " NEXT LEVEL -> Connect to Level ");
+								strcpy(Storyboard.Nodes[node].output_action[2], "loadlevel"); //Not defined this yet.
+								Storyboard.Nodes[node].output_can_link_to_type[2] = STORYBOARD_TYPE_LEVEL;
+								Storyboard.Nodes[node].output_linkto[2] = 0;
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
+								iAutoConnectNode = node;
+								//Check if level already got a thumb.
+								CreateBackBufferCacheNameEx(Storyboard.Nodes[node].level_name, 512, 288, true);
+								if (FileExist(BackBufferCacheName.Get()))
+								{
+									if (CopyToProjectFolder(BackBufferCacheName.Get()))
+									{
+										//PE: Use relative projectbank filename.
+										if (FileExist(ProjectCacheName.Get()))
+											BackBufferCacheName = ProjectCacheName;
+									}
+
+									//PE: Load in old thumb.
+									SetMipmapNum(1); //PE: mipmaps not needed.
+									image_setlegacyimageloading(true);
+									LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[node].thumb_id, 512, 288);
+									image_setlegacyimageloading(false);
+									SetMipmapNum(-1); //PE: mipmaps not needed.
+									if (ImageExist(Storyboard.Nodes[node].thumb_id))
+									{
+										//PE: Success update thumb filename.
+										strcpy(Storyboard.Nodes[node].thumb, BackBufferCacheName.Get());
+									}
+								}
+							}
+
+							GGTerrain_RemoveAllFlatAreas();
+							gridedit_load_map();
+							bUpdateVeg = true;
+							//PE: TODO
+							//iLaunchAfterSync = 80; //Update env
+							//iSkibFramesBeforeLaunch = 5;
+							ClassicConversion++;
+						}
+						else if (ClassicConversion == 9)
+						{
+							strcpy(cTriggerMessage, "Converting New Media ...");
+							bTriggerMessage = true;
+							iMessageTimer = 0;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+
+							extern char szWriteDir[MAX_PATH];
+							extern char g_pAbsPathToConverter[MAX_PATH];
+
+							char pOldDir[MAX_PATH];
+							GetCurrentDirectoryA(MAX_PATH, pOldDir);
+							
+							SetDir(szWriteDir);
+							//PE: FASTLOAD - This takes 5 sec here, if not already loaded ?
+							HINSTANCE hinstance = ShellExecuteA(NULL, "open", g_pAbsPathToConverter, "", "", SW_SHOWDEFAULT);
+							Sleep(2000);
+							SetDir(pOldDir);
+
+							ClassicConversion = 0;
+						}
+
+						if (ClassicConversion == 10)
+						{
+							//Failed.
+							strcpy(cTriggerMessage, "ERROR: Importing Classic Level Failed!");
+							bTriggerMessage = true;
+							iMessageTimer = 0;
+							iTriggerMessageDelay = 0;
+							iTriggerMessageY = 0;
+							ClassicConversion = 0;
+						}
+					}
 					#ifdef INCLUDE_GAME_SETTINGS
 					if (pref.iStoryboardAdvanced)
 					{

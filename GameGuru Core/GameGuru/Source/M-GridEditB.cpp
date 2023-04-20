@@ -48120,6 +48120,39 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								cTriggerButtonClickSound = Storyboard.Nodes[nodeid].widget_click_sound[index];
 							}
 
+							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_NONE)
+							{
+								// depends on name of this button for the action (replace with better 'external custom' list instead of these internal enums)
+								int iActionTypeInternalByName = 0;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == 0) iActionTypeInternalByName = 1;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGH") == 0) iActionTypeInternalByName = 2;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == 0) iActionTypeInternalByName = 3;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == 0) iActionTypeInternalByName = 4;
+								if (iActionTypeInternalByName >= 1 && iActionTypeInternalByName <= 4)
+								{
+									if (iActionTypeInternalByName == 1)
+									{
+										t.visuals.shaderlevels.entities = 1;
+										t.visuals.shaderlevels.terrain = 1;
+										t.visuals.shaderlevels.vegetation = 1;
+									}
+									if (iActionTypeInternalByName == 2 || iActionTypeInternalByName == 3)
+									{
+										t.visuals.shaderlevels.entities = 2;
+										t.visuals.shaderlevels.terrain = 3;
+										t.visuals.shaderlevels.vegetation = 3;
+									}
+									if (iActionTypeInternalByName == 4)
+									{
+										t.visuals.shaderlevels.entities = 3;
+										t.visuals.shaderlevels.terrain = 4;
+										t.visuals.shaderlevels.vegetation = 4;
+									}
+									extern void visuals_shaderlevels_update();
+									visuals_shaderlevels_update();
+								}
+							}
+
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_RETURNVALUETOLUA)
 							{
 								iSpecialLuaReturn = index;

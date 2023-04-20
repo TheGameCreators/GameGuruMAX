@@ -1568,7 +1568,8 @@ DARKSDK void PositionListener ( float fX, float fY, float fZ )
 
 		// store the position and set it
 		vecListenerPosition = GGVECTOR3 ( fX, fY, fZ );
-		if (GGVec3Length(&(vecListenerPosition - g_vListenQuickPos)) > 5.0f)
+		//PE: xyz / 100 so 5.0 = 500 units, think we need to update faster :)
+		if (GGVec3Length(&(vecListenerPosition - g_vListenQuickPos)) > 0.5f) //5.0f
 		{
 			g_vListenQuickPos = vecListenerPosition;
 			pDSListener->SetPosition (fX, fY, fZ, DS3D_DEFERRED);

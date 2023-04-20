@@ -44695,7 +44695,32 @@ void FindFirstSplash(char *splash_name)
 			{
 				if (strlen(Storyboard.Nodes[i].thumb) > 0)
 				{
+					//PE: Need decrypt support here.
 					strcpy(splash_name, Storyboard.Nodes[i].thumb);
+
+					if (!pestrcasestr(splash_name, "Files\\"))
+					{
+						int GG_GetRealPath(char* fullPath, int create);
+						GG_GetRealPath(splash_name, 0);
+					}
+					if (!GG_FileExists(splash_name))
+					{
+						//Try 
+						char VirtualFilename[MAX_PATH];
+						strcpy(VirtualFilename, splash_name);
+						bool CheckForWorkshopFile(LPSTR VirtualFilename);
+						CheckForWorkshopFile(VirtualFilename);
+						// Decrypt and use media
+						g_pGlob->Decrypt(VirtualFilename);
+						if (FileExist(VirtualFilename))
+						{
+							strcpy(splash_name, VirtualFilename);
+						}
+
+						//PE: We cant do this, need another way to later clean up decrypt area.
+						//PE: Wait until the actual g_pGlob->Decrypt works so we can see how it works.
+						//g_pGlob->Encrypt(VirtualFilename);
+					}
 				}
 			}
 		}

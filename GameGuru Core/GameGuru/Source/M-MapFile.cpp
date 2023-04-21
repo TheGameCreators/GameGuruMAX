@@ -7140,10 +7140,10 @@ void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded)
 	strcpy(pReconstructGameGuruFolder, "");
 	char pReconstructGameGuruEXE[MAX_PATH];
 	strcpy(pReconstructGameGuruEXE, pFPMLoaded);
-	LPSTR pFindClassicFolder = strstr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
+	char* pFindClassicFolder = (char*)pestrcasestr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
 	if (pFindClassicFolder != NULL)
 	{
-		pFindClassicFolder[0] = 0;
+		*pFindClassicFolder = 0;
 		strcpy(pReconstructGameGuruRootFiles, pReconstructGameGuruEXE);
 		strcat(pReconstructGameGuruRootFiles, "Game Guru\\Files\\");
 		strcpy(pReconstructGameGuruFolder, pReconstructGameGuruEXE);

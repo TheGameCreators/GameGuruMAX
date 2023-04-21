@@ -42799,19 +42799,18 @@ void process_storeboard(bool bInitOnly)
 										bValidPath = false;;
 									}
 
-									if (!bValidPath)
+									//PE: check if this is a Classic map we need to import.
+									bool bImportClassicMap = false;
 									{
-										//PE: check if this is a Classic map we need to import.
-										bool bImportClassicMap = false;
 										strcpy(pReconstructGameGuruRootFiles, "");
 										char pReconstructGameGuruFolder[MAX_PATH];
 										strcpy(pReconstructGameGuruFolder, "");
 										char pReconstructGameGuruEXE[MAX_PATH];
 										strcpy(pReconstructGameGuruEXE, cFileSelected);
-										LPSTR pFindClassicFolder = strstr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
+										char* pFindClassicFolder = (char *) pestrcasestr(pReconstructGameGuruEXE, "Game Guru\\Files\\mapbank\\");
 										if (pFindClassicFolder != NULL)
 										{
-											pFindClassicFolder[0] = 0;
+											*pFindClassicFolder = 0;
 											strcpy(pReconstructGameGuruRootFiles, pReconstructGameGuruEXE);
 											strcat(pReconstructGameGuruRootFiles, "Game Guru\\Files\\");
 											strcpy(pReconstructGameGuruFolder, pReconstructGameGuruEXE);
@@ -42820,8 +42819,13 @@ void process_storeboard(bool bInitOnly)
 											if (FileExist(pReconstructGameGuruEXE) == 1)
 											{
 												bImportClassicMap = true;
+												bValidPath = false;
 											}
 										}
+									}
+
+									if (!bValidPath)
+									{
 										if (bImportClassicMap)
 										{
 											int iAction = askBoxCancel("You have selected a classic map, do you want to import this level ?", "GameGuru Classic Map!"); //1==Yes 2=Cancel 0=No
@@ -42947,7 +42951,10 @@ void process_storeboard(bool bInitOnly)
 							extern bool g_bAllowBackwardCompatibleConversion;
 							g_bAllowBackwardCompatibleConversion = true;
 							GGTerrain_RemoveAllFlatAreas();
+							extern bool g_bDisplayWarnings;
+							g_bDisplayWarnings = false;
 							gridedit_load_map();
+							g_bDisplayWarnings = true;
 							g_bAllowBackwardCompatibleConversion = false;
 							strcpy(cTriggerMessage, "Converting Settings ...");
 							bTriggerMessage = true;
@@ -43099,6 +43106,16 @@ void process_storeboard(bool bInitOnly)
 											}
 										}
 									}
+
+									if (t.entityprofile[masterid].model_s.Len() > 0)
+									{
+										//PE: 24 bits dds.
+										if (pestrcasestr(t.entityprofile[masterid].model_s.Get(), "FireFlies.X"))
+										{
+											//Remove.
+											t.entityelement[t.e].bankindex = 0;
+										}
+									}
 									char pGameCoreAsset[MAX_PATH];
 									strcpy(pGameCoreAsset, "");
 									//#define INCLUDECLASSICWEAPONS
@@ -43202,6 +43219,18 @@ void process_storeboard(bool bInitOnly)
 						}
 						else if (ClassicConversion == 6)
 						{
+							//PE: Check for missing .dbo files.
+							extern char szWriteDir[MAX_PATH];
+							extern char g_pAbsPathToConverter[MAX_PATH];
+
+							char pOldDir[MAX_PATH];
+							GetCurrentDirectoryA(MAX_PATH, pOldDir);
+
+							SetDir(szWriteDir);
+							HINSTANCE hinstance = ShellExecuteA(NULL, "open", g_pAbsPathToConverter, "", "", SW_SHOWDEFAULT);
+							Sleep(3000);
+							SetDir(pOldDir);
+
 							//PE: saving new level.
 							char pNewGameGuruLevel[MAX_PATH];
 							strcpy(pNewGameGuruLevel, g.projectfilename_s.Get());
@@ -43355,31 +43384,10 @@ void process_storeboard(bool bInitOnly)
 							GGTerrain_RemoveAllFlatAreas();
 							gridedit_load_map();
 							bUpdateVeg = true;
-							//PE: TODO
-							//iLaunchAfterSync = 80; //Update env
-							//iSkibFramesBeforeLaunch = 5;
 							ClassicConversion++;
 						}
 						else if (ClassicConversion == 9)
 						{
-							strcpy(cTriggerMessage, "Converting New Media ...");
-							bTriggerMessage = true;
-							iMessageTimer = 0;
-							iTriggerMessageDelay = 0;
-							iTriggerMessageY = 0;
-
-							extern char szWriteDir[MAX_PATH];
-							extern char g_pAbsPathToConverter[MAX_PATH];
-
-							char pOldDir[MAX_PATH];
-							GetCurrentDirectoryA(MAX_PATH, pOldDir);
-							
-							SetDir(szWriteDir);
-							//PE: FASTLOAD - This takes 5 sec here, if not already loaded ?
-							HINSTANCE hinstance = ShellExecuteA(NULL, "open", g_pAbsPathToConverter, "", "", SW_SHOWDEFAULT);
-							Sleep(2000);
-							SetDir(pOldDir);
-
 							ClassicConversion = 0;
 						}
 

@@ -1,0 +1,19 @@
+Kill Switch Behavior
+
+The Kill Switch behaviour allows for an area kill event that when 
+all enemies have been killed will then activate another object or 
+entity.
+
+Attach this behaviour to an object. Link to be activated by 
+switch or zone. Link also to the object you want to be activated.
+
+Edit the behavior settings to suit.
+Edit the EVENT TEXT eg: "Kill all Targets in Area"
+Set the ENEMY RANGE
+Turn the ENEMY COUNTER Off or On
+Edit the COUNTER TEXT eg:"Targets in Area Remaining"
+Edit the END TEXT eg: "All Targets in Area Eliminated"
+Set the END TEXT DURATION for display
+<Sound0> will play at event start.
+<Sound1> will play at event end.
+

@@ -1,0 +1,33 @@
+PipeValve
+
+The Pipevalve behaviour allows for a pipe valve/switch for activating
+other objects or zones. There are two seperate but related behaviours
+
+1. The Pipevalve
+This object will be treated as a switch object for activating other objects or 
+other game elements. Set Always Active = On
+
+Place the Pipevalve object where required and attach (if not already) the
+pipevalve behavior and adjust the options in the behaviour.
+
+Link the pipevalve with the logic connector to whatever you wish to activate.
+
+Behaviour Options:
+Set the PROMPT TEXT eg: "to use"
+Set the USE RANGE for useage
+<Sound0> plays when attaching valve wheel
+<Sound1> plays when turning valve wheel
+<Sound2> plays when valve is on/opened
+
+2. The Valve Wheel
+This object will give the player a valve wheel resource if collected.
+Place the valve wheel where required and attach (if not already) the 
+valve behavior and adjust its options in the behaviour.
+Behavior Options:
+Set the PROMPT TEXT eg: "to collect"
+Set the PICKUP RANGE to be able to pick up
+
+The Pipe Valve cannot operate until the Valve wheel is attached
+If in posession of the Valve Wheel and within range of the the Pipe Valve
+the Valve Wheel will auto attach. Pressing a key will then turn the valve wheel
+on and activate the linked object.

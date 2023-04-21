@@ -2404,11 +2404,8 @@ void visuals_loop ( void )
 
 		// and trigger camera refresh (but flag can be triggered elsewhere, like LUA command to change camera)
 		t.visuals.refreshmaincameras = 1;
-#ifdef WICKEDENGINE
 		void Wicked_Update_Visuals(void *voidvisual);
 		Wicked_Update_Visuals( (void *) &t.visuals );
-#endif
-
 	}
 
 	// 070918 - have separate control of camera refresh
@@ -2545,12 +2542,6 @@ void visuals_loop ( void )
 			// if change terrain, regenerate env map
 			cubemap_generateglobalenvmap();
 		}
-		else
-		{
-			// first pass prompts this, then next pass does actual work
-			//t.s_s="generating new terrain textures (may take a while)" ; lua_prompt ( ); // seems to pop up with no delay!
-			//t.visuals.refreshterraintexture = 2;
-		}
 	}
 
 	// Update veg texture
@@ -2586,10 +2577,8 @@ void visuals_loop ( void )
 				t.tDepthOfFieldIntensity_f=(t.tnewDOFIntensity_f*t.tpercfadein_f)+(t.tDepthOfFieldIntensity_f*(1.0-t.tpercfadein_f));
 			}
 		}
-
 		// Regular BLOOM or SAO shader (ie send values to SAO shader now in charge of post processing)
 		int iPPS = 0; if ( t.visuals.SAOIntensity_f > 0.0f ) iPPS = 4;
-
 		// More values to the post processing shader
 		SetVector4 ( g.generalvectorindex+1,t.visuals.MotionDistance_f,t.tMotionIntensity_f,0,0 );
 		SetEffectConstantV (  g.postprocesseffectoffset+iPPS,"Motion",g.generalvectorindex+1 );
@@ -2603,6 +2592,62 @@ void visuals_loop ( void )
 	#endif
 }
 
+void visuals_shaderlevels_update (void)
+{
+	//HIGHEST
+	//t.visuals.shaderlevels.entities = 1;
+	//t.visuals.shaderlevels.terrain = 1;
+	//t.visuals.shaderlevels.vegetation = 1;
+
+	//MEDIUM
+	//t.visuals.shaderlevels.entities = 2;
+	//t.visuals.shaderlevels.terrain = 3;
+	//t.visuals.shaderlevels.vegetation = 3;
+
+	//LOWEST
+	//t.visuals.shaderlevels.entities = 3;
+	//t.visuals.shaderlevels.terrain = 4;
+	//t.visuals.shaderlevels.vegetation = 4;
+
+	// Wicked controls some early performance levers:
+	// "entities" controls shadow work
+	static float fInitialShadowPointResolution = t.visuals.iShadowPointResolution;
+	if (fInitialShadowPointResolution > 0)
+	{
+		t.visuals.iShadowPointResolution = fInitialShadowPointResolution;
+		if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 2;
+		if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 4;
+		if (t.visuals.iShadowPointResolution < 128) t.visuals.iShadowPointResolution = 128;
+	}
+	static float fInitialShadowSpotResolution = t.visuals.iShadowSpotResolution;
+	if (fInitialShadowSpotResolution > 0)
+	{
+		t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution;
+		if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 2;
+		if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 4;
+		if (t.visuals.iShadowSpotResolution < 128) t.visuals.iShadowSpotResolution = 128;
+	}
+	void Wicked_Update_Visuals(void* voidvisual);
+	Wicked_Update_Visuals((void*)&t.visuals);
+	
+	// "terrain" controls camera distance
+	float fUseCameraFar = t.visuals.CameraFAR_f;
+	if (t.visuals.shaderlevels.terrain >= 2) fUseCameraFar = 170000;
+	if (t.visuals.shaderlevels.terrain == 4) fUseCameraFar = 100000;
+	wiScene::GetCamera().zFarP = fUseCameraFar;
+	extern CCameraManager m_CameraManager;
+	tagCameraData* m_ptr = m_CameraManager.GetData(0);
+	WickedCall_SetCameraFOV(m_ptr->fFOV);
+
+	// "vegetation" controls draw distance
+	extern GGGrass::GGGrassParams gggrass_global_params;
+	static float fInitialGrassDrawDistanceValue = GGGrass::gggrass_global_params.lod_dist;
+	GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue;
+	if (t.visuals.shaderlevels.vegetation >= 2) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 2;
+	if (t.visuals.shaderlevels.vegetation == 4) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 3;
+}
+
+/* all replaced to old shaders pre-Wicked
 void visuals_shaderlevels_update ( void )
 {
 	#ifdef WICKEDENGINE
@@ -2660,22 +2705,6 @@ void visuals_shaderlevels_terrain_update ( void )
 			BT_ForceTerrainTechnique (  0 );
 		}
 	}
-	/* completely removed old chap shadow trick
-	//  deactivate cheap shadow trick if pre-bakes being used
-	if (  ObjectExist(g.postprocessobjectoffset+5) == 1 ) 
-	{
-		if (  t.visuals.shaderlevels.lighting == 1 && t.game.set.ismapeditormode == 0 ) 
-		{
-			SetObjectMask (  g.postprocessobjectoffset+5,0 );
-			HideObject (  g.postprocessobjectoffset+5 );
-		}
-		else
-		{
-			SetObjectMask (  g.postprocessobjectoffset+5,(1 << t.gdynamicterrainshadowcameraid) );
-			ShowObject (  g.postprocessobjectoffset+5 );
-		}
-	}
-	*/
 }
 
 void visuals_shaderlevels_entities_update ( void )
@@ -2740,12 +2769,6 @@ void visuals_shaderlevels_lighting_update ( void )
 	// intersept use of PREBAKE mode, check if any LMSTUFF exists
 	if ( g.lightmappedterrainoffset == -1 && t.visuals.shaderlevels.lighting == 1 ) 
 	{
-		// simply no lightmapping to show, revert to REALTIME
-		//if ( t.terrain.iTerrainPBRMode == 1 )
-		//	t.visuals.shaderlevels.lighting = 3;
-		//else
-		//	t.visuals.shaderlevels.lighting = 2;
-
 		// show prompt if we reverted
 		if ( t.game.runasmultiplayer == 0 && t.game.gameisexe == 0 ) 
 		{
@@ -2773,24 +2796,6 @@ void visuals_shaderlevels_lighting_update ( void )
 	}
 	else
 	{
-		// update shader based on PBR vs non-PBR
-		//if ( t.visuals.shaderlevels.lighting == 3 )
-		//{
-		//	if ( t.terrain.iTerrainPBRMode != 1 )
-		//	{
-		//		t.terrain.iTerrainPBRMode = 1;
-		//		t.terrain.iForceTerrainVegShaderUpdate = 1;
-		//	}
-		//}
-		//else
-		//{
-		//	if ( t.terrain.iTerrainPBRMode != 0 )
-		//	{
-		//		t.terrain.iTerrainPBRMode = 0;
-		//		t.terrain.iForceTerrainVegShaderUpdate = 1;
-		//	}
-		//}
-
 		// realtime - hide lighting objects and glass terrain shadows (show real entities)
 		if ( g.inGameLightingMode == 0 )
 		{
@@ -2805,6 +2810,7 @@ void visuals_shaderlevels_lighting_update ( void )
 		}
 	}
 }
+*/
 
 void visuals_underwater_on ( void )
 {

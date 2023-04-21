@@ -66,37 +66,51 @@ function restoregame.now()
 	for c = 0, invtotal-1, 1 do
 		inventorycontainer = g_UserContainerName[c]
 		MakeInventoryContainer(inventorycontainer)
-		local tinventoryqty = g_UserContainerCount[c]
-		for tinventoryindex = 1, tinventoryqty, 1 do
-			local fulloffset = (c*100000)+tinventoryindex
-			if g_UserContainerIndex[fulloffset] ~= nil then
-				local tcollectionindex = g_UserContainerIndex[fulloffset]
-				local tcollectione = g_UserContainerE[fulloffset]
-				local qty = g_UserContainerQty[fulloffset]
-				local slot = g_UserContainerSlot[fulloffset]
-				local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-				--local anyee = 0
-				--for ee = 1, g_EntityElementMax, 1 do
-				--	if e ~= ee then
-				--		if g_Entity[ee] ~= nil then
-				--			if g_Entity[ee]['active'] > 0 then
-				--				if GetEntityName(ee) == tname then
-				--					anyee = ee
-				--					break
-				--				end
-				--			end
-				--		end
-				--	end
-				--end
-				if tcollectione > 0 then
-					--local newe = SpawnNewEntity(anyee)
-					if c == 0 then invindex = 1 end
-					if c == 1 then invindex = 2 end
-					if c >= 2 then invindex = 3 end
-					if invindex > 2 then
-						SetEntityCollectedForce(tcollectione,invindex,slot,inventorycontainer)
-					else
-						SetEntityCollectedForce(tcollectione,invindex,slot)
+		-- main and hotkeys cannot use E as they are level-specific, so use collectionindex and spawning
+		if c == 0 or c == 1 then
+			-- player specific, use collection index
+			local tinventoryqty = g_UserContainerCount[c]
+			for tinventoryindex = 1, tinventoryqty, 1 do
+				local fulloffset = (c*100000)+tinventoryindex
+				if g_UserContainerIndex[fulloffset] ~= nil then
+					local tcollectionindex = g_UserContainerIndex[fulloffset]
+					local qty = g_UserContainerQty[fulloffset]
+					local slot = g_UserContainerSlot[fulloffset]
+					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+					local anyee = 0
+					for ee = 1, g_EntityElementMax, 1 do
+						if e ~= ee then
+							if g_Entity[ee] ~= nil then
+								if g_Entity[ee]['active'] > 0 then
+									if GetEntityName(ee) == tname then
+										anyee = ee
+										break
+									end
+								end
+							end
+						end
+					end
+					if anyee > 0 then
+						local newe = SpawnNewEntity(anyee)
+						if c == 0 then invindex = 1 end
+						if c == 1 then invindex = 2 end
+						SetEntityCollectedForce(newe,invindex,slot)
+					end
+				end
+			end
+		else
+			-- level specific, can use E
+			local tinventoryqty = g_UserContainerCount[c]
+			for tinventoryindex = 1, tinventoryqty, 1 do
+				local fulloffset = (c*100000)+tinventoryindex
+				if g_UserContainerIndex[fulloffset] ~= nil then
+					local tcollectionindex = g_UserContainerIndex[fulloffset]
+					local tcollectione = g_UserContainerE[fulloffset]
+					local qty = g_UserContainerQty[fulloffset]
+					local slot = g_UserContainerSlot[fulloffset]
+					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+					if tcollectione > 0 then
+						SetEntityCollectedForce(tcollectione,3,slot,inventorycontainer)
 					end
 				end
 			end

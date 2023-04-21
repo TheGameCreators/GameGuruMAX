@@ -1,4 +1,4 @@
--- Proximity Mine -- by Dave Hawkins --  v3 - modified by Necrym 59
+-- v3 Proximity mine -- by Dave Hawkins -- modified by Necrym 59
 -- DESCRIPTION:A landmine that will detonate when a player or NPC is in range. The mine can be disabled with the E key when close.
 -- DESCRIPTION:Proximity [#RANGE=90(0,500)]
 -- DESCRIPTION:Countdown [#DETONATION_TIME=2500(0,20000)]

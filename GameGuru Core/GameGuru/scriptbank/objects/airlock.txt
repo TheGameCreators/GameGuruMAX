@@ -1,0 +1,27 @@
+Airlock Behavior
+This object will be treated as a switch object for activating a set of airlock doors.
+Use 2 doors each with different names. Sliding doors are best used.
+Doors need to be locked. Other door types will unlock but not open automatically.
+
+Behavior Settings
+Set the AIRLOCK TYPE for Air or Water style airlock
+
+Set the AIR LEVEL Default = 100 (breathable)
+Lowering air levels incur health loss every 8 seconds.
+Damage is based on how low the air level is.
+(only used if AIRLOCK TYPE = Air)
+
+Set the WATER LEVEL from 0 to whatever height increase required
+Water level will be raised by this amount and lowered back when
+re-pressurised
+(only used if AIRLOCK TYPE = Water)
+
+Set the switch PROMPT TEXT Default ="Z=Depressurise  X=Pressurise"
+Set the switch USE RANGE Default = 80
+Set the airlock DEPRESSURISE TEXT Default="Depressurising Airlock"
+Set the airlock PRESSURISE TEXT Default="Pressurising Airlock"]
+Set the airlock DOOR1 NAME eg:"Inner Door" Use the name of your door1
+Set the airlock DOOR2 NAME eg:"Outer Door" Use the name of your door2
+Set the processing DELAY Default = 8 seconds
+Play <Sound0> when activating
+Play <Sound1> when processing

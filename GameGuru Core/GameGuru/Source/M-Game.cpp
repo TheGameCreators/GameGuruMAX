@@ -4863,12 +4863,14 @@ void game_main_loop ( void )
 	if (  t.visuals.refreshcountdown>0 ) 
 	{
 		--t.visuals.refreshcountdown;
-		if (  t.visuals.refreshcountdown == 0 ) 
+		/*
+		if (  t.visuals.refreshcountdown == 0 )
 		{
 			visuals_shaderlevels_lighting_update ( );
 			visuals_shaderlevels_update ( );
 			t.visuals.refreshshaders=1;
 		}
+		*/
 	}
 
 	#ifdef VRTECH

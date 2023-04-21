@@ -2704,7 +2704,7 @@ void sliders_write (bool bOnlyVisualSettings )
 			if (!bOnlyVisualSettings)
 			{
 				t.storeprojectmodified = 1;
-				visuals_shaderlevels_terrain_update();
+				//visuals_shaderlevels_terrain_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}
@@ -2714,7 +2714,7 @@ void sliders_write (bool bOnlyVisualSettings )
 			if (!bOnlyVisualSettings)
 			{
 				t.storeprojectmodified = 1;
-				visuals_shaderlevels_entities_update();
+				//visuals_shaderlevels_entities_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}
@@ -2724,7 +2724,7 @@ void sliders_write (bool bOnlyVisualSettings )
 			if (!bOnlyVisualSettings)
 			{
 				t.storeprojectmodified = 1;
-				visuals_shaderlevels_vegetation_update();
+				//visuals_shaderlevels_vegetation_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}
@@ -2734,7 +2734,7 @@ void sliders_write (bool bOnlyVisualSettings )
 			{
 				t.storeprojectmodified = 1;
 				t.visuals.shaderlevels.lighting = t.slidersmenuvalue[t.slidersmenuindex][4].value;
-				visuals_shaderlevels_lighting_update();
+				//visuals_shaderlevels_lighting_update();
 				//  the above subroutine can change lighting back to REALTIME
 				t.slidersmenuvalue[t.slidersmenuindex][4].value = t.visuals.shaderlevels.lighting;
 				if (t.slidersmenuvalue[t.slidersmenuindex][4].value >= 2)
@@ -2744,9 +2744,9 @@ void sliders_write (bool bOnlyVisualSettings )
 					sliders_getnamefromvalue();
 					t.slidersmenuvalue[t.slidersmenuindex][4].value_s = t.slidervaluename_s;
 				}
-				visuals_shaderlevels_terrain_update();
-				visuals_shaderlevels_entities_update();
-				visuals_shaderlevels_vegetation_update();
+				//visuals_shaderlevels_terrain_update();
+				//visuals_shaderlevels_entities_update();
+				//visuals_shaderlevels_vegetation_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}

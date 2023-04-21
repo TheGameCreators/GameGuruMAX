@@ -10345,6 +10345,11 @@ void mapeditorexecutable_loop(void)
 												}
 												if (g_iIconImageInProperties == 0)
 												{
+													if (FileExist(pIconImageInProperties) == 0)
+													{
+														// image specified does not exist, original file could have moved/deleted, so revert to default
+														pIconImageInProperties = "default";
+													}
 													cstr actualImgFile_s = "";
 													if (stricmp(pIconImageInProperties, "default") == NULL)
 													{

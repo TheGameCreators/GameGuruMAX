@@ -4017,8 +4017,11 @@ int DeleteSpriteImage(lua_State *L)
 
 	// get image width
 	int iImageID = lua_tointeger(L, 1);
-	if ( ImageExist(iImageID)==1 )
-		DeleteImage(iImageID);
+	if (iImageID > 0)
+	{
+		if (ImageExist(iImageID) == 1)
+			DeleteImage(iImageID);
+	}
 
 	// push return value
 	lua_pushnumber ( L , 1 );
@@ -4045,13 +4048,17 @@ int CreateSprite(lua_State *L)
 	int iImageID = lua_tointeger(L, 1);
 	if (iImageID > 0)
 	{
-		iID = GetFreeLUASpriteID();
-		Sprite (iID, 0, 0, iImageID);
-		SetSpritePriority (iID, 90); // which is 10 in agk
+		if (ImageExist(iImageID) == 1)
+		{
+			iID = GetFreeLUASpriteID();
+			if (iID > 0)
+			{
+				Sprite (iID, 0, 0, iImageID);
+				SetSpritePriority (iID, 90); // which is 10 in agk
+			}
+		}
 	}
-
 	lua_pushnumber ( L , iID );
-
 	return 1;
 }
 
@@ -4061,7 +4068,10 @@ int PasteSprite(lua_State *L)
 	int n = lua_gettop(L);
 	if ( n < 1 ) { lua_pushnumber ( L , 0 ); return 1; }
 	int iID = lua_tointeger(L, 1);
-	PasteSprite ( iID, SpriteX( iID ), SpriteY( iID ) );
+	if (iID > 0)
+	{
+		PasteSprite (iID, SpriteX(iID), SpriteY(iID));
+	}
 	return 0;
 }
 
@@ -4071,17 +4081,16 @@ int PasteSpritePosition(lua_State *L)
 	int n = lua_gettop(L);
 	if ( n < 3 ) { lua_pushnumber ( L , 0 ); return 1; }
 	int iID = lua_tointeger(L, 1);
+	if (iID > 0)
+	{
+		//PE: Thanks AmenMoses for this fix :)
+		float fX = lua_tonumber(L, 2);
+		float fY = lua_tonumber(L, 3);
 
-//	float fX = lua_tointeger(L, 2);
-//	float fY = lua_tointeger(L, 3);
-
-	//PE: Thanks AmenMoses for this fix :)
-	float fX = lua_tonumber(L, 2);
-	float fY = lua_tonumber(L, 3);
-
-	fX = ( fX * g_dwScreenWidth ) / 100.0f;
-	fY = ( fY * g_dwScreenHeight ) / 100.0f;
-	PasteSprite ( iID, fX, fY );
+		fX = (fX * g_dwScreenWidth) / 100.0f;
+		fY = (fY * g_dwScreenHeight) / 100.0f;
+		PasteSprite (iID, fX, fY);
+	}
 	return 0;
 }
 
@@ -4115,14 +4124,14 @@ int SetSpriteImage(lua_State *L)
 
 	int iID = lua_tointeger(L, 1);
 	float image = lua_tointeger(L, 2);
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		Sprite ( iID , SpriteX( iID ) , SpriteY( iID ) , image );
+		if (SpriteExist (iID) == 1)
+		{
+			Sprite (iID, SpriteX(iID), SpriteY(iID), image);
+		}
 	}
-
 	return 0;
-
 }
 
 int SetSpritePosition(lua_State *L)
@@ -4137,17 +4146,22 @@ int SetSpritePosition(lua_State *L)
 		return 0;
 
 	int iID = lua_tointeger(L, 1);
-	float x = lua_tonumber(L, 2);
-	float y = lua_tonumber(L, 3);
-
-	x = ( x * g_dwScreenWidth ) / 100.0f;
-	y = ( y * g_dwScreenHeight ) / 100.0f;
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		Sprite ( iID , x , y , GetSpriteImage(iID) );
-	}
+		float x = lua_tonumber(L, 2);
+		float y = lua_tonumber(L, 3);
 
+		x = (x * g_dwScreenWidth) / 100.0f;
+		y = (y * g_dwScreenHeight) / 100.0f;
+
+		if (iID > 0)
+		{
+			if (SpriteExist (iID) == 1)
+			{
+				Sprite (iID, x, y, GetSpriteImage(iID));
+			}
+		}
+	}
 	return 0;
 }
 
@@ -4158,9 +4172,12 @@ int SetSpritePriorityForLUA(lua_State* L)
 	if (n < 2) return 0;
 	int iID = lua_tointeger(L, 1);
 	int iPriority = lua_tointeger(L, 2);
-	if (SpriteExist (iID) == 1)
+	if (iID > 0)
 	{
-		SetSpritePriority (iID, iPriority);
+		if (SpriteExist (iID) == 1)
+		{
+			SetSpritePriority (iID, iPriority);
+		}
 	}
 	return 0;
 }
@@ -4179,13 +4196,13 @@ int SetSpriteDepth(lua_State *L)
 	int iID = lua_tointeger(L, 1);
 	// need to flip it as agk does the order reversed
 	float depth = 100 - lua_tointeger(L, 2);
-
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		SetSpritePriority ( iID , depth );
+		if (SpriteExist (iID) == 1)
+		{
+			SetSpritePriority (iID, depth);
+		}
 	}
-
 	return 0;
 }
 
@@ -4205,14 +4222,14 @@ int SetSpriteColor(lua_State *L)
 	int green = lua_tointeger(L, 3);
 	int blue = lua_tointeger(L, 4);
 	int alpha = lua_tointeger(L, 5);
-
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		SetSpriteAlpha ( iID , alpha );
-		SetSpriteDiffuse ( iID , red , green , blue );
+		if (SpriteExist (iID) == 1)
+		{
+			SetSpriteAlpha (iID, alpha);
+			SetSpriteDiffuse (iID, red, green, blue);
+		}
 	}
-
 	return 0;
 }
 
@@ -4229,13 +4246,13 @@ int SetSpriteAngle(lua_State *L)
 
 	int iID = lua_tointeger(L, 1);
 	int angle = lua_tonumber(L, 2);
-
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		RotateSprite ( iID , angle );
+		if (SpriteExist (iID) == 1)
+		{
+			RotateSprite (iID, angle);
+		}
 	}
-
 	return 0;
 }
 
@@ -4251,12 +4268,13 @@ int DeleteSprite(lua_State *L)
 		return 0;
 
 	int iID = lua_tointeger(L, 1);
-
-	if ( SpriteExist ( iID ) == 1 )
+	if (iID > 0)
 	{
-		DeleteSprite ( iID );
+		if (SpriteExist (iID) == 1)
+		{
+			DeleteSprite (iID);
+		}
 	}
-
 	return 0;
 }
 
@@ -4272,37 +4290,39 @@ int SetSpriteOffset(lua_State *L)
 		return 0;
 
 	int iID = lua_tointeger(L, 1);
-	float x = lua_tonumber(L, 2);
-	float y = lua_tonumber(L, 3);
-
-	if ( x == -1 && y == -1 ) return 0;
-
-	if ( x != -1 )
+	if (iID > 0)
 	{
-		x = ( x * g_dwScreenWidth ) / 100.0f;
-	}
+		float x = lua_tonumber(L, 2);
+		float y = lua_tonumber(L, 3);
 
-	if ( y != -1 )
-	{
-		y = ( y * g_dwScreenHeight ) / 100.0f;
+		if (x == -1 && y == -1) return 0;
 
-		if ( x == -1 )
+		if (x != -1)
 		{
-			float perc = ( y / ImageHeight(GetSpriteImage(iID)) ) * 100.0f;
-			x = (( perc * ImageWidth(GetSpriteImage(iID)) ) / 100.0f) * ( g_dwScreenWidth / g_dwScreenHeight );
+			x = (x * g_dwScreenWidth) / 100.0f;
+		}
+
+		if (y != -1)
+		{
+			y = (y * g_dwScreenHeight) / 100.0f;
+
+			if (x == -1)
+			{
+				float perc = (y / ImageHeight(GetSpriteImage(iID))) * 100.0f;
+				x = ((perc * ImageWidth(GetSpriteImage(iID))) / 100.0f) * (g_dwScreenWidth / g_dwScreenHeight);
+			}
+		}
+		else
+		{
+			float perc = (x / ImageWidth(GetSpriteImage(iID))) * 100.0f;
+			y = ((perc * ImageHeight(GetSpriteImage(iID))) / 100.0f) * (g_dwScreenWidth / g_dwScreenHeight);
+		}
+
+		if (SpriteExist (iID) == 1)
+		{
+			OffsetSprite (iID, x, y);
 		}
 	}
-	else
-	{
-		float perc = ( x / ImageWidth(GetSpriteImage(iID)) ) * 100.0f;
-		y = (( perc * ImageHeight(GetSpriteImage(iID)) ) / 100.0f) * ( g_dwScreenWidth / g_dwScreenHeight );
-	}
-
-	if ( SpriteExist ( iID ) == 1 )
-	{
-		OffsetSprite ( iID , x , y );
-	}
-
 	return 0;
 }
 
@@ -4318,61 +4338,62 @@ int SetSpriteSize ( lua_State *L )
 		return 0;
 
 	int iID = lua_tointeger(L, 1);
-	float sizeX = lua_tonumber(L, 2);
-	float sizeY = lua_tonumber(L, 3);
-
-
-	//PE: vertex data use iXOffset)+iWidth-0.5f, (-0.5f) soo add a bit.
-	//PE: mainly visible when using 100 percent
-	//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/423
-	//PE: So 100 percent do not fill the entire screen.
-	//PE: Did not want to change vertex data as it might change how sprites display on other level.
-	//PE: So for now just do this to fill the hole screen. (should be changed in vertex at some point)
-
-	if (sizeX == 100 ) {
-		sizeX += 0.1;
-	}
-	if (sizeY == 100) {
-		sizeY += 0.1;
-	}
-
-	if ( sizeX == -1 && sizeY == -1 ) return 0;
-
-	if ( sizeX != -1 )
+	if (iID > 0)
 	{
-		sizeX = ( sizeX * g_dwScreenWidth ) / 100.0f;
-	}
-	
-	if ( sizeY != -1 )
-	{
-		sizeY = ( sizeY * g_dwScreenHeight ) / 100.0f;
+		float sizeX = lua_tonumber(L, 2);
+		float sizeY = lua_tonumber(L, 3);
 
-		if ( sizeX == -1 )
+		//PE: vertex data use iXOffset)+iWidth-0.5f, (-0.5f) soo add a bit.
+		//PE: mainly visible when using 100 percent
+		//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/423
+		//PE: So 100 percent do not fill the entire screen.
+		//PE: Did not want to change vertex data as it might change how sprites display on other level.
+		//PE: So for now just do this to fill the hole screen. (should be changed in vertex at some point)
+
+		if (sizeX == 100) {
+			sizeX += 0.1;
+		}
+		if (sizeY == 100) {
+			sizeY += 0.1;
+		}
+
+		if (sizeX == -1 && sizeY == -1) return 0;
+
+		if (sizeX != -1)
 		{
-			float perc = ( sizeY / ImageHeight(GetSpriteImage(iID)) ) * 100.0f;
-			sizeX = (( perc * ImageWidth(GetSpriteImage(iID)) ) / 100.0f) * ( g_dwScreenWidth / g_dwScreenHeight );
+			sizeX = (sizeX * g_dwScreenWidth) / 100.0f;
+		}
+
+		if (sizeY != -1)
+		{
+			sizeY = (sizeY * g_dwScreenHeight) / 100.0f;
+
+			if (sizeX == -1)
+			{
+				float perc = (sizeY / ImageHeight(GetSpriteImage(iID))) * 100.0f;
+				sizeX = ((perc * ImageWidth(GetSpriteImage(iID))) / 100.0f) * (g_dwScreenWidth / g_dwScreenHeight);
+			}
+		}
+		else
+		{
+			//PE: 11-06-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/504
+			//PE: I cant test this on my system , but assume we could always use the backbuffer size g_pGlob->iScreenWidth instead of the screenwidth g_dwScreenWidth
+			//PE: Can someone with a similar screen setup do this, test the return of these 2 MessageBox.
+			//PE: They should always be the same , but issue indicate they are not.
+			//PE: Just add rader.lua and enable the below 4 lines to test :)
+	//		char tmp[80]; sprintf(tmp, "g_pGlob->iScreenWidth: %d", g_pGlob->iScreenWidth); // 1920
+	//		MessageBox(NULL, tmp, "g_pGlob->iScreenWidth", MB_TOPMOST | MB_OK);
+	//		sprintf(tmp, "g_dwScreenWidth: %d", g_dwScreenWidth); // 1920
+	//		MessageBox(NULL, tmp, "g_dwScreenWidth", MB_TOPMOST | MB_OK);
+			float perc = (sizeX / ImageWidth(GetSpriteImage(iID))) * 100.0f;
+			sizeY = ((perc * ImageHeight(GetSpriteImage(iID))) / 100.0f) * (g_dwScreenWidth / g_dwScreenHeight);
+		}
+
+		if (SpriteExist (iID) == 1)
+		{
+			SizeSprite (iID, sizeX, sizeY);
 		}
 	}
-	else
-	{
-		//PE: 11-06-19 issue: https://github.com/TheGameCreators/GameGuruRepo/issues/504
-		//PE: I cant test this on my system , but assume we could always use the backbuffer size g_pGlob->iScreenWidth instead of the screenwidth g_dwScreenWidth
-		//PE: Can someone with a similar screen setup do this, test the return of these 2 MessageBox.
-		//PE: They should always be the same , but issue indicate they are not.
-		//PE: Just add rader.lua and enable the below 4 lines to test :)
-//		char tmp[80]; sprintf(tmp, "g_pGlob->iScreenWidth: %d", g_pGlob->iScreenWidth); // 1920
-//		MessageBox(NULL, tmp, "g_pGlob->iScreenWidth", MB_TOPMOST | MB_OK);
-//		sprintf(tmp, "g_dwScreenWidth: %d", g_dwScreenWidth); // 1920
-//		MessageBox(NULL, tmp, "g_dwScreenWidth", MB_TOPMOST | MB_OK);
-		float perc = ( sizeX / ImageWidth(GetSpriteImage(iID)) ) * 100.0f;
-		sizeY = (( perc * ImageHeight(GetSpriteImage(iID)) ) / 100.0f) * ( g_dwScreenWidth / g_dwScreenHeight );
-	}
-
-	if ( SpriteExist ( iID ) == 1 )
-	{
-		SizeSprite ( iID , sizeX , sizeY );
-	}
-
 	return 0;
 }
 

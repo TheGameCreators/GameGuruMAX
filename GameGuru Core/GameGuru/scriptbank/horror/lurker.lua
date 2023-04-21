@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Lurker v6 by Necrym 59 
+-- Lurker v7 by Necrym 59 
 -- DESCRIPTION: The attached character entity will be a lurker and follow or attack when not looked at.
 -- DESCRIPTION: [REACTION_TEXT$="What the.."]
 -- DESCRIPTION: [SENSE_RANGE=1000(1,2000)]
@@ -105,9 +105,9 @@ function lurker_main(e)
 				RotateToPlayerSlowly(e,lurker[e].rotation_speed)
 				CollisionOn(e)
 			else
-				CollisionOff(e)				
+				CollisionOff(e)			
 				RotateToPlayer(e)
-				CollisionOn(e)				
+				CollisionOn(e)
 			end
 			if PlayerDist <= lurker[e].attack_range then							
 				if GetTimer(e) > lurker[e].attack_delay and PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then
@@ -131,6 +131,7 @@ function lurker_main(e)
 					sound_delay[e] = GetTimer(e) + default_sound_delay[e]
 				end
 			else
+				GravityOff(e)
 				CollisionOff(e)
 				if lurker[e].mode == 1 then MoveForward(e,math.random(1,lurker[e].approach_speed)) end	
 				if lurker[e].mode == 2 then	MoveForward(e,lurker[e].approach_speed) end
@@ -155,9 +156,10 @@ function lurker_main(e)
 		RotateToPlayer(e)
 		LookAtPlayer(e)
 		start_health[e] = g_Entity[e]['health']
-		CollisionOn(e)
+		CollisionOn(e)		
 	end		
 	CollisionOn(e)
+	GravityOn(e)
 end
 
 function PlayerLooking(e,dis,v)

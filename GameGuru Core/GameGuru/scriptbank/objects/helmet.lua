@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v15   by Necrym59
+-- Helmet v16   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
 -- DESCRIPTION: Helmet Settings [PICKUP_TEXT$="E to Pickup/Wear"] [PICKUP_RANGE=80(1,100)] [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON  Q=Nightvision OFF  P=Remove Helmet"], [@HELMET_MODE=1(1=Pickup/Remove, 2=Always On)], [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=30(1,30)], [ZOOM_SPEED=1(1,10)], [READOUT_X=50(1,100)], [READOUT_Y=10(1,100)], [@COMPASS=1(1=On, 2=Off)], [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
 -- DESCRIPTION: Set the Helmet Hud screen [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"]
@@ -18,16 +18,16 @@ local helmet_mode = {}
 local min_zoom = {}
 local max_zoom = {}
 local screen_image = {}
-local status = {}
 local readout_x = {}
 local readout_y = {}
 local compass = {}
 local compass_position = {}
+
 local compass_pos = {}
 local last_gun = {}
 local gunstatus = {}
-
 local nvswitch = {}
+local status = {}
 local default_AmbienceRed = {}
 local default_AmbienceBlue = {}
 local default_AmbienceGreen = {}
@@ -74,8 +74,8 @@ function helmet_init(e)
 	mod = 0
 	fov = 0
 	last_gun = g_PlayerGunName
-	gunstatus = 0
-	status = "init"
+	gunstatus[e] = 0
+	status[e] = "init"
 	defn_Compass()
 	nvswitch[e] = 0
 	default_AmbienceRed = GetAmbienceRed()
@@ -85,13 +85,11 @@ function helmet_init(e)
 	default_FogRed = GetFogRed()
 	default_FogGreen = GetFogGreen()
 	default_FogBlue = GetFogBlue()
-	default_FogNearest = GetFogNearest()
-	default_FogDistance = GetFogDistance()
 end
 
 function helmet_main(e)
 	g_helmet[e] = g_Entity[e]
-	if status == "init" then
+	if status[e] == "init" then
 		helmet = CreateSprite(LoadImage(g_helmet[e]['screen_image']))
 		SetSpriteSize(helmet,100,100)
 		SetSpritePosition(helmet,200,200)
@@ -100,8 +98,9 @@ function helmet_main(e)
 		compass_pos = g_helmet[e]['compass_position']
 		mod = g_PlayerFOV
 		fov = g_PlayerFOV
-		status = "endinit"
+		status[e] = "endinit"
 	end
+	
 	PlayerDist = GetPlayerDistance(e)
 	if fov == nil then fov = g_PlayerFOV end	
 	
@@ -124,14 +123,14 @@ function helmet_main(e)
 		end		
 	end
 	
-	if have_helmet == 1 then
+	if have_helmet == 1 then	
 		SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 		PasteSpritePosition(helmet,0,0)
 		TextCenterOnXColor(50,95,2,g_helmet[e]['useage_text'],100,255,100)
 		if g_Scancode == 48 then --Hold B Key to use
 			if g_PlayerGunID > 0 then
 				SetPlayerWeapons(0)
-				gunstatus = 1
+				gunstatus[e] = 1
 			end
 			if g_MouseWheel < 0 then
 				mod = mod - g_helmet[e]['zoom_speed']
@@ -150,10 +149,10 @@ function helmet_main(e)
 			mod = 0
 			if mod > 0 then SetPlayerFOV(fov) end
 			if mod < 0 then	SetPlayerFOV(fov) end
-			if gunstatus == 1 then
+			if gunstatus[e] == 1 then
 				ChangePlayerWeapon(last_gun)
 				SetPlayerWeapons(1)
-				gunstatus = 0
+				gunstatus[e] = 0
 			end
 		end
 		if g_Scancode == 0 then SetPlayerFOV(fov) end
@@ -166,8 +165,6 @@ function helmet_main(e)
 			SetFogRed(0)
 			SetFogGreen(255)
 			SetFogBlue(0)
-			SetFogNearest(1000)
-			SetFogDistance(10000)
 			nvswitch[e] = 1
 		end
 
@@ -179,8 +176,6 @@ function helmet_main(e)
 			SetFogRed(default_FogRed)
 			SetFogGreen(default_FogGreen)
 			SetFogBlue(default_FogBlue)
-			SetFogNearest(default_FogNearest)
-			SetFogDistance(default_FogDistance)
 			nvswitch[e] = 0
 		end
 		if g_helmet[e]['helmet_mode'] == 1 then
@@ -197,8 +192,6 @@ function helmet_main(e)
 				SetFogRed(default_FogRed)
 				SetFogGreen(default_FogGreen)
 				SetFogBlue(default_FogBlue)
-				SetFogNearest(default_FogNearest)
-				SetFogDistance(default_FogDistance)
 				nvswitch[e] = 0
 				have_helmet = 0
 			end

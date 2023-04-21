@@ -1,7 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Alertzone v4   by Necrym59
+-- Alertzone v5   by Necrym59
 -- DESCRIPTION: The player may alert nearby enemies within the selected range while in this Zone
--- DESCRIPTION: Link to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Alert Zone"]
 -- DESCRIPTION: [ALERT_RANGE=1000(1,5000)]
 -- DESCRIPTION: [@ALERT_MODE=1(1=Multiple Use, 2=Single Use)]

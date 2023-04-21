@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Action Plate v2: by Necrym59
+-- Action Plate v3: by Necrym59
 -- DESCRIPTION: Attach to the Action Plate Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: Set [ACTIVATION_TEXT$="You have activated a panel"]
@@ -9,7 +9,7 @@
 	
 	local actionplate 		= {}	
 	local activation_text 	= {}
-	local activation_type	= {}
+	local activation_type	= {}	
 	local movement 			= {}
 	local status 			= {}
 	local activated 		= {}
@@ -76,7 +76,7 @@ function actionplate_main(e)
 			Prompt(actionplate[e].activation_text)
 			activated[e] = 0
 			status[e] = "inactive"
-			StartTimer(e)
+			StartTimer(e)			
 		end		
 	end
 	if status[e] == "inactive" and onactionplate[e] == 0 then

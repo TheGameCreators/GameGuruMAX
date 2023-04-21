@@ -4211,7 +4211,7 @@ void FPSC_Setup(void)
 	g.gtestgamemodefromeditorokaypressed = 0;
 	//version_commandlineprompt ( );
 
-	//  get version information from version file
+	//  get version information from version file 
 	g.version_s = "";
 	g.gversion = 10000;
 	if (FileExist("version.ini") == 1)
@@ -4705,6 +4705,7 @@ void FPSC_Setup(void)
 	timestampactivity(0,"pixel states");
 	SetChildWindowTruePixel ( 1 );
 
+	/* causes white screen to wipe out splash - so moved further up and removes title bar in splash as a bonus!
 	// 201017 - only for standalones
 	if ( t.game.gameisexe == 1 )
 	{
@@ -4719,6 +4720,7 @@ void FPSC_Setup(void)
 		Cls(); Sync();
 		Cls(); Sync();
 	}
+	*/
 
 	// 230517 - after display created, before any visual elements, load all core shaders
 	SETUPLoadAllCoreShadersFIRST(g.gforceloadtestgameshaders);

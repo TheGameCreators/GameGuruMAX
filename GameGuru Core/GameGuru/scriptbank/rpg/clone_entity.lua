@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Clone_Entity v4 by Necrym59
+-- Clone_Entity v5 by Necrym59
 -- DESCRIPTION: Allows cloning of a Named Entity when triggered.
 -- DESCRIPTION: Attach to an object then logic link to a switch or zone. 
 -- DESCRIPTION: [CLONE_QUANTITY=1(1,100)]
@@ -65,7 +65,8 @@ function clone_entity_main(e)
 				local newposx = g_Entity[etoclone]['x'] + math.random(-clone_entity[e].clone_range,clone_entity[e].clone_range)
 				local newposz = g_Entity[etoclone]['z'] + math.random(-clone_entity[e].clone_range,clone_entity[e].clone_range)
 				local newposy = GetTerrainHeight(newposx,newposz)
-				ResetPosition(newEntn,newposx,newposy+1,newposz)
+				cx, cy, cz = GetObjectCentre( g_Entity[e]['obj'] )
+				ResetPosition(newEntn,newposx,newposy+1+math.abs(cy),newposz)
 				ResetRotation(newEntn,g_Entity[etoclone]['anglex'], g_Entity[etoclone]['angley']+math.random(0,359),g_Entity[etoclone]['anglez'])
 				clones[e] = clones[e] + 1
 				if clones[e] >= clone_entity[e].clone_quantity then

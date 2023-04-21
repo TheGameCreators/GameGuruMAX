@@ -283,7 +283,7 @@ function mammal_generic_main( e )
 	end
 	
 	critter.x, critter.y, critter.z = Ent.x, Ent.y, Ent.z
-	
+
 	if critter.state == 'init' then
 		SetAnimationName( e, 'idle' )
 		LoopAnimationFrom( e, random() * 100 )

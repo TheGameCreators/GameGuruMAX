@@ -3,6 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>$(GG_MAX_BUILD_PATH)\Max\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(GG_MAX_BUILD_PATH)\Max\</LocalDebuggerWorkingDirectory>
@@ -12,5 +13,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseForSteam|x64'">
     <LocalDebuggerWorkingDirectory>$(GG_MAX_BUILD_PATH)\Max\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
 </Project>

@@ -181,7 +181,42 @@ void entity_init ( void )
 
 void entity_bringnewentitiestolife (bool bAllNewOnes)
 {
-	//  F9 additions mark new entities with active=2
+	// scan if any new entities are characters, if so, scan for adding them to character array
+	bool bNewEntityIsCharacter = false;
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.entid > 0)
+		{
+			if (t.entityprofile[t.entid].isebe == 0)
+			{
+				if (t.entityelement[t.e].active == 2)
+				{
+					t.tobj = t.entityelement[t.e].obj;
+					if (t.tobj > 0)
+					{
+						//  if object exists
+						if (ObjectExist(t.tobj) == 1)
+						{
+							// Only redo script for characters (as they were wiped out)
+							if (t.entityprofile[t.entid].ischaracter == 1) 
+							{
+								bNewEntityIsCharacter = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	if (bNewEntityIsCharacter == true)
+	{
+		extern void darkai_refresh_characters(bool);
+		darkai_refresh_characters(true);
+	}
+
+	// new entities have active=2
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid = t.entityelement[t.e].bankindex;

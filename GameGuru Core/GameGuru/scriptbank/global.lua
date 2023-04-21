@@ -2313,7 +2313,6 @@ GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight va
 
 ***** Collision box is defined by coordinates of two opposing corners, from these it is easy to calculate the size of the object
 GetObjectColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox( obj ) -- returns collision cube of object
-GetEntityColBox : xmin, ymin, zmin, xmax, ymax, zmax = GetEntityColBox( e )   -- returns collision cube of entity
 
 ***** Object center commands, from both the regular bounds and the actual model collision center that ignores any offsetting 
 GetObjectCentre : x, y, z = GetObjectCentre( obj ) -- returns actual center of object

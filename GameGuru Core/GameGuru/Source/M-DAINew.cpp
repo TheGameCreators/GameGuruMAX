@@ -1581,16 +1581,9 @@ void darkai_setupcharacter (void)
 	t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.disableascharacter = 0;
 }
 
-void darkai_setup_characters (void)
+void darkai_refresh_characters ( bool bScanForNewlySpawned )
 {
-	// for MAX, we fully reset any previous character states so this can be fresh
-	for (int n = 1; n <= g.charanimindexmax; n++)
-	{
-		t.charanimstates[n].e = 0;
-	}
-	g.charanimindexmax = 0;
-
-	// Create A.I entities for all characters
+	// required during level init and when new entities are spawned live
 	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 	{
 		t.entid = t.entityelement[t.e].bankindex;
@@ -1633,6 +1626,14 @@ void darkai_setup_characters (void)
 								t.charactergunpose[g.charanimindex][t.i].z = 0;
 							}
 						}
+						else
+						{
+							// if found, existing characters can be left along during a newly spawned scam
+							if (bScanForNewlySpawned == true)
+							{
+								continue;
+							}
+						}
 
 						// swap in animation override
 						char pWeaponAnimFile[MAX_PATH];
@@ -1651,7 +1652,7 @@ void darkai_setup_characters (void)
 						}
 
 						// force animation to weapon type if NOT "-" = default to object anim
-						if (pOverrideAnimSet == NULL && strlen(t.entityelement[t.e].eleprof.overrideanimset_s.Get())==0)
+						if (pOverrideAnimSet == NULL && strlen(t.entityelement[t.e].eleprof.overrideanimset_s.Get()) == 0)
 						{
 							// swap in animation for character base types if needed
 							LPSTR animsystem_getweapontype (LPSTR, LPSTR);
@@ -1682,6 +1683,19 @@ void darkai_setup_characters (void)
 			}
 		}
 	}
+}
+
+void darkai_setup_characters (void)
+{
+	// for MAX, we fully reset any previous character states so this can be fresh
+	for (int n = 1; n <= g.charanimindexmax; n++)
+	{
+		t.charanimstates[n].e = 0;
+	}
+	g.charanimindexmax = 0;
+
+	// Create A.I entities for all characters
+	darkai_refresh_characters(false);
 }
 
 void darkai_killai (void)

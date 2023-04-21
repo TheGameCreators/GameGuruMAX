@@ -44703,9 +44703,11 @@ void FindFirstSplash(char *splash_name)
 			{
 				if (strlen(Storyboard.Nodes[i].thumb) > 0)
 				{
+					// replace stock splash with custom one specified by storybaord game project
+					strcpy(splash_name, Storyboard.Nodes[i].thumb);
+					/* LB: reason was simpler, the splash image file was not copied over - and the public repo code does not contain the encryption code so could not be tested/verified. Sorted now :)
 					//PE: Need decrypt support here.
 					strcpy(splash_name, Storyboard.Nodes[i].thumb);
-
 					if (!pestrcasestr(splash_name, "Files\\"))
 					{
 						int GG_GetRealPath(char* fullPath, int create);
@@ -44731,6 +44733,7 @@ void FindFirstSplash(char *splash_name)
 						//PE: Wait until the actual g_pGlob->Decrypt works so we can see how it works.
 						//g_pGlob->Encrypt(VirtualFilename);
 					}
+					*/
 				}
 			}
 		}

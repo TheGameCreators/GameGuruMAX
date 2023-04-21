@@ -819,7 +819,6 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.SkyCloudThickness=" + Str(t.visuals.SkyCloudThickness);
 	WriteString(1, t.strwork.Get());
 
-
 	t.strwork = ""; t.strwork = t.strwork + "visuals.ShadowSpotCascadeResolution=" + Str(t.visuals.iShadowSpotCascadeResolution);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.ShadowSpotResolution=" + Str(t.visuals.iShadowSpotResolution);
@@ -2609,42 +2608,71 @@ void visuals_shaderlevels_update (void)
 	//t.visuals.shaderlevels.terrain = 4;
 	//t.visuals.shaderlevels.vegetation = 4;
 
-	// Wicked controls some early performance levers:
-	// "entities" controls shadow work
-	static float fInitialShadowPointResolution = t.visuals.iShadowPointResolution;
-	if (fInitialShadowPointResolution > 0)
+	// Only do this in standalone as it will otherwise mess up editor settings!
+	if (t.game.gameisexe == 1)
 	{
-		t.visuals.iShadowPointResolution = fInitialShadowPointResolution;
-		if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 2;
-		if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 4;
-		if (t.visuals.iShadowPointResolution < 128) t.visuals.iShadowPointResolution = 128;
-	}
-	static float fInitialShadowSpotResolution = t.visuals.iShadowSpotResolution;
-	if (fInitialShadowSpotResolution > 0)
-	{
-		t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution;
-		if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 2;
-		if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 4;
-		if (t.visuals.iShadowSpotResolution < 128) t.visuals.iShadowSpotResolution = 128;
-	}
-	void Wicked_Update_Visuals(void* voidvisual);
-	Wicked_Update_Visuals((void*)&t.visuals);
-	
-	// "terrain" controls camera distance
-	float fUseCameraFar = t.visuals.CameraFAR_f;
-	if (t.visuals.shaderlevels.terrain >= 2) fUseCameraFar = 170000;
-	if (t.visuals.shaderlevels.terrain == 4) fUseCameraFar = 100000;
-	wiScene::GetCamera().zFarP = fUseCameraFar;
-	extern CCameraManager m_CameraManager;
-	tagCameraData* m_ptr = m_CameraManager.GetData(0);
-	WickedCall_SetCameraFOV(m_ptr->fFOV);
+		// Wicked controls some early performance levers:
+		static bool bInitGraphicsSettingsValues = true;
+		static float fInitialShadowPointResolution = 0;
+		static float fInitialShadowSpotResolution = 0;
+		static float fInitialGrassDrawDistanceValue = 0;
+		static float fInitialCameraFar = t.visuals.CameraFAR_f;
+		if (bInitGraphicsSettingsValues == true)
+		{
+			if (t.visuals.shaderlevels.entities == 1)
+			{
+				fInitialShadowPointResolution = t.visuals.iShadowPointResolution;
+				fInitialShadowSpotResolution = t.visuals.iShadowSpotResolution;
+			}
+			if (t.visuals.shaderlevels.entities == 2)
+			{
+				fInitialShadowPointResolution = t.visuals.iShadowPointResolution * 2;
+				fInitialShadowSpotResolution = t.visuals.iShadowSpotResolution * 2;
+			}
+			if (t.visuals.shaderlevels.entities == 3)
+			{
+				fInitialShadowPointResolution = t.visuals.iShadowPointResolution * 4;
+				fInitialShadowSpotResolution = t.visuals.iShadowSpotResolution * 4;
+			}
+			if (t.visuals.shaderlevels.vegetation == 1) fInitialGrassDrawDistanceValue = GGGrass::gggrass_global_params.lod_dist;
+			if (t.visuals.shaderlevels.vegetation == 2 || t.visuals.shaderlevels.vegetation == 3) fInitialGrassDrawDistanceValue = GGGrass::gggrass_global_params.lod_dist / 2;
+			if (t.visuals.shaderlevels.vegetation == 4) fInitialGrassDrawDistanceValue = GGGrass::gggrass_global_params.lod_dist / 3;
 
-	// "vegetation" controls draw distance
-	extern GGGrass::GGGrassParams gggrass_global_params;
-	static float fInitialGrassDrawDistanceValue = GGGrass::gggrass_global_params.lod_dist;
-	GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue;
-	if (t.visuals.shaderlevels.vegetation >= 2) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 2;
-	if (t.visuals.shaderlevels.vegetation == 4) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 3;
+			// all initial values set for possible changes below
+			bInitGraphicsSettingsValues = false;
+		}
+
+		// "entities" controls shadow work
+		if (fInitialShadowPointResolution > 0)
+		{
+			t.visuals.iShadowPointResolution = fInitialShadowPointResolution;
+			if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 2;
+			if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowPointResolution = fInitialShadowPointResolution / 4;
+		}
+		if (fInitialShadowSpotResolution > 0)
+		{
+			t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution;
+			if (t.visuals.shaderlevels.entities == 2) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 2;
+			if (t.visuals.shaderlevels.entities == 3) t.visuals.iShadowSpotResolution = fInitialShadowSpotResolution / 4;
+		}
+		void Wicked_Update_Visuals(void* voidvisual);
+		Wicked_Update_Visuals((void*)&t.visuals);
+
+		// "vegetation" controls draw distance
+		extern GGGrass::GGGrassParams gggrass_global_params;
+		GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue;
+		if (t.visuals.shaderlevels.vegetation >= 2) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 2;
+		if (t.visuals.shaderlevels.vegetation == 4) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 3;
+
+		// "terrain" controls camera distance (does not alter t.visuals.CameraFAR_f)
+		float fUseCameraFar = fInitialCameraFar;
+		if (t.visuals.shaderlevels.terrain >= 2) fUseCameraFar = fUseCameraFar / 2;
+		if (t.visuals.shaderlevels.terrain == 4) fUseCameraFar = fUseCameraFar / 4;
+		wiScene::GetCamera().zFarP = fUseCameraFar;
+		extern CCameraManager m_CameraManager;
+		tagCameraData* m_ptr = m_CameraManager.GetData(0);
+		WickedCall_SetCameraFOV(m_ptr->fFOV);
+	}
 }
 
 /* all replaced to old shaders pre-Wicked

@@ -230,6 +230,12 @@ void mapfile_saveproject_fpm ( void )
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight = iHeightmapHeight;
 	#endif
 
+	// ensure when export visual, always start with HIGHEST mode to reflect settings chosen when editing level (i.e. grass distance)
+	t.gamevisuals.shaderlevels.terrain = 1;
+	t.gamevisuals.shaderlevels.entities = 1;
+	t.gamevisuals.shaderlevels.vegetation = 1;
+	t.gamevisuals.shaderlevels.lighting = 1;
+
 	//  Switch visuals to gamevisuals as this is what we want to save
 	t.editorvisuals=t.visuals ; t.visuals=t.gamevisuals  ; visuals_save ( );
 
@@ -1494,7 +1500,6 @@ void mapfile_loadproject_fpm ( void )
 			extern void Wicked_Update_Visuals(void *voidvisual);
 			Wicked_Update_Visuals((void*) &t.visuals );
 			#endif
-
 		}
 	}
 	else

@@ -10,6 +10,8 @@
 #undef MAX_PATH
 #define MAX_PATH 1050
 
+//#donotdef TESTSTEAMFREETRIAL - instead find it in master.cpp as a test flag - MAX uses Steam to detect if its in demo mode or not = one binary :) (remember to delete installsteam.dat)
+
 // Determine compile flags for each product
 #ifdef PRODUCTV3
  // Flags to compile the VR QUEST V3 version of GameGuru

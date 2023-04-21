@@ -644,7 +644,7 @@ void Master::Update(float dt)
 				g_bUpdateAppAvailable = true;
 				#endif
 
-				// test for Steam functionality
+				// test for Steam functionality 
 				//#define TESTSTEAMFREETRIAL
 				//#define TESTSTEAMAUTHANDTRIAL
 				#ifdef TESTSTEAMAUTHANDTRIAL
@@ -696,7 +696,7 @@ void Master::Update(float dt)
 								char pAbsolutePathAndFile[MAX_PATH];
 								extern std::vector<std::string> files_availableinfreetrial;
 								files_availableinfreetrial.clear();
-								for (int demos = 0; demos < 3; demos++)
+								for (int demos = 0; demos < 4; demos++)
 								{
 									std::vector<std::string> files_fromLST;
 									files_fromLST.clear();
@@ -704,6 +704,7 @@ void Master::Update(float dt)
 									if (demos == 0) pLSTFile = "Files\\mapbank\\canyon offensive.lst";
 									if (demos == 1) pLSTFile = "Files\\mapbank\\island showdown.lst";
 									if (demos == 2) pLSTFile = "Files\\mapbank\\zombie cellar demo - level1.lst";
+									if (demos == 3) pLSTFile = "Files\\mapbank\\RPG Template.lst";
 									getVectorFileContent(pLSTFile, files_fromLST);
 									for (int fileindex = 0; fileindex < files_fromLST.size(); fileindex++)
 									{

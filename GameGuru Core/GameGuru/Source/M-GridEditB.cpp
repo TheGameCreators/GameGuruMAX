@@ -44714,6 +44714,8 @@ void FindFirstSplash(char *splash_name)
 					if (!GG_FileExists(splash_name))
 					{
 						//Try 
+						void SetCanUse_e_(int flag);
+						SetCanUse_e_(1);
 						char VirtualFilename[MAX_PATH];
 						strcpy(VirtualFilename, splash_name);
 						bool CheckForWorkshopFile(LPSTR VirtualFilename);

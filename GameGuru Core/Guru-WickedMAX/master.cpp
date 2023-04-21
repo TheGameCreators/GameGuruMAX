@@ -869,6 +869,9 @@ void Master::Update(float dt)
 				if (1)//t.game.gameisexe == 1)
 				{
 					// Must show the window (editor EXE hides by default)
+					#ifdef _DEBUG
+					// crashes when in debug
+					#else
 					SetWindowSettings (0, 0, 0);
 					WindowToFront ("Game Guru Standalone Executable");
 					SetWindowSize (GetDesktopWidth(), GetDesktopHeight());
@@ -877,6 +880,7 @@ void Master::Update(float dt)
 					// clear screen
 					//Cls(); Sync();
 					//Cls(); Sync();
+					#endif
 				}
 
 				extern bool bSpecialStandalone;

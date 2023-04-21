@@ -1,6 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v5 by Necrym59
+-- Winzone v6 by Necrym59
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
+-- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone.
@@ -13,7 +14,7 @@ local spawnatstart		= {}
 local resetstates		= {}
 local status			= {}
 	
-function winzone_properties(e, zoneheight, spawnatstart, resetstates)
+function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates)
 	winzone[e].zoneheight = zoneheight or 100
 	winzone[e].spawnatstart = spawnatstart
 	winzone[e].resetstates = resetstates

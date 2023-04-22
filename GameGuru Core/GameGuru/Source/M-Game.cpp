@@ -2464,11 +2464,14 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	// The map bounds can optionally be shown in testgame.
 	extern void TestLevel_ToggleBoundary(bool, bool);
 	TestLevel_ToggleBoundary(t.showtestgame2dbounds, t.showtestgame3dbounds);
-
-	//extern void TestLevel_ToggleTreeVegWater(bool, bool, bool);
-	//TestLevel_ToggleTreeVegWater(t.showtestgametrees, t.showtestgameveg, t.showtestgamewater);
-
 	#endif
+
+	// if this was called from standalone, need to update graphics settings to match visuals just loaded
+	if (t.game.gameisexe == 1)
+	{
+		// ensures when game restarted the last graphics settings refresh the level
+		visuals_shaderlevels_update();
+	}
 }
 
 void game_masterroot_gameloop_afterexitgamemenu(void)

@@ -206,11 +206,7 @@ void lua_initscript ( void )
 
 			#define TESTNONSILENT
 			// first try initialising with a name string
-			#ifdef WICKEDENGINE
 			t.strwork = ""; t.strwork = t.strwork + t.entityelement[t.e].eleprof.aimainname_s.Get()+"_init_name";
-			#else
-			t.strwork = ""; t.strwork = t.strwork + Lower(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_init_name";
-			#endif
 			LuaSetFunction ( t.strwork.Get() ,2,0 );
 			t.tentityname_s = t.entityelement[t.e].eleprof.name_s;
 			LuaPushInt (  t.e  ); LuaPushString (  t.tentityname_s.Get()  );
@@ -220,11 +216,7 @@ void lua_initscript ( void )
 			LuaCallSilent (  );
 			#endif
 			//  then try initialising without the name parameter
-			#ifdef WICKEDENGINE
 			t.strwork = ""; t.strwork = t.strwork + t.entityelement[t.e].eleprof.aimainname_s.Get()+"_init";
-			#else
-			t.strwork = ""; t.strwork = t.strwork + Lower(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_init";
-			#endif
 			LuaSetFunction ( t.strwork.Get() ,1,0 );
 			LuaPushInt (  t.e  );
 			#ifdef TESTNONSILENT
@@ -233,7 +225,6 @@ void lua_initscript ( void )
 			LuaCallSilent (  );
 			#endif
 
-			#ifdef VRTECH
 			//Check if we use properties variables.
 			char tmp[MAX_PATH];
 			strcpy(tmp, t.entityelement[t.e].eleprof.aimainname_s.Get());
@@ -246,7 +237,6 @@ void lua_initscript ( void )
 				//Found one , parse and sent variables to script.
 				lua_execute_properties_variable(t.entityelement[t.e].eleprof.soundset4_s.Get());
 			}
-			#endif
 		}
 	}
 }
@@ -812,6 +802,10 @@ void lua_loop_allentities ( void )
 		int thisentid = t.entityelement[t.e].bankindex;
 		if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
 		{
+			// skip new entities still in spawn activation sequence
+			if (t.entityelement[t.e].lua.flagschanged == 123)
+				continue;
+
 			// must skip entity element if collected by shop or other container
 			// only player and hotkeys collections can run logic!
 			if (t.entityelement[t.e].collected >= 3)

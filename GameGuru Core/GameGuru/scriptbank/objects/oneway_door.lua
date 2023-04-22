@@ -1,3 +1,4 @@
+-- One way Door v2
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is opened, will close and lock permanently after a few seconds delay or when closed.
 -- DESCRIPTION: <Sound0> When door is opened.

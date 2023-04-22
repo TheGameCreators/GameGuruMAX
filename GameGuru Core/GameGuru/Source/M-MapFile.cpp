@@ -230,6 +230,12 @@ void mapfile_saveproject_fpm ( void )
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight = iHeightmapHeight;
 	#endif
 
+	// ensure when export visual, always start with HIGHEST mode to reflect settings chosen when editing level (i.e. grass distance)
+	t.gamevisuals.shaderlevels.terrain = 1;
+	t.gamevisuals.shaderlevels.entities = 1;
+	t.gamevisuals.shaderlevels.vegetation = 1;
+	t.gamevisuals.shaderlevels.lighting = 1;
+
 	//  Switch visuals to gamevisuals as this is what we want to save
 	t.editorvisuals=t.visuals ; t.visuals=t.gamevisuals  ; visuals_save ( );
 
@@ -1494,7 +1500,6 @@ void mapfile_loadproject_fpm ( void )
 			extern void Wicked_Update_Visuals(void *voidvisual);
 			Wicked_Update_Visuals((void*) &t.visuals );
 			#endif
-
 		}
 	}
 	else
@@ -2237,6 +2242,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("pinetree.dds");
 	addtocollection("noise.dds");
 
+	/* this did not work, replaced with if (Storyboard.Nodes[nodeid].type == STORYBOARD_TYPE_SPLASH) code below
 	#ifdef STORYBOARD
 	char fileName[MAX_PATH] = "\0";
 	void FindFirstSplash(char *splash_name);
@@ -2244,6 +2250,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	if(strlen(fileName) > 0)
 		addtocollection(fileName);
 	#endif
+	*/
 
 	addtocollection("skybank\\clear\\"); //for fallback.
 	
@@ -2408,15 +2415,25 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				addallinfoldertocollection(project_files, project_files);
 				SetDir(olddir.Get());
 			}
-
 			//strcat(project, "\\project.dat");
-			//addtocollection("editors\\uiv3\\loadingsplash.jpg");
 
-			//Add all media used by storyboard.
+			// add loading splash in case of a needed fallback
+			addtocollection("editors\\uiv3\\loadingsplash.jpg");
+
+			// add all media used by storyboard.
 			for (int nodeid = 0; nodeid < STORYBOARD_MAXNODES; nodeid++)
 			{
 				if (Storyboard.Nodes[nodeid].used)
 				{
+					// include splashscreen if specified
+					if (Storyboard.Nodes[nodeid].type == STORYBOARD_TYPE_SPLASH)
+					{
+						if (strlen(Storyboard.Nodes[nodeid].thumb) > 0)
+						{
+							addtocollection(Storyboard.Nodes[nodeid].thumb);
+						}
+					}
+
 					if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0)
 					{
 						addtocollection(Storyboard.Nodes[nodeid].screen_music);
@@ -2450,11 +2467,9 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 					}
 				}
 			}
-
 		}
 	}
-#endif
-
+	#endif
 
 	t.tlevelstoprocess = 1;
 	t.tlevelfile_s="";

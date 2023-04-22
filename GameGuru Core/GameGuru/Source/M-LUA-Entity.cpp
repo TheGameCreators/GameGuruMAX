@@ -2819,7 +2819,6 @@ void entity_lua_drownplayer ( void )
 
 void entity_lua_switchscript ( void )
 {
-	#ifdef WICKEDENGINE
 	bool bAllowScriptToSwitch = true;
 	if (strlen(t.s_s.Get()) > 0)
 	{
@@ -2864,12 +2863,6 @@ void entity_lua_switchscript ( void )
 			lua_execute_properties_variable(t.entityelement[t.e].eleprof.soundset4_s.Get());
 		}
 	}
-	#else
-	t.entityelement[t.e].eleprof.aimainname_s = t.s_s;
-	t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get())) + "_init");
-	LuaSetFunction (t.strwork.Get(), 1, 0);
-	LuaPushInt (t.e); LuaCallSilent ();
-	#endif
 }
 
 int g_iSuggestedSlot = 0;

@@ -548,9 +548,13 @@ void camerahook_domydemostuff2(float* fX, float* fY, float* fWidth, float* fHeig
 
 void Master::Update(float dt)
 {
+	// leave right away if not ready for update
 	if ( !initializedSecondaries ) return;
 
+	// super update to keep things ticking along during setup and regular loop
 	__super::Update(dt);
+
+	// while init phase, show splash
 	if (GuruUpdate() == false)
 	{
 		// until we are loaded and ready, present splash screen
@@ -644,7 +648,7 @@ void Master::Update(float dt)
 				g_bUpdateAppAvailable = true;
 				#endif
 
-				// test for Steam functionality
+				// test for Steam functionality 
 				//#define TESTSTEAMFREETRIAL
 				//#define TESTSTEAMAUTHANDTRIAL
 				#ifdef TESTSTEAMAUTHANDTRIAL
@@ -696,7 +700,7 @@ void Master::Update(float dt)
 								char pAbsolutePathAndFile[MAX_PATH];
 								extern std::vector<std::string> files_availableinfreetrial;
 								files_availableinfreetrial.clear();
-								for (int demos = 0; demos < 3; demos++)
+								for (int demos = 0; demos < 4; demos++)
 								{
 									std::vector<std::string> files_fromLST;
 									files_fromLST.clear();
@@ -704,6 +708,7 @@ void Master::Update(float dt)
 									if (demos == 0) pLSTFile = "Files\\mapbank\\canyon offensive.lst";
 									if (demos == 1) pLSTFile = "Files\\mapbank\\island showdown.lst";
 									if (demos == 2) pLSTFile = "Files\\mapbank\\zombie cellar demo - level1.lst";
+									if (demos == 3) pLSTFile = "Files\\mapbank\\RPG Template.lst";
 									getVectorFileContent(pLSTFile, files_fromLST);
 									for (int fileindex = 0; fileindex < files_fromLST.size(); fileindex++)
 									{
@@ -841,6 +846,9 @@ void Master::Update(float dt)
 			}
 
 			// and then get the correct splash
+			bool bDecryptedFile = false;
+			char VirtualFilename[_MAX_PATH];
+			strcpy(VirtualFilename, "");
 			char fileName[MAX_PATH];
 			extern bool bSpecialEditorFromStandalone;
 			LPSTR pFolderToUse = "";
@@ -857,6 +865,24 @@ void Master::Update(float dt)
 			//PE: Do we have a storyboard ?
 			if ( bAreWeAEditor == false )
 			{
+				// only for standalones while showing splash screen (moved from later in init sequence for elegance)
+				if (1)//t.game.gameisexe == 1)
+				{
+					// Must show the window (editor EXE hides by default)
+					#ifdef _DEBUG
+					// crashes when in debug
+					#else
+					SetWindowSettings (0, 0, 0);
+					WindowToFront ("Game Guru Standalone Executable");
+					SetWindowSize (GetDesktopWidth(), GetDesktopHeight());
+					ShowWindow(); MaximiseWindow();
+					DisableEscapeKey();
+					// clear screen
+					//Cls(); Sync();
+					//Cls(); Sync();
+					#endif
+				}
+
 				extern bool bSpecialStandalone;
 				extern char cSpecialStandaloneProject[MAX_PATH];
 				if(bSpecialStandalone)
@@ -878,6 +904,20 @@ void Master::Update(float dt)
 				{
 					void FindFirstSplash(char *splash_name);
 					FindFirstSplash(fileName);
+
+					// Uses actual or virtual file..
+					strcpy(VirtualFilename, fileName);
+					extern bool CheckForWorkshopFile(LPSTR);
+					CheckForWorkshopFile(VirtualFilename);
+					if (GG_FileExists(VirtualFilename))
+					{
+						// Decrypt and use media
+						extern void SetCanUse_e_(int);
+						SetCanUse_e_(1);
+						g_pGlob->Decrypt(VirtualFilename);
+						strcpy(fileName, VirtualFilename);
+						bDecryptedFile = true;
+					}
 					if (!pestrcasestr(fileName, "Files\\"))
 					{
 						int GG_GetRealPath(char* fullPath, int create);
@@ -893,6 +933,11 @@ void Master::Update(float dt)
 			{
 				g_pSplashTexture = tex->texture;
 			}
+			if (bDecryptedFile == true)
+			{
+				// re-encrypt if applicable
+				g_pGlob->Encrypt(VirtualFilename);
+			}
 			b_gSplashTextureLoaded = true;
 		}
 		if (g_pSplashTexture.IsValid())
@@ -902,22 +947,6 @@ void Master::Update(float dt)
 			{
 				float screenheight = canvas.GetLogicalHeight();
 				float screenwidth = canvas.GetLogicalWidth();
-				/*
-				//PE: Center image.
-				float img_w = g_pSplashTexture.desc.Width;
-				float img_h = g_pSplashTexture.desc.Height;
-
-				if (img_w > screenwidth || img_h > screenheight) {
-					float fRatio = 1.0f / (img_w / img_h);
-					img_w = screenwidth;
-					img_h = screenwidth * fRatio;
-					if (img_h > screenheight) {
-						float fRatio = 1.0f / (img_h / img_w);
-						img_h = screenheight;
-						img_w = screenheight * fRatio;
-					}
-				}
-				*/
 
 				//PE: New default - Zoom Image.
 				float img_w = g_pSplashTexture.desc.Width;
@@ -943,14 +972,6 @@ void Master::Update(float dt)
 			#endif
 			wiImage::Draw(&g_pSplashTexture, fx, cmd);
 		}
-		//std::string text = "Please wait FELLA!!";
-		//float textheight = wiFont::textHeight(text, params);
-		//float screenheight = canvas.GetLogicalHeight();
-		//if (textheight > screenheight)
-		//{
-		//	params.posY = screenheight - textheight;
-		//}
-		//wiFont::Draw(text, params, cmd);
 		wiRenderer::GetDevice()->RenderPassEnd(cmd);
 		wiRenderer::GetDevice()->SubmitCommandLists();
 	}

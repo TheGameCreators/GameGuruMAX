@@ -44733,9 +44733,11 @@ void FindFirstSplash(char *splash_name)
 			{
 				if (strlen(Storyboard.Nodes[i].thumb) > 0)
 				{
+					// replace stock splash with custom one specified by storybaord game project
+					strcpy(splash_name, Storyboard.Nodes[i].thumb);
+					/* LB: reason was simpler, the splash image file was not copied over - and the public repo code does not contain the encryption code so could not be tested/verified. Sorted now :)
 					//PE: Need decrypt support here.
 					strcpy(splash_name, Storyboard.Nodes[i].thumb);
-
 					if (!pestrcasestr(splash_name, "Files\\"))
 					{
 						int GG_GetRealPath(char* fullPath, int create);
@@ -44761,6 +44763,7 @@ void FindFirstSplash(char *splash_name)
 						//PE: Wait until the actual g_pGlob->Decrypt works so we can see how it works.
 						//g_pGlob->Encrypt(VirtualFilename);
 					}
+					*/
 				}
 			}
 		}
@@ -48343,11 +48346,63 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							}
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_GOTOSCREEN)
 							{
-								if ( _stricmp(Storyboard.Nodes[nodeid].lua_name,"gamemenu.lua") == 0 && strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0
-									&& Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
+								//if (_stricmp(Storyboard.Nodes[nodeid].lua_name, "gamemenu.lua") == 0 && strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0
+								//	&& Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
+								if ( _stricmp(Storyboard.Nodes[nodeid].lua_name,"gamemenu.lua") == 0 ) // output_* CANNOT be trusted!
 								{
 									//PE: Special mode where we need to follow output_action.
 									//PE: This is a mess, and need to be changed when we change the system to ALL buttons have outlinks.
+									//LB: Agreed, seems changing the in-game menu screen messed 'output_action' list, and the code below is a narsty hack!
+									//The good news is that output_title stores the correct linkages as they are correct in Storyboard :)
+									//i.e. strcpy(chr, Storyboard.Nodes[node].widget_label[ll]); strcat(chr, " -> Connect to Level"); strcpy(Storyboard.Nodes[node].output_title[outlinknum], chr);
+									int iNodeToLinkTo = 0;
+									LPSTR pWidgetLabelName = Storyboard.Nodes[nodeid].widget_label[index];
+									std::string lua_name = "";
+									for (int outlinkageindex = 0; outlinkageindex < STORYBOARD_MAXOUTPUTS; outlinkageindex++)
+									{
+										char pOutLinkTitleName[256];
+										strcpy(pOutLinkTitleName, Storyboard.Nodes[nodeid].output_title[outlinkageindex]);
+										LPSTR pConnectionTag = " -> Connect to Level";
+										if (strlen(pOutLinkTitleName) > strlen(pConnectionTag))
+										{
+											pOutLinkTitleName[strlen(pOutLinkTitleName) - strlen(pConnectionTag) - 1] = 0;
+											if (strstr(pOutLinkTitleName, pWidgetLabelName) != NULL)
+											{
+												// found the actual outlinkageindex, find where we link to
+												int iLinkTo = Storyboard.Nodes[nodeid].output_linkto[outlinkageindex];
+												if (iLinkTo > 0)
+												{
+													for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+													{
+														if (Storyboard.Nodes[i].used)
+														{
+															for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+															{
+																if (iLinkTo == Storyboard.Nodes[i].input_id[l])
+																{
+																	iNodeToLinkTo = i;
+																	break;
+																}
+															}
+														}
+														if (iNodeToLinkTo > 0) break;
+													}
+												}
+											}
+										}
+										if (iNodeToLinkTo > 0)
+											break;
+									}
+									if (iNodeToLinkTo > 0)
+									{
+										lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
+										replaceAll(lua_name, ".lua", "");
+										t.s_s = lua_name.c_str();
+										lua_switchpage();
+										bLuaPageClosing = true; //always stop music.
+										iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
+									}
+									/*
 									std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
 									if (index == 2) lua_name = "loadgame";
 									if (index == 3) lua_name = "savegame";
@@ -48357,6 +48412,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									lua_switchpage();
 									bLuaPageClosing = true; //always stop music.
 									iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
+									*/
 								}
 								else
 								{

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Switch v5 by Necrym59
+-- Kill Switch v6 by Necrym59
 -- DESCRIPTION: Attach this behaviour to an object. Link to be activated by switch or zone.
 -- DESCRIPTION: When all enemies have been killed it then activates another linked object or item.
 -- DESCRIPTION: [EVENT_TEXT$="Kill all Targets in Area"]
@@ -57,14 +57,14 @@ end
 function kill_switch_main(e)
 	killswitch[e] = g_Entity[e]
 
-	if g_Entity[e]['activated'] == 1 then
-		if doonce[e] == 0 then
-			PromptDuration(killswitch[e].event_text,2000)	
-			PlaySound(e,0)
-			doonce[e] = 1
-		end	
+	if g_Entity[e]['activated'] == 1 then		
 		
 		if status[e] == 'init' then
+			if doonce[e] == 0 then
+				PromptDuration(killswitch[e].event_text,2000)	
+				PlaySound(e,0)
+				doonce[e] = 1
+			end	
 			for a = 1, g_EntityElementMax do
 				if a ~= nil and g_Entity[a] ~= nil then 
 					local allegiance = GetEntityAllegiance(a)				

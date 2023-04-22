@@ -53,24 +53,8 @@ function day_night_main(e)
 	if sunangle[e] > -95 and sunangle[e] < 95 then mode[e] = "Day" end
 	if sunangle[e] > 100 then mode[e] = "Night" end
 	if sunangle[e] > 100 then sunangle[e] = -100 end  --Reset day restart sunposition
-	if mode[e] == "Night" then
-		SetSunLightingColor(25,255,255)
-		SetSunIntensity(75)
-		--SetSunExposure(75)
-		SetAmbienceRed(25)
-		SetAmbienceBlue(30)
-		SetAmbienceGreen(40)
-		--Swap in Moon Image if possible
-	end
-	if mode[e] == "Day" then
-		SetSunLightingColor(255,255,255)
-		SetSunIntensity(75)
-		--SetSunExposure(75)
-		SetAmbienceRed(255)
-		SetAmbienceBlue(255)
-		SetAmbienceGreen(255)
-		--Swap in Sun Image if possible
-	end
+
+
 	if day_night[e].diagnostics == 1 then
 		Text(1,24,3,"Sun Angle: " ..sunangle[e])
 		Text(1,26,3,"Time Mode: " ..mode[e])	

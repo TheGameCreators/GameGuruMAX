@@ -10525,25 +10525,28 @@ void mapeditorexecutable_loop(void)
 									ImGui::Indent(-10);
 
 									// option to delete a collectable from the global list
-									float but_gadget_size = ImGui::GetFontSize() * 12.0;
-									float w = ImGui::GetWindowContentRegionWidth() - 10.0;
-									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
-									LPSTR pCreateButtonLabel = "Delete From Collection List";
-									if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
+									if (iCollectableSettingsMode == 1)
 									{
-										// create new quest list without the one deleted
-										std::vector<collectionItemType> newCollectionList;
-										for (int ci = 0; ci < g_collectionList.size(); ci++)
+										float but_gadget_size = ImGui::GetFontSize() * 12.0;
+										float w = ImGui::GetWindowContentRegionWidth() - 10.0;
+										ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+										LPSTR pCreateButtonLabel = "Delete From Collection List";
+										if (ImGui::StyleButton(pCreateButtonLabel, ImVec2(but_gadget_size, 0)))
 										{
-											if (ci != iCollectionItemIndex)
+											// create new quest list without the one deleted
+											std::vector<collectionItemType> newCollectionList;
+											for (int ci = 0; ci < g_collectionList.size(); ci++)
 											{
-												newCollectionList.push_back(g_collectionList[ci]);
+												if (ci != iCollectionItemIndex)
+												{
+													newCollectionList.push_back(g_collectionList[ci]);
+												}
 											}
+											g_collectionList = newCollectionList;
+											g_bChangedGameCollectionList = true;
 										}
-										g_collectionList = newCollectionList;
-										g_bChangedGameCollectionList = true;
+										if (ImGui::IsItemHovered()) ImGui::SetTooltip("Delete this collection item from the main collection list of the game project");
 									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Delete this collection item from the main collection list of the game project");
 								}
 							}
 						}

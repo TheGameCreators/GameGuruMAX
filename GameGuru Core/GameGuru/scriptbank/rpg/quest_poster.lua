@@ -1,4 +1,4 @@
--- Quest Poster v4
+-- Quest Poster v6
 -- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"].
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: <Sound0> when viewing the quest.
@@ -9,12 +9,14 @@ local lower = string.lower
 local g_quest_poster = {}
 local quest_objno = {}
 local quest_recno = {}
+local quest_quantity = {}
 
 function quest_poster_init(e)
 	g_quest_poster[e] = {}
 	quest_poster_properties(e,100,"Press E to view this quest","HUD Screen 8","")
 	quest_objno[e] = 0
 	quest_recno[e] = 0
+	quest_quantity[e] = 0
 end
 
 function quest_poster_properties(e, range, questprompt, questscreen, questchoice)
@@ -31,6 +33,7 @@ function quest_poster_properties(e, range, questprompt, questscreen, questchoice
 	g_quest_poster[e]['questvalue'] = ""
 	g_quest_poster[e]['questactivate'] = ""
 	g_quest_poster[e]['queststarted'] = 0
+	g_quest_poster[e]['questquantity'] = ""
 end
 
 function quest_poster_main(e)
@@ -48,6 +51,7 @@ function quest_poster_main(e)
 					g_quest_poster[e]['questpoints'] = GetCollectionQuestAttribute(i,"points")
 					g_quest_poster[e]['questvalue'] = GetCollectionQuestAttribute(i,"value")
 					g_quest_poster[e]['questactivate'] = GetCollectionQuestAttribute(i,"activate")
+					g_quest_poster[e]['questquantity'] = tonumber(GetCollectionQuestAttribute(i,"quantity"))
 				end
 			else
 				PromptDuration(g_quest_poster[e]['questchoice'],5000)
@@ -96,7 +100,7 @@ function quest_poster_main(e)
 				
 				if g_quest_poster[e]['questtype'] == "collect" then
 					-- COLLECT
-					if quest_objno[e] == 0 then
+					if quest_objno[e] == 0 then						
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
 								if lower(GetEntityName(a)) == lower(g_quest_poster[e]['questobject']) then
@@ -106,10 +110,24 @@ function quest_poster_main(e)
 							end
 						end
 					end
-					if GetEntityCollected(quest_objno[e]) == 1 then
-						tquestcomplete = 1						
+					----Complete Collect Single Item Quest ----------------------
+					if GetEntityCollected(quest_objno[e]) == 1 and g_quest_poster[e]['questquantity'] == 1 then					
+						tquestcomplete = 1							
+					end
+					---- Complete Collect Multi Items Quest ----------------------
+					if g_quest_poster[e]['questquantity'] > 1 then
+						if GetEntityCollected(quest_objno[e]) == 1 and GetEntityQuantity(quest_objno[e]) == g_quest_poster[e]['questquantity'] then
+							tquestcomplete = 1
+						end	
+						if GetEntityQuantity(quest_objno[e]) == -1 then
+							quest_quantity[e] = 0
+						else
+							quest_quantity[e] = GetEntityQuantity(quest_objno[e])
+						end
+						Prompt(quest_quantity[e].. " of " ..g_quest_poster[e]['questquantity'].. " " ..g_quest_poster[e]['questobject'].. "'s collected")
 					end
 				end 
+				
 				
 				if g_quest_poster[e]['questtype'] == "destroy" then
 					-- DESTROY

@@ -37460,17 +37460,17 @@ void setup_output_links(int node)
 	//PE: reset outlinks.
 	for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 	{
-//		strcpy(Storyboard.Nodes[i].output_action[l], "");
-//		strcpy(Storyboard.Nodes[i].output_title[l], "");
+		strcpy(Storyboard.Nodes[i].output_action[l], "");
+		strcpy(Storyboard.Nodes[i].output_title[l], "");
 //		Storyboard.Nodes[i].output_linkto[l] = 0;
-//		Storyboard.Nodes[i].output_can_link_to_type[l] = 0;
+		Storyboard.Nodes[i].output_can_link_to_type[l] = 0;
 //		strcpy(Storyboard.Nodes[i].input_title[l], "");
 //		strcpy(Storyboard.Nodes[i].input_action[l], "");
 	}
 
 	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
 	{
-		if (Storyboard.Nodes[i].widget_used[ll])
+		if (Storyboard.Nodes[node].widget_used[ll])
 		{
 			if (Storyboard.Nodes[node].widget_type[ll] == STORYBOARD_WIDGET_BUTTON)
 			{
@@ -42629,6 +42629,21 @@ void process_storeboard(bool bInitOnly)
 								node = i;
 								reset_single_node(node);
 
+								//PE: Setup new unique id's
+								int iUniqueId = STORYBOARD_THUMBS + node;
+								Storyboard.Nodes[node].id = iUniqueId;
+								Storyboard.Nodes[node].thumb_id = iUniqueId;
+								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+								{
+									//PE: input_id,output_id ID's broken in checkproject.
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+								}
+								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
+
 								// New node defaults to a HUD screen
 								Storyboard.Nodes[node].used = true;
 								Storyboard.Nodes[node].type = STORYBOARD_TYPE_SCREEN;
@@ -42708,6 +42723,21 @@ void process_storeboard(bool bInitOnly)
 								// Reset node to default state, in case any old data remains.
 								node = i;
 								reset_single_node(node);
+
+								//PE: Setup new unique id's
+								int iUniqueId = STORYBOARD_THUMBS + node;
+								Storyboard.Nodes[node].id = iUniqueId;
+								Storyboard.Nodes[node].thumb_id = iUniqueId;
+								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+								{
+									//PE: input_id,output_id ID's broken in checkproject.
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+								}
+								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
 
 								// New node defaults to a HUD screen
 								Storyboard.Nodes[node].used = true;
@@ -43577,8 +43607,8 @@ void process_storeboard(bool bInitOnly)
 																		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 																		{
 																			//PE: input_id,output_id ID's broken in checkproject.
-																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueIds + 1000 + (1000 * l);
-																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueIds + 1000 + (1000 * l) + 500;
+																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueId + 1000 + (1000 * l);
+																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
 																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
 																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
 																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;

@@ -792,7 +792,12 @@ bool btKinematicCharacterController::onGround () const
 	//return m_verticalVelocity == 0.0 && m_verticalOffset == 0.0; // does not work when running DOWN slope!
 	//return m_wasJumping==false; // can to jumo in mid-fall!
 	// if just about to fall or running up slope, can jump, but not in full fall or steep slope
-	if ( fabs(m_verticalVelocity)<m_fallSpeed/2 && m_wasJumping==false ) 
+#ifdef WICKEDENGINE
+	//PE: m_verticalVelocity lower in wicked.
+	if (fabs(m_verticalVelocity) < m_fallSpeed / 10 && m_wasJumping == false)
+#else
+	if (fabs(m_verticalVelocity) < m_fallSpeed / 2 && m_wasJumping == false)
+#endif
 		return true;
 	else
 		return false;

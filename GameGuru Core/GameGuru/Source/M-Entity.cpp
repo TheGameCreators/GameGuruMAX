@@ -6675,8 +6675,12 @@ void entity_loadelementsdata(void)
 							}
 							if (bFoundIt == false && strlen(pCollectionItemProfile) > 0)
 							{
-								g_entityBankAdditions.push_back(pCollectionItemProfile);
-								g_entityBankAdditionsCollectionIndex.push_back(n);
+								//PE: "none" will end up as a ebe missing file.
+								if (!stricmp(pCollectionItemProfile, "none") == NULL)
+								{
+									g_entityBankAdditions.push_back(pCollectionItemProfile);
+									g_entityBankAdditionsCollectionIndex.push_back(n);
+								}
 							}
 						}
 					}

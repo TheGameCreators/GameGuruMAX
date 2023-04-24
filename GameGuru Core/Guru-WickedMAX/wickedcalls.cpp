@@ -242,6 +242,9 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 	//PE: Find filname in vector and add the CRC64 to g_imageList when adding a image.
 	//PE: Below also lookup filename CRC64 and check against the g_imageList CRC64 to also reused image.
 
+	if (pFilenameToLoad.length() <= 0)
+		return NULL; //PE: We get this alot from DISPLACEMENTMAP ... 
+
 	std::shared_ptr<wiResource> image = NULL;
 	char pFullRelativeLocationFilename[MAX_PATH];
 	int iImageIndex = WickedCall_FindImageIndexInList(pFilenameToLoad,pFullRelativeLocationFilename);

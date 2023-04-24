@@ -6652,7 +6652,7 @@ int SetScreenWidgetSelection(lua_State *L)
 		int nodeid = FindLuaScreenNode(pScreenName);
 		if (nodeid >= 0 && nodeid < STORYBOARD_MAXNODES)
 		{
-			iRet = Storyboard.NodeRadioButtonSelected[nodeid] = iButton;
+			iRet = Storyboard.NodeRadioButtonSelected[nodeid] = iButton; // used by GRAPHICS SETTINGS (1,2,3)
 		}
 	}
 	lua_pushnumber(L, iRet);

@@ -768,7 +768,7 @@ void entity_lua_transporttoifused ( void )
 
 void entity_lua_refreshentity ( void )
 {
-	// all entity data updated directly, now 
+	// all entity data updated directly, now  
 	// ensure visible entity matches data again (for reloading game)
 	t.obj = t.entityelement[t.e].obj;
 	if ( t.obj > 0 )
@@ -850,12 +850,16 @@ void entity_lua_refreshentity ( void )
 				entity_lua_spawn_core();
 				t.entityelement[t.e].health = iHaveCurrentHealth;
 
-				// delete old physics so collision on command can renew it
-				ODEDestroyObject ( t.obj );
-				t.entityelement[t.e].usingphysicsnow = 0;
+				// only restore physics if had any to start with
+				if (t.entityelement[t.e].usingphysicsnow != 0)
+				{
+					// delete old physics so collision on command can renew it
+					t.entityelement[t.e].usingphysicsnow = 0;
+					ODEDestroyObject (t.obj);
 
-				// activate collision if any
-				entity_lua_collisionon();
+					// activate collision if any
+					entity_lua_collisionon();
+				}
 
 				// this entity needs to be in 'unspawned state'
 				if ( iRefreshMode == 3 )

@@ -22122,10 +22122,10 @@ void input_calculatelocalcursor ( void )
 							piEntityVisible[e] = 1;
 							HideObject(obj);
 						}
-						else
-						{
-							piEntityVisible[e] = 0;
-						}
+						//else //arg, wiped out setting above!
+						//{
+						//	piEntityVisible[e] = 0;
+						//}
 					}
 				}
 			}

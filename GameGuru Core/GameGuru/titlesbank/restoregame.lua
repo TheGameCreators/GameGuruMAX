@@ -33,9 +33,6 @@ function restoregame.now()
  -- restore entity stats
  CreateEntityIfNotPresent(g_EntityElementMax)
  for i = 1, g_EntityElementMax, 1 do
-  --if g_Entity[i] == nil then 
---	UpdateEntity(i,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-  --end
   if g_Entity[i] ~= nil then
   if g_Entity[i]['x'] ~= nil then
    ResetPosition ( i, g_Entity[i]['x'], g_Entity[i]['y'], g_Entity[i]['z'] )
@@ -56,6 +53,7 @@ function restoregame.now()
    if g_EntityExtra[i]['spawnatstart']==2 and g_Entity[i]['health'] > 0 then
     Spawn ( i )
    end
+   if g_EntityExtra[i]['collision'] == 0 then CollisionOff(i) end
   end
   end
  end 
@@ -95,6 +93,21 @@ function restoregame.now()
 						if c == 0 then invindex = 1 end
 						if c == 1 then invindex = 2 end
 						SetEntityCollectedForce(newe,invindex,slot)
+					end
+				end
+			end
+			-- also check if player start weapon in hotkeys - only scenario where entity zero is okay
+			if c == 1 then
+				local tinventoryqty = g_UserContainerCount[c]
+				for tinventoryindex = 1, tinventoryqty, 1 do
+					local fulloffset = (c*100000)+tinventoryindex
+					if g_UserContainerIndex[fulloffset] ~= nil then
+						local tcollectionindex = g_UserContainerIndex[fulloffset]
+						local tcollectione = g_UserContainerE[fulloffset]
+						if tcollectionindex > 0 and tcollectione == 0 then
+							local slot = g_UserContainerSlot[fulloffset]
+							AddInventoryItem("inventory:hotkeys",tcollectionindex,0,slot)
+						end
 					end
 				end
 			end

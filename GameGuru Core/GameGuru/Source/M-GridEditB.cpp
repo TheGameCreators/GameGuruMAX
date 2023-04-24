@@ -37565,6 +37565,7 @@ void reset_single_node(int node)
 		Storyboard.NodeSliderValues[i][ll] = 0.0;
 	}
 
+	// used by GRAPHICS SETTINGS (1,2,3)
 	Storyboard.NodeRadioButtonSelected[i] = -1;
 }
 
@@ -47764,9 +47765,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				if(!bProgressbar && bHovered) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
 				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE)
 				{
-					//PE: Just use first as default selected.
-					if (Storyboard.NodeRadioButtonSelected[nodeid] < 0.0) Storyboard.NodeRadioButtonSelected[nodeid] = index;
-					if (Storyboard.NodeRadioButtonSelected[nodeid] == index)
+					// used by GRAPHICS SETTINGS (1,2,3)
+					int iMatchToSettingValue = -1;
+					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
+					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
+					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
+					if (Storyboard.NodeRadioButtonSelected[nodeid] < 0.0) Storyboard.NodeRadioButtonSelected[nodeid] = 3;// iMatchToSettingValue; HIGHEST always default
+					if (Storyboard.NodeRadioButtonSelected[nodeid] == iMatchToSettingValue)
 					{
 						lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_selected_thumb_id[index]);
 						if(!lpTexture) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
@@ -48577,8 +48582,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					{
 						if (ImGui::IsMouseDown(0))
 						{
-							Storyboard.NodeRadioButtonSelected[nodeid] = index;
-							iSpecialLuaReturn = index;
+							// used by GRAPHICS SETTINGS (1,2,3)
+							int iMatchToSettingValue = -1;
+							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
+							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
+							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
+							Storyboard.NodeRadioButtonSelected[nodeid] = iMatchToSettingValue;
+							iSpecialLuaReturn = iMatchToSettingValue;
 						}
 					}
 				}

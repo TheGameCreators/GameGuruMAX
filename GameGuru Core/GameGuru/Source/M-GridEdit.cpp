@@ -26957,8 +26957,8 @@ void gridedit_mapediting ( void )
 					if (pref.iDragCameraMovement && t.ebe.on == 0 && t.inputsys.keycontrol == 1 && bActivateRubberBand)
 					{
 						bActivateRubberBand = false;
-						// if clicked a single entity WHILE holding control, can add to list
-						if (t.inputsys.keycontrol == 1 && t.tentitytoselect > 0)
+						// if clicked a single entity WHILE holding control, can add to list (need to click to select)
+						if (t.inputsys.mclick == 1 && t.inputsys.keycontrol == 1 && t.tentitytoselect > 0)
 						{
 							if (g.entityrubberbandlist.size() > 0)
 							{
@@ -26989,7 +26989,6 @@ void gridedit_mapediting ( void )
 								if (bAlreadyInList == false)
 								{
 									gridedit_addEntityToRubberBandHighlights(t.widget.pickedEntityIndex);
-									
 								}
 							}
 							gridedit_addEntityToRubberBandHighlights(t.tentitytoselect);

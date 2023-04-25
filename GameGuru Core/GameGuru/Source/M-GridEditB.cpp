@@ -37462,10 +37462,7 @@ void setup_output_links(int node)
 	{
 		strcpy(Storyboard.Nodes[i].output_action[l], "");
 		strcpy(Storyboard.Nodes[i].output_title[l], "");
-//		Storyboard.Nodes[i].output_linkto[l] = 0;
 		Storyboard.Nodes[i].output_can_link_to_type[l] = 0;
-//		strcpy(Storyboard.Nodes[i].input_title[l], "");
-//		strcpy(Storyboard.Nodes[i].input_action[l], "");
 	}
 
 	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
@@ -37566,6 +37563,56 @@ void reset_single_node(int node)
 	}
 
 	Storyboard.NodeRadioButtonSelected[i] = -1;
+}
+
+void storeboard_fix_uniqueids( void )
+{
+	int iUniqueId = STORYBOARD_THUMBS;
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		int node = i;
+
+		for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+		{
+			//PE: input_id,output_id ID's broken in checkproject.
+			if (Storyboard.Nodes[node].input_id[l] != iUniqueId + 1000 + (1000 * l) ||
+				Storyboard.Nodes[node].output_id[l] != iUniqueId + 1000 + (1000 * l) + 500)
+			{
+				//PE: Something wrong reset.
+				bool bInputChanged = false;
+				if (Storyboard.Nodes[node].input_id[l] != iUniqueId + 1000 + (1000 * l)) bInputChanged = true;
+				int oldinput = Storyboard.Nodes[node].input_id[l];
+				Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+				Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+
+				if (bInputChanged)
+				{
+					//PE: As the unique ids has changed we need to remove all linking to us, need to be done so corrupt projects can be fixed by reconnecting again.
+					for (int ii = 0; ii < STORYBOARD_MAXNODES; ii++)
+					{
+						for (int a = 0; a < STORYBOARD_MAXOUTPUTS; a++)
+						{
+							//PE: Check all output_linkto and remove link.
+							if (Storyboard.Nodes[ii].output_linkto[a] == oldinput)
+								Storyboard.Nodes[ii].output_linkto[a] = 0;
+						}
+					}
+				}
+			}
+		}
+		if (pestrcasestr(Storyboard.Nodes[node].title, "Level "))
+		{
+			if (Storyboard.Nodes[node].type != STORYBOARD_TYPE_LEVEL)
+				Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
+		}
+		if (pestrcasestr(Storyboard.Nodes[i].lua_name, "loading.lua"))
+		{
+			if (Storyboard.Nodes[node].type != STORYBOARD_TYPE_LEVEL)
+				Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
+		}
+
+		iUniqueId++;
+	}
 }
 
 void storeboard_init_nodes(float area_width, float node_width, float node_height)
@@ -39027,6 +39074,9 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 						//Found it and its active.
 						bValid = false;
 						node = i;
+						//PE: Fix old bug where loading screen was set to wrong type.
+						if (Storyboard.Nodes[node].type != STORYBOARD_TYPE_LEVEL)
+							Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
 						break;
 					}
 				}
@@ -39073,7 +39123,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			//iLoadingScreenNodeID;
 			//2 Default Loading screen.
 			Storyboard.Nodes[node].used = true;
-			Storyboard.Nodes[node].type = STORYBOARD_TYPE_SCREEN;
+			Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
 			Storyboard.Nodes[node].restore_position = ImVec2(area_width*0.5 - (node_width*0.5), STORYBOARD_YSTART + (node_height + NODE_HEIGHT_PADDING) * 0);
 			Storyboard.Nodes[node].iEditEnable = true;
 			strcpy(Storyboard.Nodes[node].title, "Loading Screen");
@@ -42636,12 +42686,16 @@ void process_storeboard(bool bInitOnly)
 								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 								{
 									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
 									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
 									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
 									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
 								}
+								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+								{
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+								}
+
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
 
 								// New node defaults to a HUD screen
@@ -42731,12 +42785,16 @@ void process_storeboard(bool bInitOnly)
 								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 								{
 									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
 									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
 									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
 									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
 								}
+								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+								{
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+								}
+
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
 
 								// New node defaults to a HUD screen
@@ -43607,11 +43665,14 @@ void process_storeboard(bool bInitOnly)
 																		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 																		{
 																			//PE: input_id,output_id ID's broken in checkproject.
-																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueId + 1000 + (1000 * l);
-																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
 																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
 																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
 																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+																		}
+																		for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+																		{
+																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueId + 1000 + (1000 * l);
+																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
 																		}
 																		Storyboard.Nodes[newnodeid].screen_backdrop_id = iUniqueId + 500;
 
@@ -45672,6 +45733,9 @@ void load_storyboard(char *name)
 		iUniqueIds++;
 	}
 
+	//PE: Fix all output input unique id problems.
+	storeboard_fix_uniqueids();
+
 	// and load game project rpg databases, including item collection data
 	init_rpg_system();
 	load_rpg_system(name);
@@ -46371,7 +46435,11 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 		// Once buttons can be added, this code can be removed.
 
 		//PE: we are ready. on some pages.
-		if (nodeID == iGamePausedNodeID && widgetID <= 7) return;
+		if (nodeID == iGamePausedNodeID && widgetID <= 7)
+		{
+			if( !(widgetID == 0 && Storyboard.Nodes[nodeID].widget_type[widgetID] != STORYBOARD_WIDGET_TEXT) )
+				return;
+		}
 		if (nodeID == iGraphicsNodeID && widgetID <= 6) return;
 		if (nodeID == iSoundsNodeID && widgetID <= 5) return;
 		if (nodeID == iSaveGameNodeID && widgetID <= 9) return;

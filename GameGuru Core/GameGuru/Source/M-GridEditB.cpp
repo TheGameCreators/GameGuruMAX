@@ -33992,7 +33992,7 @@ void GetProjectThumbnails()
 									}
 								}
 								//PE: Try finding level that loading.lua is pointing to ?
-								if (checkproject.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+								if (checkproject.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 								{
 									if (strlen(checkproject.Nodes[i].level_name) > 0)
 									{
@@ -37606,7 +37606,7 @@ void storeboard_fix_uniqueids( void )
 			if (Storyboard.Nodes[node].type != STORYBOARD_TYPE_LEVEL)
 				Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
 		}
-		if (pestrcasestr(Storyboard.Nodes[i].lua_name, "loading.lua"))
+		if (pestrcasestr(Storyboard.Nodes[node].lua_name, "loading"))
 		{
 			if (Storyboard.Nodes[node].type != STORYBOARD_TYPE_LEVEL)
 				Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
@@ -40737,7 +40737,7 @@ void process_storeboard(bool bInitOnly)
 									}
 								}
 							}
-							if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+							if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 							{
 								if (strlen(Storyboard.Nodes[i].level_name) > 0)
 								{
@@ -41769,7 +41769,7 @@ void process_storeboard(bool bInitOnly)
 							ImGui::TextUnformatted(Storyboard.Nodes[i].title);
 						}
 
-						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 						{
 							//Reverse push's from BeginNodeEditor
 							ImGui::PopStyleColor(); // pop child window background color
@@ -42071,8 +42071,10 @@ void process_storeboard(bool bInitOnly)
 									sTooltip = " Edit Splash Screen ";
 								else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN)
 									sTooltip = " Edit Screen ";
-								else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+								else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 									sTooltip = " Edit Level ";
+								else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+									sTooltip = " Edit Loading Screen ";
 							}
 							ImGui::PopID();
 						}
@@ -42146,7 +42148,7 @@ void process_storeboard(bool bInitOnly)
 								}
 
 							}
-							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN)
+							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN || pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 							{
 
 								if (i == iTitleScreenNodeID && pref.iTitleStartMessage == 0)
@@ -42185,7 +42187,7 @@ void process_storeboard(bool bInitOnly)
 								bScreen_Editor_Window = true;
 								iScreen_Editor_Node = i;
 							}
-							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 							{
 								//Edit level.
 								CloseAllOpenTools();
@@ -43714,7 +43716,7 @@ void process_storeboard(bool bInitOnly)
 						{
 							if (Storyboard.Nodes[i].used)
 							{
-								if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+								if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 								{
 									if (Storyboard.Nodes[i].output_linkto[2] == 0 && i != iAutoConnectNode)
 									{
@@ -44938,7 +44940,7 @@ void FindFirstLevel(int &iFirstLevelNode, char *level_name, bool bFailIfNoLink)
 	{
 		if (Storyboard.Nodes[i].used)
 		{
-			if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+			if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 			{
 				if (strcmp("Level 1", Storyboard.Nodes[i].levelnumber) == 0)
 				{
@@ -44963,7 +44965,7 @@ bool FindFreeLevelNode( int &iNextLevel,int &levelname ,int &iFirstNodeFree)
 	{
 		if (Storyboard.Nodes[i].used)
 		{
-			if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+			if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 				iNextLevel++;
 		}
 	}
@@ -45962,7 +45964,7 @@ void GetProjectList(char *path, bool bGetThumbs)
 											}
 										}
 										//PE: Try finding level that loading.lua is pointing to ?
-										if (checkproject.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+										if (checkproject.Nodes[i].type == STORYBOARD_TYPE_LEVEL && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
 										{
 											if (strlen(checkproject.Nodes[i].level_name) > 0)
 											{

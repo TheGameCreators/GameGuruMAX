@@ -6676,7 +6676,7 @@ void entity_loadelementsdata(void)
 							if (bFoundIt == false && strlen(pCollectionItemProfile) > 0)
 							{
 								//PE: "none" will end up as a ebe missing file.
-								if (!stricmp(pCollectionItemProfile, "none") == NULL)
+								if( strlen(pCollectionItemProfile) > 1 && !(stricmp(pCollectionItemProfile, "none") == NULL) )
 								{
 									g_entityBankAdditions.push_back(pCollectionItemProfile);
 									g_entityBankAdditionsCollectionIndex.push_back(n);

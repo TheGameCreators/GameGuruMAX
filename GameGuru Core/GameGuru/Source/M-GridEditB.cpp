@@ -63,6 +63,7 @@ extern int g_Storyboard_Current_Level;
 extern char g_Storyboard_First_fpm[256];
 extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
+extern char g_Storyboard_Current_Loading_Page[256];
 extern std::vector<std::string> projectbank_list;
 //extern std::vector<bool> projectbank_list_exist; 
 extern std::vector<std::string> projectbank_image;
@@ -37490,6 +37491,13 @@ void setup_output_links(int node)
 					outlinknum++;
 				}
 			}
+			if (pestrcasestr(Storyboard.Nodes[node].lua_name, "loading"))
+			{
+				strcpy(Storyboard.Nodes[node].output_title[0], " LOAD LEVEL -> Connect to Level ");
+				strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
+				Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_LEVEL;
+				outlinknum++;
+			}
 		}
 	}
 }
@@ -39120,7 +39128,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 		//2 Default Loading screen.
 		if (bValid && (Storyboard.Nodes[node].used == false || bForce))
 		{
-			Storyboard.Nodes[node].widgets_available = allWidgets;
+			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE;;
 			//iLoadingScreenNodeID;
 			//2 Default Loading screen.
 			Storyboard.Nodes[node].used = true;
@@ -42758,6 +42766,136 @@ void process_storeboard(bool bInitOnly)
 						}
 					}
 
+					
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Add New Loading Screen", ImVec2(buttonwide, 0.0f)))
+					{
+						int iLoadingScreenCount = 1;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN)
+							{
+								if(pestrcasestr(Storyboard.Nodes[i].title,"Loading Screen"))
+									iLoadingScreenCount++;
+							}
+						}
+						char cLoadingScreenCount[8];
+						sprintf_s(cLoadingScreenCount, "%d", iLoadingScreenCount);
+						// Find first free storyboard node that we can use for the new screen.
+						int node = -1;
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used == 0)
+							{
+								// Reset node to default state, in case any old data remains.
+								node = i;
+								reset_single_node(node);
+
+								//PE: Setup new unique id's
+								int iUniqueId = STORYBOARD_THUMBS + node;
+								Storyboard.Nodes[node].id = iUniqueId;
+								Storyboard.Nodes[node].thumb_id = iUniqueId;
+								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+								{
+									//PE: input_id,output_id ID's broken in checkproject.
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+								}
+								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+								{
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+								}
+
+								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
+
+								//PE: New loading screen.
+								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE;
+								Storyboard.Nodes[node].used = true;
+								Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
+								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iLoadingScreenNodeID].restore_position.x + 200 * iLoadingScreenCount, Storyboard.Nodes[iLoadingScreenNodeID].restore_position.y);
+								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
+
+								Storyboard.Nodes[node].iEditEnable = true;
+								strcpy(Storyboard.Nodes[node].title, "Loading Screen ");
+								strcat(Storyboard.Nodes[node].title, cLoadingScreenCount);
+								strcpy(Storyboard.Nodes[node].lua_name, "loading");
+								strcat(Storyboard.Nodes[node].lua_name, cLoadingScreenCount);
+								strcat(Storyboard.Nodes[node].lua_name, ".lua");
+
+								strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\screen_loading.lua.png");
+								strcpy(Storyboard.Nodes[node].screen_backdrop, "editors\\templates\\backdrops\\loading.png");
+
+								//Input.
+								strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
+								//Output.
+								strcpy(Storyboard.Nodes[node].output_title[0], " LOAD LEVEL -> Connect to Level ");
+								strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
+								Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_LEVEL;
+								Storyboard.Nodes[node].output_linkto[0] = 0;
+
+								int button = 0;
+								strcpy(Storyboard.Nodes[node].widget_label[button], "LOADING LEVEL");
+								Storyboard.Nodes[node].widget_used[button] = 1;
+								Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_TEXT;
+								Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
+								Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 80.0); //Pos in percent. using pivot center on X only.
+								Storyboard.Nodes[node].widget_action[button] = STORYBOARD_ACTIONS_NONE;
+								Storyboard.Nodes[node].widget_layer[button] = 0;
+								Storyboard.Nodes[node].widget_font_color[button] = ImVec4(1.0, 1.0, 1.0, 1.0);
+								strcpy(Storyboard.Nodes[node].widget_font[button], "Default Font"); // ?
+								strcpy(Storyboard.Nodes[node].widget_name[button], "loading-text"); //Also add "-hover.png" ...
+
+								button = 1;
+
+								strcpy(Storyboard.Nodes[node].widget_label[button], ""); //Progressbar
+								Storyboard.Nodes[node].widget_used[button] = 1;
+								Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_PROGRESS;
+								Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
+								Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 90.0); //Pos in percent. using pivot center on X only.
+								Storyboard.Nodes[node].widget_action[button] = STORYBOARD_ACTIONS_NONE;
+								Storyboard.Nodes[node].widget_layer[button] = 0;
+								Storyboard.Nodes[node].widget_font_color[button] = ImVec4(1.0, 1.0, 1.0, 1.0);
+								strcpy(Storyboard.Nodes[node].widget_font[button], "Default Font"); // ?
+								strcpy(Storyboard.Nodes[node].widget_normal_thumb[button], "editors\\templates\\buttons\\slider-bar-empty.png");
+								strcpy(Storyboard.Nodes[node].widget_highlight_thumb[button], "editors\\templates\\buttons\\slider-bar-full.png");
+
+
+								button = 2;
+								strcpy(Storyboard.Nodes[node].widget_label[button], "When in game, press the Escape key for controls and other settings.");
+								Storyboard.Nodes[node].widget_used[button] = 1;
+								Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_TEXT;
+								Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
+								Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 95.0); //Pos in percent. using pivot center on X only.
+								Storyboard.Nodes[node].widget_action[button] = STORYBOARD_ACTIONS_NONE;
+								Storyboard.Nodes[node].widget_layer[button] = 0;
+								Storyboard.Nodes[node].widget_font_color[button] = ImVec4(1.0, 1.0, 1.0, 1.0);
+								Storyboard.Nodes[node].widget_font_size[button] = 0.5;
+								strcpy(Storyboard.Nodes[node].widget_font[button], "Default Font"); // ?
+								strcpy(Storyboard.Nodes[node].widget_name[button], "loading-text"); //Also add "-hover.png" ...
+
+								break;
+							}
+						}
+
+						if (node < 0)
+						{
+							bTriggerMessage = true;
+							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+						}
+						else
+						{
+							// Trigger creation of a new thumbnail for the newly created screen
+							iWaitFor2DEditor = 5;
+							iWaitFor2DEditorNode = node;
+							if (BitmapExist(99))
+							{
+								DeleteBitmapEx(99);
+							}
+						}
+					}
+					
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
@@ -44722,6 +44860,24 @@ int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 		int iLinkToWin = Storyboard.Nodes[iNextLevelNode].output_linkto[0]; //2=Next Won screen.
 		int iLinkTo = Storyboard.Nodes[iNextLevelNode].output_linkto[2]; //2=Next level.
 
+		//PE: If Storyboard.Nodes[iNextLevelNode] is a loading screen , take output from there.
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used)
+			{
+				for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+				{
+					if (iLinkTo > 0 && iLinkTo == Storyboard.Nodes[i].input_id[l])
+					{
+						if (pestrcasestr(Storyboard.Nodes[i].lua_name, "loading"))
+						{
+							iLinkTo = Storyboard.Nodes[i].output_linkto[0];
+						}
+					}
+				}
+			}
+		}
+
 		//Find input.
 		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 		{
@@ -44877,6 +45033,37 @@ int FindLuaScreenTitleNode(char* name)
 	return -1;
 }
 
+void FindLoadingScreen( void )
+{
+	strcpy(g_Storyboard_Current_Loading_Page, "loading.lua");
+
+	if (g_Storyboard_Current_Level <= 0) return;
+	int i = g_Storyboard_Current_Level;
+
+	if (Storyboard.Nodes[i].used)
+	{
+		int iLinkTo = Storyboard.Nodes[i].input_id[0];
+
+		//Find output.
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used)
+			{
+				for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+				{
+					if (iLinkTo == Storyboard.Nodes[i].output_linkto[l])
+					{
+						strcpy(g_Storyboard_Current_Loading_Page, Storyboard.Nodes[i].lua_name);
+						return;
+					}
+				}
+			}
+		}
+
+	}
+	return;
+}
+
 void FindFirstLevel(int &iFirstLevelNode, char *level_name, bool bFailIfNoLink)
 {
 	//Get loading screen connected to:
@@ -44917,6 +45104,7 @@ void FindFirstLevel(int &iFirstLevelNode, char *level_name, bool bFailIfNoLink)
 			}
 		}
 	}
+
 	if (iLevelNode > 0)
 	{
 		//Found first level.
@@ -46452,7 +46640,14 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 
 		//Also not all pages got add sliders.
 		if(Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_SLIDER) return;
+		//Progress bar cant be added yet.
+		if (Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_PROGRESS) return;
 
+		if (pestrcasestr(Storyboard.Nodes[nodeID].lua_name, "loading"))
+		{
+			//PE: Loading screens must have a progress bar.
+			if (Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_PROGRESS) return;
+		}
 		//return;
 	}
 

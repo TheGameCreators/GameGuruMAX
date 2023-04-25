@@ -529,14 +529,23 @@ void titles_loadingpageupdate ( void )
 #ifdef WICKEDENGINE
 	#ifdef STORYBOARD
 	int FindLuaScreenNode(char *name);
-	int iNode = FindLuaScreenNode("loading.lua");
+	void FindLoadingScreen(void);
+	extern char g_Storyboard_Current_Loading_Page[256];
+
+	FindLoadingScreen();
+	int iNode = FindLuaScreenNode(g_Storyboard_Current_Loading_Page);
+	if (iNode < 0)
+	{
+		strcpy(g_Storyboard_Current_Loading_Page, "loading.lua");
+		iNode = FindLuaScreenNode(g_Storyboard_Current_Loading_Page);
+	}
 	if (iNode >= 0)
 	{
 		extern bool bJustRederedScreenEditor;
 		if (!bJustRederedScreenEditor)
 		{
 			int screen_editor(int nodeid, bool standalone = false, char *screen = NULL);
-			screen_editor(-1, true, "loading.lua");
+			screen_editor(-1, true, g_Storyboard_Current_Loading_Page);
 		}
 	}
 	#endif

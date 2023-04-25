@@ -161,6 +161,7 @@ extern int g_Storyboard_Current_Level;
 extern char g_Storyboard_First_fpm[256];
 extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
+extern char g_Storyboard_Current_Loading_Page[256];
 #endif
 
 // 

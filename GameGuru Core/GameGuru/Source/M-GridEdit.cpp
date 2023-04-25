@@ -26,6 +26,7 @@ bool g_Storyboard_Starting_New_Level = false;
 char g_Storyboard_First_fpm[256];
 char g_Storyboard_Current_fpm[256];
 char g_Storyboard_Current_lua[256];
+char g_Storyboard_Current_Loading_Page[256];
 std::vector<std::string> projectbank_list;
 //std::vector<bool> projectbank_list_exist;
 std::vector<std::string> projectbank_image;

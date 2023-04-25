@@ -40,6 +40,7 @@ extern bool g_Storyboard_Starting_New_Level;
 extern char g_Storyboard_First_fpm[256];
 extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
+extern char g_Storyboard_Current_Loading_Page[256];
 extern StoryboardStruct Storyboard;
 #endif
 // Externs
@@ -854,7 +855,11 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		titleslua_main ( "loading" );
 		sky_show();
 		titleslua_main_loopcode();
+		extern bool g_bNoSwapchainPresent;
+		g_bNoSwapchainPresent = true;
 		t.game.levelloadprogress=0  ; titles_loadingpageupdate ( );
+		g_bNoSwapchainPresent = false;
+
 	}
 
 	// Extract level files from FPM

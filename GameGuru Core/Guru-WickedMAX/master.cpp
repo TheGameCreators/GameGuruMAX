@@ -1128,11 +1128,12 @@ void Master::RunCustom()
 			SetCurrentDirectoryA(pOldDir);
 			if (bFoundMissingFolder == true)
 			{
-				if (MessageBoxA(NULL, "GameGuru MAX seems to have files missing, do you want to run the updater to verify your files?", "GameGuru MAX Missing Files", MB_YESNO) == IDYES)
-				{
-					// call auto update directly
-					ExecuteFile("..\\GameGuru MAX Updater.exe", "", "", 0);
-				}
+				MessageBoxA(NULL, "GameGuru MAX seems to have files missing, run VERIFY FILES on Steam to restore missing files", "GameGuru MAX Missing Files", MB_OK);
+				//if (MessageBoxA(NULL, "GameGuru MAX seems to have files missing, do you want to run the updater to verify your files?", "GameGuru MAX Missing Files", MB_YESNO) == IDYES)
+				//{
+				//	// call auto update directly
+				//	ExecuteFile("..\\GameGuru MAX Updater.exe", "", "", 0);
+				//}
 				extern bool g_bCascadeQuitFlag;
 				g_bCascadeQuitFlag = true;
 				PostQuitMessage(0);

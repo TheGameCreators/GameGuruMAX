@@ -2346,7 +2346,7 @@ void physics_explodesphere ( void )
 
 void physics_player_init ( void )
 {
-	// One Player In Single Player Game
+	// One Player In Single Player Game 
 	t.plrid=1;
 	t.tnostartmarker=1;
 	g.flashLightKeyEnabled = true;

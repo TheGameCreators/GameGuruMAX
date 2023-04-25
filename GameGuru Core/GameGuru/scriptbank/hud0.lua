@@ -28,8 +28,8 @@ hud0_playercontainer_collectionindex = {}
 hud0_playercontainer_img = {}
 hud0_playercontainer_e = {}
 
-hud0_lastgoodplayerinventory0qty = 0
-hud0_lastgoodplayerinventory1qty = 0
+hud0_lastgoodplayerinventory0qty = {}
+hud0_lastgoodplayerinventory1qty = {}
 
 hud0_mapView_LevelImage = -1
 hud0_mapView_WindowX = 0
@@ -152,7 +152,7 @@ function hud0.refreshHUD()
 				if panelname == "inventory:player" then 
 					playercontainer = 1 
 					thisitemindexoffset = hud0_itemindexscrolloffset
-					itemcount = hud0_itemindexmaxslotused
+					if hud0_itemindexmaxslotused > itemcount then itemcount = hud0_itemindexmaxslotused end
 				end
 				if panelname == "inventory:hotkeys" then playercontainer = 2 end
 				if panelname == "inventory:container" then playercontainer = 3 inventorycontainer = "inventory:"..g_UserGlobalContainer end
@@ -306,18 +306,6 @@ function hud0.main()
   -- Some screens can be toggled on/off with a key press, if the required key press is detected then that screen will be set to the current screen and appear in-game
   CheckScreenToggles()
   
-  -- detect any inventory changes
-  local tinventory0qty = GetInventoryQuantity("inventory:player")
-  local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
-  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty or tinventory1qty ~= hud0_lastgoodplayerinventory1qty or g_UserGlobalContainerRefresh == 1 then
-	hud0_lastgoodplayerinventory0qty = tinventory0qty
-	hud0_lastgoodplayerinventory1qty = tinventory1qty
-	hud0.refreshHUD()
-	hud0_gridSelected = 0
-	hud0_gridSelectedIndex = -1
-	g_UserGlobalContainerRefresh = 0
-  end
-
   -- needed to separate HUD panels
   if GetCurrentScreen() > 0 then
 	hud0_playercontainer_screenID = GetCurrentScreen()
@@ -325,6 +313,18 @@ function hud0.main()
 	hud0_playercontainer_screenID = 0
   end
   
+  -- detect any inventory changes
+  local tinventory0qty = GetInventoryQuantity("inventory:player")
+  local tinventory1qty = GetInventoryQuantity("inventory:hotkeys")
+  if tinventory0qty ~= hud0_lastgoodplayerinventory0qty[hud0_playercontainer_screenID] or tinventory1qty ~= hud0_lastgoodplayerinventory1qty[hud0_playercontainer_screenID] or g_UserGlobalContainerRefresh == 1 then
+	hud0_lastgoodplayerinventory0qty[hud0_playercontainer_screenID] = tinventory0qty
+	hud0_lastgoodplayerinventory1qty[hud0_playercontainer_screenID] = tinventory1qty
+	hud0.refreshHUD()
+	hud0_gridSelected = 0
+	hud0_gridSelectedIndex = -1
+	g_UserGlobalContainerRefresh = 0
+  end
+
   -- flag mouse pointer drawing below
   local drawMousePointer = 0
  

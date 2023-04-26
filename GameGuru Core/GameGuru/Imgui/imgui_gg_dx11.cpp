@@ -1220,8 +1220,9 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             return output;\
             }";
 
-        D3DCompile(vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, NULL);
-        if (g_pVertexShaderBlob == NULL) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        //D3DCompile(vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_4_0", 0, 0, &g_pVertexShaderBlob, NULL);
+		D3DCompile(vertexShader, strlen(vertexShader), NULL, NULL, NULL, "main", "vs_5_0", 0, 0, &g_pVertexShaderBlob, NULL);
+		if (g_pVertexShaderBlob == NULL) // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
             return false;
         if (g_pd3dDevice->CreateVertexShader((DWORD*)g_pVertexShaderBlob->GetBufferPointer(), g_pVertexShaderBlob->GetBufferSize(), NULL, &g_pVertexShader) != S_OK)
             return false;
@@ -1346,31 +1347,36 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
             return out_col; \
             }";
 
-        D3DCompile(pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, NULL);
-        if (g_pPixelShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
+        //D3DCompile(pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlob, NULL);
+		D3DCompile(pixelShader, strlen(pixelShader), NULL, NULL, NULL, "main", "ps_5_0", 0, 0, &g_pPixelShaderBlob, NULL);
+		if (g_pPixelShaderBlob == NULL)  // NB: Pass ID3D10Blob* pErrorBlob to D3DCompile() to get error showing in (const char*)pErrorBlob->GetBufferPointer(). Make sure to Release() the blob!
             return false;
         if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlob->GetBufferPointer(), g_pPixelShaderBlob->GetBufferSize(), NULL, &g_pPixelShader) != S_OK)
             return false;
 
-		D3DCompile(pixelShaderNoWhite, strlen(pixelShaderNoWhite), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderNoWhiteBlob, NULL);
+		//D3DCompile(pixelShaderNoWhite, strlen(pixelShaderNoWhite), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderNoWhiteBlob, NULL);
+		D3DCompile(pixelShaderNoWhite, strlen(pixelShaderNoWhite), NULL, NULL, NULL, "main", "ps_5_0", 0, 0, &g_pPixelShaderNoWhiteBlob, NULL);
 		if (g_pPixelShaderNoWhiteBlob == NULL)
 			return false;
 		if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderNoWhiteBlob->GetBufferPointer(), g_pPixelShaderNoWhiteBlob->GetBufferSize(), NULL, &g_pPixelShaderNoWhite) != S_OK)
 			return false;
 
-		D3DCompile(pixelShaderNoAlpha, strlen(pixelShaderNoAlpha), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderNoAlphaBlob, NULL);
+		//D3DCompile(pixelShaderNoAlpha, strlen(pixelShaderNoAlpha), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderNoAlphaBlob, NULL);
+		D3DCompile(pixelShaderNoAlpha, strlen(pixelShaderNoAlpha), NULL, NULL, NULL, "main", "ps_5_0", 0, 0, &g_pPixelShaderNoAlphaBlob, NULL);
 		if (g_pPixelShaderNoAlphaBlob == NULL)
 			return false;
 		if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderNoAlphaBlob->GetBufferPointer(), g_pPixelShaderNoAlphaBlob->GetBufferSize(), NULL, &g_pPixelShaderNoAlpha) != S_OK)
 			return false;
 
-		D3DCompile(pixelShaderBoost25, strlen(pixelShaderBoost25), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_ppixelShaderBoost25Blob, NULL);
+		//D3DCompile(pixelShaderBoost25, strlen(pixelShaderBoost25), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_ppixelShaderBoost25Blob, NULL);
+		D3DCompile(pixelShaderBoost25, strlen(pixelShaderBoost25), NULL, NULL, NULL, "main", "ps_5_0", 0, 0, &g_ppixelShaderBoost25Blob, NULL);
 		if (g_ppixelShaderBoost25Blob == NULL)
 			return false;
 		if (g_pd3dDevice->CreatePixelShader((DWORD*)g_ppixelShaderBoost25Blob->GetBufferPointer(), g_ppixelShaderBoost25Blob->GetBufferSize(), NULL, &g_ppixelShaderBoost25) != S_OK)
 			return false;
 
-		D3DCompile(pixelShaderBlur, strlen(pixelShaderBlur), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlobBlur, NULL);
+		//D3DCompile(pixelShaderBlur, strlen(pixelShaderBlur), NULL, NULL, NULL, "main", "ps_4_0", 0, 0, &g_pPixelShaderBlobBlur, NULL);
+		D3DCompile(pixelShaderBlur, strlen(pixelShaderBlur), NULL, NULL, NULL, "main", "ps_5_0", 0, 0, &g_pPixelShaderBlobBlur, NULL);
 		if (g_pPixelShaderBlobBlur == NULL)
 			return false;
 		if (g_pd3dDevice->CreatePixelShader((DWORD*)g_pPixelShaderBlobBlur->GetBufferPointer(), g_pPixelShaderBlobBlur->GetBufferSize(), NULL, &g_pPixelShaderBlur) != S_OK)

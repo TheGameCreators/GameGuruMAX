@@ -71,21 +71,16 @@ void gameexecutable_init(void)
 {
 	// start game init code
 	int iEXEGameIsVR = 0;
-#ifdef WICKEDENGINE
-	if (g.vrglobals.GGVREnabled > 0) iEXEGameIsVR = 1;
+	//if (g.vrglobals.GGVREnabled > 0) iEXEGameIsVR = 1; do later only when START pressed
 
 	//PE: Load in any imgui media used in standalone, special mode tabtab...
 	SetMipmapNum(1); //PE: mipmaps not needed.
 	image_setlegacyimageloading(true);
-
 	LoadImage("editors\\uiv3\\ccp-none.png", CCP_NONE);
 	LoadImage("editors\\uiv3\\ccp-empty.png", CCP_EMPTY);
-
 	image_setlegacyimageloading(false);
 	SetMipmapNum(-1);
 
-
-#endif
 	extern bool bSpecialStandalone;
 	if (bSpecialStandalone)
 	{
@@ -2477,6 +2472,9 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		// ensures when game restarted the last graphics settings refresh the level
 		visuals_shaderlevels_update();
 	}
+
+	// at the point the level actually starts, use VR in standalone
+	if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 1;
 }
 
 void game_masterroot_gameloop_afterexitgamemenu(void)
@@ -2558,6 +2556,9 @@ void game_masterroot_gameloop_afterescapepressed(void)
 		}
 	}
 	#endif
+
+	// at the point we leave the in-game menu, resume VR mode while if required
+	if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 1;
 }
 
 bool bMainLoopRunning = false;
@@ -2620,7 +2621,8 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
 	// VR support can escape to in-game menu with button A
-	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+	//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)
 	{
 		if (GGVR_RightController_Button1() == 1) bControllerEscape == true;
 	}
@@ -2629,6 +2631,9 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"escape button check");
 	if ( EscapeKey() == 1 || bControllerEscape == true ) 
 	{
+		// at the point we enter the in-game menu, stop VR mode if required
+		if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 0;
+
 		t.tremembertimer=Timer();
 		#ifdef VRTECH
 		game_main_snapshotsoundloopcheckpoint ( );
@@ -2843,26 +2848,15 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 
 void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 {
+	// at the point we leave the loop, stop VR mode when leaving the level if required
+	if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 0;
+
 	// first save current level stats before reset LUA
 	// must now preserve state of level when leave it
 	char pLUACustomSaveCall[256];
 	strcpy ( pLUACustomSaveCall, "GameLoopSaveStats" );
 	LuaSetFunction ( pLUACustomSaveCall, 1, 0 ); 
 	LuaPushInt(g_Storyboard_Current_Level);
-	/*
-	int iStoryboardNodeID = 0;
-	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-	{
-		if (Storyboard.Nodes[i].used)
-		{
-			if (pestrcasestr(Storyboard.Nodes[i].level_name, g_Storyboard_Current_fpm.Get()) != 0)
-			{
-				g_Storyboard_Current_Level = i;
-				strcpy(g_Storyboard_Current_fpm, Storyboard.Nodes[i].level_name);
-			}
-		}
-	}
-	*/
 	LuaCall ();
 
 	// free any lua activity (restore FOV if ingame activity there)
@@ -3389,13 +3383,17 @@ void game_masterroot_levelloop_afterloopcode(int iUseVRTest)
 
 void game_masterroot_initcode(int iUseVRTest)
 {
-	#ifdef VRTECH
 	// prevent any VR if VRtest is off
-	if ( iUseVRTest == 0 ) g.vrglobals.GGVRUsingVRSystem = 0;
-	#endif
-	#ifdef WICKEDENGINE
+	if (t.game.gameisexe == 1)
+	{
+		// in standalonme mode, GGVRUsingVRSystem set 1 elsehwere as needed
+	}
+	else
+	{
+		// in test level mode, can toggle this
+		if (iUseVRTest == 0) g.vrglobals.GGVRUsingVRSystem = 0;
+	}
 	g_iActivelyUsingVRNow = iUseVRTest;
-	#endif
 
 	//  Load all one-off non-graphics assets
 	timestampactivity(0,"_game_oneoff_nongraphics");
@@ -3523,7 +3521,7 @@ void game_masterroot_afterloopcode(int iUseVRTest)
 	}
 
 	#ifdef VRTECH
-	// restore VR activity (vrtest flag has done its job)
+	// restore VR activity (vrtest flag has done its job) 
 	g.vrglobals.GGVRUsingVRSystem = 1;
 	#ifdef WICKEDENGINE
 	g_iActivelyUsingVRNow = 0;

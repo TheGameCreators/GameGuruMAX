@@ -3671,7 +3671,9 @@ void gun_shoot ( void )
 
 					// can intercept calculated ray with real ray from VR controller (if available)
 					#ifdef WICKEDENGINE
-					if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
+					//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
+					extern int g_iActivelyUsingVRNow;
+					if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
 					if (bNormalOrVRMode == true)
 					{
 						int iLaserGuideObj = GGVR_GetLaserGuideObject();
@@ -3827,7 +3829,9 @@ void gun_shoot_oneray ( void )
 	// can intercept calculated ray with real ray from VR controller (if available)
 	bool bNormalOrVRMode = false;
 	#ifdef WICKEDENGINE
-	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
+	//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
+	extern int g_iActivelyUsingVRNow;
+	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
 	if (bNormalOrVRMode == true)
 	{
 		int iLaserGuideObj = GGVR_GetLaserGuideObject();

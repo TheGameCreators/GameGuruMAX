@@ -620,13 +620,12 @@ void lua_loop_begin ( void )
 	}
 
 	int iMouseClickState = 0;
-	#ifdef VRTECH
 	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 && GGVR_RightController_Trigger() > 0.9f)
 	{
 		iMouseClickState = 1;
 	}
-	else
-	#endif
+	// allowed to detect mouse press even if in VR mode 
+	if ( iMouseClickState==0 ) 
 	{
 		iMouseClickState = MouseClick();
 	}

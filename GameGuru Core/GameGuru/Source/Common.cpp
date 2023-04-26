@@ -5378,6 +5378,10 @@ void FPSC_Setup(void)
 		// after initial steroscopic fake load, switch to true stereo if used
 		//g_VR920RenderStereoNow = true;
 
+		// seems without this, HUD in VR could never Grab backbuffer image and show in screenHUD object
+		extern bool bImGuiInitDone;
+		bImGuiInitDone = true;
+
 		//  One-off variable settings
 		t.game.set.resolution = 0;
 		t.game.set.initialsplashscreen = 0;

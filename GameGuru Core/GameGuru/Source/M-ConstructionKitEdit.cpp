@@ -898,15 +898,8 @@ void conkitedit_loop ( void )
 	else
 	{
 		//  detect switch ON (only if not standalone)
-		#ifdef VRTECH
-#ifdef WICKEDENGINE
+		/*
 		if (1==2) //PE: F9 compleatly disabled in Max.
-#else
-		if (  t.game.gameisexe == 0 && t.game.runasmultiplayer  ==  0 && (g.vrglobals.GGVREnabled == 0 || g.vrglobals.GGVRUsingVRSystem == 0 ) ) 
-#endif
-		#else
-		if (  t.game.gameisexe == 0 && t.game.runasmultiplayer  ==  0 ) 
-		#endif
 		{
 			if (  (KeyState(g.keymap[67]) == 1 || t.conkit.forceaction == 68) && t.conkit.edit.conkitkeypressed == 0  )  t.conkit.edit.conkitkeypressed = 1;
 			if (  (KeyState(g.keymap[67]) == 0 && t.conkit.forceaction != 68) && t.conkit.edit.conkitkeypressed == 1 ) 
@@ -1110,14 +1103,11 @@ void conkitedit_loop ( void )
 				ODESetDynamicCharacterController (  t.aisystem.objectstartindex,-10000,0,0,0,0,0,0 );
 			}
 		}
-
+		*/
 	}
 
 	//  Wipe after one cycle
 	t.conkit.forceaction=0;
-
-return;
-
 }
 
 void conkitedit_switchoff ( void )

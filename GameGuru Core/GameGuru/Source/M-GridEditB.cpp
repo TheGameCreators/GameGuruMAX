@@ -13947,9 +13947,11 @@ int current_backbuffer_grabimg = 0;
 
 void GrabBackBufferForAnImage(void)
 {
-	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 && t.game.activeStoryboardScreen > -1)
+	//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 && t.game.activeStoryboardScreen > -1)
+	extern int g_iActivelyUsingVRNow;
+	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1 && t.game.activeStoryboardScreen > -1)
 	{
-		// instruct to grab screen
+		// instruct to grab screen 
 		BackBufferSaveCacheName = "";
 		current_backbuffer_grabimg = g.importermenuimageoffset + 50;
 		BackBufferImageID = current_backbuffer_grabimg;
@@ -14045,8 +14047,12 @@ void GrabBackBufferForAnImage(void)
 				float fY = CameraPositionY(0);
 				float fZ = CameraPositionZ(0);
 				PositionObject (g.hudscreen3dobjectoffset, fX, fY, fZ);
-				SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
+				
+				//not reliable in VR mode
+				//SetObjectToCameraOrientation(g.hudscreen3dobjectoffset);
+				RotateObject(g.hudscreen3dobjectoffset, 0, t.playercontrol.cy_f, 0);
 				MoveObject(g.hudscreen3dobjectoffset, 20.0f);
+
 				sObject* pHUDScreenObject = GetObjectData(g.hudscreen3dobjectoffset);
 				if (pHUDScreenObject)
 				{
@@ -48445,7 +48451,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
 					bool bIsPointerHoveringOver = false;
 					bool bIsPointerReleased = false;
-					if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+
+					//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+					extern int g_iActivelyUsingVRNow;
+					if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)
 					{
 						// VR support
 						int iObjToHit = 5997;

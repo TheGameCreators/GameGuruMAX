@@ -129,7 +129,8 @@ void panel_First2DDrawing(void)
 {
 	// if running VR
 	#ifdef VRTECH
-	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	extern int g_iActivelyUsingVRNow;
+	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1 )//g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		// called before any 2D drawing is done
 		if (g_iInit2DDrawingCapture == 0)
@@ -156,7 +157,8 @@ void panel_Last2DDrawing(void)
 {
 	// if running VR
 	#ifdef VRTECH
-	if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
+	extern int g_iActivelyUsingVRNow;
+	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)//g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
 		// called after last of 2D drawing activity completes
 		if (g_bHaveDrawnSome2D == true) GrabImage(g.luadrawredirectimageoffset, 0, 0, GetDisplayWidth() - 1, GetDisplayHeight() - 1, 3);

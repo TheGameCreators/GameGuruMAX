@@ -4615,11 +4615,11 @@ void mapfile_savestandalone_stage4 ( void )
 			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "xboxmag="+Str(g.gxboxmag) ; ++t.i;
 		}
 	}
+	/* own file below
 	if ( g.vrqcontrolmode != 0 )
 	{
 		// VR
 		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "" ; ++t.i;
-		#ifdef WICKEDENGINE
 		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]" ; ++t.i;
 		extern bool g_bStandaloneVRMode;
 		if (g_bStandaloneVRMode == true)
@@ -4633,18 +4633,27 @@ void mapfile_savestandalone_stage4 ( void )
 		{
 			t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=0"; ++t.i;
 		}
-		#else
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]" ; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=3"; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmodemag=100"; ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vroffsetangx="+Str(g.gvroffsetangx); ++t.i;
-		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrwmroffsetangx="+Str(g.gvrwmroffsetangx); ++t.i;
-		#endif
 	}
-
+	*/
 	if (  FileExist(t.setupfile_s.Get()) == 1  )  DeleteAFile (  t.setupfile_s.Get() );
 	SaveArray (  t.setupfile_s.Get(),t.setuparr_s );
 	UnDim (  t.setuparr_s );
+
+	// separate VR setup file
+	extern bool g_bStandaloneVRMode;
+	if (g_bStandaloneVRMode == true)
+	{
+		Dim (t.setuparr_s, 999);
+		t.setupfile_s = t.exepath_s + t.exename_s + "\\setupvr.ini"; t.i = 0;
+		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "[VR]"; ++t.i;
+		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmode=3"; ++t.i;
+		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrmodemag=100"; ++t.i;
+		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vroffsetangx=" + Str(g.gvroffsetangx); ++t.i;
+		t.setuparr_s[t.i] = ""; t.setuparr_s[t.i] = t.setuparr_s[t.i] + "vrwmroffsetangx=" + Str(g.gvrwmroffsetangx); ++t.i;
+		if (FileExist(t.setupfile_s.Get()) == 1)  DeleteAFile (t.setupfile_s.Get());
+		SaveArray (t.setupfile_s.Get(), t.setuparr_s);
+		UnDim (t.setuparr_s);
+	}
 
 	//  Also save out the localisation ptr file
 	Dim (  t.setuparr_s,2  );

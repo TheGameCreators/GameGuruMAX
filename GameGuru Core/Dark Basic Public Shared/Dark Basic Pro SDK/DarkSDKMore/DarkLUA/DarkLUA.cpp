@@ -3808,11 +3808,9 @@ int GetHeadTracker(lua_State *L)
 {
 	lua = L;
 	int id = 0;
-	#ifdef VRTECH
-	 if ( GGVR_IsHmdPresent() > 0 && g.vrglobals.GGVRUsingVRSystem == 1 ) id = 1;
-	#else
-	 if ( SetupGetTracking(NULL,NULL,NULL,1.0f) == true ) id = 1;
-	#endif
+	//if ( GGVR_IsHmdPresent() > 0 && g.vrglobals.GGVRUsingVRSystem == 1 ) id = 1;
+	extern int g_iActivelyUsingVRNow;
+	if (GGVR_IsHmdPresent() > 0 && g_iActivelyUsingVRNow == 1) id = 1;
 	lua_pushinteger ( L , id );
 	return 1;
 }

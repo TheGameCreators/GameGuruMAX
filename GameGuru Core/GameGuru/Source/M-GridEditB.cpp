@@ -41946,6 +41946,55 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
 						}
 
+						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL && pestrcasestr(Storyboard.Nodes[i].lua_name, "loading") && !pestrcasestr(Storyboard.Nodes[i].lua_name, "loading.lua") )
+						{
+							ImGui::PopStyleColor();
+							ImGui::PopStyleVar();
+							ImGui::PopStyleVar();
+							const char* items_storyboard_hud[] = { "Delete Loading Screen" };
+							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
+							int selection = 0;
+							char iUniqueString[255];
+							sprintf(iUniqueString, "##ComboStoryboardCustom%d", i);
+							int iComboEntries = 1;
+							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
+							ImGui::PushItemWidth(20);
+							if (ImGui::BeginCombo(iUniqueString, "", comboflags))
+							{
+								for (int n = 0; n < iComboEntries; n++)
+								{
+									if (ImGui::Selectable(items_storyboard_hud[n], false))
+									{
+										Storyboard.iChanged = true;
+										bBlockNextMouseCheck = true;
+										selection = n;
+										if (selection == 0)
+										{
+											int iAction = askBoxCancel("This will delete the loading screen from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
+											if (iAction == 1)
+											{
+												reset_single_node(i);
+												Storyboard.Nodes[i].used = false;
+												bBlockNextMouseCheck = true;
+											}
+										}
+									}
+								}
+								ImGui::EndCombo();
+							}
+							if (ImGui::IsItemHovered())
+							{
+								bBlockNextMouseCheck = true;
+								vTooltipPos = ImGui::GetCursorPos();
+								sTooltip = " Delete Loading Screen ";
+							}
+							ImGui::PopItemWidth();
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
+							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
+
+						}
+
 						bool bIsCustomScreen = pestrcasestr(Storyboard.Nodes[i].title, "Custom Screen");
 						if (bIsCustomScreen)
 						{
@@ -41994,6 +42043,7 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 							ImGui::PushStyleColor(ImGuiCol_ChildBg, GImNodes->Style.Colors[ImNodesCol_GridBackground]);
 						}
+
 						if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
 						{
 							ImGui::PopStyleColor();
@@ -42773,7 +42823,7 @@ void process_storeboard(bool bInitOnly)
 						int iLoadingScreenCount = 1;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 						{
-							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_SCREEN)
+							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
 							{
 								if(pestrcasestr(Storyboard.Nodes[i].title,"Loading Screen"))
 									iLoadingScreenCount++;

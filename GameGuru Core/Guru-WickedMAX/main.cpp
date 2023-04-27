@@ -159,6 +159,59 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 	#endif
 
+	//PE: check graphics card. Workaround for amd issues.
+	bool bIsAMDCard = false;
+	for (int i = 0; i < 4; i++)
+	{
+		DISPLAY_DEVICE dd = { sizeof(dd), 0 };
+		BOOL f = EnumDisplayDevices(NULL, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
+		if (!f)
+			break;
+		char cDeviceName[MAX_PATH];
+		int length = wcstombs(cDeviceName, dd.DeviceString, MAX_PATH);
+		/*
+		AMD driver bug.
+		PE: this is the card i noted had the problem, there might be more :)
+		AMD Radeon RX 6600m
+		Radeon RX 6950 XT
+		RX 6900XT
+		AMD 5600 XT
+		AMD RX 6800
+		NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
+		*/
+		if (length > 0)
+		{
+			if (pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon") )
+			{
+				//PE: Take all 6900,5600,6800,6600 RX serie if amd.
+				if (pestrcasestr(cDeviceName, "RX"))
+				{
+					if (pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66"))
+					{
+						bIsAMDCard = true;
+						break;
+					}
+				}
+				else
+				{
+					//PE: special case for amd 5600 xt
+					if(pestrcasestr(cDeviceName, "5600"))
+					{
+						bIsAMDCard = true;
+						break;
+					}
+				}
+			}
+
+		}
+	}
+	if (bIsAMDCard)
+	{
+		//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
+		CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
+		CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
+	}
+
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDS_APP_CLASSNAME, szWindowClass, MAX_LOADSTRING);

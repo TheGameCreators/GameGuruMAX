@@ -160,6 +160,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	#endif
 
 	//PE: check graphics card. Workaround for amd issues.
+	//std::string pLog = "";
 	bool bIsAMDCard = false;
 	for (int i = 0; i < 4; i++)
 	{
@@ -177,16 +178,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		RX 6900XT
 		AMD 5600 XT
 		AMD RX 6800
+		AMD Radeon RX 7900
 		NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
 		*/
+		//if (i == 0) strcpy(cDeviceName, "AMD Radeon RX 7900"); //test one
 		if (length > 0)
 		{
+			//pLog = pLog + cDeviceName;
+			//pLog = pLog + "|";
 			if (pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon") )
 			{
 				//PE: Take all 6900,5600,6800,6600 RX serie if amd.
 				if (pestrcasestr(cDeviceName, "RX"))
 				{
-					if (pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66"))
+					if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66"))
 					{
 						bIsAMDCard = true;
 						break;
@@ -202,9 +207,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					}
 				}
 			}
-
 		}
 	}
+	//MessageBoxA(NULL, pLog.c_str(), "Graphics Detect Log", MB_OK);
 	if (bIsAMDCard)
 	{
 		//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.

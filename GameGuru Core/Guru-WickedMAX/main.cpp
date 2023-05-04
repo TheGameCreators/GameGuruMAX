@@ -179,6 +179,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		AMD 5600 XT
 		AMD RX 6800
 		AMD Radeon RX 7900
+		Radeon RX 6700 XT
 		NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
 		*/
 		//if (i == 0) strcpy(cDeviceName, "AMD Radeon RX 7900"); //test one
@@ -191,7 +192,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				//PE: Take all 6900,5600,6800,6600 RX serie if amd.
 				if (pestrcasestr(cDeviceName, "RX"))
 				{
-					if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66"))
+					if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67"))
 					{
 						bIsAMDCard = true;
 						break;
@@ -214,7 +215,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	{
 		//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
 		CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
-		CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
+		bool bret = CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
+		//PE: If first time , sleep so defender can check and release it before we try to load it.
+		if (bret)
+			Sleep(2000);
+		//PE: Also Include building editor.
+		CopyFileA((LPSTR)"shaders\\d3d11.dll", "Tools\\Building Editor\\d3d11.dll", TRUE);
+		CopyFileA((LPSTR)"shaders\\dxgi.dll", "Tools\\Building Editor\\dxgi.dll", TRUE);
+
 	}
 
     // Initialize global strings

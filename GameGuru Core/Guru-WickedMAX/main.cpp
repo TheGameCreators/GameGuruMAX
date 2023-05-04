@@ -180,6 +180,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		AMD RX 6800
 		AMD Radeon RX 7900
 		Radeon RX 6700 XT
+		AMD Radeon RX 6500 XT
 		NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
 		*/
 		//if (i == 0) strcpy(cDeviceName, "AMD Radeon RX 7900"); //test one
@@ -192,7 +193,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				//PE: Take all 6900,5600,6800,6600 RX serie if amd.
 				if (pestrcasestr(cDeviceName, "RX"))
 				{
-					if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67"))
+					if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67") || pestrcasestr(cDeviceName, "65"))
 					{
 						bIsAMDCard = true;
 						break;

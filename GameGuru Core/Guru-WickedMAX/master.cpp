@@ -666,6 +666,7 @@ void Master::Update(float dt)
 					timestampactivity(0, "GameGuru Steam version check");
 					bool bGameGuruMAXOwned = false;
 					int iSteamErrorCode = 0;
+					bool bLoggedIntoSteamForWorkshop = false;
 					if (SteamAPI_Init())
 					{
 						// must be logged into steam, which will be the case if run from within steam.
@@ -751,18 +752,27 @@ void Master::Update(float dt)
 								WriteString(1, pDateChecksum);
 								CloseFile(1);
 							}
+
+							// when logged in can use workshop
+							bLoggedIntoSteamForWorkshop = true;
 						}
 						else
 						{
 							iSteamErrorCode = 2;
 						}
+
 						// shutdown Steam connection after check
-						SteamAPI_Shutdown();
+						//SteamAPI_Shutdown(); stay open now we have workshop support :)
 					}
 					else
 					{
 						iSteamErrorCode = 1;
 					}
+
+					// alkways init workshop for testing purposes if not logged in
+					extern void workshop_init(bool);
+					workshop_init(bLoggedIntoSteamForWorkshop);
+
 					extern int g_iFreeTrialDaysLeft;
 					g_iFreeTrialDaysLeft = 0;
 					bool bReadSteamDateFile = false;

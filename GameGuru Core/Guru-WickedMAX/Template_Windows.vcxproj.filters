@@ -588,6 +588,9 @@
     <ClInclude Include="Encryptor.h">
       <Filter>Code</Filter>
     </ClInclude>
+    <ClInclude Include="..\GameGuru\Include\M-Workshop.h">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1022,6 +1025,9 @@
     </ClCompile>
     <ClCompile Include="Encryptor.cpp">
       <Filter>Code</Filter>
+    </ClCompile>
+    <ClCompile Include="..\GameGuru\Source\M-Workshop.cpp">
+      <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

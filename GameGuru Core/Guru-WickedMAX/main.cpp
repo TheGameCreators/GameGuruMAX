@@ -400,9 +400,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			{
 				if (g_bLostFocus)
 				{
+					// HOT SWAP Feature
 					g_bLostFocus = false;
 					extern void CheckExistingFilesModified(bool);
 					CheckExistingFilesModified(false);
+
+					// also trigger a workshop item refresh if on that page
+					extern bool g_bUpdateWorkshopItemList;
+					g_bUpdateWorkshopItemList = true;
 				}
 			}
 		}

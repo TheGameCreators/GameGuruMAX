@@ -1334,7 +1334,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\hub-discord.png", HUB_DISCORD);
 	LoadImage("editors\\uiv3\\hub-facebook.png", HUB_FACEBOOK);
 	LoadImage("editors\\uiv3\\hub-forum.png", HUB_FORUM);
-	LoadImage("editors\\uiv3\\hub-instagram.png", HUB_INSTAGRAM);
+	LoadImage("editors\\uiv3\\hub-workshopitem.png", HUB_WORKSHOPITEM);
 	LoadImage("editors\\uiv3\\hub-tiktok.png", HUB_TIKTOK);
 	LoadImage("editors\\uiv3\\hub-twitter.png", HUB_TWITTER);
 
@@ -10327,7 +10327,7 @@ void mapeditorexecutable_loop(void)
 													}
 													else
 													{
-														// even if sale element index, can dewlete and quickly create another collectable in same index slot, need to be aware of this
+														// even if sale element index, can delete and quickly create another collectable in same index slot, need to be aware of this
 														if (strcmp (g_iconImageInPropertiesLastName_s.Get(), t.entitybank_s[entid].Get()) != NULL)
 														{
 															g_iconImageInPropertiesLastName_s = t.entitybank_s[entid];

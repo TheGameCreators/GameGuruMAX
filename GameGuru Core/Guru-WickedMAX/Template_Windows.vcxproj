@@ -319,6 +319,7 @@
     <ClInclude Include="..\GameGuru\Include\M-Weapon.h" />
     <ClInclude Include="..\GameGuru\Include\M-WelcomeSystem.h" />
     <ClInclude Include="..\GameGuru\Include\M-Widget.h" />
+    <ClInclude Include="..\GameGuru\Include\M-Workshop.h" />
     <ClInclude Include="..\GameGuru\Include\MapEditor.h" />
     <ClInclude Include="..\GameGuru\Include\miniz.h" />
     <ClInclude Include="..\GameGuru\Include\preprocessor-moreflags.h" />
@@ -501,6 +502,7 @@
     <ClCompile Include="..\GameGuru\Source\M-Weapon.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-WelcomeSystem.cpp" />
     <ClCompile Include="..\GameGuru\Source\M-Widget.cpp" />
+    <ClCompile Include="..\GameGuru\Source\M-Workshop.cpp" />
     <ClCompile Include="..\GameGuru\Source\MapEditor.cpp" />
     <ClCompile Include="..\GameGuru\Source\miniz.c" />
     <ClCompile Include="..\GameGuru\Source\sha1.cpp" />

@@ -23,6 +23,8 @@
 
 #include "M-RPG.h"
 
+#include "M-Workshop.h"
+
 //#define PETESTING
 #ifdef PETESTING
 #include "..\Imgui\imgui_demo.cpp"
@@ -35478,7 +35480,7 @@ void Welcome_Screen(void)
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 					ImGui::Text("");
-					float descwidth = ImGui::GetContentRegionAvail().x*0.60;
+					float descwidth = ImGui::GetContentRegionAvail().x * 0.6f;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5)- (descwidth*0.5), 0));
 
 					float oldChildBorderSize = gui.Style.ChildBorderSize;
@@ -35487,7 +35489,7 @@ void Welcome_Screen(void)
 					gui.Style.FramePadding = ImVec2(10.0,10.0);
 					float guide_height = tab_box_height - 380.0;
 					if (guide_height < 375.0) guide_height = 375.0;
-					ImGui::BeginChild("##MyUserGuideForWelcome", ImVec2(descwidth - 2.0, guide_height), true, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+					ImGui::BeginChild("##MyUserGuideForWelcome", ImVec2(descwidth - 5.0, guide_height), true, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
 					ImGui::Indent(10);
 					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
@@ -35517,14 +35519,20 @@ void Welcome_Screen(void)
 
 				ImGui::SetWindowFontScale(1.2);
 
+				//
+				// Live Streams & Social
+				//
 				rect.Min = TabStartPos;
 				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Live Streams & Social ", false);
 				TabStartPos.x += ImGui::TabItemCalcSize(" Live Streams & Social ", false).x + gui.Style.ItemInnerSpacing.x;
 				if (ImGui::BeginTabItem(" Live Streams & Social ", NULL, tabflags))
 				{
+					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
 					ImGui::TextCenter("GameGuru MAX Socials");
 					ImGui::SetWindowFontScale(1.0);
+					ImGui::Text("");
+					ImGui::Text("");
 
 					//const char* items_social_header[] = { "OFFICIAL FORUMS","TWITTER", "INSTAGRAM", "TIKTOK" , "FACEBOOK","DISCORD" };
 					//const char* items_social_header[] = { "OFFICIAL FORUMS", "TIKTOK" , "FACEBOOK", "DISCORD" };
@@ -35629,6 +35637,80 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Live Streams & Social");
 
+
+				//
+				// Workshop
+				//
+				if (g_bWorkshopAvailable == true)
+				{
+					rect.Min = TabStartPos;
+					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop ", false);
+					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop ", false).x + gui.Style.ItemInnerSpacing.x;
+					if (ImGui::BeginTabItem(" Workshop ", NULL, tabflags))
+					{
+						iCurrentOpenTab = 6;
+						ImGui::Text("");
+						ImGui::SetWindowFontScale(2.0);
+						ImGui::TextCenter("Your Own Workshop Items for Behaviors");
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::Text("");
+						ImGui::Text("");
+
+						// show list of existing workshop items as buttons
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::BeginChild("##MyOwnWorkshopItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+						float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
+						ImGui::Indent(half_total_width / 2.0f);
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
+						for (int i = 0; i < g_workshopItemsList.size(); i++)
+						{
+							char pWorkshipItemName[MAX_PATH];
+							sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
+							if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+							{
+								// select existing workshop item to edit
+								g_currentWorkshopItem = g_workshopItemsList[i];
+								g_iSelectedExistingWorkshopItem = i;
+								extern int g_iIconImageInProperties;
+								g_iIconImageInProperties = 0;
+							}
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
+						}
+
+						// show "add new item" button to start creating a new one
+						if (ImGui::StyleButton("Add New Item", ImVec2(half_total_width, 0)))
+						{
+							// select new workshop item to create
+							g_iSelectedExistingWorkshopItem = -1;
+							workshop_new_item();
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to submit a new workshop item of your own creation");
+
+						// end of main Workshop tab page
+						ImGui::Indent(-half_total_width / 2.0f);
+						ImGui::EndChild();
+
+						// Instructions for Workshop Item
+						ImGui::SetWindowFontScale(1.25);
+						ImGui::Text("");
+						ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
+						ImGui::TextCenter("in the form of new behavior scripts for the Behavior Library and can only add and edit items when you");
+						ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
+						ImGui::Indent(half_total_width / 2.0f);
+						ImGui::Text("");
+						if (ImGui::StyleButton("Steam Workshop Terms Of Service", ImVec2(half_total_width, 0)))
+						{
+							ExecuteFile("https://steamcommunity.com/sharedfiles/workshoplegalagreement", "", "", false);
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Go to the Steam Workshop Terms of Service page");
+						ImGui::Indent(-half_total_width / 2.0f);
+
+						ImGui::EndTabItem();
+					}
+					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Item uploader enables behaviors to be submitted to the Steam Workshop Community");
+				}
+
+				// end of all tabs
 				ImGui::EndTabBar();
 			}
 			ImGui::SetWindowFontScale(1.0);
@@ -35638,7 +35720,6 @@ void Welcome_Screen(void)
 			//#############################
 
 			ImGui::NextColumn();
-
 			ImGui::Text("");
 
 			float fContentWidth = ImGui::GetContentRegionAvailWidth() - 10.0f;
@@ -35676,8 +35757,6 @@ void Welcome_Screen(void)
 			}
 			else if (iCurrentOpenTab == 5)
 			{
-				//LoadImage("editors\\uiv3\\hub-livebroadcasts.png", HUB_LIVEBROADCAST);
-				//hub-website.png
 				float image_size_sub_x = 310.0;
 				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x- 250.0;
 				int iTextureID = HUB_WEBSITE;
@@ -35692,7 +35771,6 @@ void Welcome_Screen(void)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x - image_size_sub_x, (vPreviewSize.x- image_size_sub_x) * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						/*ExecuteFile("https://www.game-guru.com/max", "", "", 0);*/
 						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
 					}
 					ImGui::SetWindowFontScale(1.4);
@@ -35710,40 +35788,164 @@ void Welcome_Screen(void)
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 
 				ImGui::SetWindowFontScale(1.4);
-				ImGui::TextCenter("Weekly Live Stream");
+				ImGui::TextCenter("Live Stream");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
 				{
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x - image_size_sub_x, (vPreviewSize.x - image_size_sub_x) * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						/*ExecuteFile("https://www.youtube.com/channel/UC1q1e3Q9IKMk4nDlAGb_5Jg", "", "", 0);*/
 						ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
 					}
 				}
 				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.4);
 
-				cstr desc = "Every week we broadcast a live stream showing the latest GameGuru MAX developments and news. Join us live and ask our dev team your burning questions!";
+				cstr desc = "Join us live and ask your burning questions!";
 				{
 					ImGui::Indent(2);
 					ImVec2 cp = ImGui::GetCursorPos();
 					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
 					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 					ImGui::BeginChild("##JustaFrameForLiveBroadcastDescription", ImVec2(fContentWidth-8.0, WelcomeFrameHeight - cp.y - 4.0), false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
-					ImGui::TextWrapped(desc.Get());
+					ImGui::TextCenter(desc.Get());
 					ImGui::Text("");
-					ImGui::TextCenter("Time: 7pm GMT / 2pm ET / 11am PST.");
 					ImGui::PopStyleVar(2);
 					ImGui::EndChild();
 					ImGui::Indent(-2);
 				}
 				ImGui::SetWindowFontScale(1.2);
+			}
+			else if (iCurrentOpenTab == 6)
+			{
+				float image_size_sub_x = 350;
+				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x - 250.0;
+				float ratio = 1.0f;
+				ImGui::SetWindowFontScale(1.0);
+				if (1)
+				{
+					// title
+					ImGui::SetWindowFontScale(1.4);
+					ImGui::TextCenter("Workshop Item Uploader");
+					ImGui::Text("");
+					float element_overall_width = vPreviewSize.x - image_size_sub_x;
 
+					// image
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::TextCenter("Workshop Item Image");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					int iTextureID = HUB_WORKSHOPITEM;
+					extern int g_iIconImageInProperties;
+					if (g_iIconImageInProperties == 0)
+					{
+						g_iIconImageInProperties = g.iconimagebankoffset;
+						if (GetImageExistEx(g_iIconImageInProperties) == 1) DeleteImage(g_iIconImageInProperties);
+						if (FileExist(g_currentWorkshopItem.sImage.Get()) == 1)
+						{
+							// actual icon image
+							image_setlegacyimageloading(true);
+							LoadImage(g_currentWorkshopItem.sImage.Get(), g_iIconImageInProperties);
+							image_setlegacyimageloading(false);
+						}
+						else
+						{
+							// specified image not found, use placeholder
+							g_iIconImageInProperties = HUB_WORKSHOPITEM;
+							g_currentWorkshopItem.sImage = "";
+						}
+					}
+					else
+					{
+						// check if preview image is changed externally
+						if (g_currentWorkshopItem.sImage.Len() == 0 && g_iIconImageInProperties != HUB_WORKSHOPITEM)
+						{
+							g_iIconImageInProperties = HUB_WORKSHOPITEM;
+						}
+
+						// use default or specified preview image
+						iTextureID = g_iIconImageInProperties;
+					}
+					if (ImGui::ImgBtn(iTextureID, ImVec2(element_overall_width, element_overall_width * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
+					{
+						// clicking image itself does nothing (we can absorb button functionality below if we need more item details space)
+					}
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					ImGui::SetWindowFontScale(1.4);
+					cstr UniqueWorkshopItemPreviewImage = "##UniqueWorkshopItemPreviewImage";
+					if (iSelectedLibraryStingReturnID == window->GetID(UniqueWorkshopItemPreviewImage.Get()))
+					{
+						g_currentWorkshopItem.sImage = sSelectedLibrarySting;
+						sSelectedLibrarySting = "";
+						iSelectedLibraryStingReturnID = -1;
+						g_iIconImageInProperties = 0; // force a reload
+					}
+					if (ImGui::StyleButton("Change Workshop Item Image", ImVec2(element_overall_width, 0)))
+					{
+						// open file requester to specify non-default workshop item preview image
+						sStartLibrarySearchString = "Image";
+						bExternal_Entities_Window = true;
+						iDisplayLibraryType = 2; //Image
+						iLibraryStingReturnToID = window->GetID(UniqueWorkshopItemPreviewImage.Get());
+					}
+					static char pEntry[MAX_PATH] = "\0";
+
+					// Name
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::TextCenter("Workshop Item Name");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					ImGui::PushItemWidth(element_overall_width);
+					strcpy(pEntry, g_currentWorkshopItem.sName.Get());
+					if (ImGui::InputText("##WorkshopItemName", pEntry, MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						g_currentWorkshopItem.sName = pEntry;
+					}
+					ImGui::PopItemWidth();
+
+					// Description
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::TextCenter("Workshop Item Description");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					ImGui::PushItemWidth(element_overall_width);
+					strcpy(pEntry, g_currentWorkshopItem.sDesc.Get());
+					if (ImGui::InputText("##WorkshopItemDesc", pEntry, MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						g_currentWorkshopItem.sDesc = pEntry;
+					}
+					ImGui::PopItemWidth();
+
+					// Media For Item
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::TextCenter("Workshop Item Media Folder");
+					ImGui::PushItemWidth(element_overall_width);
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					strcpy(pEntry, g_currentWorkshopItem.sMediaFolder.Get());
+					if (ImGui::InputText("##WorkshopItemMediaFolder", pEntry, MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue))
+					{
+						g_currentWorkshopItem.sMediaFolder = pEntry;
+					}
+					ImGui::PopItemWidth();
+
+					// Show user where their community folder is located
+					static char pWorkshopItemMedia[256];
+					uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
+					sprintf(pWorkshopItemMedia, "Your Community Folder: 'scriptbank\\Community\\%d\\'", uAccountID);
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 128, 128));
+					ImGui::TextCenter(pWorkshopItemMedia, MAX_PATH, ImGuiInputTextFlags_None);
+					ImGui::PopStyleColor(ImGuiCol_Text);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("When a user views your folder, they will see your Steam Name and not your Steam ID in the UI");
+
+					// progress and user prompt
+					extern void workshop_update(void);
+					workshop_update();
+					ImGui::SetWindowFontScale(1.25);
+					ImGui::Text("");
+					ImGui::TextCenter(g_WorkshopUserPrompt.Get());
+					ImGui::Text("");
+				}
+				ImGui::SetWindowFontScale(1.2);
 			}
 			else if (bUseTutorial)
 			{
-
 				cstr title = "";
 				cstr description = "Testing description.";
 
@@ -35936,15 +36138,9 @@ void Welcome_Screen(void)
 					ImGui::Indent(2);
 					ImGui::SetWindowFontScale(1.2);
 				}
-				else
-				{
-					//ImGui::TextWrapped("Description:");
-					//ImGui::TextWrapped("A huge description to test if everything is fine here with wrapping and all 1234567890 mega text desc here now! A huge description to test if everything is fine here with wrapping and all 1234567890 mega text desc here now! A huge description to test if everything is fine here with wrapping and all 1234567890 mega text desc here now! A huge description to test if everything is fine here with wrapping and all 1234567890 mega text desc here now! mega text desc here now! A huge description to test if everything is fine here with wrapping and all 1234567890 mega text desc here now!");
-				}
 			}
 			else
 			{
-
 				int iFileListEntry = GetEntryFilesListForLibrary(sCurrentGame);
 				if (g_LibraryFileList.size() > 0)
 				{
@@ -36000,17 +36196,6 @@ void Welcome_Screen(void)
 								triggerEndVideo = 1;
 							if (triggerEndVideo > 0 && (fdone == 0.0f || fdone >= 1.0f))
 							{
-								//End loop.
-								//PE: Loop dont work, at some point the player breaks and flicker, just restart everyting.
-								//void SetVideoPositionPlay(float seconds);
-								//SetVideoPositionPlay(0.0);
-								//ResumeAnim(iWelcomeVideoID);
-								//Try stopping and starting.
-								//StopAnimation(iWelcomeVideoID);
-								//PlaceAnimation(iWelcomeVideoID, -1, -1, -1, -1);
-								//SetRenderAnimToImage(iWelcomeVideoID, true);
-								//PlayAnimation(iWelcomeVideoID);
-								//SetVideoVolume(100);
 								iVideoTriggerTimer = 0;
 								bRemoveVideoInNextFrame = true;
 								triggerEndVideo = 0;
@@ -36287,9 +36472,6 @@ void Welcome_Screen(void)
 			{
 				if (ImGui::StyleButton("View the User Guide", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
 				{
-					//Goto
-					/*ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);*/
-					//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 					// User guide has been moved to offline only
 					ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 				}
@@ -36299,12 +36481,22 @@ void Welcome_Screen(void)
 			{
 				if (ImGui::StyleButton("Click here to view the GameGuru MAX YouTube Channel", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
 				{
-					//Goto
-					/*ExecuteFile("https://www.youtube.com/channel/UC1q1e3Q9IKMk4nDlAGb_5Jg", "", "", 0);*/
 					ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
-				
 				}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click here to view the GameGuru MAX YouTube Channel"); //Weekly Live Stream
+			}
+			else if (iCurrentOpenTab == 6)
+			{
+				LPSTR pTitleOfWorkshopButton = "Submit New Item To Workshop";
+				if (g_iSelectedExistingWorkshopItem != -1) pTitleOfWorkshopButton = "Update Your Workshop Item";
+				if (ImGui::StyleButton(pTitleOfWorkshopButton, ImVec2(vPreviewSize.x + 4.0, fFontSize * 2.6)))
+				{
+					// submit workshop item
+					if (workshop_submit_item_check() == true)
+					{
+						// perform actual submission of current workshop item
+						workshop_submit_item_now();
+					}
+				}
 			}
 			else
 			{

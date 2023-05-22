@@ -28,6 +28,9 @@ void workshop_init (bool bLoggedIn)
 	g_currentWorkshopItem.sName = "";
 	g_currentWorkshopItem.sDesc = "";
 	g_currentWorkshopItem.sMediaFolder = "";
+	g_currentWorkshopItem.nPublishedFileId = 0;
+	g_currentWorkshopItem.sSteamUsersPersonaName = "";
+	g_currentWorkshopItem.sSteamUserAccountID = "";
 }
 
 void workshop_free (void)
@@ -43,6 +46,10 @@ void workshop_new_item (void)
 	g_currentWorkshopItem.sName = "";
 	g_currentWorkshopItem.sDesc = "";
 	g_currentWorkshopItem.sMediaFolder = "";
+	g_currentWorkshopItem.nPublishedFileId = 0;
+	g_currentWorkshopItem.sSteamUsersPersonaName = "";
+	g_currentWorkshopItem.sSteamUserAccountID = "";
+	g_WorkshopUserPrompt = "";
 }
 
 bool workshop_submit_item_check (void)
@@ -50,40 +57,60 @@ bool workshop_submit_item_check (void)
 	// first check have all fields filled
 	if (g_currentWorkshopItem.sName.Len() > 0 && g_currentWorkshopItem.sDesc.Len() > 0 && g_currentWorkshopItem.sMediaFolder.Len() > 0)
 	{
-		// now check if workshop item already exists with this name for this user
-		if (0)
+		if (SteamUser())
 		{
-			g_WorkshopUserPrompt = "A workshop item already exists with that name, choose another name.";
-			return false;
-		}
-
-		// this users steam ID for the folder
-		uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
-
-		// check media folder created and valid
-		char pMediaFolder[MAX_PATH];
-		sprintf (pMediaFolder, "%s\\Files\\scriptbank\\Community\\%d\\%s", g.fpscrootdir_s.Get(), uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
-		GG_GetRealPath(pMediaFolder, true);
-		if (PathExist(pMediaFolder) == 0)
-		{
-			g_WorkshopUserPrompt = "Workshop item media folder not found, create it in your community folder and add your files.";
-			return false;
-		}
-
-		// check the specified preview image exists (warning only)
-		if (g_currentWorkshopItem.sImage.Len() > 0)
-		{
-			char pPreviewImageFile[MAX_PATH];
-			sprintf (pPreviewImageFile, "%s\\Files\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sImage.Get());
-			GG_GetRealPath(pPreviewImageFile, false);
-			if (FileExist(pPreviewImageFile) == 0)
+			// now check if workshop item already exists with this name for this user, if a new entry
+			if (g_currentWorkshopItem.nPublishedFileId == 0)
 			{
-				g_WorkshopUserPrompt = "Info: specified preview image does not exist.";
+				bool bFoundMatch = false;
+				for (int i = 0; i < g_workshopItemsList.size(); i++)
+				{
+					if (stricmp(g_workshopItemsList[i].sName.Get(), g_currentWorkshopItem.sName.Get()) == NULL)
+					{
+						bFoundMatch = true;
+						break;
+					}
+				}
+				if (bFoundMatch == true)
+				{
+					g_WorkshopUserPrompt = "A workshop item already exists with that name, choose another name.";
+					return false;
+				}
 			}
-		}
 
-		// all checks complete, can submit
-		return true;
+			// this users steam ID for the folder
+			uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
+
+			// check media folder created and valid
+			char pMediaFolder[MAX_PATH];
+			sprintf (pMediaFolder, "%s\\Files\\scriptbank\\Community\\%d\\%s", g.fpscrootdir_s.Get(), uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
+			GG_GetRealPath(pMediaFolder, true);
+			if (PathExist(pMediaFolder) == 0)
+			{
+				g_WorkshopUserPrompt = "Workshop item media folder not found, create it in your community folder and add your files.";
+				return false;
+			}
+
+			// check the specified preview image exists (warning only)
+			if (g_currentWorkshopItem.sImage.Len() > 0)
+			{
+				char pPreviewImageFile[MAX_PATH];
+				sprintf (pPreviewImageFile, "%s\\Files\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sImage.Get());
+				GG_GetRealPath(pPreviewImageFile, false);
+				if (FileExist(pPreviewImageFile) == 0)
+				{
+					g_WorkshopUserPrompt = "Info: specified preview image does not exist.";
+				}
+			}
+
+			// all checks complete, can submit
+			return true;
+		}
+		else
+		{
+			g_WorkshopUserPrompt = "Log into your Steam Client Account in order to submit a workshop item!";
+			return false;
+		}
 	}
 	else
 	{
@@ -199,8 +226,9 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemStartUpdate(PublishedFileId_
 	result = SteamUGC()->SetItemVisibility(WorkShopItemUpdateHandle, k_ERemoteStoragePublishedFileVisibilityPublic);
 
 	// meta data (k_cchDeveloperMetadataMax)
-	LPSTR pNoMetaData = "nometadata";
-	result = SteamUGC()->SetItemMetadata(WorkShopItemUpdateHandle, pNoMetaData);
+	char pMetaDataSteamUsersCreatorsName[256];
+	strcpy (pMetaDataSteamUsersCreatorsName, SteamFriends()->GetPersonaName());
+	result = SteamUGC()->SetItemMetadata(WorkShopItemUpdateHandle, pMetaDataSteamUsersCreatorsName);
 
 	// extra data we need when retrieving item details
 	result = SteamUGC()->AddItemKeyValueTag(WorkShopItemUpdateHandle, "imagefile", g_currentWorkshopItem.sImage.Get());
@@ -259,23 +287,34 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemUpdated(SubmitItemUpdateResu
 	}
 }
 
+UGCQueryHandle_t g_UGCQueryHandle = NULL;
+
 void CSteamUserGeneratedWorkshopItem::RefreshItemsList()
 {
 	// clear last list
 	g_workshopItemsList.clear();
 
 	// create a new query (if MORE THAN 50, need to go through ALL PAGES!!)
-	UGCQueryHandle_t handle;
-	handle = SteamUGC()->CreateQueryUserUGCRequest(SteamUser()->GetSteamID().GetAccountID(), k_EUserUGCList_Published, k_EUGCMatchingUGCType_Items,
-		k_EUserUGCListSortOrder_LastUpdatedDesc, SteamUtils()->GetAppID(), SteamUtils()->GetAppID(), 1);
+	if (SteamUGC())
+	{
+		if (g_UGCQueryHandle == NULL)
+		{
+			g_UGCQueryHandle = SteamUGC()->CreateQueryUserUGCRequest(SteamUser()->GetSteamID().GetAccountID(), k_EUserUGCList_Published, k_EUGCMatchingUGCType_Items,
+				k_EUserUGCListSortOrder_LastUpdatedDesc, SteamUtils()->GetAppID(), SteamUtils()->GetAppID(), 1);
+		}
 
-	// also get other data too
-	SteamUGC()->SetReturnKeyValueTags(handle, true);
-	SteamUGC()->SetReturnMetadata(handle, true);
+		// also get other data too
+		SteamUGC()->SetReturnKeyValueTags(g_UGCQueryHandle, true);
+		SteamUGC()->SetReturnMetadata(g_UGCQueryHandle, true);
 
-	// start the query
-	SteamAPICall_t ret = SteamUGC()->SendQueryUGCRequest (handle);
-	m_SteamCallResultWorkshopItemQueried.Set(ret, this, &CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried);
+		// start the query
+		SteamAPICall_t ret = SteamUGC()->SendQueryUGCRequest (g_UGCQueryHandle);
+		m_SteamCallResultWorkshopItemQueried.Set(ret, this, &CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried);
+	}
+	else
+	{
+		g_WorkshopUserPrompt = "Log into your Steam Client Account in order to upload to the workshop!";
+	}
 }
 
 void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryCompleted_t* pCallback, bool bIOFailure)
@@ -307,8 +346,8 @@ void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryComplet
 					}
 
 					// no meta data
-					char pNoMetaData[256];
-					SteamUGC()->GetQueryUGCMetadata(pCallback->m_handle, c, pNoMetaData, 256);
+					char pMetaDataSteamUsersCreatorsName[256];
+					SteamUGC()->GetQueryUGCMetadata(pCallback->m_handle, c, pMetaDataSteamUsersCreatorsName, 256);
 
 					// add item into list for later use
 					sWorkshopItem newitem;
@@ -317,9 +356,21 @@ void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryComplet
 					newitem.sDesc = details.m_rgchDescription;
 					newitem.sMediaFolder = pMediaFolder;
 					newitem.nPublishedFileId = details.m_nPublishedFileId;
+					newitem.sSteamUsersPersonaName = pMetaDataSteamUsersCreatorsName;
+					char pSteamUserAccountID[256];
+					CSteamID pSteamUserID = details.m_ulSteamIDOwner;
+					sprintf(pSteamUserAccountID, "%d", pSteamUserID.GetAccountID());
+					newitem.sSteamUserAccountID = pSteamUserAccountID;
 					g_workshopItemsList.push_back(newitem);
 				}
 			}
+		}
+
+		// free query handle now done
+		if (g_UGCQueryHandle != NULL)
+		{
+			SteamUGC()->ReleaseQueryUGCRequest(g_UGCQueryHandle);
+			g_UGCQueryHandle = NULL;
 		}
 	}
 }

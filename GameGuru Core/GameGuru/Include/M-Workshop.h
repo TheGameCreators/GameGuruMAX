@@ -18,6 +18,8 @@ struct sWorkshopItem
 	cstr sDesc;
 	cstr sMediaFolder;
 	PublishedFileId_t nPublishedFileId;
+	cstr sSteamUserAccountID;
+	cstr sSteamUsersPersonaName;
 };
 
 // Externs

@@ -13451,6 +13451,10 @@ void mapeditorexecutable_loop(void)
 			pref.iSetColumnsEntityLib = 3;
 		#endif
 
+		// ensure workshop system always called to handle callbacks and ensure latest items are available when editing
+		extern void workshop_update(void);
+		workshop_update();
+
 		#ifdef WICKEDENGINE
 		#ifdef USENEWLIBRARY
 		process_entity_library_v2();

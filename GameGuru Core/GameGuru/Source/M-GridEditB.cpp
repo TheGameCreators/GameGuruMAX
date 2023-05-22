@@ -16183,9 +16183,23 @@ bool bUpdateSearchScrollbar = false;
 bool bUpdateSearchSortingNextFrame = false;
 bool bTreeViewInitInNextFrame = false;
 
-bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = NULL)
+bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = NULL, char* pstartfolder = NULL, bool bSwapInSteamName = false)
 {
-	for (auto it = root_folders.begin(); it != root_folders.end(); ++it)
+	bool bViewingCommunityFolder = false;
+	auto it = root_folders.begin();
+	if (pstartfolder)
+	{
+		// option to do tree in only one root folder (Community)
+		for (; it != root_folders.end(); ++it)
+		{
+			if ( it->second->level==0 && it->second->type == iDisplayLibraryType && stricmp(pstartfolder, it->second->show_name) == NULL)
+			{
+				bViewingCommunityFolder = true;
+				break;
+			}
+		}
+	}
+	for (; it != root_folders.end(); ++it)
 	{
 		bool bValid = true;
 		int iCompareType = iDisplayLibraryType;
@@ -16206,17 +16220,17 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 			std::string treename = it->second->show_name;
 
 			if (parentid != 0) bValid = true;
-			if (parentid == 0 && ignore && treename == ignore) bValid = false;
-			if (parentid == 0 && ignore2 && treename == ignore2) bValid = false;
-			if (parentid == 0 && ignore2==NULL)
+			if (parentid == 0 && ignore && stricmp(treename.c_str(), ignore) == NULL) bValid = false;
+			if (parentid == 0 && ignore2 && stricmp(treename.c_str(), ignore2) == NULL) bValid = false;
+			if (parentid == 0)
 			{
 				// special extended filters for specific types
-				if (ignore && ignore == "AllNoneBehaviorFolders")
+				if (ignore && stricmp(ignore,"AllNoneBehaviorFolders")==NULL)
 				{
 					if (stricmp(cSearchAllEntities[0], "purchased") == NULL)
 					{
 						// only show purchased behaviors
-						bValid = true;
+						//bValid = true;
 						if (treename == "Animals") bValid = false;
 						if (treename == "Effects") bValid = false;
 						if (treename == "Horror") bValid = false;
@@ -16233,25 +16247,12 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 					}
 					else
 					{
-						//LB: instead, show everything except ones we do not want to see (tmp and core folders)
 						// regular behavior view
-						bValid = true;
+						//bValid = true;
 						if (treename == "Ai") bValid = false;
 						if (treename == "Gfx") bValid = false;
 						if (treename == "Images") bValid = false;
 						if (treename == "Weather") bValid = false;
-						/*
-						bValid = false;
-						if (treename == "Animals") bValid = true;
-						if (treename == "Effects") bValid = true;
-						if (treename == "Horror") bValid = true;
-						if (treename == "Markers") bValid = true;
-						if (treename == "Objects") bValid = true;
-						if (treename == "People") bValid = true;
-						if (treename == "Puzzle") bValid = true;
-						if (treename == "Rpg") bValid = true;
-						if (treename == "User") bValid = true;
-						*/
 					}
 				}
 			}
@@ -16262,7 +16263,24 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 					treename = it->second->real_name;
 					treename[0] = toupper(treename[0]);
 				}
-				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)it->second->id, node_flags, treename.c_str());
+
+				// shows name in UI
+				char pChangeUIName[256];
+				strcpy(pChangeUIName, treename.c_str());
+				if (bSwapInSteamName == true)
+				{
+					// all items subscribed to includes meta data for the steam user who created it, we will use the first instance of that
+					for (int i = 0; i < g_workshopItemsList.size(); i++)
+					{
+						if (stricmp(g_workshopItemsList[i].sSteamUserAccountID.Get(), pChangeUIName) == NULL)
+						{
+							strcpy(pChangeUIName, g_workshopItemsList[i].sSteamUsersPersonaName.Get());
+							break;
+						}
+					}
+				}
+				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)it->second->id, node_flags, pChangeUIName);
+
 				ImGui::PopItemWidth();
 				//PE: Default category select.
 				if (selectfolder != NULL && seleted_tree_item == -1 && _stricmp(selectfolder, it->second->real_name) == 0)
@@ -16331,11 +16349,18 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 				if (TreeNodeOpen) 
 				{
 					ImGui::Indent(-5);
-					if (parentid != it->second->id)	DoTreeNode(it->second->id, ignore, ignore2);
+					bool bSwapName = false;
+					if (bViewingCommunityFolder == true && it->second->level == 0) bSwapName = true;
+					if (parentid != it->second->id)	DoTreeNode(it->second->id, ignore, ignore2, NULL, NULL, bSwapName);
 					ImGui::Indent(5);
 					ImGui::TreePop();
 				}
 			}
+		}
+		if (pstartfolder)
+		{
+			// leave after processing this one folder when pstartfolder mode used
+			return(0);
 		}
 	}
 	return(0);
@@ -18942,7 +18967,7 @@ void process_entity_library_v2(void)
 								strcpy(fi->show_name, dir_name.c_str());
 								
 								fi->show_name[0] = toupper(fi->show_name[0]);
-								fi->id = count++;
+								fi->id = ++count;// count++;
 								fi->parentid = 0;
 								fi->folders = 0;
 								fi->pFolder = pNewFolder;
@@ -19175,16 +19200,18 @@ void process_entity_library_v2(void)
 			if (iDisplayLibraryType == 4)
 			{
 				// behaviors
-				DoTreeNode(0, "AllNoneBehaviorFolders", NULL, sTriggerCategorySelect.Get());
+				DoTreeNode(0, "AllNoneBehaviorFolders", "Community", sTriggerCategorySelect.Get());
 			}
 			else
 			{
 				// the rest
-				DoTreeNode(0, "Showcase", "Purchased", sTriggerCategorySelect.Get());
+				DoTreeNode(0, "Community", "Purchased", sTriggerCategorySelect.Get());
 			}
 		}
-
 		sTriggerCategorySelect = "";
+
+		// list community folder contents separately
+		DoTreeNode(0, "", "", "", "Community");
 
 		ImGui::EndChild();
 		ImGui::NextColumn();
@@ -35656,55 +35683,64 @@ void Welcome_Screen(void)
 						ImGui::Text("");
 						ImGui::Text("");
 
-						// show list of existing workshop items as buttons
-						ImGui::SetWindowFontScale(1.0);
-						ImGui::BeginChild("##MyOwnWorkshopItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
-						float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
-						ImGui::Indent(half_total_width / 2.0f);
-						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
-						for (int i = 0; i < g_workshopItemsList.size(); i++)
+						if (SteamUGC())
 						{
-							char pWorkshipItemName[MAX_PATH];
-							sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
-							if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+							// show list of existing workshop items as buttons
+							ImGui::SetWindowFontScale(1.0);
+							ImGui::BeginChild("##MyOwnWorkshopItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+							float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
+							ImGui::Indent(half_total_width / 2.0f);
+							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
+							for (int i = 0; i < g_workshopItemsList.size(); i++)
 							{
-								// select existing workshop item to edit
-								g_currentWorkshopItem = g_workshopItemsList[i];
-								g_iSelectedExistingWorkshopItem = i;
-								extern int g_iIconImageInProperties;
-								g_iIconImageInProperties = 0;
+								char pWorkshipItemName[MAX_PATH];
+								sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
+								if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+								{
+									// select existing workshop item to edit
+									g_currentWorkshopItem = g_workshopItemsList[i];
+									g_iSelectedExistingWorkshopItem = i;
+									extern int g_iIconImageInProperties;
+									g_iIconImageInProperties = 0;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
 							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
-						}
 
-						// show "add new item" button to start creating a new one
-						if (ImGui::StyleButton("Add New Item", ImVec2(half_total_width, 0)))
+							// show "add new item" button to start creating a new one
+							if (ImGui::StyleButton("Add New Item", ImVec2(half_total_width, 0)))
+							{
+								// select new workshop item to create
+								g_iSelectedExistingWorkshopItem = -1;
+								workshop_new_item();
+							}
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to start a new workshop item submission of your own creation");
+
+							// end of main Workshop tab page
+							ImGui::Indent(-half_total_width / 2.0f);
+							ImGui::EndChild();
+
+							// Instructions for Workshop Item
+							ImGui::SetWindowFontScale(1.25);
+							ImGui::Text("");
+							ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
+							ImGui::TextCenter("in the form of new behavior scripts for the Behavior Library and can only add and edit items when you");
+							ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
+							ImGui::Indent(half_total_width / 2.0f);
+							ImGui::Text("");
+							if (ImGui::StyleButton("Steam Workshop Terms Of Service", ImVec2(half_total_width, 0)))
+							{
+								ExecuteFile("https://steamcommunity.com/sharedfiles/workshoplegalagreement", "", "", false);
+							}
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Go to the Steam Workshop Terms of Service page");
+							ImGui::Indent(-half_total_width / 2.0f);
+						}
+						else
 						{
-							// select new workshop item to create
-							g_iSelectedExistingWorkshopItem = -1;
-							workshop_new_item();
+							ImGui::Text("");
+							ImGui::SetWindowFontScale(1.25);
+							ImGui::TextCenter("You must log into your Steam Client Account in order to submit Workshop items");
+							ImGui::Text("");
 						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to submit a new workshop item of your own creation");
-
-						// end of main Workshop tab page
-						ImGui::Indent(-half_total_width / 2.0f);
-						ImGui::EndChild();
-
-						// Instructions for Workshop Item
-						ImGui::SetWindowFontScale(1.25);
-						ImGui::Text("");
-						ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
-						ImGui::TextCenter("in the form of new behavior scripts for the Behavior Library and can only add and edit items when you");
-						ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
-						ImGui::Indent(half_total_width / 2.0f);
-						ImGui::Text("");
-						if (ImGui::StyleButton("Steam Workshop Terms Of Service", ImVec2(half_total_width, 0)))
-						{
-							ExecuteFile("https://steamcommunity.com/sharedfiles/workshoplegalagreement", "", "", false);
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Go to the Steam Workshop Terms of Service page");
-						ImGui::Indent(-half_total_width / 2.0f);
-
 						ImGui::EndTabItem();
 					}
 					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Item uploader enables behaviors to be submitted to the Steam Workshop Community");
@@ -35927,8 +35963,13 @@ void Welcome_Screen(void)
 
 					// Show user where their community folder is located
 					static char pWorkshopItemMedia[256];
-					uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
-					sprintf(pWorkshopItemMedia, "Your Community Folder: 'scriptbank\\Community\\%d\\'", uAccountID);
+					sprintf(pWorkshopItemMedia, "");
+					uint32 uAccountID = 0;
+					if (SteamUser())
+					{
+						uAccountID = SteamUser()->GetSteamID().GetAccountID();
+						sprintf(pWorkshopItemMedia, "Your Community Folder: 'scriptbank\\Community\\%d\\'", uAccountID);
+					}
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 128, 128));
 					ImGui::TextCenter(pWorkshopItemMedia, MAX_PATH, ImGuiInputTextFlags_None);
 					ImGui::PopStyleColor(ImGuiCol_Text);

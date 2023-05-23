@@ -17656,8 +17656,7 @@ void process_entity_library_v2(void)
 				WickedCall_EnableThumbLight(true);
 				ImGui::Columns(1);
 
-				// Load the importer back up with the last imported model.
-				//if (!bIsCCPObject)//
+				// Load the importer back up with the last imported model
 				extern sImportedObjectData g_Data;
 				char previewName[MAX_PATH] = { 0 };
 				if (pPreviewFile)
@@ -22178,20 +22177,12 @@ void process_entity_library_v2(void)
 
 							if (bDisplayText)
 							{
-								//if (strlen(cHeader) > 0)
-								//{
-								//	ImGui::Text("%s (%s)", sFinal.c_str(), cHeader);
-								//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s (%s)", sFinal.c_str(), cHeader);
-								//}
-								//else
-								//{
-								//}
 								if (iDisplayLibraryType == 4)
 								{
 									char cDisplayName[MAX_PATH];
 									strcpy (cDisplayName, sFinal.c_str());
 									FormatLUAFilenameToTitle(cDisplayName);
-									sFinal = cDisplayName;
+									sFinal = cstr(cstr(cDisplayName) + myfiles->m_sNameFinalCredit.Get()).Get();
 									ImGui::Text("%s", sFinal.c_str());
 									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", sFinal.c_str());
 
@@ -22209,15 +22200,16 @@ void process_entity_library_v2(void)
 								}
 								else
 								{
+									std::string sFinalForDisplay = sFinal + myfiles->m_sNameFinalCredit.Get();
 									if (iDisplayLibraryType == 0)
 									{
-										ImGui::Text("  %s", sFinal.c_str());
+										ImGui::Text("  %s", sFinalForDisplay.c_str());
 									}
 									else
 									{
-										ImGui::Text("%s", sFinal.c_str());
+										ImGui::Text("%s", sFinalForDisplay.c_str());
 									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", sFinal.c_str());
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", sFinalForDisplay.c_str());
 								}
 							}
 
@@ -35685,55 +35677,65 @@ void Welcome_Screen(void)
 
 						if (SteamUGC())
 						{
-							// show list of existing workshop items as buttons
-							ImGui::SetWindowFontScale(1.0);
-							ImGui::BeginChild("##MyOwnWorkshopItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
-							float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
-							ImGui::Indent(half_total_width / 2.0f);
-							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
-							for (int i = 0; i < g_workshopItemsList.size(); i++)
+							if (g_bStillDownloadingThings == false)
 							{
-								char pWorkshipItemName[MAX_PATH];
-								sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
-								if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+								// show list of existing workshop items as buttons
+								ImGui::SetWindowFontScale(1.0);
+								ImGui::BeginChild("##MyOwnWorkshopItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+								float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
+								ImGui::Indent(half_total_width / 2.0f);
+								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
+								for (int i = 0; i < g_workshopItemsList.size(); i++)
 								{
-									// select existing workshop item to edit
-									g_currentWorkshopItem = g_workshopItemsList[i];
-									g_iCurrentMediaTypeForWorkshopItem = workshop_getvaluefromtype(g_currentWorkshopItem.sMediaType.Get());
-									g_iSelectedExistingWorkshopItem = i;
-									extern int g_iIconImageInProperties;
-									g_iIconImageInProperties = 0;
+									char pWorkshipItemName[MAX_PATH];
+									sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
+									if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+									{
+										// select existing workshop item to edit
+										g_currentWorkshopItem = g_workshopItemsList[i];
+										g_iCurrentMediaTypeForWorkshopItem = workshop_getvaluefromtype(g_currentWorkshopItem.sMediaType.Get());
+										g_iSelectedExistingWorkshopItem = i;
+										extern int g_iIconImageInProperties;
+										g_iIconImageInProperties = 0;
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
 								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
-							}
 
-							// show "add new item" button to start creating a new one
-							if (ImGui::StyleButton("Add New Item", ImVec2(half_total_width, 0)))
+								// show "add new item" button to start creating a new one
+								if (ImGui::StyleButton("Add New Item", ImVec2(half_total_width, 0)))
+								{
+									// select new workshop item to create
+									g_iSelectedExistingWorkshopItem = -1;
+									workshop_new_item();
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to start a new workshop item submission of your own creation");
+
+								// end of main Workshop tab page
+								ImGui::Indent(-half_total_width / 2.0f);
+								ImGui::EndChild();
+
+								// Instructions for Workshop Item
+								ImGui::SetWindowFontScale(1.25);
+								ImGui::Text("");
+								ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
+								ImGui::TextCenter("in the form of game ready assets for the Asset Libraries and can only add and edit items when you");
+								ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
+								ImGui::Indent(half_total_width / 2.0f);
+								ImGui::Text("");
+								if (ImGui::StyleButton("Steam Workshop Terms Of Service", ImVec2(half_total_width, 0)))
+								{
+									ExecuteFile("https://steamcommunity.com/sharedfiles/workshoplegalagreement", "", "", false);
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Go to the Steam Workshop Terms of Service page");
+								ImGui::Indent(-half_total_width / 2.0f);
+							}
+							else
 							{
-								// select new workshop item to create
-								g_iSelectedExistingWorkshopItem = -1;
-								workshop_new_item();
+								ImGui::Text("");
+								ImGui::SetWindowFontScale(1.25);
+								ImGui::TextCenter("Steam Client is currently downloading workshop items...");
+								ImGui::Text("");
 							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to start a new workshop item submission of your own creation");
-
-							// end of main Workshop tab page
-							ImGui::Indent(-half_total_width / 2.0f);
-							ImGui::EndChild();
-
-							// Instructions for Workshop Item
-							ImGui::SetWindowFontScale(1.25);
-							ImGui::Text("");
-							ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
-							ImGui::TextCenter("in the form of game ready assets for the Asset Libraries and can only add and edit items when you");
-							ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
-							ImGui::Indent(half_total_width / 2.0f);
-							ImGui::Text("");
-							if (ImGui::StyleButton("Steam Workshop Terms Of Service", ImVec2(half_total_width, 0)))
-							{
-								ExecuteFile("https://steamcommunity.com/sharedfiles/workshoplegalagreement", "", "", false);
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Go to the Steam Workshop Terms of Service page");
-							ImGui::Indent(-half_total_width / 2.0f);
 						}
 						else
 						{
@@ -35950,25 +35952,51 @@ void Welcome_Screen(void)
 					}
 					ImGui::PopItemWidth();
 
+					// Disable type and folder for when item is only being updated
+					bool bDisableTypeAndFolder = false;
+					if (g_iSelectedExistingWorkshopItem != -1)
+					{
+						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7, 0.7, 0.7, 1));
+						bDisableTypeAndFolder = true;
+					}
+
 					// Media for Item
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::TextCenter("Workshop Item Media Folder");
 					extern int g_iCurrentMediaTypeForWorkshopItem;
+					int iRememberOldSetting = g_iCurrentMediaTypeForWorkshopItem;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
 					ImGui::RadioButton("Audio", &g_iCurrentMediaTypeForWorkshopItem, 1); ImGui::SameLine();
 					ImGui::RadioButton("Objects", &g_iCurrentMediaTypeForWorkshopItem, 2); ImGui::SameLine();
 					ImGui::RadioButton("Images", &g_iCurrentMediaTypeForWorkshopItem, 3); ImGui::SameLine();
 					ImGui::RadioButton("Particles", &g_iCurrentMediaTypeForWorkshopItem, 4); ImGui::SameLine();
 					ImGui::RadioButton("Scripts", &g_iCurrentMediaTypeForWorkshopItem, 5);
+					if (bDisableTypeAndFolder == true) g_iCurrentMediaTypeForWorkshopItem = iRememberOldSetting;
 					g_currentWorkshopItem.sMediaType = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
 
 					// Media Sub Folder for Item
 					ImGui::PushItemWidth(element_overall_width);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
 					strcpy(pEntry, g_currentWorkshopItem.sMediaFolder.Get());
-					if (ImGui::InputText("##WorkshopItemMediaFolder", pEntry, MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue))
+					int flagforfolder = ImGuiInputTextFlags_EnterReturnsTrue;
+					if (bDisableTypeAndFolder == true) flagforfolder |= ImGuiInputTextFlags_ReadOnly;
+					if (ImGui::InputText("##WorkshopItemMediaFolder", pEntry, MAX_PATH, flagforfolder))
 					{
 						g_currentWorkshopItem.sMediaFolder = pEntry;
+					}
+					if (bDisableTypeAndFolder == true)
+					{
+						// restore any disabled gadgets
+						ImGui::PopStyleColor();
+						ImGui::PopStyleVar();
+					}
+					if (ImGui::IsItemHovered())
+					{
+						if(bDisableTypeAndFolder==true)
+							ImGui::SetTooltip("You can only set the media type and folder when creating a new workshop item");
+						else
+							ImGui::SetTooltip("First create your media folder in the community folder indicated below, then enter that media folder name here");
 					}
 					ImGui::PopItemWidth();
 

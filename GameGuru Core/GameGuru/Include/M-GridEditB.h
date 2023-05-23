@@ -58,6 +58,7 @@ public:
 		sFolderFiles * m_dropptr; //Need to be the first entry for drag/drop.
 		cStr m_sName;
 		cStr m_sNameFinal;
+		cStr m_sNameFinalCredit;
 		cStr m_sPath;
 		cStr m_sFolder;
 		UINT iFlags;

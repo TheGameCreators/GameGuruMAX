@@ -40,6 +40,7 @@
 #endif
 
 #include "M-RPG.h"
+#include "M-Workshop.h"
 
 char launchLoadOnStartup[260] = "\0";
 
@@ -5237,6 +5238,7 @@ public:
 		sFolderFiles * m_dropptr; //Need to be the first entry for drag/drop.
 		cStr m_sName;
 		cStr m_sNameFinal;
+		cStr m_sNameFinalCredit;
 		cStr m_sPath;
 		cStr m_sFolder;
 		UINT iFlags;
@@ -5831,6 +5833,41 @@ void SetAvailableInFreeTrial(int foldertype, cFolderItem::sFolderFiles* pNewItem
 	}
 }
 
+cstr GetNameFinalCreditFromAbsPath (LPSTR pAbsFullFolderPath)
+{
+	cstr sNameFinalCredit = "";
+	LPSTR pFoundMatchPtr = strstr(pAbsFullFolderPath, "\\Community\\");
+	if (pFoundMatchPtr == NULL) pFoundMatchPtr = strstr(pAbsFullFolderPath, "\\community\\");
+	if (pFoundMatchPtr != NULL)
+	{
+		// we have a community asset here, credit it!
+		char pAccountID[256];
+		strcpy(pAccountID, pFoundMatchPtr + strlen("\\community\\"));
+		for (int n = 0; n < strlen(pAccountID); n++)
+		{
+			if (pAccountID[n] == '\\' || pAccountID[n] == '/')
+			{
+				pAccountID[n] = 0;
+				break;
+			}
+		}
+		if (strlen(pAccountID) > 0)
+		{
+			extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
+			for (int j = 0; j < g_workshopSteamUserNames.size(); j++)
+			{
+				if (stricmp(g_workshopSteamUserNames[j].sSteamUserAccountID.Get(), pAccountID) == NULL)
+				{
+					strcpy(pAccountID, g_workshopSteamUserNames[j].sSteamUsersPersonaName.Get());
+					break;
+				}
+			}
+			sNameFinalCredit = cstr(" (by ") + cstr(pAccountID) + cstr(")");
+		}
+	}
+	return sNameFinalCredit;
+}
+
 void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_name_start, bool bForceToTop, int foldertype)
 {
 	//foldertype: 0 fpe , 1 waw mp3 ogg. , 2 BMP, JPG, PNG, TIF, and GIF
@@ -6101,6 +6138,7 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 				cFolderItem::sFolderFiles *pNewItem = new cFolderItem::sFolderFiles;
 				pNewItem->m_sName = "...";
 				pNewItem->m_sNameFinal = pNewItem->m_sName;
+				pNewItem->m_sNameFinalCredit = "";
 				pNewItem->m_tFileModify = 0;
 				pNewItem->m_Backdrop = "";
 				pNewItem->bFavorite = false;
@@ -6182,6 +6220,9 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 						pNewItem->m_sNameFinal = pNewItem->m_sName.Left(pNewItem->m_sName.Len() - 5);
 					else
 						pNewItem->m_sNameFinal = pNewItem->m_sName;
+
+					// credit if community asset
+					pNewItem->m_sNameFinalCredit = GetNameFinalCreditFromAbsPath (pNewFolder->m_pNext->m_sFolderFullPath.Get());
 
 					//Generate a better search string. include category at end.
 					#ifdef WICKEDENGINE
@@ -6435,6 +6476,7 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 				cFolderItem::sFolderFiles *pNewItem = new cFolderItem::sFolderFiles;
 				pNewItem->m_sName = "...";
 				pNewItem->m_sNameFinal = pNewItem->m_sName;
+				pNewItem->m_sNameFinalCredit = "";
 				pNewItem->m_tFileModify = 0;
 				pNewItem->m_Backdrop = "";
 				pNewItem->bFavorite = false;
@@ -6514,7 +6556,10 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 						pNewItem->m_sNameFinal = pNewItem->m_sName.Left(pNewItem->m_sName.Len() - 5);
 					else
 						pNewItem->m_sNameFinal = pNewItem->m_sName;
-					
+
+					// credit if community asset
+					pNewItem->m_sNameFinalCredit = GetNameFinalCreditFromAbsPath (pNewFolder->m_sFolderFullPath.Get());
+
 					//Generate a better search string. include category at end.#
 					#ifdef WICKEDENGINE
 					std::string sBetterSearch = pNewItem->m_sNameFinal.Get();

@@ -35,9 +35,11 @@ extern bool g_bUpdateWorkshopItemList;
 extern cstr g_WorkshopUserPrompt;
 extern std::vector<sWorkshopItem> g_workshopItemsList;
 extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
+extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
 extern sWorkshopItem g_currentWorkshopItem;
 extern int g_iSelectedExistingWorkshopItem;
 extern int g_iCurrentMediaTypeForWorkshopItem;
+extern bool g_bStillDownloadingThings;
 
 // Functions
 void workshop_init (bool bLoggedIn);
@@ -48,6 +50,7 @@ int workshop_getvaluefromtype (LPSTR mediatypestring);
 bool workshop_submit_item_check (void);
 void workshop_submit_item_now (void);
 void workshop_update_steamusernames (void);
+void workshop_subscribetoalltrusteditems (void);
 
 // Callback Class for Steam Workshop
 class CSteamUserGeneratedWorkshopItem

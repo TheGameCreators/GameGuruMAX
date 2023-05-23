@@ -12,10 +12,12 @@ bool g_bUpdateWorkshopDownloads = false;
 cstr g_WorkshopUserPrompt = "";
 std::vector<sWorkshopItem> g_workshopItemsList;
 std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
+std::vector<PublishedFileId_t> g_workshopTrustedItems;
 int g_iSelectedExistingWorkshopItem = -1;
 sWorkshopItem g_currentWorkshopItem;
 CSteamUserGeneratedWorkshopItem g_UserWorkShopItem;
 int g_iCurrentMediaTypeForWorkshopItem = 1;
+bool g_bStillDownloadingThings = true;
 
 // Functions
 void workshop_init (bool bLoggedIn)
@@ -36,6 +38,9 @@ void workshop_init (bool bLoggedIn)
 	g_currentWorkshopItem.nPublishedFileId = 0;
 	g_currentWorkshopItem.sSteamUserAccountID = "";
 	g_currentWorkshopItem.bDownloadItemTriggered = false;
+
+	// start the process of ensuring trusted items are subscribed to
+	workshop_subscribetoalltrusteditems();
 }
 
 void workshop_free (void)
@@ -189,9 +194,11 @@ void workshop_update (void)
 					char pOldDir[MAX_PATH];
 					strcpy(pOldDir, GetDir());
 
+					// TEST downloading item to OWN steam user account (typically you already have your own there)
+					bool bTestCopyOwnWorkshopItemsToo = false; // true;
+
 					// except if tbat is the current user who owns the item as that would overwrite the latest versions not yet submitted
 					// we do not want to copy in this case so the author can continue working on the latest unbpublished media
-					bool bTestCopyOwnWorkshopItemsToo = true;// false;// true;
 					uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
 
 					// if final dest is however empty, trigger latest workshop content to be copied over
@@ -353,6 +360,32 @@ void workshop_update_steamusernames (void)
 	}
 }
 
+void workshop_subscribetoalltrusteditems (void)
+{
+	// init trusted item list
+	g_workshopTrustedItems.clear();
+	
+	// file storing steam user name database
+	char pWorkshopItemsTrustedSources[MAX_PATH];
+	strcpy(pWorkshopItemsTrustedSources, "WorkshopTrustedItems.ini");
+
+	// load trusted items IDs
+	if (FileExist(pWorkshopItemsTrustedSources) == 1)
+	{
+		OpenToRead(1, pWorkshopItemsTrustedSources);
+		bool bKeepReadingLines = true;
+		while(bKeepReadingLines)
+		{
+			LPSTR pLineTrustedItem = ReadString (1);
+			if (strlen(pLineTrustedItem) > 0)
+				g_workshopTrustedItems.push_back(_atoi64(pLineTrustedItem));
+			else
+				bKeepReadingLines = false;
+		}
+		CloseFile(1);
+	}
+}
+
 // Callback Functions for Steam Workshop
 CSteamUserGeneratedWorkshopItem::CSteamUserGeneratedWorkshopItem()
 {
@@ -372,6 +405,7 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 	}
 
 	// ensure workshop items not installed or in need of updating are given the download item command
+	g_bStillDownloadingThings = false;
 	uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
 	PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
 	SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
@@ -395,7 +429,37 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 				}
 			}
 		}
+		if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
+		{
+			// this item is ready to use
+		}
+		else
+		{
+			// this item is not ready to use, we are still busy downloading things
+			g_bStillDownloadingThings = true;
+		}
 	}
+
+	// check for any items not subcribed, but need to be
+	for (int i = 0; i < g_workshopTrustedItems.size(); i++)
+	{
+		PublishedFileId_t thisItem = g_workshopTrustedItems[i];
+		if (thisItem > 0)
+		{
+			uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+			if (unItemState == k_EItemStateNone)
+			{
+				// item is not subscribed to, so subscrube to trusted item
+				SteamUGC()->SubscribeItem(thisItem);
+				if (SteamUGC()->DownloadItem (thisItem, true) == true)
+				{
+					g_bStillDownloadingThings = true;
+				}
+			}
+		}
+	}
+
+	// free resource
 	delete pEntries;
 }
 

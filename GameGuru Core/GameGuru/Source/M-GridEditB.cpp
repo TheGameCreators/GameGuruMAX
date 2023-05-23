@@ -16270,11 +16270,11 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 				if (bSwapInSteamName == true)
 				{
 					// all items subscribed to includes meta data for the steam user who created it, we will use the first instance of that
-					for (int i = 0; i < g_workshopItemsList.size(); i++)
+					for (int i = 0; i < g_workshopSteamUserNames.size(); i++)
 					{
-						if (stricmp(g_workshopItemsList[i].sSteamUserAccountID.Get(), pChangeUIName) == NULL)
+						if (stricmp(g_workshopSteamUserNames[i].sSteamUserAccountID.Get(), pChangeUIName) == NULL)
 						{
-							strcpy(pChangeUIName, g_workshopItemsList[i].sSteamUsersPersonaName.Get());
+							strcpy(pChangeUIName, g_workshopSteamUserNames[i].sSteamUsersPersonaName.Get());
 							break;
 						}
 					}
@@ -35671,14 +35671,14 @@ void Welcome_Screen(void)
 				if (g_bWorkshopAvailable == true)
 				{
 					rect.Min = TabStartPos;
-					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop ", false);
-					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop ", false).x + gui.Style.ItemInnerSpacing.x;
-					if (ImGui::BeginTabItem(" Workshop ", NULL, tabflags))
+					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop Uploader ", false);
+					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop Uploader ", false).x + gui.Style.ItemInnerSpacing.x;
+					if (ImGui::BeginTabItem(" Workshop Uploader ", NULL, tabflags))
 					{
 						iCurrentOpenTab = 6;
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(2.0);
-						ImGui::TextCenter("Your Own Workshop Items for Behaviors");
+						ImGui::TextCenter("Your Own Workshop Items");
 						ImGui::SetWindowFontScale(1.0);
 						ImGui::Text("");
 						ImGui::Text("");
@@ -35699,6 +35699,7 @@ void Welcome_Screen(void)
 								{
 									// select existing workshop item to edit
 									g_currentWorkshopItem = g_workshopItemsList[i];
+									g_iCurrentMediaTypeForWorkshopItem = workshop_getvaluefromtype(g_currentWorkshopItem.sMediaType.Get());
 									g_iSelectedExistingWorkshopItem = i;
 									extern int g_iIconImageInProperties;
 									g_iIconImageInProperties = 0;
@@ -35723,7 +35724,7 @@ void Welcome_Screen(void)
 							ImGui::SetWindowFontScale(1.25);
 							ImGui::Text("");
 							ImGui::TextCenter("From here you can add and edit your own workshop items for submission to the Steam Workshop Community");
-							ImGui::TextCenter("in the form of new behavior scripts for the Behavior Library and can only add and edit items when you");
+							ImGui::TextCenter("in the form of game ready assets for the Asset Libraries and can only add and edit items when you");
 							ImGui::TextCenter("are logged into your Steam client account and you agree to the workshop terms of service.");
 							ImGui::Indent(half_total_width / 2.0f);
 							ImGui::Text("");
@@ -35743,7 +35744,7 @@ void Welcome_Screen(void)
 						}
 						ImGui::EndTabItem();
 					}
-					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Item uploader enables behaviors to be submitted to the Steam Workshop Community");
+					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Item uploader enables game assets to be submitted to the Steam Workshop Community");
 				}
 
 				// end of all tabs
@@ -35949,9 +35950,19 @@ void Welcome_Screen(void)
 					}
 					ImGui::PopItemWidth();
 
-					// Media For Item
+					// Media for Item
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::TextCenter("Workshop Item Media Folder");
+					extern int g_iCurrentMediaTypeForWorkshopItem;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					ImGui::RadioButton("Audio", &g_iCurrentMediaTypeForWorkshopItem, 1); ImGui::SameLine();
+					ImGui::RadioButton("Objects", &g_iCurrentMediaTypeForWorkshopItem, 2); ImGui::SameLine();
+					ImGui::RadioButton("Images", &g_iCurrentMediaTypeForWorkshopItem, 3); ImGui::SameLine();
+					ImGui::RadioButton("Particles", &g_iCurrentMediaTypeForWorkshopItem, 4); ImGui::SameLine();
+					ImGui::RadioButton("Scripts", &g_iCurrentMediaTypeForWorkshopItem, 5);
+					g_currentWorkshopItem.sMediaType = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
+
+					// Media Sub Folder for Item
 					ImGui::PushItemWidth(element_overall_width);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
 					strcpy(pEntry, g_currentWorkshopItem.sMediaFolder.Get());
@@ -35968,7 +35979,8 @@ void Welcome_Screen(void)
 					if (SteamUser())
 					{
 						uAccountID = SteamUser()->GetSteamID().GetAccountID();
-						sprintf(pWorkshopItemMedia, "Your Community Folder: 'scriptbank\\Community\\%d\\'", uAccountID);
+						LPSTR pMediaTypePath = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
+						sprintf(pWorkshopItemMedia, "Your Community Folder: '%s\\Community\\%d\\'", pMediaTypePath, uAccountID);
 					}
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 128, 128));
 					ImGui::TextCenter(pWorkshopItemMedia, MAX_PATH, ImGuiInputTextFlags_None);
@@ -36527,15 +36539,25 @@ void Welcome_Screen(void)
 			}
 			else if (iCurrentOpenTab == 6)
 			{
-				LPSTR pTitleOfWorkshopButton = "Submit New Item To Workshop";
-				if (g_iSelectedExistingWorkshopItem != -1) pTitleOfWorkshopButton = "Update Your Workshop Item";
-				if (ImGui::StyleButton(pTitleOfWorkshopButton, ImVec2(vPreviewSize.x + 4.0, fFontSize * 2.6)))
+				char pCheckFinalDestFolderExists[MAX_PATH];
+				strcpy(pCheckFinalDestFolderExists, "");
+				uint32 uAccountID = 0;
+				if (SteamUser())
 				{
-					// submit workshop item
-					if (workshop_submit_item_check() == true)
+					uAccountID = SteamUser()->GetSteamID().GetAccountID();
+					LPSTR pMediaTypePath = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
+					sprintf(pCheckFinalDestFolderExists, "%s\\Community\\%d\\'", pMediaTypePath, uAccountID);
+					GG_GetRealPath(pCheckFinalDestFolderExists, 1);
+					LPSTR pTitleOfWorkshopButton = "Submit New Item To Workshop";
+					if (g_iSelectedExistingWorkshopItem != -1) pTitleOfWorkshopButton = "Update Your Workshop Item";
+					if (ImGui::StyleButton(pTitleOfWorkshopButton, ImVec2(vPreviewSize.x + 4.0, fFontSize * 2.6)))
 					{
-						// perform actual submission of current workshop item
-						workshop_submit_item_now();
+						// submit workshop item
+						if (workshop_submit_item_check() == true)
+						{
+							// perform actual submission of current workshop item
+							workshop_submit_item_now();
+						}
 					}
 				}
 			}
@@ -43618,7 +43640,6 @@ void process_storeboard(bool bInitOnly)
 													strcpy(ReadFrom, pReconstructGameGuruRootFiles);
 													strcat(ReadFrom, scriptfile);
 													bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
-
 													scanscriptfileandaddtocollection(ReadFrom, &pReconstructGameGuruRootFiles[0]);
 												}
 											}

@@ -12,6 +12,7 @@
 #include "GGVR.h"
 #include "M-GridEditB.h"
 #include "M-RPG.h"
+#include "M-Workshop.h"
 
 #ifdef STORYBOARD
 //#include "..\..\GameGuru\Imgui\imnodes.cpp" now added to project to compile the CPP
@@ -31044,8 +31045,53 @@ void gridedit_load_map ( void )
 		}
 	}
 
+	// scan all core scripts used by all entities, and if any are missing
+	// look in trusted workshop item community folders for direct replacements
+	bool bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems = true;
+	if (bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems == true)
+	{
+		bool bReplacedScript = false;
+		if (g.entityelementlist > 0)
+		{
+			for (int e = 1; e <= g.entityelementlist; e++)
+			{
+				char pScriptFile[MAX_PATH];
+				strcpy(pScriptFile, "scriptbank\\");
+				strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
+				GG_GetRealPath(pScriptFile, false);
+				if (FileExist(pScriptFile) == 0)
+				{
+					// was missing script a core file
+					if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
+					{
+						// yes, now check for tristed replacement
+						cstr trustedReplacement_s = workshop_findtrustedreplacement(t.entityelement[e].eleprof.aimain_s.Get());
+						if (trustedReplacement_s.Len() > 0)
+						{
+							strcpy(pScriptFile, "scriptbank\\");
+							strcat(pScriptFile, trustedReplacement_s.Get());
+							GG_GetRealPath(pScriptFile, false);
+							if (FileExist(pScriptFile) == 1)
+							{
+								t.entityelement[e].eleprof.aimain_s = trustedReplacement_s;
+								bReplacedScript = true;
+							}
+						}
+					}
+				}
+			}
+		}
+		if (bReplacedScript == true)
+		{
+			strcpy(cTriggerMessage, "Some behaviors have been replaced with newer workshop content");
+			iTriggerMessageDelay = 10;
+			bTriggerMessage = true;
+			iMessageTimer = 0;
+		}
+	}
+
 	// free usages
-	if (  ArrayCount(t.missingmedia_s) >= 0 ) 
+	if ( ArrayCount(t.missingmedia_s) >= 0 ) 
 	{
 		UnDim (  t.missingmedia_s );
 	}

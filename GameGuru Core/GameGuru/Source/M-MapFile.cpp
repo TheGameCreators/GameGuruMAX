@@ -6414,6 +6414,8 @@ void removeanymatchingfromcollection ( char* folderorfile_s )
 	}
 }
 
+bool g_bNormalOperations = true;
+
 void addfoldertocollection ( char* path_s )
 {
 	cstr tfile_s =  "";
@@ -6421,18 +6423,20 @@ void addfoldertocollection ( char* path_s )
 	cstr usePath = path_s;
 	int c = 0;
 	told_s = GetDir();
-#ifdef WICKEDENGINE
+
 	//PE: In wicked also check if folder is inside docwrite.
 	if (!PathExist(usePath.Get()))
 	{
-		extern char szWriteDir[MAX_PATH];
-		cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
-		if (PathExist(testPath.Get()))
+		if (g_bNormalOperations == true)
 		{
-			usePath = testPath;
+			extern char szWriteDir[MAX_PATH];
+			cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
+			if (PathExist(testPath.Get()))
+			{
+				usePath = testPath;
+			}
 		}
 	}
-#endif
 	if ( PathExist (usePath.Get()) )
 	{
 		SetDir (usePath.Get());
@@ -6440,11 +6444,14 @@ void addfoldertocollection ( char* path_s )
 		if (ChecklistQuantity() <= 2)
 		{
 			// Try writable folder instead (sometimes, there will be an empty user folder in the max install, which causes this process to ignore the writable user folder!)
-			extern char szWriteDir[MAX_PATH];
-			cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
-			SetDir(told_s.Get());
-			SetDir(testPath.Get());
-			ChecklistForFiles();
+			if (g_bNormalOperations == true)
+			{
+				extern char szWriteDir[MAX_PATH];
+				cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
+				SetDir(told_s.Get());
+				SetDir(testPath.Get());
+				ChecklistForFiles();
+			}
 		}
 		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )
 		{

@@ -22,6 +22,7 @@ struct sWorkshopItem
 	cstr sSteamUserAccountID;
 	cstr sSteamUsersPersonaName;
 	bool bDownloadItemTriggered;
+	int iNumberOfFilesInWorkshopItem;
 };
 struct sWorkshopSteamUserName
 {
@@ -51,6 +52,7 @@ bool workshop_submit_item_check (void);
 void workshop_submit_item_now (void);
 void workshop_update_steamusernames (void);
 void workshop_subscribetoalltrusteditems (void);
+cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile);
 
 // Callback Class for Steam Workshop
 class CSteamUserGeneratedWorkshopItem

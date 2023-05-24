@@ -22,7 +22,6 @@
 #include "Nlohmann JSON/json.hpp"
 
 #include "M-RPG.h"
-
 #include "M-Workshop.h"
 
 //#define PETESTING

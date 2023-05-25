@@ -1,9 +1,0 @@
-Flying Insect Behavior
-
-Behavior for flying insects
-Set INSECT TYPE (1=Butterfly, 2=Bee, 3=Wasp)
-This just sets the appropriate flying paterns and speeds etc
-(Default is 1)
-Set TEMPERAMENT (1=Benign, 2=Aggressive)]
-(Default is 1)
-

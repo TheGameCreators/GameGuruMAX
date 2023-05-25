@@ -1,8 +1,0 @@
-InactiveZone
-
-An inactive zone starts automatically unspawned, when triggered will spawn/activate all entities linked to the zone and removes the zone afterwards. Setting linked entities to hidden at start of level for best effect.
-The InactiveZone Can be activated/triggered by another zone or switch.
-
-Behavior options:
-Set the PROMPT TEXT eg:"Zone has been activated"
-Set the <Sound0> for when zone is activated

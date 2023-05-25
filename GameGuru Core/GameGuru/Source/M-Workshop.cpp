@@ -693,7 +693,7 @@ void CSteamUserGeneratedWorkshopItem::RefreshItemsList()
 	{
 		if (g_UGCQueryHandle == NULL)
 		{
-			g_UGCQueryHandle = SteamUGC()->CreateQueryUserUGCRequest(SteamUser()->GetSteamID().GetAccountID(), k_EUserUGCList_Published, k_EUGCMatchingUGCType_Items,
+			g_UGCQueryHandle = SteamUGC()->CreateQueryUserUGCRequest(SteamUser()->GetSteamID().GetAccountID(), k_EUserUGCList_Subscribed, k_EUGCMatchingUGCType_Items,
 				k_EUserUGCListSortOrder_LastUpdatedDesc, SteamUtils()->GetAppID(), SteamUtils()->GetAppID(), 1);
 		}
 

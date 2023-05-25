@@ -4845,6 +4845,11 @@ void FPSC_Setup(void)
 	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
 	#endif
 
+	// also create
+	cstr scriptbankfolder_s = g.fpscrootdir_s + "\\Files\\scriptbank\\user\\";
+	strcpy(pCacheFolder, scriptbankfolder_s.Get());
+	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
+
 	//  LEAP POINT (detect if running as Guru-Game.exe or Guru-MapEditor.exe)
 	if ( bIsThisMapEditor == true ) 
 	{

@@ -35686,18 +35686,21 @@ void Welcome_Screen(void)
 								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
 								for (int i = 0; i < g_workshopItemsList.size(); i++)
 								{
-									char pWorkshipItemName[MAX_PATH];
-									sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
-									if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+									if ( _atoi64(g_workshopItemsList[i].sSteamUserAccountID.Get()) == SteamUser()->GetSteamID().GetAccountID() )
 									{
-										// select existing workshop item to edit
-										g_currentWorkshopItem = g_workshopItemsList[i];
-										g_iCurrentMediaTypeForWorkshopItem = workshop_getvaluefromtype(g_currentWorkshopItem.sMediaType.Get());
-										g_iSelectedExistingWorkshopItem = i;
-										extern int g_iIconImageInProperties;
-										g_iIconImageInProperties = 0;
+										char pWorkshipItemName[MAX_PATH];
+										sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
+										if (ImGui::StyleButton(pWorkshipItemName, ImVec2(half_total_width, 0)))
+										{
+											// select existing workshop item to edit
+											g_currentWorkshopItem = g_workshopItemsList[i];
+											g_iCurrentMediaTypeForWorkshopItem = workshop_getvaluefromtype(g_currentWorkshopItem.sMediaType.Get());
+											g_iSelectedExistingWorkshopItem = i;
+											extern int g_iIconImageInProperties;
+											g_iIconImageInProperties = 0;
+										}
+										if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
 									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to edit this workshop item and submit an update");
 								}
 
 								// show "add new item" button to start creating a new one

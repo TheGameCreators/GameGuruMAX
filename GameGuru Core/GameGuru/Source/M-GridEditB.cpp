@@ -35659,7 +35659,18 @@ void Welcome_Screen(void)
 				//
 				// Workshop
 				//
-				if (g_bWorkshopAvailable == true)
+				bool bOnlyTrustedSteamUsersForNow = false;
+				if (SteamUGC())
+				{
+					// some concerns raised in the community of TGCs association with potential piracy - one bad apple and all that - sorry everyone!
+					uint64 uAccountID = SteamUser()->GetSteamID().GetAccountID();
+					if (uAccountID == 58134713 || uAccountID == 6704278)
+					{
+						// basically just meand Steve
+						bOnlyTrustedSteamUsersForNow = true;
+					}
+				}
+				if (g_bWorkshopAvailable == true && bOnlyTrustedSteamUsersForNow == true)
 				{
 					rect.Min = TabStartPos;
 					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop Uploader ", false);

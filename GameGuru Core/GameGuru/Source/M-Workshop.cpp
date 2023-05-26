@@ -488,62 +488,69 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 	}
 
 	// ensure workshop items not installed or in need of updating are given the download item command
-	g_bStillDownloadingThings = false;
-	uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
-	PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
-	SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
-	for (int i = 0; i < numSubscribed; i++)
+	if (SteamUGC())
 	{
-		// for each item found
-		PublishedFileId_t thisItem = pEntries[i];
-		uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-		if (!(unItemState & k_EItemStateInstalled) || unItemState & k_EItemStateNeedsUpdate)
+		g_bStillDownloadingThings = false;
+		uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
+		PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
+		SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
+		for (int i = 0; i < numSubscribed; i++)
 		{
-			if (SteamUGC()->DownloadItem (thisItem, true) == true)
+			// for each item found
+			PublishedFileId_t thisItem = pEntries[i];
+			uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+			if (!(unItemState & k_EItemStateInstalled) || unItemState & k_EItemStateNeedsUpdate)
 			{
-				// downloaddone callback not in API, instead wait until item status reads as installed
-				for (int i = 0; i < g_workshopItemsList.size(); i++)
+				if (SteamUGC()->DownloadItem (thisItem, true) == true)
 				{
-					if (g_workshopItemsList[i].nPublishedFileId == thisItem)
+					// downloaddone callback not in API, instead wait until item status reads as installed
+					for (int i = 0; i < g_workshopItemsList.size(); i++)
 					{
-						g_workshopItemsList[i].bDownloadItemTriggered = true;
-						break;
+						if (g_workshopItemsList[i].nPublishedFileId == thisItem)
+						{
+							g_workshopItemsList[i].bDownloadItemTriggered = true;
+							break;
+						}
+					}
+				}
+			}
+			if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
+			{
+				// this item is ready to use
+			}
+			else
+			{
+				// this item is not ready to use, we are still busy downloading things
+				g_bStillDownloadingThings = true;
+			}
+		}
+
+		// check for any items not subcribed, but need to be
+		for (int i = 0; i < g_workshopTrustedItems.size(); i++)
+		{
+			PublishedFileId_t thisItem = g_workshopTrustedItems[i];
+			if (thisItem > 0)
+			{
+				uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+				if (unItemState == k_EItemStateNone)
+				{
+					// item is not subscribed to, so subscrube to trusted item
+					SteamUGC()->SubscribeItem(thisItem);
+					if (SteamUGC()->DownloadItem (thisItem, true) == true)
+					{
+						g_bStillDownloadingThings = true;
 					}
 				}
 			}
 		}
-		if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
+
+		// free resource
+		if (pEntries)
 		{
-			// this item is ready to use
-		}
-		else
-		{
-			// this item is not ready to use, we are still busy downloading things
-			g_bStillDownloadingThings = true;
+			delete pEntries;
+			pEntries = 0;
 		}
 	}
-
-	// check for any items not subcribed, but need to be
-	for (int i = 0; i < g_workshopTrustedItems.size(); i++)
-	{
-		PublishedFileId_t thisItem = g_workshopTrustedItems[i];
-		if (thisItem > 0)
-		{
-			uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-			if (unItemState == k_EItemStateNone)
-			{
-				// item is not subscribed to, so subscrube to trusted item
-				SteamUGC()->SubscribeItem(thisItem);
-				if (SteamUGC()->DownloadItem (thisItem, true) == true)
-				{
-					g_bStillDownloadingThings = true;
-				}
-			}
-		}
-	}
-
-	// free resource
-	delete pEntries;
 }
 
 void CSteamUserGeneratedWorkshopItem::CreateOrUpdateWorkshopItem()
@@ -597,7 +604,11 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemCreated(CreateItemResult_t* 
 	}
 	if (!bIOFailure)
 	{
+		// start populating item once created
 		OnWorkshopItemStartUpdate(pCallback->m_nPublishedFileId);
+
+		// always subscribe to items you create 
+		SteamUGC()->SubscribeItem(pCallback->m_nPublishedFileId);
 	}
 }
 

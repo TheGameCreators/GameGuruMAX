@@ -628,14 +628,16 @@ void Master::Update(float dt)
 
 				// are we non-steam
 				SetDir("..");
-				timestampactivity(0, "GameGuru MAX Updater exist check");
 				LPSTR pCurrentDirChecking = GetDir();
+				/*
+				timestampactivity(0, "GameGuru MAX Updater exist check");
 				if (FileExist("GameGuru MAX Updater.exe") == 1 || FileExist("GameGuru MAX Updater (new).exe") == 1)
 				{
 					// TGC Downloaded
 					timestampactivity(0, "GameGuru MAX Updater exists!");
 					g_bUpdateAppAvailable = true;
 				}
+				*/
 
 				// restore current in Max folder
 				SetDir(pOldDir);

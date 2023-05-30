@@ -5036,6 +5036,7 @@ void mapeditorexecutable_loop(void)
 					ExecuteFile("https://discord.gg/xnTAbBR", "", "", 0);
 				}
 				*/
+				/*
       			if ( g_bUpdateAppAvailable == true )
 				{
 					if (ImGui::MenuItem("Check For Updates"))
@@ -5050,6 +5051,7 @@ void mapeditorexecutable_loop(void)
 						}
 					}
 				}
+				*/
 				#ifndef LBBUGTRACKING
 				if (ImGui::MenuItem("Report an Issue (GitHub)"))
 				{
@@ -6571,7 +6573,7 @@ void mapeditorexecutable_loop(void)
 
 			#define STOREPROMOICONS 8
 
-		float fMarketplacePanelHeight = 45.0f;// 55.0f; fits 4:3 aspect!
+		float fMarketplacePanelHeight = 48.0f;// 55.0f; fits 4:3 aspect!
 
 			if (g_bFreeTrialVersion == true)
 			{
@@ -6700,6 +6702,7 @@ void mapeditorexecutable_loop(void)
 				float fFontSize = ImGui::GetFontSize();
 				int icon_size = ImGui::GetFontSize()*3.0;
 				ImVec2 VIconSize = { (float)icon_size, (float)icon_size };
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, -15));
 				if (ImGui::ImgBtn(TOOL_GOBACK, VIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 				{
 					bMarketplace_Window = false;
@@ -6707,24 +6710,20 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Exit Marketplace");
 				ImGui::SameLine();
 
-				//ImGui::SetWindowFontScale(2.0);
-				//ImGui::SetCursorPos(vCurPos + ImVec2(0, fFontSize*0.5));
-				//ImGui::TextCenter("Marketplace");
-				//ImGui::SetWindowFontScale(1.0);
 				ImVec2 VHeaderSize;
 				if (bHideGGMaxMarketplace)
 				{
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
-					VHeaderSize = { 365, 64 };
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(154, -63));
+					VHeaderSize = { 365, 39 };
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(154, -58));
 					ImGui::ImgBtn(MARKETPLACE_HEADER, VHeaderSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), 0, 0, 0, 0, false, false, false, false, false, false);
 					ImGui::Text("");
 				}
 				else
 				{
-					VHeaderSize = { 730, 128 };
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(78, -35));
+					VHeaderSize = { 730, 78 };
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(78, -10));
 					ImGui::ImgBtn(MARKETPLACE_HEADER, VHeaderSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), 0, 0, 0, 0, false, false, false, false, false, false);
 				}
 
@@ -6751,12 +6750,12 @@ void mapeditorexecutable_loop(void)
 				ImVec2 vLogoSize = { fLogoWidth , fImageHeight * fScale };
 				ImVec2 vPromoSize = { fLogoWidth , fImageHeight * fScale };
 
-				ImVec2 vSizeOfScrollablePanels = ImVec2(vPromoSize.x, (vPromoSize.y * 3));
+				ImVec2 vSizeOfScrollablePanels = ImVec2(vPromoSize.x, ((vPromoSize.y-15.0f) * 3));
 
 				vPromoSize *= 0.5;
-				vPromoSize = vPromoSize - ImVec2(5.0f, 5.0f);
+				vPromoSize = vPromoSize - ImVec2(15.0f, 15.0f); //ImVec2(5.0f, 5.0f);
 
-				ImVec2 vYOffsetToButtons = ImVec2( 0, (((475/68.6f)*vPromoSize.y)) );
+				ImVec2 vYOffsetToButtons = ImVec2(0, (((475 / 68.6f) * vPromoSize.y)));
 				if (bHideGGMaxMarketplace) vYOffsetToButtons = ImVec2(0, (((150 / 68.6f)*vPromoSize.y)));
 
 				//MAX x=154.25 y=69.432
@@ -6765,25 +6764,24 @@ void mapeditorexecutable_loop(void)
 				float fPromoHeight = ImGui::GetCursorPosY();
 				if (!bHideGGMaxMarketplace)
 				{
-					if (ImageExist(MARKETPLACE_GGMAX))
-						TextureID = MARKETPLACE_GGMAX;
+					if (ImageExist(MARKETPLACE_GGMAX)) TextureID = MARKETPLACE_GGMAX;
 					if (ImGui::ImgBtn(TextureID, vLogoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, false))
 					{
-						if (g_bUpdateAppAvailable == false)
+						//if (g_bUpdateAppAvailable == false)
 							ExecuteFile("https://store.steampowered.com/app/1247290/GameGuru_MAX/", "", "", 0);
-						else
-							ExecuteFile("https://www.game-guru.com/max", "", "", 0);
+						//else
+						//	ExecuteFile("https://www.game-guru.com/max", "", "", 0);
 					}
 					if (ImGui::IsItemHovered())
 					{
-						if (g_bUpdateAppAvailable == false)
+						//if (g_bUpdateAppAvailable == false)
 							ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Steam Store Page");
-						else
-							ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Webpage");
+						//else
+						//	ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Webpage");
 					}
 
 					//#### Promo icon section. ####
-					ImGui::Text("");
+					//ImGui::Text("");
 					vCurPos = ImGui::GetCursorPos();
 					fPromoHeight = ImGui::GetCursorPosY();
 					for (int i = 0; i < 3; i++)
@@ -6795,6 +6793,7 @@ void mapeditorexecutable_loop(void)
 							TextureID = gg_max_dlc[i];
 							vFadeIcons = { 1.0,1.0,1.0,1.0 };
 						}
+						ImGui::SetCursorPos(ImVec2(vCurPos.x+10.0f, ImGui::GetCursorPos().y));
 						if (ImGui::ImgBtn(TextureID, vPromoSize*2, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1)*vFadeIcons, drawCol_hover*vFadeIcons, drawCol_Down*vFadeIcons, -1, 0, 0, 0, false, false, false, false, false, false))
 						{
 							// already aware of steam and non-steam, assigned directly from "MarketplaceData.json"
@@ -6806,28 +6805,30 @@ void mapeditorexecutable_loop(void)
 								}
 							}
 						}
+						/* removed as marketplace DLC items can change now
 						if (ImGui::IsItemHovered())
 						{
-							if (g_bUpdateAppAvailable == false)
+							//if (g_bUpdateAppAvailable == false)
 							{
 								if (i == 0) ImGui::SetTooltip("%s", "Click to view the Aztec Game Kit Steam Store Page");
 								if (i == 1) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Booster Steam Store Page");
 								if (i == 2) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Particle Editor Steam Store Page");
 							}
-							else
-							{
-								if (i == 0) ImGui::SetTooltip("%s", "Click to view the Aztec Game Kit DLC Page");
-								if (i == 1) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Booster DLC Page");
-								if (i == 2) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX DLC Page");
-							}
+							//else
+							//{
+							//	if (i == 0) ImGui::SetTooltip("%s", "Click to view the Aztec Game Kit DLC Page");
+							//	if (i == 1) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Booster DLC Page");
+							//	if (i == 2) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX DLC Page");
+							//}
 						}
+						*/
 					}
-					ImGui::Text("");
+					//ImGui::Text("");
 					fPromoHeight = ImGui::GetCursorPosY() - fPromoHeight;
 
 					ImGui::SetWindowFontScale(1.4f);		
 					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (g_bUpdateAppAvailable == false)
+					//if (g_bUpdateAppAvailable == false)
 					{
 						if (ImGui::StyleButton("Get More DLC", ImVec2(vLogoSize.x, fFontSize*2.0)))
 						{
@@ -6838,17 +6839,17 @@ void mapeditorexecutable_loop(void)
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX Steam DLC Page");
 					}
-					else
-					{
-						if (ImGui::StyleButton("Get More DLC", ImVec2(vLogoSize.x, fFontSize*2.0)))
-						{
-							DeleteWaypointsAddedToCurrentCursor();
-							CloseDownEditorProperties();
-							ExecuteFile("https://www.game-guru.com/order?_ga=2.207655313.227153589.1653311971-1982497974.1625668666#dlc", "", "", 0);
-							bTriggerCloseEntityWindow = true;
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX DLC Page");
-					}
+					//else
+					//{
+					//	if (ImGui::StyleButton("Get More DLC", ImVec2(vLogoSize.x, fFontSize*2.0)))
+					//	{
+					//		DeleteWaypointsAddedToCurrentCursor();
+					//		CloseDownEditorProperties();
+					//		ExecuteFile("https://www.game-guru.com/order?_ga=2.207655313.227153589.1653311971-1982497974.1625668666#dlc", "", "", 0);
+					//		bTriggerCloseEntityWindow = true;
+					//	}
+					//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the GameGuru MAX DLC Page");
+					//}
 					ImGui::SetWindowFontScale(1.0);
 
 					ImGui::NextColumn();
@@ -6865,13 +6866,13 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the Game Creator Store Website");
 
 				//#### Promo icon section. ####
-				ImGui::Text("");
+				//ImGui::Text("");
 				vCurPos = ImGui::GetCursorPos();
 				if ( iDisplayLibraryType == 0 )
 				{
 					fPromoHeight = ImGui::GetCursorPosY();
 					ImGui::BeginChild("##gamecreatorstorescrollable", vSizeOfScrollablePanels, false, ImGuiWindowFlags_None | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
-					for (int i = 0; i < 8; i++)
+					for (int i = 0; i < 7; i++)
 					{
 						TextureID = MARKETPLACE_FILLER;
 						ImVec4 vFadeIcons = { 1.0,1.0,1.0,0.2 };
@@ -6996,7 +6997,7 @@ void mapeditorexecutable_loop(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "GameGuru MAX Community");
 
 					//#### Promo icon section. ####
-					ImGui::Text("");
+					//ImGui::Text("");
 					vCurPos = ImGui::GetCursorPos();
 					fPromoHeight = ImGui::GetCursorPosY();
 					for (int i = 0; i < StorePromoItems; i++)
@@ -7050,7 +7051,7 @@ void mapeditorexecutable_loop(void)
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the Shockwave Sound Website");
 
 						//#### Promo icon section. ####
-						ImGui::Text("");
+						//ImGui::Text("");
 						vCurPos = ImGui::GetCursorPos();
 						//fPromoHeight = ImGui::GetCursorPosY();
 						/* no previews of sounds for now in shockwave store
@@ -7108,7 +7109,7 @@ void mapeditorexecutable_loop(void)
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the Sketchfab Website");
 
 						//#### Promo icon section. ####
-						ImGui::Text("");
+						//ImGui::Text("");
 						vCurPos = ImGui::GetCursorPos();
 						fPromoHeight = ImGui::GetCursorPosY();
 						ImGui::BeginChild("##sketchfabstorescrollable", vSizeOfScrollablePanels, false, ImGuiWindowFlags_None | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);

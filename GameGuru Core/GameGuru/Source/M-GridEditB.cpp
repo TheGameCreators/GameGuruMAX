@@ -37384,8 +37384,14 @@ void loadMarketplaceData(int* ggMaxDlc, cstr* ggMaxLink, int* sketchfabDlc, cstr
 			LoadImage(converter, ggMaxDlc[i]);
 
 			//Link
-			if (g_bUpdateAppAvailable) { link = jsonFile["ggMaxDLC"][i]["tgcLink"]; } //Checks if the user is on steam
-			else { link = jsonFile["ggMaxDLC"][i]["steamLink"]; }
+			//if (g_bUpdateAppAvailable==true) 
+			//{ 
+			//	link = jsonFile["ggMaxDLC"][i]["tgcLink"]; 
+			//}
+			//else 
+			{ 
+				link = jsonFile["ggMaxDLC"][i]["steamLink"]; 
+			}
 			strcpy(converter, link.c_str());
 			ggMaxLink[i] = converter;
 
@@ -45955,6 +45961,7 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 			}
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
+			/*
 			if (g_bUpdateAppAvailable == true)
 			{
 				if (ImGui::MenuItem("Check For Updates"))
@@ -45970,6 +45977,7 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 				}
 				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 			}
+			*/
 
 			if (ImGui::MenuItem("Report an Issue (GitHub)"))
 			{

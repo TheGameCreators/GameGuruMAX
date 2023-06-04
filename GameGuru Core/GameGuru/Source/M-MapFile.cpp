@@ -2167,12 +2167,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\character\\soldier\\onInteract");
 	addfoldertocollection("databank");
 	//addfoldertocollection("savegames");
-	addfoldertocollection("titlesbank\\default\\");
-	addtocollection("titlesbank\\cursorcontrol.lua");
-	addtocollection("titlesbank\\resolutions.lua");
-	addtocollection("titlesbank\\fillgameslots.lua");
-	addtocollection("titlesbank\\gamedata.lua");
-	addtocollection("titlesbank\\restoregame.lua");
+	addallinfoldertocollection("titlesbank", ""); // need the ENTIRE contents!
+	//addfoldertocollection("titlesbank\\default\\");
+	//addtocollection("titlesbank\\cursorcontrol.lua");
+	//addtocollection("titlesbank\\resolutions.lua");
+	//addtocollection("titlesbank\\fillgameslots.lua");
+	//addtocollection("titlesbank\\gamedata.lua");
+	//addtocollection("titlesbank\\restoregame.lua");
 	addfoldertocollection("effectbank\\reloaded");
 	addfoldertocollection("effectbank\\reloaded\\media");
 	addfoldertocollection("effectbank\\reloaded\\media\\materials");
@@ -2230,10 +2231,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	#else
 	addfoldertocollection("databank\\extendedblood");
 	#endif
-	addfoldertocollection("particlesbank");
-
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
-	addfoldertocollection("particlesbank\\user");
+	//addfoldertocollection("particlesbank");
+	//addfoldertocollection("particlesbank\\user");
+	addallinfoldertocollection("particlesbank", ""); // all particles so do not miss any for standalone
 
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");

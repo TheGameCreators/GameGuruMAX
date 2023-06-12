@@ -3690,7 +3690,7 @@ void imgui_download_store( void )
 #ifndef PRODUCTCLASSIC
 UINT StoreOpenURLForDataOrFile(LPSTR pServer, LPSTR pDataReturned, DWORD* pReturnDataSize, LPSTR pPostData, LPSTR pVerb, LPSTR urlWhere, LPSTR pLocalFileForImageOrNews)
 {
-	// default is main store
+	// default is main store 
 	bool bMainStore = false;
 	if (pServer == NULL)
 	{

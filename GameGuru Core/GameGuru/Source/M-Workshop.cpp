@@ -72,6 +72,7 @@ LPSTR workshop_getmediatypepath ( int mediatypevalue )
 	if (mediatypevalue == 3) return "imagebank";
 	if (mediatypevalue == 4) return "particlesbank";
 	if (mediatypevalue == 5) return "scriptbank";
+	if (mediatypevalue == 6) return "root";
 	return "";
 }
 
@@ -82,6 +83,7 @@ int workshop_getvaluefromtype (LPSTR mediatypestring)
 	if (stricmp(mediatypestring, "imagebank") == NULL) return 3;
 	if (stricmp(mediatypestring, "particlesbank") == NULL) return 4;
 	if (stricmp(mediatypestring, "scriptbank") == NULL) return 5;
+	if (stricmp(mediatypestring, "root") == NULL) return 6;
 	return 0;
 }
 
@@ -117,11 +119,18 @@ bool workshop_submit_item_check (void)
 			// check media folder created and valid
 			char pMediaFolder[MAX_PATH];
 			LPSTR pMediaTypePath = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
-			sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), pMediaTypePath, uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
+			if (stricmp(g_currentWorkshopItem.sMediaType.Get(), "root") == NULL)
+				sprintf (pMediaFolder, "%s\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaFolder.Get());
+			else
+				sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), pMediaTypePath, uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
+
 			GG_GetRealPath(pMediaFolder, true);
 			if (PathExist(pMediaFolder) == 0)
 			{
-				g_WorkshopUserPrompt = "Workshop item media folder not found, create it in your community folder and add your files.";
+				if (stricmp(g_currentWorkshopItem.sMediaType.Get(), "root") == NULL)
+					g_WorkshopUserPrompt = "Workshop item media folder not found, create it in your GameGuruMAX writables folder and add your files.";
+				else
+					g_WorkshopUserPrompt = "Workshop item media folder not found, create it in your community folder and add your files.";
 				return false;
 			}
 
@@ -242,14 +251,32 @@ void workshop_update (void)
 							uFoundAccountIDAssociated = atoi(g_workshopItemsList[j].sSteamUserAccountID.Get());
 							if (bTestCopyOwnWorkshopItemsToo == true || uAccountID != uFoundAccountIDAssociated)
 							{
-								sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+								LPSTR pAllMediaFolder = g_workshopItemsList[j].sMediaFolder.Get();
+								char pLastFolder[MAX_PATH];
+								strcpy(pLastFolder, "");
+								for (int nn = strlen(pAllMediaFolder) - 2; nn > 0; nn--)
+								{
+									if (pAllMediaFolder[nn] == '\\' || pAllMediaFolder[nn] == '/')
+									{
+										strcpy(pLastFolder, pAllMediaFolder+nn+1);
+										break;
+									}
+								}
+								if (stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") == NULL)
+								{
+									sprintf (pMediaFolder, "%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+								}
+								else
+								{
+									sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+								}
 								GG_GetRealPath(pMediaFolder, true);
 								SetDir(pMediaFolder);
 								SetDir("..");
 								g.filecollectionmax = 0;
 								Dim (t.filecollection_s, 500);
 								g_bNormalOperations = false;
-								addallinfoldertocollection(g_workshopItemsList[j].sMediaFolder.Get(), "");
+								addallinfoldertocollection(pLastFolder, "");// g_workshopItemsList[j].sMediaFolder.Get(), ""); did not work with multiple folders in string!
 								g_bNormalOperations = true;
 								bool bResetLocalContents = false;
 								iNumberOfFilesInLocalItem = g.filecollectionmax;
@@ -257,7 +284,7 @@ void workshop_update (void)
 								if (iFilesInThisWorkshopItem != iNumberOfFilesInLocalItem) bResetLocalContents = true;
 								if (bResetLocalContents == true)
 								{
-									SetDir(g_workshopItemsList[j].sMediaFolder.Get());
+									SetDir(pLastFolder);// g_workshopItemsList[j].sMediaFolder.Get());
 									for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
 									{
 										cstr name_s = t.filecollection_s[fileindex];
@@ -531,14 +558,26 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 			PublishedFileId_t thisItem = g_workshopTrustedItems[i];
 			if (thisItem > 0)
 			{
-				uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-				if (unItemState == k_EItemStateNone)
+				bool bAlreadySubscribed = false;
+				for (int i = 0; i < numSubscribed; i++)
 				{
-					// item is not subscribed to, so subscrube to trusted item
-					SteamUGC()->SubscribeItem(thisItem);
-					if (SteamUGC()->DownloadItem (thisItem, true) == true)
+					if (pEntries[i] == thisItem)
 					{
-						g_bStillDownloadingThings = true;
+						bAlreadySubscribed = true;
+						break;
+					}
+				}
+				if (bAlreadySubscribed == false)
+				{
+					uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+					if (unItemState == k_EItemStateNone)
+					{
+						// item is not subscribed to, so subscrube to trusted item
+						SteamUGC()->SubscribeItem(thisItem);
+						if (SteamUGC()->DownloadItem (thisItem, true) == true)
+						{
+							g_bStillDownloadingThings = true;
+						}
 					}
 				}
 			}
@@ -653,7 +692,11 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemStartUpdate(PublishedFileId_
 
 	// media folder
 	char pMediaFolder[MAX_PATH];
-	sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaType.Get(), uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
+	if (stricmp(g_currentWorkshopItem.sMediaType.Get(), "root") == NULL)
+		sprintf (pMediaFolder, "%s\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaFolder.Get());
+	else
+		sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaType.Get(), uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
+
 	GG_GetRealPath(pMediaFolder, true);
 	result = SteamUGC()->SetItemContent(WorkShopItemUpdateHandle, pMediaFolder);
 

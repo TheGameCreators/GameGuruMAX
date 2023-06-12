@@ -35486,6 +35486,20 @@ void Welcome_Screen(void)
 
 				ImGui::SetWindowFontScale(1.2);
 
+				// TRUSTED UDER ACCOUNT ID
+				bool bOnlyTrustedSteamUsersForNow = false;
+				uint64 uAccountID = 0;
+				if (SteamUGC())
+				{
+					// some concerns raised in the community of TGCs association with potential piracy - one bad apple and all that - sorry everyone!
+					uAccountID = SteamUser()->GetSteamID().GetAccountID();
+					if (uAccountID == 58134713 || uAccountID == 6704278)
+					{
+						// basically just meand Steve
+						bOnlyTrustedSteamUsersForNow = true;
+					}
+				}
+
 				rect.Min = TabStartPos;
 				rect.Max = rect.Min + ImGui::TabItemCalcSize(" User Guide ", false);
 				TabStartPos.x += ImGui::TabItemCalcSize(" User Guide ", false).x + gui.Style.ItemInnerSpacing.x;
@@ -35532,8 +35546,19 @@ void Welcome_Screen(void)
 
 					ImGui::EndTabItem();
 				}
-				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "User Guide");
-
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
+				{
+					if (uAccountID > 0)
+					{
+						char pExtraUserGuideTip[256];
+						sprintf(pExtraUserGuideTip, "User Guide (ID:%d)", uAccountID);
+						ImGui::SetTooltip("%s", pExtraUserGuideTip);
+					}
+					else
+					{
+						ImGui::SetTooltip("%s", "User Guide");
+					}
+				}
 
 				ImGui::SetWindowFontScale(1.2);
 
@@ -35659,17 +35684,6 @@ void Welcome_Screen(void)
 				//
 				// Workshop
 				//
-				bool bOnlyTrustedSteamUsersForNow = false;
-				if (SteamUGC())
-				{
-					// some concerns raised in the community of TGCs association with potential piracy - one bad apple and all that - sorry everyone!
-					uint64 uAccountID = SteamUser()->GetSteamID().GetAccountID();
-					if (uAccountID == 58134713 || uAccountID == 6704278)
-					{
-						// basically just meand Steve
-						bOnlyTrustedSteamUsersForNow = true;
-					}
-				}
 				if (g_bWorkshopAvailable == true && bOnlyTrustedSteamUsersForNow == true)
 				{
 					rect.Min = TabStartPos;
@@ -35984,7 +35998,8 @@ void Welcome_Screen(void)
 					ImGui::RadioButton("Objects", &g_iCurrentMediaTypeForWorkshopItem, 2); ImGui::SameLine();
 					ImGui::RadioButton("Images", &g_iCurrentMediaTypeForWorkshopItem, 3); ImGui::SameLine();
 					ImGui::RadioButton("Particles", &g_iCurrentMediaTypeForWorkshopItem, 4); ImGui::SameLine();
-					ImGui::RadioButton("Scripts", &g_iCurrentMediaTypeForWorkshopItem, 5);
+					ImGui::RadioButton("Scripts", &g_iCurrentMediaTypeForWorkshopItem, 5); ImGui::SameLine();
+					ImGui::RadioButton("Root", &g_iCurrentMediaTypeForWorkshopItem, 6);
 					if (bDisableTypeAndFolder == true) g_iCurrentMediaTypeForWorkshopItem = iRememberOldSetting;
 					g_currentWorkshopItem.sMediaType = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
 
@@ -36021,7 +36036,10 @@ void Welcome_Screen(void)
 					{
 						uAccountID = SteamUser()->GetSteamID().GetAccountID();
 						LPSTR pMediaTypePath = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
-						sprintf(pWorkshopItemMedia, "Your Community Folder: '%s\\Community\\%d\\'", pMediaTypePath, uAccountID);
+						if (stricmp(pMediaTypePath, "root") == NULL)
+							sprintf(pWorkshopItemMedia, "Your Root Folder: 'GameGuruMAX\\%s'", g_currentWorkshopItem.sMediaFolder.Get());
+						else
+							sprintf(pWorkshopItemMedia, "Your Community Folder: '%s\\Community\\%d\\'", pMediaTypePath, uAccountID);
 					}
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(255, 255, 128, 128));
 					ImGui::TextCenter(pWorkshopItemMedia, MAX_PATH, ImGuiInputTextFlags_None);

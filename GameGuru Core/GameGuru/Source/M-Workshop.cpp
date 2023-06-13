@@ -9,6 +9,7 @@
 bool g_bWorkshopAvailable = false;
 bool g_bUpdateWorkshopItemList = false;
 bool g_bUpdateWorkshopDownloads = false;
+bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
 cstr g_WorkshopUserPrompt = "";
 std::vector<sWorkshopItem> g_workshopItemsList;
 std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
@@ -120,11 +121,15 @@ bool workshop_submit_item_check (void)
 			char pMediaFolder[MAX_PATH];
 			LPSTR pMediaTypePath = workshop_getmediatypepath(g_iCurrentMediaTypeForWorkshopItem);
 			if (stricmp(g_currentWorkshopItem.sMediaType.Get(), "root") == NULL)
+			{
 				sprintf (pMediaFolder, "%s\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaFolder.Get());
+				GG_GetRealPath(pMediaFolder, true); // done here as when workshiop author updates, they do so from their writables area!
+			}
 			else
+			{
 				sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), pMediaTypePath, uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
-
-			GG_GetRealPath(pMediaFolder, true);
+				GG_GetRealPath(pMediaFolder, true);
+			}
 			if (PathExist(pMediaFolder) == 0)
 			{
 				if (stricmp(g_currentWorkshopItem.sMediaType.Get(), "root") == NULL)
@@ -264,13 +269,15 @@ void workshop_update (void)
 								}
 								if (stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") == NULL)
 								{
+									// stay in root parent folder
 									sprintf (pMediaFolder, "%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaFolder.Get());
 								}
 								else
 								{
+									// go to writables community folder
 									sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+									GG_GetRealPath(pMediaFolder, true);
 								}
-								GG_GetRealPath(pMediaFolder, true);
 								SetDir(pMediaFolder);
 								SetDir("..");
 								g.filecollectionmax = 0;
@@ -310,8 +317,11 @@ void workshop_update (void)
 						}
 					}
 
+					// very first time running MAX, will refresh from workshop storage
+					if (g_bUpdateWorkshopDownloadsAlwaysPerformOnce == true) bTheFinalDestFolderIsEmpty = true;
+
 					// if valid final destination
-					if (bFindMatchInItemList == true && PathExist(pMediaFolder) == 1 && (bTheFinalDestFolderIsEmpty==true))
+					if (bFindMatchInItemList == true && PathExist(pMediaFolder) == 1 && bTheFinalDestFolderIsEmpty==true)
 					{
 						// copy the files in the folder to the correct subfolder of the community users location
 						// another user created this, or doing a test, so copy over to writables final destination
@@ -367,6 +377,7 @@ void workshop_update (void)
 		}
 		delete pEntries;
 		g_bUpdateWorkshopDownloads = false;
+		g_bUpdateWorkshopDownloadsAlwaysPerformOnce = false;
 	}
 
 	// run Steam callbacks (and also check subscription items and download if not installed/notupdated)
@@ -697,7 +708,7 @@ void CSteamUserGeneratedWorkshopItem::OnWorkshopItemStartUpdate(PublishedFileId_
 	else
 		sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%d\\%s", g.fpscrootdir_s.Get(), g_currentWorkshopItem.sMediaType.Get(), uAccountID, g_currentWorkshopItem.sMediaFolder.Get());
 
-	GG_GetRealPath(pMediaFolder, true);
+	GG_GetRealPath(pMediaFolder, true); // done here as when workshiop author updates, they do so from their writables area!
 	result = SteamUGC()->SetItemContent(WorkShopItemUpdateHandle, pMediaFolder);
 
 	// preview image

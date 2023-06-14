@@ -258,7 +258,7 @@ void workshop_update (void)
 							{
 								LPSTR pAllMediaFolder = g_workshopItemsList[j].sMediaFolder.Get();
 								char pLastFolder[MAX_PATH];
-								strcpy(pLastFolder, "");
+								strcpy(pLastFolder, pAllMediaFolder);
 								for (int nn = strlen(pAllMediaFolder) - 2; nn > 0; nn--)
 								{
 									if (pAllMediaFolder[nn] == '\\' || pAllMediaFolder[nn] == '/')

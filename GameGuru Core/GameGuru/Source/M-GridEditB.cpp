@@ -6474,7 +6474,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					ImGui::Indent(10);
 					bool bDrawPhysicsShapes = t.visuals.iPhysicsDebugDraw;
-					bool bRenderTransform = t.visuals.iPhysicsDebugDrawTransforms;
+					bool bRenderStaticShapes = t.visuals.iPhysicsDebugDrawStatics;
 					bool bRenderConstraints = t.visuals.iPhysicsDebugDrawConstraints;
 					if (ImGui::Checkbox("Render Physics Shapes", &bDrawPhysicsShapes))
 					{
@@ -6484,9 +6484,9 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 					if (bDrawPhysicsShapes)
 					{
-						if (ImGui::Checkbox("Render Object Transforms", &bRenderTransform))
+						if (ImGui::Checkbox("Render Static Shapes", &bRenderStaticShapes))
 						{
-							t.visuals.iPhysicsDebugDrawTransforms = bRenderTransform;
+							t.visuals.iPhysicsDebugDrawStatics = bRenderStaticShapes;
 							physics_set_debug_draw(bDrawPhysicsShapes);
 						}
 						if (ImGui::Checkbox("Render Constraints", &bRenderConstraints))

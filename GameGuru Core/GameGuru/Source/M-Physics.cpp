@@ -263,6 +263,7 @@ void physics_init ( void )
 			if (bCharacterUsesPhysics == true)
 			{
 				// get entity index associated with character
+				t.tcollisionscaling = t.entityprofile[t.entityelement[t.e].bankindex].collisionscaling;
 				physics_setupcharacter ();
 			}
 		}
@@ -1582,6 +1583,7 @@ void physics_prepareentityforphysics ( void )
 					if ( t.entityprofile[t.entid].collisionmode == 21 || t.entityprofile[t.entid].collisionmode == 22 )
 					{
 						// create capsule (to be controlled as entity-driven, i.e. MoveForward)
+						t.tcollisionscaling = t.entityprofile[t.entid].collisionscaling;
 						physics_setupcharacter ( );
 					}
 					else
@@ -1714,13 +1716,13 @@ void physics_setupcharacter ( void )
 			t.tfinalscale_f = g.gcharactercapsulescale_f * ((t.entityprofile[t.entityelement[t.e].bankindex].scale + 0.0f) / 100.0f);
 			float fWeight = t.entityelement[t.e].eleprof.phyweight;
 			float fFriction = t.entityelement[t.e].eleprof.phyfriction;
-			ODECreateDynamicCapsule (t.tphyobj, t.tfinalscale_f, 0.0, fWeight, fFriction, -1);
+			ODECreateDynamicCapsule (t.tphyobj, t.tfinalscale_f, 0.0, fWeight, fFriction, (float)t.tcollisionscaling/100.0f);
 		}
 		else
 		{
 			// 290515 - fixes scifi DLC characters floating (ISIMMOBILE=1) PositionObject ( t.tphyobj,ObjectPositionX(t.tphyobj),ObjectPositionY(t.tphyobj)+(ObjectSizeY(t.tphyobj,1)/2),ObjectPositionZ(t.tphyobj) );
 			PositionObject (t.tphyobj, ObjectPositionX(t.tphyobj), ObjectPositionY(t.tphyobj), ObjectPositionZ(t.tphyobj));
-			ODECreateStaticCapsule (t.tphyobj);
+			ODECreateStaticCapsule (t.tphyobj, (float)t.tcollisionscaling / 100.0f);
 		}
 		t.entityelement[t.e].usingphysicsnow = 1;
 	}
@@ -4474,29 +4476,33 @@ void physics_player_refreshcount ( void )
 	return;
 }
 
+void physics_clear_debug_draw(void)
+{
+	for (int i = 0; i < t.iPhysicsDebugObjects.size(); i++)
+	{
+		if (ObjectExist(t.iPhysicsDebugObjects[i])) DeleteObject(t.iPhysicsDebugObjects[i]);
+	}
+	t.iPhysicsDebugObjects.clear();
+	t.iPhysicsDebugObjectsToUpdate.clear();
+	t.iPhysicsCreatedDynamicMesh = 0;
+	t.iPhysicsCreatedStaticMesh = 0;
+	t.iPhysicsDebugMaxOffset = 0;
+	t.physicsDebugDrawData = nullptr;
+	t.iPhysicsDebugDynamicOffsets.clear();
+	BPhys_ClearDebugDrawData();
+}
 
 // Set the drawing mode of the physics debug drawer.
 void physics_set_debug_draw(int iDraw)
 {
-	#ifdef WICKEDENGINE
-	BPhys_SetDebugDrawerMode(iDraw, t.visuals.iPhysicsDebugDrawTransforms, t.visuals.iPhysicsDebugDrawConstraints);	
+	// can force a cleanup if statics flag toggled
+	if (iDraw == 1) physics_clear_debug_draw();
+
+	// set debug draw flags
+	BPhys_SetDebugDrawerMode(iDraw, t.visuals.iPhysicsDebugDrawStatics, t.visuals.iPhysicsDebugDrawConstraints);
+
 	// Clean up.
-	if (!iDraw)
-	{
-		for (int i = 0; i < t.iPhysicsDebugObjects.size(); i++)
-		{
-			if(ObjectExist(t.iPhysicsDebugObjects[i])) DeleteObject(t.iPhysicsDebugObjects[i]);
-		}
-		t.iPhysicsDebugObjects.clear();
-		t.iPhysicsDebugObjectsToUpdate.clear();
-		t.iPhysicsCreatedDynamicMesh = 0;
-		t.iPhysicsCreatedStaticMesh = 0;
-		t.iPhysicsDebugMaxOffset = 0;
-		t.physicsDebugDrawData = nullptr;
-		t.iPhysicsDebugDynamicOffsets.clear();
-		BPhys_ClearDebugDrawData();
-	}
-	#endif // WICKEDENGINE
+	if (!iDraw) physics_clear_debug_draw();
 }
 
 void physics_create_debug_mesh(float* data, int count, bool bStatic, int offset)
@@ -4858,9 +4864,11 @@ void physics_render_debug_meshes()
 		{
 			// Get all of the points in the static physics geometry.
 			float* data = BPhys_GetStaticDebugDrawData(elementCount);
-
-			// Create the static physics mesh.
-			physics_create_debug_mesh(data, elementCount, true, 0);
+			if (elementCount > 0)
+			{
+				// Create the static physics mesh (if any)
+				physics_create_debug_mesh(data, elementCount, true, 0);
+			}
 
 			// Flag set to ensure we only get the static geometry once.
 			t.iPhysicsCreatedStaticMesh = 1;

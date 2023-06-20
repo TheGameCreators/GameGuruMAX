@@ -4988,6 +4988,17 @@ void mapeditorexecutable_loop(void)
 				{
 					ExecuteFile("..\\Guides\\", "", "", 0);
 				}
+				char pAbsEXE[MAX_PATH];
+				sprintf(pAbsEXE, "%s\\Guides\\MaxLua\\MaxLua.exe", g.fpscrootdir_s.Get());
+				if (FileExist(pAbsEXE))
+				{
+					if (ImGui::MenuItem("Scripting Command List"))
+					{
+						char pAbsPATH[MAX_PATH];
+						sprintf(pAbsPATH, "%s\\Guides\\MaxLua\\", g.fpscrootdir_s.Get());
+						ExecuteFile(pAbsEXE, "", pAbsPATH, 0);
+					}
+				}
 				if (g_bParticleEditorPresent == true)
 				{
 					if (ImGui::MenuItem("Particle Editor User Guide"))
@@ -26918,6 +26929,18 @@ void gridedit_mapediting ( void )
 						bActivateRubberBand = false;
 					}
 
+					// when holding SHIFT, we may want to rubber band, even if hovering over an object
+					bool bSHIFTForRubberBand = false;
+					if (t.inputsys.keyshift == 1)
+					{
+						if (t.tentitytoselect > 0)
+						{
+							// ensure no object already in selection when start rubber banding
+							t.tentitytoselect = 0;
+						}
+						bSHIFTForRubberBand = true;
+					}
+
 					//PE: Added ctrl allow selecting multiply objects.
 					if (pref.iDragCameraMovement && t.ebe.on == 0 && t.inputsys.keyshift == 0 && t.inputsys.keycontrol == 0)
 					{
@@ -27019,14 +27042,14 @@ void gridedit_mapediting ( void )
 					if (bActivateRubberBand && t.inputsys.mclick == 1 && t.inputsys.rubberbandmode == 0 && t.widget.activeObject == 0 )
 					{
 						// clear any previous highlights
-						if ( t.inputsys.keycontrol ==  0 )
+						if ( t.inputsys.keycontrol == 0 )
 						{
-#ifdef WICKEDENGINE
-							if (pref.iEnableDragDropEntityMode && g_hovered_pobject) {
-								//hover over object and click on object, this should trigger a move in the new system.
+							if (pref.iEnableDragDropEntityMode && g_hovered_pobject && bSHIFTForRubberBand == false)
+							{
+								// hover over object and click on object, this should trigger a move in the new system.
+								// except when SHIFT held down which means we want to start a rubber band from the click!
 							}
 							else
-#endif
 							{
 								gridedit_clearentityrubberbandlist();
 							}
@@ -27041,7 +27064,7 @@ void gridedit_mapediting ( void )
 						}
 
 						// when select entity (widget called up), if parent to children, add them to rubberband so they can all be modified at the same time
-						if ( t.tentitytoselect > 0 )
+						if ( t.tentitytoselect > 0 && bSHIFTForRubberBand==false )
 						{
 							bool bHasChildren = false;
 							t.tstoreentityindexofprimaryhightlighted = 0;
@@ -27064,7 +27087,7 @@ void gridedit_mapediting ( void )
 						}
 					}
 
-					if (bActivateRubberBand && t.tentitytoselect > 0 && t.entityelement[t.tentitytoselect].obj > 0 )
+					if (bActivateRubberBand && t.tentitytoselect > 0 && t.entityelement[t.tentitytoselect].obj > 0 && bSHIFTForRubberBand == false)
 					{
 						// specific entity highlighted 
 						PositionObject (  t.editor.objectstartindex+5,t.entityelement[t.tentitytoselect].x,t.entityelement[t.tentitytoselect].y,t.entityelement[t.tentitytoselect].z );
@@ -29178,10 +29201,20 @@ void gridedit_mapediting ( void )
 
 								//  080415 - if NOT holding SHIFT, delete after one placement
 								bool bShiftBeingHeldDown = false;
-								if ( t.inputsys.keyshift != 0 ) 
-									bShiftBeingHeldDown = true;
-
-#ifdef WICKEDENGINE
+								if (t.inputsys.keyshift != 0)
+								{
+									bool bJustForInitialDragIn = false;
+									if (bDraggingActive == false && fHitOffsetX == 0 && fHitOffsetY == 0 && fHitOffsetZ == 0) bJustForInitialDragIn = true;
+									if (bDraggingActive == true && t.gridentityposx_f == 0 && t.gridentityposz_f == 0) bJustForInitialDragIn = true;
+									if (bDraggingActiveInitial == true)	bJustForInitialDragIn = true;
+									if (bJustForInitialDragIn == true)
+									{
+										// BUT only apply SHIFT DOWN (duplicate) when carrying/dragging an object, 
+										// and NOT when click an object, then hold down SHIFT, then release as this would create a mistaken duplicate
+										// and mess up multi selection in the same session!
+										bShiftBeingHeldDown = true;
+									}
+								}
 								if (bShiftBeingHeldDown == false && t.gridedit.entityspraymode == 0 )
 								{
 									t.inputsys.kscancode = 211;
@@ -29191,13 +29224,6 @@ void gridedit_mapediting ( void )
 								{
 									t.inputsys.kscancode = 211;
 								}
-#else
-								//  260515 - but if in spray mode, continue using entity
-								if ( bShiftBeingHeldDown == false && t.gridedit.entityspraymode == 0 ) 
-								{
-									t.inputsys.kscancode=211;
-								}
-#endif
 
 								#ifdef WICKEDENGINE
 								//PE: If this system rubberband is not dublicated, so we cant do shift. also it react on mouse release not mouse down.
@@ -31051,6 +31077,7 @@ void gridedit_load_map ( void )
 	bool bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems = true;
 	if (bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems == true)
 	{
+		bool bScriptMissing = false;
 		bool bReplacedScript = false;
 		if (g.entityelementlist > 0)
 		{
@@ -31063,6 +31090,7 @@ void gridedit_load_map ( void )
 				if (FileExist(pScriptFile) == 0)
 				{
 					// was missing script a core file
+					bScriptMissing = true;
 					if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
 					{
 						// yes, now check for tristed replacement
@@ -31088,6 +31116,20 @@ void gridedit_load_map ( void )
 			iTriggerMessageDelay = 10;
 			bTriggerMessage = true;
 			iMessageTimer = 0;
+		}
+		else
+		{
+			if (bScriptMissing == true)
+			{
+				// this can be zero if user is not connected to the Steam Client
+				if (g_workshopItemsList.size() == 0 )
+				{
+					strcpy(cTriggerMessage, "Some behavior scripts are missing and no alternative workshop content has been found");
+					iTriggerMessageDelay = 20;
+					bTriggerMessage = true;
+					iMessageTimer = 0;
+				}
+			}
 		}
 	}
 
@@ -32037,8 +32079,13 @@ void gridedit_recreateentitycursor ( void )
 						{
 							// set properties of mesh
 							WickedSetMeshNumber(iMeshIndex);
+
 							// sets ALL properties of each mesh from WEMaterial
 							WickedCall_TextureMesh(pMesh);
+
+							// and must restore mesh transparency flag
+							bool bTransparent = WickedGetTransparent();
+							pMesh->bTransparency = bTransparent;
 						}
 					}
 					if (t.obj == 70000) 

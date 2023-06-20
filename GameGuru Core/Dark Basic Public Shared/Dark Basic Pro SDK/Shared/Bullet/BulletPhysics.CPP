@@ -3091,12 +3091,13 @@ void ODECreateGGTerrain()
 
 }
 
-void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fRestitution )
+void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling)
 {
 	// defaults
 	if ( fWeight==-1 ) fWeight = 100.0f;
 	if ( fFriction==-1 ) fFriction = 90.0f;
-	if ( fRestitution==-1 ) fRestitution = 0.0f;
+	if ( fCollisionScaling == 0 ) fCollisionScaling = 1.0f;
+	float fRestitution = 0.0f;
 
 	// get reference object
 	sObject* pObject = GetObjectData ( iObjectNumber );
@@ -3124,6 +3125,9 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	// instead of fixed capsule height, calc proportion so a character 73 units high gives capsule of 80(half=40)
 	float fProportionalCapsuleHeight = (fYSize*gSc)*0.55f;
 
+	// additional ability to scale the capsule height
+	fProportionalCapsuleHeight *= fCollisionScaling;
+
 	// apply modifier
 	if ( fScaleModifier==0.0f ) fScaleModifier = 1.0f;
 	float fCapsuleHeight = fProportionalCapsuleHeight/gSc;
@@ -3141,9 +3145,8 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	// will offset real object by HALF of total height of capsule (sphere halves+cylinder)
 	fRaised = fRaised + ((fProportionalCapsuleRadius*2)+fProportionalCapsuleHeight * fScaleModifier)/2.0f;
 
-	// create a bullet shape
-	//float fCapsuleWidth = 15.0f/gSc;
-	float fCapsuleWidth = fProportionalCapsuleRadius/gSc;
+	// create a bullet shape (fScaleModifier applied to support on-standard characters; creatures)
+	float fCapsuleWidth = (fProportionalCapsuleRadius/gSc) * fScaleModifier;
 	btCollisionShape* capsuleShape = new btCapsuleShape(fCapsuleWidth, fCapsuleHeight);
 
 	// add shape to collision list so can release later, they can be "re-used" amongst bodies!!
@@ -3624,9 +3627,9 @@ void ODEUpdateStaticTerrain ( int iObjectNumber, int iWidth, int iLength, LPSTR 
 {
 	UpdateTerrain ( iObjectNumber, 0, iWidth, iLength, dwMemBlockPtr, iX1, iZ1, iX2, iZ2 );
 }
-void ODECreateStaticCapsule ( int iObjectNumber )
+void ODECreateStaticCapsule ( int iObjectNumber, float fCollisionScaling )
 {
-	CreateCapsule ( iObjectNumber, 0, 1.0f, 0.0f, -1, -1, -1 );
+	CreateCapsule ( iObjectNumber, 0, 1.0f, 0.0f, -1, -1, fCollisionScaling);
 }
 void ODECreateDynamicSphere ( int iObjectNumber, float fWeight, float fFriction, float fRestitution )
 {
@@ -3662,9 +3665,9 @@ void ODECreateDynamicTriangleMesh ( int iObjectNumber, float fWeight, float fFri
 {
 	CreateMesh ( iObjectNumber, 1, -1, 0, 100, iHullReductionMode, fWeight, fFriction, fRestitution );
 }
-void ODECreateDynamicCapsule ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fRestitution )
+void ODECreateDynamicCapsule ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling )
 {
-	CreateCapsule ( iObjectNumber, 1, fScaleModifier, fRaised, fWeight, fFriction, fRestitution );
+	CreateCapsule ( iObjectNumber, 1, fScaleModifier, fRaised, fWeight, fFriction, fCollisionScaling);
 }
 void ODEStartStaticObject ( int iObjectNumber )
 {
@@ -4684,98 +4687,94 @@ void ODECreateTerrain ( unsigned int iVertexCount, unsigned int iIndexCount, flo
 	#endif
 }
 
-void BPhys_SetDebugDrawerMode(int iMode, int iTransforms, int iConstraints)
+int g_iDebugDrawStatics = 0;
+
+void BPhys_SetDebugDrawerMode(int iMode, int iStatics, int iConstraints)
 {
-	#ifdef WICKEDENGINE
-	g_debugDrawer.SetDrawTransforms(iTransforms);
+	if (g_iDebugDrawStatics != iStatics)
+	{
+		g_iDebugDrawStatics = iStatics;
+		g_debugDrawer.setDebugMode(0);
+	}
+	g_debugDrawer.SetDrawTransforms(0);
 	if (iMode > 0)
 	{
 		int mode = btIDebugDraw::DBG_DrawWireframe;
 		if (iConstraints)
+		{
 			mode = btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawConstraints | btIDebugDraw::DBG_DrawConstraintLimits;
-		
+		}
 		g_debugDrawer.setDebugMode(mode);
 	}
 	else
+	{
 		g_debugDrawer.setDebugMode(iMode);
-	#endif
+	}
 }
 
 int	BPhys_GetDebugDrawerMode()
 {
-	#ifdef WICKEDENGINE
 	return g_debugDrawer.getDebugMode();
-	#else
-	return 0;
-	#endif
 }
 
 // Called every frame.
 float* BPhys_GetDynamicDebugDrawData(int& size)
 {
-	#ifdef WICKEDENGINE
 	// Reset index tracker now that the data has been passed on.
 	g_debugDrawer.elementCount = 0;
-
 	size = (int) g_debugDrawer.lineData.size();
-
-	if(size != 0)
+	if (size != 0)
+	{
 		return &g_debugDrawer.lineData[0];
-	#endif
-
+	}
 	return nullptr;
 }
 
 // Should only be called once.
 float* BPhys_GetStaticDebugDrawData(int& size)
 {
-	#ifdef WICKEDENGINE
 	btRigidBody* rBody = nullptr;
 	btTransform transform;
 
 	// Draw the static rigid bodies in the dynamic world.
-	for (int i = 0; i < g_PhyObjectList.size(); i++)
+	if (g_iDebugDrawStatics == 1)
 	{
-		//PE: Dont include terrain, will run out of memory
-		bool bDrawThisPhysicsObject = false;
-		if (g_PhyObjectList[i].iID > 70000) bDrawThisPhysicsObject = true;
-		if (g_PhyObjectList[i].iID <= 70000)
+		for (int i = 0; i < g_PhyObjectList.size(); i++)
 		{
-			// if in PROXIMITY to an object with physics (terrain), show that too
-			int iObj = g_PhyObjectList[i].iID;
-			float fDX = ObjectPositionX(iObj) - CameraPositionX(0);
-			float fDZ = ObjectPositionZ(iObj) - CameraPositionZ(0);
-			float fDiff = sqrt(fabs(fDX*fDX) + fabs(fDZ*fDZ));
-			if (fDiff < 10000.0f) bDrawThisPhysicsObject = true;
-		}
-		if (bDrawThisPhysicsObject == true )
-		{
-			rBody = g_PhyObjectList[i].body;
-			if (rBody && rBody->getInvMass() == 0.0f)
+			//PE: Dont include terrain, will run out of memory
+			bool bDrawThisPhysicsObject = false;
+			if (g_PhyObjectList[i].iID > 70000) bDrawThisPhysicsObject = true;
+			if (g_PhyObjectList[i].iID <= 70000)
 			{
-				rBody->getMotionState()->getWorldTransform(transform);
-				g_dynamicsWorld->debugDrawObject(transform, rBody->getCollisionShape(), btVector3(0, 1, 0));
+				// if in PROXIMITY to an object with physics (terrain), show that too
+				int iObj = g_PhyObjectList[i].iID;
+				float fDX = ObjectPositionX(iObj) - CameraPositionX(0);
+				float fDZ = ObjectPositionZ(iObj) - CameraPositionZ(0);
+				float fDiff = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+				if (fDiff < 10000.0f) bDrawThisPhysicsObject = true;
 			}
-			rBody = nullptr;
+			if (bDrawThisPhysicsObject == true)
+			{
+				rBody = g_PhyObjectList[i].body;
+				if (rBody && rBody->getInvMass() == 0.0f)
+				{
+					rBody->getMotionState()->getWorldTransform(transform);
+					g_dynamicsWorld->debugDrawObject(transform, rBody->getCollisionShape(), btVector3(0, 1, 0));
+				}
+				rBody = nullptr;
+			}
 		}
-	}
 
-	/* remove for now, may put back under a flag - terrain physics behaving very well these days!
-	if ( g_pTerrainShape )
+		// Reset index tracker now that the data has been passed on.
+		size = (int)g_debugDrawer.lineData.size();
+		if (size > 0) return &g_debugDrawer.lineData[0];
+	}
+	else
 	{
-		btTransform terrainTransform;
-		terrainTransform.setIdentity();
-		terrainTransform.setOrigin( btVector3(0, 0, 0) );
-		g_dynamicsWorld->debugDrawObject( terrainTransform, g_pTerrainShape, btVector3(1, 0, 0) );
+		// no static to  create
+		size = 0;
+		return nullptr;
 	}
-	*/
-
-	// Reset index tracker now that the data has been passed on.
-	size = (int) g_debugDrawer.lineData.size();
-	if(size > 0) return &g_debugDrawer.lineData[0];
-	#endif
-
-	return nullptr;
 }
 
 void BPhys_ClearDebugDrawData()

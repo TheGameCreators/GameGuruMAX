@@ -14716,12 +14716,18 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							pObjectMaterial->userBlendMode = BLENDMODE_OPAQUE;
 							pObjectMaterial->SetDirty();
 						}
-
 						if (t.importer.bEditAllMesh)
 						{
 							importer_set_all_material_transparent(bTransparent);
 						}
-
+						else
+						{
+							// apply new state to current mesh
+							if (pChosenMesh)
+							{
+								pChosenMesh->bTransparency = bTransparent;
+							}
+						}
 						bHaveMaterialUpdate = true;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Transparent");

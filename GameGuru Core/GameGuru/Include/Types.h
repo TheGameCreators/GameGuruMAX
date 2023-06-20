@@ -3941,7 +3941,7 @@ struct visualstype
 	cStr sFactionName[128];
 
 	int iPhysicsDebugDraw;
-	int iPhysicsDebugDrawTransforms;
+	int iPhysicsDebugDrawStatics;
 	int iPhysicsDebugDrawConstraints;
 
 	float lightShaftDensity;
@@ -4179,7 +4179,7 @@ struct visualstype
 		 }
 
 		 iPhysicsDebugDraw = 0;
-		 iPhysicsDebugDrawTransforms = 0;
+		 iPhysicsDebugDrawStatics = 0;
 		 iPhysicsDebugDrawConstraints = 1;
 
 		 lightShaftDensity = 0.8f;

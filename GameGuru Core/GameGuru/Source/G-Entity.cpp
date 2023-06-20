@@ -4988,8 +4988,8 @@ void entity_prepareobj ( void )
 					{
 						// set properties of mesh
 						WickedSetMeshNumber(iMeshIndex);
-						// sets ALL properties of each mesh from WEMaterial
 
+						// sets ALL properties of each mesh from WEMaterial
 						if (pMesh->bInstanced && pMesh->wickedmaterialindex == 0 && pMesh->master_wickedmaterialindex > 0 )
 						{
 							//PE: No need to texture Instanced objects.
@@ -4997,9 +4997,13 @@ void entity_prepareobj ( void )
 						}
 						else
 						{
+							// from WE materials
 							WickedCall_TextureMesh(pMesh);
-						}
 
+							// and must restore mesh transparency flag
+							bool bTransparent = WickedGetTransparent();
+							pMesh->bTransparency = bTransparent;
+						}
 					}
 				}
 				WickedSetEntityId(-1);

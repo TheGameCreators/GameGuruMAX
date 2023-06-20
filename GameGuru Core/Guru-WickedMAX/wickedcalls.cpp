@@ -2780,12 +2780,24 @@ void WickedCall_SetObjectTransparent(sObject* pObject)
 			if (bWickedMaterialActive)
 			{
 				bool bTransparent = WickedGetTransparent();
-				if(bTransparent)
+				if (bTransparent)
+				{
 					pObject->ppMeshList[iM]->bTransparency = true;
-				//PE: To respect fpe transparency=6 , we dont disable, but use fpe settings in mesh.
-				//PE: So we only support enabling transparent per mesh, (importer).
-				//else
-				//	pObject->ppMeshList[iM]->bTransparency = false;
+				}
+				else
+				{
+					//if (g_bSpecialCaseWeMustForceTransparencyChoicePerMesh == true)
+					//{
+					//	// this flag is set when called from 'recreateentitycursor' when user modifies object then clicks it in editor
+					//	// and need all transparency states to be properly restored!
+					//	pObject->ppMeshList[iM]->bTransparency = false;
+					//}
+					//else
+					//{
+					//PE: To respect fpe transparency=6 , we dont disable, but use fpe settings in mesh.
+					//PE: So we only support enabling transparent per mesh, (importer).
+					//}
+				}
 			}
 			WickedCall_SetMeshTransparent(pObject->ppMeshList[iM]);
 		}

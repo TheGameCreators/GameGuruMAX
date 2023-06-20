@@ -850,7 +850,7 @@ void lua_loop_allentities ( void )
 			// Initial population of LUA data
 			lua_ensureentityglobalarrayisinitialised();
 
-			//  only process logic within plr freeze range
+			// only process logic within plr freeze range
 			t.te = t.e; entity_getmaxfreezedistance ( );
 			if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged==2 )
 			{
@@ -858,9 +858,11 @@ void lua_loop_allentities ( void )
 				t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 				if (  t.waypointindex>0 ) 
 				{
-					t.tpointx_f=CameraPositionX(0);
-					t.tpointz_f=CameraPositionZ(0);
-					if (  t.waypoint[t.waypointindex].active == 1 ) 
+					// should be the player pos to trigger this, NOT the camera (Thanks AmenMoses!)
+					//t.tpointx_f=CameraPositionX(0); t.tpointz_f=CameraPositionZ(0);
+					t.tpointx_f = ObjectPositionX(t.aisystem.objectstartindex);
+					t.tpointz_f = ObjectPositionZ(t.aisystem.objectstartindex);
+					if (  t.waypoint[t.waypointindex].active == 1 )
 					{
 						if (  t.waypoint[t.waypointindex].style == 2 ) 
 						{

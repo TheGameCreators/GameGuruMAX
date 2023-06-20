@@ -41,7 +41,7 @@ DARKSDK void		ODECreateStaticTriangleMesh			    ( int iObjectNumber, int iLimbNu
 DARKSDK void        ODECreateStaticTriangleMesh             ( int iObjectNumber, int iLimbNumber, int iCollisionScaling, int iHullReductionMode );
 DARKSDK void		ODECreateStaticTerrain					( int iObjectNumber, int iWidth, int iLength, LPSTR dwMemBlockPtr );
 DARKSDK void		ODEUpdateStaticTerrain					( int iObjectNumber, int iWidth, int iLength, LPSTR dwMemBlockPtr, int iX1, int iZ1, int iX2, int iZ2 );
-DARKSDK void		ODECreateStaticCapsule					( int iObjectNumber );
+DARKSDK void		ODECreateStaticCapsule					( int iObjectNumber, float fCollisionScaling);
 DARKSDK void		ODECreateDynamicSphere					( int iObjectNumber, float fWeight, float fFriction, float fRestitution );
 DARKSDK void		ODECreateDynamicBox					    ( int iObjectNumber );
 DARKSDK void		ODECreateDynamicBox					    ( int iObjectNumber, int iLimbNumber, int iTipOverMode );
@@ -49,7 +49,7 @@ DARKSDK void		ODECreateDynamicBox					    ( int iObjectNumber, int iLimbNumber, 
 DARKSDK void		ODECreateDynamicCylinder				( int iObjectNumber, float fWeight, float fFriction, float fRestitution );
 DARKSDK void		ODECreateDynamicTriangleMesh			( int iObjectNumber, float fWeight, float fFriction, float fRestitution, int iHullReductionMode );
 DARKSDK void		ODECreateDynamicTriangleMesh			( int iObjectNumber, int iLimbNumber, int iCollisionScaling, int iHullReductionMode);
-DARKSDK void		ODECreateDynamicCapsule				    ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fRestitution );
+DARKSDK void		ODECreateDynamicCapsule				    ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling);
 DARKSDK void		ODEStartStaticObject					( int iObjectNumber );
 DARKSDK void		ODEEndStaticObject						( int iObjectNumber, int iTerrainCollider );
 DARKSDK void		ODEAddStaticObjectBox					( int iObjectNumber, int iStaticBoxObject, int iMaterialRefIndex );

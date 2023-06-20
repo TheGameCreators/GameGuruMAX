@@ -1545,6 +1545,52 @@ void physics_prepareentityforphysics ( void )
 		}
 		#endif
 
+		// special hybrid collision mode can hide static limbs of primary object
+		if (t.entityprofile[t.entid].collisionmode == 31)
+		{
+			// create a secondary object to show the static limbs (and hide the non static)
+			if (t.entityelement[t.e].attachmentobj == 0)
+			{
+				int iSecondaryObjID = g.physicssecondariesoffset;
+				while (ObjectExist(iSecondaryObjID) == 1 && iSecondaryObjID < g.physicssecondariesoffsetend) iSecondaryObjID++;
+				if (ObjectExist(iSecondaryObjID) == 1) DeleteObject (iSecondaryObjID);
+				CloneObject(iSecondaryObjID, t.tphyobj);
+				PositionObject(iSecondaryObjID, ObjectPositionX(t.tphyobj), ObjectPositionY(t.tphyobj), ObjectPositionZ(t.tphyobj));
+				SetObjectToObjectOrientation(iSecondaryObjID, t.tphyobj);
+				sObject* pSecondaryObject = GetObjectData(iSecondaryObjID);
+				WickedCall_TextureObject(pSecondaryObject, NULL);
+				t.entityelement[t.e].attachmentobj = iSecondaryObjID;
+				PerformCheckListForLimbs(iSecondaryObjID);
+				for (int c = ChecklistQuantity(); c > 1; c += -1)
+				{
+					t.tname_s = Lower(ChecklistString(c));
+					LPSTR pNamePtr = t.tname_s.Get();
+					if (strlen(pNamePtr) > 7)
+					{
+						if (strnicmp(pNamePtr + strlen(pNamePtr) - 7, "_static", 7) != NULL)
+						{
+							HideLimb(iSecondaryObjID, c - 1);
+						}
+					}
+				}
+			}
+			
+			// hide the static limbs from the primary
+			PerformCheckListForLimbs(t.tphyobj);
+			for ( int c = ChecklistQuantity(); c >= 1; c += -1)
+			{
+				t.tname_s = Lower(ChecklistString(c));
+				LPSTR pNamePtr = t.tname_s.Get();
+				if (strlen(pNamePtr)>7)
+				{
+					if (strnicmp(pNamePtr+strlen(pNamePtr)-7,"_static",7)==NULL )
+					{
+						HideLimb(t.tphyobj, c-1);
+					}
+				}
+			}
+		}
+
 		// now use collisionindex
 		t.tnophysics=0;
 		if (  t.entityprofile[t.entid].ismarker != 0  )  t.tnophysics = 1;
@@ -2127,10 +2173,46 @@ void physics_loop ( void )
 
 void physics_free ( void )
 {
-	#ifdef WICKEDENGINE
+	// special hybrid collision mode can hide static limbs, so reshow them when physics done
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.obj = t.entityelement[t.e].obj;
+		if (t.obj > 0)
+		{
+			if (ObjectExist(t.obj) == 1)
+			{
+				t.entid = t.entityelement[t.e].bankindex;
+				if (t.entityprofile[t.entid].collisionmode == 31)
+				{
+					// reshow previously hidden static limbs
+					PerformCheckListForLimbs(t.obj);
+					for (int c = ChecklistQuantity(); c >= 1; c += -1)
+					{
+						t.tname_s = Lower(ChecklistString(c));
+						LPSTR pNamePtr = t.tname_s.Get();
+						if (strlen(pNamePtr) > 7)
+						{
+							if (strnicmp(pNamePtr + strlen(pNamePtr) - 7, "_static", 7) == NULL)
+							{
+								ShowLimb(t.obj, c - 1);
+							}
+						}
+					}
+
+					// and delete the secondary object created to show the static limbs detached from the primary
+					if (t.entityelement[t.e].attachmentobj > 0)
+					{
+						int iSecondaryObjID = t.entityelement[t.e].attachmentobj;
+						if (ObjectExist(iSecondaryObjID) == 1) DeleteObject (iSecondaryObjID);
+						t.entityelement[t.e].attachmentobj = 0;
+					}
+				}
+			}
+		}
+	}
+
 	// just hide the virtual tree cylinders until we use them again
 	physics_freevirtualtreecylinders();
-	#endif
 
 	// remove any game realtime objects (used for debugging collision boxes, possible LUA spawned 3D objects, etc)
 	physics_freeallgamerealtimeobjs();
@@ -2148,7 +2230,6 @@ void physics_free ( void )
 	}
 	else
 	{
-		#ifdef WICKEDENGINE
 		//PE: Need to free all terrain phy objects, 7000+ , remember we keep the pMem1,pMem2 memory with data that need to be freed.
 		if (ObjectExist(t.tphysicsterrainobjstart) == 1)
 		{
@@ -2166,13 +2247,6 @@ void physics_free ( void )
 				DeleteObject(t.tphysicsterrainobjstart);
 			}
 		}
-		#else
-		if ( ObjectExist(t.tphysicsterrainobjstart) == 1 ) 
-		{
-			ODEDestroyObject (  t.tphysicsterrainobjstart );
-			DeleteObject (  t.tphysicsterrainobjstart );
-		}
-		#endif
 	}
 
 	//  detatch entity from physics
@@ -2192,17 +2266,14 @@ void physics_free ( void )
 		}
 	}
 
-
-	//  Clean-up physics system
-	#ifdef WICKEDENGINE
+	// Clean-up physics system
 	extern int g_iDevToolsOpen;
 	if (g_iDevToolsOpen != 0)
 	{
 		physics_set_debug_draw(0);
 	}
-	#endif
-
-	ODEEnd(); g.gphysicssessionactive=0;
+	ODEEnd(); 
+	g.gphysicssessionactive=0;
 }
 
 void physics_explodesphere ( void )

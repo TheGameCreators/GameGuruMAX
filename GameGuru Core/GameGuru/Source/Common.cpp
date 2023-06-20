@@ -1166,7 +1166,9 @@ void common_init_globals ( void )
 	g.perentitypromptoffset = 210000; // allow 10,000 slots
 	#endif
 
-	#ifdef WICKEDENGINE
+	g.physicssecondariesoffset = 220000; // used for hybrid entities that need a secondary object (door frames that are static)
+	g.physicssecondariesoffsetend = 299999;
+
 	g.physicsdebugdraweroffset = 300000;
 	#ifdef BUILDINGEDITOR
 	g.buildingeditorimgoffset = 310000;
@@ -1174,7 +1176,6 @@ void common_init_globals ( void )
 	/*g.buildingeditoroffsetmax = 311000;*/
 	g.buildingeditoroffsetmax = 320000;
 	#endif
-	#endif //WICKEDENGINE
 
 	//  Particle Resources
 	g.particlebankoffset = 1;

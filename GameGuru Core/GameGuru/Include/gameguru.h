@@ -1251,6 +1251,8 @@ struct Sglobals
 	int reloadWeaponGunspecs;
 	bool disable_drawcall_optimizer;
 	int merged_new_objects;
+	int physicssecondariesoffset;
+	int physicssecondariesoffsetend;
 	int physicsdebugdraweroffset;
 	bool isGameBeingPlayed;
 	#ifdef BUILDINGEDITOR

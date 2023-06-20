@@ -2347,6 +2347,7 @@ void entity_loaddata ( void )
 					//  12 ; no physics but can still be detected with IntersectAll command
 					//  21 ; player repel feature (for characters and other beasts/zombies)
 					//  22 ; no repel (for animals that player can pass through)
+					//  31 ; hybrid collision (dynamic box shape except meshes ending with "_static" which are separated as non colliding static renders; full doors/windows set) 
 					//  40 ; collision boxes (defined in Import Model feature)
 					//  41-49 ; reserved (collision polylist, sphere list, cylinder list)
 					//  50 ; generate obstacle and cylinder from 1/64th up from base of model

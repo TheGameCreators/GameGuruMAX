@@ -508,8 +508,13 @@ void darkai_mouthandheadtracking (void)
 	if (fDiffA > 180) fDiffA = fDiffA - 360;
 	if (fabs(fDiffA) > fNeckLimit)
 	{
-		if (fDiffA < -fNeckLimit) fDiffA = -fNeckLimit;
-		if (fDiffA > fNeckLimit) fDiffA = fNeckLimit;
+		float fLeftSideLimit = -fNeckLimit / 1.3f;
+		float fRightSideLimit = fNeckLimit * 1.3f;
+		if (fDiffA < fLeftSideLimit) fDiffA = fLeftSideLimit;
+		if (fDiffA > fRightSideLimit) fDiffA = fRightSideLimit;
+		// old way - not perfectly aligned with neck of character creator body rig
+		//if (fDiffA < -fNeckLimit) fDiffA = -fNeckLimit;
+		//if (fDiffA > fNeckLimit) fDiffA = fNeckLimit;
 	}
 	float fRightAndLeft = fDiffA + t.charanimstate.neckRightAndLeftOffset;
 

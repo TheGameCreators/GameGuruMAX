@@ -10064,7 +10064,7 @@ struct charanimstatetype
 		 neckAiming = 0.0f;
 		 neckRightAndLeft = 0;
 		 neckUpAndDown = 0;
-		 neckRightAndLeftLimit = 45;
+		 neckRightAndLeftLimit = 60;// 45;
 		 neckRightAndLeftOffset = 0;
 		 neckUpAndDownLimit = 45;
 		 neckUpAndDownOffset = 0;

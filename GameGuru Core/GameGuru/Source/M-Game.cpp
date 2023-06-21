@@ -604,25 +604,7 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 							iObjToUseForNavMesh = g.temp2objectoffset;
 							RotateObject(iObjToUseForNavMesh, ObjectAngleX(iObj), ObjectAngleY(iObj), ObjectAngleZ(iObj));
 							ScaleObject(iObjToUseForNavMesh, ObjectScaleX(iObj), ObjectScaleY(iObj), ObjectScaleZ(iObj));
-						}
-						// for now I disable OBJ creation, the ideal way is to get an artist to provide a good OBJ mesh for nav mesh
-						//else
-						//{
-						//	// all hulls should have an OBJ collision mesh, so save one now
-						//	// and it also gives user opportunity to load OBJ into 3D modeller and improve the mesh for navmesh
-						//	GG_GetRealPath(pOBJCollisionMesh, 1);
-						//	float fStoreAX = ObjectAngleX(iObj);
-						//	float fStoreAY = ObjectAngleY(iObj);
-						//	float fStoreAZ = ObjectAngleZ(iObj);
-						//	float fStoreSX = ObjectScaleX(iObj);
-						//	float fStoreSY = ObjectScaleY(iObj);
-						//	float fStoreSZ = ObjectScaleZ(iObj);
-						//	RotateObject(iObj, 0, 0, 0);
-						//	ScaleObject(iObj, 100, 100, 100);
-						//	SaveObject(pOBJCollisionMesh, iObj);
-						//	RotateObject(iObj, fStoreAX, fStoreAY, fStoreAZ);
-						//	ScaleObject(iObj, fStoreSX, fStoreSY, fStoreSZ);
-						//}							
+						}						
 					}
 					// regular mesh from object
 					MakeMeshFromObject(iBuildAllLevelMesh, iObjToUseForNavMesh);

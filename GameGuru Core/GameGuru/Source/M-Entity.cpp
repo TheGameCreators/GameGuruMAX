@@ -2053,7 +2053,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].hasweapon_s = "";
 
 		// head and spine tracker detail defaults
-		t.entityprofile[t.entid].headspinetracker.headhlimit = 45;
+		t.entityprofile[t.entid].headspinetracker.headhlimit = 60;// 45; CineGuru better talk tracking (can improve down the road with eye and gesture tracking)!
 		t.entityprofile[t.entid].headspinetracker.headhoffset = 0;
 		t.entityprofile[t.entid].headspinetracker.headvlimit = 45;
 		t.entityprofile[t.entid].headspinetracker.headvoffset = 0;
@@ -6805,6 +6805,31 @@ void entity_loadelementsdata(void)
 
 			// and a full pass to convert any parent objects into collectables if the collection list has them
 			refresh_rpg_parents_of_items();
+		}
+	}
+
+	// so it seems vEntityGroupList can be saved in elements data, but reference entities that no longer exist
+	// suggesting too a deeper issue relating to group data becoming corrupt, but cannot allow group datra to proceed
+	// that points to entities that do not exist, so must delete those rogue groups
+	bool bCleanUpRedundantGroupData = true;
+	if (bCleanUpRedundantGroupData == true)
+	{
+		for (int iGroupIndex = 0; iGroupIndex < MAXGROUPSLISTS; iGroupIndex++)
+		{
+			if (vEntityGroupList[iGroupIndex].size() > 0)
+			{
+				for (int i = 0; i < vEntityGroupList[iGroupIndex].size(); i++)
+				{
+					int e = vEntityGroupList[iGroupIndex][i].e;
+					if (e == 0 || e >= t.entityelement.size())
+					{
+						// this entity is zero or does not exist in entity element data
+						// so remove entire group as redundant/corrupt
+						vEntityGroupList[iGroupIndex].clear();
+						break;
+					}
+				}
+			}
 		}
 	}
 }

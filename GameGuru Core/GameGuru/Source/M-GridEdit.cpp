@@ -31852,20 +31852,28 @@ void gridedit_moveentityrubberband ( void )
 	for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
 	{
 		int te = g.entityrubberbandlist[i].e;
-		g.entityrubberbandlist[i].px = t.entityelement[te].x;
-		g.entityrubberbandlist[i].py = t.entityelement[te].y;
-		g.entityrubberbandlist[i].pz = t.entityelement[te].z;
-		g.entityrubberbandlist[i].rx = t.entityelement[te].rx;
-		g.entityrubberbandlist[i].ry = t.entityelement[te].ry;
-		g.entityrubberbandlist[i].rz = t.entityelement[te].rz;
-		g.entityrubberbandlist[i].quatmode = t.entityelement[te].quatmode;
-		g.entityrubberbandlist[i].quatx = t.entityelement[te].quatx;
-		g.entityrubberbandlist[i].quaty = t.entityelement[te].quaty;
-		g.entityrubberbandlist[i].quatz = t.entityelement[te].quatz;
-		g.entityrubberbandlist[i].quatw = t.entityelement[te].quatw;
-		g.entityrubberbandlist[i].scalex = t.entityelement[te].scalex;
-		g.entityrubberbandlist[i].scaley = t.entityelement[te].scaley;
-		g.entityrubberbandlist[i].scalez = t.entityelement[te].scalez;
+		if (te > 0 && te < t.entityelement.size())
+		{
+			g.entityrubberbandlist[i].px = t.entityelement[te].x;
+			g.entityrubberbandlist[i].py = t.entityelement[te].y;
+			g.entityrubberbandlist[i].pz = t.entityelement[te].z;
+			g.entityrubberbandlist[i].rx = t.entityelement[te].rx;
+			g.entityrubberbandlist[i].ry = t.entityelement[te].ry;
+			g.entityrubberbandlist[i].rz = t.entityelement[te].rz;
+			g.entityrubberbandlist[i].quatmode = t.entityelement[te].quatmode;
+			g.entityrubberbandlist[i].quatx = t.entityelement[te].quatx;
+			g.entityrubberbandlist[i].quaty = t.entityelement[te].quaty;
+			g.entityrubberbandlist[i].quatz = t.entityelement[te].quatz;
+			g.entityrubberbandlist[i].quatw = t.entityelement[te].quatw;
+			g.entityrubberbandlist[i].scalex = t.entityelement[te].scalex;
+			g.entityrubberbandlist[i].scaley = t.entityelement[te].scaley;
+			g.entityrubberbandlist[i].scalez = t.entityelement[te].scalez;
+		}
+		else
+		{
+			// bug somewhere, e was assigned to rubberband but this entity does not exist!!
+			g.entityrubberbandlist[i].e = 0;
+		}
 	}
 	#else
 	// special code to point this undo event to the rubberbandlist undo buffer

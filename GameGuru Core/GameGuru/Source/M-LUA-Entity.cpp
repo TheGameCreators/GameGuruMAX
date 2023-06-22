@@ -88,6 +88,7 @@ void entity_lua_collisionon ( void )
 				{
 					t.tphyobj=t.entityelement[t.e].obj;
 					t.tcollisionscaling = t.entityprofile[t.entid].collisionscaling;
+					t.tcollisionscalingxz = t.entityprofile[t.entid].collisionscalingxz;
 					physics_setupcharacter ( );
 				}
 				else

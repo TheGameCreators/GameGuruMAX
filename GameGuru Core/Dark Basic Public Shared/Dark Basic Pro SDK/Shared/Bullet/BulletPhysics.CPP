@@ -3091,12 +3091,13 @@ void ODECreateGGTerrain()
 
 }
 
-void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling)
+void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling, float fCollisionScalingXZ)
 {
 	// defaults
 	if ( fWeight==-1 ) fWeight = 100.0f;
 	if ( fFriction==-1 ) fFriction = 90.0f;
-	if ( fCollisionScaling == 0 ) fCollisionScaling = 1.0f;
+	if (fCollisionScaling == 0) fCollisionScaling = 1.0f;
+	if (fCollisionScalingXZ == 0) fCollisionScalingXZ = 1.0f;
 	float fRestitution = 0.0f;
 
 	// get reference object
@@ -3146,7 +3147,7 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	fRaised = fRaised + ((fProportionalCapsuleRadius*2)+fProportionalCapsuleHeight * fScaleModifier)/2.0f;
 
 	// create a bullet shape (fScaleModifier applied to support on-standard characters; creatures)
-	float fCapsuleWidth = (fProportionalCapsuleRadius/gSc) * fScaleModifier;
+	float fCapsuleWidth = (fProportionalCapsuleRadius/gSc) * fScaleModifier * fCollisionScalingXZ;
 	btCollisionShape* capsuleShape = new btCapsuleShape(fCapsuleWidth, fCapsuleHeight);
 
 	// add shape to collision list so can release later, they can be "re-used" amongst bodies!!
@@ -3627,9 +3628,9 @@ void ODEUpdateStaticTerrain ( int iObjectNumber, int iWidth, int iLength, LPSTR 
 {
 	UpdateTerrain ( iObjectNumber, 0, iWidth, iLength, dwMemBlockPtr, iX1, iZ1, iX2, iZ2 );
 }
-void ODECreateStaticCapsule ( int iObjectNumber, float fCollisionScaling )
+void ODECreateStaticCapsule ( int iObjectNumber, float fCollisionScaling, float fCollisionScalingXZ)
 {
-	CreateCapsule ( iObjectNumber, 0, 1.0f, 0.0f, -1, -1, fCollisionScaling);
+	CreateCapsule ( iObjectNumber, 0, 1.0f, 0.0f, -1, -1, fCollisionScaling, fCollisionScalingXZ);
 }
 void ODECreateDynamicSphere ( int iObjectNumber, float fWeight, float fFriction, float fRestitution )
 {
@@ -3665,9 +3666,9 @@ void ODECreateDynamicTriangleMesh ( int iObjectNumber, float fWeight, float fFri
 {
 	CreateMesh ( iObjectNumber, 1, -1, 0, 100, iHullReductionMode, fWeight, fFriction, fRestitution );
 }
-void ODECreateDynamicCapsule ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling )
+void ODECreateDynamicCapsule ( int iObjectNumber, float fScaleModifier, float fRaised, float fWeight, float fFriction, float fCollisionScaling, float fCollisionScalingXZ )
 {
-	CreateCapsule ( iObjectNumber, 1, fScaleModifier, fRaised, fWeight, fFriction, fCollisionScaling);
+	CreateCapsule ( iObjectNumber, 1, fScaleModifier, fRaised, fWeight, fFriction, fCollisionScaling, fCollisionScalingXZ);
 }
 void ODEStartStaticObject ( int iObjectNumber )
 {

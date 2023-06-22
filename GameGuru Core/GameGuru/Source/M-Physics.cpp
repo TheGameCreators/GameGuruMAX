@@ -264,6 +264,7 @@ void physics_init ( void )
 			{
 				// get entity index associated with character
 				t.tcollisionscaling = t.entityprofile[t.entityelement[t.e].bankindex].collisionscaling;
+				t.tcollisionscalingxz = t.entityprofile[t.entityelement[t.e].bankindex].collisionscalingxz;
 				physics_setupcharacter ();
 			}
 		}
@@ -1630,6 +1631,7 @@ void physics_prepareentityforphysics ( void )
 					{
 						// create capsule (to be controlled as entity-driven, i.e. MoveForward)
 						t.tcollisionscaling = t.entityprofile[t.entid].collisionscaling;
+						t.tcollisionscalingxz = t.entityprofile[t.entid].collisionscalingxz;
 						physics_setupcharacter ( );
 					}
 					else
@@ -1686,6 +1688,7 @@ void physics_prepareentityforphysics ( void )
 						t.tweight=t.entityelement[t.e].eleprof.phyweight;
 						t.tfriction=t.entityelement[t.e].eleprof.phyfriction;
 						t.tcollisionscaling=t.entityprofile[t.entid].collisionscaling;
+						t.tcollisionscalingxz = t.entityprofile[t.entid].collisionscalingxz;
 						physics_setupobject ( );
 						t.entityelement[t.e].usingphysicsnow=1;
 					}
@@ -1762,13 +1765,13 @@ void physics_setupcharacter ( void )
 			t.tfinalscale_f = g.gcharactercapsulescale_f * ((t.entityprofile[t.entityelement[t.e].bankindex].scale + 0.0f) / 100.0f);
 			float fWeight = t.entityelement[t.e].eleprof.phyweight;
 			float fFriction = t.entityelement[t.e].eleprof.phyfriction;
-			ODECreateDynamicCapsule (t.tphyobj, t.tfinalscale_f, 0.0, fWeight, fFriction, (float)t.tcollisionscaling/100.0f);
+			ODECreateDynamicCapsule (t.tphyobj, t.tfinalscale_f, 0.0, fWeight, fFriction, (float)t.tcollisionscaling / 100.0f, (float)t.tcollisionscalingxz / 100.0f);
 		}
 		else
 		{
 			// 290515 - fixes scifi DLC characters floating (ISIMMOBILE=1) PositionObject ( t.tphyobj,ObjectPositionX(t.tphyobj),ObjectPositionY(t.tphyobj)+(ObjectSizeY(t.tphyobj,1)/2),ObjectPositionZ(t.tphyobj) );
 			PositionObject (t.tphyobj, ObjectPositionX(t.tphyobj), ObjectPositionY(t.tphyobj), ObjectPositionZ(t.tphyobj));
-			ODECreateStaticCapsule (t.tphyobj, (float)t.tcollisionscaling / 100.0f);
+			ODECreateStaticCapsule (t.tphyobj, (float)t.tcollisionscaling / 100.0f, (float)t.tcollisionscalingxz / 100.0f);
 		}
 		t.entityelement[t.e].usingphysicsnow = 1;
 	}

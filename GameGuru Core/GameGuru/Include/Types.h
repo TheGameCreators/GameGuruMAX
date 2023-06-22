@@ -5617,7 +5617,7 @@ struct entityprofiletype
 	int lod1distance;
 	int lod2distance;
 	int characterbasetype;// bitbobon;
-	float reservedy1;// bitbobdistweight_f;
+	float collisionscalingxz;// bitbobdistweight_f;
 	float reservedy2;// bitbobfar_f;
 	float reservedy3;// bitbobnear_f;
 	int reservedi4;// debrisshapeindex;
@@ -6006,7 +6006,7 @@ struct entityprofiletype
 		 reservedi4 = 0;// debrisshapeindex = 0;
 		 reservedy3 = 0.0f; //bitbobnear_f = 0.0f;
 		 reservedy2 = 0.0f; //bitbobfar_f = 0.0f;
-		 reservedy1 = 0.0f; //bitbobdistweight_f = 0.0f;
+		 collisionscalingxz = 0.0f; //bitbobdistweight_f = 0.0f;
 		 characterbasetype = -1;// bitbobon = 0;
 		 lod2distance = 0;
 		 lod1distance = 0;
@@ -6019,6 +6019,7 @@ struct entityprofiletype
 		 forceobstaclesliceminsize = 0.0f;
 		 collisionoverride = 0;
 		 collisionscaling = 0;
+		 collisionscalingxz = 0;
 		 collisionmode = 0;
 		 defaultstatic = 0;
 		 defaultheight = 0.0f;

@@ -2950,6 +2950,7 @@ struct Stemps
 	cstr tcheckforkilled_s;
 	int tclosestresheight;
 	int tcollisionscaling;
+	int tcollisionscalingxz;
 	int tconnectionStatus;
 	float tCustomHeadBlue_f;
 	int tDontDeleteWPFlag;
@@ -8342,6 +8343,7 @@ struct Stemps
 		 tCustomHeadBlue_f = 0.0f;
 		 tconnectionStatus = 0;
 		 tcollisionscaling = 0;
+		 tcollisionscalingxz = 0;
 		 tclosestresheight = 0;
 		 tcheckforkilled_s = "";
 		 tBoxOffsetFront_f = 0.0f;

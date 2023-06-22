@@ -1939,7 +1939,6 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].lod1distance=0;
 		t.entityprofile[t.entid].lod2distance=0;
 		t.entityprofile[t.entid].characterbasetype = -1;// bitbobon = -1;
-		t.entityprofile[t.entid].reservedy1 = 1.0f;// bitbobdistweight_f = 1;
 		t.entityprofile[t.entid].reservedy2 = 0.0f;
 		t.entityprofile[t.entid].reservedy3 = 0.0f;
 		t.entityprofile[t.entid].autoflatten=0;
@@ -1951,7 +1950,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].hideframefinish=-1;
 		t.entityprofile[t.entid].animspeed=100;
 		t.entityprofile[t.entid].animstyle=0;
-		t.entityprofile[t.entid].collisionscaling=100;
+		t.entityprofile[t.entid].collisionscaling = 100;
+		t.entityprofile[t.entid].collisionscalingxz = 100;
 		t.entityprofile[t.entid].physicsobjectcount = 0;
 		t.entityprofile[t.entid].ishudlayer_s="";
 		t.entityprofile[t.entid].ishudlayer=0;
@@ -2365,7 +2365,11 @@ void entity_loaddata ( void )
 					cmpStrConst( t_field_s, "collisionmode" );
 					if (  matched  )  t.entityprofile[t.entid].collisionmode = t.value1;
 					cmpStrConst( t_field_s, "collisionscaling" );
-					if (  matched  )  t.entityprofile[t.entid].collisionscaling = t.value1;
+					if (matched)
+					{
+						t.entityprofile[t.entid].collisionscaling = t.value1;
+						if(t.value2>0) t.entityprofile[t.entid].collisionscalingxz = t.value2;
+					}
 					cmpStrConst( t_field_s, "collisionoverride" );
 					if (  matched  )  t.entityprofile[t.entid].collisionoverride = t.value1;
 

@@ -1589,10 +1589,10 @@ DARKSDK void RotateListener ( float fX, float fY, float fZ )
 		// quicker method
 		float fOldAngle = fabs(vecListenerAngle.x) + fabs(vecListenerAngle.y) + fabs(vecListenerAngle.z);
 		float fNewAngle = fabs(g_vListenQuickAngle.x) + fabs(g_vListenQuickAngle.y) + fabs(g_vListenQuickAngle.z);
-		if ((fNewAngle - fOldAngle)>5.0f)
+		if (fabs(fabs(fNewAngle) - fabs(fOldAngle)) > 5.0f || g_vListenQuickAngle.x == -1)
 		{
 			// record new angle
-			g_vListenQuickPos = vecListenerAngle;
+			g_vListenQuickAngle = vecListenerAngle;
 
 			// Set Angle Rotation
 			GGMATRIX matFront, matTop, matTemp, matRot;

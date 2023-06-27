@@ -230,7 +230,7 @@ void workshop_update (void)
 						g.filecollectionmax = 0;
 						Dim (t.filecollection_s, 500);
 						g_bNormalOperations = false;
-						addallinfoldertocollection(pItemFolderNameOnly, "");
+						addallinfoldertocollection(pItemFolderNameOnly, pItemFolderNameOnly);
 						g_bNormalOperations = true;
 						iFilesInThisWorkshopItem = g.filecollectionmax;
 					}
@@ -283,7 +283,7 @@ void workshop_update (void)
 								g.filecollectionmax = 0;
 								Dim (t.filecollection_s, 500);
 								g_bNormalOperations = false;
-								addallinfoldertocollection(pLastFolder, "");// g_workshopItemsList[j].sMediaFolder.Get(), ""); did not work with multiple folders in string!
+								addallinfoldertocollection(pLastFolder, pLastFolder);
 								g_bNormalOperations = true;
 								bool bResetLocalContents = false;
 								iNumberOfFilesInLocalItem = g.filecollectionmax;
@@ -332,7 +332,7 @@ void workshop_update (void)
 							g.filecollectionmax = 0;
 							Dim (t.filecollection_s, 500);
 							g_bNormalOperations = false;
-							addallinfoldertocollection(pItemFolderNameOnly,"");
+							addallinfoldertocollection(pItemFolderNameOnly, pItemFolderNameOnly);
 							g_bNormalOperations = true;
 							if (g.filecollectionmax > 0)
 							{

@@ -2167,7 +2167,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\character\\soldier\\onInteract");
 	addfoldertocollection("databank");
 	//addfoldertocollection("savegames");
-	addallinfoldertocollection("titlesbank", ""); // need the ENTIRE contents!
+	addallinfoldertocollection("titlesbank", "titlesbank"); // need the ENTIRE contents - now includes the root files not just the folders!
 	//addfoldertocollection("titlesbank\\default\\");
 	//addtocollection("titlesbank\\cursorcontrol.lua");
 	//addtocollection("titlesbank\\resolutions.lua");
@@ -2234,7 +2234,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	//addfoldertocollection("particlesbank");
 	//addfoldertocollection("particlesbank\\user");
-	addallinfoldertocollection("particlesbank", ""); // all particles so do not miss any for standalone
+	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone
 
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");
@@ -6476,8 +6476,13 @@ void addfoldertocollection ( char* path_s )
 
 void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
 {
-	// into folder
-	if ( subThisFolder_s.Len() > 0 ) SetDir ( subThisFolder_s.Get() );
+	// could be nesteds folder path passed in
+	cstr olddir = "";
+	if (subThisFolder_s.Len() > 0)
+	{
+		olddir = GetDir();
+		SetDir (subThisFolder_s.Get());
+	}
 
 	// first scan and record all files and folders - store folders locally
 	ChecklistForFiles();
@@ -6495,7 +6500,8 @@ void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
 			}
 			else
 			{
-				cstr relativeFilePath_s = subFolder_s + "\\" + pFileFolderName;
+				cstr relativeFilePath_s = subFolder_s + "\\"; // subFolder_s always populated with the first folder of the recursive traverse
+				relativeFilePath_s += pFileFolderName;
 				addtocollection ( relativeFilePath_s.Get() );
 			}
 		}
@@ -6507,14 +6513,16 @@ void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
 		cstr pFolderName = pFolders[f];
 		if ( pFolderName.Len() > 0 )
 		{
-			cstr relativeFolderPath_s = pFolderName;
-			if ( subFolder_s.Len() > 0 ) relativeFolderPath_s = subFolder_s + "\\" + pFolderName;
+			cstr relativeFolderPath_s = subFolder_s + "\\" + pFolderName; // subFolder_s always populated
 			addallinfoldertocollection ( pFolderName, relativeFolderPath_s );
 		}
 	}
 
-	// back out of folder
-	if ( subThisFolder_s.Len() > 0 ) SetDir ( ".." );
+	// back out of folder (could be nesteds folder path passed in)
+	if (olddir.Len() > 0)
+	{
+		SetDir(olddir.Get());
+	}
 
 	// finally free resources
 	delete[] pFolders;

@@ -11588,6 +11588,10 @@ int GenerateRelationshipUniqueLinkID (void)
 
 void GetRelationshipObject (int iFindLinkID, int* piEntityID, int* piObj)
 {
+	// extra feature that if 'piObj' passes a value, discover correct 'piEntityID' (as in the past some corruption caused duplicate 'iFindLinkID' values)
+	int iMatchPassedInObjID = 0;
+	if (*piObj > 0) iMatchPassedInObjID = *piObj;
+
 	*piEntityID = 0;
 	*piObj = 0;
 	if (iFindLinkID > 0)
@@ -11598,7 +11602,7 @@ void GetRelationshipObject (int iFindLinkID, int* piEntityID, int* piObj)
 			if (iObj > 0)
 			{
 				int iLinkID = t.entityelement[e].eleprof.iObjectLinkID;
-				if (iLinkID == iFindLinkID)
+				if (iLinkID == iFindLinkID && (iMatchPassedInObjID==0 || (iMatchPassedInObjID>0 && iMatchPassedInObjID == iObj)))
 				{
 					*piEntityID = e;
 					*piObj = iObj;
@@ -11608,217 +11612,6 @@ void GetRelationshipObject (int iFindLinkID, int* piEntityID, int* piObj)
 		}
 	}
 }
-
-//void DrawCharacterDots(bool bVisible)
-//{
-//	//PE: Use 110000 for dot objects.
-//	//PE: Use 130000 for arcs.
-//	if (iCursorDotObject <= 0)
-//	{
-//		//PE: No collision on this one.
-//		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-//		CreateDotObject(DOTCURSOROBJECTID);
-//		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-//		HideObject(DOTCURSOROBJECTID);
-//		iCursorDotObject = DOTCURSOROBJECTID;
-//	}
-//
-//	MoveSelectedDotObject();
-//
-//	iTotalArcs = 0;
-//	iTotalMiddle = 0;
-//
-//	if (arcs_relations.size() > 0)
-//	{
-//		//Hide dot objects.
-//		for (std::multimap<std::int32_t, std::int32_t>::iterator it = arcs_relations.begin(); it != arcs_relations.end(); ++it)
-//		{
-//			if (it->first > 0 && it->second > 0)
-//			{
-//				HideObject(it->first);
-//				HideObject(it->second);
-//			}
-//		}
-//	}
-//
-//	arcs_relations.clear();
-//
-//	//PE: Hide old arcs.
-//	for (int i = 0; i < iLargestArcs;i++)
-//	{
-//		HideObject(DOTARCSOBJECTID + i);
-//	}
-//	for (int i = 0; i < iLargestMiddle;i++)
-//	{
-//		HideObject(DOTMIDDLEOBJECTID + i);
-//	}
-//	if (iLargestDotCount != iCurrentDotCount)
-//	{
-//		//Something has changed, cleanup.
-//		iLargestDotCount = iCurrentDotCount;
-//		int iKeepInMem = 1000; //PE: Always keep upto 1000, delete the rest.
-//		int iStartObj = 70001;
-//		for (int i = iStartObj; i < iStartObj + MAXDOTARCSOBJECTS; i++)
-//		{
-//			if (ObjectExist(i + DOTOBJECTIDADD))
-//			{
-//				if(iKeepInMem-- > 0)
-//					HideObject(i + DOTOBJECTIDADD);
-//				else
-//					DeleteObject(i + DOTOBJECTIDADD);
-//			}
-//		}
-//	}
-//
-//	int iCurrentLargestDotObjectID = 70001;
-//	iCurrentDotCount = 0;
-//
-//	for (int iEntityID = 1; iEntityID <= g.entityelementlist; iEntityID++)
-//	{
-//		int iBankIndex = t.entityelement[iEntityID].bankindex;
-//		int iMasterObject = g.entitybankoffset + t.entityelement[iEntityID].bankindex;
-//		int iObjectLinkID = t.entityelement[iEntityID].eleprof.iObjectLinkID;
-//		int iEntityObject = t.entityelement[iEntityID].obj;
-//		if (iEntityObject > 0)
-//		{
-//			if (iEntityObject > iCurrentLargestDotObjectID)
-//				iCurrentLargestDotObjectID = iEntityObject;
-//			if (iEntityObject > iLargestDotObjectID)
-//				iLargestDotObjectID = iEntityObject;
-//			if (ObjectExist(iEntityObject) == 1)
-//			{
-//				iCurrentDotCount++;
-//
-//				bool bObjectNeedDot = false;
-//				int iColorType = -1;
-//				if (t.entityelement[iEntityID].staticflag == 0)
-//				{
-//					// only dynamic objects can interact and have dot!
-//					if (t.entityprofile[iBankIndex].ischaracter == 1)
-//					{
-//						iColorType = 1;
-//						bObjectNeedDot = true;
-//					}
-//					else if (t.entityprofile[iBankIndex].ismarker == 11) //Flags
-//					{
-//						iColorType = 2;
-//						bObjectNeedDot = true;
-//					}
-//					else if (t.entityprofile[iBankIndex].ismarker == 3) //Trigger zone
-//					{
-//						iColorType = 3;
-//						bObjectNeedDot = true;
-//					}
-//					else
-//					{
-//						//PE: Everything else is a object type.
-//						//PE: Adding dots to these would be a problem , like stacked boxes ...
-//						iColorType = 4;
-//						bObjectNeedDot = true;
-//					}
-//				}
-//
-//				if (bObjectNeedDot)
-//				{
-//					CreateDotObject(iEntityObject + DOTOBJECTIDADD);
-//					PositionDotObject(iEntityObject + DOTOBJECTIDADD);
-//					if (bVisible) 
-//					{
-//						for (int i = 0; i < 10; i++)
-//						{
-//							if (t.entityelement[iEntityID].eleprof.iObjectRelationships[i] > 0)
-//							{
-//								int iRelationShipObject = 0, iRelationShipEntityID = 0;
-//								GetRelationshipObject(t.entityelement[iEntityID].eleprof.iObjectRelationships[i], &iRelationShipEntityID, &iRelationShipObject);
-//								int iRelationshipLinkID = t.entityelement[iEntityID].eleprof.iObjectRelationships[i];
-//								if (iObjectLinkID != iRelationshipLinkID)
-//								{
-//									//PE: If we got a reverse already dont add to arcs list.
-//									bool bAlreadyThere = false;
-//									for (std::multimap<std::int32_t, std::int32_t>::iterator it = arcs_relations.begin(); it != arcs_relations.end(); ++it)
-//									{
-//										if (it->first == iRelationShipObject + DOTOBJECTIDADD && it->second == iEntityObject + DOTOBJECTIDADD)
-//										{
-//											bAlreadyThere = true;
-//											break;
-//										}
-//									}
-//									if (!bAlreadyThere) 
-//									{
-//										//Validate reverse relation.
-//										int iEntIDd = 0;
-//										int iRelationIDd = 0;
-//										GetMiddleEntityIdAndRelationshipId(iRelationShipObject, iEntityObject, iEntIDd, iRelationIDd);
-//										if (iEntIDd > 0)
-//										{
-//											//PE: ok
-//											arcs_relations.insert(std::make_pair(iEntityObject + DOTOBJECTIDADD, iRelationShipObject + DOTOBJECTIDADD));
-//										}
-//										else 
-//										{
-//											//LB:should only be done when Delete Relationship
-//											//Reverse not found , remove it.
-//											//t.entityelement[iEntityID].eleprof.iObjectRelationships[i] = 0;
-//										}
-//									}
-//								}
-//							}
-//						}
-//						ShowObject(iEntityObject + DOTOBJECTIDADD);
-//					}
-//					else 
-//					{
-//						HideObject(iEntityObject + DOTOBJECTIDADD);
-//					}
-//				}
-//			}
-//		}
-//	}
-//
-//	if (iLargestDotObjectID > iCurrentLargestDotObjectID)
-//	{
-//		//PE: We got a deleted object, make sure to release all not used dots.
-//		for (int i = iCurrentLargestDotObjectID; i < iLargestDotObjectID; i++)
-//		{
-//			if (i >= 70001 && i <= 90000) //Secure range.
-//			{
-//				if (ObjectExist(i + DOTOBJECTIDADD))
-//				{
-//					DeleteObject(i + DOTOBJECTIDADD);
-//				}
-//			}
-//		}
-//		iLargestDotObjectID = iCurrentLargestDotObjectID;
-//	}
-//
-//	if (arcs_relations.size() > 0)
-//	{
-//		//Draw arcs.
-//		for (std::multimap<std::int32_t, std::int32_t>::iterator it = arcs_relations.begin(); it != arcs_relations.end(); ++it)
-//		{
-//			if (it->first > 0 && it->second > 0)
-//			{
-//				//PE: Draw.
-//				//DrawDotArcs(it->first, it->second,true);
-//				DrawObjectRelation(it->first, it->second, true);
-//			}
-//		}
-//	}
-//
-//	if (bDrawDotCircle) 
-//	{
-//		if( Timer() - fDrawDotCircleTimer < 2500 )
-//			DrawDotArcsCircle(fDrawDotCircleFrom, fDrawDotCircleRadius);
-//		else 
-//		{
-//			fDrawDotCircleTimer = 0;
-//			bDrawDotCircle = false;
-//		}
-//	}
-//
-//	if (g_source_dot_pobject && bDotObjectDragging)
-//		DrawObjectRelation(g_source_dot_pobject->dwObjectNumber, DOTCURSOROBJECTID, false);
-//}
 
 void DrawLogicNodes(bool bVisible)
 {
@@ -12727,11 +12520,14 @@ void AddDotObjectRelation(int sobj,int dobj)
 			bool bAlreadyThere = false;
 			iEntityIDSource = iEntityID;
 			iEntTypeSource = iEntType;
-			int iRelationShipObject = 0, iRelationShipEntityID = 0;
+			int iRelationShipEntityID = 0;
 			for (int i = 0; i < 10; i++)
 			{
 				if (iFirstFree < 0 && t.entityelement[iEntityID].eleprof.iObjectRelationships[i] == 0)
+				{
 					iFirstFree = i;
+				}
+				int iRelationShipObject = dobj; // special extra search condition to bypass corruption
 				GetRelationshipObject(t.entityelement[iEntityID].eleprof.iObjectRelationships[i], &iRelationShipEntityID, &iRelationShipObject);
 				if (iRelationShipObject == dobj)
 				{
@@ -12754,11 +12550,14 @@ void AddDotObjectRelation(int sobj,int dobj)
 			bool bAlreadyThere = false;
 			iEntityIDDest = iEntityID;
 			iEntTypeDest = iEntType;
-			int iRelationShipObject = 0, iRelationShipEntityID = 0;
+			int iRelationShipEntityID = 0;
 			for (int i = 0; i < 10; i++)
 			{
 				if (iFirstFree < 0 && t.entityelement[iEntityID].eleprof.iObjectRelationships[i] == 0)
+				{
 					iFirstFree = i;
+				}
+				int iRelationShipObject = sobj; // special extra search condition to bypass corruption
 				GetRelationshipObject(t.entityelement[iEntityID].eleprof.iObjectRelationships[i], &iRelationShipEntityID, &iRelationShipObject);
 				if (iRelationShipObject == sobj)
 				{
@@ -12884,7 +12683,8 @@ void GetMiddleEntityIdAndRelationshipId(int sobj, int dobj, int &Entid, int &Rel
 		{
 			for (int i = 0; i < 10; i++)
 			{
-				int iRelationShipObject = 0, iRelationShipEntityID = 0;
+				int iRelationShipEntityID = 0;
+				int iRelationShipObject = dobj; // special extra search condition to bypass corruption
 				GetRelationshipObject(t.entityelement[iEntityID].eleprof.iObjectRelationships[i], &iRelationShipEntityID, &iRelationShipObject);
 				if (iRelationShipObject == dobj)
 				{
@@ -19676,6 +19476,8 @@ void process_entity_library_v2(void)
 									{
 										std::string AddToSort = "";
 										std::string SortSearch = Lower(cSearchAllEntities[i]);
+
+										/* LB: this confused users who found their A-Z messed up
 										char * dist = (char *)pestrcasestr(myfiles->m_sBetterSearch.Get(), cSearchAllEntities[i]);
 										int iDist = 99;
 										if (dist)
@@ -19686,6 +19488,7 @@ void process_entity_library_v2(void)
 											AddToSort = "0";
 										AddToSort = AddToSort + std::to_string(iDist);
 										SortBy = AddToSort + SortBy;
+										*/
 									}
 
 									if (current_sortby == 3 || current_sortby == 4)

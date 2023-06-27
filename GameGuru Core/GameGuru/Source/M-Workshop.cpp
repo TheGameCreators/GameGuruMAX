@@ -340,7 +340,7 @@ void workshop_update (void)
 								for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
 								{
 									cstr name_s = t.filecollection_s[fileindex];
-									LPSTR pFilename = name_s.Get();
+									LPSTR pFilename = name_s.Get() + strlen(pItemFolderNameOnly) + 1;
 									if (FileExist(pFilename) == 1)
 									{
 										char pExist[MAX_PATH];

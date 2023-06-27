@@ -35,7 +35,7 @@ void decal_init ( void )
 		t.tobj=g.decalelementoffset+t.f ; t.decalelement[t.f].obj=t.tobj;
 		t.decalelement[t.f].uvgridsize=0;
 		if (  ObjectExist(t.tobj) == 1  )  DeleteObject (  t.tobj );
-		MakeObjectPlane (  t.tobj,100,100 );
+		MakeObjectPlane (t.tobj, 100, 100);
 		SetObjectTransparency (  t.tobj, 6 );
 		SetObjectCollisionOff (  t.tobj );
 		DisableObjectZWrite (  t.tobj );
@@ -439,13 +439,16 @@ void decalelement_create ( void )
 	if (  t.tddd>g.decalrange  )  return;
 
 	//  find free decal element
-	for ( t.d = 1 ; t.d<=  g.decalelementmax; t.d++ )
+	//for (t.d = 1; t.d <= g.decalelementmax; t.d++) The CanyonOffensive level (old pre-V1) can somehow eat the first used decals (corrupting them)
+	// so for now until we know HOW, skip these with a random initial choice (whole system being replaced with REAL volumetric particles with direction/vel/etc)
+	t.d = 1 + Rnd(50);
+	for (; t.d <= g.decalelementmax; t.d++)
 	{
 		if (  t.decalelement[t.d].active == 0  )  break;
 	}
-	if (  t.d<g.decalelementmax ) 
+	if ( t.d < g.decalelementmax ) 
 	{
-		//  activate new decal element
+		// activate new decal element
 		t.currentdecald=t.d;
 		t.decalelement[t.d].decalid=t.decalid;
 		t.decalelement[t.d].active=1;

@@ -6431,7 +6431,7 @@ void addfoldertocollection ( char* path_s )
 		if (g_bNormalOperations == true)
 		{
 			extern char szWriteDir[MAX_PATH];
-			cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
+			cstr testPath = cstr(szWriteDir) + "Files\\" + path_s;// usePath;
 			if (PathExist(testPath.Get()))
 			{
 				usePath = testPath;
@@ -6448,7 +6448,7 @@ void addfoldertocollection ( char* path_s )
 			if (g_bNormalOperations == true)
 			{
 				extern char szWriteDir[MAX_PATH];
-				cstr testPath = cstr(szWriteDir) + "Files\\" + usePath;
+				cstr testPath = cstr(szWriteDir) + "Files\\" + path_s;// usePath;
 				SetDir(told_s.Get());
 				SetDir(testPath.Get());
 				ChecklistForFiles();

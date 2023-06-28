@@ -29203,15 +29203,23 @@ void gridedit_mapediting ( void )
 								bool bShiftBeingHeldDown = false;
 								if (t.inputsys.keyshift != 0)
 								{
-									bool bJustForInitialDragIn = false;
-									if (bDraggingActive == false && fHitOffsetX == 0 && fHitOffsetY == 0 && fHitOffsetZ == 0) bJustForInitialDragIn = true;
-									if (bDraggingActive == true && t.gridentityposx_f == 0 && t.gridentityposz_f == 0) bJustForInitialDragIn = true;
-									if (bDraggingActiveInitial == true)	bJustForInitialDragIn = true;
-									if (bJustForInitialDragIn == true)
+									if (pref.iEnableDragDropWidgetSelect == 1)
 									{
-										// BUT only apply SHIFT DOWN (duplicate) when carrying/dragging an object, 
-										// and NOT when click an object, then hold down SHIFT, then release as this would create a mistaken duplicate
-										// and mess up multi selection in the same session!
+										bool bJustForInitialDragIn = false;
+										if (bDraggingActive == false && fHitOffsetX == 0 && fHitOffsetY == 0 && fHitOffsetZ == 0) bJustForInitialDragIn = true;
+										if (bDraggingActive == true && t.gridentityposx_f == 0 && t.gridentityposz_f == 0) bJustForInitialDragIn = true;
+										if (bDraggingActiveInitial == true)	bJustForInitialDragIn = true;
+										if (bJustForInitialDragIn == true)
+										{
+											// BUT only apply SHIFT DOWN (duplicate) when carrying/dragging an object, 
+											// and NOT when click an object, then hold down SHIFT, then release as this would create a mistaken duplicate
+											// and mess up multi selection in the same session!
+											bShiftBeingHeldDown = true;
+										}
+									}
+									else
+									{
+										// a request that if NOT in widget mode, can allow the SHIFT+CLICK to duplicate in the viewport - works nice :)
 										bShiftBeingHeldDown = true;
 									}
 								}

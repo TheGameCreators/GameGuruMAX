@@ -78,7 +78,6 @@ public:
 		sFolderFiles * m_pCustomSort;
 		cFolderItem *pNewFolder;
 		cStr m_sBetterSearch;
-		cStr m_sPhoneticSearch;
 		int uniqueId;
 #ifdef WICKEDENGINE
 		bool m_bFPELoaded;

@@ -5258,7 +5258,6 @@ public:
 		sFolderFiles * m_pCustomSort;
 		cFolderItem *pNewFolder;
 		cStr m_sBetterSearch;
-		cStr m_sPhoneticSearch;
 		int uniqueId;
 		#ifdef WICKEDENGINE
 		bool m_bFPELoaded;
@@ -6244,8 +6243,6 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 					replaceAll(sBetterSearch, "_", " ");
 					replaceAll(sBetterSearch, "-", " ");
 					pNewItem->m_sBetterSearch = sBetterSearch.c_str();
-					std::string phonetic_search = soundexall(sBetterSearch);
-					pNewItem->m_sPhoneticSearch = phonetic_search.c_str();
 					#endif
 
 					pNewItem->m_tFileModify = 0; //PE: Need timestamp here.
@@ -6581,8 +6578,6 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 					replaceAll(sBetterSearch, "_", " ");
 					replaceAll(sBetterSearch, "-", " ");
 					pNewItem->m_sBetterSearch = sBetterSearch.c_str();
-					std::string phonetic_search = soundexall(sBetterSearch);
-					pNewItem->m_sPhoneticSearch = phonetic_search.c_str();
 					#endif
 
 					pNewItem->m_tFileModify = 0; //PE: Need timestamp here.

@@ -19393,23 +19393,6 @@ void process_entity_library_v2(void)
 											if (pestrcasestr(myfiles->m_sFPEKeywords.Get(), cSearchAllEntities[i]))
 												bIsVisible = true;
 										}
-#ifdef PHONETICSEARCH
-										if (!bIsVisible) // else current_sortby == 4)
-										{
-											if (phonetic_find.length() > 0)
-											{
-												if (char * dist = (char *)pestrcasestr(myfiles->m_sPhoneticSearch.Get(), phonetic_find.c_str()))
-												{
-													bIsVisible = true;
-													bIsPhonetic = true;
-													if (dist)
-													{
-														iPhoneticDistance = dist - myfiles->m_sPhoneticSearch.Get();
-													}
-												}
-											}
-										}
-#endif
 									}
 
 									if (!bIsVisible && bSearchGameElements)

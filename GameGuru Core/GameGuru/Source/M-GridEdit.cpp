@@ -8987,12 +8987,27 @@ void mapeditorexecutable_loop(void)
 								}
 								else
 								{
+									// non characters
 									fOldAngle[0] = ObjectAngleX(iActiveObj);
 									fOldAngle[1] = ObjectAngleY(iActiveObj);
 									fOldAngle[2] = ObjectAngleZ(iActiveObj);
 									fAngle[0] = ObjectAngleX(iActiveObj);
 									fAngle[1] = ObjectAngleY(iActiveObj);
 									fAngle[2] = ObjectAngleZ(iActiveObj);
+
+									// rotations (such as seccam) can be widget rotated JUST on the Y, and we can detect this and use Y-only euler!
+									// quats are the true rotations of objects, but refresh euler for characters to ONLY use the Y axis
+									if ((fAngle[0] == 180 && fAngle[2] == 180) || (fAngle[0] == -180 && fAngle[2] == -180))
+									{
+										// so, 100 degrees is 80,180,180 can be converted to 100,0,0
+										entity_calculateeuleryfromquat(iEntityIndex);
+										fOldAngle[0] = 0;
+										fOldAngle[1] = t.entityelement[iEntityIndex].ry;
+										fOldAngle[2] = 0;
+										fAngle[0] = 0;
+										fAngle[1] = t.entityelement[iEntityIndex].ry;
+										fAngle[2] = 0;
+									}
 								}
 							}
 							ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, ImVec4(0, 0, 0, 0));

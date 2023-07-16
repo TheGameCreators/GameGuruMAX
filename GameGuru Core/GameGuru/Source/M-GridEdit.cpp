@@ -30962,6 +30962,13 @@ void gridedit_load_map ( void )
 			t.editor.replacefilepresent_s="";
 		}
 
+		// as load from level to level, cannot carry over E or ENTID refs from any previous level stoerd in collection item list
+		for (int n = 0; n < g_collectionList.size(); n++)
+		{
+			g_collectionList[n].iEntityID = 0;
+			g_collectionList[n].iEntityElementE = 0;
+		}
+
 		//  Load entity bank and elements
 		popup_text_change(t.strarr_s[611].Get());
 		entity_loadbank ( );
@@ -31106,30 +31113,18 @@ void gridedit_load_map ( void )
 		{
 			for (int e = 1; e <= g.entityelementlist; e++)
 			{
+				if (workshop_verifyandorreplacescript(e,0) == true)
+				{
+					bReplacedScript = true;
+				}
 				char pScriptFile[MAX_PATH];
 				strcpy(pScriptFile, "scriptbank\\");
 				strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
 				GG_GetRealPath(pScriptFile, false);
 				if (FileExist(pScriptFile) == 0)
 				{
-					// was missing script a core file
+					// script finall found to be missing!
 					bScriptMissing = true;
-					if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
-					{
-						// yes, now check for tristed replacement
-						cstr trustedReplacement_s = workshop_findtrustedreplacement(t.entityelement[e].eleprof.aimain_s.Get());
-						if (trustedReplacement_s.Len() > 0)
-						{
-							strcpy(pScriptFile, "scriptbank\\");
-							strcat(pScriptFile, trustedReplacement_s.Get());
-							GG_GetRealPath(pScriptFile, false);
-							if (FileExist(pScriptFile) == 1)
-							{
-								t.entityelement[e].eleprof.aimain_s = trustedReplacement_s;
-								bReplacedScript = true;
-							}
-						}
-					}
 				}
 			}
 		}

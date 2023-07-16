@@ -53,6 +53,7 @@ void workshop_submit_item_now (void);
 void workshop_update_steamusernames (void);
 void workshop_subscribetoalltrusteditems (void);
 cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile);
+bool workshop_verifyandorreplacescript(int e, int entid);
 
 // Callback Class for Steam Workshop
 class CSteamUserGeneratedWorkshopItem

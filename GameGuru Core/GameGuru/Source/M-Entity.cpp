@@ -3985,11 +3985,16 @@ void entity_loaddata ( void )
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// set transparency for all markers
 	if (t.entityprofile[t.entid].ismarker > 0 && t.entityprofile[t.entid].ismarker != 11)
 		t.entityprofile[t.entid].transparency = 6;
-	#endif
+
+	// also, objects may reference old scripts, now can look for their new locations via Workshop items
+	extern bool workshop_verifyandorreplacescript(int, int);
+	if (workshop_verifyandorreplacescript(0, t.entid) == true)
+	{
+		// we replaced this script with one that exists elsewhere :)
+	}
 }
 
 void entity_loadvideoid ( void )

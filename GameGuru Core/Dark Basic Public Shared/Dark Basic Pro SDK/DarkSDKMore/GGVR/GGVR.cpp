@@ -1531,13 +1531,13 @@ int GGVR_PlayerData::Create( LPSTR pRootDir )
 	char pControllerModel[1024];
 	strcpy ( pControllerModel, pRootDir );
 	strcat ( pControllerModel, "\\gamecore\\vrcontroller\\vrcontrollerright.dbo" );
-	LoadObject ( pControllerModel, GGVR_Player.ObjRightHand );
+	if (ObjectExist (GGVR_Player.ObjRightHand)==0) LoadObject ( pControllerModel, GGVR_Player.ObjRightHand );
 	SetObjectCollisionOff(GGVR_Player.ObjRightHand);
 
 	//ObjLeftHand
 	strcpy ( pControllerModel, pRootDir );
 	strcat ( pControllerModel, "\\gamecore\\vrcontroller\\vrcontrollerleft.dbo" );
-	LoadObject ( pControllerModel, GGVR_Player.ObjLeftHand );
+	if (ObjectExist (GGVR_Player.ObjLeftHand) == 0) LoadObject ( pControllerModel, GGVR_Player.ObjLeftHand );
 	SetObjectCollisionOff(GGVR_Player.ObjLeftHand);
 
 	// make controller objects renderable

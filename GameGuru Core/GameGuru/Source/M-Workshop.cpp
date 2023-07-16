@@ -507,6 +507,61 @@ cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile)
 	return result_s;
 }
 
+bool workshop_verifyandorreplacescript ( int e, int entid )
+{
+	bool bReplacedScript = false;
+	char pScriptFile[MAX_PATH];
+	strcpy(pScriptFile, "scriptbank\\");
+	if(entid>0)
+		strcat(pScriptFile, t.entityprofile[entid].aimain_s.Get());
+	else
+		strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
+	GG_GetRealPath(pScriptFile, false);
+	if (FileExist(pScriptFile) == 0)
+	{
+		// was missing script a core file
+		if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
+		{
+			// can only do verify replace if Steam Client active and have the list to hand
+			if(g_workshopItemsList.size() == 0 )
+			{
+				// No Steam Client - warn user the object they dropped in has an outdated script
+				extern bool bTriggerMessage;
+				extern int iTriggerMessageDelay;
+				extern char cTriggerMessage[MAX_PATH];
+				strcpy(cTriggerMessage, "The behaviour for this object is out of date, you need to log into Steam Client to obtain the latest version.");
+				iTriggerMessageDelay = 10;
+				bTriggerMessage = true;
+			}
+			else
+			{
+				// yes, now check for tristed replacement
+				cstr trustedReplacement_s = "";
+				if (entid > 0)
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityprofile[entid].aimain_s.Get());
+				else
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityelement[e].eleprof.aimain_s.Get());
+				if (trustedReplacement_s.Len() > 0)
+				{
+					strcpy(pScriptFile, "scriptbank\\");
+					strcat(pScriptFile, trustedReplacement_s.Get());
+					GG_GetRealPath(pScriptFile, false);
+					if (FileExist(pScriptFile) == 1)
+					{
+						if (entid > 0)
+							t.entityprofile[entid].aimain_s = trustedReplacement_s;
+						else
+							t.entityelement[e].eleprof.aimain_s = trustedReplacement_s;
+
+						bReplacedScript = true;
+					}
+				}
+			}
+		}
+	}
+	return bReplacedScript;
+}
+
 // Callback Functions for Steam Workshop
 CSteamUserGeneratedWorkshopItem::CSteamUserGeneratedWorkshopItem()
 {

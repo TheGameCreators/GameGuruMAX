@@ -1460,8 +1460,18 @@ void darkai_setupcharacter (void)
 	t.charanimstates[g.charanimindex].realheadangley_f = 0.0;
 	t.charanimstates[g.charanimindex].animationspeed_f = (65.0 / 100.0)*t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.animspeed;
 	t.charanimstates[g.charanimindex].outofrange = 0;
-	t.charanimstates[g.charanimindex].dormant = 1;
-	t.charanimstates[g.charanimindex].dormanttimer = timeGetTime() + (rand() % 1000);
+	// sometimes want characters instantly aware, no dormancy
+	if (t.entityelement[t.charanimstates[g.charanimindex].e].eleprof.phyalways == 1)
+	{
+		// 150723 - character aware instantly when level starts and Always Active is YES
+		t.charanimstates[g.charanimindex].dormant = 0;
+	}
+	else
+	{
+		// character is dormant, and requires player line of sight to awaken
+		t.charanimstates[g.charanimindex].dormant = 1;
+		t.charanimstates[g.charanimindex].dormanttimer = timeGetTime() + (rand() % 1000);
+	}
 	t.charanimstates[g.charanimindex].currentangle_f = t.entityelement[t.charanimstates[g.charanimindex].e].ry;
 	t.charanimstates[g.charanimindex].moveangle_f = t.charanimstates[g.charanimindex].currentangle_f;
 	t.charanimstates[g.charanimindex].moveToMode = 0;

@@ -2619,7 +2619,7 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		t.tremembertimer=Timer();
 		#ifdef VRTECH
 		game_main_snapshotsoundloopcheckpoint ( );
-		game_stopallsounds ();
+		//game_stopallsounds (); 150723 - depend on pause/resume calls in game_main_snapshotsoundloopcheckpoint
 		#else
 		game_main_snapshotsound ( true );
 		#endif
@@ -4739,10 +4739,13 @@ void game_main_snapshotsoundloopcheckpoint ( void )
 				t.soundloopcheckpoint[t.s]=0;
 				if (  SoundExist(t.s) == 1 ) 
 				{
-					if (  SoundLooping(t.s) == 1 ) 
-					{
-						t.soundloopcheckpoint[t.s]=1;
-					}
+					if (SoundLooping(t.s) == 1)
+						t.soundloopcheckpoint[t.s] = 3;
+					else
+						if (SoundPlaying(t.s) == 1)
+							t.soundloopcheckpoint[t.s] = 1;
+
+					PauseSound(t.s);
 				}
 			}
 		}
@@ -4751,18 +4754,18 @@ void game_main_snapshotsoundloopcheckpoint ( void )
 
 void game_main_snapshotsoundresume ( void )
 {
-	if (  t.playercontrol.disablemusicreset == 0 ) 
+	if ( t.playercontrol.disablemusicreset == 0 ) 
 	{
-		for ( t.s = g.soundbankoffset ; t.s<=  g.soundbankoffsetfinish; t.s++ )
+		for ( t.s = g.soundbankoffset ; t.s <= g.soundbankoffsetfinish; t.s++ )
 		{
-			if (  t.soundloopcheckpoint[t.s] != 2 ) 
+			if ( t.soundloopcheckpoint[t.s] != 2 ) 
 			{
-				if (  t.soundloopcheckpoint[t.s] == 1 ) 
+				if ( t.soundloopcheckpoint[t.s] != 0 ) 
 				{
 					t.soundloopcheckpoint[t.s]=0;
-					if (  SoundExist(t.s) == 1 ) 
+					if ( SoundExist(t.s) == 1 ) 
 					{
-						LoopSound (  t.s );
+						ResumeSound(t.s);
 					}
 				}
 			}

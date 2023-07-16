@@ -5215,55 +5215,36 @@ void common_justbeforeend ( void )
 	if ( g.gdeletetxpcachesonexit == 1 )
 	{
 		// scan "Files\ebebank\default" and delete any textures associated with present "TXP" files
-		t.tolddir_s = GetDir();
-		SetDir ( "ebebank\\default" );
-		ChecklistForFiles (  );
-		t.strwork = ""; t.strwork = t.strwork + "Clearing "+Str(ChecklistQuantity())+" TXP cache files";
-		timestampactivity(0, t.strwork.Get() );
-		for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
+		if (PathExist("ebebank\\default") == 1)
 		{
-			t.tfile_s=ChecklistString(t.c);
-			if ( t.tfile_s != "." && t.tfile_s != ".." ) 
+			t.tolddir_s = GetDir();
+			SetDir ("ebebank\\default");
+			ChecklistForFiles ();
+			t.strwork = ""; t.strwork = t.strwork + "Clearing " + Str(ChecklistQuantity()) + " TXP cache files";
+			timestampactivity(0, t.strwork.Get());
+			for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 			{
-				#ifdef VRTECH
-				if ( stricmp ( Right ( t.tfile_s.Get(), 4 ), ".txp" ) == NULL && stricmp ( t.tfile_s.Get(), "textures_profile.txp" ) != NULL && stricmp ( t.tfile_s.Get(), "original_profile.txp" ) != NULL ) 
-				#else
-				if ( stricmp ( Right ( t.tfile_s.Get(), 4 ), ".txp" ) == NULL && stricmp ( t.tfile_s.Get(), "textures_profile.txp" ) != NULL ) 
-				#endif
+				t.tfile_s = ChecklistString(t.c);
+				if (t.tfile_s != "." && t.tfile_s != "..")
 				{
-					// delete TXP file
-					DeleteAFile ( t.tfile_s.Get() );
-	
-					// also delete associated textures belonging to this TXP file
-					#ifdef WICKEDENGINE
-					cStr tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_color.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_normal.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_surface.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					#else
-					#ifdef VRTECH
-					cStr tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_D.jpg");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_N.jpg");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_S.jpg");
-					DeleteAFile ( tfilettex_s.Get() );
-					#else
-					cStr tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_D.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_N.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					tfilettex_s = cstr(Left ( t.tfile_s.Get(), strlen(t.tfile_s.Get())-4 )) + cstr("_S.dds");
-					DeleteAFile ( tfilettex_s.Get() );
-					#endif
-					#endif
+					if (stricmp (Right (t.tfile_s.Get(), 4), ".txp") == NULL && stricmp (t.tfile_s.Get(), "textures_profile.txp") != NULL && stricmp (t.tfile_s.Get(), "original_profile.txp") != NULL)
+					{
+						// delete TXP file
+						DeleteAFile (t.tfile_s.Get());
+
+						// also delete associated textures belonging to this TXP file
+						cStr tfilettex_s = cstr(Left (t.tfile_s.Get(), strlen(t.tfile_s.Get()) - 4)) + cstr("_color.dds");
+						DeleteAFile (tfilettex_s.Get());
+						tfilettex_s = cstr(Left (t.tfile_s.Get(), strlen(t.tfile_s.Get()) - 4)) + cstr("_normal.dds");
+						DeleteAFile (tfilettex_s.Get());
+						tfilettex_s = cstr(Left (t.tfile_s.Get(), strlen(t.tfile_s.Get()) - 4)) + cstr("_surface.dds");
+						DeleteAFile (tfilettex_s.Get());
+					}
 				}
 			}
+			timestampactivity(0, "Clearing complete.");
+			SetDir (t.tolddir_s.Get());
 		}
-		timestampactivity(0,"Clearing complete.");
-		SetDir ( t.tolddir_s.Get() );
 	}
 
 	// save number of minutes user been in session (added to global recorded when we entered)

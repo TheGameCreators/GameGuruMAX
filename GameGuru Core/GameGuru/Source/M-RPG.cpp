@@ -765,7 +765,7 @@ bool refresh_collection_from_entities(void)
 				// weapon not in list, add it
 				cstr thisWeaponImage = cstr("gamecore\\guns\\") + pThisWeaponName + cstr("\\item.png");
 				collectionItemType collectionitem;
-				fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
+				fill_rpg_item_defaults_passedin(&collectionitem, entid, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
 				g_collectionList.push_back(collectionitem);
 
 				// and save to collection list

@@ -35466,12 +35466,12 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Live Streams & Social");
 
-
 				//
-				// Workshop
+				// Workshop Uploader and Workshop Viewer
 				//
 				if (g_bWorkshopAvailable == true && bOnlyTrustedSteamUsersForNow == true)
 				{
+					// For Workshop Uploader Trusted Users
 					rect.Min = TabStartPos;
 					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop Uploader ", false);
 					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop Uploader ", false).x + gui.Style.ItemInnerSpacing.x;
@@ -35480,7 +35480,7 @@ void Welcome_Screen(void)
 						iCurrentOpenTab = 6;
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(2.0);
-						ImGui::TextCenter("Your Own Workshop Items");
+						ImGui::TextCenter("Your Uploaded Workshop Items");
 						ImGui::SetWindowFontScale(1.0);
 						ImGui::Text("");
 						ImGui::Text("");
@@ -35497,7 +35497,7 @@ void Welcome_Screen(void)
 								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
 								for (int i = 0; i < g_workshopItemsList.size(); i++)
 								{
-									if ( _atoi64(g_workshopItemsList[i].sSteamUserAccountID.Get()) == SteamUser()->GetSteamID().GetAccountID() )
+									if (_atoi64(g_workshopItemsList[i].sSteamUserAccountID.Get()) == SteamUser()->GetSteamID().GetAccountID())
 									{
 										char pWorkshipItemName[MAX_PATH];
 										sprintf(pWorkshipItemName, g_workshopItemsList[i].sName.Get());
@@ -35560,6 +35560,81 @@ void Welcome_Screen(void)
 						ImGui::EndTabItem();
 					}
 					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Item uploader enables game assets to be submitted to the Steam Workshop Community");
+				}
+				if (g_bWorkshopAvailable == true)
+				{
+					// For Workshop Viewer
+					rect.Min = TabStartPos;
+					rect.Max = rect.Min + ImGui::TabItemCalcSize(" Workshop ", false);
+					TabStartPos.x += ImGui::TabItemCalcSize(" Workshop ", false).x + gui.Style.ItemInnerSpacing.x;
+					if (ImGui::BeginTabItem(" Workshop ", NULL, tabflags))
+					{
+						iCurrentOpenTab = 7;
+						ImGui::Text("");
+						ImGui::SetWindowFontScale(2.0);
+						ImGui::TextCenter("Your Workshop Items");
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::Text("");
+						ImGui::Text("");
+						if (SteamUGC())
+						{
+							if (g_bStillDownloadingThings == false)
+							{
+								// show list of existing workshop items as buttons
+								ImGui::SetWindowFontScale(1.0);
+								ImGui::BeginChild("##MyOwnWorkshopLineItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+								float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
+								ImGui::Indent(half_total_width / 2.0f);
+								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
+								for (int i = 0; i < g_workshopItemsList.size(); i++)
+								{
+									char p64BitNumber[_MAX_U64TOSTR_BASE10_COUNT];
+									_ui64toa(g_workshopItemsList[i].nPublishedFileId, p64BitNumber, 10);
+									char pWorkshipItemLine[MAX_PATH];
+									sprintf(pWorkshipItemLine, "%s : %s", p64BitNumber, g_workshopItemsList[i].sName.Get());
+									ImGui::Text(pWorkshipItemLine);
+								}
+
+								// show "add new item" button to start creating a new one
+								ImGui::Text("");
+								if (ImGui::StyleButton("Update Workshop Items", ImVec2(half_total_width, 0)))
+								{
+									// delete local files copy so can get new items from Steam
+									extern bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce;
+									g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
+									g_bStillDownloadingThings = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to refresh all workshop item files you are subscribed to");
+
+								// end of main Workshop tab page
+								ImGui::Indent(-half_total_width / 2.0f);
+								ImGui::EndChild();
+
+								// Instructions for Workshop Item
+								ImGui::SetWindowFontScale(1.25);
+								ImGui::Text("");
+								ImGui::TextCenter("From here you can view all the workshop items you are subscribed to in the Steam Workshop Community");
+								ImGui::TextCenter("in the form of game ready assets for the Asset Libraries and can only view and receive updates for");
+								ImGui::TextCenter("these when you are logged into your Steam client account.");
+							}
+							else
+							{
+								ImGui::Text("");
+								ImGui::SetWindowFontScale(1.25);
+								ImGui::TextCenter("Steam Client is currently downloading workshop items...");
+								ImGui::Text("");
+							}
+						}
+						else
+						{
+							ImGui::Text("");
+							ImGui::SetWindowFontScale(1.25);
+							ImGui::TextCenter("You must log into your Steam Client Account in order to submit Workshop items");
+							ImGui::Text("");
+						}							
+						ImGui::EndTabItem();
+					}
+					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Area shows all the workshop items you are manually and automatically subscribed to");
 				}
 
 				// end of all tabs
@@ -35841,6 +35916,10 @@ void Welcome_Screen(void)
 					ImGui::Text("");
 				}
 				ImGui::SetWindowFontScale(1.2);
+			}
+			else if (iCurrentOpenTab == 7)
+			{
+				// nothing rght now
 			}
 			else if (bUseTutorial)
 			{
@@ -44125,7 +44204,7 @@ void process_storeboard(bool bInitOnly)
 										sprintf(par, "project=0%s", Storyboard.gamename);
 										ExecuteFile("GameGuruMAX.exe", par, "", 0);
 										Sleep(500);
-										ExitProcess(0);
+										//ExitProcess(0); PostQuitMessage(0); above should take care of this.
 									}
 									else
 									{

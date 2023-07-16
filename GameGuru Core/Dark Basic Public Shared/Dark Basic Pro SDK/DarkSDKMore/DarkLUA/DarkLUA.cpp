@@ -1150,7 +1150,23 @@ luaMessage** ppLuaMessages = NULL;
 						item.e = iEntityIndex;
 
 						// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
-						item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+						int entid = t.entityelement[iEntityIndex].bankindex;
+						if (t.entityprofile[entid].isweapon > 0)
+						{
+							// is a weapon (that are auto added) must use proper internal name for correct identification
+							item.collectionID = find_rpg_collectionindex(t.entityprofile[entid].isweapon_s.Get());
+							if (item.collectionID == 0)
+							{
+								// fallback uses regular visible name (ooften used by UI renamed stock weapons)
+								item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+							}
+
+						}
+						else
+						{
+							// not a weapon, can use given name
+							item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+						}
 
 						// if resource and no slot specified (collected in game), merge with any existing
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2 && iSlotIndex == -1)
@@ -1685,6 +1701,7 @@ luaMessage** ppLuaMessages = NULL;
 							fReturnValue = (float)t.entityprofile[entid].ismarker;
 							break;
 						}
+						case 22: fReturnValue = t.entityelement[iEntityIndex].eleprof.phyalways; break;
 					}
 				}
 			}
@@ -1773,6 +1790,7 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
  int GetMovementDeltaManually(lua_State *L) { return GetEntityData ( L, 19 ); }
  int GetEntityMarkerMode(lua_State *L) { return GetEntityData (L, 21); }
+ int GetEntityAlwaysActive(lua_State* L) { return GetEntityData (L, 22); }
 
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
@@ -9689,7 +9707,8 @@ void addFunctions()
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
 	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 	lua_register(lua, "GetEntityMarkerMode", GetEntityMarkerMode);
-
+	lua_register(lua, "GetEntityAlwaysActive", GetEntityAlwaysActive);
+	
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);
 	lua_register(lua, "GetEntityAllegiance", GetEntityAllegiance);

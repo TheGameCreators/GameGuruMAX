@@ -7036,26 +7036,29 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
 											}
 										}
-										if (stricmp(labels[1].c_str(), "questlist") == NULL)
+										if (labels.size() == 2)
 										{
-											labels.clear();
-											labels.push_back(cVariable);
-											int iQuestListIndex = 1;
-											labels.push_back("None");
-											for (int n = 0; n < g_collectionQuestList.size(); n++)
+											if (stricmp(labels[1].c_str(), "questlist") == NULL)
 											{
-												iQuestListIndex++;
-												labels.push_back(g_collectionQuestList[n].collectionFields[0].Get());
-											}
-											if (iQuestListIndex > 0)
-											{
-												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
-												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iQuestListIndex;
-											}
-											else
-											{
-												tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
-												tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												labels.clear();
+												labels.push_back(cVariable);
+												int iQuestListIndex = 1;
+												labels.push_back("None");
+												for (int n = 0; n < g_collectionQuestList.size(); n++)
+												{
+													iQuestListIndex++;
+													labels.push_back(g_collectionQuestList[n].collectionFields[0].Get());
+												}
+												if (iQuestListIndex > 0)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iQuestListIndex;
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
 											}
 										}
 									}

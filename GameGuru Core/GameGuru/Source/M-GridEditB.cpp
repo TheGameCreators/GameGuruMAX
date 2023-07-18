@@ -45195,6 +45195,7 @@ void FindFirstSplash(char *splash_name)
 				{
 					// replace stock splash with custom one specified by storybaord game project
 					strcpy(splash_name, Storyboard.Nodes[i].thumb);
+
 					/* LB: reason was simpler, the splash image file was not copied over - and the public repo code does not contain the encryption code so could not be tested/verified. Sorted now :)
 					//PE: Need decrypt support here.
 					strcpy(splash_name, Storyboard.Nodes[i].thumb);
@@ -47163,8 +47164,19 @@ void SendWidgetToFront(int nodeID, int widgetID)
 		return;
 	}
 
-	// Keep swapping widgetID with its neighbour until it reaches the end of the array (the front of the screen)
+	// also prevent shifting of initial widgets as they are hard coded to certain scripts sometimes (load and save game)
+	int bRestrictShuffleWidgetsToBeyond = 0;
+	if (stricmp (node.lua_name, "savegame.lua") == NULL || stricmp (node.lua_name, "loadgame.lua"))
+	{
+		bRestrictShuffleWidgetsToBeyond = 9;
+	}
 	int iSwap = widgetID;
+	if (iSwap < bRestrictShuffleWidgetsToBeyond)
+	{
+		return;
+	}
+
+	// Keep swapping widgetID with its neighbour until it reaches the end of the array (the front of the screen)
 	while (iSwap < lastIndex)
 	{
 		SwapWidgets(nodeID, iSwap, iSwap+1);
@@ -47185,9 +47197,16 @@ void SendWidgetToBack(int nodeID, int widgetID)
 		return;
 	}
 
+	// also prevent shifting of initial widgets as they are hard coded to certain scripts sometimes (load and save game)
+	int bRestrictShuffleWidgetsToBeyond = 0;
+	if (stricmp (node.lua_name, "savegame.lua") == NULL || stricmp (node.lua_name, "loadgame.lua") == NULL)
+	{
+		bRestrictShuffleWidgetsToBeyond = 9;
+	}
+
 	// Keep swapping widgetID with its neighbour until it reaches the front of the array (the back of the screen)
 	int iSwap = widgetID;
-	while (iSwap > 0)
+	while (iSwap > bRestrictShuffleWidgetsToBeyond)
 	{
 		SwapWidgets(nodeID, iSwap, iSwap - 1);
 		iSwap--;

@@ -6736,7 +6736,7 @@ struct entitytype
 	bool dc_merged;
 	float dc_distance;
 	bool bPlrVisibleCheckDone;
-	#ifdef WICKEDENGINE
+#ifdef WICKEDENGINE
 	int iCurrentColorType;
 	int iIsSmarkobjectDummyObj;
 	float fDecalFrame;
@@ -6752,13 +6752,17 @@ struct entitytype
 	float quaty;
 	float quatz;
 	float quatw;
-	void *pReservey1;
+	void* pReservey1;
 	int specialentityloadflag;
 	int creationOfGroupID;
+	std::vector<int> iPreScannedVisible;
+	int iPreScanVisibleCurrent;
 	#endif
 	// Constructor
 	entitytype ( )
 	{
+		 iPreScanVisibleCurrent = 0;
+		 iPreScannedVisible.clear();
 		 specialentityloadflag = 0;
 		 lipset.clear();
 		 lipset1.clear();

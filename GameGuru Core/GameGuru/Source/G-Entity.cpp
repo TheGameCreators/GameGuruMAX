@@ -175,6 +175,10 @@ void entity_init ( void )
 					entity_preparedepth(t.entid, t.tobj);
 				}
 			}
+
+			// reset prescanned vis lit at start of level
+			t.entityelement[t.e].iPreScanVisibleCurrent = 0;
+			t.entityelement[t.e].iPreScannedVisible.clear();
 		}
 	}
 }
@@ -1994,12 +1998,85 @@ void entity_loop ( void )
 
 	//  handle explosion triggers in separate loop as they call
 	//  other subroutines that use E and other entity calls (i.e. physics_explodesphere)
+	#define PRESCANEVENTCOUNT 5
+	int iOnlySomePreScanEventPerCyce = PRESCANEVENTCOUNT;
 	for ( t.ee = 1 ; t.ee <= g.entityelementlist; t.ee++ )
 	{
-		t.eentid=t.entityelement[t.ee].bankindex;
-		if ( t.eentid>0 ) 
+		t.eentid = t.entityelement[t.ee].bankindex;
+		if (t.eentid > 0)
 		{
-			//  flag to explode entity after a fused amount of time
+			// the prescan
+			// scan all entities that are capable of being exploded, and see what they can see and add to list (saves performant freeze later)
+			if (t.entityelement[t.ee].eleprof.explodable != 0)
+			{
+				if (iOnlySomePreScanEventPerCyce > 0)
+				{
+					if (t.entityelement[t.ee].iPreScanVisibleCurrent < g.entityelementlist)
+					{
+						while (iOnlySomePreScanEventPerCyce > 0)
+						{
+							t.entityelement[t.ee].iPreScanVisibleCurrent++;
+							int iCanWeSeeThisE = t.entityelement[t.ee].iPreScanVisibleCurrent;
+							if (iCanWeSeeThisE <= g.entityelementlist)
+							{
+								if (t.ee != iCanWeSeeThisE)
+								{
+									if (t.entityelement[iCanWeSeeThisE].obj > 0 && t.entityelement[iCanWeSeeThisE].staticflag == 0)
+									{
+										float fYOff = 10.0f;
+										float fDX = t.entityelement[iCanWeSeeThisE].x - t.entityelement[t.ee].x;
+										float fDY = t.entityelement[iCanWeSeeThisE].y - t.entityelement[t.ee].y;
+										float fDZ = t.entityelement[iCanWeSeeThisE].z - t.entityelement[t.ee].z;
+										float fDD = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
+										float fExplodeRange = 300.0f; // seems range fixed at 300!
+										if (fDD <= fExplodeRange)
+										{
+											// first ensure not going through physics terrain
+											t.ttokay = 1;
+											if (ODERayTerrain(t.entityelement[t.ee].x, t.entityelement[t.ee].y + fYOff, t.entityelement[t.ee].z, t.entityelement[iCanWeSeeThisE].x, t.entityelement[iCanWeSeeThisE].y + fYOff, t.entityelement[iCanWeSeeThisE].z, false) == 1)
+											{
+												t.ttokay = 0;
+											}
+											if (t.ttokay == 1)
+											{
+												// static ray test (only statics can stop force of exploding ray)
+												int tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.entityelement[t.ee].x, t.entityelement[t.ee].y + fYOff, t.entityelement[t.ee].z, t.entityelement[iCanWeSeeThisE].x, t.entityelement[iCanWeSeeThisE].y + fYOff, t.entityelement[iCanWeSeeThisE].z, t.entityelement[t.ee].obj, 1, 0, 0, 1);
+												if (tintersectvalue != 0 && tintersectvalue != t.entityelement[iCanWeSeeThisE].obj )
+												{
+													// hit something that was not the destination object
+													t.ttokay = 0;
+												}
+											}
+											if (t.ttokay==1)
+											{
+												// line of sight between this and the exploding one, add to list for quick resolution when explode happens
+												t.entityelement[t.ee].iPreScannedVisible.push_back(iCanWeSeeThisE);
+											}
+											iOnlySomePreScanEventPerCyce--;
+										}
+									}
+								}
+							}
+							else
+							{
+								break;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				// not explodable, no prescannedvis list needed
+				if (t.entityelement[t.ee].iPreScanVisibleCurrent == 0)
+				{
+					t.entityelement[t.ee].iPreScanVisibleCurrent = g.entityelementlist;
+					t.entityelement[t.ee].iPreScannedVisible.clear();
+				}
+			}
+
+			// the fuse
+			// flag to explode entity after a fused amount of time
 			if ( t.entityelement[t.ee].explodefusetime>0 ) 
 			{
 				if ( Timer()>t.entityelement[t.ee].explodefusetime ) 
@@ -2067,6 +2144,12 @@ void entity_loop ( void )
 				}
 			}
 		}
+	}
+	if (iOnlySomePreScanEventPerCyce == PRESCANEVENTCOUNT)
+	{
+		// all prescan complete
+		//MessageBoxA(NULL,"dsadsa","dsadsa",MB_OK);
+		//int lee = 42;
 	}
 }
 

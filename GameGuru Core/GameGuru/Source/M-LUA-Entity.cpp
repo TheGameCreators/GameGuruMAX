@@ -1227,7 +1227,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 					DisableObjectZRead ( g.video3dobjectoffset );
 					SetSphereRadius ( g.video3dobjectoffset, 0 );
 					TextureObject ( g.video3dobjectoffset, 0, g.editorimagesoffset+14 );
-					ShowObject ( g.video3dobjectoffset );
+					HideObject ( g.video3dobjectoffset ); // hide white rectangle issue
 					if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 						SetObjectMask ( g.video3dobjectoffset, (1<<6) + (1<<7) + 1 );
 					else

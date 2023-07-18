@@ -2344,7 +2344,7 @@ void physics_explodesphere ( void )
 		}
 	}
 	//  create a sphere of force at this location
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		if (  g.mp.damageWasFromAI  ==  0 ) 
@@ -2362,7 +2362,7 @@ void physics_explodesphere ( void )
 			t.tdz_f = fCenterOfEntityZ - t.texplodez_f;
 			t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f)+abs(t.tdy_f*t.tdy_f)+abs(t.tdz_f*t.tdz_f));
 
-			if ( t.tdd_f<t.texploderadius_f ) 
+			if (t.tdd_f < t.texploderadius_f)
 			{
 				// 220618 - before apply actual entity damage/effect, ensure a line of sight exists (could be behind wall/door)
 				float fRayDestFromExplosionX = fCenterOfEntityX - t.texplodex_f;
@@ -2378,20 +2378,43 @@ void physics_explodesphere ( void )
 				fRayDestFromExplosionY += t.texplodey_f;
 				fRayDestFromExplosionZ += t.texplodez_f;
 
-				#ifndef WICKEDENGINE
+#ifndef WICKEDENGINE
 				if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
 					t.ttt = IntersectAll(87000, 87000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
 				else
-					t.ttt = IntersectAll( g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123 );
-				#endif
-				t.tintersectvalue = IntersectAll( g.entityviewstartobj, g.entityviewendobj, 
-					                              t.texplodex_f, t.texplodey_f, t.texplodez_f, 
-					                              fRayDestFromExplosionX, fRayDestFromExplosionY, fRayDestFromExplosionZ, 
-					                              t.entityelement[ t.e ].obj );
+					t.ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, t.brayx1_f, t.brayy1_f, t.brayz1_f, 0, 0, 0, -123);
+#endif
+				//bool bOldMethodAllAtOnce = false;
+				//if (bOldMethodAllAtOnce == true)
+				//{
+				//	// test evrything all the time
+				//	t.tintersectvalue = IntersectAll(g.entityviewstartobj, g.entityviewendobj,
+				//						t.texplodex_f, t.texplodey_f, t.texplodez_f, 
+				//						fRayDestFromExplosionX, fRayDestFromExplosionY, fRayDestFromExplosionZ, 
+				//						t.entityelement[t.e].obj );
+				//}
+				//else
+				{
+					// refer to previously collected information on anything that explodes (performance boost and anit-freeze system)
+					t.tintersectvalue = -1;
+					int iExplodingE = t.texplodesourceEntity;
+					if (iExplodingE > 0)
+					{
+						if (t.entityelement[iExplodingE].iPreScannedVisible.size() > 0)
+						{
+							for (int i = 0; i < t.entityelement[iExplodingE].iPreScannedVisible.size(); i++)
+							{
+								if (t.e == t.entityelement[iExplodingE].iPreScannedVisible[i])
+								{
+									t.tintersectvalue = 0;
+									break;
+								}
+							}
+						}
+					}
+				}
 				if ( t.tintersectvalue == 0 || t.tintersectvalue == t.entityelement[ t.texplodesourceEntity ].obj )
 				{
-					//t.tdamage = ( t.texploderadius_f - t.tdd_f ) * t.tstrengthofexplosion_f;
-					//t.tdamageforce = (t.texploderadius_f - t.tdd_f) * t.tstrengthofexplosion_f;
 					t.tdamage = (1.0f - (t.tdd_f / t.texploderadius_f)) * t.tstrengthofexplosion_f;
 					t.tdamageforce = (1.0f - (t.tdd_f / t.texploderadius_f)) * (t.tstrengthofexplosion_f);
 					t.brayx1_f = t.texplodex_f;

@@ -4252,15 +4252,6 @@ void FPSC_Setup(void)
 			{
 				SetDisplayModeMODBACKBUFFER (  GetDesktopWidth(),GetDesktopHeight(),GetDisplayDepth(),g.gvsync,0,0,t.bkwidth,t.bkheight );
 			}
-			//PE: Res changed here. set to our window size again.
-
-			// allow _e_ usage override
-			#ifdef VRTECH
-			SetCanUse_e_(1);
-			#else
-			if ( FileExist ( cstr(g.exeroot_s + cstr("\\leeandraveyrock.txt")).Get() ) == 1 )
-				SetCanUse_e_(1);
-			#endif
 
 			// if flag set to generate DOCDOC help, do this here
 			if ( g.globals.generatehelpfromdocdoc == 1 )
@@ -4295,6 +4286,7 @@ void FPSC_Setup(void)
 			t.game.onceonlyshadow=1;
 			t.game.set.ismapeditormode=0;
 			tgamesetismapeditormode = 0;
+
 			// Allow _e_ usage
 			SetCanUse_e_(1);
 	

@@ -2697,6 +2697,11 @@ void physics_player_init ( void )
 			item.e = 0;
 			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
 			item.collectionID = find_rpg_collectionindex(thisWeaponTitle.Get());
+			if (item.collectionID == 0)
+			{
+				thisWeaponTitle = t.gun[t.weaponindex].name_s.Get();
+				item.collectionID = find_rpg_collectionindex(thisWeaponTitle.Get());
+			}
 			item.slot = 0;
 			for (int n = 1; n <= 10; n++) { if (t.weaponslot[n].pref == t.weaponindex) { item.slot = n - 1; break; } }
 			t.inventoryContainer[1].push_back(item);

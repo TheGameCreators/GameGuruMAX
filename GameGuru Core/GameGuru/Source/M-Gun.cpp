@@ -2040,7 +2040,17 @@ void gun_findweaponindexbyname ( void )
 
 cstr gun_names_tonormal(cstr thisLabel)
 {
-	cstr normalName_s = NULL;
+	// clean up if 2 slashes, can only have one to propery identify weapon name
+	LPSTR pOldStr = thisLabel.Get();
+	char pNewStr[MAX_PATH];
+	strcpy(pNewStr, pOldStr);
+	LPSTR pFourSlashes = strstr(pNewStr, "\\\\");
+	if(pFourSlashes)
+	{
+		strcpy(pFourSlashes, pFourSlashes + 1);
+		thisLabel = pNewStr;
+	}
+
 	if (stricmp (thisLabel.Get(), "enhanced\\Gloves_Unarmed") == NULL) thisLabel = "Melee Combat";
 	if (stricmp (thisLabel.Get(), "enhanced\\AK") == NULL) thisLabel = "Assault Rifle";
 	if (stricmp (thisLabel.Get(), "enhanced\\AR") == NULL) thisLabel = "Patrol Rifle";

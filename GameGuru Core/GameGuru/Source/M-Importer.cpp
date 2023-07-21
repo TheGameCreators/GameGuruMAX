@@ -4150,21 +4150,42 @@ bool importer_apply_materialformesh(MaterialComponentTEXTURESLOT eMatSlot, int i
 	}
 	if (pSelectedMesh)
 	{
+		// LB: We need to update wicked texture path folder as it is used when creating a local
+		// copy of the texture we choose to assciate with he object being retextured
+		char pOriginalTextureFolder[MAX_PATH];
+		strcpy(pOriginalTextureFolder, "");
+		if (strlen(cPreSelectedFile) > 0)
+		{
+			strcpy(pOriginalTextureFolder, cPreSelectedFile);
+		}
+		else
+		{
+			strcpy(pOriginalTextureFolder, pSelectedMaterial->textures[iGGMeshTexSlot].name.c_str());
+		}
+		for (int n = strlen(pOriginalTextureFolder) - 1; n > 0; n--)
+		{
+			if (pOriginalTextureFolder[n] == '\\' || pOriginalTextureFolder[n] == '/')
+			{
+				pOriginalTextureFolder[n+1] = 0;
+				break;
+			}
+		}
+		WickedCall_SetTexturePath(pOriginalTextureFolder);
+
 		cStr tOldDir = GetDir();
 		char * cFileSelected;
 		if (strlen(cPreSelectedFile) > 0)
+		{
 			cFileSelected = &cPreSelectedFile[0];
+		}
 		else
 		{
-		
 			bool bOpenExplorerAtPrevLocation = true;
-
 			if (bChooseSurfaceChannel)
 			{
 				bOpenExplorerAtPrevLocation = false;
 				bChooseSurfaceChannel = false;
 			}
-
 			cFileSelected = importer_selectfile(iGGMeshTexSlot, pSelectedMaterial->textures[iGGMeshTexSlot].name, bOpenExplorerAtPrevLocation);
 		}
 

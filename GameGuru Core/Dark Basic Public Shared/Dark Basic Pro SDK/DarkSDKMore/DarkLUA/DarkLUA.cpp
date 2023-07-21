@@ -2521,6 +2521,8 @@ luaMessage** ppLuaMessages = NULL;
 		 t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
 		 t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
 		 t.entid = entid; entity_fillgrideleproffromprofile();
+		 //LB: an copy over material changes from the cloned entiy element
+		 t.grideleprof.WEMaterial = t.entityelement[iEntityIndex].eleprof.WEMaterial;
 		 entity_addentitytomap ();
 		 t.e = t.tupdatee;
 		 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;

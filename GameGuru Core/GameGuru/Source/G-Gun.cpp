@@ -4733,7 +4733,27 @@ void gun_load ( void )
 
 	// until weapons are provided that have a SEPARATE transparent mesh for semi-opaque
 	// alpha clip transparency out so weapons can be included in the PREPASS to solve lightray issue
-	WickedCall_SetObjectAlphaRef (pGunObject, 0.01f); // Wicked modified so prepass only renders transparent objects that have this LOW alpha ref
+	// WickedCall_SetObjectAlphaRef (pGunObject, 0.01f); // Wicked modified so prepass only renders transparent objects that have this LOW alpha ref
+	// can scan the texture names of the weapon and specifically leave "_glass" meshes alone
+	if (pGunObject)
+	{
+		for (int meshindex = 0; meshindex < pGunObject->iMeshCount; meshindex++)
+		{
+			sMesh* pMesh = pGunObject->ppMeshList[meshindex];
+			if (pMesh && pMesh->pTextures)
+			{
+				if (strstr(pMesh->pTextures[0].pName, "_glass") != NULL)
+				{
+					// leave alpha clip in tact to llow transparency!
+				}
+				else
+				{
+					// rest of solid gun should use alpha clip to ensure lightrays are blocked
+					WickedCall_SetMeshAlphaRef(pMesh, 0.01f);
+				}
+			}
+		}
+	}
 
 	// STANDARD and ALT modes
 	image_setlegacyimageloading(true);

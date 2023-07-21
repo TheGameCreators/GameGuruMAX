@@ -2541,6 +2541,7 @@ luaMessage** ppLuaMessages = NULL;
 		 // special limbo mode to skip activating this entity until next lua_begin cycle
 		 t.entityelement[iNewE].active = 0;
 		 t.entityelement[iNewE].lua.flagschanged = 123;
+		 t.entityelement[iNewE].iWasSpawnedInGame = 1;
 		 t.e = storee;
 		 t.entid = storeentid;
 		 t.gridentity = 0;
@@ -3668,7 +3669,10 @@ int RDBlockNavMesh(lua_State *L)
 	float thisPoint[3] = { 0, 0, 0 };
 	bool bEnableBlock = false;
 	if (iBlockMode != 0) bEnableBlock = true;
-	g_RecastDetour.TogglePolys(fX, fY, fZ, fRadius, bEnableBlock);
+
+	// improved system for more accurate doo and navmesh blocker bounds
+	//g_RecastDetour.TogglePolys(fX, fY, fZ, fRadius, bEnableBlock);
+	g_RecastDetour.ToggleBlocker(fX, fY, fZ, fRadius, bEnableBlock);
 
 	// go through ALL characters and request them to recalc their paths, they may no longer be valid
 	int storete = t.e;
@@ -5147,6 +5151,13 @@ int IntersectCore (lua_State* L, int iMode)
 	float fNewY = lua_tonumber(L, 5);
 	float fNewZ = lua_tonumber(L, 6);
 	int iIgnoreObjNo = lua_tonumber(L, 7);
+
+	// catch silly tests
+	if ((fX == 0 && fY == 0 && fZ == 0 && fNewX == 0 && fNewY == 0 && fNewZ == 0) || (fX == fNewX && fY == fNewY && fZ == fNewZ))
+	{
+		lua_pushnumber (L, 0);
+		return 1;
+	}
 
 	// use a database to store recent results, and pull from that before redoing a real intersect test
 	int iIndexInIntersectDatabase = 0;

@@ -1302,8 +1302,15 @@ public:
 							//uint8_t weight = pHeightMapFlatAreaWeight[ indices[i] ]; // not used?!?
 							float flatHeight = ggterrain_flat_areas[ id ].y;
 							flatHeight -= ggterrain_local_params.offset_y;
-							if ( flatHeight < 0 ) flatHeight /= ggterrain_local_params.minHeight;
-							else flatHeight /= ggterrain_local_params.height;
+
+							// some levels have "ggterrain_local_params.minHeight" as zero! Clearly the following will fail if so (some terrain gen levels)
+							if (ggterrain_local_params.minHeight != 0.0f)
+							{
+								if ( flatHeight < 0 ) 
+									flatHeight /= ggterrain_local_params.minHeight;
+								else
+									flatHeight /= ggterrain_local_params.height;
+							}
 
 							fHeights[ i ] = flatHeight;
 						}

@@ -26,6 +26,7 @@
 #include "DetourAlloc.h"
 #include "DetourAssert.h"
 #include <new>
+#include <vector>
 
 /// @class dtQueryFilter
 ///
@@ -1016,7 +1017,9 @@ dtStatus dtNavMeshQuery::findPath(dtPolyRef startRef, dtPolyRef endRef,
 	float lastBestNodeCost = startNode->total;
 	
 	bool outOfNodes = false;
-	
+
+	int maxdoorcost = 99999;
+
 	while (!m_openList->empty())
 	{
 		// Remove node from open list and put it in closed list.
@@ -1116,7 +1119,70 @@ dtStatus dtNavMeshQuery::findPath(dtPolyRef startRef, dtPolyRef endRef,
 				heuristic = dtVdist(neighbourNode->pos, endPos)*H_SCALE;
 			}
 
+			// LB: add an extra cost if the path runs through an area marked as a door, it will
+			// force the system to find another path that does NOT go through dor areas (effectively blocking them as path ways when active)
+			extern std::vector<sBlocker> g_BlockerList;
+			if (g_BlockerList.size()>0)
+			{
+				float fFromX = bestNode->pos[0];
+				float fFromY = bestNode->pos[1];
+				float fFromZ = bestNode->pos[2];
+				float fToX = neighbourNode->pos[0];
+				float fToY = neighbourNode->pos[1];
+				float fToZ = neighbourNode->pos[2];
+				int iDoorCount = g_BlockerList.size();
+				for (int iDoorIndex = 0; iDoorIndex < iDoorCount; iDoorIndex++)
+				{
+					if (heuristic < maxdoorcost)
+					{
+						if (g_BlockerList[iDoorIndex].bBlocking == true)
+						{
+							float fDoorMinX = g_BlockerList[iDoorIndex].minX;
+							float fDoorMaxX = g_BlockerList[iDoorIndex].maxX;
+							float fDoorMinY = g_BlockerList[iDoorIndex].minY;
+							float fDoorMaxY = g_BlockerList[iDoorIndex].maxY;
+							float fDoorMinZ = g_BlockerList[iDoorIndex].minZ;
+							float fDoorMaxZ = g_BlockerList[iDoorIndex].maxZ;
+							float fX = fFromX;
+							float fY = fFromY;
+							float fZ = fFromZ;
+							float fIX = fToX - fFromX;
+							float fIY = fToY - fFromY;
+							float fIZ = fToZ - fFromZ;
+							int iStepCount = sqrt(fabs(fIX * fIX) + fabs(fIY * fIY) + fabs(fIZ * fIZ));
+							for (int iStep = 0; iStep < iStepCount; iStep += 5)
+							{
+								if (fX >= fDoorMinX && fX <= fDoorMaxX)
+								{
+									if (fY >= fDoorMinY && fY <= fDoorMaxY)
+									{
+										if (fZ >= fDoorMinZ && fZ <= fDoorMaxZ)
+										{
+											// the path goes through a door
+											heuristic += maxdoorcost;
+											break;
+										}
+									}
+								}
+								fX += (fIX * 5);
+								fY += (fIY * 5);
+								fZ += (fIZ * 5);
+							}
+						}
+					}
+					else
+					{
+						// the path goes through a door
+						break;
+					}
+				}
+			}
+
 			const float total = cost + heuristic;
+
+			// hit a door, skip
+			if (total > maxdoorcost)
+				continue;
 			
 			// The node is already in open list and the new result is worse, skip.
 			if ((neighbourNode->flags & DT_NODE_OPEN) && total >= neighbourNode->total)
@@ -1154,6 +1220,13 @@ dtStatus dtNavMeshQuery::findPath(dtPolyRef startRef, dtPolyRef endRef,
 	}
 
 	dtStatus status = getPathToNode(lastBestNode, path, pathCount, maxPath);
+
+	if (lastBestNodeCost > maxdoorcost)
+	{
+		// hit a door we could not find a way around, abort path
+		status |= DT_PARTIAL_RESULT;
+		pathCount = 0;
+	}
 
 	if (lastBestNode->id != endRef)
 		status |= DT_PARTIAL_RESULT;

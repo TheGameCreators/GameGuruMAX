@@ -14205,7 +14205,8 @@ void mapeditorexecutable_loop(void)
 								if (t.entityprofile[it->second].groupreference != -1)
 								{
 									//PE: Dont display smartobjects as they are not really a object.
-									DisplayEntry = false;
+									//LB: Can linger in older corrupt levels and need a way to delete them from the level via Detailed Object List
+									//DisplayEntry = false;
 								}
 
 								if (DisplayEntry && iTextureID > 0)
@@ -19178,6 +19179,29 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 		}
 		g.entityelementlist=t.storedentityelementlist;
 		g.entityviewcurrentobj=t.storedentityviewcurrentobj;
+	}
+
+	// in addition, remove any that where spawned inside the original list
+	bool bClearAllInGameSpawns = true;
+	if ( bClearAllInGameSpawns == true )
+	{
+		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+		{
+			if (t.entityelement[t.e].iWasSpawnedInGame == 1)
+			{
+				t.obj = t.entityelement[t.e].obj;
+				if (t.obj > 0)
+				{
+					if (ObjectExist(t.obj) == 1)
+					{
+						DeleteObject (t.obj);
+					}
+				}
+				t.entityelement[t.e].obj = 0;
+				t.entityelement[t.e].bankindex = 0;
+				t.entityelement[t.e].iWasSpawnedInGame = 0;
+			}
+		}
 	}
 
 	// restore all editor entity positions and rotations

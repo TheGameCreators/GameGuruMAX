@@ -2500,12 +2500,14 @@ void physics_player_init ( void )
 			//  Player Global Settings for this level
 			if ( t.game.levelplrstatsetup == 1 )
 			{
+				//LB: Commented out 9999 as otherwise noone can get to the game over screen :)
 				//PE: @Maciej we still use lives in other systems.
-				#ifdef WICKEDENGINE
-				t.playercontrol.startlives=9999;
-				#else
-				t.playercontrol.startlives=t.entityelement[t.e].eleprof.lives;
-				#endif
+				//#ifdef WICKEDENGINE
+				//t.playercontrol.startlives=9999;
+				//#else
+				//t.playercontrol.startlives=t.entityelement[t.e].eleprof.lives;
+				//#endif
+				t.playercontrol.startlives = t.entityelement[t.e].eleprof.lives;
 				t.playercontrol.startstrength=t.entityelement[t.e].eleprof.strength;
 				if (  t.playercontrol.thirdperson.enabled == 1 ) 
 				{
@@ -3959,32 +3961,6 @@ void physics_player_takedamage ( void )
 			//  Trigger player grunt noise
 			if (  t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
 			{
-				/*
-				t.tgruntfrequency=0;
-				if ( 1 ) // 100316 - v1.121b3 - t.player[t.plrid].health<t.playercontrol.startstrength*0.25 )
-				{
-					#ifdef VRTECH
-					//  one in three chance of grunting and been a while..
-					if ( (DWORD)(Timer()+3000) > t.playercontrol.timesincelastgrunt ) 
-					{
-						if (  Rnd(4) == 1  )  t.tgruntfrequency = 1;
-					}
-					#else
-					// always grunt when hit - so we know we have been hit, but don't overlap within 500ms!
-					if ( (DWORD)(Timer()+500) > t.playercontrol.timesincelastgrunt ) 
-					{
-						t.tgruntfrequency = 1;
-					}
-					#endif
-				}
-				else
-				{
-					//  one in ten chance of grunting
-					if (  Rnd(11) == 1  )  t.tgruntfrequency = 1;
-				}
-				if (  t.tgruntfrequency == 1 ) 
-				{
-				*/
 				if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
 				{
 					//  only every one in three or if been a while since we grunted
@@ -4021,22 +3997,8 @@ void physics_player_takedamage ( void )
 			}
 		}
 		
-		/* now handled inside gameplayerhealth
-		#ifdef WICKEDENGINE
-		extern bool bInvulnerableMode;
-		if (bInvulnerableMode)
-		{
-			if (t.player[t.plrid].health < 100)
-			{
-				//LB: new player health intercept
-				t.player[t.plrid].health = 100;
-			}
-		}
-		#endif
-		*/
-
-		//  Check if player health at zero
-		if (  t.player[t.plrid].health <= 0 ) 
+		// Check if player health at zero
+		if ( t.player[t.plrid].health <= 0 ) 
 		{
 			t.player[t.plrid].health = 0;
 			LuaSetFunction ("PlayerHealthSet", 1, 0);

@@ -379,6 +379,9 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	// toggling trees means recalcing for tree obstacles
 	dSuperHash += ggtrees_global_params.draw_enabled;
 
+	// must still reset nav mesh system for new run (blocker list)
+	g_RecastDetour.ResetBlockerSystem();
+	
 	// exit early if no change detected in static arrangement
 	static double dLastSuperHash = -1;
 	if (bForceGeneration == false)

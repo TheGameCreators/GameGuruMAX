@@ -23,6 +23,8 @@ public:
 	void cleanupDebugRender(void);
 
 	void TogglePolys( float x, float y, float z, float radius, bool enable );
+	void ResetBlockerSystem( void );
+	void ToggleBlocker(float x, float y, float z, float radius, bool enable);
 
 private:
 	// core classes

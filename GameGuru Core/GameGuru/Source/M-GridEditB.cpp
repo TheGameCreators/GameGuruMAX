@@ -38876,7 +38876,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			Storyboard.Nodes[node].widget_used[button] = 1;
 			Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_SLIDER;
 
-			int iPlayerFOVPerc = (((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f) - 20.0) / 180.0)*100.0;
+			int iPlayerFOVPerc = (((t.visuals.CameraFOV_f * t.visuals.CameraASPECT_f) - 20.0) / 180.0) * 114.0f;// *100.0;
 			if (iPlayerFOVPerc < 0) iPlayerFOVPerc = 33; //default FOV
 			if (iPlayerFOVPerc > 100) iPlayerFOVPerc = 33; //default FOV
 			Storyboard.NodeSliderValues[node][button] = iPlayerFOVPerc;
@@ -42752,9 +42752,25 @@ void process_storeboard(bool bInitOnly)
 					}
 					if (iInNode >= 0 && iOutNode >= 0 && iInAttr >= 0 && iOutAttr >= 0)
 					{
-						//PE: Check if connect type match.
+						//PE: Check if connect type match
 						if (Storyboard.Nodes[iOutNode].type == Storyboard.Nodes[iInNode].output_can_link_to_type[iInAttr])
+						{
 							valid_link = true;
+						}
+						/* Not so, there is some hardcoded stuff still; START to loading to LEVEL
+						else
+						{
+							// can also allow screen and level types to interconnect
+							if (Storyboard.Nodes[iOutNode].type == STORYBOARD_TYPE_SCREEN && Storyboard.Nodes[iInNode].output_can_link_to_type[iInAttr] == STORYBOARD_TYPE_LEVEL)
+							{
+								valid_link = true;
+							}
+							if (Storyboard.Nodes[iOutNode].type == STORYBOARD_TYPE_LEVEL && Storyboard.Nodes[iInNode].output_can_link_to_type[iInAttr] == STORYBOARD_TYPE_SCREEN)
+							{
+								valid_link = true;
+							}
+						}
+						*/
 					}
 
 					if (valid_link)
@@ -45355,6 +45371,36 @@ void FindFirstLevel(int &iFirstLevelNode, char *level_name, bool bFailIfNoLink)
 			strcpy(level_name, Storyboard.Nodes[iFirstLevelNode].level_name);
 			return;
 		}
+		else
+		{
+			// may have connected loading screen to another screen, that in turn connected to a level, and so on, so find that
+			int iNextLinkTo = Storyboard.Nodes[iLevelNode].output_linkto[0];
+			iLevelNode = -1;
+			for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+			{
+				if (Storyboard.Nodes[i].used)
+				{
+					for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+					{
+						if (iNextLinkTo == Storyboard.Nodes[i].input_id[l])
+						{
+							iLevelNode = i;
+							break;
+						}
+					}
+				}
+				if (iLevelNode > 0) break;
+			}
+			if (iLevelNode > 0)
+			{
+				if (strlen(Storyboard.Nodes[iLevelNode].level_name) > 0)
+				{
+					iFirstLevelNode = iLevelNode;
+					strcpy(level_name, Storyboard.Nodes[iFirstLevelNode].level_name);
+					return;
+				}
+			}
+		}
 	}
 
 	if (bFailIfNoLink)
@@ -47320,21 +47366,24 @@ void TriggerScreenFromKeyPress()
 				StoryboardNodesStruct& node = Storyboard.Nodes[i];
 				if (node.used && scan > 0 && node.toggleKey == scan && strlen(node.level_name) == 0) // only HUDs
 				{
-					bWaitForKeyRelease = true;
-
-					if (t.game.activeStoryboardScreen == i)
+					if (node.type == STORYBOARD_TYPE_HUD)
 					{
-						// Screen is already active, turn it off
-						t.game.activeStoryboardScreen = -1;
+						// Only HUD types (not loading screens, etc)
+						bWaitForKeyRelease = true;
+						if (t.game.activeStoryboardScreen == i)
+						{
+							// Screen is already active, turn it off
+							t.game.activeStoryboardScreen = -1;
+						}
+						else
+						{
+							t.game.activeStoryboardScreen = i;
+						}
+						// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
+						//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
+						//t.game.titleloop = 0;
+						return;
 					}
-					else
-					{
-						t.game.activeStoryboardScreen = i;
-					}
-					// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
-					//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
-					//t.game.titleloop = 0;
-					return;
 				}
 			}
 		}

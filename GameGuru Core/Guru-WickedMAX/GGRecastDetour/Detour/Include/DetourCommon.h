@@ -22,6 +22,18 @@
 #include "DetourMath.h"
 #include <stddef.h>
 
+// MAX structures
+struct sBlocker
+{
+	float minX;
+	float maxX;
+	float minY;
+	float maxY;
+	float minZ;
+	float maxZ;
+	bool bBlocking;
+};
+
 /**
 @defgroup detour Detour
 

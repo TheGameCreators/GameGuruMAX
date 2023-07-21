@@ -5,6 +5,7 @@
 
 // Globals
 bool g_bNavMeshChanged = false;
+std::vector<sBlocker> g_BlockerList;
 
 // main functions
 GGRecastDetour::GGRecastDetour()
@@ -253,4 +254,49 @@ void GGRecastDetour::TogglePolys( float x, float y, float z, float radius, bool 
 
 	// when we toggle polys, force a debug update
 	forceDebugUpdate();
+}
+
+void GGRecastDetour::ResetBlockerSystem(void)
+{
+	g_BlockerList.clear();
+}
+
+void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool enable)
+{
+	radius /= 1.5f;
+	float minX = x - radius;
+	float maxX = x + radius;
+	float minY = y - 5;
+	float maxY = y + 95;
+	float minZ = z - radius;
+	float maxZ = z + radius;
+	bool bFoundBlocker = false;
+	for (int b = 0; b < g_BlockerList.size(); b++)
+	{
+		sBlocker* blocker = &g_BlockerList[b];
+		if (blocker->minX == minX && blocker->maxX == maxX )
+		{
+			if (blocker->minY == minY && blocker->maxY == maxY)
+			{
+				if (blocker->minZ == minZ && blocker->maxZ == maxZ)
+				{
+					bFoundBlocker = true;
+					blocker->bBlocking = enable;
+					break;
+				}
+			}
+		}
+	}
+	if (bFoundBlocker == false)
+	{
+		sBlocker item;
+		item.minX = minX;
+		item.maxX = maxX;
+		item.minY = minY;
+		item.maxY = maxY;
+		item.minZ = minZ;
+		item.maxZ = maxZ;
+		item.bBlocking = enable;
+		g_BlockerList.push_back(item);
+	}
 }

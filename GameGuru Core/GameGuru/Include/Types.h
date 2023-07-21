@@ -6757,10 +6757,12 @@ struct entitytype
 	int creationOfGroupID;
 	std::vector<int> iPreScannedVisible;
 	int iPreScanVisibleCurrent;
+	int iWasSpawnedInGame;
 	#endif
 	// Constructor
 	entitytype ( )
 	{
+		 iWasSpawnedInGame = 0;
 		 iPreScanVisibleCurrent = 0;
 		 iPreScannedVisible.clear();
 		 specialentityloadflag = 0;

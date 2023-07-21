@@ -389,7 +389,9 @@ void lua_loop_begin ( void )
 	LuaSetFloat (  "g_TimeElapsed", g.timeelapsed_f );
 	LuaSetInt (  "g_PlayerThirdPerson", t.playercontrol.thirdperson.enabled );
 	LuaSetInt (  "g_PlayerController", g.gxbox );
-	int iPlayerFOVPerc = (((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/180.0)*100.0;
+	//int iPlayerFOVPerc = (((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/180.0)*100.0; match with SetPlayerFOV calc!
+	//t.visuals.CameraFOV_f = (20 + ((g_fLastKnownFOVin + 0.0) / 114.0) * 180.0) / t.visuals.CameraASPECT_f;
+	int iPlayerFOVPerc = (((t.visuals.CameraFOV_f * t.visuals.CameraASPECT_f) - 20.0) / 180.0) * 114.0f;// 100.0;
 	LuaSetInt (  "g_PlayerFOV", iPlayerFOVPerc );
 	LuaSetInt (  "g_PlayerLastHitTime", t.playercontrol.regentime );
 	LuaSetInt (  "g_PlayerDeadTime", t.playercontrol.deadtime );

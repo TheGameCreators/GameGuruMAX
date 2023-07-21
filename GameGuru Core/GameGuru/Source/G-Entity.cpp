@@ -180,6 +180,9 @@ void entity_init ( void )
 			t.entityelement[t.e].iPreScanVisibleCurrent = 0;
 			t.entityelement[t.e].iPreScannedVisible.clear();
 		}
+
+		// reset spawn flags (even ones that are blank (i.e, bankindex=0)
+		t.entityelement[t.e].iWasSpawnedInGame = 0;
 	}
 }
 

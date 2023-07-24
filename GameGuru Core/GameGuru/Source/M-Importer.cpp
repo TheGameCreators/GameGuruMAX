@@ -62,7 +62,6 @@ int iImporterScale = 100;
 float fImporterScaleMultiply = 1.0;
 int iImporterGenerateThumb = 0;
 extern float custom_back_color[4];
-//char cImportName[MAX_PATH];
 char cImportName[128];
 char cImportPath[MAX_PATH] = "entitybank\\user\\";
 char cImportPathCropped[MAX_PATH] = "\\user";
@@ -73,6 +72,9 @@ float fImportPosX = 0.0, fImportPosY = 0.0, fImportPosZ = 0.0;
 float fImportModelBaseX = 0.0, fImportModelBaseY = 0.0, fImportModelBaseZ = 0.0;
 bool bFindFloor = false;
 bool bUseRGBAButtons = false;
+bool bBatchConverting = false;
+std::vector<cstr> batchFileList;
+
 #endif
 
 #ifndef PRODUCTCLASSIC
@@ -2156,7 +2158,7 @@ void importer_loadmodel_wicked(void)
 	t.importer.objectFilenameFPE += ".fpe";
 
 	// pre-populate import name
-	if (!t.importer.bQuitForReload)
+	if (!t.importer.bQuitForReload || bBatchConverting==true)
 	{
 		strcpy(cImportName, pFilename);
 	}
@@ -2352,7 +2354,7 @@ void importer_loadmodel_wicked(void)
 			}
 		}
 	}
-	if (bConvertedBoneNames==true)
+	if (bConvertedBoneNames==true && bBatchConverting==false)
 	{
 		strcpy(cTriggerMessage, "The imported model had unconventional bone names (included spaces, etc), these have been converted to standard MAX rig bone names.");
 		bTriggerMessage = true;
@@ -4729,6 +4731,8 @@ void imgui_importer_loop(void)
 			iDelayedExecute = 0;
 			importer_quit();
 			bImporter_Window = false;
+			bBatchConverting = false;
+			batchFileList.clear();
 			break;
 		}
 		case 1:
@@ -4824,9 +4828,8 @@ void imgui_importer_loop(void)
 
 			pFillFilename = pFillFilename + cImportName + ".dbo";
 
-			#ifdef WICKEDENGINE
-			// better way
-			if (cImportPath[1] != ':') //Dont resolve if not using relative path.
+			//Dont resolve if not using relative path.
+			if (cImportPath[1] != ':') 
 			{
 				char resolved[MAX_PATH];
 				strcpy(resolved, g.fpscrootdir_s.Get());
@@ -4834,40 +4837,37 @@ void imgui_importer_loop(void)
 				strcat(resolved, pFillFilename.Get());
 				pFillFilename = resolved;
 			}
-			#else
-			//Resolve path.
-			char resolved[MAX_PATH];
-			int retval = GetFullPathNameA(pFillFilename.Get(), MAX_PATH, resolved, NULL);
-			if (retval > 0) pFillFilename = resolved;
-			#endif
 
-			#ifdef WICKEDENGINE
-			bool bShouldSave = true;
-			if(FileExist(pFillFilename.Get()))
-				bShouldSave = overWriteFileBox(pFillFilename.Get());
-
-			if (!bShouldSave)
-				break;
-			#endif
-
-			importer_save_entity(pFillFilename.Get());
-			if (t.tSaveFile_s == "Error") 
+			if (bBatchConverting == false)
 			{
-				//Failed. ? or cancel ?
-				#ifdef WICKEDENGINE
-				popup_text("Cancel Save Object");
-				#else
-				popup_text("Cancel Save Entity");
-				#endif
+				bool bShouldSave = true;
+				if (FileExist(pFillFilename.Get()))
+					bShouldSave = overWriteFileBox(pFillFilename.Get());
+
+				if (!bShouldSave)
+					break;
 			}
-			else 
+
+			// the actual save
+			importer_save_entity(pFillFilename.Get());
+
+			// single or batch process
+			if (bBatchConverting == true)
 			{
-				#ifdef WICKEDENGINE
-				//iDelayedExecute = 0; //PE: Setup for object library back button. This will crash as we still reuse images.
-				iDelayedExecute = 2;
-				#else
-				iDelayedExecute = 2; // quit
-				#endif
+				// continue batch process after large preview event
+				iDelayedExecute = 5;
+			}
+			else
+			{
+				if (t.tSaveFile_s == "Error")
+				{
+					// Failed. ? or cancel ?
+					popup_text("Cancel Save Object");
+				}
+				else
+				{
+					iDelayedExecute = 2;
+				}
 			}
 			break;
 		}
@@ -4882,6 +4882,28 @@ void imgui_importer_loop(void)
 			importer_quit_for_reload(pLaunchAfterSyncPreSelectModel); 
 			extern int iLaunchAfterSync;
 			iLaunchAfterSync = 8;
+			break;
+		}
+		case 5:
+		{
+			// batch conversion process
+			extern cstr sGotoPreviewWithFile;
+			if (sGotoPreviewWithFile.Len() > 0)
+			{
+				// wait for preview to be created in UI before proceeding to next load
+			}
+			else
+			{
+				iDelayedExecute = 0;
+				importer_storeobjectdata();
+				extern char pLaunchAfterSyncPreSelectModel[MAX_PATH];
+				strcpy (pLaunchAfterSyncPreSelectModel, "");
+				extern void importer_quit_for_reload (LPSTR pOptionalCopyModelFile);
+				importer_quit_for_reload(pLaunchAfterSyncPreSelectModel);
+				extern int iLaunchAfterSync;
+				iLaunchAfterSync = 8;
+				bBatchConverting = true;
+			}
 			break;
 		}
 
@@ -5925,38 +5947,21 @@ void imgui_importer_loop(void)
 			ImGui::Indent(-10);
 		}
 
-		#ifdef WICKEDENGINE
 		animsystem_animationtoolui(t.importer.objectnumber);
-		#endif
 
-		#ifdef WICKEDENGINE
+		// Import Object
 		if (pref.bAutoClosePropertySections && iLastOpenHeader != 76)
-			ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-		if (ImGui::CollapsingHeader("Import Object", ImGuiTreeNodeFlags_DefaultOpen))
-		#else
-		if (ImGui::CollapsingHeader("Save Entity", ImGuiTreeNodeFlags_DefaultOpen))
-		#endif
 		{
-			#ifdef WICKEDENGINE
+			ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+		}
+		if (ImGui::CollapsingHeader("Import Object", ImGuiTreeNodeFlags_DefaultOpen))
+		{
 			iLastOpenHeader = 76;
-			#endif
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-		
 			ImGui::TextCenter("Path");
-			
-			//ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-			//ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-			//ImGui::SetCursorPos(ImVec2(0, ImGui::GetCursorPosY()));
-			//float path_gadget_size = ImGui::GetFontSize()*2.0;
-			//ImGui::Indent(10);
-			//ImGui::PushItemWidth(10 - path_gadget_size);
-		
-			//ImGui::Indent(38);
-			//ImGui::PushItemWidth(ImGui::GetFontSize() * 10.0f);
 			ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() - ImGui::GetFontSize() * 9 - 10);// ImGui::GetFontSize() * 10.0f);
 			ImGui::Indent(ImGui::GetFontSize()*2.0 +40);
 			
-			//ImGui::InputText("##InputPathImporter", &cImportPath[0], 250);
 			ImGui::InputText("##InputPathImporter", &cImportPathCropped[0], 250);
 			if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set where you would like to save the object files");
 			#ifdef WICKEDENGINE
@@ -5970,7 +5975,7 @@ void imgui_importer_loop(void)
 			//	Let the user know they set an invalid save file path.
 			if (ImGui::BeginPopup("##InvalidSavePath"))
 			{
-				ImGui::Text("Path must be within 'Max\\Files\\entitybank\\'");
+				ImGui::Text("Path must be within 'entitybank\\'");
 				ImGui::EndPopup();
 			}
 
@@ -5987,11 +5992,11 @@ void imgui_importer_loop(void)
 				SetDir(tOldDir.Get());
 
 				// Now that user has chosen a new path, refresh the folders, in case any new folders have been added 
-				// If this proves to be too slow, we can just manually add the new folders that have been created, and the auto file scan should do the rest.
 				extern bool bExternal_Entities_Init;
 				bExternal_Entities_Init = false;
 				extern void mapeditorexecutable_full_folder_refresh(void);
 				mapeditorexecutable_full_folder_refresh();
+
 				//,pvec code below intside the refresh call
 				// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
 				//extern bool bTreeViewInitInNextFrame;
@@ -6022,7 +6027,6 @@ void imgui_importer_loop(void)
 
 			ImGui::PopItemWidth();
 			ImGui::Indent(-58);
-
 			ImGui::Indent(-10); //unindent before center.
 
 			float but_gadget_size = ImGui::GetFontSize()*10.0;
@@ -6038,13 +6042,10 @@ void imgui_importer_loop(void)
 				{
 					if (strlen(cImportPath) > 0) 
 					{
-						#ifdef WICKEDENGINE
 						importer_storeobjectdata();
-
 						// before save, match created animsets to actual DBO structure
 						sObject* pObject = GetObjectData(t.importer.objectnumber);
 						UpdateObjectWithAnimSlotList(pObject);
-						#endif
 
 						// Trigger save Object to happen
 						iDelayedExecute = 3; 
@@ -6071,9 +6072,206 @@ void imgui_importer_loop(void)
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Cancel, Close Importer");
 		}
 
+		// Import Batch
+		if (pref.bAutoClosePropertySections && iLastOpenHeader != 77)
+		{
+			ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+		}
+		if (ImGui::CollapsingHeader("Import Batch", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+			iLastOpenHeader = 77;
+			float but_gadget_size = ImGui::GetFontSize() * 10.0;
+			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+			if (bBatchConverting == true)
+			{
+				// show files in progress
+				if (batchFileList.size() > 0)
+				{
+					ImGui::TextCenter("");
+					extern cstr sGotoPreviewWithFile;
+					if (sGotoPreviewWithFile.Len() > 0)
+					{
+						ImGui::TextCenter("...Creating Preview...");
+					}
+					else
+					{
+						char pTitleFilesToBatch[256];
+						sprintf(pTitleFilesToBatch, "%d Files Remaining", batchFileList.size());
+						ImGui::TextCenter(pTitleFilesToBatch);
+						for (int f = batchFileList.size() - 1; f > 0; f--)
+						{
+							ImGui::TextCenter(batchFileList[f].Get());
+							if (f > 14)
+							{
+								ImGui::TextCenter("...");
+								break;
+							}
+						}
+
+						// before save, match created animsets to actual DBO structure
+						sObject* pObject = GetObjectData(t.importer.objectnumber);
+						UpdateObjectWithAnimSlotList(pObject);
+
+						// Trigger save Object to happen
+						iDelayedExecute = 3;
+					}
+				}
+				else
+				{
+					// quit when finish batch conversion
+					bBatchConverting = false;
+					iDelayedExecute = 2; // Quit
+				}
+			}
+			else
+			{
+				ImGui::TextCenter("This feature will use the current object");
+				ImGui::TextCenter("customized settings to batch convert all");
+				ImGui::TextCenter("models in the batch folder, and provide");
+				ImGui::TextCenter("a preview window to finalize the");
+				ImGui::TextCenter("thumbnail image of each one.");
+				ImGui::TextCenter("");
+				ImGui::TextCenter("Batch Folder");
+				ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth() - ImGui::GetFontSize() * 9 - 10);
+				ImGui::Indent(ImGui::GetFontSize() * 2.0 + 40);
+
+				ImGui::InputText("##InputPathImporter", &cImportPathCropped[0], 250);
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set where you would like to save the object files");
+				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+				ImGui::PushItemWidth(ImGui::GetFontSize() * 2.0f);
+
+				//	Let the user know they set an invalid save file path.
+				if (ImGui::BeginPopup("##InvalidSavePath2"))
+				{
+					ImGui::Text("Path must be within 'entitybank\\'");
+					ImGui::EndPopup();
+				}
+
+				if (ImGui::StyleButton("...##Importerpath2"))
+				{
+					//PE: filedialogs change dir so.
+					cStr tOldDir = GetDir();
+					char* cFileSelected;
+					char defaultPath[MAX_PATH];
+					strcpy(defaultPath, GG_GetWritePath());
+					strcat(defaultPath, "Files\\entitybank\\user");
+					cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", defaultPath, "", true, NULL);
+					SetDir(tOldDir.Get());
+
+					// Now that user has chosen a new path, refresh the folders, in case any new folders have been added 
+					extern bool bExternal_Entities_Init;
+					bExternal_Entities_Init = false;
+					extern void mapeditorexecutable_full_folder_refresh(void);
+					mapeditorexecutable_full_folder_refresh();
+
+					if (cFileSelected && strlen(cFileSelected) > 0)
+					{
+						//	Check that the new path still contains the entitybank folder.
+						char* cCropped = strstr(cFileSelected, "\\entitybank");
+						if (cCropped)
+						{
+							//	New location contains entitybank folder, so change the import path.
+							strcpy(cImportPath, cFileSelected);
+							strcpy(cImportPathCropped, cCropped);
+
+							//	Drop the entitybank folder from the cropped file path.
+							char pNewCroppedStr[MAX_PATH];
+							strcpy(pNewCroppedStr, cCropped + strlen("\\entitybank"));
+							strcpy(cImportPathCropped, pNewCroppedStr);
+
+							// collect list of models to convert
+							batchFileList.clear();
+							cstr pOldDir = GetDir();
+							SetDir(cImportPath);
+							ChecklistForFiles();
+							for (int c = 1; c <= ChecklistQuantity(); c++)
+							{
+								LPSTR pFileName = ChecklistString(c);
+								if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
+								{
+									bool bPermittedFormat = false;
+									const char* pExtension = strrchr(pFileName, '.');
+									if (stricmp(pExtension, ".x") == NULL) bPermittedFormat = true;
+									if (stricmp(pExtension, ".dbo") == NULL) bPermittedFormat = true;
+									if (stricmp(pExtension, ".obj") == NULL) bPermittedFormat = true;
+									if (stricmp(pExtension, ".fbx") == NULL) bPermittedFormat = true;
+									if (stricmp(pExtension, ".gltf") == NULL) bPermittedFormat = true;
+									if (stricmp(pExtension, ".glb") == NULL) bPermittedFormat = true;
+									//if (stricmp(pExtension, ".dae") == NULL) bPermittedFormat = true;
+									//if (stricmp(pExtension, ".3ds") == NULL) bPermittedFormat = true;
+									if (bPermittedFormat == true)
+									{
+										batchFileList.push_back(pFileName);
+									}
+								}
+							}
+							SetDir(pOldDir.Get());
+						}
+						else
+						{
+							ImGui::OpenPopup("##InvalidSavePath2");
+						}
+					}
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("This folder contains all the models to be batch converted");
+
+				ImGui::PopItemWidth();
+				ImGui::Indent(-58);
+				ImGui::Indent(-10); //unindent before center.
+
+				// show files
+				ImGui::TextCenter("");
+				char pTitleFilesToBatch[256];
+				sprintf(pTitleFilesToBatch, "%d Files to Batch", batchFileList.size());
+				ImGui::TextCenter(pTitleFilesToBatch);
+				for (int f = 0; f < batchFileList.size(); f++)
+				{
+					ImGui::TextCenter(batchFileList[f].Get());
+					if (f > 14)
+					{
+						ImGui::TextCenter("...");
+						break;
+					}
+				}
+
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+				if (ImGui::Button("Batch Convert All##ImporterSaveUniqueId", ImVec2(but_gadget_size, 0)))
+				{
+					if (strlen(cImportName) > 0)
+					{
+						if (strlen(cImportPath) > 0)
+						{
+							// save settings
+							importer_storeobjectdata();
+							// before save, match created animsets to actual DBO structure
+							sObject* pObject = GetObjectData(t.importer.objectnumber);
+							UpdateObjectWithAnimSlotList(pObject);
+							// Trigger Batch Convert to happen
+							iDelayedExecute = 5;
+						}
+						else
+						{
+							strcpy(cTriggerMessage, "Please select a path to the models to be batch converted");
+							bTriggerMessage = true;
+						}
+					}
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Import Object Batch");
+			}
+
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+			if (ImGui::StyleButton("Cancel", ImVec2(but_gadget_size, 0)))
+			{
+				iDelayedExecute = 2; // Quit
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Cancel, Close Importer");
+		}
+
 		if (!pref.bHideTutorials)
 		{
-#ifndef REMOVED_EARLYACCESS
+			#ifndef REMOVED_EARLYACCESS
 			if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
@@ -6102,22 +6300,22 @@ void imgui_importer_loop(void)
 
 				ImGui::Indent(-10);
 			}
-#endif
+			#endif
 		}
 
 		void CheckMinimumDockSpaceSize(float minsize);
 		CheckMinimumDockSpaceSize(250.0f);
 
-		if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
-			//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+		// Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+		if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0)
+		{
 			ImGui::Text("");
 			ImGui::Text("");
 		}
-
 		ImGui::End();
 	}
-	else 
-{
+	else
+	{
 		if (!bImporter_Window && t.importer.importerActive == 1)
 		{
 			//Window must have been close, shutdown.
@@ -15930,9 +16128,7 @@ void importer_storeobjectdata()
 
 void importer_restoreobjectdata()
 {
-#ifdef WICKEDENGINE
-	// Copy all of the imported object data, so it can be restored if the user goes back after import.
-	strcpy(cImportName, g_Data.cName);
+	// common to refresh load and batch load
 	t.importer.lastscalingmodeused = g_Data.iScaleMode;
 	t.importer.centermodelbyshiftingmesh = g_Data.iCentreMeshData;
 	iImporterScale = g_Data.iScale;
@@ -15943,72 +16139,79 @@ void importer_restoreobjectdata()
 	t.importer.defaultstatic = g_Data.iStatic;
 	t.slidersmenuvalue[t.importer.properties1Index][10].value = g_Data.iMaterialType;
 
-	sObject* pObject = nullptr;
-	pObject = GetObjectData(t.importer.objectnumber);
-	if (pObject)
+	// Copy all of the imported object data, so it can be restored if the user goes back after import.
+	if (bBatchConverting == true)
 	{
-		int iMeshCount = pObject->iMeshCount;
-
-		for (int i = 0; i < iMeshCount; i++)
+		// batch only uses certain settings, and non-model related!
+	}
+	else
+	{
+		// refresh load
+		strcpy(cImportName, g_Data.cName);
+		sObject* pObject = nullptr;
+		pObject = GetObjectData(t.importer.objectnumber);
+		if (pObject)
 		{
-			sMesh* mesh = pObject->ppMeshList[i];
-			if (mesh)
+			int iMeshCount = pObject->iMeshCount;
+
+			for (int i = 0; i < iMeshCount; i++)
 			{
-				wiScene::MeshComponent* meshComponent = wiScene::GetScene().meshes.GetComponent(mesh->wickedmeshindex);
-				if (meshComponent)
+				sMesh* mesh = pObject->ppMeshList[i];
+				if (mesh)
 				{
-					uint64_t materialEntity = meshComponent->subsets[0].materialID;
-					wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-					if (pMeshMaterial)
+					wiScene::MeshComponent* meshComponent = wiScene::GetScene().meshes.GetComponent(mesh->wickedmeshindex);
+					if (meshComponent)
 					{
-						std::array<float, 4>& baseColour = g_Data.baseColours[i];
-						pMeshMaterial->baseColor = XMFLOAT4(baseColour[0], baseColour[1], baseColour[2], baseColour[3]);
-
-						std::array<char, MAX_PATH>& albedofile = g_Data.albedoFiles[i];
-						pMeshMaterial->textures[BASECOLORMAP].name = std::string(&albedofile[0]);
-
-						std::array<char, MAX_PATH>& normalfile = g_Data.normalFiles[i];
-						pMeshMaterial->textures[NORMALMAP].name = std::string(&normalfile[0]);
-
-						std::array<char, MAX_PATH>& surfacefile = g_Data.surfaceFiles[i];
-						pMeshMaterial->textures[SURFACEMAP].name = std::string(&surfacefile[0]);
-
-						std::array<char, MAX_PATH>& emissivefile = g_Data.emissiveFiles[i];
-						pMeshMaterial->textures[EMISSIVEMAP].name = std::string(&emissivefile[0]);
-
-						std::array<float, 4>& emissiveColour = g_Data.emissiveColours[i];
-						pMeshMaterial->emissiveColor = XMFLOAT4(emissiveColour[0], emissiveColour[1], emissiveColour[2], emissiveColour[3]);
-
-						pMeshMaterial->reflectance = g_Data.reflectance[i];
-						WickedCall_SetRenderOrderBias(mesh, g_Data.renderBias[i]);
-						pMeshMaterial->userBlendMode = (BLENDMODE)g_Data.transparent[i];
-						meshComponent->SetDoubleSided(g_Data.doubleSided[i]);
-						pMeshMaterial->shaderType = (wiScene::MaterialComponent::SHADERTYPE)g_Data.planarReflection[i];
-						pMeshMaterial->SetCastShadow(g_Data.castShadows[i]);
-
-						g_pAnimSlotList.resize(g_Data.animSlots.size());
-						if (g_Data.animSlots.size() > 0)
-							memcpy(&g_pAnimSlotList[0], &g_Data.animSlots[0], sizeof(sAnimSlotStruct) * g_Data.animSlots.size());
-
-						if (i == 0)
+						uint64_t materialEntity = meshComponent->subsets[0].materialID;
+						wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+						if (pMeshMaterial)
 						{
-							pSelectedMaterial = pMeshMaterial;
-							pSelectedMesh = mesh;
-						}
+							std::array<float, 4>& baseColour = g_Data.baseColours[i];
+							pMeshMaterial->baseColor = XMFLOAT4(baseColour[0], baseColour[1], baseColour[2], baseColour[3]);
 
-						pMeshMaterial->SetDirty();
+							std::array<char, MAX_PATH>& albedofile = g_Data.albedoFiles[i];
+							pMeshMaterial->textures[BASECOLORMAP].name = std::string(&albedofile[0]);
+
+							std::array<char, MAX_PATH>& normalfile = g_Data.normalFiles[i];
+							pMeshMaterial->textures[NORMALMAP].name = std::string(&normalfile[0]);
+
+							std::array<char, MAX_PATH>& surfacefile = g_Data.surfaceFiles[i];
+							pMeshMaterial->textures[SURFACEMAP].name = std::string(&surfacefile[0]);
+
+							std::array<char, MAX_PATH>& emissivefile = g_Data.emissiveFiles[i];
+							pMeshMaterial->textures[EMISSIVEMAP].name = std::string(&emissivefile[0]);
+
+							std::array<float, 4>& emissiveColour = g_Data.emissiveColours[i];
+							pMeshMaterial->emissiveColor = XMFLOAT4(emissiveColour[0], emissiveColour[1], emissiveColour[2], emissiveColour[3]);
+
+							pMeshMaterial->reflectance = g_Data.reflectance[i];
+							WickedCall_SetRenderOrderBias(mesh, g_Data.renderBias[i]);
+							pMeshMaterial->userBlendMode = (BLENDMODE)g_Data.transparent[i];
+							meshComponent->SetDoubleSided(g_Data.doubleSided[i]);
+							pMeshMaterial->shaderType = (wiScene::MaterialComponent::SHADERTYPE)g_Data.planarReflection[i];
+							pMeshMaterial->SetCastShadow(g_Data.castShadows[i]);
+
+							g_pAnimSlotList.resize(g_Data.animSlots.size());
+							if (g_Data.animSlots.size() > 0)
+								memcpy(&g_pAnimSlotList[0], &g_Data.animSlots[0], sizeof(sAnimSlotStruct) * g_Data.animSlots.size());
+
+							if (i == 0)
+							{
+								pSelectedMaterial = pMeshMaterial;
+								pSelectedMesh = mesh;
+							}
+
+							pMeshMaterial->SetDirty();
+						}
 					}
 				}
 			}
+
+			importer_applyframezerooffsets(t.importer.objectnumber, fImportPosX, fImportPosY, fImportPosZ, fImportRotX, fImportRotY, fImportRotZ);
+			char* pCollisionShapes[10] = { "Box","Polygon","Sphere","Cylinder","Convex Hull","Character Collision","Tree Collision","No Collision", "Hull Decomp", "Collision Mesh" };
+			strcpy(collision_combo_entry, pCollisionShapes[t.importer.collisionshape]);
 		}
-
-		
-
-		importer_applyframezerooffsets(t.importer.objectnumber, fImportPosX, fImportPosY, fImportPosZ, fImportRotX, fImportRotY, fImportRotZ);
-		char* pCollisionShapes[10] = { "Box","Polygon","Sphere","Cylinder","Convex Hull","Character Collision","Tree Collision","No Collision", "Hull Decomp", "Collision Mesh" };
-		strcpy(collision_combo_entry, pCollisionShapes[t.importer.collisionshape]);
 	}
-#endif
 }
 
 void importer_clearobjectdata()

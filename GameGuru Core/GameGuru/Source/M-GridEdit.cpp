@@ -16953,6 +16953,23 @@ void mapeditorexecutable_loop(void)
 					cStr tOldDir = GetDir();
 					char * cFileSelected;
 					#ifdef WICKEDENGINE
+
+					// if batch converting, keep going around until no files left in batch list
+					extern bool bBatchConverting;
+					if (bBatchConverting == true)
+					{
+						extern std::vector<cstr> batchFileList;
+						int iBatchFileCount = batchFileList.size();
+						if (iBatchFileCount > 0)
+						{
+							extern char cImportPath[MAX_PATH];
+							strcpy(pLaunchAfterSyncPreSelectModel, cImportPath);
+							strcat(pLaunchAfterSyncPreSelectModel, "\\");
+							strcat(pLaunchAfterSyncPreSelectModel, batchFileList[iBatchFileCount-1].Get());
+							batchFileList.pop_back();
+						}
+					}
+
 					if (strlen(pLaunchAfterSyncPreSelectModel) > 0)
 					{
 						// can trigger the importer with a preselected model filename (used by scaling mode changes)

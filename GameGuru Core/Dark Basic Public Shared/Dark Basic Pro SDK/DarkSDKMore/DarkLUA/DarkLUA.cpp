@@ -5977,7 +5977,6 @@ int RotateGlobalAngleY(lua_State *L)
 	return 3;
 }
 
-
 int GetLightAngle(lua_State *L)
 {
 	lua = L;
@@ -6003,6 +6002,26 @@ int GetLightAngle(lua_State *L)
 		fAngleZ = (fAngleZ / 180.0f) - 1.0f;
 		#endif
 
+		lua_pushnumber(L, fAngleX);
+		lua_pushnumber(L, fAngleY);
+		lua_pushnumber(L, fAngleZ);
+		return 3;
+	}
+	return 0;
+}
+int GetLightEuler(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int i = lua_tointeger(L, 1);
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		float fAngleX = t.infinilight[i].f_angle_x;
+		float fAngleY = t.infinilight[i].f_angle_y;
+		float fAngleZ = t.infinilight[i].f_angle_z;
+		void FixEulerZInverted(float& ax, float& ay, float& az);
+		FixEulerZInverted(fAngleX, fAngleY, fAngleZ);
 		lua_pushnumber(L, fAngleX);
 		lua_pushnumber(L, fAngleY);
 		lua_pushnumber(L, fAngleZ);
@@ -6079,8 +6098,10 @@ float QuickEulerWrapAngle(float Angle)
 int SetLightAngle(lua_State *L)
 {
 	lua = L;
+
 	// get number of arguments
 	int n = lua_gettop(L);
+
 	// Not enough params, return out
 	if (n < 4)
 		return 0;
@@ -6101,6 +6122,20 @@ int SetLightAngle(lua_State *L)
 		t.infinilight[i].f_angle_y = (t.infinilight[i].f_angle_y + 1.0) * 180.0;
 		t.infinilight[i].f_angle_z = (t.infinilight[i].f_angle_z + 1.0) * 180.0;
 		#endif
+	}
+	return 0;
+}
+int SetLightEuler(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int i = lua_tonumber(L, 1);
+	if (i > 0 && i <= g.infinilightmax && t.infinilight[i].used == 1)
+	{
+		t.infinilight[i].f_angle_x = lua_tonumber(L, 2);
+		t.infinilight[i].f_angle_y = lua_tonumber(L, 3);
+		t.infinilight[i].f_angle_z = lua_tonumber(L, 4);
 	}
 	return 0;
 }
@@ -10040,11 +10075,13 @@ void addFunctions()
 	// Lua control of dynamic light
 	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
 	lua_register(lua, "GetLightPosition",     GetLightPosition );
-	lua_register(lua, "GetLightAngle",        GetLightAngle );
+	lua_register(lua, "GetLightAngle",		  GetLightAngle);
+	lua_register(lua, "GetLightEuler",		  GetLightEuler);
 	lua_register(lua, "GetLightRGB",          GetLightRGB );
 	lua_register(lua, "GetLightRange",        GetLightRange );
 	lua_register(lua, "SetLightPosition",     SetLightPosition );
-	lua_register(lua, "SetLightAngle",        SetLightAngle );
+	lua_register(lua, "SetLightAngle",		  SetLightAngle);
+	lua_register(lua, "SetLightEuler",		  SetLightEuler);
 	lua_register(lua, "SetLightRGB",          SetLightRGB );
 	lua_register(lua, "SetLightRange",        SetLightRange );
 	

@@ -700,7 +700,7 @@ void UniversalKeyboardShortcut(eKeyboardShortcutType KST);
 
 void storyboard_menubar(float area_width, float node_width, float node_height);
 void storeboard_init_nodes(float area_width, float node_width, float node_height);
-int storyboard_add_missing_nodex(int node, float area_width, float node_width, float node_height, bool bForce = false);
+int storyboard_add_missing_nodex(int node, float area_width, float node_width, float node_height, bool bForce = false, bool bRestoring = false);
 void mapNodeStyle(void);
 void load_storyboard(char *name);
 bool load_checkproject_storyboard(char *name);

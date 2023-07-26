@@ -3263,22 +3263,21 @@ DARKSDK_DLL void AppendObject ( LPSTR pString, int iID, int iFrame )
 	sObject* pObject = g_ObjectList [ iID ];
 	if ( pObject->pAnimationSet==NULL )
 	{
-		RunTimeError(RUNTIMEERROR_B3DKEYFRAMENOTEXIST);
+		//RunTimeError(RUNTIMEERROR_B3DKEYFRAMENOTEXIST); soft fail!
 		return;
 	}
-
-	// Append animation from file to model
-	if (g_pGlob->Decrypt) g_pGlob->Decrypt(VirtualFilename);
-
-	if ( !AppendAnimationFromFile ( pObject, (LPSTR)VirtualFilename, iFrame ) )
+	else
 	{
+		// Append animation from file to model
+		if (g_pGlob->Decrypt) g_pGlob->Decrypt(VirtualFilename);
+		if (!AppendAnimationFromFile (pObject, (LPSTR)VirtualFilename, iFrame))
+		{
+			if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
+			RunTimeError(RUNTIMEERROR_B3DOBJECTAPPENDFAILED);
+			return;
+		}
 		if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
-		RunTimeError(RUNTIMEERROR_B3DOBJECTAPPENDFAILED);
-		return;
 	}
-	if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
-
-
 }
 
 DARKSDK_DLL void PlayObject ( int iID )

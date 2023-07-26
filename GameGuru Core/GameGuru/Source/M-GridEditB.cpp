@@ -37693,6 +37693,48 @@ void setup_output_links(int node)
 	}
 }
 
+void reset_single_node_interscreen(int node)
+{
+	// this is called by restore to reset all 'screen elements' without affecting wider relationships (i.e. connections to nodes)
+	int i = node;
+
+	//Screen
+	strcpy(Storyboard.Nodes[i].screen_title, "");
+	strcpy(Storyboard.Nodes[i].screen_music, "");
+	Storyboard.Nodes[i].screen_grid_size = 0;
+	strcpy(Storyboard.Nodes[i].screen_backdrop, "");
+	Storyboard.Nodes[i].screen_back_color = ImVec4(0.0, 0.0, 0.0, 1.0);
+	Storyboard.Nodes[i].screen_backdrop_placement = 2; // center,stretch,zoom. PE: Default to zoom.
+	strcpy(Storyboard.Nodes[i].screen_thumb, "");
+	for (int ll = 0; ll < 10; ll++)
+		Storyboard.Nodes[i].screen_backdrop_ratio_placement[ll] = 0; // 0=1920x1080 center,stretch,zoom. 1=1366x768 center,stretch,zoom ...
+
+	//Editor.
+	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
+	{
+		Storyboard.Nodes[i].widget_used[ll] = 0;
+		strcpy(Storyboard.Nodes[i].widget_label[ll], "");
+		Storyboard.Nodes[i].widget_size[ll] = ImVec2(1.0, 1.0); // size zoom.
+		Storyboard.Nodes[i].widget_pos[ll] = ImVec2(0, 0);
+		strcpy(Storyboard.Nodes[i].widget_normal_thumb[ll], "");
+		strcpy(Storyboard.Nodes[i].widget_highlight_thumb[ll], "");
+		strcpy(Storyboard.Nodes[i].widget_selected_thumb[ll], ""); //only for state change button, checkbox ...
+		strcpy(Storyboard.Nodes[i].widget_click_sound[ll], "");
+		Storyboard.Nodes[i].widget_action[ll] = 0; // 0=none ...
+		strcpy(Storyboard.Nodes[i].widget_font[ll], "Default Font");
+		Storyboard.Nodes[i].widget_font_color[ll] = ImVec4(1.0, 1.0, 1.0, 1.0);
+		Storyboard.Nodes[i].widget_font_size[ll] = 1.0;
+		Storyboard.Nodes[i].widget_type[ll] = 0; // 0=none,but,text,image,video...
+		Storyboard.Nodes[i].widget_layer[ll] = 0;
+		Storyboard.Nodes[i].widget_initial_value[ll] = 0;
+		strcpy(Storyboard.Nodes[i].widget_name[ll], "");
+		Storyboard.Nodes[i].widget_read_only[ll] = 0; //off,level,screen.
+		Storyboard.NodeSliderValues[i][ll] = 0.0;
+	}
+
+	// used by GRAPHICS SETTINGS (1,2,3)
+	Storyboard.NodeRadioButtonSelected[i] = -1;
+}
 
 void reset_single_node(int node)
 {
@@ -37708,6 +37750,7 @@ void reset_single_node(int node)
 	strcpy(Storyboard.Nodes[i].thumb, "");
 	strcpy(Storyboard.Nodes[i].lua_name, "");
 	strcpy(Storyboard.Nodes[i].level_name, "");
+
 	//Each filler have its own, so can count it down later.
 	Storyboard.Nodes[i].screen_backdrop_transparent = false;
 	
@@ -37725,44 +37768,8 @@ void reset_single_node(int node)
 		strcpy(Storyboard.Nodes[i].input_action[l], "");
 	}
 
-	//Screen
-	strcpy(Storyboard.Nodes[i].screen_title, "");
-	strcpy(Storyboard.Nodes[i].screen_music, "");
-	Storyboard.Nodes[i].screen_grid_size = 0;
-	strcpy(Storyboard.Nodes[i].screen_backdrop, "");
-	Storyboard.Nodes[i].screen_back_color = ImVec4(0.0,0.0,0.0,1.0);
-	Storyboard.Nodes[i].screen_backdrop_placement = 2; // center,stretch,zoom. PE: Default to zoom.
-	strcpy(Storyboard.Nodes[i].screen_thumb, "");
-	for(int ll = 0 ; ll < 10 ; ll++ )
-		Storyboard.Nodes[i].screen_backdrop_ratio_placement[ll] = 0; // 0=1920x1080 center,stretch,zoom. 1=1366x768 center,stretch,zoom ...
-
-	//Editor.
-	for (int ll = 0; ll < STORYBOARD_MAXWIDGETS; ll++)
-	{
-		Storyboard.Nodes[i].widget_used[ll] = 0;
-		strcpy(Storyboard.Nodes[i].widget_label[ll],"");
-		Storyboard.Nodes[i].widget_size[ll] = ImVec2(1.0, 1.0); // size zoom.
-		Storyboard.Nodes[i].widget_pos[ll] = ImVec2(0, 0);
-		strcpy(Storyboard.Nodes[i].widget_normal_thumb[ll], "");
-		strcpy(Storyboard.Nodes[i].widget_highlight_thumb[ll], "");
-		strcpy(Storyboard.Nodes[i].widget_selected_thumb[ll], ""); //only for state change button, checkbox ...
-		strcpy(Storyboard.Nodes[i].widget_click_sound[ll], "");
-		Storyboard.Nodes[i].widget_action[ll] = 0; // 0=none ...
-		strcpy(Storyboard.Nodes[i].widget_font[ll], "Default Font");
-		Storyboard.Nodes[i].widget_font_color[ll] = ImVec4(1.0, 1.0, 1.0, 1.0);
-		Storyboard.Nodes[i].widget_font_size[ll] = 1.0;
-		Storyboard.Nodes[i].widget_type[ll] = 0; // 0=none,but,text,image,video...
-		Storyboard.Nodes[i].widget_layer[ll] = 0;
-		//Storyboard.Nodes[i].widget_output_pin[ll] = 0; //off,level,screen.
-		Storyboard.Nodes[i].widget_initial_value[ll] = 0;
-		strcpy(Storyboard.Nodes[i].widget_name[ll], "");
-		Storyboard.Nodes[i].widget_read_only[ll] = 0; //off,level,screen.
-		
-		Storyboard.NodeSliderValues[i][ll] = 0.0;
-	}
-
-	// used by GRAPHICS SETTINGS (1,2,3)
-	Storyboard.NodeRadioButtonSelected[i] = -1;
+	//Screen and Editor
+	reset_single_node_interscreen(i);
 }
 
 void storeboard_fix_uniqueids( void )
@@ -42264,7 +42271,10 @@ void process_storeboard(bool bInitOnly)
 											int iAction = askBoxCancel("This will restore the screen to original, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
 											if (iAction == 1)
 											{
+												reset_single_node_interscreen(i);
 												storyboard_add_missing_nodex(i, 0, 0, 0, true, true);
+												extern void RefreshThumbImagesForNode(int, int);
+												RefreshThumbImagesForNode(i, 0);
 												strcpy(Storyboard.Nodes[i].thumb, "editors\\uiv3\\click-here-box-screen.png");
 												SetMipmapNum(1);
 												image_setlegacyimageloading(true);
@@ -46914,6 +46924,31 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 	return widgetSlot;
 }
 
+void RefreshThumbImagesForNode(int nodeID, int indexToActiveWidget)
+{
+	StoryboardNodesStruct& node = Storyboard.Nodes[nodeID];
+	image_setlegacyimageloading(true);
+	for (int i = indexToActiveWidget; i < STORYBOARD_MAXWIDGETS; i++)
+	{
+		DeleteImage(node.widget_normal_thumb_id[i]);
+		if (strlen(node.widget_normal_thumb[i]) > 0)
+		{
+			LoadImage(node.widget_normal_thumb[i], node.widget_normal_thumb_id[i]);
+		}
+		DeleteImage(node.widget_highlight_thumb_id[i]);
+		if (strlen(node.widget_highlight_thumb[i]) > 0)
+		{
+			LoadImage(node.widget_highlight_thumb[i], node.widget_highlight_thumb_id[i]);
+		}
+		DeleteImage(node.widget_selected_thumb_id[i]);
+		if (strlen(node.widget_selected_thumb[i]) > 0)
+		{
+			LoadImage(node.widget_selected_thumb[i], node.widget_selected_thumb_id[i]);
+		}
+	}
+	image_setlegacyimageloading(false);
+}
+
 void RemoveWidgetFromScreen(int nodeID, int widgetID)
 {
 	if (Storyboard.Nodes[nodeID].type != STORYBOARD_TYPE_HUD)
@@ -46998,26 +47033,7 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 	}
 
 	// Reload any images after the deleted widget, to ensure they remain in the correct slot
-	image_setlegacyimageloading(true);
-	for (int i = indexToActiveWidget; i < STORYBOARD_MAXWIDGETS; i++)
-	{
-		DeleteImage(node.widget_normal_thumb_id[i]);
-		if (strlen(node.widget_normal_thumb[i]) > 0)
-		{
-			LoadImage(node.widget_normal_thumb[i], node.widget_normal_thumb_id[i]);
-		}
-		DeleteImage(node.widget_highlight_thumb_id[i]);
-		if (strlen(node.widget_highlight_thumb[i]) > 0)
-		{
-			LoadImage(node.widget_highlight_thumb[i], node.widget_highlight_thumb_id[i]);
-		}
-		DeleteImage(node.widget_selected_thumb_id[i]);
-		if (strlen(node.widget_selected_thumb[i]) > 0)
-		{
-			LoadImage(node.widget_selected_thumb[i], node.widget_selected_thumb_id[i]);
-		}
-	}
-	image_setlegacyimageloading(false);
+	RefreshThumbImagesForNode(nodeID, indexToActiveWidget);
 	
 	iCurrentSelectedWidget = -1;
 }

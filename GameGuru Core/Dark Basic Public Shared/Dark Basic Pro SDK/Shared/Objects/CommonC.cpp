@@ -748,31 +748,70 @@ DARKSDK_DLL void RegenerateLookVectors ( sObject* pObject )
 
 DARKSDK_DLL void AnglesFromMatrix ( GGMATRIX* pmatMatrix, GGVECTOR3* pVecAngles )
 {
-	// Thanks to Andrew for finding this gem!
-	// from http://www.martinb.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
-	float m00 = pmatMatrix->_11;
-	float m01 = pmatMatrix->_12;
-	float m02 = pmatMatrix->_13;
-	float m12 = pmatMatrix->_23;
-	float m22 = pmatMatrix->_33;
-	float heading = (float)atan2(m01,m00);
-	float attitude = (float)atan2(m12,m22);
-	float bank = (float)asin(-m02);
-
-	// check for gimbal lock
-	if ( fabs ( m02 ) > 1.0f )
+	bool bNewMatToEulerCalc = true;
+	if (bNewMatToEulerCalc)
 	{
-		// looking straight up or down
-		float PI = GG_PI / 2.0f;
-		pVecAngles->x = 0.0f;
-		pVecAngles->y = GGToDegree ( PI * m02 );
-		pVecAngles->z = 0.0f;
+		//from three.js (via https://github.com/mrdoob/three.js/blob/dev/src/math/Euler.js)
+		//const m11 = te[0], m12 = te[4], m13 = te[8];
+		//const m21 = te[1], m22 = te[5], m23 = te[9];
+		//const m31 = te[2], m32 = te[6], m33 = te[10];
+		float m11 = pmatMatrix->_11;
+		float m12 = pmatMatrix->_12;
+		float m13 = pmatMatrix->_13;
+		float m21 = pmatMatrix->_21;
+		float m22 = pmatMatrix->_22;
+		float m23 = pmatMatrix->_23;
+		float m31 = pmatMatrix->_31;
+		float m32 = pmatMatrix->_32;
+		float m33 = pmatMatrix->_33;
+		//pVecAngles->y = asin(clamp(m13, -1, 1));
+		float clampedm13 = m13;
+		if (clampedm13 < -1) clampedm13 = -1;
+		if (clampedm13 > 1) clampedm13 = 1;
+		pVecAngles->y = asin(clampedm13);
+		if (fabs(m13) < 0.9999999)
+		{
+			pVecAngles->x = atan2(-m23, m33);
+			pVecAngles->z = atan2(-m12, m11);
+		}
+		else
+		{
+			pVecAngles->x = atan2(m32, m22);
+			pVecAngles->z = 0;
+		}
+		pVecAngles->x = -GGToDegree (pVecAngles->x);
+		pVecAngles->y = -GGToDegree (pVecAngles->y);
+		pVecAngles->z = -GGToDegree (pVecAngles->z);
 	}
 	else
 	{
-		pVecAngles->x = GGToDegree ( attitude );
-		pVecAngles->y = GGToDegree ( bank );
-		pVecAngles->z = GGToDegree ( heading );
+		// this mostly worked, but can go wrong with mat from quat
+		// Thanks to Andrew for finding this gem!
+		// from http://www.martinb.com/maths/geometry/rotations/conversions/matrixToEuler/index.htm
+		float m00 = pmatMatrix->_11;
+		float m01 = pmatMatrix->_12;
+		float m02 = pmatMatrix->_13;
+		float m12 = pmatMatrix->_23;
+		float m22 = pmatMatrix->_33;
+		float heading = (float)atan2(m01, m00);
+		float attitude = (float)atan2(m12, m22);
+		float bank = (float)asin(-m02);
+
+		// check for gimbal lock
+		if (fabs (m02) > 1.0f)
+		{
+			// looking straight up or down
+			float PI = GG_PI / 2.0f;
+			pVecAngles->x = 0.0f;
+			pVecAngles->y = GGToDegree (PI * m02);
+			pVecAngles->z = 0.0f;
+		}
+		else
+		{
+			pVecAngles->x = GGToDegree (attitude);
+			pVecAngles->y = GGToDegree (bank);
+			pVecAngles->z = GGToDegree (heading);
+		}
 	}
 }
 

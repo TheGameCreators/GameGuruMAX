@@ -318,9 +318,18 @@ DARKSDK void RotateObjectQuat(int iID, float fX, float fY, float fZ, float fW)
 		quatRot.y = fY;
 		quatRot.z = fZ;
 		quatRot.w = fW;
+		GGQuaternionNormalize(&quatRot);
 		GGMATRIX matRot;
 		GGMatrixRotationQuaternion(&matRot, &quatRot);
-	    AnglesFromMatrix ( &matRot, &pObject->position.vecRotate );
+		AnglesFromMatrix ( &matRot, &pObject->position.vecRotate );
+
+		// okay, the new matrix from new quat calc can throw this old function, causing 270,315,0 with a 45 degree Y rotation to become 90,-90,153. '153'!! (before I normalized)
+		// tried this below but produced some nasty eulers, above with normalized quat and improved mat to euler (bNewMatToEulerCalc) fixed it!
+		//GGVECTOR3 radianAngles;
+		//GGQuaternionToEulerAngles (quatRot, &radianAngles);
+		//pObject->position.vecRotate.x = GGToDegree(radianAngles.x);
+		//pObject->position.vecRotate.y = GGToDegree(radianAngles.y);
+		//pObject->position.vecRotate.z = GGToDegree(radianAngles.z);
 
 		// regenerate look vectors
 		RegenerateLookVectors(pObject);

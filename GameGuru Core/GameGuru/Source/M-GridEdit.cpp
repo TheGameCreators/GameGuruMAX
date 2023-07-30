@@ -24575,9 +24575,47 @@ void editor_mainfunctionality ( void )
 					if (bRotateObjectFromKeyPress == true)
 					{
 						// the object to rotate
+						int te = t.widget.pickedEntityIndex;
 						int iObj = t.entityelement[t.widget.pickedEntityIndex].obj;
 						int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
+						if (t.entityprofile[entid].ragdoll == 1)
+						{
+							fMoveAngX = 0.0f;
+							fMoveAngZ = 0.0f;
+						}
 
+						// quat rotation event
+						GGQUATERNION quatRotationEvent = { 0,0,0,0 };
+						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
+						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(fMoveAngX));
+						GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(fMoveAngY));
+						GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(fMoveAngZ));
+						quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
+
+						// get quat from entity directly
+						GGQUATERNION toriginalAngle = GGQUATERNION(t.entityelement[te].quatx, t.entityelement[te].quaty, t.entityelement[te].quatz, t.entityelement[te].quatw);
+
+						// apply the rotation event to the angle of the object
+						GGQUATERNION quatNewOrientation;
+						GGQuaternionMultiply(&quatNewOrientation, &toriginalAngle, &quatRotationEvent);
+
+						// rotate this object with final quat and get new entity rotation eulers
+						RotateObjectQuat(iObj, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
+						t.entityelement[te].rx = ObjectAngleX(iObj);
+						t.entityelement[te].ry = ObjectAngleY(iObj);
+						t.entityelement[te].rz = ObjectAngleZ(iObj);
+
+						// update entity quat as the preferred source rotation
+						t.entityelement[te].quatmode = 1;
+						t.entityelement[te].quatx = quatNewOrientation.x;
+						t.entityelement[te].quaty = quatNewOrientation.y;
+						t.entityelement[te].quatz = quatNewOrientation.z;
+						t.entityelement[te].quatw = quatNewOrientation.w;
+
+						// mark as static if it was
+						if (t.entityelement[te].staticflag == 1) g.projectmodifiedstatic = 1;
+
+						/* messed up due to internal gimble lock correction in rotobjquat
 						// object rotation 
 						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
 						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(fMoveAngX));
@@ -24592,6 +24630,7 @@ void editor_mainfunctionality ( void )
 						t.entityelement[t.widget.pickedEntityIndex].rx = ObjectAngleX(iObj);
 						t.entityelement[t.widget.pickedEntityIndex].ry = ObjectAngleY(iObj);
 						t.entityelement[t.widget.pickedEntityIndex].rz = ObjectAngleZ(iObj);
+						*/
 
 						// special case for characters, only want the Y angle
 						if (t.entityprofile[entid].ischaracter == 1)

@@ -188,7 +188,10 @@ Vector4*	Normalize				( Vector4* pOut, const Vector4* pV );
 float		Dot						( Vector4* pV1, const Vector4* pV2 );
 
 Quaternion* QuaternionMultiply		( Quaternion* pOut, const Quaternion* pQ1, const Quaternion* pQ2);
-Quaternion* QuaternionSlerp			( Quaternion* pOut, const Quaternion* pQ1, const Quaternion* pQ2, float t );
+Quaternion* QuaternionSlerp			(Quaternion* pOut, const Quaternion* pQ1, const Quaternion* pQ2, float t);
+void QuaternionNormalize			(Quaternion* pOut);
+void QuaternionToEulerAngles		(Quaternion q, Vector3* pAngles);
+
 Plane*		PlaneNormalize			( Plane* pOut, const Plane* pPlane );
 Plane*		PlaneTransform			( Plane* pOut, const Plane* pPlane, const Matrix* pMatrix );
 Plane*		PlaneFromPointNormal	( Plane* pOut, const Vector3* pVPoint, const Vector3* pVNormal );

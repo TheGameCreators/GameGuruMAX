@@ -145,6 +145,8 @@
 #define GGToRadian KMATHSToRadian //D3DXToRadian
 #define GGToDegree KMATHSToDegree //D3DXToDegree
 #define GGQuaternionRotationAxis KMaths::QuaternionRotationAxis //D3DXQuaternionRotationAxis
+#define GGQuaternionNormalize KMaths::QuaternionNormalize
+#define GGQuaternionToEulerAngles KMaths::QuaternionToEulerAngles
 #define GGQuaternionMultiply KMaths::QuaternionMultiply
 #define GGPlaneNormalize KMaths::PlaneNormalize //D3DXPlaneNormalize
 #define GGPlaneTransform KMaths::PlaneTransform //D3DXPlaneTransform

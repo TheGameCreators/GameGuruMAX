@@ -722,6 +722,80 @@ Quaternion* QuaternionRotationAxis(Quaternion* pOut, const Vector3* pV, float t)
 }
 
 
+void QuaternionNormalize(Quaternion* pOut)
+{
+    /* Lees naff attempt
+    float x = pOut->x;
+    float y = pOut->y;
+    float z = pOut->z;
+    float w = pOut->w;
+    float dotproduct = (x * x) + (y * y) + (z * z) + (w * w);
+    float sr = sqrt(dotproduct);
+    Quaternion result = *pOut;
+    result.x /= sr;
+    result.y /= sr;
+    result.z /= sr;
+    result.w /= sr;
+    */
+    /* internweb no use either
+    Quaternion result = *pOut;
+    double qmagsq = QuaternionLength(pOut);
+    if (fabs(1.0 - qmagsq) < 2.107342e-08) 
+    {
+        //quat.scale (2.0 / (1.0 + qmagsq));
+        float scl = (2.0 / (1.0 + qmagsq));
+        result *= scl;
+    }
+    else 
+    {
+        //quat.scale (1.0 / sqrt(qmagsq));
+        float scl = (1.0 / sqrt(qmagsq));
+        result *= scl;
+    }
+    */
+    Quaternion result = *pOut;
+    float l = sqrt(result.x * result.x + result.y * result.y + result.z * result.z + result.w * result.w);
+    if (l == 0) 
+    {
+        result.x = 0;
+        result.y = 0;
+        result.z = 0;
+        result.w = 1;
+    }
+    else 
+    {
+        l = 1 / l;
+        result.x = result.x * l;
+        result.y = result.y * l;
+        result.z = result.z * l;
+        result.w = result.w * l;
+    }
+    *pOut = result;
+}
+
+
+void QuaternionToEulerAngles(Quaternion q, Vector3* pAngles)
+{
+    // this implementation assumes normalized quaternion
+    // converts to Euler angles in 3-2-1 sequence
+    
+    // roll (x-axis rotation)
+    double sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
+    double cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+    pAngles->x = atan2(sinr_cosp, cosr_cosp);
+
+    // pitch (y-axis rotation)
+    double sinp = sqrt(1 + 2 * (q.w * q.y - q.x * q.z));
+    double cosp = sqrt(1 - 2 * (q.w * q.y - q.x * q.z));
+    pAngles->y = 2 * atan2(sinp, cosp) - PI / 2;
+
+    // yaw (z-axis rotation)
+    double siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+    double cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+    pAngles->z = atan2(siny_cosp, cosy_cosp);
+}
+
+
 Plane::Plane( const float* pf )
 {
 

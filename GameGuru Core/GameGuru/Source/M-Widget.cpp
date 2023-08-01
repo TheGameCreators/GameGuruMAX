@@ -2411,6 +2411,8 @@ void widget_loop ( void )
 			t.waypointindex=t.entityelement[t.ttte].eleprof.trigger.waypointzoneindex;
 			if ( t.waypointindex>0 ) 
 			{
+				// seems when zones are cloned, they copy the waypointzoneindex index, causing corruption
+				waypoint_fixcorruptduplicate(t.ttte); // acts on t.waypointindex
 				t.thisx_f=t.entityelement[t.ttte].x;
 				t.thisy_f=t.entityelement[t.ttte].y;
 				t.thisz_f=t.entityelement[t.ttte].z;

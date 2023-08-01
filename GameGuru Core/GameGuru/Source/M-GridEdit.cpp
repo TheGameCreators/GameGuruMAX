@@ -4083,7 +4083,7 @@ void mapeditorexecutable_loop(void)
 		}
 		#endif
 
-		if (ImGui::BeginMenuBar())
+		if (ImGui::BeginMenuBar() && bExternal_Entities_Window==false && bPreferences_Window==false) // cannot have MENU when viewing XX Library
 		{
 			if (ImGui::BeginMenu("File") )
 			{

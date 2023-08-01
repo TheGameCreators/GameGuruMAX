@@ -18,6 +18,7 @@ void waypoint_mousemanage ( void );
 void waypoint_delete ( void );
 void waypoint_findcenter ( void );
 void waypoint_movetogrideleprof ( void );
+void waypoint_fixcorruptduplicate (int e);
 void waypoint_movetothiscoordinate ( void );
 void waypoint_moveentitycenter ( void );
 void createwaypointobj ( int obj, int waypointindex );

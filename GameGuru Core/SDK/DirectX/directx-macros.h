@@ -148,6 +148,7 @@
 #define GGQuaternionNormalize KMaths::QuaternionNormalize
 #define GGQuaternionToEulerAngles KMaths::QuaternionToEulerAngles
 #define GGQuaternionMultiply KMaths::QuaternionMultiply
+#define GGQuaternionConjugate KMaths::QuaternionConjugate
 #define GGPlaneNormalize KMaths::PlaneNormalize //D3DXPlaneNormalize
 #define GGPlaneTransform KMaths::PlaneTransform //D3DXPlaneTransform
 #define GGVec3Dot KMaths::Dot //D3DXVec3Dot

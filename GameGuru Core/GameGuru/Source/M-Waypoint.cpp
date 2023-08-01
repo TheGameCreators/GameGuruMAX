@@ -688,23 +688,29 @@ void waypoint_recreateobjs ( void )
 	}
 }
 
+int waypoint_findfreewaypointindex (void)
+{
+	if (g.waypointcoordmax < 0) g.waypointcoordmax = 0;
+	for (t.tw = 1; t.tw <= g.waypointmax; t.tw++)
+	{
+		if (t.waypoint[t.tw].count == 0)
+		{
+			return t.tw;
+		}
+	}
+	if (t.tw > g.waypointmax)
+	{
+		++g.waypointmax;
+		Dim (t.waypoint, g.waypointmax);
+		return g.waypointmax;
+	}
+	return 0;
+}
+
 void waypoint_createnew ( void )
 {
 	// Create a new waypoint strand (or find empty one)
-	if ( g.waypointcoordmax < 0 ) g.waypointcoordmax = 0;
-	for ( t.tw = 1 ; t.tw <= g.waypointmax; t.tw++ )
-	{
-		if ( t.waypoint[t.tw].count == 0 ) 
-		{
-			t.waypointindex=t.tw ; break;
-		}
-	}
-	if ( t.tw>g.waypointmax ) 
-	{
-		++g.waypointmax;
-		Dim (  t.waypoint,g.waypointmax  );
-		t.waypointindex=g.waypointmax;
-	}
+	t.waypointindex = waypoint_findfreewaypointindex();
 
 	// Set Waypoint style and data
 	t.waypoint[t.waypointindex].style=t.waypointeditstyle;
@@ -1241,6 +1247,10 @@ void waypoint_mousemanage ( void )
 
 void waypoint_delete ( void )
 {
+	// ignore dud waypoints
+	if (t.waypoint[t.waypointindex].count == 0)
+		return;
+
 	//  shuffle deleted coord data to erase
 	t.twcoordindex=t.w;
 	t.tsize0=0+t.waypoint[t.waypointindex].finish-t.waypoint[t.waypointindex].start;
@@ -1290,6 +1300,10 @@ void waypoint_delete ( void )
 
 void waypoint_findcenter ( void )
 {
+	// ignore dud waypoints
+	if (t.waypoint[t.waypointindex].count == 0)
+		return;
+
 	//  find center of waypoint zone
 	t.tavx_f=0.0 ; t.tavy_f=0.0 ; t.tavz_f=0.0;
 	for ( t.ttw = t.waypoint[t.waypointindex].start ; t.ttw<=  t.waypoint[t.waypointindex].finish; t.ttw++ )
@@ -1322,8 +1336,51 @@ void waypoint_movetogrideleprof ( void )
 	waypoint_movetothiscoordinate ( );
 }
 
+void waypoint_fixcorruptduplicate ( int iFromE )
+{
+	// ensure t.waypointindex is the only unique reference in entitylist
+	int iTrueWaypointIndex = t.waypointindex;
+	for (int ee = 1; ee <= g.entityelementlist; ee++)
+	{
+		if (ee != iFromE && t.entityelement[ee].eleprof.trigger.waypointzoneindex == iTrueWaypointIndex)
+		{
+			// this duplicate should not be here, but do not want to destroy zone data, so make a copy with unique entries
+			int iNewWaypointIndex = waypoint_findfreewaypointindex();
+			if (iNewWaypointIndex > 0)
+			{
+				// first copy all identity of original
+				t.waypoint[iNewWaypointIndex] = t.waypoint[iTrueWaypointIndex];
+				t.waypoint[iNewWaypointIndex].start = 0;
+				t.waypoint[iNewWaypointIndex].finish = 0;
+				t.waypoint[iNewWaypointIndex].linkedtoentityindex = 0;
+
+				// create new coords ready to be filled
+				t.waypoint[iNewWaypointIndex].start = g.waypointcoordmax + 1;
+				for (t.ttii = 1; t.ttii <= t.waypoint[iNewWaypointIndex].count; t.ttii++)
+				{
+					++g.waypointcoordmax;
+					Dim (t.waypointcoord, g.waypointcoordmax);
+					t.w = g.waypointcoordmax;
+					int iCopyFromW = t.waypoint[iTrueWaypointIndex].start + (t.ttii - 1);
+					t.waypointcoord[t.w] = t.waypointcoord[iCopyFromW];
+					t.waypointcoord[t.w].index = iNewWaypointIndex;
+				}
+				t.waypoint[iNewWaypointIndex].finish = t.w;
+
+				// assign new index to entity
+				t.waypoint[iNewWaypointIndex].linkedtoentityindex = ee;
+				t.entityelement[ee].eleprof.trigger.waypointzoneindex = iNewWaypointIndex;
+			}
+		}
+	}
+}
+
 void waypoint_movetothiscoordinate ( void )
 {
+	// ignore dud waypoints
+	if (t.waypoint[t.waypointindex].count == 0)
+		return;
+
 	//  waypoint zone index
 	waypoint_findcenter ( );
 

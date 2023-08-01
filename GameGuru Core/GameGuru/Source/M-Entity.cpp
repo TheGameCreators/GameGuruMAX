@@ -8251,9 +8251,19 @@ void entity_addentitytomap ( void )
 	entity_addentitytomap_core ( );
 
 	// transfer waypoint zone index to entityelement
-	t.waypointindex=t.grideleprof.trigger.waypointzoneindex;
-	t.entityelement[t.e].eleprof.trigger.waypointzoneindex=t.waypointindex;
-	t.waypoint[t.waypointindex].linkedtoentityindex=t.e;
+	if (t.grideleprof.trigger.waypointzoneindex > 0)
+	{
+		if (t.grideleprof.trigger.waypointzoneindex < t.waypoint.size())
+		{
+			t.waypointindex = t.grideleprof.trigger.waypointzoneindex;
+			t.entityelement[t.e].eleprof.trigger.waypointzoneindex = t.waypointindex;
+			t.waypoint[t.waypointindex].linkedtoentityindex = t.e;
+		}
+		t.grideleprof.trigger.waypointzoneindex = 0;
+	}
+
+	// ensure waypoint never gets corrupted, making copies of data as needed
+	waypoint_fixcorruptduplicate(t.e);
 
 	//  as create entity, apply any texture change required
 	t.stentid=t.entid ; t.entid=t.entitybankindex;

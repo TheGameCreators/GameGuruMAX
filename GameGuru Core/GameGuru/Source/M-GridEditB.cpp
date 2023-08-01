@@ -45568,205 +45568,206 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		if (ImGui::BeginMenu("File##Storyboard"))
 		{
 			bool bIsMenuHovered = false;
-
-			if (ImGui::MenuItem("New Game Project", ""))
+			if (bPreferences_Window == false)
 			{
-				CloseAllOpenTools();
-				bool bAbort = false;
-				if (Storyboard.iChanged)
+				if (ImGui::MenuItem("New Game Project", ""))
 				{
-					if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+					CloseAllOpenTools();
+					bool bAbort = false;
+					if (Storyboard.iChanged)
 					{
-						save_storyboard(Storyboard.gamename, false);
-					}
-					else
-					{
-						int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-						if (iAction == 1)
+						if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
 						{
-							//Save.
-							if (strlen(Storyboard.gamename) > 0)
-								save_storyboard(Storyboard.gamename, false);
-							else
-							{
-								bAbort = true;
-								save_storyboard(Storyboard.gamename, true);
-							}
+							save_storyboard(Storyboard.gamename, false);
 						}
-					}
-				}
-				if (!bAbort)
-				{
-					bStoryboardInitNodes = false; //Just init again.
-					bStoryboardFirstRunSetInitPos = false;
-					strcpy(pref.cLastUsedStoryboardProject, "");
-					bTriggerSaveAsAfterNewLevel = true;
-					bTriggerSaveAs = true;
-					strcpy(SaveProjectAsName, "");
-					strcpy(SaveProjectAsError, "");
-
-					//
-				}
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			if (ImGui::MenuItem("Open Game Project", ""))
-			{
-				CloseAllOpenToolsThatNeedSave();
-				bool bAbort = false;
-				if (Storyboard.iChanged)
-				{
-					if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
-					{
-						save_storyboard(Storyboard.gamename, false);
-					}
-					else
-					{
-						int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-						if (iAction == 1)
+						else
 						{
-							//Save.
-							if (strlen(Storyboard.gamename) > 0)
-								save_storyboard(Storyboard.gamename, false);
-							else
+							int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+							if (iAction == 1)
 							{
-								bAbort = true;
-								save_storyboard(Storyboard.gamename, true);
-							}
-						}
-					}
-				}
-
-				if (!bAbort)
-				{
-					//Open Game Project
-					bTriggerOpenProject = true;
-				}
-				//
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			//PE: Only use save if we already have a Project Name.
-			if (strlen(Storyboard.gamename) > 0)
-			{
-				if (Storyboard.project_readonly != 1)
-				{
-					if (ImGui::MenuItem("Save Game Project", ""))
-					{
-						CloseAllOpenToolsThatNeedSave();
-						//
-						save_storyboard(Storyboard.gamename, false);
-					}
-					if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-				}
-			}
-
-			if (ImGui::MenuItem("Save Game Project As...", ""))//CTRL+R" ) )//F12") )
-			{
-				CloseAllOpenToolsThatNeedSave();
-				//
-				save_storyboard(Storyboard.gamename, true);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-
-			ImGui::Separator();
-			//for (int ii = 0; ii < REMEMBERLASTFILES; ii++) { //reverse
-			for (int ii = REMEMBERLASTFILES - 1; ii >= 0; ii--) {
-				if (strlen(pref.last_project_files[ii]) > 0) {
-
-					//std::string s_tmp = std::to_string(1+ii); //Reverse
-					std::string s_tmp = std::to_string(REMEMBERLASTFILES - ii);
-					s_tmp += ": ";
-					s_tmp += pref.last_project_files[ii];
-
-					if (ImGui::MenuItem(s_tmp.c_str())) {
-						if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-						if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-						if (t.ebe.on == 1) ebe_hide();
-						bool bAbort = false;
-						if (Storyboard.iChanged)
-						{
-							if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
-							{
-								save_storyboard(Storyboard.gamename, false);
-							}
-							else
-							{
-								int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-								if (iAction == 1)
+								//Save.
+								if (strlen(Storyboard.gamename) > 0)
+									save_storyboard(Storyboard.gamename, false);
+								else
 								{
-									//Save.
-									if (strlen(Storyboard.gamename) > 0)
-										save_storyboard(Storyboard.gamename, false);
-									else
-									{
-										bAbort = true;
-										save_storyboard(Storyboard.gamename, true);
-									}
+									bAbort = true;
+									save_storyboard(Storyboard.gamename, true);
 								}
 							}
 						}
-						if (!bAbort)
-						{
-							load_storyboard(pref.last_project_files[ii]);
-							iGamePausedNodeID = storyboard_add_missing_nodex(8, area_width, node_width, node_height + 20.0, false);
-							iLoadGameNodeID = storyboard_add_missing_nodex(3, area_width, node_width, node_height + 20.0, false);
-							iSaveGameNodeID = storyboard_add_missing_nodex(9, area_width, node_width, node_height + 20.0, false);
-							iGraphicsNodeID = storyboard_add_missing_nodex(10, area_width, node_width, node_height + 20.0, false);
-							iSoundsNodeID = storyboard_add_missing_nodex(11, area_width, node_width, node_height + 20.0, false);
-							iControlNodeID = storyboard_add_missing_nodex(12, area_width, node_width, node_height + 20.0, false);
-							iLoadingScreenNodeID = storyboard_add_missing_nodex(2, area_width, node_width, node_height + 20.0, false);
-							iHUDScreenNodeID = storyboard_add_missing_nodex(13, area_width, node_width, node_height + 20.0, false);
-						}
 					}
-					if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+					if (!bAbort)
+					{
+						bStoryboardInitNodes = false; //Just init again.
+						bStoryboardFirstRunSetInitPos = false;
+						strcpy(pref.cLastUsedStoryboardProject, "");
+						bTriggerSaveAsAfterNewLevel = true;
+						bTriggerSaveAs = true;
+						strcpy(SaveProjectAsName, "");
+						strcpy(SaveProjectAsError, "");
+
+						//
+					}
 				}
-			}
-
-			ImGui::Separator();
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Exit to Desktop"))
-			{
-				if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-				if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-				if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-				if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-				if (t.ebe.on == 1) ebe_hide();
-				//
-				bool bAbort = false;
-				if (Storyboard.iChanged)
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+				if (ImGui::MenuItem("Open Game Project", ""))
 				{
-					if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+					CloseAllOpenToolsThatNeedSave();
+					bool bAbort = false;
+					if (Storyboard.iChanged)
 					{
-						save_storyboard(Storyboard.gamename, false);
-					}
-					else
-					{
-						int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-						if (iAction == 1)
+						if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
 						{
-							//Save.
-							if (strlen(Storyboard.gamename) > 0)
-								save_storyboard(Storyboard.gamename, false);
-							else
+							save_storyboard(Storyboard.gamename, false);
+						}
+						else
+						{
+							int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+							if (iAction == 1)
 							{
-								bAbort = true;
-								save_storyboard(Storyboard.gamename, true);
+								//Save.
+								if (strlen(Storyboard.gamename) > 0)
+									save_storyboard(Storyboard.gamename, false);
+								else
+								{
+									bAbort = true;
+									save_storyboard(Storyboard.gamename, true);
+								}
 							}
 						}
 					}
-				}
-				if (!bAbort)
-				{
-					bStoryboardWindow = false;
-					g_bCascadeQuitFlag = true;
-				}
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
+					if (!bAbort)
+					{
+						//Open Game Project
+						bTriggerOpenProject = true;
+					}
+					//
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				//PE: Only use save if we already have a Project Name.
+				if (strlen(Storyboard.gamename) > 0)
+				{
+					if (Storyboard.project_readonly != 1)
+					{
+						if (ImGui::MenuItem("Save Game Project", ""))
+						{
+							CloseAllOpenToolsThatNeedSave();
+							//
+							save_storyboard(Storyboard.gamename, false);
+						}
+						if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+					}
+				}
+
+				if (ImGui::MenuItem("Save Game Project As...", ""))//CTRL+R" ) )//F12") )
+				{
+					CloseAllOpenToolsThatNeedSave();
+					//
+					save_storyboard(Storyboard.gamename, true);
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+
+				ImGui::Separator();
+				//for (int ii = 0; ii < REMEMBERLASTFILES; ii++) { //reverse
+				for (int ii = REMEMBERLASTFILES - 1; ii >= 0; ii--) {
+					if (strlen(pref.last_project_files[ii]) > 0) {
+
+						//std::string s_tmp = std::to_string(1+ii); //Reverse
+						std::string s_tmp = std::to_string(REMEMBERLASTFILES - ii);
+						s_tmp += ": ";
+						s_tmp += pref.last_project_files[ii];
+
+						if (ImGui::MenuItem(s_tmp.c_str())) {
+							if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
+							if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
+							if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+							if (bEntity_Properties_Window) bEntity_Properties_Window = false;
+							if (t.ebe.on == 1) ebe_hide();
+							bool bAbort = false;
+							if (Storyboard.iChanged)
+							{
+								if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+								{
+									save_storyboard(Storyboard.gamename, false);
+								}
+								else
+								{
+									int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+									if (iAction == 1)
+									{
+										//Save.
+										if (strlen(Storyboard.gamename) > 0)
+											save_storyboard(Storyboard.gamename, false);
+										else
+										{
+											bAbort = true;
+											save_storyboard(Storyboard.gamename, true);
+										}
+									}
+								}
+							}
+							if (!bAbort)
+							{
+								load_storyboard(pref.last_project_files[ii]);
+								iGamePausedNodeID = storyboard_add_missing_nodex(8, area_width, node_width, node_height + 20.0, false);
+								iLoadGameNodeID = storyboard_add_missing_nodex(3, area_width, node_width, node_height + 20.0, false);
+								iSaveGameNodeID = storyboard_add_missing_nodex(9, area_width, node_width, node_height + 20.0, false);
+								iGraphicsNodeID = storyboard_add_missing_nodex(10, area_width, node_width, node_height + 20.0, false);
+								iSoundsNodeID = storyboard_add_missing_nodex(11, area_width, node_width, node_height + 20.0, false);
+								iControlNodeID = storyboard_add_missing_nodex(12, area_width, node_width, node_height + 20.0, false);
+								iLoadingScreenNodeID = storyboard_add_missing_nodex(2, area_width, node_width, node_height + 20.0, false);
+								iHUDScreenNodeID = storyboard_add_missing_nodex(13, area_width, node_width, node_height + 20.0, false);
+							}
+						}
+						if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+					}
+				}
+
+				ImGui::Separator();
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Exit to Desktop"))
+				{
+					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
+					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
+					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
+					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
+					if (t.ebe.on == 1) ebe_hide();
+					//
+					bool bAbort = false;
+					if (Storyboard.iChanged)
+					{
+						if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+						{
+							save_storyboard(Storyboard.gamename, false);
+						}
+						else
+						{
+							int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+							if (iAction == 1)
+							{
+								//Save.
+								if (strlen(Storyboard.gamename) > 0)
+									save_storyboard(Storyboard.gamename, false);
+								else
+								{
+									bAbort = true;
+									save_storyboard(Storyboard.gamename, true);
+								}
+							}
+						}
+					}
+					if (!bAbort)
+					{
+						bStoryboardWindow = false;
+						g_bCascadeQuitFlag = true;
+					}
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+			}
 			ImGui::EndMenu();
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -45792,11 +45793,13 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		else
 		{
 			if (pref.bAutoOpenMenuItems)
+			{
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::OpenPopup("File##Storyboard");
 					iCloseDownCount = 100;
 				}
+			}
 		}
 
 		//###################
@@ -45806,54 +45809,54 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		if (ImGui::BeginMenu("Edit##Storyboard"))
 		{
 			bool bIsMenuHovered = false;
-
-			if (ImGui::MenuItem("Add New Level", "CTRL+N"))
+			if (bPreferences_Window == false)
 			{
-				iStoryboardExecuteKey = 'N';
+				if (ImGui::MenuItem("Add New Level", "CTRL+N"))
+				{
+					iStoryboardExecuteKey = 'N';
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Add Existing Level", "CTRL+L"))
+				{
+					iStoryboardExecuteKey = 'L';
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				ImGui::Separator();
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Play Game", "CTRL+SPACE"))
+				{
+					iStoryboardExecuteKey = ' ';
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Play Game With Invulnerability", ""))
+				{
+					iStoryboardExecuteKey = '!';
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				ImGui::Separator();
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Export Standalone Game", "CTRL+E"))
+				{
+					iStoryboardExecuteKey = 'E';
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				ImGui::Separator();
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				if (ImGui::MenuItem("Settings", ""))
+				{
+					strcpy(cPreferencesMessage, "");
+					bPreferences_Window = true;
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Add Existing Level", "CTRL+L"))
-			{
-				iStoryboardExecuteKey = 'L';
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			ImGui::Separator();
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Play Game", "CTRL+SPACE"))
-			{
-				iStoryboardExecuteKey = ' ';
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if( ImGui::MenuItem("Play Game With Invulnerability", "") )
-			{
-				iStoryboardExecuteKey = '!';
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			ImGui::Separator();
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Export Standalone Game","CTRL+E"))
-			{
-				iStoryboardExecuteKey = 'E';
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			ImGui::Separator();
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Settings", ""))
-			{
-				strcpy(cPreferencesMessage, "");
-				bPreferences_Window = true;
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-
 			ImGui::EndMenu();
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -45879,11 +45882,13 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		else
 		{
 			if (pref.bAutoOpenMenuItems)
+			{
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::OpenPopup("Edit##Storyboard");
 					iCloseDownCount2 = 100;
 				}
+			}
 		}
 
 
@@ -45894,94 +45899,94 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		if (ImGui::BeginMenu("Help##Storyboard"))
 		{
 			bool bIsMenuHovered = false;
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Read User Manual"))
+			if (bPreferences_Window == false)
 			{
-				ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			if (ImGui::MenuItem("Guides Folder"))
-			{
-				ExecuteFile("..\\Guides\\", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-			/*
-			if (g_bUpdateAppAvailable == true)
-			{
-				if (ImGui::MenuItem("Check For Updates"))
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+				if (ImGui::MenuItem("Read User Manual"))
 				{
-					int iRet = AskSaveBeforeNewAction();
-					if (iRet != 2)
-					{
-						g.projectmodified = 0;
-						g.projectmodifiedstatic = 0;
-						ExecuteFile("..\\..\\GameGuru MAX Updater.exe", "", "", 0);
-						g_bCascadeQuitFlag = true;
-					}
+					ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 				}
 				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			}
-			*/
 
-			if (ImGui::MenuItem("Report an Issue (GitHub)"))
-			{
-				ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/issues/new", "", "", 0);
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-
-
-			#ifdef USEWELCOMESCREEN
-			if (ImGui::MenuItem("GameGuru MAX Hub")) //"Welcome Screen"
-			{
-				bWelcomeScreen_Window = true;
-				bStoryboardWindow = false;
-				cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
-				bWelcomeNoBackButton = true;
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			#endif
-
-			image_setlegacyimageloading(true);
-			/*
-			if (ImGui::MenuItem("Level Shortcuts")) {
-				strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout.png");
-				LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
-				bHelp_Menu_Image_Window = true;
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			*/
-
-			if (bAddWhatNewToMenu)
-			{
-				if (ImGui::MenuItem("What's New?")) //Change Log
+				if (ImGui::MenuItem("Guides Folder"))
 				{
-					//welcome_show(WELCOME_ANNOUNCEMENTS);
-					bool welcome_get_change_log(void);
-					if (gbWelcomeSystemActive == false)
+					ExecuteFile("..\\Guides\\", "", "", 0);
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+				/*
+				if (g_bUpdateAppAvailable == true)
+				{
+					if (ImGui::MenuItem("Check For Updates"))
 					{
-						welcome_init(1);
-						welcome_init(2);
+						int iRet = AskSaveBeforeNewAction();
+						if (iRet != 2)
+						{
+							g.projectmodified = 0;
+							g.projectmodifiedstatic = 0;
+							ExecuteFile("..\\..\\GameGuru MAX Updater.exe", "", "", 0);
+							g_bCascadeQuitFlag = true;
+						}
 					}
-					welcome_init(0);
-					if (welcome_get_change_log() == true)
+					if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+				}
+				*/
+
+				if (ImGui::MenuItem("Report an Issue (GitHub)"))
+				{
+					ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/issues/new", "", "", 0);
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+
+
+#ifdef USEWELCOMESCREEN
+				if (ImGui::MenuItem("GameGuru MAX Hub")) //"Welcome Screen"
+				{
+					bWelcomeScreen_Window = true;
+					bStoryboardWindow = false;
+					cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
+					bWelcomeNoBackButton = true;
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+#endif
+
+				image_setlegacyimageloading(true);
+				/*
+				if (ImGui::MenuItem("Level Shortcuts")) {
+					strcpy(cHelpMenuImage, "languagebank\\english\\artwork\\testgamelayout.png");
+					LoadImage(cHelpMenuImage, HELPMENU_IMAGE);
+					bHelp_Menu_Image_Window = true;
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+				*/
+
+				if (bAddWhatNewToMenu)
+				{
+					if (ImGui::MenuItem("What's New?")) //Change Log
 					{
-						welcome_runloop(WELCOME_ANNOUNCEMENTS);
-						iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
+						//welcome_show(WELCOME_ANNOUNCEMENTS);
+						bool welcome_get_change_log(void);
+						if (gbWelcomeSystemActive == false)
+						{
+							welcome_init(1);
+							welcome_init(2);
+						}
+						welcome_init(0);
+						if (welcome_get_change_log() == true)
+						{
+							welcome_runloop(WELCOME_ANNOUNCEMENTS);
+							iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
+						}
 					}
 				}
+
+				if (ImGui::MenuItem("About")) {
+					bAbout_Window = true;
+					bAbout_Window_First_Run = true;
+				}
+				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
+				image_setlegacyimageloading(false);
 			}
-
-			if (ImGui::MenuItem("About")) {
-				bAbout_Window = true;
-				bAbout_Window_First_Run = true;
-			}
-			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
-			image_setlegacyimageloading(false);
-
-
 			ImGui::EndMenu();
 			if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -46007,11 +46012,13 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 		else
 		{
 			if (pref.bAutoOpenMenuItems)
+			{
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::OpenPopup("Help##Storyboard");
 					iCloseDownCount3 = 100;
 				}
+			}
 		}
 
 		ImVec2 CursorMenuEnd = ImGui::GetCursorPos();
@@ -51435,7 +51442,31 @@ void ReloadEntityIDInSitu ( int entIndex)
 					int iThisE = vEntityGroupList[iChildGroupIndex][0].e;
 					sRubberBandType item;
 					item.iGroupID = iChildGroupIndex;// WARN - just nicking this field for now, replaced with -1 below (we use it to remember the origial group list index)
-					if (t.entityelement[iThisE].quatmode == 0) entity_updatequatfromeuler(iThisE);
+					// clean quat data up
+					if (t.entityelement[iThisE].quatmode > 1)
+					{
+						// can happen from prev corruption
+						t.entityelement[iThisE].quatmode = 1;
+					}
+					if (t.entityelement[iThisE].quatmode == 1)
+					{
+						// normalize good quat in case of drift
+						GGQUATERNION quatRot;
+						quatRot.x = t.entityelement[iThisE].quatx;
+						quatRot.y = t.entityelement[iThisE].quaty;
+						quatRot.z = t.entityelement[iThisE].quatz;
+						quatRot.w = t.entityelement[iThisE].quatw;
+						GGQuaternionNormalize(&quatRot);
+						t.entityelement[iThisE].quatx = quatRot.x;
+						t.entityelement[iThisE].quaty = quatRot.y;
+						t.entityelement[iThisE].quatz = quatRot.z;
+						t.entityelement[iThisE].quatw = quatRot.w;
+					}
+					else
+					{
+						// create fresh quat
+						entity_updatequatfromeuler(iThisE);
+					}
 					item.x = t.entityelement[iThisE].x;
 					item.y = t.entityelement[iThisE].y;
 					item.z = t.entityelement[iThisE].z;
@@ -51486,21 +51517,47 @@ void ReloadEntityIDInSitu ( int entIndex)
 				// place entity elements into the level using same places as old ones
 				if(vEntityGroupList[iOriginalGroupIndexForChild].size()>0)
 				{ 
-					// remembered position and angle
-					float fBasePosX = childrenToRemake[i].x - vEntityGroupList[iOriginalGroupIndexForChild][0].x;
-					float fBasePosY = childrenToRemake[i].y - vEntityGroupList[iOriginalGroupIndexForChild][0].y;
-					float fBasePosZ = childrenToRemake[i].z - vEntityGroupList[iOriginalGroupIndexForChild][0].z;
+					// base vars used to find difference between child and original from grouplist
+					float fBasePosX, fBasePosY, fBasePosZ;
+					GGQUATERNION qBaseAngle;
+
+					// remembered position
+					fBasePosX = childrenToRemake[i].x - vEntityGroupList[iOriginalGroupIndexForChild][0].x;
+					fBasePosY = childrenToRemake[i].y - vEntityGroupList[iOriginalGroupIndexForChild][0].y;
+					fBasePosZ = childrenToRemake[i].z - vEntityGroupList[iOriginalGroupIndexForChild][0].z;
+
+					// work out original quat angle
+					if (vEntityGroupList[iOriginalGroupIndexForChild][0].quatmode == 0)
+					{
+						// one time fix if quat not calculated for this vEntityGroupList entry
+						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
+						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(vEntityGroupList[iOriginalGroupIndexForChild][0].rx));
+						GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(vEntityGroupList[iOriginalGroupIndexForChild][0].ry));
+						GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(vEntityGroupList[iOriginalGroupIndexForChild][0].rz));
+						GGQUATERNION quatNewOrientation = QuatAroundX * QuatAroundY * QuatAroundZ;
+						vEntityGroupList[iOriginalGroupIndexForChild][0].quatmode = 1;
+						vEntityGroupList[iOriginalGroupIndexForChild][0].quatx = quatNewOrientation.x;
+						vEntityGroupList[iOriginalGroupIndexForChild][0].quaty = quatNewOrientation.y;
+						vEntityGroupList[iOriginalGroupIndexForChild][0].quatz = quatNewOrientation.z;
+						vEntityGroupList[iOriginalGroupIndexForChild][0].quatw = quatNewOrientation.w;
+					}
+					GGQUATERNION qInvOrigAngle;
+					GGQUATERNION qOrigAngle = GGQUATERNION(vEntityGroupList[iOriginalGroupIndexForChild][0].quatx, vEntityGroupList[iOriginalGroupIndexForChild][0].quaty, vEntityGroupList[iOriginalGroupIndexForChild][0].quatz, vEntityGroupList[iOriginalGroupIndexForChild][0].quatw);
+					GGQuaternionConjugate(&qInvOrigAngle, &qOrigAngle);
+
+					// remembered angle (as above with pos, subtract original)
 					int quatmode = childrenToRemake[i].quatmode;
 					float quatx = childrenToRemake[i].quatx;
 					float quaty = childrenToRemake[i].quaty;
 					float quatz = childrenToRemake[i].quatz;
 					float quatw = childrenToRemake[i].quatw;
-					GGQUATERNION qBaseAngle = GGQUATERNION(quatx, quaty, quatz, quatw);
+					qBaseAngle = GGQUATERNION(quatx, quaty, quatz, quatw);
+					GGQuaternionMultiply(&qBaseAngle, &qInvOrigAngle, &qBaseAngle);
 
 					// go through all entity elements to set them in correct position and assign quats
 					for (int n = 0; n < vEntityGroupList[iOriginalGroupIndexForChild].size(); n++)
 					{
-						// set unrotated start position in correct position
+						// set start in correct position/rotation
 						int ee = vEntityGroupList[iOriginalGroupIndexForChild][n].e;
 						t.entityelement[ee].x = fBasePosX + vEntityGroupList[iOriginalGroupIndexForChild][n].x;
 						t.entityelement[ee].y = fBasePosY + vEntityGroupList[iOriginalGroupIndexForChild][n].y;

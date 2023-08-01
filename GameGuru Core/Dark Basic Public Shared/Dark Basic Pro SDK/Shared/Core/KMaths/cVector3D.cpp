@@ -668,9 +668,6 @@ Quaternion::operator != ( const Quaternion& q ) const
  Quaternion* QuaternionMultiply(Quaternion *pout, const Quaternion *pq1, const Quaternion *pq2)
 {
     Quaternion out;
-
-    
-
     out.x = pq2->w * pq1->x + pq2->x * pq1->w + pq2->y * pq1->z - pq2->z * pq1->y;
     out.y = pq2->w * pq1->y - pq2->x * pq1->z + pq2->y * pq1->w + pq2->z * pq1->x;
     out.z = pq2->w * pq1->z + pq2->x * pq1->y - pq2->y * pq1->x + pq2->z * pq1->w;

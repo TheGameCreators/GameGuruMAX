@@ -22158,15 +22158,18 @@ void input_calculatelocalcursor ( void )
 			for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
 			{
 				int e = g.entityrubberbandlist[i].e;
-				int obj = t.entityelement[e].obj;
-				if (obj > 0 && GetVisible(obj))
+				if (e <= g.entityelementmax)
 				{
-					piEntityVisible[e] = 1;
-					HideObject(obj);
-				}
-				else
-				{
-					piEntityVisible[e] = 0;
+					int obj = t.entityelement[e].obj;
+					if (obj > 0 && GetVisible(obj))
+					{
+						piEntityVisible[e] = 1;
+						HideObject(obj);
+					}
+					else
+					{
+						piEntityVisible[e] = 0;
+					}
 				}
 			}
 		}
@@ -22187,10 +22190,6 @@ void input_calculatelocalcursor ( void )
 							piEntityVisible[e] = 1;
 							HideObject(obj);
 						}
-						//else //arg, wiped out setting above!
-						//{
-						//	piEntityVisible[e] = 0;
-						//}
 					}
 				}
 			}

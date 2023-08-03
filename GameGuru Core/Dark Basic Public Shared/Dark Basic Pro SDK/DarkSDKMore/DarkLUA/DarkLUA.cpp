@@ -3570,10 +3570,10 @@ int StartMoveAndRotateToXYZ (lua_State *L)
 		float fTurnSpeed = lua_tonumber(L, 3);
 		t.charanimstates[t.tcharanimindex].turnspeed_f = fTurnSpeed;
 		int iTiltMode = 0;
-		if ( n == 4 ) iTiltMode = lua_tonumber(L, 4);
+		if (n >= 4) iTiltMode = lua_tonumber(L, 4);
 		t.charanimstates[t.tcharanimindex].iTiltMode = iTiltMode;
 		int iStopFromEnd = 10;
-		if (n == 5) iStopFromEnd = lua_tonumber(L, 5);
+		if (n >= 5) iStopFromEnd = lua_tonumber(L, 5);
 		if (iStopFromEnd < 10) iStopFromEnd = 10;
 		t.charanimstates[t.tcharanimindex].iStopFromEnd = iStopFromEnd;
 	}

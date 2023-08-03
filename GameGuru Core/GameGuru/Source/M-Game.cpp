@@ -379,8 +379,12 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	// toggling trees means recalcing for tree obstacles
 	dSuperHash += ggtrees_global_params.draw_enabled;
 
+	// toggling trees means recalcing for tree obstacles
+	dSuperHash += (int)t.terrain.waterliney_f;
+
 	// must still reset nav mesh system for new run (blocker list)
 	g_RecastDetour.ResetBlockerSystem();
+	g_RecastDetour.SetWaterTableY(t.terrain.waterliney_f);
 	
 	// exit early if no change detected in static arrangement
 	static double dLastSuperHash = -1;
@@ -400,20 +404,6 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	vecMaxArea.x += 1000;
 	vecMinArea.z -= 1000;
 	vecMaxArea.z += 1000;
-
-	/*
-	// FOR PAUL - initial code to scan ALL objects in the level and reveal the coordinates of the characters that NEED navmesh support
-	for (int e = 1; e <= g.entityelementlist; e++)
-	{
-		int entid = t.entityelement[e].bankindex;
-		if (t.entityprofile[entid].ischaracter == 1)
-		{
-			// this character has a starting position, and an assumed range represented as a multiple of their given view range
-			GGVECTOR3 vecCharacterPosition = GGVECTOR3(t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
-			float fAssumedGameRange = t.entityelement[e].eleprof.conerange * 4;
-		}
-	}
-	*/
 
 	// terrain geometry
 	int iLimbIndex = 1;
@@ -633,68 +623,138 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 		iLimbIndex++;
 	}
 
-	// add virtual trees into the navmesh (quick solution)
-	if (ggtrees_global_params.draw_enabled == 1)
+	// add virtual trees into the navmesh (quick solution to code, very slow to execute!!)
+	bool bOldMethodOfAddingTreesToNavMesh = false;
+	if (bOldMethodOfAddingTreesToNavMesh == true)
 	{
-		float fPlayAreaRadiusX = (vecMaxArea.x - vecMinArea.x) / 2;
-		float fPlayAreaRadiusZ = (vecMaxArea.z - vecMinArea.z) / 2;
-		float fPlayAreaCenterX = vecMinArea.x + fPlayAreaRadiusX;
-		float fPlayAreaCenterZ = vecMinArea.z + fPlayAreaRadiusZ;
-		float fPlayAreaRadius = fPlayAreaRadiusX;
-		if (fPlayAreaRadiusZ > fPlayAreaRadius) fPlayAreaRadius = fPlayAreaRadiusZ;
-		GGTrees::GGTreePoint* pOutPoints = NULL;
-		int iTreeCount = GGTrees::GGTrees_GetClosest (fPlayAreaCenterX, fPlayAreaCenterZ, fPlayAreaRadius, &pOutPoints);
-		if (pOutPoints)
+		if (ggtrees_global_params.draw_enabled == 1)
 		{
-			for (int n = 0; n < iTreeCount; n++)
+			timestampactivity(0, "Adding all trees to temporary nav mesh super object");
+			float fPlayAreaRadiusX = (vecMaxArea.x - vecMinArea.x) / 2;
+			float fPlayAreaRadiusZ = (vecMaxArea.z - vecMinArea.z) / 2;
+			float fPlayAreaCenterX = vecMinArea.x + fPlayAreaRadiusX;
+			float fPlayAreaCenterZ = vecMinArea.z + fPlayAreaRadiusZ;
+			float fPlayAreaRadius = fPlayAreaRadiusX;
+			if (fPlayAreaRadiusZ > fPlayAreaRadius) fPlayAreaRadius = fPlayAreaRadiusZ;
+			GGTrees::GGTreePoint* pOutPoints = NULL;
+			int iTreeCount = GGTrees::GGTrees_GetClosest (fPlayAreaCenterX, fPlayAreaCenterZ, fPlayAreaRadius, &pOutPoints);
+			if (pOutPoints)
 			{
-				GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
-				AddLimb(iBuildAllLevelObj, iLimbIndex, g.meshgeneralwork2);
-				OffsetLimb(iBuildAllLevelObj, iLimbIndex, vecTreePos.x, vecTreePos.y, vecTreePos.z);
-				iLimbIndex++;
+				for (int n = 0; n < iTreeCount; n++)
+				{
+					GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
+					AddLimb(iBuildAllLevelObj, iLimbIndex, g.meshgeneralwork2);
+					OffsetLimb(iBuildAllLevelObj, iLimbIndex, vecTreePos.x, vecTreePos.y, vecTreePos.z);
+					iLimbIndex++;
+				}
+				delete pOutPoints;
 			}
-			delete pOutPoints;
 		}
 	}
 
-	float* pVertices = 0;
-	uint32_t numVertices = 0;
-
+	// Generating raw nav mesh vertices for build
+	timestampactivity(0, "Generating raw nav mesh vertices for build");
+	float* pRawVertices = 0;
+	uint32_t numRawVertices = 0;
 	const bool saveObject = false;
 	if ( saveObject )
 	{
-		#ifdef WICKEDENGINE
+		// save level geometry object as OBJ
 		char pProgressStr[256];
 		sprintf_s(pProgressStr, 256, "SAVING NAV MESH TOPOGRAPHY - %d\\100 Complete", 11);
 		void printscreenprompt(char*);
 		printscreenprompt(pProgressStr);
-		#endif
-
-		// save level geometry object as OBJ
 		LPSTR pAllLevelGeometryFilename = "levelbank\\testmap\\rawlevelgeometry.obj";
 		if (FileExist(pAllLevelGeometryFilename)) DeleteFileA(pAllLevelGeometryFilename);
 		SaveObjectEx(pAllLevelGeometryFilename, iBuildAllLevelObj, true); //PE: Use 8% of the time optimize it.
 	}
 	else
 	{
-		#ifdef WICKEDENGINE
+		// get raw vertex soup from super object
 		char pProgressStr[256];
 		sprintf_s(pProgressStr, 256, "GENERATING NAV MESH VERTICES - %d\\100 Complete", 11);
 		void printscreenprompt(char*);
 		printscreenprompt(pProgressStr);
-		#endif
+		numRawVertices = GetObjectNavMeshVertexCount( iBuildAllLevelObj );
+		pRawVertices = new float[numRawVertices *3 ];
+		GetObjectNavMeshVertices( iBuildAllLevelObj, pRawVertices);
+	}
 
-		numVertices = GetObjectNavMeshVertexCount( iBuildAllLevelObj );
-		pVertices = new float[ numVertices*3 ];
-		GetObjectNavMeshVertices( iBuildAllLevelObj, pVertices );
+	// new method of adding trees, direct to the vertex soup
+	float* pVertices = pRawVertices;
+	uint32_t numVertices = numRawVertices;
+	if (bOldMethodOfAddingTreesToNavMesh == false)
+	{
+		if (ggtrees_global_params.draw_enabled == 1)
+		{
+			timestampactivity(0, "Adding all trees to post raw vertex soup (quicker)");
+			float fPlayAreaRadiusX = (vecMaxArea.x - vecMinArea.x) / 2;
+			float fPlayAreaRadiusZ = (vecMaxArea.z - vecMinArea.z) / 2;
+			float fPlayAreaCenterX = vecMinArea.x + fPlayAreaRadiusX;
+			float fPlayAreaCenterZ = vecMinArea.z + fPlayAreaRadiusZ;
+			float fPlayAreaRadius = fPlayAreaRadiusX;
+			if (fPlayAreaRadiusZ > fPlayAreaRadius) fPlayAreaRadius = fPlayAreaRadiusZ;
+			GGTrees::GGTreePoint* pOutPoints = NULL;
+			int iTreeCount = GGTrees::GGTrees_GetClosest (fPlayAreaCenterX, fPlayAreaCenterZ, fPlayAreaRadius, &pOutPoints);
+			if (pOutPoints)
+			{
+				// reserve space for larger vertex soup
+				numVertices = numRawVertices + (iTreeCount*6*6);
+				pVertices = new float[numVertices * 3];
+				memcpy (pVertices, pRawVertices, sizeof(float)* numRawVertices * 3);
+
+				// for each tree, add a cube to vertex data
+				uint32_t numCurrentVertices = numRawVertices;
+				for (int n = 0; n < iTreeCount; n++)
+				{
+					GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
+					sMesh* pTreeCubeShape = g_RawMeshList[g.meshgeneralwork2];
+					if (pTreeCubeShape)
+					{
+						float* pVertData = (float*)pTreeCubeShape->pVertexData;
+						uint32_t stride = pTreeCubeShape->dwFVFSize / 4;
+						for (DWORD dwI = 0; dwI < pTreeCubeShape->dwIndexCount; dwI++)
+						{
+							DWORD dwV = pTreeCubeShape->pIndices[dwI];
+							uint32_t vIndex = dwV * stride;
+							GGVECTOR3 vecXYZ = GGVECTOR3(pVertData[vIndex], pVertData[vIndex + 1], pVertData[vIndex + 2]);
+							uint32_t index = (numCurrentVertices + dwI) * 3;
+							pVertices[index + 0] = vecTreePos.x + vecXYZ.x;
+							pVertices[index + 1] = vecTreePos.y + vecXYZ.y;
+							pVertices[index + 2] = vecTreePos.z + vecXYZ.z;
+						}
+						numCurrentVertices += pTreeCubeShape->dwIndexCount;
+					}
+				}
+				delete pOutPoints;
+
+				// remove old vert soup in favor of new one
+				if (pRawVertices) delete[] pRawVertices;
+			}
+		}
+	}
+
+	// final step to send all Y coords under waterline to depths to avoid paths under water (and character walking into drowning)
+	for (DWORD dwV = 0; dwV < numVertices; dwV++)
+	{
+		uint32_t index = dwV * 3;
+		float fY = pVertices[index + 1];
+		if (fY < t.terrain.waterliney_f)
+		{
+			// sink this vertex to the depths if underwater, cannot make path from this!
+			pVertices[index + 1] = -9999;
+		}
 	}
 
 	// can now delete massive object
+	timestampactivity(0, "Delete temporary nav mesh super object");
 	DeleteObject(iBuildAllLevelObj);
 
 	// generate nav mesh using recast on OBJ
+	timestampactivity(0, "Using recast to build the nav mesh");
 	g_RecastDetour.buildall( pVertices, numVertices );
 
+	// remove vert soup
 	if ( pVertices ) delete [] pVertices;
 }
 

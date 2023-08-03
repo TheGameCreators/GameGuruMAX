@@ -24595,6 +24595,7 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			MakeFPELine(pLine, "objphysicsmode", i, cstr(t.entityelement[e].eleprof.physics)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objstaticmode", i, cstr(t.entityelement[e].staticflag)); WriteString (1, pLine);
 			MakeFPELine(pLine, "objisimmobile", i, cstr(t.entityelement[e].eleprof.isimmobile)); WriteString (1, pLine);
+			MakeFPELine(pLine, "objcollisionmode", i, cstr(t.entityelement[e].eleprof.iOverrideCollisionMode)); WriteString (1, pLine);
 
 			if (t.entityprofile[entid].ismarker == 10)
 			{
@@ -24867,6 +24868,7 @@ bool LoadGroup(LPSTR pAbsFilename)
 							if (ReadFPELine("objquaty", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quaty = t.value1;
 							if (ReadFPELine("objquatz", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatz = t.value1;
 							if (ReadFPELine("objquatw", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].quatw = t.value1;
+							if (ReadFPELine("objcollisionmode", t.field_s.Get(), &iOptionalIndex)) t.entityelement[pObjTable[iOptionalIndex].e].eleprof.iOverrideCollisionMode = t.value1;
 						}
 					}
 				}

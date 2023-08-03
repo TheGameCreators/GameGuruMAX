@@ -6,6 +6,7 @@
 // Globals
 bool g_bNavMeshChanged = false;
 std::vector<sBlocker> g_BlockerList;
+float g_fWaterTableY = 0.0f;
 
 // main functions
 GGRecastDetour::GGRecastDetour()
@@ -299,4 +300,9 @@ void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool
 		item.bBlocking = enable;
 		g_BlockerList.push_back(item);
 	}
+}
+
+void GGRecastDetour::SetWaterTableY(float y)
+{
+	g_fWaterTableY = y;
 }

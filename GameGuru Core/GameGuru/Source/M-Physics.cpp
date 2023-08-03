@@ -2412,6 +2412,14 @@ void physics_explodesphere ( void )
 							}
 						}
 					}
+					else
+					{
+						// must perform direct test as dont have prescannedvis list to compare if we have a direct ray line
+						t.tintersectvalue = IntersectAll(g.entityviewstartobj, g.entityviewendobj,
+											t.texplodex_f, t.texplodey_f, t.texplodez_f, 
+											fRayDestFromExplosionX, fRayDestFromExplosionY, fRayDestFromExplosionZ, 
+											t.entityelement[t.e].obj );
+					}
 				}
 				if ( t.tintersectvalue == 0 || t.tintersectvalue == t.entityelement[ t.texplodesourceEntity ].obj )
 				{

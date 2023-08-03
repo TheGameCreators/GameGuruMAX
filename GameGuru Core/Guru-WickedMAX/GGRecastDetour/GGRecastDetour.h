@@ -25,6 +25,7 @@ public:
 	void TogglePolys( float x, float y, float z, float radius, bool enable );
 	void ResetBlockerSystem( void );
 	void ToggleBlocker(float x, float y, float z, float radius, bool enable);
+	void SetWaterTableY(float y);
 
 private:
 	// core classes

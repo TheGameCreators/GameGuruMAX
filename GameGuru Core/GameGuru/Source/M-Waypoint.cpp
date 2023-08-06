@@ -1340,36 +1340,39 @@ void waypoint_fixcorruptduplicate ( int iFromE )
 {
 	// ensure t.waypointindex is the only unique reference in entitylist
 	int iTrueWaypointIndex = t.waypointindex;
-	for (int ee = 1; ee <= g.entityelementlist; ee++)
+	if (iTrueWaypointIndex > 0)
 	{
-		if (ee != iFromE && t.entityelement[ee].eleprof.trigger.waypointzoneindex == iTrueWaypointIndex)
+		for (int ee = 1; ee <= g.entityelementlist; ee++)
 		{
-			// this duplicate should not be here, but do not want to destroy zone data, so make a copy with unique entries
-			int iNewWaypointIndex = waypoint_findfreewaypointindex();
-			if (iNewWaypointIndex > 0)
+			if (ee != iFromE && t.entityelement[ee].eleprof.trigger.waypointzoneindex == iTrueWaypointIndex)
 			{
-				// first copy all identity of original
-				t.waypoint[iNewWaypointIndex] = t.waypoint[iTrueWaypointIndex];
-				t.waypoint[iNewWaypointIndex].start = 0;
-				t.waypoint[iNewWaypointIndex].finish = 0;
-				t.waypoint[iNewWaypointIndex].linkedtoentityindex = 0;
-
-				// create new coords ready to be filled
-				t.waypoint[iNewWaypointIndex].start = g.waypointcoordmax + 1;
-				for (t.ttii = 1; t.ttii <= t.waypoint[iNewWaypointIndex].count; t.ttii++)
+				// this duplicate should not be here, but do not want to destroy zone data, so make a copy with unique entries
+				int iNewWaypointIndex = waypoint_findfreewaypointindex();
+				if (iNewWaypointIndex > 0)
 				{
-					++g.waypointcoordmax;
-					Dim (t.waypointcoord, g.waypointcoordmax);
-					t.w = g.waypointcoordmax;
-					int iCopyFromW = t.waypoint[iTrueWaypointIndex].start + (t.ttii - 1);
-					t.waypointcoord[t.w] = t.waypointcoord[iCopyFromW];
-					t.waypointcoord[t.w].index = iNewWaypointIndex;
-				}
-				t.waypoint[iNewWaypointIndex].finish = t.w;
+					// first copy all identity of original
+					t.waypoint[iNewWaypointIndex] = t.waypoint[iTrueWaypointIndex];
+					t.waypoint[iNewWaypointIndex].start = 0;
+					t.waypoint[iNewWaypointIndex].finish = 0;
+					t.waypoint[iNewWaypointIndex].linkedtoentityindex = 0;
 
-				// assign new index to entity
-				t.waypoint[iNewWaypointIndex].linkedtoentityindex = ee;
-				t.entityelement[ee].eleprof.trigger.waypointzoneindex = iNewWaypointIndex;
+					// create new coords ready to be filled
+					t.waypoint[iNewWaypointIndex].start = g.waypointcoordmax + 1;
+					for (t.ttii = 1; t.ttii <= t.waypoint[iNewWaypointIndex].count; t.ttii++)
+					{
+						++g.waypointcoordmax;
+						Dim (t.waypointcoord, g.waypointcoordmax);
+						t.w = g.waypointcoordmax;
+						int iCopyFromW = t.waypoint[iTrueWaypointIndex].start + (t.ttii - 1);
+						t.waypointcoord[t.w] = t.waypointcoord[iCopyFromW];
+						t.waypointcoord[t.w].index = iNewWaypointIndex;
+					}
+					t.waypoint[iNewWaypointIndex].finish = t.w;
+
+					// assign new index to entity
+					t.waypoint[iNewWaypointIndex].linkedtoentityindex = ee;
+					t.entityelement[ee].eleprof.trigger.waypointzoneindex = iNewWaypointIndex;
+				}
 			}
 		}
 	}

@@ -8258,12 +8258,13 @@ void entity_addentitytomap ( void )
 			t.waypointindex = t.grideleprof.trigger.waypointzoneindex;
 			t.entityelement[t.e].eleprof.trigger.waypointzoneindex = t.waypointindex;
 			t.waypoint[t.waypointindex].linkedtoentityindex = t.e;
+			waypoint_fixcorruptduplicate(t.e); // moved from below to here as we have valid t.waypointindex
 		}
 		t.grideleprof.trigger.waypointzoneindex = 0;
 	}
 
 	// ensure waypoint never gets corrupted, making copies of data as needed
-	waypoint_fixcorruptduplicate(t.e);
+	//waypoint_fixcorruptduplicate(t.e); without valid t.waypointindex this is madness
 
 	//  as create entity, apply any texture change required
 	t.stentid=t.entid ; t.entid=t.entitybankindex;

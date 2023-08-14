@@ -24455,7 +24455,7 @@ void MakeFPELine (LPSTR pLine, LPSTR pFieldName, int iOptionalIndex, cstr str)
 	}
 
 	// fill with field name
-	if (strlen(pFieldName) <= 17)
+	if (strlen(pFinalFieldName) <= 17)//pFieldName) <= 17)
 	{
 		memcpy(pLine, pFinalFieldName, strlen(pFinalFieldName));
 	}

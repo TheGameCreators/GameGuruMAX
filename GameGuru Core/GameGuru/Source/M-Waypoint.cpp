@@ -534,64 +534,64 @@ void waypoint_validate_style2(void)
 	}
 }
 
-void waypoint_loaddata ( void )
+void waypoint_loaddata (void)
 {
 	//  Free any old
-	waypoint_deleteall ( );
+	waypoint_deleteall ();
 
 	//  load list
-	if (  FileExist( cstr(t.levelmapptah_s+"\\map.way").Get() ) == 1 ) 
+	if (FileExist(cstr(t.levelmapptah_s + "\\map.way").Get()) == 1)
 	{
-		t.filename_s=t.levelmapptah_s+"map.way";
-		OpenToRead (  1,t.filename_s.Get() );
-			//  strands
-			g.waypointmax = ReadLong ( 1 );
-			if (  g.waypointmax>0 ) 
+		t.filename_s = t.levelmapptah_s + "map.way";
+		OpenToRead (1, t.filename_s.Get());
+		//  strands
+		g.waypointmax = ReadLong (1);
+		if (g.waypointmax > 0)
+		{
+			UnDim (t.waypoint);
+			Dim (t.waypoint, g.waypointmax + 1);
+			for (t.w = 1; t.w <= g.waypointmax; t.w++)
 			{
-				UnDim (  t.waypoint );
-				Dim (  t.waypoint,g.waypointmax+1  );
-				for ( t.w = 1 ; t.w<=  g.waypointmax; t.w++ )
-				{
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].style=t.a;
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].fillcolor=t.a;
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].linkedtoentityindex=t.a;
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].count=t.a;
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].start=t.a;
-					t.a = ReadLong ( 1 ); t.waypoint[t.w].finish=t.a;
-				}
+				t.a = ReadLong (1); t.waypoint[t.w].style = t.a;
+				t.a = ReadLong (1); t.waypoint[t.w].fillcolor = t.a;
+				t.a = ReadLong (1); t.waypoint[t.w].linkedtoentityindex = t.a;
+				t.a = ReadLong (1); t.waypoint[t.w].count = t.a;
+				t.a = ReadLong (1); t.waypoint[t.w].start = t.a;
+				t.a = ReadLong (1); t.waypoint[t.w].finish = t.a;
 			}
-			//  coords
-			g.waypointcoordmax = ReadLong ( 1 );
-			//  Dave fix, on some older maps waypointcoordmax was a negative number
-			//  which would cause it to show up as 4gb when diming
-			//  so now we check if it is negative and correct it
-			if (  g.waypointcoordmax < 0  )  g.waypointcoordmax  =  0;
+		}
+		//  coords
+		g.waypointcoordmax = ReadLong (1);
+		//  Dave fix, on some older maps waypointcoordmax was a negative number
+		//  which would cause it to show up as 4gb when diming
+		//  so now we check if it is negative and correct it
+		if (g.waypointcoordmax < 0)  g.waypointcoordmax = 0;
 
-			if (  g.waypointcoordmax>0 ) 
+		if (g.waypointcoordmax > 0)
+		{
+			UnDim (t.waypointcoord);
+			Dim (t.waypointcoord, g.waypointcoordmax + 1);
+			for (t.w = 1; t.w <= g.waypointcoordmax; t.w++)
 			{
-				UnDim (  t.waypointcoord );
-				Dim (  t.waypointcoord,g.waypointcoordmax+1 );
-				for ( t.w = 1 ; t.w<=  g.waypointcoordmax; t.w++ )
-				{
-					t.a_f = ReadFloat ( 1 ); t.waypointcoord[t.w].x=t.a_f;
-					t.a_f = ReadFloat ( 1 ); t.waypointcoord[t.w].y=t.a_f;
-					t.a_f = ReadFloat ( 1 ); t.waypointcoord[t.w].z=t.a_f;
-					t.a = ReadLong ( 1 ); t.waypointcoord[t.w].link=t.a;
-					t.a = ReadLong ( 1 ); t.waypointcoord[t.w].index=t.a;
-				}
+				t.a_f = ReadFloat (1); t.waypointcoord[t.w].x = t.a_f;
+				t.a_f = ReadFloat (1); t.waypointcoord[t.w].y = t.a_f;
+				t.a_f = ReadFloat (1); t.waypointcoord[t.w].z = t.a_f;
+				t.a = ReadLong (1); t.waypointcoord[t.w].link = t.a;
+				t.a = ReadLong (1); t.waypointcoord[t.w].index = t.a;
 			}
-		CloseFile (  1 );
+		}
+		CloseFile (1);
 	}
 	else
 	{
 		// 010316 - V1.13b1 - if waypoint data entirely missing, need to scan 
 		// all entities to remove any reference to zones that use them
-		for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
 			int iEntID = t.entityelement[t.e].bankindex;
-			if ( iEntID > 0 )
+			if (iEntID > 0)
 			{
-				if ( t.entityprofile[iEntID].ismarker==3 || t.entityprofile[iEntID].ismarker==6 || t.entityprofile[iEntID].ismarker==8 )
+				if (t.entityprofile[iEntID].ismarker == 3 || t.entityprofile[iEntID].ismarker == 6 || t.entityprofile[iEntID].ismarker == 8)
 				{
 					// entities rely on waypoints, and no waypoint data, so erase these entities
 					t.entityelement[t.e].bankindex = 0;
@@ -602,76 +602,119 @@ void waypoint_loaddata ( void )
 	}
 
 	//  also ensure data is not pointing to larger arrays than we have (old legacy editing rogue data)
-	if ( g.waypointmax>0 ) 
+	if (g.waypointmax > 0)
 	{
 		waypoint_validate_style2();
 
-		for ( t.waypointindex = 1; t.waypointindex <= g.waypointmax; t.waypointindex++ )
+		for (t.waypointindex = 1; t.waypointindex <= g.waypointmax; t.waypointindex++)
 		{
-			if (  t.waypoint[t.waypointindex].count>0 ) 
+			if (t.waypoint[t.waypointindex].count > 0)
 			{
-				if (  t.waypoint[t.waypointindex].start>g.waypointcoordmax || t.waypoint[t.waypointindex].finish>g.waypointcoordmax ) 
+				if (t.waypoint[t.waypointindex].start > g.waypointcoordmax || t.waypoint[t.waypointindex].finish > g.waypointcoordmax)
 				{
 					//  waypoint indexes exceed current arrays - diable waypoint
-					t.waypoint[t.waypointindex].style=0;
-					t.waypoint[t.waypointindex].fillcolor=0;
-					t.waypoint[t.waypointindex].linkedtoentityindex=0;
-					t.waypoint[t.waypointindex].count=0;
-					t.waypoint[t.waypointindex].start=0;
-					t.waypoint[t.waypointindex].finish=0;
+					t.waypoint[t.waypointindex].style = 0;
+					t.waypoint[t.waypointindex].fillcolor = 0;
+					t.waypoint[t.waypointindex].linkedtoentityindex = 0;
+					t.waypoint[t.waypointindex].count = 0;
+					t.waypoint[t.waypointindex].start = 0;
+					t.waypoint[t.waypointindex].finish = 0;
 				}
 			}
 		}
-		for ( t.w = 1 ; t.w<=  g.waypointcoordmax; t.w++ )
+		for (t.w = 1; t.w <= g.waypointcoordmax; t.w++)
 		{
-			if (  t.waypointcoord[t.w].link>g.waypointcoordmax ) 
+			if (t.waypointcoord[t.w].link > g.waypointcoordmax)
 			{
-				t.waypointcoord[t.w].link=0;
+				t.waypointcoord[t.w].link = 0;
 			}
-			if (  t.waypointcoord[t.w].index>g.waypointmax ) 
+			if (t.waypointcoord[t.w].index > g.waypointmax)
 			{
-				t.waypointcoord[t.w].index=0;
+				t.waypointcoord[t.w].index = 0;
 			}
 		}
 	}
 
 	//  also ensure waypoint table not corrupt, so check sizes and ranges
-	if (  g.waypointmax>0 ) 
+	if (g.waypointmax > 0)
 	{
-		for ( t.waypointindex = 1 ; t.waypointindex<=  g.waypointmax; t.waypointindex++ )
+		for (t.waypointindex = 1; t.waypointindex <= g.waypointmax; t.waypointindex++)
 		{
-			t.tcountnow=t.waypoint[t.waypointindex].finish-t.waypoint[t.waypointindex].start;
-			if (  t.waypoint[t.waypointindex].count>0 && t.waypoint[t.waypointindex].count != t.tcountnow ) 
+			t.tcountnow = t.waypoint[t.waypointindex].finish - t.waypoint[t.waypointindex].start;
+			if (t.waypoint[t.waypointindex].count > 0 && t.waypoint[t.waypointindex].count != t.tcountnow)
 			{
 				//  reconstruct table data from waypoint coord data
-				t.waypoint[t.waypointindex].start=-1;
-				for ( t.w = 1 ; t.w<=  g.waypointcoordmax; t.w++ )
+				t.waypoint[t.waypointindex].start = -1;
+				for (t.w = 1; t.w <= g.waypointcoordmax; t.w++)
 				{
-					if (  t.waypointcoord[t.w].index == t.waypointindex ) 
+					if (t.waypointcoord[t.w].index == t.waypointindex)
 					{
-						if (  t.waypoint[t.waypointindex].start == -1 ) 
+						if (t.waypoint[t.waypointindex].start == -1)
 						{
-							t.waypoint[t.waypointindex].start=t.w;
+							t.waypoint[t.waypointindex].start = t.w;
 						}
 					}
 					else
 					{
-						if (  t.waypoint[t.waypointindex].start != -1 ) 
+						if (t.waypoint[t.waypointindex].start != -1)
 						{
 							break;
 						}
 					}
 				}
-				if (  t.waypoint[t.waypointindex].start != -1 ) 
+				if (t.waypoint[t.waypointindex].start != -1)
 				{
-					t.waypoint[t.waypointindex].finish=t.w-1;
+					t.waypoint[t.waypointindex].finish = t.w - 1;
 				}
 			}
-			if (  t.waypoint[t.waypointindex].start == -1 ) 
+			if (t.waypoint[t.waypointindex].start == -1)
 			{
-				t.waypoint[t.waypointindex].start=0;
-				t.waypoint[t.waypointindex].finish=0;
-				t.waypoint[t.waypointindex].count=0;
+				t.waypoint[t.waypointindex].start = 0;
+				t.waypoint[t.waypointindex].finish = 0;
+				t.waypoint[t.waypointindex].count = 0;
+			}
+		}
+	}
+
+	// older levels had corrupt 'eleprof.trigger.waypointzoneindex' values (duplicates)
+	// and caused in AUG23 build for objects to lose their rot/scl (thinking they where zones)
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		int iEntID = t.entityelement[t.e].bankindex;
+		if (iEntID > 0)
+		{
+			if (t.entityprofile[iEntID].ismarker == 3 || t.entityprofile[iEntID].ismarker == 6 || t.entityprofile[iEntID].ismarker == 8)
+			{
+				// is a zone, leave alone
+			}
+			else
+			{
+				// not a zone, wipe out corrupt waypointzoneindex value
+				t.entityelement[t.e].eleprof.trigger.waypointzoneindex = 0;
+			}
+		}
+	}
+
+	// and then clean up so only unique waypoint zones exist after load
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		int iEntID = t.entityelement[t.e].bankindex;
+		if (iEntID > 0)
+		{
+			if (t.entityprofile[iEntID].ismarker == 3 || t.entityprofile[iEntID].ismarker == 6 || t.entityprofile[iEntID].ismarker == 8)
+			{
+				t.waypointindex = t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
+				if (t.waypointindex > 0)
+				{
+					// ensure this is unique
+					waypoint_fixcorruptduplicate(t.e);
+				}
+				else
+				{
+					// marked as zone but no waypointindex, so remove as cannot exist as zone with no zone data
+					t.entityelement[t.e].bankindex = 0;
+					t.entityelement[t.e].active = 0;
+				}
 			}
 		}
 	}

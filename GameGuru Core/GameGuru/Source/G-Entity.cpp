@@ -4166,9 +4166,13 @@ void entity_createattachment ( void )
 								SetObjectEffect (  t.ttobj,t.teffectid );
 								#endif
 
+								// ensure it does not attract a collision hit during ray cast
+								sObject* pAttObject = GetObjectData(t.ttobj);
+								WickedCall_SetObjectRenderLayer(pAttObject, GGRENDERLAYERS_CURSOROBJECT);
+
 								// Find firespot for this vweap
 								t.entityelement[t.e].attachmentobjfirespotlimb=0;
-								PerformCheckListForLimbs (  t.ttobj );
+								PerformCheckListForLimbs ( t.ttobj );
 								for ( t.tc = 1 ; t.tc <= ChecklistQuantity(); t.tc++ )
 								{
 									if ( cstr(Lower(ChecklistString(t.tc))) == "firespot" ) 

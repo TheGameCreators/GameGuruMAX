@@ -7632,6 +7632,12 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 		g_pIntersectDatabaseLastResult = new int[g_dwIntersectDatabaseSize];
 		memset(g_pIntersectDatabase, 0, sizeof(DWORD)*g_dwIntersectDatabaseSize);
 		memset(g_pIntersectDatabaseLastResult, 0, sizeof(int)*g_dwIntersectDatabaseSize);
+
+		// block everything initially, prevents characters being able to see through everything at start of level
+		for (int i = 0; i < g_dwIntersectDatabaseSize; i++)
+		{
+			g_pIntersectDatabaseLastResult[i] = -1;
+		}
 	}
 	if (iIndexInIntersectDatabase > 50000) iIndexInIntersectDatabase = 50000;
 	bool bUseHitResultFromIntersectDatabase = false;
@@ -7661,6 +7667,9 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			}
 		}
 	}
+
+	// static mode 2 does not seem to work (char in building, ray cast thorugh wall to player outside!) 
+	if (iStaticOnly == 2) iStaticOnly = 1;
 
 	// visible geometry ray detection
 	if ( iStaticOnly != 2 )

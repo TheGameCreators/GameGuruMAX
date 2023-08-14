@@ -2337,6 +2337,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		#endif
 
 		// go through and add all FPMs to export
+		char pIncludeMapFile[MAX_PATH];
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
@@ -2357,6 +2358,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				++t.levelmax;
 				t.levellist_s[t.levelmax] = g_Storyboard_Current_fpm;
 				addtocollection(g_Storyboard_Current_fpm);
+				if (strlen(g_Storyboard_Current_fpm) > 5)
+				{
+					strcpy(pIncludeMapFile, g_Storyboard_Current_fpm);
+					pIncludeMapFile[strlen(pIncludeMapFile) - 4] = 0;
+					strcat(pIncludeMapFile, ".png");
+					addtocollection(pIncludeMapFile);
+				}
 				foundlevel = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
 			}
 			else
@@ -2390,6 +2398,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 					++t.levelmax;
 					t.levellist_s[t.levelmax] = levelName;
 					addtocollection(levelName.Get());
+					if (levelName.Len() > 5)
+					{
+						strcpy(pIncludeMapFile, levelName.Get());
+						pIncludeMapFile[strlen(pIncludeMapFile) - 4] = 0;
+						strcat(pIncludeMapFile, ".png");
+						addtocollection(pIncludeMapFile);
+					}
 				}
 			}
 		}

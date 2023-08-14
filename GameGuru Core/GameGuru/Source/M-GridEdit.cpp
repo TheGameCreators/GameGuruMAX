@@ -23846,10 +23846,13 @@ void editor_constructionselection ( void )
 				//PE: Somebody removed this line in Classic ???? Nothing worked ????
 				t.gridentity = t.inputsys.constructselection;
 
+				// use custom grideleprof if from smart object
+				bool bEleProfFromSmartObject = false;
+
 				// remove any entity group rubber band highlighting
 				#ifdef WICKEDENGINE
 				t.gridentity = t.inputsys.constructselection;
-				int iFromGroupEntityID = false;
+				int iFromGroupEntityID = 0;
 				if (t.entityprofile[t.gridentity].groupreference != -1)
 				{
 					// this entity is a group, create new child group for selection
@@ -23864,8 +23867,19 @@ void editor_constructionselection ( void )
 						iFromGroupEntityID = DuplicateFromListToCursor(vEntityGroupList[iParentGroupID], false, -1);
 
 						//PE: Keep scale rot when setup from a group.
-						if(iFromGroupEntityID > 0)
+						if (iFromGroupEntityID > 0)
+						{
 							bRotScaleAlreadyUpdated = true;
+							if (g.entityrubberbandlist.size() > 0)
+							{
+								int e = g.entityrubberbandlist[0].e;
+								if (e > 0)
+								{
+									t.grideleprof = t.entityelement[e].eleprof;
+									bEleProfFromSmartObject = true;
+								}
+							}
+						}
 
 						// smart object game elements are always hidden at first
 						gridedit_setsmartobjectvisibilityinrubberband(false);
@@ -24061,7 +24075,13 @@ void editor_constructionselection ( void )
 				//  Ensure editor zoom refreshes
 				t.updatezoom=1;
 				//  fill new selection with defaults
-				t.sentid=t.entid ; t.entid=t.gridentity  ; entity_fillgrideleproffromprofile() ; t.entid=t.sentid;
+				if (bEleProfFromSmartObject == false)
+				{
+					// only if not already populated from smart object element above
+					t.sentid = t.entid; t.entid = t.gridentity;
+					entity_fillgrideleproffromprofile();
+					t.entid = t.sentid;
+				}
 				t.grideleproflastname_s=t.grideleprof.name_s;
 				//  marker types?
 				if ( t.entityprofile[t.gridentity].ismarker == 1 && t.entityprofile[t.gridentity].lives != -1 ) 

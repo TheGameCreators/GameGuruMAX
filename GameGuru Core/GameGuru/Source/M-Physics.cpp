@@ -1561,6 +1561,8 @@ void physics_prepareentityforphysics ( void )
 				sObject* pSecondaryObject = GetObjectData(iSecondaryObjID);
 				WickedCall_TextureObject(pSecondaryObject, NULL);
 				t.entityelement[t.e].attachmentobj = iSecondaryObjID;
+				// ensure it does not attract a collision hit during ray cast
+				WickedCall_SetObjectRenderLayer(pSecondaryObject, GGRENDERLAYERS_CURSOROBJECT);
 				PerformCheckListForLimbs(iSecondaryObjID);
 				for (int c = ChecklistQuantity(); c > 1; c += -1)
 				{

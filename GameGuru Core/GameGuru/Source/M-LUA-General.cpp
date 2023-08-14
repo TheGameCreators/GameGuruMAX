@@ -1699,6 +1699,8 @@ void lua_resumegame ( void )
 	//PE: Need a frame to call _free.
 	extern int iBlockRenderingForFrames;
 	iBlockRenderingForFrames = 2;
+	// and ensure no HUDs on return to game
+	t.game.activeStoryboardScreen = -1;
 	#endif
 }
 void lua_switchpage ( void )

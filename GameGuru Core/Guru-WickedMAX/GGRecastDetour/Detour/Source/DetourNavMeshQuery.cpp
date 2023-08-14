@@ -1183,48 +1183,6 @@ dtStatus dtNavMeshQuery::findPath(dtPolyRef startRef, dtPolyRef endRef,
 				}
 			}
 
-			/* not good enough, characters would still try to skim edges and deep waters would take them
-			//LB: add extra cost if have to traverse water, and make cost TOO GREAT if the traverser cannot swim/wade
-			bool bTheCostOfWater = true;
-			if (bTheCostOfWater==true)
-			{
-				float fCanWadeSafely = 10.0f;
-				if (heuristic < maxdoorcost)
-				{
-					extern float g_fWaterTableY;
-					extern float BT_GetGroundHeight(unsigned long, float, float);
-					float fRealGroundY = BT_GetGroundHeight (0, fToX, fToZ);
-					if (fRealGroundY < g_fWaterTableY - fCanWadeSafely)
-					{
-						// the path goes through water that is too deep
-						heuristic += maxdoorcost;
-					}
-					else
-					{
-						float fX = fFromX;
-						float fZ = fFromZ;
-						float fIX = fToX - fFromX;
-						float fIZ = fToZ - fFromZ;
-						int iStepCount = sqrt(fabs(fIX * fIX) + fabs(fIZ * fIZ));
-						fIX /= iStepCount;
-						fIZ /= iStepCount;
-						for (int iStep = 0; iStep < iStepCount; iStep += 5)
-						{
-							fRealGroundY = BT_GetGroundHeight (0, fX, fZ);
-							if (fRealGroundY < g_fWaterTableY - fCanWadeSafely)
-							{
-								// the path goes through water that is too deep
-								heuristic += maxdoorcost;
-								break;
-							}
-							fX += (fIX * 5);
-							fZ += (fIZ * 5);
-						}
-					}
-				}
-			}
-			*/
-
 			// do the full cost tital
 			const float total = cost + heuristic;
 

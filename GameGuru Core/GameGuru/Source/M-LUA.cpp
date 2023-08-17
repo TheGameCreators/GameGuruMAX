@@ -807,10 +807,11 @@ void lua_loop_allentities ( void )
 			if (t.entityelement[t.e].lua.flagschanged == 123)
 				continue;
 
+			//LB: superceded with setting the active to zero when inside a shop/chest (i.e. not player inv/hotkeys)
 			// must skip entity element if collected by shop or other container
 			// only player and hotkeys collections can run logic!
-			if (t.entityelement[t.e].collected >= 3)
-				continue;
+			//if (t.entityelement[t.e].collected >= 3)
+			//	continue;
 
 			// provided by darkai_loop control (avoids desync of use of maximumnonefreezedistance)
 			#ifdef WICKEDENGINE

@@ -1569,7 +1569,8 @@ luaMessage** ppLuaMessages = NULL;
 				}
 				break;
 			}
-#ifdef WICKEDENGINE
+			case 23: t.entityelement[iEntityIndex].iCanGoUnderwater = (int)fValue; break;
+
 			case 105:
 			{
 				t.entityelement[iEntityIndex].eleprof.iMoveSpeed = (int)fValue;
@@ -1594,7 +1595,6 @@ luaMessage** ppLuaMessages = NULL;
 				}
 				break;
 			}
-#endif
 		}
 	}
 	return 0;
@@ -1702,6 +1702,7 @@ luaMessage** ppLuaMessages = NULL;
 							break;
 						}
 						case 22: fReturnValue = t.entityelement[iEntityIndex].eleprof.phyalways; break;
+						case 23: fReturnValue = t.entityelement[iEntityIndex].iCanGoUnderwater; break;
 					}
 				}
 			}
@@ -1791,6 +1792,9 @@ luaMessage** ppLuaMessages = NULL;
  int GetMovementDeltaManually(lua_State *L) { return GetEntityData ( L, 19 ); }
  int GetEntityMarkerMode(lua_State *L) { return GetEntityData (L, 21); }
  int GetEntityAlwaysActive(lua_State* L) { return GetEntityData (L, 22); }
+
+ int SetEntityUnderwaterMode(lua_State* L) { return RawSetEntityData (L, 23); }
+ int GetEntityUnderwaterMode(lua_State* L) { return GetEntityData (L, 23); }
 
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
@@ -2458,6 +2462,26 @@ luaMessage** ppLuaMessages = NULL;
 	 return 1;
  }
 
+ int GetEntityAnimationStartFinish(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iReturnValue = 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 const char* pAnimationName = lua_tostring(L, 2);
+	 float fFoundStart = -1, fFoundFinish = -1;
+	 if (iEntityIndex > 0)
+	 {
+		 cstr pStr = (LPSTR)pAnimationName;
+		 extern int entity_lua_getanimationname(int, cstr, float*, float*);
+		 int iAnimSetIndex = entity_lua_getanimationname (iEntityIndex, pStr, &fFoundStart, &fFoundFinish);
+	 }
+	 lua_pushinteger (L, (int)fFoundStart);
+	 lua_pushinteger (L, (int)fFoundFinish);
+	 return 1;
+ }
+
  // Entity creation and destruction
 
  int CreateEntityIfNotPresent(lua_State* L)
@@ -2536,7 +2560,8 @@ luaMessage** ppLuaMessages = NULL;
 		 t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
 		 t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
 		 t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
-		 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
+		 // clones always show at start
+		 t.entityelement[t.e].eleprof.spawnatstart = 1;
 		 iNewE = t.e;
 		 physics_prepareentityforphysics ();
 		 t.entityelement[t.e].lua.firsttime = 0;
@@ -7453,6 +7478,14 @@ int MoveInventoryItem (lua_State* L)
 							// add new item to dest
 							t.inventoryContainer[bothplayercontainersto].push_back(item);
 						}
+						// ensure activate and deactivate entity as it passes from player/hotkeys to shop/chest/etc
+						if (item.e > 0)
+						{
+							if (bothplayercontainersto == 0 || bothplayercontainersto == 1)
+								t.entityelement[item.e].active = 1;
+							else
+								t.entityelement[item.e].active = 0;
+						}
 						break;
 					}
 				}
@@ -7528,6 +7561,11 @@ int AddInventoryItem (lua_State* L)
 		item.collectionID = collectionindex;
 		item.slot = slotindex;
 		t.inventoryContainer[bothplayercontainersto].push_back(item);
+		// ensure activate and deactivate entity as it passes from player/hotkeys to shop/chest/etc
+		if (bothplayercontainersto == 0 || bothplayercontainersto == 1)
+			t.entityelement[item.e].active = 1;
+		else
+			t.entityelement[item.e].active = 0;
 	}
 	return 0;
 }
@@ -9756,6 +9794,9 @@ void addFunctions()
 	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 	lua_register(lua, "GetEntityMarkerMode", GetEntityMarkerMode);
 	lua_register(lua, "GetEntityAlwaysActive", GetEntityAlwaysActive);
+
+	lua_register(lua, "SetEntityUnderwaterMode", SetEntityUnderwaterMode);
+	lua_register(lua, "GetEntityUnderwaterMode", GetEntityUnderwaterMode);
 	
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);
@@ -9819,6 +9860,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityAnimationNameExist", GetEntityAnimationNameExist);
 	lua_register(lua, "GetEntityAnimationNameExistAndPlaying", GetEntityAnimationNameExistAndPlaying);
 	lua_register(lua, "GetEntityAnimationTriggerFrame", GetEntityAnimationTriggerFrame);
+	lua_register(lua, "GetEntityAnimationStartFinish", GetEntityAnimationStartFinish);
 	
 	// Entity creation/destruction
 	lua_register(lua, "CreateEntityIfNotPresent", CreateEntityIfNotPresent);

@@ -620,7 +620,7 @@ void entity_reset_defaults(void)
 	//t.entityelement[t.e].delaydestroy = 0;
 	t.entityelement[t.e].distance = 0;
 	t.entityelement[t.e].soundplaying = 0;
-	t.entityelement[t.e].entityacc = 0;
+	t.entityelement[t.e].iCanGoUnderwater = 0;
 	//t.entityelement[t.e].objectivecurrentrange = 0;
 	//t.entityelement[t.e].objectiveradarrange = 0;
 	//t.entityelement[t.e].isanobjective = 0;
@@ -644,7 +644,7 @@ void entity_reset_defaults(void)
 	//t.entityelement[t.e].usefade = 0;
 	//t.entityelement[t.e].cullstate = 0;
 	t.entityelement[t.e].ishidden = 0;
-	t.entityelement[t.e].entitydammult_f = 0.0f;
+	//t.entityelement[t.e].reserved2 was entitydammult_f = 0.0f;
 	//t.entityelement[t.e].floorpositiony = 0.0f;
 	//t.entityelement[t.e].hideshadow = 0;
 	//t.entityelement[t.e].isaltammo = 0;
@@ -1714,17 +1714,19 @@ void entity_loop ( void )
 					if (t.entityelement[t.e].y + 65.0f < t.terrain.waterliney_f)
 					{
 						// damage from drowning (means we do not need handling in ALL character scripts)
-						// NOTE: Future feature could switch off the default drown so some charactes can swim and go underwater..
-						t.tdamage = 10;
-						t.tdamageforce = 0;
-						t.brayx1_f = t.entityelement[t.e].x;
-						t.brayy1_f = t.entityelement[t.e].y+10.0f;
-						t.brayz1_f = t.entityelement[t.e].z;
-						t.brayx2_f = t.entityelement[t.e].x;
-						t.brayy2_f = t.entityelement[t.e].y;
-						t.brayz2_f = t.entityelement[t.e].z;
-						t.tdamagesource = 0;
-						t.ttte = t.e; entity_applydamage(); t.e = t.ttte;
+						if (t.entityelement[t.e].iCanGoUnderwater == 0)
+						{
+							t.tdamage = 10;
+							t.tdamageforce = 0;
+							t.brayx1_f = t.entityelement[t.e].x;
+							t.brayy1_f = t.entityelement[t.e].y + 10.0f;
+							t.brayz1_f = t.entityelement[t.e].z;
+							t.brayx2_f = t.entityelement[t.e].x;
+							t.brayy2_f = t.entityelement[t.e].y;
+							t.brayz2_f = t.entityelement[t.e].z;
+							t.tdamagesource = 0;
+							t.ttte = t.e; entity_applydamage(); t.e = t.ttte;
+						}
 					}
 				}
 			}
@@ -2010,7 +2012,7 @@ void entity_loop ( void )
 		{
 			// the prescan
 			// scan all entities that are capable of being exploded, and see what they can see and add to list (saves performant freeze later)
-			if (t.entityelement[t.ee].eleprof.explodable != 0)
+			if (t.entityelement[t.ee].eleprof.explodable != 0 && t.entityprofile[t.eentid].ischaracter == 0 )
 			{
 				if (iOnlySomePreScanEventPerCyce > 0)
 				{
@@ -2024,7 +2026,7 @@ void entity_loop ( void )
 							{
 								if (t.ee != iCanWeSeeThisE)
 								{
-									if (t.entityelement[iCanWeSeeThisE].obj > 0 && t.entityelement[iCanWeSeeThisE].staticflag == 0)
+									if (t.entityelement[iCanWeSeeThisE].obj > 0 && t.entityelement[iCanWeSeeThisE].staticflag == 0 && t.entityprofile[t.entityelement[iCanWeSeeThisE].bankindex].ischaracter == 0)
 									{
 										float fYOff = 10.0f;
 										float fDX = t.entityelement[iCanWeSeeThisE].x - t.entityelement[t.ee].x;

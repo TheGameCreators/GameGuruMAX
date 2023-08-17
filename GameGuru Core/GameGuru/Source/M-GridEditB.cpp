@@ -29267,7 +29267,8 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	// if not static, we may explode it
 	if (t.entityelement[elementID].staticflag == 0)
 	{
-		if (t.entityprofile[entid].isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
+		//if (t.entityprofile[entid].isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
+		if (t.entityelement[elementID].eleprof.isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
 		{
 			// special case cannot blow up things like collectables, ammo, weapons, etc
 		}

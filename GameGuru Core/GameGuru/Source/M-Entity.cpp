@@ -5621,14 +5621,7 @@ void c_entity_loadelementsdata ( void )
 
 	// load entity element list
 	t.failedtoload=0;
-	#ifdef VRTECH
-	t.versionnumbersupported = 313;
-	#else
-	t.versionnumbersupported = 312;
-	#endif
-	#ifdef WICKEDENGINE
-	t.versionnumbersupported = 336; //329;//327;// 323; // 322; //319;
-	#endif
+	t.versionnumbersupported = 337;
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
 	{
@@ -6320,6 +6313,10 @@ void c_entity_loadelementsdata ( void )
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbeY = t.a;
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.light.fLightHasProbeZ = t.a;
 					}
+					if (t.versionnumberload >= 337)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].iCanGoUnderwater = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -6457,8 +6454,8 @@ void c_entity_loadelementsdata ( void )
 						t.entityelement[t.e].eleprof.bAutoFlatten = false;
 					}
 
-					t.entityelement[t.e].entitydammult_f=1.0;
-					t.entityelement[t.e].entityacc=1.0;
+					//t.entityelement[t.e].entitydammult_f=1.0; not used any more, reused field for iCanGoUnderwater and renamed entitydammult_f to reserved2
+					//t.entityelement[t.e].entityacc=1.0;
 
 					// 131115 - transparency control was removed from GG properties IDE, so ensure
 					// it reflects the latest entity profile information (until we allow this value back in)
@@ -6930,14 +6927,7 @@ void entity_saveelementsdata ( void )
 	g.entityelementlist = temp;
 
 	//  Save entity element list
-	#ifdef VRTECH
-	t.versionnumbersave = 313;
-	#else
-	t.versionnumbersave = 312;
-	#endif
-	#ifdef WICKEDENGINE
-	t.versionnumbersave = 336; //329; //327;// 323; //322; //319;
-	#endif
+	t.versionnumbersave = 337;
 
 	EntityWriter writer;
 
@@ -7473,6 +7463,10 @@ void entity_saveelementsdata ( void )
 					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeX);
 					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeY);
 					writer.WriteLong(t.entityelement[ent].eleprof.light.fLightHasProbeZ);
+				}
+				if (t.versionnumbersave >= 337)
+				{
+					writer.WriteLong(t.entityelement[ent].iCanGoUnderwater);
 				}
 				#endif
 			}

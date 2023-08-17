@@ -3343,6 +3343,8 @@ void ODEGetCharacterWalkDirection(GGVECTOR3* look)
 #endif
 }
 
+bool g_bGlobalCurrentlyDucked = false;
+
 void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, float fAngleX, float fSpeed, float fJump, float fDucking, float fPushAngle, float fPushForce, float fThrustUpwards )
 {
 	// get reference object
@@ -3434,7 +3436,7 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 		float fZPos = pObject->position.vecPosition.z;
 		if ( fDucking==1.0f )
 		{
-			if ( m_character->m_bCurrentlyDucked==false )
+			if (g_bGlobalCurrentlyDucked == false )// m_character->m_bCurrentlyDucked==false )
 			{
 				// change to small capsule
 				btCollisionShape* oldrigidbodyshape = m_ghostObject->getCollisionShape();
@@ -3444,7 +3446,9 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 				m_ghostObject->setCollisionShape ( capsule );
 				m_character->SetConvexShape ( capsule );
 				delete oldrigidbodyshape;
-				m_character->m_bCurrentlyDucked = true;
+
+				//m_character->m_bCurrentlyDucked = true;
+				g_bGlobalCurrentlyDucked = true;
 
 				// reposition character for ducking (otherwise it jitters)
 				m_character->warp (btVector3(fXPos/gSc,fYPos/gSc,fZPos/gSc));
@@ -3452,7 +3456,7 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 		}
 		else
 		{
-			if ( m_character->m_bCurrentlyDucked==true )
+			if (g_bGlobalCurrentlyDucked==true )//m_character->m_bCurrentlyDucked==true )
 			{
 				// do raycast to see if we can unduck 
 				bool bHitSomething = false;
@@ -3491,7 +3495,9 @@ void ODEControlDynamicCharacterController ( int iObjectNumber, float fAngleY, fl
 					m_ghostObject->setCollisionShape ( capsule );
 					m_character->SetConvexShape ( capsule );
 					delete oldrigidbodyshape;
-					m_character->m_bCurrentlyDucked = false;
+
+					//m_character->m_bCurrentlyDucked = false;
+					g_bGlobalCurrentlyDucked = false;
 				}
 			}
 		}
@@ -3518,7 +3524,7 @@ DWORD ODEGetCharacterControllerDucking ( int iObjectNumber )
 {
 	if ( m_character )
 	{
-		if ( m_character->m_bCurrentlyDucked==true )
+		if (g_bGlobalCurrentlyDucked==true) //m_character->m_bCurrentlyDucked==true )
 			return 1;
 		else
 			return 0;

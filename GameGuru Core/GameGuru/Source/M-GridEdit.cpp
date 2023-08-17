@@ -24604,7 +24604,7 @@ void editor_mainfunctionality ( void )
 						}
 
 						// quat rotation event
-						GGQUATERNION quatRotationEvent = { 0,0,0,0 };
+						//GGQUATERNION quatRotationEvent = { 0,0,0,0 };
 						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
 						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(fMoveAngX));
 						GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(fMoveAngY));
@@ -29044,7 +29044,7 @@ void gridedit_mapediting ( void )
 								{
 									#ifdef WICKEDENGINE
 									//PE: This normally makes a duplicate, what we dont need in this system.
-									if (pref.iEnableDragDropEntityMode)
+									if ( 1 ) // when adding, need same functionality (smart object groups) pref.iEnableDragDropEntityMode )
 									{
 										//We might have to do some kind of support.
 										int iStoreGridEntity = t.gridentity;
@@ -29350,7 +29350,8 @@ void gridedit_mapediting ( void )
 								#ifdef WICKEDENGINE
 								//PE: If this system rubberband is not dublicated, so we cant do shift. also it react on mouse release not mouse down.
 								//PE: So mouse release we have no rubberband selection, if still works fine with single objects.
-								if (pref.iEnableDragDropEntityMode ) {
+								if (1) // LB: match functionality for pasting down pref.iEnableDragDropEntityMode ) 
+								{
 									if (g.entityrubberbandlist.size() > 0)
 									{
 										t.inputsys.kscancode = 211;
@@ -30106,13 +30107,12 @@ void gridedit_mapediting ( void )
 					}
 				}
 				// record all current offsets from primary cursor entity and rubberband selection
-				#ifdef WICKEDENGINE
-				if (pref.iEnableDragDropEntityMode && t.gridentity > 0) 
+				//if (pref.iEnableDragDropEntityMode && t.gridentity > 0) //prevented non drag/drop entity mode smart object update
+				if (t.gridentity > 0)
 				{
 					//PE: Dont reset t.fOldGridEntityX when we got a t.gridentity
 				}
 				else
-				#endif
 				{
 					//PE: t.gridentityposx_f can go below -1, if you drag it way out there , and you could loose moving of rubberband (out of sync).
 					if (!bDisableRubberBandMoving)
@@ -30199,22 +30199,18 @@ void gridedit_mapediting ( void )
 					editor_refreshentitycursor ( );
 					t.widget.pickedObject=0;
 
-					#ifdef WICKEDENGINE
 					//PE: We dont actualle make new duplicates so can skib this.
-					if (pref.iEnableDragDropEntityMode)
+					if (1)// same functionality pref.iEnableDragDropEntityMode)
 					{
 						//We might have to do some kind of support.
 					}
 					else
-					#endif
 					{
 						bool bDisableRubberBandMoving = false;
-						#ifdef WICKEDENGINE
 						if (current_selected_group >= 0 && group_editing_on)
 						{
 							bDisableRubberBandMoving = true;
 						}
-						#endif
 						if (!bDisableRubberBandMoving)
 						{
 							// if rubberband selection, delete all in selection

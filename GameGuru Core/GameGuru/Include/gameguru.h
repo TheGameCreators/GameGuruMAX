@@ -490,6 +490,7 @@ struct Sglobals
 	int terrainvectorindex;
 	float timebasepercycle_f;
 	int vrsidebysidestereo;
+	int weaponstempimageoffset;
 	int weaponsimageoffset;
 	int weaponssoundoffset;
 	int widgetobjectoffset;

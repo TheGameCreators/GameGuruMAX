@@ -1686,9 +1686,18 @@ void gun_loaddata ( void )
 			g.firemodes[t.gunid][t.i].settings.jamchance = 0;
 		}
 	}
+
+	// determine if legacy or new weapon system 
+	t.gun[t.gunid].newweaponsystem = 0;
+	cstr pathtoresourcefolder_s = "gamecore\\";
+	pathtoresourcefolder_s = pathtoresourcefolder_s + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\";
+	if (PathExist(pathtoresourcefolder_s.Get()) == 1)
+	{
+		t.gun[t.gunid].newweaponsystem = 1;
+	}
 }
 
-void gun_createhud ( void )
+void gun_createhud ( cstr customArms_s )
 {
 	// init
 	bool bCreateThenAppend = true;
@@ -1714,7 +1723,30 @@ void gun_createhud ( void )
 					if (bCreateThenAppend == true)
 					{
 						// first one is loaded
-						t.currentgunobj = loadgun(t.gunid, pActualFile_s.Get());
+						bool bUseCustomHands = false;
+						if (stricmp(pThisFile, "base_arms") == NULL)
+						{
+							if (customArms_s.Len()>0)
+							{
+								pActualFile_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
+								bUseCustomHands = true;
+							}
+						}
+
+						// actual base arms load
+						if (t.currentgunobj > 0)
+							LoadObject(pActualFile_s.Get(), t.currentgunobj);
+						else
+							t.currentgunobj = loadgun(t.gunid, pActualFile_s.Get());
+
+						// for custom hands, use custom arm textures too
+						if (bUseCustomHands == true)
+						{
+							cstr pCustomArms_s = cstr("gamecore\\hands\\") + customArms_s + cstr("\\arms_color.dds");
+							if(ImageExist(g.weaponstempimageoffset)==1 ) DeleteImage(g.weaponstempimageoffset);
+							LoadImage(pCustomArms_s.Get(), g.weaponstempimageoffset);
+							TextureObject(t.currentgunobj, g.weaponstempimageoffset);
+						}
 
 						// rest are animations only
 						bCreateThenAppend = false;

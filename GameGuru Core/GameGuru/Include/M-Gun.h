@@ -5,7 +5,7 @@
 #include "cstr.h"
 
 void gun_loaddata ( void );
-void gun_createhud (void);
+void gun_createhud (cstr customArms_s);
 void gun_scaninall_dataonly ( void );
 void gun_scaninall_ref ( void );
 void gun_sortintoorder ( void );

@@ -2696,6 +2696,19 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 	return iListCount;
 }
 
+int fillgloballistwithHands(void)
+{
+	Dim(t.list_s, 10);
+	int iIndex = 0;
+	t.list_s[iIndex++] = "No Preference";
+	t.list_s[iIndex++] = "Legacy Combat";
+	t.list_s[iIndex++] = "Male Light";
+	t.list_s[iIndex++] = "Male Dark";
+	t.list_s[iIndex++] = "Female Light";
+	t.list_s[iIndex++] = "Female Dark";
+	return iIndex-1;
+}
+
 bool g_bCheckedBoosterAnims = false;
 bool g_bDoWeHaveBoosterAnims = false;
 
@@ -27914,8 +27927,113 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			SpeechControls(speech_entries, bUpdateMainString, edit_grideleprof);
 		}
 
-		ImGui::TextCenter("Player Settings");
+		// Player Has Weapon
+		if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2)
+		{
+			// weapon selection
+			LPSTR pAttachmentTitle = "Weapon";
+			edit_grideleprof->hasweapon_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->hasweapon_s.Get(), pAttachmentTitle, t.strarr_s[209].Get(), 1, readonly, false, true, true, 0);
+			t.findgun_s = Lower(edit_grideleprof->hasweapon_s.Get()); gun_findweaponindexbyname();
+			if (t.foundgunid > 0)
+			{
+				// hands selection (if using new weapon system)
+				if (t.gun[t.foundgunid].newweaponsystem==1)
+				{
+					pAttachmentTitle = "Hands";
+					edit_grideleprof->texaltd_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->texaltd_s.Get(), pAttachmentTitle, "Choose the style of hands for the player", 3, readonly, false, true, true, 0);
+				}
+				else
+				{
+					ImGui::TextCenter("(Hands Fixed For Legacy Weapons)");
+				}
+
+				// any ammo used
+				int iPoolIndex = g.firemodes[t.foundgunid][0].settings.poolindex;
+				if (iPoolIndex > 0)
+				{
+					ImGui::TextCenter("Ammo Quantity");
+					ImGui::MaxSliderInputInt("##AmmoQuantity", &edit_grideleprof->quantity, 0, 1000, "Amount of ammo the player starts with");
+				}
+			}
+
+			// multipliers
+			ImGui::TextCenter("Weapon Damage Multiplier");
+			int iModifier = edit_grideleprof->weapondamagemultiplier * 100;
+			if (ImGui::MaxSliderInputInt("##WeaponDamageM", &iModifier, 1, 1000, "Percent of weapon damage that the player does compared to enemies"))
+			{
+				edit_grideleprof->weapondamagemultiplier = iModifier * 0.01f;
+			}
+			ImGui::TextCenter("Melee Damage Multiplier");
+			iModifier = edit_grideleprof->meleedamagemultiplier * 100;
+			if (ImGui::MaxSliderInputInt("##MeleeDamageM", &iModifier, 1, 1000, "Percent of melee damage that the player does compared to enemies"))
+			{
+				edit_grideleprof->meleedamagemultiplier = iModifier * 0.01f;
+			}
+
+			// configure weapon slots for player (functionality exists from Classic)
+			ImGui::TextCenter("Preferred Weapon Slots");
+			for (int key = 1; key <= 9; key++)
+			{
+				char pLabel[32];
+				sprintf(pLabel, "Key %d", key);
+				char pLabelTokenName[32];
+				sprintf(pLabelTokenName, "weapprefkey1%d", key);
+				ImGui::Text(pLabel);
+				ImGui::SameLine();
+				cstr slot_s = "";
+
+				for (int gunid = 1; gunid <= g.gunmax; gunid++)
+				{
+					if (t.weaponSlotPreferrenceSettings[key - 1] > 0 && t.weaponSlotPreferrenceSettings[key - 1] == gunid)
+					{
+						slot_s = t.gun[gunid].name_s;
+						break;
+					}
+				}
+
+				cstr lastslot = slot_s;
+				slot_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, slot_s.Get(), pLabelTokenName, t.strarr_s[209].Get(), 61, readonly, false, true, true, 0);
+				if (stricmp(slot_s.Get(), lastslot.Get()) != NULL)
+				{
+					// assign a new preference
+					if (stricmp(slot_s.Get(), "") == NULL) //When "No Preference" option is selected slot_s is set to ""
+					{
+						t.weaponSlotPreferrenceSettings[key - 1] = 0;
+						t.weaponslot[key].pref = 0;
+					}
+					else
+					{
+						for (int gunid = 1; gunid <= g.gunmax; gunid++)
+						{
+							if (stricmp(slot_s.Get(), t.gun[gunid].name_s.Get()) == NULL)
+							{
+								// erase old preference if already assigned
+								for (int n = 0; n < 9; n++)
+								{
+									if (n != (key - 1) && t.weaponSlotPreferrenceSettings[n] == gunid)
+									{
+										t.weaponSlotPreferrenceSettings[n] = 0;
+										t.weaponslot[1 + n].pref = 0;
+									}
+								}
+
+								// add new preference
+								t.weaponSlotPreferrenceSettings[key - 1] = gunid;
+								t.weaponslot[key].pref = gunid;
+								break;
+							}
+						}
+					}
+
+					// and save out the new layout
+					extern void gun_gatherslotorder_save (void);
+					gun_gatherslotorder_save();
+				}
+			}
+		}
 		ImGui::Spacing();
+
+		ImGui::TextCenter("Player Settings");
 		ImGui::TextCenter("Speed");
 		ImGui::PushItemWidth(-10);
 		ImGui::MaxSliderInputInt("##Movement SpeedSimpleInput", &edit_grideleprof->speed, 1, 500, 0);
@@ -27924,16 +28042,11 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		else t.tanimspeed_f = edit_grideleprof->animspeed;
 		ImGui::PopItemWidth();
 
-		#ifdef WICKEDENGINE
 		ImGui::TextCenter("Swimming Speed");
 		ImGui::PushItemWidth(-10);
-		//int iSwimSpeed = t.playercontrol.fSwimSpeed;
-		/*ImGui::MaxSliderInputInt("##SwimSpeedSimpleInput", &iSwimSpeed, 1, 100, "Modifies how much distance is travelled with each swimming stroke");*/
 		ImGui::MaxSliderInputInt("##SwimSpeedSimpleInput", &edit_grideleprof->iSwimSpeed, 1, 100, "Modifies how much distance is travelled with each swimming stroke");
-		//t.playercontrol.fSwimSpeed = iSwimSpeed;
 		ImGui::PopItemWidth();
-
-		
+	
 		ImGui::TextCenter("Health");
 		static int iPlayerNormalStrength = 500;
 		int iPlayerInvincible = 0;
@@ -27970,114 +28083,15 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		ImGui::MaxSliderInputInt("##RegenDelay", &t.playercontrol.regendelay, 0, 5000, "Sets the amount of time to wait  (in milliseonds) after taking damage, until health starts regenerating");
 		ImGui::Spacing();
 		
-		#endif
-
-		// Player Has Weapon
-		if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2)
-		{
-			// weapon selection
-			#ifdef WICKEDENGINE
-			LPSTR pAttachmentTitle = "Weapon";
-			#else
-			LPSTR pAttachmentTitle = "Attachment";
-			#endif
-			#ifdef WICKEDENGINE
-			edit_grideleprof->hasweapon_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->hasweapon_s.Get(), pAttachmentTitle, t.strarr_s[209].Get(), 1, readonly, false, true, true, 0);
-			
-			ImGui::TextCenter("Ammo Quantity");
-			ImGui::MaxSliderInputInt("##AmmoQuantity", &edit_grideleprof->quantity, 0, 1000, "Amount of ammo the player starts with");
-
-			ImGui::TextCenter("Weapon Damage Multiplier");
-			int iModifier = edit_grideleprof->weapondamagemultiplier * 100;
-			if (ImGui::MaxSliderInputInt("##WeaponDamageM", &iModifier, 1, 1000, "Percent of weapon damage that the player does compared to enemies"))
-			{
-				edit_grideleprof->weapondamagemultiplier = iModifier * 0.01f;
-			}
-			ImGui::TextCenter("Melee Damage Multiplier");
-			iModifier = edit_grideleprof->meleedamagemultiplier * 100;
-			if (ImGui::MaxSliderInputInt("##MeleeDamageM", &iModifier, 1, 1000, "Percent of melee damage that the player does compared to enemies"))
-			{
-				edit_grideleprof->meleedamagemultiplier = iModifier * 0.01f;
-			}
-
-			// configure weapon slots for player (functionality exists from Classic)
-			ImGui::TextCenter("Preferred Weapon Slots");
-			for (int key = 1; key <= 9; key++)
-			{
-				char pLabel[32];
-				sprintf(pLabel, "Key %d", key);
-				char pLabelTokenName[32];
-				sprintf(pLabelTokenName, "weapprefkey1%d", key);
-				ImGui::Text(pLabel);
-				ImGui::SameLine();
-				cstr slot_s = "";
-
-				for (int gunid = 1; gunid <= g.gunmax; gunid++)
-				{
-					if (t.weaponSlotPreferrenceSettings[key-1] > 0 && t.weaponSlotPreferrenceSettings[key-1] == gunid)
-					{
-						slot_s = t.gun[gunid].name_s;
-						break;
-					}
-				}
-
-				cstr lastslot = slot_s;
-				slot_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, slot_s.Get(), pLabelTokenName, t.strarr_s[209].Get(), 61, readonly, false, true, true, 0);
-				if (stricmp(slot_s.Get(), lastslot.Get()) != NULL)
-				{
-					// assign a new preference
-					if (stricmp(slot_s.Get(), "") == NULL) //When "No Preference" option is selected slot_s is set to ""
-					{
-						t.weaponSlotPreferrenceSettings[key-1] = 0;
-						t.weaponslot[key].pref = 0;
-					}
-					else
-					{
-						for (int gunid = 1; gunid <= g.gunmax; gunid++)
-						{
-							if (stricmp(slot_s.Get(), t.gun[gunid].name_s.Get()) == NULL)
-							{
-								// erase old preference if already assigned
-								for (int n = 0; n < 9; n++)
-								{
-									if ( n != (key-1) && t.weaponSlotPreferrenceSettings[n] == gunid)
-									{
-										t.weaponSlotPreferrenceSettings[n] = 0;
-										t.weaponslot[1+n].pref = 0;
-									}
-								}
-								
-								// add new preference
-								t.weaponSlotPreferrenceSettings[key-1] = gunid;
-								t.weaponslot[key].pref = gunid;
-								break;
-							}
-						}
-					}
-
-					// and save out the new layout
-					extern void gun_gatherslotorder_save (void);
-					gun_gatherslotorder_save();
-				}
-			}
-
-			#else
-			edit_grideleprof->hasweapon_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->hasweapon_s.Get(), pAttachmentTitle, t.strarr_s[209].Get(), 1,readonly, false);
-			#endif
-		}
-		ImGui::Spacing();
 		ImGui::TextCenter("Effects");
-	
 		bool bHeartbeatSound = edit_grideleprof->perentityflags & 1;
 		bHeartbeatSound = !bHeartbeatSound;
 		bool bScreenBlood = edit_grideleprof->perentityflags & (1 << 1);
 		bScreenBlood = !bScreenBlood;
-		
 		if (ImGui::Checkbox("Heartbeat Sound", &bHeartbeatSound))
 		{
 		}
 		if(ImGui::IsItemHovered()) ImGui::SetTooltip("Controls whether a heartbeat sound is looped when the player is hurt");
-
 		if (ImGui::Checkbox("Screen Blood", &bScreenBlood))
 		{
 		}
@@ -30060,9 +30074,8 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	}
 	if (listtype == 1)
 	{
-		listmax = fillgloballistwithweaponsQuick(forcharacters, bForShooting, bForMelee);
-		#ifdef WICKEDENGINE
 		// newer system for MAX weapons - easier to read for users
+		listmax = fillgloballistwithweaponsQuick(forcharacters, bForShooting, bForMelee);
 		for (int n = -1; n <= listmax; n++)
 		{
 			cstr thisLabel;
@@ -30079,26 +30092,11 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 				if (strlen (thisLabel.Get()) == 0) thisLabel = "No Weapon";
 			}
 			thisLabel = gun_names_tonormal(thisLabel.Get());
-			//if (stricmp (thisLabel.Get(), "enhanced\\Gloves_Unarmed") == NULL) thisLabel = "Melee Combat";
-			//if (stricmp (thisLabel.Get(), "enhanced\\AK") == NULL) thisLabel = "Assault Rifle";
-			//if (stricmp (thisLabel.Get(), "enhanced\\AR") == NULL) thisLabel = "Patrol Rifle";
-			//if (stricmp (thisLabel.Get(), "enhanced\\B810") == NULL) thisLabel = "Pocket Knife";
-			//if (stricmp (thisLabel.Get(), "enhanced\\M29S") == NULL) thisLabel = "Snubnose Revolver";
-			//if (stricmp (thisLabel.Get(), "enhanced\\Mk18") == NULL) thisLabel = "Compact Assault Rifle";
-			//if (stricmp (thisLabel.Get(), "enhanced\\Mk19T") == NULL) thisLabel = "Magnum Pistol";
-			//if (stricmp (thisLabel.Get(), "enhanced\\R870") == NULL) thisLabel = "Tactical Pump Shotgun";
-			//if (stricmp (thisLabel.Get(), "enhanced\\SledgeHammer") == NULL) thisLabel = "SledgeHammer";
-			//if (stricmp (thisLabel.Get(), "aztec\\AztecAxe") == NULL) thisLabel = "Aztec Axe";
-			//if (stricmp (thisLabel.Get(), "aztec\\AztecDagger") == NULL) thisLabel = "Aztec Dagger";
-			//if (stricmp (thisLabel.Get(), "aztec\\AztecSpear") == NULL) thisLabel = "Aztec Spear";
 			if (n == -1)
 				ldata_s = thisLabel;
 			else
 				t.list_s[n] = thisLabel;
 		}
-		#else
-		// older system for attachments
-		#endif
 		for (int n = 0; n <= listmax; n++)
 		{
 			if (ldata_s == t.list_s[n]) 
@@ -30141,6 +30139,29 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie male\\default animations.dbo") == NULL) thisLabel = "Zombie Male";
 			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie female\\default animations.dbo") == NULL) thisLabel = "Zombie Female";
 
+			if (n == -1)
+				ldata_s = thisLabel;
+			else
+				t.list_s[n] = thisLabel;
+		}
+		for (int n = 0; n <= listmax; n++)
+		{
+			if (ldata_s == t.list_s[n])
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+	if (listtype == 3)
+	{
+		// new system for MAX weapons - interchangable hands
+		listmax = fillgloballistwithHands();
+		for (int n = -1; n <= listmax; n++)
+		{
+			cstr thisLabel = ldata_s;
+			if (n != -1) thisLabel = t.list_s[n];
+			if (strlen (thisLabel.Get()) == 0) thisLabel = "No Preference";
 			if (n == -1)
 				ldata_s = thisLabel;
 			else

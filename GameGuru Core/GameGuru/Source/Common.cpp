@@ -938,8 +938,9 @@ void common_init_globals ( void )
 	g.hudlayersimageoffset = 900;
 	//  +1,2,3,4 = Jetpack textures (x8)
 	//  .. 32 (for all 8 jet pack textures)
+	g.weaponstempimageoffset = 999;
 	g.weaponsimageoffset = 1000;
-	g.particlesimageoffset = 1400; 
+	g.particlesimageoffset = 1400;
 	// reserve 200 particles 1400-1599
 	g.ebeimageoffset = 1900;
 	g.texturebankoffset = 2000;

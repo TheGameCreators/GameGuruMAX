@@ -10,6 +10,7 @@
 #endif
 
 // global store for weapon shader effect indexes
+cstr g_guns_customArms_s = "";
 int g_weaponbasicshadereffectindex = 0;
 int g_weaponboneshadereffectindex = 0;
 
@@ -73,6 +74,9 @@ void gun_resetactivateguns ( void )
 
 void gun_activategunsfromentities ( void )
 {
+	// Custom arms system reset
+	g_guns_customArms_s = "";
+
 	// Only flag those guns present in level
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
@@ -87,6 +91,9 @@ void gun_activategunsfromentities ( void )
 				{
 					t.gun[t.tgunid].activeingame=1;
 				}
+
+				// Place any custom arms before gun load
+				g_guns_customArms_s = t.entityelement[t.e].eleprof.texaltd_s; // texaltd_s used to store custom arms choice from start marker
 			}
 			else
 			{
@@ -4233,63 +4240,150 @@ void gun_selectandorload ( void )
 
 void gun_load ( void )
 {
-	//  do not load gun if already present
-	if (  t.gun[t.gunid].obj>0 ) 
+	// Custom Arms system
+	bool bCanBeCustomized = false;
+	bool bForceRefreshWeapon = false;
+	cstr customArms_s = g_guns_customArms_s;
+	cstr pHUDDAT_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\hud.dat";
+	cstr HUDCustom_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\hudcustom.txt";
+	char pHUDCustomForThisWeapon[MAX_PATH];
+	strcpy(pHUDCustomForThisWeapon, HUDCustom_s.Get());
+	GG_GetRealPath(pHUDCustomForThisWeapon, 1);
+	if (FileExist(pHUDDAT_s.Get()) == 1)
 	{
-		if (  ObjectExist(t.gun[t.gunid].obj) == 1 ) 
+		bCanBeCustomized = true;
+		if (customArms_s.Len() > 0)
 		{
-			//  no need to reload
-			return;
+			// if different from previous custom model
+			if(FileExist(pHUDCustomForThisWeapon)==1)
+			{
+				// if choice made, read and compare with current
+				OpenToRead(4, pHUDCustomForThisWeapon);
+				cstr pChoice = ReadString(4);
+				CloseFile(4);
+				if (stricmp(pChoice.Get(), g_guns_customArms_s.Get()) != NULL)
+				{
+					// if not same, we need to regenerate and make new model
+					bForceRefreshWeapon = true;
+				}
+			}
+			else
+			{
+				// first time
+				bForceRefreshWeapon = true;
+			}
 		}
-		else
+	}
+
+	// do not load gun if already present
+	if (bForceRefreshWeapon == false)
+	{
+		if (t.gun[t.gunid].obj > 0)
 		{
-			//  gun data present, object missing
-			t.gun[t.gunid].obj=0;
+			if (ObjectExist(t.gun[t.gunid].obj) == 1)
+			{
+				// no need to reload
+				return;
+			}
+			else
+			{
+				// gun data present, object missing
+				t.gun[t.gunid].obj = 0;
+			}
 		}
 	}
 
 	// the HUD to load
 	t.currentgunfile_s = "gamecore\\";
 	t.currentgunfile_s += g.fpgchuds_s + "\\" + t.gun_s + "\\HUD.dbo";
-
-	// Load gun data
-	#ifdef WICKEDENGINE
-	// We need the object loaded so can get anim start and finish frames if specified by animname
 	t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());
+
+	// Custom arms system
+	if (t.currentgunobj != 0 && customArms_s.Len() > 0)
+	{
+		// Load gun (using custom arms)
+		if (FileExist(pHUDDAT_s.Get()) == 1)
+		{
+			if (ObjectExist(t.currentgunobj) == 1) DeleteObject(t.currentgunobj);
+			gun_createhud(customArms_s);
+			if (t.currentgunobj != 0)
+			{
+				sObject* pObject = GetObjectData(t.currentgunobj);
+				extern void UpdateObjectWithAnimSlotList (sObject*);
+				UpdateObjectWithAnimSlotList(pObject);
+				if (ObjectExist(t.currentgunobj) == 1)
+				{
+					char pTempHUDDBOFile[MAX_PATH];
+					strcpy(pTempHUDDBOFile, t.currentgunfile_s.Get());
+					GG_GetRealPath(pTempHUDDBOFile, 1);
+					if (FileExist(pTempHUDDBOFile) == 1) DeleteFileA(pTempHUDDBOFile);
+					SaveObject (pTempHUDDBOFile, t.currentgunobj);
+					DeleteObject(t.currentgunobj);
+					LoadObject(pTempHUDDBOFile, t.currentgunobj);
+				}
+			}
+		}
+
+		// record choice
+		if (FileExist(pHUDCustomForThisWeapon) == 1) DeleteFileA(pHUDCustomForThisWeapon);
+		OpenToWrite(4, pHUDCustomForThisWeapon);
+		WriteString(4, g_guns_customArms_s.Get());
+		CloseFile(4);
+	}
 	if (t.currentgunobj > 0)
 	{
 		gun_loaddata();
 		preparegun(t.gunid, t.currentgunobj);
 	}
-	#else
-	gun_loaddata ();
-	t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());
-	#endif
 
-	// Weapon is valid or not?
-	if (t.currentgunobj == 0)
+	// Weapon is not valid, and in editing mode
+	if (t.currentgunobj == 0 && t.game.gameisexe != 1)
 	{
-		#ifdef WICKEDENGINE
 		// if no HUD.dbo, we may recreate it from the resources folder if present
-		cstr pHUDDAT_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\hud.dat";
 		if (FileExist(pHUDDAT_s.Get()) == 1)
 		{
 			// prompt
 			timestampactivity(0, "Constructing new HUD.dbo for weapon");
 
-			// create HUD.dbo object
-			gun_createhud();
+			// create HUD.dbo object (always with default arms provided by artist - see above for custom arms system)
+			cstr noCustomArmsUseDefault_s = "";
+			gun_createhud(noCustomArmsUseDefault_s);
 			if (t.currentgunobj != 0)
 			{
-				// texture with custom skin eventually
-
 				// before save, match created animsets to actual DBO structure
 				sObject* pObject = GetObjectData(t.currentgunobj);
 				extern void UpdateObjectWithAnimSlotList (sObject*);
 				UpdateObjectWithAnimSlotList(pObject);
 
-				// save HUD.dbo
-				SaveObject (t.currentgunfile_s.Get(), t.currentgunobj);
+				// for convenience, if HUD.dbo missing from root
+				cstr rootHUDFile_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\hud.dbo";
+				if (FileExist(rootHUDFile_s.Get()) == 0)
+				{
+					// save HUD.dbo in writables
+					SaveObject (t.currentgunfile_s.Get(), t.currentgunobj);
+
+					// copy new creation to root
+					char pAbsPathToSourceHUDDBO[MAX_PATH];
+					strcpy(pAbsPathToSourceHUDDBO, t.currentgunfile_s.Get());
+					GG_GetRealPath(pAbsPathToSourceHUDDBO, 0);
+					CopyFileA(pAbsPathToSourceHUDDBO, rootHUDFile_s.Get(), TRUE);
+					if (FileExist(rootHUDFile_s.Get()) == 1)
+					{
+						// if copy successful, remove from writables area
+						DeleteFileA(pAbsPathToSourceHUDDBO);
+					}
+				}
+			}
+
+			// need a fresh load
+			if (ObjectExist(t.currentgunobj) == 1) DeleteObject(t.currentgunobj);
+
+			// and load the newly created gun and HUD.DBO
+			t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());
+			if (t.currentgunobj > 0)
+			{
+				gun_loaddata();
+				preparegun(t.gunid, t.currentgunobj);
 			}
 		}
 		else
@@ -4297,15 +4391,13 @@ void gun_load ( void )
 			// missing file!
 			timestampactivity(0, "No HUD.dbo found for weapon");
 		}
-		#else
-		// could not find DBO, so try X (as may be in editor/test game)
-		t.currentgunfile_s="gamecore\\";
-		t.currentgunfile_s += g.fpgchuds_s+"\\"+t.gun_s+"\\HUD.x";
-		t.currentgunobj=loadgun(t.gunid,t.currentgunfile_s.Get());
-		#endif
 	}
+
+	// leave if no gun model
 	if (  t.currentgunobj  ==  0  )  return;
 	if (  ObjectExist(t.currentgunobj)  ==  0  )  return;
+
+	// assign obj to gun ref
 	t.gun[t.gunid].obj=t.currentgunobj;
 	sprintf ( t.szwork , "Load Gun:%s Obj:%i" , t.currentgunfile_s.Get() , t.currentgunobj );
 	timestampactivity(0, t.szwork );

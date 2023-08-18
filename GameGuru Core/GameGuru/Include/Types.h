@@ -7864,10 +7864,12 @@ struct guntype
 	cstr animsetoverride;
 	int storeammo;
 	int storeclipammo;
+	int newweaponsystem;
 
 	// Constructor
 	guntype ( )
 	{
+		 newweaponsystem = 0;
 		 storeammo = 0;
 		 storeclipammo = 0;
 		 animsetoverride = "";

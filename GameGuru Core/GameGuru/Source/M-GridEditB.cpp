@@ -25259,50 +25259,6 @@ void AddEntityToCursor(int e, bool bDuplicate)
 				fHitOffsetY = fHitPointY - t.gridentityposy_f;
 				fHitOffsetZ = fHitPointZ - t.gridentityposz_f;
 
-				/* LB: all this gets wrong point as widget_getplanepos is one frame behind now!
-				//####TEST
-				//PE: Test using widget system.
-				fHitPointX = t.gridentityposx_f;
-				fHitPointY = t.gridentityposy_f;
-				fHitPointZ = t.gridentityposz_f;
-				int picksystem = t.widget.pickedSection;
-				float fActivePosX = t.gridentityposx_f;
-				float fActivePosY = t.gridentityposy_f;		
-				int iRealObjectMoveMode = iObjectMoveMode;
-				if (iObjectMoveModeDropSystem > 0) iRealObjectMoveMode = 0;
-				if (iRealObjectMoveMode != 1)
-				{
-					//PE: We need a plane hit on the first click.
-					//if (t.inputsys.localcurrentterrainheight_f != 0.0f)
-					{
-						fHitPointY = t.inputsys.localcurrentterrainheight_f;
-						fActivePosY = t.inputsys.localcurrentterrainheight_f;
-					}
-				}
-				float fActivePosZ = t.gridentityposz_f;
-				float fPlanePosX, fPlanePosY, fPlanePosZ;
-				t.widget.pickedSection = -99; //t.widget.widgetXZObj;
-				bool widget_getplanepos(float fActivePosX, float fActivePosY, float fActivePosZ, float* pPlanePosX, float* pPlanePosY, float* pPlanePosZ);
-				bool bPlanePosRegistered = widget_getplanepos(fActivePosX, fActivePosY, fActivePosZ, &fPlanePosX, &fPlanePosY, &fPlanePosZ);
-				if (bPlanePosRegistered == true)
-				{
-					//record position where clicked
-					fHitOffsetX = fPlanePosX - fActivePosX;
-					fHitOffsetY = fPlanePosY - t.gridentityposy_f;// fActivePosY; to give correct Y offset
-					fHitOffsetZ = fPlanePosZ - fActivePosZ;
-				}
-				//In vertical move we need another using the Y system.
-				if (iObjectMoveMode == 1)
-				{
-					t.widget.pickedSection = -98;
-					bool bPlanePosRegistered = widget_getplanepos(fActivePosX, fActivePosY, fActivePosZ, &fPlanePosX, &fPlanePosY, &fPlanePosZ);
-					if (bPlanePosRegistered == true)
-					{
-						fHitOffsetY = fPlanePosY - fActivePosY;
-					}
-				}
-				*/
-
 				//PE: Need to start rubberbandmove with same values.
 				t.fOldGridEntityX = t.gridentityposx_f;
 				t.fOldGridEntityY = t.gridentityposy_f;
@@ -25315,15 +25271,11 @@ void AddEntityToCursor(int e, bool bDuplicate)
 				t.fOldGridEntityQuatY = t.gridentityrotatequaty_f;
 				t.fOldGridEntityQuatZ = t.gridentityrotatequatz_f;
 				t.fOldGridEntityQuatW = t.gridentityrotatequatw_f;
-
-				// LB: as above, not needed as not changed pickedSection
-				///t.widget.pickedSection = picksystem;
 			}
 			else
 			{
 				g.entityrubberbandlist.clear();
 			}
-			//####TESTEND
 
 			// get size of object selected, to determine if to use drop system (only used for larger objects)
 			iObjectMoveModeDropSystemUsing = 0;

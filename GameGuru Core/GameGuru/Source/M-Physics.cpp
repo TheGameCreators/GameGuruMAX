@@ -2668,35 +2668,6 @@ void physics_player_init ( void )
 			t.tqty=t.playercontrol.starthasweaponqty;
 			physics_player_addweapon ( );
 
-			/* moved to level loading for gun scan
-			// LB: all this could be replaced when the collectionlist entity parents are all loaded for each level
-			// it would just be a case of adding the start weapon to the collection before the collection refresh/load
-			// need to add this to the colleciton list
-			cstr thisWeaponTitle = gun_names_tonormal(t.gun[t.weaponindex].name_s.Get());
-			cstr thisWeaponImage = cstr("gamecore\\guns\\") + t.gun[t.weaponindex].name_s + cstr("\\item.png");
-			collectionItemType collectionitem;
-			fill_rpg_item_defaults_passedin(&collectionitem, 0, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
-
-			//PE: dont add if already there.
-			bool bNewItemIsUnqiue = true;
-			for (int n = 0; n < g_collectionList.size(); n++)
-			{
-				if (collectionitem.collectionFields.size() > 0)
-				{
-					if (g_collectionList[n].collectionFields[0] == collectionitem.collectionFields[0])
-					{
-						bNewItemIsUnqiue = false;
-						break;
-					}
-				}
-			}
-			if (bNewItemIsUnqiue == true)
-			{
-				g_collectionList.push_back(collectionitem);
-				extern bool g_bChangedGameCollectionList;
-				g_bChangedGameCollectionList = true;
-			}
-			*/
 			// as this was never a level-object weapon, we force it into the slot 
 			// and ensure it cannot be removed or dropped, there is no object associated with it
 			inventoryContainerType item;

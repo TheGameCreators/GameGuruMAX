@@ -545,11 +545,12 @@ cstr get_rpg_imagefinalfile(cstr entityfile)
 bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e, LPSTR pPassedInTitle, LPSTR pPassedInImageFile)
 {
 	// only some entities can make an item
-	int iAddThisItem = false;
+	int iAddThisItem = 0;
 	if (entid > 0 && e > 0)
 	{
-		if (t.entityprofile[entid].isweapon > 0) iAddThisItem = 1;
 		if (t.entityelement[e].eleprof.iscollectable != 0) iAddThisItem = 2;
+		if (t.entityprofile[entid].isweapon > 0) iAddThisItem = 1;
+		if (t.entityprofile[entid].hasweapon > 0) iAddThisItem = 4;
 	}
 	else
 	{
@@ -594,11 +595,15 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 					if (iAddThisItem == 1) pTitle = t.entityelement[e].eleprof.name_s.Get();
 					if (iAddThisItem == 2) pTitle = t.entityelement[e].eleprof.name_s.Get();
 					if (iAddThisItem == 3) pTitle = pPassedInTitle;
+					if (iAddThisItem == 4) pTitle = t.entityprofile[entid].hasweapon_s.Get();
 					pItem->collectionFields.push_back(pTitle);
 				}
 				if (iKnownLabel == 1)
 				{
-					pItem->collectionFields.push_back(t.entitybank_s[entid].Get());
+					if (iAddThisItem == 4)
+						pItem->collectionFields.push_back("None");
+					else
+						pItem->collectionFields.push_back(t.entitybank_s[entid].Get());
 				}
 				if (iKnownLabel == 2)
 				{
@@ -607,6 +612,7 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 					if (iAddThisItem == 1) localiconfile = cstr("gamecore\\guns\\") + t.entityprofile[entid].isweapon_s + cstr("\\item.png");
 					if (iAddThisItem == 2) localiconfile = t.entityprofile[entid].collectable.image.Get();
 					if (iAddThisItem == 3) localiconfile = pPassedInImageFile;
+					if (iAddThisItem == 4) localiconfile = cstr("gamecore\\guns\\") + t.entityprofile[entid].hasweapon_s + cstr("\\item.png");
 					if (FileExist(localiconfile.Get()) == 1)
 					{
 						// use locally specified icon
@@ -626,13 +632,27 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* pItem, int entid, int e
 					if (iAddThisItem == 1) pDesc = t.entityprofile[entid].collectable.description.Get();
 					if (iAddThisItem == 2) pDesc = t.entityprofile[entid].collectable.description.Get();
 					if (iAddThisItem == 3) pDesc = pPassedInTitle;
+					if (iAddThisItem == 4) pDesc = "";
 					pItem->collectionFields.push_back(pDesc);
 				}
 				if (iKnownLabel == 4) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.cost);
 				if (iKnownLabel == 5) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.value);
 				if (iKnownLabel == 6) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.container.Get());
 				if (iKnownLabel == 7) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.ingredients.Get());
-				if (iKnownLabel == 8) pItem->collectionFields.push_back(t.entityprofile[entid].collectable.style.Get());
+				if (iKnownLabel == 8)
+				{
+					if (iAddThisItem == 1 || iAddThisItem==4)
+					{
+						char pWeaponStyle[MAX_PATH];
+						if (iAddThisItem == 1) sprintf(pWeaponStyle, "weapon=%s", t.entityprofile[entid].isweapon_s.Get());
+						if (iAddThisItem == 4) sprintf(pWeaponStyle, "weapon=%s", t.entityprofile[entid].hasweapon_s.Get());
+						pItem->collectionFields.push_back(pWeaponStyle);
+					}
+					else
+					{
+						pItem->collectionFields.push_back(t.entityprofile[entid].collectable.style.Get());
+					}
+				}
 			}
 			else
 			{
@@ -747,25 +767,44 @@ bool refresh_collection_from_entities(void)
 			cstr thisWeaponTitle = gun_names_tonormal(pThisWeaponName);
 			for (int n = 0; n < g_collectionList.size(); n++)
 			{
-				if (g_collectionList[n].collectionFields.size() > 1)
+				if (g_collectionList[n].collectionFields.size() > 8)
 				{
-					LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-					if (strlen(pCollectionItemTitle) > 0)
+					// primary method to check style field for true weapon reference
+					LPSTR pCollectionItemWeaponPath = g_collectionList[n].collectionFields[8].Get();
+					if (strnicmp(pCollectionItemWeaponPath,"weapon=",7)==NULL )
 					{
-						if (stricmp(thisWeaponTitle.Get(), pCollectionItemTitle) == NULL)
+						if (stricmp(pThisWeaponName, pCollectionItemWeaponPath+7) == NULL)
 						{
 							bHaveThisWeaponInList = true;
 							break;
+						}
+					}
+					else
+					{
+						// fallback is item title (though not fool proof it preserves previous system for now)
+						// but maybe leads to false positives if future weapons have same name as others (i.e pistol)
+						// so do extra checks for older style weapons having NONE and NONE in PROFILE and STYLE
+						if (stricmp (g_collectionList[n].collectionFields[1].Get(), "none") == NULL
+						&& stricmp (g_collectionList[n].collectionFields[8].Get(), "none") == NULL )
+						{
+							LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+							if (strlen(pCollectionItemTitle) > 0)
+							{
+								if (stricmp(thisWeaponTitle.Get(), pCollectionItemTitle) == NULL)
+								{
+									bHaveThisWeaponInList = true;
+									break;
+								}
+							}
 						}
 					}
 				}
 			}
 			if (bHaveThisWeaponInList == false)
 			{
-				// weapon not in list, add it
-				cstr thisWeaponImage = cstr("gamecore\\guns\\") + pThisWeaponName + cstr("\\item.png");
+				// weapon not in list, add it (isweapon or hasweapon)
 				collectionItemType collectionitem;
-				fill_rpg_item_defaults_passedin(&collectionitem, entid, 0, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
+				fill_rpg_item_defaults(&collectionitem, entid, e); // fill_rpg_item_defaults_passedin(&collectionitem, entid, e, (LPSTR)thisWeaponTitle.Get(), (LPSTR)thisWeaponImage.Get());
 				g_collectionList.push_back(collectionitem);
 
 				// and save to collection list

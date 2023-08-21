@@ -10183,11 +10183,29 @@ void mapeditorexecutable_loop(void)
 								int iCollectionItemIndex = -1;
 								if (iCollectableSettingsMode == 1)
 								{
-									for (int ci = 0; ci < g_collectionList.size(); ci++)
+									if (t.entityprofile[t.entityelement[iEntityIndex].bankindex].isweapon_s.Len() > 0)
 									{
-										if (stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL)
+										// weapon style
+										cstr pSearchForWeapon = cstr("weapon=") + cstr(t.entityprofile[t.entityelement[iEntityIndex].bankindex].isweapon_s);
+										for (int ci = 0; ci < g_collectionList.size(); ci++)
 										{
-											iCollectionItemIndex = ci;
+											if (stricmp (g_collectionList[ci].collectionFields[8].Get(), pSearchForWeapon.Get()) == NULL)
+											{
+												iCollectionItemIndex = ci;
+												break;
+											}
+										}
+									}
+									else
+									{
+										// regular item
+										for (int ci = 0; ci < g_collectionList.size(); ci++)
+										{
+											if (stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL)
+											{
+												iCollectionItemIndex = ci;
+												break;
+											}
 										}
 									}
 								}
@@ -10209,8 +10227,28 @@ void mapeditorexecutable_loop(void)
 									{
 										if (iCollectableSettingsMode == 1)
 										{
+											// create an item entry
 											collectionItemType item;
 											fill_rpg_item_defaults(&item, iMasterID, iEntityIndex);
+											// first, if a weapon, check DESC for matching 'raw weapon path'
+											// and if found, overwrite with better item entry created here
+											if ( t.entityprofile[iMasterID].isweapon_s.Len()>0)
+											{
+												for (int n = 0; n < g_collectionList.size(); n++)
+												{
+													if (item.collectionFields.size() > 3)
+													{
+														if ( stricmp ( g_collectionList[n].collectionFields[3].Get(), t.entityprofile[iMasterID].isweapon_s.Get() ) == NULL )
+														{
+															// overwrite, save and leave
+															g_collectionList[n].collectionFields = item.collectionFields;
+															g_bChangedGameCollectionList = true;
+															break;
+														}
+													}
+												}
+											}
+											// check if unique
 											bool bNewItemIsUnqiue = true;
 											for (int n = 0; n < g_collectionList.size(); n++)
 											{
@@ -10495,6 +10533,7 @@ void mapeditorexecutable_loop(void)
 													// good old typing out your entry
 													bool bAllowEditing = true;
 													if (iKnownLabel == 0 || iKnownLabel == 1) bAllowEditing = false;
+													if (t.entityprofile[iMasterID].isweapon > 0 && iKnownLabel >= 7) bAllowEditing = false;
 													if (iCollectableSettingsMode == 2 && iKnownLabel == 62 && bQuestTypeIsCollect == false) bAllowEditing = false;
 													if (bAllowEditing == true)
 													{
@@ -22152,23 +22191,27 @@ void input_calculatelocalcursor ( void )
 	if (!bDisableRubberBandMoving && pref.iEnableDragDropEntityMode) bHideObjectsWeWantToIgnore = true;
 	if ( bHideObjectsWeWantToIgnore == true )
 	{
-		//PE: MUST disable collision on ALL rubberband objects.
-		if (g.entityrubberbandlist.size() > 0)
+		//LB: When they are being dragged about, but allow when scanning to select an object in the rubberband (otherwise vertical move mode messes up)
+		if (bDraggingActive)
 		{
-			for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
+			//PE: MUST disable collision on ALL rubberband objects.
+			if (g.entityrubberbandlist.size() > 0)
 			{
-				int e = g.entityrubberbandlist[i].e;
-				if (e <= g.entityelementmax)
+				for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
 				{
-					int obj = t.entityelement[e].obj;
-					if (obj > 0 && GetVisible(obj))
+					int e = g.entityrubberbandlist[i].e;
+					if (e <= g.entityelementmax)
 					{
-						piEntityVisible[e] = 1;
-						HideObject(obj);
-					}
-					else
-					{
-						piEntityVisible[e] = 0;
+						int obj = t.entityelement[e].obj;
+						if (obj > 0 && GetVisible(obj))
+						{
+							piEntityVisible[e] = 1;
+							HideObject(obj);
+						}
+						else
+						{
+							piEntityVisible[e] = 0;
+						}
 					}
 				}
 			}

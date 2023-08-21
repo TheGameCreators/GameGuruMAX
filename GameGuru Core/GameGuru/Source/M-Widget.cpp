@@ -573,7 +573,7 @@ bool widget_getplanepos ( float fActivePosX, float fActivePosY, float fActivePos
 		bPlanePosRegistered = WickedCall_GetPick(pPlanePosX, pPlanePosY, pPlanePosZ, NULL, NULL, NULL, NULL, layer);
 		
 		//
-		// A good way to debug what is being clicked and coordinates returned
+		// A good way to debug what is being clicked and coordinates returned :)
 		//
 		HideObject(t.widget.widgetPlaneObj);
 		

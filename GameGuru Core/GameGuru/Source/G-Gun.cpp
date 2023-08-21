@@ -4262,10 +4262,11 @@ void gun_load ( void )
 	cstr customArms_s = g_guns_customArms_s;
 	cstr pHUDDAT_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\hud.dat";
 	cstr HUDCustom_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\hudcustom.txt";
+	cstr legacygunfile_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\HUD-ORIG.dbo";
 	char pHUDCustomForThisWeapon[MAX_PATH];
 	strcpy(pHUDCustomForThisWeapon, HUDCustom_s.Get());
 	GG_GetRealPath(pHUDCustomForThisWeapon, 1);
-	if (FileExist(pHUDDAT_s.Get()) == 1)
+	if (FileExist(pHUDDAT_s.Get()) == 1 || FileExist(legacygunfile_s.Get()) == 1)
 	{
 		bCanBeCustomized = true;
 		if (customArms_s.Len() > 0)
@@ -4324,7 +4325,6 @@ void gun_load ( void )
 	bool bUsingLegacyArmReplacementTrick = false;
 	if (customArms_s.Len() > 0)
 	{
-		cstr legacygunfile_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\HUD-ORIG.dbo";
 		if (FileExist(legacygunfile_s.Get()) == 1)
 		{
 			// load secondary hands
@@ -5254,6 +5254,15 @@ void gun_free ( void )
 
 	//  Disassociate gun with player
 	t.currentgunobj=0;
+
+	// hide any secondary guns
+	for (int iSecObj = g.gunbankextraobjoffset; iSecObj < g.gunbankextraobjoffset + 150; iSecObj++)
+	{
+		if (ObjectExist(iSecObj) == 1)
+		{
+			HideObject(iSecObj);
+		}
+	}
 
 	//  Hide support objects for gun
 	if (  t.gun[t.gunid].settings.flashlimb != -1 ) 

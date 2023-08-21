@@ -602,13 +602,24 @@ luaMessage** ppLuaMessages = NULL;
 	t.weaponclipammo[iIndex] = lua_tonumber(L, 2);
 	return 0;
  }
+ int GetWeaponPoolAmmoIndex(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iWeaponSlot = lua_tonumber(L, 1);
+	 int iGunIndex = t.weaponslot[iWeaponSlot].got;
+	 int iPoolIndex = g.firemodes[iGunIndex][g.firemode].settings.poolindex;
+	 lua_pushinteger (L, iPoolIndex);
+	 return 1;
+ }
  int GetWeaponPoolAmmo(lua_State *L)
  {
 	lua = L;
 	int n = lua_gettop(L);
 	if ( n < 1 ) return 0;
-	int iIndex = lua_tonumber(L, 1);
-	lua_pushinteger ( L, t.ammopool[iIndex].ammo );
+	int iPoolIndex = lua_tonumber(L, 1);
+	lua_pushinteger ( L, t.ammopool[iPoolIndex].ammo );
 	return 1;
  }
  int SetWeaponPoolAmmo(lua_State *L)
@@ -616,8 +627,8 @@ luaMessage** ppLuaMessages = NULL;
 	lua = L;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
-	int iIndex = lua_tonumber(L, 1);
-	t.ammopool[iIndex].ammo = lua_tonumber(L, 2);
+	int iPoolIndex = lua_tonumber(L, 1);
+	t.ammopool[iPoolIndex].ammo = lua_tonumber(L, 2);
 	return 0;
  }
  int GetWeaponSlot(lua_State *L)
@@ -9715,6 +9726,7 @@ void addFunctions()
 	lua_register(lua, "SetWeaponAmmo", SetWeaponAmmo);
 	lua_register(lua, "GetWeaponClipAmmo", GetWeaponClipAmmo);
 	lua_register(lua, "SetWeaponClipAmmo", SetWeaponClipAmmo);
+	lua_register(lua, "GetWeaponPoolAmmoIndex", GetWeaponPoolAmmoIndex);
 	lua_register(lua, "GetWeaponPoolAmmo", GetWeaponPoolAmmo);
 	lua_register(lua, "SetWeaponPoolAmmo", SetWeaponPoolAmmo);
 

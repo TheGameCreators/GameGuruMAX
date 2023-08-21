@@ -784,8 +784,8 @@ bool refresh_collection_from_entities(void)
 						// fallback is item title (though not fool proof it preserves previous system for now)
 						// but maybe leads to false positives if future weapons have same name as others (i.e pistol)
 						// so do extra checks for older style weapons having NONE and NONE in PROFILE and STYLE
-						if (stricmp (g_collectionList[n].collectionFields[1].Get(), "none") == NULL
-						&& stricmp (g_collectionList[n].collectionFields[8].Get(), "none") == NULL )
+						//if (stricmp (g_collectionList[n].collectionFields[1].Get(), "none") == NULL
+						if ( stricmp (g_collectionList[n].collectionFields[8].Get(), "none") == NULL )
 						{
 							LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
 							if (strlen(pCollectionItemTitle) > 0)

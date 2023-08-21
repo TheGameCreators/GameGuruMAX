@@ -2873,6 +2873,22 @@ void gun_control ( void )
 		}
 	}
 	gunmode121_cancel();
+
+	// map secondary gun object to primary for legacy arms trick
+	if (t.currentgunobj > 0)
+	{
+		int iGunSecondaryObj = g.gunbankextraobjoffset + (t.currentgunobj - g.gunbankoffset);
+		if (ObjectExist(iGunSecondaryObj) == 1)
+		{
+			PositionObject(iGunSecondaryObj, ObjectPositionX(t.currentgunobj), ObjectPositionY(t.currentgunobj), ObjectPositionZ(t.currentgunobj));
+			SetObjectToObjectOrientation(iGunSecondaryObj, t.currentgunobj);
+			SetObjectFrame(iGunSecondaryObj, GetFrame(t.currentgunobj));
+			if (GetVisible(t.currentgunobj) == 1)
+				ShowObject(iGunSecondaryObj);
+			else
+				HideObject(iGunSecondaryObj);
+		}
+	}
 }
 
 void gunmode121_cancel ( void )
@@ -4298,6 +4314,44 @@ void gun_load ( void )
 	t.currentgunfile_s += g.fpgchuds_s + "\\" + t.gun_s + "\\HUD.dbo";
 	t.currentgunobj = loadgun(t.gunid, t.currentgunfile_s.Get());
 
+	// check if legacy weapon supporting arm swap trick (thanks BOND1!)
+	int iGunSecondaryObj = 0;
+	if (t.currentgunobj > 0)
+	{
+		iGunSecondaryObj = g.gunbankextraobjoffset + (t.currentgunobj - g.gunbankoffset);
+		if (ObjectExist(iGunSecondaryObj) == 1) DeleteObject(iGunSecondaryObj);
+	}
+	bool bUsingLegacyArmReplacementTrick = false;
+	if (customArms_s.Len() > 0)
+	{
+		cstr legacygunfile_s = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\HUD-ORIG.dbo";
+		if (FileExist(legacygunfile_s.Get()) == 1)
+		{
+			// load secondary hands
+			cstr pHands_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
+			LoadObject(pHands_s.Get(), iGunSecondaryObj);
+
+			// texture these seoncdary arms/hands
+			cstr pCustomArms_s = cstr("gamecore\\hands\\") + customArms_s + cstr("\\arms_color.dds");
+			if (ImageExist(g.weaponstempimageoffset) == 1) DeleteImage(g.weaponstempimageoffset);
+			LoadImage(pCustomArms_s.Get(), g.weaponstempimageoffset);
+			TextureObject(iGunSecondaryObj, g.weaponstempimageoffset);
+
+			// apply correct legacy animations
+			cstr pAbsPathToAnim = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\Animations\\LegacyEnhancedAK.dbo");
+			sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
+			if (pSecondaryObject)
+			{
+				if (AppendAnimationFromFile(pSecondaryObject, pAbsPathToAnim.Get(), 0) == true)
+				{
+					WickedCall_RefreshObjectAnimations(pSecondaryObject, pSecondaryObject->wickedloaderstateptr);
+				}
+			}
+			HideObject(iGunSecondaryObj);
+			bUsingLegacyArmReplacementTrick = true;
+		}
+	}
+
 	// Custom arms system
 	if (t.currentgunobj != 0 && customArms_s.Len() > 0)
 	{
@@ -4419,7 +4473,7 @@ void gun_load ( void )
 	t.flashlimb=-1 ; t.brasslimb=-1 ; t.smokelimb=-1 ; t.handlimb=-1;
 	t.flashlimb2=-1 ; t.brasslimb2=-1 ; t.smokelimb2=-1;
 	t.flaklimb1=-1;
-	PerformCheckListForLimbs (  t.currentgunobj );
+	PerformCheckListForLimbs ( t.currentgunobj );
 	for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
 	{
 		t.name_s=Upper(ChecklistString(t.c));
@@ -4445,6 +4499,13 @@ void gun_load ( void )
 				cstr tempstring = "BULLET";
 				tempstring += Str(t.p);
 				if (t.name_s == tempstring && t.gun[t.gunid].settings.bulletlimbstart + t.p <= g.bulletlimbsmax)  t.bulletlimbs[t.gun[t.gunid].settings.bulletlimbstart + t.p] = t.c - 1;
+			}
+		}
+		if (bUsingLegacyArmReplacementTrick == true)
+		{
+			if (stricmp(t.name_s.Get(), "LEGACYARMS" ) == NULL )
+			{
+				HideLimb(t.currentgunobj, t.c - 1);
 			}
 		}
 	}
@@ -4904,35 +4965,32 @@ void gun_load ( void )
 	//  Glue gun to HUD-Gun-Marker
 	GlueObjectToLimb (  t.currentgunobj,g.hudbankoffset+2,0 );
 
-	//  Setup gun for correct visuals (special transparency for after-shadow setting)
-	if (  t.gun[t.gunid].transparency>2 ) 
+	// and glue any secondary gun object also
+	if (iGunSecondaryObj > 0)
 	{
-		SetObjectTransparency (  t.currentgunobj,t.gun[t.gunid].transparency );
+		if (ObjectExist(iGunSecondaryObj) == 1)
+		{
+			GlueObjectToLimb (iGunSecondaryObj, g.hudbankoffset + 2, 0);
+		}
+	}
+
+	//  Setup gun for correct visuals (special transparency for after-shadow setting)
+	if (t.gun[t.gunid].transparency > 2)
+	{
+		SetObjectTransparency (t.currentgunobj, t.gun[t.gunid].transparency);
+		if (iGunSecondaryObj > 0 && ObjectExist(iGunSecondaryObj) == 1) SetObjectTransparency (iGunSecondaryObj, t.gun[t.gunid].transparency);
 	}
 	else
 	{
 		SetObjectTransparency (  t.currentgunobj,2 );
+		if (iGunSecondaryObj > 0 && ObjectExist(iGunSecondaryObj) == 1) SetObjectTransparency (iGunSecondaryObj, 2);
 	}
 
-	#ifdef WICKEDENGINE
 	DisableObjectZDepth(t.currentgunobj);
-	#else
-	if (g.globals.riftmode == 0)
-	{
-		DisableObjectZDepth(t.currentgunobj);
-	}
-	else
-	{
-		//  interferes with RIFTMODE
-	}
-	#endif
+	if (iGunSecondaryObj > 0 && ObjectExist(iGunSecondaryObj) == 1) DisableObjectZDepth (iGunSecondaryObj);
 
 	//  Setup gun for animation
-#ifdef WICKEDENGINE
 	t.currentgunanimspeed_f = (t.genericgunanimspeed_f*0.75);
-#else
-	t.currentgunanimspeed_f = g.timeelapsed_f*(t.genericgunanimspeed_f*0.75);
-#endif
 	SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 	LoopObject (  t.currentgunobj );
 
@@ -5238,7 +5296,6 @@ void gun_free ( void )
 
 void gun_releaseresources ( void )
 {
-
 	//  delete gun resources
 	timestampactivity(0,"_gun_releaseresources");
 	for ( t.gunid = 1 ; t.gunid<=  g.gunmax; t.gunid++ )
@@ -5260,6 +5317,15 @@ void gun_releaseresources ( void )
 		removeinternaltexture(t.gun[t.gunid].texgid);
 		removeinternaltexture(t.gun[t.gunid].texaoid);
 		removeinternaltexture(t.gun[t.gunid].texhid);
+	}
+
+	// delete any secondary guns
+	for (int iSecObj = g.gunbankextraobjoffset; iSecObj < g.gunbankextraobjoffset + 150; iSecObj++)
+	{
+		if ( ObjectExist(iSecObj)==1 )
+		{
+			DeleteObject(iSecObj);
+		}
 	}
 
 	//  reset gunbank

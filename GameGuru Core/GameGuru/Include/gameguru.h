@@ -818,6 +818,7 @@ struct Sglobals
 	float grawtextcount;
 	int gtalkytoaster;
 	int gunbankoffset;
+	int gunbankextraobjoffset;
 	float gunbrasscount;
 	float gunflashcount;
 	float gunsmokecount;

@@ -10195,6 +10195,18 @@ void mapeditorexecutable_loop(void)
 												break;
 											}
 										}
+										if (iCollectionItemIndex == -1)
+										{
+											// okay, no modern reference, fall back on title to match name of weapon!
+											for (int ci = 0; ci < g_collectionList.size(); ci++)
+											{
+												if (stricmp (g_collectionList[ci].collectionFields[0].Get(), t.entityelement[iEntityIndex].eleprof.name_s.Get()) == NULL)
+												{
+													iCollectionItemIndex = ci;
+													break;
+												}
+											}
+										}
 									}
 									else
 									{

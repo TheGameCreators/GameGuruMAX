@@ -1100,6 +1100,7 @@ void common_init_globals ( void )
 	g.smokebankoffset = 16300;
 	g.decalbankoffset = 16450;
 	g.decalelementoffset = 16500;
+	g.gunbankextraobjoffset = 16850;
 	g.fragmentobjectoffset = 17000;
 	g.explodedecalobjstart = 17500;
 	g.characterkitobjectoffset = 17800;

@@ -8985,21 +8985,37 @@ void imgui_Customize_Water_V2(int mode)
 
 			t.terrain.waterliney_f = g.gdefaultwaterheight;
 
-
-			ImGui::TextCenter("Water Height (meters)");
-			float fTmp = GGTerrain_UnitsToMeters( g.gdefaultwaterheight );
-			//if (ImGui::SliderFloat("##igdefaultwaterheight", &fTmp, -500.0, 1500.0, "%.1f", 2.0f))
-			if (ImGui::MaxSliderInputFloatPower("##igdefaultwaterheight", &fTmp, -100.0, 300.0, "Set Water Height", -100, 300, 30, 1.2f, 1))
+			// water height calc is confusing if need it as a unit (as it has min/max and power applied to match terrain biome params)
+			if (pref.iEnableAdvancedWater)
 			{
-				g.gdefaultwaterheight = GGTerrain_MetersToUnits( fTmp );
-				Wicked_Update_Visuals((void *)&t.visuals);
-				g.projectmodified = 1;
-				ggterrain_extra_params.iUpdateTrees = 1;
+				// simpler Y axis units for working with water control
+				ImGui::TextCenter("Water Height (units)");
+				float fTmp = g.gdefaultwaterheight - 3937;
+				int iMinValue = -100 * 39.37f;
+				int iMaxValue = 300 * 39.37f;
+				if (ImGui::MaxSliderInputFloat("##igdefaultwaterheightinunits", &fTmp, iMinValue, iMaxValue, "Set Water Height based on simple Y-axis unit value", iMinValue, fabs(iMinValue)+fabs(iMaxValue)))
+				{
+					g.gdefaultwaterheight = fTmp + 3937;
+					Wicked_Update_Visuals((void*)&t.visuals);
+					g.projectmodified = 1;
+					ggterrain_extra_params.iUpdateTrees = 1;
+				}
+			}
+			else
+			{
+				ImGui::TextCenter("Water Height (meters)");
+				float fTmp = GGTerrain_UnitsToMeters(g.gdefaultwaterheight);
+				if (ImGui::MaxSliderInputFloatPower("##igdefaultwaterheight", &fTmp, -100.0, 300.0, "Set Water Height using a meter scale tied to the original biome settings", -100, 300, 30, 1.2f, 1))
+				{
+					g.gdefaultwaterheight = GGTerrain_MetersToUnits(fTmp);
+					Wicked_Update_Visuals((void*)&t.visuals);
+					g.projectmodified = 1;
+					ggterrain_extra_params.iUpdateTrees = 1;
+				}
 			}
 
 			ImGui::TextCenter("Water Speed");
-			fTmp = t.visuals.WaterSpeed1 * 100.0f;
-			//if (ImGui::SliderFloat("##fWaterSpeed1:", &fTmp, 0.0f, 50.0f, "%.2f", 0.0f))
+			float fTmp = t.visuals.WaterSpeed1 * 100.0f;
 			if (ImGui::MaxSliderInputFloat("##fWaterSpeed1:", &fTmp, 0.0f, 50.0f, "Set Water Speed", 0, 50.0f))
 			{
 				t.visuals.WaterSpeed1 = fTmp * 0.01f;
@@ -9035,26 +9051,8 @@ void imgui_Customize_Water_V2(int mode)
 			ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_PENCIL);
 			ImVec2 vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
 			window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Color");
-			/*
-			ImGui::TextCenter("Wind Speed");
-			if (ImGui::SliderFloat("##fWindSpeed:", &t.visuals.WaterFlowSpeed, 0.0f, 10.0f))
-			{
-				t.gamevisuals.WaterFlowSpeed = t.visuals.WaterFlowSpeed;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				g.projectmodified = 1;
-			}
 
-			ImGui::TextCenter("Water Direction");
-			if (ImGui::SliderFloat("##WaterFlowDirectionX:", &t.visuals.WaterFlowDirectionX, 0.0f, 360.0f))
-			{
-				//WaterFlowDirectionX,WaterFlowDirectionY
-				t.gamevisuals.WaterFlowDirectionX = t.visuals.WaterFlowDirectionX;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				g.projectmodified = 1;
-			}
-			*/
 			extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
 			ControlAdvancedSetting(pref.iEnableAdvancedWater, "Advanced Water Settings");
 		

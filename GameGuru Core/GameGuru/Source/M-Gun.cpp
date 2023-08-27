@@ -1691,7 +1691,9 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].newweaponsystem = 0;
 	cstr pathtoresourcefolder_s = "gamecore\\";
 	pathtoresourcefolder_s = pathtoresourcefolder_s + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\";
-	if (PathExist(pathtoresourcefolder_s.Get()) == 1)
+	cstr pathtohudorigfile_s = "gamecore\\";
+	pathtohudorigfile_s = pathtohudorigfile_s + g.fpgchuds_s + "\\" + t.gun_s + "\\hud-orig.dbo";
+	if (PathExist(pathtoresourcefolder_s.Get()) == 1 || FileExist(pathtohudorigfile_s.Get()) == 1)
 	{
 		t.gun[t.gunid].newweaponsystem = 1;
 	}

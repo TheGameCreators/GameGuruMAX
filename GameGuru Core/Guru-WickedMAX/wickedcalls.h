@@ -106,7 +106,7 @@ void WickedCall_SetObjectPlanerReflection(sObject* pObject, bool bPlanerReflecti
 bool WickedCall_GetObjectPlanerReflection(sObject* pObject);
 void WickedCall_SetLimbVisible(sFrame* pFrame, bool bVisible);
 void WickedCall_SetObjectVisible ( sObject* pObject, bool bVisible );
-void WickedCall_GlueObjectToObject ( sObject* pObjectToGlue, sObject* pParentObject, int iLimb);
+void WickedCall_GlueObjectToObject ( sObject* pObjectToGlue, sObject* pParentObject, int iLimb, int iObjIDToSyncAnimTo);
 void WickedCall_UnGlueObjectToObject ( sObject* pObjectToUnGlue);
 void WickedCall_PresetObjectRenderLayer(int iLayerMask);
 void WickedCall_PresetObjectLimbRenderLayer(int iLayerMask, int iLimb);

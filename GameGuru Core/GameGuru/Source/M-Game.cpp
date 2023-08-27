@@ -2559,7 +2559,8 @@ void game_masterroot_gameloop_afterexitgamemenu(void)
 
 void game_masterroot_gameloop_afterescapepressed(void)
 {
-	if ( t.currentgunobj>0 ) { if ( ObjectExist(t.currentgunobj) == 1 ) { SetObjectSpeed ( t.currentgunobj,t.currentgunanimspeed_f); } }
+	extern void gun_SetObjectSpeed(int, float);
+	if ( t.currentgunobj>0 ) { if ( ObjectExist(t.currentgunobj) == 1 ) { gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f); } }
 	physics_resumephysics ( );
 	entity_resumeanimations ( );
 	t.aisystem.cumilativepauses=Timer()-t.tremembertimer;
@@ -2690,7 +2691,8 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		darkai_character_freezeall ( );
 		physics_pausephysics ( );
 		entity_pauseanimations ( );
-		if ( t.currentgunobj > 0 ) { if ( ObjectExist(t.currentgunobj)==1 ) { SetObjectSpeed ( t.currentgunobj,0) ; } }
+		extern void gun_SetObjectSpeed(int, float);
+		if ( t.currentgunobj > 0 ) { if ( ObjectExist(t.currentgunobj)==1 ) { gun_SetObjectSpeed (  t.currentgunobj,0) ; } }
 		if ( t.playercontrol.jetobjtouse>0 ) 
 		{
 			if ( ObjectExist(t.playercontrol.jetobjtouse) == 1  )  SetObjectSpeed (  t.playercontrol.jetobjtouse,0 );

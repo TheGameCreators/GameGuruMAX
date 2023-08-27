@@ -3746,19 +3746,15 @@ DARKSDK_DLL void FadeObject ( int iID, float fPercentage )
 
 void GlueObjectToLimbEx ( int iSource, int iTarget, int iLimbID, int iMode )
 {
+	// iMode greater than 1000 are all MODE 3 (specifying actual object to sync anim to)
+	
 	// check the object exists
 	if ( !ConfirmObject ( iSource ) )
 		return;
 
-	//if ( !ConfirmObjectInstance ( iSource ) )
-	//	return;
-
 	// leefix - 100304 - check the object exists (and limb)
 	if ( !ConfirmObjectAndLimb ( iTarget, iLimbID ) )
 		return;
-
-	//if ( !ConfirmObjectAndLimbInstance ( iTarget, iLimbID ) )
-	//	return;
 
 	// get object pointers
 	sObject* pSourceObject = g_ObjectList [ iSource ];
@@ -3792,19 +3788,26 @@ void GlueObjectToLimbEx ( int iSource, int iTarget, int iLimbID, int iMode )
 		}
 		else
 		{
-			// mode 0 - regular glue object to a limb (default behaviour)
+			// mode 0 and other modes - regular glue object to a limb (default behaviour)
 			pSourceObject->position.iGluedToMesh	= iLimbID;
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// wicked has its own way to glue objects
 	if (pSourceObject->position.bGlued == true)
 	{
 		sObject* pParentObject = GetObjectData(iTarget);
-		WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID);
+		if (iMode > 1000)
+		{
+			// mode 3 - is mode 0 plus ability to sync with object animation glued to
+			int iModeAsObjID = iMode;
+			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, iModeAsObjID);
+		}
+		else
+		{
+			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, -1);
+		}
 	}
-	#endif
 }
 
 DARKSDK_DLL void GlueObjectToLimb ( int iSource, int iTarget, int iLimbID )

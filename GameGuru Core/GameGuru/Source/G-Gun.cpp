@@ -556,6 +556,76 @@ void gun_manager ( void )
 	gun_brass_indi ( );
 }
 
+void gun_SetObjectInterpolation(int iObjID, float fValue)
+{
+	SetObjectInterpolation (iObjID, fValue);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		SetObjectInterpolation (iGunSecondaryObj, fValue);
+	}
+}
+
+void gun_SetObjectFrame(int iObjID, float fValue)
+{
+	SetObjectFrame (iObjID, fValue);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		SetObjectFrame (iGunSecondaryObj, fValue);
+	}
+}
+
+void gun_SetObjectSpeed(int iObjID, float fValue)
+{
+	SetObjectSpeed (iObjID, fValue);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		SetObjectSpeed (iGunSecondaryObj, fValue);
+	}
+}
+
+void gun_PlayObject(int iObjID, float fStart, float fEnd)
+{
+	PlayObject (iObjID, fStart, fEnd);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		PlayObject (iGunSecondaryObj, fStart, fEnd);
+	}
+}
+
+void gun_LoopObject(int iObjID, float fStart, float fEnd)
+{
+	LoopObject (iObjID, fStart, fEnd);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		LoopObject (iGunSecondaryObj, fStart, fEnd);
+	}
+}
+
+void gun_LoopObject(int iObjID)
+{
+	LoopObject (iObjID);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		LoopObject (iGunSecondaryObj);
+	}
+}
+
+void gun_StopObject(int iObjID)
+{
+	StopObject (iObjID);
+	int iGunSecondaryObj = g.gunbankextraobjoffset + (iObjID - g.gunbankoffset);
+	if (ObjectExist(iGunSecondaryObj) == 1)
+	{
+		StopObject (iGunSecondaryObj);
+	}
+}
+
 void gun_change ( void )
 {
 	//  at start of level, this is set to one
@@ -627,8 +697,8 @@ void gun_change ( void )
 		t.currentgunobj=t.gun[t.gunid].obj;
 		if (  t.currentgunobj>0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,g.firemodes[t.gunid][0].action.show.s );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,g.firemodes[t.gunid][0].action.show.s );
 			ShowObject (  t.currentgunobj );
 		}
 		else
@@ -885,12 +955,6 @@ void gun_update_hud ( void )
 							// VR supported or not
 							if (t.gun[t.gunid].settings.iVRWeaponMode == 1)
 							{
-								// also eliminate all animations and fix on known rig frame (nah, animation actually works nice and keeps weapon actions consistent)
-								//StopObject(t.currentgunobj);
-								//SetObjectInterpolation (t.currentgunobj, 100);
-								//SetObjectFrame (t.currentgunobj, t.gun[t.gunid].settings.iVRWeaponStaticFrame);
-								//SetObjectSpeed(t.currentgunobj, 0);
-
 								// only show specified limb (so can hide hands,etc)
 								for (int c = 1; c <= iGunLimbCount; c++)
 								{
@@ -1040,9 +1104,9 @@ void gun_control ( void )
 		#else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 		#endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,g.custstart,g.custend );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,g.custstart,g.custend );
 		t.gunmode=9999;
 	}
 	if (  t.gunmode == 9999 ) 
@@ -1052,7 +1116,7 @@ void gun_control ( void )
 		#else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 		#endif
-		SetObjectSpeed ( t.currentgunobj, t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj, t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= g.custend  )  t.gunmode = 5;
 	}
 
@@ -1284,7 +1348,7 @@ void gun_control ( void )
 			#else
 			t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 			#endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		t.genericgunanimspeed_f = fGunAnimSpeedSlow;
 	}
@@ -1298,7 +1362,7 @@ void gun_control ( void )
 			#else
 			t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 			#endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		t.genericgunanimspeed_f = fGunAnimSpeedFast;
 	}
@@ -1345,13 +1409,13 @@ void gun_control ( void )
 		#else
 		t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 		#endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 	}
 	if (  t.gunmode  ==  2001 ) 
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2002;
-		PlayObject (  t.currentgunobj,t.tzoomactionshow.s,t.tzoomactionshow.e );
+		gun_PlayObject (  t.currentgunobj,t.tzoomactionshow.s,t.tzoomactionshow.e );
 	}
 	if (  t.gunmode  ==  2002 ) 
 	{
@@ -1359,9 +1423,9 @@ void gun_control ( void )
 	}
 	if (  t.gunmode  ==  2003 ) 
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2004;
-		PlayObject (  t.currentgunobj,t.tzoomactionhide.s,t.tzoomactionhide.e );
+		gun_PlayObject (  t.currentgunobj,t.tzoomactionhide.s,t.tzoomactionhide.e );
 	}
 	if (  t.gunmode  ==  2004 ) 
 	{
@@ -1369,9 +1433,9 @@ void gun_control ( void )
 	}
 	if (  t.gunmode  ==  2005 ) 
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
 		t.gunmode = 2006;
-		PlayObject (  t.currentgunobj,t.tzoomactionhide.s,t.tzoomactionhide.e );
+		gun_PlayObject (  t.currentgunobj,t.tzoomactionhide.s,t.tzoomactionhide.e );
 	}
 	if (  t.gunmode  ==  2006 ) 
 	{
@@ -1387,8 +1451,8 @@ void gun_control ( void )
 			if ( t.tzoomactionhide.s > 0 )
 			{
 				t.gunmode = 2027;
-				SetObjectInterpolation ( t.currentgunobj,100 );
-				PlayObject ( t.currentgunobj, t.tzoomactionhide.s, t.tzoomactionhide.e );
+				gun_SetObjectInterpolation (  t.currentgunobj,100 );
+				gun_PlayObject ( t.currentgunobj, t.tzoomactionhide.s, t.tzoomactionhide.e );
 			}
 			else
 				t.gunmode = 2017;
@@ -1400,7 +1464,7 @@ void gun_control ( void )
 		if ( t.gunmode == 2017 && t.playercontrol.usingrun == 1 )
 		{
 			// intercept with anim to transition back to move first
-			SetObjectInterpolation ( t.currentgunobj, 100 );
+			gun_SetObjectInterpolation ( t.currentgunobj, 100 );
 			t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runfrom;
 			PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
 			t.gunmodewaitforframe = t.gruntofrom.e;
@@ -1432,7 +1496,7 @@ void gun_control ( void )
 			if ( t.tzoomactionhide.s > 0 )
 			{
 				t.gunmode = 2029;
-				SetObjectInterpolation (  t.currentgunobj,100 );
+				gun_SetObjectInterpolation (  t.currentgunobj,100 );
 				PlayObject ( t.currentgunobj, t.tzoomactionhide.s, t.tzoomactionhide.e );
 			}
 			else
@@ -1445,9 +1509,9 @@ void gun_control ( void )
 		if ( t.gunmode == 2019 && t.playercontrol.usingrun == 1 )
 		{
 			// intercept with anim to transition back to move first
-			SetObjectInterpolation ( t.currentgunobj, 100 );
+			gun_SetObjectInterpolation ( t.currentgunobj, 100 );
 			t.gruntofrom = g.firemodes[t.gunid][g.firemode].action.runfrom;
-			PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
+			gun_PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
 			t.gunmodewaitforframe = t.gruntofrom.e;
 			t.gunmode = 2039;
 		}
@@ -1472,15 +1536,15 @@ void gun_control ( void )
 	if ( t.gunmode == 2017 )
 	{
 		t.gunmode = 2008;
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.taltactionto.s,t.taltactionto.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.taltactionto.s,t.taltactionto.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][1].settings.flashimg );
 	}
 	if ( t.gunmode == 2019 )
 	{
 		t.gunmode = 2010;
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.taltactionfrom.s,t.taltactionfrom.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.taltactionfrom.s,t.taltactionfrom.e );
 		TextureObject (  g.hudbankoffset+5,0,g.firemodes[t.gunid][0].settings.flashimg );
 	}
 	if ( t.gunmode == 2027 ) 
@@ -1907,30 +1971,30 @@ void gun_control ( void )
 	{
 		t.gunmode=6;
 		t.guninterp=4;
-		StopObject (  t.currentgunobj );
-		SetObjectInterpolation (  t.currentgunobj,25 );
-		SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
+		gun_StopObject (  t.currentgunobj );
+		gun_SetObjectInterpolation (  t.currentgunobj,25 );
+		gun_SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
 	}
 	if (  t.gunmode == 6 ) 
 	{
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
 			t.gunmode=7;
 		}
 	}
 	if (  t.gunmode == 7 ) 
 	{
 		t.gunmode=8;
-		PlayObject (  t.currentgunobj,t.gidle.s+3.0,t.gidle.e );
+		gun_PlayObject (  t.currentgunobj,t.gidle.s+3.0,t.gidle.e );
 		#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 		#else
 		t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 		#endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 	}
 	if (  t.gunmode == 8 ) 
 	{
@@ -1939,24 +2003,24 @@ void gun_control ( void )
 		#else
 		t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 		#endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gidle.e  )  t.gunmode = 9;
 	}
 	if (  t.gunmode == 9 ) 
 	{
 		t.gunmode=10;
 		t.guninterp=4;
-		StopObject (  t.currentgunobj );
-		SetObjectInterpolation (  t.currentgunobj,25 );
-		SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
+		gun_StopObject (  t.currentgunobj );
+		gun_SetObjectInterpolation (  t.currentgunobj,25 );
+		gun_SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
 	}
 	if (  t.gunmode == 10 ) 
 	{
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gidle.s+3.0 );
 			t.gunmode=7;
 		}
 	}
@@ -1965,18 +2029,18 @@ void gun_control ( void )
 	if (  t.gunmode == 21 ) 
 	{
 		t.gunmode=22;
-		StopObject (  t.currentgunobj );
-		SetObjectInterpolation ( t.currentgunobj, 25 );
+		gun_StopObject (  t.currentgunobj );
+		gun_SetObjectInterpolation ( t.currentgunobj, 25 );
 		t.guninterp=4;
-		SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
+		gun_SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
 	}
 	if (  t.gunmode == 22 ) 
 	{
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
 			t.gunmode=23;
 		}
 	}
@@ -1987,7 +2051,7 @@ void gun_control ( void )
 	if (  t.gunmode == 23 ) 
 	{
 		t.gunmode=24;
-		PlayObject (  t.currentgunobj,t.gmove.s+3.0,t.gmove.e );
+		gun_PlayObject (  t.currentgunobj,t.gmove.s+3.0,t.gmove.e );
 		if (  g.firemodes[t.gunid][g.firemode].settings.movespeedmod  ==  0 ) 
 		{
 			#ifdef WICKEDENGINE
@@ -1995,7 +2059,7 @@ void gun_control ( void )
 			#else
 			t.currentgunanimspeed_f = g.timeelapsed_f*(t.playercontrol.basespeed_f*t.genericgunanimspeed_f);
 			#endif		
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		else
 		{
@@ -2004,7 +2068,7 @@ void gun_control ( void )
 			#else
 			t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 			#endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 	}
 	if (  t.gunmode == 24 ) 
@@ -2016,7 +2080,7 @@ void gun_control ( void )
 #else
 			t.currentgunanimspeed_f = g.timeelapsed_f*(t.playercontrol.basespeed_f*t.genericgunanimspeed_f);
 #endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		else
 		{
@@ -2025,7 +2089,7 @@ void gun_control ( void )
 #else
 			t.currentgunanimspeed_f = g.timeelapsed_f * t.genericgunanimspeed_f;
 #endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		if (  GetFrame(t.currentgunobj) >= t.gmove.e  )  t.gunmode = 25;
 	}
@@ -2033,17 +2097,17 @@ void gun_control ( void )
 	{
 		t.gunmode=26;
 		t.guninterp=4;
-		StopObject (  t.currentgunobj );
-		SetObjectInterpolation (  t.currentgunobj,25 );
-		SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
+		gun_StopObject (  t.currentgunobj );
+		gun_SetObjectInterpolation (  t.currentgunobj,25 );
+		gun_SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
 	}
 	if (  t.gunmode == 26 ) 
 	{
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gmove.s+3.0 );
 			t.gunmode=23;
 		}
 	}
@@ -2052,15 +2116,15 @@ void gun_control ( void )
 	if ( t.gunmode == 27 ) 
 	{
 		t.gunmode = 28;
-		SetObjectInterpolation ( t.currentgunobj, 100 );
-		SetObjectFrame ( t.currentgunobj, t.gruntofrom.s );
-		PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
+		gun_SetObjectInterpolation (  t.currentgunobj, 100 );
+		gun_SetObjectFrame ( t.currentgunobj, t.gruntofrom.s );
+		gun_PlayObject ( t.currentgunobj, t.gruntofrom.s, t.gruntofrom.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = (t.playercontrol.basespeed_f*t.genericgunanimspeed_f);
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*(t.playercontrol.basespeed_f*t.genericgunanimspeed_f);
 #endif
-		SetObjectSpeed ( t.currentgunobj, t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj, t.currentgunanimspeed_f );
 		t.gunmodewaitforframe = t.gruntofrom.e;
 	}
 	if ( t.gunmode == 28 ) 
@@ -2075,9 +2139,9 @@ void gun_control ( void )
 		// Clear fired count if holstering
 		t.gunmode=32;
 		t.guninterp=4;
-		StopObject (  t.currentgunobj );
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		SetObjectFrame (  t.currentgunobj,t.ghide.s );
+		gun_StopObject (  t.currentgunobj );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_SetObjectFrame (  t.currentgunobj,t.ghide.s );
 		if (  t.gun[t.gunid].settings.alternate == 0  )  t.sndid = t.gunsound[t.gunid][4].soundid1 ; else t.sndid = t.gunsound[t.gunid][4].altsoundid;
 		if (  t.sndid>0 ) 
 		{
@@ -2095,28 +2159,28 @@ void gun_control ( void )
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.ghide.s );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.ghide.s );
 #ifdef WICKEDENGINE
 			t.currentgunanimspeed_f = (t.genericgunanimspeed_f*2.5);
 #else
 			t.currentgunanimspeed_f = g.timeelapsed_f*(t.genericgunanimspeed_f*2.5);
 #endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 			t.gunmode=33;
 		}
 	}
 	if (  t.gunmode == 33 ) 
 	{
 		t.gunmode=34;
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.ghide.s,t.ghide.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.ghide.s,t.ghide.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = (t.genericgunanimspeed_f*2.5);
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*(t.genericgunanimspeed_f*2.5);
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 	}
 	if (  t.gunmode == 34 ) 
 	{
@@ -2125,7 +2189,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*(t.genericgunanimspeed_f*2.5);
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.ghide.e  )  t.gunmode = 35;
 	}
 	if (  t.gunmode == 35 ) 
@@ -2135,7 +2199,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*(t.genericgunanimspeed_f*2.5);
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		g.autoloadgun=t.gunselectionafterhide;
 		t.gunmode=5;
 		if (  t.runwhenaway == 1 ) 
@@ -2153,9 +2217,9 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.gblock.s,t.gblock.e );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.gblock.s,t.gblock.e );
 	}
 
 	if (  t.gunmode == 1002 ) 
@@ -2177,9 +2241,9 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
 	}
 	if (  t.gunmode == 1021 ) 
 	{
@@ -2188,13 +2252,13 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gstart.e  )  t.gunmode = 1022;
 	}
 	if (  t.gunmode == 1022 ) 
 	{
 		t.gunmode=1023;
-		PlayObject (  t.currentgunobj,t.gfinish.s,t.gfinish.e  ); t.gunshoot=1;
+		gun_PlayObject (  t.currentgunobj,t.gfinish.s,t.gfinish.e  ); t.gunshoot=1;
 	}
 	if (  t.gunmode == 1023 ) 
 	{
@@ -2203,7 +2267,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) {  t.gun[t.gunid].settings.ismelee = 0  ; t.gunmode = 5 ; t.tmeleeanim = 0; }
 	}
 
@@ -2291,15 +2355,15 @@ void gun_control ( void )
 				}
 			}
 			t.gunmode=102;
-			SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
 
-			PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
+			gun_PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
 #ifdef WICKEDENGINE
 			t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 			t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		}
 		else
 		{
@@ -2322,10 +2386,10 @@ void gun_control ( void )
 					if (  t.gdryfire.s>0 ) 
 					{
 						// play dryfire animation 
-						StopObject ( t.currentgunobj );
-						SetObjectInterpolation ( t.currentgunobj, 100 );
-						SetObjectFrame ( t.currentgunobj, t.gdryfire.s );
-						PlayObject ( t.currentgunobj, t.gdryfire.s, t.gdryfire.e );
+						gun_StopObject ( t.currentgunobj );
+						gun_SetObjectInterpolation (  t.currentgunobj, 100 );
+						gun_SetObjectFrame ( t.currentgunobj, t.gdryfire.s );
+						gun_PlayObject ( t.currentgunobj, t.gdryfire.s, t.gdryfire.e );
 						t.gunmode=109;
 
 						// dryfire sound
@@ -2368,7 +2432,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		//PE: Wizard (fire) is waiting here for the animation to change ?
 		//https://github.com/TheGameCreators/GameGuruRepo/issues/672
 		//not really a bug as "start fire = 44,45" in \gamecore\guns\fantasy\Staff\gunspec.txt will fix it.
@@ -2446,13 +2510,13 @@ void gun_control ( void )
 				{
 					if (  t.gautomatic.s>0 && t.gun[t.gunid].settings.alternate == 0 || t.gautomatic.s>0 && t.gun[t.gunid].settings.alternate == 1 && t.gun[t.gunid].settings.alternateisray == 1 ) 
 					{
-						LoopObject (  t.currentgunobj,t.gautomatic.s,t.gautomatic.e );
+						gun_LoopObject (  t.currentgunobj,t.gautomatic.s,t.gautomatic.e );
 #ifdef WICKEDENGINE
 						t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 						t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-						SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+						gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 						if (  t.gunmodeloopsnd>0 ) 
 						{
 							if (  SoundExist(t.gunmodeloopsnd) == 1  )  StopSound (  t.gunmodeloopsnd );
@@ -2646,13 +2710,13 @@ void gun_control ( void )
 		{
 			t.gunmode=106;
 			t.gunmodewaitforframe=t.gfinish.e;
-			PlayObject (  t.currentgunobj,t.gfinish.s,t.gfinish.e );
+			gun_PlayObject (  t.currentgunobj,t.gfinish.s,t.gfinish.e );
 #ifdef WICKEDENGINE
 			t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 			t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-			SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+			gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 			if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 			{
 				t.fireloopend=g.firemodes[t.gunid][g.firemode].sound.fireloopend;
@@ -2690,7 +2754,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe )  t.gunmode = 107;
 		//  if a delayed flak, check when frame triggers it; Only one grenade, not SIX!!!
 		if (  t.gun[t.gunid].projectileframe>0 ) 
@@ -2782,7 +2846,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gfinish.e  )  t.gunmode = 107;
 	}
 	if ( t.gunmode == 109 ) 
@@ -2793,7 +2857,7 @@ void gun_control ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed ( t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if ( GetFrame(t.currentgunobj) >= t.gdryfire.e ) 
 		{
 			t.gunmode=107;
@@ -2867,9 +2931,9 @@ void gun_control ( void )
 		{
 			t.gunmode=122;
 			t.guninterp=4;
-			StopObject (  t.currentgunobj );
-			SetObjectInterpolation (  t.currentgunobj,25 );
-			SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
+			gun_StopObject (  t.currentgunobj );
+			gun_SetObjectInterpolation (  t.currentgunobj,25 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
 		}
 	}
 	gunmode121_cancel();
@@ -2877,12 +2941,16 @@ void gun_control ( void )
 	// map secondary gun object to primary for legacy arms trick
 	if (t.currentgunobj > 0)
 	{
+		// seems the new sync anim system is thwarted by n-core work on the anim system - it seems
+		// fallback is to match animation commands to secondary object :(
+		// StopObject(t.currentgunobj);
+		// SetObjectFrame(t.currentgunobj,100);
 		int iGunSecondaryObj = g.gunbankextraobjoffset + (t.currentgunobj - g.gunbankoffset);
 		if (ObjectExist(iGunSecondaryObj) == 1)
 		{
 			PositionObject(iGunSecondaryObj, ObjectPositionX(t.currentgunobj), ObjectPositionY(t.currentgunobj), ObjectPositionZ(t.currentgunobj));
 			SetObjectToObjectOrientation(iGunSecondaryObj, t.currentgunobj);
-			SetObjectFrame(iGunSecondaryObj, GetFrame(t.currentgunobj));
+			//SetObjectFrame(iGunSecondaryObj, GetFrame(t.currentgunobj)); // handled inside the glue/unglue command now (but if weap has no anim, this is the fallback)
 			if (GetVisible(t.currentgunobj) == 1)
 				ShowObject(iGunSecondaryObj);
 			else
@@ -2898,8 +2966,8 @@ void gunmode121_cancel ( void )
 		--t.guninterp;
 		if (  t.guninterp <= 0 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,t.gstartreload.s );
 			if (  g.firemodes[t.gunid][g.firemode].settings.shotgun == 1 && g.firemodes[t.gunid][g.firemode].settings.isempty == 0 || g.firemodes[t.gunid][g.firemode].settings.isempty == 1 && g.firemodes[t.gunid][g.firemode].settings.emptyshotgun == 1 ) 
 			{
 				t.gunmode=700;
@@ -2914,14 +2982,14 @@ void gunmode121_cancel ( void )
 	//  AIRSLIDE SHOTGUN CODE BEGIN
 	if (  t.gunmode == 700 ) 
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.gstartreload.s,t.gstartreload.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.gstartreload.s,t.gstartreload.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		t.gunmode=701;
 	}
 	if (  t.gunmode == 701 ) 
@@ -2931,7 +2999,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gstartreload.e ) 
 		{
 			t.gunmode=703;
@@ -2939,13 +3007,13 @@ void gunmode121_cancel ( void )
 	}
 	if (  t.gunmode == 703 ) 
 	{
-		PlayObject (  t.currentgunobj,t.greloadloop.s,t.greloadloop.e );
+		gun_PlayObject (  t.currentgunobj,t.greloadloop.s,t.greloadloop.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		t.gunmode=7031;
 	}
 	if (  t.gunmode == 7031 ) 
@@ -2955,7 +3023,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.greloadloop.e ) 
 		{
 			t.gunmode=702;
@@ -3019,7 +3087,7 @@ void gunmode121_cancel ( void )
 	}
 	if (  t.gunmode == 704 ) 
 	{
-		PlayObject (  t.currentgunobj,t.gendreload.s,t.gcock.e );
+		gun_PlayObject (  t.currentgunobj,t.gendreload.s,t.gcock.e );
 		t.gunmode=705;
 	}
 	if (  t.gunmode == 705 ) 
@@ -3029,18 +3097,18 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gcock.e ) { t.gunmode = 5  ; g.plrreloading = 0; }
 	}
 	if (  t.gunmode == 706 ) 
 	{
-		PlayObject (  t.currentgunobj,t.gendreload.s,t.gendreload.e );
+		gun_PlayObject (  t.currentgunobj,t.gendreload.s,t.gendreload.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		t.gunmode=707;
 	}
 	if (  t.gunmode == 707 ) 
@@ -3050,7 +3118,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gendreload.e ) { t.gunmode = 5 ; t.gun[t.gunid].settings.ismelee = 0; }
 	}
 	//  AIRSLIDE SHOTGUN CODE END
@@ -3059,14 +3127,14 @@ void gunmode121_cancel ( void )
 	{
 		t.gunmode=124;
 		//  start reload animation
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		PlayObject (  t.currentgunobj,t.gstartreload.s,t.gcock.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_PlayObject (  t.currentgunobj,t.gstartreload.s,t.gcock.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = g.firemodes[t.gunid][g.firemode].settings.reloadspeed*t.genericgunanimspeed_f;
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*g.firemodes[t.gunid][g.firemode].settings.reloadspeed*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  t.gunsound[t.gunid][2].soundid1>0 ) 
 		{
 			if (  SoundExist(t.gunsound[t.gunid][2].soundid1) == 1 ) 
@@ -3083,7 +3151,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*g.firemodes[t.gunid][g.firemode].settings.reloadspeed*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gun[t.gunid].settings.bulletreset ) 
 		{
 			//  anticipate new weapon ammo quantity to set bullet visibility
@@ -3108,7 +3176,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*g.firemodes[t.gunid][g.firemode].settings.reloadspeed*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gcock.e  )  t.gunmode = 126;
 	}
 	if (  t.gunmode == 126 ) 
@@ -3123,15 +3191,15 @@ void gunmode121_cancel ( void )
 	//  gun reveal
 	if (  t.gunmode == 131 ) 
 	{
-		SetObjectInterpolation (  t.currentgunobj,100 );
-		SetObjectFrame (  t.currentgunobj,t.gshow.s );
-		PlayObject (  t.currentgunobj,t.gshow.s,t.gshow.e );
+		gun_SetObjectInterpolation (  t.currentgunobj,100 );
+		gun_SetObjectFrame (  t.currentgunobj,t.gshow.s );
+		gun_PlayObject (  t.currentgunobj,t.gshow.s,t.gshow.e );
 #ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  t.gunsound[t.gunid][2].soundid1>0 ) 
 		{
 			if (  SoundExist(t.gunsound[t.gunid][2].soundid1) == 1 ) 
@@ -3148,7 +3216,7 @@ void gunmode121_cancel ( void )
 #else
 		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
 #endif
-		SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gshow.e  )
 			t.gunmode = 5;
 		if (  GetFrame(t.currentgunobj)<t.gshow.s  )
@@ -4338,7 +4406,24 @@ void gun_load ( void )
 			TextureObject(iGunSecondaryObj, g.weaponstempimageoffset);
 
 			// apply correct legacy animations
-			cstr pAbsPathToAnim = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\Animations\\LegacyEnhancedAK.dbo");
+			cstr pAbsPathToAnim = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\Animations\\Legacy");
+			char pNoSpacesInGunName[MAX_PATH];
+			strcpy(pNoSpacesInGunName, "");
+			int n2 = 0;
+			LPSTR pGunPathAndName = t.gun_s.Get();
+			for (int n = 0; n < strlen(pGunPathAndName); n++)
+			{
+				if (pGunPathAndName[n] == ' ' || pGunPathAndName[n] == '\\' || pGunPathAndName[n] == '/')
+				{
+				}
+				else
+				{
+					pNoSpacesInGunName[n2++] = pGunPathAndName[n];
+				}
+			}
+			pNoSpacesInGunName[n2] = 0;
+			pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
+			pAbsPathToAnim += ".dbo";
 			sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
 			if (pSecondaryObject)
 			{
@@ -4962,15 +5047,17 @@ void gun_load ( void )
 	}
 	image_setlegacyimageloading(false);
 
-	//  Glue gun to HUD-Gun-Marker
-	GlueObjectToLimb (  t.currentgunobj,g.hudbankoffset+2,0 );
+	// Glue gun to HUD-Gun-Marker (mode 0 default glue mode)
+	GlueObjectToLimbEx ( t.currentgunobj, g.hudbankoffset+2, 0, 0 );
 
 	// and glue any secondary gun object also
 	if (iGunSecondaryObj > 0)
 	{
 		if (ObjectExist(iGunSecondaryObj) == 1)
 		{
-			GlueObjectToLimb (iGunSecondaryObj, g.hudbankoffset + 2, 0);
+			// anim sync did not work as n-core anim system use different read/write values per frame - alas
+			//int iMode = 3; // mode 3 syncs the secondary object to the primary object anim timer with no lag (pass in the animating objID (can be different from obj being glued to)
+			GlueObjectToLimbEx (iGunSecondaryObj, g.hudbankoffset + 2, 0, 0);// t.currentgunobj);
 		}
 	}
 
@@ -4991,8 +5078,8 @@ void gun_load ( void )
 
 	//  Setup gun for animation
 	t.currentgunanimspeed_f = (t.genericgunanimspeed_f*0.75);
-	SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-	LoopObject (  t.currentgunobj );
+	gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
+	gun_LoopObject (  t.currentgunobj );
 
 	// Set art flags for weapon object (can use 32 bit flags here eventually)
 	DWORD dwArtFlags = 0;
@@ -5224,8 +5311,8 @@ void gun_free ( void )
 	{
 		if (  ObjectExist(t.currentgunobj) == 1 ) 
 		{
-			SetObjectInterpolation (  t.currentgunobj,100 );
-			SetObjectFrame (  t.currentgunobj,g.firemodes[t.gunid][0].action.show.s );
+			gun_SetObjectInterpolation (  t.currentgunobj,100 );
+			gun_SetObjectFrame (  t.currentgunobj,g.firemodes[t.gunid][0].action.show.s );
 			HideObject (  t.currentgunobj );
 		}
 	}
@@ -5504,7 +5591,7 @@ void gun_playerdead ( void )
 	{
 		if (  ObjectExist(t.currentgunobj) == 1 ) 
 		{
-			StopObject (  t.currentgunobj );
+			gun_StopObject (  t.currentgunobj );
 		}
 	}
 	return;

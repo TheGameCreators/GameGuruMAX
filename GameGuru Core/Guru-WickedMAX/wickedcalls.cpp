@@ -4164,7 +4164,7 @@ void WickedCall_SetObjectVisible ( sObject* pObject, bool bVisible )
 	}
 }
 
-void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObject, int iLimb)
+void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObject, int iLimb, int iObjIDToSyncAnimTo)
 {
 	// attaches this entity object to a parent entity object
 	if ( pObjectToGlue && pParentObject )
@@ -4178,8 +4178,50 @@ void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObjec
 				uint64_t objectParentToAttachTo = pFrame->wickedobjindex;
 				if (rootToGlueEntity > 0)
 				{
+					// attach child to parent
 					bool bAlreadyInChildPosition = false; // i.e. offset to this parent, not world position
 					wiScene::GetScene().Component_Attach(rootToGlueEntity, objectParentToAttachTo, bAlreadyInChildPosition);
+
+					// additionally assign child an ability to perfectly sync anim with parent
+					if (pObjectToGlue->pAnimationSet)
+					{
+						// first animset only for frame return
+						sAnimationSet* pAnimSet = pObjectToGlue->pAnimationSet;
+						if (pAnimSet)
+						{
+							Entity animentity = pAnimSet->wickedanimentityindex;
+							AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
+							if (animationcomponent)
+							{
+								if (iObjIDToSyncAnimTo != -1)
+								{
+									// find the animation component of the parent to assign to this child animation 
+									sObject* GetObjectData(int iID);
+									sObject* pParentObjWithAnim = GetObjectData(iObjIDToSyncAnimTo);
+									if (pParentObjWithAnim->pAnimationSet)
+									{
+										// first animset only for frame return
+										sAnimationSet* pParentAnimSet = pParentObjWithAnim->pAnimationSet;
+										if (pParentAnimSet)
+										{
+											Entity parentanimentity = pParentAnimSet->wickedanimentityindex;
+											AnimationComponent* parentanimationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
+											if (parentanimationcomponent)
+											{
+												parentanimationcomponent->UsePrimaryAnimTimer(0, parentanimentity);
+												animationcomponent->UsePrimaryAnimTimer(parentanimentity, 0);
+											}
+										}
+									}
+								}
+								else
+								{
+									// unsync child from parent (probably not used in favor of unglue/glue operation as one presently used)
+									animationcomponent->UsePrimaryAnimTimer(0,0);
+								}
+							}
+						}
+					}
 				}
 			}
 		}
@@ -4195,6 +4237,19 @@ void WickedCall_UnGlueObjectToObject(sObject* pObjectToUnGlue)
 		if (rootToUnGlueEntity > 0)
 		{
 			wiScene::GetScene().Component_Detach(rootToUnGlueEntity);
+			if (pObjectToUnGlue->pAnimationSet)
+			{
+				sAnimationSet* pAnimSet = pObjectToUnGlue->pAnimationSet;
+				if (pAnimSet)
+				{
+					Entity animentity = pAnimSet->wickedanimentityindex;
+					AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
+					if (animationcomponent)
+					{
+						animationcomponent->UsePrimaryAnimTimer(0,0);
+					}
+				}
+			}
 		}
 	}
 }

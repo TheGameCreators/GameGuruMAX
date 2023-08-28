@@ -2696,16 +2696,42 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 	return iListCount;
 }
 
+std::vector<cstr> g_HandsList_s;
+
 int fillgloballistwithHands(void)
 {
-	Dim(t.list_s, 10);
+	// initially populate from Hands folder
+	if (g_HandsList_s.size() == 0)
+	{
+		cstr pOld = GetDir();
+		SetDir(cstr(g.fpscrootdir_s+cstr("\\Files\\gamecore\\Hands\\")).Get());
+		ChecklistForFiles();
+		for (int c = 1; c <= ChecklistQuantity(); c++)
+		{
+			if (ChecklistValueA(c) != 0)
+			{
+				cstr folder = ChecklistString(c);
+				if (folder != "." && folder != ".." && folder != "Animations")
+				{
+					g_HandsList_s.push_back(folder.Get());
+				}
+			}
+		}
+		SetDir(pOld.Get());
+	}
+	int iHandsCount = g_HandsList_s.size();
+	Dim(t.list_s, iHandsCount);
 	int iIndex = 0;
 	t.list_s[iIndex++] = "No Preference";
-	t.list_s[iIndex++] = "Legacy Combat";
-	t.list_s[iIndex++] = "Male Light";
-	t.list_s[iIndex++] = "Male Dark";
-	t.list_s[iIndex++] = "Female Light";
-	t.list_s[iIndex++] = "Female Dark";
+	for (int i = 0; i < iHandsCount; i++)
+	{
+		t.list_s[iIndex++] = g_HandsList_s[i];
+	}
+	//t.list_s[iIndex++] = "Legacy Combat";
+	//t.list_s[iIndex++] = "Male Light";
+	//t.list_s[iIndex++] = "Male Dark";
+	//t.list_s[iIndex++] = "Female Light";
+	//t.list_s[iIndex++] = "Female Dark";
 	return iIndex-1;
 }
 

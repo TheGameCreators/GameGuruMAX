@@ -4397,43 +4397,53 @@ void gun_load ( void )
 		{
 			// load secondary hands
 			cstr pHands_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
-			LoadObject(pHands_s.Get(), iGunSecondaryObj);
-
-			// texture these seoncdary arms/hands
-			cstr pCustomArms_s = cstr("gamecore\\hands\\") + customArms_s + cstr("\\arms_color.dds");
-			if (ImageExist(g.weaponstempimageoffset) == 1) DeleteImage(g.weaponstempimageoffset);
-			LoadImage(pCustomArms_s.Get(), g.weaponstempimageoffset);
-			TextureObject(iGunSecondaryObj, g.weaponstempimageoffset);
-
-			// apply correct legacy animations
-			cstr pAbsPathToAnim = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\Animations\\Legacy");
-			char pNoSpacesInGunName[MAX_PATH];
-			strcpy(pNoSpacesInGunName, "");
-			int n2 = 0;
-			LPSTR pGunPathAndName = t.gun_s.Get();
-			for (int n = 0; n < strlen(pGunPathAndName); n++)
+			if(FileExist(pHands_s.Get())==0)
 			{
-				if (pGunPathAndName[n] == ' ' || pGunPathAndName[n] == '\\' || pGunPathAndName[n] == '/')
-				{
-				}
-				else
-				{
-					pNoSpacesInGunName[n2++] = pGunPathAndName[n];
-				}
+				// player start marker specified hands not exist on this install, so default to legacy ones
+				customArms_s = "Combat Gloves Light";
+				pHands_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
 			}
-			pNoSpacesInGunName[n2] = 0;
-			pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
-			pAbsPathToAnim += ".dbo";
-			sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
-			if (pSecondaryObject)
+			if (FileExist(pHands_s.Get()) == 1)
 			{
-				if (AppendAnimationFromFile(pSecondaryObject, pAbsPathToAnim.Get(), 0) == true)
+				// load the hands
+				LoadObject(pHands_s.Get(), iGunSecondaryObj);
+
+				// texture these seoncdary arms/hands
+				cstr pCustomArms_s = cstr("gamecore\\hands\\") + customArms_s + cstr("\\arms_color.dds");
+				if (ImageExist(g.weaponstempimageoffset) == 1) DeleteImage(g.weaponstempimageoffset);
+				LoadImage(pCustomArms_s.Get(), g.weaponstempimageoffset);
+				TextureObject(iGunSecondaryObj, g.weaponstempimageoffset);
+
+				// apply correct legacy animations
+				cstr pAbsPathToAnim = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\Animations\\Legacy");
+				char pNoSpacesInGunName[MAX_PATH];
+				strcpy(pNoSpacesInGunName, "");
+				int n2 = 0;
+				LPSTR pGunPathAndName = t.gun_s.Get();
+				for (int n = 0; n < strlen(pGunPathAndName); n++)
 				{
-					WickedCall_RefreshObjectAnimations(pSecondaryObject, pSecondaryObject->wickedloaderstateptr);
+					if (pGunPathAndName[n] == ' ' || pGunPathAndName[n] == '\\' || pGunPathAndName[n] == '/')
+					{
+					}
+					else
+					{
+						pNoSpacesInGunName[n2++] = pGunPathAndName[n];
+					}
 				}
+				pNoSpacesInGunName[n2] = 0;
+				pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
+				pAbsPathToAnim += ".dbo";
+				sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
+				if (pSecondaryObject)
+				{
+					if (AppendAnimationFromFile(pSecondaryObject, pAbsPathToAnim.Get(), 0) == true)
+					{
+						WickedCall_RefreshObjectAnimations(pSecondaryObject, pSecondaryObject->wickedloaderstateptr);
+					}
+				}
+				HideObject(iGunSecondaryObj);
+				bUsingLegacyArmReplacementTrick = true;
 			}
-			HideObject(iGunSecondaryObj);
-			bUsingLegacyArmReplacementTrick = true;
 		}
 	}
 

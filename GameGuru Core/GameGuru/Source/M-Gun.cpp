@@ -1731,7 +1731,16 @@ void gun_createhud ( cstr customArms_s )
 							if (customArms_s.Len()>0)
 							{
 								pActualFile_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
-								bUseCustomHands = true;
+								if (FileExist(pActualFile_s.Get()) == 0)
+								{
+									// player start marker specified hands not exist on this install, so default to legacy ones
+									customArms_s = "Combat Gloves Light";
+									pActualFile_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
+								}
+								if (FileExist(pActualFile_s.Get()) == 1)
+								{
+									bUseCustomHands = true;
+								}
 							}
 						}
 

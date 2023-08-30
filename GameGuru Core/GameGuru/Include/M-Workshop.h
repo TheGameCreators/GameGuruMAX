@@ -23,6 +23,7 @@ struct sWorkshopItem
 	cstr sSteamUsersPersonaName;
 	bool bDownloadItemTriggered;
 	int iNumberOfFilesInWorkshopItem;
+	cstr sLatestDateOfItem;
 };
 struct sWorkshopSteamUserName
 {
@@ -41,6 +42,8 @@ extern sWorkshopItem g_currentWorkshopItem;
 extern int g_iSelectedExistingWorkshopItem;
 extern int g_iCurrentMediaTypeForWorkshopItem;
 extern bool g_bStillDownloadingThings;
+extern bool g_bStillDownloadingThingsWithDelay;
+extern int g_iStillDownloadingThingsWithDelayTimer;
 
 // Functions
 void workshop_init (bool bLoggedIn);

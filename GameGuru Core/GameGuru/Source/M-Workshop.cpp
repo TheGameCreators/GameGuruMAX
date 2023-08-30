@@ -4,12 +4,14 @@
 
 #include "gameguru.h"
 #include "M-Workshop.h"
+#include <ctime>
 
 // Globals
 bool g_bWorkshopAvailable = false;
 bool g_bUpdateWorkshopItemList = false;
 bool g_bUpdateWorkshopDownloads = false;
 bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
+bool g_bUpdateWorkshopDownloadsAlwaysPerformOnceAtLaunch = true;
 cstr g_WorkshopUserPrompt = "";
 std::vector<sWorkshopItem> g_workshopItemsList;
 std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
@@ -19,11 +21,19 @@ sWorkshopItem g_currentWorkshopItem;
 CSteamUserGeneratedWorkshopItem g_UserWorkShopItem;
 int g_iCurrentMediaTypeForWorkshopItem = 1;
 bool g_bStillDownloadingThings = true;
+bool g_bStillDownloadingThingsWithDelay = true;
+int g_iStillDownloadingThingsWithDelayTimer = 0;
+std::vector<cstr> g_sStillDownloadingLog;
+std::vector<cstr> g_sStillDownloadingLogTitle;
+int g_iStillDownloadingLogCount = 0;
 
 // Functions
 void workshop_init (bool bLoggedIn)
 {
 	// general inits
+	g_sStillDownloadingLog.clear();
+	g_sStillDownloadingLogTitle.clear();
+	g_iStillDownloadingLogCount = 0;
 	g_bWorkshopAvailable = true;// bLoggedIn;
 	g_bUpdateWorkshopItemList = true;
 	g_WorkshopUserPrompt = "";
@@ -40,6 +50,7 @@ void workshop_init (bool bLoggedIn)
 	g_currentWorkshopItem.sSteamUserAccountID = "";
 	g_currentWorkshopItem.bDownloadItemTriggered = false;
 	g_currentWorkshopItem.iNumberOfFilesInWorkshopItem = 0;
+	g_currentWorkshopItem.sLatestDateOfItem = "";
 
 	// start the process of ensuring trusted items are subscribed to
 	workshop_subscribetoalltrusteditems();
@@ -63,6 +74,7 @@ void workshop_new_item (void)
 	g_currentWorkshopItem.sSteamUserAccountID = "";
 	g_currentWorkshopItem.bDownloadItemTriggered = false;
 	g_currentWorkshopItem.iNumberOfFilesInWorkshopItem = 0;	
+	g_currentWorkshopItem.sLatestDateOfItem = "";
 	g_WorkshopUserPrompt = "";
 }
 
@@ -174,157 +186,58 @@ void workshop_submit_item_now (void)
 	g_UserWorkShopItem.CreateOrUpdateWorkshopItem();
 }
 
-void workshop_update (void)
+void workshop_update ( bool bRefreshIfFlagged )
 {
-	// trigger workshop item list update
-	if ( g_bUpdateWorkshopItemList == true )
+	// called from main game loop and from workshop tabs in HUB (false=game loop, true=HUB workshop pages)
+	if (bRefreshIfFlagged == true || g_bUpdateWorkshopDownloadsAlwaysPerformOnce==true )
 	{
-		workshop_update_steamusernames(); // populate before refresh (in case offline and need stored names)
-		g_UserWorkShopItem.RefreshItemsList();
-		g_bUpdateWorkshopItemList = false;
-	}
-
-	// when workshop item update refreshed, do a check to see if anything needs downloading
-	if (g_bUpdateWorkshopDownloads == true)
-	{
-		// go through all the user has subscribed to
-		uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
-		PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
-		SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
-		for (int i = 0; i < numSubscribed; i++)
+		// trigger workshop item list update
+		if (g_bUpdateWorkshopItemList == true)
 		{
-			// for each item found
-			PublishedFileId_t thisItem = pEntries[i];
-			uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-			if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
+			workshop_update_steamusernames(); // populate before refresh (in case offline and need stored names)
+			g_UserWorkShopItem.RefreshItemsList();
+			g_bUpdateWorkshopItemList = false;
+		}
+
+		// when workshop item update refreshed, do a check to see if anything needs downloading
+		if (g_bUpdateWorkshopDownloads == true)
+		{
+			// go through all the user has subscribed to
+			uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
+			PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
+			SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
+			for (int i = 0; i < numSubscribed; i++)
 			{
-				// item is marked as installed
-				uint64 punSizeOnDisk = 0;
-				char pchFolder[MAX_PATH];
-				uint32 cchFolderSize = 0;
-				uint32 punTimeStamp = 0;
-				bool bInstalledFlag = SteamUGC()->GetItemInstallInfo(thisItem, &punSizeOnDisk, pchFolder, MAX_PATH, &punTimeStamp);
-				if (bInstalledFlag == true)
+				// for each item found
+				PublishedFileId_t thisItem = pEntries[i];
+				uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+				if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
 				{
-					// store orig folder
-					char pOldDir[MAX_PATH];
-					strcpy(pOldDir, GetDir());
-
-					// count files in workshop item
-					extern bool g_bNormalOperations;
-					int iFilesInThisWorkshopItem = -1;
-					char pItemFolderNameOnly[MAX_PATH];
-					strcpy(pItemFolderNameOnly, "");
-					for (int n = strlen(pchFolder) - 1; n > 0; n--)
+					// item is marked as installed
+					uint64 punSizeOnDisk = 0;
+					char pchFolder[MAX_PATH];
+					uint32 cchFolderSize = 0;
+					uint32 punTimeStamp = 0;
+					bool bInstalledFlag = SteamUGC()->GetItemInstallInfo(thisItem, &punSizeOnDisk, pchFolder, MAX_PATH, &punTimeStamp);
+					if (bInstalledFlag == true)
 					{
-						if (pchFolder[n] == '\\' || pchFolder[n] == '/')
+						// store orig folder
+						char pOldDir[MAX_PATH];
+						strcpy(pOldDir, GetDir());
+
+						// count files in workshop item
+						extern bool g_bNormalOperations;
+						int iFilesInThisWorkshopItem = -1;
+						char pItemFolderNameOnly[MAX_PATH];
+						strcpy(pItemFolderNameOnly, "");
+						for (int n = strlen(pchFolder) - 1; n > 0; n--)
 						{
-							strcpy(pItemFolderNameOnly, pchFolder + n + 1);
-							break;
-						}
-					}
-					if (strlen(pItemFolderNameOnly) > 0)
-					{
-						SetDir(pchFolder);
-						SetDir("..");
-						g.filecollectionmax = 0;
-						Dim (t.filecollection_s, 500);
-						g_bNormalOperations = false;
-						addallinfoldertocollection(pItemFolderNameOnly, pItemFolderNameOnly);
-						g_bNormalOperations = true;
-						iFilesInThisWorkshopItem = g.filecollectionmax;
-					}
-
-					// TEST downloading item to OWN steam user account (typically you already have your own there)
-					bool bTestCopyOwnWorkshopItemsToo = false;// false; // true;
-
-					// except if tbat is the current user who owns the item as that would overwrite the latest versions not yet submitted
-					// we do not want to copy in this case so the author can continue working on the latest unbpublished media
-					uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
-
-					// if final dest is however empty, trigger latest workshop content to be copied over
-					// find same entry in workshop item list that contains the true path needed
-					char pMediaFolder[MAX_PATH];
-					bool bFindMatchInItemList = false;
-					bool bTheFinalDestFolderIsEmpty = false;
-					uint32 uFoundAccountIDAssociated = 0;
-					INT iNumberOfFilesInLocalItem = -1;
-					for (int j = 0; j < g_workshopItemsList.size(); j++)
-					{
-						if (g_workshopItemsList[j].nPublishedFileId == thisItem)
-						{
-							uFoundAccountIDAssociated = atoi(g_workshopItemsList[j].sSteamUserAccountID.Get());
-							if (bTestCopyOwnWorkshopItemsToo == true || uAccountID != uFoundAccountIDAssociated)
+							if (pchFolder[n] == '\\' || pchFolder[n] == '/')
 							{
-								LPSTR pAllMediaFolder = g_workshopItemsList[j].sMediaFolder.Get();
-								char pLastFolder[MAX_PATH];
-								strcpy(pLastFolder, pAllMediaFolder);
-								for (int nn = strlen(pAllMediaFolder) - 2; nn > 0; nn--)
-								{
-									if (pAllMediaFolder[nn] == '\\' || pAllMediaFolder[nn] == '/')
-									{
-										strcpy(pLastFolder, pAllMediaFolder+nn+1);
-										break;
-									}
-								}
-								if (stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") == NULL)
-								{
-									// stay in root parent folder
-									sprintf (pMediaFolder, "%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaFolder.Get());
-								}
-								else
-								{
-									// go to writables community folder
-									sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
-									GG_GetRealPath(pMediaFolder, true);
-								}
-								SetDir(pMediaFolder);
-								SetDir("..");
-								g.filecollectionmax = 0;
-								Dim (t.filecollection_s, 500);
-								g_bNormalOperations = false;
-								addallinfoldertocollection(pLastFolder, pLastFolder);
-								g_bNormalOperations = true;
-								bool bResetLocalContents = false;
-								iNumberOfFilesInLocalItem = g.filecollectionmax;
-								if (g_workshopItemsList[j].bDownloadItemTriggered == true) { bResetLocalContents = true; g_workshopItemsList[j].bDownloadItemTriggered = false; }
-								if (iFilesInThisWorkshopItem != iNumberOfFilesInLocalItem) bResetLocalContents = true;
-								if (bResetLocalContents == true)
-								{
-									SetDir(pLastFolder);// g_workshopItemsList[j].sMediaFolder.Get());
-									for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
-									{
-										cstr name_s = t.filecollection_s[fileindex];
-										if (FileExist(name_s.Get()) == 1)
-										{
-											DeleteFileA(name_s.Get());
-										}
-									}
-									bTheFinalDestFolderIsEmpty = true;
-								}
-								else
-								{
-									if (g.filecollectionmax == 0)
-									{
-										bTheFinalDestFolderIsEmpty = true;
-									}
-								}
-								g_workshopItemsList[j].iNumberOfFilesInWorkshopItem = iFilesInThisWorkshopItem;
-								UnDim (t.filecollection_s);
-								bFindMatchInItemList = true;
+								strcpy(pItemFolderNameOnly, pchFolder + n + 1);
 								break;
 							}
 						}
-					}
-
-					// very first time running MAX, will refresh from workshop storage
-					if (g_bUpdateWorkshopDownloadsAlwaysPerformOnce == true) bTheFinalDestFolderIsEmpty = true;
-
-					// if valid final destination
-					if (bFindMatchInItemList == true && PathExist(pMediaFolder) == 1 && bTheFinalDestFolderIsEmpty==true)
-					{
-						// copy the files in the folder to the correct subfolder of the community users location
-						// another user created this, or doing a test, so copy over to writables final destination
 						if (strlen(pItemFolderNameOnly) > 0)
 						{
 							SetDir(pchFolder);
@@ -334,50 +247,181 @@ void workshop_update (void)
 							g_bNormalOperations = false;
 							addallinfoldertocollection(pItemFolderNameOnly, pItemFolderNameOnly);
 							g_bNormalOperations = true;
-							if (g.filecollectionmax > 0)
+							iFilesInThisWorkshopItem = g.filecollectionmax;
+						}
+
+						// TEST downloading item to OWN steam user account (typically you already have your own there)
+						bool bTestCopyOwnWorkshopItemsToo = false;// false; // true;
+
+						// except if tbat is the current user who owns the item as that would overwrite the latest versions not yet submitted
+						// we do not want to copy in this case so the author can continue working on the latest unbpublished media
+						uint32 uAccountID = SteamUser()->GetSteamID().GetAccountID();
+
+						// if final dest is however empty, trigger latest workshop content to be copied over
+						// find same entry in workshop item list that contains the true path needed
+						char pWorkshopItemTitle[MAX_PATH];
+						strcpy(pWorkshopItemTitle, "");
+						char pMediaFolder[MAX_PATH];
+						bool bFindMatchInItemList = false;
+						bool bTheFinalDestFolderIsEmpty = false;
+						uint32 uFoundAccountIDAssociated = 0;
+						INT iNumberOfFilesInLocalItem = -1;
+						for (int j = 0; j < g_workshopItemsList.size(); j++)
+						{
+							if (g_workshopItemsList[j].nPublishedFileId == thisItem)
 							{
-								SetDir(pItemFolderNameOnly);
-								for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
+								uFoundAccountIDAssociated = atoi(g_workshopItemsList[j].sSteamUserAccountID.Get());
+								if (bTestCopyOwnWorkshopItemsToo == true || uAccountID != uFoundAccountIDAssociated)
 								{
-									cstr name_s = t.filecollection_s[fileindex];
-									LPSTR pFilename = name_s.Get() + strlen(pItemFolderNameOnly) + 1;
-									if (FileExist(pFilename) == 1)
+									LPSTR pAllMediaFolder = g_workshopItemsList[j].sMediaFolder.Get();
+									char pLastFolder[MAX_PATH];
+									strcpy(pLastFolder, pAllMediaFolder);
+									for (int nn = strlen(pAllMediaFolder) - 2; nn > 0; nn--)
 									{
-										char pExist[MAX_PATH];
-										char pNew[MAX_PATH];
-										sprintf(pExist, "%s\\%s", pchFolder, pFilename);
-										sprintf(pNew, "%s%s", pMediaFolder, pFilename);
-										char pDestPath[MAX_PATH];
-										strcpy(pDestPath, pNew);
-										for (int n = strlen(pDestPath) - 1; n > 0; n--)
+										if (pAllMediaFolder[nn] == '\\' || pAllMediaFolder[nn] == '/')
 										{
-											if (pDestPath[n] == '\\' || pDestPath[n] == '/')
+											strcpy(pLastFolder, pAllMediaFolder + nn + 1);
+											break;
+										}
+									}
+									if (stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") == NULL)
+									{
+										// stay in root parent folder
+										sprintf (pMediaFolder, "%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+									}
+									else
+									{
+										// go to writables community folder
+										sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
+										GG_GetRealPath(pMediaFolder, true);
+									}
+									SetDir(pMediaFolder);
+									SetDir("..");
+									g.filecollectionmax = 0;
+									Dim (t.filecollection_s, 500);
+									g_bNormalOperations = false;
+									addallinfoldertocollection(pLastFolder, pLastFolder);
+									g_bNormalOperations = true;
+									bool bResetLocalContents = false;
+									iNumberOfFilesInLocalItem = g.filecollectionmax;
+									if (g_workshopItemsList[j].bDownloadItemTriggered == true) { bResetLocalContents = true; g_workshopItemsList[j].bDownloadItemTriggered = false; }
+									if (iFilesInThisWorkshopItem != iNumberOfFilesInLocalItem)
+									{
+										// can trigger if EXTRA files not part of workshop item are present!
+										if(stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") != NULL)
+										{
+											// so only do if NOT a ROOT folder (which allows such things)
+											bResetLocalContents = true;
+										}
+									}
+									if (bResetLocalContents == true)
+									{
+										SetDir(pLastFolder);// g_workshopItemsList[j].sMediaFolder.Get());
+										for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
+										{
+											cstr name_s = t.filecollection_s[fileindex];
+											if (FileExist(name_s.Get()) == 1)
 											{
-												pDestPath[n+1] = 0;
-												break;
+												DeleteFileA(name_s.Get());
 											}
 										}
-										GG_CreatePath(pDestPath);
-										CopyFileA(pExist, pNew, FALSE);
+										bTheFinalDestFolderIsEmpty = true;
 									}
+									else
+									{
+										if (g.filecollectionmax == 0)
+										{
+											bTheFinalDestFolderIsEmpty = true;
+										}
+									}
+									g_workshopItemsList[j].iNumberOfFilesInWorkshopItem = iFilesInThisWorkshopItem;
+									struct tm* ptm;
+									time_t timetvalue = (time_t)punTimeStamp;
+									ptm = gmtime(&timetvalue);
+									char pFormatDate[MAX_PATH];
+									cstr day_s = cstr(100 + ptm->tm_mday);
+									cstr month_s = cstr(101 + ptm->tm_mon);
+									cstr year_s = cstr(1900 + ptm->tm_year);
+									sprintf(pFormatDate, "%s-%s-%s", day_s.Get() + 1, month_s.Get() + 1, year_s.Get());
+									g_workshopItemsList[j].sLatestDateOfItem = pFormatDate;
+									UnDim (t.filecollection_s);
+									bFindMatchInItemList = true;
+									strcpy(pWorkshopItemTitle, g_workshopItemsList[j].sName.Get());
+									break;
 								}
 							}
-							UnDim (t.filecollection_s);
 						}
-					}
 
-					// restore orig dir
-					SetDir(pOldDir);
+						// very first time running MAX, will refresh from workshop storage
+						if (g_bUpdateWorkshopDownloadsAlwaysPerformOnce == true) bTheFinalDestFolderIsEmpty = true;
+
+						// if valid final destination
+						if (bFindMatchInItemList == true && PathExist(pMediaFolder) == 1 && bTheFinalDestFolderIsEmpty == true)
+						{
+							// copy the files in the folder to the correct subfolder of the community users location
+							// another user created this, or doing a test, so copy over to writables final destination
+							if (strlen(pItemFolderNameOnly) > 0)
+							{
+								SetDir(pchFolder);
+								SetDir("..");
+								g.filecollectionmax = 0;
+								Dim (t.filecollection_s, 500);
+								g_bNormalOperations = false;
+								addallinfoldertocollection(pItemFolderNameOnly, pItemFolderNameOnly);
+								g_bNormalOperations = true;
+								if (g.filecollectionmax > 0)
+								{
+									SetDir(pItemFolderNameOnly);
+									for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
+									{
+										cstr name_s = t.filecollection_s[fileindex];
+										LPSTR pFilename = name_s.Get() + strlen(pItemFolderNameOnly) + 1;
+										if (FileExist(pFilename) == 1)
+										{
+											if (g_bUpdateWorkshopDownloadsAlwaysPerformOnceAtLaunch == false)
+											{
+												g_sStillDownloadingLogTitle.push_back(cstr(pWorkshopItemTitle));
+												g_sStillDownloadingLog.push_back(cstr(pFilename));
+											}
+											char pExist[MAX_PATH];
+											char pNew[MAX_PATH];
+											sprintf(pExist, "%s\\%s", pchFolder, pFilename);
+											sprintf(pNew, "%s%s", pMediaFolder, pFilename);
+											char pDestPath[MAX_PATH];
+											strcpy(pDestPath, pNew);
+											for (int n = strlen(pDestPath) - 1; n > 0; n--)
+											{
+												if (pDestPath[n] == '\\' || pDestPath[n] == '/')
+												{
+													pDestPath[n + 1] = 0;
+													break;
+												}
+											}
+											GG_CreatePath(pDestPath);
+											CopyFileA(pExist, pNew, FALSE);
+										}
+									}
+								}
+								UnDim (t.filecollection_s);
+							}
+						}
+
+						// restore orig dir
+						SetDir(pOldDir);
+					}
+				}
+				else if (unItemState & k_EItemStateDownloading)
+				{
+					// indicates the item is currently downloading to the client - do nothing for now - may report progress at some point
 				}
 			}
-			else if (unItemState & k_EItemStateDownloading)
-			{
-				// indicates the item is currently downloading to the client - do nothing for now - may report progress at some point
-			}
+			delete pEntries;
+			g_bUpdateWorkshopDownloads = false;
+			g_bUpdateWorkshopDownloadsAlwaysPerformOnce = false;
+			g_bUpdateWorkshopDownloadsAlwaysPerformOnceAtLaunch = false;
+			g_bStillDownloadingThingsWithDelay = true;
+			g_iStillDownloadingThingsWithDelayTimer = Timer();
 		}
-		delete pEntries;
-		g_bUpdateWorkshopDownloads = false;
-		g_bUpdateWorkshopDownloadsAlwaysPerformOnce = false;
 	}
 
 	// run Steam callbacks (and also check subscription items and download if not installed/notupdated)
@@ -615,6 +659,8 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 			{
 				// this item is not ready to use, we are still busy downloading things
 				g_bStillDownloadingThings = true;
+				g_bStillDownloadingThingsWithDelay = true;
+				g_iStillDownloadingThingsWithDelayTimer = Timer();
 			}
 		}
 
@@ -643,6 +689,8 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 						if (SteamUGC()->DownloadItem (thisItem, true) == true)
 						{
 							g_bStillDownloadingThings = true;
+							g_bStillDownloadingThingsWithDelay = true;
+							g_iStillDownloadingThingsWithDelayTimer = Timer();
 						}
 					}
 				}
@@ -881,6 +929,7 @@ void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryComplet
 					newitem.sSteamUserAccountID = pSteamUserAccountID;
 					newitem.bDownloadItemTriggered = false;
 					newitem.iNumberOfFilesInWorkshopItem = 0;
+					newitem.sLatestDateOfItem = "";
 					g_workshopItemsList.push_back(newitem);
 				}
 			}

@@ -10250,12 +10250,15 @@ void mapeditorexecutable_loop(void)
 												{
 													if (item.collectionFields.size() > 3)
 													{
-														if ( stricmp ( g_collectionList[n].collectionFields[3].Get(), t.entityprofile[iMasterID].isweapon_s.Get() ) == NULL )
+														if (g_collectionList[n].collectionFields.size() > 3)
 														{
-															// overwrite, save and leave
-															g_collectionList[n].collectionFields = item.collectionFields;
-															g_bChangedGameCollectionList = true;
-															break;
+															if (stricmp (g_collectionList[n].collectionFields[3].Get(), t.entityprofile[iMasterID].isweapon_s.Get()) == NULL)
+															{
+																// overwrite, save and leave
+																g_collectionList[n].collectionFields = item.collectionFields;
+																g_bChangedGameCollectionList = true;
+																break;
+															}
 														}
 													}
 												}
@@ -10266,10 +10269,13 @@ void mapeditorexecutable_loop(void)
 											{
 												if (item.collectionFields.size() > 0)
 												{
-													if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
+													if (g_collectionList[n].collectionFields.size() > 0)
 													{
-														bNewItemIsUnqiue = false;
-														break;
+														if (g_collectionList[n].collectionFields[0] == item.collectionFields[0])
+														{
+															bNewItemIsUnqiue = false;
+															break;
+														}
 													}
 												}
 											}
@@ -13531,8 +13537,8 @@ void mapeditorexecutable_loop(void)
 		#endif
 
 		// ensure workshop system always called to handle callbacks and ensure latest items are available when editing
-		extern void workshop_update(void);
-		workshop_update();
+		extern void workshop_update(bool);
+		workshop_update(false);
 
 		#ifdef WICKEDENGINE
 		#ifdef USENEWLIBRARY

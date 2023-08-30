@@ -374,20 +374,29 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 		// then for each item a line is created with all attribs - was g_collectionMasterList
 		for (int i = 0; i < g_collectionList.size(); i++)
 		{
-			strcpy(theline, "");
-			for (int l = 0; l < g_collectionList[i].collectionFields.size(); l++)
+			if (g_collectionList[i].collectionFields.size() > 0)
 			{
-				LPSTR pStrToAdd = g_collectionList[i].collectionFields[l].Get();
-				if (strlen(pStrToAdd) > 0)
-					strcat(theline, pStrToAdd);
-				else
-					strcat(theline, " ");
+				strcpy(theline, "");
+				for (int l = 0; l < g_collectionList[i].collectionFields.size(); l++)
+				{
+					LPSTR pStrToAdd = g_collectionList[i].collectionFields[l].Get();
+					if (strlen(pStrToAdd) > 0)
+						strcat(theline, pStrToAdd);
+					else
+						strcat(theline, " ");
 
-				strcat(theline, pTab);
+					strcat(theline, pTab);
+				}
+				theline[strlen(theline) - 1] = 0;
+				strcat(theline, pCR);
+				fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
 			}
-			theline[strlen(theline) - 1] = 0;
-			strcat(theline, pCR);
-			fwrite (theline, strlen (theline) * sizeof (char), 1, collectionFile);
+			else
+			{
+				// why is the an empty entry, ie no collection fields!!
+				// this causes a crash with code older than 30/08/2023
+				int iWhoIsClearing = g_collectionList[i].collectionFields.size();
+			}
 		}
 		fclose(collectionFile);
 	}
@@ -817,7 +826,7 @@ bool refresh_collection_from_entities(void)
 	// replace any default images with correct paths
 	for (int n = 0; n < g_collectionList.size(); n++)
 	{
-		if (g_collectionList[n].collectionFields.size() > 0)
+		if (g_collectionList[n].collectionFields.size() > 2)
 		{
 			if (stricmp(g_collectionList[n].collectionFields[2].Get(), "default") == NULL)
 			{
@@ -856,13 +865,16 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(t.entityelement[ee].eleprof.name_s.Get(), pCollectionItemTitle) == NULL)
 					{
 						int entid = t.entityelement[ee].bankindex;
-						if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+						if (g_collectionList[n].collectionFields.size() > 1)
 						{
-							g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+							if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+							{
+								g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+							}
+							g_collectionList[n].iEntityID = entid;
+							g_collectionList[n].iEntityElementE = ee;
+							bFoundAndAssignedE = true;
 						}
-						g_collectionList[n].iEntityID = entid;
-						g_collectionList[n].iEntityElementE = ee;
-						bFoundAndAssignedE = true;
 						break;
 					}
 				}

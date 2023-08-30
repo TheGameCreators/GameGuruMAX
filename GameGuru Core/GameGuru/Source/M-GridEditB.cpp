@@ -35580,13 +35580,32 @@ void Welcome_Screen(void)
 						ImGui::Text("");
 						if (SteamUGC())
 						{
-							if (g_bStillDownloadingThings == false)
+							extern bool g_bUpdateWorkshopDownloads;
+							if (g_bStillDownloadingThingsWithDelay == true)
+							{
+								extern std::vector<cstr> g_sStillDownloadingLog;
+								extern int g_iStillDownloadingLogCount;
+								if (Timer() > g_iStillDownloadingThingsWithDelayTimer + 1000 && g_sStillDownloadingLog.size() == 0 )
+								{
+									g_bStillDownloadingThingsWithDelay = false;
+									g_iStillDownloadingLogCount = 0;
+								}
+							}
+							if (g_bStillDownloadingThingsWithDelay == false && g_bUpdateWorkshopDownloads == false && g_bUpdateWorkshopItemList == false )
 							{
 								// show list of existing workshop items as buttons
 								ImGui::SetWindowFontScale(1.0);
 								ImGui::BeginChild("##MyOwnWorkshopLineItems", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height - 250.0f), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
 								float half_total_width = ImGui::GetContentRegionAvailWidth() / 2.0f;
 								ImGui::Indent(half_total_width / 2.0f);
+								ImVec2 alignment = ImGui::GetCursorPos();
+								ImGui::Text("Title");
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(alignment.x, ImGui::GetCursorPos().y) + ImVec2(400, 0));
+								ImGui::Text("Files");
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(alignment.x, ImGui::GetCursorPos().y) + ImVec2(490, 0));
+								ImGui::Text("Date");
 								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
 								for (int i = 0; i < g_workshopItemsList.size(); i++)
 								{
@@ -35595,6 +35614,12 @@ void Welcome_Screen(void)
 									char pWorkshipItemLine[MAX_PATH];
 									sprintf(pWorkshipItemLine, "%s : %s", p64BitNumber, g_workshopItemsList[i].sName.Get());
 									ImGui::Text(pWorkshipItemLine);
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(alignment.x,ImGui::GetCursorPos().y) + ImVec2(400,0));
+									ImGui::Text(cstr(g_workshopItemsList[i].iNumberOfFilesInWorkshopItem).Get());
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(alignment.x, ImGui::GetCursorPos().y) + ImVec2(490, 0));
+									ImGui::Text(cstr(g_workshopItemsList[i].sLatestDateOfItem).Get());
 								}
 
 								// show "add new item" button to start creating a new one
@@ -35605,6 +35630,9 @@ void Welcome_Screen(void)
 									extern bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce;
 									g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
 									g_bStillDownloadingThings = true;
+									g_bStillDownloadingThingsWithDelay = true;
+									g_iStillDownloadingThingsWithDelayTimer = Timer();
+									g_bUpdateWorkshopItemList = true;
 								}
 								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to refresh all workshop item files you are subscribed to");
 
@@ -35623,7 +35651,50 @@ void Welcome_Screen(void)
 							{
 								ImGui::Text("");
 								ImGui::SetWindowFontScale(1.25);
-								ImGui::TextCenter("Steam Client is currently downloading workshop items...");
+								extern std::vector<cstr> g_sStillDownloadingLog;
+								extern std::vector<cstr> g_sStillDownloadingLogTitle;
+								if (g_sStillDownloadingLog.size() > 0)
+								{
+									ImGui::TextCenter("...currently downloading workshop items...");
+									ImGui::Text("");
+									static int iPauseOnEachInMS = 10;
+									extern int g_iStillDownloadingLogCount;
+									if (g_sStillDownloadingLog.size() > g_iStillDownloadingLogCount)
+									{
+										g_iStillDownloadingLogCount = g_sStillDownloadingLog.size();
+										if (g_iStillDownloadingLogCount > 100)
+											iPauseOnEachInMS = 10;
+										else
+										{
+											if (g_iStillDownloadingLogCount > 10)
+												iPauseOnEachInMS = 100;
+											else
+												iPauseOnEachInMS = 500;
+										}
+									}
+									int iLastOne = g_sStillDownloadingLog.size() - 1;
+									float fProgress = ((float)g_iStillDownloadingLogCount - (float)g_sStillDownloadingLog.size()) / (float)g_iStillDownloadingLogCount;
+									if (fProgress > 1.0f) fProgress = 1.0f;
+									int iTotalWidthOfArea = ImGui::GetContentRegionAvail().x;
+									ImGui::Indent((iTotalWidthOfArea - 500) / 2.0f);
+									ImGui::TextCenter(g_sStillDownloadingLogTitle[iLastOne].Get());
+									ImGui::ProgressBar(fProgress, ImVec2(500, 26), g_sStillDownloadingLog[iLastOne].Get());
+									ImGui::Indent(-((iTotalWidthOfArea - 500) / 2.0f));
+									if (g_bStillDownloadingThingsWithDelay == true)
+									{
+										if (Timer() > g_iStillDownloadingThingsWithDelayTimer + iPauseOnEachInMS)
+										{
+											g_iStillDownloadingThingsWithDelayTimer = Timer();
+											g_sStillDownloadingLog.pop_back();
+											g_sStillDownloadingLogTitle.pop_back();
+										}
+									}
+								}
+								else
+								{
+									ImGui::TextCenter("...currently checking workshop items...");
+									ImGui::Text("");
+								}
 								ImGui::Text("");
 							}
 						}
@@ -35910,8 +35981,8 @@ void Welcome_Screen(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("When a user views your folder, they will see your Steam Name and not your Steam ID in the UI");
 
 					// progress and user prompt
-					extern void workshop_update(void);
-					workshop_update();
+					extern void workshop_update(bool);
+					workshop_update(true);
 					ImGui::SetWindowFontScale(1.25);
 					ImGui::Text("");
 					ImGui::TextCenter(g_WorkshopUserPrompt.Get());
@@ -35921,7 +35992,9 @@ void Welcome_Screen(void)
 			}
 			else if (iCurrentOpenTab == 7)
 			{
-				// nothing rght now
+				// ensure steam callbacks are handled
+				extern void workshop_update(bool);
+				workshop_update(true);
 			}
 			else if (bUseTutorial)
 			{

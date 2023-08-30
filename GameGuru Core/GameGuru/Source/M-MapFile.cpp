@@ -2315,12 +2315,15 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	// Add images from collection list (can be stored in thumbbank)
 	for (int n = 0; n < g_collectionList.size(); n++)
 	{
-		LPSTR pImageFile = g_collectionList[n].collectionFields[2].Get();
-		if (strlen(pImageFile) > 0)
+		if (g_collectionList[n].collectionFields.size() > 2)
 		{
-			if (stricmp(pImageFile, "default") != NULL && stricmp(pImageFile, "image") != NULL)
+			LPSTR pImageFile = g_collectionList[n].collectionFields[2].Get();
+			if (strlen(pImageFile) > 0)
 			{
-				addtocollection(pImageFile);
+				if (stricmp(pImageFile, "default") != NULL && stricmp(pImageFile, "image") != NULL)
+				{
+					addtocollection(pImageFile);
+				}
 			}
 		}
 	}

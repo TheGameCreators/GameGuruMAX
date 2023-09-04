@@ -1733,6 +1733,26 @@ void lua_triggerfadein ( void )
 {
 	t.postprocessings.fadeinvalue_f = 0;
 }
+void lua_wingame (void)
+{
+	// send player to connected win screen
+	t.game.gameloop = 0;
+	t.game.levelloop = 0;
+	strcpy (t.game.pSwitchToPage, "");
+	strcpy (t.game.pAdvanceWarningOfLevelFilename, "");
+	t.game.jumplevel_s = "";
+	t.game.lostthegame = 0;
+}
+void lua_losegame (void)
+{
+	// send player to connected lose screen
+	t.game.gameloop = 0;
+	t.game.levelloop = 0;
+	strcpy (t.game.pSwitchToPage, "");
+	strcpy (t.game.pAdvanceWarningOfLevelFilename, "");
+	t.game.jumplevel_s = "";
+	t.game.lostthegame = 1;
+}
 
 void lua_setgamequality ( void )
 {

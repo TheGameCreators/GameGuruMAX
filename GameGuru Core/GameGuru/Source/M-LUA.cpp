@@ -1518,6 +1518,8 @@ void lua_loop_finish ( void )
 		else if ( strcmp ( t.luaaction_s.Get() , "switchpageback" ) == 0 ) { lua_switchpageback(); }
 		else if ( strcmp ( t.luaaction_s.Get() , "levelfilenametoload" ) == 0 ) { t.s_s=LuaMessageString(); lua_levelfilenametoload(); }
 		else if ( strcmp ( t.luaaction_s.Get() , "triggerfadein" ) == 0 ) { lua_triggerfadein(); }	
+		else if (strcmp (t.luaaction_s.Get(), "wingame") == 0) { lua_wingame(); }
+		else if (strcmp (t.luaaction_s.Get(), "losegame") == 0) { lua_losegame(); }
 
 		else if ( strcmp ( t.luaaction_s.Get() , "setgamequality" ) == 0 ) { t.v=LuaMessageInt() ; lua_setgamequality() ; }
 		else if ( strcmp ( t.luaaction_s.Get() , "setplayerfov" ) == 0 ) { t.v=LuaMessageInt() ; lua_setplayerfov() ; }

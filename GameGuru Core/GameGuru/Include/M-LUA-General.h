@@ -127,7 +127,9 @@ void lua_switchpage ( void );
 void lua_switchpageback ( void );
 void lua_levelfilenametoload ( void );
 void lua_resetfade ( void );
-void lua_triggerfadein ( void );
+void lua_triggerfadein (void);
+void lua_wingame (void);
+void lua_losegame (void);
 
 void lua_setgamequality ( void );
 void lua_setplayerfov ( void );

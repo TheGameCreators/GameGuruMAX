@@ -770,110 +770,6 @@ void game_updatenavmeshsystem(void)
 
 void game_masterroot_gameloop_initcode(int iUseVRTest)
 {
-	//PE: For this to work we need to support decrypting files.
-	#ifdef WIP_PROLOADLEVELTEXTURES
-	//PE: START level proloader here.
-	if (t.game.gameisexe == 1 || t.game.runasmultiplayer == 1)
-	{
-		//Get fpm level name.
-		if (t.game.runasmultiplayer == 1)
-		{
-			// Multiplayer FPM loading
-			g.projectfilename_s = g.mysystem.editorsGrideditAbs_s + "__multiplayerlevel__.fpm";
-		}
-		else
-		{
-			// Single player
-			if (Len(t.game.jumplevel_s.Get()) > 0)
-			{
-				// can override jumplevel with 'advanced warning level filename' when LOAD level from MAIN MENU
-				if (strcmp(t.game.pAdvanceWarningOfLevelFilename, "") != NULL)
-				{
-					t.game.jumplevel_s = t.game.pAdvanceWarningOfLevelFilename;
-					strcpy(t.game.pAdvanceWarningOfLevelFilename, "");
-				}
-
-				// work out first level from exe name (copied to jumplevel_s)
-				g.projectfilename_s = g.mysystem.mapbank_s + t.game.jumplevel_s;
-				if (cstr(Lower(Right(g.projectfilename_s.Get(), 4))) != ".fpm")
-					g.projectfilename_s = g.projectfilename_s + ".fpm";
-			}
-
-			// 050316 - if not there, try all subfolders
-			if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + g.projectfilename_s).Get()) == 0)
-			{
-				// go into mapbank folder
-				cstr tthisold_s = "";
-				tthisold_s = GetDir();
-				SetDir(g.mysystem.mapbankAbs_s.Get());
-
-				// scan for ALL files/folders
-				ChecklistForFiles();
-				for (int c = 1; c <= ChecklistQuantity(); c++)
-				{
-					if (ChecklistValueA(c) != 0)
-					{
-						// only folders
-						cstr tfolder_s = ChecklistString(c);
-						if (tfolder_s != "." && tfolder_s != "..")
-						{
-							// skip . and .. folders
-							cstr newlevellocation = g.mysystem.mapbank_s + tfolder_s + "\\" + t.game.jumplevel_s;
-							if (cstr(Lower(Right(newlevellocation.Get(), 4))) != ".fpm")
-								newlevellocation = newlevellocation + ".fpm";
-
-							// does this guessed file location exist
-							if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + newlevellocation).Get()) == 1)
-							{
-								// found the level inside a nested folder
-								g.projectfilename_s = newlevellocation;
-								break;
-							}
-						}
-					}
-				}
-				SetDir(tthisold_s.Get());
-			}
-
-		}
-		preload_setup.clear();
-		std::string sString = g.projectfilename_s.Get();
-		replaceAll(sString, "\\", "_");
-		replaceAll(sString, ".", "_");
-		replaceAll(sString, ":", "_");
-
-		//PE: Save preload information.
-		char szRealFilename[MAX_PATH];
-		strcpy_s(szRealFilename, MAX_PATH, "preloadinfo\\");
-		strcat(szRealFilename, sString.c_str());
-		GG_GetRealPath(szRealFilename, 1);
-
-		// Open the File
-		std::ifstream in(szRealFilename);
-		if (in)
-		{
-			std::string str;
-			while (std::getline(in, str))
-			{
-				if (str.size() > 0)
-					preload_setup.push_back(str);
-			}
-			in.close();
-		}
-		if (preload_setup.size() > 0)
-		{
-			timestampactivity(0, "_using_preload_informations");
-
-			image_preload_files_wait();
-			image_preload_files_start();
-			for (int i = 0; i < preload_setup.size(); i++)
-			{
-				image_preload_files_add( (char *) preload_setup[i].c_str(), -1);
-			}
-			image_preload_files_finish();
-		}
-	}
-	#endif
 	// also hide rendering of 3D while we set up a new level
 	SyncMaskOverride ( 0 );
 
@@ -2990,25 +2886,21 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	// 240316 - additional cleanup
 	mp_freefadesprite ( );
 
-	// if VR, deactivate at this point
-	//g_VR920RenderStereoNow = false;
-
-	//  Advance level to 'next one' or 'win game'
+	// Advance level to 'next one' or 'win game'
 	timestampactivity(0,"end of level stage");
-	if (  t.game.gameisexe == 1 )
+	if ( t.game.gameisexe == 1 )
 	{
 		timestampactivity(0,"game is standalone exe");
-		if (  t.game.quitflag == 0 ) 
+		if ( t.game.quitflag == 0 ) 
 		{
 			timestampactivity(0,"game has not quit");
 			bool bUseOldSystem = true;
-#ifdef STORYBOARD
-			if (strlen(Storyboard.gamename) > 0)
+			if ( strlen(Storyboard.gamename) > 0)
 			{
 				bUseOldSystem = false;
 				if (t.game.lostthegame == 1)
 				{
-					//Get output link to lose screen from current level node.
+					// Get output link to lose screen from current level node.
 					int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm , 1);
 					if (a == 2)
 					{
@@ -3045,17 +2937,12 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 				}
 				else
 				{
-//					FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
-//					g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
-//					strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-
 					if (strcmp(t.game.pAdvanceWarningOfLevelFilename, "") != NULL)
 					{
 						//From load game
 						t.game.jumplevel_s = t.game.pAdvanceWarningOfLevelFilename;
 						strcpy(t.game.pAdvanceWarningOfLevelFilename, "");
 						//PE: Find g_Storyboard_Current_Level from t.game.jumplevel_s.
-
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 						{
 							if (Storyboard.Nodes[i].used)
@@ -3067,8 +2954,6 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 								}
 							}
 						}
-						//	t.game.pAdvanceWarningOfLevelFilename
-						//	t.game.jumplevel_s
 					}
 					else
 					{
@@ -3108,7 +2993,6 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 					}
 				}
 			}
-#endif
 			if (bUseOldSystem)
 			{
 				//PE: issue https://github.com/TheGameCreators/GameGuruRepo/issues/444
@@ -3128,11 +3012,8 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 						sky_hide();
 						titleslua_init();
 						titleslua_main("lose");
-						#ifdef WICKEDENGINE
 						//PE: We need a blocking run or screen is not displayed. t.game.levelloop = 0; will start title screen.
-						//PE: @Lee not sure if these works different in vrquest ? so only wicked for now.
 						titleslua_blocking_run();
-						#endif
 						titleslua_free();
 						sky_show();
 						t.game.levelloop = 0;
@@ -3142,16 +3023,12 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 						t.game.level = t.game.level + 1;
 						if (t.game.level > t.game.levelmax)
 						{
-							//titles_gamewonpage ( );
 							timestampactivity(0, "LUA script : win");
 							sky_hide();
 							titleslua_init();
 							titleslua_main("win");
-							#ifdef WICKEDENGINE
 							//PE: We need a blocking run or screen is not displayed. t.game.levelloop = 0; will start title screen.
-							//PE: @Lee not sure if these works different in vrquest ? so only wicked for now.
 							titleslua_blocking_run();
-							#endif
 							titleslua_free();
 							sky_show();
 							t.game.levelloop = 0;
@@ -3163,17 +3040,13 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 							sky_hide();
 							titleslua_init();
 							titleslua_main("nextlevel");
-							#ifdef WICKEDENGINE
 							//PE: We need a blocking run or screen is not displayed.
-							//PE: @Lee not sure if these works different in vrquest ? so only wicked for now.
 							titleslua_blocking_run();
-							#endif
 							sky_show();
 						}
 					}
 				}
 			}
-
 		}
 	}
 	t.game.quitflag=0;
@@ -3184,9 +3057,11 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 		t.game.levelloop=0;
 	}
 
-	if (g.memgeneratedump == 1) {
+	// PE: Dump image usage after level.
+	if (g.memgeneratedump == 1) 
+	{
 		timestampactivity(0, "DumpImageList after freeing level data.");
-		DumpImageList(); // PE: Dump image usage after level.
+		DumpImageList(); 
 	}
 
 	#ifdef WICKEDENGINE
@@ -3200,7 +3075,6 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	if ( t.game.allowfragmentation == 2 )
 		t.game.levelloop = 0;
 
-	#ifdef WICKEDENGINE
 	if (t.gamevisuals.bEndableAmbientMusicTrack)
 	{
 		//PE: Stop any ambient music tracks.
@@ -3219,8 +3093,6 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	if (SoundExist(iFreeSoundID) == 1) DeleteSound(iFreeSoundID);
 	//PE: restore old terrain settings.
 	ggterrain_global_render_params2.flags2 = old_render_params2;
-	#endif
-
 }
 
 bool game_masterroot_levelloop_initcode(int iUseVRTest)

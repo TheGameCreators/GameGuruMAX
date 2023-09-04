@@ -16,8 +16,8 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
-    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\RPG Template\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\SMALLTESTMAP\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\RPG Template\RPG Template.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\SMALLTESTMAP\SMALLTESTMAP.exe</LocalDebuggerCommand>
   </PropertyGroup>
 </Project>

@@ -227,6 +227,7 @@ void bulletholes_add (int iMaterialIndex, float fX, float fY, float fZ, float fN
 		WickedCall_TextureObject(pObject, NULL);
 		WickedCall_SetObjectCastShadows(pObject, false);
 		WickedCall_SetObjectTransparent(pObject);
+		WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_CURSOROBJECT);
 	}
 }
 

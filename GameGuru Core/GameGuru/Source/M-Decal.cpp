@@ -748,11 +748,12 @@ void decalelement_control ( void )
 						PointObject (  t.tobj,t.tcamerapositionx_f,t.tcamerapositiony_f,t.tcamerapositionz_f );
 						XRotateObject (  t.tobj,0  ); ZRotateObject (  t.tobj,0 );
 					}
-					if (  t.decalelement[t.f].orient == 2 ) 
-					{
-						SetObjectCull (  t.tobj,1 );
-					}
-					else
+					//LB: this caused cull mode to be set, but never unset when decal reused! Missing decals bug - phew!
+					//if (  t.decalelement[t.f].orient == 2 ) 
+					//{
+					//SetObjectCull (  t.tobj,1 );
+					//}
+					//else
 					{
 						SetObjectCull (  t.tobj,0 );
 					}
@@ -781,7 +782,8 @@ void decalelement_control ( void )
 					}
 					if (  t.decalelement[t.f].orient == 2 ) 
 					{
-						//  fade in and out over life of decal animation
+						SetAlphaMappingOn (t.tobj, 100.0);
+						// fade in and out over life of decal animation
 						t.pt_f=t.decalelement[t.f].framefinish;
 						t.p_f=(t.decalelement[t.f].framefinish-t.decalelement[t.f].frame)/t.pt_f;
 						if (  t.p_f >= 0.5 ) 
@@ -1040,7 +1042,7 @@ void decal_triggerwaterripple ( void )
 	//  location of water ripple passed in decalx y z
 	t.originatore=-1 ; t.decalscalemodx=200 ; t.decalscalemody=200;
 	t.decalforward=0;
-	t.decalid=t.decalglobal.splashdecalrippleid ; t.decalorient=2 ; decalelement_create ( );
+	t.decalid = t.decalglobal.splashdecalrippleid; t.decalorient = 2; decalelement_create ( );
 }
 
 void decal_triggerwaterripplesize(void)

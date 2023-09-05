@@ -10,6 +10,7 @@
 #include "master.h"
 #include "globstruct.h"
 #include "CGfxC.h"
+#include "CFileC.h"
 #include "timeapi.h"
 #ifdef DPIAWARE
 #include "shellscalingapi.h"
@@ -160,71 +161,83 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	#endif
 
 	//PE: check graphics card. Workaround for amd issues.
-	//std::string pLog = "";
-	bool bIsAMDCard = false;
-	for (int i = 0; i < 4; i++)
+	bool bUseAMDHotFIx = true;
+	if (GG_FileExists("noamdfix.ini") == 1) bUseAMDHotFIx = false;
+	if (bUseAMDHotFIx == true)
 	{
-		DISPLAY_DEVICE dd = { sizeof(dd), 0 };
-		BOOL f = EnumDisplayDevices(NULL, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
-		if (!f)
-			break;
-		char cDeviceName[MAX_PATH];
-		int length = wcstombs(cDeviceName, dd.DeviceString, MAX_PATH);
-		/*
-		AMD driver bug.
-		PE: this is the card i noted had the problem, there might be more :)
-		AMD Radeon RX 6600m
-		Radeon RX 6950 XT
-		RX 6900XT
-		AMD 5600 XT
-		AMD RX 6800
-		AMD Radeon RX 7900
-		Radeon RX 6700 XT
-		AMD Radeon RX 6500 XT
-		NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
-		*/
-		//if (i == 0) strcpy(cDeviceName, "AMD Radeon RX 7900"); //test one
-		if (length > 0)
+		bool bIsAMDCard = false;
+		for (int i = 0; i < 4; i++)
 		{
-			//pLog = pLog + cDeviceName;
-			//pLog = pLog + "|";
-			if (pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon") )
+			DISPLAY_DEVICE dd = { sizeof(dd), 0 };
+			BOOL f = EnumDisplayDevices(NULL, i, &dd, EDD_GET_DEVICE_INTERFACE_NAME);
+			if (!f) break;
+			char cDeviceName[MAX_PATH];
+			int length = wcstombs(cDeviceName, dd.DeviceString, MAX_PATH);
+			/*
+			AMD driver bug.
+			PE: this is the card i noted had the problem, there might be more :)
+			AMD Radeon RX 6600m
+			Radeon RX 6950 XT
+			RX 6900XT
+			AMD 5600 XT
+			AMD RX 6800
+			AMD Radeon RX 7900
+			Radeon RX 6700 XT
+			AMD Radeon RX 6500 XT
+			NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
+			*/
+			if (length > 0)
 			{
-				//PE: Take all 6900,5600,6800,6600 RX serie if amd.
-				if (pestrcasestr(cDeviceName, "RX"))
+				if (pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon"))
 				{
-					// more reports coming in, this time "AMD ryzen 7 6000" so lets assume ALL RX need the fix!
-					//if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67") || pestrcasestr(cDeviceName, "65"))
+					//PE: Take all 6900,5600,6800,6600 RX serie if amd.
+					if (pestrcasestr(cDeviceName, "RX"))
 					{
-						bIsAMDCard = true;
-						break;
+						// more reports coming in, this time "AMD ryzen 7 6000" so lets assume ALL RX need the fix!
+						//if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67") || pestrcasestr(cDeviceName, "65"))
+						{
+							bIsAMDCard = true;
+							break;
+						}
 					}
-				}
-				else
-				{
-					//PE: special case for amd 5600 xt
-					if(pestrcasestr(cDeviceName, "5600"))
+					else
 					{
-						bIsAMDCard = true;
-						break;
+						//PE: special case for amd 5600 xt
+						if (pestrcasestr(cDeviceName, "5600"))
+						{
+							bIsAMDCard = true;
+							break;
+						}
 					}
 				}
 			}
 		}
-	}
-	//MessageBoxA(NULL, pLog.c_str(), "Graphics Detect Log", MB_OK);
-	if (bIsAMDCard)
-	{
-		//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
-		CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
-		bool bret = CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
-		//PE: If first time , sleep so defender can check and release it before we try to load it.
-		if (bret)
-			Sleep(2000);
-		//PE: Also Include building editor.
-		CopyFileA((LPSTR)"shaders\\d3d11.dll", "Tools\\Building Editor\\d3d11.dll", TRUE);
-		CopyFileA((LPSTR)"shaders\\dxgi.dll", "Tools\\Building Editor\\dxgi.dll", TRUE);
+		if (bIsAMDCard)
+		{
+			//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
+			CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
+			bool bret = CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
 
+			//PE: If first time , sleep so defender can check and release it before we try to load it.
+			if (bret) Sleep(2000);
+
+			//PE: Also Include building editor.
+			CopyFileA((LPSTR)"shaders\\d3d11.dll", "Tools\\Building Editor\\d3d11.dll", TRUE);
+			CopyFileA((LPSTR)"shaders\\dxgi.dll", "Tools\\Building Editor\\dxgi.dll", TRUE);
+		}
+	}
+	else
+	{
+		// if old AMD HOT FIX files present, and mode for this is OFF, remove them
+		if (GG_FileExists("d3d11.dll") == 1 || GG_FileExists("dxgi.dll") == 1)
+		{
+			char pMsgToRemove[MAX_PATH];
+			char pCurrentDir[MAX_PATH];
+			GetCurrentDirectoryA(MAX_PATH, pCurrentDir);
+			sprintf(pMsgToRemove, "You must manually delete the D3D11.DLL and DXGI.DLL from the '%s' root folder to remove the AMD hot fix, then relaunch GameGuru MAX", pCurrentDir);
+			MessageBoxA(NULL, pMsgToRemove, "NO AMD Hot Fix Detected", MB_OK);
+			return 0;
+		}
 	}
 
     // Initialize global strings

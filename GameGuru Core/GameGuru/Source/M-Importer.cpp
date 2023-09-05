@@ -14426,6 +14426,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 								if (strlen(cPreSelectedFile) == 0)
 								{
 									// triggers relevant texture data to be erased from surface texture
+									if (texslot == 5) pSelectedMaterial->textures[wickedTextureSlot].name = "";
 									iDelayedExecuteChannel = -2;
 								}
 							}

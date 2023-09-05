@@ -2518,63 +2518,6 @@ void entity_loaddata ( void )
 						cmpStrConst( t_field_s, "thumbnailanimset" ); if (matched) { t.entityprofile[t.entid].iThumbnailAnimset = (int) t.value1_f; }
 						cmpStrConst( t_field_s, "keywords" ); if (matched) { t.entityprofile[t.entid].keywords_s = t.value_s; }
 
-						/*
-						// custom materials for single material objects
-						cmpStrConst( t_field_s, "basecolormap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.baseColorMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "alpharef" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fAlphaRef[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "normalmap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.normalMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "normalstrength" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fNormal[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "surfacemap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.surfaceMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "roughnessstrength" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fRoughness[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "metalnessstrength" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fMetallness[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "displacementmap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.displacementMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "emissivemap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.emissiveMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "emissivestrength" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fEmissive[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						#ifndef DISABLEOCCLUSIONMAP
-						cmpStrConst( t_field_s, "occlusionmap" ); if (matched) { t.entityprofile[t.entid].WEMaterial.occlusionMapName[0] = t.value_s; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						#endif
-
-						// global material colors
-						cmpStrConst( t_field_s, "emissivecolor" ); 
-						if (matched)
-						{
-							unsigned long ulValue = 0;
-							sscanf(t.value_s.Get(), "%lu", &ulValue);
-							t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor[0] = ulValue;
-							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-						}
-						cmpStrConst( t_field_s, "basecolor" ); 
-						if (matched)
-						{
-							unsigned long ulValue = 0;
-							sscanf(t.value_s.Get(), "%lu", &ulValue);
-							t.entityprofile[t.entid].WEMaterial.dwBaseColor[0] = ulValue;
-							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-						}
-
-						// global transparency setting
-						cmpStrConst( t_field_s, "transparency" ); 
-						if (matched)
-						{
-							t.entityprofile[t.entid].WEMaterial.bTransparency[0] = t.value1_f;
-							if (t.entityprofile[t.entid].WEMaterial.bTransparency[0] < 0)
-								t.entityprofile[t.entid].WEMaterial.bTransparency[0] = 0;
-						}
-
-						// global material values
-						cmpStrConst( t_field_s, "doublesided" ); if (matched) { t.entityprofile[t.entid].WEMaterial.bDoubleSided[0] = t.value1_f; }
-						cmpStrConst( t_field_s, "renderorderbias" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fRenderOrderBias[0] = t.value1_f; }
-						cmpStrConst( t_field_s, "castshadow" ); if (matched) 
-						{ 
-							if ( t.value1_f == -1 )
-								t.entityprofile[t.entid].WEMaterial.bCastShadows[0] = false; 
-							else
-								t.entityprofile[t.entid].WEMaterial.bCastShadows[0] = true; 
-						}
-						cmpStrConst( t_field_s, "planerreflection" ); if (matched) { t.entityprofile[t.entid].WEMaterial.bPlanerReflection[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						cmpStrConst( t_field_s, "reflectance" ); if (matched) { t.entityprofile[t.entid].WEMaterial.fReflectance[0] = t.value1_f; t.entityprofile[t.entid].WEMaterial.MaterialActive = true; }
-						*/
-
 						cmpNStrConst( t_field_s, "basecolormap" );
 						if ( matched )
 						{

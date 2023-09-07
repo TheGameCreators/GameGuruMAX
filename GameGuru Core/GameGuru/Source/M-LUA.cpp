@@ -1224,579 +1224,309 @@ void lua_loop_allentities ( void )
 	}
 }
 
-int constexpr constluastrlen(const char* str)
-{
-	return *str ? 1 + constluastrlen(str + 1) : 0;
-}
-#define cmpLUANStrConst( str, cmpVal ) \
-{ \
-	matched = true; \
-	int constexpr len = constluastrlen( cmpVal ); \
-	if ( strncmp(str, cmpVal, len) != 0 ) matched = false; \
-}
-//int g_iLUALoopWorkCounter = 0;
-//int g_iLUALoopWorkCounterCutOff = 85;
-
 void lua_loop_finish ( void )
 {
-	bool bNewLUAProcessingSystem = true;
-	if(bNewLUAProcessingSystem ==true)
+	//  Detect any messges back from LUA engine (actions)
+	while ( LuaNext() ) 
 	{
-		//  Detect any messges back from LUA engine (actions)
-		//g_iLUALoopWorkCounter = 0;
-		while (LuaNext())//&& g_iLUALoopWorkCounter < g_iLUALoopWorkCounterCutOff)
-		{
-			// convert action to fast search string
-			t.luaaction_s = LuaMessageDesc();
-			alignas(16) char t_field_s[32];
-			const char* src = Lower(t.luaaction_s.Get());
-			int index = 0;
-			while (src[index] && index < 32)
-			{
-				t_field_s[index] = src[index];
-				index++;
-			}
-			while (index < 32)
-			{
-				t_field_s[index++] = 0;
-			}
-			bool matched = false;
+		t.luaaction_s=LuaMessageDesc();
+		if ( strcmp ( t.luaaction_s.Get() , "prompt" ) == 0 ) {  t.s_s=LuaMessageString(); lua_prompt(); }
+		#ifdef VRTECH
+		else if ( strcmp ( t.luaaction_s.Get() , "promptimage" ) == 0 ) { t.v=LuaMessageInt(); lua_promptimage() ; }
+		#endif
+		else if ( strcmp ( t.luaaction_s.Get() , "promptduration" ) == 0 ) {  t.v=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptduration() ;}
+		else if ( strcmp ( t.luaaction_s.Get() , "prompttextsize" ) == 0 ) {  t.v=LuaMessageInt() ; lua_prompttextsize() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptlocal" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptlocal() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptlocalforvrmode" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_promptlocalforvrmode() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptlocalforvr" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_promptlocalforvr() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfognearest" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfognearest() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfogdistance" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfogdistance() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfogred" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfogred() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfoggreen" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setfoggreen() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfogblue" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setfogblue() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfogintensity" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setfogintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setambienceintensity" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setambienceintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setambiencered" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setambiencered() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setambiencegreen" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setambiencegreen() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setambienceblue" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setambienceblue() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsurfaceintensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setsurfaceintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsurfacered" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setsurfacered() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsurfacegreen" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setsurfacegreen() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsurfaceblue" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setsurfaceblue() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsurfacesunfactor" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setsurfacesunfactor() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setglobalspecular" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setglobalspecular() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setbrightness" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setbrightness() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setconstrast" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setconstrast() ; }
 
-			// test against all old-school LUA commands (maybe move all these to DarkLUA in the future for more speed)
-			cmpLUANStrConst(t_field_s, "prompt"); if (matched) { t.s_s = LuaMessageString(); lua_prompt(); continue; }
-			cmpLUANStrConst(t_field_s, "promptimage"); if (matched) { t.v = LuaMessageInt(); lua_promptimage(); continue; }
-			cmpLUANStrConst(t_field_s, "promptduration"); if (matched) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptduration(); continue; }
-			cmpLUANStrConst(t_field_s, "prompttextsize"); if (matched) { t.v = LuaMessageInt(); lua_prompttextsize(); continue; }
-			cmpLUANStrConst(t_field_s, "promptlocal"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocal(); continue; }
-			cmpLUANStrConst(t_field_s, "promptlocalforvrmode"); if (matched) { t.v_f = LuaMessageFloat(); lua_promptlocalforvrmode(); continue; }
-			cmpLUANStrConst(t_field_s, "promptlocalforvr"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocalforvr(); continue; }
-			cmpLUANStrConst(t_field_s, "setfognearest"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfognearest(); continue; }
-			cmpLUANStrConst(t_field_s, "setfogdistance"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfogdistance(); continue; }
-			cmpLUANStrConst(t_field_s, "setfogred"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfogred(); continue; }
-			cmpLUANStrConst(t_field_s, "setfoggreen"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfoggreen(); continue; }
-			cmpLUANStrConst(t_field_s, "setfogblue"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfogblue(); continue; }
-			cmpLUANStrConst(t_field_s, "setfogintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfogintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setambienceintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setambienceintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setambiencered"); if (matched) { t.v_f = LuaMessageFloat(); lua_setambiencered(); continue; }
-			cmpLUANStrConst(t_field_s, "setambiencegreen"); if (matched) { t.v_f = LuaMessageFloat(); lua_setambiencegreen(); continue; }
-			cmpLUANStrConst(t_field_s, "setambienceblue"); if (matched) { t.v_f = LuaMessageFloat(); lua_setambienceblue(); continue; }
-			cmpLUANStrConst(t_field_s, "setsurfaceintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setsurfaceintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setsurfacered"); if (matched) { t.v_f = LuaMessageFloat(); lua_setsurfacered(); continue; }
-			cmpLUANStrConst(t_field_s, "setsurfacegreen"); if (matched) { t.v_f = LuaMessageFloat(); lua_setsurfacegreen(); continue; }
-			cmpLUANStrConst(t_field_s, "setsurfaceblue"); if (matched) { t.v_f = LuaMessageFloat(); lua_setsurfaceblue(); continue; }
-			cmpLUANStrConst(t_field_s, "setsurfacesunfactor"); if (matched) { t.v_f = LuaMessageFloat(); lua_setsurfacesunfactor(); continue; }
-			cmpLUANStrConst(t_field_s, "setglobalspecular"); if (matched) { t.v_f = LuaMessageFloat(); lua_setglobalspecular(); continue; }
-			cmpLUANStrConst(t_field_s, "setbrightness"); if (matched) { t.v_f = LuaMessageFloat(); lua_setbrightness(); continue; }
-			cmpLUANStrConst(t_field_s, "setconstrast"); if (matched) { t.v_f = LuaMessageFloat(); lua_setconstrast(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostbloom"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostbloom(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostvignetteradius"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostvignetteradius(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostvignetteintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostvignetteintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostmotiondistance"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostmotiondistance(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostmotionintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostmotionintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostdepthoffielddistance"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffielddistance(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostdepthoffieldintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffieldintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostlightraylength"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostlightraylength(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostlightrayquality"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostlightrayquality(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostlightraydecay"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostlightraydecay(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostsaoradius"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostsaoradius(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostsaointensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostsaointensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setpostlensflareintensity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setpostlensflareintensity(); continue; }
-			cmpLUANStrConst(t_field_s, "setoptionreflection"); if (matched) { t.v_f = LuaMessageFloat(); lua_setoptionreflection(); continue; }
-			cmpLUANStrConst(t_field_s, "setoptionshadows"); if (matched) { t.v_f = LuaMessageFloat(); lua_setoptionshadows(); continue; }
-			cmpLUANStrConst(t_field_s, "setoptionlightrays"); if (matched) { t.v_f = LuaMessageFloat(); lua_setoptionlightrays(); continue; }
-			cmpLUANStrConst(t_field_s, "setoptionvegetation"); if (matched) { t.v_f = LuaMessageFloat(); lua_setoptionvegetation(); continue; }
-			cmpLUANStrConst(t_field_s, "setoptionocclusion"); if (matched) { t.v_f = LuaMessageFloat(); lua_setoptionocclusion(); continue; }
-			cmpLUANStrConst(t_field_s, "setcameradistance"); if (matched) { t.v_f = LuaMessageFloat(); lua_setcameradistance(); continue; }
-			cmpLUANStrConst(t_field_s, "setcamerafov"); if (matched) { t.v_f = LuaMessageFloat(); lua_setcamerafov(); continue; }
-			cmpLUANStrConst(t_field_s, "setcamerazoompercentage"); if (matched) { t.v_f = LuaMessageFloat(); lua_setcamerazoompercentage(); continue; }
-			cmpLUANStrConst(t_field_s, "setcameraweaponfov"); if (matched) { t.v_f = LuaMessageFloat(); lua_setcameraweaponfov(); continue; }
-			cmpLUANStrConst(t_field_s, "setterrainlodnear"); if (matched) { t.v_f = LuaMessageFloat(); lua_setterrainlodnear(); continue; }
-			cmpLUANStrConst(t_field_s, "setterrainlodmid"); if (matched) { t.v_f = LuaMessageFloat(); lua_setterrainlodmid(); continue; }
-			cmpLUANStrConst(t_field_s, "setterrainlodfar"); if (matched) { t.v_f = LuaMessageFloat(); lua_setterrainlodfar(); continue; }
-			cmpLUANStrConst(t_field_s, "setterrainsize"); if (matched) { t.v_f = LuaMessageFloat(); lua_setterrainsize(); continue; }
-			cmpLUANStrConst(t_field_s, "setvegetationquantity"); if (matched) { t.v_f = LuaMessageFloat(); lua_setvegetationquantity(); continue; }
-			cmpLUANStrConst(t_field_s, "setvegetationwidth"); if (matched) { t.v_f = LuaMessageFloat(); lua_setvegetationwidth(); continue; }
-			cmpLUANStrConst(t_field_s, "setvegetationheight"); if (matched) { t.v_f = LuaMessageFloat(); lua_setvegetationheight(); continue; }
-			cmpLUANStrConst(t_field_s, "jumptolevel"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_jumptolevel(); continue; }
-			cmpLUANStrConst(t_field_s, "finishlevel"); if (matched) { lua_finishlevel(); continue; }
-			cmpLUANStrConst(t_field_s, "hideterrain"); if (matched) { t.v = LuaMessageInt(); lua_hideterrain(); continue; }
-			cmpLUANStrConst(t_field_s, "showterrain"); if (matched) { t.v = LuaMessageInt(); lua_showterrain(); continue; }
-			cmpLUANStrConst(t_field_s, "hidewater"); if (matched) { t.v = LuaMessageInt(); lua_hidewater(); continue; }
-			cmpLUANStrConst(t_field_s, "showwater"); if (matched) { t.v = LuaMessageInt(); lua_showwater(); continue; }
-			cmpLUANStrConst(t_field_s, "hidehuds"); if (matched) { t.v = LuaMessageInt(); lua_hidehuds(); continue; }
-			cmpLUANStrConst(t_field_s, "showhuds"); if (matched) { t.v = LuaMessageInt(); lua_showhuds(); continue; }
-			cmpLUANStrConst(t_field_s, "freezeai"); if (matched) { t.v = LuaMessageInt(); lua_freezeai(); continue; }
-			cmpLUANStrConst(t_field_s, "unfreezeai"); if (matched) { t.v = LuaMessageInt(); lua_unfreezeai(); continue; }
-			cmpLUANStrConst(t_field_s, "freezeplayer"); if (matched) { t.v = LuaMessageInt(); lua_freezeplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "unfreezeplayer"); if (matched) { t.v = LuaMessageInt(); lua_unfreezeplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositionx"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositionx(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositiony"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositiony(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositionz"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositionz(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositionax"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositionax(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositionay"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositionay(); continue; }
-			cmpLUANStrConst(t_field_s, "setfreezepositionaz"); if (matched) { t.v_f = LuaMessageFloat(); lua_setfreezepositionaz(); continue; }
-			cmpLUANStrConst(t_field_s, "transporttofreezeposition"); if (matched) { t.v = LuaMessageInt(); lua_transporttofreezeposition(); continue; }
-			cmpLUANStrConst(t_field_s, "activatemouse"); if (matched) { t.v = LuaMessageInt(); lua_activatemouse(); continue; }
-			cmpLUANStrConst(t_field_s, "deactivatemouse"); if (matched) { t.v = LuaMessageInt(); lua_deactivatemouse(); continue; }
-			cmpLUANStrConst(t_field_s, "setplayerhealthcore"); if (matched) { t.v = LuaMessageFloat(); lua_setplayerhealthcore(); continue; }
-			cmpLUANStrConst(t_field_s, "setplayerlives"); if (matched) { t.v = LuaMessageFloat(); lua_setplayerlives(); continue; }
-			cmpLUANStrConst(t_field_s, "disablemusicreset"); if (matched) { t.v = LuaMessageInt(); lua_disablemusicreset(); continue; }
-			cmpLUANStrConst(t_field_s, "musicload"); if (matched) { t.m = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_musicload(); continue; }
-			cmpLUANStrConst(t_field_s, "musicsetinterval"); if (matched) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetinterval(); continue; }
-			cmpLUANStrConst(t_field_s, "musicsetlength"); if (matched) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetlength(); continue; }
-			cmpLUANStrConst(t_field_s, "musicstop"); if (matched) { lua_musicstop(); continue; }
-			cmpLUANStrConst(t_field_s, "musicplayinstant"); if (matched) { t.m = LuaMessageInt(); lua_musicplayinstant(); lua_musicplayinstant(); continue; }
-			cmpLUANStrConst(t_field_s, "musicplayfade"); if (matched) { t.m = LuaMessageInt(); lua_musicplayfade(); lua_musicplayfade(); continue; }
-			cmpLUANStrConst(t_field_s, "musicplaycue"); if (matched) { t.m = LuaMessageInt(); lua_musicplaycue(); continue; }
-			cmpLUANStrConst(t_field_s, "musicplaytime"); if (matched) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytime(); continue; }
-			cmpLUANStrConst(t_field_s, "musicplaytimecue"); if (matched) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytimecue(); continue; }
-			cmpLUANStrConst(t_field_s, "musicsetvolume"); if (matched) { t.v = LuaMessageInt(); lua_musicsetvolume(); continue; }
-			cmpLUANStrConst(t_field_s, "musicsetdefault"); if (matched) { t.m = LuaMessageInt(); lua_musicsetdefault(); continue; }
-			cmpLUANStrConst(t_field_s, "musicsetfadetime"); if (matched) { t.v = LuaMessageInt(); lua_musicsetfadetime(); continue; }
-			cmpLUANStrConst(t_field_s, "startparticleemitter"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_startparticleemitter(); continue; }
-			cmpLUANStrConst(t_field_s, "stopparticleemitter"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_stopparticleemitter(); continue; }
-			cmpLUANStrConst(t_field_s, "starttimer"); if (matched) { t.e = LuaMessageInt(); entity_lua_starttimer(); continue; }
-			cmpLUANStrConst(t_field_s, "destroy"); if (matched) { t.e = LuaMessageInt(); entity_lua_destroy(); continue; }
-			cmpLUANStrConst(t_field_s, "collisionon"); if (matched) { t.e = LuaMessageInt(); entity_lua_collisionon(); continue; }
-			cmpLUANStrConst(t_field_s, "collisionoff"); if (matched) { t.e = LuaMessageInt(); entity_lua_collisionoff(); continue; }
-			cmpLUANStrConst(t_field_s, "getentityplrvisible"); if (matched) { t.e = LuaMessageInt(); entity_lua_getentityplrvisible(); continue; }
-			cmpLUANStrConst(t_field_s, "getentityinzone"); if (matched) { t.e = LuaMessageInt(); entity_lua_getentityinzone(); continue; }
-			cmpLUANStrConst(t_field_s, "hide"); if (matched) { t.e = LuaMessageInt(); entity_lua_hide(); continue; }
-			cmpLUANStrConst(t_field_s, "show"); if (matched) { t.e = LuaMessageInt(); entity_lua_show(); continue; }
-			cmpLUANStrConst(t_field_s, "spawn"); if (matched) { t.e = LuaMessageInt(); entity_lua_spawn(); continue; }
-			cmpLUANStrConst(t_field_s, "setactivated"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivated(); continue; }
-			cmpLUANStrConst(t_field_s, "setactivatedformp"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivatedformp(); continue; }
-			cmpLUANStrConst(t_field_s, "resetlimbhit"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_resetlimbhit(); continue; }
-			cmpLUANStrConst(t_field_s, "activateifused"); if (matched) { t.e = LuaMessageInt(); entity_lua_activateifused(); continue; }
-			cmpLUANStrConst(t_field_s, "performlogicconnections"); if (matched) { t.e = LuaMessageInt(); entity_lua_performlogicconnections(); continue; }
-			cmpLUANStrConst(t_field_s, "spawnifused"); if (matched) { t.e = LuaMessageInt(); entity_lua_spawnifused(); continue; }
-			cmpLUANStrConst(t_field_s, "transporttoifused"); if (matched) { t.e = LuaMessageInt(); entity_lua_transporttoifused(); continue; }
-			cmpLUANStrConst(t_field_s, "refreshentity"); if (matched) { t.e = LuaMessageInt(); entity_lua_refreshentity(); continue; }
-			cmpLUANStrConst(t_field_s, "moveup"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveup(); continue; }
-			cmpLUANStrConst(t_field_s, "moveforward"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveforward(); continue; }
-			cmpLUANStrConst(t_field_s, "movebackward"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_movebackward(); continue; }
-			cmpLUANStrConst(t_field_s, "sethoverfactor"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_sethoverfactor(); continue; }
-			cmpLUANStrConst(t_field_s, "setpositionx"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionx(); continue; }
-			cmpLUANStrConst(t_field_s, "setpositiony"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositiony(); continue; }
-			cmpLUANStrConst(t_field_s, "setpositionz"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionz(); continue; }
-			cmpLUANStrConst(t_field_s, "resetpositionx"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionx(); continue; }
-			cmpLUANStrConst(t_field_s, "resetpositiony"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositiony(); continue; }
-			cmpLUANStrConst(t_field_s, "resetpositionz"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionz(); continue; }
-			cmpLUANStrConst(t_field_s, "setrotationx"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationx(); continue; }
-			cmpLUANStrConst(t_field_s, "setrotationy"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationy(); continue; }
-			cmpLUANStrConst(t_field_s, "setrotationz"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationz(); continue; }
-			cmpLUANStrConst(t_field_s, "resetrotationx"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationx(); continue; }
-			cmpLUANStrConst(t_field_s, "resetrotationy"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationy(); continue; }
-			cmpLUANStrConst(t_field_s, "resetrotationz"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationz(); continue; }
-			cmpLUANStrConst(t_field_s, "modulatespeed"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_modulatespeed(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatex"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatex(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatey"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatey(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatez"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatez(); continue; }
-			cmpLUANStrConst(t_field_s, "setlimbindex"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlimbindex(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatelimbx"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbx(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatelimby"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimby(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatelimbz"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbz(); continue; }
-			cmpLUANStrConst(t_field_s, "setentityhealth"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealth(); continue; }
-			cmpLUANStrConst(t_field_s, "setentityhealthsilent"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealthsilent(); continue; }
-			cmpLUANStrConst(t_field_s, "setforcex"); if (matched) { t.v = LuaMessageFloat(); entity_lua_setforcex(); continue; }
-			cmpLUANStrConst(t_field_s, "setforcey"); if (matched) { t.v = LuaMessageFloat(); entity_lua_setforcey(); continue; }
-			cmpLUANStrConst(t_field_s, "setforcez"); if (matched) { t.v = LuaMessageFloat(); entity_lua_setforcez(); continue; }
-			cmpLUANStrConst(t_field_s, "setforcelimb"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setforcelimb(); continue; }
-			cmpLUANStrConst(t_field_s, "ragdollforce"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_ragdollforce(); continue; }
-			cmpLUANStrConst(t_field_s, "scale"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_scale(); continue; }
-			cmpLUANStrConst(t_field_s, "setanimation"); if (matched) { t.e = LuaMessageInt(); entity_lua_setanimation(); continue; }
-			cmpLUANStrConst(t_field_s, "setanimationname"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString();  entity_lua_setanimationname(); continue; }
-			cmpLUANStrConst(t_field_s, "setanimationframes"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setanimationframes(); continue; }
-			cmpLUANStrConst(t_field_s, "playanimation"); if (matched) { t.e = LuaMessageInt(); entity_lua_playanimation(); continue; }
-			cmpLUANStrConst(t_field_s, "playanimationfrom"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playanimationfrom(); continue; }
-			cmpLUANStrConst(t_field_s, "loopanimation"); if (matched) { t.e = LuaMessageInt(); entity_lua_loopanimation(); continue; }
-			cmpLUANStrConst(t_field_s, "loopanimationfrom"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopanimationfrom(); continue; }
-			cmpLUANStrConst(t_field_s, "stopanimation"); if (matched) { t.e = LuaMessageInt(); entity_lua_stopanimation(); continue; }
-			cmpLUANStrConst(t_field_s, "movewithanimation"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_movewithanimation(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolmanual"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolmanual(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrollimbo"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrollimbo(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolunarmed"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolunarmed(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolarmed"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolarmed(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolfidget"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolfidget(); continue; }
-			cmpLUANStrConst(t_field_s, "setcharactertowalkrun"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertowalkrun(); continue; }
-			cmpLUANStrConst(t_field_s, "setlockcharacter"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlockcharacter(); continue; }
-			cmpLUANStrConst(t_field_s, "setcharactertostrafe"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertostrafe(); continue; }
-			cmpLUANStrConst(t_field_s, "setcharactervisiondelay"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactervisiondelay(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolducked"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolducked(); continue; }
-			cmpLUANStrConst(t_field_s, "charactercontrolstand"); if (matched) { t.e = LuaMessageInt(); entity_lua_charactercontrolstand(); continue; }
-			cmpLUANStrConst(t_field_s, "lookatplayer"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "lookattargete"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargete(); continue; }
-			cmpLUANStrConst(t_field_s, "lookattarget"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattarget(); continue; }
-			cmpLUANStrConst(t_field_s, "aimsmoothmode"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_aimsmoothmode(); continue; }
-			cmpLUANStrConst(t_field_s, "lookforward"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookforward(); continue; }
-			cmpLUANStrConst(t_field_s, "lookatangle"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatangle(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatetoplayer"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetoplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatetoplayerwithoffset"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageFloat(); entity_lua_rotatetoplayerwithoffset(); continue; }
-			cmpLUANStrConst(t_field_s, "rotatetocamera"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetocamera(); continue; }
-			cmpLUANStrConst(t_field_s, "setanimationframe"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationframe(); continue; }
-			cmpLUANStrConst(t_field_s, "setanimationspeed"); if (matched) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationspeed(); continue; }
-			cmpLUANStrConst(t_field_s, "collected"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_collected(); continue; }
-			cmpLUANStrConst(t_field_s, "addplayerweapon"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); continue; }
-			cmpLUANStrConst(t_field_s, "changeplayerweapon"); if (matched) { t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); continue; }
-			cmpLUANStrConst(t_field_s, "changeplayerweaponid"); if (matched) { t.v = LuaMessageInt(); entity_lua_changeplayerweaponid(); continue; }
-			cmpLUANStrConst(t_field_s, "replaceplayerweapon"); if (matched) { t.e = LuaMessageInt(); entity_lua_replaceplayerweapon(); continue; }
-			cmpLUANStrConst(t_field_s, "removeplayerweapon"); if (matched) { t.v = LuaMessageInt(); lua_removeplayerweapon(); continue; }
-			cmpLUANStrConst(t_field_s, "removeplayerweapons"); if (matched) { t.v = LuaMessageInt(); lua_removeplayerweapons(); continue; }
-			cmpLUANStrConst(t_field_s, "addplayerammo"); if (matched) { t.e = LuaMessageInt(); entity_lua_addplayerammo(); continue; }
-			cmpLUANStrConst(t_field_s, "addplayerhealth"); if (matched) { t.e = LuaMessageInt(); entity_lua_addplayerhealth(); continue; }
-			cmpLUANStrConst(t_field_s, "addplayerjetpack"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerjetpack(); continue; }
-			cmpLUANStrConst(t_field_s, "setplayerpower"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setplayerpower(); continue; }
-			cmpLUANStrConst(t_field_s, "addplayerpower"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerpower(); continue; }
-			cmpLUANStrConst(t_field_s, "checkpoint"); if (matched) { t.e = LuaMessageInt(); entity_lua_checkpoint(); continue; }
-			cmpLUANStrConst(t_field_s, "playsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsound(); continue; }
-			cmpLUANStrConst(t_field_s, "playsoundifsilent"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsoundifsilent(); continue; }
-			cmpLUANStrConst(t_field_s, "playnon3dsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playnon3Dsound(); continue; }
-			cmpLUANStrConst(t_field_s, "loopnon3dsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopnon3Dsound(); continue; }
-			cmpLUANStrConst(t_field_s, "setsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setsound(); continue; }
-			cmpLUANStrConst(t_field_s, "loopsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopsound(); continue; }
-			cmpLUANStrConst(t_field_s, "stopsound"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopsound(); continue; }
-			cmpLUANStrConst(t_field_s, "setsoundspeed"); if (matched) { t.v = LuaMessageInt(); entity_lua_setsoundspeed(); continue; }
-			cmpLUANStrConst(t_field_s, "setsoundvolume"); if (matched) { t.v = LuaMessageInt(); entity_lua_setsoundvolume(); continue; }
-			cmpLUANStrConst(t_field_s, "playspeech"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playspeech(); continue; }
-			cmpLUANStrConst(t_field_s, "stopspeech"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopspeech(); continue; }
-			cmpLUANStrConst(t_field_s, "playvideo"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 0); continue; }
-			cmpLUANStrConst(t_field_s, "playvideonoskip"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 1); continue; }
-			cmpLUANStrConst(t_field_s, "promptvideo"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 0); continue; }
-			cmpLUANStrConst(t_field_s, "promptvideonoskip"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 1); continue; }
-			cmpLUANStrConst(t_field_s, "stopvideo"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopvideo(); continue; }
-			cmpLUANStrConst(t_field_s, "fireweaponinstant"); if (matched) { t.e = LuaMessageInt(); entity_lua_fireweapon(true); continue; }
-			cmpLUANStrConst(t_field_s, "fireweapon"); if (matched) { t.e = LuaMessageInt(); entity_lua_fireweapon(); continue; }
-			cmpLUANStrConst(t_field_s, "hurtplayer"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_hurtplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "drownplayer"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); continue; }
-			cmpLUANStrConst(t_field_s, "switchscript"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); entity_lua_switchscript(); continue; }
-			cmpLUANStrConst(t_field_s, "setcharactersoundset"); if (matched) { t.e = LuaMessageInt(); character_soundset(); continue; }
-			cmpLUANStrConst(t_field_s, "setcharactersound"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_load(); continue; }
-			cmpLUANStrConst(t_field_s, "playcharactersound"); if (matched) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_play(); continue; }
-			cmpLUANStrConst(t_field_s, "setnogravity"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_gravity(); continue; }
-			cmpLUANStrConst(t_field_s, "setlightvisible"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_light_visible(); continue; }
-			cmpLUANStrConst(t_field_s, "loadimages"); if (matched) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_loadimages(); continue; }
-			cmpLUANStrConst(t_field_s, "setimagepositionx"); if (matched) { t.v_f = LuaMessageFloat(); lua_setimagepositionx(); continue; }
-			cmpLUANStrConst(t_field_s, "setimagepositiony"); if (matched) { t.v_f = LuaMessageFloat(); lua_setimagepositiony(); continue; }
-			cmpLUANStrConst(t_field_s, "showimage"); if (matched) { t.v = LuaMessageInt(); lua_showimage(); continue; }
-			cmpLUANStrConst(t_field_s, "hideimage"); if (matched) { t.v = LuaMessageInt(); lua_hideimage(); continue; }
-			cmpLUANStrConst(t_field_s, "setimagealignment"); if (matched) { t.v = LuaMessageInt(); lua_setimagealignment(); continue; }
-			cmpLUANStrConst(t_field_s, "textx"); if (matched) { t.luaText.x = LuaMessageFloat(); t.tluaTextCenterX = 0; continue; }
-			cmpLUANStrConst(t_field_s, "texty"); if (matched) { t.luaText.y = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "textsize"); if (matched) { t.luaText.size = LuaMessageInt(); continue; }
-			cmpLUANStrConst(t_field_s, "textcenterx"); if (matched) { t.tluaTextCenterX = 1; continue; }
-			cmpLUANStrConst(t_field_s, "textred"); if (matched) { g.mp.steamColorRed = LuaMessageInt(); g.mp.steamDoColorText = 1; continue; }
-			cmpLUANStrConst(t_field_s, "textgreen"); if (matched) { g.mp.steamColorGreen = LuaMessageInt(); continue; }
-			cmpLUANStrConst(t_field_s, "textblue"); if (matched) { g.mp.steamColorBlue = LuaMessageInt(); continue; }
-			cmpLUANStrConst(t_field_s, "texttxt"); if (matched) { t.luaText.txt = LuaMessageString(); lua_text(); continue; }
-			cmpLUANStrConst(t_field_s, "nameplatesoff"); if (matched) { g.mp.nameplatesOff = 1; continue; }
-			cmpLUANStrConst(t_field_s, "nameplateson"); if (matched) { g.mp.nameplatesOff = 0; continue; }
-			cmpLUANStrConst(t_field_s, "panelx"); if (matched) { t.luaPanel.x = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "panely"); if (matched) { t.luaPanel.y = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "panelx2"); if (matched) { t.luaPanel.x2 = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "panely2"); if (matched) { t.luaPanel.y2 = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "dopanel"); if (matched) { t.luaPanel.e = LuaMessageIndex(); t.luaPanel.mode = LuaMessageInt(); lua_panel(); continue; }
-			cmpLUANStrConst(t_field_s, "mpgamemode"); if (matched) { t.v = LuaMessageInt(); mp_serverSetLuaGameMode(); continue; }
-			cmpLUANStrConst(t_field_s, "setservertimer"); if (matched) { t.v = LuaMessageInt(); mp_setServerTimer(); continue; }
-			cmpLUANStrConst(t_field_s, "serverrespawnall"); if (matched) { mp_serverRespawnAll(); continue; }
-			cmpLUANStrConst(t_field_s, "serverendplay"); if (matched) { mp_serverEndPlay(); continue; }
-			cmpLUANStrConst(t_field_s, "setserverkillstowin"); if (matched) { mp_setServerKillsToWin(); continue; }
-			cmpLUANStrConst(t_field_s, "mp_aimovetox"); if (matched) { t.e = LuaMessageIndex(); t.tSteamX_f = LuaMessageFloat(); continue; }
-			cmpLUANStrConst(t_field_s, "mp_aimovetoz"); if (matched) { t.e = LuaMessageIndex(); t.tSteamZ_f = LuaMessageFloat(); mp_COOP_aiMoveTo(); continue; }
-			cmpLUANStrConst(t_field_s, "setskyto"); if (matched) { t.s_s = LuaMessageString(); lua_set_sky(); continue; }
-			cmpLUANStrConst(t_field_s, "startgame"); if (matched) { lua_startgame(); continue; }
-			cmpLUANStrConst(t_field_s, "loadgame"); if (matched) { lua_loadgame(); continue; }
-			cmpLUANStrConst(t_field_s, "savegame"); if (matched) { lua_savegame(); continue; }
-			cmpLUANStrConst(t_field_s, "quitgame"); if (matched) { lua_quitgame(); continue; }
-			cmpLUANStrConst(t_field_s, "leavegame"); if (matched) { lua_leavegame(); continue; }
-			cmpLUANStrConst(t_field_s, "resumegame"); if (matched) { lua_resumegame(); continue; }
-			cmpLUANStrConst(t_field_s, "switchpage"); if (matched) { t.s_s = LuaMessageString(); lua_switchpage(); continue; }
-			cmpLUANStrConst(t_field_s, "switchpageback"); if (matched) { lua_switchpageback(); continue; }
-			cmpLUANStrConst(t_field_s, "levelfilenametoload"); if (matched) { t.s_s = LuaMessageString(); lua_levelfilenametoload(); continue; }
-			cmpLUANStrConst(t_field_s, "triggerfadein"); if (matched) { lua_triggerfadein(); continue; }
-			cmpLUANStrConst(t_field_s, "wingame"); if (matched) { lua_wingame(); continue; }
-			cmpLUANStrConst(t_field_s, "losegame"); if (matched) { lua_losegame(); continue; }
-			cmpLUANStrConst(t_field_s, "setgamequality"); if (matched) { t.v = LuaMessageInt(); lua_setgamequality(); continue; }
-			cmpLUANStrConst(t_field_s, "setplayerfov"); if (matched) { t.v = LuaMessageInt(); lua_setplayerfov(); continue; }
-			cmpLUANStrConst(t_field_s, "setgamesoundvolume"); if (matched) { t.v = LuaMessageInt(); lua_setgamesoundvolume(); continue; }
-			cmpLUANStrConst(t_field_s, "setgamemusicvolume"); if (matched) { t.v = LuaMessageInt(); lua_setgamemusicvolume(); continue; }
-			cmpLUANStrConst(t_field_s, "setloadingresource"); if (matched) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); lua_setloadingresource(); continue; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostbloom" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostbloom() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostvignetteradius" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostvignetteradius() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostvignetteintensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostvignetteintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostmotiondistance" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostmotiondistance() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostmotionintensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostmotionintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostdepthoffielddistance" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setpostdepthoffielddistance() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostdepthoffieldintensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostdepthoffieldintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostlightraylength" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostlightraylength() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostlightrayquality" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostlightrayquality() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostlightraydecay" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostlightraydecay() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostsaoradius" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostsaoradius() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostsaointensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostsaointensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpostlensflareintensity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setpostlensflareintensity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setoptionreflection" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setoptionreflection() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setoptionshadows" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setoptionshadows() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setoptionlightrays" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setoptionlightrays() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setoptionvegetation" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setoptionvegetation() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setoptionocclusion" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setoptionocclusion() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcameradistance" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setcameradistance() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcamerafov" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setcamerafov() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcamerazoompercentage" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setcamerazoompercentage() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcameraweaponfov" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setcameraweaponfov() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setterrainlodnear" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setterrainlodnear() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setterrainlodmid" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setterrainlodmid() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setterrainlodfar" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setterrainlodfar() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setterrainsize" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setterrainsize() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setvegetationquantity" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setvegetationquantity() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setvegetationwidth" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setvegetationwidth() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setvegetationheight" ) == 0 ) {  t.v_f=LuaMessageFloat() ; lua_setvegetationheight() ; }
 
-			// keep an eye on how large this loop might be
-			//g_iLUALoopWorkCounter++;
-		}
-	}
-	else
-	{
-		// original method, slow when processing 1000s per frame > 40ms
-		while (LuaNext())
-		{
-			t.luaaction_s = LuaMessageDesc();
-			if (strcmp (t.luaaction_s.Get(), "prompt") == 0) { t.s_s = LuaMessageString(); lua_prompt(); }
-			else if (strcmp (t.luaaction_s.Get(), "promptimage") == 0) { t.v = LuaMessageInt(); lua_promptimage(); }
-			else if (strcmp (t.luaaction_s.Get(), "promptduration") == 0) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptduration(); }
-			else if (strcmp (t.luaaction_s.Get(), "prompttextsize") == 0) { t.v = LuaMessageInt(); lua_prompttextsize(); }
-			else if (strcmp (t.luaaction_s.Get(), "promptlocal") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocal(); }
-			else if (strcmp (t.luaaction_s.Get(), "promptlocalforvrmode") == 0) { t.v_f = LuaMessageFloat(); lua_promptlocalforvrmode(); }
-			else if (strcmp (t.luaaction_s.Get(), "promptlocalforvr") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocalforvr(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfognearest") == 0) { t.v_f = LuaMessageFloat(); lua_setfognearest(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfogdistance") == 0) { t.v_f = LuaMessageFloat(); lua_setfogdistance(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfogred") == 0) { t.v_f = LuaMessageFloat(); lua_setfogred(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfoggreen") == 0) { t.v_f = LuaMessageFloat(); lua_setfoggreen(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfogblue") == 0) { t.v_f = LuaMessageFloat(); lua_setfogblue(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfogintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setfogintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setambienceintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setambienceintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setambiencered") == 0) { t.v_f = LuaMessageFloat(); lua_setambiencered(); }
-			else if (strcmp (t.luaaction_s.Get(), "setambiencegreen") == 0) { t.v_f = LuaMessageFloat(); lua_setambiencegreen(); }
-			else if (strcmp (t.luaaction_s.Get(), "setambienceblue") == 0) { t.v_f = LuaMessageFloat(); lua_setambienceblue(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsurfaceintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfaceintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsurfacered") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacered(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsurfacegreen") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacegreen(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsurfaceblue") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfaceblue(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsurfacesunfactor") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacesunfactor(); }
-			else if (strcmp (t.luaaction_s.Get(), "setglobalspecular") == 0) { t.v_f = LuaMessageFloat(); lua_setglobalspecular(); }
-			else if (strcmp (t.luaaction_s.Get(), "setbrightness") == 0) { t.v_f = LuaMessageFloat(); lua_setbrightness(); }
-			else if (strcmp (t.luaaction_s.Get(), "setconstrast") == 0) { t.v_f = LuaMessageFloat(); lua_setconstrast(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostbloom") == 0) { t.v_f = LuaMessageFloat(); lua_setpostbloom(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostvignetteradius") == 0) { t.v_f = LuaMessageFloat(); lua_setpostvignetteradius(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostvignetteintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostvignetteintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostmotiondistance") == 0) { t.v_f = LuaMessageFloat(); lua_setpostmotiondistance(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostmotionintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostmotionintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostdepthoffielddistance") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffielddistance(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostdepthoffieldintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffieldintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostlightraylength") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightraylength(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostlightrayquality") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightrayquality(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostlightraydecay") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightraydecay(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostsaoradius") == 0) { t.v_f = LuaMessageFloat(); lua_setpostsaoradius(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostsaointensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostsaointensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpostlensflareintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlensflareintensity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setoptionreflection") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionreflection(); }
-			else if (strcmp (t.luaaction_s.Get(), "setoptionshadows") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionshadows(); }
-			else if (strcmp (t.luaaction_s.Get(), "setoptionlightrays") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionlightrays(); }
-			else if (strcmp (t.luaaction_s.Get(), "setoptionvegetation") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionvegetation(); }
-			else if (strcmp (t.luaaction_s.Get(), "setoptionocclusion") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionocclusion(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcameradistance") == 0) { t.v_f = LuaMessageFloat(); lua_setcameradistance(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcamerafov") == 0) { t.v_f = LuaMessageFloat(); lua_setcamerafov(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcamerazoompercentage") == 0) { t.v_f = LuaMessageFloat(); lua_setcamerazoompercentage(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcameraweaponfov") == 0) { t.v_f = LuaMessageFloat(); lua_setcameraweaponfov(); }
-			else if (strcmp (t.luaaction_s.Get(), "setterrainlodnear") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodnear(); }
-			else if (strcmp (t.luaaction_s.Get(), "setterrainlodmid") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodmid(); }
-			else if (strcmp (t.luaaction_s.Get(), "setterrainlodfar") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodfar(); }
-			else if (strcmp (t.luaaction_s.Get(), "setterrainsize") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainsize(); }
-			else if (strcmp (t.luaaction_s.Get(), "setvegetationquantity") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationquantity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setvegetationwidth") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationwidth(); }
-			else if (strcmp (t.luaaction_s.Get(), "setvegetationheight") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationheight(); }
+		if ( strcmp ( t.luaaction_s.Get() , "jumptolevel" ) == 0 ) {  t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_jumptolevel() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "finishlevel" ) == 0 ) {  lua_finishlevel() ; }
 
-			if (strcmp (t.luaaction_s.Get(), "jumptolevel") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_jumptolevel(); }
-			else if (strcmp (t.luaaction_s.Get(), "finishlevel") == 0) { lua_finishlevel(); }
-			else if (strcmp (t.luaaction_s.Get(), "hideterrain") == 0) { t.v = LuaMessageInt(); lua_hideterrain(); }
-			else if (strcmp (t.luaaction_s.Get(), "showterrain") == 0) { t.v = LuaMessageInt(); lua_showterrain(); }
-			else if (strcmp (t.luaaction_s.Get(), "hidewater") == 0) { t.v = LuaMessageInt(); lua_hidewater(); }
-			else if (strcmp (t.luaaction_s.Get(), "showwater") == 0) { t.v = LuaMessageInt(); lua_showwater(); }
-			else if (strcmp (t.luaaction_s.Get(), "hidehuds") == 0) { t.v = LuaMessageInt(); lua_hidehuds(); }
-			else if (strcmp (t.luaaction_s.Get(), "showhuds") == 0) { t.v = LuaMessageInt(); lua_showhuds(); }
-			else if (strcmp (t.luaaction_s.Get(), "freezeai") == 0) { t.v = LuaMessageInt(); lua_freezeai(); }
-			else if (strcmp (t.luaaction_s.Get(), "unfreezeai") == 0) { t.v = LuaMessageInt(); lua_unfreezeai(); }
-			else if (strcmp (t.luaaction_s.Get(), "freezeplayer") == 0) { t.v = LuaMessageInt(); lua_freezeplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "unfreezeplayer") == 0) { t.v = LuaMessageInt(); lua_unfreezeplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositionx") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionx(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositiony") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositiony(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositionz") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionz(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositionax") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionax(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositionay") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionay(); }
-			else if (strcmp (t.luaaction_s.Get(), "setfreezepositionaz") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionaz(); }
-			else if (strcmp (t.luaaction_s.Get(), "transporttofreezeposition") == 0) { t.v = LuaMessageInt(); lua_transporttofreezeposition(); }
-			else if (strcmp (t.luaaction_s.Get(), "activatemouse") == 0) { t.v = LuaMessageInt(); lua_activatemouse(); }
-			else if (strcmp (t.luaaction_s.Get(), "deactivatemouse") == 0) { t.v = LuaMessageInt(); lua_deactivatemouse(); }
-			else if (strcmp (t.luaaction_s.Get(), "setplayerhealthcore") == 0) { t.v = LuaMessageFloat(); lua_setplayerhealthcore(); }
-			else if (strcmp (t.luaaction_s.Get(), "setplayerlives") == 0) { t.v = LuaMessageFloat(); lua_setplayerlives(); }
-			else if (strcmp (t.luaaction_s.Get(), "disablemusicreset") == 0) { t.v = LuaMessageInt(); lua_disablemusicreset(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicload") == 0) { t.m = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_musicload(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicsetinterval") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetinterval(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicsetlength") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetlength(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicstop") == 0) { lua_musicstop(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicplayinstant") == 0) { t.m = LuaMessageInt(); lua_musicplayinstant(); lua_musicplayinstant(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicplayfade") == 0) { t.m = LuaMessageInt(); lua_musicplayfade(); lua_musicplayfade(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicplaycue") == 0) { t.m = LuaMessageInt(); lua_musicplaycue(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicplaytime") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytime(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicplaytimecue") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytimecue(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicsetvolume") == 0) { t.v = LuaMessageInt(); lua_musicsetvolume(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicsetdefault") == 0) { t.m = LuaMessageInt(); lua_musicsetdefault(); }
-			else if (strcmp (t.luaaction_s.Get(), "musicsetfadetime") == 0) { t.v = LuaMessageInt(); lua_musicsetfadetime(); }
-			else if (strcmp (t.luaaction_s.Get(), "startparticleemitter") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_startparticleemitter(); }
-			else if (strcmp (t.luaaction_s.Get(), "stopparticleemitter") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_stopparticleemitter(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "hideterrain" ) == 0 ) {  t.v=LuaMessageInt() ; lua_hideterrain() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "showterrain" ) == 0 ) {  t.v=LuaMessageInt() ; lua_showterrain() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "hidewater" ) == 0 ) { t.v=LuaMessageInt() ; lua_hidewater() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "showwater" ) == 0 ) { t.v=LuaMessageInt() ; lua_showwater() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "hidehuds" ) == 0 ) {  t.v=LuaMessageInt() ; lua_hidehuds() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "showhuds" ) == 0 ) {  t.v=LuaMessageInt() ; lua_showhuds() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "freezeai" ) == 0 ) {  t.v=LuaMessageInt() ; lua_freezeai() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "unfreezeai" ) == 0 ) {  t.v=LuaMessageInt() ; lua_unfreezeai() ; }
 
-			if (strcmp (t.luaaction_s.Get(), "starttimer") == 0) { t.e = LuaMessageInt(); entity_lua_starttimer(); }
-			else if (strcmp (t.luaaction_s.Get(), "destroy") == 0) { t.e = LuaMessageInt(); entity_lua_destroy(); }
-			else if (strcmp (t.luaaction_s.Get(), "collisionon") == 0) { t.e = LuaMessageInt(); entity_lua_collisionon(); }
-			else if (strcmp (t.luaaction_s.Get(), "collisionoff") == 0) { t.e = LuaMessageInt(); entity_lua_collisionoff(); }
-			else if (strcmp (t.luaaction_s.Get(), "getentityplrvisible") == 0) { t.e = LuaMessageInt(); entity_lua_getentityplrvisible(); }
-			else if (strcmp (t.luaaction_s.Get(), "getentityinzone") == 0) { t.e = LuaMessageInt(); entity_lua_getentityinzone(); }
-			else if (strcmp (t.luaaction_s.Get(), "hide") == 0) { t.e = LuaMessageInt(); entity_lua_hide(); }
-			else if (strcmp (t.luaaction_s.Get(), "show") == 0) { t.e = LuaMessageInt(); entity_lua_show(); }
-			else if (strcmp (t.luaaction_s.Get(), "spawn") == 0) { t.e = LuaMessageInt(); entity_lua_spawn(); }
-			else if (strcmp (t.luaaction_s.Get(), "setactivated") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivated(); }
-			else if (strcmp (t.luaaction_s.Get(), "setactivatedformp") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivatedformp(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetlimbhit") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_resetlimbhit(); }
-			else if (strcmp (t.luaaction_s.Get(), "activateifused") == 0) { t.e = LuaMessageInt(); entity_lua_activateifused(); }
-			else if (strcmp (t.luaaction_s.Get(), "performlogicconnections") == 0) { t.e = LuaMessageInt(); entity_lua_performlogicconnections(); }
-			else if (strcmp (t.luaaction_s.Get(), "spawnifused") == 0) { t.e = LuaMessageInt(); entity_lua_spawnifused(); }
-			else if (strcmp (t.luaaction_s.Get(), "transporttoifused") == 0) { t.e = LuaMessageInt(); entity_lua_transporttoifused(); }
-			else if (strcmp (t.luaaction_s.Get(), "refreshentity") == 0) { t.e = LuaMessageInt(); entity_lua_refreshentity(); }
-			else if (strcmp (t.luaaction_s.Get(), "moveup") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveup(); }
-			else if (strcmp (t.luaaction_s.Get(), "moveforward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveforward(); }
-			else if (strcmp (t.luaaction_s.Get(), "movebackward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_movebackward(); }
-			else if (strcmp (t.luaaction_s.Get(), "sethoverfactor") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_sethoverfactor(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpositionx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionx(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpositiony") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositiony(); }
-			else if (strcmp (t.luaaction_s.Get(), "setpositionz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionz(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetpositionx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionx(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetpositiony") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositiony(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetpositionz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionz(); }
-			else if (strcmp (t.luaaction_s.Get(), "setrotationx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationx(); }
-			else if (strcmp (t.luaaction_s.Get(), "setrotationy") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationy(); }
-			else if (strcmp (t.luaaction_s.Get(), "setrotationz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationz(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetrotationx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationx(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetrotationy") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationy(); }
-			else if (strcmp (t.luaaction_s.Get(), "resetrotationz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationz(); }
-			else if (strcmp (t.luaaction_s.Get(), "modulatespeed") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_modulatespeed(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatex") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatex(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatey") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatey(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatez") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatez(); }
-			else if (strcmp (t.luaaction_s.Get(), "setlimbindex") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlimbindex(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatelimbx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbx(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatelimby") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimby(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatelimbz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbz(); }
-			else if (strcmp (t.luaaction_s.Get(), "setentityhealth") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealth(); }
-			else if (strcmp (t.luaaction_s.Get(), "setentityhealthsilent") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealthsilent(); }
-			else if (strcmp (t.luaaction_s.Get(), "setforcex") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcex(); }
-			else if (strcmp (t.luaaction_s.Get(), "setforcey") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcey(); }
-			else if (strcmp (t.luaaction_s.Get(), "setforcez") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcez(); }
-			else if (strcmp (t.luaaction_s.Get(), "setforcelimb") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setforcelimb(); }
-			else if (strcmp (t.luaaction_s.Get(), "ragdollforce") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_ragdollforce(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "freezeplayer" ) == 0 ) { t.v=LuaMessageInt() ; lua_freezeplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "unfreezeplayer" ) == 0 ) {  t.v=LuaMessageInt() ; lua_unfreezeplayer() ; } 
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositionx" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositionx(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositiony" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositiony(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositionz" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositionz(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositionax" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositionax(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositionay" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositionay(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setfreezepositionaz" ) == 0 ) { t.v_f = LuaMessageFloat(); lua_setfreezepositionaz(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "transporttofreezeposition" ) == 0 ) { t.v=LuaMessageInt() ; lua_transporttofreezeposition() ; }
+		
+		else if ( strcmp ( t.luaaction_s.Get() , "activatemouse" ) == 0 ) { t.v=LuaMessageInt() ; lua_activatemouse() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "deactivatemouse" ) == 0 ) {  t.v=LuaMessageInt() ; lua_deactivatemouse() ; } 
 
-			if (strcmp (t.luaaction_s.Get(), "scale") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_scale(); }
-			else if (strcmp (t.luaaction_s.Get(), "setanimation") == 0) { t.e = LuaMessageInt(); entity_lua_setanimation(); }
-			else if (strcmp (t.luaaction_s.Get(), "setanimationname") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString();  entity_lua_setanimationname(); }
-			else if (strcmp (t.luaaction_s.Get(), "setanimationframes") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setanimationframes(); }
-			else if (strcmp (t.luaaction_s.Get(), "playanimation") == 0) { t.e = LuaMessageInt(); entity_lua_playanimation(); }
-			else if (strcmp (t.luaaction_s.Get(), "playanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playanimationfrom(); }
-			else if (strcmp (t.luaaction_s.Get(), "loopanimation") == 0) { t.e = LuaMessageInt(); entity_lua_loopanimation(); }
-			else if (strcmp (t.luaaction_s.Get(), "loopanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopanimationfrom(); }
-			else if (strcmp (t.luaaction_s.Get(), "stopanimation") == 0) { t.e = LuaMessageInt(); entity_lua_stopanimation(); }
-			else if (strcmp (t.luaaction_s.Get(), "movewithanimation") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_movewithanimation(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolmanual") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolmanual(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrollimbo") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrollimbo(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolunarmed") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolunarmed(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolarmed") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolarmed(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolfidget") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolfidget(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcharactertowalkrun") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertowalkrun(); }
-			else if (strcmp (t.luaaction_s.Get(), "setlockcharacter") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlockcharacter(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcharactertostrafe") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertostrafe(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcharactervisiondelay") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactervisiondelay(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolducked") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolducked(); }
-			else if (strcmp (t.luaaction_s.Get(), "charactercontrolstand") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolstand(); }
-			else if (strcmp (t.luaaction_s.Get(), "lookatplayer") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "lookattargete") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargete(); }
-			else if (strcmp (t.luaaction_s.Get(), "lookattarget") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattarget(); }
-			else if (strcmp (t.luaaction_s.Get(), "aimsmoothmode") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_aimsmoothmode(); }
-			else if (strcmp (t.luaaction_s.Get(), "lookforward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookforward(); }
-			else if (strcmp (t.luaaction_s.Get(), "lookatangle") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatangle(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatetoplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetoplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatetoplayerwithoffset") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageFloat(); entity_lua_rotatetoplayerwithoffset(); }
-			else if (strcmp (t.luaaction_s.Get(), "rotatetocamera") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetocamera(); }
-			else if (strcmp (t.luaaction_s.Get(), "setanimationframe") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationframe(); }
-			else if (strcmp (t.luaaction_s.Get(), "setanimationspeed") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationspeed(); }
-			else if (strcmp (t.luaaction_s.Get(), "collected") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_collected(); }
-			else if (strcmp(t.luaaction_s.Get(), "addplayerweapon") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "changeplayerweapon") == 0) { t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "changeplayerweaponid") == 0) { t.v = LuaMessageInt(); entity_lua_changeplayerweaponid(); }
-			else if (strcmp (t.luaaction_s.Get(), "replaceplayerweapon") == 0) { t.e = LuaMessageInt(); entity_lua_replaceplayerweapon(); }
-			else if (strcmp (t.luaaction_s.Get(), "removeplayerweapon") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapon(); }
-			else if (strcmp (t.luaaction_s.Get(), "removeplayerweapons") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapons(); }
-			else if (strcmp (t.luaaction_s.Get(), "addplayerammo") == 0) { t.e = LuaMessageInt(); entity_lua_addplayerammo(); }
-			else if (strcmp (t.luaaction_s.Get(), "addplayerhealth") == 0) { t.e = LuaMessageInt(); entity_lua_addplayerhealth(); }
-			else if (strcmp (t.luaaction_s.Get(), "addplayerjetpack") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerjetpack(); }
-			else if (strcmp (t.luaaction_s.Get(), "setplayerpower") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setplayerpower(); }
-			else if (strcmp (t.luaaction_s.Get(), "addplayerpower") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerpower(); }
-			else if (strcmp (t.luaaction_s.Get(), "checkpoint") == 0) { t.e = LuaMessageInt(); entity_lua_checkpoint(); }
-			else if (strcmp (t.luaaction_s.Get(), "playsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "playsoundifsilent") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsoundifsilent(); }
-			else if (strcmp (t.luaaction_s.Get(), "playnon3dsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playnon3Dsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "loopnon3dsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopnon3Dsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "loopsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "stopsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopsound(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsoundspeed") == 0) { t.v = LuaMessageInt(); entity_lua_setsoundspeed(); }
-			else if (strcmp (t.luaaction_s.Get(), "setsoundvolume") == 0) { t.v = LuaMessageInt(); entity_lua_setsoundvolume(); }
-			else if (strcmp (t.luaaction_s.Get(), "playspeech") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playspeech(); }
-			else if (strcmp (t.luaaction_s.Get(), "stopspeech") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopspeech(); }
-			else if (strcmp (t.luaaction_s.Get(), "playvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 0); }
-			else if (strcmp (t.luaaction_s.Get(), "playvideonoskip") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 1); }
-			else if (strcmp (t.luaaction_s.Get(), "promptvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 0); }
-			else if (strcmp (t.luaaction_s.Get(), "promptvideonoskip") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 1); }
-			else if (strcmp (t.luaaction_s.Get(), "stopvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopvideo(); }
-			else if (strcmp (t.luaaction_s.Get(), "fireweaponinstant") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(true); }
-			else if (strcmp (t.luaaction_s.Get(), "fireweapon") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setplayerhealthcore" ) == 0 ) {  t.v= LuaMessageFloat() ; lua_setplayerhealthcore() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setplayerlives" ) == 0 ) {  t.v= LuaMessageFloat() ; lua_setplayerlives() ; }
 
-			//C++ - had to split here, too many else if for the compiler!
-			if (strcmp (t.luaaction_s.Get(), "hurtplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_hurtplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "drownplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); }
-			else if (strcmp (t.luaaction_s.Get(), "switchscript") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); entity_lua_switchscript(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcharactersoundset") == 0) { t.e = LuaMessageInt(); character_soundset(); }
-			else if (strcmp (t.luaaction_s.Get(), "setcharactersound") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_load(); }
-			else if (strcmp (t.luaaction_s.Get(), "playcharactersound") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_play(); }
-			else if (strcmp (t.luaaction_s.Get(), "setnogravity") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_gravity(); }
-			else if (strcmp (t.luaaction_s.Get(), "setlightvisible") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_light_visible(); }
-			else if (strcmp (t.luaaction_s.Get(), "loadimages") == 0) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_loadimages(); }
-			else if (strcmp (t.luaaction_s.Get(), "setimagepositionx") == 0) { t.v_f = LuaMessageFloat(); lua_setimagepositionx(); }
-			else if (strcmp (t.luaaction_s.Get(), "setimagepositiony") == 0) { t.v_f = LuaMessageFloat(); lua_setimagepositiony(); }
-			else if (strcmp (t.luaaction_s.Get(), "showimage") == 0) { t.v = LuaMessageInt(); lua_showimage(); }
-			else if (strcmp (t.luaaction_s.Get(), "hideimage") == 0) { t.v = LuaMessageInt(); lua_hideimage(); }
-			else if (strcmp (t.luaaction_s.Get(), "setimagealignment") == 0) { t.v = LuaMessageInt(); lua_setimagealignment(); }
-			else if (strcmp (t.luaaction_s.Get(), "textx") == 0) { t.luaText.x = LuaMessageFloat(); t.tluaTextCenterX = 0; }
-			else if (strcmp (t.luaaction_s.Get(), "texty") == 0) { t.luaText.y = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "textsize") == 0) { t.luaText.size = LuaMessageInt(); }
-			else if (strcmp (t.luaaction_s.Get(), "textcenterx") == 0) { t.tluaTextCenterX = 1; }
-			else if (strcmp (t.luaaction_s.Get(), "textred") == 0) { g.mp.steamColorRed = LuaMessageInt(); g.mp.steamDoColorText = 1; }
-			else if (strcmp (t.luaaction_s.Get(), "textgreen") == 0) { g.mp.steamColorGreen = LuaMessageInt(); }
-			else if (strcmp (t.luaaction_s.Get(), "textblue") == 0) { g.mp.steamColorBlue = LuaMessageInt(); }
-			else if (strcmp (t.luaaction_s.Get(), "texttxt") == 0) { t.luaText.txt = LuaMessageString(); lua_text(); }
-			else if (strcmp (t.luaaction_s.Get(), "nameplatesoff") == 0) { g.mp.nameplatesOff = 1; }
-			else if (strcmp (t.luaaction_s.Get(), "nameplateson") == 0) { g.mp.nameplatesOff = 0; }
-			else if (strcmp (t.luaaction_s.Get(), "panelx") == 0) { t.luaPanel.x = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "panely") == 0) { t.luaPanel.y = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "panelx2") == 0) { t.luaPanel.x2 = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "panely2") == 0) { t.luaPanel.y2 = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "dopanel") == 0) { t.luaPanel.e = LuaMessageIndex(); t.luaPanel.mode = LuaMessageInt(); lua_panel(); }
-			else if (strcmp (t.luaaction_s.Get(), "mpgamemode") == 0) { t.v = LuaMessageInt(); mp_serverSetLuaGameMode(); }
-			else if (strcmp (t.luaaction_s.Get(), "setservertimer") == 0) { t.v = LuaMessageInt(); mp_setServerTimer(); }
-			else if (strcmp (t.luaaction_s.Get(), "serverrespawnall") == 0) { mp_serverRespawnAll(); }
-			else if (strcmp (t.luaaction_s.Get(), "serverendplay") == 0) { mp_serverEndPlay(); }
-			else if (strcmp (t.luaaction_s.Get(), "setserverkillstowin") == 0) { mp_setServerKillsToWin(); }
-			else if (strcmp (t.luaaction_s.Get(), "mp_aimovetox") == 0) { t.e = LuaMessageIndex(); t.tSteamX_f = LuaMessageFloat(); }
-			else if (strcmp (t.luaaction_s.Get(), "mp_aimovetoz") == 0) { t.e = LuaMessageIndex(); t.tSteamZ_f = LuaMessageFloat(); mp_COOP_aiMoveTo(); }
-			else if (strcmp (t.luaaction_s.Get(), "setskyto") == 0) { t.s_s = LuaMessageString(); lua_set_sky(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "disablemusicreset" ) == 0 ) { t.v=LuaMessageInt() ; lua_disablemusicreset() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicload" ) == 0 ) { t.m=LuaMessageIndex(); t.s_s=LuaMessageString(); lua_musicload() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicsetinterval" ) == 0 ) { t.m=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_musicsetinterval() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicsetlength" ) == 0 ) { t.m=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_musicsetlength() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicstop" ) == 0 ) { lua_musicstop() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicplayinstant" ) == 0 ) { t.m=LuaMessageInt() ; lua_musicplayinstant() ; lua_musicplayinstant() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicplayfade" ) == 0 ) { t.m=LuaMessageInt() ; lua_musicplayfade() ; lua_musicplayfade() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicplaycue" ) == 0 ) { t.m=LuaMessageInt() ; lua_musicplaycue() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicplaytime" ) == 0 ) { t.m=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_musicplaytime() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicplaytimecue" ) == 0 ) { t.m=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_musicplaytimecue() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicsetvolume" ) == 0 ) { t.v=LuaMessageInt() ; lua_musicsetvolume() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicsetdefault" ) == 0 ) { t.m=LuaMessageInt() ; lua_musicsetdefault() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "musicsetfadetime" ) == 0 ) { t.v=LuaMessageInt() ; lua_musicsetfadetime() ; }
 
-			// 020216 - TITLE/MENU/PAGE LUA COMMANDS
-			if (strcmp (t.luaaction_s.Get(), "startgame") == 0) { lua_startgame(); }
-			else if (strcmp (t.luaaction_s.Get(), "loadgame") == 0) { lua_loadgame(); }
-			else if (strcmp (t.luaaction_s.Get(), "savegame") == 0) { lua_savegame(); }
-			else if (strcmp (t.luaaction_s.Get(), "quitgame") == 0) { lua_quitgame(); }
-			else if (strcmp (t.luaaction_s.Get(), "leavegame") == 0) { lua_leavegame(); }
-			else if (strcmp (t.luaaction_s.Get(), "resumegame") == 0) { lua_resumegame(); }
-			else if (strcmp (t.luaaction_s.Get(), "switchpage") == 0) { t.s_s = LuaMessageString(); lua_switchpage(); }
-			else if (strcmp (t.luaaction_s.Get(), "switchpageback") == 0) { lua_switchpageback(); }
-			else if (strcmp (t.luaaction_s.Get(), "levelfilenametoload") == 0) { t.s_s = LuaMessageString(); lua_levelfilenametoload(); }
-			else if (strcmp (t.luaaction_s.Get(), "triggerfadein") == 0) { lua_triggerfadein(); }
-			else if (strcmp (t.luaaction_s.Get(), "wingame") == 0) { lua_wingame(); }
-			else if (strcmp (t.luaaction_s.Get(), "losegame") == 0) { lua_losegame(); }
-			else if (strcmp (t.luaaction_s.Get(), "setgamequality") == 0) { t.v = LuaMessageInt(); lua_setgamequality(); }
-			else if (strcmp (t.luaaction_s.Get(), "setplayerfov") == 0) { t.v = LuaMessageInt(); lua_setplayerfov(); }
-			else if (strcmp (t.luaaction_s.Get(), "setgamesoundvolume") == 0) { t.v = LuaMessageInt(); lua_setgamesoundvolume(); }
-			else if (strcmp (t.luaaction_s.Get(), "setgamemusicvolume") == 0) { t.v = LuaMessageInt(); lua_setgamemusicvolume(); }
-			else if (strcmp (t.luaaction_s.Get(), "setloadingresource") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); lua_setloadingresource(); }
-		}
-		//
+		else if ( strcmp ( t.luaaction_s.Get() , "startparticleemitter" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; lua_startparticleemitter() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "stopparticleemitter" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; lua_stopparticleemitter() ; }
+
+		if ( strcmp ( t.luaaction_s.Get() , "starttimer" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_starttimer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "destroy" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_destroy() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "collisionon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_collisionon() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "collisionoff" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_collisionoff() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "getentityplrvisible" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_getentityplrvisible() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "getentityinzone" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_getentityinzone() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "hide" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_hide() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "show" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_show() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "spawn" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_spawn() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setactivated" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setactivated() ; }
+		#ifdef VRTECH
+		else if ( strcmp ( t.luaaction_s.Get() , "setactivatedformp" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setactivatedformp() ; }
+		#endif
+		else if ( strcmp ( t.luaaction_s.Get() , "resetlimbhit" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_resetlimbhit() ; }
+		else if (strcmp (t.luaaction_s.Get(), "activateifused") == 0) { t.e = LuaMessageInt(); entity_lua_activateifused(); }
+		else if (strcmp (t.luaaction_s.Get(), "performlogicconnections") == 0) { t.e = LuaMessageInt(); entity_lua_performlogicconnections(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "spawnifused" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_spawnifused() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "transporttoifused" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_transporttoifused() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "refreshentity" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_refreshentity() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "moveup" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_moveup() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "moveforward" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_moveforward() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "movebackward" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_movebackward() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "sethoverfactor" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_sethoverfactor() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "setpositionx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setpositionx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpositiony" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setpositiony() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setpositionz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setpositionz() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetpositionx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetpositionx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetpositiony" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetpositiony() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetpositionz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetpositionz() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "setrotationx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setrotationx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setrotationy" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setrotationy() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setrotationz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setrotationz() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetrotationx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetrotationx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetrotationy" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetrotationy() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "resetrotationz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_resetrotationz() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "modulatespeed" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_modulatespeed() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatex" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatex() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatey" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatey() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatez" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatez() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setlimbindex" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setlimbindex() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimbx" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimbx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimby" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimby() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatelimbz" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_rotatelimbz() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setentityhealth" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setentityhealth() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setentityhealthsilent" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setentityhealthsilent() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setforcex" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcex() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setforcey" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcey() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setforcez" ) == 0 ) { t.v=LuaMessageFloat() ; entity_lua_setforcez() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setforcelimb" ) == 0 ) { t.e=LuaMessageIndex(); t.v=LuaMessageInt() ; entity_lua_setforcelimb() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "ragdollforce" ) == 0 ) { t.e=LuaMessageIndex(); t.v=LuaMessageInt() ; entity_lua_ragdollforce() ; }
+
+		if ( strcmp ( t.luaaction_s.Get() , "scale" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_scale() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setanimation" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_setanimation() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setanimationname") == 0 ) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString();  entity_lua_setanimationname(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "setanimationframes" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setanimationframes() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playanimation" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_playanimation() ; }
+		else if (strcmp (t.luaaction_s.Get(), "playanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playanimationfrom(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "loopanimation" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_loopanimation() ; }
+		else if (strcmp (t.luaaction_s.Get(), "loopanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopanimationfrom(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "stopanimation" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_stopanimation() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "movewithanimation" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_movewithanimation(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolmanual" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolmanual() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrollimbo" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrollimbo() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolunarmed" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolunarmed() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolarmed" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolarmed() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolfidget" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolfidget() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcharactertowalkrun" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setcharactertowalkrun() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setlockcharacter" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setlockcharacter() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcharactertostrafe" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setcharactertostrafe() ; }
+			else if ( strcmp ( t.luaaction_s.Get() , "setcharactervisiondelay" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setcharactervisiondelay() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolducked" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolducked() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "charactercontrolstand" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_charactercontrolstand() ; }
+		#ifdef VRTECH	
+		else if (strcmp (t.luaaction_s.Get(), "lookatplayer") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatplayer(); }
+		else if (strcmp (t.luaaction_s.Get(), "lookattargete") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargete(); }
+		else if (strcmp (t.luaaction_s.Get(), "lookattarget") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattarget(); }
+		else if (strcmp (t.luaaction_s.Get(), "aimsmoothmode") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_aimsmoothmode(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "lookforward" ) == 0 ) { t.e=LuaMessageIndex(); t.v_f=LuaMessageFloat(); entity_lua_lookforward() ; }
+		else if (strcmp (t.luaaction_s.Get(), "lookatangle") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatangle(); }
+		#else
+		else if ( strcmp ( t.luaaction_s.Get() , "lookatplayer" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_lookatplayer() ; }
+		#endif
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatetoplayer" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_rotatetoplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatetoplayerwithoffset" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageFloat() ; entity_lua_rotatetoplayerwithoffset() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "rotatetocamera" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_rotatetocamera() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setanimationframe" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationframe() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setanimationspeed" ) == 0 ) { t.e=LuaMessageIndex() ; t.v_f=LuaMessageFloat() ; entity_lua_setanimationspeed() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "collected" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_collected() ; }
+		else if (strcmp(t.luaaction_s.Get(), "addplayerweapon") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); }
+		else if (strcmp(t.luaaction_s.Get(), "changeplayerweapon") == 0) { t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); }
+		else if (strcmp(t.luaaction_s.Get(), "changeplayerweaponid") == 0) { t.v = LuaMessageInt(); entity_lua_changeplayerweaponid(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "replaceplayerweapon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_replaceplayerweapon() ; }
+		else if (strcmp (t.luaaction_s.Get(), "removeplayerweapon") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapon(); }
+		else if (strcmp (t.luaaction_s.Get(), "removeplayerweapons") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapons(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "addplayerammo" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_addplayerammo() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "addplayerhealth" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_addplayerhealth() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "addplayerjetpack" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_addplayerjetpack() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setplayerpower" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setplayerpower() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "addplayerpower" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_addplayerpower() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "checkpoint" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_checkpoint() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playsoundifsilent" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playsoundifsilent() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playnon3dsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playnon3Dsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "loopnon3dsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_loopnon3Dsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_setsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "loopsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_loopsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "stopsound" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopsound() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsoundspeed" ) == 0 ) { t.v=LuaMessageInt() ; entity_lua_setsoundspeed() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setsoundvolume" ) == 0 ) { t.v=LuaMessageInt() ; entity_lua_setsoundvolume() ; }
+		#ifdef VRTECH
+		else if ( strcmp ( t.luaaction_s.Get() , "playspeech" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playspeech() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "stopspeech" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopspeech() ; }
+		#endif
+		else if ( strcmp ( t.luaaction_s.Get() , "playvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0,0) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(0,1) ; }
+		#ifdef VRTECH
+		else if ( strcmp ( t.luaaction_s.Get() , "promptvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1,0) ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "promptvideonoskip" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_playvideonoskip(1,1) ; }
+		#endif
+		else if ( strcmp ( t.luaaction_s.Get() , "stopvideo" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_stopvideo() ; }
+		else if ( strcmp ( t.luaaction_s.Get(), "fireweaponinstant") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(true); }
+		else if ( strcmp ( t.luaaction_s.Get() , "fireweapon" ) == 0 ) { t.e=LuaMessageInt() ; entity_lua_fireweapon() ; }
+
+		//C++ - had to split here, too many else if for the compiler!
+		if ( strcmp ( t.luaaction_s.Get() , "hurtplayer" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_hurtplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "drownplayer" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_drownplayer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "switchscript" ) == 0 ) { t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; entity_lua_switchscript() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcharactersoundset" ) == 0 ) { t.e=LuaMessageInt() ; character_soundset() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setcharactersound" ) == 0 ) { t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; character_sound_load() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "playcharactersound" ) == 0 ) { t.e=LuaMessageIndex() ; t.s_s=LuaMessageString() ; character_sound_play() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setnogravity" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_set_gravity() ; }
+ 
+		else if ( strcmp ( t.luaaction_s.Get() , "setlightvisible" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; entity_lua_set_light_visible() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "loadimages" ) == 0 ) { t.v=LuaMessageIndex() ; t.s_s=LuaMessageString() ; lua_loadimages() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setimagepositionx" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setimagepositionx() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setimagepositiony" ) == 0 ) { t.v_f=LuaMessageFloat() ; lua_setimagepositiony() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "showimage" ) == 0 ) { t.v=LuaMessageInt() ; lua_showimage() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "hideimage" ) == 0 ) { t.v=LuaMessageInt() ; lua_hideimage() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setimagealignment" ) == 0 ) { t.v=LuaMessageInt() ; lua_setimagealignment() ; }
+ 
+		else if ( strcmp ( t.luaaction_s.Get() , "textx" ) == 0 ) { t.luaText.x  =  LuaMessageFloat() ; t.tluaTextCenterX  =  0 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "texty" ) == 0 ) { t.luaText.y  =  LuaMessageFloat() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textsize" ) == 0 ) { t.luaText.size  =  LuaMessageInt() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textcenterx" ) == 0 ) { t.tluaTextCenterX  =  1 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textred" ) == 0 ) { g.mp.steamColorRed  =  LuaMessageInt() ; g.mp.steamDoColorText  =  1 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textgreen" ) == 0 ) { g.mp.steamColorGreen  =  LuaMessageInt() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "textblue" ) == 0 ) { g.mp.steamColorBlue  =  LuaMessageInt() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "texttxt" ) == 0 ) { t.luaText.txt = LuaMessageString() ; lua_text() ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "nameplatesoff" ) == 0 ) { g.mp.nameplatesOff = 1 ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "nameplateson" ) == 0 ) { g.mp.nameplatesOff = 0 ; }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "panelx" ) == 0 ) { t.luaPanel.x = LuaMessageFloat(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "panely" ) == 0 ) { t.luaPanel.y = LuaMessageFloat(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "panelx2" ) == 0 ) { t.luaPanel.x2 = LuaMessageFloat(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "panely2" ) == 0 ) { t.luaPanel.y2 = LuaMessageFloat(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "dopanel" ) == 0 ) { t.luaPanel.e = LuaMessageIndex(); t.luaPanel.mode = LuaMessageInt(); lua_panel(); }
+ 
+
+		else if ( strcmp ( t.luaaction_s.Get() , "mpgamemode" ) == 0 ) { t.v=LuaMessageInt() ; mp_serverSetLuaGameMode() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setservertimer" ) == 0 ) { t.v=LuaMessageInt() ; mp_setServerTimer() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "serverrespawnall" ) == 0 ) { mp_serverRespawnAll() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "serverendplay" ) == 0 ) { mp_serverEndPlay() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setserverkillstowin" ) == 0 ) { mp_setServerKillsToWin() ; }
+ 
+		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetox" ) == 0 ) { t.e  =  LuaMessageIndex() ; t.tSteamX_f  =  LuaMessageFloat() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "mp_aimovetoz" ) == 0 ) { t.e=LuaMessageIndex() ; t.tSteamZ_f=LuaMessageFloat() ; mp_COOP_aiMoveTo() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setskyto") == 0 ) { t.s_s = LuaMessageString(); lua_set_sky(); }
+
+		// 020216 - TITLE/MENU/PAGE LUA COMMANDS
+		if ( strcmp ( t.luaaction_s.Get() , "startgame" ) == 0 ) { lua_startgame(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "loadgame" ) == 0 ) { lua_loadgame(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "savegame" ) == 0 ) { lua_savegame(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "quitgame" ) == 0 ) { lua_quitgame(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "leavegame" ) == 0 ) { lua_leavegame(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "resumegame" ) == 0 ) { lua_resumegame(); }		
+		else if ( strcmp ( t.luaaction_s.Get() , "switchpage" ) == 0 ) { t.s_s=LuaMessageString(); lua_switchpage(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "switchpageback" ) == 0 ) { lua_switchpageback(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "levelfilenametoload" ) == 0 ) { t.s_s=LuaMessageString(); lua_levelfilenametoload(); }
+		else if ( strcmp ( t.luaaction_s.Get() , "triggerfadein" ) == 0 ) { lua_triggerfadein(); }	
+		else if (strcmp (t.luaaction_s.Get(), "wingame") == 0) { lua_wingame(); }
+		else if (strcmp (t.luaaction_s.Get(), "losegame") == 0) { lua_losegame(); }
+
+		else if ( strcmp ( t.luaaction_s.Get() , "setgamequality" ) == 0 ) { t.v=LuaMessageInt() ; lua_setgamequality() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setplayerfov" ) == 0 ) { t.v=LuaMessageInt() ; lua_setplayerfov() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setgamesoundvolume" ) == 0 ) { t.v=LuaMessageInt() ; lua_setgamesoundvolume() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setgamemusicvolume" ) == 0 ) { t.v=LuaMessageInt() ; lua_setgamemusicvolume() ; }
+		else if ( strcmp ( t.luaaction_s.Get() , "setloadingresource" ) == 0 ) { t.e=LuaMessageIndex() ; t.v=LuaMessageInt() ; lua_setloadingresource() ; }
+		
 	}
 
 	// extra stage allowing global to render things LAST (such as in-game HUD screens)

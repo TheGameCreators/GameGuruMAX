@@ -691,7 +691,8 @@ void DestroyThisObject ( sObjectList* pPhyObject )
 				if ( g_collisionShapes[j]==shape )
 				{
 					g_collisionShapes[j] = 0;
-					delete shape;
+					if(shape) delete shape;
+					g_collisionShapes.removeAtIndex(j);
 					break;
 				}
 			}
@@ -750,9 +751,10 @@ void ODEEnd ( void )
 			{
 				btCollisionShape* shape = g_collisionShapes[j];
 				g_collisionShapes[j] = 0;
-				delete shape;
+				if(shape) delete shape;
 			}
 		}
+		g_collisionShapes.clear();
 
 		// clear physics system data (no mallocs in structure, just references)
 		g_PhyObjectList.clear();
@@ -4657,41 +4659,7 @@ void BULLETAnglesFromMatrix ( GGMATRIX* pmatMatrix, GGVECTOR3* pVecAngles )
 
 void ODECreateTerrain ( unsigned int iVertexCount, unsigned int iIndexCount, float* pVertices, int* piIndices )
 {
-	#ifdef WICKEDENGINE
 	// MAX does not use this
-	#else
-	btBvhTriangleMeshShape*		btTriMeshShape;
-	btTriangleIndexVertexArray* mIndexVertexArray;
-	btDefaultMotionState* myMotionState;
-	btTransform startTransform;
-	btVector3 localInertia ( 0, 0, 0 );
-
-	for ( unsigned int i = 0; i < iVertexCount * 3; i++ )
-		pVertices [ i ] /= gSc;
-
-	mIndexVertexArray = new btTriangleIndexVertexArray ( iIndexCount / 3, &piIndices [ 0 ], 3 * sizeof ( int ), iVertexCount, &pVertices [ 0 ], 3 * sizeof ( float ) );
-
-	btTriMeshShape = new btBvhTriangleMeshShape ( mIndexVertexArray, true );
-
-	g_collisionShapes.push_back ( btTriMeshShape );
-
-	
-	startTransform.setIdentity ( );
-	startTransform.setOrigin ( btVector3 ( 0, 0, 0 ) );
-
-	//btTriMeshShape->setMargin ( 0.5f );
-
-	myMotionState = new btDefaultMotionState ( startTransform );
-
-	btRigidBody::btRigidBodyConstructionInfo cInfo ( 0.0f, myMotionState, btTriMeshShape, localInertia );
-
-	btRigidBody* body = new btRigidBody ( cInfo );
-
-	//body->setCcdSweptSphereRadius ( 1 );
-
-	short sCollidesWith = COL_OBJECT | COL_OBJECT_DYNAMIC | COL_CAPSULECHAR | COL_TERRAIN;
-	g_dynamicsWorld->addRigidBody ( body, COL_TERRAIN, sCollidesWith );
-	#endif
 }
 
 int g_iDebugDrawStatics = 0;

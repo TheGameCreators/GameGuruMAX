@@ -120,7 +120,7 @@ void WickedCall_InitImageManagement(LPSTR pRootFolder)
 
 void WickedCall_FreeImage(sImageList* pImage)
 {
-	if (pImage)
+	if ( pImage )
 	{
 		if (pImage->pName)
 		{
@@ -150,7 +150,7 @@ void WickedCall_FreeAllImagesOfType(eImageResType eType)
 	for (int i = 0; i < g_imageList.size(); i++)
 	{
 		sImageList* pImage = &g_imageList[i];
-		if (pImage->eType == eType)
+		if ( pImage->eType == eType )
 		{
 			WickedCall_FreeImage(pImage);
 		}
@@ -247,7 +247,7 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 
 	std::shared_ptr<wiResource> image = NULL;
 	char pFullRelativeLocationFilename[MAX_PATH];
-	int iImageIndex = WickedCall_FindImageIndexInList(pFilenameToLoad, pFullRelativeLocationFilename);
+	int iImageIndex = WickedCall_FindImageIndexInList(pFilenameToLoad,pFullRelativeLocationFilename);
 	if (iImageIndex != -1)
 	{
 		// found image
@@ -258,10 +258,10 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 		// quickly reject nonesense filenames
 		char pRealFilenameToLoad[MAX_PATH];
 		strcpy(pRealFilenameToLoad, pFilenameToLoad.c_str());
-		if (pRealFilenameToLoad[strlen(pRealFilenameToLoad) - 1] == '\\'
-			|| strnicmp (pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.dds", 5) == NULL
-			|| strnicmp (pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5) == NULL
-			|| strlen (pRealFilenameToLoad) <= 4)
+		if ( pRealFilenameToLoad[strlen(pRealFilenameToLoad)-1] == '\\'
+		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.dds", 5 ) == NULL 
+		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5 ) == NULL 
+		|| strlen ( pRealFilenameToLoad ) <= 4 )
 		{
 			// is not a filename that makes sense, reject load
 			return NULL;
@@ -296,7 +296,7 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 			CloseHandle(hfile);
 			bFileExists = true;
 		}
-		if (bFileExists)
+		if( bFileExists )
 		{
 			// if not, load it
 			wiResourceManager::SetErrorCode(0);
@@ -351,7 +351,7 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad)
 
 void WickedCall_DeleteImage(std::string pFilenameToDelete)
 {
-	int iImageIndex = WickedCall_FindImageIndexInList(pFilenameToDelete, NULL);
+	int iImageIndex = WickedCall_FindImageIndexInList(pFilenameToDelete,NULL);
 	if (iImageIndex != -1)
 	{
 		WickedCall_FreeImage(&g_imageList[iImageIndex]);
@@ -366,7 +366,7 @@ bool bNextObjectMustBeClone = false;
 void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoaderState& state)
 {
 	// only if have a frame
-	if (pFrame == NULL)
+	if (pFrame==NULL )
 		return;
 
 	// setup vars
@@ -377,7 +377,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 	// the DBO mesh needs to have geometry, or not point creating object (just the entity further down)
 	bool bUseFrameMatrix = true;
 	sMesh* pDBOMesh = pFrame->pMesh;
-	if (pDBOMesh && pDBOMesh->dwVertexCount > 0 && pDBOMesh->iPrimitiveType == GGPT_TRIANGLELIST) // pDBOMesh->dwIndexCount > 0 ) nned to support indexless models
+	if (pDBOMesh && pDBOMesh->dwVertexCount > 0 && pDBOMesh->iPrimitiveType == GGPT_TRIANGLELIST ) // pDBOMesh->dwIndexCount > 0 ) nned to support indexless models
 	{
 		// Create object to hold mesh
 		entity = scene.Entity_CreateObject(pFrame->szName);
@@ -390,13 +390,13 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 		wiScene::LayerComponent& layer = *scene.layers.GetComponent(entity);
 
 		// leelee, find out why I cannot set this after object added to scene!
-		if (g_iWickedLayerMaskOptionalLimb == -1 || (g_iWickedLayerMaskOptionalLimb == pFrame->iID))
+		if ( g_iWickedLayerMaskOptionalLimb == -1 || (g_iWickedLayerMaskOptionalLimb == pFrame->iID ) )
 			layer.layerMask = g_iWickedLayerMaskPreference;
 
 		// create mesh
 		wiECS::Entity meshEntity;
 		//PE: InstanceObject
-		if (bUseInstancing && pDBOMesh->master_wickedmeshindex > 0)
+		if (bUseInstancing && pDBOMesh->master_wickedmeshindex > 0 )
 		{
 			meshEntity = pDBOMesh->master_wickedmeshindex;
 			pDBOMesh->bInstanced = true;
@@ -554,7 +554,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 
 			//PE: Test Tessellation
 			//mesh.tessellationFactor = 50.0; //PE: Many objects dont work with this and deform, disable for now
-
+			
 
 			// LB: ensure culling mode is set for mesh
 			if (pDBOMesh->bCull == false)
@@ -677,7 +677,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 	TransformComponent& transform = *scene.transforms.GetComponent(entity);
 	transform.scale_local = XMFLOAT3(1, 1, 1);
 	transform.rotation_local = XMFLOAT4(0, 0, 0, 0);
-	transform.translation_local = XMFLOAT3(0, 0, 0);
+	transform.translation_local = XMFLOAT3(0,0,0);
 	if (bUseFrameMatrix == true)
 	{
 		GGMATRIX nodematrix = pFrame->matOriginal;
@@ -700,7 +700,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 		transform.ApplyTransform();
 	}
 	transform.UpdateTransform();
-
+	
 	// attach entity to its parent
 	if (1)
 	{
@@ -732,12 +732,14 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 			// clear any old wicked animation components (in case of a refresh)
 			if (pAnimSet->wickedanimentityindex > 0)
 			{
-				AnimationComponent* animationcomponent = pScene->animations.GetComponent(pAnimSet->wickedanimentityindex);
-				for (int i = 0; i < animationcomponent->samplers.size(); i++)
+				AnimationComponent* animationcomponent = pScene->animations.GetComponent( pAnimSet->wickedanimentityindex );
+				if (animationcomponent)
 				{
-					wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+					for (int i = 0; i < animationcomponent->samplers.size(); i++)
+					{
+						wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+					}
 				}
-
 				wiScene::GetScene().Entity_Remove(pAnimSet->wickedanimentityindex);
 				pAnimSet->wickedanimentityindex = 0;
 			}
@@ -802,17 +804,17 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 					pAnim->dwNumMatrixKeys = 0;
 
 					// set the anim ptrs
-					sPositionKey* pNewPosKeys = new sPositionKey[pAnim->dwNumPositionKeys + dwNumKeys];
-					sRotateKey* pNewRotKeys = new sRotateKey[pAnim->dwNumRotateKeys + dwNumKeys];
-					sScaleKey* pNewSclKeys = new sScaleKey[pAnim->dwNumScaleKeys + dwNumKeys];
+					sPositionKey* pNewPosKeys = new sPositionKey[pAnim->dwNumPositionKeys+dwNumKeys];
+					sRotateKey* pNewRotKeys = new sRotateKey[pAnim->dwNumRotateKeys+dwNumKeys];
+					sScaleKey* pNewSclKeys = new sScaleKey[pAnim->dwNumScaleKeys+dwNumKeys];
 
 					// append new keys to whole
-					if (pAnim->dwNumPositionKeys > 0) memcpy (pNewPosKeys, pAnim->pPositionKeys, sizeof(sPositionKey) * pAnim->dwNumPositionKeys);
-					memcpy ((char*)pNewPosKeys + (sizeof(sPositionKey) * pAnim->dwNumPositionKeys), pPosKeys, sizeof(sPositionKey) * dwNumKeys);
-					if (pAnim->dwNumRotateKeys > 0) memcpy (pNewRotKeys, pAnim->pRotateKeys, sizeof(sRotateKey) * pAnim->dwNumRotateKeys);
-					memcpy ((char*)pNewRotKeys + (sizeof(sRotateKey) * pAnim->dwNumRotateKeys), pRotKeys, sizeof(sRotateKey) * dwNumKeys);
-					if (pAnim->dwNumScaleKeys > 0) memcpy (pNewSclKeys, pAnim->pScaleKeys, sizeof(sScaleKey) * pAnim->dwNumScaleKeys);
-					memcpy ((char*)pNewSclKeys + (sizeof(sScaleKey) * pAnim->dwNumScaleKeys), pSclKeys, sizeof(sScaleKey) * dwNumKeys);
+					if ( pAnim->dwNumPositionKeys > 0 ) memcpy (pNewPosKeys, pAnim->pPositionKeys, sizeof(sPositionKey)*pAnim->dwNumPositionKeys);
+					memcpy ((char*)pNewPosKeys+(sizeof(sPositionKey)*pAnim->dwNumPositionKeys), pPosKeys, sizeof(sPositionKey)*dwNumKeys);
+					if ( pAnim->dwNumRotateKeys > 0 ) memcpy (pNewRotKeys, pAnim->pRotateKeys, sizeof(sRotateKey)*pAnim->dwNumRotateKeys);
+					memcpy ((char*)pNewRotKeys+(sizeof(sRotateKey)*pAnim->dwNumRotateKeys), pRotKeys, sizeof(sRotateKey)*dwNumKeys);
+					if ( pAnim->dwNumScaleKeys > 0 ) memcpy (pNewSclKeys, pAnim->pScaleKeys, sizeof(sScaleKey)*pAnim->dwNumScaleKeys);
+					memcpy ((char*)pNewSclKeys+(sizeof(sScaleKey)*pAnim->dwNumScaleKeys), pSclKeys, sizeof(sScaleKey)*dwNumKeys);
 
 					// set the new anim ptrs
 					SAFE_DELETE(pAnim->pPositionKeys);
@@ -917,7 +919,7 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 					{
 						//PE: All channels MUST have a target , or wicked will crash.
 						//PE: Target is used to get the transform
-						sFrame* pFrameMustSet = pAnim->pFrame;
+						sFrame*	pFrameMustSet = pAnim->pFrame;
 						if (!pFrameMustSet)
 						{
 							// if pframe not found assume animation is for pRootFrame
@@ -927,7 +929,9 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 						{
 							// set the target, samplerindex and type for this channel item
 							int iFrameIndexForThisAnim = pFrameMustSet->iID;
-							animationcomponent.channels[iChannelOffset].target = pstate->entityMap[iFrameIndexForThisAnim];
+							wiECS::Entity thisTarget = wiECS::INVALID_ENTITY;
+							if (pstate) thisTarget = pstate->entityMap[iFrameIndexForThisAnim];
+							animationcomponent.channels[iChannelOffset].target = thisTarget;
 							animationcomponent.channels[iChannelOffset].samplerIndex = (uint32_t)iChannelOffset;
 							if (i == 0) animationcomponent.channels[iChannelOffset].path = AnimationComponent::AnimationChannel::Path::TRANSLATION;
 							if (i == 1) animationcomponent.channels[iChannelOffset].path = AnimationComponent::AnimationChannel::Path::ROTATION;
@@ -960,7 +964,7 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 	}
 }
 
-void WickedCall_AddObject (sObject* pObject)
+void WickedCall_AddObject ( sObject* pObject )
 {
 	// delibeately not create the wicked object, speeds up everything in wicked engine
 	// until the object actually needed (only used for decals/explosions/particles which require 1000's of objects)
@@ -1003,7 +1007,7 @@ void WickedCall_AddObject (sObject* pObject)
 	pScene->transforms.Create(rootEntity);
 
 	// create materials, but do not load textures, done later when load textures
-	for (int iM = 0; iM < pObject->iMeshCount; iM++)
+	for ( int iM = 0; iM < pObject->iMeshCount; iM++ )
 	{
 		sMesh* pMesh = pObject->ppMeshList[iM];
 		if (pMesh)
@@ -1011,7 +1015,7 @@ void WickedCall_AddObject (sObject* pObject)
 			if (pMesh->pTextures)
 			{
 				char* pTextureFilename = pMesh->pTextures[0].pName;
-				if (pTextureFilename)
+				if ( pTextureFilename )
 				{
 					// create material, texture them later on
 					if (!(pMesh->bInstanced && pMesh->master_wickedmeshindex > 0))
@@ -1066,7 +1070,7 @@ void WickedCall_AddObject (sObject* pObject)
 	state.scene = pScene;
 	state.storeMasterRootEntityIndex = rootEntity;
 	sFrame* pRootFrame = pObject->pFrame;
-	WickedCall_LoadNode (pRootFrame, rootEntity, rootEntity, state);
+	WickedCall_LoadNode ( pRootFrame, rootEntity, rootEntity, state );
 
 	// Create armature-bone mappings (connect armature bone collection to frame entities created in LoadNode)
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)
@@ -1130,7 +1134,7 @@ void WickedCall_AddObject (sObject* pObject)
 void WickedCall_SetObjectSpeed(sObject* pObject, float fSpeed)
 {
 	// set the newly added speed modifier in wicked
-	if (pObject->pAnimationSet)
+	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		//while ( pAnimSet != NULL ) - wicked uses first animset to store all animations for object
@@ -1140,7 +1144,7 @@ void WickedCall_SetObjectSpeed(sObject* pObject, float fSpeed)
 			if (animationcomponent)
 			{
 				// not all animation entries have data (FBX imports can have empty animation sets!)
-				animationcomponent->SetSpeed(fSpeed * 50); //PE: (ORG:50) Need to adjust this to fit old speed.
+				animationcomponent->SetSpeed(fSpeed*50); //PE: (ORG:50) Need to adjust this to fit old speed.
 			}
 			//pAnimSet = pAnimSet->pNext;
 		}
@@ -1162,27 +1166,29 @@ void WickedCall_CheckAnimationDone(sObject* pObject)
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-
-			//PE: Wicked dont stop animations by itself, WickedCall_SetObjectSpeed is called all the time.
-			//PE: So check here if we need to stop the animation.
-			if (animationcomponent->IsPlaying())
+			if(animationcomponent)
 			{
-				//PE: pObject->bAnimPlaying is not set anywhere.
-				pObject->bAnimPlaying = true;
-				//float timer = animationcomponent->timer;
-				//float length = animationcomponent->GetLength();
-				bool isended = animationcomponent->IsEnded();
-				bool islooped = animationcomponent->IsLooped();
-				if (isended && !islooped)
+				//PE: Wicked dont stop animations by itself, WickedCall_SetObjectSpeed is called all the time.
+				//PE: So check here if we need to stop the animation.
+				if (animationcomponent->IsPlaying())
 				{
-					fEndFrame = animationcomponent->end;
-					animationcomponent->SetLooped(false);
-					animationcomponent->Stop();
-					pObject->bAnimPlaying = false;
-					//PE: Must make sure we are set at the last frame.
-					//PE: Fix - https://thegamecreators.teamwork.com/index.cfm#/tasks/21003817?c=10406263 ,
-					animationcomponent->timer = fEndFrame;
-					animationcomponent->SetUpdateOnce();
+					//PE: pObject->bAnimPlaying is not set anywhere.
+					pObject->bAnimPlaying = true;
+					//float timer = animationcomponent->timer;
+					//float length = animationcomponent->GetLength();
+					bool isended = animationcomponent->IsEnded();
+					bool islooped = animationcomponent->IsLooped();
+					if (isended && !islooped)
+					{
+						fEndFrame = animationcomponent->end;
+						animationcomponent->SetLooped(false);
+						animationcomponent->Stop();
+						pObject->bAnimPlaying = false;
+						//PE: Must make sure we are set at the last frame.
+						//PE: Fix - https://thegamecreators.teamwork.com/index.cfm#/tasks/21003817?c=10406263 ,
+						animationcomponent->timer = fEndFrame;
+						animationcomponent->SetUpdateOnce();
+					}
 				}
 			}
 			//pAnimSet = pAnimSet->pNext;
@@ -1197,7 +1203,7 @@ bool WickedCall_GetAnimationPlayingState (sObject* pObject)
 	{
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		if (animationcomponent)
+		if(animationcomponent)
 			if (animationcomponent->IsPlaying())
 				return true;
 	}
@@ -1211,34 +1217,40 @@ void WickedCall_SetAnimationLerpFactor (sObject* pObject)
 	{
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		if (animationcomponent->updateonce == false)
+		if (animationcomponent)
 		{
-			animationcomponent->amount = pObject->fAnimInterp;
+			if (animationcomponent->updateonce == false)
+			{
+				animationcomponent->amount = pObject->fAnimInterp;
+			}
 		}
 	}
 }
 
 void WickedCall_PlayObject(sObject* pObject, float fStart, float fEnd, bool bLooped)
 {
-	if (pObject->pAnimationSet)
+	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		//while ( pAnimSet != NULL )
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-			animationcomponent->start = fStart;
-			if (fEnd != -1)
+			if (animationcomponent)
 			{
-				animationcomponent->end = fEnd;
+				animationcomponent->start = fStart;
+				if (fEnd != -1)
+				{
+					animationcomponent->end = fEnd;
+				}
+				animationcomponent->timer = fStart;
+				if (animationcomponent->updateonce == false)
+				{
+					animationcomponent->amount = pObject->fAnimInterp;
+				}
+				animationcomponent->SetLooped(bLooped);
+				animationcomponent->Play();
 			}
-			animationcomponent->timer = fStart;
-			if (animationcomponent->updateonce == false)
-			{
-				animationcomponent->amount = pObject->fAnimInterp;
-			}
-			animationcomponent->SetLooped(bLooped);
-			animationcomponent->Play();
 			//pAnimSet = pAnimSet->pNext;
 		}
 	}
@@ -1251,20 +1263,26 @@ void WickedCall_InstantObjectFrameUpdate(sObject* pObject)
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		animationcomponent->updateonce = true;
-		animationcomponent->amount = 1;
+		if (animationcomponent)
+		{
+			animationcomponent->updateonce = true;
+			animationcomponent->amount = 1;
+		}
 	}
 }
 
-void WickedCall_GetObjectAnimationData(sObject* pObject, float* pStart, float* pFinish)
+void WickedCall_GetObjectAnimationData(sObject* pObject, float* pStart, float* pFinish )
 {
-	if (pObject->pAnimationSet)
+	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		*pStart = animationcomponent->start;
-		*pFinish = animationcomponent->end;
+		if (animationcomponent)
+		{
+			*pStart = animationcomponent->start;
+			*pFinish = animationcomponent->end;
+		}
 	}
 }
 
@@ -1277,7 +1295,7 @@ void WickedCall_StopObject(sObject* pObject)
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-			if (animationcomponent)
+			if (animationcomponent )
 				animationcomponent->Stop();
 		}
 	}
@@ -1285,7 +1303,7 @@ void WickedCall_StopObject(sObject* pObject)
 
 void WickedCall_SetObjectFrame(sObject* pObject, float fFrame)
 {
-	if (pObject->pAnimationSet)
+	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		//while ( pAnimSet != NULL ) - wicked uses first animset to store all animations for object
@@ -1313,8 +1331,11 @@ void WickedCall_SetObjectFrameEx(sObject* pObject, float fFrame)
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-			animationcomponent->timer = fFrame;
-			animationcomponent->SetUpdateOnce();
+			if (animationcomponent)
+			{
+				animationcomponent->timer = fFrame;
+				animationcomponent->SetUpdateOnce();
+			}
 		}
 	}
 }
@@ -1323,7 +1344,7 @@ void WickedCall_SetObjectFrameEx(sObject* pObject, float fFrame)
 float WickedCall_GetObjectFrame(sObject* pObject)
 {
 	float fFrame = 0.0f;
-	if (pObject->pAnimationSet)
+	if ( pObject->pAnimationSet )
 	{
 		// first animset only for frame return
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
@@ -1347,16 +1368,19 @@ float WickedCall_GetObjectRealFrame(sObject* pObject)
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		fFrame = animationcomponent->timer;
-		if (animationcomponent->IsLooped())
+		if (animationcomponent)
 		{
-			// special situation where looped animations have an extra 1.0f after the loop end to interp back to first frame
-			// and this frame returned represents the real frame in the anim data, not the animation.timer frame which tracks the raw position in the seqwence (timer)
-			if (fFrame >= animationcomponent->end)
+			fFrame = animationcomponent->timer;
+			if (animationcomponent->IsLooped())
 			{
-				// the assumption is that the _timers are all aligned as 1.0f timings so they match key frame subscripts
-				float fInterpT = fFrame - animationcomponent->end;
-				fFrame = animationcomponent->start + fInterpT;
+				// special situation where looped animations have an extra 1.0f after the loop end to interp back to first frame
+				// and this frame returned represents the real frame in the anim data, not the animation.timer frame which tracks the raw position in the seqwence (timer)
+				if (fFrame >= animationcomponent->end)
+				{
+					// the assumption is that the _timers are all aligned as 1.0f timings so they match key frame subscripts
+					float fInterpT = fFrame - animationcomponent->end;
+					fFrame = animationcomponent->start + fInterpT;
+				}
 			}
 		}
 	}
@@ -1364,7 +1388,7 @@ float WickedCall_GetObjectRealFrame(sObject* pObject)
 }
 
 bool bBlockSceneUpdate = false;
-void WickedCall_RemoveObject(sObject* pObject)
+void WickedCall_RemoveObject( sObject* pObject )
 {
 	// when removing assets from the wicked engine scene
 	uint64_t rootEntity = pObject->wickedrootentityindex;
@@ -1384,13 +1408,15 @@ void WickedCall_RemoveObject(sObject* pObject)
 			//while (pAnimSet != NULL) - wicked uses first animset to store all animations for object
 			{
 				if (pAnimSet->wickedanimentityindex > 0)
-				{
-					AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(pAnimSet->wickedanimentityindex);
-					for (int i = 0; i < animationcomponent->samplers.size(); i++)
+				{				
+					AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent( pAnimSet->wickedanimentityindex );
+					if (animationcomponent)
 					{
-						wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+						for (int i = 0; i < animationcomponent->samplers.size(); i++)
+						{
+							wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+						}
 					}
-
 					wiScene::GetScene().Entity_Remove(pAnimSet->wickedanimentityindex);
 					pAnimSet->wickedanimentityindex = 0;
 				}
@@ -1403,15 +1429,15 @@ void WickedCall_RemoveObject(sObject* pObject)
 		{
 			sMesh* pMesh = pObject->ppMeshList[iM];
 			if (pMesh)
-			{
+			{		
 				if (pMesh->wickedmeshindex > 0)
 				{
-					if (!pMesh->bInstanced)
+					if(!pMesh->bInstanced)
 						wiScene::GetScene().Entity_Remove(pMesh->wickedmeshindex);
 					pMesh->wickedmeshindex = 0;
 				}
 				if (pMesh->wickedmaterialindex > 0)
-				{
+				{				
 					if (!pMesh->bInstanced)
 						wiScene::GetScene().Entity_Remove(pMesh->wickedmaterialindex);
 					pMesh->wickedmaterialindex = 0;
@@ -1447,7 +1473,7 @@ void WickedCall_RemoveObject(sObject* pObject)
 		}
 
 		// finally update scene with removals
-		if (!bBlockSceneUpdate)
+		if(!bBlockSceneUpdate)
 			wiScene::GetScene().Update(0);
 	}
 }
@@ -1464,7 +1490,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 		if (g_bWickedUseImagePtrInsteadOfTexFile == true)
 		{
 			// uses special way to texture a wicked object, using the old DX11 texture image ptr
-			WickedCall_TextureMeshWithImagePtr(pMesh, g_iWickedPutInEmissiveMode);
+			WickedCall_TextureMeshWithImagePtr(pMesh,g_iWickedPutInEmissiveMode);
 		}
 		else
 		{
@@ -1476,7 +1502,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 				if (g_bWickedIgnoreTextureInfo == true)
 				{
 					// used when we do NOT want textures from loaded objects, we have a wicked new approach for that object :)
-					for (int i = 0; i < pMesh->dwTextureCount; i++) strcpy(pMesh->pTextures[i].pName, "");
+					for( int i = 0; i < pMesh->dwTextureCount; i++ ) strcpy(pMesh->pTextures[i].pName, "");
 				}
 
 				// get mesh texture filename
@@ -1508,35 +1534,35 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					if (strlen(pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName) == 0)
 					{
 						strcpy (pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName, pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
-						pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].channelMask = (15) + (1 << 4);
+						pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].channelMask = (15)+(1 << 4);
 					}
 					if (strlen(pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName) == 0)
 					{
 						strcpy (pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName, pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
-						pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].channelMask = (15) + (2 << 4);
+						pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].channelMask = (15)+(2 << 4);
 					}
 					if (strlen(pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName) == 0)
 					{
 						strcpy (pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName, pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
-						pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].channelMask = (15) + (0 << 4);
+						pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].channelMask = (15)+(0 << 4);
 					}
 				}
 
 				// set roughness strength if have texture
 				pObjectMaterial->roughness = 0.0f;
-				if (pMesh->dwTextureCount > GG_MESH_TEXTURE_ROUGHNESS && strlen(pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName) != 0)
+				if ( pMesh->dwTextureCount > GG_MESH_TEXTURE_ROUGHNESS && strlen(pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName)!=0 )
 					pObjectMaterial->roughness = 1.0f;
 
 				// set metalness strength if have texture
 				pObjectMaterial->metalness = 0.0f;
-				if (pMesh->dwTextureCount > GG_MESH_TEXTURE_METALNESS && strlen(pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName) != 0)
+				if ( pMesh->dwTextureCount > GG_MESH_TEXTURE_METALNESS && strlen(pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName)!=0 )
 					pObjectMaterial->metalness = 1.0f;
 
 				// set roughness strength if have texture
 				pObjectMaterial->emissiveColor.w = 0.0f;
 				if (pMesh->dwTextureCount > GG_MESH_TEXTURE_EMISSIVE && strlen(pMesh->pTextures[GG_MESH_TEXTURE_EMISSIVE].pName) != 0)
 					pObjectMaterial->emissiveColor.w = 0.0f; // 64.0f; corrected default as it was before, no emissive strength until set
-
+				
 				// default reflectance
 				pObjectMaterial->reflectance = 0.04f;// 0.002f;
 
@@ -1812,7 +1838,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								pMesh->mMaterial.Diffuse.g = ((dwBaseColor & 0x00ff0000) >> 16) / 255.0f;
 								pMesh->mMaterial.Diffuse.b = ((dwBaseColor & 0x0000ff00) >> 8) / 255.0f;
 								pMesh->mMaterial.Diffuse.a = (dwBaseColor & 0x000000ff) / 255.0f;
-								WickedCall_SetMeshMaterial(pMesh, true);
+								WickedCall_SetMeshMaterial(pMesh,true);
 							}
 
 							//Emissive.
@@ -2137,7 +2163,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						}
 					}
 
-					if (pMesh->dwTextureCount > GG_MESH_TEXTURE_NORMAL && *(pMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName))
+					if ( pMesh->dwTextureCount > GG_MESH_TEXTURE_NORMAL && *(pMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName) )
 					{
 						// Normal texture
 						if (pObjectMaterial->textures[MaterialComponent::NORMALMAP].resource) // Delete first if already active.
@@ -2157,7 +2183,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						}
 					}
 
-					if (pMesh->dwTextureCount > GG_MESH_TEXTURE_SURFACE && *(pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName))
+					if ( pMesh->dwTextureCount > GG_MESH_TEXTURE_SURFACE && *(pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName) )
 					{
 						// Ambient occlusion texture
 						if (pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource) // Delete first if already active.
@@ -2169,7 +2195,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							wiJobSystem::Wait(ctx);
 						}
 						pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = pMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName;
-						if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name.c_str()))
+						if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name.c_str())) 
 							pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = "";
 						else
 						{
@@ -2179,7 +2205,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							bGotSurfaceTexture = true;
 						}
 					}
-					if (pMesh->dwTextureCount > GG_MESH_TEXTURE_EMISSIVE && *(pMesh->pTextures[GG_MESH_TEXTURE_EMISSIVE].pName))
+					if ( pMesh->dwTextureCount > GG_MESH_TEXTURE_EMISSIVE && *(pMesh->pTextures[GG_MESH_TEXTURE_EMISSIVE].pName) )
 					{
 						// Emissive texture
 						if (pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource) // Delete first if already active.
@@ -2199,7 +2225,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						}
 					}
 
-					if (pMesh->bTransparency)
+					if ( pMesh->bTransparency )
 						pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
 
 					// default emissive is off (when not custom material)
@@ -2223,8 +2249,8 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						char pDetectUnderscoreColor[MAX_PATH];
 						strcpy(pDetectUnderscoreColor, sFoundFinalPathAndFilename.c_str());
 						//pDetectUnderscoreColor[strlen(pDetectUnderscoreColor) - 4] = 0; // extension might be more than 4 characters (.jpeg)
-						char* pExt = strrchr(pDetectUnderscoreColor, '.');
-						if (pExt) *pExt = 0;
+						char* pExt = strrchr( pDetectUnderscoreColor, '.' );
+						if ( pExt ) *pExt = 0;
 						if (strnicmp(pDetectUnderscoreColor + strlen(pDetectUnderscoreColor) - 6, "_color", 6) == NULL) bPBRReady = true;
 
 						// apply various PBR textures to mesh material
@@ -2326,7 +2352,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									{
 										//PE: Realloc we get a heap errors here.
 										//PE: And are generating random crashes from everywhere.
-										extern bool EnsureTextureStageValid(sMesh * pMesh, int iTextureStage);
+										extern bool EnsureTextureStageValid(sMesh* pMesh, int iTextureStage);
 										EnsureTextureStageValid(pMesh, GG_MESH_TEXTURE_SURFACE);
 
 									}
@@ -2380,7 +2406,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 
 							// PBR emissive
-							if (bGotEmissiveTexture == false)
+							if ( bGotEmissiveTexture == false )
 							{
 								if (pObjectMaterial->textures[MaterialComponent::EMISSIVEMAP].resource) //PE: Delete first if already active.
 								{
@@ -2516,17 +2542,17 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									{
 										//PE: Realloc we get a heap errors here.
 										//PE: And are generating random crashes from everywhere.
-										extern bool EnsureTextureStageValid(sMesh * pMesh, int iTextureStage);
+										extern bool EnsureTextureStageValid(sMesh* pMesh, int iTextureStage);
 										EnsureTextureStageValid(pMesh, GG_MESH_TEXTURE_SURFACE);
 
 									}
 
 									// and assign this surface to DBO mesh along with channel info (used by importer and other code)
-									strcpy (pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName, pSurfaceTexFile);
+									strcpy ( pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName, pSurfaceTexFile);
 									pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].channelMask = (0 << 4) + (15);
-									strcpy (pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName, pSurfaceTexFile);
+									strcpy ( pMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName, pSurfaceTexFile);
 									pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].channelMask = (1 << 4) + (15);
-									strcpy (pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName, pSurfaceTexFile);
+									strcpy ( pMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName, pSurfaceTexFile);
 									pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].channelMask = (2 << 4) + (15);
 								}
 								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name);
@@ -2696,7 +2722,7 @@ void WickedCall_SetMeshCullmode(sMesh* pMesh)
 		wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
 		if (mesh)
 		{
-			if (pMesh->iCullMode > 0)
+			if(pMesh->iCullMode > 0)
 				mesh->SetDoubleSided(false);
 			else
 				mesh->SetDoubleSided(true);
@@ -2871,8 +2897,8 @@ std::string WickedCall_GetAllTexturesUsed(sObject* pObject)
 						{
 							if (pObjectMaterial->textures[i].name.length() > 0)
 							{
-								const char* pestrcasestr(const char* arg1, const char* arg2);
-								if (!pestrcasestr(sTmp.c_str(), pObjectMaterial->textures[i].name.c_str()))
+								const char *pestrcasestr(const char *arg1, const char *arg2);
+								if( !pestrcasestr(sTmp.c_str(), pObjectMaterial->textures[i].name.c_str()) )
 									sTmp += pObjectMaterial->textures[i].name + "|";
 							}
 						}
@@ -2897,7 +2923,7 @@ void WickedCall_SetMeshAlpha(sMesh* pMesh, float fPercentage)
 			wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
 			if (pObjectMaterial)
 			{
-				pObjectMaterial->SetOpacity(fPercentage / 100.0);
+				pObjectMaterial->SetOpacity(fPercentage/100.0);
 				pObjectMaterial->IsDirty();
 			}
 		}
@@ -2920,7 +2946,7 @@ LPSTR WickedCall_GetMeshMaterialName(sMesh* pMesh)
 			{
 				// return a pointer to the material basecolor name (used to determine if a successful texture was loaded)
 				// in place of the old method of checking the iImageID which now may be zero
-				if (pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource)
+				if ( pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource )
 					pName = (LPSTR)pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].name.c_str();
 			}
 		}
@@ -2945,10 +2971,10 @@ void WickedCall_GetFrameWorldPos(sFrame* pFrame, float* pfX, float* pfY, float* 
 
 void WickedCall_GetLimbDataEx(sObject* pObject, int iLimbID, bool bAdjustLimb, float fX, float fY, float fZ, float fAX, float fAY, float fAZ, float* pX, float* pY, float* pZ, float* pQAX, float* pQAY, float* pQAZ, float* pQAW)
 {
-	if (pObject)
+	if ( pObject )
 	{
 		sFrame* pFrame = pObject->ppFrameList[iLimbID];
-		if (pFrame)
+		if ( pFrame )
 		{
 			uint64_t iFrameWickedObjectNumber = pFrame->wickedobjindex;
 			if (iFrameWickedObjectNumber > 0)
@@ -3028,7 +3054,7 @@ void WickedCall_UpdateMeshVertexData(sMesh* pDBOMesh)
 			// for now, we are only interested in updating the UV data from the original to the wicked mesh
 			sOffsetMap offsetMap;
 			GetFVFOffsetMapFixedForBones(pDBOMesh, &offsetMap);
-
+		
 			for (size_t v = 0; v < pDBOMesh->dwVertexCount; v++)
 			{
 				if (offsetMap.dwZ > 0)
@@ -3165,7 +3191,7 @@ void WickedCall_SetMeshAlphaRef(sMesh* pMesh, float fAlphaRef)
 	}
 }
 
-void WickedCall_SetMeshMaterial (sMesh* pMesh, bool bForce)
+void WickedCall_SetMeshMaterial ( sMesh* pMesh, bool bForce)
 {
 	if (pMesh)
 	{
@@ -3207,7 +3233,7 @@ void WickedCall_SetMeshMaterial (sMesh* pMesh, bool bForce)
 					pObjectMaterial->emissiveColor.y = 1.0f;
 					pObjectMaterial->emissiveColor.z = 1.0f;
 				}
-				else
+				else 
 				{
 					// otherwise normally have values set in pMesh->mMaterial
 					pObjectMaterial->emissiveColor.x = pMesh->mMaterial.Emissive.r;
@@ -3253,7 +3279,7 @@ float WickedCall_GetObjectRenderOrderBias(sObject* pObject)
 	for (int i = 0; i < pObject->iFrameCount; i++)
 	{
 		sFrame* pFrame = pObject->ppFrameList[i];
-		if (pFrame)
+		if(pFrame)
 		{
 			ObjectComponent* object = wiScene::GetScene().objects.GetComponent(pFrame->wickedobjindex);
 			if (object)
@@ -3291,7 +3317,7 @@ void WickedCall_SetObjectPlanerReflection(sObject* pObject, bool bPlanerReflecti
 						}
 						else
 						{
-							if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+							if(pObjectMaterial->parallaxOcclusionMapping > 0.0f )
 								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
 							else
 								pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_PBR;
@@ -3482,7 +3508,7 @@ void WickedCall_SetObjectBaseColor(sObject* pObject, int r, int g, int b)
 			pMesh->mMaterial.Diffuse.r = r / 255.0f;
 			pMesh->mMaterial.Diffuse.g = g / 255.0f;
 			pMesh->mMaterial.Diffuse.b = b / 255.0f;
-			WickedCall_SetMeshMaterial(pMesh, true);
+			WickedCall_SetMeshMaterial(pMesh,true);
 		}
 	}
 }
@@ -3734,14 +3760,14 @@ float WickedCall_GetObjectEmissiveStrength(sObject* pObject)
 	return strength;
 }
 
-void WickedCall_TextureObject(sObject* pObject, sMesh* pJustThisMesh)
+void WickedCall_TextureObject(sObject* pObject,sMesh* pJustThisMesh)
 {
 	for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
 	{
 		sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
 		if (pMesh)
 		{
-			if (pJustThisMesh == NULL || (pJustThisMesh == pMesh))
+			if (pJustThisMesh == NULL || (pJustThisMesh == pMesh)) 
 			{
 				WickedSetMeshNumber(iMeshIndex);
 				WickedCall_TextureMesh(pMesh);
@@ -3823,7 +3849,7 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 						// create system memory version
 						ID3D11Texture2D* pTempSysMemTexture = NULL;
 						D3D11_TEXTURE2D_DESC StagedDesc = { dx11desc.Width, dx11desc.Height, 1, 1, dx11desc.Format, 1, 0, D3D11_USAGE_STAGING, 0, D3D11_CPU_ACCESS_READ, 0 };
-						m_pD3D->CreateTexture2D(&StagedDesc, NULL, &pTempSysMemTexture);
+						m_pD3D->CreateTexture2D( &StagedDesc, NULL, &pTempSysMemTexture );
 						if (pTempSysMemTexture)
 						{
 							// and copy texture image to it
@@ -3835,7 +3861,7 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 							if (SUCCEEDED(m_pImmediateContext->Map(pTempSysMemTexture, 0, D3D11_MAP_READ, 0, &d3dlock)))
 							{
 								// work out size of all data for this texture
-								int iSizeOfBitmapData = dx11desc.Width * dx11desc.Height * bitdepth;
+								int iSizeOfBitmapData = dx11desc.Width*dx11desc.Height*bitdepth;
 
 								// copy dx11 system staged texture data into initdata
 								SubresourceData subresourceData;
@@ -3849,7 +3875,7 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 								// copy from surface to newly created texture mem data
 								LPSTR pSrc = (LPSTR)d3dlock.pData;
 								LPSTR pPtr = pTextureMem;
-								DWORD dwDataWidth = dx11desc.Width * bitdepth;
+								DWORD dwDataWidth = dx11desc.Width*bitdepth;
 								for (DWORD y = 0; y < dx11desc.Height; y++)
 								{
 									//PE: Get a crash here on BC3 textures. , Also got a crash on a BC1 using 12 mip levels ? (source read access)
@@ -3865,7 +3891,7 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 						}
 
 						// release interface to original texture
-						SAFE_RELEASE (pTextureInterface);
+						SAFE_RELEASE ( pTextureInterface );
 
 						// give new texture a name (tests if we are freeing these registered resources)
 
@@ -3880,9 +3906,9 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 																// will likely require many uniquely created, so need more unique names instead of this hack!
 
 						int found = 0;
-						std::shared_ptr<wiResource> resource = wiResourceManager::GetResource(sTextureName, 1, &found);
+						std::shared_ptr<wiResource> resource = wiResourceManager::GetResource( sTextureName, 1, &found );
 
-						if (!found)
+						if ( !found )
 						{
 							// use desc and initdata to create the texture
 							wiRenderer::GetDevice()->CreateTexture(&desc, InitData.data(), &resource->texture);
@@ -3900,9 +3926,9 @@ void WickedCall_TextureMeshWithImagePtr(sMesh* pMesh, int iPutInEmissivemode)
 							sTextureName = pMassivelyRandomTexName;// "OldImagePtrTextureEmssive";
 							//WickedCall_DeleteImage(sTextureName); // and the same for this, unique names needed for created textures for management purposes
 
-							std::shared_ptr<wiResource> resource2 = wiResourceManager::GetResource(sTextureName, 1, &found);
+							std::shared_ptr<wiResource> resource2 = wiResourceManager::GetResource( sTextureName, 1, &found );
 
-							if (!found)
+							if ( !found )
 							{
 								wiRenderer::GetDevice()->CreateTexture(&desc, InitData.data(), &resource2->texture);
 								wiRenderer::GetDevice()->SetName(&resource2->texture, sTextureName.c_str());
@@ -3932,7 +3958,7 @@ void WickedCall_TextureObjectWithImagePtr(sObject* pObject, int iPutInEmissivemo
 		if (pMesh)
 		{
 			WickedSetMeshNumber(iMeshIndex);
-			WickedCall_TextureMeshWithImagePtr(pMesh, iPutInEmissivemode);
+			WickedCall_TextureMeshWithImagePtr(pMesh,iPutInEmissivemode);
 		}
 	}
 }
@@ -3941,7 +3967,7 @@ void WickedCall_UpdateObject(sObject* pObject)
 {
 	// called when pos, rot or scale updated
 	uint64_t rootEntity = pObject->wickedrootentityindex;
-	if (rootEntity > 0)
+	if ( rootEntity > 0 )
 	{
 		// set a transform for the object
 		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(rootEntity);
@@ -3999,9 +4025,9 @@ void WickedCall_UpdateObject(sObject* pObject)
 			rotationinrads.x = GGToRadian(pObject->position.vecRotate.x);
 			rotationinrads.y = GGToRadian(pObject->position.vecRotate.y);
 			rotationinrads.z = GGToRadian(pObject->position.vecRotate.z);
-#ifndef MATCHCLASSICROTATION
+			#ifndef MATCHCLASSICROTATION
 			pTransform->RotateRollPitchYaw(rotationinrads);
-#else
+			#else
 			//PE: This will match how classic rotation work.
 			XMMATRIX rot;
 			rot = XMMatrixRotationX(rotationinrads.x);
@@ -4012,7 +4038,7 @@ void WickedCall_UpdateObject(sObject* pObject)
 			XMVECTOR T;
 			XMMatrixDecompose(&S, &R, &T, rot);
 			pTransform->Rotate(R);
-#endif
+			#endif
 			if (pObject->position.bApplyPivot == true)
 			{
 				GGMATRIX matPivot = pObject->position.matPivot;
@@ -4153,13 +4179,13 @@ void WickedCall_SetLimbVisible(sFrame* pFrame, bool bVisible)
 	}
 }
 
-void WickedCall_SetObjectVisible (sObject* pObject, bool bVisible)
+void WickedCall_SetObjectVisible ( sObject* pObject, bool bVisible )
 {
 	for (int iF = 0; iF < pObject->iFrameCount; iF++)
 	{
 		bool bVisForThisFrame = bVisible;
 		sFrame* pFrame = pObject->ppFrameList[iF];
-		if (pFrame->pMesh && pFrame->pMesh->bVisible == false) bVisForThisFrame = false; // if limb was hiddem keep hidden until otherwise
+		if (pFrame->pMesh && pFrame->pMesh->bVisible == false ) bVisForThisFrame = false; // if limb was hiddem keep hidden until otherwise
 		WickedCall_SetLimbVisible(pFrame, bVisForThisFrame);
 	}
 }
@@ -4167,7 +4193,7 @@ void WickedCall_SetObjectVisible (sObject* pObject, bool bVisible)
 void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObject, int iLimb, int iObjIDToSyncAnimTo)
 {
 	// attaches this entity object to a parent entity object
-	if (pObjectToGlue && pParentObject)
+	if ( pObjectToGlue && pParentObject )
 	{
 		uint64_t rootToGlueEntity = pObjectToGlue->wickedrootentityindex;
 		if (rootToGlueEntity > 0)
@@ -4217,7 +4243,7 @@ void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObjec
 								else
 								{
 									// unsync child from parent (probably not used in favor of unglue/glue operation as one presently used)
-									animationcomponent->UsePrimaryAnimTimer(0, 0);
+									animationcomponent->UsePrimaryAnimTimer(0,0);
 								}
 							}
 						}
@@ -4231,7 +4257,7 @@ void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObjec
 void WickedCall_UnGlueObjectToObject(sObject* pObjectToUnGlue)
 {
 	// deattaches entity object from any parent
-	if (pObjectToUnGlue)
+	if ( pObjectToUnGlue )
 	{
 		uint64_t rootToUnGlueEntity = pObjectToUnGlue->wickedrootentityindex;
 		if (rootToUnGlueEntity > 0)
@@ -4246,7 +4272,7 @@ void WickedCall_UnGlueObjectToObject(sObject* pObjectToUnGlue)
 					AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
 					if (animationcomponent)
 					{
-						animationcomponent->UsePrimaryAnimTimer(0, 0);
+						animationcomponent->UsePrimaryAnimTimer(0,0);
 					}
 				}
 			}
@@ -4309,14 +4335,17 @@ void WickedCall_RotateLimb(sObject* pObject, sFrame* pFrame, float fAX, float fA
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
-				if (pAnimationChannel)
+				int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
 				{
-					pAnimationChannel->iUsePreFrame = 1;
-					pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(GGToRadian(fAX), GGToRadian(fAY), GGToRadian(fAZ));
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
+					if (pAnimationChannel)
+					{
+						pAnimationChannel->iUsePreFrame = 1;
+						pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(GGToRadian(fAX), GGToRadian(fAY), GGToRadian(fAZ));
+					}
 				}
 			}
 		}
@@ -4382,41 +4411,44 @@ void WickedCall_OverrideLimbWithCombined(sObject* pObject, sFrame* pFrame, bool 
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
-				AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
-				if (pAnimationChannelPos && pAnimationChannelRot)
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
 				{
-					// translation
-					pAnimationChannelPos->iUsePreFrame = 2;
-					pAnimationChannelPos->vPreFrameTranslation = XMVectorSet(pFrame->matCombined._41, pFrame->matCombined._42, pFrame->matCombined._43, 0);
+					AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
+					AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
+					if (pAnimationChannelPos && pAnimationChannelRot)
+					{
+						// translation
+						pAnimationChannelPos->iUsePreFrame = 2;
+						pAnimationChannelPos->vPreFrameTranslation = XMVectorSet(pFrame->matCombined._41, pFrame->matCombined._42, pFrame->matCombined._43, 0);
 
-					// rotation
-					GGMATRIX matCombined = pFrame->matCombined;
-					XMFLOAT4X4 matLimbRot;
-					matLimbRot._11 = matCombined._11;
-					matLimbRot._12 = matCombined._12;
-					matLimbRot._13 = matCombined._13;
-					matLimbRot._14 = matCombined._14;
-					matLimbRot._21 = matCombined._21;
-					matLimbRot._22 = matCombined._22;
-					matLimbRot._23 = matCombined._23;
-					matLimbRot._24 = matCombined._24;
-					matLimbRot._31 = matCombined._31;
-					matLimbRot._32 = matCombined._32;
-					matLimbRot._33 = matCombined._33;
-					matLimbRot._34 = matCombined._34;
-					matLimbRot._41 = 0;
-					matLimbRot._42 = 0;
-					matLimbRot._43 = 0;
-					matLimbRot._44 = 0;
-					XMMATRIX finalMat = XMLoadFloat4x4(&matLimbRot);
-					XMVECTOR currentRot = XMQuaternionRotationMatrix(finalMat);
-					pAnimationChannelRot->iUsePreFrame = 2;
-					pAnimationChannelRot->qPreFrameRotation = currentRot;
+						// rotation
+						GGMATRIX matCombined = pFrame->matCombined;
+						XMFLOAT4X4 matLimbRot;
+						matLimbRot._11 = matCombined._11;
+						matLimbRot._12 = matCombined._12;
+						matLimbRot._13 = matCombined._13;
+						matLimbRot._14 = matCombined._14;
+						matLimbRot._21 = matCombined._21;
+						matLimbRot._22 = matCombined._22;
+						matLimbRot._23 = matCombined._23;
+						matLimbRot._24 = matCombined._24;
+						matLimbRot._31 = matCombined._31;
+						matLimbRot._32 = matCombined._32;
+						matLimbRot._33 = matCombined._33;
+						matLimbRot._34 = matCombined._34;
+						matLimbRot._41 = 0;
+						matLimbRot._42 = 0;
+						matLimbRot._43 = 0;
+						matLimbRot._44 = 0;
+						XMMATRIX finalMat = XMLoadFloat4x4(&matLimbRot);
+						XMVECTOR currentRot = XMQuaternionRotationMatrix(finalMat);
+						pAnimationChannelRot->iUsePreFrame = 2;
+						pAnimationChannelRot->qPreFrameRotation = currentRot;
+					}
 				}
 			}
 		}
@@ -4431,14 +4463,17 @@ void WickedCall_OverrideLimbOff(sObject* pObject, sFrame* pFrame)
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
-				AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
-				if (pAnimationChannelPos) pAnimationChannelPos->iUsePreFrame = 0;
-				if (pAnimationChannelRot) pAnimationChannelRot->iUsePreFrame = 0;
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+				{
+					AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
+					AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
+					if (pAnimationChannelPos) pAnimationChannelPos->iUsePreFrame = 0;
+					if (pAnimationChannelRot) pAnimationChannelRot->iUsePreFrame = 0;
+				}
 			}
 		}
 	}
@@ -4452,20 +4487,23 @@ void WickedCall_SetBip01Position(sObject* pObject, sFrame* pFrame, int iUseMode,
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() )
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndexPos];
-				if (pAnimationChannel)
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() )
 				{
-					if (iUseMode == 3)
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndexPos];
+					if (pAnimationChannel)
 					{
-						pAnimationChannel->iUsePreFrame = 3;
-						pAnimationChannel->vPreFrameTranslation = XMVectorSet(0, 0, 0, 0);
-					}
-					else
-					{
-						pAnimationChannel->iUsePreFrame = 0;
+						if (iUseMode == 3)
+						{
+							pAnimationChannel->iUsePreFrame = 3;
+							pAnimationChannel->vPreFrameTranslation = XMVectorSet(0, 0, 0, 0);
+						}
+						else
+						{
+							pAnimationChannel->iUsePreFrame = 0;
+						}
 					}
 				}
 			}
@@ -4481,20 +4519,23 @@ void WickedCall_SetBip01Rotation(sObject* pObject, sFrame* pFrame, int iUseMode,
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
-				if (pAnimationChannel)
+				int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
 				{
-					if (iUseMode > 0)
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
+					if (pAnimationChannel)
 					{
-						pAnimationChannel->iUsePreFrame = iUseMode;
-						pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(0, 0, 0);
-					}
-					else
-					{
-						pAnimationChannel->iUsePreFrame = 0;
+						if (iUseMode > 0)
+						{
+							pAnimationChannel->iUsePreFrame = iUseMode;
+							pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(0, 0, 0);
+						}
+						else
+						{
+							pAnimationChannel->iUsePreFrame = 0;
+						}
 					}
 				}
 			}
@@ -4542,67 +4583,66 @@ void WickedCall_SetObjectPreFrames(sObject* pObject, LPSTR pParentFrameName, flo
 		// get animation component
 		uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-
-		// for each frame, copy the specified animation frame to the preframe
-		for (int iF = 0; iF < g_pFramesToAffect.size(); iF++)
+		if (animationcomponent)
 		{
-			sFrame* pFrame = g_pFramesToAffect[iF];
-			sAnimation* pAnim = pFrame->pAnimRef;
-			if (pAnim)
+			// for each frame, copy the specified animation frame to the preframe
+			for (int iF = 0; iF < g_pFramesToAffect.size(); iF++)
 			{
-				// must loop through three channels and samplers for this frame (T then R then S)
-				for (int i = 0; i < 3; i++)
+				sFrame* pFrame = g_pFramesToAffect[iF];
+				sAnimation* pAnim = pFrame->pAnimRef;
+				if (pAnim)
 				{
-					// LB: new animation system in wicked wipes out "backwards_compatibility_data" so need to use
-					// the new location for "keyframe_times, etc"
-					// prevent crash to ensure pAnim->wickedanimationchannel[i] not -1
-					//if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
-					if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
-						//&& pAnim->wickedanimationchannel[i] < animationcomponent->channels.size() 
-						//&& pAnim->wickedanimationsampler[i] < animationcomponent->samplers.size() )
+					// must loop through three channels and samplers for this frame (T then R then S)
+					for (int i = 0; i < 3; i++)
 					{
-						// for this animation, locate the channels and samplers for the frame
-						AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[pAnim->wickedanimationchannel[i]];
-						AnimationComponent::AnimationSampler* pAnimationSampler = &animationcomponent->samplers[pAnim->wickedanimationsampler[i]];
-						if (pAnimationChannel && pAnimationSampler)
+						// LB: new animation system in wicked wipes out "backwards_compatibility_data" so need to use
+						// the new location for "keyframe_times, etc"
+						// prevent crash to ensure pAnim->wickedanimationchannel[i] not -1
+						if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
 						{
-							AnimationDataComponent* animationdata = wiScene::GetScene().animation_datas.GetComponent(pAnimationSampler->data);
-							if (animationdata == nullptr)
-								continue;
+							// for this animation, locate the channels and samplers for the frame
+							AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[pAnim->wickedanimationchannel[i]];
+							AnimationComponent::AnimationSampler* pAnimationSampler = &animationcomponent->samplers[pAnim->wickedanimationsampler[i]];
+							if (pAnimationChannel && pAnimationSampler)
+							{
+								AnimationDataComponent* animationdata = wiScene::GetScene().animation_datas.GetComponent(pAnimationSampler->data);
+								if (animationdata == nullptr)
+									continue;
 
-							// find true keyframe slot using frame time passed in (using fFrameToUse)
-							int keyLeft = 0;
-							int keyRight = 0;
-							if (animationdata->keyframe_times.back() < fFrameToUse)
-							{
-								// Rightmost keyframe is already outside animation, so just snap to last keyframe:
-								keyLeft = keyRight = (int)animationdata->keyframe_times.size() - 1;
-							}
-							else
-							{
-								// Search for the right keyframe (greater/equal to anim time):
-								while (animationdata->keyframe_times[keyRight++] < fFrameToUse) {}
-								keyRight--;
-								// Left keyframe is just near right:
-								keyLeft = std::max(0, keyRight - 1);
-							}
+								// find true keyframe slot using frame time passed in (using fFrameToUse)
+								int keyLeft = 0;
+								int keyRight = 0;
+								if (animationdata->keyframe_times.back() < fFrameToUse)
+								{
+									// Rightmost keyframe is already outside animation, so just snap to last keyframe:
+									keyLeft = keyRight = (int)animationdata->keyframe_times.size() - 1;
+								}
+								else
+								{
+									// Search for the right keyframe (greater/equal to anim time):
+									while (animationdata->keyframe_times[keyRight++] < fFrameToUse) {}
+									keyRight--;
+									// Left keyframe is just near right:
+									keyLeft = std::max(0, keyRight - 1);
+								}
 
-							// copy the animation data as the preframe so it will be imposed on the animation 
-							pAnimationChannel->fSmoothAmount = 1.0f / fSmoothSlerpToNextShape;
-							if (i == 0)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->vPreFrameTranslation = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
-							}
-							if (i == 1)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->qPreFrameRotation = XMLoadFloat4(&((const XMFLOAT4*)animationdata->keyframe_data.data())[keyLeft]);
-							}
-							if (i == 2)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->vPreFrameScale = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								// copy the animation data as the preframe so it will be imposed on the animation 
+								pAnimationChannel->fSmoothAmount = 1.0f / fSmoothSlerpToNextShape;
+								if (i == 0)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->vPreFrameTranslation = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								}
+								if (i == 1)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->qPreFrameRotation = XMLoadFloat4(&((const XMFLOAT4*)animationdata->keyframe_data.data())[keyLeft]);
+								}
+								if (i == 2)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->vPreFrameScale = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								}
 							}
 						}
 					}
@@ -4612,7 +4652,7 @@ void WickedCall_SetObjectPreFrames(sObject* pObject, LPSTR pParentFrameName, flo
 	}
 }
 
-void WickedCall_SetObjectRenderLayer(sObject* pObject, int iLayerMask)
+void WickedCall_SetObjectRenderLayer(sObject* pObject,int iLayerMask)
 {
 	// this does not work, cannot seem to set the layermask AFTER you have created the object and merged it with the scene!
 	for (int iF = 0; iF < pObject->iFrameCount; iF++)
@@ -4738,7 +4778,7 @@ bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOut
 			float fDX = *pOutX - CameraPositionX(0);
 			float fDY = *pOutY - CameraPositionY(0);
 			float fDZ = *pOutZ - CameraPositionZ(0);
-			fDistToObjectHit = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
+			fDistToObjectHit = sqrt(fabs(fDX*fDX) + fabs(fDY*fDY) + fabs(fDZ*fDZ));
 		}
 		float pTerrOutX, pTerrOutY, pTerrOutZ, pTerrNormX, pTerrNormY, pTerrNormZ;
 		if (GGTerrain::GGTerrain_RayCast(pickRay, &pTerrOutX, &pTerrOutY, &pTerrOutZ, &pTerrNormX, &pTerrNormY, &pTerrNormZ, 0))
@@ -4748,7 +4788,7 @@ bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOut
 			float fDX = pTerrOutX - CameraPositionX(0);
 			float fDY = pTerrOutY - CameraPositionY(0);
 			float fDZ = pTerrOutZ - CameraPositionZ(0);
-			float fDist = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
+			float fDist = sqrt(fabs(fDX*fDX) + fabs(fDY*fDY) + fabs(fDZ*fDZ));
 			if (fDist < fDistToObjectHit || fDistToObjectHit == -1)
 			{
 				// if terrain closer than object hit, we register a terrain detection instead
@@ -4772,7 +4812,7 @@ bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOut
 	}
 
 	// no entity hovering over, but still want to move the cursor line in visual logic system
-	if (g_hovered_entity == 0)
+	if (g_hovered_entity == 0 )
 	{
 		if (iLayerMask & GGRENDERLAYERS_NORMAL)
 		{
@@ -4792,7 +4832,7 @@ bool WickedCall_GetPick(float* pOutX, float* pOutY, float* pOutZ, float* pNormX,
 	return WickedCall_GetPick2(currentMouse.x, currentMouse.y, pOutX, pOutY, pOutZ, pNormX, pNormY, pNormZ, pHitEntity, iLayerMask);
 }
 
-bool WickedCall_SentRay(float originx, float originy, float originz, float directionx, float directiony, float directionz, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask)
+bool WickedCall_SentRay(float originx, float originy, float originz, float directionx, float directiony, float directionz,float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask)
 {
 	//PE: Sent ray using wicked.
 	XMFLOAT4 currentMouse = wiInput::GetPointer();
@@ -4804,7 +4844,7 @@ bool WickedCall_SentRay(float originx, float originy, float originz, float direc
 	pickRay.direction.x = directionx;
 	pickRay.direction.y = directiony;
 	pickRay.direction.z = directionz;
-	XMStoreFloat3(&direction_inverse, XMVectorDivide(XMVectorReplicate(1.0f), XMVectorSet(directionx, directiony, directionz, 1.0f)));
+	XMStoreFloat3(&direction_inverse, XMVectorDivide(XMVectorReplicate(1.0f), XMVectorSet(directionx, directiony, directionz,1.0f)));
 	pickRay.direction_inverse = direction_inverse;
 	wiScene::PickResult hovered = wiScene::Pick(pickRay, RENDERTYPE_ALL, iLayerMask);
 
@@ -4986,7 +5026,7 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 		float fDX = hit.position.x - originx;
 		float fDY = hit.position.y - originy;
 		float fDZ = hit.position.z - originz;
-		float fDistOfHit = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
+		float fDistOfHit = sqrt(fabs(fDX*fDX)+fabs(fDY*fDY)+fabs(fDZ*fDZ));
 		if (fDistOfHit <= fDistanceOfRay)
 		{
 			sObject* pHitObject = m_ObjectManager.FindObjectFromWickedObjectEntityID(hit.entity);
@@ -5017,7 +5057,7 @@ void WickedCall_GetMouseDeltas(float* pfX, float* pfY)
 uint32_t WickedCall_GetTextureWidth(void* ptex)
 {
 	Texture* tex = (Texture*)ptex;
-	return(tex->GetDesc().Width);
+	return( tex->GetDesc().Width);
 }
 uint32_t WickedCall_GetTextureHeight(void* ptex)
 {
@@ -5082,14 +5122,14 @@ void WickedCall_SetSelectedObject(sObject* pObject)
 void WickedCall_SetObjectHighlightColor(sObject* pObject, bool bHighlight, int highlightColorType)
 {
 	uint64_t rootEntity = WickedCall_GetFirstRootEntityID(pObject);
-	if (rootEntity > 0)
+	if (rootEntity > 0) 
 	{
 		wiScene::ObjectComponent* pWickedObject = wiScene::GetScene().objects.GetComponent(rootEntity);
-		if (bHighlight)
+		if (bHighlight) 
 		{
 			if (pWickedObject) pWickedObject->SetUserStencilRef((EDITORSTENCILREF)highlightColorType);
 		}
-		else
+		else 
 		{
 			if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
 		}
@@ -5102,11 +5142,11 @@ void WickedCall_SetObjectHighlightColor(sObject* pObject, bool bHighlight, int h
 			if (objectEntity > 0 && rootEntity != objectEntity)
 			{
 				wiScene::ObjectComponent* pWickedObject = wiScene::GetScene().objects.GetComponent(objectEntity);
-				if (bHighlight)
+				if (bHighlight) 
 				{
 					if (pWickedObject) pWickedObject->SetUserStencilRef((EDITORSTENCILREF)highlightColorType);
 				}
-				else
+				else 
 				{
 					if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
 				}
@@ -5128,19 +5168,19 @@ void WickedCall_SetObjectHighlightBlue(sObject* pObject, bool bHighlight)
 void WickedCall_SetObjectHighlight(sObject* pObject, bool bHighlight)
 {
 	uint64_t rootEntity = WickedCall_GetFirstRootEntityID(pObject);
-	if (rootEntity > 0)
+	if (rootEntity > 0) 
 	{
 		wiScene::ObjectComponent* pWickedObject = wiScene::GetScene().objects.GetComponent(rootEntity);
-		if (bHighlight)
+		if (bHighlight) 
 		{
 			if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_HIGHLIGHT_OBJECT);
 		}
-		else
+		else 
 		{
 			if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
 		}
 	}
-
+	
 	for (int iF = 0; iF < pObject->iFrameCount; iF++)
 	{
 		if (pObject->ppFrameList && pObject->ppFrameList[iF])
@@ -5199,7 +5239,7 @@ void WickedCall_DrawObjctBox_CHECK_IF_WE_HAVE_A_GG_COLLISION_PROBLEM(sObject* pO
 	box1.x = aabb._max.x; box1.y = aabb._max.y; box1.z = aabb._max.z;
 	GGVec3TransformCoord(&box1, &box1, &matARotation);
 	aabb._max.x = box1.x; aabb._max.y = box1.y; aabb._max.z = box1.z;
-
+	
 	aabb._min.x = (aabb._min.x * pObject->position.vecScale.x) + pObject->position.vecPosition.x;
 	aabb._min.y = (aabb._min.y * pObject->position.vecScale.y) + pObject->position.vecPosition.y;
 	aabb._min.z = (aabb._min.z * pObject->position.vecScale.z) + pObject->position.vecPosition.z;
@@ -5217,21 +5257,21 @@ void WickedCall_DrawObjctBox(sObject* pObject, XMFLOAT4 color, bool bThickLine, 
 {
 	if (!pObject) return;
 
-	if (!bUseEditorOutlineSelection())
+	if(!bUseEditorOutlineSelection())
 		ForceBox = true;
 	if (!ForceBox)
 	{
 		if (ObjectExist(pObject->dwObjectNumber))
 		{
 			g_ObjectHighlightList.push_back(pObject->dwObjectNumber);
-			if (color.x == 1.0 && color.y == 0.0 && color.z == 0.0)
+			if(color.x==1.0 && color.y==0.0 && color.z==0.0)
 				WickedCall_SetObjectHighlightRed(pObject, true);
 			else
 				WickedCall_SetObjectHighlight(pObject, true);
 		}
 		return;
 	}
-
+	
 	if (color.w == 0.0) return; //PE: Disable box if no color.
 
 	AABB aabb;
@@ -5259,8 +5299,8 @@ void WickedCall_DrawObjctBox(sObject* pObject, XMFLOAT4 color, bool bThickLine, 
 	GGVECTOR3 vObjectCenter = pObject->collision.vecCentre;
 
 	XMFLOAT3 ext = aabb.getHalfWidth();
-	XMMATRIX sca = XMMatrixScaling(ext.x * pObject->position.vecScale.x, ext.y * pObject->position.vecScale.y, ext.z * pObject->position.vecScale.z);
-	XMMATRIX tra = XMMatrixTranslation(pObject->collision.vecCentre.x * pObject->position.vecScale.x, pObject->collision.vecCentre.y * pObject->position.vecScale.y, pObject->collision.vecCentre.z * pObject->position.vecScale.z) * rot;
+	XMMATRIX sca = XMMatrixScaling(ext.x*pObject->position.vecScale.x, ext.y*pObject->position.vecScale.y, ext.z*pObject->position.vecScale.z);
+	XMMATRIX tra = XMMatrixTranslation(pObject->collision.vecCentre.x*pObject->position.vecScale.x, pObject->collision.vecCentre.y*pObject->position.vecScale.y, pObject->collision.vecCentre.z*pObject->position.vecScale.z) * rot;
 
 	XMStoreFloat4x4(&hoverBox, sca * tra);
 
@@ -5295,17 +5335,17 @@ void WickedCall_DrawPoint(float fx, float fy, float fz, float size, XMFLOAT4 col
 {
 
 	AABB aabb;
-	aabb._min.x = fx - size;
-	aabb._min.y = fy - size;
-	aabb._min.z = fz - size;
-	aabb._max.x = fx + size;
-	aabb._max.y = fy + size;
-	aabb._max.z = fz + size;
+	aabb._min.x = fx- size;
+	aabb._min.y = fy- size;
+	aabb._min.z = fz- size;
+	aabb._max.x = fx+ size;
+	aabb._max.y = fy+ size;
+	aabb._max.z = fz+ size;
 
 	XMFLOAT4X4 hoverBox;
 
 	XMFLOAT3 ext = aabb.getHalfWidth();
-	XMMATRIX sca = XMMatrixScaling(ext.x * 1.0, ext.y * 1.0, ext.z * 1.0);
+	XMMATRIX sca = XMMatrixScaling(ext.x*1.0, ext.y*1.0, ext.z*1.0);
 	XMMATRIX tra = XMMatrixTranslation(0.0, 0.0, 0.0);
 
 	XMStoreFloat4x4(&hoverBox, sca * tra);
@@ -5342,7 +5382,7 @@ void WickedCall_DrawObjctBox_Color(sObject* pObject, float r, float g, float b, 
 	WickedCall_DrawObjctBox(pObject, color);
 }
 
-void WickedCall_RenderEditorFunctions(void)
+void WickedCall_RenderEditorFunctions( void )
 {
 	// if shooter genre mode active, show all logic objects
 	extern bool Shooter_Tools_Window;
@@ -5382,26 +5422,26 @@ void WickedCall_RenderEditorFunctions(void)
 		return;
 
 	// highlight selected object too
-	if (g_selected_pobject)
+	if (g_selected_pobject) 
 	{
 		WickedCall_DrawObjctBox(g_selected_pobject, XMFLOAT4(0.25f, 1.0f, 0.25f, 0.5f));
 	}
 
 	// highlight editor selection too
-	if (g_selected_editor_object)
+	if (g_selected_editor_object) 
 	{
 		WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
 		WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
 	}
 
 	// highlight highlighted object too
-	if (g_highlight_pobject)
+	if (g_highlight_pobject) 
 	{
-#ifdef ONLY_USE_OUTLINE_HIGHLIGHT
+		#ifdef ONLY_USE_OUTLINE_HIGHLIGHT
 		WickedCall_DrawObjctBox(g_highlight_pobject, XMFLOAT4(1.0f, 0.75f, 0.0f, 0.85f), true, false);
-#else
+		#else
 		WickedCall_DrawObjctBox(g_highlight_pobject, XMFLOAT4(1.0f, 0.75f, 0.0f, 0.85f), true, true);
-#endif
+		#endif
 	}
 
 	// process highlights for rubber banded objects, selections and locked objects
@@ -5410,13 +5450,13 @@ void WickedCall_RenderEditorFunctions(void)
 	Wicked_Highlight_LockedList();
 }
 
-void Wicked_Update_Shadows(void* voidvisual);
+void Wicked_Update_Shadows(void *voidvisual);
 uint64_t WickedCall_AddLight(int iLightType)
 {
-	Entity light = wiScene::GetScene ().Entity_CreateLight ("light", XMFLOAT3 (0, 0, 0), XMFLOAT3 (1, 1, 1), 30, 500);
-	LightComponent* lightComponent = wiScene::GetScene ().lights.GetComponent (light);
+	Entity light = wiScene::GetScene ( ).Entity_CreateLight ( "light", XMFLOAT3 ( 0, 0, 0 ), XMFLOAT3 ( 1, 1, 1 ), 30, 500 );
+	LightComponent* lightComponent = wiScene::GetScene ( ).lights.GetComponent ( light );
 	lightComponent->_flags = 0;
-	lightComponent->SetType ((wiScene::LightComponent::LightType)iLightType);
+	lightComponent->SetType ( (wiScene::LightComponent::LightType)iLightType );
 	Wicked_Update_Shadows(NULL);
 	return light;
 }
@@ -5427,7 +5467,7 @@ void WickedCall_DeleteLight(uint64_t wickedlightindex)
 	//PE: When creating light also update probes.
 	WickedCall_UpdateProbes();
 
-
+	
 }
 
 //PE: Calculate needed light textures.
@@ -5464,12 +5504,12 @@ int WickedCall_GetCubeShadowLights(void)
 
 void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float fZ, float fAX, float fAY, float fAZ, float fRange, float fSpotRadius, int iColR, int iColG, int iColB, bool bCastShadow)
 {
-	LightComponent* lightComponent = wiScene::GetScene ().lights.GetComponent (wickedlightindex);
-	TransformComponent* transformLight = wiScene::GetScene ().transforms.GetComponent (wickedlightindex);
-	lightComponent->SetCastShadow (bCastShadow);
+	LightComponent* lightComponent = wiScene::GetScene ( ).lights.GetComponent ( wickedlightindex );
+	TransformComponent* transformLight = wiScene::GetScene ( ).transforms.GetComponent ( wickedlightindex );
+	lightComponent->SetCastShadow ( bCastShadow );
 	lightComponent->range_local = fRange;
 	lightComponent->fov = GGToRadian(fSpotRadius);
-	lightComponent->color = XMFLOAT3((float)iColR / 255.0f, (float)iColG / 255.0f, (float)iColB / 255.0f);
+	lightComponent->color = XMFLOAT3((float)iColR/255.0f, (float)iColG/255.0f, (float)iColB/255.0f);
 
 	transformLight->ClearTransform();
 	transformLight->Translate(XMFLOAT3(fX, fY, fZ));
@@ -5496,7 +5536,7 @@ void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float
 		*/
 
 		XMMATRIX rot;
-		rot = XMMatrixRotationX(GGToRadian(fAX - 90.0)); //Match the spot light object.
+		rot = XMMatrixRotationX(GGToRadian(fAX-90.0)); //Match the spot light object.
 		rot = rot * XMMatrixRotationY(GGToRadian(fAY));
 		rot = rot * XMMatrixRotationZ(GGToRadian(fAZ));
 		XMVECTOR S;
@@ -5569,7 +5609,7 @@ void WickedCall_EnableThumbLight(bool On)
 		SetLightShaftState(false);
 		SetLensFlareState(false);
 	}
-	else
+	else 
 	{
 		if (g_entityThumbLight)
 		{
@@ -5588,7 +5628,7 @@ void WickedCall_EnableThumbLight(bool On)
 
 void WickedCall_SetEditorCameraLight(bool bSwitchOn)
 {
-	LightComponent* lightCamera = wiScene::GetScene ().lights.GetComponent (g_entityCameraLight);
+	LightComponent* lightCamera = wiScene::GetScene ( ).lights.GetComponent ( g_entityCameraLight );
 	if (lightCamera)
 	{
 		if (bSwitchOn == true)
@@ -5598,7 +5638,7 @@ void WickedCall_SetEditorCameraLight(bool bSwitchOn)
 	}
 }
 
-void WickedCall_SetSpriteBoundBox(bool bShow, float fX1, float fY1, float fX2, float fY2)
+void WickedCall_SetSpriteBoundBox(bool bShow,float fX1, float fY1,float fX2, float fY2)
 {
 	//PE: Wicked sprite do not support DPI and placement is wrong. like if you set windows DPI to 150%.
 	//PE: Use imgui to draw it.
@@ -5612,35 +5652,35 @@ void WickedCall_SetSpriteBoundBox(bool bShow, float fX1, float fY1, float fX2, f
 		fY2 -= fMouseCenterOffset;
 		DrawRubberBand(fX1, fY1, fX2, fY2);
 	}
-	/*
-		if (bShow == true)
-		{
-			fY1 -= 20; fY2 -= 20; // seems to help mouse vs screen accuracy (if change at source, free flight messes up)
-			pboundbox[0]->params.pos.x = fX1;
-			pboundbox[0]->params.pos.y = fY1;
-			pboundbox[0]->params.siz.x = fX2 - fX1;
-			pboundbox[0]->params.siz.y = 2;
-			pboundbox[1]->params.pos.x = fX1;
-			pboundbox[1]->params.pos.y = fY1;
-			pboundbox[1]->params.siz.x = 2;
-			pboundbox[1]->params.siz.y = fY2 - fY1;
-			pboundbox[2]->params.pos.x = fX1;
-			pboundbox[2]->params.pos.y = fY2-2;
-			pboundbox[2]->params.siz.x = fX2 - fX1;
-			pboundbox[2]->params.siz.y = 2;
-			pboundbox[3]->params.pos.x = fX2-2;
-			pboundbox[3]->params.pos.y = fY1;
-			pboundbox[3]->params.siz.x = 2;
-			pboundbox[3]->params.siz.y = fY2 - fY1;
-		}
-		else
-		{
-			pboundbox[0]->params.pos.x = -999999;
-			pboundbox[1]->params.pos.x = -999999;
-			pboundbox[2]->params.pos.x = -999999;
-			pboundbox[3]->params.pos.x = -999999;
-		}
-	*/
+/*
+	if (bShow == true)
+	{
+		fY1 -= 20; fY2 -= 20; // seems to help mouse vs screen accuracy (if change at source, free flight messes up)
+		pboundbox[0]->params.pos.x = fX1;
+		pboundbox[0]->params.pos.y = fY1;
+		pboundbox[0]->params.siz.x = fX2 - fX1;
+		pboundbox[0]->params.siz.y = 2;
+		pboundbox[1]->params.pos.x = fX1;
+		pboundbox[1]->params.pos.y = fY1;
+		pboundbox[1]->params.siz.x = 2;
+		pboundbox[1]->params.siz.y = fY2 - fY1;
+		pboundbox[2]->params.pos.x = fX1;
+		pboundbox[2]->params.pos.y = fY2-2;
+		pboundbox[2]->params.siz.x = fX2 - fX1;
+		pboundbox[2]->params.siz.y = 2;
+		pboundbox[3]->params.pos.x = fX2-2;
+		pboundbox[3]->params.pos.y = fY1;
+		pboundbox[3]->params.siz.x = 2;
+		pboundbox[3]->params.siz.y = fY2 - fY1;
+	}
+	else
+	{
+		pboundbox[0]->params.pos.x = -999999;
+		pboundbox[1]->params.pos.x = -999999;
+		pboundbox[2]->params.pos.x = -999999;
+		pboundbox[3]->params.pos.x = -999999;
+	}
+*/
 }
 
 void WickedCall_SetSunDirection(float fAx, float fAy, float fAz)
@@ -5654,7 +5694,7 @@ void WickedCall_SetSunDirection(float fAx, float fAy, float fAz)
 	transformSunLight->RotateRollPitchYaw(rotationinrads);
 }
 
-void WickedCall_SetSunColors(float fRed, float fGreen, float fBlue, float fEnergy, float fFov, float fShadowBias)
+void WickedCall_SetSunColors(float fRed, float fGreen, float fBlue,float fEnergy,float fFov, float fShadowBias)
 {
 	LightComponent* lightSun = wiScene::GetScene().lights.GetComponent(g_entitySunLight);
 	lightSun->color.x = fRed;
@@ -5692,7 +5732,7 @@ void WickedCall_SunSetRange(float fRange)
 	lightSun->range_global = fRange;
 }
 
-void WickedCall_SetTextureName(int obj, char* texturename)
+void WickedCall_SetTextureName(int obj, char *texturename)
 {
 	sObject* GetObjectData(int iID);
 	sObject* pObject = GetObjectData(obj);
@@ -5723,7 +5763,7 @@ void WickedCall_DrawImguiNow(void)
 	ImGuiHook_RenderCall_Direct((void*)m_pImmediateContext, (void*)m_pD3D);
 }
 
-void WickedCall_SetCameraFOV (float fFOV)
+void WickedCall_SetCameraFOV ( float fFOV )
 {
 	// from wicked camera
 	float fNear = wiScene::GetCamera().zNearP;
@@ -5810,7 +5850,7 @@ void WickedCall_DisplayCubes(bool Visible)
 		void clear_highlighted_tree(void);
 		int get_terrain_sculpt_mode(void);
 		extern int iLastTerrainSculptMode;
-		if (iLastTerrainSculptMode == -1)
+		if(iLastTerrainSculptMode == -1)
 			iLastTerrainSculptMode = get_terrain_sculpt_mode();
 		set_terrain_sculpt_mode(0); // GGTERRAIN_SCULPT_NONE; Disable terrain sculpt circle.
 		set_terrain_edit_mode(0); // GGTERRAIN_EDIT_NONE; Disable terrain paint circle.
@@ -5838,7 +5878,7 @@ void WickedCall_DisplayCubes(bool Visible)
 	}
 }
 
-void WickedCall_CreateReflectionProbe(float x, float y, float z, char* name, float size)
+void WickedCall_CreateReflectionProbe(float x, float y, float z,char *name,float size)
 {
 	/*
 	Entity entityProbe;
@@ -5890,7 +5930,7 @@ void WickedCall_CreateReflectionProbe(float x, float y, float z, char* name, flo
 }
 
 
-void WickedCall_MoveReflectionProbe(float x, float y, float z, char* name, float size)
+void WickedCall_MoveReflectionProbe(float x, float y, float z, char *name, float size)
 {
 	/*
 	Entity entityProbe;
@@ -5921,7 +5961,7 @@ void WickedCall_MoveReflectionProbe(float x, float y, float z, char* name, float
 	*/
 }
 
-void WickedCall_DeleteReflectionProbe(char* name)
+void WickedCall_DeleteReflectionProbe(char *name)
 {
 	/*
 	Entity entityProbe;
@@ -5970,8 +6010,8 @@ void WickedCall_DrawObjctCapsule(sObject* pObject, XMFLOAT4 color)
 	GGVECTOR3 vObjectCenter = pObject->collision.vecCentre;
 
 	XMFLOAT3 ext = aabb.getHalfWidth();
-	XMMATRIX sca = XMMatrixScaling(ext.x * pObject->position.vecScale.x, ext.y * pObject->position.vecScale.y, ext.z * pObject->position.vecScale.z);
-	XMMATRIX tra = XMMatrixTranslation(pObject->collision.vecCentre.x * pObject->position.vecScale.x, pObject->collision.vecCentre.y * pObject->position.vecScale.y, pObject->collision.vecCentre.z * pObject->position.vecScale.z) * rot;
+	XMMATRIX sca = XMMatrixScaling(ext.x*pObject->position.vecScale.x, ext.y*pObject->position.vecScale.y, ext.z*pObject->position.vecScale.z);
+	XMMATRIX tra = XMMatrixTranslation(pObject->collision.vecCentre.x*pObject->position.vecScale.x, pObject->collision.vecCentre.y*pObject->position.vecScale.y, pObject->collision.vecCentre.z*pObject->position.vecScale.z) * rot;
 
 	XMStoreFloat4x4(&hoverBox, sca * tra);
 	XMFLOAT3 pos = XMFLOAT3(pObject->position.vecPosition.x, pObject->position.vecPosition.y, pObject->position.vecPosition.z);
@@ -5981,12 +6021,12 @@ void WickedCall_DrawObjctCapsule(sObject* pObject, XMFLOAT4 color)
 	//tip.z += 10.0f;
 
 	CAPSULE capsule = CAPSULE(pos, tip, 40.0f);
-	wiRenderer::DrawCapsule(capsule, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	wiRenderer::DrawCapsule(capsule, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) );
 }
 void CapsuleTest(void)
 {
 	//DrawCapsule
-	if (g_selected_editor_object)
+	if(g_selected_editor_object)
 		WickedCall_DrawObjctCapsule(g_selected_editor_object, g_selected_editor_color);
 
 }
@@ -6014,210 +6054,210 @@ constexpr DXGI_FORMAT _ConvertFormat(FORMAT value)
 {
 	switch (value)
 	{
-		case FORMAT_UNKNOWN:
-			return DXGI_FORMAT_UNKNOWN;
-			break;
-		case FORMAT_R32G32B32A32_FLOAT:
-			return DXGI_FORMAT_R32G32B32A32_FLOAT;
-			break;
-		case FORMAT_R32G32B32A32_UINT:
-			return DXGI_FORMAT_R32G32B32A32_UINT;
-			break;
-		case FORMAT_R32G32B32A32_SINT:
-			return DXGI_FORMAT_R32G32B32A32_SINT;
-			break;
-		case FORMAT_R32G32B32_FLOAT:
-			return DXGI_FORMAT_R32G32B32_FLOAT;
-			break;
-		case FORMAT_R32G32B32_UINT:
-			return DXGI_FORMAT_R32G32B32_UINT;
-			break;
-		case FORMAT_R32G32B32_SINT:
-			return DXGI_FORMAT_R32G32B32_SINT;
-			break;
-		case FORMAT_R16G16B16A16_FLOAT:
-			return DXGI_FORMAT_R16G16B16A16_FLOAT;
-			break;
-		case FORMAT_R16G16B16A16_UNORM:
-			return DXGI_FORMAT_R16G16B16A16_UNORM;
-			break;
-		case FORMAT_R16G16B16A16_UINT:
-			return DXGI_FORMAT_R16G16B16A16_UINT;
-			break;
-		case FORMAT_R16G16B16A16_SNORM:
-			return DXGI_FORMAT_R16G16B16A16_SNORM;
-			break;
-		case FORMAT_R16G16B16A16_SINT:
-			return DXGI_FORMAT_R16G16B16A16_SINT;
-			break;
-		case FORMAT_R32G32_FLOAT:
-			return DXGI_FORMAT_R32G32_FLOAT;
-			break;
-		case FORMAT_R32G32_UINT:
-			return DXGI_FORMAT_R32G32_UINT;
-			break;
-		case FORMAT_R32G32_SINT:
-			return DXGI_FORMAT_R32G32_SINT;
-			break;
-		case FORMAT_R32G8X24_TYPELESS:
-			return DXGI_FORMAT_R32G8X24_TYPELESS;
-			break;
-		case FORMAT_D32_FLOAT_S8X24_UINT:
-			return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-			break;
-		case FORMAT_R10G10B10A2_UNORM:
-			return DXGI_FORMAT_R10G10B10A2_UNORM;
-			break;
-		case FORMAT_R10G10B10A2_UINT:
-			return DXGI_FORMAT_R10G10B10A2_UINT;
-			break;
-		case FORMAT_R11G11B10_FLOAT:
-			return DXGI_FORMAT_R11G11B10_FLOAT;
-			break;
-		case FORMAT_R8G8B8A8_UNORM:
-			return DXGI_FORMAT_R8G8B8A8_UNORM;
-			break;
-		case FORMAT_R8G8B8A8_UNORM_SRGB:
-			return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-			break;
-		case FORMAT_R8G8B8A8_UINT:
-			return DXGI_FORMAT_R8G8B8A8_UINT;
-			break;
-		case FORMAT_R8G8B8A8_SNORM:
-			return DXGI_FORMAT_R8G8B8A8_SNORM;
-			break;
-		case FORMAT_R8G8B8A8_SINT:
-			return DXGI_FORMAT_R8G8B8A8_SINT;
-			break;
-		case FORMAT_R16G16_FLOAT:
-			return DXGI_FORMAT_R16G16_FLOAT;
-			break;
-		case FORMAT_R16G16_UNORM:
-			return DXGI_FORMAT_R16G16_UNORM;
-			break;
-		case FORMAT_R16G16_UINT:
-			return DXGI_FORMAT_R16G16_UINT;
-			break;
-		case FORMAT_R16G16_SNORM:
-			return DXGI_FORMAT_R16G16_SNORM;
-			break;
-		case FORMAT_R16G16_SINT:
-			return DXGI_FORMAT_R16G16_SINT;
-			break;
-		case FORMAT_R32_TYPELESS:
-			return DXGI_FORMAT_R32_TYPELESS;
-			break;
-		case FORMAT_D32_FLOAT:
-			return DXGI_FORMAT_D32_FLOAT;
-			break;
-		case FORMAT_R32_FLOAT:
-			return DXGI_FORMAT_R32_FLOAT;
-			break;
-		case FORMAT_R32_UINT:
-			return DXGI_FORMAT_R32_UINT;
-			break;
-		case FORMAT_R32_SINT:
-			return DXGI_FORMAT_R32_SINT;
-			break;
-		case FORMAT_R24G8_TYPELESS:
-			return DXGI_FORMAT_R24G8_TYPELESS;
-			break;
-		case FORMAT_D24_UNORM_S8_UINT:
-			return DXGI_FORMAT_D24_UNORM_S8_UINT;
-			break;
-		case FORMAT_R8G8_UNORM:
-			return DXGI_FORMAT_R8G8_UNORM;
-			break;
-		case FORMAT_R8G8_UINT:
-			return DXGI_FORMAT_R8G8_UINT;
-			break;
-		case FORMAT_R8G8_SNORM:
-			return DXGI_FORMAT_R8G8_SNORM;
-			break;
-		case FORMAT_R8G8_SINT:
-			return DXGI_FORMAT_R8G8_SINT;
-			break;
-		case FORMAT_R16_TYPELESS:
-			return DXGI_FORMAT_R16_TYPELESS;
-			break;
-		case FORMAT_R16_FLOAT:
-			return DXGI_FORMAT_R16_FLOAT;
-			break;
-		case FORMAT_D16_UNORM:
-			return DXGI_FORMAT_D16_UNORM;
-			break;
-		case FORMAT_R16_UNORM:
-			return DXGI_FORMAT_R16_UNORM;
-			break;
-		case FORMAT_R16_UINT:
-			return DXGI_FORMAT_R16_UINT;
-			break;
-		case FORMAT_R16_SNORM:
-			return DXGI_FORMAT_R16_SNORM;
-			break;
-		case FORMAT_R16_SINT:
-			return DXGI_FORMAT_R16_SINT;
-			break;
-		case FORMAT_R8_UNORM:
-			return DXGI_FORMAT_R8_UNORM;
-			break;
-		case FORMAT_R8_UINT:
-			return DXGI_FORMAT_R8_UINT;
-			break;
-		case FORMAT_R8_SNORM:
-			return DXGI_FORMAT_R8_SNORM;
-			break;
-		case FORMAT_R8_SINT:
-			return DXGI_FORMAT_R8_SINT;
-			break;
-		case FORMAT_BC1_UNORM:
-			return DXGI_FORMAT_BC1_UNORM;
-			break;
-		case FORMAT_BC1_UNORM_SRGB:
-			return DXGI_FORMAT_BC1_UNORM_SRGB;
-			break;
-		case FORMAT_BC2_UNORM:
-			return DXGI_FORMAT_BC2_UNORM;
-			break;
-		case FORMAT_BC2_UNORM_SRGB:
-			return DXGI_FORMAT_BC2_UNORM_SRGB;
-			break;
-		case FORMAT_BC3_UNORM:
-			return DXGI_FORMAT_BC3_UNORM;
-			break;
-		case FORMAT_BC3_UNORM_SRGB:
-			return DXGI_FORMAT_BC3_UNORM_SRGB;
-			break;
-		case FORMAT_BC4_UNORM:
-			return DXGI_FORMAT_BC4_UNORM;
-			break;
-		case FORMAT_BC4_SNORM:
-			return DXGI_FORMAT_BC4_SNORM;
-			break;
-		case FORMAT_BC5_UNORM:
-			return DXGI_FORMAT_BC5_UNORM;
-			break;
-		case FORMAT_BC5_SNORM:
-			return DXGI_FORMAT_BC5_SNORM;
-			break;
-		case FORMAT_B8G8R8A8_UNORM:
-			return DXGI_FORMAT_B8G8R8A8_UNORM;
-			break;
-		case FORMAT_B8G8R8A8_UNORM_SRGB:
-			return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-			break;
-		case FORMAT_BC6H_UF16:
-			return DXGI_FORMAT_BC6H_UF16;
-			break;
-		case FORMAT_BC6H_SF16:
-			return DXGI_FORMAT_BC6H_SF16;
-			break;
-		case FORMAT_BC7_UNORM:
-			return DXGI_FORMAT_BC7_UNORM;
-			break;
-		case FORMAT_BC7_UNORM_SRGB:
-			return DXGI_FORMAT_BC7_UNORM_SRGB;
-			break;
+	case FORMAT_UNKNOWN:
+		return DXGI_FORMAT_UNKNOWN;
+		break;
+	case FORMAT_R32G32B32A32_FLOAT:
+		return DXGI_FORMAT_R32G32B32A32_FLOAT;
+		break;
+	case FORMAT_R32G32B32A32_UINT:
+		return DXGI_FORMAT_R32G32B32A32_UINT;
+		break;
+	case FORMAT_R32G32B32A32_SINT:
+		return DXGI_FORMAT_R32G32B32A32_SINT;
+		break;
+	case FORMAT_R32G32B32_FLOAT:
+		return DXGI_FORMAT_R32G32B32_FLOAT;
+		break;
+	case FORMAT_R32G32B32_UINT:
+		return DXGI_FORMAT_R32G32B32_UINT;
+		break;
+	case FORMAT_R32G32B32_SINT:
+		return DXGI_FORMAT_R32G32B32_SINT;
+		break;
+	case FORMAT_R16G16B16A16_FLOAT:
+		return DXGI_FORMAT_R16G16B16A16_FLOAT;
+		break;
+	case FORMAT_R16G16B16A16_UNORM:
+		return DXGI_FORMAT_R16G16B16A16_UNORM;
+		break;
+	case FORMAT_R16G16B16A16_UINT:
+		return DXGI_FORMAT_R16G16B16A16_UINT;
+		break;
+	case FORMAT_R16G16B16A16_SNORM:
+		return DXGI_FORMAT_R16G16B16A16_SNORM;
+		break;
+	case FORMAT_R16G16B16A16_SINT:
+		return DXGI_FORMAT_R16G16B16A16_SINT;
+		break;
+	case FORMAT_R32G32_FLOAT:
+		return DXGI_FORMAT_R32G32_FLOAT;
+		break;
+	case FORMAT_R32G32_UINT:
+		return DXGI_FORMAT_R32G32_UINT;
+		break;
+	case FORMAT_R32G32_SINT:
+		return DXGI_FORMAT_R32G32_SINT;
+		break;
+	case FORMAT_R32G8X24_TYPELESS:
+		return DXGI_FORMAT_R32G8X24_TYPELESS;
+		break;
+	case FORMAT_D32_FLOAT_S8X24_UINT:
+		return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+		break;
+	case FORMAT_R10G10B10A2_UNORM:
+		return DXGI_FORMAT_R10G10B10A2_UNORM;
+		break;
+	case FORMAT_R10G10B10A2_UINT:
+		return DXGI_FORMAT_R10G10B10A2_UINT;
+		break;
+	case FORMAT_R11G11B10_FLOAT:
+		return DXGI_FORMAT_R11G11B10_FLOAT;
+		break;
+	case FORMAT_R8G8B8A8_UNORM:
+		return DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case FORMAT_R8G8B8A8_UNORM_SRGB:
+		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		break;
+	case FORMAT_R8G8B8A8_UINT:
+		return DXGI_FORMAT_R8G8B8A8_UINT;
+		break;
+	case FORMAT_R8G8B8A8_SNORM:
+		return DXGI_FORMAT_R8G8B8A8_SNORM;
+		break;
+	case FORMAT_R8G8B8A8_SINT:
+		return DXGI_FORMAT_R8G8B8A8_SINT;
+		break;
+	case FORMAT_R16G16_FLOAT:
+		return DXGI_FORMAT_R16G16_FLOAT;
+		break;
+	case FORMAT_R16G16_UNORM:
+		return DXGI_FORMAT_R16G16_UNORM;
+		break;
+	case FORMAT_R16G16_UINT:
+		return DXGI_FORMAT_R16G16_UINT;
+		break;
+	case FORMAT_R16G16_SNORM:
+		return DXGI_FORMAT_R16G16_SNORM;
+		break;
+	case FORMAT_R16G16_SINT:
+		return DXGI_FORMAT_R16G16_SINT;
+		break;
+	case FORMAT_R32_TYPELESS:
+		return DXGI_FORMAT_R32_TYPELESS;
+		break;
+	case FORMAT_D32_FLOAT:
+		return DXGI_FORMAT_D32_FLOAT;
+		break;
+	case FORMAT_R32_FLOAT:
+		return DXGI_FORMAT_R32_FLOAT;
+		break;
+	case FORMAT_R32_UINT:
+		return DXGI_FORMAT_R32_UINT;
+		break;
+	case FORMAT_R32_SINT:
+		return DXGI_FORMAT_R32_SINT;
+		break;
+	case FORMAT_R24G8_TYPELESS:
+		return DXGI_FORMAT_R24G8_TYPELESS;
+		break;
+	case FORMAT_D24_UNORM_S8_UINT:
+		return DXGI_FORMAT_D24_UNORM_S8_UINT;
+		break;
+	case FORMAT_R8G8_UNORM:
+		return DXGI_FORMAT_R8G8_UNORM;
+		break;
+	case FORMAT_R8G8_UINT:
+		return DXGI_FORMAT_R8G8_UINT;
+		break;
+	case FORMAT_R8G8_SNORM:
+		return DXGI_FORMAT_R8G8_SNORM;
+		break;
+	case FORMAT_R8G8_SINT:
+		return DXGI_FORMAT_R8G8_SINT;
+		break;
+	case FORMAT_R16_TYPELESS:
+		return DXGI_FORMAT_R16_TYPELESS;
+		break;
+	case FORMAT_R16_FLOAT:
+		return DXGI_FORMAT_R16_FLOAT;
+		break;
+	case FORMAT_D16_UNORM:
+		return DXGI_FORMAT_D16_UNORM;
+		break;
+	case FORMAT_R16_UNORM:
+		return DXGI_FORMAT_R16_UNORM;
+		break;
+	case FORMAT_R16_UINT:
+		return DXGI_FORMAT_R16_UINT;
+		break;
+	case FORMAT_R16_SNORM:
+		return DXGI_FORMAT_R16_SNORM;
+		break;
+	case FORMAT_R16_SINT:
+		return DXGI_FORMAT_R16_SINT;
+		break;
+	case FORMAT_R8_UNORM:
+		return DXGI_FORMAT_R8_UNORM;
+		break;
+	case FORMAT_R8_UINT:
+		return DXGI_FORMAT_R8_UINT;
+		break;
+	case FORMAT_R8_SNORM:
+		return DXGI_FORMAT_R8_SNORM;
+		break;
+	case FORMAT_R8_SINT:
+		return DXGI_FORMAT_R8_SINT;
+		break;
+	case FORMAT_BC1_UNORM:
+		return DXGI_FORMAT_BC1_UNORM;
+		break;
+	case FORMAT_BC1_UNORM_SRGB:
+		return DXGI_FORMAT_BC1_UNORM_SRGB;
+		break;
+	case FORMAT_BC2_UNORM:
+		return DXGI_FORMAT_BC2_UNORM;
+		break;
+	case FORMAT_BC2_UNORM_SRGB:
+		return DXGI_FORMAT_BC2_UNORM_SRGB;
+		break;
+	case FORMAT_BC3_UNORM:
+		return DXGI_FORMAT_BC3_UNORM;
+		break;
+	case FORMAT_BC3_UNORM_SRGB:
+		return DXGI_FORMAT_BC3_UNORM_SRGB;
+		break;
+	case FORMAT_BC4_UNORM:
+		return DXGI_FORMAT_BC4_UNORM;
+		break;
+	case FORMAT_BC4_SNORM:
+		return DXGI_FORMAT_BC4_SNORM;
+		break;
+	case FORMAT_BC5_UNORM:
+		return DXGI_FORMAT_BC5_UNORM;
+		break;
+	case FORMAT_BC5_SNORM:
+		return DXGI_FORMAT_BC5_SNORM;
+		break;
+	case FORMAT_B8G8R8A8_UNORM:
+		return DXGI_FORMAT_B8G8R8A8_UNORM;
+		break;
+	case FORMAT_B8G8R8A8_UNORM_SRGB:
+		return DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
+		break;
+	case FORMAT_BC6H_UF16:
+		return DXGI_FORMAT_BC6H_UF16;
+		break;
+	case FORMAT_BC6H_SF16:
+		return DXGI_FORMAT_BC6H_SF16;
+		break;
+	case FORMAT_BC7_UNORM:
+		return DXGI_FORMAT_BC7_UNORM;
+		break;
+	case FORMAT_BC7_UNORM_SRGB:
+		return DXGI_FORMAT_BC7_UNORM_SRGB;
+		break;
 	}
 	return DXGI_FORMAT_UNKNOWN;
 }
@@ -6248,10 +6288,10 @@ void Wicked_Memory_Use_Textures(void)
 					auto filedata = image->filedata.data();
 					auto filesize = image->filedata.size();
 
-					void* pmat = (void*)pScene->materials[i].textures[a].GetGPUResource();
+					void *pmat = (void *)pScene->materials[i].textures[a].GetGPUResource();
 					ID3D11ShaderResourceView* lpTexture = (ID3D11ShaderResourceView*)wiRenderer::GetDevice()->MaterialGetSRV((void*)pmat);
 					bool bAlreadyDisplayed = false;
-					for (int b = 0; b < already_registred.size(); b++)
+					for(int b=0;b< already_registred.size();b++)
 						if (already_registred[b] == (void*)lpTexture) { bAlreadyDisplayed = true; break; }
 					if (!bAlreadyDisplayed)
 					{
@@ -6276,7 +6316,7 @@ void Wicked_Memory_Use_Textures(void)
 						int addmipmapssize;
 
 						if (imgdesc.MipLevels > 1) {
-							addmipmapssize = (int)((float)(Width * Height) * bperpixel) / 1024 * imgdesc.ArraySize - 1; // Full mipmaps always give size -1.
+							addmipmapssize = (int)((float)(Width*Height) * bperpixel) / 1024 * imgdesc.ArraySize - 1; // Full mipmaps always give size -1.
 							if (addmipmapssize <= 0) addmipmapssize = 0;
 						}
 						else {
@@ -6284,10 +6324,10 @@ void Wicked_Memory_Use_Textures(void)
 						}
 
 						usedFilesize += filesize;
-						usedsize += ((int)(((float)(Width * Height) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize;
+						usedsize += ((int)(((float)(Width*Height) * bperpixel) / 1024) * imgdesc.ArraySize) + addmipmapssize;
 
 						std::string getImageformat(int fmt);
-						sprintf(timestampMsg, "WList%d: (%ld,%ld) (%ld kb.+ mipm %ld kb.) filesize %ldkb mipmaps %d array %d format %s \"%s\" (*%ld)", i, Width, Height, (int)((float)(Width * Height) * bperpixel) / 1024 * imgdesc.ArraySize, addmipmapssize, (long)filesize / 1024.0, imgdesc.MipLevels, imgdesc.ArraySize, getImageformat(DxgiFormat).c_str(), pScene->materials[i].textures[a].name.c_str(), lpTexture);
+						sprintf(timestampMsg, "WList%d: (%ld,%ld) (%ld kb.+ mipm %ld kb.) filesize %ldkb mipmaps %d array %d format %s \"%s\" (*%ld)", i, Width, Height, (int)((float)(Width*Height) * bperpixel) / 1024 * imgdesc.ArraySize, addmipmapssize, (long)filesize / 1024.0, imgdesc.MipLevels, imgdesc.ArraySize, getImageformat(DxgiFormat).c_str(), pScene->materials[i].textures[a].name.c_str(), lpTexture);
 						timestampactivity(0, timestampMsg);
 					}
 				}
@@ -6298,7 +6338,7 @@ void Wicked_Memory_Use_Textures(void)
 	timestampactivity(0, timestampMsg);
 	sprintf(timestampMsg, "Total WICKED filedata allocated used: %ld (%.2fmb) (%.2fgb)", usedFilesize, (float)usedFilesize / 1024.0, (float)usedFilesize / 1024.0 / 1024.0);
 	timestampactivity(0, timestampMsg);
-	sprintf(timestampMsg, "Total: %ld (%.2fmb) (%.2fgb)", usedsize + usedFilesize, (float)(usedsize + usedFilesize) / 1024.0, (float)(usedsize + usedFilesize) / 1024.0 / 1024.0);
+	sprintf(timestampMsg, "Total: %ld (%.2fmb) (%.2fgb)", usedsize+usedFilesize, (float)(usedsize+usedFilesize) / 1024.0, (float)(usedsize+usedFilesize) / 1024.0 / 1024.0);
 	timestampactivity(0, timestampMsg);
 
 

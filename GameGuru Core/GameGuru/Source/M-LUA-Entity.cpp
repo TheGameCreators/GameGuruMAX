@@ -69,6 +69,7 @@ void entity_lua_destroy ( void )
 
 void entity_lua_collisionon ( void )
 {
+	//return;
 	if ( t.e > g.entityelementlist  )  return;
 	t.obj=t.entityelement[t.e].obj;
 	if (  t.obj>0 ) 
@@ -127,6 +128,7 @@ void entity_lua_collisionon ( void )
 
 void entity_lua_collisionoff ( void )
 {
+	//return;
 	t.tobj=t.entityelement[t.e].obj;
 	if (  t.tobj>0 ) 
 	{

@@ -51,6 +51,7 @@ extern "C"
 	int GG_CreatePath(const char *path);
 	int GG_GetRealPath( char* fullPath, int create );
 	int GG_FileExists( const char* filename );
+	int RAW_FileExists(const char* filename);
 	FILE* GG_fopen( const char* filename, const char* mode );
 	int GG_fopen_s( FILE** pFile, const char* filename, const char* mode );
 	FILE* GG_wfopen( const wchar_t* filename, const wchar_t* mode );

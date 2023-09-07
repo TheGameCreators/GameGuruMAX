@@ -10511,24 +10511,25 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Toggle all advanced settings on or off");
 			ImGui::Indent(-10);
 
+			// Custom Writables Folder
 			ImGui::Text("");
-			ImGui::Text("Save Game Folder Location");
+			ImGui::Text("Writables Folder Location");
 			ImGui::Indent(10);
 			float path_gadget_size = ImGui::GetFontSize()*2.0;
 			ImGui::PushItemWidth(-10 - path_gadget_size);
 			extern char szWriteDir[MAX_PATH];
 			static bool bWriteFolderActive = false;
 			if (strlen(pref.cCustomWriteFolder) > 0) bWriteFolderActive = true;
-			if (ImGui::Checkbox("Allow the Game Save Folder to be changed", &bWriteFolderActive)) {
+			if (ImGui::Checkbox("Allow the Writables Folder to be changed", &bWriteFolderActive)) 
+			{
 				if (!bWriteFolderActive)
 				{
 					strcpy(pref.cCustomWriteFolder, "");
-					SetUpdaterWritePathFile(pref.cCustomWriteFolder);
-					
+					SetUpdaterWritePathFile(pref.cCustomWriteFolder);		
 					strcpy(cPreferencesMessage, "Please restart MAX for this change to take effect!");
 				}
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose a new location for saving your game levels");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose a new writables location where your projects are to be saved by default");
 			if (bWriteFolderActive)
 			{
 				if (strlen(pref.cCustomWriteFolder) == 0)
@@ -10536,20 +10537,21 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				else
 					ImGui::InputText("##InputCustomWriteFolder", &pref.cCustomWriteFolder[0], 250, ImGuiInputTextFlags_ReadOnly);
 
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Current Write Folder");
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Current Writables Folder");
 				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 
 				ImGui::SameLine();
 				ImGui::PushItemWidth(path_gadget_size);
-				if (ImGui::StyleButton("...##pathCustomWriteFolder")) {
+				if (ImGui::StyleButton("...##pathCustomWriteFolder")) 
+				{
 					//PE: filedialogs change dir so.
 					cStr tOldDir = GetDir();
 					char * cFileSelected;
 					cstr fulldir = pref.cCustomWriteFolder;
 					cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", fulldir.Get(), NULL);
 					SetDir(tOldDir.Get());
-
-					if (cFileSelected && strlen(cFileSelected) > 0) {
+					if (cFileSelected && strlen(cFileSelected) > 0) 
+					{
 						strcpy(pref.cCustomWriteFolder, cFileSelected);
 						SetUpdaterWritePathFile(pref.cCustomWriteFolder);
 						if (pref.cCustomWriteFolder[strlen(pref.cCustomWriteFolder) - 1] != '\\') strcat(pref.cCustomWriteFolder, "\\");
@@ -10557,7 +10559,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 					}
 					//Validate Write ?
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Choose a new location for saving your game levels");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose a new writables location where your projects are to be saved by default");
 				ImGui::PopItemWidth();
 			}
 			ImGui::PopItemWidth();
@@ -29674,15 +29676,17 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 		//  Light data
 		if (t.tflaglight == 1)
 		{
-			int iPrevValue = -1;
-			bool bUpdateLight = false;
-			float colors[5];
-
-			//if (ImGui::StyleCollapsingHeader(t.strarr_s[461].Get(), ImGuiTreeNodeFlags_DefaultOpen))
-			ImGui::TextCenter(t.strarr_s[461].Get());
+			bool bIsLightProbe = false;
+			if (edit_grideleprof->light.fLightHasProbe >= 50.0f) bIsLightProbe = true;
+			if (bIsLightProbe == false)
 			{
+				int iPrevValue = -1;
+				bool bUpdateLight = false;
+				float colors[5];
+
+				ImGui::TextCenter(t.strarr_s[461].Get());
 				iPrevValue = edit_grideleprof->light.range;
-				edit_grideleprof->light.range = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->light.range), t.strarr_s[462].Get(), t.strarr_s[250].Get(),readonly)); //PE: 462=Light Range
+				edit_grideleprof->light.range = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->light.range), t.strarr_s[462].Get(), t.strarr_s[250].Get(), readonly)); //PE: 462=Light Range
 				if (iPrevValue != edit_grideleprof->light.range)
 					bUpdateLight = true;
 
@@ -29709,48 +29713,45 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t.strarr_s[251].Get());
 				ImGui::PopItemWidth();
 
-				//setpropertycolor2(t.group, edit_grideleprof->light.color, t.strarr_s[463].Get(), t.strarr_s[251].Get()); ++t.controlindex; //PE: 463=Light Color
 				if (t.tflagsimpler == 0)
 				{
 					iPrevValue = edit_grideleprof->usespotlighting;
-					edit_grideleprof->usespotlighting = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0,readonly);
+					edit_grideleprof->usespotlighting = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->usespotlighting), "Spot Lighting", "Change dynamic light to spot lighting", 0, readonly);
 					if (edit_grideleprof->usespotlighting != iPrevValue)
 						bUpdateLight = true;
 				}
-			}
-
-			if (bUpdateLight)
-			{
-				float lightx = t.entityelement[elementID].x;
-				float lighty = t.entityelement[elementID].y;
-				float lightz = t.entityelement[elementID].z;
-				float lightax = t.entityelement[elementID].rx;
-				float lightay = t.entityelement[elementID].ry;
-				float lightaz = t.entityelement[elementID].rz;
-				float lightrange = edit_grideleprof->light.range;
-				float spotlightradius = edit_grideleprof->light.offsetup;
-				float fLightHasProbe = edit_grideleprof->light.fLightHasProbe;
-				int colr = colors[0];
-				int colg = colors[1];
-				int colb = colors[2];
-				bool bCanShadow = edit_grideleprof->castshadow;
-
-				int iLightIndex = edit_grideleprof->light.index;
-				t.infinilight[iLightIndex].x = lightx;
-				t.infinilight[iLightIndex].y = lighty;
-				t.infinilight[iLightIndex].z = lightz;
-				t.infinilight[iLightIndex].f_angle_x = lightax;
-				t.infinilight[iLightIndex].f_angle_y = lightay;
-				t.infinilight[iLightIndex].f_angle_z = lightaz;
-				t.infinilight[iLightIndex].range = lightrange;
-				t.infinilight[iLightIndex].spotlightradius = spotlightradius;
-				t.infinilight[iLightIndex].fLightHasProbe = fLightHasProbe;
-				t.infinilight[iLightIndex].colrgb.r = colr;
-				t.infinilight[iLightIndex].colrgb.g = colg;
-				t.infinilight[iLightIndex].colrgb.b = colb;
-				t.infinilight[iLightIndex].bCanShadow = bCanShadow;		
-				uint64_t iWickedLightIndex = t.infinilight[iLightIndex].wickedlightindex;
-				WickedCall_UpdateLight(iWickedLightIndex, lightx, lighty, lightz, lightax, lightay, lightaz, lightrange, spotlightradius, colr, colg, colb, bCanShadow);
+				if (bUpdateLight)
+				{
+					float lightx = t.entityelement[elementID].x;
+					float lighty = t.entityelement[elementID].y;
+					float lightz = t.entityelement[elementID].z;
+					float lightax = t.entityelement[elementID].rx;
+					float lightay = t.entityelement[elementID].ry;
+					float lightaz = t.entityelement[elementID].rz;
+					float lightrange = edit_grideleprof->light.range;
+					float spotlightradius = edit_grideleprof->light.offsetup;
+					float fLightHasProbe = edit_grideleprof->light.fLightHasProbe;
+					int colr = colors[0];
+					int colg = colors[1];
+					int colb = colors[2];
+					bool bCanShadow = edit_grideleprof->castshadow;
+					int iLightIndex = edit_grideleprof->light.index;
+					t.infinilight[iLightIndex].x = lightx;
+					t.infinilight[iLightIndex].y = lighty;
+					t.infinilight[iLightIndex].z = lightz;
+					t.infinilight[iLightIndex].f_angle_x = lightax;
+					t.infinilight[iLightIndex].f_angle_y = lightay;
+					t.infinilight[iLightIndex].f_angle_z = lightaz;
+					t.infinilight[iLightIndex].range = lightrange;
+					t.infinilight[iLightIndex].spotlightradius = spotlightradius;
+					t.infinilight[iLightIndex].fLightHasProbe = fLightHasProbe;
+					t.infinilight[iLightIndex].colrgb.r = colr;
+					t.infinilight[iLightIndex].colrgb.g = colg;
+					t.infinilight[iLightIndex].colrgb.b = colb;
+					t.infinilight[iLightIndex].bCanShadow = bCanShadow;
+					uint64_t iWickedLightIndex = t.infinilight[iLightIndex].wickedlightindex;
+					WickedCall_UpdateLight(iWickedLightIndex, lightx, lighty, lightz, lightax, lightay, lightaz, lightrange, spotlightradius, colr, colg, colb, bCanShadow);
+				}
 			}
 		}
 

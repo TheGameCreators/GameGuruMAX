@@ -295,59 +295,69 @@ void workshop_update ( bool bRefreshIfFlagged )
 										sprintf (pMediaFolder, "%s\\Files\\%s\\Community\\%s\\%s\\", g.fpscrootdir_s.Get(), g_workshopItemsList[j].sMediaType.Get(), g_workshopItemsList[j].sSteamUserAccountID.Get(), g_workshopItemsList[j].sMediaFolder.Get());
 										GG_GetRealPath(pMediaFolder, true);
 									}
-									SetDir(pMediaFolder);
-									SetDir("..");
-									g.filecollectionmax = 0;
-									Dim (t.filecollection_s, 500);
-									g_bNormalOperations = false;
-									addallinfoldertocollection(pLastFolder, pLastFolder);
-									g_bNormalOperations = true;
-									bool bResetLocalContents = false;
-									iNumberOfFilesInLocalItem = g.filecollectionmax;
-									if (g_workshopItemsList[j].bDownloadItemTriggered == true) { bResetLocalContents = true; g_workshopItemsList[j].bDownloadItemTriggered = false; }
-									if (iFilesInThisWorkshopItem != iNumberOfFilesInLocalItem)
+									if (PathExist(pMediaFolder) == 0)
 									{
-										// can trigger if EXTRA files not part of workshop item are present!
-										if(stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") != NULL)
-										{
-											// so only do if NOT a ROOT folder (which allows such things)
-											bResetLocalContents = true;
-										}
-									}
-									if (bResetLocalContents == true)
-									{
-										SetDir(pLastFolder);// g_workshopItemsList[j].sMediaFolder.Get());
-										for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
-										{
-											cstr name_s = t.filecollection_s[fileindex];
-											if (FileExist(name_s.Get()) == 1)
-											{
-												DeleteFileA(name_s.Get());
-											}
-										}
-										bTheFinalDestFolderIsEmpty = true;
+										char pReportThisError[MAX_PATH];
+										sprintf(pReportThisError, "Tried to copy workshop content into '%s'", pMediaFolder);
+										timestampactivity (0, pReportThisError);
+										break;
 									}
 									else
 									{
-										if (g.filecollectionmax == 0)
+										SetDir(pMediaFolder);
+										SetDir("..");
+										g.filecollectionmax = 0;
+										Dim (t.filecollection_s, 500);
+										g_bNormalOperations = false;
+										addallinfoldertocollection(pLastFolder, pLastFolder);
+										g_bNormalOperations = true;
+										bool bResetLocalContents = false;
+										iNumberOfFilesInLocalItem = g.filecollectionmax;
+										if (g_workshopItemsList[j].bDownloadItemTriggered == true) { bResetLocalContents = true; g_workshopItemsList[j].bDownloadItemTriggered = false; }
+										if (iFilesInThisWorkshopItem != iNumberOfFilesInLocalItem)
 										{
+											// can trigger if EXTRA files not part of workshop item are present!
+											if (stricmp(g_workshopItemsList[j].sMediaType.Get(), "root") != NULL)
+											{
+												// so only do if NOT a ROOT folder (which allows such things)
+												bResetLocalContents = true;
+											}
+										}
+										if (bResetLocalContents == true)
+										{
+											SetDir(pLastFolder);// g_workshopItemsList[j].sMediaFolder.Get());
+											for (int fileindex = 1; fileindex <= g.filecollectionmax; fileindex++)
+											{
+												cstr name_s = t.filecollection_s[fileindex];
+												if (FileExist(name_s.Get()) == 1)
+												{
+													DeleteFileA(name_s.Get());
+												}
+											}
 											bTheFinalDestFolderIsEmpty = true;
 										}
+										else
+										{
+											if (g.filecollectionmax == 0)
+											{
+												bTheFinalDestFolderIsEmpty = true;
+											}
+										}
+										g_workshopItemsList[j].iNumberOfFilesInWorkshopItem = iFilesInThisWorkshopItem;
+										struct tm* ptm;
+										time_t timetvalue = (time_t)punTimeStamp;
+										ptm = gmtime(&timetvalue);
+										char pFormatDate[MAX_PATH];
+										cstr day_s = cstr(100 + ptm->tm_mday);
+										cstr month_s = cstr(101 + ptm->tm_mon);
+										cstr year_s = cstr(1900 + ptm->tm_year);
+										sprintf(pFormatDate, "%s-%s-%s", day_s.Get() + 1, month_s.Get() + 1, year_s.Get());
+										g_workshopItemsList[j].sLatestDateOfItem = pFormatDate;
+										UnDim (t.filecollection_s);
+										bFindMatchInItemList = true;
+										strcpy(pWorkshopItemTitle, g_workshopItemsList[j].sName.Get());
+										break;
 									}
-									g_workshopItemsList[j].iNumberOfFilesInWorkshopItem = iFilesInThisWorkshopItem;
-									struct tm* ptm;
-									time_t timetvalue = (time_t)punTimeStamp;
-									ptm = gmtime(&timetvalue);
-									char pFormatDate[MAX_PATH];
-									cstr day_s = cstr(100 + ptm->tm_mday);
-									cstr month_s = cstr(101 + ptm->tm_mon);
-									cstr year_s = cstr(1900 + ptm->tm_year);
-									sprintf(pFormatDate, "%s-%s-%s", day_s.Get() + 1, month_s.Get() + 1, year_s.Get());
-									g_workshopItemsList[j].sLatestDateOfItem = pFormatDate;
-									UnDim (t.filecollection_s);
-									bFindMatchInItemList = true;
-									strcpy(pWorkshopItemTitle, g_workshopItemsList[j].sName.Get());
-									break;
 								}
 							}
 						}

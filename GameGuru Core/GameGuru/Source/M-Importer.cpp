@@ -1984,11 +1984,13 @@ void animsystem_prepareobjectforanimtool(int objectnumber, int iNotUsed)
 			if (pObject->pAnimationSet->wickedanimentityindex > 0)
 			{
 				wiScene::AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent( pObject->pAnimationSet->wickedanimentityindex );
-				for( int i = 0; i < animationcomponent->samplers.size(); i++ )
+				if (animationcomponent)
 				{
-					wiScene::GetScene().Entity_Remove( animationcomponent->samplers[i].data );
+					for (int i = 0; i < animationcomponent->samplers.size(); i++)
+					{
+						wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+					}
 				}
-
 				wiScene::GetScene().Entity_Remove(pObject->pAnimationSet->wickedanimentityindex);
 				pObject->pAnimationSet->wickedanimentityindex = 0;
 			}
@@ -2201,10 +2203,14 @@ void importer_loadmodel_wicked(void)
 	SetLoadScale (eScalingMode_Off);
 
 	sObject* pImportedObject = GetObjectData(t.importer.objectnumber);
-	if (pImportedObject->iMeshCount > 100)
+	bool bEnableOneHundredMeshLimit = true;
+	if (bEnableOneHundredMeshLimit == true)
 	{
-		strcpy(cTriggerMessage, "The imported model has over 100 meshes. GameGuru MAX only supports up to 100 mesh materials.");
-		bTriggerMessage = true;
+		if (pImportedObject->iMeshCount > 100)
+		{
+			strcpy(cTriggerMessage, "The imported model has over 100 meshes. GameGuru MAX only supports up to 100 mesh materials.");
+			bTriggerMessage = true;
+		}
 	}
 
 	// LB: go through all frames of imported model
@@ -3320,11 +3326,13 @@ void animsystem_clearoldanimationfromobject ( sObject* pObject )
 		if (pAnimSet->wickedanimentityindex > 0)
 		{
 			wiScene::AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent( pAnimSet->wickedanimentityindex );
-			for( int i = 0; i < animationcomponent->samplers.size(); i++ )
+			if (animationcomponent)
 			{
-				wiScene::GetScene().Entity_Remove( animationcomponent->samplers[i].data );
+				for (int i = 0; i < animationcomponent->samplers.size(); i++)
+				{
+					wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+				}
 			}
-
 			wiScene::GetScene().Entity_Remove(pAnimSet->wickedanimentityindex);
 			pAnimSet->wickedanimentityindex = 0;
 		}

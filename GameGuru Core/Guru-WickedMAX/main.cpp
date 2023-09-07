@@ -162,7 +162,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	//PE: check graphics card. Workaround for amd issues.
 	bool bUseAMDHotFIx = true;
-	if (GG_FileExists("noamdfix.ini") == 1) bUseAMDHotFIx = false;
+	if (RAW_FileExists("noamdfix.ini") == 1) bUseAMDHotFIx = false;
 	if (bUseAMDHotFIx == true)
 	{
 		bool bIsAMDCard = false;
@@ -229,7 +229,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	else
 	{
 		// if old AMD HOT FIX files present, and mode for this is OFF, remove them
-		if (GG_FileExists("d3d11.dll") == 1 || GG_FileExists("dxgi.dll") == 1)
+		if (RAW_FileExists("d3d11.dll") == 1 || RAW_FileExists("dxgi.dll") == 1)
 		{
 			char pMsgToRemove[MAX_PATH];
 			char pCurrentDir[MAX_PATH];

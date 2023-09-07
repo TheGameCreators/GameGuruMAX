@@ -34,7 +34,6 @@ FILE *pLogFile = 0;
 char szRootDir[ MAX_PATH ];
 char szWriteDir[ MAX_PATH ];
 char szWriteDirAdditional[MAX_PATH];
-//bool g_bUseDocWriteSystem = true; // not thought out, messes up EVERYTHING! FInd another way for standalone games
 
 //#define FILE_LOG_ACCESS
 
@@ -42,7 +41,6 @@ const char* GG_GetWritePath() { return szWriteDir; }
 
 int GG_CreatePath( const char *path )
 {
-	//if (g_bUseDocWriteSystem == false) return 0;
 	if ( !path || !*path ) return 0;
 	if ( *(path+1) != ':' ) 
 	{
@@ -121,24 +119,6 @@ void FileRedirectSetup()
 	strcpy( szRootDir, szDrive );
 	strcat( szRootDir, szDir ); 
 
-	// if not the MAX editor executable, do NOT use the DocWrite system
-	//if (stricmp(szEXE, "GameGuruMAX.exe") != NULL)
-	//{
-	//	g_bUseDocWriteSystem = false;
-	//	return;
-	//}
-
-	#ifdef PRODUCTCLASSIC
-	//PE: This system dont work for Classic yet.
-	strcpy(szWriteDir, szRootDir);
-	return;
-	#endif
-	#ifndef WICKEDENGINE
-	// Also VR Quest cannot use the new file system!
-	strcpy(szWriteDir, szRootDir);
-	return;
-	#endif
-
 	// set write directory string
 	if (g_bUseRootAsWriteAreaForStandaloneGames == true)
 	{
@@ -147,7 +127,6 @@ void FileRedirectSetup()
 	}
 	else
 	{
-		#ifdef WICKEDENGINE
 		extern preferences pref;
 		strcpy(szWriteDirAdditional, "");
 		if (strlen(pref.cCustomWriteFolder) > 0)
@@ -170,7 +149,6 @@ void FileRedirectSetup()
 				{
 					DeleteAFile(TestWrite);
 					//Write success , use this folder.
-
 					if (!SHGetSpecialFolderPath(NULL, szWriteDirAdditional, CSIDL_MYDOCUMENTS, TRUE))
 					{
 						//PE: This happened for a user , even when they got the document folder ? , try the new way.
@@ -187,10 +165,7 @@ void FileRedirectSetup()
 					return;
 				}
 			}
-			//We could not write to this folder, empty it.
-//			strcpy(pref.cCustomWriteFolder, "");
 		}
-		#endif
 		if (!SHGetSpecialFolderPath(NULL, szWriteDir, CSIDL_MYDOCUMENTS, TRUE))
 		{
 			//PE: This happened for a user , even when they got the document folder ? , try the new way.
@@ -205,38 +180,20 @@ void FileRedirectSetup()
 		}
 
 		// create the initial documents path
-		#ifdef PRODUCTV3
-		strcat_s( szWriteDir, MAX_PATH, "\\VRQuestApps\\" );
-		#else
 		strcat_s( szWriteDir, MAX_PATH, "\\GameGuruApps\\" );
-		#endif
 		strcat_s( szWriteDir, MAX_PATH, szEXE );
 		strcat_s( szWriteDir, MAX_PATH, "\\" );
 	}
 
 	// use this writable area folder
 	GG_CreatePath( szWriteDir );
-
-	#ifdef FILE_LOG_ACCESS
-	pLogFile = fopen( "E:\\VRQuestLog.txt", "wb" );
-
-	fwrite( "Root Path: ", 1, strlen("Root Path: "), pLogFile );
-	fwrite( szRootDir, 1, strlen(szRootDir), pLogFile );
-	fwrite( "\n", 1, 1, pLogFile );
-
-	fwrite( "Write Path: ", 1, strlen("Write Path: "), pLogFile );
-	fwrite( szWriteDir, 1, strlen(szWriteDir), pLogFile );
-	fwrite( "\n", 1, 1, pLogFile );
-
-	fflush( pLogFile );
-	#endif
 }
 
 // returns 1 if file was found or created, 2 if directory was found or created, 0 if not known
 int GG_GetRealPath( char* fullPath, int create )
 {
+	// should only be called once pref structure filled (with custom writables folder location)
 	FileRedirectSetup();
-	//if (g_bUseDocWriteSystem == false) return;
 
 	// check it is absolute path
 	if ( *(fullPath+1) != ':' )
@@ -277,7 +234,6 @@ int GG_GetRealPath( char* fullPath, int create )
 
 	//PE: This fails , if you set the "app" startup path using lowercase.
 	if ( strnicmp( fullPath, szRootDir, rootLen ) == 0 )
-	//if ( strncmp( fullPath, szRootDir, rootLen ) == 0 )
 	{
 		// trying to access root folder
 		char newPath[ MAX_PATH ];
@@ -343,13 +299,6 @@ FILE* GG_fopen( const char* filename, const char* mode )
 	if ( strchr(mode, 'w') != 0 || strchr(mode, 'a') != 0 ) create = 1;
 	GG_GetRealPath( fullPath, create );
 
-#ifdef FILE_LOG_ACCESS
-	char logstr[ 1024 ];
-	sprintf( logstr, "Open    \"%s\" \"%s\"\n", mode, fullPath );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-#endif
-
 	return fopen( fullPath, mode );
 }
 
@@ -372,13 +321,6 @@ int GG_fopen_s( FILE** pFile, const char* filename, const char* mode )
 	int create = 0;
 	if ( strchr(mode, 'w') != 0 || strchr(mode, 'a') != 0 ) create = 1;
 	GG_GetRealPath( fullPath, create );
-
-#ifdef FILE_LOG_ACCESS
-	char logstr[ 1024 ];
-	sprintf( logstr, "Open_s  \"%s\" \"%s\"\n", mode, fullPath );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-#endif
 
 	return fopen_s( pFile, fullPath, mode );
 }
@@ -409,13 +351,6 @@ FILE* GG_wfopen( const wchar_t* filename, const wchar_t* mode )
 	if ( strchr(mode_utf8, 'w') != 0 || strchr(mode_utf8, 'a') != 0 ) create = 1;
 	GG_GetRealPath( fullPath, create );
 
-#ifdef FILE_LOG_ACCESS
-	char logstr[ 1024 ];
-	sprintf( logstr, "Open_w  \"%s\" \"%s\"\n", mode_utf8, fullPath );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-#endif
-
 	return fopen( fullPath, mode_utf8 );
 }
 
@@ -442,6 +377,24 @@ int GG_FileExists( const char* filename )
 	else return 1;
 }
 
+int RAW_FileExists(const char* filename)
+{
+	char fullPath[MAX_PATH]; fullPath[0] = 0;
+	if (!strchr(filename, ':'))
+	{
+		getcwd(fullPath, MAX_PATH);
+		strcat_s(fullPath, MAX_PATH, "\\");
+		strcat_s(fullPath, MAX_PATH, filename);
+	}
+	else
+	{
+		strcpy_s(fullPath, MAX_PATH, filename);
+	}
+	DWORD attrib = GetFileAttributes(fullPath);
+	if (attrib == INVALID_FILE_ATTRIBUTES || attrib == FILE_ATTRIBUTE_DIRECTORY) return 0;
+	else return 1;
+}
+
 HANDLE GG_CreateFile( LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile )
 {
 	FileRedirectSetup();
@@ -460,13 +413,6 @@ HANDLE GG_CreateFile( LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMod
 
 	int create = (dwDesiredAccess & GENERIC_WRITE) ? 1 : 0;
 	GG_GetRealPath( fullPath, create );
-
-#ifdef FILE_LOG_ACCESS
-	char logstr[ 1024 ];
-	sprintf( logstr, "Create  \"%s\" \"%s\"\n", (dwDesiredAccess & GENERIC_WRITE) ? "w" : "r", fullPath );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-#endif
 
 	return CreateFileA( fullPath, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile );
 }
@@ -493,28 +439,8 @@ HANDLE GG_CreateFileW( LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareM
 	int create = (dwDesiredAccess & GENERIC_WRITE) ? 1 : 0;
 	GG_GetRealPath( fullPath, create );
 
-#ifdef FILE_LOG_ACCESS
-	char logstr[ 1024 ];
-	sprintf( logstr, "CreateW \"%s\" \"%s\"\n", (dwDesiredAccess & GENERIC_WRITE) ? "w" : "r", fullPath );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-#endif
-
 	return CreateFileA( fullPath, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile );
 }
-
-/*
-HANDLE WINAPI GG_CreateFileMapping( HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName )
-{
-	if ( !pLogFile ) pLogFile = fopen( "E:\\VRQuestLog.txt", "wb" );
-	char logstr[ 1024 ];
-	sprintf( logstr, "Map     \"%s\" \"%s\"\n", "rw", lpName );
-	fwrite( logstr, 1, strlen(logstr), pLogFile );
-	fflush( pLogFile );
-
-	return CreateFileMappingA( hFile, lpFileMappingAttributes, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, lpName );
-}
-*/
 
 struct sHardDrive
 {
@@ -551,7 +477,6 @@ DBPRO_GLOBAL int						FileReturnValue					= -1;
 extern DBPRO_GLOBAL bool						g_bCreateChecklistNow;
 extern DBPRO_GLOBAL DWORD						g_dwMaxStringSizeInEnum;
 
-//extern char						m_pWorkString[1024];
 extern DBPRO_GLOBAL char			m_pWorkString[_MAX_PATH];
 extern GlobStruct*					g_pGlob;
 
@@ -653,24 +578,6 @@ DARKSDK void FilePassCoreData( LPVOID pGlobPtr )
 {
 	// Held in Core, used here..
 	g_pGlob = (GlobStruct*)pGlobPtr;
-
-	// Construct links to memblock access functions
-	/*#ifndef DARKSDK_COMPILE
-	if(g_pGlob->g_Memblocks)
-	{
-		ExtMakeMemblock = ( RetVoidMakeMemblock )		GetProcAddress ( g_pGlob->g_Memblocks, "?ExtMakeMemblock@@YAPADHK@Z" );
-		ExtFreeMemblock = ( RetVoidFreeMemblock )		GetProcAddress ( g_pGlob->g_Memblocks, "?ExtFreeMemblock@@YAXH@Z" );
-		ExtGetMemblockSize = ( RetVoidGetMemblockSize )	GetProcAddress ( g_pGlob->g_Memblocks, "?ExtGetMemblockSize@@YAKH@Z" );
-		ExtSetMemblockSize = ( RetVoidSetMemblockSize )	GetProcAddress ( g_pGlob->g_Memblocks, "?ExtSetMemblockSize@@YAXHK@Z" );
-		ExtGetMemblockPtr = ( RetVoidGetMemblockPtr )	GetProcAddress ( g_pGlob->g_Memblocks, "?ExtGetMemblockPtr@@YAPADH@Z" );
-	}
-	#else
-		ExtMakeMemblock		= dbExtMakeMemblock;
-		ExtFreeMemblock		= dbExtFreeMemblock;
-		ExtGetMemblockSize	= dbExtGetMemblockSize;
-		ExtSetMemblockSize	= dbExtSetMemblockSize;
-		ExtGetMemblockPtr	= dbExtGetMemblockPtr;
-	#endif*/
 }
 
 DARKSDK void FFindCloseFile(void)
@@ -721,7 +628,6 @@ DARKSDK BOOL DB_FileExist(char* Filename)
 	strcpy(VirtualFilename, (LPSTR)Filename);
 
 	// no longer have files inside EXE VT!
-	////g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 	CheckForWorkshopFile ( VirtualFilename );
 
 	if ( GG_FileExists( VirtualFilename ) ) return TRUE;
@@ -739,7 +645,6 @@ DARKSDK DWORD DB_FileSize(char* Filename)
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
 	strcpy(VirtualFilename, (LPSTR)Filename);
-	//g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
 	CheckForWorkshopFile ( VirtualFilename );
 
@@ -768,7 +673,6 @@ DARKSDK BOOL DB_FileWriteProtected(char* Filename)
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
 	strcpy(VirtualFilename, (LPSTR)Filename);
-	//g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
 	CheckForWorkshopFile ( VirtualFilename );
 
@@ -1151,12 +1055,10 @@ DARKSDK BOOL DB_OpenToRead(int FileIndex, char* Filename)
 		// Uses actual or virtual file..
 		char VirtualFilename[_MAX_PATH];
 		strcpy(VirtualFilename, (LPSTR)Filename);
-		////g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
 		CheckForWorkshopFile ( VirtualFilename );
 
 		// Decrypt and use media
-		//g_pGlob->Decrypt( VirtualFilename ); oh yes, 32 bit is gone, we need a 32/64 agnostic approach now!
 		g_pGlob->Decrypt( VirtualFilename );
 		pVirtFileEncrypted[FileIndex] = new char[strlen(VirtualFilename)+1];
 		strcpy(pVirtFileEncrypted[FileIndex], VirtualFilename);
@@ -1339,7 +1241,6 @@ DARKSDK void ChecklistForDrives(void)
 			strcpy ( szList [ iCount++ ], g_HardDiskLetters [ iCounter ] );
 	}
 
-	
 	g_pGlob->checklisthasvalues=false;
 	g_pGlob->checklisthasstrings=true;
 	g_pGlob->checklistexists=true;
@@ -1350,62 +1251,12 @@ DARKSDK void ChecklistForDrives(void)
 		GlobExpandChecklist(c, 255);
 
 	// mike - 020206 - addition for vs8
-	//for( c=0; c<g_pGlob->checklistqty; c++)
 	for( int c=0; c<g_pGlob->checklistqty; c++)
 	{
 		strcpy(g_pGlob->checklist[c].string, szList[c]);
 	}
 
 	int i = g_pGlob->checklistqty;
-
-	
-
-	
-
-	
-	/*
-	char storedrive[_MAX_PATH];
-	getcwd(storedrive, _MAX_PATH);
-	_strlwr(storedrive);
-
-	// Checklist flags
-	g_pGlob->checklisthasvalues=false;
-	g_pGlob->checklisthasstrings=true;
-	g_pGlob->checklistexists=true;
-
-	g_dwMaxStringSizeInEnum=0;
-	g_bCreateChecklistNow=false;
-	for(int pass=0; pass<2; pass++)
-	{
-		if(pass==1)
-		{
-			// Ensure checklist is large enough
-			g_bCreateChecklistNow=true;
-			for(int c=0; c<g_pGlob->checklistqty; c++)
-				GlobExpandChecklist(c, g_dwMaxStringSizeInEnum);
-		}
-
-		g_pGlob->checklistqty=0;
-		//for(int drive = 1; drive <= 26; drive++)
-		for(int drive = 2; drive <= 26; drive++)
-		{
-			if(!_chdrive( drive ))
-			{
-				wsprintf(filetext, "%c:", drive + 'A' - 1);
-				DWORD dwSize = strlen(filetext)+1;
-				if(dwSize>g_dwMaxStringSizeInEnum) g_dwMaxStringSizeInEnum=dwSize;
-				if(g_bCreateChecklistNow)
-				{
-					strcpy(g_pGlob->checklist[g_pGlob->checklistqty].string, filetext);
-				}
-				g_pGlob->checklistqty++;
-			}
-		}
-	}
-
-	_chdrive( storedrive[0] - 'a' + 1 );
-	*/
-	
 }
 
 DARKSDK void FindFirst(void)
@@ -1483,7 +1334,6 @@ DARKSDK void CopyAFile( LPSTR szFilename, LPSTR pFilename2 )
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
 	strcpy(VirtualFilename, (LPSTR)szFilename);
-	//g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
 	// Decrypt and use media, re-encrypt
 	g_pGlob->Decrypt( VirtualFilename );
@@ -1786,7 +1636,6 @@ DARKSDK void WriteFilemap ( LPSTR pFilemapname, DWORD dwValue, DWORD pString, in
 
 	// Release virtual file
 	UnmapViewOfFile(lpVoid);
-//	CloseHandle(hFileMap);
 }
 
 DARKSDK void WriteFilemapValue ( LPSTR pFilemapname, DWORD dwValue )
@@ -1815,7 +1664,6 @@ DARKSDK int ReadFilemapValue ( LPSTR pFilemapname )
 
 	// Release virtual file
 	UnmapViewOfFile(lpVoid);
-//	CloseHandle(hFileMap);
 
 	// return data
 	return (int)dwValue;
@@ -2787,10 +2635,6 @@ DARKSDK void MakeMemblockFromFile( int mbi, int f )
 
 DARKSDK void MakeFileFromMemblock( int f, int mbi )
 {
-	// mike - 011005 - quit if invalid pointer
-	/*if ( !ExtGetMemblockPtr || !ExtGetMemblockSize )
-		return;*/
-
 	if(f>=1 && f<=MAX_FILES)
 	{
 		if(File[f]!=NULL)
@@ -2823,10 +2667,6 @@ DARKSDK void MakeFileFromMemblock( int f, int mbi )
 
 DARKSDK void WriteMemblock( int f, int mbi )
 {
-	// mike - 011005 - quit if invalid pointer
-	/*if ( !ExtGetMemblockPtr || !ExtGetMemblockSize )
-		return;*/
-
 	if(f>=1 && f<=MAX_FILES)
 	{
 		if(File[f]!=NULL)
@@ -3075,436 +2915,3 @@ DARKSDK int CollectFilesWithExtension(char* extension, char* directory, std::vec
 	SetDir((char*)oldDir.c_str());
 	return 1;
 }
-
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////////
-// DARK SDK SECTION //////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-
-#ifdef DARKSDK_COMPILE
-
-void ConstructorFile ( void )
-{
-	Constructor ( );
-}
-
-void DestructorFile  ( void )
-{
-	Destructor ( );
-}
-
-void SetErrorHandlerFile ( LPVOID pErrorHandlerPtr )
-{
-	SetErrorHandler ( pErrorHandlerPtr );
-}
-
-void PassCoreDataFile( LPVOID pGlobPtr )
-{
-	PassCoreData ( pGlobPtr );
-}
-
-void dbSetDir ( char* pString )
-{
-	SetDir ( ( DWORD ) pString );
-}
-
-void dbDir ( void )
-{
-	Dir ( );
-}
-
-void dbDriveList ( void )
-{
-	DriveList ( );
-}
-
-void dbPerformCheckListForFiles ( void )
-{
-	ChecklistForFiles ( );
-}
-
-void dbPerformCheckListForDrives ( void )
-{
-	ChecklistForDrives ( );
-}
-
-void dbFindFirst ( void )
-{
-	FindFirst ( );
-}
-
-void dbFindNext ( void )
-{
-	FindNext ( );
-}
-
-void dbMakeFile ( char* pFilename )
-{
-	MakeFile ( ( DWORD ) pFilename );
-}
-
-void dbDeleteFile ( char* pFilename )
-{
-	DeleteFile ( ( DWORD ) pFilename );
-}
-
-void dbCopyFile ( char* pFilename, char* pFilename2 )
-{
-	CopyFile ( ( DWORD ) pFilename, ( DWORD ) pFilename2 );
-}
-
-void dbRenameFile ( char* pFilename, char* pFilename2 )
-{
-	RenameFile ( ( DWORD ) pFilename, ( DWORD ) pFilename2 );
-}
-
-void dbMoveFile ( char* pFilename, char* pFilename2 )
-{
-	MoveFile ( ( DWORD ) pFilename, ( DWORD ) pFilename2 );
-}
-
-void dbWriteByteToFile ( char* pFilename, int iPos, int iByte )
-{
-	WriteByteToFile ( ( DWORD ) pFilename, iPos, iByte );
-}
-
-int dbReadByteFromFile ( char* pFilename, int iPos )
-{
-	return ReadByteFromFile ( ( DWORD ) pFilename, iPos );
-}
-
-void dbMakeDirectory ( char* pFilename )
-{
-	MakeDir ( ( DWORD ) pFilename );
-}
-
-void dbDeleteDirectory ( char* pFilename )
-{
-	DeleteDir ( ( DWORD ) pFilename );
-}
-
-void dbDeleteDirectory ( char* pFilename, int iFlag )
-{
-	//DeleteDirEx ( pFilename, iFlag );
-}
-
-void dbExecuteFile ( char* pFilename, char* pFilename2, char* pFilename3 )
-{
-	ExecuteFile ( ( DWORD ) pFilename, ( DWORD ) pFilename2, ( DWORD ) pFilename3 );
-}
-
-void dbExecuteFile ( char* pFilename, char* pFilename2, char* pFilename3, int iFlag )
-{
-	ExecuteFileEx ( ( DWORD ) pFilename, ( DWORD ) pFilename2, ( DWORD ) pFilename3, iFlag );
-}
-
-DWORD dbExecuteExecutable ( char* pFilename, char* pFilename2, char* pFilename3 )
-{
-	return ExecuteFileIndi ( ( DWORD ) pFilename, ( DWORD ) pFilename2, ( DWORD ) pFilename3 );
-}
-
-DWORD dbExecuteExecutable ( char* pFilename, char* pFilename2, char* pFilename3, int iPriority )
-{
-	return ExecuteFileIndi ( ( DWORD ) pFilename, ( DWORD ) pFilename2, ( DWORD ) pFilename3, iPriority );
-}
-
-void dbStopExecutable ( DWORD hIndiExecuteFileProcess )
-{
-	StopExecutable ( hIndiExecuteFileProcess );
-}
-
-void dbWriteFilemapValue ( char* pFilemapname, DWORD dwValue )
-{
-	WriteFilemapValue ( ( DWORD ) pFilemapname, dwValue );
-}
-
-void dbWriteFilemapString ( char* pFilemapname, char* pString )
-{
-	WriteFilemapString ( ( DWORD ) pFilemapname, ( DWORD ) pString );
-}
-
-DWORD dbReadFilemapValue ( char* pFilemapname )
-{
-	return ReadFilemapValue ( ( DWORD ) pFilemapname );
-}
-
-char* dbReadFilemapString ( char* pFilemapname )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = ReadFilemapString ( NULL, ( DWORD ) pFilemapname );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-DWORD dbReadFilemapString ( DWORD pDestStr, DWORD pFilemapname )
-{
-	return ReadFilemapString ( ( DWORD ) pDestStr, ( DWORD ) pFilemapname );
-}
-
-void dbOpenToRead ( int f, char* pFilename )
-{
-	OpenToRead ( f, ( DWORD ) pFilename );
-}
-
-void dbOpenToWrite ( int f, char* pFilename )
-{
-	OpenToWrite ( f, ( DWORD ) pFilename );
-}
-
-void dbCloseFile ( int f )
-{
-	CloseFile ( f );
-}
-
-int dbReadByte ( int f )
-{
-	return ReadByte ( f );
-}
-
-int dbReadWord ( int f )
-{
-	return ReadWord ( f );
-}
-
-int dbReadFile ( int f )
-{
-	return ReadLong ( f );
-}
-
-float dbReadFloat ( int f )
-{
-	DWORD dwReturn = ReadFloat ( f );
-	
-	return *( float* ) &dwReturn;
-}
-
-char* dbReadString ( int f )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = ReadString ( f, NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-void dbReadFileBlock ( int f, char* pFilename )
-{
-	ReadFileBlock ( f, ( DWORD ) pFilename );
-}
-
-void dbSkipBytes ( int f, int iSkipValue )
-{
-	SkipBytes ( f, iSkipValue );
-}
-
-void dbReadDirBlock ( int f, char* pFilename )
-{
-	ReadDirBlock ( f, ( DWORD ) pFilename );
-}
-
-void dbWriteByte ( int f, int iValue )
-{
-	WriteByte ( f, iValue );
-}
-
-void dbWriteWord ( int f, int iValue )
-{
-	WriteWord ( f, iValue );
-}
-
-void dbWriteLong ( int f, int iValue )
-{
-	WriteLong ( f, iValue );
-}
-
-void dbWriteFloat ( int f, float fValue )
-{
-	WriteFloat ( f, fValue );
-}
-
-void dbWriteString ( int f, char* pString )
-{
-	WriteString ( f, ( DWORD ) pString );
-}
-
-void dbWriteFileBlock ( int f, char* pFilename )
-{
-	WriteFileBlock ( f, ( DWORD ) pFilename );
-}
-
-void dbWriteFileBlockEx ( int f, char* pFilename, int iFlag )
-{
-	//WriteFileBlockEx ( f, pFilename, iFlag );
-}
-
-void dbWriteDirBlock ( int f, char* pFilename )
-{
-	WriteDirBlock ( f, ( DWORD ) pFilename );
-}
-
-void dbReadMemblock ( int f, int mbi )
-{
-	ReadMemblock ( f, mbi );
-}
-
-void dbMakeMemblockFromFile	( int mbi, int f )
-{
-	MakeMemblockFromFile ( mbi, f );
-}
-
-void dbWriteMemblock ( int f, int mbi )
-{
-	WriteMemblock ( f, mbi );
-}
-
-void dbMakeFileFromMemblock	( int f, int mbi )
-{
-	MakeFileFromMemblock ( f, mbi );
-}
-
-char* dbGetDir ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = GetDir ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-char* dbGetFileName ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = GetFileName ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-int dbGetFileType ( void )
-{
-	return GetFileType ( );
-}
-
-char* dbGetFileDate ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = GetFileDate ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-char* dbGetFileCreation ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = GetFileCreation ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-int dbFileExist ( char* pFilename )
-{
-	return FileExist ( ( DWORD ) pFilename );
-}
-
-int dbFileSize ( char* pFilename )
-{
-	return FileSize ( ( DWORD ) pFilename );
-}
-
-int dbPathExist ( char* pFilename )
-{
-	return PathExist ( ( DWORD ) pFilename );
-}
-
-int dbFileOpen ( int f )
-{
-	return FileOpen ( f );
-}
-
-int dbFileEnd ( int f )
-{
-	return FileEnd ( f );
-}
-
-char* dbAppname ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = Appname ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-char* dbWindir ( void )
-{
-	static char* szReturn = NULL;
-	DWORD		 dwReturn = Windir ( NULL );
-
-	szReturn = ( char* ) dwReturn;
-
-	return szReturn;
-}
-
-int dbExecutableRunning ( DWORD hIndiExecuteFileProcess )
-{
-	return GetExecutableRunning ( hIndiExecuteFileProcess );
-}
-
-//
-// lee - 300706 - GDK fixes
-//
-unsigned char dbReadByte ( int f, unsigned char* pByte )
-{
-	*pByte = dbReadByte ( f );
-	return *pByte;
-}
-WORD dbReadWord	( int f, WORD* pWord )
-{
-	*pWord = dbReadWord ( f );
-	return *pWord;
-}
-int	dbReadFile ( int f, int* pInteger )
-{
-	*pInteger = dbReadFile ( f );
-	return *pInteger;
-}
-float dbReadFloat ( int f, float* pFloat )
-{
-	*pFloat = dbReadFloat ( f );
-	return *pFloat;
-}
-char* dbReadString ( int f, char* pString )
-{
-	pString = dbReadString ( f );
-	return pString;
-}
-int	dbReadLong ( int f, int* pLong )
-{
-	*pLong = ReadLong ( f );
-	return *pLong;
-}
-void dbCD ( char* pPath )
-{
-	SetDir ( (DWORD)pPath );
-}
-void dbWriteFile ( int f, int iValue )
-{
-	WriteLong ( f, iValue );
-}
-
-#endif
-
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////

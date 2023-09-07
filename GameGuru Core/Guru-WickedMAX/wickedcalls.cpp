@@ -733,11 +733,13 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 			if (pAnimSet->wickedanimentityindex > 0)
 			{
 				AnimationComponent* animationcomponent = pScene->animations.GetComponent( pAnimSet->wickedanimentityindex );
-				for( int i = 0; i < animationcomponent->samplers.size(); i++ )
+				if (animationcomponent)
 				{
-					wiScene::GetScene().Entity_Remove( animationcomponent->samplers[i].data );
+					for (int i = 0; i < animationcomponent->samplers.size(); i++)
+					{
+						wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+					}
 				}
-
 				wiScene::GetScene().Entity_Remove(pAnimSet->wickedanimentityindex);
 				pAnimSet->wickedanimentityindex = 0;
 			}
@@ -927,7 +929,9 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 						{
 							// set the target, samplerindex and type for this channel item
 							int iFrameIndexForThisAnim = pFrameMustSet->iID;
-							animationcomponent.channels[iChannelOffset].target = pstate->entityMap[iFrameIndexForThisAnim];
+							wiECS::Entity thisTarget = wiECS::INVALID_ENTITY;
+							if (pstate) thisTarget = pstate->entityMap[iFrameIndexForThisAnim];
+							animationcomponent.channels[iChannelOffset].target = thisTarget;
 							animationcomponent.channels[iChannelOffset].samplerIndex = (uint32_t)iChannelOffset;
 							if (i == 0) animationcomponent.channels[iChannelOffset].path = AnimationComponent::AnimationChannel::Path::TRANSLATION;
 							if (i == 1) animationcomponent.channels[iChannelOffset].path = AnimationComponent::AnimationChannel::Path::ROTATION;
@@ -1162,27 +1166,29 @@ void WickedCall_CheckAnimationDone(sObject* pObject)
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-
-			//PE: Wicked dont stop animations by itself, WickedCall_SetObjectSpeed is called all the time.
-			//PE: So check here if we need to stop the animation.
-			if (animationcomponent->IsPlaying())
+			if(animationcomponent)
 			{
-				//PE: pObject->bAnimPlaying is not set anywhere.
-				pObject->bAnimPlaying = true;
-				//float timer = animationcomponent->timer;
-				//float length = animationcomponent->GetLength();
-				bool isended = animationcomponent->IsEnded();
-				bool islooped = animationcomponent->IsLooped();
-				if (isended && !islooped)
+				//PE: Wicked dont stop animations by itself, WickedCall_SetObjectSpeed is called all the time.
+				//PE: So check here if we need to stop the animation.
+				if (animationcomponent->IsPlaying())
 				{
-					fEndFrame = animationcomponent->end;
-					animationcomponent->SetLooped(false);
-					animationcomponent->Stop();
-					pObject->bAnimPlaying = false;
-					//PE: Must make sure we are set at the last frame.
-					//PE: Fix - https://thegamecreators.teamwork.com/index.cfm#/tasks/21003817?c=10406263 ,
-					animationcomponent->timer = fEndFrame;
-					animationcomponent->SetUpdateOnce();
+					//PE: pObject->bAnimPlaying is not set anywhere.
+					pObject->bAnimPlaying = true;
+					//float timer = animationcomponent->timer;
+					//float length = animationcomponent->GetLength();
+					bool isended = animationcomponent->IsEnded();
+					bool islooped = animationcomponent->IsLooped();
+					if (isended && !islooped)
+					{
+						fEndFrame = animationcomponent->end;
+						animationcomponent->SetLooped(false);
+						animationcomponent->Stop();
+						pObject->bAnimPlaying = false;
+						//PE: Must make sure we are set at the last frame.
+						//PE: Fix - https://thegamecreators.teamwork.com/index.cfm#/tasks/21003817?c=10406263 ,
+						animationcomponent->timer = fEndFrame;
+						animationcomponent->SetUpdateOnce();
+					}
 				}
 			}
 			//pAnimSet = pAnimSet->pNext;
@@ -1211,9 +1217,12 @@ void WickedCall_SetAnimationLerpFactor (sObject* pObject)
 	{
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		if (animationcomponent->updateonce == false)
+		if (animationcomponent)
 		{
-			animationcomponent->amount = pObject->fAnimInterp;
+			if (animationcomponent->updateonce == false)
+			{
+				animationcomponent->amount = pObject->fAnimInterp;
+			}
 		}
 	}
 }
@@ -1227,18 +1236,21 @@ void WickedCall_PlayObject(sObject* pObject, float fStart, float fEnd, bool bLoo
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-			animationcomponent->start = fStart;
-			if (fEnd != -1)
+			if (animationcomponent)
 			{
-				animationcomponent->end = fEnd;
+				animationcomponent->start = fStart;
+				if (fEnd != -1)
+				{
+					animationcomponent->end = fEnd;
+				}
+				animationcomponent->timer = fStart;
+				if (animationcomponent->updateonce == false)
+				{
+					animationcomponent->amount = pObject->fAnimInterp;
+				}
+				animationcomponent->SetLooped(bLooped);
+				animationcomponent->Play();
 			}
-			animationcomponent->timer = fStart;
-			if (animationcomponent->updateonce == false)
-			{
-				animationcomponent->amount = pObject->fAnimInterp;
-			}
-			animationcomponent->SetLooped(bLooped);
-			animationcomponent->Play();
 			//pAnimSet = pAnimSet->pNext;
 		}
 	}
@@ -1251,8 +1263,11 @@ void WickedCall_InstantObjectFrameUpdate(sObject* pObject)
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		animationcomponent->updateonce = true;
-		animationcomponent->amount = 1;
+		if (animationcomponent)
+		{
+			animationcomponent->updateonce = true;
+			animationcomponent->amount = 1;
+		}
 	}
 }
 
@@ -1263,8 +1278,11 @@ void WickedCall_GetObjectAnimationData(sObject* pObject, float* pStart, float* p
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		*pStart = animationcomponent->start;
-		*pFinish = animationcomponent->end;
+		if (animationcomponent)
+		{
+			*pStart = animationcomponent->start;
+			*pFinish = animationcomponent->end;
+		}
 	}
 }
 
@@ -1313,8 +1331,11 @@ void WickedCall_SetObjectFrameEx(sObject* pObject, float fFrame)
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-			animationcomponent->timer = fFrame;
-			animationcomponent->SetUpdateOnce();
+			if (animationcomponent)
+			{
+				animationcomponent->timer = fFrame;
+				animationcomponent->SetUpdateOnce();
+			}
 		}
 	}
 }
@@ -1347,16 +1368,19 @@ float WickedCall_GetObjectRealFrame(sObject* pObject)
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
 		Entity animentity = pAnimSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		fFrame = animationcomponent->timer;
-		if (animationcomponent->IsLooped())
+		if (animationcomponent)
 		{
-			// special situation where looped animations have an extra 1.0f after the loop end to interp back to first frame
-			// and this frame returned represents the real frame in the anim data, not the animation.timer frame which tracks the raw position in the seqwence (timer)
-			if (fFrame >= animationcomponent->end)
+			fFrame = animationcomponent->timer;
+			if (animationcomponent->IsLooped())
 			{
-				// the assumption is that the _timers are all aligned as 1.0f timings so they match key frame subscripts
-				float fInterpT = fFrame - animationcomponent->end;
-				fFrame = animationcomponent->start + fInterpT;
+				// special situation where looped animations have an extra 1.0f after the loop end to interp back to first frame
+				// and this frame returned represents the real frame in the anim data, not the animation.timer frame which tracks the raw position in the seqwence (timer)
+				if (fFrame >= animationcomponent->end)
+				{
+					// the assumption is that the _timers are all aligned as 1.0f timings so they match key frame subscripts
+					float fInterpT = fFrame - animationcomponent->end;
+					fFrame = animationcomponent->start + fInterpT;
+				}
 			}
 		}
 	}
@@ -1386,11 +1410,13 @@ void WickedCall_RemoveObject( sObject* pObject )
 				if (pAnimSet->wickedanimentityindex > 0)
 				{				
 					AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent( pAnimSet->wickedanimentityindex );
-					for( int i = 0; i < animationcomponent->samplers.size(); i++ )
+					if (animationcomponent)
 					{
-						wiScene::GetScene().Entity_Remove( animationcomponent->samplers[i].data );
+						for (int i = 0; i < animationcomponent->samplers.size(); i++)
+						{
+							wiScene::GetScene().Entity_Remove(animationcomponent->samplers[i].data);
+						}
 					}
-
 					wiScene::GetScene().Entity_Remove(pAnimSet->wickedanimentityindex);
 					pAnimSet->wickedanimentityindex = 0;
 				}
@@ -4309,14 +4335,17 @@ void WickedCall_RotateLimb(sObject* pObject, sFrame* pFrame, float fAX, float fA
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
-			if ( iIndex >= 0 )//&& iIndex < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
-				if (pAnimationChannel)
+				int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
 				{
-					pAnimationChannel->iUsePreFrame = 1;
-					pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(GGToRadian(fAX), GGToRadian(fAY), GGToRadian(fAZ));
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
+					if (pAnimationChannel)
+					{
+						pAnimationChannel->iUsePreFrame = 1;
+						pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(GGToRadian(fAX), GGToRadian(fAY), GGToRadian(fAZ));
+					}
 				}
 			}
 		}
@@ -4382,41 +4411,44 @@ void WickedCall_OverrideLimbWithCombined(sObject* pObject, sFrame* pFrame, bool 
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
-			if ( iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
-				AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
-				if (pAnimationChannelPos && pAnimationChannelRot)
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
 				{
-					// translation
-					pAnimationChannelPos->iUsePreFrame = 2;
-					pAnimationChannelPos->vPreFrameTranslation = XMVectorSet(pFrame->matCombined._41, pFrame->matCombined._42, pFrame->matCombined._43, 0);
+					AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
+					AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
+					if (pAnimationChannelPos && pAnimationChannelRot)
+					{
+						// translation
+						pAnimationChannelPos->iUsePreFrame = 2;
+						pAnimationChannelPos->vPreFrameTranslation = XMVectorSet(pFrame->matCombined._41, pFrame->matCombined._42, pFrame->matCombined._43, 0);
 
-					// rotation
-					GGMATRIX matCombined = pFrame->matCombined;
-					XMFLOAT4X4 matLimbRot;
-					matLimbRot._11 = matCombined._11;
-					matLimbRot._12 = matCombined._12;
-					matLimbRot._13 = matCombined._13;
-					matLimbRot._14 = matCombined._14;
-					matLimbRot._21 = matCombined._21;
-					matLimbRot._22 = matCombined._22;
-					matLimbRot._23 = matCombined._23;
-					matLimbRot._24 = matCombined._24;
-					matLimbRot._31 = matCombined._31;
-					matLimbRot._32 = matCombined._32;
-					matLimbRot._33 = matCombined._33;
-					matLimbRot._34 = matCombined._34;
-					matLimbRot._41 = 0;
-					matLimbRot._42 = 0;
-					matLimbRot._43 = 0;
-					matLimbRot._44 = 0;
-					XMMATRIX finalMat = XMLoadFloat4x4(&matLimbRot);
-					XMVECTOR currentRot = XMQuaternionRotationMatrix(finalMat);
-					pAnimationChannelRot->iUsePreFrame = 2;
-					pAnimationChannelRot->qPreFrameRotation = currentRot;
+						// rotation
+						GGMATRIX matCombined = pFrame->matCombined;
+						XMFLOAT4X4 matLimbRot;
+						matLimbRot._11 = matCombined._11;
+						matLimbRot._12 = matCombined._12;
+						matLimbRot._13 = matCombined._13;
+						matLimbRot._14 = matCombined._14;
+						matLimbRot._21 = matCombined._21;
+						matLimbRot._22 = matCombined._22;
+						matLimbRot._23 = matCombined._23;
+						matLimbRot._24 = matCombined._24;
+						matLimbRot._31 = matCombined._31;
+						matLimbRot._32 = matCombined._32;
+						matLimbRot._33 = matCombined._33;
+						matLimbRot._34 = matCombined._34;
+						matLimbRot._41 = 0;
+						matLimbRot._42 = 0;
+						matLimbRot._43 = 0;
+						matLimbRot._44 = 0;
+						XMMATRIX finalMat = XMLoadFloat4x4(&matLimbRot);
+						XMVECTOR currentRot = XMQuaternionRotationMatrix(finalMat);
+						pAnimationChannelRot->iUsePreFrame = 2;
+						pAnimationChannelRot->qPreFrameRotation = currentRot;
+					}
 				}
 			}
 		}
@@ -4431,14 +4463,17 @@ void WickedCall_OverrideLimbOff(sObject* pObject, sFrame* pFrame)
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
-				AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
-				if (pAnimationChannelPos) pAnimationChannelPos->iUsePreFrame = 0;
-				if (pAnimationChannelRot) pAnimationChannelRot->iUsePreFrame = 0;
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				int iIndexRot = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() && iIndexRot >= 0 && iIndexRot < animationcomponent->channels.size())
+				{
+					AnimationComponent::AnimationChannel* pAnimationChannelPos = &animationcomponent->channels[iIndexPos];
+					AnimationComponent::AnimationChannel* pAnimationChannelRot = &animationcomponent->channels[iIndexRot];
+					if (pAnimationChannelPos) pAnimationChannelPos->iUsePreFrame = 0;
+					if (pAnimationChannelRot) pAnimationChannelRot->iUsePreFrame = 0;
+				}
 			}
 		}
 	}
@@ -4452,20 +4487,23 @@ void WickedCall_SetBip01Position(sObject* pObject, sFrame* pFrame, int iUseMode,
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
-			if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() )
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndexPos];
-				if (pAnimationChannel)
+				int iIndexPos = pFrame->pAnimRef->wickedanimationchannel[0];
+				if (iIndexPos >= 0)//&& iIndexPos < animationcomponent->channels.size() )
 				{
-					if (iUseMode == 3)
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndexPos];
+					if (pAnimationChannel)
 					{
-						pAnimationChannel->iUsePreFrame = 3;
-						pAnimationChannel->vPreFrameTranslation = XMVectorSet(0, 0, 0, 0);
-					}
-					else
-					{
-						pAnimationChannel->iUsePreFrame = 0;
+						if (iUseMode == 3)
+						{
+							pAnimationChannel->iUsePreFrame = 3;
+							pAnimationChannel->vPreFrameTranslation = XMVectorSet(0, 0, 0, 0);
+						}
+						else
+						{
+							pAnimationChannel->iUsePreFrame = 0;
+						}
 					}
 				}
 			}
@@ -4481,20 +4519,23 @@ void WickedCall_SetBip01Rotation(sObject* pObject, sFrame* pFrame, int iUseMode,
 		{
 			uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-			int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
-			if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
+			if (animationcomponent)
 			{
-				AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
-				if (pAnimationChannel)
+				int iIndex = pFrame->pAnimRef->wickedanimationchannel[1];
+				if (iIndex >= 0)//&& iIndex < animationcomponent->channels.size())
 				{
-					if (iUseMode > 0 )
+					AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[iIndex];
+					if (pAnimationChannel)
 					{
-						pAnimationChannel->iUsePreFrame = iUseMode;
-						pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(0, 0, 0);
-					}
-					else
-					{
-						pAnimationChannel->iUsePreFrame = 0;
+						if (iUseMode > 0)
+						{
+							pAnimationChannel->iUsePreFrame = iUseMode;
+							pAnimationChannel->qPreFrameRotation = XMQuaternionRotationRollPitchYaw(0, 0, 0);
+						}
+						else
+						{
+							pAnimationChannel->iUsePreFrame = 0;
+						}
 					}
 				}
 			}
@@ -4542,67 +4583,66 @@ void WickedCall_SetObjectPreFrames(sObject* pObject, LPSTR pParentFrameName, flo
 		// get animation component
 		uint64_t wickedanimationindex = pObject->pAnimationSet->wickedanimentityindex;
 		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(wickedanimationindex);
-
-		// for each frame, copy the specified animation frame to the preframe
-		for (int iF = 0; iF < g_pFramesToAffect.size(); iF++)
+		if (animationcomponent)
 		{
-			sFrame* pFrame = g_pFramesToAffect[iF];
-			sAnimation* pAnim = pFrame->pAnimRef;
-			if (pAnim)
+			// for each frame, copy the specified animation frame to the preframe
+			for (int iF = 0; iF < g_pFramesToAffect.size(); iF++)
 			{
-				// must loop through three channels and samplers for this frame (T then R then S)
-				for (int i = 0; i < 3; i++)
+				sFrame* pFrame = g_pFramesToAffect[iF];
+				sAnimation* pAnim = pFrame->pAnimRef;
+				if (pAnim)
 				{
-					// LB: new animation system in wicked wipes out "backwards_compatibility_data" so need to use
-					// the new location for "keyframe_times, etc"
-					// prevent crash to ensure pAnim->wickedanimationchannel[i] not -1
-					//if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
-					if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
-					//&& pAnim->wickedanimationchannel[i] < animationcomponent->channels.size() 
-					//&& pAnim->wickedanimationsampler[i] < animationcomponent->samplers.size() )
+					// must loop through three channels and samplers for this frame (T then R then S)
+					for (int i = 0; i < 3; i++)
 					{
-						// for this animation, locate the channels and samplers for the frame
-						AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[pAnim->wickedanimationchannel[i]];
-						AnimationComponent::AnimationSampler* pAnimationSampler = &animationcomponent->samplers[pAnim->wickedanimationsampler[i]];
-						if (pAnimationChannel && pAnimationSampler)
+						// LB: new animation system in wicked wipes out "backwards_compatibility_data" so need to use
+						// the new location for "keyframe_times, etc"
+						// prevent crash to ensure pAnim->wickedanimationchannel[i] not -1
+						if (pAnim->wickedanimationchannel[i] >= 0 && pAnim->wickedanimationsampler[i] >= 0)
 						{
-							AnimationDataComponent* animationdata = wiScene::GetScene().animation_datas.GetComponent(pAnimationSampler->data);
-							if (animationdata == nullptr)
-								continue;
+							// for this animation, locate the channels and samplers for the frame
+							AnimationComponent::AnimationChannel* pAnimationChannel = &animationcomponent->channels[pAnim->wickedanimationchannel[i]];
+							AnimationComponent::AnimationSampler* pAnimationSampler = &animationcomponent->samplers[pAnim->wickedanimationsampler[i]];
+							if (pAnimationChannel && pAnimationSampler)
+							{
+								AnimationDataComponent* animationdata = wiScene::GetScene().animation_datas.GetComponent(pAnimationSampler->data);
+								if (animationdata == nullptr)
+									continue;
 
-							// find true keyframe slot using frame time passed in (using fFrameToUse)
-							int keyLeft = 0;
-							int keyRight = 0;
-							if (animationdata->keyframe_times.back() < fFrameToUse)
-							{
-								// Rightmost keyframe is already outside animation, so just snap to last keyframe:
-								keyLeft = keyRight = (int)animationdata->keyframe_times.size() - 1;
-							}
-							else
-							{
-								// Search for the right keyframe (greater/equal to anim time):
-								while (animationdata->keyframe_times[keyRight++] < fFrameToUse) {}
-								keyRight--;
-								// Left keyframe is just near right:
-								keyLeft = std::max(0, keyRight - 1);
-							}
+								// find true keyframe slot using frame time passed in (using fFrameToUse)
+								int keyLeft = 0;
+								int keyRight = 0;
+								if (animationdata->keyframe_times.back() < fFrameToUse)
+								{
+									// Rightmost keyframe is already outside animation, so just snap to last keyframe:
+									keyLeft = keyRight = (int)animationdata->keyframe_times.size() - 1;
+								}
+								else
+								{
+									// Search for the right keyframe (greater/equal to anim time):
+									while (animationdata->keyframe_times[keyRight++] < fFrameToUse) {}
+									keyRight--;
+									// Left keyframe is just near right:
+									keyLeft = std::max(0, keyRight - 1);
+								}
 
-							// copy the animation data as the preframe so it will be imposed on the animation 
-							pAnimationChannel->fSmoothAmount = 1.0f / fSmoothSlerpToNextShape;
-							if (i == 0)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->vPreFrameTranslation = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
-							}
-							if (i == 1)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->qPreFrameRotation = XMLoadFloat4(&((const XMFLOAT4*)animationdata->keyframe_data.data())[keyLeft]);
-							}
-							if (i == 2)
-							{
-								pAnimationChannel->iUsePreFrame = iPreFrameMode;
-								pAnimationChannel->vPreFrameScale = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								// copy the animation data as the preframe so it will be imposed on the animation 
+								pAnimationChannel->fSmoothAmount = 1.0f / fSmoothSlerpToNextShape;
+								if (i == 0)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->vPreFrameTranslation = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								}
+								if (i == 1)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->qPreFrameRotation = XMLoadFloat4(&((const XMFLOAT4*)animationdata->keyframe_data.data())[keyLeft]);
+								}
+								if (i == 2)
+								{
+									pAnimationChannel->iUsePreFrame = iPreFrameMode;
+									pAnimationChannel->vPreFrameScale = XMLoadFloat3(&((const XMFLOAT3*)animationdata->keyframe_data.data())[keyLeft]);
+								}
 							}
 						}
 					}

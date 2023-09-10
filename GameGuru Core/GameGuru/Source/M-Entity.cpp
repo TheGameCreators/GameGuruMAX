@@ -4337,7 +4337,10 @@ void entity_fillgrideleproffromprofile ( void )
 		{
 			t.grideleprof.damage=g.firemodes[t.tgunid][0].settings.damage;
 			t.grideleprof.range=g.firemodes[t.tgunid][0].settings.range;
-			t.grideleprof.dropoff=g.firemodes[t.tgunid][0].settings.dropoff;
+			t.grideleprof.dropoff = g.firemodes[t.tgunid][0].settings.dropoff;
+			t.grideleprof.clipcapacity = g.firemodes[t.tgunid][0].settings.clipcapacity;
+			t.grideleprof.weaponpropres1 = g.firemodes[t.tgunid][0].settings.weaponpropres1;
+			t.grideleprof.weaponpropres2 = g.firemodes[t.tgunid][0].settings.weaponpropres2;
 		}
 		else
 		{
@@ -5564,7 +5567,7 @@ void c_entity_loadelementsdata ( void )
 
 	// load entity element list
 	t.failedtoload=0;
-	t.versionnumbersupported = 337;
+	t.versionnumbersupported = 338;
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
 	{
@@ -6260,6 +6263,12 @@ void c_entity_loadelementsdata ( void )
 					{
 						t.a = c_ReadLong(1); t.entityelement[t.e].iCanGoUnderwater = t.a;
 					}
+					if (t.versionnumberload >= 338)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.clipcapacity = t.a;
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.weaponpropres1 = t.a;
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.weaponpropres2 = t.a;
+					}
 					#endif
 
 					// get the index of the entity profile
@@ -6870,7 +6879,7 @@ void entity_saveelementsdata ( void )
 	g.entityelementlist = temp;
 
 	//  Save entity element list
-	t.versionnumbersave = 337;
+	t.versionnumbersave = 338;
 
 	EntityWriter writer;
 
@@ -7410,6 +7419,12 @@ void entity_saveelementsdata ( void )
 				if (t.versionnumbersave >= 337)
 				{
 					writer.WriteLong(t.entityelement[ent].iCanGoUnderwater);
+				}
+				if (t.versionnumbersave >= 338)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.clipcapacity);
+					writer.WriteLong(t.entityelement[ent].eleprof.weaponpropres1);
+					writer.WriteLong(t.entityelement[ent].eleprof.weaponpropres2);
 				}
 				#endif
 			}
@@ -8222,6 +8237,10 @@ void entity_addentitytomap ( void )
 		g.firemodes[t.tgunid][firemode].settings.range=t.grideleprof.range;
 		g.firemodes[t.tgunid][firemode].settings.dropoff=t.grideleprof.dropoff;
 		g.firemodes[t.tgunid][firemode].settings.usespotlighting=t.grideleprof.usespotlighting;
+		g.firemodes[t.tgunid][firemode].settings.clipcapacity = t.grideleprof.clipcapacity;
+		g.firemodes[t.tgunid][firemode].settings.weaponpropres1 = t.grideleprof.weaponpropres1;
+		g.firemodes[t.tgunid][firemode].settings.weaponpropres2 = t.grideleprof.weaponpropres2;
+
 		if (  t.tflakid>0 ) 
 		{
 			// flak to follow
@@ -8242,6 +8261,9 @@ void entity_addentitytomap ( void )
 				t.entityelement[t.te].eleprof.range=t.grideleprof.range;
 				t.entityelement[t.te].eleprof.dropoff=t.grideleprof.dropoff;
 				t.entityelement[t.te].eleprof.usespotlighting=t.grideleprof.usespotlighting;
+				t.entityelement[t.te].eleprof.clipcapacity = t.grideleprof.clipcapacity;
+				t.entityelement[t.te].eleprof.weaponpropres1 = t.grideleprof.weaponpropres1;
+				t.entityelement[t.te].eleprof.weaponpropres2 = t.grideleprof.weaponpropres2;
 				t.entityelement[t.te].eleprof.lifespan=t.grideleprof.lifespan;
 				t.entityelement[t.te].eleprof.throwspeed=t.grideleprof.throwspeed;
 				t.entityelement[t.te].eleprof.throwangle=t.grideleprof.throwangle;

@@ -1038,7 +1038,10 @@ void interface_openpropertywindow ( void )
 					setpropertystring2(t.group,Str(t.grideleprof.reloadqty),t.strarr_s[422].Get(),t.strarr_s[212].Get()) ; ++t.controlindex;
 					setpropertystring2(t.group,Str(t.grideleprof.fireiterations),t.strarr_s[423].Get(),t.strarr_s[213].Get()) ; ++t.controlindex;
 					setpropertystring2(t.group,Str(t.grideleprof.range),"Range","Maximum range of bullet travel") ; ++t.controlindex;
-					setpropertystring2(t.group,Str(t.grideleprof.dropoff),"Dropoff","Amount in inches of vertical dropoff per 100 feet of bullet travel") ; ++t.controlindex;
+					setpropertystring2(t.group, Str(t.grideleprof.dropoff), "Dropoff", "Amount in inches of vertical dropoff per 100 feet of bullet travel"); ++t.controlindex;
+					setpropertystring2(t.group, Str(t.grideleprof.clipcapacity), "Clip Capacity", "The total maximum number of clips the player can carry for this weapon"); ++t.controlindex;
+					//int weaponpropres1;
+					//int weaponpropres2;
 				}
 				else
 				{
@@ -1652,6 +1655,10 @@ void interface_copydatatoentity ( void )
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Range") ) == 0 )  t.grideleprof.range = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Dropoff") ) == 0 )  t.grideleprof.dropoff = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Spot Lighting") ) == 0 )  t.grideleprof.usespotlighting = ValF(t.tdata_s.Get());
+			if (strcmp(Lower(t.tfield_s.Get()), Lower("Clip Capacity")) == 0)  t.grideleprof.clipcapacity = ValF(t.tdata_s.Get());
+			//int weaponpropres1;
+			//int weaponpropres2;
+
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[424].Get()) ) == 0 )  t.grideleprof.lifespan = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[425].Get()) ) == 0 )  t.grideleprof.throwspeed = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[426].Get()) ) == 0 )  t.grideleprof.throwangle = ValF(t.tdata_s.Get());
@@ -29452,6 +29459,9 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 					edit_grideleprof->fireiterations = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->fireiterations), t.strarr_s[423].Get(), t.strarr_s[213].Get(),readonly));
 					edit_grideleprof->range = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->range), "Range", "Maximum range of bullet travel",readonly));
 					edit_grideleprof->dropoff = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->dropoff), "Dropoff", "Amount in inches of vertical dropoff per 100 feet of bullet travel",readonly));
+					edit_grideleprof->clipcapacity = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->clipcapacity), "Clip Capacity", "The total maximum number of clips the player can carry for this weapon", readonly));
+					//int weaponpropres1;
+					//int weaponpropres2;
 				}
 				else
 				{
@@ -48529,8 +48539,22 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									}
 									else
 									{
-										sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
-										readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+										if (stricmp(storeFirstEntry, "Ammo Remaining") == NULL)
+										{
+											readoutValueFromLUA1 = t.slidersmenuvalue[1][1].value;
+										}
+										else
+										{
+											if (stricmp(storeFirstEntry, "Maximum Ammo") == NULL)
+											{
+												readoutValueFromLUA1 = t.slidersmenuvalue[1][2].value;
+											}
+											else
+											{
+												sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
+												readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+											}
+										}
 									}
 									if (stricmp(storeSecondEntry, "Maximum Health") == NULL)
 									{
@@ -48538,8 +48562,24 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									}
 									else
 									{
-										sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeSecondEntry);
-										readoutValueFromLUA2 = LuaGetInt(pUserDefinedGlobal);
+										if (stricmp(storeSecondEntry, "Weapon Reload Quantity") == NULL)
+										{
+											readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty;
+										}
+										else
+										{
+											if (stricmp(storeSecondEntry, "Maximum Clipped Ammo") == NULL)
+											{ 
+												int iClipCapacity = g.firemodes[t.gunid][g.firemode].settings.clipcapacity;
+												if (iClipCapacity == 0) iClipCapacity = 50; // if no clip size specified, default to 50
+												readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty * iClipCapacity;
+											}
+											else
+											{
+												sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeSecondEntry);
+												readoutValueFromLUA2 = LuaGetInt(pUserDefinedGlobal);
+											}
+										}
 									}
 									fProgress = ((float)readoutValueFromLUA1/(float)readoutValueFromLUA2)*100.0f;
 								}

@@ -12984,6 +12984,9 @@ void mapeditorexecutable_loop(void)
 										t.grideleprof.fireiterations = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.fireiterations), t.strarr_s[423].Get(), t.strarr_s[213].Get()));
 										t.grideleprof.range = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.range), "Range", "Maximum range of bullet travel"));
 										t.grideleprof.dropoff = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.dropoff), "Dropoff", "Amount in inches of vertical dropoff per 100 feet of bullet travel"));
+										t.grideleprof.clipcapacity = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.clipcapacity), "Clip Capacity", "The total maximum number of clips the player can carry for this weapon"));
+										//int weaponpropres1;
+										//int weaponpropres2;
 									}
 									else
 									{

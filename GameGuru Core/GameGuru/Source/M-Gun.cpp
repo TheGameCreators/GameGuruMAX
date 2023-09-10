@@ -301,6 +301,14 @@ void gun_loaddata ( void )
 					if( matched )  g.firemodes[t.gunid][0].settings.damage = t.value1;
 					cmpStrConst( t_field_s, "dropoff" );
 					if( matched )  g.firemodes[t.gunid][0].settings.dropoff = t.value1;
+
+					cmpStrConst(t_field_s, "clipcapacity");
+					if (matched)  g.firemodes[t.gunid][0].settings.clipcapacity = t.value1;
+					//cmpStrConst(t_field_s, "weaponpropres1");
+					//if (matched)  g.firemodes[t.gunid][0].settings.weaponpropres1 = t.value1;
+					//cmpStrConst(t_field_s, "weaponpropres2");
+					//if (matched)  g.firemodes[t.gunid][0].settings.weaponpropres2 = t.value1;
+
 					cmpStrConst( t_field_s, "muzzleflash" );
 					if( matched )  g.firemodes[t.gunid][0].settings.muzzleflash = t.value1;
 					cmpStrConst( t_field_s, "firerate" );
@@ -979,6 +987,14 @@ void gun_loaddata ( void )
 					if( matched )  g.firemodes[t.gunid][1].settings.damage = t.value1;
 					cmpStrConst( t_field_s, "altdropoff" );
 					if( matched )  g.firemodes[t.gunid][1].settings.dropoff = t.value1;
+
+					cmpStrConst(t_field_s, "altclipcapacity");
+					if (matched)  g.firemodes[t.gunid][1].settings.clipcapacity = t.value1;
+					//cmpStrConst(t_field_s, "altweaponpropres1");
+					//if (matched)  g.firemodes[t.gunid][1].settings.weaponpropres1 = t.value1;
+					//cmpStrConst(t_field_s, "altweaponpropres2");
+					//if (matched)  g.firemodes[t.gunid][1].settings.weaponpropres2 = t.value1;
+
 					cmpStrConst( t_field_s, "altmuzzleflash" );
 					if( matched )  g.firemodes[t.gunid][1].settings.muzzleflash = t.value1;
 					cmpStrConst( t_field_s, "altfirerate" );

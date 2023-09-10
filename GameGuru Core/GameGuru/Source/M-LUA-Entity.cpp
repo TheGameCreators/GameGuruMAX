@@ -2952,7 +2952,6 @@ void entity_lua_addplayerammo ( void )
 		// `tammo=weaponclipammo(weaponammoindex+ammooffset)
 
 		// the ammo is for a weapon that is missing from files, check to see if the ammo can be used for any other weapons.
-		#ifdef WICKEDENGINE
 		if (t.entityprofile[t.tentid].ammopool_s.Len() > 0)
 		{
 			for (int i = 0; i < t.ammopool.size(); i++)
@@ -2965,13 +2964,13 @@ void entity_lua_addplayerammo ( void )
 				}
 			}
 		}
-		#endif
 	}
-
 	if(t.tpool != 0)
 	{
-		//  increase ammo pool by ammo quantity
-		t.ammopool[t.tpool].ammo=t.ammopool[t.tpool].ammo+t.tqty;
+		// increase ammo pool by ammo quantity
+		t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo + t.tqty;
+		int iMaxClipCapacity = g.firemodes[t.tgunid][t.tfiremode].settings.clipcapacity * g.firemodes[t.tgunid][t.tfiremode].settings.reloadqty;
+		if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
 	}
 }
 

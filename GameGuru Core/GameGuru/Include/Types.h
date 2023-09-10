@@ -5791,13 +5791,11 @@ struct entityprofiletype
 	int iThumbnailSmall;
 	int iThumbnailLarge;
 	int synccount;
-	#ifdef WICKEDENGINE
 	WickedMaterial WEMaterial;
 	cstr thumbnailbackdrop;
 	float BackBufferZoom, BackBufferCamLeft, BackBufferCamUp, BackBufferRotateX, BackBufferRotateY;
 	int iThumbnailAnimset;
 	cstr keywords_s;
-
 	bool bIsDecal;
 	bool bDecalInit;
 	int iDecalRows;
@@ -5806,17 +5804,19 @@ struct entityprofiletype
 	float fDecalFrame;
 	cstr soundset5_s;
 	cstr soundset6_s;
-	#ifdef WICKEDENGINE
 	cstr ammopool_s;
 	CollectableType collectable;
-	#endif
-#endif
+	int clipcapacity;
+	int weaponpropres1;
+	int weaponpropres2;
 
 	// Constructor
 	entityprofiletype ( )
 	{
-		 #ifdef WICKEDENGINE
-		ammopool_s = "";
+		 clipcapacity = 0;
+		 weaponpropres1 = 0;
+		 weaponpropres2 = 0;
+		 ammopool_s = "";
 		 WEMaterial.MaterialActive = false;
 		 thumbnailbackdrop = "";
 		 BackBufferZoom = -1.0f;
@@ -5834,7 +5834,6 @@ struct entityprofiletype
 		 bDecalInit = false;
 		 soundset5_s = "";
 		 soundset6_s = "";
-		 #endif
 
 		 iThumbnailSmall = 0;
 		 iThumbnailLarge = 0;
@@ -6198,18 +6197,10 @@ struct entityeleproftype
 	int explodable;
 	int explodedamage;
 	int teamfield;
-	//DWORD phydw1;
-	//DWORD phydw2;
-	//DWORD phydw3;
-	//DWORD phydw4;
-	//DWORD phydw5;
-	#ifndef PRODUCTCLASSIC
 	//PE: This takes up mem , should be converted to *PropertiesVariable
 	//PE: 10000 object * this ...
 	PropertiesVariables PropertiesVariable;
 	int PropertiesVariableActive;
-	#endif
-	#ifdef WICKEDENGINE
 	bool bCustomWickedMaterialActive;
 	WickedMaterial WEMaterial;
 	// New Logic System
@@ -6238,15 +6229,14 @@ struct entityeleproftype
 	int iUseSoundVariants;
 	cstr overrideanimset_s;
 	int iSwimSpeed;
-	#endif
+	int clipcapacity;
+	int weaponpropres1;
+	int weaponpropres2;
 
 	// Constructor
 	entityeleproftype ( )
 	{
-		#ifndef PRODUCTCLASSIC
 		PropertiesVariableActive = 0;
-		#endif
-		#ifdef WICKEDENGINE
 		iFlattenID = -1;
 		bAutoFlatten = true;
 		bCustomWickedMaterialActive = false;
@@ -6290,13 +6280,10 @@ struct entityeleproftype
 		iUseSoundVariants = 1;
 		overrideanimset_s = "";
 		iSwimSpeed = 3;
-		#endif
+		clipcapacity = 0;
+		weaponpropres1 = 0;
+		weaponpropres2 = 0;
 
-		 //phydw5 = 0;
-		 //phydw4 = 0;
-		 //phydw3 = 0;
-		 //phydw2 = 0;
-		 //phydw1 = 0;
 		 disableascharacter = 0;
 		 groupreference = -1;
 		 teamfield = 0;
@@ -7495,9 +7482,10 @@ struct gunsettingstype
 	float fVRWeaponAngleX;
 	float fVRWeaponAngleY;
 	float fVRWeaponAngleZ;
-#ifdef WICKEDENGINE
 	int usemeleedamageonly;
-#endif
+	int clipcapacity;
+	int weaponpropres1;
+	int weaponpropres2;
 
 	// Constructor
 	gunsettingstype ( )
@@ -7692,14 +7680,12 @@ struct gunsettingstype
 		 gravitystrength = 0;
 		 gravitygun = 0;
 		 emptyreloadonly = 0;
-#ifdef WICKEDENGINE
 		 usemeleedamageonly = 0;
-#endif
+		 clipcapacity = 0;
+		 weaponpropres1 = 0;
+		 weaponpropres2 = 0;
 	}
-	// End of Constructor
-
 };
-
 
 struct gunparticletype
 {

@@ -48,6 +48,9 @@ void entity_init_overwritefireratesettings (void)
 				g.firemodes[t.tgunid][firemode].settings.range = t.entityelement[t.e].eleprof.range;
 				g.firemodes[t.tgunid][firemode].settings.dropoff = t.entityelement[t.e].eleprof.dropoff;
 				g.firemodes[t.tgunid][firemode].settings.usespotlighting = t.entityelement[t.e].eleprof.usespotlighting;
+				g.firemodes[t.tgunid][firemode].settings.clipcapacity = t.entityelement[t.e].eleprof.clipcapacity;
+				g.firemodes[t.tgunid][firemode].settings.weaponpropres1 = t.entityelement[t.e].eleprof.weaponpropres1;
+				g.firemodes[t.tgunid][firemode].settings.weaponpropres2 = t.entityelement[t.e].eleprof.weaponpropres2;
 			}
 		}
 	}

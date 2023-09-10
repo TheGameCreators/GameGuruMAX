@@ -600,6 +600,9 @@ luaMessage** ppLuaMessages = NULL;
 	if ( n < 2 ) return 0;
 	int iIndex = lua_tonumber(L, 1);
 	t.weaponclipammo[iIndex] = lua_tonumber(L, 2);
+	int iWeaponID = t.weaponslot[iIndex].got;
+	int iMaxClipCapacity = g.firemodes[iWeaponID][0].settings.clipcapacity * g.firemodes[iWeaponID][0].settings.reloadqty;
+	if (t.weaponclipammo[iIndex] > iMaxClipCapacity) t.weaponclipammo[iIndex] = iMaxClipCapacity;
 	return 0;
  }
  int GetWeaponPoolAmmoIndex(lua_State* L)
@@ -732,6 +735,10 @@ luaMessage** ppLuaMessages = NULL;
 			case 5 : g.firemodes[tgunid][tfiremode].settings.range = newvalue; break;
 			case 6 : g.firemodes[tgunid][tfiremode].settings.dropoff = newvalue; break;
 			case 7 : g.firemodes[tgunid][tfiremode].settings.usespotlighting = newvalue; break;
+			case 8 : g.firemodes[tgunid][tfiremode].settings.firerate = newvalue; break;
+			case 9 : g.firemodes[tgunid][tfiremode].settings.clipcapacity = newvalue; break;
+			case 10: g.firemodes[tgunid][tfiremode].settings.weaponpropres1 = newvalue; break;
+			case 11: g.firemodes[tgunid][tfiremode].settings.weaponpropres2 = newvalue; break;
 		}
 	}
 	return 0;
@@ -762,6 +769,9 @@ luaMessage** ppLuaMessages = NULL;
 			case 6 : iReturnValue = g.firemodes[tgunid][tfiremode].settings.dropoff; break;
 			case 7 : iReturnValue = g.firemodes[tgunid][tfiremode].settings.usespotlighting; break;
 			case 8 : iReturnValue = g.firemodes[tgunid][tfiremode].settings.firerate; break;
+			case 9 : iReturnValue = g.firemodes[tgunid][tfiremode].settings.clipcapacity; break;
+			case 10: iReturnValue = g.firemodes[tgunid][tfiremode].settings.weaponpropres1; break;
+			case 11: iReturnValue = g.firemodes[tgunid][tfiremode].settings.weaponpropres2; break;
 		}
 	}
 	lua_pushinteger ( L, iReturnValue );
@@ -781,7 +791,14 @@ luaMessage** ppLuaMessages = NULL;
  int GetWeaponRange(lua_State *L) { return RawGetWeaponData ( L, 5 ); }
  int GetWeaponDropoff(lua_State *L) { return RawGetWeaponData ( L, 6 ); }
  int GetWeaponSpotLighting(lua_State *L) { return RawGetWeaponData ( L, 7 ); }
- int GetWeaponFireRate(lua_State *L) { return RawGetWeaponData (L, 8); }
+ int SetWeaponFireRate(lua_State* L) { return RawSetWeaponData (L, 8); }
+ int GetWeaponFireRate(lua_State* L) { return RawGetWeaponData (L, 8); }
+ int SetWeaponClipCapacity(lua_State* L) { return RawSetWeaponData (L, 9); }
+ int GetWeaponClipCapacity(lua_State* L) { return RawGetWeaponData (L, 9); }
+ //int SetWeaponWeaponPropRes1(lua_State* L) { return RawSetWeaponData (L, 10); } reserved
+ //int GetWeaponWeaponPropRes1(lua_State* L) { return RawGetWeaponData (L, 10); }
+ //int SetWeaponWeaponPropRes2(lua_State* L) { return RawSetWeaponData (L, 11); }
+ //int GetWeaponWeaponPropRes2(lua_State* L) { return RawGetWeaponData (L, 11); }
 
  //
  // Player Camera Overrides
@@ -9749,7 +9766,10 @@ void addFunctions()
 	lua_register(lua, "GetWeaponRange", GetWeaponRange);
 	lua_register(lua, "GetWeaponDropoff", GetWeaponDropoff);
 	lua_register(lua, "GetWeaponSpotLighting", GetWeaponSpotLighting);
+	lua_register(lua, "SetWeaponFireRate", SetWeaponFireRate);
 	lua_register(lua, "GetWeaponFireRate", GetWeaponFireRate);
+	lua_register(lua, "SetWeaponClipCapacity", SetWeaponClipCapacity);
+	lua_register(lua, "GetWeaponClipCapacity", GetWeaponClipCapacity);
 
 	lua_register(lua, "WrapAngle", WrapAngle);
 	lua_register(lua, "GetCameraOverride", GetCameraOverride);

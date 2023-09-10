@@ -4373,7 +4373,16 @@ void physics_player_addweapon ( void )
 					{
 						t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
 						t.weaponammo[t.gotweapon+10]=g.firemodes[t.tgunid][1].settings.reloadqty;
-						if (  t.altpool>0  )  t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo+(t.taltqty-g.firemodes[t.tgunid][1].settings.reloadqty); else t.weaponclipammo[t.gotweapon+10] = t.taltqty-g.firemodes[t.tgunid][1].settings.reloadqty;
+						if (t.altpool > 0)
+						{
+							t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo + (t.taltqty - g.firemodes[t.tgunid][1].settings.reloadqty);
+							int iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
+							if (t.ammopool[t.altpool].ammo > iMaxClipCapacity) t.ammopool[t.altpool].ammo = iMaxClipCapacity;
+						}
+						else
+						{
+							t.weaponclipammo[t.gotweapon + 10] = t.taltqty - g.firemodes[t.tgunid][1].settings.reloadqty;
+						}
 					}
 					else
 					{
@@ -4386,7 +4395,17 @@ void physics_player_addweapon ( void )
 							if (  t.gun[t.tgunid].settings.canaddtospare == 1 ) 
 							{
 								t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
-								if (  t.altpool == 0  )  t.weaponclipammo[t.gotweapon+10] = t.weaponclipammo[t.gotweapon+10]+t.taltqty; else t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo+t.taltqty;
+								int iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
+								if (t.altpool == 0)
+								{
+									t.weaponclipammo[t.gotweapon + 10] = t.weaponclipammo[t.gotweapon + 10] + t.taltqty;
+									if (t.weaponclipammo[t.gotweapon + 10] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon + 10] = iMaxClipCapacity;
+								}
+								else
+								{
+									t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo + t.taltqty;
+									if (t.ammopool[t.altpool].ammo > iMaxClipCapacity) t.ammopool[t.altpool].ammo = iMaxClipCapacity;
+								}
 							}
 							if (  t.gun[t.tgunid].settings.canaddtospare == 0  )  t.weaponammo[t.gotweapon+10] = t.taltqty;
 						}
@@ -4420,13 +4439,16 @@ void physics_player_addweapon ( void )
 						if (  t.gun[t.tgunid].settings.canaddtospare == 1 ) 
 						{
 							t.tpool=g.firemodes[t.tgunid][0].settings.poolindex;
-							if (  t.tpool == 0 ) 
+							int iMaxClipCapacity = g.firemodes[t.tgunid][0].settings.clipcapacity * g.firemodes[t.tgunid][0].settings.reloadqty;
+							if (  t.tpool == 0 )
 							{
-								t.weaponclipammo[t.gotweapon]=t.weaponclipammo[t.gotweapon]+t.tqty;
+								t.weaponclipammo[t.gotweapon] = t.weaponclipammo[t.gotweapon] + t.tqty;
+								if (t.weaponclipammo[t.gotweapon] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon] = iMaxClipCapacity;
 							}
 							else
 							{
 								t.ammopool[t.tpool].ammo=t.ammopool[t.tpool].ammo+t.tqty;
+								if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
 							}
 						}
 						if (  t.gun[t.tgunid].settings.canaddtospare == 0 ) 
@@ -4441,8 +4463,28 @@ void physics_player_addweapon ( void )
 			{
 				t.tpool=g.firemodes[t.tgunid][0].settings.poolindex;
 				t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
-				if (  t.tpool == 0  )  t.weaponclipammo[t.gotweapon] = t.weaponclipammo[t.gotweapon]+t.tqty; else t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo+t.tqty;
-				if (  t.altpool == 0  )  t.weaponclipammo[t.gotweapon+10] = t.weaponclipammo[t.gotweapon+10]+t.taltqty; else t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo+t.taltqty;
+				int iMaxClipCapacity = g.firemodes[t.tgunid][0].settings.clipcapacity * g.firemodes[t.tgunid][0].settings.reloadqty;
+				if (t.tpool == 0)
+				{
+					t.weaponclipammo[t.gotweapon] = t.weaponclipammo[t.gotweapon] + t.tqty;
+					if (t.weaponclipammo[t.gotweapon] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon] = iMaxClipCapacity;
+				}
+				else
+				{
+					t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo + t.tqty;
+					if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
+				}
+				iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
+				if (t.altpool == 0)
+				{
+					t.weaponclipammo[t.gotweapon + 10] = t.weaponclipammo[t.gotweapon + 10] + t.taltqty;
+					if (t.weaponclipammo[t.gotweapon + 10] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon + 10] = iMaxClipCapacity;
+				}
+				else
+				{
+					t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo + t.taltqty;
+					if (t.ammopool[t.altpool].ammo > iMaxClipCapacity) t.ammopool[t.altpool].ammo = iMaxClipCapacity;
+				}
 			}
 		}
 	}

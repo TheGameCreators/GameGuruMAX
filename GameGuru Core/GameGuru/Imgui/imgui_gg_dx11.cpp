@@ -7912,6 +7912,21 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 						type = INT;
 						pVariable = &tmpeleprof->dropoff;
 					}
+					else if (stricmp(variableName.c_str(), "clipcapacity") == 0)
+					{
+						type = INT;
+						pVariable = &tmpeleprof->clipcapacity;
+					}
+					else if (stricmp(variableName.c_str(), "weaponpropres1") == 0)
+					{
+						type = INT;
+						pVariable = &tmpeleprof->weaponpropres1;
+					}
+					else if (stricmp(variableName.c_str(), "weaponpropres2") == 0)
+					{
+						type = INT;
+						pVariable = &tmpeleprof->weaponpropres2;
+					}
 
 					// Display the correct ImGui gadget based on the variable type.
 					switch (type)

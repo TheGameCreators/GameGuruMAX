@@ -60,6 +60,7 @@ namespace GGTrees
 		float x;
 		float y;
 		float z;
+		float scale;
 	};
 
 	int GGTrees_GetClosest( float x, float z, float radius, GGTreePoint** pOutPoints ); // returns the number of trees in pOutPoints, pOutPoints must be undefined it will be created

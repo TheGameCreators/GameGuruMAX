@@ -509,6 +509,10 @@ void visuals_newlevel ( void )
 	// also ensure new terrain starts with no PBR terrain
 	//t.terrain.iTerrainPBRMode = 0;
 	//t.terrain.iForceTerrainVegShaderUpdate = 1;
+
+	// force a fade in of the gamma (hides construction artefacts and looks nice)
+	extern float g_fGlobalGammaFadeIn;
+	g_fGlobalGammaFadeIn = -2;
 }
 
 void visuals_free ( void )

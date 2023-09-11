@@ -207,6 +207,85 @@ struct InstanceTree
 
 	int GetType() { return (data >> 11) & 0x3F; }
 	int GetID() { return id; }
+
+	float GetTreeThickness()
+	{
+		int iTreeType = GetType();
+		float fThickness = 10.0f;
+		//sTreeTexturesName[0] = "Birch";
+		//sTreeTexturesName[1] = "Cactus Var 1";
+		//sTreeTexturesName[2] = "Cactus Var 2";
+		//sTreeTexturesName[3] = "Cactus Var 3";
+		//sTreeTexturesName[4] = "Cactus Var 4";
+		//sTreeTexturesName[5] = "Dead Pine Tree";
+		//sTreeTexturesName[6] = "Dry Pine";
+		//sTreeTexturesName[7] = "Italian Pine";
+		//sTreeTexturesName[8] = "Jungle Tree 1";
+		//sTreeTexturesName[9] = "Jungle Tree 2";
+		//sTreeTexturesName[10] = "Jungle Tree 3a";
+		//sTreeTexturesName[11] = "Jungle Tree 3b";
+		//sTreeTexturesName[12] = "Jungle Tree 4a";
+		//sTreeTexturesName[13] = "Jungle Tree 4b";
+		//sTreeTexturesName[14] = "Jungle Tree 5a";
+		//sTreeTexturesName[15] = "Jungle Tree 5b";
+		//sTreeTexturesName[16] = "Jungle Tree 6a";
+		//sTreeTexturesName[17] = "Jungle Tree 6b";
+		//sTreeTexturesName[18] = "Kentia Palm";
+		//sTreeTexturesName[19] = "Palm";
+		//sTreeTexturesName[20] = "Pine";
+		//sTreeTexturesName[21] = "Scots Pine 1";
+		//sTreeTexturesName[22] = "Scots Pine 2";
+		//sTreeTexturesName[23] = "Scots Pine Dead";
+		//sTreeTexturesName[24] = "Snow Fir 2";
+		//sTreeTexturesName[25] = "Snow Fir 3";
+		//sTreeTexturesName[26] = "Snow Fir";
+		//sTreeTexturesName[27] = "Snow Pine";
+		//sTreeTexturesName[28] = "Snow Pine Tall 2";
+		//sTreeTexturesName[29] = "Snow Pine Tall";
+		//sTreeTexturesName[30] = "Sparse Pine";
+		//sTreeTexturesName[31] = "Vine Tree Large";
+		//sTreeTexturesName[32] = "Vine Tree Small";
+		//sTreeTexturesName[33] = "Western Pine";
+		//sTreeTexturesName[34] = "White Pine";
+		//sTreeTexturesName[35] = "Autumn Birch 1";
+		//sTreeTexturesName[36] = "Autumn Birch 2";
+		//sTreeTexturesName[37] = "Autumn Birch 3";
+		switch (iTreeType)
+		{
+			case 1: fThickness = 25.0f; break;
+			case 2: fThickness = 20.0f; break;
+			case 3: fThickness = 30.0f; break;
+			case 4: fThickness = 40.0f; break;
+			case 5: fThickness = 15.0f; break;
+			case 6: fThickness = 30.0f; break;
+			case 7: fThickness = 15.0f; break;
+			case 8: fThickness = 80.0f; break;
+			case 9: fThickness = 80.0f; break;
+			case 14: fThickness = 50.0f; break;
+			case 15: fThickness = 30.0f; break;
+			case 17: fThickness = 20.0f; break;
+			case 19: fThickness = 20.0f; break;
+			case 21: fThickness = 30.0f; break;
+			case 22: fThickness = 30.0f; break;
+			case 23: fThickness = 30.0f; break;
+			case 24: fThickness = 30.0f; break;
+			case 25: fThickness = 20.0f; break;
+			case 26: fThickness = 20.0f; break;
+			case 27: fThickness = 30.0f; break;
+			case 28: fThickness = 20.0f; break;
+			case 29: fThickness = 15.0f; break;
+			case 30: fThickness = 15.0f; break;
+			case 31: fThickness = 35.0f; break;
+			case 32: fThickness = 35.0f; break;
+			case 33: fThickness = 30.0f; break;
+			case 34: fThickness = 15.0f; break;
+			case 35: fThickness = 15.0f; break;
+			case 36: fThickness = 20.0f; break;
+			case 37: fThickness = 20.0f; break;
+		}
+		fThickness *= 1.5f;
+		return fThickness;
+	}
 };
 
 struct InstanceTreeGPU
@@ -1360,6 +1439,7 @@ int GGTrees_GetClosest( float x, float z, float radius, GGTreePoint** pOutPoints
 				tree.x = pInstance->x;
 				tree.y = pInstance->y;
 				tree.z = pInstance->z;
+				tree.scale = pInstance->GetTreeThickness() * pInstance->GetScaleFloat();
 				points.AddItem( tree );
 			}
 

@@ -530,13 +530,9 @@ extern int g_iAbortedAsEntityIsGroupFileModeStubOnly;
 extern int g_iAbortedAsEntityIsGroupCreate;
 
 bool bDigAHoleToHWND = false;
-
 bool g_bSelectedMapImageTypeSpecialHelp = false;
-
-#ifdef WICKEDENGINE
 bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
-#endif
 
 // helps track myglobals and use them in dropdowns for storyboard screen editor
 bool g_bRefreshGlobalList = false;
@@ -8461,7 +8457,19 @@ void Wicked_Update_Visuals(void *voidvisual)
 
 	WickedCall_SetShadowRange(visuals->fShadowFarPlane);
 
-	wiRenderer::SetGamma(visuals->fGamma);
+	// when in editor mode, separate control of gamma
+	extern float g_fGlobalGammaFadeIn;
+	extern float g_fGlobalGammaFadeInDest;
+	if (bImGuiInTestGame == false && t.game.gameisexe == 0)
+	{
+		//leave editor to call setgamma
+	}
+	else
+	{
+		wiRenderer::SetGamma(visuals->fGamma);
+		g_fGlobalGammaFadeIn = visuals->fGamma;
+	}
+	g_fGlobalGammaFadeInDest = visuals->fGamma;
 
 	float fUsedFOV = visuals->CameraFOV_f;
 	if (bImGuiInTestGame == false) fUsedFOV = 45;

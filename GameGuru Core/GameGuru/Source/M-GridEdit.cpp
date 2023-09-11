@@ -657,14 +657,13 @@ void gridedit_triggermessagehandler (bool bForceMessageNoFade)
 		}
 		else
 		{
-			//ImGui::SetNextWindowPos(OldrenderTargetPos + ImVec2(50, 50), ImGuiCond_Always);
-			//ImGui::SetNextWindowSize(ImVec2(OldrenderTargetSize.x - 100, 0), ImGuiCond_Always);
-
 			//PE: Now always center on viewport instead of rendertarget. as we now are inside storyboard.
 			ImVec2 viewPortPos = ImGui::GetMainViewport()->Pos;
 			ImVec2 viewPortSize = ImGui::GetMainViewport()->Size;
-			ImGui::SetNextWindowPos(viewPortPos + ImVec2(200, 130), ImGuiCond_Always);
-			ImGui::SetNextWindowSize(ImVec2(viewPortSize.x - 400, 0), ImGuiCond_Always);
+			//ImGui::SetNextWindowPos(viewPortPos + ImVec2(200, 130), ImGuiCond_Always);
+			//ImGui::SetNextWindowSize(ImVec2(viewPortSize.x - 400, 0), ImGuiCond_Always); // been wanting to get the message inside the level editor viewport for a while now
+			ImGui::SetNextWindowPos(viewPortPos + ImVec2(350, 130), ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(viewPortSize.x - 700, 0), ImGuiCond_Always);
 		}
 		bool winopen = true;
 

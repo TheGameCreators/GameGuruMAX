@@ -1440,6 +1440,7 @@ void physics_managevirtualtreecylinders (void)
 			{
 				// this virtual tree pos
 				GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
+				float fTreeThickness = pOutPoints[n].scale;
 
 				// see if tree in the visible list
 				int vti = 0;
@@ -1503,7 +1504,10 @@ void physics_managevirtualtreecylinders (void)
 
 						// now create our physics object afresh
 						SetObjectArbitaryValue (iPhyObjID, 6);
-						ODECreateStaticCylinder (iPhyObjID, vecTreePos.x, vecTreePos.y, vecTreePos.z, 10, 500, 10, 0, 0, 0);
+
+						// must cater for largest thickest trees in the default biome set (scots pine dead)
+						//ODECreateStaticCylinder (iPhyObjID, vecTreePos.x, vecTreePos.y, vecTreePos.z, 10, 500, 10, 0, 0, 0);
+						ODECreateStaticCylinder (iPhyObjID, vecTreePos.x, vecTreePos.y, vecTreePos.z, fTreeThickness, 500, fTreeThickness, 0, 0, 0);
 					}
 				}
 			}

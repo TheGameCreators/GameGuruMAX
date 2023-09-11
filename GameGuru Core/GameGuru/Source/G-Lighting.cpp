@@ -11,6 +11,10 @@
 #include "GGTerrain/GGGrass.h"
 #endif
 
+// Globals
+float g_fGlobalGammaFadeIn = 0;
+float g_fGlobalGammaFadeInDest = 0;
+
 // 
 //  LIGHTING
 // 
@@ -226,16 +230,6 @@ void lighting_loop(void)
 			}
 		}
 		g_bLightProbeScaleChanged = false;
-		/*
-		if (t.entityprofile[t.entityelement[elementID].bankindex].ismarker == 2)
-		{
-			float fLightProbeScale = t.entityelement[elementID].eleprof.light.fLightHasProbe;
-			if (fLightProbeScale > 0)
-				entity_placeprobe(t.entityelement[elementID].obj, fLightProbeScale);
-			else
-				entity_deleteprobe(t.entityelement[elementID].obj);
-		}
-		*/
 	}
 	extern bool bImGuiInTestGame;
 	if (t.widget.pickedEntityIndex > 0 && t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].ismarker == 2 && bImGuiInTestGame == false)
@@ -249,6 +243,20 @@ void lighting_loop(void)
 	else
 	{
 		wiRenderer::SetToDrawDebugEnvProbes(false);
+	}
+
+	// separated out gamma control so can fade in (from level load and other future places)
+	if (g_fGlobalGammaFadeIn < g_fGlobalGammaFadeInDest)
+	{
+		g_fGlobalGammaFadeIn += 0.05f;
+		if (g_fGlobalGammaFadeIn > g_fGlobalGammaFadeIn)
+		{
+			g_fGlobalGammaFadeIn = g_fGlobalGammaFadeInDest;
+		}
+		if (g_fGlobalGammaFadeIn >= 0)
+			wiRenderer::SetGamma(g_fGlobalGammaFadeIn);
+		else
+			wiRenderer::SetGamma(0);
 	}
 }
 

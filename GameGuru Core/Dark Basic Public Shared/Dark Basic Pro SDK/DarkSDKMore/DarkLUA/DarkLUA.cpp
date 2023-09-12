@@ -602,6 +602,7 @@ luaMessage** ppLuaMessages = NULL;
 	t.weaponclipammo[iIndex] = lua_tonumber(L, 2);
 	int iWeaponID = t.weaponslot[iIndex].got;
 	int iMaxClipCapacity = g.firemodes[iWeaponID][0].settings.clipcapacity * g.firemodes[iWeaponID][0].settings.reloadqty;
+	if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
 	if (t.weaponclipammo[iIndex] > iMaxClipCapacity) t.weaponclipammo[iIndex] = iMaxClipCapacity;
 	return 0;
  }

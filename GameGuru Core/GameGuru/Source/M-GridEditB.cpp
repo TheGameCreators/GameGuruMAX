@@ -45023,8 +45023,8 @@ int save_create_storyboard_project(void)
 				ImGui::Text("");
 				ImGui::TextCenter("If you have a name in mind that's great! Just enter it below.");
 				ImGui::Text("");
-				ImGui::TextCenter("If you're unsure then try to be creative and give it a temporary name");
-				ImGui::TextCenter("for now. You can always rename it later on.");
+				ImGui::TextCenter("Make sure you choose a good name for your project, you will");
+				ImGui::TextCenter("not be able to change it later on.");
 			}
 			else
 			{

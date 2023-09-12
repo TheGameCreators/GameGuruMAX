@@ -2970,6 +2970,7 @@ void entity_lua_addplayerammo ( void )
 		// increase ammo pool by ammo quantity
 		t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo + t.tqty;
 		int iMaxClipCapacity = g.firemodes[t.tgunid][t.tfiremode].settings.clipcapacity * g.firemodes[t.tgunid][t.tfiremode].settings.reloadqty;
+		if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
 		if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
 	}
 }

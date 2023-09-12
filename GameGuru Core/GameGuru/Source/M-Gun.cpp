@@ -232,7 +232,6 @@ void gun_loaddata ( void )
 					cmpStrConst( t_field_s, "keyframe speed" );
 					if( matched ) t.gun[t.gunid].keyframespeed_f = (float)t.value1 / 100.0f;
 
-					#ifdef WICKEDENGINE			
 					cmpStrConst(t_field_s, "handscale");
 					if (matched)  t.gun[t.gunid].handscale_f = t.value1;
 					cmpStrConst(t_field_s, "handposx");
@@ -249,7 +248,19 @@ void gun_loaddata ( void )
 					if( matched )  t.gun[t.gunid].handrotz_f = t.value1;
 					cmpStrConst( t_field_s, "alwaysshowenemyweapon" );
 					if( matched )  t.gun[t.gunid].alwaysshowenemyweapon = t.value1;
-					#endif
+
+					cmpStrConst(t_field_s, "weaponposx");
+					if (matched)  t.gun[t.gunid].weaponposx_f = t.value1;
+					cmpStrConst(t_field_s, "weaponposy");
+					if (matched)  t.gun[t.gunid].weaponposy_f = t.value1;
+					cmpStrConst(t_field_s, "weaponposz");
+					if (matched)  t.gun[t.gunid].weaponposz_f = t.value1;
+					cmpStrConst(t_field_s, "weaponrotx");
+					if (matched)  t.gun[t.gunid].weaponrotx_f = t.value1;
+					cmpStrConst(t_field_s, "weaponroty");
+					if (matched)  t.gun[t.gunid].weaponroty_f = t.value1;
+					cmpStrConst(t_field_s, "weaponrotz");
+					if (matched)  t.gun[t.gunid].weaponrotz_f = t.value1;
 
 					cmpStrConst( t_field_s, "block" );
 					if( matched )
@@ -1839,6 +1850,10 @@ void gun_createhud ( cstr customArms_s )
 		int iWeapObj = g.temp2objectoffset;
 		if (ObjectExist(iWeapObj) == 1) DeleteObject(iWeapObj);
 		LoadObject (pAbsPathToWeaponModel.Get(), iWeapObj);
+		OffsetLimb(iWeapObj, 1, t.gun[t.gunid].weaponposx_f, t.gun[t.gunid].weaponposy_f, t.gun[t.gunid].weaponposz_f);
+		TurnObjectRight(iWeapObj, t.gun[t.gunid].weaponrotx_f);
+		RollObjectRight(iWeapObj, t.gun[t.gunid].weaponroty_f);
+		PitchObjectDown(iWeapObj, t.gun[t.gunid].weaponrotz_f);
 		MakeMeshFromObject(g.meshgeneralwork2, iWeapObj);
 		DeleteObject(iWeapObj);
 		int iFrameCount = pObject->iFrameCount;

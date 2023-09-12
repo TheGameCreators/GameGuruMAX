@@ -7846,6 +7846,12 @@ struct guntype
 	float handrotx_f;
 	float handroty_f;
 	float handrotz_f;
+	float weaponposx_f;
+	float weaponposy_f;
+	float weaponposz_f;
+	float weaponrotx_f;
+	float weaponroty_f;
+	float weaponrotz_f;
 	int alwaysshowenemyweapon;
 	cstr animsetoverride;
 	int storeammo;
@@ -7860,6 +7866,12 @@ struct guntype
 		 storeclipammo = 0;
 		 animsetoverride = "";
 		 alwaysshowenemyweapon = 0;
+		 weaponposx_f = 0.0f;
+		 weaponposy_f = 0.0f;
+		 weaponposz_f = 0.0f;
+		 weaponrotx_f = 0.0f;
+		 weaponroty_f = 0.0f;
+		 weaponrotz_f = 0.0f;
 		 handscale_f = 100.0f;
 		 handposx_f = 0.0f;
 		 handposy_f = 0.0f;

@@ -3769,6 +3769,8 @@ void GlueObjectToLimbEx ( int iSource, int iTarget, int iLimbID, int iMode )
 	// assign target limb to override source position data
 	pSourceObject->position.bGlued			= true;
 	pSourceObject->position.iGluedToObj		= iTarget;
+	sObject* pTargetObject = g_ObjectList[iTarget];
+	if (pTargetObject) pTargetObject->position.iBeenGluedToBy = iSource;
 
 	// glue mode
 	if ( iMode==1 )
@@ -3788,7 +3790,7 @@ void GlueObjectToLimbEx ( int iSource, int iTarget, int iLimbID, int iMode )
 		}
 		else
 		{
-			// mode 0 and other modes - regular glue object to a limb (default behaviour)
+			// mode 0 or mode 4 and other modes - regular glue object to a limb (default behaviour)
 			pSourceObject->position.iGluedToMesh	= iLimbID;
 		}
 	}
@@ -3801,11 +3803,13 @@ void GlueObjectToLimbEx ( int iSource, int iTarget, int iLimbID, int iMode )
 		{
 			// mode 3 - is mode 0 plus ability to sync with object animation glued to
 			int iModeAsObjID = iMode;
-			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, iModeAsObjID);
+			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, iModeAsObjID, 0);
 		}
 		else
 		{
-			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, -1);
+			int iWorldToLocal = 0;
+			if (iMode == 4) iWorldToLocal = 1;
+			WickedCall_GlueObjectToObject(pSourceObject, pParentObject, iLimbID, -1, iWorldToLocal);
 		}
 	}
 }
@@ -3841,6 +3845,8 @@ DARKSDK_DLL void UnGlueObject ( int iSource )
 			}
 			
 			// wipe out glue assignment
+			sObject* pTargetObject = g_ObjectList[pSourceObject->position.iGluedToObj];
+			if (pTargetObject) pTargetObject->position.iBeenGluedToBy = 0;
 			pSourceObject->position.bGlued			= false;
 			pSourceObject->position.iGluedToObj		= 0;
 			pSourceObject->position.iGluedToMesh	= 0;
@@ -3895,6 +3901,8 @@ DARKSDK_DLL void UnGlueAllObjects ( void )
 				pSourceObject->position.vecPosition.z = pSourceObject->position.matWorld._43;
 
 				// wipe out glue assignment
+				sObject* pTargetObject = g_ObjectList[pSourceObject->position.iGluedToObj];
+				if (pTargetObject) pTargetObject->position.iBeenGluedToBy = 0;
 				pSourceObject->position.bGlued			= false;
 				pSourceObject->position.iGluedToObj		= 0;
 				pSourceObject->position.iGluedToMesh	= 0;
@@ -7552,79 +7560,13 @@ int* g_pIntersectDatabaseLastResult = NULL;
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
 DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule)
 {
-	#ifdef WICKEDENGINE
 	// shiny new system for intersect tests
 	// iStaticOnly : 0-dynamic, 1-static, 2-line of sight only performant from LUA scripts
-	#else
-	// special iIgnoreObjNo mode
-	if (iIgnoreObjNo == -123 || iIgnoreObjNo == -124 || iIgnoreObjNo == -125)
-	{
-		g_bIgnoreCollisionPropertyOnce = false;
-		if (iIgnoreObjNo == -123)
-		{
-			// obtain second range of objects to check
-			g_iIntersectAllSecondStart = iPrimaryStart;
-			g_iIntersectAllSecondEnd = iPrimaryEnd;
-			#ifdef SKIPGRIDUSED
-			g_fIntersectAllSkipGridX = fX;
-			g_fIntersectAllSkipGridZ = fZ;
-			#endif
-			return 0;
-		}
-		if (iIgnoreObjNo == -124)
-		{
-			// obtain third range of objects to check
-			g_iIntersectAllThirdStart = iPrimaryStart;
-			g_iIntersectAllThirdEnd = iPrimaryEnd;
-			#ifdef SKIPGRIDUSED
-			g_fIntersectAllSkipGridX = fX;
-			g_fIntersectAllSkipGridZ = fZ;
-			#endif
-			return 0;
-		}
-		if (iIgnoreObjNo == -125)
-		{
-			// 111215 - flag that this next intersect call will detect objects EVEN IF THEY HAVE A COLLISION PROPERTY OF ONE
-			// which allows 'interactive weapon' ray casts to detect objects even if CollisionOff(e) was used
-			g_bIgnoreCollisionPropertyOnce = true;
-			return 0;
-		}
-	}
-	else
-	{
-		// detect if the ray is recorded in skipgrid as blocked
-		#ifdef SKIPGRIDUSED
-		if ( g_fIntersectAllSkipGridX>0 )
-		{
-			int iSkipGridRefFromX = fX/50.0f;
-			int iSkipGridRefFromZ = fZ/50.0f;
-			if ( iSkipGridRefFromX < 0 ) iSkipGridRefFromX=0;
-			if ( iSkipGridRefFromX > 1023 ) iSkipGridRefFromX=1023;
-			if ( iSkipGridRefFromZ < 0 ) iSkipGridRefFromZ=0;
-			if ( iSkipGridRefFromZ > 1023 ) iSkipGridRefFromZ=1023;
-			WORD wTargetX = fNewX/10.0f;
-			WORD wTargetZ = fNewZ/10.0f;
-			DWORD dwSkipGridValue = g_dwSkipGrid[iSkipGridRefFromX][iSkipGridRefFromZ];
-			if ( dwSkipGridValue > 0 )
-			{
-				WORD wRefX = (dwSkipGridValue & 0xFFFF0000) >> 16;
-				WORD wRefZ = (dwSkipGridValue & 0x0000FFFF);
-				if ( wRefX==wTargetX && wRefZ==wTargetZ )
-				{
-					// this target was found to be blocked from this coordinate
-					return g_iSkipGridResult[iSkipGridRefFromX][iSkipGridRefFromZ];
-				}
-			}
-		}
-		#endif
-	}
-	#endif
 
 	// return value (0=no hit, >0=object number, -1=other geometry)
 	int iHitValue = 0;
 
 	// wicked based intersect test with speed-up database
-	#ifdef WICKEDENGINE
 	if (g_pIntersectDatabase == NULL )
 	{
 		// create if not exist
@@ -7784,221 +7726,6 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 
 	// return hit value
 	return iHitValue;
-
-	#else
-
-	// work out length of ray
-	GGVECTOR3 vec3value = GGVECTOR3(fX, fY, fZ) - GGVECTOR3(fNewX, fNewY, fNewZ);
-	float fDistanceBetweenPoints = GGVec3Length(&vec3value);
-
-	// LEE: Dave, now you commented back in the old code, this entire routine is redundant, nes pa?
-	// go through all objects and collect a shortlist of boxes intersected by ray
-	// DAVE: Good point :D
-	g_pIntersectShortList.clear();
-	for (int iPass = 0; iPass < 3; iPass++)
-	{
-		int iStart, iEnd;
-		if (iPass == 0) { iStart = iPrimaryStart; iEnd = iPrimaryEnd; }
-		if (iPass == 1) { iStart = g_iIntersectAllSecondStart; iEnd = g_iIntersectAllSecondEnd; }
-		if (iPass == 2) { iStart = g_iIntersectAllThirdStart; iEnd = g_iIntersectAllThirdEnd; if (iStart == 0) break; }
-		for (int iObjectID = iStart; iObjectID <= iEnd; iObjectID++)
-		{
-			// make sure we have a valid object
-			sObject* pObject = g_ObjectList[iObjectID];
-			if (!pObject)
-				continue;
-
-			// check if object is excluded
-			// check if object in dead state (non collisin detectable)
-			if (g_bIgnoreCollisionPropertyOnce == true)
-			{
-				// do not reject based on collision property if this flag set
-				if (pObject->dwObjectNumber == iIgnoreObjNo || !pObject->bVisible)
-					continue;
-			}
-			else
-			{
-				if (pObject->dwObjectNumber == iIgnoreObjNo || pObject->collision.dwCollisionPropertyValue == 1 || !pObject->bVisible)
-					continue;
-			}
-
-			// check if object in same 'region' as ray
-			float fDX = 0, fDY = 0, fDZ = 0;
-			if (pObject->position.iGluedToObj > 0)
-			{
-				// use parent object instead
-				sObject* pParentObject = g_ObjectList[pObject->position.iGluedToObj];
-				if (pParentObject)
-				{
-					fDX = pParentObject->position.vecPosition.x - fX;
-					fDY = pParentObject->position.vecPosition.y - fY;
-					fDZ = pParentObject->position.vecPosition.z - fZ;
-				}
-			}
-			else
-			{
-				fDX = pObject->position.vecPosition.x - fX;
-				fDY = pObject->position.vecPosition.y - fY;
-				fDZ = pObject->position.vecPosition.z - fZ;
-			}
-			float fDist = sqrt((fDX*fDX) + (fDY*fDY) + (fDZ*fDZ));
-			//if (fDist <= ((pObject->collision.fLargestRadius * 3) + fDistanceBetweenPoints))
-			if (fDist <= ((pObject->collision.fScaledLargestRadius * 3) + fDistanceBetweenPoints))
-			{
-				// 110919 - ensure any offset applied to frame zero is accounted for (OFFSETX/Y/Z)
-				GGMATRIX matWorldWithFrameOffset = pObject->position.matWorld;
-
-				//PE: ppFrameList[0]->matAbsoluteWorld is wrong on some objects.
-				//sObject* pActualObj = pObject;
-
-				//PE: @Lee how do i extract the Offset x,y,z and what is it used for ?
-				//PE: We cant use matAbsoluteWorld as it has inverse settings -1 (on some objects), and the collision check dont work.
-				//if (pObject->pInstanceOfObject) pActualObj = pObject->pInstanceOfObject;
-				//if (pActualObj->ppFrameList[0]) {
-				//	matWorldWithFrameOffset = pActualObj->ppFrameList[0]->matAbsoluteWorld;
-				//}
-
-				// Please validate this will fix, https://github.com/TheGameCreators/GameGuruRepo/issues/724#issuecomment-606155967
-				// PE: @Lee , why do we need matWorldWithFrameOffset = pActualObj->ppFrameList[0]->matAbsoluteWorld; ?? ? ??
-				// PE: We need the original object position to generate the correct vecFrom
-				// LB: Looks good!
-
-				matWorldWithFrameOffset._41 = pObject->position.matWorld._41;
-				matWorldWithFrameOffset._42 = pObject->position.matWorld._42;
-				matWorldWithFrameOffset._43 = pObject->position.matWorld._43;
-
-				// instead of transforming box to object world orientation, transform ray
-				// on a per object basis back into object space, for quicker box checking
-				float fDet;
-				GGMATRIX matInvWorld;
-				GGMatrixInverse(&matInvWorld, &fDet, &matWorldWithFrameOffset);//pObject->position.matWorld);
-				GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
-				GGVECTOR3 vecTo = GGVECTOR3(fNewX, fNewY, fNewZ);
-				GGVec3TransformCoord(&vecFrom, &vecFrom, &matInvWorld);
-				GGVec3TransformCoord(&vecTo, &vecTo, &matInvWorld);
-				IntersectRay transformedray;
-				transformedray.origin[0] = vecFrom.x;
-				transformedray.origin[1] = vecFrom.y;
-				transformedray.origin[2] = vecFrom.z;
-				transformedray.direction[0] = vecTo.x - vecFrom.x;
-				transformedray.direction[1] = vecTo.y - vecFrom.y;
-				transformedray.direction[2] = vecTo.z - vecFrom.z;
-				transformedray.direction[0] /= fDistanceBetweenPoints;
-				transformedray.direction[1] /= fDistanceBetweenPoints;
-				transformedray.direction[2] /= fDistanceBetweenPoints;
-
-				// get half height size of object bounds to create larger bounbox detection area in the Y
-				float fHeightSize = pObject->collision.vecMax.y - pObject->collision.vecMin.y;
-				if (fHeightSize < 0) fHeightSize = -fHeightSize;
-				fHeightSize *= 0.5f;
-
-				// check if ray intersects object bound box (ray vs box) [using object space]
-				IntersectBox box;
-				box.min[0] = pObject->collision.vecMin.x;
-				// 010318 - seems my code to expand the boundbox does not work if min is 30 and max is 52!
-				//box.min[1] = pObject->collision.vecMin.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
-				box.min[1] = pObject->collision.vecMin.y - fHeightSize; // 240817 - object global bounds for some characters can be off, so increase to compensate
-				box.min[2] = pObject->collision.vecMin.z;
-				box.max[0] = pObject->collision.vecMax.x;
-				// 010318 - seems my code to expand the boundbox does not work if min is 30 and max is 52!
-				//box.max[1] = pObject->collision.vecMax.y * 2; // 240817 - object global bounds for some characters can be off, so increase to compensate
-				box.max[1] = pObject->collision.vecMax.y + fHeightSize; // 240817 - object global bounds for some characters can be off, so increase to compensate
-				box.max[2] = pObject->collision.vecMax.z;
-				int tnear, tfar;
-				if (intersectRayAABox2(transformedray, box, tnear, tfar) == true)
-				{
-					g_pIntersectShortList.push_back (pObject);
-				}
-			}
-		}
-	}
-
-	// 111215 - and always reset this flag just in case we call a non special mode twice (once only check!!)
-	g_bIgnoreCollisionPropertyOnce = false;
-
-	// for shortlist of object(boxes) that touch ray, check closest with full polygon check
-	float fBestDistance = 999999.9f;
-	GlobChecklistStruct pBestHit[10];
-	std::sort(g_pIntersectShortList.begin(), g_pIntersectShortList.end(), OrderByCamDistance());
-	int iIntersectShortListMax = g_pIntersectShortList.size ();
-
-	// go through all objects presently in scene
-	for (int iShortListIndex = 0; iShortListIndex < iIntersectShortListMax; iShortListIndex++)
-	{
-		// make sure we have a valid object
-		sObject* pObject = g_pIntersectShortList[iShortListIndex];
-		int iObjectID = pObject->dwObjectNumber;
-		if (pObject)
-		{
-			if (true)
-			{
-				// do intersect check
-				float fDistance = IntersectObjectCore (pObject, fX, fY, fZ, fNewX, fNewY, fNewZ, 0);
-				if (fDistance > 0 && fDistance < fBestDistance)
-				{
-					// and must be within distance of specified vectors
-					if (fDistance <= fDistanceBetweenPoints)
-					{
-						// only if object in detection range
-						int iObjectHit = pObject->dwObjectNumber;
-						// object was intersected, return obj number
-						iHitValue = iObjectHit;
-
-						// populate checklist with extra hit info
-						// 0 - frame indexes (A = mesh number, B = related frame number (if A is bone mesh))
-						// 1 - vertex indexes
-						// 2 - object-space coordinate of V0
-						// 3 - object-space coordinate of V1
-						// 4 - object-space coordinate of V2
-						// 5 - world space coordinate where the collision struck!
-						// 6 - normal of polygon struck (from vertA)
-						// 7 - reflection normal based on angle of impact
-						// 8 - normal vector?
-						for (int iI = 0; iI < 9; iI++) pBestHit[iI] = g_pGlob->checklist[iI];
-
-						// find closest distance
-						fBestDistance = fDistance;
-					}
-				}
-			}
-		}
-	}
-
-	// if a hit was detected
-	if (iHitValue != 0)
-	{
-		// copy best hit info back to checklist
-		for (int iI = 0; iI < 9; iI++)
-		{
-			LPSTR pSaveStr = g_pGlob->checklist[iI].string;
-			g_pGlob->checklist[iI] = pBestHit[iI];
-			g_pGlob->checklist[iI].string = pSaveStr;
-			if (pSaveStr) strcpy (pSaveStr, "");
-		}
-	}
-
-	#ifdef SKIPGRIDUSED
-	// also record in skipgrid (for optimized future collisions)
-	int iSkipGridRefFromX = fX / 50.0f;
-	int iSkipGridRefFromZ = fZ / 50.0f;
-	if (iSkipGridRefFromX < 0) iSkipGridRefFromX = 0;
-	if (iSkipGridRefFromX > 1023) iSkipGridRefFromX = 1023;
-	if (iSkipGridRefFromZ < 0) iSkipGridRefFromZ = 0;
-	if (iSkipGridRefFromZ > 1023) iSkipGridRefFromZ = 1023;
-	WORD wTargetX = fNewX / 10.0f;
-	WORD wTargetZ = fNewZ / 10.0f;
-	DWORD dwSkipGridValue = (wTargetX << 16) + (wTargetZ);
-	g_dwSkipGrid[iSkipGridRefFromX][iSkipGridRefFromZ] = dwSkipGridValue;
-	g_iSkipGridResult[iSkipGridRefFromX][iSkipGridRefFromZ] = iHitValue;
-	#endif
-
-	// incase we dont want the third list next time
-	g_iIntersectAllThirdStart = 0;
-
-	// return hit value depending on what was hit
-	return iHitValue;
-
-	#endif
 }
 
 DARKSDK_DLL int IntersectAll(int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo)

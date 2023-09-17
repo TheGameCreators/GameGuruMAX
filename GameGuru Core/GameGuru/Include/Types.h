@@ -7839,6 +7839,7 @@ struct guntype
 	int invertnormal;
 	int preservetangents;
 	float boostintensity;
+	int handusesnewweaponsystem;
 	float handscale_f;
 	float handposx_f;
 	float handposy_f;
@@ -7872,6 +7873,7 @@ struct guntype
 		 weaponrotx_f = 0.0f;
 		 weaponroty_f = 0.0f;
 		 weaponrotz_f = 0.0f;
+		 handusesnewweaponsystem = 0;
 		 handscale_f = 100.0f;
 		 handposx_f = 0.0f;
 		 handposy_f = 0.0f;

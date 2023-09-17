@@ -330,6 +330,7 @@ sPositionData::sPositionData ( )
 	bFreeFlightRotation		= false;			// default euler rotation
 	bApplyPivot				= false;
 	bGlued					= false;
+	iBeenGluedToBy			= 0;
 	dwRotationOrder			= ROTORDER_XYZ;
 	GGMatrixIdentity		( &matFreeFlightRotate );
 

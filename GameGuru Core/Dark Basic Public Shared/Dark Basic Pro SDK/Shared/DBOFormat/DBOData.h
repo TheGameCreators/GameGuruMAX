@@ -892,7 +892,7 @@ struct sPositionProperties
 	float							fStoreLastCamDistance;						// used to preserve cam distance during alpha depth resort
 
 	// reserved
-	DWORD							dwReservedPP2;								// reserved - maintain plugin compat.
+	int								iBeenGluedToBy;								// used in Wicked to check if have been glued to (cannot do somethings if so)
 	DWORD							dwReservedPP3;								// reserved - maintain plugin compat.
 };
 

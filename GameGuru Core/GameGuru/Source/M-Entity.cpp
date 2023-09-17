@@ -730,7 +730,6 @@ bool entity_load (bool bCalledFromLibrary)
 
 	// special group detection
 	bool bWeAreAGroup = false;
-	#ifdef WICKEDENGINE
 	if (g_iAbortedAsEntityIsGroupFileMode == 3)
 	{
 		// these entities are loaded by the group (store which group this child belongs)
@@ -784,7 +783,6 @@ bool entity_load (bool bCalledFromLibrary)
 		t.grideditselect = 5;
 		editor_refresheditmarkers();
 	}
-	#endif
 
 	//  Only load characters for entity-local-testing
 	t.desc_s=t.entityprofileheader[t.entid].desc_s;
@@ -811,7 +809,7 @@ bool entity_load (bool bCalledFromLibrary)
 	if (t.desc_s != "")
 	{
 		//Load the thumbnail.
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
+		#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 		t.strwork = t.entdir_s + t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s = t.tthumbbmpfile_s + Left(t.strwork.Get(), (Len(t.entdir_s.Get()) + Len(t.ent_s.Get())) - 4) + ".bmp";
 
@@ -822,7 +820,6 @@ bool entity_load (bool bCalledFromLibrary)
 		if (!ImageExist(t.entityprofile[t.entid].iThumbnailSmall))
 			t.entityprofile[t.entid].iThumbnailSmall = TOOL_ENTITY;
 		//iThumbnailLarge = 0;
-#ifdef WICKEDENGINE
 		t.strwork = t.entdir_s + t.ent_s;
 		t.entityprofile[t.entid].iThumbnailLarge = 0;
 		bool CreateBackBufferCacheName(char *file, int width, int height);
@@ -860,11 +857,9 @@ bool entity_load (bool bCalledFromLibrary)
 
 		image_setlegacyimageloading(false);
 		SetMipmapNum(-1);
-#endif
-#endif
+		#endif
 
 		// if a group, make a modified entity that references a group
-		#ifdef WICKEDENGINE
 		if (bWeAreAGroup == true)
 		{
 			// the group entity
@@ -895,7 +890,6 @@ bool entity_load (bool bCalledFromLibrary)
 			// and go no further
 			return false;
 		}
-		#endif
 
 		//  Load the model
 		if (t.entityprofile[t.entid].ischaractercreator == 0)
@@ -990,45 +984,23 @@ bool entity_load (bool bCalledFromLibrary)
 				//  allowed to save DBO (once only)
 			}
 
-#ifdef WICKEDENGINE
 			bool bNewDecal = false;
-#endif
 			//  Load entity (compile does not need the dynamic objects)
 			if (t.entobj > 0)
 			{
 				if (ObjectExist(t.entobj) == 0)
 				{
 					// load entity model
-#ifdef WICKEDENGINE
-// All handled inside LoadObject for WickedEngine
-#else
-					if (t.entityprofile[t.entid].fullbounds == 1) SetFastBoundsCalculation(0);
-					if (strnicmp(t.tfile_s.Get() + strlen(t.tfile_s.Get()) - 4, ".fbx", 4) == NULL)
-					{
-						LoadFBX(t.tfile_s.Get(), t.entobj);
-					}
-					else
-#endif
-
-#ifdef WICKEDENGINE
-						//if (t.entityprofile[t.entid].WEMaterial.MaterialActive) {
-						if (1) //PE: Now always set g_iWickedEntityId so we can detect if we need alpharef on trees...
-						{
-							g_iWickedEntityId = t.entid;
-							char debug[ 1024 ];
-							sprintf(debug, "LoadObject( %s )", t.tfile_s.Get());
-							timestampactivity(0, debug);
+					g_iWickedEntityId = t.entid;
+					char debug[ 1024 ];
+					sprintf(debug, "LoadObject( %s )", t.tfile_s.Get());
+					timestampactivity(0, debug);
 							
-							char* tfile_s = t.tfile_s.Get();
-							if ( *tfile_s ) LoadObject(t.tfile_s.Get(), t.entobj);
-							else MakeObjectBox( t.entobj, 1,1,1 );
-							g_iWickedEntityId = -1;
-						}
-						else
-#endif
+					char* tfile_s = t.tfile_s.Get();
+					if ( *tfile_s ) LoadObject(t.tfile_s.Get(), t.entobj);
+					else MakeObjectBox( t.entobj, 1,1,1 );
+					g_iWickedEntityId = -1;
 
-							LoadObject(t.tfile_s.Get(), t.entobj);
-					#ifdef WICKEDENGINE
 					if (ObjectExist(t.entobj) == 0)
 					{
 						// soft error allows failed object loads to continue (message provided in LoadDBO)
@@ -1037,9 +1009,7 @@ bool entity_load (bool bCalledFromLibrary)
 						// and prevent this temp shape saving as permanent DBO!
 						bSavingDBOAllowed = false;
 					}
-					#endif
 
-					#ifdef WICKEDENGINE
 					//LB: default position is not a decal (fixes issue of objects being misaligned in object library auto gen)
 					t.entityprofile[t.entid].bIsDecal = false;
 					//PE: Old decal support.
@@ -1088,8 +1058,6 @@ bool entity_load (bool bCalledFromLibrary)
 						SetAlphaMappingOn(t.entobj, 100.0);
 						SetObjectTransparency(t.entobj, 6);
 
-						//DisableObjectZWrite(t.tobj);
-
 						LockVertexDataForLimbCore(t.entobj, 0, 1);
 						SetVertexDataNormals(0, 0, 1, 0);
 						SetVertexDataNormals(1, 0, 1, 0);
@@ -1107,7 +1075,6 @@ bool entity_load (bool bCalledFromLibrary)
 						SetupDecalObject(t.entobj,0);
 
 					}
-					#endif
 
 					// 060718 - append animation data from other DBO files
 					if (bUsingAppendAnimFileModel == false)
@@ -1126,11 +1093,9 @@ bool entity_load (bool bCalledFromLibrary)
 						}
 					}
 
-#ifdef WICKEDENGINE
 					//PE: Only if not already set by a wicked material.
 					if (!t.entityprofile[t.entid].WEMaterial.MaterialActive && t.entityprofile[t.entid].WEMaterial.dwBaseColor[0] == -1)
 						SetObjectDiffuse(t.entobj, Rgb(255, 255, 255));
-#endif
 
 					// wipe ANY material emission colors
 					SetObjectEmissive(t.entobj, 0);
@@ -1151,11 +1116,7 @@ bool entity_load (bool bCalledFromLibrary)
 
 					// 011215 - if specified, we can smooth the model before we use it (concrete pipe in TBE level)
 					float fSmoothingAngleOrFullGenerate = t.entityprofile[t.entid].smoothangle;
-#ifdef VRTECH
 					if (fSmoothingAngleOrFullGenerate > 0 && fSmoothingAngleOrFullGenerate <= 200)
-#else
-					if (fSmoothingAngleOrFullGenerate > 0)
-#endif
 					{
 						// 090217 - this only works on orig X files (not subsequent DBO) as they change 
 						// the mesh which is then saved out (below)
@@ -1174,7 +1135,6 @@ bool entity_load (bool bCalledFromLibrary)
 								SetObjectSmoothing(t.entobj, fSmoothingAngleOrFullGenerate);
 							}
 						}
-#ifdef VRTECH
 						else
 						{
 							// some support for direct DBO model smoothing 
@@ -1183,9 +1143,7 @@ bool entity_load (bool bCalledFromLibrary)
 								SetObjectSmoothing(t.entobj, fSmoothingAngleOrFullGenerate);
 							}
 						}
-#endif
 					}
-#ifdef VRTECH
 					else
 					{
 						// smooth any model, not just X files going to DBO files
@@ -1196,7 +1154,6 @@ bool entity_load (bool bCalledFromLibrary)
 							SetObjectSmoothing(t.entobj, fSmoothingAngleOrFullGenerate);
 						}
 					}
-#endif
 				}
 			}
 
@@ -1212,13 +1169,8 @@ bool entity_load (bool bCalledFromLibrary)
 				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true)
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
-#ifdef WICKEDENGINE
-// in wicked, only save if not exist, otherwise existing DBO is not to be touched!
+					// in wicked, only save if not exist, otherwise existing DBO is not to be touched!
 					if (FileExist(t.tdbofile_s.Get()) == 0) SaveObject(t.tdbofile_s.Get(), t.entobj);
-#else
-					if (FileExist(t.tdbofile_s.Get()) == 1)  DeleteFileA(t.tdbofile_s.Get());
-					SaveObject(t.tdbofile_s.Get(), t.entobj);
-#endif
 					if (FileExist(t.tdbofile_s.Get()) == 1)
 					{
 						DeleteObject(t.entobj);
@@ -1236,33 +1188,6 @@ bool entity_load (bool bCalledFromLibrary)
 
 				// Special matrix transform mode for FBX and similar models
 				SetObjectRenderMatrixMode(t.entobj, t.entityprofile[t.entid].matrixmode);
-
-#ifdef WICKEDENGINE
-				// Do not force native DBO format to olf FVF - we need data preserved for Wicked Loading
-#else
-				//  XYZ=0x002 and NORMAL=0x010 and 1UV=0x100
-				if (t.entityprofile[t.entid].skipfvfconvert == 0)
-				{
-					// lee - 300714 - seems to screw up Zombie models somehow, does it screw up rest of engine commenting it out?
-					// PE: zombie problems could be the missing skin weight like below, did not test this.
-					// PE: perhaps we can streamline this now , so skipfvfconvert is not needed :)
-
-					CloneMeshToNewFormat(t.entobj, 0x002 + 0x010 + 0x100);
-				}
-				else {
-					//PE: make sure we use the correct FVF. even when using skipfvfconvert=1
-					DWORD dwRequiredFVF = 0x002 + 0x010 + 0x100;
-					sObject* pObject = g_ObjectList[t.entobj];
-					for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
-					{
-						sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-						if (pMesh->dwFVF != dwRequiredFVF)
-						{
-							ConvertToFVF(pMesh, dwRequiredFVF);
-						}
-					}
-				}
-#endif
 
 				//PE: We are missing skin weight/others in old DX9 DBO setup. needed for some functions.
 				//PE: prevent generation of vertex weight that screw up some animations.
@@ -1419,15 +1344,6 @@ bool entity_load (bool bCalledFromLibrary)
 					}
 				}
 
-				#ifdef VRTECH
-				#else
-				//  add in character creator objects if needed
-				if (t.entityprofile[t.entid].ischaractercreator == 1)
-				{
-					characterkit_loadEntityProfileObjects();
-				}
-				#endif
-
 				//  HideObject (  away )
 				PositionObject(t.entobj, 100000, 100000, 100000);
 
@@ -1437,7 +1353,6 @@ bool entity_load (bool bCalledFromLibrary)
 					//  but ONLY for animating objects, do not need to run parent objects if still
 					SetSphereRadius(t.entobj, 0);
 				}
-
 			}
 		}
 		else
@@ -1522,7 +1437,6 @@ bool entity_load (bool bCalledFromLibrary)
 				if (ObjectExist(t.entobj) == 1)
 				{
 					// standard FIRESPOT search
-					#ifdef VRTECH
 					PerformCheckListForLimbs(t.entobj);
 					int iRememberPositionOfRightHand = -1;
 					int iLimbCount = ChecklistQuantity();
@@ -1542,7 +1456,6 @@ bool entity_load (bool bCalledFromLibrary)
 							}
 						}
 					}
-					#ifdef WICKEDENGINE
 					if (t.entityprofile[t.entid].firespotlimb == -1)
 					{
 						// could not find a FIRESPOT for this character, so create one if found right hand
@@ -1550,76 +1463,8 @@ bool entity_load (bool bCalledFromLibrary)
 						{
 							// for now, use right hand
 							t.entityprofile[t.entid].firespotlimb = iRememberPositionOfRightHand;
-
-							/*
-							// Add firespot limb to character object
-							sObject* pObject = GetObjectData(t.entobj);
-							WickedCall_RemoveObject(pObject);
-
-							int iLimbIndex = iLimbCount;
-							sFrame* pNewFrame = new sFrame;
-							strcpy (pNewFrame->szName, "FIRESPOT");
-							pNewFrame->iID = iLimbCount;
-							pNewFrame->pMesh = NULL;
-
-							// create additional frame in framelist
-							sFrame** pNewFrameList = new sFrame*[iLimbCount+1];
-							for (int f = 0; f < pObject->iFrameCount; f++) pNewFrameList[f] = pObject->ppFrameList[f];
-							delete pObject->ppFrameList;
-							pObject->ppFrameList = pNewFrameList;
-							pObject->ppFrameList[iLimbCount] = pNewFrame;
-							pObject->iFrameCount += 1;
-
-							// Link to right hand
-							sFrame* pFrameToMove = pObject->ppFrameList[iLimbIndex];
-							sFrame* pFrameToLinkTo = pObject->ppFrameList[iRememberPositionOfRightHand];
-							pFrameToMove->pParent = pFrameToLinkTo;
-							sFrame* pSybs = pFrameToLinkTo;
-							while (pSybs->pSibling) pSybs = pSybs->pSibling;
-							pSybs->pSibling = pFrameToMove;
-
-							// Populate FIRESPOT with necessary settings for correct weapon placement
-							//pObject->ppFrameList[iLimbIndex]->vecPosition.x = 0;
-							//pObject->ppFrameList[iLimbIndex]->vecPosition.y = 0;
-							//pObject->ppFrameList[iLimbIndex]->vecPosition.z = 0;
-
-							// finally provide new firespot limb
-							t.entityprofile[t.entid].firespotlimb = iLimbIndex;
-
-							// now add object back in (firespot will be part pf wicked hierarchy now)
-							WickedCall_AddObject(pObject);
-							*/
 						}
 					}
-					#endif
-					#else
-					PerformCheckListForLimbs(t.entobj);
-					for (t.tc = 1; t.tc <= ChecklistQuantity(); t.tc++)
-					{
-						if (cstr(Lower(ChecklistString(t.tc))) == "firespot")
-						{
-							// can reconfigure firespot if values specified
-							if (t.entityprofile[t.entid].handfirespotoffx != 0
-								|| t.entityprofile[t.entid].handfirespotoffy != 0
-								|| t.entityprofile[t.entid].handfirespotoffz != 0
-								|| t.entityprofile[t.entid].handfirespotrotx != 0
-								|| t.entityprofile[t.entid].handfirespotroty != 0
-								|| t.entityprofile[t.entid].handfirespotrotz != 0)
-							{
-								float fFireSpotX = t.entityprofile[t.entid].handfirespotoffx;
-								float fFireSpotY = t.entityprofile[t.entid].handfirespotoffy;
-								float fFireSpotZ = t.entityprofile[t.entid].handfirespotoffz;
-								float fFireSpotRotX = t.entityprofile[t.entid].handfirespotrotx;
-								float fFireSpotRotY = t.entityprofile[t.entid].handfirespotroty;
-								float fFireSpotRotZ = t.entityprofile[t.entid].handfirespotrotz;
-								OffsetLimb(t.entobj, t.tc - 1, fFireSpotX, fFireSpotY, fFireSpotZ);
-								RotateLimb(t.entobj, t.tc - 1, fFireSpotRotX, fFireSpotRotY, fFireSpotRotZ);
-							}
-							t.entityprofile[t.entid].firespotlimb = t.tc - 1;
-							t.tc = ChecklistQuantity() + 1;
-						}
-					}
-					#endif
 				}
 			}
 			if (t.entityprofile[t.entid].spine == -1)
@@ -1631,14 +1476,10 @@ bool entity_load (bool bCalledFromLibrary)
 					{
 						cstr sChecklistFound = Lower(ChecklistString(t.tc));
 						LPSTR pChecklistFound = sChecklistFound.Get();
-						#ifdef WICKEDENGINE
 						// LB: as it turns out, it is Bip01 that has the major say in how the model shuffles forward!
 						if ( stricmp(pChecklistFound, "Bip1") == NULL
 						||   stricmp(pChecklistFound, "Bip01") == NULL
 						||   stricmp(pChecklistFound, "Bip001") == NULL)
-						#else
-						if (strnicmp(pChecklistFound + strlen(pChecklistFound) - 7, "_spine1", 7) == NULL)
-						#endif
 						{
 							t.entityprofile[t.entid].spine = t.tc - 1;
 							break;
@@ -1689,13 +1530,11 @@ bool entity_load (bool bCalledFromLibrary)
 			}
 		}
 
-#ifdef VRTECH
 		// 300819 - reenable offset X and Z (for when geometry is shifted from center)
 		if (t.entityprofile[t.entid].defaultstatic == 1 && t.entityprofile[t.entid].isimmobile == 1)
 		{
 			OffsetLimb(t.entobj, 0, t.entityprofile[t.entid].offx, t.entityprofile[t.entid].offy, t.entityprofile[t.entid].offz, 1);
 		}
-#endif
 
 		// 010917 - hide any firespot limb meshes
 		if (t.entityprofile[t.entid].firespotlimb > 0)
@@ -1712,16 +1551,13 @@ bool entity_load (bool bCalledFromLibrary)
 			t.entityprofile[t.entid].spine2 = 0;
 		}
 
-#ifdef WICKEDENGINE
 		if (t.entityprofile[t.entid].ismarker == 2)
 		{
 			// Ensure all lights start as points when first loaded as parent
 			entity_updatelightobjtype(t.entobj, 0);
 		}
-#endif
 
 		//PE: Additional settings.
-#ifdef WICKEDENGINE
 		// For Wicked, cull mode controlled per-mesh with parent default as normal 
 		//PE: Prefer WEMaterial over old cullmode
 		bool bUseWEMaterial = false;
@@ -1767,29 +1603,13 @@ bool entity_load (bool bCalledFromLibrary)
 			void SetupDecalObject(int obj, int elementID);
 			SetupDecalObject(t.entobj,0);
 		}
-	
-		#else
-		if (t.entityprofile[t.entid].cullmode >= 0)
-		{
-			if (t.entityprofile[t.entid].cullmode != 0)
-				SetObjectCull(t.entobj, 0);
-			else
-				SetObjectCull(t.entobj, 1);
-		}
-		#endif
 		SetObjectCollisionOff(t.entobj);
 
-		#ifdef WICKEDENGINE
 		WickedSetEntityId(t.entid);
-		#endif
 		SetAlphaMappingOn(t.entobj, 100);
 
-		#ifdef WICKEDENGINE
 		SetObjectTransparency(t.entobj, t.entityprofile[t.entid].transparency);
 		WickedSetEntityId(-1);
-		#else
-		SetObjectTransparency(t.entobj, t.entityprofile[t.entid].transparency);
-		#endif
 
 		//  debug info and timestamp list (if logging)
 		if (  t.entobj>0 ) 

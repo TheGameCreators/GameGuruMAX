@@ -90,7 +90,7 @@ void entity_init ( void )
 				if (  ObjectExist(t.tobj) == 1 ) 
 				{
 					//  Create attachents for entity
-					entity_createattachment ( );
+					//entity_createattachment ( ); see below
 					//  Reset AI Obstacle Center references (used later by physics placement)
 					t.entityelement[t.e].abscolx_f=-1;
 					t.entityelement[t.e].abscolz_f=-1;
@@ -186,6 +186,26 @@ void entity_init ( void )
 
 		// reset spawn flags (even ones that are blank (i.e, bankindex=0)
 		t.entityelement[t.e].iWasSpawnedInGame = 0;
+	}
+}
+
+void entity_init_nowcreateattachments (void)
+{
+	// Create attachents for entity
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.entid > 0)
+		{
+			t.tobj = t.entityelement[t.e].obj;
+			if (t.tobj > 0)
+			{
+				if (ObjectExist(t.tobj) == 1)
+				{
+					entity_createattachment ();
+				}
+			}
+		}
 	}
 }
 
@@ -4043,17 +4063,20 @@ void entity_createattachment ( void )
 						if ( t.tweaponname_s != "" ) 
 						{
 							// entity has this gun in their hands
-							#ifdef WICKEDENGINE
 							t.tthasweapon_s = Lower(t.entityelement[t.e].eleprof.hasweapon_s.Get());
-							#else
-							t.tthasweapon_s = Lower(t.entityprofile[t.entid].hasweapon_s.Get());
-							#endif
 							if ( t.tthasweapon_s == t.tweaponname_s.Lower() ) 
 							{
+								// the gun index
+								int iGunID = t.entityelement[t.e].eleprof.hasweapon;
+
 								// go and load this gun (attached to calling entity instance)
 								++g.entityattachmentindex;
 								t.ttobj=g.entityattachmentsoffset+g.entityattachmentindex;
-								if (  ObjectExist(t.ttobj) == 1  )  DeleteObject (  t.ttobj );
+								if (ObjectExist(t.ttobj) == 1)
+								{
+									UnGlueObject(t.ttobj);
+									DeleteObject (t.ttobj);
+								}
 
 								// replaced X file load with optional DBO convert/load
 								t.tfile_s="gamecore\\guns\\";
@@ -4075,47 +4098,44 @@ void entity_createattachment ( void )
 										t.tdbofile_s="";
 									}
 									LoadObject ( t.tfile_s.Get(), t.ttobj );
-									#ifdef WICKEDENGINE
-									#else
-									SetObjectFilter (  t.ttobj,2 );
-									if ( Len(t.tdbofile_s.Get()) > 1 ) 
+
+									// modify so weapon fits better in hands
+									if (t.gun[iGunID].handusesnewweaponsystem == 1)
 									{
-										if ( FileExist( t.tdbofile_s.Get()) == 0 ) 
-										{
-											// unnecessary now as LoadObject auto creates DBO file!
-											SaveObject ( t.tdbofile_s.Get(), t.ttobj );
-										}
-										if (  FileExist(t.tdbofile_s.Get()) == 1 ) 
-										{
-											DeleteObject (  t.ttobj );
-											LoadObject (  t.tdbofile_s.Get(),t.ttobj );
-											SetObjectFilter (  t.ttobj,2 );
-											t.tfile_s=t.tdbofile_s;
-										}
+										// new weapon system, matches weapon pos and rot of player HUD custom hands
+										OffsetLimb(t.ttobj, 1, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+										TurnObjectRight(t.ttobj, t.gun[iGunID].handrotx_f);
+										RollObjectRight(t.ttobj, t.gun[iGunID].handroty_f);
+										PitchObjectDown(t.ttobj, t.gun[iGunID].handrotz_f);
+										MakeMeshFromObject(g.meshgeneralwork2, t.ttobj);
 									}
-									#endif
+									else
+									{
+										// old system legacy weapons
+										//WickedCall_GetLimbDataEx(pObject, t.entityprofile[t.tentid].firespotlimb, true, fHandOffX, fHandOffY, fHandOffZ, GGToRadian(fHandRotX), GGToRadian(fHandRotY), GGToRadian(fHandRotZ), &t.limbpx_f, &t.limbpy_f, &t.limbpz_f, &fQuatX, &fQuatY, &fQuatZ, &fQuatW);
+										//RotateObjectQuat(t.tobj, fQuatX, fQuatY, fQuatZ, fQuatW);
+										//wiScene::TransformComponent transform;
+										//transform.ClearTransform();
+										//transform.RotateRollPitchYaw(XMFLOAT3(fAX, fAY, fAZ));
+										//*pQAX = transform.GetRotation().x;
+										//*pQAY = transform.GetRotation().y;
+										//*pQAZ = transform.GetRotation().z;
+										//*pQAW = transform.GetRotation().w;
+										PositionObject (t.ttobj, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+										TurnObjectRight(t.ttobj, t.gun[iGunID].handroty_f);
+										PitchObjectDown(t.ttobj, t.gun[iGunID].handrotx_f);
+										RollObjectRight(t.ttobj, t.gun[iGunID].handrotz_f);
+										MakeMeshFromObject(g.meshgeneralwork2, t.ttobj, 11); // account for WorldPos in transforming the mesh
+									}
+									DeleteObject(t.ttobj);
+									MakeObject(t.ttobj, g.meshgeneralwork2, 0);
 								}
 								else
 								{
 									MakeObjectTriangle (  t.ttobj,0,0,0,0,0,0,0,0,0 );
 								}
-								t.entityelement[t.e].attachmentobj=t.ttobj;
-
-								#ifdef WICKEDENGINE
 								SetObjectDiffuseEx(t.ttobj, 0xFFFFFFFF, 0);
-								#else
-								//  Apply object settings
-								SetObjectTransparency (  t.ttobj,1 );
-								SetObjectCollisionOff (  t.ttobj );
-								SetObjectMask (  t.ttobj, 1 );
-								EnableObjectZDepth(t.ttobj); // PE:
-
-								//  VWEAP is NOT part of collision universe (prevents rocket hitting launcher)
-								SetObjectCollisionProperty (  t.ttobj,1 );
-
-								// fixes issue of some models not being able to detect with intersectall
-								SetObjectDefAnim ( t.ttobj, t.entityprofile[t.entid].ignoredefanim );
-								#endif
+								t.entityelement[t.e].attachmentobj = t.ttobj;
 
 								// VWEAP can choose own texture
 								t.tvweaptex_s=t.gun[t.tgindex].vweaptex_s;
@@ -4130,50 +4150,17 @@ void entity_createattachment ( void )
 								{
 									sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_D.dds" , t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
 									t.texuseid=loadinternaltexture(t.szwork);
-									if (t.texuseid == 0) {
+									if (t.texuseid == 0) 
+									{
 										sprintf(t.szwork, "gamecore\\guns\\%s\\%s_color.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
 										t.texuseid = loadinternaltexture(t.szwork);
 									}
 								}
 								TextureObject ( t.ttobj, 0, t.texuseid );
 
-								#ifdef WICKEDENGINE
-								#else
-								TextureObject ( t.ttobj,1,loadinternaltexture("effectbank\\reloaded\\media\\blank_O.dds") );
-								sprintf ( t.szwork , "gamecore\\guns\\%s\\%s_N.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get() );
-								t.texuseid=loadinternaltexture(t.szwork);
-								if (t.texuseid == 0) 
-								{
-									sprintf(t.szwork, "gamecore\\guns\\%s\\%s_normal.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
-									t.texuseid = loadinternaltexture(t.szwork);
-								}
-								TextureObject (  t.ttobj,2,t.texuseid );
-								sprintf ( t.szwork ,  "gamecore\\guns\\%s\\%s_S.dds" ,t.tweaponname_s.Get() , t.tvweaptex_s.Get()  );
-								t.texuseid=loadinternaltexture(t.szwork);
-								if (t.texuseid == 0) 
-								{
-									//PE: we need a gray_d for a little less specular on guns.
-									//PE: blank_medium_S.DDS dont work yet.
-									t.texuseid = loadinternaltexture("effectbank\\reloaded\\media\\white_D.dds");
-								}			
-
-								TextureObject ( t.ttobj,3,t.texuseid );
-								TextureObject ( t.ttobj,4,t.terrain.imagestartindex );
-								TextureObject ( t.ttobj,5,g.postprocessimageoffset+5 );
-								TextureObject ( t.ttobj,6,loadinternaltexture("effectbank\\reloaded\\media\\blank_I.dds") );
-
-								// Apply entity shader to vweap model
-								#ifdef VRTECH
-								t.teffectid=loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
-								#else
-								t.teffectid=loadinternaleffect("effectbank\\reloaded\\character_static.fx");
-								#endif
-								SetObjectEffect (  t.ttobj,t.teffectid );
-								#endif
-
-								// ensure it does not attract a collision hit during ray cast
-								sObject* pAttObject = GetObjectData(t.ttobj);
-								WickedCall_SetObjectRenderLayer(pAttObject, GGRENDERLAYERS_CURSOROBJECT);
+								//PE: fix t.entityelement[t.e].attachmentobj;
+								//PE: https://forum.game-guru.com/thread/219491.
+								EnableObjectZDepth(t.ttobj);
 
 								// Find firespot for this vweap
 								t.entityelement[t.e].attachmentobjfirespotlimb=0;
@@ -4187,8 +4174,20 @@ void entity_createattachment ( void )
 									}
 								}
 
+								// ensure it does not attract a collision hit during ray cast (do before glue)
+								sObject* pAttObject = GetObjectData(t.ttobj);
+								WickedCall_SetObjectRenderLayer(pAttObject, GGRENDERLAYERS_CURSOROBJECT);
+
+								// scale now from gunspec
+								float fHandscale = t.gun[iGunID].handscale_f;
+								ScaleObject(t.ttobj, fHandscale, fHandscale, fHandscale);
+
+								// we use wicked to perfectly glue the weapon as a child to the parent
+								GlueObjectToLimbEx (t.ttobj, t.entityelement[t.e].obj, t.entityprofile[t.entid].firespotlimb, 4);
+
 								// no need to continue looking thrugh guns
-								t.tgindex=g.gunmax; break;
+								t.tgindex=g.gunmax; 
+								break;
 							}
 						}
 					}
@@ -4216,16 +4215,13 @@ void entity_controlattachments ( void )
 	t.tobj=t.entityelement[t.e].attachmentobj;
 	if ( t.tobj>0 && t.tcharacterobj>0 ) 
 	{
-		//  Added check for visibility, as attachment will be invisible once it's been picked up
+		// added check for visibility, as attachment will be invisible once it's been picked up
 		if ( ObjectExist(t.tobj) == 1 && ObjectExist(t.tcharacterobj) == 1 ) //&& GetVisible(t.tobj) == 1 ) so weapon not flicker when show during equip anim
 		{
-			//  manual position of gun attachment
-			#ifdef WICKEDENGINE
+			// manual position of gun attachment
+			/*
 			// holds onto gun longer so physics kicks in when death anim ends
 			if (t.entityelement[t.e].beenkilled == 0)
-			#else
-			if (t.entityelement[t.e].beenkilled == 0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].eleprof.phyalways != 0))
-			#endif
 			{
 				t.limbpx_f=ObjectPositionX(t.entityelement[t.e].obj);
 				t.limbpy_f=ObjectPositionY(t.entityelement[t.e].obj);
@@ -4240,8 +4236,6 @@ void entity_controlattachments ( void )
 							if ( LimbExist(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb) == 1 ) 
 							{
 								// position of entity hand where gun rests
-								#ifdef WICKEDENGINE
-								// animation system moved over to wicked, so only wicked knows where firespot limb is right now!
 								sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
 								float fQuatX, fQuatY, fQuatZ, fQuatW;
 								int iGunID = t.entityelement[t.e].eleprof.hasweapon;
@@ -4252,53 +4246,6 @@ void entity_controlattachments ( void )
 								float fHandRotY = t.gun[iGunID].handroty_f;
 								float fHandRotZ = t.gun[iGunID].handrotz_f;
 
-								/* this is ultra hacky, should come from model or gunspec, not from hard coding!!!
-								// weapon type (LB: optimize to store weapon type (pistol/rifle/etc)
-								LPSTR animsystem_getweapontype (LPSTR,LPSTR);
-								LPSTR pWeaponName = t.entityelement[t.e].eleprof.hasweapon_s.Get();
-								int gunid = t.entityelement[t.e].eleprof.hasweapon;
-								LPSTR pWeaponType = animsystem_getweapontype(pWeaponName,t.gun[gunid].animsetoverride.Get());
-								int iIsAPistol = 0;
-								int iIsAShotgun = 0;
-								if (stricmp(pWeaponType, "") == NULL)
-								{
-									iIsAPistol = 1;
-								}
-								else
-								{
-									if (stricmp(pWeaponName, "enhanced\\R870") == NULL)
-									{
-										iIsAShotgun = 1;
-									}
-								}
-								// male and female
-								if (iIsAPistol == 0)
-								{
-									// adjustment to lift rifle a little for all
-									fHandRotX += 10.0f;
-
-									// if not a shotgun (rifle), move down a touch
-									if (iIsAShotgun == 0)
-									{
-										fHandOffY -= 2.0f;
-									}
-								}
-								// just female
-								if (t.entityprofile[t.tentid].characterbasetype == 1)
-								{
-									fHandRotX += 6.0f;
-									if (iIsAPistol == 1)
-									{
-										// and extra tweak for pistol pose (-rifle is okay)
-										fHandRotY += 10.0f;
-									}
-									else
-									{
-										// a bit more for female rifle and shotgun
-										fHandOffY -= 1.0f;
-									}
-								}
-								*/
 								//PE: Optimizing this is hitting TransformComponent::GetLocalMatrix() heavy.
 								//PE: use t.entityelement[t.e] to store last entry.
 								//PE: This dont change unless t.limbpx_f,t.limbpy_f,t.limbpz_f has changed from last frame.
@@ -4307,8 +4254,8 @@ void entity_controlattachments ( void )
 									t.entityelement[t.e].firespotlimb_lastz != t.limbpz_f)
 								{
 									//LB: This is one frame behind, need a Wicked GLUE operation for attached objects me thinks!
-									WickedCall_GetLimbDataEx(pObject, t.entityprofile[t.tentid].firespotlimb, true, fHandOffX, fHandOffY, fHandOffZ, GGToRadian(fHandRotX), GGToRadian(fHandRotY), GGToRadian(fHandRotZ), &t.limbpx_f, &t.limbpy_f, &t.limbpz_f, &fQuatX, &fQuatY, &fQuatZ, &fQuatW);
-									RotateObjectQuat(t.tobj, fQuatX, fQuatY, fQuatZ, fQuatW);
+									//WickedCall_GetLimbDataEx(pObject, t.entityprofile[t.tentid].firespotlimb, true, fHandOffX, fHandOffY, fHandOffZ, GGToRadian(fHandRotX), GGToRadian(fHandRotY), GGToRadian(fHandRotZ), &t.limbpx_f, &t.limbpy_f, &t.limbpz_f, &fQuatX, &fQuatY, &fQuatZ, &fQuatW);
+									//RotateObjectQuat(t.tobj, fQuatX, fQuatY, fQuatZ, fQuatW);
 
 									// scale now from gunspec
 									float fHandscale = t.gun[iGunID].handscale_f;
@@ -4319,66 +4266,44 @@ void entity_controlattachments ( void )
 									t.entityelement[t.e].firespotlimb_lasty = t.limbpy_f;
 									t.entityelement[t.e].firespotlimb_lastz = t.limbpz_f;
 								}
-								#else
-								// expensive process, so only do when close enough to see one-frame lag
-								// be aware that this ADVANCES THE ANIM FRAME ONE STEP
-								CalculateObjectBoundsEx (  t.entityelement[t.e].obj,1 );
-								t.limbpx_f=LimbPositionX(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								t.limbpy_f=LimbPositionY(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								t.limbpz_f=LimbPositionZ(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								t.limbax_f=LimbDirectionX(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								t.limbay_f=LimbDirectionY(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								t.limbaz_f=LimbDirectionZ(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb);
-								#ifdef VRTECH
-								RotateObject (  t.tobj,t.limbax_f,t.limbay_f,t.limbaz_f );
-								ScaleObject (  t.tobj,85,85,85 );
-								#else
-								float fWeaponScale = 85.0f;
-								fWeaponScale *= (t.entityprofile[t.entid].handfirespotsize/100.0f);
-								RotateObject ( t.tobj, t.limbax_f, t.limbay_f, t.limbaz_f );
-								ScaleObject ( t.tobj, fWeaponScale, fWeaponScale, fWeaponScale );
-								#endif
-								#endif
 							}
 						}
 					}
 				}
-
-				PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
-				
-				//ShowObject (  t.tobj ); visiblility handled elsewhere
-
+				//PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
+				// done now in create
 				//PE: fix t.entityelement[t.e].attachmentobj;
 				//PE: https://forum.game-guru.com/thread/219491.
-				EnableObjectZDepth(t.tobj);
+				//EnableObjectZDepth(t.tobj);
 			}
+			*/
 		}
 	}
 }
 
 void entity_monitorattachments ( void )
 {
-	//  handle when player picks up ammo from dead enemies. Assumes ammo pool 1 is the default pool we want to update
-	if (  t.playercontrol.thirdperson.enabled == 0 ) 
+	// handle when player picks up ammo from dead enemies. Assumes ammo pool 1 is the default pool we want to update
+	if ( t.playercontrol.thirdperson.enabled == 0 ) 
 	{
 		t.tobj=t.entityelement[t.e].attachmentobj;
-		if (  t.tobj>0 ) 
+		if ( t.tobj>0 ) 
 		{
-			if (  ObjectExist(t.tobj) == 1 && GetVisible(t.tobj) == 1 ) 
+			if ( ObjectExist(t.tobj) == 1 && GetVisible(t.tobj) == 1 ) 
 			{
-				if (  t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.cantakeweapon != 0 ) 
+				if ( t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.cantakeweapon != 0 ) 
 				{
 					t.txDist_f = CameraPositionX(0) - ObjectPositionX(t.tobj);
 					t.tyDist_f = CameraPositionY(0) - ObjectPositionY(t.tobj);
 					t.tzDist_f = CameraPositionZ(0) - ObjectPositionZ(t.tobj);
 					t.ttD_f = t.txDist_f * t.txDist_f + t.tyDist_f * t.tyDist_f + t.tzDist_f * t.tzDist_f;
-					if (  t.ttD_f < 100 * 100 ) 
+					if ( t.ttD_f < 100 * 100 ) 
 					{
-						//  collect whole weapon, not just ammo
+						// collect whole weapon, not just ammo
 						t.weaponindex=t.entityelement[t.e].eleprof.hasweapon;
-						if (  t.weaponindex>0 ) 
+						if ( t.weaponindex>0 ) 
 						{
-							//  if weapon not yet part of players inventory, prompt to press E
+							// if weapon not yet part of players inventory, prompt to press E
 							t.gotweapon=0;
 							for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
 							{
@@ -4401,7 +4326,7 @@ void entity_monitorattachments ( void )
 							}
 							else
 							{
-								//  got weapon already, so collect ammo
+								// got weapon already, so collect ammo
 								t.tqty=t.entityelement[t.e].eleprof.quantity;
 								physics_player_addweapon ( );
 								t.luaglobal.scriptprompttime=Timer()+3000;
@@ -4419,70 +4344,12 @@ void entity_monitorattachments ( void )
 
 void entity_converttoclone ( void )
 {
-	#ifdef WICKEDENGINE
 	// wicked handles instances inside engine, no need to have clone/instance here
-	#else
-	// takes tte
-	if ( t.entityelement[t.tte].isclone == 0 ) 
-	{
-		t.tttentid = t.entityelement[t.tte].bankindex;
-		if ( t.entityprofile[t.tttentid].isebe == 0 )
-		{
-			t.tobj=t.entityelement[t.tte].obj;
-			if (  t.tobj>0 ) 
-			{
-				if (  ObjectExist(t.tobj) == 1 ) 
-				{
-					t.tstorevis=GetVisible(t.tobj);
-					DeleteObject ( t.tobj );
-					t.ttsourceobj=g.entitybankoffset+t.tttentid;
-					#ifdef WICKEDENGINE
-					WickedSetElementId(t.tte);
-					WickedSetEntityId(t.tttentid);
-					#endif
-					if (  t.tentityconverttoclonenotshared == 1 ) 
-					{
-						//  need a freshly created when third person character needs new shader applied
-						CloneObject (  t.tobj,t.ttsourceobj,0 );
-						SetObjectEffect (  t.tobj,0 );
-					}
-					else
-					{
-						CloneObject (  t.tobj,t.ttsourceobj,1 );
-					}
-					#ifdef WICKEDENGINE
-					WickedSetEntityId(-1);
-					#endif
-
-					//  restore any radius settings the original object might have had
-					SetSphereRadius (  t.tobj,-1 );
-					t.entityelement[t.tte].isclone=1;
-					t.tentid=t.entityelement[t.tte].bankindex;
-					entity_prepareobj ( );
-					entity_positionandscale ( );
-					if (  t.tstorevis == 0  )  HideObject (  t.tobj );
-					if ( t.entityprofile[t.tttentid].addhandlelimb == 0 )
-					{
-						// 301115 - override parent LOD distance with LODModifier
-						entity_calculateentityLODdistances ( t.tttentid, t.tobj, t.entityelement[t.tte].eleprof.lodmodifier );
-					}
-				}
-			}
-		}
-	}
-	#endif
 }
 
 void entity_converttoclonetransparent ( void )
 {
-	#ifdef WICKEDENGINE
 	// wicked handles instances inside engine, no need to have clone/instance here
-	#else
-	// used in IDE editor to show locked entities
-	entity_converttoclone ( );
-	SetAlphaMappingOn ( t.tobj, 110 ); // special semi-transparent mode with draw first rendering
-	DisableObjectZWrite ( t.tobj );
-	#endif
 }
 
 bool entity_isuniquespecularoruv ( int ee )

@@ -4190,7 +4190,7 @@ void WickedCall_SetObjectVisible ( sObject* pObject, bool bVisible )
 	}
 }
 
-void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObject, int iLimb, int iObjIDToSyncAnimTo)
+void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObject, int iLimb, int iObjIDToSyncAnimTo, int iWorldToLocal)
 {
 	// attaches this entity object to a parent entity object
 	if ( pObjectToGlue && pParentObject )
@@ -4206,6 +4206,7 @@ void WickedCall_GlueObjectToObject(sObject* pObjectToGlue, sObject* pParentObjec
 				{
 					// attach child to parent
 					bool bAlreadyInChildPosition = false; // i.e. offset to this parent, not world position
+					if (iWorldToLocal == 1) bAlreadyInChildPosition = true;
 					wiScene::GetScene().Component_Attach(rootToGlueEntity, objectParentToAttachTo, bAlreadyInChildPosition);
 
 					// additionally assign child an ability to perfectly sync anim with parent
@@ -4654,20 +4655,25 @@ void WickedCall_SetObjectPreFrames(sObject* pObject, LPSTR pParentFrameName, flo
 
 void WickedCall_SetObjectRenderLayer(sObject* pObject,int iLayerMask)
 {
-	// this does not work, cannot seem to set the layermask AFTER you have created the object and merged it with the scene!
-	for (int iF = 0; iF < pObject->iFrameCount; iF++)
+	// only for objects that are NOT glued
+	//if (pObject->position.bGlued == false && pObject->position.iBeenGluedToBy == 0)
+	if ( pObject->position.iBeenGluedToBy == 0)
 	{
-		uint64_t objectEntity = pObject->ppFrameList[iF]->wickedobjindex;
-		if (objectEntity > 0)
+		// this does not work, cannot seem to set the layermask AFTER you have created the object and merged it with the scene!
+		for (int iF = 0; iF < pObject->iFrameCount; iF++)
 		{
-			wiScene::LayerComponent* pWickedLayer = wiScene::GetScene().layers.GetComponent(objectEntity);
-			pWickedLayer->layerMask = iLayerMask;
-
-			//PE: layermask is taken from the parent in the hierarchy
-			HierarchyComponent* parent = wiScene::GetScene().hierarchy.GetComponent(objectEntity);
-			if (parent != nullptr)
+			uint64_t objectEntity = pObject->ppFrameList[iF]->wickedobjindex;
+			if (objectEntity > 0)
 			{
-				parent->layerMask_bind = iLayerMask;
+				wiScene::LayerComponent* pWickedLayer = wiScene::GetScene().layers.GetComponent(objectEntity);
+				pWickedLayer->layerMask = iLayerMask;
+
+				//PE: layermask is taken from the parent in the hierarchy
+				HierarchyComponent* parent = wiScene::GetScene().hierarchy.GetComponent(objectEntity);
+				if (parent != nullptr)
+				{
+					parent->layerMask_bind = iLayerMask;
+				}
 			}
 		}
 	}

@@ -232,6 +232,8 @@ void gun_loaddata ( void )
 					cmpStrConst( t_field_s, "keyframe speed" );
 					if( matched ) t.gun[t.gunid].keyframespeed_f = (float)t.value1 / 100.0f;
 
+					cmpStrConst(t_field_s, "handusesnewweaponsystem");
+					if (matched)  t.gun[t.gunid].handusesnewweaponsystem = t.value1;
 					cmpStrConst(t_field_s, "handscale");
 					if (matched)  t.gun[t.gunid].handscale_f = t.value1;
 					cmpStrConst(t_field_s, "handposx");

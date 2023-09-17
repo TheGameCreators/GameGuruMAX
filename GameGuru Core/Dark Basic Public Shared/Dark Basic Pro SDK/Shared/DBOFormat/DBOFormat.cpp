@@ -1905,6 +1905,11 @@ DARKSDK_DLL bool CreateSingleMeshFromObjectCore ( sMesh** ppMesh, sObject* pObje
 
 					// calculate world matrix of frame
 					GGMATRIX matWorld = pFrame->matCombined * pObject->position.matObjectNoTran;
+					if (iIgnoreMode == 11)
+					{
+						// 11 - account for the world transform pos/rot for when we want to shift the mesh position too
+						matWorld = pFrame->matCombined * pObject->position.matWorld;
+					}
 
 					// convert mesh to standard temp mesh-format
 					sMesh* pStandardMesh = new sMesh;

@@ -3778,6 +3778,7 @@ void game_preparelevel ( void )
 	gun_activategunsfromentities ();
 	gun_setup ();
 	gun_loadonlypresent ();
+	entity_init_nowcreateattachments();
 	entity_init_overwritefireratesettings();
 
 	//  create A.I entities for all characters

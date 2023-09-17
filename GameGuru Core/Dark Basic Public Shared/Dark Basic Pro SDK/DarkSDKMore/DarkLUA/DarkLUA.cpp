@@ -3766,12 +3766,6 @@ int AdjustPositionToGetLineOfSight (lua_State *L)
 	// if cannot find one, return the current A position passed in and set iFoundLineOfSight to zero
 	int iStaticOnly = 1;
 	int iFoundLineOfSight = 0;
-	#ifndef WICKEDENGINE
-	if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-		int ttt = IntersectAll(87000, 87000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-	else
-		int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
-	#endif
 	int tthitvalue = 0;
 	if (ODERayTerrain(fX, fY, fZ, fTargetPosX, fTargetPosY, fTargetPosZ, true) == 1) tthitvalue = -1;
 	if ( tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1);
@@ -9441,8 +9435,7 @@ int SetAttachmentVisible ( lua_State *L )
 				HideObject ( t.entityelement[e].attachmentobj );
 		}
 	}
-
-		return 0;
+	return 0;
 }
 
 int Include(lua_State *L)

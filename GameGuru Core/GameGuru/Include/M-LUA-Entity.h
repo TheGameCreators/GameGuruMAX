@@ -103,6 +103,7 @@ void entity_lua_setlockcharacter ( void );
 void entity_lua_setcharactertostrafe ( void );
 void entity_lua_setcharactervisiondelay ( void );
 void entity_lua_lookatplayer ( void );
+void entity_lua_lookattargetyoffset (void);
 void entity_lua_lookattargete (void);
 void entity_lua_lookattarget (void);
 void entity_lua_aimsmoothmode (void);

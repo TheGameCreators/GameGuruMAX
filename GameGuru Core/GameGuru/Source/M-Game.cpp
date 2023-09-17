@@ -3648,18 +3648,12 @@ void game_preparelevel ( void )
 	timestampactivity(0,t.screenprompt_s.Get());
 	t.terrainskyspecinitmode=0;
 
-	#ifdef WICKEDENGINE
 	//PE: Remember sun angle.
 	float oSx = t.visuals.SunAngleX;
 	float oSy = t.visuals.SunAngleY;
 	float oSz = t.visuals.SunAngleZ;
-	#endif
 
-	#ifdef WICKEDENGINE
 	sky_skyspec_init( false );
-	#else
-	sky_skyspec_init ( );
-	#endif
 
 	#ifdef WICKEDENGINE
 	//PE: In wicked we want to restore the sun angle from the map and not use skyspec.ini settings. (only when loading a old level).

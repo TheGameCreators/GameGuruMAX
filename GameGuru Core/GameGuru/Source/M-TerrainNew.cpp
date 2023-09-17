@@ -9795,6 +9795,19 @@ void imgui_Customize_Sky_V2(int mode)
 						t.sky.currenthour_f = 8.0;
 						t.sky.daynightprogress = 0;
 
+						// must confirm new sky settings in t.gamevisuals
+						t.gamevisuals.SunAngleX = t.visuals.SunAngleX;
+						t.gamevisuals.SunAngleY = t.visuals.SunAngleY;
+						t.gamevisuals.SunAngleZ = t.visuals.SunAngleZ;
+						t.gamevisuals.SunRed_f = t.visuals.SunRed_f;
+						t.gamevisuals.SunGreen_f = t.visuals.SunGreen_f;
+						t.gamevisuals.SunBlue_f = t.visuals.SunBlue_f;
+						t.gamevisuals.SunIntensity_f = t.visuals.SunIntensity_f;
+						t.gamevisuals.fExposure = t.visuals.fExposure;
+						t.gamevisuals.AmbienceRed_f = t.visuals.AmbienceRed_f;
+						t.gamevisuals.AmbienceGreen_f = t.visuals.AmbienceGreen_f;
+						t.gamevisuals.AmbienceBlue_f = t.visuals.AmbienceBlue_f;
+
 						visuals_justshaderupdate();
 						// if change sky, regenerate env map
 						t.visuals.refreshskysettingsfromlua = true;

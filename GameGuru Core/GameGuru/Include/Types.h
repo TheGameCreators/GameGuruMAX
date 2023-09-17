@@ -10008,6 +10008,7 @@ struct charanimstatetype
 	float smoothoverrideqfinish_f;
 	int usingcharacterposedat;
 	int entityTarget;
+	float entityTargetYOffset_f;
 	float neckAiming;
 	float neckRightAndLeft;
 	float neckUpAndDown;
@@ -10058,6 +10059,7 @@ struct charanimstatetype
 		 spineUpAndDownLimit = 45;
 		 spineUpAndDownOffset = 0;
 		 entityTarget = 0;
+		 entityTargetYOffset_f = 0;
 		 usingcharacterposedat = 0;
 		 smoothoverrideqfinish_f = 0.0f;
 		 smoothoverrideqmiddle_f = 0.0f;

@@ -480,8 +480,13 @@ void darkai_mouthandheadtracking (void)
 	if (t.charanimstate.entityTarget > 0)
 	{
 		fLookAtX = t.entityelement[t.charanimstate.entityTarget].x;
-		fLookAtY = t.entityelement[t.charanimstate.entityTarget].y + 65.0f; // so character looks at eye level from ground
 		fLookAtZ = t.entityelement[t.charanimstate.entityTarget].z;
+
+		// so character looks at eye level from ground
+		if (t.charanimstate.entityTargetYOffset_f != 0.0f)
+			fLookAtY = t.entityelement[t.charanimstate.entityTarget].y + t.charanimstate.entityTargetYOffset_f;
+		else
+			fLookAtY = t.entityelement[t.charanimstate.entityTarget].y + 65.0f; 
 	}
 	else
 	{
@@ -573,8 +578,13 @@ void darkai_spinetracking (void)
 	{
 		int ee = t.charanimstate.entityTarget;
 		fLookAtX = t.entityelement[ee].x;
-		fLookAtY = t.entityelement[ee].y + 65.0f;
 		fLookAtZ = t.entityelement[ee].z;
+
+		// so character looks at eye level from ground
+		if (t.charanimstate.entityTargetYOffset_f != 0.0f)
+			fLookAtY = t.entityelement[ee].y + t.charanimstate.entityTargetYOffset_f;
+		else
+			fLookAtY = t.entityelement[ee].y + 65.0f;
 	}
 	float fDX = fLookAtX - ObjectPositionX (t.charanimstate.obj);
 	float fDZ = fLookAtZ - ObjectPositionZ (t.charanimstate.obj);
@@ -1481,6 +1491,7 @@ void darkai_setupcharacter (void)
 	t.charanimstates[g.charanimindex].iTiltMode = 0;
 	t.charanimstates[g.charanimindex].iStopFromEnd = 10;	
 	t.charanimstates[g.charanimindex].entityTarget = 0;
+	t.charanimstates[g.charanimindex].entityTargetYOffset_f = 0;
 	t.charanimstates[g.charanimindex].neckAiming = 0.0f;
 	t.charanimstates[g.charanimindex].spineAiming = 0.0f;
 	t.charanimstates[g.charanimindex].iRotationAlongPathMode = 100;
@@ -2030,8 +2041,14 @@ int darkai_canshoot (void)
 					if (ee > 0)
 					{
 						fTargetX = t.entityelement[ee].x;
-						fTargetY = t.entityelement[ee].y;
 						fTargetZ = t.entityelement[ee].z;
+						fTargetY = t.entityelement[ee].y;
+
+						// added this as it seemed to be missing (ie enemy weapon pointing test was from the characters feet)
+						if (t.charanimstate.entityTargetYOffset_f != 0.0f)
+							fTargetY += t.charanimstate.entityTargetYOffset_f;
+						else
+							fTargetY += 65.0f;
 					}
 					t.tx_f = LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb) - fTargetX;
 					t.ty_f = LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb) - fTargetY;
@@ -2177,7 +2194,12 @@ void darkai_shooteffect (void)
 		t.tplayerx_f = t.entityelement[ee].x;
 		t.tplayery_f = t.entityelement[ee].y;
 		t.tplayerz_f = t.entityelement[ee].z;
-		//bMuzzleFlashIfPlrTarget = false; //MD: Users were complaining that AI doesn't emit muzzle flash while shooting
+
+		// added this as it seemed to be missing (ie enemy weapon pointing test was from the characters feet)
+		if (t.charanimstate.entityTargetYOffset_f != 0.0f)
+			t.tplayery_f += t.charanimstate.entityTargetYOffset_f;
+		else
+			t.tplayery_f += 65.0f;
 	}
 	else
 	{

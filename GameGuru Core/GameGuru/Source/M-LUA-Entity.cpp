@@ -2586,6 +2586,12 @@ void entity_lua_lookatplayer ( void )
 }
 
 int g_presetTargetE = 0;
+float g_presetTargetYOffset_f = 0.0f;
+
+void entity_lua_lookattargetyoffset (void)
+{
+	g_presetTargetYOffset_f = t.v_f;
+}
 
 void entity_lua_lookattargete (void)
 {
@@ -2599,6 +2605,7 @@ void entity_lua_lookattarget (void)
 	if (t.tcharanimindex != -1)
 	{
 		t.charanimstates[t.tcharanimindex].entityTarget = g_presetTargetE;
+		t.charanimstates[t.tcharanimindex].entityTargetYOffset_f = g_presetTargetYOffset_f;
 		t.charanimstates[t.tcharanimindex].neckAiming = t.v_f;
 	}
 }
@@ -2610,6 +2617,7 @@ void entity_lua_aimsmoothmode (void)
 	{
 		// for smoothness, move smooth track so always called until reach final position (for spine)
 		t.charanimstates[t.tcharanimindex].entityTarget = g_presetTargetE;
+		t.charanimstates[t.tcharanimindex].entityTargetYOffset_f = g_presetTargetYOffset_f;
 		t.charanimstates[t.tcharanimindex].spineAiming = t.v_f;
 	}
 }

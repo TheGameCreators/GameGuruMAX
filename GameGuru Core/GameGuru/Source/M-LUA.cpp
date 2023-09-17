@@ -1325,6 +1325,7 @@ void lua_loop_finish (void)
 			else if (strcmp(t.luaaction_s.Get(), "setsurfacesunfactor") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacesunfactor(); }
 			else if (strcmp(t.luaaction_s.Get(), "setvegetationheight") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationheight(); }
 			else if (strcmp(t.luaaction_s.Get(), "stopparticleemitter") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_stopparticleemitter(); }
+			else if (strcmp(t.luaaction_s.Get(), "lookattargetyoffset") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargetyoffset(); }
 		}
 		else if (iLen == 12)
 		{
@@ -1559,6 +1560,7 @@ void lua_loop_finish (void)
 	entity_lua_getentityplrvisible_processlist();
 }
 
+/*
 void lua_loop_finish_old ( void )
 {
 	//  Detect any messges back from LUA engine (actions)
@@ -1878,6 +1880,7 @@ void lua_loop_finish_old ( void )
 	entity_lua_getentityplrvisible_processlist();
 	#endif
 }
+*/
 
 void lua_loop ( void )
 {

@@ -1527,12 +1527,9 @@ void common_init_globals ( void )
 	g.autoloadgun = 0;
 	g.gunslotmax = 0;
 
-	#ifdef VRTECH
-	Dim (  t.soundloopcheckpoint,65535 );
-	#else
-	Dim ( t.soundloopgamemenu, 65535 );
-	#endif
-	Dim ( t.soundloopcheckpoint, 65535 );
+	Dim (t.soundloopcheckpoint,65535);
+	Dim (t.soundloopgamemenu, 65535);
+	Dim (t.soundloopstore, 65535);	
 
 	g.playermax = 1;
 	g.playertrailmax = 0;

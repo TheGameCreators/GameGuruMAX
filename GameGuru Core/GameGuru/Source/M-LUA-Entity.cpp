@@ -887,23 +887,19 @@ void entity_lua_checkpoint ( void )
 {
 	if(t.e > 0) t.waypointindex = t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 
-	//  player inside zone
+	// player inside zone
 	waypoint_hide ( );
-	//  record player position
+
+	// record player position
 	t.playercheckpoint.stored=1;
 	t.playercheckpoint.x=CameraPositionX(0);
 	t.playercheckpoint.y=CameraPositionY(0);
 	t.playercheckpoint.z=CameraPositionZ(0);
 	t.playercheckpoint.a=t.entityelement[t.e].ry;
-	//  record all soundloops at the time
-	#ifdef VRTECH
-	//t.playercheckpoint.soundloopcheckpointcountdown=5;
-	#else
-	// scan all sounds for playing/looping state
-	game_main_snapshotsound ( false );
-	for (t.s = 0; t.s < 65535; t.s++)
-		t.soundloopcheckpoint[t.s] = t.soundloopgamemenu[t.s];
-	#endif
+
+	// record all soundloops at the time
+	bool bPauseAndResumeFromGameMenu = false;
+	game_main_snapshotsoundloopcheckpoint(bPauseAndResumeFromGameMenu);
 }
 
 void entity_lua_playsound ( void )

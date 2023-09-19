@@ -4063,6 +4063,10 @@ void physics_player_gotolastcheckpoint ( void )
 	t.terrain.playeraz_f=0;
 	t.playercontrol.finalcameraangley_f=t.terrain.playeray_f;
 	physics_resetplayer_core ( );
+
+	// resume all soundloops from when passed through checkpoint
+	bool bPauseAndResumeFromGameMenu = false;
+	game_main_snapshotsoundresumecheckpoint(bPauseAndResumeFromGameMenu);
 }
 
 void physics_resetplayer_core ( void )

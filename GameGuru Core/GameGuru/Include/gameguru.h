@@ -2719,6 +2719,7 @@ struct Stemps
 	std::vector <float> resourcemeterdest_f;
 	std::vector <int> soundloopgamemenu;
 	std::vector <int> soundloopcheckpoint;
+	std::vector <int> soundloopstore;
 	std::vector <entitytype> storedentityelement;
 	std::vector <cstr> timestampactivity_s;
 	characterkitcontroltype characterkitcontrol;

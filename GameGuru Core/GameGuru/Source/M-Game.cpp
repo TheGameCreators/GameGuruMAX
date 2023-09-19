@@ -2577,12 +2577,7 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 0;
 
 		t.tremembertimer=Timer();
-		#ifdef VRTECH
-		game_main_snapshotsoundloopcheckpoint ( );
-		//game_stopallsounds (); 150723 - depend on pause/resume calls in game_main_snapshotsoundloopcheckpoint
-		#else
-		game_main_snapshotsound ( true );
-		#endif
+		game_main_snapshotsound ( );
 		while ( EscapeKey() != 0 ) {}
 		darkai_character_freezeall ( );
 		physics_pausephysics ( );
@@ -4427,7 +4422,6 @@ void game_init ( void )
 	t.playercheckpoint.y=CameraPositionY(0);
 	t.playercheckpoint.z=CameraPositionZ(0);
 	t.playercheckpoint.a=CameraAngleY(0);
-	//t.playercheckpoint.soundloopcheckpointcountdown=20;
 
 	//  Reset hardware flags with each new level map
 	t.hardwareinfoglobals.noterrain=0;
@@ -4657,96 +4651,76 @@ void game_timeelapsed ( void )
 	#endif
 }
 
-#ifdef VRTECH
-
-void game_main_snapshotsoundloopcheckpoint ( void )
+void game_main_snapshotsoundloopcheckpoint ( bool bPauseAndResumeFromGameMenu )
 {
-	//  remember any looping sounds but exclude weapon and rocket sounds
-	if (  t.playercontrol.disablemusicreset == 0 ) 
+	// remember any looping sounds but exclude weapon and rocket sounds
+	if (bPauseAndResumeFromGameMenu==true || (t.playercontrol.disablemusicreset == 0 && bPauseAndResumeFromGameMenu == false) )
 	{
-		for ( t.s = g.soundbankoffset ; t.s<=  g.soundbankoffsetfinish; t.s++ )
+		for ( t.s = g.soundbankoffset ; t.s<= g.soundbankoffsetfinish; t.s++ )
 		{
 			if (  t.soundloopcheckpoint[t.s] != 2 ) 
 			{
-				t.soundloopcheckpoint[t.s]=0;
-				if (  SoundExist(t.s) == 1 ) 
+				t.soundloopcheckpoint[t.s] = 0;
+				if (  SoundExist(t.s) == 1 )
 				{
-					if (SoundLooping(t.s) == 1)
-						t.soundloopcheckpoint[t.s] = 3;
+					if (SoundPlaying(t.s) == 1)
+					{
+						t.soundloopcheckpoint[t.s] = 1;
+						if (SoundLooping(t.s) == 1)
+						{
+							t.soundloopcheckpoint[t.s] = 3;
+						}
+					}
+					if (bPauseAndResumeFromGameMenu == true)
+					{
+						PauseSound(t.s);
+					}
 					else
-						if (SoundPlaying(t.s) == 1)
-							t.soundloopcheckpoint[t.s] = 1;
-
-					PauseSound(t.s);
+					{
+						// record state only
+					}
 				}
 			}
 		}
 	}
 }
 
-void game_main_snapshotsoundresume ( void )
+void game_main_snapshotsoundresumecheckpoint (bool bPauseAndResumeFromGameMenu)
 {
-	if ( t.playercontrol.disablemusicreset == 0 ) 
+	if (bPauseAndResumeFromGameMenu == true || (t.playercontrol.disablemusicreset == 0 && bPauseAndResumeFromGameMenu == false))
 	{
 		for ( t.s = g.soundbankoffset ; t.s <= g.soundbankoffsetfinish; t.s++ )
 		{
 			if ( t.soundloopcheckpoint[t.s] != 2 ) 
 			{
-				if ( t.soundloopcheckpoint[t.s] != 0 ) 
-				{
-					t.soundloopcheckpoint[t.s]=0;
-					if ( SoundExist(t.s) == 1 ) 
-					{
-						ResumeSound(t.s);
-					}
-				}
-			}
-		}
-	}
-}
-
-#else
-
-void game_main_snapshotsound ( bool bPauseForGameMenu )
-{
-	// remember any looping sounds but exclude weapon and rocket sounds
-	if ( t.playercontrol.disablemusicreset == 0 ) 
-	{
-		for ( t.s = g.soundbankoffset; t.s <= g.soundbankoffsetfinish; t.s++ )
-		{
-			if ( t.soundloopgamemenu[t.s] != 2 ) 
-			{
-				t.soundloopgamemenu[t.s]=0;
-				if ( SoundExist(t.s) == 1 ) 
-				{
-					if (SoundPlaying(t.s) == 1 || SoundLooping(t.s) == 1)
-					{
-						if ( bPauseForGameMenu == true ) PauseSound(t.s);
-						if ( SoundLooping(t.s) == 1 )
-							t.soundloopgamemenu[t.s] = 3;
-						else
-							t.soundloopgamemenu[t.s] = 1;
-					}
-				}
-			}
-		}
-	}
-}
-
-void game_main_snapshotsoundresume ( void )
-{
-	if ( t.playercontrol.disablemusicreset == 0 ) 
-	{
-		for ( t.s = g.soundbankoffset; t.s <= g.soundbankoffsetfinish; t.s++ )
-		{
-			if ( t.soundloopgamemenu[t.s] != 2 ) 
-			{
 				if (SoundExist(t.s) == 1)
-				{				
-					if ( t.soundloopgamemenu[t.s] != 0 ) 
+				{
+					if ( t.soundloopcheckpoint[t.s] != 0 )
 					{
-						ResumeSound(t.s);
-						t.soundloopgamemenu[t.s]=0;
+						if (bPauseAndResumeFromGameMenu == true)
+						{
+							// simply resume for game menu (and reset state flag)
+							ResumeSound(t.s);
+							t.soundloopcheckpoint[t.s] = 0;
+						}
+						else
+						{
+							// must recreate loop or play sounds (do not reset state flag as may restart several times)
+							if (t.soundloopcheckpoint[t.s] == 3) LoopSound(t.s);
+							if (t.soundloopcheckpoint[t.s] == 1) PlaySound(t.s);
+						}
+					}
+					else
+					{
+						if (bPauseAndResumeFromGameMenu == true)
+						{
+							// game menu pause resume does not need to stop sounds
+						}
+						else
+						{
+							// stop any rogue sounds still chiming when restart at checkpoint
+							StopSound(t.s);
+						}
 					}
 				}
 			}
@@ -4754,7 +4728,39 @@ void game_main_snapshotsoundresume ( void )
 	}
 }
 
-#endif
+void game_main_snapshotsound()
+{
+	// preserve any checkpoint state
+	for (int i = g.soundbankoffset; i <= g.soundbankoffsetfinish; i++)
+	{
+		t.soundloopstore[i] = t.soundloopcheckpoint[i];
+	}
+	// grab current state into checkpoint and pause sounds
+	bool bPauseAndResumeFromGameMenu = true;
+	game_main_snapshotsoundloopcheckpoint(bPauseAndResumeFromGameMenu);
+	// store these into game menu for when resume later
+	for (int i = g.soundbankoffset; i <= g.soundbankoffsetfinish; i++)
+	{
+		t.soundloopgamemenu[i] = t.soundloopcheckpoint[i];
+	}
+}
+
+void game_main_snapshotsoundresume()
+{
+	// copy game menu states into checkpoint
+	for (int i = g.soundbankoffset; i <= g.soundbankoffsetfinish; i++)
+	{
+		t.soundloopcheckpoint[i] = t.soundloopgamemenu[i];
+	}
+	// resume all that was paused
+	bool bPauseAndResumeFromGameMenu = true;
+	game_main_snapshotsoundresumecheckpoint(bPauseAndResumeFromGameMenu);
+	// restore storec checkpoint to resume game
+	for (int i = g.soundbankoffset; i <= g.soundbankoffsetfinish; i++)
+	{
+		t.soundloopcheckpoint[i] = t.soundloopstore[i];
+	}
+}
 
 extern bool g_bEarlyExcludeMode;
 int oldSpaceKey = 0;

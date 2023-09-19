@@ -24,6 +24,7 @@ char cTmpInput[MAXTEXTINPUT + 1];
 int g_Storyboard_First_Level_Node = -1;
 int g_Storyboard_Current_Level = -1;
 bool g_Storyboard_Starting_New_Level = false;
+cstr g_Storyboard_LoaderScreen_Name = "loading";
 char g_Storyboard_First_fpm[256];
 char g_Storyboard_Current_fpm[256];
 char g_Storyboard_Current_lua[256];

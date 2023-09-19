@@ -44614,7 +44614,9 @@ void process_storeboard(bool bInitOnly)
 				if (iFakeLoadGameTest-- > 0)
 				{
 					strcpy(lastpage, startpage);
-					strcpy(startpage, "loading");
+					//strcpy(startpage, "loading");
+					extern cstr g_Storyboard_LoaderScreen_Name;
+					strcpy(startpage, g_Storyboard_LoaderScreen_Name.Get());
 					int iret = screen_editor(-1, true, startpage);
 				}
 				else
@@ -44698,7 +44700,9 @@ void process_storeboard(bool bInitOnly)
 					if (strlen(t.game.pSwitchToPage) == 0)
 					{
 						strcpy(lastpage, startpage);
-						strcpy(startpage, "loading");
+						//strcpy(startpage, "loading");
+						extern cstr g_Storyboard_LoaderScreen_Name;
+						strcpy(startpage, g_Storyboard_LoaderScreen_Name.Get());
 					}
 					else
 					{
@@ -48998,6 +49002,27 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									lua_switchpage();
 									bLuaPageClosing = true;
 
+									// may have linked to loading screen
+									if (strlen(Storyboard.Nodes[iNewNode].level_name) == 0)
+									{
+										// will use last 'specified' loading screen
+										extern cstr g_Storyboard_LoaderScreen_Name;
+										g_Storyboard_LoaderScreen_Name = Storyboard.Nodes[iNewNode].lua_name;
+
+										// if so, find out which level it goes to
+										int input_id_of_level = Storyboard.Nodes[iNewNode].output_linkto[0];
+										for (int findnode = 0; findnode < STORYBOARD_MAXNODES; findnode++)
+										{
+											if (Storyboard.Nodes[findnode].input_id[0] == input_id_of_level)
+											{
+												// change from loading node to level node
+												iNewNode = findnode;
+												break;
+											}
+										}
+									}
+									
+									// must ultimately link to a level node!
 									if (strlen(Storyboard.Nodes[iNewNode].level_name) > 0)
 									{
 										g_Storyboard_Current_Level = iNewNode;
@@ -49008,10 +49033,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 										replaceAll(sLevelTitle, ".fpm", "");
 										replaceAll(sLevelTitle, "mapbank\\", "");
 										t.game.jumplevel_s = sLevelTitle.c_str();
-
 										extern bool g_Storyboard_Starting_New_Level;
 										g_Storyboard_Starting_New_Level = true; //PE: Always start fresh when linking directly to a level.
-
 									}
 								}
 								else
@@ -49033,9 +49056,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									t.game.jumplevel_s = sLevelTitle.c_str();
 									extern bool g_Storyboard_Starting_New_Level;
 									g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
+									// reset 'specified' loading screen
+									extern cstr g_Storyboard_LoaderScreen_Name;
+									g_Storyboard_LoaderScreen_Name = "loading";
 								}
-
-
 							}
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_STARTGAME)
 							{
@@ -49055,6 +49079,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								t.game.jumplevel_s = sLevelTitle.c_str();
 								extern bool g_Storyboard_Starting_New_Level;
 								g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
+								// reset 'specified' loading screen
+								extern cstr g_Storyboard_LoaderScreen_Name;
+								g_Storyboard_LoaderScreen_Name = "loading";
 							}
 							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_LEAVEGAME)
 							{
@@ -49155,17 +49182,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 										bLuaPageClosing = true; //always stop music.
 										iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 									}
-									/*
-									std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
-									if (index == 2) lua_name = "loadgame";
-									if (index == 3) lua_name = "savegame";
-									if (index == 7) lua_name = "controls";
-									replaceAll(lua_name, ".lua", "");
-									t.s_s = lua_name.c_str();
-									lua_switchpage();
-									bLuaPageClosing = true; //always stop music.
-									iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
-									*/
 								}
 								else
 								{
@@ -49184,7 +49200,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 												if (strlen(Storyboard.Nodes[iNewNode].screen_music) > 0) //PE: Only stop music if new swcreen have its own.
 													bLuaPageClosing = true;
 												iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
-
 											}
 										}
 									}
@@ -49207,7 +49222,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 															lua_switchpage();
 															bLuaPageClosing = true; //always stop music.
 															iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
-
 														}
 													}
 												}
@@ -50340,7 +50354,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								}
 								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 								ImGui::PopItemWidth();
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global");
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global or one of the presets (Health Remaining, Ammo Remaining, Maximum Ammo)");
 							}
 
 							// globals pairs are used for things like status bars (current value var and max var)
@@ -50353,7 +50367,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								{
 									g_bRefreshGlobalList = true;
 								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global");
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a second user defined global or one of the presets (Maximum Health, Weapon Reload Quantity, Maximum Clipped Ammo)");
 								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 								ImGui::PopItemWidth();
 							}

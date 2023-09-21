@@ -533,6 +533,7 @@ bool bDigAHoleToHWND = false;
 bool g_bSelectedMapImageTypeSpecialHelp = false;
 bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
+int g_iCheckExistingFilesModifiedDelayed = 0;
 
 // helps track myglobals and use them in dropdowns for storyboard screen editor
 bool g_bRefreshGlobalList = false;
@@ -17492,6 +17493,33 @@ void process_entity_library_v2(void)
 								pNewFolder = pNewFolder->m_pNext;
 							}
 						}
+
+						// when leave preview maker, search for exactly the imported object
+						seleted_tree_item = -1;
+						strcpy(cSearchAllEntities[0], t.entitybank_s[BackBufferEntityID].Get());
+						char pCopyString[MAX_PATH];
+						strcpy(pCopyString, cSearchAllEntities[0]);
+						LPSTR pSearchStringToChop = pCopyString;
+						if (strlen(pSearchStringToChop) > 4)
+						{
+							pSearchStringToChop[strlen(pSearchStringToChop) - 4] = 0; // remove .FPE
+						}
+						for (int nn = strlen(pSearchStringToChop) - 1; nn > 0; nn--)
+						{
+							if (pSearchStringToChop[nn] == '\\' || pSearchStringToChop[nn] == '/')
+							{
+								strcpy(cSearchAllEntities[0], pSearchStringToChop + nn + 1);
+								break;
+							}
+						}
+						bDisplayFavorite = false;
+						bViewAllFolders = false;
+						bViewShowcase = false;
+						bUpdateSearchSorting = true;
+						bUpdateSearchScrollbar = true;
+
+						// after make preview thumb and updated FPE, once again refresh to latest entity 
+						g_iCheckExistingFilesModifiedDelayed = 50;
 					}
 				}
 				char* tooltip = "Finish Setting the Object Library Preview";

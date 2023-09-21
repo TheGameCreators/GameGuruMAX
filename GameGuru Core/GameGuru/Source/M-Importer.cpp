@@ -4834,6 +4834,9 @@ void imgui_importer_loop(void)
 			if (cImportPath[strlen(cImportPath) - 1] != '\\')
 				pFillFilename = pFillFilename + "\\";
 
+			cstr pRelativePathAndFileToFPE;
+			pRelativePathAndFileToFPE = pFillFilename + cImportName + ".fpe";
+
 			pFillFilename = pFillFilename + cImportName + ".dbo";
 
 			//Dont resolve if not using relative path.
@@ -4846,18 +4849,30 @@ void imgui_importer_loop(void)
 				pFillFilename = resolved;
 			}
 
+			bool bOverwritingExisting = false;
 			if (bBatchConverting == false)
 			{
 				bool bShouldSave = true;
 				if (FileExist(pFillFilename.Get()))
+				{
 					bShouldSave = overWriteFileBox(pFillFilename.Get());
-
-				if (!bShouldSave)
+					bOverwritingExisting = true;
+				}
+				if (bShouldSave==false)
+				{
 					break;
+				}
 			}
 
 			// the actual save
 			importer_save_entity(pFillFilename.Get());
+
+			// afte an overwrite, need to thoroughly replace existing FPE with new one!
+			if (bOverwritingExisting == true)
+			{
+				extern void CheckExistingFilesModified(bool);
+				CheckExistingFilesModified(false);
+			}
 
 			// single or batch process
 			if (bBatchConverting == true)

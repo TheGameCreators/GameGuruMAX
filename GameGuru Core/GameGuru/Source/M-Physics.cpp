@@ -4602,7 +4602,6 @@ void physics_set_debug_draw(int iDraw)
 
 void physics_create_debug_mesh(float* data, int count, bool bStatic, int offset)
 {
-#ifdef WICKEDENGINE
 	if (!data) return;
 
 	// Find a free memblock.
@@ -4616,18 +4615,6 @@ void physics_create_debug_mesh(float* data, int count, bool bStatic, int offset)
 		}
 	}
 	if (iFound == 0) return;
-
-	// Find a free mesh id.
-	//int iMesh = -1;
-	//for (int i = 1; i < g_iRawMeshListCount; i++)
-	//{
-	//	if (GetMeshExist(i) == 0)
-	//	{
-	//		iMesh = i;
-	//		break;
-	//	}
-	//}
-	//if (iMesh < 1) return;
 
 	// Find a free object slot.
 	int obj = -1;
@@ -4647,126 +4634,149 @@ void physics_create_debug_mesh(float* data, int count, bool bStatic, int offset)
 	vertexCount *= 9;
 	iSizeBytes = vertsize * vertexCount;
 	iSizeBytes += 12; // Add header bytes.
-	MakeMemblock(iFound, iSizeBytes);
+
+	// if memblock creation fails, try smaller size so we see something!
+	if (iSizeBytes > 0)
+	{
+		for (int iTries = 0; iTries < 6; iTries++)
+		{
+			MakeMemblock(iFound, iSizeBytes);
+			if (MemblockExist(iFound) == 0)
+			{
+				// try half that
+				count /= 2;
+				vertexCount = count / 3;
+				vertexCount *= 9;
+				iSizeBytes = vertsize * vertexCount;
+				iSizeBytes += 12;
+			}
+			else
+			{
+				// memblock creation successful
+				break;
+			}
+		}
+	}
 
 	// Write the memblock header.
-	// FVF format.
-	WriteMemblockDWord(iFound, 0, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1);
-	// Size of single vertex - 3 x float: position, 3 x float: normal,1 x DWORD: diffuse, 2 x float: tex coords = 36 bytes.
-	WriteMemblockDWord(iFound, 4, 12 + 12 + 8);
-	// Number of vertices in the mesh.
-	WriteMemblockDWord(iFound, 8, vertexCount);
-
-	float x0, x1, x2, x3, x4, x5;
-	float y0, y1, y2, y3, y4, y5;
-	float z0, z1, z2, z3, z4, z5;
-	int v = 0;
-	float p0[3];
-	float p1[3];
-	float points[18];
-
-	// Every 6 elements of data contain two points on the physics object.
-	// data can contain the vertices of a previously created mesh, so start at offset (count at the last mesh creation).
-	for (int i = offset; i <= count - 6; i += 6)
+	if (MemblockExist(iFound) == 1)
 	{
-		p0[0] = data[i]; p0[1] = data[i + 1]; p0[2] = data[i + 2];
-		p1[0] = data[i + 3]; p1[1] = data[i + 4]; p1[2] = data[i + 5];
+		// FVF format.
+		WriteMemblockDWord(iFound, 0, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1);
+		// Size of single vertex - 3 x float: position, 3 x float: normal,1 x DWORD: diffuse, 2 x float: tex coords = 36 bytes.
+		WriteMemblockDWord(iFound, 4, 12 + 12 + 8);
+		// Number of vertices in the mesh.
+		WriteMemblockDWord(iFound, 8, vertexCount);
 
-		physics_debug_make_prism_between_points(p0, p1, points);
-		
-		// Corners of the prism.
-		x0 = points[0]; y0 = points[1]; z0 = points[2];
-		x1 = points[3]; y1 = points[4]; z1 = points[5];
-		x2 = points[6]; y2 = points[7]; z2 = points[8];
-		x3 = points[9]; y3 = points[10]; z3 = points[11];
-		x4 = points[12]; y4 = points[13]; z4 = points[14];
-		x5 = points[15]; y5 = points[16]; z5 = points[17];
+		float x0, x1, x2, x3, x4, x5;
+		float y0, y1, y2, y3, y4, y5;
+		float z0, z1, z2, z3, z4, z5;
+		int v = 0;
+		float p0[3];
+		float p1[3];
+		float points[18];
 
-		// Form the faces of the prism from the corners.
-		physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
-		v++;
+		// Every 6 elements of data contain two points on the physics object.
+		// data can contain the vertices of a previously created mesh, so start at offset (count at the last mesh creation).
+		for (int i = offset; i <= count - 6; i += 6)
+		{
+			p0[0] = data[i]; p0[1] = data[i + 1]; p0[2] = data[i + 2];
+			p1[0] = data[i + 3]; p1[1] = data[i + 4]; p1[2] = data[i + 5];
 
-		physics_add_vert_to_debug_mesh(x1, y1, z1, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
-		v++;
+			physics_debug_make_prism_between_points(p0, p1, points);
 
-		physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x1, y1, z1, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
-		v++;
-		physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
-		v++;
+			// Corners of the prism.
+			x0 = points[0]; y0 = points[1]; z0 = points[2];
+			x1 = points[3]; y1 = points[4]; z1 = points[5];
+			x2 = points[6]; y2 = points[7]; z2 = points[8];
+			x3 = points[9]; y3 = points[10]; z3 = points[11];
+			x4 = points[12]; y4 = points[13]; z4 = points[14];
+			x5 = points[15]; y5 = points[16]; z5 = points[17];
+
+			// Form the faces of the prism from the corners.
+			physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
+			v++;
+
+			physics_add_vert_to_debug_mesh(x1, y1, z1, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x2, y2, z2, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x4, y4, z4, v, iFound);
+			v++;
+
+			physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x1, y1, z1, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x0, y0, z0, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x5, y5, z5, v, iFound);
+			v++;
+			physics_add_vert_to_debug_mesh(x3, y3, z3, v, iFound);
+			v++;
+		}
+
+		// Keep track of the newly created object so we can delete it later.
+		t.iPhysicsDebugObjects.push_back(obj);
+
+		// Dynamic objects will need their vertices updated to prevent recreating the mesh each frame.
+		if (!bStatic)
+		{
+			t.iPhysicsDebugObjectsToUpdate.push_back(obj);
+			t.iPhysicsDebugDynamicOffsets.push_back(offset);
+		}
+
+		WickedCall_PresetObjectCreateOnDemand(true);
+		CreateMeshFromMemblock(obj, iFound);
+		MakeObject(obj, obj, 0);
+		WickedCall_PresetObjectCreateOnDemand(false);
+
+		sObject* pObject = GetObjectData(obj);
+		int verts = pObject->ppMeshList[0]->dwVertexCount;
+
+		SetObject(obj, 0, 0, 0, 0, 0, 0, 0);
+		SetObjectCollisionOff(obj);
+		DisableObjectZWrite(obj);
+		SetObjectLight(obj, 0);
+		SetObjectMask(obj, 1);
+
+		// 150817 - GUI shader with DIFFUSE element included
+		SetObjectEffect(obj, g.guidiffuseshadereffectindex);
+
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+		WickedCall_RemoveObject(pObject);
+		WickedCall_AddObject(pObject);
+		WickedCall_TextureObject(pObject, NULL);
+		WickedCall_SetObjectCastShadows(pObject, false);
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+		// wicked object does not use per-vertex diffuse color, so find first color and apply to whole object
+		DWORD diffuse = Rgb(0, 255, 0);
+		SetObjectDiffuse(obj, Rgb(0, 255, 0));
+
+		// set alpha and transparency of this object
+		SetObjectTransparency(obj, 2);
+		SetAlphaMappingOn(obj, 75);// 25 );
+
+		DeleteMemblock(iFound);
 	}
-
-	// Keep track of the newly created object so we can delete it later.
-	t.iPhysicsDebugObjects.push_back(obj);
-
-	// Dynamic objects will need their vertices updated to prevent recreating the mesh each frame.
-	if (!bStatic)
-	{
-		t.iPhysicsDebugObjectsToUpdate.push_back(obj);
-		t.iPhysicsDebugDynamicOffsets.push_back(offset);
-	}
-
-	WickedCall_PresetObjectCreateOnDemand(true);
-	CreateMeshFromMemblock(obj, iFound);
-	MakeObject(obj, obj, 0);
-	WickedCall_PresetObjectCreateOnDemand(false);
-
-	sObject* pObject = GetObjectData(obj);
-	int verts = pObject->ppMeshList[0]->dwVertexCount;
-
-	SetObject(obj, 0, 0, 0, 0, 0, 0, 0);
-	SetObjectCollisionOff(obj);
-	DisableObjectZWrite(obj);
-	SetObjectLight(obj, 0);
-	SetObjectMask(obj, 1);
-
-	// 150817 - GUI shader with DIFFUSE element included
-	SetObjectEffect(obj, g.guidiffuseshadereffectindex);
-
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-	WickedCall_RemoveObject(pObject);
-	WickedCall_AddObject(pObject);
-	WickedCall_TextureObject(pObject, NULL);
-	WickedCall_SetObjectCastShadows(pObject, false);
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-	// wicked object does not use per-vertex diffuse color, so find first color and apply to whole object
-	DWORD diffuse = Rgb(0, 255, 0);
-	SetObjectDiffuse(obj, Rgb(0, 255, 0));
-
-	// set alpha and transparency of this object
-	SetObjectTransparency(obj, 2);
-	SetAlphaMappingOn(obj, 75);// 25 );
-
-	DeleteMemblock(iFound);
-
-#endif // WICKEDENGINE
 }
 
 void physics_add_vert_to_debug_mesh(float x, float y, float z, int v, int memblock)

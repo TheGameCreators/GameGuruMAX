@@ -8696,6 +8696,7 @@ void GGTerrain_ClearEnvProbeList(void)
 	for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
 	{
 		g_bEnvProbeTrackingUpdate[scan] = true;
+		g_iEnvProbeTracking[scan] = 0;
 	}
 }
 void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float quatx, float quaty, float quatz, float quatw, float sx, float sy, float sz)
@@ -8799,12 +8800,17 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	{
 		// special system to createw a delta from movement, and use this to transition the alpha influence of env probes
 		// this solves the issue of camera leaving zones of calc for the env causing a pop in the visual
+		bool bMovementOfPlayer = false;
 		static XMFLOAT3 g_vLastPos;
 		float fMovementDelta = 1.0;
 		if (bImGuiInTestGame == true)
 		{
 			fMovementDelta = (fabs(g_vLastPos.x - playerX) + fabs(g_vLastPos.z - playerZ)) / 20.0f;
-			if (fMovementDelta > 0.0f && fMovementDelta < 1.0f) fMovementDelta = 1.0f;
+			if (fMovementDelta > 0.0f && fMovementDelta < 1.0f)
+			{
+				bMovementOfPlayer = true;
+				fMovementDelta = 1.0f;
+			}
 		}
 		g_vLastPos.x = playerX;
 		g_vLastPos.z = playerZ;
@@ -8858,7 +8864,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					if ((p < g_envProbeList.size() && g_envProbeList[p].used == 0) || p >= g_envProbeList.size())
 					{
 						g_bEnvProbeTrackingUpdate[scan] = true;
-						g_iEnvProbeTracking[scan] = 0;
 					}
 				}
 			}
@@ -8904,6 +8909,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			if (probe && pTransform)
 			{
 				// the virtual probe index
+				bool bRefreshProbeFromUpdatesAndPlayerMovement = false;
 				if (g_bEnvProbeTrackingUpdate[iRealProbeIndex] == true)
 				{
 					if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
@@ -8939,7 +8945,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						float fSX = g_envProbeList[p].size.x;// / 100.0f;
 						float fSY = g_envProbeList[p].size.y;// / 100.0f;
 						float fSZ = g_envProbeList[p].size.z;// / 100.0f;
-						//pTransform->Scale(XMFLOAT3(range* fSX, range* fSY, range* fSZ));
 						pTransform->Scale(XMFLOAT3(fSX, fSY, fSZ));
 						pTransform->Rotate(g_envProbeList[p].rotation);
 						pTransform->UpdateTransform();
@@ -8975,8 +8980,19 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 							pTransform->UpdateTransform();
 							pTransform->SetDirty();
 						}
-						probe->SetDirty();
 					}
+					bRefreshProbeFromUpdatesAndPlayerMovement = true;
+				}
+				// additionally, if being tracked but not in transition (no longer needed as increased distance for objects to be rendered into envmaps (fCullFromEnvMapObjectsAtDistanceThreshold))
+				//if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
+				//{
+				//	// and player is moving, need to update probe for correct env map contents culling
+				//	if (bMovementOfPlayer==true) bRefreshProbeFromUpdatesAndPlayerMovement = true;
+				//}
+				if (bRefreshProbeFromUpdatesAndPlayerMovement == true)
+				{
+					probe->SetDirty();
+					bRefreshProbeFromUpdatesAndPlayerMovement = false;
 				}
 			}
 		}

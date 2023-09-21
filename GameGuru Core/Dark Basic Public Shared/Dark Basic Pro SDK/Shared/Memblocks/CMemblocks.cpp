@@ -533,7 +533,6 @@ DARKSDK void MakeMemblock( int mbi, int size )
 			if(size>=1)
 			{
 				gpMemblockSize[mbi]=size;
-				//gpMemblock[mbi]=(char*)GlobalAlloc(GMEM_FIXED | GMEM_ZEROINIT, gpMemblockSize[mbi]);
 				gpMemblock[mbi]=(char*)new char[gpMemblockSize[mbi]];
 				memset ( gpMemblock[mbi], 0, gpMemblockSize[mbi] );
 				if(!gpMemblock[mbi])

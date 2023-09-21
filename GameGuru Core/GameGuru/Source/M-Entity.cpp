@@ -819,9 +819,13 @@ bool entity_load (bool bCalledFromLibrary)
 		t.entityprofile[t.entid].iThumbnailSmall = ENTITY_CACHE_ICONS + t.entid;
 		if (!ImageExist(t.entityprofile[t.entid].iThumbnailSmall))
 			t.entityprofile[t.entid].iThumbnailSmall = TOOL_ENTITY;
-		//iThumbnailLarge = 0;
 		t.strwork = t.entdir_s + t.ent_s;
-		t.entityprofile[t.entid].iThumbnailLarge = 0;
+		if (ImageExist(t.entityprofile[t.entid].iThumbnailLarge))
+		{
+			// ensure the latest thumb is used
+			DeleteImage(t.entityprofile[t.entid].iThumbnailLarge);
+		}
+		//t.entityprofile[t.entid].iThumbnailLarge = 0; and do not wipe out necessary index for the eventual reload
 		bool CreateBackBufferCacheName(char *file, int width, int height);
 		extern cstr BackBufferCacheName;
 

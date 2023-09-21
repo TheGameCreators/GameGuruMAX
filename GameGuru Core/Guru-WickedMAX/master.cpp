@@ -1525,6 +1525,19 @@ void Master::RunCustom()
 	}
 	void GrabBackBufferCopy(void);
 	GrabBackBufferCopy();
+
+	// as GrabBackBufferCopy can save files, and those files need to exist before an entity refresh, use a delayed flag
+	extern int g_iCheckExistingFilesModifiedDelayed;
+	if (g_iCheckExistingFilesModifiedDelayed>0)
+	{
+		g_iCheckExistingFilesModifiedDelayed--;
+		if (g_iCheckExistingFilesModifiedDelayed <= 0)
+		{
+			extern void CheckExistingFilesModified(bool);
+			CheckExistingFilesModified(false);
+			g_iCheckExistingFilesModifiedDelayed = 0;
+		}
+	}
 }
 
 void Master::StopVR()

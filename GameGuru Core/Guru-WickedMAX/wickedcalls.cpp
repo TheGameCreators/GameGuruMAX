@@ -2969,6 +2969,30 @@ void WickedCall_GetFrameWorldPos(sFrame* pFrame, float* pfX, float* pfY, float* 
 	}
 }
 
+void WickedCall_GetGluedLimbWorldPos(sObject* pObject, int iLimbID, float* pfX, float* pfY, float* pfZ)
+{
+	int iObjectParent = pObject->position.iGluedToObj;
+	sObject* GetObjectData(int iID);
+	sObject* pGluedTo = GetObjectData(iObjectParent);
+	if (pGluedTo)
+	{
+		sFrame* pFrame = pObject->ppFrameList[0];
+		uint64_t wickedobjindex = pFrame->wickedobjindex;
+		wiScene::TransformComponent* pFrameTransform = wiScene::GetScene().transforms.GetComponent(wickedobjindex);
+		if (pFrameTransform)
+		{
+			wiScene::TransformComponent transform;
+			transform.ClearTransform();
+			transform.Translate(XMFLOAT3(0, 0, 0));
+			transform.RotateRollPitchYaw(XMFLOAT3(0, 0, 0));
+			transform.UpdateTransform_Parented(*pFrameTransform);
+			*pfX = transform.GetPosition().x;
+			*pfY = transform.GetPosition().y;
+			*pfZ = transform.GetPosition().z;
+		}
+	}
+}
+
 void WickedCall_GetLimbDataEx(sObject* pObject, int iLimbID, bool bAdjustLimb, float fX, float fY, float fZ, float fAX, float fAY, float fAZ, float* pX, float* pY, float* pZ, float* pQAX, float* pQAY, float* pQAZ, float* pQAW)
 {
 	if ( pObject )

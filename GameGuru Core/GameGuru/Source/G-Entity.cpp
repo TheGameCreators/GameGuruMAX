@@ -1611,6 +1611,13 @@ void entity_loop ( void )
 						t.tattobj = t.entityelement[t.e].attachmentobj;
 						if (t.tattobj > 0)
 						{
+							// unglue from character
+							float fWorldPosOfWeaponX = LimbPositionX(t.tattobj, 0);
+							float fWorldPosOfWeaponY = LimbPositionY(t.tattobj, 0);
+							float fWorldPosOfWeaponZ = LimbPositionZ(t.tattobj, 0);
+							UnGlueObject(t.tattobj);
+							PositionObject(t.tattobj, fWorldPosOfWeaponX, fWorldPosOfWeaponY, fWorldPosOfWeaponZ);
+
 							// and ensure it does not bury into surface by raising it
 							if (ODEFind(t.tattobj) == 0)
 							{
@@ -4112,15 +4119,6 @@ void entity_createattachment ( void )
 									else
 									{
 										// old system legacy weapons
-										//WickedCall_GetLimbDataEx(pObject, t.entityprofile[t.tentid].firespotlimb, true, fHandOffX, fHandOffY, fHandOffZ, GGToRadian(fHandRotX), GGToRadian(fHandRotY), GGToRadian(fHandRotZ), &t.limbpx_f, &t.limbpy_f, &t.limbpz_f, &fQuatX, &fQuatY, &fQuatZ, &fQuatW);
-										//RotateObjectQuat(t.tobj, fQuatX, fQuatY, fQuatZ, fQuatW);
-										//wiScene::TransformComponent transform;
-										//transform.ClearTransform();
-										//transform.RotateRollPitchYaw(XMFLOAT3(fAX, fAY, fAZ));
-										//*pQAX = transform.GetRotation().x;
-										//*pQAY = transform.GetRotation().y;
-										//*pQAZ = transform.GetRotation().z;
-										//*pQAW = transform.GetRotation().w;
 										PositionObject (t.ttobj, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
 										TurnObjectRight(t.ttobj, t.gun[iGunID].handroty_f);
 										PitchObjectDown(t.ttobj, t.gun[iGunID].handrotx_f);
@@ -4163,7 +4161,7 @@ void entity_createattachment ( void )
 								EnableObjectZDepth(t.ttobj);
 
 								// Find firespot for this vweap
-								t.entityelement[t.e].attachmentobjfirespotlimb=0;
+								t.entityelement[t.e].attachmentobjfirespotlimb = -1; // always use a limb, it in turn uses LimbPosition (which takes reading from glued Wicked object)
 								PerformCheckListForLimbs ( t.ttobj );
 								for ( t.tc = 1 ; t.tc <= ChecklistQuantity(); t.tc++ )
 								{

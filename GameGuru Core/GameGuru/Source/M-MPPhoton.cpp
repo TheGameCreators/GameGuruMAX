@@ -5361,18 +5361,18 @@ void mp_check_for_attachments ( void )
 
 							t.entityelement[t.mp_playerEntityID[t.c]].eleprof.hasweapon = t.tfound;
 
-						//  Find firespot for this vweap
-						t.entityelement[t.e].attachmentobjfirespotlimb=0;
-						PerformCheckListForLimbs (  t.tobj );
-						for ( t.tc = 1 ; t.tc<=  ChecklistQuantity(); t.tc++ )
-						{
-							if (  cstr(Lower(ChecklistString(t.tc))) == "firespot" ) 
+							//  Find firespot for this vweap
+							//t.entityelement[t.e].attachmentobjfirespotlimb=0;
+							t.entityelement[t.e].attachmentobjfirespotlimb = -1; // always use a limb, it in turn uses LimbPosition (which takes reading from glued Wicked object)
+							PerformCheckListForLimbs (  t.tobj );
+							for ( t.tc = 1 ; t.tc<=  ChecklistQuantity(); t.tc++ )
 							{
-								t.entityelement[t.e].attachmentobjfirespotlimb=t.tc-1;
-								t.tc=ChecklistQuantity()+1;
+								if (  cstr(Lower(ChecklistString(t.tc))) == "firespot" ) 
+								{
+									t.entityelement[t.e].attachmentobjfirespotlimb=t.tc-1;
+									t.tc=ChecklistQuantity()+1;
+								}
 							}
-						}
-
 						}
 					}
 					else

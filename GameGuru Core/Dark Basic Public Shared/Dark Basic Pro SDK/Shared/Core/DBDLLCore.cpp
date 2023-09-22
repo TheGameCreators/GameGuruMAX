@@ -792,7 +792,7 @@ void ShowMemDebug(void)
 	extern ImFont* customfont;
 	if (draw && customfont)
 	{
-		float wide = 160;
+		float wide = 200;// 160;
 		float fGBMemUsed = (float)SMEMAvailable(1) / 1024.0 / 1024.0;
 		char memtmp[255];
 		sprintf(memtmp, "FPS: %.1f Mem GB: %.3f", ImGui::GetIO().Framerate, fGBMemUsed);

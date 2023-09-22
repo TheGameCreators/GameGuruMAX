@@ -10143,29 +10143,43 @@ DARKSDK_DLL float LimbAngleZ ( int iID, int iLimbID )
 	return pFrame->vecRotation.z;
 }
 
+void LimbPositionCore (int iID, int iLimbID, GGVECTOR3* pvecPos)
+{
+	// actual or instanced
+	sObject* pObject = g_ObjectList[iID];
+	sObject* pActualObject = pObject;
+	if (pObject->pInstanceOfObject)
+		pActualObject = pObject->pInstanceOfObject;
+
+	// if this object was glued, need to interrogate Wicked to get child position
+	if (pObject->position.bGlued == true)
+	{
+		GGVECTOR3 vecPosWorld;
+		WickedCall_GetGluedLimbWorldPos(pObject, iLimbID, &vecPosWorld.x, &vecPosWorld.y, &vecPosWorld.z);
+		*pvecPos = vecPosWorld;
+	}
+	else
+	{
+		// get frame of object
+		sFrame* pFrame = pActualObject->ppFrameList[iLimbID];
+		if (pObject->pInstanceOfObject) pFrame->bVectorsCalculated = false;
+
+		// specific limb/frame information
+		WickedCall_GetFrameWorldPos(pFrame, &pFrame->vecPosition.x, &pFrame->vecPosition.y, &pFrame->vecPosition.z);
+		*pvecPos = pFrame->vecPosition;
+	}
+}
+
 DARKSDK_DLL float LimbPositionX ( int iID, int iLimbID )
 {
 	// check the object exists
 	if ( !ConfirmObjectAndLimbInstance ( iID, iLimbID ) )
 		return 0;
 
-	// actual or instanced
-	sObject* pObject = g_ObjectList [ iID ];
-	sObject* pActualObject = pObject;
-	if ( pObject->pInstanceOfObject )
-		pActualObject = pObject->pInstanceOfObject;
-
-	// get frame of object
-	sFrame* pFrame = pActualObject->ppFrameList [ iLimbID ];
-	if ( pObject->pInstanceOfObject ) pFrame->bVectorsCalculated = false;
-
-	// specific limb/frame information
-	#ifdef WICKEDENGINE
-	WickedCall_GetFrameWorldPos(pFrame, &pFrame->vecPosition.x, & pFrame->vecPosition.y, & pFrame->vecPosition.z);
-	#else
-	UpdateRealtimeFrameVectors ( pObject, pFrame );
-	#endif
-	float fValue = pFrame->vecPosition.x;
+	// return correct position value
+	GGVECTOR3 vecPos;
+	LimbPositionCore (iID, iLimbID, &vecPos);
+	float fValue = vecPos.x;
 	return fValue;
 }
 
@@ -10175,25 +10189,11 @@ DARKSDK_DLL float LimbPositionY ( int iID, int iLimbID )
 	if ( !ConfirmObjectAndLimbInstance ( iID, iLimbID ) )
 		return 0;
 
-	// actual or instanced
-	sObject* pObject = g_ObjectList [ iID ];
-	sObject* pActualObject = pObject;
-	if ( pObject->pInstanceOfObject )
-		pActualObject = pObject->pInstanceOfObject;
-
-	// get frame of object
-	sFrame* pFrame = pActualObject->ppFrameList [ iLimbID ];
-	if ( pObject->pInstanceOfObject ) pFrame->bVectorsCalculated = false;
-
-	// specific limb/frame information
-	#ifdef WICKEDENGINE
-	WickedCall_GetFrameWorldPos(pFrame, &pFrame->vecPosition.x, & pFrame->vecPosition.y, & pFrame->vecPosition.z);
-	#else
-	UpdateRealtimeFrameVectors ( pObject, pFrame );
-	#endif
-	float fValue = pFrame->vecPosition.y;
+	// return correct position value
+	GGVECTOR3 vecPos;
+	LimbPositionCore (iID, iLimbID, &vecPos);
+	float fValue = vecPos.y;
 	return fValue;
-
 }
 
 DARKSDK_DLL float LimbPositionZ ( int iID, int iLimbID )
@@ -10202,6 +10202,13 @@ DARKSDK_DLL float LimbPositionZ ( int iID, int iLimbID )
 	if ( !ConfirmObjectAndLimbInstance ( iID, iLimbID ) )
 		return 0;
 
+	// return correct position value
+	GGVECTOR3 vecPos;
+	LimbPositionCore (iID, iLimbID, &vecPos);
+	float fValue = vecPos.z;
+	return fValue;
+
+	/* old way
 	// actual or instanced
 	sObject* pObject = g_ObjectList [ iID ];
 	sObject* pActualObject = pObject;
@@ -10220,7 +10227,7 @@ DARKSDK_DLL float LimbPositionZ ( int iID, int iLimbID )
 	#endif
 	float fValue = pFrame->vecPosition.z;
 	return fValue;
-
+	*/
 }
 
 DARKSDK_DLL float LimbDirectionX ( int iID, int iLimbID )

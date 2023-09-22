@@ -15286,12 +15286,12 @@ void mapeditorexecutable_loop(void)
 					ImGui::SetWindowFontScale(fFontSize_leftpanel);
 					//ImGui::Text("Current Objects");
 					//PE: To stop flicker of icons in list. it can take some frames before t.widget.pickedObject is set.
-					static int iPickedObject = 0;
+					//static int iPickedObject = 0; unsure of this logic - prevented locked object from being shown!
 					static int iLastWidgetPickedObject[4] = { -1,-1,-1,-1 };
 					if (t.gridentity <= 0)
 					{
-						if (iLastWidgetPickedObject[0] == iLastWidgetPickedObject[1] && iLastWidgetPickedObject[1] == iLastWidgetPickedObject[2])
-							iPickedObject = iLastWidgetPickedObject[0];
+						//if (iLastWidgetPickedObject[0] == iLastWidgetPickedObject[1] && iLastWidgetPickedObject[1] == iLastWidgetPickedObject[2])
+						//	iPickedObject = iLastWidgetPickedObject[0];
 						iLastWidgetPickedObject[0] = iLastWidgetPickedObject[1];
 						iLastWidgetPickedObject[1] = iLastWidgetPickedObject[2];
 						iLastWidgetPickedObject[2] = t.widget.pickedObject;
@@ -15303,11 +15303,12 @@ void mapeditorexecutable_loop(void)
 					{
 						//backup_pickedObject
 						iFirstIcon = t.gridentity;
-						if (t.gridentityobj > 0)
-							iPickedObject = t.gridentityobj;
+						//if (t.gridentityobj > 0)
+						//	iPickedObject = t.gridentityobj;
 						iLastWidgetPickedObject[2] = -1;
 					}
-					else if (iPickedObject > 0 && t.widget.pickedEntityIndex > 0) // t.widget.pickedObject > 0 && 
+					//else if (iPickedObject > 0 && t.widget.pickedEntityIndex > 0) // t.widget.pickedObject > 0 && 
+					else if (t.widget.pickedEntityIndex > 0) // t.widget.pickedObject > 0 && 
 					{
 						//Ignore picked if rubberband.
 						if (!g.entityrubberbandlist.size() > 0)
@@ -18593,11 +18594,15 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 //	extern DWORD gWindowSizeY;
 	extern DWORD gWindowVisible;
 
-	gWindowSizeXOld = GetChildWindowWidth(-1);
-	gWindowSizeYOld = GetChildWindowHeight(-1);
+	//gWindowSizeXOld = GetChildWindowWidth(-1); wrong size to restore!
+	//gWindowSizeYOld = GetChildWindowHeight(-1);
 
 	RECT rect = { NULL };
 	GetWindowRect(g_pGlob->hWnd, &rect);
+
+	// correct size to restore (usingt "sizer" tool)
+	gWindowSizeXOld = rect.right - rect.left;
+	gWindowSizeYOld = rect.bottom - rect.top;
 
 	gWindowPosXOld = rect.left;
 	gWindowPosYOld = rect.top;

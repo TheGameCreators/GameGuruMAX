@@ -1205,7 +1205,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 				//ID3D11ShaderResourceView* lpVideoTexture = GetAnimPointerView(iVideoThumbID);
 			}
 			else
-				PlaceAnimation (  t.tvideoid,0,0,GetDisplayWidth(),GetDisplayHeight() );
+				PlaceAnimation ( t.tvideoid, 0, 0, GetDisplayWidth() + 1, GetDisplayHeight() + 1);
 
 			// create object for 3D rendering
 			if ( i3DMode == 1 )
@@ -1289,7 +1289,7 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 					{
 						float animU = GetAnimU(t.tvideoid);
 						float animV = GetAnimV(t.tvideoid);
-						PasteImageRaw(lpVideoTexture, GetDisplayWidth(), GetDisplayHeight(), 0, 0, animU, animV, 0);
+						PasteImageRaw(lpVideoTexture, GetDisplayWidth() + 1, GetDisplayHeight() + 1, 0, 0, animU, animV, 0);
 					}
 				}
 				#endif

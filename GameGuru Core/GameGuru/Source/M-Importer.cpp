@@ -958,7 +958,7 @@ void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storag
 	currentVisuals.fExposure = storage.fExposure;
 	#endif
 	currentVisuals.skyindex = storage.skyindex;
-	currentVisuals.refreshskysettings = 1;
+	//currentVisuals.refreshskysettings = 1; keep custom settings
 	currentVisuals.refreshshaders = 1;
 }
 

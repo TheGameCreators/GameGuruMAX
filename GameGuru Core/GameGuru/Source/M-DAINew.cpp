@@ -2039,10 +2039,12 @@ int darkai_canshoot (void)
 			t.tattachedobj = t.entityelement[t.te].attachmentobj;
 			if (t.tattachedobj > 0)
 			{
+				/* with new system for custom projectiles weapons, no guarentee orientation of weapon will be correct - for now
 				// cannot fire if weapon not pointing at player
 				t.tattachmentobjfirespotlimb = t.entityelement[t.te].attachmentobjfirespotlimb;
-				if (t.tgunid > 0 && t.tattachmentobjfirespotlimb > 0)
+				if (t.tgunid > 0 && t.tattachmentobjfirespotlimb != 0)
 				{
+					if (t.tattachmentobjfirespotlimb == -1) t.tattachmentobjfirespotlimb = 0;
 					float fTargetX = ObjectPositionX(t.aisystem.objectstartindex);
 					float fTargetY = ObjectPositionY(t.aisystem.objectstartindex);
 					float fTargetZ = ObjectPositionZ(t.aisystem.objectstartindex);
@@ -2080,6 +2082,7 @@ int darkai_canshoot (void)
 					t.tdist2_f = int(t.tdist2_f * 100);
 					if (t.tdist2_f > 50 && t.tactualdistance_f > 100.0)  t.tcannotfirenow = 1;
 				}
+				*/
 			}
 			if (t.tgunid > 0 && t.tcannotfirenow == 0)
 			{
@@ -2223,8 +2226,9 @@ void darkai_shooteffect (void)
 		// best coordinate is firespot on attached gun
 		t.tokay = 0;
 		t.tattachmentobjfirespotlimb = t.entityelement[t.te].attachmentobjfirespotlimb;
-		if (t.tgunid > 0 && t.tattachmentobjfirespotlimb > 0)
+		if (t.tgunid > 0 && t.tattachmentobjfirespotlimb != 0)
 		{
+			if (t.tattachmentobjfirespotlimb == -1) t.tattachmentobjfirespotlimb = 0;
 			t.tx_f = LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb);
 			t.ty_f = LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb);
 			t.tz_f = LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb);

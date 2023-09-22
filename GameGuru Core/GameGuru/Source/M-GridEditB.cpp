@@ -51787,6 +51787,15 @@ void ReloadEntityIDInSitu ( int entIndex)
 			}
 		}
 	}
+
+	// as a final step, ensure all custom material settings are removed as the replaced object may not line up with old one
+	for (int e = 1; e < t.entityelement.size(); e++)
+	{
+		if (t.entityelement[e].bankindex == entIndex)
+		{
+			t.entityelement[e].eleprof.bCustomWickedMaterialActive = false;
+		}
+	}
 }
 
 // Check if any files have been modified since we launched Max (note: this only checks files in MainEntityList) - any other files will not be detected.

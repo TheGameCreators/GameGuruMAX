@@ -1679,7 +1679,7 @@ luaMessage** ppLuaMessages = NULL;
 							// Return collision box coordinates (6 values )
 							lua_pushnumber( L, pObject->collision.vecMin.x );
 							lua_pushnumber( L, pObject->collision.vecMin.y );
-							lua_pushnumber( L, pObject->collision.vecMin.x );
+							lua_pushnumber( L, pObject->collision.vecMin.z );
 							lua_pushnumber( L, pObject->collision.vecMax.x );
 							lua_pushnumber( L, pObject->collision.vecMax.y );
 							lua_pushnumber( L, pObject->collision.vecMax.z );
@@ -1815,7 +1815,8 @@ luaMessage** ppLuaMessages = NULL;
  int SetAnimationSpeedModulation(lua_State *L) { return RawSetEntityData ( L, 12 ); }
  int GetAnimationSpeedModulation(lua_State *L) { return GetEntityData ( L, 12 ); }
  int GetMovementDelta(lua_State *L) { return GetEntityData ( L, 13 ); }
- int GetEntityCollBox(lua_State *L) { return GetEntityData ( L, 14 ); }
+ int GetEntityCollBox(lua_State* L) { return GetEntityData (L, 14); }
+ int GetEntityColBox(lua_State* L) { return GetEntityData (L, 14); }
  int GetEntityPosAng(lua_State *L)  { return GetEntityData ( L, 15 ); }
  int GetEntityWeight(lua_State *L)  { return GetEntityData ( L, 16 ); }
  int GetEntityScales(lua_State *L)  { return GetEntityData ( L, 17 ); }
@@ -9807,6 +9808,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityPositionY", GetEntityPositionY);
 	lua_register(lua, "GetEntityPositionZ", GetEntityPositionZ);
 	lua_register(lua, "GetEntityCollBox", GetEntityCollBox);
+	lua_register(lua, "GetEntityColBox", GetEntityColBox);
 	lua_register(lua, "GetEntityPosAng", GetEntityPosAng);
 	lua_register(lua, "GetEntityWeight", GetEntityWeight);
 	lua_register(lua, "GetEntityScales", GetEntityScales);

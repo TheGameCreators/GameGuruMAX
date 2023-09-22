@@ -947,11 +947,7 @@ void charactercreatorplus_imgui(void)
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
 				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				#ifdef PRODUCTV3
-				 const char* items[] = { "Adult Male", "Adult Female", "Child Female", "Child Male" };
-				#else
-				 const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" };
-				#endif
+				const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" };
 
 				int item_current_type_selection = 0;
 				for (int i = 0; i < 4; i++) 
@@ -963,7 +959,6 @@ void charactercreatorplus_imgui(void)
 					}
 				}
 
-				//ImGui::PushItemWidth(-10 - media_icon_size - 10); //Icon removed.
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Combo("##TypeCCP", &item_current_type_selection, items, IM_ARRAYSIZE(items)))
 				{
@@ -1259,7 +1254,8 @@ void charactercreatorplus_imgui(void)
 							ImGui::EndCombo();
 						}
 
-						if (ImGui::IsItemHovered()) {
+						if (ImGui::IsItemHovered()) 
+						{
 							cstr unique_tooltip = "Select Character ";
 							unique_tooltip += field_name;
 							ImGui::SetTooltip(unique_tooltip.Get());
@@ -1285,26 +1281,6 @@ void charactercreatorplus_imgui(void)
 						CharacterCreatorCurrent_s.clear();
 					}
 				}
-
-
-				//ZJ: Updated to new gadget style (below).
-				//PE: Rotate bCharObjVisible.
-				//ImGui::Indent(10);
-				//ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				//ImGui::Text("Rotate");
-				//ImGui::SameLine();
-				//ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-				//ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				//float Color_gadget_size = ImGui::GetFontSize()*2.0;
-
-				//ImGui::PushItemWidth(-10);
-				//if (ImGui::SliderFloat("##fCCPRotate:", &fCCPRotateY, 0.0, 360.0)) {
-				//	RotateObject(iCharObj, ObjectAngleX(iCharObj), fCCPRotateY, ObjectAngleZ(iCharObj));
-				//	ccpObjTargetAY = fCCPRotateY;
-				//}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Rotate Character");
-				//ImGui::PopItemWidth();
-				//ImGui::Indent(-10);
 
 				//	Rotate the character.
 				ImGui::TextCenter("Rotate");
@@ -4616,7 +4592,7 @@ void change_dress_room(int room)
 		// The current settings will not be stored, as they are already stored in t.visualsStorage, so create throwaway object.
 		visualsdatastoragetype throwaway;
 		set_temp_visuals(t.visuals, throwaway, newVisuals);
-		t.visuals.refreshskysettings = 1;
+		//t.visuals.refreshskysettings = 1; keep custom settings
 		visuals_loop();
 
 		TextureObject(iDressRoom, 0, iDressRoomImage);
@@ -4791,7 +4767,7 @@ void charactercreatorplus_imgui_v3(void)
 				// Set default visuals for the Character Creator, and restore them when leaving.
 				visualsdatastoragetype desiredVisuals;
 				set_temp_visuals(t.visuals, t.visualsStorage, desiredVisuals);
-				t.visuals.refreshskysettings = 1;
+				//t.visuals.refreshskysettings = 1; keep custom settings
 				visuals_loop();
 
 				//terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(iCharObj), ObjectPositionZ(iCharObj), 1);

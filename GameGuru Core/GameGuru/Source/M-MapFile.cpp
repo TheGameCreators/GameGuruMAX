@@ -2133,7 +2133,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("scriptbank\\images");
 	addfoldertocollection("audiobank\\materials");
 
-#ifdef WICKEDENGINE
 	addtocollection("scriptbank\\perlin_noise.lua");
 	addtocollection("scriptbank\\hud0.lua");
 	addtocollection("scriptbank\\utillib.lua"); //PE: hud0 use  utillib.lua
@@ -2141,7 +2140,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayerhealth.lua");
 	addtocollection("scriptbank\\gameplayerspeed.lua");
 	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
-#endif
 
 #ifdef WICKEDENGINE
 	//PE: Missing foot step material sounds
@@ -3983,6 +3981,12 @@ void mapfile_savestandalone_stage4 ( void )
 	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
 	CopyAFile (pCritDLLFilename, t.dest_s.Get());
 
+	// AMD Black Screen fix file
+	strcpy(pCritDLLFilename, "amdfix.ini");
+	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
+	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile(t.dest_s.Get());
+	CopyAFile(pCritDLLFilename, t.dest_s.Get());
+	
 	// Users report that people who don't have Max installed cannot play standalones
 	strcpy(pCritDLLFilename, "dxil.dll");
 	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;

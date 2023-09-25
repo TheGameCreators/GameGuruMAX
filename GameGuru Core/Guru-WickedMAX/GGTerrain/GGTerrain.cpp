@@ -8864,6 +8864,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					if ((p < g_envProbeList.size() && g_envProbeList[p].used == 0) || p >= g_envProbeList.size())
 					{
 						g_bEnvProbeTrackingUpdate[scan] = true;
+						g_iEnvProbeTracking[scan] = 0; // cause to fade out
 					}
 				}
 			}
@@ -8888,7 +8889,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					// assign this to a spare slot
 					for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
 					{
-						if (g_iEnvProbeTracking[scan] == 0)
+						if (g_iEnvProbeTracking[scan] == 0 && g_bEnvProbeTrackingUpdate[scan] == false) // only when not in fade out mode, can reuse this
 						{
 							int p = envBestProbes[best];
 							g_iEnvProbeTracking[scan] = 1 + p;
@@ -8926,8 +8927,9 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						probe->range = range;
 						if (probe->userdata < 255)
 						{
-							probe->userdata += fMovementDelta;
-							if (probe->userdata > 255)
+							int iNewValue = probe->userdata + (fabs(fMovementDelta) * 20.0f);
+							probe->userdata = iNewValue;
+							if (probe->userdata >= 255)
 							{
 								g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 								probe->userdata = 255;
@@ -8937,7 +8939,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						{
 							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 						}
-						probe->SetDirty();
+						//probe->SetDirty(); done below
 
 						// update probe with correct scaling
 						pTransform->ClearTransform();
@@ -8955,13 +8957,15 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						// when no longer used, can fade it out of usage
 						if (probe->range > 1)
 						{
-							probe->range -= fMovementDelta;
+							probe->range -= (fMovementDelta * 20.0f);
 							if (probe->range < 1) probe->range = 1;
 						}
 						if (probe->userdata > 0)
 						{
-							probe->userdata -= fMovementDelta;
-							if (probe->userdata < 0)
+							int iNewValue = probe->userdata - (fabs(fMovementDelta) * 20.0f);
+							if (iNewValue < 0) iNewValue = 0;
+							probe->userdata = iNewValue;
+							if (probe->userdata <= 0)
 							{
 								g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 								probe->userdata = 0;
@@ -8989,7 +8993,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				//	// and player is moving, need to update probe for correct env map contents culling
 				//	if (bMovementOfPlayer==true) bRefreshProbeFromUpdatesAndPlayerMovement = true;
 				//}
-				if (bRefreshProbeFromUpdatesAndPlayerMovement == true)
+				if (bRefreshProbeFromUpdatesAndPlayerMovement == true && fMovementDelta > 0.0f)
 				{
 					probe->SetDirty();
 					bRefreshProbeFromUpdatesAndPlayerMovement = false;

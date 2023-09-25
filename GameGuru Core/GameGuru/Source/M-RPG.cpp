@@ -425,7 +425,7 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 			for (int c = 0; c < iEntitiesToSaveCount; c++)
 			{
 				int sourcee = g_collectionList[c].iEntityElementE;
-				if (sourcee > 0)
+				if (sourcee > 0 && sourcee < t.entityelement.size()) // sourcee can have rogue dead entE refs
 					pTempEntEle[c] = t.entityelement[sourcee];
 				else
 					pTempEntEle[c] = t.entityelement[0];

@@ -7357,6 +7357,18 @@ void entity_savebank ( void )
 							}
 						}
 					}
+					else
+					{
+						// are they in the collection list (must keep parent even if no element using it right now)
+						for (int c = 0; c < g_collectionList.size(); c++)
+						{
+							if (g_collectionList[c].iEntityID == t.tttentid)
+							{
+								// being used
+								t.entitybankused[t.tttentid] = 1;
+							}
+						}
+					}
 				}
 			}
 			// however, put back if the object was NOT part of a smart object
@@ -7388,6 +7400,11 @@ void entity_savebank ( void )
 			{
 				if (t.entitybankused[t.tttentid] == 0)
 				{
+					// some debug help
+					char debug[MAX_PATH];
+					sprintf(debug, "Removing parent object as no longer used: %d - %s", t.tttentid, t.entitybank_s[t.tttentid].Get());
+					timestampactivity(0, debug);
+
 					// free RLE data in profile
 					ebe_freecubedata (t.tttentid);
 
@@ -7445,6 +7462,7 @@ void entity_savebank ( void )
 					{
 						// wipe after end of shuffle
 						t.entitybank_s[t.tttentid] = "";
+						t.entityprofileheader[t.tttentid].desc_s = "";
 						t.entityprofile[t.tttentid].ebe.dwRLESize = 0;
 						t.entityprofile[t.tttentid].ebe.pRLEData = NULL;
 						t.entityprofile[t.tttentid].ebe.dwMatRefCount = 0;
@@ -7457,6 +7475,7 @@ void entity_savebank ( void )
 				{
 					// wipe after end of shuffle
 					t.entitybank_s[t.tttentid]="";
+					t.entityprofileheader[t.tttentid].desc_s = "";
 					t.entityprofile[t.tttentid].ebe.dwRLESize = 0;
 					t.entityprofile[t.tttentid].ebe.pRLEData = NULL;
 					t.entityprofile[t.tttentid].ebe.dwMatRefCount = 0;
@@ -7467,22 +7486,42 @@ void entity_savebank ( void )
 				++t.treadentid;
 			}
 			//  update bank index numbers in entityelements
-			for ( t.ttte = 1 ; t.ttte<=  g.entityelementlist; t.ttte++ )
+			for ( t.ttte = 1 ; t.ttte <= g.entityelementlist; t.ttte++ )
 			{
-				t.tttentid=t.entityelement[t.ttte].bankindex;
-				if (  t.tttentid>0 && t.tttentid <= g.entidmaster ) 
+				t.tttentid = t.entityelement[t.ttte].bankindex;
+				if ( t.tttentid > 0 && t.tttentid <= g.entidmaster ) 
 				{
-					//  new entity entry place index
-					t.entityelement[t.ttte].bankindex=t.entitybankused[t.tttentid];
+					if (t.entityelement[t.ttte].bankindex != t.entitybankused[t.tttentid])
+					{
+						// some debug help
+						char debug[MAX_PATH];
+						int iNewEntID = t.entitybankused[t.tttentid];
+						sprintf(debug, "Object element %d reassigned parent object '%s' from %d to %d", t.ttte, t.entitybank_s[iNewEntID].Get(), t.entityelement[t.ttte].bankindex, iNewEntID);
+						timestampactivity(0, debug);
+					}
+
+					// new entity entry place index
+					t.entityelement[t.ttte].bankindex = t.entitybankused[t.tttentid];
 				}
 			}
 			UnDim (  t.entitybankused );
 
-			//  new list size
-			if (  g.entidmaster != t.tlargest ) 
+			// new list size
+			if ( g.entidmaster != t.tlargest ) 
 			{
-				g.entidmaster=t.tlargest;
-				t.entityorsegmententrieschanged=1;
+				// new parent object list (and trigger a load)
+				g.entidmaster = t.tlargest;
+				t.entityorsegmententrieschanged = 1;
+
+				// when list changes, output a copy of the parent object list for debugging
+				char debug[MAX_PATH];
+				sprintf(debug, "Parent Object List (%d):", g.entidmaster);
+				timestampactivity(0, debug);
+				for (int id = 1; id <= g.entidmaster; id++)
+				{
+					sprintf(debug, "%d - %s", id, t.entitybank_s[id].Get());
+					timestampactivity(0, debug);
+				}
 			}
 		}
 	}

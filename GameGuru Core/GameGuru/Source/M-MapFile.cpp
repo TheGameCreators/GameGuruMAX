@@ -6123,7 +6123,10 @@ void addfoldertocollection ( char* path_s )
 	}
 	else
 	{
-		timestampactivity(0, cstr(cstr("Tried adding path that does not exist: ")+path_s).Get() );
+		//timestampactivity(0, cstr(cstr("Tried adding path that does not exist: ") + path_s).Get());
+		char pDebugPath[10240];
+		sprintf(pDebugPath, "Tried adding path '%s' that does not exist here: %s", path_s, usePath.Get());
+		timestampactivity(0, pDebugPath);
 	}
 }
 

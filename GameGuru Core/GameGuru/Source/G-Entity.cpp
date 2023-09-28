@@ -4152,6 +4152,13 @@ void entity_createattachment ( void )
 									{
 										sprintf(t.szwork, "gamecore\\guns\\%s\\%s_color.dds", t.tweaponname_s.Get(), t.tvweaptex_s.Get());
 										t.texuseid = loadinternaltexture(t.szwork);
+										if (t.texuseid == 0)
+										{
+											// legacy custom weapons could rely on texture loaded with model, no longer the case
+											// as the model is recreated from a mesh, so hunt for the gun texture if VWEAP assignment is wrong!
+											sprintf(t.szwork, "gamecore\\guns\\%s\\gun_color.dds", t.tweaponname_s.Get());
+											t.texuseid = loadinternaltexture(t.szwork);
+										}
 									}
 								}
 								TextureObject ( t.ttobj, 0, t.texuseid );

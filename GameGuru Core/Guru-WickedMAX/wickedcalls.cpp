@@ -5534,37 +5534,27 @@ int WickedCall_GetCubeShadowLights(void)
 
 void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float fZ, float fAX, float fAY, float fAZ, float fRange, float fSpotRadius, int iColR, int iColG, int iColB, bool bCastShadow)
 {
-	LightComponent* lightComponent = wiScene::GetScene ( ).lights.GetComponent ( wickedlightindex );
-	TransformComponent* transformLight = wiScene::GetScene ( ).transforms.GetComponent ( wickedlightindex );
-	lightComponent->SetCastShadow ( bCastShadow );
-	lightComponent->range_local = fRange;
-	lightComponent->fov = GGToRadian(fSpotRadius);
-	lightComponent->color = XMFLOAT3((float)iColR/255.0f, (float)iColG/255.0f, (float)iColB/255.0f);
+	bool bLightScapeHasChangedEnoughForEnvProbeUpdate = false;
 
+	LightComponent* lightComponent = wiScene::GetScene ( ).lights.GetComponent ( wickedlightindex );
+	lightComponent->SetCastShadow ( bCastShadow );
+	lightComponent->fov = GGToRadian(fSpotRadius);
+	lightComponent->color = XMFLOAT3((float)iColR / 255.0f, (float)iColG / 255.0f, (float)iColB / 255.0f);
+
+	// for now, only change env probe if light on/off
+	if (lightComponent->range_local != fRange)
+	{
+		bLightScapeHasChangedEnoughForEnvProbeUpdate = true;
+		lightComponent->range_local = fRange;
+	}
+
+	TransformComponent* transformLight = wiScene::GetScene ().transforms.GetComponent (wickedlightindex);
 	transformLight->ClearTransform();
 	transformLight->Translate(XMFLOAT3(fX, fY, fZ));
 
 	if (lightComponent->GetType() == LightComponent::SPOT)
 	{
 		// fAX, fAY, fAZ is a directional normal pointing in direction of spot light
-		/*
-		XMFLOAT3 directionalnormal;
-		directionalnormal.x = fAX;
-		directionalnormal.y = fAY;
-		directionalnormal.z = fAZ;
-		XMFLOAT3 zero = XMFLOAT3(0, 0, 0);
-		XMFLOAT3 up = XMFLOAT3(0, 1, 0);
-		XMVECTOR eyePos = XMLoadFloat3(&zero);
-		XMVECTOR eyeLook = XMLoadFloat3(&directionalnormal);
-		XMVECTOR eyeUp = XMLoadFloat3(&up);
-		XMMATRIX matRot = XMMatrixLookToLH(eyePos, eyeLook, eyeUp);
-		XMVECTOR S;
-		XMVECTOR R;
-		XMVECTOR T;
-		XMMatrixDecompose(&S, &R, &T, matRot);
-		transformLight->Rotate(R);
-		*/
-
 		XMMATRIX rot;
 		rot = XMMatrixRotationX(GGToRadian(fAX-90.0)); //Match the spot light object.
 		rot = rot * XMMatrixRotationY(GGToRadian(fAY));
@@ -5574,19 +5564,19 @@ void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float
 		XMVECTOR T;
 		XMMatrixDecompose(&S, &R, &T, rot);
 		transformLight->Rotate(R);
-
 	}
 	transformLight->SetDirty();
+
+	// when light-scape changes, refresh env probes (performance hit here)
+	if (bLightScapeHasChangedEnoughForEnvProbeUpdate == true)
+	{
+		extern bool g_bLightProbeScaleChanged;
+		g_bLightProbeScaleChanged = true;
+	}
 }
 
 void WickedCall_UpdateProbes(void)
 {
-	/*
-	// Invalidate all environment probes to reflect any changes (such as sky choice)
-	Scene& scene = wiScene::GetScene();
-	for (size_t i = 0; i < scene.probes.GetCount(); ++i)
-		scene.probes[i].SetDirty();
-		*/
 	GGTerrain::ggterrain_extra_params.bUpdateProbes = true;
 }
 

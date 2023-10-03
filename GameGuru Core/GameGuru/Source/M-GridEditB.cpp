@@ -26029,7 +26029,9 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		int item_current_type_selection = g_scriptpeople_item_count - 1; //Default Custom.
 		for (int i = 0; i < g_scriptpeople_item_count - 1; i++)
 		{
-			if (pestrcasestr(edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()))
+			// with workshop items updating core scripts, need to check entire path now!
+			//if (pestrcasestr(edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()))
+			if (stricmp (edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()) == NULL)
 			{
 				item_current_type_selection = i;
 				break;
@@ -28247,7 +28249,9 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			int item_current_type_selection = g_scriptobjects_item_count - 1; //Default Custom.
 			for (int i = 0; i < g_scriptobjects_item_count - 1; i++)
 			{
-				if (pestrcasestr(edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()))
+				// with workshop items updating core scripts, need to check entire path now!
+				//if (pestrcasestr(edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()))
+				if(stricmp (edit_grideleprof->aimain_s.Get(), scriptList_s[i].Get()) == NULL )
 				{
 					item_current_type_selection = i;
 					break;

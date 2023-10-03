@@ -9700,6 +9700,10 @@ void imgui_Customize_Sky_V2(int mode)
 			{
 				Wicked_Update_Visuals((void *)&t.visuals);
 			}
+
+			// when sky type changes, refresh env probes
+			extern bool g_bLightProbeScaleChanged;
+			g_bLightProbeScaleChanged = true;
 			WickedCall_UpdateProbes();
 		}
 

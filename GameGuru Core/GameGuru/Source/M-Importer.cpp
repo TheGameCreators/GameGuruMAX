@@ -120,6 +120,7 @@ std::vector<sAnimSlotStruct> g_pAnimSlotList;
 
 // animation control
 bool g_bShowBones = false;
+bool g_bShowBonesExtraInfo = false;
 bool bFoundanimSet = false;
 bool g_bAnimatingObjectPreview = false;
 bool g_bUpdateAnimationPreview = false;
@@ -3654,7 +3655,14 @@ void animsystem_animationtoolui(int objectnumber)
 				wiRenderer::SetToDrawDebugBoneLines(g_bShowBones);
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show debug bones associated with object");
-
+			if (g_bShowBones == true)
+			{
+				if (ImGui::Checkbox("Show Bones Info", &g_bShowBonesExtraInfo))
+				{
+					wiRenderer::SetToDrawDebugBoneLines(g_bShowBonesExtraInfo);
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("List below all bones names representing this object");
+			}
 
 			extern void ControlAdvancedSetting(int&, const char*, bool* = 0);
 			if (t.importer.importerActive == 0)
@@ -3949,6 +3957,23 @@ void animsystem_animationtoolui(int objectnumber)
 					CloseFile(1);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to save template of animation slots to writable 'charactercreatorplus\\animations'.");
+			}
+
+			// if flagged, show extra bone info as list of bones
+			if (g_bShowBonesExtraInfo == true)
+			{
+				PerformCheckListForLimbs(objectnumber);
+				ImGui::TextCenter("");
+				char pBoneListTitle[MAX_PATH];
+				sprintf(pBoneListTitle, "Bone List (Total Bones:%d)", ChecklistQuantity());
+				ImGui::TextCenter(pBoneListTitle);
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Currently, standard character creator rigs should have 67 bones");
+				for (t.tc = 1; t.tc <= ChecklistQuantity(); t.tc++)
+				{
+					char pBoneItem[MAX_PATH];
+					sprintf(pBoneItem, "%d : %s", t.tc, ChecklistString(t.tc));
+					ImGui::Text(pBoneItem);
+				}
 			}
 
 			// end of animation tool component

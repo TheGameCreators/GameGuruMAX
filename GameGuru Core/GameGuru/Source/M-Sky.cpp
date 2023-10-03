@@ -384,6 +384,10 @@ void sky_skyspec_init(bool bResetVisuals)
 	}
 	// when change sky, due to sun direction, must update shader constants too
 	t.visuals.refreshshaders = 1;
+
+	// when skybox changes, refresh env probes
+	extern bool g_bLightProbeScaleChanged;
+	g_bLightProbeScaleChanged = true;
 }
 
 #else

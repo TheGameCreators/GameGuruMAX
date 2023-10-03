@@ -8698,6 +8698,9 @@ void GGTerrain_ClearEnvProbeList(void)
 		g_bEnvProbeTrackingUpdate[scan] = true;
 		g_iEnvProbeTracking[scan] = 0;
 	}
+
+	// a good time to refresh global in case of env changes!
+	globalEnvProbePos.y = 0;
 }
 void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float quatx, float quaty, float quatz, float quatw, float sx, float sy, float sz)
 {
@@ -8808,6 +8811,12 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			fMovementDelta = (fabs(g_vLastPos.x - playerX) + fabs(g_vLastPos.z - playerZ)) / 20.0f;
 			if (fMovementDelta > 0.0f && fMovementDelta < 1.0f)
 			{
+				bMovementOfPlayer = true;
+				fMovementDelta = 1.0f;
+			}
+			if (globalEnvProbePos.y == 0)
+			{
+				// indicates a forced env map refresh (light on/off) so nudge the update!
 				bMovementOfPlayer = true;
 				fMovementDelta = 1.0f;
 			}
@@ -9134,16 +9143,18 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 
 	// handle global probe positioned by globalEnvProbePos
-	float height;
-	GGTerrain_GetHeight( 0, 0, &height );
-	height += GGTerrain_MetersToUnits(30);
-	float heightDiff = fabs( height - globalEnvProbePos.y );
+	float globalrange = 50000;
+	//float height; base on terrain biome (stock default), not local terrain ground height
+	//GGTerrain_GetHeight( 0, 0, &height );
+	//height += GGTerrain_MetersToUnits(30);
+	float height = ggterrain_local_params.height;
+	float heightDiff = fabs( height - globalEnvProbePos.y ); // can refresh global probe by setting globalEnvProbePos.y to 0
 	if ( heightDiff > 50 )
 	{
 		globalEnvProbePos = XMFLOAT3( 0, height, 0 );
 		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( globalEnvProbe );
 		probe->position = globalEnvProbePos;
-		probe->range = 50000;
+		probe->range = globalrange;
 		probe->userdata = 255;
 		probe->SetDirty();
 		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( globalEnvProbe );

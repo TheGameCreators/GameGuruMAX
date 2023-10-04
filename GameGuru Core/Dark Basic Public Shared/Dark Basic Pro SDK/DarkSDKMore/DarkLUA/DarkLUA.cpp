@@ -3699,6 +3699,24 @@ int RDIsWithinMesh(lua_State *L)
 	return 1;
 }
 
+int RDIsWithinAndOverMesh(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fZ = lua_tonumber(L, 3);
+	int iResult = 0;
+	float vecNearestPt[3];
+	if (g_RecastDetour.isWithinNavMeshEx(fX, fY, fZ, (float*)&vecNearestPt, true) == true)
+		iResult = 1;
+	else
+		iResult = 0;
+	lua_pushnumber (L, iResult);
+	return 1;
+}
+
 int RDGetYFromMeshPosition(lua_State *L)
 {
 	lua = L;
@@ -9967,6 +9985,7 @@ void addFunctions()
 	lua_register(lua, "MoveAndRotateToXYZ", MoveAndRotateToXYZ);
 	lua_register(lua, "SetEntityPathRotationMode", SetEntityPathRotationMode);	
 	lua_register(lua, "RDIsWithinMesh", RDIsWithinMesh);
+	lua_register(lua, "RDIsWithinAndOverMesh", RDIsWithinAndOverMesh);
 	lua_register(lua, "RDGetYFromMeshPosition", RDGetYFromMeshPosition);
 	lua_register(lua, "RDBlockNavMesh", RDBlockNavMesh);
 	lua_register(lua, "AdjustPositionToGetLineOfSight", AdjustPositionToGetLineOfSight);

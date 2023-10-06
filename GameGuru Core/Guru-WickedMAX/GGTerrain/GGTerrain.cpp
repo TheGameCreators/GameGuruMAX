@@ -8702,6 +8702,22 @@ void GGTerrain_ClearEnvProbeList(void)
 	// a good time to refresh global in case of env changes!
 	globalEnvProbePos.y = 0;
 }
+void GGTerrain_InstantEnvProbeRefresh(void)
+{
+	// now update all live probes
+	for (int iRealProbeIndex = 0; iRealProbeIndex < LOCALENVPROBECOUNT; iRealProbeIndex++)
+	{
+		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[iRealProbeIndex]);
+		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[iRealProbeIndex]);
+		if (probe && pTransform)
+		{
+			if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
+			{
+				probe->SetDirty();
+			}
+		}
+	}
+}
 void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float quatx, float quaty, float quatz, float quatw, float sx, float sy, float sz)
 {
 	envProbeItem item;

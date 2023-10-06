@@ -231,6 +231,13 @@ void lighting_loop(void)
 		}
 		g_bLightProbeScaleChanged = false;
 	}
+	extern bool g_bLightProbeInstantChange;
+	if (g_bLightProbeInstantChange == true)
+	{
+		// rather than a rebuild of the probe list, trigger an instant refresh (used when lights go on and off)
+		GGTerrain::GGTerrain_InstantEnvProbeRefresh();
+		g_bLightProbeInstantChange = false;
+	}
 	extern bool bImGuiInTestGame;
 	if (t.widget.pickedEntityIndex > 0 && t.entityprofile[t.entityelement[t.widget.pickedEntityIndex].bankindex].ismarker == 2 && bImGuiInTestGame == false)
 	{

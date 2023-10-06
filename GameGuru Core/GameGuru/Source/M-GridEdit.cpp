@@ -265,6 +265,7 @@ bool g_bThumbBankCopyMode = true;
 bool g_bRefreshRotationValuesFromObjectOnce = false;
 bool g_bRefreshScaleValuesFromObjectOnce = false;
 bool g_bLightProbeScaleChanged = false;
+bool g_bLightProbeInstantChange = false;
 int iReusePickObjectID = -1;
 int iReusePickEntityID = -1;
 float fReusePickHitX = 0, fReusePickHitY = 0, fReusePickHitZ = 0;

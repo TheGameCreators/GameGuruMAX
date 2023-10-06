@@ -5570,8 +5570,8 @@ void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float
 	// when light-scape changes, refresh env probes (performance hit here)
 	if (bLightScapeHasChangedEnoughForEnvProbeUpdate == true)
 	{
-		extern bool g_bLightProbeScaleChanged;
-		g_bLightProbeScaleChanged = true;
+		extern bool g_bLightProbeInstantChange;
+		g_bLightProbeInstantChange = true;
 	}
 }
 

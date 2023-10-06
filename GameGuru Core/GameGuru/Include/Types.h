@@ -6528,6 +6528,9 @@ struct entitytype
 	int attachmentbaseobj;
 	//int attachmentweapontype;
 	int attachmentobjfirespotlimb;
+	float fFirespotOffsetX;
+	float fFirespotOffsetY;
+	float fFirespotOffsetZ;
 	//int attachmentblobobj;
 	float x;
 	float y;
@@ -6932,6 +6935,9 @@ struct entitytype
 		 customlastz = 0.0f;
 		 //attachmentblobobj = 0;
 		 attachmentobjfirespotlimb = 0;
+		 fFirespotOffsetX = 0;
+		 fFirespotOffsetY = 0;
+		 fFirespotOffsetZ = 0;
 		 //attachmentweapontype = 0;
 		 attachmentbaseobj = 0;
 		 attachmentobj = 0;

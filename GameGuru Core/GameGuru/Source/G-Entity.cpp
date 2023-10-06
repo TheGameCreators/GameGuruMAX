@@ -4106,6 +4106,35 @@ void entity_createattachment ( void )
 									}
 									LoadObject ( t.tfile_s.Get(), t.ttobj );
 
+									// Find firespot for this vweap
+									t.entityelement[t.e].attachmentobjfirespotlimb = -1; // always use a limb, it in turn uses LimbPosition (which takes reading from glued Wicked object)
+									PerformCheckListForLimbs (t.ttobj);
+									for (t.tc = 1; t.tc <= ChecklistQuantity(); t.tc++)
+									{
+										if (cstr(Lower(ChecklistString(t.tc))) == "firespot")
+										{
+											t.entityelement[t.e].attachmentobjfirespotlimb = t.tc - 1;
+											t.tc = ChecklistQuantity() + 1;
+										}
+									}
+
+									// in ALL events now, there is no FIRESPOT limb, it gets erased below in new system
+									if (t.entityelement[t.e].attachmentobjfirespotlimb != -1)
+									{
+										// can still obtain the offset to place muzzle flasg correctly
+										float fMuzzleOffsetX = LimbPositionX(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
+										float fMuzzleOffsetY = LimbPositionY(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
+										float fMuzzleOffsetZ = LimbPositionZ(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
+										t.entityelement[t.e].attachmentobjfirespotlimb = -1;
+										t.entityelement[t.e].fFirespotOffsetX = fMuzzleOffsetX;
+										t.entityelement[t.e].fFirespotOffsetY = fMuzzleOffsetY;
+										t.entityelement[t.e].fFirespotOffsetZ = fMuzzleOffsetZ;
+									}
+									else
+									{
+										// else we assume a muzzle flasg ahead of WRIST of weapon (can later add some length to this in gunspec)
+									}
+
 									// modify so weapon fits better in hands
 									if (t.gun[iGunID].handusesnewweaponsystem == 1)
 									{
@@ -4166,18 +4195,6 @@ void entity_createattachment ( void )
 								//PE: fix t.entityelement[t.e].attachmentobj;
 								//PE: https://forum.game-guru.com/thread/219491.
 								EnableObjectZDepth(t.ttobj);
-
-								// Find firespot for this vweap
-								t.entityelement[t.e].attachmentobjfirespotlimb = -1; // always use a limb, it in turn uses LimbPosition (which takes reading from glued Wicked object)
-								PerformCheckListForLimbs ( t.ttobj );
-								for ( t.tc = 1 ; t.tc <= ChecklistQuantity(); t.tc++ )
-								{
-									if ( cstr(Lower(ChecklistString(t.tc))) == "firespot" ) 
-									{
-										t.entityelement[t.e].attachmentobjfirespotlimb=t.tc-1;
-										t.tc=ChecklistQuantity()+1;
-									}
-								}
 
 								// ensure it does not attract a collision hit during ray cast (do before glue)
 								sObject* pAttObject = GetObjectData(t.ttobj);

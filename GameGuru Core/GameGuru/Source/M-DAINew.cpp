@@ -2228,10 +2228,25 @@ void darkai_shooteffect (void)
 		t.tattachmentobjfirespotlimb = t.entityelement[t.te].attachmentobjfirespotlimb;
 		if (t.tgunid > 0 && t.tattachmentobjfirespotlimb != 0)
 		{
-			if (t.tattachmentobjfirespotlimb == -1) t.tattachmentobjfirespotlimb = 0;
-			t.tx_f = LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb);
-			t.ty_f = LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb);
-			t.tz_f = LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb);
+			if (t.tattachmentobjfirespotlimb == -1)
+			{
+				t.tattachmentobjfirespotlimb = 0;
+				t.tx_f = t.entityelement[t.te].fFirespotOffsetX;
+				t.ty_f = t.entityelement[t.te].fFirespotOffsetY;
+				t.tz_f = t.entityelement[t.te].fFirespotOffsetZ;
+				// must adjust offset to angle of weaponm (throw the flame forward)
+				t.tx_f = -NewXValue(0, t.entityelement[t.te].ry, t.tx_f) * 2;
+				t.tz_f = -NewZValue(0, t.entityelement[t.te].ry, t.tz_f) * 2;
+			}
+			else
+			{
+				t.tx_f = 0;
+				t.ty_f = 0;
+				t.tz_f = 0;
+			}
+			t.tx_f += LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb);
+			t.ty_f += LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb);
+			t.tz_f += LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb);
 			t.tokay = 1;
 		}
 		if (t.tokay == 0)

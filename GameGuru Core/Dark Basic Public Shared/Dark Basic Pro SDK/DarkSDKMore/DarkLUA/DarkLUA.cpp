@@ -2597,6 +2597,8 @@ luaMessage** ppLuaMessages = NULL;
 		 iNewE = t.e;
 		 physics_prepareentityforphysics ();
 		 t.entityelement[t.e].lua.firsttime = 0;
+		 // clones need parent health at least top begin with
+		 t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;
 		 // special limbo mode to skip activating this entity until next lua_begin cycle
 		 t.entityelement[iNewE].active = 0;
 		 t.entityelement[iNewE].lua.flagschanged = 123;
@@ -2645,6 +2647,11 @@ luaMessage** ppLuaMessages = NULL;
 				 t.entityelement[t.tentitytoselect].attachmentobj = 0;
 			 }
 			 entity_deleteentityfrommap ();
+			 if (t.entityelement[t.tentitytoselect].ragdollified == 1)
+			 {
+				 //t.tphyobj = t.entityelement[t.tentitytoselect].obj; ragdoll_destroy ();
+				 t.entityelement[t.tentitytoselect].ragdollified = 0;
+			 }
 			 t.e = storee;
 			 t.entid = storeentid;
 		 }

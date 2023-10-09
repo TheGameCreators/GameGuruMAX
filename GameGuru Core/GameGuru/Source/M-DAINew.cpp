@@ -1642,15 +1642,29 @@ void darkai_refresh_characters ( bool bScanForNewlySpawned )
 						}
 						if (bFound == false)
 						{
-							// Set up object one as character
-							++g.charanimindexmax;
-							g.charanimindex = g.charanimindexmax;
-							Dim (t.charanimcontrols, g.charanimindexmax);
-							Dim (t.charanimstates, g.charanimindexmax);
-							Dim2(t.charactergunpose, g.charanimindexmax, 36);
+							// and also check if a free one exists that was once used for same
+							bool bCanReuse = false;
+							for (int n = 1; n <= g.charanimindexmax; n++)
+							{
+								if (t.charanimstates[n].e == 0 && t.charanimstates[n].originale == t.e)
+								{
+									g.charanimindex = n;
+									bCanReuse = true;
+									break;
+								}
+							}
+							if (bCanReuse == false)
+							{
+								// Set up object one as character
+								++g.charanimindexmax;
+								g.charanimindex = g.charanimindexmax;
+								Dim (t.charanimcontrols, g.charanimindexmax);
+								Dim (t.charanimstates, g.charanimindexmax);
+								Dim2(t.charactergunpose, g.charanimindexmax, 36);
+								t.charanimstates[g.charanimindex].originale = t.e;
+							}
 							t.charanimstates[g.charanimindex].obj = t.tobj;
 							t.charanimstates[g.charanimindex].e = t.e;
-							t.charanimstates[g.charanimindex].originale = t.e;
 							t.charanimstates[g.charanimindex].currentangle_f = t.entityelement[t.e].ry;
 							t.entityelement[t.e].eleprof.disableascharacter = 0;
 							darkai_setupcharacter ();
@@ -1664,10 +1678,10 @@ void darkai_refresh_characters ( bool bScanForNewlySpawned )
 						else
 						{
 							// if found, existing characters can be left along during a newly spawned scam
-							if (bScanForNewlySpawned == true)
-							{
-								continue;
-							}
+							//if (bScanForNewlySpawned == true) nope, stay and do ALL newly added entities!!
+							//{
+							//	continue;
+							//}
 						}
 
 						// swap in animation override

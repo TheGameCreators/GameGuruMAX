@@ -9896,6 +9896,9 @@ void imgui_Customize_Sky_V2(int mode)
 				t.gamevisuals.SunBlue_f = t.visuals.SunBlue_f = mycolor.z * 255.0;
 				g.projectmodified = 1;
 				Wicked_Update_Visuals((void *)&t.visuals);
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::EndPopup();
@@ -9921,6 +9924,9 @@ void imgui_Customize_Sky_V2(int mode)
 				t.gamevisuals.AmbienceBlue_f = t.visuals.AmbienceBlue_f = mycolor.z * 255.0;
 				g.projectmodified = 1;
 				Wicked_Update_Visuals((void *)&t.visuals);
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::EndPopup();
@@ -9948,6 +9954,9 @@ void imgui_Customize_Sky_V2(int mode)
 					t.gamevisuals.FogB_f = t.visuals.FogB_f = mycolor.z * 255.0;
 					g.projectmodified = 1;
 					Wicked_Update_Visuals((void *)&t.visuals);
+					// when sky type changes, refresh env probes
+					extern bool g_bLightProbeScaleChanged;
+					g_bLightProbeScaleChanged = true;
 					WickedCall_UpdateProbes();
 				}
 				ImGui::EndPopup();
@@ -9973,6 +9982,9 @@ void imgui_Customize_Sky_V2(int mode)
 					t.gamevisuals.ZenithBlue_f = t.visuals.ZenithBlue_f = mycolor.z * 255.0;
 					g.projectmodified = 1;
 					Wicked_Update_Visuals((void *)&t.visuals);
+					// when sky type changes, refresh env probes
+					extern bool g_bLightProbeScaleChanged;
+					g_bLightProbeScaleChanged = true;
 					WickedCall_UpdateProbes();
 				}
 				ImGui::EndPopup();
@@ -9981,55 +9993,6 @@ void imgui_Customize_Sky_V2(int mode)
 			vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
 			window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 
-		}
-		else if (bSimulatedSky)
-		{
-			//ImGui::TextCenter("Horizon Color");
-			//mycolor = ImVec4(t.visuals.FogR_f / 255.0, t.visuals.FogG_f / 255.0, t.visuals.FogB_f / 255.0, 1.0);
-			//open_popup = ImGui::ColorButton("##NewV2WickedHorizonColor", mycolor, 0, ImVec2(w - 20.0, 0));
-			//if (open_popup)
-			//	ImGui::OpenPopup("##pickWickedHorizonColor");
-			//if (ImGui::BeginPopup("##pickWickedHorizonColor", ImGuiWindowFlags_NoMove))
-			//{
-			//	if (ImGui::ColorPicker4("##pickerWickedHorizonColor", (float*)&mycolor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
-			//	{
-			//		t.gamevisuals.FogR_f = t.visuals.FogR_f = mycolor.x * 255.0;
-			//		t.gamevisuals.FogG_f = t.visuals.FogG_f = mycolor.y * 255.0;
-			//		t.gamevisuals.FogB_f = t.visuals.FogB_f = mycolor.z * 255.0;
-			//		g.projectmodified = 1;
-			//		Wicked_Update_Visuals((void *)&t.visuals);
-			//		WickedCall_UpdateProbes();
-			//	}
-			//	ImGui::EndPopup();
-			//}
-			//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Horizon Color");
-			//window = ImGui::GetCurrentWindow(); //PE: Add a pencil to all color gadgets.
-			//lpTexture = GetImagePointerView(TOOL_PENCIL);
-			//vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-			//window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-
-
-			//ImGui::TextCenter("Atmospheric Color");
-			//mycolor = ImVec4(t.visuals.ZenithRed_f / 255.0, t.visuals.ZenithGreen_f / 255.0, t.visuals.ZenithBlue_f / 255.0, 1.0);
-			//open_popup = ImGui::ColorButton("##NewV2WickedZenithColor", mycolor, 0, ImVec2(w - 20.0, 0));
-			//if (open_popup)
-			//	ImGui::OpenPopup("##pickWickedZenithColor");
-			//if (ImGui::BeginPopup("##pickWickedZenithColor", ImGuiWindowFlags_NoMove))
-			//{
-			//	if (ImGui::ColorPicker4("##pickerWickedZenithColor", (float*)&mycolor, ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
-			//	{
-			//		t.gamevisuals.ZenithRed_f = t.visuals.ZenithRed_f = mycolor.x * 255.0;
-			//		t.gamevisuals.ZenithGreen_f = t.visuals.ZenithGreen_f = mycolor.y * 255.0;
-			//		t.gamevisuals.ZenithBlue_f = t.visuals.ZenithBlue_f = mycolor.z * 255.0;
-			//		g.projectmodified = 1;
-			//		Wicked_Update_Visuals((void *)&t.visuals);
-			//		WickedCall_UpdateProbes();
-			//	}
-			//	ImGui::EndPopup();
-			//}
-			//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Atmospheric Color");
-			//vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-			//window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 		}
 
 		ImGui::TextCenter("Sun Intensity");
@@ -10040,6 +10003,9 @@ void imgui_Customize_Sky_V2(int mode)
 			t.gamevisuals.SunIntensity_f = t.visuals.SunIntensity_f;
 			Wicked_Update_Visuals((void *)&t.visuals);
 			g.projectmodified = 1;
+			// when sky type changes, refresh env probes
+			extern bool g_bLightProbeScaleChanged;
+			g_bLightProbeScaleChanged = true;
 			WickedCall_UpdateProbes();
 		}
 
@@ -10051,28 +10017,20 @@ void imgui_Customize_Sky_V2(int mode)
 			t.gamevisuals.fExposure = t.visuals.fExposure;
 			Wicked_Update_Visuals((void *)&t.visuals);
 			g.projectmodified = 1;
+			// when sky type changes, refresh env probes
+			extern bool g_bLightProbeScaleChanged;
+			g_bLightProbeScaleChanged = true;
 			WickedCall_UpdateProbes();
 		}
 
 		if ( !bSimulatedSky || t.visuals.bDisableSkybox )
 		{
-			/*
-			ImGui::TextCenter("Sky Intensity");
-			if (ImGui::SliderFloat("##WickedSkyIntensity_f", &t.visuals.SkyIntensity_f , 0.0, 2.0))
-			{
-				t.gamevisuals.SkyIntensity_f = t.visuals.SkyIntensity_f;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				g.projectmodified = 1;
-				WickedCall_UpdateProbes();
-			}
-			*/
 		}
 		else
 		{
 			
 			ImGui::TextCenter("Cloud Density");
 			fTmp = t.visuals.SkyCloudiness * 100.0f;
-			//if (ImGui::SliderFloat("##V2WickedSkyCloudiness", &t.visuals.SkyCloudiness, 0.0f, 4.0f))
 			if (ImGui::MaxSliderInputFloat("##V2WickedSkyCloudiness", &fTmp, 0.0f, 400.0f, "Sets how dense the clouds are", 0.0f, 400.0f))
 			{
 				t.visuals.SkyCloudiness = fTmp * 0.01f;
@@ -10080,6 +10038,9 @@ void imgui_Customize_Sky_V2(int mode)
 				weather->cloudiness = t.visuals.SkyCloudiness;
 				weather->volumetricCloudParameters.CoverageAmount = t.visuals.SkyCloudiness;
 				g.projectmodified = 1;
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::TextCenter("Cloud Coverage");
@@ -10091,6 +10052,9 @@ void imgui_Customize_Sky_V2(int mode)
 				t.gamevisuals.SkyCloudCoverage = t.visuals.SkyCloudCoverage;
 				weather->volumetricCloudParameters.CoverageMinimum = t.visuals.SkyCloudCoverage;
 				g.projectmodified = 1;
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::TextCenter("Cloud Height (meters)");
@@ -10105,6 +10069,9 @@ void imgui_Customize_Sky_V2(int mode)
 				weather->cloudScale = t.visuals.SkyCloudHeight;
 				weather->volumetricCloudParameters.CloudStartHeight = cloudHeight;
 				g.projectmodified = 1;
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::TextCenter("Cloud Thickness (meters)");
@@ -10118,6 +10085,9 @@ void imgui_Customize_Sky_V2(int mode)
 				t.gamevisuals.SkyCloudThickness = t.visuals.SkyCloudThickness;
 				weather->volumetricCloudParameters.CloudThickness = cloudHeight;
 				g.projectmodified = 1;
+				// when sky type changes, refresh env probes
+				extern bool g_bLightProbeScaleChanged;
+				g_bLightProbeScaleChanged = true;
 				WickedCall_UpdateProbes();
 			}
 			ImGui::TextCenter("Cloud Speed");
@@ -10131,16 +10101,6 @@ void imgui_Customize_Sky_V2(int mode)
 				g.projectmodified = 1;
 			}
 		}
-
-		/* not for EA
-		if (ImGui::Checkbox("Simulate 24 Hours", &t.visuals.bSimulate24Hours))
-		{
-			t.gamevisuals.bSimulate24Hours = t.visuals.bSimulate24Hours;
-			g.projectmodified = 1;
-		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Simulate Running Time When in Game (This feature is not yet available)");
-		*/
-
 		if (!t.visuals.bSimulate24Hours && (bSimulatedSky || t.visuals.bDisableSkybox) )
 		{
 			ImGui::TextCenter("Time of Day");
@@ -10159,29 +10119,6 @@ void imgui_Customize_Sky_V2(int mode)
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("This sets the sun at the correct position for the time of day");
  		}
-
-		/* removed for EA version
-		if (t.visuals.bSimulate24Hours)
-		{
-			ImGui::TextCenter("Game Clock");
-			cstr cToolTip = "One Game Minutes = ";
-			float fMaxClock = 300.0f;
-			int iTmp = t.visuals.fTimeSpeed -(fMaxClock/100.0f);
-			if (iTmp < 1) iTmp = 1;
-			cToolTip = cToolTip + cstr(iTmp) + cstr(" Real Minutes");
-			//"Set Time Speed When in Game", 288.0f
-			if (ImGui::MaxSliderInputFloat("##V2WickedTimeSpeed", &t.visuals.fTimeSpeed, 1.0f, fMaxClock, cToolTip.Get(),1))
-			{
-				g.projectmodified = 1;
-				t.gamevisuals.fTimeSpeed = t.visuals.fTimeSpeed;
-				// day = 1440 minutes ,
-				// Factor 288 (real minutes = 5 min to complete a 24 hour cycle).
-				// So in minutes: (starttime+timeingame * t.visuals.fTimeSpeed) % 1440 / 60 = Current Hour.
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the speed of the game clock (This feature is not yet available)");
-		}
-		*/
-
 		if (bSimulatedSky || t.visuals.bDisableSkybox )
 		{
 			extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
@@ -10195,6 +10132,9 @@ void imgui_Customize_Sky_V2(int mode)
 					t.gamevisuals.SunAngleX = t.visuals.SunAngleX;
 					Wicked_Update_Visuals((void *)&t.visuals);
 					g.projectmodified = 1;
+					// when sky type changes, refresh env probes
+					extern bool g_bLightProbeScaleChanged;
+					g_bLightProbeScaleChanged = true;
 					WickedCall_UpdateProbes();
 				}
 				ImGui::TextCenter("Sun Direction Y");
@@ -10203,6 +10143,9 @@ void imgui_Customize_Sky_V2(int mode)
 					t.gamevisuals.SunAngleY = t.visuals.SunAngleY;
 					Wicked_Update_Visuals((void *)&t.visuals);
 					g.projectmodified = 1;
+					// when sky type changes, refresh env probes
+					extern bool g_bLightProbeScaleChanged;
+					g_bLightProbeScaleChanged = true;
 					WickedCall_UpdateProbes();
 				}
 				ImGui::TextCenter("Sun Direction Z");
@@ -10211,25 +10154,14 @@ void imgui_Customize_Sky_V2(int mode)
 					t.gamevisuals.SunAngleZ = t.visuals.SunAngleZ;
 					Wicked_Update_Visuals((void *)&t.visuals);
 					g.projectmodified = 1;
+					// when sky type changes, refresh env probes
+					extern bool g_bLightProbeScaleChanged;
+					g_bLightProbeScaleChanged = true;
 					WickedCall_UpdateProbes();
 				}
 			}
 		}
 		
-		//if (!pref.iEnableAdvancedSky)
-		//{
-		//	ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-		//	ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-		//	if (ImGui::HyberlinkButton("Advanced Settings##1", ImVec2(label_size.x, 0)))
-		//	{
-		//		extern int iSetSettingsFocusTab;
-		//		extern bool bPreferences_Window;
-		//		iSetSettingsFocusTab = 2;
-		//		bPreferences_Window = true;
-		//	}
-		//}
-		
-
 		if ( somethingChanged )
 		{
 			Wicked_Update_Visuals((void *)&t.visuals);

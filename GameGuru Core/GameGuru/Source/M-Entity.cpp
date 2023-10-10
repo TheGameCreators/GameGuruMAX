@@ -3725,7 +3725,14 @@ void entity_loaddata ( void )
 	if (  t.entityprofile[t.entid].materialindex>0 ) 
 	{
 		t.mi=t.entityprofile[t.entid].materialindex-1;
-		t.material[t.mi].usedinlevel=1;
+		if (t.mi < t.material.size())
+		{
+			t.material[t.mi].usedinlevel = 1;
+		}
+		else
+		{
+			// speciried a material index that MAX does not support!
+		}
 	}
 	//if (  t.entityprofile[t.entid].debrisshapeindex>0 ) 
 	//{

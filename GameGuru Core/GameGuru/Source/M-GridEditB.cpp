@@ -20302,7 +20302,15 @@ void process_entity_library_v2(void)
 											else
 											{
 												bLoadedInNewFormat = false;
-												LoadImage((char *)sImgName.c_str(), myfiles->iPreview);
+												if (FileExist((char*)sImgName.c_str()) == 1)
+												{
+													LoadImage((char*)sImgName.c_str(), myfiles->iPreview);
+												}
+												else
+												{
+													// when the preview image file does not exist, use default
+													LoadImage("texturebank\\backdrops\\Black backdrop.dds", myfiles->iPreview);
+												}
 											}
 										}
 										image_setlegacyimageloading(false);

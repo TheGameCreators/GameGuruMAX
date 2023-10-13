@@ -11,62 +11,6 @@ bool g_bDebugRagdoll = false;// connect debug ragdoll and real object and we are
 
 void ragdoll_init ( void )
 {
-	#ifndef WICKEDENGINE
-	//  Create Joint Rotations and Limits
-	g.KneeJoint.rotationVec3 = newvector3(90.0, 0.0, 0.0);
-	g.KneeJoint.limitsVec2 = newvector2(-10.0, 60.0);
-	//g.KneeJoint.rotationVec3 = newvector3(90.0, 0.0, 0.0);
-	//g.KneeJoint.limitsVec2 = newvector2(10.0, 140.0);
-
-	g.RightElbowJoint.rotationVec3 = newvector3(-120.0, 0.0, 0.0);
-	g.RightElbowJoint.limitsVec2 = newvector2(-20.0, 130.0);
-	//g.RightElbowJoint.rotationVec3 = newvector3(270.0, 0.0, 0.0);
-	//g.RightElbowJoint.limitsVec2 = newvector2(-20.0, 150.0);
-
-	g.LeftElbowJoint.rotationVec3 = newvector3(270.0, 0.0, 0.0);
-	g.LeftElbowJoint.limitsVec2 = newvector2(-20.0, 130.0);
-	//g.LeftElbowJoint.rotationVec3 = newvector3(270.0, 0.0, 0.0);
-	//g.LeftElbowJoint.limitsVec2 = newvector2(-20.0, 150.0);
-
-	g.rightWristJoint.rotationVec3 = newvector3(0.0, 45.0, 0.0);
-	g.rightWristJoint.limitsVec2 = newvector2(-40.0, 40.0);
-	//g.rightWristJoint.rotationVec3 = newvector3(0.0, 45.0, 0.0);
-	//g.rightWristJoint.limitsVec2 = newvector2(-10.0, 10.0);
-
-	g.leftWristJoint.rotationVec3 = newvector3(0.0, 45.0, 0.0);
-	g.leftWristJoint.limitsVec2 = newvector2(-40.0, 40.0);
-	//g.leftWristJoint.rotationVec3 = newvector3(0.0, 45.0, 0.0);
-	//g.leftWristJoint.limitsVec2 = newvector2(-10.0, 10.0);
-
-	g.WaistJoint.rotationVec3 = newvector3(90.0, 0.0, 0.0);
-	g.WaistJoint.limitsVec2 = newvector2(-50.0, 50.0);
-	//g.WaistJoint.rotationVec3 = newvector3(90.0, 20.0, 20.0);
-	//g.WaistJoint.limitsVec2 = newvector2(0,120);
-
-	//g.HipJoint.rotationVec3 = newvector3(45.0, 45.0, 45.0);
-	//g.HipJoint.limitsVec3 = newvector3(15.0, 15.0, 15.0);
-	g.HipJoint.rotationVec3 = newvector3(90.0, 20.0, 20.0);
-	///g.HipJoint.limitsVec2 = newvector2(-10.0, 10.0);
-	g.HipJoint.limitsVec3 = newvector3(15.0, 15.0, 15.0);
-
-	g.RightShoulderJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	//g.RightShoulderJoint.limitsVec3 = newvector3(45.0,45.0,10.0);
-	g.RightShoulderJoint.limitsVec3 = newvector3(-20.0,0.0,20.0);
-	//g.RightShoulderJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	//g.RightShoulderJoint.limitsVec3 = newvector3(30.0,30.0,10.0);
-
-	g.LeftShoulderJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	//g.LeftShoulderJoint.limitsVec3 = newvector3(45.0,45.0,10.0);
-	g.LeftShoulderJoint.limitsVec3 = newvector3(-20.0,0.0,20.0);
-	//g.LeftShoulderJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	//g.LeftShoulderJoint.limitsVec3 = newvector3(30.0,30.0,10.0);
-
-	g.NeckJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	g.NeckJoint.limitsVec3 = newvector3(24.0,11.5,8.0);
-	//g.NeckJoint.rotationVec3 = newvector3(0.0,0.0,0.0);
-	//g.NeckJoint.limitsVec3 = newvector3(24.0,11.5,8.0);
-	
-#else
 	//  Create Joint Rotations and Limits
 	g.KneeJoint.rotationVec3 = newvector3(90.0, 90.0, 0.0);
 	g.KneeJoint.limitsVec2 = newvector2(10.0, 140.0);
@@ -86,19 +30,23 @@ void ragdoll_init ( void )
 	g.WaistJoint.rotationVec3 = newvector3(90.0, 0.0, 0.0);
 	g.WaistJoint.limitsVec2 = newvector2(0, 50);
 
+	g.UpperBodyJoint.rotationVec3 = newvector3(0.0, 0.0, 0.0);
+	g.UpperBodyJoint.limitsVec2 = newvector2(0, 5);
+
 	g.HipJoint.rotationVec3 = newvector3(90, 0, 90);
 	g.HipJoint.limitsVec3 = newvector3(15.0, 15.0, 15.0);
 	
-	g.RightShoulderJoint.rotationVec3 = newvector3(-120.0, 60.0, 0.0);
-	g.RightShoulderJoint.limitsVec3 = newvector3(15.0, -70.0, 50);
-
-	g.LeftShoulderJoint.rotationVec3 = newvector3(-120.0, 60.0, 0.0);
-	g.LeftShoulderJoint.limitsVec3 = newvector3(15.0, 70.0, -50);
+	//g.RightShoulderJoint.rotationVec3 = newvector3(-120.0, 60.0, 0.0);
+	//g.RightShoulderJoint.limitsVec3 = newvector3(15.0, -70.0, 50);
+	//g.LeftShoulderJoint.rotationVec3 = newvector3(-120.0, 60.0, 0.0);
+	//g.LeftShoulderJoint.limitsVec3 = newvector3(15.0, 70.0, -50);
+	g.RightShoulderJoint.rotationVec3 = newvector3(0, 0, 0);
+	g.RightShoulderJoint.limitsVec3 = newvector3(10, 10, 10);
+	g.LeftShoulderJoint.rotationVec3 = newvector3(0, 0, 0);
+	g.LeftShoulderJoint.limitsVec3 = newvector3(10, 10, 10);
 
 	g.NeckJoint.rotationVec3 = newvector3(0.0, 90.0, 0.0);
 	g.NeckJoint.limitsVec3 = newvector3(30, 10, 10);
-
-#endif
 
 	// new ragdoll array
 	g.RagdollsMax=0;
@@ -123,6 +71,8 @@ void ragdoll_free ( void )
 		t.result = deletevector3(g.leftWristJoint.limitsVec2);
 		t.result = deletevector3(g.WaistJoint.rotationVec3);
 		t.result = deletevector3(g.WaistJoint.limitsVec2);
+		t.result = deletevector3(g.UpperBodyJoint.rotationVec3);
+		t.result = deletevector3(g.UpperBodyJoint.limitsVec2);
 		t.result = deletevector3(g.HipJoint.rotationVec3);
 		t.result = deletevector3(g.HipJoint.limitsVec3);
 		t.result = deletevector3(g.RightShoulderJoint.rotationVec3);
@@ -137,12 +87,7 @@ void ragdoll_free ( void )
 void ragdoll_setcollisionmask ( int iMode )
 {
 	// FLAGS (1-terrain, 2-objects, 4-capsule, 8-dynamic object)
-	// 101016 - set the collision mask used by the ragdoll (end collision field can switch off ragdoll collision from plr)
-	#ifdef WICKEDENGINE
 	g.tphys_CollisionGroup.group0 = 8; // new terrain physics does not allow terrain vs terrain, so use new dynamic object ID to mark head/body/upper body extremities
-	#else
-	g.tphys_CollisionGroup.group0 = 1;
-	#endif
 	g.tphys_CollisionGroup.group1 = 2;
 	g.tphys_CollisionGroup.group2 = 4;
 	if ( iMode == 1 )
@@ -150,11 +95,7 @@ void ragdoll_setcollisionmask ( int iMode )
 		// ragdoll collides with terrain, other entities and player
 		g.tphys_CollisionMask.mask0 = 1;
 		g.tphys_CollisionMask.mask1 = 2;
-		#ifdef WICKEDENGINE
 		g.tphys_CollisionMask.mask2 = 0; // do not collide ragdoll with player (so player can run through ragdoll)
-		#else
-		g.tphys_CollisionMask.mask2 = 4;
-		#endif
 	}
 	else
 	{
@@ -209,7 +150,6 @@ void ragdoll_create ( void )
 			// StopAnimation ( immediately and record frame )
 			if ( GetPlaying(t.tphyobj) == 1 ) StopObject ( t.tphyobj );
 
-			#ifdef WICKEDENGINE
 			// before can recreate pose for ragdoll, must extract current animation positions of bones and place
 			// back in the object so the code below can extract it to form the ragdoll bone structure
 			sObject* pObject = GetObjectData(t.tphyobj);
@@ -233,7 +173,6 @@ void ragdoll_create ( void )
 			GGMATRIX matWorld;
 			GGMatrixIdentity(&matWorld);
 			CalculateCombinedFromQuatsInOriginal(pObject->pFrame, &matWorld);
-			#endif
 
 			// fix pivot to normal and reset manual limb adjustments (done inside 'reset object pivot')
 			ResetObjectPivot (t.tphyobj);
@@ -258,7 +197,8 @@ void ragdoll_create ( void )
 				// if not, add pelvis->spine bone
 				if ( t.tbip01pelvis != -1 && t.tbip01spine != -1 ) 
 				{
-					g.Pelvis = BPhys_RagDollAddBone(t.tbip01pelvis,t.tbip01spine,10,g.tphys_CollisionGroup.group2,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					//g.Pelvis = BPhys_RagDollAddBone(t.tbip01pelvis, t.tbip01spine, 10, g.tphys_CollisionGroup.group2, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					g.Pelvis = BPhys_RagDollAddBone(t.tbip01pelvis, t.tbip01spine, 8, g.tphys_CollisionGroup.group2, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Pelvis")).Get()); 	if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.Pelvis, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 					t.tlmb = getlimbbyname(t.tphyobj, pBitPrefix.Get()); if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.Pelvis, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 				}
@@ -275,13 +215,31 @@ void ragdoll_create ( void )
 			// check if got spine and neck
 			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Neck")).Get()) != -1 ) 
 			{
-				// add spine->neckbone
-				t.Torso = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Neck")).Get()), 12,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.Torso, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine1")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.Torso, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine2")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.Torso, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Clavicle")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.Torso, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
-				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Clavicle")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.Torso, t.tlmb ) ; t.limidrecord[t.tlmb] = 1; }
+				/*
+				if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine1")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine2")).Get()) != -1
+				&&  getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Clavicle")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Clavicle")).Get()) != -1)
+				{
+					// add spine->spine1->spine2 (new UpperSpine)
+					t.Torso = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()), 12, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					t.UpperSpine = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Clavicle")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Clavicle")).Get()), 2, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine1")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine2")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Clavicle")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.UpperSpine, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Clavicle")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.UpperSpine, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+				}
+				else
+				{
+				*/
+					// add spine->neckbone
+					t.Torso = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()), 12, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					t.UpperSpine = t.Torso;
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine1")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine2")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Clavicle")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Clavicle")).Get()); if (t.tlmb != -1) { BPhys_RagDollBoneAddLimbID (t.Torso, t.tlmb); t.limidrecord[t.tlmb] = 1; }
+				//}
 			}
 
 			// add neck->headnub bone
@@ -342,7 +300,9 @@ void ragdoll_create ( void )
 			// add forearm->hand bone
 			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()) != -1 ) 
 			{
-				g.L_Forearm = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), 7,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
+				// make lower arms heavy!
+				//g.L_Forearm = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), 7, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
+				g.L_Forearm = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), 7, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
 				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Forearm, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 			}
 
@@ -351,14 +311,18 @@ void ragdoll_create ( void )
 			{
 				if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0Nub")).Get()) != -1 ) 
 				{
-					g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0Nub")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					// make hands heavy!
+					//g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Finger0Nub")).Get()), 5, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					g.L_Hand = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Finger0Nub")).Get()), 5, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0Nub")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 				}
 				else
 				{
 					if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0")).Get()) != -1 ) 
 					{
-						g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Finger0")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						// make hands heavy!
+						//g.L_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Finger0")).Get()), 5, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						g.L_Hand = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_Finger0")).Get()), 5, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					}
 					else
 					{
@@ -393,7 +357,7 @@ void ragdoll_create ( void )
 				// if not, add foot->calf bone
 				if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Foot")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()) != -1 ) 
 				{
-					g.L_Calf = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Foot")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()), 8, 1.5, g.tphys_CollisionGroup.group2,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					g.L_Calf = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Foot")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()), 8, 1.1f, g.tphys_CollisionGroup.group2,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Calf, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Foot")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  g.L_Calf, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 				}
@@ -420,7 +384,9 @@ void ragdoll_create ( void )
 			// add forearm->hand bone
 			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()) != -1 ) 
 			{
-				t.R_Forearm = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), 7,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
+				// male lower arms heavy!
+				//t.R_Forearm = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), 7, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
+				t.R_Forearm = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Forearm")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), 7, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask2);
 				t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Forearm, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 			}
 
@@ -429,14 +395,18 @@ void ragdoll_create ( void )
 			{
 				if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0Nub")).Get()) != -1 ) 
 				{
-					t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0Nub")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					// make hands heavy!
+					//t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Finger0Nub")).Get()), 5, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					t.R_Hand = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Finger0Nub")).Get()), 5, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0Nub")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Hand, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 				}
 				else
 				{
 					if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()) != -1 ) 
 					{
-						t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Finger0")).Get()), 5,g.tphys_CollisionGroup.group0,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						// make hands heavy!
+						//t.R_Hand = BPhys_RagDollAddBone(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Finger0")).Get()), 5, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+						t.R_Hand = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Hand")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_Finger0")).Get()), 5, -2, g.tphys_CollisionGroup.group0, g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					}
 					else
 					{
@@ -473,7 +443,7 @@ void ragdoll_create ( void )
 			{
 				if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Foot")).Get()) != -1 && getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()) != -1 ) 
 				{
-					t.R_Calf = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Foot")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()), 8, 1.5, g.tphys_CollisionGroup.group2,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
+					t.R_Calf = BPhys_RagDollAddBone2(getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Foot")).Get()), getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()), 8, 1.1f, g.tphys_CollisionGroup.group2,g.tphys_CollisionMask.mask0 + g.tphys_CollisionMask.mask1 + g.tphys_CollisionMask.mask2);
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Calf, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 					t.tlmb = getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Foot")).Get()) ; if (  t.tlmb != -1 ) { BPhys_RagDollBoneAddLimbID (  t.R_Calf, t.tlmb  ) ; t.limidrecord[t.tlmb] = 1; }
 				}
@@ -498,8 +468,8 @@ void ragdoll_create ( void )
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_Spine")).Get()))  )  t.tokay = t.Torso;
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_Spine1")).Get()))  )  t.tokay = t.Torso;
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_Spine2")).Get()))  )  t.tokay = t.Torso;
-				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_L_Clavicle")).Get()))  )  t.tokay = t.Torso;
-				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_R_Clavicle")).Get()))  )  t.tokay = t.Torso;
+				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_L_Clavicle")).Get()))  )  t.tokay = t.UpperSpine;//t.Torso;
+				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_R_Clavicle")).Get()))  )  t.tokay = t.UpperSpine;//t.Torso;
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_Neck")).Get()))  )  t.tokay = t.Head;
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_Head")).Get()))  )  t.tokay = t.Head;
 				if (  t.tname_s == cstr(Lower((pBitPrefix+cstr("_HeadNub")).Get()))  )  t.tokay = t.Head;
@@ -564,50 +534,61 @@ void ragdoll_create ( void )
 			}
 
 			//  Now we create a joint between the bones we created, joints are positioned at the original objects joints and set the rotation and limits (pBitPrefix handles mulitle bone name prefixes)
-			//if (  getlimbbyname(t.tphyobj, "Bip01_Neck") != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.Head, getlimbbyname(t.tphyobj, "Bip01_Neck"),g.NeckJoint.rotationVec3, g.NeckJoint.limitsVec3 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_Spine") != -1  )  BPhys_RagDollAddHingeJoint (  g.Pelvis, t.Torso, getlimbbyname(t.tphyobj, "Bip01_Spine"), g.WaistJoint.rotationVec3, g.WaistJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_L_UpperArm") != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.L_UpperArm, getlimbbyname(t.tphyobj, "Bip01_L_UpperArm"), g.LeftShoulderJoint.rotationVec3, g.LeftShoulderJoint.limitsVec3 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_L_Forearm") != -1  )  BPhys_RagDollAddHingeJoint (  t.L_UpperArm, g.L_Forearm, getlimbbyname(t.tphyobj, "Bip01_L_Forearm"), g.LeftElbowJoint.rotationVec3, g.LeftElbowJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_R_Forearm") != -1  )  BPhys_RagDollAddHingeJoint (  t.R_UpperArm, t.R_Forearm, getlimbbyname(t.tphyobj, "Bip01_R_Forearm"), g.RightElbowJoint.rotationVec3, g.RightElbowJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_L_Hand") != -1  )  BPhys_RagDollAddHingeJoint (  g.L_Forearm, g.L_Hand, getlimbbyname(t.tphyobj, "Bip01_L_Hand"), g.leftWristJoint.rotationVec3, g.leftWristJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_R_Hand") != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Forearm, t.R_Hand, getlimbbyname(t.tphyobj, "Bip01_R_Hand"), g.rightWristJoint.rotationVec3, g.rightWristJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_L_Thigh") != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.L_Thigh, getlimbbyname(t.tphyobj, "Bip01_L_Thigh"), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_R_UpperArm") != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.R_UpperArm, getlimbbyname(t.tphyobj, "Bip01_R_UpperArm"), g.RightShoulderJoint.rotationVec3, g.RightShoulderJoint.limitsVec3 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_R_Thigh") != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.R_Thigh, getlimbbyname(t.tphyobj, "Bip01_R_Thigh"), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_L_Calf") != -1  )  BPhys_RagDollAddHingeJoint (  t.L_Thigh, g.L_Calf, getlimbbyname(t.tphyobj, "Bip01_L_Calf"), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
-			//if (  getlimbbyname(t.tphyobj, "Bip01_R_Calf") != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Thigh, t.R_Calf, getlimbbyname(t.tphyobj, "Bip01_R_Calf"), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Neck")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.Head, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Neck")).Get()),g.NeckJoint.rotationVec3, g.NeckJoint.limitsVec3 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  g.Pelvis, t.Torso, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()), g.WaistJoint.rotationVec3, g.WaistJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_UpperArm")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.L_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_UpperArm")).Get()), g.LeftShoulderJoint.rotationVec3, g.LeftShoulderJoint.limitsVec3 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.L_UpperArm, g.L_Forearm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()), g.LeftElbowJoint.rotationVec3, g.LeftElbowJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_UpperArm, t.R_Forearm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()), g.RightElbowJoint.rotationVec3, g.RightElbowJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  g.L_Forearm, g.L_Hand, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), g.leftWristJoint.rotationVec3, g.leftWristJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Forearm, t.R_Hand, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), g.rightWristJoint.rotationVec3, g.rightWristJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Thigh")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.L_Thigh, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Thigh")).Get()), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_UpperArm")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  t.Torso, t.R_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_UpperArm")).Get()), g.RightShoulderJoint.rotationVec3, g.RightShoulderJoint.limitsVec3 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Thigh")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.R_Thigh, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Thigh")).Get()), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.L_Thigh, g.L_Calf, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
-			if (  getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Thigh, t.R_Calf, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()) != -1  )  BPhys_RagDollAddHingeJoint ( g.Pelvis, t.Torso, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_Spine")).Get()), g.WaistJoint.rotationVec3, g.WaistJoint.limitsVec2 );
+			/*
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine2")).Get()) != -1)
+			{
+				BPhys_RagDollAddHingeJoint (t.Torso, t.UpperSpine, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()), g.UpperBodyJoint.rotationVec3, g.UpperBodyJoint.limitsVec2);
+				if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.UpperSpine, t.Head, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()), g.NeckJoint.rotationVec3, g.NeckJoint.limitsVec3);
+				if ( getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.UpperSpine, t.L_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()), g.LeftShoulderJoint.rotationVec3, g.LeftShoulderJoint.limitsVec3);
+			}
+			else
+			{
+			*/
+				if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.Torso, t.Head, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Neck")).Get()), g.NeckJoint.rotationVec3, g.NeckJoint.limitsVec3);
+				if ( getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.Torso, t.L_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()), g.LeftShoulderJoint.rotationVec3, g.LeftShoulderJoint.limitsVec3);
+			//}
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.L_UpperArm, g.L_Forearm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Forearm")).Get()), g.LeftElbowJoint.rotationVec3, g.LeftElbowJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_UpperArm, t.R_Forearm, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Forearm")).Get()), g.RightElbowJoint.rotationVec3, g.RightElbowJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  g.L_Forearm, g.L_Hand, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Hand")).Get()), g.leftWristJoint.rotationVec3, g.leftWristJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Forearm, t.R_Hand, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Hand")).Get()), g.rightWristJoint.rotationVec3, g.rightWristJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Thigh")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.L_Thigh, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Thigh")).Get()), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
+			/*
+			if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_Spine2")).Get()) != -1)
+			{
+				if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_UpperArm")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.UpperSpine, t.R_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()), g.RightShoulderJoint.rotationVec3, g.RightShoulderJoint.limitsVec3);
+			}
+			else
+			{
+			*/
+				if (getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_R_UpperArm")).Get()) != -1)  BPhys_RagDollAddTwistJoint (t.Torso, t.R_UpperArm, getlimbbyname(t.tphyobj, (pBitPrefix + cstr("_L_UpperArm")).Get()), g.RightShoulderJoint.rotationVec3, g.RightShoulderJoint.limitsVec3);
+			//}
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Thigh")).Get()) != -1  )  BPhys_RagDollAddTwistJoint (  g.Pelvis, t.R_Thigh, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Thigh")).Get()), g.HipJoint.rotationVec3, g.HipJoint.limitsVec3 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.L_Thigh, g.L_Calf, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_L_Calf")).Get()), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
+			if ( getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()) != -1  )  BPhys_RagDollAddHingeJoint (  t.R_Thigh, t.R_Calf, getlimbbyname(t.tphyobj, (pBitPrefix+cstr("_R_Calf")).Get()), g.KneeJoint.rotationVec3, g.KneeJoint.limitsVec2 );
 
 			// Remaining ragdoll settings (LB: ragdoll could freeze mid-slide, looks daft)
-			//#ifdef WICKEDENGINE
-			//BPhys_RagDollSetDamping (0.08f, 0.95f);
-			//BPhys_RagDollSetSleepingThresholds (11.8f, 11.8f);
-			//BPhys_RagDollSetDeactivationTime (0.1f);
-			//#else
 			BPhys_RagDollSetDamping (0.08f, 0.95f);
 			BPhys_RagDollSetSleepingThresholds (1.8f, 2.8f);
 			BPhys_RagDollSetDeactivationTime (0.2f);
-			//#endif
+
+			bool bForTestingInstentFreeze = true;
+			if (g_bDebugRagdoll == false) bForTestingInstentFreeze = false;
+			if (bForTestingInstentFreeze == true)
+			{
+				HideObject(t.tphyobj);
+			}
 
 			//  Complete ragdoll creation
 			BPhys_RagDollEnd (  );
 			UnDim (  t.limidrecord );
 
 			// ensure never going into the floor!
-			#ifdef WICKEDENGINE
-			BPhys_RagDollApplyForce (t.tphyobj, -1, 0, 0, 0, 0, 100, 0, 2000000);
-			#endif
+			if (bForTestingInstentFreeze == false)
+			{
+				// if not testing ragdoll
+				BPhys_RagDollApplyForce (t.tphyobj, -1, 0, 0, 0, 0, 100, 0, 2000000);
+			}
 
 			//  add to ragdoll database
 			for ( t.ri = 0 ; t.ri<=  g.RagdollsMax; t.ri++ )
@@ -644,7 +625,6 @@ void ragdoll_destroy ( void )
 		{
 			if ( t.tphyobj == t.Ragdolls[t.ri].obj ) 
 			{
-				#ifdef WICKEDENGINE
 				// also need to free wicked object so the bones are not being overridden
 				sObject* pObject = GetObjectData(t.tphyobj);
 				if (pObject)
@@ -658,7 +638,6 @@ void ragdoll_destroy ( void )
 						}
 					}
 				}
-				#endif
 
 				// delete ragdoll from bullet
 				if (BPhys_DeleteRagdoll(t.tphyobj) == 1)
@@ -683,7 +662,6 @@ int newvector3 ( int x_f, int y_f, int z_f )
 	}
 	t.ragdollvector[g.ragdollvectorindex]=1;
 	SetVector3 (  g.ragdollvectorindex,x_f,y_f,z_f );
-//endfunction ragdollvectorindex
 	return g.ragdollvectorindex;
 }
 
@@ -698,7 +676,6 @@ int newvector2 ( int x_f, int y_f )
 	}
 	t.ragdollvector[g.ragdollvectorindex]=2;
 	SetVector2 (  g.ragdollvectorindex,x_f,y_f );
-//endfunction ragdollvectorindex
 	return g.ragdollvectorindex;
 }
 
@@ -713,9 +690,7 @@ int vector3exist ( int vec )
 			exists=1;
 		}
 	}
-//endfunction exists
-	return exists
-;
+	return exists;
 }
 
 int deletevector3 ( int vec )
@@ -730,9 +705,7 @@ int deletevector3 ( int vec )
 		result=DeleteVector2(vec);
 	}
 	t.ragdollvector[vec]=0;
-//endfunction result
-	return result
-;
+	return result;
 }
 
 int getlimbbyname ( int objid, char* limbname_s )
@@ -752,4 +725,3 @@ int getlimbbyname ( int objid, char* limbname_s )
 	}
 	return limbindex;
 }
-

@@ -6538,6 +6538,14 @@ void tab_tab_visuals(int iPage, int iMode)
 							physics_set_debug_draw(bDrawPhysicsShapes);
 						}
 					}
+					if (bDrawPhysicsShapes)
+					{
+						extern bool g_bDebugRagdoll;
+						if (ImGui::Checkbox("Render Ragdoll Shapes", &g_bDebugRagdoll))
+						{
+							// done elsewhere
+						}
+					}
 					ImGui::Indent(-10);
 				}
 			}
@@ -7879,7 +7887,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					strcpy (instruction_newstatename, "");
 					instruction_freezewheneditingbehavior = true;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add a new state to this behavior");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add a new state to this behavior (will require exiting the level to see updated behavior)");
 				be_button_pos = ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f);
 				ImGui::SetCursorPos(be_button_pos);
 				if (ImGui::Button("Update Behavior##BehaviorEditor", ImVec2(but_gadget_size, 0)))
@@ -10619,37 +10627,6 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("During the import process, a dome shape surrounds the imported model, use this to turn it off");
 
-			//ImGui::Indent(10);
-			
-			//ImGui::Indent(-10);
-			/* removed again for now
-			ImGui::Text("");
-			ImGui::Text("Store Settings");
-
-			bTmp = pref.iGameCreaterStore;
-			if (ImGui::Checkbox("Game Creator Store", &bTmp)) {
-				pref.iGameCreaterStore = bTmp;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Add Link to Game Creator Store");
-			*/
-
-			/* hidden features for now
-			ImGui::Text("Level Editing");
-			ImGui::Text("");
-
-			bTmp = pref.iEnableArcRelationshipLines;
-			if (ImGui::Checkbox("Arc Relation Lines", &bTmp)) {
-				pref.iEnableArcRelationshipLines = bTmp;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable Arc Relation Lines");
-
-			bTmp = pref.iEnableRelationPopupWindow;
-			if (ImGui::Checkbox("Use Relation Popup Window", &bTmp)) {
-				pref.iEnableRelationPopupWindow = bTmp;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable Relation Popup Window");
-			*/
-			
 			ImGui::Indent(-10);
 			ImGui::Columns(1);
 			ImGui::EndTabItem();
@@ -10695,7 +10672,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				pref.iDevToolsOpen = g_iDevToolsOpen;
 				wiProfiler::SetEnabled(bProfilerEnable);
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Make additional developer settings available");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Enable additional settings (auto-refresh library folders, physics debugging, developer mode tools, save anim templates)");
 			
 			if (ImGui::Checkbox("Enable the 3D Editor Profiler", &bProfilerEnable))
 			{
@@ -10775,111 +10752,6 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 
 				float save_gadget_size = ImGui::GetFontSize()*10.0;
 				float w = ImGui::GetWindowContentRegionWidth();
-
-				/*
-				w = ImGui::GetContentRegionAvailWidth();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Save Standalone", ImVec2(save_gadget_size, 0))) {
-					CloseAllOpenTools();
-					int iRet;
-					iRet = AskSaveBeforeNewAction();
-					if (iRet != 2)
-					{
-						bExport_Standalone_Window = true;
-					}
-					bPreferences_Window = false;
-				}
-				ImGui::Text("");
-				ImGui::NextColumn();
-				*/
-
-				/* now in the marketplace proper
-				if (g.includeassetstore == 1)
-				{
-					w = ImGui::GetContentRegionAvailWidth();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-					if (ImGui::StyleButton("Download Store Items", ImVec2(save_gadget_size, 0))) 
-					{
-						CloseAllOpenTools();
-						extern int iDownloadStoreProgress;
-						extern bool bDownloadStoreError;
-						extern char cDownloadStoreError[4096];
-						iDownloadStoreProgress = 0;
-						bDownloadStoreError = false;
-						strcpy(cDownloadStoreError, "");
-						bDownloadStore_Window = true;
-						bPreferences_Window = false;
-					}
-					//ImGui::Text("");
-					//ImGui::NextColumn();
-				}
-				*/
-
-				/*
-				w = ImGui::GetContentRegionAvailWidth();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Character Creator", ImVec2(save_gadget_size, 0))) {
-					CloseAllOpenTools();
-					g_bCharacterCreatorPlusActivated = true;
-					bPreferences_Window = false;
-				}
-				ImGui::Text("");
-				ImGui::NextColumn();
-				*/
-				
-				/*
-				w = ImGui::GetContentRegionAvailWidth();
-				if (ImGui::StyleButton("Legacy Structure Editor", ImVec2(save_gadget_size*1.3, 0))) 
-				{
-					CloseAllOpenTools();
-					DeleteWaypointsAddedToCurrentCursor();
-					CloseDownEditorProperties();
-					t.inputsys.constructselection = 0;
-					t.inputsys.constructselection = 0;
-					iLastEntityOnCursor = 0;
-
-					if (t.ebebank_s[1].Len() > 0)
-					{
-						t.addentityfile_s = t.ebebank_s[1].Get();
-						if (t.addentityfile_s != "")
-						{
-							entity_adduniqueentity(false);
-							t.tasset = t.entid;
-							if (t.talreadyloaded == 0)
-							{
-								editor_filllibrary();
-							}
-						}
-						iExtractMode = 0; //PE: Always start in find floor mode.
-						t.inputsys.constructselection = t.tasset;
-						t.gridentity = t.entid;
-						t.inputsys.constructselection = t.entid;
-						t.inputsys.domodeentity = 1;
-						t.grideditselect = 5;
-						editor_refresheditmarkers();
-
-						//NewSite, make sure we are in entity mode.
-						bForceKey = true;
-						csForceKey = "o";
-						bBuilder_Left_Window = true;
-					}
-					bPreferences_Window = false;
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Use the legacy structure editor within the Level Editor");
-				*/
-
-				/*
-				w = ImGui::GetContentRegionAvailWidth();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Import Models", ImVec2(save_gadget_size, 0))) {
-					CloseAllOpenTools();
-					iLaunchAfterSync = 8; //Import model
-					iSkibFramesBeforeLaunch = 5;
-					bPreferences_Window = false;
-				}
-				ImGui::Text("");
-				ImGui::NextColumn();
-				*/
 
 				ImGui::Indent(10);
 				w = ImGui::GetContentRegionAvailWidth();
@@ -17655,7 +17527,6 @@ void process_entity_library_v2(void)
 			}
 		}
 
-
 		static cFolderItem::sFolderFiles * playingiles = NULL;
 		static cFolderItem::sFolderFiles * selectedmediafile = NULL;
 
@@ -17668,7 +17539,6 @@ void process_entity_library_v2(void)
 		ImGui::Begin("##Object Library ExternalWindow", &bExternal_Entities_Window, ex_window_flags | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 		static float fScaleIcons = 1.0;
-		//static int iSetColumns = 3; //Use Columns (scale) for now, scaling icons can give some huger borders and it dont look good.
 
 		//PE: If user exit in fullscreen (it get saved) make sure to restore to default size.
 		static bool bCheckFullScreenOnStartup = true;
@@ -17689,33 +17559,10 @@ void process_entity_library_v2(void)
 		float cwidth = ImGui::GetContentRegionAvailWidth();
 		fLastContentWidth = cwidth;
 
-		//if (cwidth < 1000)
-		//{
-		//	iColumnsWidth = cwidth / 3.0;
-		//}
-		//else
-		//{
-		//	iColumnsWidth = cwidth / 4.0;
-		//}
-		//iColumnsWidth -= 12.0; //padding
-
-
-
 		static bool bAddNewSelectionToGame = false;
 		static int iAddSelectionStep = 0;
 		bool bIsWeDocked = ImGui::IsWindowDocked();
 		static int current_tab = -1;
-
-
-//		CheckTutorialAction("TABMARKERS", 54.0f); //Tutorial: check if we are waiting for this action
-//		if (current_tab == 1 && bTutorialCheckAction)
-//			TutorialNextAction(); //Clicked - selected the tab markers.
-//		CheckTutorialAction("TABENTITIES", -10.0f); //Tutorial: check if we are waiting for this action
-//		if (current_tab == 0 && bTutorialCheckAction)
-//			TutorialNextAction(); //Clicked - selected the tab Entities.
-//		ImGui::SetItemAllowOverlap();
-
-		//static int iCurrentFilter = 0;
 
 		int i = 0;
 
@@ -17725,27 +17572,11 @@ void process_entity_library_v2(void)
 		int control_wrap_width = 90;
 		strcpy(cHeader, "");
 
-		//PE: Debug dynamic icon load unload.
-		//ImGui::Text("Entities: %ld , in memory: %ld", olduniqueId-4000, loaded_images);
-
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()-2.0f, ImGui::GetCursorPosY() + 6.0));
 		ImGui::Text(""); //"Filter: ");
 		ImGui::SameLine();
 
 		ID3D11ShaderResourceView* lpTexture = NULL;
-
-//		lpTexture = GetImagePointerView(TOOL_ENT_FILTER);
-//		if (lpTexture)
-//		{
-//			ImVec2 vImagePos = ImGui::GetCursorPos();
-//			ImGuiWindow* window = ImGui::GetCurrentWindow();
-//			ImVec2 search_icon_pos = ImGui::GetWindowPos() + vImagePos + ImVec2(-5.0, -2.0);
-//			window->DrawList->AddImage((ImTextureID)lpTexture, search_icon_pos, search_icon_pos + ImVec2(20, 20), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
-//			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 19.0, ImGui::GetCursorPosY()));
-//		}
-//		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3.0));
-//		if (ImGui::GetCursorPosX() + control_wrap_width > ImGui::GetWindowSize().x)
-//		ImGui::Text(""); //NewLine
 
 		bool rb_change = false;
 		static bool bDLUAOnly = true;
@@ -17760,608 +17591,6 @@ void process_entity_library_v2(void)
 		if (iDisplayLibraryType == 3) strcpy(cAllFilters[0], "MP4"); //Not active
 		if (iDisplayLibraryType == 4) strcpy(cAllFilters[0], "LUA"); //Not active
 		if (iDisplayLibraryType == 5) strcpy(cAllFilters[0], "ARX"); //Not active
-
-
-		/*
-		############################################################################
-		PE: Removed in latest design, moved down as icons, can be removed when done!
-		############################################################################
-
-		if (iDisplayLibraryType == 0) //Depend on type.
-		{
-
-			strcpy(cAllFilters[0], "HUD Assets"); //"Showcase");
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //"Scene"
-			strcpy(cAllFilters[3], "Weapons");
-			strcpy(cAllFilters[4], "User");
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY()+6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "HUD Assets";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[0]) bCheckboxFilters[0] = false; else bCheckboxFilters[0] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##HUD Assets", &bCheckboxFilters[0]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-		//###############
-		//#### Music ####
-		//###############
-
-		if (iDisplayLibraryType == 1) //Music
-		{
-
-			//PE: For now follow the same folder setup like entitybank but in audiobank.
-			strcpy(cAllFilters[0], "OGG");
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //+ Weapons
-			strcpy(cAllFilters[3], "Weapons"); //Elements
-			strcpy(cAllFilters[4], "User");
-			
-			bCheckboxFilters[0] = false; //Filer 0 not active yet.
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-
-		//###############
-		//#### Image ####
-		//###############
-
-		if (iDisplayLibraryType == 2) //Image
-		{
-
-			//PE: For now follow the same folder setup like entitybank but in audiobank.
-			strcpy(cAllFilters[0], "DDS"); //Not active
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //+ Weapons
-			strcpy(cAllFilters[3], "Weapons"); //Elements
-			strcpy(cAllFilters[4], "User");
-
-			bCheckboxFilters[0] = false; //Filer 0 not active yet.
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-
-
-		//###############
-		//#### Video ####
-		//###############
-
-		if (iDisplayLibraryType == 3)
-		{
-
-			//PE: For now follow the same folder setup like entitybank but in audiobank.
-			strcpy(cAllFilters[0], "MP4"); //Not active
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //+ Weapons
-			strcpy(cAllFilters[3], "Weapons"); //Elements
-			strcpy(cAllFilters[4], "User");
-
-			bCheckboxFilters[0] = false; //Filer 0 not active yet.
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-		//################
-		//#### Script ####
-		//################
-
-		if (iDisplayLibraryType == 4)
-		{
-
-			//PE: For now follow the same folder setup like entitybank but in audiobank.
-			strcpy(cAllFilters[0], "LUA"); //Not active
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //+ Weapons
-			strcpy(cAllFilters[3], "Weapons"); //Elements
-			strcpy(cAllFilters[4], "User");
-
-			bCheckboxFilters[0] = false; //Filer 0 not active yet.
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Dynamic Scripts";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDLUAOnly) bDLUAOnly = false; else bDLUAOnly = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				ImGui::Checkbox("##DynamicLUAOnly", &bDLUAOnly);
-
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-
-		//###################
-		//#### Particles ####
-		//###################
-
-		if (iDisplayLibraryType == 5)
-		{
-
-			//PE: For now follow the same folder setup like entitybank but in audiobank.
-			strcpy(cAllFilters[0], "ARX"); //Not active
-			strcpy(cAllFilters[1], "Character");
-			strcpy(cAllFilters[2], "Objects"); //+ Weapons
-			strcpy(cAllFilters[3], "Weapons"); //Elements
-			strcpy(cAllFilters[4], "User");
-
-			bCheckboxFilters[0] = false; //Filer 0 not active yet.
-
-			float fComboWidth = 150.0f;
-			ImGui::PushItemWidth(fComboWidth);
-			cstr ComboName = "Categories";
-			ImVec2 vCSize = ImVec2(fComboWidth, ImGui::GetFontSize()*11.0);
-			ImGui::SetNextWindowSizeConstraints(vCSize, vCSize);
-			if (ImGui::BeginCombo("##comboCategoriesv2", ComboName.Get(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightRegular))
-			{
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 6.0));
-				ImGui::Indent(4);
-				float fComboCheckLeftPos = 30.0f;
-				ImGui::PushItemWidth(fComboWidth - fComboCheckLeftPos);
-
-				cstr sLabel = "Characters";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[1]) bCheckboxFilters[1] = false; else bCheckboxFilters[1] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Characters", &bCheckboxFilters[1]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Scenery";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[2]) bCheckboxFilters[2] = false; else bCheckboxFilters[2] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Scenery", &bCheckboxFilters[2]))
-					bUpdateSearchSorting = true;
-
-
-				sLabel = "Elements";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[3]) bCheckboxFilters[3] = false; else bCheckboxFilters[3] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Elements", &bCheckboxFilters[3]))
-					bUpdateSearchSorting = true;
-
-				sLabel = "User Generated";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bCheckboxFilters[4]) bCheckboxFilters[4] = false; else bCheckboxFilters[4] = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##User Generated", &bCheckboxFilters[4]))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				sLabel = "Favourite";
-				if (ImGui::Selectable(sLabel.Get(), false, ImGuiSelectableFlags_DontClosePopups))
-				{
-					if (bDisplayFavorite) bDisplayFavorite = false; else bDisplayFavorite = true;
-					bUpdateSearchSorting = true;
-				}
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(fComboWidth - fComboCheckLeftPos, ImGui::GetCursorPosY() - 3.0));
-				if (ImGui::Checkbox("##Favourite", &bDisplayFavorite))
-				{
-					bUpdateSearchSorting = true;
-				}
-
-				ImGui::Indent(-4);
-				ImGui::PopItemWidth();
-				ImGui::EndCombo();
-			}
-			ImGui::PopItemWidth();
-		}
-
-		*/
 
 		int sortby_combo_width = 130;
 		bool bLastEntityGotFocus = bEntityGotFocus;
@@ -18378,9 +17607,24 @@ void process_entity_library_v2(void)
 
 			fXWidth += sortby_combo_width;
 
-			ImGui::PushItemWidth(-10 - fXWidth); //-38 - fXWidth
+			ImGui::PushItemWidth(-10 - fXWidth);
 
-			ImGui::Text(""); //" Search: ");
+			if (g_iDevToolsOpen != 0)
+			{
+				//ImGui::SameLine();
+				ImGui::PushItemWidth(30);
+				if (ImGui::StyleButton("Refresh##+", ImVec2(0, 0)))
+				{
+					// developer mode rescans every time ADD is pressed
+					extern int g_iRefreshLibraryFolders;
+					g_iRefreshLibraryFolders = 1;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to refresh all library folders (developer tools mode)");
+				ImGui::PopItemWidth();
+				ImGui::SameLine();
+			}
+			ImGui::Text(" ");
+
 			ImGui::SameLine();
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 8.0, ImGui::GetCursorPosY()));
@@ -18475,9 +17719,7 @@ void process_entity_library_v2(void)
 				ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 				ImGui::SetTooltip("Clear search");
 			}
-
 			ImGui::PopItemWidth();
-
 		}
 					
 		if (1) //Combo dropdowns. Use folder names as seach.
@@ -18490,11 +17732,12 @@ void process_entity_library_v2(void)
 
 			if (ImGui::BeginCombo("##combolastsearch", current_combo_entry, comboflags))
 			{
-
 				//Do we have a search history.
 				bool display_history = false;
-				for (int l = 0; l < MAXSEARCHHISTORY; l++) {
-					if (strlen(pref.search_history[l]) > 0) {
+				for (int l = 0; l < MAXSEARCHHISTORY; l++) 
+				{
+					if (strlen(pref.search_history[l]) > 0) 
+					{
 						display_history = true;
 						break;
 					}
@@ -18502,12 +17745,15 @@ void process_entity_library_v2(void)
 				if (display_history) {
 					ImGui::Text("Search History:");
 					ImGui::Indent(10);
-					for (int l = 0; l < MAXSEARCHHISTORY; l++) {
-						if (strlen(pref.search_history[l]) > 0) {
+					for (int l = 0; l < MAXSEARCHHISTORY; l++) 
+					{
+						if (strlen(pref.search_history[l]) > 0) 
+						{
 							bool is_selected = (current_combo_entry == pref.search_history[l]);
 							cstr sSelName = pref.search_history[l];
 							sSelName = sSelName + "##Hist";
-							if (ImGui::Selectable(sSelName.Get(), is_selected)) {
+							if (ImGui::Selectable(sSelName.Get(), is_selected)) 
+							{
 								bUpdateSearchSorting = true;
 								bUpdateSearchScrollbar = true;
 								current_combo_entry = (char *)pref.search_history[l];
@@ -18527,17 +17773,11 @@ void process_entity_library_v2(void)
 
 			ImGui::PushItemWidth(-6);
 
-			//const char* sortby_modes[] = { "Showcase" , "Category Order", "Name A-Z", "Name Z-A", "Created Old-New", "Created New-Old", "Number of Polygons Low-", "Number of Polygons High-" };
 			const char* sortby_modes[] = { "Category Order", "Name A-Z", "Name Z-A", "Created Old-New", "Created New-Old", "Number of Polygons Low-", "Number of Polygons High-" };
 			int iComboItems = IM_ARRAYSIZE(sortby_modes);
 			if (iDisplayLibraryType == 0)
 			{
-				#ifdef INCLUDEPOLYGONSORT
-				if (!bAdvancedFPEFeatures)
-					iComboItems -= 2;
-				#else
 				iComboItems -= 2;
-				#endif
 			}
 			else
 			{
@@ -18585,13 +17825,10 @@ void process_entity_library_v2(void)
 				{
 					cViewing = cstr("Viewing ") + cstr(Str(total_files_displayed_in_library)) + cstr(" Items from \"All\" categories using search term \"") + cstr(cSearchAllEntities[i]) + cstr("\"");
 				}
-
-				//cViewing = cstr("Viewing \"") + cstr(cSearchAllEntities[i]) + cstr("\" from \"All\" categories");
 				bSearchAll = true;
 			}
 			if (bDisplayFavorite)
 			{
-				//cViewing = cstr("Viewing \"Favourite\" from \"All\" categories");
 				cViewing = cstr("Viewing ") + cstr(Str(total_files_displayed_in_library)) + cstr(" Objects from \"Favourite\" using \"All\" categories");
 				bSearchAll = true;
 			}
@@ -34059,42 +33296,37 @@ void Welcome_Screen(void)
 
 			ImGui::Indent(10);
 
-			//if (!bWelcomeVideoMaximized) maximise disabled for EA
+			//PE: Now in both modes, so can close welcome and it will load last used project.
+			if ( g_iDevToolsOpen >= 2) //PE: Rick - never a back but - !bWelcomeNoBackButton ||
 			{
-				//PE: Now in both modes, so can close welcome and it will load last used project.
-				if ( g_iDevToolsOpen >= 2) //PE: Rick - never a back but - !bWelcomeNoBackButton ||
-				{
-					ImVec2 vCurPos = ImGui::GetCursorPos();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6.0f));
-					float fFontSize = ImGui::GetFontSize();
-					int icon_size = ImGui::GetFontSize()*3.0;
-					ImVec2 VIconSize = { (float)icon_size, (float)icon_size };
-					if (ImGui::ImgBtn(TOOL_GOBACK, VIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-					{
-						bIntroScreenDone = true;
-						bResizeWelcome = true;
-						bStopVideo = true;
-
-						//PE: New default to object mode.
-						bForceKey = true;
-						csForceKey = "o";
-
-						//bWelcomeScreen_Window = false;
-					}
-					if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Close");
-					ImGui::SetCursorPos(vCurPos);
-				}
-
+				ImVec2 vCurPos = ImGui::GetCursorPos();
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6.0f));
-				ImGui::Text("");
-				ImGui::SetWindowFontScale(2.2);
-				ImGui::TextCenter("WELCOME TO GAMEGURU MAX!");
-				ImGui::SetWindowFontScale(1.4);
-				ImGui::TextCenter("Happy Game Making!");
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::Text("");
-				ImGui::Separator();
+				float fFontSize = ImGui::GetFontSize();
+				int icon_size = ImGui::GetFontSize()*3.0;
+				ImVec2 VIconSize = { (float)icon_size, (float)icon_size };
+				if (ImGui::ImgBtn(TOOL_GOBACK, VIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
+				{
+					bIntroScreenDone = true;
+					bResizeWelcome = true;
+					bStopVideo = true;
+
+					//PE: New default to object mode.
+					bForceKey = true;
+					csForceKey = "o";
+				}
+				if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Close");
+				ImGui::SetCursorPos(vCurPos);
 			}
+
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6.0f));
+			ImGui::Text("");
+			ImGui::SetWindowFontScale(2.2);
+			ImGui::TextCenter("WELCOME TO GAMEGURU MAX!");
+			ImGui::SetWindowFontScale(1.4);
+			ImGui::TextCenter("Happy Game Making!");
+			ImGui::SetWindowFontScale(1.0);
+			ImGui::Text("");
+			ImGui::Separator();
 			ImGui::Text("");
 
 			//################

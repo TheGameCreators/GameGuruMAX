@@ -54,6 +54,7 @@ cstr TriggerLoadGameProject = "";
 bool bStoryboardFirstRunSetInitPos = false;
 bool bStoryboardInitNodes = false;
 bool bJustRederedScreenEditor = false;
+int g_iRefreshLibraryFolders = 0;
 
 #define FREETRIALONDISCOUNT
 bool g_bUpdateAppAvailable = false;
@@ -13613,43 +13614,57 @@ void mapeditorexecutable_loop(void)
 
 			CheckTutorialAction("+##+", 8.0f); //Tutorial: check if we are waiting for this action
 
-			#ifdef WICKEDENGINE
-			#ifdef V2SEARCHBAR
-			//PE: We need more room in this setup.
 			if (ImGui::StyleButton("Add##+", ImVec2(ImGui::GetWindowSize().x *0.25, fsy*1.5)))
-			#else
-			if (ImGui::StyleButton("Add##+", ImVec2(ImGui::GetWindowSize().x *0.333, fsy*1.5)))
-			#endif
-			#else
-			if (ImGui::StyleButton("+##+", ImVec2(ImGui::GetWindowSize().x *0.5, fsy*1.5)))
-			#endif
 			{
-				if ( 1 )
+				if (bTutorialCheckAction) TutorialNextAction(); //Clicked get next tutorial action.
+				//Open Add item page.
+				cFolderItem *pSearchFolder = &MainEntityList;
+				pSearchFolder = pSearchFolder->m_pNext;
+				while (pSearchFolder)
 				{
-					if (bTutorialCheckAction) TutorialNextAction(); //Clicked get next tutorial action.
-
-					//Open Add item page.
-					//Clear any selection marks.
-					cFolderItem *pSearchFolder = &MainEntityList;
-					pSearchFolder = pSearchFolder->m_pNext;
-					while (pSearchFolder) {
-						if (pSearchFolder->m_pFirstFile) {
-							cFolderItem::sFolderFiles * searchfiles = pSearchFolder->m_pFirstFile->m_pNext;
-							while (searchfiles) {
-								searchfiles->iFlags = 0;
-								searchfiles = searchfiles->m_pNext;
-							}
+					if (pSearchFolder->m_pFirstFile) 
+					{
+						cFolderItem::sFolderFiles * searchfiles = pSearchFolder->m_pFirstFile->m_pNext;
+						while (searchfiles) 
+						{
+							searchfiles->iFlags = 0;
+							searchfiles = searchfiles->m_pNext;
 						}
-						pSearchFolder = pSearchFolder->m_pNext;
 					}
-
-					bExternal_Entities_Window = true;
-					iDisplayLibraryType = 0;
-					iDisplayLibrarySubType = 0;
+					pSearchFolder = pSearchFolder->m_pNext;
 				}
+
+				bExternal_Entities_Window = true;
+				iDisplayLibraryType = 0;
+				iDisplayLibrarySubType = 0;
 			}
 			if (bToolTipActive && ImGui::IsItemHovered()) ImGui::SetTooltip("Click here to add a new object to the game level");
 
+			// when click ADD, have the option to refresh library (activated in developer mode for users who import often as it is a performance hit)
+			if (g_iRefreshLibraryFolders != 0 )
+			{
+				timestampactivity(0, "REFRESHING LIBRARY FOLDERS");
+				extern void RefreshPurchasedFolder (void);
+				RefreshPurchasedFolder();
+				// force the purchased cateogry to show up (and also cause needed refresh)
+				extern void process_gotopurchaedandrefreshtopurchases (void);
+				process_gotopurchaedandrefreshtopurchases();
+				// trigger folder tree on left of library to recalculate in case of new folders (audiobank\xx)
+				extern bool bTreeViewInitInNextFrame;
+				bTreeViewInitInNextFrame = true;
+				// also update the gun list, we might have new weapons
+				timestampactivity(0, "RESCANNING G-LIST");
+				//gun_scaninall_ref(); can mess up slot order, just adds any new ones now
+				//gun_scaninall_dataonly();
+				gun_scaninall_findnewlyaddedgun();
+				decal_scaninall_findnewlyaddedgun();
+				if (g_iRefreshLibraryFolders == 1)
+				{
+					// View All (instead of Purchased View)
+					bSelectLibraryViewAll = true;
+				}
+				g_iRefreshLibraryFolders = 0;
+			}
 		
 			ImGui::SameLine();
 			ImGui::PopItemWidth();

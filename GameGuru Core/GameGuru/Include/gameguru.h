@@ -1030,6 +1030,7 @@ struct Sglobals
 	int tiltbounce;
 	cstr vegstyle_s;
 	tHingeJoint WaistJoint;
+	tHingeJoint UpperBodyJoint;
 	int walkonkeys;
 	int waterfogon;
 	int watergreen;
@@ -5413,6 +5414,7 @@ struct Stemps
 	int tolde;
 	float top_f;
 	int Torso;
+	int UpperSpine;
 	float tox_f;
 	float toy_f;
 	float toz_f;

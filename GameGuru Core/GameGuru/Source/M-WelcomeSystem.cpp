@@ -3666,20 +3666,8 @@ void imgui_download_store( void )
 			}
 			download_list.clear();
 			bDownloadStore_Window = false;
-			extern void RefreshPurchasedFolder (void);
-			RefreshPurchasedFolder();
-			// force the purchased cateogry to show up (and also cause needed refresh)
-			extern void process_gotopurchaedandrefreshtopurchases (void);
-			process_gotopurchaedandrefreshtopurchases();
-			// trigger folder tree on left of library to recalculate in case of new folders (audiobank\xx)
-			extern bool bTreeViewInitInNextFrame;
-			bTreeViewInitInNextFrame = true;
-			// also update the gun list, we might have new weapons
-			timestampactivity(0, "RESCANNING G-LIST");
-			//gun_scaninall_ref(); can mess up slot order, just adds any new ones now
-			//gun_scaninall_dataonly();
-			gun_scaninall_findnewlyaddedgun();
-			decal_scaninall_findnewlyaddedgun();
+			extern int g_iRefreshLibraryFolders;
+			g_iRefreshLibraryFolders = 2;
 		}
 		ImGui::Indent(-10);
 		ImGui::End();

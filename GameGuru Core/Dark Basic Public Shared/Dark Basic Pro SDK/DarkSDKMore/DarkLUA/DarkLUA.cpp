@@ -4639,6 +4639,32 @@ int GetGlobalSoundLooping(lua_State *L)
 	return 1;
 }
 
+int GetSoundPlaying(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tointeger(L, 1);
+	int v = lua_tointeger(L, 2);
+	int tsnd = 0;
+	if (v == 0) tsnd = t.entityelement[e].soundset;
+	if (v == 1) tsnd = t.entityelement[e].soundset1;
+	if (v == 2) tsnd = t.entityelement[e].soundset2;
+	if (v == 3) tsnd = t.entityelement[e].soundset3;
+	if (v == 4) tsnd = t.entityelement[e].soundset5;
+	if (v == 5) tsnd = t.entityelement[e].soundset6;
+	int iPlaying = 0;
+	if (tsnd > 0)
+	{
+		if (SoundExist(tsnd) == 1 && SoundPlaying(tsnd) == 1)
+		{
+			iPlaying = tsnd;
+		}
+	}
+	lua_pushinteger (L, iPlaying);
+	return 1;
+}
+
 int SetRawSoundData ( lua_State *L, int iDataMode )
 {
 	lua = L;
@@ -10067,6 +10093,7 @@ void addFunctions()
 	lua_register(lua, "GetGlobalSoundExist" , GetGlobalSoundExist );
 	lua_register(lua, "GetGlobalSoundPlaying" , GetGlobalSoundPlaying );
 	lua_register(lua, "GetGlobalSoundLooping" , GetGlobalSoundLooping );
+	lua_register(lua, "GetSoundPlaying", GetSoundPlaying);
 
 	lua_register(lua, "PlayRawSound" , PlayRawSound );
 	lua_register(lua, "LoopRawSound" , LoopRawSound );

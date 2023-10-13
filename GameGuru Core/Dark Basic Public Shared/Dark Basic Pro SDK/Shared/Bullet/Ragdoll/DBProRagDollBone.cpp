@@ -102,8 +102,7 @@ int DBProPrimitiveCreateCapsule(btScalar diameter, btScalar height, eAxis axis)
 
 void DBProRagDollBone::CreateBone()
 {
-
-	btScalar scaleFactor = 40.0f;///DynamicsWorldArray[0]->m_scaleFactor;
+	btScalar scaleFactor = 40.0f;
 	btVector3 ObjectPosition(ObjectPositionX(dbproObjectID), ObjectPositionY(dbproObjectID),
 										   ObjectPositionZ(dbproObjectID));
 	btVector3 jointVec1(LimbPositionX(dbproObjectID,dbproStartLimbID), LimbPositionY(dbproObjectID,dbproStartLimbID), 
@@ -111,47 +110,54 @@ void DBProRagDollBone::CreateBone()
 	btVector3 jointVec2(LimbPositionX(dbproObjectID,dbproEndLimbID), LimbPositionY(dbproObjectID,dbproEndLimbID), 
 								   LimbPositionZ(dbproObjectID,dbproEndLimbID));
 
-	//get distance between models joints
+	// get distance between models joints
 	btVector3 resultVec;
 	resultVec = jointVec1 - jointVec2;
 
-	//Get a vector which represents a line from jointVec1 to jointVec2
-	//Then store this vector to calculate a min/max angle for the joint in add joint.
+	// Get a vector which represents a line from jointVec1 to jointVec2
+	// Then store this vector to calculate a min/max angle for the joint in add joint.
 	btVector3 boneVec;
 	boneVec = resultVec;
 	boneNormVec = boneVec.normalize();
 
+	// make capsule height from distance between joints
 	btScalar height = resultVec.length();
-	height = height * lengthmod;
-	//make capsule height from distance between joints
+	if(lengthmod>0) height = height * lengthmod;
 
-	//Store the Total volume for mass calculations
+	// Store the Total volume for mass calculations
 	boneVolume = diameter * diameter * height;
-	//Divide distance to get center to position capsule
+
+	// Increase mass the higher we go, causing ragdoll to collapse more violently and not get propped up under own legs!
+	float fBoneHeightFromBase = LimbPositionY(dbproObjectID, dbproStartLimbID);
+	if (fBoneHeightFromBase < 30) fBoneHeightFromBase = 30;
+	if (fBoneHeightFromBase > 100) fBoneHeightFromBase = 100;
+	fBoneHeightFromBase /= 25.0f;
+	boneVolume *= fBoneHeightFromBase;
+
+	// special signal to make this bone three times heavier (lower arms)
+	if (lengthmod < 0) boneVolume *= 3;
+
+	// Divide distance to get center to position capsule
 	resultVec = resultVec / 2;
 	btVector3 positionVec;
 	positionVec = jointVec1 - resultVec;
 
-	//LB: very small tweak to avoid feet sinking into floor
-	#ifdef WICKEDENGINE
+	// LB: very small tweak to avoid feet sinking into floor
 	positionVec.setY(positionVec.getY() - 5.0f);
-	#endif
 
-	//Create a World Transform for the bone
+	// Create a World Transform for the bone
 	btTransform boneTrans;
 	boneTrans.setIdentity();
 	boneTrans.setOrigin(positionVec / scaleFactor);
 
-	//LB: Seems we need these objects, but can remove them from the Wicked system which slows them down
-	#ifdef WICKEDENGINE
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-	WickedCall_PresetObjectCreateOnDemand(true);
-	#endif
-	#ifdef PRODUCTCONVERTER
-	#else
+	// create the bone
 	extern bool g_bDebugRagdoll;
-	if (!g_bDebugRagdoll)
+	if (g_bDebugRagdoll==false)
 	{
+		//LB: Seems we need these objects, but can remove them from the Wicked system which slows them down
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+		WickedCall_PresetObjectCreateOnDemand(true);
+
 		// not using debug capsule
 		dbproRagDollBoneID = 0;
 
@@ -163,6 +169,10 @@ void DBProRagDollBone::CreateBone()
 		btMatrix3x3 boneRotation;
 		boneRotation.setEulerYPR(btScalar(btRadians(fAX)), btScalar(btRadians(fAY)), btScalar(btRadians(fAZ)));
 		boneTrans.setBasis(boneRotation);
+
+		//LB: and restore when finished creating this 'light weight' bone object
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+		WickedCall_PresetObjectCreateOnDemand(false);
 	}
 	else
 	{
@@ -183,29 +193,12 @@ void DBProRagDollBone::CreateBone()
 		// hide it if shown
 		HideObject(dbproRagDollBoneID);
 	}
-	#endif
 
+	// finish capsule creation
+	if (boneVolume < 500) boneVolume = btScalar(500);
 	m_collisionShape = new btCapsuleShapeZ(btScalar(diameter/scaleFactor/2),btScalar((height - diameter)/scaleFactor));
-	#ifdef WICKEDENGINE
-	rigidBody = localCreateRigidBody(btScalar(1000.0), boneTrans, m_collisionShape, dbproRagDollBoneID, collisionGroup, collisionMask);
-	#else
-	rigidBody = localCreateRigidBody(btScalar(1.0), boneTrans, m_collisionShape, dbproRagDollBoneID, collisionGroup, collisionMask);
-	#endif
+	rigidBody = localCreateRigidBody(boneVolume, boneTrans, m_collisionShape, dbproRagDollBoneID, collisionGroup, collisionMask);
 	initialRotation = rigidBody->getWorldTransform().getBasis();
-
-	#ifdef WICKEDENGINE
-	//LB: and restore when finished creating this 'light weight' bone object
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-	WickedCall_PresetObjectCreateOnDemand(false);
-	#endif
-
-	// ZJ: the capsule object caused a large slowdown, so its not created unless in debug mode now.
-	// only delete work objecty for ragdoll bone if not in debug mode
-	//if (g_bDebugRagdoll == false)
-	//{
-	//	DeleteObject(dbproRagDollBoneID);
-	//	dbproRagDollBoneID = 0;
-	//}
 }
 
 btRigidBody* DBProRagDollBone::GetRigidBody()

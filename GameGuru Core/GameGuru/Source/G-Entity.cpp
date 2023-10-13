@@ -4408,6 +4408,7 @@ void entity_monitorattachments ( void )
 							t.entityelement[iNewEntID].rx = t.entityelement[t.e].rx;
 							t.entityelement[iNewEntID].ry = t.entityelement[t.e].ry + Rnd(359);
 							t.entityelement[iNewEntID].rz = t.entityelement[t.e].rz;
+							t.entityelement[iNewEntID].lua.haskey = 1; // taken over this flag for use with weapon.lua script (auto collect ammo if got weapon)
 							if (t.entityelement[iNewEntID].usingphysicsnow == 1)
 							{
 								ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);

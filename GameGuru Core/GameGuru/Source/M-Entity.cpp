@@ -6449,7 +6449,40 @@ void entity_loadelementsdata(void)
 								}
 								pCollectionItemProfile = "";
 							}
-							else
+							if(bFoundIt==false && stricmp(g_collectionList[n].collectionFields[1].Get(), "none") == NULL)
+							{
+								// None could be a weapon
+								if (g_collectionList[n].collectionFields.size() > 8)
+								{
+									if (strnicmp(g_collectionList[n].collectionFields[8].Get(), "weapon=", 7) == NULL)
+									{
+										LPSTR pWeaponName = g_collectionList[n].collectionFields[8].Get() + 7;
+										for (int entid = 1; entid <= g.entidmastermax; entid++)
+										{
+											if (stricmp (t.entityprofile[entid].isweapon_s.Get(), pWeaponName) == NULL)
+											{
+												g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+												g_collectionList[n].iEntityID = entid;
+												bFoundIt = true;
+												break;
+											}
+										}
+										if (bFoundIt == false)
+										{
+											// okay, so no weapon of this type in the parent objects, need to point to the
+											// entity using the gun collection database
+											for (int gunid = 1; gunid <= g.gunmax; gunid++)
+											{
+												if (stricmp (t.gun[gunid].name_s.Get(), pWeaponName) == NULL)
+												{
+													g_collectionList[n].collectionFields[1] = t.gun[gunid].pathtostockentity_s;
+												}
+											}
+										}
+									}
+								}
+							}
+							if(bFoundIt==false)
 							{
 								// do a direct search for it
 								LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
@@ -6590,6 +6623,56 @@ void entity_loadelementsdata(void)
 						}
 					}
 				}
+			}
+
+			// and now if any 'iEntityElementE' are zero, we need to create an element off-level 
+			// as an instance that can be cloned down the road
+			bool bSaveUpdatedELEFile = false;
+			for (int n = 0; n < g_collectionList.size(); n++)
+			{
+				if (g_collectionList[n].iEntityID > 0 && g_collectionList[n].iEntityElementE == 0)
+				{
+					// make a hidden instance of this entity
+					int entid = g_collectionList[n].iEntityID;
+					t.gridentity = entid;
+					t.gridentityeditorfixed = 0;
+					t.entitymaintype = 1;
+					t.entitybankindex = t.entid;
+					t.gridentitystaticmode = 0;
+					t.gridentityhasparent = 0;
+					t.gridentityposx_f = 0;
+					t.gridentityposz_f = 0;
+					t.gridentityposy_f = 0;
+					t.gridentityrotatex_f = 0;
+					t.gridentityrotatey_f = 0;
+					t.gridentityrotatez_f = 0;
+					t.gridentityrotatequatmode = 1;
+					t.gridentityrotatequatx_f = 0;
+					t.gridentityrotatequaty_f = 0;
+					t.gridentityrotatequatz_f = 0;
+					t.gridentityrotatequatw_f = 1;
+					t.gridentityscalex_f = 100;
+					t.gridentityscaley_f = 100;
+					t.gridentityscalez_f = 100;
+					t.entid = entid; entity_fillgrideleproffromprofile();
+					entity_addentitytomap ();
+					t.e = t.tupdatee;
+					t.entityelement[t.e].x = -99999;
+					t.entityelement[t.e].y = -99999;
+					t.entityelement[t.e].z = -99999;
+					t.entityelement[t.e].eleprof.spawnatstart = 0;
+					t.entityelement[t.e].lua.firsttime = 0;
+					t.entityelement[t.e].active = 0;
+					g_collectionList[n].iEntityElementE = t.e;
+					t.gridentity = 0;
+					bSaveUpdatedELEFile = true;
+				}
+			}
+			if (bSaveUpdatedELEFile == true)
+			{
+				// ensure collection list and ELE file up to date
+				extern preferences pref;
+				save_rpg_system(pref.cLastUsedStoryboardProject, true);
 			}
 
 			// and a full pass to convert any parent objects into collectables if the collection list has them
@@ -7924,17 +8007,10 @@ void entity_deleteelements ( void )
 	}
 	if ( g.entityattachmentindex > 0 ) 
 	{
-		DeleteObjects (  g.entityattachmentsoffset+1, g.entityattachmentsoffset+g.entityattachmentindex );
+		//DeleteObjects (g.entityattachmentsoffset + 1, g.entityattachmentsoffset + g.entityattachmentindex);
+		DeleteObjects (g.entityattachmentsoffset, g.entityattachmentsoffset + g.entityattachmentindex);
+		DeleteObjects (g.entityattachments2offset, g.entityattachments2offset + g.entityattachmentindex);
 	}
-
-	#ifdef VRTECH
-	#else
-	//  clear any character creator objects associated with this entity
-	for ( t.ccobjToDelete = 1 ; t.ccobjToDelete<=  g.entityelementlist; t.ccobjToDelete++ )
-	{
-		characterkit_deleteEntity ( );
-	}
-	#endif
 
 	//  set character creator offset back to 0 (which is a nice indicator that it is not in use also)
 	t.characterkitcontrol.offset = 0;

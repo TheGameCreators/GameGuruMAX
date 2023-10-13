@@ -421,9 +421,13 @@ void gun_manager ( void )
 			gun_shoot ( );
 			if (  t.playercontrol.thirdperson.enabled == 0 ) 
 			{
-				if ( t.gun[t.gunid].settings.flashlimb>=0 ) gun_flash ( );
-				if ( t.gun[t.gunid].settings.brasslimb>=0 ) gun_brass ( );
-				if ( t.gun[t.gunid].settings.smokelimb>=0 ) gun_smoke ( );
+				// allow flash as does noty need flashlimb (new weapon system)
+				//if ( t.gun[t.gunid].settings.flashlimb>=0 ) gun_flash ();
+				//if ( t.gun[t.gunid].settings.brasslimb>=0 ) gun_brass ( );
+				//if ( t.gun[t.gunid].settings.smokelimb>=0 ) gun_smoke ( );
+				gun_flash ();
+				gun_brass ();
+				gun_smoke ();
 			}
 			gun_soundcontrol ( );
 
@@ -2439,7 +2443,7 @@ void gun_control ( void )
 		if (  GetFrame(t.currentgunobj) >= t.gstart.e  )  
 		{
 			// moved triggering of brass, smoke and flash to END of start of firing
-			if (  t.gun[t.gunid].settings.brasslimb != -1 ) 
+			if ( t.gun[t.gunid].settings.brasslimb != -1 || t.gun[t.gunid].settings.brasslimb == -2 )
 			{  
 				// eject brass immediately
 				// use regular or zoomed brass delay value (milliseconds)
@@ -2492,8 +2496,8 @@ void gun_control ( void )
 			t.weaponammo[g.weaponammoindex+g.ammooffset]=t.weaponammo[g.weaponammoindex+g.ammooffset]-1; 
 		}
 		--t.gunburst;
-		if ( t.gun[t.gunid].settings.smokelimb != -1 ) {  t.gunsmoke = 1 ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
-		if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
+		if ( t.gun[t.gunid].settings.smokelimb != -1 || t.gun[t.gunid].settings.smokelimb==-2 ) {  t.gunsmoke = 1 ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
+		if ( g.firemodes[t.gunid][g.firemode].settings.equipment == 0 )
 		{
 			// trigger sound
 			if ( t.gun[t.gunid].settings.alternate == 0 ) 
@@ -2576,7 +2580,7 @@ void gun_control ( void )
 			g.gunsmokecount -= g.timeelapsed_f;
 			g.guntimercount -= g.timeelapsed_f;
 			bool bBrassEjected = false;
-			if ( g.gunbrasscount <= 0 && t.gun[t.gunid].settings.brasslimb != -1 ) 
+			if ( g.gunbrasscount <= 0 && (t.gun[t.gunid].settings.brasslimb != -1 || t.gun[t.gunid].settings.brasslimb == -2))
 			{ 
 				// use regular or zoomed brass delay value (milliseconds)
 				int iBrassDelay = g.firemodes[t.gunid][g.firemode].settings.brassdelay;
@@ -2598,7 +2602,7 @@ void gun_control ( void )
 				}
 				g.gunbrasscount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; 
 			}
-			if (  g.gunsmokecount <= 0 && t.gun[t.gunid].settings.smokelimb != -1 ) { t.gunsmoke = 1  ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
+			if (  g.gunsmokecount <= 0 && (t.gun[t.gunid].settings.smokelimb != -1 || t.gun[t.gunid].settings.smokelimb == -2) ) { t.gunsmoke = 1  ; g.gunsmokecount = g.firemodes[t.gunid][g.firemode].settings.firerate/2; }
 			if (  g.firemodes[t.gunid][g.firemode].settings.equipment == 0 ) 
 			{
 				if (  t.gunflash == 0  )  t.gunflash = 1;
@@ -3239,36 +3243,41 @@ void gun_actualreloadcode ( void )
 	}
 }
 
-void gun_flash ( void )
+void gun_flashbrass_position (float* pfWorldPosX, float* pfWorldPosY, float* pfWorldPosZ, float fModX, float fModY, float fModZ)
 {
-	//  hide muzzle if (  still visible (quick shot  )  zoom bug)
-	if (  t.plrzoomin_f != 0.0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom == 0 ) 
-	{
-		if (  GetVisible(g.hudbankoffset+5) == 1  )  HideObject (  g.hudbankoffset+5 );
-		if (  GetVisible(g.hudbankoffset+32) == 1  )  HideObject (  g.hudbankoffset+32 );
-		t.gunflash=0;
-	}
-
-	//  Allow MuzzleFlash to work in Simple Zoom
+	// Allow MuzzleFlash to work in Simple Zoom
 	GGVECTOR3 vecOffset;
-	if (  g.firemodes[t.gunid][g.firemode].settings.simplezoom  !=  0 && t.gunzoommode  !=  0 && g.firemodes[t.gunid][g.firemode].settings.simplezoomflash  ==  1 ) 
+	if (g.firemodes[t.gunid][g.firemode].settings.simplezoom != 0 && t.gunzoommode != 0 && g.firemodes[t.gunid][g.firemode].settings.simplezoomflash == 1)
 	{
-		vecOffset = GGVECTOR3(g.firemodes[t.gunid][g.firemode].settings.zoommuzzlex_f+g.gunlagX_f+g.gunOffsetX_f, g.firemodes[t.gunid][g.firemode].settings.zoommuzzley_f+g.gunlagY_f+g.gunOffsetY_f, g.firemodes[t.gunid][g.firemode].settings.zoommuzzlez_f);
+		vecOffset = GGVECTOR3((g.firemodes[t.gunid][g.firemode].settings.zoommuzzlex_f * fModX) + g.gunlagX_f + g.gunOffsetX_f, (g.firemodes[t.gunid][g.firemode].settings.zoommuzzley_f * fModY) + g.gunlagY_f + g.gunOffsetY_f, (g.firemodes[t.gunid][g.firemode].settings.zoommuzzlez_f * fModZ));
 	}
 	else
 	{
-		vecOffset = GGVECTOR3(g.firemodes[t.gunid][g.firemode].settings.muzzlex_f + g.gunlagX_f + g.gunOffsetX_f, g.firemodes[t.gunid][g.firemode].settings.muzzley_f + g.gunlagY_f, g.firemodes[t.gunid][g.firemode].settings.muzzlez_f);
+		vecOffset = GGVECTOR3((g.firemodes[t.gunid][g.firemode].settings.muzzlex_f * fModX) + g.gunlagX_f + g.gunOffsetX_f, (g.firemodes[t.gunid][g.firemode].settings.muzzley_f * fModY) + g.gunlagY_f, (g.firemodes[t.gunid][g.firemode].settings.muzzlez_f * fModZ));
 	}
-	#ifdef WICKEDENGINE
-	// some stranegness when it comes to adding multiple glued objects to parent in wicked?! So use another approach
-	sObject* pWeaponHUDObject = GetObjectData(g.hudbankoffset+2);
+	sObject* pWeaponHUDObject = GetObjectData(g.hudbankoffset + 2);
 	GGVec3TransformCoord(&vecOffset, &vecOffset, &pWeaponHUDObject->position.matObjectNoTran);
-	float fWorldPosX = ObjectPositionX(g.hudbankoffset+2);
-	float fWorldPosY = ObjectPositionY(g.hudbankoffset+2);
-	float fWorldPosZ = ObjectPositionZ(g.hudbankoffset+2);
-	fWorldPosX += vecOffset.x;
-	fWorldPosY += vecOffset.y;
-	fWorldPosZ += vecOffset.z;
+	*pfWorldPosX = ObjectPositionX(g.hudbankoffset + 2);
+	*pfWorldPosY = ObjectPositionY(g.hudbankoffset + 2);
+	*pfWorldPosZ = ObjectPositionZ(g.hudbankoffset + 2);
+	*pfWorldPosX += vecOffset.x;
+	*pfWorldPosY += vecOffset.y;
+	*pfWorldPosZ += vecOffset.z;
+}
+
+void gun_flash ( void )
+{
+	// hide muzzle if (  still visible (quick shot  )  zoom bug)
+	if ( t.plrzoomin_f != 0.0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom == 0 ) 
+	{
+		if ( GetVisible(g.hudbankoffset+5) == 1  )  HideObject (  g.hudbankoffset+5 );
+		if ( GetVisible(g.hudbankoffset+32) == 1  )  HideObject (  g.hudbankoffset+32 );
+		t.gunflash=0;
+	}
+
+	// gun flash position
+	float fWorldPosX, fWorldPosY, fWorldPosZ;
+	gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
 	PositionObject(g.hudbankoffset + 5, fWorldPosX, fWorldPosY, fWorldPosZ);
 	PointObject(g.hudbankoffset + 5, CameraPositionX(), CameraPositionY(), CameraPositionZ());
 	sObject* pMuzzleFlashObj = GetObjectData(g.hudbankoffset + 5);
@@ -3277,13 +3286,9 @@ void gun_flash ( void )
 		// adjust rotation of frame zero Z to spin the muzzle flash
 		pMuzzleFlashObj->ppFrameList[0]->vecRotation.z = Rnd(360);
 	}
-	#else
-	PositionObject(g.hudbankoffset + 5, vecOffset.x, vecOffset.y, vecOffset.z);
-	RotateObject (  g.hudbankoffset+5,0,0,Rnd(360) );
-	#endif
 	if ( t.gunflash == 1 ) 
 	{
-		//  fire flash init
+		// fire flash init
 		t.gunflash=2;
 		g.gunflashcount=g.firemodes[t.gunid][g.firemode].settings.firerate/2;
 		ShowObject (  g.hudbankoffset+5 );
@@ -3293,10 +3298,9 @@ void gun_flash ( void )
 			ShowObject (  g.hudbankoffset+32 );
 		}
 
-		//  light flash init
+		// light flash init
 		if ( g.firemodes[t.gunid][g.firemode].settings.usespotlighting != 0 ) 
 		{
-			#ifdef WICKEDENGINE
 			RotateCamera(CameraAngleX(), CameraAngleY() - 45.0f, CameraAngleZ());
 			MoveCamera(10.0);
 			t.playerWeaponFlash.spotflashx_f = CameraPositionX();
@@ -3308,19 +3312,6 @@ void gun_flash ( void )
 			t.playerWeaponFlash.spotlightg_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg / 5;
 			t.playerWeaponFlash.spotlightb_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb / 5 ;
 			t.playerWeaponFlash.flashlightcontrol_f = 1.0f;	
-            #else
-			RotateCamera ( CameraAngleX(), CameraAngleY()-45.0f, CameraAngleZ() );
-			MoveCamera ( 10.0 );
-			t.tx_f = CameraPositionX();
-			t.ty_f = CameraPositionY();
-			t.tz_f = CameraPositionZ();
-			MoveCamera ( -10.0 );
-			RotateCamera ( CameraAngleX(), CameraAngleY()+45.0f, CameraAngleZ() );
-			t.tcolr = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr/5;// /2; 100718 - tone it down a touch
-			t.tcolg = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg/5;// /2;
-			t.tcolb = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb/5;// /2;
-			lighting_spotflash();
-			#endif // WICKEDENGINE
 		}
 	}
 
@@ -3330,18 +3321,8 @@ void gun_flash ( void )
 		t.firerate=g.firemodes[t.gunid][g.firemode].settings.firerate/2;
 		if ( g.gunflashcount <= (t.firerate)-(g.timeelapsed_f*2) ) 
 		{
-			// hide early
-			#ifdef WICKEDENGINE
-			////PE: We cant rely on the gunid order, changed to names.
-			//if (t.gun[t.gunid].name_s == "enhanced\\m29s" ||
-			//	t.gun[t.gunid].name_s == "enhanced\mk19t" ||
-			//	t.gun[t.gunid].name_s == "enhanced\r870" ) //Revolver, tactical revolver && shotgun need to have their flash hidden faster due to longer animations
-			//{
-			//	t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-			//}
 			// Just hide all of them early 
 			t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-			#endif //WICKEDENGINE
 			HideObject (  g.hudbankoffset+5 );
 			HideObject (  g.hudbankoffset+32 );
 		}
@@ -3351,17 +3332,12 @@ void gun_flash ( void )
 			t.gunflash=3;
 		}
 	}
-
 	if ( t.gunflash == 3 ) 
 	{
 		// final hide
 		t.gunflash=0;
 		g.gunflashcount=0;
-		#ifdef WICKEDENGINE
-		{
-			t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-		}
-		#endif // WICKEDENGINE
+		t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
 		HideObject (  g.hudbankoffset+5 );
 		HideObject (  g.hudbankoffset+32 );
 	}
@@ -3419,24 +3395,32 @@ void gun_brass ( void )
 	for ( t.o = 6 ; t.o <= 20; t.o++ )
 	{
 		t.obj=g.hudbankoffset+t.o;
-		if (  (GetVisible(t.obj) == 0 || t.o == 20) && t.gunbrass == 1 ) 
+		if ( (GetVisible(t.obj) == 0 || t.o == 20) && t.gunbrass == 1 ) 
 		{
-			t.lx_f=LimbPositionX(t.currentgunobj,t.gun[t.gunid].settings.brasslimb)+1.0-(Rnd(20)/10.0);
-			t.ly_f=LimbPositionY(t.currentgunobj,t.gun[t.gunid].settings.brasslimb);
-			t.lz_f=LimbPositionZ(t.currentgunobj,t.gun[t.gunid].settings.brasslimb)+1.0-(Rnd(20)/10.0);
+			if (t.gun[t.gunid].settings.brasslimb>0)
+			{
+				t.lx_f = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.brasslimb) + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.brasslimb);
+				t.lz_f = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.brasslimb) + 1.0 - (Rnd(20) / 10.0);
+			}
+			else
+			{
+				float fWorldPosX, fWorldPosY, fWorldPosZ;
+				gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 0.6f, 0.4f, 0.6f);
+				t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = fWorldPosY;
+				t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+			}
 			PositionObject (  t.obj,t.lx_f,t.ly_f,t.lz_f );
 			RotateObject (  t.obj,0,CameraAngleY(0),0 );
-			//ScaleObject (  t.obj, 500, 500, 500 );
 			t.brassfallcount_f[t.o]=g.firemodes[t.gunid][g.firemode].settings.brasslife;
 			ShowObject (  t.obj );
-			//ODECreateDynamicBox (  t.obj );
 			ODECreateDynamicBox(t.obj, -1, 12); //PE: Make sure not to move player.
 			t.tbrassang_f=g.firemodes[t.gunid][g.firemode].settings.brassangle+Rnd(g.firemodes[t.gunid][g.firemode].settings.brassanglerand);
 			t.tbrassspeed_f=g.firemodes[t.gunid][g.firemode].settings.brassspeed+Rnd(g.firemodes[t.gunid][g.firemode].settings.brassspeedrand);
 			t.tvelx_f=NewXValue(0,CameraAngleY(0)+t.tbrassang_f,t.tbrassspeed_f);
 			t.tvelz_f=NewZValue(0,CameraAngleY(0)+t.tbrassang_f,t.tbrassspeed_f);
 			t.tbrassupward_f=g.firemodes[t.gunid][g.firemode].settings.brassupward+Rnd(g.firemodes[t.gunid][g.firemode].settings.brassupwardrand);
-			// 310518 - brass is WAY too fast for physics sim, so tone down
 			t.tvelx_f /= 10.0f;
 			t.tvelz_f /= 10.0f;
 			t.tbrassupward_f /= 10.0f;
@@ -3447,22 +3431,22 @@ void gun_brass ( void )
 			ODESetAngularVelocity (  t.obj,t.tbrassrotx_f,t.tbrassroty_f,t.tbrassrotz_f );
 			t.gunbrass=0;
 		}
-
 		if ((GetVisible(t.obj) == 0 || t.o == 20) && t.gunbrass == 0 && t.gunbrass2 == 1)
 		{
-			t.lx_f = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2) + 1.0 - (Rnd(20) / 10.0);
-			t.ly_f = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2);
-			t.lz_f = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2) + 1.0 - (Rnd(20) / 10.0);
-			PositionObject(t.obj, t.lx_f, t.ly_f, t.lz_f);
-			RotateObject(t.obj, 0, CameraAngleY(), 0);
-			t.brassfallcount_f[t.o] = 25.0;
-			ShowObject(t.obj);
-			//ODECreateDynamicBox(t.obj);
-			ODECreateDynamicBox(t.obj, -1, 12); //PE: Make sure not to move player.
+			if (t.gun[t.gunid].settings.brasslimb2 > 0)
+			{
+				t.lx_f = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2) + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2);
+				t.lz_f = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.brasslimb2) + 1.0 - (Rnd(20) / 10.0);
+				PositionObject(t.obj, t.lx_f, t.ly_f, t.lz_f);
+				RotateObject(t.obj, 0, CameraAngleY(), 0);
+				t.brassfallcount_f[t.o] = 25.0;
+				ShowObject(t.obj);
+				ODECreateDynamicBox(t.obj, -1, 12); //PE: Make sure not to move player.
+			}
 			//  apply forces (above) here
 			t.gunbrass2 = 0;
 		}
-
 	}
 }
 
@@ -3493,37 +3477,54 @@ void gun_smoke ( void )
 	for ( t.o = 21 ; t.o<=  30; t.o++ )
 	{
 		t.obj=g.hudbankoffset+t.o;
-		if (  GetVisible(t.obj) == 0 && t.gunsmoke == 1 ) 
+		if ( GetVisible(t.obj) == 0 && t.gunsmoke == 1 ) 
 		{
 			t.ttsmokelimb=t.gun[t.gunid].settings.smokelimb;
-			if (  t.ttsmokelimb <= 0  )  t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
-			t.lx_f=LimbPositionX(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			t.ly_f=LimbPositionY(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			t.lz_f=LimbPositionZ(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			#ifdef WICKEDENGINE
+			if ( t.ttsmokelimb <= 0 )  t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
+			if (t.ttsmokelimb > 0)
+			{
+				// position from smoke or brass limb
+				t.lx_f = LimbPositionX(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = LimbPositionY(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+				t.lz_f = LimbPositionZ(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+			}
+			else
+			{
+				// gun flash position
+				float fWorldPosX, fWorldPosY, fWorldPosZ;
+				gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+				t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
+				t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+			}
 			// no fixpivot logic
 			RotateObject (t.obj, 0, 0, 0);
-			#else
-			RotateObject (t.obj, 0, 0, Rnd(360)); FixObjectPivot (t.obj);
-			#endif
 			PositionObject (  t.obj,t.lx_f,t.ly_f,t.lz_f );
 			ShowObject (  t.obj );
 			t.smokeframe_f[t.o]=0.0;
 			t.gunsmoke=0 ; t.smokeframe=0;
 		}
-		if (  GetVisible(t.obj) == 0 && t.gunsmoke == 0 && t.gunsmoke2 == 1 ) 
+		if ( GetVisible(t.obj) == 0 && t.gunsmoke == 0 && t.gunsmoke2 == 1 ) 
 		{
 			t.ttsmokelimb=t.gun[t.gunid].settings.smokelimb2;
-			if (  t.ttsmokelimb <= 0  )  t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
-			t.lx_f=LimbPositionX(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			t.ly_f=LimbPositionY(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			t.lz_f=LimbPositionZ(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			#ifdef WICKEDENGINE
+			if ( t.ttsmokelimb <= 0 ) t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
+			if(t.ttsmokelimb > 0)
+			{
+				t.lx_f=LimbPositionX(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
+				t.ly_f=LimbPositionY(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
+				t.lz_f=LimbPositionZ(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
+			}
+			else
+			{
+				// gun flash position
+				float fWorldPosX, fWorldPosY, fWorldPosZ;
+				gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+				t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
+				t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
+				t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+			}
 			// no fixpivot logic
 			RotateObject (t.obj, 0, 0, 0);
-			#else
-			RotateObject (t.obj, 0, 0, Rnd(360)); FixObjectPivot (t.obj);
-			#endif
 			PositionObject (  t.obj,t.lx_f,t.ly_f,t.lz_f );
 			ShowObject (  t.obj );
 			t.smokeframe_f[t.o]=0.0;
@@ -3539,14 +3540,7 @@ void gun_smoke ( void )
 			t.smokeframe_f[t.o]=t.smokeframe_f[t.o]+(2.0*g.timeelapsed_f) ; t.smokeframe=t.smokeframe_f[t.o];
 			if ( GetInScreen(t.obj) == 1 && t.smokeframe <= 15 ) 
 			{
-				#ifdef WICKEDENGINE
 				SetObjectUVManually(t.obj, t.smokeframe, 4, 4);
-				#else
-				t.ty=t.smokeframe/4;
-				t.tx=t.smokeframe-(t.ty*4);
-				t.q_f=1.0/4.0 ; t.tx_f=t.tx*t.q_f ; t.ty_f=t.ty*t.q_f;
-				ScaleObjectTexture (  t.obj,t.tx_f,t.ty_f );
-				#endif
 			}
 			else
 			{
@@ -4607,10 +4601,17 @@ void gun_load ( void )
 	g.firemodes[t.gunid][0].settings.flaklimb=t.flaklimb1;
 	g.firemodes[t.gunid][1].settings.flaklimb=t.flaklimb1;
 
-	//  Use neighbor limb if certain other limbs not in model
-	if (  t.smokelimb == -1 ) 
+	// if new weapon system, can set limbs to -2 to autocalculate smoke and brass positions
+	if (t.gun[t.gunid].handusesnewweaponsystem == 1)
 	{
-		if (  t.flashlimb != -1  )  t.smokelimb = t.flashlimb;
+		if (t.smokelimb == -1) t.smokelimb = -2;
+		if (t.brasslimb == -1) t.brasslimb = -2;
+	}
+
+	// Use neighbor limb if certain other limbs not in model
+	if ( t.smokelimb == -1 ) 
+	{
+		if ( t.flashlimb != -1  )  t.smokelimb = t.flashlimb;
 	}
 
 	//  brass limb not specified, use smoke hole
@@ -4651,23 +4652,6 @@ void gun_load ( void )
 			}
 		}
 	}
-	/* old one checked for existence of files, but image formats can differ
-	for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
-	{
-		t.tlmbtex_s=LimbTextureName(t.currentgunobj,t.c-1);
-		if (  Len(t.tlmbtex_s.Get())>1 ) 
-		{
-			cStr tfinallmbtex_s = "";
-			tfinallmbtex_s = tfinallmbtex_s + "gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\"+t.tlmbtex_s;
-			sprintf ( t.szwork , "Checking gun texture: %s" , tfinallmbtex_s.Get() );
-			timestampactivity(0, t.szwork );
-			if (  FileExist(tfinallmbtex_s.Get()) == 1 ) 
-			{
-				t.tfoundvalidinternaltexture=1;
-			}
-		}
-	}
-	*/
 	if ( t.tfoundvalidinternaltexture == 0 ) 
 	{
 		t.gun[t.gunid].texd_s = "gun_D.dds";

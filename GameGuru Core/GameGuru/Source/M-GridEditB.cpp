@@ -26833,10 +26833,10 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		{
 			ImGui::TextCenter("Spotlight Radius");
 			ImGui::PushItemWidth(-10);
-
-
 			if (ImGui::MaxSliderInputInt("##SpotlightRangeSimpleInput", &edit_grideleprof->light.offsetup, 3, 160, "Sets the spotlight radius"))
 			{
+				if (edit_grideleprof->light.offsetup < 3) edit_grideleprof->light.offsetup = 3;
+				if (edit_grideleprof->light.offsetup > 180) edit_grideleprof->light.offsetup = 180;
 				current_light_selected = -1;
 				bLightChanged = true;
 			}
@@ -29955,8 +29955,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 							edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), t.strarr_s[480].Get(), t.strarr_s[254].Get(), "audiobank\\",readonly);
 							edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), t.strarr_s[481].Get(), t.strarr_s[254].Get(), "audiobank\\",readonly);
 							edit_grideleprof->soundset5_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset5_s.Get(), t.strarr_s[482].Get(), t.strarr_s[254].Get(), "audiobank\\", readonly);
-							edit_grideleprof->soundset5_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset5_s.Get(), t.strarr_s[482].Get(), t.strarr_s[254].Get(), "audiobank\\", readonly);
-				}
+						}
 					}
 				}
 				else
@@ -30305,21 +30304,6 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 			else
 				thisLabel = t.list_s[n];
 			thisLabel = gun_names_tointernal(thisLabel.Get());
-			//if (stricmp (thisLabel.Get(), "No Weapon") == NULL) thisLabel = "";
-			//if (stricmp (thisLabel.Get(), "No Preference") == NULL) thisLabel = "";
-			//if (stricmp (thisLabel.Get(), "Melee Combat") == NULL) thisLabel = "enhanced\\Gloves_Unarmed";
-			//if (stricmp (thisLabel.Get(), "Grenades Only") == NULL) thisLabel = "enhanced\\M67";
-			//if (stricmp (thisLabel.Get(), "Assault Rifle") == NULL) thisLabel = "enhanced\\AK";
-			//if (stricmp (thisLabel.Get(), "Patrol Rifle") == NULL) thisLabel = "enhanced\\AR";
-			//if (stricmp (thisLabel.Get(), "Pocket Knife") == NULL) thisLabel = "enhanced\\B810";
-			//if (stricmp (thisLabel.Get(), "Snubnose Revolver") == NULL) thisLabel = "enhanced\\M29S";
-			//if (stricmp (thisLabel.Get(), "Compact Assault Rifle") == NULL) thisLabel = "enhanced\\Mk18";
-			//if (stricmp (thisLabel.Get(), "Magnum Pistol") == NULL) thisLabel = "enhanced\\Mk19T";
-			//if (stricmp (thisLabel.Get(), "Tactical Pump Shotgun") == NULL) thisLabel = "enhanced\\R870";
-			//if (stricmp (thisLabel.Get(), "SledgeHammer") == NULL) thisLabel = "enhanced\\SledgeHammer";
-			//if (stricmp (thisLabel.Get(), "Aztec Axe") == NULL) thisLabel = "aztec\\AztecAxe";
-			//if (stricmp (thisLabel.Get(), "Aztec Dagger") == NULL) thisLabel = "aztec\\AztecDagger";
-			//if (stricmp (thisLabel.Get(), "Aztec Spear") == NULL) thisLabel = "aztec\\AztecSpear";
 
 			if (n == -1)
 				ldata_s = thisLabel;
@@ -48762,15 +48746,30 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 				else
 				{
-					if ((bImGuiInTestGame || standalone)/*nodeidStore == -1*/ && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+					if ((bImGuiInTestGame || standalone) && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
 					{
-						// Display the variable value that this readout represents
-						int readoutValue = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-						if (readoutValue != -INT_MAX) // -INT_MAX indicates failure to get the readout value
+						// special code to hide certain HUDs
+						bool bHideThis = false;
+						if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
 						{
-							char valueStr[64];
-							sprintf(valueStr, "%d", readoutValue);
-							text = valueStr;
+							if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Remaining") == NULL) bHideThis = true;
+							if (stricmp (Storyboard.widget_readout[nodeid][index], "Maximum Health") == NULL) bHideThis = true;
+						}
+						
+						// Display the variable value that this readout represents
+						if (bHideThis == false)
+						{
+							int readoutValue = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
+							if (readoutValue != -INT_MAX) // -INT_MAX indicates failure to get the readout value
+							{
+								char valueStr[64];
+								sprintf(valueStr, "%d", readoutValue);
+								text = valueStr;
+							}
+							else
+							{
+								text = "";
+							}
 						}
 						else
 						{
@@ -48827,7 +48826,20 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						imgID = 0;
 					}
 				}
-				if (bImGuiInTestGame == false)
+				if (bImGuiInTestGame == true)
+				{
+					// special code to hide certain HUDs
+					bool bHideThis = false;
+					if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
+					{
+						if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Panel") == NULL) bHideThis = true;
+					}
+					if (bHideThis == true)
+					{
+						imgID = 0;
+					}
+				}
+				else
 				{
 					// only in HUD editor mode
 					if (ImageExist(imgID) == 0)

@@ -301,10 +301,37 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 				t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
 				t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
 			}
+
+			// if using an attachment, and it has a firespot debug object, show it
+			if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
+			{
+				int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
+				int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
+				if (ObjectExist(iDebugFirespotObj) == 1)
+				{
+					ShowObject(iDebugFirespotObj);
+					sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
+					WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_NORMAL);
+				}
+			}
 		}
 		else
 		{
+			// hide the view
 			HideObject(iOuterViewObject);
+
+			// if using an attachment, and it has a firespot debug object, hide it
+			if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
+			{
+				int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
+				int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
+				if (ObjectExist(iDebugFirespotObj) == 1)
+				{
+					HideObject(iDebugFirespotObj);
+					sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
+					WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_CURSOROBJECT);
+				}
+			}
 		}
 	}
 	#endif
@@ -1250,6 +1277,18 @@ void darkai_loop (void)
 		// handle updating of debug objects (cone of sight for characters)
 		bool bCharIsActive = true;
 		if (t.entityelement[t.te].active == 0) bCharIsActive = false;
+
+		// also do not show if invisible (maybe have this on a toggle down the road)
+		int tobj = t.entityelement[t.te].obj;
+		if (tobj > 0)
+		{
+			if (ObjectExist(tobj) == 1 && GetVisible(tobj) == 0)
+			{
+				bCharIsActive = false;
+			}
+		}
+
+		// call the update
 		darkai_updatedebugobjects_forcharacter (bCharIsActive);
 
 		// no longer part of the system
@@ -1678,10 +1717,10 @@ void darkai_refresh_characters ( bool bScanForNewlySpawned )
 						else
 						{
 							// if found, existing characters can be left along during a newly spawned scam
-							//if (bScanForNewlySpawned == true) nope, stay and do ALL newly added entities!!
-							//{
-							//	continue;
-							//}
+							if (bScanForNewlySpawned == true)
+							{
+								continue;
+							}
 						}
 
 						// swap in animation override
@@ -2244,24 +2283,30 @@ void darkai_shooteffect (void)
 		{
 			if (t.tattachmentobjfirespotlimb == -1)
 			{
-				t.tattachmentobjfirespotlimb = 0;
-				t.tx_f = t.entityelement[t.te].fFirespotOffsetX;
-				t.ty_f = t.entityelement[t.te].fFirespotOffsetY;
-				t.tz_f = t.entityelement[t.te].fFirespotOffsetZ;
+				//t.tattachmentobjfirespotlimb = 0;
+				//t.tx_f = t.entityelement[t.te].fFirespotOffsetX;
+				//t.ty_f = t.entityelement[t.te].fFirespotOffsetY;
+				//t.tz_f = t.entityelement[t.te].fFirespotOffsetZ;
 				// must adjust offset to angle of weaponm (throw the flame forward)
-				t.tx_f = -NewXValue(0, t.entityelement[t.te].ry, t.tx_f) * 2;
-				t.tz_f = -NewZValue(0, t.entityelement[t.te].ry, t.tz_f) * 2;
+				//t.tx_f = -NewXValue(0, t.entityelement[t.te].ry, t.tx_f) * 2;
+				//t.tz_f = -NewZValue(0, t.entityelement[t.te].ry, t.tz_f) * 2;
+				int tentityattachmentindex = t.tattachedobj - g.entityattachmentsoffset;
+				int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
+				if (ObjectExist(iDebugFirespotObj) == 1)
+				{
+					t.tx_f = LimbPositionX(iDebugFirespotObj, 0);
+					t.ty_f = LimbPositionY(iDebugFirespotObj, 0);
+					t.tz_f = LimbPositionZ(iDebugFirespotObj, 0);
+					t.tokay = 1;
+				}
 			}
 			else
 			{
-				t.tx_f = 0;
-				t.ty_f = 0;
-				t.tz_f = 0;
+				t.tx_f = LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb);
+				t.ty_f = LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb);
+				t.tz_f = LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb);
+				t.tokay = 1;
 			}
-			t.tx_f += LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb);
-			t.ty_f += LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb);
-			t.tz_f += LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb);
-			t.tokay = 1;
 		}
 		if (t.tokay == 0)
 		{
@@ -2421,30 +2466,7 @@ void darkai_shooteffect (void)
 			entity_applydamage ();
 
 			// create either material decal specified in FPE or blood decal
-			if (t.entityelement[ee].health > 10)
-			{
-				int entid = t.entityelement[ee].bankindex;
-				t.tttriggerdecalimpact = 2;
-				if (t.entityprofile[entid].bloodscorch == 0)
-				{
-					if (t.entityprofile[entid].decalmax > 0 && t.entitydecal[entid][0] > 0)
-					{
-						t.tttriggerdecalimpact = 1;
-						t.decalglobal.impactid = t.entitydecal[entid][0];
-					}
-				}
-				float fTorseAreaX = t.entityelement[ee].x;
-				float fTorseAreaY = t.entityelement[ee].y+50;
-				float fTorseAreaZ = t.entityelement[ee].z;
-				int torselimbindex = t.entityprofile[entid].spine2;
-				if (torselimbindex > 0)
-				{
-					fTorseAreaX = LimbPositionX(t.entityelement[ee].obj, torselimbindex);
-					fTorseAreaY = LimbPositionY(t.entityelement[ee].obj, torselimbindex);
-					fTorseAreaZ = LimbPositionZ(t.entityelement[ee].obj, torselimbindex);
-				}
-				entity_triggerdecalatimpact (fTorseAreaX, fTorseAreaY, fTorseAreaZ);
-			}
+			entity_applydecalfordamage(ee);
 		}
 		else
 		{

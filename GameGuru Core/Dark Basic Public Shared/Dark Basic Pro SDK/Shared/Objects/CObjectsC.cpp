@@ -7640,6 +7640,33 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			// only objects within given range (to exclude weapon HUDs)
 			if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
 			{
+				// if hit the caster (ignored obj), move start along ray to avoid this accidental collision
+				if (dwObjectNumberHit == iIgnoreObjNo)
+				{
+					GGVECTOR3 vecDiff = vecDir;
+					vecDiff /= fDistanceOfRay;
+					// try five times (50 units outward)
+					int iTries = 5;
+					while (iTries > 0)
+					{
+						vecFrom += vecDiff * 10.0f;
+						vecDir -= vecDiff * 10.0f;
+						dwObjectNumberHit = 0;
+						if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
+						{
+							// did we hit an object
+							if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
+							{
+								if (dwObjectNumberHit != iIgnoreObjNo)
+								{
+									// found a non-ignored hit, we can leave!
+									break;
+								}
+							}
+						}
+						iTries--;
+					}
+				}
 				iHitValue = dwObjectNumberHit; // ray hit object!
 			}
 			else
@@ -7672,6 +7699,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 		if (pGunObject) WickedCall_SetObjectRenderLayer(pGunObject, GGRENDERLAYERS_NORMAL);
 	}
 
+	/* funda problem here, may be able to resurrect one day for even faster ray casting using the physics landscape!
 	// if using quick method instead (or if above returned zero, need to double check with physics ray as can detect player capsule for blocking)
 	if (iStaticOnly == 2 ) // hmm seems this blocks keys from being detected inside objects that use BOX physics collision - like keys - so no go! || iHitValue == 0)
 	{
@@ -7686,6 +7714,36 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			int iObjectNumberHit = ODEGetRayObjectHit();
 			if (iObjectNumberHit >= iPrimaryStart && iObjectNumberHit <= iPrimaryEnd)
 			{
+				// if hit the caster (ignored obj), move start along ray to avoid this accidental collision
+				if (iObjectNumberHit == iIgnoreObjNo)
+				{
+					GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
+					GGVECTOR3 vecTo = GGVECTOR3(fNewX, fNewY, fNewZ);
+					GGVECTOR3 vecDiff = vecTo - vecFrom;
+					float fDistance = GGVec3LengthSq(&vecDiff);
+					vecDiff /= fDistance;
+					// try five times (50 units outward)
+					int iTries = 5;
+					while (iTries > 0)
+					{
+						vecFrom += vecDiff * 10.0f;
+						if (ODERay (vecFrom.x, vecFrom.y, vecFrom.z, fNewX, fNewY, fNewZ, iCollisionMode) == 1)
+						{
+							// did we hit an object
+							extern int ODEGetRayObjectHit();
+							int iObjectNumberHit = ODEGetRayObjectHit();
+							if (iObjectNumberHit >= iPrimaryStart && iObjectNumberHit <= iPrimaryEnd)
+							{
+								if (iObjectNumberHit != iIgnoreObjNo)
+								{
+									// found a non-ignored hit, we can leave!
+									break;
+								}
+							}
+						}
+						iTries--;
+					}
+				}
 				iHitValue = iObjectNumberHit; // ray hit object!
 			}
 			else
@@ -7712,6 +7770,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			g_pGlob->checklist[6].fvaluec = ODEGetRayNormalZ();
 		}
 	}
+	*/
 
 	// store in database if using this mode
 	if (iIndexInIntersectDatabase > 0)

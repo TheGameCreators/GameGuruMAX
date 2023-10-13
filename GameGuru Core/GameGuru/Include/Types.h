@@ -7797,6 +7797,7 @@ struct guntype
 	int obj;
 	int secondobj;
 	cstr name_s;
+	cstr pathtostockentity_s;
 	cstr path_s;
 	cstr projectile_s;
 	int projectileframe;
@@ -7859,6 +7860,9 @@ struct guntype
 	float weaponrotx_f;
 	float weaponroty_f;
 	float weaponrotz_f;
+	float firespotx_f;
+	float firespoty_f;
+	float firespotz_f;
 	int alwaysshowenemyweapon;
 	cstr animsetoverride;
 	int storeammo;
@@ -7879,6 +7883,9 @@ struct guntype
 		 weaponrotx_f = 0.0f;
 		 weaponroty_f = 0.0f;
 		 weaponrotz_f = 0.0f;
+		 firespotx_f = 0.0f;
+		 firespoty_f = 0.0f;
+		 firespotz_f = 0.0f;
 		 handusesnewweaponsystem = 0;
 		 handscale_f = 100.0f;
 		 handposx_f = 0.0f;

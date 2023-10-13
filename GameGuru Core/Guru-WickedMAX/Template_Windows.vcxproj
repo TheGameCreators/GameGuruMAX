@@ -242,7 +242,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Release\;../Guru-WickedMAX/$(Platform)/Release;../Dark Basic Public Shared/Lib64/Release;../Dark Wicked Shared/Lib64/;$(VULKAN_SDK)/Lib;../SDK/RecastContrib/SDL/lib/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>shcore.lib;openxr_loader.lib;steam_api64.lib;DirectXTex.lib;D3D11.lib;D3DX11.lib;DXGI.lib;D3DCompiler.lib;DBDLLCore.lib;Enhancements.lib;InfiniteVegetation.lib;DarkLua.lib;CPU3D.lib;DarkAI.lib;Psapi.lib;system.lib;Text.lib;input.lib;Bullet.lib;setup.lib;animation.lib;Basic3D.lib;ftp.lib;memblocks.lib;file.lib;$(ProjectDir)..\Dark Basic Public Shared\Dark Basic Pro SDK\Shared\BaseClasses\strmbase.lib;winmm.lib;odbc32.lib;odbccp32.lib;bitmap.lib;basic2d.lib;strmiids.lib;quartz.lib;msacm32.lib;ogg_static.lib;vorbis_static.lib;vorbisfile_static.lib;Sound.lib;ConvX.lib;Light.lib;Sprites.lib;Vectors.lib;Image.lib;Setup.lib;Camera.lib;Version.lib;dxguid.lib;PhotonMultiplayer.lib;Common-cpp_vc14_release_windows_mt_x64.lib;LoadBalancing-cpp_vc14_release_windows_mt_x64.lib;Photon-cpp_vc14_release_windows_mt_x64.lib;mf.lib;mfplat.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\SMALLTESTMAP\SMALLTESTMAP.exe</OutputFile>
+      <OutputFile>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\Canyon Offensive\Canyon Offensive.exe</OutputFile>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
       <GenerateMapFile>true</GenerateMapFile>

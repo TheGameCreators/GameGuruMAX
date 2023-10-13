@@ -2511,7 +2511,7 @@ luaMessage** ppLuaMessages = NULL;
 	 }
 	 lua_pushinteger (L, (int)fFoundStart);
 	 lua_pushinteger (L, (int)fFoundFinish);
-	 return 1;
+	 return 2;
  }
 
  // Entity creation and destruction
@@ -2546,6 +2546,64 @@ luaMessage** ppLuaMessages = NULL;
 	 }
  }
 
+ int SpawnNewEntityCore(int iEntityIndex)
+ {
+	 int iNewE = -1;
+	 t.bSpawnCalledFromLua = true;
+	 int storee = t.e;
+	 int storeentid = t.entid;
+	 int entid = t.entityelement[iEntityIndex].bankindex;
+	 t.gridentity = entid;
+	 t.gridentityeditorfixed = 0;
+	 t.gridentitystaticmode = t.entityelement[iEntityIndex].staticflag;
+	 t.gridentityposx_f = t.entityelement[iEntityIndex].x;
+	 t.gridentityposy_f = t.entityelement[iEntityIndex].y;
+	 t.gridentityposz_f = t.entityelement[iEntityIndex].z;
+	 t.gridentityrotatex_f = t.entityelement[iEntityIndex].rx;
+	 t.gridentityrotatey_f = t.entityelement[iEntityIndex].ry;
+	 t.gridentityrotatez_f = t.entityelement[iEntityIndex].rz;
+	 t.gridentityrotatequatmode = t.entityelement[iEntityIndex].quatmode;
+	 t.gridentityrotatequatx_f = t.entityelement[iEntityIndex].quatx;
+	 t.gridentityrotatequaty_f = t.entityelement[iEntityIndex].quaty;
+	 t.gridentityrotatequatz_f = t.entityelement[iEntityIndex].quatz;
+	 t.gridentityrotatequatw_f = t.entityelement[iEntityIndex].quatw;
+	 t.gridentityscalex_f = ObjectScaleX(t.entityelement[iEntityIndex].obj);
+	 t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
+	 t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
+	 t.entid = entid; entity_fillgrideleproffromprofile();
+	 //LB: an copy over material changes from the cloned entiy element
+	 t.grideleprof.WEMaterial = t.entityelement[iEntityIndex].eleprof.WEMaterial;
+	 entity_addentitytomap ();
+	 t.e = t.tupdatee;
+	 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
+	 t.entityelement[t.e].scalex = t.entityelement[iEntityIndex].scalex;
+	 t.entityelement[t.e].scaley = t.entityelement[iEntityIndex].scaley;
+	 t.entityelement[t.e].scalez = t.entityelement[iEntityIndex].scalez;
+	 t.entityelement[t.e].soundset = t.entityelement[iEntityIndex].soundset;
+	 t.entityelement[t.e].soundset1 = t.entityelement[iEntityIndex].soundset1;
+	 t.entityelement[t.e].soundset2 = t.entityelement[iEntityIndex].soundset2;
+	 t.entityelement[t.e].soundset3 = t.entityelement[iEntityIndex].soundset3;
+	 t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
+	 t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
+	 t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
+	 // clones always show at start
+	 t.entityelement[t.e].eleprof.spawnatstart = 1;
+	 iNewE = t.e;
+	 physics_prepareentityforphysics ();
+	 t.entityelement[t.e].lua.firsttime = 0;
+	 // clones need parent health at least top begin with
+	 t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;
+	 // special limbo mode to skip activating this entity until next lua_begin cycle
+	 t.entityelement[iNewE].active = 0;
+	 t.entityelement[iNewE].lua.flagschanged = 123;
+	 t.entityelement[iNewE].iWasSpawnedInGame = 1;
+	 t.e = storee;
+	 t.entid = storeentid;
+	 t.gridentity = 0;
+	 t.bSpawnCalledFromLua = false;
+	 return iNewE;
+ }
+
  int SpawnNewEntity(lua_State* L)
  {
 	 lua = L;
@@ -2555,58 +2613,7 @@ luaMessage** ppLuaMessages = NULL;
 	 int iEntityIndex = lua_tonumber(L, 1);
 	 if (iEntityIndex > 0)
 	 {
-		 t.bSpawnCalledFromLua = true;
-		 int storee = t.e;
-		 int storeentid = t.entid;
-		 int entid = t.entityelement[iEntityIndex].bankindex;
-		 t.gridentity = entid;
-		 t.gridentityeditorfixed = 0;
-		 t.gridentitystaticmode = t.entityelement[iEntityIndex].staticflag;
-		 t.gridentityposx_f = t.entityelement[iEntityIndex].x;
-		 t.gridentityposy_f = t.entityelement[iEntityIndex].y;
-		 t.gridentityposz_f = t.entityelement[iEntityIndex].z;
-		 t.gridentityrotatex_f = t.entityelement[iEntityIndex].rx;
-		 t.gridentityrotatey_f = t.entityelement[iEntityIndex].ry;
-		 t.gridentityrotatez_f = t.entityelement[iEntityIndex].rz;
-		 t.gridentityrotatequatmode = t.entityelement[iEntityIndex].quatmode;
-		 t.gridentityrotatequatx_f = t.entityelement[iEntityIndex].quatx;
-		 t.gridentityrotatequaty_f = t.entityelement[iEntityIndex].quaty;
-		 t.gridentityrotatequatz_f = t.entityelement[iEntityIndex].quatz;
-		 t.gridentityrotatequatw_f = t.entityelement[iEntityIndex].quatw;
-		 t.gridentityscalex_f = ObjectScaleX(t.entityelement[iEntityIndex].obj);
-		 t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
-		 t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
-		 t.entid = entid; entity_fillgrideleproffromprofile();
-		 //LB: an copy over material changes from the cloned entiy element
-		 t.grideleprof.WEMaterial = t.entityelement[iEntityIndex].eleprof.WEMaterial;
-		 entity_addentitytomap ();
-		 t.e = t.tupdatee;
-		 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
-		 t.entityelement[t.e].scalex = t.entityelement[iEntityIndex].scalex;
-		 t.entityelement[t.e].scaley = t.entityelement[iEntityIndex].scaley;
-		 t.entityelement[t.e].scalez = t.entityelement[iEntityIndex].scalez;
-		 t.entityelement[t.e].soundset = t.entityelement[iEntityIndex].soundset;
-		 t.entityelement[t.e].soundset1 = t.entityelement[iEntityIndex].soundset1;
-		 t.entityelement[t.e].soundset2 = t.entityelement[iEntityIndex].soundset2;
-		 t.entityelement[t.e].soundset3 = t.entityelement[iEntityIndex].soundset3;
-		 t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
-		 t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
-		 t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
-		 // clones always show at start
-		 t.entityelement[t.e].eleprof.spawnatstart = 1;
-		 iNewE = t.e;
-		 physics_prepareentityforphysics ();
-		 t.entityelement[t.e].lua.firsttime = 0;
-		 // clones need parent health at least top begin with
-		 t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;
-		 // special limbo mode to skip activating this entity until next lua_begin cycle
-		 t.entityelement[iNewE].active = 0;
-		 t.entityelement[iNewE].lua.flagschanged = 123;
-		 t.entityelement[iNewE].iWasSpawnedInGame = 1;
-		 t.e = storee;
-		 t.entid = storeentid;
-		 t.gridentity = 0;
-		 t.bSpawnCalledFromLua = false;
+		 iNewE = SpawnNewEntityCore(iEntityIndex);
 	 }
 	 lua_pushinteger (L, iNewE);
 	 return 1;
@@ -3472,15 +3479,22 @@ int SetEntityAttachmentVisibility (lua_State *L, bool bVisible)
 		if (iGunID > 0)
 		{
 			if (t.gun[iGunID].alwaysshowenemyweapon == 1) bVisible = true;
-			int obj = t.entityelement[e].attachmentobj;
+			int obj = t.entityelement[e].obj;
 			if (obj > 0)
 			{
-				if (ObjectExist(obj) == 1)
+				if (ObjectExist(obj) == 1 && GetVisible(obj) == 1)
 				{
-					if (bVisible == true)
-						ShowObject(obj);
-					else
-						HideObject(obj);
+					int attachobj = t.entityelement[e].attachmentobj;
+					if (attachobj > 0)
+					{
+						if (ObjectExist(attachobj) == 1)
+						{
+							if (bVisible == true)
+								ShowObject(attachobj);
+							else
+								HideObject(attachobj);
+						}
+					}
 				}
 			}
 		}
@@ -6704,7 +6718,7 @@ int DisplayScreen(lua_State* L)
 int DisplayCurrentScreen(lua_State* L)
 {
 	int screen_editor(int nodeid, bool standalone = false, char* screen = NULL);
-	if (t.game.activeStoryboardScreen >= 0)
+	if (t.game.activeStoryboardScreen >= 0) 
 	{
 		screen_editor(t.game.activeStoryboardScreen, true);
 	}

@@ -2120,6 +2120,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("editors\\gfx\\dummy.png");
 	addtocollection("editors\\keymap\\default.ini");
 	addtocollection("editors\\keymap\\weaponslots.dat");
+	addtocollection("editors\\templates\\ScreenEditor\\project.dat");
 	addtocollection("scriptbank\\gameloop.lua");
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\gameplayerhealth.lua");

@@ -4487,6 +4487,7 @@ void physics_player_addweapon ( void )
 					if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
 				}
 				iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
+				if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
 				if (t.altpool == 0)
 				{
 					t.weaponclipammo[t.gotweapon + 10] = t.weaponclipammo[t.gotweapon + 10] + t.taltqty;

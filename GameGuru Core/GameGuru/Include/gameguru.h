@@ -264,6 +264,7 @@ struct Sglobals
 	float editorresourcecounter_f;
 	int editorwaypointoffsetmax;
 	int entityattachmentsoffset;
+	int entityattachments2offset;
 	int fragmentobjectoffsetmax;
 	DWORD gamememactualprompttime;
 	int globalselectedshadermax;
@@ -2128,6 +2129,7 @@ struct Sglobals
 		 gamememactualprompttime = 0;
 		 fragmentobjectoffsetmax = 0;
 		 entityattachmentsoffset = 0;
+		 entityattachments2offset = 0;
 		 editorwaypointoffsetmax = 0;
 		 editorresourcecounter_f = 0.0f;
 		 csi_unarmedmoveforeANIM = 0;

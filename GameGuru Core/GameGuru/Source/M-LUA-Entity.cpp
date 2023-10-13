@@ -1610,13 +1610,7 @@ void entity_lua_resetpositionx ( void )
 	entity_lua_findcharanimstate ( );
 	if ( t.tcharanimindex != -1 ) 
 	{
-		//t.i = t.charanimstates[g.charanimindex].obj;
 		t.i = t.charanimstates[t.tcharanimindex].obj;
-#ifdef WICKEDENGINE
-		// MAX has no AI subsystem
-#else
-		AISetEntityPosition ( t.i, t.v_f, ObjectPositionY(t.tobj), ObjectPositionZ(t.tobj) );
-#endif
 	}
 }
 
@@ -2226,8 +2220,9 @@ void entity_lua_setanimationspeed ( void )
 // g_bForceRagdoll when calling 'entity_applydamage'
 bool g_bForceRagdoll = false;
 
-void entity_lua_setentityhealth_core ( int iSilent )
+void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 {
+	// iSilentOrDamage  0 : none, 1 : silent, 2 : damage
 	#ifdef WICKEDENGINE
 	if (t.v == -12345)
 	{
@@ -2237,7 +2232,7 @@ void entity_lua_setentityhealth_core ( int iSilent )
 	}
 	#endif
 	// if new health is zero, apply damage to entity directly
-	if ( t.v <= 0 && iSilent == 0 ) 
+	if ( t.v <= 0 && iSilentOrDamage == 0 )
 	{
 		//  set an entities health
 		if ( t.entityelement[t.e].briefimmunity == 0 )
@@ -2277,8 +2272,28 @@ void entity_lua_setentityhealth_core ( int iSilent )
 		}
 		else
 		{
-			if (iSilent == 1 && t.v == 0) t.entityelement[t.e].briefimmunity = 0;
-			t.entityelement[t.e].health = t.v;
+			if (iSilentOrDamage == 2)
+			{
+				t.ttte = t.e;
+				t.tdamage = t.entityelement[t.e].health - t.v;
+				t.tdamageforce = 0.0f;
+				t.tdamagesource = 0;
+				t.brayx1_f = t.entityelement[t.e].x;
+				t.brayx2_f = t.entityelement[t.e].x;
+				t.brayy1_f = t.entityelement[t.e].y;
+				t.brayy2_f = t.entityelement[t.e].y;
+				t.brayz1_f = t.entityelement[t.e].z;
+				t.brayz2_f = t.entityelement[t.e].z;
+				t.tallowanykindofdamage = 1;
+				entity_applydamage ();
+				entity_applydecalfordamage(t.e);
+				t.tallowanykindofdamage = 0;
+			}
+			else
+			{
+				if (iSilentOrDamage == 1 && t.v == 0) t.entityelement[t.e].briefimmunity = 0;
+				t.entityelement[t.e].health = t.v;
+			}
 		}
 	}
 	// and restore before leave
@@ -2291,6 +2306,10 @@ void entity_lua_setentityhealth ( )
 void entity_lua_setentityhealthsilent ( )
 {
 	entity_lua_setentityhealth_core ( 1 );
+}
+void entity_lua_setentityhealthwithdamage ()
+{
+	entity_lua_setentityhealth_core (2);
 }
 
 void entity_lua_setforcex ( void )

@@ -4335,18 +4335,6 @@ bool importer_apply_materialformesh(MaterialComponentTEXTURESLOT eMatSlot, int i
 LPSTR animsystem_getweapontype (LPSTR pSelectedWeapon, LPSTR pAnimSetOverride)
 {
 	LPSTR pWeaponType = "-melee";//""; no weapon MUST be melee!!
-	/* hard coding removed and moved to gunspec as "animsetoverride	= -xxxx"
-	if (stricmp(pSelectedWeapon, "enhanced\\Gloves_Unarmed") == NULL) pWeaponType = "-melee";//pWeaponType = "";
-	if (stricmp(pSelectedWeapon, "enhanced\\B810") == NULL) pWeaponType = "-melee";//pWeaponType = "";
-	if (stricmp(pSelectedWeapon, "enhanced\\SledgeHammer") == NULL) pWeaponType = "-melee";//pWeaponType = "";
-	if (stricmp(pSelectedWeapon, "enhanced\\Mk19T") == NULL) pWeaponType = ""; //pistol
-	if (stricmp(pSelectedWeapon, "enhanced\\M29S") == NULL) pWeaponType = ""; //pistol
-	if (stricmp(pSelectedWeapon, "enhanced\\AK") == NULL) pWeaponType = "-rifle";
-	if (stricmp(pSelectedWeapon, "enhanced\\AR") == NULL) pWeaponType = "-rifle";
-	if (stricmp(pSelectedWeapon, "enhanced\\Mk18") == NULL) pWeaponType = "-rifle";
-	if (stricmp(pSelectedWeapon, "enhanced\\R870") == NULL) pWeaponType = "-rifle";
-	*/
-
 	// can override from gunspec file now
 	if (strlen(pAnimSetOverride) > 0)
 	{

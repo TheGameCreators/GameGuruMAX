@@ -2946,14 +2946,6 @@ void entity_applydamage ( void )
 	if ( ObjectExist ( t.entityelement[t.ttte].obj ) == 0 ) return;
 
 	int iHealthBefore = t.entityelement[t.ttte].health;
-	#ifdef WICKEDENGINE
-	// wicked allows wicked amounts of damage ;)
-	#else
-	#ifdef VRTECH
-	// 090419 - special VR mode also disables concepts of being damaged
-	if ( g.vrqcontrolmode != 0 ) return;//g.gvrmode == 3 ) return;
-	#endif
-	#endif
 
 	//  if entity being damaged is protagonist
 	if (  t.tskiplayerautoreject == 0 ) 
@@ -3477,6 +3469,35 @@ void entity_applydamage ( void )
 			t.entityelement[t.ttte].ragdollifiedforcelimb=t.bulletraylimbhit;
 			t.bulletraylimbhit=-1;
 		}
+	}
+}
+
+void entity_applydecalfordamage ( int ee )
+{
+	// create either material decal specified in FPE or blood decal
+	if (t.entityelement[ee].health > 10)
+	{
+		int entid = t.entityelement[ee].bankindex;
+		t.tttriggerdecalimpact = 2;
+		if (t.entityprofile[entid].bloodscorch == 0)
+		{
+			if (t.entityprofile[entid].decalmax > 0 && t.entitydecal[entid][0] > 0)
+			{
+				t.tttriggerdecalimpact = 1;
+				t.decalglobal.impactid = t.entitydecal[entid][0];
+			}
+		}
+		float fTorseAreaX = t.entityelement[ee].x;
+		float fTorseAreaY = t.entityelement[ee].y + 50;
+		float fTorseAreaZ = t.entityelement[ee].z;
+		int torselimbindex = t.entityprofile[entid].spine2;
+		if (torselimbindex > 0)
+		{
+			fTorseAreaX = LimbPositionX(t.entityelement[ee].obj, torselimbindex);
+			fTorseAreaY = LimbPositionY(t.entityelement[ee].obj, torselimbindex);
+			fTorseAreaZ = LimbPositionZ(t.entityelement[ee].obj, torselimbindex);
+		}
+		entity_triggerdecalatimpact (fTorseAreaX, fTorseAreaY, fTorseAreaZ);
 	}
 }
 
@@ -4125,14 +4146,17 @@ void entity_createattachment ( void )
 										float fMuzzleOffsetX = LimbPositionX(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
 										float fMuzzleOffsetY = LimbPositionY(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
 										float fMuzzleOffsetZ = LimbPositionZ(t.ttobj, t.entityelement[t.e].attachmentobjfirespotlimb);
-										t.entityelement[t.e].attachmentobjfirespotlimb = -1;
 										t.entityelement[t.e].fFirespotOffsetX = fMuzzleOffsetX;
 										t.entityelement[t.e].fFirespotOffsetY = fMuzzleOffsetY;
 										t.entityelement[t.e].fFirespotOffsetZ = fMuzzleOffsetZ;
+										t.entityelement[t.e].attachmentobjfirespotlimb = -1;
 									}
 									else
 									{
 										// else we assume a muzzle flasg ahead of WRIST of weapon (can later add some length to this in gunspec)
+										t.entityelement[t.e].fFirespotOffsetX = -t.gun[iGunID].firespotx_f;
+										t.entityelement[t.e].fFirespotOffsetY = t.gun[iGunID].firespoty_f;
+										t.entityelement[t.e].fFirespotOffsetZ = -t.gun[iGunID].firespotz_f;
 									}
 
 									// modify so weapon fits better in hands
@@ -4154,8 +4178,40 @@ void entity_createattachment ( void )
 										RollObjectRight(t.ttobj, t.gun[iGunID].handrotz_f);
 										MakeMeshFromObject(g.meshgeneralwork2, t.ttobj, 11); // account for WorldPos in transforming the mesh
 									}
+
+									// remove complex weapon
 									DeleteObject(t.ttobj);
+
+									// make simpler single mesh weapon
 									MakeObject(t.ttobj, g.meshgeneralwork2, 0);
+
+									// make a firespot debug object
+									int iDebugFirespotObj = g.entityattachments2offset + g.entityattachmentindex;
+									if (ObjectExist(iDebugFirespotObj) == 1) DeleteObject(iDebugFirespotObj);
+									MakeObjectCube(iDebugFirespotObj, 5);
+									if (t.gun[iGunID].handusesnewweaponsystem == 1)
+									{
+										TurnObjectRight(iDebugFirespotObj, t.gun[iGunID].handrotx_f);
+										RollObjectRight(iDebugFirespotObj, t.gun[iGunID].handroty_f);
+										PitchObjectDown(iDebugFirespotObj, t.gun[iGunID].handrotz_f);
+									}
+									else
+									{
+										PositionObject (iDebugFirespotObj, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+										TurnObjectRight(iDebugFirespotObj, t.gun[iGunID].handroty_f);
+										PitchObjectDown(iDebugFirespotObj, t.gun[iGunID].handrotx_f);
+										RollObjectRight(iDebugFirespotObj, t.gun[iGunID].handrotz_f);
+									}
+									float fFirespotShiftX = t.entityelement[t.e].fFirespotOffsetX;
+									float fFirespotShiftY = t.entityelement[t.e].fFirespotOffsetY;
+									float fFirespotShiftZ = t.entityelement[t.e].fFirespotOffsetZ;
+									MoveObjectRight(iDebugFirespotObj, fFirespotShiftX);
+									MoveObjectUp(iDebugFirespotObj, fFirespotShiftY);
+									MoveObject(iDebugFirespotObj, fFirespotShiftZ);
+									GlueObjectToLimb(iDebugFirespotObj, t.ttobj, 0);
+									sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
+									WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_CURSOROBJECT);
+									HideObject(iDebugFirespotObj);
 								}
 								else
 								{
@@ -4311,10 +4367,103 @@ void entity_monitorattachments ( void )
 		t.tobj=t.entityelement[t.e].attachmentobj;
 		if ( t.tobj>0 ) 
 		{
-			if ( ObjectExist(t.tobj) == 1 && GetVisible(t.tobj) == 1 ) 
+			if ( ObjectExist(t.tobj) == 1 ) 
 			{
 				if ( t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.cantakeweapon != 0 ) 
 				{
+					if (GetVisible(t.tobj) == 1)
+					{
+						// new system spawns weapon object so can be treated like a loot drop
+						int iStoree = t.e;
+						int iAttachmentObj = t.tobj;
+						int iWeaponEntityID = 0;
+						t.weaponindex = t.entityelement[t.e].eleprof.hasweapon;
+						if (t.weaponindex > 0)
+						{
+							for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
+							{
+								int iEntID = t.entityelement[iWE].bankindex;
+								if (iEntID > 0)
+								{
+									if (t.entityprofile[iEntID].isweapon == t.weaponindex)
+									{
+										iWeaponEntityID = iWE;
+										break;
+									}
+								}
+							}
+						}
+						if (iWeaponEntityID > 0)
+						{
+							extern int SpawnNewEntityCore(int iEntityIndex);
+							int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
+							t.entityelement[iNewEntID].x = ObjectPositionX(iAttachmentObj);
+							t.entityelement[iNewEntID].y = ObjectPositionY(iAttachmentObj);
+							t.entityelement[iNewEntID].z = ObjectPositionZ(iAttachmentObj);
+							//extern float GetLUATerrainHeightEx (float fX, float fZ); done below in entity_updatepos
+							//t.entityelement[iNewEntID].y = GetLUATerrainHeightEx(t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].z);
+							int tobj = t.entityelement[iNewEntID].obj;
+							sObject* pNewObject = g_ObjectList[tobj];
+							t.entityelement[iNewEntID].y += 1 + fabs(pNewObject->collision.vecCentre.y);
+							t.entityelement[iNewEntID].rx = t.entityelement[t.e].rx;
+							t.entityelement[iNewEntID].ry = t.entityelement[t.e].ry + Rnd(359);
+							t.entityelement[iNewEntID].rz = t.entityelement[t.e].rz;
+							if (t.entityelement[iNewEntID].usingphysicsnow == 1)
+							{
+								ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+								PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+								ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+								RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+							}
+							else
+							{
+								t.te = iNewEntID; t.tv_f = 0;// t.v_f;
+								g.charanimindex = 0;
+								entity_updatepos ();
+								entity_lua_rotateupdate ();
+							}
+							t.entityelement[t.e].eleprof.cantakeweapon = 100 + iNewEntID;
+							t.e = iNewEntID;
+							entity_lua_collisionon();
+							entity_lua_show();
+						}
+						t.e = iStoree;
+						t.tobj = iAttachmentObj;
+
+						// hide attachment from level
+						HideObject (iAttachmentObj);
+					}
+					else
+					{
+						// after spawn, sync collectable object with dropped attachment
+						if (t.entityelement[t.e].eleprof.cantakeweapon > 100)
+						{
+							int iNewEntID = t.entityelement[t.e].eleprof.cantakeweapon - 100;
+							if (t.entityelement[iNewEntID].collected == 0)
+							{
+								int tobj = t.entityelement[iNewEntID].obj;
+								if (tobj > 0)
+								{
+									if (ObjectExist(tobj) == 1)
+									{
+										t.entityelement[iNewEntID].x = ObjectPositionX(t.tobj);
+										t.entityelement[iNewEntID].y = ObjectPositionY(t.tobj);
+										t.entityelement[iNewEntID].z = ObjectPositionZ(t.tobj);
+										t.entityelement[iNewEntID].rx = ObjectAngleX(t.tobj);
+										t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
+										t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
+										ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+										PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+										ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+										RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+										ShowObject(tobj);
+									}
+								}
+							}
+						}
+					}
+
+					/* old system added weapon directly
 					t.txDist_f = CameraPositionX(0) - ObjectPositionX(t.tobj);
 					t.tyDist_f = CameraPositionY(0) - ObjectPositionY(t.tobj);
 					t.tzDist_f = CameraPositionZ(0) - ObjectPositionZ(t.tobj);
@@ -4337,7 +4486,7 @@ void entity_monitorattachments ( void )
 								if ( JoystickFireD() == 1 )  
 									iPressedE = 1;
 							}
-							if (  t.gotweapon == 0 && iPressedE == 0 ) 
+							if ( t.gotweapon == 0 && iPressedE == 0 ) 
 							{
 								//  prompt user to press E
 								t.luaglobal.scriptprompttime=Timer()+200;
@@ -4358,6 +4507,7 @@ void entity_monitorattachments ( void )
 							}
 						}
 					}
+					*/
 				}
 			}
 		}

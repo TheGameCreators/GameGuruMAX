@@ -1542,6 +1542,7 @@ void lua_loop_finish (void)
 			else if (iLen == 24 && strcmp(t.luaaction_s.Get(), "setpostvignetteintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostvignetteintensity(); }
 			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "setpostlensflareintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlensflareintensity(); }
 			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "transporttofreezeposition") == 0) { t.v = LuaMessageInt(); lua_transporttofreezeposition(); }
+			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "setentityhealthwithdamage") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealthwithdamage(); }
 			else if (iLen == 27 && strcmp(t.luaaction_s.Get(), "setpostdepthoffielddistance") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffielddistance(); }
 			else if (iLen == 28 && strcmp(t.luaaction_s.Get(), "setpostdepthoffieldintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffieldintensity(); }
 		}

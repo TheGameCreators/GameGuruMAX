@@ -194,6 +194,10 @@ void gun_loaddata ( void )
 					while( index2 < 32 ) t_field_s[ index2++ ] = 0;
 					bool matched = false;
 
+					// Path to real entity representing gun
+					cmpStrConst(t_field_s, "pathtostockentity");
+					if (matched) t.gun[t.gunid].pathtostockentity_s = t.value_s;		
+
 					//  Gun basic settings			
 					cmpStrConst(t_field_s, "animsetoverride");
 					if (matched) t.gun[t.gunid].animsetoverride = t.value_s;
@@ -263,6 +267,13 @@ void gun_loaddata ( void )
 					if (matched)  t.gun[t.gunid].weaponroty_f = t.value1;
 					cmpStrConst(t_field_s, "weaponrotz");
 					if (matched)  t.gun[t.gunid].weaponrotz_f = t.value1;
+
+					cmpStrConst(t_field_s, "firespotposx");
+					if (matched)  t.gun[t.gunid].firespotx_f = t.value1;
+					cmpStrConst(t_field_s, "firespotposy");
+					if (matched)  t.gun[t.gunid].firespoty_f = t.value1;
+					cmpStrConst(t_field_s, "firespotposz");
+					if (matched)  t.gun[t.gunid].firespotz_f = t.value1;			
 
 					cmpStrConst( t_field_s, "block" );
 					if( matched )
@@ -1938,6 +1949,32 @@ void gun_scaninall_ref ( void )
 
 	//  Now sort the gun list into alphabetical order (MP needs gunid identical on each PC)
 	gun_sortintoorder ( );
+
+	// and as there is no connection back to entity that links to guns (and we need it for collection filling)
+	// create a database here of known stock weapons
+	for (int gunid = 1; gunid <= g.gunmax; gunid++)
+	{
+		LPSTR pGunName = t.gun[gunid].name_s.Get();
+		if (t.gun[gunid].pathtostockentity_s.Len() == 0)
+		{
+			cstr MCW = "Max Collection\\Weapons\\";
+			if (stricmp (pGunName, "enhanced\\AK") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Assault Rifle.fpe";
+			if (stricmp (pGunName, "enhanced\\MK18") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Compact Assault Rifle.fpe";
+			if (stricmp (pGunName, "enhanced\\M67") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Frag Grenade.fpe";
+			if (stricmp (pGunName, "enhanced\\MK19T") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Magnum Pistol.fpe";
+			if (stricmp (pGunName, "enhanced\\AR") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Patrol Rifle.fpe";
+			if (stricmp (pGunName, "enhanced\\B810") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Pocket Knife.fpe";
+			if (stricmp (pGunName, "enhanced\\SledgeHammer") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Sledgehammer.fpe";
+			if (stricmp (pGunName, "enhanced\\M29S") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Snubnose Revolver.fpe";
+			if (stricmp (pGunName, "enhanced\\R870") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Tactical Pump Shotgun.fpe";
+			if (stricmp (pGunName, "max\\colt") == NULL) t.gun[gunid].pathtostockentity_s = MCW + "Colt Pistol.fpe";
+			cstr AGK = "Aztec Game Kit\\Weapons\\";
+			if (stricmp (pGunName, "aztec\\AztecAxe") == NULL) t.gun[gunid].pathtostockentity_s = AGK + "Aztec Axe.fpe";
+			if (stricmp (pGunName, "aztec\\AztecDagger") == NULL) t.gun[gunid].pathtostockentity_s = AGK + "Aztec Dagger.fpe";
+			if (stricmp (pGunName, "aztec\\AztecSpear") == NULL) t.gun[gunid].pathtostockentity_s = AGK + "Aztec Spear.fpe";
+
+		}
+	}
 }
 
 void gun_sortintoorder ( void )

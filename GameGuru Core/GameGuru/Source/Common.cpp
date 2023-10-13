@@ -1069,27 +1069,19 @@ void common_init_globals ( void )
 	g.ghostcursorobjectoffset = 3497;
 	g.waypointdetectworkobject = 3498;
 	g.entityworkobjectoffset = 3499;
-	g.entityattachmentsoffset = 3500;
+	g.entityattachmentsoffset = 3500; // 3500-3999
 	g.entityattachmentindex = 0;
 	// 1000+3001/4000 - debug objects to create AI entity ghost objs
 	// 1000+3001 - debugentitymesh
 	// 1000+3002 - debugentitymesh2
 	// 1000+3003 - debugentityworkobj
 	// 1000+3004 - debugentityworkobj2
-	#ifdef WICKEDENGINE
 	g.debugraycastvisual = 4009;
 	g.debugconeofsightstart = 4010;
-	g.debugconeofsightfinish = 5996;
-	#else
-	g.debugandmiscobjects = 1000; // 1000-4100
-	// 1000+3005 - debugconeofsightobj
-	// 1000+3100 - building object
-	// 1000+4001/5000 = 5001-6000 - visual character VWEAP object
-	#endif
+	g.debugconeofsightfinish = 5396;
+	g.entityattachments2offset = 5400; // 5400-5899
 	g.hudscreen3dobjectoffset = 5997;
-	#ifdef VRTECH
 	g.video3dobjectoffset = 5998;
-	#endif
 	g.prompt3dobjectoffset = 5999;
 	g.terrainobjectoffset = 6000;
 	g.hudlayersbankoffset = 16000;

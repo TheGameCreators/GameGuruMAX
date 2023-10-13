@@ -346,7 +346,9 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 	strcpy(collectionfilename, "projectbank\\");
 	strcat(collectionfilename, name);
 	strcat(collectionfilename, "\\collection - items.tsv");
-	DeleteFileA(collectionfilename);
+	//DeleteFileA(collectionfilename);
+	GG_GetRealPath(collectionfilename, 1);
+	if (FileExist(collectionfilename) == 1) DeleteFileA(collectionfilename);
 	FILE* collectionFile = GG_fopen(collectionfilename, "w");
 	if (collectionFile)
 	{
@@ -465,7 +467,9 @@ bool save_rpg_system_quests(char* name)
 	strcpy(collectionfilename, "projectbank\\");
 	strcat(collectionfilename, name);
 	strcat(collectionfilename, "\\collection - quests.tsv");
-	DeleteFileA(collectionfilename);
+	//DeleteFileA(collectionfilename);
+	GG_GetRealPath(collectionfilename, 1);
+	if (FileExist(collectionfilename) == 1) DeleteFileA(collectionfilename);
 	FILE* collectionFile = GG_fopen(collectionfilename, "w");
 	if (collectionFile)
 	{
@@ -878,7 +882,10 @@ bool refresh_collection_from_entities(void)
 						break;
 					}
 				}
-				if ( bFoundAndAssignedE == false ) bNeedMoreEntitiesLoading = true;
+				if (bFoundAndAssignedE == false)
+				{
+					bNeedMoreEntitiesLoading = true;
+				}
 			}
 		}
 	}

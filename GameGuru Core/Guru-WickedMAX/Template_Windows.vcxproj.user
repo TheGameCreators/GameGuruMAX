@@ -16,8 +16,8 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
-    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\SMALLTESTMAP\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\Canyon Offensive\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\SMALLTESTMAP\SMALLTESTMAP.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\Canyon Offensive\Canyon Offensive.exe</LocalDebuggerCommand>
   </PropertyGroup>
 </Project>

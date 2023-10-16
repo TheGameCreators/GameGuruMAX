@@ -6,7 +6,6 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
-#ifdef ENABLEIMGUI
 //PE: GameGuru IMGUI.
 #include "..\Imgui\imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -15,14 +14,8 @@
 #include "..\Imgui\imgui_internal.h"
 #include "..\Imgui\imgui_impl_win32.h"
 #include "..\Imgui\imgui_gg_dx11.h"
-#endif
 
-#ifdef WICKEDENGINE
 #define IMPORTER_TMP_IMAGE (g.importermenuimageoffset+48)
-#else
-#define IMPORTER_TMP_IMAGE (g.importermenuimageoffset+50)
-#endif
-
 
 // Enums
 enum MaterialComponentTEXTURESLOT
@@ -52,7 +45,6 @@ char g_pShowFilenameHoveringOver[1024];
 DWORD g_dwMapImageListIndexToLimbCount = 0;
 int* g_piMapImageListIndexToLimbIndex = NULL;
 
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 extern bool bImporter_Window;
 extern bool bCenterRenderView;
 int iDelayedExecute = 0;
@@ -75,19 +67,10 @@ bool bUseRGBAButtons = false;
 bool bBatchConverting = false;
 std::vector<cstr> batchFileList;
 
-#endif
-
-#ifndef PRODUCTCLASSIC
 extern bool bBoostIconColors;
-#endif
 
-#ifdef VRTECH
 bool bRemoveSprites = true;
-#else
-bool bRemoveSprites = false;
-#endif
 
-#ifdef WICKEDENGINE
 extern bool bImGuiGotFocus;
 wiScene::MaterialComponent* pSelectedMaterial = NULL;
 sMesh * pSelectedMesh = NULL;
@@ -132,16 +115,12 @@ extern bool bInfo_Window;
 extern int iInfoUniqueId;
 
 sImportedObjectData g_Data;
-#endif
 
-#ifndef PRODUCTCLASSIC
 extern preferences pref;
-#endif
 
 // Prototypes
 void LoadFBX ( LPSTR pFilename, int iObjectNumber );
 
-#ifdef WICKEDENGINE
 void importer_init_wicked(void)
 {
 	// deactivate any modes editor may have been in
@@ -155,7 +134,6 @@ void importer_init_wicked(void)
 	t.importer.importerActive = 1;
 
 	// importer UI panel
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	bCenterRenderView = true;
 	bImporter_Window = true;
 
@@ -164,17 +142,12 @@ void importer_init_wicked(void)
 		strcpy(cImportName, "");
 		t.importer.bInvertNormalMap = false;
 	}
-	#endif
 
 	// Load the textures used for the objects.
 	image_setlegacyimageloading(false);
 	LoadImage("texturebank\\terrain grey grid_color (uncompressed).dds", g.importerextraimageoffset);
 	LoadImage("texturebank\\terrain grey grid_color (uncompressed).dds", g.importerextraimageoffset + 1);
 	LoadImage("editors\\uiv3\\CharacterRefDecal.png", g.importerextraimageoffset + 2);
-	//LoadImage("editors\\uiv3\\temp_infinity.png", IMPORTER_ALL_MESH);
-	// To do here: Load another image so the larget plane doesn't need to use the same texture as the sphere.
-	//LoadImage("editors\\uiv3\\temp_infinity.png", g.importerextraimageoffset + 3);
-	//LoadImage("editors\\uiv3\\i-info.png", g.importerextraimageoffset + 3);
 
 	// Store the camera's position so that it can be restored when exiting the importer.
 	t.importer.fPrevCamX = CameraPositionX();
@@ -186,677 +159,12 @@ void importer_init_wicked(void)
 	// Initial state for the mesh names.
 	t.importer.bModelMeshNamesSet = false;
 	t.importer.cModelMeshNames.clear();
-
-	//visualsdatastoragetype desiredVisuals;
-
-	//// Set the visuals 
-	//set_temp_visuals(t.editorvisuals, t.visualsStorage, desiredVisuals);
 }
-#endif
 
 void importer_init ( void )
 {
-	#ifdef WICKEDENGINE
 	// Wicked Importer does it differently
 	importer_init_wicked();
-	#else
-
-	#ifdef VRTECH
-	// reposition camera in sky so no terrain depth clipping can occur
-	//PE: bug , fix object clipping invisible import objects.
-	if (g_bCameraInSkyForImporter == false)
-	{
-		custom_back_color[0] = 0.60f; custom_back_color[1] = 0.60f; custom_back_color[2] = 0.60f; custom_back_color[3] = 1.0f;
-		PositionCamera(0, CameraPositionX(0), CameraPositionY(0) + 50000, CameraPositionZ(0));
-		SetCameraRange(0, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE);
-		g_bCameraInSkyForImporter = true;
-		t.editorfreeflight.mode = 1;
-		t.editorfreeflight.c.x_f = CameraPositionX();
-		t.editorfreeflight.c.y_f = CameraPositionY();
-		t.editorfreeflight.c.z_f = CameraPositionZ();
-	}
-	#endif
-
-	// hide entities and waypoints
-	importer_fade_out ( );
-	for ( t.te = 1 ; t.te <= g.entityelementlist; t.te++ )
-	{
-		t.tobj=t.entityelement[t.te].obj;
-		if ( t.tobj>0 ) 
-		{
-			if ( ObjectExist(t.tobj) == 1 ) HideObject ( t.tobj );
-			int iCCObjHead = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+0;
-			int iCCObjBeard = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+1;
-			int iCCObjHat = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+2;
-			if ( ObjectExist(iCCObjHead) == 1 ) HideObject ( iCCObjHead );
-			if ( ObjectExist(iCCObjBeard) == 1 ) HideObject ( iCCObjBeard );
-			if ( ObjectExist(iCCObjHat) == 1 ) HideObject ( iCCObjHat );
-		}
-	}
-	waypoint_hideall ( );
-
-	// need to see all editor entity objects wiped from screen
-	Sync(); Sync();
-
-	// init importer vars
-	t.timportermouseoff = 0;
-	t.tImporterOriginalScreenWidth = GetDisplayWidth();
-	t.tImporterOriginalScreenHeight = GetDisplayHeight();
-
-	//  Multiplier to convert mouse coords to importer coords
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	t.tadjustedtoimporterxbase_f = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
-	t.tadjustedtoimporterybase_f = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
-#else
-	t.tadjustedtoimporterxbase_f=GetChildWindowWidth()/800.0;
-	t.tadjustedtoimporterybase_f=GetChildWindowHeight()/600.0;
-#endif
-	t.importer.scaleMulti = 1.0;
-
-	Dim2(  t.snapPosX_f,50, 9  );
-	Dim2(  t.snapPosY_f,50, 9  );
-	Dim2(  t.snapPosZ_f,50, 9  );
-
-	t.importer.cancel = 0;
-	t.importer.cancelCount = 0;
-	t.importer.oldMouseClick = t.inputsys.mclick;
-	t.importer.reload = 0;
-	t.importer.changeSizeKeyDown = 0;
-	t.importer.showCollisionOnly = 0;
-	t.importer.oldShowCollision = 0;
-
-	//  grab initial folder
-	t.importer.startDir = GetDir();
-
-	importer_checkForShaderFiles ( );
-	importer_checkForScriptFiles ( );
-
-	t.importer.importerActive = 1;
-	t.importer.showScaleChange = 0;
-	t.importer.collisionObjectMode = 0;
-	t.importer.buttonPressedCount = 0;
-
-	for ( int tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-	{
-		t.importerTextures[tCount].imageID = 0;
-		t.importerTextures[tCount].spriteID = 0;
-		t.importerTextures[tCount].spriteID2 = 0;
-		t.importerTextures[tCount].fileName = "";
-		t.importerTextures[tCount].iExpandedThisSlot = 0;	
-		t.importerTextures[tCount].iOptionalStage = 0;
-		t.importerTextures[tCount].iAssociatedBaseImage = 0;
-	}
-
-	t.importer.helpShow = 0;
-
-	//  load resources unique to importer
-	#ifdef VRTECH
-	#else
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\paneltop.png",g.importermenuimageoffset+1,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\panelmiddle.png",g.importermenuimageoffset+2,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\panelbottom.png",g.importermenuimageoffset+3,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\tab.png",g.importermenuimageoffset+4,0 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\tabselected.png",g.importermenuimageoffset+5,0 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\blankTex.png",g.importermenuimageoffset+6,0 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\texturePanel.png",g.importermenuimageoffset+7,0 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\help.png",g.importermenuimageoffset+8,0 );
-	//offset 9 is used with help Text (  )
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\importer\\multiTex.png",g.importermenuimageoffset+10,0 );
-	#endif
-
-	//  Help Icon
-	t.tSpriteID = 200;
-
-	//  Find free Sprite (  slot )
-	while (  SpriteExist(t.tSpriteID) ) 
-	{
-		++t.tSpriteID;
-	}
-	t.importer.helpSprite = t.tSpriteID;
-	if (  t.importer.scaleMulti > 1.0 ) 
-	{
-		if(!bRemoveSprites) Sprite (  t.importer.helpSprite , (GetChildWindowWidth()/2) - 170 + 128 , 0, g.importermenuimageoffset+8 );
-	}
-	else
-	{
-		if (!bRemoveSprites) Sprite (  t.importer.helpSprite , (GetChildWindowWidth()/2) - 170 + 128 , (GetChildWindowHeight()/2) - 300 - 4, g.importermenuimageoffset+8 );
-	}
-	if (!bRemoveSprites) SizeSprite (  t.importer.helpSprite , 32 , 32 );
-
-	t.importer.helpSprite2 = t.tSpriteID+1;
-	if(!bRemoveSprites) Sprite (  t.importer.helpSprite2 , (GetChildWindowWidth()/2) - 303 , (GetChildWindowHeight()/2) - 213, g.importermenuimageoffset+4 );
-	if (!bRemoveSprites) SizeSprite (  t.importer.helpSprite2 , 605 , 435 );
-	if (!bRemoveSprites) SetSpriteDiffuse (  t.importer.helpSprite2 , 0,0,0 );
-	if (!bRemoveSprites) SetSpriteAlpha (  t.importer.helpSprite2, 200 );
-
-	t.importer.helpSprite3 = t.tSpriteID+2;
-	if (!bRemoveSprites) Sprite (  t.importer.helpSprite3 , (GetChildWindowWidth()/2) - 303 , (GetChildWindowHeight()/2) - 213, g.importermenuimageoffset+4 );
-	if (!bRemoveSprites) SizeSprite (  t.importer.helpSprite3 , 605 , 40 );
-	if (!bRemoveSprites) SetSpriteDiffuse (  t.importer.helpSprite3 , 0,0,0 );
-	if (!bRemoveSprites) SetSpriteAlpha (  t.importer.helpSprite3, 150 );
-
-	t.importer.helpSprite4 = t.tSpriteID+3;
-
-	if (!bRemoveSprites) HideSprite (  t.importer.helpSprite2 );
-	if (!bRemoveSprites) HideSprite (  t.importer.helpSprite3 );
-
-	t.importer.oldTabMode = g.tabmode;
-	g.tabmode = IMPORTERTABPAGE1;
-
-	t.importer.viewMessage = "Front";
-
-	// Check if panels already exist
-	if (  t.importer.panelsExist ==  0 ) //!bRemoveSprites &&
-	{
-		t.importer.panelsExist = 1;
-		if (  t.importer.scaleMulti  <= 0  )  t.importer.scaleMulti  =  1.0;
-		g.slidersmenumax = 30; // 020718 - start out of way of TAB TAB panels
-		t.importer.properties1Index = g.slidersmenumax;
-		t.slidersmenu[g.slidersmenumax].tabpage=IMPORTERTABPAGE1;
-		t.slidersmenu[g.slidersmenumax].title_s="Properties";
-		t.slidersmenu[g.slidersmenumax].thighlight=-1;
-		t.slidersmenu[g.slidersmenumax].titlemargin=63;
-		t.slidersmenu[g.slidersmenumax].leftmargin=25;
-		t.slidersmenu[g.slidersmenumax].itemcount=12;
-		t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-		t.slidersmenu[g.slidersmenumax].ttop= (GetChildWindowHeight() / 2 ) - 281 -3;
-		t.slidersmenu[g.slidersmenumax].tleft= (GetChildWindowWidth() / 2 ) + 330;
-		t.slidersmenuvalue[g.slidersmenumax][1].name_s="Scale";
-		t.slidersmenuvalue[g.slidersmenumax][1].value=100;
-		t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex=0;
-		t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 19;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 500;
-		t.slidersmenuvalue[g.slidersmenumax][2].name_s="Shader";
-		t.slidersmenuvalue[g.slidersmenumax][2].value=2;
-		t.slidersmenuvalue[g.slidersmenumax][2].value_s=t.importerShaderFiles[2];
-		t.slidersmenuvalue[g.slidersmenumax][2].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][2].gadgettypevalue=101;
-		t.slidersmenuvalue[g.slidersmenumax][3].name_s="Y Rotation";
-		t.slidersmenuvalue[g.slidersmenumax][3].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][3].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][3].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][3].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][4].name_s="Collision Mode";
-		t.slidersmenuvalue[g.slidersmenumax][4].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][4].value_s="Box";
-		t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue=110;
-		t.slidersmenuvalue[g.slidersmenumax][4].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][5].name_s="Default Static";
-		t.slidersmenuvalue[g.slidersmenumax][5].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][5].value_s="Yes";
-		t.slidersmenuvalue[g.slidersmenumax][5].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][5].gadgettypevalue=103;
-		t.slidersmenuvalue[g.slidersmenumax][6].name_s="Strength";
-		t.slidersmenuvalue[g.slidersmenumax][6].value=25;
-		t.slidersmenuvalue[g.slidersmenumax][6].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][6].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][6].valueMax = 1000;
-		t.slidersmenuvalue[g.slidersmenumax][7].name_s="Is A Character";
-		t.slidersmenuvalue[g.slidersmenumax][7].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][7].value_s="No";
-		t.slidersmenuvalue[g.slidersmenumax][7].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][7].gadgettypevalue=117;
-		t.slidersmenuvalue[g.slidersmenumax][8].name_s="Cull Mode";
-		t.slidersmenuvalue[g.slidersmenumax][8].value=2;
-		t.slidersmenuvalue[g.slidersmenumax][8].value_s="No";
-		t.slidersmenuvalue[g.slidersmenumax][8].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][8].gadgettypevalue=103;
-		t.slidersmenuvalue[g.slidersmenumax][9].name_s="Transparency";
-		t.slidersmenuvalue[g.slidersmenumax][9].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][9].value_s="None";
-		t.slidersmenuvalue[g.slidersmenumax][9].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][9].gadgettypevalue=111;
-		t.slidersmenuvalue[g.slidersmenumax][10].name_s="Material";
-		t.slidersmenuvalue[g.slidersmenumax][10].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][10].value_s="Generic";
-		t.slidersmenuvalue[g.slidersmenumax][10].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][10].gadgettypevalue=112;
-		t.slidersmenuvalue[g.slidersmenumax][11].name_s="Script";
-		t.slidersmenuvalue[g.slidersmenumax][11].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][11].value_s=t.importerScriptFiles[1];
-		t.slidersmenuvalue[g.slidersmenumax][11].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][11].gadgettypevalue=114;
-		t.slidersmenuvalue[g.slidersmenumax][12].name_s="Height Guide";
-		t.slidersmenuvalue[g.slidersmenumax][12].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][12].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][12].gadgettype=99;
-		//t.slidersmenuvalue[g.slidersmenumax][13].name_s="Geo Twizzle";
-		//t.slidersmenuvalue[g.slidersmenumax][13].value=1+g_iFBXGeometryToggleMode;
-		//t.slidersmenuvalue[g.slidersmenumax][13].gadgettype=1;
-		//t.slidersmenuvalue[g.slidersmenumax][13].gadgettypevalue=115;
-		//t.slidersmenuvalue[g.slidersmenumax][14].name_s="Center Mesh";
-		//t.slidersmenuvalue[g.slidersmenumax][14].value=1+g_iFBXGeometryCenterMesh;
-		//t.slidersmenuvalue[g.slidersmenumax][14].gadgettype=1;
-		//t.slidersmenuvalue[g.slidersmenumax][14].gadgettypevalue=116;
-		for ( int n = 0; n < 13; n++ )
-		{
-			// prevent scale and rotate sliders being disabled for clickchange
-			t.slidersmenuvalue[g.slidersmenumax][n].expanddetect = 0;
-		}
-
-		++g.slidersmenumax;
-		t.importer.properties2Index = g.slidersmenumax;
-		t.slidersmenu[g.slidersmenumax].tabpage=IMPORTERTABPAGE2;
-		t.slidersmenu[g.slidersmenumax].title_s="Collision";
-		t.slidersmenu[g.slidersmenumax].thighlight=-1;
-		t.slidersmenu[g.slidersmenumax].titlemargin=63;
-		t.slidersmenu[g.slidersmenumax].leftmargin=25;
-		t.slidersmenu[g.slidersmenumax].itemcount=12;
-		t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-		t.slidersmenu[g.slidersmenumax].ttop= (GetChildWindowHeight() / 2 ) - 281-3;
-		t.slidersmenu[g.slidersmenumax].tleft= (GetChildWindowWidth() / 2 ) + 330;
-		t.slidersmenuvalue[g.slidersmenumax][1].name_s="View";
-		t.slidersmenuvalue[g.slidersmenumax][1].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][1].value_s="Front";
-		t.slidersmenuvalue[g.slidersmenumax][1].gadgettype=1;
-		t.slidersmenuvalue[g.slidersmenumax][1].gadgettypevalue=109;
-
-		t.slidersmenuvalue[g.slidersmenumax][2].name_s="New";
-		t.slidersmenuvalue[g.slidersmenumax][2].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][2].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][2].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][3].name_s="Duplicate";
-		t.slidersmenuvalue[g.slidersmenumax][3].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][3].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][3].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][4].name_s="Delete";
-		t.slidersmenuvalue[g.slidersmenumax][4].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][4].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][4].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][5].name_s="Next";
-		t.slidersmenuvalue[g.slidersmenumax][5].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][5].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][5].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][6].name_s="Previous";
-		t.slidersmenuvalue[g.slidersmenumax][6].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][6].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][6].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][7].name_s="Rotate X";
-		t.slidersmenuvalue[g.slidersmenumax][7].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][7].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][7].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][7].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][7].readmodeindex=0;
-
-		t.slidersmenuvalue[g.slidersmenumax][8].name_s="Rotate Y";
-		t.slidersmenuvalue[g.slidersmenumax][8].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][8].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][8].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][8].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][8].readmodeindex=0;
-
-		t.slidersmenuvalue[g.slidersmenumax][9].name_s="Rotate Z";
-		t.slidersmenuvalue[g.slidersmenumax][9].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][9].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][9].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][9].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][9].readmodeindex=0;
-
-		t.slidersmenuvalue[g.slidersmenumax][10].name_s="";
-		t.slidersmenuvalue[g.slidersmenumax][10].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][10].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][10].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][11].name_s="";
-		t.slidersmenuvalue[g.slidersmenumax][11].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][11].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][11].gadgettype=99;
-
-		t.slidersmenuvalue[g.slidersmenumax][12].name_s="";
-		t.slidersmenuvalue[g.slidersmenumax][12].value=1;
-		t.slidersmenuvalue[g.slidersmenumax][12].value_s="";
-		t.slidersmenuvalue[g.slidersmenumax][12].gadgettype=99;
-
-		++g.slidersmenumax;
-		t.importer.properties3Index = g.slidersmenumax;
-		t.slidersmenu[g.slidersmenumax].tabpage=IMPORTERTABPAGE3;
-		t.slidersmenu[g.slidersmenumax].title_s="Thumbnail";
-		t.slidersmenu[g.slidersmenumax].thighlight=-1;
-		t.slidersmenu[g.slidersmenumax].titlemargin=63;
-		t.slidersmenu[g.slidersmenumax].leftmargin=25;
-		t.slidersmenu[g.slidersmenumax].itemcount=12;
-		t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-		t.slidersmenu[g.slidersmenumax].ttop= (GetChildWindowHeight() / 2 ) - 281-3;
-		t.slidersmenu[g.slidersmenumax].tleft= (GetChildWindowWidth() / 2 ) + 330;
-
-		t.slidersmenuvalue[g.slidersmenumax][1].name_s="Rotate X";
-		t.slidersmenuvalue[g.slidersmenumax][1].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][1].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][1].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex=0;
-
-		t.slidersmenuvalue[g.slidersmenumax][2].name_s="Rotate Y";
-		t.slidersmenuvalue[g.slidersmenumax][2].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][2].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][2].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex=0;
-
-		t.slidersmenuvalue[g.slidersmenumax][3].name_s="Rotate Z";
-		t.slidersmenuvalue[g.slidersmenumax][3].value=0;
-		t.slidersmenuvalue[g.slidersmenumax][3].useCustomRange = 1;
-		t.slidersmenuvalue[g.slidersmenumax][3].valueMin = 0;
-		t.slidersmenuvalue[g.slidersmenumax][3].valueMax = 360;
-		t.slidersmenuvalue[g.slidersmenumax][3].readmodeindex=0;
-
-		for ( t.temp = 4 ; t.temp<=  12; t.temp++ )
-		{
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].name_s="";
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].value=Rnd(100);
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].gadgettype=99;
-		}
-
-		++g.slidersmenumax;
-		t.importer.properties4Index = g.slidersmenumax;
-		t.slidersmenu[g.slidersmenumax].tabpage=IMPORTERTABPAGE4;
-		t.slidersmenu[g.slidersmenumax].title_s="SETTINGS 4";
-		t.slidersmenu[g.slidersmenumax].thighlight=-1;
-		t.slidersmenu[g.slidersmenumax].titlemargin=63;
-		t.slidersmenu[g.slidersmenumax].leftmargin=25;
-		t.slidersmenu[g.slidersmenumax].itemcount=11;
-		t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-		t.slidersmenu[g.slidersmenumax].ttop= (GetChildWindowHeight() / 2 ) - 281;
-		t.slidersmenu[g.slidersmenumax].tleft= (GetChildWindowWidth() / 2 ) + 330;
-		for ( t.temp = 1 ; t.temp<=  11; t.temp++ )
-		{
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].name_s = "" ; t.slidersmenuvalue[g.slidersmenumax][t.temp].name_s=t.slidersmenuvalue[g.slidersmenumax][t.temp].name_s+"Stuff " + Str(t.temp);
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].value=Rnd(100);
-			t.slidersmenuvalue[g.slidersmenumax][t.temp].readmodeindex=t.temp;
-		}
-
-		t.importerTabs[1].x = (GetChildWindowWidth() / 2) + 65-128 + 250;
-		t.importerTabs[1].y = (GetChildWindowHeight() / 2) - 304;
-		t.importerTabs[1].label = "Properties";
-		t.importerTabs[1].selected = 1;
-		t.importerTabs[1].tabpage = IMPORTERTABPAGE1;
-
-		t.importerTabs[2].x = t.importerTabs[1].x + 128;
-		t.importerTabs[2].y = t.importerTabs[1].y;
-		t.importerTabs[2].label = "Collision";
-		t.importerTabs[2].selected = 0;
-		t.importerTabs[2].tabpage = IMPORTERTABPAGE2;
-
-		t.importerTabs[3].x = t.importerTabs[2].x + 128;
-		t.importerTabs[3].y = t.importerTabs[1].y;
-		t.importerTabs[3].label = "Thumbnail";
-		t.importerTabs[3].selected = 0;
-		t.importerTabs[3].tabpage = IMPORTERTABPAGE3;
-
-		t.importerTabs[4].x = t.importerTabs[3].x + 256;
-		t.importerTabs[4].y = t.importerTabs[1].y;
-		t.importerTabs[4].label = "...";
-		t.importerTabs[4].selected = 0;
-		t.importerTabs[4].tabpage = IMPORTERTABPAGE4;
-
-		//  Importer button
-		t.importerTabs[5].x = (GetChildWindowWidth() / 2) - 320;
-		t.importerTabs[5].y = (GetChildWindowHeight() / 2) - 304;
-		t.importerTabs[5].label = "Save Entity";
-		t.importerTabs[5].selected = 0;
-		t.importerTabs[5].tabpage = -1;
-
-		//  New button
-		t.importerTabs[6].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[6].y = t.importerTabs[1].y + 125;
-		t.importerTabs[6].label = "Add New";
-		t.importerTabs[6].selected = 0;
-		t.importerTabs[6].tabpage = -1;
-
-		//  Dupe button
-		t.importerTabs[12].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[12].y = t.importerTabs[1].y + 125 + 38;
-		t.importerTabs[12].label = "Duplicate";
-		t.importerTabs[12].selected = 0;
-		t.importerTabs[12].tabpage = -1;
-
-		//  Delete button
-		t.importerTabs[7].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[7].y = t.importerTabs[1].y + 125 + (38*2);
-		t.importerTabs[7].label = "Delete";
-		t.importerTabs[7].selected = 0;
-		t.importerTabs[7].tabpage = -1;
-
-		//  Next button
-		t.importerTabs[8].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[8].y = t.importerTabs[1].y + 125 + (38*3);
-		t.importerTabs[8].label = "Next";
-		t.importerTabs[8].selected = 0;
-		t.importerTabs[8].tabpage = -1;
-
-		//  Previous button
-		t.importerTabs[9].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[9].y = t.importerTabs[1].y + 125 + (38*4);
-		t.importerTabs[9].label = "Previous";
-		t.importerTabs[9].selected = 0;
-		t.importerTabs[9].tabpage = -1;
-
-		//  Show Guide button
-		t.importerTabs[10].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-		t.importerTabs[10].y = t.importerTabs[1].y + 125 + (38*10) - 5;
-		t.importerTabs[10].label = "Turn Guide Off";
-		t.importerTabs[10].selected = 1;
-		t.importerTabs[10].tabpage = -1;
-
-		//  Importer button
-		t.importerTabs[11].x = (GetChildWindowWidth() / 2) - 320 +128;
-		t.importerTabs[11].y = (GetChildWindowHeight() / 2) - 304;
-		t.importerTabs[11].label = "Cancel";
-		t.importerTabs[11].selected = 0;
-		t.importerTabs[11].tabpage = -1;
-
-		t.importer.slidersmenumax=g.slidersmenumax;
-	}
-	else
-	{
-		g.slidersmenumax=t.importer.slidersmenumax;
-	}
-
-	if (!bRemoveSprites) {
-
-		// get actual value string names
-		t.slidersmenuvaluechoice = 115;
-		t.slidersmenuvalueindex = t.slidersmenuvalue[t.importer.properties1Index][13].value;
-		sliders_getnamefromvalue();
-		t.slidersmenuvalue[t.importer.properties1Index][13].value_s = t.slidervaluename_s;
-		t.slidersmenuvaluechoice = 116;
-		t.slidersmenuvalueindex = t.slidersmenuvalue[t.importer.properties1Index][14].value;
-		sliders_getnamefromvalue();
-		t.slidersmenuvalue[t.importer.properties1Index][14].value_s = t.slidervaluename_s;
-
-		if (t.importer.scaleMulti > 1.0)
-		{
-			t.importerTabs[1].y = 0;
-			t.importerTabs[2].y = 0;
-			t.importerTabs[3].y = 0;
-			t.importerTabs[4].y = 0;
-			t.importerTabs[5].y = 0;
-			t.importerTabs[11].y = 0;
-			t.slidersmenu[t.importer.properties1Index].tleft = GetChildWindowWidth() - 255;
-			t.slidersmenu[t.importer.properties2Index].tleft = GetChildWindowWidth() - 255;
-			t.slidersmenu[t.importer.properties3Index].tleft = GetChildWindowWidth() - 255;
-			t.slidersmenu[t.importer.properties4Index].tleft = GetChildWindowWidth() - 255;
-
-			//  New button
-			t.importerTabs[6].x = GetChildWindowWidth() - 159;
-			t.importerTabs[7].x = GetChildWindowWidth() - 159;
-			t.importerTabs[8].x = GetChildWindowWidth() - 159;
-			t.importerTabs[9].x = GetChildWindowWidth() - 159;
-			t.importerTabs[10].x = GetChildWindowWidth() - 159;
-
-			t.importerTabs[1].label = "Properties";
-			t.importerTabs[1].selected = 1;
-			t.importerTabs[1].tabpage = IMPORTERTABPAGE1;
-
-			t.importerTabs[2].label = "Collision";
-			t.importerTabs[2].selected = 0;
-			t.importerTabs[2].tabpage = IMPORTERTABPAGE2;
-
-			t.importerTabs[3].label = "Thumbnail";
-			t.importerTabs[3].selected = 0;
-			t.importerTabs[3].tabpage = IMPORTERTABPAGE3;
-
-			t.importerTabs[4].label = "...";
-			t.importerTabs[4].selected = 0;
-			t.importerTabs[4].tabpage = IMPORTERTABPAGE4;
-
-			//  Importer button
-			t.importerTabs[5].label = "Save Entity";
-			t.importerTabs[5].selected = 0;
-			t.importerTabs[5].tabpage = -1;
-
-			//  New button
-			t.importerTabs[6].label = "Add New";
-			t.importerTabs[6].selected = 0;
-			t.importerTabs[6].tabpage = -1;
-
-			//  New button
-			t.importerTabs[12].label = "Duplicate";
-			t.importerTabs[12].selected = 0;
-			t.importerTabs[12].tabpage = -1;
-
-			//  Delete button
-			t.importerTabs[7].label = "Delete";
-			t.importerTabs[7].selected = 0;
-			t.importerTabs[7].tabpage = -1;
-
-			//  Next button
-			t.importerTabs[8].label = "Next";
-			t.importerTabs[8].selected = 0;
-			t.importerTabs[8].tabpage = -1;
-
-			//  Previous button
-			t.importerTabs[9].label = "Previous";
-			t.importerTabs[9].selected = 0;
-			t.importerTabs[9].tabpage = -1;
-
-			//  Show Guide button
-			t.importerTabs[10].label = "Turn Guide Off";
-			t.importerTabs[10].selected = 1;
-			t.importerTabs[10].tabpage = -1;
-
-			//  Importer button
-			t.importerTabs[11].label = "Cancel";
-			t.importerTabs[11].selected = 0;
-			t.importerTabs[11].tabpage = -1;
-
-		}
-		else
-		{
-			t.slidersmenu[t.importer.properties1Index].tleft = (GetChildWindowWidth() / 2) + 330;
-			t.slidersmenu[t.importer.properties2Index].tleft = (GetChildWindowWidth() / 2) + 330;
-			t.slidersmenu[t.importer.properties3Index].tleft = (GetChildWindowWidth() / 2) + 330;
-			t.slidersmenu[t.importer.properties4Index].tleft = (GetChildWindowWidth() / 2) + 330;
-
-			t.importerTabs[1].x = (GetChildWindowWidth() / 2) + 65 - 128 + 250;
-			t.importerTabs[1].y = (GetChildWindowHeight() / 2) - 304;
-			t.importerTabs[1].label = "Properties";
-			t.importerTabs[1].selected = 1;
-			t.importerTabs[1].tabpage = IMPORTERTABPAGE1;
-
-			t.importerTabs[2].x = t.importerTabs[1].x + 128;
-			t.importerTabs[2].y = t.importerTabs[1].y;
-			t.importerTabs[2].label = "Collision";
-			t.importerTabs[2].selected = 0;
-			t.importerTabs[2].tabpage = IMPORTERTABPAGE2;
-
-			t.importerTabs[3].x = t.importerTabs[2].x + 128;
-			t.importerTabs[3].y = t.importerTabs[1].y;
-			t.importerTabs[3].label = "Thumbnail";
-			t.importerTabs[3].selected = 0;
-			t.importerTabs[3].tabpage = IMPORTERTABPAGE3;
-
-			t.importerTabs[4].x = t.importerTabs[3].x + 256;
-			t.importerTabs[4].y = t.importerTabs[1].y;
-			t.importerTabs[4].label = "...";
-			t.importerTabs[4].selected = 0;
-			t.importerTabs[4].tabpage = IMPORTERTABPAGE4;
-
-			//  Importer button
-			t.importerTabs[5].x = (GetChildWindowWidth() / 2) - 320;
-			t.importerTabs[5].y = (GetChildWindowHeight() / 2) - 304;
-			t.importerTabs[5].label = "Save Entity";
-			t.importerTabs[5].selected = 0;
-			t.importerTabs[5].tabpage = -1;
-
-			//  New button
-			t.importerTabs[6].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[6].y = t.importerTabs[1].y + 125;
-			t.importerTabs[6].label = "Add New";
-			t.importerTabs[6].selected = 0;
-			t.importerTabs[6].tabpage = -1;
-
-			//  New button
-			t.importerTabs[12].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[12].y = t.importerTabs[1].y + 125 + 38;
-			t.importerTabs[12].label = "Duplicate";
-			t.importerTabs[12].selected = 0;
-			t.importerTabs[12].tabpage = -1;
-
-			//  Delete button
-			t.importerTabs[7].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[7].y = t.importerTabs[1].y + 125 + (38 * 2);
-			t.importerTabs[7].label = "Delete";
-			t.importerTabs[7].selected = 0;
-			t.importerTabs[7].tabpage = -1;
-
-			//  Next button
-			t.importerTabs[8].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[8].y = t.importerTabs[1].y + 125 + (38 * 3);
-			t.importerTabs[8].label = "Next";
-			t.importerTabs[8].selected = 0;
-			t.importerTabs[8].tabpage = -1;
-
-			//  Previous button
-			t.importerTabs[9].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[9].y = t.importerTabs[1].y + 125 + (38 * 4);
-			t.importerTabs[9].label = "Previous";
-			t.importerTabs[9].selected = 0;
-			t.importerTabs[9].tabpage = -1;
-
-			//  Show Guide button
-			t.importerTabs[10].x = t.importerTabs[4].x - 28 + 10 - 256 + 1;
-			t.importerTabs[10].y = t.importerTabs[1].y + 125 + (38 * 10) - 5;
-			t.importerTabs[10].label = "Turn Guide Off";
-			t.importerTabs[10].selected = 1;
-			t.importerTabs[10].tabpage = -1;
-
-			//  Importer button
-			t.importerTabs[11].x = (GetChildWindowWidth() / 2) - 320 + 128;
-			t.importerTabs[11].y = (GetChildWindowHeight() / 2) - 304;
-			t.importerTabs[11].label = "Cancel";
-			t.importerTabs[11].selected = 0;
-			t.importerTabs[11].tabpage = -1;
-		}
-		t.timporterpickdepth_f = 1250;
-	}
-
-	#ifdef VRTECH
-	#else
-	// reposition camera in sky so no terrain depth clipping can occur
-	//PE: bug , fix object clipping invisible import objects.
-	if ( g_bCameraInSkyForImporter == false )
-	{
-		PositionCamera ( 0, CameraPositionX(0), CameraPositionY(0)+50000, CameraPositionZ(0) );
-		SetCameraRange ( 0, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE );
-		g_bCameraInSkyForImporter = true;
-	}
-	#endif
-
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	bCenterRenderView = true;
-	bImporter_Window = true;
-	strcpy(cImportName, "");
-	#endif
-	
-	#endif // wicked endif
-
 }
 
 // Change the visual setting in currentVisuals to the settings from desiredVisuals, then store them in storage so they can be restored later.
@@ -870,7 +178,6 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	storage.FogG_f = currentVisuals.FogG_f;
 	storage.FogB_f = currentVisuals.FogB_f;
 	storage.FogA_f = currentVisuals.FogA_f;
-	#ifdef WICKEDENGINE
 	storage.SunIntensity_f = currentVisuals.SunIntensity_f;
 	storage.SunRed_f = currentVisuals.SunRed_f;
 	storage.SunGreen_f = currentVisuals.SunGreen_f;
@@ -890,7 +197,6 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	storage.SunAngleZ = currentVisuals.SunAngleZ;
 	storage.iTimeOfday = currentVisuals.iTimeOfday;
 	storage.fExposure = currentVisuals.fExposure;
-	#endif
 	storage.skyindex = currentVisuals.skyindex;
 	
 	// Set the visuals to the desired settings.
@@ -901,7 +207,6 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	currentVisuals.FogG_f = desiredVisuals.FogG_f;
 	currentVisuals.FogB_f = desiredVisuals.FogB_f;
 	currentVisuals.FogA_f = desiredVisuals.FogA_f;
-	#ifdef WICKEDENGINE
 	currentVisuals.SunIntensity_f = desiredVisuals.SunIntensity_f;
 	currentVisuals.SunRed_f = desiredVisuals.SunRed_f;
 	currentVisuals.SunGreen_f = desiredVisuals.SunGreen_f;
@@ -921,7 +226,6 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	currentVisuals.SunAngleZ = desiredVisuals.SunAngleZ;
 	currentVisuals.iTimeOfday = desiredVisuals.iTimeOfday;
 	currentVisuals.fExposure = desiredVisuals.fExposure;
-	#endif
 	//currentVisuals.skyindex = desiredVisuals.skyindex;
 	currentVisuals.refreshskysettings = 0; //1 ZJ: prevent sky_skyspec_init() resetting sun rotation.
 	currentVisuals.refreshshaders = 1;
@@ -937,7 +241,6 @@ void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storag
 	currentVisuals.FogG_f = storage.FogG_f;
 	currentVisuals.FogB_f = storage.FogB_f;
 	currentVisuals.FogA_f = storage.FogA_f;
-	#ifdef WICKEDENGINE
 	currentVisuals.SunIntensity_f = storage.SunIntensity_f;
 	currentVisuals.SunRed_f = storage.SunRed_f;
 	currentVisuals.SunGreen_f = storage.SunGreen_f;
@@ -957,13 +260,11 @@ void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storag
 	currentVisuals.SunAngleZ = storage.SunAngleZ;
 	currentVisuals.iTimeOfday = storage.iTimeOfday;
 	currentVisuals.fExposure = storage.fExposure;
-	#endif
 	currentVisuals.skyindex = storage.skyindex;
 	//currentVisuals.refreshskysettings = 1; keep custom settings
 	currentVisuals.refreshshaders = 1;
 }
 
-#ifdef WICKEDENGINE
 void importer_free_wicked(void)
 {
 	// show previously hidden editor modes
@@ -989,11 +290,9 @@ void importer_free_wicked(void)
 	// set back to initial dir
 	SetDir ( t.importer.startDir.Get() );
 }
-#endif
 
 void importer_free ( void )
 {
-	#ifdef WICKEDENGINE
 	importer_free_wicked();
 	if (GetImageExistEx(IMPORTER_TMP_IMAGE))
 	{
@@ -1028,133 +327,6 @@ void importer_free ( void )
 
 	restore_visuals(t.visuals, t.visualsStorage);
 	restore_visuals(t.editorvisuals, t.visualsStorage);
-
-	#else
-
-	// restore camera from sky
-	if ( g_bCameraInSkyForImporter == true )
-	{
-		//Turn off custom clear color.
-		#ifdef VRTECH
-		custom_back_color[0] = 0.0f; custom_back_color[1] = 0.0f; custom_back_color[2] = 0.0f; custom_back_color[3] = 0.0f;
-		#endif
-		PositionCamera ( 0, CameraPositionX(0), CameraPositionY(0)-50000, CameraPositionZ(0) );
-
-		if ( t.editorfreeflight.mode == 1 )
-			SetCameraRange ( 0, t.tcamneardistance_f, DEFAULT_FAR_PLANE );
-		else
-			SetCameraRange ( 0, t.tcamneardistance_f, t.tcamrange_f );
-		g_bCameraInSkyForImporter = false;
-		t.editorfreeflight.c.x_f = CameraPositionX();
-		t.editorfreeflight.c.y_f = CameraPositionY();
-		t.editorfreeflight.c.z_f = CameraPositionZ();
-	}
-	// show entities and waypoints
-	importer_show_mouse ( );
-	for ( t.te = 1 ; t.te <= g.entityelementlist; t.te++ )
-	{
-		t.tobj=t.entityelement[t.te].obj;
-		if ( t.tobj>0 ) 
-		{
-			if ( ObjectExist(t.tobj) == 1 ) ShowObject ( t.tobj );
-			int iCCObjHead = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+0;
-			int iCCObjBeard = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+1;
-			int iCCObjHat = g.charactercreatorrmodelsoffset+((t.te*3)-t.characterkitcontrol.offset)+2;
-			if ( ObjectExist(iCCObjHead) == 1 ) ShowObject ( iCCObjHead );
-			if ( ObjectExist(iCCObjBeard) == 1 ) ShowObject ( iCCObjBeard );
-			if ( ObjectExist(iCCObjHat) == 1 ) ShowObject ( iCCObjHat );
-		}
-	}
-	waypoint_showall ( );
-
-	//  Free any resources
-	for ( t.i = 1 ; t.i<=  15; t.i++ )
-	{
-		if (  ImageExist(g.importermenuimageoffset+t.i) == 1  )  DeleteImage (  g.importermenuimageoffset+t.i );
-	}
-
-	//  DeleteObjects (  used )
-	if (  ObjectExist(t.importer.objectnumber) ) DeleteObject ( t.importer.objectnumber );
-	if (  ObjectExist(t.importer.objectnumberpreeffectcopy) ) DeleteObject ( t.importer.objectnumberpreeffectcopy );
-	if (  ObjectExist(t.importer.dummyCharacterObjectNumber)  )  DeleteObject (  t.importer.dummyCharacterObjectNumber );
-
-	//  Delete any textures and sprites used
-	int tCount = 1;
-	for ( tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-	{
-		if (  t.importerTextures[tCount].spriteID  !=  0 ) 
-		{
-			if ( SpriteExist ( t.importerTextures[tCount].spriteID ) ) DeleteSprite (  t.importerTextures[tCount].spriteID );
-		}
-		if (  t.importerTextures[tCount].spriteID2  !=  0 ) 
-		{
-			if ( SpriteExist ( t.importerTextures[tCount].spriteID2 ) ) DeleteSprite (  t.importerTextures[tCount].spriteID2 );
-		}
-		t.importerTextures[tCount].spriteID = 0;
-		t.importerTextures[tCount].spriteID2 = 0;
-		if (  t.importerTextures[tCount].imageID  !=  0 ) 
-		{
-			if (  ImageExist(t.importerTextures[tCount].imageID)  )  DeleteImage (  t.importerTextures[tCount].imageID );
-		}
-		t.importerTextures[tCount].imageID = 0;
-		t.importerTextures[tCount].originalName = "";
-		t.importerTextures[tCount].fileName = "";
-		t.importerTextures[tCount].iExpandedThisSlot = 0;
-		t.importerTextures[tCount].iOptionalStage = 0;
-		t.importerTextures[tCount].iAssociatedBaseImage = 0;
-	}
-
-	if (  SpriteExist (t.importer.helpSprite) )   DeleteSprite (  t.importer.helpSprite );
-	if (  SpriteExist (t.importer.helpSprite2)  )  DeleteSprite (  t.importer.helpSprite2 );
-	if (  SpriteExist (t.importer.helpSprite3)  )  DeleteSprite (  t.importer.helpSprite3 );
-	if (  SpriteExist (t.importer.helpSprite4)  )  DeleteSprite (  t.importer.helpSprite4 );
-
-	//  Delete grid objects
-	for ( tCount = 1 ; tCount<=  9; tCount++ )
-	{
-		if (  t.importerGridObject[tCount] > 0 ) 
-		{
-			if (  ObjectExist(t.importerGridObject[tCount])  ==  1  )  DeleteObject (  t.importerGridObject[tCount] );
-		}
-	}
-
-	//  Free Collision boxes
-	for ( tCount = 0 ; tCount<=  t.importer.collisionShapeCount; tCount++ )
-	{
-		if (  t.importerCollision[tCount].object > 0 ) 
-		{
-			if (  ObjectExist(t.importerCollision[tCount].object)  ==  1 ) 
-			{
-				DeleteObject (  t.importerCollision[tCount].object );
-				DeleteObject (  t.importerCollision[tCount].object2 );
-			}
-		}
-	}
-
-	//  DeleteObject (  selected markers )
-	for ( tCount = 1 ; tCount<=  9; tCount++ )
-	{
-		if (  t.selectedObjectMarkers[tCount] > 0 ) 
-		{
-			if (  ObjectExist(t.selectedObjectMarkers[tCount])  ==  1  )  DeleteObject (  t.selectedObjectMarkers[tCount] );
-		}
-	}
-
-	t.importer.loaded = 0;
-	t.importerTabs[11].selected = 0;
-
-	//  Return tab mode back to original state
-	g.tabmode = t.importer.oldTabMode;
-
-	//  Set back to initial dir
-	SetDir (  t.importer.startDir.Get() );
-
-	UnDim (  t.tUnknown );
-	UnDim (  t.snapPosX_f );
-	UnDim (  t.snapPosY_f );
-	UnDim (  t.snapPosZ_f );
-
-	#endif // wicked endif
 }
 
 cstr importer_getfilenameonly ( LPSTR pFileAndPossiblePath )
@@ -1277,7 +449,7 @@ void importer_addtoimagelistandloadifexist ( LPSTR pImgFilename, int iOptionalSt
 
 void importer_findimagetypesfromlist ( cstr fileName, int iBaseImageSlotIndex, int* piImgColor, int* piImgNormal, int* piImgSpecular, int* piImgGloss, int* piImgAO, int* piImgHeight )
 {
-	// get base filename extension (deduct image format ext)
+	// get base filename extension (deduct image format ext) 
 	LPSTR pExt = NULL;
 	for ( int iImgFormat = 0; iImgFormat < 4; iImgFormat++ )
 	{
@@ -1293,11 +465,7 @@ void importer_findimagetypesfromlist ( cstr fileName, int iBaseImageSlotIndex, i
 	// get base filename extension (deduct color specifier)
 	LPSTR pImgType = NULL;
 	cstr pBaseNoFileExt = cstr(Left(fileName.Get(),Len(fileName.Get())-Len(pExt)));
-	#ifdef VRTECH
 	for ( int iImgType = 0; iImgType < 6; iImgType++ )
-	#else
-	for ( int iImgType = 0; iImgType < 5; iImgType++ )
-	#endif
 	{
 		// find kind of 'color' image type
 		if ( iImgType == 0 ) pImgType = "_diffuse";
@@ -1320,8 +488,9 @@ void importer_findimagetypesfromlist ( cstr fileName, int iBaseImageSlotIndex, i
 			cstr pNormalFile = pBaseFile + cstr("_normal") + cstr(pExt);
 			importer_addtoimagelistandloadifexist ( pNormalFile.Get(), 2, iBaseImageSlotIndex );
 			*piImgNormal = importer_findtextureindexinlist ( pNormalFile.Get() );
-			#ifdef VRTECH
-			if (*piImgNormal == 0) {
+
+			if (*piImgNormal == 0) 
+			{
 				cstr pNormalFile = pBaseFile + cstr("_ddn") + cstr(pExt);
 				importer_addtoimagelistandloadifexist(pNormalFile.Get(), 2, iBaseImageSlotIndex);
 				*piImgNormal = importer_findtextureindexinlist(pNormalFile.Get());
@@ -1331,7 +500,6 @@ void importer_findimagetypesfromlist ( cstr fileName, int iBaseImageSlotIndex, i
 					*piImgNormal = importer_findtextureindexinlist(pNormalFile.Get());
 				}
 			}
-			#endif
 
 			cstr pSpecularFile = pBaseFile + cstr("_specular") + cstr(pExt);
 			importer_addtoimagelistandloadifexist ( pSpecularFile.Get(), 3, iBaseImageSlotIndex );
@@ -1432,9 +600,7 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 	int iGlossStage = 4;
 	int iHeightStage = -1;
 	int iEnvStage = 6;
-	#ifdef VRTECH
 	int iIllumStage = 7;
-	#endif
 	int iImageIndexForCUBE = 72543;
 	cstr pShaderCUBE = "effectbank\\reloaded\\media\\CUBE.dds";
 	LoadImage ( pShaderCUBE.Get(), iImageIndexForCUBE, 2 );
@@ -1473,11 +639,7 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 					{
 						sMesh* pMesh = pFrame->pMesh;
 						int iTextureMax = pMesh->dwTextureCount;
-						#ifdef VRTECH
 						if ( iTextureMax > 4 ) iTextureMax = 7;
-						#else
-						if ( iTextureMax > 4 ) iTextureMax = 4;
-						#endif
 						for ( int iTexture = 1; iTexture <= iTextureMax; iTexture++ )
 						{
 							if ( pMesh->pTextures[iTexture].iImageID == 0 )
@@ -1487,11 +649,11 @@ void importer_applyimagelisttextures ( bool bCubeMapOnly, int iOptionalOnlyUpdat
 								if ( iTexture == iNormalStage ) iDefaultImage = loadinternaltextureex("effectbank\\reloaded\\media\\blank_N.dds",1,t.tfullorhalfdivide);
 								if ( iTexture == iSpecularStage ) iDefaultImage = loadinternaltextureex("effectbank\\reloaded\\media\\blank_black.dds",1,t.tfullorhalfdivide);
 								if ( iTexture == iGlossStage ) iDefaultImage = loadinternaltextureex("effectbank\\reloaded\\media\\white_D.dds",1,t.tfullorhalfdivide);
-								#ifdef VRTECH
 								if ( iTexture == iIllumStage) iDefaultImage = loadinternaltextureex("effectbank\\reloaded\\media\\detail_default.dds", 1, t.tfullorhalfdivide);
-								if(iTexture != 5 && iTexture != 6)
-								#endif
-									TextureLimbStage ( t.importer.objectnumber, tCount, iTexture, iDefaultImage );
+								if (iTexture != 5 && iTexture != 6)
+								{
+									TextureLimbStage (t.importer.objectnumber, tCount, iTexture, iDefaultImage);
+								}
 							}
 						}
 					}
@@ -1855,7 +1017,6 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 		}
 	}
 
-	#ifdef VRTECH
 	//Reset colors and update.
 	visuals_editordefaults();
 	t.visuals.SurfaceSunFactor_f = 0.75;
@@ -1863,10 +1024,8 @@ void importer_changeshader ( LPSTR pNewShaderFilename )
 	t.visuals.SurfaceIntensity_f = 0.9f;
 	t.visuals.refreshshaders = 1;
 	visuals_loop();
-	#endif
 }
 
-#ifdef WICKEDENGINE
 bool animsystem_buildanimslots(int objectnumber)
 {
 	// ensure we have animations, and add them to list
@@ -2127,26 +1286,6 @@ void importer_loadmodel_wicked(void)
 	// work out FPE form and extension too
 	char pFilename[MAX_PATH];
 	strcpy(pFilename, t.importer.objectFilename.Get());
-	// We don't replace underscores with space anymore
-	//bool bFoundExtension = false;
-	//for (int n = strlen(pFilename); n > 0; n--)
-	//{
-	//	// ZJ: subsituting underscores for space in the filename.
-	//	if (pFilename[n] == '_')
-	//	{
-	//		pFilename[n] = ' ';
-	//	}
-
-	//	// Remove the file extension from the file name.
-	//	if (pFilename[n] == '.' && !bFoundExtension)
-	//	{
-	//		t.importer.objectFilenameExtension = pFilename + n + 1;
-	//		pFilename[n] = 0;
-	//		bFoundExtension = true;
-	//		// ZJ: removed break and added boolean so that the entire array can be traversed.
-	//		//break;
-	//	}
-	//}
 	for (int n = strlen(pFilename); n > 0; n--)
 	{
 		// Remove the file extension from the file name.
@@ -2659,9 +1798,7 @@ void importer_loadmodel_wicked(int objnumber)
 	//PE: Need batch support here.
 	importer_loadmodel_wicked();
 }
-#endif
 
-#ifdef WICKEDENGINE
 void importer_loadmodel(int objnumber)
 {
 	//PE: We need a object array so we can batch convert.
@@ -2672,7 +1809,6 @@ void importer_loadmodel(int objnumber)
 	// show loading prompt (FBX conversion can take a while)
 	importer_loadmodel_wicked(objnumber);
 }
-#endif
 
 void importer_loadmodel ( void )
 {
@@ -2680,7 +1816,6 @@ void importer_loadmodel ( void )
 	popup_text("importing and converting model");
 
 	// show loading prompt (FBX conversion can take a while)
-	#ifdef WICKEDENGINE
 	// Wicked imports the object in-situ (so placed in center of current location in level scene)
 	// Note: Will probably find floor if close enough, or in air if high above ground.
 	// Using new load sequence as Wicked import is quite different from Classic/VRQ
@@ -2700,450 +1835,6 @@ void importer_loadmodel ( void )
 	//set_temp_visuals(t.gamevisuals, t.visualsStorage, desiredVisuals);
 	//t.visuals.refreshshaders = 1;
 	visuals_loop();
-	#else
-	#ifdef VRTECH
-	// reposition camera in sky so no terrain depth clipping can occur
-	if (g_bCameraInSkyForImporter == false)
-	{
-		custom_back_color[0] = 0.60f; custom_back_color[1] = 0.60f; custom_back_color[2] = 0.60f; custom_back_color[3] = 1.0f;
-		PositionCamera(0, CameraPositionX(0), CameraPositionY(0) + 50000, CameraPositionZ(0));
-		SetCameraRange(0, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE);
-		g_bCameraInSkyForImporter = true;
-		t.editorfreeflight.mode = 1;
-		t.editorfreeflight.c.x_f = CameraPositionX();
-		t.editorfreeflight.c.y_f = CameraPositionY();
-		t.editorfreeflight.c.z_f = CameraPositionZ();
-		Sync();
-	}
-	#endif
-
-	// init
-	#ifdef VRTECH
-	if (ObjectExist(t.importer.objectnumber))
-		importer_quit();
-	#endif
-
-	if ( t.importer.importerActive == 0 ) importer_init ( );
-	importer_sort_names ( );
-	for ( t.t = 0 ; t.t<=  50; t.t++ )
-	{
-		t.snapPosX_f[t.t][1] = -99999;
-	}
-
-	// check if importing an FBX for first time
-	bool bHasFBXExtension = false;
-	if ( strnicmp ( t.importer.objectFilename.Get() + strlen(t.importer.objectFilename.Get()) - 4, ".fbx", 4 ) == NULL ) bHasFBXExtension = true;
-	if ( bHasFBXExtension == true && g_iFirstTimeFBXImport == 0 )
-	{
-		// set-up importer for FBX friendly import settings
-		//g_iFBXGeometryToggleMode = 1;
-		//g_iFBXGeometryCenterMesh = 1;
-		g_iPreferPBR = 1;
-		g_iFirstTimeFBXImport = 1;
-	}
-
-	//  load model specified by timporterfile$
-	g_bLoadedFBXModel = false;
-	t.importer.objectnumber=g.importermenuobjectoffset+1;
-
-	t.importer.objectnumberpreeffectcopy=g.importermenuobjectoffset+3;
-	t.strwork = ""; t.strwork = t.strwork + t.importer.objectFileOriginalPath + t.importer.objectFilename;
-	if ( FileExist ( t.strwork.Get() ) ) 
-	{
-		if ( strnicmp ( t.strwork.Get() + strlen(t.strwork.Get()) - 4, ".fbx", 4 )==NULL )
-		{
-			LoadFBX ( t.strwork.Get(), t.importer.objectnumber );
-			//SetObjectRenderMatrixMode ( t.importer.objectnumber, 1 );
-			g_bLoadedFBXModel = true;
-		}
-		else
-		{
-			LoadObject ( t.strwork.Get() ,t.importer.objectnumber );
-			//SetObjectRenderMatrixMode ( t.importer.objectnumber, 0 );
-		}
-	}
-	else
-	{
-		t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\"+t.importer.objectFilename;
-		if (  FileExist( t.strwork.Get() ) ) 
-		{
-			if ( strnicmp ( t.strwork.Get() + strlen(t.strwork.Get()) - 4, ".fbx", 4 )==NULL )
-			{
-				LoadFBX ( t.strwork.Get(), t.importer.objectnumber );
-				//SetObjectRenderMatrixMode ( t.importer.objectnumber, 1 );
-				g_bLoadedFBXModel = true;
-			}
-			else
-			{
-				LoadObject ( t.strwork.Get() ,t.importer.objectnumber );
-				//SetObjectRenderMatrixMode ( t.importer.objectnumber, 0 );
-			}
-		}
-		else
-		{
-			MakeObjectCube (  t.importer.objectnumber,100 );
-		}
-	}
-
-	// 111118 - if import fails for any reason, ensure no crash
-	if ( ObjectExist ( t.importer.objectnumber ) == 0 )
-	{
-		MakeObjectCube (  t.importer.objectnumber,100 );
-	}
-
-	// Position imported object at center
-	LockObjectOn (  t.importer.objectnumber );
-	PositionObject (  t.importer.objectnumber , 0 , 0 , 0 );
-
-	//  Dummy character object
-	t.importer.dummyCharacterObjectNumber=g.importermenuobjectoffset+2;
-	if (  ObjectExist(t.importer.dummyCharacterObjectNumber)  )  DeleteObject (  t.importer.dummyCharacterObjectNumber );
-	#ifdef PHOTONMP
-	 LoadObject (  "entitybank\\characters\\Uber Character.dbo",t.importer.dummyCharacterObjectNumber );
-	#else
-	 LoadObject (  "entitybank\\characters\\Uber Soldier.X",t.importer.dummyCharacterObjectNumber );
-	#endif
-	TextureObject (  t.importer.dummyCharacterObjectNumber,0 );
-	DisableObjectZDepth (  t.importer.dummyCharacterObjectNumber );
-	LockObjectOn (  t.importer.dummyCharacterObjectNumber );
-	ColorObject (  t.importer.dummyCharacterObjectNumber , Rgb(0,0,0) );
-	SetObjectLight (  t.importer.dummyCharacterObjectNumber ,1 );
-	SetObjectAmbience (  t.importer.dummyCharacterObjectNumber,0 );
-	SetAlphaMappingOn (  t.importer.dummyCharacterObjectNumber , 30 );
-	SetObjectEmissive (  t.importer.dummyCharacterObjectNumber, Rgb(255,0,0) );
-	SetObjectEffect ( t.importer.dummyCharacterObjectNumber, g.guishadereffectindex );
-
-	//  Set the pivot to the bottom of the object
-	t.tTop_f = -10000;
-	t.tBottom_f = 10000;
-	PerformCheckListForLimbs (  t.importer.objectnumber );
-
-	//  Find out the max and min Y vertex positions so we can work out where the pivot is now
-	for ( t.tLimbCount = 1 ; t.tLimbCount<=  ChecklistQuantity()-1; t.tLimbCount++ )
-	{
-		LockVertexDataForLimb (  t.importer.objectnumber, t.tLimbCount );
-		t.tVmax=GetVertexDataVertexCount();
-		for ( t.tVertexCount = 0 ; t.tVertexCount<=  t.tVmax-1; t.tVertexCount++ )
-		{
-			t.tVertexY_f = GetVertexDataPositionY(t.tVertexCount);
-			if (  t.tVertexY_f > t.tTop_f  )  t.tTop_f  =  t.tVertexY_f;
-			if (  t.tVertexY_f < t.tBottom_f  )  t.tBottom_f  =  t.tVertexY_f;
-		}
-		UnlockVertexData (  );
-	}
-
-	//  MoveObject (  pivot to the bottom of the model for use in FPSC )
-	t.importer.objectLeftOffset = 0;
-	t.importer.objectFrontOffset = 0;
-	t.importer.objectBottomOffset = 0;
-	t.importer.objectTopOffset = 0;
-	t.importer.objectCenterOffset = 0;
-
-	//  calculate the radius that would encase the whole object (new mode 2 takes OriginalMatrix scaling into account)
-	t.tObjectSize_f = ObjectSizeY(t.importer.objectnumber,2);
-	if (  ObjectSizeX (t.importer.objectnumber,2) > t.tObjectSize_f  ) t.tObjectSize_f = ObjectSizeX (t.importer.objectnumber,2);
-	if (  ObjectSizeZ (t.importer.objectnumber,2) > t.tObjectSize_f  ) t.tObjectSize_f = ObjectSizeZ (t.importer.objectnumber,2);
-	t.importer.originalObjectSize = t.tObjectSize_f;
-
-	//  Check the size and adjust scale to fit in view
-	t.tScale = ( 300.00 / t.tObjectSize_f ) * 100.0;
-	t.tScale = t.tScale * t.importer.scaleMulti;
-	t.importer.objectScaleForEditing = t.tScale;
-	t.importer.objectCenterOffset = -(ObjectSizeY (t.importer.objectnumber,0) / 2.0) * (t.tScale / 100.0) ;
-	ScaleObject (  t.importer.objectnumber , t.tScale , t.tScale , t.tScale );
-	t.tObjectSizeX_f = (ObjectSizeX(t.importer.objectnumber,0) * (t.tScale / 100.0)) * 0.95;
-	t.tObjectSizeY_f = (ObjectSizeY(t.importer.objectnumber,0) * (t.tScale / 100.0)) * 0.95;
-	t.tObjectSizeZ_f = (ObjectSizeZ(t.importer.objectnumber,0) * (t.tScale / 100.0)) * 0.95;
-	PositionObject ( t.importer.objectnumber, 0, 0, 0 );
-
-	t.tBoxOffsetLeft_f = 0;
-	t.tBoxOffsetTop_f = 0;
-	t.tBoxOffsetFront_f = 0;
-	ScaleObject (  t.importer.dummyCharacterObjectNumber , t.tScale , t.tScale , t.tScale * 0.2 );
-	PositionObject ( t.importer.dummyCharacterObjectNumber, 0, 0, 0 );
-
-	//  Create the grid below the character to help show the camera rotation
-	int tCount = 1;
-	for ( tCount = 1 ; tCount<= 6; tCount++ )
-	{
-		t.importerGridObject[tCount] = findFreeObject();
-		MakeObjectPlane (  t.importerGridObject[tCount], 0 , 400 * t.importer.scaleMulti );
-		PositionObject ( t.importerGridObject[tCount], 0, 0, 0 );
-		SetObjectWireframe (  t.importerGridObject[tCount] , 1 );
-		ColorObject (  t.importerGridObject[tCount],Rgb(0,0,0) );
-		SetObjectAmbience (  t.importerGridObject[tCount],0 );
-		SetObjectEmissive (  t.importerGridObject[tCount], Rgb(0,0,0) );
-		SetObjectLight (  t.importerGridObject[tCount] , 1 );
-		XRotateObject (  t.importerGridObject[tCount],180 );
-		LockObjectOn (  t.importerGridObject[tCount] );
-		SetObjectEffect ( t.importerGridObject[tCount], g.guishadereffectindex );
-	}
-
-	//  Front marker
-	t.importerGridObject[7] = findFreeObject();
-	MakeObjectPlane (  t.importerGridObject[7], 10 , 20 * t.importer.scaleMulti );
-	PositionObject ( t.importerGridObject[7], 0, 0, 0 );
-	ColorObject (  t.importerGridObject[7],Rgb(0,0,0) );
-	SetObjectLight (  t.importerGridObject[7] , 1 );
-	SetObjectAmbience (  t.importerGridObject[7],0 );
-	SetObjectEmissive (  t.importerGridObject[7], Rgb(0,0,0) );
-	MoveObject (  t.importerGridObject[7], 200 );
-	XRotateObject (  t.importerGridObject[7], -90 );
-	LockObjectOn (  t.importerGridObject[7] );
-	SetObjectEffect ( t.importerGridObject[7], g.guishadereffectindex );
-
-	//  Position the grid
-	MoveObjectLeft (  t.importerGridObject[1],200 * t.importer.scaleMulti );
-	XRotateObject (  t.importerGridObject[1] , -90 );
-	MoveObjectRight (  t.importerGridObject[2],200 * t.importer.scaleMulti );
-	XRotateObject (  t.importerGridObject[2] , -90 );
-	MoveObject (  t.importerGridObject[3],200 * t.importer.scaleMulti );
-	YRotateObject (  t.importerGridObject[3],90 );
-	XRotateObject (  t.importerGridObject[3] , -90 );
-	MoveObject (  t.importerGridObject[4],-200 * t.importer.scaleMulti );
-	YRotateObject (  t.importerGridObject[4],90 );
-	XRotateObject (  t.importerGridObject[4] , -90 );
-	YRotateObject (  t.importerGridObject[5],90 );
-	XRotateObject (  t.importerGridObject[5] , -90 );
-	XRotateObject (  t.importerGridObject[6] , -90 );
-
-	t.importerGridObject[8] = findFreeObject();
-	MakeObjectCube (  t.importerGridObject[8] , 1 );
-	HideObject (  t.importerGridObject[8] );
-	SetObjectLight (  t.importerGridObject[8],1 );
-	LockObjectOn (  t.importerGridObject[8] );
-	SetObjectEffect ( t.importerGridObject[8], g.guishadereffectindex );
-	for ( tCount = 1 ; tCount<=  7; tCount++ )
-	{
-		FixObjectPivot (  t.importerGridObject[tCount] );
-		GlueObjectToLimbEx (  t.importerGridObject[tCount], t.importerGridObject[8], 0 , 1 );
-	}
-	GlueObjectToLimbEx (  t.importer.dummyCharacterObjectNumber, t.importerGridObject[8], 0 , 1 );
-
-	//  SetObject (  rotation mode and initial angle (angle may change if a fpe is associated with the model) )
-	t.importer.objectRotateMode = 0;
-	t.importer.objectAngleY = 0.0;
-
-	//  create pivot for collision boxes
-	t.importerGridObject[9] = findFreeObject();
-	MakeObjectCube (  t.importerGridObject[9] , 1 );
-	SetObjectLight (  t.importerGridObject[9],1 );
-	ColorObject (  t.importerGridObject[9],Rgb(0,0,0) );
-	HideObject (  t.importerGridObject[9] );
-	LockObjectOn (  t.importerGridObject[9] );
-	for ( tCount = 1 ; tCount<=  9; tCount++ )
-	{
-		SetObjectEmissive ( t.importerGridObject[tCount], Rgb(255,255,0) );
-		SetObjectEffect ( t.importerGridObject[tCount], g.guishadereffectindex );
-	}
-
-	//  Check for FPE file, load and apply if one is found
-	importer_load_fpe ( );
-
-	// Autoset other FPE settings (if FBX import for first time)
-	if ( g_iPreferPBR > 0 )
-	{
-		t.importer.objectFPE.effect = "effectbank\\reloaded\\apbr_basic.fx";
-	}
-
-	// update UI panel of any changes so far
-	importer_apply_fpe();
-
-	// ensure no value from emissive effect
-	SetObjectEmissive ( t.importer.objectnumber, 0 );
-
-	// reset image to texture limb mapping array
-	g_dwMapImageListIndexToLimbCount = 0;
-	SAFE_DELETE ( g_piMapImageListIndexToLimbIndex );
-
-	// if FBX import, add appropriate texture files to importerlist
-	if ( bHasFBXExtension == true )
-	{
-		// Clean importer Textures List
-		int tCount = 0;
-		for ( tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-		{
-			t.importerTextures[tCount].imageID = 0;
-			t.importerTextures[tCount].fileName = "";
-			t.importerTextures[tCount].iExpandedThisSlot = 0;		
-			t.importerTextures[tCount].iOptionalStage = 0;
-			t.importerTextures[tCount].iAssociatedBaseImage = 0;
-		}
-
-		// first check if importer has textures from FBX conversion
-		cstr sOldDir = GetDir();
-		SetDir(cstr(g.rootdir_s+"importer\\temp").Get());
-		bool bUseTexturesFromConversion = false;
-		sObject* pObject = GetObjectData ( t.importer.objectnumber );
-		if ( pObject )
-		{
-			tCount = 0;
-			for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
-			{
-				sMesh* pMesh = pObject->ppMeshList[iMesh];
-				int iStoreImageSlotIndexForBase = -1;
-				for ( int iTextureStage = 0; iTextureStage < pMesh->dwTextureCount; iTextureStage++ )
-				{
-					int iSlotUsed = -1;
-					cstr pTextureFile = pMesh->pTextures[iTextureStage].pName;
-					if ( FileExist ( pTextureFile.Get() ) == 0 )
-					{
-						pTextureFile = Left ( pTextureFile.Get(), strlen(pTextureFile.Get())-4 );
-						pTextureFile = pTextureFile + ".dds";
-					}
-					if ( FileExist ( pTextureFile.Get() ) == 1 )
-					{
-						cstr pAbsoluteFile = g.rootdir_s + "importer\\temp\\" + pTextureFile;
-						iSlotUsed = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
-						bUseTexturesFromConversion = true;
-					}
-					else
-					{
-						// FBX conversion had no textures produced, so add texture filename directly to importer image list
-						// which we can then use later to find associate texture files
-						if ( strlen ( pMesh->pTextures[iTextureStage].pName ) > 0 )
-						{
-							cstr pAbsoluteFile = t.importer.objectFileOriginalPath + pMesh->pTextures[iTextureStage].pName;
-							iSlotUsed = importer_addtexturefiletolist ( pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount );
-						}
-						#ifdef VRTECH
-						else 
-						{
-							//PE:Some models have empty texture field, just add blank.
-							//PE:We should always have one , so user can change the texture. (even if not found).
-							cstr pAbsoluteFile = t.importer.objectFileOriginalPath + "blank";
-							iSlotUsed = importer_addtexturefiletolist(pAbsoluteFile.Get(), pAbsoluteFile.Get(), &tCount);
-						}
-						#endif
-					}
-					if ( iSlotUsed > -1 )
-					{
-						if ( iTextureStage == 0 ) 
-						{
-							// base texture (color)
-							iStoreImageSlotIndexForBase = iSlotUsed;
-						}
-						else
-						{
-							// associate other stages to above base stage
-							t.importerTextures[iSlotUsed].iOptionalStage = iTextureStage;
-							t.importerTextures[iSlotUsed].iAssociatedBaseImage = iStoreImageSlotIndexForBase;
-						}
-					}
-				}
-			}
-			SetDir(sOldDir.Get());
-		}
-		if ( bUseTexturesFromConversion == true )
-		{
-			// if model did not have its own textures, texture with external ones next to FBX model
-			importer_load_textures_finish ( tCount, true ); // add cube mapping texture stage only
-		}
-		else
-		{
-			// if model did not have its own textures, texture with external ones next to FBX model
-			importer_load_textures_finish ( tCount, false ); // texture object from import image texture list
-		}
-	}
-	else
-	{
-		//  Load textures the old fashioned way
-		importer_load_textures ( );
-	}
-
-	// prior to setting effect (changing it) keep a copy of original import (but after setting textures)
-	if ( ObjectExist( t.importer.objectnumberpreeffectcopy ) == 1 ) DeleteObject ( t.importer.objectnumberpreeffectcopy );
-	CloneObject ( t.importer.objectnumberpreeffectcopy, t.importer.objectnumber );
-
-	// Once shader wiping tetxure applied, apply shader to imported object (changed later if prefer PBR shader - see below)
-	#ifdef VRTECH
-	int iEffectID;
-	if (g.gpbroverride == 1)
-		iEffectID = loadinternaleffect("effectbank\\reloaded\\apbr_basic.fx");
-	else
-		iEffectID = loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
-	SetObjectEffect ( t.importer.objectnumber, iEffectID );
-	//PE: make sure it is changed. fix for: https://github.com/TheGameCreators/GameGuruRepo/issues/123
-	if (g.gpbroverride == 1)
-		importer_changeshader("apbr_basic.fx");
-	else
-		importer_changeshader("entity_basic.fx");
-	#else
-	int iEffectID = loadinternaleffect("effectbank\\reloaded\\entity_basic.fx");
-	SetObjectEffect ( t.importer.objectnumber, iEffectID );
-	//PE: make sure it is changed. fix for: https://github.com/TheGameCreators/GameGuruRepo/issues/123
-	importer_changeshader("entity_basic.fx");
-
-
-	//PE: Bug. make sure we dont get clipped, model was only half visible.
-	//reuse g.characterkitvector = 46
-	t.tnothing = MakeVector4(g.characterkitvector);
-	SetVector4(g.characterkitvector, 500000, 1, 0, 0);
-	SetEffectConstantV(iEffectID, "EntityEffectControl", g.characterkitvector);
-	t.tnothing = DeleteVector4(g.characterkitvector);
-
-	// attach to gimble so can manipulate imported object
-	GlueObjectToLimbEx (  t.importer.objectnumber, t.importerGridObject[8], 0 , 1 );
-	PositionObject (  t.importerGridObject[8], 0 , 0 , IMPORTERZPOSITION );
-
-	// if no physics shapes attached to mode, make a default one covering the whole object
-	if (  t.importer.collisionShapeCount  ==  0 ) 
-	{
-		importer_add_collision_box ( );
-	}
-
-	//  set up collision object selection boxes
-	for ( tCount = 1 ; tCount<=  9; tCount++ )
-	{
-		t.selectedObjectMarkers[tCount] = findFreeObject();
-		MakeObjectCube (  t.selectedObjectMarkers[tCount], 10 );
-		SetObjectLight (  t.selectedObjectMarkers[tCount], 1 );
-		SetObjectAmbience (  t.selectedObjectMarkers[tCount],0 );
-		if (  tCount  !=  9 ) 
-		{
-			SetObjectEmissive (  t.selectedObjectMarkers[tCount], Rgb(255,255,0) );
-		}
-		else
-		{
-			SetObjectEmissive (  t.selectedObjectMarkers[tCount], Rgb(0,255,255) );
-		}
-		DisableObjectZDepth (  t.selectedObjectMarkers[tCount] );
-		LockObjectOn (  t.selectedObjectMarkers[tCount] );
-		SetObjectWireframe (  t.selectedObjectMarkers[tCount],1 );
-		HideObject (  t.selectedObjectMarkers[tCount] );
-		SetObjectEmissive ( t.selectedObjectMarkers[tCount], Rgb(255,255,0) );
-		SetObjectEffect ( t.selectedObjectMarkers[tCount], g.guishadereffectindex );
-	}
-
-	//  Default selected collision object
-	t.importer.selectedCollisionObject = 0;
-	t.slidersmenuvalue[t.importer.properties2Index][6].value = ObjectAngleX(t.importerCollision[0].object2);
-	t.slidersmenuvalue[t.importer.properties2Index][7].value = ObjectAngleY(t.importerCollision[0].object2);
-	t.slidersmenuvalue[t.importer.properties2Index][8].value = ObjectAngleZ(t.importerCollision[0].object2);
-
-	t.importer.scaleMulti = 2.0;
-	importer_screenSwitch ( );
-
-	//  Start importer loop
-	t.importer.loaded=1;
-	importer_fade_in ( );
-
-	// reset camera vars for importer viewer
-	float fDefaultCameraHeight = ObjectSizeY(t.importer.objectnumber,1) / 2.0;
-	t.importer.cameraheight = fDefaultCameraHeight;
-	t.importer.originalcameraheight = fDefaultCameraHeight;
-	t.importer.lastcameraheightforshift = fDefaultCameraHeight;
-
-	// if prefer PBR, effect needs to be switched now
-	g_iPreferPBRLateShaderChange = 0;
-	if ( g_iPreferPBR > 0 )
-	{
-		// apply shader to preferred PBR render view
-		g_iPreferPBRLateShaderChange = 1;
-	}
-	#endif
-
-	#endif // wicked endif
 
 	// seems to be needed for VRQ too (for scaling)
 	t.importer.camerazoom = 1.0f;
@@ -3151,30 +1842,11 @@ void importer_loadmodel ( void )
 	// remove editor prompt
 	popup_text_close();
 
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	iImporterScale = 100; //Default scale.
 	t.slidersmenuvalue[t.importer.properties1Index][1].value = 100;
 	iImporterGenerateThumb = 0;
-	//Reset colors and update.
-	//visuals_editordefaults();
-	//t.visuals.SurfaceSunFactor_f = 0.75;
-	////t.visuals.AmbienceIntensity_f = 195.0f;
-	//t.visuals.SurfaceIntensity_f = 0.9f;
-	
-	//visualsdatastoragetype desiredVisuals;
-	//set_temp_visuals(t.editorvisuals, t.visualsStorage, desiredVisuals);
-	//set_temp_visuals(t.visuals, t.visualsStorage, desiredVisuals);
-	//set_temp_visuals(t.gamevisuals, t.visualsStorage, desiredVisuals);
-	//t.visuals.refreshshaders = 1;
-	//visuals_loop();
-
-	
-
-	//t.visuals.refreshskysettings = 0;
-	#endif 
 }
 
-#ifdef WICKEDENGINE
 void importer_load_scenery()
 {
 	float fDefaultCharacterHeight = 65.0f;
@@ -3289,7 +1961,6 @@ void importer_load_scenery()
 	}
 
 }
-#endif
 
 void importer_RestoreCollisionShiftHeight ( void )
 {
@@ -3311,9 +1982,6 @@ void importer_RestoreCollisionShiftHeight ( void )
 	}
 }
 
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-
-#ifdef WICKEDENGINE
 void animsystem_clearoldanimationfromobject ( sObject* pObject )
 {
 	// stop any animation playing
@@ -3611,7 +2279,6 @@ void animsystem_loadanimtextfile (sObject* pObject, cstr pAbsPathToAnim, char* c
 
 void animsystem_animationtoolui(int objectnumber)
 {
-	#ifdef WICKEDENGINE
 	extern int iLastOpenHeader;
 	if (pref.bAutoClosePropertySections && iLastOpenHeader != 70)
 		ImGui::SetNextItemOpen(false, ImGuiCond_Always);
@@ -3619,7 +2286,6 @@ void animsystem_animationtoolui(int objectnumber)
 	// If the last open header was the animation tool simple ui(71) then the user toggled advanced settings so this header should be opened.
 	if (pref.bAutoClosePropertySections && iLastOpenHeader == 71)
 		ImGui::SetNextItemOpen(true, ImGuiCond_Always);
-	#endif
 
 	if (ImGui::StyleCollapsingHeader("Animation Tool", ImGuiTreeNodeFlags_DefaultOpen))
 	{
@@ -3855,41 +2521,6 @@ void animsystem_animationtoolui(int objectnumber)
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to append an animation from a file");
 
-			/* reintroduce this when we can clean up the animation data and slots
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-			if (ImGui::StyleButton("Save Animation File##AnimaionToolSaveAnimationFile", ImVec2(but_gadget_size, 0)))
-			{
-				// file requester to select animation file
-				cStr tOldDir = GetDir();
-				cstr pAbsPathToAnim = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\";
-				char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "All\0*.*\0", pAbsPathToAnim.Get(), NULL);
-				SetDir(tOldDir.Get());
-				if (cFileSelected && strlen(cFileSelected) > 0)
-				{
-					// go through animation data and clean it up (after EA)
-					// essentially, take all animslots and preserve their keyframes in a new anim data stack
-					// removing all the anim data that belonged to animslots that have been deleted over time
-					// this ensures the keyframe anim data is packed sequentially representing the anim slots with no gaps
-
-					// save as DBO filename
-					char pSaveThisAnimFile[MAX_PATH];
-					strcpy(pSaveThisAnimFile, cFileSelected);
-					if (strnicmp(pSaveThisAnimFile + strlen(pSaveThisAnimFile) - 4, ".dbo", 4) != NULL)
-					{
-						pSaveThisAnimFile[strlen(pSaveThisAnimFile) - 4] = 0;
-						strcat(pSaveThisAnimFile, ".dbo");
-					}
-
-					// save animations out as a DBO file
-					SaveObject(pSaveThisAnimFile, objectnumber);
-
-					// clean and reload object animation data  (after EA)
-					// by cleaning and reloading here, we can test quickly to ensure the save did not corrupt any animation data or slots
-				}
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to save an animation file");
-			*/
-
 			// Need a way to wipe out any old animation data
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 			if (ImGui::StyleButton("Clear All Animation##AnimaionToolClearAll", ImVec2(but_gadget_size, 0)))
@@ -4033,7 +2664,6 @@ void animsystem_animationtoolui(int objectnumber)
 		}
 		ImGui::Indent(-10);
 	}
-	#ifdef WICKEDENGINE
 	else
 	{
 		// ZJ: Moved this here so the animations will play when the header is closed.
@@ -4063,14 +2693,12 @@ void animsystem_animationtoolui(int objectnumber)
 				SetObjectFrame(objectnumber, pAnimSlotItem->fStart);
 			}
 			g_bUpdateAnimationPreview = false;
-	}
-	#endif
+		}
 	}
 }
 
 void animsystem_animationtoolsimpleui(int objectnumber)
 {
-#ifdef WICKEDENGINE
 	extern int iLastOpenHeader;
 	if (pref.bAutoClosePropertySections && iLastOpenHeader != 71)
 		ImGui::SetNextItemOpen(false, ImGuiCond_Always);
@@ -4079,7 +2707,6 @@ void animsystem_animationtoolsimpleui(int objectnumber)
 	// As they are two different headers, but in the UI they appear to be the same one.
 	if (pref.bAutoClosePropertySections && iLastOpenHeader == 70)
 		ImGui::SetNextItemOpen(true, ImGuiCond_Always);
-#endif
 
 	// object being edited with animation tool
 	sObject* pObject = GetObjectData(objectnumber);
@@ -4108,27 +2735,7 @@ void animsystem_animationtoolsimpleui(int objectnumber)
 				g_bUpdateAnimationPreview = true;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Animate Object Preview");
-
-			// animation speed
-			//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Animation Speed");
-			//ImGui::TextCenter("Animation Speed");
-			
 		}
-
-		//extern void DisplayAdvancedSettings(int&, const char*);
-		//DisplayAdvancedSettings(pref.iEnableAdvancedCharacterCreator, "test");
-
-		//ImGui::Indent(10);
-		//ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-		//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-		//if (ImGui::HyberlinkButton("Advanced Settings##1", ImVec2(label_size.x, 0)))
-		//{
-		//	extern int iSetSettingsFocusTab;
-		//	extern bool bPreferences_Window;
-		//	iSetSettingsFocusTab = 2;
-		//	bPreferences_Window = true;
-		//}
-		//ImGui::Indent(-10);
 
 		extern void ControlAdvancedSetting(int&, const char*, bool* = 0);
 		if (t.importer.importerActive == 0)
@@ -4362,27 +2969,6 @@ void animsystem_weaponproperty (int characterbasetype, bool readonly, entityelep
 		edit_grideleprof->overrideanimset_s = "";
 		extern bool g_bNowPopulateWithCorrectAnimSet;
 		g_bNowPopulateWithCorrectAnimSet = true;
-	}
-	if (strlen(pSelectedWeapon) > 0)
-	{
-		// more freedom granted
-		// check if weapon animations available
-		//t.findgun_s = Lower(pSelectedWeapon);
-		//gun_findweaponindexbyname ();
-		//int gunid = t.foundgunid;
-		//LPSTR pWeaponType = animsystem_getweapontype(pSelectedWeapon, t.gun[gunid].animsetoverride.Get());
-		//LPSTR pGender = "adult male";
-		//if (characterbasetype == 1) pGender = "adult female";
-		//if (characterbasetype == 2) pGender = "zombie male";
-		//if (characterbasetype == 3) pGender = "zombie female";
-		//char pPathToWeaponAnim[MAX_PATH];
-		//sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pGender, pWeaponType);
-		//if (FileExist(pPathToWeaponAnim) == 0)
-		//{
-		//	edit_grideleprof->hasweapon_s = sCurrentWeapon;
-		//	strcpy (cTriggerMessage, "Character animations not available to equip this weapon");
-		//	bTriggerMessage = true;
-		//}
 	}
 
 	// allow player to take weapon (and ammo)
@@ -4675,9 +3261,6 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 	}
 }
 
-#endif
-
-#ifdef WICKEDENGINE
 void importer_applyframezerooffsets (int objectnumber, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
 {
 	sObject* pObject = g_ObjectList[objectnumber];
@@ -4741,7 +3324,6 @@ void UpdateObjectWithAnimSlotList ( sObject* pObject )
 		}
 	}
 }
-#endif
 
 void imgui_importer_loop(void)
 {
@@ -4943,7 +3525,6 @@ void imgui_importer_loop(void)
 			break;
 		}
 
-		#ifdef WICKEDENGINE
 		case 30: //Select baseColorMap Material
 		{
 			bHaveMaterialUpdate = true;
@@ -5589,8 +4170,6 @@ void imgui_importer_loop(void)
 			break;
 		}
 
-		#endif
-
 		default:
 			break;
 	}
@@ -5612,13 +4191,6 @@ void imgui_importer_loop(void)
 		{
 			if (iImporterGenerateThumb == 5)
 			{
-				#ifdef WICKEDENGINE
-				// Find new wicked way to make thumbnail
-				#else
-				// delete previous thumbnail
-				if (GetImageExistEx(IMPORTER_TMP_IMAGE)) DeleteImage(IMPORTER_TMP_IMAGE);
-				import_generate_thumb();
-				#endif
 				iImporterGenerateThumb++;
 			}
 			else
@@ -5639,14 +4211,6 @@ void imgui_importer_loop(void)
 		if (ImGui::StyleCollapsingHeader("Name", ImGuiTreeNodeFlags_DefaultOpen)) 
 		{
 			iLastOpenHeader = 72;
-			//ZJ: Removed following Rick's feedback.
-			//if (GetImageExistEx(IMPORTER_TMP_IMAGE))
-			//{
-			//	ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (media_icon_size*0.5), 0.0f));
-			//	if(ImGui::ImgBtn(IMPORTER_TMP_IMAGE, ImVec2(media_icon_size, media_icon_size), ImColor(0, 0, 0, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(180, 180, 180, 255),2,0,0,0,true,false)) {
-			//		iImporterGenerateThumb = 0;
-			//	}
-			//}
 
 			ImGui::Indent(10);
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13)); //3
@@ -5657,12 +4221,8 @@ void imgui_importer_loop(void)
 			ImGui::PushItemWidth(-10);
 
 			ImGui::InputText("##NameImport", &cImportName[0], 128);
-			#ifdef WICKEDENGINE
 			if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 			if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Object Name");
-			#else
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Object Name");
-			#endif
 			ImGui::PopItemWidth();
 			ImGui::Indent(-10);
 		}
@@ -5675,7 +4235,6 @@ void imgui_importer_loop(void)
 			iLastOpenHeader = 73;
 			ImGui::Indent(10);
 
-			#ifdef WICKEDENGINE
 			// Scaling Mode
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13));
 			ImGui::Text("Scaling");
@@ -5725,7 +4284,6 @@ void imgui_importer_loop(void)
 				iDelayedExecute = 4;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets whether to center the meshes data of the imported model");
-			#endif
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13)); //3
 			ImGui::Text("Scale");
@@ -5750,36 +4308,14 @@ void imgui_importer_loop(void)
 				t.slidersmenuvalue[t.importer.properties1Index][1].value = iImporterScale;
 				t.importer.oldScale = t.slidersmenuvalue[t.importer.properties1Index][1].value;
 
-				#ifdef WICKEDENGINE
 				//PE: Scale actual object.
 				if (ObjectExist(t.importer.objectnumber) == 1)
 				{
 					ScaleObject(t.importer.objectnumber, iImporterScale*fImporterScaleMultiply, iImporterScale*fImporterScaleMultiply, iImporterScale*fImporterScaleMultiply);
 				}
-
-				//Make sure we dont go below terrain after scale.
-				if (bStickObjectToGround)
-				{
-					/* removed so does not interfere with new offset parameter to position object
-					float terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(t.importer.objectnumber), ObjectPositionZ(t.importer.objectnumber), 1);
-					PositionObject(t.importer.objectnumber, ObjectPositionX(t.importer.objectnumber), terrain_height, ObjectPositionZ(t.importer.objectnumber));
-					sObject* pObject = g_ObjectList[t.importer.objectnumber];
-					if (pObject)
-					{
-						if (pObject->collision.vecMin.y < 0)
-						{
-							//PE: Assume its a center pivot , and adjust positions.
-							float fPivotAdjust = fabs(pObject->collision.vecMin.y * pObject->position.vecScale.y);
-							PositionObject(t.importer.objectnumber, ObjectPositionX(t.importer.objectnumber), ObjectPositionY(t.importer.objectnumber) + fPivotAdjust, ObjectPositionZ(t.importer.objectnumber));
-						}
-					}
-					*/
-				}
-				#endif
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Object Scale");
 
-			#ifdef WICKEDENGINE
 			ImGui::TextCenter("Rotation Offset");
 			if (ImGui::MaxSliderInputFloat("##XImportrotation", &fImportRotX, 0.0f, 360.0f, "Adjust rotation of model around X axis", 0, 360))
 			{
@@ -5829,9 +4365,7 @@ void imgui_importer_loop(void)
 				importer_find_floor();
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Auto offset the model on the Y axis");
-			#endif
 
-			#ifdef WICKEDENGINE
 			// Collision Type
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13)); //3
 			ImGui::Text("Collision");
@@ -5869,9 +4403,7 @@ void imgui_importer_loop(void)
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the collision type the object will use for physics");
 			ImGui::PopItemWidth();
-			#endif
 
-			#ifdef WICKEDENGINE
 			if (t.importer.collisionshape == 5)
 			{
 				// Character Specific
@@ -5907,14 +4439,13 @@ void imgui_importer_loop(void)
 			}
 			ImGui::Indent(-10);
 		}
-		#endif
 
 		if (pref.bAutoClosePropertySections && iLastOpenHeader != 74)
 			ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 		if (ImGui::StyleCollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen))
 		{
 			iLastOpenHeader = 74;
-			#ifdef WICKEDENGINE
+
 			ImGui::Indent(10);
 
 			// Set the material index of the imported object.
@@ -5949,37 +4480,9 @@ void imgui_importer_loop(void)
 
 			//PE: WICKED - display textures directly from object.
 			sObject* pObject = g_ObjectList[t.importer.objectnumber];
-			//pObject = g_ObjectList[t.storegridentityobj];
 			sMesh * pMesh = NULL;
 			
 			Wicked_Change_Object_Material((void*)pObject, 0, NULL, t.importer.bEditAllMesh); 
-			//Wicked_Change_Object_Material((void*)pObject, 0, NULL, false); // false = allows roughness, metalness and occlusion to be edited
-			
-			#else
-			if (t.tcounttextures > 0) 
-			{
-				for (int tCount = 1; tCount <= t.tcounttextures; tCount++) 
-				{
-					int img_id = g.importermenuimageoffset + 6;
-					if (ImageExist(t.importerTextures[tCount].imageID))
-						img_id = t.importerTextures[tCount].imageID;
-
-					if (ImageExist(img_id)) 
-					{
-						float cur_pos = (ImGui::GetCursorPosX() + media_icon_size + media_icon_size + 6); //Used to check when to wrap.
-						if (t.tcounttextures == 1)
-							ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (media_icon_size*0.5), 0.0f));
-						if (ImGui::ImgBtn(img_id, ImVec2(media_icon_size, media_icon_size), ImColor(0, 0, 0, 255))) 
-						{
-							//LB: disable ability to change texture, just view
-							//iDelayedExecuteSelection = tCount;
-							//iDelayedExecute = 1;
-						}
-						if (tCount < t.tcounttextures && (cur_pos < w)) ImGui::SameLine();
-					}
-				}
-			}
-			#endif
 			ImGui::Indent(-10);
 		}
 
@@ -6000,9 +4503,7 @@ void imgui_importer_loop(void)
 			
 			ImGui::InputText("##InputPathImporter", &cImportPathCropped[0], 250);
 			if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set where you would like to save the object files");
-			#ifdef WICKEDENGINE
 			if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-			#endif
 			ImGui::PopItemWidth();
 
 			ImGui::SameLine();
@@ -6033,13 +4534,8 @@ void imgui_importer_loop(void)
 				extern void mapeditorexecutable_full_folder_refresh(void);
 				mapeditorexecutable_full_folder_refresh();
 
-				//,pvec code below intside the refresh call
-				// Also ensure that the tree view in process_entity_library_v2 will be updated so the user can see any new folders they created.
-				//extern bool bTreeViewInitInNextFrame;
-				//bTreeViewInitInNextFrame = true;
-
-				if (cFileSelected && strlen(cFileSelected) > 0) {
-
+				if (cFileSelected && strlen(cFileSelected) > 0) 
+				{
 					//	Check that the new path still contains the entitybank folder.
 					char* cCropped = strstr(cFileSelected, "\\entitybank");
 					if (cCropped)
@@ -6067,11 +4563,7 @@ void imgui_importer_loop(void)
 
 			float but_gadget_size = ImGui::GetFontSize()*10.0;
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-			#ifdef WICKEDENGINE
 			if (ImGui::Button("Import Object##ImporterSaveUniqueId", ImVec2(but_gadget_size, 0))) 
-			#else
-			if (ImGui::Button("Save Entity##ImporterSaveUniqueId", ImVec2(but_gadget_size, 0)))
-			#endif
 			{
 				//code
 				if (strlen(cImportName) > 0) 
@@ -6359,7 +4851,6 @@ void imgui_importer_loop(void)
 		}
 		else if (!bImporter_Window) 
 		{
-			#ifdef WICKEDENGINE
 			//PE: we can delete the object here , so we are sure we dont use any textures from the object.
 			if (ObjectExist(t.importer.objectnumber))
 			{
@@ -6367,12 +4858,10 @@ void imgui_importer_loop(void)
 				WickedCall_SetSelectedObject(NULL);
 			}
 			if (ObjectExist(t.importer.dummyCharacterObjectNumber)) DeleteObject(t.importer.dummyCharacterObjectNumber);
-			#endif
 		}
 	}
 }
 
-#ifdef WICKEDENGINE
 void importer_texture_all_meshes(int iTexSlot)
 {
 	//t.gridentityextractedindex; t.widget.pickedEntityIndex;
@@ -6430,14 +4919,11 @@ void importer_texture_all_meshes(int iTexSlot)
 	// Reset the selected file, so that the file dialiog will open when adding other textures.
 	strcpy(cPreSelectedFile, "");
 }
-#endif
 
 void imgui_importer_draw(void)
 {
 
 }
-
-#endif
 
 void importer_loop_wicked(void)
 {
@@ -6454,480 +4940,7 @@ void importer_loop_wicked(void)
 
 void importer_loop ( void )
 {
-	#ifdef WICKEDENGINE
 	importer_loop_wicked();
-
-	#else
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	//	imgui_importer_loop();
-	//	return;
-	#endif
-
-	// this gets triggered once importer underway
-	if ( g_iPreferPBRLateShaderChange > 0 )
-	{
-		g_iPreferPBRLateShaderChange--;
-		if ( g_iPreferPBRLateShaderChange == 0 ) 
-		{
-			importer_changeshader ( t.importer.objectFPE.effect.Get() ); Sync();
-			importer_changeshader ( t.importer.objectFPE.effect.Get() ); Sync();
-		}
-	}
-
-	importer_update_scale ( );
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-#else
-	t.inputsys.xmousemove = t.inputsys.xmousemove * 2;
-	t.inputsys.ymousemove = t.inputsys.ymousemove * 2;
-#endif
-
-	#ifdef FPSEXCHANGE
-	 OpenFileMap (  1, "FPSEXCHANGE" );
-	 SetEventAndWait (  1 );
-	 t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
-	#else
-	 t.inputsys.kscancode = ScanCode();
-	#endif
-	
-	//  Multiplier to convert mouse coords to importer coords
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	 t.tadjustedtoimporterxbase_f = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
-	 t.tadjustedtoimporterybase_f = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
-#else
-	t.tadjustedtoimporterxbase_f=GetChildWindowWidth()/800.0;
-	t.tadjustedtoimporterybase_f=GetChildWindowHeight()/600.0;
-#endif
-	t.importer.MouseX = t.inputsys.xmouse*t.tadjustedtoimporterxbase_f;
-	t.importer.MouseY = t.inputsys.ymouse*t.tadjustedtoimporterybase_f;
-
-
-	if (  t.timportermouseoff  ==  0 ) 
-	{
-		t.toldMouseBeforeEditX = t.importer.MouseX + ( GetDesktopWidth() - GetChildWindowWidth() );
-		t.toldMouseBeforeEditY = t.importer.MouseY + ( GetDesktopHeight() - GetChildWindowHeight() );
-	}
-
-	//  Control gadgets in panel
-	if (  t.importer.loaded == 1 ) 
-	{
-		int iCameraAdjustMode = 0;
-		if ( t.importerTabs[1].selected == 1 ) iCameraAdjustMode = 2;
-		if ( t.importerTabs[2].selected == 1 ) iCameraAdjustMode = 1;
-		if ( iCameraAdjustMode > 0 )
-		{
-			float fFinalScale, fFinalScale2;
-			if ( t.inputsys.keyup != 0 ) t.importer.cameraheight += 10.0f;
-			if ( t.inputsys.keydown != 0 ) t.importer.cameraheight -= 10.0f;
-			if ( iCameraAdjustMode == 2 )
-			{
-				if ( t.inputsys.wheelmousemove > 0 ) t.importer.camerazoom += 0.05f;
-				if ( t.inputsys.wheelmousemove < 0 ) t.importer.camerazoom -= 0.05f;
-				if ( t.importer.camerazoom < 0.05f ) t.importer.camerazoom = 0.05f;
-				fFinalScale = t.importer.objectScaleForEditing * t.importer.camerazoom;
-				fFinalScale2 = 100.0f * t.importer.camerazoom;
-			}
-			else
-			{
-				fFinalScale = t.importer.objectScaleForEditing;
-				fFinalScale2 = 100.0f;
-			}
-			PositionObject ( t.importer.objectnumber, 0, -t.importer.cameraheight, 0 );
-			ScaleObject ( t.importer.objectnumber, fFinalScale, fFinalScale, fFinalScale );
-			PositionObject ( t.importer.dummyCharacterObjectNumber, 0, -t.importer.cameraheight, 0 );
-			ScaleObject ( t.importer.dummyCharacterObjectNumber, fFinalScale, fFinalScale, fFinalScale * 0.2f );
-			for ( int tCount = 1 ; tCount<= 6; tCount++ )
-			{
-				PositionObject ( t.importerGridObject[tCount], 0, -t.importer.cameraheight, 0 );
-				ScaleObject ( t.importerGridObject[tCount], fFinalScale2, fFinalScale2, fFinalScale2 );
-			}
-			float fShiftForCollisionObjects = t.importer.cameraheight - t.importer.lastcameraheightforshift;
-			t.importer.lastcameraheightforshift = t.importer.cameraheight;
-			for ( int tCount = 0 ; tCount<=  t.importer.collisionShapeCount-1; tCount++ )
-			{
-				if (  t.importerCollision[tCount].object > 0 ) 
-				{
-					if (  ObjectExist(t.importerCollision[tCount].object)  ==  1 ) 
-					{
-						float fX = ObjectPositionX(t.importerCollision[tCount].object);
-						float fY = ObjectPositionY(t.importerCollision[tCount].object) - fShiftForCollisionObjects;
-						float fZ = ObjectPositionZ(t.importerCollision[tCount].object);
-						PositionObject ( t.importerCollision[tCount].object, fX, fY, fZ );
-						PositionObject ( t.importerCollision[tCount].object2, fX, fY, fZ );
-					}
-				}
-			}
-		}
-		else
-		{
-			// viewing controls only for main panel
-			float fFinalScale = t.importer.objectScaleForEditing;
-			float fDefaultCameraHeight = -(ObjectSizeY(t.importer.objectnumber,0)/2.0);
-			PositionObject ( t.importer.objectnumber, 0, fDefaultCameraHeight, 0 );
-			ScaleObject ( t.importer.objectnumber, fFinalScale, fFinalScale, fFinalScale );
-			PositionObject ( t.importer.dummyCharacterObjectNumber, 0, fDefaultCameraHeight, 0 );
-			ScaleObject ( t.importer.dummyCharacterObjectNumber, fFinalScale, fFinalScale, fFinalScale * 0.2f );
-			fFinalScale = 100.0f;
-			for ( int tCount = 1 ; tCount<= 6; tCount++ )
-			{
-				PositionObject ( t.importerGridObject[tCount], 0, fDefaultCameraHeight, 0 );
-				ScaleObject ( t.importerGridObject[tCount], fFinalScale, fFinalScale, fFinalScale );
-			}
-			importer_RestoreCollisionShiftHeight();
-		}
-
-		importer_help ( );
-
-		//  This is to get round a gimble lock issue
-		RotateObject (  t.importerGridObject[9],0,0,0 );
-
-		if (  t.importerTabs[5].selected  ==  1 ) 
-		{
-			t.importerTabs[5].selected = 0;
-			t.timportersaveon = 1;
-			#ifdef VRTECH
-			importer_save_entity ( );
-			#else
-			importer_save_entity ( NULL );
-			#endif
-		}
-
-		if (  t.importer.helpShow  ==  0  )  t.importer.message  =  "Click and drag to rotate";
-
-		//  Update or hide selection markers
-		importer_update_selection_markers ( );
-
-		//  Tab One Mode - settings
-		if (  g.tabmode  ==  IMPORTERTABPAGE1 ) 
-		{
-			SetAlphaMappingOn (  t.importer.objectnumber , 100 );
-			SetObjectTransparency (  t.importer.objectnumber, 255 );
-
-			//  Front view
-			YRotateObject (   t.importerGridObject[8] , 0 );
-			XRotateObject (   t.importerGridObject[8] , 0 );
-			YRotateObject (   t.importerGridObject[9] , 0 );
-			XRotateObject (   t.importerGridObject[9] , 0 );
-
-			// only if not over the properties panel
-			
-			if (!bRemoveSprites && t.importer.MouseX > t.slidersmenu[t.importer.properties1Index].tleft
-			&&	 t.importer.MouseY > t.slidersmenu[t.importer.properties1Index].ttop )	
-			{
-				// mouse within properties panel, do not rotate object on click
-			}
-			else
-			{
-				//  Rotation control
-				switch (  t.importer.objectRotateMode ) 
-				{
-					case 0:
-
-						if (  t.inputsys.mclick  ==  1 && t.importer.oldMouseClick  ==  0 ) 
-						{
-							#ifdef DX11
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-							float fMX = ((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
-							float fMY = ((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
-#else
-							float fMX = (GetDisplayWidth()+0.0) / 800.0f;
-							float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-#endif
-							t.tadjustedtoareax_f = t.inputsys.xmouse*fMX;
-							t.tadjustedtoareay_f = t.inputsys.ymouse*fMY;
-							#else
-							t.tadjustedtoareax_f = t.importer.MouseX;
-							t.tadjustedtoareay_f = t.importer.MouseY;
-							#endif
-							if ( PickScreenObjectEx ( t.tadjustedtoareax_f, t.tadjustedtoareay_f, t.importer.objectnumber, t.importer.objectnumber, 1, 0 )  !=  0 )
-							{
-								t.importer.objectRotateMode = 1;
-								t.tnothing = t.inputsys.xmousemove;
-								importer_hide_mouse ( );
-							}
-						}
-
-					break;
-					case 1:
-
-						if (  t.inputsys.mclick  ==  0 ) 
-						{
-							t.importer.objectRotateMode = 0;
-							importer_show_mouse ( );
-						}
-						else
-						{
-							t.importer.message = "How down shift to lock to 45' Steps";
-							if (  t.inputsys.keyshift  ==  0 ) 
-							{
-								t.importer.objectAngleY -= t.inputsys.xmousemove;
-							}
-							else
-							{
-								t.importer.message = "Locked to 45' steps";
-								t.importer.mouseMoveSnap -= t.inputsys.xmousemove;
-								if (  t.importer.mouseMoveSnap < -30 )  //was -100
-								{
-									t.importer.mouseMoveSnap = 0;
-									t.importer.objectAngleY -= 45;
-									if (  t.importer.objectAngleY > 0 && t.importer.objectAngleY < 45  )  t.importer.objectAngleY  =  0;
-									if (  t.importer.objectAngleY > 45 && t.importer.objectAngleY < 90  )  t.importer.objectAngleY  =  45;
-									if (  t.importer.objectAngleY > 90 && t.importer.objectAngleY < 135  )  t.importer.objectAngleY  =  90;
-									if (  t.importer.objectAngleY > 135 && t.importer.objectAngleY < 225  )  t.importer.objectAngleY  =  135;
-									if (  t.importer.objectAngleY > 225 && t.importer.objectAngleY < 315  )  t.importer.objectAngleY  =  225;
-									if (  t.importer.objectAngleY > 315 && t.importer.objectAngleY  )  t.importer.objectAngleY  =  315;
-								}
-								if (  t.importer.mouseMoveSnap > 30 ) // was 100
-								{
-									t.importer.mouseMoveSnap = 0;
-									t.importer.objectAngleY += 45;
-									if (  t.importer.objectAngleY > 0 && t.importer.objectAngleY < 45  )  t.importer.objectAngleY  =  45;
-									if (  t.importer.objectAngleY > 45 && t.importer.objectAngleY < 90  )  t.importer.objectAngleY  =  90;
-									if (  t.importer.objectAngleY > 90 && t.importer.objectAngleY < 135  )  t.importer.objectAngleY  =  135;
-									if (  t.importer.objectAngleY > 135 && t.importer.objectAngleY < 225  )  t.importer.objectAngleY  =  225;
-									if (  t.importer.objectAngleY > 225 && t.importer.objectAngleY < 315  )  t.importer.objectAngleY  =  315;
-									if (  t.importer.objectAngleY > 315 && t.importer.objectAngleY  )  t.importer.objectAngleY  =  0;
-								}
-							}
-
-							//  Ensure angle is 0-360
-							while (  t.importer.objectAngleY > 360 ) 
-							{
-								t.importer.objectAngleY -= 360;
-							}
-							while (  t.importer.objectAngleY < 0 ) 
-							{
-								t.importer.objectAngleY += 360;
-							}
-
-							//  Update slider based on object angle
-							t.slidersmenuvalue[t.importer.properties1Index][3].value = t.importer.objectAngleY;
-						}
-					break;
-				}
-			}
-
-			//  update angle base on slider
-			t.importer.objectAngleY = t.slidersmenuvalue[t.importer.properties1Index][3].value;
-			YRotateObject (  t.importer.objectnumber,t.importer.objectAngleY );
-		}
-
-		//  Tab Two Mode - collision
-		if (  g.tabmode  ==  IMPORTERTABPAGE2 ) 
-		{
-			t.importer.message = "Collision";
-			SetAlphaMappingOn (  t.importer.objectnumber , 40 );
-
-			//Views Shortcut keys
-			if (  t.inputsys.kscancode  ==  37 ) 
-			{
-				t.slidersmenuvalue[t.importer.properties2Index][1].value = 2;
-				t.slidersmenuvalue[t.importer.properties2Index][1].value_s = "Left";
-			}
-			if (  t.inputsys.kscancode  ==  39 ) 
-			{
-				t.slidersmenuvalue[t.importer.properties2Index][1].value = 3;
-				t.slidersmenuvalue[t.importer.properties2Index][1].value_s = "Right";
-			}
-			if (  t.inputsys.kscancode  ==  38 ) 
-			{
-				t.slidersmenuvalue[t.importer.properties2Index][1].value = 4;
-				t.slidersmenuvalue[t.importer.properties2Index][1].value_s = "Top";
-			}
-			if (  t.inputsys.kscancode  ==  40 ) 
-			{
-				t.slidersmenuvalue[t.importer.properties2Index][1].value = 1;
-				t.slidersmenuvalue[t.importer.properties2Index][1].value_s = "Front";
-			}
-
-			// Update Views
-			if (  t.slidersmenuvalue[t.importer.properties2Index][1].value  ==  2 ) 
-			{
-				YRotateObject (   t.importerGridObject[8] , -90 );
-				XRotateObject (   t.importerGridObject[8] , 0 );
-				YRotateObject (  t.importerGridObject[9] , -90 );
-				XRotateObject (   t.importerGridObject[9] , 0 );
-				t.importer.viewMessage = "Left";
-			}
-			if (  t.slidersmenuvalue[t.importer.properties2Index][1].value  ==  3 ) 
-			{
-				YRotateObject (   t.importerGridObject[8] , 90 );
-				XRotateObject (   t.importerGridObject[8] , 0 );
-				YRotateObject (  t.importerGridObject[9] , 90 );
-				XRotateObject (   t.importerGridObject[9] , 0 );
-				t.importer.viewMessage = "Right";
-			}
-			if (  t.slidersmenuvalue[t.importer.properties2Index][1].value  ==  4 ) 
-			{
-				YRotateObject (   t.importerGridObject[8] , 0 );
-				XRotateObject (   t.importerGridObject[8] , -90 );
-				YRotateObject (  t.importerGridObject[9] , 0 );
-				XRotateObject (   t.importerGridObject[9] , -90 );
-				t.importer.viewMessage = "Top";
-			}
-			if (  t.slidersmenuvalue[t.importer.properties2Index][1].value  ==  1 ) 
-			{
-				YRotateObject (   t.importerGridObject[8] , 0 );
-				XRotateObject (   t.importerGridObject[8] , 0 );
-				YRotateObject (  t.importerGridObject[9] , 0 );
-				XRotateObject (   t.importerGridObject[9] , 0 );
-				t.importer.viewMessage = "Front";
-			}
-
-			//  Update collision pivot, using turn object (Sin ( ce we are rotating this x and y to Line (  up with the grid, then need to to rotate it with the child object ) )
-			//  This gets round a gimble lock issue that occurs from using euler, resseting the rotation at the begnining of the loop sorts things out
-			YRotateObject (  t.importer.objectnumber,0 );
-			importer_check_for_physics_changes ( );
-			importer_update_selection_markers ( );
-		}
-
-		if (  g.tabmode  ==  IMPORTERTABPAGE3 ) 
-		{
-			SetAlphaMappingOn (  t.importer.objectnumber , 100 );
-			SetObjectTransparency (  t.importer.objectnumber, 255 );
-
-			//  Front view
-			YRotateObject (   t.importerGridObject[8] , 0 );
-			XRotateObject (   t.importerGridObject[8] , 0 );
-			YRotateObject (   t.importerGridObject[9] , 0 );
-			XRotateObject (   t.importerGridObject[9] , 0 );
-
-			//  Rotation control
-			switch (  t.importer.objectRotateMode ) 
-			{
-				case 0:
-
-					if (  t.inputsys.mclick  ==  1 && t.importer.oldMouseClick  ==  0 ) 
-					{
-						if (  PickScreenObjectEx ( t.importer.MouseX , t.importer.MouseY , t.importer.objectnumber , t.importer.objectnumber , 1, 0 )  !=  0 ) 
-						{
-							t.importer.objectRotateMode = 1;
-							t.tnothing = t.inputsys.xmousemove;
-							importer_hide_mouse ( );
-						}
-					}
-
-				break;
-				case 1:
-
-					if (  t.inputsys.mclick  ==  0 ) 
-					{
-						t.importer.objectRotateMode = 0;
-						importer_show_mouse ( );
-					}
-					else
-					{
-						t.importer.message = "How down shift to lock to 45' Steps";
-						if (  t.inputsys.keyshift  ==  0 ) 
-						{
-							t.importer.objectAngleY2 -= t.inputsys.xmousemove;
-						}
-						else
-						{
-							t.importer.message = "Locked to 45' steps";
-							t.importer.mouseMoveSnap -= t.inputsys.xmousemove;
-							if (  t.importer.mouseMoveSnap < -100 ) 
-							{
-
-								t.importer.mouseMoveSnap = 0;
-								t.importer.objectAngleY2 -= 45;
-
-								if (  t.importer.objectAngleY2 > 0 && t.importer.objectAngleY2 < 45  )  t.importer.objectAngleY2  =  0;
-								if (  t.importer.objectAngleY2 > 45 && t.importer.objectAngleY2 < 90  )  t.importer.objectAngleY2  =  45;
-								if (  t.importer.objectAngleY2 > 90 && t.importer.objectAngleY2 < 135  )  t.importer.objectAngleY2  =  90;
-								if (  t.importer.objectAngleY2 > 135 && t.importer.objectAngleY2 < 225  )  t.importer.objectAngleY2  =  135;
-								if (  t.importer.objectAngleY2 > 225 && t.importer.objectAngleY2 < 315  )  t.importer.objectAngleY2  =  225;
-								if (  t.importer.objectAngleY2 > 315 && t.importer.objectAngleY2  )  t.importer.objectAngleY2  =  315;
-
-							}
-							if (  t.importer.mouseMoveSnap > 100 ) 
-							{
-
-								t.importer.mouseMoveSnap = 0;
-								t.importer.objectAngleY2 += 45;
-
-								if (  t.importer.objectAngleY2 > 0 && t.importer.objectAngleY2 < 45  )  t.importer.objectAngleY2  =  45;
-								if (  t.importer.objectAngleY2 > 45 && t.importer.objectAngleY2 < 90  )  t.importer.objectAngleY2  =  90;
-								if (  t.importer.objectAngleY2 > 90 && t.importer.objectAngleY2 < 135  )  t.importer.objectAngleY2  =  135;
-								if (  t.importer.objectAngleY2 > 135 && t.importer.objectAngleY2 < 225  )  t.importer.objectAngleY2  =  225;
-								if (  t.importer.objectAngleY2 > 225 && t.importer.objectAngleY2 < 315  )  t.importer.objectAngleY2  =  315;
-								if (  t.importer.objectAngleY2 > 315 && t.importer.objectAngleY2  )  t.importer.objectAngleY2  =  0;
-							}
-						}
-
-						//  Ensure angle is 0-360
-						while (  t.importer.objectAngleY2 > 360 ) 
-						{
-							t.importer.objectAngleY2 -= 360;
-						}
-						while (  t.importer.objectAngleY2 < 0 ) 
-						{
-							t.importer.objectAngleY2 += 360;
-						}
-
-						//  Update slider based on object angle
-						t.slidersmenuvalue[t.importer.properties3Index][2].value = t.importer.objectAngleY2;
-					}
-
-				break;
-
-			}
-
-			//  update angle base on slider
-			t.importer.objectAngleY2 = t.slidersmenuvalue[t.importer.properties3Index][2].value;
-			RotateObject (  t.importer.objectnumber,t.slidersmenuvalue[t.importer.properties3Index][1].value,t.slidersmenuvalue[t.importer.properties3Index][2].value,t.slidersmenuvalue[t.importer.properties3Index][3].value );
-		}
-
-		if (  t.importer.showCollisionOnly  ==  1 ) 
-		{
-			t.importer.message = "Showing Collision Only";
-			importer_ShowCollisionOnly ( );
-		}
-
-		//  handle scale
-		importer_handleScale ( );
-
-		//  update tabs
-		importer_tabs_update ( );
-
-		//  update textures
-		importer_update_textures ( );
-
-		//  handle exit (260416 - added trigger reload of model for FBX core flags)
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-		if (t.importer.cancel == 1)//|| g_iTriggerReloadOfImportModel == 1 ) 
-#else
-		if (ControlKey() == 1 || t.importer.cancel == 1)//|| g_iTriggerReloadOfImportModel == 1 ) 
-#endif
-		{
-			--t.importer.cancelCount;
-			if ( t.importer.cancelCount <= 0 )
-			{
-				importer_quit ( );
-			}
-		}
-	}
-
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	t.importer.oldMouseClick = t.inputsys.mclick;
-#else
-	// escape importer
-	if (  t.inputsys.kscancode  ==  27 && t.importer.oldShowCollision  ==  0 ) 
-	{
-		t.importer.showCollisionOnly = 1 - t.importer.showCollisionOnly;
-		t.importer.oldShowCollision = 1;
-		if ( t.importer.showCollisionOnly == 0 ) importer_ShowCollisionOnlyOff ( );
-	}
-	if (  t.inputsys.kscancode  !=  27  )  t.importer.oldShowCollision  =  0;
-	t.importer.oldMouseClick = t.inputsys.mclick;
-#endif
-
-	//  110315 - 019 - fix for mouse dissapearing
-	if (  t.timportersaveon  ==  1 ) 
-	{
-		importer_show_mouse ( );
-	}
-
-	#endif // wicked endif
 }
 
 void importer_update_selection_markers ( void )
@@ -7210,20 +5223,8 @@ void importer_check_for_physics_changes ( void )
 	}
 
 	// coordinate system for importer grabbing collision box corners
-	//float fMX = (GetDisplayWidth()+0.0) / 800.0f; 230618 - not working for collision box control
-	//float fMY = (GetDisplayHeight()+0.0) / 600.0f;
-	//t.tadjustedtoareax_f = t.inputsys.xmouse*fMX;
-	//t.tadjustedtoareay_f = t.inputsys.ymouse*fMY;
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	t.tadjustedtoareax_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
 	t.tadjustedtoareay_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-#else
-
-	t.tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-	t.tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-	t.tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/t.tadjustedtoareax_f;
-	t.tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/t.tadjustedtoareay_f;
-#endif
 	t.tadjustedtoareax_f = t.tadjustedtoareax_f*(GetDisplayWidth() + 0.0);
 	t.tadjustedtoareay_f = t.tadjustedtoareay_f*(GetDisplayHeight() + 0.0);
 
@@ -7263,16 +5264,9 @@ void importer_check_for_physics_changes ( void )
 						SetObjectEmissive (  t.selectedObjectMarkers[tCount], Rgb(0,100,255) );
 					}
 
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 					float xpick = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
 					float ypick = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-#else
-					float xpick=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-					float ypick=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-					//  scale full mouse to fit in visible area
-					xpick=((t.inputsys.xmouse+0.0)/800.0)/t.widgetinputsysxmouse_f;
-					ypick=((t.inputsys.ymouse+0.0)/600.0)/t.widgetinputsysymouse_f;
-#endif
+
 					//  then provide in a format for the pick-from-screen command
 					xpick=xpick*(GetChildWindowWidth()+0.0);
 					ypick=ypick*(GetChildWindowHeight()+0.0);
@@ -9007,10 +7001,6 @@ void importer_load_textures ( void )
 	if ( tCount == 0 ) 
 	{
 		// if no actual texture file or FPE texture valid, use blank texture
-		#ifdef VRTECH
-		#else
-		t.tSourceName_s = "languagebank\\neutral\\gamecore\\huds\\importer\\blankTex.png";
-		#endif
 		importer_addtexturefiletolist ( t.tSourceName_s, t.tSourceName_s, &tCount );
 	}
 
@@ -9434,7 +7424,6 @@ void importer_apply_fpe ( void )
 	}
 }
 
-#ifdef WICKEDENGINE
 void imporer_save_multimeshsection(sObject* pObject, int iFileIndex)
 {
 	t.tString = ""; t.tString = t.tString + importerPadString("textured") + "= " ;WriteString(iFileIndex, t.tString.Get());
@@ -9546,7 +7535,6 @@ void imporer_save_multimeshsection(sObject* pObject, int iFileIndex)
 		}
 	}
 }
-#endif
 
 void importer_save_fpe(void)
 {
@@ -9554,13 +7542,7 @@ void importer_save_fpe(void)
 	t.importer.objectFPE.roty = Str(t.importer.objectAngleY);
 
 	// scale and collision
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
-	#ifdef WICKEDENGINE
 	t.importer.objectFPE.scale = (iImporterScale * fImporterScaleMultiply);
-	#else
-	t.importer.objectFPE.scale = iImporterScale;
-	#endif
-	#ifdef WICKEDENGINE
 	LPSTR pCollisionType = "0";
 	if (t.importer.collisionshape == 0) pCollisionType = "0";   // box
 	if (t.importer.collisionshape == 1) pCollisionType = "1";   // polygon
@@ -9573,41 +7555,14 @@ void importer_save_fpe(void)
 	if (t.importer.collisionshape == 8) pCollisionType = "10";	// hull decomp
 	if (t.importer.collisionshape == 9) pCollisionType = "8"; // Collision Mesh
 	t.importer.objectFPE.collisionmode = pCollisionType;
-	#else
-	t.importer.objectFPE.collisionmode = "1"; //Poly for now. just change to 9 for convex hull. We need a setting for this.
-	#endif
-	#else
-	// Classic
-	t.importer.objectFPE.scale = Str(t.slidersmenuvalue[t.importer.properties1Index][1].value);
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 1)  t.importer.objectFPE.collisionmode = "0";
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 2)  t.importer.objectFPE.collisionmode = "1";
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 3) {
-		//PE: 99 gives a collision box. we need 11 here if this is a static object.
-		if ( t.slidersmenuvalue[t.importer.properties1Index][5].value != 2)
-			t.importer.objectFPE.collisionmode = "11";
-		else
-			t.importer.objectFPE.collisionmode = "99";
-	}
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 4)  t.importer.objectFPE.collisionmode = "1001";
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 5)  t.importer.objectFPE.collisionmode = "2001";
-	if (t.slidersmenuvalue[t.importer.properties1Index][4].value == 6)  t.importer.objectFPE.collisionmode = "40";
-	#endif
 
 	//  Default Static or Dynamic
-	#ifdef WICKEDENGINE
 	LPSTR pStaticType = "0"; // dynamic by default
 	if (t.importer.defaultstatic == 1) pStaticType = "1";  // static
 	t.importer.objectFPE.defaultstatic = pStaticType;
-	#else
-	if (t.slidersmenuvalue[t.importer.properties1Index][5].value == 2)
-		t.importer.objectFPE.defaultstatic = "0";
-	else
-		t.importer.objectFPE.defaultstatic = "1";
-	#endif
 
 	//  Cull Mode
 	sObject* pObject = NULL;
-	#ifdef WICKEDENGINE
 	pObject = GetObjectData(t.importer.objectnumber);
 	if (pObject)
 	{
@@ -9624,13 +7579,6 @@ void importer_save_fpe(void)
 			}
 		}
 	}
-		
-	#else
-	if (t.slidersmenuvalue[t.importer.properties1Index][8].value == 2)
-		t.importer.objectFPE.cullmode = "0";
-	else
-		t.importer.objectFPE.cullmode = "1";
-	#endif
 
 	//  Transparency
 	t.importer.objectFPE.transparency = Str(t.slidersmenuvalue[t.importer.properties1Index][9].value - 1);
@@ -9671,7 +7619,6 @@ void importer_save_fpe(void)
 	t.importer.objectFPE.cantakeweapon = "0";
 
 	//  update shader selection
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	if (g.gpbroverride == 1) 
 	{
 		g_iPreferPBR = 1;
@@ -9682,20 +7629,7 @@ void importer_save_fpe(void)
 		g_iPreferPBR = 0;
 		t.importer.objectFPE.effect = "effectbank\\reloaded\\entity_basic.fx";
 	}
-	#else
-	t.importer.objectFPE.effect = ""; t.importer.objectFPE.effect = t.importer.objectFPE.effect+"effectbank\\reloaded\\" + t.slidersmenuvalue[t.importer.properties1Index][2].value_s;
-	if ( strnicmp ( t.slidersmenuvalue[t.importer.properties1Index][2].value_s.Get(), "apbr_", 5 ) == NULL ) 
-		g_iPreferPBR = 1;
-	else
-		g_iPreferPBR = 0;
-	#endif
 
-	//  aimain
-	//t.importer.objectFPE.aimain = t.slidersmenuvalue[t.importer.properties1Index][11].value_s;
-
-	// could do with a nice cleanup this whole function!
-	
-	#ifdef WICKEDENGINE
 	// animation state
 	if (t.importer.ischaracter > 0)
 	{
@@ -9725,7 +7659,6 @@ void importer_save_fpe(void)
 	}
 	pObject = GetObjectData(t.importer.objectnumber);
 	t.importer.objectFPE.animspeed = cstr(pObject->fAnimSpeed * 100);
-	#endif
 
 	// ensure collision objects are back to reset position (ignoring camera height adjustment)
 	importer_RestoreCollisionShiftHeight();
@@ -9738,12 +7671,6 @@ void importer_save_fpe(void)
 	t.tString = ";Saved by Model Importer" ;WriteString (  1 , t.tString.Get() );
 	t.tString = ";header" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("desc") + "= " + t.importer.objectFPE.desc ;WriteString (  1 , t.tString.Get() );
-
-	//PE: We needed the ;orientation part in Classic , so ...
-	#ifndef WICKEDENGINE
-	t.tString = ";visualinfo" ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("textured") + "= " + t.importer.objectFPE.textured ;WriteString (  1 , t.tString.Get() );
-	#endif
 
 	if (t.importer.ischaracter > 0)
 	{
@@ -9761,35 +7688,13 @@ void importer_save_fpe(void)
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// get object ptr
 	pObject = GetObjectData(t.importer.objectnumber);
-	#else
-	// get object ptr
-	pObject = GetObjectData(t.importer.objectnumber);
-	#endif
-
-	#ifdef WICKEDENGINE
-	// defaults for FPE (actual settings above)
-	#else
-	t.tString = "" ; t.tString = t.tString + importerPadString("castshadow") + "= " + t.importer.objectFPE.castshadow ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("transparency") + "= " + t.importer.objectFPE.transparency ;WriteString (  1 , t.tString.Get() );
-	#endif
 
 	t.tString = "" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + ";orientation" ; WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("model") + "= " + t.importer.objectFPE.model ;WriteString (  1 , t.tString.Get() );
 
-	#ifdef WICKEDENGINE
-	// offset and rotation now stored in frame zero vecPosition and vecRotation (inside DBO)
-	#else
-	t.tString = "" ; t.tString = t.tString + importerPadString("offx") + "= " + t.importer.objectFPE.offx ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("offy") + "= " + t.importer.objectFPE.offy ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("offz") + "= " + t.importer.objectFPE.offz ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("rotx") + "= " + t.importer.objectFPE.rotx ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("roty") + "= " + t.importer.objectFPE.roty ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("rotz") + "= " + t.importer.objectFPE.rotz ;WriteString (  1 , t.tString.Get() );
-	#endif
 	t.tString = "" ; t.tString = t.tString + importerPadString("scale") + "= " + t.importer.objectFPE.scale ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("collisionmode") + "= " + t.importer.objectFPE.collisionmode ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("defaultstatic") + "= " + t.importer.objectFPE.defaultstatic ;WriteString (  1 , t.tString.Get() );
@@ -9798,9 +7703,7 @@ void importer_save_fpe(void)
 	t.tString = "" ;WriteString (  1 , t.tString.Get() );
 
 	// if only one mesh in object
-	#ifdef WICKEDENGINE
 	t.tString = ";visualinfo" ;WriteString (  1 , t.tString.Get() );
-
 	bool bTextured = false;
 	if (pObject->iMeshCount==1) 
 	{
@@ -9917,7 +7820,6 @@ void importer_save_fpe(void)
 	{
 		t.tString = ""; t.tString = t.tString + importerPadString("textured") + "= " + t.importer.objectFPE.textured;WriteString(1, t.tString.Get());
 	}
-	#endif
 
 	//PE: Wicked - Below keep textureref
 	// a new system to record texture references in FPE so can save standalone better
@@ -9945,38 +7847,9 @@ void importer_save_fpe(void)
 	t.tString = ";identity details" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("ischaracter") + "= " + t.importer.objectFPE.ischaracter ;WriteString (  1 , t.tString.Get() );
 
-	#ifdef VRTECH
 	t.tString = "" ; t.tString = t.tString + importerPadString("hasweapon") + "= " + t.importer.objectFPE.hasweapon ;WriteString (  1 , t.tString.Get() );
-	//t.tString = "" ; t.tString = t.tString + importerPadString("isobjective") + "= " + t.importer.objectFPE.isobjective ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("cantakeweapon") + "= " + t.importer.objectFPE.cantakeweapon ;WriteString (  1 , t.tString.Get() );
-	#else
-	if (t.slidersmenuvalue[t.importer.properties1Index][7].value == 3) { //is uber
-		t.tString = ""; t.tString = t.tString + importerPadString("hasweapon") + "= modern\\colt1911"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("isobjective") + "= 0"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("cantakeweapon") + "= 1"; WriteString(1, t.tString.Get());
-	}
-	else {
-		t.tString = ""; t.tString = t.tString + importerPadString("hasweapon") + "= " + t.importer.objectFPE.hasweapon;WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("isobjective") + "= " + t.importer.objectFPE.isobjective;WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("cantakeweapon") + "= " + t.importer.objectFPE.cantakeweapon;WriteString(1, t.tString.Get());
-	}
-#endif
 	t.tString = "" ;WriteString (  1 , t.tString.Get() );
-
-	#ifdef VRTECH
-	#else
-	if (t.slidersmenuvalue[t.importer.properties1Index][7].value == 3) 
-	{ 
-		//is uber If model already have firespot (from artist) this will overwrite it, so only if uber. (assume uber dont have firespot).
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotoffx") + "= 0.0707"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotoffy") + "= -2.3718"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotoffz") + "= -1.6504"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotrotx") + "= -44.2759"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotroty") + "= -22.4883"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotrotz") + "= -26.3792"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("handfirespotsize") + "= 100"; WriteString(1, t.tString.Get());
-	}
-	#endif
 
 	t.tString = ";statistics" ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("strength") + "= " + t.importer.objectFPE.strength ;WriteString (  1 , t.tString.Get() );
@@ -9987,76 +7860,18 @@ void importer_save_fpe(void)
 	t.tString = "" ; t.tString = t.tString + importerPadString("aimain") + "= " + t.importer.objectFPE.aimain ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ;WriteString (  1 , t.tString.Get() );
 
-	//t.tString = ";spawn" ;WriteString (  1 , t.tString.Get() );
-	//t.tString = "" ; t.tString = t.tString + importerPadString("spawnmax") + "= " + t.importer.objectFPE.spawnmax ;WriteString (  1 , t.tString.Get() );
-	//t.tString = "" ; t.tString = t.tString + importerPadString("spawndelay") + "= " + t.importer.objectFPE.spawndelay ;WriteString (  1 , t.tString.Get() );
-	//t.tString = "" ; t.tString = t.tString + importerPadString("spawnqty") + "= " + t.importer.objectFPE.spawnqty ;WriteString (  1 , t.tString.Get() );
-	//t.tString = "" ;WriteString (  1 , t.tString.Get() );
-
 	t.tString = ";anim" ;WriteString (  1 , t.tString.Get() );
-#ifdef VRTECH
-#ifdef WICKEDENGINE
 	t.tString = "" ; t.tString = t.tString + importerPadString("animspeed") + "= " + t.importer.objectFPE.animspeed ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("animmax") + "= " + t.importer.objectFPE.animmax ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("anim0") + "= " + t.importer.objectFPE.anim0 ;WriteString (  1 , t.tString.Get() );
 	t.tString = "" ; t.tString = t.tString + importerPadString("playanimineditor") + "= " + t.importer.objectFPE.playanimineditor ;WriteString (  1 , t.tString.Get() );
-#else
-	t.tString = "" ; t.tString = t.tString + importerPadString("animmax") + "= " + t.importer.objectFPE.animmax ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("anim0") + "= " + t.importer.objectFPE.anim0 ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("playanimineditor") + "= " + t.importer.objectFPE.playanimineditor ;WriteString (  1 , t.tString.Get() );
-	t.tString = "" ; t.tString = t.tString + importerPadString("ignorecsirefs") + "= " + t.importer.objectFPE.ignorecsirefs ;WriteString (  1 , t.tString.Get() );
-#endif
-#else
-	if (t.slidersmenuvalue[t.importer.properties1Index][7].value == 3) { //is uber
-																		 //PE: Only uber will use these animations.
-		t.tString = ""; t.tString = t.tString + importerPadString("animmax") + "= 5"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("playanimineditor") + "= 1"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("ignorecsirefs") + "= 1"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("anim0") + "= 100,205   ;idle"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("anim1") + "= 687,707   ;move"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("anim2") + "= 5511,5553 ;kick"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("anim3") + "= 4812,4850 ;hurt"; WriteString(1, t.tString.Get());
-		t.tString = ""; t.tString = t.tString + importerPadString("anim4") + "= 515,605   ;reload"; WriteString(1, t.tString.Get());
-	}
-	else {
-		t.tString = "" ; t.tString = t.tString + importerPadString("animmax") + "= " + t.importer.objectFPE.animmax ;WriteString (  1 , t.tString.Get() );
-		t.tString = "" ; t.tString = t.tString + importerPadString("anim0") + "= " + t.importer.objectFPE.anim0 ;WriteString (  1 , t.tString.Get() );
-		t.tString = "" ; t.tString = t.tString + importerPadString("playanimineditor") + "= " + t.importer.objectFPE.playanimineditor ;WriteString (  1 , t.tString.Get() );
-		t.tString = "" ; t.tString = t.tString + importerPadString("ignorecsirefs") + "= " + t.importer.objectFPE.ignorecsirefs ;WriteString (  1 , t.tString.Get() );
-	}
-#endif
 
-	#ifdef WICKEDENGINE
-	// must clean up FPE export before V1 release
-	#else
-	//  Save any lines that were not understand when the initial FPE was loaded in
-	//  add a blank Line (  (  if there are extra Lines to add ) )
-	if (  t.importer.unknownFPELineCount > 0 ) 
-	{
-		t.tString = "" ;WriteString (  1 , t.tString.Get() );
-		t.tString = ";settings not understood by the exporter" ;WriteString (  1 , t.tString.Get() );
-		for ( int tCount = 0 ; tCount<=  t.importer.unknownFPELineCount-1; tCount++ )
-		{
-			if (  t.tUnknown[tCount].Get()[0] !=  ';' && Len(t.tUnknown[tCount].Get() ) > 2 ) 
-			{
-				WriteString (  1 , t.tUnknown[tCount].Get() );
-			}
-		}
-
-	}
-	#endif
-
-	#ifdef WICKEDENGINE
 	//PE: Set default backdrop.
 	t.tString = "";WriteString(1, t.tString.Get());
 	t.tString = ";thumbnail";WriteString(1, t.tString.Get());
 	t.tString = "thumbnailbackdrop = Blue showroom.dds";WriteString(1, t.tString.Get());
-	#endif
 
 	CloseFile (  1 );
-
-
-	#ifdef WICKEDENGINE
 
 	//PE: You cant change REMEMBERIMPORTFILES , its fixed in the pref file, so if more then 10 is needed something else should be done.
 	#define REMEMBERIMPORTFILES 10
@@ -10100,9 +7915,6 @@ void importer_save_fpe(void)
 		iGotoPreviewType = 2;
 
 	}
-
-	#endif
-
 }
 
 void importer_handleScale ( void )
@@ -10137,100 +7949,11 @@ void importer_draw_wicked(void)
 
 void importer_draw ( void )
 {
-	#ifdef WICKEDENGINE
 	importer_draw_wicked();
-	#else
-
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	//	imgui_importer_draw();
-	//	return;
-	#endif
-
-	//  draw to screen if active
-	if ( t.importer.loaded == 1 && ImageExist(g.importermenuimageoffset+1) ) 
-	{
-		#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-		if (t.importer.scaleMulti == 1.0)
-		{
-			t.timg = g.importermenuimageoffset;
-			t.tscrx = (GetDisplayWidth() - ImageWidth(t.timg + 1)) / 2;
-			t.tscry = (GetDisplayHeight() / 2) - 300;
-			PasteImage(t.timg + 1, t.tscrx - 4, t.tscry, 1);
-			t.ttopy = t.tscry + ImageHeight(t.timg + 1);
-			for (t.tlong = 0; t.tlong <= 4; t.tlong++)
-			{
-				PasteImage(t.timg + 2, t.tscrx - 2, t.ttopy, 1);
-				t.ttopy += ImageHeight(t.timg + 2);
-			}
-			PasteImage(t.timg + 3, t.tscrx, t.ttopy, 1);
-			pastebitmapfont(t.importer.message.Get(), (GetDisplayWidth() / 2) - (getbitmapfontwidth(t.importer.message.Get(), 1) / 2), t.tscry + 525, 1, 255);
-			pastebitmapfont(t.importer.viewMessage.Get(), (GetDisplayWidth() / 2) - 295, t.tscry + 90, 1, 255);
-		}
-		else
-		{
-			pastebitmapfont(t.importer.message.Get(), (GetDisplayWidth() / 2) - (getbitmapfontwidth(t.importer.message.Get(), 1) / 2), 40, 1, 255);
-			t.strwork = ""; t.strwork = t.strwork + "View: " + t.importer.viewMessage;
-			pastebitmapfont(t.strwork.Get(), 10, 5, 1, 255);
-		}
-		#else
-		if ( t.importer.scaleMulti == 1.0 ) 
-		{
-			t.timg=g.importermenuimageoffset;
-			t.tscrx=(GetChildWindowWidth()-ImageWidth(t.timg+1))/2;
-			t.tscry=(GetChildWindowHeight()/2) - 300;
-			PasteImage (  t.timg+1,t.tscrx-4,t.tscry,1 );
-			t.ttopy=t.tscry+ImageHeight(t.timg+1);
-			for ( t.tlong = 0 ; t.tlong<=  4; t.tlong++ )
-			{
-				PasteImage (  t.timg+2,t.tscrx-2,t.ttopy,1 );
-				t.ttopy += ImageHeight(t.timg+2);
-			}
-			PasteImage (  t.timg+3,t.tscrx,t.ttopy,1 );
-			pastebitmapfont(t.importer.message.Get(),(GetChildWindowWidth()/2) - (getbitmapfontwidth (t.importer.message.Get(),1)/2),t.tscry+525,1,255);
-			pastebitmapfont(t.importer.viewMessage.Get(),(GetChildWindowWidth()/2) - 295,t.tscry+90,1,255);
-		}
-		else
-		{
-			pastebitmapfont(t.importer.message.Get(),(GetChildWindowWidth()/2) - (getbitmapfontwidth (t.importer.message.Get(),1)/2),40,1,255);
-			t.strwork = ""; t.strwork = t.strwork + "View: " + t.importer.viewMessage;
-			pastebitmapfont( t.strwork.Get() ,10,5,1,255);
-		}
-		#endif
-
-		// extra help information
-		if ( t.importerTabs[1].selected == 1 )
-		{
-			LPSTR pExtraHelp = "Use W and S to raise camera view, and mouse wheel to zoom in and out";
-			if ( strlen ( g_pShowFilenameHoveringOver ) > 0 ) pExtraHelp = g_pShowFilenameHoveringOver;
-			#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-			pastebitmapfont(pExtraHelp, (GetDisplayWidth() / 2) - (getbitmapfontwidth(pExtraHelp, 1) / 2), 860, 1, 255);
-			#else
-			pastebitmapfont(pExtraHelp,(GetChildWindowWidth()/2) - (getbitmapfontwidth (pExtraHelp,1)/2),860,1,255);
-			#endif
-		}
-
-		// Draw the sliders
-		if (!bRemoveSprites) sliders_readall ( );
-
-		// Slider management
-		if (!bRemoveSprites) sliders_loop ( );
-
-		//  Draw sliders last
-		if (!bRemoveSprites) sliders_draw ( );
-	}
-
-	#endif // wicked endif
 }
 
 void importer_quit_for_reload (LPSTR pOptionalCopyModelFile)
 {
-	// fade out importer
-	#ifdef WICKEDENGINE
-	#else
-	importer_fade_out ( );
-	#endif
-
-	#ifdef WICKEDENGINE
 	// store last good imported model and return if optionalcopy ptr valid
 	if (pOptionalCopyModelFile)
 	{
@@ -10238,8 +7961,6 @@ void importer_quit_for_reload (LPSTR pOptionalCopyModelFile)
 		strcpy (pOptionalCopyModelFile, pLaunchAfterSyncLastImportedModel);
 		t.importer.bQuitForReload = true;
 	}
-	
-	#endif
 
 	// free import object (switch to hide while wicked crash can happen)
 	if ( ObjectExist(t.importer.objectnumber) == 1 )  HideObject (  t.importer.objectnumber );
@@ -10252,15 +7973,10 @@ void importer_quit_for_reload (LPSTR pOptionalCopyModelFile)
 	t.importer.importerActive = 0;
 
 	// finish UI panel
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	bImporter_Window = false;
 	bCenterRenderView = false;
-	#ifndef WICKEDENGINE
-	visuals_editordefaults();
-	#endif
 	t.visuals.refreshshaders = 1;
 	visuals_loop();
-	#endif
 }
 
 void importer_quit (void)
@@ -10298,7 +8014,6 @@ void ConvertWorldToRelative ( sFrame* pFrame, GGMATRIX* pStoreNewPoseFrames, GGM
 	}
 }
 
-#ifdef VRTECH
 void importer_save_entity ( char *filename )
 {
 	//  Check if user folder exists, if not create it
@@ -10313,11 +8028,7 @@ void importer_save_entity ( char *filename )
 	//  Ask for save filename
 	t.tSaveFile_s = "";
 	t.timporterprotected = 1;
-	#ifdef WICKEDENGINE
 	t.timportermessage_s = "Save Object";
-	#else
-	t.timportermessage_s = "Save Entity";
-	#endif
 	while (  t.timporterprotected  ==  1 ) 
 	{
 		if (!filename) 
@@ -10349,13 +8060,11 @@ void importer_save_entity ( char *filename )
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// convert to real save file location
 	char pRealSaveFile[MAX_PATH];
 	strcpy(pRealSaveFile, t.tSaveFile_s.Get());
 	GG_GetRealPath(pRealSaveFile, 1);
 	t.tSaveFile_s = pRealSaveFile;
-	#endif
 
 	//  Ensure it has the dbo extension
 	Dim (  t.tArray,300  );
@@ -10534,137 +8243,6 @@ void importer_save_entity ( char *filename )
 				}
 				DeleteObject ( objectnumberforframedatacopy );
 			}
-
-			/* LB: moving this to JUST when the importer loads the file as then we can see the animation in the importer
-			// go through all frames of imported model
-			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-			{
-				sFrame* pFrame = pObject->ppFrameList[iFrame];
-				if ( pFrame )
-				{
-					LPSTR pOldFrameName = pFrame->szName;
-					if ( pOldFrameName )
-					{
-						if ( strlen(pOldFrameName) > 0 )
-						{
-							// look for common bone names, and transform to GG standard skeleton name
-							const char* pNewName = "";
-							if ( stricmp ( pOldFrameName, "mixamorig_Hips" ) == NULL ) pNewName = "Bip01_Pelvis";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine" ) == NULL ) pNewName = "Bip01_Spine";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftUpLeg" ) == NULL ) pNewName = "Bip01_L_Thigh";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftLeg" ) == NULL ) pNewName = "Bip01_L_Calf";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftFoot" ) == NULL) pNewName = "Bip01_L_Foot";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftToeBase" ) == NULL ) pNewName = "Bip01_L_Toe0";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightUpLeg" ) == NULL ) pNewName = "Bip01_R_Thigh";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightLeg" ) == NULL ) pNewName = "Bip01_R_Calf";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightFoot" ) == NULL ) pNewName = "Bip01_R_Foot";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightToeBase" ) == NULL ) pNewName = "Bip01_R_Toe0";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine1" ) == NULL ) pNewName = "Bip01_Spine1";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine2" )== NULL ) pNewName = "Bip01_Spine2";
-							if ( stricmp ( pOldFrameName, "mixamorig_Neck" ) == NULL ) pNewName = "Bip01_Neck";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftShoulder" ) == NULL ) pNewName = "Bip01_L_Clavicle";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightShoulder" ) == NULL ) pNewName = "Bip01_R_Clavicle";
-							if ( stricmp ( pOldFrameName, "mixamorig_Head" ) == NULL ) pNewName = "Bip01_Head";
-							if ( stricmp ( pOldFrameName, "mixamorig_HeadTop_End" ) == NULL ) pNewName = "Bip01_HeadTop";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftArm" ) == NULL ) pNewName = "Bip01_L_UpperArm";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftForeArm" ) == NULL ) pNewName = "Bip01_L_Forearm";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightArm" ) == NULL ) pNewName = "Bip01_R_UpperArm";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightForeArm" ) == NULL ) pNewName = "Bip01_R_Forearm";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftHand" ) == NULL ) pNewName = "Bip01_L_Hand";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightHand" ) == NULL ) pNewName = "Bip01_R_Hand";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb4" ) > 0 ) pNewName = "Bip01_L_Finger03";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger11";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex4" ) > 0 ) pNewName = "Bip01_L_Finger13";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle4" ) > 0 ) pNewName = "Bip01_L_Finger23";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing4" ) > 0 ) pNewName = "Bip01_L_Finger33";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky4" ) > 0 ) pNewName = "Bip01_L_Finger43";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb4" ) > 0 ) pNewName = "Bip01_R_Finger03";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger11";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex4" ) > 0 ) pNewName = "Bip01_R_Finger13";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle4" ) > 0 ) pNewName = "Bip01_R_Finger23";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing4" ) > 0 ) pNewName = "Bip01_R_Finger33";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky4" ) > 0 ) pNewName = "Bip01_R_Finger43";
-
-							// replace all instances of this name (if found)
-							if ( strlen(pNewName) > 0 ) 
-							{
-								// rename animation reference name too
-								if ( pObject->pAnimationSet )
-								{
-									sAnimation* pCurrent = pObject->pAnimationSet->pAnimation;
-									while(pCurrent)
-									{
-										if ( pCurrent->szName )
-										{
-											if ( stricmp ( pCurrent->szName, pFrame->szName ) == NULL )
-											{
-												strcpy ( pCurrent->szName, pNewName );
-												break;
-											}
-										}
-										pCurrent = pCurrent->pNext;
-									}
-								}
-
-								// also rename bone names within each mesh
-								for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
-								{
-									sMesh* pMesh = pObject->ppMeshList[iMesh];
-									if ( pMesh )
-									{
-										if ( pMesh->pBones )
-										{
-											for ( int iBone = 0; iBone < pMesh->dwBoneCount; iBone++ )
-											{
-												if ( pMesh->pBones [ iBone ].szName )
-												{
-													if ( stricmp ( pMesh->pBones [ iBone ].szName, pFrame->szName ) == NULL )
-													{
-														strcpy ( pMesh->pBones [ iBone ].szName, pNewName );
-														break;
-													}
-												}								
-											}
-										}
-									}
-								}
-
-								// finally rename frame
-								strcpy ( pFrame->szName, pNewName );
-							}
-						}
-					}
-				}
-			}
-			*/
 
 			// now insert Bip01 into the frame hierarchy between Sceene Root and Pelvis
 			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
@@ -10936,7 +8514,6 @@ void importer_save_entity ( char *filename )
 	}
 	UnDim (  t.tArray );
 
-	#ifdef WICKEDENGINE
 	t.tcounttextures = 0;
 	sMesh * pMesh = NULL;
 	for (int i = 0; i < pObject->iFrameCount; i++)
@@ -11000,7 +8577,6 @@ void importer_save_entity ( char *filename )
 			}
 		}
 	}
-	#endif
 
 	Dim ( t.tArray2, 220 );
 	for ( tCount = 1; tCount <= IMPORTERTEXTURESMAX; tCount++ )
@@ -11056,31 +8632,26 @@ void importer_save_entity ( char *filename )
 
 		//  Copy and save images to destination
 		char pRealDestFileName[MAX_PATH];
-		#ifndef WICKEDENGINE
-		if (  ImageExist(t.importerTextures[tCount].imageID) == 1 ) 
-		#endif
+		strcpy(pRealDestFileName, t.tDestFileName.Get());
+		GG_GetRealPath(pRealDestFileName, 1);
+		cstr test1 = ""; test1 = test1 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
+		if (  FileExist (t.importerTextures[tCount].fileName.Get())  ==  1 && t.tDestFileName  !=  test1 && t.tDestFileName  !=  t.importerTextures[tCount].fileName ) 
 		{
-			strcpy(pRealDestFileName, t.tDestFileName.Get());
-			GG_GetRealPath(pRealDestFileName, 1);
-			cstr test1 = ""; test1 = test1 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-			if (  FileExist (t.importerTextures[tCount].fileName.Get())  ==  1 && t.tDestFileName  !=  test1 && t.tDestFileName  !=  t.importerTextures[tCount].fileName ) 
+			if (  FileExist(pRealDestFileName)  ==  0 ) 
+			{
+				CopyAFile ( t.importerTextures[tCount].fileName.Get(), pRealDestFileName );
+			}
+		}
+		else
+		{
+			t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
+			cstr test2 = ""; test2 = test2 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
+			if (  FileExist ( t.strwork.Get() )  ==  1 && t.tDestFileName  !=  test2 ) 
 			{
 				if (  FileExist(pRealDestFileName)  ==  0 ) 
 				{
-					CopyAFile ( t.importerTextures[tCount].fileName.Get(), pRealDestFileName );
-				}
-			}
-			else
-			{
-				t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-				cstr test2 = ""; test2 = test2 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-				if (  FileExist ( t.strwork.Get() )  ==  1 && t.tDestFileName  !=  test2 ) 
-				{
-					if (  FileExist(pRealDestFileName)  ==  0 ) 
-					{
-						t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-						CopyAFile ( t.strwork.Get() , pRealDestFileName );
-					}
+					t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
+					CopyAFile ( t.strwork.Get() , pRealDestFileName );
 				}
 			}
 		}
@@ -11259,22 +8830,9 @@ void importer_save_entity ( char *filename )
 	}
 
 
-	#ifdef WICKEDENGINE
-	//PE: WICKED
-	//t.importerTextures[tCount].fileName;
-	//	for ( int tCount = 1 ; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-	//for single frames.
-	//t.importer.objectFPE.textured
-	//t.tcounttextures
-	//PE: Get first mesh.
-	//t.importer.objectFPE.textured =
-	#endif
-
 	// save FPE file
 	importer_save_fpe ( );
 
-	#ifdef WICKEDENGINE
-	//Reset t.importerTextures[tCount].fileName
 	for (int tCount = 1; tCount <= t.tcounttextures; tCount++)
 	{
 		t.importerTextures[tCount].fileName = "";
@@ -11283,9 +8841,6 @@ void importer_save_entity ( char *filename )
 	t.tcounttextures = 0;
 
 	Sleep(1000);
-	//wiJobSystem::context ctx;
-	//wiJobSystem::Wait(ctx);
-	#endif
 
 	// Save/Generate Thumbnail BMP
 	char pRealSavethumb[MAX_PATH];
@@ -11304,49 +8859,23 @@ void importer_save_entity ( char *filename )
 		//PE: IMPORTER_TMP_IMAGE is the same as the importer object use as texture.
 		//PE: Use IMPORTER_TMP_IMAGE+1 (same as char kit). so importer object dont disapear.
 		int grab_image = IMPORTER_TMP_IMAGE;
-		#ifdef WICKEDENGINE
-			grab_image = IMPORTER_TMP_IMAGE+1;
-		#endif
+		grab_image = IMPORTER_TMP_IMAGE+1;
 
-		/* MAX no longer uses BMP thumb files
-		if (GetImageExistEx(grab_image))
-		{
-			//Already generated so.
-			SaveImage(pRealSavethumb, grab_image);
-		}
-		else 
-		{
-			if (FileExist(pRealSavethumb) == 1) DeleteAFile(pRealSavethumb);
-			import_generate_thumb();
-			SaveImage(pRealSavethumb, grab_image);
-		}
-		*/
 		if (GetImageExistEx(grab_image))
 			DeleteImage(grab_image);
 	}
 
-	#ifdef WICKEDENGINE
-	// All this will be replaced I thinks
-	#else
-	t.aspect_f=GetDesktopWidth() ; t.aspect_f=t.aspect_f/GetDesktopHeight();
-	SetCameraAspect (  t.aspect_f );
-	SetCurrentBitmap (  0 );
-	importer_update_selection_markers ( );
-	importer_draw ( );
-	importer_tabs_draw ( );
-	Sync (  );
-	#endif
 	t.importer.cancel = 1;
 	t.timportersaveon = 0;
 
-	if (filename) {
+	if (filename) 
+	{
 		SetDir(tOldDir.Get());
 	}
 }
 
 void import_generate_thumb(void)
 {
-	#ifdef WICKEDENGINE
 	// Need a way to generate a thumbnail in Wicked Engine
 	char pFullPathTempThumb[MAX_PATH];
 	strcpy(pFullPathTempThumb, g.fpscrootdir_s.Get());
@@ -11354,1117 +8883,7 @@ void import_generate_thumb(void)
 	image_setlegacyimageloading(true);
 	LoadImage(pFullPathTempThumb, IMPORTER_TMP_IMAGE+1); //PE: Same as char kit in wicked.
 	image_setlegacyimageloading(false);
-	#else
-	// generate new BMP thumb from scratch
-	CreateBitmap(32, 64, 64);
-	SetCurrentBitmap(32);
-	SetCameraAspect(1.0);
-
-	//  Make a white background Box (  )
-	t.twhiteobj = 1;
-	t.tfound = 0;
-
-	//  Find a free object number
-	while (t.tfound == 0)
-	{
-		if (ObjectExist(t.twhiteobj) == 1)
-		{
-			++t.twhiteobj;
-		}
-		else
-		{
-			t.tfound = 1;
-		}
-	}
-
-	MakeObjectBox(t.twhiteobj, 200000, 200000, 1);
-	SetObjectLight(t.twhiteobj, 0);
-	LockObjectOn(t.twhiteobj);
-	PositionObject(t.twhiteobj, 0, 0, 3000);
-	SetObjectEffect(t.twhiteobj, g.guishadereffectindex);
-	SetObjectEmissive(t.twhiteobj, Rgb(255, 255, 255));
-
-	t.tOldSelected = t.importerTabs[1].selected;
-
-	if (!bRemoveSprites) HideSprite(t.importer.helpSprite2);
-	if (!bRemoveSprites) HideSprite(t.importer.helpSprite3);
-	if (SpriteExist(t.importer.helpSprite4))  DeleteSprite(t.importer.helpSprite4);
-
-	t.importerTabs[1].selected = 1;
-	importer_update_selection_markers();
-	RotateObject(t.importerGridObject[8], 0, 0, 0);
-	PositionObject(t.importerGridObject[8], 0, 0, IMPORTERZPOSITION);
-
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-	PositionObject(t.importerGridObject[8], 0, 0, IMPORTERZPOSITION * 5);
-#endif
-
-	RotateObject(t.importerGridObject[8], t.slidersmenuvalue[t.importer.properties3Index][1].value, t.slidersmenuvalue[t.importer.properties3Index][2].value, t.slidersmenuvalue[t.importer.properties3Index][3].value);
-	SetAlphaMappingOn(t.importer.objectnumber, 255);
-	HideObject(t.importer.dummyCharacterObjectNumber);
-	t.importerTabs[1].selected = t.tOldSelected;
-	for (t.tc = 1; t.tc <= 7; t.tc++)
-	{
-		HideObject(t.importerGridObject[t.tc]);
-	}
-	bool b6002 = false; if (ObjectExist(6002) == 1) { b6002 = GetVisible(6002); HideObject(6002); }
-	bool b6003 = false; if (ObjectExist(6003) == 1) { b6003 = GetVisible(6003); HideObject(6003); }
-	Sync();
-	if (b6002 == true) ShowObject(6002);
-	if (b6003 == true) ShowObject(6003);
-	RotateObject(t.importerGridObject[8], 0, 0, 0);
-	for (t.tc = 1; t.tc <= 7; t.tc++)
-	{
-		ShowObject(t.importerGridObject[t.tc]);
-	}
-
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-
-	extern DBPRO_GLOBAL CCameraManager m_CameraManager;
-	DBPRO_GLOBAL tagCameraData* m_mycam;
-	m_mycam = m_CameraManager.GetData(0);
-	float thumbnail_dimenions = 128;
-	if (m_mycam)
-	{
-		//extern ImVec2 OldrenderTargetSize; //OldrenderTargetSize.x
-
-		float dw = GetDisplayWidth(); //GetChildWindowWidth(-1);
-		float dh = GetDisplayHeight(); //GetChildWindowHeight(-1);
-		float gi_rectw = (dw*0.5) -(thumbnail_dimenions*0.5);
-		float gi_recth = (dh*0.5) -(thumbnail_dimenions*0.5);
-		extern GlobStruct* g_pGlob;
-		LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
-		g_pGlob->pCurrentBitmapSurface = m_mycam->pCameraToImageSurface;
-		GrabImage(IMPORTER_TMP_IMAGE, gi_rectw, gi_recth, gi_rectw + thumbnail_dimenions, gi_recth + thumbnail_dimenions, 0);
-		g_pGlob->pCurrentBitmapSurface = pTmpSurface;
-	}
-#else
-	GrabImage(IMPORTER_TMP_IMAGE, 0, 0, 64, 64, 3);
-#endif
-
-	if (!bRemoveSprites) {
-		t.tSprite = 100;
-		while (SpriteExist(t.tSprite))
-		{
-			++t.tSprite;
-		}
-	}
-	PositionObject(t.importerGridObject[8], 0, 0, IMPORTERZPOSITION);
-	DeleteObject(t.twhiteobj);
-	ShowObject(t.importer.dummyCharacterObjectNumber);
-
-	t.aspect_f = GetDesktopWidth(); t.aspect_f = t.aspect_f / GetDesktopHeight();
-	SetCameraAspect(t.aspect_f);
-	SetCurrentBitmap(0);
-	#endif
 }
-#else
-void importer_save_entity ( char *filename )
-{
-	//  Check if user folder exists, if not create it
-	t.strwork = ""; t.strwork = t.strwork + t.importer.startDir + "\\entitybank\\user";
-	if (  PathExist( t.strwork.Get() )  ==  0 ) 
-	{
-		MakeDirectory (  t.strwork.Get() );
-	}
-
-	//  Ask for save filename
-	t.tSaveFile_s = "";
-	t.timporterprotected = 1;
-	t.timportermessage_s = "Save Entity";
-	while (  t.timporterprotected  ==  1 ) 
-	{
-		if (  t.importer.fpeIsMainFile  ==  0 ) 
-		{
-			t.strwork = ""; t.strwork = t.strwork +t.importer.startDir + "\\entitybank\\user";
-			t.tSaveFile_s = openFileBox("Model (.dbo)|*.dbo|All Files|*.*|", t.strwork.Get() , t.timportermessage_s.Get(), ".dbo", IMPORTERSAVEFILE);
-		}
-		else
-		{
-			t.strwork = ""; t.strwork = t.strwork +t.importer.startDir + "\\entitybank\\user";
-			t.tSaveFile_s = openFileBox("GG Entity (.fpe)|*.fpe|All Files|*.*|", t.strwork.Get(), t.timportermessage_s.Get(), ".fpe", IMPORTERSAVEFILE);
-		}
-		if (  t.tSaveFile_s  ==  "Error" ) 
-		{
-			t.timportersaveon = 0;
-			return;
-		}
-		t.timporterprotected = importer_check_if_protected(t.tSaveFile_s.Get());
-		if (  t.timporterprotected  ==  1 ) 
-		{
-			t.timportermessage_s = "You cannot overwrite protected media, please choose an alternative name";
-		}
-	}
-
-	//  Ensure it has the dbo extension
-	Dim (  t.tArray,300  );
-	t.tArrayMarker = 0;
-	t.tstring_s=t.tSaveFile_s;
-	t.tToken_s=FirstToken(t.tstring_s.Get(),".");
-	if (  t.tToken_s  !=  "" ) 
-	{
-		t.tArray[t.tArrayMarker] = t.tToken_s;
-		++t.tArrayMarker;
-	}
-	do
-	{
-		t.tToken_s=NextToken(".");
-		if (  t.tToken_s  !=  "" ) 
-		{
-			t.tArray[t.tArrayMarker] = t.tToken_s;
-			++t.tArrayMarker;
-		}
-	} while ( !(  t.tToken_s == "" ) );
-	t.tStippedFileName_s = "";
-	int tCount = 0;
-	for ( tCount = 0 ; tCount<=  t.tArrayMarker-2; tCount++ )
-	{
-		t.tStippedFileName_s = t.tStippedFileName_s + t.tArray[tCount];
-	}
-	UnDim (  t.tArray );
-	t.tStippedFileName_s = t.tSaveFile_s;
-	if (  strcmp ( Mid(t.tStippedFileName_s.Get(),Len(t.tStippedFileName_s.Get())-1)  ,  "." ) == 0 ) 
-	{
-		t.tStippedFileName_s = Left(t.tStippedFileName_s.Get(),Len(t.tStippedFileName_s.Get())-2);
-	}
-	else
-	{
-		t.tStippedFileName_s = Left(t.tStippedFileName_s.Get(),Len(t.tStippedFileName_s.Get())-4);
-	}
-
-	//  Grab the folder path
-	Dim (  t.tArray,300  );
-	t.tArrayMarker = 0;
-	t.tstring_s=t.tStippedFileName_s;
-	t.tToken_s=FirstToken(t.tstring_s.Get(),"\\");
-	if (  t.tToken_s  !=  "" ) 
-	{
-		t.tArray[t.tArrayMarker] = t.tToken_s;
-		++t.tArrayMarker;
-	}
-	do
-	{
-		t.tToken_s=NextToken("\\");
-		if (  t.tToken_s  !=  "" ) 
-		{
-			t.tArray[t.tArrayMarker] = t.tToken_s;
-			++t.tArrayMarker;
-		}
-	} while ( !(  t.tToken_s == "" ) );
-	t.tStippedFileName_s = "";
-	for ( tCount = 0 ; tCount<=  t.tArrayMarker-2; tCount++ )
-	{
-		t.tStippedFileName_s = t.tStippedFileName_s + t.tArray[tCount] + "\\";
-	}
-	t.tSavePath_s = t.tStippedFileName_s;
-
-	//  Store file names
-	if (  t.importer.fpeIsMainFile  ==  0 ) 
-	{
-		t.tSaveFile_s = t.tArray[t.tArrayMarker-1] + ".dbo";
-		t.tSaveThumb_s = t.tArray[t.tArrayMarker-1] + ".BMP";
-		t.importer.tFPESaveName = t.tArray[t.tArrayMarker-1] + ".fpe";
-		t.importer.objectFPE.desc = t.tArray[t.tArrayMarker-1];
-		t.importer.objectFPE.model = t.tSaveFile_s;
-	}
-	else
-	{
-		t.tSaveFile_s = t.importer.objectFilename;
-		t.tSaveThumb_s = t.tArray[t.tArrayMarker-1] + ".BMP";
-		t.importer.tFPESaveName = t.tArray[t.tArrayMarker-1] + ".fpe";
-		t.importer.objectFPE.model = t.tSaveFile_s;
-	}
-
-	// Just before save object, ensure all texture references don't include root path
-	sObject* pObject = GetObjectData ( t.importer.objectnumber );
-	if ( pObject )
-	{
-		for ( int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++ )
-		{
-			sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-			if ( pMesh )
-			{
-				for ( int iTextureStage = 0; iTextureStage < pMesh->dwTextureCount; iTextureStage++ )
-				{
-					LPSTR pTexName = pMesh->pTextures[iTextureStage].pName;
-					if ( strlen ( pTexName ) > 2 )
-					{
-						if ( pTexName[1] == ':' )
-						{
-							for ( int n = strlen(pTexName)-1; n > 0; n-- )
-							{
-								if ( pTexName[n] == '\\' || pTexName[n] == '/' )
-								{
-									strcpy ( pTexName, pTexName+n+1 );
-									break;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// if selected 'Use Uber Anims', then rename skeleton and apply uber animations automatically
-	if ( t.slidersmenuvalue[t.importer.properties1Index][7].value == 3 ) 
-	{
-		sObject* pObject = GetObjectData(t.importer.objectnumber);
-		if ( pObject )
-		{
-			// load in correct Y pose and overwrite imported modes transform matrices
-			GGMATRIX* pStoreNewPoseFrames = NULL;
-			int objectnumberforframedatacopy = findFreeObject();
-			cstr pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\2CHAINFINGER-YPOSE.dbo";//Uber Soldier.X";//appendanims.x";
-			LoadObject ( pAbsPathToUberAnimFile.Get(), objectnumberforframedatacopy );
-			if ( ObjectExist ( objectnumberforframedatacopy ) == 1 )
-			{
-				sObject* pObjectWithYPoseData = GetObjectData ( objectnumberforframedatacopy );
-				if ( pObjectWithYPoseData )
-				{
-					// go through and find differences between poses
-					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-					{
-						sFrame* pFrame = pObject->ppFrameList[iFrame];
-						if ( pFrame )
-						{
-							LPSTR pFrameName = pFrame->szName;
-							if ( pFrameName )
-							{
-								if ( strlen(pFrameName) > 0 )
-								{
-									// for this imported model frame, find the equivilant frame in the appendanim model (with the Y pose hidden in the skinning transform)
-									for ( int iFindFrame = 0; iFindFrame < pObjectWithYPoseData->iFrameCount; iFindFrame++ )
-									{
-										sFrame* pFindFrame = pObjectWithYPoseData->ppFrameList[iFindFrame];
-										if ( pFindFrame )
-										{
-											LPSTR pFindFrameName = pFindFrame->szName;
-											if ( pFindFrameName )
-											{
-												if ( strlen(pFindFrameName) > 0 )
-												{
-													if ( stricmp ( pFrameName, pFindFrameName ) == NULL )
-													{
-														// just grab the local relative transform from the Y pose model
-														pFrame->matOriginal = pFindFrame->matOriginal;
-														pFrame->matTransformed = pFindFrame->matOriginal;
-
-														// done with this findframe
-														break;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				DeleteObject ( objectnumberforframedatacopy );
-			}
-
-			// go through all frames of imported model
-			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-			{
-				sFrame* pFrame = pObject->ppFrameList[iFrame];
-				if ( pFrame )
-				{
-					LPSTR pOldFrameName = pFrame->szName;
-					if ( pOldFrameName )
-					{
-						if ( strlen(pOldFrameName) > 0 )
-						{
-							// look for common bone names, and transform to GG standard skeleton name
-							const char* pNewName = "";
-							if ( stricmp ( pOldFrameName, "mixamorig_Hips" ) == NULL ) pNewName = "Bip01_Pelvis";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine" ) == NULL ) pNewName = "Bip01_Spine";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftUpLeg" ) == NULL ) pNewName = "Bip01_L_Thigh";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftLeg" ) == NULL ) pNewName = "Bip01_L_Calf";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftFoot" ) == NULL) pNewName = "Bip01_L_Foot";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftToeBase" ) == NULL ) pNewName = "Bip01_L_Toe0";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightUpLeg" ) == NULL ) pNewName = "Bip01_R_Thigh";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightLeg" ) == NULL ) pNewName = "Bip01_R_Calf";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightFoot" ) == NULL ) pNewName = "Bip01_R_Foot";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightToeBase" ) == NULL ) pNewName = "Bip01_R_Toe0";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine1" ) == NULL ) pNewName = "Bip01_Spine1";
-							if ( stricmp ( pOldFrameName, "mixamorig_Spine2" )== NULL ) pNewName = "Bip01_Spine2";
-							if ( stricmp ( pOldFrameName, "mixamorig_Neck" ) == NULL ) pNewName = "Bip01_Neck";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftShoulder" ) == NULL ) pNewName = "Bip01_L_Clavicle";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightShoulder" ) == NULL ) pNewName = "Bip01_R_Clavicle";
-							if ( stricmp ( pOldFrameName, "mixamorig_Head" ) == NULL ) pNewName = "Bip01_Head";
-							if ( stricmp ( pOldFrameName, "mixamorig_HeadTop_End" ) == NULL ) pNewName = "Bip01_HeadTop";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftArm" ) == NULL ) pNewName = "Bip01_L_UpperArm";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftForeArm" ) == NULL ) pNewName = "Bip01_L_Forearm";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightArm" ) == NULL ) pNewName = "Bip01_R_UpperArm";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightForeArm" ) == NULL ) pNewName = "Bip01_R_Forearm";
-							if ( stricmp ( pOldFrameName, "mixamorig_LeftHand" ) == NULL ) pNewName = "Bip01_L_Hand";
-							if ( stricmp ( pOldFrameName, "mixamorig_RightHand" ) == NULL ) pNewName = "Bip01_R_Hand";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandThumb4" ) > 0 ) pNewName = "Bip01_L_Finger03";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger11";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandIndex4" ) > 0 ) pNewName = "Bip01_L_Finger13";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandMiddle4" ) > 0 ) pNewName = "Bip01_L_Finger23";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandRing4" ) > 0 ) pNewName = "Bip01_L_Finger33";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
-							if ( strstr ( pOldFrameName, "mixamorig_LeftHandPinky4" ) > 0 ) pNewName = "Bip01_L_Finger43";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandThumb4" ) > 0 ) pNewName = "Bip01_R_Finger03";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger11";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger12";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandIndex4" ) > 0 ) pNewName = "Bip01_R_Finger13";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandMiddle4" ) > 0 ) pNewName = "Bip01_R_Finger23";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandRing4" ) > 0 ) pNewName = "Bip01_R_Finger33";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
-							if ( strstr ( pOldFrameName, "mixamorig_RightHandPinky4" ) > 0 ) pNewName = "Bip01_R_Finger43";
-							if ( strlen(pNewName) == 0 )
-							{
-								/* should not associate by happenstance, it meses up anim skin deformation if two frames are referenced under name name!
-								if ( strstr ( pOldFrameName, "Hips" ) > 0 ) pNewName = "Bip01_Pelvis";
-								if ( strstr ( pOldFrameName, "Spine" ) > 0 ) pNewName = "Bip01_Spine";
-								if ( strstr ( pOldFrameName, "LeftUpLeg" ) > 0 ) pNewName = "Bip01_L_Thigh";
-								if ( strstr ( pOldFrameName, "LeftLeg" ) > 0 ) pNewName = "Bip01_L_Calf";
-								if ( strstr ( pOldFrameName, "LeftFoot" ) > 0 ) pNewName = "Bip01_L_Foot";
-								if ( strstr ( pOldFrameName, "LeftToeBase" ) > 0 ) pNewName = "Bip01_L_Toe0";
-								if ( strstr ( pOldFrameName, "RightUpLeg" ) > 0 ) pNewName = "Bip01_R_Thigh";
-								if ( strstr ( pOldFrameName, "RightLeg" ) > 0 ) pNewName = "Bip01_R_Calf";
-								if ( strstr ( pOldFrameName, "RightFoot" ) > 0 ) pNewName = "Bip01_R_Foot";
-								if ( strstr ( pOldFrameName, "RightToeBase" ) > 0 ) pNewName = "Bip01_R_Toe0";
-								if ( strstr ( pOldFrameName, "Spine1" ) > 0 ) pNewName = "Bip01_Spine1";
-								if ( strstr ( pOldFrameName, "Spine2" ) > 0 ) pNewName = "Bip01_Spine2";
-								if ( strstr ( pOldFrameName, "Neck" ) > 0 ) pNewName = "Bip01_Neck";
-								if ( strstr ( pOldFrameName, "LeftShoulder" ) > 0 ) pNewName = "Bip01_L_Clavicle";
-								if ( strstr ( pOldFrameName, "RightShoulder" ) > 0 ) pNewName = "Bip01_R_Clavicle";
-								if ( strstr ( pOldFrameName, "Head" ) > 0 ) pNewName = "Bip01_Head";
-								if ( strstr ( pOldFrameName, "LeftArm" ) > 0 ) pNewName = "Bip01_L_UpperArm";
-								if ( strstr ( pOldFrameName, "LeftForeArm" ) > 0 ) pNewName = "Bip01_L_Forearm";
-								if ( strstr ( pOldFrameName, "LeftHand" ) > 0 ) pNewName = "Bip01_L_Hand";
-								if ( strstr ( pOldFrameName, "RightArm" ) > 0 ) pNewName = "Bip01_R_UpperArm";
-								if ( strstr ( pOldFrameName, "RightForeArm" ) > 0 ) pNewName = "Bip01_R_Forearm";
-								if ( strstr ( pOldFrameName, "RightHand" ) > 0 ) pNewName = "Bip01_R_Hand";
-								if ( strstr ( pOldFrameName, "LeftHandThumb1" ) > 0 ) pNewName = "Bip01_L_Finger0";
-								if ( strstr ( pOldFrameName, "LeftHandThumb2" ) > 0 ) pNewName = "Bip01_L_Finger01";
-								if ( strstr ( pOldFrameName, "LeftHandThumb3" ) > 0 ) pNewName = "Bip01_L_Finger02";
-								if ( strstr ( pOldFrameName, "LeftHandThumb4" ) > 0 ) pNewName = "Bip01_L_Finger03";
-								if ( strstr ( pOldFrameName, "LeftHandIndex1" ) > 0 ) pNewName = "Bip01_L_Finger1";
-								if ( strstr ( pOldFrameName, "LeftHandIndex2" ) > 0 ) pNewName = "Bip01_L_Finger11";
-								if ( strstr ( pOldFrameName, "LeftHandIndex3" ) > 0 ) pNewName = "Bip01_L_Finger12";
-								if ( strstr ( pOldFrameName, "LeftHandIndex4" ) > 0 ) pNewName = "Bip01_L_Finger13";
-								if ( strstr ( pOldFrameName, "LeftHandMiddle1" ) > 0 ) pNewName = "Bip01_L_Finger2";
-								if ( strstr ( pOldFrameName, "LeftHandMiddle2" ) > 0 ) pNewName = "Bip01_L_Finger21";
-								if ( strstr ( pOldFrameName, "LeftHandMiddle3" ) > 0 ) pNewName = "Bip01_L_Finger22";
-								if ( strstr ( pOldFrameName, "LeftHandMiddle4" ) > 0 ) pNewName = "Bip01_L_Finger23";
-								if ( strstr ( pOldFrameName, "LeftHandRing1" ) > 0 ) pNewName = "Bip01_L_Finger3";
-								if ( strstr ( pOldFrameName, "LeftHandRing2" ) > 0 ) pNewName = "Bip01_L_Finger31";
-								if ( strstr ( pOldFrameName, "LeftHandRing3" ) > 0 ) pNewName = "Bip01_L_Finger32";
-								if ( strstr ( pOldFrameName, "LeftHandRing4" ) > 0 ) pNewName = "Bip01_L_Finger33";
-								if ( strstr ( pOldFrameName, "LeftHandPinky1" ) > 0 ) pNewName = "Bip01_L_Finger4";
-								if ( strstr ( pOldFrameName, "LeftHandPinky2" ) > 0 ) pNewName = "Bip01_L_Finger41";
-								if ( strstr ( pOldFrameName, "LeftHandPinky3" ) > 0 ) pNewName = "Bip01_L_Finger42";
-								if ( strstr ( pOldFrameName, "LeftHandPinky4" ) > 0 ) pNewName = "Bip01_L_Finger43";
-								if ( strstr ( pOldFrameName, "RightHandThumb1" ) > 0 ) pNewName = "Bip01_R_Finger0";
-								if ( strstr ( pOldFrameName, "RightHandThumb2" ) > 0 ) pNewName = "Bip01_R_Finger01";
-								if ( strstr ( pOldFrameName, "RightHandThumb3" ) > 0 ) pNewName = "Bip01_R_Finger02";
-								if ( strstr ( pOldFrameName, "RightHandThumb4" ) > 0 ) pNewName = "Bip01_R_Finger03";
-								if ( strstr ( pOldFrameName, "RightHandIndex1" ) > 0 ) pNewName = "Bip01_R_Finger1";
-								if ( strstr ( pOldFrameName, "RightHandIndex2" ) > 0 ) pNewName = "Bip01_R_Finger11";
-								if ( strstr ( pOldFrameName, "RightHandIndex3" ) > 0 ) pNewName = "Bip01_R_Finger12";
-								if ( strstr ( pOldFrameName, "RightHandIndex4" ) > 0 ) pNewName = "Bip01_R_Finger13";
-								if ( strstr ( pOldFrameName, "RightHandMiddle1" ) > 0 ) pNewName = "Bip01_R_Finger2";
-								if ( strstr ( pOldFrameName, "RightHandMiddle2" ) > 0 ) pNewName = "Bip01_R_Finger21";
-								if ( strstr ( pOldFrameName, "RightHandMiddle3" ) > 0 ) pNewName = "Bip01_R_Finger22";
-								if ( strstr ( pOldFrameName, "RightHandMiddle4" ) > 0 ) pNewName = "Bip01_R_Finger23";
-								if ( strstr ( pOldFrameName, "RightHandRing1" ) > 0 ) pNewName = "Bip01_R_Finger3";
-								if ( strstr ( pOldFrameName, "RightHandRing2" ) > 0 ) pNewName = "Bip01_R_Finger31";
-								if ( strstr ( pOldFrameName, "RightHandRing3" ) > 0 ) pNewName = "Bip01_R_Finger32";
-								if ( strstr ( pOldFrameName, "RightHandRing4" ) > 0 ) pNewName = "Bip01_R_Finger33";
-								if ( strstr ( pOldFrameName, "RightHandPinky1" ) > 0 ) pNewName = "Bip01_R_Finger4";
-								if ( strstr ( pOldFrameName, "RightHandPinky2" ) > 0 ) pNewName = "Bip01_R_Finger41";
-								if ( strstr ( pOldFrameName, "RightHandPinky3" ) > 0 ) pNewName = "Bip01_R_Finger42";
-								if ( strstr ( pOldFrameName, "RightHandPinky4" ) > 0 ) pNewName = "Bip01_R_Finger43";
-								*/
-							}
-
-							// replace all instances of this name (if found)
-							if ( strlen(pNewName) > 0 ) 
-							{
-								// rename animation reference name too
-								if ( pObject->pAnimationSet )
-								{
-									sAnimation* pCurrent = pObject->pAnimationSet->pAnimation;
-									while(pCurrent)
-									{
-										if ( pCurrent->szName )
-										{
-											if ( stricmp ( pCurrent->szName, pFrame->szName ) == NULL )
-											{
-												strcpy ( pCurrent->szName, pNewName );
-												break;
-											}
-										}
-										pCurrent = pCurrent->pNext;
-									}
-								}
-
-								// also rename bone names within each mesh
-								for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
-								{
-									sMesh* pMesh = pObject->ppMeshList[iMesh];
-									if ( pMesh )
-									{
-										if ( pMesh->pBones )
-										{
-											for ( int iBone = 0; iBone < pMesh->dwBoneCount; iBone++ )
-											{
-												if ( pMesh->pBones [ iBone ].szName )
-												{
-													if ( stricmp ( pMesh->pBones [ iBone ].szName, pFrame->szName ) == NULL )
-													{
-														strcpy ( pMesh->pBones [ iBone ].szName, pNewName );
-														break;
-													}
-												}								
-											}
-										}
-									}
-								}
-
-								// finally rename frame
-								strcpy ( pFrame->szName, pNewName );
-							}
-							//else
-							//	MessageBox ( NULL, "not found for", pOldFrameName, MB_OK );
-						}
-					}
-				}
-			}
-
-			// now insert Bip01 into the frame hierarchy between Sceene Root and Pelvis
-			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-			{
-				sFrame* pFindPelvisFrame = pObject->ppFrameList[iFrame];
-				if ( pFindPelvisFrame )
-				{
-					LPSTR pFrameName = pFindPelvisFrame->szName;
-					if ( pFrameName )
-					{
-						if ( strlen(pFrameName) > 0 )
-						{
-							if ( stricmp ( pFrameName, "Bip01_Pelvis" ) == NULL )
-							{
-								// create new Bip01 frame
-								sFrame* pPelvisParent_SceneRoot = pFindPelvisFrame->pParent;
-								sFrame* pBip01Frame = new sFrame();
-
-								// insert it between scene root and pelvis
-								strcpy ( pBip01Frame->szName, "Bip01" );
-								pPelvisParent_SceneRoot->pChild = pBip01Frame;
-								pBip01Frame->pParent = pPelvisParent_SceneRoot;
-								pFindPelvisFrame->pParent = pBip01Frame;
-								pBip01Frame->pChild = pFindPelvisFrame;
-
-								// also create a new Animation object for this new Bip01 frame (so appended anim data can go somewhere (below))
-								if ( pObject->pAnimationSet )
-								{
-									sAnimation* pLastAnim = pObject->pAnimationSet->pAnimation;
-									if ( pLastAnim )
-									{
-										while ( pLastAnim->pNext ) pLastAnim = pLastAnim->pNext;
-									}
-									if ( pLastAnim )
-									{
-										sAnimation* pNewAnim = new sAnimation();
-										pNewAnim->bLinear = 1;
-										pNewAnim->pFrame = pBip01Frame;
-										strcpy ( pNewAnim->szName, "Bip01" );
-										pLastAnim->pNext = pNewAnim;
-									}
-								}
-
-								// we are done
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			// and insert FIRESPOT limb to the right hand with default values
-			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-			{
-				sFrame* pFindRightHandFrame = pObject->ppFrameList[iFrame];
-				if ( pFindRightHandFrame )
-				{
-					LPSTR pFrameName = pFindRightHandFrame->szName;
-					if ( pFrameName )
-					{
-						if ( strlen(pFrameName) > 0 )
-						{
-							if ( stricmp ( pFrameName, "Bip01_R_Hand" ) == NULL )
-							{
-								// create new FIRESPOT frame
-								sFrame* pFIRESPOTFrame = new sFrame();
-
-								// insert it as child of right hand
-								sFrame* pLastChildSybling = pFindRightHandFrame->pChild;
-								while (pLastChildSybling->pSibling) pLastChildSybling = pLastChildSybling->pSibling;
-								strcpy ( pFIRESPOTFrame->szName, "FIRESPOT" );
-								pLastChildSybling->pSibling = pFIRESPOTFrame;
-								pFIRESPOTFrame->pParent = pFindRightHandFrame;
-
-								// also create a new Animation object for this new Bip01 frame (so appended anim data can go somewhere (below))
-								if ( pObject->pAnimationSet )
-								{
-									sAnimation* pLastAnim = pObject->pAnimationSet->pAnimation;
-									if ( pLastAnim )
-									{
-										while ( pLastAnim->pNext ) pLastAnim = pLastAnim->pNext;
-									}
-									if ( pLastAnim )
-									{
-										sAnimation* pNewAnim = new sAnimation();
-										pNewAnim->bLinear = 1;
-										pNewAnim->pFrame = pFIRESPOTFrame;
-										strcpy ( pNewAnim->szName, "FIRESPOT" );
-										pLastAnim->pNext = pNewAnim;
-									}
-								}
-
-								// we are done
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			// now we need to change the model geometry from a T bone to a Y pose (using the relative local transforms we generated above)
-			GGMATRIX matrix;
-			if ( 1 )
-			{
-				GGMatrixIdentity ( &matrix );
-				UpdateFrame ( pObject->pFrame, &matrix );
-				for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
-				{
-					// wipe out original vertex data
-					sMesh* pMesh = pObject->ppMeshList[iMesh];
-					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
-
-					// animate mesh on CPU
-					AnimateBoneMeshBONE ( pObject, NULL, pMesh );
-
-					// now record new vertex mesh shape
-					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
-					DWORD dwTotalVertSize = pMesh->dwVertexCount * pMesh->dwFVFSize;
-					pMesh->pOriginalVertexData = (BYTE*)new char [ dwTotalVertSize ];
-					memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
-				}
-			}
-
-			// now replace frame transform matrices in imported model (copied from appendanims.x)
-			// which zeros the rotation and puts model in Y shape pose (not T) ready for stock 
-			// animation data (but retains skinning information for the unique mesh geometry of the model)
-			objectnumberforframedatacopy = findFreeObject();
-			pAbsPathToUberAnimFile = g.fpscrootdir_s + "\\Files\\entitybank\\Characters\\appendanims.x";
-			LoadObject ( pAbsPathToUberAnimFile.Get(), objectnumberforframedatacopy );
-			if ( ObjectExist ( objectnumberforframedatacopy ) == 1 )
-			{
-				sObject* pObjectWithGoodFrameData = GetObjectData ( objectnumberforframedatacopy );
-				if ( pObjectWithGoodFrameData )
-				{
-					// go through all frames of imported object, match up name and copy frame transform matrix over from 'framegood' model
-					for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-					{
-						sFrame* pFrame = pObject->ppFrameList[iFrame];
-						if ( pFrame )
-						{
-							LPSTR pFrameName = pFrame->szName;
-							if ( pFrameName )
-							{
-								if ( strlen(pFrameName) > 0 )
-								{
-									// check to find this name in framegood model
-									for ( int iFrameGood = 0; iFrameGood < pObjectWithGoodFrameData->iFrameCount; iFrameGood++ )
-									{
-										sFrame* pFrameGood = pObjectWithGoodFrameData->ppFrameList[iFrameGood];
-										if ( pFrameGood )
-										{
-											LPSTR pFrameGoodName = pFrameGood->szName;
-											if ( pFrameGoodName )
-											{
-												if ( strlen(pFrameGoodName) > 0 )
-												{
-													// check if we have a match
-													if ( stricmp ( pFrameName, pFrameGoodName ) == NULL )
-													{
-														// now copy the frame data to the import model
-														pFrame->matOriginal = pFrameGood->matOriginal;
-														pFrame->matTransformed = pFrameGood->matTransformed;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				DeleteObject ( objectnumberforframedatacopy );
-			}
-
-			// and restore transformed matrix from originals
-			for ( int iFrame = 0; iFrame < pObject->iFrameCount; iFrame++ )
-			{
-				sFrame* pFrame = pObject->ppFrameList[iFrame];
-				if ( pFrame )
-				{
-					pFrame->matTransformed = pFrame->matOriginal;
-				}
-			}
-
-			// delete all keys so append can be fresh (and specifically remove matrix keys which WILL mess up overall animation)
-			if ( pObject->pAnimationSet )
-			{
-				sAnimationSet* pAnimSet = pObject->pAnimationSet;
-				while ( pAnimSet != NULL )
-				{
-					sAnimation* pAnim = pAnimSet->pAnimation;
-					while ( pAnim != NULL )
-					{
-						// scans all animation data and creates the interpolation vectors between all keyframes (vital)
-						if ( pAnim )
-						{
-							SAFE_DELETE(pAnim->pPositionKeys);
-							pAnim->dwNumPositionKeys=0;
-							SAFE_DELETE(pAnim->pRotateKeys);
-							pAnim->dwNumRotateKeys=0;
-							SAFE_DELETE(pAnim->pScaleKeys);
-							pAnim->dwNumScaleKeys=0;
-							SAFE_DELETE(pAnim->pMatrixKeys);
-							pAnim->dwNumMatrixKeys=0;
-						}
-						pAnim = pAnim->pNext;
-					}
-					pAnimSet = pAnimSet->pNext;
-				}
-			}
-
-			// append uber animations to character
-			AppendAnimationFromFile ( pObject, pAbsPathToUberAnimFile.Get(), 0 );
-
-			// now update model to first frame animation pose (to calculate combined matrix from pose)
-			GGMatrixIdentity ( &matrix );
-			UpdateAllFrameData ( pObject, 0.0f );
-			UpdateFrame ( pObject->pFrame, &matrix );
-
-			// and then calculate the inverse of those matCombined transforms to apply to the bone matTransforms
-			// so bone matrix cancels out first frame pose leaving matCombined animations to shape shader verts
-			for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
-			{
-				sMesh* pMesh = pObject->ppMeshList[iMesh];
-				if ( pMesh )
-				{
-					sBone* pBones = pMesh->pBones;
-					if ( pBones )
-					{
-						for ( int iBone = 0; iBone < pMesh->dwBoneCount; iBone++ )
-						{
-							float fDet = 0.0f;
-							GGMatrixInverse ( &pBones[iBone].matTranslation, &fDet, pMesh->pFrameMatrices [ iBone ] );
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Save Object
-	if ( strcmp ( Lower(Right(t.tSaveFile_s.Get(),4)) , ".dbo" ) == 0 ) 
-	{
-		if ( FileExist (t.tSaveFile_s.Get()) == 1 ) DeleteAFile ( t.tSaveFile_s.Get() ) ;
-		ScaleObject (  t.importer.objectnumber,100,100,100 );
-		SaveObject (  t.tSaveFile_s.Get(),t.importer.objectnumber );
-		ScaleObject (  t.importer.objectnumber,t.importer.objectScaleForEditing,t.importer.objectScaleForEditing,t.importer.objectScaleForEditing );
-	}
-	else
-	{
-		if (  t.importer.objectFileOriginalPath+t.importer.objectFilename  !=  t.tSavePath_s+t.importer.objectFilename ) 
-		{
-			t.strwork = ""; t.strwork = t.strwork +t.importer.objectFileOriginalPath+t.importer.objectFilename;
-			if (  FileExist( t.strwork.Get() ) == 1 ) 
-			{
-				t.strwork = ""; t.strwork = t.strwork +t.tSavePath_s+t.importer.objectFilename;
-				if (  FileExist( t.strwork.Get() ) == 0 ) 
-				{
-					t.strwork = ""; t.strwork = t.strwork +t.importer.objectFileOriginalPath+t.importer.objectFilename;
-					cstr string1 = t.tSavePath_s+t.importer.objectFilename;
-					CopyAFile ( t.strwork.Get() , string1.Get() );
-				}
-			}
-		}
-	}
-	UnDim (  t.tArray );
-
-	Dim ( t.tArray2, 220 );
-	for ( tCount = 1; tCount <= IMPORTERTEXTURESMAX; tCount++ )
-	{
-		// skip files that do not exist
-		if ( t.importerTextures[tCount].imageID == 0 )  
-			continue;
-
-		//  Split the filename into tokens to grab the path
-		t.tSourceName_s = t.importerTextures[tCount].fileName;
-		t.tArrayMarker = 0;
-		t.tstring_s=t.tSourceName_s;
-		t.tToken_s=FirstToken(t.tstring_s.Get(),"\\");
-		if (  t.tToken_s  !=  "" ) 
-		{
-			t.tArray2[t.tArrayMarker] = t.tToken_s;
-			++t.tArrayMarker;
-		}
-		do
-		{
-			t.tToken_s=NextToken("\\");
-			if (  t.tToken_s  !=  "" ) 
-			{
-				t.tArray2[t.tArrayMarker] = t.tToken_s;
-				++t.tArrayMarker;
-			}
-		} while ( !(  t.tToken_s == "" ) );
-
-		//  Now store just the file name
-		t.tDestFileName = t.tSavePath_s + t.tArray2[t.tArrayMarker-1];
-		if ( tCount == 1 )
-		{
-			// first texture in list is the 'color/diffuse' one (even if multitexture)
-			t.importer.objectFPE.textured = t.tArray2[t.tArrayMarker-1];
-		}
-
-		//  Copy and save images to destination
-		if (  ImageExist(t.importerTextures[tCount].imageID) == 1 ) 
-		{
-			cstr test1 = ""; test1 = test1 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-			if (  FileExist (t.importerTextures[tCount].fileName.Get())  ==  1 && t.tDestFileName  !=  test1 && t.tDestFileName  !=  t.importerTextures[tCount].fileName ) 
-			{
-				if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-				{
-					CopyAFile (  t.importerTextures[tCount].fileName.Get(),t.tDestFileName.Get() );
-				}
-			}
-			else
-			{
-				t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-				cstr test2 = ""; test2 = test2 + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-				if (  FileExist ( t.strwork.Get() )  ==  1 && t.tDestFileName  !=  test2 ) 
-				{
-					if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-					{
-						t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-						CopyAFile (  t.strwork.Get() ,t.tDestFileName.Get() );
-					}
-				}
-				else
-				{
-					t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.importerTextures[tCount].fileName;
-					if (  t.tDestFileName  !=  t.strwork ) 
-					{
-						if (  ImageExist (t.importerTextures[tCount].imageID) ) 
-						{
-							if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-							{
-								SaveImage (  t.tDestFileName.Get() , t.importerTextures[tCount].imageID );
-							}
-						}
-					}
-				}
-			}
-		}
-
-		//  Check for Normal and Specular and copy those if they exist
-		if (  Len(t.importerTextures[tCount].fileName.Get()) > 6 ) 
-		{
-			if ( strcmp ( Lower(Right(t.importerTextures[tCount].fileName.Get(),6)) , "_d.dds" ) == 0 || strcmp ( Lower(Right(t.importerTextures[tCount].fileName.Get(),6)) , "_d.png" ) == 0 ) 
-			{
-				//  Normal map first
-				t.tnormalmapfile_s = ""; t.tnormalmapfile_s = t.tnormalmapfile_s + Left(t.importerTextures[tCount].fileName.Get(),Len(t.importerTextures[tCount].fileName.Get())-6) + "_N.dds";
-				t.tDestFileName = t.tSavePath_s + t.tArray2[t.tArrayMarker-1];
-				cstr TempFileName = t.tDestFileName;
-				t.tDestFileName = "" ; t.tDestFileName = t.tDestFileName + Left(TempFileName.Get(),Len(TempFileName.Get())-6) + "_N.dds";
-				t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-				if (  FileExist (t.tnormalmapfile_s.Get())  ==  1 && t.tDestFileName  !=  t.strwork && t.tDestFileName  !=  t.tnormalmapfile_s )
-				{
-					if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-					{
-						CopyAFile (  t.tnormalmapfile_s.Get(),t.tDestFileName.Get() );
-					}
-				}
-				else
-				{
-					t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					if (  FileExist ( t.strwork.Get() )  ==  1 && t.tDestFileName  !=  g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s ) 
-					{
-						if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-						{
-							t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-							CopyAFile ( t.strwork.Get() ,t.tDestFileName.Get() );
-						}
-					}
-				}
-
-				//  Normal map continued
-				t.tnormalmapfile_s = ""; t.tnormalmapfile_s = t.tnormalmapfile_s + Left(t.importerTextures[tCount].fileName.Get(),Len(t.importerTextures[tCount].fileName.Get())-6) + "_N.png";
-				t.tDestFileName = t.tSavePath_s + t.tArray2[t.tArrayMarker-1];
-				TempFileName = t.tDestFileName;
-				t.tDestFileName = "" ; t.tDestFileName = t.tDestFileName + Left(TempFileName.Get(),Len(TempFileName.Get())-6) + "_N.png";
-				t.strwork = ""; t.strwork = t.strwork + "\\Files\\" + t.tnormalmapfile_s;
-				if (  FileExist (t.tnormalmapfile_s.Get())  ==  1 && t.tDestFileName  !=  g.fpscrootdir_s + t.strwork && t.tDestFileName  !=  t.tnormalmapfile_s )  
-				{
-					if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-					{
-						CopyAFile (  t.tnormalmapfile_s.Get() ,t.tDestFileName.Get() );
-					}
-				}
-				else
-				{
-
-					cstr work1 = ""; work1 = work1 + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					if (  FileExist ( work1.Get() )  ==  1 && t.tDestFileName  !=  t.strwork )  
-					{
-						if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-						{
-							t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-							CopyAFile (  t.strwork.Get() , t.tDestFileName.Get() );
-						}
-					}
-				}
-
-				//  Specular now
-				t.tnormalmapfile_s = "" ; t.tnormalmapfile_s = t.tnormalmapfile_s + Left(t.importerTextures[tCount].fileName.Get(),Len(t.importerTextures[tCount].fileName.Get())-6) + "_S.dds";
-				t.tDestFileName = t.tSavePath_s + t.tArray2[t.tArrayMarker-1];
-				TempFileName = t.tDestFileName;
-				t.tDestFileName = "" ; t.tDestFileName = t.tDestFileName + Left (TempFileName.Get(),Len(TempFileName.Get())-6) + "_S.dds";
-				t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-				if (  FileExist (t.tnormalmapfile_s.Get())  ==  1 && t.tDestFileName  !=  t.strwork && t.tDestFileName  !=  t.tnormalmapfile_s ) 
-				{
-					if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-					{
-						CopyAFile (  t.tnormalmapfile_s.Get() , t.tDestFileName.Get() );
-					}
-				}
-				else
-				{
-					cstr work2 = ""; work2 = work2 + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					if (  FileExist ( work2.Get() )  ==  1 && t.tDestFileName  !=  t.strwork ) 
-					{
-						if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-						{
-							t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-							CopyAFile (  t.strwork.Get() ,t.tDestFileName.Get() );
-						}
-					}
-				}
-
-				t.tnormalmapfile_s = ""; t.tnormalmapfile_s = t.tnormalmapfile_s + Left(t.importerTextures[tCount].fileName.Get(),Len(t.importerTextures[tCount].fileName.Get())-6) + "_S.png";
-				t.tDestFileName = t.tSavePath_s + t.tArray2[t.tArrayMarker-1];
-				TempFileName = t.tDestFileName;
-				t.tDestFileName = ""; t.tDestFileName = t.tDestFileName + Left(TempFileName.Get(),Len(TempFileName.Get())-6) + "_S.png";
-				t.strwork = ""; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-				if (  FileExist (t.tnormalmapfile_s.Get())  ==  1 && t.tDestFileName  !=  t.strwork && t.tDestFileName  !=  t.tnormalmapfile_s ) 
-				{
-					if (  FileExist(t.tDestFileName.Get())  ==  0 ) 
-					{
-						CopyAFile (  t.tnormalmapfile_s.Get(),t.tDestFileName.Get() );
-					}
-				}
-				else
-				{
-					cstr work3 = ""; work3 = work3 + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-					if (  FileExist ( work3.Get() )  ==  1 && t.tDestFileName  !=  t.strwork ) 
-					{
-						if (  FileExist(t.tDestFileName.Get() )  ==  0 ) 
-						{
-							t.strwork = "" ; t.strwork = t.strwork + g.fpscrootdir_s + "\\Files\\" + t.tnormalmapfile_s;
-							CopyAFile (  t.strwork.Get() ,t.tDestFileName.Get() );
-						}
-					}
-				}
-			}
-		}
-	}
-	UnDim (  t.tArray2 );
-
-	// If model has MORE than one texture, blank out FPE textured
-	if ( t.tcounttextures > 1 ) 
-	{
-		// but make sure they are 'different' textures, not just DNS/PBR sets
-		LPSTR pFile = t.importerTextures[1].fileName.Get();
-		LPSTR pExt = "_d.png";
-		if ( strnicmp ( pFile+strlen(pFile)-10, "_color.png", 10 ) == NULL ) pExt = "_color.png";
-		if ( strnicmp ( pFile+strlen(pFile)-12, "_diffuse.png", 12 ) == NULL ) pExt = "_diffuse.png";
-		if ( strnicmp ( pFile+strlen(pFile)-11, "_albedo.png", 11 ) == NULL ) pExt = "_albedo.png";
-		if ( strnicmp ( pFile+strlen(pFile)-10, "_color.dds", 10 ) == NULL ) pExt = "_color.dds";
-		if ( strnicmp ( pFile+strlen(pFile)-12, "_diffuse.dds", 12 ) == NULL ) pExt = "_diffuse.dds";
-		if ( strnicmp ( pFile+strlen(pFile)-11, "_albedo.dds", 11 ) == NULL ) pExt = "_albedo.dds";
-		cstr pBaseFilePart = Left(pFile,Len(pFile)-strlen(pExt));
-		for ( int tCount = 2; tCount <= 10; tCount++ )
-		{
-			LPSTR pCompareFile = t.importerTextures[tCount].fileName.Get();
-			if ( strlen ( pCompareFile ) > 4 )
-			{
-				if ( strnicmp ( pCompareFile, pBaseFilePart.Get(), strlen(pBaseFilePart.Get()) ) == NULL )
-				{
-					// matches base part, now exclude files of known extension
-					bool bExclude = false;
-					char pRest[1024];
-					strcpy ( pRest, pCompareFile + strlen(pBaseFilePart.Get()) );
-					pRest[strlen(pRest)-4] = 0;
-					if ( stricmp ( pRest, "_normal" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_specular" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_metalness" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_gloss" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_ao" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_height" ) == NULL ) bExclude = true;
-					if ( stricmp ( pRest, "_cube" ) == NULL ) bExclude = true;
-					if ( bExclude == false )
-					{
-						// found a match to base texture, but unknown extra part
-						t.importer.objectFPE.textured="";
-						break;
-					}
-				}
-				else
-				{
-					// found a different base texture, cannot be a single textured model
-					t.importer.objectFPE.textured="";
-					break;
-				}
-			}
-		}
-	}
-
-	// save FPE file
-	importer_save_fpe ( );
-
-	// Save/Generate Thumbnail BMP
-	t.strwork = ""; t.strwork = t.strwork + t.importer.objectFileOriginalPath + t.importer.objectFilename;
-	cstr pSourceBMP = cstr ( cstr(Left ( t.strwork.Get(), strlen(t.strwork.Get())-4)) + ".bmp" );
-	if ( FileExist ( pSourceBMP.Get() ) ) 
-	{
-		// if BMP already existed in source area, use that one
-		if ( FileExist ( t.tSaveThumb_s.Get()) == 1 ) DeleteAFile ( t.tSaveThumb_s.Get() );
-		CopyFile ( pSourceBMP.Get(), t.tSaveThumb_s.Get(), FALSE );
-	}
-	else
-	{
-		// generate new BMP thumb from scratch
-		CreateBitmap ( 32, 64, 64 );
-		SetCurrentBitmap ( 32 );
-		SetCameraAspect ( 1.0 );
-
-		//  Make a white background Box (  )
-		t.twhiteobj = 1;
-		t.tfound = 0;
-
-		//  Find a free object number
-		while (  t.tfound  ==  0 ) 
-		{
-			if (  ObjectExist(t.twhiteobj)  ==  1 ) 
-			{
-				++t.twhiteobj;
-			}
-			else
-			{
-				t.tfound = 1;
-			}
-		}
-
-		MakeObjectBox (  t.twhiteobj,200000,200000,1 );
-		SetObjectLight (  t.twhiteobj,0 );
-		LockObjectOn (  t.twhiteobj );
-		PositionObject (  t.twhiteobj,0,0,1000 );
-		SetObjectEffect ( t.twhiteobj, g.guishadereffectindex );
-		SetObjectEmissive ( t.twhiteobj, Rgb(255,255,255) );
-
-		t.tOldSelected = t.importerTabs[1].selected;
-
-		HideSprite (  t.importer.helpSprite2 );
-		HideSprite (  t.importer.helpSprite3 );
-		if (  SpriteExist(t.importer.helpSprite4)  )  DeleteSprite (  t.importer.helpSprite4 );
-
-		t.importerTabs[1].selected = 1;
-		importer_update_selection_markers ( );
-		RotateObject (  t.importerGridObject[8], 0,0,0 );
-		PositionObject (  t.importerGridObject[8],0,0,IMPORTERZPOSITION );
-		RotateObject (  t.importerGridObject[8], t.slidersmenuvalue[t.importer.properties3Index][1].value, t.slidersmenuvalue[t.importer.properties3Index][2].value, t.slidersmenuvalue[t.importer.properties3Index][3].value );
-		SetAlphaMappingOn (  t.importer.objectnumber , 255 );
-		HideObject (  t.importer.dummyCharacterObjectNumber );
-		t.importerTabs[1].selected = t.tOldSelected;
-		for ( t.tc = 1 ; t.tc<=  7; t.tc++ )
-		{
-			HideObject (  t.importerGridObject[t.tc] );
-		}
-		bool b6002 = false; if ( ObjectExist(6002)==1) { b6002 = GetVisible(6002); HideObject(6002); }
-		bool b6003 = false; if ( ObjectExist(6003)==1) { b6003 = GetVisible(6003); HideObject(6003); }
-		Sync();
-		if ( b6002 == true ) ShowObject ( 6002 );
-		if ( b6003 == true ) ShowObject ( 6003 );
-		RotateObject (  t.importerGridObject[8], 0,0,0 );
-		for ( t.tc = 1 ; t.tc<=  7; t.tc++ )
-		{
-			ShowObject ( t.importerGridObject[t.tc] );
-		}
-		if ( FileExist (t.tSaveThumb_s.Get())  ==  1  )  DeleteAFile (  t.tSaveThumb_s.Get() ) ;
-		GrabImage (IMPORTER_TMP_IMAGE, 0, 0, 64, 64, 3 );
-		t.tSprite = 100;
-		while (  SpriteExist (t.tSprite) ) 
-		{
-			++t.tSprite;
-		}
-		SaveImage ( t.tSaveThumb_s.Get(), IMPORTER_TMP_IMAGE);
-		DeleteImage (IMPORTER_TMP_IMAGE);
-		PositionObject ( t.importerGridObject[8],0,0,IMPORTERZPOSITION );
-		DeleteObject ( t.twhiteobj );
-	}
-
-	t.aspect_f=GetDesktopWidth() ; t.aspect_f=t.aspect_f/GetDesktopHeight();
-	SetCameraAspect (  t.aspect_f );
-	SetCurrentBitmap (  0 );
-	importer_update_selection_markers ( );
-	importer_draw ( );
-	importer_tabs_draw ( );
-	Sync (  );
-	t.importer.cancel = 1;
-	t.timportersaveon = 0;
-}
-#endif
 
 void importer_tabs_update ( void )
 {
@@ -13188,7 +9607,6 @@ int findFreeMemblock ( void )
 	return tFoundFree;
 }
 
-#ifdef WICKEDENGINE
 char* openFileBox(char* filter_, char* initdir_, char* dtitle_, char* defext_, unsigned char open)
 {
 	cStr tOldDir = GetDir();
@@ -13200,210 +9618,6 @@ char* openFileBox(char* filter_, char* initdir_, char* dtitle_, char* defext_, u
 	else
 		return "";
 }
-#else
-char* openFileBox ( char* filter_, char* initdir_, char* dtitle_, char* defext_, unsigned char open )
-{
-	LPSTR filebufferptr = 0;
-	int OPENFILENAME = 0;
-	cstr filebuffer =  "";
-	int comdlg32 = 0;
-	cstr tCode_s =  "";
-	int tCount2 = 0;
-	cstr code_s =  "";
-	LPSTR retval = 0;
-	int tFound = 0;
-	int user32 = 0;
-	DWORD flags = 0;
-	LPSTR lpofn = 0;
-	DWORD hwnd = 0;
-	int size = 0;
-	char filter[512];
-	char initdir[512];
-	char dtitle[512];
-	char defext[512];
-
-	strcpy ( filter , filter_ );
-	strcpy ( initdir , initdir_ );
-	strcpy ( dtitle , dtitle_ );
-	strcpy ( defext , defext_ );
-
-	#ifdef VRTECH
-	//if ( t.importer.loaded == 1 ) importer_show_mouse ( );
-	#else
-	if ( t.importer.loaded == 1 ) importer_show_mouse ( );
-	#endif
-	
-	//  Load in required DLL's
-	user32 = findFreeDll();
-	DLLLoad (  "user32.dll",user32 );
-	comdlg32 = findFreeDll();
-	DLLLoad (  "comdlg32.dll",comdlg32 );
-
-	//  Get handle ( unique ID ) to the calling ( this ) window
-	hwnd = CallDLL(user32,"GetForegroundWindow");
-
-	//  Unload DLL as it is no longer needed
-	DLLDelete (  user32 );
-
-	//  Get the Memblock Number
-	OPENFILENAME = findFreeMemblock();
-
-	//  Make The Memblock containing the OPENFILENAME structure
-	MakeMemblock (  OPENFILENAME,76 );
-
-	//  Get the pointer to the just created Structure
-	lpofn = GetMemblockPtr(OPENFILENAME);
-
-	strcat ( filter , "|" );
-	strcat ( initdir ,  "|" );
-	strcat ( dtitle , "|" );
-	strcat ( defext , "|" );
-	filebuffer = "" ; filebuffer = filebuffer + "|";
-	filebuffer+= Spaces(255);
-	filebuffer+= "|";
-	filebufferptr = (LPSTR)_get_str_ptr(filebuffer.Get());
-	flags = 0x00001000 || 0x00000004 || 0x00000002;
-	size = 0;
-
-	// warning - nasty 32 bit only code here!!
-	WriteMemblockDWord (  OPENFILENAME,0,76 );
-	WriteMemblockDWord (  OPENFILENAME,4,hwnd );
-	WriteMemblockDWord (  OPENFILENAME,12,(DWORD)_get_str_ptr(filter) );
-	WriteMemblockDWord (  OPENFILENAME,24,1 );
-	WriteMemblockDWord (  OPENFILENAME,28,(DWORD)filebufferptr );
-	WriteMemblockDWord (  OPENFILENAME,32,256 );
-	WriteMemblockDWord (  OPENFILENAME,44,(DWORD)_get_str_ptr(initdir) );
-	WriteMemblockDWord (  OPENFILENAME,48,(DWORD)_get_str_ptr(dtitle) );
-	WriteMemblockDWord (  OPENFILENAME,52,flags );
-	WriteMemblockDWord (  OPENFILENAME,60,(DWORD)_get_str_ptr(defext) );
-
-	//  Call the Command to open the dialouge
-	if ( open )
-	{
-		retval = (LPSTR)CallDLL(comdlg32,"GetOpenFileNameA",(DWORD)lpofn);
-	}
-	else
-	{
-		retval = (LPSTR)CallDLL(comdlg32,"GetSaveFileNameA",(DWORD)lpofn);
-	}
-	//  Check if it was sucecfull
-	if  ( retval !=  0 )
-	{
-		code_s = _get_str(filebufferptr,256);
-		tCode_s = "";
-		tFound = 0;
-		for ( tCount2 = Len(code_s.Get()) ; tCount2>=  1 ; tCount2+= -1 )
-		{
-			if (  code_s.Get()[tCount2-1]  !=  ' '  )  tFound  =  1;
-			t.strwork = ""; t.strwork = t.strwork +  Mid(code_s.Get(),tCount2) + tCode_s;;
-			if (  tFound  !=  0  )  tCode_s  = t.strwork;
-		}
-		code_s = tCode_s;
-	}
-	else
-	{
-		retval = (LPSTR)CallDLL(comdlg32,"CommDlgExtendedError");
-		switch ( (DWORD)retval )
-		{
-			case 0xFFFF :  code_s  =  "The dialog box could not be created. The common dialog box function's call to the DialogBox function failed. For example, this error occurs if the common dialog box call specifies an invalid window handle."; break;
-			case 0x0006 : code_s = "The common dialog box function failed to find a specified resource." ; break;
-			case 0x0004 : code_s = "The ENABLETEMPLATE flag was set in the Flags member of the initialization structure for the corresponding common dialog box, but you failed to provide a corresponding instance handle." ; break;
-			case 0x0002 : code_s = "The common dialog box function failed during initialization. This error often occurs when sufficient memory is not available." ; break;
-			case 0x000B : code_s = "The ENABLEHOOK flag was set in the Flags member of the initialization structure for the corresponding common dialog box, but you failed to provide a pointer to a corresponding hook procedure." ; break;
-			case 0x0008 : code_s = "The common dialog box function failed to lock a specified resource." ; break;
-			case 0x0003 : code_s = "The ENABLETEMPLATE flag was set in the Flags member of the initialization structure for the corresponding common dialog box, but you failed to provide a corresponding template." ; break;
-			case 0x0007 : code_s = "The common dialog box function failed to load a specified string." ; break;
-			case 0x0001 : code_s = "The lStructSize member of the initialization structure for the corresponding common dialog box is invalid." ; break;
-			case 0x0005 : code_s = "The common dialog box function failed to load a specified string." ;break;
-			case 0x3003 : code_s = "The buffer pointed to by the lpstrFile member of the OPENFILENAME structure is too small for the file name specified by the user. The first two bytes of the lpstrFile buffer contain an integer value specifying the size, in TCHARs, required to receive the full name." ; break;
-			case 0x0009 : code_s = "The common dialog box function was unable to allocate memory for internal structures." ; break;
-			case 0x3002 : code_s = "A file name is invalid." ; break;
-			case 0x000A : code_s = "The common dialog box function was unable to lock the memory associated with a handle." ; break;
-			case 0x3001 : code_s = "An attempt to subclass a list box failed because sufficient memory was not available." ; break;
-			default : code_s = "Error" ; break;
-		}
-	}
-
-	DLLDelete (  comdlg32 );
-
-	DeleteMemblock (  OPENFILENAME );
-
-	strcpy ( t.szreturn , code_s.Get() );
-
-	#ifdef VRTECH
-	// ensure cursor restored when leave dialog
-	ChangeMouse(0);
-	#endif
-
-	return t.szreturn;
-}
-
-LPSTR _get_str_ptr ( char* pstr )
-{
-	int memnum = 0;
-	LPSTR memptr = 0;
-	int strlen = 0;
-	LPSTR strptr = 0;
-	char cchar = 0;
-
-	memnum = findFreeMemblock();
-	strlen = Len(pstr);
-
-	MakeMemblock (  memnum,strlen );
-
-	for ( int i = 1 ; i <= strlen ; i++ )
-	{
-		if ( pstr[i-1] == '|' )
-		{
-			cchar = 0;
-		}
-		else
-		{
-			cchar = pstr[i-1];
-		}
-
-		if ( cchar > 255 ) cchar = 255;
-		if ( cchar < 0 ) cchar = 0;
-
-		WriteMemblockByte (  memnum,(i - 1), (byte)cchar );
-	}
-
-	memptr = GetMemblockPtr(memnum);
-	strptr = MakeMemory(strlen);
-
-	CopyMemory (  (LPSTR) strptr, (LPSTR) memptr,strlen );
-
-	DeleteMemblock (  memnum );
-
-	return strptr;
-}
-
-char* _get_str ( LPSTR strptr, int strsize )
-{
-	int memnum = 0;
-	LPSTR memptr = 0;
-	cstr cchar =  "";
-	cstr str = "";
-
-	memnum = findFreeMemblock();
-	MakeMemblock (  memnum,strsize );
-	memptr = GetMemblockPtr(memnum);
-
-	CopyMemory ( (LPSTR) memptr, (LPSTR) strptr,strsize );
-
-	for ( int  i = 1 ; i <= strsize; i++ )
-	{
-		str = str + Chr(ReadMemblockByte(memnum,i - 1));
-	}
-
-	DeleteMemblock (  memnum );
-
-	t.returnstring_s = str;
-
-	return t.returnstring_s.Get();
-
-}
-#endif
 
 char* importerPadString ( char* tString )
 {
@@ -13734,9 +9948,7 @@ void importer_find_object_name_from_fpe ( void )
 
 	CloseFile (  1 );
 	UnDim (  t.tArray );
-
-return;
-
+	return;
 }
 
 void importer_hide_mouse ( void )
@@ -13855,45 +10067,10 @@ void importer_update_scale ( void )
 	}
 }
 
-/* does not seem to be used any more
-float GetScaleMultiply(int iObj)
-{
-	float fScaleMultiply = 1.0;
-	float objsize = ObjectSize(iObj, 1); //include scale.
-	if (objsize < 0.1) {
-		//Resize so object is visible.
-		fScaleMultiply = 100.0;
-	}
-	else if (objsize < 1.0) {
-		//Resize so object is visible.
-		fScaleMultiply = 20.0;
-	}
-	else if (objsize < 2.0) {
-		//Resize so object is visible.
-		fScaleMultiply = 10.0;
-	}
-	else if (objsize > 5000.0) {
-		//Resize so object is visible.
-		fScaleMultiply = 0.05;
-	}
-	else if (objsize > 3000.0) {
-		//Resize so object is visible.
-		fScaleMultiply = 0.1;
-	}
-	else if (objsize > 2000.0) {
-		//Resize so object is visible.
-		fScaleMultiply = 0.5;
-	}
-	return(fScaleMultiply);
-}
-*/
-
-#ifdef WICKEDENGINE
 int update_all_count = 0;
 
 void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *edit_grideleprof, bool bFromCustomMaterials)
 {
-	
 	//Mode 0 Allow selection of all meshes.
 	//Mode 1 (NOT USED) Single mesh , texture all meshes with the same material.
 	//Mode 3 EBE
@@ -14467,9 +10644,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 								}
 							}
 							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip((materialname && *materialname) ? materialname : "Select Texture File");
-							#ifdef WICKEDENGINE
 							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-							#endif
 						}
 						ImGui::PopItemWidth();
 
@@ -15459,94 +11634,6 @@ void Wicked_Set_Material_Defaults(void* pVObject, int mode)
 void Wicked_Update_All_Materials(void* pVObject, int mode)
 {
 	// if not EBE, do not paint all meshes with single material choice!
-	if ( mode != 3 ) return;
-
-	/* this will probably break EBE, but the feature is to be overhauled so no foul
-	sObject* pObject = (sObject*)pVObject;
-	sMesh * pDefaultMesh = NULL;
-	wiScene::MaterialComponent* pObjectSourceMaterial = NULL;
-	if (!pObject) return;
-
-	int iUseMesh = 0;
-	for (int i = 0; i < pObject->iFrameCount; i++)
-	{
-		if (pObject->ppFrameList[i]->pMesh && pObject->ppFrameList[i]->pMesh->wickedmeshindex > 0)
-		{
-			iUseMesh = i;
-			if (!pDefaultMesh) 
-			{
-				pDefaultMesh = pObject->ppFrameList[i]->pMesh;
-				wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pDefaultMesh->wickedmeshindex);
-				if (mesh)
-				{
-					// get material from mesh
-					uint64_t materialEntity = mesh->subsets[0].materialID;
-					pObjectSourceMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-				}
-			}
-			else 
-			{
-				sMesh * pMesh = pObject->ppFrameList[i]->pMesh;
-				if (pDefaultMesh)
-				{
-					pMesh->mMaterial.Diffuse.r = pDefaultMesh->mMaterial.Diffuse.r;
-					pMesh->mMaterial.Diffuse.g = pDefaultMesh->mMaterial.Diffuse.g;
-					pMesh->mMaterial.Diffuse.b = pDefaultMesh->mMaterial.Diffuse.b;
-					pMesh->mMaterial.Diffuse.a = pDefaultMesh->mMaterial.Diffuse.a;
-					pMesh->mMaterial.Emissive.r = pDefaultMesh->mMaterial.Emissive.r;
-					pMesh->mMaterial.Emissive.g = pDefaultMesh->mMaterial.Emissive.g;
-					pMesh->mMaterial.Emissive.b = pDefaultMesh->mMaterial.Emissive.b;
-					pMesh->mMaterial.Emissive.a = pDefaultMesh->mMaterial.Emissive.a;
-				}
-
-				wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
-				if (mesh && pObjectSourceMaterial)
-				{
-					// get material from mesh
-					uint64_t materialEntity = mesh->subsets[0].materialID;
-					wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::BASECOLORMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::BASECOLORMAP].resource;
-					pObjectMaterial->alphaRef = pObjectSourceMaterial->alphaRef;
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::NORMALMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::NORMALMAP].resource;
-					pObjectMaterial->normalMapStrength = pObjectSourceMaterial->normalMapStrength;
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::SURFACEMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::SURFACEMAP].resource;
-					pObjectMaterial->SetOcclusionEnabled_Primary(true);
-					pObjectMaterial->SetOcclusionEnabled_Secondary(false);
-
-					pObjectMaterial->roughness = pObjectSourceMaterial->roughness;
-					pObjectMaterial->metalness = pObjectSourceMaterial->metalness;
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::DISPLACEMENTMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::DISPLACEMENTMAP].resource;
-
-					pObjectMaterial->baseColor.x = pObjectSourceMaterial->baseColor.x;
-					pObjectMaterial->baseColor.y = pObjectSourceMaterial->baseColor.y;
-					pObjectMaterial->baseColor.z = pObjectSourceMaterial->baseColor.z;
-					pObjectMaterial->baseColor.w = pObjectSourceMaterial->baseColor.w;
-
-					// emissive color
-					pObjectMaterial->emissiveColor.x = pObjectSourceMaterial->emissiveColor.x;
-					pObjectMaterial->emissiveColor.y = pObjectSourceMaterial->emissiveColor.y;
-					pObjectMaterial->emissiveColor.z = pObjectSourceMaterial->emissiveColor.z;
-					pObjectMaterial->emissiveColor.w = pObjectSourceMaterial->emissiveColor.w;
-
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::EMISSIVEMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::EMISSIVEMAP].resource;
-
-					pObjectMaterial->textures[MaterialComponentTEXTURESLOT::OCCLUSIONMAP].resource = pObjectSourceMaterial->textures[MaterialComponentTEXTURESLOT::OCCLUSIONMAP].resource;
-					if (pObjectMaterial->textures[MaterialComponentTEXTURESLOT::OCCLUSIONMAP].resource)
-					{
-						pObjectMaterial->SetOcclusionEnabled_Primary(false);
-						pObjectMaterial->SetOcclusionEnabled_Secondary(true);
-					}
-
-					pObjectMaterial->_flags = pObjectSourceMaterial->_flags;
-					pObjectMaterial->userBlendMode = pObjectSourceMaterial->userBlendMode;
-					pObjectMaterial->reflectance = pObjectSourceMaterial->reflectance;
-					pObjectMaterial->SetDirty();
-				}
-			}
-		}
-	}
-	*/
 }
 
 void Wicked_Copy_Material_To_Grideleprof(void* pVObject, int mode, entityeleproftype *edit_grideleprof)
@@ -16073,11 +12160,8 @@ void importer_delete_old_surface_files()
 	SetDir(pOriginalDir.Get());
 }
 
-#endif
-
 void importer_storeobjectdata()
 {
-#ifdef WICKEDENGINE
 	// Copy all of the imported object data, so it can be restored if the user goes back after import.
 	strcpy(g_Data.cImportPath, t.importer.objectFileOriginalPath.Get());
 	strcpy(g_Data.cName, cImportName);
@@ -16160,7 +12244,6 @@ void importer_storeobjectdata()
 			}
 		}
 	}
-#endif
 }
 
 void importer_restoreobjectdata()
@@ -16253,7 +12336,6 @@ void importer_restoreobjectdata()
 
 void importer_clearobjectdata()
 {
-#ifdef WICKEDENGINE
 	g_Data.cImportPath[0] = 0;
 	g_Data.cName[0] = 0;
 	g_Data.iScaleMode = 0;
@@ -16278,14 +12360,11 @@ void importer_clearobjectdata()
 	g_Data.planarReflection.clear();
 	g_Data.castShadows.clear();
 	g_Data.animSlots.clear();
-#endif
 }
 
 // Select a texture file, if currentfilename is specified then it will open the file selector wherever it is located.
 char* importer_selectfile(int texslot, std::string currentfilename, bool bPresetExplorer)
 {
-	#ifdef WICKEDENGINE
-
 	// Want to always open where the model is when importing.
 	if(t.importer.importerActive)
 		bPresetExplorer = false;
@@ -16330,16 +12409,12 @@ char* importer_selectfile(int texslot, std::string currentfilename, bool bPreset
 	}
 
 	return (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0DDS\0*.dds\0PNG\0*.png\0JPEG\0*.jpg\0TGA\0*.tga\0BMP\0*.bmp\0\0\0", texPath.c_str(), NULL, bOpenCustomLocation);
-	#endif
-	return nullptr;
 }
 
 void importer_collectmeshname(char* meshName)
 {
 	return;
-#ifdef WICKEDENGINE
 	g_MeshNamesAssimp.push_back(cstr(meshName));
-#endif
 }
 
 // Used by ASSIMP to check if it should allow import of a model with no meshes (animation data without skin)

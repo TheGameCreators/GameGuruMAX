@@ -2053,12 +2053,7 @@ void entity_loaddata ( void )
 						}
 						#endif
 					}
-					//cmpStrConst( t_field_s, "aidestroy" );
-					//if (  matched  )  t.entityprofile[t.entid].aidestroy_s = Lower(t.value_s.Get());
-					//cmpStrConst( t_field_s, "aishoot" ); //PE: Not used anymore.
-					//if (  matched  )  t.entityprofile[t.entid].aishoot_s = Lower(t.value_s.Get());
 
-					#ifdef WICKEDENGINE
 					// determine CCP base type and store
 					cmpStrConst( t_field_s, "ccpassembly" );
 					if (matched)
@@ -2069,7 +2064,6 @@ void entity_loaddata ( void )
 						if (strstr (t.value_s.Get(), "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
 						if (strstr (t.value_s.Get(), "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
 					}
-					#endif
 
 					#ifdef VRTECH
 					cmpStrConst( t_field_s, "voice" );

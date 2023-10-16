@@ -17,17 +17,11 @@
 #include "..\Imgui\imgui_impl_win32.h"
 #include "..\Imgui\imgui_gg_dx11.h"
 
-#ifdef WICKEDENGINE
 #include "master.h"
 extern Master master;
-#endif
 
 // Defines
-#ifdef WICKEDENGINE
 #define CCPMODELEXT ".dbo"
-#else
-#define CCPMODELEXT ".x"
-#endif
 
 // Globals
 bool g_bCharacterCreatorPlusActivated = false;
@@ -73,38 +67,36 @@ static std::map<std::string, std::string> CharacterCreatorAnnotatedTagBody_s;
 static std::map<std::string, std::string> CharacterCreatorAnnotatedTagFeet_s;
 static std::map<std::string, std::string> CharacterCreatorAnnotatedTagLegs_s;
 
-#ifdef WICKEDENGINE
-	std::vector<AutoSwapData*> g_headGearMandatorySwaps;
-	AutoSwapData* g_previousAutoSwap = nullptr;
+std::vector<AutoSwapData*> g_headGearMandatorySwaps;
+AutoSwapData* g_previousAutoSwap = nullptr;
 #define MAXPARTICONS 100
-	int g_iPartsThatNeedReloaded[8] = { 0 };
-	int g_iPartsIconsIDs[4][8][MAXPARTICONS];
-	bool g_bPartIconsInit = false;
-	char g_SkinTextureStorage[MAX_PATH]; // Stores the skin tone texture when the face is changed. Referenced when changing the face to fit certain headgear.
-	std::vector<char*> g_restrictedParts;
-	float g_fLockerRoomOffset = 2.0f;
-	float g_fCCPZoom = 72.0f;
-	std::array<std::string, 8> g_maleStorage;
-	std::array<std::string, 8> g_femaleStorage;
-	std::array<std::string, 8> g_zombieStorage;
-	AutoSwapData* g_pLastHeadgearAutoSwap = nullptr;
-	int g_iPreviousCategorySelection = -1;
-	CameraTransition* g_pCurrentTransition = nullptr;
-	CameraTransition g_HeadTransition;
-	CameraTransition g_UpperBodyTransition;
-	CameraTransition g_LowerBodyTransition;
-	CameraTransition g_ZombieHeadTransition;
-	CameraTransition g_ZombieBodyTransition;
-	CameraTransition* g_pLastKnownTransition = nullptr;
-	GGVECTOR3 g_DefaultCamPosition;
-	GGVECTOR3 g_CurrentCamPosition;
-	GGVECTOR3 g_DefaultCamAngle;
-	GGVECTOR3 g_CurrentCamAngle;
-	void charactercreatorplus_dozoom();
-	int item_current_type_selection = 5;
-	uint32_t iLightIndex = -1;
-	std::vector<const char*> g_MeshesThatNeedDoubleSided;
-#endif
+int g_iPartsThatNeedReloaded[8] = { 0 };
+int g_iPartsIconsIDs[4][8][MAXPARTICONS];
+bool g_bPartIconsInit = false;
+char g_SkinTextureStorage[MAX_PATH]; // Stores the skin tone texture when the face is changed. Referenced when changing the face to fit certain headgear.
+std::vector<char*> g_restrictedParts;
+float g_fLockerRoomOffset = 2.0f;
+float g_fCCPZoom = 72.0f;
+std::array<std::string, 8> g_maleStorage;
+std::array<std::string, 8> g_femaleStorage;
+std::array<std::string, 8> g_zombieStorage;
+AutoSwapData* g_pLastHeadgearAutoSwap = nullptr;
+int g_iPreviousCategorySelection = -1;
+CameraTransition* g_pCurrentTransition = nullptr;
+CameraTransition g_HeadTransition;
+CameraTransition g_UpperBodyTransition;
+CameraTransition g_LowerBodyTransition;
+CameraTransition g_ZombieHeadTransition;
+CameraTransition g_ZombieBodyTransition;
+CameraTransition* g_pLastKnownTransition = nullptr;
+GGVECTOR3 g_DefaultCamPosition;
+GGVECTOR3 g_CurrentCamPosition;
+GGVECTOR3 g_DefaultCamAngle;
+GGVECTOR3 g_CurrentCamAngle;
+void charactercreatorplus_dozoom();
+int item_current_type_selection = 5;
+uint32_t iLightIndex = -1;
+std::vector<const char*> g_MeshesThatNeedDoubleSided;
 
 static std::map<std::string, std::string> CharacterCreatorType_s;
 int iDressRoom = 0, iCharObj = 0, iCharObjHeadGear = 0, iCharObjHair = 0, iCharObjHead = 0, iCharObjEyeglasses = 0, iCharObjFacialHair = 0, iCharObjLegs = 0, iCharObjFeet = 0;
@@ -112,11 +104,7 @@ int iDressRoom = 0, iCharObj = 0, iCharObjHeadGear = 0, iCharObjHair = 0, iCharO
 bool bCharObjVisible = false;
 char CCP_Type[260] = "adult male";
 char CCP_Name[260] = "\0";
-#ifdef WICKEDENGINE
 static char CCP_Script[260] = "people\\patrol.lua";
-#else
-static char CCP_Script[260] = "people\\follow_waypoint.lua";
-#endif
 char CCP_Path[260] = "entitybank\\user\\charactercreatorplus\\";
 char CCP_SpeakText[1024] = "Hello there, I am a new character!\n";
 wchar_t CCP_SpeakText_w[1024];
@@ -154,93 +142,11 @@ bool bMessageDisplayed = false;
 
 extern preferences pref;
 
-
 void charactercreatorplus_preloadinitialcharacter ( void )
 {
-	#ifdef PRODUCTV3
-	image_preload_files_start();
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01_gloss.dds");
-	image_preload_files_finish();
-	object_preload_files_start();
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 02.x");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 01.x");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 02.x");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 01.x");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 01.x");
-	object_preload_files_finish();
-	#else
-	#ifdef WICKEDENGINE
-
 	return; //PE: Disabled until we can do multiply thread loads.
-	/*
-	image_preload_files_start();
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13c_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12c_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_color.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_ao.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_normal.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_metalness.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_gloss.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10_mask.dds");
-	image_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 10_color.dds");
-	image_preload_files_finish();
-	object_preload_files_start();
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male body 13.dbo");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male head 07.dbo");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male legs 12.dbo");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male feet 10.dbo");
-	object_preload_files_add("charactercreatorplus\\parts\\adult male\\adult male hair 10.dbo");
-	object_preload_files_finish();
-	*/
-	#endif
-	#endif
 }
 
-#ifdef WICKEDENGINE
 void charactercreatorplus_copyselections(std::array<std::string, 8>& storage)
 {
 	// 0: Head Gear
@@ -260,7 +166,6 @@ void charactercreatorplus_copyselections(std::array<std::string, 8>& storage)
 	storage[6] = std::string(cSelectedLegs);
 	storage[7] = std::string(cSelectedFeet);
 }
-#endif
 
 void charactercreatorplus_GetDefaultCharacterPartNum (int iBase, int iPart, LPSTR pPartNumStr, LPSTR pPartNumVariantStr = NULL)
 {
@@ -308,45 +213,23 @@ void charactercreatorplus_GetDefaultCharacterPartNum (int iBase, int iPart, LPST
 
 void charactercreatorplus_preloadallcharacterbasedefaults(void)
 {
-	#ifndef PRODUCTV3
 	int iBaseCount = 4;
-	#else
-	int iBaseCount = 4;
-	#endif
 	for (int base = 1; base <= iBaseCount; base++)
 	{
 		LPSTR pBase = NULL;
 		char pRelFile[MAX_PATH];
 		if (base == 1) pBase = "adult male";
 		if (base == 2) pBase = "adult female";
-		#ifdef PRODUCTV3
-		if (base == 3) pBase = "child female";
-		if (base == 4) pBase = "child male";
-		#else
 		if (base == 3) pBase = "zombie male";
 		if (base == 4) pBase = "zombie female";
-		#endif
 
-		#ifdef WICKEDENGINE
 		//PE: Only preload from the current selected Type (when changing type we reset release the old textures anyway).
 		if( pestrcasestr(CCP_Type,pBase))
 		{
-		#else
-		if(1)
-		{
-		#endif
 			for (int part = 1; part <= 5; part++)
 			{
 				char pPart[1024];
 				strcpy(pPart, "");
-				#ifdef PRODUCTV3
-				if (part == 1) strcpy(pPart, "body 02");
-				if (part == 2) strcpy(pPart, "head 01");
-				if (part == 3) strcpy(pPart, "legs 02");
-				if (part == 4) strcpy(pPart, "feet 01");
-				if (part == 5) strcpy(pPart, "hair 01");
-				#else
-				#ifdef WICKEDENGINE
 				char pPartNum[32];
 				charactercreatorplus_GetDefaultCharacterPartNum(base, part, pPartNum);
 				if (part == 1) sprintf(pPart, "body %s", pPartNum);
@@ -354,31 +237,8 @@ void charactercreatorplus_preloadallcharacterbasedefaults(void)
 				if (part == 3) sprintf(pPart, "legs %s", pPartNum);
 				if (part == 4) sprintf(pPart, "feet %s", pPartNum);
 				if (part == 5) sprintf(pPart, "hair %s", pPartNum);
-				#else
-				if (base == 3)
-				{
-					// zombie
-					if (part == 1) strcpy(pPart, "body 01");
-					if (part == 2) strcpy(pPart, "head 01");
-					if (part == 3) strcpy(pPart, "legs 01");
-					if (part == 4) strcpy(pPart, "feet 01");
-					if (part == 5) strcpy(pPart, "hair 01");
-				}
-				else
-				{
-					// normal male and female
-					if (part == 1) strcpy(pPart, "body 03");
-					if (part == 2) strcpy(pPart, "head 04");
-					if (part == 3) strcpy(pPart, "legs 03");
-					if (part == 4) strcpy(pPart, "feet 01");
-					if (part == 5) strcpy(pPart, "hair 01");
-				}
-				#endif
-				#endif
 				int count_textures_types = 6;
-				#ifdef WICKEDENGINE
 				count_textures_types = 3; //The others are not in wicked.
-				#endif
 				for (int item = 1; item <= count_textures_types; item++)
 				{
 					LPSTR pItem = NULL;
@@ -440,18 +300,8 @@ void charactercreatorplus_preloadallcharacterpartchoices ( void )
 					char pWorkFile[2038];
 					strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, CCPMODELEXT);
 					object_preload_files_add(pWorkFile);
-					//PE: We need to save mem, so only preload _normal and _mask
-					//strcpy(pWorkFile, pFullBaseVariantFilename); strcat(pWorkFile, "_color.dds");
-					//image_preload_files_add(pWorkFile);
 					strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, "_normal.dds");
 					image_preload_files_add(pWorkFile);
-					//PE: Not needed we already have a surface.
-					//strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, "_ao.dds");
-					//image_preload_files_add(pWorkFile);
-					//strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, "_metalness.dds");
-					//image_preload_files_add(pWorkFile);
-					//strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, "_gloss.dds");
-					//image_preload_files_add(pWorkFile);
 					strcpy(pWorkFile, pFullBaseFilename); strcat(pWorkFile, "_mask.dds");
 					image_preload_files_add(pWorkFile);
 				}
@@ -462,7 +312,6 @@ void charactercreatorplus_preloadallcharacterpartchoices ( void )
 	charactercreatorplus_preloadallcharacterbasedefaults();
 	image_preload_files_finish();
 	// object_preload_files_finish(); //PE: Disable until thread safe.
-
 }
 
 void charactercreatorplus_imgui(void)
@@ -491,9 +340,6 @@ void charactercreatorplus_imgui(void)
 
 				ShowObject(iCharObj);
 				bCharObjVisible = true;
-
-				//Hide entities.
-				//Exit properties.
 				bForceKey = true;
 				csForceKey = "e";
 
@@ -530,7 +376,6 @@ void charactercreatorplus_imgui(void)
 				extern bool bWaypointDrawmode;
 
 				ImVec2 vCenterPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.45f) + OldrenderTargetPos.y };
-
 				int omx = t.inputsys.xmouse, omy = t.inputsys.ymouse, oldgridentitysurfacesnap = t.gridentitysurfacesnap, oldonedrag = t.onedrag;;
 				bool owdm = bWaypointDrawmode;
 
@@ -555,6 +400,7 @@ void charactercreatorplus_imgui(void)
 				t.gridentitysurfacesnap = oldgridentitysurfacesnap;
 				t.inputsys.xmouse = omx;
 				t.inputsys.ymouse = omy;
+
 				//Restore real input.
 				input_calculatelocalcursor();
 
@@ -587,7 +433,7 @@ void charactercreatorplus_imgui(void)
 
 				once_camera_adjust = true;
 
-				//  "hide" all entities in map by moving them out the way
+				// "hide" all entities in map by moving them out the way
 				for (t.tcce = 1; t.tcce <= g.entityelementlist; t.tcce++)
 				{
 					t.tccentid = t.entityelement[t.tcce].bankindex;
@@ -602,15 +448,8 @@ void charactercreatorplus_imgui(void)
 				}
 
 				fCCPRotateY = ccpObjTargetAY = ObjectAngleY(iCharObj);
-				//PE: Make sure we are in slider range.
 				if (fCCPRotateY < 0.0) fCCPRotateY += 360.0;
 				if (fCCPRotateY > 360.0) fCCPRotateY -= 360.0;
-				// refresh thumbnail
-				#ifdef WICKEDENGINE
-				//iDelayThumbs = 0; //Icon Removed for MAX
-				#else
-				iDelayThumbs = 0; // Regen thumnbnail
-				#endif
 			}
 
 			//Display sky for better look.
@@ -625,11 +464,6 @@ void charactercreatorplus_imgui(void)
 			{
 				//PE: Change type.
 				charactercreatorplus_refreshtype();
-				#ifdef WICKEDENGINE
-				//iDelayThumbs = 0; //Icon Removed for MAX
-				#else
-				iDelayThumbs = 0; // Regen thumnbnail
-				#endif
 				iDelayExecute = 0;
 			}
 			// generate thumbnail
@@ -638,7 +472,6 @@ void charactercreatorplus_imgui(void)
 				extern bool g_bNoSwapchainPresent;
 				if (iDelayThumbs == 3)
 				{
-					#ifdef WICKEDENGINE
 					//We need to move the camera.
 					t.editorfreeflight.mode = 1;
 					oldx_f = t.editorfreeflight.c.x_f;
@@ -648,8 +481,7 @@ void charactercreatorplus_imgui(void)
 					oldangy_f = t.editorfreeflight.c.angy_f;
 
 					float new_th = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z, 1);
-					if (new_th < GGORIGIN_Y)
-						new_th = GGORIGIN_Y;
+					if (new_th < GGORIGIN_Y) new_th = GGORIGIN_Y;
 					PositionObject(iCharObj, 0, new_th, 0);
 					RotateObject(iCharObj, 0, 15, 0);
 
@@ -668,7 +500,8 @@ void charactercreatorplus_imgui(void)
 					}
 
 					//Remove flicker when generating new thumb.
-					g_bNoSwapchainPresent = true; //dont present backbuffer to HWND.
+					//dont present backbuffer to HWND.
+					g_bNoSwapchainPresent = true; 
 
 					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
 					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
@@ -690,71 +523,15 @@ void charactercreatorplus_imgui(void)
 						}
 					}
 
+					//just reuse this to prevent imgui rendering.
 					extern bool bImGuiInTestGame;
-					bImGuiInTestGame = true; //just reuse this to prevent imgui rendering.
+					bImGuiInTestGame = true; 
 					FastSync();
 					bImGuiInTestGame = false;
-					#endif
 					iDelayThumbs++;
 				}
 				else if (iDelayThumbs == 5) 
 				{
-					#ifndef WICKEDENGINE
-					t.editorfreeflight.mode = 1;
-					oldx_f = t.editorfreeflight.c.x_f;
-					oldy_f = t.editorfreeflight.c.y_f;
-					oldz_f = t.editorfreeflight.c.z_f;
-					oldangx_f = t.editorfreeflight.c.angx_f;
-					oldangy_f = t.editorfreeflight.c.angy_f;
-
-					float new_th = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z, 1);
-
-					PositionObject(iCharObj, GGORIGIN_X, new_th, GGORIGIN_Z);
-					RotateObject(iCharObj, 0, 15, 0);
-
-					t.editorfreeflight.c.x_f = GGORIGIN_X;
-					t.editorfreeflight.c.y_f = new_th + 65.0f;
-					t.editorfreeflight.c.z_f = GGORIGIN_Z - 240;
-					t.editorfreeflight.c.angx_f = 0.0f;
-					t.editorfreeflight.c.angy_f = 0;
-					t.editorfreeflight.s = t.editorfreeflight.c;
-
-					if (ObjectExist(t.terrain.objectstartindex + 4) == 1)
-					{
-						PositionObject(t.terrain.objectstartindex + 4, t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-						SetAlphaMappingOn(t.terrain.objectstartindex + 4, 100.0*t.sky.alpha1_f);
-						ShowObject(t.terrain.objectstartindex + 4);
-					}
-
-					//Remove flicker when generating new thumb.
-					g_bNoSwapchainPresent = true; //dont present backbuffer to HWND.
-
-					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-
-					// raise ambience for shot
-					for (int iShaderIndex = 0; iShaderIndex < 2; iShaderIndex++)
-					{
-						if (iShaderIndex == 0) t.effectid = g.thirdpersonentityeffect;
-						if (iShaderIndex == 1) t.effectid = g.thirdpersoncharactereffect;
-						if (GetEffectExist(t.effectid) == 1)
-						{
-							SetVector4(g.terrainvectorindex, 0.9f, 0.9f, 0.9f, 1);
-							SetEffectConstantV(t.effectid, "AmbiColorOverride", g.terrainvectorindex);
-							SetVector4(g.terrainvectorindex, 1, 1, 1, 0);
-							SetEffectConstantV(t.effectid, "AmbiColor", g.terrainvectorindex);
-							SetEffectConstantF ( t.effectid,"SurfaceSunFactor", 1.0f );
-							SetVector4 (  g.terrainvectorindex, 1.4f, 1.4f, 1.4f, 0.0f );
-							SetEffectConstantV (  t.effectid,"SurfColor",g.terrainvectorindex );
-						}
-					}
-
-					extern bool bImGuiInTestGame;
-					bImGuiInTestGame = true; //just reuse this to prevent imgui rendering.
-					FastSync();
-					bImGuiInTestGame = false;
-					#endif
-
 					// restore ambience for shot
 					for (int iShaderIndex = 0; iShaderIndex < 2; iShaderIndex++)
 					{
@@ -781,7 +558,6 @@ void charactercreatorplus_imgui(void)
 
 					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
 					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-
 					PositionObject(iCharObj, ccpObjTargetX, ccpObjTargetY, ccpObjTargetZ);
 					RotateObject(iCharObj, ccpObjTargetAX, ccpObjTargetAY, ccpObjTargetAZ);
 
@@ -799,48 +575,33 @@ void charactercreatorplus_imgui(void)
 					extern DBPRO_GLOBAL CCameraManager m_CameraManager;
 					DBPRO_GLOBAL tagCameraData* m_mycam;
 					m_mycam = m_CameraManager.GetData(0);
-					#ifdef WICKEDENGINE
-					float thumbnail_dimension = 64;// 64; // are we prepared for V3 to use larger thumbnails (i.e. 128x128)? //PE: Sure, also a must for HDPI (modern laptops).
-					#else
-					float thumbnail_dimension = 64;// 64; // are we prepared for V3 to use larger thumbnails (i.e. 128x128)? //PE: Sure, also a must for HDPI (modern laptops).
-					#endif
+					// are we prepared for V3 to use larger thumbnails (i.e. 128x128)? //PE: Sure, also a must for HDPI (modern laptops).
+					float thumbnail_dimension = 64;
 					if (m_mycam) 
 					{
 						extern GlobStruct* g_pGlob;
 						LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
 
-						#ifdef WICKEDENGINE
 						//PE: Disabled until it works.
 						//@Lee this seams to work as it should, but backbuffer is always Black ?
 						wiRenderer::GetDevice()->WaitForGPU();
 						ID3D11Texture2D *pBackBuffer = (ID3D11Texture2D *) wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
 						g_pGlob->pCurrentBitmapSurface = pBackBuffer;
-						#else
-						g_pGlob->pCurrentBitmapSurface = m_mycam->pCameraToImageSurface;
-						#endif
 
 						//PE: TODO this should be in percent , or atleast be based on the backbuffer size ?
 						float fHalfThumb = (thumbnail_dimension*0.5);
 						float fCamWidth = m_mycam->viewPort3D.Width*0.5;
 						float fCamHeight = m_mycam->viewPort3D.Height*0.5;
 						ImVec2 grab = ImVec2(fCamWidth, fCamHeight);
-						#ifdef WICKEDENGINE
 						grab.x += 130.0f;
 						grab.x += 98.0f;
 						grab.y += 80.0f;
 						iThumbsOffsetY = 0.0f;
-						#else
-						grab.x += 3.0f;
-						#endif
 						grab.y -= 10.0f;
 						grab.y += iThumbsOffsetY;
-						#ifdef WICKEDENGINE
 						SetGrabImageMode(1);
-						#endif
 						GrabImage(g.importermenuimageoffset + 50, grab.x - fHalfThumb, grab.y - fHalfThumb, grab.x + fHalfThumb, grab.y + fHalfThumb);
-						#ifdef WICKEDENGINE
 						SetGrabImageMode(0);
-						#endif
 
 						g_pGlob->pCurrentBitmapSurface = pTmpSurface;
 					}
@@ -848,16 +609,9 @@ void charactercreatorplus_imgui(void)
 				}
 				else if (iDelayThumbs == 6)
 				{
-					/* moved below do can be called
-					#ifdef WICKEDENGINE
-					int iUseDefaultNonCombatAnimations = 1;  // Adult Male/Female by default
-					if (stricmp(CCP_Type, "zombie male") == NULL) iUseDefaultNonCombatAnimations = 2;
-					extern void animsystem_prepareobjectforanimtool(int objectnumber, int iUseDefaultNonCombatAnimations);
-					animsystem_prepareobjectforanimtool(iCharObj, iUseDefaultNonCombatAnimations);
-					#endif
-					*/
 					// final stage
-					g_bNoSwapchainPresent = false; //reenable backbuffer to hwnd
+					//reenable backbuffer to hwnd
+					g_bNoSwapchainPresent = false; 
 					iDelayThumbs++;
 				}
 				else
@@ -867,16 +621,14 @@ void charactercreatorplus_imgui(void)
 			}
 
 			// handle preparing of animation data
-			#ifdef WICKEDENGINE
 			if (g_bCharacterCreatorPrepAnims == true)
 			{		
-				int iUseDefaultNonCombatAnimations = 1;  // Adult Male/Female by default
+				int iUseDefaultNonCombatAnimations = 1;  // AdultMale/Femalebydefault
 				if (stricmp(CCP_Type, "zombie male") == NULL) iUseDefaultNonCombatAnimations = 2;
 				extern void animsystem_prepareobjectforanimtool(int objectnumber, int iUseDefaultNonCombatAnimations);
 				animsystem_prepareobjectforanimtool(iCharObj, iUseDefaultNonCombatAnimations);
 				g_bCharacterCreatorPrepAnims = false;
 			}
-			#endif
 
 			//Enable this to disable all movement ... when g_bCharacterCreatorPlusActivated
 			extern int iGenralWindowsFlags;
@@ -891,8 +643,8 @@ void charactercreatorplus_imgui(void)
 				RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
 
 				float camxadjust = renderTargetAreaSize.x - (ImGui::GetWindowPos().x - OldrenderTargetPos.x);
-
-				if (camxadjust > 100.0f && camxadjust < GetDisplayWidth()) {
+				if (camxadjust > 100.0f && camxadjust < GetDisplayWidth()) 
+				{
 					camxadjust -= 100.0;
 					camxadjust *= 0.068;
 					MoveCameraLeft(g_pGlob->dwCurrentSetCameraID, -camxadjust);
@@ -901,44 +653,25 @@ void charactercreatorplus_imgui(void)
 				}
 				once_camera_adjust = false;
 			}
-			int media_icon_size = 64; //96
+			int media_icon_size = 64;
 			float col_start = 80.0f;
 			ImGui::PushItemWidth(ImGui::GetFontSize()*10.0);
 
-			if (ImGui::StyleCollapsingHeader("Name And Type", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (ImGui::StyleCollapsingHeader("Name And Type", ImGuiTreeNodeFlags_DefaultOpen)) 
+			{
 				float w = ImGui::GetWindowContentRegionWidth();
-				//Icon removed
-				//if (GetImageExistEx(g.importermenuimageoffset + 50)) {
-				//
-				//	ImVec2 ocp = ImGui::GetCursorPos();
-				//	ImGui::SetCursorPos(ocp + ImVec2(w - 10.0f - media_icon_size, 0.0f));
-				//	ImGui::ImgBtn(g.importermenuimageoffset + 50, ImVec2(media_icon_size, media_icon_size), ImColor(0, 0, 0, 255), ImColor(255, 255, 255, 255));
-				//	ImGui::SetCursorPos(ocp);
-				//}
-
 				ImGui::Indent(10);
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13)); //3
+				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13));
 				ImGui::Text("Name");
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
 				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				//ImGui::PushItemWidth(-10 - media_icon_size - 10); //Icon removed
 				ImGui::PushItemWidth(-10);
-				//PE: TEST: We now check IsAnyItemActive() and disable input, so this check is not needed (keep until proper test)
-				//if (!ImGui::IsWindowHovered())
-				//	ImGui::InputText("##NameCCP", &CCP_Name[0], 250, ImGuiInputTextFlags_ReadOnly);
-				//else
 
 				ImGui::InputText("##NameCCP", &CCP_Name[0], 250);
-				#ifdef WICKEDENGINE
 				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-				#endif
 
-				#ifdef WICKEDENGINE
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Character Name");
-				#else
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Character Name");
-				#endif
 
 				ImGui::PopItemWidth();
 
@@ -1236,12 +969,6 @@ void charactercreatorplus_imgui(void)
 											// and force any current feet to conform
 											strcpy(cSelectedFeetFilter, (char *)annotatedtag_label.c_str());
 										}
-										// Update thumbnail after change.
-										#ifdef WICKEDENGINE
-										//iDelayThumbs = 0; //Icon Removed for MAX
-										#else
-										iDelayThumbs = 0; // Regen thumnbnail
-										#endif
 									}
 									if (is_selected)
 										ImGui::SetItemDefaultFocus();
@@ -1294,12 +1021,9 @@ void charactercreatorplus_imgui(void)
 
 			}
 
-			#ifdef WICKEDENGINE
 			extern void animsystem_animationtoolui(int objectnumber);
 			animsystem_animationtoolui(iCharObj);
-			#endif
 
-			// OLD ONE!!!!
 			if (ImGui::StyleCollapsingHeader("Character Details", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
@@ -1352,26 +1076,15 @@ void charactercreatorplus_imgui(void)
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
 
 				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				//ImGui::PushItemWidth(-10);
 
 				float path_gadget_size = ImGui::GetFontSize()*2.0;
 
 				ImGui::PushItemWidth(-10 - path_gadget_size);
-				//PE: TEST: We now check IsAnyItemActive() and disable input, so this check is not needed (keep until proper test)
-				//if (!ImGui::IsWindowHovered())
-				//	ImGui::InputText("##InputPathCCP", &CCP_Path[0], 250, ImGuiInputTextFlags_ReadOnly);
-				//else
 
 				ImGui::InputText("##InputPathCCP", &CCP_Path[0], 250);
-#ifdef WICKEDENGINE
 				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-#endif
 
-#ifdef WICKEDENGINE
 				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Where to Save Your Character");
-#else
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Where to Save Your Character");
-#endif
 
 				ImGui::PopItemWidth();
 				//	Let the user know they set an invalid save file path.
@@ -1393,8 +1106,8 @@ void charactercreatorplus_imgui(void)
 
 					SetDir(tOldDir.Get());
 
-					if (cFileSelected && strlen(cFileSelected) > 0) {
-
+					if (cFileSelected && strlen(cFileSelected) > 0) 
+					{
 						//	Check that the new path still contains the entitybank folder.
 						char* cCropped = strstr(cFileSelected, "\\entitybank\\user");
 						if (cCropped)
@@ -1407,10 +1120,6 @@ void charactercreatorplus_imgui(void)
 							ImGui::OpenPopup("##CCPInvalidSavePath");
 						}
 					}
-					// ZJ: Implementing in the same way as the importer, for consistency.
-					//if (cFileSelected && strlen(cFileSelected) > 0) {
-					//	strcpy(CCP_Path, cFileSelected);
-					//}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Where to Save Your Character");
 
@@ -1447,7 +1156,6 @@ void charactercreatorplus_imgui(void)
 									strcpy(cTriggerMessage, "Character Saved");
 									bTriggerMessage = true;
 
-									#ifdef WICKEDENGINE
 									extern cstr sGotoPreviewWithFile;
 									extern int iGotoPreviewType;
 									sGotoPreviewWithFile = cstr(CCP_Path) + CCP_Name + ".fpe";
@@ -1465,7 +1173,6 @@ void charactercreatorplus_imgui(void)
 									}
 									else
 										sGotoPreviewWithFile = "";
-									#endif
 								}
 							}
 							else
@@ -1486,7 +1193,7 @@ void charactercreatorplus_imgui(void)
 
 			if (!pref.bHideTutorials)
 			{
-#ifndef REMOVED_EARLYACCESS
+				#ifndef REMOVED_EARLYACCESS
 				if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Indent(10);
@@ -1512,10 +1219,9 @@ void charactercreatorplus_imgui(void)
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Start Step by Step Tutorial");
 					#endif
-
 					ImGui::Indent(-10);
 				}
-#endif
+				#endif
 			}
 
 			// insert a keyboard shortcut component into panel
@@ -1526,7 +1232,8 @@ void charactercreatorplus_imgui(void)
 			void CheckMinimumDockSpaceSize(float minsize);
 			CheckMinimumDockSpaceSize(250.0f);
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -1542,13 +1249,11 @@ void charactercreatorplus_imgui(void)
 			//Make sure we hide ccp
 			if (bCharObjVisible && ObjectExist(iCharObj)) 
 			{
-				#ifdef WICKEDENGINE
 				extern bool g_bShowBones;
 				g_bShowBones = false;
 				wiRenderer::SetToDrawDebugBoneLines(g_bShowBones);
 				//ccp is only hidden so you still se bones, if going to the importer and enable bones, so move it out of the way.
 				PositionObject(iCharObj, 500000, 500000, 500000);
-				#endif
 
 				// first, erase preloaded files we dont need any more (and load in basics for when return to CCP)
 				image_preload_files_reset();
@@ -1582,9 +1287,6 @@ void charactercreatorplus_imgui(void)
 						}
 					}
 				}
-				//if (ObjectExist(t.terrain.objectstartindex + 4)) {
-				//	HideObject(t.terrain.objectstartindex + 4);
-				//}
 
 				//Restore editor camera.
 				if (editoroldx_f != 0) //PE: Somehow editoroldx_f was 0 ?
@@ -1656,16 +1358,9 @@ void charactercreatorplus_refreshskincolor(void)
 		if (partnum == 1) { iPartObj = iCharObjLegs; iAlbedoTexture = iCharLegsTexture + 0; }
 		if (partnum == 2) { iPartObj = iCharObjFeet; iAlbedoTexture = iCharFeetTexture + 0; }
 		int iMaskTexture;
-		#ifdef WICKEDENGINE
-		// LB: mask is stored in slot 1 in MAX!
 		if (partnum == 0) { iMaskTexture = iCharTexture + 1; }
 		if (partnum == 1) { iMaskTexture = iCharLegsTexture + 1; }
 		if (partnum == 2) { iMaskTexture = iCharFeetTexture + 1; }
-		#else
-		if (partnum == 0) { iMaskTexture = iCharTexture + 5; }
-		if (partnum == 1) { iMaskTexture = iCharLegsTexture + 5; }
-		if (partnum == 2) { iMaskTexture = iCharFeetTexture + 5; }
-		#endif	
 
 		// ensure mask available
 		if ( ImageExist(iMaskTexture))
@@ -1811,16 +1506,12 @@ void charactercreatorplus_refreshskincolor(void)
 
 			SaveImage(pNewTempAlbedoTextureFile, iAlbedoTexture);
 
-			#ifdef WICKEDENGINE
 			// rare event where a texture file can be different things , so ensure
 			// the image manager deletes the image entry for this image before a new attempt 
 			// to load it happens
 			WickedCall_DeleteImage(pNewTempAlbedoTextureFile);
-			#endif
 
 			// load the file and apply to the object
-//			DeleteImage(iAlbedoTexture);
-//			LoadImage(pNewTempAlbedoTextureFile, iAlbedoTexture);
 			TextureObject(iPartObj, 0, iAlbedoTexture);
 		}
 	}
@@ -1829,7 +1520,6 @@ void charactercreatorplus_refreshskincolor(void)
 	if (MemblockExist(iMemblockSkinID) == 1) DeleteMemblock(iMemblockSkinID);
 }
 
-#ifdef WICKEDENGINE
 void charactercreatorplus_loadccimages(LPSTR pVariantColorPartFile, LPSTR pPartFile, int iTextureBase)
 {
 	// variant color can be different from rest of texture files (03a, 03b, etc)
@@ -1864,7 +1554,6 @@ void charactercreatorplus_textureccimages(int iThisObj, int iTextureBase)
 	TextureObject(iThisObj, GG_MESH_TEXTURE_NORMAL, iTextureBase + 2);
 	TextureObject(iThisObj, GG_MESH_TEXTURE_EMISSIVE, iTextureBase + 5);
 }
-#endif
 
 void charactercreatorplus_change(char *path, int part, char* tag)
 {
@@ -1887,24 +1576,9 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	// free main character object to recreate here
 	if (ObjectExist(iCharObj)) DeleteObject(iCharObj);
 
-	// load generic white and black texture
-#ifdef WICKEDENGINE
-//PE: These do not exists.
-//int iCharTextureWhite = g.charactercreatorEditorImageoffset + 0;
-//if (!GetImageExistEx(iCharTextureWhite)) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharTextureWhite);
-//int iCharTextureBlack = g.charactercreatorEditorImageoffset - 1;
-//if (!GetImageExistEx(iCharTextureBlack)) LoadImage("effectbank\\reloaded\\media\\blank_black.dds", iCharTextureBlack);
-#else
-	int iCharTextureWhite = g.charactercreatorEditorImageoffset + 0;
-	if (!GetImageExistEx(iCharTextureWhite)) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharTextureWhite);
-	int iCharTextureBlack = g.charactercreatorEditorImageoffset - 1;
-	if (!GetImageExistEx(iCharTextureBlack)) LoadImage("effectbank\\reloaded\\media\\blank_black.dds", iCharTextureBlack);
-#endif
-
 	// final part name
 	cstr final_name = path, tmp;
 
-#ifdef WICKEDENGINE
 	// Make sure that there is always a valid skin texture for auto-swapping.
 	if (strlen(g_SkinTextureStorage) == 0)
 		strcpy(g_SkinTextureStorage, cstr(final_name + cSelectedHead).Get());
@@ -1991,7 +1665,6 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 			}
 		}
 	}
-#endif
 
 	// detect color variant
 	int iEnd = 0;
@@ -2043,14 +1716,12 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 		tmp = final_name + cUseHeadGear + CCPMODELEXT;
 		LoadObject(tmp.Get(), iCharObjHeadGear);
 
-		#ifdef WICKEDENGINE
 		// Make the balaclava double-sided to prevent users seeing gaps at the eyes.
 		if (strcmp(cSelectedHeadGear, "adult male headgear 15") == NULL)
 		{
 			sObject* pObject = GetObjectData(iCharObjHeadGear);
 			if (pObject) pObject->ppMeshList[0]->bCull = false;
 		}
-		#endif
 	}
 	else
 	{
@@ -2099,7 +1770,6 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	LoadObject(tmp.Get(), iCharObjFeet);
 
 	// load all required textures
-#ifdef WICKEDENGINE
 	if ((part == 0 || g_iPartsThatNeedReloaded[0] == 1 || part == -1) && ObjectExist(iCharObjHeadGear) == 1)
 	{
 		// HeadGear
@@ -2241,175 +1911,8 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 			LoadImage(cstr(cstr(final_name) + pCropPartFile + "_mask.dds").Get(), iCharFeetTexture + 1);
 		}
 	}
-#else
-	if ((part == 0 || part == -1) && ObjectExist(iCharObjHeadGear) == 1)
-	{
-		//HeadGear
-		for (int a = 0; a < 5; a++)
-			if (GetImageExistEx(iCharHeadGearTexture + a)) DeleteImage(iCharHeadGearTexture + a);
-
-		tmp = final_name + cSelectedVariantHeadGear + "_color.dds";
-		LoadImage(tmp.Get(), iCharHeadGearTexture + 0);
-		tmp = final_name + cUseHeadGear + "_ao.dds";
-		LoadImage(tmp.Get(), iCharHeadGearTexture + 1);
-		if (ImageExist(iCharHeadGearTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharHeadGearTexture + 1);
-		tmp = final_name + cUseHeadGear + "_normal.dds";
-		LoadImage(tmp.Get(), iCharHeadGearTexture + 2);
-		tmp = final_name + cUseHeadGear + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharHeadGearTexture + 3);
-		tmp = final_name + cUseHeadGear + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharHeadGearTexture + 4);
-	}
-	if ((part == 1 || part == -1) && ObjectExist(iCharObjHair) == 1)
-	{
-		//Hair
-		for (int a = 0; a < 5; a++)
-			if (GetImageExistEx(iCharHairTexture + a)) DeleteImage(iCharHairTexture + a);
-
-		tmp = final_name + cSelectedVariantHair + "_color.dds";
-		LoadImage(tmp.Get(), iCharHairTexture + 0);
-		tmp = final_name + cUseHair + "_ao.dds";
-		LoadImage(tmp.Get(), iCharHairTexture + 1);
-		if (ImageExist(iCharHairTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharHairTexture + 1);
-		tmp = final_name + cUseHair + "_normal.dds";
-		LoadImage(tmp.Get(), iCharHairTexture + 2);
-		tmp = final_name + cUseHair + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharHairTexture + 3);
-		tmp = final_name + cUseHair + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharHairTexture + 4);
-	}
-	if ((part == 2 || part == -1) && ObjectExist(iCharObjHead) == 1)
-	{
-		//Head
-		for (int a = 0; a < 5; a++)
-			if (GetImageExistEx(iCharHeadTexture + a)) DeleteImage(iCharHeadTexture + a);
-
-		tmp = final_name + cSelectedVariantHead + "_color.dds";
-		LoadImage(tmp.Get(), iCharHeadTexture + 0);
-		tmp = final_name + cUseHead + "_ao.dds";
-		LoadImage(tmp.Get(), iCharHeadTexture + 1);
-		if (ImageExist(iCharHeadTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharHeadTexture + 1);
-		tmp = final_name + cUseHead + "_normal.dds";
-		LoadImage(tmp.Get(), iCharHeadTexture + 2);
-		tmp = final_name + cUseHead + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharHeadTexture + 3);
-		tmp = final_name + cUseHead + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharHeadTexture + 4);
-
-		// in addition, load in skin type to apply to rest of body
-		if (tag && strnicmp(tag, "IC", 2) == NULL)
-		{
-			if (GetImageExistEx(iCharSkinTexture) == 1) DeleteImage(iCharSkinTexture);
-			char pRelPathToSkinTexture[MAX_PATH];
-#ifdef WICKEDENGINE
-			sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.png", tag);
-#else
-			sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.dds", tag);
-			if (FileExist(pRelPathToSkinTexture) == 0) sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.png", tag);
-#endif
-			LoadImage(pRelPathToSkinTexture, iCharSkinTexture);
-		}
-	}
-	if ((part == 3 || part == -1) && ObjectExist(iCharObjEyeglasses) == 1)
-	{
-		// Eyeglasses
-		for (int a = 0; a < 5; a++)
-			if (GetImageExistEx(iCharEyeglassesTexture + a)) DeleteImage(iCharEyeglassesTexture + a);
-
-		tmp = final_name + cSelectedVariantEyeglasses + "_color.dds";
-		LoadImage(tmp.Get(), iCharEyeglassesTexture + 0);
-		tmp = final_name + cUseEyeglasses + "_ao.dds";
-		LoadImage(tmp.Get(), iCharEyeglassesTexture + 1);
-		if (ImageExist(iCharEyeglassesTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharEyeglassesTexture + 1);
-		tmp = final_name + cUseEyeglasses + "_normal.dds";
-		LoadImage(tmp.Get(), iCharEyeglassesTexture + 2);
-		tmp = final_name + cUseEyeglasses + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharEyeglassesTexture + 3);
-		tmp = final_name + cUseEyeglasses + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharEyeglassesTexture + 4);
-	}
-	if ((part == 4 || part == -1) && ObjectExist(iCharObjFacialHair) == 1)
-	{
-		// Facial Hair
-		for (int a = 0; a < 5; a++)
-			if (GetImageExistEx(iCharFacialHairTexture + a)) DeleteImage(iCharFacialHairTexture + a);
-
-		tmp = final_name + cSelectedVariantFacialHair + "_color.dds";
-		LoadImage(tmp.Get(), iCharFacialHairTexture + 0);
-		tmp = final_name + cUseFacialHair + "_ao.dds";
-		LoadImage(tmp.Get(), iCharFacialHairTexture + 1);
-		if (ImageExist(iCharFacialHairTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharFacialHairTexture + 1);
-		tmp = final_name + cUseFacialHair + "_normal.dds";
-		LoadImage(tmp.Get(), iCharFacialHairTexture + 2);
-		tmp = final_name + cUseFacialHair + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharFacialHairTexture + 3);
-		tmp = final_name + cUseFacialHair + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharFacialHairTexture + 4);
-	}
-	if ((part == 5 || part == -1) && ObjectExist(iCharObj) == 1)
-	{
-		//Body
-		for (int a = 0; a < 6; a++)
-			if (GetImageExistEx(iCharTexture + a)) DeleteImage(iCharTexture + a);
-
-		tmp = final_name + cSelectedVariantBody + "_color.dds";
-		LoadImage(tmp.Get(), iCharTexture + 0);
-		tmp = final_name + cUseBody + "_ao.dds";
-		LoadImage(tmp.Get(), iCharTexture + 1);
-		if (ImageExist(iCharTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharTexture + 1);
-		tmp = final_name + cUseBody + "_normal.dds";
-		LoadImage(tmp.Get(), iCharTexture + 2);
-		tmp = final_name + cUseBody + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharTexture + 3);
-		tmp = final_name + cUseBody + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharTexture + 4);
-		tmp = final_name + cUseBody + "_mask.dds";
-		LoadImage(tmp.Get(), iCharTexture + 5);
-	}
-	if ((part == 6 || part == -1 || part == 67) && ObjectExist(iCharObjLegs) == 1)
-	{
-		//Legs
-		for (int a = 0; a < 6; a++)
-			if (GetImageExistEx(iCharLegsTexture + a)) DeleteImage(iCharLegsTexture + a);
-
-		tmp = final_name + cSelectedVariantLegs + "_color.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 0);
-		tmp = final_name + cUseLegs + "_ao.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 1);
-		if (ImageExist(iCharLegsTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharLegsTexture + 1);
-		tmp = final_name + cUseLegs + "_normal.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 2);
-		tmp = final_name + cUseLegs + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 3);
-		tmp = final_name + cUseLegs + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 4);
-		tmp = final_name + cUseLegs + "_mask.dds";
-		LoadImage(tmp.Get(), iCharLegsTexture + 5);
-	}
-	if ((part == 7 || part == -1 || part == 67) && ObjectExist(iCharObjFeet) == 1)
-	{
-		//Feet
-		for (int a = 0; a < 6; a++)
-			if (GetImageExistEx(iCharFeetTexture + a)) DeleteImage(iCharFeetTexture + a);
-
-		tmp = final_name + cSelectedVariantFeet + "_color.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 0);
-		tmp = final_name + cUseFeet + "_ao.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 1);
-		if (ImageExist(iCharFeetTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.DDS", iCharFeetTexture + 1);
-		tmp = final_name + cUseFeet + "_normal.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 2);
-		tmp = final_name + cUseFeet + "_metalness.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 3);
-		tmp = final_name + cUseFeet + "_gloss.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 4);
-		tmp = final_name + cUseFeet + "_mask.dds";
-		LoadImage(tmp.Get(), iCharFeetTexture + 5);
-	}
-#endif
 
 	// texture parts
-#ifdef WICKEDENGINE
 	if (ObjectExist(iCharObjHeadGear) == 1) charactercreatorplus_textureccimages(iCharObjHeadGear, iCharHeadGearTexture);
 	if (ObjectExist(iCharObjHair) == 1)	charactercreatorplus_textureccimages(iCharObjHair, iCharHairTexture);
 	charactercreatorplus_textureccimages(iCharObjHead, iCharHeadTexture);
@@ -2418,86 +1921,7 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	charactercreatorplus_textureccimages(iCharObj, iCharTexture);
 	charactercreatorplus_textureccimages(iCharObjLegs, iCharLegsTexture);
 	charactercreatorplus_textureccimages(iCharObjFeet, iCharFeetTexture);
-#else
-	if (ObjectExist(iCharObjHeadGear) == 1)
-	{
-		TextureObject(iCharObjHeadGear, 0, iCharHeadGearTexture + 0);
-		TextureObject(iCharObjHeadGear, 1, iCharHeadGearTexture + 1);
-		TextureObject(iCharObjHeadGear, 2, iCharHeadGearTexture + 2);
-		TextureObject(iCharObjHeadGear, 3, iCharHeadGearTexture + 3);
-		TextureObject(iCharObjHeadGear, 4, iCharHeadGearTexture + 4);
-		TextureObject(iCharObjHeadGear, 5, iCharTextureBlack);
-		TextureObject(iCharObjHeadGear, 7, iCharSkinTexture);
-		SetObjectEffect(iCharObjHeadGear, g.thirdpersoncharactereffect);
-	}
-	if (ObjectExist(iCharObjHair) == 1)
-	{
-		TextureObject(iCharObjHair, 0, iCharHairTexture + 0);
-		TextureObject(iCharObjHair, 1, iCharHairTexture + 1);
-		TextureObject(iCharObjHair, 2, iCharHairTexture + 2);
-		TextureObject(iCharObjHair, 3, iCharHairTexture + 3);
-		TextureObject(iCharObjHair, 4, iCharHairTexture + 4);
-		TextureObject(iCharObjHair, 5, iCharTextureBlack);
-		TextureObject(iCharObjHair, 7, iCharSkinTexture);
-		SetObjectEffect(iCharObjHair, g.thirdpersoncharactereffect);
-	}
-	TextureObject(iCharObjHead, 0, iCharHeadTexture + 0);
-	TextureObject(iCharObjHead, 1, iCharHeadTexture + 1);
-	TextureObject(iCharObjHead, 2, iCharHeadTexture + 2);
-	TextureObject(iCharObjHead, 3, iCharHeadTexture + 3);
-	TextureObject(iCharObjHead, 4, iCharHeadTexture + 4);
-	TextureObject(iCharObjHead, 5, iCharTextureBlack);
-	TextureObject(iCharObjHead, 7, iCharSkinTexture);
-	SetObjectEffect(iCharObjHead, g.thirdpersoncharactereffect);
-	if (ObjectExist(iCharObjEyeglasses) == 1)
-	{
-		TextureObject(iCharObjEyeglasses, 0, iCharEyeglassesTexture + 0);
-		TextureObject(iCharObjEyeglasses, 1, iCharEyeglassesTexture + 1);
-		TextureObject(iCharObjEyeglasses, 2, iCharEyeglassesTexture + 2);
-		TextureObject(iCharObjEyeglasses, 3, iCharEyeglassesTexture + 3);
-		TextureObject(iCharObjEyeglasses, 4, iCharEyeglassesTexture + 4);
-		TextureObject(iCharObjEyeglasses, 5, iCharTextureBlack);
-		TextureObject(iCharObjEyeglasses, 7, iCharSkinTexture);
-		SetObjectEffect(iCharObjEyeglasses, g.thirdpersoncharactereffect);
-	}
-	if (ObjectExist(iCharObjFacialHair) == 1)
-	{
-		TextureObject(iCharObjFacialHair, 0, iCharFacialHairTexture + 0);
-		TextureObject(iCharObjFacialHair, 1, iCharFacialHairTexture + 1);
-		TextureObject(iCharObjFacialHair, 2, iCharFacialHairTexture + 2);
-		TextureObject(iCharObjFacialHair, 3, iCharFacialHairTexture + 3);
-		TextureObject(iCharObjFacialHair, 4, iCharFacialHairTexture + 4);
-		TextureObject(iCharObjFacialHair, 5, iCharTextureBlack);
-		TextureObject(iCharObjFacialHair, 7, iCharSkinTexture);
-		SetObjectEffect(iCharObjFacialHair, g.thirdpersoncharactereffect);
-	}
-	TextureObject(iCharObj, 0, iCharTexture + 0);
-	TextureObject(iCharObj, 1, iCharTexture + 1);
-	TextureObject(iCharObj, 2, iCharTexture + 2);
-	TextureObject(iCharObj, 3, iCharTexture + 3);
-	TextureObject(iCharObj, 4, iCharTexture + 4);
-	TextureObject(iCharObj, 5, iCharTexture + 5);
-	TextureObject(iCharObj, 7, iCharSkinTexture);
-	SetObjectEffect(iCharObj, g.thirdpersoncharactereffect);
-	TextureObject(iCharObjLegs, 0, iCharLegsTexture + 0);
-	TextureObject(iCharObjLegs, 1, iCharLegsTexture + 1);
-	TextureObject(iCharObjLegs, 2, iCharLegsTexture + 2);
-	TextureObject(iCharObjLegs, 3, iCharLegsTexture + 3);
-	TextureObject(iCharObjLegs, 4, iCharLegsTexture + 4);
-	TextureObject(iCharObjLegs, 5, iCharLegsTexture + 5);
-	TextureObject(iCharObjLegs, 7, iCharSkinTexture);
-	SetObjectEffect(iCharObjLegs, g.thirdpersoncharactereffect);
-	TextureObject(iCharObjFeet, 0, iCharFeetTexture + 0);
-	TextureObject(iCharObjFeet, 1, iCharFeetTexture + 1);
-	TextureObject(iCharObjFeet, 2, iCharFeetTexture + 2);
-	TextureObject(iCharObjFeet, 3, iCharFeetTexture + 3);
-	TextureObject(iCharObjFeet, 4, iCharFeetTexture + 4);
-	TextureObject(iCharObjFeet, 5, iCharFeetTexture + 5);
-	TextureObject(iCharObjFeet, 7, iCharSkinTexture);
-	SetObjectEffect(iCharObjFeet, g.thirdpersoncharactereffect);
-#endif
 
-#ifdef WICKEDENGINE
 	// wicked not using custom character shader, so create a new albedo/color texture
 	// using template mask and skin color texture to produce correct albedo representing skin
 	// only needed to do for body, legs and feet
@@ -2505,9 +1929,7 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	{
 		charactercreatorplus_refreshskincolor();
 	}
-#endif
 
-#ifdef WICKEDENGINE
 	// remove wicked resources before modifying objects below
 	if (ObjectExist(iCharObj)) WickedCall_RemoveObject(GetObjectData(iCharObj));
 	if (ObjectExist(iCharObjHeadGear)) WickedCall_RemoveObject(GetObjectData(iCharObjHeadGear));
@@ -2517,19 +1939,12 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	if (ObjectExist(iCharObjHair)) WickedCall_RemoveObject(GetObjectData(iCharObjHair));
 	if (ObjectExist(iCharObjEyeglasses)) WickedCall_RemoveObject(GetObjectData(iCharObjEyeglasses));
 	if (ObjectExist(iCharObjFacialHair)) WickedCall_RemoveObject(GetObjectData(iCharObjFacialHair));
-#else
-	// double hair trick allows hair to render correctly
-	int iDoubleHair = g.characterkitobjectoffset + 15;
-#endif
 
 	// stitch model together
 	if (ObjectExist(iCharObjHeadGear) == 1)
 	{
-#ifdef WICKEDENGINE
 		// pregvents ugly shadow - can remove this when increase shadow quality on character renderings!
 		SetObjectTransparency(iCharObjHeadGear, 2);
-
-#endif
 		StealMeshesFromObject(iCharObj, iCharObjHeadGear);
 		DeleteObject(iCharObjHeadGear);
 	}
@@ -2544,29 +1959,13 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 		// ensure hair has no culling and semi-transparent
 		SetObjectTransparency(iCharObjHair, 2);
 		SetObjectCull(iCharObjHair, 0);
-#ifdef WICKEDENGINE
 		StealMeshesFromObject(iCharObj, iCharObjHair);
 		DeleteObject(iCharObjHair);
-#else
-		// double hair trick ensures polygons rendered out of order dont leave 'mostly transparent' pixels blocking hair behind them
-		CloneObject(iDoubleHair, iCharObjHair);
-		DisableObjectZWriteEx(iCharObjHair, true);
-		StealMeshesFromObject(iCharObj, iCharObjHair);
-		DeleteObject(iCharObjHair);
-		// the double hair mesh is drawn again but this time with Zdepthwrite enabled so backface more distant hair polygons dont render over nearer ones
-		SetObjectCull(iDoubleHair, 0);
-		SetObjectTransparency(iDoubleHair, 2);
-		StealMeshesFromObject(iCharObj, iDoubleHair);
-		DeleteObject(iDoubleHair);
-#endif
 	}
 	if (ObjectExist(iCharObjEyeglasses) == 1)
 	{
 		SetObjectCull(iCharObjEyeglasses, 0);
 		SetObjectTransparency(iCharObjEyeglasses, 2);
-#ifndef WICKEDENGINE
-		DisableObjectZWriteEx(iCharObjEyeglasses, true);
-#endif
 		StealMeshesFromObject(iCharObj, iCharObjEyeglasses);
 		DeleteObject(iCharObjEyeglasses);
 	}
@@ -2574,9 +1973,6 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	{
 		SetObjectTransparency(iCharObjFacialHair, 2);
 		SetObjectCull(iCharObjFacialHair, 0);
-#ifndef WICKEDENGINE
-		DisableObjectZWriteEx(iCharObjFacialHair, true);
-#endif
 		StealMeshesFromObject(iCharObj, iCharObjFacialHair);
 		DeleteObject(iCharObjFacialHair);
 	}
@@ -2591,15 +1987,12 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	// and trigger animation to be prepped
 	g_bCharacterCreatorPrepAnims = true;
 
-#ifdef WICKEDENGINE
 	// some DBOs are created with BLACK base color, so for character creator
 	// objects set them always to WHITE with full ALPHA
 	SetObjectDiffuseEx(iCharObj, 0xFFFFFFFF, 0);
-#endif
 
 	// this sequence is duplicated during the init, see if can merge into single function at some point!
-#ifdef WICKEDENGINE
-// character gone through extensive changes, ensure wicked is updated
+	// character gone through extensive changes, ensure wicked is updated
 	sObject* pObjectToRecreateInWicked = GetObjectData(iCharObj);
 	WickedCall_AddObject(pObjectToRecreateInWicked);
 	WickedCall_UpdateObject(pObjectToRecreateInWicked);
@@ -2635,12 +2028,11 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 			}
 		}
 
-	// and set character to use full reflectance (as all body parts have alpha data in surface texture)
+		// and set character to use full reflectance (as all body parts have alpha data in surface texture)
 		WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
 	}
 
 	for (int i = 0; i < 8; i++) g_iPartsThatNeedReloaded[i] = 0;
-#endif
 
 	// position final stitched character in scene
 	float terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z, 1);
@@ -2656,7 +2048,6 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	// finished legacy loading requirements
 	image_setlegacyimageloading(false);
 
-#ifdef WICKEDENGINE
 	// Store the choices for each character so that they can be remembered after the user switches base type.
 	if (stricmp(CCP_Type, "Adult Male") == NULL)
 		charactercreatorplus_copyselections(g_maleStorage);
@@ -2684,13 +2075,10 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 				strcpy(cSelectedHead, g_pLastHeadgearAutoSwap->swappedPartNames[i].c_str());
 		}
 	}
-
-#endif
 }
 
 void charactercreatorplus_loadannotationlist ( void )
 {
-	#ifdef WICKEDENGINE
 	std::vector<std::string> annotatesFiles;
 
 	// Find all of the annotates.txt files.
@@ -2766,61 +2154,6 @@ void charactercreatorplus_loadannotationlist ( void )
 			CloseFile(1);
 		}
 	}
-#else
-	// prepare destination file
-	LPSTR pFilename = "Annotates.txt";
-	if (FileExist(pFilename) == 0) pFilename = "devannotates.txt";
-	g_charactercreatorplus_annotation_list.clear();
-	g_charactercreatorplus_annotationtag_list.clear();
-	if (FileExist(pFilename) == 1)
-	{
-		OpenToRead(1, pFilename);
-		while (FileEnd(1) == 0)
-		{
-			// get line by line
-			cstr line_s = ReadString(1);
-			LPSTR pLine = line_s.Get();
-
-			// get field name
-			char pFieldName[260];
-			char pFieldValue[260];
-			strcpy(pFieldName, pLine);
-			LPSTR pEquals = strstr(pFieldName, "=");
-			if (pEquals)
-			{
-				LPSTR pEqualsPos = pEquals;
-
-				// field name - eat spaces at end of field name
-				pEquals--;
-				while (pEquals > pFieldName && *pEquals == 32) pEquals--;
-				*(pEquals + 1) = 0;
-
-				// rest is field value
-				strcpy(pFieldValue, pEqualsPos + 2);
-
-				// strip off any tags
-				char tag[260];
-				strcpy(tag, "");
-				for (int tagn = 0; tagn < strlen(pFieldValue); tagn++)
-				{
-					if (pFieldValue[tagn] == '[')
-					{
-						strcpy(tag, pFieldValue+tagn+1);
-						pFieldValue[tagn] = 0;
-					}
-				}
-				while (strlen(tag) > 0 && (tag[strlen(tag) - 1] == ' ' || tag[strlen(tag) - 1] == ']')) tag[strlen(tag) - 1] = 0;
-
-				// add to good list of annotations
-				g_charactercreatorplus_annotation_list.insert(std::make_pair(pFieldName, pFieldValue));
-				g_charactercreatorplus_annotationtag_list.insert(std::make_pair(pFieldName, tag));
-			}
-		}
-
-		// close file handling
-		CloseFile(1);
-	}
-#endif
 }
 
 LPSTR charactercreatorplus_findannotation ( LPSTR pSearchStr )
@@ -2853,7 +2186,6 @@ LPSTR charactercreatorplus_findannotationtag ( LPSTR pSearchStr )
 	return pNewString;
 }
 
-#ifdef WICKEDENGINE
 void charactercreatorplus_extractpartnumberandvariation(const char* source, char* number, char* variation)
 {
 	char temp[5];
@@ -2886,8 +2218,6 @@ void charactercreatorplus_extractpartnumberandvariation(const char* source, char
 		strcpy(number, temp);
 	}
 }
-
-#endif
 
 void charactercreatorplus_refreshtype(void)
 {
@@ -3023,7 +2353,7 @@ void charactercreatorplus_refreshtype(void)
 				// determine which list it goes into
 				if (pestrcasestr(tfile_s.Get(), " body "))
 				{
-					CharacterCreatorBody_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorBody_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedBody_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3058,7 +2388,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " feet "))
 				{
-					CharacterCreatorFeet_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorFeet_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedFeet_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3073,7 +2403,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " hair "))
 				{
-					CharacterCreatorHair_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorHair_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedHair_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3088,7 +2418,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " head "))
 				{
-					CharacterCreatorHead_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorHead_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedHead_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3103,7 +2433,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " legs "))
 				{
-					CharacterCreatorLegs_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorLegs_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedLegs_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3139,7 +2469,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " headgear "))
 				{
-					CharacterCreatorHeadGear_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorHeadGear_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedHeadGear_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3154,7 +2484,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " facialhair "))
 				{
-					CharacterCreatorFacialHair_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorFacialHair_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedFacialHair_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3169,7 +2499,7 @@ void charactercreatorplus_refreshtype(void)
 				}
 				else if (pestrcasestr(tfile_s.Get(), " eyeglasses "))
 				{
-					CharacterCreatorEyeglasses_s.insert(std::make_pair(tmp, pPartsPath));// "charactercreatorplus\\parts\\adult male\\"));
+					CharacterCreatorEyeglasses_s.insert(std::make_pair(tmp, pPartsPath));
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(tmp);
 					if (pAnnotatedLabel)
 						CharacterCreatorAnnotatedEyeglasses_s.insert(std::make_pair(tmp, pAnnotatedLabel));
@@ -3187,7 +2517,6 @@ void charactercreatorplus_refreshtype(void)
 	}
 	SetDir(olddir_s.Get());
 
-	#ifdef WICKEDENGINE
 	// if have default selection, set the choices to those
 	int iBase = 1;
 	std::array<std::string, 8>* storage = nullptr;
@@ -3266,21 +2595,10 @@ void charactercreatorplus_refreshtype(void)
 		g_pLastKnownTransition = &g_UpperBodyTransition;
 	}
 
-
-
 	// configure default weapon choices
 	g_grideleprof_holdchoices.hasweapon_s = "enhanced\\Mk19T";
 	g_grideleprof_holdchoices.cantakeweapon = 0;
 	g_grideleprof_holdchoices.quantity = 8;
-
-	#else
-	// default selection for each CCP type
-	sprintf(cSelectedBody, "%s body 02", CCP_Type);
-	sprintf(cSelectedHead, "%s head 01", CCP_Type);
-	sprintf(cSelectedLegs, "%s legs 02", CCP_Type);
-	sprintf(cSelectedFeet, "%s feet 01", CCP_Type);
-	sprintf(cSelectedHair, "%s hair 01", CCP_Type);
-	#endif
 
 	// output location for character
 	LPSTR pCharacterFinal = "entitybank\\user\\charactercreatorplus\\character.dbo";
@@ -3328,24 +2646,11 @@ void charactercreatorplus_refreshtype(void)
 	int iCharSkinTexture = g.charactercreatorEditorImageoffset + 101;
 	if (GetImageExistEx(iCharSkinTexture) == 1) DeleteImage(iCharSkinTexture);
 	char pRelPathToSkinTexture[MAX_PATH];
-	#ifdef WICKEDENGINE
 	sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.png", pCorrectICCode);
-	#else
-	sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.dds", pCorrectICCode);
-	if (FileExist(pRelPathToSkinTexture) == 0) sprintf(pRelPathToSkinTexture, "charactercreatorplus\\skins\\%s.png", pCorrectICCode);
-	#endif
 	LoadImage(pRelPathToSkinTexture, iCharSkinTexture);
 
 	// Default body
 	bool bNonStandardCharacter = false;
-	#ifdef PRODUCTV3
-	 LPSTR pDefaultBody = "02";
-	 LPSTR pDefaultHair = "01";
-	 LPSTR pDefaultHead = "01";
-	 LPSTR pDefaultLegs = "02";
-	 LPSTR pDefaultFeet = "01";
-	#else
-	#ifdef WICKEDENGINE
 	char pPartNumStr[32];
 	char pPartNumVariantStr[32];
 	char pDefaultBody[32];
@@ -3372,7 +2677,6 @@ void charactercreatorplus_refreshtype(void)
 	if (stricmp(CCP_Type, "adult female") == NULL) iBase = 2;
 	if (stricmp(CCP_Type, "zombie male") == NULL) iBase = 3;
 	if (stricmp(CCP_Type, "zombie female") == NULL) iBase = 4;
-
 	if (!storage)
 	{
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 1, pPartNumStr, pPartNumVariantStr);
@@ -3409,31 +2713,6 @@ void charactercreatorplus_refreshtype(void)
 		charactercreatorplus_extractpartnumberandvariation(parts[7].c_str(), pDefaultFeet, pDefaultFeetVariant);
 	}
 
-	#else
-	// need a better way than this 
-	LPSTR pDefaultBody = "03";
-	LPSTR pDefaultHair = "01";
-	LPSTR pDefaultHead = "04";
-	LPSTR pDefaultLegs = "03";
-	LPSTR pDefaultFeet = "01";
-	if (stricmp(CCP_Type, "zombie male") == NULL)
-	{
-		pDefaultBody = "01";
-		pDefaultHair = "01";
-		pDefaultHead = "01";
-		pDefaultLegs = "01";
-		bNonStandardCharacter = true;
-	}
-	#endif
-	#endif
-	#ifndef WICKEDENGINE
-	LPSTR pDefaultBodyVariant = pDefaultBody;
-	LPSTR pDefaultHairVariant = pDefaultHair;
-	LPSTR pDefaultHeadVariant = pDefaultHead;
-	LPSTR pDefaultLegsVariant = pDefaultLegs;
-	LPSTR pDefaultFeetVariant = pDefaultFeet;
-	#endif
-
 	// load all body parts
 	for (int iPartID = 0; iPartID < 8; iPartID++)
 	{
@@ -3446,7 +2725,6 @@ void charactercreatorplus_refreshtype(void)
 		if (iPartID == 0) { iThisObj = iCharObj; iThisTexture = iCharTexture; pPartName = "body"; pPartNum = pDefaultBody; pPartNumVariant = pDefaultBodyVariant; }
 		if (iPartID == 1) 
 		{ 
-#ifdef WICKEDENGINE
 			if (storage)
 			{
 				char* pHeadgear = "";
@@ -3458,9 +2736,6 @@ void charactercreatorplus_refreshtype(void)
 			{
 				iThisObj = iCharObjHeadGear; iThisTexture = iCharHeadGearTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = "";
 			}
-#else
-			iThisObj = iCharObjHeadGear; iThisTexture = iCharHeadGearTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = ""; 
-#endif
 		}
 		if (iPartID == 2) 
 		{ 
@@ -3475,7 +2750,6 @@ void charactercreatorplus_refreshtype(void)
 		if (iPartID == 3) { iThisObj = iCharObjHead; iThisTexture = iCharHeadTexture; pPartName = "head"; pPartNum = pDefaultHead; pPartNumVariant = pDefaultHeadVariant; }
 		if (iPartID == 4) 
 		{ 
-#ifdef WICKEDENGINE
 			if (storage)
 			{
 				char* pGlasses = "";
@@ -3487,13 +2761,9 @@ void charactercreatorplus_refreshtype(void)
 			{
 				iThisObj = iCharObjEyeglasses; iThisTexture = iCharEyeglassesTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = "";
 			}
-#else
-			iThisObj = iCharObjEyeglasses; iThisTexture = iCharEyeglassesTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = "";
-#endif
 		}
 		if (iPartID == 5) 
 		{ 
-#ifdef WICKEDENGINE
 			if (storage)
 			{
 				char* pFacialHair = "";
@@ -3505,9 +2775,6 @@ void charactercreatorplus_refreshtype(void)
 			{
 				iThisObj = iCharObjFacialHair; iThisTexture = iCharFacialHairTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = "";
 			}
-#else
-			iThisObj = iCharObjFacialHair; iThisTexture = iCharFacialHairTexture; pPartName = ""; pPartNum = ""; pPartNumVariant = ""; 
-#endif
 		}
 		if (iPartID == 6) 
 		{ 
@@ -3531,7 +2798,6 @@ void charactercreatorplus_refreshtype(void)
 			strcat(pPartFile, " ");
 			strcat(pPartFile, pPartNum); // i.e. 01
 			LoadObject(cstr(cstr(pTempStr) + pPartFile + CCPMODELEXT).Get(), iThisObj);
-			#ifdef WICKEDENGINE
 			char pVariantPartFile[260];
 			strcpy(pVariantPartFile, pPartName);
 			strcat(pVariantPartFile, " ");
@@ -3552,27 +2818,9 @@ void charactercreatorplus_refreshtype(void)
 				if (*pLastChar >= 'a' && *pLastChar <= 'z') *pLastChar = 0;
 				LoadImage(cstr(cstr(pTempStr) + pCropPartFile + "_mask.dds").Get(), iThisTexture + 1);
 			}
-			#else
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_color.dds").Get(), iThisTexture + 0);
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_ao.dds").Get(), iThisTexture + 1);
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_normal.dds").Get(), iThisTexture + 2);
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_metalness.dds").Get(), iThisTexture + 3);
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_gloss.dds").Get(), iThisTexture + 4);
-			if (ImageExist(iThisTexture + 1) == 0) LoadImage("effectbank\\reloaded\\media\\blank_O.dds", iThisTexture + 1);
-			LoadImage(cstr(cstr(pTempStr) + pPartFile + "_mask.dds").Get(), iThisTexture + 5);
-			TextureObject(iThisObj, 0, iThisTexture + 0);
-			TextureObject(iThisObj, 1, iThisTexture + 1);
-			TextureObject(iThisObj, 2, iThisTexture + 2);
-			TextureObject(iThisObj, 3, iThisTexture + 3);
-			TextureObject(iThisObj, 4, iThisTexture + 4);
-			TextureObject(iThisObj, 5, iThisTexture + 5);
-			TextureObject(iThisObj, 7, iCharSkinTexture);
-			SetObjectEffect(iThisObj, g.thirdpersoncharactereffect);
-			#endif
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// wicked not using custom character shader, so create a new albedo/color texture
 	// using template mask and skin color texture to produce correct albedo representing skin
 	// only needed to do for body, legs and feet
@@ -3580,9 +2828,7 @@ void charactercreatorplus_refreshtype(void)
 	{
 		charactercreatorplus_refreshskincolor();
 	}
-	#endif
 
-	#ifdef WICKEDENGINE
 	// remove wicked resources before modifying objects below
 	if ( ObjectExist(iCharObj) ) WickedCall_RemoveObject( GetObjectData(iCharObj) );
 	if ( ObjectExist(iCharObjHeadGear) ) WickedCall_RemoveObject( GetObjectData(iCharObjHeadGear) );
@@ -3592,10 +2838,6 @@ void charactercreatorplus_refreshtype(void)
 	if ( ObjectExist(iCharObjHair) ) WickedCall_RemoveObject( GetObjectData(iCharObjHair) );
 	if ( ObjectExist(iCharObjEyeglasses) ) WickedCall_RemoveObject( GetObjectData(iCharObjEyeglasses) );
 	if ( ObjectExist(iCharObjFacialHair) ) WickedCall_RemoveObject( GetObjectData(iCharObjFacialHair) );
-	#else
-	// double hair trick allows hair to render correctly
-	int iDoubleHair = g.characterkitobjectoffset + 15;
-	#endif
 
 	// meshes are useless once they have been stolen from (preload system allows fresh loading to be near instant however)
 	if (ObjectExist(iCharObjHeadGear) == 1)
@@ -3614,22 +2856,9 @@ void charactercreatorplus_refreshtype(void)
 		// ensure hair has no culling and semi-transparent
 		SetObjectTransparency(iCharObjHair, 2);
 		SetObjectCull(iCharObjHair, 0);
-		#ifdef WICKEDENGINE
 		// wicked handles this differently
 		StealMeshesFromObject(iCharObj, iCharObjHair);
 		DeleteObject(iCharObjHair);
-		#else
-		// double hair trick ensures polygons rendered out of order dont leave 'mostly transparent' pixels blocking hair behind them
-		CloneObject(iDoubleHair, iCharObjHair);
-		DisableObjectZWriteEx(iCharObjHair,true);
-		StealMeshesFromObject(iCharObj, iCharObjHair);
-		DeleteObject(iCharObjHair);
-		// the double hair mesh is drawn again but this time with Zdepthwrite enabled so backface more distant hair polygons dont render over nearer ones
-		SetObjectCull(iDoubleHair, 0);
-		SetObjectTransparency(iDoubleHair, 2);
-		StealMeshesFromObject(iCharObj, iDoubleHair);
-		DeleteObject(iDoubleHair);
-		#endif
 	}
 	if (ObjectExist(iCharObjEyeglasses) == 1)
 	{
@@ -3659,13 +2888,10 @@ void charactercreatorplus_refreshtype(void)
 	// and trigger animation to be prepped
 	g_bCharacterCreatorPrepAnims = true;
 
-	#ifdef WICKEDENGINE
 	// some DBOs are created with BLACK base color, so for character creator
 	// objects set them always to WHITE with full ALPHA
 	SetObjectDiffuseEx(iCharObj, 0xFFFFFFFF, 0);
-	#endif
 
-	#ifdef WICKEDENGINE
 	// character gone through extensive changes, ensure wicked is updated
 	sObject* pObjectToRecreateInWicked = GetObjectData(iCharObj);
 	WickedCall_AddObject( pObjectToRecreateInWicked );
@@ -3682,10 +2908,8 @@ void charactercreatorplus_refreshtype(void)
 			//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
 		//else
 			//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 0.002f);
-
 		WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
 	}
-	#endif
 
 	// place character in scene
 	float terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z, 1);
@@ -3706,7 +2930,6 @@ void charactercreatorplus_refreshtype(void)
 	// finished legacy loading
 	image_setlegacyimageloading(false);
 
-#ifdef WICKEDENGINE
 	g_MeshesThatNeedDoubleSided.clear();
 	if (stricmp(CCP_Type, "adult male") == 0)
 	{
@@ -3742,8 +2965,6 @@ void charactercreatorplus_refreshtype(void)
 			break;
 	}
 	strcpy(CCP_Script, script);
-
-#endif
 }
 
 void charactercreatorplus_init(void)
@@ -3841,7 +3062,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// wicked uses non-cusotm shader for character skin, so copy the prebaked skin to the export area as the required
 	// amended textures for the character (better as it does not put extra burden on the shader!)
 	// go through all meshes
@@ -3880,18 +3100,13 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 	// before save, match created animsets to actual DBO structure
 	extern void UpdateObjectWithAnimSlotList (sObject* pObject);
 	UpdateObjectWithAnimSlotList(pSaveObject);
-	#endif
 
 	// save DBO at specified location
 	if ( FileExist(DBOFile_s.Get()) == 1 ) DeleteAFile ( DBOFile_s.Get() );
 	SaveObject ( DBOFile_s.Get(), iCharObj );
 
 	// character template
-	#ifdef WICKEDENGINE
 	cstr copyFrom_s = g.fpscrootdir_s+"\\Files\\charactercreatorplus\\Uber Character.fpe";
-	#else
-    cstr copyFrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
-	#endif
 
 	// prepare destination file
     cstr copyTo_s = FPEFile_s;
@@ -3951,7 +3166,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 			WriteString ( 2, cstr(cstr("voice            = ") + g_CharacterCreatorPlus.obj.settings.voice_s).Get() );
 			WriteString ( 2, cstr(cstr("speakrate        = ") + cstr(g_CharacterCreatorPlus.obj.settings.iSpeakRate)).Get() );
 
-			#ifdef WICKEDENGINE
 			// behavior
 			if (stricmp (g_CharacterCreatorPlus.obj.settings.script_s.Get(), "people\\zombie_attack.lua") == NULL)
 			{
@@ -3999,7 +3213,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 			WriteString (2, "decal0           = blood");
 			WriteString (2, "strength         = 500");
 			WriteString (2, "materialindex    = 6");
-			#endif
 			bSkipWritingReadLine = true;
 		}
 		if ( cstr(Lower(Left(line_s.Get(),5))) == "model" )
@@ -4015,7 +3228,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 		}
 		if (cstr(Lower(Left(line_s.Get(), 5))) == "anim0")
 		{
-			#ifdef WICKEDENGINE
 			int iIdleStart = 0;
 			int iIdleFinish = 0;
 			extern std::vector<sAnimSlotStruct> g_pAnimSlotList;
@@ -4031,10 +3243,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 					break;
 				}
 			}
-			#else
-			int iIdleStart = 15;
-			int iIdleFinish = 55;
-			#endif
 			char pCorrectIdleAnim[MAX_PATH];
 			sprintf(pCorrectIdleAnim, "anim0            = %d,%d", iIdleStart, iIdleFinish);
 			WriteString (2, pCorrectIdleAnim);
@@ -4048,8 +3256,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 		}
 	}
 
-	#ifdef WICKEDENGINE
-
 	// Prevent the light above the character from influencing the thumbnail.
 	if (iLightIndex >= 0)
 	{
@@ -4060,7 +3266,6 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 	// additionally, to retain material settings per mesh, save out mesh settings
 	extern void imporer_save_multimeshsection(sObject* pObject, int iFileIndex);
 	imporer_save_multimeshsection(pSaveObject, 2);
-	#endif
 
 	// close file handling
 	CloseFile ( 1 );
@@ -4069,14 +3274,12 @@ bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBO
 	// save thumbnail file
 	if (iThumbnailImage > 0)
 	{
-		#ifdef WICKEDENGINE
 		if (ImageExist(iThumbnailImage) == 0)
 		{
 			image_setlegacyimageloading(true);
 			LoadImage("editors\\uiv3\\ThumbnailTemplate.png", iThumbnailImage);
 			image_setlegacyimageloading(false);
 		}
-		#endif
 		char pRealBMPFile[MAX_PATH];
 		strcpy(pRealBMPFile, BMPFile_s.Get());
 		GG_GetRealPath(pRealBMPFile, 1);
@@ -4100,7 +3303,6 @@ void charactercreatorplus_loop(void)
 	}
 	else
 	{
-#ifdef WICKEDENGINE
 		if (t.inputsys.wheelmousemove != 0.0f)
 		{
 			g_fCCPZoom += (t.inputsys.wheelmousemove * ImGui::GetIO().DeltaTime * 250.0f);
@@ -4112,7 +3314,6 @@ void charactercreatorplus_loop(void)
 
 			charactercreatorplus_dozoom();
 		}
-#endif
 	}
 }
 
@@ -4193,20 +3394,6 @@ void characterkitplus_checkAvatarExists ( void )
 		g.mp.myAvatar_s = ReadString ( 1 );
 		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
 		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
-		/* old system
-		// head texture
-		if ( g.mp.myAvatarHeadTexture_s != "" ) 
-		{
-			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreatorplus\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
-			if ( FileExist(g.mp.myAvatarHeadTexture_s.Get()) == 0 )
-			{
-				g.mp.myAvatarHeadTexture_s = "";
-				CloseFile ( 1 );
-				DeleteAFile (  cstr(g.fpscrootdir_s + "\\multiplayeravatar.dat").Get() );
-				return;
-			}
-		}
-		*/
 		CloseFile (  1 );
 	}
 }
@@ -4233,14 +3420,6 @@ void characterkitplus_loadMyAvatarInfo ( void )
 		g.mp.myAvatar_s = ReadString ( 1 );
 		g.mp.myAvatarHeadTexture_s = ReadString ( 1 );
 		g.mp.myAvatarName_s = g.mp.myAvatarHeadTexture_s;
-		/* old system
-		// store the name of the head texture
-		if ( g.mp.myAvatarHeadTexture_s != "" ) 
-		{
-			g.mp.myAvatarHeadTexture_s = g.fpscrootdir_s+"\\Files\\entitybank\\user\\charactercreator\\"+ g.mp.myAvatarHeadTexture_s + "_cc.dds";
-			if ( FileExist(g.mp.myAvatarHeadTexture_s.Get()) == 0 ) g.mp.myAvatarHeadTexture_s = "";
-		}
-		*/
 		CloseFile ( 1 );
 
 		if ( t.tShowAvatarSprite == 1 ) 
@@ -4290,15 +3469,7 @@ void characterkitplus_makeMultiplayerCharacterCreatorAvatar ( void )
 	}
 
 	// template reference
-	#ifdef WICKEDENGINE
 	t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\charactercreatorplus\\Uber Character.fpe";
-	#else
-	#ifdef PHOTONMP
-	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Character.fpe";
-	#else
-	 t.tcopyfrom_s = g.fpscrootdir_s+"\\Files\\entitybank\\Characters\\Uber Soldier.fpe";
-	#endif
-	#endif
 	t.tcopyto_s = t.tSaveFile_s;
 	if ( cstr(Lower(Right(t.tcopyto_s.Get(),4))) != ".fpe" ) t.tcopyto_s = t.tcopyto_s + ".fpe";
 
@@ -4362,67 +3533,67 @@ void characterkitplus_makeMultiplayerCharacterCreatorAvatar ( void )
 	{
 		bool bLastItem = false;
 		if (n == strlen(pAvatarAssembly)) bLastItem = true;
-if ((n < strlen(pAvatarAssembly) && pAvatarAssembly[n] == ',') || bLastItem == true)
-{
-	// get each part name
-	char pPartName[MAX_PATH];
-	strcpy(pPartName, pAvatarAssembly);
-	pPartName[n] = 0;
-
-	// find the part type
-	if (strstr(pPartName, "headgear") != 0) strcpy(cSelectedHeadGear, pPartName);
-	if (strstr(pPartName, "hair") != 0) strcpy(cSelectedHair, pPartName);
-	if (strstr(pPartName, "head") != 0)
-	{
-		// head assembly name can include IC code (for avatar recreation)
-		// get base
-		strcpy(pBasePath, "charactercreatorplus\\parts\\");
-		strcat(pBasePath, pPartName);
-		LPSTR pHeadToken = strstr(pBasePath, " head");
-		if (pHeadToken) *pHeadToken = 0;
-		strcat(pBasePath, "\\");
-
-		// find IC part
-		LPSTR pICToken = strstr(pPartName, "[");
-		if (pICToken)
+		if ((n < strlen(pAvatarAssembly) && pAvatarAssembly[n] == ',') || bLastItem == true)
 		{
-			// cut off IC part for selectedhead string
-			strcpy(cSelectedHead, pPartName);
-			LPSTR pICCutOff = strstr(cSelectedHead, " [");
-			if (pICCutOff) *pICCutOff = 0;
+			// get each part name
+			char pPartName[MAX_PATH];
+			strcpy(pPartName, pAvatarAssembly);
+			pPartName[n] = 0;
 
-			// and keep the IC part for the tag
-			strcpy(pICTag, pICToken + 1);
-			if (pICTag[strlen(pICTag) - 1] == ']')
-				pICTag[strlen(pICTag) - 1] = 0;
+			// find the part type
+			if (strstr(pPartName, "headgear") != 0) strcpy(cSelectedHeadGear, pPartName);
+			if (strstr(pPartName, "hair") != 0) strcpy(cSelectedHair, pPartName);
+			if (strstr(pPartName, "head") != 0)
+			{
+				// head assembly name can include IC code (for avatar recreation)
+				// get base
+				strcpy(pBasePath, "charactercreatorplus\\parts\\");
+				strcat(pBasePath, pPartName);
+				LPSTR pHeadToken = strstr(pBasePath, " head");
+				if (pHeadToken) *pHeadToken = 0;
+				strcat(pBasePath, "\\");
+
+				// find IC part
+				LPSTR pICToken = strstr(pPartName, "[");
+				if (pICToken)
+				{
+					// cut off IC part for selectedhead string
+					strcpy(cSelectedHead, pPartName);
+					LPSTR pICCutOff = strstr(cSelectedHead, " [");
+					if (pICCutOff) *pICCutOff = 0;
+
+					// and keep the IC part for the tag
+					strcpy(pICTag, pICToken + 1);
+					if (pICTag[strlen(pICTag) - 1] == ']')
+						pICTag[strlen(pICTag) - 1] = 0;
+				}
+				else
+				{
+					strcpy(cSelectedHead, pPartName);
+				}
+			}
+			if (strstr(pPartName, "eyeglasses") != 0) strcpy(cSelectedEyeglasses, pPartName);
+			if (strstr(pPartName, "facialhair") != 0) strcpy(cSelectedFacialHair, pPartName);
+			if (strstr(pPartName, "body") != 0) strcpy(cSelectedBody, pPartName);
+			if (strstr(pPartName, "legs") != 0) strcpy(cSelectedLegs, pPartName);
+			if (strstr(pPartName, "feet") != 0) strcpy(cSelectedFeet, pPartName);
+
+			// prepare to get next one
+			if (bLastItem == false)
+			{
+				strcpy(pAvatarAssembly, pAvatarAssembly + n + 1);
+				n = 0;
+			}
+			else
+			{
+				strcpy(pAvatarAssembly, "");
+				n = 1;
+			}
 		}
 		else
 		{
-			strcpy(cSelectedHead, pPartName);
+			n++;
 		}
-	}
-	if (strstr(pPartName, "eyeglasses") != 0) strcpy(cSelectedEyeglasses, pPartName);
-	if (strstr(pPartName, "facialhair") != 0) strcpy(cSelectedFacialHair, pPartName);
-	if (strstr(pPartName, "body") != 0) strcpy(cSelectedBody, pPartName);
-	if (strstr(pPartName, "legs") != 0) strcpy(cSelectedLegs, pPartName);
-	if (strstr(pPartName, "feet") != 0) strcpy(cSelectedFeet, pPartName);
-
-	// prepare to get next one
-	if (bLastItem == false)
-	{
-		strcpy(pAvatarAssembly, pAvatarAssembly + n + 1);
-		n = 0;
-	}
-	else
-	{
-		strcpy(pAvatarAssembly, "");
-		n = 1;
-	}
-}
-else
-{
-	n++;
-}
 	}
 	// now make a character object from parts
 	image_preload_files_wait();
@@ -4457,7 +3628,6 @@ void characterkitplus_removeMultiplayerCharacterCreatorAvatar(void)
 
 void charactercreatorplus_initautoswaps()
 {
-#ifdef WICKEDENGINE
 	// Clear any existing auto swap data.
 	g_headGearMandatorySwaps.clear();
 	g_previousAutoSwap = nullptr;
@@ -4515,10 +3685,7 @@ void charactercreatorplus_initautoswaps()
 		SetDir(olddir_s.Get());
 
 	}
-#endif
 }
-
-#ifdef WICKEDENGINE
 
 int current_dress_room = -1;
 void change_dress_room(int room)
@@ -5343,10 +4510,6 @@ void charactercreatorplus_imgui_v3(void)
 								}
 								else if (g_iPartsIconsIDs[item_current_type_selection][part_number][iCountIcons] == -1)
 								{
-									//Updating is delayed, so wait until everything is ready before loading new icons.
-									//charactercreatorplus\parts\adult male\
-									//charactercreatorplus\parts\Zombie Male\
-									
 									bool bValid = false;
 									if (item_current_type_selection == 0 && pestrcasestr(full_path.c_str(), "adult male")) bValid = true;
 									if (item_current_type_selection == 1 && pestrcasestr(full_path.c_str(), "adult female")) bValid = true;
@@ -5548,30 +4711,6 @@ void charactercreatorplus_imgui_v3(void)
 				ccpObjTargetAY = fCCPRotateY;
 			}
 
-			// ZJ: Changed to allow character to idle even without advanced setting enabled.
-			/*if (!pref.iEnableAdvancedCharacterCreator)
-			{
-				if (ImGui::StyleCollapsingHeader("Animation Tool", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-					ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-					if (ImGui::HyberlinkButton("Advanced Settings##1", ImVec2(label_size.x, 0)))
-					{
-						extern int iSetSettingsFocusTab;
-						extern bool bPreferences_Window;
-						iSetSettingsFocusTab = 2;
-						bPreferences_Window = true;
-					}
-					ImGui::Indent(-10);
-				}
-			}
-			else
-			{
-				extern void animsystem_animationtoolui(int objectnumber);
-				animsystem_animationtoolui(iCharObj);
-			}*/
-
 			if (!pref.iEnableAdvancedCharacterCreator)
 			{
 				extern void animsystem_animationtoolsimpleui(int objectnumber);
@@ -5673,43 +4812,7 @@ void charactercreatorplus_imgui_v3(void)
 				// CharacterDetails VOICE only in Advanced
 				if (pref.iEnableAdvancedCharacterCreator)
 				{
-					#ifdef WICKEDENGINE
 					// Voice field removed from CCP.
-					#else
-					// Only if we actually have sapi and a installed lang pack.
-					if (g_voiceList_s.size() > 0) 
-					{
-						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-						ImGui::Text("Voice");
-						ImGui::SameLine();
-						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-						//Combo
-						ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-						ImGui::PushItemWidth(-10); 
-						if (ImGui::BeginCombo("##SelectVoiceCCP", pCCPVoiceSet)) // The second parameter is the label previewed before opening the combo.
-						{
-							int size = g_voiceList_s.size();
-							for (int vloop = 0; vloop < size; vloop++) {
-
-								bool is_selected = false;
-								if (strcmp(g_voiceList_s[vloop].Get(), pCCPVoiceSet) == 0)
-									is_selected = true;
-
-								if (ImGui::Selectable(g_voiceList_s[vloop].Get(), is_selected)) {
-									//Change Voice set
-									pCCPVoiceSet = g_voiceList_s[vloop].Get();
-									CCP_SelectedToken = g_voicetoken[vloop];
-								}
-								if (is_selected)
-									ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Voice Set");
-
-						ImGui::PopItemWidth();
-					}
-					#endif
 				}
 
 				//unindent before center.
@@ -5772,10 +4875,6 @@ void charactercreatorplus_imgui_v3(void)
 							ImGui::OpenPopup("##CCPInvalidSavePath");
 						}
 					}
-					// ZJ: Implementing in the same way as the importer, for consistency.
-					//if (cFileSelected && strlen(cFileSelected) > 0) {
-					//	strcpy(CCP_Path, cFileSelected);
-					//}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Where to Save Your Character");
 
@@ -5805,11 +4904,6 @@ void charactercreatorplus_imgui_v3(void)
 								char script[260];
 								strcpy(script, "people\\");
 								strcat(script, CCP_Script);
-							/*	strcpy (CCP_Script, "people\\patrol.lua");
-								if (stricmp (CCP_Type, "adult male") == NULL) strcpy (CCP_Script, "people\\character_attack.lua");
-								if (stricmp (CCP_Type, "adult female") == NULL) strcpy (CCP_Script, "people\\character_attack.lua");
-								if (stricmp (CCP_Type, "zombie male") == NULL) strcpy (CCP_Script, "people\\zombie_attack.lua");
-								if (stricmp (CCP_Type, "zombie female") == NULL) strcpy (CCP_Script, "people\\zombie_attack.lua");*/
 
 								// save character FPE
 								g_CharacterCreatorPlus.obj.settings.script_s = script;
@@ -5879,7 +4973,7 @@ void charactercreatorplus_imgui_v3(void)
 
 			if (!pref.bHideTutorials)
 			{
-#ifndef REMOVED_EARLYACCESS
+				#ifndef REMOVED_EARLYACCESS
 				if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Indent(10);
@@ -5908,19 +5002,16 @@ void charactercreatorplus_imgui_v3(void)
 
 					ImGui::Indent(-10);
 				}
-#endif
+				#endif
 			}
-
-			// insert a keyboard shortcut component into panel
-			// PE: No shortcuts anymore, camera is static.
-			//UniversalKeyboardShortcut(eKST_CharacterCreator);
 
 			ImGui::PopItemWidth();
 
 			void CheckMinimumDockSpaceSize(float minsize);
 			CheckMinimumDockSpaceSize(250.0f);
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -5982,9 +5073,6 @@ void charactercreatorplus_imgui_v3(void)
 						}
 					}
 				}
-				//if (ObjectExist(t.terrain.objectstartindex + 4)) {
-				//	HideObject(t.terrain.objectstartindex + 4);
-				//}
 
 				//Restore editor camera.
 				if (editoroldx_f != 0) //PE: Somehow editoroldx_f was 0 ?
@@ -6000,19 +5088,15 @@ void charactercreatorplus_imgui_v3(void)
 					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
 				}
 
-				#ifdef WICKEDENGINE
 				restore_visuals(t.visuals, t.visualsStorage);
 				visuals_loop();
-				#endif
 			}
 		}
 	}
 }
-#endif
 
 void charactercreatorplus_getautoswapdata(char* filename)
 {
-#ifdef WICKEDENGINE
 	// prepare destination file
 	cstr pPath = GetDir();
 	pPath += cstr("\\");
@@ -6091,12 +5175,10 @@ void charactercreatorplus_getautoswapdata(char* filename)
 		// close file handling
 		CloseFile(1);
 	}
-#endif
 }
 
 int charactercreatorplus_getcategoryindex(char* category)
 {
-	#ifdef WICKEDENGINE
 	if (strcmp(category, "Head Gear") == NULL)
 		return 0;
 	else if (strcmp(category, "Hair") == NULL)
@@ -6114,12 +5196,8 @@ int charactercreatorplus_getcategoryindex(char* category)
 	else if (strcmp(category, "Feet") == NULL)
 		return 7;
 	else return -1;
-	#else
-	return 0;
-	#endif
 }
 
-#ifdef WICKEDENGINE
 // Add the auto-swap data to the relevant container.
 void charactercreatorplus_storeautoswapdata(AutoSwapData* pData)
 {
@@ -6148,11 +5226,9 @@ void charactercreatorplus_storeautoswapdata(AutoSwapData* pData)
 		}
 	}
 }
-#endif
 
 void charactercreatorplus_performautoswap(int part)
 {
-#ifdef WICKEDENGINE
 	std::string sPartToSwap = "";
 	std::map<std::string, std::string>* pAnnotationData = nullptr;
 	std::vector<AutoSwapData*>* pAutoSwapData = nullptr;
@@ -6337,13 +5413,11 @@ void charactercreatorplus_performautoswap(int part)
 		if (iSearchCounter > pAnnotationData->size())
 			strcpy(pPartToSwap, pPartBackup);
 	}
-#endif
 }
 
 // Reverse any swaps that were applied on the users previous choice.
 void charactercreatorplus_restoreswappedparts()
 {
-#ifdef WICKEDENGINE
 	if (g_previousAutoSwap == nullptr)
 		return;
 
@@ -6376,12 +5450,10 @@ void charactercreatorplus_restoreswappedparts()
 	}
 
 	g_previousAutoSwap = nullptr;
-#endif
 }
 
 void charactercreatorplus_extracthaircolour(const char* source, char* destination)
 {
-#ifdef WICKEDENGINE
 	if (strstr(source, "Black"))
 		strcpy(destination, " Black");
 	else if (strstr(source, "Blonde"))
@@ -6406,10 +5478,8 @@ void charactercreatorplus_extracthaircolour(const char* source, char* destinatio
 		strcpy(destination, " Straw");
 	else if (strstr(source, "Dark"))
 		strcpy(destination, " Dark");
-#endif
 }
 
-#ifdef WICKEDENGINE
 bool charactercreatorplus_checkforautoswapcategory(char* pSwappedPartName, int iSwappedPartCategory, int iCategoryToFind)
 {
 	std::vector<AutoSwapData*>* pSwapData = nullptr;
@@ -6444,11 +5514,8 @@ bool charactercreatorplus_checkforautoswapcategory(char* pSwappedPartName, int i
 	return false;
 }
 
-#endif
-
 void charactercreatorplus_restrictpart(int part)
 {
-#ifdef WICKEDENGINE
 	// 0: Head Gear
 	// 1: Hair
 	// 2: Head
@@ -6607,11 +5674,8 @@ void charactercreatorplus_restrictpart(int part)
 			}
 		}
 	}
-
-#endif
 }
 
-#ifdef WICKEDENGINE
 void charactercreatorplus_initcameratransitions()
 {		
 	g_DefaultCamPosition.x = t.editorfreeflight.c.x_f;
@@ -6670,49 +5734,44 @@ void charactercreatorplus_initcameratransitions()
 	g_LowerBodyTransition.to[2] = characterPos.z + (g_DefaultCamPosition.z - characterPos.z) * 0.3f;
 	g_LowerBodyTransition.angTo[0] = fAngleX + 40.0f;
 	g_LowerBodyTransition.angTo[1] = fAngleY;
-
 };
 
 void charactercreatorplus_changecameratransition(int part)
 {
 	int ccp_part_order[] = { 2       ,1        ,4         ,0       ,3           ,5        ,6        ,7 };
 
-	// Toggle a camera transition to zoom in to the part being edited by the user.
-	//if (part != g_iPreviousCategorySelection)
-	//{
-		g_iPreviousCategorySelection = part;
+	g_iPreviousCategorySelection = part;
 
-		// Choose which camera transition to use.
-		if (ccp_part_order[part] <= 4)
-		{
-			if(!strstr(CCP_Type, "Zombie"))
-				g_pCurrentTransition = &g_HeadTransition;
-			else
-				g_pCurrentTransition = &g_ZombieHeadTransition;
-		}
-		else if (ccp_part_order[part] == 5)
-		{
-			if (!strstr(CCP_Type, "Zombie"))
-				g_pCurrentTransition = &g_UpperBodyTransition;
-			else
-				g_pCurrentTransition = &g_ZombieBodyTransition;
-		}
-		else if (ccp_part_order[part] <= 7)
-			g_pCurrentTransition = &g_LowerBodyTransition;
+	// Choose which camera transition to use.
+	if (ccp_part_order[part] <= 4)
+	{
+		if(!strstr(CCP_Type, "Zombie"))
+			g_pCurrentTransition = &g_HeadTransition;
 		else
-			g_pCurrentTransition = nullptr;
+			g_pCurrentTransition = &g_ZombieHeadTransition;
+	}
+	else if (ccp_part_order[part] == 5)
+	{
+		if (!strstr(CCP_Type, "Zombie"))
+			g_pCurrentTransition = &g_UpperBodyTransition;
+		else
+			g_pCurrentTransition = &g_ZombieBodyTransition;
+	}
+	else if (ccp_part_order[part] <= 7)
+		g_pCurrentTransition = &g_LowerBodyTransition;
+	else
+		g_pCurrentTransition = nullptr;
 
-		// Set the intial conditions for the camera transition.
-		if (g_pCurrentTransition)
-		{
-			g_pCurrentTransition->from[0] = g_CurrentCamPosition.x;
-			g_pCurrentTransition->from[1] = g_CurrentCamPosition.y;
-			g_pCurrentTransition->from[2] = g_CurrentCamPosition.z;
-			g_pCurrentTransition->angFrom[0] = g_CurrentCamAngle.x;
-			g_pCurrentTransition->angFrom[1] = g_CurrentCamAngle.y;
-			g_pCurrentTransition->t = 0.0f;
-		}
-	//}
+	// Set the intial conditions for the camera transition.
+	if (g_pCurrentTransition)
+	{
+		g_pCurrentTransition->from[0] = g_CurrentCamPosition.x;
+		g_pCurrentTransition->from[1] = g_CurrentCamPosition.y;
+		g_pCurrentTransition->from[2] = g_CurrentCamPosition.z;
+		g_pCurrentTransition->angFrom[0] = g_CurrentCamAngle.x;
+		g_pCurrentTransition->angFrom[1] = g_CurrentCamAngle.y;
+		g_pCurrentTransition->t = 0.0f;
+	}
 }
 
 void charactercreatorplus_performcameratransition(bool bIsZooming)
@@ -6723,12 +5782,7 @@ void charactercreatorplus_performcameratransition(bool bIsZooming)
 
 		// Offset the target away from the character based on the zoom level.
 		float fZoomLevel = 1.0f - g_fCCPZoom * 0.01f;
-		//GGVECTOR3 offset((g_DefaultCamPosition.x - ObjectPositionX(iCharObj)) * fZoom, (g_DefaultCamPosition.y - ObjectPositionY(iCharObj)) *fZoom, (g_DefaultCamPosition.z - ObjectPositionZ(iCharObj)) *fZoom);
-		//GGVECTOR3 offset((g_DefaultCamPosition.x - g_pCurrentTransition->to[0]) * fZoomLevel, (g_DefaultCamPosition.y - g_pCurrentTransition->to[1]) *fZoomLevel, (g_DefaultCamPosition.z - g_pCurrentTransition->to[2]) * fZoomLevel);
-		//GGVECTOR3 target(g_pCurrentTransition->to[0], g_pCurrentTransition->to[1], g_pCurrentTransition->to[2]);
 		GGVECTOR3 target(g_pCurrentTransition->to[0] + (g_DefaultCamPosition.x - g_pCurrentTransition->to[0]) * fZoomLevel, g_pCurrentTransition->to[1] + (g_DefaultCamPosition.y - g_pCurrentTransition->to[1]) *fZoomLevel, g_pCurrentTransition->to[2] + (g_DefaultCamPosition.z - g_pCurrentTransition->to[2]) * fZoomLevel);
-
-		//target += offset;
 
 		// Lerp between the starting and target position to get the desired camera position;
 		GGVECTOR3 from(g_pCurrentTransition->from[0], g_pCurrentTransition->from[1], g_pCurrentTransition->from[2]);
@@ -6736,7 +5790,6 @@ void charactercreatorplus_performcameratransition(bool bIsZooming)
 
 		// Lerp between the starting and target rotation to get the desired camera rotation.
 		GGVECTOR3 targetRotation(g_pCurrentTransition->angTo[0] + (g_DefaultCamAngle.x - g_pCurrentTransition->angTo[0]) * fZoomLevel, g_pCurrentTransition->angTo[1] + (g_DefaultCamAngle.y - g_pCurrentTransition->angTo[1]) * fZoomLevel, 0);
-		//GGVECTOR3 targetRotation(g_pCurrentTransition->angTo[0] + (g_DefaultCamAngle.x - g_CurrentCamAngle.x) * fZoomLevel, g_pCurrentTransition->angTo[1] + (g_DefaultCamAngle.y - g_CurrentCamAngle.y) * fZoomLevel, 0);
 		GGVECTOR3 fromRotation(g_pCurrentTransition->angFrom[0], g_pCurrentTransition->angFrom[1], 0);
 		g_CurrentCamAngle = fromRotation + (targetRotation - fromRotation) * g_pCurrentTransition->t;
 
@@ -6781,7 +5834,3 @@ void charactercreatorplus_dozoom()
 		charactercreatorplus_performcameratransition(true);
 	}
 }
- 
-#endif
-
-

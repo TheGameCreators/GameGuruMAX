@@ -2018,7 +2018,7 @@ void addthisentityprofilesfilestocollection ( void )
 					cstr assemblyString_s = FirstToken(pAssemblyString, ",");
 					while (assemblyString_s.Len() > 0)
 					{
-						// work out texture files from this reference, i.e adult male hair 01
+						// work out texture files from this reference, i.e adultmalehair01
 						char pAssemblyReference[1024];
 						strcpy(pAssemblyReference, assemblyString_s.Get());
 						if (pAssemblyReference[strlen(pAssemblyReference) - 1] == '\n') pAssemblyReference[strlen(pAssemblyReference) - 1] = 0;
@@ -2031,30 +2031,18 @@ void addthisentityprofilesfilestocollection ( void )
 						for (int iBaseIndex = 0; iBaseIndex < iBaseCount; iBaseIndex++)
 						{
 							LPSTR pBaseName = "";
-							#ifdef PRODUCTV3
-							if (iBaseIndex == 0) pBaseName = "adult male";
-							if (iBaseIndex == 1) pBaseName = "adult female";
-							if (iBaseIndex == 2) pBaseName = "child male";
-							if (iBaseIndex == 3) pBaseName = "child female";
-							#else
 							if (iBaseIndex == 0) pBaseName = "adult male";
 							if (iBaseIndex == 1) pBaseName = "adult female";
 							if (iBaseIndex == 2) pBaseName = "zombie male";
 							if (iBaseIndex == 3) pBaseName = "zombie female";
-							#endif
 							if (strstr(pAssemblyReference, pBaseName) != NULL)
 							{
 								// found category
 								cstr pPartFolder = "";
 								if (iBaseIndex == 0) pPartFolder = "charactercreatorplus\\parts\\adult male\\";
 								if (iBaseIndex == 1) pPartFolder = "charactercreatorplus\\parts\\adult female\\";
-								#ifdef PRODUCTV3
-								if (iBaseIndex == 2) pPartFolder = "charactercreatorplus\\parts\\child male\\";
-								if (iBaseIndex == 3) pPartFolder = "charactercreatorplus\\parts\\child female\\";
-								#else
 								if (iBaseIndex == 2) pPartFolder = "charactercreatorplus\\parts\\zombie male\\";
 								if (iBaseIndex == 3) pPartFolder = "charactercreatorplus\\parts\\zombie female\\";
-								#endif
 
 								// add final texture files
 								cstr pTmpFile = pPartFolder + pAssemblyReference;

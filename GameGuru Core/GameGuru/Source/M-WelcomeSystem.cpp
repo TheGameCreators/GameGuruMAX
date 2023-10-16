@@ -2683,6 +2683,7 @@ int iCheckForLoginCount = 0;
 bool bLoginButtonClicked = false;
 char pDownloadFile[1024];
 LPSTR pDownloadStoreData = NULL;
+DWORD dwDownloadStoreDataSize = 0;
 LPSTR pDownloadStoreChecksumFile = NULL;
 struct StoreItems
 {
@@ -2726,6 +2727,7 @@ void imgui_download_store( void )
 		{
 			delete[] pDownloadStoreData;
 			pDownloadStoreData = NULL;
+			dwDownloadStoreDataSize = 0;
 		}
 		if (pDownloadStoreChecksumFile) 
 		{
@@ -3030,6 +3032,7 @@ void imgui_download_store( void )
 			{
 				delete[] pDownloadStoreData;
 				pDownloadStoreData = NULL;
+				dwDownloadStoreDataSize = 0;
 			}
 
 			if (pDownloadStoreChecksumFile) 
@@ -3045,6 +3048,7 @@ void imgui_download_store( void )
 				DWORD readen;
 				DWORD dwDataSize = GetFileSize(hFile, 0);
 				pDownloadStoreData = new char[dwDataSize + 20];
+				dwDownloadStoreDataSize = dwDataSize;
 				if (pDownloadStoreData)
 				{
 					ReadFile(hFile, pDownloadStoreData, dwDataSize, &readen, FALSE);
@@ -3172,7 +3176,7 @@ void imgui_download_store( void )
 						{
 							char cTmp = progress[pFindEnd - progress];
 							progress[pFindEnd - progress] = 0;
-							if (strlen(progress) < 8192) 
+							if (strlen(progress) < dwDownloadStoreDataSize)//8192) some items can have a HUGE number of files!!
 							{
 								si->data = progress;
 								iValidEntries++;
@@ -3650,6 +3654,7 @@ void imgui_download_store( void )
 			{
 				delete[] pDownloadStoreData;
 				pDownloadStoreData = NULL;
+				dwDownloadStoreDataSize = 0;
 			}
 			if (pDownloadStoreChecksumFile) 
 			{

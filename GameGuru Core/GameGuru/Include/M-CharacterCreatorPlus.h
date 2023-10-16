@@ -40,6 +40,13 @@ struct sCharacterCreatorPlus
 	sCharacterCreatorPlusObject obj;
 };
 
+struct sCharacterType
+{
+	char pPartsFolder[260];
+};
+extern std::vector<sCharacterType> g_CharacterType;
+extern char pCharacterTypeDropDownList[32][260];
+
 #ifdef WICKEDENGINE
 // Some parts (e.g. head gear) require specific head shapes or hair styles to ensure no meshes overlap.
 //	This struct stores parts that require other parts to ensure no overlap occurs.
@@ -72,10 +79,7 @@ void charactercreatorplus_free ( void );
 bool charactercreatorplus_savecharacterentity ( int iCharObj, LPSTR pOptionalDBOSaveFile, int iThumbnailImage );
 void charactercreatorplus_loop ( void );
 
-void charactercreatorplus_imgui(void);
-#ifdef WICKEDENGINE
 void charactercreatorplus_imgui_v3(void);
-#endif
 void charactercreatorplus_preparechange(char *path, int part, char* tag);
 void charactercreatorplus_waitforpreptofinish(void);
 void charactercreatorplus_change(char *path, int part, char* tag);

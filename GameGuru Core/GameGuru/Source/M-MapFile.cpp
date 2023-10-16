@@ -2015,6 +2015,7 @@ void addthisentityprofilesfilestocollection ( void )
 
 					// now we have the assembly string; adult male hair 01,adult male head 01,adult male body 03,adult male legs 04e,adult male feet 04
 					// delimited by a comma, and indicates which parts we used (to specify the textures to copy over)
+					char pCustomPathToFolder[MAX_PATH];
 					cstr assemblyString_s = FirstToken(pAssemblyString, ",");
 					while (assemblyString_s.Len() > 0)
 					{
@@ -2023,11 +2024,7 @@ void addthisentityprofilesfilestocollection ( void )
 						strcpy(pAssemblyReference, assemblyString_s.Get());
 						if (pAssemblyReference[strlen(pAssemblyReference) - 1] == '\n') pAssemblyReference[strlen(pAssemblyReference) - 1] = 0;
 						strlwr(pAssemblyReference);
-						#ifdef PRODUCTV3
-						int iBaseCount = 4;
-						#else
-						int iBaseCount = 4; //(3) PE: Added zombie female
-						#endif
+						int iBaseCount = g_CharacterType.size();// 4; //(3) PE: Added zombie female
 						for (int iBaseIndex = 0; iBaseIndex < iBaseCount; iBaseIndex++)
 						{
 							LPSTR pBaseName = "";
@@ -2035,6 +2032,7 @@ void addthisentityprofilesfilestocollection ( void )
 							if (iBaseIndex == 1) pBaseName = "adult female";
 							if (iBaseIndex == 2) pBaseName = "zombie male";
 							if (iBaseIndex == 3) pBaseName = "zombie female";
+							if (iBaseIndex > 3) pBaseName = g_CharacterType[iBaseIndex].pPartsFolder;
 							if (strstr(pAssemblyReference, pBaseName) != NULL)
 							{
 								// found category
@@ -2043,6 +2041,11 @@ void addthisentityprofilesfilestocollection ( void )
 								if (iBaseIndex == 1) pPartFolder = "charactercreatorplus\\parts\\adult female\\";
 								if (iBaseIndex == 2) pPartFolder = "charactercreatorplus\\parts\\zombie male\\";
 								if (iBaseIndex == 3) pPartFolder = "charactercreatorplus\\parts\\zombie female\\";
+								if (iBaseIndex > 3)
+								{
+									sprintf(pCustomPathToFolder, "charactercreatorplus\\parts\\%s\\", g_CharacterType[iBaseIndex].pPartsFolder);
+									pPartFolder = pCustomPathToFolder;
+								}
 
 								// add final texture files
 								cstr pTmpFile = pPartFolder + pAssemblyReference;

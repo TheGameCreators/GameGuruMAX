@@ -11,12 +11,12 @@
 #include "..\Imgui\imgui_gg_dx11.h"
 #endif
 
-#ifdef WICKEDENGINE
+//#include "M-CharacterCreatorPlus.h"
+
 #include ".\\..\..\\Guru-WickedMAX\\GPUParticles.h"
 using namespace GPUParticles;
 #include "GGTerrain\GGTerrain.h"
 using namespace GGTerrain;
-#endif
 
 // Globals for blacklist string array
 LPSTR* g_pBlackList = NULL;
@@ -445,6 +445,7 @@ void CreateVectorListFromCPPAssembly ( LPSTR pCCPAssemblyStringLine, std::vector
 
 		// now we have the assembly string; adult male hair 01,adult male head 01,adult male body 03,adult male legs 04e,adult male feet 04
 		// delimited by a comma, and indicates which parts we used (to specify the textures to copy over)
+		char pCustomPathToFolder[MAX_PATH];
 		cstr assemblyString_s = FirstToken(pAssemblyString, ",");
 		while (assemblyString_s.Len() > 0)
 		{
@@ -453,7 +454,7 @@ void CreateVectorListFromCPPAssembly ( LPSTR pCCPAssemblyStringLine, std::vector
 			strcpy(pAssemblyReference, assemblyString_s.Get());
 			strlwr(pAssemblyReference);
 			if (pAssemblyReference[strlen(pAssemblyReference) - 1] == '\n') pAssemblyReference[strlen(pAssemblyReference) - 1] = 0;
-			int iBaseCount = 3;
+			int iBaseCount = g_CharacterType.size();// 3;
 			for (int iBaseIndex = 0; iBaseIndex < iBaseCount; iBaseIndex++)
 			{
 				LPSTR pBaseName = "";
@@ -461,6 +462,10 @@ void CreateVectorListFromCPPAssembly ( LPSTR pCCPAssemblyStringLine, std::vector
 				if (iBaseIndex == 1) pBaseName = "adult female";
 				if (iBaseIndex == 2) pBaseName = "zombie male";
 				if (iBaseIndex == 3) pBaseName = "zombie female";
+				if (iBaseIndex > 3)
+				{
+					pBaseName = g_CharacterType[iBaseIndex].pPartsFolder;
+				}
 				if (strstr(pAssemblyReference, pBaseName) != NULL)
 				{
 					// found category
@@ -469,6 +474,11 @@ void CreateVectorListFromCPPAssembly ( LPSTR pCCPAssemblyStringLine, std::vector
 					if (iBaseIndex == 1) pPartFolder = "charactercreatorplus\\parts\\adult female\\";
 					if (iBaseIndex == 2) pPartFolder = "charactercreatorplus\\parts\\zombie male\\";
 					if (iBaseIndex == 3) pPartFolder = "charactercreatorplus\\parts\\zombie female\\";
+					if (iBaseIndex > 3)
+					{
+						sprintf(pCustomPathToFolder, "charactercreatorplus\\parts\\%s\\", g_CharacterType[iBaseIndex].pPartsFolder);
+						pPartFolder = pCustomPathToFolder;
+					}
 
 					// add final texture files
 					cstr pTmpFile = pPartFolder + pAssemblyReference;
@@ -2063,6 +2073,17 @@ void entity_loaddata ( void )
 						if (strstr (t.value_s.Get(), "adult female") != NULL) t.entityprofile[t.entid].characterbasetype = 1;
 						if (strstr (t.value_s.Get(), "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
 						if (strstr (t.value_s.Get(), "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
+						if (t.entityprofile[t.entid].characterbasetype == -1)
+						{
+							for (int t = 0; t < g_CharacterType.size(); t++)
+							{
+								if (strstr (t.value_s.Get(), g_CharacterType[t].pPartsFolder) != NULL)
+								{
+									t.entityprofile[t.entid].characterbasetype = t;
+									break;
+								}
+							}
+						}
 					}
 
 					#ifdef VRTECH

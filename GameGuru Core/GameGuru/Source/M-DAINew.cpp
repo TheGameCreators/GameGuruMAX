@@ -5,10 +5,9 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
-#ifdef WICKEDENGINE
+//#include "M-CharacterCreatorPlus.h"
 #include "GGRecastDetour.h"
 extern GGRecastDetour g_RecastDetour;
-#endif
 
 // Globals 
 bool g_bDormantCheckForThisCycle = true;
@@ -1751,6 +1750,13 @@ void darkai_refresh_characters ( bool bScanForNewlySpawned )
 							if (t.entityprofile[t.entid].characterbasetype == 1) pGender = "adult female";
 							if (t.entityprofile[t.entid].characterbasetype == 2) pGender = "zombie male";
 							if (t.entityprofile[t.entid].characterbasetype == 3) pGender = "zombie female";
+							if (pGender == NULL)
+							{
+								if (t.entityprofile[t.entid].characterbasetype < g_CharacterType.size())
+								{
+									pGender = g_CharacterType[t.entityprofile[t.entid].characterbasetype].pPartsFolder;
+								}
+							}
 							if (pGender != NULL)
 							{
 								if (t.entityprofile[t.entid].characterbasetype >= 0 && t.entityprofile[t.entid].characterbasetype <= 1)

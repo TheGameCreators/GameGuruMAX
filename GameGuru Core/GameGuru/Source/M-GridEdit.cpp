@@ -11814,11 +11814,7 @@ void mapeditorexecutable_loop(void)
 			ImGui::Begin("Character Creator##PropertiesWindow", &g_bCharacterCreatorPlusActivated, iGenralWindowsFlags);
 			ImGui::End();
 		}
-		#ifdef USE_NEW_CCP_DESIGN_V3
 		charactercreatorplus_imgui_v3();
-		#else
-		charactercreatorplus_imgui();
-		#endif
 
 		//################################
 		//#### Building Editor - 2022 ####
@@ -17368,9 +17364,7 @@ void mapeditorexecutable_loop(void)
 				case 82: //Delayed window focus.
 				{
 					iLaunchAfterSync = 0;
-					#ifdef WICKEDENGINE
 					g_bCharacterCreatorPlusActivated = true;
-					#endif
 					break;
 				}
 

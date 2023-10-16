@@ -6,6 +6,8 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+//#include "M-CharacterCreatorPlus.h"
+
 //PE: GameGuru IMGUI.
 #include "..\Imgui\imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -163,7 +165,7 @@ void importer_init_wicked(void)
 
 void importer_init ( void )
 {
-	// Wicked Importer does it differently
+	// Wicked Importer does it differently 
 	importer_init_wicked();
 }
 
@@ -3204,6 +3206,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 				if (characterbasetype == 1) pGender = "adult female";
 				if (characterbasetype == 2) pGender = "zombie male";
 				if (characterbasetype == 3) pGender = "zombie female";
+				if (characterbasetype > 3) pGender = g_CharacterType[characterbasetype].pPartsFolder;
 				if (pGender != NULL)
 				{
 					if (t.entityprofile[t.entid].characterbasetype >= 0 && t.entityprofile[t.entid].characterbasetype <= 1)

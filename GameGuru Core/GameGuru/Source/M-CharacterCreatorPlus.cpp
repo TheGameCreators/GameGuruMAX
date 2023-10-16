@@ -67,6 +67,9 @@ static std::map<std::string, std::string> CharacterCreatorAnnotatedTagBody_s;
 static std::map<std::string, std::string> CharacterCreatorAnnotatedTagFeet_s;
 static std::map<std::string, std::string> CharacterCreatorAnnotatedTagLegs_s;
 
+std::vector<sCharacterType> g_CharacterType;
+char pCharacterTypeDropDownList[32][260];
+
 std::vector<AutoSwapData*> g_headGearMandatorySwaps;
 AutoSwapData* g_previousAutoSwap = nullptr;
 #define MAXPARTICONS 100
@@ -80,6 +83,7 @@ float g_fCCPZoom = 72.0f;
 std::array<std::string, 8> g_maleStorage;
 std::array<std::string, 8> g_femaleStorage;
 std::array<std::string, 8> g_zombieStorage;
+std::array<std::string, 8> g_genericStorage;
 AutoSwapData* g_pLastHeadgearAutoSwap = nullptr;
 int g_iPreviousCategorySelection = -1;
 CameraTransition* g_pCurrentTransition = nullptr;
@@ -140,7 +144,75 @@ extern char cTriggerMessage[MAX_PATH];
 void DisplaySmallImGuiMessage(char *text);
 bool bMessageDisplayed = false;
 
+bool g_bCharacterCreatorTypesInit = false;
+
 extern preferences pref;
+
+void charactercreatorplus_populatechartypes (void)
+{
+	if (g_bCharacterCreatorTypesInit == false)
+	{
+		// gather character creator types database
+		sCharacterType chartypeitem;
+		strcpy (chartypeitem.pPartsFolder, "adult male");  g_CharacterType.push_back(chartypeitem);
+		strcpy (chartypeitem.pPartsFolder, "adult female");  g_CharacterType.push_back(chartypeitem);
+		strcpy (chartypeitem.pPartsFolder, "zombie male");  g_CharacterType.push_back(chartypeitem);
+		strcpy (chartypeitem.pPartsFolder, "zombie female");  g_CharacterType.push_back(chartypeitem);
+		LPSTR pOldDir = GetDir();
+		SetDir("charactercreatorplus\\parts");
+		ChecklistForFiles();
+		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+		{
+			t.tfile_s = ChecklistString(t.c);
+			LPSTR pThisFile = t.tfile_s.Get();
+			if (Len(pThisFile) > 2)
+			{
+				if (stricmp(pThisFile, "adult male") == NULL || stricmp(pThisFile, "adult female") == NULL
+				||  stricmp(pThisFile, "zombie male") == NULL || stricmp(pThisFile, "zombie female") == NULL)
+				{
+					// already have these from above
+				}
+				else
+				{
+					// confirm a real body parts folder
+					char pCheckAnnotFile[MAX_PATH];
+					sprintf(pCheckAnnotFile, "%s\\annotates.txt", t.tfile_s.Get());
+					if (FileExist (pCheckAnnotFile) == 1)
+					{
+						sCharacterType chartypeitem;
+						strcpy (chartypeitem.pPartsFolder, t.tfile_s.Get());
+						g_CharacterType.push_back(chartypeitem);
+					}
+				}
+			}
+		}
+		SetDir(pOldDir);
+
+		// make dropdown string array from above
+		int n = 0;
+		for (; n < g_CharacterType.size(); n++)
+		{
+			bool bCapitaliseOnNewWord = true;
+			strcpy (pCharacterTypeDropDownList[n], g_CharacterType[n].pPartsFolder);
+			for (int t = 0; t < strlen(pCharacterTypeDropDownList[n]); t++)
+			{
+				if (pCharacterTypeDropDownList[n][t] >= 'a' && pCharacterTypeDropDownList[n][t] <= 'z')
+				{
+					if (bCapitaliseOnNewWord == true)
+					{
+						pCharacterTypeDropDownList[n][t] -= 32;
+					}
+				}
+				bCapitaliseOnNewWord = false;
+				if (pCharacterTypeDropDownList[n][t] == ' ') bCapitaliseOnNewWord = true;
+			}
+		}
+		for (; n < 32; n++) strcpy(pCharacterTypeDropDownList[n], "");
+
+		// completed init
+		g_bCharacterCreatorTypesInit = true;
+	}
+}
 
 void charactercreatorplus_preloadinitialcharacter ( void )
 {
@@ -207,21 +279,31 @@ void charactercreatorplus_GetDefaultCharacterPartNum (int iBase, int iPart, LPST
 		if (iPart == 4) { pPart = "01"; pPartVariant = "01"; }
 		if (iPart == 5) { pPart = "01"; pPartVariant = "01"; }
 	}
+	if (iBase > 4)
+	{
+		// custom
+		if (iPart == 1) { pPart = "01"; pPartVariant = "01"; }
+		if (iPart == 2) { pPart = "01"; pPartVariant = "01"; } 
+		if (iPart == 3) { pPart = "01"; pPartVariant = "01"; }
+		if (iPart == 4) { pPart = "01"; pPartVariant = "01"; }
+		//if (iPart == 5) { pPart = "01"; pPartVariant = "01"; } no hair by default
+	}
 	strcpy (pPartNumStr, pPart);
 	if ( pPartNumVariantStr ) strcpy (pPartNumVariantStr, pPartVariant);
 }
 
 void charactercreatorplus_preloadallcharacterbasedefaults(void)
 {
-	int iBaseCount = 4;
+	int iBaseCount = g_CharacterType.size();
 	for (int base = 1; base <= iBaseCount; base++)
 	{
 		LPSTR pBase = NULL;
 		char pRelFile[MAX_PATH];
-		if (base == 1) pBase = "adult male";
-		if (base == 2) pBase = "adult female";
-		if (base == 3) pBase = "zombie male";
-		if (base == 4) pBase = "zombie female";
+		//if (base == 1) pBase = "adult male";
+		//if (base == 2) pBase = "adult female";
+		//if (base == 3) pBase = "zombie male";
+		//if (base == 4) pBase = "zombie female";
+		pBase = g_CharacterType[base-1].pPartsFolder;
 
 		//PE: Only preload from the current selected Type (when changing type we reset release the old textures anyway).
 		if( pestrcasestr(CCP_Type,pBase))
@@ -312,997 +394,6 @@ void charactercreatorplus_preloadallcharacterpartchoices ( void )
 	charactercreatorplus_preloadallcharacterbasedefaults();
 	image_preload_files_finish();
 	// object_preload_files_finish(); //PE: Disable until thread safe.
-}
-
-void charactercreatorplus_imgui(void)
-{
-	extern bool bImGuiGotFocus;
-	extern bool bForceKey;
-	extern cstr csForceKey;
-	extern bool bEntity_Properties_Window;
-	bool once_camera_adjust = false;
-	if (g_bCharacterCreatorPlusActivated) 
-	{
-		if (g_CharacterCreatorPlus.bInitialised) 
-		{
-			// handle thread dependent triggers (smooth UI) 
-			charactercreatorplus_waitforpreptofinish();
-
-			// handle in-level visuals
-			if (!bCharObjVisible) 
-			{
-				editoroldmode_f = t.editorfreeflight.mode;
-				editoroldx_f = t.editorfreeflight.c.x_f;
-				editoroldy_f = t.editorfreeflight.c.y_f;
-				editoroldz_f = t.editorfreeflight.c.z_f;
-				editoroldangx_f = t.editorfreeflight.c.angx_f;
-				editoroldangy_f = t.editorfreeflight.c.angy_f;
-
-				ShowObject(iCharObj);
-				bCharObjVisible = true;
-				bForceKey = true;
-				csForceKey = "e";
-
-				t.inputsys.dowaypointview = 1;
-				t.inputsys.domodeentity = 1;
-
-				widget_hide();
-				ebe_hide();
-				terrain_paintselector_hide();
-				t.geditorhighlightingtentityobj = 0;
-				t.geditorhighlightingtentityID = 0;
-				editor_restoreentityhighlightobj();
-				gridedit_clearentityrubberbandlist();
-				waypoint_hideall();
-
-				ccpTargetX = t.editorfreeflight.c.x_f;
-				ccpTargetY = t.editorfreeflight.c.y_f;
-				ccpTargetZ = t.editorfreeflight.c.z_f;
-				ccpTargetAX = t.editorfreeflight.c.angx_f;
-				ccpTargetAY = t.editorfreeflight.c.angy_f;
-
-				float terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ccpTargetX, ccpTargetZ, 1);
-				fCharObjectY = terrain_height;
-				
-				float oangx = ObjectAngleX(iCharObj);
-				float oangz = ObjectAngleZ(iCharObj);
-
-				//PE: a simple z,x mouse from center of screen.
-				float placeatx_f, placeatz_f;
-				extern ImVec2 OldrenderTargetSize;
-				extern ImVec2 OldrenderTargetPos;
-				extern ImVec2 renderTargetAreaSize;
-				extern ImVec2 renderTargetAreaPos;
-				extern bool bWaypointDrawmode;
-
-				ImVec2 vCenterPos = { (OldrenderTargetSize.x*0.5f) + OldrenderTargetPos.x , (OldrenderTargetSize.y*0.45f) + OldrenderTargetPos.y };
-				int omx = t.inputsys.xmouse, omy = t.inputsys.ymouse, oldgridentitysurfacesnap = t.gridentitysurfacesnap, oldonedrag = t.onedrag;;
-				bool owdm = bWaypointDrawmode;
-
-				//Always target terrain only.
-				float RatioX = ((float)GetDisplayWidth() / (float)renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
-				float RatioY = ((float)GetDisplayHeight() / (float)renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-				t.inputsys.xmouse = (vCenterPos.x - renderTargetAreaPos.x) * RatioX;
-				t.inputsys.ymouse = (vCenterPos.y - renderTargetAreaPos.y) * RatioY;
-
-				t.gridentitysurfacesnap = 0; t.onedrag = 0; bWaypointDrawmode = false;
-
-				input_calculatelocalcursor();
-
-				if( !(t.inputsys.picksystemused == 1 || t.inputsys.localcurrentterrainheight_f < 100.0f))
-				{
-					ccpTargetX = t.inputsys.localx_f;
-					ccpTargetZ = t.inputsys.localy_f;
-				}
-
-				t.onedrag = oldonedrag;
-				bWaypointDrawmode = owdm;
-				t.gridentitysurfacesnap = oldgridentitysurfacesnap;
-				t.inputsys.xmouse = omx;
-				t.inputsys.ymouse = omy;
-
-				//Restore real input.
-				input_calculatelocalcursor();
-
-				terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ccpTargetX, ccpTargetZ, 1);
-				fCharObjectY = terrain_height;
-
-				t.editorfreeflight.c.x_f = ccpTargetX;
-				t.editorfreeflight.c.z_f = ccpTargetZ;
-
-				SetObjectToCameraOrientation(iCharObj);
-				PositionObject(iCharObj, ccpTargetX, fCharObjectY, ccpTargetZ);
-				RotateObject(iCharObj, oangx, ObjectAngleY(iCharObj), oangz);
-				MoveObject(iCharObj, 120);
-
-				terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(iCharObj), ObjectPositionZ(iCharObj), 1);
-				fCharObjectY = terrain_height;
-				PositionObject(iCharObj, ObjectPositionX(iCharObj), fCharObjectY, ObjectPositionZ(iCharObj));
-
-				ccpObjTargetX = ObjectPositionX(iCharObj);
-				ccpObjTargetY = ObjectPositionY(iCharObj);
-				ccpObjTargetZ = ObjectPositionZ(iCharObj);
-				ccpObjTargetAX = ObjectAngleX(iCharObj);
-				ccpObjTargetAY = ObjectAngleY(iCharObj);
-				ccpObjTargetAZ = ObjectAngleZ(iCharObj);
-
-				t.editorfreeflight.mode = 1;
-				t.editorfreeflight.c.y_f = fCharObjectY+60;
-				t.editorfreeflight.c.angx_f = 11;
-				t.editorfreeflight.s = t.editorfreeflight.c;
-
-				once_camera_adjust = true;
-
-				// "hide" all entities in map by moving them out the way
-				for (t.tcce = 1; t.tcce <= g.entityelementlist; t.tcce++)
-				{
-					t.tccentid = t.entityelement[t.tcce].bankindex;
-					if (t.tccentid > 0)
-					{
-						t.tccsourceobj = t.entityelement[t.tcce].obj;
-						if (ObjectExist(t.tccsourceobj) == 1)
-						{
-							PositionObject(t.tccsourceobj, 0, 0, 0);
-						}
-					}
-				}
-
-				fCCPRotateY = ccpObjTargetAY = ObjectAngleY(iCharObj);
-				if (fCCPRotateY < 0.0) fCCPRotateY += 360.0;
-				if (fCCPRotateY > 360.0) fCCPRotateY -= 360.0;
-			}
-
-			//Display sky for better look.
-			if (ObjectExist(t.terrain.objectstartindex + 4) == 1)
-			{
-				PositionObject(t.terrain.objectstartindex + 4, CameraPositionX(0), CameraPositionY(0), CameraPositionZ(0));
-				SetAlphaMappingOn(t.terrain.objectstartindex + 4, 100.0*t.sky.alpha1_f);
-				ShowObject(t.terrain.objectstartindex + 4);
-			}
-
-			if (iDelayExecute == 1) 
-			{
-				//PE: Change type.
-				charactercreatorplus_refreshtype();
-				iDelayExecute = 0;
-			}
-			// generate thumbnail
-			if (iDelayThumbs <= 6) 
-			{
-				extern bool g_bNoSwapchainPresent;
-				if (iDelayThumbs == 3)
-				{
-					//We need to move the camera.
-					t.editorfreeflight.mode = 1;
-					oldx_f = t.editorfreeflight.c.x_f;
-					oldy_f = t.editorfreeflight.c.y_f;
-					oldz_f = t.editorfreeflight.c.z_f;
-					oldangx_f = t.editorfreeflight.c.angx_f;
-					oldangy_f = t.editorfreeflight.c.angy_f;
-
-					float new_th = BT_GetGroundHeight(t.terrain.TerrainID, GGORIGIN_X, GGORIGIN_Z, 1);
-					if (new_th < GGORIGIN_Y) new_th = GGORIGIN_Y;
-					PositionObject(iCharObj, 0, new_th, 0);
-					RotateObject(iCharObj, 0, 15, 0);
-
-					t.editorfreeflight.c.x_f = GGORIGIN_X;
-					t.editorfreeflight.c.y_f = new_th + 65.0f;
-					t.editorfreeflight.c.z_f = GGORIGIN_Z - 240;
-					t.editorfreeflight.c.angx_f = 0.0f;
-					t.editorfreeflight.c.angy_f = 0;
-					t.editorfreeflight.s = t.editorfreeflight.c;
-
-					if (ObjectExist(t.terrain.objectstartindex + 4) == 1)
-					{
-						PositionObject(t.terrain.objectstartindex + 4, t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-						SetAlphaMappingOn(t.terrain.objectstartindex + 4, 100.0*t.sky.alpha1_f);
-						ShowObject(t.terrain.objectstartindex + 4);
-					}
-
-					//Remove flicker when generating new thumb.
-					//dont present backbuffer to HWND.
-					g_bNoSwapchainPresent = true; 
-
-					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-
-					// raise ambience for shot
-					for (int iShaderIndex = 0; iShaderIndex < 2; iShaderIndex++)
-					{
-						if (iShaderIndex == 0) t.effectid = g.thirdpersonentityeffect;
-						if (iShaderIndex == 1) t.effectid = g.thirdpersoncharactereffect;
-						if (GetEffectExist(t.effectid) == 1)
-						{
-							SetVector4(g.terrainvectorindex, 0.9f, 0.9f, 0.9f, 1);
-							SetEffectConstantV(t.effectid, "AmbiColorOverride", g.terrainvectorindex);
-							SetVector4(g.terrainvectorindex, 1, 1, 1, 0);
-							SetEffectConstantV(t.effectid, "AmbiColor", g.terrainvectorindex);
-							SetEffectConstantF(t.effectid, "SurfaceSunFactor", 1.0f);
-							SetVector4(g.terrainvectorindex, 1.4f, 1.4f, 1.4f, 0.0f);
-							SetEffectConstantV(t.effectid, "SurfColor", g.terrainvectorindex);
-						}
-					}
-
-					//just reuse this to prevent imgui rendering.
-					extern bool bImGuiInTestGame;
-					bImGuiInTestGame = true; 
-					FastSync();
-					bImGuiInTestGame = false;
-					iDelayThumbs++;
-				}
-				else if (iDelayThumbs == 5) 
-				{
-					// restore ambience for shot
-					for (int iShaderIndex = 0; iShaderIndex < 2; iShaderIndex++)
-					{
-						if (iShaderIndex == 0) t.effectid = g.thirdpersonentityeffect;
-						if (iShaderIndex == 1) t.effectid = g.thirdpersoncharactereffect;
-						if (GetEffectExist(t.effectid) == 1)
-						{
-							SetVector4 (g.terrainvectorindex,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0,t.visuals.AmbienceIntensity_f/255.0 );
-							SetEffectConstantV ( t.effectid,"AmbiColorOverride",g.terrainvectorindex );
-							SetVector4 (g.terrainvectorindex,t.visuals.AmbienceRed_f/255.0,t.visuals.AmbienceGreen_f/255.0,t.visuals.AmbienceBlue_f/255.0,0 );
-							SetEffectConstantV ( t.effectid,"AmbiColor",g.terrainvectorindex );
-							SetVector4 (  g.terrainvectorindex,t.visuals.SurfaceRed_f/255.0,t.visuals.SurfaceGreen_f/255.0,t.visuals.SurfaceBlue_f/255.0, 0.0f );
-							SetEffectConstantV (  t.effectid,"SurfColor",g.terrainvectorindex );
-							SetEffectConstantF ( t.effectid,"SurfaceSunFactor",t.visuals.SurfaceSunFactor_f );
-						}
-					}
-
-					//Restore camera.
-					t.editorfreeflight.c.x_f = oldx_f;
-					t.editorfreeflight.c.y_f = oldy_f;
-					t.editorfreeflight.c.z_f = oldz_f;
-					t.editorfreeflight.c.angx_f = oldangx_f;
-					t.editorfreeflight.c.angy_f = oldangy_f;
-
-					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-					PositionObject(iCharObj, ccpObjTargetX, ccpObjTargetY, ccpObjTargetZ);
-					RotateObject(iCharObj, ccpObjTargetAX, ccpObjTargetAY, ccpObjTargetAZ);
-
-					//Delayed  hide waypoints , as selecting entity mode will enable it.
-					waypoint_hideall();
-					t.inputsys.dowaypointview = 1;
-
-					// delete previous thumbnail
-					if (GetImageExistEx(g.importermenuimageoffset + 50))
-					{
-						DeleteImage(g.importermenuimageoffset + 50);
-					}
-
-					// we can't grab from the backbuffer when we use a camera image.
-					extern DBPRO_GLOBAL CCameraManager m_CameraManager;
-					DBPRO_GLOBAL tagCameraData* m_mycam;
-					m_mycam = m_CameraManager.GetData(0);
-					// are we prepared for V3 to use larger thumbnails (i.e. 128x128)? //PE: Sure, also a must for HDPI (modern laptops).
-					float thumbnail_dimension = 64;
-					if (m_mycam) 
-					{
-						extern GlobStruct* g_pGlob;
-						LPGGSURFACE	pTmpSurface = g_pGlob->pCurrentBitmapSurface;
-
-						//PE: Disabled until it works.
-						//@Lee this seams to work as it should, but backbuffer is always Black ?
-						wiRenderer::GetDevice()->WaitForGPU();
-						ID3D11Texture2D *pBackBuffer = (ID3D11Texture2D *) wiRenderer::GetDevice()->GetBackBufferForGG( &master.swapChain );
-						g_pGlob->pCurrentBitmapSurface = pBackBuffer;
-
-						//PE: TODO this should be in percent , or atleast be based on the backbuffer size ?
-						float fHalfThumb = (thumbnail_dimension*0.5);
-						float fCamWidth = m_mycam->viewPort3D.Width*0.5;
-						float fCamHeight = m_mycam->viewPort3D.Height*0.5;
-						ImVec2 grab = ImVec2(fCamWidth, fCamHeight);
-						grab.x += 130.0f;
-						grab.x += 98.0f;
-						grab.y += 80.0f;
-						iThumbsOffsetY = 0.0f;
-						grab.y -= 10.0f;
-						grab.y += iThumbsOffsetY;
-						SetGrabImageMode(1);
-						GrabImage(g.importermenuimageoffset + 50, grab.x - fHalfThumb, grab.y - fHalfThumb, grab.x + fHalfThumb, grab.y + fHalfThumb);
-						SetGrabImageMode(0);
-
-						g_pGlob->pCurrentBitmapSurface = pTmpSurface;
-					}
-					iDelayThumbs++;
-				}
-				else if (iDelayThumbs == 6)
-				{
-					// final stage
-					//reenable backbuffer to hwnd
-					g_bNoSwapchainPresent = false; 
-					iDelayThumbs++;
-				}
-				else
-				{
-					iDelayThumbs++;
-				}
-			}
-
-			// handle preparing of animation data
-			if (g_bCharacterCreatorPrepAnims == true)
-			{		
-				int iUseDefaultNonCombatAnimations = 1;  // AdultMale/Femalebydefault
-				if (stricmp(CCP_Type, "zombie male") == NULL) iUseDefaultNonCombatAnimations = 2;
-				extern void animsystem_prepareobjectforanimtool(int objectnumber, int iUseDefaultNonCombatAnimations);
-				animsystem_prepareobjectforanimtool(iCharObj, iUseDefaultNonCombatAnimations);
-				g_bCharacterCreatorPrepAnims = false;
-			}
-
-			//Enable this to disable all movement ... when g_bCharacterCreatorPlusActivated
-			extern int iGenralWindowsFlags;
-			ImGui::Begin("Character Creator##PropertiesWindow", &g_bCharacterCreatorPlusActivated, iGenralWindowsFlags);
-
-			if (once_camera_adjust)
-			{
-				extern ImVec2 OldrenderTargetSize;
-				extern ImVec2 OldrenderTargetPos;
-				extern ImVec2 renderTargetAreaSize;
-				PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-				RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-
-				float camxadjust = renderTargetAreaSize.x - (ImGui::GetWindowPos().x - OldrenderTargetPos.x);
-				if (camxadjust > 100.0f && camxadjust < GetDisplayWidth()) 
-				{
-					camxadjust -= 100.0;
-					camxadjust *= 0.068;
-					MoveCameraLeft(g_pGlob->dwCurrentSetCameraID, -camxadjust);
-					t.editorfreeflight.c.x_f = CameraPositionX();
-					t.editorfreeflight.c.z_f = CameraPositionZ();;
-				}
-				once_camera_adjust = false;
-			}
-			int media_icon_size = 64;
-			float col_start = 80.0f;
-			ImGui::PushItemWidth(ImGui::GetFontSize()*10.0);
-
-			if (ImGui::StyleCollapsingHeader("Name And Type", ImGuiTreeNodeFlags_DefaultOpen)) 
-			{
-				float w = ImGui::GetWindowContentRegionWidth();
-				ImGui::Indent(10);
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 13));
-				ImGui::Text("Name");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				ImGui::PushItemWidth(-10);
-
-				ImGui::InputText("##NameCCP", &CCP_Name[0], 250);
-				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Character Name");
-
-				ImGui::PopItemWidth();
-
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Type");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-				const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" };
-
-				int item_current_type_selection = 0;
-				for (int i = 0; i < 4; i++) 
-				{
-					if (pestrcasestr(CCP_Type, items[i])) 
-					{
-						item_current_type_selection = i;
-						break;
-					}
-				}
-
-				ImGui::PushItemWidth(-10);
-				if (ImGui::Combo("##TypeCCP", &item_current_type_selection, items, IM_ARRAYSIZE(items)))
-				{
-					strcpy(CCP_Type, items[item_current_type_selection]);
-					iThumbsOffsetY = 0;
-					if (item_current_type_selection == 2 || item_current_type_selection == 3) iThumbsOffsetY = 50;
-					iDelayExecute = 1;
-					DisplaySmallImGuiMessage("Loading ...");
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Character Type");
-
-				ImGui::PopItemWidth();
-
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 8)); //3
-
-				ImGui::Indent(-10);
-			}
-
-			if (ImGui::StyleCollapsingHeader("Customize", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				static std::map<std::string, std::string> CharacterCreatorCurrent_s;
-				static std::map<std::string, std::string> CharacterCreatorCurrentAnnotated_s;	
-				static std::map<std::string, std::string> CharacterCreatorCurrentAnnotatedTag_s;		
-				cstr field_name;
-				char* combo_buffer = NULL;
-				char* combo_annotated_buffer = NULL;
-				int part_number = 0;
-				for (int part_loop = 0; part_loop < 8; part_loop++) 
-				{
-					if (part_loop == 0)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorHeadGear_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedHeadGear_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagHeadGear_s;
-						field_name = "Head Gear";
-						LPSTR pAnnotatedLabel = "None";
-						if ( strnicmp (cSelectedHeadGear, "None", 4)!=NULL ) pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedHeadGear);
-						combo_buffer = cSelectedHeadGear;
-						combo_annotated_buffer = pAnnotatedLabel;
-						part_number = part_loop;
-					}
-					if (part_loop == 1)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorHair_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedHair_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagHair_s;
-						field_name = "Hair";
-						LPSTR pAnnotatedLabel = "None";
-						if (strnicmp(cSelectedHair, "None", 4) != NULL) pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedHair);
-						combo_buffer = cSelectedHair;
-						combo_annotated_buffer = pAnnotatedLabel;
-						part_number = part_loop;
-					}
-					if (part_loop == 2)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorHead_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedHead_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagHead_s;
-						field_name = "Head";
-						LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedHead);
-						combo_buffer = cSelectedHead;
-						combo_annotated_buffer = pAnnotatedLabel;
-						part_number = part_loop;
-					}
-					if (part_loop == 3)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorEyeglasses_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedEyeglasses_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagEyeglasses_s;
-						field_name = "Wearing";
-						LPSTR pAnnotatedLabel = "None";
-						if (strnicmp(cSelectedEyeglasses, "None", 4) != NULL) pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedEyeglasses);
-						combo_buffer = cSelectedEyeglasses;
-						combo_annotated_buffer = pAnnotatedLabel;
-						part_number = part_loop;
-					}
-					if (part_loop == 4)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorFacialHair_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedFacialHair_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagFacialHair_s;
-						field_name = "Facial Hair";
-						LPSTR pAnnotatedLabel = "None";
-						if (strnicmp(cSelectedFacialHair, "None", 4) != NULL) pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedFacialHair);
-						combo_buffer = cSelectedFacialHair;
-						combo_annotated_buffer = pAnnotatedLabel;
-						part_number = part_loop;
-					}
-					if (part_loop == 5)
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorBody_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedBody_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagBody_s;
-						field_name = "Body";
-						LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedBody); 
-						combo_buffer = cSelectedBody;
-						combo_annotated_buffer = pAnnotatedLabel;						
-						part_number = part_loop;
-					}
-					if (part_loop == 6) 
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorLegs_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedLegs_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagLegs_s;
-						field_name = "Legs";
-						// before allowng selected legs through, check they comply with our cSelectedLegsFilter filter
-						bool bAllow = false;
-						LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedLegs); 
-						if (strlen(cSelectedLegsFilter) == 0 && strnicmp ( cSelectedLegs + strlen(cSelectedLegs) - 2, "01", 2 ) != NULL) bAllow = true;
-						if (strlen(cSelectedLegsFilter) > 0 && pAnnotatedLabel && strstr(pAnnotatedLabel, cSelectedLegsFilter) != NULL) bAllow = true;
-						if ( bAllow == true )
-						{
-							// no filter so allow, or filter matches, so also allow
-						}
-						else
-						{
-							// this current legs selection no longer matches filter, so change to one that does
-							// starting with the top-most item and working down
-							std::map<std::string, std::string>::iterator annotated = CharacterCreatorCurrentAnnotated_s.begin(); 
-							for (std::map<std::string, std::string>::iterator it = CharacterCreatorCurrent_s.begin(); it != CharacterCreatorCurrent_s.end(); ++it)
-							{
-								std::string thisname = it->first;
-								std::string thistag = annotated->second;
-								bool bThisAllow = false;
-								LPSTR pThisName = (char*)thisname.c_str();
-								if (strlen(cSelectedLegsFilter) == 0 && strnicmp ( pThisName + strlen(pThisName) - 2, "01", 2 ) != NULL) bThisAllow = true;
-								if (strlen(cSelectedLegsFilter) > 0 && strstr(thistag.c_str(), cSelectedLegsFilter) != NULL) bThisAllow = true;
-								if ( bThisAllow == true )
-								{
-									// found first (or one matching the filter)
-									strcpy(cSelectedLegs, thisname.c_str());
-									strcpy(cSelectedFeetFilter, "");
-									g_bLegsChangeCascade = true;
-									g_bFeetChangeCascade = true;
-									break;
-								}
-								annotated++;
-							}
-							pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedLegs);
-						}
-						// continue with selected legs as normal now
-						combo_buffer = cSelectedLegs;
-						combo_annotated_buffer = pAnnotatedLabel;						
-						part_number = part_loop;
-					}
-					if (part_loop == 7) 
-					{
-						CharacterCreatorCurrent_s = CharacterCreatorFeet_s;
-						CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedFeet_s;
-						CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagFeet_s;
-						field_name = "Feet";
-						// before allowng selected feet through, check they comply with our filter
-						bool bAllow = false;
-						LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedFeet);
-						LPSTR pAnnotatedLabelTag = charactercreatorplus_findannotationtag(cSelectedFeet); 
-						if (strlen(cSelectedFeetFilter) == 0 && (pAnnotatedLabelTag==NULL || strlen(pAnnotatedLabelTag) == 0) ) bAllow = true;
-						if (strlen(cSelectedFeetFilter) > 0 && pAnnotatedLabelTag && strstr(pAnnotatedLabelTag, cSelectedFeetFilter) != NULL) bAllow = true;
-						if ( bAllow == true )
-						{
-							// no filter so allow, or filter matches, so also allow
-						}
-						else
-						{
-							// this current feet selection no longer matches filter, so change to one that does
-							// starting with the top-most item and working down
-							std::map<std::string, std::string>::iterator annotatedtag = CharacterCreatorCurrentAnnotatedTag_s.begin(); 
-							for (std::map<std::string, std::string>::iterator it = CharacterCreatorCurrent_s.begin(); it != CharacterCreatorCurrent_s.end(); ++it)
-							{
-								std::string thisname = it->first;
-								std::string thistag = annotatedtag->second;
-								bool bThisAllow = false;
-								LPSTR pThisName = (char*)thisname.c_str();
-								if (strlen(cSelectedFeetFilter) == 0 && strlen(thistag.c_str())==0) bThisAllow = true;
-								if (strlen(cSelectedFeetFilter) > 0 && strstr(thistag.c_str(), cSelectedFeetFilter) != NULL) bThisAllow = true;
-								if ( bThisAllow == true )
-								{
-									// found first (or one matching the filter)
-									strcpy(cSelectedFeet, thisname.c_str());
-									g_bFeetChangeCascade = true;
-									break;
-								}
-								annotatedtag++;
-							}
-							pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedFeet);
-						}
-						combo_buffer = cSelectedFeet;
-						combo_annotated_buffer = pAnnotatedLabel;						
-						part_number = part_loop;
-					}
-					if (!CharacterCreatorCurrent_s.empty() && CharacterCreatorCurrent_s.size()>1) 
-					{
-						ImGui::Indent(10);
-
-						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-						ImGui::Text(field_name.Get());
-						ImGui::SameLine();
-						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-
-						ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-
-						float Color_gadget_size = ImGui::GetFontSize()*2.0;
-
-						ImGui::PushItemWidth(-10);
-
-						cstr unique_label = "##CCP";
-						unique_label += field_name;
-						if (ImGui::BeginCombo(unique_label.Get(), combo_annotated_buffer)) // The second parameter is the label previewed before opening the combo.
-						{
-							std::map<std::string, std::string>::iterator annotated = CharacterCreatorCurrentAnnotated_s.begin(); 
-							std::map<std::string, std::string>::iterator annotatedtag = CharacterCreatorCurrentAnnotatedTag_s.begin(); 
-							for (std::map<std::string, std::string>::iterator it = CharacterCreatorCurrent_s.begin(); it != CharacterCreatorCurrent_s.end(); ++it)
-							{
-								std::string full_path = it->second;
-								std::string name = it->first;
-
-								// only allow if part has no filter or filter within name
-								bool bThisAllow = false;
-								if (part_number == 6 || part_number == 7)
-								{
-									LPSTR pThisName = (char*)name.c_str();
-									if (part_number == 6)
-									{
-										// only allow specific legs
-										LPSTR pThisAnnotatedName = (char*)annotated->second.c_str();
-										if (strlen(cSelectedLegsFilter) == 0 && strnicmp(pThisName + strlen(pThisName) - 2, "01", 2) != NULL) bThisAllow = true;
-										if (strlen(cSelectedLegsFilter) > 0 && strstr(pThisAnnotatedName, cSelectedLegsFilter) != NULL) bThisAllow = true;
-									}
-									if (part_number == 7)
-									{
-										// only allow specific feet
-										LPSTR pThisAnnotatedTagName = (char*)annotatedtag->second.c_str();
-										if (strlen(cSelectedFeetFilter) == 0 && (strlen(pThisAnnotatedTagName) == 0 )) bThisAllow = true;
-										if (strlen(cSelectedFeetFilter) > 0 && strstr(pThisAnnotatedTagName, cSelectedFeetFilter) != NULL) bThisAllow = true;
-									}
-								}
-								else
-								{
-									// all other parts have a free pass!
-									bThisAllow = true;
-								}
-								if (bThisAllow == true)
-								{
-									// mark the one selected
-									bool is_selected = false;
-									if (strcmp(name.c_str(), combo_buffer) == 0)
-										is_selected = true;
-
-									// the label we see
-									std::string annotated_label = annotated->second;
-									std::string annotatedtag_label = annotatedtag->second;
-
-									// when something selected
-									if (ImGui::Selectable(annotated_label.c_str(), is_selected))
-									{
-										// we need to wait for any previously requested preloads to exist before we can go on to make the character
-										object_preload_files_wait(); // dont need to wait for image preload, image preload is thread safe and can overlap normal DX operations
-										// Change Character. full_path.c_str()
-										strcpy(combo_buffer, name.c_str());
-										// instead of instant change, record change we want and fire off some preloads for smooth UI
-										charactercreatorplus_preparechange((char *)full_path.c_str(), part_number, (char *)annotatedtag_label.c_str());
-										if (part_number == 2)
-										{
-											// and set the IC for reference when its time to save the character assembly info
-											strcpy(cSelectedICCode, (char *)annotatedtag_label.c_str());
-										}
-										if (part_number == 5)
-										{
-											// if body requires NO LEGS (or something else), set this condition for other dropdowns
-											// and force any current legs to conform
-											strcpy(cSelectedLegsFilter, (char *)annotatedtag_label.c_str());
-										}
-										if (part_number == 6)
-										{
-											// if legs requires NO FEET (or something else), set this condition for other dropdowns
-											// and force any current feet to conform
-											strcpy(cSelectedFeetFilter, (char *)annotatedtag_label.c_str());
-										}
-									}
-									if (is_selected)
-										ImGui::SetItemDefaultFocus();
-								}
-
-								// advance annotated list with real item list
-								annotated++;
-								annotatedtag++;
-							}
-							ImGui::EndCombo();
-						}
-
-						if (ImGui::IsItemHovered()) 
-						{
-							cstr unique_tooltip = "Select Character ";
-							unique_tooltip += field_name;
-							ImGui::SetTooltip(unique_tooltip.Get());
-						}
-
-						ImGui::PopItemWidth();
-						ImGui::Indent(-10);
-
-						// also update character during a cascade (body changes legs, which changes feet)
-						if ((g_bLegsChangeCascade == true || g_bFeetChangeCascade == true) && g_charactercreatorplus_preloading == false)
-						{
-							// and ensure all thread activity ends before we push this (or it may delay long enough to change base type again!)
-							image_preload_files_wait();
-							object_preload_files_wait();
-
-							// a faster single pass option
-							std::map<std::string, std::string>::iterator it = CharacterCreatorCurrent_s.begin();
-							std::string full_path = it->second;
-							charactercreatorplus_preparechange((char*)full_path.c_str(), 67, "");
-							g_bLegsChangeCascade = false;
-							g_bFeetChangeCascade = false;
-						}
-						CharacterCreatorCurrent_s.clear();
-					}
-				}
-
-				//	Rotate the character.
-				ImGui::TextCenter("Rotate");
-				ImGui::Indent(10.0f);
-				if (ImGui::MaxSliderInputFloat("##CharacterRotation", &fCCPRotateY, 0.0f, 360.0f, "Rotate Character", 0.0f, 360.0f))
-				{
-					RotateObject(iCharObj, ObjectAngleX(iCharObj), fCCPRotateY, ObjectAngleZ(iCharObj));
-					ccpObjTargetAY = fCCPRotateY;
-				}
-				ImGui::Indent(-10.0f);
-
-			}
-
-			extern void animsystem_animationtoolui(int objectnumber);
-			animsystem_animationtoolui(iCharObj);
-
-			if (ImGui::StyleCollapsingHeader("Character Details", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				ImGui::Indent(10);
-
-				// Voive Set
-				if (g_voiceList_s.size() > 0) 
-				{
-					//Only if we actually have sapi and a installed lang pack.
-					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-					ImGui::Text("Voice");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-					//Combo
-					ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-					ImGui::PushItemWidth(-10);
-					if (ImGui::BeginCombo("##SelectVoiceCCP", pCCPVoiceSet)) // The second parameter is the label previewed before opening the combo.
-					{
-						int size = g_voiceList_s.size();
-						for (int vloop = 0; vloop < size; vloop++) {
-
-							bool is_selected = false;
-							if (strcmp(g_voiceList_s[vloop].Get(), pCCPVoiceSet) == 0)
-								is_selected = true;
-
-							if (ImGui::Selectable(g_voiceList_s[vloop].Get(), is_selected)) {
-								//Change Voice set
-								pCCPVoiceSet = g_voiceList_s[vloop].Get();
-								CCP_SelectedToken = g_voicetoken[vloop];
-							}
-							if (is_selected)
-								ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Voice Set");
-					ImGui::PopItemWidth();
-				}
-
-				//unindent before center.
-				ImGui::Indent(-10); 
-			}
-
-			if (ImGui::StyleCollapsingHeader("Save Character", ImGuiTreeNodeFlags_DefaultOpen))
-			{
-				ImGui::Indent(10);
-
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Path");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
-
-				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-
-				float path_gadget_size = ImGui::GetFontSize()*2.0;
-
-				ImGui::PushItemWidth(-10 - path_gadget_size);
-
-				ImGui::InputText("##InputPathCCP", &CCP_Path[0], 250);
-				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-
-				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Where to Save Your Character");
-
-				ImGui::PopItemWidth();
-				//	Let the user know they set an invalid save file path.
-				if (ImGui::BeginPopup("##CCPInvalidSavePath"))
-				{
-					ImGui::Text("Path must be within 'Max\\Files\\entitybank\\user\\'");
-					ImGui::EndPopup();
-				}
-
-				ImGui::SameLine();
-				ImGui::PushItemWidth(path_gadget_size);
-				if (ImGui::StyleButton("...##ccppath"))
-				{
-					//PE: filedialogs change dir so.
-					cStr tOldDir = GetDir();
-					char * cFileSelected;
-					cstr fulldir = tOldDir + "\\entitybank\\user\\"; //"\\entitybank\\user\\charactercreatorplus\\";
-					cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", fulldir.Get(), "", true, NULL);
-
-					SetDir(tOldDir.Get());
-
-					if (cFileSelected && strlen(cFileSelected) > 0) 
-					{
-						//	Check that the new path still contains the entitybank folder.
-						char* cCropped = strstr(cFileSelected, "\\entitybank\\user");
-						if (cCropped)
-						{
-							//	New location contains entitybank folder, so change the import path.
-							strcpy(CCP_Path, cFileSelected);
-						}
-						else
-						{
-							ImGui::OpenPopup("##CCPInvalidSavePath");
-						}
-					}
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Where to Save Your Character");
-
-				ImGui::PopItemWidth();
-
-				ImGui::Indent(-10); //unindent before center.
-				float save_gadget_size = ImGui::GetFontSize()*10.0;
-				float w = ImGui::GetWindowContentRegionWidth();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (save_gadget_size*0.5), 0.0f));
-
-				if (ImGui::StyleButton("Save Character##butsave", ImVec2(save_gadget_size, 0)))
-				{
-					// if free trial, no import
-					extern bool g_bFreeTrialVersion;
-					if (g_bFreeTrialVersion == true)
-					{
-						extern bool bFreeTrial_Window;
-						bFreeTrial_Window = true;
-					}
-					else
-					{
-						if (strlen(CCP_Name) > 0)
-						{
-							if (strlen(CCP_Path) > 0)
-							{
-								// save character FPE
-								g_CharacterCreatorPlus.obj.settings.script_s = CCP_Script;
-								g_CharacterCreatorPlus.obj.settings.voice_s = pCCPVoiceSet;
-								g_CharacterCreatorPlus.obj.settings.iSpeakRate = CCP_Speak_Rate;
-								int iCharObj = g.characterkitobjectoffset + 1;
-								cstr pFillFilename = cstr(CCP_Path) + CCP_Name + ".dbo";
-								if (charactercreatorplus_savecharacterentity (iCharObj, pFillFilename.Get(), g.importermenuimageoffset + 50) == true)
-								{
-									strcpy(cTriggerMessage, "Character Saved");
-									bTriggerMessage = true;
-
-									extern cstr sGotoPreviewWithFile;
-									extern int iGotoPreviewType;
-									sGotoPreviewWithFile = cstr(CCP_Path) + CCP_Name + ".fpe";
-									char sTmp[MAX_PATH];
-									strcpy(sTmp, sGotoPreviewWithFile.Get());
-									char *find = (char *)pestrcasestr(sTmp, "entitybank\\");
-									if (find && find != &sTmp[0]) strcpy(sTmp, find);
-									sGotoPreviewWithFile = sTmp;
-									//Only trigger if destination contain entitybank.
-									if (find)
-									{
-										//Exit ccp. and open preview.
-										g_bCharacterCreatorPlusActivated = false;
-										iGotoPreviewType = 1;
-									}
-									else
-										sGotoPreviewWithFile = "";
-								}
-							}
-							else
-							{
-								strcpy(cTriggerMessage, "Please select a path where you like the character saved.");
-								bTriggerMessage = true;
-							}
-						}
-						else
-						{
-							strcpy(cTriggerMessage, "You must give your character a name before you can save it.");
-							bTriggerMessage = true;
-						}
-					}
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Save Your Character");
-			}
-
-			if (!pref.bHideTutorials)
-			{
-				#ifndef REMOVED_EARLYACCESS
-				if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-					void SmallTutorialVideo(char *tutorial, char* combo_items[] = NULL, int combo_entries = 0, int iVideoSection = 0, bool bAutoStart = false);
-					cstr cShowTutorial = "03 - Add character and set a path";
-					char* tutorial_combo_items[] = { "01 - Getting started", "02 - Creating terrain", "03 - Add character and set a path" };
-					SmallTutorialVideo(cShowTutorial.Get(), tutorial_combo_items, ARRAYSIZE(tutorial_combo_items), SECTION_CHARACTER_CREATOR);
-					float but_gadget_size = ImGui::GetFontSize()*12.0;
-					float w = ImGui::GetWindowContentRegionWidth() - 10.0;
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-					#ifdef INCLUDESTEPBYSTEP
-					if (ImGui::StyleButton("View Step by Step Tutorial", ImVec2(but_gadget_size, 0)))
-					{
-						// pre-select tutorial 03
-						extern bool bHelpVideo_Window;
-						extern bool bHelp_Window;
-						extern char cForceTutorialName[1024];
-						bHelp_Window = true;
-						bHelpVideo_Window = true;
-						extern bool bSetTutorialSectionLeft;
-						bSetTutorialSectionLeft = false;
-						strcpy(cForceTutorialName, cShowTutorial.Get());
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Start Step by Step Tutorial");
-					#endif
-					ImGui::Indent(-10);
-				}
-				#endif
-			}
-
-			// insert a keyboard shortcut component into panel
-			UniversalKeyboardShortcut(eKST_CharacterCreator);
-
-			ImGui::PopItemWidth();
-
-			void CheckMinimumDockSpaceSize(float minsize);
-			CheckMinimumDockSpaceSize(250.0f);
-
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
-			{
-				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
-				ImGui::Text("");
-				ImGui::Text("");
-			}
-
-			ImGui::End();
-		}
-	}
-	else 
-	{
-		if ( g_CharacterCreatorPlus.bInitialised ) 
-		{
-			//Make sure we hide ccp
-			if (bCharObjVisible && ObjectExist(iCharObj)) 
-			{
-				extern bool g_bShowBones;
-				g_bShowBones = false;
-				wiRenderer::SetToDrawDebugBoneLines(g_bShowBones);
-				//ccp is only hidden so you still se bones, if going to the importer and enable bones, so move it out of the way.
-				PositionObject(iCharObj, 500000, 500000, 500000);
-
-				// first, erase preloaded files we dont need any more (and load in basics for when return to CCP)
-				image_preload_files_reset();
-				object_preload_files_wait(); // If it is still working on loading, it will crash when data is reset.
-				object_preload_files_reset();
-				charactercreatorplus_preloadinitialcharacter();
-
-				// hide character creator model
-				HideObject(iCharObj);
-				bCharObjVisible = false;
-
-				t.inputsys.dowaypointview = 0;
-
-				//Restore.
-				waypoint_restore();
-
-				t.gridentityhidemarkers = 0;
-				editor_updatemarkervisibility();
-				editor_refresheditmarkers();
-
-				//  put all entities back where they were
-				for (t.tcce = 1; t.tcce <= g.entityelementlist; t.tcce++)
-				{
-					t.tccentid = t.entityelement[t.tcce].bankindex;
-					if (t.tccentid > 0)
-					{
-						t.tccsourceobj = t.entityelement[t.tcce].obj;
-						if (ObjectExist(t.tccsourceobj) == 1)
-						{
-							PositionObject(t.tccsourceobj, t.entityelement[t.tcce].x, t.entityelement[t.tcce].y, t.entityelement[t.tcce].z);
-						}
-					}
-				}
-
-				//Restore editor camera.
-				if (editoroldx_f != 0) //PE: Somehow editoroldx_f was 0 ?
-				{
-					t.editorfreeflight.mode = editoroldmode_f;
-					t.editorfreeflight.c.x_f = editoroldx_f;
-					t.editorfreeflight.c.y_f = editoroldy_f;
-					t.editorfreeflight.c.z_f = editoroldz_f;
-					t.editorfreeflight.c.angx_f = editoroldangx_f;
-					t.editorfreeflight.c.angy_f = editoroldangy_f;
-					PositionCamera(t.editorfreeflight.c.x_f, t.editorfreeflight.c.y_f, t.editorfreeflight.c.z_f);
-					RotateCamera(t.editorfreeflight.c.angx_f, t.editorfreeflight.c.angy_f, 0);
-				}
-			}
-		}
-	}
 }
 
 void charactercreatorplus_preparechange(char *path, int part, char* tag)
@@ -2050,11 +1141,21 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 
 	// Store the choices for each character so that they can be remembered after the user switches base type.
 	if (stricmp(CCP_Type, "Adult Male") == NULL)
+	{
 		charactercreatorplus_copyselections(g_maleStorage);
+	}
 	else if (stricmp(CCP_Type, "Adult Female") == NULL)
+	{
 		charactercreatorplus_copyselections(g_femaleStorage);
+	}
 	else if (stricmp(CCP_Type, "Zombie") == NULL)
+	{
 		charactercreatorplus_copyselections(g_zombieStorage);
+	}
+	else
+	{
+		charactercreatorplus_copyselections(g_genericStorage);
+	}
 
 	if ((part == 0 || part == 2) && g_pLastHeadgearAutoSwap)
 	{
@@ -2217,6 +1318,18 @@ void charactercreatorplus_extractpartnumberandvariation(const char* source, char
 		
 		strcpy(number, temp);
 	}
+}
+
+int GetBaseValueFromCCPType(LPSTR pCCP_Type)
+{
+	for (int n = 0; n < g_CharacterType.size(); n++)
+	{
+		if (stricmp (pCCP_Type, g_CharacterType[n].pPartsFolder) == NULL)
+		{
+			return 1 + n;
+		}
+	}
+	return 1;
 }
 
 void charactercreatorplus_refreshtype(void)
@@ -2518,7 +1631,7 @@ void charactercreatorplus_refreshtype(void)
 	SetDir(olddir_s.Get());
 
 	// if have default selection, set the choices to those
-	int iBase = 1;
+	int iBase = 0;
 	std::array<std::string, 8>* storage = nullptr;
 	if (stricmp(CCP_Type, "adult male") == NULL)
 	{
@@ -2547,6 +1660,21 @@ void charactercreatorplus_refreshtype(void)
 		if (g_zombieStorage[0].length() > 0)
 			storage = &g_zombieStorage;
 		g_fCCPZoom = 67.0f;
+	}
+	if (iBase == 0)
+	{
+		// search for custom char type
+		iBase = GetBaseValueFromCCPType(CCP_Type);
+		if (iBase > 0)
+		{
+			if (g_genericStorage[0].length() > 0)
+				storage = &g_genericStorage;
+			g_fCCPZoom = 67.0f;
+		}
+		else
+		{
+			iBase = 1;
+		}
 	}
 	if (!storage)
 	{
@@ -2672,11 +1800,12 @@ void charactercreatorplus_refreshtype(void)
 	char pDefaultFacialHairVariant[32] = { 0 };
 	
 	// Need to add default headgear, glasses and facial hair.
-	iBase = 1;
+	iBase = 0;
 	if (stricmp(CCP_Type, "adult male") == NULL) iBase = 1;
 	if (stricmp(CCP_Type, "adult female") == NULL) iBase = 2;
 	if (stricmp(CCP_Type, "zombie male") == NULL) iBase = 3;
 	if (stricmp(CCP_Type, "zombie female") == NULL) iBase = 4;
+	if (iBase == 0)	iBase = GetBaseValueFromCCPType(CCP_Type);
 	if (!storage)
 	{
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 1, pPartNumStr, pPartNumVariantStr);
@@ -2972,6 +2101,9 @@ void charactercreatorplus_init(void)
 	// Initialisation prompt 
 	timestampactivity ( 0, "Start character creator plus initialisation" );
 	g_CharacterCreatorPlus.bInitialised = true;
+
+	// grab all char types from parts folder
+	charactercreatorplus_populatechartypes();
 
 	// create voice list for choices
 	pCCPVoiceSet = "";
@@ -3655,7 +2787,15 @@ void charactercreatorplus_initautoswaps()
 	{
 		strcpy(newDirectory, "charactercreatorplus\\parts\\zombie female");
 	}
-
+	else
+	{
+		int iBaseValue = GetBaseValueFromCCPType(CCP_Type);
+		if (iBaseValue > 1)
+		{
+			strcpy(newDirectory, "charactercreatorplus\\parts\\");
+			strcat(newDirectory, g_CharacterType[iBaseValue-1].pPartsFolder);
+		}
+	}
 	if (strlen(newDirectory) > 0)
 	{
 		SetDir(newDirectory);
@@ -3991,7 +3131,7 @@ void charactercreatorplus_imgui_v3(void)
 
 				cstr check = "";
 				int roomID = 0;
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < g_CharacterType.size(); i++)
 				{
 					if (i == 0)
 						check = "adult male";
@@ -3999,9 +3139,16 @@ void charactercreatorplus_imgui_v3(void)
 						check = "adult female";
 					else if (i == 2)
 						check = "zombie male";
-					else
+					else if (i == 3)
 						check = "zombie female";
-					
+					else
+					{
+						if (i < g_CharacterType.size())
+						{
+							check = g_CharacterType[i].pPartsFolder;
+						}
+					}
+
 					if (stricmp(CCP_Type, check.Get()) == 0)
 					{
 						roomID = i;
@@ -4016,27 +3163,9 @@ void charactercreatorplus_imgui_v3(void)
 				RotateObject(iDressRoom, oangx, dressroomTargetAY, oangz);
 				MoveObject(iDressRoom, 150);
 				ShowObject(iDressRoom);
-				PositionObject(iDressRoom, ObjectPositionX(iDressRoom), fCharObjectY - g_fLockerRoomOffset, ObjectPositionZ(iDressRoom));
-				
+				PositionObject(iDressRoom, ObjectPositionX(iDressRoom), fCharObjectY - g_fLockerRoomOffset, ObjectPositionZ(iDressRoom));		
 				RotateObject(iCharObj, ObjectAngleX(iCharObj), fCCPRotateY, ObjectAngleZ(iCharObj));
-				
-				
 			}
-
-			//if(1)
-			//{
-				////Freeze camera
-				//PositionCamera(fFreezeCamX, fFreezeCamY, fFreezeCamZ);
-				//RotateCamera(fFreezeCamAX, fFreezeCamAY, fFreezeCamAZ);
-				////No changes allowed.
-				//t.cameraviewmode = 9; //No mode.
-				//t.editorfreeflight.mode = 1;
-				//t.editorfreeflight.c.x_f = fFreezeCamX;
-				//t.editorfreeflight.c.y_f = fFreezeCamY;
-				//t.editorfreeflight.c.z_f = fFreezeCamZ;
-				//t.editorfreeflight.c.angx_f = fFreezeCamAX;
-				//t.editorfreeflight.c.angy_f = fFreezeCamAY;
-			//}
 		
 			//Display sky for better look.
 			if (ObjectExist(t.terrain.objectstartindex + 4) == 1)
@@ -4130,11 +3259,28 @@ void charactercreatorplus_imgui_v3(void)
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
 				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
 
-				const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" };
-
-				for (int i = 0; i < IM_ARRAYSIZE(items) ; i++)
+				//const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" }; 
+				static int g_chartypes_item_count = 0;
+				static char** g_chartypes_items = NULL;
+				if (g_chartypes_item_count != g_CharacterType.size())
 				{
-					if (pestrcasestr(CCP_Type, items[i]))
+					if (g_chartypes_items)
+					{
+						for (int i = 0; i < g_chartypes_item_count; i++) SAFE_DELETE(g_chartypes_items[i]);
+						SAFE_DELETE(g_chartypes_items);
+					}
+					g_chartypes_item_count = g_CharacterType.size();
+					g_chartypes_items = new char* [g_chartypes_item_count];
+					for (int i = 0; i < g_chartypes_item_count; i++)
+					{
+						g_chartypes_items[i] = new char[256];
+						strcpy(g_chartypes_items[i], pCharacterTypeDropDownList[i]);
+					}
+				}
+
+				for (int i = 0; i < g_chartypes_item_count; i++)
+				{
+					if (pestrcasestr(CCP_Type, g_chartypes_items[i]))
 					{
 						item_current_type_selection = i;
 						break;
@@ -4142,9 +3288,9 @@ void charactercreatorplus_imgui_v3(void)
 				}
 
 				ImGui::PushItemWidth(-10);
-				if (ImGui::Combo("##TypeCCP", &item_current_type_selection, items, IM_ARRAYSIZE(items)))
+				if (ImGui::Combo("##TypeCCP", &item_current_type_selection, g_chartypes_items, g_chartypes_item_count))
 				{
-					strcpy(CCP_Type, items[item_current_type_selection]);
+					strcpy(CCP_Type, g_chartypes_items[item_current_type_selection]);
 					iThumbsOffsetY = 0;
 					if (item_current_type_selection == 2 || item_current_type_selection == 3) iThumbsOffsetY = 50;
 					iDelayExecute = 1;
@@ -4500,7 +3646,6 @@ void charactercreatorplus_imgui_v3(void)
 						}
 						if (bThisAllow == true)
 						{
-
 							int iTextureID = CCP_EMPTY;
 							if (iCountIcons < MAXPARTICONS)
 							{
@@ -4515,6 +3660,7 @@ void charactercreatorplus_imgui_v3(void)
 									if (item_current_type_selection == 1 && pestrcasestr(full_path.c_str(), "adult female")) bValid = true;
 									if (item_current_type_selection == 2 && pestrcasestr(full_path.c_str(), "zombie male")) bValid = true;
 									if (item_current_type_selection == 3 && pestrcasestr(full_path.c_str(), "zombie female")) bValid = true;
+									if (item_current_type_selection > 3 && pestrcasestr(full_path.c_str(), g_CharacterType[item_current_type_selection].pPartsFolder)) bValid = true;
 									if (bValid)
 									{
 										//Try loading icon.
@@ -4738,6 +3884,11 @@ void charactercreatorplus_imgui_v3(void)
 				if (stricmp(CCP_Type, "adult female") == NULL) characterbasetype = 1;
 				if (stricmp(CCP_Type, "zombie male") == NULL) characterbasetype = 2;
 				if (stricmp(CCP_Type, "zombie female") == NULL) characterbasetype = 3;
+				if (characterbasetype == -1)
+				{
+					int iBaseValue = GetBaseValueFromCCPType(CCP_Type);
+					if (iBaseValue > 1) characterbasetype = iBaseValue-1;
+				}
 				if (characterbasetype >= 0 && characterbasetype <= 1)
 				{
 					animsystem_weaponproperty(characterbasetype, false, &g_grideleprof_holdchoices, true, true);

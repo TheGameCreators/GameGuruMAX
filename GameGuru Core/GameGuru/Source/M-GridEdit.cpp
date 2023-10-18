@@ -12854,24 +12854,10 @@ void mapeditorexecutable_loop(void)
 										t.grideleprof.isocluder = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isocluder), "Occluder", "Set to YES makes this object an occluder", 0); ++t.controlindex;
 										t.grideleprof.isocludee = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isocludee), "Occludee", "Set to YES makes this object an occludee", 0); ++t.controlindex;
 									}
-									// these will be back when EBE needs doors and windows
-									//setpropertystring2(t.group,Str(t.grideleprof.parententityindex),"Parent Index","Selects another entity element to be a parent") ; ++t.controlindex;
-									//setpropertystring2(t.group,Str(t.grideleprof.parentlimbindex),"Parent Limb","Specifies the limb index of the parent to connect with") ; ++t.controlindex;
 								}
 
-								// 281116 - added Specular Control per entity
-								if (t.tflagvis == 1)
+								if (ImGui::IsAnyItemFocused()) 
 								{
-									if (t.tflagsimpler == 0)
-									{
-										#ifdef WICKEDENGINE
-										#else
-										t.grideleprof.specularperc = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.specularperc), "Specular", "Set specular percentage to modulate entity specular effect"));
-										#endif
-									}
-								}
-
-								if (ImGui::IsAnyItemFocused()) {
 									bImGuiGotFocus = true;
 								}
 							}

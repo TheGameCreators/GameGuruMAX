@@ -2046,7 +2046,9 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 											SetObjectCull(destobj, 1);
 										}
 									}
-									SetObjectSpecularPower(destobj, t.entityelement[t.entid].eleprof.specularperc / 100.0f);
+
+									//not used in MAX
+									//SetObjectSpecularPower(destobj, t.entityelement[t.entid].eleprof.specularperc / 100.0f);
 
 									if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
 												
@@ -4792,20 +4794,10 @@ void game_main_loop ( void )
 	if (  t.visuals.refreshcountdown>0 ) 
 	{
 		--t.visuals.refreshcountdown;
-		/*
-		if (  t.visuals.refreshcountdown == 0 )
-		{
-			visuals_shaderlevels_lighting_update ( );
-			visuals_shaderlevels_update ( );
-			t.visuals.refreshshaders=1;
-		}
-		*/
 	}
 
-	#ifdef VRTECH
 	// debug reason - why is my SocialVR completely black!!
 	bool bSocialVRDebugTABTAB = true;
-	#endif
 
 	// Testgame or Standalone
 	// 250316 - when level ends, suspend all logic (including more calls to JumpTolevel or in-game last minute AI stuff)
@@ -4819,15 +4811,7 @@ void game_main_loop ( void )
 			if ( g.globals.ideinputmode == 1 ) 
 			{
 				g.lmlightmapnowmode=0;
-				#ifdef VRTECH
-				 // No lightmapping in VRTECH
-				#else
-				 if (g.gproducelogfiles == 2) timestampactivity(0, "checking lightmapper handler");
-				 if (KeyState(g.keymap[59]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 1;
-				 if (KeyState(g.keymap[60]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 2;
-				 if (KeyState(g.keymap[61]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 3;
-			 	 if (KeyState(g.keymap[62]) && (KeyState(g.keymap[42]) || KeyState(g.keymap[54])))  g.lmlightmapnowmode = 4;
-				#endif
+				// No lightmapping in VRTECH
 				if ( g.lmlightmapnowmode>0 )
 				{
 					#ifdef FREETRIALVERSION
@@ -4928,11 +4912,7 @@ void game_main_loop ( void )
 			//  Tab Mode (only when not mid-fpswarning)
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking tab key handler");
 			if ( t.plrkeySHIFT == 0 && t.plrkeySHIFT2 == 0  )  t.tkeystate15 = KeyState(g.keymap[15]); else t.tkeystate15 = 0;
-			#ifdef VRTECH
 			if ( t.game.runasmultiplayer == 1 && bSocialVRDebugTABTAB == false ) g.tabmode = 0;
-			#else
-			if ( t.game.runasmultiplayer == 1 ) g.tabmode = 0;
-			#endif
 			if ( t.conkit.editmodeactive == 1 )  g.tabmode = 0;
 			if ( g.lowfpswarning == 0 || g.lowfpswarning == 3 ) 
 			{
@@ -5084,54 +5064,6 @@ void game_main_loop ( void )
 		}
 		t.game.perf.physics += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
-		//PE: Test Terrain Collision.
-		//LB: Thanks, this helped visualize the issue
-		/*
-		if (0)
-		{
-			//Test code for terrain hit.
-			float camx = CameraPositionX(t.terrain.gameplaycamera);
-			float camy = CameraPositionY(t.terrain.gameplaycamera);
-			float camz = CameraPositionZ(t.terrain.gameplaycamera);
-			float lookx, looky, lookz;
-			lookx = GetCameraLookX(t.terrain.gameplaycamera);
-			looky = GetCameraLookY(t.terrain.gameplaycamera);
-			lookz = GetCameraLookZ(t.terrain.gameplaycamera);
-			float rayx, rayy, rayz;
-			rayx = camx + (lookx * 10000.0f);
-			rayy = camy + (looky * 10000.0f);
-			rayz = camz + (lookz * 10000.0f);
-			if (!ObjectExist(g.debugraycastvisual + 20))
-			{
-				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-				WickedCall_PresetObjectPutInEmissive(1);
-				MakeObjectBox(g.debugraycastvisual + 20, 25, 25, 25);
-				PositionObject(g.debugraycastvisual + 20, -999999, -999999, -999999);
-				sObject* pObject = GetObjectData(g.debugraycastvisual + 20);
-				WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
-				WickedCall_SetObjectCastShadows(pObject, false);
-				WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-				WickedCall_PresetObjectPutInEmissive(0);
-			}
-			if (ODERayTerrain(camx, camy, camz, rayx, rayy, rayz, true) == 1)
-			{
-				if (ObjectExist(g.debugraycastvisual + 20))
-				{
-					ShowObject(g.debugraycastvisual + 20);
-					PositionObject(g.debugraycastvisual + 20, ODEGetRayCollisionX(), ODEGetRayCollisionY(), ODEGetRayCollisionZ());
-				}
-			}
-			else
-			{
-				if (ObjectExist(g.debugraycastvisual + 20))
-				{
-					ShowObject(g.debugraycastvisual + 20);
-					PositionObject(g.debugraycastvisual + 20, 0, 0, 0);
-				}
-			}
-		}
-		*/
-
 		// In-Game Mode (moved from above so LUA is AFTER physics)
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
 		if ( t.conkit.editmodeactive == 0 ) 
@@ -5154,60 +5086,33 @@ void game_main_loop ( void )
 			if ( t.hardwareinfoglobals.noai == 0 ) 
 			{
 				// LUA Logic
-				#ifdef WICKEDENGINE
 				auto range1 = wiProfiler::BeginRangeCPU("Max - General - LUA Logic");
-				#endif
 				lua_loop ( );
-				#ifdef WICKEDENGINE
 				wiProfiler::EndRange(range1);
-				#endif
 
 				// Entity Logic
-				#ifdef WICKEDENGINE
 				auto range2 = wiProfiler::BeginRangeCPU("Max - General - Object Logic");
-				#endif
 				t.game.perf.ai1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 				entity_loop ( );
 				entity_loopanim ( );
 				t.game.perf.ai2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-				#ifdef WICKEDENGINE
 				wiProfiler::EndRange(range2);
-				#endif
 
 				// Update all AI and Characters and VWeaps
-				#ifdef WICKEDENGINE
 				auto range3 = wiProfiler::BeginRangeCPU("Max - General - AI Logic");
-				#endif
 				if ( t.aisystem.processlogic == 1 )
 				{
 					if ( t.visuals.debugvisualsmode<100 ) 
 					{
 						darkai_loop ( );
-						#ifndef WICKEDENGINE
-						t.game.perf.ai3 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-						darkai_update ( );
-						t.game.perf.ai4 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-						if (  t.visuals.debugvisualsmode<98 ) 
-						{
-							darkai_character_loop ( );
-						}
-						t.game.perf.ai5 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-						t.game.perf.ai6 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-						#endif
 					}
 				}
-				#ifdef WICKEDENGINE
 				wiProfiler::EndRange(range3);
-				#endif
 
 				// handle any AI stuff related to recastretour
-				#ifdef WICKEDENGINE
-				#ifdef NEWMAXAISYSTEM
 				auto range4 = wiProfiler::BeginRangeCPU("Max - General - Detour Logic");
 				game_updatenavmeshsystem();
 				wiProfiler::EndRange(range4);
-				#endif
-				#endif
 			}
 			t.game.perf.ai += PerformanceTimer()-t.ttempoverallaiperftimerstamp;
 
@@ -5233,8 +5138,6 @@ void game_main_loop ( void )
 		}
 		t.game.perf.gun += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 	}
-
-	//PE: Moved here for "AmenMoses", issue: https://github.com/TheGameCreators/GameGuruRepo/issues/511
 
 	//  update all particles and emitters
 	update_env_particles();

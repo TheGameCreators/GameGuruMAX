@@ -1712,6 +1712,7 @@ DARKSDK_DLL void SetObjectSpecular ( int iID, DWORD dwRGB )
 
 DARKSDK_DLL void SetObjectSpecularPower ( int iID, float fPower )
 {
+	/* not used in MAX
 	// check the object exists
 	if ( !ConfirmObject ( iID ) )
 		return;
@@ -1720,6 +1721,7 @@ DARKSDK_DLL void SetObjectSpecularPower ( int iID, float fPower )
 	sObject* pObject = g_ObjectList [ iID ];
 	for ( int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++ )
 		SetSpecularPower ( pObject->ppMeshList [ iMesh ], fPower );
+	*/
 }
 
 DARKSDK_DLL void SetObjectScrollScaleUV ( int iID, float fScrU, float fScrV, float fScaU, float fScaV )
@@ -1767,7 +1769,7 @@ DARKSDK_DLL void SetObjectSpecular ( int iID, DWORD dwRGB, float fPower )
 {
 	// U73 - 230309 - helper extra function parameter
 	SetObjectSpecular ( iID, dwRGB );
-	SetObjectSpecularPower ( iID, fPower );
+	//SetObjectSpecularPower ( iID, fPower ); not used in MAX
 }
 
 DARKSDK_DLL void SetObjectEmissive ( int iID, DWORD dwRGB )

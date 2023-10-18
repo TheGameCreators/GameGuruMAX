@@ -2515,6 +2515,7 @@ DARKSDK_DLL void SetEmissiveMaterial ( sMesh* pMesh, DWORD dwRGB )
 
 DARKSDK_DLL void SetSpecularPower ( sMesh* pMesh, float fPower )
 {
+	/* not used in MAX
 	// lee - 040306 - u6rc5 - apply changes to base material OR multi-material!
 	pMesh->bUsesMaterial = true;
 	if ( pMesh->dwMultiMaterialCount > 0 )
@@ -2532,6 +2533,7 @@ DARKSDK_DLL void SetSpecularPower ( sMesh* pMesh, float fPower )
 
 	// lee - 281116 - newer shaders only requires a specular modulator
 	pMesh->fSpecularOverride = fPower;
+	*/
 }
 
 DARKSDK_DLL void RemoveTextureRefFromMesh  ( sMesh* pMesh, LPGGTEXTURE pTextureRef )

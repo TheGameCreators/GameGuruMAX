@@ -35,6 +35,7 @@ void entity_createattachment ( void );
 void entity_freeattachment ( void );
 void entity_controlattachments ( void );
 void entity_monitorattachments ( void );
+void entity_monitorloot(void);
 void entity_converttoclone ( void );
 void entity_converttoclonetransparent ( void );
 void entity_converttoinstance ( void );

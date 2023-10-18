@@ -869,15 +869,18 @@ bool refresh_collection_from_entities(void)
 					if (stricmp(t.entityelement[ee].eleprof.name_s.Get(), pCollectionItemTitle) == NULL)
 					{
 						int entid = t.entityelement[ee].bankindex;
-						if (g_collectionList[n].collectionFields.size() > 1)
+						if (entid > 0)
 						{
-							if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+							if (g_collectionList[n].collectionFields.size() > 1)
 							{
-								g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+								if (stricmp(g_collectionList[n].collectionFields[1].Get(), "default") == NULL)
+								{
+									g_collectionList[n].collectionFields[1] = t.entitybank_s[entid];
+								}
+								g_collectionList[n].iEntityID = entid;
+								g_collectionList[n].iEntityElementE = ee;
+								bFoundAndAssignedE = true;
 							}
-							g_collectionList[n].iEntityID = entid;
-							g_collectionList[n].iEntityElementE = ee;
-							bFoundAndAssignedE = true;
 						}
 						break;
 					}

@@ -121,8 +121,9 @@ void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, cha
 int fillgloballistwithweapons ( void );
 int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee);
 int fillgloballistwithCharAnimSetsQuick(int iSpecialValue);
-int fillgloballistwithbehaviours_init ( void );
-int fillgloballistwithbehaviours ( void );
+int fillgloballistwithbehaviours_init (void);
+int fillgloballistwithbehaviours (void);
+int fillgloballistwithcollectables (void);
 void setpropertylist ( int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype );
 char* getpropertyfield ( int group, int iControl );
 char* getpropertydata ( int group, int iControl );

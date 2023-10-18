@@ -980,14 +980,11 @@ void interface_openpropertywindow ( void )
 			// 281116 - added Specular Control per entity
 			if ( t.tflagvis == 1 ) 
 			{
-				#ifdef VRTECH
 				if ( t.tflagsimpler == 0 )
 				{
-					setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate object specular effect")  ; ++t.controlindex; 
+					//not used in MAX
+					//setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate object specular effect")  ; ++t.controlindex; 
 				}
-				#else
-				setpropertystring2(t.group,Str(t.grideleprof.specularperc),"Specular","Set specular percentage to modulate entity specular effect")  ; ++t.controlindex; 
-				#endif
 			}
 
 			//  Basic AI
@@ -1637,7 +1634,10 @@ void interface_copydatatoentity ( void )
 			}
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Occluder") ) == 0 )  t.grideleprof.isocluder = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Occludee") ) == 0 )  t.grideleprof.isocludee = ValF(t.tdata_s.Get());
-			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Specular") ) == 0 )  t.grideleprof.specularperc = ValF(t.tdata_s.Get());
+
+			//not used in MAX
+			//if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Specular") ) == 0 )  t.grideleprof.specularperc = ValF(t.tdata_s.Get());
+			
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("End Collision") ) == 0 )  t.grideleprof.colondeath = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Parent Index") ) == 0 )  t.grideleprof.parententityindex = ValF(t.tdata_s.Get());
 			if (  strcmp( Lower(t.tfield_s.Get()) , Lower("Parent Limb") ) == 0 )  t.grideleprof.parentlimbindex = ValF(t.tdata_s.Get());
@@ -2282,7 +2282,20 @@ char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* 
 		listmax = fillgloballistwithbehaviours();
 		for (int n = 0; n <= listmax; n++)
 		{
-			if (ldata_s == t.list_s[n]) {
+			if (ldata_s == t.list_s[n]) 
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+	if (listtype == 21)
+	{
+		listmax = fillgloballistwithcollectables();
+		for (int n = 0; n <= listmax; n++)
+		{
+			if (ldata_s == t.list_s[n])
+			{
 				current_selection = n;
 				break;
 			}
@@ -2350,6 +2363,10 @@ int imgui_setpropertylist2(int group, int controlindex, char* data_s, char* fiel
 	if (listtype == 11)
 	{
 		listmax = fillgloballistwithbehaviours();
+	}
+	if (listtype == 21)
+	{
+		listmax = fillgloballistwithcollectables();
 	}
 
 	const char* current_item = t.list_s[current_selection].Get();
@@ -2875,7 +2892,6 @@ int fillgloballistwithbehaviours_init ( void )
 		}
 		SetDir (  storedir_s.Get() );
 	}
-//endfunction retvalue
 	return retvalue;
 }
 
@@ -2895,9 +2911,26 @@ int fillgloballistwithbehaviours ( void )
 		}
 		retvalue=retvalue-1;
 	}
-//endfunction retvalue
-	return retvalue
-;
+	return retvalue;
+}
+
+int fillgloballistwithcollectables (void)
+{
+	Dim (t.list_s, g.entityelementlist);
+	t.list_s[0] = "(Choose Collectible)";
+	int retvalue = 1;
+	for (int e = 1; e <= g.entityelementlist; e++)
+	{
+		if (t.entityelement[e].bankindex > 0)
+		{
+			if (t.entityelement[e].eleprof.iscollectable > 0)
+			{
+				t.list_s[retvalue] = t.entityelement[e].eleprof.name_s;
+				retvalue++;
+			}
+		}
+	}
+	return retvalue;
 }
 
 void setpropertylist ( int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype )
@@ -27913,12 +27946,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					videofile = edit_grideleprof->soundset1_s;
 				}
 				#endif
-				#ifdef WICKEDENGINE
 				edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Video Slot", "Choose a movie file (mp4 format) to play when the player enters this zone", "videobank\\", readonly);
-				#else
-				edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Video Slot", t.strarr_s[601].Get(), "videobank\\", readonly);
-				#endif
-				#ifdef WICKEDENGINE
 				if (videofile_preview_id > 0 && GetImageExistEx(videofile_preview_id))
 				{
 					extern ImVec4 drawCol_back;
@@ -27934,13 +27962,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (iwidth*0.5), 0.0f));
 					ImGui::ImgBtn(videofile_preview_id, ImVec2(iwidth - 18.0f, (iwidth - 18.0f) * fHighRatio), drawCol_back, drawCol_normal, drawCol_normal, drawCol_normal, -1, 0, 0, 0, true);
 				}
-				#endif
 			}
-			#ifdef WICKEDENGINE
 			if (bSound0Mentioned == true && bVideoSlotMentioned == false) edit_grideleprof->soundset_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset_s.Get(), "Sound0", t.strarr_s[253].Get(), "audiobank\\",readonly);
-			#else
-			if (bSound0Mentioned == true) edit_grideleprof->soundset_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset_s.Get(), "Sound0", t.strarr_s[253].Get(), "audiobank\\", readonly);
-			#endif
 			if (bSound1Mentioned == true) edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound2Mentioned == true) edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound3Mentioned == true) edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\", readonly);
@@ -27972,6 +27995,11 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			{
 				extern void animsystem_animationsetproperty (int, bool, entityeleproftype*, int, int);
 				animsystem_animationsetproperty(t.entityprofile[entid].characterbasetype, readonly, edit_grideleprof, iAnimationSetMentioned, elementID);
+			}
+			if (t.entityprofile[entid].ischaracter == 1)
+			{
+				extern void animsystem_dropcollectablesetproperty(bool, entityeleproftype*);
+				animsystem_dropcollectablesetproperty(readonly, edit_grideleprof);
 			}
 		}
 	}
@@ -28380,18 +28408,6 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 				edit_grideleprof->iAffectedByGravity = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->iAffectedByGravity), "Affected by gravity", "If set this object will be affected by gravity", 0, readonly); //t.strarr_s[562].Get()
 		}
 	}
-
-	// added Specular Control per entity
-	#ifdef WICKEDENGINE
-	#else
-	if (t.tflagvis == 1)
-	{
-		if (t.tflagsimpler == 0)
-		{
-			edit_grideleprof->specularperc = atol(imgui_setpropertystring2(t.group, Str(edit_grideleprof->specularperc), "Specular", "Set specular percentage to modulate entity specular effect"));
-		}
-	}
-	#endif
 
 	// strength of an entity is standard
 	#ifdef WICKEDENGINE
@@ -29269,6 +29285,10 @@ int imgui_setpropertylist2_v2(int group, int controlindex, char* data_s, char* f
 	{
 		listmax = fillgloballistwithbehaviours();
 	}
+	if (listtype == 21)
+	{
+		listmax = fillgloballistwithcollectables();
+	}
 
 	const char* current_item = t.list_s[current_selection].Get();
 
@@ -29454,7 +29474,20 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 		listmax = fillgloballistwithbehaviours();
 		for (int n = 0; n <= listmax; n++)
 		{
-			if (ldata_s == t.list_s[n]) {
+			if (ldata_s == t.list_s[n]) 
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+	if (listtype == 21)
+	{
+		listmax = fillgloballistwithcollectables();
+		for (int n = 0; n <= listmax; n++)
+		{
+			if (ldata_s == t.list_s[n]) 
+			{
 				current_selection = n;
 				break;
 			}
@@ -36449,6 +36482,11 @@ bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 					treename = treename + " (Cursor) " + cName;
 				else
 					treename = treename + " " + cName;
+
+				if (t.entityelement[i].x == -99999 && t.entityelement[i].y == -99999 && t.entityelement[i].z == -99999)
+				{
+					treename = treename + " (Auto-Gen) ";
+				}
 
 				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
 				ImGui::PopItemWidth();

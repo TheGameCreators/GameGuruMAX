@@ -1821,7 +1821,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].lodmodifier=0;
 		t.entityprofile[t.entid].isocluder=1; // can be adjusted (if notanoccluder set to 1)
 		t.entityprofile[t.entid].isocludee=1;
-		t.entityprofile[t.entid].specularperc=100;
+		t.entityprofile[t.entid].lootpercentage=100;
 		t.entityprofile[t.entid].specular=0;
 		t.entityprofile[t.entid].uvscrollu=0;
 		t.entityprofile[t.entid].uvscrollv=0;
@@ -2613,8 +2613,8 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].specular = t.value1;
 					// specularperc:
 					// percentage 0 to 100 to modulate how much global specular gets to individual entity
-					cmpStrConst( t_field_s, "specularperc" );
-					if (  matched  )  t.entityprofile[t.entid].specularperc = t.value1;
+					//cmpStrConst( t_field_s, "specularperc" ); not used in MAX
+					//if (  matched  )  t.entityprofile[t.entid].specularperc = t.value1;
 
 					// can scale the uv data inside the shader
 					cmpStrConst( t_field_s, "uvscroll" );
@@ -4126,7 +4126,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.lodmodifier=t.entityprofile[t.entid].lodmodifier;
 	t.grideleprof.isocluder=t.entityprofile[t.entid].isocluder;
 	t.grideleprof.isocludee=t.entityprofile[t.entid].isocludee;
-	t.grideleprof.specularperc=t.entityprofile[t.entid].specularperc;
+	t.grideleprof.lootpercentage=t.entityprofile[t.entid].lootpercentage;
 	t.grideleprof.colondeath=t.entityprofile[t.entid].colondeath;
 	t.grideleprof.parententityindex=t.entityprofile[t.entid].parententityindex;
 	t.grideleprof.parentlimbindex=t.entityprofile[t.entid].parentlimbindex;
@@ -5799,7 +5799,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload >= 311 ) 
 					{
 						//  GameGuru 1.133B
-						t.a_f = c_ReadFloat ( 1 ); t.entityelement[t.e].eleprof.specularperc=t.a_f;
+						t.a_f = c_ReadFloat ( 1 ); t.entityelement[t.e].eleprof.lootpercentage = t.a_f; // was specularperc
 					}
 					if (  t.versionnumberload >= 312 ) 
 					{
@@ -6232,7 +6232,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload<311 ) 
 					{
 						//  GameGuru 1.133B
-						t.entityelement[t.e].eleprof.specularperc=t.entityprofile[t.ttentid].specularperc;
+						t.entityelement[t.e].eleprof.lootpercentage =t.entityprofile[t.ttentid].lootpercentage;
 					}
 					if (  t.versionnumberload<312 ) 
 					{
@@ -6579,28 +6579,52 @@ void entity_loadelementsdata(void)
 			{
 				if (t.entityelement[e].specialentityloadflag == 123)
 				{
+					// if already exists, do NOT add, just wipe out
 					t.entityelement[e].specialentityloadflag = 0;
-					int iCollectionIndexFound = -1;
-					LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
-					for (int n = 0; n < g_collectionList.size(); n++)
+					bool bAlreadyExistsSoSkip = false;
+					for (int eee = 1; eee <= g.entityelementmax; eee++)
 					{
-						if (g_collectionList[n].collectionFields.size() > 1)
+						if (eee != e)
 						{
-							LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-							if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+							if (t.entityelement[eee].bankindex > 0)
 							{
-								// the newly loaded element will be used for this collection item
-								g_collectionList[n].iEntityElementE = e;
+								LPSTR pEntityElementName1 = t.entityelement[e].eleprof.name_s.Get();
+								LPSTR pEntityElementName2 = t.entityelement[eee].eleprof.name_s.Get();
+								if (stricmp(pEntityElementName1, pEntityElementName2) == NULL)
+								{
+									t.entityelement[e].maintype = 0;
+									t.entityelement[e].bankindex = 0;
+									bAlreadyExistsSoSkip = true;
+									break;
+								}
+							}
+						}
+					}
+					int iCollectionIndexFound = -1;
+					if (bAlreadyExistsSoSkip == false)
+					{
+						LPSTR pEntityElementName = t.entityelement[e].eleprof.name_s.Get();
+						for (int n = 0; n < g_collectionList.size(); n++)
+						{
+							if (g_collectionList[n].collectionFields.size() > 1)
+							{
+								LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+								if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+								{
+									// the newly loaded element will be used for this collection item
+									g_collectionList[n].iEntityElementE = e;
 
-								// now hide it away in the level
-								t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
-								t.entityelement[e].x = -9999;
-								t.entityelement[e].y = -9999;
-								t.entityelement[e].z = -9999;
+									// now hide it away in the level
+									t.entityelement[e].bankindex = g_collectionList[n].iEntityID;
+									t.entityelement[e].x = -99999;
+									t.entityelement[e].y = -99999;
+									t.entityelement[e].z = -99999;
+									t.entityelement[e].eleprof.spawnatstart = 1;
 
-								// found, so can quit
-								iCollectionIndexFound = n;
-								break;
+									// found, so can quit
+									iCollectionIndexFound = n;
+									break;
+								}
 							}
 						}
 					}
@@ -6647,40 +6671,81 @@ void entity_loadelementsdata(void)
 			{
 				if (g_collectionList[n].iEntityID > 0 && g_collectionList[n].iEntityElementE == 0)
 				{
-					// make a hidden instance of this entity
+					// before make an instance, check if it already exists as a valid entity
 					int entid = g_collectionList[n].iEntityID;
-					t.gridentity = entid;
-					t.gridentityeditorfixed = 0;
-					t.entitymaintype = 1;
-					t.entitybankindex = t.entid;
-					t.gridentitystaticmode = 0;
-					t.gridentityhasparent = 0;
-					t.gridentityposx_f = 0;
-					t.gridentityposz_f = 0;
-					t.gridentityposy_f = 0;
-					t.gridentityrotatex_f = 0;
-					t.gridentityrotatey_f = 0;
-					t.gridentityrotatez_f = 0;
-					t.gridentityrotatequatmode = 1;
-					t.gridentityrotatequatx_f = 0;
-					t.gridentityrotatequaty_f = 0;
-					t.gridentityrotatequatz_f = 0;
-					t.gridentityrotatequatw_f = 1;
-					t.gridentityscalex_f = 100;
-					t.gridentityscaley_f = 100;
-					t.gridentityscalez_f = 100;
-					t.entid = entid; entity_fillgrideleproffromprofile();
-					entity_addentitytomap ();
-					t.e = t.tupdatee;
-					t.entityelement[t.e].x = -99999;
-					t.entityelement[t.e].y = -99999;
-					t.entityelement[t.e].z = -99999;
-					t.entityelement[t.e].eleprof.spawnatstart = 0;
-					t.entityelement[t.e].lua.firsttime = 0;
-					t.entityelement[t.e].active = 0;
-					g_collectionList[n].iEntityElementE = t.e;
-					t.gridentity = 0;
+					for (int ee = 1; ee <= g.entityelementmax; ee++)
+					{
+						int masterid = t.entityelement[ee].bankindex;
+						if (masterid > 0)
+						{
+							if (masterid == entid)
+							{
+								g_collectionList[n].iEntityElementE = ee;
+								break;
+							}
+						}
+					}
+					if (g_collectionList[n].iEntityElementE == 0)
+					{
+						// make a hidden instance of this entity
+						t.gridentity = entid;
+						t.gridentityeditorfixed = 0;
+						t.entitymaintype = 1;
+						t.entitybankindex = t.entid;
+						t.gridentitystaticmode = 0;
+						t.gridentityhasparent = 0;
+						t.gridentityposx_f = 0;
+						t.gridentityposz_f = 0;
+						t.gridentityposy_f = 0;
+						t.gridentityrotatex_f = 0;
+						t.gridentityrotatey_f = 0;
+						t.gridentityrotatez_f = 0;
+						t.gridentityrotatequatmode = 1;
+						t.gridentityrotatequatx_f = 0;
+						t.gridentityrotatequaty_f = 0;
+						t.gridentityrotatequatz_f = 0;
+						t.gridentityrotatequatw_f = 1;
+						t.gridentityscalex_f = 100;
+						t.gridentityscaley_f = 100;
+						t.gridentityscalez_f = 100;
+						t.entid = entid; entity_fillgrideleproffromprofile();
+						entity_addentitytomap ();
+						t.e = t.tupdatee;
+						t.entityelement[t.e].x = -99999;
+						t.entityelement[t.e].y = -99999;
+						t.entityelement[t.e].z = -99999;
+						t.entityelement[t.e].eleprof.spawnatstart = 0;
+						t.entityelement[t.e].lua.firsttime = 0;
+						t.entityelement[t.e].active = 0;
+						g_collectionList[n].iEntityElementE = t.e;
+						t.gridentity = 0;
+					}
 					bSaveUpdatedELEFile = true;
+				}
+			}
+			// also if iEntityID is zero at this point, find it and update
+			for (int n = 0; n < g_collectionList.size(); n++)
+			{
+				if (g_collectionList[n].iEntityID == 0)
+				{
+					if (g_collectionList[n].collectionFields.size() > 1)
+					{
+						LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+						for (int eee = 1; eee <= g.entityelementmax; eee++)
+						{
+							if (t.entityelement[eee].bankindex > 0)
+							{
+								LPSTR pEntityElementName = t.entityelement[eee].eleprof.name_s.Get();
+								if (stricmp(pCollectionItemTitle, pEntityElementName) == NULL)
+								{
+									// the newly loaded element will be used for this collection item
+									g_collectionList[n].iEntityElementE = eee;
+									bSaveUpdatedELEFile = true;
+									break;
+								}
+							}
+						}
+					}
 				}
 			}
 			if (bSaveUpdatedELEFile == true)
@@ -6688,6 +6753,55 @@ void entity_loadelementsdata(void)
 				// ensure collection list and ELE file up to date
 				extern preferences pref;
 				save_rpg_system(pref.cLastUsedStoryboardProject, true);
+			}
+
+			// also to fix older saves, remove any off-level duplicates
+			for (int e = 1; e <= g.entityelementlist; e++)
+			{
+				if (t.entityelement[e].bankindex > 0)
+				{
+					bool bFoundDuplicate = false;
+					for (int eee = 1; eee <= g.entityelementmax; eee++)
+					{
+						if (eee != e)
+						{
+							if (t.entityelement[e].bankindex > 0)
+							{
+								if (t.entityelement[e].bankindex == t.entityelement[eee].bankindex)
+								{
+									if (t.entityelement[e].x == -99999 && t.entityelement[e].y == -99999 && t.entityelement[e].z == -99999)
+									{
+										if (t.entityelement[eee].x == -99999 && t.entityelement[eee].y == -99999 && t.entityelement[eee].z == -99999)
+										{
+											bFoundDuplicate = true;
+											int iPreferredElementE = 0;
+											for (int n = 0; n < g_collectionList.size(); n++)
+											{
+												if (g_collectionList[n].iEntityID == t.entityelement[e].bankindex)
+												{
+													if (g_collectionList[n].iEntityElementE > 0)
+													{
+														iPreferredElementE = g_collectionList[n].iEntityElementE;
+														break;
+													}
+												}
+											}
+											if (iPreferredElementE > 0)
+											{
+												if (eee != iPreferredElementE)
+												{
+													// if not preferred element, remove duplicate from element list
+													t.entityelement[eee].maintype = 0;
+													t.entityelement[eee].bankindex = 0;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 
 			// and a full pass to convert any parent objects into collectables if the collection list has them
@@ -7071,7 +7185,7 @@ void entity_saveelementsdata ( void )
 				if ( t.versionnumbersave >= 311 )
 				{
 					//  Guru 1.133B
-					writer.WriteFloat( t.entityelement[ent].eleprof.specularperc );
+					writer.WriteFloat( t.entityelement[ent].eleprof.lootpercentage);
 				}
 				if ( t.versionnumbersave >= 312 )
 				{

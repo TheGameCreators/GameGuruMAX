@@ -5646,7 +5646,7 @@ struct entityprofiletype
 	int transparency;
 	int canseethrough;
 	int specular;
-	int specularperc;
+	int lootpercentage;
 	float uvscrollu;
 	float uvscrollv;
 	float uvscaleu;
@@ -5965,7 +5965,7 @@ struct entityprofiletype
 		 isspinetracker = 0;
 		 isocluder = 1;
 		 isocludee = 1;
-		 specularperc = 100;
+		 lootpercentage = 100;
 		 colondeath = 1;
 		 parententityindex = 0;
 		 parentlimbindex = 0;
@@ -5981,7 +5981,7 @@ struct entityprofiletype
 		 cullmode = 0;
 		 zdepth = 1;
 		 specular = 0;
-		 specularperc = 100;
+		 lootpercentage = 100;
 		 canseethrough = 0;
 		 transparency = 0;
 		 smoothangle = 0;
@@ -6128,7 +6128,7 @@ struct entityeleproftype
 	int isimmobile;
 	int isocluder;
 	int isocludee;
-	float specularperc;
+	float lootpercentage;
 	int colondeath;
 	int parententityindex;
 	int parentlimbindex;
@@ -6348,7 +6348,7 @@ struct entityeleproftype
 		 cantakeweapon = 0;
 		 isocluder = 1;
 		 isocludee = 1;
-		 specularperc = 100;
+		 lootpercentage = 100;
 		 colondeath = 1;
 		 parententityindex = 0;
 		 parentlimbindex = 0;

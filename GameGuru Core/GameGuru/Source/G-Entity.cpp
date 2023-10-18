@@ -2028,6 +2028,9 @@ void entity_loop ( void )
 					}
 				}
 			}
+
+			// loot when dropped can be maintained
+			entity_monitorloot();
 		}
 	}
 
@@ -4359,17 +4362,18 @@ void entity_controlattachments ( void )
 	}
 }
 
-void entity_monitorattachments ( void )
+void entity_monitorattachments (void)
 {
 	// handle when player picks up ammo from dead enemies. Assumes ammo pool 1 is the default pool we want to update
-	if ( t.playercontrol.thirdperson.enabled == 0 ) 
+	if (t.playercontrol.thirdperson.enabled == 0)
 	{
-		t.tobj=t.entityelement[t.e].attachmentobj;
-		if ( t.tobj>0 ) 
+		t.tobj = t.entityelement[t.e].attachmentobj;
+		if (t.tobj > 0)
 		{
-			if ( ObjectExist(t.tobj) == 1 ) 
+			if (ObjectExist(t.tobj) == 1)
 			{
-				if ( t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.cantakeweapon != 0 ) 
+				// weapon drops 
+				if (t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.cantakeweapon != 0)
 				{
 					if (GetVisible(t.tobj) == 1)
 					{
@@ -4463,56 +4467,104 @@ void entity_monitorattachments ( void )
 							}
 						}
 					}
+				}
+			}
+		}
 
-					/* old system added weapon directly
-					t.txDist_f = CameraPositionX(0) - ObjectPositionX(t.tobj);
-					t.tyDist_f = CameraPositionY(0) - ObjectPositionY(t.tobj);
-					t.tzDist_f = CameraPositionZ(0) - ObjectPositionZ(t.tobj);
-					t.ttD_f = t.txDist_f * t.txDist_f + t.tyDist_f * t.tyDist_f + t.tzDist_f * t.tzDist_f;
-					if ( t.ttD_f < 100 * 100 ) 
+		// loot drops 
+		t.tobj = t.entityelement[t.e].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				if (t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.lootpercentage > 0)
+				{
+					// new system spawns loot objects
+					extern int g_iLootListCount;
+					extern cstr g_lootList_s[10];
+					extern void animsystem_createlootlist(cstr);
+					animsystem_createlootlist(t.entityelement[t.e].eleprof.ifused_s);
+					for (int l = 0; l < g_iLootListCount; l++)
 					{
-						// collect whole weapon, not just ammo
-						t.weaponindex=t.entityelement[t.e].eleprof.hasweapon;
-						if ( t.weaponindex>0 ) 
+						LPSTR pLootObjName = g_lootList_s[l].Get();
+						if (stricmp (pLootObjName, "(Choose Collectible)") != NULL)
 						{
-							// if weapon not yet part of players inventory, prompt to press E
-							t.gotweapon=0;
-							for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+							// spawn a clone of the loot object
+							int iStoree = t.e;
+							int iStoreObj = t.tobj;
+							int iLootObjectID = 0;
+							for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
 							{
-								if (  t.weaponslot[t.ws].got == t.weaponindex  )  t.gotweapon = t.ws;
+								if (t.entityelement[iWE].obj > 0 && t.entityelement[iWE].bankindex > 0)
+								{
+									if (stricmp (t.entityelement[iWE].eleprof.name_s.Get(), pLootObjName) == NULL)
+									{
+										iLootObjectID = iWE;
+										break;
+									}
+								}
 							}
-							int iPressedE = KeyState(g.keymap[18]);
-							if ( g.gxbox == 1 ) 
+							if (iLootObjectID > 0)
 							{
-								if ( JoystickFireD() == 1 )  
-									iPressedE = 1;
+								extern int SpawnNewEntityCore(int iEntityIndex);
+								float fStoreX = t.entityelement[iLootObjectID].x;
+								float fStoreY = t.entityelement[iLootObjectID].y;
+								float fStoreZ = t.entityelement[iLootObjectID].z;
+								t.entityelement[iLootObjectID].x = ObjectPositionX(t.tobj);
+								t.entityelement[iLootObjectID].y = ObjectPositionY(t.tobj);
+								t.entityelement[iLootObjectID].z = ObjectPositionZ(t.tobj);
+								int iNewEntID = SpawnNewEntityCore(iLootObjectID);
+								t.entityelement[iLootObjectID].x = fStoreX;
+								t.entityelement[iLootObjectID].y = fStoreY;
+								t.entityelement[iLootObjectID].z = fStoreZ;
+								int tobj = t.entityelement[iNewEntID].obj;
+								sObject* pNewObject = g_ObjectList[tobj];
+								if (pNewObject)
+								{
+									t.entityelement[iNewEntID].y += 1 + fabs(pNewObject->collision.vecCentre.y) + 10.0f;
+									t.entityelement[iNewEntID].rx = t.entityelement[t.e].rx;
+									t.entityelement[iNewEntID].ry = t.entityelement[t.e].ry + Rnd(359);
+									t.entityelement[iNewEntID].rz = t.entityelement[t.e].rz;
+									t.entityelement[iNewEntID].eleprof.lootpercentage = 1000;
+									PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+								}
+								t.entityelement[t.e].eleprof.lootpercentage = 0;
+								t.e = iNewEntID;
+								entity_lua_collisionon();
 							}
-							if ( t.gotweapon == 0 && iPressedE == 0 ) 
-							{
-								//  prompt user to press E
-								t.luaglobal.scriptprompttime=Timer()+200;
-								if ( g.gxbox == 0 )
-									t.luaglobal.scriptprompt_s="Press E to pick up weapon";
-								else
-									t.luaglobal.scriptprompt_s="Press Y Button to pick up weapon";
-							}
-							else
-							{
-								// got weapon already, so collect ammo
-								t.tqty=t.entityelement[t.e].eleprof.quantity;
-								physics_player_addweapon ( );
-								t.luaglobal.scriptprompttime=Timer()+3000;
-								t.luaglobal.scriptprompt_s="Collected ammo";
-								ODEDestroyObject (  t.tobj );
-								HideObject (  t.tobj );
-							}
+							t.e = iStoree;
+							t.tobj = iStoreObj;
 						}
 					}
-					*/
 				}
 			}
 		}
 	}
+}
+
+void entity_monitorloot (void)
+{
+	if (t.entityelement[t.e].eleprof.lootpercentage == 1000)
+	{
+		if (t.entityelement[t.e].collected == 0)
+		{
+			int iNewEntID = t.e;
+			int tobj = t.entityelement[iNewEntID].obj;
+			if (tobj > 0)
+			{
+				if (ObjectExist(tobj) == 1)
+				{
+					t.entityelement[iNewEntID].x = ObjectPositionX(t.tobj);
+					t.entityelement[iNewEntID].y = ObjectPositionY(t.tobj);
+					t.entityelement[iNewEntID].z = ObjectPositionZ(t.tobj);
+					t.entityelement[iNewEntID].rx = ObjectAngleX(t.tobj);
+					t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
+					t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
+					ShowObject(tobj);
+				}
+			}
+		}
+	}	
 }
 
 void entity_converttoclone ( void )
@@ -4527,6 +4579,7 @@ void entity_converttoclonetransparent ( void )
 
 bool entity_isuniquespecularoruv ( int ee )
 {
+	/* not used in MAX
 	bool bUnique = false; 
 	if ( ee != -1  ) 
 	{
@@ -4543,6 +4596,8 @@ bool entity_isuniquespecularoruv ( int ee )
 			bUnique = true;
 	}
 	return bUnique;
+	*/
+	return false;
 }
 
 void entity_converttoinstance ( void )
@@ -5178,6 +5233,7 @@ void entity_prepareobj ( void )
 		// handle zdepth mode of this entity
 		entity_preparedepth(t.tentid, t.tobj);
 
+		/* not used in MAX
 		// 281116 - set specular (new internal property that ties to 'SpecularOverride' shader constant)
 		// BUT we will use TTE so can get the per entity ELEPROF state when creating object!
 		// also calls this in lightmapper just after cloned parent obj 9see Lightmaping.cpp)
@@ -5185,7 +5241,7 @@ void entity_prepareobj ( void )
 		{
 			SetObjectSpecularPower ( t.tobj, t.entityelement[t.tte].eleprof.specularperc / 100.0f );
 		}
-
+		*/
 
 		// apply the scrolls cale uv data values for the shader use later on
 		if ( t.entityprofile[t.tentid].uvscrollu != 0.0f 

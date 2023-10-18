@@ -111,6 +111,9 @@ bool g_bAnimatingObjectPreview = false;
 bool g_bUpdateAnimationPreview = false;
 int g_iCurrentAnimationSlotIndex = 0;
 
+int g_iLootListCount = 0;
+cstr g_lootList_s[10];
+
 extern cstr cInfoMessage;
 extern cstr cInfoImage;
 extern bool bInfo_Window;
@@ -3027,7 +3030,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 			// melee will need melee animations if no specific weapon
 			if (iAnimationSetType == 2)
 			{
-				if (strlen(pWeaponType) == 0 ) pWeaponType = "-melee";
+				if (strlen(pWeaponType) == 0) pWeaponType = "-melee";
 			}
 		}
 		if (iAnimationSetType == 3)
@@ -3105,23 +3108,6 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 			// standard users only see choices if a character base type
 			extern char* imgui_setpropertylist2c_v2(int, int, char*, char*, char*, int, bool, bool, bool, bool, int);
 			newAnimSetFile_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->overrideanimset_s.Get(), "Animation Choice", "Overrides the default animations used by default", 2, readonly, true, false, false, iSpecialValue);
-
-			/* easier to add 'original animation' to drop down for "-" mode
-			// if default, offer option to match to weapon selected (legacy behavior and the default mode)
-			if (strlen(edit_grideleprof->overrideanimset_s.Get()) <= 1)
-			{
-				bool bDefaultToWeaponType = true;
-				if (strcmp (edit_grideleprof->overrideanimset_s.Get(), "-") == NULL) bDefaultToWeaponType = false;
-				if (ImGui::Checkbox("Default To Weapon Type", &bDefaultToWeaponType))
-				{
-					if (bDefaultToWeaponType == true)
-						edit_grideleprof->overrideanimset_s = "";
-					else
-						edit_grideleprof->overrideanimset_s = "-";
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tick to select a default animation that works best with chosen weapon");
-			}
-			*/
 		}
 		else
 		{
@@ -3151,7 +3137,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		else
 		{
 			// can enter own animation file
-			extern char * imgui_setpropertyfile2_v2(int group, char* data_s, char* field_s, char* desc_s, char* within_s, bool readonly, char *startsearch);
+			extern char* imgui_setpropertyfile2_v2(int group, char* data_s, char* field_s, char* desc_s, char* within_s, bool readonly, char* startsearch);
 			newAnimSetFile_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->overrideanimset_s.Get(), "Animation Choice", "Overrides the default animation set with a custom choice", "charactercreatorplus\\animations", readonly, 0);
 
 			// user can opt to use default
@@ -3174,7 +3160,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		extern int fpe_current_loaded_script;
 		fpe_current_loaded_script = -1;
 	}
-	if ( bRefreshObjectAnimationSet == true && elementID > 0)
+	if (bRefreshObjectAnimationSet == true && elementID > 0)
 	{
 		// replace actual object animations
 		int iObjID = t.entityelement[elementID].obj;
@@ -3261,6 +3247,96 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 			extern void entity_loop_using_negative_playanimineditor(int e, int obj, cstr animname);
 			entity_loop_using_negative_playanimineditor(elementID, iObjID, t.entityprofile[t.entityelement[elementID].bankindex].playanimineditor_name);
 		}
+	}
+}
+
+void animsystem_createlootlist(cstr ifused_s)
+{
+	int iLootIndex = 0;
+	cstr cutmeup_s = ifused_s;
+	LPSTR pLootStr = cutmeup_s.Get();
+	int n = 0;
+	bool bOnlyShowOneChooseCollectible = false;
+	while (iLootIndex < 10 && n < strlen(pLootStr))
+	{
+		if (pLootStr[n] == ';' || n == strlen(pLootStr) - 1)
+		{
+			bool bValid = true;
+			if (n != strlen(pLootStr) - 1) pLootStr[n] = 0;
+			if (stricmp(pLootStr, "(Choose Collectible)") == NULL)
+			{
+				bValid = false;
+				if (bOnlyShowOneChooseCollectible == false) bValid = true;
+				bOnlyShowOneChooseCollectible = true;
+			}
+			if (n == strlen(pLootStr) - 1)
+			{
+				if (bValid == true)
+				{
+					g_lootList_s[iLootIndex] = pLootStr;
+					iLootIndex++;
+				}
+				break;
+			}
+			else
+			{
+				if (bValid == true)
+				{
+					g_lootList_s[iLootIndex] = pLootStr;
+					iLootIndex++;
+				}
+				cutmeup_s = pLootStr + n + 1;
+				pLootStr = cutmeup_s.Get();
+				n = 0;
+			}
+		}
+		else
+		{
+			n++;
+		}
+	}
+	if (bOnlyShowOneChooseCollectible == false)
+	{
+		g_lootList_s[iLootIndex] = "(Choose Collectible)";
+		iLootIndex++;
+	}
+	g_iLootListCount = iLootIndex;
+}
+
+void animsystem_dropcollectablesetproperty(bool readonly, entityeleproftype* edit_grideleprof)
+{
+	bool bCanDrop = false;
+	if (edit_grideleprof->ifused_s.Len() > 0) bCanDrop = true;
+	if (ImGui::Checkbox("Player Can Take Loot", &bCanDrop))
+	{
+		if (bCanDrop == true)
+		{
+			int listmax = fillgloballistwithcollectables();
+			edit_grideleprof->ifused_s = t.list_s[0];
+		}
+		else
+		{
+			edit_grideleprof->ifused_s = "";
+		}
+	}
+	if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tick to enable the character to drop collectibles when killed");
+	if (edit_grideleprof->ifused_s.Len() > 0)
+	{
+		animsystem_createlootlist(edit_grideleprof->ifused_s);
+		cstr finallootstr_s  = "";
+		for (int l = 0; l < g_iLootListCount; l++)
+		{
+			extern char* imgui_setpropertylist2c_v2(int, int, char*, char*, char*, int, bool, bool, bool, bool, int);
+			g_lootList_s[l] = imgui_setpropertylist2c_v2(t.group, t.controlindex, g_lootList_s[l].Get(), "Loot Object", t.strarr_s[209].Get(), 21, readonly, true, false, false, 0);
+			if (finallootstr_s.Len() > 0) finallootstr_s = finallootstr_s + ";";
+			finallootstr_s += g_lootList_s[l];
+		}
+		edit_grideleprof->ifused_s = finallootstr_s;
+
+		ImGui::TextCenter("Chance Loot Drop");
+		int iLootPerc = edit_grideleprof->lootpercentage;
+		ImGui::MaxSliderInputInt("##chancelootdrop", &iLootPerc, 0, 100, "Set the percentage chance that each loot item would be dropped");
+		edit_grideleprof->lootpercentage = iLootPerc;
 	}
 }
 

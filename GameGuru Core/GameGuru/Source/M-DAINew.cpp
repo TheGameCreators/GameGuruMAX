@@ -400,19 +400,6 @@ void darkai_calcplrvisible (void)
 					t.brayx1_f = t.brayx1_f + (t.ttdx_f*40.0);
 					t.brayy1_f = t.brayy1_f + (t.ttdy_f*40.0);
 					t.brayz1_f = t.brayz1_f + (t.ttdz_f*40.0);
-
-					// exclude VWEAP held by character
-					/* already set in entity_createattachment (and caused weapon to disappear in new glued system)
-					sObject* pIgnoreVWEAPObject = NULL;
-					if (t.tgunobj > 0) pIgnoreVWEAPObject = GetObjectData(t.tgunobj);
-					if (pIgnoreVWEAPObject) WickedCall_SetObjectRenderLayer(pIgnoreVWEAPObject, GGRENDERLAYERS_CURSOROBJECT);
-					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1);
-					if (t.tintersectvalue != 0)
-					{
-						t.ttokay = 0;
-					}
-					if (pIgnoreVWEAPObject) WickedCall_SetObjectRenderLayer(pIgnoreVWEAPObject, GGRENDERLAYERS_NORMAL);
-					*/
 					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1);
 					if (t.tintersectvalue != 0)
 					{
@@ -2522,7 +2509,7 @@ void darkai_shooteffect (void)
 			t.tSourceEntity = t.te; t.tTracerFlag = 0;
 			t.tStartX_f = t.flakx_f; t.tStartY_f = t.flaky_f; t.tStartZ_f = t.flakz_f;
 			t.tAngX_f = t.flakpitch_f; t.tAngY_f = t.flakangle_f; t.tAngZ_f = 0;
-			weapon_projectile_make (false);
+			weapon_projectile_make (false, false);
 			t.gunid = iStoreGunID;
 		}
 		t.tolde = t.e;

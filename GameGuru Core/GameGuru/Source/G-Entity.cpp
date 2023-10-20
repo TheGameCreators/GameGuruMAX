@@ -3788,11 +3788,7 @@ void entity_hasbulletrayhit(void)
 	//  if bullet ray passed waterlevel, create a splash at intersection
 	if (  t.hardwareinfoglobals.nowater == 0 ) 
 	{
-		#ifdef WICKEDENGINE
 		if (t.decalglobal.splashdecalrippleid != 0 && ((t.brayy1_f > t.terrain.waterliney_f && t.brayy2_f < t.terrain.waterliney_f) || (t.brayy1_f<t.terrain.waterliney_f && t.brayy2_f>t.terrain.waterliney_f)))
-		#else
-		if (t.decalglobal.splashdecalrippleid != 0 && t.terrain.TerrainID > 0 && ((t.brayy1_f > t.terrain.waterliney_f && t.brayy2_f < t.terrain.waterliney_f) || (t.brayy1_f<t.terrain.waterliney_f && t.brayy2_f>t.terrain.waterliney_f)))
-		#endif
 		{
 			//  calculate coordate where ray hit water plane
 			t.tperc_f=(t.brayy1_f-t.terrain.waterliney_f)/abs(t.tbiy_f);
@@ -3808,13 +3804,8 @@ void entity_hasbulletrayhit(void)
 				decal_triggerwatersplash ( );
 				//  play splash sound
 				t.tmatindex=17; 
-				#ifdef WICKEDENGINE
 				t.tsoundtrigger = t.material[t.tmatindex].matsound_id[matSound_LandHard][0];
 				t.tvol_f = 75;
-				#else
-				t.tsoundtrigger = t.material[t.tmatindex].impactid;
-				t.tvol_f = 6;
-				#endif
 				t.tspd_f=(t.material[t.tmatindex].freq*1.5)+Rnd(t.material[t.tmatindex].freq)*0.5;
 				t.tsx_f=g.decalx ; t.tsy_f=g.decaly ; t.tsz_f=g.decalz;
 				material_triggersound ( 0 );
@@ -3903,24 +3894,11 @@ void entity_hasbulletrayhit(void)
 					// cause blood splat (if violent)
 					if ( t.bulletrayhite != -1 ) 
 					{
-						#ifdef WICKEDENGINE
-						// Wicked is wicked :)
 						//PE: But still allow unselect blood effect on some objects :)
 						if (t.entityelement[t.bulletrayhite].eleprof.isviolent != 0)
 						{
 							t.tttriggerdecalimpact = 2;
 						}
-
-						#else
-						if ( t.entityelement[t.bulletrayhite].eleprof.isviolent != 0 && g.quickparentalcontrolmode != 2) 
-						{
-							// 100317 - only if material index not specified (or materialindex=0) (16=flesh)
-							if ( t.tttriggerdecalimpact <= 10 || t.tttriggerdecalimpact == 16)
-							{
-								t.tttriggerdecalimpact = 2;
-							}
-						}
-						#endif
 					}
 					t.bulletrayhit=0;
 				}
@@ -3937,7 +3915,6 @@ void entity_hasbulletrayhit(void)
 			{
 				// apply some damage
 				t.tdamagesource = 1;
-				#ifdef WICKEDENGINE
 				t.tdamage = 0;
 				if (g.firemodes[t.gunid][g.firemode].settings.damage > 0)
 				{
@@ -3954,26 +3931,23 @@ void entity_hasbulletrayhit(void)
 						if (t.playercontrol.fMeleeDamageMultiplier > 0 && t.tdamage < 1) t.tdamage = 1;
 					}
 				}
-				#else
-				t.tdamage = g.firemodes[t.gunid][g.firemode].settings.damage;
-				if (t.gun[t.gunid].settings.ismelee == 2) t.tdamage = g.firemodes[t.gunid][0].settings.meleedamage;
-				#endif
 				entity_hitentity ( t.bulletrayhite, t.bulletrayhit );
 			}
 		}
 	}
 
-	#ifdef WICKEDENGINE
-	// if hitting a material, leave a bullethole (not for melee combat 'weapon')
-	if (!strstr(t.gun[t.gunid].name_s.Get(), "gloves_unarmed") && t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16)
+	// if hitting a material, leave a bullethole (not for melee combat)
+	if (t.gun[t.gunid].settings.ismelee == 0 && g.firemodes[t.gunid][g.firemode].settings.noscorch == 0)
 	{
-		if (t.bulletrayhite == 0 || t.entityelement[t.bulletrayhite].staticflag == 1)
+		if (t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16)
 		{
-			int iMaterialIndex = t.tttriggerdecalimpact - 10;
-			bulletholes_add(iMaterialIndex, t.brayx2_f, t.brayy2_f, t.brayz2_f, vecRayHitNormal.x, vecRayHitNormal.y, vecRayHitNormal.z);
+			if (t.bulletrayhite == 0 || t.entityelement[t.bulletrayhite].staticflag == 1)
+			{
+				int iMaterialIndex = t.tttriggerdecalimpact - 10;
+				bulletholes_add(iMaterialIndex, t.brayx2_f, t.brayy2_f, t.brayz2_f, vecRayHitNormal.x, vecRayHitNormal.y, vecRayHitNormal.z);
+			}
 		}
 	}
-	#endif
 
 	// trigger decal at impact coordinate
 	entity_triggerdecalatimpact ( t.brayx2_f, t.brayy2_f, t.brayz2_f );

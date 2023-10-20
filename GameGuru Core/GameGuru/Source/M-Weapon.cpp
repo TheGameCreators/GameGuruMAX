@@ -1199,7 +1199,7 @@ void weapon_projectile_setup ( int* piSndForBaseSound, int* piSndForBaseDestroy 
 	t.tResult = 0;
 }
 
-void weapon_projectile_make ( bool bUsingVRForAngle )
+void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPenetration )
 {
 	//  creates a projectile in the game. Takes;
 	//    tProjectileType which is an index of array WeaponProjectileBase()
@@ -1332,8 +1332,10 @@ void weapon_projectile_make ( bool bUsingVRForAngle )
 			t.tAngX_f=t.tAngX_f-13.0f;
 		}
 	}
-	RotateObject (  t.tobj, t.tAngX_f , t.tAngY_f , t.tAngZ_f );
-	MoveObject (  t.tobj,t.WeaponProjectileBase[t.tProjectileType].avoidPlayerPenetration_f );
+	RotateObject ( t.tobj, t.tAngX_f , t.tAngY_f , t.tAngZ_f );
+	float fAvoidPlayerPenetration = t.WeaponProjectileBase[t.tProjectileType].avoidPlayerPenetration_f;
+	if (bDoNotAdvanceToAvoidPenetration == true) fAvoidPlayerPenetration = 0;
+	MoveObject ( t.tobj, fAvoidPlayerPenetration);
 	t.tStartX_f = ObjectPositionX(t.tobj);
 	t.tStartY_f = ObjectPositionY(t.tobj);
 	t.tStartZ_f = ObjectPositionZ(t.tobj);
@@ -1399,7 +1401,6 @@ void weapon_projectile_make ( bool bUsingVRForAngle )
 		if (  t.WeaponProjectileBase[t.tProjectileType].usingRealPhysics>0 ) 
 		{
 			t.tweight=-1 ; t.tfriction=-1;
-			#ifdef WICKEDENGINE
 			// for the moment, not understanding this logic whicvh seems to rotate the inertia
 			// of the projectile -40 degrees off camera forward direction?
 			// so, get current projectile position
@@ -1412,43 +1413,28 @@ void weapon_projectile_make ( bool bUsingVRForAngle )
 			else
 				SetObjectToCameraOrientation ( t.tobj );
 			// move 10 units in that direction
-			MoveObject ( t.tobj, 10.0 );
+			MoveObject (t.tobj, 10.0);
 			// get the normals for the trajectory
 			t.WeaponProjectile[t.tNewProj].xSpeed_f = ObjectPositionX(t.tobj) - fOldObjectX;
 			t.WeaponProjectile[t.tNewProj].ySpeed_f = ObjectPositionY(t.tobj) - fOldObjectY;
 			t.WeaponProjectile[t.tNewProj].zSpeed_f = ObjectPositionZ(t.tobj) - fOldObjectZ;
 			// and advance more to avoid clipping player camera
-			MoveObject ( t.tobj, 20.0 );
-			#else
-			// hmm, not sure what logic this serves, we are actively turning the projectile 40 degrees to the left!!
-			//YRotateCamera (  0,CameraAngleY(0)-40 );
-			//SetObjectToCameraOrientation (  t.tobj );
-			//YRotateCamera (  0,CameraAngleY(0)+40 );
-			float fForceProjectileTurnLeft = 40.0f + t.WeaponProjectileBase[t.tProjectileType].usingRealPhysicsAdjustYAngle;
-			YRotateCamera (  0,CameraAngleY(0)-fForceProjectileTurnLeft );
-			SetObjectToCameraOrientation (  t.tobj );
-			YRotateCamera (  0,CameraAngleY(0)+fForceProjectileTurnLeft );
-			float fForceProjectilePitchUp = t.WeaponProjectileBase[t.tProjectileType].usingRealPhysicsAdjustXAngle;
-			XRotateCamera (  0,CameraAngleX(0)+fForceProjectilePitchUp );
-			SetObjectToCameraOrientation (  t.tobj );
-			XRotateCamera (  0,CameraAngleX(0)-fForceProjectilePitchUp );
-			MoveObject (  t.tobj,10.0 );
-			t.WeaponProjectile[t.tNewProj].xSpeed_f=ObjectPositionX(t.tobj)-CameraPositionX(0);
-			t.WeaponProjectile[t.tNewProj].ySpeed_f=ObjectPositionY(t.tobj)-CameraPositionY(0);
-			t.WeaponProjectile[t.tNewProj].zSpeed_f=ObjectPositionZ(t.tobj)-CameraPositionZ(0);
-			MoveObject (  t.tobj,-10.0 );
-			#endif
+			if (bDoNotAdvanceToAvoidPenetration == true)
+			{
+				// player facing obstruction, keep in same spot as start pos
+				MoveObject (t.tobj, -10.0);
+			}
+			else
+			{
+				MoveObject (t.tobj, 20.0);
+			}
 			ODECreateDynamicBox (  t.tobj,-1,0,t.tweight,(float)t.tfriction,-1 );
 			t.tinertiax_f=t.WeaponProjectile[t.tNewProj].xSpeed_f*t.WeaponProjectile[t.tNewProj].acceleration_f;
 			t.tinertiay_f=t.WeaponProjectile[t.tNewProj].ySpeed_f*t.WeaponProjectile[t.tNewProj].acceleration_f;
 			t.tinertiaz_f=t.WeaponProjectile[t.tNewProj].zSpeed_f*t.WeaponProjectile[t.tNewProj].acceleration_f;
-			#ifdef WICKEDENGINE
 			// new grenade range massively reduced because of this!
 			// will need further investigation as we test Classic vs MAX weapons
 			t.tidiv_f = 1.0f;
-			#else
-			t.tidiv_f=0.2f;
-			#endif
 			ODESetLinearVelocity (  t.tobj,t.tinertiax_f*t.tidiv_f,t.tinertiay_f*t.tidiv_f,t.tinertiaz_f*t.tidiv_f );
 			t.tinertiax_f=t.WeaponProjectile[t.tNewProj].xTurnSpeed_f;
 			t.tinertiay_f=t.WeaponProjectile[t.tNewProj].yTurnSpeed_f;

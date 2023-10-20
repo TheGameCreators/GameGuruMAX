@@ -360,38 +360,42 @@ void gun_manager ( void )
 		t.gunandmelee.hudbankcrosshairtexture=g.firemodes[t.gunid][g.firemode].settings.flashimg;
 	}
 
-	//  gun selection
-	if (  t.gunmode<31 || t.gunmode>35 ) 
+	// gun selection
+	if ( t.gunmode<31 || t.gunmode>35 ) 
 	{
-		if (  t.player[1].command.newweapon>0 ) 
+		if ( t.player[1].command.newweapon>0 ) 
 		{
 			t.sel=t.player[1].command.newweapon;
-			t.player[1].command.newweapon=0;
-			if (  g.weaponammoindex>0 ) 
+			t.player[1].command.newweapon = 0;
+			if (t.sel != t.gunid)
 			{
-				//  only if 'different weapon'
-				///if (t.weaponslot[g.weaponammoindex].pref != t.sel)
-				if (t.weaponslot[g.weaponammoindex].got != t.sel)
+				if (g.weaponammoindex > 0)
 				{
-					t.gunmode=31 ; t.gunselectionafterhide=t.sel;
-					t.gunandmelee.tmouseheld=0;
-				}
-				else
-				{
-					//  Alternate Fire
-					if (  g.ggunaltswapkey1 == -1 ) 
+					//  only if 'different weapon'
+					///if (t.weaponslot[g.weaponammoindex].pref != t.sel)
+					if (t.weaponslot[g.weaponammoindex].got != t.sel)
 					{
-						if (  (t.gun[t.gunid].settings.alternateisflak  ==  1 || t.gun[t.gunid].settings.alternateisray  ==  1) && t.gunmode  <=  100 ) 
+						t.gunmode = 31; t.gunselectionafterhide = t.sel;
+						t.gunandmelee.tmouseheld = 0;
+					}
+					else
+					{
+						//  Alternate Fire
+						if (g.ggunaltswapkey1 == -1)
 						{
-							if (  t.gun[t.gunid].settings.alternate  ==  1 ) { t.gunmode = 2009  ; t.gun[t.gunid].settings.alternate  =  0 ; } else { t.gunmode = 2007 ; t.gun[t.gunid].settings.alternate  =  1; }
+							if ((t.gun[t.gunid].settings.alternateisflak == 1 || t.gun[t.gunid].settings.alternateisray == 1) && t.gunmode <= 100)
+							{
+								if (t.gun[t.gunid].settings.alternate == 1) { t.gunmode = 2009; t.gun[t.gunid].settings.alternate = 0; }
+								else { t.gunmode = 2007; t.gun[t.gunid].settings.alternate = 1; }
+							}
 						}
 					}
 				}
-			}
-			else
-			{
-				t.gunmode=131 ; g.autoloadgun=t.sel;
-				if (  g.autoloadgun != t.gunid  )  t.gunandmelee.tmouseheld = 0;
+				else
+				{
+					t.gunmode = 131; g.autoloadgun = t.sel;
+					if (g.autoloadgun != t.gunid)  t.gunandmelee.tmouseheld = 0;
+				}
 			}
 		}
 	}
@@ -3724,6 +3728,7 @@ void gun_shoot ( void )
 		{
 			// flak is the projectile from the players weapon
 			bool bNormalOrVRMode = false;
+			bool bDoNotAdvanceToAvoidPenetration = false;
 			t.flakid=g.firemodes[t.gunid][g.firemode].settings.flakindex;
 			if (  t.flakid>0 ) 
 			{
@@ -3755,8 +3760,6 @@ void gun_shoot ( void )
 					t.flakpitch_f=CameraAngleX();
 
 					// can intercept calculated ray with real ray from VR controller (if available)
-					#ifdef WICKEDENGINE
-					//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
 					extern int g_iActivelyUsingVRNow;
 					if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
 					if (bNormalOrVRMode == true)
@@ -3768,19 +3771,35 @@ void gun_shoot ( void )
 							t.flakpitch_f=ObjectAngleX(iLaserGuideObj);
 						}
 					}
-					#endif
 
-					t.flakx_f=CameraPositionX()+NewXValue(0,t.flakangle_f+45,40);
-					t.flaky_f=CameraPositionY();
-					t.flakz_f=CameraPositionZ()+NewZValue(0,t.flakangle_f+45,40);
-					if (  t.gun[t.gunid].settings.flashlimb != -1 ) 
+					// check if clearance in front of player, so can place grenade perfectly
+					t.flakx_f = CameraPositionX();
+					t.flaky_f = CameraPositionY();
+					t.flakz_f = CameraPositionZ();
+					float fGrenadePosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
+					float fGrenadePosY = CameraPositionY();
+					float fGrenadePosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
+					if (t.gun[t.gunid].settings.flashlimb != -1)
 					{
-						if (  LimbExist(t.currentgunobj,t.gun[t.gunid].settings.flashlimb) == 1 ) 
+						if (LimbExist(t.currentgunobj, t.gun[t.gunid].settings.flashlimb) == 1)
 						{
-							t.flakx_f=LimbPositionX(t.currentgunobj,t.gun[t.gunid].settings.flashlimb);
-							t.flaky_f=LimbPositionY(t.currentgunobj,t.gun[t.gunid].settings.flashlimb);
-							t.flakz_f=LimbPositionZ(t.currentgunobj,t.gun[t.gunid].settings.flashlimb);
+							fGrenadePosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+							fGrenadePosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+							fGrenadePosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
 						}
+					}
+					int iIgnoreObj = t.currentgunobj;
+					int iHitSomething = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX, fGrenadePosY, fGrenadePosZ, iIgnoreObj, 0, 0, 0, 0);
+					if (iHitSomething != 0)
+					{
+						// obstruction, place at player no advance shifting - leave at camera pos
+						bDoNotAdvanceToAvoidPenetration = true;
+					}
+					else
+					{
+						t.flakx_f = fGrenadePosX;
+						t.flaky_f = fGrenadePosY;
+						t.flakz_f = fGrenadePosZ;
 					}
 				}
 				//  create and launch projectile
@@ -3790,7 +3809,7 @@ void gun_shoot ( void )
 					t.tSourceEntity=0 ; t.tTracerFlag=0;
 					t.tStartX_f=t.flakx_f ; t.tStartY_f=t.flaky_f ; t.tStartZ_f=t.flakz_f;
 					t.tAngX_f=t.flakpitch_f ; t.tAngY_f=t.flakangle_f ; t.tAngZ_f=0;
-					weapon_projectile_make ( bNormalOrVRMode );
+					weapon_projectile_make ( bNormalOrVRMode, bDoNotAdvanceToAvoidPenetration);
 					//  hide projectile which is part of HUD
 					if (  g.firemodes[t.gunid][g.firemode].settings.flaklimb != -1 ) 
 					{

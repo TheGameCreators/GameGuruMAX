@@ -25,7 +25,7 @@ void weapon_projectile_free ( void );
 void weapon_projectile_loop ( void );
 void weapon_projectile_load ( void );
 void weapon_projectile_setup ( int* piSndForBaseSound, int* piSndForBaseDestroy );
-void weapon_projectile_make ( bool bUsingVRForAngle );
+void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPenetration);
 void weapon_add_projectile_particles ( void );
 void weapon_projectile_reset ( void );
 void weapon_mp_projectile_reset ( void );

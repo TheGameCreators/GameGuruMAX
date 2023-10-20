@@ -2977,6 +2977,7 @@ void WickedCall_GetGluedLimbWorldPos(sObject* pObject, int iLimbID, float* pfX, 
 	if (pGluedTo)
 	{
 		sFrame* pFrame = pObject->ppFrameList[0];
+		if (iLimbID < pObject->iFrameCount) pFrame = pObject->ppFrameList[iLimbID];
 		uint64_t wickedobjindex = pFrame->wickedobjindex;
 		wiScene::TransformComponent* pFrameTransform = wiScene::GetScene().transforms.GetComponent(wickedobjindex);
 		if (pFrameTransform)

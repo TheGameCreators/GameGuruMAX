@@ -3789,8 +3789,20 @@ void gun_shoot ( void )
 						}
 					}
 					int iIgnoreObj = t.currentgunobj;
-					int iHitSomething = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX, fGrenadePosY, fGrenadePosZ, iIgnoreObj, 0, 0, 0, 0);
-					if (iHitSomething != 0)
+					float fAndTheAdvanceX = fGrenadePosX - t.flakx_f;
+					float fAndTheAdvanceY = fGrenadePosY - t.flaky_f;
+					float fAndTheAdvanceZ = fGrenadePosZ - t.flakz_f;
+					float fAndTheAdvance = sqrt(fabs(fAndTheAdvanceX * fAndTheAdvanceX) + fabs(fAndTheAdvanceY * fAndTheAdvanceY) + fabs(fAndTheAdvanceZ * fAndTheAdvanceZ));
+					fAndTheAdvanceX /= fAndTheAdvance;
+					fAndTheAdvanceY /= fAndTheAdvance;
+					fAndTheAdvanceZ /= fAndTheAdvance;
+					fAndTheAdvanceX *= 60.0f;
+					fAndTheAdvanceY *= 60.0f;
+					fAndTheAdvanceZ *= 60.0f;
+					int iHitTerrain = ODERayTerrain(t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX+ fAndTheAdvanceX, fGrenadePosY+ fAndTheAdvanceY, fGrenadePosZ+ fAndTheAdvanceZ, false);
+					int iHitSomething = 0;
+					if (iHitTerrain == 0 ) iHitSomething = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX, fGrenadePosY, fGrenadePosZ, iIgnoreObj, 0, 0, 0, 0);
+					if (iHitSomething != 0 || iHitTerrain != 0 )
 					{
 						// obstruction, place at player no advance shifting - leave at camera pos
 						bDoNotAdvanceToAvoidPenetration = true;
@@ -3823,22 +3835,16 @@ void gun_shoot ( void )
 		}
 
 		// 200918 - trigger ai sound so enemies can pick up the shot
-		if ( 1 )
-		{
-			t.tradius_f=2000;
-			#ifndef WICKEDENGINE
-			AICreateSound ( CameraPositionX(), CameraPositionY(), CameraPositionZ(),t.tradius_f,t.tradius_f,-1 );
-			#endif
-			g.aidetectnearbymode = 1;
-			g.aidetectnearbycount = 60*4;
-			g.aidetectnearbymodeX_f = CameraPositionX();
-			g.aidetectnearbymodeZ_f = CameraPositionZ();
-		}
+		t.tradius_f=2000;
+		g.aidetectnearbymode = 1;
+		g.aidetectnearbycount = 60*4;
+		g.aidetectnearbymodeX_f = CameraPositionX();
+		g.aidetectnearbymodeZ_f = CameraPositionZ();
 	}
 
-	//  And can iterate more gunshoot rays if required
-	//  instead of many interations in one call, the iterations are
-	//  spread to one per cycle to reduce a 'freeze' effect
+	// And can iterate more gunshoot rays if required
+	// instead of many interations in one call, the iterations are
+	// spread to one per cycle to reduce a 'freeze' effect
 	if ( t.gunshootspread>0 ) 
 	{
 		// trigger another ray in iteration sequence (using stored camera values at time of shot)

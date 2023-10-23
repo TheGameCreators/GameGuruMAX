@@ -4473,7 +4473,11 @@ void entity_monitorattachments (void)
 								{
 									if (stricmp (t.entityelement[iWE].eleprof.name_s.Get(), pLootObjName) == NULL)
 									{
-										iLootObjectID = iWE;
+										// probability of a drop
+										if ((int)rand() % 100 <= t.entityelement[iWE].eleprof.lootpercentage)
+										{
+											iLootObjectID = iWE;
+										}
 										break;
 									}
 								}

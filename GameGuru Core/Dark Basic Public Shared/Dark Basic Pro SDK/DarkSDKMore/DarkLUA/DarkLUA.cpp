@@ -10805,9 +10805,6 @@ void addFunctions()
 	lua_register(lua, "GetRippleWaterSpeed", GetRippleWaterSpeed); 
 	lua_register(lua, "GetWaterEnabled", GetWaterEnabled);
 
-	//Dynamic sun.
-	lua_register(lua, "SetSunDirection", SetSunDirection);
-
 	#ifdef STORYBOARD
 	//Storyboard
 	lua_register(lua, "SetScreenHUDGlobalScale", SetScreenHUDGlobalScale);
@@ -10898,11 +10895,14 @@ void addFunctions()
 
 	// In-game HUD
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);
-
 	lua_register(lua, "SetLevelFadeoutEnabled", SetLevelFadeoutEnabled);
 
+	// Sun
+	lua_register(lua, "SetSunDirection", SetSunDirection);
 	lua_register(lua, "SetSunLightingColor", SetSunLightingColor);
 	lua_register(lua, "SetSunIntensity", SetSunIntensity);
+
+	// Lighting
 	lua_register(lua, "SetExposure", SetExposure);
 	lua_register(lua, "GetExposure", GetExposure);
 }

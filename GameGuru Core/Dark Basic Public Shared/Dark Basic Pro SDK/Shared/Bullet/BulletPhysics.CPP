@@ -4260,14 +4260,12 @@ void ODESetBodyScaling(int iObjectNumber, float fX, float fY, float fZ)
 
 int ODERayTerrain ( float fX, float fY, float fZ, float fToX, float fToY, float fToZ, bool bUpdateDebugObj)
 {
-	#ifdef WICKEDENGINE
 	// inject tree detection, so can exit early if ray tried to go 'THROUGH' a tree
 	extern int physics_rayintersecttree (float fX, float fY, float fZ, float fToX, float fToY, float fToZ);
 	if (physics_rayintersecttree (fX, fY, fZ, fToX, fToY, fToZ) == 1)
 	{
 		return 1;
 	}
-	#endif
 	return ODERayTerrainEx ( fX, fY, fZ, fToX, fToY, fToZ, COL_TERRAIN, bUpdateDebugObj);
 }
 

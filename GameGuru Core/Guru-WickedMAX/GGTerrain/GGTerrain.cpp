@@ -8702,7 +8702,7 @@ void GGTerrain_ClearEnvProbeList(void)
 	// a good time to refresh global in case of env changes!
 	globalEnvProbePos.y = 0;
 }
-void GGTerrain_InstantEnvProbeRefresh(void)
+void GGTerrain_InstantEnvProbeRefresh(int iCoolDownIndex)
 {
 	// now update all live probes
 	for (int iRealProbeIndex = 0; iRealProbeIndex < LOCALENVPROBECOUNT; iRealProbeIndex++)
@@ -8713,7 +8713,12 @@ void GGTerrain_InstantEnvProbeRefresh(void)
 		{
 			if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
 			{
-				probe->SetDirty();
+				if (iCoolDownIndex == 0 || iCoolDownIndex == iRealProbeIndex)
+				{
+					probe->SetDirty();
+					if (iCoolDownIndex != 0)
+						break;
+				}
 			}
 		}
 	}
@@ -8964,7 +8969,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						{
 							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 						}
-						//probe->SetDirty(); done below
 
 						// update probe with correct scaling
 						pTransform->ClearTransform();
@@ -9012,12 +9016,6 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					}
 					bRefreshProbeFromUpdatesAndPlayerMovement = true;
 				}
-				// additionally, if being tracked but not in transition (no longer needed as increased distance for objects to be rendered into envmaps (fCullFromEnvMapObjectsAtDistanceThreshold))
-				//if (g_iEnvProbeTracking[iRealProbeIndex] > 0)
-				//{
-				//	// and player is moving, need to update probe for correct env map contents culling
-				//	if (bMovementOfPlayer==true) bRefreshProbeFromUpdatesAndPlayerMovement = true;
-				//}
 				if (bRefreshProbeFromUpdatesAndPlayerMovement == true && fMovementDelta > 0.0f)
 				{
 					probe->SetDirty();

@@ -126,6 +126,7 @@ using namespace GGGrass;
 #endif
 
 extern sObject* g_selected_editor_object;
+extern int g_selected_editor_objectID;
 extern XMFLOAT4 g_selected_editor_color;
 //bool bEditorGridFitObjectSize = false;
 int iEditorGridSizeX = 100;
@@ -267,6 +268,7 @@ bool g_bRefreshRotationValuesFromObjectOnce = false;
 bool g_bRefreshScaleValuesFromObjectOnce = false;
 bool g_bLightProbeScaleChanged = false;
 bool g_bLightProbeInstantChange = false;
+int g_iLightProbeInstantChangeCoolDown = 0;
 int iReusePickObjectID = -1;
 int iReusePickEntityID = -1;
 float fReusePickHitX = 0, fReusePickHitY = 0, fReusePickHitZ = 0;
@@ -8401,6 +8403,7 @@ void mapeditorexecutable_loop(void)
 		#ifdef USE_ENTITY_TOOL_WINDOW
 		#ifdef WICKEDENGINE
 		g_selected_editor_object = NULL;
+		g_selected_editor_objectID = 0;
 		if (t.widget.pickedObject > 0) 
 		{
 			if (t.widget.pickedObject < g_iObjectListCount)
@@ -8415,6 +8418,7 @@ void mapeditorexecutable_loop(void)
 							g_selected_editor_color = XMDYNAMICCOLOR;
 					}
 					g_selected_editor_object = g_ObjectList[t.widget.pickedObject];
+					g_selected_editor_objectID = t.widget.pickedObject;
 				}
 			}
 		}
@@ -8539,6 +8543,7 @@ void mapeditorexecutable_loop(void)
 								g_selected_editor_color = XMDYNAMICCOLOR;
 						}
 						g_selected_editor_object = g_ObjectList[iActiveObj];
+						g_selected_editor_objectID = iActiveObj;
 					}
 				}
 				#endif
@@ -11938,6 +11943,7 @@ void mapeditorexecutable_loop(void)
 
 				#ifdef WICKEDENGINE
 				g_selected_editor_object = NULL;
+				g_selected_editor_objectID = 0;
 				if (iOldgridentity > 0) 
 				{
 					int picked_object = t.gridentityobj;
@@ -11952,6 +11958,7 @@ void mapeditorexecutable_loop(void)
 								else
 									g_selected_editor_color = XMDYNAMICCOLOR;
 								g_selected_editor_object = g_ObjectList[picked_object];
+								g_selected_editor_objectID = picked_object;
 							}
 						}
 					}
@@ -13850,19 +13857,12 @@ void mapeditorexecutable_loop(void)
 				}
 			}
 
-			//if (strlen(cSearchEntities) > 0) {
-			//}
-#ifdef WICKEDENGINE
 			ImGui::SetCursorPos(ImVec2(restore_pos.x-8.0f, restore_pos.y));
 			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List" };
 
 			int isortbySize = IM_ARRAYSIZE(sortby_modes);
-			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
 			if (!pref.iEnableAdvancedEntityList)
 				isortbySize--;
-			#else
-				isortbySize--;
-			#endif
 
 			int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
 			ImGui::PushItemWidth(-24);
@@ -13871,25 +13871,18 @@ void mapeditorexecutable_loop(void)
 				for (int n = 0; n < isortbySize; n++)
 				{
 					bool is_selected = (current_sort_order == n);
-					if (ImGui::Selectable(sortby_modes[n], is_selected)) {
+					if (ImGui::Selectable(sortby_modes[n], is_selected)) 
+					{
 						current_sort_order = n;
 					}
 					if (is_selected)
 						ImGui::SetItemDefaultFocus();
 				}
-
 				ImGui::EndCombo();
 			}
-#endif
-			//ImGui::PopItemWidth();
-			
-
 			ImGui::EndChild();
 
 			ImVec2 content_avail = ImVec2(0.0, 0.0);
-			#ifdef WICKEDENGINE
-			#ifdef NEWGAMEELEMENTGRID
-			
 			content_avail = ImGui::GetContentRegionAvail();
 			content_avail.y -= fsy * 3.0;
 			if (content_avail.y < fsy) content_avail.y = fsy;
@@ -13907,121 +13900,37 @@ void mapeditorexecutable_loop(void)
 				entity_icons_columns = entity_icons;// 12;
 				entity_image_size = entity_w / (float)entity_icons_columns;
 				entity_image_size -= 7.5f;
-			}
-			
-			#else
-			//PE: This should always run when we dont have the old "help button".
-			//if (!pref.bHideTutorials)
+			}		
+
+			int iIconRows = (entity_icons + (entity_icons_columns - 1)) / entity_icons_columns;
+			if (content_avail.x <= 1)
 			{
 				content_avail = ImGui::GetContentRegionAvail();
-				content_avail.y -= fsy * 3.0;
-				if (content_avail.y < fsy) content_avail.y = fsy;
+				content_avail.y -= (fsy*0.5);
 			}
+			content_avail.y -= 3.0f;
+			content_avail.y -= ((entity_w / entity_icons_columns) * iIconRows);
+			content_avail.y -= 10.0f;
 
-			int entity_icons = 10, entity_icons_columns = 6;// 4;
-			float entity_w = ImGui::GetContentRegionAvailWidth() - 10.0f;
-			float fSpacer = 0.0f;
-			//New icons.
-			float entity_image_size = entity_w / (float)entity_icons_columns;
-			entity_image_size -= ((2.0f) * entity_icons_columns) - 2.0f;
-			if (entity_w > 320)
-			{
-				//Switch to 10 per row.
-				entity_icons_columns = 10;
-				entity_image_size = entity_w / (float)entity_icons_columns;
-				entity_image_size -= ((1.0f) * entity_icons_columns) - 2.0f;
-			}
-			if (entity_w < 100)
-			{
-				//Switch to 10 per row.
-				entity_icons_columns = 2;
-				entity_image_size = entity_w / (float)entity_icons_columns;
-				entity_image_size -= ((5.0f) * entity_icons_columns) - 2.0f;
-			}
-			#endif
-			
-
-			//PE: New object tool icons.
-			#ifdef INCLUDELEFTENTITYTOOLICONS
-			//PE: Int round up.
-			int iIconRows = (entity_icons + (entity_icons_columns - 1)) / entity_icons_columns;
-
-			if (1) // t.grideditselect == 5)
-			{
-				#ifdef NEWGAMEELEMENTGRID
-				if (content_avail.x <= 1)
-				{
-					content_avail = ImGui::GetContentRegionAvail();
-					content_avail.y -= (fsy*0.5);
-				}
-				
-				content_avail.y -= 3.0f;
-				content_avail.y -= ((entity_w / entity_icons_columns) * iIconRows);
-				content_avail.y -= 10.0f;
-
-				#else
-				if (content_avail.x <= 1)
-				{
-					content_avail = ImGui::GetContentRegionAvail();
-					content_avail.y -= (fsy*0.5);
-				}
-				if (Shooter_Tools_Window)
-				{
-					//int shooter_icons = 5, shooter_icons_columns = 5;
-					//PE: New design display 15 icons.
-					content_avail.y -= 3.0f;
-					int shooter_icons = 15, shooter_icons_columns = 5;
-					content_avail.y -= (entity_image_size * (shooter_icons / shooter_icons_columns));
-					content_avail.y -= (3.0f * (shooter_icons / shooter_icons_columns)); //Y padding.
-				}
-				else
-				{
-					content_avail.y -= (entity_image_size * iIconRows);
-					content_avail.y -= (3.0f * iIconRows); //Y padding.
-				}
-				if (entity_w < 100)
-				{
-					content_avail.y -= (fsy*0.5);
-				}
-				if (content_avail.y < fsy) content_avail.y = fsy;
-				#endif
-				
-			}
-			#endif
-
-			#endif
-			#ifdef WICKEDENGINE
 			static bool bViewOptionsOpen = false;
 			if(bViewOptionsOpen)
 				ImGui::BeginChild("##MainEntitiesLeftPanel", content_avail - ImVec2(0.0f, 205.0f), false, iGenralWindowsFlags); //, false, ImGuiWindowFlags_HorizontalScrollbar);
 			else
 				ImGui::BeginChild("##MainEntitiesLeftPanel", content_avail, false, iGenralWindowsFlags); //, false, ImGuiWindowFlags_HorizontalScrollbar);
-			#else
-			ImGui::BeginChild("##MainEntitiesLeftPanel", content_avail, false, iGenralWindowsFlags); //, false, ImGuiWindowFlags_HorizontalScrollbar);
-			#endif
-			#ifdef WICKEDENGINE			
 			ImGui::TextCenter(sortby_modes[current_sort_order]);
-			#endif
 
-			//static std::map<std::string, std::int32_t> sorted_files;
 			static std::vector<std::pair<std::string,int>> sorted_entity_files;
 
 			static int last_entidmaster = 0;
 			static int last_include_icon_set = -1;
 
 			int iMasterEntid = g.entidmaster;
-			#ifdef WICKEDENGINE
 			if (iRestoreEntidMaster >= 0 && bExternal_Entities_Window)
 			{
 				iMasterEntid = iRestoreEntidMaster;
 			}
-			#endif
-			#ifdef WICKEDENGINE
 			static int last_sortby = -1;
 			if (last_entidmaster != iMasterEntid || last_include_icon_set != iIncludeLeftIconSet || current_sort_order != last_sortby )
-			#else
-			if (last_entidmaster != iMasterEntid)
-			#endif
 			{
 				//Sort new list.
 				sorted_entity_files.clear();
@@ -14054,39 +13963,15 @@ void mapeditorexecutable_loop(void)
 						sorted_entity_files.push_back(std::make_pair(stmp, itmp));
 					}
 					std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
-					#ifdef WICKEDENGINE
 					if (current_sort_order == 1 || current_sort_order == 2)
 						std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
-					#endif
-				}
-				//PE: Add seperate window instead of this, keep it here as its usefull.
-				#ifdef WICKEDENGINE
-				if (iIncludeLeftIconSet == 1) 
-				#else
-				if (0) 
-				#endif
-				{
-					//PE: Add additional files here. , include commands like seperator , text ...
-					//std::string sFind = "ZZZZ-Seperator";
-					//sorted_entity_files.insert(std::make_pair(sFind, 999999));
-					//sFind = "ZZZZ-This is a text";
-					//sorted_entity_files.insert(std::make_pair(sFind, 999998));
-					//int val = 999999;
-					//auto mFind = std::find_if(sorted_entity_files.begin(), sorted_entity_files.end(), [val](const auto& mo) {return mo.second == val; });
-					//if (mFind != sorted_entity_files.end())
-					//{
-					//	//Found.
-					//}
 				}
 				last_entidmaster = iMasterEntid;
-				#ifdef WICKEDENGINE
 				last_include_icon_set = iIncludeLeftIconSet;
 				last_sortby = current_sort_order;
-				#endif
 			}
 
 			int uniqueId = 15000;
-
 			int preview_count = 0;
 			media_icon_size_leftpanel = 64;
 			iColumnsWidth_leftpanel = 110;
@@ -14095,17 +13980,20 @@ void mapeditorexecutable_loop(void)
 			fFontSize_leftpanel = SMALLFONTSIZE;
 			ImGui::SetWindowFontScale(fFontSize_leftpanel);
 			float fWinWidth = ImGui::GetWindowSize().x - 10.0; // Flicker - ImGui::GetCurrentWindow()->ScrollbarSizes.x;
-			if (iColumnsWidth_leftpanel >= fWinWidth && fWinWidth > media_icon_size_leftpanel) {
+			if (iColumnsWidth_leftpanel >= fWinWidth && fWinWidth > media_icon_size_leftpanel) 
+			{
 				iColumnsWidth_leftpanel = fWinWidth;
 				fFontSize_leftpanel = SMALLESTFONTSIZE;
 				ImGui::SetWindowFontScale(fFontSize_leftpanel);
 			}
-			if (fWinWidth <= media_icon_size_leftpanel + 10) {
+			if (fWinWidth <= media_icon_size_leftpanel + 10) 
+			{
 				iColumnsWidth_leftpanel = media_icon_size_leftpanel;
 				fFontSize_leftpanel = SMALLESTFONTSIZE;
 				ImGui::SetWindowFontScale(fFontSize_leftpanel);
 			}
-			if (fWinWidth <= 42) {
+			if (fWinWidth <= 42) 
+			{
 				media_icon_size_leftpanel = 32;
 				iColumnsWidth_leftpanel = media_icon_size_leftpanel + 16;
 				bDisplayText_leftpanel = false;
@@ -14172,7 +14060,6 @@ void mapeditorexecutable_loop(void)
 						}
 						else if (it->second > 0)
 						{
-							#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
 							if (iloop == 0 && current_sort_order == 5)
 							{
 								// prep for drawinf list
@@ -14226,7 +14113,7 @@ void mapeditorexecutable_loop(void)
 									if (TreeNodeOpen)
 									{
 										ImGui::Indent(-5);
-										bool bMoveCameraToObjectPosition = false;
+										bool bMoveCameraToObjectPosition = true;// false;
 										DoTreeNodeEntity(entid, bMoveCameraToObjectPosition);
 										ImGui::Indent(5);
 										ImGui::TreePop();
@@ -14269,17 +14156,12 @@ void mapeditorexecutable_loop(void)
 
 								if (DisplayEntry && iTextureID > 0)
 								{
-
 									ImGui::PushID(uniqueId++);
 									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel)*0.5;
 									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
 									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
 
-									if (!bUseWideThumb)
-									{
-										//ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + (fCenterX - (media_icon_size_leftpanel*0.5)), ImGui::GetCursorPosY()));
-									}
-									else
+									if (bUseWideThumb)
 									{
 										//512x288
 										float fRatio = 288.0f / 512.0f;
@@ -14295,23 +14177,12 @@ void mapeditorexecutable_loop(void)
 									{
 										strcat(cName, " (Smart Object)");
 									}
-									//if (ImGui::ImgBtn(iTextureID, vIconSize, drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, true, false, false, false, true, false))
-
 									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow; //Got sub selections.
-
-									//node_flags = ImGuiTreeNodeFlags_Leaf; //No sub selections.
 
 									bool bSelected = false;
 
-									//Find selection here.
-									//if (bSelected)
-									//	node_flags |= ImGuiTreeNodeFlags_Selected;
-									//else
-									//	node_flags &= ~ImGuiTreeNodeFlags_Selected;
-
 									ImGui::PushItemWidth(-20.0); //PE: Room for a icon.
 									std::string treename = cName;
-									//treename[0] = toupper(treename[0]);
 									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(it->second + 99000), node_flags, treename.c_str());
 									bool bHovered = ImGui::IsItemHovered();
 									ImGui::PopItemWidth();
@@ -14323,7 +14194,6 @@ void mapeditorexecutable_loop(void)
 										bHoveredUsed = true;
 										ImGui::BeginTooltip();
 										ImGui::ImgBtn(iTextureID, vIconSize, drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, true, false, false, false, true, false);
-										//ImGui::Text(treename.c_str());
 										ImGui::EndTooltip();
 									}
 
@@ -14331,8 +14201,8 @@ void mapeditorexecutable_loop(void)
 
 									if (TreeNodeOpen) 
 									{
-										ImGui::Indent(-5);
 										//Display any sub nodes
+										ImGui::Indent(-5);
 										DoTreeNodeEntity(it->second,true);
 										ImGui::Indent(5);
 										ImGui::TreePop();
@@ -14348,9 +14218,7 @@ void mapeditorexecutable_loop(void)
 											if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 
 											FreeTempImageList();
-
 											DeleteWaypointsAddedToCurrentCursor();
-											//CheckTooltipObjectDelete();
 											CloseDownEditorProperties();
 											//Make sure we are in entity mode.
 											bForceKey = true;
@@ -14360,7 +14228,6 @@ void mapeditorexecutable_loop(void)
 											t.inputsys.constructselection = it->second;
 											t.inputsys.domodeentity = 1;
 											t.grideditselect = 5;
-											#ifdef WICKEDENGINE
 											//Make sure we use a fresh t.grideleprof
 											t.entid = t.gridentity;
 											entity_fillgrideleproffromprofile();
@@ -14377,7 +14244,6 @@ void mapeditorexecutable_loop(void)
 											g_fHoldGridEntityPosX = t.gridentityposx_f;
 											g_fHoldGridEntityPosY = t.gridentityposy_f;
 											g_fHoldGridEntityPosZ = t.gridentityposz_f;
-											#endif
 											editor_refresheditmarkers();
 										}
 									}
@@ -14389,13 +14255,8 @@ void mapeditorexecutable_loop(void)
 							}
 							else
 							{
-							#endif
-								#ifdef WICKEDENGINE
 								// no longer list markers in left entity panel, we have the game elements buttons now
 								if ((iloop == 0 && t.entityprofile[it->second].ismarker == 0 && t.entityprofile[it->second].ischildofgroup == 0))
-								#else
-								if ((iloop == 0 && t.entityprofile[it->second].ismarker == 0) || (iloop == 1 && t.entityprofile[it->second].ismarker > 0))
-								#endif
 								{
 									bool DisplayEntry = true;
 									char cName[512];
@@ -14410,13 +14271,11 @@ void mapeditorexecutable_loop(void)
 
 									bool bUseWideThumb = false;
 									int iTextureID = t.entityprofile[it->second].iThumbnailSmall;
-#ifdef USEWIDEICONSEVERYWHERE
 									if (t.entityprofile[it->second].iThumbnailLarge > 0)
 									{
 										bUseWideThumb = true;
 										iTextureID = t.entityprofile[it->second].iThumbnailLarge;
 									}
-#endif
 									if (DisplayEntry && iTextureID > 0)
 									{
 										// get ready to overlay a smart object icon
@@ -14442,7 +14301,6 @@ void mapeditorexecutable_loop(void)
 										}
 
 										// Entity Left Panel.
-										//if (ImGui::ImgBtn(iTextureID, vIconSize, drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, true, false, false, false, true, false))
 										if (ImGui::ImgBtn(iTextureID, vIconSize, drawCol_back, drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, false, false, false, false, true, false))
 										{
 											//Only if we are not dragging in a trashcan.
@@ -14452,21 +14310,13 @@ void mapeditorexecutable_loop(void)
 												if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
 												if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 
-#ifdef WICKEDENGINE
 												FreeTempImageList();
-#endif
-
 												DeleteWaypointsAddedToCurrentCursor();
-												//CheckTooltipObjectDelete();
 												CloseDownEditorProperties();
 												//Make sure we are in entity mode.
 												bForceKey = true;
-#ifdef WICKEDENGINE
 												iExtractMode = 0; //PE: Always start in find floor mode.
 												csForceKey = "o";
-#else
-												csForceKey = "e";
-#endif
 												t.gridentity = it->second;
 												t.inputsys.constructselection = it->second;
 												t.inputsys.domodeentity = 1;
@@ -14493,10 +14343,8 @@ void mapeditorexecutable_loop(void)
 											}
 										}
 
-										#ifdef WICKEDENGINE
 										cstr find = t.entitybank_s[it->second];
 										BeginDragDropFPE(find.Get(), iTextureID, bToolTipActive, vIconSize);
-										#endif
 
 										char *cFind = strstr(cName, "###");
 										if (cFind)
@@ -14505,23 +14353,16 @@ void mapeditorexecutable_loop(void)
 
 										if (bDisplayText_leftpanel)
 										{
-#ifdef USEWIDEICONSEVERYWHERE
 											ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -5.0f));
-#endif
 											ImGui::TextCenter("%s", cName); //no wrap.
 										}
 
 										// show when object is a smart object
-#ifdef WICKEDENGINE
 										if (t.entityprofile[it->second].groupreference != -1)
 										{
 											int iImageSize = 20;
 											ImVec2 opos = ImGui::GetCursorPos();
-#ifdef USEWIDEICONSEVERYWHERE
 											ImGui::SetCursorPos(ImVec2(vSmartObjectIconPos.x + vIconSize.x - 17.0f, vSmartObjectIconPos.y - 19.0f + vIconSize.y));
-#else
-											ImGui::SetCursorPos(ImVec2(vSmartObjectIconPos.x + vIconSize.x - 16.0f, vSmartObjectIconPos.y - 16.0f + vIconSize.y));
-#endif
 											ImGui::SetItemAllowOverlap();
 											if (ImGui::ImgBtn(TOOL_SMARTOBJECT, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 											{
@@ -14530,17 +14371,13 @@ void mapeditorexecutable_loop(void)
 											ImGui::SetCursorPos(opos);
 											if (ImGui::IsItemHovered()) ImGui::SetTooltip("This is a Smart Object");
 										}
-#endif
 
 										ImGui::PopID();
 										preview_count++;
 										ImGui::NextColumn();
 									}
 								}
-
-#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
 							}
-#endif
 						}
 					}
 				}
@@ -28227,6 +28064,7 @@ void gridedit_mapediting ( void )
 							if (!pref.iEnableDragDropEntityMode)
 							{
 								g_selected_editor_object = NULL;
+								g_selected_editor_objectID = 0;
 							}
 							if (t.gridentityobj > 0) 
 							{
@@ -28239,6 +28077,7 @@ void gridedit_mapediting ( void )
 										else
 											g_selected_editor_color = XMDYNAMICCOLOR;
 										g_selected_editor_object = g_ObjectList[t.gridentityobj];
+										g_selected_editor_objectID = t.gridentityobj;
 									}
 								}
 							}
@@ -32413,6 +32252,7 @@ void gridedit_recreateentitycursor ( void )
 				else
 					g_selected_editor_color = XMDYNAMICCOLOR;
 				g_selected_editor_object = g_ObjectList[t.gridentityobj];
+				g_selected_editor_objectID = t.gridentityobj;
 			}
 		}
 	}

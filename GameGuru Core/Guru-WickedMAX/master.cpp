@@ -918,14 +918,14 @@ void Master::Update(float dt)
 					FindFirstSplash(fileName);
 
 					// Uses actual or virtual file..
+					extern void SetCanUse_e_(int);
+					SetCanUse_e_(1);
 					strcpy(VirtualFilename, fileName);
 					extern bool CheckForWorkshopFile(LPSTR);
 					CheckForWorkshopFile(VirtualFilename);
 					if (GG_FileExists(VirtualFilename))
 					{
 						// Decrypt and use media
-						extern void SetCanUse_e_(int);
-						SetCanUse_e_(1);
 						g_pGlob->Decrypt(VirtualFilename);
 						strcpy(fileName, VirtualFilename);
 						bDecryptedFile = true;
@@ -944,6 +944,21 @@ void Master::Update(float dt)
 			if (tex)
 			{
 				g_pSplashTexture = tex->texture;
+			}
+			if (g_pSplashTexture.desc.Width == 0)
+			{
+				// could be a DDS renamed as JPG
+				char pTryDDS[MAX_PATH];
+				strcpy(pTryDDS, fileName);
+				pTryDDS[strlen(pTryDDS) - 4] = 0;
+				strcat(pTryDDS, ".dds");
+				DeleteFileA(pTryDDS);
+				CopyFileA(fileName, pTryDDS, FALSE);
+				std::shared_ptr<wiResource> tex2 = wiResourceManager::Load(pTryDDS);
+				if (tex2)
+				{
+					g_pSplashTexture = tex2->texture;
+				}
 			}
 			if (bDecryptedFile == true)
 			{

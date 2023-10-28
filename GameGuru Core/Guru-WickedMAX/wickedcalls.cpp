@@ -78,6 +78,7 @@ sObject* g_hovered_dot_pobject = NULL;
 bool g_bhovered_dot = false;
 float fLastHitPosition[4] = { 0,0,0,0 };
 
+int g_selected_editor_objectID = 0;
 sObject* g_selected_editor_object = NULL;
 XMFLOAT4 g_selected_editor_color = XMFLOAT4(0.25f, 1.0f, 0.25f, 0.5f);
 
@@ -5461,8 +5462,22 @@ void WickedCall_RenderEditorFunctions( void )
 	// highlight editor selection too
 	if (g_selected_editor_object) 
 	{
-		WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
-		WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+		try
+		{
+			//if (ObjectExist(g_selected_editor_objectID) == 1) returns true even if deleted!
+			int iObjNo = g_selected_editor_object->dwObjectNumber;
+			if (iObjNo > 0 && iObjNo <= 300000)
+			{
+				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
+				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+			}
+		}
+		catch(...)
+		{
+			// error trapping in case object is deleted elsewhere!
+			g_selected_editor_object = NULL;
+			g_selected_editor_objectID = 0;
+		}
 	}
 
 	// highlight highlighted object too
@@ -5543,13 +5558,22 @@ void WickedCall_UpdateLight(uint64_t wickedlightindex, float fX, float fY, float
 	lightComponent->color = XMFLOAT3((float)iColR / 255.0f, (float)iColG / 255.0f, (float)iColB / 255.0f);
 
 	// for now, only change env probe if light on/off
+	TransformComponent* transformLight = wiScene::GetScene ().transforms.GetComponent (wickedlightindex);
+	bool bDetectOnOffNotRangeChange = false;
 	if (lightComponent->range_local != fRange)
 	{
-		bLightScapeHasChangedEnoughForEnvProbeUpdate = true;
+		if (lightComponent->range_local > 1 && fRange <= 1) bDetectOnOffNotRangeChange = true;
+		if (lightComponent->range_local <= 1 && fRange > 1) bDetectOnOffNotRangeChange = true;
 		lightComponent->range_local = fRange;
 	}
+	float fCurrentX = transformLight->GetPosition().x;
+	if (fCurrentX <= -999999.0 && fX > -999999.0) bDetectOnOffNotRangeChange = true;
+	if (fCurrentX > -999999.0 && fX <= -999999.0) bDetectOnOffNotRangeChange = true;
+	if (bDetectOnOffNotRangeChange == true)
+	{
+		bLightScapeHasChangedEnoughForEnvProbeUpdate = true;
+	}
 
-	TransformComponent* transformLight = wiScene::GetScene ().transforms.GetComponent (wickedlightindex);
 	transformLight->ClearTransform();
 	transformLight->Translate(XMFLOAT3(fX, fY, fZ));
 
@@ -6046,10 +6070,13 @@ void WickedCall_DrawObjctCapsule(sObject* pObject, XMFLOAT4 color)
 }
 void CapsuleTest(void)
 {
-	//DrawCapsule
-	if(g_selected_editor_object)
-		WickedCall_DrawObjctCapsule(g_selected_editor_object, g_selected_editor_color);
-
+	if (g_selected_editor_object)
+	{
+		if (ObjectExist(g_selected_editor_objectID) == 1)
+		{
+			WickedCall_DrawObjctCapsule(g_selected_editor_object, g_selected_editor_color);
+		}
+	}
 }
 
 void WickedCall_SetLDSSkinningEnabled(bool enabled)

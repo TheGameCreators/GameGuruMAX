@@ -36,7 +36,7 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename )
 	tempCharPointerCheck = strrchr( VirtualFilename, '\\' );
 	if ( tempCharPointerCheck == VirtualFilename+strlen(VirtualFilename)-1 ) return false;
 	if ( VirtualFilename[0] == '.' ) return false;
-	if ( strstr ( VirtualFilename , ".fpm" ) ) return false;
+	if ( strnicmp (VirtualFilename + strlen(VirtualFilename) - 4, ".fpm", 4) == NULL) return false;
 
 	// encrypted file check
 	char szEncryptedFilename[_MAX_PATH];

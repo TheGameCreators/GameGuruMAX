@@ -332,6 +332,26 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	GGVECTOR3 vecMaxArea = GGVECTOR3(-999999, -999999, -999999);
 	float editableSize = GGTerrain_GetEditableSize();
 
+	// find any NAVMESH LIMIT flags
+	bool bUsingNavMeshLimitCustomArea = false;
+	GGVECTOR3 vecCustomPlayAreaMin = GGVECTOR3(999999, 999999, 999999);
+	GGVECTOR3 vecCustomPlayAreaMax = GGVECTOR3(-999999, -999999, -999999);
+	for (int e = 1; e <= g.entityelementlist; e++)
+	{
+		int entid = t.entityelement[e].bankindex;
+		if (t.entityprofile[entid].ismarker == 11 )
+		{
+			if (stricmp(t.entityelement[e].eleprof.name_s.Get(), "navmesh limit") == NULL)
+			{
+				if (t.entityelement[e].x > vecCustomPlayAreaMax.x) vecCustomPlayAreaMax.x = t.entityelement[e].x;
+				if (t.entityelement[e].z > vecCustomPlayAreaMax.z) vecCustomPlayAreaMax.z = t.entityelement[e].z;
+				if (t.entityelement[e].x < vecCustomPlayAreaMin.x) vecCustomPlayAreaMin.x = t.entityelement[e].x;
+				if (t.entityelement[e].z < vecCustomPlayAreaMin.z) vecCustomPlayAreaMin.z = t.entityelement[e].z;
+				bUsingNavMeshLimitCustomArea = true;
+			}
+		}
+	}
+
 	// work out hash for all "static" objects
 	double dSuperHash = 0;
 	for (int e = 1; e <= g.entityelementlist; e++)
@@ -348,6 +368,21 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 					// establish bounds of static objects
 					GGVECTOR3 vecPos = GGVECTOR3(ObjectPositionX(iObj), ObjectPositionY(iObj), ObjectPositionZ(iObj));
 					if ( vecPos.x > editableSize || vecPos.x < -editableSize || vecPos.z > editableSize || vecPos.z < -editableSize ) continue;
+
+					// extra feature called NAVMESH LIMIT (assign this name to a flag and place)
+					// which enables the nav mesh area to be customized, allowing objects outside to be placed for scenery
+					if (bUsingNavMeshLimitCustomArea == true)
+					{
+						if( vecPos.x < vecCustomPlayAreaMin.x ||
+							vecPos.x > vecCustomPlayAreaMax.x ||
+							vecPos.z < vecCustomPlayAreaMin.z ||
+							vecPos.z > vecCustomPlayAreaMax.z )
+						{
+							// this object outside of custom navmesh limit area, can ignore (done again below)
+							continue;
+						}
+					}
+
 					if (vecPos.x > vecMaxArea.x) vecMaxArea.x = vecPos.x;
 					if (vecPos.z > vecMaxArea.z) vecMaxArea.z = vecPos.z;
 					if (vecPos.x < vecMinArea.x) vecMinArea.x = vecPos.x;
@@ -520,6 +555,19 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 
 				// also reject if object is moved to a non-visible position
 				if (vecPos.y <= -50000) continue;
+
+				// extra feature called NAVMESH LIMIT
+				if (bUsingNavMeshLimitCustomArea == true)
+				{
+					if (vecPos.x < vecCustomPlayAreaMin.x ||
+						vecPos.x > vecCustomPlayAreaMax.x ||
+						vecPos.z < vecCustomPlayAreaMin.z ||
+						vecPos.z > vecCustomPlayAreaMax.z)
+					{
+						// this object outside of custom navmesh limit area, can ignore
+						continue;
+					}
+				}
 
 				//PE: Add physics shapes here.
 				if (GetMeshExist(iBuildAllLevelMesh) == 1) DeleteMesh(iBuildAllLevelMesh);

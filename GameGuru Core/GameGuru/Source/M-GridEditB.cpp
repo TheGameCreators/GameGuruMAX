@@ -100,6 +100,7 @@ extern float g_fLocalTurnRotationForSmartMode ;
 extern int g_iStackToSurfaceMode;
 extern int g_iOrientToSurfaceMode;
 extern sObject* g_selected_editor_object;
+extern int g_selected_editor_objectID;
 extern XMFLOAT4 g_selected_editor_color;
 //extern bool bEditorGridFitObjectSize;
 extern int iEditorGridSizeX;
@@ -36483,9 +36484,11 @@ bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 				else
 					treename = treename + " " + cName;
 
+				bool bAutoGenObject = false;
 				if (t.entityelement[i].x == -99999 && t.entityelement[i].y == -99999 && t.entityelement[i].z == -99999)
 				{
 					treename = treename + " (Auto-Gen) ";
+					bAutoGenObject = true;
 				}
 
 				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
@@ -36511,7 +36514,7 @@ bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 							CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
 						}
 
-						if (bMoveCameraToObjectPosition == true)
+						if (bMoveCameraToObjectPosition == true && bAutoGenObject == false)
 						{
 							float zoom = ObjectSize(t.entityelement[i].obj, 1) * 2.0;
 							if (zoom < 30.0f) zoom = 30.0f;

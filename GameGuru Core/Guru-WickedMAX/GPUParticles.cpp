@@ -646,40 +646,44 @@ void GPUParticlesDrawQuad( RenderPass* renderPass, CommandList cmd )
 	device->RenderPassEnd( cmd );
 }
 
-uint32_t g_emitterSorting[gpup_maxeffects];
-uint32_t g_emitterCurrentIndex = 0;
+uint32_t g_emitterSorting[256][gpup_maxeffects];
+uint32_t g_emitterSortingDrawCount[256][gpup_maxeffects];
+uint32_t g_emitterCurrentIndex[256];
 
 extern "C" void gpup_draw_init(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd)
 {
 	// calculates all needed particles and distances from camera
 	for (size_t i = 0; i < gpup_maxeffects; ++i)
 	{
-		g_emitterSorting[i] = 0;
-		g_emitterSorting[i] |= (uint32_t)i & 0x0000FFFF;
+		g_emitterSortingDrawCount[cmd][i] = 0;
+		g_emitterSorting[cmd][i] = 0;
+		g_emitterSorting[cmd][i] |= (uint32_t)i & 0x0000FFFF;
 		if (gpup_emitter[i].effectLoaded == 0 || gpup_emitter[i].effectVisible == 0) continue;
 		XMFLOAT3 emitercenter = XMFLOAT3(gpup_emitter[i].globalx[0], gpup_emitter[i].globaly[0], gpup_emitter[i].globalz[0]);
 		float distance = wiMath::DistanceEstimated(XMFLOAT3(emitercenter.x, camera.Eye.y, emitercenter.z), camera.Eye);
 		gpup_emitter[i].currentdistancefromcamera = distance;
-		g_emitterSorting[i] |= ((uint32_t)(distance * 10) & 0x0000FFFF) << 16;
+		g_emitterSorting[cmd][i] |= ((uint32_t)(distance * 10) & 0x0000FFFF) << 16;
 	}
-	std::sort(std::begin(g_emitterSorting), std::end(g_emitterSorting), std::greater<uint32_t>());
+
+	// now sort so distant particles are first in list
+	std::sort(std::begin(g_emitterSorting[cmd]), std::end(g_emitterSorting[cmd]), std::greater<uint32_t>());
 
 	// we start here, being the particle furthest away
-	g_emitterCurrentIndex = 0;
+	g_emitterCurrentIndex[cmd] = 0;
 }
 
 extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd, float fDistanceFromCamera)
 {
 	// finished rendering particles
-	if (g_emitterCurrentIndex == -1 || g_emitterCurrentIndex >= gpup_maxeffects)
+	if (g_emitterCurrentIndex[cmd] == -1 || g_emitterCurrentIndex[cmd] >= gpup_maxeffects)
 		return;
 
 	// is called just before a transparent object is rendered at the specified distance
 	// allowing us to insert the particle rendering as needed (i.e. window, particle, window, window, particle, window)
-	int iThisLoopStart = g_emitterCurrentIndex;
+	int iThisLoopStart = g_emitterCurrentIndex[cmd];
 	for (size_t i = iThisLoopStart; i < gpup_maxeffects; ++i)
 	{
-		size_t e = g_emitterSorting[i] & 0x0000FFFF;
+		size_t e = g_emitterSorting[cmd][i] & 0x0000FFFF;
 
 		// clever bit - if this particle distance is further than the current distance from the camera, 
 		// we need to render it now as the transparent object from Wicked will be rendered next and particle
@@ -698,7 +702,7 @@ extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wi
 		}
 
 		// next time we are ready for next particle after this one
-		g_emitterCurrentIndex = i + 1;
+		g_emitterCurrentIndex[cmd] = i + 1;
 
 		if (e < 0 || e >= gpup_maxeffects || gpup_emitter[e].effectLoaded == 0 || gpup_emitter[e].effectVisible == 0) continue;
 
@@ -814,20 +818,26 @@ extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wi
 		int ii = gpup_emitter[e].particles / 64;
 		if (gpup_emitter[e].particles == 32) ii = 1;
 
-		for (int i = 0; i < ii; i++)
+		if (g_emitterSortingDrawCount[cmd][i] == 0)
 		{
-			for (int j = 0; j < ii; j++)
+			for (int i = 0; i < ii; i++)
 			{
-				gpup_emitter[e].mainVSConstantData.World.m[3][0] = 64.0f * i;
-				gpup_emitter[e].mainVSConstantData.World.m[3][1] = 0.0f;
-				gpup_emitter[e].mainVSConstantData.World.m[3][2] = 64.0f * j;
+				for (int j = 0; j < ii; j++)
+				{
+					gpup_emitter[e].mainVSConstantData.World.m[3][0] = 64.0f * i;
+					gpup_emitter[e].mainVSConstantData.World.m[3][1] = 0.0f;
+					gpup_emitter[e].mainVSConstantData.World.m[3][2] = 64.0f * j;
 
-				device->UpdateBuffer(&mainVSConstants, &gpup_emitter[e].mainVSConstantData, cmd, sizeof(sMainVSConstantData));
+					device->UpdateBuffer(&mainVSConstants, &gpup_emitter[e].mainVSConstantData, cmd, sizeof(sMainVSConstantData));
 
-				device->DrawIndexed(numIndices, 0, 0, cmd);
+					device->DrawIndexed(numIndices, 0, 0, cmd);
+				}
 			}
 		}
 		device->EventEnd(cmd);
+
+		// increment draw count for this emitter
+		g_emitterSortingDrawCount[cmd][i]++;
 	}
 }
 
@@ -838,14 +848,12 @@ extern "C" void gpup_draw( const CameraComponent& camera, CommandList cmd )
 	// cannot do any quad rendering in here as we are already in a render pass by this point
 	// only render final emitter objects
 
-	//PE: For EA increased emitter count to 64.
-	//PE: TODO - After EA increase more and only render the nearest 32 emitters.
 	//PE: Quick dist sorting from emitter center to camera.
 	gpup_draw_init(camera, cmd);
 
 	for( size_t i = 0; i < gpup_maxeffects; ++i )
 	{
-		size_t e = g_emitterSorting[i] & 0x0000FFFF;
+		size_t e = g_emitterSorting[cmd][i] & 0x0000FFFF;
 
 		if ( e < 0 || e >= gpup_maxeffects || gpup_emitter[e].effectLoaded == 0 || gpup_emitter[e].effectVisible == 0 ) continue;
 
@@ -2465,13 +2473,15 @@ void gpup_setBilinear( int ID, int active )
 	*/
 }
 
+float g_fSlowParticleTime = 1.0f;
+
 // Update the Particles
 void gpup_update( float frameTime, wiGraphics::CommandList cmd )
 {
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	device->EventBegin( "GPUParticles Update", cmd );
 	
-	gpup_settings.tmr = frameTime;
+	gpup_settings.tmr = frameTime * g_fSlowParticleTime;
 	
 	gpup_settings.sn = gpup_settings.sn + gpup_settings.tmr*10.0f;
 	gpup_settings.rotsn = gpup_settings.rotsn + gpup_settings.tmr;

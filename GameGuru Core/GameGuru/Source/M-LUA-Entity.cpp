@@ -1232,20 +1232,16 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 			}
 
 			t.ttrackmouse=0;
-			#ifdef WICKEDENGINE
 			int triggerEndVideo = 0;
-			#endif
 
 			while ( AnimationPlaying(t.tvideoid) == 1 ) 
 			{
-				#ifdef WICKEDENGINE
 				// AnimationPlaying() always returns 1, so manually calculate if the video has ended.
 				float fdone = GetAnimPercentDone(t.tvideoid) / 100.0f;
 				if (fdone > 0.5)
 					triggerEndVideo = 1;
 				if (triggerEndVideo > 0 && (fdone == 0.0f || fdone >= 1.0f))
 					break;
-				#endif
 
 				// handle skip functionality
 				if ( iNoSkipFlag == 0 )
@@ -1255,6 +1251,14 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 					if (  t.inputsys.mclick != 0 && t.ttrackmouse == 1  )  t.ttrackmouse = 2;
 					if (  t.inputsys.mclick == 0 && t.ttrackmouse == 2  )  break;
 					if ( GGVR_RightController_Trigger() != 0 || GGVR_LeftController_Trigger() != 0 ) break;
+				}
+				else
+				{
+					// if test game, can skip with escape
+					if (t.game.gameisexe == 0 && SpaceKey() == 1)
+					{
+						break;
+					}
 				}
 
 				// handle 3d object if available 

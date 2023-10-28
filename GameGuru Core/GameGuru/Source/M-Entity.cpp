@@ -2784,6 +2784,7 @@ void entity_loaddata ( void )
 					//  8=floor zone
 					//  9=cover zone
 					//  10=new particle emitter (particle editor export)
+					//  11=flag
 					cmpStrConst( t_field_s, "ismarker" );
 					if (  matched  )  
 					{

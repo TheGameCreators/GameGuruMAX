@@ -2694,6 +2694,33 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 		}
 		if (bIncludeThisWeapon == true)
 		{
+			if (forcharacters == true)
+			{
+				// if character weapon, they may need to drop it, so confirm this weapon is also in collectibles list
+				bIncludeThisWeapon = false;
+				for (int n = 0; n < g_collectionList.size(); n++)
+				{
+					if (g_collectionList[n].collectionFields.size() > 8)
+					{
+						if (g_collectionList[n].iEntityID > 0)
+						{
+							LPSTR pCollectionItemWeapon = g_collectionList[n].collectionFields[8].Get();
+							if (strlen(pCollectionItemWeapon) > 7)
+							{
+								LPSTR pJustWeaponPathAndName = pCollectionItemWeapon + 7; // weapon= skip
+								if (stricmp(pJustWeaponPathAndName, t.gun[gunid].name_s.Get()) == NULL)
+								{
+									bIncludeThisWeapon = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		if (bIncludeThisWeapon == true)
+		{
 			iListCount++;
 			t.list_s[iListCount] = t.gun[gunid].name_s;
 		}
@@ -28690,6 +28717,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 					edit_grideleprof->coneangle = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->coneangle), t.strarr_s[434].Get(), t.strarr_s[224].Get(),readonly));
 					edit_grideleprof->conerange = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->conerange), "View Range", "The range within which the AI may see the player. Zero triggers the characters default range.",readonly));
 					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
+					edit_grideleprof->hasweapon_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->hasweapon_s.Get(), "Has Weapon", "The weapon assigned to this object", readonly);
 					if (g.quickparentalcontrolmode != 2)
 						edit_grideleprof->isviolent = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0,readonly);
 					if (t.tflagsimpler == 0)

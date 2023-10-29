@@ -3939,7 +3939,7 @@ void entity_hasbulletrayhit(void)
 	// if hitting a material, leave a bullethole (not for melee combat)
 	if (t.gun[t.gunid].settings.ismelee == 0 && g.firemodes[t.gunid][g.firemode].settings.noscorch == 0)
 	{
-		if (t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16)
+		if (t.tttriggerdecalimpact >= 10 && t.tttriggerdecalimpact != 16 && t.bulletrayhite >= 0 )
 		{
 			if (t.bulletrayhite == 0 || t.entityelement[t.bulletrayhite].staticflag == 1)
 			{

@@ -26954,128 +26954,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		ImGui::PopItemWidth();
 		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the global opacity of the particle effect");
 
-		//LB: removed for now until we have logic that supports transitions
-		#ifdef USEFULLSCREENPARTICLETRANSITIONS
-		ImGui::TextCenter("Full Screen Effect");
-
-		btmp = edit_grideleprof->newparticle.bParticle_Full_Screen;
-		if (ImGui::Checkbox("Fill Screen With Effect", &btmp))
-		{
-			bUpdateParticle = true;
-		}
-		edit_grideleprof->newparticle.bParticle_Full_Screen = btmp;
-
-		if (edit_grideleprof->newparticle.bParticle_Full_Screen)
-		{
-
-			ImGui::PushItemWidth(-10);
-			ImGui::TextCenter("Duration of Display");
-			float fTmp = edit_grideleprof->newparticle.fParticle_Fullscreen_Duration;
-			if (ImGui::MaxSliderInputFloat2("##DurationofDisplaySimpleInput", &fTmp, 0.0f, 120.0f, "Duration of Display (in seconds)", 0, 120.0f, 42.0f))
-			{
-				bUpdateParticle = true;
-			}
-			edit_grideleprof->newparticle.fParticle_Fullscreen_Duration = fTmp;
-
-			ImGui::TextCenter("Fade in Speed");
-			fTmp = edit_grideleprof->newparticle.fParticle_Fullscreen_Fadein;
-			if (ImGui::MaxSliderInputFloat2("##FadeinSpeedSimpleInput", &fTmp, 0.0f, 120.0f, "Fade in Speed (in seconds)", 0, 120.0f, 42.0f))
-			{
-				bUpdateParticle = true;
-			}
-			edit_grideleprof->newparticle.fParticle_Fullscreen_Fadein = fTmp;
-
-			ImGui::TextCenter("Fade Out Speed");
-			fTmp = edit_grideleprof->newparticle.fParticle_Fullscreen_Fadeout;
-			if (ImGui::MaxSliderInputFloat2("##FadeOutSpeedSimpleInput", &fTmp, 0.0f, 120.0f, "Fade Out Speed (in seconds)", 0, 120.0f, 42.0f))
-			{
-				bUpdateParticle = true;
-			}
-			edit_grideleprof->newparticle.fParticle_Fullscreen_Fadeout = fTmp;
-
-			ImGui::TextCenter("Transition Effect");
-
-			static cstr TransitionString = "STARTVAL";
-			static int iTransitionImage = FILETYPE_PARTICLE;
-			float transition_image_size = particle_w * 0.75;
-
-			if (TransitionString != edit_grideleprof->newparticle.Particle_Fullscreen_Transition)
-			{
-				TransitionString = edit_grideleprof->newparticle.Particle_Fullscreen_Transition;
-				iTransitionImage = MARKETPLACE_ICONS + 50 + 32;
-
-				cstr img = TransitionString + cstr(".arx");
-
-				CreateBackBufferCacheName(img.Get(), 512, 288);
-				image_setlegacyimageloading(true);
-				if (FileExist(BackBufferCacheName.Get()))
-				{
-					LoadImage((char *)BackBufferCacheName.Get(), iTransitionImage);
-					if (!ImageExist(iTransitionImage))
-					{
-						iTransitionImage = FILETYPE_PARTICLE;
-					}
-				}
-				else
-				{
-					iTransitionImage = FILETYPE_PARTICLE;
-				}
-				image_setlegacyimageloading(false);
-
-			}
-			if (iTransitionImage > 0)
-			{
-				ImGui::PushID(FILETYPE_PARTICLE + 32);
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(transition_image_size*0.125, 0.0));
-				if (ImGui::ImgBtn(iTransitionImage, ImVec2(transition_image_size, transition_image_size * fRatio), background, IconColor, ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, true, false) ||
-					iSelectedLibraryStingReturnID == window->GetID("Add New Transition##+"))
-				{
-					if (iSelectedLibraryStingReturnID == window->GetID("Add New Transition##+"))
-					{
-
-						if (strnicmp(sSelectedLibrarySting.Get() + strlen(sSelectedLibrarySting.Get()) - 4, ".arx", 4) == NULL) sSelectedLibrarySting = Left(sSelectedLibrarySting.Get(), Len(sSelectedLibrarySting.Get()) - 4);
-						edit_grideleprof->newparticle.Particle_Fullscreen_Transition = sSelectedLibrarySting;
-						sSelectedLibrarySting = "";
-						iSelectedLibraryStingReturnID = -1; //disable.
-						bUpdateParticle = true;
-					}
-					else
-					{
-						//Open select particle window.
-						bExternal_Entities_Window = true;
-						iDisplayLibraryType = 5;
-						iLibraryStingReturnToID = window->GetID("Add New Transition##+");
-					}
-
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select New Transition Effect");
-
-				ImGui::PopID();
-
-			}
-
-			//cstr newfile_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->newparticle.emittername.Get(), "Transition Effect", "Select a Transition Effect", "particlesbank\\", readonly);
-			//if (strnicmp(newfile_s.Get() + strlen(newfile_s.Get()) - 4, ".arx", 4) == NULL) newfile_s = Left(newfile_s.Get(), Len(newfile_s.Get()) - 4);
-			//if (newfile_s != edit_grideleprof->newparticle.Particle_Fullscreen_Transition)
-			//{
-			//	//Get a thumb.
-			//	edit_grideleprof->newparticle.Particle_Fullscreen_Transition = newfile_s;
-			//}
-			//Particle_Fullscreen_Transition = "";
-			//PE: ?
-
-			ImGui::PopItemWidth();
-
-//					fParticle_Fullscreen_Duration = 10.0f; //Sec.
-//					fParticle_Fullscreen_Fadein = 4.0f; //Sec.
-//					fParticle_Fullscreen_Fadeout = 4.0f; //Sec.
-//					Particle_Fullscreen_Transition = "";
-
-		}
-		#endif
-
 		sObject* pObject = GetObjectData(t.entityelement[elementID].obj);
-
 		if (bUpdateParticle && elementID > 0 && pObject)
 		{
 			t.entityelement[elementID].eleprof.newparticle = edit_grideleprof->newparticle;
@@ -27130,6 +27009,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
 				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &pObject->position.matRotation);
 				gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
+				gpup_setGlobalRotation(iParticleEmitter, t.entityelement[elementID].rx, t.entityelement[elementID].ry, t.entityelement[elementID].rz);
 				gpup_setGlobalScale(iParticleEmitter, 100.0f + t.entityelement[elementID].scalex);
 				gpup_emitterActive(iParticleEmitter, t.entityelement[elementID].eleprof.newparticle.bParticle_Preview);
 				gpup_setEffectAnimationSpeed(iParticleEmitter, t.entityelement[elementID].eleprof.newparticle.fParticle_Speed);

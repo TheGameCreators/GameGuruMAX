@@ -197,7 +197,7 @@ void lighting_loop(void)
 	{
 		if (t.grideleprof.newparticle.emitterid != -1)
 		{
-			entity_updateparticleemitterbyID (&t.grideleprof, t.gridentityobj, t.gridentityscalex_f - 100.0f, t.gridentityposx_f, t.gridentityposy_f, t.gridentityposz_f);
+			entity_updateparticleemitterbyID (&t.grideleprof, t.gridentityobj, t.gridentityscalex_f - 100.0f, t.gridentityposx_f, t.gridentityposy_f, t.gridentityposz_f, ObjectAngleX(t.gridentityobj), ObjectAngleY(t.gridentityobj), ObjectAngleZ(t.gridentityobj));
 		}
 	}
 

@@ -136,11 +136,17 @@ float4 main( PixelIn IN ) : SV_TARGET
 				else vc.z = emittersize.z + vc.z * 0.1;
 			}
 			
-			float3x3 rota = rot(emitterrotation.rgb);
-			vc = mul(rota, vc) +localemitter;
-			//LB: Closer now - get these points to rotate AROUND THE CENTER EMITTER (acos/asin?)
-			//vc.x = cos(emitterrotation.g);
-			//vc.z = sin(emitterrotation.g);
+			//flawed!
+			//float3x3 rota = rot(emitterrotation.rgb);
+			//vc = mul(rota, vc) +localemitter;
+			float3 ang = emitterrotation.rgb;
+			float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+			float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+			float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+			vc = mul(rotxx, vc);
+			vc = mul(rotyy, vc);
+			vc = mul(rotzz, vc);
+			vc = vc + localemitter;
 			val2 = 0.998;
 		}
 
@@ -180,9 +186,17 @@ float4 main( PixelIn IN ) : SV_TARGET
 			vc = float3( sin(cir) * rd, 0.0, cos(cir) * rd );
 			vc.y += random1(vcvec) * emittersize.z * 2.0;
 			
-			float3x3 rota = rot(emitterrotation.rgb);
-			vc = mul(rota, vc) + localemitter;
-			
+			//flawed!
+			//float3x3 rota = rot(emitterrotation.rgb);
+			//vc = mul(rota, vc) + localemitter;
+			float3 ang = emitterrotation.rgb;
+			float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+			float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+			float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+			vc = mul(rotxx, vc);
+			vc = mul(rotyy, vc);
+			vc = mul(rotzz, vc);
+			vc = vc + localemitter;
 			val2 = 0.99;
 		}
 

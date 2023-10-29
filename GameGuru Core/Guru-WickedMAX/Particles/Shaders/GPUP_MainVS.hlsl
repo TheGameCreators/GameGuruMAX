@@ -181,9 +181,18 @@ VertexOut main( VertexIn IN )
 	{
 		float vr = random1( float4( uv2.x, uv2.y*0.3, uv2.x+uv2.y, uv2.y*1.5-uv2.x*0.7 ) );
 		ang = rota.b * (rota.r + vr*rota.g);
-		float3 temp = mul(glr, posi) * globalsize + globalpos2;
-		// LB: transform to world global rotation first!
-		//temp = mul(WorldForRotation, float4(temp, 1 ) ).xyz;
+
+		//flawed!
+		//float3 temp = mul(glr, posi) * globalsize + globalpos2;
+		float3 temp = posi;
+		float3 ang = globalrot.rgb;
+		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+		float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+		float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+		temp = mul(rotxx, temp);
+		temp = mul(rotyy, temp);
+		temp = mul(rotzz, temp);
+		temp = temp * globalsize + globalpos2;
 
 		pos2 = mul( View, float4( temp, 1 ) );
 		pos2 += float4( rot2d(float2(uvs.x*sizer, -uvs.y*sizer), ang)*globalsize.x, 0.0, 0.0);
@@ -200,9 +209,19 @@ VertexOut main( VertexIn IN )
 		temp_pos.z = of.z * sizer * uvs.x;
 
 		temp_pos *= globalsize;
-		temp_pos += mul(glr, pos.xyz) * globalsize + globalpos2;
-		// LB: transform to world global rotation first!
-		//temp_pos = mul(WorldForRotation, float4(temp_pos, 1)).xyz;
+
+		// flawed!
+		//temp_pos += mul(glr, pos.xyz) * globalsize + globalpos2;
+		float3 temp = temp_pos + pos;
+		float3 ang = globalrot.rgb;
+		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+		float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+		float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+		temp = mul(rotxx, temp);
+		temp = mul(rotyy, temp);
+		temp = mul(rotzz, temp);
+		temp = temp * globalsize + globalpos2;
+		temp_pos = temp;
 
 		pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 	}
@@ -234,10 +253,20 @@ VertexOut main( VertexIn IN )
 			posi += side * sizer * uvs.y * bop;
 		}
 
-		float3 temp_pos = mul(glr, posi) * globalsize;
+		// flawed!
+		//float3 temp_pos = mul(glr, posi) * globalsize;
+		//temp_pos += globalpos2;
+		float3 temp_pos = posi * globalsize;
 		temp_pos += globalpos2;
-		// LB: transform to world global rotation first!
-		//temp_pos = mul(WorldForRotation, float4(temp_pos, 1)).xyz;
+		float3 temp = temp_pos;
+		float3 ang = globalrot.rgb;
+		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+		float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+		float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+		temp = mul(rotxx, temp);
+		temp = mul(rotyy, temp);
+		temp = mul(rotzz, temp);
+		temp_pos = temp;
 
 		pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 	}
@@ -256,10 +285,20 @@ VertexOut main( VertexIn IN )
 		float3 uvoff = float3( uvs.x*sizer, 0.0, uvs.y*sizer );
 		pos.xyz += mul( rot( float3(ang,ang2,ang3) ), uvoff );
 
-		float3 temp_pos = mul(glr, pos.xyz) * globalsize;
+		// flawed!
+		//float3 temp_pos = mul(glr, pos.xyz) * globalsize;
+		//temp_pos += globalpos2;
+		float3 temp_pos = pos * globalsize;
 		temp_pos += globalpos2;
-		// LB: transform to world global rotation first!
-		//temp_pos = mul(WorldForRotation, float4(temp_pos, 1)).xyz;
+		float3 temp = temp_pos;
+		float3 ang = globalrot.rgb;
+		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+		float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+		float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+		temp = mul(rotxx, temp);
+		temp = mul(rotyy, temp);
+		temp = mul(rotzz, temp);
+		temp_pos = temp;
 
 		pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 	}
@@ -292,10 +331,20 @@ VertexOut main( VertexIn IN )
 			temp_pos *= uvs.x * pgrow.x * 0.1;
 			pos.xyz += temp_pos;
 
-			temp_pos = mul(glr, pos.xyz) * globalsize;
+			// flawed!
+			//temp_pos = mul(glr, pos.xyz) * globalsize;
+			//temp_pos += globalpos2;
+			temp_pos = pos * globalsize;
 			temp_pos += globalpos2;
-			// LB: transform to world global rotation first!
-			//temp_pos = mul(WorldForRotation, float4(temp_pos, 1)).xyz;
+			float3 temp = temp_pos;
+			float3 ang = globalrot.rgb;
+			float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
+			float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));
+			float3x3 rotzz = float3x3(cos(ang.z), -sin(ang.z), 0.0, sin(ang.z), cos(ang.z), 0.0, 0.0, 0.0, 1.0);
+			temp = mul(rotxx, temp);
+			temp = mul(rotyy, temp);
+			temp = mul(rotzz, temp);
+			temp_pos = temp;
 
 			pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 		}

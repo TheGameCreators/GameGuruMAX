@@ -2934,7 +2934,8 @@ void mapeditorexecutable_loop(void)
 	float fontSize = 0.0f;
 	ImVec2 mCharAdvance = ImVec2(0, 0);
 	int iOldRounding = 0;
-	if (bImGuiFrameState) {
+	if (bImGuiFrameState) 
+	{
 		fontSize = ImGui::CalcTextSize("#").x;
 		mCharAdvance = ImVec2(fontSize, ImGui::GetTextLineHeightWithSpacing());
 	}

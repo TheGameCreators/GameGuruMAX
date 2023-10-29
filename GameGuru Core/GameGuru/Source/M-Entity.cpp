@@ -9060,7 +9060,7 @@ void entity_redo ( void )
 #endif
 
 #ifdef WICKEDENGINE
-void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ)
+void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
 {
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
@@ -9094,6 +9094,7 @@ void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, fl
 			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &pObject->position.matRotation);
 			gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
 		}
+		gpup_setGlobalRotation(iParticleEmitter, fRX, fRY, fRZ);
 		gpup_setGlobalScale(iParticleEmitter, 100.0f + fScale);
 
 		// set whether burst mode loops
@@ -9121,7 +9122,7 @@ void entity_updateparticleemitter ( int e )
 	{
 		if (t.entityprofile[t.entityelement[e].bankindex].ismarker == 10)
 		{
-			entity_updateparticleemitterbyID(&t.entityelement[e].eleprof, t.entityelement[e].obj, t.entityelement[e].scalex, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+			entity_updateparticleemitterbyID(&t.entityelement[e].eleprof, t.entityelement[e].obj, t.entityelement[e].scalex, t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z, t.entityelement[e].rx, t.entityelement[e].ry, t.entityelement[e].rz);
 		}
 	}
 }

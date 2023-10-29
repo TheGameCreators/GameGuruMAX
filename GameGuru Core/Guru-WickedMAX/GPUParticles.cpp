@@ -1148,10 +1148,10 @@ void gpup_updatesettings( int enr )
 	gpup_emitter[enr].mainVSConstantData.globalsize.y = gpup_emitter[enr].globalSize;
 	gpup_emitter[enr].mainVSConstantData.globalsize.z = gpup_emitter[enr].globalSize;
 	
-	gpup_emitter[enr].mainVSConstantData.globalrot.x = 0;// gpup_emitter[enr].globalRotX; (See above for new use of globalrot)
+	gpup_emitter[enr].mainVSConstantData.globalrot.x = 0;// gpup_emitter[enr].globalRotX; set in gpup_setGlobalRotation
 	gpup_emitter[enr].mainVSConstantData.globalrot.y = 0;// gpup_emitter[enr].globalRotY;
 	gpup_emitter[enr].mainVSConstantData.globalrot.z = 0;// gpup_emitter[enr].globalRotZ;
-	
+
 	gpup_emitter[enr].speedConstantData.reffloor.x = gpup_emitter[enr].floorActive;
 	gpup_emitter[enr].speedConstantData.reffloor.y = gpup_emitter[enr].floorHeight;
 	gpup_emitter[enr].speedConstantData.reffloor.z = gpup_emitter[enr].sphereRadius;
@@ -2099,18 +2099,29 @@ void gpup_setParticleScale( int ID, float s )
 }
 
 // Change the global rotation of an effect
+#define MR_PI    ( ( float ) 3.141592654f )
 void gpup_setGlobalRotation( int ID, float x, float y, float z )
 {
-	if ( ID < 0 || ID >= gpup_maxeffects ) return;
-		
-	gpup_emitter[ID].globalRotX = x;
-	gpup_emitter[ID].globalRotY = y;
-	gpup_emitter[ID].globalRotZ = z;
+	if ( ID < 0 || ID >= gpup_maxeffects ) return;	
+	gpup_emitter[ID].globalRotX = (x) * (MR_PI / 180.0f);
+	gpup_emitter[ID].globalRotY = (y) * (MR_PI / 180.0f);
+	gpup_emitter[ID].globalRotZ = (z) * (MR_PI / 180.0f);
 	if ( gpup_emitter[ID].effectLoaded == 1 )
 	{
-		gpup_emitter[ID].mainVSConstantData.globalrot.x = 0;// gpup_emitter[ID].globalRotX; (See new use of globalrot)
-		gpup_emitter[ID].mainVSConstantData.globalrot.y = 0;// gpup_emitter[ID].globalRotY;
-		gpup_emitter[ID].mainVSConstantData.globalrot.z = 0;// gpup_emitter[ID].globalRotZ;
+		if (gpup_emitter[ID].emitter_type != 2)
+		{
+			// rings should be rotatable
+			gpup_emitter[ID].mainVSConstantData.globalrot.x = gpup_emitter[ID].globalRotX;
+			gpup_emitter[ID].mainVSConstantData.globalrot.y = gpup_emitter[ID].globalRotY;
+			gpup_emitter[ID].mainVSConstantData.globalrot.z = gpup_emitter[ID].globalRotZ;
+		}
+		else
+		{
+			// for smoke projecting outward
+			gpup_emitter[ID].mainVSConstantData.globalrot.x = 0;
+			gpup_emitter[ID].mainVSConstantData.globalrot.y = 0;
+			gpup_emitter[ID].mainVSConstantData.globalrot.z = 0;
+		}
 	}
 }
 

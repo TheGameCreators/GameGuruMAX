@@ -42,7 +42,7 @@ void entity_recordbuffer_move ( void );
 #endif
 void entity_undo ( void );
 void entity_redo ( void );
-void entity_updateparticleemitterbyID(entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ);
+void entity_updateparticleemitterbyID(entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ);
 void entity_updateparticleemitter(int e);
 void entity_updateautoflatten(int e, int obj = 0);
 void entity_autoFlattenWhenAdded(int e, int obj = 0);

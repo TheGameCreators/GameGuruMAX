@@ -4374,10 +4374,19 @@ void entity_monitorattachments (void)
 						if (iWeaponEntityID > 0)
 						{
 							extern int SpawnNewEntityCore(int iEntityIndex);
+							float fStoreX = t.entityelement[iWeaponEntityID].x;
+							float fStoreY = t.entityelement[iWeaponEntityID].y;
+							float fStoreZ = t.entityelement[iWeaponEntityID].z;
+							t.entityelement[iWeaponEntityID].x = t.entityelement[t.e].x;
+							t.entityelement[iWeaponEntityID].y = t.entityelement[t.e].y;
+							t.entityelement[iWeaponEntityID].z = t.entityelement[t.e].z;
 							int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
-							t.entityelement[iNewEntID].x = ObjectPositionX(iAttachmentObj);
-							t.entityelement[iNewEntID].y = ObjectPositionY(iAttachmentObj);
-							t.entityelement[iNewEntID].z = ObjectPositionZ(iAttachmentObj);
+							t.entityelement[iWeaponEntityID].x = fStoreX;
+							t.entityelement[iWeaponEntityID].y = fStoreY;
+							t.entityelement[iWeaponEntityID].z = fStoreZ;
+							t.entityelement[iNewEntID].x = t.entityelement[t.e].x;
+							t.entityelement[iNewEntID].y = t.entityelement[t.e].y;
+							t.entityelement[iNewEntID].z = t.entityelement[t.e].z;
 							//extern float GetLUATerrainHeightEx (float fX, float fZ); done below in entity_updatepos
 							//t.entityelement[iNewEntID].y = GetLUATerrainHeightEx(t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].z);
 							int tobj = t.entityelement[iNewEntID].obj;
@@ -4425,12 +4434,18 @@ void entity_monitorattachments (void)
 								{
 									if (ObjectExist(tobj) == 1)
 									{
-										t.entityelement[iNewEntID].x = ObjectPositionX(t.tobj);
-										t.entityelement[iNewEntID].y = ObjectPositionY(t.tobj);
-										t.entityelement[iNewEntID].z = ObjectPositionZ(t.tobj);
-										t.entityelement[iNewEntID].rx = ObjectAngleX(t.tobj);
-										t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
-										t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
+										float fPosX = ObjectPositionX(t.tobj);
+										float fPosY = ObjectPositionY(t.tobj);
+										float fPosZ = ObjectPositionZ(t.tobj);
+										if (fPosX != 0.0f || fPosY != 0.0f || fPosZ != 0.0f)
+										{
+											t.entityelement[iNewEntID].x = fPosX;
+											t.entityelement[iNewEntID].y = fPosY;
+											t.entityelement[iNewEntID].z = fPosZ;
+											t.entityelement[iNewEntID].rx = ObjectAngleX(t.tobj);
+											t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
+											t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
+										}
 										ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
 										PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
 										ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);

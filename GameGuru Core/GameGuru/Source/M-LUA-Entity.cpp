@@ -517,6 +517,47 @@ void entity_lua_createifusedlist ( LPSTR pIfUsedString )
 	}
 }
 
+void entity_lua_manageactivationresult (int iEntityID)
+{
+	if (iEntityID > 0)
+	{
+		// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
+		if (t.entityelement[iEntityID].active == 0 && t.entityelement[iEntityID].health > 0)
+		{
+			if (t.entityelement[iEntityID].activated == 1)
+			{
+				bool bSpawningValid = true;
+				if (t.entityprofile[t.entityelement[iEntityID].bankindex].ischaracter == 1)
+				{
+					if (t.entityelement[iEntityID].health <= 0)
+					{
+						// cannot resurrect fallen characters
+						bSpawningValid = false;
+					}
+				}
+				if (bSpawningValid == true)
+				{
+					t.tstore = t.e;
+					t.e = iEntityID;
+					entity_lua_spawn_core();
+					t.e = t.tstore;
+				}
+			}
+		}
+
+		// if item a particle, hide or show it
+		if (t.entityprofile[t.entityelement[iEntityID].bankindex].ismarker == 10)
+		{
+			// show/hide if particle based on activation state
+			if (t.entityelement[iEntityID].activated == 1)
+				t.entityelement[iEntityID].eleprof.newparticle.bParticle_Show_At_Start = true;
+			else
+				t.entityelement[iEntityID].eleprof.newparticle.bParticle_Show_At_Start = false;
+			entity_updateparticleemitter(iEntityID);
+		}
+	}
+}
+
 void entity_lua_activateifused ( void )
 {
 	t.tstore = t.e;
@@ -530,16 +571,24 @@ void entity_lua_activateifused ( void )
 		t.tifused_s = g_pIfUsedList[ifusedindex];
 		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
-			if (cstr(Lower(t.entityelement[t.e].eleprof.name_s.Get())) == t.tifused_s)
+			if (t.entityelement[t.e].obj > 0 && t.entityelement[t.e].active > 0)
 			{
-				// set activate flag
-				t.entityelement[t.e].activated = 1;
-				t.entityelement[t.e].lua.flagschanged = 1;
-
-				// also spawn if target entity not yet spawned
-				if (t.entityelement[t.e].eleprof.spawnatstart == 0)
+				if (cstr(Lower(t.entityelement[t.e].eleprof.name_s.Get())) == t.tifused_s)
 				{
-					t.entitiesToActivateQueue.push_back(t.e);
+					// set activate flag
+					t.entityelement[t.e].activated = 1;
+
+					// also spawn if target entity not yet spawned
+					if (t.entityelement[t.e].eleprof.spawnatstart == 0)
+					{
+						t.entitiesToActivateQueue.push_back(t.e);
+					}
+
+					// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
+					entity_lua_manageactivationresult(t.e);
+
+					// trigger LUA data to update for this element
+					t.entityelement[t.e].lua.flagschanged = 1;
 				}
 			}
 		}
@@ -547,14 +596,9 @@ void entity_lua_activateifused ( void )
 	t.e=t.tstore;
 }
 
-void entity_lua_performlogicconnections()
+void entity_lua_performlogicconnections_core ( int iMode )
 {
-	//LB: for when we add back MP, we need logic connections performed for ALL players
-	//if (t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0)
-	//{
-	//	mp_sendlua (MP_LUA_ActivateIfUsed, t.e, t.v);
-	//}
-	#ifdef WICKEDENGINE
+	// iMode : 0-normal, 1-askey
 	for (int i = 0; i < 10; i++)
 	{
 		if (t.entityelement[t.e].eleprof.iObjectRelationships[i] > 0)
@@ -562,101 +606,121 @@ void entity_lua_performlogicconnections()
 			int iRelationShipObject = 0, iRelationShipEntityID = 0;
 			void GetRelationshipObject (int iFindLinkID, int* piEntityID, int* piObj);
 			GetRelationshipObject(t.entityelement[t.e].eleprof.iObjectRelationships[i], &iRelationShipEntityID, &iRelationShipObject);
-			if ( iRelationShipEntityID > 0 && iRelationShipEntityID != t.e )
+			if (iRelationShipEntityID > 0 && iRelationShipEntityID != t.e)
 			{
 				// typically a value of 0,1,2 (one way) or 0,1,2,3,4,5 (two way)
 				int iObjectRelationshipData = t.entityelement[t.e].eleprof.iObjectRelationshipsData[i];
 
 				// the relationship type between item types
+				// 2 = Character + Flag (supplies only data)
+				// 5 = Flag + Flag (supplies only data)
+				// 6 = Flag + Zone (do nothing)
+				// 7 = Flag + Object (do nothing)
 				int iObjectRelationshipsType = t.entityelement[t.e].eleprof.iObjectRelationshipsType[i];
-				//2 = Character + Flag (supplies only data)
-				//5 = Flag + Flag (supplies only data)
-				//6 = Flag + Zone (do nothing)
-				//7 = Flag + Object (do nothing)
 
-				// simple one way logic
-				switch (iObjectRelationshipsType)
+				// what logic type should be performed
+				if (iMode == 0)
 				{
-					case 1:  // Character + Character
-					case 3:  // Character + Zone
-					case 4:  // Character + Object
-					case 8:  // Zone + Zone
-					case 9:  // Zone + Object
-					case 10: // Object + Object
+					// simple one way logic - activations
+					switch (iObjectRelationshipsType)
 					{
-						t.entityelement[iRelationShipEntityID].whoactivated = t.e;
-						switch (iObjectRelationshipData)
+						case 1:  // Character + Character
+						case 3:  // Character + Zone
+						case 4:  // Character + Object
+						case 8:  // Zone + Zone
+						case 9:  // Zone + Object
+						case 10: // Object + Object
 						{
-							case 0: // activate
+							t.entityelement[iRelationShipEntityID].whoactivated = t.e;
+							switch (iObjectRelationshipData)
 							{
-								t.entityelement[iRelationShipEntityID].activated = 1;
-								break;
-							}
-							case 1: // deactivate
-							{
-								t.entityelement[iRelationShipEntityID].activated = 0;
-								break;
-							}
-							case 2: // toggle activation
-							{
-								if (t.entityelement[iRelationShipEntityID].activated == 0 || t.entityelement[iRelationShipEntityID].activated == 1)
+								case 0: // activate
 								{
-									// simple toggle
-									t.entityelement[iRelationShipEntityID].activated = 1 - t.entityelement[iRelationShipEntityID].activated;
+									t.entityelement[iRelationShipEntityID].activated = 1;
+									break;
 								}
-								else
+								case 1: // deactivate
 								{
-									// activation state something else (like a door which is state 50 when locked)
-									// in these cases, reset activate state which would have been the objects defaulty starting point (i.e. closed door, not open)
 									t.entityelement[iRelationShipEntityID].activated = 0;
+									break;
 								}
+								case 2: // toggle activation
+								{
+									if (t.entityelement[iRelationShipEntityID].activated == 0 || t.entityelement[iRelationShipEntityID].activated == 1)
+									{
+										// simple toggle
+										t.entityelement[iRelationShipEntityID].activated = 1 - t.entityelement[iRelationShipEntityID].activated;
+									}
+									else
+									{
+										// activation state something else (like a door which is state 50 when locked)
+										// in these cases, reset activate state which would have been the objects defaulty starting point (i.e. closed door, not open)
+										t.entityelement[iRelationShipEntityID].activated = 0;
+									}
+									break;
+								}
+							}
+							break;
+						}
+					}
+				}
+				if (iMode == 1)
+				{
+					// askey logic - add key name to usekey field string
+					cstr keyName_s = t.entityelement[t.e].eleprof.name_s;
+
+					// see if key is already named
+					bool bAlreadyHaveThisKey = false;
+					LPSTR pKeyString = t.entityelement[iRelationShipEntityID].eleprof.usekey_s.Get();
+					LPSTR pKeyStringEnd = pKeyString + strlen(pKeyString);
+					while (pKeyString && pKeyString < pKeyStringEnd)
+					{
+						char pThisKey[256];
+						strcpy(pThisKey, pKeyString);
+						for (int n = 0; n < strlen(pThisKey); n++)
+						{
+							if (pThisKey[n] == ';')
+							{
+								pThisKey[n] = 0;
 								break;
 							}
 						}
-						break;
+						pKeyString += strlen(pThisKey) + 1;
+						if (strlen(pThisKey) > 0)
+						{
+							if (stricmp(pThisKey, keyName_s.Get()) == NULL)
+							{
+								bAlreadyHaveThisKey = true;
+								break;
+							}
+						}
+					}
+					if (bAlreadyHaveThisKey == false)
+					{
+						if (t.entityelement[iRelationShipEntityID].eleprof.usekey_s.Len() > 0) t.entityelement[iRelationShipEntityID].eleprof.usekey_s += cstr(";");
+						t.entityelement[iRelationShipEntityID].eleprof.usekey_s += keyName_s;
+						t.entityelement[iRelationShipEntityID].lua.haskey = 0;
 					}
 				}
 
 				// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-				if (t.entityelement[iRelationShipEntityID].active == 0 && t.entityelement[iRelationShipEntityID].health > 0 )
-				{
-					if (t.entityelement[iRelationShipEntityID].activated == 1)
-					{
-						bool bSpawningValid = true;
-						if (t.entityprofile[t.entityelement[iRelationShipEntityID].bankindex].ischaracter == 1)
-						{
-							if (t.entityelement[iRelationShipEntityID].health <= 0)
-							{
-								// cannot resurrect fallen characters
-								bSpawningValid = false;
-							}
-						}
-						if (bSpawningValid == true)
-						{
-							t.tstore = t.e;
-							t.e = iRelationShipEntityID;
-							entity_lua_spawn_core();
-							t.e = t.tstore;
-						}
-					}
-				}
+				entity_lua_manageactivationresult(iRelationShipEntityID);
 
-				// if item a particle, hide or show it
-				if (t.entityprofile[t.entityelement[iRelationShipEntityID].bankindex].ismarker == 10)
-				{
-					// show/hide if particle based on activation state
-					if (t.entityelement[iRelationShipEntityID].activated == 1)
-						t.entityelement[iRelationShipEntityID].eleprof.newparticle.bParticle_Show_At_Start = true;
-					else
-						t.entityelement[iRelationShipEntityID].eleprof.newparticle.bParticle_Show_At_Start = false;
-					entity_updateparticleemitter(iRelationShipEntityID);
-				}
-				// finally trigger LUA data to update for this element
+				// trigger LUA data to update for this element
 				t.entityelement[iRelationShipEntityID].lua.flagschanged = 1;
 			}
 		}
 	}
-	#endif
+}
+
+void entity_lua_performlogicconnections()
+{
+	entity_lua_performlogicconnections_core(0);
+}
+
+void entity_lua_performlogicconnectionsaskey()
+{
+	entity_lua_performlogicconnections_core(1);
 }
 
 //Activate from the queue

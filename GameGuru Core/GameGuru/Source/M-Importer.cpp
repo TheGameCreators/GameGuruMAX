@@ -113,6 +113,7 @@ int g_iCurrentAnimationSlotIndex = 0;
 
 int g_iLootListCount = 0;
 cstr g_lootList_s[10];
+int g_lootListPercentage[10];
 
 extern cstr cInfoMessage;
 extern cstr cInfoImage;
@@ -3252,11 +3253,14 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 
 void animsystem_createlootlist(cstr ifused_s)
 {
+	// format is: "name;name;name" or "name;*99;name;*33" etc
 	int iLootIndex = 0;
 	cstr cutmeup_s = ifused_s;
 	LPSTR pLootStr = cutmeup_s.Get();
+	int iLootPercentage = 100;
 	int n = 0;
 	bool bOnlyShowOneChooseCollectible = false;
+	int iOptionalPercString = 0;
 	while (iLootIndex < 10 && n < strlen(pLootStr))
 	{
 		if (pLootStr[n] == ';' || n == strlen(pLootStr) - 1)
@@ -3273,8 +3277,17 @@ void animsystem_createlootlist(cstr ifused_s)
 			{
 				if (bValid == true)
 				{
-					g_lootList_s[iLootIndex] = pLootStr;
-					iLootIndex++;
+					if (pLootStr[0] == '*')
+					{
+						iLootPercentage = atoi(pLootStr+1);
+						g_lootListPercentage[iLootIndex-1] = iLootPercentage;
+					}
+					else
+					{
+						g_lootList_s[iLootIndex] = pLootStr;
+						g_lootListPercentage[iLootIndex] = 100; // poss. changed above
+						iLootIndex++;
+					}
 				}
 				break;
 			}
@@ -3282,8 +3295,17 @@ void animsystem_createlootlist(cstr ifused_s)
 			{
 				if (bValid == true)
 				{
-					g_lootList_s[iLootIndex] = pLootStr;
-					iLootIndex++;
+					if (pLootStr[0] == '*')
+					{
+						iLootPercentage = atoi(pLootStr + 1);
+						g_lootListPercentage[iLootIndex - 1] = iLootPercentage;
+					}
+					else
+					{
+						g_lootList_s[iLootIndex] = pLootStr;
+						g_lootListPercentage[iLootIndex] = 100; // poss. changed above
+						iLootIndex++;
+					}
 				}
 				cutmeup_s = pLootStr + n + 1;
 				pLootStr = cutmeup_s.Get();
@@ -3298,6 +3320,7 @@ void animsystem_createlootlist(cstr ifused_s)
 	if (bOnlyShowOneChooseCollectible == false)
 	{
 		g_lootList_s[iLootIndex] = "(Choose Collectible)";
+		g_lootListPercentage[iLootIndex] = 100;
 		iLootIndex++;
 	}
 	g_iLootListCount = iLootIndex;
@@ -3323,20 +3346,33 @@ void animsystem_dropcollectablesetproperty(bool readonly, entityeleproftype* edi
 	if (edit_grideleprof->ifused_s.Len() > 0)
 	{
 		animsystem_createlootlist(edit_grideleprof->ifused_s);
+		ImGui::TextCenter("Chance Of Dropping Anything");
+		int iLootPerc = edit_grideleprof->lootpercentage;
+		ImGui::MaxSliderInputInt("##chancelootdropanything", &iLootPerc, 0, 100, "Set the percentage chance that any loot is dropped at all");
+		edit_grideleprof->lootpercentage = iLootPerc;
 		cstr finallootstr_s  = "";
 		for (int l = 0; l < g_iLootListCount; l++)
 		{
+			char pLootDropTitle[256];
+			sprintf(pLootDropTitle, "Loot Object %d", 1+l);
 			extern char* imgui_setpropertylist2c_v2(int, int, char*, char*, char*, int, bool, bool, bool, bool, int);
-			g_lootList_s[l] = imgui_setpropertylist2c_v2(t.group, t.controlindex, g_lootList_s[l].Get(), "Loot Object", t.strarr_s[209].Get(), 21, readonly, true, false, false, 0);
+			g_lootList_s[l] = imgui_setpropertylist2c_v2(t.group, t.controlindex, g_lootList_s[l].Get(), pLootDropTitle, t.strarr_s[209].Get(), 21, readonly, true, false, false, 0);
 			if (finallootstr_s.Len() > 0) finallootstr_s = finallootstr_s + ";";
 			finallootstr_s += g_lootList_s[l];
+			if (l < g_iLootListCount-1)
+			{
+				// skip last one as that allows adding to the list
+				sprintf(pLootDropTitle, "Chance Drop For Loot Object %d", 1 + l);
+				ImGui::TextCenter(pLootDropTitle);
+				int iLootPerc = g_lootListPercentage[l];
+				sprintf(pLootDropTitle, "##chancelootdrop%d", 1 + l);
+				ImGui::MaxSliderInputInt(pLootDropTitle, &iLootPerc, 0, 100, "Set the percentage chance that this loot item would be dropped");
+				g_lootListPercentage[l] = iLootPerc;
+				finallootstr_s = finallootstr_s + ";";
+				finallootstr_s += cstr("*") + cstr(g_lootListPercentage[l]);
+			}
 		}
 		edit_grideleprof->ifused_s = finallootstr_s;
-
-		ImGui::TextCenter("Chance Loot Drop");
-		int iLootPerc = edit_grideleprof->lootpercentage;
-		ImGui::MaxSliderInputInt("##chancelootdrop", &iLootPerc, 0, 100, "Set the percentage chance that each loot item would be dropped");
-		edit_grideleprof->lootpercentage = iLootPerc;
 	}
 }
 

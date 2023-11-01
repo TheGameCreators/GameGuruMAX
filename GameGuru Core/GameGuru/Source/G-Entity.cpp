@@ -1976,6 +1976,7 @@ void entity_loop ( void )
 				t.entityelement[t.e].eleprof.phyalways = 0;
 				t.entityelement[t.e].active = 0;
 				t.entityelement[t.e].health = 0;
+				t.entityelement[t.e].eleprof.lootpercentage = 0;
 				t.entityelement[t.e].lua.flagschanged = 2;
 				if ( t.game.runasmultiplayer == 1 ) 
 				{
@@ -4471,6 +4472,7 @@ void entity_monitorattachments (void)
 					// new system spawns loot objects
 					extern int g_iLootListCount;
 					extern cstr g_lootList_s[10];
+					extern int g_lootListPercentage[10];
 					extern void animsystem_createlootlist(cstr);
 					animsystem_createlootlist(t.entityelement[t.e].eleprof.ifused_s);
 					for (int l = 0; l < g_iLootListCount; l++)
@@ -4488,10 +4490,14 @@ void entity_monitorattachments (void)
 								{
 									if (stricmp (t.entityelement[iWE].eleprof.name_s.Get(), pLootObjName) == NULL)
 									{
-										// probability of a drop
+										// probability of a drop at all
 										if ((int)rand() % 100 <= t.entityelement[iWE].eleprof.lootpercentage)
 										{
-											iLootObjectID = iWE;
+											// probability of THIS item dropping
+											if ((int)rand() % 100 <= g_lootListPercentage[l])
+											{
+												iLootObjectID = iWE;
+											}
 										}
 										break;
 									}

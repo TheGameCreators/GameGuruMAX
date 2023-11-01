@@ -10331,11 +10331,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						}
 
 						// assign correct mesh based on mesh_combo_entry
-						//bool is_selected = false;
-						//if (strcmp(mesh_combo_entry, meshname) == NULL)
-						//{
-						//	is_selected = true;
-						//}
 						bool is_selected = iSelectedMesh == i;
 						ImGui::PushID(5723 + i);
 						if (ImGui::Selectable(meshname, is_selected))
@@ -10367,7 +10362,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 			// Got a crash here, check for valid mesh list
 			// Not getting the crash in debug, and have a valid mesh list the following frame
 			// Likely related to this issue:https://github.com/TheGameCreators/GameGuruRepo/issues/3276
-			//   Memory corruption occurs somewhere during the entity copy and paste process
+			// Memory corruption occurs somewhere during the entity copy and paste process
 			return;
 		}
 		for (int i = 0; i < pObject->iMeshCount; i++)
@@ -10398,6 +10393,10 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	}
 
 	bool launch_file = false;
+
+	// avoid repeating the show of textures
+	char lastmaterialname[MAX_PATH];
+	strcpy(lastmaterialname, "");
 
 	// with mesh available to edit
 	if (pChosenMesh)
@@ -10529,10 +10528,10 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					}
 					else
 					{
-							// viewed from importer
-							if (texslot == 2) { pInputLabel = "##InputMeshRoughness"; pInputBtnLabel = "...##InputMeshRoughnessFile"; pInputControlLabel = "##RoughnessStrength"; }
-							if (texslot == 3) { pInputLabel = "##InputMeshMetalness"; pInputBtnLabel = "...##InputMeshMetalnessFile"; pInputControlLabel = "##MetalnessStrength"; }
-							if (texslot == 4) { pInputLabel = "##InputMeshOcclusion"; pInputBtnLabel = "...##InputMeshOcclusionFile"; pInputControlLabel = "##OcclusionStrength"; }						
+						// viewed from importer
+						if (texslot == 2) { pInputLabel = "##InputMeshRoughness"; pInputBtnLabel = "...##InputMeshRoughnessFile"; pInputControlLabel = "##RoughnessStrength"; }
+						if (texslot == 3) { pInputLabel = "##InputMeshMetalness"; pInputBtnLabel = "...##InputMeshMetalnessFile"; pInputControlLabel = "##MetalnessStrength"; }
+						if (texslot == 4) { pInputLabel = "##InputMeshOcclusion"; pInputBtnLabel = "...##InputMeshOcclusionFile"; pInputControlLabel = "##OcclusionStrength"; }						
 					}
 					if (texslot == 5) { pInputLabel = "##InputMeshEmissive"; pInputBtnLabel = "...##InputMeshEmissiveFile"; pInputControlLabel = "##EmissiveStrength"; }
 					if (texslot == 6) { pInputLabel = "##InputMeshHeight"; pInputBtnLabel = "...##InputMeshHeightFile"; pInputControlLabel = "##HeightStrength"; }
@@ -10588,7 +10587,8 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					// the actual wicked slot, and iDelayedExecute update code
 					int iDelayedExecuteCodeForThisSlot = 0;
 					MaterialComponentTEXTURESLOT wickedTextureSlot;
-					if (texslot == 0) { 
+					if (texslot == 0) 
+					{ 
 						wickedTextureSlot = MaterialComponentTEXTURESLOT::BASECOLORMAP; 
 						iDelayedExecuteCodeForThisSlot = 30;
 						if (t.importer.bEditAllMesh)
@@ -10684,8 +10684,16 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					// layout for specific texture type
 					if (mode == 5)
 					{
+						// confirm the texture name is different before showing
+						bool bTextureIsDifferentFromLast = true;
+						if (stricmp(materialname, lastmaterialname) == NULL)
+						{
+							bTextureIsDifferentFromLast = false;
+						}
+						strcpy(lastmaterialname, materialname);
+
 						// show as grid of texture if readonly
-						if (pObjectMaterial->textures && pObjectMaterial->textures[wickedTextureSlot].resource) 
+						if (bTextureIsDifferentFromLast==true && pObjectMaterial->textures && pObjectMaterial->textures[wickedTextureSlot].resource)
 						{
 							void *pmat = (void *)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
 							ImGui::ImgBtnWicked((void*)pmat, ImVec2(mode5_icon_size, mode5_icon_size), ImColor(0, 0, 0, 255));
@@ -10901,7 +10909,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 								ImVec2 vOldPos = ImGui::GetCursorPos();
 								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 5, ImGui::GetCursorPosY() - 10));
 								// LB: would be nice if the occlusion, roughness and metalness could show just the relevant channel from surface texture!
-								// @Lee you can do that like this:
 								// Red Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(220, 0, 0, 255),ImColor(255, 0, 0, 255),ImColor(180, 0, 0, 255)))
 								// Green Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 220, 0, 255),ImColor(0, 255, 0, 255),ImColor(0, 180, 0, 255)))
 								// Blue Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 0, 220, 255),ImColor(0, 0, 255, 255),ImColor(0, 0, 180, 255)))
@@ -11058,25 +11065,19 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 											{
 												// Revert to the original normal map.
 												strcpy(cPreSelectedFile, t.importer.pOrigNormalMap);
-												//t.importer.pOrigNormalMap[0] = 0;
 												iDelayedExecute = 31;
-												
-												//WickedCall_DeleteImage(pSelectedMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName);
-
 											}
 											else
 											{
 												// Generate a new normal map, with an inverted green channel to solve handedness issues between Wicked and other software.
-												/*strcpy(t.importer.pOrigNormalMap, pSelectedMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName);*/
 												iDelayedExecute = 45;
-												//fWickedCall_DeleteImage(pSelectedMesh->pTextures[GG_MESH_TEXTURE_NORMAL].pName);
-											}
-											
+											}				
 										}
 										if (ImGui::IsItemHovered()) ImGui::SetTooltip("Used for fixing compatibility issues between DirectX and OpenGL normal maps");
 										
 										ImGui::Indent(-80.0f);
 										break;
+
 									case 2: // roughness strength
 										fValue = pObjectMaterial->roughness;
 										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
@@ -11122,10 +11123,8 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 											bHaveMaterialUpdate = true;
 										}
 										if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-
 										break;
 									}
-									//if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
 									ImGui::PopItemWidth();
 								}
 							}
@@ -11215,8 +11214,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Surface reflectance strength");
 					ImGui::PopItemWidth();
-
-					//
 
 					//Render Order Bias
 					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));

@@ -969,7 +969,9 @@ void darkai_handlegotomove (void)
 		// regular specified forward movement if spline tracking not used
 		if (t.charanimstate.movespeed_f > 0.0f)
 		{
-			fAdvanceTheMovement = t.charanimstate.movespeed_f;
+			// need to apply FPS-indie speed modified (or 120fps will move it twice is fast along path for example)
+			float fLegacy60fpsModulation = g.timeelapsed_f * 3.0f;
+			fAdvanceTheMovement = t.charanimstate.movespeed_f * fLegacy60fpsModulation;
 		}
 	}
 	// special mode to slowly re-introduce ability to rotate to face path direction (used when anims need to stay facing X for strafes/backoffs/etc)

@@ -16930,7 +16930,6 @@ void process_entity_library_v2(void)
 
 					ImGui::PopItemWidth();
 					ImGui::Indent(-10);
-					ImGui::Text("");
 				}
 
 				if (ObjectExist(BackBufferObjectID) && GetNumberOfFrames(BackBufferObjectID) > 0 && t.entityprofile[BackBufferEntityID].animmax > 0)
@@ -16947,13 +16946,7 @@ void process_entity_library_v2(void)
 				
 					if (!bIsCCPObject)
 					{
-						if (t.entityprofile[BackBufferEntityID].playanimineditor == -1)
-						{
-							// if object has a named animation, no control allowed, it will play!
-							//extern void entity_loop_using_negative_playanimineditor(int e, int obj, cstr animname);
-							//entity_loop_using_negative_playanimineditor(0, BackBufferObjectID, t.entityprofile[BackBufferEntityID].playanimineditor_name);
-						}
-						else
+						if (t.entityprofile[BackBufferEntityID].playanimineditor != -1)
 						{
 							if (ImGui::StyleCollapsingHeader("Animations", ImGuiTreeNodeFlags_DefaultOpen))
 							{
@@ -17077,35 +17070,15 @@ void process_entity_library_v2(void)
 					}
 				}
 
-				//ImGui::TextCenter("Properties");
 				entityeleproftype backup_grideleprof = t.grideleprof;
 				int backup_entid = t.entid;
 				int backup_gridentity = t.gridentity;
-
 				t.entid = BackBufferEntityID;
 				t.gridentity = BackBufferEntityID;
 
 				entity_fillgrideleproffromprofile();
 				imgui_set_openproperty_flags(t.gridentity);
-				//ZJ: Removed following Rick's model importer feedback.
-				//if (ImGui::StyleCollapsingHeader("Behavior", ImGuiTreeNodeFlags_DefaultOpen))
-				//{
-				//	ImGui::Indent(10);
-				//	DisplayFPEBehavior(true, BackBufferEntityID);
-				//	ImGui::Indent(-10);
-				//}
 				
-				//PE: Only if active.
-				if (t.entityprofile[BackBufferEntityID].ismarker == 0 && t.entityprofile[BackBufferEntityID].islightmarker == 0)
-				{
-					//ZJ: Removed following Rick's importer feedback.
-					//if (ImGui::StyleCollapsingHeader("Physics", ImGuiTreeNodeFlags_DefaultOpen))
-					//{
-					//	ImGui::Indent(10);
-					//	DisplayFPEPhysics(true, BackBufferEntityID);
-					//	ImGui::Indent(-10);
-					//}
-				}
 				//PE: Only if active.
 				if (t.grideleprof.soundset_s.Len() > 0 || t.grideleprof.soundset1_s.Len() > 0 || t.grideleprof.soundset2_s.Len() > 0 || t.grideleprof.soundset3_s.Len() > 0)
 				{
@@ -17124,12 +17097,12 @@ void process_entity_library_v2(void)
 				t.entid = backup_entid;
 
 				// insert a keyboard shortcut component into panel
-				UniversalKeyboardShortcut(eKST_ObjectLibrary);
+				// no shortcuts in this section!
+				//UniversalKeyboardShortcut(eKST_ObjectLibrary);
 
 				if (!bIsCCPObject)
 				{
 					ControlAdvancedSetting(pref.iFullscreenPreviewAdvanced, "advanced object library preview details", &bLargePreview);
-					ImGui::Text("");
 					if (pref.iFullscreenPreviewAdvanced)
 					{
 						cstr cTmp, cOrg = (char *)sString.c_str();
@@ -17148,18 +17121,10 @@ void process_entity_library_v2(void)
 								extern char szWriteDir[MAX_PATH];
 								if (!pestrcasestr(pDestinationFile, szWriteDir))
 								{
-									//This is not the DocWrite folder ?
+									// this is not the DocWrite folder ?
 								}
 								else
 								{
-									if (FileExist(pDestinationFile))
-									{
-										//make backup - LB: commented out to avoid file bloat!
-										//cstr backup = pDestinationFile;
-										//backup = backup + ".bak";
-										//bool bret = CopyFileA(&dest[0], backup.Get(), false);
-									}
-
 									// copy chosen cube map to the new entity texture _cube.dds 
 									bool bret = CopyFileA(cTmp.Get(), &pDestinationFile[0], false);
 
@@ -17199,28 +17164,11 @@ void process_entity_library_v2(void)
 						}
 					}
 				}
-					//if (!pref.iFullscreenPreviewAdvanced && !bIsCCPObject)
-				//{
-				//	ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-				//	ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-				//	if (ImGui::HyberlinkButton("Advanced Settings##2", ImVec2(label_size.x, 0)))
-				//	{
-				//		extern int iSetSettingsFocusTab;
-				//		extern bool bPreferences_Window;
-				//		iSetSettingsFocusTab = 2;
-				//		bPreferences_Window = true;
-				//		//This is a modal window, so we need to close it to see the settings window.
-				//		bLargePreview = false;
-				//	}
-				//	ImGui::Text("");
-				//}
 
 				// Update/Add To Library Button
 				cstr sButLabel = "Update Thumbnail";
 				if (sGotoPreviewWithFile != "")
 				{
-					// iGotoPreviewType : 1=CCP
-					// ZJ: Updated labels because they imply that this stage is related to the importer.
 					sButLabel = "Add to Object Library";
 				}
 				sButLabel += "##ObjectLibPreview";
@@ -17228,30 +17176,16 @@ void process_entity_library_v2(void)
 				if (ImGui::StyleButton(sButLabel.Get(), ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
 				{
 					iUpdateFPESettings = 1;
-					#ifdef WICKEDENGINE
-					//PE: Need to solve reused objects/images before this, or we could crash :)
-					//if (bImporter_Window)
-					//{
-					//	// ZJ: added a back button to the object library preview when coming from the importer, so trigger the quit here instead.
-					//	extern int iDelayedExecute;
-					//	iDelayedExecute = 2;
-					//	imgui_importer_loop();
-					//}
-					#endif
 				}
 
 				if (iUpdateFPESettings > 0)
 				{
 					if (iUpdateFPESettings == 1)
 					{
-						//Write out t.entityprofile[BackBufferEntityID].keywords_s;
-						//Start spell check
 						iUpdateFPESettings++;
 					}
 					if (iUpdateFPESettings == 2)
 					{
-						//Spellcheck done ?
-						//Read in spell checked t.entityprofile[BackBufferEntityID].keywords_s;
 						iUpdateFPESettings++;
 					}
 					if (iUpdateFPESettings == 3)

@@ -2296,16 +2296,25 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									wiJobSystem::context ctx;
 									wiJobSystem::Wait(ctx);
 								}
-
+								//LB: breaks when importer model has a PNG for the surface texture when importing
 								//PE: Surface must be dds, So make sure we always save as .dds, we can still merge from .png ...
-								std::string surfaceTexFile = sTextureFilenameBase + "_surface" + ".dds";
-								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = surfaceTexFile;
+								//std::string surfaceTexFile = sTextureFilenameBase + "_surface" + ".dds";
+								//pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = surfaceTexFile;
+								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = sTextureFilenameBase + "_surface" + sFoundTextureType;
+								if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name.c_str())) pObjectMaterial->textures[MaterialComponent::NORMALMAP].name = sTextureFilenameBase + "_surface" + sAltTextureType;
+								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::NORMALMAP].name);
+								std::string surfaceTexFile = "";
+								if (!pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource)
+								{
+									// could not load DDS or PNG surface during the import, fall back and make one
+									pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = "";
+									surfaceTexFile = sTextureFilenameBase + "_surface" + ".dds";
+								}
 								LPSTR pSurfaceTexFile = (char*)surfaceTexFile.c_str();
-								if (!FileExist(pSurfaceTexFile))
+								if (pSurfaceTexFile && strlen(pSurfaceTexFile)>0 && !FileExist(pSurfaceTexFile))
 								{
 									//PE: It should save to the docwrite folder in the correct location ?.
 									//PE: We have relative path here, so the newSurfaceFileTemp check dont work, without resolving it first.
-
 									char resolve[MAX_PATH];
 									strcpy(resolve, pSurfaceTexFile);
 									GG_GetRealPath(resolve, 1);
@@ -2355,7 +2364,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 										//PE: And are generating random crashes from everywhere.
 										extern bool EnsureTextureStageValid(sMesh* pMesh, int iTextureStage);
 										EnsureTextureStageValid(pMesh, GG_MESH_TEXTURE_SURFACE);
-
 									}
 
 									strcpy (pMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName, pSurfaceTexFile);
@@ -2374,35 +2382,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									pObjectMaterial->metalness = 1;
 									pObjectMaterial->SetOcclusionEnabled_Primary(true);
 									pObjectMaterial->SetOcclusionEnabled_Secondary(false);
-								}
-								else
-								{
-									// PBR AO on its own (redundant, now always part of surface texture)
-									/* PE: Not used anymore.
-									if (pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource) //PE: Delete first if already active.
-									{
-										pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource = nullptr;
-										pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = "";
-										pObjectMaterial->SetDirty();
-										wiJobSystem::context ctx;
-										wiJobSystem::Wait(ctx);
-									}
-									pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = sTextureFilenameBase + "_ao" + sFoundTextureType;
-									if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name.c_str()))
-										pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = sTextureFilenameBase + "_ao" + sAltTextureType;
-
-									pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name);
-									if (pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource != NULL)
-									{
-										pObjectMaterial->SetOcclusionEnabled_Primary(false);
-										pObjectMaterial->SetOcclusionEnabled_Secondary(true);
-									}
-									else
-									{
-										pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = "";
-									}
-									*/
-
 								}
 							}
 

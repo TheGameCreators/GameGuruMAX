@@ -10667,9 +10667,7 @@ void mapeditorexecutable_loop(void)
 								//PE: reset mesh names, as we got a new object.
 								t.importer.bModelMeshNamesSet = false;
 								t.importer.cModelMeshNames.clear();
-
 								bNeedMaterialUpdate = true;
-
 								pLastObjectPtr = (void*)pObject;
 							}
 
@@ -10691,18 +10689,12 @@ void mapeditorexecutable_loop(void)
 
 								if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
 								{
-									#ifdef WICKEDENGINE
+									// display custom material settings
 									WickedSetEntityId(iMasterID);
 									WickedSetElementId(iEntityIndex);
-									#endif
-									
-									// display custom material settings
 									Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									
-									#ifdef WICKEDENGINE
 									WickedSetEntityId(-1);
 									WickedSetElementId(0);
-									#endif
 								}
 									
 								ImGui::Indent(-10);

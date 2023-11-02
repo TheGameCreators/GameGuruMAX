@@ -571,7 +571,7 @@ void entity_lua_activateifused ( void )
 		t.tifused_s = g_pIfUsedList[ifusedindex];
 		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
-			if (t.entityelement[t.e].obj > 0 && t.entityelement[t.e].active > 0)
+			if (t.entityelement[t.e].obj > 0 )// && t.entityelement[t.e].active > 0) unspawned entities are zero active
 			{
 				if (cstr(Lower(t.entityelement[t.e].eleprof.name_s.Get())) == t.tifused_s)
 				{

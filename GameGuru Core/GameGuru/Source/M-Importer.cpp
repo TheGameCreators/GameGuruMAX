@@ -3747,6 +3747,7 @@ void imgui_importer_loop(void)
 			bHaveMaterialUpdate = true;
 			importer_apply_materialformesh(MaterialComponentTEXTURESLOT::SURFACEMAP, GG_MESH_TEXTURE_SURFACE);
 			t.importer.bMeshesHaveDifferentSurface = true;
+			t.importer.bEditingAllSurfaceMeshes = false;
 			iDelayedExecute = 0;
 			break;
 		}
@@ -3895,6 +3896,8 @@ void imgui_importer_loop(void)
 			}
 
 			// if a mesh selected for changing
+			char newSurfaceFileTemp[MAX_PATH];
+			strcpy(newSurfaceFileTemp, "");
 			if (pSelectedMesh)
 			{
 				// base color name helps create unique temp surface files
@@ -4019,7 +4022,6 @@ void imgui_importer_loop(void)
 				}
 
 				// do not generate surface if picked it directly (custom materials mode)
-				char newSurfaceFileTemp[MAX_PATH];
 				if ( iDelayedExecute != 44 )
 				{
 					// source is textures specified in DBO mesh (or if none exist, use original surface)
@@ -4153,6 +4155,15 @@ void imgui_importer_loop(void)
 
 			t.importer.bMeshesHaveDifferentSurface = true;
 			iDelayedExecute = 0;
+
+			// special mode fvor when editing surface RGBA but for ALL meshes
+			if (t.importer.bEditingAllSurfaceMeshes == true)
+			{
+				strcpy (cPreSelectedFile, newSurfaceFileTemp);
+				importer_texture_all_meshes(MaterialComponentTEXTURESLOT::SURFACEMAP);
+				t.importer.bMeshesHaveDifferentSurface = false;
+			}
+
 			break;
 		}
 
@@ -4264,6 +4275,7 @@ void imgui_importer_loop(void)
 		{
 			importer_texture_all_meshes(MaterialComponentTEXTURESLOT::SURFACEMAP);
 			t.importer.bMeshesHaveDifferentSurface = false;
+			t.importer.bEditingAllSurfaceMeshes = false;
 			iDelayedExecute = 0;
 			break;
 
@@ -10191,7 +10203,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	//Mode 3 EBE
 	//Mode 5 readonly.
 
-	if (t.importer.importerActive && !t.importer.bEditAllMesh)
+	if (t.importer.importerActive)// && !t.importer.bEditAllMesh) allow importer to specify RGBA for ALL meshes at once
 	{
 		bFromCustomMaterials = !bUseRGBAButtons;
 	}
@@ -10283,7 +10295,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				if (ImGui::Selectable("Edit All Mesh Materials"))
 				{
 					strcpy(mesh_combo_entry, "Edit All Mesh Materials");
-
 					t.importer.bEditAllMesh = true;
 				}
 
@@ -10298,6 +10309,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						// Get names for the mesh from the base colour texture, unless they have already been created.
 						if (!t.importer.bModelMeshNamesSet)
 						{
+							/* should not use mesh index to look into frame array for names, makes no sense
 							sFrame* pFrame = nullptr;
 							if (i + 1 < pObject->iFrameCount)
 							{
@@ -10314,14 +10326,13 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							}
 							else
 							{
-								// Crops the filepath and extension, to leave only the mesh name.
-								LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
-
-								extern void Wicked_CreateShortName(int, LPSTR, LPSTR);
-								Wicked_CreateShortName(i, meshname, pNameFromMesh);
-
-								t.importer.cModelMeshNames.push_back(meshname);
-							}
+							*/
+							// Crops the filepath and extension, to leave only the mesh name.
+							LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
+							extern void Wicked_CreateShortName(int, LPSTR, LPSTR);
+							Wicked_CreateShortName(i, meshname, pNameFromMesh);
+							t.importer.cModelMeshNames.push_back(meshname);
+							//}
 							if (i == (pObject->iMeshCount - 1))
 								t.importer.bModelMeshNamesSet = true;
 						}
@@ -10338,7 +10349,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 							strcpy(mesh_combo_entry, meshname);
 							iSelectedMesh = i;
 							t.importer.bEditAllMesh = false;
-
 							if (iSelectedMesh >= MAXMESHMATERIALS - 1) //PE: We can crash if we go above the MAXMESHMATERIALS.
 								iSelectedMesh = MAXMESHMATERIALS - 1;
 							pChosenMesh = pMesh;
@@ -10627,9 +10637,30 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					}
 					else
 					{
-						if (texslot == 2) { wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; iDelayedExecuteCodeForThisSlot = 42; }
-						if (texslot == 3) { wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; iDelayedExecuteCodeForThisSlot = 43; }
-						if (texslot == 4) { wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; iDelayedExecuteCodeForThisSlot = 41; }
+						if (texslot == 2) 
+						{ 
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
+							iDelayedExecuteCodeForThisSlot = 42;
+							t.importer.bEditingAllSurfaceMeshes = false;
+							if (t.importer.bEditAllMesh)
+								t.importer.bEditingAllSurfaceMeshes = true;
+						}
+						if (texslot == 3) 
+						{ 
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
+							iDelayedExecuteCodeForThisSlot = 43; 
+							t.importer.bEditingAllSurfaceMeshes = false;
+							if (t.importer.bEditAllMesh)
+								t.importer.bEditingAllSurfaceMeshes = true;
+						}
+						if (texslot == 4) 
+						{ 
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
+							iDelayedExecuteCodeForThisSlot = 41; 
+							t.importer.bEditingAllSurfaceMeshes = false;
+							if (t.importer.bEditAllMesh)
+								t.importer.bEditingAllSurfaceMeshes = true;
+						}
 					}
 					if (texslot == 5)
 					{
@@ -11443,6 +11474,7 @@ void Wicked_FindChosenMesh (sObject* pObject, sMesh** ppChosenMesh, int iUseThis
 			sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
 			if (pMesh && pMesh->wickedmeshindex > 0)
 			{
+				/* makes no sense to lookup mesh index in frame array
 				sFrame* pFrame = nullptr;
 				if (iMeshIndex + 1 < pObject->iFrameCount)
 				{
@@ -11459,9 +11491,10 @@ void Wicked_FindChosenMesh (sObject* pObject, sMesh** ppChosenMesh, int iUseThis
 				}
 				else
 				{
-					LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
-					Wicked_CreateShortName(iMeshIndex, meshname, pNameFromMesh);
-				}
+				*/
+				LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
+				Wicked_CreateShortName(iMeshIndex, meshname, pNameFromMesh);
+				//}
 				strcpy(mesh_combo_entry, meshname);
 				iSelectedMesh = iMeshIndex;
 				if (iSelectedMesh >= MAXMESHMATERIALS - 1) //PE: We can crash if we go above the MAXMESHMATERIALS.
@@ -11477,6 +11510,7 @@ void Wicked_FindChosenMesh (sObject* pObject, sMesh** ppChosenMesh, int iUseThis
 		sMesh* pMesh = pObject->ppMeshList[iUseThisMeshIndex];
 		if (pMesh && pMesh->wickedmeshindex > 0)
 		{
+			/* makes no sense to lookup mesh index in frame array
 			sFrame* pFrame = nullptr;
 			if (iUseThisMeshIndex + 1 < pObject->iFrameCount)
 			{
@@ -11493,9 +11527,10 @@ void Wicked_FindChosenMesh (sObject* pObject, sMesh** ppChosenMesh, int iUseThis
 			}
 			else
 			{
-				LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
-				Wicked_CreateShortName(iUseThisMeshIndex, meshname, pNameFromMesh);
-			}
+			*/
+			LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
+			Wicked_CreateShortName(iUseThisMeshIndex, meshname, pNameFromMesh);
+			//}
 			strcpy(mesh_combo_entry, meshname);
 			iSelectedMesh = iUseThisMeshIndex;
 			if (iSelectedMesh >= MAXMESHMATERIALS - 1) //PE: We can crash if we go above the MAXMESHMATERIALS.

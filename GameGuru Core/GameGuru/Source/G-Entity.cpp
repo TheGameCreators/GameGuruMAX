@@ -5038,31 +5038,17 @@ void entity_prepareobj ( void )
 		if ( t.tte > 0 ) visuals_updatespecificobjectmasks ( t.tte, t.tobj );
 
 		//  object properties
-		if ( t.entityprofile[t.tentid].ismarker != 0 && t.entityprofile[t.tentid].ismarker != 11 )
+		if ( 0)//t.entityprofile[t.tentid].ismarker != 0 && t.entityprofile[t.tentid].ismarker != 11 )
 		{
-			#ifdef WICKEDENGINE
 			if (t.entityprofile[t.tentid].ismarker == 2)
 			{
 				SetObjectCull(t.tobj, 1);
 			}
-			#else
-			//  special setup for marker objects
-			if ( t.entityprofile[t.tentid].ismarker != 2 )
-			{
-				// 160616 - but only if not light markers which are now real 3D models for better grabbing
-				SetObjectTransparency ( t.tobj,2 );
-				SetObjectCull ( t.tobj,1 );
-				DisableObjectZDepth ( t.tobj );
-				DisableObjectZWrite ( t.tobj );
-				DisableObjectZRead ( t.tobj );
-			}
-			#endif
 		}
 		else
 		{
 			if (t.entityprofile[t.tentid].cullmode >= 0)
 			{
-				#ifdef WICKEDENGINE
 				// For Wicked, cull mode controlled per-mesh with parent default as normal
 				//PE: Prefer WEMaterial over old cullmode
 				bool bUseWEMaterial = false;
@@ -5103,19 +5089,10 @@ void entity_prepareobj ( void )
 					WickedSetEntityId(-1);
 					WickedSetElementId(0);
 				}
-
 				if (!bUseWEMaterial)
-					SetObjectCull(t.tobj, 1);
-				#else
-				if (t.entityprofile[t.tentid].cullmode != 0)
-				{
-					SetObjectCull(t.tobj, 0);
-				}
-				else
 				{
 					SetObjectCull(t.tobj, 1);
 				}
-				#endif
 			}
 		}
 
@@ -5143,7 +5120,6 @@ void entity_prepareobj ( void )
 
 		// no collision and full alpha multiplier
 		SetObjectCollisionOff ( t.tobj );
-		#ifdef WICKEDENGINE
 		if (t.entityelement[t.tte].eleprof.WEMaterial.MaterialActive)
 		{
 			WickedSetEntityId(t.tentid);
@@ -5153,96 +5129,58 @@ void entity_prepareobj ( void )
 			SetAlphaMappingOn(t.tobj, 100);
 		WickedSetEntityId(-1);
 		WickedSetElementId(0);
-		#else
-		SetAlphaMappingOn(t.tobj, 100);
-		#endif
 
 		// set transparency mode (after 'set alpha mapping on' as it messes with transparency flag)
 		if ( t.entityprofile[t.tentid].ismarker == 0 ) 
 		{
-			//PE: Wicked material can overwrite objects settings.
-			#ifdef WICKEDENGINE
-			//LB: always prepare object with TextureMesh!
-			if (1)//t.entityelement[t.tte].eleprof.WEMaterial.MaterialActive) 
+			// PE: Wicked material can overwrite objects settings.
+			// LB: always prepare object with TextureMesh!
+			// LB: need to restore ALL WEMaterial settings here when preparing the object
+			WickedSetEntityId(t.tentid);
+			WickedSetElementId(t.tte);
+			// LB: apply WEMaterial to all meshes of this object, not just the first one
+			// LB: Setting object transparency defaults here (so not everything is transparent), but the TextureMesh can then set per-mesh transparency :)
+			SetObjectTransparency(t.tobj, t.entityelement[t.tte].eleprof.WEMaterial.bTransparency[0]);
+			sObject* pObject = g_ObjectList[t.tobj];
+			for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
 			{
-				// LB: need to restore ALL WEMaterial settings here when preparing the object
-				WickedSetEntityId(t.tentid);
-				WickedSetElementId(t.tte);
-				// LB: apply WEMaterial to all meshes of this object, not just the first one
-				// LB: Setting object transparency defaults here (so not everything is transparent), but the TextureMesh can then set per-mesh transparency :)
-				SetObjectTransparency(t.tobj, t.entityelement[t.tte].eleprof.WEMaterial.bTransparency[0]);
-				sObject* pObject = g_ObjectList[t.tobj];
-				for (int iMeshIndex = 0; iMeshIndex < pObject->iMeshCount; iMeshIndex++)
+				sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
+				if (pMesh)
 				{
-					sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
-					if (pMesh)
+					// set properties of mesh
+					WickedSetMeshNumber(iMeshIndex);
+
+					// sets ALL properties of each mesh from WEMaterial
+					if (pMesh->bInstanced && pMesh->wickedmaterialindex == 0 && pMesh->master_wickedmaterialindex > 0 )
 					{
-						// set properties of mesh
-						WickedSetMeshNumber(iMeshIndex);
+						//PE: No need to texture Instanced objects.
+						iInstancedTotal++;
+					}
+					else
+					{
+						// from WE materials
+						WickedCall_TextureMesh(pMesh);
 
-						// sets ALL properties of each mesh from WEMaterial
-						if (pMesh->bInstanced && pMesh->wickedmaterialindex == 0 && pMesh->master_wickedmaterialindex > 0 )
-						{
-							//PE: No need to texture Instanced objects.
-							iInstancedTotal++;
-						}
-						else
-						{
-							// from WE materials
-							WickedCall_TextureMesh(pMesh);
-
-							// and must restore mesh transparency flag
-							bool bTransparent = WickedGetTransparent();
-							pMesh->bTransparency = bTransparent;
-						}
+						// and must restore mesh transparency flag
+						bool bTransparent = WickedGetTransparent();
+						pMesh->bTransparency = bTransparent;
 					}
 				}
-				WickedSetEntityId(-1);
-				WickedSetElementId(0);
 			}
-			else
-			#endif
-			{
-				#ifdef WICKEDENGINE
-				WickedSetEntityId(t.tentid);
-				WickedSetElementId(t.tte);
-				SetObjectTransparency(t.tobj, t.entityprofile[t.tentid].transparency);
-				WickedSetEntityId(-1);
-				WickedSetElementId(0);
-				#else
-				SetObjectTransparency(t.tobj, t.entityprofile[t.tentid].transparency);
-				#endif
-				if (t.entityprofile[t.tentid].transparency >= 2)
-				{
-					//  set Z write for transparency mode 2 and above
-					//Dave - commented this out because otherwise grass is drawn over things like gates
-					//DisableObjectZWrite (  t.tobj );
-				}
-			}
+			WickedSetEntityId(-1);
+			WickedSetElementId(0);
 		}
 		else
 		{
-			#ifdef WICKEDENGINE
 			sObject* pObject = g_ObjectList[t.tobj];
 			if (pObject)
 			{
 				WickedCall_TextureObject(pObject, NULL);
 			}
-			#endif
 		}
 
 		// handle zdepth mode of this entity
 		entity_preparedepth(t.tentid, t.tobj);
-
-		/* not used in MAX
-		// 281116 - set specular (new internal property that ties to 'SpecularOverride' shader constant)
-		// BUT we will use TTE so can get the per entity ELEPROF state when creating object!
-		// also calls this in lightmapper just after cloned parent obj 9see Lightmaping.cpp)
-		if ( t.entityprofile[t.tentid].ismarker == 0 && t.tte > 0 )
-		{
-			SetObjectSpecularPower ( t.tobj, t.entityelement[t.tte].eleprof.specularperc / 100.0f );
-		}
-		*/
 
 		// apply the scrolls cale uv data values for the shader use later on
 		if ( t.entityprofile[t.tentid].uvscrollu != 0.0f 
@@ -5259,7 +5197,6 @@ void entity_prepareobj ( void )
 		if ( t.entityprofile[t.tentid].preservetangents == 1 ) dwArtFlags |= 1<<1;
 		SetObjectArtFlags ( t.tobj, dwArtFlags, 0.0f );
 
-		#ifdef WICKEDENGINE
 		//PE: Emulate old classic shaders, using settings.
 		cstr sEffectLower = Lower(t.entityprofile[t.tentid].effect_s.Get());
 		if (sEffectLower == "effectbank\\reloaded\\decal_animate1_additive.fx")
@@ -5270,14 +5207,10 @@ void entity_prepareobj ( void )
 
 		if (t.entityprofile[t.tentid].bIsDecal)
 		{
-
 			void SetupDecalObject(int obj, int elementID);
 			SetupDecalObject(t.tobj, t.tte);
 		}
 
-		#endif
-
-		#ifdef WICKEDENGINE
 		if (t.entityprofile[t.tentid].ismarker == 0)
 		{
 			int iAutoFlattenMode = t.entityprofile[t.tentid].autoflatten;
@@ -5293,6 +5226,7 @@ void entity_prepareobj ( void )
 		{
 			entity_updatelightobj(t.tte, t.tobj);
 		}
+
 		//PE: Start any particle effects.
 		if (t.entityprofile[t.tentid].ismarker == 10)
 		{
@@ -5300,7 +5234,6 @@ void entity_prepareobj ( void )
 				t.entityelement[t.tte].obj = t.tobj;
 			entity_updateparticleemitter(t.tte);
 		}
-		#endif
 	}
 }
 

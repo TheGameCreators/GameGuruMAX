@@ -2884,6 +2884,7 @@ struct importertype
 	bool bMeshesHaveDifferentBase;
 	bool bMeshesHaveDifferentNormal;
 	bool bMeshesHaveDifferentSurface;
+	bool bEditingAllSurfaceMeshes;
 	bool bMeshesHaveDifferentEmissive;
 	bool bMeshesHaveDifferentDisplacement;
 	std::vector<cstr> cModelMeshNames;
@@ -2985,6 +2986,7 @@ struct importertype
 		 bMeshesHaveDifferentBase = true;
 		 bMeshesHaveDifferentNormal = true;;
 		 bMeshesHaveDifferentSurface = true;
+		 bEditingAllSurfaceMeshes = false;
 		 bMeshesHaveDifferentEmissive = true;
 		 bMeshesHaveDifferentDisplacement = true;
 		 bModelMeshNamesSet = false;

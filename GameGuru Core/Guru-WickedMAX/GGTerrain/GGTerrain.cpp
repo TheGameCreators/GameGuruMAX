@@ -10675,6 +10675,13 @@ void GGTerrain_PerformUndoRedoAction(int type, void* pEventData, int eList)
 
 void GGTerrain_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* pEventData)
 {
+	// count any sculpts as will need to reverse them all when undo-ing a delayed object repositioning
+	extern int g_iDelayActualObjectAdjustmentSculptCount;
+	if (type == eUndoSys_Terrain_Sculpt && bUserAction == true )
+	{
+		g_iDelayActualObjectAdjustmentSculptCount++;
+	}
+	
 	// User performed this undo action, so clear the redo stack since it now contains outdated events.
 	if (bUserAction == true)
 	{
@@ -10722,8 +10729,7 @@ void GGTerrain_CreateUndoRedoAction(int type, int eList, bool bUserAction, void*
 		if (type == eUndoSys_Terrain_Sculpt)
 		{
 			// After sculpting, any objects that were on the terrain are moved up in line with the sculpt, so need to collect multiple events so both actions can be undone in one press.
-			//undosys_multiplevents_start();
-
+			// though cannot use undosys_multiplevents_start(); we will use glue system instead (added to repos obj code)
 			undosys_terrain_sculpt(bb, g_pTerrainSnapshot, eList);
 		}
 		else if (type == eUndoSys_Terrain_Paint)

@@ -146,6 +146,9 @@ float g_fvegDensityMax = 100.0f;
 int iBrushStrength = 128;
 int iBrushShape = 0;
 
+int g_iDelayActualObjectAdjustment = 0;
+int g_iDelayActualObjectAdjustmentSculptCount = 0;
+
 extern int iLastOpenHeader;
 extern bool bRenderTabTab;
 
@@ -1744,18 +1747,11 @@ void imgui_terrain_loop_v2(void)
 				bImGuiGotFocus = true;
 			}
 
-#ifdef WICKEDENGINE
-			// Interferes with ability for main render area to have mouse control!
-#else
-			if (ImGui::IsAnyItemFocused()) {
-				bImGuiGotFocus = true;
-			}
-#endif
-
 			void CheckMinimumDockSpaceSize(float minsize);
 			CheckMinimumDockSpaceSize(250.0f);
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -1763,9 +1759,6 @@ void imgui_terrain_loop_v2(void)
 
 			ImGui::End();
 		}
-	}
-	else {
-		//bTerrain_Tools_Window = false;
 	}
 }
 
@@ -1785,12 +1778,11 @@ void reset_terrain_paint_date( void )
 	}
 }
 
-//void GGTrees_DeselectHighlightedTree(void);
-
 void clear_highlighted_tree(void)
 {
 	GGTrees_DeselectHighlightedTree();
 }
+
 void set_terrain_edit_mode(int mode)
 {
 	ggterrain_extra_params.edit_mode = mode;
@@ -1810,12 +1802,11 @@ int get_terrain_sculpt_mode( void )
 
 int iLastTerrainSculptMode = -1;
 bool bTreeGlobalInit = false;
-float fTreeRandomMin = (ggtrees_global_params.paint_scale_random_low); // / 2.55) - 1.0;
-float fTreeRandomMax = (ggtrees_global_params.paint_scale_random_high); // / 2.55) - 1.0;
+float fTreeRandomMin = (ggtrees_global_params.paint_scale_random_low); 
+float fTreeRandomMax = (ggtrees_global_params.paint_scale_random_high);
 
 void imgui_terrain_loop_v3(void)
 {
-
 	if (!imgui_is_running)
 		return;
 
@@ -1829,10 +1820,9 @@ void imgui_terrain_loop_v3(void)
 	}
 	if (!bTreeGlobalInit)
 	{
-		fTreeRandomMin = (ggtrees_global_params.paint_scale_random_low); // / 2.55) - 1.0;
-		fTreeRandomMax = (ggtrees_global_params.paint_scale_random_high); // / 2.55) - 1.0;
-
-		
+		fTreeRandomMin = (ggtrees_global_params.paint_scale_random_low); 
+		fTreeRandomMax = (ggtrees_global_params.paint_scale_random_high); 
+	
 		uint64_t values = gggrass_global_params.paint_type;
 		for (int iL = 0; iL < GGGRASS_NUM_SELECTABLE_TYPES; iL++)
 		{
@@ -1844,122 +1834,8 @@ void imgui_terrain_loop_v3(void)
 		}
 		bTreeGlobalInit = true;
 	}
-	#ifndef PAULNEWGRASSSYSTEM
-	if (bUpdateVeg)
-	{
-		if (bEnableVeg)
-		{
-			t.visuals.VegQuantity_f = t.gamevisuals.VegQuantity_f;
-			t.visuals.VegWidth_f = t.gamevisuals.VegWidth_f;
-			t.visuals.VegHeight_f = t.gamevisuals.VegHeight_f;
-			grass_setgrassgridandfade();
-
-			extern bool bResourcesSet, bGridMade;
-			if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1))
-				grass_init();
-			else if (!bGridMade)
-			{
-				//grass_init();
-				//grass_setgrassimage();
-				//UpdateGrassTexture(g.gpbroverride);
-			}
-
-			bool bOldGridMade = bGridMade;
-			int iTrimUsingGrassMemblock = 0;
-			if (t.game.gameisexe == 1) iTrimUsingGrassMemblock = t.terrain.grassmemblock;
-			if (g.usegrassbelowwater > 0)
-				MakeVegetationGridQuick(4.0f*t.visuals.VegQuantity_f, t.visuals.VegWidth_f, t.visuals.VegHeight_f, terrain_veg_areawidth, t.terrain.vegetationgridsize, t.tTerrainID, iTrimUsingGrassMemblock, true);
-			else
-				MakeVegetationGridQuick(4.0f*t.visuals.VegQuantity_f, t.visuals.VegWidth_f, t.visuals.VegHeight_f, terrain_veg_areawidth, t.terrain.vegetationgridsize, t.tTerrainID, iTrimUsingGrassMemblock, false);
-
-			if (bGridMade && !bOldGridMade)
-			{
-				//Refresh textures.
-				//grass_setgrassimage();
-			}
-
-			// small lookup for memblock painting circles
-			static bool bCurveDataSet = false;
-			if (!bCurveDataSet) {
-				Dim(t.curve_f, 100);
-				for (t.r = 0; t.r <= 180; t.r++)
-				{
-					t.trx_f = Cos(t.r - 90)*100.0;
-					t.trz_f = Sin(t.r - 90)*100.0;
-					t.curve_f[int((100 + t.trz_f) / 2)] = t.trx_f / 100.0;
-				}
-				bCurveDataSet = true;
-			}
-			t.terrain.grassregionupdate = 0; //PE: Make sure we update.
-			t.terrain.grassupdateafterterrain = 1;
-			t.terrain.lastgrassupdatex1 = -1; //PE: Force update.
-			grass_loop();
-			t.terrain.grassupdateafterterrain = 0;
-			ShowVegetationGrid();
-			visuals_justshaderupdate();
-			iLastUpdateVeg = Timer();
-		}
-		else
-		{
-			HideVegetationGrid();
-			iLastUpdateVeg = Timer();
-		}
-		bUpdateVeg = false;
-	}
-	else
-	{
-		bool bReadyToUpdateVeg = false;
-		if (bVegHasChanged)
-			bReadyToUpdateVeg = true;
-
-		if (bEnableVeg && iTerrainVegLoopUpdate++ > 10)
-		{
-			grass_loop();
-			iTerrainVegLoopUpdate = 0;
-		}
-
-		//Continue cheking if we need to update terrain.
-		//if (t.inputsys.mclick == 0 && bReadyToUpdateVeg && bEnableVeg && Timer() - iLastUpdateVeg > 250 && !object_preload_files_in_progress() ) 
-		if (bReadyToUpdateVeg && bEnableVeg)
-		{
-			t.visuals.VegQuantity_f = t.gamevisuals.VegQuantity_f;
-			t.visuals.VegWidth_f = t.gamevisuals.VegWidth_f;
-			t.visuals.VegHeight_f = t.gamevisuals.VegHeight_f;
-			grass_setgrassgridandfade();
-
-			if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1))
-				grass_init();
-
-			t.terrain.grassupdateafterterrain = 1;
-			grass_loop();
-			t.terrain.grassupdateafterterrain = 0;
-			ShowVegetationGrid();
-
-			bReadyToUpdateVeg = false;
-			iLastUpdateVeg = Timer();
-			bVegHasChanged = false;
-		}
-	}
-	#endif
-
-
-
 	if (t.grideditselect == 0 && t.terrain.terrainpaintermode >= 0 && t.terrain.terrainpaintermode <= 12)
 	{
-#ifdef ENABLECUSTOMTERRAIN
-		switch (delay_terrain_execute)
-		{
-		case 1: //Change texture in plate.
-		{
-			delay_terrain_execute = 0;
-			terrainbuild.bCustomiseTexture = true;
-			skib_terrain_frames_execute = 5;
-			break;
-		}
-		default:
-			break;
-		}
-#endif
 		if (skib_terrain_frames_execute > 0)
 			skib_terrain_frames_execute--;
 
@@ -2005,32 +1881,7 @@ void imgui_terrain_loop_v3(void)
 						current_mode = TOOL_TREES_DELETE;
 					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_SCALE)
 						current_mode = TOOL_TREE_SCALE;
-
-					//ggtrees_global_params.paint_mode
 				}
-				#ifdef BUSHUI
-				else if(t.terrain.terrainpaintermode == 12)
-				{
-					current_mode = TOOL_PAINTBUSH;
-					top_current_mode = TOOL_PAINTBUSH;
-					ggterrain_extra_params.edit_mode = GGTERRAIN_EDIT_TREES;
-					ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_BRUSH_SIZE;
-
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_ADD)
-						current_mode = TOOL_BUSH_ADD;
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_MOVE)
-						current_mode = TOOL_BUSH_MOVE;
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_REMOVE)
-						current_mode = TOOL_BUSH_DELETE;
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_SPRAY)
-						current_mode = TOOL_BUSHES_ADD;
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_SPRAY_REMOVE)
-						current_mode = TOOL_BUSHES_DELETE;
-					if (ggtrees_global_params.paint_mode == GGTREES_PAINT_SCALE)
-						current_mode = TOOL_BUSH_SCALE;
-
-				}
-				#endif
 				else if (t.terrain.terrainpaintermode == 10)
 				{
 					current_mode = TOOL_PAINTGRASS;
@@ -2055,8 +1906,6 @@ void imgui_terrain_loop_v3(void)
 					current_mode = TOOL_SHAPE;
 				if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_LEVEL)
 					current_mode = TOOL_LEVELMODE;
-				//if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_LEVEL) //Removed
-				//	current_mode = TOOL_STOREDLEVEL;
 				if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_BLEND)
 					current_mode = TOOL_BLENDMODE;
 				if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_RAMP)
@@ -2069,39 +1918,12 @@ void imgui_terrain_loop_v3(void)
 					current_mode = TOOL_RANDOM;
 				if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_RESTORE)
 					current_mode = TOOL_RESTORE;
-
-/*
-				if (t.terrain.terrainpaintermode == 1)
-					current_mode = TOOL_SHAPE;
-				if (t.terrain.terrainpaintermode == 2)
-					current_mode = TOOL_LEVELMODE;
-				if (t.terrain.terrainpaintermode == 3)
-					current_mode = TOOL_STOREDLEVEL;
-				if (t.terrain.terrainpaintermode == 4)
-					current_mode = TOOL_BLENDMODE;
-				if (t.terrain.terrainpaintermode == 5)
-					current_mode = TOOL_RAMPMODE;
-
-				if (t.terrain.terrainpaintermode == 6)
-					current_mode = TOOL_PICK;
-				if (t.terrain.terrainpaintermode == 7)
-					current_mode = TOOL_WRITE;
-				if (t.terrain.terrainpaintermode == 8)
-					current_mode = TOOL_RANDOM;
-				if (t.terrain.terrainpaintermode == 9)
-					current_mode = TOOL_RESTORE;
-*/
 			}
-
 
 			if (ggterrain_extra_params.sculpt_mode != GGTERRAIN_SCULPT_NONE)
 			{
 				//PE: We need to delay raise/lower object until terrain is done working on it.
-				static int iDelayActualObjectAdjustment = 0;
 				static std::vector<int> adjustedObjects;
-
-				//if (iDelayActualObjectAdjustment == 0)
-				//	undosys_multiplevents_finish();
 				
 				if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_RAMP && !ImGui::IsMouseDown(0) && (vLastRampTerrainPickPosition.z != 0 || vLastRampTerrainPickPosition.w != 0) )
 				{
@@ -2111,9 +1933,9 @@ void imgui_terrain_loop_v3(void)
 					float fx2 = vLastRampTerrainPickPosition.z;
 					float fz2 = vLastRampTerrainPickPosition.w;
 
+					//PE: Move to center of line.
 					float radiusx = fx2 - fx;
 					float radiusz = fz2 - fz;
-					//PE: Move to center of line.
 					fx += radiusx * 0.5;
 					fz += radiusz * 0.5;
 
@@ -2122,8 +1944,6 @@ void imgui_terrain_loop_v3(void)
 					float radius = radiusx;
 					if (radiusz > radius) radius = radiusz;
 					radius *= 1.5;
-
-					//undosys_multiplevents_start();
 
 					for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 					{
@@ -2136,21 +1956,16 @@ void imgui_terrain_loop_v3(void)
 							if (t.ttdd_f <= radius)
 							{
 								//PE: Delay adjusting so just save for now.
-								//t.entityelement[t.e].delay_floorposy = t.entityelement[t.e].y;
 								//LB: remember the distance from the old floor so can keep items on tables
 								if (t.entityelement[t.e].delay_floorposy == -90000.0f)
 								{
 									t.entityelement[t.e].delay_floorposy = BT_GetGroundHeight (t.terrain.TerrainID, t.entityelement[t.e].x, t.entityelement[t.e].z);
 									adjustedObjects.push_back(t.e);
-									//entity_createundoaction(eUndoSys_Object_ChangePosRotScl, t.e);
 								}
-								iDelayActualObjectAdjustment = 40;
+								g_iDelayActualObjectAdjustment = 40;
 							}
 						}
 					}
-
-					//undosys_multiplevents_finish();
-
 
 					vLastRampTerrainPickPosition.z = 0;
 					vLastRampTerrainPickPosition.w = 0;
@@ -2158,8 +1973,6 @@ void imgui_terrain_loop_v3(void)
 				}
 				else if (ImGui::IsMouseDown(0) && ggterrain_extra_params.sculpt_mode != GGTERRAIN_SCULPT_RAMP)
 				{
-					/*undosys_multiplevents_start();*/
-
 					float fRadius = ggterrain_global_render_params2.brushSize;
 					for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 					{
@@ -2172,30 +1985,25 @@ void imgui_terrain_loop_v3(void)
 							if (t.ttdd_f <= fRadius)
 							{
 								//PE: Delay adjusting so just save for now.
-								//t.entityelement[t.e].delay_floorposy = t.entityelement[t.e].y;
 								//LB: remember the distance from the old floor so can keep items on tables
 								if (t.entityelement[t.e].delay_floorposy == -90000.0f)
 								{
 									t.entityelement[t.e].delay_floorposy = BT_GetGroundHeight (t.terrain.TerrainID, t.entityelement[t.e].x, t.entityelement[t.e].z);
-									//entity_createundoaction(eUndoSys_Object_ChangePosRotScl, t.e);
 									adjustedObjects.push_back(t.e);
 								}
-								iDelayActualObjectAdjustment = 40;
+								g_iDelayActualObjectAdjustment = 40;
 							}
 						}
 					}
-
-				/*	undosys_multiplevents_finish();*/
 				}
 				else
 				{
-					if (iDelayActualObjectAdjustment > 0)
+					if (g_iDelayActualObjectAdjustment > 0)
 					{
-						if (iDelayActualObjectAdjustment == 1)
+						if (g_iDelayActualObjectAdjustment == 1)
 						{
+							// Execute actual object adjustments.
 							undosys_multiplevents_start();
-
-							//Execute actual object adjustments.
 							for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 							{
 								t.obj = t.entityelement[t.e].obj;
@@ -2206,7 +2014,6 @@ void imgui_terrain_loop_v3(void)
 										if (adjustedObjects[i] == t.e)
 										{
 											// Can't mix undo master stack items, so move the objects using the terrain undo system.
-											//undosys_terrain_objectmovedaftersculpt(t.e, t.entityelement[t.e].y, eUndoSys_UndoList);
 											entity_createundoaction(eUndoSys_Object_ChangePosRotScl, t.e);
 											break;
 										}
@@ -2215,11 +2022,16 @@ void imgui_terrain_loop_v3(void)
 									t.entityelement[t.e].delay_floorposy = -90000.0f;
 								}
 							}
-
 							undosys_multiplevents_finish();
+							if (g_iDelayActualObjectAdjustmentSculptCount > 0)
+							{
+								// connects to earlier terrain sculpts
+								undosys_glue(eUndoSys_UndoList, g_iDelayActualObjectAdjustmentSculptCount); 
+							}
 							adjustedObjects.clear();
+							g_iDelayActualObjectAdjustmentSculptCount = 0;
 						}
-						iDelayActualObjectAdjustment--;
+						g_iDelayActualObjectAdjustment--;
 					}
 				}
 			}
@@ -2230,10 +2042,6 @@ void imgui_terrain_loop_v3(void)
 				sWindowLabel = "Terrain Tools##Paint Terrain##TerrainToolsWindow";
 			if (top_current_mode == TOOL_PAINTTREE)
 				sWindowLabel = "Terrain Tools##Add Trees##TerrainToolsWindow";
-			#ifdef BUSHUI
-			if (top_current_mode == TOOL_PAINTBUSH)
-				sWindowLabel = "Terrain Tools##Add Bushes##TerrainToolsWindow";
-			#endif
 
 			extern int iGenralWindowsFlags;
 			ImGui::Begin(sWindowLabel.Get(), &bTerrain_Tools_Window, iGenralWindowsFlags);
@@ -2241,20 +2049,11 @@ void imgui_terrain_loop_v3(void)
 			float w = ImGui::GetWindowContentRegionWidth();
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-			//if (pref.bAutoClosePropertySections && iLastOpenHeader != 31 && iLastOpenHeader >= 30 && iLastOpenHeader <= 40)
-				//ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-
 			if (ImGui::StyleCollapsingHeader("Edit Mode", ImGuiTreeNodeFlags_DefaultOpen))
 			{
-				//iLastOpenHeader = 31;
-
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 				// center icons
-				#ifdef BUSHUI
-				float center_icons_numbers = 5.8; //4.0f; //5
-				#else
 				float center_icons_numbers = 4.3; //4.0f; //5
-				#endif
 				float icon_spacer = 6.0; //10.0f;
 				int max_icon_size = 56;
 				int control_image_size = 26; //PE: 34 - This is now the lowest possible icon size.
@@ -2284,11 +2083,12 @@ void imgui_terrain_loop_v3(void)
 				}
 				ImGui::Indent(indent);
 
+				//PE: This is the same as current toolbar background.
 				ImVec2 padding = { 3.0, 3.0 };
-				extern ImVec4 drawCol_toogle; //PE: This is the same as current toolbar background.
+				extern ImVec4 drawCol_toogle; 
 				ImVec4 vIconBackground = ImVec4(0,0,0,0);
-				//## Terrain Tool Selection Icons Start ##
-				
+
+				//## Terrain Tool Selection Icons Start ##	
 				ImGuiWindow* window = ImGui::GetCurrentWindow();
 
 				ImVec2 cursorRestore = ImGui::GetCursorPos() + ImVec2(0.0f, 1.0f);
@@ -2309,7 +2109,6 @@ void imgui_terrain_loop_v3(void)
 
 				if (top_current_mode == TOOL_SHAPE)	window->DrawList->AddRect((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size), ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 
-				//if (ImGui::ImgBtn(TOOL_SHAPE, ImVec2(control_image_size, control_image_size), vIconBackground, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 				if (ImGui::ImgBtn(TOOL_TERRAIN_TOOLBAR, ImVec2(control_image_size, control_image_size), vIconBackground, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 				{
 					bForceKey = true;
@@ -2350,23 +2149,6 @@ void imgui_terrain_loop_v3(void)
 				if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Paint into the editable area of the terrain");
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-
-				#ifdef BUSHUI
-				if (top_current_mode == TOOL_PAINTBUSH) window->DrawList->AddRect((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size), ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-				if (ImGui::ImgBtn(TOOL_PAINTBUSH, ImVec2(control_image_size, control_image_size), vIconBackground, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-				{
-					t.terrain.terrainpaintermode = 12;
-					bTerrain_Tools_Window = true;
-					ggterrain_extra_params.edit_mode = GGTERRAIN_EDIT_TREES;
-					csForceKey = "t";
-					csForceKey2 = "12";
-					bForceKey = true;
-					bForceKey2 = true;
-				}
-				if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Paint into the editable area of the terrain");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-				#endif
 
 				if (current_mode == TOOL_PAINTGRASS) window->DrawList->AddRect((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size), ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 				if (ImGui::ImgBtn(TOOL_PAINTGRASS, ImVec2(control_image_size, control_image_size), vIconBackground, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
@@ -2418,10 +2200,8 @@ void imgui_terrain_loop_v3(void)
 				int control_image_size_2 = control_image_size;
 				ImGui::Indent(indent);
 
-
-
-				//bool bHoldShift = t.inputsys.keyshift == 1;
 				// LB: Use TAB instead of shift or ctrl, and trigger the toggle as though clicking the button
+				//bool bHoldShift = t.inputsys.keyshift == 1;
 				bool bSwitchModeToOne = false;
 				bool bSwitchModeToZero = false;
 				static bool bReadyToChange = true;
@@ -2447,19 +2227,11 @@ void imgui_terrain_loop_v3(void)
 					bReadyToChange = false; //toggle, wait until tab is released again.
 				}
 
-				// add title above edit mode
-				//LPSTR pEditTitle = "Sculpting Mode";
-				//if (current_mode == TOOL_PAINTTEXTURE) pEditTitle = "Painting Mode";
-				//if (current_mode == TOOL_PAINTGRASS) pEditTitle = "Paint and Erase";
-
 				LPSTR pEditTitle = "Sculpting Terrain";
 				if (current_mode == TOOL_PAINTTEXTURE) pEditTitle = "Painting Terrain";
 				if (current_mode == TOOL_PAINTGRASS) pEditTitle = "Adding Vegetation";
 				if (top_current_mode == TOOL_PAINTTREE) pEditTitle = "Painting Trees";
-				#ifdef BUSHUI
-				if (top_current_mode == TOOL_PAINTBUSH) pEditTitle = "Painting Bushes";
-				#endif
-				//
+
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f)); //Give header a little space.
 				ImGui::TextCenter(pEditTitle);
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
@@ -2498,7 +2270,6 @@ void imgui_terrain_loop_v3(void)
 					ImGui::SameLine();
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
 
-
 					if (current_mode == TOOL_TREE_DELETE)
 					{
 						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
@@ -2508,7 +2279,6 @@ void imgui_terrain_loop_v3(void)
 						ggtrees_global_params.paint_mode = GGTREES_PAINT_REMOVE;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Remove Tree");
-
 
 					ImGui::SameLine();
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
@@ -2525,7 +2295,6 @@ void imgui_terrain_loop_v3(void)
 
 					//New line.
 
-					//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((control_image_size+icon_spacer)*0.5, 0.0f));
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((control_image_size + icon_spacer + icon_spacer), 0.0f));
 					if (current_mode == TOOL_TREES_ADD)
 					{
@@ -2552,99 +2321,6 @@ void imgui_terrain_loop_v3(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Clear Trees");
 
 				}
-
-				#ifdef BUSHUI
-				if (top_current_mode == TOOL_PAINTBUSH && ggtrees_global_params.draw_enabled)
-				{
-					//#############################
-					//## PE: Display Bush tools. ##
-					//#############################
-
-					ImVec4 back_color = ImColor(255, 255, 255, 0);
-					if (current_mode == TOOL_BUSH_ADD)
-				{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSH_ADD, ImVec2(control_image_size, control_image_size), back_color, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-					{
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_ADD;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add Bush");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-
-					if (current_mode == TOOL_BUSH_MOVE)//(iTerrainRaiseMode != 1 || bHoldShift ) )
-					{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSH_MOVE, ImVec2(control_image_size, control_image_size), back_color, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-					{
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_MOVE;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Move Bush");
-
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-
-
-					if (current_mode == TOOL_BUSH_DELETE)
-					{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSH_DELETE, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_REMOVE;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Remove Bush");
-
-
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-
-					if (current_mode == TOOL_BUSH_SCALE)
-					{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSH_SCALE, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_SCALE;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Scale Bush");
-
-
-					//New line.
-
-					//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((control_image_size + icon_spacer)*0.5, 0.0f));
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((control_image_size + icon_spacer + icon_spacer), 0.0f));
-					if (current_mode == TOOL_BUSHES_ADD)
-					{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSHES_ADD, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_SPRAY;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Spray Bushes");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
-					//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((control_image_size + icon_spacer)*0.5, 0.0f));
-
-					if (current_mode == TOOL_BUSHES_DELETE)
-					{
-						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-					}
-					if (ImGui::ImgBtn(TOOL_BUSHES_DELETE, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-
-						ggtrees_global_params.paint_mode = GGTREES_PAINT_SPRAY_REMOVE;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Clear Bushes");
-
-				}
-
-				#endif
 
 				ImGui::Indent(-indent);
 
@@ -2679,8 +2355,6 @@ void imgui_terrain_loop_v3(void)
 				}
 				control_image_size_2 = control_image_size;
 				ImGui::Indent(indent);
-
-
 
 				if (current_mode != TOOL_PAINTTEXTURE && current_mode != TOOL_PAINTGRASS && top_current_mode != TOOL_PAINTTREE && top_current_mode != TOOL_PAINTBUSH)
 				{
@@ -2731,7 +2405,6 @@ void imgui_terrain_loop_v3(void)
 					ImGui::SameLine();
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(icon_spacer, 0.0f));
 
-
 					CheckTutorialAction("TOOL_LEVELMODE", -10.0f); //Tutorial: check if we are waiting for this action
 					if (current_mode == TOOL_LEVELMODE)
 					{
@@ -2775,8 +2448,8 @@ void imgui_terrain_loop_v3(void)
 						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
 						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 					}
-					if (ImGui::ImgBtn(TOOL_RAMPMODE, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-
+					if (ImGui::ImgBtn(TOOL_RAMPMODE, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+					{
 						bForceKey = true;
 						csForceKey = "t";
 						bForceKey2 = true;
@@ -2802,8 +2475,8 @@ void imgui_terrain_loop_v3(void)
 						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
 						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 					}
-					if (ImGui::ImgBtn(TOOL_RANDOM, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
-
+					if (ImGui::ImgBtn(TOOL_RANDOM, ImVec2(control_image_size, control_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+					{
 						bForceKey = true;
 						csForceKey = "t";
 						bForceKey2 = true;
@@ -2878,17 +2551,10 @@ void imgui_terrain_loop_v3(void)
 
 				if (t.terrain.terrainpaintermode == 10)
 				{
-					#ifndef GRASSRESTOREWASREMOVED
-					control_width = (control_image_size_2 + 3.0f) * 3.0f + 6.0f;
-					indent = (w*0.5f) - (control_width*0.5f);
-					if (indent < 10)
-						indent = 10;
-					#else
 					control_width = (control_image_size_2 + 3.0f) * 2.0f + 6.0f;
 					indent = (w*0.5f) - (control_width*0.5f);
 					if (indent < 10)
 						indent = 10;
-					#endif
 					ImGui::Indent(indent);
 
 					//Grass
@@ -2901,42 +2567,26 @@ void imgui_terrain_loop_v3(void)
 							window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 						}
 
-						if (bSwitchModeToOne == true || ImGui::ImgBtn(EBE_CONTROL1, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
+						if (bSwitchModeToOne == true || ImGui::ImgBtn(EBE_CONTROL1, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+						{
 							//Paint mode.
 							iTerrainGrassPaintMode = 1;
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Paint Mode");
 						ImGui::SameLine();
 
-						if (iTerrainGrassPaintMode == 0)// || bHoldShift )
+						if (iTerrainGrassPaintMode == 0)
 						{
 							ImVec2 padding = { 3.0, 3.0 };
 							const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size_2, control_image_size_2));
 							window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 						}
-						if (bSwitchModeToZero == true || ImGui::ImgBtn(EBE_CONTROL2, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
+						if (bSwitchModeToZero == true || ImGui::ImgBtn(EBE_CONTROL2, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+						{
 							//Remove mode.
 							iTerrainGrassPaintMode = 0;
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Delete Mode");
-
-						#ifndef GRASSRESTOREWASREMOVED
-						ImGui::SameLine();
-
-						if (iTerrainGrassPaintMode == 2)// || bHoldShift )
-						{
-							ImVec2 padding = { 3.0, 3.0 };
-							const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size_2, control_image_size_2));
-							window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-						}
-						ImGui::PushID(EBE_CONTROL2+15000);
-						if (ImGui::ImgBtn(EBE_CONTROL2, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, true, bBoostIconColors)) {
-							//Restore mode.
-							iTerrainGrassPaintMode = 2;
-						}
-						ImGui::PopID();
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Restore Mode");
-						#endif
 					}
 					ImGui::Indent(-indent);
 				}
@@ -2957,7 +2607,8 @@ void imgui_terrain_loop_v3(void)
 						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 					}
 
-					if (bSwitchModeToOne == true || ImGui::ImgBtn(EBE_CONTROL1, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
+					if (bSwitchModeToOne == true || ImGui::ImgBtn(EBE_CONTROL1, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+					{
 						//Paint mode.
 						iTerrainPaintMode = 1;
 					}
@@ -2970,11 +2621,11 @@ void imgui_terrain_loop_v3(void)
 						const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size_2, control_image_size_2));
 						window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 					}
-					if (bSwitchModeToZero == true || ImGui::ImgBtn(EBE_CONTROL2, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) {
+					if (bSwitchModeToZero == true || ImGui::ImgBtn(EBE_CONTROL2, ImVec2(control_image_size_2, control_image_size_2), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors)) 
+					{
 						//Remove mode.
 						iTerrainPaintMode = 0;
 						ggterrain_extra_params.paint_material = 0;
-						//iCurrentTextureForPaint = 0;
 					}
 					if (iTerrainPaintMode == 1)
 					{
@@ -2987,45 +2638,22 @@ void imgui_terrain_loop_v3(void)
 				{
 					if(iTerrainGrassPaintMode == 0)
 						gggrass_global_params.paint_mode = 1; //PE: Delete
-					#ifndef GRASSRESTOREWASREMOVED
-					if (iTerrainGrassPaintMode == 2)
-						gggrass_global_params.paint_mode = 2; //PE: Restore.
-					#endif		
 					if (iTerrainGrassPaintMode == 1)
 						gggrass_global_params.paint_mode = 0; //PE: Paint.
 				}
 
 				ImGui::Indent(-indent);
 
-
 				ImGui::Indent(10);
 
 				//Brush Size.
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 				ImGui::PushItemWidth(-10);
-				/*
-				ImGui::TextCenter("Brush Size");
-				if (ImGui::MaxSliderInputFloat("##Brushsize", &t.terrain.RADIUS_f, 70.0f, 500.0f, "Draw Radius (This feature is not yet available)"))
-				{
-					if (t.terrain.RADIUS_f < t.tmin) t.terrain.RADIUS_f = t.tmin;
-					if (t.terrain.RADIUS_f > g.fTerrainBrushSizeMax) t.terrain.RADIUS_f = g.fTerrainBrushSizeMax;
-				}
-				*/
 
 				if (current_mode != TOOL_PAINTTEXTURE && top_current_mode != TOOL_PAINTTREE && top_current_mode != TOOL_PAINTBUSH)
 				{
-					//PE: Chaned to follow other max ui elements.
-					//ImGui::Text("Pick Using Plane");
-					//ImGui::SameLine();
-
 					//PE: Hidden in new design but pickplane always on.
 					ggterrain_extra_params.edit_pick_mode = 0; //(1) PE: Now default to pick mode 0.
-
-					//bool pickPlane = ggterrain_extra_params.edit_pick_mode != 0;
-					//if (ImGui::Checkbox("Pick Using Plane##PickPlane", &pickPlane))
-					//{
-					//	ggterrain_extra_params.edit_pick_mode = pickPlane ? 1 : 0;
-					//}
 				}
 
 				//ggtrees_global_params.draw_enabled
@@ -3046,9 +2674,8 @@ void imgui_terrain_loop_v3(void)
 				if (bBrushSizeEnable)
 				{
 					ImGui::TextCenter("Brush Size");
-					//ImGui::SliderFloat("##Brush Size", &ggterrain_global_render_params2.brushSize, 25.0f, 7000.0f, "%.2f", 2.0f);
 					ImGui::MaxSliderInputFloatPower("##BrushSize", &ggterrain_global_render_params2.brushSize, 15.0f, 7000.0f, 0, 15.0f, 7500, 30, 2.0f);
-					//ImGui::MaxSliderInputFloat("##TerraBrushSize", &ggterrain_global_render_params2.brushSize, 25.0, 7000.0f, "Set Brush Size", 1);
+
 					// Alter brush size with input.
 					if (t.inputsys.k_s == "-" && ggterrain_global_render_params2.brushSize > 15.0f)
 					{
@@ -3081,12 +2708,10 @@ void imgui_terrain_loop_v3(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("When painting, any grass will change to ensure it blends best. This option is synced with the grass tick tickbox");
 				}
 
-
 				if (current_mode != TOOL_PAINTTEXTURE && top_current_mode != TOOL_PAINTTREE && top_current_mode != TOOL_PAINTBUSH && top_current_mode != TOOL_PAINTGRASS)
 				{
 
 					ImGui::TextCenter("Scuplt Speed");
-					//ImGui::SliderFloat("##Sculpt Speed", &ggterrain_extra_params.sculpt_speed, 1.0f, 200.0f, "%.1f", 2.0f);
 					ImGui::MaxSliderInputFloatPower("##Sculpt Speed", &ggterrain_extra_params.sculpt_speed, 1.0f, 200.0f, 0, 1.0f, 200.0f, 30, 2.0f);
 
 					if (ggterrain_extra_params.sculpt_mode == GGTERRAIN_SCULPT_RANDOM)
@@ -3105,25 +2730,6 @@ void imgui_terrain_loop_v3(void)
 						}
 					}
 				}
-
-				// ZJ: Moved to "View Options" header in M-GridEdit.cpp
-				//if ( (top_current_mode != TOOL_PAINTTREE && top_current_mode != TOOL_PAINTGRASS) && pref.iTerrainAdvanced)
-				//{
-				//	bool showEditableArea = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE) ? 1 : 0;
-				//	if (ImGui::Checkbox("Show Editable Area", &showEditableArea))
-				//	{
-				//		if (showEditableArea) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-				//		else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-				//	}
-				//	ImGui::SameLine();
-				//
-				//	showEditableArea = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
-				//	if (ImGui::Checkbox("3D Boundary##bShow3DBoundary", &showEditableArea))
-				//	{
-				//		if (showEditableArea) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-				//		else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-				//	}
-				//}
 
 				if (top_current_mode == TOOL_PAINTGRASS && gggrass_global_params.draw_enabled)
 				{
@@ -3188,17 +2794,6 @@ void imgui_terrain_loop_v3(void)
 							gggrass_global_params.max_height_underwater = gggrass_global_params.min_height_underwater;
 							gggrass_global_params.min_height_underwater = fTmp;
 						}
-						//PE: Get to hard to control using range slider.
-						//if (ImGui::MaxSliderInputRangeFloat("##GrassMinMaxHeigh", &gggrass_global_params.min_height, &gggrass_global_params.max_height, -1000.0, 20000.0, "Set Grass Min and Max Height Values"))
-						//{
-						//	ggterrain_extra_params.iUpdateGrass = 2;
-						//}
-
-						//if (ImGui::MaxSliderInputRangeFloat("##GrassMinMaxHeighUnderwater", &gggrass_global_params.min_height_underwater, &gggrass_global_params.max_height_underwater, -5000.0, 1000.0, "Set Grass Min and Max Height Values Underwater"))
-						//{
-						//	ggterrain_extra_params.iUpdateGrass = 2;
-						//}
-
 					}
 
 					bool bTmp = 1 - bGrassMatchTerrain;
@@ -3209,26 +2804,17 @@ void imgui_terrain_loop_v3(void)
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("When painting grass, the style will be automatically chosen to blend with the terrain. This option is synced with the paint texture tickbox");
 
-
 					extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
 					ControlAdvancedSetting(pref.iEnableAdvancedGrass, "Advanced Grass Settings");
-
 				}
 
 				if (top_current_mode == TOOL_PAINTTREE && ggtrees_global_params.draw_enabled)
 				{
 
 					ImGui::TextCenter("Tree Density");
-					//if (ImGui::MaxSliderInputInt("##TerrainTreeDensity", &ggtrees_global_params.paint_density, 0, 100, "Tree Density"));
 					ImGui::SliderInt("##TreeDensity", &ggtrees_global_params.paint_density, 0, 100);
-					//PE: TO be moved.
-					//ImGui::TextCenter("Paint Tree Type");
-					//ImGui::SliderInt("##PaintTreeType", (int*)&ggtrees_global_params.paint_tree_type, 0, GGTrees_GetNumTypes() - 1);
-
 					ImGui::TextCenter("Tree Height");
 					ImGui::PushItemWidth(-10);
-					//static float fTreeRandomMin = (ggtrees_global_params.paint_scale_random_low / 2.55) - 1.0;
-					//static float fTreeRandomMax = (ggtrees_global_params.paint_scale_random_high / 2.55) - 1.0;
 					if (ImGui::MaxSliderInputRangeFloatDirect("##TreeRandomHeight", &fTreeRandomMin, &fTreeRandomMax, 0.0, 255.0, "Set Tree Random Height Interval"))
 					{
 						fTreeRandomMin = (int)fTreeRandomMin;
@@ -3240,7 +2826,6 @@ void imgui_terrain_loop_v3(void)
 							fTreeRandomMin = iTmp;
 						}
 						if (fTreeRandomMin < 0) fTreeRandomMin = 0;
-						//if (fTreeRandomMax > 100) fTreeRandomMax = 100;
 						if (fTreeRandomMax > 255) fTreeRandomMax = 255;
 						ggtrees_global_params.paint_scale_random_low = (fTreeRandomMin); //*2.55) + 1;
 						ggtrees_global_params.paint_scale_random_high = (fTreeRandomMax); //*2.55) + 1;
@@ -3266,55 +2851,8 @@ void imgui_terrain_loop_v3(void)
 						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Locks the current visibility of trees so that terrain changes no longer affect them, this can only be undone by clicking Randomize All Trees");
-
-					//PE: Using high values here, make it crash very often. disable for now.
-					//ImGui::TextCenter("Tree LOD Distance");
-					//int fTmp = ggtrees_global_params.lod_dist;
-					//ImGui::SliderInt("##TreeLODDistance", &fTmp, 100, 7000);
-					//ggtrees_global_params.lod_dist = fTmp;
 				}
 
-				#ifdef BUSHUI
-				if (top_current_mode == TOOL_PAINTBUSH && ggtrees_global_params.draw_enabled)
-				{
-
-					ImGui::TextCenter("Bush Density");
-					//if (ImGui::MaxSliderInputInt("##TerrainBushDensity", &ggtrees_global_params.paint_density, 0, 100, "Bush Density"));
-					ImGui::SliderInt("##BushDensity", &ggtrees_global_params.paint_density, 0, 100);
-
-					ImGui::TextCenter("Bush Height");
-					ImGui::PushItemWidth(-10);
-					static float fBushRandomMin = (ggtrees_global_params.paint_scale_random_low / 2.55) - 1.0;
-					static float fBushRandomMax = (ggtrees_global_params.paint_scale_random_high / 2.55) - 1.0;
-					if (ImGui::MaxSliderInputRangeFloat("##BushRandomHeight", &fBushRandomMin, &fBushRandomMax, 0.0, 100.0, "Set Bush Random Height Interval"))
-					{
-						if (fBushRandomMin > fBushRandomMax)
-						{
-							int iTmp = fBushRandomMax;
-							fBushRandomMax = fBushRandomMin;
-							fBushRandomMin = iTmp;
-						}
-						if (fBushRandomMin < 0) fBushRandomMin = 0;
-						if (fBushRandomMax > 100) fBushRandomMax = 100;
-						ggtrees_global_params.paint_scale_random_low = (fBushRandomMin*2.55) + 1;
-						ggtrees_global_params.paint_scale_random_high = (fBushRandomMax*2.55) + 1;
-						if (ggtrees_global_params.paint_scale_random_high > 255) ggtrees_global_params.paint_scale_random_high = 255;
-					}
-				ImGui::PopItemWidth();
-
-					ImGui::TextCenter("Bush Water Distance");
-					if (ImGui::SliderFloat("##BushWaterDist", &ggtrees_global_params.water_dist, -1000.0f, 5000.0f, "%.0f", 2.0f))
-					{
-						ggterrain_extra_params.iUpdateTrees = 1;
-					}
-
-					//PE: Using high values here, make it crash very often. disable for now.
-					//ImGui::TextCenter("Bush LOD Distance");
-					//int fTmp = ggtrees_global_params.lod_dist;
-					//ImGui::SliderInt("##BushLODDistance", &fTmp, 100, 7000);
-					//ggtrees_global_params.lod_dist = fTmp;
-				}
-				#endif
 				ImGui::PopItemWidth();
 
 				//PE: Process brush size keyboard-shortcuts.
@@ -3332,22 +2870,14 @@ void imgui_terrain_loop_v3(void)
 				}
 
 				ImGui::Indent(-10);
-
 			}
 
-			//imgui_Customize_Sky(0); //PE: Moved to visuals.
 			if (current_mode == TOOL_PAINTTEXTURE)
 				imgui_Customize_Terrain_v3(0);
 			if (current_mode == TOOL_PAINTGRASS && gggrass_global_params.draw_enabled)
 				imgui_Customize_Vegetation_v3(0);
 			if (top_current_mode == TOOL_PAINTTREE && ggtrees_global_params.draw_enabled)
 				imgui_Customize_Tree_v3(0);
-			#ifdef BUSHUI
-			if (top_current_mode == TOOL_PAINTBUSH && ggtrees_global_params.draw_enabled)
-				imgui_Customize_Bush_v3(0);
-			#endif
-
-
 
 			if (top_current_mode == TOOL_PAINTTREE && t.showeditortrees == 0)
 			{
@@ -3360,20 +2890,7 @@ void imgui_terrain_loop_v3(void)
 					t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = t.showeditortrees; //PE: Also set test level.
 				}
 				ImGui::Indent(-10.0f);
-				}
-			#ifdef BUSHUI
-			if (top_current_mode == TOOL_PAINTBUSH && t.showeditortrees == 0)
-				{
-				bool bShow = t.showeditortrees;
-				ImGui::Indent(10.0f);
-				if (ImGui::Checkbox("Enable Bushes##terraintoolbushes", &bShow))
-				{
-					t.showeditortrees = bShow; //TODO
-					ggtrees_global_params.draw_enabled = bShow;
-				}
-				ImGui::Indent(-10.0f);
 			}
-			#endif
 			if (top_current_mode == TOOL_PAINTGRASS && t.showeditorveg == 0)
 			{
 				bool bShow = t.showeditorveg;
@@ -3387,7 +2904,6 @@ void imgui_terrain_loop_v3(void)
 				ImGui::Indent(-10.0f);
 			}
 
-
 			if (current_mode != TOOL_PAINTTEXTURE && current_mode != TOOL_PAINTGRASS && top_current_mode != TOOL_PAINTTREE && top_current_mode != TOOL_PAINTBUSH)
 			{
 				imgui_Customize_Water_V2(4);
@@ -3397,8 +2913,6 @@ void imgui_terrain_loop_v3(void)
 			{
 				if (ImGui::StyleCollapsingHeader("Fill Whole Terrain", ImGuiTreeNodeFlags_DefaultOpen))
 				{
-					//ImGui::Indent(10);
-
 					float but_gadget_size = ImGui::GetFontSize()*14.0;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 					if (ImGui::StyleButton("Populate Vegetation Everywhere", ImVec2(but_gadget_size, 0)))
@@ -3424,7 +2938,6 @@ void imgui_terrain_loop_v3(void)
 							GGGrass::GGGrass_RemoveAll();
 						}
 					}
-					//ImGui::Indent(-10);
 				}
 			}
 
@@ -3437,39 +2950,16 @@ void imgui_terrain_loop_v3(void)
 					int my_combo_items = 0;
 					int iVideoSection = 0;
 					cstr cShowTutorial = "0601 - Terrain Editing";
-					/*
-					if (current_mode == TOOL_PAINTTEXTURE) {
-						my_combo_itemsp[0] = "50 - Painting terrain";
-						my_combo_itemsp[1] = "02 - Creating terrain";
-						my_combo_itemsp[2] = "03 - Add character and set a path";
-						my_combo_items = 3;
-						cShowTutorial = "50 - Painting terrain";
-						iVideoSection = SECTION_PAINT_TERRAIN;
-					}
-					else if (current_mode == TOOL_PAINTGRASS) {
-						my_combo_itemsp[0] = "01 - Getting started";
-						my_combo_itemsp[1] = "02 - Creating terrain";
-						my_combo_itemsp[2] = "03 - Add character and set a path";
-						my_combo_items = 3;
-						cShowTutorial = "02 - Creating terrain";
-						iVideoSection = SECTION_ADD_VEGETATION;
-					}
-					else // TOOL_SHAPE,TOOL_LEVELMODE ...
-					{
-					*/
-						my_combo_itemsp[0] = "0601 - Terrain Editing";
-						//my_combo_itemsp[1] = "01 - Getting started";
-						//my_combo_itemsp[2] = "03 - Add character and set a path";
-						my_combo_items = 1;
-						cShowTutorial = "0601 - Terrain Editing";
-						iVideoSection = SECTION_SCULPT_TERRAIN;
-					//}
+					my_combo_itemsp[0] = "0601 - Terrain Editing";
+					my_combo_items = 1;
+					cShowTutorial = "0601 - Terrain Editing";
+					iVideoSection = SECTION_SCULPT_TERRAIN;
 
 					SmallTutorialVideo(cShowTutorial.Get(), my_combo_itemsp, my_combo_items, iVideoSection);
 					float but_gadget_size = ImGui::GetFontSize()*12.0;
 					float w = ImGui::GetWindowContentRegionWidth() - 10.0;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-#ifdef INCLUDESTEPBYSTEP
+					#ifdef INCLUDESTEPBYSTEP
 					if (ImGui::StyleButton("View Step by Step Tutorial", ImVec2(but_gadget_size, 0)))
 					{
 						bHelp_Window = true;
@@ -3479,8 +2969,7 @@ void imgui_terrain_loop_v3(void)
 						strcpy(cForceTutorialName, cShowTutorial.Get());
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Start Step by Step Tutorial");
-#endif
-
+					#endif
 					ImGui::Indent(-10);
 				}
 			}
@@ -3499,18 +2988,11 @@ void imgui_terrain_loop_v3(void)
 				bImGuiGotFocus = true;
 			}
 
-#ifdef WICKEDENGINE
-			// Interferes with ability for main render area to have mouse control!
-#else
-			if (ImGui::IsAnyItemFocused()) {
-				bImGuiGotFocus = true;
-			}
-#endif
-
 			void CheckMinimumDockSpaceSize(float minsize);
 			CheckMinimumDockSpaceSize(250.0f);
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
@@ -3519,11 +3001,7 @@ void imgui_terrain_loop_v3(void)
 			ImGui::End();
 		}
 	}
-	else {
-		//bTerrain_Tools_Window = false;
-	}
 }
-
 
 void imgui_terrain_loop(void)
 {
@@ -3539,8 +3017,6 @@ void imgui_terrain_loop(void)
 		bUpdateVeg = true;
 	}
 	
-	//if (bUpdateVeg && Timer() - iLastUpdateVeg > 2000 && !object_preload_files_in_progress()) {
-	//if (bUpdateVeg && Timer() - iLastUpdateVeg > 500 && !object_preload_files_in_progress() ) 
 	if (bUpdateVeg) 
 	{
 		if (bEnableVeg) 
@@ -3553,12 +3029,6 @@ void imgui_terrain_loop(void)
 			extern bool bResourcesSet, bGridMade;
 			if (!(ObjectExist(t.tGrassObj) == 1 && GetMeshExist(t.tGrassObj) == 1) )
 				grass_init();
-			else if (!bGridMade) 
-			{
-				//grass_init();
-				//grass_setgrassimage();
-				//UpdateGrassTexture(g.gpbroverride);
-			}
 
 			bool bOldGridMade = bGridMade;
 			int iTrimUsingGrassMemblock = 0;
@@ -3567,12 +3037,6 @@ void imgui_terrain_loop(void)
 				MakeVegetationGridQuick(4.0f*t.visuals.VegQuantity_f, t.visuals.VegWidth_f, t.visuals.VegHeight_f, terrain_veg_areawidth, t.terrain.vegetationgridsize, t.tTerrainID, iTrimUsingGrassMemblock, true);
 			else
 				MakeVegetationGridQuick(4.0f*t.visuals.VegQuantity_f, t.visuals.VegWidth_f, t.visuals.VegHeight_f, terrain_veg_areawidth, t.terrain.vegetationgridsize, t.tTerrainID, iTrimUsingGrassMemblock, false);
-
-			if (bGridMade && !bOldGridMade) 
-			{
-				//Refresh textures.
-				//grass_setgrassimage();
-			}
 
 			// small lookup for memblock painting circles
 			static bool bCurveDataSet = false;
@@ -3615,7 +3079,6 @@ void imgui_terrain_loop(void)
 		}
 
 		//Continue cheking if we need to update terrain.
-		//if (t.inputsys.mclick == 0 && bReadyToUpdateVeg && bEnableVeg && Timer() - iLastUpdateVeg > 250 && !object_preload_files_in_progress() ) 
 		if (bReadyToUpdateVeg && bEnableVeg ) 
 		{
 			t.visuals.VegQuantity_f = t.gamevisuals.VegQuantity_f;
@@ -3639,20 +3102,6 @@ void imgui_terrain_loop(void)
 
 	if (t.grideditselect == 0 && t.terrain.terrainpaintermode >= 0 && t.terrain.terrainpaintermode <= 10)
 	{
-		#ifdef ENABLECUSTOMTERRAIN
-		 switch (delay_terrain_execute) 
-		 {
-			case 1: //Change texture in plate.
-			{
-				delay_terrain_execute = 0;
-				terrainbuild.bCustomiseTexture = true;
-				skib_terrain_frames_execute = 5;
-				break;
-			}
-			default:
-				break;
-		 }
-		#endif
 		if (skib_terrain_frames_execute > 0)
 			skib_terrain_frames_execute--;
 
@@ -3707,65 +3156,16 @@ void imgui_terrain_loop(void)
 			float w = ImGui::GetWindowContentRegionWidth();
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-#ifndef WICKEDENGINE //PE: Contols removed in new design.
-			if (ImGui::StyleCollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
-
-				float control_width = (icon_size) * 3.0f + 6.0;
-
-				int indent = (w*0.5) - (control_width*0.5);
-				if (indent < 10)
-					indent = 10;
-				ImGui::Indent(indent);
-
-
-				if (current_mode == TOOL_SHAPE)	window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-				if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false)) {
-					bForceKey = true;
-					csForceKey = "t";
-					bForceKey2 = true;
-					csForceKey2 = "1";
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Shape Mode");
-				ImGui::SameLine();
-
-
-				if (current_mode == TOOL_PAINTTEXTURE) window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-				if (ImGui::ImgBtn(TOOL_PAINTTEXTURE, iToolbarIconSize, ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false)) {
-					bForceKey = true;
-					csForceKey = "t";
-					bForceKey2 = true;
-					csForceKey2 = "6";
-					bTerrain_Tools_Window = true;
-				}
-				if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Paint Texture");
-				ImGui::SameLine();
-
-				if (current_mode == TOOL_PAINTGRASS) window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-				if (ImGui::ImgBtn(TOOL_PAINTGRASS, iToolbarIconSize, ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false)) {
-					bForceKey = true;
-					csForceKey = "t";
-					bForceKey2 = true;
-					csForceKey2 = "0";
-					bTerrain_Tools_Window = true;
-				}
-				if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Paint Grass");
-
-				ImGui::Indent(-indent);
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-
-			}
-#endif
-
-			if (ImGui::StyleCollapsingHeader("Edit Mode", ImGuiTreeNodeFlags_DefaultOpen)) {
-
+			if (ImGui::StyleCollapsingHeader("Edit Mode", ImGuiTreeNodeFlags_DefaultOpen)) 
+			{
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 
 				int control_image_size = 26; //PE: 34 - This is now the lowest possible icon size.
-				//int iSliderAdjustY = 0;
 				float control_width = (control_image_size + 3.0) * 5.0f + 6.0;
 				int indent = 10;
 
-				if (w > control_width) {
+				if (w > control_width) 
+				{
 					//PE: fit perfectly with window width.
 					control_image_size = (w - 20.0) / 5.0;
 					control_image_size -= 4.0; //Padding.
@@ -3784,11 +3184,6 @@ void imgui_terrain_loop(void)
 					if (indent < 10)
 						indent = 10;
 				}
-
-				//PE: Now everything has 2 icons to the left of the radius gadgets.
-				//if (t.terrain.terrainpaintermode < 6 && current_mode != TOOL_SHAPE) {
-				//	control_width = (control_image_size + 3.0) * 3.0f + 6.0;
-				//}
 
 				ImGui::Indent(indent);
 
@@ -3814,7 +3209,6 @@ void imgui_terrain_loop(void)
 					}
 					if (ImGui::IsItemHovered() ) ImGui::SetTooltip("%s", "Shape Mode");
 					ImGui::SameLine();
-
 
 					CheckTutorialAction("TOOL_LEVELMODE", -10.0f); //Tutorial: check if we are waiting for this action
 					if (current_mode == TOOL_LEVELMODE)
@@ -3917,9 +3311,6 @@ void imgui_terrain_loop(void)
 					if (iTerrainRaiseMode == 1)
 					{
 						//PE: Toggle looks better when  we have the tool icons above.
-						//ImVec2 padding = { 3.0, 3.0 };
-						//const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						//window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 						toggle_color = ImColor(128, 128, 128, 128);
 					}
 
@@ -3933,24 +3324,19 @@ void imgui_terrain_loop(void)
 					toggle_color = ImColor(255, 255, 255, 0);
 					if (iTerrainRaiseMode != 1)
 					{
-						//ImVec2 padding = { 3.0, 3.0 };
-						//const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(control_image_size, control_image_size));
-						//window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
 						toggle_color = ImColor(128, 128, 128, 128);
 					}
-					if (ImGui::ImgBtn(TOOL_SHAPE_DOWN, ImVec2(control_image_size, control_image_size), toggle_color, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false,false, bBoostIconColors)) {
+					if (ImGui::ImgBtn(TOOL_SHAPE_DOWN, ImVec2(control_image_size, control_image_size), toggle_color, ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false,false, bBoostIconColors)) 
+					{
 						//Remove mode.
 						iTerrainRaiseMode = 0;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Lower Terrain");
 
 					ImGui::SameLine();
-
 				}
 
-
 				ImVec2 cp = ImGui::GetCursorPos();
-				//ImGui::Text("Brush Size:");
 				ImGui::SetItemAllowOverlap();
 				ImGui::SameLine();
 				float fAdjY = control_image_size - 34 * 0.5;
@@ -3960,6 +3346,7 @@ void imgui_terrain_loop(void)
 				//				ImGui::PushItemWidth(-10);
 				ImGui::PushItemWidth((control_image_size + 6.0) * 3.0);
 				ImGui::SetWindowFontScale(0.5);
+
 				//ImGuiCol_FrameBg
 				ImVec4 oldFrameBg = ImGui::GetStyle().Colors[ImGuiCol_FrameBg];
 				ImVec4 oldBorder = ImGui::GetStyle().Colors[ImGuiCol_Border];
@@ -3978,7 +3365,6 @@ void imgui_terrain_loop(void)
 				ImGui::SetWindowFontScale(1.0);
 
 				ImGui::SetCursorPos(cp);
-
 
 				if (0 && t.terrain.RADIUS_f == 110.0f)
 				{
@@ -4025,38 +3411,6 @@ void imgui_terrain_loop(void)
 				ImGui::Indent(-indent);
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 
-				if (current_mode == TOOL_PAINTTEXTURE)
-				{
-					/* g_pTerrain no longer used
-					if (g_pTerrain)
-					{
-						ImGui::Indent(10);
-						ImGui::TextCenter("Brush Strength");
-						//Range 0.0 - 10.0 1:1 = 1.0
-						static int iBrushStrength = 128;
-						ImGui::PushItemWidth(-10);
-						if (ImGui::SliderInt("##TerrainBrushStrength", &iBrushStrength, 1, 255, "%d")) {
-							g_pTerrain->SetPaintHardness(iBrushStrength);
-						}
-						ImGui::PopItemWidth();
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Brush Strength");
-						ImGui::Indent(-10);
-
-						ImGui::Indent(10);
-						ImGui::TextCenter("Texture Scale");
-						//Range 0.0 - 10.0 1:1 = 1.0
-						static int iSourceScale = 1;
-						ImGui::PushItemWidth(-10);
-						if (ImGui::SliderInt("##TerrainScaleSourcesize", &iSourceScale, 1, 10,"1:%d")) {
-							g_pTerrain->SetScaleSource(iSourceScale);
-						}
-						ImGui::PopItemWidth();
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Texture Scaling");
-						ImGui::Indent(-10);
-					}
-					*/
-				}
-
 				if (current_mode == TOOL_PAINTGRASS)
 				{
 					int iTextRightPos = 116; //136
@@ -4073,7 +3427,6 @@ void imgui_terrain_loop(void)
 					ImGui::SetCursorPos(ImVec2(vOldPos.x, ImGui::GetCursorPosY() + 9));
 					ImGui::PopItemWidth();
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Vegetation Draw Height Range");
-
 
 					//PE: These is still Overall and not when spraying, so keep them as is for now.
 					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
@@ -4104,7 +3457,6 @@ void imgui_terrain_loop(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Overall Vegetation Width");
 					ImGui::PopItemWidth();
 				}
-
 			}
 
 			//imgui_Customize_Sky(0); //PE: Moved to visuals.
@@ -4115,7 +3467,7 @@ void imgui_terrain_loop(void)
 
 			if (!pref.bHideTutorials)
 			{
-#ifndef REMOVED_EARLYACCESS
+				#ifndef REMOVED_EARLYACCESS
 				if (ImGui::StyleCollapsingHeader("Tutorial (this feature is incomplete)", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					ImGui::Indent(10);
@@ -4167,7 +3519,7 @@ void imgui_terrain_loop(void)
 
 					ImGui::Indent(-10);
 				}
-#endif
+				#endif
 			}
 
 			if (ImGui::StyleCollapsingHeader("Keyboard Shortcuts ???", ImGuiTreeNodeFlags_DefaultOpen))
@@ -4191,14 +3543,6 @@ void imgui_terrain_loop(void)
 				bImGuiGotFocus = true;
 			}
 
-			#ifdef WICKEDENGINE
-			// Interferes with ability for main render area to have mouse control!
-			#else
-			if (ImGui::IsAnyItemFocused()) {
-				bImGuiGotFocus = true;
-			}
-			#endif
-
 			void CheckMinimumDockSpaceSize(float minsize);
 			CheckMinimumDockSpaceSize(250.0f);
 
@@ -4211,10 +3555,6 @@ void imgui_terrain_loop(void)
 			ImGui::End();
 		}
 	}
-	else {
-		//bTerrain_Tools_Window = false;
-	}
-
 }
 
 #endif

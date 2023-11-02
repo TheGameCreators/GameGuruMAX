@@ -25,6 +25,7 @@ struct sUndoMasterStackItem
 {
 	eUndoMasterItemType type;
 	int count;
+	int gluebatchcount;
 };
 
 // Stack Structure
@@ -61,8 +62,7 @@ extern std::stack<sUndoMasterStackItem> g_UndoSysMasterStack[2];
 void undosys_multiplevents_start(void);
 void undosys_multiplevents_finish(void);
 void undosys_addevent (eUndoMasterItemType mastertype, eUndoEventType eventtype, void* pEventData);
-//void* undosys_getlasteventdata(eUndoMasterItemType mastertype, eUndoEventType eventtype);
-//void undosys_eraselastevent();
+void undosys_glue(int eList, int iGlueBatchCount);
 
 // Actions for user
 void undosys_clearredostack (void);

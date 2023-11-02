@@ -55,6 +55,7 @@ void undosys_addevent ( eUndoMasterItemType mastertype, eUndoEventType eventtype
 			// first one of multiple events
 			masteritem.type = mastertype;
 			masteritem.count = 1;
+			masteritem.gluebatchcount = 0;
 			g_UndoSysMasterStack[g_UndoList].push(masteritem);
 		}
 		else
@@ -63,6 +64,7 @@ void undosys_addevent ( eUndoMasterItemType mastertype, eUndoEventType eventtype
 			masteritem = g_UndoSysMasterStack[g_UndoList].top();
 			if (masteritem.type != mastertype)
 			{
+				// cannot mix types inside a single grouped undo, but CAN join two events together when user performs an undo/redo
 				MessageBoxA (NULL, "Cannot mix undo system master types in multiple events capture", "", MB_OK);
 			}
 			else
@@ -71,6 +73,7 @@ void undosys_addevent ( eUndoMasterItemType mastertype, eUndoEventType eventtype
 				g_UndoSysMasterStack[g_UndoList].pop();
 				masteritem.type = mastertype;
 				masteritem.count = g_UndoSysMasterMultipleEventsCount;
+				masteritem.gluebatchcount = 0;
 				g_UndoSysMasterStack[g_UndoList].push(masteritem);
 			}
 		}
@@ -80,6 +83,7 @@ void undosys_addevent ( eUndoMasterItemType mastertype, eUndoEventType eventtype
 		// regular single master item on stack per event
 		masteritem.type = mastertype;
 		masteritem.count = 1;
+		masteritem.gluebatchcount = 0;
 		g_UndoSysMasterStack[g_UndoList].push(masteritem);
 	}
 
@@ -96,62 +100,20 @@ void undosys_addevent ( eUndoMasterItemType mastertype, eUndoEventType eventtype
 	}
 }
 
-/*
-void* undosys_getlasteventdata(eUndoMasterItemType mastertype, eUndoEventType eventtype)
+void undosys_glue(int eList, int iGlueBatchCount)
 {
-	sUndoMasterStackItem lastmasteritem = g_UndoSysMasterStack[g_UndoList].top();
-	if (lastmasteritem.type == mastertype)
-	{
-		sUndoStackItem lasteventitem;
-		switch (lastmasteritem.type)
-		{
-			case eUndoSys_Object:	lasteventitem = g_UndoSysObjectStack[g_UndoList].top(); break;
-			case eUndoSys_Terrain:  lasteventitem = g_UndoSysTerrainStack[g_UndoList].top(); break;
-		}
-		if (lasteventitem.event == eventtype)
-		{
-			return lasteventitem.pEventData;
-		}
-	}
-	return NULL;
+	// used to connect two events together (i.e. terrain sculpt and objectposgroup events)
+	sUndoMasterStackItem lastitem = g_UndoSysMasterStack[eList].top();
+	g_UndoSysMasterStack[eList].pop();
+	lastitem.gluebatchcount = iGlueBatchCount;
+	g_UndoSysMasterStack[eList].push(lastitem);
 }
 
-void undosys_eraselastevent (void)
-{
-	// if something on master stack
-	if (g_UndoSysMasterStack[g_UndoList].size() == 0)
-		return;
+// user functions
 
-	// pull from master list stack
-	sUndoMasterStackItem masteritem;
-	masteritem = g_UndoSysMasterStack[g_UndoList].top();
-	g_UndoSysMasterStack[g_UndoList].pop();
+int g_iStoreIterationCountForLastRecurse = 0;
 
-	// pull event from specific undo stack
-	sUndoStackItem item;
-	switch (masteritem.type)
-	{
-	case eUndoSys_Object:
-		item = g_UndoSysObjectStack[g_UndoList].top();
-		g_UndoSysObjectStack[g_UndoList].pop();
-		break;
-
-	case eUndoSys_Terrain:
-		item = g_UndoSysTerrainStack[g_UndoList].top();
-		g_UndoSysTerrainStack[g_UndoList].pop();
-		break;
-	}
-
-	// erase event data, not using the item, just erasing it
-	if (item.pEventData)
-	{
-		delete item.pEventData;
-		item.pEventData = NULL;
-	}
-}
-*/
-
-void undosys_undoredoevent_core ( eUndoMasterList eList, eUndoMasterList eListForRedo )
+void undosys_undoredoevent_core ( eUndoMasterList eList, eUndoMasterList eListForRedo, int iIterations )
 {
 	// if something on master stack
 	if (g_UndoSysMasterStack[eList].size() == 0)
@@ -161,6 +123,22 @@ void undosys_undoredoevent_core ( eUndoMasterList eList, eUndoMasterList eListFo
 	sUndoMasterStackItem masteritem;
 	masteritem = g_UndoSysMasterStack[eList].top();
 	g_UndoSysMasterStack[eList].pop();
+
+	// system to glue master events together and undo/redo as a batch
+	int iSetGlueValueOnLastEvent = 0;
+	if (iIterations == -1)
+	{
+		iIterations = masteritem.gluebatchcount;
+		g_iStoreIterationCountForLastRecurse = iIterations;
+	}
+	else
+	{
+		if (iIterations == 0 && g_iStoreIterationCountForLastRecurse > 0 )
+		{
+			iSetGlueValueOnLastEvent = g_iStoreIterationCountForLastRecurse;
+			g_iStoreIterationCountForLastRecurse = 0;
+		}
+	}
 
 	// start the redo stack entry
 	if (masteritem.count > 1)
@@ -243,7 +221,7 @@ void undosys_undoredoevent_core ( eUndoMasterList eList, eUndoMasterList eListFo
 						int e = pEvent->entity;
 						float y = t.entityelement[e].y;
 						undosys_terrain_objectmovedaftersculpt(e, y, eListForRedo);
-						
+
 						// Perform the undo action.
 						undosys_setlist(eList);
 
@@ -295,6 +273,18 @@ void undosys_undoredoevent_core ( eUndoMasterList eList, eUndoMasterList eListFo
 		undosys_multiplevents_finish();
 		undosys_setlist(eList);
 	}
+
+	// when building the redo list, ensure we preserve the glue batch count
+	if (iSetGlueValueOnLastEvent > 0)
+	{
+		undosys_glue(eListForRedo, iSetGlueValueOnLastEvent);
+	}
+
+	// if glued to neightboring master event, undo that too
+	if (iIterations > 0)
+	{
+		undosys_undoredoevent_core (eList, eListForRedo, iIterations-1);
+	}
 }
 
 void undosys_clearredostack (void)
@@ -323,13 +313,13 @@ void undosys_clearredostack (void)
 void undosys_undoevent (void)
 {
 	// undo from undo stack, and adds to redo stack
-	undosys_undoredoevent_core (eUndoSys_UndoList, eUndoSys_RedoList);
+	undosys_undoredoevent_core (eUndoSys_UndoList, eUndoSys_RedoList, -1);
 	undosys_setlist(eUndoSys_UndoList);
 }
 
 void undosys_redoevent (void)
 {
 	// undo from redo stack, and adds to undo stack
-	undosys_undoredoevent_core (eUndoSys_RedoList, eUndoSys_UndoList);
+	undosys_undoredoevent_core (eUndoSys_RedoList, eUndoSys_UndoList, -1);
 	undosys_setlist(eUndoSys_UndoList);
 }

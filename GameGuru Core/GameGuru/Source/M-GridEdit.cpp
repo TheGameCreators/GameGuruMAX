@@ -8104,76 +8104,13 @@ void mapeditorexecutable_loop(void)
 				float col_start = 80.0f;
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 
-				#ifdef WICKEDENGINE
-				/*
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()+35, ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Single Player");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(20, ImGui::GetCursorPosY() - 3));
-				if (ImGui::Checkbox("##setSinglePlayerEnabled", &g_bStandaloneSinglePlayer))
-				{
-					g_bStandaloneSinglePlayer = true;
-					g_bStandaloneMultiPlayer = false;
-				}
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()+35, ImGui::GetCursorPosY() + 3));
-				ImGui::Text("Multiplayer");
-				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(20, ImGui::GetCursorPosY() - 3));
-				if (ImGui::Checkbox("##setMultiPlayerEnabled", &g_bStandaloneMultiPlayer)) 
-				{
-					#ifdef DISABLEMULTIPLAYERFORMAX
-					MessageBoxA(NULL, "Multiplayer export currently not supported in MAX", "GameGuru MAX Warning", MB_OK | MB_TOPMOST);
-					g_bStandaloneSinglePlayer = true;
-					g_bStandaloneMultiPlayer = false;
-					#else
-					g_bStandaloneMultiPlayer = true;
-					g_bStandaloneSinglePlayer = false;
-					#endif
-				}
-				g_bStandaloneSinglePlayer = true;
-				g_bStandaloneMultiPlayer = false;
-				*/
-
 				ImGui::SetWindowFontScale(1.2);
 				ImGui::TextWrapped("You can export your game project as a self-contained standalone game that can then be shared and played without the need for GameGuru MAX.");
 
-				/*
-				ImGui::PushID(iInfoUniqueId++);
-				if (ImGui::ImgBtn(ICON_INFO, ImVec2(20, 20), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
-				{
-					cInfoMessage = "When your game has been saved as a standalone game, Windows File Explorer will open to the folder where your game has been saved.\n\nThe path will be similar to this:\nC:\\Users\\username_\Documents\\GameGuruApps\\GameGuruMAX\\My Games\\nameofgame\n\nYou can then run your game from that location without using GameGuru MAX and you can share the game with friends and family.";
-					cInfoImage = "";
-					bModalInformation = true;
-				}
-				ImGui::PopID();
-				*/
-				/*
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("%s", "Click For More Information");
-				}
-				ImGui::SameLine();
-				*/
-				ImGui::TextWrapped("When your game has been saved as a standalone game, Windows File Explorer can be used to find the folder where your game has been saved, typically similar to: 'C:\\Users\\username_\Documents\\GameGuruApps\\GameGuruMAX\\My Games\\nameofgame'. You can then run your game from that location and you can share the game with friends and family.");
+				ImGui::TextWrapped("When your game has been saved as a standalone game, Windows File Explorer can be used to open your standalone game folder and you can then run your game from that location. You can also zip up the whole folder if you wish to share or sell your game.");
 				ImGui::Text("");
-
-				/*
-				ImGui::TextWrapped("PLEASE NOTE:  During the Early Access development phase, all games saved as standalone are considered test games. The games will include a startup message informing users that the game has been made with the Early Access version. If you would like to apply for the EA restriction to be lifted please follow this LINK and fill out the short form. Note you don't need to do this for personal non-commercial purposes.");
-				ImVec2 prevCursor = ImGui::GetCursorPos();
-				ImGui::SetCursorPos(prevCursor + ImVec2(431, -50));
-				if (ImGui::HyberlinkButton("", ImVec2(ImGui::GetFontSize() * 2.2f, ImGui::GetFontSize() * 1.5f)))
-				{
-					ExecuteFile("https://www.game-guru.com/publish-request", 0, 0);
-				}
-				ImGui::SetCursorPos(prevCursor);
-				ImGui::Text("");
-				*/
 
 				// VR mode
-//				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() + 35, ImGui::GetCursorPosY() + 3));
-//				ImGui::Text("Save with Virtual Reality Mode");
-//				ImGui::SameLine();
-//				ImGui::SetCursorPos(ImVec2(20, ImGui::GetCursorPosY() - 3));
 				if (ImGui::Checkbox("Save with Virtual Reality Mode##setVRModeEnabled", &g_bStandaloneVRMode))
 				{
 					// VR Mode changed
@@ -8188,7 +8125,6 @@ void mapeditorexecutable_loop(void)
 				ImGui::Checkbox("Open folder after game has been saved and close GameGuru MAX", &bOpenFolder);
 				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.0);
-				#endif
 
 				// Save or Cancel button
 				ImGui::Indent(-10);
@@ -9520,12 +9456,20 @@ void mapeditorexecutable_loop(void)
 								if (g.entityrubberbandlist.size() > 0 || iEntityInGroupList >= 0)
 								{
 									ImGui::TextCenter("Rotation Angle Y");
-									if (ImGui::MaxSliderInputFloat("##Yrotation", &fAngle[1], 0.0f, 360.0f, "Adjust Object Rotation Y", 0, 360)) bUpdateRoataion = true;
+									if (ImGui::MaxSliderInputFloat("##Yrotation", &fAngle[1], 0.0f, 359.0f, "Adjust Object Rotation Y", 0, 359))
+									{
+										if (fAngle[1] > 359.0f) fAngle[1] -= 360.0f;
+										bUpdateRoataion = true;
+									}
 								}
 								else
 								{
 									ImGui::TextCenter("Rotation Angle Y");
-									if (ImGui::MaxSliderInputFloat("##Yrotation", &fAngle[1], 0.0f, 360.0f, "Adjust Object Rotation Y", 0, 360)) bUpdateRoataion = true;
+									if (ImGui::MaxSliderInputFloat("##Yrotation", &fAngle[1], 0.0f, 359.0f, "Adjust Object Rotation Y", 0, 359))
+									{
+										if (fAngle[1] > 359.0f) fAngle[1] -= 360.0f;
+										bUpdateRoataion = true;
+									}
 									if (t.entityprofile[t.entityelement[t.ttte].bankindex].ischaracter || bIsStartMarker)
 									{
 										ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
@@ -9534,12 +9478,20 @@ void mapeditorexecutable_loop(void)
 									if (pref.iObjectEnableAdvanced)
 									{
 										ImGui::TextCenter("Rotation Angle X");
-										if (ImGui::MaxSliderInputFloat("##Xrotation", &fAngle[0], 0.0f, 360.0f, "Adjust Object Rotation X", 0, 360)) bUpdateRoataion = true;
+										if (ImGui::MaxSliderInputFloat("##Xrotation", &fAngle[0], 0.0f, 359.0f, "Adjust Object Rotation X", 0, 359))
+										{
+											if (fAngle[0] > 359.0f) fAngle[0] -= 360.0f;
+											bUpdateRoataion = true;
+										}
 										bool bIsLight = false;
 										if (!bIsLight)
 										{
 											ImGui::TextCenter("Rotation Angle Z");
-											if (ImGui::MaxSliderInputFloat("##Zrotation", &fAngle[2], 0.0f, 360.0f, "Adjust Object Rotation Z", 0, 360)) bUpdateRoataion = true;
+											if (ImGui::MaxSliderInputFloat("##Zrotation", &fAngle[2], 0.0f, 359.0f, "Adjust Object Rotation Z", 0, 359))
+											{
+												if (fAngle[2] > 359.0f) fAngle[2] -= 360.0f;
+												bUpdateRoataion = true;
+											}
 										}
 									}
 									if (t.entityprofile[t.entityelement[t.ttte].bankindex].ischaracter || bIsStartMarker)
@@ -19426,6 +19378,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bColorGrading = t.gamevisuals.bColorGrading;
 	t.visuals.ColorGradingLUT = t.gamevisuals.ColorGradingLUT;
 	t.visuals.bBloomEnabled = t.gamevisuals.bBloomEnabled;
+	t.visuals.bLevelVSyncEnabled = t.gamevisuals.bLevelVSyncEnabled;
 	t.visuals.fsetBloomThreshold = t.gamevisuals.fsetBloomThreshold;
 	t.visuals.bSSREnabled = t.gamevisuals.bSSREnabled;
 	t.visuals.bReflectionsEnabled = t.gamevisuals.bReflectionsEnabled;

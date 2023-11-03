@@ -106,26 +106,6 @@ VertexOut main( VertexIn IN )
 	OUT.uv0Varying = IN.uv;
 	float2 uvs = IN.uv - 0.5;
 
-	/*
-	float4 newPos = float4( IN.position, 1 );
-	newPos.x += uvs.x*10.0;
-	newPos.z += uvs.y*10.0;
-	newPos = mul( World, newPos );
-	newPos.xyz += globalpos[0].xyz;
-	newPos = mul( View, newPos );
-	newPos = mul( Proj, newPos );
-	OUT.finalPos = newPos;
-	return OUT;
-	*/
-
-	//I am now using World (which did nothing, just scale to 1.0) for a real world global rotation below!
-	//float4x4 WorldForTranslation = World;
-	//WorldForTranslation[0].xyzw = float4(1, 0, 0, 0);
-	//WorldForTranslation[1].xyzw = float4(0, 1, 0, 0);
-	//WorldForTranslation[2].xyzw = float4(0, 0, 1, 0);
-	//float4 posit = mul(WorldForTranslation, float4( IN.position, 1 ) );
-	//float4x4 WorldForRotation = World;
-	//WorldForRotation[3].xyzw = float4(0, 0, 0, 1);
 	float4 posit = mul(World, float4( IN.position, 1 ) );
 
 	float2 uv2;
@@ -175,7 +155,8 @@ VertexOut main( VertexIn IN )
 	float ang2 = 0.0;
 	float ang3 = 0.0;
 	float3 cpy = float3( CameraPos.x, pos.y, CameraPos.z );
-	float3x3 glr = rot( globalrot );
+
+	//float3x3 glr = rot( globalrot );
 
 	if ( particles.a == 0 )
 	{
@@ -257,7 +238,6 @@ VertexOut main( VertexIn IN )
 		//float3 temp_pos = mul(glr, posi) * globalsize;
 		//temp_pos += globalpos2;
 		float3 temp_pos = posi * globalsize;
-		temp_pos += globalpos2;
 		float3 temp = temp_pos;
 		float3 ang = globalrot.rgb;
 		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
@@ -267,6 +247,7 @@ VertexOut main( VertexIn IN )
 		temp = mul(rotyy, temp);
 		temp = mul(rotzz, temp);
 		temp_pos = temp;
+		temp_pos += globalpos2;
 
 		pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 	}
@@ -289,7 +270,7 @@ VertexOut main( VertexIn IN )
 		//float3 temp_pos = mul(glr, pos.xyz) * globalsize;
 		//temp_pos += globalpos2;
 		float3 temp_pos = pos * globalsize;
-		temp_pos += globalpos2;
+		//temp_pos += globalpos2;
 		float3 temp = temp_pos;
 		float3 ang = globalrot.rgb;
 		float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
@@ -299,6 +280,7 @@ VertexOut main( VertexIn IN )
 		temp = mul(rotyy, temp);
 		temp = mul(rotzz, temp);
 		temp_pos = temp;
+		temp_pos += globalpos2;
 
 		pos2 = mul( ViewProj, float4( temp_pos, 1 ) );
 	}

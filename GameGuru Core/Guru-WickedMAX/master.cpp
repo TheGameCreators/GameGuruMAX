@@ -1242,18 +1242,15 @@ void Master::RunCustom()
 			wiProfiler::EndRange(range);
 
 			// terrain processing
-#ifdef GGTERRAIN_USE_NEW_TERRAIN
+			#ifdef GGTERRAIN_USE_NEW_TERRAIN
 			extern bool bImGuiRenderTargetFocus;
 			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
 			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
 			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
-#endif
+			#endif
 
 			// now just prepared IMGUI, but actual render called from Wicked hook
-			//PE: Make more room. always below 0.0? here so.
-			//range = wiProfiler::BeginRangeCPU("Max - ImGUI");
 			GuruLoopRender();
-			//wiProfiler::EndRange(range);
 		}
 		
 		// Wake up the events that need to be executed on the main thread, in thread safe manner:
@@ -1280,27 +1277,9 @@ void Master::RunCustom()
 		XMMATRIX mLeft = XMMATRIX((float*)&matLeft);
 		mLeft = DirectX::XMMatrixMultiply(mLeft, cameraOrig);
 
-		/*
-		Entity leftEntity = wiScene::GetScene().Entity_FindByName( "VR_Controller_Left" );
-		TransformComponent* pLeftHandTransform = wiScene::GetScene().transforms.GetComponent ( leftEntity );
-		ObjectComponent* leftObject = wiScene::GetScene().objects.GetComponent( leftEntity );
-		leftObject->SetRenderable( true );
-
-		Entity rightEntity = wiScene::GetScene().Entity_FindByName( "VR_Controller_Right" );
-		TransformComponent* pRightHandTransform = wiScene::GetScene().transforms.GetComponent ( rightEntity );
-		ObjectComponent* rightObject = wiScene::GetScene().objects.GetComponent( rightEntity );
-		rightObject->SetRenderable( true );
-		*/
-
 		// apply it to hand object transform
 		XMVECTOR pos, quat, scale;
 		XMMatrixDecompose(&scale, &quat, &pos, mLeft);
-		/*
-		pLeftHandTransform->SetDirty();
-		XMStoreFloat3(&(pLeftHandTransform->translation_local), pos);
-		XMStoreFloat4(&(pLeftHandTransform->rotation_local), quat);
-		XMStoreFloat3(&(pLeftHandTransform->scale_local), scale);
-		*/
 
 		// set position and rotation to hand object as we need to retrieve the position and rotation in other places
 		XMFLOAT3 objPos;
@@ -1342,12 +1321,6 @@ void Master::RunCustom()
 
 		// apply it to hand object transform
 		XMMatrixDecompose(&scale, &quat, &pos, mRight);
-		/*
-		pRightHandTransform->SetDirty();
-		XMStoreFloat3(&(pRightHandTransform->translation_local), pos);
-		XMStoreFloat4(&(pRightHandTransform->rotation_local), quat);
-		XMStoreFloat3(&(pRightHandTransform->scale_local), scale);
-		*/
 
 		// set position and rotation to hand object as we need to retrieve the position and rotation in other places
 		XMStoreFloat3(&objPos, pos);

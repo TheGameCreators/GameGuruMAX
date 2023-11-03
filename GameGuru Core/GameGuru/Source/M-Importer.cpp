@@ -192,6 +192,7 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	storage.ZenithGreen_f = currentVisuals.ZenithGreen_f;
 	storage.ZenithBlue_f = currentVisuals.ZenithBlue_f;
 	storage.bBloomEnabled = currentVisuals.bBloomEnabled;
+	storage.bLevelVSyncEnabled = currentVisuals.bLevelVSyncEnabled;
 	storage.bSSREnabled = currentVisuals.bSSREnabled;
 	storage.bReflectionsEnabled = currentVisuals.bReflectionsEnabled;
 	storage.bLightShafts = currentVisuals.bLightShafts;
@@ -221,6 +222,7 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	currentVisuals.ZenithGreen_f = desiredVisuals.ZenithGreen_f;
 	currentVisuals.ZenithBlue_f = desiredVisuals.ZenithBlue_f;
 	currentVisuals.bBloomEnabled = desiredVisuals.bBloomEnabled;
+	currentVisuals.bLevelVSyncEnabled = desiredVisuals.bLevelVSyncEnabled;
 	currentVisuals.bSSREnabled = desiredVisuals.bSSREnabled;
 	currentVisuals.bReflectionsEnabled = desiredVisuals.bReflectionsEnabled;
 	currentVisuals.bLightShafts = desiredVisuals.bLightShafts;
@@ -255,6 +257,7 @@ void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storag
 	currentVisuals.ZenithGreen_f = storage.ZenithGreen_f;
 	currentVisuals.ZenithBlue_f = storage.ZenithBlue_f;
 	currentVisuals.bBloomEnabled = storage.bBloomEnabled;
+	currentVisuals.bLevelVSyncEnabled = storage.bLevelVSyncEnabled;
 	currentVisuals.bSSREnabled = storage.bSSREnabled;
 	currentVisuals.bReflectionsEnabled = storage.bReflectionsEnabled;
 	currentVisuals.bLightShafts = storage.bLightShafts;
@@ -11260,7 +11263,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						bInfo_Window = true; //Open information window.
 					}
 					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the transparency render order distance bias to prioritise rendering of overlapping objects");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the transparency render order distance bias to prioritise rendering of overlapping objects. They must be transparent and double sided.");
 					ImGui::SameLine();
 
 					ImGui::PushItemWidth(-10 - 4);

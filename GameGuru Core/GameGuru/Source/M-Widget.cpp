@@ -103,7 +103,6 @@ void widget_init ( void )
 	t.widget.widgetPlaneObj = g.widgetobjectoffset+26;
 
 	//  Load in media
-	#ifdef WICKEDENGINE
 	WickedCall_PresetObjectIgnoreTextures(true);
 	cStr pWidgetPath = "editors\\gfx\\widget\\";
 	LoadObject ( cStr(pWidgetPath+"widgetX.dbo").Get(),t.widget.widgetXObj );
@@ -118,42 +117,6 @@ void widget_init ( void )
 	LoadObject ( cStr(pWidgetPath+"widgetXScale.dbo").Get(),t.widget.widgetXScaleObj );
 	LoadObject ( cStr(pWidgetPath+"widgetYScale.dbo").Get(),t.widget.widgetYScaleObj );
 	LoadObject ( cStr(pWidgetPath+"widgetZScale.dbo").Get(),t.widget.widgetZScaleObj );
-	#else
-	LoadObject (  "editors\\gfx\\widget\\widgetX.x",t.widget.widgetXObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetY.x",t.widget.widgetYObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetZ.x",t.widget.widgetZObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetXY.x",t.widget.widgetXYObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetXZ.x",t.widget.widgetXZObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetYZ.x",t.widget.widgetYZObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetXRot.x",t.widget.widgetXRotObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetYRot.x",t.widget.widgetYRotObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetZRot.x",t.widget.widgetZRotObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetXScale.x",t.widget.widgetXScaleObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetYScale.x",t.widget.widgetYScaleObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetZScale.x",t.widget.widgetZScaleObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetXCol.x",t.widget.widgetXColObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetYCol.x",t.widget.widgetYColObj );
-	LoadObject (  "editors\\gfx\\widget\\widgetZCol.x",t.widget.widgetZColObj );
-	if (0)
-	{
-		// I need DBOs for WickedMAX, so create them here for consistency (temp, though could turn these into DBO loads!)
-		SaveObject ( "editors\\gfx\\widget\\widgetX.dbo",t.widget.widgetXObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetY.dbo",t.widget.widgetYObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetZ.dbo",t.widget.widgetZObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetXY.dbo",t.widget.widgetXYObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetXZ.dbo",t.widget.widgetXZObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetYZ.dbo",t.widget.widgetYZObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetXRot.dbo",t.widget.widgetXRotObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetYRot.dbo",t.widget.widgetYRotObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetZRot.dbo",t.widget.widgetZRotObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetXScale.dbo",t.widget.widgetXScaleObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetYScale.dbo",t.widget.widgetYScaleObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetZScale.dbo",t.widget.widgetZScaleObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetXCol.dbo",t.widget.widgetXColObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetYCol.dbo",t.widget.widgetYColObj );
-		SaveObject ( "editors\\gfx\\widget\\widgetZCol.dbo",t.widget.widgetZColObj );
-	}
-	#endif
 	
 	// scale all object
 	MakeObjectCube (  t.widget.widgetXYZScaleObj,2 );
@@ -171,54 +134,6 @@ void widget_init ( void )
 	TextureObject ( t.widget.widgetXScaleObj, g.editorimagesoffset+14 );
 	TextureObject ( t.widget.widgetYScaleObj, g.editorimagesoffset+14 );
 	TextureObject ( t.widget.widgetZScaleObj, g.editorimagesoffset+14 );
-	#ifdef WICKEDENGINE
-	#else
-	TextureObject ( t.widget.widgetXColObj, g.editorimagesoffset+14 );
-	TextureObject ( t.widget.widgetYColObj, g.editorimagesoffset+14 );
-	TextureObject ( t.widget.widgetZColObj, g.editorimagesoffset+14 );
-	#endif
-
-	// Widget Property Buttons
-	#ifdef WICKEDENGINE
-	#else
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\pos.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+1 );
-	t.strwork = ""; t.strwork = t.strwork +"languagebank\\"+g.language_s+"\\artwork\\widget\\rot.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+2 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\scl.png";
-	LoadImage (t .strwork.Get(),t.widget.imagestart+3 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\prp.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+4 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\dup.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+5 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\del.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+6 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\lck.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+7 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\edt.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+8 );
-	t.strwork = ""; t.strwork = t.strwork + "languagebank\\"+g.language_s+"\\artwork\\widget\\sav.png";
-	LoadImage ( t.strwork.Get(),t.widget.imagestart+9 );
-	t.tbuttscale_f=0.015f;
-	MakeObjectBox (  t.widget.widgetPOSObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetPOSObj,t.widget.imagestart+1 );
-	MakeObjectBox (  t.widget.widgetROTObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetROTObj,t.widget.imagestart+2 );
-	MakeObjectBox (  t.widget.widgetSCLObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetSCLObj,t.widget.imagestart+3 );
-	MakeObjectBox (  t.widget.widgetPRPObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetPRPObj,t.widget.imagestart+4 );
-	MakeObjectBox (  t.widget.widgetDUPObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetDUPObj,t.widget.imagestart+5 );
-	MakeObjectBox (  t.widget.widgetDELObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetDELObj,t.widget.imagestart+6 );
-	MakeObjectBox (  t.widget.widgetLCKObj,4,t.tbuttscale_f*50,t.tbuttscale_f  ); TextureObject (  t.widget.widgetLCKObj,t.widget.imagestart+7 );
-	t.tmovezup_f=0.0f ; t.tmovestep_f=0.8f;
-	OffsetLimb (  t.widget.widgetPOSObj,0,-1.2f,3.0f+(t.tmovestep_f*5),t.tmovezup_f  ); RotateLimb (  t.widget.widgetPOSObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetROTObj,0,-1.2f,3.0f+(t.tmovestep_f*4),t.tmovezup_f  ); RotateLimb (  t.widget.widgetROTObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetSCLObj,0,-1.2f,3.0f+(t.tmovestep_f*3),t.tmovezup_f  ); RotateLimb (  t.widget.widgetSCLObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetPRPObj,0,-1.2f,3.0f+(t.tmovestep_f*2),t.tmovezup_f  ); RotateLimb (  t.widget.widgetPRPObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetDUPObj,0,-1.2f,3.0f+t.tmovestep_f,t.tmovezup_f  ); RotateLimb (  t.widget.widgetDUPObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetDELObj,0,-1.2f,2.0f+t.tmovestep_f,t.tmovezup_f  ); RotateLimb (  t.widget.widgetDELObj,0,0,0,0 );
-	OffsetLimb (  t.widget.widgetLCKObj,0,-1.2f,2.0f,t.tmovezup_f  ); RotateLimb (  t.widget.widgetLCKObj,0,0,0,0 );
-	HideObject ( t.widget.widgetXColObj );
-	HideObject ( t.widget.widgetYColObj );
-	HideObject ( t.widget.widgetZColObj );
-	#endif
 
 	// Colorize the widget gadgets
 	SetObjectEmissive ( t.widget.widgetXObj, Rgb(255,0,0) );
@@ -236,7 +151,6 @@ void widget_init ( void )
 	SetObjectEmissive ( t.widget.widgetXYZScaleObj, Rgb(255,255,255) );
 
 	// Widget object render settings
-	#ifdef WICKEDENGINE
 	SetObjectDiffuse ( t.widget.widgetXObj, Rgb(0,0,0) );
 	SetObjectDiffuse ( t.widget.widgetYObj, Rgb(0,0,0) );
 	SetObjectDiffuse ( t.widget.widgetZObj, Rgb(0,0,0) );
@@ -263,84 +177,25 @@ void widget_init ( void )
 	SetObjectTransparency ( t.widget.widgetYScaleObj, 6 );
 	SetObjectTransparency ( t.widget.widgetZScaleObj, 6 );
 	SetObjectTransparency ( t.widget.widgetXYZScaleObj, 6 );
-	#else
-	DisableObjectZDepth (  t.widget.widgetXObj );
-	DisableObjectZDepth (  t.widget.widgetYObj );
-	DisableObjectZDepth (  t.widget.widgetZObj );
-	DisableObjectZDepth (  t.widget.widgetXYObj );
-	DisableObjectZDepth (  t.widget.widgetXZObj );
-	DisableObjectZDepth (  t.widget.widgetYZObj );
-	DisableObjectZDepth (  t.widget.widgetXRotObj );
-	DisableObjectZDepth (  t.widget.widgetYRotObj );
-	DisableObjectZDepth (  t.widget.widgetZRotObj );
-	DisableObjectZDepth (  t.widget.widgetXScaleObj );
-	DisableObjectZDepth (  t.widget.widgetYScaleObj );
-	DisableObjectZDepth (  t.widget.widgetZScaleObj );
-	DisableObjectZDepth (  t.widget.widgetXYZScaleObj );
-	DisableObjectZDepth (  t.widget.widgetPOSObj );
-	DisableObjectZDepth (  t.widget.widgetROTObj );
-	DisableObjectZDepth (  t.widget.widgetSCLObj );
-	DisableObjectZDepth (  t.widget.widgetPRPObj );
-	DisableObjectZDepth (  t.widget.widgetDUPObj );
-	DisableObjectZDepth (  t.widget.widgetDELObj );
-	DisableObjectZDepth (  t.widget.widgetLCKObj );
-	DisableObjectZRead (  t.widget.widgetXObj );
-	DisableObjectZRead (  t.widget.widgetYObj );
-	DisableObjectZRead (  t.widget.widgetZObj );
-	DisableObjectZRead (  t.widget.widgetXYObj );
-	DisableObjectZRead (  t.widget.widgetXZObj );
-	DisableObjectZRead (  t.widget.widgetYZObj );
-	DisableObjectZRead (  t.widget.widgetXRotObj );
-	DisableObjectZRead (  t.widget.widgetYRotObj );
-	DisableObjectZRead (  t.widget.widgetZRotObj );
-	DisableObjectZRead (  t.widget.widgetXScaleObj );
-	DisableObjectZRead (  t.widget.widgetYScaleObj );
-	DisableObjectZRead (  t.widget.widgetZScaleObj );
-	DisableObjectZRead (  t.widget.widgetXYZScaleObj );
-	DisableObjectZRead (  t.widget.widgetPOSObj );
-	DisableObjectZRead (  t.widget.widgetROTObj );
-	DisableObjectZRead (  t.widget.widgetSCLObj );
-	DisableObjectZRead (  t.widget.widgetPRPObj );
-	DisableObjectZRead (  t.widget.widgetDUPObj );
-	DisableObjectZRead (  t.widget.widgetDELObj );
-	DisableObjectZRead (  t.widget.widgetLCKObj );
-	SetObjectTransparency (  t.widget.widgetXYObj,6 );
-	SetObjectTransparency (  t.widget.widgetXZObj,6 );
-	SetObjectTransparency (  t.widget.widgetYZObj,6 );
-	SetObjectTransparency (  t.widget.widgetPOSObj,6 );
-	SetObjectTransparency (  t.widget.widgetROTObj,6 );
-	SetObjectTransparency (  t.widget.widgetSCLObj,6 );
-	SetObjectTransparency (  t.widget.widgetPRPObj,6 );
-	for ( t.a = 0 ; t.a<=  t.widget.widgetMAXObj; t.a++ )
-	{
-		if ( ObjectExist(g.widgetobjectoffset+t.a) )  
-		{
-			SetObjectEffect ( g.widgetobjectoffset+t.a, g.guishadereffectindex );
-		}
-	}
-	#endif
 
 	// hide all widget objects
 	for ( t.a = 0 ; t.a <= t.widget.widgetMAXObj; t.a++ )
 	{
-		if ( ObjectExist(g.widgetobjectoffset+t.a) ) HideObject ( g.widgetobjectoffset+t.a );
+		if (ObjectExist(g.widgetobjectoffset + t.a))
+		{
+			HideObject (g.widgetobjectoffset + t.a);
+			sObject* pObject = GetObjectData(g.widgetobjectoffset + t.a);
+			WickedCall_SetObjectRenderOrderBias(pObject, -600);
+		}
 	}
-	#ifdef WICKEDENGINE
 	extern bool bTriggerVisibleWidget;
 	bTriggerVisibleWidget = false;
-	#endif
 
 	// create a common widget plane we can use to detect mouse and control objects with widget gadgets
-	#ifdef WICKEDENGINE
 	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_WIDGETPLANE);
-	#endif
-	#ifdef WICKEDENGINE
 	MakeObjectBox (t.widget.widgetPlaneObj, 5000000, 5000000, 1);
 	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
 	WickedCall_PresetObjectIgnoreTextures(false);
-	#else
-	MakeObjectBox ( t.widget.widgetPlaneObj, 100000, 100000, 1 );
-	#endif
 	RotateObject ( t.widget.widgetPlaneObj,-90,0,0 );
 	HideObject ( t.widget.widgetPlaneObj );
 
@@ -2383,13 +2238,6 @@ void widget_loop ( void )
 					{
 						extern bool g_bLightProbeScaleChanged;
 						g_bLightProbeScaleChanged = true;
-						/*
-						float fLightProbeScale = t.entityelement[t.widget.pickedEntityIndex].eleprof.light.fLightHasProbe;
-						if ( fLightProbeScale > 0 )
-							entity_placeprobe(t.entityelement[t.widget.pickedEntityIndex].obj, fLightProbeScale);
-						else
-							entity_deleteprobe(t.entityelement[t.widget.pickedEntityIndex].obj);
-						*/
 					}
 				}
 			}

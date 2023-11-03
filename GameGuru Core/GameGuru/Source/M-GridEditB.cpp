@@ -7029,17 +7029,20 @@ void tab_tab_visuals(int iPage, int iMode)
 				iLastOpenHeader = 8;
 
 				ImGui::PushItemWidth(-10);
-				if (ImGui::Checkbox("VSync##setVSyncEnabled", &master.bVsyncEnabled)) {
-					wiEvent::SetVSync( master.bVsyncEnabled );
+				if (ImGui::Checkbox("VSync##setVSyncEnabled", &t.visuals.bLevelVSyncEnabled))
+				{
+					t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
+					master.bVsyncEnabled = t.visuals.bLevelVSyncEnabled;
+					wiEvent::SetVSync(master.bVsyncEnabled);
+					g.projectmodified = 1;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
-
 				ImGui::PopItemWidth();
 
 				//Bloom
-				//tab_tab_Column_text("Bloom Enabled", fTabColumnWidth);
 				ImGui::PushItemWidth(-10);
-				if (ImGui::Checkbox("Bloom Enabled##setBloomEnabled", &t.visuals.bBloomEnabled)) {
+				if (ImGui::Checkbox("Bloom Enabled##setBloomEnabled", &t.visuals.bBloomEnabled)) 
+				{
 					t.gamevisuals.bBloomEnabled = t.visuals.bBloomEnabled;
 					if (master_renderer)
 						master_renderer->setBloomEnabled(t.visuals.bBloomEnabled);
@@ -8471,6 +8474,9 @@ void Wicked_Update_Visuals(void *voidvisual)
 			weather->colorGradingMapName = visuals->ColorGradingLUT.Get();
 			weather->colorGradingMap = wiResourceManager::Load(visuals->ColorGradingLUT.Get(), wiResourceManager::IMPORT_COLORGRADINGLUT);
 		}
+
+		master.bVsyncEnabled = visuals->bLevelVSyncEnabled;
+		wiEvent::SetVSync(master.bVsyncEnabled);
 		
 		master_renderer->setBloomEnabled(visuals->bBloomEnabled);
 		master_renderer->setBloomThreshold(visuals->fsetBloomThreshold);

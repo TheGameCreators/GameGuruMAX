@@ -238,6 +238,7 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.bColorGrading = false;
 	t.visuals.ColorGradingLUT = "";
 	t.visuals.bBloomEnabled = true;
+	t.visuals.bLevelVSyncEnabled = true;
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.fsetBloomStrength = 1.0f;
 	t.visuals.bSSREnabled = false;
@@ -774,6 +775,8 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.ColorGradingLUT=" + t.visuals.ColorGradingLUT;
 	WriteString(1, t.strwork.Get());
 	
+	t.strwork = ""; t.strwork = t.strwork + "visuals.LevelVSyncEnabled=" + Str(t.visuals.bLevelVSyncEnabled);
+	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomEnabled=" + Str(t.visuals.bBloomEnabled);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomThreshold=" + Str(t.visuals.fsetBloomThreshold);
@@ -1030,6 +1033,7 @@ void visuals_load ( void )
 	t.visuals.bColorGrading = false;
 	t.visuals.ColorGradingLUT = "";
 	t.visuals.bBloomEnabled = true;
+	t.visuals.bLevelVSyncEnabled = true;
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.fsetBloomStrength = 1.0f;
 	t.visuals.bSSREnabled = false;
@@ -1299,6 +1303,8 @@ void visuals_load ( void )
 				replaceAll(sString, "imagebank\\", "editors\\");
 				t.visuals.ColorGradingLUT = sString.c_str();
 			}
+
+			t.try_s = "visuals.LevelVSyncEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bLevelVSyncEnabled = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.BloomEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bBloomEnabled = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.BloomThreshold"; if (t.tfield_s == t.try_s)  t.visuals.fsetBloomThreshold = ValF(t.tvalue_s.Get());

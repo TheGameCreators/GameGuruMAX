@@ -111,21 +111,7 @@ void Sample::handleRender()
 {
 	if (!m_geom)
 		return;
-	
-	// Draw mesh
-	//duDebugDrawTriMesh(&m_dd, m_geom->getMesh()->getVerts(), m_geom->getMesh()->getVertCount(),
-	//				   m_geom->getMesh()->getTris(), m_geom->getMesh()->getNormals(), m_geom->getMesh()->getTriCount(), 0, 1.0f);
-	// Draw bounds
-	//const float* bmin = m_geom->getMeshBoundsMin();
-	//const float* bmax = m_geom->getMeshBoundsMax();
-	//duDebugDrawBoxWire(&m_dd, bmin[0],bmin[1],bmin[2], bmax[0],bmax[1],bmax[2], duRGBA(255,255,255,128), 1.0f);
 }
-
-/*
-void Sample::handleRenderOverlay(double*, double*, int*)
-{
-}
-*/
 
 void Sample::handleMeshChanged(InputGeom* geom)
 {
@@ -151,26 +137,6 @@ void Sample::handleMeshChanged(InputGeom* geom)
 	}
 }
 
-/*
-void Sample::collectSettings(BuildSettings& settings)
-{
-	settings.cellSize = m_cellSize;
-	settings.cellHeight = m_cellHeight;
-	settings.agentHeight = m_agentHeight;
-	settings.agentRadius = m_agentRadius;
-	settings.agentMaxClimb = m_agentMaxClimb;
-	settings.agentMaxSlope = m_agentMaxSlope;
-	settings.regionMinSize = m_regionMinSize;
-	settings.regionMergeSize = m_regionMergeSize;
-	settings.edgeMaxLen = m_edgeMaxLen;
-	settings.edgeMaxError = m_edgeMaxError;
-	settings.vertsPerPoly = m_vertsPerPoly;
-	settings.detailSampleDist = m_detailSampleDist;
-	settings.detailSampleMaxError = m_detailSampleMaxError;
-	settings.partitionType = m_partitionType;
-}
-*/
-
 void Sample::resetCommonSettings()
 {
 	// LB: changed dimensions to match MAX (1 unit = 1 inch)
@@ -189,7 +155,6 @@ void Sample::resetCommonSettings()
 	m_detailSampleMaxError = 1.0f;
 	m_partitionType = SAMPLE_PARTITION_LAYERS; // better for tiled meshes
 }
-
 
 void Sample::handleCommonSettings()
 {

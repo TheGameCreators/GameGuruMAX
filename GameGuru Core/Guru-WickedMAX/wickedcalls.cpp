@@ -2301,8 +2301,8 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 								//std::string surfaceTexFile = sTextureFilenameBase + "_surface" + ".dds";
 								//pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = surfaceTexFile;
 								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = sTextureFilenameBase + "_surface" + sFoundTextureType;
-								if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name.c_str())) pObjectMaterial->textures[MaterialComponent::NORMALMAP].name = sTextureFilenameBase + "_surface" + sAltTextureType;
-								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::NORMALMAP].name);
+								if (!FileExist((char*)pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name.c_str())) pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name = sTextureFilenameBase + "_surface" + sAltTextureType;
+								pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::SURFACEMAP].name);
 								std::string surfaceTexFile = "";
 								if (!pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource)
 								{

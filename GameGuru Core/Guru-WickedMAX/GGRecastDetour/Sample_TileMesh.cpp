@@ -31,6 +31,9 @@
 #include "DetourDebugDraw.h"
 #include "NavMeshTesterTool.h"
 
+// so can get BlockerList structure
+#include "DetourCommon.h"
+
 #include "GGThread.h"
 using namespace GGThread;
 
@@ -454,6 +457,37 @@ void Sample_TileMesh::handleRender()
 		//Hmm, does not draw correct polygons!!
 		//m_dd.setDebugObjectSlot(4);
 		//duDebugDrawNavMeshPolysWithFlags(&m_dd, *m_navMesh, SAMPLE_POLYFLAGS_DISABLED, duRGBA(0,0,255,225));
+	}
+
+	// draw all blocklist entries for better level crafting (and debugging)
+	const float off = 10.5f;
+	extern std::vector<sBlocker> g_BlockerList;
+	if (g_BlockerList.size() > 0)
+	{
+		m_dd.setDebugObjectSlot(4);
+		m_dd.begin(DU_DRAW_TRIS, 5.0f);
+		int iDoorCount = g_BlockerList.size();
+		for (int iDoorIndex = 0; iDoorIndex < iDoorCount; iDoorIndex++)
+		{
+			// simple rectangle when blocking
+			if (g_BlockerList[iDoorIndex].bBlocking == true)
+			{
+				unsigned int blockerColor = duRGBA(255, 255, 255, 128);
+				float fMinX = g_BlockerList[iDoorIndex].minX;
+				float fMinY = g_BlockerList[iDoorIndex].minY + off;
+				float fMinZ = g_BlockerList[iDoorIndex].minZ;
+				float fMaxX = g_BlockerList[iDoorIndex].maxX;
+				float fMaxY = g_BlockerList[iDoorIndex].maxY + off;
+				float fMaxZ = g_BlockerList[iDoorIndex].maxZ;
+				m_dd.vertex(fMinX, fMinY, fMinZ, blockerColor);
+				m_dd.vertex(fMaxX, fMinY, fMinZ, blockerColor);
+				m_dd.vertex(fMaxX, fMinY, fMaxZ, blockerColor);
+				m_dd.vertex(fMinX, fMinY, fMinZ, blockerColor);
+				m_dd.vertex(fMaxX, fMinY, fMaxZ, blockerColor);
+				m_dd.vertex(fMinX, fMinY, fMaxZ, blockerColor);
+			}
+		}
+		m_dd.end();
 	}
 	
 	/*

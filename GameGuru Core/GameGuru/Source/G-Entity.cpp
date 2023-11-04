@@ -4388,8 +4388,6 @@ void entity_monitorattachments (void)
 							t.entityelement[iNewEntID].x = t.entityelement[t.e].x;
 							t.entityelement[iNewEntID].y = t.entityelement[t.e].y;
 							t.entityelement[iNewEntID].z = t.entityelement[t.e].z;
-							//extern float GetLUATerrainHeightEx (float fX, float fZ); done below in entity_updatepos
-							//t.entityelement[iNewEntID].y = GetLUATerrainHeightEx(t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].z);
 							int tobj = t.entityelement[iNewEntID].obj;
 							sObject* pNewObject = g_ObjectList[tobj];
 							t.entityelement[iNewEntID].y += 1 + fabs(pNewObject->collision.vecCentre.y);
@@ -4411,6 +4409,7 @@ void entity_monitorattachments (void)
 								entity_updatepos ();
 								entity_lua_rotateupdate ();
 							}
+							t.entityelement[iNewEntID].eleprof.quantity = t.entityelement[t.e].eleprof.quantity;
 							t.entityelement[t.e].eleprof.cantakeweapon = 100 + iNewEntID;
 							t.e = iNewEntID;
 							entity_lua_collisionon();

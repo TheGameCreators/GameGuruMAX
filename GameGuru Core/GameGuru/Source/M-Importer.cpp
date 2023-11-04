@@ -1569,7 +1569,6 @@ void importer_loadmodel_wicked(void)
 	}
 
 	iImporterScale = 100;
-	//ScaleObject(t.importer.objectnumber, iImporterScale*fImporterScaleMultiply, iImporterScale*fImporterScaleMultiply, iImporterScale*fImporterScaleMultiply);
 	ScaleObject(t.importer.objectnumber, iImporterScale, iImporterScale, iImporterScale);
 
 	sObject* pObject = GetObjectData(t.importer.objectnumber);

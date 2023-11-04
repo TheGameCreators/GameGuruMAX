@@ -2045,17 +2045,21 @@ void gpup_getEmitterSpeedAngleAdjustment(int ID, float* x, float* y, float* z)
 void gpup_setEmitterSpeedAngleAdjustment(int ID, float x, float y, float z)
 {
 	if (ID < 0 || ID >= gpup_maxeffects) return;
-	gpup_emitter[ID].emitter_speedadjustment_x = x;
-	gpup_emitter[ID].emitter_speedadjustment_y = y;
-	gpup_emitter[ID].emitter_speedadjustment_z = z;
-	if (gpup_emitter[ID].effectLoaded == 1)
+	if (gpup_emitter[ID].emitter_type == 2)
 	{
-		float fFinalSpeedX = gpup_emitter[ID].emitter_speedadjustment_x;
-		float fFinalSpeedY = gpup_emitter[ID].emitter_speedadjustment_y;
-		float fFinalSpeedZ = gpup_emitter[ID].emitter_speedadjustment_z;
-		gpup_emitter[ID].speedConstantData.speedvar.x = (fFinalSpeedX - 0.5f)*0.1f;
-		gpup_emitter[ID].speedConstantData.speedvar.y = (fFinalSpeedY - 0.5f)*0.1f;
-		gpup_emitter[ID].speedConstantData.speedvar.z = (fFinalSpeedZ - 0.5f)*0.1f;
+		// only change smoke style particles
+		gpup_emitter[ID].emitter_speedadjustment_x = x;
+		gpup_emitter[ID].emitter_speedadjustment_y = y;
+		gpup_emitter[ID].emitter_speedadjustment_z = z;
+		if (gpup_emitter[ID].effectLoaded == 1)
+		{
+			float fFinalSpeedX = gpup_emitter[ID].emitter_speedadjustment_x;
+			float fFinalSpeedY = gpup_emitter[ID].emitter_speedadjustment_y;
+			float fFinalSpeedZ = gpup_emitter[ID].emitter_speedadjustment_z;
+			gpup_emitter[ID].speedConstantData.speedvar.x = (fFinalSpeedX - 0.5f) * 0.1f;
+			gpup_emitter[ID].speedConstantData.speedvar.y = (fFinalSpeedY - 0.5f) * 0.1f;
+			gpup_emitter[ID].speedConstantData.speedvar.z = (fFinalSpeedZ - 0.5f) * 0.1f;
+		}
 	}
 }
 

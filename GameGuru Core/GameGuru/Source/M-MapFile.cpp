@@ -2608,7 +2608,28 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 						int variableLength = strlen(tempeleprof.PropertiesVariable.VariableValue[i]);
 						if (variableLength > 4 && tempeleprof.PropertiesVariable.VariableValue[i][variableLength - 4] == '.')
 						{
-							addtocollection(tempeleprof.PropertiesVariable.VariableValue[i]);
+							// can specify a textfile, but needs to be specified as relative
+							LPSTR pStringOrFile = tempeleprof.PropertiesVariable.VariableValue[i];
+							if (pStringOrFile[1] == ':')
+							{
+								// replace absolute paths with relative ones
+								char pRelativePathAndFile[MAX_PATH];
+								strcpy(pRelativePathAndFile, pStringOrFile);
+								GG_GetRealPath(pRelativePathAndFile, 0);
+								extern char szWriteDir[MAX_PATH];
+								char pRemoveAbsPart[MAX_PATH];
+								strcpy(pRemoveAbsPart, szWriteDir);
+								strcat(pRemoveAbsPart, "Files\\");
+								if (strnicmp(pRelativePathAndFile, pRemoveAbsPart, strlen(pRemoveAbsPart)) == NULL)
+								{
+									strcpy(pRelativePathAndFile, pStringOrFile+strlen(pRemoveAbsPart));
+								}
+								addtocollection(pRelativePathAndFile);
+							}
+							else
+							{
+								addtocollection(pStringOrFile);
+							}
 
 							//PE: if .dds or.png also add - _normal and _emissive and _surface (behavior: Change Texture).
 							if (pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".dds") || pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".png"))

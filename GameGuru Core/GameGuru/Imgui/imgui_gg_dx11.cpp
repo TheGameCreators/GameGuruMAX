@@ -7313,8 +7313,9 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 
 	extern int speech_ids[5];
 
-	for (int i = 0; i < tmpeleprof->PropertiesVariable.iVariables; i++) {
-
+	int imageindexi = 0; // can have eight images indexed this way
+	for (int i = 0; i < tmpeleprof->PropertiesVariable.iVariables; i++) 
+	{
 		bool speech = false;
 
 		cstr tmpvar = tmpeleprof->PropertiesVariable.Variable[i];
@@ -7433,7 +7434,7 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 
 						//Allow up to 8 images to be previewed in the properties area
 						//#define IMGFILEID (PROPERTIES_CACHE_ICONS+998)
-						int iImgFileIndex = i;
+						int iImgFileIndex = imageindexi;
 						if (iImgFileIndex > 8) iImgFileIndex = 8;
 						int iImgFileID = PROPERTIES_CACHE_ICONS + 900 + iImgFileIndex;
 
@@ -7481,13 +7482,35 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], tmpvalue.Get());
 							bUpdateMainString = true;
 						}
+						imageindexi++;
 					}
 					else 
 					{
 						cstr tmpvalue = tmpeleprof->PropertiesVariable.VariableValue[i];
 						tmpvalue = imgui_setpropertyfile2(1, tmpvalue.Get(), "", "Select File", "..\\files\\");
-						if (tmpvalue != tmpeleprof->PropertiesVariable.VariableValue[i]) {
-							strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], tmpvalue.Get());
+						if (tmpvalue != tmpeleprof->PropertiesVariable.VariableValue[i]) 
+						{
+							LPSTR pThisString = tmpvalue.Get();
+							if (pThisString[1] == ':')
+							{
+								// replace absolute paths with relative ones
+								char pRelativePathAndFile[MAX_PATH];
+								strcpy(pRelativePathAndFile, tmpvalue.Get());
+								GG_GetRealPath(pRelativePathAndFile, 0);
+								extern char szWriteDir[MAX_PATH];
+								char pRemoveAbsPart[MAX_PATH];
+								strcpy(pRemoveAbsPart, szWriteDir);
+								strcat(pRemoveAbsPart, "Files\\");
+								if (strnicmp(pRelativePathAndFile, pRemoveAbsPart, strlen(pRemoveAbsPart)) == NULL)
+								{
+									strcpy(pRelativePathAndFile, pThisString + strlen(pRemoveAbsPart));
+								}
+								strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], pRelativePathAndFile);
+							}
+							else
+							{
+								strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], tmpvalue.Get());
+							}
 							bUpdateMainString = true;
 						}
 					}

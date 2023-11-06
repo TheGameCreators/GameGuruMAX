@@ -1129,58 +1129,11 @@ dtStatus dtNavMeshQuery::findPath(dtPolyRef startRef, dtPolyRef endRef,
 
 			// LB: add an extra cost if the path runs through an area marked as a door, it will
 			// force the system to find another path that does NOT go through dor areas (effectively blocking them as path ways when active)
-			extern std::vector<sBlocker> g_BlockerList;
-			if (g_BlockerList.size()>0)
+			extern bool DoesLineGoThroughBlocker (float fFromX, float fFromY, float fFromZ, float fToX, float fToY, float fToZ);
+			if (DoesLineGoThroughBlocker (fFromX, fFromY, fFromZ, fToX, fToY, fToZ) == true)
 			{
-				int iDoorCount = g_BlockerList.size();
-				for (int iDoorIndex = 0; iDoorIndex < iDoorCount; iDoorIndex++)
-				{
-					if (heuristic < maxdoorcost)
-					{
-						if (g_BlockerList[iDoorIndex].bBlocking == true)
-						{
-							float fDoorMinX = g_BlockerList[iDoorIndex].minX;
-							float fDoorMaxX = g_BlockerList[iDoorIndex].maxX;
-							float fDoorMinY = g_BlockerList[iDoorIndex].minY;
-							float fDoorMaxY = g_BlockerList[iDoorIndex].maxY;
-							float fDoorMinZ = g_BlockerList[iDoorIndex].minZ;
-							float fDoorMaxZ = g_BlockerList[iDoorIndex].maxZ;
-							float fX = fFromX;
-							float fY = fFromY;
-							float fZ = fFromZ;
-							float fIX = fToX - fFromX;
-							float fIY = fToY - fFromY;
-							float fIZ = fToZ - fFromZ;
-							int iStepCount = sqrt(fabs(fIX * fIX) + fabs(fIY * fIY) + fabs(fIZ * fIZ));
-							fIX /= iStepCount;
-							fIY /= iStepCount;
-							fIZ /= iStepCount;
-							for (int iStep = 0; iStep < iStepCount; iStep += 5)
-							{
-								if (fX >= fDoorMinX && fX <= fDoorMaxX)
-								{
-									if (fY >= fDoorMinY && fY <= fDoorMaxY)
-									{
-										if (fZ >= fDoorMinZ && fZ <= fDoorMaxZ)
-										{
-											// the path goes through a door
-											heuristic += maxdoorcost;
-											break;
-										}
-									}
-								}
-								fX += (fIX * 5);
-								fY += (fIY * 5);
-								fZ += (fIZ * 5);
-							}
-						}
-					}
-					else
-					{
-						// the path goes through a door
-						break;
-					}
-				}
+				// the path goes through a door
+				heuristic += maxdoorcost;
 			}
 
 			// do the full cost tital

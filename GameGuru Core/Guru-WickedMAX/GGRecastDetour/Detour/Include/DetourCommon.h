@@ -32,6 +32,7 @@ struct sBlocker
 	float minZ;
 	float maxZ;
 	bool bBlocking;
+	float fAngle;
 };
 
 /**

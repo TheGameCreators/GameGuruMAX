@@ -262,16 +262,40 @@ void GGRecastDetour::ResetBlockerSystem(void)
 	g_BlockerList.clear();
 }
 
-void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool enable)
+void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool enable, float fRadius2, float fAngle, float fAdjMinY, float fAdjMaxY)
 {
-	radius /= 1.5f;
-	float minX = x - radius;
-	float maxX = x + radius;
-	float minY = y - 5;
-	float maxY = y + 95;
-	float minZ = z - radius;
-	float maxZ = z + radius;
+	bool bAnyNavMeshBlockerStateChanged = false;
+	float minX,maxX,minY,maxY,minZ,maxZ;
 	bool bFoundBlocker = false;
+	if (radius != fRadius2)
+	{
+		// new fully cunstomizable and accurate
+		if (radius < 5) radius = 5;
+		if (fRadius2 < 5) fRadius2 = 5;
+		radius /= 2.0f;
+		fRadius2 /= 2.0f;
+		radius += 5.0f;
+		fRadius2 += 5.0f;
+		minX = x - radius;
+		maxX = x + radius;
+		minY = y + fAdjMinY;
+		maxY = y + fAdjMaxY;
+		minZ = z - fRadius2;
+		maxZ = z + fRadius2;
+	}
+	else
+	{
+		// old default
+		if (radius < 5) radius = 5;
+		radius /= 2.0f;
+		radius += 5.0f;
+		minX = x - radius;
+		maxX = x + radius;
+		minY = y - 5;
+		maxY = y + 95;
+		minZ = z - radius;
+		maxZ = z + radius;
+	}
 	for (int b = 0; b < g_BlockerList.size(); b++)
 	{
 		sBlocker* blocker = &g_BlockerList[b];
@@ -282,6 +306,10 @@ void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool
 				if (blocker->minZ == minZ && blocker->maxZ == maxZ)
 				{
 					bFoundBlocker = true;
+					if (blocker->bBlocking != enable )
+					{
+						bAnyNavMeshBlockerStateChanged = true;
+					}
 					blocker->bBlocking = enable;
 					break;
 				}
@@ -298,8 +326,100 @@ void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool
 		item.minZ = minZ;
 		item.maxZ = maxZ;
 		item.bBlocking = enable;
+		item.fAngle = fAngle;
 		g_BlockerList.push_back(item);
+		bAnyNavMeshBlockerStateChanged = true;
 	}
+	if (bAnyNavMeshBlockerStateChanged == true)
+	{
+		extern GGRecastDetour g_RecastDetour;
+		g_RecastDetour.cleanupDebugRender();
+		g_RecastDetour.handleDebugRender();
+	}
+}
+
+bool DoesLineGoThroughBlocker (float fFromOrigX, float fFromOrigY, float fFromOrigZ, float fToOrigX, float fToOrigY, float fToOrigZ)
+{
+	// LB: add an extra cost if the path runs through an area marked as a door, it will
+	// force the system to find another path that does NOT go through dor areas (effectively blocking them as path ways when active)
+	bool bBlocked = false;
+	extern std::vector<sBlocker> g_BlockerList;
+	if (g_BlockerList.size() > 0)
+	{
+		int iDoorCount = g_BlockerList.size();
+		for (int iDoorIndex = 0; iDoorIndex < iDoorCount; iDoorIndex++)
+		{
+			if (bBlocked==false)
+			{
+				if (g_BlockerList[iDoorIndex].bBlocking == true)
+				{
+					float fDoorMinX = g_BlockerList[iDoorIndex].minX;
+					float fDoorMaxX = g_BlockerList[iDoorIndex].maxX;
+					float fDoorMinY = g_BlockerList[iDoorIndex].minY;
+					float fDoorMaxY = g_BlockerList[iDoorIndex].maxY;
+					float fDoorMinZ = g_BlockerList[iDoorIndex].minZ;
+					float fDoorMaxZ = g_BlockerList[iDoorIndex].maxZ;
+					float fCenterX = fDoorMinX + ((fDoorMaxX - fDoorMinX) / 2);
+					float fCenterZ = fDoorMinZ + ((fDoorMaxZ - fDoorMinZ) / 2);
+					float fFromX = fFromOrigX;
+					float fFromY = fFromOrigY;
+					float fFromZ = fFromOrigZ;
+					float fToX = fToOrigX;
+					float fToY = fToOrigY;
+					float fToZ = fToOrigZ;
+					float tofromradian = 0.0174533f;
+					float fDX = fFromX - fCenterX;
+					float fDZ = fCenterZ - fFromZ;
+					float fDD = sqrtf(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+					float fFromA = atan2(fDX, fDZ) / tofromradian;
+					fFromA = (fFromA - g_BlockerList[iDoorIndex].fAngle) * tofromradian;
+					fFromX = fCenterX + (sinf(fFromA) * fDD);
+					fFromZ = fCenterZ - (cosf(fFromA) * fDD);
+					fDX = fToX - fCenterX;
+					fDZ = fCenterZ - fToZ;
+					fDD = sqrtf(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+					float fToA = atan2(fDX, fDZ) / tofromradian;
+					fToA = (fToA - g_BlockerList[iDoorIndex].fAngle) * tofromradian;
+					fToX = fCenterX + (sinf(fToA) * fDD);
+					fToZ = fCenterZ - (cosf(fToA) * fDD);
+					float fX = fFromX;
+					float fY = fFromY;
+					float fZ = fFromZ;
+					float fIX = fToX - fFromX;
+					float fIY = fToY - fFromY;
+					float fIZ = fToZ - fFromZ;
+					int iStepCount = sqrt(fabs(fIX * fIX) + fabs(fIY * fIY) + fabs(fIZ * fIZ));
+					fIX /= iStepCount;
+					fIY /= iStepCount;
+					fIZ /= iStepCount;
+					for (int iStep = 0; iStep < iStepCount; iStep += 2)
+					{
+						if (fX >= fDoorMinX && fX <= fDoorMaxX)
+						{
+							if (fY >= fDoorMinY && fY <= fDoorMaxY)
+							{
+								if (fZ >= fDoorMinZ && fZ <= fDoorMaxZ)
+								{
+									// the path goes through a door
+									bBlocked = true;
+									break;
+								}
+							}
+						}
+						fX += (fIX * 2);
+						fY += (fIY * 2);
+						fZ += (fIZ * 2);
+					}
+				}
+			}
+			else
+			{
+				// the path goes through a door
+				break;
+			}
+		}
+	}
+	return bBlocked;
 }
 
 void GGRecastDetour::SetWaterTableY(float y)

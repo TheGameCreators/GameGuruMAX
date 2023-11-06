@@ -1160,6 +1160,13 @@ void NavMeshTesterTool::recalc()
 						float fToX = *(m_straightPath + ((pointindex + 1) * 3) + 0);
 						float fToY = *(m_straightPath + ((pointindex + 1) * 3) + 1);
 						float fToZ = *(m_straightPath + ((pointindex + 1) * 3) + 2);
+						extern bool DoesLineGoThroughBlocker (float fFromX, float fFromY, float fFromZ, float fToX, float fToY, float fToZ);
+						if ( DoesLineGoThroughBlocker (fFromX, fFromY, fFromZ, fToX, fToY, fToZ) == true )
+						{
+							bBlockedByDoor = true;
+							break;
+						}
+						/*
 						extern std::vector<sBlocker> g_BlockerList;
 						if (g_BlockerList.size() > 0)
 						{
@@ -1184,7 +1191,7 @@ void NavMeshTesterTool::recalc()
 									fIX /= iStepCount;
 									fIY /= iStepCount;
 									fIZ /= iStepCount;
-									for (int iStep = 0; iStep < iStepCount; iStep += 5)
+									for (int iStep = 0; iStep < iStepCount; iStep += 2)
 									{
 										if (fX >= fDoorMinX && fX <= fDoorMaxX)
 										{
@@ -1198,13 +1205,14 @@ void NavMeshTesterTool::recalc()
 												}
 											}
 										}
-										fX += (fIX * 5);
-										fY += (fIY * 5);
-										fZ += (fIZ * 5);
+										fX += (fIX * 2);
+										fY += (fIY * 2);
+										fZ += (fIZ * 2);
 									}
 								}
 							}
 						}
+						*/
 					}
 					if (bBlockedByDoor == true)
 					{

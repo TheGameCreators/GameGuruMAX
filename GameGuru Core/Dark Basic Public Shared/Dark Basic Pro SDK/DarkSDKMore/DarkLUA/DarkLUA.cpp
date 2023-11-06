@@ -3753,24 +3753,38 @@ int RDGetYFromMeshPosition(lua_State *L)
 	return 1;
 }
 
-int RDBlockNavMesh(lua_State *L)
+int RDBlockNavMeshCore(lua_State* L,int iWithShape)
 {
 	// block and unblock navmesh
 	lua = L;
 	int n = lua_gettop(L);
-	if (n < 5) return 0;
+	if (iWithShape == 0 && n < 5) return 0;
+	if (iWithShape == 1 && n < 7) return 0;
 	float fX = lua_tonumber(L, 1);
 	float fY = lua_tonumber(L, 2);
 	float fZ = lua_tonumber(L, 3);
 	float fRadius = lua_tonumber(L, 4);
 	int iBlockMode = lua_tonumber(L, 5);
+	float fRadius2 = fRadius;
+	float fAngle = 0.0f;
+	float fAdjMinY = -5.0f;
+	float fAdjMaxY = 95.0f;
+	if (iWithShape == 1)
+	{
+		fRadius2 = lua_tonumber(L, 6);
+		fAngle = lua_tonumber(L, 7);
+		if (n == 9)
+		{
+			fAdjMinY = lua_tonumber(L, 8);
+			fAdjMaxY = lua_tonumber(L, 9);
+		}
+	}
 	float thisPoint[3] = { 0, 0, 0 };
 	bool bEnableBlock = false;
 	if (iBlockMode != 0) bEnableBlock = true;
 
 	// improved system for more accurate doo and navmesh blocker bounds
-	//g_RecastDetour.TogglePolys(fX, fY, fZ, fRadius, bEnableBlock);
-	g_RecastDetour.ToggleBlocker(fX, fY, fZ, fRadius, bEnableBlock);
+	g_RecastDetour.ToggleBlocker(fX, fY, fZ, fRadius, bEnableBlock, fRadius2, fAngle, fAdjMinY, fAdjMaxY);
 
 	// go through ALL characters and request them to recalc their paths, they may no longer be valid
 	int storete = t.e;
@@ -3781,7 +3795,7 @@ int RDBlockNavMesh(lua_State *L)
 		if (t.tcharanimindex != -1)
 		{
 			// this triggers follow call in script to set new target (old one not valid any more after this)
-			t.entityelement[e].lua.interuptpath = 50; 
+			t.entityelement[e].lua.interuptpath = 50;
 		}
 	}
 	t.tcharanimindex = storecharanimindex;
@@ -3789,6 +3803,16 @@ int RDBlockNavMesh(lua_State *L)
 
 	// return successfully
 	return 0;
+}
+
+int RDBlockNavMeshWithShape(lua_State* L)
+{
+	return RDBlockNavMeshCore(L,1);
+}
+
+int RDBlockNavMesh(lua_State *L)
+{
+	return RDBlockNavMeshCore(L,0);
 }
 
 int AdjustPositionToGetLineOfSight (lua_State *L)
@@ -10022,7 +10046,6 @@ void addFunctions()
 	#endif
 		
 	// New RecastDetour (RD) AI Commands
-	#ifdef WICKEDENGINE
 	lua_register(lua, "RDFindPath", RDFindPath);
 	lua_register(lua, "RDGetPathPointCount", RDGetPathPointCount);
 	lua_register(lua, "RDGetPathPointX", RDGetPathPointX);
@@ -10035,9 +10058,9 @@ void addFunctions()
 	lua_register(lua, "RDIsWithinAndOverMesh", RDIsWithinAndOverMesh);
 	lua_register(lua, "RDGetYFromMeshPosition", RDGetYFromMeshPosition);
 	lua_register(lua, "RDBlockNavMesh", RDBlockNavMesh);
+	lua_register(lua, "RDBlockNavMeshWithShape", RDBlockNavMeshWithShape);
 	lua_register(lua, "AdjustPositionToGetLineOfSight", AdjustPositionToGetLineOfSight);
 	lua_register(lua, "SetCharacterMode", SetCharacterMode);
-	#endif
 	
 	// Visual Attribs
 	lua_register(lua, "GetFogNearest" , GetFogNearest );

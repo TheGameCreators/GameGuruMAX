@@ -2265,6 +2265,9 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	//addfoldertocollection("gamecore\\brass"); // now done below when detect guns used in level
 	addfoldertocollection("gamecore\\hudlayers");
 
+	// we will much improve this with the new project system!!
+	addfoldertocollection("gamecore\\hands\\Animations");
+
 	//  Stage 1B - Style dependent files
 	titles_getstyle ( );
 	addtocollection("titlesbank\\style.txt");

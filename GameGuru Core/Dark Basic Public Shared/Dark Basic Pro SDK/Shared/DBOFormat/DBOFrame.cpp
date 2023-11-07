@@ -1235,22 +1235,33 @@ DARKSDK_DLL bool AppendAnimationDataCore(sAnimation* pCurrentAnimationToAppend, 
 
 DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int iFrameStart )
 {
-	#ifdef WICKEDENGINE
 	// clear old anim data if entirely replacing
 	if (iFrameStart == 0)
 	{
 		extern void animsystem_clearoldanimationfromobject(sObject*);
 		animsystem_clearoldanimationfromobject(pObject);
 	}
-	#endif
+
+	// determine if loading an encrypted model file
+	char VirtualFilename[_MAX_PATH];
+	strcpy(VirtualFilename, szFilename);
+	extern bool CheckForWorkshopFile (LPSTR VirtualFilename);
+	bool bTempFolderChangeForEncrypt = CheckForWorkshopFile(VirtualFilename);
+
+	// Decrypt and use media, re-encrypt
+	if (g_pGlob->Decrypt) g_pGlob->Decrypt(VirtualFilename);
 
 	// load file into temp load-object
 	sObject* pLoadObject = NULL;
-	if ( !LoadDBO ( (LPSTR)szFilename, &pLoadObject ) )
+	if ( !LoadDBO (VirtualFilename, &pLoadObject ) )
 	{
 		// count not load file
+		if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
 		return false;
 	}
+
+	// Re-encrypt
+	if (g_pGlob->Encrypt) g_pGlob->Encrypt(VirtualFilename);
 
 	// no animation data
 	if ( pLoadObject->pAnimationSet==NULL )
@@ -1274,7 +1285,6 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 		return false;
 	}
 
-	#ifdef WICKEDENGINE
 	// DBO now contains mode-124 animsets which contain specific animslot details (name, start, finish)
 	if (pLoadObject->pAnimationSet)
 	{
@@ -1337,7 +1347,6 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 			}
 		}
 	}
-	#endif
 
 	// update total number of frames
 	if (iFrameStart == 0)
@@ -1352,14 +1361,9 @@ DARKSDK_DLL bool AppendAnimationData ( sObject* pObject, LPSTR szFilename, int i
 		pObject->pAnimationSet->ulLength = iFrameStart + dwNewFrames;
 	}
 
-	#ifdef WICKEDENGINE
 	// we assume all MAX ready objects have sorted animation keyframes to gain performance
 	bool bCostlySortingOfKeyframes = false;
 	MapFramesToAnimations (pObject, bCostlySortingOfKeyframes);
-	#else
-	// recalculate animation data and bounds for object
-	MapFramesToAnimations ( pObject, true );
-	#endif
 
 	// delete load object when finished with it
 	SAFE_DELETE(pLoadObject);

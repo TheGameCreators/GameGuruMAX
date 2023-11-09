@@ -21133,7 +21133,10 @@ void imgui_input_getcontrols(void)
 					int entid = t.entityelement[t.widget.pickedEntityIndex].bankindex;
 					if (entid > 0)
 					{
-						if (t.entityprofile[entid].ischaracter == 0 && t.entityprofile[entid].ismarker == 0)
+						bool bAllowObjectsAndParticlesToScale = false;
+						if (t.entityprofile[entid].ismarker == 0) bAllowObjectsAndParticlesToScale = true;
+						if (t.entityprofile[entid].ismarker == 10) bAllowObjectsAndParticlesToScale = true;
+						if (t.entityprofile[entid].ischaracter == 0 && bAllowObjectsAndParticlesToScale==true)
 						{
 							t.widget.mode = 2;
 						}

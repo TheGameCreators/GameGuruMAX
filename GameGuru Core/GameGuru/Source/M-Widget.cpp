@@ -1509,7 +1509,10 @@ void widget_loop ( void )
 			if (t.entityprofile[t.tttentid].ismarker == 2)  t.thaveyrot = 1;
 
 			// allow rotation/scale
-			if ( (t.entityprofile[t.tttentid].ismarker == 0 || t.thaveyrot == 1) && ObjectExist(t.widget.activeObject) == 1 ) 
+			bool bHaveFullRotation = false;
+			if (t.entityprofile[t.tttentid].ismarker == 0) bHaveFullRotation = true;
+			if (t.entityprofile[t.tttentid].ismarker == 10) bHaveFullRotation = true;
+			if ( (bHaveFullRotation==true || t.thaveyrot == 1) && ObjectExist(t.widget.activeObject) == 1 )
 			{
 				#ifdef WICKEDENGINE
 				// rotation
@@ -2601,16 +2604,25 @@ void widget_show_widget ( void )
 	}
 	if ( t.widget.mode == 2 ) 
 	{
+		bool bShowOnlyXScale = false;
+		if (t.entityprofile[iEntID].ismarker == 10) bShowOnlyXScale = true;
 		for ( t.a = 9 ; t.a <= 12; t.a++ )
 		{
 			if ( ObjectExist(g.widgetobjectoffset+t.a) == 1 ) 
 			{
-				ShowObject ( g.widgetobjectoffset+t.a );
-				PositionObject ( g.widgetobjectoffset+t.a, CameraPositionX(), CameraPositionY(), CameraPositionZ() );
-				if (t.widget.mode == 0)
-					PointObject (g.widgetobjectoffset + t.a, ObjectPositionX(t.widget.activeObject) + t.widget.offsetx, ObjectPositionY(t.widget.activeObject) + t.widget.offsety, ObjectPositionZ(t.widget.activeObject) + t.widget.offsetz);
+				if (bShowOnlyXScale == false || t.a == 12)
+				{
+					ShowObject (g.widgetobjectoffset + t.a);
+				}
 				else
-					PointObject ( g.widgetobjectoffset+t.a,ObjectPositionX(t.widget.activeObject)+0,ObjectPositionY(t.widget.activeObject)+0,ObjectPositionZ(t.widget.activeObject)+0 );
+				{
+					HideObject (g.widgetobjectoffset + t.a);
+				}
+				PositionObject ( g.widgetobjectoffset+t.a, CameraPositionX(), CameraPositionY(), CameraPositionZ() );
+				//if (t.widget.mode == 0)
+				//	PointObject (g.widgetobjectoffset + t.a, ObjectPositionX(t.widget.activeObject) + t.widget.offsetx, ObjectPositionY(t.widget.activeObject) + t.widget.offsety, ObjectPositionZ(t.widget.activeObject) + t.widget.offsetz);
+				//else
+				PointObject ( g.widgetobjectoffset+t.a,ObjectPositionX(t.widget.activeObject)+0,ObjectPositionY(t.widget.activeObject)+0,ObjectPositionZ(t.widget.activeObject)+0 );
 				MoveObject ( g.widgetobjectoffset+t.a,40 );
 				RotateObject ( g.widgetobjectoffset+t.a,0,0,0 );
 			}

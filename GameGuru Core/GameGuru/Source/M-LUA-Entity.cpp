@@ -2816,7 +2816,7 @@ void entity_lua_rotatetoplayerwithoffset ( void )
 	t.tcamerapositionx_f=CameraPositionX(t.terrain.gameplaycamera);
 	t.tcamerapositiony_f=CameraPositionY(t.terrain.gameplaycamera);
 	t.tcamerapositionz_f=CameraPositionZ(t.terrain.gameplaycamera);
-	entity_lua_rotatetocore ( t.v );
+	entity_lua_rotatetocore ( t.v_f );
 }
 
 void entity_lua_set_gravity ( void )

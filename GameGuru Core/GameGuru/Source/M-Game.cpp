@@ -5138,6 +5138,11 @@ void game_main_loop ( void )
 				lua_loop ( );
 				wiProfiler::EndRange(range1);
 
+				// Of the above, how much was ray casting ( the usual stinker!)
+				//auto rangeraycasting = wiProfiler::BeginRangeCPU("Max - General - Ray Casting");
+				//lua_raycastingwork ( );
+				//wiProfiler::EndRange(rangeraycasting);
+
 				// Entity Logic
 				auto range2 = wiProfiler::BeginRangeCPU("Max - General - Object Logic");
 				t.game.perf.ai1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
@@ -5158,9 +5163,7 @@ void game_main_loop ( void )
 				wiProfiler::EndRange(range3);
 
 				// handle any AI stuff related to recastretour
-				auto range4 = wiProfiler::BeginRangeCPU("Max - General - Detour Logic");
 				game_updatenavmeshsystem();
-				wiProfiler::EndRange(range4);
 			}
 			t.game.perf.ai += PerformanceTimer()-t.ttempoverallaiperftimerstamp;
 

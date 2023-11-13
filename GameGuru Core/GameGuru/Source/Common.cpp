@@ -4256,21 +4256,17 @@ void FPSC_Setup(void)
 			// NOT MAP EDITOR - GAME EXECUTABLE
 			timestampactivity(0, "detected game executable in effect");
 
-			#ifdef WICKEDENGINE
 			// we start a new IMGUI frame right away to handle any paste commands to the 2D screen
 			extern bool bImGuiFrameState;
 			if (!bImGuiFrameState)
 			{
-				#ifdef STORYBOARD
 				//PE: All fonts needed also in standalone.
 				ChangeGGFont("editors\\uiv3\\Roboto-Medium.ttf", 15);
-				#endif
 				ImGui_ImplDX11_NewFrame();
 				ImGui_ImplWin32_NewFrame();
 				ImGui::NewFrame();
 				bImGuiFrameState = true;
 			}
-			#endif
 
 			//  STANDALONE GAME MODE
 			t.game.gameisexe=1;

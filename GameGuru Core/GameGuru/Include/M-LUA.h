@@ -16,3 +16,4 @@ void lua_quitting();
 void lua_loop_begin ( void );
 void lua_loop_finish ( void );
 void lua_loop ( void );
+void lua_raycastingwork (void);

@@ -1224,19 +1224,34 @@ void lua_loop_allentities ( void )
 	}
 }
 
+bool g_WarnOnlyOnce = true;
+
 void lua_loop_finish (void)
 {
 	// Detect any messges back from LUA engine (actions)
+	bool bAnySendMessages = false;
 	while (LuaNext())
 	{
 		t.luaaction_s = LuaMessageDesc();
+		bAnySendMessages = true;
+	}
+	if (bAnySendMessages == true && g_WarnOnlyOnce==true)
+	{
+		g_WarnOnlyOnce = false;
+		MessageBoxA(NULL, "Do Not Use SendMessage any more", t.luaaction_s.Get(), MB_OK);
+	}
+	/*
+	while (LuaNext())
+	{
+		t.luaaction_s = LuaMessageDesc();
+		MessageBoxA(NULL, "Do Not Use SendMessage any more", t.luaaction_s.Get(), MB_OK);
 		int iLen = t.luaaction_s.Len();
 
 		//PE: Move most used to top.
 		if (iLen == 11)
 		{
-			if (strcmp(t.luaaction_s.Get(), "collisionon") == 0) { t.e = LuaMessageInt(); entity_lua_collisionon(); }
-			else if (strcmp(t.luaaction_s.Get(), "drownplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); }
+			//if (strcmp(t.luaaction_s.Get(), "collisionon") == 0) { t.e = LuaMessageInt(); entity_lua_collisionon(); }
+			if (strcmp(t.luaaction_s.Get(), "drownplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); }
 			else if (strcmp(t.luaaction_s.Get(), "finishlevel") == 0) { lua_finishlevel(); }
 			else if (strcmp(t.luaaction_s.Get(), "hideterrain") == 0) { t.v = LuaMessageInt(); lua_hideterrain(); }
 			else if (strcmp(t.luaaction_s.Get(), "jumptolevel") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_jumptolevel(); }
@@ -1333,7 +1348,7 @@ void lua_loop_finish (void)
 			else if (strcmp(t.luaaction_s.Get(), "setactivated") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivated(); }
 			else if (strcmp(t.luaaction_s.Get(), "setconstrast") == 0) { t.v_f = LuaMessageFloat(); lua_setconstrast(); }
 			else if (strcmp(t.luaaction_s.Get(), "setcamerafov") == 0) { t.v_f = LuaMessageFloat(); lua_setcamerafov(); }
-			else if (strcmp(t.luaaction_s.Get(), "collisionoff") == 0) { t.e = LuaMessageInt(); entity_lua_collisionoff(); }
+			//else if (strcmp(t.luaaction_s.Get(), "collisionoff") == 0) { t.e = LuaMessageInt(); entity_lua_collisionoff(); }
 			else if (strcmp(t.luaaction_s.Get(), "freezeplayer") == 0) { t.v = LuaMessageInt(); lua_freezeplayer(); }
 			else if (strcmp(t.luaaction_s.Get(), "lookatplayer") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatplayer(); }
 			else if (strcmp(t.luaaction_s.Get(), "lookattarget") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattarget(); }
@@ -1548,6 +1563,7 @@ void lua_loop_finish (void)
 			else if (iLen == 28 && strcmp(t.luaaction_s.Get(), "performlogicconnectionsaskey") == 0) { t.e = LuaMessageInt(); entity_lua_performlogicconnectionsaskey(); }
 		}
 	}
+	*/
 
 	// extra stage allowing global to render things LAST (such as in-game HUD screens)
 	if (t.playercontrol.gameloopinitflag == 0)
@@ -1569,4 +1585,10 @@ void lua_loop ( void )
 	lua_loop_allentities();
 	lua_loop_finish();
 	panel_Last2DDrawing();
+}
+
+void lua_raycastingwork (void)
+{
+	// moving and controlling ray casts separate so can test speed of combined work
+
 }

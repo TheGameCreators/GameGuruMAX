@@ -10220,6 +10220,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 	if (n == 1)
 	{
 		t.v = lua_tonumber(L, 1);
+		t.e = t.v; // old legacy code confused LuaMessageInt() and LuaMessageIndex(), assigning to t.e and t.v arbitarily!
 	}
 	if (n == 2)
 	{
@@ -11017,7 +11018,7 @@ void addInternalFunctions_float()
 	lua_register(lua, "SendMessageF_texty", SendMessageF_texty);
 	lua_register(lua, "SendMessageF_setsurfaceblue", SendMessageF_setsurfaceblue);
 	lua_register(lua, "SendMessageF_setterrainsize", SendMessageF_setterrainsize);
-	lua_register(lua, "SendMessageI_setambiencered", SendMessageF_setambiencered);
+	lua_register(lua, "SendMessageF_setambiencered", SendMessageF_setambiencered);
 	lua_register(lua, "SendMessageF_resetpositionx", SendMessageF_resetpositionx);
 	lua_register(lua, "SendMessageF_resetpositiony", SendMessageF_resetpositiony);
 	lua_register(lua, "SendMessageF_resetpositionz", SendMessageF_resetpositionz);

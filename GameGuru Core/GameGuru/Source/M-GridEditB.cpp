@@ -24989,8 +24989,6 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 	{
 		ImGui::PushItemWidth(-10);
 
-		//t.strarr_s[596].Get()
-		//ImGui::TextCenter(t.strarr_s[596].Get());
 		if (edit_grideleprof->physics != 1)  edit_grideleprof->physics = 0;
 
 		//t.grideleprof.physics = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.physics), t.strarr_s[580].Get(), t.strarr_s[581].Get(), 0);
@@ -25025,22 +25023,10 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 		desc = t.strarr_s[585];
 		ImGui::MaxSliderInputInt("##weightphysics", &edit_grideleprof->phyweight, 0, 1000, desc.Get());
 		
-		// ZJ: Replaced with updated gadget style (above).
-		//ImGui::SliderInt("##weightphysics", &edit_grideleprof->phyweight, 0, 1000);
-		//if (ImGui::IsItemHovered() && desc.Len() > 0) ImGui::SetTooltip("%s", desc.Get());
-
-		//t.grideleprof.phyfriction = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.phyfriction), t.strarr_s[586].Get(), t.strarr_s[587].Get()));
 		ImGui::TextCenter("Object's Friction");
 		desc = t.strarr_s[587];
 		ImGui::MaxSliderInputInt("##frictionphysics", &edit_grideleprof->phyfriction, 0, 1000, desc.Get());
-		
-		// ZJ: Replaced with updated gadget style (above).
-		//ImGui::SliderInt("##frictionphysics", &edit_grideleprof->phyfriction, 0, 1000);
-		//if (ImGui::IsItemHovered() && desc.Len() > 0) ImGui::SetTooltip("%s", desc.Get());
-
-		//`setpropertystring2(group,Str(grideleprof.phyforcedamage),strarr$(588),strarr$(589)) ; inc controlindex
-		//`setpropertystring2(group,Str(grideleprof.rotatethrow),strarr$(590),strarr$(591)) ; inc controlindex
-
+	
 		if (t.tflagsimpler == 0)
 		{
 			//t.grideleprof.explodable = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.explodable), t.strarr_s[592].Get(), t.strarr_s[593].Get(), 0);
@@ -25061,10 +25047,6 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 			ImGui::TextCenter("Explosion Damage");
 			desc = t.strarr_s[595];
 			ImGui::MaxSliderInputInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 1000, desc.Get());
-			
-			// ZJ: Replaced with updated gadget style (above).
-			//ImGui::SliderInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 500);
-			//if (ImGui::IsItemHovered() && desc.Len() > 0) ImGui::SetTooltip("%s", desc.Get());
 		}
 
 		ImGui::PopItemWidth();
@@ -28417,13 +28399,14 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	// if not static, we may explode it
 	if (t.entityelement[elementID].staticflag == 0)
 	{
+		//actually, you need to be able to blow up turrets!!
 		//if (t.entityprofile[entid].isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		if (t.entityelement[elementID].eleprof.isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		{
+		//if (t.entityelement[elementID].eleprof.isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
+		//{
 			// special case cannot blow up things like collectables, ammo, weapons, etc
-		}
-		else
-		{
+		//}
+		//else
+		//{
 			ImGui::Indent(10);
 			edit_grideleprof->explodable = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->explodable), "Explodable", "If set this object will explode when destroyed", 0, readonly);
 			if (edit_grideleprof->explodable != 0)
@@ -28432,7 +28415,7 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 				ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
 			}
 			ImGui::Indent(-10);
-		}
+		//}
 	}
 
 	// Moved Always Active to general properties

@@ -3140,8 +3140,12 @@ void entity_applydamage ( void )
 		t.ttentid=t.entityelement[t.ttte].bankindex;
 		if (  t.entityprofile[t.ttentid].isimmobile == 1 && t.entityprofile[t.ttentid].ischaracter == 0  )
 		{
-			if ( t.entityelement[t.ttte].health <= 0 )
-				t.entityelement[t.ttte].health = 1;
+			// this prevents turrets from being destroyed, so also check if a collectable
+			if (t.entityelement[t.ttte].eleprof.iscollectable != 0)
+			{
+				if (t.entityelement[t.ttte].health <= 0)
+					t.entityelement[t.ttte].health = 1;
+			}
 		}
 	}
 

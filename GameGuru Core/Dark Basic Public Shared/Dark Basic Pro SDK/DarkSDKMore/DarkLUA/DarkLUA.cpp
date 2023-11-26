@@ -5692,6 +5692,7 @@ int GetObjectColCentre(lua_State *L)
 	int iID = lua_tonumber(L, 1);
 	if (!ConfirmObjectInstance(iID)) return 0;
 	sObject* pObject = g_ObjectList[iID];
+	UpdateColCenter(pObject);
 	lua_pushnumber(L, pObject->collision.vecColCenter.x);
 	lua_pushnumber(L, pObject->collision.vecColCenter.y);
 	lua_pushnumber(L, pObject->collision.vecColCenter.z);
@@ -10068,6 +10069,61 @@ enum eInternalCommandNames
 	enum_performlogicconnectionsaskey
 };
 
+// NoParam commands:
+//startgame lua_startgame(); }
+//loadgame lua_loadgame(); }
+//savegame lua_savegame(); }
+//quitgame lua_quitgame(); }
+//leavegame lua_leavegame(); }
+//resumegame lua_resumegame(); }
+//switchpageback lua_switchpageback(); }
+//triggerfadein lua_triggerfadein(); }
+//wingame lua_wingame(); }
+//losegame lua_losegame(); }
+int int_core_sendmessagenone(lua_State* L, eInternalCommandNames eInternalCommandValue)
+{
+	int n = lua_gettop(L);
+	if (n > 0) return 0;
+	int storee = t.e;
+	int storev = t.v;
+	switch (eInternalCommandValue)
+	{
+		case enum_startgame: lua_startgame(); break;
+		case enum_loadgame: lua_loadgame(); break;
+		case enum_savegame: lua_savegame(); break;
+		case enum_quitgame: lua_quitgame(); break;
+		case enum_leavegame: lua_leavegame(); break;
+		case enum_resumegame: lua_resumegame(); break;
+		case enum_switchpageback: lua_switchpageback(); break;
+		case enum_triggerfadein: lua_triggerfadein(); break;
+		case enum_wingame: lua_wingame(); break;
+		case enum_losegame: lua_losegame(); break;
+	}
+}
+int SendMessage_startgame(lua_State* L) { return int_core_sendmessagenone(L, enum_startgame); }
+int SendMessage_loadgame(lua_State* L) { return int_core_sendmessagenone(L, enum_loadgame); }
+int SendMessage_savegame(lua_State* L) { return int_core_sendmessagenone(L, enum_savegame); }
+int SendMessage_quitgame(lua_State* L) { return int_core_sendmessagenone(L, enum_quitgame); }
+int SendMessage_leavegame(lua_State* L) { return int_core_sendmessagenone(L, enum_leavegame); }
+int SendMessage_resumegame(lua_State* L) { return int_core_sendmessagenone(L, enum_resumegame); }
+int SendMessage_switchpageback(lua_State* L) { return int_core_sendmessagenone(L, enum_switchpageback); }
+int SendMessage_triggerfadein(lua_State* L) { return int_core_sendmessagenone(L, enum_triggerfadein); }
+int SendMessage_wingame(lua_State* L) { return int_core_sendmessagenone(L, enum_wingame); }
+int SendMessage_losegame(lua_State* L) { return int_core_sendmessagenone(L, enum_losegame); }
+void addInternalFunctions_nones()
+{
+	lua_register(lua, "SendMessage_startgame", SendMessage_startgame);
+	lua_register(lua, "SendMessage_loadgame", SendMessage_loadgame);
+	lua_register(lua, "SendMessage_savegame", SendMessage_savegame);
+	lua_register(lua, "SendMessage_quitgame", SendMessage_quitgame);
+	lua_register(lua, "SendMessage_leavegame", SendMessage_leavegame);
+	lua_register(lua, "SendMessage_resumegame", SendMessage_resumegame);
+	lua_register(lua, "SendMessage_switchpageback", SendMessage_switchpageback);
+	lua_register(lua, "SendMessage_triggerfadein", SendMessage_triggerfadein);
+	lua_register(lua, "SendMessage_wingame", SendMessage_wingame);
+	lua_register(lua, "SendMessage_losegame", SendMessage_losegame);
+}
+
 // Internal Integer commands:
 //collisionon t.e = LuaMessageInt(); entity_lua_collisionon(); }
 //drownplayer t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); }
@@ -10121,14 +10177,9 @@ enum eInternalCommandNames
 //setlimbindex t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlimbindex(); }
 //destroy t.e = LuaMessageInt(); entity_lua_destroy(); }
 //dopanel t.luaPanel.e = LuaMessageIndex(); t.luaPanel.mode = LuaMessageInt(); lua_panel(); }
-//wingame lua_wingame(); }
 //textred g.mp.steamColorRed = LuaMessageInt(); g.mp.steamDoColorText = 1; }
 //freezeai t.v = LuaMessageInt(); lua_freezeai(); }
 //hidehuds t.v = LuaMessageInt(); lua_hidehuds(); }
-//loadgame lua_loadgame(); }
-//losegame lua_losegame(); }
-//savegame lua_savegame(); }
-//quitgame lua_quitgame(); }
 //setsound t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setsound(); }
 //showhuds t.v = LuaMessageInt(); lua_showhuds(); }
 //textblue g.mp.steamColorBlue = LuaMessageInt(); }
@@ -10136,13 +10187,11 @@ enum eInternalCommandNames
 //collected t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_collected(); }
 //hideimage t.v = LuaMessageInt(); lua_hideimage(); }
 //hidewater t.v = LuaMessageInt(); lua_hidewater(); }
-//leavegame lua_leavegame(); }
 //loopsound t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopsound(); }
 //musicstop lua_musicstop(); }
 //playsound t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsound(); }
 //playvideo t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 0); }
 //stopvideo t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopvideo(); }
-//startgame lua_startgame(); }
 //showimage t.v = LuaMessageInt(); lua_showimage(); }
 //showwater t.v = LuaMessageInt(); lua_showwater(); }
 //stopsound t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopsound(); }
@@ -10152,7 +10201,6 @@ enum eInternalCommandNames
 //hurtplayer t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_hurtplayer(); }
 //mpgamemode t.v = LuaMessageInt(); mp_serverSetLuaGameMode(); }
 //playspeech t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playspeech(); }
-//resumegame lua_resumegame(); }
 //stopspeech t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopspeech(); }
 //starttimer t.e = LuaMessageInt(); entity_lua_starttimer(); }
 //unfreezeai t.v = LuaMessageInt(); lua_unfreezeai(); }
@@ -10177,7 +10225,6 @@ enum eInternalCommandNames
 //refreshentity t.e = LuaMessageInt(); entity_lua_refreshentity(); }
 //setsoundspeed t.v = LuaMessageInt(); entity_lua_setsoundspeed(); }
 //stopanimation t.e = LuaMessageInt(); entity_lua_stopanimation(); }
-//triggerfadein lua_triggerfadein(); }
 //deactivatemouse t.v = LuaMessageInt(); lua_deactivatemouse(); }
 //addplayerhealth t.e = LuaMessageInt(); entity_lua_addplayerhealth(); }
 //addplayerweapon t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); }
@@ -10282,14 +10329,9 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_setlimbindex: entity_lua_setlimbindex(); break;
 		case enum_destroy: entity_lua_destroy(); break;
 		case enum_dopanel: lua_panel(); break;
-		case enum_wingame: lua_wingame(); break;
 		case enum_textred: g.mp.steamColorRed = t.v; g.mp.steamDoColorText = 1; break;
 		case enum_freezeai: lua_freezeai(); break;
 		case enum_hidehuds: lua_hidehuds(); break;
-		case enum_loadgame: lua_loadgame(); break;
-		case enum_losegame: lua_losegame(); break;
-		case enum_savegame: lua_savegame(); break;
-		case enum_quitgame: lua_quitgame(); break;
 		case enum_setsound: entity_lua_setsound(); break;
 		case enum_showhuds: lua_showhuds(); break;
 		case enum_textblue: g.mp.steamColorBlue = t.v; break;
@@ -10297,13 +10339,11 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_collected: entity_lua_collected(); break;
 		case enum_hideimage: lua_hideimage(); break;
 		case enum_hidewater: lua_hidewater(); break;
-		case enum_leavegame: lua_leavegame(); break;
 		case enum_loopsound: entity_lua_loopsound(); break;
 		case enum_musicstop: lua_musicstop(); break;
 		case enum_playsound: entity_lua_playsound(); break;
 		case enum_playvideo: entity_lua_playvideonoskip(0, 0); break;
 		case enum_stopvideo: entity_lua_stopvideo(); break;
-		case enum_startgame: lua_startgame(); break;
 		case enum_showimage: lua_showimage(); break;
 		case enum_showwater: lua_showwater(); break;
 		case enum_stopsound: entity_lua_stopsound(); break;
@@ -10313,7 +10353,6 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_hurtplayer: entity_lua_hurtplayer(); break;
 		case enum_mpgamemode: mp_serverSetLuaGameMode(); break;
 		case enum_playspeech: entity_lua_playspeech(); break;
-		case enum_resumegame: lua_resumegame(); break;
 		case enum_stopspeech: entity_lua_stopspeech(); break;
 		case enum_starttimer: entity_lua_starttimer(); break;
 		case enum_unfreezeai: lua_unfreezeai(); break;
@@ -10338,7 +10377,6 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_refreshentity: entity_lua_refreshentity(); break;
 		case enum_setsoundspeed: entity_lua_setsoundspeed(); break;
 		case enum_stopanimation: entity_lua_stopanimation(); break;
-		case enum_triggerfadein: lua_triggerfadein(); break;
 		case enum_deactivatemouse: lua_deactivatemouse(); break;
 		case enum_addplayerhealth: entity_lua_addplayerhealth(); break;
 		case enum_addplayerweapon: entity_lua_addplayerweapon(); break;
@@ -10430,14 +10468,9 @@ int SendMessageI_setnogravity(lua_State* L) { return int_core_sendmessagei(L, en
 int SendMessageI_setlimbindex(lua_State* L) { return int_core_sendmessagei(L, enum_setlimbindex); }
 int SendMessageI_destroy(lua_State* L) { return int_core_sendmessagei(L, enum_destroy); }
 int SendMessageI_dopanel(lua_State* L) { return int_core_sendmessagei(L, enum_dopanel); }
-int SendMessageI_wingame(lua_State* L) { return int_core_sendmessagei(L, enum_wingame); }
 int SendMessageI_textred(lua_State* L) { return int_core_sendmessagei(L, enum_textred); }
 int SendMessageI_freezeai(lua_State* L) { return int_core_sendmessagei(L, enum_freezeai); }
 int SendMessageI_hidehuds(lua_State* L) { return int_core_sendmessagei(L, enum_hidehuds); }
-int SendMessageI_loadgame(lua_State* L) { return int_core_sendmessagei(L, enum_loadgame); }
-int SendMessageI_losegame(lua_State* L) { return int_core_sendmessagei(L, enum_losegame); }
-int SendMessageI_savegame(lua_State* L) { return int_core_sendmessagei(L, enum_savegame); }
-int SendMessageI_quitgame(lua_State* L) { return int_core_sendmessagei(L, enum_quitgame); }
 int SendMessageI_setsound(lua_State* L) { return int_core_sendmessagei(L, enum_setsound); }
 int SendMessageI_showhuds(lua_State* L) { return int_core_sendmessagei(L, enum_showhuds); }
 int SendMessageI_textblue(lua_State* L) { return int_core_sendmessagei(L, enum_textblue); }
@@ -10445,13 +10478,11 @@ int SendMessageI_textsize(lua_State* L) { return int_core_sendmessagei(L, enum_t
 int SendMessageI_collected(lua_State* L) { return int_core_sendmessagei(L, enum_collected); }
 int SendMessageI_hideimage(lua_State* L) { return int_core_sendmessagei(L, enum_hideimage); }
 int SendMessageI_hidewater(lua_State* L) { return int_core_sendmessagei(L, enum_hidewater); }
-int SendMessageI_leavegame(lua_State* L) { return int_core_sendmessagei(L, enum_leavegame); }
 int SendMessageI_loopsound(lua_State* L) { return int_core_sendmessagei(L, enum_loopsound); }
 int SendMessageI_musicstop(lua_State* L) { return int_core_sendmessagei(L, enum_musicstop); }
 int SendMessageI_playsound(lua_State* L) { return int_core_sendmessagei(L, enum_playsound); }
 int SendMessageI_playvideo(lua_State* L) { return int_core_sendmessagei(L, enum_playvideo); }
 int SendMessageI_stopvideo(lua_State* L) { return int_core_sendmessagei(L, enum_stopvideo); }
-int SendMessageI_startgame(lua_State* L) { return int_core_sendmessagei(L, enum_startgame); }
 int SendMessageI_showimage(lua_State* L) { return int_core_sendmessagei(L, enum_showimage); }
 int SendMessageI_showwater(lua_State* L) { return int_core_sendmessagei(L, enum_showwater); }
 int SendMessageI_stopsound(lua_State* L) { return int_core_sendmessagei(L, enum_stopsound); }
@@ -10461,7 +10492,6 @@ int SendMessageI_fireweapon(lua_State* L) { return int_core_sendmessagei(L, enum
 int SendMessageI_hurtplayer(lua_State* L) { return int_core_sendmessagei(L, enum_hurtplayer); }
 int SendMessageI_mpgamemode(lua_State* L) { return int_core_sendmessagei(L, enum_mpgamemode); }
 int SendMessageI_playspeech(lua_State* L) { return int_core_sendmessagei(L, enum_playspeech); }
-int SendMessageI_resumegame(lua_State* L) { return int_core_sendmessagei(L, enum_resumegame); }
 int SendMessageI_stopspeech(lua_State* L) { return int_core_sendmessagei(L, enum_stopspeech); }
 int SendMessageI_starttimer(lua_State* L) { return int_core_sendmessagei(L, enum_starttimer); }
 int SendMessageI_unfreezeai(lua_State* L) { return int_core_sendmessagei(L, enum_unfreezeai); }
@@ -10486,7 +10516,6 @@ int SendMessageI_nameplatesoff(lua_State* L) { return int_core_sendmessagei(L, e
 int SendMessageI_refreshentity(lua_State* L) { return int_core_sendmessagei(L, enum_refreshentity); }
 int SendMessageI_setsoundspeed(lua_State* L) { return int_core_sendmessagei(L, enum_setsoundspeed); }
 int SendMessageI_stopanimation(lua_State* L) { return int_core_sendmessagei(L, enum_stopanimation); }
-int SendMessageI_triggerfadein(lua_State* L) { return int_core_sendmessagei(L, enum_triggerfadein); }
 int SendMessageI_deactivatemouse(lua_State* L) { return int_core_sendmessagei(L, enum_deactivatemouse); }
 int SendMessageI_addplayerhealth(lua_State* L) { return int_core_sendmessagei(L, enum_addplayerhealth); }
 int SendMessageI_addplayerweapon(lua_State* L) { return int_core_sendmessagei(L, enum_addplayerweapon); }
@@ -10575,14 +10604,9 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_setlimbindex", SendMessageI_setlimbindex);
 	lua_register(lua, "SendMessageI_destroy", SendMessageI_destroy);
 	lua_register(lua, "SendMessageI_dopanel", SendMessageI_dopanel);
-	lua_register(lua, "SendMessageI_wingame", SendMessageI_wingame);
 	lua_register(lua, "SendMessageI_textred", SendMessageI_textred);
 	lua_register(lua, "SendMessageI_freezeai", SendMessageI_freezeai);
 	lua_register(lua, "SendMessageI_hidehuds", SendMessageI_hidehuds);
-	lua_register(lua, "SendMessageI_loadgame", SendMessageI_loadgame);
-	lua_register(lua, "SendMessageI_losegame", SendMessageI_losegame);
-	lua_register(lua, "SendMessageI_savegame", SendMessageI_savegame);
-	lua_register(lua, "SendMessageI_quitgame", SendMessageI_quitgame);
 	lua_register(lua, "SendMessageI_setsound", SendMessageI_setsound);
 	lua_register(lua, "SendMessageI_showhuds", SendMessageI_showhuds);
 	lua_register(lua, "SendMessageI_textblue", SendMessageI_textblue);
@@ -10590,13 +10614,11 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_collected", SendMessageI_collected);
 	lua_register(lua, "SendMessageI_hideimage", SendMessageI_hideimage);
 	lua_register(lua, "SendMessageI_hidewater", SendMessageI_hidewater);
-	lua_register(lua, "SendMessageI_leavegame", SendMessageI_leavegame);
 	lua_register(lua, "SendMessageI_loopsound", SendMessageI_loopsound);
 	lua_register(lua, "SendMessageI_musicstop", SendMessageI_musicstop);
 	lua_register(lua, "SendMessageI_playsound", SendMessageI_playsound);
 	lua_register(lua, "SendMessageI_playvideo", SendMessageI_playvideo);
 	lua_register(lua, "SendMessageI_stopvideo", SendMessageI_stopvideo);
-	lua_register(lua, "SendMessageI_startgame", SendMessageI_startgame);
 	lua_register(lua, "SendMessageI_showimage", SendMessageI_showimage);
 	lua_register(lua, "SendMessageI_showwater", SendMessageI_showwater);
 	lua_register(lua, "SendMessageI_stopsound", SendMessageI_stopsound);
@@ -10606,7 +10628,6 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_hurtplayer", SendMessageI_hurtplayer);
 	lua_register(lua, "SendMessageI_mpgamemode", SendMessageI_mpgamemode);
 	lua_register(lua, "SendMessageI_playspeech", SendMessageI_playspeech);
-	lua_register(lua, "SendMessageI_resumegame", SendMessageI_resumegame);
 	lua_register(lua, "SendMessageI_stopspeech", SendMessageI_stopspeech);
 	lua_register(lua, "SendMessageI_starttimer", SendMessageI_starttimer);
 	lua_register(lua, "SendMessageI_unfreezeai", SendMessageI_unfreezeai);
@@ -10631,7 +10652,6 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_refreshentity", SendMessageI_refreshentity);
 	lua_register(lua, "SendMessageI_setsoundspeed", SendMessageI_setsoundspeed);
 	lua_register(lua, "SendMessageI_stopanimation", SendMessageI_stopanimation);
-	lua_register(lua, "SendMessageI_triggerfadein", SendMessageI_triggerfadein);
 	lua_register(lua, "SendMessageI_deactivatemouse", SendMessageI_deactivatemouse);
 	lua_register(lua, "SendMessageI_addplayerhealth", SendMessageI_addplayerhealth);
 	lua_register(lua, "SendMessageI_addplayerweapon", SendMessageI_addplayerweapon);
@@ -10875,8 +10895,8 @@ int int_core_sendmessagef(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_setterrainlodfar: lua_setterrainlodfar(); break;
 		case enum_setterrainlodmid: lua_setterrainlodmid(); break;
 		case enum_scale: entity_lua_scale(); break;
-		case enum_textx: t.luaText.x = LuaMessageFloat(); t.tluaTextCenterX = 0; break;
-		case enum_texty: t.luaText.y = LuaMessageFloat(); break;
+		case enum_textx: t.luaText.x = t.v_f; t.tluaTextCenterX = 0; break;
+		case enum_texty: t.luaText.y = t.v_f; break;
 		case enum_promptlocalforvrmode: lua_promptlocalforvrmode(); break;
 		case enum_setambienceintensity: lua_setambienceintensity(); break;
 		case enum_setpostlightraydecay: lua_setpostlightraydecay(); break;
@@ -11122,7 +11142,6 @@ void addInternalFunctions_float()
 //jumptolevel t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_jumptolevel(); }
 //promptlocal t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocal(); }
 //playcharactersound t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_play(); }
-//switchpageback lua_switchpageback(); }
 //promptduration t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptduration(); }
 //changeplayerweapon t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); }
 //levelfilenametoload t.s_s = LuaMessageString(); lua_levelfilenametoload(); }
@@ -11144,25 +11163,32 @@ int int_core_sendmessages(lua_State* L, eInternalCommandNames eInternalCommandVa
 	cstr stores = t.s_s;
 	if (n == 1)
 	{
-		t.s_s = lua_tostring(L, 1);
+		const char* pStrPtr = lua_tostring(L, 1);
+		if(pStrPtr)
+			t.s_s = pStrPtr;
+		else
+			t.s_s = "";
 	}
 	if (n == 2)
 	{
 		t.e = lua_tonumber(L, 1);
-		t.s_s = lua_tostring(L, 2);
+		const char* pStrPtr = lua_tostring(L, 2);
+		if (pStrPtr)
+			t.s_s = pStrPtr;
+		else
+			t.s_s = "";
 	}
 	switch (eInternalCommandValue)
 	{
 		case enum_jumptolevel: lua_jumptolevel(); break;
 		case enum_promptlocal: lua_promptlocal(); break;
 		case enum_playcharactersound: character_sound_play(); break;
-		case enum_switchpageback: lua_switchpageback(); break;
 		case enum_promptduration: lua_promptduration(); break;
 		case enum_changeplayerweapon: entity_lua_changeplayerweapon(); break;
 		case enum_levelfilenametoload: lua_levelfilenametoload(); break;
 		case enum_switchscript: entity_lua_switchscript(); break;
 		case enum_prompt: lua_prompt(); break;
-		case enum_texttxt: lua_text(); break;
+		case enum_texttxt: t.luaText.txt = t.s_s; lua_text(); break;
 		case enum_setskyto: lua_set_sky(); break;
 		case enum_musicload: lua_musicload(); break;
 		case enum_switchpage: lua_switchpage(); break;
@@ -11178,7 +11204,6 @@ int int_core_sendmessages(lua_State* L, eInternalCommandNames eInternalCommandVa
 int SendMessageS_jumptolevel(lua_State* L) { return int_core_sendmessages(L, enum_jumptolevel); }
 int SendMessageS_promptlocal(lua_State* L) { return int_core_sendmessages(L, enum_promptlocal); }
 int SendMessageS_playcharactersound(lua_State* L) { return int_core_sendmessages(L, enum_playcharactersound); }
-int SendMessageS_switchpageback(lua_State* L) { return int_core_sendmessages(L, enum_switchpageback); }
 int SendMessageS_promptduration(lua_State* L) { return int_core_sendmessages(L, enum_promptduration); }
 int SendMessageS_changeplayerweapon(lua_State* L) { return int_core_sendmessages(L, enum_changeplayerweapon); }
 int SendMessageS_levelfilenametoload(lua_State* L) { return int_core_sendmessages(L, enum_levelfilenametoload); }
@@ -11197,7 +11222,6 @@ void addInternalFunctions_string()
 	lua_register(lua, "SendMessageS_jumptolevel", SendMessageS_jumptolevel);
 	lua_register(lua, "SendMessageS_promptlocal", SendMessageS_promptlocal);
 	lua_register(lua, "SendMessageS_playcharactersound", SendMessageS_playcharactersound);
-	lua_register(lua, "SendMessageS_switchpageback", SendMessageS_switchpageback);
 	lua_register(lua, "SendMessageS_promptduration", SendMessageS_promptduration);
 	lua_register(lua, "SendMessageS_changeplayerweapon", SendMessageS_changeplayerweapon);
 	lua_register(lua, "SendMessageS_levelfilenametoload", SendMessageS_levelfilenametoload);
@@ -11217,6 +11241,7 @@ void addInternalFunctions_string()
 void addFunctions()
 {
 	// add internal commands
+	addInternalFunctions_nones();
 	addInternalFunctions_integer();
 	addInternalFunctions_float();
 	addInternalFunctions_string();

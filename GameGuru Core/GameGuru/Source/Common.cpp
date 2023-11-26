@@ -122,12 +122,13 @@ void common_init ( void )
 	_chdir(g_WindowsTempDirectory);
 	_mkdir("dbpdata");
 	// path to location of all files we want to decrypt
-	LPSTR pPathToClassicEncryptedFiles = "F:\\Hunted One Step Too Far DECRYPTED";
+	LPSTR pPathToClassicEncryptedFiles = "C:\\DEV\\DOWNLOADS\\game-to-change";
 	// set to work path and add everything from Files to a list
 	SetDir(pPathToClassicEncryptedFiles);
 	addallinfoldertocollection("Files","");
 	// go through all files in list and decrypt the ones marked _e_
 	SetDir("Files");
+	cStr pFilesRootDir = GetDir();
 	SetCanUse_e_(1);
 	for ( int f = 1; f <= g.filecollectionmax; f++ )
 	{
@@ -161,14 +162,25 @@ void common_init ( void )
 				if (strlen(pActualFile) > 0)
 				{
 					// copy new decrypted file
-					strcat(pNewDecryptedFilename, pActualFile);
+					char pAbsDestFile[MAX_PATH];
+					strcpy(pAbsDestFile, pFilesRootDir.Get());
+					strcat(pAbsDestFile, pNewDecryptedFilename);
+					strcat(pAbsDestFile, pActualFile);
+
+					//strcat(pNewDecryptedFilename, pActualFile);
 					//MessageBoxA(NULL, pNewDecryptedFilename, pNewDecryptedFilename, MB_OK);
-					CopyFileA(pVirtualFilename, pNewDecryptedFilename, FALSE);
+					//CopyFileA(pVirtualFilename, pNewDecryptedFilename, FALSE);
+					CopyFileA(pVirtualFilename, pAbsDestFile, FALSE);
 
 					// if copy was successful, delete old encrypted file
-					if (FileExist(pNewDecryptedFilename) == 1)
+					//if (FileExist(pNewDecryptedFilename) == 1)
+					char pAbsSrcFileToDelete[MAX_PATH];
+					strcpy(pAbsSrcFileToDelete, pFilesRootDir.Get());
+					strcat(pAbsSrcFileToDelete, pThisFile);
+					if (FileExist(pAbsDestFile) == 1)
 					{
-						DeleteFileA(pThisFile);
+						//DeleteFileA(pThisFile);
+						DeleteFileA(pAbsSrcFileToDelete);
 					}
 				}
 			}

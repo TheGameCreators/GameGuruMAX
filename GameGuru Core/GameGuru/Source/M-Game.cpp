@@ -1445,30 +1445,6 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	game_preparelevel ( );
 	game_preparelevel_forplayer ( );
 
-	#ifdef WICKEDENGINE
-	/* now have QUAT so can improve on this hack!
-	//PE: Make sure everything is setup correct.
-	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
-	{
-		if (t.entityelement[t.e].obj > 0 && t.e < g.entityelementlist)
-		{
-			int masterid = t.entityelement[t.e].bankindex;
-			if (masterid > 0 && (t.entityprofile[masterid].ragdoll == 1 || t.entityprofile[masterid].ischaracter == 1))
-			{
-				//PE: In new quat rotation we can get x=-180 z=180 or -180 and everything gets inverted. so make sure when char and ragdoll we use x=0,z=0.
-				//t.entityelement[t.e].rx = 0;
-				//t.entityelement[t.e].rz = 0;
-				if (fabs(t.entityelement[t.e].rx) >= 170 && fabs(t.entityelement[t.e].rz) >= 170)
-				{
-					//LB: not pretty or ideal, what is the best method of un-inverting a euler rotation from -180,44,-179/etc to 0,44+180,0?
-					t.entityelement[t.e].rx = 0;
-					t.entityelement[t.e].ry += 180.0f;
-					t.entityelement[t.e].rz = 0;
-				}
-			}
-		}
-	}
-	*/
 	//LB: some corruption in older levels, can correct here (level editor also corrects, but not for levels loaded and ran)
 	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 	{
@@ -1481,9 +1457,6 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 			}
 		}
 	}
-	#else
-	// VRQ and Classic can have characters lying on floor, etc, so preserve X and z rotations
-	#endif
 
 	#ifdef WICKEDENGINE
 	sprintf_s(pProgressStr, 256, "FINALIZING LEVEL DATA - %d\\100 Complete", 15);
@@ -3637,6 +3610,10 @@ float GetWAVtoLIPProgress(void);
 
 void game_preparelevel ( void )
 {
+	// need the latest refreshed gunlist for each new level
+	extern bool g_bGunListNeedsRefreshing;
+	g_bGunListNeedsRefreshing = true;
+
 	//Dave Performance - ensure sound volume is 0
 	// 271115 - Dave, you just wiped out all dynamic music volume!
 	//g.musicsystem.percentageVolume = 0;

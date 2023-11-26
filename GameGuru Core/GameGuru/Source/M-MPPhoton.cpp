@@ -8924,8 +8924,6 @@ void mp_text ( int x, int y, int size, char* txt_s )
 	t.luaText.y = y;
 	t.luaText.size = size;
 	lua_text ( );
-//endfunction
-
 }
 
 void mp_textDots ( int x, int y, int size, char* txt_s )
@@ -8943,8 +8941,6 @@ void mp_textDots ( int x, int y, int size, char* txt_s )
 	t.luaText.y = y;
 	t.luaText.size = size;
 	lua_text ( );
-//endfunction
-
 }
 
 void mp_textColor ( int x, int y, int size, char* txt_s, int r, int gg, int b )
@@ -8958,8 +8954,6 @@ void mp_textColor ( int x, int y, int size, char* txt_s, int r, int gg, int b )
 	g.mp.steamColorGreen = gg;
 	g.mp.steamColorBlue = b;
 	lua_text ( );
-//endfunction
-
 }
 
 void mp_panel ( int x, int y, int x2, int y2 )

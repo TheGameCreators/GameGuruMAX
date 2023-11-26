@@ -13590,6 +13590,8 @@ void mapeditorexecutable_loop(void)
 				timestampactivity(0, "RESCANNING G-LIST");
 				//gun_scaninall_ref(); can mess up slot order, just adds any new ones now
 				//gun_scaninall_dataonly();
+				extern bool g_bGunListNeedsRefreshing;
+				g_bGunListNeedsRefreshing = true;
 				gun_scaninall_findnewlyaddedgun();
 				decal_scaninall_findnewlyaddedgun();
 				if (g_iRefreshLibraryFolders == 1)
@@ -30312,6 +30314,10 @@ void gridedit_clear_map ( void )
 	//  Ensure whether New or Load, physics tweakables for player are reset
 	physics_inittweakables ( );
 
+	// new and loaded levels need a refreshed gunlist
+	extern bool g_bGunListNeedsRefreshing;
+	g_bGunListNeedsRefreshing = true;
+
 	//  Set modification flag
 	g.projectmodified = 0 ; gridedit_changemodifiedflag ( );
 	g.projectmodifiedstatic = 0;
@@ -30840,14 +30846,13 @@ void gridedit_updatestatusbar ( void )
 
 void gridedit_load_map ( void )
 {
-#ifdef WICKEDENGINE
 	ClearAllGroupLists();
 	t.widget.pickedEntityIndex = 0;
 	t.gridentity = 0;
+
 	//Stop delete any particle effects.
 	gpup_deleteAllEffects();
 
-#endif
 	//  Load map data
 	editor_hideall3d ( );
 

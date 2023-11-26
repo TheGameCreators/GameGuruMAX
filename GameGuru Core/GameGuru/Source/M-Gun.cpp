@@ -9,6 +9,8 @@
 //  GUN CODE (common)
 // 
 
+bool g_bGunListNeedsRefreshing = true;
+
 int constexpr conststrlen( const char* str )
 {
 	return *str ? 1 + conststrlen(str + 1) : 0;
@@ -2026,71 +2028,78 @@ void gun_findweaponindexbyname_core ( void )
 void gun_scaninall_findnewlyaddedgun (void)
 {
 	// if find gun that is not in list, if find, flag is 'found'
-	// store original gunid
-	t.storegunid = t.gunid;
-
-	// Scan entire guns folder (again)
-	LPSTR pRootDir = GetDir();
-	for (int iGunsInTwoFolders = 0; iGunsInTwoFolders < 2; iGunsInTwoFolders++)
+	// this is expensive, so only do it IF gunlist flag has been reset (when exe starts, start of every level, etc)
+	if (g_bGunListNeedsRefreshing == true)
 	{
-		char pathToUse[MAX_PATH];
-		if (iGunsInTwoFolders == 0)
+		// store original gunid
+		t.storegunid = t.gunid;
+
+		// Scan entire guns folder (again)
+		LPSTR pRootDir = GetDir();
+		for (int iGunsInTwoFolders = 0; iGunsInTwoFolders < 2; iGunsInTwoFolders++)
 		{
-			// root folder - already here
-			strcpy(pathToUse, "");
-		}
-		if (iGunsInTwoFolders == 1)
-		{
-			// writable folder - switch to it
-			strcpy(pathToUse, pRootDir);
-			GG_GetRealPath(pathToUse, 0);
-			SetDir(pathToUse);
-		}
-		if (PathExist("gamecore") == 1)
-		{
-			SetDir ("gamecore");
-			UnDim (t.filelist_s);
-			buildfilelist(g.fpgchuds_s.Get(), "");
-			SetDir ("..");
-			if (ArrayCount(t.filelist_s) > 0)
+			char pathToUse[MAX_PATH];
+			if (iGunsInTwoFolders == 0)
 			{
-				for (t.chkfile = 0; t.chkfile <= ArrayCount(t.filelist_s); t.chkfile++)
+				// root folder - already here
+				strcpy(pathToUse, "");
+			}
+			if (iGunsInTwoFolders == 1)
+			{
+				// writable folder - switch to it
+				strcpy(pathToUse, pRootDir);
+				GG_GetRealPath(pathToUse, 0);
+				SetDir(pathToUse);
+			}
+			if (PathExist("gamecore") == 1)
+			{
+				SetDir ("gamecore");
+				UnDim (t.filelist_s);
+				buildfilelist(g.fpgchuds_s.Get(), "");
+				SetDir ("..");
+				if (ArrayCount(t.filelist_s) > 0)
 				{
-					t.file_s = t.filelist_s[t.chkfile];
-					if (t.file_s != "." && t.file_s != "..")
+					for (t.chkfile = 0; t.chkfile <= ArrayCount(t.filelist_s); t.chkfile++)
 					{
-						if (cstr(Lower(Right(t.file_s.Get(), 11))) == "gunspec.txt")
+						t.file_s = t.filelist_s[t.chkfile];
+						if (t.file_s != "." && t.file_s != "..")
 						{
-							t.findgun_s = Left(t.file_s.Get(), Len(t.file_s.Get()) - 12);
-							gun_findweaponindexbyname_core ();
-							if (t.foundgunid == 0)
+							if (cstr(Lower(Right(t.file_s.Get(), 11))) == "gunspec.txt")
 							{
-								++g.gunmax;
-								if (g.gunmax > g.maxgunsinengine)  g.gunmax = g.maxgunsinengine;
-								t.gun[g.gunmax].path_s = pathToUse;
-								t.gun[g.gunmax].name_s = t.findgun_s;
-								t.gunid = g.gunmax;
-								t.gun_s = t.findgun_s;
-								gun_loaddata ();
-								t.strwork = ""; t.strwork = t.strwork + "newly added gun " + Str(t.gunid) + ":" + t.file_s;
-								timestampactivity(0, t.strwork.Get());
+								t.findgun_s = Left(t.file_s.Get(), Len(t.file_s.Get()) - 12);
+								gun_findweaponindexbyname_core ();
+								if (t.foundgunid == 0)
+								{
+									++g.gunmax;
+									if (g.gunmax > g.maxgunsinengine)  g.gunmax = g.maxgunsinengine;
+									t.gun[g.gunmax].path_s = pathToUse;
+									t.gun[g.gunmax].name_s = t.findgun_s;
+									t.gunid = g.gunmax;
+									t.gun_s = t.findgun_s;
+									gun_loaddata ();
+									t.strwork = ""; t.strwork = t.strwork + "newly added gun " + Str(t.gunid) + ":" + t.file_s;
+									timestampactivity(0, t.strwork.Get());
+								}
 							}
 						}
 					}
 				}
 			}
 		}
+
+		// and restore root folder
+		SetDir(pRootDir);
+
+		// report total number of guns
+		t.strwork = ""; t.strwork = t.strwork + "new total guns=" + Str(g.gunmax);
+		timestampactivity(0, t.strwork.Get());
+
+		// only refresh when necessary (performance hit)
+		g_bGunListNeedsRefreshing = false;
+
+		// restore original gunid
+		t.gunid = t.storegunid;
 	}
-
-	// and restore root folder
-	SetDir(pRootDir);
-
-	// report total number of guns
-	t.strwork = ""; t.strwork = t.strwork + "new total guns=" + Str(g.gunmax);
-	timestampactivity(0, t.strwork.Get());
-
-	// restore original gunid
-	t.gunid = t.storegunid;
 }
 
 void gun_scaninall_findnewlyaddedgun_old ( void )

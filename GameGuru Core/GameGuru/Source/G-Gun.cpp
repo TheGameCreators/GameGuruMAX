@@ -4141,6 +4141,10 @@ void gun_setup ( void )
 
 void gun_gatherslotorder_load(void)
 {
+	// on the off chance we need the latest refreshed gunlist
+	extern bool g_bGunListNeedsRefreshing;
+	g_bGunListNeedsRefreshing = true;
+
 	t.tslotmax = 0;
 	g.gunslotmax = 0;
 	LPSTR pWeaponSlotFile = "editors\\keymap\\weaponslots.dat";

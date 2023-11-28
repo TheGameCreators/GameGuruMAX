@@ -2983,12 +2983,54 @@ void animsystem_weaponproperty (int characterbasetype, bool readonly, entityelep
 	t.tfile_s = cstr("gamecore\\guns\\") + edit_grideleprof->hasweapon_s + cstr("\\HUD.dbo");
 	if (FileExist(t.tfile_s.Get()) == 1)
 	{
-		bool bCanTakeWeapon = edit_grideleprof->cantakeweapon;
-		if (ImGui::Checkbox("Player Can Take Weapon", &bCanTakeWeapon))
+		// any weapon specified may be dropped, and so needs to exist in the level so it can be cloned later
+		bool bThisWeaponIsInLevel = false;
+		for (int n = 0; n < g_collectionList.size(); n++)
 		{
-			edit_grideleprof->cantakeweapon = bCanTakeWeapon;
+			if (g_collectionList[n].collectionFields.size() > 8)
+			{
+				if (g_collectionList[n].iEntityID > 0)
+				{
+					LPSTR pCollectionItemWeapon = g_collectionList[n].collectionFields[8].Get();
+					if (strlen(pCollectionItemWeapon) > 7)
+					{
+						LPSTR pJustWeaponPathAndName = pCollectionItemWeapon + 7; // weapon= skip
+						if (stricmp(pJustWeaponPathAndName, pSelectedWeapon) == NULL)
+						{
+							// also check the entity ACTUALLY exists (user may delete it suddenly)
+							int actualE = g_collectionList[n].iEntityElementE;
+							if (actualE > 0 && actualE < t.entityelement.size())
+							{
+								// collection lists can sometimes have blank entity references (old level corruptions)
+								if (t.entityelement[actualE].bankindex > 0 && t.entityelement[actualE].profileobj > 0)
+								{
+									// only drop if definately have an object to drop
+									bThisWeaponIsInLevel = true;
+								}
+							}
+							break;
+						}
+					}
+				}
+			}
 		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tick to allow the player to take the weapon when this character dies");
+		bool bCanTakeWeapon = false;
+		if (bThisWeaponIsInLevel == true)
+		{
+			bCanTakeWeapon = edit_grideleprof->cantakeweapon;
+			if (ImGui::Checkbox("Player Can Take Weapon", &bCanTakeWeapon))
+			{
+				edit_grideleprof->cantakeweapon = bCanTakeWeapon;
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Tick to allow the player to take the weapon when this character dies");
+		}
+		else
+		{
+			// weapon is not physically in the level so cannot be dropped
+			edit_grideleprof->cantakeweapon = false;
+			ImGui::Text("NOTE: Weapon object is not in this level so cannot be dropped");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("This weapon can be dropped if you physically add the weapon object associated with this weapon to the level");
+		}
 		if (bCanTakeWeapon)
 		{
 			// only if weapon shoots, no sense for melee weapons

@@ -1385,6 +1385,9 @@ bool entity_load (bool bCalledFromLibrary)
 			t.findgun_s = Lower(t.entityprofile[t.entid].isweapon_s.Get()); gun_findweaponindexbyname();
 			t.entityprofile[t.entid].isweapon = t.foundgunid;
 			if (t.foundgunid > 0)  t.gun[t.foundgunid].activeingame = 1;
+
+			// all weapons are naturally collectable by default
+			t.entityprofile[t.entid].iscollectable = 1;
 		}
 		else
 		{
@@ -6491,7 +6494,10 @@ void entity_loadelementsdata(void)
 											{
 												if (stricmp (t.gun[gunid].name_s.Get(), pWeaponName) == NULL)
 												{
-													g_collectionList[n].collectionFields[1] = t.gun[gunid].pathtostockentity_s;
+													if (t.gun[gunid].pathtostockentity_s.Len() > 0)
+													{
+														g_collectionList[n].collectionFields[1] = t.gun[gunid].pathtostockentity_s;
+													}
 												}
 											}
 										}
@@ -6502,13 +6508,16 @@ void entity_loadelementsdata(void)
 							{
 								// do a direct search for it
 								LPSTR pCollectionItemProfile = g_collectionList[n].collectionFields[1].Get();
-								for (int entid = 1; entid <= g.entidmastermax; entid++)
+								if (strlen(pCollectionItemProfile) > 0)
 								{
-									if (stricmp (t.entitybank_s[entid].Get(), pCollectionItemProfile) == NULL)
+									for (int entid = 1; entid <= g.entidmastermax; entid++)
 									{
-										g_collectionList[n].iEntityID = entid;
-										bFoundIt = true;
-										break;
+										if (stricmp (t.entitybank_s[entid].Get(), pCollectionItemProfile) == NULL)
+										{
+											g_collectionList[n].iEntityID = entid;
+											bFoundIt = true;
+											break;
+										}
 									}
 								}
 							}

@@ -74,7 +74,7 @@ std::vector<AutoSwapData*> g_headGearMandatorySwaps;
 AutoSwapData* g_previousAutoSwap = nullptr;
 #define MAXPARTICONS 100
 int g_iPartsThatNeedReloaded[8] = { 0 };
-int g_iPartsIconsIDs[4][8][MAXPARTICONS];
+int g_iPartsIconsIDs[32][8][MAXPARTICONS];
 bool g_bPartIconsInit = false;
 char g_SkinTextureStorage[MAX_PATH]; // Stores the skin tone texture when the face is changed. Referenced when changing the face to fit certain headgear.
 std::vector<char*> g_restrictedParts;
@@ -1680,6 +1680,7 @@ void charactercreatorplus_refreshtype(void)
 	{
 		char pDefault[32];
 		char pDefaultVariant[32];
+		strcpy(pDefaultVariant, "");
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 1, pDefault, pDefaultVariant);
 		sprintf(cSelectedBody, "%s body %s", CCP_Type, pDefaultVariant);
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 2, pDefault, pDefaultVariant);
@@ -1689,7 +1690,10 @@ void charactercreatorplus_refreshtype(void)
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 4, pDefault, pDefaultVariant);
 		sprintf(cSelectedFeet, "%s feet %s", CCP_Type, pDefaultVariant);
 		charactercreatorplus_GetDefaultCharacterPartNum(iBase, 5, pDefault, pDefaultVariant);
-		sprintf(cSelectedHair, "%s hair %s", CCP_Type, pDefaultVariant);
+		if(strlen(pDefaultVariant)>0)
+			sprintf(cSelectedHair, "%s hair %s", CCP_Type, pDefaultVariant);
+		else
+			strcpy(cSelectedHair, "None");
 	}
 	else
 	{
@@ -2954,7 +2958,7 @@ void charactercreatorplus_imgui_v3(void)
 	{
 		if (!g_bPartIconsInit)
 		{
-			for (int b = 0; b < 4; b++)
+			for (int b = 0; b < 32; b++)
 			{
 				for (int i = 0; i < 8; i++)
 				{
@@ -3486,10 +3490,14 @@ void charactercreatorplus_imgui_v3(void)
 					CharacterCreatorCurrentAnnotated_s = CharacterCreatorAnnotatedLegs_s;
 					CharacterCreatorCurrentAnnotatedTag_s = CharacterCreatorAnnotatedTagLegs_s;
 					field_name = "Legs";
-					// before allowng selected legs through, check they comply with our cSelectedLegsFilter filter
-					bool bAllow = false;
 					LPSTR pAnnotatedLabel = charactercreatorplus_findannotation(cSelectedLegs);
-					if (strlen(cSelectedLegsFilter) == 0 && strnicmp(cSelectedLegs + strlen(cSelectedLegs) - 2, "01", 2) != NULL) bAllow = true;
+					bool bAllow = false;
+					// before allowng selected legs through, check they comply with our cSelectedLegsFilter filter
+					if (strlen(cSelectedLegsFilter) == 0)
+					{
+						if (item_current_type_selection <= 3 && strnicmp(cSelectedLegs + strlen(cSelectedLegs) - 2, "01", 2) != NULL) bAllow = true;
+						if (item_current_type_selection > 3) bAllow = true;
+					}
 					if (strlen(cSelectedLegsFilter) > 0 && pAnnotatedLabel && strstr(pAnnotatedLabel, cSelectedLegsFilter) != NULL) bAllow = true;
 					if (bAllow == true)
 					{
@@ -3506,7 +3514,11 @@ void charactercreatorplus_imgui_v3(void)
 							std::string thistag = annotated->second;
 							bool bThisAllow = false;
 							LPSTR pThisName = (char*)thisname.c_str();
-							if (strlen(cSelectedLegsFilter) == 0 && strnicmp(pThisName + strlen(pThisName) - 2, "01", 2) != NULL) bThisAllow = true;
+							if (strlen(cSelectedLegsFilter) == 0)
+							{
+								if (item_current_type_selection <= 3 && strnicmp(pThisName + strlen(pThisName) - 2, "01", 2) != NULL) bThisAllow = true;
+								if (item_current_type_selection > 3) bAllow = true;
+							}
 							if (strlen(cSelectedLegsFilter) > 0 && strstr(thistag.c_str(), cSelectedLegsFilter) != NULL) bThisAllow = true;
 							if (bThisAllow == true)
 							{
@@ -3621,14 +3633,18 @@ void charactercreatorplus_imgui_v3(void)
 
 						// only allow if part has no filter or filter within name
 						bool bThisAllow = false;
-						if (part_number == 6 || part_number == 7)
+						if ( part_number == 6 || part_number == 7 )
 						{
 							LPSTR pThisName = (char*)name.c_str();
 							if (part_number == 6)
 							{
 								// only allow specific legs
 								LPSTR pThisAnnotatedName = (char*)annotated->second.c_str();
-								if (strlen(cSelectedLegsFilter) == 0 && strnicmp(pThisName + strlen(pThisName) - 2, "01", 2) != NULL) bThisAllow = true;
+								if (strlen(cSelectedLegsFilter) == 0)
+								{
+									if (item_current_type_selection <= 3 && strnicmp(pThisName + strlen(pThisName) - 2, "01", 2) != NULL) bThisAllow = true;
+									if (item_current_type_selection > 3) bThisAllow = true;
+								}
 								if (strlen(cSelectedLegsFilter) > 0 && strstr(pThisAnnotatedName, cSelectedLegsFilter) != NULL) bThisAllow = true;
 							}
 							if (part_number == 7)

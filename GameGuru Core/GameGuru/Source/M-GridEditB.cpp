@@ -2696,6 +2696,7 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 		{
 			if (forcharacters == true)
 			{
+				/* noone liked this, instead having a selection of a non-level weapon to be dynamically added
 				// if character weapon, they may need to drop it, so confirm this weapon is also in collectibles list
 				bIncludeThisWeapon = false;
 				for (int n = 0; n < g_collectionList.size(); n++)
@@ -2717,6 +2718,7 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 						}
 					}
 				}
+				*/
 			}
 		}
 		if (bIncludeThisWeapon == true)

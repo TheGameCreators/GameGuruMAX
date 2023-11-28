@@ -790,75 +790,101 @@ bool refresh_collection_from_entities(void)
 	for (int e = 1; e < g.entityelementmax; e++)
 	{
 		int entid = t.entityelement[e].bankindex;
-		bool bHaveThisWeaponInList = false;
-		LPSTR pThisWeaponName = t.entityprofile[entid].isweapon_s.Get();
-		bool bHoldingWeaponOnly = false;
-		if (strlen(pThisWeaponName) == 0)
+		if (entid > 0)
 		{
-			pThisWeaponName = t.entityelement[e].eleprof.hasweapon_s.Get();
-			bHoldingWeaponOnly = true;
-		}
-		if (strlen(pThisWeaponName) > 0)
-		{
-			// find weapon in list
-			cstr thisWeaponTitle = gun_names_tonormal(pThisWeaponName);
-			for (int n = 0; n < g_collectionList.size(); n++)
+			bool bHoldingWeaponOnly = false;
+			bool bHaveThisWeaponInList = false;
+			LPSTR pThisWeaponName = t.entityprofile[entid].isweapon_s.Get();
+			if (strlen(pThisWeaponName) == 0)
 			{
-				if (g_collectionList[n].collectionFields.size() > 8)
+				pThisWeaponName = t.entityelement[e].eleprof.hasweapon_s.Get();
+				bHoldingWeaponOnly = true;
+			}
+			if (strlen(pThisWeaponName) > 0)
+			{
+				// find weapon in list
+				int iCollectionListIndex = -1;
+				cstr thisWeaponTitle = gun_names_tonormal(pThisWeaponName);
+				for (int n = 0; n < g_collectionList.size(); n++)
 				{
-					// primary method to check style field for true weapon reference
-					LPSTR pCollectionItemWeaponPath = g_collectionList[n].collectionFields[8].Get();
-					if (strnicmp(pCollectionItemWeaponPath,"weapon=",7)==NULL )
+					if (g_collectionList[n].collectionFields.size() > 8)
 					{
-						if (stricmp(pThisWeaponName, pCollectionItemWeaponPath+7) == NULL)
+						// primary method to check style field for true weapon reference
+						LPSTR pCollectionItemWeaponPath = g_collectionList[n].collectionFields[8].Get();
+						if (strnicmp(pCollectionItemWeaponPath, "weapon=", 7) == NULL)
 						{
-							bHaveThisWeaponInList = true;
-							break;
-						}
-					}
-					else
-					{
-						// fallback is item title (though not fool proof it preserves previous system for now)
-						// but maybe leads to false positives if future weapons have same name as others (i.e pistol)
-						// so do extra checks for older style weapons having NONE and NONE in PROFILE and STYLE
-						if ( stricmp (g_collectionList[n].collectionFields[8].Get(), "none") == NULL )
-						{
-							LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
-							if (strlen(pCollectionItemTitle) > 0)
+							if (stricmp(pThisWeaponName, pCollectionItemWeaponPath + 7) == NULL)
 							{
-								if (stricmp(thisWeaponTitle.Get(), pCollectionItemTitle) == NULL)
+								bHaveThisWeaponInList = true;
+								iCollectionListIndex = n;
+								break;
+							}
+						}
+						else
+						{
+							// fallback is item title (though not fool proof it preserves previous system for now)
+							// but maybe leads to false positives if future weapons have same name as others (i.e pistol)
+							// so do extra checks for older style weapons having NONE and NONE in PROFILE and STYLE
+							if (stricmp (g_collectionList[n].collectionFields[8].Get(), "none") == NULL)
+							{
+								LPSTR pCollectionItemTitle = g_collectionList[n].collectionFields[0].Get();
+								if (strlen(pCollectionItemTitle) > 0)
 								{
-									bHaveThisWeaponInList = true;
-									break;
+									if (stricmp(thisWeaponTitle.Get(), pCollectionItemTitle) == NULL)
+									{
+										bHaveThisWeaponInList = true;
+										iCollectionListIndex = n;
+										break;
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-			if (bHaveThisWeaponInList == false)
-			{
-				// weapon not in list, add it (isweapon or hasweapon)
-				bool bValid = false;
-				collectionItemType collectionitem;
-				if (bHoldingWeaponOnly == true)
+				if (bHaveThisWeaponInList == true)
 				{
-					// add just the weapon indicated
-					bValid = fill_rpg_item_defaults(&collectionitem, 0, e); // uses iAddThisItem mode 5 (weapon in eleprof)
+					// have the weapon, but if is not connected to a real inlevel object, can assign this now
+					if (iCollectionListIndex != -1)
+					{
+						// can assign this now if the entity found is the actual weapon
+						if (bHoldingWeaponOnly == false)
+						{
+							if (g_collectionList[iCollectionListIndex].iEntityID == 0)
+							{
+								g_collectionList[iCollectionListIndex].iEntityID = entid;
+								g_collectionList[iCollectionListIndex].iEntityElementE = e;
+							}
+						}
+
+						// and save to collection list
+						extern bool g_bChangedGameCollectionList;
+						g_bChangedGameCollectionList = true;
+					}
 				}
 				else
 				{
-					// entity itself is the collectible
-					bValid = fill_rpg_item_defaults(&collectionitem, entid, e);
-				}
-				if (bValid)
-				{
-					g_collectionList.push_back(collectionitem);
-				}
+					// weapon not in list, add it (isweapon or hasweapon)
+					bool bValid = false;
+					collectionItemType collectionitem;
+					if (bHoldingWeaponOnly == true)
+					{
+						// add just the weapon indicated
+						bValid = fill_rpg_item_defaults(&collectionitem, 0, e); // uses iAddThisItem mode 5 (weapon in eleprof)
+					}
+					else
+					{
+						// entity itself is the collectible
+						bValid = fill_rpg_item_defaults(&collectionitem, entid, e);
+					}
+					if (bValid)
+					{
+						g_collectionList.push_back(collectionitem);
+					}
 
-				// and save to collection list
-				extern bool g_bChangedGameCollectionList;
-				g_bChangedGameCollectionList = true;
+					// and save to collection list
+					extern bool g_bChangedGameCollectionList;
+					g_bChangedGameCollectionList = true;
+				}
 			}
 		}
 	}

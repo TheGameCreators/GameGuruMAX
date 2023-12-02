@@ -1865,7 +1865,10 @@ void gun_createhud ( cstr customArms_s )
 		int iWeapObj = g.temp2objectoffset;
 		if (ObjectExist(iWeapObj) == 1) DeleteObject(iWeapObj);
 		LoadObject (pAbsPathToWeaponModel.Get(), iWeapObj);
-		OffsetLimb(iWeapObj, 1, t.gun[t.gunid].weaponposx_f, t.gun[t.gunid].weaponposy_f, t.gun[t.gunid].weaponposz_f);
+		if(LimbExist(iWeapObj,1)==1)
+			OffsetLimb(iWeapObj, 1, t.gun[t.gunid].weaponposx_f, t.gun[t.gunid].weaponposy_f, t.gun[t.gunid].weaponposz_f);
+		else
+			OffsetLimb(iWeapObj, 0, t.gun[t.gunid].weaponposx_f, t.gun[t.gunid].weaponposy_f, t.gun[t.gunid].weaponposz_f);
 		TurnObjectRight(iWeapObj, t.gun[t.gunid].weaponrotx_f);
 		RollObjectRight(iWeapObj, t.gun[t.gunid].weaponroty_f);
 		PitchObjectDown(iWeapObj, t.gun[t.gunid].weaponrotz_f);

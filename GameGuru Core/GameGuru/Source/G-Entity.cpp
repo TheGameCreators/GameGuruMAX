@@ -4145,7 +4145,11 @@ void entity_createattachment ( void )
 									if (t.gun[iGunID].handusesnewweaponsystem == 1)
 									{
 										// new weapon system, matches weapon pos and rot of player HUD custom hands
-										OffsetLimb(t.ttobj, 1, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+										if (LimbExist(t.ttobj, 1) == 1)
+											OffsetLimb(t.ttobj, 1, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+										else
+											OffsetLimb(t.ttobj, 0, t.gun[iGunID].handposx_f, t.gun[iGunID].handposy_f, t.gun[iGunID].handposz_f);
+
 										TurnObjectRight(t.ttobj, t.gun[iGunID].handrotx_f);
 										RollObjectRight(t.ttobj, t.gun[iGunID].handroty_f);
 										PitchObjectDown(t.ttobj, t.gun[iGunID].handrotz_f);

@@ -12646,6 +12646,7 @@ void mapeditorexecutable_loop(void)
 							if (strstr(pCaptureAnyScriptDesc, "<If Used>") != 0) bIfUsedMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Shooting Weapon>") != 0) bShootingWeaponMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Melee Weapon>") != 0) bMeleeWeaponMentioned = true;
+							if (strstr(pCaptureAnyScriptDesc, "<Any Weapon>") != 0) { bShootingWeaponMentioned = true; bMeleeWeaponMentioned = true; }
 							if (strstr(pCaptureAnyScriptDesc, "<Unarmed>") != 0) bUnarmedMentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Soldier Animations>") != 0) iAnimationSetMentioned = 1;
 							if (strstr(pCaptureAnyScriptDesc, "<Melee Animations>") != 0) iAnimationSetMentioned = 2;
@@ -12662,19 +12663,19 @@ void mapeditorexecutable_loop(void)
 							bool readonly = false;
 							if (bShootingWeaponMentioned == true || bMeleeWeaponMentioned == true)
 							{
-								if (t.entityprofile[t.gridentity].ischaracter == 1)
-								{
+								//if (t.entityprofile[t.gridentity].ischaracter == 1) any behavior can show a weapon choice now!
+								//{
 									extern void animsystem_weaponproperty (int, bool, entityeleproftype*, bool, bool);
 									animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, bShootingWeaponMentioned, bMeleeWeaponMentioned);
-								}
+								//}
 							}
 							else if (bUnarmedMentioned)
 							{
-								if (t.entityprofile[t.gridentity].ischaracter == 1)
-								{
+								//if (t.entityprofile[t.gridentity].ischaracter == 1) any behavior can show a weapon choice now!
+								//{
 									extern void animsystem_weaponproperty(int, bool, entityeleproftype*, bool, bool);
 									animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, false, false);
-								}
+								//}
 							}
 							if (iAnimationSetMentioned > 0)
 							{

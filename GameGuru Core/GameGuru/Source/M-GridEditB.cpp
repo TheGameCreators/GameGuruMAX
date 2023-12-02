@@ -2632,8 +2632,13 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 	int gunid = 0;
 	Dim(t.list_s, 1 + g.gunmax);
 
+	// when shooting and melee both true, ALL weapons can be chosen (or none)
+	bool bForAll = false;
+	if (bForShooting == true && bForMelee == true)
+		bForAll = true;
+
 	// For drop down , so quick with no file checks.
-	if (forcharacters==true && bForShooting == true && g_bCharacterCreatorPlusActivated == false)
+	if (bForAll==false && forcharacters==true && bForShooting == true && g_bCharacterCreatorPlusActivated == false)
 	{
 		// when using shooting weapon cannot have No Weapon (use different behavior if want that)
 		t.list_s[0] = "enhanced\\Mk19T"; // standard issue pistol
@@ -2646,57 +2651,65 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 	for (gunid = 1; gunid <= g.gunmax; gunid++)
 	{
 		bool bIncludeThisWeapon = false;
-		if (bForShooting == true)
+		if (bForAll == true)
 		{
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\AK") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\AR") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\M29S") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Mk18") == NULL) bIncludeThisWeapon = true;
-			if (forcharacters == true && bForShooting == true && g_bCharacterCreatorPlusActivated == false)
-			{
-				// already included above as the default
-			}
-			else
-			{
-				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Mk19T") == NULL) bIncludeThisWeapon = true; 
-			}
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\R870") == NULL) bIncludeThisWeapon = true;
-		}
-		if (bForMelee == true)
-		{
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\B810") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Gloves_Unarmed") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\SledgeHammer") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecAxe") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecDagger") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecSpear") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Hammer") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Handsaw") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Shovel") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\Crowbar") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeScrewdriver") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeSpanner") == NULL) bIncludeThisWeapon = true;
-			if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LumpHammer") == NULL) bIncludeThisWeapon = true;
-			if (strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\weapons\\", 18) == NULL) bIncludeThisWeapon = true;
-		}
-		if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\M67") == NULL) bIncludeThisWeapon = false;
-		if (forcharacters == true)
-		{
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\B810") == NULL) bIncludeThisWeapon = false;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Gloves_Unarmed") == NULL) bIncludeThisWeapon = false;
-			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\SledgeHammer") == NULL) bIncludeThisWeapon = false;
-		}
-		// any another category should be revealed for all cases (restrict later as new items come in - via gunspec!)
-		if (strnicmp(t.gun[gunid].name_s.Get(), "enhanced\\", 9) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "aztec\\", 6) != NULL 
-			&& strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\", 10) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "tools\\", 6) != NULL)
-		{
+			// all weapons should be listed
 			bIncludeThisWeapon = true;
+		}
+		else
+		{
+			if (bForShooting == true)
+			{
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\AK") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\AR") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\M29S") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Mk18") == NULL) bIncludeThisWeapon = true;
+				if (forcharacters == true && bForShooting == true && g_bCharacterCreatorPlusActivated == false)
+				{
+					// already included above as the default
+				}
+				else
+				{
+					if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Mk19T") == NULL) bIncludeThisWeapon = true;
+				}
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\R870") == NULL) bIncludeThisWeapon = true;
+			}
+			if (bForMelee == true)
+			{
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\B810") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Gloves_Unarmed") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\SledgeHammer") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecAxe") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecDagger") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "aztec\\AztecSpear") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Hammer") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Handsaw") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "tools\\Shovel") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\Crowbar") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeScrewdriver") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LargeSpanner") == NULL) bIncludeThisWeapon = true;
+				if (stricmp(t.gun[gunid].name_s.Get(), "wasteland\\tools\\LumpHammer") == NULL) bIncludeThisWeapon = true;
+				if (strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\weapons\\", 18) == NULL) bIncludeThisWeapon = true;
+			}
+			if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\M67") == NULL) bIncludeThisWeapon = false;
+			if (forcharacters == true)
+			{
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\B810") == NULL) bIncludeThisWeapon = false;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\Gloves_Unarmed") == NULL) bIncludeThisWeapon = false;
+				if (stricmp(t.gun[gunid].name_s.Get(), "enhanced\\SledgeHammer") == NULL) bIncludeThisWeapon = false;
+			}
+			// any another category should be revealed for all cases (restrict later as new items come in - via gunspec!)
+			if (strnicmp(t.gun[gunid].name_s.Get(), "enhanced\\", 9) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "aztec\\", 6) != NULL
+				&& strnicmp(t.gun[gunid].name_s.Get(), "wasteland\\", 10) != NULL && strnicmp(t.gun[gunid].name_s.Get(), "tools\\", 6) != NULL)
+			{
+				bIncludeThisWeapon = true;
+			}
 		}
 		if (bIncludeThisWeapon == true)
 		{
+			/* noone liked this, instead having a selection of a non-level weapon to be dynamically added
 			if (forcharacters == true)
 			{
-				/* noone liked this, instead having a selection of a non-level weapon to be dynamically added
 				// if character weapon, they may need to drop it, so confirm this weapon is also in collectibles list
 				bIncludeThisWeapon = false;
 				for (int n = 0; n < g_collectionList.size(); n++)
@@ -2718,8 +2731,8 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 						}
 					}
 				}
-				*/
 			}
+			*/
 		}
 		if (bIncludeThisWeapon == true)
 		{
@@ -27733,6 +27746,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		if (strstr(pCaptureAnyScriptDesc, "<Use Key>") != 0) bUseKeyMentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Shooting Weapon>") != 0) bShootingWeaponMentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Melee Weapon>") != 0) bMeleeWeaponMentioned = true;
+		if (strstr(pCaptureAnyScriptDesc, "<Any Weapon>") != 0) { bShootingWeaponMentioned = true; bMeleeWeaponMentioned = true; }
 		if (strstr(pCaptureAnyScriptDesc, "<Unarmed>") != 0) bUnarmedMentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Soldier Animations>") != 0) iAnimationSetMentioned = 1;
 		if (strstr(pCaptureAnyScriptDesc, "<Melee Animations>") != 0) iAnimationSetMentioned = 2;
@@ -27804,16 +27818,16 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			bool readonly = false;
 			if (bShootingWeaponMentioned == true || bMeleeWeaponMentioned == true)
 			{
-				if (t.entityprofile[entid].ischaracter == 1)
-				{
+				//if (t.entityprofile[entid].ischaracter == 1) any behavior can show a weapon choice now!
+				//{
 					extern void animsystem_weaponproperty (int, bool, entityeleproftype*, bool, bool);
 					animsystem_weaponproperty(t.entityprofile[entid].characterbasetype, readonly, edit_grideleprof, bShootingWeaponMentioned, bMeleeWeaponMentioned);
-				}
+				//}
 			}
 			else if (bUnarmedMentioned)
 			{
-				if (t.entityprofile[entid].ischaracter == 1)
-				{
+				//if (t.entityprofile[entid].ischaracter == 1) any behavior can show a weapon choice now!
+				//{
 					if (edit_grideleprof->hasweapon_s.Len() > 0)
 					{
 						edit_grideleprof->hasweapon_s = "";
@@ -27821,7 +27835,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 						extern bool g_bNowPopulateWithCorrectAnimSet;
 						g_bNowPopulateWithCorrectAnimSet = true;
 					}
-				}
+				//}
 			}
 			if (iAnimationSetMentioned > 0)
 			{

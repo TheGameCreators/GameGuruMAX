@@ -1809,6 +1809,10 @@ void gun_createhud ( cstr customArms_s )
 		}
 	}
 
+	// before append anim slots, must ensure slot list is empty before loadind in "hud.dat"
+	extern std::vector<sAnimSlotStruct> g_pAnimSlotList;
+	g_pAnimSlotList.clear();
+
 	// now use the animsystem appender to add animations
 	sObject* pObject = GetObjectData (t.currentgunobj);
 	cstr pAbsPathToAnim = cstr("gamecore\\") + g.fpgchuds_s + "\\" + t.gun_s + "\\resources\\";

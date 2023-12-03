@@ -780,6 +780,18 @@ luaMessage** ppLuaMessages = NULL;
 	lua_pushinteger ( L, iReturnValue );
 	return 1;
  }
+ int GetWeaponName(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int tgunid = lua_tonumber(L, 1);
+	 if(tgunid>0)
+		 lua_pushstring (L, t.gun[tgunid].name_s.Get());
+	 else
+		 lua_pushstring (L, "");
+	 return 1;
+ }
  int SetWeaponDamage(lua_State *L) { return RawSetWeaponData ( L, 1 ); }
  int SetWeaponAccuracy(lua_State *L) { return RawSetWeaponData ( L, 2 ); }
  int SetWeaponReloadQuantity(lua_State *L) { return RawSetWeaponData ( L, 3 ); }
@@ -11280,6 +11292,7 @@ void addFunctions()
 	lua_register(lua, "GetPlayerWeaponID", GetPlayerWeaponID);
 	lua_register(lua, "GetWeaponID", GetWeaponID);
 	lua_register(lua, "GetEntityWeaponID", GetEntityWeaponID);
+	lua_register(lua, "GetWeaponName", GetWeaponName);
 	lua_register(lua, "SetWeaponDamage", SetWeaponDamage);
 	lua_register(lua, "SetWeaponAccuracy", SetWeaponAccuracy);
 	lua_register(lua, "SetWeaponReloadQuantity", SetWeaponReloadQuantity);

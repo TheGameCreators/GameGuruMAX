@@ -979,7 +979,10 @@ void entity_loop ( void )
 				if (t.entityelement[t.e].ragdollplusactivate > 0)
 				{
 					// ragdoll plus triggered
-					if (t.entityelement[t.e].ragdollplusactivate < 10) t.entityelement[t.e].ragdollplusactivate += 10;
+					if (t.entityelement[t.e].ragdollplusactivate < 10)
+					{
+						t.entityelement[t.e].ragdollplusactivate += 10;
+					}
 
 					// see if we can fit a death animation into the scene
 					bool bDropAnyWeaponNow = false;
@@ -1202,11 +1205,31 @@ void entity_loop ( void )
 									break;
 								}
 							}
-							if (ObjectExist(iTempObjectForTest) == 1)
+
+							// creating objects is a performance hit, can have specific fall areas when
+							// this can be resolved
+							bool bSpecificFallAreaSizes = false;
+							if (bSpecificFallAreaSizes == true)
 							{
-								DeleteObject(iTempObjectForTest);
+								// specific fall area
+								if (ObjectExist(iTempObjectForTest) == 1)
+								{
+									DeleteObject(iTempObjectForTest);
+								}
+								MakeObjectBox (iTempObjectForTest, fFoundAreaSizeX, 5, fFoundAreaSizeZ);
 							}
-							MakeObjectBox (iTempObjectForTest, fFoundAreaSizeX, 5, fFoundAreaSizeZ);
+							else
+							{
+								// fixed fall area
+								fFoundAreaSizeX = 80;
+								fFoundAreaSizeZ = 80;
+								if (ObjectExist(iTempObjectForTest) == 0)
+								{
+									MakeObjectBox (iTempObjectForTest, fFoundAreaSizeX, 5, fFoundAreaSizeZ);
+									HideObject(iTempObjectForTest);
+								}
+							}
+
 							GGVECTOR3 vecCenter = (vecLocaMax - vecLocaMin) / 2;
 							GGVECTOR3 vecWorld = vecLocaMin + vecCenter;
 							GGVec3TransformCoord(&vecWorld, &vecWorld, &matInvRotY);

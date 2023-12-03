@@ -11,90 +11,16 @@
 
 void explosion_init ( void )
 {
-	#ifdef WICKEDENGINE
 	// legacy explosion system only used for legacy particles, now uses particleresult system for explosions
 	g.sparks = 12 + g.explosionsandfireimagesoffset;
 	LoadImage ("effectbank\\explosion\\animatedspark.dds", g.sparks, 1);
+
 	// up to 20 emitters for MANY explosions at once, and only need X parts per emitter
 	g.maxemit = 20;
 	g.totalpart = 100;
-	#else
-	// Stock explosion images
-	g.rubbletext=15+g.explosionsandfireimagesoffset;
-	g.cretetext=16+g.explosionsandfireimagesoffset;
-	g.metaltext=17+g.explosionsandfireimagesoffset;
-	g.largeexplosion=10+g.explosionsandfireimagesoffset;
-	g.sparks=12+g.explosionsandfireimagesoffset;
-	g.largeexplosion2=13+g.explosionsandfireimagesoffset;
-	g.smokedecal2=14+g.explosionsandfireimagesoffset;
-	g.rollingsmoke=20+g.explosionsandfireimagesoffset;
-	g.grenadeexplosion=21+g.explosionsandfireimagesoffset;
-
-	// Stock explosion objects
-	g.rubbleobj=1+g.explosionsandfireobjectoffset;
-	g.creteobj=2+g.explosionsandfireobjectoffset;
-	g.metalobj=3+g.explosionsandfireobjectoffset;
-
-	// Max Debris
-	g.debrismax = 5;
-	g.explosiondebrisobjectstart = 2700 + g.explosionsandfireobjectoffset;
-
-	// Explosion art
-	LoadImage ("effectbank\\explosion\\animatedspark.dds", g.sparks, 1);
-	LoadImage ("effectbank\\explosion\\explosion2.dds", g.largeexplosion, 1);
-	LoadImage ("effectbank\\explosion\\fireball.dds", g.largeexplosion2, 1);
-	if (t.game.runasmultiplayer == 1) mp_refresh ();
-	LoadImage ("effectbank\\explosion\\rollingsmoke.dds", g.rollingsmoke, 1);
-	LoadImage ("effectbank\\explosion\\explosion3.dds", g.grenadeexplosion, 1);
-	LoadImage ("effectbank\\explosion\\darksmoke.dds", g.smokedecal2, 1);
-	// Maxemit=10 emitters, with totalpart of 260 for each emitter.
-	g.totalpart = 260;
-	g.maxemit = 5;
-	#endif
 
 	// place holder object pointers
 	g.explosionparticleobjectstart = 20 + g.explosionsandfireobjectoffset;
-
-	// Temp rubble
-	#ifdef VRTECH
-	 #ifdef WICKEDENGINE
-	 // not used as far as I know
-	 #else
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 LoadImage ( "effectbank\\explosion\\rubble.dds",g.rubbletext,1 );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 LoadImage (  "effectbank\\explosion\\concretechunk.dds",g.cretetext,1 );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 LoadImage (  "effectbank\\explosion\\metalchunk.dds",g.metaltext,1 );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 MakeObjectBox(g.rubbleobj, 0, 0, 0);
-	 TextureObject (  g.rubbleobj,g.rubbletext );
-	 HideObject (  g.rubbleobj );
-	 MakeObjectBox(g.creteobj, 0, 0, 0);
-	 TextureObject (  g.creteobj,g.cretetext );
-	 HideObject (  g.creteobj );
-	 MakeObjectBox(g.metalobj, 0, 0, 0);
-	 TextureObject (  g.metalobj,g.metaltext );
-	 HideObject (  g.metalobj );
-     #endif
-	#else
-	 LoadImage (  "effectbank\\explosion\\rubble.dds",g.rubbletext,1 );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 LoadObject (  "effectbank\\explosion\\rubble.dbo",g.rubbleobj );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 TextureObject (  g.rubbleobj,g.rubbletext );
-	 ScaleObject (  g.rubbleobj,100,100,100 );
-	 HideObject (  g.rubbleobj );
-	 LoadImage (  "effectbank\\explosion\\concretechunk.dds",g.cretetext,1 );
-	 LoadObject (  "effectbank\\explosion\\concretechunk.dbo",g.creteobj );
-	 if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	 TextureObject (  g.creteobj,g.cretetext );
-	 HideObject (  g.creteobj );
-	 LoadImage (  "effectbank\\explosion\\metalchunk.dds",g.metaltext,1 );
-	 LoadObject (  "effectbank\\explosion\\metalchunk.dbo",g.metalobj );
-	 TextureObject (  g.metalobj,g.metaltext );
-	 HideObject (  g.metalobj );
-	#endif
 
 	//  debris data
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
@@ -102,12 +28,6 @@ void explosion_init ( void )
 	Dim2(  t.particle,g.maxemit, g.totalpart);
 	make_particles();
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	#ifdef WICKEDENGINE
-	// no debris in wicked
-	#else
-	make_debris();
-	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-	#endif
 }
 
 void explosion_cleanup ( void )
@@ -161,44 +81,6 @@ void explosion_cleanup ( void )
 void explosion_free ( void )
 {
 }
-
-#ifdef WICKEDENGINE
-// no debris in wicked
-#else
-void draw_debris ( void )
-{
-	int tx = 0;
-	int ty = 0;
-	int tz = 0;
-	int draw = 0;
-	//  Draw debris and update, run through debris
-	for ( draw = 1 ; draw <= g.debrismax; draw++ )
-	{
-		if (  t.debris[draw].used == 1 && ObjectExist(t.debris[draw].obj) == 1 ) 
-		{
-			//  if active
-			PositionObject (  t.debris[draw].obj,t.debris[draw].x,t.debris[draw].y,t.debris[draw].z );
-			ShowObject (  t.debris[draw].obj );
-			//  set to spinning
-			tx=WrapValue(ObjectAngleX(t.debris[draw].obj)+5);
-			ty=WrapValue(ObjectAngleY(t.debris[draw].obj)+5);
-			tz=WrapValue(ObjectAngleZ(t.debris[draw].obj)+5);
-			RotateObject (  t.debris[draw].obj,tx,ty,tz );
-			//  kill if life expired
-			if (  Timer()-t.debris[draw].lifetime>t.debris[draw].life ) 
-			{
-				t.debris[draw].used=0;
-				if (  t.debris[draw].physicscreated == 1 ) 
-				{
-					ODEDestroyObject (  t.debris[draw].obj );
-					t.debris[draw].physicscreated=0;
-				}
-				HideObject (  t.debris[draw].obj );
-			}
-		}
-	}
-}
-#endif
 
 void draw_particles ( void )
 {
@@ -1025,12 +907,15 @@ int find_free_particle ( int emitter, int start, int endpart )
 	int gotone = 0;
 	int find = 0;
 	gotone=0;
-	for ( find = start ; find<=  endpart; find++ )
+	if (start < g.totalpart && endpart < g.totalpart)
 	{
-		if (  t.particle[emitter][find].used == 0 ) 
+		for (find = start; find <= endpart; find++)
 		{
-			gotone=find;
-			find=endpart+1;
+			if (t.particle[emitter][find].used == 0)
+			{
+				gotone = find;
+				find = endpart + 1;
+			}
 		}
 	}
 	return gotone;

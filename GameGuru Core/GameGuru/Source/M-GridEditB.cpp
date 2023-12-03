@@ -4363,69 +4363,12 @@ void generic_preloadfiles(void)
 	//PE: We might have to edit this list when we have the final media to use.
 	timestampactivity(0, "preload generic textures early");
 	image_preload_files_start();
-
-	#ifndef WICKEDENGINE
-	image_preload_files_add("effectbank\\reloaded\\media\\water.dds");
-
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\fireball\\fireball_D.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\fireball\\fireball_N.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\fireball\\fireball_S.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\magicbolt_D.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\magicbolt_N.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\magicbolt_S.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\explode.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\smoke.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\fantasy\\magicbolt\\trail.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\handgrenade\\handgrenade_D.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\handgrenade\\handgrenade_N.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\handgrenade\\handgrenade_S.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\rpggrenade\\rpggrenade_D.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\rpggrenade\\rpggrenade_N.dds");
-	image_preload_files_add("gamecore\\projectiletypes\\modern\\rpggrenade\\rpggrenade_S.dds");
-
-	image_preload_files_add("skybank\\clear\\clear_F.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_L.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_U.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_B.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_R.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_D.dds",1);
-	image_preload_files_add("skybank\\clear\\clear_CLOUDS.dds",1);
-	image_preload_files_add("skybank\\cloudportal.dds",1);
-
-	#endif
-
 	image_preload_files_add("effectbank\\explosion\\animatedspark.dds");
-	image_preload_files_add("effectbank\\explosion\\explosion2.dds");
-	image_preload_files_add("effectbank\\explosion\\fireball.dds");
-	image_preload_files_add("effectbank\\explosion\\rollingsmoke.dds");
-	image_preload_files_add("effectbank\\explosion\\explosion3.dds");
-	image_preload_files_add("effectbank\\explosion\\darksmoke.dds");
-	image_preload_files_add("effectbank\\explosion\\rubble.dds");
-	image_preload_files_add("effectbank\\explosion\\concretechunk.dds");
-	image_preload_files_add("effectbank\\explosion\\metalchunk.dds");
-
 	image_preload_files_add("effectbank\\particles\\flare.dds");
 	image_preload_files_add("effectbank\\particles\\64smoke2.dds");
 	image_preload_files_add("effectbank\\particles\\flame.dds");
-	
-	//At this point.
-	//Thread Job Done Time: 1657 
-	//Add more know textures we need later.
-
-	#ifndef WICKEDENGINE
-	image_preload_files_add("terrainbank\\lush\\texture_D.dds");
-	image_preload_files_add("effectbank\\reloaded\\media\\blank_N.dds");
-	image_preload_files_add("effectbank\\reloaded\\media\\circle2.dds");
-	image_preload_files_add("vegbank\\weedy 01\\grass.dds");
-
-	image_preload_files_add("effectbank\\reloaded\\media\\blank_none_S.dds");
-	image_preload_files_add("effectbank\\reloaded\\media\\blank_O.dds");
-	image_preload_files_add("effectbank\\reloaded\\media\\materials\\0_Gloss.dds");
-	#endif
 
 	image_preload_files_add("editors\\gfx\\cursor.dds");
-
-	
 
 	//PNG Test.
 	image_preload_files_add("languagebank\\english\\artwork\\quick-start-testlevel-prompt.png",1);

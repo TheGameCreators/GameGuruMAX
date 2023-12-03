@@ -41,182 +41,186 @@ void darkai_free ( void )
 
 void darkai_createinternaldebugvisuals_coneofsight (int iOuterViewObject, float fOuterViewArc, float fViewRange)
 {
-	// if no cone, assume character can see in all directions!
-	if (fOuterViewArc == 0.0f) fOuterViewArc = 179.0f;
-	
-	// if existing cone of sight object, delete it
-	if (ObjectExist(iOuterViewObject) == 1) DeleteObject(iOuterViewObject);
-
-	// create a fan outline using Zak's prisms
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-	WickedCall_PresetObjectPutInEmissive(1);
-
-	// Find a free memblock
-	int iMemblockToMakeConeOfSight = 0;
-	for (int i = 1; i <= 257; i++) if (MemblockExist(i) == 0) { iMemblockToMakeConeOfSight = i; break; }
-	if (iMemblockToMakeConeOfSight == 0) return;
-
-	// fan outline shape
-	int iSegmentCount = 36;
-	int iLineCount = 2 + iSegmentCount;
-	float fOuterViewArcRad = GGToRadian(fOuterViewArc);
-	float fAngleStart = (fOuterViewArc / -2.0f);
-	float fAngleStartRad = GGToRadian(fAngleStart);
-	float fSegAngle = (fOuterViewArc / iSegmentCount);
-	float fSegAngleRad = GGToRadian(fSegAngle);
-
-	// create object memblock
-	int vertsize = 32;
-	int iSizeBytes = 0;
-	int vertexCount = 36 * iLineCount;
-	iSizeBytes = vertsize * vertexCount;
-	iSizeBytes += 12;
-	MakeMemblock(iMemblockToMakeConeOfSight, iSizeBytes);
-	WriteMemblockDWord(iMemblockToMakeConeOfSight, 0, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1);
-	WriteMemblockDWord(iMemblockToMakeConeOfSight, 4, 32);
-	WriteMemblockDWord(iMemblockToMakeConeOfSight, 8, vertexCount);
-
-	// all lines needed
-	int v = 0;
-	for (int iLineIndex = 0; iLineIndex < iLineCount; iLineIndex++)
+	extern bool g_bShowRecastDetourDebugVisuals;
+	if (g_bShowRecastDetourDebugVisuals == true)
 	{
-		// create a set of prism lines to create the outline of a cone fan
-		float fromx = 0, fromy = 0, fromz = 0;
-		float tox = 0, toy = 0, toz = 0;
-		if (iLineIndex == 0)
+		// if no cone, assume character can see in all directions!
+		if (fOuterViewArc == 0.0f) fOuterViewArc = 179.0f;
+
+		// if existing cone of sight object, delete it
+		if (ObjectExist(iOuterViewObject) == 1) DeleteObject(iOuterViewObject);
+
+		// create a fan outline using Zak's prisms
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+		WickedCall_PresetObjectPutInEmissive(1);
+
+		// Find a free memblock
+		int iMemblockToMakeConeOfSight = 0;
+		for (int i = 1; i <= 257; i++) if (MemblockExist(i) == 0) { iMemblockToMakeConeOfSight = i; break; }
+		if (iMemblockToMakeConeOfSight == 0) return;
+
+		// fan outline shape
+		int iSegmentCount = 36;
+		int iLineCount = 2 + iSegmentCount;
+		float fOuterViewArcRad = GGToRadian(fOuterViewArc);
+		float fAngleStart = (fOuterViewArc / -2.0f);
+		float fAngleStartRad = GGToRadian(fAngleStart);
+		float fSegAngle = (fOuterViewArc / iSegmentCount);
+		float fSegAngleRad = GGToRadian(fSegAngle);
+
+		// create object memblock
+		int vertsize = 32;
+		int iSizeBytes = 0;
+		int vertexCount = 36 * iLineCount;
+		iSizeBytes = vertsize * vertexCount;
+		iSizeBytes += 12;
+		MakeMemblock(iMemblockToMakeConeOfSight, iSizeBytes);
+		WriteMemblockDWord(iMemblockToMakeConeOfSight, 0, GGFVF_XYZ | GGFVF_NORMAL | GGFVF_TEX1);
+		WriteMemblockDWord(iMemblockToMakeConeOfSight, 4, 32);
+		WriteMemblockDWord(iMemblockToMakeConeOfSight, 8, vertexCount);
+
+		// all lines needed
+		int v = 0;
+		for (int iLineIndex = 0; iLineIndex < iLineCount; iLineIndex++)
 		{
-			// left side
-			tox = sin(fAngleStartRad) * fViewRange;
-			toz = cos(fAngleStartRad) * fViewRange;
+			// create a set of prism lines to create the outline of a cone fan
+			float fromx = 0, fromy = 0, fromz = 0;
+			float tox = 0, toy = 0, toz = 0;
+			if (iLineIndex == 0)
+			{
+				// left side
+				tox = sin(fAngleStartRad) * fViewRange;
+				toz = cos(fAngleStartRad) * fViewRange;
+			}
+			else if (iLineIndex == 1)
+			{
+				// right side
+				tox = sin(fAngleStartRad + fOuterViewArcRad) * fViewRange;
+				toz = cos(fAngleStartRad + fOuterViewArcRad) * fViewRange;
+			}
+			else
+			{
+				// line at end of fan
+				fromx = sin(fAngleStartRad + ((iLineIndex - 2) * fSegAngleRad)) * fViewRange;
+				fromz = cos(fAngleStartRad + ((iLineIndex - 2) * fSegAngleRad)) * fViewRange;
+				tox = sin(fAngleStartRad + ((iLineIndex - 1) * fSegAngleRad)) * fViewRange;
+				toz = cos(fAngleStartRad + ((iLineIndex - 1) * fSegAngleRad)) * fViewRange;
+			}
+
+			// line coordinates
+			float p0[3];
+			float p1[3];
+			p0[0] = fromx; p0[1] = fromy; p0[2] = fromz;
+			p1[0] = tox; p1[1] = toy; p1[2] = toz;
+
+			// create points
+			float points[18];
+			physics_debug_make_prism_between_points(p0, p1, points, 0.25f);
+
+			// Corners of the prism
+			float x0, x1, x2, x3, x4, x5;
+			float y0, y1, y2, y3, y4, y5;
+			float z0, z1, z2, z3, z4, z5;
+			x0 = points[0]; y0 = points[1]; z0 = points[2];
+			x1 = points[3]; y1 = points[4]; z1 = points[5];
+			x2 = points[6]; y2 = points[7]; z2 = points[8];
+			x3 = points[9]; y3 = points[10]; z3 = points[11];
+			x4 = points[12]; y4 = points[13]; z4 = points[14];
+			x5 = points[15]; y5 = points[16]; z5 = points[17];
+
+			// Midpoints
+			float mx03, mx14, mx25;
+			float my03, my14, my25;
+			float mz03, mz14, mz25;
+			mx03 = (x0 + x3) / 2.0f; my03 = (y0 + y3) / 2.0f; mz03 = (z0 + z3) / 2.0f;
+			mx14 = (x1 + x4) / 2.0f; my14 = (y1 + y4) / 2.0f; mz14 = (z1 + z4) / 2.0f;
+			mx25 = (x2 + x5) / 2.0f; my25 = (y2 + y5) / 2.0f; mz25 = (z2 + z5) / 2.0f;
+
+			// setup UV for the prism colors
+			float fRelationUVs[24];
+			const float off = 0.16666667f;
+			fRelationUVs[0] = 0; fRelationUVs[1] = 0;
+			fRelationUVs[2] = 0; fRelationUVs[3] = 1;
+			fRelationUVs[4] = 1; fRelationUVs[5] = 0;
+			fRelationUVs[6] = 1; fRelationUVs[7] = 0;
+			fRelationUVs[8] = 0; fRelationUVs[9] = 1;
+			fRelationUVs[10] = 1; fRelationUVs[11] = 1;
+			fRelationUVs[12] = 0 + off; fRelationUVs[13] = 0 + off;
+			fRelationUVs[14] = 0 + off; fRelationUVs[15] = 1 + off;
+			fRelationUVs[16] = 1 + off; fRelationUVs[17] = 0 + off;
+			fRelationUVs[18] = 1 + off; fRelationUVs[19] = 0 + off;
+			fRelationUVs[20] = 0 + off; fRelationUVs[21] = 1 + off;
+			fRelationUVs[22] = 1 + off; fRelationUVs[23] = 1 + off;
+
+			// Bottom, right and left face
+			int iFound = iMemblockToMakeConeOfSight;
+			extern void AddVertToObjectRelation(float x, float y, float z, float texU, float texV, int v, int memblock);
+			AddVertToObjectRelation(x0, y0, z0, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(x2, y2, z2, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(x2, y2, z2, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(x3, y3, z3, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(x3, y3, z3, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(x5, y5, z5, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+			AddVertToObjectRelation(x1, y1, z1, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(x0, y0, z0, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(x0, y0, z0, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(x4, y4, z4, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(x4, y4, z4, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(x3, y3, z3, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+			AddVertToObjectRelation(x2, y2, z2, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(x1, y1, z1, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(x1, y1, z1, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+			AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[0], fRelationUVs[1], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[2], fRelationUVs[3], v++, iFound);
+			AddVertToObjectRelation(x5, y5, z5, fRelationUVs[4], fRelationUVs[5], v++, iFound);
+			AddVertToObjectRelation(x5, y5, z5, fRelationUVs[6], fRelationUVs[7], v++, iFound);
+			AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[8], fRelationUVs[9], v++, iFound);
+			AddVertToObjectRelation(x4, y4, z4, fRelationUVs[10], fRelationUVs[11], v++, iFound);
 		}
-		else if (iLineIndex == 1)
-		{
-			// right side
-			tox = sin(fAngleStartRad + fOuterViewArcRad) * fViewRange;
-			toz = cos(fAngleStartRad + fOuterViewArcRad) * fViewRange;
-		}
-		else
-		{
-			// line at end of fan
-			fromx = sin(fAngleStartRad + ((iLineIndex - 2)*fSegAngleRad)) * fViewRange;
-			fromz = cos(fAngleStartRad + ((iLineIndex - 2)*fSegAngleRad)) * fViewRange;
-			tox   = sin(fAngleStartRad + ((iLineIndex - 1)*fSegAngleRad)) * fViewRange;
-			toz   = cos(fAngleStartRad + ((iLineIndex - 1)*fSegAngleRad)) * fViewRange;
-		}
 
-		// line coordinates
-		float p0[3];
-		float p1[3];
-		p0[0] = fromx; p0[1] = fromy; p0[2] = fromz;
-		p1[0] = tox; p1[1] = toy; p1[2] = toz;
+		// create the object
+		int iMeshID = g.meshgeneralwork;
+		if (GetMeshExist(iMeshID) == 1) DeleteMesh(iMeshID);
+		CreateMeshFromMemblock(iMeshID, iMemblockToMakeConeOfSight);
+		MakeObject(iOuterViewObject, iMeshID, 0);
+		SetObjectCull(iOuterViewObject, 0);
+		ShowObject(iOuterViewObject);
+		SetObjectMask (iOuterViewObject, 1);
+		DisableObjectZDepth (iOuterViewObject);
+		SetObjectCollisionOff (iOuterViewObject);
 
-		// create points
-		float points[18];
-		physics_debug_make_prism_between_points(p0, p1, points, 0.25f);
+		// provide with a texture
+		if (ImageExist(g.coneofsightimageoffset) == 0) LoadImage("editors\\uiv3\\nodeconeofsight.png", g.coneofsightimageoffset);
+		TextureObject(iOuterViewObject, g.coneofsightimageoffset);
 
-		// Corners of the prism
-		float x0, x1, x2, x3, x4, x5;
-		float y0, y1, y2, y3, y4, y5;
-		float z0, z1, z2, z3, z4, z5;
-		x0 = points[0]; y0 = points[1]; z0 = points[2];
-		x1 = points[3]; y1 = points[4]; z1 = points[5];
-		x2 = points[6]; y2 = points[7]; z2 = points[8];
-		x3 = points[9]; y3 = points[10]; z3 = points[11];
-		x4 = points[12]; y4 = points[13]; z4 = points[14];
-		x5 = points[15]; y5 = points[16]; z5 = points[17];
+		// wicked settings
+		sObject* pObject = GetObjectData(iOuterViewObject);
+		WickedCall_SetObjectCastShadows(pObject, false);
+		WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
 
-		// Midpoints
-		float mx03, mx14, mx25;
-		float my03, my14, my25;
-		float mz03, mz14, mz25;
-		mx03 = (x0 + x3) / 2.0f; my03 = (y0 + y3) / 2.0f; mz03 = (z0 + z3) / 2.0f;
-		mx14 = (x1 + x4) / 2.0f; my14 = (y1 + y4) / 2.0f; mz14 = (z1 + z4) / 2.0f;
-		mx25 = (x2 + x5) / 2.0f; my25 = (y2 + y5) / 2.0f; mz25 = (z2 + z5) / 2.0f;
+		// finished creating object
+		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+		WickedCall_PresetObjectPutInEmissive(0);
 
-		// setup UV for the prism colors
-		float fRelationUVs[24];
-		const float off = 0.16666667f;
-		fRelationUVs[0] = 0; fRelationUVs[1] = 0;
-		fRelationUVs[2] = 0; fRelationUVs[3] = 1;
-		fRelationUVs[4] = 1; fRelationUVs[5] = 0;
-		fRelationUVs[6] = 1; fRelationUVs[7] = 0;
-		fRelationUVs[8] = 0; fRelationUVs[9] = 1;
-		fRelationUVs[10] = 1; fRelationUVs[11] = 1;
-		fRelationUVs[12] = 0 + off; fRelationUVs[13] = 0 + off;
-		fRelationUVs[14] = 0 + off; fRelationUVs[15] = 1 + off;
-		fRelationUVs[16] = 1 + off; fRelationUVs[17] = 0 + off;
-		fRelationUVs[18] = 1 + off; fRelationUVs[19] = 0 + off;
-		fRelationUVs[20] = 0 + off; fRelationUVs[21] = 1 + off;
-		fRelationUVs[22] = 1 + off; fRelationUVs[23] = 1 + off;
-
-		// Bottom, right and left face
-		int iFound = iMemblockToMakeConeOfSight;
-		extern void AddVertToObjectRelation(float x, float y, float z, float texU, float texV, int v, int memblock);
-		AddVertToObjectRelation(x0, y0, z0, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(x2, y2, z2, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(x2, y2, z2, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[10], fRelationUVs[11], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(x3, y3, z3, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(x3, y3, z3, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(x5, y5, z5, fRelationUVs[10], fRelationUVs[11], v++, iFound);
-		AddVertToObjectRelation(x1, y1, z1, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(x0, y0, z0, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(x0, y0, z0, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[10], fRelationUVs[11], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(x4, y4, z4, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(x4, y4, z4, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(mx03, my03, mz03, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(x3, y3, z3, fRelationUVs[10], fRelationUVs[11], v++, iFound);
-		AddVertToObjectRelation(x2, y2, z2, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(x1, y1, z1, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(x1, y1, z1, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[10], fRelationUVs[11], v++, iFound);
-		AddVertToObjectRelation(mx25, my25, mz25, fRelationUVs[0], fRelationUVs[1], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[2], fRelationUVs[3], v++, iFound);
-		AddVertToObjectRelation(x5, y5, z5, fRelationUVs[4], fRelationUVs[5], v++, iFound);
-		AddVertToObjectRelation(x5, y5, z5, fRelationUVs[6], fRelationUVs[7], v++, iFound);
-		AddVertToObjectRelation(mx14, my14, mz14, fRelationUVs[8], fRelationUVs[9], v++, iFound);
-		AddVertToObjectRelation(x4, y4, z4, fRelationUVs[10], fRelationUVs[11], v++, iFound);
+		// free resources used
+		DeleteMemblock(iMemblockToMakeConeOfSight);
+		if (GetMeshExist(iMeshID) == 1) DeleteMesh(iMeshID);
 	}
-
-	// create the object
-	int iMeshID = g.meshgeneralwork;
-	if (GetMeshExist(iMeshID) == 1) DeleteMesh(iMeshID);
-	CreateMeshFromMemblock(iMeshID, iMemblockToMakeConeOfSight);
-	MakeObject(iOuterViewObject, iMeshID, 0);
-	SetObjectCull(iOuterViewObject, 0);
-	ShowObject(iOuterViewObject);
-	SetObjectMask (iOuterViewObject, 1);
-	DisableObjectZDepth (iOuterViewObject);
-	SetObjectCollisionOff (iOuterViewObject);
-
-	// provide with a texture
-	if (ImageExist(g.coneofsightimageoffset) == 0) LoadImage("editors\\uiv3\\nodeconeofsight.png", g.coneofsightimageoffset);
-	TextureObject(iOuterViewObject, g.coneofsightimageoffset);
-
-	// wicked settings
-	sObject* pObject = GetObjectData(iOuterViewObject);
-	WickedCall_SetObjectCastShadows(pObject, false);
-	WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
-
-	// finished creating object
-	WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-	WickedCall_PresetObjectPutInEmissive(0);
-
-	// free resources used
-	DeleteMemblock(iMemblockToMakeConeOfSight);
-	if (GetMeshExist(iMeshID) == 1) DeleteMesh(iMeshID);
 }
 
 void darkai_createinternaldebugvisuals (void)
@@ -237,103 +241,100 @@ void darkai_destroyinternaldebugvisuals (void)
 
 void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 {
-	// Control ONE raycaster line
-	extern bool g_bShowRecastDetourDebugVisuals;
-	if (ObjectExist(g.debugraycastvisual) == 0)
+	// never in game executable
+	if (t.game.gameisexe == 0)
 	{
-		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-		WickedCall_PresetObjectPutInEmissive(1);
-		MakeObjectBox(g.debugraycastvisual, 1, 1, 100);
-		PositionObject(g.debugraycastvisual, -999999, -999999, -999999);
-		if (ImageExist(g.coneofsightimageoffset) == 0) LoadImage("editors\\uiv3\\nodeconeofsight.png", g.coneofsightimageoffset);
-		TextureObject(g.debugraycastvisual, g.coneofsightimageoffset);
-		sObject* pObject = GetObjectData(g.debugraycastvisual);
-		WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
-		WickedCall_SetObjectCastShadows(pObject, false);
-		WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-		WickedCall_PresetObjectPutInEmissive(0);
-	}
-	else
-	{
-		if (g_bShowRecastDetourDebugVisuals == true)
-			ShowObject(g.debugraycastvisual);
-		else
-			HideObject(g.debugraycastvisual);
-	}
-
-	/*
-	extern int g_debugraycastvisual;
-	g_debugraycastvisual = g.debugraycastvisual;
-	*/
-
-	// Control cone of sight object
-	#ifdef NEWMAXAISYSTEM
-	int iOuterViewObject = g.debugconeofsightstart + g.charanimindex;
-	if (ObjectExist(iOuterViewObject) == 1)
-	{
-		// takes t.charanimstate.e and t.charanimstate.obj
-		float fAIObjX = ObjectPositionX(t.charanimstate.obj);
-		float fAIObjY = ObjectPositionY(t.charanimstate.obj) + 5.0f;
-		float fAIObjZ = ObjectPositionZ(t.charanimstate.obj);
-
-		// get object facing angle, also apply any head turning activity
-		bool bWithinDebugViewRange = false;
-		float fAIObjAngleY = ObjectAngleY(t.charanimstate.obj);
-		fAIObjAngleY += t.charanimstate.neckRightAndLeft;
-		float fDX = fAIObjX - CameraPositionX(0);
-		float fDZ = fAIObjZ - CameraPositionZ(0);
-		float fDist = sqrt(fabs(fDX*fDX) + fabs(fDZ*fDZ));
-		float fViewRange = t.entityelement[t.charanimstate.e].eleprof.conerange;
-		if (fDist < fViewRange*1.25f) bWithinDebugViewRange = true;
-
-		// position and show/hide
-		PositionObject (iOuterViewObject, fAIObjX, fAIObjY, fAIObjZ);
-		YRotateObject (iOuterViewObject, fAIObjAngleY);
-		if (bCharIsActive == true && g_bShowRecastDetourDebugVisuals == true && bWithinDebugViewRange == true)
+		// Control ONE raycaster line
+		extern bool g_bShowRecastDetourDebugVisuals;
+		if (ObjectExist(g.debugraycastvisual) == 0)
 		{
-			// cone of sight debug
-			ShowObject(iOuterViewObject);
-
-			// also show object entity ID (so can debug logic in behavior editor)
-			if (fDist < 500)
-			{
-				t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
-				t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
-			}
-
-			// if using an attachment, and it has a firespot debug object, show it
-			if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
-			{
-				int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
-				int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
-				if (ObjectExist(iDebugFirespotObj) == 1)
-				{
-					ShowObject(iDebugFirespotObj);
-					sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
-					WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_NORMAL);
-				}
-			}
+			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
+			WickedCall_PresetObjectPutInEmissive(1);
+			MakeObjectBox(g.debugraycastvisual, 1, 1, 100);
+			PositionObject(g.debugraycastvisual, -999999, -999999, -999999);
+			if (ImageExist(g.coneofsightimageoffset) == 0) LoadImage("editors\\uiv3\\nodeconeofsight.png", g.coneofsightimageoffset);
+			TextureObject(g.debugraycastvisual, g.coneofsightimageoffset);
+			sObject* pObject = GetObjectData(g.debugraycastvisual);
+			WickedCall_SetObjectLightToUnlit(pObject, (int)wiScene::MaterialComponent::SHADERTYPE::SHADERTYPE_UNLIT);
+			WickedCall_SetObjectCastShadows(pObject, false);
+			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
+			WickedCall_PresetObjectPutInEmissive(0);
 		}
 		else
 		{
-			// hide the view
-			HideObject(iOuterViewObject);
+			if (g_bShowRecastDetourDebugVisuals == true)
+				ShowObject(g.debugraycastvisual);
+			else
+				HideObject(g.debugraycastvisual);
+		}
 
-			// if using an attachment, and it has a firespot debug object, hide it
-			if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
+		// Control cone of sight object
+		int iOuterViewObject = g.debugconeofsightstart + g.charanimindex;
+		if (ObjectExist(iOuterViewObject) == 1)
+		{
+			// takes t.charanimstate.e and t.charanimstate.obj
+			float fAIObjX = ObjectPositionX(t.charanimstate.obj);
+			float fAIObjY = ObjectPositionY(t.charanimstate.obj) + 5.0f;
+			float fAIObjZ = ObjectPositionZ(t.charanimstate.obj);
+
+			// get object facing angle, also apply any head turning activity
+			bool bWithinDebugViewRange = false;
+			float fAIObjAngleY = ObjectAngleY(t.charanimstate.obj);
+			fAIObjAngleY += t.charanimstate.neckRightAndLeft;
+			float fDX = fAIObjX - CameraPositionX(0);
+			float fDZ = fAIObjZ - CameraPositionZ(0);
+			float fDist = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+			float fViewRange = t.entityelement[t.charanimstate.e].eleprof.conerange;
+			if (fDist < fViewRange * 1.25f) bWithinDebugViewRange = true;
+
+			// position and show/hide
+			PositionObject (iOuterViewObject, fAIObjX, fAIObjY, fAIObjZ);
+			YRotateObject (iOuterViewObject, fAIObjAngleY);
+			if (bCharIsActive == true && g_bShowRecastDetourDebugVisuals == true && bWithinDebugViewRange == true)
 			{
-				int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
-				int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
-				if (ObjectExist(iDebugFirespotObj) == 1)
+				// cone of sight debug
+				ShowObject(iOuterViewObject);
+
+				// also show object entity ID (so can debug logic in behavior editor)
+				if (fDist < 500)
 				{
-					HideObject(iDebugFirespotObj);
-					sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
-					WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_CURSOROBJECT);
+					t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
+					t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
+				}
+
+				// if using an attachment, and it has a firespot debug object, show it
+				if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
+				{
+					int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
+					int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
+					if (ObjectExist(iDebugFirespotObj) == 1)
+					{
+						ShowObject(iDebugFirespotObj);
+						sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
+						WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_NORMAL);
+					}
+				}
+			}
+			else
+			{
+				// hide the view
+				HideObject(iOuterViewObject);
+
+				// if using an attachment, and it has a firespot debug object, hide it
+				if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
+				{
+					int tentityattachmentindex = t.entityelement[t.charanimstate.e].attachmentobj - g.entityattachmentsoffset;
+					int iDebugFirespotObj = g.entityattachments2offset + tentityattachmentindex;
+					if (ObjectExist(iDebugFirespotObj) == 1)
+					{
+						HideObject(iDebugFirespotObj);
+						sObject* pDebugFirespotObj = GetObjectData(iDebugFirespotObj);
+						WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_CURSOROBJECT);
+					}
 				}
 			}
 		}
 	}
-	#endif
 }
 
 void darkai_calcplrvisible (void)

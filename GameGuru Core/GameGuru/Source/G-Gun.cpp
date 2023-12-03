@@ -4476,15 +4476,21 @@ void gun_load ( void )
 		// Load gun (using custom arms)
 		if (FileExist(pHUDDAT_s.Get()) == 1)
 		{
-			if (ObjectExist(t.currentgunobj) == 1) DeleteObject(t.currentgunobj);
-			gun_createhud(customArms_s);
-			if (t.currentgunobj != 0)
+			if (bForceRefreshWeapon == true)
 			{
-				sObject* pObject = GetObjectData(t.currentgunobj);
-				extern void UpdateObjectWithAnimSlotList (sObject*);
-				UpdateObjectWithAnimSlotList(pObject);
+				// only force a refresh if needed (i.e. HUD.DBO not matching last custom hands choice)
+				if (ObjectExist(t.currentgunobj) == 1) DeleteObject(t.currentgunobj);
+				gun_createhud(customArms_s);
+
+				// if successful creation, save the new HUD.DBO
 				if (ObjectExist(t.currentgunobj) == 1)
 				{
+					// before save, match created animsets to actual DBO structure
+					sObject* pObject = GetObjectData(t.currentgunobj);
+					extern void UpdateObjectWithAnimSlotList (sObject*);
+					UpdateObjectWithAnimSlotList(pObject);
+
+					// do the save to writables
 					char pTempHUDDBOFile[MAX_PATH];
 					strcpy(pTempHUDDBOFile, t.currentgunfile_s.Get());
 					GG_GetRealPath(pTempHUDDBOFile, 1);
@@ -4494,6 +4500,34 @@ void gun_load ( void )
 					LoadObject(pTempHUDDBOFile, t.currentgunobj);
 				}
 			}
+			//else
+			//{
+				// if not recreated HUD
+				//if (bUsingLegacyArmReplacementTrick == false)
+				//{
+				//	// and not added animations from legacy replacement trick
+				//	if (ObjectExist(t.currentgunobj) == 1)
+				//	{
+				//		// used to need to append animations to the hand model for this weapon from g_pAnimSlotList (not needed now done in gun_createhud)
+				//		//sObject* pObject = GetObjectData(t.currentgunobj);
+				//		//extern void UpdateObjectWithAnimSlotList (sObject*);
+				//		//UpdateObjectWithAnimSlotList(pObject);
+				//	}
+				//}
+			//}
+			//if (t.currentgunobj != 0 && bForceRefreshWeapon == true)
+			//{
+			//	if (ObjectExist(t.currentgunobj) == 1)
+			//	{
+			//		char pTempHUDDBOFile[MAX_PATH];
+			//		strcpy(pTempHUDDBOFile, t.currentgunfile_s.Get());
+			//		GG_GetRealPath(pTempHUDDBOFile, 1);
+			//		if (FileExist(pTempHUDDBOFile) == 1) DeleteFileA(pTempHUDDBOFile);
+			//		SaveObject (pTempHUDDBOFile, t.currentgunobj);
+			//		DeleteObject(t.currentgunobj);
+			//		LoadObject(pTempHUDDBOFile, t.currentgunobj);
+			//	}
+			//}
 		}
 
 		// record choice

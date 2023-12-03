@@ -332,9 +332,13 @@ void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool
 	}
 	if (bAnyNavMeshBlockerStateChanged == true)
 	{
-		extern GGRecastDetour g_RecastDetour;
-		g_RecastDetour.cleanupDebugRender();
-		g_RecastDetour.handleDebugRender();
+		extern bool g_bShowRecastDetourDebugVisuals;
+		if (g_bShowRecastDetourDebugVisuals == true)
+		{
+			extern GGRecastDetour g_RecastDetour;
+			g_RecastDetour.cleanupDebugRender();
+			g_RecastDetour.handleDebugRender();
+		}
 	}
 }
 

@@ -2192,16 +2192,17 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\decals\\splash_misty");
 	addfoldertocollection("gamecore\\decals\\splash_ripple");
 	addfoldertocollection("gamecore\\decals\\splash_small");
-	addfoldertocollection("gamecore\\projectiletypes");
 	addfoldertocollection("gamecore\\vrcontroller");
 	addfoldertocollection("gamecore\\vrcontroller\\oculus");
-	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
-	addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
-	addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
-	addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
-	#ifdef WICKEDENGINE
-	addfoldertocollection("gamecore\\bulletholes");
+	addfoldertocollection("gamecore\\projectiletypes");
+	//addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
+	//addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
+	//addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
+	//addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
+	addfoldertocollection("gamecore\\projectiletypes\\common\\explode");
+	addfoldertocollection("gamecore\\projectiletypes\\enhanced\\m67");
 
+	addfoldertocollection("gamecore\\bulletholes");
 
 	addfoldertocollection("editors\\lut");
 	addfoldertocollection("terrainbank\\temp\\");
@@ -2220,10 +2221,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		addfoldertocollection(addfolder);
 	}
 	addfoldertocollection("grassbank");
-	#ifdef WICKEDENGINE
-	#else
-	addfoldertocollection("databank\\extendedblood");
-	#endif
+
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	//addfoldertocollection("particlesbank");
 	//addfoldertocollection("particlesbank\\user");
@@ -2237,19 +2235,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("pinetree.dds");
 	addtocollection("noise.dds");
 
-	/* this did not work, replaced with if (Storyboard.Nodes[nodeid].type == STORYBOARD_TYPE_SPLASH) code below
-	#ifdef STORYBOARD
-	char fileName[MAX_PATH] = "\0";
-	void FindFirstSplash(char *splash_name);
-	FindFirstSplash(fileName);
-	if(strlen(fileName) > 0)
-		addtocollection(fileName);
-	#endif
-	*/
-
 	addtocollection("skybank\\clear\\"); //for fallback.
 	
-	#endif
 	// add any material decals that are active
 	for ( t.m = 0; t.m <= g.gmaterialmax; t.m++ )
 	{

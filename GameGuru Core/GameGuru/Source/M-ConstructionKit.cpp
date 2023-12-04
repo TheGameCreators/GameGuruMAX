@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  CONSTRUCTION KIT MODULE - Structure Maker
 // 
@@ -25,6 +29,9 @@ void conkit_init ( void )
 
 void conkit_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	conkitedit_loop();
 }
 

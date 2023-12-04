@@ -11,6 +11,10 @@
 #include "GGTerrain/GGGrass.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Globals
 float g_fGlobalGammaFadeIn = 0;
 float g_fGlobalGammaFadeInDest = 0;
@@ -71,6 +75,9 @@ uint64_t uiFlashLight;
 
 void lighting_loop(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	int iUpdateFlashLightMode = 0;
 
 	// Handle any spot flashes

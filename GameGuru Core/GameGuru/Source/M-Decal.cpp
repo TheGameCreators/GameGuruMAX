@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  Decal Module
 // 
@@ -675,7 +679,11 @@ void decalelement_continue ( void )
 
 void decalelement_control ( void )
 {
-	//  True camera position (returns tcamerapositionx#,tcamerapositiony#,tcamerapositionz#)
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
+	// True camera position (returns tcamerapositionx#,tcamerapositiony#,tcamerapositionz#)
 	entity_gettruecamera ( );
 
 	//  Control all decal activity

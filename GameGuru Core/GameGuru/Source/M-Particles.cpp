@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 float fwindVectX, fwindVectZ = 0.0f;
 
 void ravey_particles_set_wind_vector(float fwindX, float fwindZ)
@@ -320,17 +324,17 @@ void ravey_particles_set_life( int iID, int iSpawnRate, float iLifeMin, float iL
 
 void ravey_particles_update ( void )
 {
-	
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	if ( g.ravey_particles_old_time > 0 ) 
 	{
 		g.ravey_particles_time_passed = Timer() - g.ravey_particles_old_time;
 	}
-
 	if ( ravey_particles_update_particles() )
 	{
 		g.ravey_particles_old_time = Timer();
 	}
-	
 	ravey_particles_update_emitters();
 }
 
@@ -1604,6 +1608,9 @@ bool disable_all_weather = false;
 
 void update_env_particles(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	//PE: Update weather effects.
 	if (environment_weather != t.visuals.iEnvironmentWeather) 
 	{

@@ -31,6 +31,10 @@ int g_iMapMatIDToMatIndex[32];
 
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  Physics Subroutines and Functions
 // 
@@ -1606,8 +1610,11 @@ void physics_prepareentityforphysics ( void )
 		if (  t.entityelement[t.e].eleprof.physics == 0  )  t.tnophysics = 1;
 		if (  t.entityelement[t.e].eleprof.physics == 2  )  t.tnophysics = 1;
 		if (  t.entityprofile[t.entid].isammo == 1  )  t.tnophysics = 1;
-		if (  Len(t.entityprofile[t.entid].isweapon_s.Get())>1  )  t.tnophysics = 1;
-		//if (  t.entityelement[t.e].eleprof.iscollectable != 0)  t.tnophysics = 1; do we let users choose and lose their items sometimes
+		if (t.entityelement[t.e].eleprof.iOverrideCollisionMode == -1)
+		{
+			// special case where weapon drops can be assigned a physics shapoe when dropped
+			if (Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1)  t.tnophysics = 1;
+		}
 		if (  t.tnophysics == 1 ) 
 		{
 			//  no physics
@@ -2141,14 +2148,13 @@ void physics_resumephysics ( void )
 #endif
 void physics_loop ( void )
 {
-	#ifdef WICKEDENGINE
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	auto range = wiProfiler::BeginRangeCPU("Max - Physics (All)");
-	#endif
 
-	#ifdef WICKEDENGINE
 	// shuffle virtual trees about as the player needs
 	physics_managevirtualtreecylinders();
-	#endif
 
 	// Player control
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player");
@@ -2169,7 +2175,6 @@ void physics_loop ( void )
 		ODEUpdate ( t.tphysicsadvance_f );
 		wiProfiler::EndRange(range2);
 	}
-	#ifdef WICKEDENGINE
 	if (BPhys_GetDebugDrawerMode() != 0)
 	{
 		range2 = wiProfiler::BeginRangeCPU("Max - Physics (Debug)");
@@ -2177,7 +2182,6 @@ void physics_loop ( void )
 		wiProfiler::EndRange(range2);
 	}
 	wiProfiler::EndRange(range);
-	#endif
 }
 
 void physics_free ( void )
@@ -3122,8 +3126,7 @@ void physics_player_gatherkeycontrols ( void )
 
 void physics_no_gun_zoom ( void )
 {
-	//t.realfovdegree_f=t.visuals.CameraFOVZoomed_f;//*g.airmod_camfov_f;
-	g.realfov_f=t.visuals.CameraFOV_f;//+t.realfovdegree_f;
+	g.realfov_f=t.visuals.CameraFOV_f;
 	if ( g.realfov_f < 15 ) g.realfov_f = 15;
 	SetCameraFOV ( g.realfov_f );
 	SetCameraFOV ( 2, g.realfov_f );

@@ -26,6 +26,10 @@ using namespace GGTerrain;
 
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 using namespace wiGraphics;
 
 extern bool bImGuiGotFocus;
@@ -2061,6 +2065,10 @@ void GGTrees_Delete_Trees(float pickX,float pickZ, float radius)
 
 void GGTrees_UpdateFrustumCulling( wiScene::CameraComponent* camera )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	float cameraX = camera->Eye.x;
 	float cameraY = camera->Eye.y;
 	float cameraZ = camera->Eye.z;
@@ -2159,6 +2167,10 @@ void GGTrees_UpdateFrustumCulling( wiScene::CameraComponent* camera )
 
 void GGTrees_Update( float camX, float camY, float camZ, CommandList cmd, bool bRenderTargetFocus )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	if ( !ggtrees_global_params.draw_enabled && ggtrees_global_params.hide_until_update == 0 ) return;
 
 	if (ggtrees_global_params.hide_until_update)

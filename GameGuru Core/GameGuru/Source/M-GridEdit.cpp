@@ -1559,18 +1559,8 @@ int iTriggerGrassTreeUpdate = 0;
 
 bool commonexecutable_loop_for_game(void)
 {
-#ifndef PRODUCTCLASSIC
-
-	#ifdef WICKEDENGINE
 	//PE: Support delayed terrain update in standalone.
 	extern int iTriggerInvalidateAfterFrames;
-
-	//float height;
-	//if (!GGTerrain_GetHeight(CameraPositionX(), CameraPositionZ(), &height, 0, 0))
-	//{
-	//	//Height not available in this are ? , trigger a update.
-	//	iTriggerGrassTreeUpdate = 10;
-	//}
 
 	if (iBlockRenderingForFrames > 0)
 	{
@@ -1581,7 +1571,6 @@ bool commonexecutable_loop_for_game(void)
 		else
 			g_bNoSwapchainPresent = true;
 	}
-
 
 	if (iTriggerGrassTreeUpdate > 0)
 	{
@@ -1627,7 +1616,6 @@ bool commonexecutable_loop_for_game(void)
 		}
 		iTriggerInvalidateAfterFrames--;
 	}
-	#endif
 
 	// called from both mapeditor(test game) and standalone game
 	if (bTriggerFovUpdate)
@@ -1683,7 +1671,6 @@ bool commonexecutable_loop_for_game(void)
 		wiProfiler::SetEnabled(false); //PE: Clear stat for a fresh testgame or standalone.
 		#endif
 
-		#ifdef WICKEDENGINE
 		//LB: need to hide shooter genre debug here as UI still shows them even AFTER the preview_init has been called!
 		// hide visual logic dots and arcs
 		extern bool g_bDotsAreVisible;
@@ -1700,8 +1687,6 @@ bool commonexecutable_loop_for_game(void)
 			bInvulnerableMode = true;
 		}
 
-		#endif
-
 		iLaunchAfterSync = 202;
 		return true;
 	}
@@ -1709,8 +1694,6 @@ bool commonexecutable_loop_for_game(void)
 	{
 		bImGuiInTestGame = true;
 		g_bDisableQuitFlag = true;
-		#ifdef WICKEDENGINE
-		//PE: Support  g_bDrawSpritesFirst
 		extern bool	g_bDrawSpritesFirst;
 		extern bool bMainLoopRunning;
 		if (g_bDrawSpritesFirst)
@@ -1718,7 +1701,6 @@ bool commonexecutable_loop_for_game(void)
 			UpdateSprites();
 		}
 		bMainLoopRunning = false;
-		#endif
 		if (editor_previewmap_loopcode(0) == true)
 		{
 			// when loop ends, run code after loop
@@ -1765,13 +1747,7 @@ bool commonexecutable_loop_for_game(void)
 					backup_gridentityobj = t.gridentityobj;
 				#endif
 
-				#ifdef NEWGAMEELEMENTGRID
 				if(!t.showeditorelements) editor_toggle_element_vis((bool)t.showeditorelements);
-				#endif
-
-				//// Restore Storyboard to its previous state before test level
-				//extern void StoryboardCopy(StoryboardStruct*, StoryboardStruct*);
-				//StoryboardCopy(&Storyboard, &StoryboardBackup);
 
 				// continue
 				iSkibFramesBeforeLaunch = 2;
@@ -1797,7 +1773,6 @@ bool commonexecutable_loop_for_game(void)
 		g_bDisableQuitFlag = false;
 		return true;
 	}
-#endif
 
 	// allow continue on to editor if appropriate
 	return false;
@@ -17520,159 +17495,8 @@ void mapeditorexecutable_loop(void)
 
 			//  Render terrain elements (shadowupdatepacer as shadow calc is expensive, time slice it)
 			t.terrain.gameplaycamera=0;
-			if ( Timer() > (int)t.editor.shadowupdatepacer ) 
-			{
-				t.editor.shadowupdatepacer=Timer()+20;
-				terrain_shadowupdate ( );
-			}
-			terrain_update ( );
 			terrain_waterineditor ( );
 
-			#ifndef WICKEDENGINE
-			//  IDE Communications (only when mouse not in 3D view)
-			if (  t.inputsys.xmouse == 500000  )  t.inputsys.residualidecount = 10;
-			if (  t.inputsys.residualidecount>0  )  t.inputsys.residualidecount = t.inputsys.residualidecount-1;
-			if (  t.inputsys.residualidecount>0 ) 
-			{
-				//  Interface code
-				interface_handlepropertywindow ( );
-
-				//  Handle save standalone (cannot wait after 758 as straight into domodal)
-				#ifdef FPSEXCHANGE
-				OpenFileMap(3, "FPSEXCHANGE");
-				for (t.idechecks = 1; t.idechecks <= 3; t.idechecks++)
-				{
-					if (t.idechecks == 1) { t.virtualfileindex = 758; t.tvaluetocheck = 1; }
-					if (t.idechecks == 2) { t.virtualfileindex = 762; t.tvaluetocheck = 1; }
-					if (t.idechecks == 3) { t.virtualfileindex = 762; t.tvaluetocheck = 2; }
-					t.tokay = GetFileMapDWORD(3, t.virtualfileindex);
-					if (t.tokay == t.tvaluetocheck)
-					{
-						SetEventAndWait(3);
-						//CloseFileMap (  3 );
-						if (t.idechecks == 1)
-						{
-							// Save Standalone
-							gridedit_intercept_savefirst();
-							OpenFileMap(3, "FPSEXCHANGE");
-							if (t.editorcanceltask == 0)
-							{
-								popup_text(t.strarr_s[82].Get());
-								gridedit_load_map(); // 190417 - ensures levelbank contents SAME as level 1 FPM!
-
-								// new dialog to handle save standalone
-								popup_text_close();
-								//mapfile_savestandalone ( );
-								//suggest new init code to load just what the save standalone dialog needs
-								welcome_init(1);
-								welcome_init(2);
-								welcome_init(0);
-								welcome_show(WELCOME_SAVESTANDALONE);
-								welcome_free();
-								SetFileMapDWORD(3, t.virtualfileindex, 3);
-							}
-							else
-							{
-								SetFileMapDWORD(3, t.virtualfileindex, 0);
-							}
-						}
-						if (t.idechecks == 2)
-						{
-							// (dave) Skip terrain rendering - it causes a crash in debug
-							g_bSkipTerrainRender = true;
-
-							//  Import Model
-							gridedit_import_ask();
-							SetFileMapDWORD(3, t.virtualfileindex, 0);
-						}
-						if (t.idechecks == 3)
-						{
-							// Character Creator Plus
-							//this is now old code, and will be removed during clean-up after first functionality draft complete
-							//g_bCharacterCreatorPlusActivated = true; //if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
-							#ifndef VRTECH
-							if (t.characterkit.loaded == 0)  t.characterkit.loaded = 1;
-							#endif
-							SetFileMapDWORD(3, t.virtualfileindex, 0);
-						}
-						SetEventAndWait(3);
-					}
-				}
-				#endif
-
-				// Handle auto trigger stock level loader
-				#ifdef FPSEXCHANGE
-				OpenFileMap (  3, "FPSEXCHANGE" );
-				t.tleveltoautoload=GetFileMapDWORD( 3, 754 );
-				if (  t.tleveltoautoload>0 ) 
-				{
-					// clear flag on performing this action
-					SetFileMapDWORD (  3, 754, 0 );
-					SetEventAndWait (  3 );
-
-					// trigger event or load a map
-					if ( t.tleveltoautoload>=1001 )
-					{
-						// trigger events
-						if ( t.tleveltoautoload==1001 ) 
-						{
-							g.quickstartmenumode = 0;
-							editor_showquickstart ( 1 );
-						}
-						if ( t.tleveltoautoload==1002 ) 
-						{
-							editor_showparentalcontrolpage();
-						}
-					}
-					else
-					{
-						// load a map
-						t.tlevelautoload_s="";
-						switch (  t.tleveltoautoload ) 
-						{
-							case 1 : t.tlevelautoload_s = "The Big Escape.fpm" ; break ;
-							case 2 : t.tlevelautoload_s = "Cartoon Antics.fpm" ; break ;
-							case 3 : t.tlevelautoload_s = "Get To The River.fpm" ; break ;
-							case 4 : t.tlevelautoload_s = "The Heirs Revenge.fpm" ; break ;
-							case 5 : t.tlevelautoload_s = "Morning Mountain Stroll.fpm" ; break ;
-							case 6 : t.tlevelautoload_s = "The Asylum.fpm" ; break ;
-							case 7 : t.tlevelautoload_s = "Gem World.fpm" ; break ;
-							case 21 : t.tlevelautoload_s = "Bridge Battle (MP).fpm" ; break ;
-							case 22 : t.tlevelautoload_s = "Camp Oasis (MP).fpm" ; break ;
-							case 23 : t.tlevelautoload_s = "Devils Hill (MP).fpm" ; break ;
-							case 24 : t.tlevelautoload_s = "Sunset Island (MP).fpm" ; break ;
-							case 25 : t.tlevelautoload_s = "The Beach (MP).fpm" ; break ;
-						}
-						t.tlevelautoload_s=g.mysystem.mapbankAbs_s+t.tlevelautoload_s;//g.fpscrootdir_s+"\\Files\\mapbank\\"+t.tlevelautoload_s;
-
-						//  ask to save first if modified project open
-						t.editorcanceltask=0;
-						if (  g.projectmodified == 1 ) 
-						{
-							//  If project modified, ask if want to save first
-							gridedit_intercept_savefirst ( );
-						}
-						if (  t.editorcanceltask == 0 ) 
-						{
-							if (  t.tlevelautoload_s != "" ) 
-							{
-								if (  cstr(Lower(Right(t.tlevelautoload_s.Get(),4))) == ".fpm" ) 
-								{
-									g.projectfilename_s=t.tlevelautoload_s;
-									gridedit_load_map ( );
-#ifdef WICKEDENGINE
-									grass_init();
-									bUpdateVeg = true;
-#endif
-
-								}
-							}
-						}
-					}
-				}
-				#endif
-			}
-			#endif
 			// 111115 - keep track of memory between sessions with simpler SYSMEM minus STARTMEM calculation
 			g.gamememactuallyused = SMEMAvailable(1) - g.gamememactuallyusedstart;
 
@@ -17957,90 +17781,7 @@ void editor_detect_invalid_screen ( void )
 
 void editor_showhelppage ( int iHelpType )
 {
-#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	return;
-#else
-
-	// image to use
-	int iEditorHelpImage = 1;
-	int iDivideBy = 1;
-	#ifdef VRTECH
-	 switch ( iHelpType )
-	 {
-		case 1 : iEditorHelpImage = 1; break;
-		case 2 : iEditorHelpImage = 27; iDivideBy = 2; break;
-		case 3 : iEditorHelpImage = 28; iDivideBy = 2; break;
-	 }
-	#endif
-	#ifdef FPSEXCHANGE
-	 OpenFileMap (  1, "FPSEXCHANGE" );
-	 SetEventAndWait (  1 );
-	#endif
-	do
-	{
-		t.inputsys.mclick=MouseClick();
-		FastSync (  );
-	} while ( !(  t.inputsys.mclick == 0 ) );
-	t.inputsys.kscancode=0;
-	t.asx_f=1.0;
-	t.asy_f=1.0;
-	t.imgx_f=ImageWidth(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asx_f;
-	t.imgy_f=ImageHeight(g.editorimagesoffset+iEditorHelpImage)/iDivideBy*t.asy_f;
-	Sprite (  123,-10000,-10000,g.editorimagesoffset+iEditorHelpImage );
-	SizeSprite (  123,t.imgx_f,t.imgy_f );
-	t.lastmousex=MouseX() ; t.lastmousey=MouseY();
-	t.tpressf1toleave=0;
-	while (  t.inputsys.kscancode == 0 && EscapeKey() == 0 ) 
-	{
-		#ifdef FPSEXCHANGE
-		 t.inputsys.kscancode=GetFileMapDWORD( 1, 100 );
-		#else
-		 t.inputsys.kscancode = ScanCode();
-		#endif
-		if (  t.inputsys.kscancode == 0 ) 
-		{
-			if (  t.tpressf1toleave == 1  )  t.tpressf1toleave = 2;
-		}
-		if (  t.inputsys.kscancode == 112 ) 
-		{
-			if (  t.tpressf1toleave == 0  )  t.tpressf1toleave = 1;
-			if (  t.tpressf1toleave == 2 ) 
-			{
-				//  allow the F1 press through to exit
-			}
-			else
-			{
-				t.inputsys.kscancode=0;
-			}
-		}
-		#ifdef FPSEXCHANGE
-		 if (  GetFileMapDWORD( 1, 908 ) == 1  )  break;
-		 if (  GetFileMapDWORD( 1, 20 ) != 0  )  break;
-		 if (  GetFileMapDWORD( 1, 516 )>0  )  break;
-		#endif
-		t.terrain.gameplaycamera=0;
-		terrain_shadowupdate ( );
-		terrain_update ( );
-		PasteSprite (  123,(GetChildWindowWidth(0)-t.imgx_f)/2,(GetChildWindowHeight(0)-t.imgy_f)/2 );
-		Sync (  );
-	}
-	//  once we are in the help page, can use filemap to detect key (so F1 on/off issue does not occur)
-	do
-	{
-		#ifdef FPSEXCHANGE
-		 t.inputsys.kscancode = GetFileMapDWORD(1, 100);
-		#else
-		 t.inputsys.kscancode = ScanCode();
-		#endif
-		FastSync (  );
-	} while ( !(  t.inputsys.kscancode == 0 ) );
-	//PE: Make sure we dont sent mouse input to whatever is below page.
-	do
-	{
-		t.inputsys.mclick = MouseClick();
-		FastSync();
-	} while (!(t.inputsys.mclick == 0));
-#endif
 }
 
 void editor_showparentalcontrolpage ( void )
@@ -18165,8 +17906,6 @@ void editor_showparentalcontrolpage ( void )
 		}
 
 		t.terrain.gameplaycamera=0;
-		terrain_shadowupdate ( );
-		terrain_update ( );
 		int iDialogTop = (GetChildWindowHeight(0)-t.imgy_f)/2;
 		PasteSprite ( 123, (GetChildWindowWidth(0)-t.imgx_f)/2, iDialogTop );
 		LPSTR pRCMTitle = "RESTRICTED CONTENT MODE : OFF";
@@ -18948,14 +18687,9 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 bool editor_previewmapormultiplayer_loopcode ( int iUseVRTest )
 {
 	bool bEndThisLoop = false;
-	#ifdef VRTECH
 	g_bDisableQuitFlag = true;
 	bEndThisLoop = game_masterroot_loopcode ( iUseVRTest );
 	g_bDisableQuitFlag = false;
-	#else
-	game_masterroot ( 0 );
-	bEndThisLoop = true;
-	#endif
 	return bEndThisLoop;
 }
 

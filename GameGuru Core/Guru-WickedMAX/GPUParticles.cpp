@@ -10,6 +10,10 @@
 // redefines MAX_PATH to 1050
 #include "preprocessor-moreflags.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 using namespace wiGraphics;
 using namespace wiScene;
 
@@ -2493,6 +2497,9 @@ float g_fSlowParticleTime = 1.0f;
 // Update the Particles
 void gpup_update( float frameTime, wiGraphics::CommandList cmd )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	device->EventBegin( "GPUParticles Update", cmd );
 	

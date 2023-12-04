@@ -33,7 +33,6 @@ void entity_hitentity ( int e, int obj );
 void entity_triggerdecalatimpact ( float fX, float fY, float fZ );
 void entity_createattachment ( void );
 void entity_freeattachment ( void );
-void entity_controlattachments ( void );
 void entity_monitorattachments ( void );
 void entity_monitorloot(void);
 void entity_converttoclone ( void );

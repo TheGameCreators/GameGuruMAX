@@ -6,6 +6,10 @@
 #include "gameguru.h"
 #include "GGVR.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #ifdef VRTECH
 void weapon_preloadfiles ( void )
 {
@@ -346,6 +350,9 @@ void weapon_projectile_free ( void )
 
 void weapon_projectile_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	//  processes all active projectiles
 	t.tTimer = Timer();
 	for ( t.tProj = 1 ; t.tProj <= g.weaponSystem.numProjectiles; t.tProj++ )

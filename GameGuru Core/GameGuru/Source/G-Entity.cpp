@@ -17,6 +17,10 @@ using namespace GPUParticles;
 extern GGRecastDetour g_RecastDetour;
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Globals
 std::vector<int> g_iDestroyedEntitiesList;
 
@@ -667,6 +671,7 @@ void entity_reset_defaults(void)
 	//t.entityelement[t.e].usefade = 0;
 	//t.entityelement[t.e].cullstate = 0;
 	t.entityelement[t.e].ishidden = 0;
+	t.entityelement[t.e].precreatedspawnedentityelementindex = 0;
 	//t.entityelement[t.e].reserved2 was entitydammult_f = 0.0f;
 	//t.entityelement[t.e].floorpositiony = 0.0f;
 	//t.entityelement[t.e].hideshadow = 0;
@@ -942,6 +947,10 @@ bool g_bOnlyOneRagdollPlusPerCycleForPerformance = false;
 
 void entity_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// so avoid ALL physics activating at once and slowing the level start,
 	// we pace it out from the camera position outward
 	#ifdef WICKEDENGINE
@@ -1617,9 +1626,9 @@ void entity_loop ( void )
 								}
 
 								// keep gun attached to hand during death anim (no longer can use the regular call)
-								int iObjStore = t.tobj;
-								entity_controlattachments ();
-								t.tobj = iObjStore;
+								//int iObjStore = t.tobj;
+								//entity_controlattachments ();
+								//t.tobj = iObjStore;
 							}
 						}
 					}
@@ -2221,6 +2230,10 @@ void entity_loop ( void )
 //PE: Now allow "static" with animation to use AnimSpeed per object.
 void entity_loopanim ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// In game or editor, must control entity animation speed (machine indie)#
 	static int currentsynccount = 0;
 	currentsynccount++;
@@ -4282,6 +4295,57 @@ void entity_createattachment ( void )
 			}
 		}
 	}
+
+	// pre-spawn weapon drops so to avoid performance hit during the game
+	t.entityelement[t.e].precreatedspawnedentityelementindex = 0;
+	if (t.playercontrol.thirdperson.enabled == 0)
+	{
+		t.tobj = t.entityelement[t.e].attachmentobj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				// new system spawns weapon object so can be treated like a loot drop
+				int iStoree = t.e;
+				int iAttachmentObj = t.tobj;
+				int iWeaponEntityID = 0;
+				t.weaponindex = t.entityelement[t.e].eleprof.hasweapon;
+				if (t.weaponindex > 0)
+				{
+					for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
+					{
+						int iEntID = t.entityelement[iWE].bankindex;
+						if (iEntID > 0)
+						{
+							if (t.entityprofile[iEntID].isweapon == t.weaponindex)
+							{
+								iWeaponEntityID = iWE;
+								break;
+							}
+						}
+					}
+				}
+				if (iWeaponEntityID > 0)
+				{
+					extern int SpawnNewEntityCore(int iEntityIndex);
+					float fStoreX = t.entityelement[iWeaponEntityID].x;
+					float fStoreY = t.entityelement[iWeaponEntityID].y;
+					float fStoreZ = t.entityelement[iWeaponEntityID].z;
+					t.entityelement[iWeaponEntityID].x = t.entityelement[t.e].x;
+					t.entityelement[iWeaponEntityID].y = t.entityelement[t.e].y;
+					t.entityelement[iWeaponEntityID].z = t.entityelement[t.e].z;
+					int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
+					t.entityelement[iNewEntID].x = -99999;
+					t.entityelement[iNewEntID].y = -99999;
+					t.entityelement[iNewEntID].z = -99999;
+					int tobj = t.entityelement[iNewEntID].obj;
+					PositionObject(tobj, -99999, -99999, 99999);
+					HideObject(tobj);
+					t.entityelement[t.e].precreatedspawnedentityelementindex = iNewEntID;
+				}
+			}
+		}
+	}
 }
 
 void entity_freeattachment ( void )
@@ -4295,81 +4359,11 @@ void entity_freeattachment ( void )
 	}
 }
 
-void entity_controlattachments ( void )
-{
-	// ensure attachments are updated and visible
-	t.tcharacterobj=t.entityelement[t.e].obj;
-	t.tobj=t.entityelement[t.e].attachmentobj;
-	if ( t.tobj>0 && t.tcharacterobj>0 ) 
-	{
-		// added check for visibility, as attachment will be invisible once it's been picked up
-		if ( ObjectExist(t.tobj) == 1 && ObjectExist(t.tcharacterobj) == 1 ) //&& GetVisible(t.tobj) == 1 ) so weapon not flicker when show during equip anim
-		{
-			// manual position of gun attachment
-			/*
-			// holds onto gun longer so physics kicks in when death anim ends
-			if (t.entityelement[t.e].beenkilled == 0)
-			{
-				t.limbpx_f=ObjectPositionX(t.entityelement[t.e].obj);
-				t.limbpy_f=ObjectPositionY(t.entityelement[t.e].obj);
-				t.limbpz_f=ObjectPositionZ(t.entityelement[t.e].obj);
-				if ( t.entityelement[t.e].obj>0 ) 
-				{
-					if ( ObjectExist(t.entityelement[t.e].obj) == 1 ) 
-					{
-						t.tentid=t.entityelement[t.e].bankindex;
-						if ( t.entityprofile[t.tentid].firespotlimb >= 0 ) 
-						{
-							if ( LimbExist(t.entityelement[t.e].obj,t.entityprofile[t.tentid].firespotlimb) == 1 ) 
-							{
-								// position of entity hand where gun rests
-								sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
-								float fQuatX, fQuatY, fQuatZ, fQuatW;
-								int iGunID = t.entityelement[t.e].eleprof.hasweapon;
-								float fHandOffX = t.gun[iGunID].handposx_f;
-								float fHandOffY = t.gun[iGunID].handposy_f;
-								float fHandOffZ = t.gun[iGunID].handposz_f;
-								float fHandRotX = t.gun[iGunID].handrotx_f;
-								float fHandRotY = t.gun[iGunID].handroty_f;
-								float fHandRotZ = t.gun[iGunID].handrotz_f;
-
-								//PE: Optimizing this is hitting TransformComponent::GetLocalMatrix() heavy.
-								//PE: use t.entityelement[t.e] to store last entry.
-								//PE: This dont change unless t.limbpx_f,t.limbpy_f,t.limbpz_f has changed from last frame.
-								if (t.entityelement[t.e].firespotlimb_lastx != t.limbpx_f ||
-									t.entityelement[t.e].firespotlimb_lasty != t.limbpy_f ||
-									t.entityelement[t.e].firespotlimb_lastz != t.limbpz_f)
-								{
-									//LB: This is one frame behind, need a Wicked GLUE operation for attached objects me thinks!
-									//WickedCall_GetLimbDataEx(pObject, t.entityprofile[t.tentid].firespotlimb, true, fHandOffX, fHandOffY, fHandOffZ, GGToRadian(fHandRotX), GGToRadian(fHandRotY), GGToRadian(fHandRotZ), &t.limbpx_f, &t.limbpy_f, &t.limbpz_f, &fQuatX, &fQuatY, &fQuatZ, &fQuatW);
-									//RotateObjectQuat(t.tobj, fQuatX, fQuatY, fQuatZ, fQuatW);
-
-									// scale now from gunspec
-									float fHandscale = t.gun[iGunID].handscale_f;
-									ScaleObject(t.tobj, fHandscale, fHandscale, fHandscale);
-
-									// store limb offset position to ensure we only call if needed
-									t.entityelement[t.e].firespotlimb_lastx = t.limbpx_f;
-									t.entityelement[t.e].firespotlimb_lasty = t.limbpy_f;
-									t.entityelement[t.e].firespotlimb_lastz = t.limbpz_f;
-								}
-							}
-						}
-					}
-				}
-				//PositionObject (  t.tobj,t.limbpx_f,t.limbpy_f,t.limbpz_f );
-				// done now in create
-				//PE: fix t.entityelement[t.e].attachmentobj;
-				//PE: https://forum.game-guru.com/thread/219491.
-				//EnableObjectZDepth(t.tobj);
-			}
-			*/
-		}
-	}
-}
-
 void entity_monitorattachments (void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// handle when player picks up ammo from dead enemies. Assumes ammo pool 1 is the default pool we want to update
 	if (t.playercontrol.thirdperson.enabled == 0)
 	{
@@ -4386,36 +4380,39 @@ void entity_monitorattachments (void)
 						// new system spawns weapon object so can be treated like a loot drop
 						int iStoree = t.e;
 						int iAttachmentObj = t.tobj;
-						int iWeaponEntityID = 0;
-						t.weaponindex = t.entityelement[t.e].eleprof.hasweapon;
-						if (t.weaponindex > 0)
+						//int iWeaponEntityID = 0;
+						//t.weaponindex = t.entityelement[t.e].eleprof.hasweapon;
+						//if (t.weaponindex > 0)
+						//{
+						//	for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
+						//	{
+						//		int iEntID = t.entityelement[iWE].bankindex;
+						//		if (iEntID > 0)
+						//		{
+						//			if (t.entityprofile[iEntID].isweapon == t.weaponindex)
+						//			{
+						//				iWeaponEntityID = iWE;
+						//				break;
+						//			}
+						//		}
+						//	}
+						//}
+						//if (iWeaponEntityID > 0)
+						if(t.entityelement[t.e].precreatedspawnedentityelementindex>0)
 						{
-							for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
-							{
-								int iEntID = t.entityelement[iWE].bankindex;
-								if (iEntID > 0)
-								{
-									if (t.entityprofile[iEntID].isweapon == t.weaponindex)
-									{
-										iWeaponEntityID = iWE;
-										break;
-									}
-								}
-							}
-						}
-						if (iWeaponEntityID > 0)
-						{
-							extern int SpawnNewEntityCore(int iEntityIndex);
-							float fStoreX = t.entityelement[iWeaponEntityID].x;
-							float fStoreY = t.entityelement[iWeaponEntityID].y;
-							float fStoreZ = t.entityelement[iWeaponEntityID].z;
-							t.entityelement[iWeaponEntityID].x = t.entityelement[t.e].x;
-							t.entityelement[iWeaponEntityID].y = t.entityelement[t.e].y;
-							t.entityelement[iWeaponEntityID].z = t.entityelement[t.e].z;
-							int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
-							t.entityelement[iWeaponEntityID].x = fStoreX;
-							t.entityelement[iWeaponEntityID].y = fStoreY;
-							t.entityelement[iWeaponEntityID].z = fStoreZ;
+							// performance hit to spawn in-level, so precreated this weapon drop
+							int iNewEntID = t.entityelement[t.e].precreatedspawnedentityelementindex;
+							//extern int SpawnNewEntityCore(int iEntityIndex);
+							//float fStoreX = t.entityelement[iWeaponEntityID].x;
+							//float fStoreY = t.entityelement[iWeaponEntityID].y;
+							//float fStoreZ = t.entityelement[iWeaponEntityID].z;
+							//t.entityelement[iWeaponEntityID].x = t.entityelement[t.e].x;
+							//t.entityelement[iWeaponEntityID].y = t.entityelement[t.e].y;
+							//t.entityelement[iWeaponEntityID].z = t.entityelement[t.e].z;
+							//int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
+							//t.entityelement[iWeaponEntityID].x = fStoreX;
+							//t.entityelement[iWeaponEntityID].y = fStoreY;
+							//t.entityelement[iWeaponEntityID].z = fStoreZ;
 							t.entityelement[iNewEntID].x = t.entityelement[t.e].x;
 							t.entityelement[iNewEntID].y = t.entityelement[t.e].y;
 							t.entityelement[iNewEntID].z = t.entityelement[t.e].z;
@@ -4426,24 +4423,29 @@ void entity_monitorattachments (void)
 							t.entityelement[iNewEntID].ry = t.entityelement[t.e].ry + Rnd(359);
 							t.entityelement[iNewEntID].rz = t.entityelement[t.e].rz;
 							t.entityelement[iNewEntID].lua.haskey = 1; // taken over this flag for use with weapon.lua script (auto collect ammo if got weapon)
-							if (t.entityelement[iNewEntID].usingphysicsnow == 1)
-							{
-								ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-								PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-								ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
-								RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
-							}
-							else
-							{
+							t.entityelement[iNewEntID].usingphysicsnow = 0; // collision on below makes the new physics for this drop
+							t.entityelement[iNewEntID].eleprof.iOverrideCollisionMode = 0; // and use the box shape for the physics
+							t.entityelement[iNewEntID].eleprof.isimmobile = 0; // and free to fall
+							t.entityelement[iNewEntID].active = 0;
+							t.entityelement[iNewEntID].lua.flagschanged = 123; // cause to call init before normal running
+							//if (t.entityelement[iNewEntID].usingphysicsnow == 1)
+							//{
+							//	ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+							//	PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+							//	ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+							//	RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+							//}
+							//else
+							//{
 								t.te = iNewEntID; t.tv_f = 0;// t.v_f;
 								g.charanimindex = 0;
 								entity_updatepos ();
 								entity_lua_rotateupdate ();
-							}
+							//}
 							t.entityelement[iNewEntID].eleprof.quantity = t.entityelement[t.e].eleprof.quantity;
 							t.entityelement[t.e].eleprof.cantakeweapon = 100 + iNewEntID;
 							t.e = iNewEntID;
-							entity_lua_collisionon();
+							//entity_lua_collisionon();
 							entity_lua_show();
 						}
 						t.e = iStoree;
@@ -4477,11 +4479,12 @@ void entity_monitorattachments (void)
 											t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
 											t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
 										}
-										ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
+										//ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
 										PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-										ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
+										//ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
 										RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
 										ShowObject(tobj);
+										//t.entityelement[t.e].eleprof.cantakeweapon = 0;
 									}
 								}
 							}

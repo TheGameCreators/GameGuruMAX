@@ -18,6 +18,10 @@
 #include "GGTerrain.h"
 #include "M-UndoSys-Terrain.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 using namespace GGTerrain;
 
 using namespace wiGraphics;
@@ -1414,6 +1418,10 @@ void GGGrass_Update_Painting( RAY ray )
 
 void GGGrass_Update( wiScene::CameraComponent* camera, CommandList cmd, bool bRenderTargetFocus)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	if ( !gggrass_global_params.draw_enabled ) return;
 
 	//auto range = wiProfiler::BeginRangeCPU( "Max - Grass Update" );

@@ -9,6 +9,10 @@
 #include "GGRecastDetour.h"
 extern GGRecastDetour g_RecastDetour;
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Globals 
 bool g_bDormantCheckForThisCycle = true;
 
@@ -1254,6 +1258,9 @@ void darkai_handlegotomove (void)
 
 void darkai_loop (void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// all characters in game
 	g_bDormantCheckForThisCycle = true;
 	DWORD dwCurrentTime = timeGetTime();
@@ -2757,10 +2764,6 @@ void darkai_character_remove ( void )
 }
 
 void darkai_character_loop ( void )
-{
-}
-
-void darkai_finalsettingofcharacterobjects ( void )
 {
 }
 

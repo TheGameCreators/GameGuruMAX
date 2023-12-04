@@ -16,6 +16,10 @@
 #include "..\Imgui\imgui_gg_dx11.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  POST PROCESSING (0-main cam,1-reserved,2-reflect cam,3-finalrender cam)
 //  4-sunlight ray camera
@@ -436,6 +440,9 @@ void postprocess_on ( void )
 
 void postprocess_preterrain ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// Most rendering done in master for wicked, but some code from below remains for alignment of controls
 	if ( g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 	{
@@ -487,79 +494,6 @@ void postprocess_preterrain ( void )
 			GGVR_SetOpenXRValuesForMAX();
 		}
 	}
-}
-
-void postprocess_apply ( void )
-{
-	#ifdef WICKEDENGINE
-	// Wicked has post processing covered
-	#else
-	if (  t.gpostprocessmode>0 ) 
-	{
-		// prepare the render for 'glightraycameraid'
-		if ( t.glightraycameraid>0 ) 
-		{
-			if ( t.visuals.lightraymode == 0 ) 
-			{
-				// Hide light ray objects when mode not used
-				HideObject ( g.postprocessobjectoffset+1 );
-				HideObject ( g.postprocessobjectoffset+2 );
-			}
-			else
-			{
-				// Show light ray objects when mode used
-				ShowObject ( g.postprocessobjectoffset+1 );
-				ShowObject ( g.postprocessobjectoffset+2 );
-
-				// light ray sun object's rotation
-				#ifdef VRTECH
-				g.rotvar_f=38.0 + 180.0f;
-				#else
-				g.rotvar_f=38.0;
-				#endif
-
-				// update light ray sun object
-				PositionObject (  g.postprocessobjectoffset+2,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
-				RotateObject (  g.postprocessobjectoffset+2,-20,0+g.rotvar_f,0 );
-				MoveObject (  g.postprocessobjectoffset+2,2000 );
-
-				// update light ray scatter object
-				PositionObject (  g.postprocessobjectoffset+1,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
-				RotateObject (  g.postprocessobjectoffset+1,CameraAngleX(0),CameraAngleY(0),CameraAngleZ(0) );
-				MoveObject (  g.postprocessobjectoffset+1,2 );
-
-				// update light ray camera
-				PositionCamera ( t.glightraycameraid,CameraPositionX(0),CameraPositionY(0),CameraPositionZ(0) );
-				RotateCamera ( t.glightraycameraid,CameraAngleX(0),CameraAngleY(0),CameraAngleZ(0) );
-
-				//  update scatter shader light direction
-				t.ldirDX_f=CameraPositionX(0)-ObjectPositionX(g.postprocessobjectoffset+2);
-				t.ldirDY_f=CameraPositionY(0)-ObjectPositionY(g.postprocessobjectoffset+2);
-				t.ldirDZ_f=CameraPositionZ(0)-ObjectPositionZ(g.postprocessobjectoffset+2);
-				t.ldirDD_f=Sqrt(abs(t.ldirDX_f*t.ldirDX_f)+abs(t.ldirDY_f*t.ldirDY_f)+abs(t.ldirDZ_f*t.ldirDZ_f));
-				t.ldirDA_f=WrapValue(atan2deg(t.ldirDX_f,t.ldirDZ_f))-WrapValue(CameraAngleY(0));
-				t.ldirDX_f=t.ldirDX_f/t.ldirDD_f;
-				t.ldirDY_f=t.ldirDY_f/t.ldirDD_f;
-				t.ldirDZ_f=t.ldirDZ_f/t.ldirDD_f;
-				SetVector4 (  g.postprocesseffectoffset+1,t.ldirDX_f,t.ldirDY_f,t.ldirDZ_f,0 );
-				SetEffectConstantVEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.LightDir,g.postprocesseffectoffset+1 );
-
-				//  light ray AlphaAngle
-				if (  t.ldirDA_f<-180  )  t.ldirDA_f = t.ldirDA_f+360.0;
-				if (  t.ldirDA_f>180  )  t.ldirDA_f = t.ldirDA_f-360.0;
-				t.ldirDAlpha_f=1.0-((180.0-abs(t.ldirDA_f))/45.0);
-				if (  t.ldirDAlpha_f<0  )  t.ldirDAlpha_f = 0;
-				if (  t.ldirDAlpha_f>1  )  t.ldirDAlpha_f = 1;
-				t.ldirDAlpha_f=t.ldirDAlpha_f*t.sky.alpha1_f;
-				SetEffectConstantFEx (  g.postprocesseffectoffset+1,t.effectparam.postprocess.AlphaAngle,t.ldirDAlpha_f );
-				
-				// pass in settings
-				SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayLength, t.visuals.LightrayLength_f );
-				SetEffectConstantFEx ( g.postprocesseffectoffset+1, t.effectparam.postprocess.LightRayDecay, t.visuals.LightrayDecay_f );
-			}
-		}
-	}
-	#endif
 }
 
 void postprocess_setscreencolor ( void )

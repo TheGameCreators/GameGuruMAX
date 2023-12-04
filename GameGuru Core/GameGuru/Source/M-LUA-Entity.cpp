@@ -1369,7 +1369,6 @@ void entity_lua_playvideonoskip ( int i3DMode, int iNoSkipFlag )
 				//LB: Yes, for VR rendering, so moved needed calls here :)
 				//game_main_loop ( ); 
 				postprocess_preterrain ( );
-				if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 				game_sync ( );
 
 				#ifdef WICKEDENGINE

@@ -42,6 +42,10 @@
 // For Steam authentication check
 #include "steam/steam_api.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 using namespace GPUParticles;
 using namespace GGTerrain;
 using namespace GGTrees;
@@ -1096,6 +1100,11 @@ bool Master::ForceRender(void* rt)
 
 void Master::RunCustom()
 {
+	// profiling
+#ifdef OPTICK_ENABLE
+	OPTICK_FRAME("MainThread");
+#endif
+
 	if (!initialized)
 	{
 		// Initialize in a lazy way, so the user application doesn't have to call this explicitly
@@ -1106,7 +1115,6 @@ void Master::RunCustom()
 	{
 		return;
 	}
-
 	if ( !initializedSecondaries )
 	{
 		// Good time to check if we have all necessarily files for the editor, otherwise we call auto updater to repair us 
@@ -1167,7 +1175,6 @@ void Master::RunCustom()
 				return;
 			}
 		}
-
 		InitializeSecondaries(); // synchronous so no need to return and come back later
 	}
 
@@ -1188,6 +1195,7 @@ void Master::RunCustom()
 		}
 	}
 
+	// VR or not to VR
 	if ( bRequireVRRendering == false )
 	{
 		// regular run calls update() and render() (above)
@@ -1767,6 +1775,9 @@ void MasterRenderer::Update(float dt)
 	{
 		// regular update mode
 		auto range = wiProfiler::BeginRangeCPU("Max - General");
+#ifdef OPTICK_ENABLE
+		OPTICK_EVENT("GuruLoopLogic");
+#endif
 		bool bFullyInitialised = GuruLoopLogic();
 		wiProfiler::EndRange(range);
 		if (bFullyInitialised == true)

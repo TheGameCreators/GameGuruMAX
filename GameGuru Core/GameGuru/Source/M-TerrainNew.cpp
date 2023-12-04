@@ -8080,31 +8080,6 @@ void imgui_Customize_Water(int mode)
 		ImGui::Indent(10);
 		float fTabColumnWidth = 120.0f;
 
-/*
-		bool bEnableTerrain = true;
-		bEnableTerrain = ! (bool) t.hardwareinfoglobals.noterrain;
-
-		//tab_tab_Column_text("Enable Terrain", fTabColumnWidth);
-		if (ImGui::Checkbox("Enable Terrain##Nowater", &bEnableTerrain))
-		{
-			if (bEnableTerrain) {
-				if (ObjectExist(t.terrain.terrainobjectindex) == 1)
-				{
-					ShowObject(t.terrain.terrainobjectindex);
-				}
-				t.hardwareinfoglobals.noterrain = 0;
-			}
-			else {
-				if (ObjectExist(t.terrain.terrainobjectindex) == 1)
-				{
-					HideObject(t.terrain.terrainobjectindex);
-				}
-				t.hardwareinfoglobals.noterrain = 1;
-			}
-			terrain_update();
-		}
-*/
-
 		//tab_tab_Column_text("Enable Water", fTabColumnWidth);
 		ImGui::PushItemWidth(-10);
 
@@ -9716,7 +9691,6 @@ int terrain_createnewterraintexture ( LPSTR pDestTerrainTextureFile, int iWhichT
 void terrain_loadlatesttexture ( void ) {}
 void terrain_changestyle ( void ) {}
 void terrain_getpaintmode ( void ) {}
-void terrain_loop(void) {}
 void terrain_terraintexturesystempainterentry ( void ) {}
 void terrain_detectendofterraintexturesystempainter ( void ) {}
 
@@ -9926,22 +9900,6 @@ void terrain_cursor_nograsscolor ( void ) {}
 void terrain_cursor_off ( void ) {}
 void terrain_renderonly ( void ) {}
 
-//bool bOneOff = true;
-void terrain_update ( void ) 
-{
-	/* g_pTerrain no longer used
-	// update the terrain - loading and rendering only
-	if ( !g_pTerrain )
-		return;
-
-	// tutorial system
-	CheckTutorialPlaceit();
-
-	// update the terrain
-	g_pTerrain->Update ( );
-	*/
-}
-
 float BT_GetGroundHeight ( unsigned long value, float x, float z )
 {
 	#ifdef GGTERRAIN_USE_NEW_TERRAIN
@@ -10021,7 +9979,6 @@ void terrain_delete ( void )
 {
 	int k = 0;
 }
-void terrain_shadowupdate ( void ) {}
 void terrain_updaterealheights ( void ) {}
 void terrain_randomiseorflattenterrain ( void ) {}
 void terrain_flattenterrain ( void ) {}
@@ -10069,8 +10026,6 @@ void terrain_water_free ( void ) {}
 void terrain_updatewatermechanism ( void ) {}
 void terrain_updatewaterphysics ( void ) {}
 void terrain_water_setfog ( void ) {}
-void terrain_water_loop ( void ) {}
-
 
 #ifdef PROCEDURALTERRAINWINDOW
 

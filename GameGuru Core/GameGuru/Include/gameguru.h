@@ -55,13 +55,8 @@
 #include "M-MP.h"
 #include "M-Sky.h"
 #include "M-Grass.h"
-#ifdef WICKEDENGINE
 #include "M-TerrainNew.h"
 #include "M-DAINew.h"
-#else
-#include "M-Terrain.h"
-#include "M-DAI.h"
-#endif
 #include "M-Titles.h"
 #include "M-Visuals.h"
 #include "M-Waypoint.h"
@@ -72,6 +67,7 @@
 #include "M-UndoSys-Terrain.h"
 #include "MapEditor.h"
 #include "Types.h"
+
 #ifdef BUILDINGEDITOR
 //#include "BuildingEditor/BuildingEditor.h"
 #include "..\..\..\BuildingEditor\BuildingEditor.h"
@@ -115,13 +111,8 @@
 #include "SteamCommands.h"
 #endif
 
-#ifdef WICKEDENGINE
 #include ".\..\..\Guru-WickedMAX\wickedcalls.h"
-#endif
-
-#ifdef VRTECH
 #include "GGVR.h"
-#endif
 
 #endif
 

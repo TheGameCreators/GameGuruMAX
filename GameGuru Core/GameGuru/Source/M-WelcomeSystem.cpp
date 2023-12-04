@@ -87,8 +87,6 @@ void welcome_waitfornoinput ( void )
 		t.inputsys.kscancode=ScanCode();
 		set_inputsys_mclick(MouseClick());// t.inputsys.mclick = MouseClick();
 		t.terrain.gameplaycamera=0;
-		terrain_shadowupdate ( );
-		terrain_update ( );
 		// stretch anim backdrop to size of client window
 		Sprite ( 123, -100000, -100000, g.editorimagesoffset+12 );
 		SizeSprite ( 123, GetChildWindowWidth(0)+1, GetChildWindowHeight(0)+11 );
@@ -2378,7 +2376,6 @@ bool welcome_setuppage ( int iPageIndex )
 
 void welcome_runloop ( int iPageIndex )
 {
-	#ifdef VRTECH
 	// code moved to welcome_cycle
 	g_iWelcomeLoopPage = iPageIndex;
 
@@ -2386,109 +2383,6 @@ void welcome_runloop ( int iPageIndex )
 	t.tclicked = 0; t.tclosequick = 0;
 	t.lastmousex = MouseX(); t.lastmousey = MouseY();
 	t.inputsys.mclickreleasestate = 0;
-	#else
-	// get actions through filemapping system
-	OpenFileMap ( 1, "FPSEXCHANGE" );
-	SetEventAndWait ( 1 );
-
-	// run loop when in welcome page
-	t.tclicked=0 ; t.tclosequick=0;
-	t.lastmousex=MouseX() ; t.lastmousey=MouseY();
-	t.inputsys.mclickreleasestate = 0;
-	bool bStayInsideLoop = true;
-	while ( bStayInsideLoop == true ) 
-	{
-		// exit conditions
-		if ( iPageIndex == WELCOME_EXITAPP ||  iPageIndex == WELCOME_FREETRIALEXITAPP )
-		{
-			// can never leave this loop!
-		}
-		else
-		{
-			if ( EscapeKey() == 0 && t.tclosequick == 0 && g_welcomesystemclosedown == 0 )
-			{
-				// normal running
-			}
-			else
-			{
-				// leave loop, which was escaped or triggered
-				bStayInsideLoop = false;
-			}
-		}
-
-		// must be in IDE focus to ensure stuff not clicked or run in background
-		DWORD dwForegroundFocusForIDE = GetFileMapDWORD( 1, 596 );
-		if (dwForegroundFocusForIDE != 10 && iPageIndex == WELCOME_SAVESTANDALONE && g_welcomeCycle >= 2 )
-		{
-			//PE: Keep export running even if we dont have focus.
-			dwForegroundFocusForIDE = 10;
-		}
-		if ( dwForegroundFocusForIDE == 10 )
-		{
-			t.inputsys.kscancode=ScanCode();
-			t.inputsys.mclick=MouseClick();
-			if ( t.inputsys.mclick == 0 ) t.inputsys.mclickreleasestate = 0;
-			if ( t.inputsys.ignoreeditorintermination == 0 )
-			{
-				if ( GetFileMapDWORD( 1, 908 ) == 1 )  break;
-			}
-			if ( GetFileMapDWORD( 1, 516 ) > 0 )  break;
-			if ( GetFileMapDWORD( 1, 400 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 404 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 408 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 434 ) == 1 ) { t.interactive.active = 0  ; break; }
-			if ( GetFileMapDWORD( 1, 762 ) != 0 ) { t.interactive.active = 0  ; break; }
-			t.terrain.gameplaycamera=0;
-			terrain_shadowupdate ( );
-			terrain_update ( );
-
-			// paste backdrop
-			PasteImage ( g.editorimagesoffset+12, 0, 0 );
-
-			// paste page panel
-			PasteImage ( g.editorimagesoffset+8, g_welcome.iTopLeftX, g_welcome.iTopLeftY );
-
-			// get mouse coordinate for control
-			t.inputsys.xmouse = ((GetFileMapDWORD( 1, 0 )+0.0)/800.0)*GetChildWindowWidth(0);
-			t.inputsys.ymouse = ((GetFileMapDWORD( 1, 4 )+0.0)/600.0)*GetChildWindowHeight(0);
-
-			// highlight hover over a button
-			int iHighlightingButton = -1;
-			for ( int iButton = 1; iButton <= g_welcomebuttoncount; iButton++ )
-			{
-				g_welcomebutton[iButton].alpha = 128;
-				if ( t.inputsys.xmouse >= g_welcomebutton[iButton].x1 && t.inputsys.xmouse <= g_welcomebutton[iButton].x2 )
-				{
-					if ( t.inputsys.ymouse >= g_welcomebutton[iButton].y1 && t.inputsys.ymouse <= g_welcomebutton[iButton].y2 )
-					{
-						iHighlightingButton = iButton;
-						g_welcomebutton[iHighlightingButton].alpha = 255;
-					}
-				}
-			}
-
-			// display correct page
-			if ( iPageIndex == WELCOME_SERIALCODE ) welcome_serialcode_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_MAIN ) welcome_main_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_EXITAPP ) welcome_exitapp_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_FREEINTROAPP ) welcome_freeintroapp_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_ANNOUNCEMENTS ) welcome_announcements_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_SAVESTANDALONE ) welcome_savestandalone_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_FREETRIALINTROAPP ) welcome_freetrialintroapp_page ( iHighlightingButton );
-			if ( iPageIndex == WELCOME_FREETRIALEXITAPP ) welcome_freetrialexitapp_page ( iHighlightingButton );
-
-			// update screen
-			Sync();
-		}
-	}
-	t.tclosequick = 0;
-
-	// wait until all input ends
-	welcome_waitfornoinput();
-	#endif
 }
 
 #ifdef VRTECH

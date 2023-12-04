@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  Explosions and fire
 // 
@@ -84,6 +88,9 @@ void explosion_free ( void )
 
 void draw_particles ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	int tonceforemitter = 0;
 	int hideframe = 0;
 	int endframe = 0;

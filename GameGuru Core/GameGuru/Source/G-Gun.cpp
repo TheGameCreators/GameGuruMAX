@@ -9,6 +9,10 @@
 #include "GGVR.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // global store for weapon shader effect indexes
 cstr g_guns_customArms_s = "";
 int g_weaponbasicshadereffectindex = 0;
@@ -211,6 +215,9 @@ void gun_resetgunsettings ( void )
 
 void gun_manager ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// exit early if gun system disabled
 	if ( ObjectExist(g.hudbankoffset+5) == 0  ) 
 		return;

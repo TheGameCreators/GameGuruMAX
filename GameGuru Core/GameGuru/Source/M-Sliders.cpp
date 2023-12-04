@@ -12,6 +12,10 @@
 #include "..\Imgui\imgui_gg_dx11.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Prototypes
 void set_inputsys_mclick(int value);
 
@@ -584,7 +588,9 @@ void sliders_free ( void )
 
 void sliders_loop ( void )
 {
-	#ifdef WICKEDENGINE
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	void tab_tab_visuals(int iPage, int iMode);
 	extern bool bImGuiInTestGame;
 	if (g.tabmode == 2) {
@@ -598,7 +604,6 @@ void sliders_loop ( void )
 		}
 	}
 	return;
-	#endif
 
 	// Show / Hide LUA Sprites
 	if ( g.tabmode != g.lastTabMode )
@@ -2366,7 +2371,6 @@ void sliders_write (bool bOnlyVisualSettings )
 			if (!bOnlyVisualSettings)
 			{
 				t.storeprojectmodified = 1;
-				//visuals_shaderlevels_terrain_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}

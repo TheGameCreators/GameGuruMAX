@@ -13,6 +13,11 @@
 #include "GGTerrain/GGTrees.h"
 #include "GGTerrain/GGGrass.h"
 
+// For profiling
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Globals
 int g_iInitializationSequence = 0;
 bool g_bNoGGUntilGameGuruMainCalled = false;
@@ -98,6 +103,10 @@ void GuruMain (void)
 
 void GuruLoopRender ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// not until main has started
 	if (g_bNoGGUntilGameGuruMainCalled == false)
 		return;

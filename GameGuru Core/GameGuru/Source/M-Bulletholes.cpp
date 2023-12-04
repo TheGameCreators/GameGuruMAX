@@ -6,6 +6,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // globals
 #define BULLETHOLESMAX 1000
 struct sBulletHole
@@ -233,6 +237,9 @@ void bulletholes_add (int iMaterialIndex, float fX, float fY, float fZ, float fN
 
 void bulletholes_update (void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// go through all bulletholes in list and remove those that have expired
 	bool bUpdateTheObject = false;
 	for (int b = 0; b < g_bulletholes.size(); b++)

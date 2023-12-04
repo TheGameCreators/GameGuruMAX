@@ -18,6 +18,10 @@
 extern wiECS::Entity g_weatherEntityID;
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 void sky_init ( void )
 {
 	// Sky directory
@@ -873,6 +877,9 @@ void sky_free ( void )
 
 void sky_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// day
 	t.sky.alpha1_f=1.0;
 	t.sky.alpha2_f=0;

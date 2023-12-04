@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  Common Code - Sound Functions
 // 
@@ -295,6 +299,10 @@ void music_init ( void )
 
 void music_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  process all our music tracks
 	t.tTime = Timer();
 	for ( t.m = 1 ; t.m<=  MUSICSYSTEM_MAXTRACKS; t.m++ )

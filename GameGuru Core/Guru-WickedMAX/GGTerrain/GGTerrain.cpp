@@ -16,6 +16,10 @@
 // redefines MAX_PATH to 1050
 #include "preprocessor-moreflags.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #include "GGThread.h"
 using namespace GGThread;
 #include "GGTerrain.h"
@@ -8737,6 +8741,9 @@ void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float qua
 // update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	if (g_iDeferTextureUpdateToNow > 0)
 	{
 		cstr oldDir = GetDir();

@@ -4792,7 +4792,8 @@ struct saveloadgamepositionentitytype
 	int etimer;
 	int lastdamagetimer;
 	int lastdamagepaused;
-	float reserved2;
+	//float reserved2;
+	int precreatedspawnedentityelementindex;
 	int ishidden;
 	int cullstate;
 	unsigned char usefade;
@@ -4854,7 +4855,8 @@ struct saveloadgamepositionentitytype
 		 usefade = 0;
 		 cullstate = 0;
 		 ishidden = 0;
-		 reserved2 = 0.0f;
+		 //reserved2 = 0.0f;
+		 precreatedspawnedentityelementindex = 0;
 		 lastdamagepaused = 0;
 		 lastdamagetimer = 0;
 		 etimer = 0;
@@ -6649,7 +6651,8 @@ struct entitytype
 	//int isaltammo;
 	//int hideshadow;
 	//float floorpositiony;
-	float reserved2;
+	//float reserved2;
+	int precreatedspawnedentityelementindex;
 	int ishidden;
 	int iCanGoUnderwater;
 	int soundplaying;
@@ -6822,7 +6825,8 @@ struct entitytype
 		 //usefade = 0;
 		 //cullstate = 0;
 		 ishidden = 0;
-		 reserved2 = 0.0f;
+		 //reserved2 = 0.0f;
+		 precreatedspawnedentityelementindex = 0;
 		 //floorpositiony = 0.0f;
 		 //hideshadow = 0;
 		 //isaltammo = 0;

@@ -37,6 +37,10 @@ extern GGRecastDetour g_RecastDetour;
 extern StoryboardStruct Storyboard;
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Prototypes
 extern void DrawSpritesFirst(void);
 extern void DrawSpritesLast(void);
@@ -2560,60 +2564,63 @@ luaMessage** ppLuaMessages = NULL;
 
  int SpawnNewEntityCore(int iEntityIndex)
  {
-	 int iNewE = -1;
-	 t.bSpawnCalledFromLua = true;
-	 int storee = t.e;
-	 int storeentid = t.entid;
-	 int entid = t.entityelement[iEntityIndex].bankindex;
-	 t.gridentity = entid;
-	 t.gridentityeditorfixed = 0;
-	 t.gridentitystaticmode = t.entityelement[iEntityIndex].staticflag;
-	 t.gridentityposx_f = t.entityelement[iEntityIndex].x;
-	 t.gridentityposy_f = t.entityelement[iEntityIndex].y;
-	 t.gridentityposz_f = t.entityelement[iEntityIndex].z;
-	 t.gridentityrotatex_f = t.entityelement[iEntityIndex].rx;
-	 t.gridentityrotatey_f = t.entityelement[iEntityIndex].ry;
-	 t.gridentityrotatez_f = t.entityelement[iEntityIndex].rz;
-	 t.gridentityrotatequatmode = t.entityelement[iEntityIndex].quatmode;
-	 t.gridentityrotatequatx_f = t.entityelement[iEntityIndex].quatx;
-	 t.gridentityrotatequaty_f = t.entityelement[iEntityIndex].quaty;
-	 t.gridentityrotatequatz_f = t.entityelement[iEntityIndex].quatz;
-	 t.gridentityrotatequatw_f = t.entityelement[iEntityIndex].quatw;
-	 t.gridentityscalex_f = ObjectScaleX(t.entityelement[iEntityIndex].obj);
-	 t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
-	 t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
-	 t.entid = entid; entity_fillgrideleproffromprofile();
-	 //LB: an copy over material changes from the cloned entiy element
-	 t.grideleprof.WEMaterial = t.entityelement[iEntityIndex].eleprof.WEMaterial;
-	 entity_addentitytomap ();
-	 t.e = t.tupdatee;
-	 t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
-	 t.entityelement[t.e].scalex = t.entityelement[iEntityIndex].scalex;
-	 t.entityelement[t.e].scaley = t.entityelement[iEntityIndex].scaley;
-	 t.entityelement[t.e].scalez = t.entityelement[iEntityIndex].scalez;
-	 t.entityelement[t.e].soundset = t.entityelement[iEntityIndex].soundset;
-	 t.entityelement[t.e].soundset1 = t.entityelement[iEntityIndex].soundset1;
-	 t.entityelement[t.e].soundset2 = t.entityelement[iEntityIndex].soundset2;
-	 t.entityelement[t.e].soundset3 = t.entityelement[iEntityIndex].soundset3;
-	 t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
-	 t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
-	 t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
-	 // clones always show at start
-	 t.entityelement[t.e].eleprof.spawnatstart = 1;
-	 iNewE = t.e;
-	 physics_prepareentityforphysics ();
-	 t.entityelement[t.e].lua.firsttime = 0;
-	 // clones need parent health at least top begin with
-	 t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;
-	 // special limbo mode to skip activating this entity until next lua_begin cycle
-	 t.entityelement[iNewE].active = 0;
-	 t.entityelement[iNewE].lua.flagschanged = 123;
-	 t.entityelement[iNewE].iWasSpawnedInGame = 1;
-	 t.e = storee;
-	 t.entid = storeentid;
-	 t.gridentity = 0;
-	 t.bSpawnCalledFromLua = false;
-	 return iNewE;
+	#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+	#endif
+	int iNewE = -1;
+	t.bSpawnCalledFromLua = true;
+	int storee = t.e;
+	int storeentid = t.entid;
+	int entid = t.entityelement[iEntityIndex].bankindex;
+	t.gridentity = entid;
+	t.gridentityeditorfixed = 0;
+	t.gridentitystaticmode = t.entityelement[iEntityIndex].staticflag;
+	t.gridentityposx_f = t.entityelement[iEntityIndex].x;
+	t.gridentityposy_f = t.entityelement[iEntityIndex].y;
+	t.gridentityposz_f = t.entityelement[iEntityIndex].z;
+	t.gridentityrotatex_f = t.entityelement[iEntityIndex].rx;
+	t.gridentityrotatey_f = t.entityelement[iEntityIndex].ry;
+	t.gridentityrotatez_f = t.entityelement[iEntityIndex].rz;
+	t.gridentityrotatequatmode = t.entityelement[iEntityIndex].quatmode;
+	t.gridentityrotatequatx_f = t.entityelement[iEntityIndex].quatx;
+	t.gridentityrotatequaty_f = t.entityelement[iEntityIndex].quaty;
+	t.gridentityrotatequatz_f = t.entityelement[iEntityIndex].quatz;
+	t.gridentityrotatequatw_f = t.entityelement[iEntityIndex].quatw;
+	t.gridentityscalex_f = ObjectScaleX(t.entityelement[iEntityIndex].obj);
+	t.gridentityscaley_f = ObjectScaleY(t.entityelement[iEntityIndex].obj);
+	t.gridentityscalez_f = ObjectScaleZ(t.entityelement[iEntityIndex].obj);
+	t.entid = entid; entity_fillgrideleproffromprofile();
+	//LB: an copy over material changes from the cloned entiy element
+	t.grideleprof.WEMaterial = t.entityelement[iEntityIndex].eleprof.WEMaterial;
+	entity_addentitytomap ();
+	t.e = t.tupdatee;
+	t.entityelement[t.e].eleprof = t.entityelement[iEntityIndex].eleprof;
+	t.entityelement[t.e].scalex = t.entityelement[iEntityIndex].scalex;
+	t.entityelement[t.e].scaley = t.entityelement[iEntityIndex].scaley;
+	t.entityelement[t.e].scalez = t.entityelement[iEntityIndex].scalez;
+	t.entityelement[t.e].soundset = t.entityelement[iEntityIndex].soundset;
+	t.entityelement[t.e].soundset1 = t.entityelement[iEntityIndex].soundset1;
+	t.entityelement[t.e].soundset2 = t.entityelement[iEntityIndex].soundset2;
+	t.entityelement[t.e].soundset3 = t.entityelement[iEntityIndex].soundset3;
+	t.entityelement[t.e].soundset4 = t.entityelement[iEntityIndex].soundset4;
+	t.entityelement[t.e].soundset5 = t.entityelement[iEntityIndex].soundset5;
+	t.entityelement[t.e].soundset6 = t.entityelement[iEntityIndex].soundset6;
+	// clones always show at start
+	t.entityelement[t.e].eleprof.spawnatstart = 1;
+	iNewE = t.e;
+	physics_prepareentityforphysics ();
+	t.entityelement[t.e].lua.firsttime = 0;
+	// clones need parent health at least top begin with
+	t.entityelement[t.e].health = t.entityelement[iEntityIndex].health;
+	// special limbo mode to skip activating this entity until next lua_begin cycle
+	t.entityelement[iNewE].active = 0;
+	t.entityelement[iNewE].lua.flagschanged = 123;
+	t.entityelement[iNewE].iWasSpawnedInGame = 1;
+	t.e = storee;
+	t.entid = storeentid;
+	t.gridentity = 0;
+	t.bSpawnCalledFromLua = false;
+	return iNewE;
  }
 
  int SpawnNewEntity(lua_State* L)
@@ -5288,6 +5295,9 @@ int GetRayCollisionZ ( lua_State *L )
 
 int IntersectCore (lua_State* L, int iMode)
 {
+	#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+	#endif
 	// iMode : 0=dynamic, 1=staticonly, 2-performant, 3-dynamic and use terrain hit to adjust ray to detect objects only
 	int n = lua_gettop(L);
 	if (iMode == 2)
@@ -6510,14 +6520,16 @@ int SetShaderVariable ( lua_State *L )
 
 //Control Water Shader
 //setter
-int SetWaterHeight(lua_State *L) {
+int SetWaterHeight(lua_State *L) 
+{
 	t.terrain.waterliney_f = lua_tonumber(L, 1);
 	terrain_updatewaterphysics();
 	extern void WickedCall_UpdateWaterHeight(float);
 	WickedCall_UpdateWaterHeight(t.terrain.waterliney_f);
 	return 0;
 }
-int SetWaterShaderColor(lua_State *L) {
+int SetWaterShaderColor(lua_State *L) 
+{
 	t.visuals.WaterRed_f = lua_tonumber(L, 1);
 	t.visuals.WaterGreen_f = lua_tonumber(L, 2);
 	t.visuals.WaterBlue_f = lua_tonumber(L, 3);
@@ -6525,28 +6537,33 @@ int SetWaterShaderColor(lua_State *L) {
 	SetEffectConstantV(t.terrain.effectstartindex + 1, "WaterCol", g.terrainvectorindex);
 	return 0;
 }
-int SetWaterWaveIntensity(lua_State *L){
+int SetWaterWaveIntensity(lua_State *L)
+{
 	t.visuals.WaterWaveIntensity_f = lua_tonumber(L, 1);
 	SetVector4(g.terrainvectorindex, t.visuals.WaterWaveIntensity_f, t.visuals.WaterWaveIntensity_f, 0, 0);
 	SetEffectConstantV(t.terrain.effectstartindex + 1, "nWaterScale", g.terrainvectorindex);
 	return 0;
 }
-int SetWaterTransparancy(lua_State *L){
+int SetWaterTransparancy(lua_State *L)
+{
 	t.visuals.WaterTransparancy_f = lua_tonumber(L, 1);
 	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterTransparancy", t.visuals.WaterTransparancy_f);
 	return 0;
 }
-int SetWaterReflection(lua_State *L){
+int SetWaterReflection(lua_State *L)
+{
 	t.visuals.WaterReflection_f = lua_tonumber(L, 1);
 	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterReflection", t.visuals.WaterReflection_f);
 	return 0;
 }
-int SetWaterReflectionSparkleIntensity(lua_State *L){
+int SetWaterReflectionSparkleIntensity(lua_State *L)
+{
 	t.visuals.WaterReflectionSparkleIntensity = lua_tonumber(L, 1);
 	SetEffectConstantF(t.terrain.effectstartindex + 1, "reflectionSparkleIntensity", t.visuals.WaterReflectionSparkleIntensity);
 	return 0;
 }
-int SetWaterFlowDirection(lua_State *L){
+int SetWaterFlowDirection(lua_State *L)
+{
 	t.visuals.WaterFlowDirectionX = lua_tonumber(L, 1);
 	t.visuals.WaterFlowDirectionY = lua_tonumber(L, 2);
 	t.visuals.WaterFlowSpeed = lua_tonumber(L, 3);
@@ -6554,12 +6571,14 @@ int SetWaterFlowDirection(lua_State *L){
 	SetEffectConstantV(t.terrain.effectstartindex + 1, "flowdirection", g.terrainvectorindex);
 	return 0;
 }
-int SetWaterDistortionWaves(lua_State *L){
+int SetWaterDistortionWaves(lua_State *L)
+{
 	t.visuals.WaterDistortionWaves = lua_tonumber(L, 1);
 	SetEffectConstantF(t.terrain.effectstartindex + 1, "distortion2", t.visuals.WaterDistortionWaves);
 	return 0;
 }
-int SetRippleWaterSpeed(lua_State *L){
+int SetRippleWaterSpeed(lua_State *L)
+{
 	t.visuals.WaterSpeed1 = lua_tonumber(L, 1);
 	SetEffectConstantF(t.terrain.effectstartindex + 1, "WaterSpeed1", t.visuals.WaterSpeed1);
 	return 0;

@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  Character Sound
 // 
@@ -345,7 +349,9 @@ return;
 
 void character_sound_update ( void )
 {
-
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	if (  g.characterSoundStackSize  ==  0  )  return;
 	if (  g.characterSoundCurrentPlayingNumber > 0 ) 
 	{

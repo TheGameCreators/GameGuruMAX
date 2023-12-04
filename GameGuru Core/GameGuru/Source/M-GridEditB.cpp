@@ -4128,10 +4128,10 @@ void RenderToPreview(int displayobj)
 	
 	visuals_justshaderupdate();
 
-	int iOldSpeedshadows = g.globals.speedshadows;
-	g.globals.speedshadows = 0; //We need all cascades.
-	terrain_shadowupdate();
-	g.globals.speedshadows = iOldSpeedshadows;
+	//int iOldSpeedshadows = g.globals.speedshadows;
+	//g.globals.speedshadows = 0; //We need all cascades.
+	//terrain_shadowupdate();
+	//g.globals.speedshadows = iOldSpeedshadows;
 
 	if (t.terrain.TerrainID > 0)
 	{
@@ -4224,9 +4224,9 @@ void RenderToPreview(int displayobj)
 	}
 
 
-	g.globals.speedshadows = 0; //We need all cascades.
-	terrain_shadowupdate(); //Remove preview objects shadow from cascades.
-	g.globals.speedshadows = iOldSpeedshadows;
+	//g.globals.speedshadows = 0; //We need all cascades.
+	//terrain_shadowupdate(); //Remove preview objects shadow from cascades.
+	//g.globals.speedshadows = iOldSpeedshadows;
 
 	//Turn off custom clear color.
 	custom_back_color[0] = 0.0f; custom_back_color[1] = 0.0f; custom_back_color[2] = 0.0f; custom_back_color[3] = 0.0f;
@@ -34801,7 +34801,7 @@ void Welcome_Screen(void)
 						{
 							ImGui::Text("");
 							ImGui::SetWindowFontScale(1.25);
-							ImGui::TextCenter("You must log into your Steam Client Account in order to submit Workshop items");
+							ImGui::TextCenter("You must log into your Steam Client Account in order to view your Workshop items");
 							ImGui::Text("");
 						}							
 						ImGui::EndTabItem();

@@ -7,6 +7,10 @@
 #include "gameguru.h"
 #include "GGTerrain/GGTerrain.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Externs
 #ifdef VRTECH
 extern GGVR_PlayerData GGVR_Player;
@@ -797,6 +801,9 @@ void lua_ensureentityglobalarrayisinitialised ( void )
 
 void lua_loop_allentities ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// Go through all entities with active LUA scripts
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
@@ -814,7 +821,6 @@ void lua_loop_allentities ( void )
 			//	continue;
 
 			// provided by darkai_loop control (avoids desync of use of maximumnonefreezedistance)
-			#ifdef WICKEDENGINE
 			if (t.entityelement[t.e].lua.outofrangefreeze == 1)
 			{
 				continue;
@@ -830,7 +836,6 @@ void lua_loop_allentities ( void )
 					}
 				}
 			}
-			#endif
 
 			// Update entity coordinates with real object coordinates
 			t.tfrm=0 ; t.tobj=t.entityelement[t.e].obj;
@@ -961,7 +966,6 @@ void lua_loop_allentities ( void )
 					{
 						if ( ObjectExist(t.obj) == 1 ) 
 						{
-							#ifdef WICKEDENGINE
 							//PE: Dont interfere with chars, they rely on the status (play anim ending handled with smoothanimupdate for characters)
 							//PE: Should only be for lua controlled objects doors ...
 							if (t.entityprofile[thisentid].ischaracter != 1)
@@ -982,7 +986,6 @@ void lua_loop_allentities ( void )
 									pObject->bAnimPlaying = WickedCall_GetAnimationPlayingState(pObject);
 								}
 							}
-							#endif
 							if ( GetPlaying(t.obj) == 0 && t.smoothanim[t.obj].transition == 0 ) 
 							{
 								t.entityelement[t.e].lua.animating=0;
@@ -1032,11 +1035,7 @@ void lua_loop_allentities ( void )
 					// this ensures the game loads in _G[x] states BEFORE we start the game scripts
 					// to avoid issues such as the start splash appearing when loading mid-way in level from main menu
 					// Called when entity states change
-					#ifdef VRTECH
 					if ( t.entityelement[t.e].lua.flagschanged == 1 ) // || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) the MP constant call would be slow!
-					#else
-					if (  t.entityelement[t.e].lua.flagschanged == 1 || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) 
-					#endif
 					{
 						//  do not refresh activated and animating as these are set INSIDE LUA!!
 						// 190516 - ensure we can only call UpdateEntityRT if we previously called UpdateEntity!!
@@ -1045,12 +1044,9 @@ void lua_loop_allentities ( void )
 							LuaSetFunction("UpdateEntityRT", 21, 0);
 							LuaPushInt (  t.e );
 							LuaPushInt (  t.tobj );
-							#ifdef VRTECH
 							if ( g.mp.endplay == 0 ) // can now run own script in multiplayer || t.game.runasmultiplayer == 0
-							#else
-							if ( t.game.runasmultiplayer ==  0 || g.mp.endplay  ==  0 ) 
-							#endif
 							{
+								/*
 								// if character, update entity coordinates from visible object
 								int tentid = t.entityelement[t.e].bankindex;
 								if ( tentid > 0 )
@@ -1068,6 +1064,7 @@ void lua_loop_allentities ( void )
 										#endif
 									}
 								}
+								*/
 								LuaPushFloat ( t.entityelement[t.e].x );
 								LuaPushFloat ( t.entityelement[t.e].y );
 								LuaPushFloat ( t.entityelement[t.e].z );
@@ -1110,7 +1107,6 @@ void lua_loop_allentities ( void )
 											sObject* pObject = g_ObjectList[iObjectNumber];
 											LPSTR pLimbName = pObject->ppFrameList[t.entityelement[t.e].detectedlimbhit]->szName;
 											pLimbByName = pLimbName;
-											//pLimbByName = LimbName(iObjectNumber, t.entityelement[t.e].detectedlimbhit);  //PE: Leak mem.
 										}
 									}
 								}
@@ -1119,26 +1115,6 @@ void lua_loop_allentities ( void )
 							LuaPushInt ( t.entityelement[t.e].detectedlimbhit );
 							LuaCall (  );
 							t.entityelement[t.e].lua.flagschanged=0;
-
-							#ifdef WICKEDENGINE
-							// uses dynamicavoidance in a different way in co-op with behavior script system
-							#else
-							if ( t.entityelement[t.e].lua.dynamicavoidance == 1 )
-							{
-								t.entityelement[t.e].lua.dynamicavoidance=0;
-								t.entityelement[t.e].lua.dynamicavoidancestuckclock = 0.0f;
-							}
-							if ( t.entityelement[t.e].lua.dynamicavoidance == 2 )
-							{
-								t.entityelement[t.e].lua.dynamicavoidance = 0;
-							}
-							#endif
-
-							// 120417 - record entity XYZ after script call (ensures delta from everything)
-							// moved below..
-							//t.entityelement[t.e].lastx = t.entityelement[t.e].x;
-							//t.entityelement[t.e].lasty = t.entityelement[t.e].y;
-							//t.entityelement[t.e].lastz = t.entityelement[t.e].z;
 						}
 					}
 
@@ -1147,68 +1123,31 @@ void lua_loop_allentities ( void )
 					{
 						if (  Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 						{
-							#ifdef VRTECH
-							if ( 1 ) // can run LUA in multiplayer now t.game.runasmultiplayer == 0 || g.mp.gameAlreadySpawnedBefore  !=  0 ) 
-							#else
-							if ( t.game.runasmultiplayer == 0 || g.mp.gameAlreadySpawnedBefore  !=  0 ) 
-							#endif
+							// can call LUA main function
+							t.tcall = 1;
+							if ( t.entityelement[t.e].eleprof.aimainname_s.Lower() == "default" ) t.tcall = 0;		
+							if ( t.tcall == 1 ) 
 							{
-								// can call LUA main function
-								t.tcall = 1;
-
-								// for multiplayer coop, only call the main function if we are the ones in control of the ai
-								#ifdef VRTECH
-								// now no scenario where call is skipped due to multiplayer
-								#else
-								if (  t.game.runasmultiplayer == 1 && g.mp.coop  ==  1 ) 
+								if ( t.entityelement[t.e].eleprof.aipreexit >= 1 )
 								{
-									t.entid=t.entityelement[t.e].bankindex;
-									if (  t.entid>0 ) 
+									if ( t.entityelement[t.e].eleprof.aipreexit == 1 )
 									{
-										if ( (t.entityprofile[t.entid].ischaracter  ==  1 || t.entityelement[t.e].mp_isLuaChar  ==  1) && t.entityprofile[t.entid].ismultiplayercharacter  ==  0 ) 
+										t.entityelement[t.e].eleprof.aipreexit = 3;
+										t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_preexit");
+										LuaSetFunction ( t.strwork.Get(), 1, 0 );
+										LuaPushInt ( t.e ); LuaCall ( );
+										if ( t.entityelement[t.e].eleprof.aipreexit == 2 )
 										{
-											if (  t.entityelement[t.e].mp_coopControlledByPlayer  !=  g.mp.me  )  t.tcall  =  0;
+											t.v = 0.0f;
+											entity_lua_setentityhealth();
 										}
-									}
-									//  only run marker scripts when in endplay mode (multiplayer only)
-									if (  t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1 ) 
-									{
-										if (  t.entityprofile[t.entid].ismarker  ==  0  )  t.tcall  =  0;
 									}
 								}
-								#endif
-								if ( t.entityelement[t.e].eleprof.aimainname_s.Lower() == "default" ) t.tcall = 0;		
-								if ( t.tcall == 1 ) 
+								else
 								{
-									if ( t.entityelement[t.e].eleprof.aipreexit >= 1 )
-									{
-										if ( t.entityelement[t.e].eleprof.aipreexit == 1 )
-										{
-											t.entityelement[t.e].eleprof.aipreexit = 3;
-											#ifdef WICKEDENGINE
-											t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_preexit");
-											#else
-											t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_preexit");
-											#endif
-											LuaSetFunction ( t.strwork.Get(), 1, 0 );
-											LuaPushInt ( t.e ); LuaCall ( );
-											if ( t.entityelement[t.e].eleprof.aipreexit == 2 )
-											{
-												t.v = 0.0f;
-												entity_lua_setentityhealth();
-											}
-										}
-									}
-									else
-									{
-										#ifdef WICKEDENGINE
-										t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_main");
-										#else
-										t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get()))+"_main");
-										#endif
-										LuaSetFunction ( t.strwork.Get() ,1,0 );
-										LuaPushInt (  t.e  ); LuaCall (  );
-									}
+									t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_main");
+									LuaSetFunction ( t.strwork.Get() ,1,0 );
+									LuaPushInt (  t.e  ); LuaCall (  );
 								}
 							}
 						}
@@ -1240,330 +1179,6 @@ void lua_loop_finish (void)
 		g_WarnOnlyOnce = false;
 		MessageBoxA(NULL, "Do Not Use SendMessage any more", t.luaaction_s.Get(), MB_OK);
 	}
-	/*
-	while (LuaNext())
-	{
-		t.luaaction_s = LuaMessageDesc();
-		MessageBoxA(NULL, "Do Not Use SendMessage any more", t.luaaction_s.Get(), MB_OK);
-		int iLen = t.luaaction_s.Len();
-
-		//PE: Move most used to top.
-		if (iLen == 11)
-		{
-			//if (strcmp(t.luaaction_s.Get(), "collisionon") == 0) { t.e = LuaMessageInt(); entity_lua_collisionon(); }
-			if (strcmp(t.luaaction_s.Get(), "drownplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_drownplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "finishlevel") == 0) { lua_finishlevel(); }
-			else if (strcmp(t.luaaction_s.Get(), "hideterrain") == 0) { t.v = LuaMessageInt(); lua_hideterrain(); }
-			else if (strcmp(t.luaaction_s.Get(), "jumptolevel") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_jumptolevel(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookatangle") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatangle(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookforward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookforward(); }
-			else if (strcmp(t.luaaction_s.Get(), "moveforward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveforward(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 0); }
-			else if (strcmp(t.luaaction_s.Get(), "promptimage") == 0) { t.v = LuaMessageInt(); lua_promptimage(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptlocal") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocal(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatelimbx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbx(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatelimby") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimby(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatelimbz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatelimbz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfoggreen") == 0) { t.v_f = LuaMessageFloat(); lua_setfoggreen(); }
-			else if (strcmp(t.luaaction_s.Get(), "showterrain") == 0) { t.v = LuaMessageInt(); lua_showterrain(); }
-			else if (strcmp(t.luaaction_s.Get(), "spawnifused") == 0) { t.e = LuaMessageInt(); entity_lua_spawnifused(); }
-			else if (strcmp(t.luaaction_s.Get(), "textcenterx") == 0) { t.tluaTextCenterX = 1; }
-		}
-		else if (iLen == 14)
-		{
-			if (strcmp(t.luaaction_s.Get(), "setservertimer") == 0) { t.v = LuaMessageInt(); mp_setServerTimer(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsoundvolume") == 0) { t.v = LuaMessageInt(); entity_lua_setsoundvolume(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsurfaceblue") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfaceblue(); }
-			else if (strcmp(t.luaaction_s.Get(), "setterrainsize") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainsize(); }
-			else if (strcmp(t.luaaction_s.Get(), "switchpageback") == 0) { lua_switchpageback(); }
-			else if (strcmp(t.luaaction_s.Get(), "unfreezeplayer") == 0) { t.v = LuaMessageInt(); lua_unfreezeplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "activateifused") == 0) { t.e = LuaMessageInt(); entity_lua_activateifused(); }
-			else if (strcmp(t.luaaction_s.Get(), "addplayerpower") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerpower(); }
-			else if (strcmp(t.luaaction_s.Get(), "loopnon3dsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopnon3Dsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicsetlength") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetlength(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicsetvolume") == 0) { t.v = LuaMessageInt(); lua_musicsetvolume(); }
-			else if (strcmp(t.luaaction_s.Get(), "playnon3dsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playnon3Dsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "setambiencered") == 0) { t.v_f = LuaMessageFloat(); lua_setambiencered(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatetocamera") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetocamera(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatetoplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_rotatetoplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptduration") == 0) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptduration(); }
-			else if (strcmp(t.luaaction_s.Get(), "prompttextsize") == 0) { t.v = LuaMessageInt(); lua_prompttextsize(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetpositionx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionx(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetpositiony") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositiony(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetpositionz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetpositionz(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetrotationx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationx(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetrotationy") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationy(); }
-			else if (strcmp(t.luaaction_s.Get(), "resetrotationz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_resetrotationz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfogdistance") == 0) { t.v_f = LuaMessageFloat(); lua_setfogdistance(); }
-			else if (strcmp(t.luaaction_s.Get(), "setgamequality") == 0) { t.v = LuaMessageInt(); lua_setgamequality(); }
-			else if (strcmp(t.luaaction_s.Get(), "sethoverfactor") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_sethoverfactor(); }
-			else if (strcmp(t.luaaction_s.Get(), "setplayerlives") == 0) { t.v = LuaMessageFloat(); lua_setplayerlives(); }
-			else if (strcmp(t.luaaction_s.Get(), "setplayerpower") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setplayerpower(); }
-		}
-		else if (iLen == 4)
-		{
-			if (strcmp(t.luaaction_s.Get(), "hide") == 0) { t.e = LuaMessageInt(); entity_lua_hide(); }
-			else if (strcmp(t.luaaction_s.Get(), "show") == 0) { t.e = LuaMessageInt(); entity_lua_show(); }
-		}
-		else if (iLen == 18)
-		{
-			if (strcmp(t.luaaction_s.Get(), "changeplayerweapon") == 0) { t.s_s = LuaMessageString(); entity_lua_changeplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "playcharactersound") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_play(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcameraweaponfov") == 0) { t.v_f = LuaMessageFloat(); lua_setcameraweaponfov(); }
-			else if (strcmp(t.luaaction_s.Get(), "setanimationframes") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setanimationframes(); }
-			else if (strcmp(t.luaaction_s.Get(), "removeplayerweapon") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositionx") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionx(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositiony") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositiony(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositionz") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setgamemusicvolume") == 0) { t.v = LuaMessageInt(); lua_setgamemusicvolume(); }
-			else if (strcmp(t.luaaction_s.Get(), "setgamesoundvolume") == 0) { t.v = LuaMessageInt(); lua_setgamesoundvolume(); }
-			else if (strcmp(t.luaaction_s.Get(), "setloadingresource") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); lua_setloadingresource(); }
-			else if (strcmp(t.luaaction_s.Get(), "setoptionlightrays") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionlightrays(); }
-			else if (strcmp(t.luaaction_s.Get(), "setoptionocclusion") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionocclusion(); }
-			else if (strcmp(t.luaaction_s.Get(), "setvegetationwidth") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationwidth(); }
-		}
-		else if (iLen == 19)
-		{
-			if (strcmp(t.luaaction_s.Get(), "getentityplrvisible") == 0) { t.e = LuaMessageInt(); entity_lua_getentityplrvisible(); }
-			else if (strcmp(t.luaaction_s.Get(), "levelfilenametoload") == 0) { t.s_s = LuaMessageString(); lua_levelfilenametoload(); }
-			else if (strcmp(t.luaaction_s.Get(), "removeplayerweapons") == 0) { t.v = LuaMessageInt(); lua_removeplayerweapons(); }
-			else if (strcmp(t.luaaction_s.Get(), "replaceplayerweapon") == 0) { t.e = LuaMessageInt(); entity_lua_replaceplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositionax") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionax(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositionay") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionay(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfreezepositionaz") == 0) { t.v_f = LuaMessageFloat(); lua_setfreezepositionaz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setoptionreflection") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionreflection(); }
-			else if (strcmp(t.luaaction_s.Get(), "setoptionvegetation") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionvegetation(); }
-			else if (strcmp(t.luaaction_s.Get(), "setplayerhealthcore") == 0) { t.v = LuaMessageFloat(); lua_setplayerhealthcore(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpostsaointensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostsaointensity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setserverkillstowin") == 0) { mp_setServerKillsToWin(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsurfaceintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfaceintensity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsurfacesunfactor") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacesunfactor(); }
-			else if (strcmp(t.luaaction_s.Get(), "setvegetationheight") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationheight(); }
-			else if (strcmp(t.luaaction_s.Get(), "stopparticleemitter") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_stopparticleemitter(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookattargetyoffset") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargetyoffset(); }
-		}
-		else if (iLen == 12)
-		{
-			if (strcmp(t.luaaction_s.Get(), "setanimation") == 0) { t.e = LuaMessageInt(); entity_lua_setanimation(); }
-			else if (strcmp(t.luaaction_s.Get(), "setactivated") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivated(); }
-			else if (strcmp(t.luaaction_s.Get(), "setconstrast") == 0) { t.v_f = LuaMessageFloat(); lua_setconstrast(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcamerafov") == 0) { t.v_f = LuaMessageFloat(); lua_setcamerafov(); }
-			//else if (strcmp(t.luaaction_s.Get(), "collisionoff") == 0) { t.e = LuaMessageInt(); entity_lua_collisionoff(); }
-			else if (strcmp(t.luaaction_s.Get(), "freezeplayer") == 0) { t.v = LuaMessageInt(); lua_freezeplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookatplayer") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookatplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookattarget") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattarget(); }
-			else if (strcmp(t.luaaction_s.Get(), "movebackward") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_movebackward(); }
-			else if (strcmp(t.luaaction_s.Get(), "mp_aimovetox") == 0) { t.e = LuaMessageIndex(); t.tSteamX_f = LuaMessageFloat(); }
-			else if (strcmp(t.luaaction_s.Get(), "mp_aimovetoz") == 0) { t.e = LuaMessageIndex(); t.tSteamZ_f = LuaMessageFloat(); mp_COOP_aiMoveTo(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicplaycue") == 0) { t.m = LuaMessageInt(); lua_musicplaycue(); }
-			else if (strcmp(t.luaaction_s.Get(), "nameplateson") == 0) { g.mp.nameplatesOff = 0; }
-			else if (strcmp(t.luaaction_s.Get(), "resetlimbhit") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_resetlimbhit(); }
-			else if (strcmp(t.luaaction_s.Get(), "ragdollforce") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_ragdollforce(); }
-			else if (strcmp(t.luaaction_s.Get(), "setforcelimb") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setforcelimb(); }
-			else if (strcmp(t.luaaction_s.Get(), "setplayerfov") == 0) { t.v = LuaMessageInt(); lua_setplayerfov(); }
-			else if (strcmp(t.luaaction_s.Get(), "setnogravity") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_gravity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setlimbindex") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlimbindex(); }
-			else if (strcmp(t.luaaction_s.Get(), "setrotationx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationx(); }
-			else if (strcmp(t.luaaction_s.Get(), "setrotationy") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationy(); }
-			else if (strcmp(t.luaaction_s.Get(), "setrotationz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setrotationz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpositionx") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionx(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpositiony") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositiony(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpositionz") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setpositionz(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpostbloom") == 0) { t.v_f = LuaMessageFloat(); lua_setpostbloom(); }
-			else if (strcmp(t.luaaction_s.Get(), "switchscript") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); entity_lua_switchscript(); }
-		}
-		else if (iLen == 6)
-		{
-			if (strcmp(t.luaaction_s.Get(), "moveup") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_moveup(); }
-			else if (strcmp(t.luaaction_s.Get(), "panelx") == 0) { t.luaPanel.x = LuaMessageFloat(); }
-			else if (strcmp(t.luaaction_s.Get(), "panely") == 0) { t.luaPanel.y = LuaMessageFloat(); }
-			else if (strcmp(t.luaaction_s.Get(), "prompt") == 0) { t.s_s = LuaMessageString(); lua_prompt(); }
-		}
-		else if (iLen == 7)
-		{
-			if (strcmp(t.luaaction_s.Get(), "destroy") == 0) { t.e = LuaMessageInt(); entity_lua_destroy(); }
-			else if (strcmp(t.luaaction_s.Get(), "dopanel") == 0) { t.luaPanel.e = LuaMessageIndex(); t.luaPanel.mode = LuaMessageInt(); lua_panel(); }
-			else if (strcmp(t.luaaction_s.Get(), "panelx2") == 0) { t.luaPanel.x2 = LuaMessageFloat(); }
-			else if (strcmp(t.luaaction_s.Get(), "panely2") == 0) { t.luaPanel.y2 = LuaMessageFloat(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatex") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatex(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatey") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatey(); }
-			else if (strcmp(t.luaaction_s.Get(), "rotatez") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_rotatez(); }
-			else if (strcmp(t.luaaction_s.Get(), "wingame") == 0) { lua_wingame(); }
-			else if (strcmp(t.luaaction_s.Get(), "textred") == 0) { g.mp.steamColorRed = LuaMessageInt(); g.mp.steamDoColorText = 1; }
-			else if (strcmp(t.luaaction_s.Get(), "texttxt") == 0) { t.luaText.txt = LuaMessageString(); lua_text(); }
-		}
-		else if (iLen == 8)
-		{
-			if (strcmp(t.luaaction_s.Get(), "freezeai") == 0) { t.v = LuaMessageInt(); lua_freezeai(); }
-			else if (strcmp(t.luaaction_s.Get(), "hidehuds") == 0) { t.v = LuaMessageInt(); lua_hidehuds(); }
-			else if (strcmp(t.luaaction_s.Get(), "loadgame") == 0) { lua_loadgame(); }
-			else if (strcmp(t.luaaction_s.Get(), "losegame") == 0) { lua_losegame(); }
-			else if (strcmp(t.luaaction_s.Get(), "savegame") == 0) { lua_savegame(); }
-			else if (strcmp(t.luaaction_s.Get(), "quitgame") == 0) { lua_quitgame(); }
-			else if (strcmp(t.luaaction_s.Get(), "setskyto") == 0) { t.s_s = LuaMessageString(); lua_set_sky(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "showhuds") == 0) { t.v = LuaMessageInt(); lua_showhuds(); }
-			else if (strcmp(t.luaaction_s.Get(), "textblue") == 0) { g.mp.steamColorBlue = LuaMessageInt(); }
-			else if (strcmp(t.luaaction_s.Get(), "textsize") == 0) { t.luaText.size = LuaMessageInt(); }
-		}
-		else if (iLen == 9)
-		{
-			if (strcmp(t.luaaction_s.Get(), "collected") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_collected(); }
-			else if (strcmp(t.luaaction_s.Get(), "hideimage") == 0) { t.v = LuaMessageInt(); lua_hideimage(); }
-			else if (strcmp(t.luaaction_s.Get(), "hidewater") == 0) { t.v = LuaMessageInt(); lua_hidewater(); }
-			else if (strcmp(t.luaaction_s.Get(), "leavegame") == 0) { lua_leavegame(); }
-			else if (strcmp(t.luaaction_s.Get(), "loopsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicload") == 0) { t.m = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_musicload(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicstop") == 0) { lua_musicstop(); }
-			else if (strcmp(t.luaaction_s.Get(), "playsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "playvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 0); }
-			else if (strcmp(t.luaaction_s.Get(), "setforcex") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcex(); }
-			else if (strcmp(t.luaaction_s.Get(), "setforcey") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcey(); }
-			else if (strcmp(t.luaaction_s.Get(), "setforcez") == 0) { t.v = LuaMessageFloat(); entity_lua_setforcez(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfogred") == 0) { t.v_f = LuaMessageFloat(); lua_setfogred(); }
-			else if (strcmp(t.luaaction_s.Get(), "stopvideo") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopvideo(); }
-			else if (strcmp(t.luaaction_s.Get(), "startgame") == 0) { lua_startgame(); }
-			else if (strcmp(t.luaaction_s.Get(), "showimage") == 0) { t.v = LuaMessageInt(); lua_showimage(); }
-			else if (strcmp(t.luaaction_s.Get(), "showwater") == 0) { t.v = LuaMessageInt(); lua_showwater(); }
-			else if (strcmp(t.luaaction_s.Get(), "stopsound") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopsound(); }
-			else if (strcmp(t.luaaction_s.Get(), "textgreen") == 0) { g.mp.steamColorGreen = LuaMessageInt(); }
-		}
-		else if (iLen == 10)
-		{
-			if (strcmp(t.luaaction_s.Get(), "checkpoint") == 0) { t.e = LuaMessageInt(); entity_lua_checkpoint(); }
-			else if (strcmp(t.luaaction_s.Get(), "fireweapon") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "loadimages") == 0) { t.v = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_loadimages(); }
-			else if (strcmp(t.luaaction_s.Get(), "hurtplayer") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_hurtplayer(); }
-			else if (strcmp(t.luaaction_s.Get(), "mpgamemode") == 0) { t.v = LuaMessageInt(); mp_serverSetLuaGameMode(); }
-			else if (strcmp(t.luaaction_s.Get(), "playspeech") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playspeech(); }
-			else if (strcmp(t.luaaction_s.Get(), "resumegame") == 0) { lua_resumegame(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfogblue") == 0) { t.v_f = LuaMessageFloat(); lua_setfogblue(); }
-			else if (strcmp(t.luaaction_s.Get(), "switchpage") == 0) { t.s_s = LuaMessageString(); lua_switchpage(); }
-			else if (strcmp(t.luaaction_s.Get(), "stopspeech") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_stopspeech(); }
-			else if (strcmp(t.luaaction_s.Get(), "starttimer") == 0) { t.e = LuaMessageInt(); entity_lua_starttimer(); }
-			else if (strcmp(t.luaaction_s.Get(), "unfreezeai") == 0) { t.v = LuaMessageInt(); lua_unfreezeai(); }
-		}
-		else if (iLen == 17)
-		{
-			if (strcmp(t.luaaction_s.Get(), "disablemusicreset") == 0) { t.v = LuaMessageInt(); lua_disablemusicreset(); }
-			else if (strcmp(t.luaaction_s.Get(), "fireweaponinstant") == 0) { t.e = LuaMessageInt(); entity_lua_fireweapon(true); }
-			else if (strcmp(t.luaaction_s.Get(), "loopanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_loopanimationfrom(); }
-			else if (strcmp(t.luaaction_s.Get(), "movewithanimation") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_movewithanimation(); }
-			else if (strcmp(t.luaaction_s.Get(), "playanimationfrom") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playanimationfrom(); }
-			else if (strcmp(t.luaaction_s.Get(), "setactivatedformp") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setactivatedformp(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcameradistance") == 0) { t.v_f = LuaMessageFloat(); lua_setcameradistance(); }
-			else if (strcmp(t.luaaction_s.Get(), "setanimationframe") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationframe(); }
-			else if (strcmp(t.luaaction_s.Get(), "setanimationspeed") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_setanimationspeed(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcharactersound") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); character_sound_load(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptvideonoskip") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(1, 1); }
-			else if (strcmp(t.luaaction_s.Get(), "playsoundifsilent") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playsoundifsilent(); }
-			else if (strcmp(t.luaaction_s.Get(), "setglobalspecular") == 0) { t.v_f = LuaMessageFloat(); lua_setglobalspecular(); }
-			else if (strcmp(t.luaaction_s.Get(), "setimagealignment") == 0) { t.v = LuaMessageInt(); lua_setimagealignment(); }
-			else if (strcmp(t.luaaction_s.Get(), "setimagepositionx") == 0) { t.v_f = LuaMessageFloat(); lua_setimagepositionx(); }
-			else if (strcmp(t.luaaction_s.Get(), "setimagepositiony") == 0) { t.v_f = LuaMessageFloat(); lua_setimagepositiony(); }
-			else if (strcmp(t.luaaction_s.Get(), "setterrainlodnear") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodnear(); }
-			else if (strcmp(t.luaaction_s.Get(), "transporttoifused") == 0) { t.e = LuaMessageInt(); entity_lua_transporttoifused(); }
-		}
-		else if (iLen == 13)
-		{
-			if (strcmp(t.luaaction_s.Get(), "setbrightness") == 0) { t.v_f = LuaMessageFloat(); lua_setbrightness(); }
-			else if (strcmp(t.luaaction_s.Get(), "serverendplay") == 0) { mp_serverEndPlay(); }
-			else if (strcmp(t.luaaction_s.Get(), "activatemouse") == 0) { t.v = LuaMessageInt(); lua_activatemouse(); }
-			else if (strcmp(t.luaaction_s.Get(), "addplayerammo") == 0) { t.e = LuaMessageInt(); entity_lua_addplayerammo(); }
-			else if (strcmp(t.luaaction_s.Get(), "aimsmoothmode") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_aimsmoothmode(); }
-			else if (strcmp(t.luaaction_s.Get(), "lookattargete") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_lookattargete(); }
-			else if (strcmp(t.luaaction_s.Get(), "loopanimation") == 0) { t.e = LuaMessageInt(); entity_lua_loopanimation(); }
-			else if (strcmp(t.luaaction_s.Get(), "modulatespeed") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_modulatespeed(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicplaytime") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytime(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicplayfade") == 0) { t.m = LuaMessageInt(); lua_musicplayfade(); lua_musicplayfade(); }
-			else if (strcmp(t.luaaction_s.Get(), "playanimation") == 0) { t.e = LuaMessageInt(); entity_lua_playanimation(); }
-			else if (strcmp(t.luaaction_s.Get(), "nameplatesoff") == 0) { g.mp.nameplatesOff = 1; }
-			else if (strcmp(t.luaaction_s.Get(), "refreshentity") == 0) { t.e = LuaMessageInt(); entity_lua_refreshentity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setfognearest") == 0) { t.v_f = LuaMessageFloat(); lua_setfognearest(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsoundspeed") == 0) { t.v = LuaMessageInt(); entity_lua_setsoundspeed(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsurfacered") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacered(); }
-			else if (strcmp(t.luaaction_s.Get(), "stopanimation") == 0) { t.e = LuaMessageInt(); entity_lua_stopanimation(); }
-			else if (strcmp(t.luaaction_s.Get(), "triggerfadein") == 0) { lua_triggerfadein(); }
-		}
-		else if (iLen == 15)
-		{
-			if (strcmp(t.luaaction_s.Get(), "deactivatemouse") == 0) { t.v = LuaMessageInt(); lua_deactivatemouse(); }
-			else if (strcmp(t.luaaction_s.Get(), "addplayerhealth") == 0) { t.e = LuaMessageInt(); entity_lua_addplayerhealth(); }
-			else if (strcmp(t.luaaction_s.Get(), "addplayerweapon") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerweapon(); }
-			else if (strcmp(t.luaaction_s.Get(), "getentityinzone") == 0) { t.e = LuaMessageInt(); entity_lua_getentityinzone(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicsetdefault") == 0) { t.m = LuaMessageInt(); lua_musicsetdefault(); }
-			else if (strcmp(t.luaaction_s.Get(), "setambienceblue") == 0) { t.v_f = LuaMessageFloat(); lua_setambienceblue(); }
-			else if (strcmp(t.luaaction_s.Get(), "playvideonoskip") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_playvideonoskip(0, 1); }
-			else if (strcmp(t.luaaction_s.Get(), "setfogintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setfogintensity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setentityhealth") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealth(); }
-			else if (strcmp(t.luaaction_s.Get(), "setlightvisible") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_set_light_visible(); }
-			else if (strcmp(t.luaaction_s.Get(), "setsurfacegreen") == 0) { t.v_f = LuaMessageFloat(); lua_setsurfacegreen(); }
-		}
-		else if (iLen == 16)
-		{
-			if (strcmp(t.luaaction_s.Get(), "addplayerjetpack") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_addplayerjetpack(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicplayinstant") == 0) { t.m = LuaMessageInt(); lua_musicplayinstant(); lua_musicplayinstant(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicplaytimecue") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicplaytimecue(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicsetfadetime") == 0) { t.v = LuaMessageInt(); lua_musicsetfadetime(); }
-			else if (strcmp(t.luaaction_s.Get(), "musicsetinterval") == 0) { t.m = LuaMessageIndex(); t.v = LuaMessageInt(); lua_musicsetinterval(); }
-			else if (strcmp(t.luaaction_s.Get(), "serverrespawnall") == 0) { mp_serverRespawnAll(); }
-			else if (strcmp(t.luaaction_s.Get(), "setambiencegreen") == 0) { t.v_f = LuaMessageFloat(); lua_setambiencegreen(); }
-			else if (strcmp(t.luaaction_s.Get(), "setanimationname") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString();  entity_lua_setanimationname(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptlocalforvr") == 0) { t.e = LuaMessageIndex(); t.s_s = LuaMessageString(); lua_promptlocalforvr(); }
-			else if (strcmp(t.luaaction_s.Get(), "setlockcharacter") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setlockcharacter(); }
-			else if (strcmp(t.luaaction_s.Get(), "setoptionshadows") == 0) { t.v_f = LuaMessageFloat(); lua_setoptionshadows(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpostsaoradius") == 0) { t.v_f = LuaMessageFloat(); lua_setpostsaoradius(); }
-			else if (strcmp(t.luaaction_s.Get(), "setterrainlodfar") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodfar(); }
-			else if (strcmp(t.luaaction_s.Get(), "setterrainlodmid") == 0) { t.v_f = LuaMessageFloat(); lua_setterrainlodmid(); }
-		}
-		else if (iLen == 5)
-		{
-			if (strcmp(t.luaaction_s.Get(), "scale") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); entity_lua_scale(); }
-			else if (strcmp(t.luaaction_s.Get(), "spawn") == 0) { t.e = LuaMessageInt(); entity_lua_spawn(); }
-			else if (strcmp(t.luaaction_s.Get(), "textx") == 0) { t.luaText.x = LuaMessageFloat(); t.tluaTextCenterX = 0; }
-			else if (strcmp(t.luaaction_s.Get(), "texty") == 0) { t.luaText.y = LuaMessageFloat(); }
-		}
-		else if (iLen == 20)
-		{
-			if (strcmp(t.luaaction_s.Get(), "changeplayerweaponid") == 0) { t.v = LuaMessageInt(); entity_lua_changeplayerweaponid(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcharactersoundset") == 0) { t.e = LuaMessageInt(); character_soundset(); }
-			else if (strcmp(t.luaaction_s.Get(), "setcharactertostrafe") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertostrafe(); }
-			else if (strcmp(t.luaaction_s.Get(), "promptlocalforvrmode") == 0) { t.v_f = LuaMessageFloat(); lua_promptlocalforvrmode(); }
-			else if (strcmp(t.luaaction_s.Get(), "setambienceintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setambienceintensity(); }
-			else if (strcmp(t.luaaction_s.Get(), "setpostlightraydecay") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightraydecay(); }
-			else if (strcmp(t.luaaction_s.Get(), "startparticleemitter") == 0) { t.e = LuaMessageIndex(); t.v_f = LuaMessageFloat(); lua_startparticleemitter(); }
-		}
-		else if (iLen >= 21)
-		{
-			if (iLen == 21 && strcmp(t.luaaction_s.Get(), "charactercontrolarmed") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolarmed(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "charactercontrollimbo") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrollimbo(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "charactercontrolstand") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolstand(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setcharactertowalkrun") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactertowalkrun(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setentityhealthsilent") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealthsilent(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setpostlightraylength") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightraylength(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setpostmotiondistance") == 0) { t.v_f = LuaMessageFloat(); lua_setpostmotiondistance(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setpostvignetteradius") == 0) { t.v_f = LuaMessageFloat(); lua_setpostvignetteradius(); }
-			else if (iLen == 21 && strcmp(t.luaaction_s.Get(), "setvegetationquantity") == 0) { t.v_f = LuaMessageFloat(); lua_setvegetationquantity(); }
-			else if (iLen == 22 && strcmp(t.luaaction_s.Get(), "charactercontrolducked") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolducked(); }
-			else if (iLen == 22 && strcmp(t.luaaction_s.Get(), "charactercontrolfidget") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolfidget(); }
-			else if (iLen == 22 && strcmp(t.luaaction_s.Get(), "charactercontrolmanual") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolmanual(); }
-			else if (iLen == 22 && strcmp(t.luaaction_s.Get(), "setpostmotionintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostmotionintensity(); }
-			else if (iLen == 22 && strcmp(t.luaaction_s.Get(), "setpostlightrayquality") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlightrayquality(); }
-			else if (iLen == 23 && strcmp(t.luaaction_s.Get(), "charactercontrolunarmed") == 0) { t.e = LuaMessageInt(); entity_lua_charactercontrolunarmed(); }
-			else if (iLen == 23 && strcmp(t.luaaction_s.Get(), "performlogicconnections") == 0) { t.e = LuaMessageInt(); entity_lua_performlogicconnections(); }
-			else if (iLen == 23 && strcmp(t.luaaction_s.Get(), "setcamerazoompercentage") == 0) { t.v_f = LuaMessageFloat(); lua_setcamerazoompercentage(); }
-			else if (iLen == 23 && strcmp(t.luaaction_s.Get(), "setcharactervisiondelay") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setcharactervisiondelay(); }
-			else if (iLen == 24 && strcmp(t.luaaction_s.Get(), "rotatetoplayerwithoffset") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageFloat(); entity_lua_rotatetoplayerwithoffset(); }
-			else if (iLen == 24 && strcmp(t.luaaction_s.Get(), "setpostvignetteintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostvignetteintensity(); }
-			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "setpostlensflareintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostlensflareintensity(); }
-			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "transporttofreezeposition") == 0) { t.v = LuaMessageInt(); lua_transporttofreezeposition(); }
-			else if (iLen == 25 && strcmp(t.luaaction_s.Get(), "setentityhealthwithdamage") == 0) { t.e = LuaMessageIndex(); t.v = LuaMessageInt(); entity_lua_setentityhealthwithdamage(); }
-			else if (iLen == 27 && strcmp(t.luaaction_s.Get(), "setpostdepthoffielddistance") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffielddistance(); }
-			else if (iLen == 28 && strcmp(t.luaaction_s.Get(), "setpostdepthoffieldintensity") == 0) { t.v_f = LuaMessageFloat(); lua_setpostdepthoffieldintensity(); }
-			else if (iLen == 28 && strcmp(t.luaaction_s.Get(), "performlogicconnectionsaskey") == 0) { t.e = LuaMessageInt(); entity_lua_performlogicconnectionsaskey(); }
-		}
-	}
-	*/
 
 	// extra stage allowing global to render things LAST (such as in-game HUD screens)
 	if (t.playercontrol.gameloopinitflag == 0)
@@ -1580,6 +1195,9 @@ void lua_loop_finish (void)
 
 void lua_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	panel_First2DDrawing();
 	lua_loop_begin();
 	lua_loop_allentities();

@@ -5413,7 +5413,7 @@ void mp_check_for_attachments ( void )
 			if (  t.entityelement[t.mp_playerEntityID[t.c]].attachmentobj > 0 ) 
 			{
 				t.e = t.mp_playerEntityID[t.c];
-				entity_controlattachments ( );
+				//entity_controlattachments ( );
 
 				if (  t.mp_playerShooting[t.c]  ==  1 ) 
 				{
@@ -8631,7 +8631,7 @@ void mp_entity_lua_fireweaponEffectOnly ( void )
 	//  update gun appearance
 	if (  t.entityelement[t.e].attachmentobj > 0 ) 
 	{
-		entity_controlattachments ( );
+		//entity_controlattachments ( );
 
 		t.tgunid=t.entityelement[t.e].eleprof.hasweapon;
 		t.tattachedobj=t.entityelement[t.e].attachmentobj;

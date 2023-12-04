@@ -5,6 +5,10 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 void image_setlegacyimageloading(bool bEnable);
 
 // externs store for jetpack shader effect indexes
@@ -221,6 +225,9 @@ void hud_free ( void )
 
 void hud_updatehudlayerobjects ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// position and rotate jetpack
 	if ( t.playercontrol.jetobjtouse>0 ) 
 	{

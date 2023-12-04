@@ -11,6 +11,10 @@
 #include "GGTerrain/GGGrass.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // 
 //  VISUALS MODULE
 // 
@@ -2170,6 +2174,9 @@ void visuals_CheckSetGlobalDepthSkipSystem ( void )
 
 void visuals_loop ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// Shortcut-keys to adjust visual settings
 	if ( t.conkit.editmodeactive == 0 ) 
 	{

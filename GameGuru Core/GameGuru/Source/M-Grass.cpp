@@ -8,6 +8,10 @@
 #include ".\..\..\Guru-WickedMAX\wickedcalls.h"
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Global
 int g_iSuperTriggerFullGrassReveal = 0;
 
@@ -361,9 +365,13 @@ void grass_setgrassgridandfade ( void )
 
 void grass_loop ( void )
 {
-	#ifdef PAULNEWGRASSSYSTEM
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif;
+	//#ifdef PAULNEWGRASSSYSTEM
 	return;
-	#endif
+	//#endif
+	/*
 	#ifdef WICKEDENGINE
 	// for saome reason wicked not setting this, it is ZERO!
 	t.visuals.vegetationmode = 100;
@@ -372,40 +380,10 @@ void grass_loop ( void )
 	// early exit if no veg used
 	if ( t.visuals.vegetationmode == 0  )  return;
 
-	#ifdef WICKEDENGINE
-	/* g_pTerrain no longer used
-	// instruction to update all grass
-	extern int g_iSuperTriggerFullGrassReveal;
-	if (g_iSuperTriggerFullGrassReveal > 0 && g_pTerrain && g_pTerrain->GetHeightsReady()==true)
-	{
-		g_iSuperTriggerFullGrassReveal--;
-		if (g_iSuperTriggerFullGrassReveal == 0)
-		{
-			// when super grass update reaches zero, trigger all grass in camera rea to update
-			// according to latest abd correct terrain height data
-			extern int iForceUpdateVegetation;
-			iForceUpdateVegetation = 2;
-		}
-	}
-	*/
-	#else
-	// if in superflat mode we call a version of update which is much faster
-	if ( t.terrain.superflat == 1 ) 
-	{
-		UpdateSuperFlat ( CameraPositionX(0), CameraPositionZ(0), TERRAIN_SUPERFLAT_HEIGHT, g.postprocessimageoffset+5 );
-	}
-	else
-	#endif
 	{
 		// do we need to update after an terrain raise
 		if ( t.terrain.grassupdateafterterrain == 1 ) 
 		{
-			#ifdef PRODUCTV3
-			// seems we need to ensure grass texture copies to grass memblock so the latest data can be turned into
-			// grass with the function below (seems this functionality disappeared during MAX development for VRQ)
-			grass_updategrassfrombitmap();
-			#endif
-
 			// region affected
 			t.tRegionX1 = t.terrain.grassregionx1 * 50;
 			t.tRegionX2 = t.terrain.grassregionx2 * 50;
@@ -426,6 +404,7 @@ void grass_loop ( void )
 			UpdateBlitzTerrain ( CameraPositionX(0),CameraPositionZ(0),t.terrain.TerrainID,g.postprocessimageoffset+5 );
 		}
 	}
+	*/
 }
 
 void grass_clearregion ( void )

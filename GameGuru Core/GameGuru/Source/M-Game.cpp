@@ -33,6 +33,10 @@ bool g_bShowRecastDetourDebugVisuals = false;
 int old_render_params2 = 0;
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #ifdef STORYBOARD
 extern int g_Storyboard_First_Level_Node;
 extern int g_Storyboard_Current_Level;
@@ -808,6 +812,9 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 
 void game_updatenavmeshsystem(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// render any debug objects (such as nav mesh)
 	if (g_bShowRecastDetourDebugVisuals == true)
 		g_RecastDetour.handleDebugRender();
@@ -2547,7 +2554,6 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 
 	//  Game cycle loop
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"winddown mp_closeconnection");
-	#ifdef VRTECH
 	if ( t.game.gameloopwinddown == 1 )
 	{
 		if ( mp_closeconnection() == 1 )
@@ -2556,21 +2562,16 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 			t.game.gameloop = 0;
 		}
 	}
-	#endif
 
 	// detect if standalone is a foreground window
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"obtain plrhasfocus");
 	if ( t.game.gameisexe == 1 )
 	{
-		#ifdef VRTECH
 		if ( g.gvrmode == 3 )
 		{
 			t.plrhasfocus = 1;
 		}
 		else
-		#else
-		if(1)
-		#endif
 		{
 			HWND hForeWnd = GetForegroundWindow();
 			if ( GetWindowHandle() != hForeWnd ) 
@@ -2586,7 +2587,6 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	if ( g.gxbox > 0 && JoystickFireXL(9) == 1 ) bControllerEscape = true;
 
 	// VR support can escape to in-game menu with button A
-	//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
 	if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)
 	{
 		if (GGVR_RightController_Button1() == 1) bControllerEscape == true;
@@ -2611,7 +2611,6 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		{
 			if ( ObjectExist(t.playercontrol.jetobjtouse) == 1  )  SetObjectSpeed (  t.playercontrol.jetobjtouse,0 );
 		}
-		#ifdef VRTECH
 		if ( t.game.gameisexe == 0 ) // no menu in multiplayer test mode && t.game.runasmultiplayer == 0 ) 
 		{
 			if ( t.game.runasmultiplayer == 1 )
@@ -2631,16 +2630,6 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 				conkitedit_switchoff ( );
 			}
 		}
-		#else
-		if (  t.game.gameisexe == 0 && t.game.runasmultiplayer == 0 ) 
-		{
-			t.game.gameloop=0 ; t.game.levelloop=0 ; t.game.masterloop=0;
-			if ( t.conkit.editmodeactive == 1 ) 
-			{
-				conkitedit_switchoff ( );
-			}
-		}
-		#endif
 		else
 		{
 			g.titlesettings.updateshadowsaswell = 1;
@@ -2669,63 +2658,34 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 	{
 		// Hide Lua Sprites
 		HideOrShowLUASprites ( true );
-		#ifndef WICKEDENGINE
-		//  Once spinfill is complete we can begin fading in. When complete we can enable low fps warnings again
-		if ( t.postprocessings.spinfill < 360 ) 
+		if ( t.postprocessings.fadeinvalue_f <= 0 )
 		{
-			t.postprocessings.spinfill += 10;
-			if ( t.postprocessings.spinfill >= 360 )
+			// only if in test game mode, standalone already set volume values (in title.lua)						
+			if ( t.game.gameisexe == 0 )
 			{
-				// 020316 - v1.13b1 - restore to agreed start orientation
-				RotateCamera ( 0, t.terrain.playerax_f, t.terrain.playeray_f, t.terrain.playeraz_f );
+				// set music and sound global volumes
+				audio_volume_init ( );
 			}
-			else
+			else if (!FileExist("savegames\\sounds.dat")) 
 			{
-				// spin around to fill video memory with immediate scenery
-				RotateCamera (  0,0,t.postprocessings.spinfillStartAng_f + t.postprocessings.spinfill,0 );
+				//PE: This is not always in standalone ? , so:
+				audio_volume_init();
 			}
-
-			// Wipe out mouse deltas during spin up
-			t.tMousemove_f = MouseMoveX() + MouseMoveY() + MouseZ(); t.tMousemove_f  = 0;
+			// and update internal volume values so music update can use volumes!
+			audio_volume_update ( );
 		}
-		else
-		#endif
+		//PE: Wicked seams a littler faster then classic , strange ?
+		t.postprocessings.fadeinvalue_f = t.postprocessings.fadeinvalue_f + (g.timeelapsed_f*0.08f);
+		if (  t.postprocessings.fadeinvalue_f >= 1.0f ) 
 		{
-			if ( t.postprocessings.fadeinvalue_f <= 0 )
-			{
-				// only if in test game mode, standalone already set volume values (in title.lua)						
-				if ( t.game.gameisexe == 0 )
-				{
-					// set music and sound global volumes
-					audio_volume_init ( );
-				}
-				else if (!FileExist("savegames\\sounds.dat")) {
-					//PE: This is not always in standalone ? , so:
-					audio_volume_init();
-				}
-				// and update internal volume values so music update can use volumes!
-				audio_volume_update ( );
-			}
-			#ifdef WICKEDENGINE
-			//PE: Wicked seams a littler faster then classic , strange ?
-			t.postprocessings.fadeinvalue_f = t.postprocessings.fadeinvalue_f + (g.timeelapsed_f*0.08f);
-			#else
-			t.postprocessings.fadeinvalue_f=t.postprocessings.fadeinvalue_f+(g.timeelapsed_f*0.1f);
-			#endif
-			if (  t.postprocessings.fadeinvalue_f >= 1.0f ) 
-			{
-				#ifdef WICKEDENGINE
-				//PE: Disable 3D hiding. we are all done and ready to play.
-				extern int iKeepBackgroundForFrames;
-				iKeepBackgroundForFrames = 0;
-				#endif
-				t.postprocessings.fadeinvalue_f=1.0f;
-				//g.globals.hidelowfpswarning = 0; // this overrides the SETUP.INI setting
-				HideOrShowLUASprites ( false );
-				EnableAllSprites(); // the disable is called in DarkLUA by ResetFade() black out command when load game position
-			}
+			//PE: Disable 3D hiding. we are all done and ready to play.
+			extern int iKeepBackgroundForFrames;
+			iKeepBackgroundForFrames = 0;
+			t.postprocessings.fadeinvalue_f=1.0f;
+			//g.globals.hidelowfpswarning = 0; // this overrides the SETUP.INI setting
+			HideOrShowLUASprites ( false );
+			EnableAllSprites(); // the disable is called in DarkLUA by ResetFade() black out command when load game position
 		}
-		#ifdef WICKEDENGINE
 		extern bool bFakeStandaloneTest;
 		if ( (t.game.gameisexe == 1 || bFakeStandaloneTest ) && t.postprocessings.fadeinvalue_f < 1.0) //PE: Only standalone and , not on last frame.
 		{
@@ -2760,29 +2720,11 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 				}
 			}
 		}
-		#endif
 		t.postprocessings.fadeinvalueupdate=1;
 	}
 
 	// handle fading
-	#ifdef WICKEDENGINE
 	bMainLoopRunning = true;
-	#else
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle postprocess fading");
-	if (  t.postprocessings.fadeinvalueupdate == 1 ) 
-	{
-		t.postprocessings.fadeinvalueupdate=0;
-		if (  GetEffectExist(g.postprocesseffectoffset+0) == 1 ) 
-		{
-			SetVector4 (  g.terrainvectorindex,t.postprocessings.fadeinvalue_f,t.postprocessings.fadeinvalue_f,t.postprocessings.fadeinvalue_f,0 );
-			SetEffectConstantV (  g.postprocesseffectoffset+0,"OverallColor",g.terrainvectorindex );
-			SetEffectConstantV (  g.postprocesseffectoffset+2,"OverallColor",g.terrainvectorindex );
-			SetEffectConstantV (  g.postprocesseffectoffset+4,"OverallColor",g.terrainvectorindex );
-		}
-		//  210115 - helps refresh scene at very start
-		t.visuals.refreshshaders=1;
-	}
-	#endif
 
 	//  Immunity when respawn
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"handle player immunity");
@@ -3351,26 +3293,8 @@ void game_masterroot_initcode(int iUseVRTest)
 	t.game.masterloop=1;
 }
 
-#ifdef WICKEDENGINE
-#ifdef STANDALONENOTICE
-bool bDisplayedEarlyAccess = false;
-#endif
-#endif
 bool game_masterroot_loopcode(int iUseVRTest)
 {
-	#ifdef WICKEDENGINE
-	#ifdef STANDALONENOTICE
-	extern bool bSpecialStandalone;
-	if (t.game.gameisexe == 1 && !bDisplayedEarlyAccess && !bSpecialStandalone)
-	{
-		//PE: This is blocking so can do it like this.
-		void early_access_strandalone_welcome(void);
-		early_access_strandalone_welcome();
-		bDisplayedEarlyAccess = true;
-	}
-	#endif
-	#endif
-
 	// state engine to handle nested loops (master / level / gameloop)
 	if (g_iMasterRootState == 0)
 	{
@@ -3398,8 +3322,6 @@ bool game_masterroot_loopcode(int iUseVRTest)
 	}
 	if (g_iMasterRootState == 2)
 	{
-		//PE: TESTGAME t.game.gameisexe = 1 here will produce a loading screen and hide everything.
-		//PE: TESTGAME use t.game.jumplevel_s to set what level to load.
 		game_masterroot_gameloop_initcode(iUseVRTest);
 		g_iMasterRootState = 3;
 	}
@@ -3687,71 +3609,19 @@ void game_preparelevel ( void )
 		t.terrain.sunrotationz_f = t.visuals.SunAngleZ = oSz;
 	}
 	#endif
-	//  Update terrain height map so GetGroundHeight command will work
-	t.screenprompt_s="UPDATED TERRAIN";
-	timestampactivity(0,t.screenprompt_s.Get());
-	//terrain_update ( );
-	//PE: Dont actually render the terrain it will ruin the loading progress screen.
-	if (t.terrain.TerrainID > 0)
-	{
-		/* not used
-		BT_SetCurrentCamera(t.terrain.gameplaycamera);
-		BT_UpdateTerrainCull(t.terrain.TerrainID);
-		BT_UpdateTerrainLOD(t.terrain.TerrainID);
-		*/
-	}
-
-	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-
-	//  Load weapon system
-	#ifdef WICKEDENGINE
-	// moved further down as entity eleprof hasweapon needs populating before know what guns the characters are using
-	#else
-	#ifdef VRTECH
-	 t.screenprompt_s="LOADING NEW HUD";
-	#else
-	 t.screenprompt_s="LOADING NEW WEAPONS";
-	#endif	
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	timestampactivity(0,t.screenprompt_s.Get());
-	gun_activategunsfromentities ( );
-	gun_setup ( );
-	gun_loadonlypresent ( );
-	#endif
-
-	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
 	//  Load in HUD Layer assets
 	t.screenprompt_s = "LOADING HUD LAYERS";
-	#ifndef WICKEDENGINE
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	#endif
 	timestampactivity(0,t.screenprompt_s.Get());
 	hud_scanforhudlayers ( );
 
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
-	//  Veg Creation
-	t.screenprompt_s = "PREPARING VEGETATION";
-	#ifdef WICKEDENGINE
-	// already performed by the editor!
-	#else
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	timestampactivity(0,t.screenprompt_s.Get());
-	grass_init ( );
-	#endif
-
-	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-
 	//  setup terrain for in-game
 	t.screenprompt_s = "LOADING WATER SYSTEM";
-	#ifndef WICKEDENGINE
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	#endif
 	timestampactivity(0,t.screenprompt_s.Get());
 	terrain_start_play ( );
 	terrain_water_init ( );
-	terrain_water_loop ( );
 
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 
@@ -3767,7 +3637,6 @@ void game_preparelevel ( void )
 	darkai_preparedata ( );
 
 	//  Reset waypoint for game activity
-	#ifdef WICKEDENGINE
 	if (t.showtestgameelements == 0)
 	{
 		t.screenprompt_s = "RESETTING WAYPOINTS A.I";
@@ -3777,18 +3646,9 @@ void game_preparelevel ( void )
 		timestampactivity(0, t.screenprompt_s.Get());
 		waypoint_reset();
 	}
-	#else
-	t.screenprompt_s = "RESETTING WAYPOINTS A.I";
-	if (t.game.gameisexe == 0)  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	timestampactivity(0, t.screenprompt_s.Get());
-	waypoint_reset();
-	#endif
 
 	//  setup entities
 	t.screenprompt_s="CREATING ENTITY A.I";
-	#ifndef WICKEDENGINE
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	#endif
 	timestampactivity(0,t.screenprompt_s.Get());
 	entity_init ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
@@ -3805,9 +3665,6 @@ void game_preparelevel ( void )
 
 	//  create A.I entities for all characters
 	t.screenprompt_s="SETTING UP CHARACTERS";
-	#ifndef WICKEDENGINE
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	#endif
 	timestampactivity(0,t.screenprompt_s.Get());
 	darkai_setup_characters ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
@@ -3816,9 +3673,6 @@ void game_preparelevel ( void )
 	if (  g.gskipobstaclecreation == 0 ) 
 	{
 		t.screenprompt_s="CREATING A.I OBSTACLES";
-		#ifndef WICKEDENGINE
-		if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-		#endif
 		timestampactivity(0,t.screenprompt_s.Get());
 	}
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
@@ -3827,9 +3681,6 @@ void game_preparelevel ( void )
 
 	//  setup infinilights
 	t.screenprompt_s="PREPARING DYNAMIC LIGHTS";
-	#ifndef WICKEDENGINE
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
-	#endif
 	timestampactivity(0,t.screenprompt_s.Get());
 	lighting_init ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
@@ -3845,7 +3696,6 @@ void game_preparelevel ( void )
 	lua_init ( );
 	lua_scanandloadactivescripts ( );
 
-	#ifdef VRTECH
 	// if still generating LIP file, wait here
 	t.screenprompt_s="GENERATING LIP SYNC DATA";
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
@@ -3857,7 +3707,6 @@ void game_preparelevel ( void )
 		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 		Sleep(50);
 	}
-	#endif
 
 	// load entity sounds and video
 	entity_loadactivesoundsandvideo ( );
@@ -3944,82 +3793,6 @@ void game_setup_character_shader_entities ( bool bMode )
 					else
 						SetObjectEffect( g.entitybankoffset+t.entityelement[t.e].bankindex , t.characterBasicShaderID );
 					SetObjectEffect( t.entityelement[t.e].obj , t.characterBasicShaderID );
-				}
-			}
-		}
-	}
-	#endif
-}
-
-void game_check_character_shader_entities ( void )
-{
-	#ifdef WICKEDENGINE
-	// Nn need of this
-	#else
-	if ( !t.haveSetupShaderSwitching )
-	{
-		t.haveSetupShaderSwitching = true;
-		game_setup_character_shader_entities(true);
-	}
-
-	int tobj;
-	float dx;
-	float dy;
-	float dz;
-	float dist;
-
-	if ( g_occluderf9Mode )
-	{
-		for ( int c = 0 ; c < (int)t.characterBasicEntityList.size() ; c++ )
-		{		
-			tobj = t.entityelement[t.characterBasicEntityList[c]].obj;
-			if ( tobj > 0 )
-			{
-				if ( ObjectExist ( tobj ) == 1 )
-				{
-
-					SetObjectEffect( tobj , t.characterBasicShaderID );
-					t.characterBasicEntityListIsSetToCharacter[c] = true;							
-
-				}
-			}
-		}
-
-		return;
-	}
-
-	for ( int c = 0 ; c < (int)t.characterBasicEntityList.size() ; c++ )
-	{		
-		tobj = t.entityelement[t.characterBasicEntityList[c]].obj;
-		if ( tobj > 0 && t.entityelement[t.characterBasicEntityList[c]].active == 1 )
-		{
-			if ( ObjectExist ( tobj ) == 1 )
-			{
-				dx = CameraPositionX() - ObjectPositionX( tobj );
-				dy = CameraPositionY() - ObjectPositionY( tobj );
-				dz = CameraPositionZ() - ObjectPositionZ( tobj );
-				dist = sqrtf ( dx*dx + dy*dy + dz*dz );
-
-				if ( t.entityelement[t.characterBasicEntityList[c]].ragdollified )
-					dist = 0;
-
-				// 120516 - ensure character shader respects always active
-				t.te = t.characterBasicEntityList[c]; entity_getmaxfreezedistance();
-				if ( dist < t.maximumnonefreezedistance )
-				{
-					if ( !t.characterBasicEntityListIsSetToCharacter[c] )
-					{
-						SetObjectEffect( tobj , t.characterBasicShaderID );
-						t.characterBasicEntityListIsSetToCharacter[c] = true;	
-					}
-				}
-				else
-				{
-					if ( t.characterBasicEntityListIsSetToCharacter[c] )
-					{
-						SetObjectEffect( tobj , t.entityBasicShaderID );
-						t.characterBasicEntityListIsSetToCharacter[c] = false;		
-					}
 				}
 			}
 		}
@@ -4798,6 +4571,10 @@ extern int NumberOfObjectsShown;
 
 void game_main_loop ( void )
 {	
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Timer (  based movement )
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_timeelapsed");
 	game_timeelapsed ( );
@@ -4851,7 +4628,6 @@ void game_main_loop ( void )
 					 for ( t.n = 0 ; t.n<=  1; t.n++ )
 					 {
 						t.tonscreenprompt_s="Saving Level Session";
-						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync ( );
 					 }
 					 t.tdisableLMprogressreading=0;
@@ -4881,7 +4657,6 @@ void game_main_loop ( void )
 					 for ( t.n = 0 ; t.n<=  1; t.n++ )
 					 {
 						t.tonscreenprompt_s="Lightmapping in Progress";
-						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync (  );
 					 }
 					 t.tdisableLMprogressreading=0;
@@ -4897,7 +4672,6 @@ void game_main_loop ( void )
 						for ( t.n = 0 ; t.n<=  1; t.n++ )
 						{
 							t.tonscreenprompt_s="Returning from lightmapper";
-							if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 							lm_onscreenprompt ( ) ; Sync ( ) ;
 						}
 					 }
@@ -4905,7 +4679,6 @@ void game_main_loop ( void )
 					 for ( t.n = 0 ; t.n<=  1; t.n++ )
 					 {
 						t.tonscreenprompt_s="Loading Lightmaps";
-						if ( t.hardwareinfoglobals.noterrain == 0 ) terrain_update ( );
 						lm_onscreenprompt ( ) ; Sync ( ) ;
 					 }
 					 t.tdisableLMprogressreading=0;
@@ -5042,13 +4815,6 @@ void game_main_loop ( void )
 		t.promptextra_s = ""; t.promptextra_s=t.promptextra_s + "FPS:"+Str(GetDisplayFPS())+" TIME:"+t.pm_s;
 		t.game.perf.misc += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
-		//  any terrain actions
-		if (  t.hardwareinfoglobals.noterrain == 0 ) 
-		{
-			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_loop");
-			terrain_loop ( );
-		}
-
 		//  loop physics
 		if (  t.hardwareinfoglobals.nophysics == 0 ) 
 		{
@@ -5064,8 +4830,8 @@ void game_main_loop ( void )
 			for ( g.charanimindex = 1 ; g.charanimindex <= g.charanimindexmax; g.charanimindex++ )
 			{
 				// update gun position in hand of character
-				t.e = t.charanimstates[g.charanimindex].e;
-				if ( t.e > 0 ) entity_controlattachments ( );
+				//t.e = t.charanimstates[g.charanimindex].e;
+				//if ( t.e > 0 ) entity_controlattachments ( ); logic moved!
 
 				// detect collection of dropped guns
 				t.e = t.charanimstates[g.charanimindex].originale;
@@ -5073,15 +4839,15 @@ void game_main_loop ( void )
 			}
 
 			//  But do allow third person protagonist attachment control
-			if (  t.playercontrol.thirdperson.enabled == 1 ) 
-			{
-				t.e=t.playercontrol.thirdperson.charactere;
-				if (  t.e>0 && t.player[1].health>0 ) 
-				{
-					if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling entity_controlattachments");
-					entity_controlattachments ( );
-				}
-			}
+			//if (  t.playercontrol.thirdperson.enabled == 1 ) 
+			//{
+				//t.e=t.playercontrol.thirdperson.charactere;
+				//if (  t.e>0 && t.player[1].health>0 ) 
+				//{
+					//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling entity_controlattachments");
+					//entity_controlattachments ( );
+				//}
+			//}
 
 			//  Construction Kit control
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling conkit_loop");
@@ -5115,11 +4881,6 @@ void game_main_loop ( void )
 				lua_loop ( );
 				wiProfiler::EndRange(range1);
 
-				// Of the above, how much was ray casting ( the usual stinker!)
-				//auto rangeraycasting = wiProfiler::BeginRangeCPU("Max - General - Ray Casting");
-				//lua_raycastingwork ( );
-				//wiProfiler::EndRange(rangeraycasting);
-
 				// Entity Logic
 				auto range2 = wiProfiler::BeginRangeCPU("Max - General - Object Logic");
 				t.game.perf.ai1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
@@ -5145,7 +4906,7 @@ void game_main_loop ( void )
 			t.game.perf.ai += PerformanceTimer()-t.ttempoverallaiperftimerstamp;
 
 			// don't do this when in f9 mode
-			if ( !g_occluderf9Mode) game_check_character_shader_entities ( );
+			//if ( !g_occluderf9Mode) game_check_character_shader_entities ( );
 		}
 
 		// if third person, restore camera from protag-cam trick
@@ -5223,9 +4984,9 @@ void game_main_loop ( void )
 		// PE: Its way better to cycle the different cascades so we dont get these "spicks" in FPS. way more smooth. ()
 		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows >= 1)
 		{
-			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
+			//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
-			terrain_shadowupdate ( );
+			//terrain_shadowupdate ( );
 			t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 		}
 		else
@@ -5237,20 +4998,15 @@ void game_main_loop ( void )
 	{
 		if ( ++terrainshadowdelay >= 3 )
 		{
-			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
+			//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
 			terrainshadowdelay = 0;
-			terrain_shadowupdate ( );
+			//terrain_shadowupdate ( );
 		}
 	}
 	if (  t.hardwareinfoglobals.nosky == 0 ) 
 	{
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sky_loop");
 		sky_loop ( );
-	}
-	if (  t.hardwareinfoglobals.nowater == 0 ) 
-	{
-		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_water_loop");
-		terrain_water_loop ( );
 	}
 	t.game.perf.terrain3 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
@@ -5331,20 +5087,8 @@ void game_main_loop ( void )
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_preterrain");
 	postprocess_preterrain ( );
 
-	// Render terrain if flagged
-	if ( t.hardwareinfoglobals.noterrain == 0 ) 
-	{
-		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_update");
-		terrain_update ( );
-	}
-
 	//  explosions and fire
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling draw_particles");
-	#ifdef WICKEDENGINE
-	// no debris in wicked - to be GPU particles down the road
-	#else
-	draw_debris();
-	#endif
 	draw_particles();
 
 	//  handle fade out for level progression
@@ -5355,8 +5099,8 @@ void game_main_loop ( void )
 	}
 
 	//  Post process and visual settings system
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_apply");
-	postprocess_apply ( );
+	//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling postprocess_apply");
+	//postprocess_apply ( );
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling visuals_loop");
 	visuals_loop ( );
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling lighting_loop");
@@ -5376,8 +5120,8 @@ void game_main_loop ( void )
 	hud_updatehudlayerobjects ( );
 
 	//  Call this at end of game loop to ensure character objects sufficiently overridden
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
-	darkai_finalsettingofcharacterobjects ( );
+	//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
+	//darkai_finalsettingofcharacterobjects ( );
 
 	// trigger screen to be grabbed for a HUD image
 	bool bGrabSceneToStoreInImage = true;
@@ -5419,6 +5163,10 @@ extern float smallDistanceMulti;
 
 void game_sync ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Work out overall time spent per cycle
 	t.game.perf.overall += PerformanceTimer()-g.gameperfoveralltimestamp ; g.gameperfoveralltimestamp=PerformanceTimer();
 

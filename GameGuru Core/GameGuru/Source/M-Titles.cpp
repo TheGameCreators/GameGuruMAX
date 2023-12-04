@@ -325,30 +325,10 @@ void titles_immediateupdategraphics ( void )
 	//  need to update any shadow elements when change technique
 	if (  g.titlesettings.updateshadowsaswell == 1 ) 
 	{
-		//  if set to one, will leave options menu and return
-		#ifdef VRTECH
-		terrain_shadowupdate ( );
-		#else
-		if (g.globals.speedshadows > 0)
-		{
-			//Update all cascades.
-			int gss = g.globals.speedshadows;
-			g.globals.speedshadows = 0;
-			terrain_shadowupdate();
-			terrain_update();
-			g.globals.speedshadows = gss;
-		}
-		else
-			terrain_shadowupdate();
-		#endif
 		t.visuals.refreshshaders=1;
 		visuals_loop ( );
 		visuals_shaderlevels_update ( );
 		t.visuals.refreshshaders=1;
-		#ifdef VRTECH
-		#else
-		Sync();
-		#endif
 	}
 }
 
@@ -2192,7 +2172,6 @@ void titles_base ( void )
 				music_loop ( );
 				//  game renders
 				t.gdynamicterrainshadowcameratrigger=1;
-				terrain_update ( );
 				t.tmastersyncmask=0;
 				SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
 			}
@@ -2208,18 +2187,8 @@ void titles_base ( void )
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			// Update screen
 			// dave added a skip test for syncing to prevent the editor being drawn when switching to mp game start
-			#ifdef VRTECH
 			if (  Timer() - t.tskipLevelSync > 200  )  Sync (  );
-			#else
-			if (Timer() - t.tskipLevelSync > 2000) 
-			{
-				terrain_shadowupdate();
-				terrain_update();
-				Sync();
-			}
-			#endif
 		}
-
 	}
 	t.null=MouseMoveX()+MouseMoveY();
 	while ( EscapeKey() != 0 ) {}
@@ -2429,18 +2398,8 @@ void titleslua_main_stage3_inloop(void)
 	{
 		music_loop ( );
 		t.gdynamicterrainshadowcameratrigger=1;
-		#ifdef VRTECH
-		terrain_update ( );
 		t.tmastersyncmask=0;
 		SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
-		#else
-		terrain_shadowupdate();
-		terrain_update ( );
-		t.tmastersyncmask=0;
-		//SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
-		//PE: We need to render everything to also see shadows.
-		SyncMask(0xfffffff9);
-		#endif
 	}
 
 	// draw all sprites required
@@ -2579,119 +2538,13 @@ void titleslua_blocking_run(void)
 
 void titleslua_main(LPSTR pPageName)
 {
-	#ifdef WICKEDENGINE
 	// now used to trigger title system
 	titleslua_main_stage1_init(pPageName);
 	g_iTitleMainState = 0;
-	#else
-	// tight internal loop version for legacy
-	bool bRunLoop = true;
-	titleslua_main_stage1_init(pPageName);
-	g_iTitleMainState = 0;
-	while (bRunLoop == true)
-	{
-		if (titleslua_main_loopcode() == true) bRunLoop = false;
-	}
-	#endif
-	/*
-	titleslua_main_stage1(pPageName);
-	while ( strcmp ( g_pTitleCurrentPage, "" )!=NULL )
-	{
-		titleslua_main_stage2();
-		while ( t.game.titleloop==1 )
-		{
-			titleslua_main_stage3();
-		}
-		titleslua_main_stage4();
-	}
-	titleslua_main_stage5();
-	*/
 }
-
-/*
-void titleslua_main_old ( LPSTR pPageName )
-{
-	// Machine independent speed
-	game_timeelapsed_init ( );
-
-	// keep doing pages until we exit with no page
-	char pCurrentPage[256];
-	strcpy ( pCurrentPage, pPageName );
-	strcpy ( t.game.pSwitchToLastPage, pCurrentPage );	
-	while ( strcmp ( pCurrentPage, "" )!=NULL )
-	{
-		// call init function to set up resources
-		char pLUAInit[256];
-		strcpy ( pLUAInit, cstr(cstr(pCurrentPage)+"_init").Get() );
-		strcpy ( g_strErrorClue, pLUAInit );
-		LuaSetFunction ( pLUAInit, 0, 0 ); 
-		LuaCall (  );
-
-		// stay in main until page is quit
-		char pLUAMain[256];
-		strcpy ( pLUAMain, cstr(cstr(pCurrentPage)+"_main").Get() );
-		strcpy ( g_strErrorClue, pLUAMain );
-		t.game.titleloop = 1;
-		while ( t.game.titleloop==1 )
-		{
-			// Machine independent speed update (makes g_TimeElapsed available)
-			game_timeelapsed();
-
-			// run LUA logic
-			lua_loop_begin();
-			LuaSetFunction ( pLUAMain, 0, 0 ); LuaCall (  );
-			lua_loop_finish();
-
-			// if in game, extra update refreshes
-			if ( t.game.gameloop == 1 ) 
-			{
-				music_loop ( );
-				t.gdynamicterrainshadowcameratrigger=1;
-				#ifdef VRTECH
-				terrain_update ( );
-				t.tmastersyncmask=0;
-				SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
-				#else
-				terrain_shadowupdate();
-				terrain_update ( );
-				t.tmastersyncmask=0;
-				//SyncMask (  t.tmastersyncmask+(1<<3)+(1) );
-				//PE: We need to render everything to also see shadows.
-				SyncMask(0xfffffff9);
-				#endif
-			}
-
-			// draw all sprites required
-			sliders_draw ( );
-
-			// update screen
-			Sync();
-		}
-
-		// wait for mouse click release
-		while ( MouseClick()!=0 ) { Sleep(1); }
-
-		// call to allow local resources to be freed
-		char pLUAFree[256];
-		strcpy ( pLUAFree, cstr(cstr(pCurrentPage)+"_free").Get() );
-		LuaSetFunction ( pLUAFree, 0, 0 ); 
-		LuaCall (  );
-		
-		// switch to new page name
-		if ( strcmp ( t.game.pSwitchToPage, "-1")==NULL )
-			strcpy ( pCurrentPage, t.game.pSwitchToLastPage );
-		else
-			strcpy ( pCurrentPage, t.game.pSwitchToPage );
-	}
-
-	// need to ensure low FPS warning not triggered by game sync absense
-	t.conkit.cooldown = 100;
-}
-*/
 
 void titleslua_free ( void )
 {
 	// frees all loaded scripts
 	t.bThemeScriptsLoaded = false;
-	//LuaReset (  );
 }

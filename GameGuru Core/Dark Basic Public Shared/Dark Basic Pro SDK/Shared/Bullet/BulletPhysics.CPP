@@ -1277,26 +1277,6 @@ void Update(float fTimeStep)
 			}
 
 		}
-
-		/* Very slow and doesn't show the ragdoll in motion.
-		// better to use g_bDebugRagdoll in M-Ragdoll.cpp, coupled with constraint drawing above.
-		// Draw Ragdolls.
-		for (int i = 0; i < g_debugDrawer.iRagdollID.size(); i++)
-		{
-			DBProRagDoll* ragdoll = ragdollManager->GetRagdoll(g_debugDrawer.iRagdollID[i]);
-			btAlignedObjectArray<DBProRagDollBone*> bones = ragdoll->GetRagdollBones();
-			if (bones.size() == 0) continue;
-
-			for (int j = 0; j < bones.size(); j++)
-			{
-				rBody = bones[j]->GetRigidBody();
-				if (rBody == nullptr) continue;
-
-				rBody->getMotionState()->getWorldTransform(transform);
-				g_dynamicsWorld->debugDrawObject(transform, rBody->getCollisionShape(), btVector3(0, 1, 0));
-			}
-		}
-		*/
 	}
 	#endif
 }
@@ -4323,7 +4303,7 @@ int ODERayForce ( float fX, float fY, float fZ, float fToX, float fToY, float fT
 		return 0;
 }
 
-int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType)
+int ODERayEx (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType, int iIgnoreObj1, int iIgnoreObj2)
 {
 	// cast a physics ray, get nearest hit
 	if (g_dynamicsWorld)
@@ -4334,7 +4314,7 @@ int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, in
 		btCollisionWorld::ClosestRayResultCallback RayCallback(Start, End);
 		RayCallback.m_collisionFilterGroup = iCollisionType;
 		RayCallback.m_collisionFilterMask = iCollisionType;
-		g_dynamicsWorld->rayTest(Start, End, RayCallback);
+		g_dynamicsWorld->rayTest(Start, End, RayCallback); // nice and fast!
 		if (RayCallback.hasHit())
 		{
 			g_hitObjectNumber = 0;
@@ -4347,7 +4327,15 @@ int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, in
 					if (body == NULL) continue;
 					if (hitbody == body)
 					{
-						g_hitObjectNumber = g_PhyObjectList[j].iID;
+						if ((iIgnoreObj1 > 0 && iIgnoreObj1 == g_PhyObjectList[j].iID) || (iIgnoreObj2 > 0 && iIgnoreObj2 == g_PhyObjectList[j].iID))
+						{
+							// we can ignore this one
+						}
+						else
+						{
+							// we hit this object
+							g_hitObjectNumber = g_PhyObjectList[j].iID;
+						}
 						break;
 					}
 				}
@@ -4365,6 +4353,22 @@ int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, in
 		}
 	}
 	return 0;
+}
+
+int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType)
+{
+	return ODERayEx (fX, fY, fZ, fToX, fToY, fToZ, iCollisionType, 0, 0);
+}
+
+void ODEGetPosAndNorm(float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ)
+{
+	// return last ray hit position and normal
+	*pOutX = g_hitPointWorld.getX();
+	*pOutY = g_hitPointWorld.getY();
+	*pOutZ = g_hitPointWorld.getZ();
+	*pNormX = g_hitNormalWorld.getX();
+	*pNormY = g_hitNormalWorld.getY();
+	*pNormZ = g_hitNormalWorld.getZ();
 }
 
 float ODEGetRayCollisionX()
@@ -4710,13 +4714,19 @@ float* BPhys_GetStaticDebugDrawData(int& size)
 	btTransform transform;
 
 	// Draw the static rigid bodies in the dynamic world.
-	if (g_iDebugDrawStatics == 1)
+	if (g_iDebugDrawStatics & 1)
 	{
 		for (int i = 0; i < g_PhyObjectList.size(); i++)
 		{
 			//PE: Dont include terrain, will run out of memory
 			bool bDrawThisPhysicsObject = false;
-			if (g_PhyObjectList[i].iID > 70000) bDrawThisPhysicsObject = true;
+			if (g_PhyObjectList[i].iID > 70000)
+			{
+				if (g_PhyObjectList[i].bDynamicUpdate == false)
+				{
+					bDrawThisPhysicsObject = true;
+				}
+			}
 			if (g_PhyObjectList[i].iID <= 70000)
 			{
 				// if in PROXIMITY to an object with physics (terrain), show that too
@@ -4724,7 +4734,10 @@ float* BPhys_GetStaticDebugDrawData(int& size)
 				float fDX = ObjectPositionX(iObj) - CameraPositionX(0);
 				float fDZ = ObjectPositionZ(iObj) - CameraPositionZ(0);
 				float fDiff = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
-				if (fDiff < 10000.0f) bDrawThisPhysicsObject = true;
+				if (g_iDebugDrawStatics & 2)
+				{
+					if (fDiff < 10000.0f) bDrawThisPhysicsObject = true;
+				}
 			}
 			if (bDrawThisPhysicsObject == true)
 			{
@@ -4783,7 +4796,6 @@ void BPhys_RemoveDebugSingleObject(int objectID)
 
 void BPhys_DrawDebugObjects()
 {
-	#ifdef WICKEDENGINE
 	btRigidBody* rBody;
 	btTransform transform;
 	for (int i = 0; i < g_PhyObjectList.size(); i++)
@@ -4803,7 +4815,6 @@ void BPhys_DrawDebugObjects()
 			}
 		}
 	}
-	#endif
 }
 
 int BPhys_GetDebugObjectCount()

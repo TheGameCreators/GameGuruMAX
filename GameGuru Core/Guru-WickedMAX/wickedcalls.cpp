@@ -2999,20 +2999,26 @@ void WickedCall_GetLimbDataEx(sObject* pObject, int iLimbID, bool bAdjustLimb, f
 						*pX = transform.GetPosition().x;
 						*pY = transform.GetPosition().y;
 						*pZ = transform.GetPosition().z;
-						*pQAX = transform.GetRotation().x;
-						*pQAY = transform.GetRotation().y;
-						*pQAZ = transform.GetRotation().z;
-						*pQAW = transform.GetRotation().w;
+						if (pQAX)
+						{
+							*pQAX = transform.GetRotation().x;
+							*pQAY = transform.GetRotation().y;
+							*pQAZ = transform.GetRotation().z;
+							*pQAW = transform.GetRotation().w;
+						}
 					}
 					else
 					{
 						*pX = pTransform->GetPosition().x;
 						*pY = pTransform->GetPosition().y;
 						*pZ = pTransform->GetPosition().z;
-						*pQAX = pTransform->GetRotation().x;
-						*pQAY = pTransform->GetRotation().y;
-						*pQAZ = pTransform->GetRotation().z;
-						*pQAW = pTransform->GetRotation().w;
+						if (pQAX)
+						{
+							*pQAX = pTransform->GetRotation().x;
+							*pQAY = pTransform->GetRotation().y;
+							*pQAZ = pTransform->GetRotation().z;
+							*pQAW = pTransform->GetRotation().w;
+						}
 					}
 				}
 			}

@@ -7560,7 +7560,7 @@ DWORD* g_pIntersectDatabase = NULL;
 int* g_pIntersectDatabaseLastResult = NULL;
 
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
-DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule)
+DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy)
 {
 	// shiny new system for intersect tests
 	// iStaticOnly : 0-dynamic, 1-static, 2-line of sight only performant from LUA scripts
@@ -7615,67 +7615,39 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 		}
 	}
 
-	// static mode 2 does not seem to work (char in building, ray cast thorugh wall to player outside!) 
+	// static mode 2 can use regular static test, just as fast!
 	if (iStaticOnly == 2) iStaticOnly = 1;
 
 	// visible geometry ray detection
-	if ( iStaticOnly != 2 )
+	if (bFullWickedAccuracy==false)
 	{
-		// wicked uses own ray cast which handles objects AND terrain ( a little on the slow side, see above for less overkill )
 		GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
 		GGVECTOR3 vecTo = GGVECTOR3(fNewX, fNewY, fNewZ);
 		GGVECTOR3 vecDir = vecTo - vecFrom;
 		float pOutX, pOutY, pOutZ, pNormX, pNormY, pNormZ;
-		sObject* pIgnoreObject = NULL;
-		if (iIgnoreObjNo > 0) pIgnoreObject = GetObjectData(iIgnoreObjNo);
-		if (pIgnoreObject) WickedCall_SetObjectRenderLayer(pIgnoreObject, GGRENDERLAYERS_CURSOROBJECT);
-		sObject* pGunObject = NULL;
-		if (g_iCurrentGunObj > 0 && ObjectExist(g_iCurrentGunObj) == 1)
-		{
-			pGunObject = GetObjectData(g_iCurrentGunObj);
-			WickedCall_SetObjectRenderLayer(pGunObject, GGRENDERLAYERS_CURSOROBJECT);
-		}
 		float fDistanceOfRay = GGVec3Length(&vecDir);
 		DWORD dwObjectNumberHit = 0;
-		if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
+		extern int ODERayEx (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType, int iGObj1, int iIgObj2);
+		int iCollisionMode = 1 | (1 << (1)) | (1 << (2)) | (1 << (3)); // COL_TERRAIN | COL_OBJECT | COL_CAPSULECHAR | COL_OBJECT_DYNAMIC;
+		if (iStaticOnly == 1 ) iCollisionMode = 1 | (1 << (1)); // COL_TERRAIN | COL_OBJECT
+		if (ODERayEx (vecFrom.x, vecFrom.y, vecFrom.z, fNewX, fNewY, fNewZ, iCollisionMode, iIgnoreObjNo, g_iCurrentGunObj) == 1)
 		{
+			extern int g_hitObjectNumber;
+			dwObjectNumberHit = g_hitObjectNumber;
+			extern void ODEGetPosAndNorm(float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ);
+			ODEGetPosAndNorm(&pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ);
 			// only objects within given range (to exclude weapon HUDs)
 			if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
 			{
-				// if hit the caster (ignored obj), move start along ray to avoid this accidental collision
-				if (dwObjectNumberHit == iIgnoreObjNo)
-				{
-					GGVECTOR3 vecDiff = vecDir;
-					vecDiff /= fDistanceOfRay;
-					// try five times (50 units outward)
-					int iTries = 5;
-					while (iTries > 0)
-					{
-						vecFrom += vecDiff * 10.0f;
-						vecDir -= vecDiff * 10.0f;
-						dwObjectNumberHit = 0;
-						if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
-						{
-							// did we hit an object
-							if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
-							{
-								if (dwObjectNumberHit != iIgnoreObjNo)
-								{
-									// found a non-ignored hit, we can leave!
-									break;
-								}
-							}
-						}
-						iTries--;
-					}
-				}
-				iHitValue = dwObjectNumberHit; // ray hit object!
+				// ray hit object
+				iHitValue = dwObjectNumberHit; 
 			}
 			else
 			{
 				if (dwObjectNumberHit == 0)
 				{
-					iHitValue = -1; // ray hit terrain!
+					// ray hit terrain
+					iHitValue = -1; 
 				}
 				else
 				{
@@ -7695,84 +7667,92 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 				g_pGlob->checklist[6].fvaluec = pNormZ;
 			}
 		}
-
-		// we can extend this to exclude MANY objects - and have an 'exclude from ray' flag instead of using GGRENDERLAYERS (optimization op)
-		if (pIgnoreObject) WickedCall_SetObjectRenderLayer(pIgnoreObject, GGRENDERLAYERS_NORMAL);
-		if (pGunObject) WickedCall_SetObjectRenderLayer(pGunObject, GGRENDERLAYERS_NORMAL);
 	}
-
-	/* funda problem here, may be able to resurrect one day for even faster ray casting using the physics landscape!
-	// if using quick method instead (or if above returned zero, need to double check with physics ray as can detect player capsule for blocking)
-	if (iStaticOnly == 2 ) // hmm seems this blocks keys from being detected inside objects that use BOX physics collision - like keys - so no go! || iHitValue == 0)
+	else
 	{
-		// relies on all 'hittable' stuff being in the physics landscape#
-		extern int ODERay (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, int iCollisionType);
-		int iCollisionMode = (1 << (1)) | (1 << (2)) | (1 << (3)); // COL_OBJECT | COL_CAPSULECHAR | COL_OBJECT_DYNAMIC;
-		//if ( iIgnorePlayerCapsule==1 ) iCollisionMode = (1 << (1)) | (1 << (3)); // COL_OBJECT |  COL_OBJECT_DYNAMIC; - removed COL_CAPSULECHAR
-		if (ODERay (fX, fY, fZ, fNewX, fNewY, fNewZ, iCollisionMode) == 1)
+		// Wicked Raycast TOO expensive, try physics again for performance!
+		if (iStaticOnly != 2)
 		{
-			// did we hit an object
-			extern int ODEGetRayObjectHit();
-			int iObjectNumberHit = ODEGetRayObjectHit();
-			if (iObjectNumberHit >= iPrimaryStart && iObjectNumberHit <= iPrimaryEnd)
+			// wicked uses own ray cast which handles objects AND terrain ( a little on the slow side, see above for less overkill )
+			GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
+			GGVECTOR3 vecTo = GGVECTOR3(fNewX, fNewY, fNewZ);
+			GGVECTOR3 vecDir = vecTo - vecFrom;
+			float pOutX, pOutY, pOutZ, pNormX, pNormY, pNormZ;
+			sObject* pIgnoreObject = NULL;
+			if (iIgnoreObjNo > 0) pIgnoreObject = GetObjectData(iIgnoreObjNo);
+			if (pIgnoreObject) WickedCall_SetObjectRenderLayer(pIgnoreObject, GGRENDERLAYERS_CURSOROBJECT);
+			sObject* pGunObject = NULL;
+			if (g_iCurrentGunObj > 0 && ObjectExist(g_iCurrentGunObj) == 1)
 			{
-				// if hit the caster (ignored obj), move start along ray to avoid this accidental collision
-				if (iObjectNumberHit == iIgnoreObjNo)
+				pGunObject = GetObjectData(g_iCurrentGunObj);
+				WickedCall_SetObjectRenderLayer(pGunObject, GGRENDERLAYERS_CURSOROBJECT);
+			}
+			float fDistanceOfRay = GGVec3Length(&vecDir);
+			DWORD dwObjectNumberHit = 0;
+			if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
+			{
+				// only objects within given range (to exclude weapon HUDs)
+				if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
 				{
-					GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
-					GGVECTOR3 vecTo = GGVECTOR3(fNewX, fNewY, fNewZ);
-					GGVECTOR3 vecDiff = vecTo - vecFrom;
-					float fDistance = GGVec3LengthSq(&vecDiff);
-					vecDiff /= fDistance;
-					// try five times (50 units outward)
-					int iTries = 5;
-					while (iTries > 0)
+					// if hit the caster (ignored obj), move start along ray to avoid this accidental collision
+					if (dwObjectNumberHit == iIgnoreObjNo)
 					{
-						vecFrom += vecDiff * 10.0f;
-						if (ODERay (vecFrom.x, vecFrom.y, vecFrom.z, fNewX, fNewY, fNewZ, iCollisionMode) == 1)
+						// try five times (50 units outward)
+						GGVECTOR3 vecDiff = vecDir;
+						vecDiff /= fDistanceOfRay;
+						int iTries = 5;
+						while (iTries > 0)
 						{
-							// did we hit an object
-							extern int ODEGetRayObjectHit();
-							int iObjectNumberHit = ODEGetRayObjectHit();
-							if (iObjectNumberHit >= iPrimaryStart && iObjectNumberHit <= iPrimaryEnd)
+							vecFrom += vecDiff * 10.0f;
+							vecDir -= vecDiff * 10.0f;
+							dwObjectNumberHit = 0;
+							if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
 							{
-								if (iObjectNumberHit != iIgnoreObjNo)
+								// did we hit an object
+								if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
 								{
-									// found a non-ignored hit, we can leave!
-									break;
+									if (dwObjectNumberHit != iIgnoreObjNo)
+									{
+										// found a non-ignored hit, we can leave!
+										break;
+									}
 								}
 							}
+							iTries--;
 						}
-						iTries--;
+					}
+					iHitValue = dwObjectNumberHit; // ray hit object!
+				}
+				else
+				{
+					if (dwObjectNumberHit == 0)
+					{
+						iHitValue = -1; // ray hit terrain!
+					}
+					else
+					{
+						// hit some other non-entity object (weapon, etc)
 					}
 				}
-				iHitValue = iObjectNumberHit; // ray hit object!
-			}
-			else
-			{
-				// if not ignoring the player
-				if (iIgnorePlayerCapsule != 1)
-					iHitValue = -1; // ray hit something
+				if (iHitValue != 0)
+				{
+					// 5 - world space coordinate where the collision struck!
+					g_pGlob->checklist[5].fvaluea = pOutX;
+					g_pGlob->checklist[5].fvalueb = pOutY;
+					g_pGlob->checklist[5].fvaluec = pOutZ;
+
+					// 6 - normal of polygon struck (from vertA)
+					g_pGlob->checklist[6].fvaluea = pNormX;
+					g_pGlob->checklist[6].fvalueb = pNormY;
+					g_pGlob->checklist[6].fvaluec = pNormZ;
+				}
 			}
 
-			// 5 - world space coordinate where the collision struck!
-			extern float ODEGetRayCollisionX();
-			extern float ODEGetRayCollisionY();
-			extern float ODEGetRayCollisionZ();
-			g_pGlob->checklist[5].fvaluea = ODEGetRayCollisionX();
-			g_pGlob->checklist[5].fvalueb = ODEGetRayCollisionY();
-			g_pGlob->checklist[5].fvaluec = ODEGetRayCollisionZ();
-
-			// 6 - normal of polygon struck (from vertA)
-			extern float ODEGetRayNormalX();
-			extern float ODEGetRayNormalY();
-			extern float ODEGetRayNormalZ();
-			g_pGlob->checklist[6].fvaluea = ODEGetRayNormalX();
-			g_pGlob->checklist[6].fvalueb = ODEGetRayNormalY();
-			g_pGlob->checklist[6].fvaluec = ODEGetRayNormalZ();
+			// we can extend this to exclude MANY objects - and have an 'exclude from ray' flag instead of using GGRENDERLAYERS (optimization op)
+			if (pIgnoreObject) WickedCall_SetObjectRenderLayer(pIgnoreObject, GGRENDERLAYERS_NORMAL);
+			if (pGunObject) WickedCall_SetObjectRenderLayer(pGunObject, GGRENDERLAYERS_NORMAL);
 		}
 	}
-	*/
 
 	// store in database if using this mode
 	if (iIndexInIntersectDatabase > 0)
@@ -7791,7 +7771,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 
 DARKSDK_DLL int IntersectAll(int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo)
 {
-	return IntersectAllEx(iPrimaryStart, iPrimaryEnd, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0, 0, 0, 1);
+	return IntersectAllEx(iPrimaryStart, iPrimaryEnd, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0, 0, 0, 1, false);
 }
 
 DARKSDK void SetObjectCollisionProperty ( int iObjectID, int iPropertyValue )

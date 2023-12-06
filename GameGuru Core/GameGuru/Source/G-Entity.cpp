@@ -2111,7 +2111,7 @@ void entity_loop ( void )
 											if (t.ttokay == 1)
 											{
 												// static ray test (only statics can stop force of exploding ray)
-												int tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.entityelement[t.ee].x, t.entityelement[t.ee].y + fYOff, t.entityelement[t.ee].z, t.entityelement[iCanWeSeeThisE].x, t.entityelement[iCanWeSeeThisE].y + fYOff, t.entityelement[iCanWeSeeThisE].z, t.entityelement[t.ee].obj, 1, 0, 0, 1);
+												int tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.entityelement[t.ee].x, t.entityelement[t.ee].y + fYOff, t.entityelement[t.ee].z, t.entityelement[iCanWeSeeThisE].x, t.entityelement[iCanWeSeeThisE].y + fYOff, t.entityelement[iCanWeSeeThisE].z, t.entityelement[t.ee].obj, 1, 0, 0, 1, false);
 												if (tintersectvalue != 0 && tintersectvalue != t.entityelement[iCanWeSeeThisE].obj )
 												{
 													// hit something that was not the destination object
@@ -3637,7 +3637,9 @@ void entity_hasbulletrayhit(void)
 		// 220217 - cannot shoot self with weapon!
 		iIgnoreOneEntityObj = t.entityelement[t.playercontrol.thirdperson.charactere].obj;
 	}
-	t.thitvalue=IntersectAll(g.entityviewstartobj,g.entityviewendobj,t.brayx1_f,t.brayy1_f,t.brayz1_f,t.brayx2_f,t.brayy2_f,t.brayz2_f,iIgnoreOneEntityObj);
+	//t.thitvalue = IntersectAll(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, iIgnoreOneEntityObj);
+	bool bFullWickedAccuracy = true;
+	t.thitvalue = IntersectAllEx (g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, 0, 0, 0, 0, 0, bFullWickedAccuracy);
 	if ( t.thitvalue>0 ) 
 	{
 		if (t.thitvalue > 0)

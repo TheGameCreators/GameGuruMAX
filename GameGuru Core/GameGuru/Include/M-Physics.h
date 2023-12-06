@@ -61,7 +61,7 @@ void physics_set_debug_draw(int iDraw);
 void physics_create_debug_mesh(float* data, int count, bool bStatic, int offset);
 void physics_update_debug_mesh(float* data, int count, int objectID, int offsetLower, int offsetUpper);
 void physics_add_vert_to_debug_mesh(float x, float y, float z, int v, int memblock);
-void physics_debug_make_prism_between_points(float* p0, float* p1, float* points, float thickness = 0.12f);
+void physics_debug_make_prism_between_points(float* p0, float* p1, float* points, float thickness = 0.05f);
 void physics_debug_add_object(int objectID);
 void physics_debug_remove_object(int objectID);
 void physics_debug_draw();

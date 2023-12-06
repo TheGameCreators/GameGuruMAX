@@ -514,7 +514,7 @@ void lua_loop_begin ( void )
 				float fNewY = pLaserObject->position.vecPosition.y;
 				float fNewZ = pLaserObject->position.vecPosition.z;
 				MoveObject(GGVR_Player.LaserGuideActive, -100);
-				int tthitvalue = IntersectAllEx(g.luadrawredirectobjectoffset, g.luadrawredirectobjectoffset, fX, fY, fZ, fNewX, fNewY, fNewZ, 0, 0, 0, 0, 1);
+				int tthitvalue = IntersectAllEx(g.luadrawredirectobjectoffset, g.luadrawredirectobjectoffset, fX, fY, fZ, fNewX, fNewY, fNewZ, 0, 0, 0, 0, 1, false);
 				if (tthitvalue != 0)
 				{
 					// determine Y coordinate on VR Screen

@@ -1023,6 +1023,9 @@ void btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 	/// and for each object with ray-aabb overlap, perform an exact ray test
 	btSingleRayCallback rayCB(rayFromWorld, rayToWorld, this, resultCallback);
 
+	// want to see all rays cast!
+	m_debugDrawer->drawLine(rayFromWorld, btVector3(rayToWorld.getX(),rayToWorld.getY()-(2.5f/40.0f), rayToWorld.getZ()), btVector3(1, 0, 0));
+
 #ifndef USE_BRUTEFORCE_RAYBROADPHASE
 	m_broadphasePairCache->rayTest(rayFromWorld, rayToWorld, rayCB);
 #else

@@ -3808,7 +3808,7 @@ void gun_shoot ( void )
 					fAndTheAdvanceZ *= 60.0f;
 					int iHitTerrain = ODERayTerrain(t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX+ fAndTheAdvanceX, fGrenadePosY+ fAndTheAdvanceY, fGrenadePosZ+ fAndTheAdvanceZ, false);
 					int iHitSomething = 0;
-					if (iHitTerrain == 0 ) iHitSomething = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX, fGrenadePosY, fGrenadePosZ, iIgnoreObj, 0, 0, 0, 0);
+					if (iHitTerrain == 0 ) iHitSomething = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.flakx_f, t.flaky_f, t.flakz_f, fGrenadePosX, fGrenadePosY, fGrenadePosZ, iIgnoreObj, 0, 0, 0, 0, false);
 					if (iHitSomething != 0 || iHitTerrain != 0 )
 					{
 						// obstruction, place at player no advance shifting - leave at camera pos

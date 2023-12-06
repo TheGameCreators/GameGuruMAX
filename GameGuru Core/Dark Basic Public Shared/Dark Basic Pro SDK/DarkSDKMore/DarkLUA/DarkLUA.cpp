@@ -3853,7 +3853,7 @@ int AdjustPositionToGetLineOfSight (lua_State *L)
 	int iFoundLineOfSight = 0;
 	int tthitvalue = 0;
 	if (ODERayTerrain(fX, fY, fZ, fTargetPosX, fTargetPosY, fTargetPosZ, true) == 1) tthitvalue = -1;
-	if ( tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1);
+	if ( tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1, false);
 	if ( tthitvalue != 0 )
 	{
 		// current A position cannot see B, try a few locations using spiral search up to adjustment radius
@@ -3871,7 +3871,7 @@ int AdjustPositionToGetLineOfSight (lua_State *L)
 			//PE: Optimizing - Snowy Mountain Stroll is getting hit by this in the tunnel. huge fps drop.
 			//PE: Optimizing , this is hitting WickedCall_SentRay3 many times (32 max calls currently) (25.0f / 8).
 			if (ODERayTerrain(fNewX, fY, fNewZ, fTargetPosX, fTargetPosY, fTargetPosZ, true) == 1) tthitvalue = -1;
-			if (tthitvalue == 0) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fNewX, fY, fNewZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1);
+			if (tthitvalue == 0) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fNewX, fY, fNewZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1, false);
 			if (tthitvalue != 0)
 			{
 				// still blocked
@@ -5364,7 +5364,9 @@ int IntersectCore (lua_State* L, int iMode)
 			tthitvalue = -1;
 		}
 	}
-	if (tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iMode, iIndexInIntersectDatabase, iLifeInMilliseconds, iIgnorePlayerCapsule);
+	bool bFullWickedAccuracy = true;
+	if (iMode == 2) bFullWickedAccuracy = false;
+	if (tthitvalue == 0 ) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, iMode, iIndexInIntersectDatabase, iLifeInMilliseconds, iIgnorePlayerCapsule, bFullWickedAccuracy);
 	lua_pushnumber ( L, tthitvalue );
 	return 1;
 }

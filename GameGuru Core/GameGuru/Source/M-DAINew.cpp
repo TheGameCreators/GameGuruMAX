@@ -373,9 +373,26 @@ void darkai_calcplrvisible (void)
 				t.ttokay = 1;
 
 				// match ray cast with masterinterpreter raycasting (baseY+65)
-				t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
-				t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 35;// 65 - this fixes characters shooting from the eyeballs!
-				t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
+				bool bFoundEyeball = false;
+				int headlimbofcharacter = t.entityprofile[t.entityelement[t.charanimstate.e].bankindex].headlimb;
+				if (headlimbofcharacter > 0)
+				{
+					if (LimbExist(t.charanimstate.obj, headlimbofcharacter) == 1)
+					{
+						sObject* pObject = GetObjectData(t.charanimstate.obj);
+						WickedCall_GetLimbData(pObject, headlimbofcharacter, &t.brayx1_f, &t.brayy1_f, &t.brayz1_f, 0, 0, 0, 0);
+						//t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
+						//t.brayy1_f += ObjectPositionY(t.charanimstate.obj);
+						//t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
+						bFoundEyeball = true;
+					}
+				}
+				if (bFoundEyeball == false)
+				{
+					t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
+					t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 60;// need them to SEE from the head +35;// 65 - this fixes characters shooting from the eyeballs!
+					t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
+				}
 
 				// location of player (if player camera can see enemy, vice versa)
 				t.tcamerapositionx_f = CameraPositionX(t.terrain.gameplaycamera);
@@ -401,11 +418,12 @@ void darkai_calcplrvisible (void)
 					t.ttdy_f = t.ttdy_f / t.ttdd_f;
 					t.ttdz_f = t.ttdz_f / t.ttdd_f;
 
-					// then again no, start further forward to miss character body as vweap filter no longer works as we needed to glue the weapon
-					t.brayx1_f = t.brayx1_f + (t.ttdx_f*40.0);
-					t.brayy1_f = t.brayy1_f + (t.ttdy_f*40.0);
-					t.brayz1_f = t.brayz1_f + (t.ttdz_f*40.0);
-					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1);
+					//then again no, start further forward to miss character body as vweap filter no longer works as we needed to glue the weapon
+					//LB: do not move start position, it can GO THROUGH WALLS!
+					//t.brayx1_f = t.brayx1_f + (t.ttdx_f*40.0);
+					//t.brayy1_f = t.brayy1_f + (t.ttdy_f*40.0);
+					//t.brayz1_f = t.brayz1_f + (t.ttdz_f*40.0);
+					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1, false);
 					if (t.tintersectvalue != 0)
 					{
 						t.ttokay = 0;

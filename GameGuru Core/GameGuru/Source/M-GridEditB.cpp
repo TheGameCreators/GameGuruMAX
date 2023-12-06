@@ -6536,7 +6536,10 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					ImGui::Indent(10);
 					bool bDrawPhysicsShapes = t.visuals.iPhysicsDebugDraw;
-					bool bRenderStaticShapes = t.visuals.iPhysicsDebugDrawStatics;
+					bool bRenderStaticShapes = false;
+					bool bRenderStaticTerrain = false;
+					if (t.visuals.iPhysicsDebugDrawStatics & 1) bRenderStaticShapes = true;
+					if (t.visuals.iPhysicsDebugDrawStatics & 2) bRenderStaticTerrain = true;
 					bool bRenderConstraints = t.visuals.iPhysicsDebugDrawConstraints;
 					if (ImGui::Checkbox("Render Physics Shapes", &bDrawPhysicsShapes))
 					{
@@ -6548,7 +6551,16 @@ void tab_tab_visuals(int iPage, int iMode)
 					{
 						if (ImGui::Checkbox("Render Static Shapes", &bRenderStaticShapes))
 						{
-							t.visuals.iPhysicsDebugDrawStatics = bRenderStaticShapes;
+							t.visuals.iPhysicsDebugDrawStatics = 0;
+							if (bRenderStaticShapes) t.visuals.iPhysicsDebugDrawStatics += 1;
+							if (bRenderStaticTerrain) t.visuals.iPhysicsDebugDrawStatics += 1<<1;
+							physics_set_debug_draw(bDrawPhysicsShapes);
+						}
+						if (ImGui::Checkbox("Render Static Terrain", &bRenderStaticTerrain))
+						{
+							t.visuals.iPhysicsDebugDrawStatics = 0;
+							if (bRenderStaticShapes) t.visuals.iPhysicsDebugDrawStatics += 1;
+							if (bRenderStaticTerrain) t.visuals.iPhysicsDebugDrawStatics += 1 << 1;
 							physics_set_debug_draw(bDrawPhysicsShapes);
 						}
 						if (ImGui::Checkbox("Render Constraints", &bRenderConstraints))
@@ -49913,135 +49925,7 @@ bool bTempDisableSnow = false;
 
 void update_per_frame_effects(void)
 {
-	#ifdef POSTPROCESSRAIN
-	if (t.visuals.bRainEnabled)
-	{
-		if (bImGuiInTestGame)
-		{
-			if (!master_renderer->getRainEnabled())
-			{
-				master_renderer->setRainEnabled(t.visuals.bRainEnabled);
-			}
-		}
-		else
-		{
-			if (!bEnableWeather)
-			{
-				if (master_renderer->getRainEnabled())
-					master_renderer->setRainEnabled(false);
-			}
-			else
-			{
-				master_renderer->setRainEnabled(t.visuals.bRainEnabled);
-			}
-		}
-		static float fRainOffsetX = 1.0;
-		static float fRainOffsetY = 1.0;
-		static float fRainStep = 0.002;
-		fRainOffsetX += (fRainStep*t.visuals.fRainSpeedX*g.timeelapsed_f);
-		fRainOffsetY += (fRainStep*t.visuals.fRainSpeedY*g.timeelapsed_f);
-		master_renderer->setRainOffsetX(fRainOffsetX);
-		master_renderer->setRainOffsetY(fRainOffsetY);
-
-		if (master_renderer->getRainEnabled())
-		{
-			static int iDelayedRayCast = 0;
-			if (iDelayedRayCast++ % 10 == 0)
-			{
-				bTempDisableRain = false;
-				float xPos = CameraPositionX();
-				float yPos = CameraPositionY();
-				float zPos = CameraPositionZ();
-
-				//Try a ray and check if we need to disable.(indoor)
-				if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-					int ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-				else
-					int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
-				int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, xPos, yPos, zPos, xPos, yPos + 2000.0f, zPos, 0, 0, 0, 0);
-				if (iHitObj > 0) {
-					//Disable temp.
-					bTempDisableRain = true;
-				}
-			}
-			if (bTempDisableRain)
-			{
-				master_renderer->setRainEnabled(false);
-			}
-		}
-
-	}
-	else
-	{
-		if (master_renderer->getRainEnabled())
-			master_renderer->setRainEnabled(false);
-	}
-	#endif
-
-	#ifdef POSTPROCESSSNOW
-	if (t.visuals.bSnowEnabled)
-	{
-		if (bImGuiInTestGame)
-		{
-			if (!master_renderer->getSnowEnabled())
-			{
-				master_renderer->setSnowEnabled(t.visuals.bSnowEnabled);
-			}
-		}
-		else
-		{
-			if (!bEnableWeather)
-			{
-				if (master_renderer->getSnowEnabled())
-					master_renderer->setSnowEnabled(false);
-			}
-			else
-			{
-				master_renderer->setSnowEnabled(t.visuals.bSnowEnabled);
-			}
-		}
-		static float fSnowOffset = 100.0;
-		static float fSnowStep = 0.2;
-		float diff = (fSnowStep*t.visuals.fSnowSpeed*g.timeelapsed_f);
-		fSnowOffset += diff;
-		master_renderer->setSnowOffset(fSnowOffset);
-		if (diff < 0 && fSnowOffset > -10.0 && fSnowOffset < 10.0) diff -= 100.0f;
-		if (diff > 0 && fSnowOffset > -10.0 && fSnowOffset < 10.0) diff += 100.0f;
-		if (master_renderer->getSnowEnabled());
-		{
-			static int iDelayedRayCast = 0;
-			if (iDelayedRayCast++ % 10 == 0)
-			{
-				bTempDisableSnow = false;
-				float xPos = CameraPositionX();
-				float yPos = CameraPositionY();
-				float zPos = CameraPositionZ();
-
-				//Try a ray and check if we need to disable.(indoor)
-				if (g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-					int ttt = IntersectAll(85000, 85000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-				else
-					int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
-				int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, xPos, yPos, zPos, xPos, yPos + 2000.0f, zPos, 0, 0, 0, 0);
-				if (iHitObj > 0) {
-					//Disable temp.
-					bTempDisableSnow = true;
-				}
-			}
-			if (bTempDisableSnow)
-			{
-				master_renderer->setSnowEnabled(false);
-			}
-		}
-	}
-	else
-	{
-		if (master_renderer->getSnowEnabled())
-			master_renderer->setSnowEnabled(false);
-	}
-	#endif
 }
-
 
 #ifdef WICKEDENGINE
 #ifdef STANDALONENOTICE

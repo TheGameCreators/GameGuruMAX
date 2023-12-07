@@ -2530,7 +2530,6 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					// DOCDOC: realshadowresolution = Size of the texture plate dimension to render the shadow onto. Default is 2048.
 					t.tryfield_s = "realshadowresolution"; if (t.field_s == t.tryfield_s) g.globals.realshadowresolution = t.value1;
 
-					t.tryfield_s = "speedshadows"; if (t.field_s == t.tryfield_s) g.globals.speedshadows = t.value1;
 					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
 					t.tryfield_s = "forcenowaterreflection"; if (t.field_s == t.tryfield_s) g.globals.forcenowaterreflection = t.value1;
 
@@ -2550,10 +2549,6 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 						if (g.globals.realshadowcascadecount > 7) g.globals.realshadowcascadecount = 7; //PE: Limit cascades.
 					}
 
-#ifdef VRTECH
-					// DOCDOC: speedshadows = Sets the internal shadow rendering technique. Default is 2.
-					t.tryfield_s = "speedshadows"; if (t.field_s == t.tryfield_s) g.globals.speedshadows = t.value1;
-
 					// DOCDOC: drawcalloptimizer = Set to 1 to activate the automatic batching of entities to improve performance
 					t.tryfield_s = "drawcalloptimizer"; if (t.field_s == t.tryfield_s) g.globals.drawcalloptimizer = t.value1;
 
@@ -2567,7 +2562,6 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 						if (g.globals.flashlightshadows > 1) g.globals.flashlightshadows = 1;
 						if (g.globals.flashlightshadows < 0) g.globals.flashlightshadows = 0;
 					}
-#endif
 
 					// DOCDOC: realshadowcascade0 thru realshadowcascade7 = Set the distance as a percentage when cascade kicks in
 					t.tryfield_s = "realshadowcascade0"; if (t.field_s == t.tryfield_s) g.globals.realshadowcascade[0] = t.value1;
@@ -3373,7 +3367,7 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 	int rs7 = g.globals.realshadowsize[7];
 	float dist = g.globals.realshadowdistance;
 	int flash = g.globals.flashlightshadows;
-	int speed = g.globals.speedshadows;
+	int speed = 0;
 	InitShadowMapDetails(rs0, rs1, rs2, rs3, rs4, rs5, rs6, rs7, dist, flash, speed);
 
 	// special global flag which can affect how shaders are loaded

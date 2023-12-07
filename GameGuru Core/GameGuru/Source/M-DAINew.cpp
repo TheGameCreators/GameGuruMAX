@@ -381,9 +381,6 @@ void darkai_calcplrvisible (void)
 					{
 						sObject* pObject = GetObjectData(t.charanimstate.obj);
 						WickedCall_GetLimbData(pObject, headlimbofcharacter, &t.brayx1_f, &t.brayy1_f, &t.brayz1_f, 0, 0, 0, 0);
-						//t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
-						//t.brayy1_f += ObjectPositionY(t.charanimstate.obj);
-						//t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
 						bFoundEyeball = true;
 					}
 				}

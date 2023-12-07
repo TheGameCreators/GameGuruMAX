@@ -44,6 +44,7 @@ extern int g_iCurrentMediaTypeForWorkshopItem;
 extern bool g_bStillDownloadingThings;
 extern bool g_bStillDownloadingThingsWithDelay;
 extern int g_iStillDownloadingThingsWithDelayTimer;
+extern int g_iUnsubscribeByForce;
 
 // Functions
 void workshop_init (bool bLoggedIn);
@@ -66,6 +67,7 @@ public:
 	~CSteamUserGeneratedWorkshopItem();
 
 public:
+	void UnsubscribeTrustedItems();
 	void SteamRunCallbacks();
 	void CreateOrUpdateWorkshopItem();
 	void OnWorkshopItemCreated(CreateItemResult_t* pCallback, bool bIOFailure);

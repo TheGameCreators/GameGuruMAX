@@ -54,6 +54,10 @@ using namespace GGGrass;
 extern ImNodesContext* GImNodes;
 #endif
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Externs
 extern int grideleprof_uniqui_id;
 #define MAXTEXTINPUT 1024
@@ -4128,18 +4132,8 @@ void RenderToPreview(int displayobj)
 	
 	visuals_justshaderupdate();
 
-	//int iOldSpeedshadows = g.globals.speedshadows;
-	//g.globals.speedshadows = 0; //We need all cascades.
-	//terrain_shadowupdate();
-	//g.globals.speedshadows = iOldSpeedshadows;
-
 	if (t.terrain.TerrainID > 0)
 	{
-		/* not used
-		BT_SetCurrentCamera(t.terrain.gameplaycamera);
-		BT_UpdateTerrainCull(t.terrain.TerrainID);
-		BT_UpdateTerrainLOD(t.terrain.TerrainID);
-		*/
 		if (g.globals.riftmode > 0)
 		{
 		}
@@ -4222,11 +4216,6 @@ void RenderToPreview(int displayobj)
 			}
 		}
 	}
-
-
-	//g.globals.speedshadows = 0; //We need all cascades.
-	//terrain_shadowupdate(); //Remove preview objects shadow from cascades.
-	//g.globals.speedshadows = iOldSpeedshadows;
 
 	//Turn off custom clear color.
 	custom_back_color[0] = 0.0f; custom_back_color[1] = 0.0f; custom_back_color[2] = 0.0f; custom_back_color[3] = 0.0f;
@@ -13843,6 +13832,9 @@ void GrabBackBufferForAnImage(void)
 
 void GrabBackBufferCopy(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// reject backbuffer copy under certain conditions
 	if (iFogChangedFramesBeforeRestore > 0)
 	{
@@ -34735,17 +34727,26 @@ void Welcome_Screen(void)
 
 								// show "add new item" button to start creating a new one
 								ImGui::Text("");
-								if (ImGui::StyleButton("Update Workshop Items", ImVec2(half_total_width, 0)))
+								if (g_iUnsubscribeByForce == 0)
 								{
-									// delete local files copy so can get new items from Steam
-									extern bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce;
-									g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
-									g_bStillDownloadingThings = true;
-									g_bStillDownloadingThingsWithDelay = true;
-									g_iStillDownloadingThingsWithDelayTimer = Timer();
-									g_bUpdateWorkshopItemList = true;
+									if (ImGui::StyleButton("Update Workshop Items", ImVec2(half_total_width, 0)))
+									{
+										// delete local files copy so can get new items from Steam
+										extern bool g_bUpdateWorkshopDownloadsAlwaysPerformOnce;
+										g_bUpdateWorkshopDownloadsAlwaysPerformOnce = true;
+										g_bStillDownloadingThings = true;
+										g_bStillDownloadingThingsWithDelay = true;
+										g_iStillDownloadingThingsWithDelayTimer = Timer();
+										g_bUpdateWorkshopItemList = true;
+										g_iUnsubscribeByForce = 1;
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to refresh all trusted workshop items (NOTE: Allow the system some time to auto-update after using this button)");
 								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to refresh all workshop item files you are subscribed to");
+								else
+								{
+									ImGui::TextCenter("PERFORMING FULL REFRESH OF TRUSTED WORKSHOP ITEMS");
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Sometimes Steam does not instantly update workshop items, this forces the refresh");
+								}
 
 								// end of main Workshop tab page
 								ImGui::Indent(-half_total_width / 2.0f);

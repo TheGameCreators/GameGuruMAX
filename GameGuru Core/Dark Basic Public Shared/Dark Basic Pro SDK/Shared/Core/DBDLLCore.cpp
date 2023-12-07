@@ -5045,6 +5045,8 @@ DARKSDK void Sync(void)
 {
 	#ifdef WICKEDENGINE
 	// Handled by Wicked - render and present elsewhere
+	extern bool g_bValidFPS;
+	g_bValidFPS = true;
 	#else
 	ExternalDisplaySync(0);
 	ProcessMessagesOnly();

@@ -15,6 +15,11 @@
 #ifdef DPIAWARE
 #include "shellscalingapi.h"
 #endif
+
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Defines
 #define MAX_LOADSTRING 100
 
@@ -284,14 +289,17 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			}
 			else
 			{
+				bool bKeepActiveEvenInBackground = false;
 				int ImGui_GetActiveViewPorts(void);
 				int iActiveViewPorts = ImGui_GetActiveViewPorts();
-				if (iActiveViewPorts > 1) //PE: We cant sleep if we got more hwnd's.
+				if (iActiveViewPorts > 1) bKeepActiveEvenInBackground = true;
+				extern bool bExport_Standalone_Window;
+				if (bExport_Standalone_Window == true) bKeepActiveEvenInBackground = true;
+				if (bKeepActiveEvenInBackground == true)
 				{
 					g_bActiveApp = true;
 					master.RunCustom();
 				}
-				// if not got focus, chill!
 				Sleep(1);
 			}
 		}

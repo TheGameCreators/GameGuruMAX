@@ -211,6 +211,7 @@ void entity_lua_getentityplrvisible ( void )
 void entity_lua_getentityinzone ( void )
 {
 	// If entity is zone, determine if ANY OTHER entity is inside it
+	bool bEntityIsReallyInZone = false;
 	t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 	if (  t.waypointindex>0 ) 
 	{
@@ -227,13 +228,22 @@ void entity_lua_getentityinzone ( void )
 						t.tokay = 0; waypoint_ispointinzone ( );
 						if ( t.tokay != 0 )
 						{
-							t.entityelement[t.e].lua.entityinzone = othere;
-							t.entityelement[t.e].lua.flagschanged = 1;
+							if (t.entityelement[t.e].lua.entityinzone == 0)
+							{
+								t.entityelement[t.e].lua.entityinzone = othere;
+								t.entityelement[t.e].lua.flagschanged = 1;
+							}
+							bEntityIsReallyInZone = true;
 						}
 					}
 				}
 			}
 		}
+	}
+	if (bEntityIsReallyInZone == false && t.entityelement[t.e].lua.entityinzone>0)
+	{
+		t.entityelement[t.e].lua.entityinzone = 0;
+		t.entityelement[t.e].lua.flagschanged = 1;
 	}
 }
 

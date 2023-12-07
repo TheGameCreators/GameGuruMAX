@@ -295,11 +295,17 @@ void CreateVRControllerObjects( void )
 
 void Master::Initialize()
 {
-	__super::Initialize();	
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+	__super::Initialize();
 }
 
 void Master::InitializeSecondaries()
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	initializedSecondaries = true;
 
 	infoDisplay.active = false;
@@ -552,6 +558,9 @@ void camerahook_domydemostuff2(float* fX, float* fY, float* fWidth, float* fHeig
 
 void Master::Update(float dt)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	// leave right away if not ready for update
 	if ( !initializedSecondaries ) return;
 
@@ -675,7 +684,7 @@ void Master::Update(float dt)
 					bool bLoggedIntoSteamForWorkshop = false;
 					if (SteamAPI_Init())
 					{
-						// must be logged into steam, which will be the case if run from within steam.
+						// must be logged into steam, which will be the case if run from within steam. 
 						if (SteamUser()->BLoggedOn())
 						{
 							SteamInitClient();
@@ -1015,11 +1024,17 @@ void Master::Update(float dt)
 
 void Master::Finish(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	GuruFinish();
 }
 
 bool Master::ForceRender(void* rt)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	ID3D11RenderTargetView* nrt = (ID3D11RenderTargetView*) rt;
 	if (!initialized)
 	{
@@ -1108,6 +1123,9 @@ void Master::RunCustom()
 	if (!initialized)
 	{
 		// Initialize in a lazy way, so the user application doesn't have to call this explicitly
+#ifdef OPTICK_ENABLE
+		OPTICK_EVENT("Initialize Primaries");
+#endif
 		Initialize();
 		initialized = true;
 	}
@@ -1175,6 +1193,9 @@ void Master::RunCustom()
 				return;
 			}
 		}
+#ifdef OPTICK_ENABLE
+		OPTICK_EVENT("Initialize Secondaries");
+#endif
 		InitializeSecondaries(); // synchronous so no need to return and come back later
 	}
 
@@ -1187,6 +1208,9 @@ void Master::RunCustom()
 	{
 		if ( !OpenXRIsInitialised() )
 		{
+#ifdef OPTICK_ENABLE
+			OPTICK_EVENT("Initialize OpenXR");
+#endif
 			if ( OpenXRInit( (ID3D11Device*) wiRenderer::GetDevice()->GetDeviceForIMGUI() ) < 0 )
 			{
 				bRequireVRRendering = false;
@@ -1809,6 +1833,9 @@ void MasterRenderer::Update(float dt)
 	if (wiBackLog::isActive()) wiBackLog::Toggle();
 
 	// super update
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT("__super::Update(dt)");
+#endif
 	__super::Update(dt);
 }
 

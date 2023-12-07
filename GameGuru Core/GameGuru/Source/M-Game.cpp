@@ -4953,17 +4953,9 @@ void game_main_loop ( void )
 		#endif
 	}
 
-	// Handle veg engine, terrain shadow, sky and water
-	// Dave Performance, calling update on veg and terrain shadow every 4 frames rather than every frame
-	static int terrainshadowdelay = 0;
-
 	// If the camera is spun round quick, redraw shadows immediately
 	// 281116 - int tMouseMove = MouseMoveX(); - yep, this killed fluid mousemoveX, thanks for that Lee!
 	int tMouseMove = t.cammousemovex_f;
-	if ( tMouseMove > 20 || tMouseMove < -20 )
-	{
-		terrainshadowdelay = 4;		
-	}
 	if (  t.hardwareinfoglobals.noterrain == 0 ) 
 	{
 		//Dave Performance, calling update on veg and terrain shadow every 4 frames rather than every frame
@@ -4979,29 +4971,10 @@ void game_main_loop ( void )
 		else
 			t.game.perf.terrain1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
-		// 111115 - had to add t.visuals.shaderlevels.entities==1 so HIGHEST entities allow self shadow characters and detailed entities which flicker when shadow update is delayed!
-		// but also need constant updates for third person (as can see delay!)
-		// PE: Its way better to cycle the different cascades so we dont get these "spicks" in FPS. way more smooth. ()
-		if ( ++terrainshadowdelay >= 3 || t.visuals.shaderlevels.entities==1 || t.playercontrol.thirdperson.enabled != 0 || g.globals.speedshadows >= 1)
-		{
-			//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
-			terrainshadowdelay = 0;
-			//terrain_shadowupdate ( );
-			t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-		}
-		else
-		{
-			t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
-		}
+		t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 	}
 	else // fix to stop shadows going wonky when terrain is off
 	{
-		if ( ++terrainshadowdelay >= 3 )
-		{
-			//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling terrain_shadowupdate");
-			terrainshadowdelay = 0;
-			//terrain_shadowupdate ( );
-		}
 	}
 	if (  t.hardwareinfoglobals.nosky == 0 ) 
 	{

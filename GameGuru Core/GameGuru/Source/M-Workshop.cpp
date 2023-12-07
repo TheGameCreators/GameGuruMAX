@@ -26,6 +26,7 @@ int g_iStillDownloadingThingsWithDelayTimer = 0;
 std::vector<cstr> g_sStillDownloadingLog;
 std::vector<cstr> g_sStillDownloadingLogTitle;
 int g_iStillDownloadingLogCount = 0;
+int g_iUnsubscribeByForce = 0;
 
 // Functions
 void workshop_init (bool bLoggedIn)
@@ -434,6 +435,25 @@ void workshop_update ( bool bRefreshIfFlagged )
 		}
 	}
 
+	// special unsubscribe forcer to hopefully overcome Steams inability to update to latest workship item content
+	if ( g_iUnsubscribeByForce > 0 )
+	{
+		g_iUnsubscribeByForce++;
+		if (g_iUnsubscribeByForce == 2)
+		{
+			g_UserWorkShopItem.UnsubscribeTrustedItems();
+		}
+		else
+		{
+			if (g_iUnsubscribeByForce > 200)
+			{
+				// after a small pause, resubscribe to trusted items
+				workshop_subscribetoalltrusteditems();
+				g_iUnsubscribeByForce = 0;
+			}
+		}
+	}
+
 	// run Steam callbacks (and also check subscription items and download if not installed/notupdated)
 	g_UserWorkShopItem.SteamRunCallbacks();
 }
@@ -623,6 +643,22 @@ CSteamUserGeneratedWorkshopItem::CSteamUserGeneratedWorkshopItem()
 
 CSteamUserGeneratedWorkshopItem::~CSteamUserGeneratedWorkshopItem()
 {
+}
+
+void CSteamUserGeneratedWorkshopItem::UnsubscribeTrustedItems()
+{
+	// we do this because it seems Steam sometimes does not auto update workshop item content
+	// (users are resorting to VERIFY FILES and unsubbing and resubbing to resolve this!!)
+	// so need to force it to unsubscribe when the update button is clicked!
+	for (int i = 0; i < g_workshopTrustedItems.size(); i++)
+	{
+		PublishedFileId_t thisItem = g_workshopTrustedItems[i];
+		if (thisItem > 0)
+		{
+
+			SteamUGC()->UnsubscribeItem(thisItem);
+		}
+	}
 }
 
 void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()

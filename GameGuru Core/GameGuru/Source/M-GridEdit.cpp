@@ -13455,25 +13455,11 @@ void mapeditorexecutable_loop(void)
 		extern void workshop_update(bool);
 		workshop_update(false);
 
-		#ifdef WICKEDENGINE
-		#ifdef USENEWLIBRARY
+		// librray system
 		process_entity_library_v2();
-		#else
-		process_entity_library();
-		#endif
-		#else
-		process_entity_library();
-		#endif
 
 		// collect an entire list of all relevant filders (entitybank, scriptbank, images, particles, etc)
 		mapeditorexecutable_full_folder_refresh();
-
-		//Display thread progress , Debug
-		//if(fpe_thread_in_progress())
-		//{
-		//	sprintf(cTriggerMessage, "Scanning %d", g_iScannedFiles);
-		//	bTriggerMessage = true;
-		//}
 
 		#endif
 		//########################

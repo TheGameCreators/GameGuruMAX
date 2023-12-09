@@ -361,8 +361,13 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	for (int e = 1; e <= g.entityelementlist; e++)
 	{
 		int entid = t.entityelement[e].bankindex;
+
 		// build the bounding box using both static objects and characters, in case there are no static objects near a character
-		if (t.entityelement[e].staticflag == 1 || t.entityprofile[entid].ischaracter == 1)
+		bool bNeedThisToHaveNavMesh = false;
+		if ( t.entityelement[e].staticflag == 1) bNeedThisToHaveNavMesh = true;
+		if ( t.entityprofile[entid].ischaracter == 1) bNeedThisToHaveNavMesh = true;
+		if ( t.entityprofile[entid].ismarker == 11) bNeedThisToHaveNavMesh = true;
+		if ( bNeedThisToHaveNavMesh == true)
 		{
 			int iObj = t.entityelement[e].obj;
 			if (iObj > 0)

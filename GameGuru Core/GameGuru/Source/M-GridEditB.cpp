@@ -539,6 +539,7 @@ bool g_bSelectedMapImageTypeSpecialHelp = false;
 bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
 int g_iCheckExistingFilesModifiedDelayed = 0;
+ImRect g_rStealMonitorArea;
 
 // helps track myglobals and use them in dropdowns for storyboard screen editor
 bool g_bRefreshGlobalList = false;
@@ -18903,8 +18904,6 @@ void process_entity_library_v2(void)
 					{
 						bool bChanged = false;
 						float sy = ImGui::GetScrollY();
-
-						//if (ImGui::IsKeyReleased(38)) //use for single no repeat.
 
 						if(	ImGui::IsKeyPressed(38, true) ) //UP
 						{
@@ -37479,50 +37478,6 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			strcpy(Storyboard.Nodes[node].widget_label[5], "SOUND SETTINGS");
 		}
 
-		/* no more hardcode injections
-		if (!bValid && Storyboard.Nodes[node].used == true && !bForce)
-		{
-			//PE: Current design inject the button.
-			int button = 7; //new CONTROLS button id.
-			if (Storyboard.Nodes[node].widget_used[button] != 1)
-			{
-				bool bMoved = false;
-				//PE: Check if we can re arrange buttons (if still default setup).
-				if (Storyboard.Nodes[node].widget_pos[1].x == 50.0 && Storyboard.Nodes[node].widget_pos[1].y == 30.0) Storyboard.Nodes[node].widget_pos[1] = ImVec2(50.0, 20.0);
-				if (Storyboard.Nodes[node].widget_pos[2].x == 50.0 && Storyboard.Nodes[node].widget_pos[2].y == 40.0) Storyboard.Nodes[node].widget_pos[2] = ImVec2(50.0, 30.0);
-				if (Storyboard.Nodes[node].widget_pos[3].x == 50.0 && Storyboard.Nodes[node].widget_pos[3].y == 50.0) Storyboard.Nodes[node].widget_pos[3] = ImVec2(50.0, 40.0);
-				if (Storyboard.Nodes[node].widget_pos[4].x == 50.0 && Storyboard.Nodes[node].widget_pos[4].y == 60.0) Storyboard.Nodes[node].widget_pos[4] = ImVec2(50.0, 50.0);
-				if (Storyboard.Nodes[node].widget_pos[5].x == 50.0 && Storyboard.Nodes[node].widget_pos[5].y == 70.0)
-				{
-					Storyboard.Nodes[node].widget_pos[5] = ImVec2(50.0, 60.0);
-					//PE: This spot is available.
-					bMoved = true;
-				}
-
-				//PE: Move back button down if possible.
-				if (Storyboard.Nodes[node].widget_pos[6].x == 50.0 && Storyboard.Nodes[node].widget_pos[6].y == 80.0) Storyboard.Nodes[node].widget_pos[6] = ImVec2(50.0, 90.0);
-
-				//PE: We do not know if buttons have been moved around so just inject where we had a spot available in old design.
-				button = 7;
-				strcpy(Storyboard.Nodes[node].widget_label[button], "CONTROLS"); //SOUND LEVELS
-				Storyboard.Nodes[node].widget_used[button] = 1;
-				Storyboard.Nodes[node].widget_type[button] = STORYBOARD_WIDGET_BUTTON;
-				Storyboard.Nodes[node].widget_size[button] = ImVec2(1.0, 1.0); //Only for scaling. else but image size.
-				if(bMoved)
-					Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 70.0);
-				else
-					Storyboard.Nodes[node].widget_pos[button] = ImVec2(50.0, 80.0);
-				Storyboard.Nodes[node].widget_action[button] = STORYBOARD_ACTIONS_GOTOSCREEN; //
-				Storyboard.Nodes[node].widget_layer[button] = 0;
-				Storyboard.Nodes[node].widget_font_color[button] = ImVec4(1.0, 1.0, 1.0, 1.0);
-				strcpy(Storyboard.Nodes[node].widget_font[button], "Default Font"); // ?
-				strcpy(Storyboard.Nodes[node].widget_normal_thumb[button], "editors\\templates\\buttons\\default.png");
-				strcpy(Storyboard.Nodes[node].widget_highlight_thumb[button], "editors\\templates\\buttons\\default-hover.png");
-				strcpy(Storyboard.Nodes[node].widget_selected_thumb[button], "editors\\templates\\buttons\\default-selected.png");
-				strcpy(Storyboard.Nodes[node].widget_name[button], "controls"); //Also add "-hover.png" ...
-			}
-		}
-		*/
 		//8 Default GAME PAUSED
 		if( bValid && (Storyboard.Nodes[node].used == false || bForce) )
 		{
@@ -42032,47 +41987,6 @@ void process_storeboard(bool bInitOnly)
 					}
 				}
 
-				//PE: Debug
-				//ImGui::Text("iLastHoveredNodeId: %ld", iLastHoveredNodeId);
-				//ImGui::Text("iHoveredId: %ld", iLastHoveredId);
-				//bool LeftMouseDragging = ImGui::IsMouseDragging(0, 0.0f);
-				//ImGui::Text("LeftMouseDragging: %d", LeftMouseDragging);
-				//ImGui::Text("ImGui::IsWindowFocused: %d", ImGui::IsWindowFocused());
-				//ImGui::Text("bImGuiGotFocus: %d", bImGuiGotFocus);
-				//extern bool g_bAppActiveStat;
-				//ImGui::Text("g_bAppActiveStat: %d", g_bAppActiveStat);
-				//ImGui::Text("io.MouseDelta: %f,%f", io.MouseDelta.x, io.MouseDelta.y);
-
-				/* removed from design
-				if (ImGui::StyleCollapsingHeader("STORYBOARD", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-
-					ImGui::SetWindowFontScale(1.0);
-					ImGui::TextCenter("Game Name");
-					//ImGui::TextCenter("Enter your game name here");
-					ImGui::PushItemWidth(-10.0);
-					ImGui::InputText("##GamenameStoryboardInput2", Storyboard.gamename, 250, ImGuiInputTextFlags_ReadOnly); //ImGuiInputTextFlags_None
-					if (ImGui::MaxIsItemFocused())
-					{
-						bImGuiGotFocus = true;
-					}
-					if (strlen(Storyboard.gamename) <= 0) {
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Use 'Save Game Project As...' To Give Your Game A Name");
-					}
-					ImGui::PopItemWidth();
-					if (strlen(Storyboard.gamename) <= 0)
-					{
-						if (ImGui::StyleButton("Save Game Project As...", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
-						{
-							CloseAllOpenToolsThatNeedSave();
-							save_storyboard(Storyboard.gamename, true);
-						}
-					}
-					ImGui::Indent(-10);
-				}
-				*/
-
 				float buttonwide = 200.0f;
 
 				if (ImGui::StyleCollapsingHeader("Add and Edit Storyboard", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
@@ -42367,16 +42281,35 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
-						int hudScreenCount = 0;
-						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						int iLastKnownNode = -1;
+						int hudScreenCount = 2;
+						while (hudScreenCount < 2 + STORYBOARD_MAXNODES)
 						{
-							if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
+							char pTryHUDScreenName[256];
+							sprintf(pTryHUDScreenName, "HUD Screen %d", hudScreenCount);
+							bool bHUDScreenExists = false;
+							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 							{
+								if (Storyboard.Nodes[i].used && stricmp(Storyboard.Nodes[i].title, pTryHUDScreenName)==NULL)
+								{
+									bHUDScreenExists = true;
+									iLastKnownNode = i;
+									break;
+								}
+							}
+							if (bHUDScreenExists == false)
+							{
+								// found next available HUD Screen number
+								break;
+							}
+							else
+							{
+								// try next one
 								hudScreenCount++;
 							}
 						}
 						char cHudCount[8];
-						sprintf_s(cHudCount, "%d", hudScreenCount+1);
+						sprintf_s(cHudCount, "%d", hudScreenCount);
 						// Find first free storyboard node that we can use for the new screen.
 						int node = -1;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
@@ -42409,8 +42342,16 @@ void process_storeboard(bool bInitOnly)
 								// New node defaults to a HUD screen
 								Storyboard.Nodes[node].used = true;
 								Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
-								//PE: Never used fixed node id (13) it might be at another position.
-								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iHUDScreenNodeID].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[iHUDScreenNodeID].restore_position.y);
+
+								// locate new screen next to last known HUD screen
+								if (iLastKnownNode >= 0)
+								{
+									Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iLastKnownNode].restore_position.x + 20, Storyboard.Nodes[iLastKnownNode].restore_position.y + 20);
+								}
+								else
+								{
+									Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iHUDScreenNodeID].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[iHUDScreenNodeID].restore_position.y);
+								}
 								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 								Storyboard.Nodes[node].iEditEnable = true;
 								strcpy(Storyboard.Nodes[node].title, "HUD Screen ");
@@ -42424,7 +42365,6 @@ void process_storeboard(bool bInitOnly)
 								break;
 							}
 						}
-
 						if (node < 0)
 						{
 							bTriggerMessage = true;
@@ -45800,35 +45740,39 @@ void storyboard_control_widget(int nodeid, int index, ImVec2 pos, ImVec2 size, I
 		float fAdjustX = 0.0, fAdjustY = 0.0;
 		ImVec2 fMouseToPercent = ImVec2(100.0 / (1920.0*vScale.x), 100.0 / (1080.0*vScale.y));
 		int grid = Storyboard.Nodes[nodeid].screen_grid_size;
-		if (ImGui::IsKeyPressed(39,true))
+		ImVec2 mPos = ImGui::GetMousePos();
+		if (mPos.x > rMonitorArea.Min.x && mPos.x < rMonitorArea.Max.x && mPos.y > rMonitorArea.Min.y && mPos.y < rMonitorArea.Max.y)
 		{
-			if (grid > 0)
-				fAdjustX = grid;
-			else
-				fAdjustX = 1.0 * fMouseToPercent.x;
+			// only if within monitor area
+			if (ImGui::IsKeyPressed(39, true))
+			{
+				if (grid > 0)
+					fAdjustX = grid;
+				else
+					fAdjustX = 1.0 * fMouseToPercent.x;
+			}
+			if (ImGui::IsKeyPressed(37, true))
+			{
+				if (grid > 0)
+					fAdjustX = -grid;
+				else
+					fAdjustX = -1.0 * fMouseToPercent.x;
+			}
+			if (ImGui::IsKeyPressed(38, true))
+			{
+				if (grid > 0)
+					fAdjustY = -grid;
+				else
+					fAdjustY = -1.0 * fMouseToPercent.y;
+			}
+			if (ImGui::IsKeyPressed(40, true))
+			{
+				if (grid > 0)
+					fAdjustY = grid;
+				else
+					fAdjustY = 1.0 * fMouseToPercent.y;
+			}
 		}
-		if (ImGui::IsKeyPressed(37,true))
-		{
-			if (grid > 0)
-				fAdjustX = -grid;
-			else
-				fAdjustX = -1.0 * fMouseToPercent.x;
-		}
-		if (ImGui::IsKeyPressed(38, true))
-		{
-			if (grid > 0)
-				fAdjustY = -grid;
-			else
-				fAdjustY = -1.0 * fMouseToPercent.y;
-		}
-		if (ImGui::IsKeyPressed(40, true))
-		{
-			if (grid > 0)
-				fAdjustY = grid;
-			else
-				fAdjustY = 1.0 * fMouseToPercent.y;
-		}
-
 		if (fAdjustX != 0.0 || fAdjustY != 0.0)
 		{
 			if (fAdjustX != 0.0) Storyboard.Nodes[nodeid].widget_pos[index].x += fAdjustX;
@@ -45964,9 +45908,7 @@ void storyboard_control_widget(int nodeid, int index, ImVec2 pos, ImVec2 size, I
 				window->DrawList->AddLine(ImVec2(rMonitorArea.Min.x, centery), ImVec2(rMonitorArea.Max.x, centery), ImGui::GetColorU32(tool_selected_col));
 			}
 		}
-
 	}
-
 	ImGui::SetCursorPos(ocpos);
 }
 
@@ -45977,18 +45919,13 @@ float WidgetSelectUsedFont(int nodeid, int index)
 	
 	for (int i = 0; i < StoryboardFonts.size(); i++)
 	{
-		
 		bool bIsSelected = false;
-		//if (strcmp(StoryboardFonts[i].second.c_str(), Storyboard.Nodes[nodeid].widget_font[index]) == NULL)
-		// ZJ: In standalone, the filenames are stored lowercase, so only compare lowercase strings to ensure the check works in all cases.
 		if (strcmp(cstr((char*)StoryboardFonts[i].second.c_str()).Lower().Get(), cstr(Storyboard.Nodes[nodeid].widget_font[index]).Lower().Get()) == NULL)
 		{
 			ImGui::PushFont(StoryboardFonts[i].first);  //storyboard special fonts.
 			return 2.0; //2.0=60,2.5=48
 		}
 	}
-	//ImGui::PushFont(customfont);  //defaultfont
-	//return 4.0;
 	ImGui::PushFont(customfontlarge);  //defaultfont
 	return 2.0;
 }
@@ -46002,6 +45939,21 @@ static bool bDisplayGrid = false;
 static bool bPlacingNewWidget = false;
 std::vector<int> Storyboard_ActiveWidgets;
 
+bool IsHardcodedID (int nodeID, int widgetID)
+{
+	bool bHardcoded = false;
+	if (nodeID == iTitleScreenNodeID && widgetID <= 4) bHardcoded = true;
+	if (nodeID == iAboutScreenNodeID && widgetID <= 2) bHardcoded = true;
+	if (nodeID == iGamePausedNodeID && widgetID <= 7) bHardcoded = true;
+	if (nodeID == iGraphicsNodeID && widgetID <= 6) bHardcoded = true;
+	if (nodeID == iSoundsNodeID && widgetID <= 5) bHardcoded = true;
+	if (nodeID == iSaveGameNodeID && widgetID <= 9) bHardcoded = true;
+	if (nodeID == iLoadGameNodeID && widgetID <= 9) bHardcoded = true;
+	if (nodeID == iLoadingScreenNodeID && widgetID <= 2) bHardcoded = true;
+	if (nodeID == iControlNodeID && widgetID <= 7) bHardcoded = true;
+	return bHardcoded;
+}
+
 int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTitle = "")
 {
 	StoryboardNodesStruct& node = Storyboard.Nodes[nodeID];
@@ -46010,14 +45962,17 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 	int widgetSlot = -1;
 	for (int i = 0; i < STORYBOARD_MAXWIDGETS; i++)
 	{
-		if (node.widget_used[i] == 0)
+		bool bHardcodedIDForNow = IsHardcodedID(nodeID, i);
+		if (bHardcodedIDForNow == false)
 		{
-			widgetSlot = i;
-			node.widget_used[i] = 1;
-			break;
+			if (node.widget_used[i] == 0)
+			{
+				widgetSlot = i;
+				node.widget_used[i] = 1;
+				break;
+			}
 		}
 	}
-	
 	if (widgetSlot < 0)
 	{
 		// No free space for widgets
@@ -46068,7 +46023,7 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 		// used as GRID ROW and COLUMN default (1x1)
 		Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(1, 1);
 	}
-	else if (type == STORYBOARD_WIDGET_TEXT)
+	else if (type == STORYBOARD_WIDGET_TEXT || type == STORYBOARD_WIDGET_TEXTAREA)
 	{
 		if (readoutTitle.length() > 0)
 		{
@@ -46156,89 +46111,108 @@ void RefreshThumbImagesForNode(int nodeID, int indexToActiveWidget)
 
 void RemoveWidgetFromScreen(int nodeID, int widgetID)
 {
+	bool bHardcodedID = IsHardcodedID(nodeID, widgetID);
 	if (Storyboard.Nodes[nodeID].type != STORYBOARD_TYPE_HUD)
 	{
-		// TEMP: users can delete the buttons in the default screens, but cannot add them back because we don't yet have buttons.
-		// Once buttons can be added, this code can be removed.
-
-		//PE: we are ready. on some pages.
-		if (nodeID == iGamePausedNodeID && widgetID <= 7)
+		if ( bHardcodedID==true )
 		{
-			if( !(widgetID == 0 && Storyboard.Nodes[nodeID].widget_type[widgetID] != STORYBOARD_WIDGET_TEXT) )
+			bool bHardWidgetsThatCanBeDeleted = false;
+			if (nodeID == iTitleScreenNodeID && (widgetID == 1 || widgetID == 2)) bHardWidgetsThatCanBeDeleted = true;
+			if (nodeID == iAboutScreenNodeID && (widgetID != 2)) bHardWidgetsThatCanBeDeleted = true;
+			if (nodeID == iGamePausedNodeID && (widgetID == 2 || widgetID == 3)) bHardWidgetsThatCanBeDeleted = true;
+			if (bHardWidgetsThatCanBeDeleted==true)
+			{
+				// allow user to delete certain hard buttons (LOAD and SAVE and ABOUT etc)
+			}
+			else
+			{
 				return;
+				//if (!(widgetID == 0 && Storyboard.Nodes[nodeID].widget_type[widgetID] != STORYBOARD_WIDGET_TEXT))
+				//	return;
+			}
+			//if (nodeID == iGraphicsNodeID && widgetID <= 6) return;
+			//if (nodeID == iSoundsNodeID && widgetID <= 5) return;
+			//if (nodeID == iSaveGameNodeID && widgetID <= 9) return;
+			//if (nodeID == iLoadGameNodeID && widgetID <= 9) return;
+			//if (nodeID == iLoadingScreenNodeID && widgetID <= 2) return;
+			//if (nodeID == iControlNodeID && widgetID <= 7) return;
 		}
-		if (nodeID == iGraphicsNodeID && widgetID <= 6) return;
-		if (nodeID == iSoundsNodeID && widgetID <= 5) return;
-		if (nodeID == iSaveGameNodeID && widgetID <= 9) return;
-		if (nodeID == iLoadGameNodeID && widgetID <= 9) return;
-		if (nodeID == iLoadingScreenNodeID && widgetID <= 2) return;
-		if (nodeID == iControlNodeID && widgetID <= 7) return;
 
 		//Also not all pages got add sliders.
 		if(Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_SLIDER) return;
+
 		//Progress bar cant be added yet.
 		if (Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_PROGRESS) return;
 
+		//PE: Loading screens must have a progress bar.
 		if (pestrcasestr(Storyboard.Nodes[nodeID].lua_name, "loading"))
 		{
-			//PE: Loading screens must have a progress bar.
 			if (Storyboard.Nodes[nodeID].widget_type[widgetID] == STORYBOARD_WIDGET_PROGRESS) return;
 		}
-		//return;
 	}
 
-	// First, check that the widget is actually on the screen and able to be removed.
-	int indexToActiveWidget = -1;
-	for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
-	{
-		if (Storyboard_ActiveWidgets[i] == widgetID)
-		{
-			indexToActiveWidget = i;
-			break;
-		}
-	}
-	if (indexToActiveWidget < 0)
-	{
-		return;
-	}
-
-	// Remove the widget from the active widgets rendered on-screen
-	for (int i = indexToActiveWidget; i < Storyboard_ActiveWidgets.size(); i++)
-	{
-		Storyboard_ActiveWidgets[i] -= 1;
-	}
-	Storyboard_ActiveWidgets.erase(Storyboard_ActiveWidgets.begin() + indexToActiveWidget);
-
-	// Mark the widget as unused in the storyboard struct and move any widgets after the deleted slot down a slot, to keep the active widgets continguous
+	// hard coded are just reset
 	StoryboardNodesStruct& node = Storyboard.Nodes[nodeID];
-	for (int i = indexToActiveWidget; i < STORYBOARD_MAXWIDGETS - 1; i++)
+	if (bHardcodedID == true)
 	{
-		node.widget_used[i] = node.widget_used[i + 1];
-		strcpy(node.widget_label[i], node.widget_label[i + 1]);
-		node.widget_size[i] = node.widget_size[i + 1];
-		node.widget_pos[i] = node.widget_pos[i + 1];
-		strcpy(node.widget_normal_thumb[i], node.widget_normal_thumb[i + 1]);
-		strcpy(node.widget_highlight_thumb[i], node.widget_highlight_thumb[i + 1]);
-		strcpy(node.widget_selected_thumb[i], node.widget_selected_thumb[i + 1]);
-		strcpy(node.widget_click_sound[i], node.widget_click_sound[i + 1]);
-		node.widget_action[i] = node.widget_action[i + 1];
-		strcpy(node.widget_font[i], node.widget_font[i + 1]);
-		node.widget_font_color[i] = node.widget_font_color[i + 1];
-		node.widget_font_size[i] = node.widget_font_size[i + 1];
-		node.widget_type[i] = node.widget_type[i + 1];
-		node.widget_read_only[i] = node.widget_read_only[i + 1];
-		node.widget_layer[i] = node.widget_layer[i + 1];
-		//node.widget_output_pin[i] = node.widget_output_pin[i + 1];
-		node.widget_initial_value[i] = node.widget_initial_value[i + 1];
-		strcpy(node.widget_name[i], node.widget_name[i + 1]);
-		Storyboard.widget_colors[nodeID][i] = Storyboard.widget_colors[nodeID][i + 1];
-		strcpy(Storyboard.widget_readout[nodeID][i], Storyboard.widget_readout[nodeID][i + 1]);
-		Storyboard.widget_textoffset[nodeID][i] = Storyboard.widget_textoffset[nodeID][i + 1];
-		Storyboard.widget_ingamehidden[nodeID][i] = Storyboard.widget_ingamehidden[nodeID][i + 1];
+		// hard widget
+		node.widget_used[widgetID] = 0;
 	}
+	else
+	{
+		// custom widget
+		// First, check that the widget is actually on the screen and able to be removed.
+		int indexToActiveWidget = -1;
+		for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
+		{
+			if (Storyboard_ActiveWidgets[i] == widgetID)
+			{
+				indexToActiveWidget = i;
+				break;
+			}
+		}
+		if (indexToActiveWidget < 0)
+		{
+			return;
+		}
 
-	// Reload any images after the deleted widget, to ensure they remain in the correct slot
-	RefreshThumbImagesForNode(nodeID, indexToActiveWidget);
+		// Remove the widget from the active widgets rendered on-screen
+		for (int i = indexToActiveWidget; i < Storyboard_ActiveWidgets.size(); i++)
+		{
+			Storyboard_ActiveWidgets[i] -= 1;
+		}
+		Storyboard_ActiveWidgets.erase(Storyboard_ActiveWidgets.begin() + indexToActiveWidget);
+
+		// Mark the widget as unused in the storyboard struct and move any widgets after the deleted slot down a slot, to keep the active widgets continguous
+		for (int i = indexToActiveWidget; i < STORYBOARD_MAXWIDGETS - 1; i++)
+		{
+			node.widget_used[i] = node.widget_used[i + 1];
+			strcpy(node.widget_label[i], node.widget_label[i + 1]);
+			node.widget_size[i] = node.widget_size[i + 1];
+			node.widget_pos[i] = node.widget_pos[i + 1];
+			strcpy(node.widget_normal_thumb[i], node.widget_normal_thumb[i + 1]);
+			strcpy(node.widget_highlight_thumb[i], node.widget_highlight_thumb[i + 1]);
+			strcpy(node.widget_selected_thumb[i], node.widget_selected_thumb[i + 1]);
+			strcpy(node.widget_click_sound[i], node.widget_click_sound[i + 1]);
+			node.widget_action[i] = node.widget_action[i + 1];
+			strcpy(node.widget_font[i], node.widget_font[i + 1]);
+			node.widget_font_color[i] = node.widget_font_color[i + 1];
+			node.widget_font_size[i] = node.widget_font_size[i + 1];
+			node.widget_type[i] = node.widget_type[i + 1];
+			node.widget_read_only[i] = node.widget_read_only[i + 1];
+			node.widget_layer[i] = node.widget_layer[i + 1];
+			//node.widget_output_pin[i] = node.widget_output_pin[i + 1];
+			node.widget_initial_value[i] = node.widget_initial_value[i + 1];
+			strcpy(node.widget_name[i], node.widget_name[i + 1]);
+			Storyboard.widget_colors[nodeID][i] = Storyboard.widget_colors[nodeID][i + 1];
+			strcpy(Storyboard.widget_readout[nodeID][i], Storyboard.widget_readout[nodeID][i + 1]);
+			Storyboard.widget_textoffset[nodeID][i] = Storyboard.widget_textoffset[nodeID][i + 1];
+			Storyboard.widget_ingamehidden[nodeID][i] = Storyboard.widget_ingamehidden[nodeID][i + 1];
+		}
+
+		// Reload any images after the deleted widget, to ensure they remain in the correct slot
+		RefreshThumbImagesForNode(nodeID, indexToActiveWidget);
+	}
 	
 	iCurrentSelectedWidget = -1;
 }
@@ -46813,6 +46787,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 		for (int i = 0; i < STORYBOARD_MAXWIDGETS; i++)
 		{
+			bool bWidgetUsed = false;
 			if (Storyboard.Nodes[nodeid].widget_used[i] == 1)
 			{
 				//Load in any images.
@@ -46830,9 +46805,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					LoadImage(Storyboard.Nodes[nodeid].widget_selected_thumb[i], Storyboard.Nodes[nodeid].widget_selected_thumb_id[i]);
 				}
 				image_setlegacyimageloading(false);
-
-				Storyboard_ActiveWidgets.push_back(i);
+				bWidgetUsed = true;
 			}
+			bool bHardcodedID = IsHardcodedID(nodeid, i);
+			if(bWidgetUsed==true || bHardcodedID==true)
+			Storyboard_ActiveWidgets.push_back(i);
 		}
 
 		iUpdateBackDropNode = nodeid;
@@ -47116,18 +47093,16 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 				if (node.widgets_available & ALLOW_TEXT)
 				{
-					if ((widgetsOnDisplay % 4) != 0)
+					if ((widgetsOnDisplay % 4) != 0) ImGui::SameLine();
+					if (ImGui::ImgBtn(SCREENEDITOR_TEXT, vIconSize)) AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TEXT);
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add text line");
+					widgetsOnDisplay++;
+					if ((widgetsOnDisplay % 4) != 0) ImGui::SameLine();
+					if (ImGui::ImgBtn(SCREENEDITOR_TEXTAREA, vIconSize))
 					{
-						ImGui::SameLine();
+						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TEXTAREA);
 					}
-					if (ImGui::ImgBtn(SCREENEDITOR_TEXT, vIconSize))
-					{
-						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TEXT);
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Add some text");
-					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add text area");
 					widgetsOnDisplay++;
 				}
 				if (node.widgets_available & ALLOW_BUTTON)
@@ -47232,7 +47207,11 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + offset);
 					int imgID = SCREENEDITOR_TEXT;
-					if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_IMAGE)
+					if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_TEXTAREA)
+					{
+						imgID = SCREENEDITOR_TEXTAREA;
+					}
+					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_IMAGE)
 					{
 						imgID = SCREENEDITOR_IMAGE;
 					}
@@ -47281,6 +47260,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImRect rMonitorArea;
 		rMonitorArea.Min = image_bb.Min + padding;
 		rMonitorArea.Max = image_bb.Max - padding;
+		g_rStealMonitorArea = rMonitorArea;
 		if (standalone)
 		{
 			if (ImageExist(Storyboard.Nodes[nodeid].screen_backdrop_id) && !Storyboard.Nodes[nodeid].screen_backdrop_transparent ) //PE: Support transparent if no backdrop.
@@ -47500,6 +47480,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
 		{
 			int index = Storyboard_ActiveWidgets[i];
+			bool bUsed = Storyboard.Nodes[nodeid].widget_used[index];
+			if (bUsed == false)
+				continue;
+
 			bool bReadOnly = Storyboard.Nodes[nodeid].widget_read_only[index];
 			bool bSpecialLuaReturnValue = false;
 			if (bReadOnly)
@@ -48360,9 +48344,8 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								}
 							}
 							int iActionID = Storyboard.Nodes[nodeid].widget_action[index];
-							if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2
-							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3
-							||  iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4)
+							if (iActionID >= STORYBOARD_ACTIONS_GOTOSCREENHUD2
+							&&  iActionID <= STORYBOARD_ACTIONS_GOTOSCREENHUD32)
 							{
 								// Toggle to new HUD screen ( can be improved this 'ard use of widget_action )
 								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
@@ -48371,9 +48354,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									if (node.used && strlen(node.level_name) == 0) // only HUDs
 									{
 										bool bFoundHUDScreen = false;
-										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
-										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
-										if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
+										int iHUDNumber = 2 + (iActionID - STORYBOARD_ACTIONS_GOTOSCREENHUD2);
+										char pHUDScreenName[256];
+										sprintf(pHUDScreenName, "HUD Screen %d", iHUDNumber);
+										if (stricmp (node.title, pHUDScreenName) == NULL) bFoundHUDScreen = true;
+										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
+										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
+										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
 										if (bFoundHUDScreen == true )
 										{
 											t.game.activeStoryboardScreen = i;
@@ -49145,9 +49132,46 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD2) strcpy(ActionSelected, "Go To HUD Screen 2");
 						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD3) strcpy(ActionSelected, "Go To HUD Screen 3");
 						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD4) strcpy(ActionSelected, "Go To HUD Screen 4");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD5) strcpy(ActionSelected, "Go To HUD Screen 5");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD6) strcpy(ActionSelected, "Go To HUD Screen 6");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD7) strcpy(ActionSelected, "Go To HUD Screen 7");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD8) strcpy(ActionSelected, "Go To HUD Screen 8");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD9) strcpy(ActionSelected, "Go To HUD Screen 9");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD10) strcpy(ActionSelected, "Go To HUD Screen 10");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD11) strcpy(ActionSelected, "Go To HUD Screen 11");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD12) strcpy(ActionSelected, "Go To HUD Screen 12");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD13) strcpy(ActionSelected, "Go To HUD Screen 13");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD14) strcpy(ActionSelected, "Go To HUD Screen 14");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD15) strcpy(ActionSelected, "Go To HUD Screen 15");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD16) strcpy(ActionSelected, "Go To HUD Screen 16");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD17) strcpy(ActionSelected, "Go To HUD Screen 17");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD18) strcpy(ActionSelected, "Go To HUD Screen 18");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD19) strcpy(ActionSelected, "Go To HUD Screen 19");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD20) strcpy(ActionSelected, "Go To HUD Screen 20");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD21) strcpy(ActionSelected, "Go To HUD Screen 21");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD22) strcpy(ActionSelected, "Go To HUD Screen 22");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD23) strcpy(ActionSelected, "Go To HUD Screen 23");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD24) strcpy(ActionSelected, "Go To HUD Screen 24");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD25) strcpy(ActionSelected, "Go To HUD Screen 25");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD26) strcpy(ActionSelected, "Go To HUD Screen 26");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD27) strcpy(ActionSelected, "Go To HUD Screen 27");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD28) strcpy(ActionSelected, "Go To HUD Screen 28");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD29) strcpy(ActionSelected, "Go To HUD Screen 29");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD30) strcpy(ActionSelected, "Go To HUD Screen 30");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD31) strcpy(ActionSelected, "Go To HUD Screen 31");
+						if (iCurAction == STORYBOARD_ACTIONS_GOTOSCREENHUD32) strcpy(ActionSelected, "Go To HUD Screen 32");
 
-						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game","Return Button ID to Lua", "Go To HUD Screen 2" , "Go To HUD Screen 3" , "Go To HUD Screen 4" };
-						//if (ImGui::Combo("##BehavioursSimpleInput", &item_current_type_selection, items_align, IM_ARRAYSIZE(items_align))) {
+						const char* actions_names[] = { "None", "Start Game", "Exit Game", "Go To Another Screen", "Go To Another Level", "Continue Game", "Close Screen", "Leave Game","Resume Game",
+							"Return Button ID to Lua", 
+							"Go To HUD Screen 2", "Go To HUD Screen 3", "Go To HUD Screen 4", "Go To HUD Screen 5",
+							"Go To HUD Screen 6", "Go To HUD Screen 7", "Go To HUD Screen 8", "Go To HUD Screen 9", "Go To HUD Screen 10",
+							"Go To HUD Screen 11", "Go To HUD Screen 12", "Go To HUD Screen 13", "Go To HUD Screen 14", "Go To HUD Screen 15",
+							"Go To HUD Screen 16", "Go To HUD Screen 17", "Go To HUD Screen 18", "Go To HUD Screen 19", "Go To HUD Screen 20",
+							"Go To HUD Screen 21", "Go To HUD Screen 22", "Go To HUD Screen 23", "Go To HUD Screen 24", "Go To HUD Screen 25",
+							"Go To HUD Screen 26", "Go To HUD Screen 27", "Go To HUD Screen 28", "Go To HUD Screen 29", "Go To HUD Screen 30",
+							"Go To HUD Screen 31", "Go To HUD Screen 32"
+						};
+
 						ImGui::PushItemWidth(-10);
 						if (ImGui::BeginCombo("##StoryboardAction", ActionSelected)) // The second parameter is the label previewed before opening the combo.
 						{
@@ -49799,16 +49823,22 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 	// Delete currently selected widget
 	if (iCurrentSelectedWidget>=0 && bScreen_Editor_Window && !bPreviewScreen && !standalone)
 	{
-		static bool bBlockUntilKeyReleased = false;
-		constexpr int deleteKey = 46;
-		if (ImGui::GetIO().KeysDown[deleteKey] && !bBlockUntilKeyReleased)
+		extern ImRect g_rStealMonitorArea;
+		ImVec2 mPos = ImGui::GetMousePos();
+		if (mPos.x > g_rStealMonitorArea.Min.x && mPos.x < g_rStealMonitorArea.Max.x && mPos.y > g_rStealMonitorArea.Min.y && mPos.y < g_rStealMonitorArea.Max.y)
 		{
-			RemoveWidgetFromScreen(nodeid, iCurrentSelectedWidget);
-			bBlockUntilKeyReleased = true;
-		}
-		else if(ImGui::GetIO().KeysDown[deleteKey] == false)
-		{
-			bBlockUntilKeyReleased = false;
+			// only if within monitor area
+			static bool bBlockUntilKeyReleased = false;
+			constexpr int deleteKey = 46;
+			if (ImGui::GetIO().KeysDown[deleteKey] && !bBlockUntilKeyReleased)
+			{
+				RemoveWidgetFromScreen(nodeid, iCurrentSelectedWidget);
+				bBlockUntilKeyReleased = true;
+			}
+			else if (ImGui::GetIO().KeysDown[deleteKey] == false)
+			{
+				bBlockUntilKeyReleased = false;
+			}
 		}
 
 		static bool bRMBMenu = false;

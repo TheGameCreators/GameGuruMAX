@@ -2391,7 +2391,7 @@ void FPSC_LoadSETUPVRINI ( void )
 					// 6 : special case, side by side rendering
 					t.tryfield_s = "vrmode";
 					if (t.field_s == t.tryfield_s)
-					{
+					{			
 						g.gvrmode = t.value1;
 						g.gvrmodeoriginal = t.value1;
 						if (g.gvrmode != 0)
@@ -2851,37 +2851,6 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 
 					// DOCDOC: mousesensitivity = Not Used
 					t.tryfield_s = "mousesensitivity"; if (t.field_s == t.tryfield_s) g.gmousesensitivity = t.value1; t.newmousesensitivity = t.value1;
-
-					/* moved to separate SETUPVR file (above)! NOTE: Need further work to save standalone VR games!!
-					// VRMode
-					// 0 : off
-					// 1 : VR920/iWear
-					#ifdef VRTECH
-					// 2 : GGVR (OpenVR)
-					// 3 : GGVR (Microsoft WMR)
-					// 4 : RESERVED - HOLDING VALUE (see code)
-					#endif
-					// 5 : detects VR920/iWear (switches OFF if not found)
-					// 6 : special case, side by side rendering
-					#ifdef VRTECH
-					t.tryfield_s = "vrmode";
-					if (t.field_s == t.tryfield_s)
-					{
-						g.gvrmode = t.value1;
-						g.gvrmodeoriginal = t.value1;
-						if (g.gvrmode != 0)
-						{
-							#ifndef GURULIGHTMAPPER
-							HWND hThisWnd = g_pGlob->hWnd;
-							#endif
-						}
-					}
-					t.tryfield_s = "vrmodefordevelopers"; if (t.field_s == t.tryfield_s)  g.gvrmodefordevelopers = t.value1;
-					t.tryfield_s = "vrmodemag"; if (t.field_s == t.tryfield_s)  g.gvrmodemag = t.value1;
-					t.tryfield_s = "vroffsetangx"; if (t.field_s == t.tryfield_s)  g.gvroffsetangx = t.value1;
-					t.tryfield_s = "vrwmroffsetangx"; if (t.field_s == t.tryfield_s)  g.gvrwmroffsetangx = t.value1;
-					#endif
-					*/
 
 					// DOCDOC: dynamiclighting = Not Used
 					t.tryfield_s = "dynamiclighting"; if (t.field_s == t.tryfield_s)  g.gdynamiclightingstate = t.value1;
@@ -4234,12 +4203,7 @@ void FPSC_Setup(void)
 			tgamesetismapeditormode = 1;
 			// set backbuffer for editor
 			t.bkwidth=GetDesktopWidth() ; t.bkheight=GetDesktopHeight();
-			#ifdef VRTECH
 			t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
-			#else
-			t.thevrmodeflag = 0; 
-			if ( g.gvrmode != 0  ) t.thevrmodeflag = 1;
-			#endif
 			timestampactivity(0, "setting display mode via DirectX");
 			if ( t.thevrmodeflag != 0 )
 			{
@@ -4320,11 +4284,7 @@ void FPSC_Setup(void)
 					if ( g.gdisplaywidth == -1 || g.gdisplayheight == -1 ) { g.gdisplaywidth = GetDesktopWidth() ; g.gdisplayheight = GetDesktopHeight(); }
 					if ( g.gdisplaywidth != 640 || g.gdisplayheight != 480 || g.gdisplaydepth != 32 || g.gvrmode != 0 ) 
 					{
-						#ifdef VRTECH
 						t.thevrmodeflag = 0; if ( g.gvrmode == 1 || g.gvrmode == 5 || g.gvrmode == 6 ) t.thevrmodeflag = 1;
-						#else
-						t.thevrmodeflag = 0 ; if (  g.gvrmode != 0  )  t.thevrmodeflag = 1;
-						#endif
 						if ( t.thevrmodeflag != 0 )
 						{
 							SetDisplayModeVR ( g.gdisplaywidth, g.gdisplayheight, g.gdisplaydepth, g.gvsync,0,0,0,0,t.thevrmodeflag );
@@ -4994,8 +4954,11 @@ void FPSC_Setup(void)
 		g.globals.riftmode = 0;
 		g.vrglobals.GGVREnabled = 0;
 		g.vrglobals.GGVRUsingVRSystem = 1;
-		if (g.gvrmode == 2) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
-		if (g.gvrmode == 3) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+		if (bSpecialStandalone == false)
+		{
+			if (g.gvrmode == 2) g.vrglobals.GGVREnabled = 1; // OpenVR (Steam)
+			if (g.gvrmode == 3) g.vrglobals.GGVREnabled = 2; // Windows Mixed Reality (Microsoft)
+		}
 		char pVRSystemString[1024];
 		sprintf(pVRSystemString, "choose VR system with mode %d", g.vrglobals.GGVREnabled);
 		timestampactivity(0, pVRSystemString);
@@ -6882,16 +6845,13 @@ DWORD g_SensibleMessageTimer = 0;
 
 void printscreenprompt ( char* screenprompt_s )
 {
-	#ifdef WICKEDENGINE
 	// do not do any progress bar rendering if in standalone/play game mode (done by loading page)
 	if (t.game.gameisexe == 1) return;
 	// allow early progress bar to creep each time this called sao can see progress!
 	extern int g_iLastProgressPercentage;
 	if (g_iLastProgressPercentage < 20) g_iLastProgressPercentage++;
-	#endif
 	if ( t.levelsforstandalone == 0 )
 	{
-		#ifdef WICKEDENGINE
 		if (strlen(screenprompt_s) == 0)
 		{
 			g_SensibleMessageTimer = 0;
@@ -6937,67 +6897,6 @@ void printscreenprompt ( char* screenprompt_s )
 				StartForceRender();
 			}
 		}
-		#else
-		float tscrwidth_f = 0;
-		float txoffset_f = 0;
-		float tratio_f = 0;
-		int tsidemax = 0;
-		float twidth_f = 0;
-		float tatx_f = 0;
-		int tside = 0;
-		int s;
-
-		// display a prompt
-		if ( ImageExist(g.testgamesplashimage) == 1 ) 
-		{
-			// switched set sprite and sprite around so the sprite definately exists first
-			Sprite ( 1234,-100000,-100000,g.testgamesplashimage );
-			SetSprite ( 1234,0,1 );
-			tratio_f=(GetDesktopWidth()+0.0)/(GetDesktopHeight()+0.0);
-			twidth_f=GetDisplayHeight()*tratio_f;
-			tscrwidth_f=GetDisplayWidth();
-			txoffset_f=0;
-			tsidemax=0;
-			#ifdef VRTECH
-			if ( g.globals.riftmode > 0 || ( g.gvrmode > 0 && g.gvrmode != 2 && g.gvrmode != 3 ) ) 
-			#else
-			if ( g.globals.riftmode > 0 || g.gvrmode > 0 ) 
-			#endif
-			{
-				tscrwidth_f=tscrwidth_f/2;
-				twidth_f=twidth_f/2;
-				txoffset_f=twidth_f/-2;
-				tsidemax=1;
-			}
-			SizeSprite (  1234,twidth_f,GetDisplayHeight() );
-		}
-
-		// draw splash and/or text
-		for ( s = 0 ; s<=  1; s++ )
-		{
-			CLS ( 0 );
-			for ( tside = 0 ; tside <= tsidemax; tside++ )
-			{
-				tatx_f=txoffset_f+(tside*twidth_f)+(0-((twidth_f-GetDisplayWidth())/2));
-				if ( ImageExist(g.testgamesplashimage) == 1 ) PasteSprite ( 1234, tatx_f, 0 );
-				if ( t.game.gameisexe == 1 ) 
-				{
-					if ( g.gsuspendscreenprompts == 0 )
-					{
-						if ( g.iStandaloneIsReloading==0 )
-							pastebitmapfontcenter(screenprompt_s,tatx_f+(tscrwidth_f/2),(GetDisplayHeight()/1.45),1,255);
-						else
-							pastebitmapfontcenter("",tatx_f+(tscrwidth_f/2),(GetDisplayHeight()/1.45),1,255);
-					}
-				}
-				else
-				{
-					pastebitmapfontcenter(screenprompt_s,tatx_f+(tscrwidth_f/2),(GetDisplayHeight()/1.1),1,255);
-				}
-			}
-			Sync (  );
-		}
-		#endif
 	}
 
 	// steam refresh to keep it live

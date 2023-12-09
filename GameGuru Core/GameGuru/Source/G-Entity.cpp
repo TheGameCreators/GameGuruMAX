@@ -4382,39 +4382,10 @@ void entity_monitorattachments (void)
 						// new system spawns weapon object so can be treated like a loot drop
 						int iStoree = t.e;
 						int iAttachmentObj = t.tobj;
-						//int iWeaponEntityID = 0;
-						//t.weaponindex = t.entityelement[t.e].eleprof.hasweapon;
-						//if (t.weaponindex > 0)
-						//{
-						//	for (int iWE = 1; iWE <= g.entityelementlist; iWE++)
-						//	{
-						//		int iEntID = t.entityelement[iWE].bankindex;
-						//		if (iEntID > 0)
-						//		{
-						//			if (t.entityprofile[iEntID].isweapon == t.weaponindex)
-						//			{
-						//				iWeaponEntityID = iWE;
-						//				break;
-						//			}
-						//		}
-						//	}
-						//}
-						//if (iWeaponEntityID > 0)
 						if(t.entityelement[t.e].precreatedspawnedentityelementindex>0)
 						{
 							// performance hit to spawn in-level, so precreated this weapon drop
 							int iNewEntID = t.entityelement[t.e].precreatedspawnedentityelementindex;
-							//extern int SpawnNewEntityCore(int iEntityIndex);
-							//float fStoreX = t.entityelement[iWeaponEntityID].x;
-							//float fStoreY = t.entityelement[iWeaponEntityID].y;
-							//float fStoreZ = t.entityelement[iWeaponEntityID].z;
-							//t.entityelement[iWeaponEntityID].x = t.entityelement[t.e].x;
-							//t.entityelement[iWeaponEntityID].y = t.entityelement[t.e].y;
-							//t.entityelement[iWeaponEntityID].z = t.entityelement[t.e].z;
-							//int iNewEntID = SpawnNewEntityCore(iWeaponEntityID);
-							//t.entityelement[iWeaponEntityID].x = fStoreX;
-							//t.entityelement[iWeaponEntityID].y = fStoreY;
-							//t.entityelement[iWeaponEntityID].z = fStoreZ;
 							t.entityelement[iNewEntID].x = t.entityelement[t.e].x;
 							t.entityelement[iNewEntID].y = t.entityelement[t.e].y;
 							t.entityelement[iNewEntID].z = t.entityelement[t.e].z;
@@ -4430,24 +4401,13 @@ void entity_monitorattachments (void)
 							t.entityelement[iNewEntID].eleprof.isimmobile = 0; // and free to fall
 							t.entityelement[iNewEntID].active = 0;
 							t.entityelement[iNewEntID].lua.flagschanged = 123; // cause to call init before normal running
-							//if (t.entityelement[iNewEntID].usingphysicsnow == 1)
-							//{
-							//	ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-							//	PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-							//	ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
-							//	RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
-							//}
-							//else
-							//{
-								t.te = iNewEntID; t.tv_f = 0;// t.v_f;
-								g.charanimindex = 0;
-								entity_updatepos ();
-								entity_lua_rotateupdate ();
-							//}
+							t.te = iNewEntID; t.tv_f = 0;// t.v_f;
+							g.charanimindex = 0;
+							entity_updatepos ();
+							entity_lua_rotateupdate ();
 							t.entityelement[iNewEntID].eleprof.quantity = t.entityelement[t.e].eleprof.quantity;
 							t.entityelement[t.e].eleprof.cantakeweapon = 100 + iNewEntID;
 							t.e = iNewEntID;
-							//entity_lua_collisionon();
 							entity_lua_show();
 						}
 						t.e = iStoree;
@@ -4481,12 +4441,9 @@ void entity_monitorattachments (void)
 											t.entityelement[iNewEntID].ry = ObjectAngleY(t.tobj);
 											t.entityelement[iNewEntID].rz = ObjectAngleZ(t.tobj);
 										}
-										//ODESetBodyPosition (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
 										PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
-										//ODESetBodyAngle (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
 										RotateObject (tobj, t.entityelement[iNewEntID].rx, t.entityelement[iNewEntID].ry, t.entityelement[iNewEntID].rz);
 										ShowObject(tobj);
-										//t.entityelement[t.e].eleprof.cantakeweapon = 0;
 									}
 								}
 							}
@@ -4502,7 +4459,8 @@ void entity_monitorattachments (void)
 		{
 			if (ObjectExist(t.tobj) == 1)
 			{
-				if (t.entityelement[t.e].health <= 0 && t.entityelement[t.e].eleprof.lootpercentage > 0)
+				int iPercentageChanceOfDroppingAnythingAtAll = t.entityelement[t.e].eleprof.lootpercentage;
+				if (t.entityelement[t.e].health <= 0 && iPercentageChanceOfDroppingAnythingAtAll > 0)
 				{
 					// new system spawns loot objects
 					extern int g_iLootListCount;
@@ -4526,7 +4484,7 @@ void entity_monitorattachments (void)
 									if (stricmp (t.entityelement[iWE].eleprof.name_s.Get(), pLootObjName) == NULL)
 									{
 										// probability of a drop at all
-										if ((int)rand() % 100 <= t.entityelement[iWE].eleprof.lootpercentage)
+										if ((int)rand() % 100 <= iPercentageChanceOfDroppingAnythingAtAll)
 										{
 											// probability of THIS item dropping
 											if ((int)rand() % 100 <= g_lootListPercentage[l])
@@ -4562,7 +4520,6 @@ void entity_monitorattachments (void)
 									t.entityelement[iNewEntID].eleprof.lootpercentage = 1000;
 									PositionObject (tobj, t.entityelement[iNewEntID].x, t.entityelement[iNewEntID].y, t.entityelement[iNewEntID].z);
 								}
-								t.entityelement[t.e].eleprof.lootpercentage = 0;
 								t.e = iNewEntID;
 								entity_lua_collisionon();
 							}
@@ -4570,6 +4527,9 @@ void entity_monitorattachments (void)
 							t.tobj = iStoreObj;
 						}
 					}
+
+					// once chance to droo when no health, then exit loot drop system
+					t.entityelement[t.e].eleprof.lootpercentage = 0;
 				}
 			}
 		}

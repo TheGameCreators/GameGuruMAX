@@ -1353,6 +1353,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\tick-box-icon.png", SCREENEDITOR_TICKBOX);
 	LoadImage("editors\\uiv3\\slider-icon.png", SCREENEDITOR_SLIDER);
 	LoadImage("editors\\uiv3\\progressbar-icon.png", SCREENEDITOR_PROGRESSBAR);
+	LoadImage("editors\\uiv3\\textarea-icon.png", SCREENEDITOR_TEXTAREA);
 
 	#endif
 
@@ -5264,17 +5265,6 @@ void mapeditorexecutable_loop(void)
 				iLaunchAfterSync = 3; //Save
 				iSkibFramesBeforeLaunch = 5;
 			}
-			/*
-			//else if (!ctrl && !shift && !alt && ImGui::IsKeyPressed(0x7B)) // 0x70 = F1 0x7B = F12
-			else if (!ctrl && !shift && !alt && ImGui::IsKeyPressed(82) || iExecuteCTRLkey == 'R') //R
-			{
-				lastKeyTime = (float)ImGui::GetTime();
-				iExecuteCTRLkey = 0;
-				CloseAllOpenTools();
-				iLaunchAfterSync = 4; //Save As
-				iSkibFramesBeforeLaunch = 5;
-			}
-			*/
 			else if (ctrl && !shift && !alt && ImGui::IsKeyPressed(88) || iExecuteCTRLkey == 'X') //X , "CUT"
 			{
 				if (!bLastImGuiGotFocus || iExecuteCTRLkey == 'X')
@@ -5311,19 +5301,6 @@ void mapeditorexecutable_loop(void)
 					widget_show_widget();
 				}
 			}
-			/* is this a thing? - only CTRL+Z documented in the UI
-			else if (!ctrl && !shift && alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
-			{ 
-				//ALT BACKSPACE - undo
-				lastKeyTime = (float)ImGui::GetTime();
-				iExecuteCTRLkey = 0;
-				if (t.inputsys.undokeypress == 0)
-				{
-					bForceUndo = true;
-					bWaitOnZRelease = true;
-				}
-			}
-			*/
 			else if (ctrl && !shift && !alt && ImGui::IsKeyPressed(90) && bWaitOnZRelease==false) 
 			{ 
 				//CTRL Z - undo
@@ -5554,8 +5531,6 @@ void mapeditorexecutable_loop(void)
 			}
 			else if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)) || iExecuteCTRLkey == ImGuiKey_Delete)
 			{
-				//gridedit_deleteentityfrommap();
-				//t.refreshgrideditcursor = 1;
 				HandleObjectDeletion();
 				lastKeyTime = (float)ImGui::GetTime();
 				iExecuteCTRLkey = 0;

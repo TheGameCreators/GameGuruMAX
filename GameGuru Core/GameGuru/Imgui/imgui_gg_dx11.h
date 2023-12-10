@@ -889,7 +889,6 @@ struct StoryboardStruct
 	StoryboardNodesStruct Nodes[STORYBOARD_MAXNODES];
 	int NodeRadioButtonSelected[STORYBOARD_MAXNODES];
 	float NodeSliderValues[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
-
 	char game_icon[256];
 	char game_thumb[256];
 	char game_description[4096];
@@ -903,6 +902,7 @@ struct StoryboardStruct
 	char widget_readout[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS][128];
 	ImVec2 widget_textoffset[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 	int widget_ingamehidden[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
+	int widget_drawordergroup[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 
 	//PE: To add new variables add them here, always add to botton of list.
 

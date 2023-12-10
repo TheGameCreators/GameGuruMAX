@@ -38567,18 +38567,12 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					strcpy(Storyboard.widget_readout[node][j], templateStoryboard.widget_readout[orgnode][j]);
 					Storyboard.widget_textoffset[node][j] = templateStoryboard.widget_textoffset[orgnode][j];
 					Storyboard.widget_ingamehidden[node][j] = templateStoryboard.widget_ingamehidden[orgnode][j];
+					Storyboard.widget_drawordergroup[node][j] = templateStoryboard.widget_drawordergroup[orgnode][j];
 				}
 			}
 		}
 	}
 
-	// Temporary for now, ensure that default widget permissions are set for all screens
-	//PE: Screens that dont use this function.
-	//Storyboard.Nodes[iAboutScreenNodeID].widgets_available = defaultWidgets; all screens call storyboard_add_missing_nodex function now
-	//Storyboard.Nodes[iTitleScreenNodeID].widgets_available = defaultWidgets;
-	//Storyboard.Nodes[iGameWonScreenNodeID].widgets_available = defaultWidgets;
-	//Storyboard.Nodes[iGameLostScreenNodeID].widgets_available = defaultWidgets;
-	//Storyboard.Nodes[iLoadingScreenNodeID].widgets_available = ALLOW_TEXT | ALLOW_IMAGE; //PE: Buttons cant work here.
 	if(node==iLoadingScreenNodeID)
 		Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE; //PE: Buttons cant work here.
 	else
@@ -43204,6 +43198,7 @@ void process_storeboard(bool bInitOnly)
 																			}
 																			Storyboard.widget_textoffset[newnodeid][iWidgetIndex] = checkproject->widget_textoffset[i][iWidgetIndex];
 																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = checkproject->widget_ingamehidden[i][iWidgetIndex];
+																			Storyboard.widget_drawordergroup[newnodeid][iWidgetIndex] = checkproject->widget_drawordergroup[i][iWidgetIndex];
 																		}
 
 																		//PE: unique ids are wrong in checkproject so assign new here.
@@ -45288,7 +45283,18 @@ void load_storyboard(char *name)
 	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
 	{
+		// full reset of nodes (in case added new fields and need defaults)
+		//for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		//{
+		//	for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
+		//	{
+		//		Storyboard.widget_ingamehidden[i][iWidgetIndex] = 0;
+		//		Storyboard.widget_drawordergroup[i][iWidgetIndex] = 0;
+		//	}
+		//}
+		//this sets ALL fields data to zero, and only filled with known structure (members added at end not part of the copy to remain zeros)
 		memset(&checkproject, 0, sizeof(StoryboardStruct));
+
 		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
@@ -45335,11 +45341,7 @@ void load_storyboard(char *name)
 				Storyboard.project_readonly = 0;
 			}
 
-			#ifdef RPG_GAMES
-			init_rpg_system();
-			load_rpg_system(name);
-			#endif
-
+			// reset/repair any newly added fields
 			storyboard_reset_ingamehidden(&Storyboard);
 
 			// project loaded successfully
@@ -45996,6 +45998,7 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 	}
 	Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(0.0f, 0.0f);
 	Storyboard.widget_ingamehidden[nodeID][widgetSlot] = 0;
+	Storyboard.widget_drawordergroup[nodeID][widgetSlot] = 0;
 
 	// Settings specific to widget type:
 	if (type == STORYBOARD_WIDGET_IMAGE)
@@ -46208,6 +46211,7 @@ void RemoveWidgetFromScreen(int nodeID, int widgetID)
 			strcpy(Storyboard.widget_readout[nodeID][i], Storyboard.widget_readout[nodeID][i + 1]);
 			Storyboard.widget_textoffset[nodeID][i] = Storyboard.widget_textoffset[nodeID][i + 1];
 			Storyboard.widget_ingamehidden[nodeID][i] = Storyboard.widget_ingamehidden[nodeID][i + 1];
+			Storyboard.widget_drawordergroup[nodeID][i] = Storyboard.widget_drawordergroup[nodeID][i + 1];
 		}
 
 		// Reload any images after the deleted widget, to ensure they remain in the correct slot
@@ -46389,6 +46393,8 @@ void SwapWidgets(int nodeID, int widgetA, int widgetB)
 	std::swap(Storyboard.widget_colors[nodeID][widgetA], Storyboard.widget_colors[nodeID][widgetB]);
 	std::swap(Storyboard.widget_readout[nodeID][widgetA], Storyboard.widget_readout[nodeID][widgetB]);
 	std::swap(Storyboard.widget_textoffset[nodeID][widgetA], Storyboard.widget_textoffset[nodeID][widgetB]);
+	std::swap(Storyboard.widget_ingamehidden[nodeID][widgetA], Storyboard.widget_ingamehidden[nodeID][widgetB]);
+	std::swap(Storyboard.widget_drawordergroup[nodeID][widgetA], Storyboard.widget_drawordergroup[nodeID][widgetB]);
 }
 
 void SendWidgetToFront(int nodeID, int widgetID)
@@ -46405,63 +46411,61 @@ void SendWidgetToFront(int nodeID, int widgetID)
 			break;
 		}
 	}
-
-	// Only 1 widget used - already at front
 	if (lastIndex < 1)
-	{
 		return;
-	}
 
-	// also prevent shifting of initial widgets as they are hard coded to certain scripts sometimes (load and save game)
-	int bRestrictShuffleWidgetsToBeyond = 0;
-	if (stricmp (node.lua_name, "savegame.lua") == NULL || stricmp (node.lua_name, "loadgame.lua"))
-	{
-		bRestrictShuffleWidgetsToBeyond = 9;
-	}
-	int iSwap = widgetID;
-	if (iSwap < bRestrictShuffleWidgetsToBeyond)
-	{
+	// normal order group (draws in ID order)
+	Storyboard.widget_drawordergroup[nodeID][widgetID]++;
+	if (Storyboard.widget_drawordergroup[nodeID][widgetID] > 1) Storyboard.widget_drawordergroup[nodeID][widgetID] = 1;
+	bool bHardcodedID = IsHardcodedID(nodeID, widgetID);
+	if (bHardcodedID == true)
 		return;
-	}
 
 	// Keep swapping widgetID with its neighbour until it reaches the end of the array (the front of the screen)
+	int iSwap = widgetID;
 	while (iSwap < lastIndex)
 	{
-		SwapWidgets(nodeID, iSwap, iSwap+1);
+		bool bHardcodedID1 = IsHardcodedID(nodeID, iSwap);
+		if (bHardcodedID1 == false)
+		{
+			bool bHardcodedID2 = IsHardcodedID(nodeID, iSwap + 1);
+			if (bHardcodedID2 == false)
+			{
+				SwapWidgets(nodeID, iSwap, iSwap + 1);
+				iCurrentSelectedWidget = iSwap + 1;
+			}
+		}
 		iSwap++;
 	}
-
-	// Selected widget's place in array has been changed, ensure selection doesn't change after swapping
-	iCurrentSelectedWidget = lastIndex;
 }
 
 void SendWidgetToBack(int nodeID, int widgetID)
 {
 	StoryboardNodesStruct& node = Storyboard.Nodes[nodeID];
 
-	// Need at least two active widgets to be able to swap (widgets are stored contiguously)
-	if (node.widget_used[1] == false)
-	{
+	// draw early sort order group (and then draws in ID order)
+	Storyboard.widget_drawordergroup[nodeID][widgetID]--;
+	if (Storyboard.widget_drawordergroup[nodeID][widgetID] < -1) Storyboard.widget_drawordergroup[nodeID][widgetID] = -1;
+	bool bHardcodedID = IsHardcodedID(nodeID, widgetID);
+	if (bHardcodedID == true)
 		return;
-	}
-
-	// also prevent shifting of initial widgets as they are hard coded to certain scripts sometimes (load and save game)
-	int bRestrictShuffleWidgetsToBeyond = 0;
-	if (stricmp (node.lua_name, "savegame.lua") == NULL || stricmp (node.lua_name, "loadgame.lua") == NULL)
-	{
-		bRestrictShuffleWidgetsToBeyond = 9;
-	}
 
 	// Keep swapping widgetID with its neighbour until it reaches the front of the array (the back of the screen)
 	int iSwap = widgetID;
-	while (iSwap > bRestrictShuffleWidgetsToBeyond)
+	while (iSwap > 0)//bRestrictShuffleWidgetsToBeyond)
 	{
-		SwapWidgets(nodeID, iSwap, iSwap - 1);
+		bool bHardcodedID1 = IsHardcodedID(nodeID, iSwap);
+		if (bHardcodedID1 == false)
+		{
+			bool bHardcodedID2 = IsHardcodedID(nodeID, iSwap - 1);
+			if (bHardcodedID2 == false)
+			{
+				SwapWidgets(nodeID, iSwap, iSwap - 1);
+				iCurrentSelectedWidget = iSwap - 1;
+			}
+		}
 		iSwap--;
 	}
-
-	// Selected widget's place in array has been changed, ensure selection doesn't change after swapping
-	iCurrentSelectedWidget = 0;
 }
 
 unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int bufferLength) {
@@ -47432,726 +47436,765 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			// Determine which widget is selected
 			ImVec2 cursorStore = ImGui::GetCursorPos();
 			int iWidgetSelectedThisFrame = -1;
-			for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+
+			for (int early = 1; early >= -1; early--)
 			{
-				ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
-				ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[i] * fOnePercent; //Real screen pos.
-				ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
-				widget_size = widget_size * vScale;
-				widget_size = widget_size * fGlobalScale;
-				float font_scale = WidgetSelectUsedFont(nodeid, i);
-				ImGui::SetWindowFontScale(font_scale*vScale.x * fGlobalScale * fabs(Storyboard.Nodes[nodeid].widget_font_size[i]));
-				if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]))
+				for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
 				{
-					widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
-					widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
-					widget_size = widget_size * vScale; //Scale to visible screen size.
+					bool bSelectThis = false;
+					if (Storyboard.widget_drawordergroup[nodeid][i] == early) bSelectThis = true;
+					if (bSelectThis == false)
+						continue;
+
+					ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
+					ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[i] * fOnePercent; //Real screen pos.
+					ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
+					widget_size = widget_size * vScale;
 					widget_size = widget_size * fGlobalScale;
-					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[i];
-				}
-				else
-				{
-					cstr text = Storyboard.Nodes[nodeid].widget_label[i];
-					if (text.Len() <= 0) text = "Empty Text";
-					widget_size = ImGui::CalcTextSize(text.Get());
-				}
-				widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0)); //Scale to visible screen size.
-				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				ImGui::Dummy(widget_size);
-				if (ImGui::IsItemHovered())
-				{
-					if (!ImGui::IsMouseDragging(0) && ImGui::IsMouseDown(0))
+					float font_scale = WidgetSelectUsedFont(nodeid, i);
+					ImGui::SetWindowFontScale(font_scale * vScale.x * fGlobalScale * fabs(Storyboard.Nodes[nodeid].widget_font_size[i]));
+					if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]))
 					{
-						if (iSkipWidgetSelectionForFrames == 0 && iWidgetSelectedThisFrame < 0)
+						widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
+						widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[i]);
+						widget_size = widget_size * vScale; //Scale to visible screen size.
+						widget_size = widget_size * fGlobalScale;
+						widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[i];
+					}
+					else
+					{
+						cstr text = Storyboard.Nodes[nodeid].widget_label[i];
+						if (text.Len() <= 0) text = "Empty Text";
+						widget_size = ImGui::CalcTextSize(text.Get());
+					}
+					widget_pos = (widget_pos - ImVec2((widget_size.x * 0.5), 0.0)); //Scale to visible screen size.
+					ImGui::SetCursorPos(vMonitorStart + widget_pos);
+					ImGui::Dummy(widget_size);
+					if (ImGui::IsItemHovered())
+					{
+						if (!ImGui::IsMouseDragging(0) && ImGui::IsMouseDown(0))
 						{
-							iCurrentSelectedWidget = i;
-							iWidgetSelectedThisFrame = i;
-							ImGui::PopFont();
-							break;
+							if (iSkipWidgetSelectionForFrames == 0 && iWidgetSelectedThisFrame < 0)
+							{
+								iCurrentSelectedWidget = i;
+								iWidgetSelectedThisFrame = i;
+								ImGui::PopFont();
+								break;
+							}
 						}
 					}
+					ImGui::PopFont();
 				}
-				ImGui::PopFont();
 			}
 			ImGui::SetCursorPos(cursorStore);
 		}
-
-		//Draw all widgets.
-		for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
+		
+		// Draw all widgets (early and regular)
+		for(int early=-1; early <= 1; early++ )
 		{
-			int index = Storyboard_ActiveWidgets[i];
-			bool bUsed = Storyboard.Nodes[nodeid].widget_used[index];
-			if (bUsed == false)
-				continue;
-
-			bool bReadOnly = Storyboard.Nodes[nodeid].widget_read_only[index];
-			bool bSpecialLuaReturnValue = false;
-			if (bReadOnly)
+			for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
 			{
-				if (index >= 1 && index <= 8 && (stricmp(Storyboard.Nodes[nodeid].lua_name, "loadgame.lua") == 0 || stricmp(Storyboard.Nodes[nodeid].lua_name, "savegame.lua") == 0 ) )
+				bool bDrawThis = false;
+				if (Storyboard.widget_drawordergroup[nodeid][i] == early) bDrawThis = true;
+				if (bDrawThis == false)
+					continue;
+				
+				int index = Storyboard_ActiveWidgets[i];
+				bool bUsed = Storyboard.Nodes[nodeid].widget_used[index];
+				if (bUsed == false)
+					continue;
+
+				bool bReadOnly = Storyboard.Nodes[nodeid].widget_read_only[index];
+				bool bSpecialLuaReturnValue = false;
+				if (bReadOnly)
 				{
-					strcpy(Storyboard.Nodes[nodeid].widget_label[index], LoadGameTitle[index]);
-					bReadOnly = false;
-				}
-			}
-
-			// can hide any widget if flagged as so
-			bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][index];
-			if (bIsWidgetHidden == true)
-				continue;
-
-			//ImVec2 fOnePercent = ImVec2(1920.0 / 100.0, 1080.0 / 100.0); //PE: This can be changed in the future to support different screen ratio settings.
-			ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
-			bool bUsePivotXCenter = true;
-			int iTextAdjustment = 1; // 0=left, 1=center , 2=right
-
-			ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[index] * fOnePercent; //Real screen pos.
-			//widget_pos = widget_pos * vScale; //Scale to visible screen size.
-			ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
-			widget_size = widget_size * vScale;
-			widget_size = widget_size * fGlobalScale;
-
-			//One widget can only use one font, so select it now and use for all functions.
-			float font_scale = WidgetSelectUsedFont(nodeid, index);
-			ImGui::SetWindowFontScale(font_scale*vScale.x* fGlobalScale* fabs(Storyboard.Nodes[nodeid].widget_font_size[index]));
-
-			//Is a kind of progress bar?
-			bool bProgressbar = false;
-			if (   Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS
-				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER
-				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
-				bProgressbar = true;
-
-			//Widget Button
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON 
-			|| bProgressbar 
-			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE 
-			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
-			{
-				if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]))
-				{
-					widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
-					widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
-					widget_size = widget_size * vScale; //Scale to visible screen size.
-					widget_size = widget_size * fGlobalScale;
-					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
-				}
-
-				if (bUsePivotXCenter)
-					widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0)); //Scale to visible screen size.
-
-				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				ImGui::Dummy(widget_size);
-				bool bHovered = false;
-				if (ImGui::IsItemHovered())
-				{
-					bHovered = true;
-				}
-				//Button Image
-				ID3D11ShaderResourceView* lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
-				if(!bProgressbar && bHovered) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE)
-				{
-					// used by GRAPHICS SETTINGS (1,2,3)
-					int iMatchToSettingValue = -1;
-					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
-					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
-					if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
-					if (Storyboard.NodeRadioButtonSelected[nodeid] < 0.0) Storyboard.NodeRadioButtonSelected[nodeid] = 3;// iMatchToSettingValue; HIGHEST always default
-					if (Storyboard.NodeRadioButtonSelected[nodeid] == iMatchToSettingValue)
+					if (index >= 1 && index <= 8 && (stricmp(Storyboard.Nodes[nodeid].lua_name, "loadgame.lua") == 0 || stricmp(Storyboard.Nodes[nodeid].lua_name, "savegame.lua") == 0 ) )
 					{
-						lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_selected_thumb_id[index]);
-						if(!lpTexture) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
+						strcpy(Storyboard.Nodes[nodeid].widget_label[index], LoadGameTitle[index]);
+						bReadOnly = false;
 					}
 				}
-				else if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
+
+				// can hide any widget if flagged as so
+				bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][index];
+				if (bIsWidgetHidden == true)
+					continue;
+
+				//ImVec2 fOnePercent = ImVec2(1920.0 / 100.0, 1080.0 / 100.0); //PE: This can be changed in the future to support different screen ratio settings.
+				ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0);
+				bool bUsePivotXCenter = true;
+				int iTextAdjustment = 1; // 0=left, 1=center , 2=right
+
+				ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[index] * fOnePercent; //Real screen pos.
+				//widget_pos = widget_pos * vScale; //Scale to visible screen size.
+				ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
+				widget_size = widget_size * vScale;
+				widget_size = widget_size * fGlobalScale;
+
+				//One widget can only use one font, so select it now and use for all functions.
+				float font_scale = WidgetSelectUsedFont(nodeid, index);
+				ImGui::SetWindowFontScale(font_scale*vScale.x* fGlobalScale* fabs(Storyboard.Nodes[nodeid].widget_font_size[index]));
+
+				//Is a kind of progress bar?
+				bool bProgressbar = false;
+				if (   Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_PROGRESS
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER
+					|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
+					bProgressbar = true;
+
+				//Widget Button
+				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON 
+				|| bProgressbar 
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE 
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
 				{
-					bool bEnabled = false;
-					if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+					if (ImageExist(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]))
 					{
-						// Tickboxes - on/off
-						bEnabled = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-					}
-					else
-					{
-						// Using NodeSliderValues to prevent having to add to StoryboardStruct
-						if (Storyboard.NodeSliderValues[nodeid][index] > 0.0f)
-						{
-							bEnabled = true;
-						}
+						widget_size.x = ImageWidth(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
+						widget_size.y = ImageHeight(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
+						widget_size = widget_size * vScale; //Scale to visible screen size.
+						widget_size = widget_size * fGlobalScale;
+						widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
 					}
 
-					if (bEnabled)
-					{
-						lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_selected_thumb_id[index]);
-						if (!lpTexture) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
-					}
-				}
-				if (lpTexture)
-				{
+					if (bUsePivotXCenter)
+						widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0)); //Scale to visible screen size.
+
 					ImGui::SetCursorPos(vMonitorStart + widget_pos);
-					ImVec2 img_pos = ImGui::GetWindowPos() + vMonitorStart + widget_pos;
-					img_pos.y -= ImGui::GetScrollY();
-					window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + widget_size, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
-				}
-				if (bProgressbar)
-				{
-					lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
-					if (lpTexture)
+					ImGui::Dummy(widget_size);
+					bool bHovered = false;
+					if (ImGui::IsItemHovered())
 					{
-						static float fProgress = 0.0;
-						if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
+						bHovered = true;
+					}
+					//Button Image
+					ID3D11ShaderResourceView* lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_normal_thumb_id[index]);
+					if(!bProgressbar && bHovered) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE)
+					{
+						// used by GRAPHICS SETTINGS (1,2,3)
+						int iMatchToSettingValue = -1;
+						if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
+						if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
+						if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
+						if (Storyboard.NodeRadioButtonSelected[nodeid] < 0.0) Storyboard.NodeRadioButtonSelected[nodeid] = 3;// iMatchToSettingValue; HIGHEST always default
+						if (Storyboard.NodeRadioButtonSelected[nodeid] == iMatchToSettingValue)
 						{
-							if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Statusbar") == NULL)
-							{
-								// split label (first;second) so can read globals separately
-								char storeFirstEntry[MAX_PATH];
-								strcpy(storeFirstEntry, "");
-								strcpy(storeFirstEntry, Storyboard.Nodes[nodeid].widget_label[index]);
-								char storeSecondEntry[MAX_PATH];
-								strcpy(storeSecondEntry, "");
-								char* pDelimit = strstr(storeFirstEntry, ";");
-								if (pDelimit)
-								{
-									strcpy(storeSecondEntry, pDelimit + 1);
-									*pDelimit = 0;
-								}
-
-								// placeholder for all user defined global values
-								if (bImGuiInTestGame == false)
-								{
-									// placeholder shown in screen editor
-									fProgress = Storyboard.Nodes[nodeid].widget_initial_value[index];
-								}
-								else
-								{
-									// read from active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
-									char pUserDefinedGlobal[256];
-									int readoutValueFromLUA1 = 0;
-									int readoutValueFromLUA2 = 0;
-									if (stricmp(storeFirstEntry, "Health Remaining") == NULL)
-									{
-										readoutValueFromLUA1 = t.player[t.plrid].health;
-									}
-									else
-									{
-										if (stricmp(storeFirstEntry, "Ammo Remaining") == NULL)
-										{
-											readoutValueFromLUA1 = t.slidersmenuvalue[1][1].value;
-										}
-										else
-										{
-											if (stricmp(storeFirstEntry, "Maximum Ammo") == NULL)
-											{
-												readoutValueFromLUA1 = t.slidersmenuvalue[1][2].value;
-											}
-											else
-											{
-												sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
-												readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
-											}
-										}
-									}
-									if (stricmp(storeSecondEntry, "Maximum Health") == NULL)
-									{
-										readoutValueFromLUA2 = t.playercontrol.startstrength;
-									}
-									else
-									{
-										if (stricmp(storeSecondEntry, "Weapon Reload Quantity") == NULL)
-										{
-											readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty;
-										}
-										else
-										{
-											if (stricmp(storeSecondEntry, "Maximum Clipped Ammo") == NULL)
-											{ 
-												int iClipCapacity = g.firemodes[t.gunid][g.firemode].settings.clipcapacity;
-												if (iClipCapacity == 0) iClipCapacity = 50; // if no clip size specified, default to 50
-												readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty * iClipCapacity;
-											}
-											else
-											{
-												sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeSecondEntry);
-												readoutValueFromLUA2 = LuaGetInt(pUserDefinedGlobal);
-											}
-										}
-									}
-									fProgress = ((float)readoutValueFromLUA1/(float)readoutValueFromLUA2)*100.0f;
-								}
-							}
-							else
-							{
-								// no value if not from user global
-								fProgress = 0.0f;
-							}
+							lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_selected_thumb_id[index]);
+							if(!lpTexture) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
 						}
-						else if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
+					}
+					else if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
+					{
+						bool bEnabled = false;
+						if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
 						{
-							//Must be changeable.
-							if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
-							{
-								fProgress = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-							}
-							else
-							{
-								fProgress = Storyboard.NodeSliderValues[nodeid][index];
-							}
+							// Tickboxes - on/off
+							bEnabled = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
 						}
 						else
 						{
-							if (standalone)
+							// Using NodeSliderValues to prevent having to add to StoryboardStruct
+							if (Storyboard.NodeSliderValues[nodeid][index] > 0.0f)
 							{
-								if (bStartLoadingGame && iFakeLoadGameTest > 0)
-									fProgress = 100 - iFakeLoadGameTest;
-								else
-									fProgress = t.game.levelloadprogress;
+								bEnabled = true;
 							}
-							else
-							{
-								fProgress += 0.25;
-							}
-							if (fProgress >= 100.0) fProgress = 0.0;
 						}
-						ImVec2 vSize = widget_size;
-						vSize.x = (widget_size.x / 100.0) * fProgress;
+
+						if (bEnabled)
+						{
+							lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_selected_thumb_id[index]);
+							if (!lpTexture) lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
+						}
+					}
+					if (lpTexture)
+					{
 						ImGui::SetCursorPos(vMonitorStart + widget_pos);
 						ImVec2 img_pos = ImGui::GetWindowPos() + vMonitorStart + widget_pos;
 						img_pos.y -= ImGui::GetScrollY();
-						window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + vSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
+						window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + widget_size, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
 					}
-				}
+					if (bProgressbar)
+					{
+						lpTexture = GetImagePointerView(Storyboard.Nodes[nodeid].widget_highlight_thumb_id[index]);
+						if (lpTexture)
+						{
+							static float fProgress = 0.0;
+							if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BAR)
+							{
+								if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Statusbar") == NULL)
+								{
+									// split label (first;second) so can read globals separately
+									char storeFirstEntry[MAX_PATH];
+									strcpy(storeFirstEntry, "");
+									strcpy(storeFirstEntry, Storyboard.Nodes[nodeid].widget_label[index]);
+									char storeSecondEntry[MAX_PATH];
+									strcpy(storeSecondEntry, "");
+									char* pDelimit = strstr(storeFirstEntry, ";");
+									if (pDelimit)
+									{
+										strcpy(storeSecondEntry, pDelimit + 1);
+										*pDelimit = 0;
+									}
 
-				//Text Label
-				if (Storyboard.Nodes[nodeid].widget_type[index] != STORYBOARD_WIDGET_BAR)
-				{
-					// is this a special button
-					char pDestStr[MAX_PATH];
-					strcpy(pDestStr, "");
-					LPSTR pWidgetLabel = Storyboard.Nodes[nodeid].widget_label[index];
-					if (strnicmp(pWidgetLabel, "quest:", 6) == NULL && bImGuiInTestGame)
-					{
-						char pUserDefinedGlobal[256];
-						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", pWidgetLabel);
-						LuaGetString(pUserDefinedGlobal, pDestStr);
-						pWidgetLabel = pDestStr;
+									// placeholder for all user defined global values
+									if (bImGuiInTestGame == false)
+									{
+										// placeholder shown in screen editor
+										fProgress = Storyboard.Nodes[nodeid].widget_initial_value[index];
+									}
+									else
+									{
+										// read from active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
+										char pUserDefinedGlobal[256];
+										int readoutValueFromLUA1 = 0;
+										int readoutValueFromLUA2 = 0;
+										if (stricmp(storeFirstEntry, "Health Remaining") == NULL)
+										{
+											readoutValueFromLUA1 = t.player[t.plrid].health;
+										}
+										else
+										{
+											if (stricmp(storeFirstEntry, "Ammo Remaining") == NULL)
+											{
+												readoutValueFromLUA1 = t.slidersmenuvalue[1][1].value;
+											}
+											else
+											{
+												if (stricmp(storeFirstEntry, "Maximum Ammo") == NULL)
+												{
+													readoutValueFromLUA1 = t.slidersmenuvalue[1][2].value;
+												}
+												else
+												{
+													sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
+													readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+												}
+											}
+										}
+										if (stricmp(storeSecondEntry, "Maximum Health") == NULL)
+										{
+											readoutValueFromLUA2 = t.playercontrol.startstrength;
+										}
+										else
+										{
+											if (stricmp(storeSecondEntry, "Weapon Reload Quantity") == NULL)
+											{
+												readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty;
+											}
+											else
+											{
+												if (stricmp(storeSecondEntry, "Maximum Clipped Ammo") == NULL)
+												{ 
+													int iClipCapacity = g.firemodes[t.gunid][g.firemode].settings.clipcapacity;
+													if (iClipCapacity == 0) iClipCapacity = 50; // if no clip size specified, default to 50
+													readoutValueFromLUA2 = g.firemodes[t.gunid][g.firemode].settings.reloadqty * iClipCapacity;
+												}
+												else
+												{
+													sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeSecondEntry);
+													readoutValueFromLUA2 = LuaGetInt(pUserDefinedGlobal);
+												}
+											}
+										}
+										fProgress = ((float)readoutValueFromLUA1/(float)readoutValueFromLUA2)*100.0f;
+									}
+								}
+								else
+								{
+									// no value if not from user global
+									fProgress = 0.0f;
+								}
+							}
+							else if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
+							{
+								//Must be changeable.
+								if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+								{
+									fProgress = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
+								}
+								else
+								{
+									fProgress = Storyboard.NodeSliderValues[nodeid][index];
+								}
+							}
+							else
+							{
+								if (standalone)
+								{
+									if (bStartLoadingGame && iFakeLoadGameTest > 0)
+										fProgress = 100 - iFakeLoadGameTest;
+									else
+										fProgress = t.game.levelloadprogress;
+								}
+								else
+								{
+									fProgress += 0.25;
+								}
+								if (fProgress >= 100.0) fProgress = 0.0;
+							}
+							ImVec2 vSize = widget_size;
+							vSize.x = (widget_size.x / 100.0) * fProgress;
+							ImGui::SetCursorPos(vMonitorStart + widget_pos);
+							ImVec2 img_pos = ImGui::GetWindowPos() + vMonitorStart + widget_pos;
+							img_pos.y -= ImGui::GetScrollY();
+							window->DrawList->AddImage((ImTextureID)lpTexture, img_pos, img_pos + vSize, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 1.0)));
+						}
 					}
 
-					// render text for button and other things
-					ImVec2 fTextAdjust = ImVec2(0.0f, 0.0f);
-					ImVec2 fTextSize = ImGui::CalcTextSize(pWidgetLabel); //Already scaled.
-					if (iTextAdjustment == 0)
-						fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
-					else if (iTextAdjustment == 1)
-						fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
-					else if (iTextAdjustment == 2)
+					//Text Label
+					if (Storyboard.Nodes[nodeid].widget_type[index] != STORYBOARD_WIDGET_BAR)
 					{
-						fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
-						fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
-					}
-					fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-					if (Storyboard.Nodes[nodeid].widget_font_size[index] > 0)
-					{
-						ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pWidgetLabel);
-					}
-				}
-			}
-			
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT
-			|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
-			{
-				cstr text = Storyboard.Nodes[nodeid].widget_label[index];
-				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global") == NULL)
-				{
-					// placeholder for all user defined global values
-					if (bImGuiInTestGame==false)
-					{
-						// placeholder shown in screen editor
-						char valueStr[64];
-						sprintf(valueStr, "%d", Storyboard.Nodes[nodeid].widget_initial_value[index]);
-						text = valueStr;
-					}
-					else
-					{
-						// read from active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
-						char pUserDefinedGlobal[256];
-						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[index]);
-						int readoutValueFromLUA = LuaGetInt(pUserDefinedGlobal);
-						char valueStr[64];
-						sprintf(valueStr, "%d", readoutValueFromLUA);
-						text = valueStr;
-					}
-				}
-				else if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Text") == NULL)
-				{
-					// placeholder for all user defined global values
-					if (bImGuiInTestGame == false)
-					{
-						// placeholder shown in screen editor
-						char valueStr[64];
-						sprintf(valueStr, "%s", "[text]");// Storyboard.Nodes[nodeid].widget_initial_value[index]);
-						text = valueStr;
-					}
-					else
-					{
-						// read from active LUA
-						char pUserDefinedGlobal[256];
-						sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[index]);
+						// is this a special button
 						char pDestStr[MAX_PATH];
 						strcpy(pDestStr, "");
-						LuaGetString(pUserDefinedGlobal, pDestStr);
-						text = pDestStr;
+						LPSTR pWidgetLabel = Storyboard.Nodes[nodeid].widget_label[index];
+						if (strnicmp(pWidgetLabel, "quest:", 6) == NULL && bImGuiInTestGame)
+						{
+							char pUserDefinedGlobal[256];
+							sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", pWidgetLabel);
+							LuaGetString(pUserDefinedGlobal, pDestStr);
+							pWidgetLabel = pDestStr;
+						}
+
+						// render text for button and other things
+						ImVec2 fTextAdjust = ImVec2(0.0f, 0.0f);
+						ImVec2 fTextSize = ImGui::CalcTextSize(pWidgetLabel); //Already scaled.
+						if (iTextAdjustment == 0)
+							fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
+						else if (iTextAdjustment == 1)
+							fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
+						else if (iTextAdjustment == 2)
+						{
+							fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
+							fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+						}
+						fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
+						if (Storyboard.Nodes[nodeid].widget_font_size[index] > 0)
+						{
+							ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+							ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pWidgetLabel);
+						}
 					}
 				}
-				else
+			
+				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXT
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
 				{
-					if ((bImGuiInTestGame || standalone) && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+					cstr text = Storyboard.Nodes[nodeid].widget_label[index];
+					if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global") == NULL)
 					{
-						// special code to hide certain HUDs
-						bool bHideThis = false;
-						if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
+						// placeholder for all user defined global values
+						if (bImGuiInTestGame==false)
 						{
-							if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Remaining") == NULL) bHideThis = true;
-							if (stricmp (Storyboard.widget_readout[nodeid][index], "Maximum Health") == NULL) bHideThis = true;
+							// placeholder shown in screen editor
+							char valueStr[64];
+							sprintf(valueStr, "%d", Storyboard.Nodes[nodeid].widget_initial_value[index]);
+							text = valueStr;
 						}
-						
-						// Display the variable value that this readout represents
-						if (bHideThis == false)
+						else
 						{
-							int readoutValue = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-							if (readoutValue != -INT_MAX) // -INT_MAX indicates failure to get the readout value
+							// read from active LUA, i.e. g_UserGlobal[yourscript.user_variable_name]
+							char pUserDefinedGlobal[256];
+							sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[index]);
+							int readoutValueFromLUA = LuaGetInt(pUserDefinedGlobal);
+							char valueStr[64];
+							sprintf(valueStr, "%d", readoutValueFromLUA);
+							text = valueStr;
+						}
+					}
+					else if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Text") == NULL)
+					{
+						// placeholder for all user defined global values
+						if (bImGuiInTestGame == false)
+						{
+							// placeholder shown in screen editor
+							char valueStr[64];
+							sprintf(valueStr, "%s", "[text]");// Storyboard.Nodes[nodeid].widget_initial_value[index]);
+							text = valueStr;
+						}
+						else
+						{
+							// read from active LUA
+							char pUserDefinedGlobal[256];
+							sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", Storyboard.Nodes[nodeid].widget_label[index]);
+							char pDestStr[MAX_PATH];
+							strcpy(pDestStr, "");
+							LuaGetString(pUserDefinedGlobal, pDestStr);
+							text = pDestStr;
+						}
+					}
+					else
+					{
+						if ((bImGuiInTestGame || standalone) && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+						{
+							// special code to hide certain HUDs
+							bool bHideThis = false;
+							if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
 							{
-								char valueStr[64];
-								sprintf(valueStr, "%d", readoutValue);
-								text = valueStr;
+								if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Remaining") == NULL) bHideThis = true;
+								if (stricmp (Storyboard.widget_readout[nodeid][index], "Maximum Health") == NULL) bHideThis = true;
+							}
+						
+							// Display the variable value that this readout represents
+							if (bHideThis == false)
+							{
+								int readoutValue = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
+								if (readoutValue != -INT_MAX) // -INT_MAX indicates failure to get the readout value
+								{
+									char valueStr[64];
+									sprintf(valueStr, "%d", readoutValue);
+									text = valueStr;
+								}
+								else
+								{
+									text = "";
+								}
 							}
 							else
 							{
 								text = "";
 							}
 						}
-						else
+					}
+
+					//PE: Cant have empty text, we cant see it, where to select it.
+					if (!bPreviewScreen && text.Len() <= 0) text = "Empty Text";
+
+					widget_size = ImGui::CalcTextSize(text.Get());
+					if (bUsePivotXCenter)
+						widget_pos = (widget_pos - ImVec2((widget_size.x * 0.5), 0.0));
+
+					ImGui::SetCursorPos(vMonitorStart + widget_pos);
+					ImGui::Dummy(widget_size);
+					bool bHovered = false;
+					if (ImGui::IsItemHovered())
+					{
+						bHovered = true;
+					}
+
+					ImGui::SetCursorPos(vMonitorStart + widget_pos);
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+						ImGui::PushTextWrapPos(0.0f);
+
+					// show text if in edit mode, do not show text in game and hidden
+					LPSTR pTextToShow = text.Get();
+					if (bImGuiInTestGame == false)
+					{
+						if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+					}
+					else
+					{
+						if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = NULL;
+					}
+					if(pTextToShow) ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
+
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
+						ImGui::PopTextWrapPos();
+				}
+
+				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_IMAGE)
+				{
+					int imgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[index];
+					if (nodeidStore == -1 && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+					{
+						// Get the image ID to display the readout
+						t.iTmpImgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[index];
+						imgID = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
+						if (imgID == -INT_MAX)
 						{
-							text = "";
+							imgID = 0;
 						}
 					}
-				}
-
-				//PE: Cant have empty text, we cant see it, where to select it.
-				if (!bPreviewScreen && text.Len() <= 0) text = "Empty Text";
-
-				widget_size = ImGui::CalcTextSize(text.Get());
-				if (bUsePivotXCenter)
-					widget_pos = (widget_pos - ImVec2((widget_size.x * 0.5), 0.0));
-
-				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				ImGui::Dummy(widget_size);
-				bool bHovered = false;
-				if (ImGui::IsItemHovered())
-				{
-					bHovered = true;
-				}
-
-				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
-					ImGui::PushTextWrapPos(0.0f);
-
-				// show text if in edit mode, do not show text in game and hidden
-				LPSTR pTextToShow = text.Get();
-				if (bImGuiInTestGame == false)
-				{
-					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
-				}
-				else
-				{
-					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = NULL;
-				}
-				if(pTextToShow) ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
-
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TEXTAREA)
-					ImGui::PopTextWrapPos();
-			}
-
-			if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_IMAGE)
-			{
-				int imgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[index];
-				if (nodeidStore == -1 && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
-				{
-					// Get the image ID to display the readout
-					t.iTmpImgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[index];
-					imgID = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-					if (imgID == -INT_MAX)
+					if (bImGuiInTestGame == true)
 					{
-						imgID = 0;
-					}
-				}
-				if (bImGuiInTestGame == true)
-				{
-					// special code to hide certain HUDs
-					bool bHideThis = false;
-					if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
-					{
-						if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Panel") == NULL) bHideThis = true;
-					}
-					if (bHideThis == true)
-					{
-						imgID = 0;
-					}
-				}
-				else
-				{
-					// only in HUD editor mode
-					if (ImageExist(imgID) == 0)
-					{
-						// if no image, cannot grab widget or delete it, so use a placeholder
-						image_setlegacyimageloading(true);
-						LoadImage("imagebank\\HUD Library\\MAX\\missing.png", imgID);
-						image_setlegacyimageloading(false);
-
-						// also possible it was placed outside of screen if the missing image was large!
-						Storyboard.Nodes[nodeid].widget_pos[index].x = 50.0f;
-						Storyboard.Nodes[nodeid].widget_pos[index].y = 50.0f;
-					}
-				}
-				if (ImageExist(imgID))
-				{
-					widget_size.x = ImageWidth(imgID);
-					widget_size.y = ImageHeight(imgID);
-					widget_size = widget_size * vScale; //Scale to visible screen size.
-					widget_size = widget_size * fGlobalScale;
-					widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
-				}
-
-				if (bUsePivotXCenter)
-					widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0)); //Scale to visible screen size.
-
-				ImGui::SetCursorPos(vMonitorStart + widget_pos);
-				ImGui::Dummy(widget_size);
-				bool bHovered = false;
-				if (ImGui::IsItemHovered())
-				{
-					bHovered = true;
-				}
-				bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][Storyboard_ActiveWidgets[i]];
-				if (bIsWidgetHidden)
-				{
-					// Hide images
-				}
-				else
-				{
-					//Display Image
-					void* lpTexture = GetImagePointer(imgID);
-					if (lpTexture)
-					{
-						ImGui::SetCursorPos(vMonitorStart + widget_pos);
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
-						ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
-						ImGui::PopItemFlag();
-					}
-				}
-
-				// no text if a global panel
-				bool bShowText = true;
-				cstr text = Storyboard.Nodes[nodeid].widget_label[index];
-				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Image") == NULL) bShowText = false;
-				if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
-
-				//Text Label
-				if (bShowText == true)
-				{
-					LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
-					if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
-					ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
-					ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
-					if (iTextAdjustment == 0)
-						fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
-					else if (iTextAdjustment == 1)
-						fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
-					else if (iTextAdjustment == 2)
-					{
-						fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
-						fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
-					}
-					fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-					ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-					ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
-				}
-			}
-
-			bool bLuaPageClosing = false;
-
-			//PE: TODO - Need to add sound on button click somewhere here!.
-			cstr cTriggerButtonClickSound = "";
-			if (standalone)
-			{
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
-				{
-					ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
-					bool bIsPointerHoveringOver = false;
-					bool bIsPointerReleased = false;
-
-					//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
-					extern int g_iActivelyUsingVRNow;
-					if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)
-					{
-						// VR support
-						int iObjToHit = 5997;
-						float fX = 0, fY = 0, fZ = 0;
-						int iHitIt = GGVR_GetLaserGuidedHit (iObjToHit, &fX, &fY, &fZ);
-						float fptrrealX = ((fX + 19.0f) / 38.0f) * (rMonitorArea.Max.x - rMonitorArea.Min.x);
-						float fptrrealY = ((11.0f - fY) / 22.0f) * (rMonitorArea.Max.y - rMonitorArea.Min.y);
-						if (GGVR_RightController_Trigger() > 0.5f)
+						// special code to hide certain HUDs
+						bool bHideThis = false;
+						if (t.player[1].health == 99999 || t.huddamage.immunity > 0)
 						{
-							bIsPointerReleased = true;
-							ImVec2 topLeft = rMonitorArea.Min + widget_pos - vLargerGrabArea;
-							ImVec2 bottomRight = rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea;
-							if (fptrrealX > topLeft.x && fptrrealY < bottomRight.x)
-							{
-								if (fptrrealY > topLeft.y && fptrrealY < bottomRight.y)
-								{
-									bIsPointerHoveringOver = true;
-								}
-							}
+							if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Panel") == NULL) bHideThis = true;
+						}
+						if (bHideThis == true)
+						{
+							imgID = 0;
 						}
 					}
 					else
 					{
-						// non VR
-						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea)) bIsPointerHoveringOver = true;
-						if (ImGui::IsMouseReleased(0)) bIsPointerReleased = true;
-					}
-					if (bIsPointerHoveringOver)
-					{
-						//if mouse release.
-						if (bIsPointerReleased)
+						// only in HUD editor mode
+						if (ImageExist(imgID) == 0)
 						{
-							if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
-							{
-								cTriggerButtonClickSound = Storyboard.Nodes[nodeid].widget_click_sound[index];
-							}
+							// if no image, cannot grab widget or delete it, so use a placeholder
+							image_setlegacyimageloading(true);
+							LoadImage("imagebank\\HUD Library\\MAX\\missing.png", imgID);
+							image_setlegacyimageloading(false);
 
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_NONE)
+							// also possible it was placed outside of screen if the missing image was large!
+							Storyboard.Nodes[nodeid].widget_pos[index].x = 50.0f;
+							Storyboard.Nodes[nodeid].widget_pos[index].y = 50.0f;
+						}
+					}
+					if (ImageExist(imgID))
+					{
+						widget_size.x = ImageWidth(imgID);
+						widget_size.y = ImageHeight(imgID);
+						widget_size = widget_size * vScale; //Scale to visible screen size.
+						widget_size = widget_size * fGlobalScale;
+						widget_size = widget_size * Storyboard.Nodes[nodeid].widget_size[index];
+					}
+
+					if (bUsePivotXCenter)
+						widget_pos = (widget_pos - ImVec2((widget_size.x*0.5), 0.0)); //Scale to visible screen size.
+
+					ImGui::SetCursorPos(vMonitorStart + widget_pos);
+					ImGui::Dummy(widget_size);
+					bool bHovered = false;
+					if (ImGui::IsItemHovered())
+					{
+						bHovered = true;
+					}
+					bool bIsWidgetHidden = bImGuiInTestGame && Storyboard.widget_ingamehidden[nodeid][Storyboard_ActiveWidgets[i]];
+					if (bIsWidgetHidden)
+					{
+						// Hide images
+					}
+					else
+					{
+						//Display Image
+						void* lpTexture = GetImagePointer(imgID);
+						if (lpTexture)
+						{
+							ImGui::SetCursorPos(vMonitorStart + widget_pos);
+							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+							ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
+							ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
+							ImGui::PopItemFlag();
+						}
+					}
+
+					// no text if a global panel
+					bool bShowText = true;
+					cstr text = Storyboard.Nodes[nodeid].widget_label[index];
+					if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Image") == NULL) bShowText = false;
+					if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
+
+					//Text Label
+					if (bShowText == true)
+					{
+						LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
+						if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+						ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
+						ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
+						if (iTextAdjustment == 0)
+							fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
+						else if (iTextAdjustment == 1)
+							fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
+						else if (iTextAdjustment == 2)
+						{
+							fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
+							fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+						}
+						fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
+						ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
+					}
+				}
+
+				bool bLuaPageClosing = false;
+
+				//PE: TODO - Need to add sound on button click somewhere here!.
+				cstr cTriggerButtonClickSound = "";
+				if (standalone)
+				{
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
+					{
+						ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
+						bool bIsPointerHoveringOver = false;
+						bool bIsPointerReleased = false;
+
+						//if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1)
+						extern int g_iActivelyUsingVRNow;
+						if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1)
+						{
+							// VR support
+							int iObjToHit = 5997;
+							float fX = 0, fY = 0, fZ = 0;
+							int iHitIt = GGVR_GetLaserGuidedHit (iObjToHit, &fX, &fY, &fZ);
+							float fptrrealX = ((fX + 19.0f) / 38.0f) * (rMonitorArea.Max.x - rMonitorArea.Min.x);
+							float fptrrealY = ((11.0f - fY) / 22.0f) * (rMonitorArea.Max.y - rMonitorArea.Min.y);
+							if (GGVR_RightController_Trigger() > 0.5f)
 							{
-								// depends on name of this button for the action (replace with better 'external custom' list instead of these internal enums)
-								int iActionTypeInternalByName = 0;
-								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == 0) iActionTypeInternalByName = 1;
-								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGH") == 0) iActionTypeInternalByName = 2;
-								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == 0) iActionTypeInternalByName = 3;
-								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == 0) iActionTypeInternalByName = 4;
-								if (iActionTypeInternalByName >= 1 && iActionTypeInternalByName <= 4)
+								bIsPointerReleased = true;
+								ImVec2 topLeft = rMonitorArea.Min + widget_pos - vLargerGrabArea;
+								ImVec2 bottomRight = rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea;
+								if (fptrrealX > topLeft.x && fptrrealY < bottomRight.x)
 								{
-									if (iActionTypeInternalByName == 1)
+									if (fptrrealY > topLeft.y && fptrrealY < bottomRight.y)
 									{
-										t.visuals.shaderlevels.entities = 1;
-										t.visuals.shaderlevels.terrain = 1;
-										t.visuals.shaderlevels.vegetation = 1;
+										bIsPointerHoveringOver = true;
 									}
-									if (iActionTypeInternalByName == 2 || iActionTypeInternalByName == 3)
-									{
-										t.visuals.shaderlevels.entities = 2;
-										t.visuals.shaderlevels.terrain = 3;
-										t.visuals.shaderlevels.vegetation = 3;
-									}
-									if (iActionTypeInternalByName == 4)
-									{
-										t.visuals.shaderlevels.entities = 3;
-										t.visuals.shaderlevels.terrain = 4;
-										t.visuals.shaderlevels.vegetation = 4;
-									}
-									extern void visuals_shaderlevels_update();
-									visuals_shaderlevels_update();
 								}
 							}
-
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_RETURNVALUETOLUA)
+						}
+						else
+						{
+							// non VR
+							if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea)) bIsPointerHoveringOver = true;
+							if (ImGui::IsMouseReleased(0)) bIsPointerReleased = true;
+						}
+						if (bIsPointerHoveringOver)
+						{
+							//if mouse release.
+							if (bIsPointerReleased)
 							{
-								iSpecialLuaReturn = index;
-								iRet = STORYBOARD_ACTIONS_RETURNVALUETOLUA;
-								if (stricmp(Storyboard.Nodes[nodeid].lua_name, "savegame.lua") == 0)
+								if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
 								{
-									if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
-										bLuaPageClosing = true;
+									cTriggerButtonClickSound = Storyboard.Nodes[nodeid].widget_click_sound[index];
 								}
-								if (stricmp(Storyboard.Nodes[nodeid].lua_name, "loadgame.lua") == 0)
+
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_NONE)
 								{
-									if (index >= 1 && index <= 8)
+									// depends on name of this button for the action (replace with better 'external custom' list instead of these internal enums)
+									int iActionTypeInternalByName = 0;
+									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == 0) iActionTypeInternalByName = 1;
+									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGH") == 0) iActionTypeInternalByName = 2;
+									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == 0) iActionTypeInternalByName = 3;
+									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == 0) iActionTypeInternalByName = 4;
+									if (iActionTypeInternalByName >= 1 && iActionTypeInternalByName <= 4)
 									{
-										if (!pestrcasestr(LoadGameTitle[index], "EMPTY PROGRESS SLOT"))
+										if (iActionTypeInternalByName == 1)
 										{
-											if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
-												bLuaPageClosing = true;
+											t.visuals.shaderlevels.entities = 1;
+											t.visuals.shaderlevels.terrain = 1;
+											t.visuals.shaderlevels.vegetation = 1;
 										}
+										if (iActionTypeInternalByName == 2 || iActionTypeInternalByName == 3)
+										{
+											t.visuals.shaderlevels.entities = 2;
+											t.visuals.shaderlevels.terrain = 3;
+											t.visuals.shaderlevels.vegetation = 3;
+										}
+										if (iActionTypeInternalByName == 4)
+										{
+											t.visuals.shaderlevels.entities = 3;
+											t.visuals.shaderlevels.terrain = 4;
+											t.visuals.shaderlevels.vegetation = 4;
+										}
+										extern void visuals_shaderlevels_update();
+										visuals_shaderlevels_update();
 									}
 								}
-							}
-							//Find new node to execute. SwitchPage("")
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_BACK)
-							{
-								lua_switchpageback();
-								if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
-									bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_BACK;
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_CONTINUE)
-							{
-								t.s_s = "";
-								lua_switchpage();
-								if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
-									bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_CONTINUE;
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_GOTOLEVEL)
-							{
-								//Support go to level directly ?
-								iRet = STORYBOARD_ACTIONS_GOTOLEVEL;
-								
-								int iNewNode = FindOutputScreenNode(nodeid, index);
-								if (iNewNode >= 0)
+
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_RETURNVALUETOLUA)
 								{
-									t.s_s = "";
-									lua_switchpage();
-									bLuaPageClosing = true;
-
-									// may have linked to loading screen
-									if (strlen(Storyboard.Nodes[iNewNode].level_name) == 0)
+									iSpecialLuaReturn = index;
+									iRet = STORYBOARD_ACTIONS_RETURNVALUETOLUA;
+									if (stricmp(Storyboard.Nodes[nodeid].lua_name, "savegame.lua") == 0)
 									{
-										// will use last 'specified' loading screen
-										extern cstr g_Storyboard_LoaderScreen_Name;
-										g_Storyboard_LoaderScreen_Name = Storyboard.Nodes[iNewNode].lua_name;
-
-										// if so, find out which level it goes to
-										int input_id_of_level = Storyboard.Nodes[iNewNode].output_linkto[0];
-										for (int findnode = 0; findnode < STORYBOARD_MAXNODES; findnode++)
+										if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
+											bLuaPageClosing = true;
+									}
+									if (stricmp(Storyboard.Nodes[nodeid].lua_name, "loadgame.lua") == 0)
+									{
+										if (index >= 1 && index <= 8)
 										{
-											if (Storyboard.Nodes[findnode].input_id[0] == input_id_of_level)
+											if (!pestrcasestr(LoadGameTitle[index], "EMPTY PROGRESS SLOT"))
 											{
-												// change from loading node to level node
-												iNewNode = findnode;
-												break;
+												if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
+													bLuaPageClosing = true;
 											}
 										}
 									}
-									
-									// must ultimately link to a level node!
-									if (strlen(Storyboard.Nodes[iNewNode].level_name) > 0)
+								}
+								//Find new node to execute. SwitchPage("")
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_BACK)
+								{
+									lua_switchpageback();
+									if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
+										bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_BACK;
+								}
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_CONTINUE)
+								{
+									t.s_s = "";
+									lua_switchpage();
+									if (strlen(Storyboard.Nodes[nodeid].screen_music) > 0) //PE: Only stop music if we have our own.
+										bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_CONTINUE;
+								}
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_GOTOLEVEL)
+								{
+									//Support go to level directly ?
+									iRet = STORYBOARD_ACTIONS_GOTOLEVEL;
+								
+									int iNewNode = FindOutputScreenNode(nodeid, index);
+									if (iNewNode >= 0)
 									{
-										g_Storyboard_Current_Level = iNewNode;
-										strcpy(g_Storyboard_Current_fpm, Storyboard.Nodes[iNewNode].level_name);
+										t.s_s = "";
+										lua_switchpage();
+										bLuaPageClosing = true;
 
+										// may have linked to loading screen
+										if (strlen(Storyboard.Nodes[iNewNode].level_name) == 0)
+										{
+											// will use last 'specified' loading screen
+											extern cstr g_Storyboard_LoaderScreen_Name;
+											g_Storyboard_LoaderScreen_Name = Storyboard.Nodes[iNewNode].lua_name;
+
+											// if so, find out which level it goes to
+											int input_id_of_level = Storyboard.Nodes[iNewNode].output_linkto[0];
+											for (int findnode = 0; findnode < STORYBOARD_MAXNODES; findnode++)
+											{
+												if (Storyboard.Nodes[findnode].input_id[0] == input_id_of_level)
+												{
+													// change from loading node to level node
+													iNewNode = findnode;
+													break;
+												}
+											}
+										}
+									
+										// must ultimately link to a level node!
+										if (strlen(Storyboard.Nodes[iNewNode].level_name) > 0)
+										{
+											g_Storyboard_Current_Level = iNewNode;
+											strcpy(g_Storyboard_Current_fpm, Storyboard.Nodes[iNewNode].level_name);
+
+											//Clean name.
+											std::string sLevelTitle = g_Storyboard_Current_fpm;
+											replaceAll(sLevelTitle, ".fpm", "");
+											replaceAll(sLevelTitle, "mapbank\\", "");
+											t.game.jumplevel_s = sLevelTitle.c_str();
+											extern bool g_Storyboard_Starting_New_Level;
+											g_Storyboard_Starting_New_Level = true; //PE: Always start fresh when linking directly to a level.
+										}
+									}
+									else
+									{
+										//PE: Not linked , start first level.
+										t.s_s = "";
+										lua_switchpage();
+										bLuaPageClosing = true;
+										iRet = STORYBOARD_ACTIONS_STARTGAME;
+
+										//PE: Always use first level.
+										FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
+										g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
+										strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
 										//Clean name.
-										std::string sLevelTitle = g_Storyboard_Current_fpm;
+										std::string sLevelTitle = g_Storyboard_First_fpm;
 										replaceAll(sLevelTitle, ".fpm", "");
 										replaceAll(sLevelTitle, "mapbank\\", "");
 										t.game.jumplevel_s = sLevelTitle.c_str();
 										extern bool g_Storyboard_Starting_New_Level;
-										g_Storyboard_Starting_New_Level = true; //PE: Always start fresh when linking directly to a level.
+										g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
+										// reset 'specified' loading screen
+										extern cstr g_Storyboard_LoaderScreen_Name;
+										g_Storyboard_LoaderScreen_Name = "loading";
 									}
 								}
-								else
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_STARTGAME)
 								{
-									//PE: Not linked , start first level.
 									t.s_s = "";
 									lua_switchpage();
 									bLuaPageClosing = true;
@@ -48172,199 +48215,177 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									extern cstr g_Storyboard_LoaderScreen_Name;
 									g_Storyboard_LoaderScreen_Name = "loading";
 								}
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_STARTGAME)
-							{
-								t.s_s = "";
-								lua_switchpage();
-								bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_STARTGAME;
-
-								//PE: Always use first level.
-								FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
-								g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
-								strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-								//Clean name.
-								std::string sLevelTitle = g_Storyboard_First_fpm;
-								replaceAll(sLevelTitle, ".fpm", "");
-								replaceAll(sLevelTitle, "mapbank\\", "");
-								t.game.jumplevel_s = sLevelTitle.c_str();
-								extern bool g_Storyboard_Starting_New_Level;
-								g_Storyboard_Starting_New_Level = true; //PE: Start a fresh game.
-								// reset 'specified' loading screen
-								extern cstr g_Storyboard_LoaderScreen_Name;
-								g_Storyboard_LoaderScreen_Name = "loading";
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_LEAVEGAME)
-							{
-								lua_leavegame();
-								bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_LEAVEGAME;
-								bLastStandalone = false;
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_RESUMEGAME)
-							{
-								lua_resumegame();
-								bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_RESUMEGAME;
-							}
-
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_EXITGAME)
-							{
-								lua_quitgame();
-								bLuaPageClosing = true;
-								iRet = STORYBOARD_ACTIONS_EXITGAME;
-								bLastStandalone = false;
-								extern bool bSpecialStandalone;
-								if (bSpecialStandalone)
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_LEAVEGAME)
 								{
-									extern bool g_bCascadeQuitFlag;
-									g_bCascadeQuitFlag = true;
-									PostQuitMessage(0);
-									//PE: Launch editor again.
-									//editorfromstandalone=
-									SetCurrentDirectoryA("..\\");
-									char par[MAX_PATH];
-									extern bool bReturnToWelcome;
-									if(bReturnToWelcome)
-										sprintf(par, "editorfromstandalone2=%s", Storyboard.gamename);
-									else
-										sprintf(par, "editorfromstandalone=%s", Storyboard.gamename);
-									ExecuteFile("GameGuruMAX.exe", par, "", 0);
-									Sleep(500);
-									ExitProcess(0);
+									lua_leavegame();
+									bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_LEAVEGAME;
+									bLastStandalone = false;
+								}
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_RESUMEGAME)
+								{
+									lua_resumegame();
+									bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_RESUMEGAME;
 								}
 
-							}
-							if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_GOTOSCREEN)
-							{
-								//if (_stricmp(Storyboard.Nodes[nodeid].lua_name, "gamemenu.lua") == 0 && strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0
-								//	&& Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
-								if ( _stricmp(Storyboard.Nodes[nodeid].lua_name,"gamemenu.lua") == 0 ) // output_* CANNOT be trusted!
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_EXITGAME)
 								{
-									//PE: Special mode where we need to follow output_action.
-									//PE: This is a mess, and need to be changed when we change the system to ALL buttons have outlinks.
-									//LB: Agreed, seems changing the in-game menu screen messed 'output_action' list, and the code below is a narsty hack!
-									//The good news is that output_title stores the correct linkages as they are correct in Storyboard :)
-									//i.e. strcpy(chr, Storyboard.Nodes[node].widget_label[ll]); strcat(chr, " -> Connect to Level"); strcpy(Storyboard.Nodes[node].output_title[outlinknum], chr);
-									int iNodeToLinkTo = 0;
-									LPSTR pWidgetLabelName = Storyboard.Nodes[nodeid].widget_label[index];
-									std::string lua_name = "";
-									for (int outlinkageindex = 0; outlinkageindex < STORYBOARD_MAXOUTPUTS; outlinkageindex++)
+									lua_quitgame();
+									bLuaPageClosing = true;
+									iRet = STORYBOARD_ACTIONS_EXITGAME;
+									bLastStandalone = false;
+									extern bool bSpecialStandalone;
+									if (bSpecialStandalone)
 									{
-										char pOutLinkTitleName[256];
-										strcpy(pOutLinkTitleName, Storyboard.Nodes[nodeid].output_title[outlinkageindex]);
-										LPSTR pConnectionTag = " -> Connect to Level";
-										if (strlen(pOutLinkTitleName) > strlen(pConnectionTag))
+										extern bool g_bCascadeQuitFlag;
+										g_bCascadeQuitFlag = true;
+										PostQuitMessage(0);
+										//PE: Launch editor again.
+										//editorfromstandalone=
+										SetCurrentDirectoryA("..\\");
+										char par[MAX_PATH];
+										extern bool bReturnToWelcome;
+										if(bReturnToWelcome)
+											sprintf(par, "editorfromstandalone2=%s", Storyboard.gamename);
+										else
+											sprintf(par, "editorfromstandalone=%s", Storyboard.gamename);
+										ExecuteFile("GameGuruMAX.exe", par, "", 0);
+										Sleep(500);
+										ExitProcess(0);
+									}
+
+								}
+								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_GOTOSCREEN)
+								{
+									//if (_stricmp(Storyboard.Nodes[nodeid].lua_name, "gamemenu.lua") == 0 && strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0
+									//	&& Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
+									if ( _stricmp(Storyboard.Nodes[nodeid].lua_name,"gamemenu.lua") == 0 ) // output_* CANNOT be trusted!
+									{
+										//PE: Special mode where we need to follow output_action.
+										//PE: This is a mess, and need to be changed when we change the system to ALL buttons have outlinks.
+										//LB: Agreed, seems changing the in-game menu screen messed 'output_action' list, and the code below is a narsty hack!
+										//The good news is that output_title stores the correct linkages as they are correct in Storyboard :)
+										//i.e. strcpy(chr, Storyboard.Nodes[node].widget_label[ll]); strcat(chr, " -> Connect to Level"); strcpy(Storyboard.Nodes[node].output_title[outlinknum], chr);
+										int iNodeToLinkTo = 0;
+										LPSTR pWidgetLabelName = Storyboard.Nodes[nodeid].widget_label[index];
+										std::string lua_name = "";
+										for (int outlinkageindex = 0; outlinkageindex < STORYBOARD_MAXOUTPUTS; outlinkageindex++)
 										{
-											pOutLinkTitleName[strlen(pOutLinkTitleName) - strlen(pConnectionTag) - 1] = 0;
-											if (strstr(pOutLinkTitleName, pWidgetLabelName) != NULL)
+											char pOutLinkTitleName[256];
+											strcpy(pOutLinkTitleName, Storyboard.Nodes[nodeid].output_title[outlinkageindex]);
+											LPSTR pConnectionTag = " -> Connect to Level";
+											if (strlen(pOutLinkTitleName) > strlen(pConnectionTag))
 											{
-												// found the actual outlinkageindex, find where we link to
-												int iLinkTo = Storyboard.Nodes[nodeid].output_linkto[outlinkageindex];
-												if (iLinkTo > 0)
+												pOutLinkTitleName[strlen(pOutLinkTitleName) - strlen(pConnectionTag) - 1] = 0;
+												if (strstr(pOutLinkTitleName, pWidgetLabelName) != NULL)
 												{
-													for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+													// found the actual outlinkageindex, find where we link to
+													int iLinkTo = Storyboard.Nodes[nodeid].output_linkto[outlinkageindex];
+													if (iLinkTo > 0)
 													{
-														if (Storyboard.Nodes[i].used)
+														for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 														{
-															for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+															if (Storyboard.Nodes[i].used)
 															{
-																if (iLinkTo == Storyboard.Nodes[i].input_id[l])
+																for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 																{
-																	iNodeToLinkTo = i;
-																	break;
+																	if (iLinkTo == Storyboard.Nodes[i].input_id[l])
+																	{
+																		iNodeToLinkTo = i;
+																		break;
+																	}
 																}
 															}
+															if (iNodeToLinkTo > 0) break;
 														}
-														if (iNodeToLinkTo > 0) break;
 													}
 												}
 											}
+											if (iNodeToLinkTo > 0)
+												break;
 										}
 										if (iNodeToLinkTo > 0)
-											break;
-									}
-									if (iNodeToLinkTo > 0)
-									{
-										lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
-										replaceAll(lua_name, ".lua", "");
-										t.s_s = lua_name.c_str();
-										lua_switchpage();
-										bLuaPageClosing = true; //always stop music.
-										iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
-									}
-								}
-								else
-								{
-									int iNewNode = FindOutputScreenNode(nodeid, index);
-									if (iNewNode >= 0)
-									{
-										//Connected.
-										if (Storyboard.Nodes[iNewNode].type == STORYBOARD_TYPE_SCREEN)
 										{
-											if (strlen(Storyboard.Nodes[iNewNode].lua_name) > 0)
-											{
-												std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
-												replaceAll(lua_name, ".lua", "");
-												t.s_s = lua_name.c_str();
-												lua_switchpage();
-												if (strlen(Storyboard.Nodes[iNewNode].screen_music) > 0) //PE: Only stop music if new swcreen have its own.
-													bLuaPageClosing = true;
-												iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
-											}
+											lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
+											replaceAll(lua_name, ".lua", "");
+											t.s_s = lua_name.c_str();
+											lua_switchpage();
+											bLuaPageClosing = true; //always stop music.
+											iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 										}
 									}
 									else
 									{
-										//PE: Not linked, check if we have a direct link to screen without a pin connection.
-										if (index < STORYBOARD_MAXOUTPUTS)
+										int iNewNode = FindOutputScreenNode(nodeid, index);
+										if (iNewNode >= 0)
 										{
-											if (strlen(Storyboard.Nodes[nodeid].output_title[index]) <= 0) //Empty no output pin.
+											//Connected.
+											if (Storyboard.Nodes[iNewNode].type == STORYBOARD_TYPE_SCREEN)
 											{
-												if (Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
+												if (strlen(Storyboard.Nodes[iNewNode].lua_name) > 0)
 												{
-													if (strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0)
+													std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
+													replaceAll(lua_name, ".lua", "");
+													t.s_s = lua_name.c_str();
+													lua_switchpage();
+													if (strlen(Storyboard.Nodes[iNewNode].screen_music) > 0) //PE: Only stop music if new swcreen have its own.
+														bLuaPageClosing = true;
+													iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
+												}
+											}
+										}
+										else
+										{
+											//PE: Not linked, check if we have a direct link to screen without a pin connection.
+											if (index < STORYBOARD_MAXOUTPUTS)
+											{
+												if (strlen(Storyboard.Nodes[nodeid].output_title[index]) <= 0) //Empty no output pin.
+												{
+													if (Storyboard.Nodes[nodeid].output_can_link_to_type[index] == STORYBOARD_TYPE_SCREEN)
 													{
-														if (Storyboard.Nodes[nodeid].output_linkto[index] == 0)
+														if (strlen(Storyboard.Nodes[nodeid].output_action[index]) > 0)
 														{
-															std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
-															replaceAll(lua_name, ".lua", "");
-															t.s_s = lua_name.c_str();
-															lua_switchpage();
-															bLuaPageClosing = true; //always stop music.
-															iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
+															if (Storyboard.Nodes[nodeid].output_linkto[index] == 0)
+															{
+																std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
+																replaceAll(lua_name, ".lua", "");
+																t.s_s = lua_name.c_str();
+																lua_switchpage();
+																bLuaPageClosing = true; //always stop music.
+																iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
+															}
 														}
 													}
 												}
 											}
-										}
 
+										}
 									}
 								}
-							}
-							int iActionID = Storyboard.Nodes[nodeid].widget_action[index];
-							if (iActionID >= STORYBOARD_ACTIONS_GOTOSCREENHUD2
-							&&  iActionID <= STORYBOARD_ACTIONS_GOTOSCREENHUD32)
-							{
-								// Toggle to new HUD screen ( can be improved this 'ard use of widget_action )
-								for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+								int iActionID = Storyboard.Nodes[nodeid].widget_action[index];
+								if (iActionID >= STORYBOARD_ACTIONS_GOTOSCREENHUD2
+								&&  iActionID <= STORYBOARD_ACTIONS_GOTOSCREENHUD32)
 								{
-									StoryboardNodesStruct& node = Storyboard.Nodes[i];
-									if (node.used && strlen(node.level_name) == 0) // only HUDs
+									// Toggle to new HUD screen ( can be improved this 'ard use of widget_action )
+									for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 									{
-										bool bFoundHUDScreen = false;
-										int iHUDNumber = 2 + (iActionID - STORYBOARD_ACTIONS_GOTOSCREENHUD2);
-										char pHUDScreenName[256];
-										sprintf(pHUDScreenName, "HUD Screen %d", iHUDNumber);
-										if (stricmp (node.title, pHUDScreenName) == NULL) bFoundHUDScreen = true;
-										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
-										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
-										//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
-										if (bFoundHUDScreen == true )
+										StoryboardNodesStruct& node = Storyboard.Nodes[i];
+										if (node.used && strlen(node.level_name) == 0) // only HUDs
 										{
-											t.game.activeStoryboardScreen = i;
-											break;
+											bool bFoundHUDScreen = false;
+											int iHUDNumber = 2 + (iActionID - STORYBOARD_ACTIONS_GOTOSCREENHUD2);
+											char pHUDScreenName[256];
+											sprintf(pHUDScreenName, "HUD Screen %d", iHUDNumber);
+											if (stricmp (node.title, pHUDScreenName) == NULL) bFoundHUDScreen = true;
+											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
+											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
+											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
+											if (bFoundHUDScreen == true )
+											{
+												t.game.activeStoryboardScreen = i;
+												break;
+											}
 										}
 									}
 								}
@@ -48372,140 +48393,139 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 					}
 				}
-			}
-			else
-			{
-				if (bPreviewScreen)
+				else
 				{
-					//Trigger any sound from buttons.
-					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
+					if (bPreviewScreen)
+					{
+						//Trigger any sound from buttons.
+						if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_BUTTON)
+						{
+							ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
+							if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea))
+							{
+								//if mouse release.
+								if (ImGui::IsMouseReleased(0))
+								{
+									if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
+									{
+										cTriggerButtonClickSound = Storyboard.Nodes[nodeid].widget_click_sound[index];
+									}
+								}
+							}
+						}
+					}
+				}
+				if (cTriggerButtonClickSound != "")
+				{
+					//Play sound.
+					int iFreeSoundID = g.temppreviewsoundoffset + 4; //Button Sound.
+					// play music
+					if (SoundExist(iFreeSoundID) == 1) DeleteSound(iFreeSoundID);
+					if (FileExist(cTriggerButtonClickSound.Get()) == 1)
+					{
+						LoadSound(cTriggerButtonClickSound.Get(), iFreeSoundID, 0, 1);
+						if (SoundExist(iFreeSoundID) == 1)
+							PlaySound(iFreeSoundID);
+					}
+					cTriggerButtonClickSound = "";
+				}
+				if (bLuaPageClosing)
+				{
+					//Stop music ...
+					int iFreeSoundID = g.temppreviewsoundoffset + 2;
+					if (SoundExist(iFreeSoundID) == 1 && SoundPlaying(iFreeSoundID) == 1)
+					{
+						// stop currently playing preview
+						StopSound(iFreeSoundID);
+					}
+				}
+
+				//Set Slider Values.
+				if (!bReadOnly && iQuitWindowLoop <= 0 && (bPreviewScreen || standalone) )
+				{
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
 					{
 						ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
 						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea))
 						{
-							//if mouse release.
-							if (ImGui::IsMouseReleased(0))
+							if (ImGui::IsMouseDown(0))
 							{
-								if (strlen(Storyboard.Nodes[nodeid].widget_click_sound[index]) > 0)
+								//Percent.
+								ImVec2 mousecords = ImGui::GetMousePos();
+								ImVec2 xy = mousecords - (rMonitorArea.Min + widget_pos);
+								float percent = xy.x / (widget_size.x / 100.0);
+
+								if (mousecords.x > (rMonitorArea.Min.x + widget_pos.x + widget_size.x))
+									percent = 100.0;
+								else if (percent < 0.0)
+									percent = 0.0;
+								else if (percent > 100.0)
+									percent = 100.0;
+
+								iSpecialLuaReturn = index;
+
+								// If connected to readout, update the readout value
+								if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
 								{
-									cTriggerButtonClickSound = Storyboard.Nodes[nodeid].widget_click_sound[index];
+									SetReadoutValueInt(Storyboard.widget_readout[nodeid][index], percent);
 								}
+								Storyboard.NodeSliderValues[nodeid][index] = percent;
 							}
 						}
 					}
-				}
-			}
-			if (cTriggerButtonClickSound != "")
-			{
-				//Play sound.
-				int iFreeSoundID = g.temppreviewsoundoffset + 4; //Button Sound.
-				// play music
-				if (SoundExist(iFreeSoundID) == 1) DeleteSound(iFreeSoundID);
-				if (FileExist(cTriggerButtonClickSound.Get()) == 1)
-				{
-					LoadSound(cTriggerButtonClickSound.Get(), iFreeSoundID, 0, 1);
-					if (SoundExist(iFreeSoundID) == 1)
-						PlaySound(iFreeSoundID);
-				}
-				cTriggerButtonClickSound = "";
-			}
-			if (bLuaPageClosing)
-			{
-				//Stop music ...
-				int iFreeSoundID = g.temppreviewsoundoffset + 2;
-				if (SoundExist(iFreeSoundID) == 1 && SoundPlaying(iFreeSoundID) == 1)
-				{
-					// stop currently playing preview
-					StopSound(iFreeSoundID);
-				}
-			}
-
-			//Set Slider Values.
-			if (!bReadOnly && iQuitWindowLoop <= 0 && (bPreviewScreen || standalone) )
-			{
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_SLIDER)
-				{
-					ImVec2 vLargerGrabArea = ImVec2(10.0, 10.0);
-					if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos - vLargerGrabArea, rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea))
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE)
 					{
-						if (ImGui::IsMouseDown(0))
+						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos , rMonitorArea.Min + widget_pos + widget_size ))
 						{
-							//Percent.
-							ImVec2 mousecords = ImGui::GetMousePos();
-							ImVec2 xy = mousecords - (rMonitorArea.Min + widget_pos);
-							float percent = xy.x / (widget_size.x / 100.0);
-
-							if (mousecords.x > (rMonitorArea.Min.x + widget_pos.x + widget_size.x))
-								percent = 100.0;
-							else if (percent < 0.0)
-								percent = 0.0;
-							else if (percent > 100.0)
-								percent = 100.0;
-
-							iSpecialLuaReturn = index;
-
-							// If connected to readout, update the readout value
-							if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+							if (ImGui::IsMouseDown(0))
 							{
-								SetReadoutValueInt(Storyboard.widget_readout[nodeid][index], percent);
+								// used by GRAPHICS SETTINGS (1,2,3)
+								int iMatchToSettingValue = -1;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
+								if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
+								Storyboard.NodeRadioButtonSelected[nodeid] = iMatchToSettingValue;
+								iSpecialLuaReturn = iMatchToSettingValue;
 							}
-							Storyboard.NodeSliderValues[nodeid][index] = percent;
 						}
 					}
-				}
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_RADIOTYPE)
-				{
-					if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos , rMonitorArea.Min + widget_pos + widget_size ))
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
 					{
-						if (ImGui::IsMouseDown(0))
+						if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos, rMonitorArea.Min + widget_pos + widget_size))
 						{
-							// used by GRAPHICS SETTINGS (1,2,3)
-							int iMatchToSettingValue = -1;
-							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == NULL) iMatchToSettingValue = 1;
-							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == NULL) iMatchToSettingValue = 2;
-							if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == NULL) iMatchToSettingValue = 3;
-							Storyboard.NodeRadioButtonSelected[nodeid] = iMatchToSettingValue;
-							iSpecialLuaReturn = iMatchToSettingValue;
+							if (ImGui::IsMouseClicked(0))
+							{
+								// If connected to readout, update the readout value
+								if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
+								{
+									bool bEnabled = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
+									bEnabled = !bEnabled;
+									SetReadoutValueInt(Storyboard.widget_readout[nodeid][index], bEnabled);
+								}
+								else
+								{
+									Storyboard.NodeSliderValues[nodeid][index] = 1.0f - Storyboard.NodeSliderValues[nodeid][index];
+								}
+								iSpecialLuaReturn = index;
+							}
 						}
 					}
 				}
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_TICKBOX)
+				//Control Widget.
+				if (iCurrentSelectedWidget == index && !standalone)
 				{
-					if (ImGui::IsMouseHoveringRect(rMonitorArea.Min + widget_pos, rMonitorArea.Min + widget_pos + widget_size))
+					if (!bReadOnly && iQuitWindowLoop <= 0 && !bPreviewScreen)
 					{
-						if (ImGui::IsMouseClicked(0))
-						{
-							// If connected to readout, update the readout value
-							if (strlen(Storyboard.widget_readout[nodeid][index]) > 0)
-							{
-								bool bEnabled = GetReadoutValueInt(Storyboard.widget_readout[nodeid][index]);
-								bEnabled = !bEnabled;
-								SetReadoutValueInt(Storyboard.widget_readout[nodeid][index], bEnabled);
-							}
-							else
-							{
-								Storyboard.NodeSliderValues[nodeid][index] = 1.0f - Storyboard.NodeSliderValues[nodeid][index];
-							}
-							iSpecialLuaReturn = index;
-						}
+						storyboard_control_widget(nodeid, index, widget_pos, widget_size, rMonitorArea, vMonitorStart, vScale);
 					}
 				}
-			}
-			//Control Widget.
-			if (iCurrentSelectedWidget == index && !standalone)
-			{
-				if (!bReadOnly && iQuitWindowLoop <= 0 && !bPreviewScreen)
-				{
-					storyboard_control_widget(nodeid, index, widget_pos, widget_size, rMonitorArea, vMonitorStart, vScale);
-				}
-			}
 
-			if (iSkipWidgetSelectionForFrames > 0) //PE: Make sure we dont select anything after a window on top.
-				iSkipWidgetSelectionForFrames--;
+				if (iSkipWidgetSelectionForFrames > 0) //PE: Make sure we dont select anything after a window on top.
+					iSkipWidgetSelectionForFrames--;
 
-			ImGui::SetWindowFontScale(1.0*vScale.y * fGlobalScale);
-			//ImGui::PushFont(customfont);  //select defaultfont
-			ImGui::PopFont();
+				ImGui::SetWindowFontScale(1.0*vScale.y * fGlobalScale);
+				ImGui::PopFont();
+			}
 		}
 
 		ImVec4 leftPanelBoxCol = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
@@ -48535,27 +48555,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			ImVec2 widgetMin = rMonitorArea.Min + widgetPos - centerOffset;
 			ImVec2 widgetMax = rMonitorArea.Min + widgetPos + widgetSize - centerOffset;
 			currentWidgetAABB = ImRect(widgetMin, widgetMax);
-
-			if (currentWidgetAABB.Min.x < leftPanelAABB.Max.x && ImGui::IsMouseHoveringRect(leftPanelAABB.Min, leftPanelAABB.Max))
-			{
-				// Temporarily removed until the delete bug can be solved
-				/* LB latest
-				if (ImGui::IsMouseDown(0))
-				{
-					ImGui::BeginTooltip();
-					ImGui::ImgBtn(TOOL_TRASHCAN, ImVec2(48, 48), ImVec4(1.0, 1.0, 1.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors);
-					ImGui::EndTooltip();
-					bTrashcanIconActive = true;
-				}
-				*/
-				// Removed for now, deletes happening unexpectedly
-				/*else if(!bPlacingNewWidget)
-				{
-					RemoveWidgetFromScreen(nodeid, iCurrentSelectedWidget);
-				}*/
-				// For debugging widget AABB
-				//window->DrawList->AddRectFilled(widgetMin, widgetMax, ImGui::GetColorU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
-			}
 		}
 
 		ImGui::SetWindowFontScale(1.0);
@@ -48816,6 +48815,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			if (ImGui::StyleCollapsingHeader(sLabel.Get(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
+
+				char pLayerDesc[256];
+				sprintf(pLayerDesc, "Current Draw Order Layer : %d", 2+Storyboard.widget_drawordergroup[nodeid][iCurrentSelectedWidget]);
+				ImGui::TextCenter(pLayerDesc);
 
 				ImGui::TextCenter(sPositionText.Get());
 

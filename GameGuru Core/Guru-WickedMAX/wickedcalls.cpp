@@ -1751,26 +1751,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 							// Parallax Occlusion Mapping (if HEIGHT TEXTURE used)
 							bool bPOMShaderRequired = false;
-							/* use displament code
-							if (sFoundTexturePath.size() <= 0)
-							{
-								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-								{
-									sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
-								}
-							}
-							else
-							{
-								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetOcclusionName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-								{
-									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-										sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
-								}
-							}
-							*/
 							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetDisplacementName().Get();
 							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 							{
@@ -1797,38 +1777,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = "";
 							}
-
-							//Displacement.
-							/* PE: Displacement not used
-							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetDisplacementName().Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-							{
-								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetDisplacementName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-									sFoundFinalPathAndFilename = WickedGetDisplacementName().Get();
-							}
-
-							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource) //PE: Delete first if already active.
-							{
-								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = nullptr;
-								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = "";
-								pObjectMaterial->SetDirty();
-								wiJobSystem::context ctx;
-								wiJobSystem::Wait(ctx);
-							}
-
-							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = sFoundFinalPathAndFilename;
-							pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name);
-							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
-							{
-								//TODO: Get displacement intensity.
-								pObjectMaterial->displacementMapping = 1.0f;
-							}
-							else
-							{
-								pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].name = "";
-							}
-							*/
 
 							//Set emissive colors before map.
 							DWORD dwEmmisiveColor = WickedGetEmmisiveColor();
@@ -1906,40 +1854,6 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 								WickedCall_SetMeshMaterial(pMesh, false);
 							}
-
-							//Occlusion.
-							/* PE: Occlusion part of surface.
-							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetOcclusionName().Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-							{
-								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetOcclusionName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
-									sFoundFinalPathAndFilename = WickedGetOcclusionName().Get();
-							}
-
-							if (pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource) //PE: Delete first if already active.
-							{
-								pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource = nullptr;
-								pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = "";
-								pObjectMaterial->SetDirty();
-								wiJobSystem::context ctx;
-								wiJobSystem::Wait(ctx);
-							}
-
-							pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = sFoundFinalPathAndFilename;
-							pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource = WickedCall_LoadImage(pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name);
-							if (pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].resource)
-							{
-								// prefer secondary occlusion texture for AO of object
-								pObjectMaterial->SetOcclusionEnabled_Primary(false);
-								pObjectMaterial->SetOcclusionEnabled_Secondary(true);
-							}
-							else
-							{
-								pObjectMaterial->textures[MaterialComponent::OCCLUSIONMAP].name = "";
-							}
-
-							*/
 
 							//PE: Special object settings.
 							bool bTransparent = WickedGetTransparent();
@@ -2824,6 +2738,7 @@ void WickedCall_SetMeshDisableDepth(sMesh* pMesh, bool bDisable)
 				if (bDisable == true)
 				{
 					pObjectMaterial->userBlendMode = BLENDMODE_FORCEDEPTH;
+					pObjectMaterial->shaderType = MaterialComponent::SHADERTYPE_WEAPON;
 					pObjectMaterial->SetDoubleSided(true);
 				}
 				else

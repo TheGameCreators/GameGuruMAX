@@ -10301,7 +10301,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_activateifused: entity_lua_activateifused(); break;
 		case enum_addplayerpower: entity_lua_addplayerpower(); break;
 		case enum_loopnon3dsound: entity_lua_loopnon3Dsound(); break;
-		case enum_musicsetlength: lua_musicsetlength(); break;
+		case enum_musicsetlength: t.m = t.e; lua_musicsetlength(); break;
 		case enum_musicsetvolume: lua_musicsetvolume(); break;
 		case enum_playnon3dsound: entity_lua_playnon3Dsound(); break;
 		case enum_rotatetocamera: entity_lua_rotatetocamera(); break;
@@ -10326,7 +10326,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_setactivated: entity_lua_setactivated(); break;
 		case enum_collisionoff: entity_lua_collisionoff(); break;
 		case enum_freezeplayer: lua_freezeplayer(); break;
-		case enum_musicplaycue: lua_musicplaycue(); break;
+		case enum_musicplaycue: t.m = t.e; lua_musicplaycue(); break;
 		case enum_nameplateson: g.mp.nameplatesOff = 0; break;
 		case enum_resetlimbhit: entity_lua_resetlimbhit(); break;
 		case enum_ragdollforce: entity_lua_ragdollforce(); break;
@@ -10380,8 +10380,8 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_activatemouse: lua_activatemouse(); break;
 		case enum_addplayerammo: entity_lua_addplayerammo(); break;
 		case enum_loopanimation: entity_lua_loopanimation(); break;
-		case enum_musicplaytime: lua_musicplaytime(); break;
-		case enum_musicplayfade: lua_musicplayfade(); lua_musicplayfade(); break;
+		case enum_musicplaytime: t.m = t.e; lua_musicplaytime(); break;
+		case enum_musicplayfade: t.m = t.e; lua_musicplayfade(); lua_musicplayfade(); break;
 		case enum_playanimation: entity_lua_playanimation(); break;
 		case enum_nameplatesoff: g.mp.nameplatesOff = 1; break;
 		case enum_refreshentity: entity_lua_refreshentity(); break;
@@ -10391,15 +10391,15 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_addplayerhealth: entity_lua_addplayerhealth(); break;
 		case enum_addplayerweapon: entity_lua_addplayerweapon(); break;
 		case enum_getentityinzone: entity_lua_getentityinzone(); break;
-		case enum_musicsetdefault: lua_musicsetdefault(); break;
+		case enum_musicsetdefault: t.m = t.e; lua_musicsetdefault(); break;
 		case enum_playvideonoskip: entity_lua_playvideonoskip(0, 1); break;
 		case enum_setentityhealth: entity_lua_setentityhealth(); break;
 		case enum_setlightvisible: entity_lua_set_light_visible(); break;
 		case enum_addplayerjetpack: entity_lua_addplayerjetpack(); break;
-		case enum_musicplayinstant: lua_musicplayinstant(); lua_musicplayinstant(); break;
-		case enum_musicplaytimecue: lua_musicplaytimecue(); break;
-		case enum_musicsetfadetime: lua_musicsetfadetime(); break;
-		case enum_musicsetinterval: lua_musicsetinterval(); break;
+		case enum_musicplayinstant: t.m = t.e; lua_musicplayinstant(); lua_musicplayinstant(); break;
+		case enum_musicplaytimecue: t.m = t.e; lua_musicplaytimecue(); break;
+		case enum_musicsetfadetime: t.m = t.e; lua_musicsetfadetime(); break;
+		case enum_musicsetinterval: t.m = t.e; lua_musicsetinterval(); break;
 		case enum_serverrespawnall: mp_serverRespawnAll(); break;
 		case enum_setlockcharacter: entity_lua_setlockcharacter(); break;
 		case enum_spawn: entity_lua_spawn(); break;
@@ -11200,7 +11200,7 @@ int int_core_sendmessages(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_prompt: lua_prompt(); break;
 		case enum_texttxt: t.luaText.txt = t.s_s; lua_text(); break;
 		case enum_setskyto: lua_set_sky(); break;
-		case enum_musicload: lua_musicload(); break;
+		case enum_musicload: t.m = t.e; lua_musicload(); break;
 		case enum_switchpage: lua_switchpage(); break;
 		case enum_setanimationname: entity_lua_setanimationname(); break;
 		case enum_promptlocalforvr: lua_promptlocalforvr(); break;

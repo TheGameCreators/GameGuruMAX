@@ -1343,8 +1343,8 @@ void lua_disablemusicreset ( void )
 
 void lua_musicload ( void )
 {
-	//  load a music track. Takes m and s$
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	// load a music track. Takes m and s$
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	t.tFilePath_s = cstr(GetDir()) + cstr("\\") + t.s_s;
 	if (  FileExist(t.tFilePath_s.Get())  ==  0  )  return;
 
@@ -1365,62 +1365,47 @@ void lua_musicload ( void )
 
 void lua_musicsetinterval ( void )
 {
-
-	//  set the interval v for music m
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	// set the interval v for music m
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	t.musictrack[t.m].interval = t.v;
-return;
-
 }
 
 void lua_musicsetlength ( void )
 {
-
-	//  set the length v for music m
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	// set the length v for music m
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	t.musictrack[t.m].length = t.v;
-return;
-
 }
 
 void lua_musicstop ( void )
 {
-
-	//  stops any music currently playing
+	// stops any music currently playing
 	music_stopall(g.musicsystem.fadetime);
-
-return;
-
 }
 
 void lua_musicplayinstant ( void )
 {
-	//  stop any current music and play m, fading in over period musicsystem.fadetime
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
-	if (  SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
-	if (  t.musictrack[t.m].state  ==  1  )  return;
+	// stop any current music and play m, fading in over period musicsystem.fadetime
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	if ( SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
+	if ( t.musictrack[t.m].state  ==  1  )  return;
 	music_stopall(0);
 	music_play(t.m,g.musicsystem.fadetime);
 }
 
 void lua_musicplayfade ( void )
 {
-
-	//  fade out any playing music and fade in m over period musicsystem.fadetime
+	// fade out any playing music and fade in m over period musicsystem.fadetime
 	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	if (  SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
 	if (  t.musictrack[t.m].state  ==  1  )  return;
 	music_stopall(g.musicsystem.fadetime*3);
 	music_play(t.m,g.musicsystem.fadetime);
-
-return;
-
 }
 
 void lua_musicplaycue ( void )
 {
-
-	//  find the currently playing track and tell it to stop and play m at it's next interval
+	// find the currently playing track and tell it to stop and play m at it's next interval
 	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	if (  SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
 	if (  t.musictrack[t.m].state  ==  1  )  return;
@@ -1432,17 +1417,13 @@ void lua_musicplaycue ( void )
 			t.musictrack[t.tSearch].cuefade = g.musicsystem.fadetime;
 		}
 	}
-
-return;
-
 }
 
 void lua_musicplaytime ( void )
 {
-
-	//  plays the track m for v amount of time, before returning to the default track
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
-	if (  SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
+	// plays the track m for v amount of time, before returning to the default track
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	if ( SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
 	t.musictrack[t.m].playtimestamp = Timer();
 	t.musictrack[t.m].playtime = t.v;
 	t.musictrack[t.m].playtimefade = g.musicsystem.fadetime;
@@ -1450,16 +1431,13 @@ void lua_musicplaytime ( void )
 	//  if already playing, updating the timing data was enough
 	if (  t.musictrack[t.m].state  ==  1  )  return;
 	lua_musicplayfade ( );
-return;
-
 }
 
 void lua_musicplaytimecue ( void )
 {
-
-	//  plays the track m for v amount of time, before returning to the default track, using the timing interval system
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
-	if (  SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
+	// plays the track m for v amount of time, before returning to the default track, using the timing interval system
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	if ( SoundExist(g.musicsoundoffset + t.m - 1)  ==  0  )  return;
 	t.musictrack[t.m].playtimestamp = Timer();
 	t.musictrack[t.m].playtime = t.v;
 	t.musictrack[t.m].playtimefade = g.musicsystem.fadetime;
@@ -1469,59 +1447,44 @@ void lua_musicplaytimecue ( void )
 
 	//  our track is now cued to play, but we need to cue the default track to come in later
 	t.musictrack[t.m].cuetrack = g.musicsystem.default;
-	if (  g.musicsystem.default > 0 ) 
+	if ( g.musicsystem.default > 0 ) 
 	{
 		t.musictrack[t.m].cuefade = g.musicsystem.fadetime;
 	}
-
-return;
-
 }
 
 void lua_musicsetvolume ( void )
 {
-
-	//  sets the global music volume to v and tells the playing track to fade to v in time musicsystem.fadetime
-	if (  t.v < 0  )  t.v  =  0;
-	if (  t.v > 100  )  t.v  =  100;
-	if (  t.v  ==  g.musicsystem.percentageVolume  )  return;
+	// sets the global music volume to v and tells the playing track to fade to v in time musicsystem.fadetime
+	if ( t.v < 0  )  t.v  =  0;
+	if ( t.v > 100  )  t.v  =  100;
+	if ( t.v  ==  g.musicsystem.percentageVolume  )  return;
 	g.musicsystem.percentageVolume = t.v;
 	music_fadeAllMusicToNewVolume ( );
-
-return;
-
 }
 
 void lua_musicsetdefault ( void )
 {
-
-	//  sets the default music track m to return to after another track is played for a finite amount of time
-	if (  t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
+	// sets the default music track m to return to after another track is played for a finite amount of time
+	if ( t.m < 1 || t.m > MUSICSYSTEM_MAXTRACKS  )  return;
 	g.musicsystem.default = t.m;
-
-return;
-
 }
 
 void lua_musicsetfadetime ( void )
 {
-
-	//  sets the global fadetime for all subsequent operations that use a fade time
-	if (  t.v < 0  )  t.v  =  0;
+	// sets the global fadetime for all subsequent operations that use a fade time
+	if ( t.v < 0  )  t.v  =  0;
 	g.musicsystem.fadetime = t.v;
-
-return;
-
-// 
-//  Particle commands
-// 
-
 }
+
+//
+// particles
+//
 
 void lua_startparticleemitter ( void )
 {
-	//  takes e
-	if (  t.entityelement[t.e].particleemitterid == 0 ) 
+	// takes e
+	if ( t.entityelement[t.e].particleemitterid == 0 ) 
 	{
 		ravey_particles_get_free_emitter ( );
 		if (  t.tResult>0 ) 

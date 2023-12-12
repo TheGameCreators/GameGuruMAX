@@ -1499,19 +1499,21 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		//#### .fpe "drawcallscaleadjust" adjust scale.                  ####
 		//###################################################################
 
+		timestampactivity(0, "draw call optimizer.");
 		#define DC_DISTANCE 1000
 		#define MAX_DRAWPRIMITIVES 32765 // max faces.
 		#define MAX_DRAWVERTEX 65520 // max vertex 65530.
 
-		timestampactivity(0, "draw call optimizer.");
+		// clear old draw call optimizer objects
 		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
 			if (t.entityelement[t.e].obj > 0 && t.e < g.entityelementlist )
 			{
 				t.entityelement[t.e].dc_merged = false;
-				if (t.entityelement[t.e].draw_call_obj > 0) {
-
-					if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) {
+				if (t.entityelement[t.e].draw_call_obj > 0) 
+				{
+					if (t.entityelement[t.e].draw_call_obj > 0 && ObjectExist(t.entityelement[t.e].draw_call_obj) == 1) 
+					{
 						DeleteObject(t.entityelement[t.e].draw_call_obj);
 						t.entityelement[t.e].draw_call_obj = 0;
 					}
@@ -1519,76 +1521,68 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 			}
 		}
 
+		// go through all level objects
 		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
+			// for each object
 			t.entid = t.entityelement[t.e].bankindex;
 			t.obj = t.entityelement[t.e].obj;
-
 			if (t.obj > 0 && t.e < g.entityelementlist && t.entityelement[t.e].dc_merged == false && (g.globals.drawcalloptimizer==1 || t.entityprofile[t.entid].drawcalloptimizer == 1) && t.entityprofile[t.entid].drawcalloptimizeroff == 0 && t.entityprofile[t.entid].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1 && t.entityelement[t.e].eleprof.spawnatstart == 1)
 			{
-
 				struct OrderByObjectDistance
 				{
 					bool operator()(int pObjectA, int pObjectB)
 					{
-								
-						if (t.entityelement[pObjectA].dc_distance < t.entityelement[pObjectB].dc_distance)
-							return true;
-
-						if (t.entityelement[pObjectA].dc_distance == t.entityelement[pObjectB].dc_distance)
-							return true;
+						if (t.entityelement[pObjectA].dc_distance < t.entityelement[pObjectB].dc_distance) return true;
+						if (t.entityelement[pObjectA].dc_distance == t.entityelement[pObjectB].dc_distance) return true;
 						return false;
 					}
 				};
 
+				// Sort a sublist by object, distance to increase hit rate
 				int nextObjeid = 0;
-				std::vector< int >     vObjList;
-				if (1 == 1) {
-					//PE: Sort a list by object,distance to increase hit rate.
-							
-					if (ObjectExist(t.obj)) {
-						//for (int i = t.e + 1; i <= g.entityelementlist; i++) {
-						for (int i = 1; i <= g.entityelementlist; i++) {
-							int testobj = t.entityelement[i].obj;
-							int iEntid = t.entityelement[i].bankindex;
-									
-							if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false && t.entityprofile[iEntid].isimmobile != 1 && t.entityelement[i].eleprof.isimmobile != 1 && t.entityelement[i].staticflag == 1 && t.entityelement[i].eleprof.spawnatstart == 1) {
+				std::vector< int > vObjList;
+				if (ObjectExist(t.obj)) 
+				{
+					for (int i = 1; i <= g.entityelementlist; i++) 
+					{
+						int testobj = t.entityelement[i].obj;
+						int iEntid = t.entityelement[i].bankindex;
+						if (testobj > 0 && i != t.e && ObjectExist(testobj) && t.entityelement[i].dc_merged == false && t.entityprofile[iEntid].isimmobile != 1 && t.entityelement[i].eleprof.isimmobile != 1 && t.entityelement[i].staticflag == 1 && t.entityelement[i].eleprof.spawnatstart == 1) 
+						{
+							sObject* pObject = g_ObjectList[t.obj];
+							int instanceonly = 0;
+							if (pObject && pObject->pInstanceOfObject) 
+							{
+								pObject = pObject->pInstanceOfObject;
+							}
 
-								sObject* pObject = g_ObjectList[t.obj];
-								int instanceonly = 0;
-								if (pObject && pObject->pInstanceOfObject) {
-									pObject = pObject->pInstanceOfObject;
-								}
+							sObject* pObjectTest = g_ObjectList[testobj];
+							if (pObjectTest && pObjectTest->pInstanceOfObject) 
+							{
+								pObjectTest = pObjectTest->pInstanceOfObject;
+							}
 
-								sObject* pObjectTest = g_ObjectList[testobj];
-								if (pObjectTest && pObjectTest->pInstanceOfObject) {
-									pObjectTest = pObjectTest->pInstanceOfObject;
-								}
-
-								if (pObject && pObjectTest && pObject == pObjectTest) {
-
-									t.tdx_f = t.entityelement[t.e].x - t.entityelement[i].x;
-									t.tdz_f = t.entityelement[t.e].z - t.entityelement[i].z;
-									t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-
-									t.entityelement[i].dc_distance = t.tdd_f;
-									vObjList.push_back(i);
-								}
-
+							if (pObject && pObjectTest && pObject == pObjectTest) 
+							{
+								t.tdx_f = t.entityelement[t.e].x - t.entityelement[i].x;
+								t.tdz_f = t.entityelement[t.e].z - t.entityelement[i].z;
+								t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
+								t.entityelement[i].dc_distance = t.tdd_f;
+								vObjList.push_back(i);
 							}
 						}
-						//Sort list
-						std::sort(vObjList.begin(), vObjList.end(), OrderByObjectDistance());
-
 					}
-				}
 
+					//Sort list
+					std::sort(vObjList.begin(), vObjList.end(), OrderByObjectDistance());
+				}
 				if (vObjList.size() > 0)
 					nextObjeid = vObjList[0];
 
+				// Merge objects
 				int glueid = t.entityelement[nextObjeid].bankindex;
 				int glueobj = t.entityelement[nextObjeid].obj;
-
 				if (vObjList.size() > 0 && glueobj > 0 && ObjectExist(t.obj) && ObjectExist(glueobj))
 				{
 					bool validshader = false;
@@ -1623,21 +1617,20 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 							
 					if (validshader && t.entityprofile[t.entid].ismarker == 0 && t.entityprofile[t.entid].isebe == 0 && t.entityprofile[t.entid].transparency == 0 && t.entityelement[nextObjeid].staticflag == 1 && t.entityprofile[t.entid].isimmobile != 1 && t.entityelement[t.e].eleprof.isimmobile != 1 && t.entityelement[t.e].eleprof.spawnatstart == 1 && t.entityelement[t.e].staticflag == 1)
 					{
-
 						//Validate if same master object.
 						sObject* pObject = g_ObjectList[t.obj];
 						int instanceonly = 0;
-						if (pObject && pObject->pInstanceOfObject) {
+						if (pObject && pObject->pInstanceOfObject) 
+						{
 							pObject = pObject->pInstanceOfObject;
 							instanceonly++;
 						}
-
 						sObject* pObject2 = g_ObjectList[glueobj];
-						if (pObject2 && pObject2->pInstanceOfObject) {
+						if (pObject2 && pObject2->pInstanceOfObject) 
+						{
 							pObject2 = pObject2->pInstanceOfObject;
 							instanceonly++;
 						}
-
 						int iMeshWithTexture = -1;
 						int iFrameVertex = 0;
 						std::vector< int > vUniqueImageIds;
@@ -1649,52 +1642,50 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 								if (pObject->ppFrameList[i]->pMesh)
 								{
 									sMesh* pMesh = pObject->ppFrameList[i]->pMesh;
-
 									if( pMesh->pTextures )
 									{
 										//PE: Count how many different images is used.
 										vUniqueImageIds.push_back(pMesh->pTextures[0].iImageID);
-										//strcpy(tmp, pMesh->pTextures[0].pName);
 									}
-
 									iMeshWithTexture = i;
 									iFrameVertex += pObject->ppFrameList[i]->pMesh->dwVertexCount;
-									//break;
 								}
 							}
 						}
 
-						if (iFrameVertex > 0x8000) //Cant merge to many vertex.
+						//Cant merge too many vertex.
+						if (iFrameVertex > 0x8000) 
 							instanceonly = 0;
 
-						//PE: Allow users to also drawcall optimize multimaterial objects, if set in fpe.
+						// Allow users to also drawcall optimize multimaterial objects, if set in fpe.
 						if (t.entityprofile[t.entid].drawcalloptimizer != 1)
 						{
 							if (vUniqueImageIds.size() > 1)
 							{
 								instanceonly = 0;
 							}
-							//PE: Cant do multi material for now.
-							//CloneObject(destobj, t.obj, 101); do not support this.
-							if (iMeshWithTexture >= 0 && pObject->ppFrameList[iMeshWithTexture]->pMesh) {
+							if (iMeshWithTexture >= 0 && pObject->ppFrameList[iMeshWithTexture]->pMesh) 
+							{
+								//PE: Cant do multi material for now.
 								if (pObject->ppFrameList[iMeshWithTexture]->pMesh->bUseMultiMaterial)
 									instanceonly = 0;
 							}
 						}
 
+						// Allows you to force even multi-textured object to be batched.
 						int iMultiMatCount = GetMultiMaterialCount(t.obj);
-						if (iMultiMatCount > 0) {
-							//PE: Allows you to force even multi-textured object to be batched.
+						if (iMultiMatCount > 0) 
+						{
 							if(t.entityprofile[t.entid].drawcalloptimizer != 1)
 								instanceonly = 0;
 						}
 
-						//PE: Keep objects distance below DC_DISTANCE for best culling.
-						if (pObject && pObject2 && instanceonly >= 2  && t.entityelement[nextObjeid].dc_distance < DC_DISTANCE && g.merged_new_objects < 2890 ) {
-									
-							if (pObject == pObject2) {
+						// Keep objects distance below DC_DISTANCE for best culling.
+						if (pObject && pObject2 && instanceonly >= 2  && t.entityelement[nextObjeid].dc_distance < DC_DISTANCE && g.merged_new_objects < 2890 ) 
+						{
+							if (pObject == pObject2) 
+							{
 								//Same master glue it.
-
 								if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
 
 								float gluescalex = ObjectScaleX(glueobj);
@@ -1718,7 +1709,7 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 
 								CloneObject(tmpobj, t.obj);
 
-								//PE: Hmm the lod removal could be improved.
+								// The lod removal could be improved.
 								int bestlod = -1;
 								PerformCheckListForLimbs(tmpobj);
 								for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
@@ -1738,7 +1729,8 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										OffsetLimb(tmpobj, t.c - 1, 0, 0, 0, 0);
 									}
 								}
-								if (bestlod >= 0) {
+								if (bestlod >= 0) 
+								{
 									for (t.c = ChecklistQuantity(); t.c >= 1; t.c += -1)
 									{
 										t.tname_s = Lower(ChecklistString(t.c));
@@ -1746,16 +1738,20 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										if (strlen(t.tname_s.Get()) > 5)
 											pRightFive = t.tname_s.Get() + strlen(t.tname_s.Get()) - 5;
 
-										if (bestlod == 0 && ( t.tname_s == "lod_1" || t.tname_s == "lod_2" || t.tname_s == "lod_3") ) {
+										if (bestlod == 0 && ( t.tname_s == "lod_1" || t.tname_s == "lod_2" || t.tname_s == "lod_3") ) 
+										{
 											RemoveLimb(tmpobj, t.c - 1);
 										}
-										if (bestlod == 0 && (stricmp(pRightFive, "_lod1") == 0 || stricmp(pRightFive, "_lod2") == 0 || stricmp(pRightFive, "_lod3") == 0 )) {
+										if (bestlod == 0 && (stricmp(pRightFive, "_lod1") == 0 || stricmp(pRightFive, "_lod2") == 0 || stricmp(pRightFive, "_lod3") == 0 )) 
+										{
 											RemoveLimb(tmpobj, t.c - 1);
 										}
-										if (bestlod == 1 && (t.tname_s == "lod_2" || stricmp(pRightFive, "_lod2") == 0) ) {
+										if (bestlod == 1 && (t.tname_s == "lod_2" || stricmp(pRightFive, "_lod2") == 0) ) 
+										{
 											RemoveLimb(tmpobj, t.c - 1);
 										}
-										if (bestlod == 2 && (t.tname_s == "lod_3" || stricmp(pRightFive, "_lod3") == 0 ) ) {
+										if (bestlod == 2 && (t.tname_s == "lod_3" || stricmp(pRightFive, "_lod3") == 0 ) ) 
+										{
 											RemoveLimb(tmpobj, t.c - 1);
 										}
 									}
@@ -1783,15 +1779,15 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										}
 									}
 								}
-//										printf("after %d vertex %d", iAfterPolygonTotal, iAfterVertex);
-						
 
-								if (pAfterObject && pAfterObject->iMeshCount == 0) {
-									//CloneObject failed.
-									if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+								if (pAfterObject && pAfterObject->iMeshCount == 0) 
+								{
+									if (GetMeshExist(g.meshlightmapwork) == 1)  
+										DeleteMesh(g.meshlightmapwork);
 								}
-								else {
-									MakeMeshFromObject(g.meshlightmapwork, tmpobj); //PE: mesh from source.
+								else 
+								{
+									MakeMeshFromObject(g.meshlightmapwork, tmpobj);
 								}
 
 								if( (iAfterPolygonTotal * 2 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 2 < MAX_DRAWVERTEX)  && GetMeshExist(g.meshlightmapwork) == 1)
@@ -1809,10 +1805,10 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									t.tmastery_f = ObjectPositionY(t.obj);
 									t.tmasterz_f = ObjectPositionZ(t.obj);
 
-									//CloneObject(destobj, tmpobj); //We use the cleaned tmpobj instead of t.obj
-									MakeObject(destobj, g.meshlightmapwork, -1); //Use mesh to prevent any transforms.
+									// Use mesh to prevent any transforms.
+									MakeObject(destobj, g.meshlightmapwork, -1); 
 
-									int testypos = 0; //50,150
+									int testypos = 0;
 									PositionObject(destobj, 0, 0, 0); //PE: Need to be at 0,0,0
 									ScaleObject(destobj, 100, 100, 100); //PE: no scale.
 
@@ -1829,45 +1825,38 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 
 									OffsetLimb(destobj, ChecklistQuantity(), t.tox_f, t.toy_f, t.toz_f);
 
-									//PE: not needed anymore fixed above when we reset scale to 100,100,100
-//											if (t.entityprofile[t.entid].scale != 100 ) {
-//												float scalejust = t.entityprofile[t.entid].scale - 100;
-//												gluescalex -= scalejust;
-//												gluescaley -= scalejust;
-//												gluescalez -= scalejust;
-//											}
-											
 									RotateLimb(destobj, ChecklistQuantity(), ObjectAngleX(glueobj), ObjectAngleY(glueobj), ObjectAngleZ(glueobj));
 									ScaleLimb(destobj, ChecklistQuantity(), gluescalex + scaleadjust, gluescaley + scaleadjust, gluescalez + scaleadjust);
-									for (int i = ChecklistQuantity()-1; i >= 0; i--) {
+									for (int i = ChecklistQuantity()-1; i >= 0; i--) 
+									{
 										RotateLimb(destobj, i, src_angx, src_angy, src_angz);
 										ScaleLimb(destobj, i, ObjectScaleX(t.obj) + scaleadjust, ObjectScaleY(t.obj) + scaleadjust, ObjectScaleZ(t.obj) + scaleadjust);
 									}
 
-									//PE: TODO if possible add one more object.
-
 									bool additionaladded2 = false;
 									int glueid2 = 0;
 									int glueobj2 = 0;
-							
-									if ((iAfterPolygonTotal * 3 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 3 < MAX_DRAWVERTEX) && vObjList.size() > 1 ) {
+									if ((iAfterPolygonTotal * 3 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 3 < MAX_DRAWVERTEX) && vObjList.size() > 1 ) 
+									{
 										nextObjeid = vObjList[1];
-
 										glueid2 = t.entityelement[nextObjeid].bankindex;
 										glueobj2 = t.entityelement[nextObjeid].obj;
-
 										sObject* pObject3 = g_ObjectList[glueobj2];
-										if (pObject3 && pObject3->pInstanceOfObject) {
+										if (pObject3 && pObject3->pInstanceOfObject) 
+										{
 											pObject3 = pObject3->pInstanceOfObject;
-											if (pObject3 == pObject2) {
+											if (pObject3 == pObject2) 
+											{
 												t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
 												t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 												t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-												if (t.tdd_f < DC_DISTANCE) {
+												if (t.tdd_f < DC_DISTANCE) 
+												{
 													//Object ok add.
 													float gluescalex2 = ObjectScaleX(glueobj2);
 													float gluescaley2 = ObjectScaleY(glueobj2);
 													float gluescalez2 = ObjectScaleZ(glueobj2);
+
 													//Its the same master so reuse g.meshlightmapwork
 													PerformCheckListForLimbs(destobj);
 													AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
@@ -1886,24 +1875,26 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										}
 									}
 
-
 									bool additionaladded3 = false;
 									int glueid3 = 0;
 									int glueobj3 = 0;
-									if ((iAfterPolygonTotal * 4 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 4 < MAX_DRAWVERTEX)  && vObjList.size() > 2) {
+									if ((iAfterPolygonTotal * 4 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 4 < MAX_DRAWVERTEX)  && vObjList.size() > 2) 
+									{
 										nextObjeid = vObjList[2];
-
 										glueid3 = t.entityelement[nextObjeid].bankindex;
 										glueobj3 = t.entityelement[nextObjeid].obj;
 
 										sObject* pObject4 = g_ObjectList[glueobj3];
-										if (pObject4 && pObject4->pInstanceOfObject) {
+										if (pObject4 && pObject4->pInstanceOfObject) 
+										{
 											pObject4 = pObject4->pInstanceOfObject;
-											if (pObject4 == pObject2) {
+											if (pObject4 == pObject2) 
+											{
 												t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
 												t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 												t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-												if (t.tdd_f < DC_DISTANCE) {
+												if (t.tdd_f < DC_DISTANCE) 
+												{
 													//Object ok add.
 													float gluescalex3 = ObjectScaleX(glueobj3);
 													float gluescaley3 = ObjectScaleY(glueobj3);
@@ -1929,24 +1920,27 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									bool additionaladded4 = false;
 									int glueid4 = 0;
 									int glueobj4 = 0;
-									if ((iAfterPolygonTotal * 5 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 5 < MAX_DRAWVERTEX)  && vObjList.size() > 3) {
+									if ((iAfterPolygonTotal * 5 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 5 < MAX_DRAWVERTEX)  && vObjList.size() > 3) 
+									{
 										nextObjeid = vObjList[3];
-
 										glueid4 = t.entityelement[nextObjeid].bankindex;
 										glueobj4 = t.entityelement[nextObjeid].obj;
-
 										sObject* pObject5 = g_ObjectList[glueobj4];
-										if (pObject5 && pObject5->pInstanceOfObject) {
+										if (pObject5 && pObject5->pInstanceOfObject) 
+										{
 											pObject5 = pObject5->pInstanceOfObject;
-											if (pObject5 == pObject2) {
+											if (pObject5 == pObject2) 
+											{
 												t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
 												t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 												t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-												if (t.tdd_f < DC_DISTANCE) {
+												if (t.tdd_f < DC_DISTANCE) 
+												{
 													//Object ok add.
 													float gluescalex4 = ObjectScaleX(glueobj4);
 													float gluescaley4 = ObjectScaleY(glueobj4);
 													float gluescalez4 = ObjectScaleZ(glueobj4);
+
 													//Its the same master so reuse g.meshlightmapwork
 													PerformCheckListForLimbs(destobj);
 													AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
@@ -1968,24 +1962,28 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									bool additionaladded5 = false;
 									int glueid5 = 0;
 									int glueobj5 = 0;
-									if ((iAfterPolygonTotal * 6 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 6 < MAX_DRAWVERTEX)  && vObjList.size() > 4) {
+									if ((iAfterPolygonTotal * 6 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 6 < MAX_DRAWVERTEX)  && vObjList.size() > 4) 
+									{
 										nextObjeid = vObjList[4];
-
 										glueid5 = t.entityelement[nextObjeid].bankindex;
 										glueobj5 = t.entityelement[nextObjeid].obj;
 
 										sObject* pObject6 = g_ObjectList[glueobj5];
-										if (pObject6 && pObject6->pInstanceOfObject) {
+										if (pObject6 && pObject6->pInstanceOfObject) 
+										{
 											pObject6 = pObject6->pInstanceOfObject;
-											if (pObject6 == pObject2) {
+											if (pObject6 == pObject2) 
+											{
 												t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
 												t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 												t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-												if (t.tdd_f < DC_DISTANCE) {
+												if (t.tdd_f < DC_DISTANCE) 
+												{
 													//Object ok add.
 													float gluescalex5 = ObjectScaleX(glueobj5);
 													float gluescaley5 = ObjectScaleY(glueobj5);
 													float gluescalez5 = ObjectScaleZ(glueobj5);
+
 													//Its the same master so reuse g.meshlightmapwork
 													PerformCheckListForLimbs(destobj);
 													AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
@@ -2007,24 +2005,28 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									bool additionaladded6 = false;
 									int glueid6 = 0;
 									int glueobj6 = 0;
-									if ((iAfterPolygonTotal * 7 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 7 < MAX_DRAWVERTEX)  && vObjList.size() > 5) {
+									if ((iAfterPolygonTotal * 7 < MAX_DRAWPRIMITIVES) && (iAfterVertex * 7 < MAX_DRAWVERTEX)  && vObjList.size() > 5) 
+									{
 										nextObjeid = vObjList[5];
-
 										glueid6 = t.entityelement[nextObjeid].bankindex;
 										glueobj6 = t.entityelement[nextObjeid].obj;
 
 										sObject* pObject7 = g_ObjectList[glueobj6];
-										if (pObject7 && pObject7->pInstanceOfObject) {
+										if (pObject7 && pObject7->pInstanceOfObject) 
+										{
 											pObject7 = pObject7->pInstanceOfObject;
-											if (pObject7 == pObject2) {
+											if (pObject7 == pObject2) 
+											{
 												t.tdx_f = t.entityelement[t.e].x - t.entityelement[nextObjeid].x;
 												t.tdz_f = t.entityelement[t.e].z - t.entityelement[nextObjeid].z;
 												t.tdd_f = Sqrt(abs(t.tdx_f*t.tdx_f) + abs(t.tdz_f*t.tdz_f));
-												if (t.tdd_f < DC_DISTANCE) {
+												if (t.tdd_f < DC_DISTANCE) 
+												{
 													//Object ok add.
 													float gluescalex6 = ObjectScaleX(glueobj6);
 													float gluescaley6 = ObjectScaleY(glueobj6);
 													float gluescalez6 = ObjectScaleZ(glueobj6);
+
 													//Its the same master so reuse g.meshlightmapwork
 													PerformCheckListForLimbs(destobj);
 													AddLimb(destobj, ChecklistQuantity(), g.meshlightmapwork);
@@ -2043,20 +2045,12 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										}
 									}
 
-									//PE: Merge everything into a single mesh.
+									// Merge everything into a single mesh.
 									DeleteMesh(g.meshlightmapwork);
 									MakeMeshFromObject(g.meshlightmapwork, destobj);
 									DeleteObject(destobj);
 									MakeObject(destobj, g.meshlightmapwork, -1);
 									PositionObject(destobj, t.tmasterx_f, t.tmastery_f + testypos, t.tmasterz_f);
-
-									//PE: TODO
-									//PE: Objects like plant 08.fpe get VERY large ? , need to be checked why!
-									//float objectsizex = ObjectSizeX(destobj);
-									//if (objectsizex > 1000) {
-									//	SetObjectMask(destobj, 1);
-									//}
-
 									if (t.entityprofile[t.entid].canseethrough == 1)
 									{
 										SetObjectCollisionProperty(destobj, 1);
@@ -2080,21 +2074,16 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 										}
 									}
 
-									//not used in MAX
-									//SetObjectSpecularPower(destobj, t.entityelement[t.entid].eleprof.specularperc / 100.0f);
-
-									if (GetMeshExist(g.meshlightmapwork) == 1)  DeleteMesh(g.meshlightmapwork);
+									if (GetMeshExist(g.meshlightmapwork) == 1)  
+										DeleteMesh(g.meshlightmapwork);
 												
 									CloneObject(destobj, t.obj, 101); //PE: Copy textures only.
 
 									SetObjectStatic(destobj, true); //Mark as static.
 
-									//PE: TODO store t.e and glueobj under pObject->draw_call_obj
-									//PE: So we can access them directly in drawobject.
-									//pObject->draw_call_obj = g_ObjectList[destobj];
-
-									//Disable if any LOD setup from original object.
-									if (bestlod >= 0) {
+									// Disable if any LOD setup from original object.
+									if (bestlod >= 0) 
+									{
 										SetObjectLOD(destobj, 1, 50000);
 										SetObjectLOD(destobj, 2, 50000);
 									}
@@ -2103,43 +2092,46 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									t.entityelement[t.e].dc_obj[0] = glueobj;
 									t.entityelement[t.e].dc_entid[0] = vObjList[0];
 									t.entityelement[vObjList[0]].dc_merged = true;
-									if (additionaladded2) {
+									if (additionaladded2) 
+									{
 										t.entityelement[t.e].dc_obj[1] = glueobj2;
 										t.entityelement[t.e].dc_entid[1] = vObjList[1];
 										t.entityelement[vObjList[1]].dc_merged = true;
 										HideObject(glueobj2);
 									}
-									if (additionaladded3) {
+									if (additionaladded3) 
+									{
 										t.entityelement[t.e].dc_obj[2] = glueobj3;
 										t.entityelement[t.e].dc_entid[2] = vObjList[2];
 										t.entityelement[vObjList[2]].dc_merged = true;
 										HideObject(glueobj3);
 									}
-									if (additionaladded4) {
+									if (additionaladded4) 
+									{
 										t.entityelement[t.e].dc_obj[3] = glueobj4;
 										t.entityelement[t.e].dc_entid[3] = vObjList[3];
 										t.entityelement[vObjList[3]].dc_merged = true;
 										HideObject(glueobj4);
 									}
-									if (additionaladded5) {
+									if (additionaladded5) 
+									{
 										t.entityelement[t.e].dc_obj[4] = glueobj5;
 										t.entityelement[t.e].dc_entid[4] = vObjList[4];
 										t.entityelement[vObjList[4]].dc_merged = true;
 										HideObject(glueobj5);
 									}
-									if (additionaladded6) {
+									if (additionaladded6) 
+									{
 										t.entityelement[t.e].dc_obj[5] = glueobj6;
 										t.entityelement[t.e].dc_entid[5] = vObjList[5];
 										t.entityelement[vObjList[5]].dc_merged = true;
 										HideObject(glueobj6);
 									}
+
 									//Hide org objects.
 									HideObject(t.obj);
 									HideObject(glueobj);
-
-									//SetObjectEffect(t.entityelement[t.e].draw_call_obj, t.entityprofile[t.entid].usingeffect );
 									ShowObject(t.entityelement[t.e].draw_call_obj);
-
 									g.merged_new_objects++;
 
 									// NOTE: Does this mean batched objects will not benefit from these important flags (some models have OpenGL normals and the auto-generated tangents shift about)											
@@ -2151,7 +2143,6 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 									SetObjectArtFlags(destobj, dwArtFlags, 0.0f);
 
 								}
-
 								DeleteObject(tmpobj);
 							}
 						}
@@ -2161,8 +2152,71 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		}
 	}
 
-	#ifdef WICKEDENGINE
-	#ifdef NEWMAXAISYSTEM
+	// STATIC SHADOW REDUCER OPTIMIZATION
+	/* LB: too crude, would only work with a GPU query to see if the object shadow is entirely covered by another object shadow
+	// first create list of all point and spot light zones as should not switch off shadows inside these
+	struct sLightZone
+	{
+		float x;
+		float y;
+		float z;
+		float radius;
+	};
+	std::vector<sLightZone> lightZone;
+	lightZone.clear();
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.e < g.entityelementlist && (t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5))
+		{
+			sLightZone item;
+			item.x = t.entityelement[t.e].x;
+			item.y = t.entityelement[t.e].y;
+			item.z = t.entityelement[t.e].z;
+			item.radius = t.entityelement[t.e].eleprof.light.range;
+			lightZone.push_back(item);
+		}
+	}
+	// locate position of directional light sun
+	float fSunX = 0; // work out from t.visuals.SunAngleX;
+	float fSunY = 50000;
+	float fSunZ = 0;
+	// go through level objects and switch off "cast shadows" for static objects that are entirely masked from the sun position by other static objects
+	// such as static boxes inside a static building and would never get to cast through own 'sun' shadow from the directional light
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		// for each object
+		t.obj = t.entityelement[t.e].obj;
+		t.entid = t.entityelement[t.e].bankindex;
+		if (t.obj > 0 && t.e < g.entityelementlist && t.entityprofile[t.entid].ismarker == 0 && t.entityelement[t.e].staticflag != 0)
+		{
+			bool bWithinLightZone = false;
+			for (int i = 0; i < lightZone.size(); i++)
+			{
+				float dx = t.entityelement[t.e].x - lightZone[i].x;
+				float dy = t.entityelement[t.e].y - lightZone[i].y;
+				float dz = t.entityelement[t.e].z - lightZone[i].z;
+				float dist = sqrt(fabs(dx*dx) + fabs(dy*dy) + fabs(dz*dz));
+				if (dist < lightZone[i].radius)
+				{
+					bWithinLightZone = true;
+					break;
+				}
+			}
+			if (bWithinLightZone == false)
+			{
+				int iRayResult = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z, fSunX, fSunY, fSunZ, t.entityelement[t.e].obj, 1, 0, 0, 0, true);
+				if(iRayResult != 0)
+				{
+					// intersected with something solid and static (terrain or another object), so let THAT cast the shadow and switch this one off
+					sObject* pObject = GetObjectData(t.obj);
+					WickedCall_SetObjectCastShadows(pObject, false);
+				}
+			}
+		}
+	}
+	*/
+
 	// Create nav mesh from entire level geometry
 	timestampactivity(0, "Attempt to create nav mesh");
 	if (t.game.gameisexe == 1)
@@ -2174,53 +2228,32 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	{
 		game_createnavmeshfromlevel ( false );
 	}
-	#endif
-	#endif
 
 	// Setup variables for main game loop
-	#ifdef WICKEDENGINE
 	t.screenprompt_s = "STARTING GAME";
 	if (t.game.gameisexe == 0)  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0, t.screenprompt_s.Get());
-	#endif
 	game_init ( );
 
 	// Helpful prompt for start of test game
 	if ( t.game.gameisexe == 0 && t.game.runasmultiplayer == 0 ) 
 	{
-		#ifdef VRTECH
 		if (g_bInTutorialMode == true)
 		{
 			t.visuals.generalprompt_s = "PRESS ESCAPE TO RETURN TO TUTORIAL";
 		}
 		else
 		{
-			#ifdef WICKEDENGINE
 			t.visuals.generalprompt_s = "Press TAB to see framerate or ESCAPE to exit test";
-			#else
-			t.visuals.generalprompt_s = "TAB for settings, F9 for 3D edit, Esc to quit.";
-			#endif
 		}
-		#else
-		t.visuals.generalprompt_s="TAB for settings, F9 for 3D edit, F10 for snapshot, Esc to quit.";
-		#endif
 		t.visuals.generalpromptstatetimer=Timer()+123;
 	}
 	else
 	{
 		if ( t.game.runasmultiplayer == 1 ) 
 		{
-			#ifdef PHOTONMP
-				t.visuals.generalpromptstatetimer=Timer()+1000;
-				#ifdef PRODUCTV3
-				t.visuals.generalprompt_s="Welcome to VR Quest(r) Social VR";
-				#else
-				t.visuals.generalprompt_s="Welcome to GameGuru MAX Multiplayer";
-				#endif
-			#else
-				t.visuals.generalpromptstatetimer=Timer()+1000;
-				t.visuals.generalprompt_s="Press RETURN to Chat";
-			#endif
+			t.visuals.generalpromptstatetimer=Timer()+1000;
+			t.visuals.generalprompt_s="Welcome to GameGuru MAX Multiplayer";
 		}
 		else
 		{

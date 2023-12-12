@@ -5515,17 +5515,10 @@ void mapeditorexecutable_loop(void)
 						// ensure gridentity cleared after duplication
 						t.gridentity = 0;
 
-//						if (g.entityrubberbandlist.size() == 1)
-//						{
-//							//PE: Remove rubberband if we only have one item.
-//							g.entityrubberbandlist.clear();
-//						}
-						bDraggingActive = false; //
+						bDraggingActive = false;
 						t.onetimeentitypickup = 0;
 						iLastSelectedEntityGroup = -1;
 						iLastSelectedEntity = -1;
-
-
 					}
 				}
 			}
@@ -10559,69 +10552,160 @@ void mapeditorexecutable_loop(void)
 						}
 
 						// Custom Materials now an advanced feature
-						if (!bRubberbandActive && bMaterialsUsed == true && pref.iObjectEnableAdvanced && t.entityprofile[iMasterID].ismarker == 0 && bIsThisAnEBE == false)
+						if ( bMaterialsUsed == true && pref.iObjectEnableAdvanced && t.entityprofile[iMasterID].ismarker == 0 && bIsThisAnEBE == false)
 						{
-							bool bNeedMaterialUpdate = false;
-							// detect if object changed while showing materials, ensure the switch happens in the UI
-							static void* pLastObjectPtr;
-							if ((void*)pObject != pLastObjectPtr)
+							// multi-selection allows SOME material changes
+							if (!bRubberbandActive)
 							{
-								//PE: reset mesh names, as we got a new object.
-								t.importer.bModelMeshNamesSet = false;
-								t.importer.cModelMeshNames.clear();
-								bNeedMaterialUpdate = true;
-								pLastObjectPtr = (void*)pObject;
-							}
+								// single object editing
+								bool bNeedMaterialUpdate = false;
 
-							if (pref.bAutoClosePropertySections && iLastOpenHeader != 13)
-								ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-
-							if (ImGui::StyleCollapsingHeader("Materials##2", ImGuiTreeNodeFlags_None))
-							{
-								iLastOpenHeader = 13;
-
-								ImGui::Indent(10);
-
-								if (ImGui::Checkbox("Enable Custom Materials##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
+								// detect if object changed while showing materials, ensure the switch happens in the UI
+								static void* pLastObjectPtr;
+								if ((void*)pObject != pLastObjectPtr)
 								{
-									bNeedMaterialUpdate = true;
+									//PE: reset mesh names, as we got a new object.
 									t.importer.bModelMeshNamesSet = false;
 									t.importer.cModelMeshNames.clear();
+									bNeedMaterialUpdate = true;
+									pLastObjectPtr = (void*)pObject;
 								}
 
-								if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+								if (pref.bAutoClosePropertySections && iLastOpenHeader != 13)
+									ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
+								if (ImGui::StyleCollapsingHeader("Materials##2", ImGuiTreeNodeFlags_None))
 								{
-									// display custom material settings
-									WickedSetEntityId(iMasterID);
-									WickedSetElementId(iEntityIndex);
-									Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									WickedSetEntityId(-1);
-									WickedSetElementId(0);
+									iLastOpenHeader = 13;
+
+									ImGui::Indent(10);
+
+									if (ImGui::Checkbox("Enable Custom Materials##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
+									{
+										bNeedMaterialUpdate = true;
+										t.importer.bModelMeshNamesSet = false;
+										t.importer.cModelMeshNames.clear();
+									}
+
+									if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+									{
+										// display custom material settings
+										WickedSetEntityId(iMasterID);
+										WickedSetElementId(iEntityIndex);
+										Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										WickedSetEntityId(-1);
+										WickedSetElementId(0);
+									}
+
+									ImGui::Indent(-10);
 								}
-									
-								ImGui::Indent(-10);
+								if (bNeedMaterialUpdate)
+								{
+									if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+									{
+										// Set material settings from master object.
+										sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
+										Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+											SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
+
+										Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										t.grideleprof.WEMaterial.MaterialActive = false;
+									}
+									else
+									{
+										// Set custom material settings.
+										Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										t.grideleprof.WEMaterial.MaterialActive = true;
+									}
+								}
 							}
-
-							if (bNeedMaterialUpdate)
+							else
 							{
-								if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+								// multi selection editing
+								bool bNeedMaterialUpdate = false;
+								if (pref.bAutoClosePropertySections && iLastOpenHeader != 13) ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+								if (ImGui::StyleCollapsingHeader("All Materials##3", ImGuiTreeNodeFlags_None))
 								{
-									// Set material settings from master object.
-									sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
-									Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-										SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
-							
-									Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									t.grideleprof.WEMaterial.MaterialActive = false;
+									// UI for all materials
+									iLastOpenHeader = 13;
+									ImGui::Indent(10);
+
+									// any custom flags sets ALL of them (or none of them)
+									bool bAnyCustomMaterials = false;
+									for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+									{
+										int ee = g.entityrubberbandlist[ii].e;
+										if (t.entityelement[ee].eleprof.bCustomWickedMaterialActive == true)
+										{
+											bAnyCustomMaterials = true;
+											break;
+										}
+									}
+									if (ImGui::Checkbox("Enable Custom Materials##3", &bAnyCustomMaterials))
+									{
+										// set all materials as custom or not
+										for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+										{
+											int ee = g.entityrubberbandlist[ii].e;
+											t.entityelement[ee].eleprof.bCustomWickedMaterialActive = bAnyCustomMaterials;
+										}
+										//bNeedMaterialUpdate = true;
+									}
+
+									// if custom materials, opens up options to mass change certain properties
+									if (bAnyCustomMaterials==true)
+									{
+										// display custom material settings for ALL objects
+										if (g.entityrubberbandlist.size() > 0)
+										{
+											int iEntityIndex = g.entityrubberbandlist[0].e;
+											WickedSetEntityId(t.entityelement[iEntityIndex].bankindex);
+											WickedSetElementId(iEntityIndex);
+											Wicked_Change_Object_Material((void*)pObject, 6, &t.entityelement[iEntityIndex].eleprof);
+											WickedSetEntityId(-1);
+											WickedSetElementId(0);
+										}
+										//WickedSetEntityId(iMasterID);
+										//WickedSetElementId(iEntityIndex);
+										//Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+										//WickedSetEntityId(-1);
+										//WickedSetElementId(0);
+									}
+									ImGui::Indent(-10);
 								}
-								else
-								{
-									// Set custom material settings.
-									Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-									t.grideleprof.WEMaterial.MaterialActive = true;
-								}
+								//if (bNeedMaterialUpdate==true)
+								//{
+									/* done using mode 6 inside change_object_material so can focus change rather than a blanket copy!
+									for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+									{
+										int iEntityIndex = g.entityrubberbandlist[ii].e;
+										int iMasterID = t.entityelement[iEntityIndex].bankindex;
+										sObject* pObject = g_ObjectList[t.entityelement[iEntityIndex].obj];
+										if (pObject)
+										{
+											if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
+											{
+												// Set material settings from master object.
+												sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
+												Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
+												if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
+													SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
+												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+												t.grideleprof.WEMaterial.MaterialActive = false;
+											}
+											else
+											{
+												// Set custom material settings.
+												Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
+												t.grideleprof.WEMaterial.MaterialActive = true;
+											}
+										}
+									}
+									*/
+								//}
 							}
 						}
 
@@ -14069,6 +14153,53 @@ void mapeditorexecutable_loop(void)
 									std::string treename = cName;
 									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(it->second + 99000), node_flags, treename.c_str());
 									bool bHovered = ImGui::IsItemHovered();
+									if (bHovered == true)
+									{
+										if (ImGui::IsMouseDoubleClicked(0))
+										{
+											LPSTR pParentName = t.entityprofileheader[it->second].desc_s.Get();
+											int iAnchorEntityIndex = -1;
+											g.entityrubberbandlist.clear();
+											for (int e = 1; e <= g.entityelementlist; e++)
+											{
+												int entid = t.entityelement[e].bankindex;
+												if (entid > 0)
+												{
+													LPSTR pThisName = t.entityprofileheader[entid].desc_s.Get();
+													if (stricmp(pParentName, pThisName) == NULL)
+													{
+														iAnchorEntityIndex = e;
+														sRubberBandType rubberbandItem;
+														rubberbandItem.e = e;
+														rubberbandItem.x = t.entityelement[e].x;
+														rubberbandItem.y = t.entityelement[e].y;
+														rubberbandItem.z = t.entityelement[e].z;
+														rubberbandItem.px = t.entityelement[e].x;
+														rubberbandItem.py = t.entityelement[e].y;
+														rubberbandItem.pz = t.entityelement[e].z;
+														rubberbandItem.rx = t.entityelement[e].rx;
+														rubberbandItem.ry = t.entityelement[e].ry;
+														rubberbandItem.rz = t.entityelement[e].rz;
+														rubberbandItem.quatmode = t.entityelement[e].quatmode;
+														rubberbandItem.quatx = t.entityelement[e].quatx;
+														rubberbandItem.quaty = t.entityelement[e].quaty;
+														rubberbandItem.quatz = t.entityelement[e].quatz;
+														rubberbandItem.quatw = t.entityelement[e].quatw;
+														rubberbandItem.scalex = t.entityelement[e].scalex;
+														rubberbandItem.scaley = t.entityelement[e].scaley;
+														rubberbandItem.scalez = t.entityelement[e].scalez;
+														g.entityrubberbandlist.push_back (rubberbandItem);
+													}
+												}
+											}
+											if (iAnchorEntityIndex != -1)
+											{
+												t.widget.pickedEntityIndex = iAnchorEntityIndex;
+												t.widget.pickedObject = t.entityelement[iAnchorEntityIndex].obj;
+												t.gridentity = 0;
+											}
+										}
+									}
 									ImGui::PopItemWidth();
 
 									cstr find = t.entitybank_s[it->second];
@@ -26448,7 +26579,6 @@ void gridedit_addEntityToRubberBandHighlights ( int e )
 		rubberbandItem.x = t.entityelement[e].x;
 		rubberbandItem.y = t.entityelement[e].y;
 		rubberbandItem.z = t.entityelement[e].z;
-		#ifdef WICKEDENGINE
 		rubberbandItem.px = t.entityelement[e].x;
 		rubberbandItem.py = t.entityelement[e].y;
 		rubberbandItem.pz = t.entityelement[e].z;
@@ -26463,7 +26593,6 @@ void gridedit_addEntityToRubberBandHighlights ( int e )
 		rubberbandItem.scalex = t.entityelement[e].scalex;
 		rubberbandItem.scaley = t.entityelement[e].scaley;
 		rubberbandItem.scalez = t.entityelement[e].scalez;
-		#endif
 		g.entityrubberbandlist.push_back ( rubberbandItem );
 
 		if ( t.entityelement[e].staticflag == 0 ) 

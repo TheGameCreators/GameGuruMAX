@@ -43125,6 +43125,7 @@ void process_storeboard(bool bInitOnly)
 								if (projectfile)
 								{
 									StoryboardStruct* checkproject = new StoryboardStruct;
+									memset(checkproject, 0, sizeof(StoryboardStruct));
 									size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
 									char sig[12] = "Storyboard\0";
 									if (checkproject->sig[0] == 'S' && checkproject->sig[8] == 'r')
@@ -47490,11 +47491,18 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		}
 		
 		// Draw all widgets (early and regular)
-		for(int early=-1; early <= 1; early++ )
+		int iMinDraw = -1;
+		int iMaxDraw =  1;
+		for(int early = iMinDraw; early <= iMaxDraw; early++ )
 		{
 			for (int i = 0; i < Storyboard_ActiveWidgets.size(); i++)
 			{
 				bool bDrawThis = false;
+				if (Storyboard.widget_drawordergroup[nodeid][i] < iMinDraw || Storyboard.widget_drawordergroup[nodeid][i] > iMaxDraw)
+				{
+					// ensure ALWAYS within the draw order slots!
+					Storyboard.widget_drawordergroup[nodeid][i] = 0;
+				}
 				if (Storyboard.widget_drawordergroup[nodeid][i] == early) bDrawThis = true;
 				if (bDrawThis == false)
 					continue;

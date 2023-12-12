@@ -10246,6 +10246,13 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	//Mode 1 (NOT USED) Single mesh , texture all meshes with the same material.
 	//Mode 3 EBE
 	//Mode 5 readonly.
+	
+	//Mode 6 all materials (multi-selection editing many objects at once)
+	bool bCloneChangesToAllObjectsInRubberBand = false;
+	bool bCloneChangesToAllObjectsInRubberBandTransparency = false;
+	bool bCloneChangesToAllObjectsInRubberBandDoubleSided = false;
+	bool bCloneChangesToAllObjectsInRubberBandPlanarReflection = false;
+	bool bCloneChangesToAllObjectsInRubberBandCastShadow = false;
 
 	if (t.importer.importerActive)// && !t.importer.bEditAllMesh) allow importer to specify RGBA for ALL meshes at once
 	{
@@ -10268,7 +10275,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 	if (bUpdateGrideleprof && bHaveMaterialUpdate) 
 	{
 		Wicked_Copy_Material_To_Grideleprof(pVObject, mode, edit_grideleprof);
-		if (mode == 0 || mode == 3) 
+		if (mode == 0 || mode == 3)
 		{
 			// update wicked settings on all meshes.
 			update_all_count = 25;
@@ -10298,10 +10305,10 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 
 	// mesh dropdown only for objects and readonly, not EBE
 	int comboflags = ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
-	if (mode == 0 || mode == 5)
+	if (mode == 0 || mode == 5 || mode == 6)
 	{
 		bool bDisplayCombo = true;
-		if (mode == 5)
+		if (mode == 5 || mode == 6)
 		{
 			// choose mesh
 			sMesh* pSelMesh = NULL;
@@ -10353,30 +10360,11 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						// Get names for the mesh from the base colour texture, unless they have already been created.
 						if (!t.importer.bModelMeshNamesSet)
 						{
-							/* should not use mesh index to look into frame array for names, makes no sense
-							sFrame* pFrame = nullptr;
-							if (i + 1 < pObject->iFrameCount)
-							{
-								// Sometimes objects will have a root node frame that doesn't have any meshes
-								pFrame = pObject->ppFrameList[i + 1];
-							}
-							else
-							{
-								pFrame = pObject->ppFrameList[i];
-							}
-							if (pFrame && strlen(pFrame->szName) > 0 && strcmp(pFrame->szName, "sibling frame"))
-							{
-								t.importer.cModelMeshNames.push_back(pFrame->szName);
-							}
-							else
-							{
-							*/
 							// Crops the filepath and extension, to leave only the mesh name.
 							LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
 							extern void Wicked_CreateShortName(int, LPSTR, LPSTR);
 							Wicked_CreateShortName(i, meshname, pNameFromMesh);
 							t.importer.cModelMeshNames.push_back(meshname);
-							//}
 							if (i == (pObject->iMeshCount - 1))
 								t.importer.bModelMeshNamesSet = true;
 						}
@@ -10428,8 +10416,11 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				{
 					// select first mesh if EBE
 					iSelectedMesh = i;
-					if (iSelectedMesh >= MAXMESHMATERIALS - 1) //PE: We can crash if we go above the MAXMESHMATERIALS.
+					if (iSelectedMesh >= MAXMESHMATERIALS - 1)
+					{
+						//PE: We can crash if we go above the MAXMESHMATERIALS.
 						iSelectedMesh = MAXMESHMATERIALS - 1;
+					}
 					pChosenMesh = pMesh;
 					break;
 				}
@@ -10486,7 +10477,6 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				int tCount = 1;
 				char materialname[MAX_PATH];
 				memset(materialname, 0, sizeof(materialname));
-				/*bool launch_file = false;*/
 
 				// if read only
 				int mode5_materials = 0;
@@ -10513,449 +10503,431 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 				int iInputFlags = ImGuiInputTextFlags_EnterReturnsTrue;
 				if (mode == 3 || mode == 5)	iInputFlags = ImGuiInputTextFlags_ReadOnly;
 
-				// base color
-				ImVec4 mycolor;
-				bool open_popup;
-				ImGuiWindow* window;
-				ID3D11ShaderResourceView* lpTexture;
-				ImVec2 vDrawPos;
-
-				// base color editing (if not readonly)
-				if (mode != 5)
+				// if not ALL OBJECTS material changes
+				if (mode != 6)
 				{
-					// mesh base color
-					BaseColor[0] = pChosenMesh->mMaterial.Diffuse.r;
-					BaseColor[1] = pChosenMesh->mMaterial.Diffuse.g;
-					BaseColor[2] = pChosenMesh->mMaterial.Diffuse.b;
-					BaseColor[3] = pChosenMesh->mMaterial.Diffuse.a;
-					ImGui::TextCenter("Base Color");
-					mycolor = ImVec4(BaseColor[0], BaseColor[1], BaseColor[2], BaseColor[3]);
-					open_popup = ImGui::ColorButton("##NewV2WickedBaseColor", mycolor, 0, ImVec2(w - 10.0, 0));
-					if (open_popup) ImGui::OpenPopup("##pickWickedBaseColor");
-					if (ImGui::BeginPopup("##pickWickedBaseColor", ImGuiWindowFlags_NoMove))
+					// base color
+					ImVec4 mycolor;
+					bool open_popup;
+					ImGuiWindow* window;
+					ID3D11ShaderResourceView* lpTexture;
+					ImVec2 vDrawPos;
+
+					// base color editing (if not readonly)
+					if (mode != 5)
 					{
-						if (ImGui::ColorPicker4("##BaseColor", &BaseColor[0], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB)) 
+						// mesh base color
+						BaseColor[0] = pChosenMesh->mMaterial.Diffuse.r;
+						BaseColor[1] = pChosenMesh->mMaterial.Diffuse.g;
+						BaseColor[2] = pChosenMesh->mMaterial.Diffuse.b;
+						BaseColor[3] = pChosenMesh->mMaterial.Diffuse.a;
+						ImGui::TextCenter("Base Color");
+						mycolor = ImVec4(BaseColor[0], BaseColor[1], BaseColor[2], BaseColor[3]);
+						open_popup = ImGui::ColorButton("##NewV2WickedBaseColor", mycolor, 0, ImVec2(w - 10.0, 0));
+						if (open_popup) ImGui::OpenPopup("##pickWickedBaseColor");
+						if (ImGui::BeginPopup("##pickWickedBaseColor", ImGuiWindowFlags_NoMove))
 						{
-							pChosenMesh->mMaterial.Diffuse.r = BaseColor[0];
-							pChosenMesh->mMaterial.Diffuse.g = BaseColor[1];
-							pChosenMesh->mMaterial.Diffuse.b = BaseColor[2];
-							pChosenMesh->mMaterial.Diffuse.a = BaseColor[3];
-							dwBaseColor = ((unsigned int)(BaseColor[0] * 255) << 24);
-							dwBaseColor += ((unsigned int)(BaseColor[1] * 255) << 16);
-							dwBaseColor += ((unsigned int)(BaseColor[2] * 255) << 8);
-							dwBaseColor += ((unsigned int)(BaseColor[3] * 255));
-							WickedCall_SetMeshMaterial(pChosenMesh,true);
-							bHaveMaterialUpdate = true;
-
-							importer_set_all_material_colour(0, BaseColor);
-						}
-						ImGui::EndPopup();
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change Base Color");
-					window = ImGui::GetCurrentWindow(); //PE: Add a pencil to all color gadgets.
-					lpTexture = GetImagePointerView(TOOL_PENCIL);
-					vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-					if (lpTexture)
-						window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-				}
-
-				// loop through all textures required
-				for (int texslot = 0; texslot < 7; texslot++)
-				{
-					// texture gadget labels
-					LPSTR pInputLabel = "", pInputBtnLabel = "", pInputControlLabel = "";
-					if (texslot == 0) { pInputLabel = "##InputMeshColor"; pInputBtnLabel = "...##InputMeshColorFile"; pInputControlLabel = "##AlphaRef"; }
-					if (texslot == 1) { pInputLabel = "##InputMeshNormal"; pInputBtnLabel = "...##InputMeshNormalFile"; pInputControlLabel = "##NormalStrength"; }
-					if (texslot == 2 && t.importer.importerActive)
-					{
-						if (ImGui::Checkbox("Use RGBA buttons##importersurfacemode", &bUseRGBAButtons))
-						{
-							// Choose whether to select surface texture directly, or take data from individual channels of a source texture.
-						}
-					}
-					if (bFromCustomMaterials == true)
-					{
-						// viewed from object properties or when editing all meshes.
-						if (texslot == 2) { pInputLabel = "##InputMeshSurface"; pInputBtnLabel = "...##InputMeshSurfaceFile"; pInputControlLabel = "##RoughnessStrength"; }
-						if (texslot == 3) { pInputLabel = ""; pInputBtnLabel = ""; pInputControlLabel = "##MetalnessStrength"; }
-						if (texslot == 4) { pInputLabel = ""; pInputBtnLabel = ""; pInputControlLabel = ""; }
-					}
-					else
-					{
-						// viewed from importer
-						if (texslot == 2) { pInputLabel = "##InputMeshRoughness"; pInputBtnLabel = "...##InputMeshRoughnessFile"; pInputControlLabel = "##RoughnessStrength"; }
-						if (texslot == 3) { pInputLabel = "##InputMeshMetalness"; pInputBtnLabel = "...##InputMeshMetalnessFile"; pInputControlLabel = "##MetalnessStrength"; }
-						if (texslot == 4) { pInputLabel = "##InputMeshOcclusion"; pInputBtnLabel = "...##InputMeshOcclusionFile"; pInputControlLabel = "##OcclusionStrength"; }						
-					}
-					if (texslot == 5) { pInputLabel = "##InputMeshEmissive"; pInputBtnLabel = "...##InputMeshEmissiveFile"; pInputControlLabel = "##EmissiveStrength"; }
-					if (texslot == 6) { pInputLabel = "##InputMeshHeight"; pInputBtnLabel = "...##InputMeshHeightFile"; pInputControlLabel = "##HeightStrength"; }
-
-					// texture types
-					LPSTR pTitle = "", pTip = "";
-					if (texslot == 0) { pTitle = "Albedo"; pTip = "Allows you to change the albedo / color texture of the object"; }
-					if (texslot == 1) { pTitle = "Normal"; pTip = "Allows you to change the normal map texture of the object";  }
-					if (bFromCustomMaterials == true)
-					{
-						if (texslot == 2) { pTitle = "Surface"; pTip = "Allows you to change the surface texture of the object."; }
-						if (texslot == 3) { pTitle = ""; pTip = ""; }
-						if (texslot == 4) { pTitle = ""; pTip = ""; }
-					}
-					else
-					{
-						if (texslot == 2) { pTitle = "Roughness"; pTip = "Allows you to change the roughness texture of the object."; }
-						if (texslot == 3) { pTitle = "Metalness"; pTip = "Allows you to change the metalness texture of the object."; }
-						if (texslot == 4) { pTitle = "Occlusion"; pTip = "Allows you to change the ambient occlusion texture of the object."; }
-					}
-					if (texslot == 5) { pTitle = "Emissive"; pTip = "Allows you to change the emissive texture of the object."; }
-					if (texslot == 6) { pTitle = "Height"; pTip = "Allows you to change the displacement height texture of the object."; }
-
-					// control title and desc
-					LPSTR pControlTitle = "", pControlTip = "";
-					if (texslot == 0) { pControlTitle = "Alpha Clipping";  pControlTip = "Alpha channel values below this value are clipped and not rendered."; }
-					if (texslot == 1) { pControlTitle = "Normal Strength";  pControlTip = "Controls how strong the normal mapping effect is on the object."; }
-					if (texslot == 2) { pControlTitle = "Roughness Strength";  pControlTip = "Controls how much of the roughness texture is applied to the object."; }
-					if (texslot == 3) { pControlTitle = "Metalness Strength";  pControlTip = "Controls how much of the metalness texture is applied to the object."; }
-					if (texslot == 4) { pControlTitle = "";  pControlTip = ""; }
-					if (texslot == 5) { pControlTitle = "Emissive Strength";  pControlTip = "Controls how much of the emissive texture is applied to the object."; }
-					if (texslot == 6) { pControlTitle = "";  pControlTip = ""; }
-
-					// extra info message and image
-					LPSTR pTexSlotInfo = "", pTexSlotInfoImage = "";
-					if (texslot == 0) { pTexSlotInfo = "An albedo texture is an image texture that represents the color of an object, before any lighting calculations have been applied to it."; pTexSlotInfoImage = ""; }
-					if (texslot == 1) { pTexSlotInfo = "A normal map texture is a special type of image that describes the undulations of a surface. Each pixel represents an angle offset away from the surface - for example it could be the edge of a rock or how clothes have folds in them. Normal maps are used to add extra depth and detail to an object without increasing the number of polygons, thus allowing for more polygons to be used elsewhere in your game."; pTexSlotInfoImage = ""; }
-					if (bFromCustomMaterials == true)
-					{
-						if (texslot == 2) { pTexSlotInfo = "Surface textures represent the physically-based material of an object. It combines ambient occlusion, roughness and metalness into its RGBA channels. Surface textures are used to control how light interacts with an object and alters the extent to which it resembles metal, wood or another material type from the real world. This allows for the object to look physically accurate."; pTexSlotInfoImage = ""; }
-						if (texslot == 3) { pTexSlotInfo = ""; pTexSlotInfoImage = ""; }
-						if (texslot == 4) { pTexSlotInfo = ""; pTexSlotInfoImage = ""; }
-					}
-					else
-					{
-						if (texslot == 2) { pTexSlotInfo = "A roughness map describes which part of the surface is rough, and by inference, which parts are smooth and potentially glossy. Roughness is placed into the green channel of the surface texture."; pTexSlotInfoImage = ""; }
-						if (texslot == 3) { pTexSlotInfo = "A metalness map is an image that describes how much metal is represented on the surface, with white being fully metallic and black being no metal at all. Metalness is placed into the blue channel of the surface texture."; pTexSlotInfoImage = ""; }
-						if (texslot == 4) { pTexSlotInfo = "An ambient occlusion (AO) map describes how much baked-in shadows are part of the surface, and can be used to add very small scale lighting information to compliment the global lighting system. Ambient Occlusion is placed into the red channel of the surface texture."; pTexSlotInfoImage = ""; }
-					}
-					if (texslot == 5) { pTexSlotInfo = "An emissive map describes which parts of the object will generate its own light. By varying the emissive strength, you can alter how much of the surface color is projected outward from the object. Example use cases include using an emissive map to produce a glow effect, or adding lighting to a TV screen placed in your level."; pTexSlotInfoImage = ""; }
-					if (texslot == 6) { pTexSlotInfo = "A displacement height map describes the vertical height of the detail of the texture. This texture used to be called a bump map as a lighter color would represent a higher bump than a darker lower pixel."; pTexSlotInfoImage = ""; }
-
-					// the actual wicked slot, and iDelayedExecute update code
-					int iDelayedExecuteCodeForThisSlot = 0;
-					MaterialComponentTEXTURESLOT wickedTextureSlot;
-					if (texslot == 0) 
-					{ 
-						wickedTextureSlot = MaterialComponentTEXTURESLOT::BASECOLORMAP; 
-						iDelayedExecuteCodeForThisSlot = 30;
-						if (t.importer.bEditAllMesh)
-							iDelayedExecuteCodeForThisSlot = 50;
-					}
-					if (texslot == 1) 
-					{ 
-						wickedTextureSlot = MaterialComponentTEXTURESLOT::NORMALMAP; 
-						iDelayedExecuteCodeForThisSlot = 31; 
-						if (t.importer.bEditAllMesh)
-							iDelayedExecuteCodeForThisSlot = 51;
-					}
-					if (bFromCustomMaterials == true)
-					{
-						if (texslot == 2) 
-						{ 
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
-							iDelayedExecuteCodeForThisSlot = 44; 
-							if (t.importer.bEditAllMesh)
-								iDelayedExecuteCodeForThisSlot = 52;
-						}
-						if (texslot == 3) 
-						{
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
-							iDelayedExecuteCodeForThisSlot = 44; 
-							if (t.importer.bEditAllMesh)
-								iDelayedExecuteCodeForThisSlot = 52;
-						}
-						if (texslot == 4) 
-						{ 
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
-							iDelayedExecuteCodeForThisSlot = 44;
-							if (t.importer.bEditAllMesh)
-								iDelayedExecuteCodeForThisSlot = 52;
-						}
-					}
-					else
-					{
-						if (texslot == 2) 
-						{ 
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
-							iDelayedExecuteCodeForThisSlot = 42;
-							t.importer.bEditingAllSurfaceMeshes = false;
-							if (t.importer.bEditAllMesh)
-								t.importer.bEditingAllSurfaceMeshes = true;
-						}
-						if (texslot == 3) 
-						{ 
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
-							iDelayedExecuteCodeForThisSlot = 43; 
-							t.importer.bEditingAllSurfaceMeshes = false;
-							if (t.importer.bEditAllMesh)
-								t.importer.bEditingAllSurfaceMeshes = true;
-						}
-						if (texslot == 4) 
-						{ 
-							wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP; 
-							iDelayedExecuteCodeForThisSlot = 41; 
-							t.importer.bEditingAllSurfaceMeshes = false;
-							if (t.importer.bEditAllMesh)
-								t.importer.bEditingAllSurfaceMeshes = true;
-						}
-					}
-					if (texslot == 5)
-					{
-						wickedTextureSlot = MaterialComponentTEXTURESLOT::EMISSIVEMAP;
-						iDelayedExecuteCodeForThisSlot = 34;
-						if (t.importer.bEditAllMesh)
-							iDelayedExecuteCodeForThisSlot = 53;
-					}
-					if (texslot == 6)
-					{
-						wickedTextureSlot = MaterialComponentTEXTURESLOT::DISPLACEMENTMAP;
-						iDelayedExecuteCodeForThisSlot = 33;
-						if (t.importer.bEditAllMesh)
-							iDelayedExecuteCodeForThisSlot = 54;
-					}
-
-					// current texture name
-					if (texslot >= 2 && texslot <= 4)
-					{
-						// from DBO mesh texture ref (for surface components)
-						if (pChosenMesh->dwTextureCount > GG_MESH_TEXTURE_OCCLUSION)
-						{
-							// takes reference from DBO
-							if (bFromCustomMaterials == true)
+							if (ImGui::ColorPicker4("##BaseColor", &BaseColor[0], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
 							{
-								if (texslot == 2) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
-								if (texslot == 3) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
-								if (texslot == 4) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
+								pChosenMesh->mMaterial.Diffuse.r = BaseColor[0];
+								pChosenMesh->mMaterial.Diffuse.g = BaseColor[1];
+								pChosenMesh->mMaterial.Diffuse.b = BaseColor[2];
+								pChosenMesh->mMaterial.Diffuse.a = BaseColor[3];
+								dwBaseColor = ((unsigned int)(BaseColor[0] * 255) << 24);
+								dwBaseColor += ((unsigned int)(BaseColor[1] * 255) << 16);
+								dwBaseColor += ((unsigned int)(BaseColor[2] * 255) << 8);
+								dwBaseColor += ((unsigned int)(BaseColor[3] * 255));
+								WickedCall_SetMeshMaterial(pChosenMesh, true);
+								bHaveMaterialUpdate = true;
+
+								importer_set_all_material_colour(0, BaseColor);
+							}
+							ImGui::EndPopup();
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change Base Color");
+						window = ImGui::GetCurrentWindow(); //PE: Add a pencil to all color gadgets.
+						lpTexture = GetImagePointerView(TOOL_PENCIL);
+						vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize() * 1.5f) - 3.0f };
+						if (lpTexture)
+							window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
+					}
+
+					// loop through all textures required
+					for (int texslot = 0; texslot < 7; texslot++)
+					{
+						// texture gadget labels
+						LPSTR pInputLabel = "", pInputBtnLabel = "", pInputControlLabel = "";
+						if (texslot == 0) { pInputLabel = "##InputMeshColor"; pInputBtnLabel = "...##InputMeshColorFile"; pInputControlLabel = "##AlphaRef"; }
+						if (texslot == 1) { pInputLabel = "##InputMeshNormal"; pInputBtnLabel = "...##InputMeshNormalFile"; pInputControlLabel = "##NormalStrength"; }
+						if (texslot == 2 && t.importer.importerActive)
+						{
+							if (ImGui::Checkbox("Use RGBA buttons##importersurfacemode", &bUseRGBAButtons))
+							{
+								// Choose whether to select surface texture directly, or take data from individual channels of a source texture.
+							}
+						}
+						if (bFromCustomMaterials == true)
+						{
+							// viewed from object properties or when editing all meshes.
+							if (texslot == 2) { pInputLabel = "##InputMeshSurface"; pInputBtnLabel = "...##InputMeshSurfaceFile"; pInputControlLabel = "##RoughnessStrength"; }
+							if (texslot == 3) { pInputLabel = ""; pInputBtnLabel = ""; pInputControlLabel = "##MetalnessStrength"; }
+							if (texslot == 4) { pInputLabel = ""; pInputBtnLabel = ""; pInputControlLabel = ""; }
+						}
+						else
+						{
+							// viewed from importer
+							if (texslot == 2) { pInputLabel = "##InputMeshRoughness"; pInputBtnLabel = "...##InputMeshRoughnessFile"; pInputControlLabel = "##RoughnessStrength"; }
+							if (texslot == 3) { pInputLabel = "##InputMeshMetalness"; pInputBtnLabel = "...##InputMeshMetalnessFile"; pInputControlLabel = "##MetalnessStrength"; }
+							if (texslot == 4) { pInputLabel = "##InputMeshOcclusion"; pInputBtnLabel = "...##InputMeshOcclusionFile"; pInputControlLabel = "##OcclusionStrength"; }
+						}
+						if (texslot == 5) { pInputLabel = "##InputMeshEmissive"; pInputBtnLabel = "...##InputMeshEmissiveFile"; pInputControlLabel = "##EmissiveStrength"; }
+						if (texslot == 6) { pInputLabel = "##InputMeshHeight"; pInputBtnLabel = "...##InputMeshHeightFile"; pInputControlLabel = "##HeightStrength"; }
+
+						// texture types
+						LPSTR pTitle = "", pTip = "";
+						if (texslot == 0) { pTitle = "Albedo"; pTip = "Allows you to change the albedo / color texture of the object"; }
+						if (texslot == 1) { pTitle = "Normal"; pTip = "Allows you to change the normal map texture of the object"; }
+						if (bFromCustomMaterials == true)
+						{
+							if (texslot == 2) { pTitle = "Surface"; pTip = "Allows you to change the surface texture of the object."; }
+							if (texslot == 3) { pTitle = ""; pTip = ""; }
+							if (texslot == 4) { pTitle = ""; pTip = ""; }
+						}
+						else
+						{
+							if (texslot == 2) { pTitle = "Roughness"; pTip = "Allows you to change the roughness texture of the object."; }
+							if (texslot == 3) { pTitle = "Metalness"; pTip = "Allows you to change the metalness texture of the object."; }
+							if (texslot == 4) { pTitle = "Occlusion"; pTip = "Allows you to change the ambient occlusion texture of the object."; }
+						}
+						if (texslot == 5) { pTitle = "Emissive"; pTip = "Allows you to change the emissive texture of the object."; }
+						if (texslot == 6) { pTitle = "Height"; pTip = "Allows you to change the displacement height texture of the object."; }
+
+						// control title and desc
+						LPSTR pControlTitle = "", pControlTip = "";
+						if (texslot == 0) { pControlTitle = "Alpha Clipping";  pControlTip = "Alpha channel values below this value are clipped and not rendered."; }
+						if (texslot == 1) { pControlTitle = "Normal Strength";  pControlTip = "Controls how strong the normal mapping effect is on the object."; }
+						if (texslot == 2) { pControlTitle = "Roughness Strength";  pControlTip = "Controls how much of the roughness texture is applied to the object."; }
+						if (texslot == 3) { pControlTitle = "Metalness Strength";  pControlTip = "Controls how much of the metalness texture is applied to the object."; }
+						if (texslot == 4) { pControlTitle = "";  pControlTip = ""; }
+						if (texslot == 5) { pControlTitle = "Emissive Strength";  pControlTip = "Controls how much of the emissive texture is applied to the object."; }
+						if (texslot == 6) { pControlTitle = "";  pControlTip = ""; }
+
+						// extra info message and image
+						LPSTR pTexSlotInfo = "", pTexSlotInfoImage = "";
+						if (texslot == 0) { pTexSlotInfo = "An albedo texture is an image texture that represents the color of an object, before any lighting calculations have been applied to it."; pTexSlotInfoImage = ""; }
+						if (texslot == 1) { pTexSlotInfo = "A normal map texture is a special type of image that describes the undulations of a surface. Each pixel represents an angle offset away from the surface - for example it could be the edge of a rock or how clothes have folds in them. Normal maps are used to add extra depth and detail to an object without increasing the number of polygons, thus allowing for more polygons to be used elsewhere in your game."; pTexSlotInfoImage = ""; }
+						if (bFromCustomMaterials == true)
+						{
+							if (texslot == 2) { pTexSlotInfo = "Surface textures represent the physically-based material of an object. It combines ambient occlusion, roughness and metalness into its RGBA channels. Surface textures are used to control how light interacts with an object and alters the extent to which it resembles metal, wood or another material type from the real world. This allows for the object to look physically accurate."; pTexSlotInfoImage = ""; }
+							if (texslot == 3) { pTexSlotInfo = ""; pTexSlotInfoImage = ""; }
+							if (texslot == 4) { pTexSlotInfo = ""; pTexSlotInfoImage = ""; }
+						}
+						else
+						{
+							if (texslot == 2) { pTexSlotInfo = "A roughness map describes which part of the surface is rough, and by inference, which parts are smooth and potentially glossy. Roughness is placed into the green channel of the surface texture."; pTexSlotInfoImage = ""; }
+							if (texslot == 3) { pTexSlotInfo = "A metalness map is an image that describes how much metal is represented on the surface, with white being fully metallic and black being no metal at all. Metalness is placed into the blue channel of the surface texture."; pTexSlotInfoImage = ""; }
+							if (texslot == 4) { pTexSlotInfo = "An ambient occlusion (AO) map describes how much baked-in shadows are part of the surface, and can be used to add very small scale lighting information to compliment the global lighting system. Ambient Occlusion is placed into the red channel of the surface texture."; pTexSlotInfoImage = ""; }
+						}
+						if (texslot == 5) { pTexSlotInfo = "An emissive map describes which parts of the object will generate its own light. By varying the emissive strength, you can alter how much of the surface color is projected outward from the object. Example use cases include using an emissive map to produce a glow effect, or adding lighting to a TV screen placed in your level."; pTexSlotInfoImage = ""; }
+						if (texslot == 6) { pTexSlotInfo = "A displacement height map describes the vertical height of the detail of the texture. This texture used to be called a bump map as a lighter color would represent a higher bump than a darker lower pixel."; pTexSlotInfoImage = ""; }
+
+						// the actual wicked slot, and iDelayedExecute update code
+						int iDelayedExecuteCodeForThisSlot = 0;
+						MaterialComponentTEXTURESLOT wickedTextureSlot;
+						if (texslot == 0)
+						{
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::BASECOLORMAP;
+							iDelayedExecuteCodeForThisSlot = 30;
+							if (t.importer.bEditAllMesh)
+								iDelayedExecuteCodeForThisSlot = 50;
+						}
+						if (texslot == 1)
+						{
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::NORMALMAP;
+							iDelayedExecuteCodeForThisSlot = 31;
+							if (t.importer.bEditAllMesh)
+								iDelayedExecuteCodeForThisSlot = 51;
+						}
+						if (bFromCustomMaterials == true)
+						{
+							if (texslot == 2)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 44;
+								if (t.importer.bEditAllMesh)
+									iDelayedExecuteCodeForThisSlot = 52;
+							}
+							if (texslot == 3)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 44;
+								if (t.importer.bEditAllMesh)
+									iDelayedExecuteCodeForThisSlot = 52;
+							}
+							if (texslot == 4)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 44;
+								if (t.importer.bEditAllMesh)
+									iDelayedExecuteCodeForThisSlot = 52;
+							}
+						}
+						else
+						{
+							if (texslot == 2)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 42;
+								t.importer.bEditingAllSurfaceMeshes = false;
+								if (t.importer.bEditAllMesh)
+									t.importer.bEditingAllSurfaceMeshes = true;
+							}
+							if (texslot == 3)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 43;
+								t.importer.bEditingAllSurfaceMeshes = false;
+								if (t.importer.bEditAllMesh)
+									t.importer.bEditingAllSurfaceMeshes = true;
+							}
+							if (texslot == 4)
+							{
+								wickedTextureSlot = MaterialComponentTEXTURESLOT::SURFACEMAP;
+								iDelayedExecuteCodeForThisSlot = 41;
+								t.importer.bEditingAllSurfaceMeshes = false;
+								if (t.importer.bEditAllMesh)
+									t.importer.bEditingAllSurfaceMeshes = true;
+							}
+						}
+						if (texslot == 5)
+						{
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::EMISSIVEMAP;
+							iDelayedExecuteCodeForThisSlot = 34;
+							if (t.importer.bEditAllMesh)
+								iDelayedExecuteCodeForThisSlot = 53;
+						}
+						if (texslot == 6)
+						{
+							wickedTextureSlot = MaterialComponentTEXTURESLOT::DISPLACEMENTMAP;
+							iDelayedExecuteCodeForThisSlot = 33;
+							if (t.importer.bEditAllMesh)
+								iDelayedExecuteCodeForThisSlot = 54;
+						}
+
+						// current texture name
+						if (texslot >= 2 && texslot <= 4)
+						{
+							// from DBO mesh texture ref (for surface components)
+							if (pChosenMesh->dwTextureCount > GG_MESH_TEXTURE_OCCLUSION)
+							{
+								// takes reference from DBO
+								if (bFromCustomMaterials == true)
+								{
+									if (texslot == 2) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
+									if (texslot == 3) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
+									if (texslot == 4) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_SURFACE].pName);
+								}
+								else
+								{
+									if (texslot == 2) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName);
+									if (texslot == 3) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName);
+									if (texslot == 4) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName);
+								}
 							}
 							else
 							{
-								if (texslot == 2) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_ROUGHNESS].pName);
-								if (texslot == 3) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_METALNESS].pName);
-								if (texslot == 4) strcpy(materialname, pChosenMesh->pTextures[GG_MESH_TEXTURE_OCCLUSION].pName);
+								// has no reference for now
+								strcpy(materialname, "");
 							}
 						}
 						else
 						{
-							// has no reference for now
-							strcpy(materialname, "");
+							// or direct from wicked material resource
+							if (pObjectMaterial->textures[wickedTextureSlot].resource)
+								strcpy(materialname, pObjectMaterial->textures[wickedTextureSlot].name.c_str());
+							else
+								strcpy(materialname, "");
 						}
-					}
-					else
-					{
-						// or direct from wicked material resource
-						if (pObjectMaterial->textures[wickedTextureSlot].resource)
-							strcpy(materialname, pObjectMaterial->textures[wickedTextureSlot].name.c_str());
-						else
-							strcpy(materialname, "");
-					}
 
-					// layout for specific texture type
-					if (mode == 5)
-					{
-						// confirm the texture name is different before showing
-						bool bTextureIsDifferentFromLast = true;
-						if (stricmp(materialname, lastmaterialname) == NULL)
+						// layout for specific texture type
+						if (mode == 5)
 						{
-							bTextureIsDifferentFromLast = false;
-						}
-						strcpy(lastmaterialname, materialname);
-
-						// show as grid of texture if readonly
-						if (bTextureIsDifferentFromLast==true && pObjectMaterial->textures && pObjectMaterial->textures[wickedTextureSlot].resource)
-						{
-							void *pmat = (void *)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
-							ImGui::ImgBtnWicked((void*)pmat, ImVec2(mode5_icon_size, mode5_icon_size), ImColor(0, 0, 0, 255));
-							if (ImGui::IsItemHovered())
+							// confirm the texture name is different before showing
+							bool bTextureIsDifferentFromLast = true;
+							if (stricmp(materialname, lastmaterialname) == NULL)
 							{
-								ImGui::BeginTooltip();
-								ImGui::ImgBtnWicked((void*)pmat, ImVec2(280, 280), ImColor(0, 0, 0, 255));
-								ImGui::TextCenter(pTitle);
-								ImGui::EndTooltip();
+								bTextureIsDifferentFromLast = false;
 							}
-							mode5_displayed_materials++;
-							if (mode5_displayed_materials < mode5_materials)
-								ImGui::SameLine();
+							strcpy(lastmaterialname, materialname);
+
+							// show as grid of texture if readonly
+							if (bTextureIsDifferentFromLast == true && pObjectMaterial->textures && pObjectMaterial->textures[wickedTextureSlot].resource)
+							{
+								void* pmat = (void*)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
+								ImGui::ImgBtnWicked((void*)pmat, ImVec2(mode5_icon_size, mode5_icon_size), ImColor(0, 0, 0, 255));
+								if (ImGui::IsItemHovered())
+								{
+									ImGui::BeginTooltip();
+									ImGui::ImgBtnWicked((void*)pmat, ImVec2(280, 280), ImColor(0, 0, 0, 255));
+									ImGui::TextCenter(pTitle);
+									ImGui::EndTooltip();
+								}
+								mode5_displayed_materials++;
+								if (mode5_displayed_materials < mode5_materials)
+									ImGui::SameLine();
+							}
 						}
-					}
-					else
-					{
-						// is the texture slot a valid one
-						bool bValidTexSlot = false;
-						if (strlen(pTitle) > 0) bValidTexSlot = true;
-
-						// title available
-						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-						if ( bValidTexSlot == true )
+						else
 						{
-							// title valid
-							ImGui::Text(pTitle);
+							// is the texture slot a valid one
+							bool bValidTexSlot = false;
+							if (strlen(pTitle) > 0) bValidTexSlot = true;
 
-							// extra help icon
+							// title available
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							if (bValidTexSlot == true)
+							{
+								// title valid
+								ImGui::Text(pTitle);
+
+								// extra help icon
+								ImGui::SameLine();
+								ImGui::SetCursorPos(ImVec2(help_start, ImGui::GetCursorPosY() - 5));
+								ImGui::PushID(iInfoUniqueId++);
+								if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+								{
+									// Display additional information on click.
+									cInfoMessage = pTexSlotInfo;
+									cInfoImage = pTexSlotInfoImage;
+									bInfo_Window = true;
+								}
+								ImGui::PopID();
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip(pTip);
+							}
+
+							// make room for RGBA buttons
 							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2(help_start, ImGui::GetCursorPosY() - 5));
-							ImGui::PushID(iInfoUniqueId++);
-							if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+							bool bShowRGBAButtons = false;
+							if (texslot >= 2 && texslot <= 4 && bFromCustomMaterials == false && bUseRGBAButtons)
 							{
-								// Display additional information on click.
-								cInfoMessage = pTexSlotInfo;
-								cInfoImage = pTexSlotInfoImage;
-								bInfo_Window = true;
+								bShowRGBAButtons = true;
+								ImGui::PushItemWidth(-50 - path_gadget_size);
 							}
-							ImGui::PopID();
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip(pTip);
-						}
-
-						// make room for RGBA buttons
-						ImGui::SameLine();
-						bool bShowRGBAButtons = false;
-						if (texslot >= 2 && texslot <= 4 && bFromCustomMaterials==false && bUseRGBAButtons)
-						{
-							bShowRGBAButtons = true;
-							ImGui::PushItemWidth(-50 - path_gadget_size);
-						}
-						else
-						{
-							ImGui::PushItemWidth(-10 - path_gadget_size);
-						}
-
-						// name of texture
-						if ( bValidTexSlot == true )
-						{
-							if (ImGui::InputText(pInputLabel, &materialname[0], MAX_PATH, iInputFlags))
+							else
 							{
-								pSelectedMaterial = pObjectMaterial;
-								pSelectedMesh = pChosenMesh;
-								iDelayedExecute = iDelayedExecuteCodeForThisSlot;
-								strcpy(cPreSelectedFile, materialname);
-								if (strlen(cPreSelectedFile) == 0)
-								{
-									// triggers relevant texture data to be erased from surface texture
-									if (texslot == 5) pSelectedMaterial->textures[wickedTextureSlot].name = "";
-									iDelayedExecuteChannel = -2;
-								}
+								ImGui::PushItemWidth(-10 - path_gadget_size);
 							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip((materialname && *materialname) ? materialname : "Select Texture File");
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-						}
-						ImGui::PopItemWidth();
 
-						// if not readonly or EBE, allow new texture file to be specified
-						if (mode != 3 && mode != 5)
-						{
-							// control R,G,B,A channels
-							if (bShowRGBAButtons==true && bFromCustomMaterials==false)
+							// name of texture
+							if (bValidTexSlot == true)
 							{
-								// Decide which buttons should be darkened to convey to the user which channel the texture data will go into.
-								int iBoldTexSlot = -1;
-								switch (texslot)
-								{
-								case 2: iBoldTexSlot = 1;// Green
-									break;
-								case 3: iBoldTexSlot = 2;// Blue
-									break;
-								case 4: iBoldTexSlot = 0;// Red
-									break;
-								}
-								ImGui::SameLine();
-								ImGui::PushItemWidth(path_gadget_size);
-								char pInputTextureChannel[MAX_PATH];
-								sprintf(pInputTextureChannel, "R%sR", pInputLabel);
-								if (0 - iBoldTexSlot == 0)
-								{
-									if (ImGui::StyleButtonDark(pInputTextureChannel)) 
-									{ 
-										iDelayedExecuteChannel = 0;  
-										launch_file = true; 
-										bChooseSurfaceChannel = true;
-									}
-								}
-								else
-								{
-									if (ImGui::StyleButton(pInputTextureChannel)) 
-									{ 
-										iDelayedExecuteChannel = 0;  
-										launch_file = true;
-										bChooseSurfaceChannel = true; 
-									}
-								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the red channels");
-								ImGui::SameLine();
-								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()-10, ImGui::GetCursorPosY()));
-								sprintf(pInputTextureChannel, "G%sG", pInputLabel);
-								if (1 - iBoldTexSlot == 0)
-								{
-									if (ImGui::StyleButtonDark(pInputTextureChannel)) 
-									{ 
-										iDelayedExecuteChannel = 1;  
-										launch_file = true; 
-										bChooseSurfaceChannel = true;
-									}
-								}
-								else
-								{
-									if (ImGui::StyleButton(pInputTextureChannel)) 
-									{ 
-										iDelayedExecuteChannel = 1;  
-										launch_file = true; 
-										bChooseSurfaceChannel = true;
-									}
-								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the green channels");
-								ImGui::SameLine();
-								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()-10, ImGui::GetCursorPosY()));
-								sprintf(pInputTextureChannel, "B%sB", pInputLabel);
-								if (2 - iBoldTexSlot == 0)
-								{
-									if (ImGui::StyleButtonDark(pInputTextureChannel)) 
-									{ 
-										iDelayedExecuteChannel = 2;  
-										launch_file = true;
-										bChooseSurfaceChannel = true;
-									}
-								}
-								else
-								{
-									if (ImGui::StyleButton(pInputTextureChannel)) 
-									{
-										iDelayedExecuteChannel = 2;  
-										launch_file = true; 
-										bChooseSurfaceChannel = true;
-									}
-								}
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the blue channels");
-								ImGui::SameLine();
-								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX()-10, ImGui::GetCursorPosY()));
-								sprintf(pInputTextureChannel, "A%sA", pInputLabel);
-								if (ImGui::StyleButton(pInputTextureChannel)) { iDelayedExecuteChannel = 3;  launch_file = true; bChooseSurfaceChannel = true; }
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the alpha channels");
-								if (launch_file && iDelayedExecute == 0)
+								if (ImGui::InputText(pInputLabel, &materialname[0], MAX_PATH, iInputFlags))
 								{
 									pSelectedMaterial = pObjectMaterial;
 									pSelectedMesh = pChosenMesh;
-									strcpy(cPreSelectedFile, "");
 									iDelayedExecute = iDelayedExecuteCodeForThisSlot;
+									strcpy(cPreSelectedFile, materialname);
+									if (strlen(cPreSelectedFile) == 0)
+									{
+										// triggers relevant texture data to be erased from surface texture
+										if (texslot == 5) pSelectedMaterial->textures[wickedTextureSlot].name = "";
+										iDelayedExecuteChannel = -2;
+									}
 								}
-								ImGui::PopItemWidth();
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip((materialname && *materialname) ? materialname : "Select Texture File");
+								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 							}
-							else
+							ImGui::PopItemWidth();
+
+							// if not readonly or EBE, allow new texture file to be specified
+							if (mode != 3 && mode != 5)
 							{
-								if ( bValidTexSlot == true )
+								// control R,G,B,A channels
+								if (bShowRGBAButtons == true && bFromCustomMaterials == false)
 								{
+									// Decide which buttons should be darkened to convey to the user which channel the texture data will go into.
+									int iBoldTexSlot = -1;
+									switch (texslot)
+									{
+										case 2: iBoldTexSlot = 1;// Green
+											break;
+										case 3: iBoldTexSlot = 2;// Blue
+											break;
+										case 4: iBoldTexSlot = 0;// Red
+											break;
+									}
 									ImGui::SameLine();
 									ImGui::PushItemWidth(path_gadget_size);
-									if (ImGui::StyleButton(pInputBtnLabel))
+									char pInputTextureChannel[MAX_PATH];
+									sprintf(pInputTextureChannel, "R%sR", pInputLabel);
+									if (0 - iBoldTexSlot == 0)
 									{
-										cPreSelectedFile[0] = 0;
-										launch_file = true;
+										if (ImGui::StyleButtonDark(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 0;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
 									}
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from all channels");
+									else
+									{
+										if (ImGui::StyleButton(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 0;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the red channels");
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 10, ImGui::GetCursorPosY()));
+									sprintf(pInputTextureChannel, "G%sG", pInputLabel);
+									if (1 - iBoldTexSlot == 0)
+									{
+										if (ImGui::StyleButtonDark(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 1;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
+									}
+									else
+									{
+										if (ImGui::StyleButton(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 1;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the green channels");
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 10, ImGui::GetCursorPosY()));
+									sprintf(pInputTextureChannel, "B%sB", pInputLabel);
+									if (2 - iBoldTexSlot == 0)
+									{
+										if (ImGui::StyleButtonDark(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 2;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
+									}
+									else
+									{
+										if (ImGui::StyleButton(pInputTextureChannel))
+										{
+											iDelayedExecuteChannel = 2;
+											launch_file = true;
+											bChooseSurfaceChannel = true;
+										}
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the blue channels");
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 10, ImGui::GetCursorPosY()));
+									sprintf(pInputTextureChannel, "A%sA", pInputLabel);
+									if (ImGui::StyleButton(pInputTextureChannel)) { iDelayedExecuteChannel = 3;  launch_file = true; bChooseSurfaceChannel = true; }
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from the alpha channels");
 									if (launch_file && iDelayedExecute == 0)
 									{
 										pSelectedMaterial = pObjectMaterial;
@@ -10967,358 +10939,383 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 								}
 								else
 								{
-									if (texslot >= 2 && texslot <= 3)
+									if (bValidTexSlot == true)
 									{
-										// spacing for when in custom materials mode between roughness and metalness
-										ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 25));
-									}
-								}
-							}
-						}
-
-						// display texture and preview if hovered over
-						if (pObjectMaterial->textures[wickedTextureSlot].resource)
-						{
-							if ( bValidTexSlot == true )
-							{
-								ImVec2 vOldPos = ImGui::GetCursorPos();
-								ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 5, ImGui::GetCursorPosY() - 10));
-								// LB: would be nice if the occlusion, roughness and metalness could show just the relevant channel from surface texture!
-								// Red Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(220, 0, 0, 255),ImColor(255, 0, 0, 255),ImColor(180, 0, 0, 255)))
-								// Green Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 220, 0, 255),ImColor(0, 255, 0, 255),ImColor(0, 180, 0, 255)))
-								// Blue Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 0, 220, 255),ImColor(0, 0, 255, 255),ImColor(0, 0, 180, 255)))
-								// Alpha Only: would need some special setup for that :)
-								
-								// Flag that controls whether or not the texture will be displayed or a symbol...
-								// ...that lets the user know that the meshes do not share the same texture.
-								bool bMeshesHaveDifferentTex = true;
-								char cTextureSettingTooltip[256];
-								strcpy(cTextureSettingTooltip, "Meshes have different ");
-
-								switch (wickedTextureSlot)
-								{
-									case MaterialComponentTEXTURESLOT::BASECOLORMAP:
-									{
-										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentBase;
-										strcat(cTextureSettingTooltip, "base colour texture.");
-										break;
-									}
-									case MaterialComponentTEXTURESLOT::NORMALMAP:
-									{
-										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentNormal;
-										strcat(cTextureSettingTooltip, "normal texture.");
-										break;
-									}
-									case MaterialComponentTEXTURESLOT::SURFACEMAP:
-									{
-										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentSurface;
-										strcat(cTextureSettingTooltip, "surface texture.");
-										break;
-									}
-									case MaterialComponentTEXTURESLOT::EMISSIVEMAP:
-									{
-										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentEmissive;
-										strcat(cTextureSettingTooltip, "emissive texture");
-										break;
-									}
-									case MaterialComponentTEXTURESLOT::DISPLACEMENTMAP:
-									{
-										bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentDisplacement;
-										strcat(cTextureSettingTooltip, "height texture");
-										break;
-									}
-								}
-
-								if (t.importer.bEditAllMesh && bMeshesHaveDifferentTex)
-								{
-									ImGui::PushID(iInfoUniqueId++);
-									// Display the symbol that tells the user that not all meshes share the same texture.
-									if (ImGui::ImgBtn(IMPORTER_ALL_MESH, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(255, 255, 255, 255)))
-									{
-										if (mode != 3 && mode != 5)
+										ImGui::SameLine();
+										ImGui::PushItemWidth(path_gadget_size);
+										if (ImGui::StyleButton(pInputBtnLabel))
 										{
+											cPreSelectedFile[0] = 0;
 											launch_file = true;
 										}
-									}
-
-									if (ImGui::IsItemHovered())
-									{
-										ImGui::BeginTooltip();
-										ImGui::Text(cTextureSettingTooltip);
-										ImGui::EndTooltip();
-									}
-									ImGui::PopID();
-								}
-								else
-								{
-									// Display the texture normally.
-									void *pmat = (void *)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
-									if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255)))
-										if (mode != 3 && mode != 5)
+										if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select texture file to take texture data from all channels");
+										if (launch_file && iDelayedExecute == 0)
 										{
-											if (texslot >= 2 && texslot <= 4)
-											{
-												// Using the image button will not take texture data from a single channel, so should not copy the channel to a new texture. It should replace it entirely.
-												iDelayedExecuteCodeForThisSlot = 44;
-												// Editing all meshes.
-												launch_file = true;
-											}
-											else
-											{
-												launch_file = true;
-											}
+											pSelectedMaterial = pObjectMaterial;
+											pSelectedMesh = pChosenMesh;
+											strcpy(cPreSelectedFile, "");
+											iDelayedExecute = iDelayedExecuteCodeForThisSlot;
 										}
-										
-									if (ImGui::IsItemHovered())
+										ImGui::PopItemWidth();
+									}
+									else
 									{
-										ImGui::BeginTooltip();
-										ImGui::ImgBtnWicked((void*)pmat, ImVec2(180, 180), ImColor(0, 0, 0, 255));
-										ImGui::EndTooltip();
+										if (texslot >= 2 && texslot <= 3)
+										{
+											// spacing for when in custom materials mode between roughness and metalness
+											ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 25));
+										}
 									}
 								}
-
-								// If the user tried to change the texture, set the correct code for the delayed execution loop.
-								if (launch_file && iDelayedExecute == 0)
-								{
-									pSelectedMaterial = pObjectMaterial;
-									pSelectedMesh = pChosenMesh;
-									strcpy(cPreSelectedFile, "");
-									iDelayedExecute = iDelayedExecuteCodeForThisSlot;
-								}
-
-								ImGui::SetCursorPos(vOldPos);
 							}
-						}
 
-						// if not readonly or EBE, offer control value
-						if ( strlen(pControlTitle) > 0 )
-						{
+							// display texture and preview if hovered over
 							if (pObjectMaterial->textures[wickedTextureSlot].resource)
 							{
+								if (bValidTexSlot == true)
+								{
+									ImVec2 vOldPos = ImGui::GetCursorPos();
+									ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX() - 5, ImGui::GetCursorPosY() - 10));
+									// LB: would be nice if the occlusion, roughness and metalness could show just the relevant channel from surface texture!
+									// Red Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(220, 0, 0, 255),ImColor(255, 0, 0, 255),ImColor(180, 0, 0, 255)))
+									// Green Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 220, 0, 255),ImColor(0, 255, 0, 255),ImColor(0, 180, 0, 255)))
+									// Blue Only: if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size*2.9f, preview_icon_size*2.9f), ImColor(0, 0, 0, 255),ImColor(0, 0, 220, 255),ImColor(0, 0, 255, 255),ImColor(0, 0, 180, 255)))
+									// Alpha Only: would need some special setup for that :)
+
+									// Flag that controls whether or not the texture will be displayed or a symbol...
+									// ...that lets the user know that the meshes do not share the same texture.
+									bool bMeshesHaveDifferentTex = true;
+									char cTextureSettingTooltip[256];
+									strcpy(cTextureSettingTooltip, "Meshes have different ");
+
+									switch (wickedTextureSlot)
+									{
+										case MaterialComponentTEXTURESLOT::BASECOLORMAP:
+										{
+											bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentBase;
+											strcat(cTextureSettingTooltip, "base colour texture.");
+											break;
+										}
+										case MaterialComponentTEXTURESLOT::NORMALMAP:
+										{
+											bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentNormal;
+											strcat(cTextureSettingTooltip, "normal texture.");
+											break;
+										}
+										case MaterialComponentTEXTURESLOT::SURFACEMAP:
+										{
+											bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentSurface;
+											strcat(cTextureSettingTooltip, "surface texture.");
+											break;
+										}
+										case MaterialComponentTEXTURESLOT::EMISSIVEMAP:
+										{
+											bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentEmissive;
+											strcat(cTextureSettingTooltip, "emissive texture");
+											break;
+										}
+										case MaterialComponentTEXTURESLOT::DISPLACEMENTMAP:
+										{
+											bMeshesHaveDifferentTex = t.importer.bMeshesHaveDifferentDisplacement;
+											strcat(cTextureSettingTooltip, "height texture");
+											break;
+										}
+									}
+
+									if (t.importer.bEditAllMesh && bMeshesHaveDifferentTex)
+									{
+										ImGui::PushID(iInfoUniqueId++);
+										// Display the symbol that tells the user that not all meshes share the same texture.
+										if (ImGui::ImgBtn(IMPORTER_ALL_MESH, ImVec2(preview_icon_size * 2.9f, preview_icon_size * 2.9f), ImColor(255, 255, 255, 255)))
+										{
+											if (mode != 3 && mode != 5)
+											{
+												launch_file = true;
+											}
+										}
+
+										if (ImGui::IsItemHovered())
+										{
+											ImGui::BeginTooltip();
+											ImGui::Text(cTextureSettingTooltip);
+											ImGui::EndTooltip();
+										}
+										ImGui::PopID();
+									}
+									else
+									{
+										// Display the texture normally.
+										void* pmat = (void*)pObjectMaterial->textures[wickedTextureSlot].GetGPUResource();
+										if (ImGui::ImgBtnWicked((void*)pmat, ImVec2(preview_icon_size * 2.9f, preview_icon_size * 2.9f), ImColor(0, 0, 0, 255)))
+											if (mode != 3 && mode != 5)
+											{
+												if (texslot >= 2 && texslot <= 4)
+												{
+													// Using the image button will not take texture data from a single channel, so should not copy the channel to a new texture. It should replace it entirely.
+													iDelayedExecuteCodeForThisSlot = 44;
+													// Editing all meshes.
+													launch_file = true;
+												}
+												else
+												{
+													launch_file = true;
+												}
+											}
+
+										if (ImGui::IsItemHovered())
+										{
+											ImGui::BeginTooltip();
+											ImGui::ImgBtnWicked((void*)pmat, ImVec2(180, 180), ImColor(0, 0, 0, 255));
+											ImGui::EndTooltip();
+										}
+									}
+
+									// If the user tried to change the texture, set the correct code for the delayed execution loop.
+									if (launch_file && iDelayedExecute == 0)
+									{
+										pSelectedMaterial = pObjectMaterial;
+										pSelectedMesh = pChosenMesh;
+										strcpy(cPreSelectedFile, "");
+										iDelayedExecute = iDelayedExecuteCodeForThisSlot;
+									}
+
+									ImGui::SetCursorPos(vOldPos);
+								}
+							}
+
+							// if not readonly or EBE, offer control value
+							if (strlen(pControlTitle) > 0)
+							{
+								if (pObjectMaterial->textures[wickedTextureSlot].resource)
+								{
+									if (mode != 3 && mode != 5)
+									{
+										// control title
+										ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
+										ImGui::PushItemWidth(-10 - 4);
+										ImGui::TextCenter(pControlTitle);
+										ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
+
+										// control slider (specific code)
+										float fValue = 0.0f;
+										switch (texslot)
+										{
+											case 0: // albedo alphaclip
+												fValue = pObjectMaterial->alphaRef;
+												if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
+												{
+													pObjectMaterial->SetAlphaRef(fValue);
+
+													// This only does something if edit all meshes is enabled. 
+													importer_set_all_material_settings(texslot, fValue);
+
+													bHaveMaterialUpdate = true;
+												}
+												if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
+												break;
+
+											case 1: // normal map settings.
+												fValue = pObjectMaterial->normalMapStrength;
+												if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 4.0))
+												{
+													pObjectMaterial->SetNormalMapStrength(fValue);
+
+													// This only does something if edit all meshes is enabled. 
+													importer_set_all_material_settings(texslot, fValue);
+
+													bHaveMaterialUpdate = true;
+												}
+												if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
+												ImGui::Indent(80.0f);
+												if (ImGui::Checkbox("Invert Green Channel", &t.importer.bInvertNormalMap))
+												{
+													if (!t.importer.bInvertNormalMap)
+													{
+														// Revert to the original normal map.
+														strcpy(cPreSelectedFile, t.importer.pOrigNormalMap);
+														iDelayedExecute = 31;
+													}
+													else
+													{
+														// Generate a new normal map, with an inverted green channel to solve handedness issues between Wicked and other software.
+														iDelayedExecute = 45;
+													}
+												}
+												if (ImGui::IsItemHovered()) ImGui::SetTooltip("Used for fixing compatibility issues between DirectX and OpenGL normal maps");
+
+												ImGui::Indent(-80.0f);
+												break;
+
+											case 2: // roughness strength
+												fValue = pObjectMaterial->roughness;
+												if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
+												{
+													pObjectMaterial->SetRoughness(fValue);
+
+													// This only does something if edit all meshes is enabled. 
+													importer_set_all_material_settings(texslot, fValue);
+
+													bHaveMaterialUpdate = true;
+													if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
+												}
+												break;
+
+											case 3: // metalness strength
+												fValue = pObjectMaterial->metalness;
+												if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
+												{
+													pObjectMaterial->SetMetalness(fValue);
+
+													// This only does something if edit all meshes is enabled. 
+													importer_set_all_material_settings(texslot, fValue);
+
+													bHaveMaterialUpdate = true;
+													if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
+												}
+												break;
+
+											case 4: // occlusion strength - none
+												break;
+
+											case 5: // emissive strength
+												fValue = pObjectMaterial->GetEmissiveStrength();
+												if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 30.0))
+												{
+													pObjectMaterial->SetEmissiveStrength(fValue);
+													pObjectMaterial->SetDirty();
+													WickedCall_SetMeshMaterial(pChosenMesh, false);
+
+													// This only does something if edit all meshes is enabled. 
+													importer_set_all_material_settings(texslot, fValue);
+
+													bHaveMaterialUpdate = true;
+												}
+												if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
+												break;
+										}
+										ImGui::PopItemWidth();
+									}
+								}
+							}
+							else
+							{
+								// no control value
 								if (mode != 3 && mode != 5)
 								{
-									// control title
 									ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
 									ImGui::PushItemWidth(-10 - 4);
-									ImGui::TextCenter(pControlTitle);
+									ImGui::TextCenter("");
 									ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
-
-									// control slider (specific code)
-									float fValue = 0.0f;
-									switch (texslot)
-									{
-									case 0: // albedo alphaclip
-										fValue = pObjectMaterial->alphaRef;
-										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
-										{
-											pObjectMaterial->SetAlphaRef(fValue);
-											
-											// This only does something if edit all meshes is enabled. 
-											importer_set_all_material_settings(texslot, fValue);
-
-											bHaveMaterialUpdate = true;
-										}
-										if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-										break;
-
-									case 1: // normal map settings.
-										fValue = pObjectMaterial->normalMapStrength;
-										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 4.0))
-										{
-											pObjectMaterial->SetNormalMapStrength(fValue);
-
-											// This only does something if edit all meshes is enabled. 
-											importer_set_all_material_settings(texslot, fValue);
-
-											bHaveMaterialUpdate = true;
-										}
-										if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-										ImGui::Indent(80.0f);
-										if (ImGui::Checkbox("Invert Green Channel", &t.importer.bInvertNormalMap))
-										{
-											if (!t.importer.bInvertNormalMap)
-											{
-												// Revert to the original normal map.
-												strcpy(cPreSelectedFile, t.importer.pOrigNormalMap);
-												iDelayedExecute = 31;
-											}
-											else
-											{
-												// Generate a new normal map, with an inverted green channel to solve handedness issues between Wicked and other software.
-												iDelayedExecute = 45;
-											}				
-										}
-										if (ImGui::IsItemHovered()) ImGui::SetTooltip("Used for fixing compatibility issues between DirectX and OpenGL normal maps");
-										
-										ImGui::Indent(-80.0f);
-										break;
-
-									case 2: // roughness strength
-										fValue = pObjectMaterial->roughness;
-										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
-										{
-											pObjectMaterial->SetRoughness(fValue);
-
-											// This only does something if edit all meshes is enabled. 
-											importer_set_all_material_settings(texslot, fValue);
-
-											bHaveMaterialUpdate = true;
-											if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-										}
-										break;
-
-									case 3: // metalness strength
-										fValue = pObjectMaterial->metalness;
-										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 1.0))
-										{
-											pObjectMaterial->SetMetalness(fValue);
-
-											// This only does something if edit all meshes is enabled. 
-											importer_set_all_material_settings(texslot, fValue);
-
-											bHaveMaterialUpdate = true;
-											if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-										}
-										break;
-
-									case 4: // occlusion strength - none
-										break;
-
-									case 5: // emissive strength
-										fValue = pObjectMaterial->GetEmissiveStrength();
-										if (ImGui::SliderFloat(pInputControlLabel, &fValue, 0.0, 30.0))
-										{
-											pObjectMaterial->SetEmissiveStrength(fValue);
-											pObjectMaterial->SetDirty();
-											WickedCall_SetMeshMaterial(pChosenMesh, false);
-
-											// This only does something if edit all meshes is enabled. 
-											importer_set_all_material_settings(texslot, fValue);
-
-											bHaveMaterialUpdate = true;
-										}
-										if (ImGui::IsItemHovered()) ImGui::SetTooltip(pControlTip);
-										break;
-									}
+									ImGui::TextCenter("");
 									ImGui::PopItemWidth();
 								}
 							}
 						}
-						else
+					}
+
+					// emissive color
+					if (mode != 5)
+					{
+						EmmisiveColor[0] = pChosenMesh->mMaterial.Emissive.r;
+						EmmisiveColor[1] = pChosenMesh->mMaterial.Emissive.g;
+						EmmisiveColor[2] = pChosenMesh->mMaterial.Emissive.b;
+						EmmisiveColor[3] = pChosenMesh->mMaterial.Emissive.a;
+						ImGui::TextCenter("Emissive Color");
+						mycolor = ImVec4(EmmisiveColor[0], EmmisiveColor[1], EmmisiveColor[2], EmmisiveColor[3]);
+						open_popup = ImGui::ColorButton("##NewV2WickedEmissiveColor", mycolor, 0, ImVec2(w - 10.0, 0));
+						if (open_popup)	ImGui::OpenPopup("##pickWickedEmissiveColor");
+						if (ImGui::BeginPopup("##pickWickedEmissiveColor", ImGuiWindowFlags_NoMove))
 						{
-							// no control value
-							if (mode != 3 && mode != 5)
+							if (ImGui::ColorPicker4("##EmmisiveColor", &EmmisiveColor[0], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
 							{
-								ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
-								ImGui::PushItemWidth(-10 - 4);
-								ImGui::TextCenter("");
-								ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY() - 3));
-								ImGui::TextCenter("");
-								ImGui::PopItemWidth();
+								pChosenMesh->mMaterial.Emissive.r = EmmisiveColor[0];
+								pChosenMesh->mMaterial.Emissive.g = EmmisiveColor[1];
+								pChosenMesh->mMaterial.Emissive.b = EmmisiveColor[2];
+								pChosenMesh->mMaterial.Emissive.a = EmmisiveColor[3];
+								dwEmmisiveColor = ((unsigned int)(EmmisiveColor[0] * 255) << 24);
+								dwEmmisiveColor += ((unsigned int)(EmmisiveColor[1] * 255) << 16);
+								dwEmmisiveColor += ((unsigned int)(EmmisiveColor[2] * 255) << 8);
+								dwEmmisiveColor += ((unsigned int)(EmmisiveColor[3] * 255));
+								WickedCall_SetMeshMaterial(pChosenMesh, false);
+								bHaveMaterialUpdate = true;
+
+								importer_set_all_material_colour(5, EmmisiveColor);
 							}
+							ImGui::EndPopup();
 						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change Emissive Color");
+						window = ImGui::GetCurrentWindow(); //PE: Add a pencil to all color gadgets.
+						lpTexture = GetImagePointerView(TOOL_PENCIL);
+						vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize() * 1.5f) - 3.0f };
+						if (lpTexture)
+							window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
 					}
 				}
 
-				// emissive color
 				if (mode != 5)
 				{
-					EmmisiveColor[0] = pChosenMesh->mMaterial.Emissive.r;
-					EmmisiveColor[1] = pChosenMesh->mMaterial.Emissive.g;
-					EmmisiveColor[2] = pChosenMesh->mMaterial.Emissive.b;
-					EmmisiveColor[3] = pChosenMesh->mMaterial.Emissive.a;
-					ImGui::TextCenter("Emissive Color");
-					mycolor = ImVec4(EmmisiveColor[0], EmmisiveColor[1], EmmisiveColor[2], EmmisiveColor[3]);
-					open_popup = ImGui::ColorButton("##NewV2WickedEmissiveColor", mycolor, 0, ImVec2(w - 10.0, 0));
-					if (open_popup)	ImGui::OpenPopup("##pickWickedEmissiveColor");
-					if (ImGui::BeginPopup("##pickWickedEmissiveColor", ImGuiWindowFlags_NoMove))
+					if (mode != 6)
 					{
-						if (ImGui::ColorPicker4("##EmmisiveColor", &EmmisiveColor[0], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB)) 
+						//Reflectance
+						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+						ImGui::Text("Reflectance");
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
 						{
-							pChosenMesh->mMaterial.Emissive.r = EmmisiveColor[0];
-							pChosenMesh->mMaterial.Emissive.g = EmmisiveColor[1];
-							pChosenMesh->mMaterial.Emissive.b = EmmisiveColor[2];
-							pChosenMesh->mMaterial.Emissive.a = EmmisiveColor[3];
-							dwEmmisiveColor = ((unsigned int)(EmmisiveColor[0] * 255) << 24);
-							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[1] * 255) << 16);
-							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[2] * 255) << 8);
-							dwEmmisiveColor += ((unsigned int)(EmmisiveColor[3] * 255));
-							WickedCall_SetMeshMaterial(pChosenMesh, false);
+							//Display additional information on click.
+							cInfoMessage = "The reflectance of the surface describes how much of the light received by the surface is reflected away unmodified. Setting your surface to maximum reflectance would turn it into a crude mirror.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to change the reflectance of the object.");
+						ImGui::SameLine();
+
+						ImGui::PushItemWidth(-10 - 4);
+						fReflectance = pObjectMaterial->reflectance;
+						if (ImGui::SliderFloat("##Reflectance strength", &fReflectance, 0.0, 1.0))
+						{
+							pObjectMaterial->SetReflectance(fReflectance);
 							bHaveMaterialUpdate = true;
 
-							importer_set_all_material_colour(5, EmmisiveColor);
+							// This only does something if t.importer.bEditAllMesh is true.
+							importer_set_all_material_settings(6, fReflectance);
 						}
-						ImGui::EndPopup();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Surface reflectance strength");
+						ImGui::PopItemWidth();
+
+						//Render Order Bias
+						ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+						ImGui::Text("Render Bias");
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+						{
+							//Display additional information on click.
+							cInfoMessage = "The render order bias can control the priority at which an object is rendered by adding an artificial distance to the final distance sort when deciding which objects should render from the most distant to the nearest to the camera.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the transparency render order distance bias to prioritise rendering of overlapping objects. They must be transparent and double sided.");
+						ImGui::SameLine();
+
+						ImGui::PushItemWidth(-10 - 4);
+						float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
+						if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
+						{
+							WickedCall_SetRenderOrderBias(pChosenMesh, fNeedToGoInPropertiesSoCanSave);
+							bHaveMaterialUpdate = true;
+
+							// This only does something if t.importer.bEditAllMesh is true.
+							importer_set_all_material_settings(7, fNeedToGoInPropertiesSoCanSave);
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Render Order Distance Bias");
+						ImGui::PopItemWidth();
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change Emissive Color");
-					window = ImGui::GetCurrentWindow(); //PE: Add a pencil to all color gadgets.
-					lpTexture = GetImagePointerView(TOOL_PENCIL);
-					vDrawPos = { ImGui::GetCursorScreenPos().x + (ImGui::GetContentRegionAvail().x - 30.0f) ,ImGui::GetCursorScreenPos().y - (ImGui::GetFontSize()*1.5f) - 3.0f };
-					if (lpTexture)
-						window->DrawList->AddImage((ImTextureID)lpTexture, vDrawPos, vDrawPos + ImVec2(16, 16), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1, 1, 1, 1)));
-				}
-
-				if (mode != 5)
-				{
-					//Reflectance
-					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-					ImGui::Text("Reflectance");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start+20, ImGui::GetCursorPosY() - 5));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
-					{
-						//Display additional information on click.
-						cInfoMessage = "The reflectance of the surface describes how much of the light received by the surface is reflected away unmodified. Setting your surface to maximum reflectance would turn it into a crude mirror.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
-					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to change the reflectance of the object.");
-					ImGui::SameLine();
-
-					ImGui::PushItemWidth(-10 - 4);
-					fReflectance = pObjectMaterial->reflectance;
-					if (ImGui::SliderFloat("##Reflectance strength", &fReflectance, 0.0, 1.0)) 
-					{
-						pObjectMaterial->SetReflectance(fReflectance);
-						bHaveMaterialUpdate = true;
-
-						// This only does something if t.importer.bEditAllMesh is true.
-						importer_set_all_material_settings(6, fReflectance);
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Surface reflectance strength");
-					ImGui::PopItemWidth();
-
-					//Render Order Bias
-					ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-					ImGui::Text("Render Bias");
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start+20, ImGui::GetCursorPosY() - 5));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
-					{
-						//Display additional information on click.
-						cInfoMessage = "The render order bias can control the priority at which an object is rendered by adding an artificial distance to the final distance sort when deciding which objects should render from the most distant to the nearest to the camera.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
-					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set the transparency render order distance bias to prioritise rendering of overlapping objects. They must be transparent and double sided.");
-					ImGui::SameLine();
-
-					ImGui::PushItemWidth(-10 - 4);
-					float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
-					if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
-					{
-						WickedCall_SetRenderOrderBias(pChosenMesh, fNeedToGoInPropertiesSoCanSave);
-						bHaveMaterialUpdate = true;
-
-						// This only does something if t.importer.bEditAllMesh is true.
-						importer_set_all_material_settings(7, fNeedToGoInPropertiesSoCanSave);
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Render Order Distance Bias");
-					ImGui::PopItemWidth();
 
 					//Object checkboxes.
 					bTransparent = pObjectMaterial->userBlendMode == BLENDMODE_ALPHA;
@@ -11346,6 +11343,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 								pChosenMesh->bTransparency = bTransparent;
 							}
 						}
+						bCloneChangesToAllObjectsInRubberBand = true;
 						bHaveMaterialUpdate = true;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Transparent");
@@ -11367,11 +11365,11 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					if (ImGui::Checkbox("Double Sided", &bDoubleSided)) 
 					{
 						mesh->SetDoubleSided(bDoubleSided);
-
 						if (t.importer.bEditAllMesh)
 						{
 							importer_set_all_mesh_double_sided(bDoubleSided);
 						}
+						bCloneChangesToAllObjectsInRubberBand = true;
 						bHaveMaterialUpdate = true;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set object to render both sides of its polygons");
@@ -11406,6 +11404,7 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 
 						importer_set_all_material_planar_reflection(bPlanerReflection);
 
+						bCloneChangesToAllObjectsInRubberBand = true;
 						bHaveMaterialUpdate = true;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Planar Reflection");
@@ -11426,11 +11425,9 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					bCastShadows = pObjectMaterial->IsCastingShadow();
 					if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) 
 					{
-
 						pObjectMaterial->SetCastShadow(bCastShadows);
-
 						importer_set_all_material_cast_shadow(bCastShadows);
-
+						bCloneChangesToAllObjectsInRubberBand = true;
 						bHaveMaterialUpdate = true;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Cast Shadows");
@@ -11447,6 +11444,89 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					}
 					ImGui::PopID();
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object cast shadows.");
+
+					// gather for mode 6 (see later code)
+					if (bCloneChangesToAllObjectsInRubberBand == true)
+					{
+						bCloneChangesToAllObjectsInRubberBandTransparency = bTransparent;
+						bCloneChangesToAllObjectsInRubberBandDoubleSided = bDoubleSided;
+						bCloneChangesToAllObjectsInRubberBandPlanarReflection = bPlanerReflection;
+						bCloneChangesToAllObjectsInRubberBandCastShadow = bCastShadows;
+					}
+				}
+			}
+		}
+	}
+
+	// in mode 6, can make changes that will affect ALL objects in rubber band (All Materials)
+	if (mode == 6)
+	{
+		if (bCloneChangesToAllObjectsInRubberBand == true)
+		{
+			for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
+			{
+				int iEntityIndex = g.entityrubberbandlist[ii].e;
+				sObject* pObject = g_ObjectList[t.entityelement[iEntityIndex].obj];
+				if (pObject)
+				{
+					for (int iThisMeshIndex = 0; iThisMeshIndex < pObject->iMeshCount; iThisMeshIndex++)
+					{
+						sMesh* mesh = pObject->ppMeshList[iThisMeshIndex];
+						if (mesh)
+						{
+							if (t.importer.bEditAllMesh == true || (t.importer.bEditAllMesh == false && iThisMeshIndex == iSelectedMesh))
+							{
+								wiScene::MeshComponent* meshComponent = wiScene::GetScene().meshes.GetComponent(mesh->wickedmeshindex);
+								if (meshComponent)
+								{
+									// get material settings from mesh material or WEMaterial
+									uint64_t materialEntity = meshComponent->subsets[0].materialID;
+									wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+
+									// set specifics
+									bool bTransparency = bCloneChangesToAllObjectsInRubberBandTransparency;
+									t.entityelement[iEntityIndex].eleprof.WEMaterial.bTransparency[iThisMeshIndex] = bTransparency;
+									mesh->bTransparency = bTransparency;
+									if (mesh->bTransparency)
+									{
+										pMeshMaterial->userBlendMode = BLENDMODE_ALPHA;
+									}
+									else
+									{
+										pMeshMaterial->userBlendMode = BLENDMODE_OPAQUE;
+									}
+
+									// double sided
+									bool bDoubleSided = bCloneChangesToAllObjectsInRubberBandDoubleSided;
+									t.entityelement[iEntityIndex].eleprof.WEMaterial.bDoubleSided[iThisMeshIndex] = bDoubleSided;
+									meshComponent->SetDoubleSided(bDoubleSided);
+
+									// planar reflection
+									bool planarReflection = bCloneChangesToAllObjectsInRubberBandPlanarReflection;
+									t.entityelement[iEntityIndex].eleprof.WEMaterial.bPlanerReflection[iThisMeshIndex] = planarReflection;
+									if (planarReflection)
+									{
+										pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
+									}
+									else
+									{
+										if (pMeshMaterial->parallaxOcclusionMapping > 0.0f)
+											pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+										else
+											pMeshMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+									}
+
+									// cast shadows
+									bool bCastShadow = bCloneChangesToAllObjectsInRubberBandCastShadow;
+									t.entityelement[iEntityIndex].eleprof.WEMaterial.bCastShadows[iThisMeshIndex] = bCastShadows;
+									pMeshMaterial->SetCastShadow(bCastShadows);
+
+									// and dirty the materials
+									pMeshMaterial->SetDirty();
+								}
+							}
+						}
+					}
 				}
 			}
 		}

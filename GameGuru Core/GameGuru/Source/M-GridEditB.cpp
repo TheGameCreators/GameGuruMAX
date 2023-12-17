@@ -7697,10 +7697,18 @@ void tab_tab_visuals(int iPage, int iMode)
 					int entid = t.entityelement[e].bankindex;
 					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
 					{
-						LPSTR pObjectAI = t.entityelement[e].eleprof.aimain_s.Get();
-						if (stricmp(pObjectAI, "no_behavior_selected.lua") != NULL)
+						// also only list those that would actually perform LUA logic in the loop
+						if (t.entityelement[e].plrdist < MAXFREEZEDISTANCE || t.entityelement[e].eleprof.phyalways != 0)
 						{
-							iObjectCount++;
+							// skip entities that are inside shops or chests, ect
+							if (t.entityelement[e].collected >= 3 && t.entityelement[e].active == 0)
+								continue;
+
+							LPSTR pObjectAI = t.entityelement[e].eleprof.aimain_s.Get();
+							if (stricmp(pObjectAI, "no_behavior_selected.lua") != NULL)
+							{
+								iObjectCount++;
+							}
 						}
 					}
 				}
@@ -7714,15 +7722,23 @@ void tab_tab_visuals(int iPage, int iMode)
 					int entid = t.entityelement[e].bankindex;
 					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
 					{
-						LPSTR pThisStatus = "";
-						if (t.entityelement[e].active == 0) pThisStatus = " (inactive)";
-						LPSTR pObjectAI = t.entityelement[e].eleprof.aimain_s.Get();
-						if (stricmp(pObjectAI, "no_behavior_selected.lua") != NULL)
+						// skip entities that are inside shops or chests, ect
+						if (t.entityelement[e].collected >= 3 && t.entityelement[e].active == 0)
+							continue;
+
+						// also only list those that would actually perform LUA logic in the loop
+						if (t.entityelement[e].plrdist < MAXFREEZEDISTANCE || t.entityelement[e].eleprof.phyalways != 0)
 						{
-							pObjectAIScripts[iObjectIndex] = new char[256];
-							sprintf(pObjectAIScripts[iObjectIndex], "%d : %s%s", e, pObjectAI, pThisStatus);
-							pObjectRefE[iObjectIndex] = e;
-							iObjectIndex++;
+							LPSTR pThisStatus = "";
+							if (t.entityelement[e].active == 0) pThisStatus = " (inactive)";
+							LPSTR pObjectAI = t.entityelement[e].eleprof.aimain_s.Get();
+							if (stricmp(pObjectAI, "no_behavior_selected.lua") != NULL)
+							{
+								pObjectAIScripts[iObjectIndex] = new char[256];
+								sprintf(pObjectAIScripts[iObjectIndex], "%d : %s%s", e, pObjectAI, pThisStatus);
+								pObjectRefE[iObjectIndex] = e;
+								iObjectIndex++;
+							}
 						}
 					}
 				}
@@ -43083,7 +43099,8 @@ void process_storeboard(bool bInitOnly)
 							bool bRPGHUDSMissing[10];
 							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));
 							bool bAllRPGScreensAlreadyExist = true;
-							for (int hudi = 1; hudi <= 8; hudi++)
+							//for (int hudi = 1; hudi <= 8; hudi++)
+							for (int hudi = 1; hudi <= 9; hudi++) // include RPG Templates VR screen :)
 							{
 								// assume HUD screen missing
 								bRPGHUDSMissing[hudi] = true;
@@ -43137,7 +43154,8 @@ void process_storeboard(bool bInitOnly)
 											{
 												if (checkproject->Nodes[i].type == STORYBOARD_TYPE_HUD)
 												{
-													for (int hudi = 1; hudi <= 8; hudi++)
+													//for (int hudi = 1; hudi <= 8; hudi++)
+													for (int hudi = 1; hudi <= 9; hudi++)
 													{
 														// only add those that are missing
 														if (bRPGHUDSMissing[hudi] == true )
@@ -43272,20 +43290,6 @@ void process_storeboard(bool bInitOnly)
 
 					ImGui::Indent(-10);
 				}
-
-				#ifdef RPG_GAMES
-				if (ImGui::StyleCollapsingHeader("RPG Games", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0)
-				{
-					ImGui::Indent(10);
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
-					if (ImGui::StyleButton("RPG Settings", ImVec2(buttonwide, 0.0f)))
-					{
-						bRPGSetup_Window = true;
-					}
-					ImGui::Indent(-10);
-				}
-				#endif
-
 				if (ImGui::StyleCollapsingHeader("Play Game", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0 )
 				{
 					ImGui::Indent(10);
@@ -44433,6 +44437,25 @@ int FindLuaScreenTitleNode(char* name)
 		{
 			std::string check_lua_title = Storyboard.Nodes[i].title;
 			if (stricmp(check_lua_title.c_str(), name) == NULL)
+			{
+				return i;
+			}
+		}
+	}
+	return -1;
+}
+
+int FindLuaScreenTitleNodeByKey(char* key)
+{
+	if (strlen(Storyboard.gamename) <= 0) return(-1);
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		if (Storyboard.Nodes[i].used)
+		{
+			char scanCodeName[128];
+			extern unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int bufferLength);
+			int result = GetScancodeName(Storyboard.Nodes[i].toggleKey, scanCodeName, 128);
+			if (key[0] == scanCodeName[0])
 			{
 				return i;
 			}
@@ -46469,7 +46492,8 @@ void SendWidgetToBack(int nodeID, int widgetID)
 	}
 }
 
-unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int bufferLength) {
+unsigned int GetScancodeName(unsigned int scancode, char* buffer, unsigned int bufferLength) 
+{
 
 	// bit 16 - 23 contains the first byte of the scancode
 	// bit 24 indicates that the scancode is 2 bytes(extended)
@@ -48035,7 +48059,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								bIsPointerReleased = true;
 								ImVec2 topLeft = rMonitorArea.Min + widget_pos - vLargerGrabArea;
 								ImVec2 bottomRight = rMonitorArea.Min + widget_pos + widget_size + vLargerGrabArea;
-								if (fptrrealX > topLeft.x && fptrrealY < bottomRight.x)
+								if (fptrrealX > topLeft.x && fptrrealX < bottomRight.x)
 								{
 									if (fptrrealY > topLeft.y && fptrrealY < bottomRight.y)
 									{
@@ -49261,21 +49285,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					if (ImGui::BeginCombo("##readoutcombo", readout.c_str()))
 					{
 						ImGui::Selectable(readout.c_str(), true);
-						/* no choices, keep readout fixed to original gadget choice
-						int readoutIndex = GetReadoutIndex((char*)readout.c_str());
-						STORYBOARD_WIDGET_ type = readoutWidgetTypes[readoutIndex];
-						for (int i = 0; i < readoutTitles.size(); i++)
-						{
-							if (readoutWidgetTypes[i] == type)
-							{
-								bool bIsSelected = readoutIndex == i;
-								if (ImGui::Selectable(readoutTitles[i].c_str(), bIsSelected))
-								{
-									strcpy(Storyboard.widget_readout[nodeid][iCurrentSelectedWidget], readoutTitles[i].c_str());
-								}
-							}
-						}
-						*/
 						ImGui::EndCombo();
 					}
 					ImGui::PopItemWidth();
@@ -49908,13 +49917,24 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::Text("");
 		ImGui::Text("");
 		ImGui::TextCenter("Press the key that you would like to make this screen appear in-game.");
+		ImGui::Text("");
+		ImGui::TextCenter("Press SPACEBAR to reset selection back to NONE.");
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
 		t.inputsys.kscancode = ScanCode();
 		if (t.inputsys.kscancode > 0)
 		{
-			Storyboard.Nodes[nodeid].toggleKey = t.inputsys.kscancode;
+			if (t.inputsys.kscancode != 57)
+			{
+				// use that key code
+				Storyboard.Nodes[nodeid].toggleKey = t.inputsys.kscancode;
+			}
+			else
+			{
+				// reset key toggle
+				Storyboard.Nodes[nodeid].toggleKey = 0;
+			}
 			ImGui::CloseCurrentPopup();
 			ResetStoryboardListenForKeys();
 			bScreenToggleKeyWindow = false;

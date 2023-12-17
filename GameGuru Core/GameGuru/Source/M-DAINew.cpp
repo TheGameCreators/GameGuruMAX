@@ -352,7 +352,7 @@ void darkai_calcplrvisible (void)
 		t.ttdx_f = ObjectPositionX(t.aisystem.objectstartindex) - ObjectPositionX(t.charanimstate.obj);
 		t.ttdz_f = ObjectPositionZ(t.aisystem.objectstartindex) - ObjectPositionZ(t.charanimstate.obj);
 		t.ttdd_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdz_f*t.ttdz_f));
-		float fDistanceRangeToCheck = t.maximumnonefreezedistance;
+		float fDistanceRangeToCheck = MAXFREEZEDISTANCE;// t.maximumnonefreezedistance;
 		if (t.entityelement[t.charanimstate.e].eleprof.conerange > 0) fDistanceRangeToCheck = t.entityelement[t.charanimstate.e].eleprof.conerange;
 		if (t.ttdd_f < fDistanceRangeToCheck)
 		{
@@ -1336,7 +1336,8 @@ void darkai_loop (void)
 			if (t.entityelement[t.charanimstate.e].health > 0)
 			{
 				// If in range for activity
-				if (t.entityelement[t.charanimstate.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.charanimstate.e].eleprof.phyalways != 0)
+				//if (t.entityelement[t.charanimstate.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.charanimstate.e].eleprof.phyalways != 0)
+				if (t.entityelement[t.charanimstate.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.charanimstate.e].eleprof.phyalways != 0)
 				{
 					// character can be flagged as back in range
 					if (t.charanimstate.outofrange == 1)

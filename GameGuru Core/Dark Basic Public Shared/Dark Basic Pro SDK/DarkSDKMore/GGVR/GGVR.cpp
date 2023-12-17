@@ -1390,7 +1390,8 @@ int GGVR_GetLaserGuidedHit (int iObjToHit, float* pfX, float* pfY, float* pfZ)
 			// use this laser object to trace line and detect any entity object in its path
 			int iIgnoreObjNo = GGVR_Player.LaserGuideActive;
 			int ttt = IntersectAll(0, 0, 0, 0, 0, 0, 0, 0, -123);
-			int tthitvalue = IntersectAll(iObjToHit, iObjToHit, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo);
+			bool bFullWickedAccuracy = true;
+			int tthitvalue = IntersectAllEx(iObjToHit, iObjToHit, fX, fY, fZ, fNewX, fNewY, fNewZ, iIgnoreObjNo, 0, 0, 0, 0, bFullWickedAccuracy);
 			if (tthitvalue > 0)
 			{
 				GGVECTOR3 vecHit = GGVECTOR3(ChecklistFValueA(6), ChecklistFValueB(6), ChecklistFValueC(6));

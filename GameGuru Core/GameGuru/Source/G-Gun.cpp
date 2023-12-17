@@ -229,6 +229,24 @@ void gun_manager ( void )
 	if ( t.gunclick == 1 && g.firemodes[t.gunid][g.firemode].settings.disablerunandshoot == 1 && t.playercontrol.isrunning == 1 && t.player[1].state.moving == 1  )  t.gunclick = 0;
 	if ( t.gunclick == 1 && (g.lowfpswarning == 1 || g.lowfpswarning == 2)  )  t.gunclick = 0;
 
+	// in VR mode, if trigger being used to open/close/activate, disable any shooting
+	extern int g_iActivelyUsingVRNow;
+	if (g_iActivelyUsingVRNow == 1)
+	{
+		static int iHUDDampeningPhase = 0;
+		if (t.game.activeStoryboardScreen >= 0) iHUDDampeningPhase = 20;
+		if (t.gunclick == 1)
+		{
+			if (t.luaglobal.scriptprompt3dtime > 0) t.gunclick = 0;
+			if (iHUDDampeningPhase > 0) t.gunclick = 0;
+		}
+		else
+		{
+			// when not pressing trigger, wait some cycles then can shoot again (prevents shooting when leaving a HUD)
+			if (iHUDDampeningPhase > 0) iHUDDampeningPhase--;
+		}
+	}
+
 	// Melee control (for TPP) 
 	bool bGunshotOverridden = false;
 	if ( t.playercontrol.thirdperson.enabled == 1 ) 
@@ -761,9 +779,7 @@ void gun_change ( void )
 		if (t.gunid > 0)
 		{
 			bool bNormalOrVRMode = false;
-			#ifdef WICKEDENGINE
 			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bNormalOrVRMode = true;
-			#endif
 			if (bNormalOrVRMode == true)
 			{
 				sObject* pGunObj = GetObjectData(t.currentgunobj);
@@ -819,9 +835,7 @@ void gun_update_hud ( void )
 		if (  g.globals.riftmode == 0 ) 
 		{
 			bool bVRMode = false;
-			#ifdef WICKEDENGINE
 			if (g.vrglobals.GGVREnabled > 0 && g.vrglobals.GGVRUsingVRSystem == 1) bVRMode = true;
-			#endif
 			if (bVRMode == false)
 			{
 				// non-VR mode
@@ -887,8 +901,9 @@ void gun_update_hud ( void )
 							// quick way to edit VR WEAPON SETTINGS and save gunspec new settings
 							PerformCheckListForLimbs(t.currentgunobj);
 							int iGunLimbCount = ChecklistQuantity();
-							/*
-							bool bAllowKeyEditingLive = false;
+
+							// debug code to check limb IDs and hide necessary ones when in VR
+							bool bAllowKeyEditingLive = true;
 							if (bAllowKeyEditingLive == true)
 							{
 								// always need mode on when here for this weapon
@@ -943,7 +958,7 @@ void gun_update_hud ( void )
 							if (t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon < 0) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = 0;
 							if (t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon > iGunLimbCount-1) t.gun[t.gunid].settings.iVRWeaponLimbOfWeapon = iGunLimbCount-1;
 							if (t.gun[t.gunid].settings.iVRWeaponStaticFrame < 0) t.gun[t.gunid].settings.iVRWeaponStaticFrame = 0;
-							*/
+							//
 
 							// get offset from base currentgunobj to FIRESPOT (common amongst weapons and indicator of where hand might be)
 							GGVECTOR3 vecVRWeaponOffsetSetting;

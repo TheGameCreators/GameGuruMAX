@@ -776,6 +776,29 @@ void Master::Update(float dt)
 							iSteamErrorCode = 2;
 						}
 
+						// a marker to know if this user used the demo first :)
+						if (g_bFreeTrialVersion == true)
+						{
+							char pTestForDemo[MAX_PATH];
+							strcpy(pTestForDemo, pOldDir);
+							strcat(pTestForDemo, "\\demowasnice.dat");
+							GG_GetRealPath(pTestForDemo, 0);
+							if (FileExist(pTestForDemo) == 1) DeleteFileA(pTestForDemo);
+							OpenToWrite(1, pTestForDemo);
+							char pTextTest[MAX_PATH];
+							sprintf(pTextTest, "demowasnice");
+							WriteString(1, pTextTest);
+							extern std::vector<std::string> early_debug_list;
+							if (early_debug_list.size() > 0)
+							{
+								for (int l = 0; l < early_debug_list.size(); l++)
+								{
+									WriteString(1, (LPSTR)early_debug_list[l].c_str());
+								}
+							}
+							CloseFile(1);
+						}
+
 						// shutdown Steam connection after check
 						//SteamAPI_Shutdown(); stay open now we have workshop support :)
 					}

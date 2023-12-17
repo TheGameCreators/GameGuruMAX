@@ -690,7 +690,7 @@ void lua_loop_begin ( void )
 		if (t.entityelement[e].active == 0 && t.entityelement[e].lua.flagschanged == 123 )
 		{
 			t.entityelement[e].lua.flagschanged = 1;
-			t.entityelement[e].active = 2;
+			t.entityelement[e].active = 2; // set to 1 inside bringnewent func below (except for shop objects - see code)
 			bBringNewOnesToLife = true;
 		}
 	}
@@ -819,6 +819,9 @@ void lua_loop_allentities ( void )
 			// only player and hotkeys collections can run logic!
 			//if (t.entityelement[t.e].collected >= 3)
 			//	continue;
+			// skip entities that are inside shops or chests, ect
+			if (t.entityelement[t.e].collected >= 3 && t.entityelement[t.e].active == 0)
+				continue;
 
 			// provided by darkai_loop control (avoids desync of use of maximumnonefreezedistance)
 			if (t.entityelement[t.e].lua.outofrangefreeze == 1)
@@ -860,7 +863,8 @@ void lua_loop_allentities ( void )
 
 			// only process logic within plr freeze range
 			t.te = t.e; entity_getmaxfreezedistance ( );
-			if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged==2 )
+			//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
+			if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
 			{
 				//  If entity is waypoint zone, determine if player inside or outside
 				t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
@@ -1007,22 +1011,27 @@ void lua_loop_allentities ( void )
 				}
 
 				//  Update each cycle as entity position, health and GetFrame (  change constantly )
-				if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0 ) 
+				
+				//if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0 ) 
+				if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0)
 				{
 					//  first quarter of freeze range get full updates - also characters and those with alwaysactive flags
-					if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 ) 
+					//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0)
+					if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0)
 						t.entityelement[t.e].lua.flagschanged=1;
 				}
 				else
 				{
 					//  rest gets updates every now and again based on distance
-					if (  t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/2.0f ) 
+					//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance / 2.0f)
+					if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 2.0f)
 					{
 						if (  Rnd(25) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
 					}
 					else
 					{
-						if (  t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/1.25f ) 
+						//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance / 1.25f)
+						if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 1.25f)
 						{
 							if (  Rnd(50) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
 						}

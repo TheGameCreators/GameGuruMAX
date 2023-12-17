@@ -300,39 +300,30 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 {
 	// set prompt 3D - only regenerate if text changes
 	t.luaglobal.scriptprompt3dtime = dwPrompt3DTime;
-	#ifdef WICKEDENGINE
 	if ( strcmp ( pTextToRender, t.luaglobal.scriptprompt3dtext ) != NULL )
-	#else
-	if ( strcmp ( pTextToRender, t.luaglobal.scriptprompt3dtext ) != NULL && g_StereoEyeToggle == 0 )
-	#endif
 	{
 		strcpy ( t.luaglobal.scriptprompt3dtext, pTextToRender );
 		t.luaglobal.scriptprompt3dX = 0.0f;
 		t.luaglobal.scriptprompt3dY = 0.0f;
 		t.luaglobal.scriptprompt3dZ = 0.0f;
 		t.luaglobal.scriptprompt3dAY = 0.0f;
-		#ifdef VRTECH
 		t.luaglobal.scriptprompt3dFaceCamera = false;
 		t.luaglobal.scriptprompttype = 1;
 		if ( iImageIndex > 0 ) 
 			t.luaglobal.scriptprompttype = 2;
+
 		// create 3d object for text or image
 		if ( ObjectExist(g.prompt3dobjectoffset)==1 ) DeleteObject ( g.prompt3dobjectoffset );
-		#endif
 
 		if ( ObjectExist(g.prompt3dobjectoffset)==0 )
 		{
-			#ifdef WICKEDENGINE
 			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_CURSOROBJECT);
-			#endif
-			#ifdef VRTECH
 			if (t.luaglobal.scriptprompttype == 1)
 			{
 				MakeObjectPlane(g.prompt3dobjectoffset, 512 / 5.0f, 32.0f / 5.0f, 0, true); //PE: We need a reverse plane for image to not be inverted.
 			}
 			else
 			{
-				#ifdef WICKEDENGINE
 				//Make Ratio here.
 				float fix = ImageWidth(iImageIndex);
 				float fiy = ImageHeight(iImageIndex);
@@ -346,16 +337,8 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 					if(fPlaneSize*fyRatio < 40 && 70.0*fyRatio >= 50.0 ) fPlaneSize = 70.0f; //Allow it to grow to 70 width.
 				}
 				MakeObjectPlane(g.prompt3dobjectoffset, fPlaneSize*fxRatio, fPlaneSize*fyRatio, 0, true); //PE: We need a reverse plane for image to not be inverted.
-				#else
-				MakeObjectPlane(g.prompt3dobjectoffset, 256 / 5.0f, 256.0f / 5.0f);
-				#endif
 			}
-			#else
-			MakeObjectPlane ( g.prompt3dobjectoffset, 512/5.0f, 32.0f/5.0f );
-			#endif
-			#ifdef WICKEDENGINE
 			WickedCall_PresetObjectRenderLayer(GGRENDERLAYERS_NORMAL);
-			#endif
 
 			PositionObject ( g.prompt3dobjectoffset, -100000, -100000, -100000 );
 			SetObjectEffect ( g.prompt3dobjectoffset, g.guishadereffectindex );
@@ -363,22 +346,16 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 			DisableObjectZRead ( g.prompt3dobjectoffset );
 			SetSphereRadius ( g.prompt3dobjectoffset, 0 );
 
-			#ifdef VRTECH
 			// normal or VR
 			if ( g.vrglobals.GGVREnabled > 0 )
 				SetObjectMask ( g.prompt3dobjectoffset, (1<<6) + (1<<7) + 1 );
 			else
 				SetObjectMask ( g.prompt3dobjectoffset, 1 );
-			#else
-			SetObjectMask ( g.prompt3dobjectoffset, 1 );
-			#endif
 		}
 
-		#ifdef WICKEDENGINE
 		WickedCall_PresetObjectTextureFromImagePtr(true,1);
 		if (t.luaglobal.scriptprompttype == 2) //No emmisive in images.
 			WickedCall_PresetObjectPutInEmissive(0);
-		#endif
 
 		// text or image
 		int iImageBeingUsed = 0;
@@ -400,6 +377,7 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 				fontsize = 2; //It is getting a bit to small , perhaps wrap text instead ?
 			else if (strlen(pTextToRender) > 60)
 				fontsize = 3;
+
 			//Expand to 1024 to allow more text.
 			{
 				if (bExpandImage)
@@ -461,10 +439,8 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 			WickedCall_SetObjectRoughness(pBackObject, 0.0f);
 		}
 
-		#ifdef WICKEDENGINE
 		WickedCall_PresetObjectTextureFromImagePtr(false,0);
 		SetObjectTransparency(g.prompt3dobjectoffset, 1);
-		#endif
 
 		// after create new prompt, need it positioned and visible right away!
 		lua_updateprompt3d();
@@ -473,22 +449,15 @@ void lua_prompt3d ( LPSTR pTextToRender, DWORD dwPrompt3DTime, int iImageIndex )
 
 void lua_positionprompt3d ( int e, float fX, float fY, float fZ, float fAngleY, bool bFaceCameraExactly )
 {
-	#ifdef VRTECH
 	if ( e == 0 )
-	#else
-	if(1)
-	#endif
 	{
 		t.luaglobal.scriptprompt3dX = fX;
 		t.luaglobal.scriptprompt3dY = fY;
 		t.luaglobal.scriptprompt3dZ = fZ;
 		t.luaglobal.scriptprompt3dAY = fAngleY;
-		#ifdef VRTECH
 		t.luaglobal.scriptprompt3dFaceCamera = bFaceCameraExactly;
-		#endif
 		lua_updateprompt3d();
 	}
-	#ifdef VRTECH
 	else
 	{
 		t.entityelement[e].overpromptuse3D = true; 
@@ -500,7 +469,6 @@ void lua_positionprompt3d ( int e, float fX, float fY, float fZ, float fAngleY, 
 		t.entityelement[e].overprompt3dFaceCamera = bFaceCameraExactly; 
 		lua_updateperentity3d ( e, t.s_s.Get(), fX, fY, fZ, fAngleY, bFaceCameraExactly );
 	}
-	#endif
 }
 
 void lua_updateprompt3d ( void )
@@ -510,12 +478,9 @@ void lua_updateprompt3d ( void )
 	float fY = t.luaglobal.scriptprompt3dY;
 	float fZ = t.luaglobal.scriptprompt3dZ;
 	float fA = t.luaglobal.scriptprompt3dAY;
-	#ifdef VRTECH
 	bool bFaceCamera = t.luaglobal.scriptprompt3dFaceCamera;
-	#endif
 	if ( fX == 0.0f && fY == 0.0f && fZ == 0.0f )
 	{
-		#ifdef VRTECH
 		// projects forward from camera pos, finds floor and raises up 50 units, should stay put in all render views
 		float fStCamX = CameraPositionX();
 		float fStCamY = CameraPositionY();
@@ -525,11 +490,7 @@ void lua_updateprompt3d ( void )
 		float fStCamAZ = CameraAngleZ();
 		if ( g.vrglobals.GGVREnabled != 0 && g.vrglobals.GGVRUsingVRSystem == 1 )
 		{
-			#ifdef WICKEDENGINE
 			RotateCamera ( 0, CameraAngleX(0), CameraAngleY(0), CameraAngleZ(0) );
-			#else
-			RotateCamera ( 0, CameraAngleX(6), CameraAngleY(6), CameraAngleZ(6) );
-			#endif
 			bFaceCamera = true;
 		}
 		else
@@ -543,24 +504,12 @@ void lua_updateprompt3d ( void )
 		fA = CameraAngleY(0);
 		PositionCamera ( 0,  fStCamX, fStCamY, fStCamZ );
 		RotateCamera ( 0, fStCamAX, fStCamAY, fStCamAZ );
-		#else
-		// no coordinates so show in front of user
-		MoveCameraDown ( 0, 18.0f );
-		MoveCamera ( 0, 50.0f );
-		fX = CameraPositionX(0);
-		fY = CameraPositionY(0);
-		fZ = CameraPositionZ(0);
-		fA = CameraAngleY(0);
-		MoveCamera ( 0, -50.0f );
-		MoveCameraDown ( 0, -18.0f );
-		#endif
 	}
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 )
 	{
 		PositionObject ( g.prompt3dobjectoffset, fX, fY, fZ );
 		PointObject ( g.prompt3dobjectoffset, ObjectPositionX(t.aisystem.objectstartindex), ObjectPositionY(t.aisystem.objectstartindex)+35.0f, ObjectPositionZ(t.aisystem.objectstartindex) );
 		MoveObject ( g.prompt3dobjectoffset, 15.0f );
-		#ifdef VRTECH
 		if ( bFaceCamera == true )
 		{
 			PointObject ( g.prompt3dobjectoffset, CameraPositionX(0), fY, CameraPositionZ(0) );
@@ -569,12 +518,6 @@ void lua_updateprompt3d ( void )
 		{
 			RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
 		}
-		#ifdef PRODUCTV3
-		RotateObject ( g.prompt3dobjectoffset, ObjectAngleX(g.prompt3dobjectoffset)*-1, ObjectAngleY(g.prompt3dobjectoffset)+180, ObjectAngleZ(g.prompt3dobjectoffset) );
-		#endif
-		#else
-		RotateObject ( g.prompt3dobjectoffset, 0, fA+180.0f, 0 );
-		#endif
 		ShowObject ( g.prompt3dobjectoffset );
 	}
 }
@@ -582,11 +525,6 @@ void lua_updateprompt3d ( void )
 void lua_hideprompt3d ( void )
 {
 	if ( ObjectExist( g.prompt3dobjectoffset ) == 1 ) HideObject ( g.prompt3dobjectoffset );
-	#ifdef WICKEDENGINE
-	// avoid clearing last text and forcing it to be recreated over and over!
-	#else
-	strcpy ( t.luaglobal.scriptprompt3dtext, "" );
-	#endif
 	t.luaglobal.scriptprompt3dtime = 0;
 }
 

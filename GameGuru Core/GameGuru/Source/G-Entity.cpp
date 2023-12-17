@@ -312,7 +312,15 @@ void entity_bringnewentitiestolife (bool bAllNewOnes)
 					}
 
 					// restore active flag for in-game use
-					t.entityelement[t.e].active = 1;
+					if (t.entityelement[t.e].collected >= 3)
+					{
+						// remain zero, objects in shop/chest must remain inert until moved to plrinventory/hotkeypanel!
+						t.entityelement[t.e].active = 0;
+					}
+					else
+					{
+						t.entityelement[t.e].active = 1;
+					}
 				}
 			}
 		}

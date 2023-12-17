@@ -6705,6 +6705,7 @@ int SetSunDirection(lua_State *L)
 //Storyboaard
 int FindLuaScreenNode(char* name);
 int FindLuaScreenTitleNode(char* name);
+int FindLuaScreenTitleNodeByKey(char* key);
 
 int GetStoryboardActive(lua_State *L)
 {
@@ -6805,6 +6806,21 @@ int ScreenToggle(lua_State* L)
 	}
 	return 0;
 }
+int ScreenToggleByKey(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L); if (n < 1) return 0;
+	char pKeyToSearchFor[512];
+	strcpy(pKeyToSearchFor, lua_tostring(L, 1));
+	t.game.activeStoryboardScreen = -1;
+	int nodeid = FindLuaScreenTitleNodeByKey(pKeyToSearchFor);
+	if (nodeid >= 0)
+	{
+		t.game.activeStoryboardScreen = nodeid;
+	}
+	return 0;
+}
+
 int GetIfUsingTABScreen(lua_State* L)
 {
 	int iReturnValue = 0;
@@ -12290,6 +12306,7 @@ void addFunctions()
 	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
 	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
 	lua_register(lua, "ScreenToggle", ScreenToggle);
+	lua_register(lua, "ScreenToggleByKey", ScreenToggleByKey);
 	lua_register(lua, "GetIfUsingTABScreen", GetIfUsingTABScreen);
 	lua_register(lua, "GetStoryboardActive", GetStoryboardActive);
 	lua_register(lua, "GetScreenWidgetValue", GetScreenWidgetValue);

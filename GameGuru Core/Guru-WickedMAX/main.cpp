@@ -189,11 +189,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			AMD Radeon RX 7900
 			Radeon RX 6700 XT
 			AMD Radeon RX 6500 XT
+
+			MSI RX 5500 XT 4 GB
+
 			NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
 			*/
 			if (length > 0)
 			{
-				if (pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon"))
+				if (pestrcasestr(cDeviceName, "MSI") || pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon"))
 				{
 					//PE: Take all 6900,5600,6800,6600 RX serie if amd.
 					if (pestrcasestr(cDeviceName, "RX"))
@@ -208,7 +211,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					else
 					{
 						//PE: special case for amd 5600 xt
-						if (pestrcasestr(cDeviceName, "5600"))
+						if (pestrcasestr(cDeviceName, "5500") || pestrcasestr(cDeviceName, "5600"))
 						{
 							bIsAMDCard = true;
 							break;

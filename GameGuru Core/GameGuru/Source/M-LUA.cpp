@@ -583,21 +583,32 @@ void lua_loop_begin ( void )
 		// 310316 - need to keep real mouse fixed (or it clicks things in other monitors)
 		HWND hForeWnd = GetForegroundWindow();
 		HWND hThisWnd = g_pGlob->hWnd;
-		if ( hThisWnd == hForeWnd )
-			SetCursorPos(320,240);
-
-		//PE: Above dont work, try this:
-		//PE: Make sure mouse dont leave the current window.
-		RECT r;
-		GetWindowRect(g_pGlob->hWnd, &r);
-		ClipCursor(&r);
+		extern bool g_bClipInForce;
+		bool bAltKey = (::GetKeyState(VK_MENU) & 0x8000) != 0;
+		if (hThisWnd == hForeWnd && bAltKey == false ) // also disengage when ALT pressed (anticipating an ALT+TAB freedom!)
+		{
+			//PE: Above dont work, try this - make sure mouse dont leave the current window.
+			RECT r;
+			GetWindowRect(g_pGlob->hWnd, &r);
+			ClipCursor(&r);
+			g_bClipInForce = true;
+			if (g_bClipInForce == true) SetCursorPos(320, 240);
+		}
+		else
+		{
+			// no forced pointer and remove the clip!
+			if (g_bClipInForce == true)
+			{
+				ClipCursor(NULL);
+				g_bClipInForce = false;
+			}
+		}
 	}
 	else
 	{
 		//230216 - to help scripting, relay absolute values if not in mouse active mode
 		LuaSetFloat ( "g_MouseX", -1.0f );
 		LuaSetFloat ( "g_MouseY", -1.0f );
-		#ifdef WICKEDENGINE
 		extern DBPRO_GLOBAL int			g_iMouseLocalZ;
 		if (iResetMouseWheel > 0)
 		{
@@ -612,17 +623,11 @@ void lua_loop_begin ( void )
 			//PE: We reset here , so the next 4 calls to UpdateMouse (before getting here again) can update g_iMouseLocalZ.
 			g_iMouseLocalZ = 0;
 		}
-		#else
-		LuaSetInt("g_MouseWheel", MouseZ());
-		#endif
-		#ifdef STORYBOARD 
 		extern float LuaMousePosPercentX, LuaMousePosX, LuaMousePosPercentY, LuaMousePosY;
 		LuaMousePosX = -1.0f;
 		LuaMousePosY = -1.0f;
 		LuaMousePosPercentX = -1.0f;
 		LuaMousePosPercentY = -1.0f;
-		#endif
-
 	}
 
 	int iMouseClickState = 0;

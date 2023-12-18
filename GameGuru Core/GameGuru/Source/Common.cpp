@@ -71,6 +71,9 @@ bool g_bCloudKeyIsHomeEdition = false;
 // global to store abs path to converter
 char g_pAbsPathToConverter[MAX_PATH];
 
+// flag to control whether mouse pointer clipped and locked to MAX window!
+bool g_bClipInForce = false;
+
 // C++ CONVERSION: g contains all variables that were defined as global in dbpro source
 Sglobals g;
 

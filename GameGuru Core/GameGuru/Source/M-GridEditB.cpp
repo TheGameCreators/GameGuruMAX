@@ -37447,7 +37447,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 		strcpy(Storyboard.Nodes[node].levelnumber, "Level 1");
 		strcpy(Storyboard.Nodes[node].thumb, "");
 		strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
-		strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+		strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
 		strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
 		Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 		Storyboard.Nodes[node].output_linkto[0] = Storyboard.Nodes[5].input_id[0];
@@ -39458,7 +39458,7 @@ void process_storeboard(bool bInitOnly)
 								//Input.
 								strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
 								//Output.
-								strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+								strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
 								strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
 								Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 								Storyboard.Nodes[node].output_linkto[0] = 0;
@@ -42045,7 +42045,7 @@ void process_storeboard(bool bInitOnly)
 							//Input.
 							strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
 							//Output.
-							strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+							strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
 							strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
 							Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 							Storyboard.Nodes[node].output_linkto[0] = 0;
@@ -42539,7 +42539,7 @@ void process_storeboard(bool bInitOnly)
 											//Input.
 											strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
 											//Output.
-											strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+											strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
 											strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
 											Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 											Storyboard.Nodes[node].output_linkto[0] = 0;
@@ -42992,7 +42992,7 @@ void process_storeboard(bool bInitOnly)
 								//Input.
 								strcpy(Storyboard.Nodes[node].input_title[0], " Input ");
 								//Output.
-								strcpy(Storyboard.Nodes[node].output_title[0], " GAME WON -> Connect to Scene ");
+								strcpy(Storyboard.Nodes[node].output_title[0], " WIN LEVEL -> Connect to Scene ");
 								strcpy(Storyboard.Nodes[node].output_action[0], "loadlevel"); //Not defined this yet.
 								Storyboard.Nodes[node].output_can_link_to_type[0] = STORYBOARD_TYPE_SCREEN;
 								Storyboard.Nodes[node].output_linkto[0] = 0;
@@ -44218,20 +44218,16 @@ int save_create_storyboard_project(void)
 
 //FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 //if( g_Storyboard_First_Level_Node == -1) // Not Found.
-
 //g_Storyboard_Current_Level MUST be set by load_fpm , so "load game" will also work.
 //g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 //strcpy(g_Storyboard_Current_fpm,g_Storyboard_First_fpm);
-
-
 //Win
-// int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm)
+// int a = Find NextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm)
 //if( a == 0 ) // No more levels found, go to won.lua
 // if( a == 1 ) //Goto a new level.
 // if( a == 2 ) //Goto a new lua screen.
-
 //Lost
-// int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_lua , 1)
+// int a = Find NextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_lua , 1)
 // jump to g_Storyboard_Current_lua.
 
 
@@ -44266,6 +44262,8 @@ int FindOutputScreenNode(int iNode, int index)
 
 int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 {
+	// action: 0-No more levels found, go to won.lua  1-Goto a new level.  2-/Goto a new lua screen.
+
 	int iNextNode = -1;
 	int iNextWinScreenNode = -1;
 	int iNextLostScreenNode = -1;
@@ -44273,8 +44271,8 @@ int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 	if (iNextLevelNode >= 0)
 	{
 		//Find connected to:
-		int iLinkToLost = Storyboard.Nodes[iNextLevelNode].output_linkto[1]; //2=Next Loast screen.
 		int iLinkToWin = Storyboard.Nodes[iNextLevelNode].output_linkto[0]; //2=Next Won screen.
+		int iLinkToLost = Storyboard.Nodes[iNextLevelNode].output_linkto[1]; //2=Next Lost screen.
 		int iLinkTo = Storyboard.Nodes[iNextLevelNode].output_linkto[2]; //2=Next level.
 
 		//PE: If Storyboard.Nodes[iNextLevelNode] is a loading screen , take output from there.
@@ -44343,6 +44341,7 @@ int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 			return(1); //Goto next level.
 		}
 	}
+
 	//Not linking to a level, check if we have a linking won screen.
 	if (iNextWinScreenNode > 0)
 	{
@@ -44350,9 +44349,15 @@ int FindNextLevel(int &iNextLevelNode, char *level_name, int action)
 		{
 			iNextLevelNode = iNextWinScreenNode;
 			strcpy(level_name, Storyboard.Nodes[iNextWinScreenNode].lua_name);
-			return(2); //Goto next won lua script.
+			if (stricmp(level_name, "win.lua") == NULL)
+			{
+				return(3); //Goto final game won lua script.
+			}
+			else
+			{
+				return(2); //Goto next won lua script.
+			}
 		}
-
 	}
 
 	//Not linking to anything, force a win.lua

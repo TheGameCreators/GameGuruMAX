@@ -2872,9 +2872,7 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	//PE: restore waterline.
 	t.terrain.waterliney_f = g.gdefaultwaterheight;
 
-	#ifdef VRTECH
 	reset_env_particles();
-	#endif
 
 	//PE: restore sun position for editor.
 	t.terrain.sundirectionx_f = t.terrain.skysundirectionx_f;
@@ -2899,8 +2897,8 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 				if (t.game.lostthegame == 1)
 				{
 					// Get output link to lose screen from current level node.
-					int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm , 1);
-					if (a == 2)
+					int actiontype = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm , 1);
+					if (actiontype == 2)
 					{
 						//Found a lose output to a screen.
 						std::string script = g_Storyboard_Current_fpm;
@@ -2956,8 +2954,8 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 					else
 					{
 						//Get next level.
-						int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
-						if (a == 2)
+						int actiontype = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
+						if (actiontype == 2 || actiontype == 3)
 						{
 							//We got a screen jump to that screen.
 							std::string script = g_Storyboard_Current_fpm;
@@ -2975,7 +2973,11 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 								titleslua_free();
 								sky_show();
 							}
-							t.game.levelloop = 0;
+							if (actiontype == 3)
+							{
+								// is the actual game won screen, need to leave level loop afer this!
+								t.game.levelloop = 0;
+							}
 						}
 						else
 						{

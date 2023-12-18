@@ -2418,7 +2418,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				addallinfoldertocollection(project_files, project_files);
 				SetDir(olddir.Get());
 			}
-			//strcat(project, "\\project.dat");
 
 			// add loading splash in case of a needed fallback
 			addtocollection("editors\\uiv3\\loadingsplash.jpg");
@@ -3114,30 +3113,13 @@ void mapfile_savestandalone_stage2a ( void )
 	t.levelmax=0;
 	Dim ( t.levellist_s, 100 );
 
-	#ifdef STORYBOARD
 	if (g.bUseStoryBoardSetup)
 	{
-		/* this is done in mapfile_collectfoldersandfiles, and this one is bugged as it can infinitely loop if lv1->lvl2>lvl1!!
-		// add all storyboard files to scan list.
-		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
-		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
-		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-		int a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
-		while (a == 1)
-		{
-			++t.levelmax;
-			t.levellist_s[t.levelmax] = g_Storyboard_Current_fpm;
-			addtocollection(g_Storyboard_Current_fpm);
-			a = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
-		}
-		*/
-
 		// restore to first level.
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
 	}
-	#endif
 
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;

@@ -13352,12 +13352,14 @@ void mapeditorexecutable_loop(void)
 												if (t.strarr_s[468] == "") t.strarr_s[468] = "Sound1";
 												if (t.strarr_s[480] == "") t.strarr_s[480] = "Sound2";
 												if (t.strarr_s[481] == "") t.strarr_s[481] = "Sound3";
-												if (t.strarr_s[482] == "") t.strarr_s[482] = "Sound4";
+												//if (t.strarr_s[482] == "") t.strarr_s[482] = "Sound4";
 												t.grideleprof.soundset1_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), t.strarr_s[468].Get(), t.strarr_s[254].Get(), "audiobank\\");
 												t.grideleprof.soundset2_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset2_s.Get(), t.strarr_s[480].Get(), t.strarr_s[254].Get(), "audiobank\\");
 												t.grideleprof.soundset3_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset3_s.Get(), t.strarr_s[481].Get(), t.strarr_s[254].Get(), "audiobank\\");
-												t.grideleprof.soundset5_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset5_s.Get(), t.strarr_s[482].Get(), t.strarr_s[254].Get(), "audiobank\\");
-												t.grideleprof.soundset6_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset6_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\");
+												ImGui::TextCenter("Sound4");
+												ImGui::TextCenter("(repurposed)");
+												t.grideleprof.soundset5_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset5_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\");
+												t.grideleprof.soundset6_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset6_s.Get(), "Sound6", t.strarr_s[254].Get(), "audiobank\\");
 											}
 										}
 									}
@@ -13407,7 +13409,8 @@ void mapeditorexecutable_loop(void)
 					} //Advenced open
 
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -13423,7 +13426,6 @@ void mapeditorexecutable_loop(void)
 						bImGuiGotFocus = true;
 					}
 				}
-//					ImGui::Text("iParentEntid: %ld pEIndex: %ld", iParentEntid, t.widget.pickedEntityIndex );
 				ImGui::PopItemWidth();
 				ImGui::SetWindowFontScale(1.0);
 
@@ -13436,7 +13438,8 @@ void mapeditorexecutable_loop(void)
 				if(!bEntity_Properties_Window) //Window closed.
 					iOldPickedEntityIndex = -1;
 
-				if (t.inputsys.mclick == 1 && ImGui::IsWindowHovered()) {
+				if (t.inputsys.mclick == 1 && ImGui::IsWindowHovered()) 
+				{
 					//Click start , block until mouse is release.
 					bProperties_Window_Block_Mouse = true;
 				}

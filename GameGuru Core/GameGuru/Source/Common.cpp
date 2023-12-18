@@ -112,7 +112,7 @@ void CheckForNewUpdateWicked(void)
 void common_init ( void )
 {
 	/*
-	// if a user needs to decrypt their media from an old GG Classic Game, use this code
+	// if a user needs to decrypt their media from an old GG Classic Game, use this code 
 	#define EXTRACTENCRYPTEDMEDIA
 	#ifdef EXTRACTENCRYPTEDMEDIA
 	// store current folder to restore later

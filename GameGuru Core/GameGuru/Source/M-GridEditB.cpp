@@ -5830,7 +5830,10 @@ void gridedit_instruction_block_rec ( sStateNode* pState, ImVec2 vTopCenterPos, 
 		}
 		instruction_freezewheneditingbehavior = true;
 	}
-	if (ImGui::IsItemHovered()) ImGui::SetTooltip(combo_actions[iActionListIndex]);
+	if (g_ActionsTable.size() > 0)
+	{
+		if (ImGui::IsItemHovered()) ImGui::SetTooltip(combo_actions[iActionListIndex]);
+	}
 	// optional action param
 	if (pinstruction->iAction == 12 || pinstruction->iAction == 13 || pinstruction->iAction == 66 || pinstruction->iAction == 67)
 	{
@@ -29013,11 +29016,14 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 							if (t.strarr_s[468] == "") t.strarr_s[468] = "Sound1";
 							if (t.strarr_s[480] == "") t.strarr_s[480] = "Sound2";
 							if (t.strarr_s[481] == "") t.strarr_s[481] = "Sound3";
-							if (t.strarr_s[482] == "") t.strarr_s[482] = "Sound4";
+							//if (t.strarr_s[482] == "") t.strarr_s[482] = "Sound4";
 							edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), t.strarr_s[468].Get(), t.strarr_s[254].Get(), "audiobank\\",readonly);
 							edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), t.strarr_s[480].Get(), t.strarr_s[254].Get(), "audiobank\\",readonly);
 							edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), t.strarr_s[481].Get(), t.strarr_s[254].Get(), "audiobank\\",readonly);
-							edit_grideleprof->soundset5_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset5_s.Get(), t.strarr_s[482].Get(), t.strarr_s[254].Get(), "audiobank\\", readonly);
+							ImGui::TextCenter("Sound4");
+							ImGui::TextCenter("(repurposed)");
+							edit_grideleprof->soundset5_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset5_s.Get(), "Sound5", t.strarr_s[254].Get(), "audiobank\\", readonly);
+							edit_grideleprof->soundset6_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset6_s.Get(), "Sound6", t.strarr_s[254].Get(), "audiobank\\", readonly);
 						}
 					}
 				}

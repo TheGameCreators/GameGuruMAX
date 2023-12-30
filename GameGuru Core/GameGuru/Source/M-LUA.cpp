@@ -34,10 +34,10 @@ void lua_init ( void )
 		t.luabank_s[1]=t.tfile_s ; t.r=LoadLua(t.tfile_s.Get());
 		t.strwork = "" ; t.strwork = t.strwork + "Loaded "+t.tfile_s;
 		timestampactivity(0, t.strwork.Get() );
-		t.tfile_s="scriptbank\\music.lua";
-		t.luabank_s[2]=t.tfile_s ; t.r=LoadLua(t.tfile_s.Get());
-		t.strwork = "" ; t.strwork = t.strwork + "Loaded "+t.tfile_s;
-		timestampactivity(0, t.strwork.Get() );
+		//t.tfile_s="scriptbank\\music.lua";
+		//t.luabank_s[2]=t.tfile_s ; t.r=LoadLua(t.tfile_s.Get());
+		//t.strwork = "" ; t.strwork = t.strwork + "Loaded "+t.tfile_s;
+		//timestampactivity(0, t.strwork.Get() );
 	}
 
 	//  Ensure entity elements are set to a LUA first run state
@@ -340,8 +340,8 @@ void lua_launchallinitscripts ( void )
 	}
 
 	// launch music script
-	LuaSetFunction ( "music_init", 0, 0 );
-	LuaCallSilent ( );
+	//LuaSetFunction ( "music_init", 0, 0 );
+	//LuaCallSilent ( );
 
 	#ifdef WICKEDENGINE
 	// clear entity vis list for new test level/game level run

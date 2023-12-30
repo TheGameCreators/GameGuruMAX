@@ -11573,13 +11573,17 @@ void Wicked_CreateShortName ( int iMeshIndex, LPSTR pDest, LPSTR pNameFromMesh )
 		if (choopychoppy == 4) pWhatToChop = "_color";
 		if (choopychoppy == 5) pWhatToChop = "_basecolor";
 		if (choopychoppy == 6) pWhatToChop = "_d";
-		pChopString = strstr (pLowerCaseVewrsion, pWhatToChop); 
-		if (pChopString)
+		if (strnicmp(pLowerCaseVewrsion + strlen(pLowerCaseVewrsion) - strlen(pWhatToChop), pWhatToChop, strlen(pWhatToChop)) == NULL)
 		{
-			int iChopAtPos = pChopString - pLowerCaseVewrsion;
-			pShorten[iChopAtPos] = 0;
-			strcpy(pLowerCaseVewrsion, pShorten);
-			strlwr(pLowerCaseVewrsion);
+			// only if find the matching string to chop AT THE END!
+			pChopString = strstr (pLowerCaseVewrsion, pWhatToChop);
+			if (pChopString)
+			{
+				int iChopAtPos = pChopString - pLowerCaseVewrsion;
+				pShorten[iChopAtPos] = 0;
+				strcpy(pLowerCaseVewrsion, pShorten);
+				strlwr(pLowerCaseVewrsion);
+			}
 		}
 	}
 

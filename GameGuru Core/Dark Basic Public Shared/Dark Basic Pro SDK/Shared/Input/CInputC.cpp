@@ -1109,7 +1109,7 @@ DARKSDK void PositionMouse( int iX, int iY )
 
 	// 260220 - When calling this, we know we are taking full control, so also put main window to front
 	// to prevent other apps throwing their windows on it
-	//SetWindowPos(g_pGlob->hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	//SetWindowPos(g_pGlob->hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE); 
 }
 
 DARKSDK void ChangeMouse( int iCursorID )

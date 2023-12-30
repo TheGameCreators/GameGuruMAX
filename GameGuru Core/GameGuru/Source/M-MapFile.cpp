@@ -2116,7 +2116,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\gameplayerhealth.lua");
 	addtocollection("scriptbank\\global.lua");
-	addtocollection("scriptbank\\music.lua");
+	//addtocollection("scriptbank\\music.lua");
 	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark").Get() );
 	addfoldertocollection("scriptbank\\people\\ai");
 	addtocollection("scriptbank\\people\\patrol.byc");

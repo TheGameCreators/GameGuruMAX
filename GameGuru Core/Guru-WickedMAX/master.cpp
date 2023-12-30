@@ -1706,6 +1706,9 @@ void Master::DeleteAllOldDBPDATAFolders(void)
 
 void MasterRenderer::Load()
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	__super::Load();
 
 	// remove VSYNC cap
@@ -1777,11 +1780,7 @@ void MasterRenderer::Load()
 	weather.fogEnd = 5000;
 	weather.SetRealisticSky( true );
 
-	#ifdef GGTERRAIN_USE_NEW_TERRAIN
 	weather.SetVolumetricClouds( true );
-	#else
-	weather.SetVolumetricClouds( false );
-	#endif
 
 	wiScene::GetScene ( ).Merge ( weatherscene );
 
@@ -1856,14 +1855,14 @@ void MasterRenderer::Update(float dt)
 	if (wiBackLog::isActive()) wiBackLog::Toggle();
 
 	// super update
-#ifdef OPTICK_ENABLE
-	OPTICK_EVENT("__super::Update(dt)");
-#endif
 	__super::Update(dt);
 }
 
 void MasterRenderer::ResizeBuffers(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	if ( GetInternalResolution().x == 0 || GetInternalResolution().y == 0 ) return;
 
 	//PE: Resizebuffers change FOV.
@@ -2003,6 +2002,9 @@ void Wicked_Render_Opaque_Scene(CommandList cmd)
 
 void MasterRenderer::Compose(CommandList cmd) const
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	__super::Compose(cmd);
 }
 
@@ -2014,6 +2016,9 @@ void MasterRenderer::Render( int mode ) const
 // moved into function so we can call it at the right time from within renderpath3D, just before 2D is rendered
 void MasterRenderer::RenderOutlineHighlighers(CommandList cmd) const
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
 	if (m_bRenderingVR == false)
 	{
 		// regular update
@@ -2080,3 +2085,12 @@ void MasterRenderer::RenderOutlineHighlighers(CommandList cmd) const
 		}
 	}
 }
+
+/*
+void ExtraDebug(const char* pProfileLabel)
+{
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT(pProfileLabel);
+#endif
+}
+*/

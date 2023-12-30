@@ -4278,7 +4278,6 @@ struct visualsdatastoragetype
 		ZenithBlue_f = 255.0f;
 		bLevelVSyncEnabled = true;
 		bBloomEnabled = false;
-		bLevelVSyncEnabled = true;
 		bSSREnabled = false;
 		bReflectionsEnabled = false;
 		bLightShafts = false;

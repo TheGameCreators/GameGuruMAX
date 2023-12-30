@@ -222,16 +222,27 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 		if (bIsAMDCard)
 		{
-			//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
-			CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
-			bool bret = CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
+			bool bFirstTimeAMDFileCopy = false;
+			if (RAW_FileExists("d3d11.dll") == 0 || RAW_FileExists("dxgi.dll") == 0)
+			{
+				// we copy the files if not present
+				bFirstTimeAMDFileCopy = true;
 
-			//PE: If first time , sleep so defender can check and release it before we try to load it.
-			if (bret) Sleep(2000);
+				//copy d3d11.dll ,dxgi.dll to convert DX11 -> Vulkan.
+				CopyFileA((LPSTR)"shaders\\d3d11.dll", "d3d11.dll", TRUE);
+				bool bret = CopyFileA((LPSTR)"shaders\\dxgi.dll", "dxgi.dll", TRUE);
 
-			//PE: Also Include building editor.
-			CopyFileA((LPSTR)"shaders\\d3d11.dll", "Tools\\Building Editor\\d3d11.dll", TRUE);
-			CopyFileA((LPSTR)"shaders\\dxgi.dll", "Tools\\Building Editor\\dxgi.dll", TRUE);
+				//PE: If first time , sleep so defender can check and release it before we try to load it.
+				if (bret) Sleep(2000);
+
+				//PE: Also Include building editor.
+				CopyFileA((LPSTR)"shaders\\d3d11.dll", "Tools\\Building Editor\\d3d11.dll", TRUE);
+				CopyFileA((LPSTR)"shaders\\dxgi.dll", "Tools\\Building Editor\\dxgi.dll", TRUE);
+
+				// and prompt and exit the software as these files need to be present before the exe starts
+				MessageBoxA(NULL, "We detected that you're using an AMD graphics card, a hot fix has been applied!", "AMD Hot Fix Applied", MB_OK);
+				PostQuitMessage(0);
+			}
 		}
 	}
 	else

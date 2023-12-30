@@ -6991,16 +6991,20 @@ void tab_tab_visuals(int iPage, int iMode)
 				ImGui::Indent(10);
 				iLastOpenHeader = 8;
 
-				ImGui::PushItemWidth(-10);
-				if (ImGui::Checkbox("VSync##setVSyncEnabled", &t.visuals.bLevelVSyncEnabled))
+				// only show option if not disabled VSYNC in SETUP.INI
+				if (g.gvsync != 0)
 				{
-					t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
-					master.bVsyncEnabled = t.visuals.bLevelVSyncEnabled;
-					wiEvent::SetVSync(master.bVsyncEnabled);
-					g.projectmodified = 1;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("VSync##setVSyncEnabled", &t.visuals.bLevelVSyncEnabled))
+					{
+						t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
+						master.bVsyncEnabled = t.visuals.bLevelVSyncEnabled;
+						wiEvent::SetVSync(master.bVsyncEnabled);
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
+					ImGui::PopItemWidth();
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
-				ImGui::PopItemWidth();
 
 				//Bloom
 				ImGui::PushItemWidth(-10);
@@ -8455,6 +8459,11 @@ void Wicked_Update_Visuals(void *voidvisual)
 		}
 
 		master.bVsyncEnabled = visuals->bLevelVSyncEnabled;
+		if (g.gvsync == 0)
+		{
+			// VSYNC override to switch OFF the VSYNC (each level can control on/off of the VSYNC in MAX)
+			master.bVsyncEnabled = false;
+		}
 		wiEvent::SetVSync(master.bVsyncEnabled);
 		
 		master_renderer->setBloomEnabled(visuals->bBloomEnabled);

@@ -196,6 +196,7 @@ void common_init ( void )
 	// restore folder and continue
 	SetDir(pOldDir.Get());
 	#endif
+	MessageBoxA(NULL, pPathToClassicEncryptedFiles, "Decrypt Complete!", MB_OK);
 	*/
 
 	/*

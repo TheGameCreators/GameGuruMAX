@@ -1542,7 +1542,7 @@ void mapeditorexecutable_loop_leavetestgame(void)
 	bUpdateVeg = true;
 
 	// set vsync back on when we return to the editor so we don't 100% the GPU
-	wiEvent::SetVSync( true );
+	wiEvent::SetVSync(false); // see if this improves performance in the level editor, was ( true );
 }
 #endif
 

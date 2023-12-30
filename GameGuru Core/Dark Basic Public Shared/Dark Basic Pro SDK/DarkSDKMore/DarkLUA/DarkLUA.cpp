@@ -3767,7 +3767,9 @@ int RDGetYFromMeshPosition(lua_State *L)
 	float fZ = lua_tonumber(L, 3);
 	float thisPoint[3] = { 0, 0, 0 };
 	float fNewY = g_RecastDetour.getYFromPos(fX, fY, fZ);
-	fNewY -= 5.0f; // adjust from navmesh Y to real world Y
+	// this could push object under terrain!!
+	//fNewY -= 5.0f; // adjust from navmesh Y to real world Y
+	// instead use result of RDGetYFromMeshPosition to then cast a proper ray to find real polygon surface!
 	lua_pushnumber (L, fNewY);
 	return 1;
 }
@@ -10124,6 +10126,7 @@ int int_core_sendmessagenone(lua_State* L, eInternalCommandNames eInternalComman
 		case enum_triggerfadein: lua_triggerfadein(); break;
 		case enum_wingame: lua_wingame(); break;
 		case enum_losegame: lua_losegame(); break;
+		case enum_musicstop: lua_musicstop(); break;
 	}
 }
 int SendMessage_startgame(lua_State* L) { return int_core_sendmessagenone(L, enum_startgame); }
@@ -10136,6 +10139,7 @@ int SendMessage_switchpageback(lua_State* L) { return int_core_sendmessagenone(L
 int SendMessage_triggerfadein(lua_State* L) { return int_core_sendmessagenone(L, enum_triggerfadein); }
 int SendMessage_wingame(lua_State* L) { return int_core_sendmessagenone(L, enum_wingame); }
 int SendMessage_losegame(lua_State* L) { return int_core_sendmessagenone(L, enum_losegame); }
+int SendMessage_musicstop(lua_State* L) { return int_core_sendmessagenone(L, enum_musicstop); }
 void addInternalFunctions_nones()
 {
 	lua_register(lua, "SendMessage_startgame", SendMessage_startgame);
@@ -10148,6 +10152,7 @@ void addInternalFunctions_nones()
 	lua_register(lua, "SendMessage_triggerfadein", SendMessage_triggerfadein);
 	lua_register(lua, "SendMessage_wingame", SendMessage_wingame);
 	lua_register(lua, "SendMessage_losegame", SendMessage_losegame);
+	lua_register(lua, "SendMessage_musicstop", SendMessage_musicstop);
 }
 
 // Internal Integer commands:
@@ -10366,7 +10371,6 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_hideimage: lua_hideimage(); break;
 		case enum_hidewater: lua_hidewater(); break;
 		case enum_loopsound: entity_lua_loopsound(); break;
-		case enum_musicstop: lua_musicstop(); break;
 		case enum_playsound: entity_lua_playsound(); break;
 		case enum_playvideo: entity_lua_playvideonoskip(0, 0); break;
 		case enum_stopvideo: entity_lua_stopvideo(); break;
@@ -10505,7 +10509,6 @@ int SendMessageI_collected(lua_State* L) { return int_core_sendmessagei(L, enum_
 int SendMessageI_hideimage(lua_State* L) { return int_core_sendmessagei(L, enum_hideimage); }
 int SendMessageI_hidewater(lua_State* L) { return int_core_sendmessagei(L, enum_hidewater); }
 int SendMessageI_loopsound(lua_State* L) { return int_core_sendmessagei(L, enum_loopsound); }
-int SendMessageI_musicstop(lua_State* L) { return int_core_sendmessagei(L, enum_musicstop); }
 int SendMessageI_playsound(lua_State* L) { return int_core_sendmessagei(L, enum_playsound); }
 int SendMessageI_playvideo(lua_State* L) { return int_core_sendmessagei(L, enum_playvideo); }
 int SendMessageI_stopvideo(lua_State* L) { return int_core_sendmessagei(L, enum_stopvideo); }
@@ -10641,7 +10644,6 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_hideimage", SendMessageI_hideimage);
 	lua_register(lua, "SendMessageI_hidewater", SendMessageI_hidewater);
 	lua_register(lua, "SendMessageI_loopsound", SendMessageI_loopsound);
-	lua_register(lua, "SendMessageI_musicstop", SendMessageI_musicstop);
 	lua_register(lua, "SendMessageI_playsound", SendMessageI_playsound);
 	lua_register(lua, "SendMessageI_playvideo", SendMessageI_playvideo);
 	lua_register(lua, "SendMessageI_stopvideo", SendMessageI_stopvideo);

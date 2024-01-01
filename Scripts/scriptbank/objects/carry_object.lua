@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V28 by Necrym59
+-- Carry Object V28 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -251,11 +251,11 @@ function carry_object_main(e)
 		prop_y[tEnt[e]] = g_PlayerPosY - math.sin(math.rad(g_PlayerAngX))* carrydist[tEnt[e]]
 		prop_z[tEnt[e]] = g_PlayerPosZ + (math.cos(new_y[tEnt[e]]) * carrydist[tEnt[e]])
 		local px, py, pz = prop_x[tEnt[e]], prop_y[tEnt[e]], prop_z[tEnt[e]]
-		--local px, py, pz = prop_x[tEnt[e]],g_PlayerPosY, prop_z[tEnt[e]]
 		local rayX, rayY, rayZ = 0,0,20
 		local paX, paY, paZ = math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ)
 		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)		
-		colobj[tEnt[e]]=IntersectAll(px,py,pz, px+rayX, py, pz+rayZ,-1)
+		--colobj[tEnt[e]]=IntersectAll(px,py,pz, px+rayX, py, pz+rayZ,-1) avoids pushing carryobj through wall!
+		colobj[tEnt[e]]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ, px+rayX, py, pz+rayZ,g_Entity[tEnt[e]]['obj'])
 		if colobj[tEnt[e]] > 0 then
 			ForcePlayer(g_PlayerAngY + 180,0.3)
 			CollisionOn(tEnt[e])

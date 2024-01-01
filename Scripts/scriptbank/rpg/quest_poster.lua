@@ -1,4 +1,4 @@
--- Quest Poster v12
+-- Quest Poster v14
 -- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"].
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: <Sound0> when viewing the quest.
@@ -14,6 +14,7 @@ local quest_quantity	= {}
 local check_quantity	= {}
 local check_timer		= {}
 local play_once			= {}
+local doonce			= {}
 local tEnt 				= {}
 local selectobj 		= {}
 
@@ -26,6 +27,7 @@ function quest_poster_init(e)
 	check_quantity[e] = 0
 	check_timer[e] = 0
 	play_once[e] = 0
+	doonce[e] = 0
 end
 
 function quest_poster_properties(e, range, questprompt, questscreen, questchoice)
@@ -133,6 +135,13 @@ function quest_poster_main(e)
 			if g_UserGlobalQuestTitleActiveE > 0 then
 				local tquestcomplete = 0
 				
+				if g_quest_poster[e]['queststarted'] == 1 then
+					if doonce[e] == 0 then
+						ActivateIfUsed(e)
+						doonce[e] = 1
+					end
+				end				
+
 				if g_quest_poster[e]['questtype'] == "collect" then
 					-- COLLECT
 					if quest_objno[e] == 0 then						
@@ -191,7 +200,7 @@ function quest_poster_main(e)
 								end
 							end
 						end
-					end
+					end						
 					if g_Entity[quest_objno[e]]['health'] <= 0 then
 						tquestcomplete = 1
 					end

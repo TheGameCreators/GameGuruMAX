@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v18
+-- Heal Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Healing Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -159,6 +159,7 @@ function heal_spell_main(e)
 	end	
 
 	local tusedvalue = GetEntityUsed(e)
+	
 	if heal_spell[e].cast_timeout > 0 then
 		if Timer() > heal_spell[e].cast_timeout + 2100 then
 			heal_spell[e].cast_timeout = 0
@@ -212,6 +213,9 @@ function heal_spell_main(e)
 	if status[e] == "have_spell" then
 		ttargetanything = 1
 	end	
+
+	if g_MouseClick == 1 and ttargetanything == 1 then SetEntityUsed(e,1) end
+	
 	if tusedvalue > 0 and ttargetanything == 1 then
 		doonce[e] = 0
 		-- check player level		

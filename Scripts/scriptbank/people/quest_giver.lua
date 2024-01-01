@@ -1,4 +1,4 @@
--- Quest Giver v5 by Necrym59
+-- Quest Giver v8 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, will show [QUEST_PROMPT$="Press E to Interact"] 
 -- DESCRIPTION: when E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
@@ -19,6 +19,7 @@ local quest_quantity	= {}
 local check_quantity	= {}
 local check_timer		= {}
 local play_once			= {}
+local doonce			= {}
 local prompt_once		= {}
 
 function quest_giver_init_file(e,scriptfile)
@@ -32,6 +33,7 @@ function quest_giver_init_file(e,scriptfile)
 	check_quantity[e] = 0
 	check_timer[e] = 0
 	play_once[e] = 0
+	doonce[e] = 0	
 	prompt_once[e] = 0
 end
 
@@ -85,7 +87,7 @@ function quest_giver_main(e)
 	if g_UserGlobalQuestTitleActive == nil then g_UserGlobalQuestTitleActive = "" end
 	if g_UserGlobalQuestTitleActive ~= nil then
 		if g_quest_giver[e]['queststarted'] == 0 then
-			Show(e)			
+			Show(e)
 			for tquestindex = 1, hud0_quest_qty, 1 do
 				if GetCollectionQuestAttribute(tquestindex,"title") == g_quest_giver[e]['questtitle'] then
 					if hud0_quest_status[tquestindex] == "active" then
@@ -120,6 +122,12 @@ function quest_giver_main(e)
 			-- hide in game, we have accepted this one and doing it now
 			if g_UserGlobalQuestTitleActiveE > 0 then
 				local tquestcomplete = 0
+				if g_quest_giver[e]['queststarted'] == 1 then
+					if doonce[e] == 0 then
+						ActivateIfUsed(e)
+						doonce[e] = 1
+					end
+				end
 				
 				if g_quest_giver[e]['questtype'] == "collect" then
 					-- COLLECT

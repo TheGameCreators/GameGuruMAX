@@ -19,6 +19,7 @@ PROMPT TEXT and RANGE to use
 <Sound1> for switched on eg (power up sound)
 
 Link the fusebox with the logic connector to whatever you wish to activate.
+or add in the name of an object to activate in the IfUsed field
 
 The Fuseboxe cannot operate until the fuse is attached. If in posession of
 a fuse and within range of the the fuse box then using the fuse box, the

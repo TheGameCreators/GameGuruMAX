@@ -1,5 +1,5 @@
--- Pipevalve v2
--- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements. Set Always Active = On
+-- Pipevalve v3
+-- DESCRIPTION: This object will be treated as a switch object for activating other linked objects and/or IfUsed game element. Set Always Active = On
 -- DESCRIPTION: [PROMPT_TEXT$ = "to use"], [USE_RANGE=80(1,150)]
 -- DESCRIPTION: Play <Sound0> when attaching.
 -- DESCRIPTION: Play <Sound1> when turning
@@ -89,6 +89,7 @@ function pipevalve_main(e)
 				SetAnimationName(e,"on")
 				PlayAnimation(e)				
 				PerformLogicConnections(e)
+				ActivateIfUsed(e)				
 				PlaySound(e,2)
 			end
 		end	

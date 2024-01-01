@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- FuseBox v4 by Necrym59
--- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements. Set Always Active = On
+-- FuseBox v5 by Necrym59
+-- DESCRIPTION: This object will be treated as a switch object for activating other linked objects and/or IfUsed game element. Set Always Active = On
 -- DESCRIPTION: [PROMPT_TEXT$ = "E to use"],
 -- DESCRIPTION: [USE_RANGE=80(1,100)] 
 -- DESCRIPTION: [FAIL_TEXT$ = "Fuse Needed"]
@@ -94,6 +94,7 @@ function fusebox_main(e)
 				PlayAnimation(e)
 				SetObjectFrame(g_Entity[e]['obj'],6) --rem out if different model used				
 				PerformLogicConnections(e)
+				ActivateIfUsed(e)
 				SwitchScript(e,"no_behavior_selected.lua")
 			end
 		end		

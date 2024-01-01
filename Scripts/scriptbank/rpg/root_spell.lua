@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to hold the target for a period.
--- Root Spell v18
+-- Root Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Root Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -186,7 +186,9 @@ function root_spell_main(e)
 			end	
 		end	
 
-		local tusedvalue = GetEntityUsed(e)		
+		local tusedvalue = GetEntityUsed(e)	
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+		
 		if root_spell[e].cast_timeout > 0 then
 			if Timer() > root_spell[e].cast_timeout + 6100 then
 				root_spell[e].cast_timeout = 0

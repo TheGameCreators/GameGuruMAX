@@ -183,6 +183,8 @@ function poison_spell_main(e)
 		end	
 
 		local tusedvalue = GetEntityUsed(e)
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+		
 		if poison_spell[e].cast_timeout > 0 then
 			if Timer() > poison_spell[e].cast_timeout + 2100 then
 				poison_spell[e].cast_timeout = 0

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v18
+-- Area Damage Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -154,7 +154,7 @@ function area_damage_spell_main(e)
 		end
 	end		
 
-	local tusedvalue = GetEntityUsed(e)
+	local tusedvalue = GetEntityUsed(e)		
 	if area_damage_spell[e].cast_timeout > 0 then
 		if Timer() > area_damage_spell[e].cast_timeout + 2100 then
 			area_damage_spell[e].cast_timeout = 0
@@ -203,6 +203,8 @@ function area_damage_spell_main(e)
 	if status[e] == "have_spell" then
 		ttargetanything = 1
 	end		
+	
+	if g_MouseClick == 1 and ttargetanything == 1 then SetEntityUsed(e,1) end
 	
 	if tusedvalue > 0 and ttargetanything == 1 then
 		-- check player level		

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v18
+-- Direct Damage Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -179,6 +179,8 @@ function direct_damage_spell_main(e)
 		end				
 		
 		local tusedvalue = GetEntityUsed(e)	
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+		
 		if direct_damage_spell[e].cast_timeout > 0 then			
 			if Timer() > direct_damage_spell[e].cast_timeout + 2100 then
 				direct_damage_spell[e].cast_timeout = 0
@@ -237,6 +239,7 @@ function direct_damage_spell_main(e)
 			end	
 			if tplayerlevel[e] >= tlevelrequired[e] then
 				-- attempt effect
+				
 				local mymana = 0 if _G["g_UserGlobal['"..direct_damage_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..direct_damage_spell[e].user_global_affected.."']"] end
 				if mymana >= direct_damage_spell[e].mana_cost then
 					-- enough mana, deduct from player

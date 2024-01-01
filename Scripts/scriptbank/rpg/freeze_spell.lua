@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
--- Freeze Spell v18
+-- Freeze Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Freeze Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -186,7 +186,9 @@ function freeze_spell_main(e)
 			end
 		end	
 
-		local tusedvalue = GetEntityUsed(e)		
+		local tusedvalue = GetEntityUsed(e)
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+		
 		if freeze_spell[e].cast_timeout > 0 then
 			if Timer() > freeze_spell[e].cast_timeout + 6100 then
 				freeze_spell[e].cast_timeout = 0

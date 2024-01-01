@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast Fireball damage on the target.
--- Fireball Spell v18
+-- Fireball Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Fireball Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Fireball damage inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -160,7 +160,7 @@ function fireball_spell_main(e)
 		end
 	end	
 	
-	if status[e] == "have_spell" then	
+	if status[e] == "have_spell" then		
 		--- Select Entity to target ---		
 		if g_InKey == "t" or g_InKey == "T" or g_MouseClick == 2 and casttarget[e] == 0 then
 			TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)							-- temp targeting crosshair
@@ -175,10 +175,12 @@ function fireball_spell_main(e)
 			if tTarget[e] > 0 then
 				TextCenterOnX(50,20,3,"TARGETED")
 				if tAllegiance[e] == 0 then TextCenterOnX(50,22,3,tName[e]) end
-			end
-		end				
+			end			
+		end
 
-		local tusedvalue = GetEntityUsed(e)	
+		local tusedvalue = GetEntityUsed(e)
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+	
 		if fireball_spell[e].cast_timeout > 0 then			
 			if Timer() > fireball_spell[e].cast_timeout + 2100 then
 				fireball_spell[e].cast_timeout = 0
@@ -190,39 +192,41 @@ function fireball_spell_main(e)
 				-- scale spell to see it radiate outward
 				if fireball_spell[e].particle1_number > 0 then
 					if g_Entity[fireball_spell[e].particle1_number]['y'] > g_Entity[tTarget[e]]['y'] then 
-						ResetPosition(fireball_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[fireball_spell[e].particle1_number]['y']-10, g_Entity[tTarget[e]]['z'])
+						ResetPosition(fireball_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[fireball_spell[e].particle1_number]['y']-5, g_Entity[tTarget[e]]['z'])
 						Show(fireball_spell[e].particle1_number)
 					end
 				end
 				if fireball_spell[e].particle2_number > 0 then
 					if g_Entity[fireball_spell[e].particle2_number]['y'] > g_Entity[tTarget[e]]['y'] then 
-						ResetPosition(fireball_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[fireball_spell[e].particle2_number]['y']-5, g_Entity[tTarget[e]]['z'])
+						ResetPosition(fireball_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[fireball_spell[e].particle2_number]['y']-3, g_Entity[tTarget[e]]['z'])
 						Show(fireball_spell[e].particle2_number)
 					end
 				end
-				local tscaleradius = 5.0 + ((Timer()-fireball_spell[e].cast_timeout)/cradius[e])
+				local tscaleradius = 10.0 + ((Timer()-fireball_spell[e].cast_timeout)/cradius[e])
 				if fireball_spell[e].particle1_number > 0 then Scale(fireball_spell[e].particle1_number,tscaleradius) end				
 				if fireball_spell[e].particle2_number > 0 then Scale(fireball_spell[e].particle2_number,tscaleradius) end
 				-- apply effect as radius increases from targeted point of origin
 				-- do the magic
-				for ee = 1, g_EntityElementMax, 1 do
-					if e ~= ee then
-						if g_Entity[ee] ~= nil then
-							if g_Entity[ee]['active'] > 0 then
-								if g_Entity[ee]['health'] > 0 then
-									local thisallegiance = GetEntityAllegiance(ee)
-									if thisallegiance == 0 then
-										if g_Entity[tTarget[e]]['health'] > 0 then
-											local thowclosex = g_Entity[ ee ]['x'] - g_Entity[tTarget[e]]['x']
-											local thowclosey = g_Entity[ ee ]['y'] - g_Entity[tTarget[e]]['y']
-											local thowclosez = g_Entity[ ee ]['z'] - g_Entity[tTarget[e]]['z']
-											local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosey*thowclosey)+math.abs(thowclosez*thowclosez))
-											if thowclosedd < tscaleradius*2.0 then
-												if entaffected[ee] == 0 then
-													entaffected[ee] = 1											
-													SetEntityHealth(ee,g_Entity[ee]['health']-fireball_spell[e].cast_damage/3)																		-- Give smaller damage to nearby entities
-													if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-fireball_spell[e].cast_damage) end			-- Give damage to targeted entity
-													if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
+				if g_Entity[fireball_spell[e].particle1_number]['y'] <= g_Entity[tTarget[e]]['y']+5 or g_Entity[fireball_spell[e].particle2_number]['y'] <= g_Entity[tTarget[e]]['y']+5 then
+					for ee = 1, g_EntityElementMax, 1 do
+						if e ~= ee then
+							if g_Entity[ee] ~= nil then
+								if g_Entity[ee]['active'] > 0 then
+									if g_Entity[ee]['health'] > 0 then
+										local thisallegiance = GetEntityAllegiance(ee)
+										if thisallegiance == 0 then
+											if g_Entity[tTarget[e]]['health'] > 0 then
+												local thowclosex = g_Entity[ ee ]['x'] - g_Entity[tTarget[e]]['x']
+												local thowclosey = g_Entity[ ee ]['y'] - g_Entity[tTarget[e]]['y']
+												local thowclosez = g_Entity[ ee ]['z'] - g_Entity[tTarget[e]]['z']
+												local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosey*thowclosey)+math.abs(thowclosez*thowclosez))
+												if thowclosedd < tscaleradius*2.0 then
+													if entaffected[ee] == 0 then
+														entaffected[ee] = 1											
+														SetEntityHealth(ee,g_Entity[ee]['health']-fireball_spell[e].cast_damage/3)																		-- Give smaller damage to nearby entities
+														if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-fireball_spell[e].cast_damage) end			-- Give damage to targeted entity
+														if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
+													end
 												end
 											end
 										end
@@ -239,7 +243,7 @@ function fireball_spell_main(e)
 			played[e] = 0			
 		end
 		
-		if tusedvalue > 0 and tTarget[e] ~= 0 then
+		if tusedvalue > 0 and tTarget[e] ~= 0 then		
 			casttarget[e] = 1
 			-- check player level		
 			if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
@@ -247,7 +251,7 @@ function fireball_spell_main(e)
 				PromptDuration("You need to be level "..tlevelrequired[e].." to cast this spell",1000)
 				SetEntityUsed(e,0)
 			end	
-			if tplayerlevel[e] >= tlevelrequired[e] then
+			if tplayerlevel[e] >= tlevelrequired[e] then				
 				-- attempt effect
 				local mymana = 0 if _G["g_UserGlobal['"..fireball_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..fireball_spell[e].user_global_affected.."']"] end
 				if mymana >= fireball_spell[e].mana_cost then

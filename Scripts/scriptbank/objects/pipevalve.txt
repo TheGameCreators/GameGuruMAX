@@ -30,4 +30,4 @@ Set the PICKUP RANGE to be able to pick up
 The Pipe Valve cannot operate until the Valve wheel is attached
 If in posession of the Valve Wheel and within range of the the Pipe Valve
 the Valve Wheel will auto attach. Pressing a key will then turn the valve wheel
-on and activate the linked object.
+on and activate the linked object and/or the named object in the IfUsed field

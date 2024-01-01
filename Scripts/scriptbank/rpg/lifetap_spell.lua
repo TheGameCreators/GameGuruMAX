@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v18
+-- Lifetap Spell v19
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Lifetap Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -179,6 +179,8 @@ function lifetap_spell_main(e)
 		end	
 
 		local tusedvalue = GetEntityUsed(e)
+		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
+		
 		if lifetap_spell[e].cast_timeout > 0 then
 			if Timer() > lifetap_spell[e].cast_timeout + 2100 then
 				lifetap_spell[e].cast_timeout = 0

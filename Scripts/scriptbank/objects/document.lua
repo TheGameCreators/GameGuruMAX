@@ -1,4 +1,4 @@
--- Document v11 - thanks to Necrym59 and Lee
+-- Document v12 - thanks to Necrym59 and Lee
 -- DESCRIPTION: Change the [PICKUP_TEXT$="E to look at document"].
 -- DESCRIPTION: View position [SCREEN_X=25] and [SCREEN_Y=10]
 -- DESCRIPTION: Set the [SPRITE_SIZE=15(1,100)] percentage.
@@ -7,7 +7,9 @@
 -- DESCRIPTION: Change the [RETURN_TEXT$="Q to return document"].
 -- DESCRIPTION: Set [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: Set to [LOCK_SCREEN!=0] when viewing.
--- DESCRIPTION: <Sound0> when picking/returning up document.
+-- DESCRIPTION: <Sound0> when picking up document.
+-- DESCRIPTION: <Sound1> reading/narration.
+-- DESCRIPTION: <Sound2> when returning document.
 
 local U = require "scriptbank\\utillib"
 
@@ -140,6 +142,10 @@ function document_main(e)
 					SetCameraOverride(3)
 					FreezePlayer()
 				end
+				if played[e] == 1 then
+					PlaySound(e,1)
+					played[e] = 2
+				end
 				PerformLogicConnections(e)
 			end
 		end
@@ -148,8 +154,8 @@ function document_main(e)
 	if document[e].return_text == "" and PlayerDist > document[e].pickup_range then legacyhide = 1 end
 	if g_KeyPressQ == 1 or legacyhide == 1 then
 		pressed[e] = 0
-		if played[e] == 1 then
-			PlaySound(e,0)
+		if played[e] == 2 then
+			PlaySound(e,2)
 			played[e] = 0
 		end
 		if document[e].lock_screen == 1 then

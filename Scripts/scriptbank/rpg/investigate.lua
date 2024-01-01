@@ -39,7 +39,7 @@ function investigate_properties(e, prompt_text, use_range, investigation_style, 
 end
 
 function investigate_init(e)
-	investigate[e] = g_Entity[e]
+	investigate[e] = {}
 	investigate[e].prompt_text = "E to investigate"
 	investigate[e].use_range = 80
 	investigate[e].investigation_style = 1
@@ -57,7 +57,6 @@ function investigate_init(e)
 end
 
 function investigate_main(e)
-	investigate[e] = g_Entity[e]
 
 	if status[e] == "init" then
 		if investigate[e].investigation_style == 3 or investigate[e].investigation_style == 4 then

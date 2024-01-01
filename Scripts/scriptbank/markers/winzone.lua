@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v12 by Necrym59 and Lee
+-- Winzone v13 by Necrym59 and Lee
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [ENDING_IMAGE$=""] for optional ending image
 -- DESCRIPTION: <Video Slot> for optional ending video
 -- DESCRIPTION: <Sound0> - In zone Effect Sound
+-- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 
 local winzone 			= {}
 local zoneheight		= {}

@@ -1,5 +1,5 @@
--- Switch Combo v7 
--- DESCRIPTION: A combo-value switch to add to 100 to Activate IfUsed anmd or logic linked object.
+-- Switch Combo v8 
+-- DESCRIPTION: A combo-value switch to add to 100 to Activate IfUsed and/or logic linked object.
 -- DESCRIPTION: [UseRange=90(1,200)]
 -- DESCRIPTION: [SwitchedOn!=0] state to decide if the switch is initially off or on, and customize the
 -- DESCRIPTION: [OnText$="To Turn Switch ON"] and [OffText$="To Turn Switch OFF"].
@@ -31,7 +31,8 @@ local selectobj 		= {}
 local switched 			= {}
 local tlevelrequired 	= {}
 local tplayerlevel 		= {}
-local tmpvalue 			= {}
+local reachedvalue		= {}
+local reachedcheck		= {}
 
 function switch_combo_properties(e, userange, switchedon, ontext, offtext, playerlevel, switchtype, switchvalue, deferlinks, deferlinksvalue)
 	switch_combo[e] = g_Entity[e]
@@ -65,8 +66,9 @@ function switch_combo_init(e)
 	status[e] = "init"
 	doonce[e] = 0
 	dooncePC[e] = 0
+	reachedvalue[e] = 0	
+	reachedcheck[e] = 0	
 	g_swcvalue = 0
-	tmpvalue[e] = 0
 end
 
 function switch_combo_main(e)
@@ -130,9 +132,11 @@ function switch_combo_main(e)
 					end
 				end
 				if g_KeyPressE == 1 then
-					SetActivatedWithMP(e,201)					
-					g_swcvalue = g_swcvalue + switch_combo[e].switchvalue
-					if g_swcvalue == 100 + switch_combo[e].switchvalue then g_swcvalue = 100 end
+					SetActivatedWithMP(e,201)
+					if reachedcheck[e] == 0 then
+						g_swcvalue = g_swcvalue + switch_combo[e].switchvalue
+						if g_swcvalue == 100 + switch_combo[e].switchvalue then g_swcvalue = 100 end
+					end	
 					switched[e] = 1
 					doonce[e] = 0					
 				end
@@ -152,10 +156,12 @@ function switch_combo_main(e)
 					end
 					if g_KeyPressE == 1 then						
 						SetActivatedWithMP(e,101)
-						g_swcvalue = g_swcvalue - switch_combo[e].switchvalue
-						if g_swcvalue == 100 - switch_combo[e].switchvalue then g_swcvalue = 100 end
+						if reachedcheck[e] == 0 then
+							g_swcvalue = g_swcvalue - switch_combo[e].switchvalue
+							if g_swcvalue == 100 - switch_combo[e].switchvalue then g_swcvalue = 100 end
+						end	
 						switched[e] = 1
-						doonce[e] = 0						
+						doonce[e] = 0
 					end
 				end
 			end
@@ -198,8 +204,17 @@ function switch_combo_main(e)
 		dooncePC[e] = 1		
 	end
 
-	if g_swcvalue == 100 and doonce[e] == 0 then
-		if doonce[e] == 0 then
+	if g_swcvalue == 100 then
+		if reachedcheck[e] == 0 then
+			reachedvalue[e] = 100
+			reachedcheck[e] = 1
+			g_swcvalue = 0
+		end	
+	end
+	if g_swcvalue < 0 then g_swcvalue = 0 end
+	
+	if reachedvalue[e] == 100 and doonce[e] == 0 then
+		if doonce[e] == 0 then			
 			if switch_combo[e].deferlinks == 1 and dooncePC[e] ~= 1 then PerformLogicConnections(e) end
 			ActivateIfUsed(e)			
 			doonce[e] = 1

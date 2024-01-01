@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Break Open v8 by Necrym59
+-- Break Open v9 by Necrym59
 -- DESCRIPTION: Breaking open this animated object will give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="Break open"]
 -- DESCRIPTION: [PROMPT_RANGE=80(0,100)]
@@ -65,7 +65,8 @@ function break_open_init(e)
 	fadetime[e] = break_open[e].fade_delay * 1000
 	StartTimer(e)
 	fade_level[e] = GetEntityBaseAlpha(e)
-	SetEntityBaseAlpha(e,100)
+	--SetEntityBaseAlpha(e,100)
+	SetEntityBaseAlpha(e,GetEntityBaseAlpha(e))
 	SetEntityTransparency(e,1)
 	doonce[e] = 0
 	playonce[e] = 0	

@@ -1,4 +1,4 @@
--- Add_Fx v6 by Necrym59
+-- Add_Fx v7 by Necrym59 and Lee
 -- DESCRIPTION: Will add the selected effects to the named object.
 -- DESCRIPTION: Attach to an object. Set Always active ON
 -- DESCRIPTION: [ObjectName$=""]
@@ -13,10 +13,10 @@
 -- DESCRIPTION: [spin_z!=0]
 -- DESCRIPTION: [AntiClockwise!=0]
 -- DESCRIPTION: [Glow!=0]
--- DESCRIPTION: [PulseGlow!=0]
--- DESCRIPTION: [#PulseSpeed=0.5(0.1,10.0)]
 -- DESCRIPTION: [EmmisiveStrength=100(0,1000)]
 -- DESCRIPTION: [ActiveAtStart!=1] if unchecked use a switch or zone trigger to activate.
+-- DESCRIPTION: [PulseGlow!=0]
+-- DESCRIPTION: [#PulseSpeed=0.5(0.1,10.0)]
 
 local lower = string.lower
 
@@ -47,7 +47,7 @@ local rampingEM 		= {}
 local tspinspeed		= {}
 local objEnt			= {}
 
-function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hoverspeed, spin, spinspeed, spin_x, spin_y, spin_z, anticlockwise, glow, pulseglow, pulsespeed, emissivestrength, ActivateAtStart)
+function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hoverspeed, spin, spinspeed, spin_x, spin_y, spin_z, anticlockwise, glow, emissivestrength, ActivateAtStart, pulseglow, pulsespeed)
 	addfx[e] = g_Entity[e]
 	addfx[e].objectname = lower(objectname)
 	addfx[e].objectno = 0

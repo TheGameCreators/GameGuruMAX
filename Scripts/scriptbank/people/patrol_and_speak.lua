@@ -6,9 +6,9 @@ g_patrol_and_speak = {}
 g_patrol_and_speak_behavior = {}
 g_patrol_and_speak_behavior_count = 0
 
-function patrol_and_speak_init(e)
+function patrol_and_speak_init_file(e,scriptfile)
  g_patrol_and_speak[e] = {}
- g_patrol_and_speak[e]["bycfilename"] = "scriptbank\\people\\patrol_and_speak.byc"
+ g_patrol_and_speak[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_patrol_and_speak_behavior_count = master_interpreter_core.masterinterpreter_load (g_patrol_and_speak[e], g_patrol_and_speak_behavior )
  patrol_and_speak_properties(e,"")
 end

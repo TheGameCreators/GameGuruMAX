@@ -5,9 +5,9 @@ g_character_attack = {}
 g_character_attack_behavior = {}
 g_character_attack_behavior_count = 0
 
-function character_attack_init(e)
+function character_attack_init_file(e,scriptfile)
  g_character_attack[e] = {}
- g_character_attack[e]["bycfilename"] = "scriptbank\\people\\character_attack.byc"
+ g_character_attack[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_character_attack_behavior_count = master_interpreter_core.masterinterpreter_load (g_character_attack[e], g_character_attack_behavior )
  character_attack_properties(e,1,1,500,0,1,1,0,1,15000,1,1250)
 end

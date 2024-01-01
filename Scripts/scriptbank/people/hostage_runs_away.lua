@@ -6,9 +6,9 @@ g_hostage_runs_away = {}
 g_hostage_runs_away_behavior = {}
 g_hostage_runs_away_behavior_count = 0
 
-function hostage_runs_away_init(e)
+function hostage_runs_away_init_file(e,scriptfile)
  g_hostage_runs_away[e] = {}
- g_hostage_runs_away[e]["bycfilename"] = "scriptbank\\people\\hostage_runs_away.byc"
+ g_hostage_runs_away[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_hostage_runs_away_behavior_count = master_interpreter_core.masterinterpreter_load (g_hostage_runs_away[e], g_hostage_runs_away_behavior )
  hostage_runs_away_properties(e,800,0)
 end

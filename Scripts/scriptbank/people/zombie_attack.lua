@@ -8,9 +8,9 @@ g_zombie_attack = {}
 g_zombie_attack_behavior = {}
 g_zombie_attack_behavior_count = 0
 
-function zombie_attack_init(e)
+function zombie_attack_init_file(e,scriptfile)
  g_zombie_attack[e] = {}
- g_zombie_attack[e]['bycfilename'] = "scriptbank\\people\\zombie_attack.byc"
+ g_zombie_attack[e]['bycfilename'] = "scriptbank\\" .. scriptfile .. ".byc"
  g_zombie_attack_behavior_count = master_interpreter_core.masterinterpreter_load (g_zombie_attack[e], g_zombie_attack_behavior )
  zombie_attack_properties(e,300,900, 60, 65, 0, 1, 3000, 1, 750, 0, 1)
 end

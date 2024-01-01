@@ -6,9 +6,9 @@ g_run_away_if_hurt = {}
 g_run_away_if_hurt_behavior = {}
 g_run_away_if_hurt_behavior_count = 0
 
-function run_away_if_hurt_init(e)
+function run_away_if_hurt_init_file(e,scriptfile)
  g_run_away_if_hurt[e] = {}
- g_run_away_if_hurt[e]["bycfilename"] = "scriptbank\\people\\run_away_if_hurt.byc"
+ g_run_away_if_hurt[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_run_away_if_hurt_behavior_count = master_interpreter_core.masterinterpreter_load (g_run_away_if_hurt[e], g_run_away_if_hurt_behavior )
  run_away_if_hurt_properties(e,800)
 end

@@ -6,9 +6,9 @@ g_wander_around = {}
 g_wander_around_behavior = {}
 g_wander_around_behavior_count = 0
 
-function wander_around_init(e)
+function wander_around_init_file(e,scriptfile)
  g_wander_around[e] = {}
- g_wander_around[e]["bycfilename"] = "scriptbank\\people\\wander_around.byc"
+ g_wander_around[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_wander_around_behavior_count = master_interpreter_core.masterinterpreter_load (g_wander_around[e], g_wander_around_behavior )
  wander_around_properties(e,300)
 end

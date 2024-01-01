@@ -21,9 +21,9 @@ local check_timer		= {}
 local play_once			= {}
 local prompt_once		= {}
 
-function quest_giver_init(e)
+function quest_giver_init_file(e,scriptfile)
 	g_quest_giver[e] = {}
-	g_quest_giver[e]["bycfilename"] = "scriptbank\\people\\quest_giver.byc"
+	g_quest_giver[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
 	g_quest_giver_behavior_count = master_interpreter_core.masterinterpreter_load (g_quest_giver[e],g_quest_giver_behavior )
 	quest_giver_properties(e,100,"Press E to Interact","HUD Screen 8","")
 	quest_objno[e] = 0	

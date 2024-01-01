@@ -6,9 +6,9 @@ g_get_close_and_speak = {}
 g_get_close_and_speak_behavior = {}
 g_get_close_and_speak_behavior_count = 0
 
-function get_close_and_speak_init(e)
+function get_close_and_speak_init_file(e,scriptfile)
  g_get_close_and_speak[e] = {}
- g_get_close_and_speak[e]["bycfilename"] = "scriptbank\\people\\get_close_and_speak.byc"
+ g_get_close_and_speak[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_get_close_and_speak_behavior_count = master_interpreter_core.masterinterpreter_load (g_get_close_and_speak[e], g_get_close_and_speak_behavior )
  get_close_and_speak_properties(e,300,"")
 end

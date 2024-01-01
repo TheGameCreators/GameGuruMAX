@@ -76,7 +76,8 @@ function sentry_init(e)
 	engaging_enemy[e] = 0
 	sentrystart = 0
 	sentrystop = 0
-	target_distance = 0	
+	target_distance = 0
+	if g_Entity[e]['health'] <= 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 end
 
 function sentry_main(e)
@@ -87,7 +88,7 @@ function sentry_main(e)
 		if g_sentry[e]['visibility'] == nil then g_sentry[e]['visibility'] = 1 end
 		if g_sentry[e]['visibility'] == 1 then Show(e) end
 		if g_sentry[e]['visibility'] == 2 then Hide(e) end
-		if g_Entity[e]['health'] <= 100 then SetEntityHealth(e,100) end
+		if g_Entity[e]['health'] <= 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 		current_angle[e] = start_angle[e]		
 		if g_sentry[e]['muzzle_flash'] == 0 then
 			for a = 1, g_EntityElementMax do			

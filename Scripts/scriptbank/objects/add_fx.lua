@@ -1,4 +1,4 @@
--- Add_Fx v5 by Necrym59
+-- Add_Fx v6 by Necrym59
 -- DESCRIPTION: Will add the selected effects to the named object.
 -- DESCRIPTION: Attach to an object. Set Always active ON
 -- DESCRIPTION: [ObjectName$=""]
@@ -13,6 +13,8 @@
 -- DESCRIPTION: [spin_z!=0]
 -- DESCRIPTION: [AntiClockwise!=0]
 -- DESCRIPTION: [Glow!=0]
+-- DESCRIPTION: [PulseGlow!=0]
+-- DESCRIPTION: [#PulseSpeed=0.5(0.1,10.0)]
 -- DESCRIPTION: [EmmisiveStrength=100(0,1000)]
 -- DESCRIPTION: [ActiveAtStart!=1] if unchecked use a switch or zone trigger to activate.
 
@@ -32,6 +34,8 @@ local spin_y			= {}
 local spin_z			= {}
 local anticlockwise		= {}
 local glow				= {}
+local pulseglow			= {}
+local pulsespeed		= {}
 local emissivestrength	= {}
 local ActivateAtStart	= {}
 
@@ -39,10 +43,11 @@ local status			= {}
 local hover_currentY	= {}
 local hover_heightangle = {}
 local glow_currentEM 	= {}
+local rampingEM 		= {}
 local tspinspeed		= {}
 local objEnt			= {}
 
-function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hoverspeed, spin, spinspeed, spin_x, spin_y, spin_z, anticlockwise, glow, emissivestrength, ActivateAtStart)
+function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hoverspeed, spin, spinspeed, spin_x, spin_y, spin_z, anticlockwise, glow, pulseglow, pulsespeed, emissivestrength, ActivateAtStart)
 	addfx[e] = g_Entity[e]
 	addfx[e].objectname = lower(objectname)
 	addfx[e].objectno = 0
@@ -57,7 +62,9 @@ function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hover
 	addfx[e].spin_z = spin_z
 	addfx[e].anticlockwise = anticlockwise
 	addfx[e].glow = glow
-	addfx[e].emissivestrength = emissivestrength
+	addfx[e].pulseglow = pulseglow
+	addfx[e].pulsespeed = pulsespeed
+	addfx[e].emissivestrength = emissivestrength		
 	addfx[e].ActivateAtStart = ActivateAtStart
 end
 
@@ -76,9 +83,12 @@ function add_fx_init(e)
 	addfx[e].spin_z = 0
 	addfx[e].anticlockwise = 0
 	addfx[e].glow = 0
+	addfx[e].pulseglow = 0
+	addfx[e].pulsespeed = 0	
 	addfx[e].emissivestrength = 0
 	addfx[e].ActivateAtStart = 1
 	status[e] = "init"
+	rampingEM[e] = 0
 	objEnt[e] = 0
 end
 
@@ -162,6 +172,18 @@ function add_fx_main(e)
 			if glow_currentEM[e] < addfx[e].emissivestrength then
 				SetEntityEmissiveStrength(objEnt[e],glow_currentEM[e]*30)
 				glow_currentEM[e] = glow_currentEM[e]+0.5
+			end
+		end				
+		if addfx[e].pulseglow == 1 then
+			if glow_currentEM[e] < addfx[e].emissivestrength and rampingEM[e] == 0 then
+				SetEntityEmissiveStrength(objEnt[e],glow_currentEM[e])
+				glow_currentEM[e] = glow_currentEM[e]+addfx[e].pulsespeed
+				if glow_currentEM[e] >= addfx[e].emissivestrength then rampingEM[e] = 1 end
+			end
+			if glow_currentEM[e] > 0 and rampingEM[e] == 1 then
+				SetEntityEmissiveStrength(objEnt[e],glow_currentEM[e])
+				glow_currentEM[e] = glow_currentEM[e]-addfx[e].pulsespeed
+				if glow_currentEM[e] <= 0 then rampingEM[e] = 0 end
 			end
 		end
 	end

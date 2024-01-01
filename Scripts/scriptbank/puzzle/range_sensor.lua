@@ -2,12 +2,13 @@
 -- DESCRIPTION: The attached object will be a range sense detector for activating other linked objects or game elements. Set Always Active = On
 -- DESCRIPTION: [SENSOR_RANGE=180(1,2000)]
 -- DESCRIPTION: [SENSED_TEXT$="Detected"]
+-- DESCRIPTION: [!SENSE_PLAYER$=1]
+-- DESCRIPTION: [!SENSE_NPC$=0]
 
 local rangesensor = {}
 local sensor_range = {}
 local sensed_text = {}
-local activate_entity_name = {}	
-local activate_entity_number = {}
+
 local doonce = {}
 local status = {}
 	

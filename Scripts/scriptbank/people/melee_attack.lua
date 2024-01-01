@@ -6,9 +6,9 @@ g_melee_attack = {}
 g_melee_attack_behavior = {}
 g_melee_attack_behavior_count = 0
 
-function melee_attack_init(e)
+function melee_attack_init_file(e,scriptfile)
  g_melee_attack[e] = {}
- g_melee_attack[e]["bycfilename"] = "scriptbank\\people\\melee_attack.byc"
+ g_melee_attack[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_melee_attack_behavior_count = master_interpreter_core.masterinterpreter_load (g_melee_attack[e], g_melee_attack_behavior )
  melee_attack_properties(e,500,0,1,0,0,0)
 end

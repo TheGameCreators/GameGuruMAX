@@ -6,9 +6,9 @@ g_stand_and_speak = {}
 g_stand_and_speak_behavior = {}
 g_stand_and_speak_behavior_count = 0
 
-function stand_and_speak_init(e)
+function stand_and_speak_init_file(e,scriptfile)
  g_stand_and_speak[e] = {}
- g_stand_and_speak[e]["bycfilename"] = "scriptbank\\people\\stand_and_speak.byc"
+ g_stand_and_speak[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_stand_and_speak_behavior_count = master_interpreter_core.masterinterpreter_load (g_stand_and_speak[e], g_stand_and_speak_behavior )
  stand_and_speak_properties(e,300,"")
 end

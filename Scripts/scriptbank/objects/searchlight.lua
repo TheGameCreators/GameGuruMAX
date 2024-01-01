@@ -57,7 +57,8 @@ function searchlight_init(e)
 	status[e] = 'init'
 	alert[e] = 0
 	searchlightstart = 0
-	searchlightstop = 0	
+	searchlightstop = 0
+	if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 	doonce[e] = 0	
 end
 
@@ -69,8 +70,8 @@ function searchlight_main(e)
 		if g_searchlight[e]['visibility'] == nil then g_searchlight[e]['visibility'] = 1 end
 		if g_searchlight[e]['visibility'] == 1 then Show(e) end
 		if g_searchlight[e]['visibility'] == 2 then Hide(e) end
-		current_angle[e] = start_angle[e]
-		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,100) end
+		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100)
+		current_angle[e] = start_angle[e]		
 		status[e] = 'scanning'		
 	end
 	

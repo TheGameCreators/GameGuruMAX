@@ -5,9 +5,9 @@ g_patrol = {}
 g_patrol_behavior = {}
 g_patrol_behavior_count = 0
 
-function patrol_init(e)
+function patrol_init_file(e,scriptfile)
  g_patrol[e] = {}
- g_patrol[e]["bycfilename"] = "scriptbank\\people\\patrol.byc"
+ g_patrol[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_patrol_behavior_count = master_interpreter_core.masterinterpreter_load (g_patrol[e], g_patrol_behavior )
  patrol_properties(e,1)
 end

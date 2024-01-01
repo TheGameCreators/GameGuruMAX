@@ -6,9 +6,9 @@ g_play_animation = {}
 g_play_animation_behavior = {}
 g_play_animation_behavior_count = 0
 
-function play_animation_init(e)
+function play_animation_init_file(e,scriptfile)
  g_play_animation[e] = {}
- g_play_animation[e]["bycfilename"] = "scriptbank\\people\\play_animation.byc"
+ g_play_animation[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_play_animation_behavior_count = master_interpreter_core.masterinterpreter_load (g_play_animation[e], g_play_animation_behavior )
  play_animation_properties(e,400,2,2,1,1)
 end

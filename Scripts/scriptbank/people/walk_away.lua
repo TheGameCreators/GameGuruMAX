@@ -6,9 +6,9 @@ g_walk_away = {}
 g_walk_away_behavior = {}
 g_walk_away_behavior_count = 0
 
-function walk_away_init(e)
+function walk_away_init_file(e,scriptfile)
  g_walk_away[e] = {}
- g_walk_away[e]["bycfilename"] = "scriptbank\\people\\walk_away.byc"
+ g_walk_away[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
  g_walk_away_behavior_count = master_interpreter_core.masterinterpreter_load (g_walk_away[e], g_walk_away_behavior )
  walk_away_properties(e,400,800)
 end

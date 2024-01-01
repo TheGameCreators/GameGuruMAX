@@ -5459,10 +5459,8 @@ void mapeditorexecutable_loop(void)
 							t.entityelement[t.e].soundset2 = t.entityelement[e].soundset2;
 							t.entityelement[t.e].soundset3 = t.entityelement[e].soundset3;
 							t.entityelement[t.e].soundset4 = t.entityelement[e].soundset4;
-							#ifdef WICKEDENGINE
 							t.entityelement[t.e].soundset5 = t.entityelement[e].soundset5;
 							t.entityelement[t.e].soundset6 = t.entityelement[e].soundset6;
-							#endif
 							//PE: We have a new particle id here, so cant just copy.
 							newparticletype backup_newparticle = t.entityelement[t.e].eleprof.newparticle;
 							t.entityelement[t.e].eleprof = t.entityelement[e].eleprof;
@@ -12697,19 +12695,13 @@ void mapeditorexecutable_loop(void)
 							bool readonly = false;
 							if (bShootingWeaponMentioned == true || bMeleeWeaponMentioned == true)
 							{
-								//if (t.entityprofile[t.gridentity].ischaracter == 1) any behavior can show a weapon choice now!
-								//{
-									extern void animsystem_weaponproperty (int, bool, entityeleproftype*, bool, bool);
-									animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, bShootingWeaponMentioned, bMeleeWeaponMentioned);
-								//}
+								extern void animsystem_weaponproperty (int, bool, entityeleproftype*, bool, bool);
+								animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, bShootingWeaponMentioned, bMeleeWeaponMentioned);
 							}
 							else if (bUnarmedMentioned)
 							{
-								//if (t.entityprofile[t.gridentity].ischaracter == 1) any behavior can show a weapon choice now!
-								//{
-									extern void animsystem_weaponproperty(int, bool, entityeleproftype*, bool, bool);
-									animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, false, false);
-								//}
+								extern void animsystem_weaponproperty(int, bool, entityeleproftype*, bool, bool);
+								animsystem_weaponproperty(t.entityprofile[t.gridentity].characterbasetype, readonly, &t.grideleprof, false, false);
 							}
 							if (iAnimationSetMentioned > 0)
 							{
@@ -12718,7 +12710,6 @@ void mapeditorexecutable_loop(void)
 							}
 						}
 
-						#ifdef WICKEDENGINE
 						sObject* pObject = NULL;
 						if( t.gridentityobj > 0) pObject = g_ObjectList[t.gridentityobj];
 						if (ObjectExist(g.entitybankoffset + t.gridentity) == 1 && pObject )
@@ -12752,7 +12743,6 @@ void mapeditorexecutable_loop(void)
 								ImGui::Indent(-10);
 							}
 						}
-						#endif
 
 						// And finally the ADVANCED section
 						bool bAdvencedOpen = false;
@@ -28845,10 +28835,8 @@ void gridedit_mapediting ( void )
 												t.entityelement[t.e].soundset2 = t.entityelement[e].soundset2;
 												t.entityelement[t.e].soundset3 = t.entityelement[e].soundset3;
 												t.entityelement[t.e].soundset4 = t.entityelement[e].soundset4;
-												#ifdef WICKEDENGINE
 												t.entityelement[t.e].soundset5 = t.entityelement[e].soundset5;
 												t.entityelement[t.e].soundset6 = t.entityelement[e].soundset6;
-												#endif
 												t.entityelement[t.e].eleprof = t.entityelement[e].eleprof;
 												PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
 												RotateObject(t.entityelement[t.e].obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
@@ -32083,7 +32071,6 @@ void gridedit_deletelevelobjects ( void )
 	{
 		for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 		{
-			#ifdef WICKEDENGINE
 			// delete any env probes 
 			int entid = t.entityelement[t.e].bankindex;
 			if (entid > 0)
@@ -32093,7 +32080,6 @@ void gridedit_deletelevelobjects ( void )
 					entity_deleteprobe(t.entityelement[t.e].obj);
 				}
 			}
-			#endif
 
 			t.obj = t.entityelement[t.e].obj;
 			if ( t.obj > 0 ) 
@@ -32101,39 +32087,20 @@ void gridedit_deletelevelobjects ( void )
 				if ( ObjectExist(t.obj) == 1 ) DeleteObject (  t.obj );
 			}
 
-			//  clear any character creator objects associated with this entity
-			#ifdef VRTECH
-			#else
-			t.ccobjToDelete=t.obj;
-			characterkit_deleteEntity ( );
-			#endif
-
 			t.entityelement[t.e].obj=0;
 			t.entityelement[t.e].bankindex=0;
-			deleteinternalsound(t.entityelement[t.e].soundset) ; t.entityelement[t.e].soundset=0;
-			deleteinternalsound(t.entityelement[t.e].soundset1) ; t.entityelement[t.e].soundset1=0;
-			deleteinternalsound(t.entityelement[t.e].soundset2) ; t.entityelement[t.e].soundset2=0;
-			deleteinternalsound(t.entityelement[t.e].soundset3) ; t.entityelement[t.e].soundset3=0;
-			deleteinternalsound(t.entityelement[t.e].soundset4) ; t.entityelement[t.e].soundset4=0;
-			#ifdef WICKEDENGINE
+			deleteinternalsound(t.entityelement[t.e].soundset) ; t.entityelement[t.e].soundset = 0;
+			deleteinternalsound(t.entityelement[t.e].soundset1) ; t.entityelement[t.e].soundset1 = 0;
+			deleteinternalsound(t.entityelement[t.e].soundset2) ; t.entityelement[t.e].soundset2 = 0;
+			deleteinternalsound(t.entityelement[t.e].soundset3) ; t.entityelement[t.e].soundset3 = 0;
+			deleteinternalsound(t.entityelement[t.e].soundset4) ; t.entityelement[t.e].soundset4 = 0;
 			deleteinternalsound(t.entityelement[t.e].soundset5); t.entityelement[t.e].soundset5 = 0;
 			deleteinternalsound(t.entityelement[t.e].soundset6); t.entityelement[t.e].soundset6 = 0;
-			#endif
 		}
 	}
 	UnDim (  t.entityelement );
-	#ifdef VRTECH
-	#else
-	UnDim (  t.entityshadervar );
-	UnDim (  t.entitydebug_s );
-	#endif
 	g.entityelementmax=100;
 	Dim (  t.entityelement,g.entityelementmax  );
-	#ifdef VRTECH
-	#else
-	Dim2(  t.entityshadervar,g.entityelementmax, g.globalselectedshadermax  );
-	Dim (  t.entitydebug_s,g.entityelementmax  );
-	#endif
 	g.entityelementlist=0;
 
 	//  delete all objects used for level edit

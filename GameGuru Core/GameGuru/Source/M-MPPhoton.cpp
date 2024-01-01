@@ -7944,16 +7944,14 @@ void mp_save_workshop_files_needed ( void )
 				//t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aidestroy_s ; addtocollection(t.tfile_s.Get()); //PE: Not used anymore.
 				//t.tfile_s=cstr("scriptbank\\")+t.entityelement[t.e].eleprof.aishoot_s ; addtocollection(t.tfile_s.Get()); //PE: Not used anymore.
 				//  sound files
-				t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
-				t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
-				t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
-				t.tfile_s=t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
-				///t.tfile_s=t.entityelement[t.e].eleprof.soundset4_s ; addtocollection(t.tfile_s.Get());
-				#ifdef WICKEDENGINE
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s; addtocollection(t.tfile_s.Get());
 				t.tfile_s = t.entityelement[t.e].eleprof.soundset5_s; addtocollection(t.tfile_s.Get());
 				t.tfile_s = t.entityelement[t.e].eleprof.soundset6_s; addtocollection(t.tfile_s.Get());
 				t.tfile_s = t.entityelement[t.e].eleprof.overrideanimset_s; addtocollection(t.tfile_s.Get());
-				#endif
+
 				// lipsync files associated with soundset references
 				cstr tmpFile_s = t.entityelement[t.e].eleprof.soundset_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
 				tmpFile_s = t.entityelement[t.e].eleprof.soundset1_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());

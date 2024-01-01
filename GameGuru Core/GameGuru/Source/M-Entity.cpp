@@ -2103,9 +2103,11 @@ void entity_loaddata ( void )
 					if (  matched  )  t.entityprofile[t.entid].soundset2_s = t.value_s;
 					cmpStrConst( t_field_s, "soundset3" );
 					if (  matched  )  t.entityprofile[t.entid].soundset3_s = t.value_s;
-					cmpStrConst( t_field_s, "soundset4" );
-					if (  matched  )  t.entityprofile[t.entid].soundset5_s = t.value_s;
+					//cmpStrConst( t_field_s, "soundset4");
+					//if (matched)  t.entityprofile[t.entid].soundset5_s = t.value_s;
 					cmpStrConst( t_field_s, "soundset5");
+					if (  matched  )  t.entityprofile[t.entid].soundset5_s = t.value_s;
+					cmpStrConst( t_field_s, "soundset6");
 					if (  matched  )  t.entityprofile[t.entid].soundset6_s = t.value_s;
 					//  entity AI related vars
 					cmpStrConst( t_field_s, "usekey" );
@@ -3822,6 +3824,8 @@ void entity_loadactivesoundsandvideo ( void )
 	char pSoundSet1[MAX_PATH];
 	char pSoundSet2[MAX_PATH];
 	char pSoundSet3[MAX_PATH];
+	char pSoundSet5[MAX_PATH];
+	char pSoundSet6[MAX_PATH];
 
 	// go through all entities in level
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
@@ -3836,13 +3840,14 @@ void entity_loadactivesoundsandvideo ( void )
 				strcpy(pSoundSet1, t.entityelement[t.e].eleprof.soundset1_s.Get());
 				strcpy(pSoundSet2, t.entityelement[t.e].eleprof.soundset2_s.Get());
 				strcpy(pSoundSet3, t.entityelement[t.e].eleprof.soundset3_s.Get());
+				strcpy(pSoundSet5, t.entityelement[t.e].eleprof.soundset5_s.Get());
+				strcpy(pSoundSet6, t.entityelement[t.e].eleprof.soundset6_s.Get());
 
-				#ifdef WICKEDENGINE
 				// new system can adjust sound at load time to provide automatic variances
 				if (t.entityprofile[t.entid].ischaracter != 0 && t.entityelement[t.e].eleprof.iUseSoundVariants)
 				{
 					// only apply variant system to characters (for now to limit additional setup time)
-					for (int allfour = 0; allfour < 4; allfour++)
+					for (int allfour = 0; allfour <= 6; allfour++)
 					{
 						bool bMightHaveVariant = false;
 						LPSTR pThisStr = NULL;
@@ -3850,11 +3855,13 @@ void entity_loadactivesoundsandvideo ( void )
 						if (allfour == 1) pThisStr = pSoundSet1;
 						if (allfour == 2) pThisStr = pSoundSet2;
 						if (allfour == 3) pThisStr = pSoundSet3;
-						if (bMightHaveVariant == false && strnicmp (pThisStr + strlen(pThisStr) - 5, "1.wav", 5) == NULL) bMightHaveVariant = true;
-						if (bMightHaveVariant == false && strnicmp (pThisStr + strlen(pThisStr) - 5, "2.wav", 5) == NULL) bMightHaveVariant = true;
-						if (bMightHaveVariant == false && strnicmp (pThisStr + strlen(pThisStr) - 5, "3.wav", 5) == NULL) bMightHaveVariant = true;
-						if (bMightHaveVariant == false && strnicmp (pThisStr + strlen(pThisStr) - 5, "4.wav", 5) == NULL) bMightHaveVariant = true;
-						if (bMightHaveVariant == false && strnicmp (pThisStr + strlen(pThisStr) - 5, "5.wav", 5) == NULL) bMightHaveVariant = true;
+						if (allfour == 5) pThisStr = pSoundSet5;
+						if (allfour == 6) pThisStr = pSoundSet6;
+						if (bMightHaveVariant == false && pThisStr && strnicmp (pThisStr + strlen(pThisStr) - 5, "1.wav", 5) == NULL) bMightHaveVariant = true;
+						if (bMightHaveVariant == false && pThisStr && strnicmp (pThisStr + strlen(pThisStr) - 5, "2.wav", 5) == NULL) bMightHaveVariant = true;
+						if (bMightHaveVariant == false && pThisStr && strnicmp (pThisStr + strlen(pThisStr) - 5, "3.wav", 5) == NULL) bMightHaveVariant = true;
+						if (bMightHaveVariant == false && pThisStr && strnicmp (pThisStr + strlen(pThisStr) - 5, "4.wav", 5) == NULL) bMightHaveVariant = true;
+						if (bMightHaveVariant == false && pThisStr && strnicmp (pThisStr + strlen(pThisStr) - 5, "5.wav", 5) == NULL) bMightHaveVariant = true;
 						if (bMightHaveVariant == true)
 						{
 							int iOriginal = pThisStr[strlen(pThisStr) - 5] - '1';
@@ -3886,9 +3893,7 @@ void entity_loadactivesoundsandvideo ( void )
 						}
 					}
 				}
-				#endif
 
-				#ifdef VRTECH
 				// sounds or videos
 				if ( t.entityelement[t.e].soundset == 0 ) 
 				{
@@ -3922,42 +3927,31 @@ void entity_loadactivesoundsandvideo ( void )
 					}
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
-				#else
-				if (  t.entityelement[t.e].soundset == 0 ) 
-				{
-					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset=t.tvideoid*-1;
-					else
-						t.entityelement[t.e].soundset=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-				}
-				if (  t.entityelement[t.e].soundset1 == 0 ) 
-				{
-					t.tvideofile_s=t.entityelement[t.e].eleprof.soundset1_s ; entity_loadvideoid ( );
-					if (  t.tvideoid>0 ) 
-						t.entityelement[t.e].soundset1=t.tvideoid*-1;
-					else
-						t.entityelement[t.e].soundset1=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset1_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-				}
-				#endif
 				if (  t.entityelement[t.e].soundset2 == 0 ) 
 				{
 					t.entityelement[t.e].soundset2 = loadinternalsoundcore(pSoundSet2,1);
 					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 				}
-				if (  t.entityelement[t.e].soundset3 == 0 ) 
+				if (t.entityelement[t.e].soundset3 == 0)
 				{
-					t.entityelement[t.e].soundset3 = loadinternalsoundcore(pSoundSet3,1);
-					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
+					t.entityelement[t.e].soundset3 = loadinternalsoundcore(pSoundSet3, 1);
+					if (t.game.runasmultiplayer == 1) mp_refresh ();
+				}
+				if (t.entityelement[t.e].soundset5 == 0)
+				{
+					t.entityelement[t.e].soundset5 = loadinternalsoundcore(pSoundSet5, 1);
+					if (t.game.runasmultiplayer == 1) mp_refresh ();
+				}
+				if (t.entityelement[t.e].soundset6 == 0)
+				{
+					t.entityelement[t.e].soundset6 = loadinternalsoundcore(pSoundSet6, 1);
+					if (t.game.runasmultiplayer == 1) mp_refresh ();
 				}
 
-				#ifdef VRTECH
 				// lipsync LIP data (associated with a sound file)
 				if ( t.entityprofile[t.entid].ischaracter != 0 )
 				{
-					for (int s = 0; s < 4; s++)
+					for (int s = 0; s <= 3; s++)
 					{
 						bool bFoundSound = false;
 						if (s == 0 && t.entityelement[t.e].soundset != 0) bFoundSound = true;
@@ -4034,13 +4028,6 @@ void entity_loadactivesoundsandvideo ( void )
 						}
 					}
 				}
-				#else
-				if (  t.entityelement[t.e].soundset4 == 0 ) 
-				{
-					t.entityelement[t.e].soundset4=loadinternalsoundcore(t.entityelement[t.e].eleprof.soundset4_s.Get(),1);
-					if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
-				}
-				#endif
 			}
 		}
 	}
@@ -4144,21 +4131,16 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.animspeed=t.entityprofile[t.entid].animspeed;
 
 	//  Decal and Sound Name
-	//t.grideleprof.basedecal_s=t.entitydecal_s[t.entid][0]; //PE: Not used anymore.
-	#ifdef VRTECH
 	t.grideleprof.voiceset_s=t.entityprofile[t.entid].voiceset_s;
 	t.grideleprof.voicerate=t.entityprofile[t.entid].voicerate;
-	#endif
 	t.grideleprof.soundset_s=t.entityprofile[t.entid].soundset_s;
 	t.grideleprof.soundset1_s=t.entityprofile[t.entid].soundset1_s;
 	t.grideleprof.soundset2_s=t.entityprofile[t.entid].soundset2_s;
 	t.grideleprof.soundset3_s=t.entityprofile[t.entid].soundset3_s;
 	t.grideleprof.soundset4_s=t.entityprofile[t.entid].soundset4_s;
-	#ifdef WICKEDENGINE
-	t.grideleprof.soundset5_s = t.entityprofile[t.entid].soundset5_s;
-	t.grideleprof.soundset6_s = t.entityprofile[t.entid].soundset6_s;
+	t.grideleprof.soundset5_s=t.entityprofile[t.entid].soundset5_s;
+	t.grideleprof.soundset6_s=t.entityprofile[t.entid].soundset6_s;
 	t.grideleprof.overrideanimset_s = "";
-	#endif
 
 	//  FPGC - 310710 - decal particle settings
 	t.particlefile_s = ""; //t.grideleprof.basedecal_s; //PE: Not used anymore.
@@ -5792,13 +5774,7 @@ void c_entity_loadelementsdata ( void )
 						t.a = c_ReadLong ( 1 ); t.entityelement[t.e].eleprof.parentlimbindex=t.a;
 						t.a_s = c_ReadString ( 1 ); t.entityelement[t.e].eleprof.soundset2_s=t.a_s;
 						t.a_s = c_ReadString ( 1 ); t.entityelement[t.e].eleprof.soundset3_s=t.a_s;
-						//PE: This can be done on both versions.
-						//#ifdef VRTECH
-						////PE: Crash - map load failed, as we can have 0xa inside here. (when entering text) only 0x0d terminate string. (secoatan.fpm version 313)
 						t.a_s = c_ReadStringIncl0xA( 1 ); t.entityelement[t.e].eleprof.soundset4_s=t.a_s;
-						//#else
-						//t.a_s = c_ReadString ( 1 ); t.entityelement[t.e].eleprof.soundset4_s=t.a_s;
-						//#endif
 					}
 					if (  t.versionnumberload >= 311 ) 
 					{
@@ -8253,10 +8229,10 @@ void entity_addentitytomap_core ( void )
 	t.entityelement[t.e].scalez=t.gridentityscalez_f-100;
 	t.entityelement[t.e].eleprof=t.grideleprof;
 	t.entityelement[t.e].eleprof.light.index=0;
-	t.entityelement[t.e].soundset=0;
-	t.entityelement[t.e].soundset1=0;
-	t.entityelement[t.e].soundset2=0;
-	t.entityelement[t.e].soundset3=0;
+	t.entityelement[t.e].soundset = 0;
+	t.entityelement[t.e].soundset1 = 0;
+	t.entityelement[t.e].soundset2 = 0;
+	t.entityelement[t.e].soundset3 = 0;
 	t.entityelement[t.e].soundset4 = 0;
 	t.entityelement[t.e].soundset5 = 0;
 	t.entityelement[t.e].soundset6 = 0;
@@ -8368,20 +8344,15 @@ void entity_addentitytomap ( void )
 				t.tentid=t.entityelement[t.te].bankindex;
 				if (  t.entityprofile[t.tentid].ismarker == 7 ) 
 				{
-					//t.entityelement[t.te].eleprof.aiinit_s=t.entityelement[t.e].eleprof.aiinit_s; //PE: Not used anymore.
 					t.entityelement[t.te].eleprof.aimain_s=t.entityelement[t.e].eleprof.aimain_s;
-					//t.entityelement[t.te].eleprof.aidestroy_s=t.entityelement[t.e].eleprof.aidestroy_s;
-					//t.entityelement[t.te].eleprof.aishoot_s=t.entityelement[t.e].eleprof.aishoot_s; //PE: Not used anymore.
-					t.entityelement[t.te].eleprof.soundset_s=t.entityelement[t.e].eleprof.soundset_s;
-					t.entityelement[t.te].eleprof.soundset1_s=t.entityelement[t.e].eleprof.soundset1_s;
-					t.entityelement[t.te].eleprof.soundset2_s=t.entityelement[t.e].eleprof.soundset2_s;
-					t.entityelement[t.te].eleprof.soundset3_s=t.entityelement[t.e].eleprof.soundset3_s;
-					t.entityelement[t.te].eleprof.soundset4_s=t.entityelement[t.e].eleprof.soundset4_s;
-					#ifdef WICKEDENGINE
+					t.entityelement[t.te].eleprof.soundset_s = t.entityelement[t.e].eleprof.soundset_s;
+					t.entityelement[t.te].eleprof.soundset1_s = t.entityelement[t.e].eleprof.soundset1_s;
+					t.entityelement[t.te].eleprof.soundset2_s = t.entityelement[t.e].eleprof.soundset2_s;
+					t.entityelement[t.te].eleprof.soundset3_s = t.entityelement[t.e].eleprof.soundset3_s;
+					t.entityelement[t.te].eleprof.soundset4_s = t.entityelement[t.e].eleprof.soundset4_s;
 					t.entityelement[t.te].eleprof.soundset5_s = t.entityelement[t.e].eleprof.soundset5_s;
 					t.entityelement[t.te].eleprof.soundset6_s = t.entityelement[t.e].eleprof.soundset6_s;
 					t.entityelement[t.te].eleprof.overrideanimset_s = t.entityelement[t.e].eleprof.overrideanimset_s;
-					#endif
 					t.entityelement[t.te].eleprof.strength=t.entityelement[t.e].eleprof.strength;
 					t.entityelement[t.te].eleprof.speed=t.entityelement[t.e].eleprof.speed;
 					t.entityelement[t.te].eleprof.animspeed=t.entityelement[t.e].eleprof.animspeed;
@@ -8483,18 +8454,14 @@ void entity_deleteentityfrommap ( void )
 	t.entityelement[t.tupdatee].bankindex=0;
 	t.entityelement[t.tupdatee].maintype=0;
 	t.entityelement[t.tupdatee].iHasParentIndex = 0;
-	deleteinternalsound(t.entityelement[t.tupdatee].soundset) ; t.entityelement[t.tupdatee].soundset=0;
-	deleteinternalsound(t.entityelement[t.tupdatee].soundset1) ; t.entityelement[t.tupdatee].soundset1=0;
-	deleteinternalsound(t.entityelement[t.tupdatee].soundset2) ; t.entityelement[t.tupdatee].soundset2=0;
-	deleteinternalsound(t.entityelement[t.tupdatee].soundset3) ; t.entityelement[t.tupdatee].soundset3=0;
-	//deleteinternalsound(t.entityelement[t.tupdatee].soundset4) ; t.entityelement[t.tupdatee].soundset4=0;
-	#ifdef WICKEDENGINE
+	deleteinternalsound(t.entityelement[t.tupdatee].soundset) ; t.entityelement[t.tupdatee].soundset = 0;
+	deleteinternalsound(t.entityelement[t.tupdatee].soundset1) ; t.entityelement[t.tupdatee].soundset1 = 0;
+	deleteinternalsound(t.entityelement[t.tupdatee].soundset2) ; t.entityelement[t.tupdatee].soundset2 = 0;
+	deleteinternalsound(t.entityelement[t.tupdatee].soundset3) ; t.entityelement[t.tupdatee].soundset3 = 0;
 	deleteinternalsound(t.entityelement[t.tupdatee].soundset5); t.entityelement[t.tupdatee].soundset5 = 0;
 	deleteinternalsound(t.entityelement[t.tupdatee].soundset6); t.entityelement[t.tupdatee].soundset6 = 0;
-	#endif
+
 	//  Delete any associated waypoint/trigger zone
-	//  SK; This sub can be called from the WP module when it's deleting a whole WP path, and in turn deleting the entity using it.
-	//  In this situation we DO NOT want it to try and delete it's own WPs as this becomes cyclic!
 	t.waypointindex=t.entityelement[t.tupdatee].eleprof.trigger.waypointzoneindex;
 	if (  t.waypointindex > 0 ) 
 	{

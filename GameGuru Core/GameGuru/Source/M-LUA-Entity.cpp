@@ -976,27 +976,33 @@ void entity_lua_checkpoint ( void )
 	game_main_snapshotsoundloopcheckpoint(bPauseAndResumeFromGameMenu);
 }
 
+int entity_lua_sound_convertVtoTSND (int te, int tv)
+{
+	int ttsnd = 0;
+	if (tv == 0) ttsnd = t.entityelement[te].soundset;
+	if (tv == 1) ttsnd = t.entityelement[te].soundset1;
+	if (tv == 2) ttsnd = t.entityelement[te].soundset2;
+	if (tv == 3) ttsnd = t.entityelement[te].soundset3;
+	if (tv == 4) ttsnd = t.entityelement[te].soundset5;
+	if (tv == 5) ttsnd = t.entityelement[te].soundset5;
+	if (tv == 6) ttsnd = t.entityelement[te].soundset6;
+	return ttsnd;
+}
+
 void entity_lua_playsound ( void )
 {
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd > 0 )
 	{
 		//If we start in a zone, volume might not be set yet, so: (https://github.com/TheGameCreators/GameGuruRepo/issues/251)
-		if(t.audioVolume.soundFloat == 0.0f)
+		if (t.audioVolume.soundFloat == 0.0f)
+		{
 			t.audioVolume.soundFloat = 1.0f;
+		}
 		playinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
 	}
-	t.luaglobal.lastsoundnumber=t.tsnd;
-	if ( t.game.runasmultiplayer  ==  1 && t.tLuaDontSendLua  ==  0 ) 
+	t.luaglobal.lastsoundnumber = t.tsnd;
+	if ( t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0 ) 
 	{
 		mp_sendlua (  MP_LUA_PlaySound,t.e,t.v );
 	}
@@ -1004,25 +1010,17 @@ void entity_lua_playsound ( void )
 
 void entity_lua_playsoundifsilent ( void )
 {
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd>0 )
 	{
 		if ( SoundExist(t.tsnd) == 1 ) 
 		{
 			if ( SoundPlaying(t.tsnd) == 0 ) 
 			{
-				if (t.audioVolume.soundFloat == 0.0f) //Make sure we have volume.
+				if (t.audioVolume.soundFloat == 0.0f)
+				{
 					t.audioVolume.soundFloat = 1.0f;
-
+				}
 				playinternal3dsound(t.tsnd,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z);
 				t.luaglobal.lastsoundnumber=t.tsnd;
 			}
@@ -1036,17 +1034,8 @@ void entity_lua_playnon3Dsound_core ( int iLoopMode )
 	//  the sound playback will not be "non 3d", especially as the player moves. When process entities, if this sound
 	//  is flagged as 'non 3D', we update the sound position if playing (in entity_loop). But only when the
 	//  soundisnonthreedee flag is set so we don't perform unnecessary calls to SoundPlaying(x) and position
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd>0 )
 	{
 		if ( SoundExist(t.tsnd) == 1 ) 
 		{
@@ -1055,8 +1044,10 @@ void entity_lua_playnon3Dsound_core ( int iLoopMode )
 			if (iLoopMode == 0) {
 				PlaySound(t.tsnd);
 			}
-			else {
-				if (SoundLooping(t.tsnd) == 0) {
+			else 
+			{
+				if (SoundLooping(t.tsnd) == 0) 
+				{
 					LoopSound(t.tsnd);
 				}
 			}
@@ -1078,17 +1069,8 @@ void entity_lua_loopnon3Dsound ( void )
 
 void entity_lua_loopsound ( void )
 {
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd>0 )
 	{
 		if (SoundExist(t.tsnd) == 1) {
 
@@ -1109,17 +1091,8 @@ void entity_lua_loopsound ( void )
 // New command to allow the setting of the active sound before other commands
 void entity_lua_setsound ( void )
 {
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if ( t.v == 4 ) t.tsnd=t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd > 0 )
 	{
 		t.luaglobal.lastsoundnumber=t.tsnd;
 	}	
@@ -1127,18 +1100,8 @@ void entity_lua_setsound ( void )
 
 void entity_lua_stopsound ( void )
 {
-	t.tsnd = 0;
-	if ( t.v == 0 ) t.tsnd=t.entityelement[t.e].soundset;
-	if ( t.v == 1 ) t.tsnd=t.entityelement[t.e].soundset1;
-	if ( t.v == 2 ) t.tsnd=t.entityelement[t.e].soundset2;
-	if ( t.v == 3 ) t.tsnd=t.entityelement[t.e].soundset3;
-	#ifdef WICKEDENGINE
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset5;
-	if (t.v == 5) t.tsnd = t.entityelement[t.e].soundset6;
-	#else
-	if (t.v == 4) t.tsnd = t.entityelement[t.e].soundset4;
-	#endif
-	if ( t.tsnd>0 ) 
+	t.tsnd = entity_lua_sound_convertVtoTSND(t.e, t.v);
+	if ( t.tsnd>0 )
 	{
 		if ( SoundExist(t.tsnd) == 1 ) 
 		{
@@ -1175,8 +1138,6 @@ void entity_lua_setsoundvolume ( void )
 	}
 }
 
-#ifdef VRTECH
-// speech
 void entity_lua_playspeech ( void )
 {
 	// establish ptr to mouth data list
@@ -1241,7 +1202,6 @@ void entity_lua_stopspeech ( void )
 		t.charanimstates[t.tcharanimindex].ccpo.speak.fMouthTimeStamp = 0.0f;
 	}
 }
-#endif
 
 // video
 

@@ -2796,26 +2796,20 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
 				addfoldertocollection( cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get() );
 			}
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
-			///t.tfile_s=t.entityelement[t.e].eleprof.soundset4_s ; addtocollection(t.tfile_s.Get());
-			#ifdef WICKEDENGINE
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.soundset5_s; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.soundset6_s; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.overrideanimset_s; addtocollection(t.tfile_s.Get());	
-			#endif
 			// lipsync files associated with soundset references
 			cstr tmpFile_s = t.entityelement[t.e].eleprof.soundset_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
 			tmpFile_s = t.entityelement[t.e].eleprof.soundset1_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
 			tmpFile_s = t.entityelement[t.e].eleprof.soundset2_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
 			tmpFile_s = t.entityelement[t.e].eleprof.soundset3_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
-			///tmpFile_s = t.entityelement[t.e].eleprof.soundset4_s; tmpFile_s = cstr(Left( tmpFile_s.Get(), strlen(tmpFile_s.Get())-4)) + ".lip"; addtocollection(tmpFile_s.Get());
-			#ifdef WICKEDENGINE
 			tmpFile_s = t.entityelement[t.e].eleprof.soundset5_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
 			tmpFile_s = t.entityelement[t.e].eleprof.soundset6_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
-			#endif
 			//  collectable guns
 			cstr pGunPresent = "";
 			if ( Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1 ) pGunPresent = t.entityprofile[t.entid].isweapon_s;
@@ -3641,16 +3635,13 @@ int mapfile_savestandalone_stage2c ( void )
 				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
 				addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
 			}
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s=t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
-			///t.tfile_s=t.entityelement[t.e].eleprof.soundset4_s ; addtocollection(t.tfile_s.Get());
-			#ifdef WICKEDENGINE
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
+			t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.soundset5_s; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.soundset6_s; addtocollection(t.tfile_s.Get());
 			t.tfile_s = t.entityelement[t.e].eleprof.overrideanimset_s; addtocollection(t.tfile_s.Get());
-			#endif
 			//  collectable guns
 			cstr pGunPresent = "";
 			if ( Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1 ) pGunPresent = t.entityprofile[t.entid].isweapon_s;

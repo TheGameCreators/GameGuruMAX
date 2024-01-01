@@ -1,0 +1,21 @@
+Vendor Behavior
+
+Allows a character entity to use a vending machine/dispenser
+
+Use
+The entity/object (eg: "bottle1") to be dispensed can be placed at the dispense mouth of the vending machine
+Note: This item can have a behavior attached (eg: health, stamina)
+The Vendor Behavior is attached to a vending machine object
+
+Behavior settings:
+Set the PROMPT TEXT (default: "E to dispense item")
+Set the PROMPT RANGE (default: 80)
+Set the NOISE RANGE (default: 500) Range that may alert nearby enemies
+Set the VENDOR ANIMATION select vending machine animation if available.
+Set the VENDORED MAX QUANTITY maximum quantity of available dispensed items
+Set the VENDORED ENTITY COST the monetary cost each of the vendored item
+Set the VENDORED ENTITY LIFESPAN time before deletion of dispensed items (0=Eternal)
+Set the VENDORED ENTITY NAME the name of the dispensed entity (eg: "bottle1")
+Set the USER GLOBAL AFFECTED eg:"MyMoney" to have the cost deducted for each item
+<Sound0> Vending sound
+<Sound1> Empty sound

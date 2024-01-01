@@ -1,0 +1,20 @@
+Atlas Changer Behavior
+Allows the attached object to change its texture to up to 
+3 atlas images texture changes with variable display times and
+loop delay. Can be activated from a trigger or switch or 
+set to always on. (Note: All atlas images are to be the same
+rows/columns)
+
+Behavior Options:-
+Set the IMAGEFILE1 eg: "imagebank\\misc\\testimages\\atlas1.png"
+Set the DISPLAY TIME1 (0,100) for atlas image 1
+Set the IMAGEFILE2 eg: "imagebank\\misc\\testimages\\atlas2.png"]
+Set the DISPLAY TIME2 (0,100) for atlas image 2
+Set the IMAGEFILE3 eg: "imagebank\\misc\\testimages\\atlas3.png"]
+Set the DISPLAY TIME3 (0,100) for atlas image 1
+Set the ATLAS ROWS Set the altas # rows
+Set the ATLAS COLUMNS Set the altas # columns
+Set the EMISSIVE_STRENGTH=300(0,1000)]
+Set the LOOP DELAY (0,100) default is 5 for the complete change loop
+Set the ALWAYS ON (1=Yes, 2=No) default is 1
+Set the DIAGNOSTICS checkbox if you wish to see the diagnostics.

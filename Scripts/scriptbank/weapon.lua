@@ -1,0 +1,183 @@
+-- Weapon v9 - Necrym and Lee
+-- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
+-- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
+-- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
+-- DESCRIPTION: [!PLAY_PICKUP=0]
+-- DESCRIPTION: [!ACTIVATE_LOGIC=0]
+
+local U = require "scriptbank\\utillib"
+local weapon			= {}
+local pickup_range		= {}
+local pickup_style		= {}
+local tEnt 				= {}
+local selectobj 		= {}
+
+weapon_therecanbeonlyone = 0
+weapon_temprompttimer = 0
+
+function weapon_properties(e,pickup_range,pickup_style,play_pickup,activate_logic)
+	weapon[e].pickup_range = pickup_range or 75
+	weapon[e].pickup_style = pickup_style
+	weapon[e].play_pickup = play_pickup or 0
+	weapon[e].activate_logic = activate_logic or 0 
+end
+
+function weapon_init_name(e,name)
+	weapon[e] = {}
+	weapon[e].pickup_range = 75
+	weapon[e].pickup_style = 1
+	weapon[e].play_pickup = 0
+	weapon[e].activate_logic = 0
+	tEnt[e] = 0
+	selectobj[e] = 0
+	weapon_name[e] = name
+	weapon[e].lastdistance1 = -1
+	weapon[e].lastdistance2 = -2
+	weapon[e].lastdistance3 = -3
+end
+
+function weapon_main(e)
+	local PlayerDist = GetPlayerDistance(e)
+	local LookingAt = GetPlrLookingAtEx(e,1)
+	
+	if weapon_therecanbeonlyone==-1 then
+		if g_KeyPressE == 0 and g_InKey == "" then weapon_therecanbeonlyone = 0 end
+	end
+
+	if weapon[e].pickup_style == 2 then 
+		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then		
+			--pinpoint select object--			
+			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
+			local rayX, rayY, rayZ = 0,0,weapon[e].pickup_range
+			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
+			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
+			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
+			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
+				if g_Entity[e].obj == selectobj[e] then
+					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
+					tEnt[e] = e
+				else
+					tEnt[e] = 0				
+				end
+			end
+			if selectobj[e] == 0 or selectobj[e] == nil then
+				tEnt[e] = 0
+				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
+			end
+			--end pinpoint select object--
+		end
+	end
+
+	if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
+		if weapon[e].pickup_style == 1 then
+			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
+			if LookingAt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
+		end	
+		if weapon[e].pickup_style == 2 then
+			if tEnt[e] > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
+			if tEnt[e] == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
+		end
+		if g_Entity[e]['haskey'] == 1 then
+			-- reused haskey flag for use when auto collect from dead character if player already got the weapon
+			weapon_therecanbeonlyone = e
+		end
+		if weapon_therecanbeonlyone==e then
+			--with inventory you can collect as many weapons as you like
+			if weapon_temprompttimer > 0 then
+				PromptLocal("Cannot collect the " .. weapon_name[e] .. " into preferred slot")
+				if Timer() > weapon_temprompttimer + 3000 then weapon_temprompttimer = 0 end
+			else
+				if g_Entity[e]['haskey'] ~= 1 then
+					if g_PlayerGunID > 0 then
+						if g_PlayerController==0 then
+							if GetHeadTracker() == 1 then
+								PromptLocal(e,"Right trigger to pick up the " .. weapon_name[e] )
+							else
+								PromptLocal(e,"Press E to pick up the " .. weapon_name[e] )
+							end
+						else
+							PromptLocal(e,"Press Y Button to pick up the " .. weapon_name[e] )
+						end
+					else
+						if g_PlayerController==0 then
+							if GetHeadTracker() == 1 then
+								PromptLocal(e,"Right trigger to pick up the " .. weapon_name[e] )
+							else
+								PromptLocal(e,"Press E to pick up the " .. weapon_name[e] )
+							end
+						else
+							PromptLocal(e,"Press Y Button to pick up the " .. weapon_name[e] )
+						end
+					end
+				end
+				if g_KeyPressE == 1 or g_MouseClick == 1 or g_Entity[e]['haskey'] == 1 then
+					--Collect into hotkeys inventory
+					local collectedweapon = 1
+					local addedasweapon = 0
+					local preferredslot = -1
+					local weaponID = GetEntityWeaponID(e)
+					for slot = 1, 10, 1 do
+						local thisWeaponPref = GetWeaponSlotPref(slot)
+						if thisWeaponPref == weaponID then
+							preferredslot = slot-1
+							break
+						end
+					end
+					if preferredslot > -1 then
+					   local suggestedslot = SetEntityCollected(e,2,preferredslot)
+					   if preferredslot == suggestedslot then
+							-- must go in preferred slot
+							AddPlayerWeaponSuggestSlot(e,1+preferredslot)
+							addedasweapon = 1
+					   else
+							-- or cannot collect (something in slot and not auto-collecting its ammo)
+							if g_Entity[e]['haskey'] ~= 1 then
+								weapon_temprompttimer = Timer()
+								collectedweapon = 0
+							else
+								AddPlayerWeapon(e)
+							end
+					   end
+					else
+						local sslot = -1
+						for a = 1, 10 do 
+							if GetWeaponSlot(a) > 0 then 			
+							else 
+								sslot = a 
+								break
+							end 
+						end 
+					    if sslot > 0 then
+							-- can add to weapon slots
+							SetEntityCollected(e,2,sslot-1)
+							AddPlayerWeaponSuggestSlot(e,sslot)
+							addedasweapon = 1
+					    else
+							-- else add to general inventory
+							SetEntityCollected(e,1,-1)
+						end
+					end
+					if collectedweapon == 1 then
+						if g_Entity[e]['haskey'] == 1 then
+							if addedasweapon == 1 then
+								Prompt(weapon_name[e] .. " collected" )
+							else
+								Prompt("Ammo collected from " .. weapon_name[e] )
+							end
+						end
+						if weapon[e].play_pickup == 1 then
+							PlayNon3DSound(e,0)
+						end
+						if weapon[e].activate_logic == 1 then
+							PerformLogicConnections(e)
+							ActivateIfUsed(e)
+						end
+					end
+					weapon_therecanbeonlyone = -1
+				end
+			end
+		end
+	else
+		if weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
+	end
+end

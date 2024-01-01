@@ -1,0 +1,12 @@
+Object Switch
+
+This allows any object to be treated as a one time switch for activating other
+objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
+
+Behavior Options:
+Customise the PROMPT TEXT eg: "E to use"
+Set the USE RANGE to enable use
+Set the SWITCH TYPE either 'Push', 'Pull', 'Slide-Left', 'Slide-Right', 'Slide-Up', 'Slide-Down', 'Rotate X' , 'Rotate Y' , 'Rotate Z'
+Set the SWITCH MOVEMENT 
+<Sound0> plays when used
+<Sound1> plays when finished

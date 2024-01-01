@@ -1,0 +1,13 @@
+Weight Switch behavior
+
+Creates a weight activated switch object for activating other objects or game elements
+Attach to the Weight Switch Object? 
+Set switch object to Physics=ON, Collision=BOX, IsImobile=ON. 
+Use AlphaClipping to make invisible if required.
+
+Set the PROMPT TEXT eg: "Weight needed to activate"
+Set the ACTIVATION TEXT eg: ="You have activated the switch"
+Set the ACTIVATION WEIGHT to the weight required for switch activation
+Set the PLAYER WEIGHT for inclusion in weight
+Set the switch MOVEMENT
+Play <Sound0> when activated.

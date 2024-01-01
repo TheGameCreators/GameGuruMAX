@@ -1,0 +1,17 @@
+When linked to a trigger zone the player will be effected with the selected mode while in the zone.
+
+Behavior options are:
+
+- Change the prompt text when entering the zone
+- Change the zone effect:
+    1=Inhibited Walk/Run - Like waking through mud
+    2=Health Loss -Silent health loss 1 hp per second
+    3=Hurt - 1 Hit and health loss per second
+    4=No Weapons  - No weapons while in zone
+    5=No Jumping - No jumping while in zone
+    6=Sniper Hit - Random hits like sniper fire
+    7=Alert Nearby Enemies - alerts enemies to 2000 units distance
+    8=No Flashlight - No Flashlight while in zone
+- Set the zone height
+- Set the SpawnAtStart - if unchecked use a switch or other trigger to spawn this zone
+- Sound 0 for any sound to be applied to the above if required. 

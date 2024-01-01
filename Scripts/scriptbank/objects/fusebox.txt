@@ -1,0 +1,25 @@
+Fusebox Behavior
+
+The Fusebox behaviour allows for a fuse to be placed in a fusebox to
+switch/activate other objects or zones.
+
+There are two seperate but related behaviours
+1. The Fuse
+Place the Fuse object where required and adjust the options in the behaviour.
+PROMPT TEXT and RANGE to pick up
+<Sound0> for pickup
+
+2. The Fuse Box
+This object will be treated as a switch object for activating other objects
+or game elements. Set Always Active = On
+
+Place the fuse box where required and adjust the options in the behaviour.
+PROMPT TEXT and RANGE to use
+<Sound0> for fuse insertion
+<Sound1> for switched on eg (power up sound)
+
+Link the fusebox with the logic connector to whatever you wish to activate.
+
+The Fuseboxe cannot operate until the fuse is attached. If in posession of
+a fuse and within range of the the fuse box then using the fuse box, the
+fuse will be inserted and fuse box turned on and activate the linked object.

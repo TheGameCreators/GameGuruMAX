@@ -1,0 +1,19 @@
+Pulsecontrol Behavior
+
+Modifies the emmissiveness of an object when is Set to ON or activated by zone or switch.
+Attach this behavior to an object and set Physics ON/OFF, Always active ON.
+Set the behavior to ON. Or set to OFF if you wish to use a trigger zone or switch 
+and logic link to the object for activation.
+
+Behavior Options:
+Change PROMPT TEXT to suit.
+Select the processing MODE to either Increase Emission, Decrease Emission or Pulse Emission
+Change the LEVEL of emission
+Change the emission SPEED
+SET wether always ON or OFF (OFF if triggering by zone or switch)
+Turn on/off COLOR_CHANGE
+Set the COLOR R,G,B values of the alternate emmisive color
+<Sound0> to play for activation
+<Sound0> to play for pulsing loop
+
+

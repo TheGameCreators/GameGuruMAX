@@ -1,0 +1,20 @@
+Lurker
+
+The attached entity/object will be a lurker and follow or attack when not being looked at.
+Attache to a character or object entity.
+
+Behavior Options:
+Set the REACTION TEXT eg:"What the.."
+Set the SENSE RANGE for the sense range of the entity
+Set the SENSE ANGLE for the sense angle of the entity
+Set the APPROACH SPEED of the entity
+Set the ROTATION SPEED of the entity
+Set the MODE of the entity to either 'Follow only' or 'Attack in range'
+Set the ATTACK RANGE of the entity
+Set the ATTACK DELAY of the entity
+Set the ATTACK DAMAGE of the entity
+Set the TRANSPARENCY of the entity
+Set the EMISSIVENESS of the entity
+Set the <Sound0> for movement sound
+Set the <Sound1> for lurking sound effect
+Set the <Sound2> for attacking sound effect

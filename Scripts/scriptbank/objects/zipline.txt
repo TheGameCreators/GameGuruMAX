@@ -1,0 +1,21 @@
+Zip Line Behavior
+
+Allows the use of a zipline between 2 points either one way or two way
+and either Auto or Manual release
+
+Apply to two zip line anchor objects with same name.
+Set Physics=ON, IsImobile=Yes and Always Active=ON on both
+Place the 'zipline' cable object anywhere on the map, it will be auto
+sized and connected between the two points.
+
+Behaviour Options:
+Change the PROMPT TEXT eg:"E to use"
+Set the USE RANGE to access the zipline
+Set the ZIP TYPE for zipline travel either "High to Low Travel" or "Two Way Travel" 
+Ensure you do this for both zipline anchors
+Set the ZIP SPEED for travel speed
+Set the ZIP RELEASE type either "Manual Hold/Release" or "Auto Release" 
+Set the ZIP RELEASE TEXT eg: "Hold E until ready to release"
+Set the ZIPLINE OBJECT name eg: "zipline" for the zipline cable object
+Set the ANCHOR STATE to 'Visible' or 'Invisible' for the Zipline anchor points 
+<Sound0> loop sound for zipline travel

@@ -1,0 +1,21 @@
+Scroller Control
+For an image scroller on an object. Attach to the required object. 
+It can be activated by a zone or switch or set always on.
+
+Behavior Settings
+Set a texture IMAGEFILE1 (if left blank will use the existing object texture)
+Set the EMISSIVE STRENGTH default 300.0
+Set the texture SCROLL AMOUNT U
+Set the texture SCROLL AMOUNT V
+Set the control SCROLL DIRECTION (1=Positive, 2=Negative)
+Set the control STARTUP TIME for the scrolling to ramp up to max speed
+Set the control RUNNING TIME for the scrolling running at max speed
+Set the control STOPPING TIME for the scrolling to slow down to stop
+Set the TELEPORTATION option for teleporting at end of scrolling (1=Off, 2=On)
+This will transport you to the entry in the IfUsed field on the developers panel.
+Set the SHUDDERS option for slight shudder/shake (1=Off, 2=At Start, 3=At End, 4=Start+End)
+Set ALWAYS ON (1=Yes, 2=No) default 2
+Set DIAGNOSTICS checkbox for diagnotic text
+Set <Sound0> for the Startup sound
+Set <Sound1> for the Running sound loop
+Set <Sound2> for the Stopping sound

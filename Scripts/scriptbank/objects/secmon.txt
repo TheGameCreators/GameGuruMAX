@@ -1,0 +1,28 @@
+Secuity Camera Monitor
+Allows the monitoring of a security camera objects view.
+Place an object for the monitor in the map. Always active ON
+
+Behaviour Settings
+Set the MONITOR MODE 1=Static, 2=Mobile
+Set the ATTACHED TO if Mobile Mode then attach monitor to this Object Name
+Set the ACTIVATION TEXT
+Set the USEAGE TEXT
+Set the USEAGE RANGE
+Set the CAMERA HUD  either In-Built, Custom Image, Hud Screen or None
+Set the HUD SCREEN name you wish to use if using a Hud screen. eg:"HUD Screen 9" 
+Set the IMAGEFILE for the Custom Image (when using Custom Image mode)
+Set the CAMERA FEED ANGLE  either 1=Forward, 2=15 Degrees Down, 3=45 Degrees Down, 4=90 Degrees Down, 5=90 Degrees Up, 6=Backward
+Set the ANGLE_CYCLE_KEY on or off to allow R key to cycle the camera feed views
+Modify the CAMERA FEED Y value so suit, default is 20 
+Set the CAMERA NAME you wish to connect this montor to eg:"Security Camera"
+Set a CAMERA TARGET NAME (Entity Name) if required for the camera to follow.
+Set a CAMERA TARGET Z value so suit, if required for the camera Z position related to the focal camera target entity.
+If CAMERA TARGET NAME is left blank will just use the cameras default scan view.
+Mouse Wheel will control +-Zoom when viewing camera feed
+Set Sound0 for start/end activation sound if required.
+
+Using the security monitor will also active an entity or zone if linked.
+
+- Special thanks to OldFlak for the help and Camera Hud Images.
+
+

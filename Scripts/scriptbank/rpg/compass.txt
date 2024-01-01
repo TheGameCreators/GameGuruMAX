@@ -1,0 +1,17 @@
+Compass Behavior
+
+Will give the player a Compass? Set always active ON.
+
+Options:-
+Set the PICKUP_RANGE
+Set the PICKUP_TEXT eg: E to pickup
+Set the COMPASS_TYPE either Digital or Magnetic
+Set the COMPASS_MODE either to Pickup or Always On
+Set the screen  POSITION_X
+Set the screen  POSITION_Y
+Set the analogue compass RADIAL_SIZE
+Set the BASE IMAGEFILE the default is ("imagebank\\misc\\testimages\\compass\\compass_base.png")
+Set the SPIN IMAGEFILE the default is ("imagebank\\misc\\testimages\\compass\\compass_spin.png")
+Set the TOP IMAGEFILE the default is ("imagebank\\misc\\testimages\\compass\\compass_top.png")
+Set the <Sound0> for pickup
+

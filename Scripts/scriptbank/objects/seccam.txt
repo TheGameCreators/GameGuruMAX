@@ -1,0 +1,19 @@
+Secuity Camera
+Place a security camera support for the camera if required.
+Place the security on the suppport or elsewhere
+
+The applied object will create a rotatable security device? 
+Set Static Mode = No, Physics = On, Explodable = Yes, IsImobile = Yes
+Behaviour Settings
+-Change the prompt text for when alarm is sounded
+-Set the security camera detection range
+-Set the security camera scan radius
+-Set the detection mode wether the alarm activates on or off
+-Set the alarm range for activating nearby enemy in range response
+-Change wether the camera is Visible or Invisible
+-Set the sound for the Device Loop
+-Set the sound for the Alarm Loop
+
+Will activate other zones or entities if linked when alarm is created.
+
+Models and sounds supplied

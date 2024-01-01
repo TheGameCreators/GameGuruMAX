@@ -1,0 +1,8 @@
+Oxygen v1
+Attache to an object such as a O2 tank
+The attached object will give the player a oxygen boost and health boost if collected.
+-Change pickup prompt
+-Set the health quantity given
+-Set the oxygen quantity given
+-Set the pickup range
+-Set the pickup style to Automatic or Manual (ranged or E to pickup)

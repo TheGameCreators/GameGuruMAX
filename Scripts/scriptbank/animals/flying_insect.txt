@@ -1,0 +1,11 @@
+Flying Insect Behavior
+
+Behavior for flying insects
+Set INSECT TYPE (1=Butterfly, 2=Bee, 3=Wasp)
+This just sets the appropriate flying paterns and speeds etc
+(Default is 1)
+Set the TEMPERAMENT (1=Benign, 2=Aggressive)]
+(Default is 1)
+Set the BOUNDARY=500(1,2000)
+Set Sound0 for the insect sound if any (use a mono sound file)
+

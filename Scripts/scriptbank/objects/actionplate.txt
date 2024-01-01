@@ -1,0 +1,12 @@
+Action Object 
+
+Attach to the Action Plate Object? This object will be treated as a switch object 
+for activating other objects or game elements.
+Set Object to Physics=ON, Collision=BOX, IsImobile=ON.
+Use AlphaClipping to make invisible if required.
+
+Behavior options:
+Set the ACTIVATION TEXT eg: "You have activated a panel"
+Set the plates ACTIVATION TYPE to either 'Single Use' or 'Multi Use' switch
+Set the plates MOVEMENT amount when used
+<Sound0> to play when used.

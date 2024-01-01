@@ -1,0 +1,15 @@
+Fuel
+
+The attached object will give the player a fuel resource if collected. 
+
+Behavior options:
+Set the PROMPT TEXT example: "E to pickup"
+Set the AMOUNT of fuel
+Set the PICKUP ANGE of the fuel to pickup
+Set the PICKUP STYLE of the fuel to pickup either Auto or Manual
+Set the COLLECTED TEXT example: "Collected fuel"
+<Sound0> plays when picked up.
+
+Amount of fuel is saved in 'g_fuel" variable for use
+with multiple objects that uses that global variable.
+Eg: Generator, Car, any fuel powered device etc.

@@ -5,7 +5,7 @@ echo =========================================
 echo ---
 
 echo Necrym59 Files:
-echo Extra Behaviors Collection
+echo Extra Behaviors
 copy "D:\SteamLibrary\steamapps\workshop\content\1247290\2980633676\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\"
 copy "D:\SteamLibrary\steamapps\workshop\content\1247290\2980633676\animals\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\animals\"
 copy "D:\SteamLibrary\steamapps\workshop\content\1247290\2980633676\effects\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\effects\"

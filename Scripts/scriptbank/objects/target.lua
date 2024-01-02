@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Target v10   by Necrym59
--- DESCRIPTION: Allows a target dummy to be shot and reset and active Linked or IfUsed entities.
+-- Target v11 by Necrym59 and BloodMoon
+-- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
--- DESCRIPTION: [@TARGET_TYPE=1(1=Static, 2=Moving, 3=Spinning)]
+-- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Scenery)]
 -- DESCRIPTION: [TARGET_MOVE_X=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Y=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Z=0(0,1000)]
@@ -117,7 +117,7 @@ function target_main(e)
 		status[e] = "endinit"
 	end
 	
-	if target[e].target_type == 1 then
+	if target[e].target_type == 1 or target[e].target_type == 4 then
 		target[e].target_move_x = 0
 		target[e].target_move_y = 0
 		target[e].target_move_z = 0

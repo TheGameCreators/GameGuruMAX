@@ -6,6 +6,9 @@
 #include "M-Workshop.h"
 #include <ctime>
 
+// Not For Educational Version
+#ifndef GGMAXEDU
+
 // Globals
 bool g_bWorkshopAvailable = false;
 bool g_bUpdateWorkshopItemList = false;
@@ -995,3 +998,5 @@ void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryComplet
 	// once we know all items refreshed, see if we need to download any
 	g_bUpdateWorkshopDownloads = true;
 }
+
+#endif // GGMAXEDU

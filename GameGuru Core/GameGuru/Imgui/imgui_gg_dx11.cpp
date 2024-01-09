@@ -5835,6 +5835,7 @@ void SetAvailableInFreeTrial(int foldertype, cFolderItem::sFolderFiles* pNewItem
 cstr GetNameFinalCreditFromAbsPath (LPSTR pAbsFullFolderPath)
 {
 	cstr sNameFinalCredit = "";
+	#ifndef GGMAXEDU
 	LPSTR pFoundMatchPtr = strstr(pAbsFullFolderPath, "\\Community\\");
 	if (pFoundMatchPtr == NULL) pFoundMatchPtr = strstr(pAbsFullFolderPath, "\\community\\");
 	if (pFoundMatchPtr != NULL)
@@ -5864,6 +5865,7 @@ cstr GetNameFinalCreditFromAbsPath (LPSTR pAbsFullFolderPath)
 			sNameFinalCredit = cstr(" (by ") + cstr(pAccountID) + cstr(")");
 		}
 	}
+	#endif
 	return sNameFinalCredit;
 }
 

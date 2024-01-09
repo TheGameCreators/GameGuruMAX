@@ -6,7 +6,10 @@
 
 // Include
 #include "cstr.h"
- 
+
+// Not for Educational Version
+#ifndef GGMAXEDU
+
 // For Steam Workshop Usage
 #include "steam/steam_api.h"
 
@@ -79,5 +82,7 @@ public:
 	void onWorkshopItemQueried(SteamUGCQueryCompleted_t* pCallback, bool bIOFailure);
 	CCallResult<CSteamUserGeneratedWorkshopItem, SteamUGCQueryCompleted_t> m_SteamCallResultWorkshopItemQueried;
 };
+
+#endif //GGMAXEDU
 
 #endif //MAXSTEAMWORKSHOP

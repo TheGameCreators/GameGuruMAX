@@ -821,12 +821,6 @@ void mapeditorexecutable_init ( void )
 	t.aspect_f=GetDesktopWidth() ; t.aspect_f=t.aspect_f/GetDesktopHeight();
 	SetCameraAspect ( t.aspect_f );
 
-	//  Set editor to use a true 1;1 pixel mapping for Text ( , Steam GUI and other overlay images )
-	// moved higher up
-	//timestampactivity(0,"pixel states");
-	//SetChildWindowTruePixel ( 1 );
-	//common_refreshDisplaySize ( );
-
 	// 111115 - base start memory for GameGuru (overwritten if g.grestoreeditorsettings==0)
 	timestampactivity(0,"memory states");
 	g.gamememactuallyusedstart=SMEMAvailable(1);
@@ -6439,10 +6433,7 @@ void mapeditorexecutable_loop(void)
 				else {
 					strcpy(tut.cStepText[tut.iSteps - 1], "INCOMPLETE");
 				}
-
-//					if(tut.iCurrent_Step >= tut.iSteps-1)
-//						sprintf(tut.cStepText[tut.iSteps-1], "Score: %.0f", tut.fScore);
-					
+									
 				strcpy(line_split, tut.cStepText[il]);
 				line_start = line_found = &line_split[0];
 
@@ -6465,17 +6456,12 @@ void mapeditorexecutable_loop(void)
 
 			ImGui::Indent(-10);
 
-			//Debug info.
-			//ImGui::TextCenter("Steps: %ld" , tut.iSteps );
-			//ImGui::TextCenter("Current: %ld" , tut.iCurrent_Step );
-			//ImGui::Text("current_tutorial: %ld", current_tutorial);
-
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
 			}
-
 
 			ImRect bbwin(ImGui::GetWindowPos(), ImGui::GetWindowPos() + ImGui::GetWindowSize());
 			if (ImGui::IsMouseHoveringRect(bbwin.Min, bbwin.Max))
@@ -6491,7 +6477,8 @@ void mapeditorexecutable_loop(void)
 			ImGui::End();
 
 		}
-		else {
+		else 
+		{
 			//Help window closed , check if we ned to free any videos.
 			if (tut.bVideoID > 0) {
 				current_tutorial = -1; //make sure to reopen when window visible again.
@@ -6528,7 +6515,7 @@ void mapeditorexecutable_loop(void)
 
 		#ifdef WICKEDENGINE
 
-			#define STOREPROMOICONS 8
+		#define STOREPROMOICONS 8
 
 		float fMarketplacePanelHeight = 48.0f;// 55.0f; fits 4:3 aspect!
 
@@ -13503,9 +13490,11 @@ void mapeditorexecutable_loop(void)
 			pref.iSetColumnsEntityLib = 3;
 		#endif
 
+		#ifndef GGMAXEDU
 		// ensure workshop system always called to handle callbacks and ensure latest items are available when editing
 		extern void workshop_update(bool);
 		workshop_update(false);
+		#endif
 
 		// librray system
 		process_entity_library_v2();
@@ -30882,10 +30871,12 @@ void gridedit_load_map ( void )
 		{
 			for (int e = 1; e <= g.entityelementlist; e++)
 			{
+				#ifndef GGMAXEDU
 				if (workshop_verifyandorreplacescript(e,0) == true)
 				{
 					bReplacedScript = true;
 				}
+				#endif
 				char pScriptFile[MAX_PATH];
 				strcpy(pScriptFile, "scriptbank\\");
 				strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
@@ -30899,7 +30890,7 @@ void gridedit_load_map ( void )
 		}
 		if (bReplacedScript == true)
 		{
-			strcpy(cTriggerMessage, "Some behaviors have been replaced with newer workshop content");
+			strcpy(cTriggerMessage, "Some behaviors have been replaced with newer content");
 			iTriggerMessageDelay = 10;
 			bTriggerMessage = true;
 			iMessageTimer = 0;
@@ -30908,6 +30899,7 @@ void gridedit_load_map ( void )
 		{
 			if (bScriptMissing == true)
 			{
+				#ifndef GGMAXEDU
 				// this can be zero if user is not connected to the Steam Client
 				if (g_workshopItemsList.size() == 0 )
 				{
@@ -30916,6 +30908,12 @@ void gridedit_load_map ( void )
 					bTriggerMessage = true;
 					iMessageTimer = 0;
 				}
+				#else
+				strcpy(cTriggerMessage, "Some behavior scripts are missing");
+				iTriggerMessageDelay = 20;
+				bTriggerMessage = true;
+				iMessageTimer = 0;
+				#endif
 			}
 		}
 	}

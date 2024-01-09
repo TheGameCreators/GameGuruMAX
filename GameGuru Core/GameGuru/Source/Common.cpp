@@ -31,7 +31,6 @@
 #include "..\Imgui\imgui_gg_dx11.h"
 #endif
 
-
 //220mb saved.
 #define REDUCEMEMUSE
 

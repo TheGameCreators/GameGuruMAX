@@ -673,6 +673,7 @@ void Master::Update(float dt)
 				// if steam, do auth check
 				if (g_bUpdateAppAvailable == false)
 				{
+					#ifndef GGMAXEDU
 					// Steam Purchased (Owned)
 					char pInstallSteamFile[MAX_PATH];
 					strcpy(pInstallSteamFile, pOldDir);
@@ -890,6 +891,9 @@ void Master::Update(float dt)
 						timestampactivity(0, pErrorStr);
 						PostQuitMessage(0);
 					}
+					#else
+					// can use an Educational Authenticator here (i.e. license key) if needed in the future..
+					#endif
 				}
 			}
 
@@ -914,22 +918,16 @@ void Master::Update(float dt)
 			if ( bAreWeAEditor == false )
 			{
 				// only for standalones while showing splash screen (moved from later in init sequence for elegance)
-				if (1)//t.game.gameisexe == 1)
-				{
-					// Must show the window (editor EXE hides by default)
-					#ifdef _DEBUG
-					// crashes when in debug
-					#else
-					SetWindowSettings (0, 0, 0);
-					WindowToFront ("Game Guru Standalone Executable");
-					SetWindowSize (GetDesktopWidth(), GetDesktopHeight());
-					ShowWindow(); MaximiseWindow();
-					DisableEscapeKey();
-					// clear screen
-					//Cls(); Sync();
-					//Cls(); Sync();
-					#endif
-				}
+				// Must show the window (editor EXE hides by default)
+				#ifdef _DEBUG
+				// crashes when in debug
+				#else
+				SetWindowSettings (0, 0, 0);
+				WindowToFront ("Game Guru Standalone Executable");
+				SetWindowSize (GetDesktopWidth(), GetDesktopHeight());
+				ShowWindow(); MaximiseWindow();
+				DisableEscapeKey();
+				#endif
 
 				extern bool bSpecialStandalone;
 				extern char cSpecialStandaloneProject[MAX_PATH];

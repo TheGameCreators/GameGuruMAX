@@ -441,9 +441,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					extern void CheckExistingFilesModified(bool);
 					CheckExistingFilesModified(false);
 
+					#ifndef GGMAXEDU
 					// also trigger a workshop item refresh if on that page
 					extern bool g_bUpdateWorkshopItemList;
 					g_bUpdateWorkshopItemList = true;
+					#endif
 				}
 			}
 		}

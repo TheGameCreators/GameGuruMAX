@@ -16039,6 +16039,7 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 				if (bSwapInSteamName == true)
 				{
 					// all items subscribed to includes meta data for the steam user who created it, we will use the first instance of that
+					#ifndef GGMAXEDU
 					for (int i = 0; i < g_workshopSteamUserNames.size(); i++)
 					{
 						if (stricmp(g_workshopSteamUserNames[i].sSteamUserAccountID.Get(), pChangeUIName) == NULL)
@@ -16047,6 +16048,7 @@ bool DoTreeNode(int parentid, char *ignore, char *ignore2, char *selectfolder = 
 							break;
 						}
 					}
+					#endif
 				}
 				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)it->second->id, node_flags, pChangeUIName);
 
@@ -34237,20 +34239,6 @@ void Welcome_Screen(void)
 
 				ImGui::SetWindowFontScale(1.2);
 
-				/* LB: removed for the EA release - content needs more work
-				//PE: We cant use the normal tooptip when tabs are disabled so...
-				rect.Min = TabStartPos;
-				rect.Max = rect.Min + ImGui::TabItemCalcSize(" How to Make a Game ", false);
-				TabStartPos.x += ImGui::TabItemCalcSize(" How to Make a Game ", false).x + gui.Style.ItemInnerSpacing.x;
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-				if (ImGui::BeginTabItem(" How to Make a Game ", NULL, tabflags))
-				{
-					ImGui::EndTabItem();
-				}
-				ImGui::PopStyleVar();
-				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "How to Make a Game (Coming Soon)");
-				*/
-
 				ImGui::PopItemFlag(); //PE: Enable this tab.
 
 				rect.Min = TabStartPos;
@@ -34369,7 +34357,8 @@ void Welcome_Screen(void)
 					ImGui::Columns(1);
 					ImGui::Indent(-2);
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -34378,7 +34367,8 @@ void Welcome_Screen(void)
 
 					ImGui::EndChild();
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -34392,6 +34382,7 @@ void Welcome_Screen(void)
 
 				// TRUSTED UDER ACCOUNT ID
 				bool bOnlyTrustedSteamUsersForNow = false;
+				#ifndef GGMAXEDU
 				uint64 uAccountID = 0;
 				if (SteamUGC())
 				{
@@ -34399,10 +34390,11 @@ void Welcome_Screen(void)
 					uAccountID = SteamUser()->GetSteamID().GetAccountID();
 					if (uAccountID == 58134713 || uAccountID == 6704278)
 					{
-						// basically just meand Steve
+						// basically just means Steve :)
 						bOnlyTrustedSteamUsersForNow = true;
 					}
 				}
+				#endif
 
 				rect.Min = TabStartPos;
 				rect.Max = rect.Min + ImGui::TabItemCalcSize(" User Guide ", false);
@@ -34452,6 +34444,7 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
 				{
+					#ifndef GGMAXEDU
 					if (uAccountID > 0)
 					{
 						char pExtraUserGuideTip[256];
@@ -34459,6 +34452,7 @@ void Welcome_Screen(void)
 						ImGui::SetTooltip("%s", pExtraUserGuideTip);
 					}
 					else
+					#endif
 					{
 						ImGui::SetTooltip("%s", "User Guide");
 					}
@@ -34466,6 +34460,7 @@ void Welcome_Screen(void)
 
 				ImGui::SetWindowFontScale(1.2);
 
+				#ifndef GGMAXEDU
 				//
 				// Live Streams & Social
 				//
@@ -34834,6 +34829,7 @@ void Welcome_Screen(void)
 					}
 					if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "The Workshop Area shows all the workshop items you are manually and automatically subscribed to");
 				}
+				#endif
 
 				// end of all tabs
 				ImGui::EndTabBar();
@@ -34941,6 +34937,7 @@ void Welcome_Screen(void)
 				}
 				ImGui::SetWindowFontScale(1.2);
 			}
+			#ifndef GGMAXEDU
 			else if (iCurrentOpenTab == 6)
 			{
 				float image_size_sub_x = 350;
@@ -35121,6 +35118,7 @@ void Welcome_Screen(void)
 				extern void workshop_update(bool);
 				workshop_update(true);
 			}
+			#endif
 			else if (bUseTutorial)
 			{
 				cstr title = "";
@@ -35661,6 +35659,7 @@ void Welcome_Screen(void)
 					ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
 				}
 			}
+			#ifndef GGMAXEDU
 			else if (iCurrentOpenTab == 6)
 			{
 				char pCheckFinalDestFolderExists[MAX_PATH];
@@ -35685,6 +35684,7 @@ void Welcome_Screen(void)
 					}
 				}
 			}
+			#endif
 			else
 			{
 				//Changed to project based.
@@ -35727,7 +35727,6 @@ void Welcome_Screen(void)
 			//###########################################################
 			//#### SWAP TOOL_GOBACK was here "Exit GameGuru MAX Hub" ####
 			//###########################################################
-
 
 #ifdef USEWELCOMESCREEN
 			if (projectbank_list.size() > 0)

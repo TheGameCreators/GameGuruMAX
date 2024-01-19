@@ -56,6 +56,7 @@ function destroy_object_main(e)
 				if m ~= nil and g_Entity[m] ~= nil then
 					if lower(GetEntityName(m)) == lower(desobject[e].object_name) then
 						desobject[e].object_no = m
+						if g_Entity[m]['health'] <= 1 then SetEntityHealth(m,5) end
 						break
 					end
 				end			

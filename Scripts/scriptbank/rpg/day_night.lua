@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Day_Night v11 by Necrym59 and Lee
+-- Day_Night v12 by Necrym59 and Lee
 -- DESCRIPTION: A Day/Night Time Cycler. Set ALWAYS ON
--- DESCRIPTION: [#START_ANGLE=0(-180,180)]
+-- DESCRIPTION: [#START_ANGLE=-95(-180,180)]
 -- DESCRIPTION: [TIME_DILATION=1(1,1000)]
 -- DESCRIPTION: [DIAGNOSTICS!=0]
 -- DESCRIPTION: [MIN_AMBIENCE_R=10(1,255)]
@@ -19,7 +19,10 @@
 -- DESCRIPTION: [MAX_INTENSITY#=7.40(0.01,50.00)]
 -- DESCRIPTION: [@TRIGGER_EVENT=25(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=None)]
 
+g_sunrollposition = {}
+
 local day_night = {}
+local start_angle = {}
 local sun_roll = {}
 local sun_pitch = {}
 local sun_yaw = {}
@@ -59,7 +62,9 @@ local mode = {}
 local event_trig = {}
 
 function day_night_properties(e, start_angle, time_dilation, diagnostics, min_ambience_r, min_ambience_g, min_ambience_b, min_exposure, sun_roll, sun_pitch, sun_yaw, min_intensity, max_ambience_r, max_ambience_g, max_ambience_b, max_exposure, max_intensity, trigger_event)
-	-- was start_angle in legacy version now replaced with RPY below
+	day_night[e] = g_Entity[e]
+	-- start_angle in legacy version now replaced with RPY below but retained for compatability
+	day_night[e].start_angle = start_angle
 	day_night[e].time_dilation = time_dilation
 	day_night[e].diagnostics = diagnostics
 	day_night[e].min_ambience_r = min_ambience_r
@@ -90,6 +95,7 @@ end
 
 function day_night_init(e)
 	day_night[e] = {}
+	day_night[e].start_angle = -95
 	day_night[e].sun_roll = -95
 	day_night[e].sun_pitch = 75
 	day_night[e].sun_yaw = 0
@@ -108,6 +114,7 @@ function day_night_init(e)
 	day_night[e].trigger_event = 25
 	status[e] = "init"
 	state[e] = ""
+	g_sunrollposition = 0
 	sunmoonroll[e] = 0
 	sunmoonpitch[e] = 0
 	sunmoonyaw[e] = 0
@@ -135,7 +142,7 @@ function day_night_main(e)
 			sintvalue[e] = day_night[e].max_intensity
 		end		
 		if day_night[e].time_dilation >= 1000 then day_night[e].time_dilation = 1000 end
-		sunmoonroll[e] = day_night[e].sun_roll		
+		sunmoonroll[e] = day_night[e].start_angle
 		if sunmoonroll[e] < 90 then mode[e] = "Day" end		
 		if sunmoonroll[e] > 90 then mode[e] = "Night" end
 		sunmoonpitch[e] = day_night[e].sun_pitch
@@ -148,6 +155,7 @@ function day_night_main(e)
 	if g_Time > suntimer[e] then
 		sunmoonroll[e] = (sunmoonroll[e] + 0.0042) --1 Sec = 0.0042 deg
 		SetSunDirection(sunmoonroll[e],sunmoonpitch[e],sunmoonyaw[e])
+		g_sunrollposition = sunmoonroll[e]
 		suntimer[e] = g_Time + 1000 / day_night[e].time_dilation
 	end	
 	
@@ -160,6 +168,7 @@ function day_night_main(e)
 		SetAmbienceBlue(ambbvalue[e])
 		SetAmbienceIntensity(120)
 		--Swap in Moon Image if possible
+		if sunmoonroll[e] > 180 then sunmoonroll[e] = -180 end
 		if sunmoonroll[e] < -90 then mode[e] = "Day" end
 	end
 	
@@ -198,7 +207,7 @@ function day_night_main(e)
 			if sintvalue[e] > day_night[e].min_intensity then sintvalue[e] = sintvalue[e] - 0.001 end
 		end			
 		--Swap in Sun Image if possible
-		if sunmoonroll[e] > 90 then mode[e] = "Night" end			
+		if sunmoonroll[e] > 90 and sunmoonroll[e] < -90 then mode[e] = "Night" end			
 	end
 	if sunmoonroll[e] > -165.5 then
 		tod[e] = "12pm"

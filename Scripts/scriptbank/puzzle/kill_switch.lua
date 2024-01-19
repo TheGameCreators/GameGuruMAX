@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Switch v8 by Necrym59
+-- Kill Switch v9 by Necrym59
 -- DESCRIPTION: Attach this behaviour to an object. Link to be activated by switch or zone.
 -- DESCRIPTION: When all enemies have been killed it then activates another linked object or item.
 -- DESCRIPTION: [EVENT_TEXT$="Kill all Targets in Area"]
@@ -142,13 +142,11 @@ function kill_switch_main(e)
 				doend[e] = 1
 				doonce[e] = 0
 				waitonce[e] = 0
-				wait[e] = math.huge				
-				status[e] = 'start'
-				if g_Time >= endcheck[e] and state[e] == 0 then
+				wait[e] = math.huge		
+				endcheck[e] = g_Time + killswitch[e].end_text_duration*1000
+			else 
+				if g_Time >= endcheck[e] then
 					status[e] = 'end'
-				else
-					status[e] = 'start'					
-					doend[e] = 0
 				end
 			end			
 		end

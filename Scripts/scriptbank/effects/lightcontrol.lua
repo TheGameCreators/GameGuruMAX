@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Light Control v20 by Necrym59, with thanks to synchromesh
+-- Light Control v21 by Necrym59, with thanks to synchromesh
 -- DESCRIPTION: Ramps the strength distance of a light up or down when activated by a zone, switch or by range.
 -- DESCRIPTION: Attach to a light.
 -- DESCRIPTION: [@RANGE_SENSING=1(1=Yes, 2=No)]
 -- DESCRIPTION: [SENSOR_RANGE=100(1,1000)]
 -- DESCRIPTION: [MAX_LIGHT_DISTANCE=150(1,1000)]
 -- DESCRIPTION: [#SPEED=1.20(0.0,500.0)]
--- DESCRIPTION: [@MODE=1(1=Turn Off/On, 2=Minimum , 3=Keep On, 4=Change Color, 5=Overpower)]
+-- DESCRIPTION: [@MODE=1(1=Turn Off/On, 2=Minimum , 3=Keep On, 4=Change Color, 5=Overpower, 6=Use Day/Night Cycle)]
 -- DESCRIPTION: [LIGHT_R=255(0,255)]
 -- DESCRIPTION: [LIGHT_G=255(0,255)]
 -- DESCRIPTION: [LIGHT_B=255(0,255)]
@@ -16,6 +16,8 @@
 -- DESCRIPTION: <Sound1> when overpowered
 
 local lower = string.lower
+
+g_sunrollposition = {}
 
 local lightcontrol 			= {}
 local range_sensing 		= {}
@@ -79,6 +81,7 @@ function lightcontrol_init(e)
 	minrange[e] = 0
 	played[e] = 0
 	doonce[e] = 0
+	g_sunrollposition = 0
 end
 
 function lightcontrol_main(e)
@@ -126,7 +129,7 @@ function lightcontrol_main(e)
 		end
 		if lightcontrol[e].mode == 4 and current_level[e] == lightcontrol[e].max_light_distance then
 			SetLightRGB(lightNum,lightcontrol[e].light_r,lightcontrol[e].light_g,lightcontrol[e].light_b)
-		end
+		end		
 	else
 		lightNum = GetEntityLightNumber( e )
 		if lightcontrol[e].mode == 4 then
@@ -150,6 +153,16 @@ function lightcontrol_main(e)
 			end
 		end
 	end
+	
+	if lightcontrol[e].mode == 6 then
+		if g_sunrollposition > -90 and g_sunrollposition < 84 then  --Day
+			SetActivated(e,0)
+			current_level[e] = minrange[e]
+		end	
+		if g_sunrollposition > 85 then  --Night
+			SetActivated(e,1)
+		end
+	end	
 
 	if g_Entity[e]['activated'] == 0 then
 		lightNum = GetEntityLightNumber( e )

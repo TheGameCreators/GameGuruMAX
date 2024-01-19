@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Phantom v14 by Necrym59
+-- Phantom v15 by Necrym59
 -- DESCRIPTION: Fades in an object and can approach player when in zone or switched by control.
 -- DESCRIPTION: Attach to object and set Physics ON/OFF, Always active ON. 
 -- DESCRIPTION: Change [PROMPT_TEXT$="What was that"] [@APPEARANCE_MODE=1(1=Show-Fade/Disappear, 2=Show-Approach, 3=Show-Face-Approach, 4=Show-Move-Fade/Disappear, 5=Character Move-Once-No Collision)]
@@ -7,7 +7,9 @@
 -- DESCRIPTION: [#MOVEMENT_SPEED=50.0(0,500)] [#MOVEMENT_X=-0.0(-1000,1000)] [#MOVEMENT_Z=-0.0(-1000,1000)]
 -- DESCRIPTION: [@IDLE_ANIMATION$=-1(0=AnimSetList)] [@MOVE_ANIMATION$=-1(0=AnimSetList)]]
 -- DESCRIPTION: [@ANIMATED_MODEL=3(1=Character Creator, 2=Legacy Character, 3=Non Animated)]
--- DESCRIPTION: play <Sound0> upon apperance, play <Sound1> upon approach.
+-- DESCRIPTION: <Sound0> upon apperance
+-- DESCRIPTION: <Sound1> upon approach
+-- DESCRIPTION: <Sound2> upon disapperance
 
 	local V = require "scriptbank\\vectlib"
 	local U = require "scriptbank\\utillib"
@@ -162,7 +164,8 @@ function phantom_main(e)
 					end
 				end
 				if phantom[e].animated_model == 3 then SetAnimationSpeedModulation (e,phantom[e].movement_speed/100) end
-				StopSound(e,0)				
+				StopSound(e,0)
+				PlaySound(e,1)
 				if PlayerDist < 50 then
 					CollisionOff(e)					
 					Destroy(e)
@@ -203,7 +206,8 @@ function phantom_main(e)
 					end
 				end
 				if phantom[e].animated_model == 3 then SetAnimationSpeedModulation (e,phantom[e].movement_speed/100) end
-				StopSound(e,0)			
+				StopSound(e,0)
+				PlaySound(e,1)
 				if PlayerDist < 50 then
 					CollisionOff(e)			
 					Destroy(e)
@@ -286,7 +290,8 @@ function phantom_main(e)
 						legacy[e] = 1 
 					end
 				end
-				StopSound(e,0)	
+				StopSound(e,0)
+				PlaySound(e,2)
 				if GetTimer(e) >= showtime[e] or PlayerDist < 50 then					
 					CollisionOff(e)				
 					Destroy(e)

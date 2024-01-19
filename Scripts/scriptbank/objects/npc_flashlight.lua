@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Npc Flashlight v4
+-- Npc Flashlight v5
 -- DESCRIPTION: Attach to a spotlight and edit the settings.
 -- DESCRIPTION: [FLASHLIGHT_RANGE=3000]
 -- DESCRIPTION: Attach to [NPC_OBJECT_NAME$="Tony1"]
@@ -21,6 +21,9 @@
 	local tpositionx = {}
 	local tpositiony = {}
 	local tpositionz = {}
+	local xv = {}
+	local yv = {}
+	local zv = {}	
 
 function npc_flashlight_properties(e, flashlight_range, npc_object_name, npc_object, flashlight_position)	
 	module_lightcontrol.init(e,1)	
@@ -42,12 +45,15 @@ function npc_flashlight_init(e)
 	tpositionz[e] = 0
 	lightNum = GetEntityLightNumber(e)
 	flashattached[e] = 0
+	xv[e] = 0
+	yv[e] = 0
+	zv[e] = 0
 	status[e] = "init"
 end
 	
 function npc_flashlight_main(e)	
 	if status[e] == "init" then
-		xv, yv, zv = GetLightAngle(lightNum)
+		xv[e], yv[e], zv[e] = GetLightAngle(lightNum)
 		if g_npcflashlight[e]['npc_object'] == 0 or nil then
 			for a = 1, g_EntityElementMax do			
 				if a ~= nil and g_Entity[a] ~= nil then		
@@ -81,7 +87,7 @@ function npc_flashlight_main(e)
 	if flashattached[e] == 0 then		
 		lightNum = GetEntityLightNumber( e )
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])
-		Ax=Ax-(xv*6)
+		Ax=Ax-(xv[e]*6)
 		local xA,yA,zA = rad(Ax),rad(Ay),rad(Az)
 		x=x+math.sin(math.rad(Ay))*20
 		y=y-math.sin(math.rad(Ax))*20
@@ -95,7 +101,7 @@ function npc_flashlight_main(e)
 	if flashattached[e] == 1 then	
 		lightNum = GetEntityLightNumber( e )		
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])		
-		Ax=Ax-(xv*6)
+		Ax=Ax-(xv[e]*6)
 		local xA,yA,zA = rad(Ax),rad(Ay),rad(Az)
 		x=x+math.sin(math.rad(Ay))*20
 		y=y-math.sin(math.rad(Ax))*20

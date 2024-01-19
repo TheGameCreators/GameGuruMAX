@@ -1,0 +1,20 @@
+How To Run The Wizbang Workshop Updates Checker
+===============================================
+
+. Run the latest EXP build and click the Workshop Tab in the HUB
+. Click the 'Update Workshop Items' button to instruct the software to refresh to the latest workshop items
+. The above step actually involves the software unsubscribing and then auto-resubscribing, tricking Steam to get the latest
+. You may need to exit MAX and relaunch in order for the latest workshop items to appear in the list
+. Note that only the 'Extra Behaviors' workshop item is attended to for now
+. Before starting the process of getting the latest updates, run GitHub Desktop so you can see the differences between the current and the new changes
+. Once the workshop items change to the latest update dates in the list, run "1-CopyScriptsFromLiveWORKSHOP.bat", maybe found "C:\DEV\GAMEGURUMAXREPO"
+. Now change in GitHub Desktop for all changes, additions and deletions to ensure they are all reasonable
+. For changed files, look for the Vx number at the top changing from a low number to a higher one, this is correct
+. Ignore any changes that show a Vx number at the top changing from a high number to a lower number, this means we have improved this script locally
+. Notice any files that have been included accidentally, and mark them to be ignored, maybe: "Scripts\scriptbank\objects\npc_flashlight.lua.bak"
+. Finally, and most importantly for now, check changes to ensure parameters are ONLY added to the END of the _properties( function in the script!
+. As an example of the above, it is WRONG to go from "gravity_zone_properties(e, gravity_level, fall_rate, zoneheight, SpawnAtStart)" to "gravity_zone_properties(e, gravity_level, fall_rate, auto_lift, zoneheight, trigger_type, trigger_height, SpawnAtStart)", and should be ignored!
+. Another example to ignore is "npc_event_properties(e, event_duration, idle_animation, event_animation, end_trigger, fade_speed)" to "npc_event_properties(e, event_trigger, range, event_duration, idle_animation, event_animation, end_trigger, fade_speed, instant_ragdoll)"
+. Another example to ignore is "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, vendored_entity_no, user_global_affected)" to "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty)"
+. Another example to ignore is "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, entity_name, entity_no, diagnostics, clone_health, respawn_cycle, respawn_events, respawn_interval)" to "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, clone_health, respawn_cycle, respawn_events, respawn_interval, entity_name)"
+. 

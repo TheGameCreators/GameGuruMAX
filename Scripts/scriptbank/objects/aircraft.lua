@@ -1,4 +1,4 @@
--- Aircraft v31 by Necrym59
+-- Aircraft v32 by Necrym59
 -- DESCRIPTION: Creates a controllable aircraft from an object.
 -- DESCRIPTION: Attach to an object. Set Physics On, Polygon Collision.
 -- DESCRIPTION: [@VEHICLE_TYPE=1(1=Plane,2=Helicopter,3=VTOL-Vehicle)]
@@ -17,6 +17,7 @@
 -- DESCRIPTION: [@FX_ANIMATION$=-1(0=AnimSetList)]
 -- DESCRIPTION: [FX_MODULATION=60(1,100)]
 -- DESCRIPTION: [SHOW_READOUTS!=1]
+-- DESCRIPTION: [PARTICLE_NO=0]
 -- DESCRIPTION: <Sound0> for take-off sound
 -- DESCRIPTION: <Sound1> loop for in-flight
 -- DESCRIPTION: <Sound2> for landing sound
@@ -30,6 +31,7 @@ local deg  = math.deg
 local atan = math.atan2
 local modf = math.modf
 local abs  = math.abs
+local lower = string.lower
 
 g_LandingZone		= {}
 local aircraft 		= {}
@@ -75,8 +77,9 @@ local craftlength   = {}
 local last_gun      = ""
 local colobj		= {}
 local coltimer		= {}
+local particle_no 	= {}
 
-function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1, use_text2, lz_text, display_x, display_y, pilot_x, pilot_y, pilot_z, max_speed, velocity, fx_animation, fx_modulation, show_readouts)
+function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1, use_text2, lz_text, display_x, display_y, pilot_x, pilot_y, pilot_z, max_speed, velocity, fx_animation, fx_modulation, show_readouts, particle_no)
 	vehicle[e] = g_Entity[e]
 	vehicle[e].vehicle_type = vehicle_type
 	vehicle[e].use_range = use_range
@@ -94,6 +97,7 @@ function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1,
 	vehicle[e].fx_animation = "=" .. tostring(fx_animation)
 	vehicle[e].fx_modulation = fx_modulation or 1
 	vehicle[e].show_readouts = show_readouts
+	vehicle[e].particle_no = particle_no
 end
 
 function aircraft_init(e)
@@ -118,6 +122,7 @@ function aircraft_init(e)
 	vehicle[e].fx_animation = ""
 	vehicle[e].fx_modulation = 60
 	vehicle[e].show_readouts = 1
+	vehicle[e].particle_no = 0
 
 	controlEnt    	= nil
 	timeLastFrame 	= nil
@@ -143,7 +148,7 @@ function aircraft_init(e)
 	colobj[e]  		= 0
 	coltimer[e]  	= math.huge
 	sndpause[e]		= math.huge
-	EPressed 		= false
+	EPressed 		= false	
 end
 
 local function AttachPlayer(h,xa,ya,za)
@@ -171,16 +176,22 @@ end
 
 function aircraft_main(e)
 
-	if status[e] == "init" then
+	if status[e] == "init" then		
 		maxSpeed = vehicle[e].max_speed
 		SetPlayerWeapons(1)
 		ChangePlayerWeapon(last_gun)
 		flying = 0
 		coltimer[e] = g_Time + 200
+		if vehicle[e].particle_no ~= 0 then
+			GravityOff(vehicle[e].particle_no)
+			Hide(vehicle[e].particle_no)
+			ResetPosition(vehicle[e].particle_no,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)			
+		end	
 		status[e] = "begin"
 	end
 
 	if status[e] == "begin" then
+	Text(50,50,3,vehicle[e].particle_number)
 		playerPos = {xo = vehicle[e].pilot_x, yo = vehicle[e].pilot_y, zo = vehicle[e].pilot_z}
 		local h = aircraft[e]
 		if h == nil then			
@@ -441,6 +452,15 @@ function aircraft_main(e)
 							end
 						end
 					end
+					if g_KeyPressSPACE == 1 or g_KeyPressSHIFT == 1 then
+						if  h.pos.y <= terrain[e] + 100 and heightcheck[e] > 6 then
+							ResetPosition(vehicle[e].particle_no, h.pos.x, h.pos.y, h.pos.z)
+							Scale(vehicle[e].particle_no,300)
+							Show(vehicle[e].particle_no)
+						else
+							Hide(vehicle[e].particle_no)
+						end
+					end	
 				end
 				--(VTOL Aircraft)-----------------------------------------------------------------------------------
 				if vehicle[e].vehicle_type == 3 then
@@ -485,7 +505,7 @@ function aircraft_main(e)
 						if h.vec.z > 0 then
 							h.vec.z = h.vec.z - 0.09 * (timeDiff*vehicle[e].velocity/3)
 						end
-						if h.vec.z <= 0 then h.vec.z = 0 end
+						if h.vec.z <= 0 then h.vec.z = 0 end						
 					end
 					if h.pos.y <= terrain[e] + 3 and g_KeyPressSPACE == 0 then
 						StopSound(e,1)
@@ -556,6 +576,15 @@ function aircraft_main(e)
 							end
 						end
 					end
+					if g_KeyPressSPACE == 1 or g_KeyPressSHIFT == 1 then
+						if  h.pos.y <= terrain[e] + 100 and heightcheck[e] > 6 then
+							ResetPosition(vehicle[e].particle_no, h.pos.x, h.pos.y, h.pos.z)
+							Scale(vehicle[e].particle_no,300)
+							Show(vehicle[e].particle_no)
+						else
+							Hide(vehicle[e].particle_no)
+						end
+					end	
 				end
 				--Flight Collision Check ----------------------------------------------------------------
 				if flying == 1 then 

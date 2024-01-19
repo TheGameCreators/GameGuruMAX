@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Landing_zone v8 by Necrym59
+-- Landing_zone v9 by Necrym59
 -- DESCRIPTION: When aircraft vehicle enters this zone, <Sound0> will play and will activate 'g_LandingZone'
 -- DESCRIPTION: variable to enable Auto-landing option in a capable vehicle.
--- DESCRIPTION: will also activate any logic linked entities.
+-- DESCRIPTION: will also activate any logic linked or IfUsed entities.
 -- DESCRIPTION: [BASEHEIGHT=100(1,500)] for the lowest sense level
 -- DESCRIPTION: [ZONEHEIGHT=1000(1,5000)] for the highest sense level
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
@@ -43,6 +43,7 @@ function landing_zone_main(e)
 				PlaySound(e,0)
 				played[e] = 1
 				PerformLogicConnections(e)
+				ActivateIfUsed(e)
 			end
 			g_LandingZone = 1						
 		end	

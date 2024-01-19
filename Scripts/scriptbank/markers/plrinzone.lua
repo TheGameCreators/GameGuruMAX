@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Player In Zone v8   by Necrym59
+-- Player In Zone v9  by Necrym59
 -- DESCRIPTION: Re-triggerable zone to trigger an event.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: Set for [@MULTI_TRIGGER=2(1=Yes, 2=No)]
@@ -54,7 +54,7 @@ function plrinzone_main(e)
 				doonce[e] = 1
 			end
 		end
-		if g_Entity[e]['plrinzone'] == 1 and g_Time > wait[e] then
+		if g_Entity[e]['plrinzone'] == 1 and g_Time > wait[e] and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+plrinzone[e]['zoneheight'] then
 			if plrinzone[e].multi_trigger == 1 and multi_switch[e] == 0 then
 				multi_switch[e] = 1
 				ActivateIfUsed(e)
@@ -69,7 +69,7 @@ function plrinzone_main(e)
 		if g_Entity[e]['plrinzone'] == 0 and multi_switch[e] == 1 then
 			StopSound(e,0)
 			doonce[e] = 0
-			multi_switch[e] = 0
-		end
+			multi_switch[e] = 0			
+		end		
 	end
 end

@@ -9,7 +9,7 @@ Binoculars, Night Vision and Compass
 Change Behavior settings to suit.
 - Change the Pickup text eg: "E to pickup/wear"
 - Change the Pickup Range, default = 80
-- Change the helmet useage text eg: "Hold B + Wheel to zoom, N=Nightvision ON  Q=Nightvision OFF  P=Remove Helmet"
+- Change the helmet useage text eg: "Hold B + Wheel to zoom, N=Nightvision ON/OFF  P=Remove/Wear Helmet"
 - Change the helmet mode either 1=Pickup/Remove, 2=Always On
 - Change the helmets inbuilt binocular minimum zoom capability
 - Change the helmets inbuilt binocular maximum zoom capability

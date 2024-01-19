@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Npcinzone v7 by Necrym59
+-- Npcinzone v8 by Necrym59
 -- DESCRIPTION: If npc of [@NPC_TYPE=0(0=Enemy, 1=Ally, 2=Neutral, 3=Any)] type enters the zone, displays a 
 -- DESCRIPTION: [NOTIFICATION$="NPC in zone"] and can activate an object or zone, then destroys this zone.
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -52,10 +52,10 @@ function npcinzone_main(e)
 		GetEntityInZone(e)
 		EntityID[e] = g_Entity[e]['entityinzone']
 		EntityAL[e] = GetEntityAllegiance(EntityID[e])
-		if g_Entity[e]['entityinzone'] > 0 and EntityID[e] > 0 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y']+npcinzone[e].zoneheight then
+		if g_Entity[e]['entityinzone'] > 0 and EntityID[e] > 0 and EntityAL[e] ~= -1 and g_Entity[EntityID[e]]['y'] > g_Entity[e]['y']-10 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y']+npcinzone[e].zoneheight then
 			if npcinzone[e].npc_type ~= 3 then
-				if EntityID[e] > 0 and EntityAL[e] == npcinzone[e].npc_type then
-					Prompt(npcinzone[e].notification)				
+				if EntityAL[e] == npcinzone[e].npc_type then
+					Prompt(npcinzone[e].notification)
 					if played[e] == 0 then
 						PlaySound(e,0)
 						played[e] = 1
@@ -69,9 +69,9 @@ function npcinzone_main(e)
 					end
 				end
 			end
-			if npcinzone[e].npc_type == 3 and EntityAL[e] ~= -1 then
+			if npcinzone[e].npc_type == 3 then
 				if EntityID[e] > 0 then
-					Prompt(npcinzone[e].notification)				
+					Prompt(npcinzone[e].notification)
 					if played[e] == 0 then
 						PlaySound(e,0)
 						played[e] = 1

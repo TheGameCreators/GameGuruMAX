@@ -3,7 +3,7 @@
 -- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
--- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Scenery)]
+-- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Random Flying, 5=Scenery)]
 -- DESCRIPTION: [TARGET_MOVE_X=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Y=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Z=0(0,1000)]
@@ -55,6 +55,11 @@ local state				= {}
 local currentvalue		= {}
 local reset				= {}
 local starthealth		= {}
+local surfaceheight		= {}
+local rotation_movement	= {}
+local vertical_movement	= {}
+local flyonce			= {}
+local flymode			= {}
 
 	
 function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected)
@@ -92,6 +97,8 @@ function target_init(e)
 	movedir[e] = 1
 	movestate[e] = 0	
 	doonce[e] = 0
+	flyonce[e] = 0
+	flymode[e] = math.huge
 	state[e] = 0
 	currentvalue[e] = 0
 	starthealth[e] = 0
@@ -112,12 +119,17 @@ function target_main(e)
 		targetxang[e] = Ax
 		targetyang[e] = Ay
 		targetzang[e] = Az
-		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
+		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end		
 		starthealth[e] = g_Entity[e]['health']
+		if target[e].target_type == 5 then
+			if SetCharacterMode(e,0) == 1 then end
+			GravityOff(e)
+			CollisionOff(e)
+		end
 		status[e] = "endinit"
 	end
 	
-	if target[e].target_type == 1 or target[e].target_type == 4 then
+	if target[e].target_type == 1 or target[e].target_type == 5 then
 		target[e].target_move_x = 0
 		target[e].target_move_y = 0
 		target[e].target_move_z = 0
@@ -170,6 +182,38 @@ function target_main(e)
 		RotateY(e,GetAnimationSpeed(e)*(target[e].target_move_speed*200))
 	end
 
+	if target[e].target_type == 4 and g_Entity[e]['health'] > 100 then
+		if flyonce[e] == 0 then
+			SetAnimationName(e,"fly")
+			LoopAnimation(e)
+			ModulateSpeed(e,1.5)
+			rotation_movement[e] = math.random(-160,200)
+			vertical_movement[e] = math.random(-30,30)
+			flymode[e] = g_Time + 2000
+			flyonce[e] = 1
+		end
+		if g_Time >= flymode[e] then
+			rotation_movement[e] = math.random(-160,200)
+			vertical_movement[e] = math.random(-30,30)
+			flymode[e] = g_Time + 2000
+		end	
+		CollisionOff(e)
+		MoveForward(e,50)
+		MoveUp(e,vertical_movement[e])
+		if g_Entity[e]['y'] < (targetypos[e] + 100) and g_Entity[e]['y'] > (targetypos[e] + 10) then	
+			MoveUp(e,vertical_movement[e])
+		elseif g_Entity[e]['y'] >= (targetypos[e] + 100) then
+			MoveUp(e,-vertical_movement[e])
+		elseif g_Entity[e]['y'] <= (targetypos[e] + 10) then
+			MoveUp(e,20)
+		end
+		RotateY(e,rotation_movement[e])
+		if g_Entity[e]['x'] > targetxpos[e] + 500 or g_Entity[e]['z'] > targetzpos[e] + 500 then
+			RotateY(e,150)
+		end
+		CollisionOn(e)
+	end	
+
 	if g_Entity[e]['health'] < 100 and state[e] == 0 then
 		if doonce[e] == 0 then
 			StopSound(e,2)
@@ -193,6 +237,11 @@ function target_main(e)
 			end
 			if target[e].target_type == 3 then
 				StopSound(e,2)
+				Hide(e)
+			end
+			if target[e].target_type == 4 then
+				StopSound(e,2)
+				StopAnimation(e)
 				Hide(e)
 			end
 			---------------------------------
@@ -223,7 +272,7 @@ function target_main(e)
 	if g_Time > reset[e] and state[e] == 1 then
 		SetEntityHealth(e,starthealth[e])
 		ResetRotation(e,targetxang[e],targetyang[e],targetzang[e])
-		if target[e].target_type == 2 or target[e].target_type == 3 then
+		if target[e].target_type == 2 or target[e].target_type == 3 or target[e].target_type == 4 then
 			ResetPosition(e,targetxpos[e],targetypos[e],targetzpos[e])
 			Show(e)
 		end			
@@ -236,6 +285,7 @@ function target_main(e)
 		state[e] = 0
 		movestate[e] = 0
 		doonce[e] = 0
+		flyonce[e] = 0
 	end
 end
  

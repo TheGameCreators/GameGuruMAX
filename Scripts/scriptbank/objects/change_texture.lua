@@ -1,4 +1,4 @@
--- Change Texture v5
+-- Change Texture v6
 -- DESCRIPTION: Changes the object texture when activated by another object.
 -- DESCRIPTION: Default texture is [IMAGEFILE1$=""] and the alternative texture is [IMAGEFILE2$=""]. 
 -- DESCRIPTION: Control texture UV scale using [#TEXTURE_SCALE_U=1.0] and [#TEXTURE_SCALE_V=1.0].
@@ -48,6 +48,10 @@ function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,textu
 		SetEntityTexture(e,change_texture[e].imagefile1id) 
 		SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)
 	end
+	if string.len(imagefile2)>0 then 
+		SetEntityTexture(e,change_texture[e].imagefile2id) 
+		SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)
+	end
 	SetEntityTextureScale(e,texture_scale_u,texture_scale_v)
 	SetEntityTextureOffset(e,texture_offset_u,texture_offset_v)
 end
@@ -67,7 +71,7 @@ function change_texture_init_name(e,name)
 	change_texture[e].atlas_texture_columns = 0
 	change_texture[e].imagefile1id = 0
 	change_texture[e].imagefile2id = 0
-	change_texture[e].imagemode = 1
+	change_texture[e].imagemode = 2
 	change_texture[e].textimer = GetTimer(e)
 	change_texture[e].texframe = 0
 	change_texture[e].material1_emissive_strength = 300
@@ -78,8 +82,6 @@ end
 function change_texture_main(e)
 	change_texture[e] = g_Entity[e]
 	if status[e] == "init" then
-		change_texture[e].material1_emissive_strength = material1_emissive_strength
-		change_texture[e].material2_emissive_strength = material2_emissive_strength
 		status[e] = "endinit"
 	end
  

@@ -16,5 +16,7 @@ copy "D:\Steam\steamapps\workshop\content\1247290\2980633676\objects\*.*" "C:\DE
 copy "D:\Steam\steamapps\workshop\content\1247290\2980633676\people\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\people\"
 copy "D:\Steam\steamapps\workshop\content\1247290\2980633676\puzzle\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\puzzle\"
 copy "D:\Steam\steamapps\workshop\content\1247290\2980633676\rpg\*.*" "C:\DEV\GAMEGURUMAXREPO\Scripts\scriptbank\rpg\"
+echo Behaviors Guide
+copy "D:\Steam\steamapps\workshop\content\1247290\2988575408\*.*" "C:\DEV\GAMEGURUMAXREPO\Guides\Behaviors\"
 
 cmd.exe

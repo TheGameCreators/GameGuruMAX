@@ -5,7 +5,8 @@ How To Run The Wizbang Workshop Updates Checker
 . Click the 'Update Workshop Items' button to instruct the software to refresh to the latest workshop items
 . The above step actually involves the software unsubscribing and then auto-resubscribing, tricking Steam to get the latest
 . You may need to exit MAX and relaunch in order for the latest workshop items to appear in the list
-. Note that only the 'Extra Behaviors' workshop item is attended to for now
+. Note that only the 'Extra Behaviors' workshop item is attended to for now, maybe found at: "D:\Steam\steamapps\workshop\content\1247290\2980633676"
+. And '\Max\Guides\Behaviors', maybe found at: "D:\Steam\steamapps\workshop\content\1247290\2988575408"
 . Before starting the process of getting the latest updates, run GitHub Desktop so you can see the differences between the current and the new changes
 . Once the workshop items change to the latest update dates in the list, run "1-CopyScriptsFromLiveWORKSHOP.bat", maybe found "C:\DEV\GAMEGURUMAXREPO"
 . Now change in GitHub Desktop for all changes, additions and deletions to ensure they are all reasonable

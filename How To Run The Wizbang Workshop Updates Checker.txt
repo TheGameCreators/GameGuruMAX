@@ -10,11 +10,38 @@ How To Run The Wizbang Workshop Updates Checker
 . Once the workshop items change to the latest update dates in the list, run "1-CopyScriptsFromLiveWORKSHOP.bat", maybe found "C:\DEV\GAMEGURUMAXREPO"
 . Now change in GitHub Desktop for all changes, additions and deletions to ensure they are all reasonable
 . For changed files, look for the Vx number at the top changing from a low number to a higher one, this is correct
-. Ignore any changes that show a Vx number at the top changing from a high number to a lower number, this means we have improved this script locally
+. Discard any changes that show a Vx number at the top changing from a high number to a lower number, this means we have improved this script locally
+. When discarding, and the script is an improvement to share with the workshop item author, follow the instructions in "3-CopyLatestTestScriptsForSHARING.bat"
+. In following the above instructions, you will be pasting in relative paths to the script in question to the "2-CopyLatestTestScriptsForSHARING.txt" text file for later
 . Notice any files that have been included accidentally, and mark them to be ignored, maybe: "Scripts\scriptbank\objects\npc_flashlight.lua.bak"
 . Finally, and most importantly for now, check changes to ensure parameters are ONLY added to the END of the _properties( function in the script!
-. As an example of the above, it is WRONG to go from "gravity_zone_properties(e, gravity_level, fall_rate, zoneheight, SpawnAtStart)" to "gravity_zone_properties(e, gravity_level, fall_rate, auto_lift, zoneheight, trigger_type, trigger_height, SpawnAtStart)", and should be ignored!
-. Another example to ignore is "npc_event_properties(e, event_duration, idle_animation, event_animation, end_trigger, fade_speed)" to "npc_event_properties(e, event_trigger, range, event_duration, idle_animation, event_animation, end_trigger, fade_speed, instant_ragdoll)"
-. Another example to ignore is "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, vendored_entity_no, user_global_affected)" to "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty)"
-. Another example to ignore is "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, entity_name, entity_no, diagnostics, clone_health, respawn_cycle, respawn_events, respawn_interval)" to "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, clone_health, respawn_cycle, respawn_events, respawn_interval, entity_name)"
-. 
+. As an example of the above, it is WRONG to go from "gravity_zone_properties(e, gravity_level, fall_rate, zoneheight, SpawnAtStart)" to "gravity_zone_properties(e, gravity_level, fall_rate, auto_lift, zoneheight, trigger_type, trigger_height, SpawnAtStart)", and should be discarded!
+. Another example to discard is "npc_event_properties(e, event_duration, idle_animation, event_animation, end_trigger, fade_speed)" to "npc_event_properties(e, event_trigger, range, event_duration, idle_animation, event_animation, end_trigger, fade_speed, instant_ragdoll)"
+. Another example to discard is "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, vendored_entity_no, user_global_affected)" to "vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty)"
+. Another example to discard is "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, entity_name, entity_no, diagnostics, clone_health, respawn_cycle, respawn_events, respawn_interval)" to "clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, clone_health, respawn_cycle, respawn_events, respawn_interval, entity_name)"
+. Once all these changes and ignored files have been made, the changes can be committed to change the contents of the "C:\DEV\GAMEGURUMAXREPO\Scripts" folder
+. You can now use GitHub Desktop and click the PUSH ORIGIN button to upload the commit to the cloud under the latest build branch
+. If you copied any relative paths to scripts that are newer on the local side, you can complete the instructions given in "3-CopyLatestTestScriptsForSHARING.bat"
+. The above will help you to prepare a ZIP file that contains your newer local versions of scripts to send to the workshop item owner
+. Beofre you copy these new scripts to the upload area, you can test them by copying them from "C:\DEV\GAMEGURUMAXREPO\Scripts" to "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files" and use your build area to test a few of them
+. Once you are happy with the tests, run "4-CopyGoodScriptsToBuildArea.bat" to copy the scripts to the upload area, maybe at: "D:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder\content_max\Max\Files"
+. Verify the scripts actually copied by opening one of the destination script files, maybe "D:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder\content_max\Max\Files\scriptbank\effects\lightcontrol.lua"
+. Open the LUA script file and check the Vx number, and compare agains the history tab of the latest commit in GitHub Desktop, they should match to the change made
+. Open the "changelog.txt" file, maybe located at "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max"
+. Add a line to the change log to describe the kind of updates that have been made to the scripts, perhaps how many. The format is "[change descripton][.][ ]" where the dot character ends the sentence followed by a SPACE character
+. Ensure the line added is always placed in between the first line and the last line
+. Copy the "changelog.txt" file to the upload area, maybe to: "D:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder\content_max\Max"
+. If the day of this change differs from the date shown in the "changelog.txt" file, also update the "version.ini" file to reflect todays date in the format used in the file
+. If the "version.ini" has thus been changed, also copy that to the upload area, maybe at: "D:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder\content_max\Max"
+. Once all the above steps have been completed successfully, we can upload these files from the upload area to Steam
+. Ensure Steam client is not running, and then run the batch file "UPDATE JUST MAX.bat", maybe located at: "D:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder"
+. They Steam console may request a Steam Guard code, if so, request it from "leebambertgc@gmail.com" and then use the code to continue the upload process
+. Delete the Steam Guard Code email from "leebambertgc@gmail.com" when it has been used 
+. When the upload is complete and the user has the command prompt again, type 'Exit' and hit ENTER to leave the command line window
+. Now go to the Steamworks > SteamPipe tab for GameGuru MAX, maybe at: "https://partner.steamgames.com/apps/builds/1247290"
+. Scroll down to see the 'GameGuru MAX Only' build line that has just been uploaded
+. Click the 'Select an app branch' drop down on the right of this line and select 'experimental', then click the respective 'Preview Change' button to its right
+. Scroll down and select the 'Set Build Live Now' and then click OK to confirm this action 
+. Your latest script file changes are now part of the latest EXP build on Steam
+
+FIN 

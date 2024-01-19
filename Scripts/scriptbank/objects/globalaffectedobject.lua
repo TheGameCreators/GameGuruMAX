@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Affected Object v4 by Necrym59
+-- Global Affected Object v5 by Necrym59
 -- DESCRIPTION: The player user_globals can be affected by distance from this object
 -- DESCRIPTION: Attach to an object. Set AlwaysActive=ON
 -- DESCRIPTION: [IN_RANGE_TEXT$="In range of Affecting Object"]
@@ -25,7 +25,7 @@ local rangedeffect			= {}
 local currentvalue			= {}
 local status				= {}
 
-function GlobalAffectedObject_properties(e, in_range_text, effect_range, effect, effect_multiplier, seconds, user_global_affected, health_affected, SpawnAtStart)
+function globalaffectedobject_properties(e, in_range_text, effect_range, effect, effect_multiplier, seconds, user_global_affected, health_affected, SpawnAtStart)
 	gaobject[e] = g_Entity[e]
 	gaobject[e].in_range_text = in_range_text
 	gaobject[e].effect_range = effect_range
@@ -37,7 +37,7 @@ function GlobalAffectedObject_properties(e, in_range_text, effect_range, effect,
 	gaobject[e].SpawnAtStart = 1
 end
  
-function GlobalAffectedObject_init(e)
+function globalaffectedobject_init(e)
 	gaobject[e] = {}
 	gaobject[e].in_range_text = "In range of Affecting Object"
 	gaobject[e].effect_range = 500
@@ -53,7 +53,7 @@ function GlobalAffectedObject_init(e)
 	StartTimer(e)
 end
 
-function GlobalAffectedObject_main(e)	
+function globalaffectedobject_main(e)	
 	gaobject[e] = g_Entity[e]
 	
 	if status[e] == "init" then
@@ -106,7 +106,3 @@ function GlobalAffectedObject_main(e)
 		end
 	end
 end
- 
-function GlobalAffectedZone_exit(e)	
-end
-

@@ -1,0 +1,53 @@
+;Saved by Model Importer
+;header
+desc             = Rings
+
+;orientation
+model            = rings.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 0
+
+;visualinfo
+textured         = rings_color.dds
+baseColorMap     = rings_color.dds
+alpharef         = 1.00
+emissiveMap      = rings_emissive.dds
+emissiveStrength = 0.00
+transparency     = 1
+doublesided      = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1      = rings_color.dds
+textureref2      = rings_emissive.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 129.818619
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 51.156807
+thumbnailrotatey = 356.937683

@@ -1,76 +1,103 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Binoculars v11 by Necrym59
+-- Binoculars v12 by Necrym59
 -- DESCRIPTION: The Binocular object will give the player Binoculars? Always active ON.
 -- DESCRIPTION: Set the [PICKUP_TEXT$="E to Pickup"] and [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: Set the [USEAGE_TEXT$="Hold B to use"]
 -- DESCRIPTION: Set the [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=20(1,30)], [ZOOM_SPEED=1(1,5)]
 -- DESCRIPTION: Set the binocular [IMAGEFILE$="imagebank\\misc\\testimages\\binocs.png"]
 
+local U = require "scriptbank\\utillib"
 
-g_binoculars = {}
-local binoculars = {}
-local pickup_text = {}
-local pickup_range = {}
-local useage_text = {}
-local start_wheel = {}
-local mod = {}
-local zoom_speed = {}
-local min_zoom = {}
-local max_zoom = {}
-local screen_image = {}
-local last_gun = {}
-local gunstatus = {}
-local status = {}
+local binoculars 	= {}
+local pickup_text 	= {}
+local pickup_range 	= {}
+local useage_text 	= {}
+local min_zoom		= {}
+local max_zoom		= {}
+local zoom_speed 	= {}
+local screen_image	= {}
+
+local binocularssp 	= {}
+local start_wheel 	= {}
+local mod 			= {}
+local last_gun		= {}
+local gunstatus		= {}
+local tEnt			= {}
+local selectobj		= {}
+local status		= {}
 	
 function binoculars_properties(e, pickup_text, pickup_range, useage_text, min_zoom, max_zoom, zoom_speed, screen_image)
-	g_binoculars[e] = g_Entity[e]
-	g_binoculars[e]['pickup_text'] = pickup_text
-	g_binoculars[e]['pickup_range'] = pickup_range
-	g_binoculars[e]['useage_text'] = useage_text
-	g_binoculars[e]['min_zoom'] = min_zoom	
-	g_binoculars[e]['max_zoom'] = max_zoom
-	g_binoculars[e]['zoom_speed'] = zoom_speed
-	g_binoculars[e]['screen_image'] = imagefile or screen_image
+	binoculars[e] = g_Entity[e]
+	binoculars[e].pickup_text = pickup_text
+	binoculars[e].pickup_range = pickup_range
+	binoculars[e].useage_text = useage_text
+	binoculars[e].min_zoom = min_zoom	
+	binoculars[e].max_zoom = max_zoom
+	binoculars[e].zoom_speed = zoom_speed
+	binoculars[e].screen_image = imagefile or screen_image
 end 
 	
 	
 function binoculars_init(e)
-	g_binoculars[e] = g_Entity[e]
+	binoculars[e] = {}
+	binoculars[e].pickup_text = "E to Pickup"
+	binoculars[e].pickup_range = 80
+	binoculars[e].useage_text = "Hold B to use"
+	binoculars[e].min_zoom = -20
+	binoculars[e].max_zoom = 60
+	binoculars[e].zoom_speed = 1
+	binoculars[e].screen_image ="imagebank\\misc\\testimages\\binocs.png"
+	
 	have_binoculars = 0
-	g_binoculars[e]['pickup_text'] = "E to Pickup"
-	g_binoculars[e]['pickup_range'] = 80
-	g_binoculars[e]['useage_text'] = "Hold B to use"
-	g_binoculars[e]['min_zoom'] = -20
-	g_binoculars[e]['max_zoom'] = 60
-	g_binoculars[e]['zoom_speed'] = 1
-	g_binoculars[e]['screen_image'] ="imagebank\\misc\\testimages\\binocs.png"
 	start_wheel = 0 
 	mod = g_PlayerFOV
 	fov = g_PlayerFOV
 	last_gun = g_PlayerGunName
 	gunstatus = 0
+	tEnt[e] = 0
+	selectobj[e] = 0
 	status[e] = "init"
 end
  
 function binoculars_main(e)
-	g_binoculars[e] = g_Entity[e]
-	local PlayerDist = GetPlayerDistance(e)
+
 	if status[e] == "init" then
-		binoculars = CreateSprite(LoadImage(g_binoculars[e]['screen_image']))
-		SetSpriteSize(binoculars,100,100)
-		SetSpritePosition(binoculars,200,200)
+		binocularssp = CreateSprite(LoadImage(binoculars[e].screen_image))
+		SetSpriteSize(binocularssp,100,100)
+		SetSpritePosition(binocularssp,200,200)
 		fov = g_PlayerFOV
 		status[e] = "endinit"
 	end
+	local PlayerDist = GetPlayerDistance(e)
 	if fov == nil then fov = g_PlayerFOV end 	
 	
 	if have_binoculars == 0 then
-		local LookingAt = GetPlrLookingAtEx(e,1)
-		if LookingAt == 1 and PlayerDist < g_binoculars[e]['pickup_range'] and have_binoculars == 0 then
-			PromptLocalForVR(e,g_binoculars[e]['pickup_text'])
+		if PlayerDist < binoculars[e].pickup_range then
+			-- pinpoint select object--
+			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
+			local rayX, rayY, rayZ = 0,0,binoculars[e].pickup_range
+			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
+			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
+			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
+			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
+				if g_Entity[e].obj == selectobj[e] then
+					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)					
+					tEnt[e] = e
+				else 
+					tEnt[e] = 0				
+				end
+			end
+			if selectobj[e] == 0 or selectobj[e] == nil then
+				tEnt[e] = 0
+				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
+			end
+			--end pinpoint select object--
+		end
+		if PlayerDist < binoculars[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+			PromptLocal(e,binoculars[e].pickup_text)
 			if g_KeyPressE == 1 then
 				have_binoculars = 1					
-				PromptDuration(g_binoculars[e]['useage_text'],2000)
+				PromptDuration(binoculars[e].useage_text,2000)
 				PlaySound(e,0)
 				Hide(e)
 				CollisionOff(e)
@@ -87,16 +114,16 @@ function binoculars_main(e)
 				SetPlayerWeapons(0)
 				gunstatus = 1
 			end							
-			PasteSpritePosition(binoculars,0,0)
+			PasteSpritePosition(binocularssp,0,0)
 			if g_MouseWheel < 0 then 
-				mod = mod - g_binoculars[e]['zoom_speed']		
+				mod = mod - binoculars[e].zoom_speed		
 			elseif g_MouseWheel > 0 then 
-				mod = mod + g_binoculars[e]['zoom_speed']	
+				mod = mod + binoculars[e].zoom_speed	
 			end	
-			if mod < g_binoculars[e]['min_zoom'] then 
-				mod = g_binoculars[e]['min_zoom']
-			elseif mod > g_binoculars[e]['max_zoom'] then 
-				mod = g_binoculars[e]['max_zoom']
+			if mod < binoculars[e].min_zoom then 
+				mod = binoculars[e].min_zoom
+			elseif mod > binoculars[e].max_zoom then 
+				mod = binoculars[e].max_zoom
 			end
 			SetPlayerFOV(fov-mod)
 			Prompt("Magnification Factor: " ..math.ceil(mod))

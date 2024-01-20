@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v10 by Necrym59
+-- vendoror v11 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [VENDORED_ENTITY_LIFESPAN=1(0,100)] Minutes (0=Eternal)
 -- DESCRIPTION: [VENDORED_ENTITY_NAME$=""]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
+-- DESCRIPTION: [@WHEN_EMPTY=1(1=Do Nothing, 2=Destroy Vendor)]
 -- DESCRIPTION: <Sound0> Vending sound
 -- DESCRIPTION: <Sound1> Empty sounds
 
@@ -26,6 +27,8 @@ local vendored_entity_lifespan	= {}
 local vendored_entity_name		= {}
 local vendored_entity_no		= {}
 local user_global_affected 		= {}
+local when_empty				= {}
+
 
 local origin_x		= {}
 local origin_y		= {}
@@ -34,6 +37,7 @@ local newEntn		= {}
 local cntEntn		= {}
 local status		= {}
 local doonce		= {}
+local isempty		= {}
 local playonce		= {}
 local pressed		= {}
 local vendlist		= {}
@@ -43,7 +47,7 @@ local eternal		= {}
 local currentvalue	= {}
 local wait			= {}
 
-function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, vendored_entity_no, user_global_affected)
+function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty)
 	vendor[e] = g_Entity[e]
 	vendor[e].prompt_text = prompt_text or ""
 	vendor[e].prompt_range = prompt_range
@@ -53,8 +57,9 @@ function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_ani
 	vendor[e].vendored_entity_cost = vendored_entity_cost	
 	vendor[e].vendored_entity_lifespan = vendored_entity_lifespan
 	vendor[e].vendored_entity_name = lower(vendored_entity_name)
-	vendor[e].vendored_entity_no = 0
 	vendor[e].user_global_affected = "MyMoney"
+	vendor[e].when_empty = when_empty
+	vendor[e].vendored_entity_no = 0	
 end
 
 function vendor_init(e)
@@ -67,8 +72,9 @@ function vendor_init(e)
 	vendor[e].vendored_entity_cost = 0	
 	vendor[e].vendored_entity_lifespan = 1	
 	vendor[e].vendored_entity_name = ""
-	vendor[e].vendored_entity_no = 0
-	vendor[e].user_global_affected = "MyMoney"	
+	vendor[e].user_global_affected = "MyMoney"
+	vendor[e].when_empty = 1
+	vendor[e].vendored_entity_no = 0	
 
 	status[e] = "init"
 	newEntn[e] = 0
@@ -79,13 +85,14 @@ function vendor_init(e)
 	playonce[e] = 0	
 	pressed[e] = 0
 	dispensed[e] = 0
+	isempty[e] = 0
 	currentvalue[e] = 0
 	wait[e] = math.huge
 end
 
 function vendor_main(e)
 	vendor[e] = g_Entity[e]
-	if status[e] == "init" then
+	if status[e] == "init" then		
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
 		end				
@@ -173,9 +180,25 @@ function vendor_main(e)
 	end
 	
 	if status[e] == "vended" then		
+		if dispensed[e] == vendor[e].vendored_max_quantity then
+			if vendor[e].when_empty == 1 then
+				if isempty[e] == 0 then
+					ActivateIfUsed(e)
+					PerformLogicConnections(e)
+					isempty[e] = 1
+				end	
+			end
+			if vendor[e].when_empty == 2 then 
+				ActivateIfUsed(e)
+				PerformLogicConnections(e)
+				Hide(e)
+				CollisionOff(e)
+				Destroy(e)
+			end	
+		end		
 		pressed[e] = 0
-		doonce[e] = 0		
-		status[e] = "vendor"				
+		doonce[e] = 0
+		status[e] = "vendor"
 	end
 	
 	if dispensed[e] == vendor[e].vendored_max_quantity and eternal[e] == 0 then

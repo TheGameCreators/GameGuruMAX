@@ -1,0 +1,36 @@
+;header
+desc          = Banana Gun
+
+;Identity Details
+isweapon      = max\Banana Gun
+quantity      = 8
+isimmobile    = 1
+
+;ai
+aimain	      = weapon.lua
+
+;visualinfo
+textured      = gamecore\guns\max\Banana Gun\weapon_color.dds
+effect        = effectbank\reloaded\apbr_basic.fx
+castshadow    = 1
+invertnormal  = 1
+preservetangents = 1
+
+;orientation
+model         = gamecore\guns\max\Banana Gun\weapon.dbo
+rotz          = 90
+scale         = 100
+defaultstatic = 0
+materialindex = 0
+collisionmode = 0
+
+;Sound
+soundset      = audiobank\misc\weapon.wav
+
+;thumbnail
+thumbnailbackdrop = Grey studio.dds
+thumbnailzoom = 12.620182
+thumbnailcamleft = 0.239636
+thumbnailcamup = 0.208160
+thumbnailrotatex = 8.320456
+thumbnailrotatey = 297.691742

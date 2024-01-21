@@ -1,0 +1,196 @@
+;// MAX BANANA GUN
+
+;// Stock Weapon Object 
+pathtostockentity	=
+
+;// VR Support
+vrweaponmode		= 1
+vrweaponlimbofweapon	= 39
+vrweaponstaticframe	= 97
+vrweaponoffsetx		= -10
+vrweaponoffsety		= 12
+vrweaponoffsetz		= -3
+
+;// Ammunition
+
+poolammo		= enhanced\44MAG
+reloadqty		= 8	;max number of cartridges in magazine
+chamberedround		= 1	;max number of chambered cartridges
+noautoreload		= 0	;disables automated reloading when out of in-gun ammo
+nofullreload		= 0	;disables the ability to reload when weapon is fully topped up with ammo
+forcezoomout		= 1	;allows weapon to be reloaded while aiming without releasing aim button
+addtospare		= 1	;collected ammo is added to pooled ammo instead of being added directly to weapon's magazine
+npcignorereload		= 0	;npc spawns with empty weapon
+
+;// Range and damage
+
+damage			= 200	;base damage per hitscan projectile
+range			= 1000	;maximum range in inches
+force           	= 20	;amount of force applied to dynamic objects upon bullet impact
+noscorch		= 0	;disables use of bullet hole decals (currently n/a)
+melee damage		= 0	;melee damage value
+melee range		= 0	;melee attack range in inches
+melee force		= 0	;amount of force applied to dynamic objects upon melee impact
+melee noscorch 		= 1	;disables use of bullet hole decals for melee attack (currently n/a)
+
+;// Accuracy
+
+simplezoom		= 1	;value of 1 or higher enables aiming and sets magnification strength while aiming
+accuracy		= 200	;bullet spread
+runacc			= 600	;bullet spread while sprinting
+simplezoomacc		= 100	;intensity of breath distruption while aiming
+zoomaccuracy		= 30	;bullet spread while aiming
+zoomaccuracybreathhold	= 1	;enables or disables ability to steady aiming using [zoomholdbreath] key defined in setup.ini
+zoomaccuracybreath	= 5000	;maximum duration in ms that aim can be steadied before needing to take breath and try again
+zoomaccuracyheld	= 1	;intensity of breath disruption while aim is steadied
+
+;// Reliability
+
+overheatafter		= 999 	;weapon is hot after x number of cyclic shots. increase value for higher reliability.
+cooldown		= 0	;time after shot for overheatafter reset. decrease value for higher reliability.
+jamchance		= 0	;percentage chance for stoppage while hot. decrease value for higher reliability.
+
+;// HUD handling characteristics - Activate plrspeedmods in setup.ini
+
+disablemovespeedmod	= 0	;disables use of player move and turn speed multipliers 
+plrmovespeedmod		= 1.1	;move speed multiplier
+plrturnspeedmod		= 1.0	;turn speed multiplier 
+plrjumpspeedmod		= 1.5	;jump inertia multiplier
+recoily			= 50	;recoil vertical disturbance
+recoilyreturn		= 99	;recoil vertical return percentage
+recoilx			= 20	;recoil horizontal disturbance
+recoilxreturn		= 99	;recoil horizontal return percentage
+gunlagspeed		= 60	;hud model drift inertia
+gunlagxmax		= 10	;hud model max vertical drift
+gunlagymax		= 16	;hud model max horizontal drift
+simplezoomspeed		= 10	;speed of runy offset or non-ainmated zoomto/from transition
+disablerunandshoot	= 0	;disables ability to fire weapon while sprinting
+meleewithrightclick     = 1	;enables ability to trigger melee with right click
+
+;// Visuals
+
+textured		= 
+effect			= effectbank\reloaded\weapon_bone.fx
+weapontype		= 1
+animsetoverride    	= -pistol
+statuspanelcode		= 100
+vweaptex		= weapon
+decal          		= muzzleflash99
+decalforward  		= 100
+boostintensity		= 1	;boost illumination effect
+invertnormal		= 1	;flag for -Y axis normal maps
+preservetangents	= 1	;disable normal tangent shifting
+
+;//Model positions
+
+horiz			= -3	;player weapon model horizontal position offset
+vert			= 0	;player weapon model vertical position offset
+forward			= 3	;player weapon model depth position offset
+runy			= 0	;player weapon model vertical offset while sprinting
+simplezoommod		= 2	;player weapon model fov adjustment while aiming to avoid near clip
+simplezoomx		= 3	;player weapon model horizontal position offset while aiming - zeroed @ 85 weapon fov
+simplezoomy		= 0.16	;player weapon model vertical position offset while aiming - zeroed @ 85 weapon fov
+
+;//Model adjustments for MAX Characters
+
+handusesnewweaponsystem	= 1
+handscale           	= 85
+handposx		= 0.5	;weapon model position offset X (into the scene)
+handposy		= -1.5	;weapon model position offset Y (up and down)
+handposz		= -7.5	;weapon model position offset Z (left and right)
+handrotx		= -100.25 ;weapon model rotation offset X (turn left and right)
+handroty		= -12	;weapon model rotation offset Y (roll)
+handrotz		= -6	;weapon model rotation offset Z (pitch up and down)
+firespotposx            = -0.5
+firespotposy            = 4.5
+firespotposz            = 14
+
+;//Weapon model adjustments for MAX Weapon System
+
+weaponposx		= 0.5	;weapon model position offset X (into the scene)
+weaponposy		= 2.0	;weapon model position offset Y (up and down)
+weaponposz		= -7.5	;weapon model position offset Z (left and right)
+weaponrotx		= -100.25 ;weapon model rotation offset X (turn left and right)
+weaponroty		= -12	;weapon model rotation offset Y (roll)
+weaponrotz		= -6	;weapon model rotation offset Z (pitch up and down)
+
+;// Muzzleflash
+
+usespotlighting		= 1	;enables dynamic muzzleflash light effect when firing
+muzzlecolorR		= 255   ;muzzleflash light red value
+muzzlecolorG		= 255   ;muzzleflash light green value
+muzzlecolorB		= 0     ;muzzleflash light blue value
+muzzleflash		= 99	;ID of muzzleflash decal when firing
+simplezoomflash		= 1	;enables muzzleflash when firing while aimed
+muzzlesize		= 150	;scale of muzzleflash decal
+smokedecal		= sparks
+alignx			= 2	;muzzleflash decal horizontal screenspace offset from center
+aligny			= 0	;muzzleflash decal vertical screenspace offset from center
+alignz			= 20	;muzzleflash decal distance from camera in inches
+zoomalignx		= -2	;muzzleflash decal horizontal screenspace offset from center when aiming
+zoomaligny		= 0	;muzzleflash decal vertical screenspace offset from center when aiming
+zoomalignz		= 20	;muzzleflash decal distance from camera in inches when aiming
+
+;// Brass System
+
+brass			= 99	;brass model ID for dynamic ejecting cartridge cases
+brasslife       	= 2000	;brass model instance lifespan before despawning
+brassangle      	= 90	;base relative bearing for brass ejection
+brassanglerand  	= 5	;brassangle randomized deviation maximum
+brassspeed      	= 25	;brass ejection impulse
+brassspeedrand  	= 0.1	;brassspeed randomized deviation maximum
+brassupward     	= 45	;brass ejection vertical impulse
+brassupwardrand 	= 0.1	;brassupward randomized deviation maximum
+brassrotx       	= 1000	;brass model x axis spin rate
+brassrotxrand   	= 0.5	;brassrotx randomized deviation maximum
+brassroty       	= 500	;brass model y axis spin rate
+brassrotyrand   	= 0.5	;brassroty randomized deviation maximum
+brassrotz       	= -200	;brass model z axis spin rate
+brassrotzrand   	= 0.5	;brassrotz randomized deviation maximum
+
+;// HUD ANIMATION
+
+keyframe ratio		= 1	;animation multiplier for weapons exported at other than 30 fps
+keyframe speed        	= 100
+simplezoomanim		= 1	;activates use of defined aiming mode animations
+useempty		= 1	;activates use of defined empty weapon animations
+disablemovespeedmod	= 0
+alt disablemovespeedmod	= 0
+run delay		= 1000
+
+select			= select
+idle			= idle
+move			= move
+run			= move
+fire			= fire
+putaway			= put_away
+reload			= reload
+zoomto			= zoom_to
+zoom idle		= zoom_idle
+zoom move		= zoom_move
+zoom start fire		= zoom_fire
+zoom end fire		= 1
+zoomfrom		= zoom_from
+
+;//HUD Sounds
+
+sound1			= fire.wav
+sound2			= reload.ogg
+sound3			= take_out.ogg
+sound4			= put_away.ogg
+fireloop		= 0
+soundstrength		= 50
+
+;//HUD Sound frames list
+
+soundframes		= 5
+sframeanim0		= fire
+sframe0			= 0,1
+sframeanim1		= reload
+sframe1			= 10,2
+sframeanim2		= select
+sframe2			= 0,3
+sframeanim3		= put_away
+sframe3			= 0,4
+sframeanim4		= zoom_fire
+sframe4			= 0,1

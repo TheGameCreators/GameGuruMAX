@@ -1,0 +1,12 @@
+base_arms
+fp_pistol\select
+fp_pistol\idle
+fp_pistol\move
+fp_pistol\fire
+fp_pistol\reload
+fp_pistol\zoom_to
+fp_pistol\zoom_idle
+fp_pistol\zoom_move
+fp_pistol\zoom_fire
+fp_pistol\zoom_from
+fp_pistol\put_away

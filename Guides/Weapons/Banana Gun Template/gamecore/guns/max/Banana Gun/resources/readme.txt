@@ -1,0 +1,1 @@
+Resource folder used to store necessary source files to create a HUD.DBO model to represent the player holding this weapon

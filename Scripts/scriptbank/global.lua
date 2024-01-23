@@ -1512,7 +1512,7 @@ GetEntityWithinCone : e = GetEntityWithinCone(index) -- returns the entity index
 SetEntityString : SetEntityString ( e, slot, string, loadSound ) -- where e is the entity number and slot (0-4) to write the string into
                                                                  -- set loadSound to 1 to also relplace the sound sample in the specified
 																 -- slot with the one pointed to by 'string'
-GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-4) is the sound slot index
+GetEntityString : GetEntityString ( e, slot ) -- where e is the entity number and slot (0-6) is the sound slot index (soundslot 4 is not used)
 
 GetEntitySpawnAtStart : state = GetEntitySpawnAtStart ( e ) -- returns the state of the spawn (0-dont spawn at start, 1-spawn at start, 2-spawned during game)
 GetEntityFilePath : string = GetEntityFilePath ( e ) -- returns the entity file path to be used for helping inventory image systems

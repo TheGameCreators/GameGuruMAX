@@ -11212,7 +11212,7 @@ int int_core_sendmessages(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_jumptolevel: lua_jumptolevel(); break;
 		case enum_promptlocal: lua_promptlocal(); break;
 		case enum_playcharactersound: character_sound_play(); break;
-		case enum_promptduration: lua_promptduration(); break;
+		case enum_promptduration: t.v = t.e; lua_promptduration(); break;
 		case enum_changeplayerweapon: entity_lua_changeplayerweapon(); break;
 		case enum_levelfilenametoload: lua_levelfilenametoload(); break;
 		case enum_switchscript: entity_lua_switchscript(); break;
@@ -11223,7 +11223,7 @@ int int_core_sendmessages(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_switchpage: lua_switchpage(); break;
 		case enum_setanimationname: entity_lua_setanimationname(); break;
 		case enum_promptlocalforvr: lua_promptlocalforvr(); break;
-		case enum_loadimages: lua_loadimages(); break;
+		case enum_loadimages: t.v = t.e; lua_loadimages(); break;
 		case enum_setcharactersound: character_sound_load(); break;
 	}
 	t.e = storee;

@@ -172,31 +172,31 @@ GameGuru Launcher MAX/GameGuru Launcher MAX/x64/Release/GameGuru Launcher.res
 Simple Sound Recorder/.vs/voicerecorder/v17/.suo
 Simple Sound Recorder/Win32/Release/SoundRec.res
 Simple Sound Recorder/Win32/Release/SoundRec.vcxproj.FileListAbsolute.txt
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Animation/x64/Release/RCa21952
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Basic2D/x64/Release/RCa18420
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bitmap/x64/Release/RCa31244
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bullet/x64/Release/RCa29580
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Camera/x64/Release/RCa19392
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Core/x64/Release/RCa31020
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/File/x64/Release/RCa21384
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/FTP/x64/Release/RCa30004
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Image/x64/Release/RCa30768
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Input/x64/Release/RCa31000
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Light/x64/Release/RCa15884
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Memblocks/x64/Release/RCa31108
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Objects/x64/Release/RCa28464
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Setup/x64/Release/RCa04976
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sound/x64/Release/RCa30348
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sprites/x64/Release/RCa04024
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/System/x64/Release/RCa31032
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Text/x64/Release/RCa29532
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Vectors/x64/Release/RCa31372
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/CPU3D/x64/Release/RCa31212
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkAI/x64/Release/RCa22096
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkLUA/x64/Release/RCa18512
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/Enhancements/x64/Release/RCa02380
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/PhotonMultiplayer/x64/Release/RCa06700
-GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/RCa29024
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Animation/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Basic2D/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bitmap/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Bullet/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Camera/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Core/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/File/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/FTP/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Image/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Input/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Light/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Memblocks/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Objects/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Setup/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sound/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Sprites/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/System/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Text/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDK/Vectors/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/CPU3D/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkAI/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/DarkLUA/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/Enhancements/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/PhotonMultiplayer/x64/Release/
+GameGuru Core/Dark Basic Public Shared/Dark Basic Pro SDK/DarkSDKMore/SimonReloaded/x64/Release/
 GameGuru Core/SDK/OGG/.vs/ogg_vorbis_static/v17/.suo
 GameGuru Core/SDK/OGG/lib64/Debug/ogg_static.idb
 GameGuru Core/SDK/OGG/lib64/Debug/vorbis_static.idb
@@ -216,3 +216,4 @@ SharingScripts/
 4-CopyGoodScriptsToBuildArea.bat
 How To Run The Wizbang Workshop Updates Checker.txt
 How To Run The Wizbang Workshop Updates Checker.txt
+GameGuru Core/SDK/OGG/libvorbis/win32/VS2022/libvorbisfile/libvorbisfile_static.vcxproj.user

@@ -2124,6 +2124,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("scriptbank\\ai");
 	addfoldertocollection("scriptbank\\images");
 	addfoldertocollection("audiobank\\materials");
+	addfoldertocollection("audiobank\\user");
 
 	addtocollection("scriptbank\\perlin_noise.lua");
 	addtocollection("scriptbank\\hud0.lua");

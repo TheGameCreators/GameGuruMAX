@@ -26021,22 +26021,19 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		float fTmp = edit_grideleprof->light.range*100;
 		ImGui::PopItemWidth();
 
-		#ifdef WICKEDENGINE
-
 		if (edit_grideleprof->usespotlighting != 0)
 		{
 			ImGui::TextCenter("Spotlight Radius");
 			ImGui::PushItemWidth(-10);
-			if (ImGui::MaxSliderInputInt("##SpotlightRangeSimpleInput", &edit_grideleprof->light.offsetup, 3, 160, "Sets the spotlight radius"))
+			if (ImGui::MaxSliderInputInt("##SpotlightRangeSimpleInput", &edit_grideleprof->light.offsetup, 3, 170, "Sets the spotlight radius"))
 			{
 				if (edit_grideleprof->light.offsetup < 3) edit_grideleprof->light.offsetup = 3;
-				if (edit_grideleprof->light.offsetup > 180) edit_grideleprof->light.offsetup = 180;
+				if (edit_grideleprof->light.offsetup > 170) edit_grideleprof->light.offsetup = 170;
 				current_light_selected = -1;
 				bLightChanged = true;
 			}
 			ImGui::PopItemWidth();
 		}
-		#endif
 
 		ImGui::TextCenter("Light Color");
 		float colors[5];

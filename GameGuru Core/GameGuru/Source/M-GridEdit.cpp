@@ -22096,26 +22096,43 @@ void input_calculatelocalcursor ( void )
 			iReusePickEntityID = 0;
 			// found object under hovering cursor, match to entity index
 			sObject* pHitObject = m_ObjectManager.FindObjectFromWickedObjectEntityID(hitentity);
-			if (pref.iEnableDragDropStopSelectFromInside == 1)
-			{
-				// control whether can select an object from the inside
-				if (pHitObject && CameraInsideObject(pHitObject) == true) pHitObject = NULL;
-			}
+			int iHitObjectEntityElementE = -1;
 			if (pHitObject)
 			{
-				pReusePickObject = pHitObject;
 				for (int e = 1; e <= g.entityelementlist; e++)
 				{
 					if (t.entityelement[e].obj == pHitObject->dwObjectNumber)
 					{
-						iLastHitObjectID = pHitObject->dwObjectNumber;
-						iReusePickObjectID = iLastHitObjectID;
-						iReusePickEntityID = e;
-						fReusePickHitX = t.tx_f;
-						fReusePickHitY = fPickedYAxis;
-						fReusePickHitZ = t.tz_f;
+						iHitObjectEntityElementE = e;
 						break;
 					}
+				}
+			}
+			if (pref.iEnableDragDropStopSelectFromInside == 1)
+			{
+				// control whether can select an object from the inside
+				if (iHitObjectEntityElementE != -1)
+				{
+					int entid = t.entityelement[iHitObjectEntityElementE].bankindex;
+					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
+					{
+						// but only if regular object (like a building, etc, not a particle marker or light)
+						if (pHitObject && CameraInsideObject(pHitObject) == true) pHitObject = NULL;
+					}
+				}
+			}
+			if (pHitObject)
+			{
+				pReusePickObject = pHitObject;
+				int e = iHitObjectEntityElementE;
+				if (e > 0)
+				{
+					iLastHitObjectID = pHitObject->dwObjectNumber;
+					iReusePickObjectID = iLastHitObjectID;
+					iReusePickEntityID = e;
+					fReusePickHitX = t.tx_f;
+					fReusePickHitY = fPickedYAxis;
+					fReusePickHitZ = t.tz_f;
 				}
 			}
 		}
@@ -26217,7 +26234,6 @@ void editor_checkIfInSubApp ( void )
 
 int findentitycursorobj ( int currentlyover )
 {
-	#ifdef WICKEDENGINE
 	if (pref.iDragCameraMovement && t.ebe.on == 0 && bDragCameraActive)
 		return 0;
 
@@ -26243,250 +26259,44 @@ int findentitycursorobj ( int currentlyover )
 
 		// found object under hovering cursor, match to entity index
 		sObject* pHitObject = m_ObjectManager.FindObjectFromWickedObjectEntityID(hitentity);
-		if (pHitObject && CameraInsideObject(pHitObject) == true) pHitObject = NULL;
+		int iHitObjectEntityElementE = -1;
 		if (pHitObject)
 		{
 			for (int e = 1; e <= g.entityelementlist; e++)
 			{
 				if (t.entityelement[e].obj == pHitObject->dwObjectNumber)
 				{
-					iLastHitObjectID = pHitObject->dwObjectNumber;
-					g.glastpickedx_f = fHitX;
-					g.glastpickedy_f = fHitY;
-					g.glastpickedz_f = fHitZ;
-					result = e;
+					iHitObjectEntityElementE = e;
 					break;
 				}
 			}
 		}
-	}
-	#else
-	// Don't update this every frame as it is extremely intensive. 60->4 fps drop
-	// If the user is scrolling, return out also
-	if ( currentlyover != -1 )
-	{
-		//Exit out if within the time limit / scroll keys are pressed etc
-		if ( Timer() - t.lastfindentitycursorobjTime < 250 || ( t.inputsys.keyup || t.inputsys.keyleft || t.inputsys.keydown || t.inputsys.keyright ) )
+		if (pref.iEnableDragDropStopSelectFromInside == 1)
 		{
-			if ( t.lastfindentitycursorobj > 0 )
+			// control whether can select an object from the inside
+			if (iHitObjectEntityElementE != -1)
 			{
-				if ( t.entityelement[t.lastfindentitycursorobj].obj > 0 )
+				int entid = t.entityelement[iHitObjectEntityElementE].bankindex;
+				if (entid > 0 && t.entityprofile[entid].ismarker == 0)
 				{
-					if ( ObjectExist ( t.entityelement[t.lastfindentitycursorobj].obj ) == 0 )
-						t.lastfindentitycursorobj = 0;
-				}
-			}
-
-			return t.lastfindentitycursorobj;
-		}
-
-		t.lastfindentitycursorobjTime = Timer();
-	}
-
-	float tadjustedtoareax_f = 0;
-	float tadjustedtoareay_f = 0;
-	float tbestdist_f = 0;
-	int efinish = 0;
-	float tdist_f = 0;
-	float tdstx_f = 0;
-	float tdsty_f = 0;
-	float tdstz_f = 0;
-	int tlayers = 0;
-	float tsize_f = 0;
-	int estart = 0;
-	int result = 0;
-	int tokay = 0;
-	int e;
-	int o;
-	int c;
-	result=0 ; tbestdist_f=99999.0;
-
-	//PE: This could use some love (really slow), not even sure the tlayers system is actually working as it should.
-	if (  currentlyover <= 0 ) { estart = 1  ; efinish = g.entityelementlist; }
-	if (  currentlyover >= 1 ) { estart = currentlyover  ; efinish = currentlyover; }
-	for ( tlayers = 0 ; tlayers<=  2; tlayers++ )
-	{
-		for ( e = estart ; e <= efinish; e++ )
-		{
-			// 301115 - skip if in marker mode and not a marker
-			int tentid = t.entityelement[e].bankindex;
-			if ( t.gridentitymarkersmodeonly == 1 && t.entityprofile[tentid].ismarker==0 )
-				continue;
-
-			// when ignore non seletables on (due to alpha slice), only do this for 'addhandle' entities
-			// 190520 - special case, when TAB doing alpha slice, set this flag 
-			// (so that any objects with a 'handle' only detect that handle and not the huge
-			// invisible quad that stops selection of other entities)
-			int iIgnoreSomeNonSelectables = 0;
-			if (t.gridnearcameraclip > 0)
-				if (t.entityprofile[tentid].addhandlelimb != 0)
-					iIgnoreSomeNonSelectables = 1;
-
-			// is entity valid
-			o=t.entityelement[e].obj;
-			if (  o>0 ) 
-			{
-				if (  ObjectExist(o) == 1 ) 
-				{
-					if (  GetVisible(o) == 1 ) 
-					{
-						tokay=1;
-						if ( 1 ) 
-						{
-							if (  g.gridlayershowsingle == 1 && tlayers == 0 ) 
-							{
-								//  do not select if TAB slice mode active and entity too big (buildings, walls, etc)
-								if (  ObjectSizeX(o)>95 && ObjectSizeY(o)>95 && ObjectSizeZ(o)>95 ) 
-								{
-									tokay=0;
-								}
-							}
-							if (  tlayers == 0 ) 
-							{
-								// 041115 - a sphere check falsely ignores things like doors which you are
-								// outside of when the doors are closed (animated, etc)
-								sObject* pObject = GetObjectData ( o );
-								if ( CameraPositionX(0) > pObject->collision.vecMin.x && CameraPositionX(0) < pObject->collision.vecMax.x )
-								{
-									if ( CameraPositionY(0) > pObject->collision.vecMin.y && CameraPositionY(0) < pObject->collision.vecMax.y )
-									{
-										if ( CameraPositionZ(0) > pObject->collision.vecMin.z && CameraPositionZ(0) < pObject->collision.vecMax.z )
-										{
-											tokay=0;
-										}
-									}
-								}
-							}
-							if ( t.inputsys.keyspace == 0 && g.entityrubberbandlist.size() == 0 )  // 010416 - t.inputsys.keyshift == 0 && g.entityrubberbandlist.size() == 0 ) 
-							{
-								//  SPACE key can bypass the lock system
-								if ( t.entityelement[e].editorlock == 1 ) 
-								{
-									#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
-									//PE: imgui Need testing.
-									tadjustedtoareax_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
-									tadjustedtoareay_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-									#else
-									//  work out visible part of full backbuffer (i.e. 1212 of 1360)
-									tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-									tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-									//  scale full mouse to fit in visible area
-									tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/tadjustedtoareax_f;
-									tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/tadjustedtoareay_f;
-									#endif
-									//  then provide in a format for the pick-from-screen command
-									#ifdef DX11
-									tadjustedtoareax_f=tadjustedtoareax_f*(GetDisplayWidth()+0.0);
-									tadjustedtoareay_f=tadjustedtoareay_f*(GetDisplayHeight()+0.0);
-									#else
-									tadjustedtoareax_f=tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
-									tadjustedtoareay_f=tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
-									#endif
-									c=PickScreenObjectEx(tadjustedtoareax_f,tadjustedtoareay_f,o,o,0,iIgnoreSomeNonSelectables);
-									if (  c != 0  )  g.gentityundercursorlocked = e;
-									tokay=0;
-								}
-							}
-						}
-						if (  tokay == 1 ) 
-						{
-							#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
-							//PE: imgui Need testing.
-							tadjustedtoareax_f = ((float)t.inputsys.xmouse / (float)GetDisplayWidth()) / ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1));
-							tadjustedtoareay_f = ((float)t.inputsys.ymouse / (float)GetDisplayHeight()) / ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1));
-							#else
-							//  work out visible part of full backbuffer (i.e. 1212 of 1360)
-							tadjustedtoareax_f=(GetDisplayWidth()+0.0)/(GetChildWindowWidth()+0.0);
-							tadjustedtoareay_f=(GetDisplayHeight()+0.0)/(GetChildWindowHeight()+0.0);
-							//  scale full mouse to fit in visible area
-							tadjustedtoareax_f=((t.inputsys.xmouse+0.0)/800.0)/tadjustedtoareax_f;
-							tadjustedtoareay_f=((t.inputsys.ymouse+0.0)/600.0)/tadjustedtoareay_f;
-							#endif
-
-							//  then provide in a format for the pick-from-screen command
-							#ifdef DX11
-							tadjustedtoareax_f=tadjustedtoareax_f*(GetDisplayWidth()+0.0);
-							tadjustedtoareay_f=tadjustedtoareay_f*(GetDisplayHeight()+0.0);
-							#else
-							tadjustedtoareax_f=tadjustedtoareax_f*(GetChildWindowWidth()+0.0);
-							tadjustedtoareay_f=tadjustedtoareay_f*(GetChildWindowHeight()+0.0);
-							#endif
-							#ifdef VRTECH
-							c=PickScreenObjectEx(tadjustedtoareax_f,tadjustedtoareay_f,o,o,0,iIgnoreSomeNonSelectables);
-							#else
-							if(t.gridnearcameraclip == -1)
-								c=PickScreenObject(tadjustedtoareax_f,tadjustedtoareay_f,o,o);
-							else
-								c=PickScreenObjectFromHeight(tadjustedtoareax_f, tadjustedtoareay_f, o, o, t.gridnearcameraclip-2.0f);
-							#endif
-							if (  c != 0 ) 
-							{
-								tdstx_f = GetPickVectorX();
-								tdsty_f = GetPickVectorY();
-								tdstz_f = GetPickVectorZ();
-								tdist_f = Sqrt(abs(tdstx_f*tdstx_f)+abs(tdsty_f*tdsty_f)+abs(tdstz_f*tdstz_f));
-								bool bIsMarker = false;
-								if ( t.entityprofile[t.entityelement[e].bankindex].ismarker != 0 ) { tdist_f = 0; bIsMarker = true; }
-								if ( tdist_f<tbestdist_f ) 
-								{
-									// 201015 - also ensure the point is BELOW any clipping
-									float fTryLastPickedY = CameraPositionY() + GetPickVectorY();
-									if (t.gridnearcameraclip > 0) {
-										fTryLastPickedY = GetFromVectorY() + GetPickVectorY();
-									}
-
-									if ( bIsMarker==true || t.gridnearcameraclip == -1 || fTryLastPickedY < t.gridnearcameraclip + 20.0f )
-									{
-										if (t.gridnearcameraclip > 0) {
-											g.glastpickedx_f = GetFromVectorX() + GetPickVectorX();
-											g.glastpickedy_f = fTryLastPickedY;
-											g.glastpickedz_f = GetFromVectorZ() + GetPickVectorZ();
-										}
-										else {
-											g.glastpickedx_f = CameraPositionX() + GetPickVectorX();
-											g.glastpickedy_f = fTryLastPickedY;
-											g.glastpickedz_f = CameraPositionZ() + GetPickVectorZ();
-										}
-										tbestdist_f = tdist_f; result = e;
-									}
-								}
-							}
-						}
-					}
+					// but only if regular object (like a building, etc, not a particle marker or light)
+					if (pHitObject && CameraInsideObject(pHitObject) == true) pHitObject = NULL;
 				}
 			}
 		}
-		if (  t.playercontrol.thirdperson.enabled == 1 ) 
+		if (pHitObject)
 		{
-			//  if third person char, redirect to start marker
-			if (  result>0 ) 
+			int e = iHitObjectEntityElementE;
+			if(e > 0)
 			{
-				if (  result == t.playercontrol.thirdperson.charactere ) 
-				{
-					result=t.playercontrol.thirdperson.startmarkere;
-				}
+				iLastHitObjectID = pHitObject->dwObjectNumber;
+				g.glastpickedx_f = fHitX;
+				g.glastpickedy_f = fHitY;
+				g.glastpickedz_f = fHitZ;
+				result = e;
 			}
 		}
-		if (  tlayers == 0 && result>0 ) 
-		{
-			if (  currentlyover == -1  )  g.gentityundercursorlocked = 0;
-			if ( t.entityelement[result].editorlock == 1 )
-			{
-				// remove lock visual effect (zwrite)
-				t.tentid = t.entityelement[result].bankindex;
-				t.tte = result; entity_converttoinstance();
-			}
-			t.entityelement[result].editorlock=0;
-			t.lastfindentitycursorobj = result;
-			return result;
-		}
 	}
-	if (  result>0 && currentlyover == -1 ) 
-	{
-		g.gentityundercursorlocked=0;
-		t.entityelement[result].editorlock=0;
-	}
-	#endif
 	t.lastfindentitycursorobj = result;
 	return result;
 }
@@ -28919,7 +28729,8 @@ void gridedit_mapediting ( void )
 									#endif
 
 									#ifdef WICKEDENGINE
-									if (pref.iEnableDragDropEntityMode && t.e > 0) {
+									if (pref.iEnableDragDropEntityMode && t.e > 0) 
+									{
 										//PE: After placing it, sent it to widget.
 										iWidgetSelection = t.e;
 										//PE: Instant activete it.

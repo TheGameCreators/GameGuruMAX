@@ -4262,14 +4262,14 @@ void physics_player_thirdpersonreset ( void )
 	}
 }
 
-void physics_player_addweapon ( void )
+bool physics_player_addweapon ( void )
 {
 	extern int g_iSuggestedSlot;
 	//  takes weaponindex
 	t.tweaponisnew=0;
 	//  check all weapon slots
 	t.gotweapon=0;
-	for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+	for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 	{
 		if (  t.weaponslot[t.ws].got == t.weaponindex  )  t.gotweapon = t.ws;
 	}
@@ -4278,7 +4278,7 @@ void physics_player_addweapon ( void )
 		// check if we have a slot preference
 		t.tweaponisnew=1;
 		t.gotweaponpref=0;
-		for ( t.ws = 1 ; t.ws <= 10; t.ws++ )
+		for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 		{
 			if (  t.weaponslot[t.ws].pref == t.weaponindex )  
 				t.gotweaponpref = t.ws;
@@ -4291,48 +4291,72 @@ void physics_player_addweapon ( void )
 			{
 				if (t.weaponslot[g_iSuggestedSlot].got == 0)
 				{
-					t.gotweaponpref = g_iSuggestedSlot;
+					// check if suggested slot is available (not blocked)
+					bool bThisSlotBlocked = false;
+					int prefGunID = t.weaponslot[g_iSuggestedSlot].pref;
+					if (prefGunID > 0)
+					{
+						if (stricmp(t.gun[prefGunID].name_s.Get(), "Slot Not Used") == NULL)
+						{
+							bThisSlotBlocked = true;
+						}
+					}
+					if (bThisSlotBlocked == false )
+					{
+						// suggested slot is available, use it
+						t.gotweaponpref = g_iSuggestedSlot;
+					}
 				}
 			}
 		}
+
 		// add weapon
 		if (t.gotweaponpref == 0)
 		{
 			// find free slot
-			for ( t.ws = 1 ; t.ws <= 10; t.ws++ )
+			for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 			{
-				if (t.weaponslot[t.ws].pref == 0)
+				if (t.weaponslot[t.ws].got == 0 && t.weaponslot[t.ws].pref == 0)
 					break;
 			}
 
 			// force a slot
-			if (  g.forcedslot != 0 ) { t.ws = g.forcedslot  ; t.gotweaponpref = t.ws ; g.forcedslot = 0; }
-
-			// count weapons for maximum slots. If exceeded, prevent pick up.
-			t.weaps=0;
-			for ( t.count = 1 ; t.count <= 10 ; t.count++ )
-			{
-				if (t.weaponslot[t.count].pref != 0)  ++t.weaps;
+			if ( g.forcedslot != 0 )
+			{ 
+				t.ws = g.forcedslot; 
+				t.gotweaponpref = t.ws; 
+				g.forcedslot = 0; 
 			}
-			if (  t.weaps >= g.maxslots  )  t.ws = 100;
-			if (  t.ws <= 10 ) 
+
+			// LB: superceded with more pref control, just need 't.ws <= 10' to know we have a slot available at this point!
+			// count weapons for maximum slots. If exceeded, prevent pick up.
+			//t.weaps=0;
+			//for ( t.count = 1 ; t.count <= 10 ; t.count++ )
+			//{
+			//	if (t.weaponslot[t.count].pref != 0)  ++t.weaps;
+			//}
+			//if ( t.weaps >= g.maxslots  )  t.ws = 100;
+			if ( t.ws < 10 ) 
 			{
-				//  add weapon into free slot and create pref for it
+				// add weapon into free slot and create pref for it
 				t.weaponslot[t.ws].pref=t.weaponindex;
 				t.weaponhud[t.ws]=t.gun[t.weaponindex].hudimage;
 
-				//  mark weapon with 'possible' entity that held this weapon (for equipment activation)
+				// mark weapon with 'possible' entity that held this weapon (for equipment activation)
 				g.firemodes[t.weaponindex][0].settings.equipmententityelementindex=t.autoentityusedtoholdweapon;
 			}
 			else
 			{
-				//  no room for weapon in available slots
-				t.ws=0;
+				// no room for weapon in available slots
+				t.ws = 0;
+
+				// and can leave right now
+				return false;
 			}
 		}
 		else
 		{
-			t.ws=t.gotweaponpref;
+			t.ws = t.gotweaponpref;
 		}
 
 		// switch to collected weapon
@@ -4531,18 +4555,18 @@ void physics_player_addweapon ( void )
 		}
 	}
 
-return;
-
+	// success
+	return true;
 }
 
 void physics_player_removeweapon ( void )
 {
 	// check all weapon slots
-	for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+	for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 	{
 		if ( t.weaponslot[t.ws].got == t.weaponindex  )  break;
 	}
-	if (  t.ws <= 10 ) 
+	if (  t.ws < 10 ) 
 	{
 		// Ensure gun is removed (if applicable)
 		if ( t.gunid>0 && t.weaponslot[t.ws].got == t.gunid ) 
@@ -4560,7 +4584,7 @@ void physics_player_removeweapon ( void )
 
 void physics_player_resetWeaponSlots( void )
 {
-	for (t.ws = 1; t.ws <= 10; t.ws++)
+	for (t.ws = 1; t.ws < 10; t.ws++)
 	{
 		t.weaponslot[t.ws].got = 0;
 		t.weaponslot[t.ws].invpos = 0;
@@ -4571,7 +4595,7 @@ void physics_player_refreshcount ( void )
 {
 	//  refresh gun count
 	t.guncollectedcount=0;
-	for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+	for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 	{
 		if (  t.weaponslot[t.ws].got>0  )  ++t.guncollectedcount;
 	}

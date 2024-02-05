@@ -2942,9 +2942,11 @@ void entity_lua_addplayerweapon(void)
 	{
 		t.tqty = t.entityelement[t.e].eleprof.quantity;
 		g_iSuggestedSlot = t.v;
-		physics_player_addweapon();
+		if (physics_player_addweapon() == true)
+		{
+			t.entityelement[t.e].eleprof.quantity = 0;// and keep the ammo elsewhere :)
+		}
 		g_iSuggestedSlot = 0;
-		t.entityelement[t.e].eleprof.quantity = 0;// and keep the ammo elsewhere :)
 	}
 }
 
@@ -2976,7 +2978,7 @@ void entity_lua_replaceplayerweapon ( void )
 	if (  t.gunid>0 ) 
 	{
 		//  find swap slot for old weapon (gunid)
-		for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+		for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 		{
 			if (  t.weaponslot[t.ws].pref == t.gunid  )  t.tswapslot = t.ws;
 		}

@@ -119,7 +119,7 @@ void setpropertystring ( int group, char* data_s, char* field_s, char* desc_s );
 void setpropertycolor ( int group, int dataval, char* field_s, char* desc_s );
 void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, char* within_s );
 int fillgloballistwithweapons ( void );
-int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee);
+int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee, bool bIncludeSlotNotUsedChoice);
 int fillgloballistwithCharAnimSetsQuick(int iSpecialValue);
 int fillgloballistwithbehaviours_init (void);
 int fillgloballistwithbehaviours (void);

@@ -530,6 +530,23 @@ function hud0.main()
 											end
 										end															
 										
+										-- cancel if dragging into hotkeys and slot is blocked (Slot Not Used)
+										if panelnameTo == "inventory:hotkeys" then
+											local slotattempt = 1+placedatitemindex
+											local slothaspreferenceforgunid = GetWeaponSlotPref(slotattempt)
+											if slothaspreferenceforgunid > 0 then
+												local tcollectionentity = hud0_playercontainer_e[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
+												if tcollectionentity > 0 then
+													local weaponidofdragged = GetEntityWeaponID(tcollectionentity)
+													if weaponidofdragged > 0 then
+														if slothaspreferenceforgunid ~= weaponidofdragged then
+															cancelmove = 1
+														end
+													end
+												end
+											end
+										end	
+										
 										-- shuffled inside hotkey, handle weapons
 										if cancelmove == 0 and (panelnameFrom == "inventory:hotkeys" or panelnameTo == "inventory:hotkeys") then
 											local panelname = panelnameFrom

@@ -1224,7 +1224,7 @@ void lua_removeplayerweapon ( void )
 	t.ws = t.v;
 
 	// only if valid weapon slot
-	if (t.ws >= 1 && t.ws <= 10)
+	if (t.ws >= 1 && t.ws < 10)
 	{
 		//PE: This could be a armour/spell/other and not a weapon. so check. Problem we cant have t.gunid=0 when we have a weapon.
 		if (t.weaponslot[t.ws].got > 0)
@@ -1250,7 +1250,7 @@ void lua_removeplayerweapons (void)
 	g.autoloadgun = 0;
 
 	//  clear all weapons and ammo (even if not collecte yet, why we are using pref)
-	for (t.ws = 1; t.ws <= 10; t.ws++)
+	for (t.ws = 1; t.ws < 10; t.ws++)
 	{
 		t.weaponslot[t.ws].got = 0;
 		t.weaponammo[t.ws] = 0;

@@ -88,15 +88,28 @@ function weapon_main(e)
 				if Timer() > weapon_temprompttimer + 3000 then weapon_temprompttimer = 0 end
 			else
 				if g_Entity[e]['haskey'] ~= 1 then
-					if g_PlayerGunID > 0 then
+					if g_PlayerGunID > 0 then		
+						local actiontext = "pick up"
+						if GetInventoryExist("inventory:player") == 0 then
+							local possibleslotchoices = -1
+							for a = 1, 9 do 
+								if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then 			
+									possibleslotchoices = a 
+									break
+								end 
+							end 
+							if possibleslotchoices <= 0 then
+								actiontext = "permanently replace with"
+							end
+						end
 						if g_PlayerController==0 then
 							if GetHeadTracker() == 1 then
-								PromptLocal(e,"Right trigger to pick up the " .. weapon_name[e] )
+								PromptLocal(e,"Right trigger to " .. actiontext .. " the " .. weapon_name[e] )
 							else
-								PromptLocal(e,"Press E to pick up the " .. weapon_name[e] )
+								PromptLocal(e,"Press E to " .. actiontext .. " the " .. weapon_name[e] )
 							end
 						else
-							PromptLocal(e,"Press Y Button to pick up the " .. weapon_name[e] )
+							PromptLocal(e,"Press Y Button to " .. actiontext .. " the " .. weapon_name[e] )
 						end
 					else
 						if g_PlayerController==0 then
@@ -116,7 +129,7 @@ function weapon_main(e)
 					local addedasweapon = 0
 					local preferredslot = -1
 					local weaponID = GetEntityWeaponID(e)
-					for slot = 1, 10, 1 do
+					for slot = 1, 9, 1 do
 						local thisWeaponPref = GetWeaponSlotPref(slot)
 						if thisWeaponPref == weaponID then
 							preferredslot = slot-1
@@ -140,9 +153,8 @@ function weapon_main(e)
 					   end
 					else
 						local sslot = -1
-						for a = 1, 10 do 
-							if GetWeaponSlot(a) > 0 then 			
-							else 
+						for a = 1, 9 do 
+							if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then 			
 								sslot = a 
 								break
 							end 
@@ -153,8 +165,15 @@ function weapon_main(e)
 							AddPlayerWeaponSuggestSlot(e,sslot)
 							addedasweapon = 1
 					    else
-							-- else add to general inventory
-							SetEntityCollected(e,1,-1)
+							-- check if have an inventory
+							if GetInventoryExist("inventory:player") == 1 then
+								-- add to general inventory
+								SetEntityCollected(e,1,-1)
+							else
+								-- no inventory and no slots, can only replace current weapon
+								ReplacePlayerWeapon(e)
+								SetEntityCollected(e,1)
+							end
 						end
 					end
 					if collectedweapon == 1 then

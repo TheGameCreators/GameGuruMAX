@@ -2246,7 +2246,6 @@ char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* 
 
 	int current_selection = atoi(ldata_s.Get());
 
-
 	int listmax = 0;
 	listmax = 0;
 	if (listtype == 0)
@@ -2257,10 +2256,11 @@ char * imgui_setpropertylist2c(int group, int controlindex, char* data_s, char* 
 	}
 	if (listtype == 1)
 	{
-		listmax = fillgloballistwithweaponsQuick(false, true, true);
+		listmax = fillgloballistwithweaponsQuick(false, true, true, false);
 		for (int n = 0; n <= listmax; n++)
 		{
-			if (ldata_s == t.list_s[n]) {
+			if (ldata_s == t.list_s[n]) 
+			{
 				current_selection = n;
 				break;
 			}
@@ -2614,7 +2614,7 @@ void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, cha
 }
 #endif
 
-int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee)
+int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee, bool bIncludeSlotNotUsedChoice)
 {
 	int retvalue = 0;
 	int gunid = 0;
@@ -2695,37 +2695,19 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 		}
 		if (bIncludeThisWeapon == true)
 		{
-			/* noone liked this, instead having a selection of a non-level weapon to be dynamically added
-			if (forcharacters == true)
+			if ( stricmp ( t.gun[gunid].name_s.Get(), "Slot Not Used" ) == NULL )
 			{
-				// if character weapon, they may need to drop it, so confirm this weapon is also in collectibles list
-				bIncludeThisWeapon = false;
-				for (int n = 0; n < g_collectionList.size(); n++)
+				if (bIncludeSlotNotUsedChoice == true)
 				{
-					if (g_collectionList[n].collectionFields.size() > 8)
-					{
-						if (g_collectionList[n].iEntityID > 0)
-						{
-							LPSTR pCollectionItemWeapon = g_collectionList[n].collectionFields[8].Get();
-							if (strlen(pCollectionItemWeapon) > 7)
-							{
-								LPSTR pJustWeaponPathAndName = pCollectionItemWeapon + 7; // weapon= skip
-								if (stricmp(pJustWeaponPathAndName, t.gun[gunid].name_s.Get()) == NULL)
-								{
-									bIncludeThisWeapon = true;
-									break;
-								}
-							}
-						}
-					}
+					iListCount++;
+					t.list_s[iListCount] = "00000Slot Not Used";
 				}
 			}
-			*/
-		}
-		if (bIncludeThisWeapon == true)
-		{
-			iListCount++;
-			t.list_s[iListCount] = t.gun[gunid].name_s;
+			else
+			{
+				iListCount++;
+				t.list_s[iListCount] = t.gun[gunid].name_s;
+			}
 		}
 	}
 
@@ -2741,6 +2723,16 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 				t.list_s[iSortA] = t.list_s[iSortB];
 				t.list_s[iSortB] = pStoreA;
 			}
+		}
+	}
+
+	// rename any  "Slot Not Used"
+	for (int iFindA = 0; iFindA <= iListCount; iFindA++)
+	{
+		if(stricmp(t.list_s[iFindA].Get(), "00000Slot Not Used") == NULL)
+		{
+			t.list_s[iFindA] = "Slot Not Used";
+			break;
 		}
 	}
 
@@ -27100,32 +27092,41 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				if (stricmp(slot_s.Get(), lastslot.Get()) != NULL)
 				{
 					// assign a new preference
-					if (stricmp(slot_s.Get(), "") == NULL) //When "No Preference" option is selected slot_s is set to ""
+					if (stricmp(slot_s.Get(), "") == NULL) // when "No Preference" option is selected slot_s is set to ""
 					{
 						t.weaponSlotPreferrenceSettings[key - 1] = 0;
 						t.weaponslot[key].pref = 0;
 					}
 					else
 					{
+						int iFoundGunID = -1;
 						for (int gunid = 1; gunid <= g.gunmax; gunid++)
 						{
 							if (stricmp(slot_s.Get(), t.gun[gunid].name_s.Get()) == NULL)
 							{
+								iFoundGunID = gunid;
+								break;
+							}
+						}
+						if (iFoundGunID != -1)
+						{
+							// if not a slot blocker
+							if (stricmp(t.gun[iFoundGunID].name_s.Get(), "Slot Not Used") != NULL)
+							{
 								// erase old preference if already assigned
 								for (int n = 0; n < 9; n++)
 								{
-									if (n != (key - 1) && t.weaponSlotPreferrenceSettings[n] == gunid)
+									if (n != (key - 1) && t.weaponSlotPreferrenceSettings[n] == iFoundGunID)
 									{
 										t.weaponSlotPreferrenceSettings[n] = 0;
 										t.weaponslot[1 + n].pref = 0;
 									}
 								}
-
-								// add new preference
-								t.weaponSlotPreferrenceSettings[key - 1] = gunid;
-								t.weaponslot[key].pref = gunid;
-								break;
 							}
+
+							// add new preference
+							t.weaponSlotPreferrenceSettings[key - 1] = iFoundGunID;
+							t.weaponslot[key].pref = iFoundGunID;
 						}
 					}
 
@@ -29161,10 +29162,12 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	int current_selection = atoi(ldata_s.Get());
 	int listmax = 0;
 	bool bIgnoreTitleText = false;
+	bool bIncludeSlotNotUsedChoice = false;
 	if (listtype == 61)
 	{
 		listtype = 1;
 		bIgnoreTitleText = true;
+		bIncludeSlotNotUsedChoice = true;
 	}
 	if (listtype == 0)
 	{
@@ -29175,7 +29178,7 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	if (listtype == 1)
 	{
 		// newer system for MAX weapons - easier to read for users
-		listmax = fillgloballistwithweaponsQuick(forcharacters, bForShooting, bForMelee);
+		listmax = fillgloballistwithweaponsQuick(forcharacters, bForShooting, bForMelee, bIncludeSlotNotUsedChoice);
 		for (int n = -1; n <= listmax; n++)
 		{
 			cstr thisLabel;
@@ -29199,7 +29202,7 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 		}
 		for (int n = 0; n <= listmax; n++)
 		{
-			if (ldata_s == t.list_s[n]) 
+			if (stricmp(ldata_s.Get(), t.list_s[n].Get()) == NULL)
 			{
 				current_selection = n;
 				break;

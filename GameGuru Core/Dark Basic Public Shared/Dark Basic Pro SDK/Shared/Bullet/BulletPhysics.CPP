@@ -4626,7 +4626,7 @@ void ODESetWorldGravity ( float fX, float fY, float fZ, float fallspeed)
 		if(fallspeed != 0)
 			m_character->setFallSpeed((fallspeed*fRelative) / gSc);
 		else
-		m_character->setFallSpeed((fCharacterFallSpeed*fRelative)/gSc);
+			m_character->setFallSpeed((fCharacterFallSpeed*fRelative)/gSc);
 	}
 }
 

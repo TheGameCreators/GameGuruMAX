@@ -51,7 +51,7 @@ void physics_player_reset_underwaterstate ( void );
 void physics_player_gotolastcheckpoint ( void );
 void physics_resetplayer_core ( void );
 void physics_player_thirdpersonreset ( void );
-void physics_player_addweapon ( void );
+bool physics_player_addweapon ( void );
 void physics_player_removeweapon ( void );
 void physics_player_resetWeaponSlots( void );
 void physics_player_refreshcount ( void );

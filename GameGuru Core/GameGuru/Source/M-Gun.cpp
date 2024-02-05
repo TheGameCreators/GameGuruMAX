@@ -30,32 +30,6 @@ int constexpr conststrlen( const char* str )
 	if ( strncmp(str, cmpVal, len) != 0 ) matched = false; \
 }
 
-/*
-// max length 32
-#define cmpStrConst( str, cmpVal ) \
-{ \
-	matched = true; \
-	int constexpr len = conststrlen( cmpVal ); \
-	if ( len != matchlen ) matched = false; \
-	else { \
-		alignas(16) constexpr char str2[32] = cmpVal; \
-		if ( _mm_cmpistrc( *(__m128i*)str, *(__m128i*)str2, _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY ) != 0 ) matched = false; \
-		else if ( str[16] != 0 && str2[16] != 0 ) { \
-			if ( _mm_cmpistrc( *(__m128i*)&str[16], *(__m128i*)&str2[16], _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY ) != 0 ) matched = false; \
-		} \
-	} \
-}
-
-// max length 16
-#define cmpNStrConst( str, cmpVal ) \
-{ \
-	matched = true; \
-	int constexpr len = conststrlen( cmpVal ); \
-	alignas(16) constexpr char str2[16] = cmpVal; \
-	if ( _mm_cmpestrc( *(__m128i*)str, len, *(__m128i*)str2, len, _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY ) != 0 ) matched = false; \
-}
-*/
-
 void gun_loaddata ( void )
 {
 	// used for new weapon system
@@ -84,7 +58,6 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].settings.fVRWeaponAngleY = 0;
 	t.gun[t.gunid].settings.fVRWeaponAngleZ = 0;
 	
-
 	// stores legacy ammo/clip values when move slot weapons to player containers for storage
 	t.gun[t.gunid].storeammo = 0;
 	t.gun[t.gunid].storeclipammo = 0;
@@ -143,8 +116,15 @@ void gun_loaddata ( void )
 	if (  FileExist(t.filename_s.Get()) == 0  ) { t.filename_s = "" ; t.filename_s=t.filename_s+ "gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\spec.txt"; }
 	if (  FileExist(t.filename_s.Get()) == 1 ) 
 	{
-		LoadArray (  t.filename_s.Get() ,t.data_s );
+		// if an empty weapon, leave early
+		if ( stricmp (t.gun_s.Get(), "Slot Not Used" ) == NULL )
+		{
+			// mark this as the slot blocker weapon
+			t.gun[t.gunid].pathtostockentity_s = "Slot Not Used";
+			return;
+		}
 
+		LoadArray (  t.filename_s.Get() ,t.data_s );
 		for ( t.l = 0 ; t.l <= 999; t.l++ )
 		{
 			t.line_s=t.data_s[t.l];

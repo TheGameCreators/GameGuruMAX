@@ -7414,10 +7414,16 @@ int GetInventoryName(lua_State* L)
 int GetInventoryExist(lua_State* L)
 {
 	int iExist = 0;
-	char pNameOfInventory[512];
-	strcpy(pNameOfInventory, lua_tostring(L, 1));
-	int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
-	if (bothplayercontainers >= 0) iExist = 1;
+	t.game.activeStoryboardScreen = -1;
+	LPSTR pScreenTitle = "HUD Screen 2"; // traditionally the template RPG INVENTORY SCREEN!
+	int nodeid = FindLuaScreenTitleNode(pScreenTitle);
+	if (nodeid >= 0)
+	{
+		char pNameOfInventory[512];
+		strcpy(pNameOfInventory, lua_tostring(L, 1));
+		int bothplayercontainers = FindInventoryIndex(pNameOfInventory);
+		if (bothplayercontainers >= 0) iExist = 1;
+	}
 	lua_pushnumber(L, iExist);
 	return 1;
 }

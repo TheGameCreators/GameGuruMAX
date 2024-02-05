@@ -746,7 +746,7 @@ void gun_change ( void )
 		g.weaponammoindex=0;
 		if (  t.gunid>0 ) 
 		{
-			for ( t.ws = 1 ; t.ws<=  10; t.ws++ )
+			for ( t.ws = 1 ; t.ws < 10; t.ws++ )
 			{
 				if (  t.weaponslot[t.ws].got == t.gunid ) 
 				{

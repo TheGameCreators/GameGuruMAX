@@ -1,1 +1,1 @@
-Scripts\scriptbank\people\quest_giver.lua
+

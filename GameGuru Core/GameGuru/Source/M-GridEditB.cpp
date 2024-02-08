@@ -7518,6 +7518,15 @@ void tab_tab_visuals(int iPage, int iMode)
 					g_bBehaviorEditorActive = true;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Open the Behavior Editor to debug and edit logic live");
+
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
+				if (ImGui::StyleButton("View Slowest Logic##TabTabEditBehaviors", ImVec2(but_gadget_size, 0)))
+				{
+					extern int g_iViewPerformanceTimers;
+					g_iViewPerformanceTimers = 1;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Run a live snapshot of the ten slowest behaviours currently running");
+
 				ImGui::Indent(-10);
 			}
 		}
@@ -34735,7 +34744,8 @@ void Welcome_Screen(void)
 
 								// show "add new item" button to start creating a new one
 								ImGui::Text("");
-								if (g_iUnsubscribeByForce == 0)
+								extern bool g_bRequireRestartAfterUnsubByForce;
+								if (g_bRequireRestartAfterUnsubByForce==false)
 								{
 									if (ImGui::StyleButton("Update Workshop Items", ImVec2(half_total_width, 0)))
 									{
@@ -34747,13 +34757,21 @@ void Welcome_Screen(void)
 										g_iStillDownloadingThingsWithDelayTimer = Timer();
 										g_bUpdateWorkshopItemList = true;
 										g_iUnsubscribeByForce = 1;
+										g_bRequireRestartAfterUnsubByForce = true;
 									}
 									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to refresh all trusted workshop items (NOTE: Allow the system some time to auto-update after using this button)");
 								}
 								else
 								{
-									ImGui::TextCenter("PERFORMING FULL REFRESH OF TRUSTED WORKSHOP ITEMS");
-									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Sometimes Steam does not instantly update workshop items, this forces the refresh");
+									if (g_iUnsubscribeByForce > 0)
+									{
+										ImGui::TextCenter("PERFORMING FULL REFRESH OF TRUSTED WORKSHOP ITEMS");
+									}
+									else
+									{
+										ImGui::TextCenter("RELAUNCH GAMEGURU MAX TO START WORKSHOP ITEMS REFRESH");
+									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Unsubscribing and resubscribing allows for a complete workshop items refresh");
 								}
 
 								// end of main Workshop tab page

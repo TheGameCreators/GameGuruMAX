@@ -809,14 +809,23 @@ void lua_ensureentityglobalarrayisinitialised ( void )
 	}
 }
 
+#define TABLEOFPERFORMANCEMAX 5000
+int g_iViewPerformanceTimers = 0;
+LONGLONG g_tableofperformancetimers[TABLEOFPERFORMANCEMAX];
+
 void lua_loop_allentities ( void )
 {
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
+
 	// Go through all entities with active LUA scripts
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
+		// reset performance measure
+		if ( t.e < TABLEOFPERFORMANCEMAX) g_tableofperformancetimers[t.e] = 0;
+
+		// this entity
 		int thisentid = t.entityelement[t.e].bankindex;
 		if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
 		{
@@ -849,6 +858,9 @@ void lua_loop_allentities ( void )
 					}
 				}
 			}
+			
+			// start performance measure
+			if (t.e < TABLEOFPERFORMANCEMAX) g_tableofperformancetimers[t.e] = PerformanceTimer();
 
 			// Update entity coordinates with real object coordinates
 			t.tfrm=0 ; t.tobj=t.entityelement[t.e].obj;
@@ -1065,25 +1077,6 @@ void lua_loop_allentities ( void )
 							LuaPushInt (  t.tobj );
 							if ( g.mp.endplay == 0 ) // can now run own script in multiplayer || t.game.runasmultiplayer == 0
 							{
-								/*
-								// if character, update entity coordinates from visible object
-								int tentid = t.entityelement[t.e].bankindex;
-								if ( tentid > 0 )
-								{
-									if ( t.entityprofile[tentid].ischaracter == 1 )
-									{
-										#ifdef WICKEDENGINE
-										// character movemement handled in 'darkai_handlegotomove', do not change entity Y here!
-										#else
-										//PE: HierToo this one is ruin the wizard, give it a try, so another solution is needed :)
-										//PositionObject(t.entityelement[t.e].obj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z);
-										//t.entityelement[t.e].x = ObjectPositionX ( t.entityelement[t.e].obj );
-										t.entityelement[t.e].y = ObjectPositionY (t.entityelement[t.e].obj);
-										//t.entityelement[t.e].z = ObjectPositionZ ( t.entityelement[t.e].obj );
-										#endif
-									}
-								}
-								*/
 								LuaPushFloat ( t.entityelement[t.e].x );
 								LuaPushFloat ( t.entityelement[t.e].y );
 								LuaPushFloat ( t.entityelement[t.e].z );
@@ -1178,7 +1171,65 @@ void lua_loop_allentities ( void )
 			t.entityelement[t.e].lastx = t.entityelement[t.e].x;
 			t.entityelement[t.e].lasty = t.entityelement[t.e].y;
 			t.entityelement[t.e].lastz = t.entityelement[t.e].z;
+
+			// performance measure of ALL entity logic runs
+			if (t.e < TABLEOFPERFORMANCEMAX) g_tableofperformancetimers[t.e] = PerformanceTimer() - g_tableofperformancetimers[t.e];
 		}
+	}
+
+	// view LUA logic performance per entity
+	if ( g_iViewPerformanceTimers == 1 )
+	{
+		// Find the top ten worst offenders and list them out
+		int iWorstOffenderE[10];
+		LONGLONG iWorstOffender[10];
+		for (int i = 0; i < 10; i++)
+		{
+			iWorstOffenderE[i] = 0;
+			iWorstOffender[i] = 0;
+		}
+		for (int e = 1; e <= g.entityelementlist; e++)
+		{
+			if (e < TABLEOFPERFORMANCEMAX)
+			{
+				if (g_tableofperformancetimers[e] > iWorstOffender[0])
+				{
+					iWorstOffenderE[0] = e;
+					iWorstOffender[0] = g_tableofperformancetimers[e];
+					for (int i = 0; i < 10; i++)
+					{
+						for (int j = 0; j < 10; j++)
+						{
+							if (j > i)
+							{
+								if (iWorstOffender[i] > iWorstOffender[j])
+								{
+									int iStoreE = iWorstOffenderE[i];
+									LONGLONG iStore = iWorstOffender[i];
+									iWorstOffenderE[i] = iWorstOffenderE[j];
+									iWorstOffender[i] = iWorstOffender[j];
+									iWorstOffenderE[j] = iStoreE;
+									iWorstOffender[j] = iStore;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		char pShowList[10240];
+		strcpy(pShowList, "Top Ten Most Expensive Logic This Cycle:\n\n");
+		for (int j = 9; j > 0; j--)
+		{
+			int e = iWorstOffenderE[j];
+			char pMeasure[32];
+			sprintf(pMeasure, "%lldu", 100000+iWorstOffender[j]);
+			char pThisLine[1024];
+			sprintf(pThisLine, "%s : %d = %s\n", pMeasure+1, e, t.entityelement[e].eleprof.aimain_s.Get());
+			strcat(pShowList, pThisLine);
+		}
+		MessageBoxA(NULL, pShowList, "Logic Performance View", MB_OK);
+		g_iViewPerformanceTimers = 0;
 	}
 }
 

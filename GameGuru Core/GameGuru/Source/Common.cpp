@@ -124,7 +124,7 @@ void common_init ( void )
 	_chdir(g_WindowsTempDirectory);
 	_mkdir("dbpdata");
 	// path to location of all files we want to decrypt
-	LPSTR pPathToClassicEncryptedFiles = "C:\\DEV\\DOWNLOADS\\game-to-change";
+	LPSTR pPathToClassicEncryptedFiles = "D:\\DEV\\DOWNLOADS\\game-to-change";
 	// set to work path and add everything from Files to a list
 	SetDir(pPathToClassicEncryptedFiles);
 	addallinfoldertocollection("Files","");

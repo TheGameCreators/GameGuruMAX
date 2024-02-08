@@ -10,9 +10,9 @@ echo 5. Zip up the 'SharingScripts' folder and email to Workshop Contributor who
 echo ---
 
 echo Delete old contents from 'SharingScripts'
-del /s /q "C:\DEV\GAMEGURUMAXREPO\SharingScripts\scriptbank\*.*"
+del /s /q "D:\DEV\GAMEGURUMAXREPO\SharingScripts\scriptbank\*.*"
 
 echo Copy latest scripts to 'SharingScripts'
-FOR /F "tokens=* delims=" %%x in (C:\DEV\GAMEGURUMAXREPO\2-CopyLatestTestScriptsForSHARING.txt) DO copy "C:\DEV\GAMEGURUMAXREPO\%%x" "C:\DEV\GAMEGURUMAXREPO\Sharing%%x"
+FOR /F "tokens=* delims=" %%x in (D:\DEV\GAMEGURUMAXREPO\2-CopyLatestTestScriptsForSHARING.txt) DO copy "D:\DEV\GAMEGURUMAXREPO\%%x" "D:\DEV\GAMEGURUMAXREPO\Sharing%%x"
 
 cmd.exe

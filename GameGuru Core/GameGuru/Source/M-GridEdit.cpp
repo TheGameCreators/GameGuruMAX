@@ -30673,7 +30673,7 @@ void gridedit_load_map ( void )
 
 	// scan all core scripts used by all entities, and if any are missing
 	// look in trusted workshop item community folders for direct replacements
-	bool bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems = true;
+	bool bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems = true;// false;// true;
 	if (bAutoReplaceMissingCoreScriptsWithTrustedWorkshopItems == true)
 	{
 		bool bScriptMissing = false;

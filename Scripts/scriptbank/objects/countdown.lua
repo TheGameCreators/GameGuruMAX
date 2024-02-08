@@ -1,4 +1,4 @@
--- Countdown v8 by Necrym59
+-- Countdown v10 by Necrym59
 -- DESCRIPTION: Countdown timer to count down to an end action.
 -- DESCRIPTION: Attach to an object. Set Always Active ON. Trigger from a zone or switch.
 -- DESCRIPTION: [#MAXIMUM_TIME=1.00(0.25,60.00)]
@@ -7,19 +7,27 @@
 -- DESCRIPTION: [DISPLAY_X=10]
 -- DESCRIPTION: [DISPLAY_Y=10]
 -- DESCRIPTION: [DISPLAY_SIZE=3(1,5)]
--- DESCRIPTION: [@END_ACTION=1(1=Terminate Player, 2= Hurt Player, 3=Activate Entities, 4=Lose Game, 5=Win Game)]
+-- DESCRIPTION: [@END_ACTION=1(1=Terminate Player, 2=Hurt Player, 3=Activate Entities, 4=Lose Game, 5=Win Game, 6=Display Hud Screen)]
 -- DESCRIPTION: [USER_GLOBAL_MODIFIER$="MyGlobalModifier"]
--- DESCRIPTION: <Sound0> for end sound
+-- DESCRIPTION: [@LAUNCH_WARNING=1(1=Off, 2=On)]
+-- DESCRIPTION: [END_SCREEN$="HUD Screen #"]
+-- DESCRIPTION: <Sound0> for commence sound
+-- DESCRIPTION: <Sound1> for end sound
 
-local countdown 	= {}
-local maximum_time 	= {}
-local time_display 	= {}
-local display_text 	= {}
-local display_x 	= {}
-local display_y 	= {}
-local display_size 	= {}
-local end_action 	= {}
+local countdown 			= {}
+local maximum_time 			= {}
+local time_display 			= {}
+local display_text 			= {}
+local display_x 			= {}
+local display_y 			= {}
+local display_size 			= {}
+local end_action 			= {}
 local user_global_modifier	= {}
+local launch_warning		= {}
+local launch_warning_x		= {}
+local launch_warning_y		= {}
+local launch_size			= {}
+
 local secondsleft 	= {}
 local minutesleft 	= {}
 local timeleftsec	= {}
@@ -28,10 +36,12 @@ local maxcount 		= {}
 local played		= {}
 local status		= {}
 local wait			= {}
+local launch_stage	= {}
+local launch_count	= {}
 local currentvalue	= {}
 local doonce		= {}
 
-function countdown_properties(e,maximum_time, time_display, display_text, display_x, display_y, display_size, end_action, user_global_modifier)
+function countdown_properties(e,maximum_time, time_display, display_text, display_x, display_y, display_size, end_action, user_global_modifier, launch_warning, end_screen)
 	countdown[e] = g_Entity[e]
 	countdown[e].maximum_time = maximum_time
 	countdown[e].time_display = time_display
@@ -40,7 +50,9 @@ function countdown_properties(e,maximum_time, time_display, display_text, displa
 	countdown[e].display_y = display_y
 	countdown[e].display_size = display_size
 	countdown[e].end_action = end_action
-	countdown[e].user_global_modifier = user_global_modifier	
+	countdown[e].user_global_modifier = user_global_modifier
+	countdown[e].launch_warning = launch_warning
+	countdown[e].end_screen = end_screen
 end
 
 function countdown_init(e)
@@ -53,6 +65,8 @@ function countdown_init(e)
 	countdown[e].display_size = 3
 	countdown[e].end_action = 1
 	countdown[e].user_global_modifier = ""
+	countdown[e].launch_warning = 1
+	countdown[e].end_screen = ""
 	
 	startcount[e] = 0
 	maxcount[e] = 0
@@ -61,6 +75,8 @@ function countdown_init(e)
 	timeleftsec[e] = 0
 	played[e] = 0
 	doonce[e] = 0
+	launch_stage[e] = 0
+	launch_count[e] = 600	
 	currentvalue[e] = 0	
 	wait[e] = math.huge	
 	status[e] = "init"
@@ -68,13 +84,32 @@ end
  
 function countdown_main(e)
 	if status[e] == "init" then
+		launch_stage[e] = 0
+		if countdown[e].launch_warning == 1 then launch_stage[e] = 1 end
 		startcount[e] = 0
-		maxcount[e] = (countdown[e].maximum_time * 1000) * 60
+		maxcount[e] = (countdown[e].maximum_time * 1000) * 60		
 		status[e] = "endinit"
 	end
+
+	if g_Entity[e]['activated'] == 1 then
 	
-	if g_Entity[e]['activated'] == 1 then	
-		if startcount[e] == 0 then
+		if countdown[e].launch_warning == 2 and launch_stage[e] == 0 then
+			if launch_stage[e] == 0 then 
+				if launch_count[e] > 400  then TextCenterOnX(50,50,5,"READY") end
+				if launch_count[e] > 200 and launch_count[e] <= 400 then TextCenterOnX(50,50,5,"SET") end
+				if launch_count[e] <= 200  then TextCenterOnX(50,50,5,"GO") end
+				if launch_count[e] <= 100 then
+					launch_stage[e] = 1
+					if played[e] == 0 then
+						PlaySound(e,0)
+						played[e] = 1
+					end
+				end
+				launch_count[e] = launch_count[e] - 1
+			end
+		end		
+		if startcount[e] == 0 and launch_stage[e] == 1 then
+			played[e] = 0
 			StartTimer(e)
 			startcount[e] = 1
 		end
@@ -85,7 +120,7 @@ function countdown_main(e)
 					maxcount[e] = (maxcount[e] + currentvalue[e] * 1000)
 					StartTimer(e)
 					startcount[e] = 1
-					_G["g_UserGlobal['"..countdown[e].user_global_modifier.."']"] = 0					
+					_G["g_UserGlobal['"..countdown[e].user_global_modifier.."']"] = 0
 				end	
 			end
 			secondsleft[e] = math.floor((maxcount[e]/1000)-GetTimer(e)/1000)
@@ -107,33 +142,38 @@ function countdown_main(e)
 				end
 			end
 			if countdown[e].time_display == 2 then end
-		end
-		if secondsleft[e] == 0 then
-			if played[e] == 0 then
-				PlaySound(e,0)
-				played[e] = 1
-			end
-			if countdown[e].end_action == 1 then
-				HurtPlayer(e,g_PlayerHealth)
-			end
-			if countdown[e].end_action == 2 then
-				HurtPlayer(e,g_PlayerHealth/3)
-			end
-			if countdown[e].end_action == 3 then
-				if doonce[e] == 0 then
-					ActivateIfUsed(e)
-					PerformLogicConnections(e)
-					doonce[e] = 1
+		
+			if secondsleft[e] == 0 then
+				if played[e] == 0 then
+					PlaySound(e,1)
+					played[e] = 1
+				end
+				if countdown[e].end_action == 1 then
+					HurtPlayer(e,g_PlayerHealth)
+				end
+				if countdown[e].end_action == 2 then
+					HurtPlayer(e,g_PlayerHealth/3)
+				end
+				if countdown[e].end_action == 3 then
+					if doonce[e] == 0 then
+						ActivateIfUsed(e)
+						PerformLogicConnections(e)
+						doonce[e] = 1
+					end
+				end
+				if countdown[e].end_action == 4 then
+					LoseGame()
+				end
+				if countdown[e].end_action == 5 then
+					WinGame()
+				end
+				if countdown[e].end_action == 6 then
+					ScreenToggle(countdown[e].end_screen)
 				end
 			end
-			if countdown[e].end_action == 4 then
-				LoseGame()
-			end
-			if countdown[e].end_action == 5 then
-				WinGame()
-			end
-		end		
+		end
 	end
+
 	if g_Entity[e]['activated'] == 0 then
 		status[e] = "init"
 	end

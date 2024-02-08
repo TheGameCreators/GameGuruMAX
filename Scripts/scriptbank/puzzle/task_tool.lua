@@ -66,8 +66,9 @@ function task_tool_main(e)
 			PromptLocal(e,tasktool[e].tool_name.. " collected")
 			PerformLogicConnections(e)
 			g_tasktool = tasktool[e].tool_type
+			g_tasktoolname = tasktool[e].tool_name
 			collected[e] = 1
-			Destroy(e)			
+			Destroy(e)
 		end
 	end
 	

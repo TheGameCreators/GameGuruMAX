@@ -1,4 +1,4 @@
--- Door Sliding v26 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v27 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -11,7 +11,7 @@
 -- DESCRIPTION: [@DOOR_STYLE=1(1=None, 2=DelayedClose, 3=DelayedClose+Lock)]
 -- DESCRIPTION: [DOOR_RANGE=100(0,500)]
 -- DESCRIPTION: [CLOSE_DELAY#=5.0] seconds
--- DESCRIPTION: [@TRIGGER=3(1=On Open, 2=On Close, 3=None)] to trigger links
+-- DESCRIPTION: [@TRIGGER=4(1=On Open, 2=On Close, 3=On Open+Close, 4=None)] to trigger links
 -- DESCRIPTION: <Sound0> When door opening
 -- DESCRIPTION: <Sound1> When the door is closing
 -- DESCRIPTION: <Sound2> When the door is locking
@@ -36,7 +36,7 @@ local defaultCloseDelay   = 5000
 local defaultLockedText   = "Door is locked. Find a way to open it"
 local defaultIsUnlocked = false
 local defaultUnLockedText = "E to use door"
-local defaultTrigger = 3
+local defaultTrigger = 4
 local played = {}
 
 g_door_sliding = {}
@@ -208,7 +208,7 @@ function door_sliding_main(e)
 				else
 					Prompt(door.lockedtext)
 				end	
-				if door.trigger == 1 then PerformLogicConnections(e) end
+				if door.trigger == 1 or door.trigger == 3 then PerformLogicConnections(e) end
 			end	
 		end	
 		if Ent.activated == 0 then
@@ -223,7 +223,7 @@ function door_sliding_main(e)
 					else
 						Prompt(door.lockedtext)
 					end	
-					if door.trigger == 1 then PerformLogicConnections(e) end
+					if door.trigger == 1 or door.trigger == 3  then PerformLogicConnections(e) end
 				end				
 				if door.door_type == 'Manual' and LookingAt(e) then
 					if door.IsUnlocked == true then
@@ -234,7 +234,7 @@ function door_sliding_main(e)
 							door.nextMode = 'opening'
 							door.time     =  g_Time + door.move_delay
 							PlaySound(e,0)
-							if door.trigger == 1 then PerformLogicConnections(e) end
+							if door.trigger == 1 or door.trigger == 3 then PerformLogicConnections(e) end
 						end
 					end	
 					if door.IsUnlocked == false then
@@ -277,7 +277,7 @@ function door_sliding_main(e)
 					door.closeTime = g_Time + 1
 					PlaySound(e,0 )
 				end	
-				if door.trigger == 2 then PerformLogicConnections(e) end
+				if door.trigger == 2 or door.trigger == 3 then PerformLogicConnections(e) end
 			end	
 		end	   
 		if door.door_type == 'Manual' and LookingAt(e) and U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.door_style == 1 then
@@ -323,6 +323,7 @@ function door_sliding_main(e)
 		if g_Time >= door.closeTime then 
 			if played[e] == 0 then
 				PlaySound(e,1)
+				if door.trigger == 3 then PerformLogicConnections(e) end
 				played[e] = 1
 			end	
 			door.raiseoffset = door.raiseoffset - door.perf * timeSlice * timeDiff			

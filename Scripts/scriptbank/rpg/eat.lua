@@ -1,6 +1,6 @@
 -- Eat v8 by Necrym59
--- DESCRIPTION: The object will give the player a health boost or loss if consumed.
--- DESCRIPTION: and can also effect a user global if required.
+-- DESCRIPTION: The object will give the player a health boost or loss if consumed and can also effect a user global if required.
+-- DESCRIPTION: Set AlwaysActive = On.
 -- DESCRIPTION: [PROMPT_TEXT$="Press E to consume"]
 -- DESCRIPTION: [QUANTITY=10(1,40)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -75,7 +75,7 @@ function eat_main(e)
 	if status[e] == "init" then
 		if eat[e].effect == 1 then addquantity[e] = 1 end
 		if eat[e].effect == 2 then addquantity[e] = 2 end
-		poisoned[e] = eat[e].quantity * 30		
+		poisoned[e] = eat[e].quantity * 30
 		status[e] = "endinit"
 	end
 	

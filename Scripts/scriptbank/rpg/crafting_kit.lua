@@ -67,7 +67,9 @@ function crafting_kit_main(e)
 						played[e] = 1
 					end
 					SetEntityCollected(e,1)
+					CollisionOff(e)
 					SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
+					Hide(e)
 				end
 			end
 		end

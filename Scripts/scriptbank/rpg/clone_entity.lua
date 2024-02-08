@@ -98,7 +98,6 @@ function clone_entity_main(e)
 				if clone_entity[e].clone_health == 2 then SetEntityHealth(etoclone,math.random(clhealth[e]/2,clhealth[e]*2)) end
 				local newEntn = SpawnNewEntity(etoclone)
 				GravityOff(newEntn)
-				--table.insert(clonelist,newEntn)				
 				local newposx = g_Entity[etoclone]['x'] + math.random(-clone_entity[e].clone_range,clone_entity[e].clone_range)
 				local newposz = g_Entity[etoclone]['z'] + math.random(-clone_entity[e].clone_range,clone_entity[e].clone_range)
 				local newposy = GetSurfaceHeight(g_Entity[etoclone]['x'],g_Entity[etoclone]['y'],g_Entity[etoclone]['z'])

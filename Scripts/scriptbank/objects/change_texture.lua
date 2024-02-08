@@ -1,4 +1,4 @@
--- Change Texture v6
+-- Change Texture v7
 -- DESCRIPTION: Changes the object texture when activated by another object.
 -- DESCRIPTION: Default texture is [IMAGEFILE1$=""] and the alternative texture is [IMAGEFILE2$=""]. 
 -- DESCRIPTION: Control texture UV scale using [#TEXTURE_SCALE_U=1.0] and [#TEXTURE_SCALE_V=1.0].
@@ -8,6 +8,7 @@
 -- DESCRIPTION: Control texture atlas animation using [atlas_texture_rows=0] and [atlas_texture_columns=0].
 -- DESCRIPTION: If PBR textures exist alongside the image files, they will be applied to the object as well.
 -- DESCRIPTION: Control material emissive strength using [#MATERIAL1_EMISSIVE_STRENGTH=300.0] and [#MATERIAL2_EMISSIVE_STRENGTH=300.0].
+-- DESCRIPTION: Control emissive variance using [#EMISSIVE_STRENGTH_VARIANCE=0(0,100)]
 
 local change_texture = {}
 local imagefile1					= {}
@@ -25,9 +26,10 @@ local imagefile1id 					= {}
 local imagefile2id 					= {}
 local material1_emissive_strength 	= {}
 local material2_emissive_strength 	= {}
+local emissive_strength_variance 	= {}
 local status						= {}
 
-function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,texture_scale_v,texture_offset_u,texture_offset_v,scroll_direction_u,scroll_direction_v,texture_speed,atlas_texture_rows,atlas_texture_columns, material1_emissive_strength, material2_emissive_strength)
+function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,texture_scale_v,texture_offset_u,texture_offset_v,scroll_direction_u,scroll_direction_v,texture_speed,atlas_texture_rows,atlas_texture_columns, material1_emissive_strength, material2_emissive_strength, emissive_strength_variance)
 	change_texture[e] = g_Entity[e]
 	change_texture[e].imagefile1 = imagefile1
 	change_texture[e].imagefile2 = imagefile2
@@ -44,6 +46,7 @@ function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,textu
 	change_texture[e].imagefile2id = LoadImage(imagefile2)
 	change_texture[e].material1_emissive_strength = material1_emissive_strength
 	change_texture[e].material2_emissive_strength = material2_emissive_strength
+	change_texture[e].emissive_strength_variance = emissive_strength_variance	
 	if string.len(imagefile1)>0 then 
 		SetEntityTexture(e,change_texture[e].imagefile1id) 
 		SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)
@@ -76,6 +79,7 @@ function change_texture_init_name(e,name)
 	change_texture[e].texframe = 0
 	change_texture[e].material1_emissive_strength = 300
 	change_texture[e].material2_emissive_strength = 300
+	change_texture[e].emissive_strength_variance = 50
 	status[e] = "init"
 end
 
@@ -85,11 +89,11 @@ function change_texture_main(e)
 		status[e] = "endinit"
 	end
  
-	if g_Entity[e].activated == 1 then
+	if g_Entity[e].activated == 1 then		
 		if change_texture[e].imagemode == 1 then
 			if string.len(change_texture[e].imagefile2)>0 then 
 				SetEntityTexture(e,change_texture[e].imagefile2id) 
-				SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)
+				SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)								
 			end
 			change_texture[e].imagemode = 2
 		end
@@ -97,8 +101,8 @@ function change_texture_main(e)
 		if change_texture[e].imagemode == 2 then
 			if string.len(change_texture[e].imagefile1)>0 then 
 				SetEntityTexture(e,change_texture[e].imagefile1id) 
-				SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)
-			end
+				SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)								
+			end			
 			change_texture[e].imagemode = 1
 		end
 	end
@@ -126,6 +130,12 @@ function change_texture_main(e)
 				change_texture[e].texture_offset_v = math.fmod(change_texture[e].texture_offset_v + change_texture[e].scroll_direction_v,1)
 			end
 			SetEntityTextureOffset(e,change_texture[e].texture_offset_u,change_texture[e].texture_offset_v)
+		end	
+		-- simple emmission variance
+		if change_texture[e].emissive_strength_variance ~= 0 then
+			SetEntityEmissiveStrength(e, math.random(change_texture[e].material1_emissive_strength - change_texture[e].emissive_strength_variance,change_texture[e].material1_emissive_strength))
+			SetEntityEmissiveStrength(e, math.random(change_texture[e].material2_emissive_strength - change_texture[e].emissive_strength_variance,change_texture[e].material2_emissive_strength))
 		end
 	end
 end
+				

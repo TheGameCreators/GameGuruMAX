@@ -22,7 +22,7 @@ function key_init(e)
 	key[e].pickup_range = 80
 	key[e].pickup_style = 1
 	key[e].collected_text = "Key collected"
-	key[e].associatekeyatstart = 1
+	key[e].associatekeyatstart = 1	
 end
 
 function key_main(e)
@@ -46,7 +46,7 @@ function key_main(e)
 	end
 	if key[e].pickup_style == 2 then	
 		local LookingAt = GetPlrLookingAtEx(e,1)
-		if LookingAt == 1 and PlayerDist < key[e].pickup_range then		
+		if LookingAt == 1 and PlayerDist < key[e].pickup_range and GetEntityVisibility(e) == 1 then		
 			if GetEntityCollected(e) == 0 then
 				if GetGamePlayerStateXBOX() == 1 then
 					PromptLocal(e,"Y button to " ..key[e].pickup_text)
@@ -75,5 +75,5 @@ function key_main(e)
 			Destroy(e)
 		end
 		performthecollection = 0
-	end
+	end	
 end

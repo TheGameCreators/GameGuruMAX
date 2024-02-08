@@ -1,14 +1,14 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Modifier v3: by Necrym59
--- DESCRIPTION: The attached object will pass a temporary global value resource for use with other behaviors, such as countedowns or monitors.
+-- Global Modifier v4: by Necrym59
+-- DESCRIPTION: The attached object when activated will pass a global modifier value for use with other behaviors, such as countdowns or monitors.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Modifier collected"]
 -- DESCRIPTION: [MODIFIER_LEVEL=10(1,30)]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
+-- DESCRIPTION: [@ACTIVATION_STYLE=1(1=Automatic Pickup, 2=Manual Pickup, 3=External Triggered)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobalModifier"]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [HEALTH_MODIFIER=10(1,30)]
+-- DESCRIPTION: [HEALTH_MODIFIER=0(0,100)]
 -- DESCRIPTION: Play the audio <Sound0> when picked up
 
 local U = require "scriptbank\\utillib"
@@ -18,7 +18,7 @@ local prompt_text 			= {}
 local collected_text 		= {}
 local modifier_level 		= {}
 local pickup_range 			= {}
-local pickup_style 			= {}
+local activation_style 		= {}
 local user_global_affected	= {}
 local effect				= {}
 local health_modifier		= {}
@@ -30,13 +30,13 @@ local status			= {}
 local tEnt				= {}
 local selectobj			= {}
 
-function global_modifier_properties(e, prompt_text, collected_text, modifier_level, pickup_range, pickup_style, user_global_affected, effect, health_modifier)
+function global_modifier_properties(e, prompt_text, collected_text, modifier_level, pickup_range, activation_style, user_global_affected, effect, health_modifier)
 	modifier[e] = g_Entity[e]
 	modifier[e].prompt_text = prompt_text
 	modifier[e].collected_text = collected_text
 	modifier[e].modifier_level = modifier_level
 	modifier[e].pickup_range = pickup_range
-	modifier[e].pickup_style = pickup_style
+	modifier[e].activation_style = activation_style
 	modifier[e].user_global_affected = user_global_affected
 	modifier[e].effect = effect
 	modifier[e].health_modifier = health_modifier
@@ -48,7 +48,7 @@ function global_modifier_init(e)
 	modifier[e].collected_text = "Collected modifier"
 	modifier[e].modifier_level = 0
 	modifier[e].pickup_range = 50
-	modifier[e].pickup_style = pickup_style
+	modifier[e].activation_style = activation_style
 	modifier[e].user_global_affected = "MyModifier"
 	modifier[e].effect = 1
 	modifier[e].health_modifier = 0
@@ -69,7 +69,7 @@ function global_modifier_main(e)
 
 	local PlayerDist = GetPlayerDistance(e)
 
-	if modifier[e].pickup_style == 1 and PlayerDist < modifier[e].pickup_range then
+	if modifier[e].activation_style == 1 and PlayerDist < modifier[e].pickup_range then
 		Prompt(modifier[e].collected_text)
 		if played[e] == 0 then
 			PlaySound(e,0)
@@ -93,7 +93,7 @@ function global_modifier_main(e)
 		tEnt[e] = 0
 	end
 
-	if modifier[e].pickup_style == 2 and PlayerDist < modifier[e].pickup_range then
+	if modifier[e].activation_style == 2 and PlayerDist < modifier[e].pickup_range then
 		--pinpoint select object--
 		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
 		local rayX, rayY, rayZ = 0,0,modifier[e].pickup_range
@@ -133,6 +133,32 @@ function global_modifier_main(e)
 			CollisionOff(e)
 			Destroy(e)
 			pressed[e] = 1
+		end
+	end
+	
+	if modifier[e].activation_style == 3 then
+		if g_Entity[e].activated == 1 then
+			Prompt(modifier[e].collected_text)
+			if played[e] == 0 then
+				PlaySound(e,0)
+				played[e] = 1
+			end
+			PerformLogicConnections(e)
+			if modifier[e].user_global_affected > "" and modifier[e].effect == 1 then
+				if _G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] = currentvalue[e] + modifier[e].modifier_level
+				SetPlayerHealth(g_PlayerHealth + modifier[e].health_modifier)
+			end
+			if modifier[e].user_global_affected > "" and modifier[e].effect == 2 then
+				if _G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..modifier[e].user_global_affected.."']"] = currentvalue[e] - modifier[e].modifier_level
+				SetPlayerHealth(g_PlayerHealth - modifier[e].health_modifier)
+			end
+			Hide(e)
+			CollisionOff(e)
+			Destroy(e)
+			pressed[e] = 1
+			tEnt[e] = 0
 		end
 	end
 end

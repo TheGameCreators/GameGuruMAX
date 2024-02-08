@@ -98,7 +98,7 @@ function gravity_zone_main(e)
 			end			
 		end
 		
-		if g_Entity[e].plrinzone == 0 then		
+		if g_Entity[e].plrinzone == 0 then
 			SetWorldGravity(0,-20,0,0) -- Reset to normal gravity
 			StopSound(e,0)
 			played[e] = 0

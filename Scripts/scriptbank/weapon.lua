@@ -1,4 +1,4 @@
--- Weapon v9 - Necrym and Lee
+-- Weapon v10 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]

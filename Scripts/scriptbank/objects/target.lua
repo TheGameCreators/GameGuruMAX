@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Target v11 by Necrym59 and BloodMoon
--- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
+-- Target v12 by Necrym59 and BloodMoon
+-- DESCRIPTION: Allows a target object to be shot and reset1 and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
 -- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Random Flying, 5=Scenery)]
@@ -13,8 +13,9 @@
 -- DESCRIPTION: [TARGET_POINTS=1(1,100)]
 -- DESCRIPTION: [@POINTS_ISSUANCE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyPointTally"]
+-- DESCRIPTION: [TARGET_MOVE_DELAY=0(0,100)] Seconds
 -- DESCRIPTION: <Sound0> - Target Hit
--- DESCRIPTION: <Sound1> - Target Reset
+-- DESCRIPTION: <Sound1> - Target reset1
 -- DESCRIPTION: <Sound2> - Target Moving
 -- DESCRIPTION: <Sound3> - Hit Trigger
 
@@ -33,6 +34,7 @@ local target_trigger			= {}
 local target_points				= {}
 local points_issuance			= {}
 local user_global_affected		= {}
+local target_move_delay			= {}
 
 local targetxpos		= {}
 local targetypos		= {}
@@ -53,7 +55,8 @@ local movedir			= {}
 local status			= {}
 local state				= {}
 local currentvalue		= {}
-local reset				= {}
+local reset1			= {}
+local reset2			= {}
 local starthealth		= {}
 local surfaceheight		= {}
 local rotation_movement	= {}
@@ -62,7 +65,7 @@ local flyonce			= {}
 local flymode			= {}
 
 	
-function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected)
+function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected, target_move_delay)
 	target[e] = g_Entity[e]
 	target[e].hit_text = hit_text
 	target[e].target_type = target_type
@@ -75,6 +78,7 @@ function target_properties(e, hit_text, target_type, target_move_x, target_move_
 	target[e].target_points = target_points
 	target[e].points_issuance = points_issuance
 	target[e].user_global_affected = user_global_affected
+	target[e].target_move_delay = target_move_delay
 end
  
 function target_init(e)
@@ -90,6 +94,7 @@ function target_init(e)
 	target[e].target_points = 1
 	target[e].points_issuance = 1
 	target[e].user_global_affected = "MyPointTally"
+	target[e].target_move_delay = 0
 	
 	played[e] = 0
 	moved[e] = 0
@@ -103,8 +108,10 @@ function target_init(e)
 	currentvalue[e] = 0
 	starthealth[e] = 0
 	triggered[e] = 0	
-	reset[e] = math.huge
+	reset1[e] = math.huge
+	reset2[e] = math.huge
 	_,_,_,sax[e],say[e],saz[e] = GetEntityPosAng(e)
+	reset2[e] = g_Time + (target[e].target_move_delay*1000)
 	if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end
 	status[e] = "init"
 end
@@ -125,7 +132,7 @@ function target_main(e)
 			if SetCharacterMode(e,0) == 1 then end
 			GravityOff(e)
 			CollisionOff(e)
-		end
+		end		
 		status[e] = "endinit"
 	end
 	
@@ -143,8 +150,9 @@ function target_main(e)
 		targetzpos[e] = z + oz * target[e].target_move_speed/100 * movedir[e]
 		targetxang[e] = Ax
 		targetyang[e] = Ay
-		targetzang[e] = Az		
-		if reached[e] == 0 and movestate[e] == 0 then
+		targetzang[e] = Az
+
+		if g_Time > reset2[e] and reached[e] == 0 and movestate[e] == 0 then
 			GravityOff(e)
 			CollisionOff(e)
 			SetPosition(e,targetxpos[e],targetypos[e],targetzpos[e])		
@@ -154,17 +162,21 @@ function target_main(e)
 			if moved[e] == target[e].target_move_x then
 				reached[e] = 1
 				movedir[e] = movedir[e]* -1
+				reset2[e] = g_Time + (target[e].target_move_delay*1000)
 			end
 			if moved[e] == target[e].target_move_y then
 				reached[e] = 1
 				movedir[e] = movedir[e]* -1
+				reset2[e] = g_Time + (target[e].target_move_delay*1000)
 			end
 			if moved[e] == target[e].target_move_z then
 				reached[e] = 1
 				movedir[e] = movedir[e]* -1
+				reset2[e] = g_Time + (target[e].target_move_delay*1000)
 			end
 		end
-		if reached[e] == 1 and movestate[e] == 0 then
+
+		if g_Time > reset2[e] and reached[e] == 1 and movestate[e] == 0 then
 			GravityOff(e)
 			CollisionOff(e)
 			SetPosition(e,targetxpos[e],targetypos[e],targetzpos[e])		
@@ -174,6 +186,7 @@ function target_main(e)
 			if moved[e] == 0 then
 				reached[e] = 0
 				movedir[e] = 1
+				reset2[e] = g_Time + (target[e].target_move_delay*1000)
 			end
 		end		
 	end
@@ -181,7 +194,6 @@ function target_main(e)
 		GravityOff(e)
 		RotateY(e,GetAnimationSpeed(e)*(target[e].target_move_speed*200))
 	end
-
 	if target[e].target_type == 4 and g_Entity[e]['health'] > 100 then
 		if flyonce[e] == 0 then
 			SetAnimationName(e,"fly")
@@ -213,7 +225,7 @@ function target_main(e)
 		end
 		CollisionOn(e)
 	end	
-
+	
 	if g_Entity[e]['health'] < 100 and state[e] == 0 then
 		if doonce[e] == 0 then
 			StopSound(e,2)
@@ -260,7 +272,7 @@ function target_main(e)
 				WinGame()
 			end			
 			if target[e].target_reset > 0 then 
-				reset[e] = g_Time + (target[e].target_reset*1000)
+				reset1[e] = g_Time + (target[e].target_reset*1000)
 				state[e] = 1
 			else
 				state[e] = 0
@@ -269,7 +281,7 @@ function target_main(e)
 		end		
 	end
 	
-	if g_Time > reset[e] and state[e] == 1 then
+	if g_Time > reset1[e] and state[e] == 1 then
 		SetEntityHealth(e,starthealth[e])
 		ResetRotation(e,targetxang[e],targetyang[e],targetzang[e])
 		if target[e].target_type == 2 or target[e].target_type == 3 or target[e].target_type == 4 then

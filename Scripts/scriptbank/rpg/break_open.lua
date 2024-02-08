@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Break Open v9 by Necrym59
--- DESCRIPTION: Breaking open this animated object will give the player the selected item.
+-- Break Open v10 by Necrym59
+-- DESCRIPTION: Breaking open this animated object will give the player the selected item. Can also activate logic linked entities and/or IfUsed.
 -- DESCRIPTION: [PROMPT_TEXT$="Break open"]
 -- DESCRIPTION: [PROMPT_RANGE=80(0,100)]
 -- DESCRIPTION: [@CONTENT=1(1=Ammo, 2=Health, 3=Named Item, 4=Nothing)]
 -- DESCRIPTION: [NAMED_ITEM$=""]
--- DESCRIPTION: [QUANTITY=5(1,5)]
+-- DESCRIPTION: [QUANTITY=1(1,5)]
 -- DESCRIPTION: [NOISE_RANGE=500(0-5000)]
 -- DESCRIPTION: [@BREAK_ANIMATION=0(0=AnimSetList)]
 -- DESCRIPTION: [@OPEN_TRIGGER=1(1=Off, 2=On)]
@@ -14,17 +14,19 @@
 -- DESCRIPTION: <Sound0> Breaking sound
 -- DESCRIPTION: <Sound1> Found item sound
 
-g_tasktool = {}					-- for compatability with Task Tool scripts if used with Named Item
-g_tasktoolname = {}				-- for compatability with Task Tool scripts if used with Named Item
+local lower = string.lower
+
 local break_open 	= {}
 local prompt_text 	= {}
 local prompt_range	= {}
 local content		= {}		-- will be modified in future (for rpg spawning and inventory integration)
-local named_item 	= {}		-- will be modified in future to find loaded named object (for rpg spawning and inventory integration)
+local named_item 	= {}		
 local quantity		= {}
 local open_trigger	= {}
 local collect_text 	= {}
-local fade_delay 	= {}	
+local fade_delay 	= {}
+
+local named_item_no	= {}	
 local noise_range 	= {}
 local cleanuptime	= {}
 local fade_level	= {}
@@ -39,7 +41,7 @@ function break_open_properties(e, prompt_text, prompt_range, content, named_item
 	break_open[e].prompt_text = prompt_text
 	break_open[e].prompt_range = prompt_range
 	break_open[e].content = content
-	break_open[e].named_item = named_item
+	break_open[e].named_item = lower(named_item)
 	break_open[e].quantity = quantity
 	break_open[e].noise_range = noise_range
 	break_open[e].break_animation = "=" .. tostring(break_animation)
@@ -54,18 +56,18 @@ function break_open_init(e)
 	break_open[e].prompt_range = 80
 	break_open[e].content = 2
 	break_open[e].named_item = ""
-	break_open[e].quantity = 2
+	break_open[e].quantity = 1
 	break_open[e].noise_range = 500
 	break_open[e].break_animation = ""
 	break_open[e].open_trigger = 1
 	break_open[e].collect_text = "Found.."
 	break_open[e].fade_delay = 10	
+	
 	status[e] = "init"
+	named_item_no[e] = 0
 	cleanuptime[e] = 0
-	fadetime[e] = break_open[e].fade_delay * 1000
 	StartTimer(e)
 	fade_level[e] = GetEntityBaseAlpha(e)
-	--SetEntityBaseAlpha(e,100)
 	SetEntityBaseAlpha(e,GetEntityBaseAlpha(e))
 	SetEntityTransparency(e,1)
 	doonce[e] = 0
@@ -76,6 +78,23 @@ end
 function break_open_main(e)
 	break_open[e] = g_Entity[e]
 	if status[e] == "init" then
+		fadetime[e] = break_open[e].fade_delay * 1000
+		if break_open[e].content == 3 then
+			if named_item_no[e] == 0 and break_open[e].named_item > "" then
+				for n = 1, g_EntityElementMax do
+					if n ~= nil and g_Entity[n] ~= nil then
+						if lower(GetEntityName(n)) == break_open[e].named_item then
+							named_item_no[e] = n
+							GravityOff(n)
+							CollisionOff(n)				
+							ResetPosition(n,g_Entity[e]['x'],g_Entity[e]['y']+3,g_Entity[e]['z'])							
+							Hide(n)
+							break
+						end
+					end
+				end
+			end
+		end	
 		status[e] = "sealed"
 	end
 
@@ -83,7 +102,7 @@ function break_open_main(e)
 	
 	if status[e] == "sealed" then  --Sealed
 		if PlayerDist < break_open[e].prompt_range then
-			PromptLocalForVR(e,break_open[e].prompt_text)
+			PromptLocal(e,break_open[e].prompt_text)
 		end
 		if g_Entity[e]['health'] < 1 then
 			CollisionOff(e)
@@ -93,9 +112,7 @@ function break_open_main(e)
 			if break_open[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,break_open[e].noise_range,1,e) end
 			wait[e] = g_Time + 1000
 			status[e] = "opened"
-			if cleanuptime[e] == 0 then
-				cleanuptime[e] = GetTimer(e) + fadetime[e]
-			end					
+			cleanuptime[e] = GetTimer(e) + fadetime[e]
 		end
 	end
 
@@ -125,12 +142,13 @@ function break_open_main(e)
 			if g_PlayerHealth < g_gameloop_StartHealth then	SetPlayerHealth(g_PlayerHealth + break_open[e].quantity) end	
 			if g_Time > wait[e] then status[e] = "cleanup" end
 		end
-		if break_open[e].content == 3 then
-			PromptDuration(break_open[e].collect_text.. " " ..break_open[e].named_item,1000)
-			g_tasktoolname = break_open[e].named_item
-			if doonce[e] == 0 then
+		if break_open[e].content == 3 then			
+			if doonce[e] == 0 then			
 				StopSound(e,0)
-				PlaySound(e,1)
+				PlaySound(e,1)								
+				Show(named_item_no[e])
+				CollisionOn(named_item_no[e])
+				GravityOn(named_item_no[e])
 				doonce[e] = 1
 			end
 			if g_Time > wait[e] then status[e] = "cleanup" end
@@ -161,5 +179,5 @@ function break_open_main(e)
 				SwitchScript(e,"no_behavior_selected.lua")
 			end
 		end
-	end
+	end	
 end

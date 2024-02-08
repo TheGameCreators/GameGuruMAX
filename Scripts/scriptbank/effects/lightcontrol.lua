@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Light Control v21 by Necrym59, with thanks to synchromesh
+-- Light Control v22 by Necrym59, with thanks to synchromesh
 -- DESCRIPTION: Ramps the strength distance of a light up or down when activated by a zone, switch or by range.
 -- DESCRIPTION: Attach to a light.
--- DESCRIPTION: [@RANGE_SENSING=1(1=Yes, 2=No)]
+-- DESCRIPTION: [@RANGE_SENSING=1(1=Yes, 2=No, 3=None-Light On)]
 -- DESCRIPTION: [SENSOR_RANGE=100(1,1000)]
 -- DESCRIPTION: [MAX_LIGHT_DISTANCE=150(1,1000)]
 -- DESCRIPTION: [#SPEED=1.20(0.0,500.0)]
@@ -10,7 +10,7 @@
 -- DESCRIPTION: [LIGHT_R=255(0,255)]
 -- DESCRIPTION: [LIGHT_G=255(0,255)]
 -- DESCRIPTION: [LIGHT_B=255(0,255)]
--- DESCRIPTION: [@FLICKER=1(1=None, 2=Startup)]
+-- DESCRIPTION: [@FLICKER=1(1=None, 2=Startup, 3=Random)]
 -- DESCRIPTION: [LIGHT_OBJECT_NAME$="Light Object"]
 -- DESCRIPTION: <Sound0> when turning on
 -- DESCRIPTION: <Sound1> when overpowered
@@ -41,6 +41,7 @@ local lightNum = GetEntityLightNumber( e )
 local status 				= {}
 local played 				= {}
 local wait 					= {}
+local rwait 				= {}
 local failtime				= {}
 local doonce 				= {}
 
@@ -72,6 +73,7 @@ function lightcontrol_init(e)
 	lightcontrol[e].flicker 				= 1
 	lightcontrol[e].light_object_name 		= ""
 	lightcontrol[e].light_object_no 		= 0
+
 	status[e] = "init"
 	lightNum = GetEntityLightNumber( e )
 	current_level[e] = 0
@@ -81,6 +83,7 @@ function lightcontrol_init(e)
 	minrange[e] = 0
 	played[e] = 0
 	doonce[e] = 0
+	rwait[e] = math.huge
 	g_sunrollposition = 0
 end
 
@@ -99,6 +102,7 @@ function lightcontrol_main(e)
 				end
 			end
 		end
+		rwait[e] = g_Time + math.random(10,100)
 		lightNum = GetEntityLightNumber( e )
 		minrange[e] = GetLightRange ( lightNum )
 		SetLightRange(lightNum,minrange[e])
@@ -115,7 +119,10 @@ function lightcontrol_main(e)
 			wait[e] = g_Time + 100
 		end
 	end
-
+	if lightcontrol[e].range_sensing == 3 then
+		g_Entity[e]['activated'] = 1
+	end
+	
 	if g_Entity[e]['activated'] == 1 then
 		lightNum = GetEntityLightNumber( e )
 		if current_level[e] < lightcontrol[e].max_light_distance then
@@ -200,9 +207,17 @@ function lightcontrol_main(e)
 		if g_Time > wait[e] then
 			if doonce[e] < 80 then
 				current_level[e] = math.random(10,lightcontrol[e].max_light_distance)
+				if lightcontrol[e].light_object_no > 0 then SetEntityEmissiveStrength(lightcontrol[e].light_object_no,current_level[e]) end
 				doonce[e] = doonce[e] + 1
 			end
 		end
+	end
+	if lightcontrol[e].flicker == 3 and g_Entity[e]['activated'] == 1 then
+		if g_Time > rwait[e] then
+			current_level[e] = math.random(50,lightcontrol[e].max_light_distance)
+			if lightcontrol[e].light_object_no > 0 then SetEntityEmissiveStrength(lightcontrol[e].light_object_no,current_level[e]) end
+		end	
+		rwait[e] = g_Time + math.random(5,50)
 	end
 
 	--Sound--

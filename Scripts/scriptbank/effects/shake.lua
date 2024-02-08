@@ -1,4 +1,4 @@
---Shake v3 adapted by Necrym59 from an original script by AmenMoses
+--Shake v4 adapted by Necrym59 from an original script by AmenMoses
 -- DESCRIPTION: Creates camera shake. Attache to an object and link to a trigger zone or switch.
 -- DESCRIPTION: Select Shake [@STYLE=6(1=Tremble, 2=Tremor, 3=Earthquake, 4=Explosion, 5=Drunkard, 6=Manual)]
 -- DESCRIPTION: Change the [PROMPT_TEXT$=""]
@@ -21,6 +21,8 @@ local background_period = {}
 local mode = {}
 local shaken = {}
 local doonce = {}
+local shakeoff = {}
+local delay = {}
 
 function shake_properties(e, style, prompt_text, trauma, period, fade, background_trauma, background_period, mode)
 	shake[e] = g_Entity[e]
@@ -47,6 +49,8 @@ function shake_init(e)
 	g_Entity[e]['activated'] = 0
 	shaken[e] = 0
 	doonce[e] = 0
+	shakeoff[e] = 0
+	delay[e] = math.huge
 end
 
 function shake_main(e)
@@ -102,8 +106,9 @@ function shake_main(e)
 			GamePlayerControlAddShakePeriod(0)
 			GamePlayerControlAddShakeFade  (0)
 			GamePlayerControlSetShakeTrauma(65.0)
-			GamePlayerControlSetShakePeriod(960.00)
+			GamePlayerControlSetShakePeriod(960.0)
 			shaken[e] = 1
+			delay[e] = g_Time + 7000
 		end
 		if shake[e].style == 6 and shaken[e] == 0 then	---- Manual style Settings
 			Prompt(shake[e].prompt_text)
@@ -114,8 +119,19 @@ function shake_main(e)
 			GamePlayerControlSetShakePeriod(shake[e].background_period)
 			shaken[e] = 1
 		end
+		if g_Time > delay[e] and shake[e].mode == 1 then
+			if shakeoff[e] == 0 then
+				GamePlayerControlSetShakeTrauma(0.0)
+				GamePlayerControlSetShakePeriod(0.0)
+				shakeoff[e] = 1				
+			end
+		end	
 		if shake[e].mode == 2 then GamePlayerControlAddShakeFade(0.0) end
-	end	
+		if shaken[e] == 1 then
+			SetActivated(e,0)
+			shaken[e] = 0
+		end	
+	end
 end
  
 

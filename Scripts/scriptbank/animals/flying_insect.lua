@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Flying Insect v6 by Necrym59
+-- Flying Insect v8 by Necrym59
 -- All flying insect animations are named 'fly' and 'attack'
 -- DESCRIPTION: Applied to insect? Always active ON
--- DESCRIPTION: [@INSECT_TYPE=1(1=Butterfly, 2=Bee, 3=Wasp)]
+-- DESCRIPTION: [@INSECT_TYPE=1(1=Butterfly, 2=Bee, 3=Wasp, 4=Dragonfly)]
 -- DESCRIPTION: [@TEMPERAMENT=1(1=Benign, 2=Aggressive)]
 -- DESCRIPTION: [BOUNDARY=500(1,2000)]
 -- DESCRIPTION: <Sound0> Insect sound (use mono audio file)
@@ -11,16 +11,16 @@
 	local insect_type = {}
 	local temperament = {}
 	local boundary = {}
+	
 	local insect_state = {}
 	local rotation_movement = {}
 	local vertical_movement = {}
+	local forward_movement = {}	
+	local darting_movement = {}
+	local hover_movement = {}
+	local pattern_time = {}
 	local attack_delay = {}
 	local death = {}
-	local start_timer1 = {}	
-	local timer1 = {}
-	local start_timer2 = {}	
-	local timer2 = {}
-	local random_time = {}
 	local start_animation = {}
 	local x_position = {}
 	local y_position = {}
@@ -47,11 +47,10 @@ function flying_insect_init_name(e)
 	insect_state[e] = 1
 	rotation_movement[e] = 0	
 	vertical_movement[e] = 0
-	start_timer1[e] = 0
-	timer1[e] = 0
-	start_timer2[e] = 0
-	timer2[e] = 0
-	random_time[e] = 0
+	forward_movement[e] = 0	
+	darting_movement[e] = 0
+	hover_movement[e] = 0
+	pattern_time[e] = math.huge
 	start_animation[e] = 0
 	x_position[e] = 0
 	z_position[e] = 0
@@ -75,25 +74,52 @@ function flying_insect_main(e)
 		GravityOff(e)
 		CollisionOff(e)
 		terrainheight[e] = GetTerrainHeight(g_Entity[e]['x'],g_Entity[e]['z'])
+		pattern_time[e] = g_Time + 3000
 		status[e] = "endinit"
 	end	
-	
+	-- Flying Patterns -------------------------------
 	if insect[e].insect_type == 1 then -- Butterfly
 		rotation_movement[e] = math.random(-160,200)
 		vertical_movement[e] = math.random(-50,50)
-		random_time[e] = math.random(1000,3000)
+		forward_movement[e] = 50
+		if g_Time > pattern_time[e] then
+			darting_movement[e] = math.random(0,0)
+			hover_movement[e] = math.random(0,0)
+			pattern_time[e] = g_Time + 3000
+		end
 		ModulateSpeed(e,2.0)			
 	end
 	if insect[e].insect_type == 2 then -- Bee
 		rotation_movement[e] = math.random(-170,200)
 		vertical_movement[e] = math.random(-20,20)
-		random_time[e] = math.random(1000,3000)
+		forward_movement[e] = 20
+		if g_Time > pattern_time[e] then
+			darting_movement[e] = math.random(0,0)
+			hover_movement[e] = math.random(0,0)
+			pattern_time[e] = g_Time + 3000
+		end
 		ModulateSpeed(e,1.5)
 	end
 	if insect[e].insect_type == 3 then -- Wasp
 		rotation_movement[e] = math.random(-160,220)
 		vertical_movement[e] = math.random(-15,15)
-		random_time[e] = math.random(1000,3000)
+		forward_movement[e] = 25
+		if g_Time > pattern_time[e] then
+			darting_movement[e] = math.random(0,0)
+			hover_movement[e] = math.random(0,1)
+			pattern_time[e] = g_Time + 3000
+		end
+		ModulateSpeed(e,1.5)
+	end
+	if insect[e].insect_type == 4 then -- Dragonfly
+		rotation_movement[e] = math.random(-160,220)
+		forward_movement[e] = 30
+		if g_Time > pattern_time[e] then
+			vertical_movement[e] = math.random(-1,1)
+			darting_movement[e] = math.random(0,50)
+			hover_movement[e] = math.random(0,1)
+			pattern_time[e] = g_Time + 3000
+		end
 		ModulateSpeed(e,1.5)
 	end
 	-- Sound --------------------------------------
@@ -101,34 +127,32 @@ function flying_insect_main(e)
 	-- Timers -----------------------------------		
 	if InsectDistance(e) > insect[e].boundary then
 		boundary_state[e] = "out_of_bounds"
-		timer2[e] = 200
 	elseif InsectDistance(e) < insect[e].boundary then
 		boundary_state[e] = "in_bounds"
 	end
-	if start_timer1[e] == 0 then
-		timer1[e] = GetTimer(e)
-		start_timer1[e] = 1
-	end	
-	if GetTimer(e) > timer1[e] + random_time[e] then
-		start_animation[e] = 1
-	end
+	
 	if g_Entity[e]['animating'] == 0 and start_animation[e] == 1 then
 		SetAnimationName(e,"fly")
 		PlayAnimation(e)
-	g_Entity[e]['animating'] = 1
+		g_Entity[e]['animating'] = 1
 	end
 	-- Flying -------------------------------------		
 	if insect_state[e] == 1 and boundary_state[e] ~= "out_of_bounds" then
-		MoveForward(e,50)
+		if hover_movement[e] == 0 then MoveForward(e,forward_movement[e]) end
+		if hover_movement[e] == 1 then MoveForward(e,0) end	
+		if darting_movement[e] > 40 then
+			MoveForward(e,100)
+			ModulateSpeed(e,2.5)
+		end		
 		MoveUp(e,vertical_movement[e])
 		if g_Entity[e]['y'] < (terrainheight[e] + 100) and g_Entity[e]['y'] > (terrainheight[e] + 10) then	
 			MoveUp(e,vertical_movement[e])
 		elseif g_Entity[e]['y'] > (terrainheight[e] + 50) then
 			MoveUp(e,-vertical_movement[e])
 		elseif g_Entity[e]['y'] < (terrainheight[e] + 10) then
-			MoveUp(e,20)
+			MoveUp(e,20)		
 		end
-		RotateY(e,rotation_movement[e])
+		RotateY(e,rotation_movement[e])		
 	end	
 	-- Attacking -------------------------------------	
 	if insect_state[e] == 2 then
@@ -145,7 +169,7 @@ function flying_insect_main(e)
 		RotateToPlayer(e)
 		if GetPlayerDistance(e) > 10 then 
 			CollisionOff(e)
-			MoveForward(e,100)
+			MoveForward(e,forward_movement[e]*2)
 			CollisionOn(e)
 		end				
 		if GetTimer(e) > attack_delay[e] then
@@ -160,18 +184,8 @@ function flying_insect_main(e)
 	end	
 	-- Boundary -------------------------------------	
 	if boundary_state[e] == "out_of_bounds" then
-		if start_timer2[e] == 0 then	
-			StartTimer(e)
-			insect_position[e] = InsectDistance(e)
-			start_timer2[e] = 1
-		end
-		if GetTimer(e) > timer2[e] then 
-			if InsectDistance(e) > insect_position[e] then
-				RotateY(e,250)
-			end
-			start_timer2[e] = 0
-		end
-		MoveForward(e,30)
+		RotateY(e,math.random(160,200))
+		MoveForward(e,forward_movement[e]/2)
 		MoveUp(e,vertical_movement[e])
 	end
 	-- Temperament Check -----------------------------

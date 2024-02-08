@@ -7,12 +7,12 @@ local U = require "scriptbank\\utillib"
 local tEnt = {}
 local selectobj = {}
 
-function module_misclib.pinpoint(e,maxrange)
+function module_misclib.pinpoint(e,pickuprange,maxrange)
 	--pinpoint select object--
 	PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < maxrange then
 		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0, 0, g_ammo[e]['pickuprange']
+		local rayX, rayY, rayZ = 0, 0, pickuprange
 		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
 		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
 		selectobj[e] = IntersectAll(px, py, pz, px+rayX, py+rayY, pz+rayZ, g_Entity[e]['obj'])

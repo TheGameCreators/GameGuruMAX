@@ -5,6 +5,7 @@
 -- DESCRIPTION: [!PLAY_PICKUP=0]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=0]
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local weapon			= {}
 local pickup_range		= {}
@@ -39,35 +40,33 @@ end
 function weapon_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 	local LookingAt = GetPlrLookingAtEx(e,1)
-	
 	if weapon_therecanbeonlyone==-1 then
 		if g_KeyPressE == 0 and g_InKey == "" then weapon_therecanbeonlyone = 0 end
 	end
-
 	if weapon[e].pickup_style == 2 then 
 		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then		
-			--pinpoint select object--			
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,weapon[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e].obj == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-					tEnt[e] = e
-				else
-					tEnt[e] = 0				
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				tEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,weapon[e].pickup_range,200)
+			--local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
+			--local rayX, rayY, rayZ = 0,0,weapon[e].pickup_range
+			--local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
+			--rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
+			--selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
+			--if selectobj[e] ~= 0 or selectobj[e] ~= nil then
+			--	if g_Entity[e].obj == selectobj[e] then
+			--		TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
+			--		tEnt[e] = e
+			--	else
+			--		tEnt[e] = 0				
+			--	end
+			--end
+			--if selectobj[e] == 0 or selectobj[e] == nil then
+			--	tEnt[e] = 0
+			--	TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
+			--end
 			--end pinpoint select object--
 		end
 	end
-
 	if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
 		if weapon[e].pickup_style == 1 then
 			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end

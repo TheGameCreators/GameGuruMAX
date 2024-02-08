@@ -45,7 +45,7 @@ function ammo_main(e)
 	end
 	if g_ammo[e]['pickup_style'] == 2 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,200)
+		module_misclib.pinpoint(e,g_ammo[e]['pickuprange'],200)
 		--end pinpoint select object--
 		if PlayerDist < g_ammo[e]['pickuprange'] and tEnt[e] ~= 0 or nil and GetEntityVisibility(e) == 1 then	
 			PromptLocalForVR(e,g_ammo[e]['prompttext'])

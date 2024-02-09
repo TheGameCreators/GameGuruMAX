@@ -2894,6 +2894,7 @@ struct importertype
 	bool bInvertNormalMap;
 	char pOrigNormalMap[MAX_PATH];
 	std::vector<cstr> pSurfaceFilesToDelete;
+	std::vector<cstr> meshesToExclude;
 	#endif
 
 	// Constructor

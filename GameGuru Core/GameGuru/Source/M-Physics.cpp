@@ -432,59 +432,8 @@ void physics_processheightsusingfloodfill (int iX, int iZ, int iGridAtX, int iGr
 	g_LargeQuadList.push_back(item);
 }
 
-/*
-// global anomoly grid for recursive step
-struct sAnomListType
-{
-	int p1;
-	int p2;
-	int p3;
-	int p4;
-};
-bool g_bAnom[200][200];
-std::vector<sAnomListType> g_anomlist;
-void physics_processanomgridtile (int iX1, int iZ1, int iX2, int iZ2, float fOneTileSize, int iResolutionSIze)
-{
-	bool bAnyAnomInThisArea = false;
-	if (iZ2 > iZ1 || iX2 > iX1)
-	{
-		for (int z = iZ1; z <= iZ2; z++)
-		{
-			for (int x = iX1; x <= iX2; x++)
-			{
-				if (g_bAnom[x][z] == true)
-				{
-					bAnyAnomInThisArea = true;
-				}
-			}
-		}
-	}
-	if (bAnyAnomInThisArea == true )
-	{
-		// divide and recurse
-		int iSizeXHalf = (iX2 - iX1) / 2;
-		int iSizeZHalf = (iZ2 - iZ1) / 2;
-		physics_processanomgridtile (iX1, iZ1, iX1 + iSizeXHalf, iZ1 + iSizeZHalf, fOneTileSize, iResolutionSIze); // top left
-		physics_processanomgridtile (iX1 + iSizeXHalf + 1, iZ1, iX2, iZ1 + iSizeZHalf, fOneTileSize, iResolutionSIze); // top right
-		physics_processanomgridtile (iX1, iZ1 + iSizeZHalf + 1, iX1 + iSizeXHalf, iZ2, fOneTileSize, iResolutionSIze); // bottom left
-		physics_processanomgridtile (iX1 + iSizeXHalf + 1, iZ1 + iSizeZHalf + 1, iX2, iZ2, fOneTileSize, iResolutionSIze); // bottom right
-	}
-	else
-	{
-		// take four corners as a single poly (and so doing, ignore unnecessary detail for the purpose of physics)
-		sAnomListType anomitem;
-		anomitem.p1 = iX1 + (iZ1*iResolutionSIze);
-		anomitem.p2 = iX1 + 1 + (iZ1*iResolutionSIze);
-		anomitem.p3 = iX1 + ((iZ1 + 1)*iResolutionSIze);
-		anomitem.p4 = iX1 + 1 + ((iZ1 + 1) *iResolutionSIze);
-		g_anomlist.push_back(anomitem);
-	}
-}
-*/
-
 void physics_createterraincollision ( void )
 {
-	#ifdef WICKEDENGINE
 	// we use the 'play area' to reduce 'test level' load time (concentrating only on the area you are using in the level)
 	timestampactivity(0, "detect and define play area");
 	// calculate bounds of static features
@@ -498,7 +447,6 @@ void physics_createterraincollision ( void )
 	vecMin -= GGVECTOR3(-500, 0, -500);
 	vecMax += GGVECTOR3(500, 0, 500);
 	int iObjectCount = 0;
-
 	for (int e = 1; e <= g.entityelementlist; e++)
 	{
 		if ( 1 ) // must include start marker and all dynamic objects (everything) for full coverage of level
@@ -529,13 +477,11 @@ void physics_createterraincollision ( void )
 			}
 		}
 	}
-	#ifdef WICKEDENGINE
 	float fEditableSizeHalved = GGTerrain_GetEditableSize();
 	t.terraineditableareasizeminx = -fEditableSizeHalved;
 	t.terraineditableareasizeminz = -fEditableSizeHalved;
 	t.terraineditableareasizemaxx = fEditableSizeHalved;
 	t.terraineditableareasizemaxz = fEditableSizeHalved;
-	#endif
 	bool bAnythingHasMoved = false;
 	if (fLastPlayerStartX != fPlayerStartX || fLastPlayerStartZ != fPlayerStartZ ) bAnythingHasMoved = true;
 	fLastPlayerStartX = fPlayerStartX;
@@ -557,7 +503,6 @@ void physics_createterraincollision ( void )
 
 	// this is there the terrain physics is created
 	timestampactivity(0, "create terrain physics");
-	#ifdef GGTERRAIN_USE_NEW_TERRAIN
 	float fPlayAreaSizeX = g_vPlayAreaMax.x - g_vPlayAreaMin.x; // soon to be relegated to 'nav clusters'
 	float fPlayAreaSizeZ = g_vPlayAreaMax.z - g_vPlayAreaMin.z;
 	float fEditableSizeX = t.terraineditableareasizemaxx - t.terraineditableareasizeminx;
@@ -730,106 +675,6 @@ void physics_createterraincollision ( void )
 							}
 							else
 							{
-								/* bottom edges act as glue for any tops, not the solution!
-								// top edge
-								int iTopEdgeUsed = -1;
-								if (iZ1 > 0)
-								{
-									iTopEdgeUsed = iZ1;
-									int iNeighboughID = g_iQuadGrid[iX1][iZ2 - 1] - 1;
-									if (iNeighboughID >= 0)
-									{
-										if (g_LargeQuadList[iNeighboughID].iX1 == iX1 && g_LargeQuadList[iNeighboughID].iX2 == iX2)
-										{
-											// the neighbor lines up exactly, no need to fragment this edge
-											iTopEdgeUsed = -1;
-										}
-										else
-										{
-											// we need to scan this edge and create fragments of neighboring quads to line up to
-											int iCurrentX = iX1;
-											int iCurrentID = iNeighboughID;
-											for (int x = iX1; x <= iX2; x++)
-											{
-												iNeighboughID = g_iQuadGrid[x][iZ1 - 1] - 1;
-												if (iNeighboughID >= 0)
-												{
-													if (iNeighboughID != iCurrentID)
-													{
-														// fill quad grid
-														for (int fillx = iCurrentX; fillx < x - 1; fillx++)
-														{
-															int iUniqueTileID = 1 + g_RefinedLargeQuadList.size() + iLargeQuadListSizeBeforeAdditions;
-															g_iQuadGrid[fillx][iZ1] = iUniqueTileID;
-														}
-
-														// need a new line up quad here
-														sLargeQuadListItem item;
-														item.iX1 = iCurrentX;
-														item.iX2 = x - 1;
-														item.iZ1 = iZ1;
-														item.iZ2 = iZ1;
-														g_RefinedLargeQuadList.push_back(item);
-
-														// set up for next one
-														iCurrentX = x;
-														iCurrentID = iNeighboughID;
-													}
-												}
-											}
-											if (iZ2 > iZ1)
-											{
-												// multiple rows deep, the norm
-												if (iCurrentX <= iX2)
-												{
-													// fill quad grid
-													for (int fillx = iCurrentX; fillx < iX2; fillx++)
-													{
-														int iUniqueTileID = 1 + g_RefinedLargeQuadList.size() + iLargeQuadListSizeBeforeAdditions;
-														g_iQuadGrid[fillx][iZ1] = iUniqueTileID;
-													}
-
-													// final line-up quad on this edge
-													sLargeQuadListItem item;
-													item.iX1 = iCurrentX;
-													item.iX2 = iX2;
-													item.iZ1 = iZ1;
-													item.iZ2 = iZ1;
-													g_RefinedLargeQuadList.push_back(item);
-												}
-												// and finally reduce the original on this side
-												g_LargeQuadList[quad].iZ1 = iZ1 + 1;
-											}
-											else
-											{
-												// only a single row deep
-												if (iCurrentX <= iX2)
-												{
-													// so instead of using a new one, use existing orig
-													g_LargeQuadList[quad].iX1 = iCurrentX;
-													g_LargeQuadList[quad].iX2 = iX2;
-													g_LargeQuadList[quad].iZ1 = iZ1;
-													g_LargeQuadList[quad].iZ2 = iZ1;
-												}
-												else
-												{
-													// if the last one created was indeed the last one
-													// edit the old orig and delete from g_RefinedLargeQuadList list
-													int iLastNewItemIndex = g_RefinedLargeQuadList.size();
-													g_LargeQuadList[quad] = g_RefinedLargeQuadList[iLastNewItemIndex - 1];
-													g_RefinedLargeQuadList.erase(g_RefinedLargeQuadList.begin() + iLastNewItemIndex);
-												}
-											}
-										}
-									}
-									else
-									{
-										// error - seems we have a missing neightbor
-										iTopEdgeUsed = -1;
-									}
-								}
-								*/
-
 								// bottom edge
 								if (iZ2 < iResolutionSIze )// && iTopEdgeUsed != iZ2)
 								{
@@ -1276,102 +1121,7 @@ void physics_createterraincollision ( void )
 			pfHeightData = NULL;
 		}
 	}
-	#else
-	//g_pTerrain->CreatePhysicsMeshes();
-	#endif
 	timestampactivity(0, "terrian physics complete");
-	#else
-	// takes tgenerateterraindirtyregiononly (0-full/1-only refresh terrain.dirtyxy)
-	// Which terrain collision style
-	t.tphysicsterrainobjstart=t.terrain.objectstartindex+1000;
-	if ( t.terrain.TerrainID>0 ) 
-	{
-		//  new physics command which creates the perfect 12+12 collision geometry
-		timestampactivity(0,"get terrian sectors");
-		t.TerrainID=t.terrain.TerrainID;
-		t.terrain.TerrainLODOBJStart=t.tphysicsterrainobjstart;
-		for ( t.i = 0 ; t.i <= (int)BT_GetSectorCount(t.TerrainID,0)-1; t.i++ )
-		{
-			if (  BT_GetSectorExcluded(t.TerrainID,0,t.i) == 0 ) 
-			{
-				t.sopx_f=BT_GetSectorPositionX(t.TerrainID,0,t.i);
-				t.sopy_f=BT_GetSectorPositionY(t.TerrainID,0,t.i);
-				t.sopz_f=BT_GetSectorPositionZ(t.TerrainID,0,t.i);
-				t.tokay=0;
-				if (  t.tgenerateterraindirtyregiononly == 0  )  t.tokay = 1;
-				if (  t.tgenerateterraindirtyregiononly == 1 ) 
-				{
-					//  only re-create if within field of dirty area
-					t.tsopradx=abs(t.terrain.dirtyx2-t.terrain.dirtyx1)*2;
-					t.tsopradz=abs(t.terrain.dirtyz2-t.terrain.dirtyz1)*2;
-					if (  t.sopx_f >= ((t.terrain.dirtyx1-t.tsopradx)*50)-1500 && t.sopx_f <= ((t.terrain.dirtyx2+t.tsopradx)*50)+1500 ) 
-					{
-						if (  t.sopz_f >= ((t.terrain.dirtyz1-t.tsopradz)*50)-1500 && t.sopz_f <= ((t.terrain.dirtyz2+t.tsopradz)*50)+1500 ) 
-						{
-							t.tokay=1;
-						}
-					}
-				}
-				if (  t.tokay == 1 ) 
-				{
-					if (  ObjectExist(t.tphysicsterrainobjstart+t.i) == 1  )  DeleteObject (  t.tphysicsterrainobjstart+t.i );
-					BT_MakeSectorObject (  t.TerrainID,0,t.i,t.tphysicsterrainobjstart+t.i );
-					PositionObject (  t.tphysicsterrainobjstart+t.i,t.sopx_f,t.sopy_f,t.sopz_f );
-					SetObjectArbitaryValue (  t.tphysicsterrainobjstart+t.i,0 );
-					BT_MakeSectorObject (  t.TerrainID,0,t.i,0 );
-					ExcludeOn (  t.tphysicsterrainobjstart+t.i );
-					SetObjectMask (  t.tphysicsterrainobjstart+t.i,0 );
-					CloneMeshToNewFormat (  t.tphysicsterrainobjstart+t.i,0x002 );
-					if (  t.tgenerateterraindirtyregiononly == 1  )  ODEDestroyObject (  t.tphysicsterrainobjstart+t.i );
-					t.tterrainsegmentuntouched=1;
-					for ( t.tscanzz = -1600 ; t.tscanzz <= 1600 ; t.tscanzz+= 100 )
-					{
-						for ( t.tscanxx = -1600 ; t.tscanxx <= 1600 ; t.tscanxx+= 100 )
-						{
-							t.h_f=BT_GetGroundHeight(t.terrain.TerrainID,t.sopx_f+t.tscanxx,t.sopz_f+t.tscanzz);
-							if (  t.h_f != 600.0 && t.h_f != -600 ) 
-							{
-								t.tterrainsegmentuntouched=0;
-							}
-						}
-					}
-					if (  t.tterrainsegmentuntouched == 1 ) 
-					{
-						//  if NO terrain unulations, can use quicker Box (  shape )
-						DeleteObject (  t.tphysicsterrainobjstart+t.i );
-						MakeObjectPlane (  t.tphysicsterrainobjstart+t.i, 3200, 3200 );
-						PositionObject (  t.tphysicsterrainobjstart+t.i,t.sopx_f,600.0,t.sopz_f );
-						XRotateObject ( t.tphysicsterrainobjstart+t.i, 90 );
-						SetObjectArbitaryValue (  t.tphysicsterrainobjstart+t.i,0 );
-						ExcludeOn (  t.tphysicsterrainobjstart+t.i );
-						SetObjectMask (  t.tphysicsterrainobjstart+t.i,0 );
-						CloneMeshToNewFormat (  t.tphysicsterrainobjstart+t.i,0x002 );
-						ODECreateStaticTerrainMesh (  t.tphysicsterrainobjstart+t.i );
-					}
-					else
-					{
-						ODECreateStaticTerrainMesh (  t.tphysicsterrainobjstart+t.i );
-					}
-					DeleteObject (  t.tphysicsterrainobjstart+t.i );
-				}
-			}
-		}
-		t.terrain.TerrainLODOBJFinish=(t.tphysicsterrainobjstart+t.i)-1;
-		timestampactivity(0,"get terrian sectors complete");
-	}
-	else
-	{
-		// super flat terrain (one quad)
-		if ( ObjectExist(t.tphysicsterrainobjstart) == 0 ) 
-		{
-			MakeObjectBox ( t.tphysicsterrainobjstart,512*100,100,512*100 );
-			HideObject ( t.tphysicsterrainobjstart );
-			PositionObject ( t.tphysicsterrainobjstart,256*100,g.gdefaultterrainheight-50,256*100 );
-			SetObjectArbitaryValue ( t.tphysicsterrainobjstart,0 );
-		}
-		ODECreateStaticBox ( t.tphysicsterrainobjstart );
-	}
-	#endif
 }
 
 struct sVTreeObj
@@ -1507,7 +1257,7 @@ void physics_managevirtualtreecylinders (void)
 						HideObject(iPhyObjID);
 
 						// now create our physics object afresh
-						SetObjectArbitaryValue (iPhyObjID, 6);
+						SetObjectArbitaryValue (iPhyObjID, 3);// 6); wood, not flesh!
 
 						// must cater for largest thickest trees in the default biome set (scots pine dead)
 						//ODECreateStaticCylinder (iPhyObjID, vecTreePos.x, vecTreePos.y, vecTreePos.z, 10, 500, 10, 0, 0, 0);
@@ -1721,7 +1471,7 @@ void physics_setupplayernoreset ( void )
 	//  create character controller for player
 	PositionObject (  t.aisystem.objectstartindex,t.terrain.playerx_f,t.terrain.playery_f,t.terrain.playerz_f );
 	if ( t.freezeplayerposonly==0 ) RotateObject (  t.aisystem.objectstartindex,t.terrain.playerax_f,t.terrain.playeray_f,t.terrain.playeraz_f );
-	SetObjectArbitaryValue (  t.aisystem.objectstartindex,6 );
+	SetObjectArbitaryValue (  t.aisystem.objectstartindex, 6 ); // 6-flesh
 	ODECreateDynamicCharacterController (  t.aisystem.objectstartindex,t.playercontrol.gravity_f,t.playercontrol.fallspeed_f,t.playercontrol.climbangle_f );
 }
 
@@ -1745,24 +1495,12 @@ void physics_setupcharacter ( void )
 	if (t.entityprofile[t.entityelement[t.e].bankindex].physics != 0)
 	{
 		// create physics for this character/faux-character object
-		SetObjectArbitaryValue (t.tphyobj, 6);
+		SetObjectArbitaryValue (t.tphyobj, 6); // 6-flesh
 		if (t.entityelement[t.e].eleprof.isimmobile == 0)
 		{
 			// 190718 - remove t.terrain.adjaboveground_f from enemy terrain relative positioning
 			// ensure CHARACTER do not spawn UNDER the terrain
-			#ifdef WICKEDENGINE
 			t.tgroundheight_f = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(t.tphyobj), ObjectPositionZ(t.tphyobj));
-			#else
-			if (t.terrain.TerrainID > 0)
-			{
-				t.tgroundheight_f = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(t.tphyobj), ObjectPositionZ(t.tphyobj));
-			}
-			else
-			{
-				//t.tgroundheight_f=1000.0+t.terrain.adjaboveground_f;
-				t.tgroundheight_f = g.gdefaultterrainheight;
-			}
-			#endif
 			t.tgroundheight_f = t.tgroundheight_f + 2.5;
 			// 291116 - account for object vecCenter (so characters with Y=0=Floor are not unjustly raised)
 			// NOW DONE EARLIER SO NO NEED TO ADJUST FOR COL CENTER TWICE (see calling function)
@@ -1851,12 +1589,12 @@ void physics_setupobject ( void )
 			}
 
 			extern bool physics_playground;
-			SetObjectArbitaryValue (  t.tphyobj,t.entityprofile[t.entid].materialindex );
-			#ifdef VRTECH
+			// skip if material should come direct from DBO mesh data
+			if (t.entityprofile[t.entid].materialindex != 99999)
+			{
+				SetObjectArbitaryValue ( t.tphyobj, t.entityprofile[t.entid].materialindex );
+			}
 			if ( t.tstatic == 1 ) // now allow physics entities in multiplayer || t.game.runasmultiplayer == 1 ) 
-			#else
-			if ( t.tstatic == 1 || t.game.runasmultiplayer == 1 ) 
-			#endif
 			{
 				// if static, need to ensure FIXNEWY pivot is respected
 				if ( t.tstatic == 1 ) 
@@ -2057,7 +1795,6 @@ void physics_setupimportershapes ( void )
 		t.tocy_f=ObjectSizeY(t.tphyobj,1)/2.0;
 		PositionObject ( iObjectToUse, tNewOffX, t.tocy_f + tNewOffY, tNewOffZ );
 		RotateObject ( iObjectToUse, t.entityphysicsbox[t.entid][t.tcount].RotX , t.entityphysicsbox[t.entid][t.tcount].RotY , t.entityphysicsbox[t.entid][t.tcount].RotZ );
-		//SetObjectArbitaryValue ( iObjectToUse,t.entityprofile[t.entid].materialindex );
 		ODEAddStaticObjectBox ( t.tphyobj, iObjectToUse, t.entityprofile[t.entid].materialindex );
 		if ( bLeaveDebugCollisionBoxes == true ) 
 		{
@@ -2112,9 +1849,9 @@ void physics_setuptreecylinder ( void )
 	t.tSizeX_f=t.tSizeX_f*1.25;
 	t.tSizeZ_f=t.tSizeZ_f*1.25;
 
-	//  now create our physics object
-	SetObjectArbitaryValue (  t.tphyobj,6 );
-	ODECreateStaticCylinder (  t.tphyobj,t.tFinalX_f,t.tFinalY_f,t.tFinalZ_f,t.tSizeX_f,t.tSizeY_f,t.tSizeZ_f,0,0,0 );
+	// now create our physics object
+	SetObjectArbitaryValue (t.tphyobj, 3);// 3-wood not 6 flesh!
+	ODECreateStaticCylinder ( t.tphyobj,t.tFinalX_f,t.tFinalY_f,t.tFinalZ_f,t.tSizeX_f,t.tSizeY_f,t.tSizeZ_f,0,0,0 );
 }
 
 void physics_disableobject ( void )

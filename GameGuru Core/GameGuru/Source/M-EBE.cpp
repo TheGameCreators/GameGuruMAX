@@ -3304,8 +3304,6 @@ void ebe_optimize_object ( int iObj, int iEntID )
 		// add the worked mesh to buffers (unique VB/IB buffer for this new mesh)
 		m_ObjectManager.AddObjectMeshToBuffers ( pMesh, true );
 	}
-	// assign material to new entity (may need to create some way for multiple material indexes inside single mesh?)
-	//SetObjectArbitaryValue ( iObj, t.entityprofile[iEntID].materialindex ); // done per mesh now (above)
 
 	// work out bounds/radius of entity
 	CalculateObjectBounds ( iObj );

@@ -4607,6 +4607,50 @@ void imgui_importer_loop(void)
 						t.importer.defaultstatic = 0;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets whether the object is a static unmoving part of the scene");
+
+				// Selectively remove meshes from collision shape
+				sObject* pObject = g_ObjectList[t.importer.objectnumber];
+				bool bExcludeSpecificMeshes = false;
+				if (t.importer.meshesToExclude.size()>0) bExcludeSpecificMeshes = true;
+				if (ImGui::Checkbox("Exclude Specific Meshes", &bExcludeSpecificMeshes))
+				{
+					if (bExcludeSpecificMeshes == true)
+					{
+						for (int i = 0; i < pObject->iMeshCount; i++)
+						{
+							t.importer.meshesToExclude.push_back(0);
+						}
+					}
+					else
+					{
+						t.importer.meshesToExclude.clear();
+					}
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Special ability to exclude meshes from a mesh based physics collision shape");
+				if (bExcludeSpecificMeshes == true)
+				{
+					// Display the list of meshes to exclude from the collision shape.
+					char meshname[MAX_PATH];
+					for (int i = 0; i < pObject->iMeshCount; i++)
+					{
+						sMesh* pMesh = pObject->ppMeshList[i];
+						if (pMesh)
+						{
+							LPSTR pNameFromMesh = pMesh->pTextures[0].pName;
+							extern void Wicked_CreateShortName(int, LPSTR, LPSTR);
+							Wicked_CreateShortName(i, meshname, pNameFromMesh);
+							bool bThisMeshExcluded = false;
+							if(t.importer.meshesToExclude[i]==1) bThisMeshExcluded = true;
+							if (ImGui::Checkbox(meshname, &bThisMeshExcluded))
+							{
+								if(bThisMeshExcluded==true)
+									t.importer.meshesToExclude[i] = 1;
+								else
+									t.importer.meshesToExclude[i] = 0;
+							}
+						}
+					}
+				}
 			}
 			ImGui::Indent(-10);
 		}
@@ -7754,8 +7798,7 @@ void importer_save_fpe(void)
 	//  Transparency
 	t.importer.objectFPE.transparency = Str(t.slidersmenuvalue[t.importer.properties1Index][9].value - 1);
 
-	// MaterialIndex
-	// Strength
+	// MaterialIndex and Strength
 	if (t.importer.ischaracter > 0)
 	{
 		t.importer.objectFPE.materialindex = Str(6);
@@ -7763,7 +7806,12 @@ void importer_save_fpe(void)
 	}
 	else
 	{
-		t.importer.objectFPE.materialindex = Str(t.slidersmenuvalue[t.importer.properties1Index][10].value - 1);
+		// mesh exclusion uses DBO mesh data to mark material indexes per mesh using value 99999 in dwArbitaryValue
+		if(t.importer.meshesToExclude.size() > 0)
+			t.importer.objectFPE.materialindex = Str(99999);
+		else
+			t.importer.objectFPE.materialindex = Str(t.slidersmenuvalue[t.importer.properties1Index][10].value - 1);
+
 		t.importer.objectFPE.strength = Str(t.slidersmenuvalue[t.importer.properties1Index][6].value);
 	}
 
@@ -8057,18 +8105,24 @@ void importer_save_fpe(void)
 		//Make list of 10 last imported files, save in pref.
 		int firstempty = -1;
 		int i = 0;
-		for (; i < REMEMBERIMPORTFILES; i++) {
+		for (; i < REMEMBERIMPORTFILES; i++) 
+		{
 			if (firstempty == -1 && strlen(pref.last_import_files[i]) <= 0)
 				firstempty = i;
 
-			if (strlen(pref.last_import_files[i]) > 0 && pestrcasestr(find, pref.last_import_files[i])) { //already there
+			if (strlen(pref.last_import_files[i]) > 0 && pestrcasestr(find, pref.last_import_files[i])) 
+			{ 
+				//already there
 				break;
 			}
 		}
-		if (i >= REMEMBERIMPORTFILES) {
-			if (firstempty == -1) {
+		if (i >= REMEMBERIMPORTFILES) 
+		{
+			if (firstempty == -1) 
+			{
 				//No empty slots , rotate.
-				for (int ii = 0; ii < REMEMBERIMPORTFILES - 1; ii++) {
+				for (int ii = 0; ii < REMEMBERIMPORTFILES - 1; ii++) 
+				{
 					strcpy(pref.last_import_files[ii], pref.last_import_files[ii + 1]);
 				}
 				strcpy(pref.last_import_files[REMEMBERIMPORTFILES - 1], find);
@@ -8650,6 +8704,26 @@ void importer_save_entity ( char *filename )
 							GGMatrixInverse ( &pBones[iBone].matTranslation, &fDet, pMesh->pFrameMatrices [ iBone ] );
 						}
 					}
+				}
+			}
+		}
+	}
+
+	// if we have meshes to exclude in exported DBO file, mark in dwArbitaryValue inside mesh data as 99999
+	if (t.importer.meshesToExclude.size() > 0)
+	{
+		sObject* pObject = GetObjectData(t.importer.objectnumber);
+		if (pObject)
+		{
+			for (int i = 0; i < pObject->iMeshCount; i++)
+			{
+				sMesh* pMesh = pObject->ppMeshList[i];
+				if (pMesh)
+				{
+					if(t.importer.meshesToExclude[i]==1)
+						pMesh->Collision.dwArbitaryValue = 99999;
+					else
+						pMesh->Collision.dwArbitaryValue = t.slidersmenuvalue[t.importer.properties1Index][10].value - 1;
 				}
 			}
 		}

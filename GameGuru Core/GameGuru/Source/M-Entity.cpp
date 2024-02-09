@@ -1337,11 +1337,14 @@ bool entity_load (bool bCalledFromLibrary)
 
 				//  Parent LOD is not enabled, we use clone and instance
 				//  settings as we need per-entity element distance control
-
 				if (t.entityprofile[t.entid].isebe == 0)
 				{
-					// only set material if not EBE, as EBE objects carry per-mesh material values
-					SetObjectArbitaryValue(t.entobj, t.entityprofile[t.entid].materialindex);
+					// skip if material should come direct from DBO mesh data
+					if (t.entityprofile[t.entid].materialindex != 99999)
+					{
+						// only set material if not EBE, as EBE objects carry per-mesh material values
+						SetObjectArbitaryValue(t.entobj, t.entityprofile[t.entid].materialindex);
+					}
 				}
 
 				//  if entity has decals, find indexes to decals (which are already preloaded)
@@ -2298,8 +2301,6 @@ void entity_loaddata ( void )
 					//  18   = U Underwater
 					cmpStrConst( t_field_s, "materialindex" );
 					if (  matched  )  t.entityprofile[t.entid].materialindex = t.value1;
-					//cmpStrConst( t_field_s, "debrisshape" );
-					//if (  matched  )  t.entityprofile[t.entid].debrisshapeindex = t.value1;
 
 					//  LOD and BITBOB system
 					cmpStrConst( t_field_s, "disablebatch" );

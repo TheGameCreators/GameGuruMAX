@@ -2153,22 +2153,6 @@ void SetOBJLoadingFilename (LPSTR pFilename)
 
 void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrainMesh, int iCollisionScaling, int iHullReduction, float fWeight, float fFriction, float fRestitution )
 {
-	// know if we are going to be loading in .BULLET as we can skip creations
-	bool bGoingToBeLoadingBULLETDATAIn = false;
-	/* never used
-	if (0)
-	{
-		// loading in shape is actually 0.5 seconds slower than generating it live!
-		char pBULLETFileForReading[MAX_PATH];
-		strcpy(pBULLETFileForReading, g_ProvidedMeshFilenameForBNVHSaving);
-		GG_GetRealPath(pBULLETFileForReading, 0);
-		if (FileExist(pBULLETFileForReading) == 1 && iTerrainMesh == 1)
-		{
-			bGoingToBeLoadingBULLETDATAIn = true;
-		}
-	}
-	*/
-
 	// get reference object
 	sObject* pObject = GetObjectData ( iObjectNumber );
 	if ( pObject==NULL ) return;
@@ -2193,12 +2177,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	fZPos /= gSc;
 
 	// LB: Account for any offset from the model importer
-	#ifdef WICKEDENGINE
 	GGMATRIX matModelOffset;
 	GGMatrixIdentity(&matModelOffset);
 	GGMATRIX matIdentity;
 	GGMatrixIdentity(&matIdentity);
-
 	if (pObject->pFrame)
 	{
 		// work out the inverse of the model frame zero transform - we need to remove the offset from the raw mesh data further down
@@ -2206,7 +2188,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		matModelOffset = pObject->pFrame->matCombined;
 		GGMatrixInverse(&matModelOffset, &fDet, &matModelOffset);
 	}
-	#endif
 
 	// volume calculation
 	float fVolume = 0;
@@ -2224,79 +2205,78 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	bool bDWORDSizeIndices = false;
 	float* gVertices = NULL;
 	LPVOID gIndices = NULL;
-	if (bGoingToBeLoadingBULLETDATAIn == false)
+
+	// defaults to passed in object for collision mesh data
+	sObject* pObjectUsedToExtractPhysicsMesh = pRealObject;
+
+	// determine if OBJ file carries collision mesh
+	bool bObjectUsesOBJCollisionMesh = false;
+	int iObjectUsedToExtractPhysicsMesh = 0;
+	if (strlen(g_ProvidedMeshFilenameForOBJLoading) > 4)
 	{
-		// defaults to passed in object for collision mesh data
-		sObject* pObjectUsedToExtractPhysicsMesh = pRealObject;
-
-		// determine if OBJ file carries collision mesh
-		bool bObjectUsesOBJCollisionMesh = false;
-		int iObjectUsedToExtractPhysicsMesh = 0;
-		if (strlen(g_ProvidedMeshFilenameForOBJLoading) > 4)
+		char pNoFPE[MAX_PATH];
+		strcpy(pNoFPE, g_ProvidedMeshFilenameForOBJLoading);
+		pNoFPE[strlen(pNoFPE) - 4] = 0;
+		char pOBJCollisionMesh[MAX_PATH];
+		sprintf(pOBJCollisionMesh, "%s.obj", pNoFPE);
+		GG_GetRealPath(pOBJCollisionMesh, 0);
+		if (FileExist(pOBJCollisionMesh) == 0)
 		{
-			char pNoFPE[MAX_PATH];
-			strcpy(pNoFPE, g_ProvidedMeshFilenameForOBJLoading);
-			pNoFPE[strlen(pNoFPE) - 4] = 0;
-			char pOBJCollisionMesh[MAX_PATH];
-			sprintf(pOBJCollisionMesh, "%s.obj", pNoFPE);
+			sprintf(pOBJCollisionMesh, "%s_COL.obj", pNoFPE);
 			GG_GetRealPath(pOBJCollisionMesh, 0);
-			if (FileExist(pOBJCollisionMesh) == 0)
+		}
+		if (FileExist(pOBJCollisionMesh) == 1)
+		{
+			iObjectUsedToExtractPhysicsMesh = 69501;// g.temp2objectoffset;
+			if (ObjectExist(iObjectUsedToExtractPhysicsMesh) == 1) DeleteObject(iObjectUsedToExtractPhysicsMesh);
+			LoadObject (pOBJCollisionMesh, iObjectUsedToExtractPhysicsMesh);
+			RotateObject(iObjectUsedToExtractPhysicsMesh, ObjectAngleX(iObjectNumber), ObjectAngleY(iObjectNumber), ObjectAngleZ(iObjectNumber));
+			ScaleObject(iObjectUsedToExtractPhysicsMesh, ObjectScaleX(iObjectNumber), ObjectScaleY(iObjectNumber), ObjectScaleZ(iObjectNumber));
+			pObjectUsedToExtractPhysicsMesh = GetObjectData(iObjectUsedToExtractPhysicsMesh);
+			bObjectUsesOBJCollisionMesh = true;
+			if(pObjectUsedToExtractPhysicsMesh)
 			{
-				sprintf(pOBJCollisionMesh, "%s_COL.obj", pNoFPE);
-				GG_GetRealPath(pOBJCollisionMesh, 0);
-			}
-			if (FileExist(pOBJCollisionMesh) == 1)
-			{
-				iObjectUsedToExtractPhysicsMesh = 69501;// g.temp2objectoffset;
-				if (ObjectExist(iObjectUsedToExtractPhysicsMesh) == 1) DeleteObject(iObjectUsedToExtractPhysicsMesh);
-				LoadObject (pOBJCollisionMesh, iObjectUsedToExtractPhysicsMesh);
-				RotateObject(iObjectUsedToExtractPhysicsMesh, ObjectAngleX(iObjectNumber), ObjectAngleY(iObjectNumber), ObjectAngleZ(iObjectNumber));
-				ScaleObject(iObjectUsedToExtractPhysicsMesh, ObjectScaleX(iObjectNumber), ObjectScaleY(iObjectNumber), ObjectScaleZ(iObjectNumber));
-				pObjectUsedToExtractPhysicsMesh = GetObjectData(iObjectUsedToExtractPhysicsMesh);
-				bObjectUsesOBJCollisionMesh = true;
-
-				if(pObjectUsedToExtractPhysicsMesh)
-				{
-					//PE: New loaded .obj collision mesh dont match original frame zero transform, so set to MatrixIdentity
-					GGMatrixIdentity(&matModelOffset);
-				}
-
+				//PE: New loaded .obj collision mesh dont match original frame zero transform, so set to MatrixIdentity
+				GGMatrixIdentity(&matModelOffset);
 			}
 		}
+	}
 
-		// determine if using LOD, if so, choose lowest
-		int iChooseLowLOD = -1;
-		if (bObjectUsesOBJCollisionMesh == false)
+	// determine if using LOD, if so, choose lowest
+	int iChooseLowLOD = -1;
+	if (bObjectUsesOBJCollisionMesh == false)
+	{
+		// if no OBJ, rely on internal mesh stored in object (prefer frame named 'collision_mesh')
+		int iBestLowLOD = 0;
+		for (int iFrame = 0; iFrame < pRealObject->iFrameCount; iFrame++)
 		{
-			// if no OBJ, rely on internal mesh stored in object (prefer frame named 'collision_mesh')
-			int iBestLowLOD = 0;
-			for (int iFrame = 0; iFrame < pRealObject->iFrameCount; iFrame++)
+			sFrame* pFrame = pRealObject->ppFrameList[iFrame];
+			if (pFrame)
 			{
-				sFrame* pFrame = pRealObject->ppFrameList[iFrame];
-				if (pFrame)
+				if (pFrame->pMesh)
 				{
-					if (pFrame->pMesh)
-					{
-						if (stricmp (pFrame->szName, "lod_0") == NULL && iBestLowLOD < 1) { iChooseLowLOD = iFrame; iBestLowLOD = 1; }
-						if (stricmp (pFrame->szName, "lod_1") == NULL && iBestLowLOD < 2) { iChooseLowLOD = iFrame; iBestLowLOD = 2; }
-						if (stricmp (pFrame->szName, "lod_2") == NULL && iBestLowLOD < 3) { iChooseLowLOD = iFrame; iBestLowLOD = 3; }
-						if (stricmp (pFrame->szName, "collision_mesh") == NULL && iBestLowLOD < 4) { iChooseLowLOD = iFrame; iBestLowLOD = 4; }
-					}
+					if (stricmp (pFrame->szName, "lod_0") == NULL && iBestLowLOD < 1) { iChooseLowLOD = iFrame; iBestLowLOD = 1; }
+					if (stricmp (pFrame->szName, "lod_1") == NULL && iBestLowLOD < 2) { iChooseLowLOD = iFrame; iBestLowLOD = 2; }
+					if (stricmp (pFrame->szName, "lod_2") == NULL && iBestLowLOD < 3) { iChooseLowLOD = iFrame; iBestLowLOD = 3; }
+					if (stricmp (pFrame->szName, "collision_mesh") == NULL && iBestLowLOD < 4) { iChooseLowLOD = iFrame; iBestLowLOD = 4; }
 				}
 			}
 		}
+	}
 
-		// do I need to create new data, or can I use mesh data directly in mesh builder? (save memory)
-		int totalVerts = 0, totalIndices = 0;
-		for (int iFrame = 0; iFrame < pObjectUsedToExtractPhysicsMesh->iFrameCount; iFrame++)
+	// do I need to create new data, or can I use mesh data directly in mesh builder? (save memory)
+	int totalVerts = 0, totalIndices = 0;
+	for (int iFrame = 0; iFrame < pObjectUsedToExtractPhysicsMesh->iFrameCount; iFrame++)
+	{
+		if (iChooseLowLOD == -1 || iChooseLowLOD == iFrame)
 		{
-			if (iChooseLowLOD == -1 || iChooseLowLOD == iFrame)
+			sFrame* pFrame = pObjectUsedToExtractPhysicsMesh->ppFrameList[iFrame];
+			if (pFrame)
 			{
-				sFrame* pFrame = pObjectUsedToExtractPhysicsMesh->ppFrameList[iFrame];
-				if (pFrame)
+				sMesh* pMesh = pFrame->pMesh;
+				if (pMesh)
 				{
-					sMesh* pMesh = pFrame->pMesh;
-					if (pMesh)
+					if (pMesh->Collision.dwArbitaryValue != 99999) // mesh excluded for collision purposes
 					{
 						totalVerts = totalVerts + pMesh->dwVertexCount;
 						totalIndices = totalIndices + pMesh->dwIndexCount;
@@ -2304,61 +2284,53 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				}
 			}
 		}
+	}
 
-		// if more vertices than a WORD can index, use 32bit indices
-		if (totalVerts > 0xFFFF)
-		{
-			bDWORDSizeIndices = true;
-		}
-		gVertices = new float[totalVerts * 4];
-		memset (gVertices, 0, sizeof(float)*totalVerts * 4);
-		if (bDWORDSizeIndices == true)
-		{
-			gIndices = (LPVOID)new DWORD[totalIndices];
-			memset (gIndices, 0, sizeof(DWORD)*totalIndices);
-		}
-		else
-		{
-			gIndices = (LPVOID)new WORD[totalIndices];
-			memset (gIndices, 0, sizeof(WORD)*totalIndices);
-		}
+	// if more vertices than a WORD can index, use 32bit indices
+	if (totalVerts > 0xFFFF)
+	{
+		bDWORDSizeIndices = true;
+	}
+	gVertices = new float[totalVerts * 4];
+	memset (gVertices, 0, sizeof(float)*totalVerts * 4);
+	if (bDWORDSizeIndices == true)
+	{
+		gIndices = (LPVOID)new DWORD[totalIndices];
+		memset (gIndices, 0, sizeof(DWORD)*totalIndices);
+	}
+	else
+	{
+		gIndices = (LPVOID)new WORD[totalIndices];
+		memset (gIndices, 0, sizeof(WORD)*totalIndices);
+	}
 
-		//LB: get root node rotation to ensure mesh is right way up
-		GGMATRIX matRootRotOnly;
-		matRootRotOnly = pObjectUsedToExtractPhysicsMesh->ppFrameList[0]->matCombined;
-		matRootRotOnly._41 = 0;
-		matRootRotOnly._42 = 0;
-		matRootRotOnly._43 = 0;
+	//LB: get root node rotation to ensure mesh is right way up
+	GGMATRIX matRootRotOnly;
+	matRootRotOnly = pObjectUsedToExtractPhysicsMesh->ppFrameList[0]->matCombined;
+	matRootRotOnly._41 = 0;
+	matRootRotOnly._42 = 0;
+	matRootRotOnly._43 = 0;
 
-		// for convex hull, collect for vert only initially
-		int vcount = 0, icount = 0;
-		for (int iFrame = 0; iFrame < pObjectUsedToExtractPhysicsMesh->iFrameCount; iFrame++)
+	// for convex hull, collect for vert only initially
+	int vcount = 0, icount = 0;
+	for (int iFrame = 0; iFrame < pObjectUsedToExtractPhysicsMesh->iFrameCount; iFrame++)
+	{
+		if (iChooseLowLOD == -1 || iChooseLowLOD == iFrame)
 		{
-			if (iChooseLowLOD == -1 || iChooseLowLOD == iFrame)
+			sFrame* pFrame = pObjectUsedToExtractPhysicsMesh->ppFrameList[iFrame];
+			if (pFrame)
 			{
-				sFrame* pFrame = pObjectUsedToExtractPhysicsMesh->ppFrameList[iFrame];
-				if (pFrame)
+				sMesh* pMesh = pFrame->pMesh;
+				if (pMesh)
 				{
-					sMesh* pMesh = pFrame->pMesh;
-					if (pMesh)
+					if (pMesh->Collision.dwArbitaryValue != 99999) // mesh excluded for collision purposes
 					{
 						// transform matrices for frame/mesh
 						GGMATRIX matFinal;
-						#ifndef WICKEDENGINE
-						if (pMesh->pBones)
-						{
-							matFinal = pMesh->pBones[0].matTranslation;
-							GGMatrixMultiply (&matFinal, &matFinal, &pFrame->matCombined);
-						}
-						else
-						#endif
-						{
-							matFinal = pFrame->matCombined;
-						}
+						matFinal = pFrame->matCombined;
 
 						// LB: reverse ANY effect of the frame zero transform, then restore the rotation required
 						// this removes the offset portion from the mesh data, and will be returned with moving the physics object directly
-						#ifdef WICKEDENGINE
 						//PE: Using matModelOffset * matFinal on frame 0 invert changes and return a Identity matix, so they even themself out.
 						//PE: Other frames with Identity matix do not need this.
 						if (matFinal != matIdentity)
@@ -2366,39 +2338,19 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 							GGMatrixMultiply(&matFinal, &matFinal, &matModelOffset);
 						}
 						GGMatrixMultiply (&matFinal, &matFinal, &matRootRotOnly);
-						#endif
 
-						#ifdef WICKEDENGINE
 						// Do not scale raw geometry, we use setlocalscaling on shape instead (so can save and load raw convex hulls,etc)
 						GGMATRIX matScale;
 						GGMatrixScaling (&matScale, (1.0f * fScalingFactor) / gSc, (1.0f * fScalingFactor) / gSc, (1.0f * fScalingFactor) / gSc);
 						GGMatrixMultiply (&matFinal, &matFinal, &matScale);
-						#else
-						// apply scaling
-						GGMATRIX matScale;
-						GGMatrixScaling (&matScale, (pObject->position.vecScale.x * fScalingFactor) / gSc,
-							(pObject->position.vecScale.y * fScalingFactor) / gSc,
-							(pObject->position.vecScale.z * fScalingFactor) / gSc);
-
-						GGMatrixMultiply (&matFinal, &matFinal, &matScale);
-						#endif
 
 						// copy vertex to physics mesh buffer
 						float* pVertData = (float*)pMesh->pVertexData;
 						DWORD dwSkip = pMesh->dwFVFSize / sizeof(float);
 						for (int v = 0; v < (int)pMesh->dwVertexCount; v++)
 						{
-							GGVECTOR3 vec = GGVECTOR3(*(pVertData + 0),	*(pVertData + 1), *(pVertData + 2));
+							GGVECTOR3 vec = GGVECTOR3(*(pVertData + 0), *(pVertData + 1), *(pVertData + 2));
 							GGVec3TransformCoord (&vec, &vec, &matFinal);
-
-							//PE: Perhaps we could add the pFrame->vecOffset to the mesh data to get dynamic convexhull to work ?
-							#ifndef WICKEDENGINE
-							//PE: This only works with no pObject->pFrame->vecOffset for Classic. 
-							if (iHullReduction > 0 && isDynamic == 1) {
-								vec.y -= (fYSize*0.5);
-							}
-							#endif
-
 							*(gVertices + ((vcount + v) * 4) + 0) = vec.x;
 							*(gVertices + ((vcount + v) * 4) + 1) = vec.y;
 							*(gVertices + ((vcount + v) * 4) + 2) = vec.z;
@@ -2421,63 +2373,63 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				}
 			}
 		}
+	}
 
-		// if turns out this is index buffer based, ch_vertexBuffer data not enough
-		if (totalIndices > 0)
+	// if turns out this is index buffer based, ch_vertexBuffer data not enough
+	if (totalIndices > 0)
+	{
+		ch_vertexBuffer.clear();
+		for (int i = 0; i < totalIndices; i += 3)
 		{
-			ch_vertexBuffer.clear();
-			for (int i = 0; i < totalIndices; i += 3)
+			int iFace0, iFace1, iFace2;
+			if (bDWORDSizeIndices == true)
 			{
-				int iFace0, iFace1, iFace2;
-				if (bDWORDSizeIndices == true)
-				{
-					iFace0 = ((DWORD*)gIndices)[i + 0];
-					iFace1 = ((DWORD*)gIndices)[i + 1];
-					iFace2 = ((DWORD*)gIndices)[i + 2];
-				}
-				else
-				{
-					iFace0 = ((WORD*)gIndices)[i + 0];
-					iFace1 = ((WORD*)gIndices)[i + 1];
-					iFace2 = ((WORD*)gIndices)[i + 2];
-				}
-				GGVECTOR3 vec;
-				vec = GGVECTOR3(*(gVertices + ((iFace0) * 4) + 0), *(gVertices + ((iFace0) * 4) + 1), *(gVertices + ((iFace0) * 4) + 2));
-				ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
-				vec = GGVECTOR3(*(gVertices + ((iFace1) * 4) + 0), *(gVertices + ((iFace1) * 4) + 1), *(gVertices + ((iFace1) * 4) + 2));
-				ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
-				vec = GGVECTOR3(*(gVertices + ((iFace2) * 4) + 0), *(gVertices + ((iFace2) * 4) + 1), *(gVertices + ((iFace2) * 4) + 2));
-				ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
+				iFace0 = ((DWORD*)gIndices)[i + 0];
+				iFace1 = ((DWORD*)gIndices)[i + 1];
+				iFace2 = ((DWORD*)gIndices)[i + 2];
 			}
+			else
+			{
+				iFace0 = ((WORD*)gIndices)[i + 0];
+				iFace1 = ((WORD*)gIndices)[i + 1];
+				iFace2 = ((WORD*)gIndices)[i + 2];
+			}
+			GGVECTOR3 vec;
+			vec = GGVECTOR3(*(gVertices + ((iFace0) * 4) + 0), *(gVertices + ((iFace0) * 4) + 1), *(gVertices + ((iFace0) * 4) + 2));
+			ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
+			vec = GGVECTOR3(*(gVertices + ((iFace1) * 4) + 0), *(gVertices + ((iFace1) * 4) + 1), *(gVertices + ((iFace1) * 4) + 2));
+			ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
+			vec = GGVECTOR3(*(gVertices + ((iFace2) * 4) + 0), *(gVertices + ((iFace2) * 4) + 1), *(gVertices + ((iFace2) * 4) + 2));
+			ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
 		}
+	}
 
-		// index based mesh or verts only
-		if (totalIndices == 0)
-		{
-			// verts only, so CREATE index list
-			totalIndices = totalVerts;
-			gIndices = (LPVOID)new DWORD[totalIndices];
-			memset (gIndices, 0, sizeof(DWORD)*totalIndices);
-			for (int n = 0; n < totalIndices; n++) ((DWORD*)gIndices)[n] = n;
-			bDWORDSizeIndices = true;
-		}
+	// index based mesh or verts only
+	if (totalIndices == 0)
+	{
+		// verts only, so CREATE index list
+		totalIndices = totalVerts;
+		gIndices = (LPVOID)new DWORD[totalIndices];
+		memset (gIndices, 0, sizeof(DWORD)*totalIndices);
+		for (int n = 0; n < totalIndices; n++) ((DWORD*)gIndices)[n] = n;
+		bDWORDSizeIndices = true;
+	}
 
-		// index based mesh
-		const int totalTriangles = totalIndices / 3;
-		int vertStride = sizeof(float) * 4;
-		btMesh.m_numVertices = totalVerts;
-		btMesh.m_vertexBase = (const unsigned char*)gVertices;
-		btMesh.m_vertexStride = vertStride;
-		btMesh.m_numTriangles = totalTriangles;
-		btMesh.m_triangleIndexBase = (const unsigned char*)gIndices;
+	// index based mesh
+	const int totalTriangles = totalIndices / 3;
+	int vertStride = sizeof(float) * 4;
+	btMesh.m_numVertices = totalVerts;
+	btMesh.m_vertexBase = (const unsigned char*)gVertices;
+	btMesh.m_vertexStride = vertStride;
+	btMesh.m_numTriangles = totalTriangles;
+	btMesh.m_triangleIndexBase = (const unsigned char*)gIndices;
 
-		// free any temp object (used to load OBJ collision data in)
-		if (bObjectUsesOBJCollisionMesh==true)
-		{
-			if (ObjectExist(iObjectUsedToExtractPhysicsMesh) == 1) DeleteObject(iObjectUsedToExtractPhysicsMesh);
-			bObjectUsesOBJCollisionMesh = false;
-			iObjectUsedToExtractPhysicsMesh = 0;
-		}
+	// free any temp object (used to load OBJ collision data in)
+	if (bObjectUsesOBJCollisionMesh==true)
+	{
+		if (ObjectExist(iObjectUsedToExtractPhysicsMesh) == 1) DeleteObject(iObjectUsedToExtractPhysicsMesh);
+		bObjectUsesOBJCollisionMesh = false;
+		iObjectUsedToExtractPhysicsMesh = 0;
 	}
 
 	// possible shapes
@@ -2497,7 +2449,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		{
 			// try to load in convex hull/hull decomp shapes
 			btBulletWorldImporter* importer = new btBulletWorldImporter();
-
 			char pFindWhereBULLETFIleIsLocated[MAX_PATH];
 			strcpy(pFindWhereBULLETFIleIsLocated, g_ProvidedMeshFilenameForBNVHSaving);
 			GG_GetRealPath(pFindWhereBULLETFIleIsLocated, 0);
@@ -2518,7 +2469,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 			// iHullReduction : 1-single hull, 2-hull decomposition (multiple hulls)
 			if (iHullReduction == 2)
 			{
-				#ifdef WICKEDENGINE
 				// fill in temp points(verts) and triangles(indices)
 				std::vector<float> points;
 				std::vector<int> triangles;
@@ -2607,9 +2557,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				interfaceVHACD->Release();
 				points.clear();
 				triangles.clear();
-				#else
-				iHullReduction = 1;
-				#endif
 			}
 			if (iHullReduction == 1)
 			{
@@ -2672,7 +2619,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		}
 		g_indexvertexarrays.push_back(m_indexVertexArrays);
 
-		#ifdef WICKEDENGINE
 		if (strlen(g_ProvidedMeshFilenameForBNVHSaving) == 0)
 		{
 			// generate regular trimeshshape chunk as normal
@@ -2682,43 +2628,25 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		else
 		{
 			// see if terrain obj file exists for this chunk?
-
 			//PE: Found it , we was leaking around 400-600mb on each test game.
 			//PE: Problem was all the btBulletWorldImporter was never free'ed :)
 			//PE: Now keep a list and free everything when physics end's.
-
 			btBulletWorldImporter* importer = new btBulletWorldImporter();
-
 			char pBULLETFileForReading[MAX_PATH];
 			strcpy(pBULLETFileForReading, g_ProvidedMeshFilenameForBNVHSaving);
 			GG_GetRealPath(pBULLETFileForReading, 0);
 			if (importer->loadFile(pBULLETFileForReading))
 			{
-				// saved terrain obj chunk exists
-				if (0)
+				// this just saves and loads BVH, half a second quicker than above!
+				int numBvh = importer->getNumBvhs();
+				if (numBvh)
 				{
-					// seems saving and reloading the shape is SLOWER!!
-					int numShape = importer->getNumCollisionShapes();
-					if (numShape)
-					{
-						trimeshShape = (btBvhTriangleMeshShape*)importer->getCollisionShapeByIndex(0);
-					}
+					btOptimizedBvh* bvh = importer->getBvhByIndex(0);
+					btVector3 aabbMin(-1000, -1000, -1000), aabbMax(1000, 1000, 1000);
+					trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays, useQuantizedAabbCompression, aabbMin, aabbMax, false);
+					trimeshShape->setOptimizedBvh(bvh);
 				}
-				else
-				{
-					// this just saves and loads BVH, half a second quicker than above!
-					int numBvh = importer->getNumBvhs();
-					if (numBvh)
-					{
-						btOptimizedBvh* bvh = importer->getBvhByIndex(0);
-						btVector3 aabbMin(-1000, -1000, -1000), aabbMax(1000, 1000, 1000);
-						trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays, useQuantizedAabbCompression, aabbMin, aabbMax, false);
-						trimeshShape->setOptimizedBvh(bvh);
-					}
-				}
-
 				g_importers.push_back(importer); //PE: Free mem when ending ODE.
-
 			}
 			else
 			{
@@ -2734,16 +2662,8 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
 				serializer->startSerialization();
 				serializer->registerNameForPointer(trimeshShape, pTerrainBVHChunkName);
-				if (0)
-				{
-					// 4 seconds for terrain
-					trimeshShape->serializeSingleShape(serializer);
-				}
-				else
-				{
-					// 3.5 seconds for terrain
-					trimeshShape->serializeSingleBvh(serializer);
-				}
+				// 3.5 seconds for terrain
+				trimeshShape->serializeSingleBvh(serializer);
 				serializer->finishSerialization();
 				char pWriteOutBULLETFile[MAX_PATH];
 				strcpy(pWriteOutBULLETFile, g_ProvidedMeshFilenameForBNVHSaving);
@@ -2751,17 +2671,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				FILE* f2 = fopen(pWriteOutBULLETFile, "wb");
 				fwrite(serializer->getBufferPointer(), serializer->getCurrentBufferSize(), 1, f2);
 				fclose(f2);
-
 				//PE: We need to free the mem used here.
-				serializer->~btDefaultSerializer();
-				
+				serializer->~btDefaultSerializer();	
 			}
 		}
-		#else
-		// generate trimeshshape for BVH chunk (classic asnd VRQ)
-		trimeshShape = new btBvhTriangleMeshShape(m_indexVertexArrays, useQuantizedAabbCompression, aabbMin, aabbMax, false);
-		trimeshShape->buildOptimizedBvh(); // done manually - takes 38ms for large terrain mesh
-		#endif
 		g_collisionShapes.push_back(trimeshShape);
 	}
 
@@ -2786,10 +2699,8 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	btTransform startTransform;
 	fillTransform(startTransform, fXPos, fYPos, fZPos, fXRot, fYRot, fZRot);
 
-	#ifdef WICKEDENGINE
 	// get real scale of object
 	btVector3 vLocalShapeScale = btVector3(pObject->position.vecScale.x, pObject->position.vecScale.y, pObject->position.vecScale.z);
-	#endif
 
 	// create rigid body
 	btRigidBody* body = NULL;
@@ -2799,27 +2710,21 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	{
 		case 0: 
 		{
-			#ifdef WICKEDENGINE
 			trimeshShape->setLocalScaling(vLocalShapeScale);
-			#endif
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, trimeshShape, localInertia);
 			body = new btRigidBody(rbInfo);
 			break;
 		}
 		case 1:
 		{
-			#ifdef WICKEDENGINE
 			simplifiedConvexShape->setLocalScaling(vLocalShapeScale);
-			#endif
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, simplifiedConvexShape, localInertia);
 			body = new btRigidBody(rbInfo);
 			break;
 		}
 		case 2:
 		{
-			#ifdef WICKEDENGINE
 			compoundShape->setLocalScaling(vLocalShapeScale);
-			#endif
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, compoundShape, localInertia);
 			body = new btRigidBody(rbInfo);
 			break;
@@ -2830,7 +2735,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	int iArbValue = 0;
 	if ( pRealObject->ppMeshList!=NULL ) iArbValue = pRealObject->ppMeshList[0]->Collision.dwArbitaryValue;
 	body->setUserPointer((void*)iArbValue);
-
 
 	// add physics object to system
 	short sColliderType = COL_OBJECT;
@@ -2850,7 +2754,6 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 
 	// add physics object details to pbject list
 	ODEAddObject ( iObjectNumber, pObject, body, isDynamic, myMotionState, false, bBouyant, gVertices, gIndices, 1, 1, fFriction, mass );
-
 }
 
 void DeleteallImporters()

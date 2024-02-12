@@ -1112,7 +1112,11 @@ bool entity_load (bool bCalledFromLibrary)
 						SetObjectDiffuse(t.entobj, Rgb(255, 255, 255));
 
 					// wipe ANY material emission colors
-					SetObjectEmissive(t.entobj, 0);
+					if (!t.entityprofile[t.entid].WEMaterial.MaterialActive)
+					{
+						// only if NOT using an active Wicked material (so multi-mesh object thumbs and previews can have emissives!)
+						SetObjectEmissive(t.entobj, 0);
+					}
 
 					// prepare properties
 					SetFastBoundsCalculation(1);

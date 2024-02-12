@@ -1,4 +1,4 @@
--- DESCRIPTION: Character will patrol using flags that are nearest or connected, and has options to [!AllowHeadshot].
+-- DESCRIPTION: Character will patrol using flags that are nearest or connected, and has options to [!AllowHeadshot]
 master_interpreter_core = require "scriptbank\\masterinterpreter"
 
 g_patrol = {}
@@ -19,7 +19,18 @@ end
 
 function patrol_main(e)
  if g_patrol[e] ~= nil and g_patrol_behavior_count > 0 then
-  g_patrol_behavior_count = master_interpreter_core.masterinterpreter (g_patrol_behavior, g_patrol_behavior_count, e, g_patrol[e], g_Entity[e])
+  local returnvalue = master_interpreter_core.masterinterpreter (g_patrol_behavior, g_patrol_behavior_count, e, g_patrol[e], g_Entity[e])
+  if returnvalue >= 0 then
+   g_patrol_behavior_count = returnvalue
+  else
+   local rapiddamageprocessingcount = math.abs(returnvalue)
+   for rapiddamageprocessing = 1, rapiddamageprocessingcount do
+    local returnvalue = master_interpreter_core.masterinterpreter (g_patrol_behavior, g_patrol_behavior_count, e, g_patrol[e], g_Entity[e])
+    if returnvalue >= 0 then
+     g_patrol_behavior_count = returnvalue
+	end
+   end
+  end
  end
 end
 

@@ -2913,6 +2913,28 @@ void entity_lua_switchscript ( void )
 	{
 		t.entityelement[t.e].eleprof.aimain_s = t.s_s;
 		lua_loadscriptin();
+
+		// first try initialising with a name string
+		t.strwork = ""; t.strwork = t.strwork + t.entityelement[t.e].eleprof.aimainname_s.Get() + "_init_name";
+		LuaSetFunction (t.strwork.Get(), 2, 0);
+		t.tentityname_s = t.entityelement[t.e].eleprof.name_s;
+		LuaPushInt (t.e); LuaPushString (t.tentityname_s.Get());
+		LuaCallSilent ();
+
+		// then try passing in location of this script (needed for relative discovery of BYC file!)
+		t.strwork = ""; t.strwork = t.strwork + t.entityelement[t.e].eleprof.aimainname_s.Get() + "_init_file";
+		LuaSetFunction (t.strwork.Get(), 2, 0);
+		char pRemoveLUAEXT[MAX_PATH];
+		strcpy(pRemoveLUAEXT, t.entityelement[t.e].eleprof.aimain_s.Get());
+		if (strlen(pRemoveLUAEXT) > 4)
+		{
+			pRemoveLUAEXT[strlen(pRemoveLUAEXT) - 4] = 0;
+		}
+		LuaPushInt (t.e);
+		LuaPushString(pRemoveLUAEXT);
+		LuaCallSilent ();
+
+		// then the actual _init call
 		t.strwork = cstr(cstr(Lower(t.entityelement[t.e].eleprof.aimainname_s.Get())) + "_init");
 		LuaSetFunction (t.strwork.Get(), 1, 0);
 		LuaPushInt (t.e); LuaCallSilent ();

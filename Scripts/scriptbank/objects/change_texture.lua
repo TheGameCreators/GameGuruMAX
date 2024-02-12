@@ -1,4 +1,4 @@
--- Change Texture v7
+-- Change Texture v9
 -- DESCRIPTION: Changes the object texture when activated by another object.
 -- DESCRIPTION: Default texture is [IMAGEFILE1$=""] and the alternative texture is [IMAGEFILE2$=""]. 
 -- DESCRIPTION: Control texture UV scale using [#TEXTURE_SCALE_U=1.0] and [#TEXTURE_SCALE_V=1.0].
@@ -24,13 +24,9 @@ local atlas_texture_rows 			= {}
 local atlas_texture_columns 		= {}
 local imagefile1id 					= {}
 local imagefile2id 					= {}
-local material1_emissive_strength 	= {}
-local material2_emissive_strength 	= {}
-local emissive_strength_variance 	= {}
 local status						= {}
 
 function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,texture_scale_v,texture_offset_u,texture_offset_v,scroll_direction_u,scroll_direction_v,texture_speed,atlas_texture_rows,atlas_texture_columns, material1_emissive_strength, material2_emissive_strength, emissive_strength_variance)
-	change_texture[e] = g_Entity[e]
 	change_texture[e].imagefile1 = imagefile1
 	change_texture[e].imagefile2 = imagefile2
 	change_texture[e].texture_scale_u = texture_scale_u
@@ -44,8 +40,11 @@ function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,textu
 	change_texture[e].atlas_texture_columns = atlas_texture_columns
 	change_texture[e].imagefile1id = LoadImage(imagefile1)
 	change_texture[e].imagefile2id = LoadImage(imagefile2)
+	if material1_emissive_strength == nil then material1_emissive_strength = 300 end
+	if material2_emissive_strength == nil then material2_emissive_strength = 300 end
 	change_texture[e].material1_emissive_strength = material1_emissive_strength
 	change_texture[e].material2_emissive_strength = material2_emissive_strength
+	if emissive_strength_variance == nil then emissive_strength_variance = 50 end
 	change_texture[e].emissive_strength_variance = emissive_strength_variance	
 	if string.len(imagefile1)>0 then 
 		SetEntityTexture(e,change_texture[e].imagefile1id) 
@@ -60,7 +59,7 @@ function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,textu
 end
 
 function change_texture_init_name(e,name)
-	change_texture[e] = g_Entity[e]
+	change_texture[e] = {}
 	change_texture[e].imagefile1 = ""
 	change_texture[e].imagefile2 = ""
 	change_texture[e].texture_scale_u = 1
@@ -84,11 +83,9 @@ function change_texture_init_name(e,name)
 end
 
 function change_texture_main(e)
-	change_texture[e] = g_Entity[e]
 	if status[e] == "init" then
 		status[e] = "endinit"
 	end
- 
 	if g_Entity[e].activated == 1 then		
 		if change_texture[e].imagemode == 1 then
 			if string.len(change_texture[e].imagefile2)>0 then 

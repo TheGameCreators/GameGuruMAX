@@ -445,6 +445,7 @@ void workshop_update ( bool bRefreshIfFlagged )
 		g_iUnsubscribeByForce++;
 		if (g_iUnsubscribeByForce == 2)
 		{
+			timestampactivity(0, "g_UserWorkShopItem.UnsubscribeTrustedItems()");
 			g_UserWorkShopItem.UnsubscribeTrustedItems();
 		}
 		else
@@ -547,6 +548,7 @@ void workshop_update_steamusernames (void)
 void workshop_subscribetoalltrusteditems (void)
 {
 	// init trusted item list
+	timestampactivity(0, "workshop_subscribetoalltrusteditems");
 	g_workshopTrustedItems.clear();
 	
 	// file storing steam user name database
@@ -554,6 +556,7 @@ void workshop_subscribetoalltrusteditems (void)
 	strcpy(pWorkshopItemsTrustedSources, "WorkshopTrustedItems.ini");
 
 	// load trusted items IDs
+	timestampactivity(0, pWorkshopItemsTrustedSources);
 	if (FileExist(pWorkshopItemsTrustedSources) == 1)
 	{
 		OpenToRead(1, pWorkshopItemsTrustedSources);
@@ -562,7 +565,10 @@ void workshop_subscribetoalltrusteditems (void)
 		{
 			LPSTR pLineTrustedItem = ReadString (1);
 			if (strlen(pLineTrustedItem) > 0)
+			{
+				timestampactivity(0, pLineTrustedItem);
 				g_workshopTrustedItems.push_back(_atoi64(pLineTrustedItem));
+			}
 			else
 				bKeepReadingLines = false;
 		}
@@ -749,12 +755,17 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 					if (bAlreadySubscribed == false)
 					{
 						uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+						char pSubscribeAttempt[MAX_PATH];
+						sprintf(pSubscribeAttempt, "Subscribing to trusted item unItemState=%d", (int)unItemState);
+						timestampactivity(0, pSubscribeAttempt);
 						if (unItemState == k_EItemStateNone)
 						{
 							// item is not subscribed to, so subscrube to trusted item
 							SteamUGC()->SubscribeItem(thisItem);
+							timestampactivity(0, ">SteamUGC()->SubscribeItem");
 							if (SteamUGC()->DownloadItem (thisItem, true) == true)
 							{
+								timestampactivity(0, ">SteamUGC()->DownloadItem");
 								g_bStillDownloadingThings = true;
 								g_bStillDownloadingThingsWithDelay = true;
 								g_iStillDownloadingThingsWithDelayTimer = Timer();
@@ -922,6 +933,7 @@ UGCQueryHandle_t g_UGCQueryHandle = NULL;
 void CSteamUserGeneratedWorkshopItem::RefreshItemsList()
 {
 	// clear last list
+	timestampactivity(0, "CSteamUserGeneratedWorkshopItem::RefreshItemsList()");
 	g_workshopItemsList.clear();
 
 	// create a new query (if MORE THAN 50, need to go through ALL PAGES!!)
@@ -949,6 +961,7 @@ void CSteamUserGeneratedWorkshopItem::RefreshItemsList()
 
 void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryCompleted_t* pCallback, bool bIOFailure)
 {
+	timestampactivity(0, "CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried");
 	if (pCallback->m_unNumResultsReturned > 0)
 	{
 		SteamUGCDetails_t details;
@@ -998,6 +1011,7 @@ void CSteamUserGeneratedWorkshopItem::onWorkshopItemQueried(SteamUGCQueryComplet
 					newitem.bDownloadItemTriggered = false;
 					newitem.iNumberOfFilesInWorkshopItem = 0;
 					newitem.sLatestDateOfItem = "";
+					timestampactivity(0, newitem.sName.Get());
 					g_workshopItemsList.push_back(newitem);
 				}
 			}

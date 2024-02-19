@@ -1,28 +1,30 @@
 -- DESCRIPTION: A global script that provides utility functions for common tasks.
+-- Module_Misclib v11 - Necrym and Lee
 
 g_module_misclib = {}
+g_tEnt = {}
 
 local module_misclib = {}
 local U = require "scriptbank\\utillib"
-local tEnt = {}
 local selectobj = {}
 
 function module_misclib.pinpoint(e,pickuprange,maxrange)
 	--pinpoint select object--
 	PlayerDist = GetPlayerDistance(e)
-	if PlayerDist < maxrange then
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0, 0, pickuprange
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e] = IntersectAll(px, py, pz, px+rayX, py+rayY, pz+rayZ, g_Entity[e]['obj'])
-		if selectobj[e] ~= 0 or nil then
+	if PlayerDist < pickuprange then
+		selectobj[e]= U.ObjectPlayerLookingAt(pickuprange)
+		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
 			if g_Entity[e]['obj'] == selectobj[e] then
-				Text(50,50,3,"+")
-				tEnt[e] = e
+				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) -- Compensated -0.01 position for offset of character font
+				g_tEnt = e
+			else
+				g_tEnt = 0
 			end
 		end
-		if selectobj[e] == 0 or nil then tEnt[e] = 0 end
+		if selectobj[e] == 0 or selectobj[e] == nil then
+			g_tEnt = 0
+			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) -- Compensated -0.01 position for offset of character font
+		end
 	end
 	--end pinpoint select object--
 end

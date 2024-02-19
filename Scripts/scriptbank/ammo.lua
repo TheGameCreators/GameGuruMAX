@@ -1,4 +1,4 @@
--- v10 by Necrym and Lee
+-- v11 by Necrym and Lee
 -- DESCRIPTION: The object will give the player ammunition if collected, and optionally play <Sound0> for collection.
 -- DESCRIPTION: You can change the [PROMPTTEXT$="E to collect"]
 -- DESCRIPTION: Set the Ammo [&QUANTITY=(1,100)]
@@ -10,9 +10,8 @@
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 local g_ammo = {}
-local tEnt = {}
-local selectobj = {}
 
 function ammo_properties(e, prompttext, quantity, pickuprange, pickup_style, collection_text,play_pickup,activate_logic)
 	g_ammo[e]['prompttext'] = prompttext
@@ -47,7 +46,7 @@ function ammo_main(e)
 		--pinpoint select object--
 		module_misclib.pinpoint(e,g_ammo[e]['pickuprange'],200)
 		--end pinpoint select object--
-		if PlayerDist < g_ammo[e]['pickuprange'] and tEnt[e] ~= 0 or nil and GetEntityVisibility(e) == 1 then	
+		if PlayerDist < g_ammo[e]['pickuprange'] and g_tEnt ~= 0 then
 			PromptLocalForVR(e,g_ammo[e]['prompttext'])
 			if g_KeyPressE == 1 then
 				triggerthepickup = 1

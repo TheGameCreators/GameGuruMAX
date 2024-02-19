@@ -1,4 +1,4 @@
--- Weapon v10 - Necrym and Lee
+-- Weapon v11 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
@@ -7,12 +7,11 @@
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+
+g_tEnt = {}
 local weapon			= {}
 local pickup_range		= {}
 local pickup_style		= {}
-local tEnt 				= {}
-local selectobj 		= {}
-
 weapon_therecanbeonlyone = 0
 weapon_temprompttimer = 0
 
@@ -29,8 +28,6 @@ function weapon_init_name(e,name)
 	weapon[e].pickup_style = 1
 	weapon[e].play_pickup = 0
 	weapon[e].activate_logic = 0
-	tEnt[e] = 0
-	selectobj[e] = 0
 	weapon_name[e] = name
 	weapon[e].lastdistance1 = -1
 	weapon[e].lastdistance2 = -2
@@ -47,34 +44,18 @@ function weapon_main(e)
 		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then		
 			--pinpoint select object--
 			module_misclib.pinpoint(e,weapon[e].pickup_range,200)
-			--local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			--local rayX, rayY, rayZ = 0,0,weapon[e].pickup_range
-			--local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			--rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			--selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			--if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			--	if g_Entity[e].obj == selectobj[e] then
-			--		TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-			--		tEnt[e] = e
-			--	else
-			--		tEnt[e] = 0				
-			--	end
-			--end
-			--if selectobj[e] == 0 or selectobj[e] == nil then
-			--	tEnt[e] = 0
-			--	TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-			--end
 			--end pinpoint select object--
 		end
 	end
+
 	if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
 		if weapon[e].pickup_style == 1 then
 			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
 			if LookingAt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
 		end	
 		if weapon[e].pickup_style == 2 then
-			if tEnt[e] > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
-			if tEnt[e] == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
+			if g_tEnt > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
+			if g_tEnt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
 		end
 		if g_Entity[e]['haskey'] == 1 then
 			-- reused haskey flag for use when auto collect from dead character if player already got the weapon

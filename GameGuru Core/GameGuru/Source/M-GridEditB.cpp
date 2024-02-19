@@ -46780,24 +46780,29 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			char slotname[256];
 			sprintf(LoadGameTitle[i], "%d: EMPTY PROGRESS SLOT", i);
 			if (standalone)
-				strcpy(LoadGameTitle[i], "EMPTY PROGRESS SLOT");
-
-			sprintf(slotname, "savegames\\gameslot%d.dat", i);
-			FILE* fFile = GG_fopen(slotname, "r");
-			if (fFile)
 			{
-				char ctmp[256];
-				bool bStart = false;
-				fgets(ctmp, 256 - 1, fFile);
-				fgets(ctmp, 256 - 1, fFile);
-				fgets(ctmp, 256 - 1, fFile);
-				if (strlen(ctmp) > 0 && ctmp[strlen(ctmp) - 1] == '\n')
-					ctmp[strlen(ctmp) - 1] = 0;
-				if (strlen(ctmp) > 0)
+				// Storyboard should only show placeholder slot text
+				strcpy(LoadGameTitle[i], "EMPTY PROGRESS SLOT");
+			}
+			else
+			{
+				sprintf(slotname, "savegames\\gameslot%d.dat", i);
+				FILE* fFile = GG_fopen(slotname, "r");
+				if (fFile)
 				{
-					strcpy(LoadGameTitle[i], ctmp);
+					char ctmp[256];
+					bool bStart = false;
+					fgets(ctmp, 256 - 1, fFile);
+					fgets(ctmp, 256 - 1, fFile);
+					fgets(ctmp, 256 - 1, fFile);
+					if (strlen(ctmp) > 0 && ctmp[strlen(ctmp) - 1] == '\n')
+						ctmp[strlen(ctmp) - 1] = 0;
+					if (strlen(ctmp) > 0)
+					{
+						strcpy(LoadGameTitle[i], ctmp);
+					}
+					fclose(fFile);
 				}
-				fclose(fFile);
 			}
 		}
 

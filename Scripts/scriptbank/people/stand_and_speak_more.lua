@@ -61,11 +61,10 @@ function stand_and_speak_more_main( e )
 	   peep.state == 'speak' then
 		Speak( e, peep.speech, peep.Volume )
 		peep.state = 'wait'
-
 	elseif
 	   peep.state == 'wait' then
-	   	SendMessageF( "lookattargete", e, 0 )
-		SendMessageF( "lookatplayer", e, 10 )
+		LookAtTarget(e,0)
+		LookAtPlayer(e,0)	   
 
 		if GetSpeech( e ) == 0 then
 			peep.speech = peep.speech + 1

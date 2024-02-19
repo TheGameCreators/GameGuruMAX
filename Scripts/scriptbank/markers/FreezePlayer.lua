@@ -1,4 +1,4 @@
--- FreezePlayer v9
+-- FreezePlayer v11
 -- DESCRIPTION: When a player enters zone will freeze the player, and stay in a frozen state for
 -- DESCRIPTION: [FREEZETIME=3] seconds. Set the [ZONEHEIGHT=100(1,500)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
@@ -10,13 +10,6 @@
 -- DESCRIPTION: <Sound1> Sound to play when unfreezing
 
 local freeze 		= {}
-local freezetime 	= {}
-local zoneheight	= {}
-local SpawnAtStart	= {}
-local MultiTrigger	= {}
-local FreezeStyle	= {}
-local zone_trigger	= {}
-
 local frozenmode	= {}
 local frozentime	= {}
 local freezex		= {}
@@ -28,14 +21,13 @@ local played		= {}
 local status		= {}
 
 function FreezePlayer_properties(e, freezetime, zoneheight, SpawnAtStart, MultiTrigger, FreezeStyle, ViewAngleLimit, zone_trigger)
-	freeze[e] = g_Entity[e]
-	freeze[e].freezetime = freezetime
+	freeze[e].freezetime = freezetime or 3
 	freeze[e].zoneheight = zoneheight or 100
-	freeze[e].SpawnAtStart = SpawnAtStart
-	freeze[e].MultiTrigger = MultiTrigger
-	freeze[e].FreezeStyle = FreezeStyle
-	freeze[e].ViewAngleLimit = ViewAngleLimit	
-	freeze[e].zone_trigger = zone_trigger
+	freeze[e].SpawnAtStart = SpawnAtStart or 1
+	freeze[e].MultiTrigger = MultiTrigger or 1
+	freeze[e].FreezeStyle = FreezeStyle or 1
+	freeze[e].ViewAngleLimit = ViewAngleLimit or 90	
+	freeze[e].zone_trigger = zone_trigger or 2
 end
 
 function FreezePlayer_init(e)
@@ -46,8 +38,7 @@ function FreezePlayer_init(e)
 	freeze[e].MultiTrigger = 1
 	freeze[e].FreezeStyle = 1
 	freeze[e].ViewAngleLimit = 90
-	freeze[e].zone_trigger = 2
-		
+	freeze[e].zone_trigger = 2	
 	frozenmode[e] = 0
 	freezex[e] = 0
 	freezey[e] = 0
@@ -60,7 +51,6 @@ function FreezePlayer_init(e)
 end
 
 function FreezePlayer_main(e)
-	freeze[e] = g_Entity[e]
 	if status[e] == "init" then
 		if freeze[e].SpawnAtStart == 1 then SetActivated(e,1) end
 		if freeze[e].SpawnAtStart == 0 then SetActivated(e,0) end

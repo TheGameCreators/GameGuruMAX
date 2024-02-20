@@ -81,6 +81,7 @@ cstr g_iconImageInPropertiesLastName_s = "";
 bool g_bChangedGameCollectionList = false;
 
 bool g_bUpdateCollectionList = false;
+bool g_bSelectedNewObjectToAddToLevel = false;
 
 //#include "M-CharacterCreatorPlusTTS.h" now done in new header
 #include <algorithm>
@@ -123,6 +124,10 @@ using namespace GGGrass;
 #else
 #define XMSTATICCOLOR XMFLOAT4(1.0f, 0.25f, 0.0f, 0.0f)
 #define XMDYNAMICCOLOR XMFLOAT4(0.25f, 1.0f, 0.25f, 0.0f)
+#endif
+
+#ifdef OPTICK_ENABLE
+#include "optick.h"
 #endif
 
 extern sObject* g_selected_editor_object;
@@ -1554,6 +1559,10 @@ int iTriggerGrassTreeUpdate = 0;
 
 bool commonexecutable_loop_for_game(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//PE: Support delayed terrain update in standalone.
 	extern int iTriggerInvalidateAfterFrames;
 
@@ -2292,7 +2301,6 @@ void launchOrShowBuildingEditor(void)
 
 void mapeditorexecutable_loop(void)
 {
-	#ifdef WICKEDENGINE
 	if (g_iCountdownToAlphaBetaMessage > 0)
 	{
 		g_iCountdownToAlphaBetaMessage--;
@@ -2302,10 +2310,8 @@ void mapeditorexecutable_loop(void)
 			common_autoupdatecheck();
 		}
 	}
-	#endif
 
 	#ifdef ENABLEIMGUI
-	#ifdef WICKEDENGINE
 	if (iUpdateOcean > 0)
 	{
 		iUpdateOcean--;
@@ -2316,9 +2322,6 @@ void mapeditorexecutable_loop(void)
 			wiScene::GetScene().OceanRegenerate();
 		}
 	}
-	#endif
-
-#ifdef WICKEDENGINE
 
 	static int iCheckForMinimized = 0;
 	static bool bInMinimizeMode = false;
@@ -2338,24 +2341,8 @@ void mapeditorexecutable_loop(void)
 		iCheckForMinimized = 0;
 	}
 
-	/* DUP
-	extern int iTriggerInvalidateAfterFrames;
-	if (iTriggerInvalidateAfterFrames > 0)
-	{
-		if (iTriggerInvalidateAfterFrames == 1)
-		{
-			//PE: Need to do this delayed so terrain update have been updated with new data.
-			//PE: Invalidate everything so custom sculpt data is updated with textures ...
-			//PE: @Paul not sure if there is a better way to do this, but this works :)
-			GGTerrain::GGTerrain_InvalidateRegion(-1000000.0, -1000000.0, 1000000.0, 1000000.0, GGTERRAIN_INVALIDATE_ALL);
-		}
-		iTriggerInvalidateAfterFrames--;
-	}
-	*/
-
 	//PE: Change icon set here where we have no imgui images on screen.
 	SetIconSetCheck(false);
-#endif
 
 	bSmallVideoFrameStart = true;
 	// special modes used when in test game or standalone game
@@ -2365,7 +2352,6 @@ void mapeditorexecutable_loop(void)
 	extern bool g_bNoSwapchainPresent;
 
 	#ifdef WICKEDENGINE
-
 	bLastSmallVideoPlayerMaximized = bSmallVideoPlayerMaximized; //We need to status one frame behind.
 	bSmallVideoPlayerMaximized = false;
 
@@ -2584,21 +2570,12 @@ void mapeditorexecutable_loop(void)
 		case 1:  // Test Game
 		case 20: // VR Test Game
 
-			#ifdef WICKEDENGINE
-
 			if (t.game.gameisexe == 0)
 			{
 				//PE: Backup so we can restore last selected object after testgame.
 				backup_pickedObject = t.widget.pickedObject;
 				backup_gridentity = t.gridentity;
 				backup_gridentityobj = t.gridentityobj;
-				
-				//// Backup storyboard as we are about to change the widget positions to handle different aspect ratios
-
-				//extern void StoryboardCopy(StoryboardStruct*, StoryboardStruct*);
-				//extern void StoryboardOffsetWidgetsFromQuadrants(StoryboardStruct* storyboard);
-				//StoryboardCopy(&StoryboardBackup, &Storyboard);
-				//StoryboardOffsetWidgetsFromQuadrants(&Storyboard);
 			}
 			else
 			{
@@ -2614,16 +2591,9 @@ void mapeditorexecutable_loop(void)
 				bStartInvulnerableMode = false;
 				bInvulnerableMode = true;
 			}
-			
-			//PE: Cant set it here, need to be after we have made a backup of user settings.
-			//SetGlobalGraphicsSettings( pref.iTestGameGraphicsQuality );
-
-			#endif
 
 			if (iLaunchAfterSync == 20 && g.gvrmode == 0)
 			{
-				//HWND hThisWnd = GetForegroundWindow();
-				//MessageBoxA(hThisWnd, "You are not in VR mode. You need to exit the software. When you restart, select VR MODE ON to enable VR.", "Not in VR Mode", MB_OK);
 			}
 			else
 			{
@@ -2647,49 +2617,24 @@ void mapeditorexecutable_loop(void)
 				object_preload_files_reset();
 				if ( bTestInVRMode == false )
 				{
-					#ifdef WICKEDENGINE
 					editor_previewmap_initcode(0);
 					iLaunchAfterSync = 201;
-					#else
-					editor_previewmap(0);
-					mapeditorexecutable_loop_leavetestgame();
-					#endif
 				}
 				else
 				{
-					#ifdef WICKEDENGINE
 					editor_previewmap_initcode(1);
 					iLaunchAfterSync = 201;
-					#else
-					RunCode(0); //switch to backbuffer
-					editor_previewmap(1);
-					mapeditorexecutable_loop_leavetestgame();
-					SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2); //switch back to render target.
-					bImGuiInTestGame = false;
-					#endif
 				}
-				#ifdef WICKEDENGINE
-				// wicked engine needs to stay in constant loop - no internal loops!!
-				#else
-				iLaunchAfterSync = 0;
-				sky_show(); //Restore skybox.
-				iLastUpdateVeg = 0; //Veg: update any changes from F9
-				bUpdateVeg = true;
-				#endif
 				break;
 			}
 			break;
 
 		case 30: //Create thumbnail.
 		{
-			if (iTooltipLastObjectId > 0) {
+			if (iTooltipLastObjectId > 0) 
+			{
 				int drawobj = g.entitybankoffset + iTooltipLastObjectId;
 				g_bNoSwapchainPresent = true; //dont present backbuffer to HWND.
-				#ifdef WICKEDENGINE
-				// restore this later on!
-				#else
-				RenderToPreview(drawobj);
-				#endif
 			}
 			iLaunchAfterSync = 31;
 			break;
@@ -2707,9 +2652,7 @@ void mapeditorexecutable_loop(void)
 			RunCode(0); //switch to backbuffer
 			editor_multiplayermode();
 			bBlockImGuiUntilNewFrame = true;
-			#ifdef WICKEDENGINE
 			bRenderNextFrame = false;
-			#endif
 			SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2); //switch back to render target.
 			bImGuiInTestGame = false;
 			iLaunchAfterSync = 0;
@@ -2760,7 +2703,8 @@ void mapeditorexecutable_loop(void)
 	}
 	if (tmpHwnd == g_pGlob->hWnd) 
 	{
-		if (bLostFocus) {
+		if (bLostFocus) 
+		{
 			//We got focus again.
 			//Looks like its fine to reset keys on lost only.
 			//If there is a problem, they can also be reset here.
@@ -2776,25 +2720,13 @@ void mapeditorexecutable_loop(void)
 		refresh_gui_docking = 0;
 		pref.vStartResolution = { 1280,800 };
 		pref.iMaximized = 1;
-		#ifndef WICKEDENGINE
-		//PE: Dont touch window in wicked.
-		SetWindowSize(pref.vStartResolution.x, pref.vStartResolution.y);
-		float centerx = (GetDesktopWidth()*0.5) - (pref.vStartResolution.x*0.5);
-		float centery = ((float)(GetDesktopHeight()*0.5) - (float)(pref.vStartResolution.y*0.5)) * 0.5f;
-		if (centerx < 0) centerx = 0;
-		if (centery < 0) centery = 0;
-		SetWindowPosition(centerx, centery);
-		MaximiseWindow();
-		#endif
 	}
 
-	#ifdef WICKEDENGINE
 	//PE: ImGuiWindowFlags_NoNav added to prevent cursor keys to navigate imgui.
 	if(pref.iAllowUndocking)
 		iGenralWindowsFlags = ImGuiWindowFlags_None | ImGuiWindowFlags_NoNav;
 	else
 		iGenralWindowsFlags = ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNav;
-	#endif
 
 	ImVec4 style_back = ImGui::GetStyle().Colors[ImGuiCol_Text];
 	ImVec4 style_winback = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
@@ -2808,10 +2740,10 @@ void mapeditorexecutable_loop(void)
 		drawCol_normal = ImColor(255, 255, 255, 255);
 		drawCol_hover = ImColor(180, 180, 180, 230);
 	}
-	else if (pref.current_style == 25) {
+	else if (pref.current_style == 25) 
+	{
 		drawCol_back = ImColor(255, 255, 255, 128)*style_back;
 		drawCol_normal = ImColor(255, 255, 255, 255);
-		//drawCol_normal = ImColor(220,220,220, 255);
 		drawCol_hover = ImColor(180, 180, 180, 230);
 		bBoostIconColors = true;
 	}
@@ -2884,11 +2816,7 @@ void mapeditorexecutable_loop(void)
 	bImGuiReadyToRender = false;
 
 	// Start the Dear ImGui frame
-	#ifdef WICKEDENGINE
 	if (!bImGuiFrameState && !bRenderTabTab) // lee added !bRenderTabTab to prevent double newframe
-	#else
-	if (!bImGuiFrameState)
-	#endif
 	{
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -2913,8 +2841,8 @@ void mapeditorexecutable_loop(void)
 	//PE: Additional resets, not done in direct input.
 	t.inputsys.doartresize = 0;
 	t.inputsys.dosave = 0; t.inputsys.doopen = 0; t.inputsys.donew = 0; t.inputsys.donewflat = 0; t.inputsys.dosaveas = 0;
-	if (bImGuiFrameState) {
-
+	if (bImGuiFrameState) 
+	{
 		// LEELEE disable interaction with main editor if Welcome system is active!
 		if (iTriggerWelcomeSystemStuff != 0)
 		{
@@ -2940,7 +2868,6 @@ void mapeditorexecutable_loop(void)
 
 		iOldRounding = ImGui::GetStyle().WindowRounding;
 		ImGui::GetStyle().WindowRounding = 0.0f;
-
 		
 		if (bStopBackbufferGrab > 0)
 		{
@@ -2954,7 +2881,6 @@ void mapeditorexecutable_loop(void)
 				bFullScreenBackbuffer = false;
 			}
 		}
-
 
 		//#################
 		//#### Toolbar ####
@@ -2973,20 +2899,10 @@ void mapeditorexecutable_loop(void)
 		}
 		else if (t.grideditselect == 5) 
 		{
-			#ifdef WICKEDENGINE
-			//LB: Shooter now a filter mode
-			//if (Shooter_Tools_Window)
-			//{
-			//	current_mode = TOOL_LOGIC;//TOOL_SHOOTER;
-			//}
-			//else
-			#endif
-			{
-				if (t.gridentitymarkersmodeonly == 0)
-					current_mode = TOOL_ENTITY;
-				else
-					current_mode = TOOL_MARKERS;
-			}
+			if (t.gridentitymarkersmodeonly == 0)
+				current_mode = TOOL_ENTITY;
+			else
+				current_mode = TOOL_MARKERS;
 		}
 		else 
 		{
@@ -3015,20 +2931,16 @@ void mapeditorexecutable_loop(void)
 		if (bImporter_Window && t.importer.importerActive == 1)
 			current_mode = TOOL_IMPORT;
 
-		if ( t.gridentity > 0 && t.entityprofile[t.gridentity].isebe != 0) {
+		if ( t.gridentity > 0 && t.entityprofile[t.gridentity].isebe != 0) 
+		{
 			current_mode = TOOL_BUILDER;
 		}
-		//PE: Now toggle.
-		//if(Visuals_Tools_Window)
-		//	current_mode = TOOL_VISUALS;
-		#ifdef WICKEDENGINE
+
 		bool bOldWelcomeScreen_Window = bWelcomeScreen_Window;
-		#endif
 
 		//PE: Make sure we dont place the toolbar in its own viewport.
 		ImGui::SetNextWindowPos(ImVec2(0, 0) + viewPortPos, ImGuiCond_Always);
 		ImGui::SetNextWindowSize(ImVec2(ImGui::GetMainViewport()->Size.x, toolbar_size));
-		//ImGuiWindowFlags_NoBackground
 
 		if (pref.current_style == 25)
 		{
@@ -3037,144 +2949,84 @@ void mapeditorexecutable_loop(void)
 		}
 
 		int toolbar_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
-		#ifdef WICKEDENGINE
 		if (bOldWelcomeScreen_Window)
 		{
 			toolbar_flags |= ImGuiWindowFlags_NoChangeZOrder;
 		}
-		#endif
 		ImGui::Begin("Toolbar", NULL , toolbar_flags);
 
-		#ifdef WICKEDENGINE
 		if (bOldWelcomeScreen_Window)
 		{
 			//Disable
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		}
-		#endif
 
 		ImVec4 drawCol_Selection = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 		float fDiv = 1.0f / 255.0f;
 		//ImVec4 drawCol_Divider_Selected = ImVec4(0.4f, 0.8f, 1.0f, 1.0f);
 		//ImVec4 drawCol_Divider_Selected = ImVec4(fDiv * 142.0f, fDiv * 184.0f, fDiv * 212.0f, 1.0f);
 		ImVec4 drawCol_Divider_Selected = ImVec4(fDiv * 177.0f, fDiv * 206.0f, fDiv * 225.0f, 1.0f);
-		if (pref.current_style == 25) {
+		if (pref.current_style == 25) 
+		{
 			drawCol_hover = ImVec4(fDiv * 142.0f, fDiv * 184.0f, fDiv * 212.0f, 1.0f);
 		}
 
 		ImGui::GetStyle().WindowRounding = iOldRounding;
 
-		#ifdef USETOOLBARHEADER
-		ID3D11ShaderResourceView* lpTexture = GetImagePointerView(TOOL_HEADER);
-		if (lpTexture) {
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			window->DrawList->AddImage((ImTextureID)lpTexture, viewPortPos, viewPortPos + ImVec2(1920, 200), ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(drawCol_header));
-		}
-		#endif
-
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-		#ifdef CENTERETOOLBAR		
-		if(toolbar_offset_center > 0 && toolbar_offset_center < ImGui::GetWindowSize().x)
-			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + ( (ImGui::GetWindowSize().x * 0.5) - (toolbar_offset_center*0.5) ) , ImGui::GetCursorPos().y));
-		#endif
 
 		float cursorpos = ImGui::GetCursorPos().x;
 
-		#ifdef ADDGGTOOLBAR
-
-		#ifdef WICKEDENGINE
 		//PE: New "Back to Game Project" ? 
 		if (ImGui::ImgBtn(TOOL_GOBACK, iToolbarIconSize, drawCol_back_gg, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant,false,false,false, bBoostIconColors)) 
 		{
 			CloseAllOpenToolsThatNeedSave();
-			//No function yet.
-			#ifdef STORYBOARD
-			//Storyboard can change levels ... so make sure we ask to save first.
-			#ifdef ENABLEAUTOLEVELSAVE
-			if (!pref.iDisableLevelAutoSave && g.projectfilename_s != "")
+	
+			if (g.projectmodified == 1 && g.projectfilename_s != "")
 			{
-				//Auto save.
-				iLaunchAfterSync = 504; //Do the actualy save here.
-				iSkibFramesBeforeLaunch = 3;
-				strcpy(cTriggerMessage, "Auto Saving Level ...");
-				bTriggerMessage = true;
-				iLaunchAfterSyncAction = 1; //Go to storyboard.
+				int iRet = askBoxCancel("Do you wish to save first?", "Confirmation"); //1==Yes 2=Cancel 0=No
+
+				if (iRet == 1)
+				{
+					//Yes
+					iLaunchAfterSync = 504; //Do the actualy save here.
+					iSkibFramesBeforeLaunch = 3;
+					strcpy(cTriggerMessage, "Saving Level ...");
+					bTriggerMessage = true;
+					iLaunchAfterSyncAction = 1; //Go to storyboard.
+				}
+				if (iRet == 0)
+				{
+					//PE: NO = Restore original fpm. on next load in storyboard.
+					g.projectfilename_s = "";
+					g.projectmodified = 0; gridedit_changemodifiedflag();
+					g.projectmodifiedstatic = 0;
+					GGTerrain_CancelRamp();
+					bStoryboardWindow = true;
+				}
 			}
 			else
-			#endif
 			{
-				#ifdef WICKEDENGINE
-				if (g.projectmodified == 1 && g.projectfilename_s != "")
+				int iRet = AskSaveBeforeNewAction();
+				if (iRet != 2)
 				{
-					int iRet = askBoxCancel("Do you wish to save first?", "Confirmation"); //1==Yes 2=Cancel 0=No
-
-					if (iRet == 1)
-					{
-						//Yes
-						iLaunchAfterSync = 504; //Do the actualy save here.
-						iSkibFramesBeforeLaunch = 3;
-						strcpy(cTriggerMessage, "Saving Level ...");
-						bTriggerMessage = true;
-						iLaunchAfterSyncAction = 1; //Go to storyboard.
-					}
-					if (iRet == 0)
-					{
-						//PE: NO = Restore original fpm. on next load in storyboard.
-						g.projectfilename_s = "";
-						/* A little slow here, so wait until next storyboard level edit.
-						extern bool g_bAllowBackwardCompatibleConversion;
-						g_bAllowBackwardCompatibleConversion = true;
-						GGTerrain_RemoveAllFlatAreas();
-						gridedit_load_map();
-						g_bAllowBackwardCompatibleConversion = false;
-						*/
-						g.projectmodified = 0; gridedit_changemodifiedflag();
-						g.projectmodifiedstatic = 0;
-						GGTerrain_CancelRamp();
-						bStoryboardWindow = true;
-					}
+					GGTerrain_CancelRamp();
+					bStoryboardWindow = true;
 				}
-				else
-				#endif
-				{
-					int iRet = AskSaveBeforeNewAction();
-					if (iRet != 2)
-					{
-						GGTerrain_CancelRamp();
-						bStoryboardWindow = true;
-					}
-				}
-
-				// Object library does not disappear if open when going to storyboard.
-				if (bExternal_Entities_Window)
-					bTriggerCloseEntityWindow = true;
 			}
-			#endif
+
+			// Object library does not disappear if open when going to storyboard.
+			if (bExternal_Entities_Window)
+				bTriggerCloseEntityWindow = true;
 		}
 		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Back to Game Project Storyboard");
-		#endif
-
-		//PE: Load icon removed for now.
-		#ifndef WICKEDENGINE
-		if (ImGui::ImgBtn(TOOL_LOADLEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant)) {
-			CloseAllOpenToolsThatNeedSave();
-
-			iLaunchAfterSync = 2; //Load
-			iSkibFramesBeforeLaunch = 2;
-		}
-		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Open Level");
-		#endif
-
+	
 		ImGui::SameLine();
-		#ifdef WICKEDENGINE
-		if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) {
-		#else
-		if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) {
-		#endif
+		if (ImGui::ImgBtn(TOOL_SAVELEVEL, iToolbarIconSize, drawCol_back_gg, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors)) 
+		{
 			CloseAllOpenToolsThatNeedSave();
 			if (bTutorialCheckAction) TutorialNextAction();
-
 			iLaunchAfterSync = 3; //Save
 			iSkibFramesBeforeLaunch = 2;
 		}
@@ -3182,8 +3034,7 @@ void mapeditorexecutable_loop(void)
 		ImGui::SameLine();
 
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
-		#endif
-
+	
 		ImGuiWindow* window = ImGui::GetCurrentWindow();
 		ImVec4 tool_selected_col = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
 		if(pref.current_style == 3 )
@@ -14242,6 +14093,7 @@ void mapeditorexecutable_loop(void)
 											g_fHoldGridEntityPosY = t.gridentityposy_f;
 											g_fHoldGridEntityPosZ = t.gridentityposz_f;
 											editor_refresheditmarkers();
+											g_bSelectedNewObjectToAddToLevel = true;
 										}
 									}
 
@@ -14318,7 +14170,6 @@ void mapeditorexecutable_loop(void)
 												t.inputsys.constructselection = it->second;
 												t.inputsys.domodeentity = 1;
 												t.grideditselect = 5;
-												#ifdef WICKEDENGINE
 												//Make sure we use a fresh t.grideleprof
 												t.entid = t.gridentity;
 												entity_fillgrideleproffromprofile();
@@ -14335,8 +14186,8 @@ void mapeditorexecutable_loop(void)
 												g_fHoldGridEntityPosX = t.gridentityposx_f;
 												g_fHoldGridEntityPosY = t.gridentityposy_f;
 												g_fHoldGridEntityPosZ = t.gridentityposz_f;
-												#endif
 												editor_refresheditmarkers();
+												g_bSelectedNewObjectToAddToLevel = true;
 											}
 										}
 
@@ -17259,31 +17110,6 @@ void mapeditorexecutable_loop(void)
 			}
 		}
 	}
-	#ifdef VRTECH
-	#else
-	else
-	{
-		#ifdef FREETRIALVERSION
-			if ( g.iFreeVersionModeActive == 2 && dwStartOfEditingSession > 0 && timeGetTime() > dwStartOfEditingSession )
-			{
-			welcome_init(1);
-			welcome_init(0);
-			welcome_init(2);
-			g.iFreeVersionModeActiveDuringEditor = 1;
-			welcome_show(WELCOME_FREETRIALINTROAPP);
-			g.iFreeVersionModeActiveDuringEditor = 0;
-			welcome_free();
-			if (dwSecondReminder == 0)
-			{
-				dwSecondReminder = 1;
-				dwStartOfEditingSession = timeGetTime() + (1000*60*60);
-			}
-			else
-				dwStartOfEditingSession = 0;
-			}
-		#endif
-	}
-	#endif
 
 	//  Do not get start memory until processed one loop (below)
 	if (  t.gamememactuallyusedstarttriggercount>0 ) 
@@ -17303,36 +17129,22 @@ void mapeditorexecutable_loop(void)
 	mp_sendSteamIDToEditor ( );
 
 	//  User input calls
-	#ifdef ENABLEIMGUI
 	static bool imgui_onetime_init = false;
-	if (g.globals.ideinputmode == 1) {
-
-		#ifndef USEOLDIDE
+	if (g.globals.ideinputmode == 1) 
+	{
 		imgui_input_getcontrols();
-		#else
-		input_getcontrols();
-		#endif
 	}
 	else 
 	{
 		input_getcontrols();
 	}
-
 	if (!imgui_onetime_init) 
 	{
 		imgui_onetime_init = true;
 	}
-	#else
-	//  User input calls
-	input_getcontrols();
-	#endif
 
 	bool bTitleSystemActive = true;
-	#ifdef WICKEDENGINE
-	if ((bTriggerWhatsNewInStoryboard && g_iWelcomeLoopPage == WELCOME_ANNOUNCEMENTS))
-		bTitleSystemActive = false;
-	#endif
-	#ifdef VRTECH
+	if ((bTriggerWhatsNewInStoryboard && g_iWelcomeLoopPage == WELCOME_ANNOUNCEMENTS)) bTitleSystemActive = false;
 	if (bTitleSystemActive)
 	{
 		// could not launch Welcome system before IMGUI inits, so flagged to happen here
@@ -17356,9 +17168,7 @@ void mapeditorexecutable_loop(void)
 					{
 						if (g.gshowonstartup == 1 || g.iTriggerSoftwareToQuit != 0)
 						{
-							#ifdef WICKEDENGINE
 							if(!bAddWhatNewToMenu) //Already in menu.
-							#endif
 								editor_showquickstart(0);
 							iTriggerWelcomeSystemStuff = 99;
 						}
@@ -17413,35 +17223,25 @@ void mapeditorexecutable_loop(void)
 			t.inputsys.keycontrol = 0;
 			t.inputsys.keyspace = 0;
 			t.inputsys.kscancode = 0;
-
 		}
 	}
-	#endif
 
 	// calc local cursor
 	bool bPickActive = true;
-	#ifdef WICKEDENGINE
 	iReusePickObjectID = -1;
 	pReusePickObject = 0;
-	
-	if (pref.iDragCameraMovement && t.ebe.on == 0 && bDragCameraActive)
-		bPickActive = false;
-	#endif
-	if(bPickActive)
-		input_calculatelocalcursor ( );
+	if (pref.iDragCameraMovement && t.ebe.on == 0 && bDragCameraActive) bPickActive = false;
+	if (bPickActive)
+	{
+		input_calculatelocalcursor ();
+	}
 
 	// Character Creator Plus
-	#ifdef VRTECH
 	if ( g_bCharacterCreatorPlusActivated == true )
 	{
 		// character creator plus character edited in situ
 		charactercreatorplus_loop();
 	}
-	#endif
-
-	#ifdef BUILDINGEDITOR
-	BuildingEditor::loop();
-	#endif
 
 	//  Importer or Main Editor
 	if ( t.importer.loaded != 0 || (t.interactive.active == 1 && (t.interactive.pageindex<21 || t.interactive.pageindex>90)) )
@@ -17455,153 +17255,120 @@ void mapeditorexecutable_loop(void)
 	}
 	else
 	{
-		//  Character Kit Active
-		#ifdef VRTECH
-		//if(0) // t.characterkit.loaded !=  0 ) 
-		//{
-			// bye bye character creator, welcome plus!
-			//characterkit_loop ( );
-			//characterkit_draw ( );
-		//}
-		//else
-		#else
-		if ( t.characterkit.loaded !=  0 ) 
+		// Editor Controls
+		editor_constructionselection();
+
+		if (t.grideditselect != 0)
 		{
-			characterkit_loop ( );
-			characterkit_draw ( );
+			//PE: Make sure to hide "cubes" when not editing.
+			WickedCall_DisplayCubes(false);
+		}
+
+		if ( t.grideditselect == 3 || t.grideditselect == 4 ) 
+		{
+			// Entity controls
+			editor_viewfunctionality ( );
 		}
 		else
-		#endif
 		{
-			// give editor a chance to init, then switch to EBE for quick coding!
-			// Editor Controls
-			terrain_terraintexturesystempainterentry();
-			editor_constructionselection();
-
-			#ifdef WICKEDENGINE
-			if (t.grideditselect != 0)
+			editor_mainfunctionality ( );
+			if ( t.grideditselect == 0 ) 
 			{
-				//PE: Make sure to hide "cubes" when not editing.
-				WickedCall_DisplayCubes(false);
-			}
-			#endif
+				// Terrain controls
+				t.terrain.camx_f=t.cx_f ; t.terrain.camz_f=t.cy_f;
+				t.terrain.zoom_f=t.gridzoom_f*0.12;
+				terrain_editcontrol ( );
+				if (BackBufferImageID <= 0)
+				{
+					WickedCall_DisplayCubes(true);
+				}
+				grass_editcontrol();
 
-			if ( t.grideditselect == 3 || t.grideditselect == 4 ) 
-			{
-				// Entity controls
-				editor_viewfunctionality ( );
+				//PE: Make sure clicks inside terrain tools also record a change, so level is saved.
+				if (bImGuiRenderTargetFocus)
+				{
+					//  Any click inside 3D area constitues some sort of edit
+					if (t.inputsys.mclick != 0)
+					{
+						g.projectmodified = 1;
+						gridedit_changemodifiedflag();
+						// effect on g.projectmodifiedstatic
+					}
+				}
 			}
 			else
 			{
-				editor_mainfunctionality ( );
-				if ( t.grideditselect == 0 ) 
+				if ( t.ebe.on == 1 )
 				{
-					// Terrain controls
-					t.terrain.camx_f=t.cx_f ; t.terrain.camz_f=t.cy_f;
-					t.terrain.zoom_f=t.gridzoom_f*0.12;
-					terrain_editcontrol ( );
-					#ifdef WICKEDENGINE
-					if (BackBufferImageID <= 0)
-					{
-						WickedCall_DisplayCubes(true);
-					}
-					grass_editcontrol();
-
-					//PE: Make sure clicks inside terrain tools also record a change, so level is saved.
-					if (bImGuiRenderTargetFocus)
-					{
-						//  Any click inside 3D area constitues some sort of edit
-						if (t.inputsys.mclick != 0)
-						{
-							g.projectmodified = 1;
-							gridedit_changemodifiedflag();
-							// effect on g.projectmodifiedstatic
-						}
-					}
-					#endif
+					// Easy Building Editor
+					ebe_loop();
 				}
 				else
 				{
-					if ( t.ebe.on == 1 )
-					{
-						// Easy Building Editor
-						ebe_loop();
-					}
-					else
-					{
-						//  Non-terrain controls
-						gridedit_mapediting ( );
-						terrain_editcontrol_auxiliary ( );
-					}
+					//  Non-terrain controls
+					gridedit_mapediting ( );
 				}
 			}
-
-			editor_overallfunctionality ( );
-			terrain_detectendofterraintexturesystempainter ( );
-
-			//  Handle visual components
-			editor_detect_invalid_screen ( );
-			editor_visuals ( );
-			editor_undergroundscan ( );
-
-			//  Ensure entity animations speeds are controlled
-			if(!bExport_Standalone_Window)
-				entity_loopanim ( );
-
-			//  Widget control
-			widget_loop ( );
-
-			//  Character creator loop
-			///characterkit_updateAllCharacterCreatorEntitiesInMap ( );
-
-			//  Ensure lighting is updated as lighting is edited and moved
-			lighting_loop ( );
-
-			//  Only show terrain cursor if in terrain edit mode
-			if (  t.grideditselect == 0 && t.inputsys.mclick != 2 && t.inputsys.mclick != 4 && t.interactive.insidepanel == 0 ) 
-			{
-				terrain_cursor ( );
-			}
-			else
-			{
-				terrain_cursor_off ( );
-			}
-
-			//  Render terrain elements (shadowupdatepacer as shadow calc is expensive, time slice it)
-			t.terrain.gameplaycamera=0;
-			terrain_waterineditor ( );
-
-			// 111115 - keep track of memory between sessions with simpler SYSMEM minus STARTMEM calculation
-			g.gamememactuallyused = SMEMAvailable(1) - g.gamememactuallyusedstart;
-
-			// 111115 - and introduce sliding effect to hide flicker due to reading direct system memory value
-			t.tmempercdest_f = (g.gamememactuallyused+0.0f) / (g.gamememactualmaxrightnow+0.0f);
-			if ( t.tmemperc_f < t.tmempercdest_f-0.01f )
-			{
-				t.tmemperc_f = t.tmemperc_f + 0.01f;
-			}
-			else
-			{
-				if ( t.tmemperc_f > t.tmempercdest_f+0.01f )
-				{
-					t.tmemperc_f = t.tmemperc_f - 0.01f;
-				}
-			}
-
-			if (  t.tmemperc_f > 1.0f  )  t.tmemperc_f = 1.0;
-			if (  g.ghidememorygauge == 0 ) 
-			{
-				// (Dave) - check the image exists
-				if ( ImageExist ( g.editorimagesoffset+2 ) == 1 )
-				{
-					Ink (  Rgb(0,0,0),0  ); Box (  2,2,102,18 );
-					Ink (  Rgb(0,255,0),0  ); Box (  2,2,3+(99*t.tmemperc_f),18 );
-					PasteImage (  g.editorimagesoffset+2,2,2,1 );
-				}
-			}
-			//  End of Character Creator branch
 		}
-		//  Import/Editor branch
+		editor_overallfunctionality ( );
+
+		//  Handle visual components
+		editor_detect_invalid_screen ( );
+		editor_visuals ( );
+		
+		//  Ensure entity animations speeds are controlled
+		if(!bExport_Standalone_Window)
+			entity_loopanim ( );
+
+		//  Widget control
+		widget_loop ( );
+
+		//  Ensure lighting is updated as lighting is edited and moved
+		lighting_loop ( );
+
+		//  Only show terrain cursor if in terrain edit mode
+		if (  t.grideditselect == 0 && t.inputsys.mclick != 2 && t.inputsys.mclick != 4 && t.interactive.insidepanel == 0 ) 
+		{
+			terrain_cursor ( );
+		}
+		else
+		{
+			terrain_cursor_off ( );
+		}
+
+		//  Render terrain elements (shadowupdatepacer as shadow calc is expensive, time slice it)
+		t.terrain.gameplaycamera=0;
+		terrain_waterineditor ( );
+
+		// 111115 - keep track of memory between sessions with simpler SYSMEM minus STARTMEM calculation
+		g.gamememactuallyused = SMEMAvailable(1) - g.gamememactuallyusedstart;
+
+		// 111115 - and introduce sliding effect to hide flicker due to reading direct system memory value
+		t.tmempercdest_f = (g.gamememactuallyused+0.0f) / (g.gamememactualmaxrightnow+0.0f);
+		if ( t.tmemperc_f < t.tmempercdest_f-0.01f )
+		{
+			t.tmemperc_f = t.tmemperc_f + 0.01f;
+		}
+		else
+		{
+			if ( t.tmemperc_f > t.tmempercdest_f+0.01f )
+			{
+				t.tmemperc_f = t.tmemperc_f - 0.01f;
+			}
+		}
+
+		if (  t.tmemperc_f > 1.0f  )  t.tmemperc_f = 1.0;
+		if (  g.ghidememorygauge == 0 ) 
+		{
+			// (Dave) - check the image exists
+			if ( ImageExist ( g.editorimagesoffset+2 ) == 1 )
+			{
+				Ink (  Rgb(0,0,0),0  ); Box (  2,2,102,18 );
+				Ink (  Rgb(0,255,0),0  ); Box (  2,2,3+(99*t.tmemperc_f),18 );
+				PasteImage (  g.editorimagesoffset+2,2,2,1 );
+			}
+		}
+		//  End of Character Creator branch
 	}
 
 	//  Constantly checking if VIDMEM invalidated
@@ -17626,10 +17393,7 @@ void mapeditorexecutable_loop(void)
 		if (  t.inputsys.activemouse == 1 ) 
 		{
 			//  constant update
-			//if ( gbWelcomeSystemActive == false )
-			//{
 			SyncRate ( 0 ); SyncMask ( 1 ); Sync ( ); SleepNow ( 5 );
-			//}
 		}
 		else
 		{
@@ -17652,7 +17416,6 @@ void mapeditorexecutable_loop(void)
 		editor_detect_invalid_screen ( );
 	}
 
-	#ifdef VRTECH
 	if (g_bCascadeQuitFlag) 
 	{
 		int iRet = AskSaveBeforeNewAction();
@@ -17665,7 +17428,6 @@ void mapeditorexecutable_loop(void)
 			PostQuitMessage(0);
 		}
 	}
-	#endif
 }
 
 void mapeditorexecutable_finish(void)
@@ -21757,6 +21519,10 @@ uint32_t g_iGridEntityFlattener = -1;
 
 void input_calculatelocalcursor ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//PE: Dont change anything when right mouse down.
 	if (ImGui::IsMouseDown(1)) return;
 
@@ -22489,123 +22255,6 @@ void editor_makeundergroundobj ( void )
 	SetObjectMask ( t.tobj, 1 );
 	SetObjectEffect ( t.tobj, g.guiwireframeshadereffectindex );
 	SetObjectEmissive ( t.tobj, Rgb(255,255,0) );
-}
-
-void editor_undergroundscan ( void )
-{
-	#ifdef WICKEDENGINE
-	// going to use col shader eventually for seeing objects 'under the terrain' (eventualeeee)
-	#else
-	//  will detect entities under the ground and convert them to place holders
-	if (  Timer()>t.gundergroundscantime ) 
-	{
-		t.gundergroundscantime=Timer()+100;
-		for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
-		{
-			t.tentid=t.entityelement[t.e].bankindex;
-			if ( t.entityprofile[t.tentid].ismarker == 0 && t.entityprofile[t.tentid].isebe == 0 ) 
-			{
-				if ( t.entityelement[t.e].beenmoved == 1 ) 
-				{
-					t.entityelement[t.e].beenmoved=0;
-					t.tobj=t.entityelement[t.e].obj;
-					if (  t.tobj>0 ) 
-					{
-						if (  ObjectExist(t.tobj) == 1 ) 
-						{
-							// get original vector, transform it and check against terrain floor
-							bool bUnderground = true;
-							sObject* pObj = GetObjectData(t.tobj);
-							for ( int iCorner = 0; iCorner < 8; iCorner++ )
-							{
-								GGVECTOR3 vec = pObj->collision.vecMin;
-								if ( iCorner==1 ) { vec.x = pObj->collision.vecMax.x; }
-								if ( iCorner==2 ) { vec.y = pObj->collision.vecMax.y; }
-								if ( iCorner==3 ) { vec.x = pObj->collision.vecMax.x; vec.y = pObj->collision.vecMax.y; }
-								if ( iCorner==4 ) {                                   vec.z = pObj->collision.vecMax.z; }
-								if ( iCorner==5 ) { vec.x = pObj->collision.vecMax.x; vec.z = pObj->collision.vecMax.z; }
-								if ( iCorner==6 ) { vec.y = pObj->collision.vecMax.y; vec.z = pObj->collision.vecMax.z; }
-								if ( iCorner==7 ) { vec.x = pObj->collision.vecMax.x; vec.y = pObj->collision.vecMax.y; vec.z = pObj->collision.vecMax.z; }
-								GGVec3TransformCoord ( &vec, &vec, &pObj->position.matWorld );
-								if (  t.terrain.TerrainID>0 ) 
-									t.tgrnd_f=BT_GetGroundHeight(t.terrain.TerrainID,vec.x,vec.z);
-								else
-									t.tgrnd_f=1000.0;
-								if ( vec.y > t.tgrnd_f ) 
-									bUnderground = false;
-							}
-							// act if underground status changed (make wireframe)
-							if (  t.entityelement[t.e].underground == 0 ) 
-							{
-								if ( bUnderground == true ) 
-								{
-									//  entity underground
-									t.entityelement[t.e].underground=1;
-									t.tobjy_f=ObjectPositionY(t.tobj);
-									t.tobjx_f=ObjectPositionX(t.tobj);
-									t.tobjz_f=ObjectPositionZ(t.tobj);
-									editor_makeundergroundobj ( );
-									t.entityelement[t.e].isclone=1;
-								}
-							}
-							else
-							{
-								if ( bUnderground == false ) 
-								{
-									//  entity above ground
-									t.entityelement[t.e].underground=0;
-									t.tte = t.e ; entity_converttoinstance ( );
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	//  also detect same for gridentity
-	if ( t.gridentity>0 && t.gridentityobj>0 ) 
-	{
-		if ( t.entityprofile[t.gridentity].isebe == 0 )
-		{
-			t.tobj=t.gridentityobj;
-			if (  ObjectExist(t.tobj) == 1 ) 
-			{
-				t.tobjx_f=ObjectPositionX(t.tobj);
-				t.tobjy_f=ObjectPositionY(t.tobj)+GetObjectCollisionCenterY(t.tobj)+(ObjectSizeY(t.tobj,1)/2)+LimbOffsetY(t.tobj,0);
-				t.tobjz_f=ObjectPositionZ(t.tobj);
-				if (  t.terrain.TerrainID>0 ) 
-				{
-					t.tgrnd_f=BT_GetGroundHeight(t.terrain.TerrainID,t.tobjx_f,t.tobjz_f);
-				}
-				else
-				{
-					t.tgrnd_f=1000.0;
-				}
-				if (  t.gridentityunderground == 0 ) 
-				{
-					if (  t.tobjy_f<t.tgrnd_f ) 
-					{
-						//  grid entity underground
-						t.gridentityunderground=1;
-						t.tobj=t.gridentityobj;
-						editor_makeundergroundobj ( );
-					}
-				}
-				else
-				{
-					if (  t.tobjy_f >= t.tgrnd_f ) 
-					{
-						//  grid entity above ground
-						t.gridentityunderground=0;
-						gridedit_recreateentitycursor ( );
-					}
-				}
-			}
-		}
-	}
-	#endif
 }
 
 void editor_restoreobjhighlightifnotrubberbanded ( int highlightingtentityobj )
@@ -23508,7 +23157,11 @@ return;
 
 void editor_constructionselection ( void )
 {
-	if ( t.inputsys.constructselection>0 ) 
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
+	if ( t.inputsys.constructselection>0 )
 	{
 		//  SINGLE ENTITY
 		if ( t.grideditselect == 5 ) 
@@ -23833,6 +23486,10 @@ void editor_validatestaticmode ( void )
 
 void editor_overallfunctionality ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Restore current grid view
 	if (  t.inputsys.doautozoomview == 1 ) { t.inputsys.doautozoomview = 0  ; t.inputsys.dozoomview = 1; }
 	if (  t.inputsys.dozoomview == 1 ) 
@@ -24101,14 +23758,17 @@ void editor_refreshcamerarange ( void )
 
 void editor_mainfunctionality ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Rotation of entity
 	if (  t.grideditselect == 5 ) 
 	{
 		bool bAllowRotate = true;
-#ifdef WICKEDENGINE
 		if (t.widget.pickedEntityIndex > 0 && t.entityelement[t.widget.pickedEntityIndex].editorlock == 1)
 			bAllowRotate = false;
-#endif
+
 		//  do not rotate light or trigger entity
 		//PE: Allow light rotation rem: t.entityprofile[t.gridentity].ismarker != 2 &&  t.entityprofile[t.gridentity].ismarker != 3
 		if ( bAllowRotate && t.entityprofile[t.gridentity].ismarker != 3 )
@@ -24129,12 +23789,8 @@ void editor_mainfunctionality ( void )
 				}
 			}
 			//PE: Prefer gridentity rotation. as we can now have both active at the same time.
-#ifdef WICKEDENGINE
 			//PE: We dont need t.widget.pickedObject != 0 && to control widget.
 			if(t.widget.pickedEntityIndex > 0 && t.gridentity == 0)
-#else
-			if (  t.widget.pickedObject != 0 && t.widget.pickedEntityIndex>0 )
-#endif
 			{
 				// Rotation control of widget controlled entity
 				if ( t.inputsys.domodeterrain == 0 && t.inputsys.domodeentity == 0 ) 
@@ -24818,6 +24474,10 @@ float editor_forceentityfindfloor (bool bPredictMode)
 
 void editor_viewfunctionality ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// map view controls
 	if ( t.grideditselect == 3 ) 
 	{
@@ -25502,6 +25162,10 @@ void editor_refresheditmarkers ( void )
 
 void editor_visuals ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Control entity selection and alpha of layers
 	if (  t.refreshgrideditcursor == 1 ) 
 	{
@@ -26234,6 +25898,10 @@ void editor_checkIfInSubApp ( void )
 
 int findentitycursorobj ( int currentlyover )
 {
+	#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+	#endif
+
 	if (pref.iDragCameraMovement && t.ebe.on == 0 && bDragCameraActive)
 		return 0;
 
@@ -26396,6 +26064,10 @@ void gridedit_addEntityToRubberBandHighlights ( int e )
 
 void gridedit_mapediting ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Determine if cursor is at rest, allows performance boost to skip
 	//  expensive ray casts to find entities in map
 	if (  t.inputsys.atrest != 2 ) 
@@ -27132,91 +26804,8 @@ void gridedit_mapediting ( void )
 					}
 					else
 					{
-						#ifdef WICKEDENGINE
 						// No flat range decal in wicked!
 						HideObject (  t.editor.objectstartindex+5 );
-						#else
-						ShowObject (  t.editor.objectstartindex+5 );
-						if ( t.entityprofile[t.showentityid].islightmarker == 1 || t.gridedit.entityspraymode == 1) 
-						{
-							//  light range visual
-							TextureObject (  t.editor.objectstartindex+5,0,g.editorimagesoffset+18 );
-							YRotateObject (  t.editor.objectstartindex+5,0 );
-							if (  t.tshowasstatic == 2 ) 
-							{
-								t.tentityworkobjectchoice=1820;
-								modifyplaneimagestrip(t.editor.objectstartindex+5,2,0);
-							}
-							else
-							{
-								t.tentityworkobjectchoice=1821;
-								modifyplaneimagestrip(t.editor.objectstartindex+5,2,1);
-							}
-						}
-						else
-						{
-							if (  t.entityprofile[t.showentityid].forwardfacing == 1 ) 
-							{
-								//  coloured circle blob with arrow
-								TextureObject (  t.editor.objectstartindex+5,0,g.editorimagesoffset+26 );
-								YRotateObject (  t.editor.objectstartindex+5,t.gridentityrotatey_f );
-								t.tentityworkobjectchoice=2600;
-							}
-							else
-							{
-								//  coloured circle blob
-								TextureObject (  t.editor.objectstartindex+5,0,g.editorimagesoffset+7 );
-								YRotateObject (  t.editor.objectstartindex+5,0 );
-								t.tentityworkobjectchoice=700;
-							}
-							if (  t.gridedit.entityspraymode == 1 ) 
-							{
-								//  spray mode active
-								if (  t.tshowasstatic == 2 ) 
-								{
-									modifyplaneimagestrip(t.editor.objectstartindex+5,8,2);
-									t.tentityworkobjectchoice=1882;
-								}
-								else
-								{
-									modifyplaneimagestrip(t.editor.objectstartindex+5,8,4);
-									t.tentityworkobjectchoice=1884;
-								}
-							}
-							else
-							{
-								if (  t.gridedit.autoflatten == 1 ) 
-								{
-									//  rem purple and cyan for auto-flatten
-									if (  t.tshowasstatic == 2 ) 
-									{
-										modifyplaneimagestrip(t.editor.objectstartindex+5,8,7);
-										t.tentityworkobjectchoice=1887;
-									}
-									else
-									{
-										modifyplaneimagestrip(t.editor.objectstartindex+5,8,4);
-										t.tentityworkobjectchoice=1884;
-									}
-								}
-								else
-								{
-									//  rem red and green for NONE auto-flatten
-									if (  t.tshowasstatic == 2 ) 
-									{
-										modifyplaneimagestrip(t.editor.objectstartindex+5,8,1);
-										t.tentityworkobjectchoice=1881;
-									}
-									else
-									{
-										modifyplaneimagestrip(t.editor.objectstartindex+5,8,3);
-										t.tentityworkobjectchoice=1883;
-									}
-								}
-							}
-						}
-						ShowObject (  t.editor.objectstartindex+5 );
-						#endif
 					}
 					//  show legend of entity hovering over (and static legend)
 					t.taddstaticlegend=0;
@@ -27325,7 +26914,6 @@ void gridedit_mapediting ( void )
 					fPlanePosY = -999999.9f;
 					fPlanePosZ = 0;
 
-					#ifdef WICKEDENGINE
 					// special horiz mode to match terrain height when about to go under it
 					static bool bDepartedFromChosenY = false;
 					static float fDepartedFromThisY = 0.0f;
@@ -27339,9 +26927,7 @@ void gridedit_mapediting ( void )
 
 					//Dont change anyhthing when we are ready to place entity.
 					if (!bPlaceEntity && bWidgetHasControlHere == false )
-					#endif
 					{
-						#ifdef WICKEDENGINE
 						//PE: Prevent user for placing objects outside playable area.
 						bool bObjectOutSideEditArea = false;
 						float fEditableSizeHalved = GGTerrain_GetEditableSize();
@@ -27356,22 +26942,9 @@ void gridedit_mapediting ( void )
 						float fOldgridentityposx_f = t.gridentityposx_f;
 						float fOldgridentityposy_f = t.gridentityposy_f;
 						float fOldgridentityposz_f = t.gridentityposz_f;
-						#endif
 
 						//  entity placement update
-						if (t.inputsys.mclick == 2)
-						{
-							//  070415 - in RMB mode, mouse pos is changed so HIDE gridentity obj as it shifts!
-							#ifdef WICKEDENGINE
-							if (pref.iEnableDragDropEntityMode && !bDraggingActive)
-							#endif
-							{
-								// this breaks all future dragging
-								//t.gridentityposx_f = -999000;
-								//t.gridentityposz_f = -999000;
-							}
-						}
-						else
+						if (t.inputsys.mclick != 2)
 						{
 							#ifdef WICKEDENGINE
 							static float fActivePosX = t.gridentityposx_f;
@@ -27454,10 +27027,6 @@ void gridedit_mapediting ( void )
 								}
 
 								// LB: mousepick functionality disabled for now, see how new smart find ground system works out...
-								//bool bMousePickEnabled = true;
-								/* bMousePickEnabled never actually used
-								bool bMousePickEnabled = false;
-								*/
 								if (!(fHitOffsetX == 0 && fHitOffsetY == 0 && fHitOffsetZ == 0))
 								{
 									if (iObjectMoveMode == 1)
@@ -27466,17 +27035,6 @@ void gridedit_mapediting ( void )
 									}
 									int iRealObjectMoveMode = iObjectMoveMode;
 									if (iObjectMoveModeDropSystem > 0) iRealObjectMoveMode = 0;
-									if (iRealObjectMoveMode == 2)
-									{
-										// allow mouse pick if positioning mode is find surface
-									}
-									else
-									{
-										// and disable if not using mouse pick system
-										/* bMousePickEnabled never actually used
-										bMousePickEnabled = false;
-										*/
-									}
 								}
 
 								// only move plane on initial object selection, this avoids drift when placing objects
@@ -27614,10 +27172,6 @@ void gridedit_mapediting ( void )
 						}
 
 						#endif
-
-						//PE: Add snap,grid as functions , so can be used in widget system.
-						//LB: moved it further down after all user influenced changes to gridentityposXYZ
-						//Add_Grid_Snap_To_Position();
 
 						if (t.tforcedynamic == 1)
 						{
@@ -27830,94 +27384,10 @@ void gridedit_mapediting ( void )
 								bApplyEntityOffsets = true;
 							}
 
-							#ifdef WICKEDENGINE
-							if (pref.iEnableDragDropEntityMode )//&& bCanUpdateY)
-							{
-								/* no need for the 'ray from above' in the new positining modes system
-								   as we can rely on the GetPick to pick terrain only or pick object surfaces!
-								bApplyEntityOffsets = true;
-
-								//PE: We need t.inputsys.dragoffsetx_f as close to zero as possible.
-								//PE: So when moving slowly adjust for center position.
-								static int ad_oldx, ad_oldz;
-								if (t.gridentityobj > 0) HideObject(t.gridentityobj);
-
-								//PE: MUST disable collision on ALL rubberband objects.
-								std::vector<sRubberBandType> entityvisible = g.entityrubberbandlist;
-								if (g.entityrubberbandlist.size() > 0)
-								{
-									for (int i = 0; i < (int)g.entityrubberbandlist.size(); i++)
-									{
-										int e = g.entityrubberbandlist[i].e;
-										int obj = t.entityelement[e].obj;
-										if (obj > 0 && GetVisible(obj))
-										{
-											entityvisible[i].x = 1;
-											HideObject(obj);
-										}
-										else
-										{
-											entityvisible[i].x = 0;
-										}
-									}
-								}
-
-								// ray direct from above
-								float fHitX, fHitY, fHitZ;
-								fHitRayFrom = t.gridentityposy_f + 1000.0f;
-								if (fLastHitY == 0.0f)
-									fLastHitY = t.gridentityposy_f;
-
-								//PE: Test try to take a object from the middle of a stack , and place it again.
-								sObject* pObject = g_ObjectList[t.gridentityobj];
-								if (pObject) { //&& t.entityprofile[entid].ischaracter != 1
-									float fAdjustScaleX = 1.0, fAdjustScaleY = 1.0, fAdjustScaleZ = 1.0;
-									if (pObject->pInstanceOfObject)
-									{
-										fAdjustScaleX = pObject->position.vecScale[0];
-										fAdjustScaleY = pObject->position.vecScale[1];
-										fAdjustScaleZ = pObject->position.vecScale[2];
-										pObject = pObject->pInstanceOfObject;
-									}
-									float fValue;
-									//Use max from boundingbox.
-									fValue = (pObject->collision.vecMax[1] + abs(pObject->collision.vecMin[1])) * pObject->position.vecScale[1] * fAdjustScaleY;
-									fHitRayFrom = fLastHitY + (fValue); //Just to get from top pos.
-								}
-
-								if (WickedCall_SentRay(t.gridentityposx_f, fHitRayFrom, t.gridentityposz_f, 0, -1.0f, 0, &fHitX, &fHitY, &fHitZ, NULL, NULL, NULL, NULL, GGRENDERLAYERS_NORMAL))
-								{
-									//g_ray_pobject , got gg object nr.
-									t.gridentityposy_f = fHitY;
-									fLastHitY = fHitY;
-								}
-								if (t.gridentityobj > 0) ShowObject(t.gridentityobj);
-
-								//PE: Enable rubberband collision again.
-								if (entityvisible.size() > 0)
-								{
-									for (int i = 0; i < (int)entityvisible.size(); i++)
-									{
-										int e = entityvisible[i].e;
-										int obj = t.entityelement[e].obj;
-										if (entityvisible[i].x == 1)
-										{
-											ShowObject(obj);
-										}
-									}
-								}
-								*/
-
-								// bMouseInputSystemUsed functionality
-								/* bMousePickEnabled never actually used
-								if (bMouseInputSystemUsed )
-								{
-									t.gridentityposy_f = t.inputsys.localcurrentterrainheight_f;
-								}
-								*/
-							}
 							if (fHitPointY == 0.0f)
+							{
 								fHitPointY = t.gridentityposy_f;
+							}
 
 							//LB: prevent any t.gridentitypos movement until user has moved the mouse pointer
 							if (g_bHoldGridEntityPosWhenManaged == true)
@@ -27926,40 +27396,19 @@ void gridedit_mapediting ( void )
 								t.gridentityposy_f = g_fHoldGridEntityPosY;
 								t.gridentityposz_f = g_fHoldGridEntityPosZ;
 							}
-							#endif
 						}
 						else
 						{
 							if (t.gridentityposoffground == 0)
 							{
-								#ifdef GGTERRAIN_USE_NEW_TERRAIN
 								if (bUseOldYSystem)
 								{
 									t.gridentityposy_f = BT_GetGroundHeight(t.terrain.TerrainID, t.gridentityposx_f, t.gridentityposz_f);
 									bApplyEntityOffsets = true;
 								}
-								#else
-								if (t.terrain.TerrainID > 0)
-								{
-									if (bUseOldYSystem)
-									{
-										t.gridentityposy_f = BT_GetGroundHeight(t.terrain.TerrainID, t.gridentityposx_f, t.gridentityposz_f);
-										bApplyEntityOffsets = true;
-									}
-								}
-								else
-								{
-									if (bUseOldYSystem)
-									{
-										t.gridentityposy_f = g.gdefaultterrainheight;
-										bApplyEntityOffsets = true;
-									}
-								}
-								#endif
 							}
 						}
 
-						#ifdef WICKEDENGINE
 						//PE: Prevent user for placing objects outside playable area.
 						if (t.gridentityobj > 0 && t.gridentity > 0)
 						{
@@ -27976,7 +27425,6 @@ void gridedit_mapediting ( void )
 								bTriggerSmallMessage = true;
 							}
 						}
-						#endif
 
 						//LB: now apply grid/snap when user finished positioning XYZ
 						if (iForwardFacing != 1)
@@ -27985,36 +27433,11 @@ void gridedit_mapediting ( void )
 							Add_Grid_Snap_To_Position();
 						}
 
-						#ifdef WICKEDENGINE
-						// new pick and drag system does not use OFFY and DEFAULTHEIGHT - causes jump Y pos on markers
-						#else
-						// handle adjustments that are object based
-						if (bApplyEntityOffsets == true)
-						{
-							// for markers, apply Y offset
-							if (t.entityprofile[t.gridentity].ismarker != 0)
-							{
-								if (bUseOldYSystem)
-									t.gridentityposy_f = t.gridentityposy_f + t.entityprofile[t.gridentity].offy;
-							}
-
-							// for entities with default height, apply Y offset
-							if (t.entityprofile[t.gridentity].defaultheight != 0)
-							{
-								if (bUseOldYSystem)
-									t.gridentityposy_f = t.gridentityposy_f + t.entityprofile[t.gridentity].defaultheight;
-							}
-						}
-						#endif
-
 						// handle any pivots that are object based
-						#ifdef WICKEDENGINE
 						if (!bDontUsePivot ) ApplyPivotToGridEntity();
-						#endif
 
 						// Create and manage a ghost object for when selecting objects to move
 						// so can be used by special smart positioning mode
-						#ifdef WICKEDENGINE
 						int iGhostObj = g.ghostcursorobjectoffset;
 						if (iGhostObj > 0)
 						{
@@ -28127,7 +27550,6 @@ void gridedit_mapediting ( void )
 								}
 							}
 						}
-						#endif
 
 						#ifdef WICKEDENGINE
 						//PE: Check if object is overlapping another object.

@@ -47,12 +47,13 @@ char				cSpecialStandaloneProject[MAX_PATH];
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-const char *pestrcasestr(const char *arg1, const char *arg2);
+const char*			pestrcasestr(const char *arg1, const char *arg2);
 
 // global flag to reduce workload if window not in focus (solves stutter slowdown?)
 bool g_bActiveApp = true;
 bool g_bAppActiveStat = true;
 bool g_bLostFocus = false;
+char g_pGraphicsCardLog[10240];
 
 // Encapsulates all other classes for Wicked Engine control
 Master master;
@@ -73,7 +74,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	//WCHAR tmp[80];
 	//wcscpy(tmp, L"debugdevice");
 	//wiStartupArguments::Parse(&tmp[0]);
-
 	//MessageBoxA(NULL, "WinMain", "Log", 0);
 
 	// Command line store
@@ -165,11 +165,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 	#endif
 
+	// Get and save out the graphics card name
+	strcpy(g_pGraphicsCardLog, "Graphics Card Log: ");
+
 	//PE: check graphics card. Workaround for amd issues.
 	bool bUseAMDHotFIx = true;
 	if (RAW_FileExists("noamdfix.ini") == 1) bUseAMDHotFIx = false;
 	if (bUseAMDHotFIx == true)
 	{
+		strcat(g_pGraphicsCardLog, "AMD Hot Fix = true ");
 		bool bIsAMDCard = false;
 		for (int i = 0; i < 4; i++)
 		{
@@ -196,23 +200,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			*/
 			if (length > 0)
 			{
+				strcat(g_pGraphicsCardLog, " '");
+				strcat(g_pGraphicsCardLog, cDeviceName);
+				strcat(g_pGraphicsCardLog, "' ");
 				if (pestrcasestr(cDeviceName, "MSI") || pestrcasestr(cDeviceName, "AMD") || pestrcasestr(cDeviceName, "Radeon"))
 				{
 					//PE: Take all 6900,5600,6800,6600 RX serie if amd.
 					if (pestrcasestr(cDeviceName, "RX"))
 					{
-						// more reports coming in, this time "AMD ryzen 7 6000" so lets assume ALL RX need the fix!
-						//if (pestrcasestr(cDeviceName, "89") || pestrcasestr(cDeviceName, "79") || pestrcasestr(cDeviceName, "69") || pestrcasestr(cDeviceName, "68") || pestrcasestr(cDeviceName, "66") || pestrcasestr(cDeviceName, "67") || pestrcasestr(cDeviceName, "65"))
-						{
-							bIsAMDCard = true;
-							break;
-						}
+						strcat(g_pGraphicsCardLog, "Match:RX ");
+						bIsAMDCard = true;
+						break;
 					}
 					else
 					{
-						//PE: special case for amd 5600 xt
 						if (pestrcasestr(cDeviceName, "5500") || pestrcasestr(cDeviceName, "5600"))
 						{
+							strcat(g_pGraphicsCardLog, "Match:5500or5600 ");
 							bIsAMDCard = true;
 							break;
 						}
@@ -248,6 +252,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	else
 	{
 		// if old AMD HOT FIX files present, and mode for this is OFF, remove them
+		strcat(g_pGraphicsCardLog, "AMD Hot Fix = false ");
 		if (RAW_FileExists("d3d11.dll") == 1 || RAW_FileExists("dxgi.dll") == 1)
 		{
 			char pMsgToRemove[MAX_PATH];

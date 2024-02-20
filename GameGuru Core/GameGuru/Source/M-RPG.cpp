@@ -7,6 +7,10 @@
 #include "gameguru.h"
 #include "M-RPG.h"
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 // Globals
 std::vector<cstr> g_collectionLabels;
 std::vector<collectionItemType> g_collectionMasterList;
@@ -786,6 +790,10 @@ void refresh_rpg_parents_of_items(void)
 
 bool refresh_collection_from_entities(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// must ALWAYS add missing weapons to collection list, user does not manually add these
 	for (int e = 1; e < g.entityelementmax; e++)
 	{

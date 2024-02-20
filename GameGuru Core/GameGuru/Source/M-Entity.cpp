@@ -8283,9 +8283,6 @@ void entity_addentitytomap ( void )
 		t.grideleprof.trigger.waypointzoneindex = 0;
 	}
 
-	// ensure waypoint never gets corrupted, making copies of data as needed
-	//waypoint_fixcorruptduplicate(t.e); without valid t.waypointindex this is madness
-
 	//  as create entity, apply any texture change required
 	t.stentid=t.entid ; t.entid=t.entitybankindex;
 	t.entdir_s="entitybank\\" ; t.ent_s=t.entitybank_s[t.entid] ; t.entpath_s=getpath(t.ent_s.Get());
@@ -8419,21 +8416,22 @@ void entity_addentitytomap ( void )
 	}
 
 	// if new particle emitter, update it when created (to start the particle emission)
-	#ifdef WICKEDENGINE
 	entity_updateparticleemitter(t.tupdatee);
-	#endif
 
 	// when add an entity to the scene, auto flatten if flagged
-	#ifdef WICKEDENGINE
 	if (t.entityelement[t.e].eleprof.iFlattenID == -1)
 		entity_autoFlattenWhenAdded(t.e); //MD: Wrapped this section into a function to use when loading in levels to auto flatten areas
 	else
 		entity_updateautoflatten(t.e); //LB: Fix in case already added (in prepareobj for example)
-	#endif
 
 	// ensure collection list up to date with new entity additions (such as weapons and other implied collectables)
-	extern bool g_bUpdateCollectionList;
-	g_bUpdateCollectionList = true;
+	extern bool g_bSelectedNewObjectToAddToLevel;
+	if (g_bSelectedNewObjectToAddToLevel == true)
+	{
+		g_bSelectedNewObjectToAddToLevel = false;
+		extern bool g_bUpdateCollectionList;
+		g_bUpdateCollectionList = true;
+	}
 }
 
 void entity_deleteentityfrommap ( void )

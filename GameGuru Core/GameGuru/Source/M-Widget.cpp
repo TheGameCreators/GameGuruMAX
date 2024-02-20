@@ -16,13 +16,16 @@
 #include "..\Imgui\imgui_gg_dx11.h"
 #endif
 
-
 #ifdef WICKEDENGINE
 #include ".\..\..\Guru-WickedMAX\wickedcalls.h"
 bool widget_temp_disabled = false;
 extern bool g_bRefreshRotationValuesFromObjectOnce;
 #include "GGTerrain/GGTerrain.h"
 using namespace GGTerrain;
+#endif
+
+#ifdef OPTICK_ENABLE
+#include "optick.h"
 #endif
 
 //PE: All selections has been changed from multiply system (PickScreenObject,PickScreen2D23D) to only use PickScreen2D23D.
@@ -330,6 +333,10 @@ int PickObjectUsingWicked(void)
 #ifdef WICKEDENGINE
 bool widget_getplanepos ( float fActivePosX, float fActivePosY, float fActivePosZ, float* pPlanePosX, float* pPlanePosY, float* pPlanePosZ )
 {
+	#ifdef OPTICK_ENABLE
+		OPTICK_EVENT();
+	#endif
+
 	// when drag in object initially, use new smart placement system
 	extern int iObjectMoveMode;
 	bool bJustForInitialDragIn = false;

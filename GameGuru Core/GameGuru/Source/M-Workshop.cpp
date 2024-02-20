@@ -599,6 +599,7 @@ cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile)
 
 bool workshop_verifyandorreplacescript ( int e, int entid )
 {
+	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;
 	char pScriptFile[MAX_PATH];
 	strcpy(pScriptFile, "scriptbank\\");
@@ -650,6 +651,9 @@ bool workshop_verifyandorreplacescript ( int e, int entid )
 		}
 	}
 	return bReplacedScript;
+	#else
+	return false;
+	#endif
 }
 
 // Callback Functions for Steam Workshop

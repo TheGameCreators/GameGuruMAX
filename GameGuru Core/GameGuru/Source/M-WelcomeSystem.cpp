@@ -2600,8 +2600,8 @@ int iDownloadLocation = 0;
 
 #include "Common-Keys.h"
 
-#if __has_include("f:\\secret-token.h")
-#include "f:\\secret-token.h"
+#if __has_include("D:\\DEV\\secret-token.h")
+#include "D:\\DEV\\secret-token.h"
 #else
 #define SECRET_TOKEN "none"
 #endif
@@ -2812,7 +2812,6 @@ void imgui_download_store( void )
 
 		//sprintf(cUrl, "/api/purchases/download?userid=%s&hash=%s&app=GGMax&app_version=V0.1&sc=%s", cDownloadStoreUserId, cDownloadStoreUserHash , NEWSTOREPASSWORD);
 		sprintf(cUrl, "/api/purchases/download?user_id=%s&hash=%s&app=GGMax", cDownloadStoreUserId, cDownloadStoreUserHash);
-
 		UINT iError = StoreOpenURLForDataOrFile(NULL, pDataReturned, &dwDataReturnedSize, "", "GET", cUrl, pDownloadFile);
 		if (iError > 0)
 		{

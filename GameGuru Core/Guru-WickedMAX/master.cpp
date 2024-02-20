@@ -570,7 +570,12 @@ void Master::Update(float dt)
 	// while init phase, show splash
 	if (GuruUpdate() == false)
 	{
+		// output graphcs card log created earlier
+		extern char g_pGraphicsCardLog[10240];
+		timestampactivity(0, g_pGraphicsCardLog);
+
 		// until we are loaded and ready, present splash screen
+		timestampactivity(0, "initial setup");
 		CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
 		wiRenderer::GetDevice()->RenderPassBegin(&swapChain, cmd);
 		wiImage::SetCanvas(canvas, cmd);
@@ -584,6 +589,7 @@ void Master::Update(float dt)
 		params.posY = 5.f;
 
 		// load and show MAX splash
+		timestampactivity(0, "splash screen");
 		wiImageParams fx;
 		fx.enableFullScreen();
 		fx.blendFlag = BLENDMODE_OPAQUE;

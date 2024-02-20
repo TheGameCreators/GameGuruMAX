@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Clone_Entity v16 by Necrym59 and Lee
+-- Clone_Entity v17 by Necrym59 and Lee
 -- DESCRIPTION: Allows cloning of a Named Entity when triggered.
--- DESCRIPTION: Attach to an object then logic link to a switch or zone to activate.
+-- DESCRIPTION: Attach to an object then logic link to a switch or zone to activate, or directly assign to a zone.
 -- DESCRIPTION: [CLONE_QUANTITY=1(1,100)]
 -- DESCRIPTION: [CLONE_RANGE=100(50,1000)]
 -- DESCRIPTION: [CLONE_LIFESPAN=3(1,1000)] Minutes (1000 = Eternal Lifespan)
@@ -65,6 +65,9 @@ function clone_entity_init(e)
 end
 
 function clone_entity_main(e)
+	if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+100 then
+		SetEntityActivated(e,1)
+	end
 	if status[e] == "init" then		
 		clone_entity[e].entity_no = 0
 		clone_entity[e].timetonextspawn = g_Time + 5
@@ -89,7 +92,6 @@ function clone_entity_main(e)
 			end
 		end
 	end
-
 	if g_Entity[e]['activated'] == 1 then
 		if status[e] == "clone_entity" then
 			if g_Time > clone_entity[e].timetonextspawn then

@@ -2058,7 +2058,6 @@ void smoothanimupdate (int obj)
 	}
 	else
 	{
-		#ifdef WICKEDENGINE
 		if (t.smoothanim[obj].playflag == 1)
 		{
 			if (t.smoothanim[obj].playstarted == 1)
@@ -2073,7 +2072,6 @@ void smoothanimupdate (int obj)
 				}
 			}
 		}
-		#endif
 	}
 }
 

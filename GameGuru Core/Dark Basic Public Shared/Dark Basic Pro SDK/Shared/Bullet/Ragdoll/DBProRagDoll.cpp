@@ -585,126 +585,124 @@ void CalculateRelativeMatricesFromWorld (sFrame* pParentFrame, sFrame* pFrame)
 
 void DBProRagDoll::Update() 
 {
+	bool bStillMoving = false;
 	m_bNeedsUpdateForCulling = true;
 	int objectID = m_id;
 	sObject* pObject = GetObjectData(objectID);
-
-	// Turn Culling Off
-	pObject->collision.fRadius = 0;
-	pObject->collision.fScaledRadius = 0;
-	pObject->collision.fScaledLargestRadius = 0;
-
-	btScalar scaleFactor = 40.0f;///DynamicsWorldArray[0]->m_scaleFactor;
-
-	//Create Transform for DBpro Model,needed for when model is not positioned at origin
-	btTransform DBProModelTrans, DBProModelTransRot, limbInitalRotationTrans;
-	btMatrix3x3 DBProModelRotation;
-	DBProModelTrans.setIdentity();
-	DBProModelTransRot.setIdentity();
-	limbInitalRotationTrans.setIdentity();
-
-	DBProModelRotation.setEulerYPR(btRadians(ObjectAngleZ(objectID)),
-															btRadians(ObjectAngleY(objectID)),
-																btRadians(ObjectAngleX(objectID)));
-	DBProModelTransRot.setBasis(DBProModelRotation);
-
-	btVector3 modelPosition = -1 * BT2DX::DX_VECTOR3_2BT(pObject->position.vecPosition);
-	modelPosition = modelPosition/scaleFactor;
-	DBProModelTrans.setOrigin(modelPosition);
-
-	// flag to record if ragdoll still moving
-	bool bStillMoving = false;
-
-	// bool array to track which frames are part of ragdoll adjustments
-	bool* pbFramePartOfBoneMovement = new bool[pObject->iFrameCount];
-	for (int iF = 0; iF < pObject->iFrameCount; iF++) pbFramePartOfBoneMovement[iF] = false;
-
-	// Loop through all bones and subtract all initial rotations of the capsules from there transforms
-	for (int i = 0; i < m_ragDollBoneArray.size(); i++)
+	if (pObject)
 	{
-		btTransform boneWorldTransform, boneRotatedWorldTransform, newLimbWorldTransform;
-		boneWorldTransform.setIdentity();
-		boneRotatedWorldTransform.setIdentity();
-		newLimbWorldTransform.setIdentity();
-		btVector3 finalWorldPosition;
+		// Turn Culling Off
+		pObject->collision.fRadius = 0;
+		pObject->collision.fScaledRadius = 0;
+		pObject->collision.fScaledLargestRadius = 0;
 
-		//Get the bones World Transform
-		boneWorldTransform = btTransform(m_ragDollBoneArray[i]->GetRigidBody()->getWorldTransform());
+		btScalar scaleFactor = 40.0f;///DynamicsWorldArray[0]->m_scaleFactor;
 
-		//Subtract the initial rotation of the rag doll bone
-		boneRotatedWorldTransform.setBasis(boneWorldTransform.getBasis() * m_ragDollBoneArray[i]->initialRotation.inverse());
+		//Create Transform for DBpro Model,needed for when model is not positioned at origin
+		btTransform DBProModelTrans, DBProModelTransRot, limbInitalRotationTrans;
+		btMatrix3x3 DBProModelRotation;
+		DBProModelTrans.setIdentity();
+		DBProModelTransRot.setIdentity();
+		limbInitalRotationTrans.setIdentity();
 
-		for (int j = 0; j < m_ragDollBoneArray[i]->limbOffsets.size(); j++)
+		DBProModelRotation.setEulerYPR(btRadians(ObjectAngleZ(objectID)),
+			btRadians(ObjectAngleY(objectID)),
+			btRadians(ObjectAngleX(objectID)));
+		DBProModelTransRot.setBasis(DBProModelRotation);
+
+		btVector3 modelPosition = -1 * BT2DX::DX_VECTOR3_2BT(pObject->position.vecPosition);
+		modelPosition = modelPosition / scaleFactor;
+		DBProModelTrans.setOrigin(modelPosition);
+
+		// bool array to track which frames are part of ragdoll adjustments
+		bool* pbFramePartOfBoneMovement = new bool[pObject->iFrameCount];
+		for (int iF = 0; iF < pObject->iFrameCount; iF++) pbFramePartOfBoneMovement[iF] = false;
+
+		// Loop through all bones and subtract all initial rotations of the capsules from there transforms
+		for (int i = 0; i < m_ragDollBoneArray.size(); i++)
 		{
-			//Offsets the positions vector to ends of rag doll bones(capsules) for joint alignment.
-			finalWorldPosition = boneWorldTransform * m_ragDollBoneArray[i]->limbOffsets[j];
+			btTransform boneWorldTransform, boneRotatedWorldTransform, newLimbWorldTransform;
+			boneWorldTransform.setIdentity();
+			boneRotatedWorldTransform.setIdentity();
+			newLimbWorldTransform.setIdentity();
+			btVector3 finalWorldPosition;
 
-			//Take the offset position vector and multiply by the DBpro models world transform
-			finalWorldPosition = DBProModelTrans * finalWorldPosition;
+			//Get the bones World Transform
+			boneWorldTransform = btTransform(m_ragDollBoneArray[i]->GetRigidBody()->getWorldTransform());
 
-			//Updated vector is new final world position for the limbs transform
-			newLimbWorldTransform.setOrigin(finalWorldPosition*scaleFactor);
+			//Subtract the initial rotation of the rag doll bone
+			boneRotatedWorldTransform.setBasis(boneWorldTransform.getBasis() * m_ragDollBoneArray[i]->initialRotation.inverse());
 
-			//set the rotation with the bones rotated transform 
-			newLimbWorldTransform.setBasis(boneRotatedWorldTransform.getBasis());
-
-			//Handel the Models limbs rotations at a frame of animation.
-			limbInitalRotationTrans.setBasis(m_ragDollBoneArray[i]->limbInitalRotation[j]);
-			limbInitalRotationTrans = limbInitalRotationTrans * DBProModelTransRot.inverse();
-			newLimbWorldTransform = newLimbWorldTransform * limbInitalRotationTrans;
-			newLimbWorldTransform = DBProModelTransRot.inverse() * (newLimbWorldTransform * DBProModelTransRot);
-
-			//This moves the joints but not the models bounding box that is the object
-			if ( pObject->ppFrameList )
+			for (int j = 0; j < m_ragDollBoneArray[i]->limbOffsets.size(); j++)
 			{
-				sFrame* pFrame = pObject->ppFrameList[m_ragDollBoneArray[i]->dbproLimbIDs[j]];
+				//Offsets the positions vector to ends of rag doll bones(capsules) for joint alignment.
+				finalWorldPosition = boneWorldTransform * m_ragDollBoneArray[i]->limbOffsets[j];
+
+				//Take the offset position vector and multiply by the DBpro models world transform
+				finalWorldPosition = DBProModelTrans * finalWorldPosition;
+
+				//Updated vector is new final world position for the limbs transform
+				newLimbWorldTransform.setOrigin(finalWorldPosition * scaleFactor);
+
+				//set the rotation with the bones rotated transform 
+				newLimbWorldTransform.setBasis(boneRotatedWorldTransform.getBasis());
+
+				//Handel the Models limbs rotations at a frame of animation.
+				limbInitalRotationTrans.setBasis(m_ragDollBoneArray[i]->limbInitalRotation[j]);
+				limbInitalRotationTrans = limbInitalRotationTrans * DBProModelTransRot.inverse();
+				newLimbWorldTransform = newLimbWorldTransform * limbInitalRotationTrans;
+				newLimbWorldTransform = DBProModelTransRot.inverse() * (newLimbWorldTransform * DBProModelTransRot);
+
+				//This moves the joints but not the models bounding box that is the object
+				if (pObject->ppFrameList)
+				{
+					sFrame* pFrame = pObject->ppFrameList[m_ragDollBoneArray[i]->dbproLimbIDs[j]];
+					if (pFrame)
+					{
+						pFrame->matCombined = BT2DX::BT2DX_MATRIX(newLimbWorldTransform);
+						pbFramePartOfBoneMovement[m_ragDollBoneArray[i]->dbproLimbIDs[j]] = true;
+					}
+				}
+			}
+
+			// is this bone moving?
+			float fEpsilonToFreezeLin = 0.04f;
+			float fEpsilonToFreezeAng = 0.30f;
+			btVector3 LinVel = m_ragDollBoneArray[i]->GetRigidBody()->getLinearVelocity();
+			btVector3 AngVel = m_ragDollBoneArray[i]->GetRigidBody()->getAngularVelocity();
+			if (fabs(LinVel.getX()) + fabs(LinVel.getY()) + fabs(LinVel.getZ()) > fEpsilonToFreezeLin) bStillMoving = true;
+			if (fabs(AngVel.getX()) + fabs(AngVel.getY()) + fabs(AngVel.getZ()) > fEpsilonToFreezeAng) bStillMoving = true;
+		}
+
+		// go through all frame hierarchy and calc relative matrices from world matrices (and store back in matCombined)
+		CalculateRelativeMatricesFromWorld(NULL, pObject->pFrame);
+
+		for (int iF = m_iAnimateFromJoint + 1; iF < pObject->iFrameCount; iF++)
+		{
+			sFrame* pFrame = pObject->ppFrameList[iF];
+			pFrame->matCombined = pFrame->matTransformed;
+		}
+		// and then give the relative matrices to wicked to animate the object
+		for (int iF = m_iAnimateFromJoint; iF < pObject->iFrameCount; iF++)
+		{
+			if (pbFramePartOfBoneMovement[iF] == true)
+			{
+				sFrame* pFrame = pObject->ppFrameList[iF];
 				if (pFrame)
 				{
-					pFrame->matCombined = BT2DX::BT2DX_MATRIX(newLimbWorldTransform);
-					pbFramePartOfBoneMovement[m_ragDollBoneArray[i]->dbproLimbIDs[j]] = true;
+					bool bIncludeTranslation = false;
+					if (iF == m_iAnimateFromJoint) bIncludeTranslation = true;
+					WickedCall_OverrideLimbWithCombined(pObject, pFrame, bIncludeTranslation);
 				}
 			}
 		}
+		// must keep object playing so modified bones can affect the wicked animation system
+		LoopObject(objectID, 0, 1);
 
-		// is this bone moving?
-		float fEpsilonToFreezeLin = 0.04f;
-		float fEpsilonToFreezeAng = 0.30f;
-		btVector3 LinVel = m_ragDollBoneArray[i]->GetRigidBody()->getLinearVelocity();
-		btVector3 AngVel = m_ragDollBoneArray[i]->GetRigidBody()->getAngularVelocity();
-		if ( fabs(LinVel.getX())+fabs(LinVel.getY())+fabs(LinVel.getZ()) > fEpsilonToFreezeLin ) bStillMoving = true;
-		if ( fabs(AngVel.getX())+fabs(AngVel.getY())+fabs(AngVel.getZ()) > fEpsilonToFreezeAng ) bStillMoving = true;
+		// moved this out of wicked def as otherwise memory leak in non-MAX builds
+		delete pbFramePartOfBoneMovement;
+		pbFramePartOfBoneMovement = NULL;
 	}
-
-	#ifdef WICKEDENGINE
-	// go through all frame hierarchy and calc relative matrices from world matrices (and store back in matCombined)
-	CalculateRelativeMatricesFromWorld(NULL, pObject->pFrame);
-
-	for (int iF = m_iAnimateFromJoint + 1; iF < pObject->iFrameCount; iF++)
-	{
-		sFrame* pFrame = pObject->ppFrameList[iF];
-		pFrame->matCombined = pFrame->matTransformed;
-	}
-	// and then give the relative matrices to wicked to animate the object
-	for (int iF = m_iAnimateFromJoint; iF < pObject->iFrameCount; iF++)
-	{
-		if (pbFramePartOfBoneMovement[iF] == true)
-		{
-			sFrame* pFrame = pObject->ppFrameList[iF];
-			if (pFrame)
-			{
-				bool bIncludeTranslation = false;
-				if (iF== m_iAnimateFromJoint) bIncludeTranslation = true;
-				WickedCall_OverrideLimbWithCombined(pObject, pFrame, bIncludeTranslation);
-			}
-		}
-	}
-	// must keep object playing so modified bones can affect the wicked animation system
-	LoopObject(objectID, 0, 1);
-	#endif
-
-	// moved this out of wicked def as otherwise memory leak in non-MAX builds
-	delete pbFramePartOfBoneMovement;
-	pbFramePartOfBoneMovement = NULL;
 
 	// if overall ragdoll has stopped moving, switch it to static
 	if (bStillMoving == false) 

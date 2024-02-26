@@ -74,7 +74,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	//WCHAR tmp[80];
 	//wcscpy(tmp, L"debugdevice");
 	//wiStartupArguments::Parse(&tmp[0]);
-	//MessageBoxA(NULL, "WinMain", "Log", 0);
+	//MessageBoxA(NULL, "WinMain", "Log", MB_OK);
 
 	// Command line store
 	std::wstring your_wchar_in_ws(lpCmdLine);
@@ -263,6 +263,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			return 0;
 		}
 	}
+	//MessageBoxA(NULL, g_pGraphicsCardLog, g_pGraphicsCardLog, MB_OK);
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);

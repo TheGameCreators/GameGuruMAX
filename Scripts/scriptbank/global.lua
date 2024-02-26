@@ -1484,7 +1484,6 @@ GetEntityCollBox : GetEntityCollBox ( e ) -- useful command see below (though ty
 GetEntityColBox : minx,miny,minz,maxx,maxy,maxz = GetEntityColBox ( e ) -- returns the unrotated boundbox for the specified entity
 GetEntityScales : sx,sy,sz = GetEntityScales ( e ) -- returns the XYZ scale of the specified entity
 GetEntityName : string = GetEntityName ( e ) -- will return the name of the entity specified by e
-GetEntityScales : GetEntityScales ( e ) -- useful command
 GetMovementDeltaManually : GetMovementDeltaManually ( e ) -- useful command
 
 SetEntityUnderwaterMode: SetEntityUnderwaterMode ( e, mode ) -- Set mode to 1 to allow character entity to survive underwater

@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a stamina boost or deduction if used.
--- Stamina v12
+-- Stamina v13
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USAGE_TEXT$="Stamina consumed"]
@@ -29,7 +29,6 @@ local tEnt = {}
 local selectobj = {}
 
 function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
-	stamina[e] = g_Entity[e]	
 	stamina[e].prompt_text = prompt_text
 	stamina[e].prompt_if_collectable = prompt_if_collectable
 	stamina[e].usage_text = usage_text
@@ -42,7 +41,7 @@ function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, q
 end
 
 function stamina_init(e)
-	stamina[e] = g_Entity[e]
+	stamina[e] = {}
 	stamina[e].prompt_text = "E to consume"
 	stamina[e].prompt_if_collectable = "E to collect"
 	stamina[e].usage_text = "Stamina consumed"
@@ -59,7 +58,7 @@ function stamina_init(e)
 end
 
 function stamina_main(e)
-	stamina[e] = g_Entity[e]
+
 	local PlayerDist = GetPlayerDistance(e)	
 	if stamina[e].pickup_style == 1 then
 		if PlayerDist < stamina[e].pickup_range then

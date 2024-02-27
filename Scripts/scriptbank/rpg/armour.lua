@@ -1,16 +1,19 @@
 -- DESCRIPTION: The object will give the player an armour boost or deduction if used.
--- Armour v11
+-- Armour v12
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
--- DESCRIPTION: [USEAGE_TEXT$="Armour worn"]
+-- DESCRIPTION: [USEAGE_TEXT$="Armour applied"]
 -- DESCRIPTION: [QUANTITY=10(1,100)]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyArmour"]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> for collection sound.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local armour = {}
 local prompt_text = {}
@@ -20,11 +23,12 @@ local pickup_range = {}
 local pickup_style = {}
 local effect = {}
 local user_global_affected = {}
+local prompt_display = {}
 local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
 
-function armour_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected)
+function armour_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
 	armour[e] = g_Entity[e]	
 	armour[e].prompt_text = prompt_text
 	armour[e].prompt_if_collectable = prompt_if_collectable
@@ -34,6 +38,7 @@ function armour_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 	armour[e].pickup_style = pickup_style
 	armour[e].effect = effect
 	armour[e].user_global_affected = user_global_affected or ""
+	armour[e].prompt_display = prompt_display
 end
 
 function armour_init(e)
@@ -46,8 +51,10 @@ function armour_init(e)
 	armour[e].pickup_style = 1
 	armour[e].effect = 1
 	armour[e].user_global_affected = "MyArmour"
+	armour[e].prompt_display = 1	
 	use_item_now[e] = 0
 	tEnt[e] = 0
+	g_tEnt = 0	
 	selectobj[e] = 0
 end
 
@@ -56,40 +63,30 @@ function armour_main(e)
 	PlayerDist = GetPlayerDistance(e)	
 	if armour[e].pickup_style == 1 then
 		if PlayerDist < armour[e].pickup_range then
-			PromptDuration(armour[e].useage_text,1000)
+			if armour[e].prompt_display == 1 then PromptLocal(e,armour[e].useage_text) end
+			if armour[e].prompt_display == 2 then Prompt(armour[e].useage_text) end
 			use_item_now[e] = 1
 		end
 	end
 	if armour[e].pickup_style == 2 and PlayerDist < armour[e].pickup_range then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,armour[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0				
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--
+		--pinpoint select object--
+		module_misclib.pinpoint(e,armour[e].pickup_range,300)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 		
-		if PlayerDist < armour[e].pickup_range and tEnt[e] ~= 0 or tEnt[e] ~= nil and GetEntityVisibility(e) == 1 then		
+		if PlayerDist < armour[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			if GetEntityCollectable(tEnt[e]) == 0 then
-				PromptDuration(armour[e].prompt_text,1000)
+				if armour[e].prompt_display == 1 then PromptLocal(e,armour[e].prompt_text) end
+				if armour[e].prompt_display == 2 then Prompt(armour[e].prompt_text) end
 				if g_KeyPressE == 1 then				
 					use_item_now[e] = 1
+					if armour[e].prompt_display == 1 then PromptLocal(e,armour[e].useage_text) end
+					if armour[e].prompt_display == 2 then Prompt(armour[e].useage_text) end
 				end
 			end
 			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
-				Prompt(armour[e].prompt_if_collectable)
+				if armour[e].prompt_display == 1 then PromptLocal(e,armour[e].prompt_if_collectable) end
+				if armour[e].prompt_display == 2 then Prompt(armour[e].prompt_if_collectable) end			
 				-- if collectable or resource
 				if g_KeyPressE == 1 then
 					Hide(e)
@@ -100,6 +97,7 @@ function armour_main(e)
 			end
 		end
 	end
+
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
 		-- if this is a resource, it will deplete qty and set used to zero

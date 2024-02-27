@@ -1,55 +1,78 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Conveyor Script v6
--- DESCRIPTION: Creates a conveyor object to propell the player in faced direction?
--- DESCRIPTION: Change the conveyor [MOVESPEED#=10(1,200)]
--- DESCRIPTION: Turn on/off [SHOW_CONVEYOR!=0] to hide/unhide conveyor. 
+-- Conveyor Script v7
+-- DESCRIPTION: Creates a conveyor object to propell the player in conveyors direction?
+-- DESCRIPTION:[#MOVESPEED=5(1,200)] the conveyor move speed
+-- DESCRIPTION: [SHOW_CONVEYOR!=0] to hide/unhide conveyor object. 
+-- DESCRIPTION: [@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
+-- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
 -- DESCRIPTION: <Sound0> - for conveyor.
 
 local U = require "scriptbank\\utillib"
 local rad = math.rad
 local abs = math.abs
 
-g_conveyor = {}
-local conveyor = {}
-local movespeed = {}
-local show_conveyor = {}
-local conveyor_active = {}
-local state = {}
-local onconveyor = {}
+local conveyor						= {}
+local movespeed						= {}
+local show_conveyor 				= {}
+local use_variable_switch 			= {}
+local variable_switch_user_global	= {}
+
+local conveyor_active 	= {}
+local state				= {}
+local onconveyor		= {}
 local current_level		= {}
+local currentvalue		= {}
+local conveyorxpos 		= {}
+local conveyorypos 		= {}
+local conveyorzpos 		= {}
+local conveyorxang 		= {}
+local conveyoryang 		= {}
+local conveyorzang 		= {}
 	
-function conveyor_properties(e, movespeed, show_conveyor)
-	g_conveyor[e] = g_Entity[e]
-	g_conveyor[e]['movespeed'] = movespeed	
-	g_conveyor[e]['show_conveyor'] = show_conveyor
+function conveyor_properties(e, movespeed, show_conveyor, use_variable_switch, variable_switch_user_global)
+	conveyor[e].movespeed = movespeed	
+	conveyor[e].show_conveyor = show_conveyor
+	conveyor[e].use_variable_switch = use_variable_switch
+	conveyor[e].variable_switch_user_global	= variable_switch_user_global
 end -- End properties
 
 function conveyor_init(e)
-	g_conveyor[e] = {}	
-	g_conveyor[e]['movespeed'] = 1
-	g_conveyor[e]['show_conveyor'] = 0
+	conveyor[e] = {}	
+	conveyor[e].movespeed = 1
+	conveyor[e].show_conveyor = 0
+	conveyor[e].use_variable_switch = 2
+	conveyor[e].variable_switch_user_global	= ""	
+	
 	conveyor_active[e] = 0
 	onconveyor[e] = 0
+	currentvalue[e] = 0
 	current_level[e] = GetEntityBaseAlpha(e)
 	SetEntityTransparency(e,1)	
 	state[e] = "init"	
 end -- End init
 
 function conveyor_main(e)
-	g_conveyor[e] = g_Entity[e]	
 	
 	-- Conveyor Init
 	if state[e] == 'init' then
-		if g_conveyor[e]['show_conveyor'] == 0 then SetEntityBaseAlpha(e,0) end
-		if g_conveyor[e]['show_conveyor'] == 1 then SetEntityBaseAlpha(e,current_level[e]) end	
+		conveyoryang[e] = g_Entity[e]['angley']
+		if conveyor[e].show_conveyor == 0 then SetEntityBaseAlpha(e,0) end
+		if conveyor[e].show_conveyor == 1 then SetEntityBaseAlpha(e,current_level[e]) end	
 		state[e] = "endinit"		
 	end
+		
+	if conveyor[e].use_variable_switch == 1 then
+		if conveyor[e].variable_switch_user_global ~= "" then
+			if _G["g_UserGlobal['"..conveyor[e].variable_switch_user_global.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..conveyor[e].variable_switch_user_global.."']"] end
+			conveyor[e].movespeed = _G["g_UserGlobal['"..conveyor[e].variable_switch_user_global.."']"]
+		end
+	end	
 	
 	-- Conveyor Belt Start	
 	onconveyor[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_PlayerPosX,-1,g_PlayerPosZ,0)
 	-- Active conveyor
- 	if onconveyor[e] ~= g_Entity[e]['obj'] then onconveyor[e] = 0 end
-	if g_Entity[e]['obj'] == onconveyor[e] then		
+ 	if onconveyor[e] ~= g_Entity[e].obj then onconveyor[e] = 0 end
+	if g_Entity[e].obj == onconveyor[e] then		
 		conveyor_active[e] = 1
 		LoopSound(e,0)
 		state[e] = "move-on"
@@ -60,7 +83,7 @@ function conveyor_main(e)
 	--Move on conveyor	
 	if state[e] == "move-on" and conveyor_active[e] == 1 then
 		if onconveyor[e] > 0 and conveyor_active[e] == 1 then		
-			ForcePlayer(g_PlayerAngY,g_conveyor[e]['movespeed']/10)
+			ForcePlayer(conveyoryang[e],conveyor[e].movespeed/100)
 		end			
 		if onconveyor[e] == 0 then
 			state[e] = "move-off"

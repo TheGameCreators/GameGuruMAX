@@ -1,12 +1,14 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Binoculars v12 by Necrym59
+-- Binoculars v13 by Necrym59
 -- DESCRIPTION: The Binocular object will give the player Binoculars? Always active ON.
 -- DESCRIPTION: Set the [PICKUP_TEXT$="E to Pickup"] and [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: Set the [USEAGE_TEXT$="Hold B to use"]
 -- DESCRIPTION: Set the [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=20(1,30)], [ZOOM_SPEED=1(1,5)]
 -- DESCRIPTION: Set the binocular [IMAGEFILE$="imagebank\\misc\\testimages\\binocs.png"]
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local binoculars 	= {}
 local pickup_text 	= {}
@@ -54,6 +56,7 @@ function binoculars_init(e)
 	fov = g_PlayerFOV
 	last_gun = g_PlayerGunName
 	gunstatus = 0
+	g_tEnt = 0
 	tEnt[e] = 0
 	selectobj[e] = 0
 	status[e] = "init"
@@ -73,31 +76,16 @@ function binoculars_main(e)
 	
 	if have_binoculars == 0 then
 		if PlayerDist < binoculars[e].pickup_range then
-			-- pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,binoculars[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e].obj == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)					
-					tEnt[e] = e
-				else 
-					tEnt[e] = 0				
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				tEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,binoculars[e].pickup_range,300)
+			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
 		if PlayerDist < binoculars[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			PromptLocal(e,binoculars[e].pickup_text)
 			if g_KeyPressE == 1 then
 				have_binoculars = 1					
-				PromptDuration(binoculars[e].useage_text,2000)
+				PromptDuration(binoculars[e].useage_text,3000)
 				PlaySound(e,0)
 				Hide(e)
 				CollisionOff(e)
@@ -107,7 +95,7 @@ function binoculars_main(e)
 	end
 		
 	if have_binoculars == 1 then		
-		
+		PromptLocal(e,"")
 		if g_Scancode == 48 then --Hold B Key to use
 			
 			if g_PlayerGunID > 0 then

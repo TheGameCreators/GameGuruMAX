@@ -12,7 +12,9 @@
 -- DESCRIPTION: <Sound0> when consuming.
 -- DESCRIPTION: <Sound1> when poisoned.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local eat 					= {}
 local prompt_text 			= {}
@@ -64,6 +66,7 @@ function eat_init(e)
 	pressed[e] = 0
 	actioned[e] = 0
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	respawntime[e] = 0
 	status[e] = "init"
@@ -82,22 +85,9 @@ function eat_main(e)
 	local PlayerDist = GetPlayerDistance(e)	
 	
 	if PlayerDist < eat[e].pickup_range and GetEntityVisibility(e) == 1 then
-		--pinpoint select object--		
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,eat[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
+		--pinpoint select object--
+		module_misclib.pinpoint(e,eat[e].pickup_range,300)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		
 		if PlayerDist < eat[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then

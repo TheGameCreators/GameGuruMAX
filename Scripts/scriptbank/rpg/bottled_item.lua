@@ -1,4 +1,4 @@
--- Bottled_Item v6  by Necrym59
+-- Bottled_Item v7  by Necrym59
 -- DESCRIPTION: The object will give the player a health boost or loss if consumed.
 -- DESCRIPTION: and can also effect a user global if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Press E to consume"]
@@ -7,16 +7,22 @@
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyHealth"]
 -- DESCRIPTION: [POISONING_EFFECT!=0]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> when consuming.
 -- DESCRIPTION: <Sound1> when poisoned.
+
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local bottle 				= {}
 local prompt_text 			= {}
 local quantity 				= {}
 local pickup_range 			= {}
 local effect 				= {}
-local user_global_affected 	= {}	
+local poisoning_effect		= {}
+local user_global_affected 	= {}
+local prompt_display		= {}	
 
 local tEnt 					= {}
 local selectobj 			= {}
@@ -28,14 +34,15 @@ local doonce				= {}
 local actioned				= {}
 local status 				= {}
 
-function bottled_item_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect)
+function bottled_item_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, prompt_display)
 	bottle[e] = g_Entity[e]
 	bottle[e].prompt_text = prompt_text
 	bottle[e].quantity = quantity
 	bottle[e].pickup_range = pickup_range
 	bottle[e].effect = effect
 	bottle[e].user_global_affected = user_global_affected
-	bottle[e].poisoned = poisoning_effect
+	bottle[e].poisoning_effect = poisoning_effect
+	bottle[e].prompt_display = prompt_display	
 end
 
 function bottled_item_init(e)
@@ -45,13 +52,17 @@ function bottled_item_init(e)
 	bottle[e].pickup_range = 80
 	bottle[e].effect = 1
 	bottle[e].user_global_affected = "MyHealth"
-	bottle[e].poisoned = 0
+	bottle[e].poisoning_effect = 0
+	bottle[e].prompt_display = 1
 	
 	currentvalue[e] = 0
 	addquantity[e] = 0
 	calchealth[e] = 0
 	poisoned[e] = 0	
 	doonce[e] = 0
+	g_tEnt = 0
+	tEnt = 0
+	selectobj = 0
 	actioned[e] = 0	
 	status[e] = "init"
 end
@@ -66,30 +77,19 @@ function bottled_item_main(e)
 		status[e] = "endinit"
 	end
 	
-	local PlayerDist = GetPlayerDistance(e)
-	
+	local PlayerDist = GetPlayerDistance(e)	
 	if PlayerDist < bottle[e].pickup_range and GetEntityVisibility(e) == 1 then
 		--pinpoint select object--
-		
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,bottle[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--
+		module_misclib.pinpoint(e,bottle[e].pickup_range,300)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 	
 		if PlayerDist < bottle[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
-			if doonce[e] == 0 then Prompt(bottle[e].prompt_text) end	
+			if doonce[e] == 0 then
+				if bottle[e].prompt_display == 1 then PromptLocal(e,bottle[e].prompt_text) end
+				if bottle[e].prompt_display == 2 then Prompt(bottle[e].prompt_text) end
+				Prompt(bottle[e].prompt_text)
+			end	
 			if g_KeyPressE == 1 then
 				doonce[e] = 1
 				if actioned[e] == 0 then
@@ -115,12 +115,12 @@ function bottled_item_main(e)
 					if bottle[e].user_global_affected > "" then 
 						if _G["g_UserGlobal['"..bottle[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..bottle[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..bottle[e].user_global_affected.."']"] = currentvalue[e] - bottle[e].quantity
-						if bottle[e].poisoned == 1 then
+						if bottle[e].poisoning_effect == 1 then
 							Hide(e)
 							CollisionOff(e)
 							status[e] = "poisoned"
 						end
-						if bottle[e].poisoned == 0 then
+						if bottle[e].poisoning_effect == 0 then
 							Hide(e)
 							CollisionOff(e)
 							Destroy(e)

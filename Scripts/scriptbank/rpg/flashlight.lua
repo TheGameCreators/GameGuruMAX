@@ -1,4 +1,4 @@
--- Flashlight v21: by Necrym59
+-- Flashlight v22: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -23,7 +23,9 @@
 -- DESCRIPTION: <Sound0> for Pickup sound
 -- DESCRIPTION: <Sound1> for switching on/off
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 g_batteryenergy = {}
 
 local flashlight 			= {}
@@ -113,6 +115,7 @@ function flashlight_init(e)
 	doonce[e] = 0
 	status[e] = 'init'
 	tEnt[e] = 0
+	g_tEnt = 0	
 	played[e] = 0
 	currentvalue[e] = 0
 	flashswitch[e] = 0
@@ -158,22 +161,9 @@ function flashlight_main(e)
 		end
 		if flashlight[e].pickup_style == 2 and PlayerDist < flashlight[e].pickup_range then
 			--pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,flashlight[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-					tEnt[e] = e
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				tEnt[e] = 0 
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-			end
-			--end pinpoint select object--
+			module_misclib.pinpoint(e,flashlight[e].pickup_range,300)
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--	
 		end		
 		if PlayerDist < flashlight[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			PromptLocal(e, flashlight[e].pickup_text)

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- TeleSwitch v5: by Necrym59
+-- TeleSwitch v6: by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object to teleport to a linked object.
 -- DESCRIPTION: It is better to use a small or a flat object to avoid getting stuck when you reappear.
 -- DESCRIPTION: [PROMPT_TEXT$="to Teleport"]
@@ -7,7 +7,10 @@
 -- DESCRIPTION: [PlayerLevel=0(0,100))] player level to be able use this switch
 -- DESCRIPTION: Play <Sound0> when the object is switched ON.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
+
 local teleswitch 		= {}
 local prompt_text 		= {}
 local use_range 		= {}
@@ -37,6 +40,7 @@ function teleswitch_init(e)
 	
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
+	g_tEnt = 0
 	status = "init"
 end
 
@@ -50,26 +54,10 @@ function teleswitch_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 	
 	if PlayerDist < teleswitch[e].use_range then
-		-- pinpoint select object--		
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,teleswitch[e].use_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e].obj == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0			
-			end
-			if g_Entity[e]['obj'] ~= selectobj[e] then selectobj[e] = 0 end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--		
+		--pinpoint select object--
+		module_misclib.pinpoint(e,teleswitch[e].use_range,200)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 	end	
 
 	if PlayerDist < teleswitch[e].use_range and tEnt[e] ~= 0 then

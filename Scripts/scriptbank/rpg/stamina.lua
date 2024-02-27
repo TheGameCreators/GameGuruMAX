@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a stamina boost or deduction if used.
--- Stamina v11
+-- Stamina v12
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USAGE_TEXT$="Stamina consumed"]
@@ -8,9 +8,13 @@
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyStaminaMax"]
--- DESCRIPTION: <Sound0> for collection sound.
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: <Sound0> for usage sound.
+-- DESCRIPTION: <Sound1> for collection sound.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local stamina = {}
 local prompt_text = {}
@@ -24,7 +28,7 @@ local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
 
-function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, quantity, pickup_range, pickup_style, effect, user_global_affected)
+function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
 	stamina[e] = g_Entity[e]	
 	stamina[e].prompt_text = prompt_text
 	stamina[e].prompt_if_collectable = prompt_if_collectable
@@ -34,6 +38,7 @@ function stamina_properties(e, prompt_text, prompt_if_collectable, usage_text, q
 	stamina[e].pickup_style = pickup_style
 	stamina[e].effect = effect
 	stamina[e].user_global_affected = user_global_affected
+	stamina[e].prompt_display = prompt_display	
 end
 
 function stamina_init(e)
@@ -46,8 +51,10 @@ function stamina_init(e)
 	stamina[e].pickup_style = 1
 	stamina[e].effect = 1
 	stamina[e].user_global_affected = "MyStaminaMax"
+	stamina[e].prompt_display = 1
 	use_item_now[e] = 0
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 end
 
@@ -56,40 +63,29 @@ function stamina_main(e)
 	local PlayerDist = GetPlayerDistance(e)	
 	if stamina[e].pickup_style == 1 then
 		if PlayerDist < stamina[e].pickup_range then
-			PromptDuration(stamina[e].usage_text,1000)
+			Prompt(stamina[e].usage_text)
 			use_item_now[e] = 1
 		end
 	end
 	if stamina[e].pickup_style == 2 and PlayerDist < stamina[e].pickup_range then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,stamina[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else
-				tEnt[e] = 0				
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
+		--pinpoint select object--
+		module_misclib.pinpoint(e,stamina[e].pickup_range,300)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		
 		if PlayerDist < stamina[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then		
 			if GetEntityCollectable(tEnt[e]) == 0 then
-				PromptDuration(stamina[e].prompt_text,1000)
-				if g_KeyPressE == 1 then				
+				if stamina[e].prompt_display == 1 then PromptLocal(e,stamina[e].prompt_text) end
+				if stamina[e].prompt_display == 2 then Prompt(stamina[e].prompt_text) end
+				if g_KeyPressE == 1 then
+					if stamina[e].prompt_display == 1 then PromptLocal(e,stamina[e].usage_text) end
+					if stamina[e].prompt_display == 2 then Prompt(stamina[e].usage_text) end					
 					use_item_now[e] = 1
 				end
 			end
 			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
-				Prompt(stamina[e].prompt_if_collectable)
+				if stamina[e].prompt_display == 1 then PromptLocal(e,stamina[e].prompt_if_collectable) end
+				if stamina[e].prompt_display == 2 then Prompt(stamina[e].prompt_if_collectable) end
 				-- if collectable or resource
 				if g_KeyPressE == 1 then
 					Hide(e)

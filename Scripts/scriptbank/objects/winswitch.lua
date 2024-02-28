@@ -1,12 +1,15 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- WinSwitch v12: by Necrym59 and Lee
+-- WinSwitch v13: by Necrym59 and Lee
 -- DESCRIPTION: This object will be treated as a switch object to end the level.
 -- DESCRIPTION: Edit the [PROMPT_TEXT$="to End Level"] Play the audio <Sound0> when the object is switched ON by the player. 
 -- DESCRIPTION: Select [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after the switch is turned on.
 -- DESCRIPTION: Set the [USE_RANGE=90(1,200)] 
 -- DESCRIPTION: [ResetStates!=0] when entering the new level
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
+
 local winswitch 	= {}
 local use_range 	= {}
 local prompt_text 	= {}
@@ -33,6 +36,7 @@ function winswitch_init(e)
 	winswitch[e].initialstate = 0
 	doonce[e] = 0
 	tEnt[e]	= 0
+	g_tEnt = 0
 	selectobj[e] = 0
 end
 
@@ -41,25 +45,9 @@ function winswitch_main(e)
 	if winswitch[e].initialstate == 0 then SetActivatedWithMP(e,101) end
 	
 	if PlayerDist < winswitch[e].use_range and g_PlayerHealth > 0 then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,winswitch[e].use_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e].obj == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0
-			end
-			if g_Entity[e]['obj'] ~= selectobj[e] then selectobj[e] = 0 end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
+		--pinpoint select object--
+		module_misclib.pinpoint(e,winswitch[e].use_range,200)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 	end
 	

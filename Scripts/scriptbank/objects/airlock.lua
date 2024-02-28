@@ -4,12 +4,12 @@
 -- DESCRIPTION: [@AIRLOCK_TYPE=1(1=Air, 2=Water)]
 -- DESCRIPTION: [AIR_LEVEL=100(0,100)]
 -- DESCRIPTION: [WATER_LEVEL=300(0,1000)]
--- DESCRIPTION: [PROMPT_TEXT$="[E] to begin"]
+-- DESCRIPTION: [PROMPT_TEXT$="E to begin"]
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [DEPRESSURISE_TEXT$="Depressurisation in"]
 -- DESCRIPTION: [PRESSURISE_TEXT$="Pressurisation in"]
--- DESCRIPTION: [DOOR1_NAME$="Inner Door Name"]
--- DESCRIPTION: [DOOR2_NAME$="Outer Door Name"]
+-- DESCRIPTION: [DOOR1_NAME$="Inner Door"]
+-- DESCRIPTION: [DOOR2_NAME$="Outer Door"]
 -- DESCRIPTION: [#DELAY=8(1,100)]
 -- DESCRIPTION: [NPC_DROWNING!=0] If on will drown all NPC's under water level.
 -- DESCRIPTION: <Sound0> when activating

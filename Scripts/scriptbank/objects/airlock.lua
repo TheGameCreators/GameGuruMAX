@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Airlock Switch v8 by Necrym59
+-- Airlock Switch v9 by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object for activating a set of airlock doors. Doors need to be locked.
 -- DESCRIPTION: [@AIRLOCK_TYPE=1(1=Air, 2=Water)]
 -- DESCRIPTION: [AIR_LEVEL=100(0,100)]
@@ -199,10 +199,12 @@ function airlock_main(e)
 		end
 		if mode[e] == "Depressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
+			ActivateIfUsed(e)
 			PromptLocal(e,airlock[e].depressurise_text.. " : " ..countdown[e].. " seconds")
 		end
 		if mode[e] == "Pressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
+			ActivateIfUsed(e)
 			PromptLocal(e,airlock[e].pressurise_text.. " : " ..countdown[e].. " seconds")
 		end
 	end
@@ -241,7 +243,6 @@ function airlock_main(e)
 		if doonce[e] == 0 then
 			airlock[e].state = 3
 			PerformLogicConnections(e)
-			ActivateIfUsed(e)
 			doonce[e] = 1
 		end
 	end
@@ -249,7 +250,6 @@ function airlock_main(e)
 		if doonce[e] == 0 then
 			airlock[e].state = 4
 			PerformLogicConnections(e)
-			ActivateIfUsed(e)			
 			doonce[e] = 1
 		end
 	end

@@ -1,4 +1,6 @@
 
+#define PEOPTIMIZING
+
 #include <string>
 #include "Utility/stb_image.h"
 #include "CFileC.h"
@@ -7711,6 +7713,32 @@ void GGTerrain_CheckReadBack()
 
 		uint32_t pitch = mapping.rowpitch / sizeof(uint32_t);
 		
+		#ifdef PEOPTIMIZING
+		//PE: OPT1 No need to update all pages each frame. Moving camera from Lod to Lod takes many frames.
+		//PE: This reduce the sort that are really the most slow part of the terrain system and done each frame.
+
+		static uint32_t iFrameCount = 0;
+		for (uint32_t y = 0; y < texHeight; y++)
+		{
+			uint32_t index = y * pitch;
+			uint32_t* dataPtr = ((uint32_t*)mapping.data) + index;
+
+			if ((y + iFrameCount) % 7 == 0)
+			{
+				for (uint32_t x = 0; x < texWidth; x++)
+				{
+					uint32_t value = *dataPtr;
+					dataPtr++;
+
+					// value format: [0-7]=virtLocationX, [8-15]=virtLocationY, [16-20]=mipLevel (mipLevel 1 is higest detail, 0 is invalid)
+					if (value == 0) continue; // undrawn areas of texture
+					pagesNeeded.AddNeededPage(value);
+				}
+			}
+		}
+		iFrameCount++;
+
+#else
 		for( uint32_t y = 0; y < texHeight; y++ )
 		{
 			uint32_t index = y * pitch;
@@ -7727,7 +7755,7 @@ void GGTerrain_CheckReadBack()
 				pagesNeeded.AddNeededPage( value );
 			}
 		}
-
+#endif
 		device->Unmap( &texReadBackStaging[currReadBackTex] );
 
 		wiProfiler::EndRange( range );
@@ -9033,9 +9061,15 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 	else
 	{
+		#ifdef PEOPTIMIZING
+		static bool bInEditor = false;
+		#endif
 		// Dynamic 2-probe swapping system (performant and stable but causes artifacts when moving from one extreme to another)
 		if (bImGuiInTestGame == true)
 		{
+			#ifdef PEOPTIMIZING
+			bInEditor = false;
+			#endif
 			#define GGTERRAIN_ENV_TRANSITION_FRAMES 60
 			float diffX = playerX - localEnvProbePos[currLocalEnvProbe].x;
 			float diffY = playerY - localEnvProbePos[currLocalEnvProbe].y;
@@ -9136,6 +9170,27 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		}
 		else
 		{
+			#ifdef PEOPTIMIZING
+			//PE: OPT1 Only run this once, each time its dirty both probes updates even if range=1. (objects,terrain,trees...).
+			if (!bInEditor)
+			{
+				bInEditor = true;
+				// when in editor, and no probes
+				for (int twoway = 0; twoway < 2; twoway++)
+				{
+					EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[twoway]);
+					probe->SetRealTime(false);
+					probe->range = 1;
+					probe->userdata = 0;
+					probe->SetDirty();
+					wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[twoway]);
+					pTransform->ClearTransform();
+					pTransform->Scale(XMFLOAT3(1, 1, 1));
+					pTransform->UpdateTransform();
+					pTransform->SetDirty();
+				}
+			}
+			#else
 			// when in editor, and no probes
 			for (int twoway = 0; twoway < 2; twoway++)
 			{
@@ -9149,6 +9204,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				pTransform->UpdateTransform();
 				pTransform->SetDirty();
 			}
+			#endif
 		}
 	}
 

@@ -1,27 +1,34 @@
--- Chest v4
+-- Chest v5
 -- DESCRIPTION: When player is within [USE_RANGE=100], show
 -- DESCRIPTION: [USE_PROMPT$="Press E to open"] when use key is pressed,
 -- DESCRIPTION: will display [CHEST_SCREEN$="HUD Screen 6"],
 -- DESCRIPTION: using [CHEST_CONTAINER$="chestunique"].
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> for opening chest.
 -- DESCRIPTION: <Sound1> for closing chest.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
+
 local chest = {}
 local use_range = {}
 local use_prompt = {}
 local chest_screen = {}
 local chest_container = {}
+local prompt_display = {}
+
 local status = {}
 local doonce = {}
 local tEnt = {}
 local selectobj = {}
 
-function chest_properties(e, use_range, use_prompt, chest_screen, chest_container)
+function chest_properties(e, use_range, use_prompt, chest_screen, chest_container, prompt_display)
 	chest[e].use_range = use_range
 	chest[e].use_prompt = use_prompt
 	chest[e].chest_screen = chest_screen
 	chest[e].chest_container = chest_container
+	chest[e].prompt_display = prompt_display or 1
 end
 
 function chest_init(e)
@@ -30,8 +37,11 @@ function chest_init(e)
 	chest[e].use_prompt = "Press E to open"
 	chest[e].chest_screen = "HUD Screen 6"
 	chest[e].chest_container = "chestunique"
+	chest[e].prompt_display = 1
+	
 	status[e] = "closed"
 	selectobj[e] = 0
+	g_tEnt = 0
 	tEnt[e] = 0
 end
 
@@ -41,27 +51,13 @@ function chest_main(e)
 		PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < chest[e].use_range then
 			--pinpoint select object--
-			TextColor(50,50,3,"+",100,100,100) --(pointer crosshair at present)
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,chest[e].use_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-					tEnt[e] = e
-				else 
-					tEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				tEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-			end
+			module_misclib.pinpoint(e,chest[e].use_range,300)
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--
 		end
 		if PlayerDist < chest[e].use_range and tEnt[e] ~= 0 then
-			PromptDuration(chest[e].use_prompt ,1000)
+			if chest[e].prompt_display == 1 then PromptLocal(e,chest[e].use_prompt) end
+			if chest[e].prompt_display == 2 then Prompt(chest[e].use_prompt) end
 			if g_KeyPressE == 1 then
 				SetAnimationName(e,"open")
 				PlayAnimation(e)

@@ -1,4 +1,4 @@
--- Switch v11
+-- Switch v12
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Play the audio <Sound0> when the object is switched ON by the player, and <Sound1> when the object is switched OFF. 
 -- DESCRIPTION: Use the [SwitchedOn!=1] state to decide if the switch is initially off or on, and customize the [OnText$="To Turn Switch ON"] and [OffText$="To Turn Switch OFF"].
@@ -7,7 +7,9 @@
 -- DESCRIPTION: [@SwitchType=1(1=Multi-Use, 2=Single-Use)]
 -- DESCRIPTION: [@NPC_TRIGGER=2(1=On, 2=Off)]
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local switch 			= {}
 local initialstate 		= {}
@@ -53,6 +55,7 @@ function switch_init(e)
 	tplayerlevel[e] = 0
 	sensecheck[e] = math.huge
 	doonce[e] = 0
+	g_tEnt = 0
 	status[e] = "init"	
 end
 
@@ -74,26 +77,10 @@ function switch_main(e)
 
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < switch[e].userange then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,switch[e].userange
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e].obj == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0			
-			end
-			if g_Entity[e]['obj'] ~= selectobj[e] then selectobj[e] = 0 end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--		
+		--pinpoint select object--
+		module_misclib.pinpoint(e,switch[e].userange,200)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--
 	end	
 	
 	if PlayerDist < switch[e].userange and tEnt[e] ~= 0 then

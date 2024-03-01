@@ -1,4 +1,4 @@
--- Crafting Kit v9   by Necrym59
+-- Crafting Kit v10   by Necrym59
 -- DESCRIPTION: The attached object can be used as a portable crafting kit.
 -- DESCRIPTION: Set object as Collectable.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] [PICKUP_RANGE=80(1,100)]
@@ -7,11 +7,14 @@
 -- DESCRIPTION: [USEAGE_KEY$="U"]
 -- DESCRIPTION: When use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
 -- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> for pickup
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
-local lower = string.lower
+g_tEnt = {}
 
+local lower = string.lower
 g_craftstation = {}
 local crafting_kit		= {}
 local pickup_text		= {}
@@ -26,8 +29,7 @@ local doonce 			= {}
 local tEnt 				= {}
 local played			= {}
 
-function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, craft_screen, craft_container)
-	crafting_kit[e] = g_Entity[e]
+function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, craft_screen, craft_container, prompt_display)
 	crafting_kit[e].pickup_text = pickup_text
 	crafting_kit[e].pickup_range = pickup_range
 	crafting_kit[e].pickup_style = pickup_style
@@ -35,6 +37,7 @@ function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, use
 	crafting_kit[e].useage_key = lower(useage_key)
 	crafting_kit[e].craft_screen = craft_screen
 	crafting_kit[e].craft_container = craft_container
+	crafting_kit[e].prompt_display = prompt_display	
 end
 
 function crafting_kit_init(e)
@@ -46,9 +49,11 @@ function crafting_kit_init(e)
 	crafting_kit[e].useage_key = "U"
 	crafting_kit[e].craft_screen = "HUD Screen 7"
 	crafting_kit[e].craft_container = "chest"
+	crafting_kit[e].prompt_display = 1	
 	have_crafting_kit[e] = 0
 	selectobj[e] = 0
 	tEnt[e] = 0
+	g_tEnt = 0
 	doonce[e] = 0
 	played[e] = 0
 end
@@ -73,49 +78,35 @@ function crafting_kit_main(e)
 				end
 			end
 		end
-		if have_crafting_kit[e] == 1 and doonce[e] == 0 then 
-			PromptDuration(crafting_kit[e].useage_text,2000)
-			doonce[e] = 1
-		end	
 	end
 
 	if crafting_kit[e].pickup_style == 2 and PlayerDist < crafting_kit[e].pickup_range then
 		--pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,crafting_kit[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0
-			end					
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
+		module_misclib.pinpoint(e,crafting_kit[e].pickup_range,300)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if have_crafting_kit[e] == 0 then
 			if GetEntityCollectable(tEnt[e]) == 1 then
 				if PlayerDist < crafting_kit[e].pickup_range and tEnt[e] ~= 0 then
-					PromptLocalForVR(e,crafting_kit[e].pickup_text)
+					if crafting_kit[e].prompt_display == 1 then PromptLocal(e,crafting_kit[e].pickup_text) end
+					if crafting_kit[e].prompt_display == 2 then Prompt(crafting_kit[e].pickup_text) end				
 					if g_KeyPressE == 1 then
 						if played[e] == 0 then
 							PlaySound(e,0)
 							played[e] = 1
 						end
 						have_crafting_kit[e] = 1						
-						SetEntityCollected(tEnt[e],1)					
-						PromptDuration(crafting_kit[e].useage_text,2000)
+						SetEntityCollected(tEnt[e],1)
 					end
 				end
 			end
 		end
 	end
+	
+	if have_crafting_kit[e] == 1 and doonce[e] == 0 then
+		PromptDuration(crafting_kit[e].useage_text,2000)
+		doonce[e] = 1
+	end	
 
 	if have_crafting_kit[e] > 0 then
 		if GetEntityCollected(e) == 1 then

@@ -1,15 +1,15 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Airlock Switch v8 by Necrym59
+-- Airlock Switch v9 by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object for activating a set of airlock doors. Doors need to be locked.
 -- DESCRIPTION: [@AIRLOCK_TYPE=1(1=Air, 2=Water)]
 -- DESCRIPTION: [AIR_LEVEL=100(0,100)]
 -- DESCRIPTION: [WATER_LEVEL=300(0,1000)]
--- DESCRIPTION: [PROMPT_TEXT$="[E] to begin"]
+-- DESCRIPTION: [PROMPT_TEXT$="E to begin"]
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [DEPRESSURISE_TEXT$="Depressurisation in"]
 -- DESCRIPTION: [PRESSURISE_TEXT$="Pressurisation in"]
--- DESCRIPTION: [DOOR1_NAME$="Inner Door Name"]
--- DESCRIPTION: [DOOR2_NAME$="Outer Door Name"]
+-- DESCRIPTION: [DOOR1_NAME$="Inner Door"]
+-- DESCRIPTION: [DOOR2_NAME$="Outer Door"]
 -- DESCRIPTION: [#DELAY=8(1,100)]
 -- DESCRIPTION: [NPC_DROWNING!=0] If on will drown all NPC's under water level.
 -- DESCRIPTION: <Sound0> when activating
@@ -199,10 +199,12 @@ function airlock_main(e)
 		end
 		if mode[e] == "Depressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
+			ActivateIfUsed(e)
 			PromptLocal(e,airlock[e].depressurise_text.. " : " ..countdown[e].. " seconds")
 		end
 		if mode[e] == "Pressurise" and doordelay[e] <= 0 then
 			LoopSound(e,1)
+			ActivateIfUsed(e)
 			PromptLocal(e,airlock[e].pressurise_text.. " : " ..countdown[e].. " seconds")
 		end
 	end
@@ -241,7 +243,6 @@ function airlock_main(e)
 		if doonce[e] == 0 then
 			airlock[e].state = 3
 			PerformLogicConnections(e)
-			ActivateIfUsed(e)
 			doonce[e] = 1
 		end
 	end
@@ -249,7 +250,6 @@ function airlock_main(e)
 		if doonce[e] == 0 then
 			airlock[e].state = 4
 			PerformLogicConnections(e)
-			ActivateIfUsed(e)			
 			doonce[e] = 1
 		end
 	end

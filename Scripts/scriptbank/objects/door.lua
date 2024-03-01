@@ -1,20 +1,24 @@
--- Door v24 by Lee and Necrym59
+-- Door v25 by Lee and Necrym59
 -- DESCRIPTION: Open and closes an 'animating' door when the player is within [Range=70(50,500)],
 -- DESCRIPTION: and when triggered will open the door, play <Sound0> and turn collision off after a delay of [DELAY=1000].
 -- DESCRIPTION: When the door is closed, play <Sound1> is played. You can elect to keep the door [Unlocked!=1], and customize the [LockedText$="Door locked. Find key"].
 -- DESCRIPTION: Select if the door also [CannotClose!=0], and customize the [ToOpenText$="to open door"]
 -- DESCRIPTION: Select if the door can [AutoClose!=0] after a [AutoCloseDelay=5000]
+-- DESCRIPTION: Set [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local NAVMESH = require "scriptbank\\navmeshlib"
+g_tEnt = {}
 
 local door 			= {}
 local door_pressed 	= {}
-local tEnt 			= {}
 local autodelay		= {}
+local tEnt 			= {}
 local selectobj 	= {}
+local prompt_display= {}
 
-function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, toopentext, autoclose, autoclosedelay)
+function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, toopentext, autoclose, autoclosedelay, prompt_display)
 	door[e]['range'] = range
 	door[e]['delay'] = delay
 	door[e]['unlocked'] = unlocked
@@ -23,6 +27,7 @@ function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, too
 	door[e]['toopentext'] = toopentext
 	door[e]['autoclose'] = autoclose
 	door[e]['autoclosedelay'] = autoclosedelay or 0
+	door[e]['prompt_display'] = prompt_display
 end
 
 function door_init(e)
@@ -71,37 +76,27 @@ function door_main(e)
 	
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if PlayerDist < nRange and GetEntityVisibility(e) == 1 and LookingAt == 1 then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,nRange
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) 
-				tEnt[e] = e
-			else
-				tEnt[e] = 0
-			end
-			if g_Entity[e]['obj'] ~= selectobj[e] then selectobj[e] = 0 end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then tEnt[e] = 0 end
-		--end pinpoint select object--
-
+		--pinpoint select object--
+		module_misclib.pinpoint(e,nRange,200)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 		if PlayerDist < nRange and GetEntityVisibility(e) == 1 and tEnt[e] ~= 0 then
 			if g_Entity[e]['haskey'] ~= 1 then
-				Prompt(door[e]['lockedtext'])
+				if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,door[e]['lockedtext']) end
+				if door[e]['prompt_display'] == 2 then Prompt(door[e]['lockedtext']) end					
 			else
 				if door[e]['mode'] == 0 then
 					if 1 then
 						if GetGamePlayerStateXBOX() == 1 then
-							Prompt("Press Y button " .. door[e]['toopentext'])
+							if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,"Press Y button " .. door[e]['toopentext']) end
+							if door[e]['prompt_display'] == 2 then Prompt("Press Y button " .. door[e]['toopentext']) end
 						else
 							if GetHeadTracker() == 1 then
-								Prompt("Trigger to " .. door[e]['toopentext'])
+								if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,"Trigger to " .. door[e]['toopentext']) end
+								if door[e]['prompt_display'] == 2 then Prompt("Trigger to " .. door[e]['toopentext']) end							
 							else
-								Prompt("Press E to " .. door[e]['toopentext'])
+								if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,"Press E to " .. door[e]['toopentext']) end
+								if door[e]['prompt_display'] == 2 then Prompt("Press E to " .. door[e]['toopentext']) end								
 							end
 						end
 						if g_KeyPressE == 1 and g_Entity[e]['animating'] == 0 and door_pressed[e] == 0 then

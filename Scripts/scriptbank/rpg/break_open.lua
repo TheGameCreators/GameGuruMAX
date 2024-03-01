@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Break Open v10 by Necrym59
+-- Break Open v11 by Necrym59
 -- DESCRIPTION: Breaking open this animated object will give the player the selected item. Can also activate logic linked entities and/or IfUsed.
 -- DESCRIPTION: [PROMPT_TEXT$="Break open"]
 -- DESCRIPTION: [PROMPT_RANGE=80(0,100)]
@@ -37,7 +37,6 @@ local playonce		= {}
 local wait			= {}
 
 function break_open_properties(e, prompt_text, prompt_range, content, named_item, quantity, noise_range, break_animation, open_trigger, collect_text, fade_delay)
-	break_open[e] = g_Entity[e]
 	break_open[e].prompt_text = prompt_text
 	break_open[e].prompt_range = prompt_range
 	break_open[e].content = content
@@ -51,7 +50,7 @@ function break_open_properties(e, prompt_text, prompt_range, content, named_item
 end
 
 function break_open_init(e)
-	break_open[e] = g_Entity[e]
+	break_open[e] = {}
 	break_open[e].prompt_text = "Break open"
 	break_open[e].prompt_range = 80
 	break_open[e].content = 2
@@ -76,7 +75,7 @@ function break_open_init(e)
 end
 
 function break_open_main(e)
-	break_open[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		fadetime[e] = break_open[e].fade_delay * 1000
 		if break_open[e].content == 3 then

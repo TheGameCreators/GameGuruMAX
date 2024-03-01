@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource.
--- Health v17 by Necrym59 and Lee
+-- Health v18 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -11,8 +11,9 @@
 -- DESCRIPTION: <Sound0> for use sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
-local P = require "scriptbank\\physlib"
+g_tEnt = {}
 
 local health = {}
 local prompt_text = {}
@@ -53,6 +54,7 @@ function health_init(e)
 	health[e].effect = 1
 	health[e].user_global_affected = "MyGlobal"
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	currentvalue[e] = 0
 	addquantity[e] = 0
@@ -71,25 +73,10 @@ function health_main(e)
 	end
 
 	if health[e].pickup_style == 2 and PlayerDist < health[e].pickup_range then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,health[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else
-				tEnt[e] = 0
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--
+		--pinpoint select object--
+		module_misclib.pinpoint(e,health[e].pickup_range,300)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 
 		if PlayerDist < health[e].pickup_range and tEnt[e] ~= 0 then
 			if GetEntityCollectable(tEnt[e]) == 0 then
@@ -130,6 +117,8 @@ function health_main(e)
 
 	if addquantity[e] == 1 then
 		SetPlayerHealth(g_PlayerHealth + health[e].quantity)
+		if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+		SetPlayerHealthCore(g_PlayerHealth)
 		if health[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] + health[e].quantity
@@ -142,5 +131,4 @@ function health_main(e)
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] - health[e].quantity
 		end
 	end
-
 end

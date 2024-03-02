@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v19
+-- Heal Spell v20
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Healing Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -13,12 +13,13 @@
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
 
-local heal_spell = {}
-
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
-local lower = string.lower
+g_tEnt = {}
 
+local lower = string.lower
+local heal_spell 				= {}
 local prompt_text 				= {}
 local useage_text 				= {}
 local pickup_range 				= {}
@@ -79,6 +80,7 @@ function heal_spell_init(e)
 	tEnt[e] = 0
 	tName[e] = ""
 	sEnt[e] = 0
+	g_tEnt = 0	
 	selectobj[e] = 0
 	cradius[e] = 0
 	doonce[e] = 0
@@ -125,24 +127,9 @@ function heal_spell_main(e)
 	if status[e] == "collect_spell" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < heal_spell[e].pickup_range then
-			-- pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,heal_spell[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
-					sEnt[e] = e
-				else 
-					sEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				sEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,heal_spell[e].pickup_range,300)
+			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end	
 		if PlayerDist < heal_spell[e].pickup_range and sEnt[e] ~= 0 then

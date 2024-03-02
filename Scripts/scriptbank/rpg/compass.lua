@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Compass v7 by Necrym59
+-- Compass v8 by Necrym59
 -- DESCRIPTION: Will give the player a Compass? Set always active ON.
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
@@ -33,7 +33,6 @@ local compass_active 	= {}
 local status  			= {}
 	
 function compass_properties(e, pickup_range, pickup_text, compass_type, compass_mode, position_x, position_y, radial_size, base_image, spin_image, top_image)
-	xcompass[e] = g_Entity[e]
 	xcompass[e].pickup_range = pickup_range
 	xcompass[e].pickup_text = pickup_text
 	xcompass[e].compass_type = compass_type
@@ -66,7 +65,7 @@ function compass_init(e)
 end
 
 function compass_main(e)
-	xcompass[e] = g_Entity[e]
+
 	if status == 'init' then
 		g_base_ratio = 16 / 9
 		g_aspect_ratio = ( GetDeviceWidth() / GetDeviceHeight() )

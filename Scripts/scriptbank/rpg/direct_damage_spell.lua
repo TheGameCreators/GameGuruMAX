@@ -48,7 +48,6 @@ local casttarget 		= {}
 local entaffected 		= {}
 
 function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
-	direct_damage_spell[e] = g_Entity[e]
 	direct_damage_spell[e].prompt_text = prompt_text
 	direct_damage_spell[e].useage_text = useage_text
 	direct_damage_spell[e].pickup_range = pickup_range
@@ -62,7 +61,7 @@ function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_rang
 end
 
 function direct_damage_spell_init(e)
-	direct_damage_spell[e] = g_Entity[e]
+	direct_damage_spell[e] = {}
 	direct_damage_spell[e].prompt_text = "E to Collect"
 	direct_damage_spell[e].useage_text = "Direct Damage Inflicted"
 	direct_damage_spell[e].pickup_range = 90
@@ -93,7 +92,7 @@ function direct_damage_spell_init(e)
 end
 
 function direct_damage_spell_main(e)
-	direct_damage_spell[e] = g_Entity[e]
+
 	-- get particles for spell effects
 	if direct_damage_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do

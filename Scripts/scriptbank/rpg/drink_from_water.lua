@@ -1,4 +1,4 @@
--- Drink From Water v6
+-- Drink From Water v7
 -- DESCRIPTION: Attach to an object set to ALWAYS ACTIVE
 -- DESCRIPTION: Allows drinking from a water plane within set range.
 -- DESCRIPTION: Restores set quantity of health every 2500 milliseconds
@@ -24,7 +24,6 @@ local addquantity 			= {}
 local status				= {}
 
 function drink_from_water_properties(e, prompt_text, quantity, water_range, effect, user_global_affected)
-	drinkwater[e] = g_Entity[e]
 	drinkwater[e].prompt_text = prompt_text
 	drinkwater[e].quantity = quantity
 	drinkwater[e].water_range = water_range
@@ -33,7 +32,7 @@ function drink_from_water_properties(e, prompt_text, quantity, water_range, effe
 end
 
 function drink_from_water_init(e)	
-	drinkwater[e] = g_Entity[e]
+	drinkwater[e] = {}
 	drinkwater[e].prompt_text = "Press E to Drink"
 	drinkwater[e].quantity = 10
 	drinkwater[e].water_range = 80
@@ -49,7 +48,6 @@ function drink_from_water_init(e)
 end
 
 function drink_from_water_main(e)
-	drinkwater[e] = g_Entity[e]
 	
 	if status[e] == "init" then
 		if drinkwater[e].effect == 1 then addquantity[e] = 1 end

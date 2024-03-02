@@ -8,7 +8,7 @@
 -- DESCRIPTION: [@CLONE_HEALTH=1(1=Cloned, 2=Random)]
 -- DESCRIPTION: [@RESPAWN_CYCLE=1(1=Off, 2=On)]
 -- DESCRIPTION: [RESPAWN_EVENTS=1(1,10)]
--- DESCRIPTION: [RESPAWN_INTERVAL=10(1,100)] Seconds
+-- DESCRIPTION: [RESPAWN_INTERVAL=10(5,100)] Seconds
 -- DESCRIPTION: [ENTITY_NAME$="Rabbit"]
 
 local lower = string.lower
@@ -75,7 +75,7 @@ function clone_entity_main(e)
 	if status[e] == "init" then
 		clones[e] = 0
 		clone_entity[e].entity_no = 0
-		clone_entity[e].timetonextspawn = g_Time + 100
+		clone_entity[e].timetonextspawn = g_Time + 200
 		if clone_entity[e].respawn_cycle == 1 then SetEntityActivated(e,0) end
 		if clone_entity[e].respawn_cycle == 2 and respawnactive[e] == 1 then SetEntityActivated(e,1) end
 		status[e] = "find_entity"
@@ -100,7 +100,7 @@ function clone_entity_main(e)
 	if g_Entity[e]['activated'] == 1 then
 		if status[e] == "clone_entity" then
 			if g_Time > clone_entity[e].timetonextspawn then
-				clone_entity[e].timetonextspawn = g_Time + 100
+				clone_entity[e].timetonextspawn = g_Time + 200
 				local etoclone = clone_entity[e].entity_no
 				if clone_entity[e].clone_health == 2 then SetEntityHealth(etoclone,math.random(clhealth[e]/2,clhealth[e]*2)) end
 				local newEntn = SpawnNewEntity(etoclone)

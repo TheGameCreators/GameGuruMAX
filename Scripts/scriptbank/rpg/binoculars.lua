@@ -29,7 +29,6 @@ local selectobj		= {}
 local status		= {}
 	
 function binoculars_properties(e, pickup_text, pickup_range, useage_text, min_zoom, max_zoom, zoom_speed, screen_image)
-	binoculars[e] = g_Entity[e]
 	binoculars[e].pickup_text = pickup_text
 	binoculars[e].pickup_range = pickup_range
 	binoculars[e].useage_text = useage_text

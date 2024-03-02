@@ -32,7 +32,6 @@ local tEnt				= {}
 local selectobj			= {}
 
 function battery_properties(e, prompt_text, collected_text, energy_level, pickup_range, pickup_style, user_global_affected, prompt_display)
-	battery[e] = g_Entity[e]
 	battery[e].prompt_text = prompt_text
 	battery[e].collected_text = collected_text
 	battery[e].energy_level = energy_level
@@ -62,7 +61,6 @@ function battery_init_name(e)
 end
 
 function battery_main(e)
-	battery[e] = g_Entity[e]
 
 	if status[e] == "init" then
 		status[e] = "endinit"

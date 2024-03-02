@@ -35,7 +35,6 @@ local actioned				= {}
 local status 				= {}
 
 function bottled_item_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, prompt_display)
-	bottle[e] = g_Entity[e]
 	bottle[e].prompt_text = prompt_text
 	bottle[e].quantity = quantity
 	bottle[e].pickup_range = pickup_range
@@ -68,7 +67,6 @@ function bottled_item_init(e)
 end
 
 function bottled_item_main(e)
-	bottle[e] = g_Entity[e]
 	
 	if status[e] == "init" then
 		if bottle[e].effect == 1 then addquantity[e] = 1 end

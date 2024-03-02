@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Nightvision v16 by Necrym59
+-- Nightvision v17 by Necrym59
 -- DESCRIPTION: The applied object will give the player Nightvision Goggles? Set Always active ON.
 -- DESCRIPTION: Set the [PICKUP_TEXT$="E to Pickup"] and [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF"]
 -- DESCRIPTION: [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=30(1,30)], [ZOOM_SPEED=1(1,10)], [READOUT_X=50(1,100)], [READOUT_Y=10(1,100)],
@@ -43,7 +43,6 @@ local default_FogDistance = {}
 local default_Exposure = {}
 
 function nightvision_properties(e, pickup_text, useage_text, min_zoom, max_zoom, zoom_speed, readout_x, readout_y, compass, compass_position, screen_image, exposure)
-	nightvision[e] = g_Entity[e]
 	nightvision[e].pickup_text = pickup_text
 	nightvision[e].useage_text = useage_text
 	nightvision[e].min_zoom = min_zoom
@@ -58,7 +57,7 @@ function nightvision_properties(e, pickup_text, useage_text, min_zoom, max_zoom,
 end -- End properties
 
 function nightvision_init(e)
-	nightvision[e] = g_Entity[e]
+	nightvision[e] = {}
 	have_nvgoggles = 0
 	nightvision[e].pickup_text = ""
 	nightvision[e].useage_text = ""
@@ -93,7 +92,7 @@ function nightvision_init(e)
 end
 
 function nightvision_main(e)
-	nightvision[e] = g_Entity[e]
+
 	if status == "init" then
 		nvgoggles = CreateSprite(LoadImage(nightvision[e].screen_image))
 		SetSpriteSize(nvgoggles,100,100)

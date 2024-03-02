@@ -36,8 +36,8 @@ local tableName 		= {}
 function clone_entity_properties(e, clone_quantity, clone_range, clone_lifespan, clone_health, respawn_cycle, respawn_events, respawn_interval, entity_name)
 	clone_entity[e].clone_quantity = clone_quantity or 1
 	clone_entity[e].clone_range = clone_range
-	clone_entity[e].clone_lifespan = clone_lifespan	
-	clone_entity[e].clone_health = clone_health	
+	clone_entity[e].clone_lifespan = clone_lifespan
+	clone_entity[e].clone_health = clone_health
 	clone_entity[e].respawn_cycle = respawn_cycle
 	clone_entity[e].respawn_events = respawn_events
 	clone_entity[e].respawn_interval = respawn_interval
@@ -50,17 +50,17 @@ function clone_entity_init(e)
 	clone_entity[e].clone_quantity = 1
 	clone_entity[e].clone_range = 100
 	clone_entity[e].clone_lifespan = 3
-	clone_entity[e].clone_health = 1	
+	clone_entity[e].clone_health = 1
 	clone_entity[e].respawn_cycle = 1
 	clone_entity[e].respawn_events = 1
 	clone_entity[e].respawn_interval = 10
 	clone_entity[e].entity_name = "Rabbit"
-	clone_entity[e].clone_group = 1	
+	clone_entity[e].clone_group = 1
 	clone_entity[e].entity_no = 0
 	clone_entity[e].timetonextspawn = 0
 	lifetimer[e] = math.huge
-	respawntimer[e] = math.huge	
-	respawnactive[e] = 0	
+	respawntimer[e] = math.huge
+	respawnactive[e] = 0
 	status[e] = "init"
 	clones[e] = 0
 	tableName[e] = "clonelist" ..tostring(e)
@@ -72,8 +72,8 @@ function clone_entity_main(e)
 	if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+100 then
 		SetEntityActivated(e,1)
 	end
-	if status[e] == "init" then		
-		clones[e] = 0		
+	if status[e] == "init" then
+		clones[e] = 0
 		clone_entity[e].entity_no = 0
 		clone_entity[e].timetonextspawn = g_Time + 100
 		if clone_entity[e].respawn_cycle == 1 then SetEntityActivated(e,0) end
@@ -84,11 +84,11 @@ function clone_entity_main(e)
 		if clone_entity[e].entity_no == 0 or clone_entity[e].entity_no == nil then
 			for ee = 1, g_EntityElementMax do
 				if ee ~= nil and e~= ee and g_Entity[ee] ~= nil then
-					if lower(GetEntityName(ee)) == lower(clone_entity[e].entity_name) then					
+					if lower(GetEntityName(ee)) == lower(clone_entity[e].entity_name) then
 						clone_entity[e].entity_no = ee
 						clhealth[e] = g_Entity[ee]['health']
 						Hide(ee)
-						SetEntityActive(clone_entity[e].entity_no,0)											
+						SetEntityActive(clone_entity[e].entity_no,0)
 						status[e] = "clone_entity"
 						break
 					end
@@ -96,9 +96,9 @@ function clone_entity_main(e)
 			end
 		end
 	end
-	
-	if g_Entity[e]['activated'] == 1 then	
-		if status[e] == "clone_entity" then			
+
+	if g_Entity[e]['activated'] == 1 then
+		if status[e] == "clone_entity" then
 			if g_Time > clone_entity[e].timetonextspawn then
 				clone_entity[e].timetonextspawn = g_Time + 100
 				local etoclone = clone_entity[e].entity_no
@@ -127,21 +127,21 @@ function clone_entity_main(e)
 					end
 				end
 			end
-		end	
-	
-		if status[e] == "monitor_lifespan" then			
+		end
+
+		if status[e] == "monitor_lifespan" then
 			clonesdead[e] = true
-			for _,v in pairs (_G[tableName[e]]) do 
+			for _,v in pairs (_G[tableName[e]]) do
 				if g_Entity[v] ~= nil then
 					if g_Entity[v]["health"] > 0 then
 						clonesdead[e] = false
 						break
 					end
 				end
-			end		
+			end
 			if clone_entity[e].clone_lifespan < 999 then
 				if g_Time > lifetimer[e] then clonesdead[e] = true end
-			end	
+			end
 			if clonesdead[e] == true then
 				if clones[e] > 0 then
 					for a,b in pairs (_G[tableName[e]]) do
@@ -151,9 +151,9 @@ function clone_entity_main(e)
 						end
 						clones[e] = 0
 					end
-				end						
+				end
 				if clones[e] == 0 and clone_entity[e].respawn_cycle == 1 then
-					lifetimer[e] = math.huge					
+					lifetimer[e] = math.huge
 					status[e] = "init"
 				end
 				if clones[e] == 0 and clone_entity[e].respawn_cycle == 2 then
@@ -162,19 +162,18 @@ function clone_entity_main(e)
 				end
 			end
 		end
-		if status[e] == "respawn" then 
+		if status[e] == "respawn" then
 			if g_Time > respawntimer[e] and clone_entity[e].respawn_events > 0 then
 				respawnactive[e] = 1
 				clone_entity[e].respawn_events = clone_entity[e].respawn_events -1
 				lifetimer[e] = math.huge
 				respawntimer[e] = math.huge
-				if GetPlayerDistance(e) > 6000 then
-					--clone_entity[e].respawn_events = 0
+				if GetPlayerDistance(e) > 5000 then
 					respawnactive[e] = 0
 					SetEntityActivated(e,0)
 				end
 				status[e] = "init"
-			end	
-		end	
+			end
+		end
 	end
 end

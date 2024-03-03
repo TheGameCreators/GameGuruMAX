@@ -138,7 +138,6 @@ local svolume = {}
 local resetstate = {}
 
 function npc_control_properties(e, sense_text, sense_range, npc_will_flee, idle_time, attack_range, attack_interval, attack_damage, random_damage, npc_can_roam, roam_range, npc_anim_speed, npc_move_speed, npc_run_speed, npc_turn_speed, npc_can_shoot, idle1_animation,  idle2_animation, idle3_animation, idle4_animation, walk_animation, run_animation, threat_animation, attack1_animation, attack2_animation, attack3_animation, shoot_animation, hurt_animation, death1_animation, death2_animation, lastflag_animation, lastflag_time, lastflag_loop, force_move, npc_tilting, diagnostics)
-	npc_control[e] = g_Entity[e]
 	npc_control[e].sense_text = sense_text
 	npc_control[e].sense_range = sense_range
 	npc_control[e].npc_will_flee = npc_will_flee
@@ -270,7 +269,7 @@ function npc_control_init_name(e,name)
 end
 
 function npc_control_main(e)
-	npc_control[e] = g_Entity[e]
+
 	CollisionOn(e)
 	if status[e] == "init" then		
 		allegiance[e] = GetEntityAllegiance(e) -- (0-enemy, 1-ally, 2-neutral)		

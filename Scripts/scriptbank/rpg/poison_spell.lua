@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v18
+-- Poison Spell v20
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Poison Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,15 +10,16 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: <Sound0> when cast effect successful
+-- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
-local poison_spell = {}
-
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
-local lower = string.lower
+g_tEnt = {}
 
+local lower = string.lower
+local poison_spell 				= {}
 local prompt_text				= {}
 local useage_text				= {}
 local pickup_range				= {}
@@ -49,7 +50,6 @@ local played			= {}
 local entaffected		= {}
 
 function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
-	poison_spell[e] = g_Entity[e]
 	poison_spell[e].prompt_text = prompt_text
 	poison_spell[e].useage_text = useage_text
 	poison_spell[e].pickup_range = pickup_range
@@ -63,7 +63,7 @@ function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user
 end
 
 function poison_spell_init(e)
-	poison_spell[e] = g_Entity[e]
+	poison_spell[e] = {}
 	poison_spell[e].prompt_text = "E to Collect"
 	poison_spell[e].useage_text = "Direct Damage Inflicted"
 	poison_spell[e].pickup_range = 90
@@ -84,6 +84,7 @@ function poison_spell_init(e)
 	tHealth[e] = 0
 	tTarget[e] = 0
 	sEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	cradius[e] = 0
 	played[e] = 0
@@ -95,7 +96,7 @@ function poison_spell_init(e)
 end
 
 function poison_spell_main(e)
-	poison_spell[e] = g_Entity[e]
+
 	-- get particles for spell effects
 	if poison_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do
@@ -131,24 +132,9 @@ function poison_spell_main(e)
 	if status[e] == "collect_spell" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < poison_spell[e].pickup_range then
-			-- pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,poison_spell[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
-					sEnt[e] = e
-				else 
-					sEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				sEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,poison_spell[e].pickup_range,300)
+			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end	
 		if PlayerDist < poison_spell[e].pickup_range and sEnt[e] ~= 0 then

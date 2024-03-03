@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to hold the target for a period.
--- Root Spell v19
+-- Root Spell v20
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Root Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,15 +10,16 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: <Sound0> when cast effect successful
+-- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
-local root_spell = {}
-
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
-local lower = string.lower
+g_tEnt = {}
 
+local lower = string.lower
+local root_spell 				= {}
 local prompt_text 				= {}
 local useage_text 				= {}
 local pickup_range 				= {}
@@ -51,7 +52,6 @@ local current_time		= {}
 local entaffected		= {}
 
 function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
-	root_spell[e] = g_Entity[e]
 	root_spell[e].prompt_text = prompt_text
 	root_spell[e].useage_text = useage_text
 	root_spell[e].pickup_range = pickup_range
@@ -65,7 +65,7 @@ function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_g
 end
 
 function root_spell_init(e)
-	root_spell[e] = g_Entity[e]
+	root_spell[e] = {}
 	root_spell[e].prompt_text = "E to Collect"
 	root_spell[e].useage_text = "Direct Damage Inflicted"
 	root_spell[e].pickup_range = 90
@@ -78,7 +78,7 @@ function root_spell_init(e)
 	root_spell[e].particle2_name = ""
 	root_spell[e].particle1_number = 0
 	root_spell[e].particle2_number = 0
-	root_spell[e].cast_timeout = 0	
+	root_spell[e].cast_timeout = 0
 	status[e] = "init"
 	tAllegiance[e] = 0
 	tEnt[e] = 0
@@ -86,6 +86,7 @@ function root_spell_init(e)
 	tHealth[e] = 0
 	tTarget[e] = 0
 	sEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	cradius[e] = 0
 	curhealth[e] = 0
@@ -99,7 +100,7 @@ function root_spell_init(e)
 end
 
 function root_spell_main(e)
-	root_spell[e] = g_Entity[e]
+
 	-- get particles for spell effects
 	if root_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do
@@ -130,31 +131,16 @@ function root_spell_main(e)
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = root_spell[e].player_level
 		cradius[e] = 180.0 - root_spell[e].cast_radius
-		status[e] = "collect_spell"		
+		status[e] = "collect_spell"
 	end
 	if status[e] == "collect_spell" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < root_spell[e].pickup_range then
-			-- pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,root_spell[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
-					sEnt[e] = e
-				else 
-					sEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				sEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,root_spell[e].pickup_range,300)
+			sEnt[e] = g_tEnt
 			--end pinpoint select object--
-		end	
+		end
 		if PlayerDist < root_spell[e].pickup_range and sEnt[e] ~= 0 then
 			if GetEntityCollectable(e) == 1 then
 				if GetEntityCollected(e) == 0 then
@@ -166,29 +152,29 @@ function root_spell_main(e)
 				end
 			end
 		end
-	end	
-	
-	if status[e] == "have_spell" then	
-		--- Select Entity to target ---		
+	end
+
+	if status[e] == "have_spell" then
+		--- Select Entity to target ---
 		if g_InKey == "t" or g_InKey == "T" or g_MouseClick == 2 and casttarget[e] == 0 then
 			TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)							-- temp targeting crosshair
 			local t = U.ObjectPlayerLookingAt(2000,0)									-- get object # in view
 			tEnt[e] = P.ObjectToEntity(t)												-- get entity # of object
-			tName[e] = GetEntityName(tEnt[e])											-- get entity name			
+			tName[e] = GetEntityName(tEnt[e])											-- get entity name
 			if tEnt[e] ~= nil then tHealth[e] = g_Entity[tEnt[e]]['health'] end			-- get entity health
 			tAllegiance[e] = GetEntityAllegiance(tEnt[e]) 								-- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 			if tAllegiance[e] == 0 and tEnt[e] ~= nil then								-- if allegiance = enemy then give option to target
-				tTarget[e] = tEnt[e]													-- entity set as target								
+				tTarget[e] = tEnt[e]													-- entity set as target
 			end
 			if tTarget[e] > 0 then
 				TextCenterOnX(50,20,3,"TARGETED")
 				if tAllegiance[e] == 0 then TextCenterOnX(50,22,3,tName[e]) end
-			end	
-		end	
+			end
+		end
 
-		local tusedvalue = GetEntityUsed(e)	
+		local tusedvalue = GetEntityUsed(e)
 		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end
-		
+
 		if root_spell[e].cast_timeout > 0 then
 			if Timer() > root_spell[e].cast_timeout + 6100 then
 				root_spell[e].cast_timeout = 0
@@ -202,12 +188,12 @@ function root_spell_main(e)
 				if root_spell[e].particle1_number > 0 then Scale(root_spell[e].particle1_number,tscaleradius) end
 				if root_spell[e].particle2_number > 0 then Scale(root_spell[e].particle2_number,tscaleradius) end
 				-- apply effect as radius increases from targeted point of origin
-				-- do the magic				
-				tusedvalue = 0				
+				-- do the magic
+				tusedvalue = 0
 			end
 			if current_time[e] < root_time[e] then
-				if doonce[e] == 0 then 
-					if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-root_spell[e].cast_damage/10) end			-- Damage health of targeted entity	
+				if doonce[e] == 0 then
+					if g_Entity[tTarget[e]]['health'] > 0 then SetEntityHealth(tTarget[e],g_Entity[tTarget[e]]['health']-root_spell[e].cast_damage/10) end			-- Damage health of targeted entity
 					if g_Entity[tTarget[e]]['health'] <= 0 then	tTarget[e] = 0 end
 					ModulateSpeed(tTarget[e],0)
 					doonce[e] = 1
@@ -225,16 +211,16 @@ function root_spell_main(e)
 				played[e] = 0
 				doonce[e] = 0
 			end
-		end	
-		
-		if tusedvalue > 0 and tTarget[e] ~= 0 then	
+		end
+
+		if tusedvalue > 0 and tTarget[e] ~= 0 then
 			casttarget[e] = 1
-			-- check player level		
+			-- check player level
 			if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-			if tplayerlevel[e] < tlevelrequired[e] then		
+			if tplayerlevel[e] < tlevelrequired[e] then
 				PromptDuration("You need to be level "..tlevelrequired[e].." to cast this spell",1000)
 				SetEntityUsed(e,0)
-			end	
+			end
 			if tplayerlevel[e] >= tlevelrequired[e] then
 				-- attempt effect
 				local mymana = 0 if _G["g_UserGlobal['"..root_spell[e].user_global_affected.."']"] ~= nil then mymana = _G["g_UserGlobal['"..root_spell[e].user_global_affected.."']"] end
@@ -249,11 +235,11 @@ function root_spell_main(e)
 					if root_spell[e].particle2_number > 0 or nil then
 						ResetPosition(root_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(root_spell[e].particle2_number)
-					end	
+					end
 					-- prompt we did it
 					PromptDuration(root_spell[e].useage_text,2000)
 					root_spell[e].cast_timeout = Timer()
-					PlaySound(e,0)				
+					PlaySound(e,0)
 				else
 					-- not successful
 					PromptDuration("Not enough mana",2000)
@@ -263,9 +249,9 @@ function root_spell_main(e)
 						PlaySound(e,1)
 						played[e] = 1
 					end
-				end			
+				end
 				_G["g_UserGlobal['"..root_spell[e].user_global_affected.."']"] = mymana
 			end
-		end		
+		end
 	end
 end

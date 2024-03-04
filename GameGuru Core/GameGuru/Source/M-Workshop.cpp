@@ -413,7 +413,20 @@ void workshop_update ( bool bRefreshIfFlagged )
 												}
 											}
 											GG_CreatePath(pDestPath);
-											CopyFileA(pExist, pNew, FALSE);
+											//PE: OPTIMIZE Only copy if changed. 2-3 sec faster this way. its around 689 files 28mb currently.
+											struct stat sb;
+											time_t tSource = 0;
+											time_t tDest = 1;
+											if (stat(pExist, &sb) == 0)
+											{
+												tSource = sb.st_mtime;
+												if (stat(pNew, &sb) == 0)
+												{
+													tDest = sb.st_mtime;
+												}
+											}
+											if(tSource != tDest)
+												CopyFileA(pExist, pNew, FALSE);
 										}
 									}
 								}

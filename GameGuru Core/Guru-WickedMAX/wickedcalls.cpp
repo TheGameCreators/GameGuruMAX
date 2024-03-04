@@ -838,6 +838,25 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 				int iOffset = iSamplerAndChannelCount;
 
 				// work out how many samplers/channels are needed
+
+				//PE: OPTIMIZING No need to process scale keys if not used. (RunAnimationUpdateSystem is slow). most anim dont use scale.
+				bool bGotScale = false;
+				if (pAnim->dwNumScaleKeys > 0)
+				{
+					for (size_t j = 0; j < pAnim->dwNumScaleKeys; ++j)
+					{
+						XMFLOAT3 vec3;
+						vec3.x = pAnim->pScaleKeys[j].vecScale.x;
+						vec3.y = pAnim->pScaleKeys[j].vecScale.y;
+						vec3.z = pAnim->pScaleKeys[j].vecScale.z;
+						if (vec3.x != 1.0f || vec3.y != 1.0f || vec3.z != 1.0f)
+						{
+							bGotScale = true;
+							break;
+						}
+					}
+				}
+
 				bool bSamplerChannelsMask[3];
 				bSamplerChannelsMask[0] = false;
 				bSamplerChannelsMask[1] = false;
@@ -845,7 +864,7 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 				int iSamplerChannelsNeeded = 0;
 				if (pAnim->dwNumPositionKeys > 0) { iSamplerChannelsNeeded++; bSamplerChannelsMask[0] = true; }
 				if (pAnim->dwNumRotateKeys > 0) { iSamplerChannelsNeeded++; bSamplerChannelsMask[1] = true; }
-				if (pAnim->dwNumScaleKeys > 0) { iSamplerChannelsNeeded++; bSamplerChannelsMask[2] = true; }
+				if (bGotScale && pAnim->dwNumScaleKeys > 0) { iSamplerChannelsNeeded++; bSamplerChannelsMask[2] = true; }
 				iSamplerAndChannelCount += iSamplerChannelsNeeded;
 
 				// calculate size of samplers (to hold raw data)
@@ -6347,3 +6366,4 @@ void WickedCall_SetExposure(float exposure)
 {
 	master.masterrenderer.setExposure(exposure);
 }
+

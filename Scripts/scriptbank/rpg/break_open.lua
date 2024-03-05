@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Break Open v14 by Necrym59 and oosayeroo
+-- Break Open v15 by Necrym59 and oosayeroo
 -- DESCRIPTION: Breaking open this animated object will give the player the selected item or items.
 -- DESCRIPTION: [PROMPT_TEXT$="Break open"]
 -- DESCRIPTION: [PROMPT_RANGE=80(0,100)]
@@ -11,15 +11,13 @@
 -- DESCRIPTION: [@OPEN_TRIGGER=1(1=Off, 2=On)]
 -- DESCRIPTION: [COLLECT_TEXT$="Found.."]
 -- DESCRIPTION: [FADE_DELAY=10(0,100)] seconds
--- DESCRIPTION: [RANDOM_ITEMS$=""]
--- DESCRIPTION: [RANDOM_MIN=1(1,50)]
--- DESCRIPTION: [RANDOM_MAX=50(1,50)]
+-- DESCRIPTION: [RANDOM_ITEMS$=""] Entity Names separated by commas
+-- DESCRIPTION: [RANDOM_MIN=1(1,50)] Minimum random quantity
+-- DESCRIPTION: [RANDOM_MAX=50(1,50)] Maximum random quantity
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local, 2=Screen)]
 -- DESCRIPTION: <Sound0> Breaking sound
 -- DESCRIPTION: <Sound1> Found item sound
 
-g_tasktool = {}					-- for compatability with Task Tool scripts if used with Named Item - to be removed later
-g_tasktoolname = {}				-- for compatability with Task Tool scripts if used with Named Item - to be removed later
 local lower = string.lower
 local break_open 	= {}
 local prompt_text 	= {}
@@ -163,16 +161,16 @@ function break_open_main(e)
 			if doonce[e] == 0 then
 				StopSound(e,0)
 				PlaySound(e,1)
-				doonce[e] = 1
-			end
-			-- ensures max health is never exceeded
-			if g_PlayerHealth < g_gameloop_StartHealth then
-				local healthAmount = g_PlayerHealth + break_open[e].quantity
-				if healthAmount > g_gameloop_StartHealth then
-					healthAmount = g_gameloop_StartHealth
+				-- ensures max health is never exceeded
+				if g_PlayerHealth < g_gameloop_StartHealth then
+					local healthAmount = g_PlayerHealth + break_open[e].quantity
+					if healthAmount > g_gameloop_StartHealth then
+						healthAmount = g_gameloop_StartHealth
+					end
+					SetPlayerHealth(healthAmount)
 				end
-				SetPlayerHealth(healthAmount)
-			end	
+				doonce[e] = 1
+			end				
 			
 			if g_Time > wait[e] then status[e] = "cleanup" end
 		end
@@ -181,18 +179,18 @@ function break_open_main(e)
 			if doonce[e] == 0 then
 				StopSound(e, 0)
 				PlaySound(e, 1)
-				doonce[e] = 1
-			end		
-			-- Iterate through entities to find the item
-			item_entity[e] = nil		
-			for a = 1, g_EntityElementMax do
-				if a ~= nil and g_Entity[a] ~= nil then
-					if lower(GetEntityName(a)) == break_open[e].named_item then
-						item_entity[e] = a
-						break
+				-- Iterate through entities to find the item
+				item_entity[e] = nil		
+				for a = 1, g_EntityElementMax do
+					if a ~= nil and g_Entity[a] ~= nil then
+						if lower(GetEntityName(a)) == break_open[e].named_item then
+							item_entity[e] = a
+							break
+						end
 					end
 				end
-			end		
+				doonce[e] = 1
+			end					
 			if item_entity[e] ~= nil then				
 				ResetPosition(item_entity[e], g_Entity[e].x, g_Entity[e].y + 5, g_Entity[e].z)
 				CollisionOn(item_entity[e])
@@ -219,19 +217,20 @@ function break_open_main(e)
 				item_entity[e] = nil
 				chosen = break_open[e].random_items[math.random(1, #break_open[e].random_items)]
 				randomAmount = math.random(break_open[e].random_min, break_open[e].random_max)
-				doonce[e] = 1			
-			end	
-			-- Iterate through entities to find the Random item			
-			if item_entity[e] == nil then
-				for a = 1, g_EntityElementMax do
-					if a ~= nil and g_Entity[a] ~= nil then
-						if lower(GetEntityName(a)) == chosen then
-							item_entity[e] = a
-							break
+				-- Iterate through entities to find the Random item			
+				if item_entity[e] == nil then
+					for a = 1, g_EntityElementMax do
+						if a ~= nil and g_Entity[a] ~= nil then
+							if lower(GetEntityName(a)) == chosen then
+								item_entity[e] = a
+								break
+							end
 						end
-					end
+					end	
 				end	
-			end	
+				doonce[e] = 1			
+			end
+			
 			if GetEntityCollectable(item_entity[e]) == 1 then
 				if GetEntityCollected(item_entity[e]) == 0 then
 					SetEntityQuantity(item_entity[e],1)
@@ -264,7 +263,6 @@ function break_open_main(e)
 		end
 		
 		if break_open[e].open_trigger == 2 then
-			SetActivatedWithMP(e,201)
 			PerformLogicConnections(e)
 			ActivateIfUsed(e)
 		end

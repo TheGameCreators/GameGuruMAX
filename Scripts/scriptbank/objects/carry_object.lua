@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V29 by Necrym59 and Lee
+-- Carry Object V30 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -202,13 +202,6 @@ function carry_object_main(e)
 				thrown[e] = 1
 			end
 		end
-		if thrown[e] == 1 and g_MouseClick == 0 and g_KeyPressQ == 0 and GetEntityVisibility(tEnt[e]) == 1 then
-			SetEntityZDepthMode(tEnt[e],1)
-			local paX, paY, paZ = math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ),math.rad( g_PlayerAngZ )
-			local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
-			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )
-			thrown[e] = 2
-		end		
 	end
 	
 	if status[e] == 'carry' then
@@ -283,6 +276,13 @@ function carry_object_main(e)
 				SetPlayerWeapons(1)
 			end			
 		end
+		if thrown[e] == 1 and g_MouseClick == 0 and g_KeyPressQ == 0 and GetEntityVisibility(tEnt[e]) == 1 then
+			SetEntityZDepthMode(tEnt[e],1)
+			local paX, paY, paZ = math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ),math.rad( g_PlayerAngZ )
+			local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
+			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )
+			thrown[e] = 2
+		end	
 	end
 	if carry_object[e].diagnostics == 1 then
 		Text(10,54,3,"Entity #: ")

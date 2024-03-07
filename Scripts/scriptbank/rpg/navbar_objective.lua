@@ -62,9 +62,10 @@ function navbar_objective_main(e)
 		end			
 	end
 	if g_Entity[entity_no[e]] ~= nil then 
-		if g_Entity[entity_no[e]]['health'] <= 0 then
+		if isadded[e] == true and g_Entity[entity_no[e]]['health'] <= 0 then
 			RemoveFromNavbar(entity_no[e])
-		end	
+			isadded[e] = -1
+		end
 	end
 	if 	g_navigation_entity[e].entity_type == 1 and  GetEntityVisibility(e) ~= 0 then
 		if not isadded[e] then 

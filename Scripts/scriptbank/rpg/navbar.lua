@@ -160,23 +160,29 @@ function navbar_main(e)
 end 
 
 function AddToNavbar(ee, imgname, fixsize, ignorerng)
-	local img = LoadImage(imgname)
-	local spr = CreateSprite(img)
-	iconimage[ee] = img
-	iconsprite[ee] = spr
-	SetSpriteSize(spr,nbar.icon_width, nbar.icon_height)
-	SetSpriteOffset(spr, nbar.icon_width/2, nbar.icon_height/2)
-	SetSpritePosition(spr,20000,20000)
-	navbar_entity[ee] = ee
-	isfixedsize[ee] = fixsize
-	ignorerange[ee] = ignorerng
-	return true
+	if navbar_entity[ee] == nil then 
+		local img = LoadImage(imgname)
+		local spr = CreateSprite(img)
+		iconimage[ee] = img
+		iconsprite[ee] = spr
+		SetSpriteSize(spr,nbar.icon_width, nbar.icon_height)
+		SetSpriteOffset(spr, nbar.icon_width/2, nbar.icon_height/2)
+		SetSpritePosition(spr,20000,20000)
+		navbar_entity[ee] = ee
+		isfixedsize[ee] = fixsize
+		ignorerange[ee] = ignorerng
+		return true
+	else 
+		return false 
+	end 
 end
 
 function RemoveFromNavbar(ee)
-	DeleteSprite(iconsprite[ee])
-	DeleteImage(iconimage[ee])
-	navbar_entity[ee] = nil
+	if navbar_entity[ee] ~= nil then 
+		DeleteSprite(iconsprite[ee])
+		DeleteImage(iconimage[ee])
+		navbar_entity[ee] = nil
+	end
 end
 
 function GetAngleFromPointToPoint(x1,z1, x2,z2)

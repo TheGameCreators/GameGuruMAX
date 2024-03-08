@@ -310,6 +310,7 @@ function target_main(e)
 			if target[e].target_type == 5 then
 				SetAnimationName(e,target[e].target_animation)
 				PlayAnimation(e)
+				CollisionOff(e)
 				if cleanuptime[e] == 0 then
 					cleanuptime[e] = g_Time + 5000
 				end
@@ -388,8 +389,7 @@ function target_main(e)
 			fade_level[e] = fade_level[e]-1
 		end							
 		if fade_level[e] <= 0 then
-			fade_level[e] = 0
-			CollisionOff(e)
+			fade_level[e] = 0			
 			Hide(e)			
 			Destroy(e)
 		end

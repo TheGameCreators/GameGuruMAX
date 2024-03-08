@@ -151,7 +151,7 @@ bool										g_bNo2DRender = false;
 bool										g_bNoTerrainRender = false;
 bool										g_bDelayedShadows = true;
 bool										g_bNoVSync = false;
-
+float										maxApparentSize = 0.000008f; // 0.000002f;// 0.000007f; 0.000008; // 0.000002f;
 ///GGMATRIX m_worldMatrix;
 
 #if DEBUG_MODE

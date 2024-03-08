@@ -46,6 +46,7 @@ using namespace GGTerrain;
 using namespace GGTrees;
 #include "GGTerrain/GGGrass.h"
 using namespace GGGrass;
+using namespace wiScene;
 #endif
 
 #ifdef STORYBOARD
@@ -310,7 +311,6 @@ extern int g_tstoreprojectmodifiedstatic;
 extern preferences pref;
 extern cFolderItem MainEntityList;
 extern bool g_occluderf9Mode;
-extern bool g_bSkipTerrainRender;
 extern bool g_bBlackListRemovedSomeEntities;
 extern bool gbWelcomeSystemActive;
 extern int g_iWelcomeLoopPage;
@@ -6955,6 +6955,22 @@ void tab_tab_visuals(int iPage, int iMode)
 
 		if (pref.iEnableAdvancedPostProcessing)
 		{
+			static bool bOCDebug = false;
+			static bool bBoxDebug = false;
+			static int iHiddenObjects = 0;
+			static int iObjects = 0;
+			static int iFrustumCulled = 0;
+
+			int occ = 0;
+			if (bOCDebug && g_iDevToolsOpen >= 1) //t.visuals.bLevelVSyncEnabled
+			{
+				wiScene::Scene* pScene = &wiScene::GetScene();
+				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr );
+				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects);
+				iObjects = pScene->objects.GetCount();
+				iFrustumCulled = wiProfiler::GetFrustumCulled();
+			}
+
 			if (pref.bAutoClosePropertySections && iLastOpenHeader != 8)
 				ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
@@ -6980,6 +6996,59 @@ void tab_tab_visuals(int iPage, int iMode)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
 					ImGui::PopItemWidth();
 				}
+
+				//PE: Optimizing
+				ImGui::PushItemWidth(-10);
+				if (ImGui::Checkbox("Occlusion Culling##bOcclusionCulling", &t.visuals.bOcclusionCulling))
+				{
+					t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling;
+					g.projectmodified = 1;
+				}
+				if (wiRenderer::GetOcclusionCullingEnabled() != t.visuals.bOcclusionCulling)
+				{
+					wiRenderer::SetOcclusionCullingEnabled(t.visuals.bOcclusionCulling);
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Occlusion Culling will cull objects behind other object for less drawcalls");
+				ImGui::PopItemWidth();
+
+				if (g_iDevToolsOpen >= 1)
+				{
+					ImGui::SameLine();
+					ImGui::Checkbox("Debug", &bOCDebug);
+					if (bOCDebug)
+					{
+						ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
+						ImGui::Text("Total Objects: %d", iObjects);
+						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
+						ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
+						ImGui::Text("Occluded Objects: %d", occ);
+						extern uint32_t iOccludedTerrainChunks;
+						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
+
+						//extern int OCCLODSTART;
+						//ImGui::SliderInt("OCCLODSTART", &OCCLODSTART, 0, 8);
+						//extern int ggterrain_update_enabled;
+						//extern bool g_bNoTerrainRender;
+						//bool bTmp = ggterrain_update_enabled;
+						//if (ImGui::Checkbox("Terrain", &bTmp))
+						//{
+						//	ggterrain_update_enabled = bTmp;
+						//}
+					}
+				}
+
+				extern float maxApparentSize;
+				ImGui::PushItemWidth(-10);
+				float fASize = t.visuals.ApparentSize * 10000.0f;
+				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
+				{
+					maxApparentSize = fASize / 10000.0f;
+					t.gamevisuals.ApparentSize = t.visuals.ApparentSize = maxApparentSize;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Max Object Apparent Size will cull objects when they get smaller on screen");
+				ImGui::PopItemWidth();
+
+				ImGui::Separator();
 
 				//Bloom
 				ImGui::PushItemWidth(-10);
@@ -8456,6 +8525,15 @@ void Wicked_Update_Visuals(void *voidvisual)
 		master_renderer->setSSREnabled(visuals->bSSREnabled);
 		master_renderer->setReflectionsEnabled(visuals->bReflectionsEnabled);
 		master_renderer->setFXAAEnabled(visuals->bFXAAEnabled);
+		wiRenderer::SetOcclusionCullingEnabled(visuals->bOcclusionCulling);
+
+		if (visuals->ApparentSize < 0.000001f)
+			visuals->ApparentSize = 0.000001f;
+		if (visuals->ApparentSize > 0.2f)
+			visuals->ApparentSize = 0.2f;
+
+		extern float maxApparentSize;
+		maxApparentSize = visuals->ApparentSize;
 
 		// when in editor, keep enforcing a fixed exposure value (so we dont see fade-ins all the time)
 		if (t.game.set.ismapeditormode==0 || pref.iEnableAutoExposureInEditor )
@@ -51095,3 +51173,79 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 		modifiedEntityObjectReduced.clear();
 	}
 }
+
+int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
+{
+	int total = 0;
+	iHiddenObjects = 0;
+	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	{
+		if (t.entityelement[t.e].obj > 0)
+		{
+			t.obj = t.entityelement[t.e].obj;
+			sObject* pObject = g_ObjectList[t.obj];
+			if (pObject)
+			{
+				if (pObject->bVisible)
+				{
+					for (int i = 0; i < pObject->iFrameCount; i++)
+					{
+						sFrame* pFrame = pObject->ppFrameList[i];
+						if (pFrame)
+						{
+							uint64_t rootEntity = pFrame->wickedobjindex;
+							ObjectComponent* object = wiScene::GetScene().objects.GetComponent(rootEntity);
+							if (object)
+							{
+								if (object->IsOccluded())
+								{
+									total++;
+									if (bDebug)
+									{
+										XMFLOAT3 center = object->center; // aabb.getCenter();
+										void DrawDot(char* text, float x, float y, float z);
+										DrawDot(".", center.x, center.y, center.z);
+									}
+								}
+								else
+								{
+									if (bBox)
+									{
+										AABB* aabb = wiScene::GetScene().aabb_objects.GetComponent(rootEntity);
+										if (aabb)
+										{
+											XMFLOAT4X4 hoverBox;
+											XMStoreFloat4x4(&hoverBox, aabb->getAsBoxMatrix());
+											wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+										}
+									}
+								}
+								//break;
+							}
+						}
+					}
+				}
+				else
+				{
+					iHiddenObjects++;
+				}
+			}
+		}
+	}
+	return total;
+}
+
+void DrawDot(char* text, float x, float y, float z)
+{
+	ImGuiContext& g = *GImGui;
+	ImGuiViewport* mainviewport = ImGui::GetMainViewport();
+	ImDrawList* dl = ImGui::GetForegroundDrawList(mainviewport);
+	if (dl)
+	{
+		float fontscale = 1.25;
+		ImVec2 v2DPos = Convert3DTo2D(x, y, z);
+		dl->AddText(g.Font, g.FontSize * fontscale, v2DPos, ImGui::GetColorU32(ImVec4(1.0, 1.0, 0.4, 1.0)), text); // ImGui::GetColorU32(ImGuiCol_Text)
+	}
+
+}
+

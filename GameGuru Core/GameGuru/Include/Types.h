@@ -3882,8 +3882,10 @@ struct visualstype
 	bool bColorGrading;
 	cStr ColorGradingLUT;
 	bool bLevelVSyncEnabled;
+	bool bOcclusionCulling;
 	bool bBloomEnabled;
 	float fsetBloomThreshold;
+	float ApparentSize;
 	float fsetBloomStrength;
 	bool bSSREnabled;
 	bool bReflectionsEnabled;
@@ -4113,7 +4115,9 @@ struct visualstype
 		 ColorGradingLUT = "";
 		 bBloomEnabled = false;
 		 bLevelVSyncEnabled = true;
+		 bOcclusionCulling = false;
 		 fsetBloomThreshold = 2.0f;
+		 ApparentSize = 0.000008f;
 		 fsetBloomStrength = 1.0f;
 		 bSSREnabled = false;
 		 bReflectionsEnabled = true;
@@ -4248,6 +4252,7 @@ struct visualsdatastoragetype
 	float ZenithBlue_f;
 	bool bBloomEnabled;
 	bool bLevelVSyncEnabled;
+	bool bOcclusionCulling;
 	bool bSSREnabled;
 	bool bReflectionsEnabled;
 	bool bLightShafts;
@@ -4278,6 +4283,7 @@ struct visualsdatastoragetype
 		ZenithGreen_f = 255.0f;
 		ZenithBlue_f = 255.0f;
 		bLevelVSyncEnabled = true;
+		bOcclusionCulling = false;
 		bBloomEnabled = false;
 		bSSREnabled = false;
 		bReflectionsEnabled = false;
@@ -4311,6 +4317,7 @@ struct visualsdatastoragetype
 		ZenithBlue_f = visuals.ZenithBlue_f;
 		bBloomEnabled = visuals.bBloomEnabled;
 		bLevelVSyncEnabled = visuals.bLevelVSyncEnabled;
+		bOcclusionCulling = visuals.bOcclusionCulling;
 		bSSREnabled = visuals.bSSREnabled;
 		bReflectionsEnabled = visuals.bReflectionsEnabled;
 		bLightShafts = visuals.bLightShafts;

@@ -2065,6 +2065,7 @@ void GGTrees_Delete_Trees(float pickX,float pickZ, float radius)
 
 void GGTrees_UpdateFrustumCulling( wiScene::CameraComponent* camera )
 {
+	if (!ggtrees_global_params.draw_enabled) return; //OPT3
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif

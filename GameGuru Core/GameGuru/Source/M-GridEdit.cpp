@@ -18952,7 +18952,9 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.ColorGradingLUT = t.gamevisuals.ColorGradingLUT;
 	t.visuals.bBloomEnabled = t.gamevisuals.bBloomEnabled;
 	t.visuals.bLevelVSyncEnabled = t.gamevisuals.bLevelVSyncEnabled;
+	t.visuals.bOcclusionCulling = t.gamevisuals.bOcclusionCulling;
 	t.visuals.fsetBloomThreshold = t.gamevisuals.fsetBloomThreshold;
+	t.visuals.ApparentSize = t.gamevisuals.ApparentSize;
 	t.visuals.bSSREnabled = t.gamevisuals.bSSREnabled;
 	t.visuals.bReflectionsEnabled = t.gamevisuals.bReflectionsEnabled;
 	t.visuals.bFXAAEnabled = t.gamevisuals.bFXAAEnabled;

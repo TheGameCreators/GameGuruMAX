@@ -243,7 +243,9 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.ColorGradingLUT = "";
 	t.visuals.bBloomEnabled = true;
 	t.visuals.bLevelVSyncEnabled = true;
+	t.visuals.bOcclusionCulling = false;
 	t.visuals.fsetBloomThreshold = 2.0f;
+	t.visuals.ApparentSize = 0.000008f;
 	t.visuals.fsetBloomStrength = 1.0f;
 	t.visuals.bSSREnabled = false;
 	t.visuals.bReflectionsEnabled = true;
@@ -781,10 +783,18 @@ void visuals_save ( void )
 	
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LevelVSyncEnabled=" + Str(t.visuals.bLevelVSyncEnabled);
 	WriteString(1, t.strwork.Get());
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.OcclusionCulling=" + Str(t.visuals.bOcclusionCulling);
+	WriteString(1, t.strwork.Get());
+	
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomEnabled=" + Str(t.visuals.bBloomEnabled);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomThreshold=" + Str(t.visuals.fsetBloomThreshold);
 	WriteString(1, t.strwork.Get());
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.ApparentSize=" + Str(t.visuals.ApparentSize);
+	WriteString(1, t.strwork.Get());
+
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomStrength=" + Str(t.visuals.fsetBloomStrength);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.SSREnabled=" + Str(t.visuals.bSSREnabled);
@@ -1038,7 +1048,9 @@ void visuals_load ( void )
 	t.visuals.ColorGradingLUT = "";
 	t.visuals.bBloomEnabled = true;
 	t.visuals.bLevelVSyncEnabled = true;
+	t.visuals.bOcclusionCulling = false;
 	t.visuals.fsetBloomThreshold = 2.0f;
+	t.visuals.ApparentSize = 0.000008f;
 	t.visuals.fsetBloomStrength = 1.0f;
 	t.visuals.bSSREnabled = false;
 	t.visuals.bReflectionsEnabled = true;
@@ -1310,8 +1322,12 @@ void visuals_load ( void )
 
 			t.try_s = "visuals.LevelVSyncEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bLevelVSyncEnabled = ValF(t.tvalue_s.Get());
 
+			t.try_s = "visuals.OcclusionCulling"; if (t.tfield_s == t.try_s)  t.visuals.bOcclusionCulling = ValF(t.tvalue_s.Get());
+
 			t.try_s = "visuals.BloomEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bBloomEnabled = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.BloomThreshold"; if (t.tfield_s == t.try_s)  t.visuals.fsetBloomThreshold = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.ApparentSize"; if (t.tfield_s == t.try_s)  t.visuals.ApparentSize = ValF(t.tvalue_s.Get());
+			
 			t.try_s = "visuals.BloomStrength"; if (t.tfield_s == t.try_s)  t.visuals.fsetBloomStrength = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.SSREnabled"; if (t.tfield_s == t.try_s)	t.visuals.bSSREnabled = ValF(t.tvalue_s.Get());

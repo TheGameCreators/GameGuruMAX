@@ -134,11 +134,15 @@ extern UndoRedoMemory g_TerrainUndoMem;
 extern UndoRedoMemory g_TerrainRedoMem;
 void GGTerrain_CreateUndoRedoAction(int type, int eList, bool bUserAction = true, void* pEventData = nullptr);
 int Get_Spray_Mode_On(void);
+void DrawDot(char* text, float x, float y, float z);
 
 #ifdef CUSTOMTEXTURES
 extern int ConvertDDSCompressedFormat(ID3D11Device* device, char* sourceFile, DXGI_FORMAT newFormat, int newWidth, int newHeight, char* outputFile);
 #endif
 bool g_bOneTimeMessage = false;
+uint32_t iOccludedTerrainChunks = 0;
+int OCCLODSTART = 6;
+int ggterrain_update_enabled = 1;
 extern bool bTriggerMessage;
 extern char cTriggerMessage[MAX_PATH];
 
@@ -4049,7 +4053,7 @@ GGTerrain ggterrain;
 
 int ggterrain_initialised = 0;
 int ggterrain_draw_enabled = 1;
-int ggterrain_update_enabled = 1;
+
 int ggterrain_render_wireframe = 0;
 int ggterrain_render_debug = 0;
 
@@ -9559,6 +9563,7 @@ int GGTerrain_RayCast( RAY pickRay, float* pOutX, float* pOutY, float* pOutZ, fl
 
 int GGTerrain_GetHeight( float x, float z, float* outHeight, int accurateButSlow, int includeFlatAreas )
 {
+	if (!ggterrain_update_enabled) return(0);
 	if ( !accurateButSlow ) return ggterrain.GetHeight( x, z, outHeight, includeFlatAreas );
 	else
 	{
@@ -9834,6 +9839,7 @@ int GGTerrain_GetMaterialIndex( float x, float z )
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTerrain_VirtualTexReadBack( Texture texReadBack, uint32_t sampleCount, wiGraphics::CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 	if (!ggterrain_draw_enabled) return; //Needed if we render to diffrent backbuffers, currReadBackTex get out of sync.
 
@@ -9872,6 +9878,7 @@ extern "C" void GGTerrain_VirtualTexReadBack( Texture texReadBack, uint32_t samp
 
 void GGTerrain_DrawQuad( RenderPass* renderPass, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if ( !ggterrain_initialised ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -9901,6 +9908,7 @@ void GGTerrain_DrawQuad( RenderPass* renderPass, CommandList cmd )
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTerrain_Draw_Prepass( const Frustum* frustum, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
 	// must not do any quad rendering in here
@@ -9974,6 +9982,7 @@ extern "C" void GGTerrain_Draw_Prepass( const Frustum* frustum, CommandList cmd 
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTerrain_Draw_Prepass_Reflections( const Frustum* frustum, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
 	// must not do any quad rendering in here
@@ -10022,6 +10031,7 @@ extern "C" void GGTerrain_Draw_Prepass_Reflections( const Frustum* frustum, Comm
 // called from WickedEngine wiRenderer::DrawShadowmaps()
 extern "C" void GGTerrain_Draw_ShadowMap( const Frustum* frustum, int cascade, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if ( !ggterrain_initialised ) return;
 	if ( !ggterrain_draw_enabled ) return;
 	if ( !ggterrain.IsValid() ) return;
@@ -10075,6 +10085,7 @@ extern "C" void GGTerrain_Draw_ShadowMap( const Frustum* frustum, int cascade, C
 // called from WickedEngine wiRenderer::RefreshEnvProbes()
 extern "C" void GGTerrain_Draw_EnvProbe( const SPHERE* culler, const Frustum* frusta, uint32_t frustum_count, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
 	// must not do any quad rendering in here
@@ -10177,10 +10188,28 @@ extern "C" void GGTerrain_Draw_EnvProbe( const SPHERE* culler, const Frustum* fr
 	device->EventEnd(cmd);
 }
 
+struct TerrainChunkOcclusion
+{
+	AABB aabb = {};
+	bool bChunkVisible = false;
+	uint32_t history = 1;
+	uint32_t writeQuery = 0;
+} sCO[32][64];
+
+extern "C" TerrainChunkOcclusion * GetChunkVisibleMem(int lod, int idx)
+{
+	return &sCO[lod][idx];
+}
+extern "C" uint32_t GetChunkLodStart(void)
+{
+	return OCCLODSTART;
+}
+
 // must be extern "C" to allow /alternatename linker flag to be set correctly
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
 	// must not do any quad rendering in here
@@ -10189,6 +10218,7 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 	if ( !ggterrain.IsValid() ) return;
 	if ( mode == 1 && ggterrain_render_wireframe ) return;
 
+	iOccludedTerrainChunks = 0;
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	device->EventBegin("GGTerrain Draw", cmd);
 		
@@ -10221,11 +10251,15 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 	uint32_t lowestLevel = 0;
 	if ( mode == 1 ) lowestLevel = GGTERRAIN_REFLECTION_LOWEST_LOD;
 	if ( lowestLevel >= numLODLevels ) lowestLevel = numLODLevels - 1;
-		
+	
+	//PE: Chunks need sorting front to back, below create overdraw pixels.
+	//PE: Chunks should do a quick bounding box occlusion check.
+	
 	for( uint32_t lod = lowestLevel; lod < numLODLevels; lod++ )
 	{
 		for( uint32_t i = 0; i < 64; i++ )
 		{
+			sCO[lod][i].bChunkVisible = false;
 			GGTerrainChunk* pChunk = pCurrLODs->pLevels[ lod ].chunkGrid[ i ];
 			if ( !pChunk || pChunk->IsGenerating() ) continue;
 			if ( !pChunk->IsVisible() )
@@ -10233,9 +10267,31 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 				// if the next lod level down is still generating then show it anyway
 				if ( lod > lowestLevel && !pCurrLODs->pLevels[ lod-1 ].IsGenerating() ) continue;
 			}
-
 			const AABB* aabb = pChunk->GetBounds();
 			if ( !frustum->CheckBoxFast( *aabb ) ) continue;
+			
+			if (wiRenderer::GetOcclusionCullingEnabled())
+			{
+				sCO[lod][i].bChunkVisible = true;
+				sCO[lod][i].aabb = *aabb;
+				if (lod >= OCCLODSTART && lod < 9)
+				{
+					if (sCO[lod][i].history == 0)
+					{
+						if (mode == 0)
+						{
+							if (!bImGuiInTestGame)
+							{
+								//XMFLOAT3 center = aabb->getCenter();
+								//char tmp[80] = "*\0";
+								//DrawDot(tmp, center.x, center.y, center.z);
+							}
+							iOccludedTerrainChunks++;
+						}
+						continue;
+					}
+				}
+			}
 
 			const GPUBuffer* vbs[] = { &pChunk->vertexBuffer };
 			uint32_t stride = sizeof( TerrainVertex );
@@ -10274,6 +10330,7 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTerrain_Draw_Transparent( const Frustum* frustum, CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
 	if (!ggterrain_initialised) return;
 
 	if ( !ggterrain_initialised ) return;
@@ -10320,6 +10377,7 @@ extern "C" void GGTerrain_Draw_Transparent( const Frustum* frustum, CommandList 
 // called from WickedEngine RenderPath2D::Compose()
 extern "C" void GGTerrain_Draw_Debug( CommandList cmd )
 {
+	if ( !ggterrain_update_enabled ) return;
 	if ( !ggterrain_render_debug ) return;
 
 	auto range = wiProfiler::BeginRangeGPU( "Terrain - Debug", cmd );
@@ -10357,6 +10415,8 @@ extern "C" void GGTerrain_Draw_Debug( CommandList cmd )
 // called from WickedEngine RenderPath2D::Compose()
 extern "C" void GGTerrain_Draw_Overlay( CommandList cmd )
 {
+	if (!ggterrain_update_enabled) return;
+
 	if ( (ggterrain_local_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP) == 0 ) return;
 
 	auto range = wiProfiler::BeginRangeGPU( "Terrain - Overlay", cmd );

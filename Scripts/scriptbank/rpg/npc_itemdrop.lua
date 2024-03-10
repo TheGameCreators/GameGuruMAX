@@ -83,7 +83,7 @@ function npc_itemdrop_main(e)
 			wait[e] = g_Time + 1000
 		end	
 		if g_Entity[pEntn[e]].health <= 0 then
-			ResetPosition(pEnta[e],g_Entity[pEntn[e]].x+32, g_Entity[pEntn[e]].y+20, g_Entity[pEntn[e]].z+20)
+			ResetPosition(pEnta[e],g_Entity[pEntn[e]].x+10, g_Entity[pEntn[e]].y+20, g_Entity[pEntn[e]].z+10)
 			drop_delay[e] = g_Time + 10
 			status[e] = "drop_item"
 		end	

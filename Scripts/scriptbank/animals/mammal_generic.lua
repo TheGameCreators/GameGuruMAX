@@ -433,10 +433,8 @@ function mammal_generic_main( e )
 		end
 
 	elseif
-	   --timedEvent( procTime, critter, 5000, 5000 ) then
-	   timedEvent( procTime, critter, math.huge, math.huge ) then
+	   timedEvent( procTime, critter, 5000, 5000 ) then
 	   	SetEntityHealth( e, 0 )
-		SwitchScript( e, 'no_behavior.lua' )
 	end
 	--PromptLocal( e, critter.state .. ", " .. critter.speed )
 end

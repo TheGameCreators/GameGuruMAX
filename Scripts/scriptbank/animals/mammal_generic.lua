@@ -433,7 +433,7 @@ function mammal_generic_main( e )
 		end
 
 	elseif
-	   timedEvent( procTime, critter, 5000, 5000 ) then
+	   timedEvent( procTime, critter, 1000, 1000 ) then
 	   	SetEntityHealth( e, 0 )
 	end
 	--PromptLocal( e, critter.state .. ", " .. critter.speed )

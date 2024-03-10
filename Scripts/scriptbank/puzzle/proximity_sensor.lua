@@ -1,12 +1,12 @@
 -- Proximity Sensor v9 by Necrym59
--- DESCRIPTION: The attached object will be a proximity range sensor for detecting an NPC and/or Player to activate a logic linked or IfUsed entity.
+-- DESCRIPTION: The attached object will be a proximity range sensor for detecting an NPC and/or Player to activate a logic linked or IfUsed entity and/or process an action
 -- DESCRIPTION: Set Always Active = On
 -- DESCRIPTION: [SENSOR_RANGE=180(1,2000)]
 -- DESCRIPTION: [SENSED_TEXT$="Detected"]
 -- DESCRIPTION: [!SENSE_PLAYER$=1]
 -- DESCRIPTION: [!SENSE_NPC$=0]
 -- DESCRIPTION: [@NPC_TYPE=1(1=Enemy, 2=Ally, 3=Neutral, 4=Any)]
--- DESCRIPTION: [@ACTION_TYPE=1(1=None, 2=Damage)]
+-- DESCRIPTION: [@ACTION_TYPE=1(1=None, 2=Damage, 3=Self Destruct)].
 -- DESCRIPTION: [ACTION_AMOUNT=100(1,500)] Amount to apply
 
 local proximity_sensor = {}
@@ -83,7 +83,11 @@ function proximity_sensor_main(e)
 									ActivateIfUsed(e)
 									if proximity_sensor[e].action_type == 2 then
 										SetEntityHealth(entinrange[e],g_Entity[entinrange[e]]['health']-proximity_sensor[e].action_amount)
-									end	
+									end
+									if proximity_sensor[e].action_type == 3 then
+										SetEntityHealth(e,0)
+										Destroy(e)
+									end
 									doonce[e] = 1
 								end								
 							end
@@ -93,6 +97,10 @@ function proximity_sensor_main(e)
 									ActivateIfUsed(e)
 									if proximity_sensor[e].action_type == 2 then
 										SetEntityHealth(entinrange[e],g_Entity[entinrange[e]]['health']-proximity_sensor[e].action_amount)
+									end
+									if proximity_sensor[e].action_type == 3 then
+										SetEntityHealth(e,0)
+										Destroy(e)
 									end
 									doonce[e] = 1
 								end								
@@ -104,6 +112,10 @@ function proximity_sensor_main(e)
 									if proximity_sensor[e].action_type == 2 then
 										SetEntityHealth(entinrange[e],g_Entity[entinrange[e]]['health']-proximity_sensor[e].action_amount)
 									end
+									if proximity_sensor[e].action_type == 3 then
+										SetEntityHealth(e,0)
+										Destroy(e)
+									end
 									doonce[e] = 1
 								end								
 							end	
@@ -113,7 +125,11 @@ function proximity_sensor_main(e)
 									ActivateIfUsed(e)
 									if proximity_sensor[e].action_type == 2 then
 										SetEntityHealth(entinrange[e],g_Entity[entinrange[e]]['health']-proximity_sensor[e].action_amount)
-									end									
+									end
+									if proximity_sensor[e].action_type == 3 then
+										SetEntityHealth(e,0)
+										Destroy(e)
+									end										
 									doonce[e] = 1
 								end								
 							end	

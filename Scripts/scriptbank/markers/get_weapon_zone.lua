@@ -5,6 +5,7 @@
 -- DESCRIPTION: [ZoneHeight=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [WeaponAmmunition=100(1,50)]
+-- DESCRIPTION: [@WeaponState=1(1=Hidden, 2=Shown)]
 -- DESCRIPTION: <Sound0> - Zone Entry Sound
 
 local U = require "scriptbank\\utillib"
@@ -13,6 +14,7 @@ local SearchRange		= {}
 local ZoneHeight		= {}
 local SpawnAtStart		= {}
 local WeaponAmmunition	= {}
+local WeaponState		= {}
 
 local status 		= {}
 local gwzweapon		= {}
@@ -20,12 +22,13 @@ local doonce		= {}
 local ammocheck		= {}
 local played		= {}
 
-function get_weapon_zone_properties(e, SearchRange, ZoneHeight, SpawnAtStart, WeaponAmmunition)
+function get_weapon_zone_properties(e, SearchRange, ZoneHeight, SpawnAtStart, WeaponAmmunition, WeaponState)
     gwzone[e] = g_Entity[e]
 	gwzone[e].SearchRange = SearchRange	
 	gwzone[e].ZoneHeight = ZoneHeight
 	gwzone[e].SpawnAtStart = SpawnAtStart
-	gwzone[e].WeaponAmmunition = WeaponAmmunition	
+	gwzone[e].WeaponAmmunition = WeaponAmmunition
+	gwzone[e].WeaponState = WeaponState or 1
 end
 
 function get_weapon_zone_init(e)
@@ -34,6 +37,7 @@ function get_weapon_zone_init(e)
 	gwzone[e].ZoneHeight = 100
 	gwzone[e].SpawnAtStart = 1
 	gwzone[e].WeaponAmmunition = 50
+	gwzone[e].WeaponState = 1
 	
 	status[e] = "init"
 	gwzweapon[e] = 0
@@ -51,7 +55,7 @@ function get_weapon_zone_main(e)
 		for k, v in pairs(obList) do
 			if GetEntityWeaponID(v) ~= 0 then
 				gwzweapon[e] = v
-				Hide(v)
+				if gwzone[e].WeaponState == 1 then Hide(v) end
 				break
 			end
 		end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v13 by Necrym59
+-- Toxic Zone v14 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -28,7 +28,6 @@ local status				= {}
 local EntityID				= {}
 
 function toxiczone_properties(e, prompt_text, effect, damage, zoneheight, toxic_to_npc, user_global_affected, spawnatstart)
-	toxiczone[e] = g_Entity[e]
 	toxiczone[e].prompt_text = prompt_text
 	toxiczone[e].effect = effect
 	toxiczone[e].damage = damage	
@@ -66,7 +65,7 @@ function toxiczone_main(e)
 
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY < g_Entity[e]['y']+toxiczone[e].zoneheight then
-			PromptDuration(toxiczone[e].prompt_text,3000)
+			if g_ppequipment == 0 then PromptDuration(toxiczone[e].prompt_text,3000) end
 
 			if toxiczone[e].effect == 1 then	--Health Loss
 				g_toxiczone = 'gas'

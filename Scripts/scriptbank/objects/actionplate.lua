@@ -1,9 +1,9 @@
--- Action Plate v4: by Necrym59
+-- Action Plate v5: by Necrym59
 -- DESCRIPTION: Attach to the Action Plate Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: Set [ACTIVATION_TEXT$="You have activated a panel"]
 -- DESCRIPTION: Plate [@ACTIVATION_TYPE=1(1=Single Use, 2=Multi Use)]
--- DESCRIPTION: Plate [MOVEMENT=3(1,10)]
+-- DESCRIPTION: Plate [MOVEMENT=3(0,100)]
 -- DESCRIPTION: Play <Sound0> when used.
 
 local U = require "scriptbank\\utillib"	
@@ -70,23 +70,23 @@ function actionplate_main(e)
 		if status[e] == "finished" then
 			onactionplate[e] = 0
 			activated[e] = 1
-		end			
+		end
 	end
 	
 	if onactionplate[e] > 0 then	
 		if activated[e] == 0 then
 			ActivateIfUsed(e)			
 			PerformLogicConnections(e)
-			PlaySound(e,0)			
-			ResetPosition(e, g_Entity[e]['x'],min_height[e],g_Entity[e]['z'])
+			PlaySound(e,0)
+			if actionplate[e].movement > 0 then ResetPosition(e, g_Entity[e]['x'],min_height[e],g_Entity[e]['z']) end
 			PromptDuration(actionplate[e].activation_text,1000)
 			activated[e] = 1
 			if actionplate[e].activation_type == 1 then status[e] = "finished" end
 			if actionplate[e].activation_type == 2 then
 				status[e] = "reset"
-				wait[e] = g_Time + 1000
+				wait[e] = g_Time + 2000
 			end								
-		end	
+		end
 	end
 end
 	

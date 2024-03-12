@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v12 by Necrym59
--- DESCRIPTION: The player or npc will be effected with health loss while in this Zone
+-- Toxic Zone v13 by Necrym59
+-- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
 -- DESCRIPTION: [@EFFECT=1(1=Gas, 2=Radiation)]
@@ -21,6 +21,7 @@ local damage 				= {}
 local zoneheight			= {}
 local toxic_to_npc			= {}
 local user_global_affected	= {}
+local spawnatstart			= {}
 local currentvalue			= {}
 local doonce				= {}
 local status				= {}
@@ -66,10 +67,11 @@ function toxiczone_main(e)
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY < g_Entity[e]['y']+toxiczone[e].zoneheight then
 			PromptDuration(toxiczone[e].prompt_text,3000)
+
 			if toxiczone[e].effect == 1 then	--Health Loss
 				g_toxiczone = 'gas'
-				LoopSound(e,0)			
-				if GetTimer(e) > 1000 then
+				LoopSound(e,0)
+				if GetTimer(e) > 3000 then
 					if g_ppequipment == 0 then
 						if doonce[e] == 0 then 
 							PlaySound(e,1)
@@ -82,12 +84,13 @@ function toxiczone_main(e)
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end				
 					StartTimer(e)
-				end			
+					doonce[e] = 0
+				end
 			end		
 			if toxiczone[e].effect == 2 then	--Radiation
 				g_toxiczone = 'radiation'
 				LoopSound(e,0)
-				if GetTimer(e) > 1000 then
+				if GetTimer(e) > 3000 then
 					if g_ppequipment == 0 then
 						if doonce[e] == 0 then 
 							PlaySound(e,1)
@@ -100,6 +103,7 @@ function toxiczone_main(e)
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end
 					StartTimer(e)
+					doonce[e] = 0
 				end			
 			end	
 		end	
@@ -120,9 +124,8 @@ function toxiczone_main(e)
 			end
 		end
 		if g_Entity[e]['entityinzone'] == 0 or g_Entity[e]['entityinzone'] == nil then EntityID[e] = 0 end
-	end	
+	end
 end
  
 function toxiczone_exit(e)	
 end
-

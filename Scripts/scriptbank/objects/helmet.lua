@@ -1,8 +1,18 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v17   by Necrym59
+-- Helmet v19   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
--- DESCRIPTION: Helmet Settings [PICKUP_TEXT$="E to Pickup/Wear"] [PICKUP_RANGE=80(1,100)] [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF, P=Remove/Wear Helmet"], [@HELMET_MODE=1(1=Pickup/Drop, 2=Pickup/Retain, 3=Always On)], [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=30(1,30)], [ZOOM_SPEED=1(1,10)], [READOUT_X=50(1,100)], [READOUT_Y=10(1,100)], [@COMPASS=2(1=On, 2=Off)], [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
--- DESCRIPTION: Set the Helmet Hud screen [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"]
+-- DESCRIPTION: [PICKUP_TEXT$="E to Pickup/Wear"]
+-- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
+-- DESCRIPTION: [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF, P=Remove/Wear Helmet"]
+-- DESCRIPTION: [@HELMET_MODE=1(1=Pickup/Drop, 2=Pickup/Retain, 3=Always On)]
+-- DESCRIPTION: [#MIN_ZOOM=-10(-30,1)]
+-- DESCRIPTION: [MAX_ZOOM=30(1,50)]
+-- DESCRIPTION: [ZOOM_SPEED=1(1,10)]
+-- DESCRIPTION: [READOUT_X=50(1,100)]
+-- DESCRIPTION: [READOUT_Y=10(1,100)]
+-- DESCRIPTION: [@COMPASS=2(1=On, 2=Off)]
+-- DESCRIPTION: [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
+-- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"] for the Helmet overlay image  
 -- DESCRIPTION: <Sound0> for pickup
 -- DESCRIPTION: <Sound1> for wearing/removing
 -- DESCRIPTION: <Sound2> for NightVison On/Off
@@ -45,6 +55,7 @@ local default_FogGreen = {}
 local default_FogBlue = {}
 local default_FogNearest = {}
 local default_FogDistance = {}
+local current_fov = {}
 
 function helmet_properties(e, pickup_text, pickup_range, useage_text, helmet_mode, min_zoom, max_zoom, zoom_speed, readout_x, readout_y, compass, compass_position, screen_image)
 	g_helmet[e] = g_Entity[e]
@@ -81,6 +92,7 @@ function helmet_init(e)
 	start_wheel = 0
 	mod = 0
 	fov = 0
+	current_fov[e] = 0
 	last_gun = g_PlayerGunName
 	gunstatus[e] = 0
 	status[e] = "init"
@@ -140,7 +152,7 @@ function helmet_main(e)
 			end
 		end
 	end
-	
+
 	if have_helmet[e] == 1 then	
 		SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 		if hmswitch[e] == 0 then 
@@ -163,6 +175,7 @@ function helmet_main(e)
 				mod = g_helmet[e]['max_zoom']
 			end
 			SetPlayerFOV(fov-mod)
+			current_fov[e] = (fov-mod)
 			TextCenterOnX(g_helmet[e]['readout_x'],g_helmet[e]['readout_y'],3,"Magnification Factor: " ..mod)
 		else
 			start_wheel = g_MouseWheel
@@ -175,7 +188,6 @@ function helmet_main(e)
 				gunstatus[e] = 0
 			end
 		end
-		if g_Scancode == 0 then SetPlayerFOV(fov) end
 
 		if g_Time > keypause1[e] and nvswitch[e] == 0 then
 			if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 0 then	
@@ -223,6 +235,7 @@ function helmet_main(e)
 				nvswitch[e] = 0
 				keypause1[e] = g_Time + 1000
 				have_helmet[e] = 0
+				SetPlayerFOV(fov)
 			end
 		end
 		if g_helmet[e]['helmet_mode'] == 2 then --reuseable
@@ -241,6 +254,7 @@ function helmet_main(e)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
 					hmswitch[e] = 1
+					SetPlayerFOV(fov)
 				end
 			end	
 			if g_Time > keypause2[e] and hmswitch[e] == 1 then
@@ -258,6 +272,7 @@ function helmet_main(e)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
 					hmswitch[e] = 0
+					SetPlayerFOV(current_fov[e])
 				end
 			end
 		end

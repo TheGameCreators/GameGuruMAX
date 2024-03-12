@@ -190,8 +190,7 @@ function aircraft_main(e)
 		status[e] = "begin"
 	end
 
-	if status[e] == "begin" then
-	Text(50,50,3,vehicle[e].particle_number)
+	if status[e] == "begin" then	
 		playerPos = {xo = vehicle[e].pilot_x, yo = vehicle[e].pilot_y, zo = vehicle[e].pilot_z}
 		local h = aircraft[e]
 		if h == nil then			

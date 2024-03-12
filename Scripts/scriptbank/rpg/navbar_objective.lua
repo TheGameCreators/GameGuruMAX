@@ -1,4 +1,4 @@
--- Navigation Bar Objective v6 by Smallg and Necrym59
+-- Navigation Bar Objective v7 by Smallg and Necrym59
 -- DESCRIPTION: Adds the entity to the Navigation Bar.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\objective.png"] icon for the navigation bar.
 -- DESCRIPTION: [FIXEDSIZE!=0] if 1 will scale icon with the distance
@@ -62,11 +62,12 @@ function navbar_objective_main(e)
 		end			
 	end
 	if g_Entity[entity_no[e]] ~= nil then 
-		if g_Entity[entity_no[e]]['health'] <= 0 then
+		if isadded[e] == true and g_Entity[entity_no[e]]['health'] <= 0 then
 			RemoveFromNavbar(entity_no[e])
-		end	
+			isadded[e] = -1
+		end
 	end
-	if 	g_navigation_entity[e].entity_type == 1 then
+	if 	g_navigation_entity[e].entity_type == 1 and  GetEntityVisibility(e) ~= 0 then
 		if not isadded[e] then 
 			if nbar ~= 0 then 
 				isadded[e] = AddToNavbar(e, g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange)

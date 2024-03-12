@@ -1,4 +1,4 @@
--- Shop v3
+-- Shop v4
 -- DESCRIPTION: The attached object can be used as a shop.
 -- DESCRIPTION: When player is within [USE_RANGE=100],
 -- DESCRIPTION: show [USE_PROMPT$="Press E to shop"] and
@@ -7,7 +7,10 @@
 -- DESCRIPTION: The shop is called [SHOP_NAME$="The Shop"]
 -- DESCRIPTION: <Sound0> when crafting started.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
+
 local shop 				= {}
 local use_range 		= {}
 local use_prompt 		= {}
@@ -34,6 +37,7 @@ function shop_init(e)
 	shop[e].shop_container = "shop"
 	shop[e].shop_name = "The Shop"
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	played[e] = 0
 end
@@ -43,24 +47,9 @@ function shop_main(e)
 		-- in the game
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < shop[e].use_range then
-			--pinpoint select object--			
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,shop[e].use_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-					tEnt[e] = e
-				else 
-					tEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				tEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,shop[e].use_range,300)
+			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
 		if PlayerDist < shop[e].use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then

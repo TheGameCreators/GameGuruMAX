@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Stealth Shield v11
+-- Stealth Shield v12
 -- DESCRIPTION: The Stealth shield object will give the player Stealth capability while activated.
 -- DESCRIPTION: [@STYLE=1(1=Pickup, 2=Collected)]
 -- DESCRIPTION: [PICKUP_RANGE=80(0,100)]
@@ -15,6 +15,10 @@
 -- DESCRIPTION: [ICON_IMAGEFILE$="imagebank\\misc\\testimages\\stealthshield_icon.png"]
 -- DESCRIPTION: [ICON_POSITION_X=50(0,100)]
 -- DESCRIPTION: [ICON_POSITION_Y=90(0,100)]
+
+local module_misclib = require "scriptbank\\module_misclib"
+local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local stealthshield 	= {}
 local style 			= {}
@@ -41,10 +45,10 @@ local shieldtime		= {}
 local useage_text 		= {}
 local use_count			= {}
 local stealthicon 		= {}
-
+local tEnt = {}
+local selectobj = {}
 
 function stealthshield_properties(e, style, pickup_range, prompt_text, use_text, on_text, off_text, mode, duration, discovery_range, shield_radius, no_of_uses, icon_imagefile, icon_position_x, icon_position_y)
-	stealthshield[e] = g_Entity[e]
 	stealthshield[e].style = style
 	stealthshield[e].pickup_range = pickup_range
 	stealthshield[e].prompt_text = prompt_text
@@ -81,6 +85,9 @@ function stealthshield_init(e)
 	shieldtime[e] = 0
 	shieldactive[e] = 0	
 	use_count[e] = 0
+	tEnt[e] = 0
+	g_tEnt = 0
+	selectobj[e] = 0
 	stealthicon = CreateSprite(LoadImage(stealthshield[e].icon_image))
 	sp_imgwidth = GetImageWidth(LoadImage(stealthshield[e].icon_image))
 	sp_imgheight = GetImageHeight(LoadImage(stealthshield[e].icon_image))
@@ -106,14 +113,20 @@ function stealthshield_main(e)
 	if status[e] == "pickup" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < stealthshield[e].pickup_range then
-			PromptLocal(e,stealthshield[e].prompt_text)
-			if g_KeyPressE == 1 then				
-				PromptDuration(stealthshield[e].use_text,1000)
-				PlaySound(e,0)
-				Hide(e)
-				CollisionOff(e)
-				status[e] = "collected"
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,stealthshield[e].pickup_range,300)
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--
+			if PlayerDist < stealthshield[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+				PromptLocal(e,stealthshield[e].prompt_text)
+				if g_KeyPressE == 1 then				
+					PromptDuration(stealthshield[e].use_text,1000)
+					PlaySound(e,0)
+					Hide(e)
+					CollisionOff(e)
+					status[e] = "collected"
+				end
+			end	
 		end
 	end	
 

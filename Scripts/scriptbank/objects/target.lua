@@ -1,9 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Target v15 by Necrym59 and BloodMoon
+-- Target v16 by Necrym59 and BloodMoon
 -- DESCRIPTION: Allows a target object to be shot and reset and can activate Linked or IfUsed entities.
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [HIT_TEXT$="Target Hit"]
--- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Random Flying, 5=Scenery)]
+-- DESCRIPTION: [@TARGET_TYPE=1(1=Stationary, 2=Moving, 3=Spinning, 4=Random Flying, 5=Breakable, 6=Scenery)]
 -- DESCRIPTION: [TARGET_MOVE_X=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Y=0(0,1000)]
 -- DESCRIPTION: [TARGET_MOVE_Z=0(0,1000)]
@@ -15,6 +15,7 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyPointTally"]
 -- DESCRIPTION: [TARGET_MOVE_DELAY=0(0,100)] Seconds
 -- DESCRIPTION: [@TARGET_FACING=1(1=Fixed, 2=Random)]
+-- DESCRIPTION: [@TARGET_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: <Sound0> - Target Hit
 -- DESCRIPTION: <Sound1> - Target Reset
 -- DESCRIPTION: <Sound2> - Target Moving
@@ -37,6 +38,7 @@ local points_issuance			= {}
 local user_global_affected		= {}
 local target_move_delay			= {}
 local target_facing				= {}
+local target_animation			= {}
 
 local targetxpos		= {}
 local targetypos		= {}
@@ -69,8 +71,10 @@ local vertical_movement	= {}
 local flyonce			= {}
 local flymode			= {}
 local randomonce		= {}
+local fade_level		= {}
+local cleanuptime		= {}
 	
-function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected, target_move_delay, target_facing)
+function target_properties(e, hit_text, target_type, target_move_x, target_move_y, target_move_z, target_move_speed, target_reset, target_trigger, target_points, points_issuance, user_global_affected, target_move_delay, target_facing, target_animation)
 	target[e] = g_Entity[e]
 	target[e].hit_text = hit_text
 	target[e].target_type = target_type
@@ -84,6 +88,7 @@ function target_properties(e, hit_text, target_type, target_move_x, target_move_
 	target[e].user_global_affected = user_global_affected
 	target[e].target_move_delay = target_move_delay
 	target[e].target_facing = target_facing
+	target[e].target_animation = "=" .. tostring(target_animation)
 end
  
 function target_init(e)
@@ -101,6 +106,7 @@ function target_init(e)
 	target[e].user_global_affected = "MyPointTally"
 	target[e].target_move_delay = 0
 	target[e].target_facing = 1
+	target[e].target_animation = ""
 	
 	played[e] = 0
 	moved[e] = 0
@@ -116,6 +122,10 @@ function target_init(e)
 	triggered[e] = 0
 	facing[e] = 1
 	fside[e] = 1
+	fade_level[e] = GetEntityBaseAlpha(e)
+	SetEntityBaseAlpha(e,fade_level[e])
+	SetEntityTransparency(e,1)
+	cleanuptime[e] = 0
 	reset1[e] = math.huge
 	reset2[e] = math.huge
 	randomonce[e] = 0
@@ -137,7 +147,7 @@ function target_main(e)
 		targetzang[e] = Az
 		if g_Entity[e]['health'] < 100 then SetEntityHealth(e,g_Entity[e]['health']+100) end		
 		starthealth[e] = g_Entity[e]['health']
-		if target[e].target_type == 5 then
+		if target[e].target_type == 6 then
 			if SetCharacterMode(e,0) == 1 then end
 			GravityOff(e)
 			CollisionOff(e)
@@ -145,12 +155,14 @@ function target_main(e)
 		status[e] = "endinit"
 	end
 	
-	if target[e].target_type == 1 or target[e].target_type == 5 then
+	-- Stationary and Scenery -----------------------------------------------------
+	if target[e].target_type == 1 or target[e].target_type == 6 then
 		target[e].target_move_x = 0
 		target[e].target_move_y = 0
 		target[e].target_move_z = 0
 	end
 	
+	-- Moving Targets -------------------------------------------------------------
 	if target[e].target_type == 2 then
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(e)
 		local ox,oy,oz = U.Rotate3D(target[e].target_move_x, target[e].target_move_y, target[e].target_move_z, rad(startxang[e]),rad(startyang[e]),rad(startzang[e]))	
@@ -199,11 +211,15 @@ function target_main(e)
 			end
 		end		
 	end
-	if target[e].target_type == 3 and state[e] == 0 then
+	
+	-- Spinning Targets -------------------------------------------------------------
+	if target[e].target_type == 3 and state[e] == 0 then 
 		GravityOff(e)
 		RotateY(e,GetAnimationSpeed(e)*(target[e].target_move_speed*200))
 	end
-	if target[e].target_type == 4 and g_Entity[e]['health'] > 100 then
+	
+	-- Random Flying Targets --------------------------------------------------------
+	if target[e].target_type == 4 and g_Entity[e]['health'] > 100 then 
 		if flyonce[e] == 0 then
 			SetAnimationName(e,"fly")
 			LoopAnimation(e)
@@ -235,6 +251,13 @@ function target_main(e)
 		CollisionOn(e)
 	end
 	
+	-- Breakable Targets --------------------------------------------------------
+	if target[e].target_type == 5 and g_Entity[e]['health'] < 1 then
+		SetAnimationName(e,"break")
+		PlayAnimation(e)
+	end
+	
+
 	if target[e].target_facing == 2 and target[e].target_reset > 0 then
 		if randomonce[e] == 0 then
 			reset1[e] = g_Time + math.random(2000, 10000)			
@@ -283,6 +306,14 @@ function target_main(e)
 				StopSound(e,2)
 				StopAnimation(e)
 				Hide(e)
+			end
+			if target[e].target_type == 5 then
+				SetAnimationName(e,target[e].target_animation)
+				PlayAnimation(e)
+				CollisionOff(e)
+				if cleanuptime[e] == 0 then
+					cleanuptime[e] = g_Time + 5000
+				end
 			end
 			---------------------------------
 			if target[e].target_trigger == 1 then
@@ -351,6 +382,18 @@ function target_main(e)
 		doonce[e] = 0
 		flyonce[e] = 0
 	end	
+	
+	if g_Time >= cleanuptime[e] and target[e].target_type == 5 and g_Entity[e]['health'] < 100 then
+		if fade_level[e] > 0 then						
+			SetEntityBaseAlpha(e,fade_level[e])
+			fade_level[e] = fade_level[e]-1
+		end							
+		if fade_level[e] <= 0 then
+			fade_level[e] = 0			
+			Hide(e)			
+			Destroy(e)
+		end
+	end
 end
  
 function target_exit(e)	

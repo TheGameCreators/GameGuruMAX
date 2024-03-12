@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Resource Node v8 by Necrym59
+-- Resource Node v9 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
 -- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name
@@ -42,7 +42,6 @@ local healthcheck	= {}
 local wait			= {}
 
 function resource_node_properties(e, node_type, node_tool_name, node_max_quantity, node_spawntime, node_entity_spawntime, node_entity_name, node_entity_no)
-	resnode[e] = g_Entity[e]
 	resnode[e].node_type = node_type
 	resnode[e].node_tool_name = lower(node_tool_name)
 	resnode[e].node_max_quantity = node_max_quantity
@@ -79,7 +78,7 @@ function resource_node_init(e)
 end
 
 function resource_node_main(e)
-	resnode[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		if resnode[e].node_tool_name == "" then resnode[e].node_tool_name = "none" end
 		if resnode[e].node_type == 1 then

@@ -1,19 +1,21 @@
--- Key v23 - Necrym59 and Lee
+-- Key v24 - Necrym59 and Lee
 -- DESCRIPTION: This object is treated as a key object for unlocking doors.
 -- DESCRIPTION: [PICKUP_TEXT$="Collect Key"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [COLLECTED_TEXT$="Key collected"]
+-- DESCRIPTION: [@LOGIC_TRIGGER=1(1=None, 2=On Pickup)]
 -- DESCRIPTION: Play the audio <Sound0> when the object is picked up by the player.
 
 local U = require "scriptbank\\utillib"
 local key = {}
 
-function key_properties(e,pickup_text, pickup_range, pickup_style, collected_text)
+function key_properties(e,pickup_text, pickup_range, pickup_style, collected_text, logic_trigger)
 	key[e].pickup_text = pickup_text
 	key[e].pickup_range = pickup_range
 	key[e].pickup_style = pickup_style
 	key[e].collected_text = collected_text
+	key[e].logic_trigger = logic_trigger
 end 
 
 function key_init(e)
@@ -22,6 +24,7 @@ function key_init(e)
 	key[e].pickup_range = 80
 	key[e].pickup_style = 1
 	key[e].collected_text = "Key collected"
+	key[e].logic_trigger = 1	
 	key[e].associatekeyatstart = 1	
 end
 
@@ -40,7 +43,7 @@ function key_main(e)
 				end
 			end
 			if GetEntityCollectable(e) == 0 then
-				performthecollection = 1
+				performthecollection = 1				
 			end
 		end
 	end
@@ -71,6 +74,7 @@ function key_main(e)
 		end
 		PlaySound(e,0)
 		SetEntityCollected(e,1)
+		if key[e].logic_trigger == 2 then PerformLogicConnections(e) end
 		if GetEntityCollectable(e) == 0 then
 			Destroy(e)
 		end

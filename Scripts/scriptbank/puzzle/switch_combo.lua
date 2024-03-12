@@ -1,4 +1,4 @@
--- Switch Combo v8 
+-- Switch Combo v9 
 -- DESCRIPTION: A combo-value switch to add to 100 to Activate IfUsed and/or logic linked object.
 -- DESCRIPTION: [UseRange=90(1,200)]
 -- DESCRIPTION: [SwitchedOn!=0] state to decide if the switch is initially off or on, and customize the
@@ -11,8 +11,11 @@
 -- DESCRIPTION: <Sound0> when the object is switched ON.
 -- DESCRIPTION: <Sound1> when the object is switched OFF.
  
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 g_swcvalue = {}
+
 local switch_combo		= {}
 local userange 			= {}
 local initialstate 		= {}
@@ -59,6 +62,7 @@ function switch_combo_init(e)
 	switch_combo[e].deferlinks = 0
 	switch_combo[e].deferlinksvalue = 99	
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	switched[e] = 0
 	tlevelrequired[e] = 0
@@ -91,26 +95,10 @@ function switch_combo_main(e)
 	
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < switch_combo[e].userange then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,switch_combo[e].userange
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e].obj == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0			
-			end
-			if g_Entity[e]['obj'] ~= selectobj[e] then selectobj[e] = 0 end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
-		--end pinpoint select object--		
+		--pinpoint select object--
+		module_misclib.pinpoint(e,switch_combo[e].userange,300)
+		tEnt[e] = g_tEnt
+		--end pinpoint select object--	
 	end	
 	
 	if PlayerDist < switch_combo[e].userange and tEnt[e] ~= 0 then

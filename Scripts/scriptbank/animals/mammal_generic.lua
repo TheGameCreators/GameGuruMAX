@@ -1,4 +1,4 @@
--- DESCRIPTION: Will animate and move this object as though a mammal.
+-- DESCRIPTION: Will animate and move this object as though a mammal. v3
 local U = require "scriptbank\\utillib"
 
 local modf  = math.modf
@@ -33,7 +33,7 @@ local ppx, ppy, ppz = 0, 0, 0
 local opx, opy, opz = 0, 0, 0
 
 local function randVal( low, high )
-	return low + random() * ( high - low ) 
+	return low + random() * ( high - low )
 end
 
 local function chance( val )
@@ -73,16 +73,16 @@ local function scare( e, critter, dist )
 	if g_PlayerGunFired == 1 and
 	   heardSound( critter, 'player', 1100 ) then
 		return 'gunfire'
-	
+
 	elseif
 	   U.PlayerCloserThan( e, dist / 3 ) then
 		return 'player'
-		
-	elseif 
+
+	elseif
 	   heardSound( critter, 'player', dist ) then
 		return 'player'
-	
-	elseif 
+
+	elseif
 	   heardSound( critter, 'other', dist ) then
 		return 'npc'
 	end
@@ -126,16 +126,16 @@ local function canSee( critter, dist, x, y, z )
 	if critter.e ~= nil then
 	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, critter.e, 500 ,1 , 1)
 	end
-	
-	if obj == 0 or aCritter( obj ) then	
+
+	if obj == 0 or aCritter( obj ) then
 		return true
 	end
 end
 
 local function pathFound( e, critter )
 	local y = critter.y
-	if critter.species == 'sewer' then 
-		if chance( 0.2 ) then 
+	if critter.species == 'sewer' then
+		if chance( 0.2 ) then
 			if chance( 0.5 ) then
 				y = y + 100
 			else
@@ -144,9 +144,9 @@ local function pathFound( e, critter )
 		end
 	end
 	y = RDGetYFromMeshPosition( critter.tx, y, critter.tz )
-	
+
 	RDFindPath( critter.x, critter.y, critter.z, critter.tx, y, critter.tz )
-				
+
 	local pc = RDGetPathPointCount()
 	if pc > 0 then
 		if canSee( critter, 0, RDGetPathPointX(1), RDGetPathPointY(1), RDGetPathPointZ(1) ) then
@@ -162,16 +162,16 @@ local function pickNewPos( e, critter, dist, typ, tx, tz )
 	for i = 1, 5 do
 		local x, z = U.RandomPos( dist, critter.x, critter.z )
 		if x ~= nil then
-		if ( typ == 'wander' or 
+		if ( typ == 'wander' or
 		     sqrd( x, z, tx, tz ) > sqrd( x, z, critter.x, critter.z ) ) and
 		   waterHgt < GetTerrainHeight( x, z )then
 		    critter.tx, critter.tz = x, z
-			if pathFound( e, critter ) then return true end 
+			if pathFound( e, critter ) then return true end
 		end
 		end
 	end
 end
-				 
+
 local function selectTargetPos( e, critter, typ, x, z )
 	if typ == 'start' then
 		critter.tx, critter.tz = U.RandomPos( 800, critter.startx, critter.startz )
@@ -194,13 +194,13 @@ local function selectTargetPos( e, critter, typ, x, z )
 			critter.tgtSpeed = getRndSpeed( e ) * 2
 			return true
 		end
-	elseif 
+	elseif
 	   typ == 'predator' then
 		if pickNewPos( e, critter, randVal( 400, 600 ), typ, x, z ) then
 			critter.tgtSpeed = getRndSpeed( e ) * 2
 			return true
-		end	
-	end	
+		end
+	end
 end
 
 local function speciesSpecific( e, critter )
@@ -208,23 +208,23 @@ local function speciesSpecific( e, critter )
 	   procTime > critter.procTimer then
 		critter.procTimer = procTime + randVal( 100,300 )
 		critter.critterList = U.ClosestEntities( 500, 10, critter.x, critter.z )
-		
+
 		if critter.species == 'rabbit' then
 			for _, v in pairs( critter.critterList ) do
-				if v ~= e then 
+				if v ~= e then
 					local other = mammals[ v ]
 					if other ~= nil and
 					   other.species == 'fox' and
 					   other.x ~= nil and
 					   sqrd( other.x, other.z, critter.x, critter.z )  < 400 * 400 then
 						if selectTargetPos( e, critter, 'predator', other.x, other.z ) then
-							changeStateLoop( e, critter, 'flee', 'Move', true )	
+							changeStateLoop( e, critter, 'flee', 'Move', true )
 							break
 						end
 					end
 				end
 			end
-		
+
 			-- tbd : add other species specific behaviour, maybe get rats to stop still if
 			--       a fox is around or have rats hunt down carrion etc
 		end
@@ -232,11 +232,11 @@ local function speciesSpecific( e, critter )
 end
 
 local function warnOthers( e, critter )
-	if critter.critterList == nil then return end											  
+	if critter.critterList == nil then return end
 	for _, v in pairs( critter.critterList ) do
-		if v ~= e then 
+		if v ~= e then
 			local other = mammals[ v ]
-			if other ~= nil and 
+			if other ~= nil and
 			   other.species == critter.species then
 				other.warn = e
 			end
@@ -253,7 +253,7 @@ local function processHunger( critter, val )
 		end
 	end
 end
-	
+
 function mammal_generic_main( e )
 
 	local critter = mammals[ e ]
@@ -261,15 +261,15 @@ function mammal_generic_main( e )
 
 	local Ent = g_Entity[ e ]
 	if Ent == nil then return end
-	
+
 	local timeNow = g_Time
-	
+
 	if timeNow > lastTime or procEnt == nil then
 		tDiff = min( 5, ( timeNow - lastTime ) / 16.667 )
 		lastTime = timeNow
-		procEnt = e 
-	end	
-	
+		procEnt = e
+	end
+
 	if procEnt == e then
 		procTime = timeNow
 		waterHgt = GetWaterHeight()
@@ -281,7 +281,7 @@ function mammal_generic_main( e )
 			plyrMoved = false
 		end
 	end
-	
+
 	critter.x, critter.y, critter.z = Ent.x, Ent.y, Ent.z
 
 	if critter.state == 'init' then
@@ -298,26 +298,26 @@ function mammal_generic_main( e )
 		critter.turnSpd = GetEntityTurnSpeed( e )
 		SetEntityHealth( e, Ent.health + 10000 )
 		critter.canEat  = GetEntityAnimationNameExist( e, 'eating' ) == 1
-		if critter.canEat then 
-			critter.hunger    = randVal( 0, 50 ) 
+		if critter.canEat then
+			critter.hunger    = randVal( 0, 50 )
 			critter.tgtHunger = randVal( 50, 100 )
 		end
-		return 
-		
+		return
+
 	elseif
 	   critter.state == 'idle' then
-		if not U.CloserThan( critter.x, 0, critter.z, 
+		if not U.CloserThan( critter.x, 0, critter.z,
 		                     critter.startx, 0, critter.startz, 2500 ) then
-			if selectTargetPos( e, critter, 'start' ) then			 
+			if selectTargetPos( e, critter, 'start' ) then
 				changeStateLoop( e, critter, 'walk', 'Walk', true )
 			end
-			
-		elseif 
+
+		elseif
 		   timedEvent( procTime, critter, 2000, 6000 ) then
 			if selectTargetPos( e, critter, 'wander' ) then
 				changeStateLoop( e, critter, 'walk', 'Walk', true )
 			end
-		
+
 		elseif critter.canEat then
 			processHunger( critter, 0.01 )
 			if critter.hunger > critter.tgtHunger then
@@ -328,20 +328,20 @@ function mammal_generic_main( e )
 		end
 
 	elseif
-	   critter.state == 'eat' then 
+	   critter.state == 'eat' then
 	    processHunger( critter, -0.2 )
 		if critter.hunger < critter.tgtHunger then
 			critter.timer = nil
 			changeStateLoop( e, critter, 'idle', 'Idle', true )
 			critter.tgtHunger = randVal( 60, 100 )
 		end
-		
+
 	elseif
 	   critter.state == 'walk' then
 		local pointindex = MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
-		if pointindex == 0 or 
+		if pointindex == 0 or
 		   ( pointindex > 1 and not canSee( critter, 5 * critter.speed ) ) or
-		   U.CloserThan( critter.x,  0, critter.z, 
+		   U.CloserThan( critter.x,  0, critter.z,
 		                 critter.tx, 0, critter.tz, 10 ) then
 			MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
 			critter.timer = nil
@@ -349,9 +349,9 @@ function mammal_generic_main( e )
 			changeStateLoop( e, critter, 'idle', 'Idle', true )
 		end
 		processHunger( critter, 0.02 )
-		
+
 	end
-	
+
 	local spd = critter.tgtSpeed - critter.speed
 	if abs( spd ) > 0.01 then
 		critter.speed = critter.speed + spd / 77
@@ -361,7 +361,7 @@ function mammal_generic_main( e )
 	if critter.state == 'idle' or
 	   critter.state == 'eat'  then
 		SetAnimationSpeed( e, GetEntityMoveSpeed( e ) / 100.0 )
-	elseif 
+	elseif
 	   critter.species ~= 'fox'  or
        critter.state   ~= 'flee' then
 		SetAnimationSpeed( e, critter.speed )
@@ -371,7 +371,7 @@ function mammal_generic_main( e )
 		critter.animspeed = critter.speed * 0.8
 		SetAnimationSpeed( e, critter.animspeed )
 	end
-	
+
 	if critter.state ~= 'dead' then
 		if Ent.health <= 10000 then
 			StopAnimation( e )
@@ -381,17 +381,17 @@ function mammal_generic_main( e )
 			critter.timer = nil
 			warnOthers( e, critter )
 			playRndSound( e, 4, 4 )
-			
-		elseif 
+
+		elseif
 		   critter.state == 'flee' then
 			local pointindex = MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
-			if pointindex == 0 or 
+			if pointindex == 0 or
 			   ( pointindex > 1 and not canSee( critter, 40 ) ) or
-			   U.CloserThan( critter.x,  0, critter.z, 
+			   U.CloserThan( critter.x,  0, critter.z,
 		                     critter.tx, 0, critter.tz, 25 ) then
-				MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 ) 
+				MoveAndRotateToXYZ( e, 0, critter.turnSpd, 1 )
 				critter.timer = nil
-				if critter.fleeTimer then 
+				if critter.fleeTimer then
 					if timeNow < critter.fleeTimer then
 						if selectTargetPos( e, critter, critter.fleeTyp ) then
 							changeStateLoop( e, critter, 'flee', 'Move', true )
@@ -407,7 +407,6 @@ function mammal_generic_main( e )
 			processHunger( critter, 0.1 )
 
 		else
-
 			if critter.warn then
 				local other = mammals[ critter.warn ]
 				if other ~= nil and
@@ -432,12 +431,10 @@ function mammal_generic_main( e )
 				end
 			end
 		end
-		
+
 	elseif
-	   timedEvent( procTime, critter, 5000, 5000 ) then
+	   timedEvent( procTime, critter, 1000, 1000 ) then
 	   	SetEntityHealth( e, 0 )
-		SwitchScript( e, 'no_behavior.lua' )
 	end
-	
-	-- PromptLocal( e, critter.state .. ", " .. critter.speed )	
+	--PromptLocal( e, critter.state .. ", " .. critter.speed )
 end

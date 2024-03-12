@@ -10,8 +10,8 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: <Sound0> when cast effect successful
+-- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"

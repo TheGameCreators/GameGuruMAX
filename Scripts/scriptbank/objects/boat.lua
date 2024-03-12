@@ -185,8 +185,8 @@ function boat_main(e)
 				end
 				--Collision Check--------------------------------------------------------------------------
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
-				local ox,oy,oz = U.Rotate3D(0,0,boatlength[e], 0,math.rad(eay),0)
-				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,1,0)
+				local ox,oy,oz = U.Rotate3D(0,0,boatlength[e],0,math.rad(eay),0)
+				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,1,0)				
 				if colobj[e] > 0 or colobj[e] == -1 then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
 					TransportToFreezePosition()

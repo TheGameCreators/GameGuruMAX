@@ -1,4 +1,4 @@
---Shake v4 adapted by Necrym59 from an original script by AmenMoses
+--Shake v5 adapted by Necrym59 from an original script by AmenMoses
 -- DESCRIPTION: Creates camera shake. Attache to an object and link to a trigger zone or switch.
 -- DESCRIPTION: Select Shake [@STYLE=6(1=Tremble, 2=Tremor, 3=Earthquake, 4=Explosion, 5=Drunkard, 6=Manual)]
 -- DESCRIPTION: Change the [PROMPT_TEXT$=""]
@@ -23,6 +23,7 @@ local shaken = {}
 local doonce = {}
 local shakeoff = {}
 local delay = {}
+local status = {}
 
 function shake_properties(e, style, prompt_text, trauma, period, fade, background_trauma, background_period, mode)
 	shake[e] = g_Entity[e]
@@ -49,12 +50,18 @@ function shake_init(e)
 	g_Entity[e]['activated'] = 0
 	shaken[e] = 0
 	doonce[e] = 0
-	shakeoff[e] = 0
+	shakeoff[e] = 0	
 	delay[e] = math.huge
+	status[e] = "init"
 end
 
 function shake_main(e)
 	shake[e] = g_Entity[e]
+	
+	if status[e] == "init" then
+		delay[e] = 0
+		status[e] = "endinit"	
+	end
 	
 	if GamePlayerControlSetShakeTrauma == nil then return end -- early return if not compatible gameplayercontrol available
 	
@@ -123,15 +130,15 @@ function shake_main(e)
 			if shakeoff[e] == 0 then
 				GamePlayerControlSetShakeTrauma(0.0)
 				GamePlayerControlSetShakePeriod(0.0)
-				shakeoff[e] = 1				
+				shakeoff[e] = 1	
 			end
 		end	
 		if shake[e].mode == 2 then GamePlayerControlAddShakeFade(0.0) end
 		if shaken[e] == 1 then
 			SetActivated(e,0)
 			shaken[e] = 0
-		end	
-	end
+		end			
+	end	
 end
  
 

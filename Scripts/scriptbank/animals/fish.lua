@@ -1,4 +1,6 @@
 -- DESCRIPTION: Will animate and move this object as though a fish.
+-- Fish v2
+-- DESCRIPTION: [RandomScale!=1]
 local U = require "scriptbank\\utillib"
 local Q = require "scriptbank\\quatlib"
 local V = require "scriptbank\\vectlib"
@@ -35,14 +37,19 @@ local function randVal( low, high )
 	return low + random() * ( high - low ) 
 end
 
+function fish_properties( e, RandomScale )
+	fishes[ e ].RandomScale = RandomScale
+end
+
 function fish_init_name( e, name )
-	local Ent = g_Entity[ e ]	
+	local Ent = g_Entity[ e ]
 	fishes[ e ] = { state = 'init', e = e, obj = Ent.obj, 
-	                species = name,
-                    scale   = randVal( 40, 110 ) / 100 }
+					species = name,
+					scale = randVal( 40, 112 ) / 100,															
+					RandomScale = 1 }
 	CollisionOff( e )
 	MoveWithAnimation( e, 0 )
-	Scale( e, fishes[ e ].scale * 100 )
+	--	Scale( e, fishes[ e ].scale * 100 ) **moved to state init in main 
 end
 
 local function chance( val )
@@ -261,6 +268,7 @@ end
 local procEnt = nil
 
 function fish_main( e )
+
 	local fish = fishes[ e ]
 	if fish == 'nil' then return end
 	
@@ -287,6 +295,10 @@ function fish_main( e )
 	fish.x, fish.y, fish.z, fish.ax, fish.ay, fish.az = GetObjectPosAng( fish.obj )
 
 	if fish.state == 'init' then
+		if fishes[ e ].RandomScale == 1 then
+			Scale( e, fishes[ e ].scale * 100 )
+		end
+	
 		fish.tgtHgt = fish.y
 		fish.rot    = fish.ay			   
 		fish.speed  = 1	

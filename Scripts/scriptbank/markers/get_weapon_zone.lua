@@ -1,27 +1,31 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Get Weapon Zone v2 by Amen Moses and Necrym59
+-- Get Weapon Zone v3 by Amen Moses and Necrym59
 -- DESCRIPTION: Gets closest weapon within set range to this zone and gives to the player.
 -- DESCRIPTION: [SearchRange=1000(1,5000)]
 -- DESCRIPTION: [ZoneHeight=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
+-- DESCRIPTION: [WeaponAmmunition=100(1,50)]
 -- DESCRIPTION: <Sound0> - Zone Entry Sound
 
 local U = require "scriptbank\\utillib"
-local gwzone 		= {}
-local SearchRange	= {}
-local ZoneHeight	= {}
-local SpawnAtStart	= {}
+local gwzone 			= {}
+local SearchRange		= {}
+local ZoneHeight		= {}
+local SpawnAtStart		= {}
+local WeaponAmmunition	= {}
 
 local status 		= {}
 local gwzweapon		= {}
 local doonce		= {}
+local ammocheck		= {}
 local played		= {}
 
-function get_weapon_zone_properties(e, SearchRange, ZoneHeight, SpawnAtStart)
+function get_weapon_zone_properties(e, SearchRange, ZoneHeight, SpawnAtStart, WeaponAmmunition)
     gwzone[e] = g_Entity[e]
 	gwzone[e].SearchRange = SearchRange	
 	gwzone[e].ZoneHeight = ZoneHeight
 	gwzone[e].SpawnAtStart = SpawnAtStart
+	gwzone[e].WeaponAmmunition = WeaponAmmunition	
 end
 
 function get_weapon_zone_init(e)
@@ -29,10 +33,12 @@ function get_weapon_zone_init(e)
 	gwzone[e].SearchRange =	1000
 	gwzone[e].ZoneHeight = 100
 	gwzone[e].SpawnAtStart = 1
+	gwzone[e].WeaponAmmunition = 50
 	
 	status[e] = "init"
 	gwzweapon[e] = 0
 	doonce[e] = 0
+	ammocheck[e] = 0
 	played[e] = 0
 end
 
@@ -64,6 +70,15 @@ function get_weapon_zone_main(e)
 			if played[e] == 0 then 
 				PlaySound(e,0)
 				played[e] = 1
+			end
+			if ammocheck[e] == 0 then
+				for index = 1, 10, 1 do
+					WeaponID = GetPlayerWeaponID()
+					GetWeaponSlot (index, WeaponID, WeaponID)
+					local amqty = GetWeaponPoolAmmo(index)
+					SetWeaponPoolAmmo(index,amqty + gwzone[e].WeaponAmmunition)					
+				end
+				ammocheck[e] = 1
 			end
 		end
 		if g_Entity[e].plrinzone == 0 then

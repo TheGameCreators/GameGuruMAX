@@ -134,7 +134,7 @@ function health_main(e)
 	end
 	if addquantity[e] == 2 then
 		SetPlayerHealth(g_PlayerHealth - health[e].quantity)
-		if armour[e].user_global_affected > "" then
+		if health[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] - health[e].quantity
 		end

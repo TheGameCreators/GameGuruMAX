@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Light Control v22 by Necrym59, with thanks to synchromesh
+-- Light Control v23 by Necrym59, with thanks to synchromesh
 -- DESCRIPTION: Ramps the strength distance of a light up or down when activated by a zone, switch or by range.
 -- DESCRIPTION: Attach to a light.
 -- DESCRIPTION: [@RANGE_SENSING=1(1=Yes, 2=No, 3=None-Light On)]
@@ -46,7 +46,6 @@ local failtime				= {}
 local doonce 				= {}
 
 function lightcontrol_properties(e, range_sensing, sensor_range, max_light_distance, speed, mode, light_r, light_g, light_b, flicker, light_object_name, light_object_no)
-	lightcontrol[e] = g_Entity[e]
 	lightcontrol[e].range_sensing = range_sensing
 	lightcontrol[e].sensor_range = sensor_range
 	lightcontrol[e].max_light_distance = max_light_distance
@@ -61,7 +60,7 @@ function lightcontrol_properties(e, range_sensing, sensor_range, max_light_dista
 end
 
 function lightcontrol_init(e)
-	lightcontrol[e] = g_Entity[e]
+	lightcontrol[e] = {}
 	lightcontrol[e].range_sensing			= 1
 	lightcontrol[e].sensor_range			= 100
 	lightcontrol[e].max_light_distance		= 150
@@ -88,7 +87,6 @@ function lightcontrol_init(e)
 end
 
 function lightcontrol_main(e)
-	lightcontrol[e] = g_Entity[e]
 	
 	if status[e] == "init" then
 		if lightcontrol[e].light_object_no == 0 or nil then

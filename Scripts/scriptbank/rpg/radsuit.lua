@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Rad suit v10   by Necrym59
+-- Rad suit v12   by Necrym59
 -- DESCRIPTION: The applied object will give the player radiation protection. Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1-200)]
@@ -13,9 +13,9 @@ local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
-g_radsuit = {}
 g_toxiczone = {}
-g_ppequipment = {}
+g_radsuit_on = {}
+
 local radsuit 			= {}
 local pickup_text 		= {}
 local useage_text 		= {}
@@ -51,7 +51,7 @@ function radsuit_init(e)
 	status[e] = "init"
 	currenthealth[e] = 0
 	have_radsuit = 0
-	g_ppequipment = 0	--Gasmask = 1, Radsuit = 2
+	g_radsuit_on = 0
 	played[e] = 0
 	rsswitch[e] = 0
 	selectobj[e] = 0
@@ -118,6 +118,7 @@ function radsuit_main(e)
 					played[e] = 1
 				end
 				rsswitch[e] = 1
+				g_radsuit_on = 1
 			end
 		end
 		if rsswitch[e] == 1 then
@@ -127,19 +128,18 @@ function radsuit_main(e)
 					played[e] = 1
 				end
 				rsswitch[e] = 0
+				g_radsuit_on = 0
 			end
 		end
 		if rsswitch[e] == 1 then
 			PasteSpritePosition(radmasksp,0,0)
 			LoopSound(e,1)
 			if g_toxiczone == 'radiation' then SetPlayerHealth(currenthealth[e]) end
-			g_ppequipment = 2
 			played[e] = 0
 		end
 		if rsswitch[e] == 0 then
 			StopSound(e,1)
 			PasteSpritePosition(radmasksp,1000,1000)
-			g_ppequipment = 0
 			played[e] = 0
 			currenthealth[e] = g_PlayerHealth
 		end

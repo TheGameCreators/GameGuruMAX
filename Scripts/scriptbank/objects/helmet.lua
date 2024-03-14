@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v20   by Necrym59
+-- Helmet v21   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup/Wear"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -13,10 +13,9 @@
 -- DESCRIPTION: [@COMPASS=2(1=On, 2=Off)]
 -- DESCRIPTION: [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"] for the Helmet overlay image
--- DESCRIPTION: <Sound0> for pickup
--- DESCRIPTION: <Sound1> for wearing/removing
--- DESCRIPTION: <Sound2> for NightVison On/Off
--- DESCRIPTION: <Sound3> loop for while wearing
+-- DESCRIPTION: <Sound0> for pickup/wearing/removing
+-- DESCRIPTION: <Sound1> loop for while wearing
+-- DESCRIPTION: <Sound2> for NightVison On/Off 
 
 local U = require "scriptbank\\utillib"
 
@@ -150,7 +149,7 @@ function helmet_main(e)
 					PlaySound(e,0)
 					Hide(e)
 					CollisionOff(e)
-					SetPosition(e,g_PlayerPosX,g_PlayerPosY+100,g_PlayerPosZ)					
+					SetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)					
 					ActivateIfUsed(e)
 				end
 			end
@@ -158,13 +157,24 @@ function helmet_main(e)
 	end
 	
 	if have_helmet[e] == 1 then
+		
 		if hmswitch[e] == 0 then
-			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+100,g_PlayerPosZ)
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			PasteSpritePosition(helmetsp[e],0,0)
 			TextCenterOnXColor(50,95,2,g_helmet[e]['useage_text'],100,255,100)
-			LoopSound(e,3)
+			if doloop[e] == 0 then
+				LoopNon3DSound(e,1)
+				doloop[e] = 1
+			end 
 		end
-		if hmswitch[e] == 1 then StopSound(e,3) end		
+		if hmswitch[e] == 1 then
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
+			if doloop[e] == 1 then				
+				StopSound(e,1)
+				doloop[e] = 0
+			end				
+		end
+		
 		if g_Scancode == 48 then --Hold B Key to use
 			if g_PlayerGunID > 0 then
 				SetPlayerWeapons(0)
@@ -237,7 +247,7 @@ function helmet_main(e)
 				SetFogRed(default_FogRed)
 				SetFogGreen(default_FogGreen)
 				SetFogBlue(default_FogBlue)
-				PlaySound(e,1)
+				PlaySound(e,0)
 				nvswitch[e] = 0
 				keypause1[e] = g_Time + 1000
 				have_helmet[e] = 0
@@ -245,7 +255,7 @@ function helmet_main(e)
 			end
 		end
 		if g_helmet[e]['helmet_mode'] == 2 then --reuseable	
-			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+100,g_PlayerPosZ)
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			if g_Time > keypause2[e] and hmswitch[e] == 0 then
 				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 0 then
 					Hide(e)
@@ -256,10 +266,10 @@ function helmet_main(e)
 					SetFogRed(default_FogRed)
 					SetFogGreen(default_FogGreen)
 					SetFogBlue(default_FogBlue)
-					PlaySound(e,1)
+					PlaySound(e,0)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
-					hmswitch[e] = 1					
+					hmswitch[e] = 1	
 					SetPlayerFOV(fov)
 				end
 			end
@@ -273,11 +283,10 @@ function helmet_main(e)
 					SetFogRed(default_FogRed)
 					SetFogGreen(default_FogGreen)
 					SetFogBlue(default_FogBlue)
-					PlaySound(e,1)
+					PlaySound(e,0)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
 					hmswitch[e] = 0
-					LoopSound(e,3)
 					SetPlayerFOV(current_fov[e])
 				end
 			end

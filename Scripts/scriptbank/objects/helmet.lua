@@ -269,7 +269,8 @@ function helmet_main(e)
 					PlaySound(e,0)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
-					hmswitch[e] = 1	
+					hmswitch[e] = 1
+					StopSound(e,1)
 					SetPlayerFOV(fov)
 				end
 			end

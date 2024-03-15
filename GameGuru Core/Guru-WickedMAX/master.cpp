@@ -46,6 +46,19 @@
 #include "optick.h"
 #endif
 
+#ifdef GGMAXEDU
+#ifdef GGMAXEPIC
+#include "eos_sdk.h"
+#include "eos_auth.h"
+#include "platform.h"
+#include "eos_ecom.h"
+cStr g_pEPICLoginStatus = "";
+EOS_EpicAccountIdDetails* g_pEPICLocalUserID;
+bool g_bOwnershipChecked = false;
+bool g_bMAXIsOwned = false;
+#endif
+#endif
+
 using namespace GPUParticles;
 using namespace GGTerrain;
 using namespace GGTrees;
@@ -556,6 +569,47 @@ void camerahook_domydemostuff2(float* fX, float* fY, float* fWidth, float* fHeig
 	*fHeight = renderTargetAreaSize.y;
 }
 
+void LoginCompleteCallbackFn(const EOS_Auth_LoginCallbackInfo* Data)
+{
+	assert(Data != NULL);
+	EOS_HAuth AuthHandle = EOS_Platform_GetAuthInterface(FPlatform::GetPlatformHandle());
+	assert(AuthHandle != nullptr);
+	if (Data->ResultCode == EOS_EResult::EOS_Success)
+	{
+		const int32_t AccountsCount = EOS_Auth_GetLoggedInAccountsCount(AuthHandle);
+		for (int32_t AccountIdx = 0; AccountIdx < AccountsCount; ++AccountIdx)
+		{
+			EOS_ELoginStatus LoginStatus;
+			LoginStatus = EOS_Auth_GetLoginStatus(AuthHandle, Data->LocalUserId);
+			if (LoginStatus == EOS_ELoginStatus::EOS_LS_LoggedIn)
+			{
+				g_pEPICLoginStatus = "Logged In";
+				g_pEPICLocalUserID = Data->LocalUserId;
+			}
+		}
+	}
+	else
+	{
+		g_pEPICLoginStatus = "Login Failed";
+	}
+}
+
+void EOS_Ecom_OnQueryOwnershipCallbackFn (const EOS_Ecom_QueryOwnershipCallbackInfo* Data)
+{
+	assert(Data != NULL);
+	if ( Data->ItemOwnershipCount > 0 )
+	{
+		for (int n = 0; n < Data->ItemOwnershipCount; n++)
+		{
+			if (Data->ItemOwnership[n].OwnershipStatus == EOS_EOwnershipStatus::EOS_OS_Owned)
+			{
+				g_bMAXIsOwned = true;
+			}
+		}
+	}
+	g_bOwnershipChecked = true;
+}
+
 void Master::Update(float dt)
 {
 #ifdef OPTICK_ENABLE
@@ -913,6 +967,123 @@ void Master::Update(float dt)
 					// can use an Educational Authenticator here (i.e. license key) if needed in the future..
 					#endif
 				}
+
+				// Init EOS SDK
+				#ifdef GGMAXEDU
+				#ifdef GGMAXEPIC
+				timestampactivity(0, "Initialize Epic Online Services API");
+				EOS_InitializeOptions SDKOptions = {};
+				SDKOptions.ApiVersion = EOS_INITIALIZE_API_LATEST;
+				SDKOptions.AllocateMemoryFunction = nullptr;
+				SDKOptions.ReallocateMemoryFunction = nullptr;
+				SDKOptions.ReleaseMemoryFunction = nullptr;
+				SDKOptions.ProductName = "GameGuruMAX";
+				SDKOptions.ProductVersion = "1.0";
+				SDKOptions.SystemInitializeOptions = nullptr;
+				SDKOptions.OverrideThreadAffinity = nullptr;
+				EOS_EResult InitResult = EOS_Initialize(&SDKOptions);
+				if (InitResult != EOS_EResult::EOS_Success)
+				{
+					timestampactivity(0, "[EOS SDK] Init Failed!");
+				}
+				else
+				{
+					timestampactivity(0, "[EOS SDK] Platform Creation...");
+					EOS_HPlatform PlatformHandle;
+					const bool bCreateSuccess = FPlatform::Create();
+					if (!bCreateSuccess)
+					{
+						timestampactivity(0, "[EOS SDK] Platform Create failed!");
+					}
+					else
+					{
+						if (!FPlatform::IsInitialized())
+						{
+							timestampactivity(0, "[EOS SDK] Can't Log In - EOS SDK Not Initialized!");
+						}
+						else
+						{
+							timestampactivity(0, "[EOS SDK] EOS_Auth_Login...");
+							EOS_HAuth AuthHandle = EOS_Platform_GetAuthInterface(FPlatform::GetPlatformHandle());
+							assert(AuthHandle != nullptr);
+							EOS_Auth_Credentials Credentials = {};
+							Credentials.ApiVersion = EOS_AUTH_CREDENTIALS_API_LATEST;
+							extern LPSTR gRefCommandLineString;
+							char* findexchangecode = (char*)pestrcasestr(gRefCommandLineString, "-AUTH_PASSWORD=");
+							if (findexchangecode)
+							{
+								// run via Epic Launcher, so use exchange code
+								timestampactivity(0, "[EOS SDK] run via Epic Launcher, so use exchange code...");
+								char pExchangeCode[MAX_PATH];
+								strcpy(pExchangeCode, findexchangecode+strlen("-AUTH_PASSWORD="));
+								for (int n = 0; n < strlen(pExchangeCode); n++)
+								{
+									if (pExchangeCode[n] == ' ')
+									{
+										pExchangeCode[n] = 0;
+										break;
+									}
+								}
+								Credentials.Type = EOS_ELoginCredentialType::EOS_LCT_ExchangeCode;
+								Credentials.Id = NULL;
+								Credentials.Token = pExchangeCode;
+							}
+							else
+							{
+								// not run via Epic Launcher, so use account portal
+								timestampactivity(0, "[EOS SDK] not run via Epic Launcher, so use account portal...");
+								Credentials.Type = EOS_ELoginCredentialType::EOS_LCT_AccountPortal;
+								Credentials.Id = NULL;
+								Credentials.Token = NULL;
+							}
+							EOS_Auth_LoginOptions LoginOptions = {};
+							memset(&LoginOptions, 0, sizeof(LoginOptions));
+							LoginOptions.ApiVersion = EOS_AUTH_LOGIN_API_LATEST;
+							LoginOptions.Credentials = &Credentials;
+							LoginOptions.LoginFlags = 0;
+							EOS_Auth_Login(AuthHandle, &LoginOptions, this, LoginCompleteCallbackFn);
+							while (strlen(g_pEPICLoginStatus.Get()) == 0)
+							{
+								FPlatform::Update();
+								Sleep(1);
+							}
+							if (g_pEPICLocalUserID)
+							{
+								timestampactivity(0, "[EOS SDK] EOS_Platform_GetEcomInterface...");
+								EOS_HEcom EcomHandle = EOS_Platform_GetEcomInterface(FPlatform::GetPlatformHandle());
+								EOS_Ecom_QueryOwnershipOptions OwnershipOptions;
+								memset(&OwnershipOptions, 0, sizeof(OwnershipOptions));
+								OwnershipOptions.ApiVersion = EOS_ECOM_QUERYOWNERSHIP_API_LATEST;
+								OwnershipOptions.LocalUserId = g_pEPICLocalUserID;
+								EOS_Ecom_CatalogItemId CatalogItemArray[1];
+								CatalogItemArray[0] = "83a86f5a2ae4484c92038714256a2cd2";
+								OwnershipOptions.CatalogItemIds = CatalogItemArray;
+								OwnershipOptions.CatalogItemIdCount = 1;
+								OwnershipOptions.CatalogNamespace = NULL;
+								void* pMyVoidPtr = new int[10];
+								EOS_Ecom_QueryOwnership(EcomHandle, &OwnershipOptions, pMyVoidPtr, EOS_Ecom_OnQueryOwnershipCallbackFn);
+								while (g_bOwnershipChecked == false)
+								{
+									FPlatform::Update();
+									Sleep(1);
+								}
+								if (g_bMAXIsOwned == true)
+								{
+									// YAY! This MAX is owned, continue as normal!
+									timestampactivity(0, "GameGuru MAX Epic Version Owned!");
+								}
+							}
+						}
+					}
+				}
+				if (g_bMAXIsOwned == false)
+				{
+					// still run, but in free trial mode
+					timestampactivity(0, "GameGuru MAX Epic version not owned - switching to free trial mode!");
+					g_bFreeTrialVersion = true;
+				}
+				#endif
+				#endif
 			}
 
 			// and then get the correct splash

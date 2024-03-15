@@ -54,6 +54,7 @@ bool g_bActiveApp = true;
 bool g_bAppActiveStat = true;
 bool g_bLostFocus = false;
 char g_pGraphicsCardLog[10240];
+char g_pStartingDirectory[260];
 
 // Encapsulates all other classes for Wicked Engine control
 Master master;
@@ -82,6 +83,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	char* your_wchar_in_char = (char*)your_wchar_in_str.c_str();
 	gRefCommandLineString = new char[MAX_PATH];
 	strcpy_s(gRefCommandLineString, MAX_PATH, your_wchar_in_char);
+	//MessageBoxA(NULL, "connect debugger now", gRefCommandLineString, MB_OK);
 
 	// Launch Timer Started
 	dwLaunchTimer = timeGetTime();
@@ -264,6 +266,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 	//MessageBoxA(NULL, g_pGraphicsCardLog, g_pGraphicsCardLog, MB_OK);
+
+	// Grab for later use in EPIC platform code
+	GetCurrentDirectoryA(MAX_PATH, g_pStartingDirectory);
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);

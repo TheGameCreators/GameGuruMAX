@@ -1565,7 +1565,14 @@ void sliders_draw ( void )
 
 			//  Show in realtime (F11 panel)
 			pastebitmapfontcenter( cstr("Hardware Info Mode").Get(),GetDisplayWidth()/2,GetDisplayHeight()-90,1,255);
-			pastebitmapfontcenter( cstr(cstr("Resolution:")+Str(GetDisplayWidth())+"x"+Str(GetDisplayHeight())).Get(),GetDisplayWidth()/2,GetDisplayHeight()-55,1,255);
+
+			// Resolution
+			cstr pHardwareDetailInfo;
+			pHardwareDetailInfo = "Graphics Card:";
+			pHardwareDetailInfo += wiRenderer::GetDevice()->GetGraphicsCardName();
+			pHardwareDetailInfo += "  Resolution:";
+			pHardwareDetailInfo += cstr(Str(GetDisplayWidth())) + "x" + cstr(Str(GetDisplayHeight()));
+			pastebitmapfontcenter(pHardwareDetailInfo.Get(),GetDisplayWidth()/2,GetDisplayHeight()-55,1,255);
 
 			//  No more slider art in hardware info debug mode
 			return;

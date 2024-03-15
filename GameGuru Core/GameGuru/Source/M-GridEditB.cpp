@@ -21679,6 +21679,7 @@ void process_entity_library_v2(void)
 				fButWidth = vContentSize.x / buts;
 				fButWidth -= 10.0f;
 				// Marketplace
+				#ifndef GGMAXEDU
 				if (ImGui::StyleButton("Get More Music and Sound", ImVec2(fButWidth, fFontSize*2.0)))
 				{
 					DeleteWaypointsAddedToCurrentCursor();
@@ -21686,6 +21687,7 @@ void process_entity_library_v2(void)
 					bMarketplace_Window = true;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to get more Music and Sound");
+				#endif
 				// Direct import here
 				if (1)
 				{
@@ -21909,18 +21911,6 @@ void process_entity_library_v2(void)
 						sStartLibrarySearchString = "user";
 					}
 				}
-				/* for now images marketlplace is disabled
-				//REMOVED_EARLYACCESS
-				if (ImGui::StyleButton("Get More Images", ImVec2(fButWidth, fFontSize*2.0)))
-				{
-					DeleteWaypointsAddedToCurrentCursor();
-					CloseDownEditorProperties();
-					bMarketplace_Window = true;
-					//We can reuse iDisplayLibraryType in marketplace.
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Images (This feature is not yet complete)");
-				*/
-
 				if (selectedmediafile != NULL)
 				{
 					ImGui::SameLine();
@@ -22018,19 +22008,6 @@ void process_entity_library_v2(void)
 						sStartLibrarySearchString = "user";
 					}
 				}
-
-				/* not in EA
-				if (ImGui::StyleButton("Get More Videos", ImVec2(fButWidth, fFontSize*2.0)))
-				{
-					DeleteWaypointsAddedToCurrentCursor();
-					CloseDownEditorProperties();
-					bMarketplace_Window = true;
-					//We can reuse iDisplayLibraryType in marketplace.
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Videos (This feature is not yet complete)");
-				ImGui::SameLine();
-				*/
-
 				if (selectedmediafile != NULL)
 				{
 					ImGui::SameLine();
@@ -22082,24 +22059,6 @@ void process_entity_library_v2(void)
 			strcpy (pChosenSelectedBehaviorFile, "");
 			if (iDisplayLibraryType == 4) //Script
 			{
-				// get more
-				//int buts = 2;
-				//if (selectedmediafile != NULL) buts = 3;
-				//fButWidth = vContentSize.x / buts;
-				//fButWidth -= 10.0f;
-				//
-				//if (ImGui::StyleButton("Get More Behaviors", ImVec2(fButWidth, fFontSize*2.0)))
-				//{
-				//	ExecuteFile ("https://forum.game-guru.com/", "", "", 1);
-				//	/* not fort EA
-				//	DeleteWaypointsAddedToCurrentCursor();
-				//	CloseDownEditorProperties();
-				//	bMarketplace_Window = true;
-				//	//We can reuse iDisplayLibraryType in marketplace.
-				//	*/
-				//}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Behaviors by visiting the GameGuru MAX forums");
-
 				// get more
 				int buts = 1;
 				if (pref.iEnableDeveloperProperties)
@@ -22356,12 +22315,22 @@ void process_entity_library_v2(void)
 		{
 			if (iDisplayLibrarySubType == 0)
 			{
-				if (ImGui::StyleButton("Get More Objects", ImVec2(fButWidth, fFontSize*2.0)))
+				#ifdef GGMAXEDU
+				if (ImGui::StyleButton("Building Editor", ImVec2(fButWidth, fFontSize * 2.0)))
+				{
+					DeleteWaypointsAddedToCurrentCursor();
+					CloseDownEditorProperties();
+					extern void launchOrShowBuildingEditor(void);
+					launchOrShowBuildingEditor();
+				}
+				#else
+				if (ImGui::StyleButton("Get More Objects", ImVec2(fButWidth, fFontSize * 2.0)))
 				{
 					DeleteWaypointsAddedToCurrentCursor();
 					CloseDownEditorProperties();
 					bMarketplace_Window = true;
 				}
+				#endif
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Objects from the Marketplace");
 
 				ImGui::SameLine();

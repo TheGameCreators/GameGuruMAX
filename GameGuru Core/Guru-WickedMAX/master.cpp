@@ -569,6 +569,7 @@ void camerahook_domydemostuff2(float* fX, float* fY, float* fWidth, float* fHeig
 	*fHeight = renderTargetAreaSize.y;
 }
 
+#ifdef GGMAXEPIC
 void LoginCompleteCallbackFn(const EOS_Auth_LoginCallbackInfo* Data)
 {
 	assert(Data != NULL);
@@ -593,7 +594,6 @@ void LoginCompleteCallbackFn(const EOS_Auth_LoginCallbackInfo* Data)
 		g_pEPICLoginStatus = "Login Failed";
 	}
 }
-
 void EOS_Ecom_OnQueryOwnershipCallbackFn (const EOS_Ecom_QueryOwnershipCallbackInfo* Data)
 {
 	assert(Data != NULL);
@@ -609,6 +609,7 @@ void EOS_Ecom_OnQueryOwnershipCallbackFn (const EOS_Ecom_QueryOwnershipCallbackI
 	}
 	g_bOwnershipChecked = true;
 }
+#endif
 
 void Master::Update(float dt)
 {

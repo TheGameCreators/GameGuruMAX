@@ -1,5 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
+#ifdef GGMAXEPIC
+
 // Modified for leanness Win64
 #include "Platform.h"
 #include "Windows/eos_Windows.h"
@@ -88,3 +90,5 @@ void FPlatform::Update()
 		EOS_Platform_Tick(PlatformHandle);
 	}
 }
+
+#endif

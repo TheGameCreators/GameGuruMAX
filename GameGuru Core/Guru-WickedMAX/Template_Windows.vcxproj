@@ -506,7 +506,6 @@
     <ClInclude Include="..\GameGuru\Include\preprocessor-moreflags.h" />
     <ClInclude Include="..\GameGuru\Include\Types.h" />
     <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h" />
-    <ClInclude Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.h" />
     <ClInclude Include="..\SDK\OpenXR\include\openxr.h" />
     <ClInclude Include="Encryptor.h" />
     <ClInclude Include="GameGuruEngine.h" />

@@ -594,9 +594,6 @@
     <ClInclude Include="..\GameGuru\Include\M-Workshop.h">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClInclude>
-    <ClInclude Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.h">
-      <Filter>EOS-SDK</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">

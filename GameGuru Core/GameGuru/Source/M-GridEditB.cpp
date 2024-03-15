@@ -33892,10 +33892,21 @@ void Welcome_Screen(void)
 				ImGui::TextCenter("GameGuru MAX Hub");
 			}
 			ImGui::SetWindowFontScale(1.0);
-
 			float fFontSize = ImGui::GetFontSize();
-
 			ImGui::SetWindowFontScale(1.0);
+
+			// may help Steam review ratings...
+			ImRect rect;
+			rect.Min = ImVec2(1067,36);
+			rect.Max = rect.Min + ImVec2(600, 100);
+			if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
+			{
+				ImGui::SetTooltip("%s", "Help us improve with your feedback by clicking here");
+				if (ImGui::IsAnyMouseDown() == true)
+				{
+					ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/wiki/Help-Us-Improve-with-your-Feedback", "", "", 0);
+				}
+			}
 
 			//PE: Moved here after swap.
 			// Display a button that allows the user to exit the welcome screen window.

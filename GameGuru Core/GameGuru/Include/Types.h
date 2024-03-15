@@ -3883,6 +3883,12 @@ struct visualstype
 	cStr ColorGradingLUT;
 	bool bLevelVSyncEnabled;
 	bool bOcclusionCulling;
+	bool bEnableTerrainChunkCulling;
+	bool bEnablePointShadowCulling;
+	bool bEnableSpotShadowCulling;
+	bool bEnableObjectCulling;
+	bool bEnableAnimationCulling;
+
 	bool bBloomEnabled;
 	float fsetBloomThreshold;
 	float ApparentSize;
@@ -4116,6 +4122,12 @@ struct visualstype
 		 bBloomEnabled = false;
 		 bLevelVSyncEnabled = true;
 		 bOcclusionCulling = false;
+		 bEnableTerrainChunkCulling = false;
+		 bEnablePointShadowCulling = false;
+		 bEnableSpotShadowCulling = false;
+		 bEnableObjectCulling = false;
+		 bEnableAnimationCulling = false;
+
 		 fsetBloomThreshold = 2.0f;
 		 ApparentSize = 0.000008f;
 		 fsetBloomStrength = 1.0f;
@@ -4253,6 +4265,12 @@ struct visualsdatastoragetype
 	bool bBloomEnabled;
 	bool bLevelVSyncEnabled;
 	bool bOcclusionCulling;
+	bool bEnableTerrainChunkCulling;
+	bool bEnablePointShadowCulling;
+	bool bEnableSpotShadowCulling;
+	bool bEnableObjectCulling;
+	bool bEnableAnimationCulling;
+
 	bool bSSREnabled;
 	bool bReflectionsEnabled;
 	bool bLightShafts;
@@ -4284,6 +4302,12 @@ struct visualsdatastoragetype
 		ZenithBlue_f = 255.0f;
 		bLevelVSyncEnabled = true;
 		bOcclusionCulling = false;
+		bEnableTerrainChunkCulling = false;
+		bEnablePointShadowCulling = false;
+		bEnableSpotShadowCulling = false;
+		bEnableObjectCulling = false;
+		bEnableAnimationCulling = false;
+
 		bBloomEnabled = false;
 		bSSREnabled = false;
 		bReflectionsEnabled = false;
@@ -4318,6 +4342,12 @@ struct visualsdatastoragetype
 		bBloomEnabled = visuals.bBloomEnabled;
 		bLevelVSyncEnabled = visuals.bLevelVSyncEnabled;
 		bOcclusionCulling = visuals.bOcclusionCulling;
+		bEnableTerrainChunkCulling = visuals.bEnableTerrainChunkCulling;
+		bEnablePointShadowCulling  = visuals.bEnablePointShadowCulling;
+		bEnableSpotShadowCulling = visuals.bEnableSpotShadowCulling;
+		bEnableObjectCulling = visuals.bEnableObjectCulling;
+		bEnableAnimationCulling = visuals.bEnableAnimationCulling;
+
 		bSSREnabled = visuals.bSSREnabled;
 		bReflectionsEnabled = visuals.bReflectionsEnabled;
 		bLightShafts = visuals.bLightShafts;

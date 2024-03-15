@@ -2,6 +2,7 @@
 //--- GAMEGURU - M-Entity
 //----------------------------------------------------
 
+#pragma once
 #include "cstr.h"
 #include "types.h"
 

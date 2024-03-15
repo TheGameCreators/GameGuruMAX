@@ -3952,11 +3952,19 @@ void mapfile_savestandalone_stage4 ( void )
 	if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
 	CopyAFile ( pCritDLLFilename, t.dest_s.Get() );
 
+	#ifdef GGMAXEPIC
+	// Epic DLL now required for authentication step (not needed for standalone game running)
+	strcpy(pCritDLLFilename, "EOSSDK-Win64-Shipping.dll");
+	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
+	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
+	CopyAFile (pCritDLLFilename, t.dest_s.Get());
+	#else
 	// Steam DLL now required for authentication step (not needed for standalone game running)
 	strcpy(pCritDLLFilename, "steam_api64.dll");
 	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
 	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
 	CopyAFile (pCritDLLFilename, t.dest_s.Get());
+	#endif
 
 	// AMD Black Screen fix file
 	strcpy(pCritDLLFilename, "amdfix.ini");

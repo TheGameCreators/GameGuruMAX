@@ -60,8 +60,8 @@ function bottled_item_init(e)
 	poisoned[e] = 0	
 	doonce[e] = 0
 	g_tEnt = 0
-	tEnt = 0
-	selectobj = 0
+	tEnt[e] = 0
+	selectobj[e] = 0
 	actioned[e] = 0	
 	status[e] = "init"
 end

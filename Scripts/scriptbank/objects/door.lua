@@ -77,7 +77,7 @@ function door_main(e)
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if PlayerDist < nRange and GetEntityVisibility(e) == 1 and LookingAt == 1 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,nRange,200)
+		module_misclib.pinpoint(e,nRange,0)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 		if PlayerDist < nRange and GetEntityVisibility(e) == 1 and tEnt[e] ~= 0 then

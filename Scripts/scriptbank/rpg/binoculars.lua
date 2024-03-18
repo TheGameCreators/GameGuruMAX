@@ -1,10 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Binoculars v13 by Necrym59
+-- Binoculars v14 by Necrym59
 -- DESCRIPTION: The Binocular object will give the player Binoculars? Always active ON.
 -- DESCRIPTION: Set the [PICKUP_TEXT$="E to Pickup"] and [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: Set the [USEAGE_TEXT$="Hold B to use"]
 -- DESCRIPTION: Set the [#MIN_ZOOM=-10(-20,1)], [MAX_ZOOM=20(1,30)], [ZOOM_SPEED=1(1,5)]
 -- DESCRIPTION: Set the binocular [IMAGEFILE$="imagebank\\misc\\testimages\\binocs.png"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -18,6 +19,7 @@ local min_zoom		= {}
 local max_zoom		= {}
 local zoom_speed 	= {}
 local screen_image	= {}
+local item_highlight= {}
 
 local binocularssp 	= {}
 local start_wheel 	= {}
@@ -28,7 +30,7 @@ local tEnt			= {}
 local selectobj		= {}
 local status		= {}
 	
-function binoculars_properties(e, pickup_text, pickup_range, useage_text, min_zoom, max_zoom, zoom_speed, screen_image)
+function binoculars_properties(e, pickup_text, pickup_range, useage_text, min_zoom, max_zoom, zoom_speed, screen_image, item_highlight)
 	binoculars[e].pickup_text = pickup_text
 	binoculars[e].pickup_range = pickup_range
 	binoculars[e].useage_text = useage_text
@@ -36,6 +38,7 @@ function binoculars_properties(e, pickup_text, pickup_range, useage_text, min_zo
 	binoculars[e].max_zoom = max_zoom
 	binoculars[e].zoom_speed = zoom_speed
 	binoculars[e].screen_image = imagefile or screen_image
+	binoculars[e].item_highlight = item_highlight
 end 
 	
 	
@@ -48,6 +51,7 @@ function binoculars_init(e)
 	binoculars[e].max_zoom = 60
 	binoculars[e].zoom_speed = 1
 	binoculars[e].screen_image ="imagebank\\misc\\testimages\\binocs.png"
+	binoculars[e].item_highlight = 0
 	
 	have_binoculars = 0
 	start_wheel = 0 
@@ -76,7 +80,7 @@ function binoculars_main(e)
 	if have_binoculars == 0 then
 		if PlayerDist < binoculars[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,binoculars[e].pickup_range,300)
+			module_misclib.pinpoint(e,binoculars[e].pickup_range,binoculars[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

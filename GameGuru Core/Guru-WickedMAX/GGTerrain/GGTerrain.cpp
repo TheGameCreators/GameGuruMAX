@@ -132,6 +132,7 @@ extern uint8_t* g_pTerrainSnapshot;
 extern TerrainEditsBB g_EditBounds;
 extern UndoRedoMemory g_TerrainUndoMem;
 extern UndoRedoMemory g_TerrainRedoMem;
+extern bool bEnableTerrainChunkCulling;
 void GGTerrain_CreateUndoRedoAction(int type, int eList, bool bUserAction = true, void* pEventData = nullptr);
 int Get_Spray_Mode_On(void);
 void DrawDot(char* text, float x, float y, float z);
@@ -10252,9 +10253,7 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 	if ( mode == 1 ) lowestLevel = GGTERRAIN_REFLECTION_LOWEST_LOD;
 	if ( lowestLevel >= numLODLevels ) lowestLevel = numLODLevels - 1;
 	
-	//PE: Chunks need sorting front to back, below create overdraw pixels.
 	//PE: Chunks should do a quick bounding box occlusion check.
-	
 	for( uint32_t lod = lowestLevel; lod < numLODLevels; lod++ )
 	{
 		for( uint32_t i = 0; i < 64; i++ )
@@ -10270,7 +10269,7 @@ extern "C" void GGTerrain_Draw( const Frustum* frustum, int mode, CommandList cm
 			const AABB* aabb = pChunk->GetBounds();
 			if ( !frustum->CheckBoxFast( *aabb ) ) continue;
 			
-			if (wiRenderer::GetOcclusionCullingEnabled())
+			if (wiRenderer::GetOcclusionCullingEnabled() && bEnableTerrainChunkCulling)
 			{
 				sCO[lod][i].bChunkVisible = true;
 				sCO[lod][i].aabb = *aabb;

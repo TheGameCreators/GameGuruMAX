@@ -2,6 +2,7 @@
 // Wicked Calls - place Wicked commands here so can compile (cannot call from old graphics engine modules, conflicts with its own data types)
 //
 
+//#pragma optimize("", off)
 // Includes
 #include "stdafx.h"
 #include "wickedcalls.h"
@@ -18,6 +19,7 @@
 extern Master master;
 
 #include "GGTerrain/GGTerrain.h"
+#include "gameguru.h"
 
 #define ONLY_USE_OUTLINE_HIGHLIGHT
 #define MATCHCLASSICROTATION
@@ -52,6 +54,7 @@ struct WickedLoaderState
 	Scene* scene;
 	uint64_t storeMasterRootEntityIndex;
 	unordered_map<int, Entity> entityMap;  // node/frame -> entity
+	unordered_map<int, Entity> entityMeshMap;  // node/frame -> entity
 };
 
 // Globals
@@ -107,6 +110,19 @@ extern bool bImGuiGotFocus;
 extern bool bProceduralLevel;
 extern bool bImGuiInTestGame;
 bool bRenderTargetHasFocus = false;
+
+float fWickedMaxCenterTest = 0.0f;
+uint32_t iCulledPointShadows = 0;
+uint32_t iCulledSpotShadows = 0;
+uint32_t iCulledAnimations = 0;
+bool bEnableTerrainChunkCulling = true;
+bool bEnablePointShadowCulling = true;
+bool bEnableSpotShadowCulling = true;
+bool bEnableObjectCulling = true;
+bool bEnableAnimationCulling = true;
+
+float fWickedCallShadowFarPlane = DEFAULT_FAR_PLANE;
+
 
 // Image Management
 std::vector<sImageList> g_imageList;
@@ -359,6 +375,7 @@ void WickedCall_DeleteImage(std::string pFilenameToDelete)
 	}
 }
 
+
 // Functions
 bool bNoHierarchySorting = false;
 bool bUseInstancing = false;
@@ -387,6 +404,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 		// store object entity ID reference in frame (for later use by texture function amongst others)
 		pFrame->wickedobjindex = entity;
 
+		state.entityMeshMap[pFrame->iID] = entity;
 		// assign layer to object
 		wiScene::LayerComponent& layer = *scene.layers.GetComponent(entity);
 
@@ -714,6 +732,7 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 	if (pFrame->pSibling) WickedCall_LoadNode(pFrame->pSibling, parent, root, state);
 }
 
+
 void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 {
 	// get true pointer to loader state
@@ -751,6 +770,83 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 			AnimationComponent& animationcomponent = pScene->animations.Create(animentity);
 			pAnimSet->wickedanimentityindex = animentity;
 
+			animationcomponent.objectIndex = 0;
+			if (pstate->entityMeshMap.size() > 0)
+			{
+				//PE: TODO better way to indentify supported animation culling objects needed ?
+				DWORD objid = pObject->dwObjectNumber;
+				int masterId = -1;
+				if (t.tupdatee > 0)
+				{
+					if(t.tupdatee < g.entityelementlist)
+						masterId = t.entityelement[t.tupdatee].bankindex;
+				}
+				if (masterId < 1 && objid > 70000)
+				{
+					//PE: Locate object.
+					for (int i = 0; i < g.entityelementlist; i++)
+					{
+						if (t.entityelement[i].obj == objid)
+						{
+							masterId = t.entityelement[i].bankindex;
+							break;
+						}
+					}
+				}
+				else if (masterId < 1 && objid > 50000 && objid < 60000)
+				{
+					masterId = objid - 50000;
+				}
+				if (masterId > 0)
+				{
+					if (masterId > 0 && masterId < t.entityprofile.size())
+					{
+						if (t.entityprofile[masterId].ischaracter && (pstate->entityMeshMap.size() >= 4 && pstate->entityMeshMap.size() <= 6))
+						{
+							//PE: CCP Map all animations to first mesh for culling.
+							animationcomponent.objectIndex = pstate->entityMeshMap.begin()->second;
+						}
+					}
+				}
+				if (animationcomponent.objectIndex == 0 && objid != 50000)
+				{
+					//PE: Only 1 mesh for culling will work.
+					if (pstate->entityMeshMap.size() == 1)
+					{
+						animationcomponent.objectIndex = pstate->entityMeshMap.begin()->second;
+					}
+					else
+					{
+						//PE: Check for LOD and hidden meshes.
+						int iTotalVisible = 0;
+						int iVisibleIndex = 0;
+						for (unordered_map<int, Entity>::iterator it = pstate->entityMeshMap.begin(); it != pstate->entityMeshMap.end(); ++it)
+						{
+							ObjectComponent* object = wiScene::GetScene().objects.GetComponent(it->second);
+							NameComponent* name = wiScene::GetScene().names.GetComponent(it->second);
+							bool bThisLODWillBeHidden = false;
+							if(name && pestrcasestr(name->name.c_str(), "LOD_") && !pestrcasestr(name->name.c_str(), "LOD_0"))
+								bThisLODWillBeHidden = true;
+							if (object)
+							{
+								if (!bThisLODWillBeHidden && object->IsRenderable())
+								{
+									iTotalVisible++;
+									iVisibleIndex = it->second;
+								}
+							}
+						}
+						if (iTotalVisible == 1 && iVisibleIndex > 0)
+						{
+							animationcomponent.objectIndex = iVisibleIndex;
+						}
+						else
+						{
+							printf("tmp");
+						}
+					}
+				}
+			}
 			// increases as add more anim data (all goes into the above animationcomponent)
 			int iSamplerAndChannelCount = 0;
 
@@ -758,6 +854,23 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 			sAnimation* pAnim = pAnimSet->pAnimation;
 			while (pAnim != NULL)
 			{
+				//PE: TODO - To support more culled animation put objectindex into animationcomponent.channels, if object found.
+				/*
+				if (animationcomponent.objectIndex == 0)
+				{
+					//PE: Try to find bone mesh.
+					sFrame* pFrame = pAnim->pFrame;
+					if (pFrame)
+					{
+						uint64_t objindex = pFrame->wickedobjindex;
+						ObjectComponent* object = wiScene::GetScene().objects.GetComponent(objindex);
+						if (object)
+						{
+							animationcomponent.objectIndex = objindex;
+						}
+					}
+				}
+				*/
 				//PE: Wicked - Support Matrix animations. convert to pPositionKeys,pRotateKeys,pScaleKeys
 				if (pAnim->dwNumMatrixKeys > 0) //&& pAnim->dwNumPositionKeys == 0 && pAnim->dwNumRotateKeys == 0 && pAnim->dwNumScaleKeys == 0)
 				{
@@ -1091,7 +1204,7 @@ void WickedCall_AddObject ( sObject* pObject )
 	state.storeMasterRootEntityIndex = rootEntity;
 	sFrame* pRootFrame = pObject->pFrame;
 	WickedCall_LoadNode ( pRootFrame, rootEntity, rootEntity, state );
-
+	
 	// Create armature-bone mappings (connect armature bone collection to frame entities created in LoadNode)
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)
 	{
@@ -1134,6 +1247,9 @@ void WickedCall_AddObject ( sObject* pObject )
 	pCopyLoaderState->scene = state.scene;
 	pCopyLoaderState->storeMasterRootEntityIndex = state.storeMasterRootEntityIndex;
 	pCopyLoaderState->entityMap = state.entityMap;
+	pCopyLoaderState->entityMeshMap = state.entityMeshMap;
+
+	//int objectindex = state.entityMap[pObject->pFrame->iID];
 	WickedCall_RefreshObjectAnimations(pObject, (void*)pCopyLoaderState);
 
 	// trigger an update to the root entity transform
@@ -5454,7 +5570,7 @@ int WickedCall_Get2DShadowLights(void)
 	return(shadows);
 }
 
-int WickedCall_GetCubeShadowLights(void)
+int WickedCall_GetCubeShadowLights(bool bDebug)
 {
 	wiScene::Scene* pScene = &wiScene::GetScene();
 	int lights = pScene->lights.GetCount();
@@ -5463,7 +5579,44 @@ int WickedCall_GetCubeShadowLights(void)
 	{
 		if (pScene->lights[i].GetType() == ENTITY_TYPE_POINTLIGHT)
 		{
-			if (pScene->lights[i].IsCastingShadow()) shadows++;
+			if (pScene->lights[i].IsCastingShadow())
+			{
+				shadows++;
+				if (bDebug)
+				{
+					XMFLOAT4X4 hoverBox;
+					AABB aabb = pScene->aabb_lights[i];
+					XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
+					XMFLOAT4 color = { 1,0,0,1 };
+					wiRenderer::DrawBox(hoverBox, color);
+				}
+			}
+		}
+	}
+	return(shadows);
+}
+
+int WickedCall_GetSpotShadowLights(bool bDebug)
+{
+	wiScene::Scene* pScene = &wiScene::GetScene();
+	int lights = pScene->lights.GetCount();
+	int shadows = 0;
+	for (int i = 0; i < lights; i++)
+	{
+		if (pScene->lights[i].GetType() == ENTITY_TYPE_SPOTLIGHT)
+		{
+			if (pScene->lights[i].IsCastingShadow())
+			{
+				shadows++;
+				if (bDebug)
+				{
+					XMFLOAT4X4 hoverBox;
+					AABB aabb = pScene->aabb_lights[i];
+					XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix());
+					XMFLOAT4 color = { 1,0,0,1 };
+					wiRenderer::DrawBox(hoverBox, color);
+				}
+			}
 		}
 	}
 	return(shadows);
@@ -5794,8 +5947,6 @@ int WickedCall_GetSkinableVisible(void)
 	return(iSkinable);
 }
 
-float fWickedMaxCenterTest = 0.0f;
-float fWickedCallShadowFarPlane = DEFAULT_FAR_PLANE;
 void WickedCall_SetShadowRange(float ShadowFar)
 {
 	fWickedCallShadowFarPlane = ShadowFar;

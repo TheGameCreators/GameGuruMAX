@@ -6964,11 +6964,8 @@ void tab_tab_visuals(int iPage, int iMode)
 			int occ = 0;
 			if (bOCDebug && g_iDevToolsOpen >= 1) //t.visuals.bLevelVSyncEnabled
 			{
-				wiScene::Scene* pScene = &wiScene::GetScene();
 				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr );
 				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects);
-				iObjects = pScene->objects.GetCount();
-				iFrustumCulled = wiProfiler::GetFrustumCulled();
 			}
 
 			if (pref.bAutoClosePropertySections && iLastOpenHeader != 8)
@@ -6998,11 +6995,17 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 
 				//PE: Optimizing
+				extern bool bEnableObjectCulling;
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("Occlusion Culling##bOcclusionCulling", &t.visuals.bOcclusionCulling))
 				{
 					t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling;
 					g.projectmodified = 1;
+					if (t.visuals.bOcclusionCulling)
+					{
+						bEnableObjectCulling = true;
+						t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
+				}
 				}
 				if (wiRenderer::GetOcclusionCullingEnabled() != t.visuals.bOcclusionCulling)
 				{
@@ -7015,26 +7018,95 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					ImGui::SameLine();
 					ImGui::Checkbox("Debug", &bOCDebug);
-					if (bOCDebug)
-					{
+					//if (bOCDebug)
+					//{
+					//}
 						ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
+				}
+				if(t.visuals.bOcclusionCulling)
+				{
+						extern uint32_t iCulledPointShadows;
+						extern uint32_t iCulledSpotShadows;
+						extern uint32_t iCulledAnimations;
+						extern bool bEnableTerrainChunkCulling;
+						extern bool bEnablePointShadowCulling;
+						extern bool bEnableSpotShadowCulling;
+						extern bool bEnableAnimationCulling;
+
+						if (ImGui::Checkbox("Terrain Chunk Culling", &bEnableTerrainChunkCulling))
+						{
+							t.gamevisuals.bEnableTerrainChunkCulling = t.visuals.bEnableTerrainChunkCulling = bEnableTerrainChunkCulling;
+							g.projectmodified = 1;
+							if (bEnableTerrainChunkCulling && !t.visuals.bOcclusionCulling)
+							{
+								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+							}
+						}
+						//if (bEnableTerrainChunkCulling)
+						//{
+						//	extern int OCCLODSTART;
+						//	ImGui::PushItemWidth(-10);
+						//	ImGui::SliderInt("Terrain LOD Culling Start", &OCCLODSTART, 0, 8);
+						//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("Terrain Chunk Culling Start LOD Level. For less occlusion check make value higher.");
+						//	ImGui::PopItemWidth();
+						//}
+						if (ImGui::Checkbox("Point Shadow Culling", &bEnablePointShadowCulling))
+						{
+							t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling = bEnablePointShadowCulling;
+							g.projectmodified = 1;
+							if (bEnablePointShadowCulling && !t.visuals.bOcclusionCulling)
+							{
+								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+							}
+						}
+						if (ImGui::Checkbox("Spot Shadow Culling", &bEnableSpotShadowCulling))
+						{
+							t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
+							g.projectmodified = 1;
+							if (bEnableSpotShadowCulling && !t.visuals.bOcclusionCulling)
+							{
+								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+							}
+						}
+
+						if (ImGui::Checkbox("Object Culling", &bEnableObjectCulling))
+						{
+							t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
+							g.projectmodified = 1;
+							if (bEnableObjectCulling && !t.visuals.bOcclusionCulling)
+							{
+								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+							}
+						}
+
+						if (ImGui::Checkbox("Animation Culling", &bEnableAnimationCulling))
+						{
+							t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling = bEnableAnimationCulling;
+							g.projectmodified = 1;
+							if (bEnableAnimationCulling && !t.visuals.bOcclusionCulling)
+							{
+								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+							}
+						}
+
+						wiScene::Scene* pScene = &wiScene::GetScene();
+						if (pScene)
+						{
+							iObjects = pScene->objects.GetCount();
+							iFrustumCulled = wiProfiler::GetFrustumCulled();
+						}
 						ImGui::Text("Total Objects: %d", iObjects);
+						if(bOCDebug)
 						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
 						ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
+						if(bOCDebug)
 						ImGui::Text("Occluded Objects: %d", occ);
+
 						extern uint32_t iOccludedTerrainChunks;
 						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
-
-						//extern int OCCLODSTART;
-						//ImGui::SliderInt("OCCLODSTART", &OCCLODSTART, 0, 8);
-						//extern int ggterrain_update_enabled;
-						//extern bool g_bNoTerrainRender;
-						//bool bTmp = ggterrain_update_enabled;
-						//if (ImGui::Checkbox("Terrain", &bTmp))
-						//{
-						//	ggterrain_update_enabled = bTmp;
-						//}
-					}
+						ImGui::Text("Occluded Point Shadows: %d", iCulledPointShadows);
+						ImGui::Text("Occluded Spot Shadows: %d", iCulledSpotShadows);
+						ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
 				extern float maxApparentSize;
@@ -8534,6 +8606,17 @@ void Wicked_Update_Visuals(void *voidvisual)
 
 		extern float maxApparentSize;
 		maxApparentSize = visuals->ApparentSize;
+
+		extern bool bEnableTerrainChunkCulling;
+		bEnableTerrainChunkCulling = visuals->bEnableTerrainChunkCulling;
+		extern bool bEnablePointShadowCulling;
+		bEnablePointShadowCulling = visuals->bEnablePointShadowCulling;
+		extern bool bEnableSpotShadowCulling;
+		bEnableSpotShadowCulling = visuals->bEnableSpotShadowCulling;
+		extern bool bEnableObjectCulling;
+		bEnableObjectCulling = visuals->bEnableObjectCulling;
+		extern bool bEnableAnimationCulling;
+		bEnableAnimationCulling = visuals->bEnableAnimationCulling;
 
 		// when in editor, keep enforcing a fixed exposure value (so we dont see fade-ins all the time)
 		if (t.game.set.ismapeditormode==0 || pref.iEnableAutoExposureInEditor )
@@ -51171,20 +51254,28 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
 					for (int i = 0; i < pObject->iFrameCount; i++)
 					{
 						sFrame* pFrame = pObject->ppFrameList[i];
-						if (pFrame)
+						if (pFrame && pFrame->pMesh)
 						{
 							uint64_t rootEntity = pFrame->wickedobjindex;
 							ObjectComponent* object = wiScene::GetScene().objects.GetComponent(rootEntity);
 							if (object)
 							{
-								if (object->IsOccluded())
+								if (object->IsOccluded() || object->IsCulled())
 								{
+									if(object->IsOccluded())
 									total++;
 									if (bDebug)
 									{
+
 										XMFLOAT3 center = object->center; // aabb.getCenter();
 										void DrawDot(char* text, float x, float y, float z);
+
+										if(t.entityelement[t.e].bankindex > 0 && t.entityprofile[t.entityelement[t.e].bankindex].ischaracter)
+											DrawDot("*", center.x, center.y, center.z);
+										else if(object->IsCulled())
 										DrawDot(".", center.x, center.y, center.z);
+										else
+											DrawDot("-", center.x, center.y, center.z);
 									}
 								}
 								else
@@ -51229,3 +51320,49 @@ void DrawDot(char* text, float x, float y, float z)
 
 }
 
+void tmpdebugfunc(void)
+{
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImVec2 window_pos = ImVec2((viewport->Pos.x + viewport->Size.x - 10.0f), (viewport->Pos.y + 10.0f));
+	ImDrawList* draw = ImGui::GetForegroundDrawList();
+	extern ImFont* customfont;
+	if (draw && customfont)
+	{
+		extern bool bProfilerEnable;
+		if (bProfilerEnable == false)
+		{
+			bProfilerEnable = true;
+			wiProfiler::SetEnabled(true);
+}
+
+		wiScene::Scene* pScene = &wiScene::GetScene();
+		int iObjects = pScene->objects.GetCount();
+		int iFrustumCulled = wiProfiler::GetFrustumCulled();
+		int dc = wiProfiler::GetDrawCalls();
+		int iHiddenObjects = 0;
+		int occ = DrawOccludedObjects(true,false,&iHiddenObjects);
+
+		//ImGui::Text("DrawCalls: %d", dc);
+		char memtmp[255];
+		float wide = 200;// 160;
+		sprintf(memtmp, "DC: %d OC: %d FC: %d T: %d", dc, occ, iFrustumCulled,iObjects);
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y + 23.0), IM_COL32(255, 255, 255, 255), memtmp);
+
+		extern uint32_t iCulledPointShadows;
+		int tpoint = WickedCall_GetCubeShadowLights(true);
+		sprintf(memtmp, "T: %d PointShadows: %d", tpoint,iCulledPointShadows);
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y + 35.0), IM_COL32(255, 255, 255, 255), memtmp);
+
+		extern uint32_t iCulledSpotShadows;
+		int iSpot = WickedCall_GetSpotShadowLights(true);
+		sprintf(memtmp, "T: %d SpotShadows: %d", iSpot, iCulledSpotShadows);
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y + 47.0), IM_COL32(255, 255, 255, 255), memtmp);
+
+		//bool bEnableTerrainChunkCulling = true;
+		//bool bEnablePointShadowCulling = true;
+		//bool bEnableSpotShadowCulling = true;
+		//bool bEnableObjectCulling = true;
+
+
+	}
+}

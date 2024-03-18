@@ -244,6 +244,14 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.bBloomEnabled = true;
 	t.visuals.bLevelVSyncEnabled = true;
 	t.visuals.bOcclusionCulling = false;
+
+	t.visuals.bEnableTerrainChunkCulling = false;
+	t.visuals.bEnablePointShadowCulling = false;
+	t.visuals.bEnableSpotShadowCulling = false;
+	t.visuals.bEnableObjectCulling = false;
+	t.visuals.bEnableAnimationCulling = false;
+
+
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.ApparentSize = 0.000008f;
 	t.visuals.fsetBloomStrength = 1.0f;
@@ -787,6 +795,19 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.OcclusionCulling=" + Str(t.visuals.bOcclusionCulling);
 	WriteString(1, t.strwork.Get());
 	
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableTerrainChunkCulling=" + Str(t.visuals.bEnableTerrainChunkCulling);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnablePointShadowCulling=" + Str(t.visuals.bEnablePointShadowCulling);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableSpotShadowCulling=" + Str(t.visuals.bEnableSpotShadowCulling);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableObjectCulling=" + Str(t.visuals.bEnableObjectCulling);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableAnimationCulling=" + Str(t.visuals.bEnableAnimationCulling);
+	WriteString(1, t.strwork.Get());
+
+
+
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomEnabled=" + Str(t.visuals.bBloomEnabled);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomThreshold=" + Str(t.visuals.fsetBloomThreshold);
@@ -1049,6 +1070,12 @@ void visuals_load ( void )
 	t.visuals.bBloomEnabled = true;
 	t.visuals.bLevelVSyncEnabled = true;
 	t.visuals.bOcclusionCulling = false;
+	t.visuals.bEnableTerrainChunkCulling = false;
+	t.visuals.bEnablePointShadowCulling = false;
+	t.visuals.bEnableSpotShadowCulling = false;
+	t.visuals.bEnableObjectCulling = false;
+	t.visuals.bEnableAnimationCulling = false;
+
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.ApparentSize = 0.000008f;
 	t.visuals.fsetBloomStrength = 1.0f;
@@ -1323,6 +1350,13 @@ void visuals_load ( void )
 			t.try_s = "visuals.LevelVSyncEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bLevelVSyncEnabled = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.OcclusionCulling"; if (t.tfield_s == t.try_s)  t.visuals.bOcclusionCulling = ValF(t.tvalue_s.Get());
+
+			t.try_s = "visuals.EnableTerrainChunkCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableTerrainChunkCulling = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.EnablePointShadowCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnablePointShadowCulling = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.EnableSpotShadowCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableSpotShadowCulling = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.EnableObjectCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableObjectCulling = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.EnableAnimationCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableAnimationCulling = ValF(t.tvalue_s.Get());
+
 
 			t.try_s = "visuals.BloomEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bBloomEnabled = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.BloomThreshold"; if (t.tfield_s == t.try_s)  t.visuals.fsetBloomThreshold = ValF(t.tvalue_s.Get());

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Airlock Switch v9 by Necrym59
+-- Airlock Switch v10 by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object for activating a set of airlock doors. Doors need to be locked.
 -- DESCRIPTION: [@AIRLOCK_TYPE=1(1=Air, 2=Water)]
 -- DESCRIPTION: [AIR_LEVEL=100(0,100)]
@@ -139,7 +139,7 @@ function airlock_main(e)
 		
 		if PlayerDist < airlock[e].use_range and g_PlayerHealth > 0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,airlock[e].use_range,300)
+			module_misclib.pinpoint(e,airlock[e].use_range,0)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

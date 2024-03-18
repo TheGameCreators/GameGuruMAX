@@ -1,10 +1,11 @@
--- Collect Object v9
+-- Collect Object v10
 -- DESCRIPTION: Will allow collection of an object. Object must be set to 'Collectable'.
 -- DESCRIPTION: [PICKUP_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [COLLECTED_TEXT$="Item collected"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for collection sound.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -12,22 +13,24 @@ local U = require "scriptbank\\utillib"
 g_tEnt = {}
 g_ResnodeCollected = {}
 
-local collect_object = {}
-local pickup_text = {}
-local pickup_range = {}
-local pickup_style = {}
-local collected_text = {}
-local prompt_display = {}
+local collect_object 	= {}
+local pickup_text 		= {}
+local pickup_range 		= {}
+local pickup_style 		= {}
+local collected_text 	= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
 
 local tEnt = {}
 local selectobj = {}
 
-function collect_object_properties(e, pickup_text, pickup_range, pickup_style, collected_text, prompt_display)
+function collect_object_properties(e, pickup_text, pickup_range, pickup_style, collected_text, prompt_display, item_highlight)
 	collect_object[e].pickup_text = pickup_text
 	collect_object[e].pickup_range = pickup_range
 	collect_object[e].pickup_style = pickup_style
 	collect_object[e].collected_text = collected_text
-	collect_object[e].prompt_display = prompt_display	
+	collect_object[e].prompt_display = prompt_display
+	collect_object[e].item_highlight = item_highlight	
 end
 
 function collect_object_init(e)
@@ -37,6 +40,7 @@ function collect_object_init(e)
 	collect_object[e].pickup_style = 2
 	collect_object[e].collected_text = "Item collected"
 	collect_object[e].prompt_display = 1
+	collect_object[e].item_highlight = 0	
 	
 	g_tEnt = 0 
 	tEnt[e] = 0
@@ -61,7 +65,7 @@ function collect_object_main(e)
 	
 	if collect_object[e].pickup_style == 2 and PlayerDist < collect_object[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,collect_object[e].pickup_range,300)
+		module_misclib.pinpoint(e,collect_object[e].pickup_range,collect_object[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 	

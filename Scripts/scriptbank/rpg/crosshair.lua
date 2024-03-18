@@ -1,4 +1,4 @@
--- Crosshair v5 by Necrym59
+-- Crosshair v6 by Necrym59
 -- DESCRIPTION: Will allow for an adaptive crosshair/hitmarker in gameplay. 
 -- DESCRIPTION: Apply to an object, set Always Active ON
 -- DESCRIPTION: [VIEW_RANGE=1000(0,3000)]
@@ -28,7 +28,6 @@ local status 		= {}
 
 
 function crosshair_properties(e, view_range, crosshair_imagefile, hitmarker_imagefile)
-	crosshairs[e] = g_Entity[e]
 	crosshairs[e].view_range = view_range
 	crosshairs[e].crosshair = crosshair_imagefile
 	crosshairs[e].hitmarker = hitmarker_imagefile

@@ -18,7 +18,6 @@ local resetstates		= {}
 local doonce			= {}
 	
 function winobject_properties(e, prompt_text, useage_text, use_range, resetstates)
-	winobject[e] = g_Entity[e]
 	winobject[e].prompt_text = prompt_text
 	winobject[e].useage_text = useage_text
 	winobject[e].use_range = use_range
@@ -26,7 +25,7 @@ function winobject_properties(e, prompt_text, useage_text, use_range, resetstate
 end 	
 	
 function winobject_init(e)
-	winobject[e] = g_Entity[e]	
+	winobject[e] = {}	
 	winobject[e].prompt_text = "E to pickup"
 	winobject[e].useage_text = "X to use"
 	winobject[e].use_range = 90

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v19
+-- Direct Damage Spell v20
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,15 +10,16 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
--- DESCRIPTION: <Sound0> when effect successful
--- DESCRIPTION: <Sound1> when effect unsuccessful
+-- DESCRIPTION: <Sound0> when cast effect successful
+-- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
-local direct_damage_spell = {}
-
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
-local lower = string.lower
+g_tEnt = {}
 
+local lower = string.lower
+local direct_damage_spell 	= {}
 local prompt_text 			= {}
 local useage_text 			= {}
 local pickup_range 			= {}
@@ -47,7 +48,6 @@ local casttarget 		= {}
 local entaffected 		= {}
 
 function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
-	direct_damage_spell[e] = g_Entity[e]
 	direct_damage_spell[e].prompt_text = prompt_text
 	direct_damage_spell[e].useage_text = useage_text
 	direct_damage_spell[e].pickup_range = pickup_range
@@ -61,7 +61,7 @@ function direct_damage_spell_properties(e, prompt_text, useage_text, pickup_rang
 end
 
 function direct_damage_spell_init(e)
-	direct_damage_spell[e] = g_Entity[e]
+	direct_damage_spell[e] = {}
 	direct_damage_spell[e].prompt_text = "E to Collect"
 	direct_damage_spell[e].useage_text = "Direct Damage Inflicted"
 	direct_damage_spell[e].pickup_range = 90
@@ -82,6 +82,7 @@ function direct_damage_spell_init(e)
 	tHealth[e] = 0
 	tTarget[e] = 0
 	sEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 	played[e] = 0
 	tplayerlevel[e] = 0
@@ -91,7 +92,7 @@ function direct_damage_spell_init(e)
 end
 
 function direct_damage_spell_main(e)
-	direct_damage_spell[e] = g_Entity[e]
+
 	-- get particles for spell effects
 	if direct_damage_spell[e].particle1_number == 0 or nil then
 		for n = 1, g_EntityElementMax do
@@ -127,25 +128,10 @@ function direct_damage_spell_main(e)
 	if status[e] == "collect_spell" then
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < direct_damage_spell[e].pickup_range then
-			-- pinpoint select object--
-			local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-			local rayX, rayY, rayZ = 0,0,direct_damage_spell[e].pickup_range
-			local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-			rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-			selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-			if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-				if g_Entity[e]['obj'] == selectobj[e] then
-					TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
-					sEnt[e] = e
-				else 
-					sEnt[e] = 0
-				end
-			end
-			if selectobj[e] == 0 or selectobj[e] == nil then
-				sEnt[e] = 0
-				TextCenterOnXColor(50-0.01,50,3,"+",155,155,155)
-			end
-			--end pinpoint select object--
+			--pinpoint select object--
+			module_misclib.pinpoint(e,direct_damage_spell[e].pickup_range,300)
+			sEnt[e] = g_tEnt
+			--end pinpoint select object--	
 		end	
 		if PlayerDist < direct_damage_spell[e].pickup_range and sEnt[e] ~= 0 then
 			if GetEntityCollectable(e) == 1 then

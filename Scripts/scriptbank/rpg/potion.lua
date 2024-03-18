@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a potion boost or deduction if consumed.
--- Potion v11
+-- Potion v12
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Potion consumed"]
@@ -8,10 +8,13 @@
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> for useage sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local potion = {}
 local prompt_text = {}
@@ -22,12 +25,12 @@ local pickup_range = {}
 local pickup_style = {}
 local effect = {}
 local user_global_affected = {}
+local prompt_display = {}
 local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
 
-function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected)
-	potion[e] = g_Entity[e]	
+function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
 	potion[e].prompt_text = prompt_text
 	potion[e].prompt_if_collectable = prompt_if_collectable
 	potion[e].useage_text = useage_text
@@ -36,10 +39,11 @@ function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 	potion[e].pickup_style = pickup_style
 	potion[e].effect = effect
 	potion[e].user_global_affected = user_global_affected
+	potion[e].prompt_display = prompt_display
 end
 
 function potion_init(e)
-	potion[e] = g_Entity[e]
+	potion[e] = {}
 	potion[e].prompt_text = "E to Use"
 	potion[e].prompt_if_collectable = "E to collect"
 	potion[e].useage_text = "Potion consumed"
@@ -48,49 +52,39 @@ function potion_init(e)
 	potion[e].pickup_style = 1
 	potion[e].effect = 1
 	potion[e].user_global_affected = "MyMana"
+	potion[e].prompt_display = 1	
 	use_item_now[e] = 0
 	tEnt[e] = 0
+	g_tEnt = 0
 	selectobj[e] = 0
 end
 
 function potion_main(e)
-	potion[e] = g_Entity[e]
+
 	PlayerDist = GetPlayerDistance(e)	
 	if potion[e].pickup_style == 1 then
 		if PlayerDist < potion[e].pickup_range then
-			PromptDuration(potion[e].useage_text,1000)
+			if potion[e].prompt_display == 1 then PromptLocal(e,potion[e].useage_text) end
+			if potion[e].prompt_display == 2 then Prompt(potion[e].useage_text) end
 			use_item_now[e] = 1
 		end
 	end
 	if potion[e].pickup_style == 2 and PlayerDist < potion[e].pickup_range then
-		-- pinpoint select object--
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,potion[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else
-				tEnt[e] = 0
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end		
+		--pinpoint select object--
+		module_misclib.pinpoint(e,potion[e].pickup_range,300)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if PlayerDist < potion[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
-			if GetEntityCollectable(tEnt[e]) == 0 then				
-				PromptDuration(potion[e].prompt_text,1000)
+			if GetEntityCollectable(tEnt[e]) == 0 then
+				if potion[e].prompt_display == 1 then PromptLocal(e,potion[e].prompt_text) end
+				if potion[e].prompt_display == 2 then Prompt(potion[e].prompt_text) end			
 				if g_KeyPressE == 1 then				
 					use_item_now[e] = 1
 				end
 			end
 			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
-				Prompt(potion[e].prompt_if_collectable)
+				if potion[e].prompt_display == 1 then PromptLocal(e,potion[e].prompt_if_collectable) end
+				if potion[e].prompt_display == 2 then Prompt(potion[e].prompt_if_collectable) end
 				-- if collectable or resource
 				if g_KeyPressE == 1 then
 					Hide(e)
@@ -104,7 +98,8 @@ function potion_main(e)
 	local tusedvalue = GetEntityUsed(e)
 	if tusedvalue > 0 then
 		-- if this is a resource, it will deplete qty and set used to zero
-		PromptDuration(potion[e].useage_text,1000)		
+		if potion[e].prompt_display == 1 then PromptLocal(e,potion[e].useage_text) end
+		if potion[e].prompt_display == 2 then Prompt(potion[e].useage_text) end		
 		SetEntityUsed(e,tusedvalue*-1)
 		use_item_now[e] = 1
 	end

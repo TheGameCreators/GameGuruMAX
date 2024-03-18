@@ -1,6 +1,6 @@
--- Document v12 - thanks to Necrym59 and Lee
+-- Document v15 - thanks to Necrym59 and Lee
 -- DESCRIPTION: Change the [PICKUP_TEXT$="E to look at document"].
--- DESCRIPTION: View position [SCREEN_X=25] and [SCREEN_Y=10]
+-- DESCRIPTION: View position [SCREEN_X=25(0,100)] and [SCREEN_Y=10(0,100)]
 -- DESCRIPTION: Set the [SPRITE_SIZE=15(1,100)] percentage.
 -- DESCRIPTION: The document [IMAGEFILE$="imagebank\\documents\\default_doc.png"]
 -- DESCRIPTION: Set the [PICKUP_RANGE=80(1,300)] 
@@ -11,7 +11,9 @@
 -- DESCRIPTION: <Sound1> reading/narration.
 -- DESCRIPTION: <Sound2> when returning document.
 
+local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local document 			= {}
 local pickup_text 		= {}
@@ -70,8 +72,9 @@ function document_init_name(e)
 	imgAspectRatio[e] = 0	
 	imgWidth[e] = 0	
 	imgHeight[e] = 0
-	tEnt[e]	= 0
-	selectobj[e] = 0	
+	selectobj[e] = 0
+	tEnt[e] = 0	
+	g_tEnt = 0	
 	played[e] = 0
 	doonce[e] = 0
 	status[e] ="init"
@@ -88,24 +91,9 @@ function document_main(e)
 	
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if PlayerDist < document[e].pickup_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then
-		-- pinpoint select object--		
-		local px, py, pz = GetCameraPositionX(0), GetCameraPositionY(0), GetCameraPositionZ(0)
-		local rayX, rayY, rayZ = 0,0,document[e].pickup_range
-		local paX, paY, paZ = math.rad(GetCameraAngleX(0)), math.rad(GetCameraAngleY(0)), math.rad(GetCameraAngleZ(0))
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
-		selectobj[e]=IntersectAll(px,py,pz, px+rayX, py+rayY, pz+rayZ,e)
-		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
-			if g_Entity[e].obj == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) --highliting (with crosshair at present)
-				tEnt[e] = e
-			else 
-				tEnt[e] = 0
-			end
-		end
-		if selectobj[e] == 0 or selectobj[e] == nil then
-			tEnt[e] = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",155,155,155) --highliting (with crosshair at present)
-		end
+		--pinpoint select object--
+		module_misclib.pinpoint(e,document[e].pickup_range,300)
+		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 	end	
 	
@@ -113,7 +101,7 @@ function document_main(e)
 		if showing[e] == 0 and tEnt[e] ~= 0 then
 			if document[e].prompt_display ==1 then	PromptLocal(e,document[e].pickup_text) end
 			if document[e].prompt_display ==2 then	Prompt(document[e].pickup_text) end
-		end				
+		end
 		if g_KeyPressE == 1 then
 			if showing[e] == 0 and pressed[e] == 0 then
 				pressed[e] = 1
@@ -123,19 +111,15 @@ function document_main(e)
 				end
 				Hide(e)
 				showing[e] = 1
-				if showing[e] == 1 then
-					if document[e].prompt_display ==1 then PromptLocal(e,document[e].return_text) end
-					if document[e].prompt_display ==2 then PromptDuration(document[e].return_text,2000) end
-				end
 				if doonce[e] == 0 then
 					image[e] = LoadImage(document[e].imagefile)
 					sprite[e] = CreateSprite(image[e])
 					imgAspectRatio[e] = GetImageHeight(image[e]) / GetImageWidth(image[e])
 					imgWidth[e] = document[e].sprite_size
 					imgHeight[e] = imgWidth[e] * imgAspectRatio[e]
-					SetSpriteSize(sprite[e],imgWidth[e],imgHeight[e])
+					SetSpriteSize(sprite[e],imgWidth[e],imgHeight[e])					
 					doonce[e] = 1
-				end	
+				end
 				SetSpritePosition(sprite[e],document[e].screen_x,document[e].screen_y)
 				PasteSpritePosition(sprite[e],document[e].screen_x,document[e].screen_y)
 				if document[e].lock_screen == 1 then
@@ -148,8 +132,14 @@ function document_main(e)
 				end
 				PerformLogicConnections(e)
 			end
-		end
+		end	
 	end
+	if showing[e] == 1 then
+		PromptLocal(e,"")
+		Prompt("")
+		TextCenterOnX(document[e].screen_x+imgWidth[e]/2,document[e].screen_y+(imgHeight[e]+3),1,document[e].return_text)	
+	end	
+	
 	local legacyhide = 0
 	if document[e].return_text == "" and PlayerDist > document[e].pickup_range then legacyhide = 1 end
 	if g_KeyPressQ == 1 or legacyhide == 1 then

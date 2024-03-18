@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Scuba Version 11
+-- Scuba Version 12
 -- DESCRIPTION: Attached object pick up gives extended diving capability. Auto activates when underwater. Set Always active ON
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [PROMPT_TEXT$="E to pickup"]
@@ -7,6 +7,10 @@
 -- DESCRIPTION: [@COMPASS_DISPLAY=1(1=On, 2=Off)] On or Off
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\scuba\\mask.png"]
 -- DESCRIPTION: [@SCUBA_MASK=1(1=On, 2=Off)]
+
+local module_misclib = require "scriptbank\\module_misclib"
+local U = require "scriptbank\\utillib"
+g_tEnt = {}
 
 local scuba				= {}
 local pickup_range		= {}
@@ -26,6 +30,8 @@ local status			= {}
 local alreadyhaveair	= {}
 local gunstatus 		= {}
 local compass 			= {}
+local selectobj 		= {}
+local tEnt 				= {}
 	
 function scuba_properties(e, pickup_range, prompt_text, dive_time, compass_display, mask_image, scuba_mask, dive_secs)
 	scuba[e] = g_Entity[e]
@@ -48,6 +54,7 @@ function scuba_init(e)
 	scuba[e].mask_image = "imagebank\\scuba\\mask.png"
 	scuba[e].scuba_mask = 1
 	scuba[e].dive_secs = (scuba[e].dive_time*1000)*60
+	
 	scubagear = CreateSprite(LoadImage(scuba[e].mask_image))
 	SetSpriteSize(scubagear,100,100)
 	SetSpritePosition(scubagear,200,200)
@@ -57,6 +64,9 @@ function scuba_init(e)
 	SetSpritePosition(oxbarsprite,200,200)
 	oxLevel[e] = 0
 	alreadyhaveair[e] = 0
+	tEnt[e] = 0
+	g_tEnt = 0
+	selectobj[e] = 0	
 	status[e] = "init"	
 	init_compass()	
 end
@@ -67,15 +77,21 @@ function scuba_main(e)
 	
 	if have_scubagear == 0 then
 		if PlayerDist < scuba[e].pickup_range and have_scubagear == 0 then
-			PromptLocal(e,scuba[e].prompt_text)
-			if GetInKey() == "e" or GetInKey() == "E" then
-				have_scubagear = 1
-				PlaySound(e,0)				
-				Hide(e)
-				CollisionOff(e)
-				ActivateIfUsed(e)
-				scuba[e].dive_secs = (scuba[e].dive_time*1000)*60
-			end
+			--pinpoint select object--
+			module_misclib.pinpoint(e,scuba[e].pickup_range,300)
+			tEnt[e] = g_tEnt
+			--end pinpoint select object--	
+			if PlayerDist < scuba[e].pickup_range and tEnt[e] ~= 0 and have_scubagear == 0 then
+				PromptLocal(e,scuba[e].prompt_text)
+				if g_KeyPressE == 1 then
+					have_scubagear = 1
+					PlaySound(e,0)				
+					Hide(e)
+					CollisionOff(e)
+					ActivateIfUsed(e)
+					scuba[e].dive_secs = (scuba[e].dive_time*1000)*60
+				end
+			end	
 		end
 	end		
 	

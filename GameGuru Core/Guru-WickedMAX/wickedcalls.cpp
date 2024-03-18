@@ -1480,15 +1480,18 @@ void WickedCall_SetObjectFrameEx(sObject* pObject, float fFrame)
 float WickedCall_GetObjectFrame(sObject* pObject)
 {
 	float fFrame = 0.0f;
-	if ( pObject->pAnimationSet )
+	if (pObject)
 	{
-		// first animset only for frame return
-		sAnimationSet* pAnimSet = pObject->pAnimationSet;
-		Entity animentity = pAnimSet->wickedanimentityindex;
-		AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
-		if (animationcomponent)
+		if (pObject->pAnimationSet)
 		{
-			fFrame = animationcomponent->timer;
+			// first animset only for frame return
+			sAnimationSet* pAnimSet = pObject->pAnimationSet;
+			Entity animentity = pAnimSet->wickedanimentityindex;
+			AnimationComponent* animationcomponent = wiScene::GetScene().animations.GetComponent(animentity);
+			if (animationcomponent)
+			{
+				fFrame = animationcomponent->timer;
+			}
 		}
 	}
 	return fFrame;

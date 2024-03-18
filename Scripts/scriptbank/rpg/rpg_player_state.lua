@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- RPG_Player State v10
+-- RPG_Player State v11
 -- DESCRIPTION: Incrementally adds or deducts the players globals over time.
 -- DESCRIPTION: Attach to an object, Set always active On.
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED1$="MyGlobal#1"]
@@ -71,7 +71,6 @@ local status 				= {}
 local doonce 				= {}
 
 function rpg_player_state_properties(e, user_global_affected1, amount1, time_interval1, effect1, damage_level1, damage_amount1, user_global_affected2, amount2, time_interval2, effect2, damage_level2, damage_amount2, user_global_affected3, amount3, time_interval3, effect3, damage_level3, damage_amount3, user_global_affected4, amount4, time_interval4, effect4, damage_level4, damage_amount4, ActivateAtStart)
-	rpg_player_state[e] = g_Entity[e]
 	rpg_player_state[e].user_global_affected1 = user_global_affected1
 	rpg_player_state[e].amount1 = amount1
 	rpg_player_state[e].time_interval1 = time_interval1
@@ -143,7 +142,7 @@ function rpg_player_state_init(e)
 end
 
 function rpg_player_state_main(e)
-	rpg_player_state[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		if rpg_player_state[e].ActivateAtStart == 1 then SetActivated(e,1) end
 		if rpg_player_state[e].ActivateAtStart == 0 then SetActivated(e,0) end		

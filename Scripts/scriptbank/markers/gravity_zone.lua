@@ -27,7 +27,7 @@ local status		= {}
 
 
 function gravity_zone_properties(e, gravity_level, fall_rate, zoneheight, SpawnAtStart, trigger_type, trigger_height, gravity_lift)
-	gravity_zone[e] = g_Entity[e]
+
 	gravity_zone[e].gravity_level = gravity_level
 	gravity_zone[e].fall_rate = fall_rate
 	gravity_zone[e].zoneheight = zoneheight or 100
@@ -53,7 +53,7 @@ function gravity_zone_init(e)
 end
 
 function gravity_zone_main(e)
-	gravity_zone[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		startposy[e] = g_Entity[e]['y']
 		startzh[e] = gravity_zone[e].zoneheight		

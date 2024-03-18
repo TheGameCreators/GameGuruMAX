@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Day_Night v12 by Necrym59 and Lee
+-- Day_Night v13 by Necrym59 and Lee
 -- DESCRIPTION: A Day/Night Time Cycler. Set ALWAYS ON
 -- DESCRIPTION: [#START_ANGLE=-95(-180,180)]
 -- DESCRIPTION: [TIME_DILATION=1(1,1000)]
@@ -18,6 +18,8 @@
 -- DESCRIPTION: [MAX_EXPOSURE#=1.00(0.01,1.00)]
 -- DESCRIPTION: [MAX_INTENSITY#=7.40(0.01,50.00)]
 -- DESCRIPTION: [@TRIGGER_EVENT=25(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=None)]
+-- DESCRIPTION: [@START_DAY=1(1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday, 5=Thursday, 6=Friday, 7=Saturday)]
+-- DESCRIPTION: [READOUT_USER_GLOBAL$="MyUserGlobal"] reports day and time
 
 g_sunrollposition = {}
 
@@ -39,6 +41,8 @@ local max_ambience_b = {}
 local max_exposure = {}
 local max_intensity = {}
 local trigger_event = {}
+local start_day = {}
+local readout_user_global = {}
 
 local suntimer = {}
 local sunmoonroll = {}
@@ -58,10 +62,12 @@ local sintvaluem = {}
 local status = {}
 local state = {}
 local tod = {}
+local currentdaytime = {}
+local doonce = {}
 local mode = {}
 local event_trig = {}
 
-function day_night_properties(e, start_angle, time_dilation, diagnostics, min_ambience_r, min_ambience_g, min_ambience_b, min_exposure, sun_roll, sun_pitch, sun_yaw, min_intensity, max_ambience_r, max_ambience_g, max_ambience_b, max_exposure, max_intensity, trigger_event)
+function day_night_properties(e, start_angle, time_dilation, diagnostics, min_ambience_r, min_ambience_g, min_ambience_b, min_exposure, sun_roll, sun_pitch, sun_yaw, min_intensity, max_ambience_r, max_ambience_g, max_ambience_b, max_exposure, max_intensity, trigger_event, start_day, readout_user_global)
 	day_night[e] = g_Entity[e]
 	-- start_angle in legacy version now replaced with RPY below but retained for compatability
 	day_night[e].start_angle = start_angle
@@ -91,6 +97,8 @@ function day_night_properties(e, start_angle, time_dilation, diagnostics, min_am
 	day_night[e].max_intensity = max_intensity
 	if trigger_event == nil then trigger_event = 25 end
 	day_night[e].trigger_event = trigger_event
+	day_night[e].start_day = start_day
+	day_night[e].readout_user_global = readout_user_global	
 end
 
 function day_night_init(e)
@@ -112,6 +120,9 @@ function day_night_init(e)
 	day_night[e].max_exposure = 1.00
 	day_night[e].max_intensity = 7.4
 	day_night[e].trigger_event = 25
+	day_night[e].start_day = 1
+	day_night[e].readout_user_global = ""
+	
 	status[e] = "init"
 	state[e] = ""
 	g_sunrollposition = 0
@@ -121,8 +132,10 @@ function day_night_init(e)
 	suntimer[e] = math.huge
 	sintvalue[e] = 0
 	event_trig[e] = 0
+	currentdaytime[e] = 0
 	mode[e] = ""
 	tod[e] = ""
+	doonce[e] = 0
 	Hide(e)
 end
 
@@ -148,7 +161,7 @@ function day_night_main(e)
 		sunmoonpitch[e] = day_night[e].sun_pitch
 		sunmoonyaw[e] = day_night[e].sun_yaw
 		suntimer[e] = g_Time + 1000
-		SetSunDirection(sunmoonroll[e],sunmoonpitch[e],sunmoonyaw[e])
+		SetSunDirection(sunmoonroll[e],sunmoonpitch[e],sunmoonyaw[e])		
 		status[e] = "endinit"
 	end
 	
@@ -172,7 +185,7 @@ function day_night_main(e)
 		if sunmoonroll[e] < -90 then mode[e] = "Day" end
 	end
 	
-	if mode[e] == "Day" then
+	if mode[e] == "Day" then		
 		SetSunLightingColor(255,255,255)
 		SetSunIntensity(sintvalue[e])
 		SetExposure(expovalue[e])
@@ -207,7 +220,8 @@ function day_night_main(e)
 			if sintvalue[e] > day_night[e].min_intensity then sintvalue[e] = sintvalue[e] - 0.001 end
 		end			
 		--Swap in Sun Image if possible
-		if sunmoonroll[e] > 90 and sunmoonroll[e] < -90 then mode[e] = "Night" end			
+		if sunmoonroll[e] > 90 and sunmoonroll[e] < -90 then mode[e] = "Night" end
+		doonce[e] = 0	
 	end
 	if sunmoonroll[e] > -165.5 then
 		tod[e] = "12pm"
@@ -305,9 +319,25 @@ function day_night_main(e)
 		if day_night[e].trigger_event == 23 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 165.5 then 
-		tod[e] = "12pm"
+		tod[e] = "12pm"		
 		if day_night[e].trigger_event == 24 then event_trig[e] = 1 end
-	end	
+		if doonce[e] == 0 then
+			if day_night[e].start_day < 7 then day_night[e].start_day = day_night[e].start_day + 1 end
+			if day_night[e].start_day == 7 then day_night[e].start_day = 1 end
+			doonce[e] = 1
+		end
+	end
+
+	if day_night[e].start_day == 1 then currentdaytime[e] = ("Sunday  " ..tod[e]) end
+	if day_night[e].start_day == 2 then currentdaytime[e] = ("Monday  " ..tod[e]) end
+	if day_night[e].start_day == 3 then currentdaytime[e] = ("Tuesday  " ..tod[e]) end
+	if day_night[e].start_day == 4 then currentdaytime[e] = ("Wednesday  " ..tod[e]) end
+	if day_night[e].start_day == 5 then currentdaytime[e] = ("Thursday  " ..tod[e]) end
+	if day_night[e].start_day == 6 then currentdaytime[e] = ("Friday  " ..tod[e]) end	
+	if day_night[e].start_day == 7 then currentdaytime[e] = ("Saturday  " ..tod[e]) end	
+	if day_night[e].readout_user_global ~= "" then
+		_G["g_UserGlobal['"..day_night[e].readout_user_global.."']"] = currentdaytime[e]			
+	end
 	
 	if event_trig[e] == 1 then
 		ActivateIfUsed(e)
@@ -317,6 +347,7 @@ function day_night_main(e)
 	
 		
 	if day_night[e].diagnostics == 1 then
+		Text(1,22,3,currentdaytime[e])
 		Text(1,24,3,"Sun/Moon Angle: " ..math.floor(sunmoonroll[e]))
 		Text(1,26,3,"Time Mode: " ..mode[e])	
 		Text(1,28,3,"Dialation: " ..day_night[e].time_dilation)

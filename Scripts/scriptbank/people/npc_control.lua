@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- NPC Control v69 by Necrym 59
+-- NPC Control v70 by Necrym 59
 -- DESCRIPTION: The attached npc entity will be controlled by this behavior.
 -- DESCRIPTION: [#SENSE_TEXT$="Who's that ..an intruder??"]
 -- DESCRIPTION: [#SENSE_RANGE=500(0,2000)]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [#ATTACK_INTERVAL=1000(0,10000)]
 -- DESCRIPTION: [#ATTACK_DAMAGE=10(0,100)]
 -- DESCRIPTION: [@RANDOM_DAMAGE=2(1=Yes,2=No)]
--- DESCRIPTION: [@NPC_CAN_ROAM=1(1=Yes,2=No,3=Flags)]
+-- DESCRIPTION: [@NPC_CAN_ROAM=1(1=Yes,2=No)]
 -- DESCRIPTION: [#ROAM_RANGE=500(0,3000)]
 -- DESCRIPTION: [#NPC_ANIM_SPEED=0.8(0.1,5.0)]
 -- DESCRIPTION: [#NPC_MOVE_SPEED=100(0,1000)]
@@ -90,9 +90,6 @@ local attack_delay = {}
 local action_delay = {}
 local lastflag_delay = {}
 local start_health = {}
-local flee_health = {}
-local flee_active = {}
-local flee_time = {}
 local anim_var = {}
 local senseonce = {}
 local issensed = {}
@@ -141,7 +138,6 @@ local svolume = {}
 local resetstate = {}
 
 function npc_control_properties(e, sense_text, sense_range, npc_will_flee, idle_time, attack_range, attack_interval, attack_damage, random_damage, npc_can_roam, roam_range, npc_anim_speed, npc_move_speed, npc_run_speed, npc_turn_speed, npc_can_shoot, idle1_animation,  idle2_animation, idle3_animation, idle4_animation, walk_animation, run_animation, threat_animation, attack1_animation, attack2_animation, attack3_animation, shoot_animation, hurt_animation, death1_animation, death2_animation, lastflag_animation, lastflag_time, lastflag_loop, force_move, npc_tilting, diagnostics)
-	npc_control[e] = g_Entity[e]
 	npc_control[e].sense_text = sense_text
 	npc_control[e].sense_range = sense_range
 	npc_control[e].npc_will_flee = npc_will_flee
@@ -257,8 +253,6 @@ function npc_control_init_name(e,name)
 	pointcount[e] = 0
 	pointcountp[e] = 0
 	pathdelay[e] = math.huge
-	flee_time[e] = math.huge
-	flee_active[e] = 0
 	patrolmode[e] = 0
 	callhelponce[e] = 0
 	regen[e] = math.huge
@@ -272,13 +266,10 @@ function npc_control_init_name(e,name)
 	plrwithinmesh[e] = 1	
 	svolume[e] = 0
 	resetstate[e] = 0
-	if g_Entity[e]['health'] < 1 then SetEntityHealth(e,g_Entity[e]['health'] + 1) end
-	start_health[e] = g_Entity[e]['health'] + 1000
-	SetEntityHealth(e,start_health[e])
 end
 
 function npc_control_main(e)
-	npc_control[e] = g_Entity[e]
+
 	CollisionOn(e)
 	if status[e] == "init" then		
 		allegiance[e] = GetEntityAllegiance(e) -- (0-enemy, 1-ally, 2-neutral)		
@@ -287,6 +278,9 @@ function npc_control_main(e)
 		SetEntityTurnSpeed(e,npc_control[e].npc_turn_speed)
 		SetPreExitValue(e,0)
 		attack_delay[e] = npc_control[e].attack_interval
+		if g_Entity[e]['health'] < 1000 then g_Entity[e]['health'] = g_Entity[e]['health'] + 1000 end
+		start_health[e] = g_Entity[e]['health']
+		SetEntityHealth(e,start_health[e])
 		startx[e] = g_Entity[e]['x']
 		starty[e] = g_Entity[e]['y']
 		startz[e] = g_Entity[e]['z']
@@ -294,7 +288,6 @@ function npc_control_main(e)
 		idle_delay[e] = g_Time + npc_control[e].idle_time
 		pathdelay[e] = g_Time + 3000
 		regen[e] = g_Time + 3000
-		flee_health[e] = (start_health[e]/15)+1000
 		state_choice[e] = math.random(1,5)
 		LoadGlobalSound("audiobank\\user\\" ..name1[e].. ".wav", g_Entity[e])
 		status[e] = "endinit"		
@@ -385,9 +378,6 @@ function npc_control_main(e)
 				if npc_control[e].npc_can_roam == 1 then --Can Roam
 					state[e] = "idle"
 				end
-				if npc_control[e].npc_can_roam == 3 then --Flags
-					state[e] = "flag_pathing"
-				end
 			end
 			if state_choice[e] == 5 then
 				if npc_control[e].npc_can_roam == 1 then --Can Roam
@@ -402,7 +392,7 @@ function npc_control_main(e)
 	plrwithinmesh[e] = RDIsWithinMesh(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ) -- returns 1 if the XYZ coordinate is on the nav mesh
 	allegiance[e] = GetEntityAllegiance(e)
 	
-	if GetPlayerDistance(e) > npc_control[e].sense_range * 2 and allegiance[e] ~= 0 then
+	if GetPlayerDistance(e) > npc_control[e].sense_range and allegiance[e] ~= 0 then
 		if npc_control[e].npc_can_roam == 1 then
 			if g_Time > action_delay[e] then
 				aggro[e] = 1
@@ -447,12 +437,6 @@ function npc_control_main(e)
 			end
 		end
 	end	
-	if g_Time > flee_time[e] and flee_active[e] == 1 then
-		if g_Entity[e]['health'] > flee_health[e] then 
-			SetEntityAllegiance(e,0)
-			flee_active[e] = 0
-		end	
-	end
 	---------------------------------------------------------------------------------------------------------------------------------
 	if state[e] == "sensed" then
 		GetEntityPlayerVisibility(e)		
@@ -692,13 +676,12 @@ function npc_control_main(e)
 	if state[e] == "roam" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
 		SetSoundVolume(svolume[e])
-		if flee_active[e] == 1 then scare[e] = 1 end
 		if wandonce[e] == 0 then -- get a random point on a circle around the current location
 			local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 			local ang = math.rad(math.random(1,360))
 			local dist = npc_control[e].roam_range
 			if scare[e] == 0 then dist = npc_control[e].roam_range end
-			if scare[e] == 1 then dist = (npc_control[e].roam_range*1.2) end
+			if scare[e] == 1 then dist = (npc_control[e].roam_range*2) end
 			destx[e] = startx[e] + math.cos(ang) * dist
 			desty[e] = starty[e]
 			destz[e] = startz[e] + math.sin(ang) * dist
@@ -728,35 +711,9 @@ function npc_control_main(e)
 				wandonce[e] = 1
 				hurtonce[e] = 0
 			end
-			if pointcount[e] < 1 then
-				if resetstate[e] == 0 then
-					local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
-					destx[e] = ex
-					desty[e] = ey
-					destz[e] = ez
-					RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
-					pointcount[e] = RDGetPathPointCount()
-					SetEntityPathRotationMode(e,1)
-					StartMoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e),1,0)
-					npc_control[e].sense_range = start_sense_range[e]
-					resetstate[e] = 1
-				end					
-				idlemonce[e] = 0
-				aggro[e] = 0
-				issensed[e] = 0
-				plrseen[e] = 0
-				idlemonce[e] = 0
-				state_choice[e] = 0
-				wandonce[e] = 0
-				animonce[e] = 0
-				hurtonce[e] = 0
-				scareonce[e] = 0
-				scare[e] = 0
-				state[e] = "idle"
-			end
 		end
 		RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
-		MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))		
+		MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))
 
 		if npc_control[e].force_move == 1 then
 			local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
@@ -779,6 +736,7 @@ function npc_control_main(e)
 				RotateY(e,math.random(45,240))
 				state_choice[e] = math.random(1,2)
 				if state_choice[e] == 1 then
+					state[e] = "idle"
 					idle_delay[e] = g_Time + npc_control[e].idle_time
 					idlemonce[e] = 0
 					state_choice[e] = 0
@@ -786,20 +744,21 @@ function npc_control_main(e)
 					hurtonce[e] = 0
 					scareonce[e] = 0
 					scare[e] = 0
-					state[e] = "idle"
 				end
 			end
 		end
-		
 		if GetPlayerDistance(e) <= npc_control[e].sense_range/2 and allegiance[e] == 2 and npc_control[e].npc_will_flee == 1 then
 			scare[e] = 1
 			RotateY(e,math.random(90,240))
 			if scareonce[e] == 0 then
 				wandonce[e] = 0
 				scareonce[e] = 1
-				state[e] = "roam"
+				state[e] = "idle"
 			end
-		end	
+		end
+		if GetPlayerDistance(e) <= npc_control[e].sense_range/2 and allegiance[e] == 2 and npc_control[e].npc_will_flee == 2 then
+			RotateY(e,math.random(90,240))
+		end
 
 		local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 		local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)
@@ -816,8 +775,6 @@ function npc_control_main(e)
 			scare[e] = 0
 			state[e] = "idle"
 			idle_delay[e] = g_Time + npc_control[e].idle_time
-		else
-			state[e] = "roam"
 		end
 		if GetPlayerDistance(e) < 100 then RotateY(e,math.random(1,240)) end  -----------------------------------
 	else
@@ -935,7 +892,6 @@ function npc_control_main(e)
 	end
 	
 	if g_Entity[e]['health'] < 1000 and state[e] ~= "die" then
-		SetEntityHealth(e,999)
 		local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
 		destx[e] = ex
 		desty[e] = ey
@@ -995,30 +951,11 @@ function npc_control_main(e)
 						state[e] = "roam"
 					end
 					if allegiance[e] == 0 then
-						if start_health[e] > flee_health[e] then
-							aggro[e] = 1
-							scare[e] = 0
-							state[e] = "idle"
-							pathdelay[e] = g_Time + 10
-							animonce[e] = 0
-						end	
-						if start_health[e] > 1000 and g_Entity[e]['health'] < flee_health[e] then
-							aggro[e] = 0
-							scare[e] = 1
-							SetEntityAllegiance(e,2)
-							flee_time[e] = g_Time + 2000
-							flee_active[e] = 1
-							issensed[e] = 0
-							plrseen[e] = 0
-							idlemonce[e] = 0
-							state_choice[e] = 0
-							wandonce[e] = 0
-							animonce[e] = 0
-							hurtonce[e] = 0
-							scareonce[e] = 0
-							state[e] = "roam"
-							pathdelay[e] = g_Time + 10
-						end
+						aggro[e] = 1
+						scare[e] = 0
+						state[e] = "idle"
+						pathdelay[e] = g_Time + 10
+						animonce[e] = 0
 					end
 					state_choice[e] = 0
 				end
@@ -1049,7 +986,6 @@ function npc_control_main(e)
 		if plrwithinmesh[e] == 0 then Text(2,78,3,"Player OUTSIDE Navmesh") end
 		if plrwithinmesh[e] == 1 then Text(2,78,3,"Player WITHIN Navmesh") end
 		Text(2,80,3,"Combat Music : audiobank\\user\\" ..name1[e].. ".wav")
-		Text(2,82,3,"Flee Health: " ..math.floor(flee_health[e])-1000)
 	end
 end
 

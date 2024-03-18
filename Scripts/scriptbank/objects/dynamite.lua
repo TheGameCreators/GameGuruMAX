@@ -1,4 +1,4 @@
--- Dynamite v10 - By Necrym59
+-- Dynamite v11 - By Necrym59
 -- DESCRIPTION: Allows for pick and deployment of an exposive bomb device.
 -- DESCRIPTION: [WEAPON_NAME$="Dynamite"]
 -- DESCRIPTION: [PLACEMENT_TIME=1(1,3)]
@@ -35,9 +35,11 @@ local pickup_range = {}
 local pickup_text = {}
 local currentY = {}
 local colobj = {}
+local terrainy = {}
+local surfacey = {}
+local finaly = {}
 
 function dynamite_properties(e, weapon_name, placement_time, explosion_delay, bomb_type, player_safe_distance, enemy_hear_distance, pickup_range, pickup_text)
-	g_dynamite[e] = g_Entity[e]
 	g_dynamite[e]['weapon_name'] = weapon_name						--Name of weapon
 	g_dynamite[e]['placement_time'] = placement_time				--How long you need to hold key for before the bomb is placed (in seconds)
 	g_dynamite[e]['explosion_delay'] = explosion_delay				--How long before the bomb explodes once triggered (in seconds)
@@ -69,10 +71,13 @@ function dynamite_init(e)
 	colobj[e] = 0
 	SetEntityBaseAlpha(e,100)
 	SetEntityTransparency(e,1)
+	terrainy[e] = 0
+	surfacey[e] = 0
+	finaly[e] = 0
 end
 
 function dynamite_main(e)
-	g_dynamite[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		if g_dynamite[e]['bomb_type'] == nil then g_dynamite[e]['bomb_type'] = 1 end
 		bomb_state[e] = "collect"
@@ -97,18 +102,17 @@ function dynamite_main(e)
 						ActivateIfUsed(e)
 						Hide(e)
 						CollisionOff(e)
+						GravityOff(e)
 					end
 				end
 			end
 		end
 
-		if bomb_state[e] == "collected" then
-			GravityOff(e)			
+		if bomb_state[e] == "collected" then			
 			local ox,oy,oz = U.Rotate3D(0,currentY[e],g_dynamite[e]['pickup_range'], math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ))
 			local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
-			SetPosition(e,forwardposx, forwardposy, forwardposz)
 			ResetPosition(e,forwardposx, forwardposy, forwardposz)
-			RotateObject(g_Entity[e]['obj'],0,g_Entity[e]['angley'],g_PlayerAngZ)
+			RotateObject(g_Entity[e]['obj'],0,g_Entity[e]['angley'],g_PlayerAngZ)			
 			SetEntityBaseAlpha(e,30)
 			Show(e)
 			PromptLocal(e,"Press P to place and prime the " ..g_dynamite[e]['weapon_name'].. " or Q to Drop")
@@ -117,8 +121,12 @@ function dynamite_main(e)
 				PromptLocal(e,"")
 				local ox,oy,oz = U.Rotate3D(0,currentY[e],g_dynamite[e]['pickup_range'], math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ))
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
-				SetPosition(e,forwardposx, forwardposy, forwardposz)
-				ResetPosition(e,forwardposx, forwardposy, forwardposz)
+				terrainy[e] = GetTerrainHeight(forwardposx,forwardposz)
+				surfacey[e] = GetSurfaceHeight(forwardposx,forwardposy,forwardposz)
+				if surfacey[e] > terrainy[e] then finaly[e] = surfacey[e] end
+				if terrainy[e] > surfacey[e] then finaly[e] = terrainy[e] end
+				SetPosition(e,forwardposx, finaly[e]+3, forwardposz)
+				ResetPosition(e,forwardposx, finaly[e]+3, forwardposz)
 				bombs[e] = bombs[e] - 1
 				dynamite_armed[e] = 0
 				bomb_state[e] = "placed"
@@ -132,8 +140,12 @@ function dynamite_main(e)
 				PromptLocal(e,"")
 				local ox,oy,oz = U.Rotate3D(0,currentY[e],g_dynamite[e]['pickup_range'], math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ))
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
-				SetPosition(e,forwardposx, forwardposy, forwardposz)
-				ResetPosition(e,forwardposx, forwardposy, forwardposz)
+				terrainy[e] = GetTerrainHeight(forwardposx,forwardposz)
+				surfacey[e] = GetSurfaceHeight(forwardposx,forwardposy,forwardposz)
+				if surfacey[e] > terrainy[e] then finaly[e] = surfacey[e] end
+				if terrainy[e] > surfacey[e] then finaly[e] = terrainy[e] end
+				SetPosition(e,forwardposx, finaly[e]+3, forwardposz)
+				ResetPosition(e,forwardposx, finaly[e]+3, forwardposz)
 				bombs[e] = bombs[e] - 1
 				dynamite_armed[e] = 0
 				bomb_state[e] = "collect"

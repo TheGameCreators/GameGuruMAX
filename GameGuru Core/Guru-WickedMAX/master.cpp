@@ -571,8 +571,20 @@ void Master::Update(float dt)
 	if (GuruUpdate() == false)
 	{
 		// output graphcs card log created earlier
-		extern char g_pGraphicsCardLog[10240];
-		timestampactivity(0, g_pGraphicsCardLog);
+		static bool bOnlyReportOnce = true;
+		if (bOnlyReportOnce == true)
+		{
+			extern char g_pGraphicsCardLog[10240];
+			timestampactivity(0, g_pGraphicsCardLog);
+			GraphicsDevice* device = wiRenderer::GetDevice();
+			if (device->GetGraphicsCardName())
+			{
+				char pActualGraphicsCardUsed[MAX_PATH];
+				sprintf(pActualGraphicsCardUsed, "Graphics Card Used: %s", device->GetGraphicsCardName());
+				timestampactivity(0, pActualGraphicsCardUsed);
+			}
+			bOnlyReportOnce = false;
+		}
 
 		// until we are loaded and ready, present splash screen
 		timestampactivity(0, "initial setup");

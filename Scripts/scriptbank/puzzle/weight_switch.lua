@@ -1,4 +1,4 @@
--- Weight Switch v10 - Necrym59 with special thanks to Amen Moses
+-- Weight Switch v11 - Necrym59 with special thanks to Amen Moses
 -- DESCRIPTION: Attach to the Weight Switch Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Weight needed to activate"]
@@ -16,6 +16,7 @@ local rad = math.rad
 local switches = {}
 local rayCast      = IntersectAll
 local getObjPosAng = GetObjectPosAng
+local doonce = {}
 	
 function weight_switch_properties(e, prompt_text, activation_text, activation_weight, player_weight, switch_movement)
 	local switch = switches[e]
@@ -35,6 +36,8 @@ function weight_switch_init(e)
 					playerOn          = false,
 	                state             = 'init'
 				  }
+				  
+	doonce[e] = 0
 end 
 
 local gEnt = g_Entity
@@ -135,8 +138,7 @@ function weight_switch_main(e)
 				switch.state = 'activated'
 				return
 			end
-		end
-		
+		end		
 	elseif 
 	   switch.state == 'activated' then
 		for _, v in pairs( switch.stackList ) do
@@ -165,5 +167,6 @@ function weight_switch_main(e)
 		CollisionOff(e)
 		PositionObject( switch.obj,Ent.x,Ent.y - 0.5,Ent.z)
 		CollisionOn(e)
+		switch.state = 'end'
 	end
 end

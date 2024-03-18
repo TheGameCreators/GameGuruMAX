@@ -16,12 +16,13 @@ Water level will be raised by this amount and lowered back when
 re-pressurised
 (only used if AIRLOCK TYPE = Water)
 
-Set the switch PROMPT TEXT Default ="Z=Depressurise  X=Pressurise"
+Set the switch PROMPT TEXT Default ="to begin"
 Set the switch USE RANGE Default = 80
-Set the airlock DEPRESSURISE TEXT Default="Depressurising Airlock"
-Set the airlock PRESSURISE TEXT Default="Pressurising Airlock"]
+Set the airlock DEPRESSURISE TEXT Default="Deressurisation in"
+Set the airlock PRESSURISE TEXT Default="Pressurisation in"]
 Set the airlock DOOR1 NAME eg:"Inner Door" Use the name of your door1
 Set the airlock DOOR2 NAME eg:"Outer Door" Use the name of your door2
 Set the processing DELAY Default = 8 seconds
+Set the NPC DROWNING Off/On for water airlock
 Play <Sound0> when activating
 Play <Sound1> when processing

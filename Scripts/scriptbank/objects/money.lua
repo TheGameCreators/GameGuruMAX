@@ -1,4 +1,4 @@
--- Money v6
+-- Money v7
 -- DESCRIPTION: The object will give the player money.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Money Collected"]
@@ -8,6 +8,7 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for collection sound.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -23,13 +24,14 @@ local pickup_style = {}
 local user_global_affected = {}
 local effect = {}
 local prompt_display = {}
+local item_highlight = {}
 
 local tEnt = {}
 local selectobj = {}
 local played = {}
 local currentvalue = {}
 
-function money_properties(e, pickup_text, collected_text, quantity, pickup_range, pickup_style, user_global_affected, effect, prompt_display)
+function money_properties(e, pickup_text, collected_text, quantity, pickup_range, pickup_style, user_global_affected, effect, prompt_display, item_highlight)
 	money[e].pickup_text = pickup_text
 	money[e].collected_text = collected_text
 	money[e].quantity = quantity
@@ -38,6 +40,7 @@ function money_properties(e, pickup_text, collected_text, quantity, pickup_range
 	money[e].user_global_affected = "MyMoney"
 	money[e].effect = effect
 	money[e].prompt_display = prompt_display
+	money[e].item_highlight = item_highlight	
 end
 
 function money_init(e)
@@ -50,6 +53,7 @@ function money_init(e)
 	money[e].user_global_affected = "MyMoney"
 	money[e].effect = 1
 	money[e].prompt_display = 1
+	money[e].item_highlight = 0
 	
 	currentvalue[e] = 0
 	played[e] = 0
@@ -85,7 +89,7 @@ function money_main(e)
 	
 	if money[e].pickup_style == 2 and PlayerDist < money[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,money[e].pickup_range,300)
+		module_misclib.pinpoint(e,money[e].pickup_range,money[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		

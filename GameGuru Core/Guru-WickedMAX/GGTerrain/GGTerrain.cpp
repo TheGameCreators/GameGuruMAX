@@ -2722,6 +2722,10 @@ public:
 
 	uint32_t Run( ) 
 	{
+		// profiling
+		#ifdef OPTICK_ENABLE
+		OPTICK_THREAD("GGTerrain"); 
+		#endif
 
 		while( !bTerminate )
 		{
@@ -2818,6 +2822,11 @@ public:
 
 	uint32_t Run( ) 
 	{
+		// profiling
+#ifdef OPTICK_ENABLE
+		OPTICK_THREAD("GGTerrain");
+#endif
+
 		while( 1 )
 		{
 			if ( bTerminate ) return 0;
@@ -6145,7 +6154,9 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo( &sysinfo );
 	uint32_t numThreads = sysinfo.dwNumberOfProcessors;
-	if ( numThreads > 1 ) numThreads--; // leave one thread for other work
+	if (numThreads > 1) numThreads--; // leave one thread for other work
+	if (numThreads > 8) numThreads=8;
+
 	ChunkGenerator::SetThreads( numThreads );
 	FractalGenerator::SetThreads( numThreads );
 

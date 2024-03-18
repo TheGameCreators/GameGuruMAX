@@ -37,6 +37,10 @@
 #include "GGThread.h"
 using namespace GGThread;
 
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #ifdef WIN32
 #	define snprintf _snprintf
 #endif
@@ -156,6 +160,11 @@ public:
 
 	uint32_t Run( ) 
 	{
+		// profiling
+#ifdef OPTICK_ENABLE
+		OPTICK_THREAD("TileMeshThread");
+#endif
+
 		while( 1 )
 		{
 			if ( bTerminate ) return 0;

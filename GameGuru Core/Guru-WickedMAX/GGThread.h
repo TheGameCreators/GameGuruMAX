@@ -151,6 +151,10 @@ class GGThread
 			if ( hThread ) CloseHandle( hThread );
 			hThread = (HANDLE)_beginthreadex( NULL, 0, EntryPoint, (void*) this, 0, &iThreadID );
 			SetThreadPriority( hThread, THREAD_PRIORITY_BELOW_NORMAL );
+
+			// avoid core zero as only want main thead to run on core zero
+			//DWORD maskExceptZero = 0xFFFFFFFE;
+			//SetThreadAffinityMask(hThread, maskExceptZero);
 		}
 
 		// tells the thread to stop and returns immediately, the thread is not guaranteed to stop

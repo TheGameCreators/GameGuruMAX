@@ -88,6 +88,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	// Launch Timer Started
 	dwLaunchTimer = timeGetTime();
 
+	// for low-end systems, ensure main thread keeps to a single core
+	SetThreadAffinityMask(GetCurrentThread(), 1);
+
 	//PE: If we dont have any command line parameters check if another copy is running.
 	//PE: We could need multiply copies running when in standalone (but will always have parameters).
 	CreateMutexA(0, FALSE, "Local\\$gamegurumaxrunningnow$");

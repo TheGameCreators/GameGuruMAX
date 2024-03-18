@@ -1,4 +1,4 @@
--- Door Rotate Multi - v23 Necrym59 and AmenMoses and Lee
+-- Door Rotate Multi - v24 Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door by zone, switch or player.
 -- DESCRIPTION: [@DOOR_STYLE=1(1=Manual,2=Switch/Zone, 3=Auto)]
 -- DESCRIPTION: Change the [OPEN_PROMPT$="Press E to open door"]
@@ -56,23 +56,23 @@ function door_rotate_multi_main( e )
 	local PlayerDist = GetPlayerDistance(e)
 	local door = doors[ e ]
 	if door == nil then return end
-	
+
 	local Ent = g_Entity[ e ]
 	if controlEnt[e] == nil then controlEnt[e] = e end
-	
+
 	timeThisFrame[e] = g_Time
-	
+
 	if controlEnt[e] == e then
-		if timeLastFrame[e] == nil then 
+		if timeLastFrame[e] == nil then
 			timeLastFrame[e] = timeThisFrame[e]
 			timeDiff[e] = 1
 		else
 			timeDiff[e] = ( timeThisFrame[e] - timeLastFrame[e] ) / 20
 			timeLastFrame[e] = timeThisFrame[e]
 		end
-	end	
-	
-	if door.state == 'init' then	
+	end
+
+	if door.state == 'init' then
 		local x, y, z, ax, ay, az = GetObjectPosAng( Ent.obj )
 		door.obj   = Ent.obj
 		door.timer = math.huge
@@ -83,7 +83,7 @@ function door_rotate_multi_main( e )
 		door.origz = Ent.z
 		door.actvd = Ent.activated == 1
 		door.rInc  = 90 / door.rotation_speed
-		if door.actvd then 
+		if door.actvd then
 			door.angle = 90
 			door.state = 'open'
 			RotateDoor( e, door )
@@ -92,26 +92,26 @@ function door_rotate_multi_main( e )
 			door.state = 'closed'
 			door.blocking = 1
 		end
-		
+
 	elseif
 	   door.state == 'closed' then
 		if Ent.activated == 1 then
 			door.state = 'opening'
-			PlaySound( e, 0 )			
-		end 
+			PlaySound( e, 0 )
+		end
 
 		local LookingAt = GetPlrLookingAtEx(e,1)
-		if PlayerDist < door.use_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then	
+		if PlayerDist < door.use_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,door.use_range,200)
+			module_misclib.pinpoint(e,door.use_range,0)
 			tEnt[e] = g_tEnt
-			--end pinpoint select object--	
+			--end pinpoint select object--
 		end
-		
-		if PlayerDist < door.use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then			
+
+		if PlayerDist < door.use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			if door.door_style == 1 then
 				if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.open_prompt) end
-				if door.prompt_display == 2 then Prompt(door.open_prompt) end			
+				if door.prompt_display == 2 then Prompt(door.open_prompt) end
 				if g_KeyPressE == 1 then
 					PlaySound( e, 0 )
 					door.state = 'opening'
@@ -124,25 +124,25 @@ function door_rotate_multi_main( e )
 				keyPressed[e] = true
 			end
 		end
-		
+
 	elseif
 	   door.state == 'open' then
 		if Ent.activated == 0 then
 			door.state = 'closing'
 			PlaySound( e, 1 )
-		end			
+		end
 		if PlayerDist < door.use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,door.use_range,200)
+			module_misclib.pinpoint(e,door.use_range,0)
 			tEnt[e] = g_tEnt
-			--end pinpoint select object--			
+			--end pinpoint select object--
 		end
 		if PlayerDist < door.use_range and tEnt[e] ~= 0 then
 			if door.door_style == 1 then
 				if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.close_prompt) end
 				if door.prompt_display == 2 then Prompt(door.close_prompt) end
 				if g_KeyPressE == 1 then
-					door.state = 'closing' 
+					door.state = 'closing'
 					keyPressed[e] = true
 					PlaySound( e, 1 )
 				end
@@ -150,11 +150,11 @@ function door_rotate_multi_main( e )
 			if door.door_style == 3 then
 				PlaySound( e, 0 )
 				door.state = 'closing'
-				keyPressed[e] = true				
+				keyPressed[e] = true
 			end
 		end
-	
-	elseif 
+
+	elseif
 	   door.state == 'opening' then
 		door.blocking = 2
 		door.blocking = NAVMESH.HandleBlocker(e,door.blocking,door.origx,door.origy,door.origz)
@@ -162,11 +162,11 @@ function door_rotate_multi_main( e )
 			door.angle = door.angle + door.rInc * timeDiff[e]
 			RotateDoor( e, door )
 		else
-			door.state = 'open' 
+			door.state = 'open'
 			SetEntityActivated( e, 1 )
 			door.blocking = 2
 		end
-		
+
 	elseif
 	   door.state == 'closing' then
 		if door.angle > 0 then
@@ -190,4 +190,4 @@ function RotateDoor( e, door )
 	CollisionOff( e )
 	ResetRotation( e, deg( ax ), deg( ay ), deg( az ) )
 	CollisionOn( e )
-end 
+end

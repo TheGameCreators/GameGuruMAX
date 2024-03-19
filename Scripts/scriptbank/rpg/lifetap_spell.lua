@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v20
+-- Lifetap Spell v21
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Lifetap Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
 
@@ -30,6 +31,7 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local item_highlight 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -47,7 +49,7 @@ local tplayerlevel		= {}
 local played			= {}
 local entaffected		= {}
 
-function lifetap_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
+function lifetap_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
 	lifetap_spell[e].prompt_text = prompt_text
 	lifetap_spell[e].useage_text = useage_text
 	lifetap_spell[e].pickup_range = pickup_range
@@ -58,6 +60,7 @@ function lifetap_spell_properties(e, prompt_text, useage_text, pickup_range, use
 	lifetap_spell[e].player_level = player_level
 	lifetap_spell[e].particle1_name = lower(particle1_name)
 	lifetap_spell[e].particle2_name = lower(particle2_name)
+	lifetap_spell[e].item_highlight = item_highlight
 end
 
 function lifetap_spell_init(e)
@@ -74,6 +77,7 @@ function lifetap_spell_init(e)
 	lifetap_spell[e].particle2_name = ""
 	lifetap_spell[e].particle1_number = 0
 	lifetap_spell[e].particle2_number = 0
+	lifetap_spell[e].item_highlight = 0	
 	lifetap_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -129,7 +133,7 @@ function lifetap_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < lifetap_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,lifetap_spell[e].pickup_range,300)
+			module_misclib.pinpoint(e,lifetap_spell[e].pickup_range,lifetap_spell[e].item_highlight)
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

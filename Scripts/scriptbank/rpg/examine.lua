@@ -5,6 +5,7 @@
 -- DESCRIPTION: [EXAMINE_MESSAGE$="Hmmm..."]
 -- DESCRIPTION: [EXAMINE_SPEED=50]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"

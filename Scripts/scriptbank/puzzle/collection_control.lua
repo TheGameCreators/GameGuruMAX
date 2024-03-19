@@ -1,4 +1,4 @@
--- Collection Control v7 by Necrym59
+-- Collection Control v8 by Necrym59
 -- DESCRIPTION: This behavior allows for configuration for control of a collection count.
 -- DESCRIPTION: Use the Collection Count behavior for the pickup items.
 -- DESCRIPTION: [OBJECTIVES=6] to collect to win
@@ -52,7 +52,7 @@ function collection_control_init(e)
 end
 
 function collection_control_main(e)
-	if status[e] == "init" then
+	if status[e] == "init" then	
 		g_collection_objectives = cc_control[e].objectives
 		g_collection_time = cc_control[e].collection_time * 1000		
 		g_collection_counted = 0
@@ -66,6 +66,7 @@ function collection_control_main(e)
 		if cc_control[e].on_completion == 2 then PerformLogicConnections(e) end
 		if cc_control[e].on_completion == 3 then ActivateIfUsed(e) end	
 		if cc_control[e].on_completion == 4 then WinGame() end
+		Destroy(e)
 	end
 	if g_collection_counted > 0 and doonce[e] == 0 then
 		StartTimer(e)

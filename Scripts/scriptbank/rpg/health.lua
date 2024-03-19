@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource.
--- Health v19 by Necrym59 and Lee
+-- Health v20 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -139,6 +139,7 @@ function health_main(e)
 	end
 	if addquantity[e] == 2 then
 		SetPlayerHealth(g_PlayerHealth - health[e].quantity)
+		SetPlayerHealthCore(g_PlayerHealth)
 		if health[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] - health[e].quantity

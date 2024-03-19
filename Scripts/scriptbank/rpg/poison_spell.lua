@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v20
+-- Poison Spell v21
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Poison Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
@@ -30,6 +31,7 @@ local cast_radius				= {}
 local player_level				= {}
 local particle1_name			= {}
 local particle2_name			= {}
+local item_highlight 			= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -49,7 +51,7 @@ local tplayerlevel		= {}
 local played			= {}
 local entaffected		= {}
 
-function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
+function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
 	poison_spell[e].prompt_text = prompt_text
 	poison_spell[e].useage_text = useage_text
 	poison_spell[e].pickup_range = pickup_range
@@ -60,6 +62,7 @@ function poison_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	poison_spell[e].player_level = player_level
 	poison_spell[e].particle1_name = lower(particle1_name)
 	poison_spell[e].particle2_name = lower(particle2_name)
+	poison_spell[e].item_highlight = item_highlight	
 end
 
 function poison_spell_init(e)
@@ -76,6 +79,7 @@ function poison_spell_init(e)
 	poison_spell[e].particle2_name = ""
 	poison_spell[e].particle1_number = 0
 	poison_spell[e].particle2_number = 0
+	poison_spell[e].item_highlight = 0	
 	poison_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -133,7 +137,7 @@ function poison_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < poison_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,poison_spell[e].pickup_range,300)
+			module_misclib.pinpoint(e,poison_spell[e].pickup_range,poison_spell[e].item_highlight)
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end	

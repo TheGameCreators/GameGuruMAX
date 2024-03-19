@@ -1,10 +1,11 @@
--- Crafting Table v10
+-- Crafting Table v11
 -- DESCRIPTION: The attached object can be used as a crafting table.
 -- DESCRIPTION: When player is within [USE_RANGE=100] distance,
 -- DESCRIPTION: show [USE_PROMPT$="Press E to begin crafting"] and
 -- DESCRIPTION: when use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
 -- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when crafting started.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -16,16 +17,20 @@ local use_range 		= {}
 local use_prompt 		= {}
 local craft_screen 		= {}
 local craft_container 	= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
+
 local tEnt 				= {}
 local selectobj			= {}
 local played			= {}
 
-function crafting_table_properties(e, use_range, use_prompt, craft_screen, craft_container, prompt_display)
+function crafting_table_properties(e, use_range, use_prompt, craft_screen, craft_container, prompt_display, item_highlight)
 	crafting_table[e].use_range = use_range
 	crafting_table[e].use_prompt = use_prompt
 	crafting_table[e].craft_screen = craft_screen
 	crafting_table[e].craft_container = craft_container
 	crafting_table[e].prompt_display = prompt_display
+	crafting_table[e].item_highlight = item_highlight	
 end
 
 function crafting_table_init(e)
@@ -35,6 +40,8 @@ function crafting_table_init(e)
 	crafting_table[e].craft_screen = "HUD Screen 7"
 	crafting_table[e].craft_container = "chest"
 	crafting_table[e].prompt_display = 1
+	crafting_table[e].item_highlight = 0
+	
 	tEnt[e] = 0
 	g_tEnt = 0 
 	selectobj[e] = 0
@@ -47,7 +54,7 @@ function crafting_table_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < crafting_table[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,crafting_table[e].use_range,300)
+			module_misclib.pinpoint(e,crafting_table[e].use_range,crafting_table[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

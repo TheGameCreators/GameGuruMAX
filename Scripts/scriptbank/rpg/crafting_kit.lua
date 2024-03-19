@@ -1,4 +1,4 @@
--- Crafting Kit v10   by Necrym59
+-- Crafting Kit v11   by Necrym59
 -- DESCRIPTION: The attached object can be used as a portable crafting kit.
 -- DESCRIPTION: Set object as Collectable.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] [PICKUP_RANGE=80(1,100)]
@@ -8,6 +8,7 @@
 -- DESCRIPTION: When use key is pressed, will open the [CRAFT_SCREEN$="HUD Screen 7"]
 -- DESCRIPTION: using [CRAFT_CONTAINER$="chest"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for pickup
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -23,13 +24,16 @@ local pickup_style		= {}
 local useage_text		= {}
 local craft_screen 		= {}
 local craft_container 	= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
+
 local have_crafting_kit = {}
 local selectobj 		= {}
 local doonce 			= {}
 local tEnt 				= {}
 local played			= {}
 
-function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, craft_screen, craft_container, prompt_display)
+function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, craft_screen, craft_container, prompt_display, item_highlight)
 	crafting_kit[e].pickup_text = pickup_text
 	crafting_kit[e].pickup_range = pickup_range
 	crafting_kit[e].pickup_style = pickup_style
@@ -37,7 +41,8 @@ function crafting_kit_properties(e, pickup_text, pickup_range, pickup_style, use
 	crafting_kit[e].useage_key = lower(useage_key)
 	crafting_kit[e].craft_screen = craft_screen
 	crafting_kit[e].craft_container = craft_container
-	crafting_kit[e].prompt_display = prompt_display	
+	crafting_kit[e].prompt_display = prompt_display
+	crafting_kit[e].item_highlight = item_highlight
 end
 
 function crafting_kit_init(e)
@@ -49,7 +54,9 @@ function crafting_kit_init(e)
 	crafting_kit[e].useage_key = "U"
 	crafting_kit[e].craft_screen = "HUD Screen 7"
 	crafting_kit[e].craft_container = "chest"
-	crafting_kit[e].prompt_display = 1	
+	crafting_kit[e].prompt_display = 1
+	crafting_kit[e].item_highlight = 0
+	
 	have_crafting_kit[e] = 0
 	selectobj[e] = 0
 	tEnt[e] = 0
@@ -82,7 +89,7 @@ function crafting_kit_main(e)
 
 	if crafting_kit[e].pickup_style == 2 and PlayerDist < crafting_kit[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,crafting_kit[e].pickup_range,300)
+		module_misclib.pinpoint(e,crafting_kit[e].pickup_range,crafting_kit[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if have_crafting_kit[e] == 0 then

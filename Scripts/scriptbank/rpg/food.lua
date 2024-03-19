@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a food health boost or deduction if consumed.
--- Food v13
+-- Food v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Food consumed"]
@@ -127,7 +127,8 @@ function food_main(e)
 			_G["g_UserGlobal['"..food[e].user_global_affected.."']"] = currentvalue + food[e].quantity
 			if _G["g_UserGlobal['"..food[e].user_global_affected.."']"] >= 100 then _G["g_UserGlobal['"..food[e].user_global_affected.."']"] = 100 end
 			SetPlayerHealth(g_PlayerHealth + food[e].quantity)
-			if g_PlayerHealth > g_gameloop_StartHealth then g_PlayerHealth = g_gameloop_StartHealth end
+			if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+			SetPlayerHealthCore(g_PlayerHealth)
 		end
 	end
 	if addquantity == 2 then
@@ -137,6 +138,7 @@ function food_main(e)
 			if _G["g_UserGlobal['"..food[e].user_global_affected.."']"] <= 0 then _G["g_UserGlobal['"..food[e].user_global_affected.."']"] = 0 end
 		end
 		SetPlayerHealth(g_PlayerHealth - food[e].quantity)
+		SetPlayerHealthCore(g_PlayerHealth)
 		if g_PlayerHealth <= 0 then g_PlayerHealth = 0 end
 		PlaySound(e,2)
 	end

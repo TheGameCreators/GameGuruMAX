@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to hold the target for a period.
--- Root Spell v20
+-- Root Spell v21
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Root Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
@@ -30,6 +31,7 @@ local cast_radius 				= {}
 local player_level 				= {}
 local particle1_name 			= {}
 local particle2_name 			= {}
+local item_highlight 			= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -51,7 +53,7 @@ local root_time 		= {}
 local current_time		= {}
 local entaffected		= {}
 
-function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
+function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
 	root_spell[e].prompt_text = prompt_text
 	root_spell[e].useage_text = useage_text
 	root_spell[e].pickup_range = pickup_range
@@ -62,6 +64,7 @@ function root_spell_properties(e, prompt_text, useage_text, pickup_range, user_g
 	root_spell[e].player_level = player_level
 	root_spell[e].particle1_name = lower(particle1_name)
 	root_spell[e].particle2_name = lower(particle2_name)
+	root_spell[e].item_highlight = item_highlight	
 end
 
 function root_spell_init(e)
@@ -78,6 +81,7 @@ function root_spell_init(e)
 	root_spell[e].particle2_name = ""
 	root_spell[e].particle1_number = 0
 	root_spell[e].particle2_number = 0
+	root_spell[e].item_highlight = 0	
 	root_spell[e].cast_timeout = 0
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -137,7 +141,7 @@ function root_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < root_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,root_spell[e].pickup_range,300)
+			module_misclib.pinpoint(e,root_spell[e].pickup_range,root_spell[e].item_highlight)
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

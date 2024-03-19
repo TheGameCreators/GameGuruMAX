@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Scuba Version 12
+-- Scuba Version 14
 -- DESCRIPTION: Attached object pick up gives extended diving capability. Auto activates when underwater. Set Always active ON
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [PROMPT_TEXT$="E to pickup"]
@@ -7,6 +7,8 @@
 -- DESCRIPTION: [@COMPASS_DISPLAY=1(1=On, 2=Off)] On or Off
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\scuba\\mask.png"]
 -- DESCRIPTION: [@SCUBA_MASK=1(1=On, 2=Off)]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -19,6 +21,9 @@ local dive_time			= {}
 local compass_display	= {}
 local mask_image		= {}
 local scuba_mask		= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
+
 local dive_secs			= {}
 local last_gun			= {}
 local scubagear			= {}
@@ -33,15 +38,15 @@ local compass 			= {}
 local selectobj 		= {}
 local tEnt 				= {}
 	
-function scuba_properties(e, pickup_range, prompt_text, dive_time, compass_display, mask_image, scuba_mask, dive_secs)
-	scuba[e] = g_Entity[e]
+function scuba_properties(e, pickup_range, prompt_text, dive_time, compass_display, mask_image, scuba_mask, prompt_display, item_highlight)
 	scuba[e].pickup_range = pickup_range
 	scuba[e].prompt_text = prompt_text	
 	scuba[e].dive_time = dive_time
 	scuba[e].compass_display = compass_display	
 	scuba[e].mask_image = imagefile or mask_image
 	scuba[e].scuba_mask = scuba_mask
-	scuba[e].dive_secs = (scuba[e].dive_time*1000)*60
+	scuba[e].prompt_display = prompt_display
+	scuba[e].item_highlight = item_highlight
 end
 	
 function scuba_init(e)
@@ -53,15 +58,17 @@ function scuba_init(e)
 	scuba[e].compass_display = 1
 	scuba[e].mask_image = "imagebank\\scuba\\mask.png"
 	scuba[e].scuba_mask = 1
+	scuba[e].prompt_display = 1
+	scuba[e].item_highlight = 0	
 	scuba[e].dive_secs = (scuba[e].dive_time*1000)*60
 	
-	scubagear = CreateSprite(LoadImage(scuba[e].mask_image))
-	SetSpriteSize(scubagear,100,100)
-	SetSpritePosition(scubagear,200,200)
+	scubagear[e] = CreateSprite(LoadImage(scuba[e].mask_image))
+	SetSpriteSize(scubagear[e],100,100)
+	SetSpritePosition(scubagear[e],200,200)
 	oxbar = LoadImage("imagebank\\scuba\\oxygen-bar.png")
-	oxbarsprite = CreateSprite(oxbar)
-	SetSpriteSize(oxbarsprite,100,100)
-	SetSpritePosition(oxbarsprite,200,200)
+	oxbarsprite[e] = CreateSprite(oxbar)
+	SetSpriteSize(oxbarsprite[e],100,100)
+	SetSpritePosition(oxbarsprite[e],200,200)
 	oxLevel[e] = 0
 	alreadyhaveair[e] = 0
 	tEnt[e] = 0
@@ -72,17 +79,18 @@ function scuba_init(e)
 end
  
 function scuba_main(e)
-	scuba[e] = g_Entity[e]	
+	
 	PlayerDist = GetPlayerDistance(e)
 	
 	if have_scubagear == 0 then
 		if PlayerDist < scuba[e].pickup_range and have_scubagear == 0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,scuba[e].pickup_range,300)
+			module_misclib.pinpoint(e,scuba[e].pickup_range,scuba[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 			if PlayerDist < scuba[e].pickup_range and tEnt[e] ~= 0 and have_scubagear == 0 then
-				PromptLocal(e,scuba[e].prompt_text)
+				if scuba[e].prompt_display == 1 then PromptLocal(e,scuba[e].prompt_text) end
+				if scuba[e].prompt_display == 2 then Prompt(scuba[e].prompt_text) end
 				if g_KeyPressE == 1 then
 					have_scubagear = 1
 					PlaySound(e,0)				
@@ -102,20 +110,20 @@ function scuba_main(e)
 			status[e] = "endinit"
 		end
 		if have_scubagear == 1 then			
-			if scuba[e].scuba_mask == 1 then PasteSpritePosition(scubagear,0,0) end
+			if scuba[e].scuba_mask == 1 then PasteSpritePosition(scubagear[e],0,0) end
 			if scuba[e].compass_display == 1 then show_compass() end
 			oxLevel[e] = GetGamePlayerControlDrownTimestamp()-Timer()
 			if GetDesktopWidth() > 1024 then 
-				SetSpriteSize(oxbarsprite,(oxLevel[e]/600)/50,1)			
-				SetSpriteOffset(oxbarsprite,((oxLevel[e]/600)/50)/2,0)
+				SetSpriteSize(oxbarsprite[e],(oxLevel[e]/600)/50,1)			
+				SetSpriteOffset(oxbarsprite[e],((oxLevel[e]/600)/50)/2,0)
 			else
-				SetSpriteSize(oxbarsprite,(oxLevel[e]/800)/50,1)			
-				SetSpriteOffset(oxbarsprite,((oxLevel[e]/800)/50)/2,0)
+				SetSpriteSize(oxbarsprite[e],(oxLevel[e]/800)/50,1)			
+				SetSpriteOffset(oxbarsprite[e],((oxLevel[e]/800)/50)/2,0)
 			end
-			SetSpriteDepth(oxbarsprite,0)			
-			PasteSpritePosition(oxbarsprite,50,95)
-			if GetGamePlayerControlInWaterState()== 2 and oxLevel[e] > 8000 then SetSpriteColor(oxbarsprite,0,225,255,150) end	
-			if GetGamePlayerControlInWaterState()== 2 and oxLevel[e] < 8000 then SetSpriteColor(oxbarsprite,255,0,0,150) end				
+			SetSpriteDepth(oxbarsprite[e],0)			
+			PasteSpritePosition(oxbarsprite[e],50,95)
+			if GetGamePlayerControlInWaterState()== 2 and oxLevel[e] > 8000 then SetSpriteColor(oxbarsprite[e],0,225,255,150) end	
+			if GetGamePlayerControlInWaterState()== 2 and oxLevel[e] < 8000 then SetSpriteColor(oxbarsprite[e],255,0,0,150) end				
 			if scuba[e].scuba_mask == 1 then TextCenterOnXColor(50,94.5,2,"Oxygen Supply Level",0,225,255) end
 			if scuba[e].dive_secs >= 1 then
 				scuba[e].dive_secs = (scuba[e].dive_secs-12)				

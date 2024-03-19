@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a health boost if collected.
--- Oxygen v4 - by Necrym59
+-- Oxygen v5 - by Necrym59
 -- DESCRIPTION: The object will give the player a oxygen boost and health boost if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to use"]
 -- DESCRIPTION: [HEALTH_QUANTITY=10(1,40)]
@@ -8,6 +8,7 @@
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [COLLECTED_TEXT$="Collected oxygen supply"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: Play <Sound0> when the object is picked up by the player.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -22,11 +23,13 @@ local pickup_range = {}
 local pickup_style = {}
 local collected_text = {}
 local prompt_display = {}
+local item_highlight = {}
+
 local selectobj = {}
 local tEnt = {}
 local currentvalue = {}	
 
-function oxygen_properties(e, prompt_text, heath_quantity, oxygen_quantity, pickup_range, pickup_style, collected_text, prompt_display)
+function oxygen_properties(e, prompt_text, heath_quantity, oxygen_quantity, pickup_range, pickup_style, collected_text, prompt_display, item_highlight)
 	oxygen[e].prompt_text = prompt_text
 	oxygen[e].heath_quantity = heath_quantity
 	oxygen[e].oxygen_quantity = oxygen_quantity
@@ -34,6 +37,7 @@ function oxygen_properties(e, prompt_text, heath_quantity, oxygen_quantity, pick
 	oxygen[e].pickup_style = pickup_style
 	oxygen[e].collected_text = collected_text
 	oxygen[e].prompt_display = prompt_display
+	oxygen[e].item_highlight = item_highlight
 	if user_global_affected == nil then user_global_affected = "" end
 end
 
@@ -46,7 +50,7 @@ function oxygen_init(e)
 	oxygen[e].pickup_style = 1
 	oxygen[e].collected_text = "Collected oxygen supply"
 	oxygen[e].prompt_display = 1
-	
+	oxygen[e].item_highlight = 0	
 	selectobj[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
@@ -71,7 +75,7 @@ function oxygen_main(e)
 	end
 	if oxygen[e].pickup_style == 2 and PlayerDist < oxygen[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,oxygen[e].pickup_range,300)
+		module_misclib.pinpoint(e,oxygen[e].pickup_range,oxygen[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if PlayerDist < oxygen[e].pickup_range and tEnt[e] ~= 0 then

@@ -1,11 +1,11 @@
 -- Change Texture v9
 -- DESCRIPTION: Changes the object texture when activated by another object.
--- DESCRIPTION: Default texture is [IMAGEFILE1$=""] and the alternative texture is [IMAGEFILE2$=""]. 
+-- DESCRIPTION: Default texture is [IMAGEFILE1$=""] and the alternative texture is [IMAGEFILE2$=""].
 -- DESCRIPTION: Control texture UV scale using [#TEXTURE_SCALE_U=1.0] and [#TEXTURE_SCALE_V=1.0].
 -- DESCRIPTION: Control texture UV offset using [#TEXTURE_OFFSET_U=0.0] and [#TEXTURE_OFFSET_V=0.0].
 -- DESCRIPTION: Control texture UV direction using [#SCROLL_DIRECTION_U=0.0] and [#SCROLL_DIRECTION_V=0.0].
 -- DESCRIPTION: Control texture UV speed using [#TEXTURE_SPEED=0.0].
--- DESCRIPTION: Control texture atlas animation using [atlas_texture_rows=0] and [atlas_texture_columns=0].
+-- DESCRIPTION: Control texture atlas animation using [ATLAS_TEXTURE_ROWS=0] and [atlas_texture_columns=0].
 -- DESCRIPTION: If PBR textures exist alongside the image files, they will be applied to the object as well.
 -- DESCRIPTION: Control material emissive strength using [#MATERIAL1_EMISSIVE_STRENGTH=300.0] and [#MATERIAL2_EMISSIVE_STRENGTH=300.0].
 -- DESCRIPTION: Control emissive variance using [#EMISSIVE_STRENGTH_VARIANCE=0(0,100)]
@@ -45,13 +45,13 @@ function change_texture_properties(e,imagefile1,imagefile2,texture_scale_u,textu
 	change_texture[e].material1_emissive_strength = material1_emissive_strength
 	change_texture[e].material2_emissive_strength = material2_emissive_strength
 	if emissive_strength_variance == nil then emissive_strength_variance = 50 end
-	change_texture[e].emissive_strength_variance = emissive_strength_variance	
-	if string.len(imagefile1)>0 then 
-		SetEntityTexture(e,change_texture[e].imagefile1id) 
+	change_texture[e].emissive_strength_variance = emissive_strength_variance
+	if string.len(imagefile1)>0 then
+		SetEntityTexture(e,change_texture[e].imagefile1id)
 		SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)
 	end
-	if string.len(imagefile2)>0 then 
-		SetEntityTexture(e,change_texture[e].imagefile2id) 
+	if string.len(imagefile2)>0 then
+		SetEntityTexture(e,change_texture[e].imagefile2id)
 		SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)
 	end
 	SetEntityTextureScale(e,texture_scale_u,texture_scale_v)
@@ -86,31 +86,31 @@ function change_texture_main(e)
 	if status[e] == "init" then
 		status[e] = "endinit"
 	end
-	if g_Entity[e].activated == 1 then		
+	if g_Entity[e].activated == 1 then
 		if change_texture[e].imagemode == 1 then
-			if string.len(change_texture[e].imagefile2)>0 then 
-				SetEntityTexture(e,change_texture[e].imagefile2id) 
-				SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)								
+			if string.len(change_texture[e].imagefile2)>0 then
+				SetEntityTexture(e,change_texture[e].imagefile2id)
+				SetEntityEmissiveStrength(e,change_texture[e].material2_emissive_strength)
 			end
 			change_texture[e].imagemode = 2
 		end
 	else
 		if change_texture[e].imagemode == 2 then
-			if string.len(change_texture[e].imagefile1)>0 then 
-				SetEntityTexture(e,change_texture[e].imagefile1id) 
-				SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)								
-			end			
+			if string.len(change_texture[e].imagefile1)>0 then
+				SetEntityTexture(e,change_texture[e].imagefile1id)
+				SetEntityEmissiveStrength(e,change_texture[e].material1_emissive_strength)
+			end
 			change_texture[e].imagemode = 1
 		end
 	end
 	if change_texture[e].texture_speed > 0 then
-		if GetTimer(e) > change_texture[e].textimer then 
+		if GetTimer(e) > change_texture[e].textimer then
 			change_texture[e].textimer = GetTimer(e) + change_texture[e].texture_speed
 			if change_texture[e].atlas_texture_rows > 0 and change_texture[e].atlas_texture_columns > 0 then
 				-- frame animation
 				change_texture[e].texframe = change_texture[e].texframe + 1
 				local totalframes = change_texture[e].atlas_texture_rows * change_texture[e].atlas_texture_columns
-				if change_texture[e].texframe >= totalframes then 
+				if change_texture[e].texframe >= totalframes then
 					change_texture[e].texframe = 0
 				end
 				local columnindex = math.floor(change_texture[e].texframe / change_texture[e].atlas_texture_rows)
@@ -118,7 +118,7 @@ function change_texture_main(e)
 				local rowsize = 1.0 / change_texture[e].atlas_texture_rows
 				local columnsize = 1.0 / change_texture[e].atlas_texture_columns
 				SetEntityTextureScale(e,rowsize,columnsize)
-				change_texture[e].texture_offset_u = math.fmod(rowindex*rowsize,1)	
+				change_texture[e].texture_offset_u = math.fmod(rowindex*rowsize,1)
 				change_texture[e].texture_offset_v = math.fmod(columnindex*columnsize,1)
 			else
 				-- simple scrolling
@@ -127,7 +127,7 @@ function change_texture_main(e)
 				change_texture[e].texture_offset_v = math.fmod(change_texture[e].texture_offset_v + change_texture[e].scroll_direction_v,1)
 			end
 			SetEntityTextureOffset(e,change_texture[e].texture_offset_u,change_texture[e].texture_offset_v)
-		end	
+		end
 		-- simple emmission variance
 		if change_texture[e].emissive_strength_variance ~= 0 then
 			SetEntityEmissiveStrength(e, math.random(change_texture[e].material1_emissive_strength - change_texture[e].emissive_strength_variance,change_texture[e].material1_emissive_strength))
@@ -135,4 +135,3 @@ function change_texture_main(e)
 		end
 	end
 end
-				

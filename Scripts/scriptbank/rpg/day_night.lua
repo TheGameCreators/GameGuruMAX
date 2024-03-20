@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Day_Night v13 by Necrym59 and Lee
+-- Day_Night v14 by Necrym59 and Lee
 -- DESCRIPTION: A Day/Night Time Cycler. Set ALWAYS ON
 -- DESCRIPTION: [#START_ANGLE=-95(-180,180)]
 -- DESCRIPTION: [TIME_DILATION=1(1,1000)]
@@ -19,7 +19,7 @@
 -- DESCRIPTION: [MAX_INTENSITY#=7.40(0.01,50.00)]
 -- DESCRIPTION: [@TRIGGER_EVENT=25(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=None)]
 -- DESCRIPTION: [@START_DAY=1(1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday, 5=Thursday, 6=Friday, 7=Saturday)]
--- DESCRIPTION: [READOUT_USER_GLOBAL$="MyUserGlobal"] reports day and time
+-- DESCRIPTION: [READOUT_USER_GLOBAL$="MyUserGlobal"] User Global for displaying day and time
 
 g_sunrollposition = {}
 
@@ -335,7 +335,8 @@ function day_night_main(e)
 	if day_night[e].start_day == 5 then currentdaytime[e] = ("Thursday  " ..tod[e]) end
 	if day_night[e].start_day == 6 then currentdaytime[e] = ("Friday  " ..tod[e]) end	
 	if day_night[e].start_day == 7 then currentdaytime[e] = ("Saturday  " ..tod[e]) end	
-	if day_night[e].readout_user_global ~= "" then
+	
+	if _G["g_UserGlobal['"..day_night[e].readout_user_global.."']"] ~= nil or day_night[e].readout_user_global ~= "" then
 		_G["g_UserGlobal['"..day_night[e].readout_user_global.."']"] = currentdaytime[e]			
 	end
 	

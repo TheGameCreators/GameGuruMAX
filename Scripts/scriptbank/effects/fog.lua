@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Fog v4 by Necrym59
+-- Fog v5 by Necrym59
 -- DESCRIPTION: When activated sets fog to the required settings. Add to an object then link to a Zone to activate, link to a second Zone to de-activate.
 -- DESCRIPTION: [PROMPT_TEXT$="Fog strength is changing"]
 -- DESCRIPTION: [FOG_NEAREST=1(0,1000)] [FOG_DISTANCE=5(0,1000)] [FOG_SPEED=10(1,100)]
@@ -21,7 +21,6 @@
 	local played			= {}
 
 function fog_properties(e, prompt_text, fog_nearest, fog_distance, fog_speed)
-	fog[e] = g_Entity[e]
 	fog[e].prompt_text = prompt_text
 	fog[e].fog_nearest = fog_nearest
 	fog[e].fog_distance	= fog_distance
@@ -29,7 +28,7 @@ function fog_properties(e, prompt_text, fog_nearest, fog_distance, fog_speed)
 end
 
 function fog_init(e)
-	fog[e] = g_Entity[e]
+	fog[e] = {}
 	fog[e].prompt_text = "Fog strength is changing"
 	fog[e].fog_nearest = 1
 	fog[e].fog_distance	= 5
@@ -45,7 +44,6 @@ function fog_init(e)
 end
 
 function fog_main(e)
-	fog[e] = g_Entity[e]
 
 	if status[e] == "init" then
 		fogswitch[e] = 0

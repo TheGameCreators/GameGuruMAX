@@ -1,4 +1,4 @@
--- Shop v4
+-- Shop v5
 -- DESCRIPTION: The attached object can be used as a shop.
 -- DESCRIPTION: When player is within [USE_RANGE=100],
 -- DESCRIPTION: show [USE_PROMPT$="Press E to shop"] and
@@ -48,7 +48,7 @@ function shop_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < shop[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,shop[e].use_range,300)
+			module_misclib.pinpoint(e,shop[e].use_range,0)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

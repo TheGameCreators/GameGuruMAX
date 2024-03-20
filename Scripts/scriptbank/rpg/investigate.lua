@@ -1,5 +1,5 @@
 -- DESCRIPTION: Allows to receive information about an object.
--- Investigate v8
+-- Investigate v9
 -- DESCRIPTION: [PROMPT_TEXT$="E to investigate"]
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [@INVESTIGATION_STYLE=1(1=Text, 2=Text+Sound, 3=Image+Sound, 4=Text+Image+Sound)]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [EXIT_TEXT$="Q to exit"]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\investigate_01.png"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> investigate narration sound file
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -25,6 +26,7 @@ local freeze_screen = {}
 local exit_text = {}
 local investigate_image = {}
 local prompt_display = {}
+local item_highlight = {}
 
 local investigatesp = {}
 local status = {}
@@ -34,7 +36,7 @@ local played = {}
 local tEnt = {}
 local selectobj = {}
 
-function investigate_properties(e, prompt_text, use_range, investigation_style, investigation_text, text_position_y, freeze_screen, exit_text, investigation_image, prompt_display)
+function investigate_properties(e, prompt_text, use_range, investigation_style, investigation_text, text_position_y, freeze_screen, exit_text, investigation_image, prompt_display, item_highlight)
 	investigate[e].prompt_text = prompt_text
 	investigate[e].use_range = use_range
 	investigate[e].investigation_style = investigation_style
@@ -44,6 +46,7 @@ function investigate_properties(e, prompt_text, use_range, investigation_style, 
 	investigate[e].exit_text = exit_text	
 	investigate[e].investigation_image = investigation_image or imagefile
 	investigate[e].prompt_display = prompt_display
+	investigate[e].item_highlight = item_highlight
 end
 
 function investigate_init(e)
@@ -57,6 +60,8 @@ function investigate_init(e)
 	investigate[e].exit_text = exit_text	
 	investigate[e].investigation_image = ""
 	investigate[e].prompt_display = 1
+	investigate[e].item_highlight = 0
+	
 	imagesize[e] = 8
 	played[e] = 0
 	looking[e] = 0
@@ -86,7 +91,7 @@ function investigate_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < investigate[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,investigate[e].use_range,300)
+			module_misclib.pinpoint(e,investigate[e].use_range,investigate[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

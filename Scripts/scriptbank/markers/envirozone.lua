@@ -1,10 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Envirozone v4 by Necrym59
--- DESCRIPTION: The player will be effected with the selected mode while in this Zone
--- DESCRIPTION: Link to a trigger Zone.
+-- Envirozone v5 by Necrym59
+-- DESCRIPTION: The player will be effected with the selected environmental mode while in this Zone
 -- DESCRIPTION: [PROMPT_TEXT$="In Environment Effected Zone"]
--- DESCRIPTION: Environment [@EFFECT=1(1=Inhibited Walk/Run, 2=Health Loss, 3=Hurt, 4=No Weapons, 5=No Jumping, 6=Sniper Hit, 7=Alert Nearby Enemies , 8=No Flashlight)]
--- DESCRIPTION: Zone Height [ZONEHEIGHT=100(0,1000)]
+-- DESCRIPTION: [@EFFECT=1(1=Inhibited Walk/Run, 2=Health Loss, 3=Hurt, 4=No Weapons, 5=No Jumping, 6=Sniper Hit, 7=Alert Nearby Enemies , 8=No Flashlight)]
+-- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: <Sound0> - Effect Sound
 
@@ -21,7 +20,6 @@ local played			= {}
 local status			= {}
 
 function envirozone_properties(e, prompt_text, effect, zoneheight, SpawnAtStart)
-	envirozone[e] = g_Entity[e]
 	envirozone[e].prompt_text = prompt_text
 	envirozone[e].effect = effect
 	envirozone[e].zoneheight = zoneheight or 100
@@ -29,7 +27,7 @@ function envirozone_properties(e, prompt_text, effect, zoneheight, SpawnAtStart)
 end
 
 function envirozone_init(e)
-	envirozone[e] = g_Entity[e]
+	envirozone[e] = {}
 	envirozone[e].prompt_text = "In Environment Effected Zone"
 	envirozone[e].effect = 1
 	envirozone[e].zoneheight = 100
@@ -43,7 +41,6 @@ function envirozone_init(e)
 end
 
 function envirozone_main(e)
-	envirozone[e] = g_Entity[e]
 
 	if status[e] == "init" then
 		if envirozone[e].SpawnAtStart == 1 then	SetActivated(e,1) end

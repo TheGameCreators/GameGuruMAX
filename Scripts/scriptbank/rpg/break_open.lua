@@ -144,7 +144,7 @@ function break_open_main(e)
 			if doonce[e] == 0 then
 				for index = 1, 10, 1 do
 					WeaponID = GetPlayerWeaponID()
-					GetWeaponSlot (index, WeaponID, WeaponID)
+					GetWeaponSlot (index)
 					local amqty = GetWeaponPoolAmmo(index)
 					SetWeaponPoolAmmo(index,amqty + break_open[e].quantity)					
 				end

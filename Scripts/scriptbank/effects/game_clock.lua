@@ -31,7 +31,6 @@ local nulls = {}
 local status = {}
 
 function game_clock_properties(e, display_clock, display_type, display_x, display_y, display_text_size, start_hours, start_minutes, start_seconds)
-	g_clock[e] = {} 
     g_clock[e]["display_clock"] = display_clock
     g_clock[e]["display_type"] = display_type
 	g_clock[e]["display_x"] = display_x

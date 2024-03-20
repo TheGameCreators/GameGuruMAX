@@ -1,4 +1,4 @@
--- Flashlight v22: by Necrym59
+-- Flashlight v24: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -20,8 +20,10 @@
 -- DESCRIPTION: [@DEPLETION_TRIGGER=1(1=None, 2=ActivateIfUsed, 3=Lose Game)]
 -- DESCRIPTION: [UltraVioletMode!=0] highlights transparent enemies.
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyBatteryEnergy"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for Pickup sound
 -- DESCRIPTION: <Sound1> for switching on/off
+-- DESCRIPTION: <Sound2> for battery low
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -48,6 +50,7 @@ local pickup_trigger		= {}
 local depletion_trigger		= {}
 local UltraVioletMode		= {}
 local user_global_affected	= {}
+local item_highlight 		= {}
 
 local have_flashlight 	= {}
 local drain_level		= {}
@@ -63,7 +66,7 @@ local spottedEnt		= {}
 local spottedDist		= {}
 local spottedTran		= {}
 	
-function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useage_text, flashlight_range, flashlight_radius, flashlight_r, flashlight_g, flashlight_b, flashlight_shadows, battery_level, battery_drain, battery_recharge, battery_indicator, indicator_text, light_activation, pickup_trigger, depletion_trigger, UltraVioletMode, user_global_affected)
+function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useage_text, flashlight_range, flashlight_radius, flashlight_r, flashlight_g, flashlight_b, flashlight_shadows, battery_level, battery_drain, battery_recharge, battery_indicator, indicator_text, light_activation, pickup_trigger, depletion_trigger, UltraVioletMode, user_global_affected, item_highlight)
 	flashlight[e] = g_Entity[e]
 	flashlight[e].pickup_text = pickup_text
 	flashlight[e].pickup_range = pickup_range
@@ -85,6 +88,7 @@ function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useag
 	flashlight[e].depletion_trigger = depletion_trigger
 	flashlight[e].UltraVioletMode = UltraVioletMode
 	flashlight[e].user_global_affected = user_global_affected or ""	
+	flashlight[e].item_highlight = item_highlight	
 end 	
 	
 function flashlight_init(e)
@@ -109,6 +113,7 @@ function flashlight_init(e)
 	flashlight[e].depletion_trigger = 1
 	flashlight[e].UltraVioletMode =	0
 	flashlight[e].user_global_affected = "MyBatteryEnergy"
+	flashlight[e].item_highlight = 0	
 	
 	have_flashlight[e] = 0
 	drain_level[e] = 0
@@ -161,7 +166,7 @@ function flashlight_main(e)
 		end
 		if flashlight[e].pickup_style == 2 and PlayerDist < flashlight[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,flashlight[e].pickup_range,300)
+			module_misclib.pinpoint(e,flashlight[e].pickup_range,flashlight[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end		
@@ -226,6 +231,7 @@ function flashlight_main(e)
 			if flashlight[e].battery_indicator == 1 then TextCenterOnXColor(50,95,3,flashlight[e].indicator_text.. " " ..math.floor(flashlight[e].battery_level).. "%",100,255,100) end
 			if flashlight[e].battery_indicator == 2 then TextCenterOnXColor(50,5,3,flashlight[e].indicator_text.. " " ..math.floor(flashlight[e].battery_level).. "%",100,255,100) end
 		end
+		if flashlight[e].battery_level > 9 and flashlight[e].battery_level <= 10 then PlaySound(e,2) end
 		if flashlight[e].battery_level > 1 and flashlight[e].battery_level < 2 then
 			SetFlashLight(math.random(8))
 			SetGamePlayerStateFlashlightRange(math.random(flashlight[e].flashlight_range-10,flashlight[e].flashlight_range))

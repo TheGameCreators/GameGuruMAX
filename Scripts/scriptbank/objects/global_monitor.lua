@@ -22,7 +22,6 @@ local status 				= {}
 local doonce 				= {}
 
 function global_monitor_properties(e, user_global_affected, adjust_amount, time_interval, effect, ActivateAtStart)
-	global_monitor[e] = g_Entity[e]
 	global_monitor[e].user_global_affected = user_global_affected
 	global_monitor[e].adjust_amount = adjust_amount
 	global_monitor[e].time_interval = time_interval

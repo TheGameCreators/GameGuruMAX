@@ -1,11 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Gasmask v11   by Necrym59
+-- Gasmask v14   by Necrym59
 -- DESCRIPTION: The applied object will give the player a gas protection mask. Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] 
 -- DESCRIPTION: [PICKUP_RANGE=80(1-200)]
 -- DESCRIPTION: [USEAGE_TEXT$="G to wear, Q to remove"]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\gasmask.png"] for screen overlay
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> Put-on Remove Sound
 -- DESCRIPTION: <Sound1> Breathing Sound
 
@@ -13,14 +14,15 @@ local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
-g_gasmask = {}
 g_toxiczone = {}
-g_ppequipment = {}
+g_gasmask_on = {}
+
 local gasmask			= {}
 local pickup_text		= {}
 local useage_text		= {}
 local screen_image		= {}
-local prompt_display	= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
 
 local status			= {}
 local gasmasksp			= {}
@@ -31,12 +33,13 @@ local played			= {}
 local selectobj 		= {}
 local tEnt 				= {}
 	
-function gasmask_properties(e, pickup_text, pickup_range, useage_text, screen_image, prompt_display)
+function gasmask_properties(e, pickup_text, pickup_range, useage_text, screen_image, prompt_display, item_highlight)
 	gasmask[e].pickup_text = pickup_text
 	gasmask[e].pickup_range = pickup_range	
 	gasmask[e].useage_text = useage_text	
 	gasmask[e].screen_image = imagefile or screen_image
 	gasmask[e].prompt_display = prompt_display
+	gasmask[e].item_highlight = item_highlight	
 end 
 	
 function gasmask_init(e)
@@ -45,12 +48,13 @@ function gasmask_init(e)
 	gasmask[e].pickup_range = 80
 	gasmask[e].useage_text = "G to wear, Q to remove"
 	gasmask[e].screen_image = "imagebank\\misc\\testimages\\gasmask.png"
-	gasmask[e].prompt_display = 1	
+	gasmask[e].prompt_display = 1
+	gasmask[e].item_highlight = 0	
 	
 	status[e] = "init"
 	currenthealth[e] = 0	
 	have_gasmask = 0
-	g_ppequipment = 0  --Gasmask = 1, Radsuit = 2
+	g_gasmask_on = 0
 	played[e] = 0
 	gmswitch[e] = 0
 	selectobj[e] = 0
@@ -72,7 +76,7 @@ function gasmask_main(e)
 	if have_gasmask == 0 then
 		if PlayerDist < gasmask[e].pickup_range and g_PlayerHealth > 0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,gasmask[e].pickup_range,300)
+			module_misclib.pinpoint(e,gasmask[e].pickup_range,gasmask[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 			if PlayerDist < gasmask[e].pickup_range and tEnt[e] ~= 0 then
@@ -116,6 +120,7 @@ function gasmask_main(e)
 					played[e] = 1
 				end
 				gmswitch[e] = 1
+				g_gasmask_on = 1
 			end	
 		end
 		if gmswitch[e] == 1 then 	
@@ -125,19 +130,18 @@ function gasmask_main(e)
 					played[e] = 1
 				end
 				gmswitch[e] = 0
+				g_gasmask_on = 0
 			end
 		end
 		if gmswitch[e] == 1 then
 			PasteSpritePosition(gasmasksp,0,0)			
 			LoopSound(e,1)
-			if g_toxiczone == 'gas' then SetPlayerHealth(currenthealth[e]) end
-			g_ppequipment = 1
+			if g_toxiczone == 'gas' then SetPlayerHealth(currenthealth[e]) end						
 			played[e] = 0
 		end
 		if gmswitch[e] == 0 then			
 			StopSound(e,1)			
 			PasteSpritePosition(gasmasksp,1000,1000)
-			g_ppequipment = 0
 			played[e] = 0
 			currenthealth[e] = g_PlayerHealth
 		end

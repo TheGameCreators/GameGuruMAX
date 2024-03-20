@@ -1,4 +1,4 @@
--- Save Point v8 by Necrym59
+-- Save Point v9 by Necrym59
 -- DESCRIPTION: Saves a save point
 -- DESCRIPTION: Attach to an object, switch or trigger zone to activate
 -- DESCRIPTION: [@ACTIVATION=1(1=By Object/Switch, 2=By Zone)]
@@ -61,7 +61,7 @@ function save_point_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < savepoint[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,savepoint[e].use_range,200)
+			module_misclib.pinpoint(e,savepoint[e].use_range,0)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

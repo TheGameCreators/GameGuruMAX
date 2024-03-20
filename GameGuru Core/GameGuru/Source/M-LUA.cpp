@@ -707,6 +707,7 @@ void lua_loop_begin ( void )
 	if (bBringNewOnesToLife == true)
 	{
 		entity_bringnewentitiestolife(true);
+		LuaSetInt("g_NewEntitiesHaveBeenSpawnedInGame", 1);
 	}
 }
 

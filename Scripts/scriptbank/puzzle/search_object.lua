@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Search Object v10 by Necrym59
+-- Search Object v11 by Necrym59
 -- DESCRIPTION: Searching this object will give the player the selected contents? 
 -- DESCRIPTION: [PROMPT_TEXT$="E to Search"]
 -- DESCRIPTION: [@CONTENT=1(1=Ammo, 2=Health, 3=Named Item, 4=Nothing)]
@@ -13,6 +13,7 @@
 -- DESCRIPTION: [USE_RANGE=90(0,100)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local, 2=Screen)]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\search-bar.png"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> Searching sound
 -- DESCRIPTION: <Sound1> Found item sound
 
@@ -34,6 +35,7 @@ local search_trigger	= {}
 local use_range			= {}
 local prompt_display	= {}
 local searchbar_image	= {}
+local item_highlight 	= {}
 
 local searchbar		= {}
 local stime 		= {}
@@ -45,7 +47,7 @@ local playonce		= {}
 local tEnt 			= {}
 local selectobj 	= {}
 
-function search_object_properties(e, prompt_text, content, named_item, quantity, search_time, search_text, result_text, noise_range, search_trigger, use_range, prompt_display, searchbar_image)
+function search_object_properties(e, prompt_text, content, named_item, quantity, search_time, search_text, result_text, noise_range, search_trigger, use_range, prompt_display, searchbar_image, item_highlight)
 	searchobject[e].prompt_text = prompt_text
 	searchobject[e].content = content
 	searchobject[e].named_item = lower(named_item)
@@ -58,6 +60,7 @@ function search_object_properties(e, prompt_text, content, named_item, quantity,
 	searchobject[e].use_range = use_range
 	searchobject[e].prompt_display = prompt_display
 	searchobject[e].searchbar_image = searchbar_image or imagefile
+	searchobject[e].item_highlight = item_highlight	
 end
 
 function search_object_init(e)
@@ -74,6 +77,7 @@ function search_object_init(e)
 	searchobject[e].use_range = 90
 	searchobject[e].prompt_display = 1
 	searchobject[e].searchbar_image = "imagebank\\misc\\testimages\\search-bar.png"
+	searchobject[e].item_highlight = 0	
 	
 	searchbar[e] = CreateSprite(LoadImage(searchobject[e].searchbar_image))
 	SetSpriteSize(searchbar[e],5,-1)
@@ -111,7 +115,7 @@ function search_object_main(e)
 	end
 	if PlayerDist < searchobject[e].use_range and status[e] == "sealed" then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,searchobject[e].use_range,300)
+		module_misclib.pinpoint(e,searchobject[e].use_range,searchobject[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 		if PlayerDist < searchobject[e].use_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then

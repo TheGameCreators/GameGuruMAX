@@ -4860,7 +4860,9 @@ void game_main_loop ( void )
 		{
 			// Handle physics
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
+			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
 			physics_loop ( );
+			wiProfiler::EndRange(range2);
 
 			// read all slider values for player
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sliders readall");
@@ -4869,25 +4871,10 @@ void game_main_loop ( void )
 			//  Do weapon attachments AFTER physics moved objects (and if char killed off)
 			for ( g.charanimindex = 1 ; g.charanimindex <= g.charanimindexmax; g.charanimindex++ )
 			{
-				// update gun position in hand of character
-				//t.e = t.charanimstates[g.charanimindex].e;
-				//if ( t.e > 0 ) entity_controlattachments ( ); logic moved!
-
 				// detect collection of dropped guns
 				t.e = t.charanimstates[g.charanimindex].originale;
 				if ( t.e > 0 ) entity_monitorattachments ( );
 			}
-
-			//  But do allow third person protagonist attachment control
-			//if (  t.playercontrol.thirdperson.enabled == 1 ) 
-			//{
-				//t.e=t.playercontrol.thirdperson.charactere;
-				//if (  t.e>0 && t.player[1].health>0 ) 
-				//{
-					//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling entity_controlattachments");
-					//entity_controlattachments ( );
-				//}
-			//}
 
 			//  Construction Kit control
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling conkit_loop");
@@ -4917,12 +4904,12 @@ void game_main_loop ( void )
 			if ( t.hardwareinfoglobals.noai == 0 ) 
 			{
 				// LUA Logic
-				auto range1 = wiProfiler::BeginRangeCPU("Max - General - LUA Logic");
+				auto range1 = wiProfiler::BeginRangeCPU("Update - Logic - LUA");
 				lua_loop ( );
 				wiProfiler::EndRange(range1);
 
 				// Entity Logic
-				auto range2 = wiProfiler::BeginRangeCPU("Max - General - Object Logic");
+				auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Objects");
 				t.game.perf.ai1 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 				entity_loop ( );
 				entity_loopanim ( );
@@ -4930,7 +4917,7 @@ void game_main_loop ( void )
 				wiProfiler::EndRange(range2);
 
 				// Update all AI and Characters and VWeaps
-				auto range3 = wiProfiler::BeginRangeCPU("Max - General - AI Logic");
+				auto range3 = wiProfiler::BeginRangeCPU("Update - Logic - AI");
 				if ( t.aisystem.processlogic == 1 )
 				{
 					if ( t.visuals.debugvisualsmode<100 ) 
@@ -4944,9 +4931,6 @@ void game_main_loop ( void )
 				game_updatenavmeshsystem();
 			}
 			t.game.perf.ai += PerformanceTimer()-t.ttempoverallaiperftimerstamp;
-
-			// don't do this when in f9 mode
-			//if ( !g_occluderf9Mode) game_check_character_shader_entities ( );
 		}
 
 		// if third person, restore camera from protag-cam trick

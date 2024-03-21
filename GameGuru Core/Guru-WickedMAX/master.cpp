@@ -1450,6 +1450,7 @@ void Master::RunCustom()
 	}
 	else
 	{
+		// VR run calls
 		masterrenderer.SetRenderingVR(true);
 		
 		RenderPath* activePath = GetActivePath();
@@ -1473,7 +1474,7 @@ void Master::RunCustom()
 		}
 
 		// regular logic loop (stripped out render aspects)
-		auto range = wiProfiler::BeginRangeCPU("Max - General");
+		auto range = wiProfiler::BeginRangeCPU("Update - Logic");
 		bool bFullyInitialised = GuruLoopLogic();
 		wiProfiler::EndRange(range);
 
@@ -1491,7 +1492,7 @@ void Master::RunCustom()
 
 			// must be outside a render pass and only called once, even if VR renders twice
 			CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-			range = wiProfiler::BeginRangeCPU("Max - GPUP Particles");
+			range = wiProfiler::BeginRangeCPU("Update - Particles");
 			gpup_update(deltaTime, cmd);
 			wiProfiler::EndRange(range);
 
@@ -1663,7 +1664,7 @@ void Master::RunCustom()
 				GGVR_SetHMDDirectly(vecAngles.x, vecAngles.y, vecAngles.z, vecNormal.x, vecNormal.y, vecNormal.z);
 
 				// Fixed time update
-				auto range = wiProfiler::BeginRangeCPU("Fixed Update");
+				//auto range = wiProfiler::BeginRangeCPU("Fixed Update");
 				{
 					if (frameskip)
 					{
@@ -1685,7 +1686,7 @@ void Master::RunCustom()
 						FixedUpdate();
 					}
 				}
-				wiProfiler::EndRange(range); // Fixed Update
+				//wiProfiler::EndRange(range); // Fixed Update
 
 				GGTrees_UpdateFrustumCulling( &wiScene::GetCamera() );
 
@@ -2019,7 +2020,7 @@ void MasterRenderer::Update(float dt)
 	if (m_bRenderingVR == false)
 	{
 		// regular update mode
-		auto range = wiProfiler::BeginRangeCPU("Max - General");
+		auto range = wiProfiler::BeginRangeCPU("Update - Logic");
 #ifdef OPTICK_ENABLE
 		OPTICK_EVENT("GuruLoopLogic");
 #endif
@@ -2032,21 +2033,23 @@ void MasterRenderer::Update(float dt)
 
 			// must be outside a render pass and only called once, even if VR renders twice
 			CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-			range = wiProfiler::BeginRangeCPU("Max - GPUP Particles");
+			range = wiProfiler::BeginRangeCPU("Update - Particles");
 			gpup_update(dt, cmd);
 			wiProfiler::EndRange(range);
 
 			// terrain processing
-			#ifdef GGTERRAIN_USE_NEW_TERRAIN
+			auto range3 = wiProfiler::BeginRangeCPU("Update - Terrain");
 			extern bool bImGuiRenderTargetFocus;
 			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
 			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
 			GGTrees_UpdateFrustumCulling( &camera );
 			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
-			#endif
+			wiProfiler::EndRange(range3);
 
 			// now just prepared IMGUI, but actual render called from Wicked hook
+			auto range2 = wiProfiler::BeginRangeCPU("Update - Render");
 			GuruLoopRender();
+			wiProfiler::EndRange(range2);
 		}
 	}
 
@@ -2054,7 +2057,9 @@ void MasterRenderer::Update(float dt)
 	if (wiBackLog::isActive()) wiBackLog::Toggle();
 
 	// super update
+	auto range2 = wiProfiler::BeginRangeCPU("Update - Wicked");
 	__super::Update(dt);
+	wiProfiler::EndRange(range2);
 }
 
 void MasterRenderer::ResizeBuffers(void)

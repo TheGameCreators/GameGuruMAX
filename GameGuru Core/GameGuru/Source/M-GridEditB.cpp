@@ -7827,7 +7827,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				for (int e = 1; e <= g.entityelementlist; e++)
 				{
 					int entid = t.entityelement[e].bankindex;
-					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
+					if (entid > 0 && (t.entityprofile[entid].ismarker == 0 || t.entityprofile[entid].ismarker == 3)) // objects and zones
 					{
 						// also only list those that would actually perform LUA logic in the loop
 						if (t.entityelement[e].plrdist < MAXFREEZEDISTANCE || t.entityelement[e].eleprof.phyalways != 0)
@@ -7852,7 +7852,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				for (int e = 1; e <= g.entityelementlist; e++)
 				{
 					int entid = t.entityelement[e].bankindex;
-					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
+					if (entid > 0 && (t.entityprofile[entid].ismarker == 0 || t.entityprofile[entid].ismarker == 3)) // objects and zones
 					{
 						// skip entities that are inside shops or chests, ect
 						if (t.entityelement[e].collected >= 3 && t.entityelement[e].active == 0)

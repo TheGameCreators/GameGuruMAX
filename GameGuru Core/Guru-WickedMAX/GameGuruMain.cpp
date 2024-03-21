@@ -85,10 +85,8 @@ bool GuruLoopLogic ( void )
 		// regular common loop logic call
 		common_loop_logic();
 
-		#ifdef WICKEDENGINE
 		// as new wicked engine never uses Sync(), we still need regular update work for sound and animation
 		ConstantNonDisplayUpdate();
-		#endif
 
 		// normal operations
 		return true;

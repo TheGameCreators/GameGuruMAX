@@ -6554,6 +6554,7 @@ void entity_loadelementsdata(void)
 			}
 
 			// load in game project elements file to end of current elements
+			timestampactivity(0, "loading in collection - items.ele");
 			cstr storeoldELEfile = t.elementsfilename_s;
 			char collectionELEfilename[MAX_PATH];
 			strcpy(collectionELEfilename, "projectbank\\");

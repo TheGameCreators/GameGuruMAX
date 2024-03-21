@@ -39661,7 +39661,9 @@ void process_storeboard(bool bInitOnly)
 							}
 							else
 							{
-								strcpy(DuplicateLevelError, "Error: Could not find a free node.");
+								char pErrMess[256];
+								sprintf(pErrMess, "Error: Number of allocated nodes reached. The maximum nodes is %d.", STORYBOARD_MAXNODES);
+								strcpy(DuplicateLevelError, pErrMess);
 							}
 						}
 						else
@@ -42155,6 +42157,11 @@ void process_storeboard(bool bInitOnly)
 
 				float buttonwide = 200.0f;
 
+				// extra help for users to know maximum limits of node creation
+				bool bShowNoMoreScreensError = false;
+				char pToolTipForAddingNewScreens[256];
+				sprintf(pToolTipForAddingNewScreens, "The game project can contain up to %d screens or levels.", STORYBOARD_MAXNODES);
+
 				if (ImGui::StyleCollapsingHeader("Add and Edit Storyboard", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
 				{
 					int iAutoConnectNode = -1;
@@ -42212,7 +42219,12 @@ void process_storeboard(bool bInitOnly)
 							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 							iAutoConnectNode = node;
 						}
+						else
+						{
+							bShowNoMoreScreensError = true;
+						}
 					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
@@ -42296,11 +42308,9 @@ void process_storeboard(bool bInitOnly)
 								break;
 							}
 						}
-
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42313,7 +42323,7 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
-
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 					
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Loading Screen", ImVec2(buttonwide, 0.0f)))
@@ -42426,11 +42436,9 @@ void process_storeboard(bool bInitOnly)
 								break;
 							}
 						}
-
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42443,7 +42451,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
-					
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
@@ -42533,8 +42542,7 @@ void process_storeboard(bool bInitOnly)
 						}
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42547,6 +42555,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
 					static int ClassicConversion = 0;
 					static char pReconstructGameGuruRootFiles[MAX_PATH];
 
@@ -42729,13 +42739,18 @@ void process_storeboard(bool bInitOnly)
 												}
 											}
 										}
+										else
+										{
+											bShowNoMoreScreensError = true;
+										}
 									}
 								}
 							}
 						}
-
 					}
-					if (ClassicConversion > 0)
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
+					if (ClassicConversion > 0 && bShowNoMoreScreensError == false)
 					{
 						if (ClassicConversion <= 3)
 						{
@@ -43252,10 +43267,10 @@ void process_storeboard(bool bInitOnly)
 							g_bRefreshGlobalList = true;
 
 							// check if RPG screens already exist
+							int iCountNewHUDScreensNeeded = 0;
 							bool bRPGHUDSMissing[10];
 							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));
 							bool bAllRPGScreensAlreadyExist = true;
-							//for (int hudi = 1; hudi <= 8; hudi++)
 							for (int hudi = 1; hudi <= 9; hudi++) // include RPG Templates VR screen :)
 							{
 								// assume HUD screen missing
@@ -43286,10 +43301,28 @@ void process_storeboard(bool bInitOnly)
 								}
 								if (bRPGHUDSMissing[hudi] == true)
 								{
+									iCountNewHUDScreensNeeded++;
 									bAllRPGScreensAlreadyExist = false;
 								}
 							}
-							if (bAllRPGScreensAlreadyExist == false)
+							if (bAllRPGScreensAlreadyExist == false && iCountNewHUDScreensNeeded > 0)
+							{
+								// need to find this many free nodes, or throw error
+								int iCountRemainingFreeOnes = 0;
+								for (int i = 14; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (Storyboard.Nodes[i].used == 0)
+									{
+										iCountRemainingFreeOnes++;
+										break;
+									}
+								}
+								if (iCountRemainingFreeOnes < iCountNewHUDScreensNeeded)
+								{
+									bShowNoMoreScreensError = true;
+								}
+							}
+							if (bAllRPGScreensAlreadyExist == false && bShowNoMoreScreensError==false)
 							{
 								// load in template screens from "RPG Template" project
 								char project[MAX_PATH];
@@ -43422,8 +43455,19 @@ void process_storeboard(bool bInitOnly)
 								}
 							}
 						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 					}
 					#endif
+
+					// generic warning of no more screens
+					if (bShowNoMoreScreensError == true)
+					{
+						char pErrMess[256];
+						sprintf(pErrMess, "Number of allocated screens/levels reached. The maximum is %d.", STORYBOARD_MAXNODES);
+						strcpy(cTriggerMessage, pErrMess);
+						bTriggerMessage = true;
+					}
+
 					//PE: Auto connect node.
 					if (iAutoConnectNode >= 0)
 					{

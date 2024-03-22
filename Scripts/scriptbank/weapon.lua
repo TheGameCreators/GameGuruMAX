@@ -1,25 +1,28 @@
--- Weapon v11 - Necrym and Lee
+-- Weapon v12 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
 -- DESCRIPTION: [!PLAY_PICKUP=0]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=0]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
-
 g_tEnt = {}
+
 local weapon			= {}
 local pickup_range		= {}
 local pickup_style		= {}
+local item_highlight = {}
 weapon_therecanbeonlyone = 0
 weapon_temprompttimer = 0
 
-function weapon_properties(e,pickup_range,pickup_style,play_pickup,activate_logic)
+function weapon_properties(e, pickup_range, pickup_style,play_pickup, activate_logic, item_highlight)
 	weapon[e].pickup_range = pickup_range or 75
 	weapon[e].pickup_style = pickup_style
 	weapon[e].play_pickup = play_pickup or 0
 	weapon[e].activate_logic = activate_logic or 0 
+	weapon[e].item_highlight = item_highlight or 0
 end
 
 function weapon_init_name(e,name)
@@ -28,6 +31,7 @@ function weapon_init_name(e,name)
 	weapon[e].pickup_style = 1
 	weapon[e].play_pickup = 0
 	weapon[e].activate_logic = 0
+	weapon[e].item_highlight = 0
 	weapon_name[e] = name
 	weapon[e].lastdistance1 = -1
 	weapon[e].lastdistance2 = -2
@@ -43,7 +47,7 @@ function weapon_main(e)
 	if weapon[e].pickup_style == 2 then 
 		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then		
 			--pinpoint select object--
-			module_misclib.pinpoint(e,weapon[e].pickup_range,200)
+			module_misclib.pinpoint(e,weapon[e].pickup_range,weapon[e].item_highlight)
 			--end pinpoint select object--
 		end
 	end

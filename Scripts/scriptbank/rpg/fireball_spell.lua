@@ -61,7 +61,7 @@ function fireball_spell_properties(e, prompt_text, useage_text, pickup_range, us
 	fireball_spell[e].player_level = player_level
 	fireball_spell[e].particle1_name = lower(particle1_name)
 	fireball_spell[e].particle2_name = lower(particle2_name)
-	fireball_spell[e]item_highlight = item_highlight	
+	fireball_spell[e].item_highlight = item_highlight	
 end
 
 function fireball_spell_init(e)
@@ -78,7 +78,7 @@ function fireball_spell_init(e)
 	fireball_spell[e].particle2_name = ""
 	fireball_spell[e].particle1_number = 0
 	fireball_spell[e].particle2_number = 0
-	fireball_spell[e]item_highlight = 0
+	fireball_spell[e].item_highlight = 0
 	fireball_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -134,7 +134,7 @@ function fireball_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < fireball_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,fireball_spell[e].pickup_range,fireball_spell[e]item_highlight)
+			module_misclib.pinpoint(e,fireball_spell[e].pickup_range,fireball_spell[e].item_highlight)
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

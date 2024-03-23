@@ -837,6 +837,10 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	timestampactivity(0,"_titles_loadingpageupdate");
 	if ( t.game.gameisexe == 1 ) 
 	{
+		// Ensure no previous flatareadata exists prior to entity creating new ones
+		timestampactivity(0, "Remove All Terrain Flat Areas");
+		GGTerrain_RemoveAllFlatAreas();
+		
 		//PE: When getting here everything was faded out.
 		t.postprocessings.fadeinvalue_f = 1.0f;
 		//g.globals.hidelowfpswarning = 0; // this overrides the SETUP.INI setting

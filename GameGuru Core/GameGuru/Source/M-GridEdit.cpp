@@ -2393,9 +2393,6 @@ void mapeditorexecutable_loop(void)
 			
 			extern bool g_bAllowBackwardCompatibleConversion;
 			g_bAllowBackwardCompatibleConversion = true;
-			#ifdef WICKEDENGINE
-			GGTerrain_RemoveAllFlatAreas();
-			#endif
 			gridedit_load_map();
 			g_bAllowBackwardCompatibleConversion = false;
 
@@ -2511,8 +2508,6 @@ void mapeditorexecutable_loop(void)
 							iSkibFramesBeforeLaunch = 3;
 							strcpy(cTriggerMessage, "Loading Level ...");
 							bTriggerMessage = true;
-							//gridedit_load_map();
-
 						}
 					}
 				}
@@ -5227,6 +5222,9 @@ void mapeditorexecutable_loop(void)
 					//CTRL V - duplicate from clipboard
 					if (g_EntityClipboard.size() > 0)
 					{
+						// batch the paste into a single event
+						undosys_multiplevents_start();
+
 						// a small offset so user can see new pasted entity
 						float fShiftOffsetForPasteX = 25.0f + rand() % 50;
 						float fShiftOffsetForPasteZ = 25.0f + rand() % 50;
@@ -5361,6 +5359,9 @@ void mapeditorexecutable_loop(void)
 							t.widget.pickedEntityIndex = iAnchorEntityIndex;
 							t.widget.pickedObject = t.entityelement[iAnchorEntityIndex].obj;
 						}
+
+						// batch the paste into a single event finish here
+						undosys_multiplevents_finish();
 
 						// ensure gridentity cleared after duplication
 						t.gridentity = 0;
@@ -17009,22 +17010,9 @@ void mapeditorexecutable_loop(void)
 						int entid = t.entityelement[te].bankindex;
 						if (entid > 0)
 						{
-							/*
-							if (t.entityprofile[entid].ismarker == 2)
-							{
-								float fLightProbeScale = t.entityelement[te].eleprof.light.fLightHasProbe;
-								if ( fLightProbeScale > 0 )
-									entity_placeprobe(t.entityelement[te].obj, fLightProbeScale);
-								else
-									entity_deleteprobe(t.entityelement[te].obj);
-							}
-							*/
+							entity_autoFlattenWhenAdded(te);
 						}
-
-						//MD: Also make sure autoflatten areas are applied
-						entity_autoFlattenWhenAdded(te);
 					}
-
 					if (bLaunchTestGameAfterLoad)
 					{
 						bLaunchTestGameAfterLoad = false;
@@ -29933,6 +29921,10 @@ void gridedit_load_map ( void )
 
 	// hide terrain texture panel
 	terrain_paintselector_hide(); Sync();
+
+	// ensure NO old flat area items in list
+	timestampactivity(0, "GGTerrain_RemoveAllFlatAreas");
+	GGTerrain_RemoveAllFlatAreas();
 
 	//  Use large prompt
 	t.statusbar_s=t.strarr_s[367]; 

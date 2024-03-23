@@ -5217,7 +5217,7 @@ void entity_prepareobj ( void )
 		if (t.entityprofile[t.tentid].ismarker == 0)
 		{
 			int iAutoFlattenMode = t.entityprofile[t.tentid].autoflatten;
-			if(iAutoFlattenMode != 0)
+			if (iAutoFlattenMode != 0)
 			{
 				if (t.entityelement[t.tte].eleprof.iFlattenID != -1)
 					entity_updateautoflatten(t.tte, t.tobj);

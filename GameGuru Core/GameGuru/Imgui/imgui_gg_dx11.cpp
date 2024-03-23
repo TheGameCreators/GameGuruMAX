@@ -7992,13 +7992,15 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 			{
 				//Integer
 				int tmpint = atoi(val.Get());
-				#ifdef WICKEDENGINE
 				// hack in tooltip for now, better idea is adding verbose to LUA itself!
 				LPSTR pTooltipForIntegerSlider = "Use slider to set the desired value.";
 				if (stricmp (tmpeleprof->PropertiesVariable.Variable[i], "RetreatRange") == NULL) pTooltipForIntegerSlider = "Set the distance the character will retreat to before stopping";
 				if (stricmp (tmpeleprof->PropertiesVariable.Variable[i], "ChaseModes") == NULL) pTooltipForIntegerSlider = "The first three modes are slow walkers and the last two are fast walkers";
 				cstr id = cstr("##") + tmpeleprof->PropertiesVariable.VariableScript/*tmpeleprof->name_s*/ + cstr(tmpeleprof->PropertiesVariable.Variable[i]);
-				if (tmpeleprof->PropertiesVariable.VariableValueFrom[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
+
+				// strange condition to enable correct integer slider - from can be zero just fine
+				//if (tmpeleprof->PropertiesVariable.VariableValueFrom[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
+				if (tmpeleprof->PropertiesVariable.VariableValueTo[i] != 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
 				{
 					if (ImGui::MaxSliderInputInt(id.Get(), &tmpint, (int)tmpeleprof->PropertiesVariable.VariableValueFrom[i], (int)tmpeleprof->PropertiesVariable.VariableValueTo[i], pTooltipForIntegerSlider))
 					{
@@ -8016,26 +8018,6 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 						bUpdateMainString = true;
 					}
 				}
-				#else	
-				if (tmpeleprof->PropertiesVariable.VariableValueFrom[i] > 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > 0 && tmpeleprof->PropertiesVariable.VariableValueTo[i] > tmpeleprof->PropertiesVariable.VariableValueFrom[i])
-				{
-					if (ImGui::MaxSliderInputInt("##integer", &tmpint, (int)tmpeleprof->PropertiesVariable.VariableValueFrom[i], (int)tmpeleprof->PropertiesVariable.VariableValueTo[i], "Use slider to set the desired value."))
-					{
-						sprintf(tmp, "%d", tmpint);
-						strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], tmp);
-						bUpdateMainString = true;
-					}
-				}
-				else
-				{
-					if (ImGui::MaxSliderInputInt("##integer", &tmpint, 0.0F, 100.0f, "Use slider to set the desired value."))
-					{
-						sprintf(tmp, "%d", tmpint);
-						strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], tmp);
-						bUpdateMainString = true;
-					}
-				}
-				#endif
 			}
 			ImGui::PopItemWidth();
 			ImGui::PopID();

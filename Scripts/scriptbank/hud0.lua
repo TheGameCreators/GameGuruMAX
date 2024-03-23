@@ -724,6 +724,7 @@ function hud0.main()
 												end
 											end
 											SetScreenElementText(elementTextID,tattrubutedata)
+											SetScreenElementVisibility(elementTextID,1)
 											displayingselecteditem = 1
 										end
 									end

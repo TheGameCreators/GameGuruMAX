@@ -5969,6 +5969,7 @@ void GGTerrain_RemoveAllFlatAreas()
 	if ( ggterrain_flat_areas ) delete [] ggterrain_flat_areas;
 	ggterrain_flat_areas_array_size = 4;
 	ggterrain_flat_areas = new GGTerrainFlatArea[ ggterrain_flat_areas_array_size ];
+	memset(ggterrain_flat_areas, 0, ggterrain_flat_areas_array_size * sizeof(GGTerrainFlatArea));
 
 	ggterrain_flat_areas_free.Clear();
 	ggterrain_flat_areas_free.Resize( ggterrain_flat_areas_array_size );
@@ -6541,6 +6542,7 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 
 	ggterrain_flat_areas_array_size = 4;
 	ggterrain_flat_areas = new GGTerrainFlatArea[ ggterrain_flat_areas_array_size ];
+	memset(ggterrain_flat_areas, 0, ggterrain_flat_areas_array_size * sizeof(GGTerrainFlatArea));
 	ggterrain_flat_areas_free.Resize( ggterrain_flat_areas_array_size );
 	for( uint32_t i = ggterrain_flat_areas_array_size-1; i > 0; i-- ) // don't add index 0 as that will be the error id
 	{

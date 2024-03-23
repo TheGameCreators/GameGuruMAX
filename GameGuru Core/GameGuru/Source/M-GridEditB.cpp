@@ -9915,7 +9915,7 @@ void ProcessPreferences(void)
 					if (entid > 0)
 					{
 						int iAutoFlattenMode = t.entityprofile[entid].autoflatten;
-						if(iAutoFlattenMode != 0)
+						if (iAutoFlattenMode != 0)
 							t.entityelement[i].eleprof.bAutoFlatten = bChangeState;
 						else
 							t.entityelement[i].eleprof.bAutoFlatten = false;
@@ -16925,37 +16925,7 @@ void process_entity_library_v2(void)
 				}
 				grideleprof_uniqui_id = 45000; //Always use unique IDs.
 				float fPreviewImgSize = 1024.0f;
-
-				//// Load the importer back up with the last imported model.
-				//if (!bIsCCPObject)
-				//{
-				//	ImGui::SetCursorPos(ImVec2(15, 2));
-				//	int icon_size = ImGui::GetFontSize()*2;
-				//	ImVec2 VIconSize = { (float)icon_size, (float)icon_size };
-				//	ImVec2 cursor = ImGui::GetCursorPos();
-
-				//	if (ImGui::ImgBtn(TOOL_GOBACK, VIconSize, ImVec4(0, 0, 0, 0), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 0.5f),
-				//		ImVec4(0.5f, 0.5f, 0.5f, 0.5f), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-				//	{
-				//		bExternal_Entities_Window = false;
-				//		bLargePreview = false;
-				//		sGotoPreviewWithFile = "";
-				//		bImporter_Window = true;
-				//		extern void importer_quit_for_reload(LPSTR pOptionalCopyModelFile);
-				//		iLaunchAfterSync = 8;
-				//		extern sImportedObjectData g_Data;
-				//		cstr file = cstr(g_Data.cImportPath) + t.tSourceName_s;
-				//		strcpy(pLaunchAfterSyncPreSelectModel, file.Get());
-				//		strcpy(pLaunchAfterSyncPreSelectModel, pLaunchAfterSyncLastImportedModel);
-				//		importer_quit_for_reload(pLaunchAfterSyncPreSelectModel);
-				//		/*importer_quit_for_reload(file.Get());*/
-				//		//extern char pLaunchAfterSyncLastImportedModel[MAX_PATH];
-				//		//strcpy(pOptionalCopyModelFile, pLaunchAfterSyncLastImportedModel);
-				//		
-				//	}
-				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("Back to Importer");
-				//}
-
+		
 				ImGui::Columns(2, "PreviewColumns", false);  //false no border
 				ImGui::SetColumnOffset(0, 0.0f);
 				ImGui::SetColumnOffset(1, fPreviewImgSize);
@@ -17505,24 +17475,6 @@ void process_entity_library_v2(void)
 							}
 						}
 
-						// when leave preview maker, search for exactly the imported object
-						seleted_tree_item = -1;
-						strcpy(cSearchAllEntities[0], t.entitybank_s[BackBufferEntityID].Get());
-						char pCopyString[MAX_PATH];
-						strcpy(pCopyString, cSearchAllEntities[0]);
-						LPSTR pSearchStringToChop = pCopyString;
-						if (strlen(pSearchStringToChop) > 4)
-						{
-							pSearchStringToChop[strlen(pSearchStringToChop) - 4] = 0; // remove .FPE
-						}
-						for (int nn = strlen(pSearchStringToChop) - 1; nn > 0; nn--)
-						{
-							if (pSearchStringToChop[nn] == '\\' || pSearchStringToChop[nn] == '/')
-							{
-								strcpy(cSearchAllEntities[0], pSearchStringToChop + nn + 1);
-								break;
-							}
-						}
 						bDisplayFavorite = false;
 						bViewAllFolders = false;
 						bViewShowcase = false;
@@ -17550,6 +17502,7 @@ void process_entity_library_v2(void)
 				WickedCall_EnableThumbLight(true);
 				ImGui::Columns(1);
 
+				/* this is not fully possible, the object has already been created by this point - may improve in the future
 				// Load the importer back up with the last imported model
 				extern sImportedObjectData g_Data;
 				char previewName[MAX_PATH] = { 0 };
@@ -17578,13 +17531,10 @@ void process_entity_library_v2(void)
 						strcpy(pLaunchAfterSyncPreSelectModel, file.Get());
 						strcpy(pLaunchAfterSyncPreSelectModel, pLaunchAfterSyncLastImportedModel);
 						importer_quit_for_reload(pLaunchAfterSyncPreSelectModel);
-						/*importer_quit_for_reload(file.Get());*/
-						//extern char pLaunchAfterSyncLastImportedModel[MAX_PATH];
-						//strcpy(pOptionalCopyModelFile, pLaunchAfterSyncLastImportedModel);
-
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Back to Importer");
 				}
+				*/
 
 				//Render titlebar centered.
 				cstr title = " Object Library Preview";
@@ -42768,7 +42718,6 @@ void process_storeboard(bool bInitOnly)
 
 							extern bool g_bAllowBackwardCompatibleConversion;
 							g_bAllowBackwardCompatibleConversion = true;
-							GGTerrain_RemoveAllFlatAreas();
 							extern bool g_bDisplayWarnings;
 							g_bDisplayWarnings = false;
 							gridedit_load_map();
@@ -43198,7 +43147,6 @@ void process_storeboard(bool bInitOnly)
 								}
 							}
 
-							GGTerrain_RemoveAllFlatAreas();
 							gridedit_load_map();
 							bUpdateVeg = true;
 							ClassicConversion++;
@@ -43314,7 +43262,6 @@ void process_storeboard(bool bInitOnly)
 									if (Storyboard.Nodes[i].used == 0)
 									{
 										iCountRemainingFreeOnes++;
-										break;
 									}
 								}
 								if (iCountRemainingFreeOnes < iCountNewHUDScreensNeeded)
@@ -43891,7 +43838,6 @@ void process_storeboard(bool bInitOnly)
 
 								extern bool g_bAllowBackwardCompatibleConversion;
 								g_bAllowBackwardCompatibleConversion = true;
-								GGTerrain_RemoveAllFlatAreas();
 								gridedit_load_map();
 								g_bAllowBackwardCompatibleConversion = false;
 
@@ -46964,9 +46910,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		{
 			char slotname[256];
 			sprintf(LoadGameTitle[i], "%d: EMPTY PROGRESS SLOT", i);
-			if (standalone)
+			if (!standalone)
 			{
-				// Storyboard should only show placeholder slot text
+				// Storyboard (i.e. NOT STANDALONE) should only show placeholder slot text
 				strcpy(LoadGameTitle[i], "EMPTY PROGRESS SLOT");
 			}
 			else

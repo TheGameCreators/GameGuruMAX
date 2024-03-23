@@ -341,6 +341,9 @@ int GGTerrain_GetTriangleList( KMaths::Vector3** vertices, float minX, float min
 
 void GGTerrain_ReloadTextures(wiGraphics::CommandList cmd = 0, std::vector<std::string>* files = nullptr, std::vector<int>* failures = nullptr, char* rootDir = nullptr);
 void GGTerrain_LoadDefaultTextureIntoSlot(int i, char* rootDir, wiGraphics::CommandList cmd = 0);
+
+void GGTerrain_DebugOutputFlattenedAreas(void);
+
 } // namespace GGTerrain
 
 #endif // _H_GGTERRAIN

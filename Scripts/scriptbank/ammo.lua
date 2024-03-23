@@ -1,4 +1,4 @@
--- v11 by Necrym and Lee
+-- v12 by Necrym and Lee
 -- DESCRIPTION: The object will give the player ammunition if collected, and optionally play <Sound0> for collection.
 -- DESCRIPTION: You can change the [PROMPTTEXT$="E to collect"]
 -- DESCRIPTION: Set the Ammo [&QUANTITY=(1,100)]
@@ -7,13 +7,23 @@
 -- DESCRIPTION: You can change the [COLLECTION_TEXT$="Ammunition collected"]
 -- DESCRIPTION: [!PLAY_PICKUP=1]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=1]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
-local g_ammo = {}
 
-function ammo_properties(e, prompttext, quantity, pickuprange, pickup_style, collection_text,play_pickup,activate_logic)
+local g_ammo = {}
+local prompttext = {}
+local quantity = {}
+local pickuprange = {}
+local pickup_style = {}
+local collection_text = {}
+local play_pickup = {}
+local activate_logic = {}
+local item_highlight = {}
+
+function ammo_properties(e, prompttext, quantity, pickuprange, pickup_style, collection_text, play_pickup, activate_logic, item_highlight)
 	g_ammo[e]['prompttext'] = prompttext
 	g_ammo[e]['quantity'] = quantity
 	g_ammo[e]['pickuprange'] = pickuprange
@@ -21,6 +31,7 @@ function ammo_properties(e, prompttext, quantity, pickuprange, pickup_style, col
 	g_ammo[e]['collection_text'] = collection_text
 	g_ammo[e]['play_pickup'] = play_pickup or 1
 	g_ammo[e]['activate_logic'] = activate_logic or 1
+	g_ammo[e]['item_highlight'] = item_highlight or 0	
 end
 
 function ammo_init(e)
@@ -32,6 +43,7 @@ function ammo_init(e)
 	g_ammo[e]['collection_text'] = "Ammunition collected"
 	g_ammo[e]['play_pickup'] = 1
 	g_ammo[e]['activate_logic'] = 1
+	g_ammo[e]['item_highlight'] = 0
 end
 
 function ammo_main(e)	
@@ -44,7 +56,7 @@ function ammo_main(e)
 	end
 	if g_ammo[e]['pickup_style'] == 2 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,g_ammo[e]['pickuprange'],200)
+		module_misclib.pinpoint(e,g_ammo[e]['pickuprange'],g_ammo[e]['item_highlight'])
 		--end pinpoint select object--
 		if PlayerDist < g_ammo[e]['pickuprange'] and g_tEnt ~= 0 then
 			PromptLocalForVR(e,g_ammo[e]['prompttext'])

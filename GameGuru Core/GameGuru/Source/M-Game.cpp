@@ -2637,6 +2637,9 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 		// at the point we enter the in-game menu, stop VR mode if required
 		if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 0;
 
+		// can perform some extra debug snapshots when enter in-game menu - useful!
+		if (g.gproducelogfiles == 2) GGTerrain::GGTerrain_DebugOutputFlattenedAreas();
+
 		t.tremembertimer=Timer();
 		game_main_snapshotsound ( );
 		while ( EscapeKey() != 0 ) {}
@@ -5115,10 +5118,6 @@ void game_main_loop ( void )
 	//  Update HUD Layer objects (jetpack)
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling hud_updatehudlayerobjects");
 	hud_updatehudlayerobjects ( );
-
-	//  Call this at end of game loop to ensure character objects sufficiently overridden
-	//if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling darkai_finalsettingofcharacterobjects");
-	//darkai_finalsettingofcharacterobjects ( );
 
 	// trigger screen to be grabbed for a HUD image
 	bool bGrabSceneToStoreInImage = true;

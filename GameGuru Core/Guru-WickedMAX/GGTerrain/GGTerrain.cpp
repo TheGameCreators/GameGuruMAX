@@ -22,6 +22,9 @@
 #include "optick.h"
 #endif
 
+// Externl for debugging
+extern void timestampactivity (int i, char* desc_s);
+
 #include "GGThread.h"
 using namespace GGThread;
 #include "GGTerrain.h"
@@ -9617,6 +9620,33 @@ bool GGTerrain_GetTerrainChanged()
 	return bResult;
 }
 
+void GGTerrain_DebugOutputFlattenedAreas(void)
+{
+	timestampactivity(0, "List of Auto Flattened Areas");
+	for (uint32_t i = 0; i < ggterrain_flat_areas_array_size; i++)
+	{
+		char areaitem[1024];
+		GGTerrainFlatArea* pArea = &ggterrain_flat_areas[i];
+		if (!pArea->IsValid())
+		{
+			sprintf(areaitem, "Area %d : Invalid", i);
+		}
+		else
+		{
+			if (isnan(pArea->y))
+			{
+				sprintf(areaitem, "Area %d : isNAN", i);
+			}
+			else
+			{
+				// full area item view
+				sprintf(areaitem, "Area %d : DATA=%d Y=%d", i, (int)pArea->data, (int)pArea->y);
+			}
+		}
+		timestampactivity(0, areaitem);
+	}
+}
+
 // returns the editable size in world units, use this with GGTerrain_GetHeightMap to work out the scale of the heightmap to world size
 // the edtiable area is always square, so both X and Z use editableSize
 float GGTerrain_GetEditableSize() 
@@ -10871,5 +10901,6 @@ void GGTerrain_CreateUndoRedoAction(int type, int eList, bool bUserAction, void*
 		}			
 	}
 }
+
 
 #endif // GGTERRAIN_UNDOREDO

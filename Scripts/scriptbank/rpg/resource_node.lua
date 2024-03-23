@@ -2,7 +2,7 @@
 -- Resource Node v9 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
--- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name
+-- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name (eg: enhanced\ak)
 -- DESCRIPTION: [NODE_MAX_QUANTITY=1(1,10)]
 -- DESCRIPTION: [NODE_SPAWNTIME=0(0,100)] Minutes
 -- DESCRIPTION: [NODE_ENTITY_SPAWNTIME=1(0,100)] Minutes
@@ -140,7 +140,6 @@ function resource_node_main(e)
 				Scale(e,scaler[e])
 				setupnode[e] = 1
 			end
-			
 			if PlayerDist < 200 then
 				if resnode[e].node_tool_name ~= g_PlayerGunName and resnode[e].node_max_quantity > 0 then PromptLocal(e,"Tool required to extract Resources") end
 				if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "any" and created[e] < resnode[e].node_max_quantity then PromptLocal(e,"Extract Resources") end
@@ -159,7 +158,7 @@ function resource_node_main(e)
 							SetEntityHealth(e,starthealth[e])
 						end
 					end				
-				end
+				end				
 				if g_Entity[e]['health'] <= 0 then
 					if created[e] < resnode[e].node_max_quantity then
 						status[e] = "create_resource"

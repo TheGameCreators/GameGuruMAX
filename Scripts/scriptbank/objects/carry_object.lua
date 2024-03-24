@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V30 by Necrym59 and Lee
+-- Carry Object V31 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -8,7 +8,7 @@
 -- DESCRIPTION: [MAX_PICKUP_WEIGHT=99(1,99)]
 -- DESCRIPTION: [MAX_PICKUP_SIZE=40(1,100)]
 -- DESCRIPTION: [RELEASE_TEXT$="Use R or LMB to drop"]
--- DESCRIPTION: [THROW_TEXT$="Release RMB to throw"]
+-- DESCRIPTION: [THROW_TEXT$="Shift to add force - Release RMB to throw"]
 -- DESCRIPTION: [REARM_WEAPON!=0]
 -- DESCRIPTION: [DIAGNOSTICS!=0]
 -- DESCRIPTION: <Sound0> when picking up object.
@@ -54,6 +54,7 @@
 	local tEnt 				= {}
 	local selectobj 		= {}
 	local cox				= {}
+	local fgain				= {}
 
 function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, diagnostics)
 	carry_object[e] = g_Entity[e]
@@ -93,6 +94,7 @@ function carry_object_init(e)
 	status[e] = 'init'
 	tEnt[e] = 0
 	cox[e] = 0
+	fgain[e] = 0
 	allegiance[e] = 0
 	last_gun[e] = g_PlayerGunName
 	colobj[e] = 0
@@ -129,7 +131,7 @@ function carry_object_main(e)
 					objmass[tEnt[e]] = (w*h*l)/50*massmod
 					objheight[tEnt[e]] = 5
 					objweight[tEnt[e]] = weight
-					objforce[tEnt[e]] = math.min(weight,objmass[tEnt[e]])/2
+					objforce[tEnt[e]] = math.min(weight,objmass[tEnt[e]])/1.5
 					objwidth[tEnt[e]] = w
 					objlength[tEnt[e]] = l
 					local pd = GetPlayerDistance(tEnt[e])
@@ -232,6 +234,11 @@ function carry_object_main(e)
 		GravityOn(tEnt[e])		
 		if g_MouseClick == 2 and g_carrying == 1 then
 			TextCenterOnX(50,95,3,carry_object[e].throw_text)
+			if g_KeyPressSHIFT == 1 then
+				fgain[e] = fgain[e] + 0.02
+				TextCenterOnX(50,97,3,"Increasing throw force by " ..math.ceil(fgain[e]))
+			end
+			if fgain[e] >= 20 then fgain[e] = 20 end
 		else
 			TextCenterOnX(50,95,3,carry_object[e].release_text)
 		end
@@ -280,7 +287,9 @@ function carry_object_main(e)
 			SetEntityZDepthMode(tEnt[e],1)
 			local paX, paY, paZ = math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ),math.rad( g_PlayerAngZ )
 			local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
+			objforce[tEnt[e]] = objforce[tEnt[e]] + (fgain[e]*10)
 			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )
+			fgain[e] = 0
 			thrown[e] = 2
 		end	
 	end

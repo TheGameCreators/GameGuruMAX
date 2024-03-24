@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V31 by Necrym59 and Lee
+-- Carry Object V32 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -55,6 +55,7 @@
 	local selectobj 		= {}
 	local cox				= {}
 	local fgain				= {}
+	local hurtonce			= {}
 
 function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, diagnostics)
 	carry_object[e] = g_Entity[e]
@@ -95,6 +96,7 @@ function carry_object_init(e)
 	tEnt[e] = 0
 	cox[e] = 0
 	fgain[e] = 0
+	hurtonce[e] = 0
 	allegiance[e] = 0
 	last_gun[e] = g_PlayerGunName
 	colobj[e] = 0
@@ -109,7 +111,7 @@ function carry_object_main(e)
 		status[e] = 'pickup'
 	end
 
-	if status[e] == 'pickup' then			
+	if status[e] == 'pickup' then
 		nearEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,carry_object[e].pickup_range*3)
 		if nearEnt[e] ~= 0 or nearEnt[e] ~= 1 and nearEnt[e] > 1 then
 			nocarry[e] = 2
@@ -288,12 +290,32 @@ function carry_object_main(e)
 			local paX, paY, paZ = math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ),math.rad( g_PlayerAngZ )
 			local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
 			objforce[tEnt[e]] = objforce[tEnt[e]] + (fgain[e]*10)
-			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )
-			fgain[e] = 0
+			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )			
 			thrown[e] = 2
-		end	
+			status[e] = 'thrown'
+		end
+	end
+	if status[e] == 'thrown' then
+		for _, v in pairs(U.ClosestEntities(90,math.huge,g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])) do
+			if GetEntityAllegiance(v) >= -1 then
+				if g_Entity[v]['health'] > 0 then
+					SetEntityHealth(v,g_Entity[v]['health']-(objforce[tEnt[e]]))
+					fgain[e] = 0
+					hurtonce[e] = 1
+				end
+				if g_Entity[v] == nil then
+					fgain[e] = 0
+					status[e] = 'pickup'
+				end	
+			end
+		end
+		if hurtonce[e] == 1 then
+			hurtonce[e] = 0
+			status[e] = 'pickup'
+		end
 	end
 	if carry_object[e].diagnostics == 1 then
+	
 		Text(10,54,3,"Entity #: ")
 		Text(20,54,3,tEnt[e])
 		Text(10,56,3,"Max Weight: ")
@@ -310,7 +332,9 @@ function carry_object_main(e)
 		Text(20,66,3,objmass[tEnt[e]])
 		Text(10,68,3,"Force: ")
 		Text(20,68,3,objforce[tEnt[e]])
-		if nocarry[e] == 0 then	Text(10,70,3,"Can Carry : Yes") end
-		if nocarry[e] == 1 then	Text(10,70,3,"Can Carry : No") end
+		Text(10,70,3,"Force Gain: ")
+		Text(20,70,3,fgain[e])
+		if nocarry[e] == 0 then	Text(10,74,3,"Can Carry :   Yes") end
+		if nocarry[e] == 1 then	Text(10,74,3,"Can Carry :   No") end	
 	end
 end

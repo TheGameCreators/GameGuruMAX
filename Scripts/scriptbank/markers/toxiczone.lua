@@ -84,11 +84,11 @@ function toxiczone_main(e)
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
 					end
-					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 1 then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 1 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] + toxiczone[e].damage
 					end
-					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 2 then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 2 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end
@@ -105,11 +105,11 @@ function toxiczone_main(e)
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
 					end
-					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 1 then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 1 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] + toxiczone[e].damage
 					end
-					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 2 then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 2 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end

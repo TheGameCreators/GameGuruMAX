@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an health boost or deduction if used. Can be used as a resource.
--- Health v18 by Necrym59 and Lee
+-- Health v20 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Health applied"]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobal"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for use sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 
@@ -27,13 +28,14 @@ local pickup_range = {}
 local effect = {}
 local user_global_affected = {}
 local prompt_display = {}
+local item_highlight = {}
 
 local currentvalue = {}
 local addquantity = {}
 local selectobj = {}
 local tEnt = {}
 
-function health_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
+function health_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
 	health[e].prompt_text = prompt_text
 	health[e].prompt_if_collectable = prompt_if_collectable
 	health[e].useage_text = useage_text
@@ -44,6 +46,7 @@ function health_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 	if user_global_affected == nil then user_global_affected = "" end
 	health[e].user_global_affected = user_global_affected
 	health[e].prompt_display = prompt_display
+	health[e].item_highlight = item_highlight	
 end
 
 function health_init(e)
@@ -57,6 +60,8 @@ function health_init(e)
 	health[e].effect = 1
 	health[e].user_global_affected = "MyGlobal"
 	health[e].prompt_display = 1
+	health[e].item_highlight = 0
+	
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
@@ -79,7 +84,7 @@ function health_main(e)
 
 	if health[e].pickup_style == 2 and PlayerDist < health[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,health[e].pickup_range,300)
+		module_misclib.pinpoint(e,health[e].pickup_range,health[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 
@@ -134,6 +139,7 @@ function health_main(e)
 	end
 	if addquantity[e] == 2 then
 		SetPlayerHealth(g_PlayerHealth - health[e].quantity)
+		SetPlayerHealthCore(g_PlayerHealth)
 		if health[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..health[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..health[e].user_global_affected.."']"] end
 			_G["g_UserGlobal['"..health[e].user_global_affected.."']"] = currentvalue[e] - health[e].quantity

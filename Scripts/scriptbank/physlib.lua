@@ -2,7 +2,6 @@
 -- Written by Chris Stapleton
 local U = require "scriptbank\\utillib"
 local Q = require "scriptbank\\quatlib"
-
 local P = { _G = _G }
 
 -- import section: modules
@@ -70,6 +69,12 @@ local function objExists( obj ) return getObjExists( obj ) == 1 end
 -- Function to get entity Id from object Id  --
 -----------------------------------------------
 function P.ObjectToEntity( obj )
+	if _G['g_NewEntitiesHaveBeenSpawnedInGame'] ~= nil then
+		if _G['g_NewEntitiesHaveBeenSpawnedInGame'] == 1 then
+			_G['g_NewEntitiesHaveBeenSpawnedInGame'] = 0
+			Initialise()
+		end
+	end
 	if not initialised then Initialise() end
 	return objEntity[ obj ]
 end

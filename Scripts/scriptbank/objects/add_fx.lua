@@ -1,4 +1,4 @@
--- Add_Fx v7 by Necrym59 and Lee
+-- Add_Fx v8 by Necrym59 and Lee
 -- DESCRIPTION: Will add the selected effects to the named object.
 -- DESCRIPTION: Attach to an object. Set Always active ON
 -- DESCRIPTION: [ObjectName$=""]
@@ -48,7 +48,6 @@ local tspinspeed		= {}
 local objEnt			= {}
 
 function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hoverspeed, spin, spinspeed, spin_x, spin_y, spin_z, anticlockwise, glow, emissivestrength, ActivateAtStart, pulseglow, pulsespeed)
-	addfx[e] = g_Entity[e]
 	addfx[e].objectname = lower(objectname)
 	addfx[e].objectno = 0
 	addfx[e].hover = hover
@@ -64,7 +63,7 @@ function add_fx_properties(e, objectname, hover, hoverheight, lowerheight, hover
 	addfx[e].glow = glow
 	addfx[e].pulseglow = pulseglow
 	addfx[e].pulsespeed = pulsespeed
-	addfx[e].emissivestrength = emissivestrength		
+	addfx[e].emissivestrength = emissivestrength
 	addfx[e].ActivateAtStart = ActivateAtStart
 end
 
@@ -84,7 +83,7 @@ function add_fx_init(e)
 	addfx[e].anticlockwise = 0
 	addfx[e].glow = 0
 	addfx[e].pulseglow = 0
-	addfx[e].pulsespeed = 0	
+	addfx[e].pulsespeed = 0
 	addfx[e].emissivestrength = 0
 	addfx[e].ActivateAtStart = 1
 	status[e] = "init"
@@ -114,7 +113,7 @@ function add_fx_main(e)
 			if addfx[e].ActivateAtStart == 1 then SetActivated(e,1) end
 			if addfx[e].ActivateAtStart == 0 then SetActivated(e,0) end
 		end
-		status[e] = "start"	
+		status[e] = "start"
 	end
 
 	if g_Entity[e].activated == 1 then
@@ -143,7 +142,7 @@ function add_fx_main(e)
 				CollisionOn(objEnt[e])
 			end
 		end
-		
+
 		if addfx[e].spin == 1 then
 			CollisionOff(objEnt[e])
 			if addfx[e].anticlockwise == 0 then
@@ -155,7 +154,7 @@ function add_fx_main(e)
 				CollisionOff(e)
 				RotateX(objEnt[e],GetAnimationSpeed(objEnt[e])*tspinspeed[e])
 				CollisionOn(e)
-			end	
+			end
 			if addfx[e].spin_y == 1 then
 				CollisionOff(e)
 				RotateY(objEnt[e],GetAnimationSpeed(objEnt[e])*tspinspeed[e])
@@ -167,13 +166,13 @@ function add_fx_main(e)
 				CollisionOn(e)
 			end
 		end
-		
+
 		if addfx[e].glow == 1 then
 			if glow_currentEM[e] < addfx[e].emissivestrength then
 				SetEntityEmissiveStrength(objEnt[e],glow_currentEM[e]*30)
 				glow_currentEM[e] = glow_currentEM[e]+0.5
 			end
-		end				
+		end
 		if addfx[e].pulseglow == 1 then
 			if glow_currentEM[e] < addfx[e].emissivestrength and rampingEM[e] == 0 then
 				SetEntityEmissiveStrength(objEnt[e],glow_currentEM[e])

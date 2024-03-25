@@ -4,6 +4,7 @@
 
 //#ifndef _COBJECTMANAGERWICKED_H_
 //#define _COBJECTMANAGERWICKED_H_
+#pragma once
 
 #include "cObjectDataC.h"
 //#include ".\..\Camera\cCameraDataC.h"

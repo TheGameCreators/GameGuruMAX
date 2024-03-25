@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v19   by Necrym59
+-- Helmet v21   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup/Wear"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -12,10 +12,10 @@
 -- DESCRIPTION: [READOUT_Y=10(1,100)]
 -- DESCRIPTION: [@COMPASS=2(1=On, 2=Off)]
 -- DESCRIPTION: [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
--- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"] for the Helmet overlay image  
--- DESCRIPTION: <Sound0> for pickup
--- DESCRIPTION: <Sound1> for wearing/removing
--- DESCRIPTION: <Sound2> for NightVison On/Off
+-- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"] for the Helmet overlay image
+-- DESCRIPTION: <Sound0> for pickup/wearing/removing
+-- DESCRIPTION: <Sound1> loop for while wearing
+-- DESCRIPTION: <Sound2> for NightVison On/Off 
 
 local U = require "scriptbank\\utillib"
 
@@ -42,6 +42,7 @@ local gunstatus = {}
 local nvswitch = {}
 local hmswitch = {}
 local have_helmet = {}
+local doloop = {}
 local keypause1 = {}
 local keypause2 = {}
 local helmetsp = {}
@@ -86,8 +87,8 @@ function helmet_init(e)
 	g_helmet[e]['readout_y'] = 10
 	g_helmet[e]['compass'] = 2
 	g_helmet[e]['compass_position'] = 1
-	g_helmet[e]['screen_image'] = "imagebank\\misc\\testimages\\helmethud1.png"	
-	
+	g_helmet[e]['screen_image'] = "imagebank\\misc\\testimages\\helmethud1.png"
+
 	have_helmet[e] = 0
 	start_wheel = 0
 	mod = 0
@@ -99,8 +100,9 @@ function helmet_init(e)
 	init_compass()
 	nvswitch[e] = 0
 	hmswitch[e] = 0
+	doloop[e] = 0
 	keypause1[e] = math.huge
-	keypause2[e] = math.huge	
+	keypause2[e] = math.huge
 	default_AmbienceRed = GetAmbienceRed()
 	default_AmbienceBlue = GetAmbienceBlue()
 	default_AmbienceGreen = GetAmbienceGreen()
@@ -122,43 +124,57 @@ function helmet_main(e)
 		compass_pos = g_helmet[e]['compass_position']
 		mod = g_PlayerFOV
 		fov = g_PlayerFOV
+		current_fov[e] = fov
 		have_helmet[e] = 0
 		keypause1[e] = g_Time + 1000
-		keypause2[e] = g_Time + 1000		
+		keypause2[e] = g_Time + 1000
 		status[e] = "endinit"
 	end
-	
+
 	PlayerDist = GetPlayerDistance(e)
-	if fov == nil then fov = g_PlayerFOV end	
-	
+	if fov == nil then fov = g_PlayerFOV end
+
 	if g_helmet[e]['compass'] == 1 then
 		if have_helmet[e] == 1 then
 			show_compass()
 		end
 	end
 
-	if have_helmet[e] == 0 then	
+	if have_helmet[e] == 0 then
 		if g_helmet[e]['helmet_mode'] == 1 or g_helmet[e]['helmet_mode'] == 2 then
 			if PlayerDist < g_helmet[e]['pickup_range'] and g_PlayerHealth > 0 and have_helmet[e] == 0 then
-				PromptLocalForVR(e,g_helmet[e]['pickup_text'])				
+				PromptLocalForVR(e,g_helmet[e]['pickup_text'])
 				if g_KeyPressE == 1 then
 					have_helmet[e] = 1
 					PlaySound(e,0)
 					Hide(e)
-					SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 					CollisionOff(e)
+					SetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)					
 					ActivateIfUsed(e)
 				end
 			end
 		end
 	end
-
-	if have_helmet[e] == 1 then	
-		SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
-		if hmswitch[e] == 0 then 
+	
+	if have_helmet[e] == 1 then
+		
+		if hmswitch[e] == 0 then
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			PasteSpritePosition(helmetsp[e],0,0)
 			TextCenterOnXColor(50,95,2,g_helmet[e]['useage_text'],100,255,100)
-		end	
+			if doloop[e] == 0 then
+				LoopNon3DSound(e,1)
+				doloop[e] = 1
+			end 
+		end
+		if hmswitch[e] == 1 then
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
+			if doloop[e] == 1 then				
+				StopSound(e,1)
+				doloop[e] = 0
+			end				
+		end
+		
 		if g_Scancode == 48 then --Hold B Key to use
 			if g_PlayerGunID > 0 then
 				SetPlayerWeapons(0)
@@ -190,7 +206,7 @@ function helmet_main(e)
 		end
 
 		if g_Time > keypause1[e] and nvswitch[e] == 0 then
-			if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 0 then	
+			if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 0 then
 				PlaySound(e,2)
 				SetAmbienceRed(0)
 				SetAmbienceBlue(0)
@@ -202,7 +218,7 @@ function helmet_main(e)
 				keypause1[e] = g_Time + 1000
 				nvswitch[e] = 1
 			end
-		end	
+		end
 		if g_Time > keypause1[e] and nvswitch[e] == 1 then
 			if GetInKey() == "n" or GetInKey() == "N" and nvswitch[e] == 1 then
 				PlaySound(e,2)
@@ -216,12 +232,12 @@ function helmet_main(e)
 				keypause1[e] = g_Time + 1000
 				nvswitch[e] = 0
 			end
-		end	
+		end
 		if g_helmet[e]['helmet_mode'] == 1 then
 			if GetInKey() == "p" or GetInKey() == "P" then
 				local ox,oy,oz = U.Rotate3D( 0, 60, 0, math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ), math.rad( g_PlayerAngZ ) )
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
-				SetPosition(e,forwardposx, forwardposy, forwardposz)
+				ResetPosition(e,forwardposx, forwardposy, forwardposz)
 				SetRotation(e,0, -90, 0)
 				Show(e)
 				SetAmbienceRed(default_AmbienceRed)
@@ -231,17 +247,17 @@ function helmet_main(e)
 				SetFogRed(default_FogRed)
 				SetFogGreen(default_FogGreen)
 				SetFogBlue(default_FogBlue)
-				PlaySound(e,1)
+				PlaySound(e,0)
 				nvswitch[e] = 0
 				keypause1[e] = g_Time + 1000
 				have_helmet[e] = 0
 				SetPlayerFOV(fov)
 			end
 		end
-		if g_helmet[e]['helmet_mode'] == 2 then --reuseable
+		if g_helmet[e]['helmet_mode'] == 2 then --reuseable	
+			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			if g_Time > keypause2[e] and hmswitch[e] == 0 then
 				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 0 then
-					SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 					Hide(e)
 					SetAmbienceRed(default_AmbienceRed)
 					SetAmbienceBlue(default_AmbienceBlue)
@@ -250,16 +266,16 @@ function helmet_main(e)
 					SetFogRed(default_FogRed)
 					SetFogGreen(default_FogGreen)
 					SetFogBlue(default_FogBlue)
-					PlaySound(e,1)
+					PlaySound(e,0)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
 					hmswitch[e] = 1
+					StopSound(e,1)
 					SetPlayerFOV(fov)
 				end
-			end	
+			end
 			if g_Time > keypause2[e] and hmswitch[e] == 1 then
 				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 1 then
-					SetPosition(e,g_PlayerPosX,g_PlayerPosY+1000,g_PlayerPosZ)
 					Hide(e)
 					SetAmbienceRed(default_AmbienceRed)
 					SetAmbienceBlue(default_AmbienceBlue)
@@ -268,7 +284,7 @@ function helmet_main(e)
 					SetFogRed(default_FogRed)
 					SetFogGreen(default_FogGreen)
 					SetFogBlue(default_FogBlue)
-					PlaySound(e,1)
+					PlaySound(e,0)
 					nvswitch[e] = 0
 					keypause2[e] = g_Time + 1000
 					hmswitch[e] = 0
@@ -279,44 +295,44 @@ function helmet_main(e)
 	end
 end
 
-function init_compass()    
+function init_compass()
 	for i=1, 360, 1 do
-		if i == 1 then compass[i] = "N" 
+		if i == 1 then compass[i] = "N"
 		elseif i == 46 then compass[i] = "NE"
 		elseif i == 91 then compass[i] = "E"
 		elseif i == 136 then compass[i] = "SE"
 		elseif i == 181 then compass[i] = "S"
 		elseif i == 226 then compass[i] = "SW"
-		elseif i == 271 then compass[i] = "W"  
-		elseif i == 316 then compass[i] = "NW"      
+		elseif i == 271 then compass[i] = "W"
+		elseif i == 316 then compass[i] = "NW"
 		elseif math.fmod(i,10) == 1 then
-			compass[i] = "|" 
+			compass[i] = "|"
 		else
-			compass[i] = "."  
+			compass[i] = "."
 		end
-	end    
-end 
+	end
+end
 
 function show_compass()
 	local start=0
 	local compass_str=""
 	local bearing=0
-	bearing  = math.floor(math.fmod(g_PlayerAngY, 360))	
-	if bearing < 0 then bearing=bearing+360 end	
+	bearing  = math.floor(math.fmod(g_PlayerAngY, 360))
+	if bearing < 0 then bearing=bearing+360 end
  	if bearing < 45 then
 		start = 315 + bearing
 	else
 		start=bearing-45
 	end
-	local arraypos=start    
+	local arraypos=start
 	for i=1,91, 1 do
 		if arraypos==360 or arraypos<=0 then
-			arraypos=1 
-		else  
+			arraypos=1
+		else
 			arraypos=arraypos+1
 		end
 		compass_str=compass_str..compass[arraypos]
-	end	
+	end
 	if compass_pos == 1 then
 		TextCenterOnXColor(50,1,2,"Navigation Compass",255,255,255)
 		TextCenterOnXColor(50,3,2,compass_str,100,255,100)

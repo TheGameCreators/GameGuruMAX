@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Freeze effect to damage the target.
--- Freeze Spell v20
+-- Freeze Spell v21
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Freeze Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Freeze spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
 
@@ -30,6 +31,7 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local item_highlight 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -51,7 +53,7 @@ local freeze_time		= {}
 local current_time		= {}
 local entaffected		= {}
 
-function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
+function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
 	freeze_spell[e] = g_Entity[e]
 	freeze_spell[e].prompt_text = prompt_text
 	freeze_spell[e].useage_text = useage_text
@@ -63,6 +65,7 @@ function freeze_spell_properties(e, prompt_text, useage_text, pickup_range, user
 	freeze_spell[e].player_level = player_level
 	freeze_spell[e].particle1_name = lower(particle1_name)
 	freeze_spell[e].particle2_name = lower(particle2_name)
+	freeze_spell[e].item_highlight = item_highlight	
 end
 
 function freeze_spell_init(e)
@@ -79,6 +82,7 @@ function freeze_spell_init(e)
 	freeze_spell[e].particle2_name = ""
 	freeze_spell[e].particle1_number = 0
 	freeze_spell[e].particle2_number = 0
+	freeze_spell[e].item_highlight = 0 
 	freeze_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tAllegiance[e] = 0
@@ -138,7 +142,7 @@ function freeze_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < freeze_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,freeze_spell[e].pickup_range,300)
+			module_misclib.pinpoint(e,freeze_spell[e].pickup_range,freeze_spell[e].item_highlight)
 			sEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

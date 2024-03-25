@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a food health boost or deduction if consumed.
--- Food v12
+-- Food v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Food consumed"]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobal"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for useage sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 -- DESCRIPTION: <Sound2> for poisoning sound.
@@ -27,12 +28,13 @@ local pickup_style			= {}
 local effect				= {}
 local user_global_affected	= {}
 local prompt_display 		= {}
+local item_highlight 		= {}
 
 local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
 
-function food_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
+function food_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
 	food[e].prompt_text = prompt_text
 	food[e].prompt_if_collectable = prompt_if_collectable
 	food[e].useage_text = useage_text
@@ -42,6 +44,7 @@ function food_properties(e, prompt_text, prompt_if_collectable, useage_text, qua
 	food[e].effect = effect
 	food[e].user_global_affected = user_global_affected
 	food[e].prompt_display = prompt_display
+	food[e].item_highlight = item_highlight
 end
 
 function food_init(e)
@@ -55,6 +58,7 @@ function food_init(e)
 	food[e].effect = 1
 	food[e].user_global_affected = "MyMana"
 	food[e].prompt_display = 1
+	food[e].item_highlight = 0
 	
 	use_item_now[e] = 0
 	tEnt[e] = 0
@@ -74,7 +78,7 @@ function food_main(e)
 	end
 	if food[e].pickup_style == 2 and PlayerDist < food[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,food[e].pickup_range,300)
+		module_misclib.pinpoint(e,food[e].pickup_range,food[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if PlayerDist < food[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
@@ -123,7 +127,8 @@ function food_main(e)
 			_G["g_UserGlobal['"..food[e].user_global_affected.."']"] = currentvalue + food[e].quantity
 			if _G["g_UserGlobal['"..food[e].user_global_affected.."']"] >= 100 then _G["g_UserGlobal['"..food[e].user_global_affected.."']"] = 100 end
 			SetPlayerHealth(g_PlayerHealth + food[e].quantity)
-			if g_PlayerHealth > g_gameloop_StartHealth then g_PlayerHealth = g_gameloop_StartHealth end
+			if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+			SetPlayerHealthCore(g_PlayerHealth)
 		end
 	end
 	if addquantity == 2 then
@@ -133,6 +138,7 @@ function food_main(e)
 			if _G["g_UserGlobal['"..food[e].user_global_affected.."']"] <= 0 then _G["g_UserGlobal['"..food[e].user_global_affected.."']"] = 0 end
 		end
 		SetPlayerHealth(g_PlayerHealth - food[e].quantity)
+		SetPlayerHealthCore(g_PlayerHealth)
 		if g_PlayerHealth <= 0 then g_PlayerHealth = 0 end
 		PlaySound(e,2)
 	end

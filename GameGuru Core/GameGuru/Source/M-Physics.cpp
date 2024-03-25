@@ -1880,24 +1880,19 @@ void physics_resumephysics ( void )
 	t.machineindependentphysicsupdate=t.machineindependentphysicsupdate+(t.ptimer2-t.ptimer1);
 }
 
-#ifdef WICKEDENGINE
 #include "..\..\..\WICKEDREPO\WickedEngine\wiProfiler.h"
-#endif
+
 void physics_loop ( void )
 {
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
-	auto range = wiProfiler::BeginRangeCPU("Max - Physics (All)");
-
 	// shuffle virtual trees about as the player needs
 	physics_managevirtualtreecylinders();
 
 	// Player control
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player");
-	auto range2 = wiProfiler::BeginRangeCPU("Max - Physics (Player)");
 	physics_player ( );
-	wiProfiler::EndRange(range2);
 
 	//  Update physics system
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling timeGetSecond");
@@ -1908,17 +1903,12 @@ void physics_loop ( void )
 		if ( t.tphysicsadvance_f>0.05f ) t.tphysicsadvance_f = 0.05f;
 		t.machineindependentphysicsupdate = timeGetSecond();
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEUpdate");
-		range2 = wiProfiler::BeginRangeCPU("Max - Physics (Update)");
 		ODEUpdate ( t.tphysicsadvance_f );
-		wiProfiler::EndRange(range2);
 	}
 	if (BPhys_GetDebugDrawerMode() != 0)
 	{
-		range2 = wiProfiler::BeginRangeCPU("Max - Physics (Debug)");
 		physics_render_debug_meshes();
-		wiProfiler::EndRange(range2);
 	}
-	wiProfiler::EndRange(range);
 }
 
 void physics_free ( void )

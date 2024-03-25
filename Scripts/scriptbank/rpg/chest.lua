@@ -1,9 +1,10 @@
--- Chest v5
+-- Chest v6
 -- DESCRIPTION: When player is within [USE_RANGE=100], show
 -- DESCRIPTION: [USE_PROMPT$="Press E to open"] when use key is pressed,
 -- DESCRIPTION: will display [CHEST_SCREEN$="HUD Screen 6"],
 -- DESCRIPTION: using [CHEST_CONTAINER$="chestunique"].
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for opening chest.
 -- DESCRIPTION: <Sound1> for closing chest.
 
@@ -17,18 +18,20 @@ local use_prompt = {}
 local chest_screen = {}
 local chest_container = {}
 local prompt_display = {}
+local item_highlight = {}
 
 local status = {}
 local doonce = {}
 local tEnt = {}
 local selectobj = {}
 
-function chest_properties(e, use_range, use_prompt, chest_screen, chest_container, prompt_display)
+function chest_properties(e, use_range, use_prompt, chest_screen, chest_container, prompt_display, item_highlight)
 	chest[e].use_range = use_range
 	chest[e].use_prompt = use_prompt
 	chest[e].chest_screen = chest_screen
 	chest[e].chest_container = chest_container
 	chest[e].prompt_display = prompt_display or 1
+	chest[e].item_highlight = item_highlight
 end
 
 function chest_init(e)
@@ -38,6 +41,7 @@ function chest_init(e)
 	chest[e].chest_screen = "HUD Screen 6"
 	chest[e].chest_container = "chestunique"
 	chest[e].prompt_display = 1
+	chest[e].item_highlight = 0	
 	
 	status[e] = "closed"
 	selectobj[e] = 0
@@ -51,7 +55,7 @@ function chest_main(e)
 		PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < chest[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,chest[e].use_range,300)
+			module_misclib.pinpoint(e,chest[e].use_range,chest[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

@@ -7862,7 +7862,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				for (int e = 1; e <= g.entityelementlist; e++)
 				{
 					int entid = t.entityelement[e].bankindex;
-					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
+					if (entid > 0 && (t.entityprofile[entid].ismarker == 0 || t.entityprofile[entid].ismarker == 3)) // objects and zones
 					{
 						// also only list those that would actually perform LUA logic in the loop
 						if (t.entityelement[e].plrdist < MAXFREEZEDISTANCE || t.entityelement[e].eleprof.phyalways != 0)
@@ -7887,7 +7887,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				for (int e = 1; e <= g.entityelementlist; e++)
 				{
 					int entid = t.entityelement[e].bankindex;
-					if (entid > 0 && t.entityprofile[entid].ismarker == 0)
+					if (entid > 0 && (t.entityprofile[entid].ismarker == 0 || t.entityprofile[entid].ismarker == 3)) // objects and zones
 					{
 						// skip entities that are inside shops or chests, ect
 						if (t.entityelement[e].collected >= 3 && t.entityelement[e].active == 0)
@@ -21804,6 +21804,7 @@ void process_entity_library_v2(void)
 				fButWidth = vContentSize.x / buts;
 				fButWidth -= 10.0f;
 				// Marketplace
+				#ifndef GGMAXEDU
 				if (ImGui::StyleButton("Get More Music and Sound", ImVec2(fButWidth, fFontSize*2.0)))
 				{
 					DeleteWaypointsAddedToCurrentCursor();
@@ -21811,6 +21812,7 @@ void process_entity_library_v2(void)
 					bMarketplace_Window = true;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to get more Music and Sound");
+				#endif
 				// Direct import here
 				if (1)
 				{
@@ -22034,18 +22036,6 @@ void process_entity_library_v2(void)
 						sStartLibrarySearchString = "user";
 					}
 				}
-				/* for now images marketlplace is disabled
-				//REMOVED_EARLYACCESS
-				if (ImGui::StyleButton("Get More Images", ImVec2(fButWidth, fFontSize*2.0)))
-				{
-					DeleteWaypointsAddedToCurrentCursor();
-					CloseDownEditorProperties();
-					bMarketplace_Window = true;
-					//We can reuse iDisplayLibraryType in marketplace.
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Images (This feature is not yet complete)");
-				*/
-
 				if (selectedmediafile != NULL)
 				{
 					ImGui::SameLine();
@@ -22143,19 +22133,6 @@ void process_entity_library_v2(void)
 						sStartLibrarySearchString = "user";
 					}
 				}
-
-				/* not in EA
-				if (ImGui::StyleButton("Get More Videos", ImVec2(fButWidth, fFontSize*2.0)))
-				{
-					DeleteWaypointsAddedToCurrentCursor();
-					CloseDownEditorProperties();
-					bMarketplace_Window = true;
-					//We can reuse iDisplayLibraryType in marketplace.
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Videos (This feature is not yet complete)");
-				ImGui::SameLine();
-				*/
-
 				if (selectedmediafile != NULL)
 				{
 					ImGui::SameLine();
@@ -22207,24 +22184,6 @@ void process_entity_library_v2(void)
 			strcpy (pChosenSelectedBehaviorFile, "");
 			if (iDisplayLibraryType == 4) //Script
 			{
-				// get more
-				//int buts = 2;
-				//if (selectedmediafile != NULL) buts = 3;
-				//fButWidth = vContentSize.x / buts;
-				//fButWidth -= 10.0f;
-				//
-				//if (ImGui::StyleButton("Get More Behaviors", ImVec2(fButWidth, fFontSize*2.0)))
-				//{
-				//	ExecuteFile ("https://forum.game-guru.com/", "", "", 1);
-				//	/* not fort EA
-				//	DeleteWaypointsAddedToCurrentCursor();
-				//	CloseDownEditorProperties();
-				//	bMarketplace_Window = true;
-				//	//We can reuse iDisplayLibraryType in marketplace.
-				//	*/
-				//}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Behaviors by visiting the GameGuru MAX forums");
-
 				// get more
 				int buts = 1;
 				if (pref.iEnableDeveloperProperties)
@@ -22481,12 +22440,22 @@ void process_entity_library_v2(void)
 		{
 			if (iDisplayLibrarySubType == 0)
 			{
-				if (ImGui::StyleButton("Get More Objects", ImVec2(fButWidth, fFontSize*2.0)))
+				#ifdef GGMAXEDU
+				if (ImGui::StyleButton("Building Editor", ImVec2(fButWidth, fFontSize * 2.0)))
+				{
+					DeleteWaypointsAddedToCurrentCursor();
+					CloseDownEditorProperties();
+					extern void launchOrShowBuildingEditor(void);
+					launchOrShowBuildingEditor();
+				}
+				#else
+				if (ImGui::StyleButton("Get More Objects", ImVec2(fButWidth, fFontSize * 2.0)))
 				{
 					DeleteWaypointsAddedToCurrentCursor();
 					CloseDownEditorProperties();
 					bMarketplace_Window = true;
 				}
+				#endif
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Get More Objects from the Marketplace");
 
 				ImGui::SameLine();
@@ -34048,10 +34017,21 @@ void Welcome_Screen(void)
 				ImGui::TextCenter("GameGuru MAX Hub");
 			}
 			ImGui::SetWindowFontScale(1.0);
-
 			float fFontSize = ImGui::GetFontSize();
-
 			ImGui::SetWindowFontScale(1.0);
+
+			// may help Steam review ratings...
+			ImRect rect;
+			rect.Min = ImVec2(1067,36);
+			rect.Max = rect.Min + ImVec2(600, 100);
+			if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
+			{
+				ImGui::SetTooltip("%s", "Help us improve with your feedback by clicking here");
+				if (ImGui::IsAnyMouseDown() == true)
+				{
+					ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/wiki/Help-Us-Improve-with-your-Feedback", "", "", 0);
+				}
+			}
 
 			//PE: Moved here after swap.
 			// Display a button that allows the user to exit the welcome screen window.
@@ -39723,7 +39703,9 @@ void process_storeboard(bool bInitOnly)
 							}
 							else
 							{
-								strcpy(DuplicateLevelError, "Error: Could not find a free node.");
+								char pErrMess[256];
+								sprintf(pErrMess, "Error: Number of allocated nodes reached. The maximum nodes is %d.", STORYBOARD_MAXNODES);
+								strcpy(DuplicateLevelError, pErrMess);
 							}
 						}
 						else
@@ -42217,6 +42199,11 @@ void process_storeboard(bool bInitOnly)
 
 				float buttonwide = 200.0f;
 
+				// extra help for users to know maximum limits of node creation
+				bool bShowNoMoreScreensError = false;
+				char pToolTipForAddingNewScreens[256];
+				sprintf(pToolTipForAddingNewScreens, "The game project can contain up to %d screens or levels.", STORYBOARD_MAXNODES);
+
 				if (ImGui::StyleCollapsingHeader("Add and Edit Storyboard", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
 				{
 					int iAutoConnectNode = -1;
@@ -42274,7 +42261,12 @@ void process_storeboard(bool bInitOnly)
 							ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
 							iAutoConnectNode = node;
 						}
+						else
+						{
+							bShowNoMoreScreensError = true;
+						}
 					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Screen", ImVec2(buttonwide, 0.0f)))
@@ -42358,11 +42350,9 @@ void process_storeboard(bool bInitOnly)
 								break;
 							}
 						}
-
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42375,7 +42365,7 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
-
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 					
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New Loading Screen", ImVec2(buttonwide, 0.0f)))
@@ -42488,11 +42478,9 @@ void process_storeboard(bool bInitOnly)
 								break;
 							}
 						}
-
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42505,7 +42493,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
-					
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
@@ -42595,8 +42584,7 @@ void process_storeboard(bool bInitOnly)
 						}
 						if (node < 0)
 						{
-							bTriggerMessage = true;
-							strcpy(cTriggerMessage, "You cannot create any more screens or levels for this game project");
+							bShowNoMoreScreensError = true;
 						}
 						else
 						{
@@ -42609,6 +42597,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
 					static int ClassicConversion = 0;
 					static char pReconstructGameGuruRootFiles[MAX_PATH];
 
@@ -42791,13 +42781,18 @@ void process_storeboard(bool bInitOnly)
 												}
 											}
 										}
+										else
+										{
+											bShowNoMoreScreensError = true;
+										}
 									}
 								}
 							}
 						}
-
 					}
-					if (ClassicConversion > 0)
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
+
+					if (ClassicConversion > 0 && bShowNoMoreScreensError == false)
 					{
 						if (ClassicConversion <= 3)
 						{
@@ -43314,10 +43309,10 @@ void process_storeboard(bool bInitOnly)
 							g_bRefreshGlobalList = true;
 
 							// check if RPG screens already exist
+							int iCountNewHUDScreensNeeded = 0;
 							bool bRPGHUDSMissing[10];
 							memset(bRPGHUDSMissing, 0, sizeof(bRPGHUDSMissing));
 							bool bAllRPGScreensAlreadyExist = true;
-							//for (int hudi = 1; hudi <= 8; hudi++)
 							for (int hudi = 1; hudi <= 9; hudi++) // include RPG Templates VR screen :)
 							{
 								// assume HUD screen missing
@@ -43348,10 +43343,28 @@ void process_storeboard(bool bInitOnly)
 								}
 								if (bRPGHUDSMissing[hudi] == true)
 								{
+									iCountNewHUDScreensNeeded++;
 									bAllRPGScreensAlreadyExist = false;
 								}
 							}
-							if (bAllRPGScreensAlreadyExist == false)
+							if (bAllRPGScreensAlreadyExist == false && iCountNewHUDScreensNeeded > 0)
+							{
+								// need to find this many free nodes, or throw error
+								int iCountRemainingFreeOnes = 0;
+								for (int i = 14; i < STORYBOARD_MAXNODES; i++)
+								{
+									if (Storyboard.Nodes[i].used == 0)
+									{
+										iCountRemainingFreeOnes++;
+										break;
+									}
+								}
+								if (iCountRemainingFreeOnes < iCountNewHUDScreensNeeded)
+								{
+									bShowNoMoreScreensError = true;
+								}
+							}
+							if (bAllRPGScreensAlreadyExist == false && bShowNoMoreScreensError==false)
 							{
 								// load in template screens from "RPG Template" project
 								char project[MAX_PATH];
@@ -43484,8 +43497,19 @@ void process_storeboard(bool bInitOnly)
 								}
 							}
 						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
 					}
 					#endif
+
+					// generic warning of no more screens
+					if (bShowNoMoreScreensError == true)
+					{
+						char pErrMess[256];
+						sprintf(pErrMess, "Number of allocated screens/levels reached. The maximum is %d.", STORYBOARD_MAXNODES);
+						strcpy(cTriggerMessage, pErrMess);
+						bTriggerMessage = true;
+					}
+
 					//PE: Auto connect node.
 					if (iAutoConnectNode >= 0)
 					{

@@ -1,4 +1,0 @@
-Scripts\scriptbank\ammo.lua
-Scripts\scriptbank\objects\globalaffectedobject.lua
-Scripts\scriptbank\weapon.lua
-

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v20
+-- Area Damage Spell v21
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -10,6 +10,7 @@
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
 -- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
 -- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
@@ -30,6 +31,7 @@ local cast_radius 			= {}
 local player_level 			= {}
 local particle1_name 		= {}
 local particle2_name 		= {}
+local item_highlight 		= {}
 
 local cast_timeout 		= {}
 local tAllegiance 		= {}
@@ -42,7 +44,7 @@ local tlevelrequired 	= {}
 local tplayerlevel 		= {}
 local played			= {}
 
-function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name)
+function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
 	area_damage_spell[e].prompt_text = prompt_text
 	area_damage_spell[e].useage_text = useage_text
 	area_damage_spell[e].pickup_range = pickup_range
@@ -53,6 +55,7 @@ function area_damage_spell_properties(e, prompt_text, useage_text, pickup_range,
 	area_damage_spell[e].player_level = player_level
 	area_damage_spell[e].particle1_name = lower(particle1_name)
 	area_damage_spell[e].particle2_name = lower(particle2_name)
+	area_damage_spell[e].item_highlight = item_highlight
 end
 
 function area_damage_spell_init(e)
@@ -69,6 +72,7 @@ function area_damage_spell_init(e)
 	area_damage_spell[e].particle2_name = "SpellParticle2"
 	area_damage_spell[e].particle1_number = 0
 	area_damage_spell[e].particle2_number = 0
+	area_damage_spell[e].item_highlight = 0	
 	area_damage_spell[e].cast_timeout = 0	
 	status[e] = "init"
 	tEnt[e] = 0
@@ -118,7 +122,7 @@ function area_damage_spell_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < area_damage_spell[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,area_damage_spell[e].pickup_range,300)
+			module_misclib.pinpoint(e,area_damage_spell[e].pickup_range,area_damage_spell[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

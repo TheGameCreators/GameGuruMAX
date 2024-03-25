@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Object Mover v4   by Necrym59
+-- Object Mover v5   by Necrym59
 -- DESCRIPTION: This will move an object by a specified amount and can be used as a switch object for activating other objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
 -- DESCRIPTION: Customise the [PROMPT_TEXT$ = "E to move"] [USE_RANGE=90(1,500)]
 -- DESCRIPTION: [@MOVEMENT_TYPE=1(1=Push, 2=Pull, 3=Slide-Left, 4=Slide-Right, 5=Slide-Up, 6=Slide-Down, 7=Rotate X , 8=Rotate Y , 9=Rotate Z)]
 -- DESCRIPTION: [MOVEMENT=100(1,500)]
 -- DESCRIPTION: [@USE_AS_SWITCH=1(1=No, 2=Yes)]
--- DESCRIPTION: Loop <Sound0> when used
--- DESCRIPTION: Play <Sound1> when finished
+-- DESCRIPTION: <Sound0> Loop when used
+-- DESCRIPTION: <Sound1> Plays when finished
 local U = require "scriptbank\\utillib"
 
 g_objectmover 		= {}
@@ -22,7 +22,6 @@ local objpullval 	= {}
 local objslideval 	= {}
 
 function object_mover_properties(e, prompt_text, use_range, movement_type, movement, use_as_switch)
-	g_objectmover[e] = g_Entity[e]
 	g_objectmover[e]['prompt_text'] = prompt_text
 	g_objectmover[e]['use_range'] = use_range
 	g_objectmover[e]['movement_type'] = movement_type
@@ -31,7 +30,7 @@ function object_mover_properties(e, prompt_text, use_range, movement_type, movem
 end 
 
 function object_mover_init(e)
-	g_objectmover[e] = g_Entity[e]
+	g_objectmover[e] = {}
 	g_objectmover[e]['prompt_text'] = " E to move"
 	g_objectmover[e]['use_range'] = 90
 	g_objectmover[e]['movement_type'] = 1
@@ -45,7 +44,7 @@ function object_mover_init(e)
 end
 
 function object_mover_main(e)
-	g_objectmover[e] = g_Entity[e]
+
 	local PlayerDist = GetPlayerDistance(e)
 	
 	if PlayerDist < g_objectmover[e]['use_range'] and g_PlayerHealth > 0 then

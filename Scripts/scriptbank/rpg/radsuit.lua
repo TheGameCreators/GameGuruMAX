@@ -1,11 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Rad suit v10   by Necrym59
+-- Rad suit v14   by Necrym59
 -- DESCRIPTION: The applied object will give the player radiation protection. Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1-200)]
 -- DESCRIPTION: [USEAGE_TEXT$="K to wear, Q to remove"]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\radsuit.png"] for screen overlay
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> Put-on Remove Sound
 -- DESCRIPTION: <Sound1> Breathing Sound
 
@@ -13,14 +14,15 @@ local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
-g_radsuit = {}
 g_toxiczone = {}
-g_ppequipment = {}
+g_radsuit_on = {}
+
 local radsuit 			= {}
 local pickup_text 		= {}
 local useage_text 		= {}
 local screen_image 		= {}
 local prompt_display	= {}
+local item_highlight 	= {}
 
 local status 			= {}
 local radmasksp			= {}
@@ -31,13 +33,14 @@ local played			= {}
 local selectobj 		= {}
 local tEnt 				= {}
 
-function radsuit_properties(e, pickup_text, pickup_range, useage_text, screen_image, prompt_display)
+function radsuit_properties(e, pickup_text, pickup_range, useage_text, screen_image, prompt_display, item_highlight)
 	radsuit[e] = g_Entity[e]
 	radsuit[e].pickup_text = pickup_text
 	radsuit[e].pickup_range = pickup_range
 	radsuit[e].useage_text = useage_text
 	radsuit[e].screen_image = imagefile or screen_image
 	radsuit[e].prompt_display = prompt_display
+	radsuit[e].item_highlight = item_highlight
 end
 
 function radsuit_init(e)
@@ -47,11 +50,12 @@ function radsuit_init(e)
 	radsuit[e].useage_text = "K to wear, Q to remove"
 	radsuit[e].screen_image ="imagebank\\misc\\testimages\\radsuit.png"
 	radsuit[e].prompt_display = 1
-
+	radsuit[e].item_highlight = 0 
+	
 	status[e] = "init"
 	currenthealth[e] = 0
 	have_radsuit = 0
-	g_ppequipment = 0	--Gasmask = 1, Radsuit = 2
+	g_radsuit_on = 0
 	played[e] = 0
 	rsswitch[e] = 0
 	selectobj[e] = 0
@@ -73,7 +77,7 @@ function radsuit_main(e)
 	if have_radsuit == 0 then
 		if PlayerDist < radsuit[e].pickup_range and g_PlayerHealth > 0 then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,radsuit[e].pickup_range,300)
+			module_misclib.pinpoint(e,radsuit[e].pickup_range,radsuit[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 			if PlayerDist < radsuit[e].pickup_range and tEnt[e] ~= 0 then
@@ -118,6 +122,7 @@ function radsuit_main(e)
 					played[e] = 1
 				end
 				rsswitch[e] = 1
+				g_radsuit_on = 1
 			end
 		end
 		if rsswitch[e] == 1 then
@@ -127,19 +132,18 @@ function radsuit_main(e)
 					played[e] = 1
 				end
 				rsswitch[e] = 0
+				g_radsuit_on = 0
 			end
 		end
 		if rsswitch[e] == 1 then
 			PasteSpritePosition(radmasksp,0,0)
 			LoopSound(e,1)
 			if g_toxiczone == 'radiation' then SetPlayerHealth(currenthealth[e]) end
-			g_ppequipment = 2
 			played[e] = 0
 		end
 		if rsswitch[e] == 0 then
 			StopSound(e,1)
 			PasteSpritePosition(radmasksp,1000,1000)
-			g_ppequipment = 0
 			played[e] = 0
 			currenthealth[e] = g_PlayerHealth
 		end

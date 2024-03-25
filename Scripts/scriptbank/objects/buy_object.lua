@@ -1,4 +1,4 @@
--- Buy Object v3 Necrym59 and oosayeroo 
+-- Buy Object v4 Necrym59 and oosayeroo 
 -- DESCRIPTION: The object will act as a switch to trigger logic connection if the global affected variable amount is valid.
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [BUY_TEXT$="E to purchase"]
@@ -68,14 +68,14 @@ function buy_object_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < buyobject[e].use_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,buyobject[e].use_range,200)
+		module_misclib.pinpoint(e,buyobject[e].use_range,0)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 	end		
 	if PlayerDist < buyobject[e].use_range and tEnt[e] ~= 0 then
 		if status[e] == "ready" then
-			if buyobject[e].text_display == 1 then PromptLocal(e,buyobject[e].buy_text.. " for " ..buyobject[e].buy_cost.. " credits") end
-			if buyobject[e].text_display == 2 then Prompt(buyobject[e].buy_text.. " for " ..buyobject[e].buy_cost.. " credits") end
+			if buyobject[e].text_display == 1 then PromptLocal(e,buyobject[e].buy_text) end
+			if buyobject[e].text_display == 2 then Prompt(buyobject[e].buy_text) end
 			if g_KeyPressE == 1 then
 				if buyobject[e].user_global_affected > "" then
 					if _G["g_UserGlobal['"..buyobject[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..buyobject[e].user_global_affected.."']"] end

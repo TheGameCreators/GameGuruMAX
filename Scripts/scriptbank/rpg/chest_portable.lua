@@ -1,4 +1,4 @@
--- Chest Portable v10  by Necrym59
+-- Chest Portable v11  by Necrym59
 -- DESCRIPTION: The attached object can be used as a portable chest.
 -- DESCRIPTION: Set object as Collectable.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] [PICKUP_RANGE=80(1,100)]
@@ -8,6 +8,7 @@
 -- DESCRIPTION: When use key is pressed, will open the [CHEST_SCREEN$="HUD Screen 6"]
 -- DESCRIPTION: using [CHEST_CONTAINER$="chestportable"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for pickup
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -24,6 +25,7 @@ local useage_key		= {}
 local chest_screen 		= {}
 local chest_container 	= {}
 local prompt_display 	= {}
+local item_highlight 	= {}
 
 local have_chest 		= {}
 local selectobj 		= {}
@@ -31,7 +33,7 @@ local doonce 			= {}
 local tEnt 				= {}
 local played			= {}
 
-function chest_portable_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, chest_screen, chest_container, prompt_display)
+function chest_portable_properties(e, pickup_text, pickup_range, pickup_style, useage_text, useage_key, chest_screen, chest_container, prompt_display, item_highlight)
 	chest_portable[e] = g_Entity[e]
 	chest_portable[e].pickup_text = pickup_text
 	chest_portable[e].pickup_range = pickup_range
@@ -41,6 +43,7 @@ function chest_portable_properties(e, pickup_text, pickup_range, pickup_style, u
 	chest_portable[e].chest_screen = chest_screen
 	chest_portable[e].chest_container = chest_container
 	chest_portable[e].prompt_display = prompt_display
+	chest_portable[e].item_highlight = item_highlight	
 end
 
 function chest_portable_init(e)
@@ -53,6 +56,7 @@ function chest_portable_init(e)
 	chest_portable[e].chest_screen = "HUD Screen 7"
 	chest_portable[e].chest_container = "chestportable"
 	chest_portable[e].prompt_display = 1
+	chest_portable[e].item_highlight = 0
 	have_chest[e] = 0
 	selectobj[e] = 0
 	g_tEnt = 0
@@ -88,7 +92,7 @@ function chest_portable_main(e)
 
 	if chest_portable[e].pickup_style == 2 and PlayerDist < chest_portable[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,chest_portable[e].pickup_range,300)
+		module_misclib.pinpoint(e,chest_portable[e].pickup_range,chest_portable[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if have_chest[e] == 0 then

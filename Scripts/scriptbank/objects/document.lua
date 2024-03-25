@@ -1,4 +1,4 @@
--- Document v15 - thanks to Necrym59 and Lee
+-- Document v16 - thanks to Necrym59 and Lee
 -- DESCRIPTION: Change the [PICKUP_TEXT$="E to look at document"].
 -- DESCRIPTION: View position [SCREEN_X=25(0,100)] and [SCREEN_Y=10(0,100)]
 -- DESCRIPTION: Set the [SPRITE_SIZE=15(1,100)] percentage.
@@ -7,6 +7,7 @@
 -- DESCRIPTION: Change the [RETURN_TEXT$="Q to return document"].
 -- DESCRIPTION: Set [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: Set to [LOCK_SCREEN!=0] when viewing.
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when picking up document.
 -- DESCRIPTION: <Sound1> reading/narration.
 -- DESCRIPTION: <Sound2> when returning document.
@@ -39,7 +40,7 @@ local tEnt 				= {}
 local selectobj			= {}
 local status 			= {}
 		
-function document_properties(e, pickup_text, screen_x, screen_y, sprite_size, imagefile, pickup_range, return_text, prompt_display, lock_screen)
+function document_properties(e, pickup_text, screen_x, screen_y, sprite_size, imagefile, pickup_range, return_text, prompt_display, lock_screen, item_highlight)
 	document[e].pickup_text = pickup_text
 	document[e].screen_x = screen_x					
 	document[e].screen_y = screen_y					
@@ -53,6 +54,8 @@ function document_properties(e, pickup_text, screen_x, screen_y, sprite_size, im
 	document[e].prompt_display = prompt_display
 	if lock_screen == nil then lock_screen = 0 end
 	document[e].lock_screen = lock_screen
+	if item_highlight == nil then item_highlight = 0 end
+	document[e].item_highlight = item_highlight
 end 
 	
 function document_init_name(e)
@@ -66,6 +69,8 @@ function document_init_name(e)
 	document[e].imagefile = "imagebank\\documents\\default_doc.png"
 	document[e].prompt_display = 1
 	document[e].lock_screen = 0
+	document[e].item_highlight = 0
+	
 	showing[e] = 0
 	pressed[e] = 0
 	sprite[e] = 0
@@ -92,7 +97,7 @@ function document_main(e)
 	local LookingAt = GetPlrLookingAtEx(e,1)
 	if PlayerDist < document[e].pickup_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,document[e].pickup_range,300)
+		module_misclib.pinpoint(e,document[e].pickup_range,document[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 	end	

@@ -1,9 +1,9 @@
--- Door Rotate v23 - Necrym59 and AmenMoses and Lee
+-- Door Rotate v24 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is initially opened, play <Sound0>. When the door is closing, play <Sound1>.
--- DESCRIPTION: Customize the [LockedText$="Door is locked. Find a way to unlock it"] 
+-- DESCRIPTION: Customize the [LockedText$="Door is locked. Find a way to unlock it"]
 -- DESCRIPTION: and optionally [!IsUnlocked=1]
--- DESCRIPTION: [UnLockedText$="Press E to open door"] 
--- DESCRIPTION: [CloseText$="Press E to close door"] 
+-- DESCRIPTION: [UnLockedText$="Press E to open door"]
+-- DESCRIPTION: [CloseText$="Press E to close door"]
 -- DESCRIPTION: [@DOOR_TYPE=2(1=Auto, 2=Manual)]
 -- DESCRIPTION: [DOOR_RANGE=100(0,500)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
@@ -54,11 +54,11 @@ function door_rotate_properties( e, lockedtext, isunlocked, unlockedtext, closet
 		door.closetext = closetext
 	end
 	if door_type ~= nil then
-		door.door_type = doorTypesRotation[ door_type ]    
+		door.door_type = doorTypesRotation[ door_type ]
 	end
 	door.door_range = door_range or defaultDoorRange
 	door.prompt_display = prompt_display or defaultPromptDisplay
-end 
+end
 
 function door_rotate_init_name( e, name )
 	Include( "quatlib.lua" )
@@ -76,7 +76,7 @@ function door_rotate_init_name( e, name )
 							lockedtext = defaultLockedText,
 							IsUnlocked = defaultIsUnlocked,
 							unlockedtext = defaultUnLockedText,
-							closetext = defaultCloseText,		
+							closetext = defaultCloseText,
 							door_type = defaultDoorType,
 							door_range = defaultDoorRange,
 							prompt_display = prompt_display,
@@ -87,8 +87,8 @@ end
 
 function door_rotate_main(e)
 
-	local PlayerDist = GetPlayerDistance(e)	
-	
+	local PlayerDist = GetPlayerDistance(e)
+
 	local door = g_door_rotate[ e ]
 	if door == nil then return end
 	if door.obj == nil then
@@ -106,7 +106,7 @@ function door_rotate_main(e)
 		g_door_rotate[ e ].originalz = -1
 		return
 	end
-	
+
 	if g_door_rotate[ e ].originalx == -1 then
 		g_door_rotate[ e ].originalx = g_Entity[e]['x']
 		g_door_rotate[ e ].originaly = g_Entity[e]['y']
@@ -115,11 +115,11 @@ function door_rotate_main(e)
 	end
 
 	if controlEnt == nil then controlEnt = e end
-	
+
 	local timeThisFrame = g_Time
-	
+
 	if controlEnt == e then
-		if timeLastFrame == nil then 
+		if timeLastFrame == nil then
 			timeLastFrame = timeThisFrame
 			timeDiff = 1
 		else
@@ -129,8 +129,8 @@ function door_rotate_main(e)
 	end
 
 	local allowautoopenremotely = 0
-	if door.isunlocked == false then 	
-		if g_Entity[e]['haskey'] == 1 then 	
+	if door.isunlocked == false then
+		if g_Entity[e]['haskey'] == 1 then
 			door.isunlocked = true
 		end
 		-- if was spawned at start, and it was locked, and then activated, this means we want to unlock the door
@@ -149,15 +149,15 @@ function door_rotate_main(e)
 	-- determine if local to door
 	local tareweclose = 0
 	local LookingAt = GetPlrLookingAtEx(e,1)
-	if PlayerDist < door.door_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then	
+	if PlayerDist < door.door_range and GetEntityVisibility(e) == 1 and LookingAt == 1 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,door.door_range,200)
+		module_misclib.pinpoint(e,door.door_range,0)
 		tEnt[e] = g_tEnt
-		--end pinpoint select object--	
+		--end pinpoint select object--
 	end
-	
-	if (PlayerDist < door.door_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1) or allowautoopenremotely == 1 then	
-		tareweclose = 1	
+
+	if (PlayerDist < door.door_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1) or allowautoopenremotely == 1 then
+		tareweclose = 1
 		-- handle door when closed
 		if door.state == 'Closed' then
 			local tcanopennow = 0
@@ -196,10 +196,10 @@ function door_rotate_main(e)
 		elseif door.state == 'Open' then
 			if door.door_type == 'Manual' and tareweclose == 1 then
 					if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.closetext) end
-					if door.prompt_display == 2 then Prompt(door.closetext) end			
+					if door.prompt_display == 2 then Prompt(door.closetext) end
 				if g_KeyPressE == 1 then
 					if not keyPressed then
-						door.state = 'Closing' 
+						door.state = 'Closing'
 						keyPressed = true
 						PlaySound( e, 1 )
 					end
@@ -209,12 +209,12 @@ function door_rotate_main(e)
 			end
 		end
 	end
-	
+
 	if door.state == 'Knob' and timeThisFrame > door.timer then
 		door.state = 'Opening'
 		door.timer = math.huge
 	end
-	
+
 	if door.state == 'Opening' then
 		door.blocking = 2
 		door.blocking = NAVMESH.HandleBlocker(e,door.blocking, door.originalx,door.originaly, door.originalz)
@@ -229,11 +229,11 @@ function door_rotate_main(e)
 			ResetRotation( e, deg( ax ), deg( ay ), deg( az ) )
 			CollisionOn( e )
 		else
-			door.state = 'Open'	
+			door.state = 'Open'
 			door.blocking = 2
 		end
-	end	
-		
+	end
+
 	if door.state == 'Closing' then
 		if door.angle > 0 then
 			door.angle = door.angle - timeDiff
@@ -244,13 +244,13 @@ function door_rotate_main(e)
 			local ax, ay, az = Q.ToEuler( Q.Mul( door.quat, rotq ) )
 			CollisionOff( e )
 			ResetRotation( e, deg( ax ), deg( ay ), deg( az ) )
-			CollisionOn( e )			
+			CollisionOn( e )
 		else
-			door.state = 'Closed' 
+			door.state = 'Closed'
 			door.blocking = 1
 		end
 	end
-	
+
 	-- navmesh blocker system (account for bounding size of entity)
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking, door.originalx,door.originaly, door.originalz)
 

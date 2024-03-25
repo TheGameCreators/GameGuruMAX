@@ -44,6 +44,7 @@ bool load_rpg_system_items(char* name)
 	g_collectionLabels.push_back("style");
 
 	// load in collection file (contains all items in all game levels)
+	timestampactivity(0, "loading in collection - items.tsv");
 	std::vector<cstr> g_localCollectionLabels;
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");
@@ -64,6 +65,7 @@ bool load_rpg_system_items(char* name)
 				theline[strlen(theline) - 1] = 0;
 
 			//PE: Empty line \n at the bottom would always add the last item 1 additional time, growing the list.
+			timestampactivity(0, theline);
 			if (strlen(theline) > 0)
 			{
 				// determine which list to fill
@@ -172,6 +174,7 @@ bool load_rpg_system_items(char* name)
 		}
 		fclose(collectionFile);
 	}
+	timestampactivity(0, "loading collection complete");
 
 	// make a copy to regular gaming list
 	g_collectionList = g_collectionMasterList;
@@ -346,6 +349,7 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 		return true;
 
 	// save master collection in file (contains all items in all game levels)
+	timestampactivity(0, "saving collection - items.tsv");
 	char collectionfilename[MAX_PATH];
 	strcpy(collectionfilename, "projectbank\\");
 	strcat(collectionfilename, name);
@@ -410,6 +414,7 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 	// also save an up to date copy of the needed elements
 	if (bIncludeELEFile == true)
 	{
+		timestampactivity(0, "saving collection - items.ele");
 		cstr storeoldELEfile = t.elementsfilename_s;
 		char collectionELEfilename[MAX_PATH];
 		strcpy(collectionELEfilename, "projectbank\\");

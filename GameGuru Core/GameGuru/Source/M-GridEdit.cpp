@@ -56,7 +56,12 @@ bool bStoryboardInitNodes = false;
 bool bJustRederedScreenEditor = false;
 int g_iRefreshLibraryFolders = 0;
 
+#ifdef GGMAXEPIC
+// No discounts mentioned in Epic Store listing for now
+#else
 #define FREETRIALONDISCOUNT
+#endif
+
 bool g_bUpdateAppAvailable = false;
 bool g_bFreeTrialVersion = false;
 int g_iFreeTrialDaysLeft = 0;
@@ -4349,6 +4354,7 @@ void mapeditorexecutable_loop(void)
 					}
 				}
 
+				#ifndef GGMAXEDU
 				ImGui::Separator();
 				if (ImGui::MenuItem("Marketplace")) 
 				{
@@ -4357,6 +4363,7 @@ void mapeditorexecutable_loop(void)
 					CloseDownEditorProperties();
 					bMarketplace_Window = true;
 				}
+				#endif
 
 				#endif
 				#ifdef BUILDINGEDITOR
@@ -7471,12 +7478,21 @@ void mapeditorexecutable_loop(void)
 			float fScale = fLogoWidth / fImageWidth;
 			ImVec2 vLogoSize = { fLogoWidth , fImageHeight * fScale };
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, -20));
+			#ifdef GGMAXEPIC
+			if (ImGui::ImgBtn(FREETRIAL_BODY, vLogoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), 0, 0, 0, 0, false, false, false, false, false, false))
+			{
+				bClickAlreadyHandled = true;
+				ExecuteFile("https://store.epicgames.com/", "", "", 0);
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click here to go to the Epic Store to buy GameGuru MAX");
+			#else
 			if (ImGui::ImgBtn(FREETRIAL_BODY, vLogoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), 0, 0, 0, 0, false, false, false, false, false, false))
 			{
 				bClickAlreadyHandled = true;
 				ExecuteFile("https://store.steampowered.com/app/1247290/GameGuru_MAX/", "", "", 0);
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click here to go to the Steam page to buy GameGuru MAX");
+			#endif
 
 			ImGui::SetWindowFontScale(0.5f);
 			ImGui::Text("");
@@ -7488,17 +7504,25 @@ void mapeditorexecutable_loop(void)
 			if (ImGui::StyleButton("Buy GameGuru MAX", ImVec2(vLogoSize.x, fFontSize*4.0)))
 			{
 				bClickAlreadyHandled = true;
+				#ifdef GGMAXEPIC
+				ExecuteFile("https://store.epicgames.com/", "", "", 0);
+				#else
 				#ifdef FREETRIALONDISCOUNT
 				ExecuteFile("https://store.steampowered.com/bundle/25504/GameGuru_Twin_Pack/", "", "", 0);
 				#else
 				ExecuteFile("https://store.steampowered.com/app/1247290/GameGuru_MAX/", "", "", 0);
+				#endif
 				#endif
 			}
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
+			#ifdef GGMAXEPIC
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click here to go to the Epic Store to buy GameGuru MAX");
+			#else
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click here to go to the Steam page to buy GameGuru MAX");
+			#endif
 			ImGui::SetWindowFontScale(1.0);
 
 			// completed free trial window

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Pulse Control v6 by Necrym59
+-- Pulse Control v7 by Necrym59
 -- DESCRIPTION: Modifies the emmissiveness of an object when is Set to ON or activated by zone or switch.
 -- DESCRIPTION: Attach this behavior to an object and set Physics ON/OFF, Always active ON.
 -- DESCRIPTION: Set the behavior to ON. Or set to OFF if you wish to use a trigger zone or switch and logic link to the object for activation.
@@ -27,23 +27,22 @@ local current_level = {}
 local status 		= {}
 local doonce 		= {}
 local colchange		= {}
-local empulse 		= {}	
+local empulse 		= {}
 
 function pulsecontrol_properties(e, prompt_text, mode, level, speed, set, color_change, color_r, color_g, color_b)
-	pulsecontrol[e] = g_Entity[e]
 	pulsecontrol[e].prompt_text 	= prompt_text
 	pulsecontrol[e].mode			= mode
 	pulsecontrol[e].level 			= level
-	pulsecontrol[e].speed 			= speed	
+	pulsecontrol[e].speed 			= speed
 	pulsecontrol[e].set 			= set or 1
-	pulsecontrol[e].color_change	= color_change or 0	
+	pulsecontrol[e].color_change	= color_change or 0
 	pulsecontrol[e].color_r			= color_r
 	pulsecontrol[e].color_g			= color_g
-	pulsecontrol[e].color_b			= color_b	
-end 
+	pulsecontrol[e].color_b			= color_b
+end
 
 function pulsecontrol_init(e)
-	pulsecontrol[e] = g_Entity[e]
+	pulsecontrol[e] = {}
 	pulsecontrol[e].prompt_text 	= ""
 	pulsecontrol[e].mode			= 1
 	pulsecontrol[e].level 			= 80
@@ -55,7 +54,7 @@ function pulsecontrol_init(e)
 	pulsecontrol[e].color_b			= 0
 	status[e] = "init"
 	doonce[e] = 0
-	colchange[e] = 0	
+	colchange[e] = 0
 	emR, emG, emB = GetEntityEmissiveColor(e)
 	emStrength = GetEntityEmissiveStrength(e)
 	current_level[e] = emStrength
@@ -63,36 +62,35 @@ function pulsecontrol_init(e)
 end
 
 function pulsecontrol_main(e)
-	pulsecontrol[e] = g_Entity[e]
-	
-	if status[e] == "init" then		
+
+	if status[e] == "init" then
 		status[e] = "end"
 	end
 	if pulsecontrol[e].set == 1 then g_Entity[e]['activated'] = 0 end
 	if pulsecontrol[e].set == 2 and pulsecontrol[e].mode == 3 then g_Entity[e]['activated'] = 1 end
-	
+
 	if g_Entity[e]['activated'] == 1 then
 		if doonce[e] == 0 then
-			Prompt(pulsecontrol[e].prompt_text)		
+			Prompt(pulsecontrol[e].prompt_text)
 			PlaySound(e,0)
 			doonce[e] = 1
 		end
 		if pulsecontrol[e].mode == 1 then -- Increase Emission
-			if current_level[e] <= pulsecontrol[e].level then				
-				SetEntityEmissiveStrength(e,current_level[e])				
+			if current_level[e] <= pulsecontrol[e].level then
+				SetEntityEmissiveStrength(e,current_level[e])
 				current_level[e] = current_level[e] + pulsecontrol[e].speed
 			end
 		end
 		if pulsecontrol[e].mode == 2 then -- Decrease Emission
-			if current_level[e] >= pulsecontrol[e].level then				
+			if current_level[e] >= pulsecontrol[e].level then
 				SetEntityEmissiveStrength(e,current_level[e])
 				current_level[e] = current_level[e] - pulsecontrol[e].speed
-			end	
+			end
 		end
 		if pulsecontrol[e].mode == 3 then -- Pulse Emission
 			LoopSound(e,1)
 			if empulse[e] == 0 then
-				if current_level[e] <= pulsecontrol[e].level then				
+				if current_level[e] <= pulsecontrol[e].level then
 					SetEntityEmissiveStrength(e,current_level[e])
 					current_level[e] = current_level[e] + pulsecontrol[e].speed
 					if current_level[e] >= pulsecontrol[e].level then
@@ -103,7 +101,7 @@ function pulsecontrol_main(e)
 				end
 			end
 			if empulse[e] == 1 then
-				if current_level[e] >= emStrength then				
+				if current_level[e] >= emStrength then
 					SetEntityEmissiveStrength(e,current_level[e])
 					current_level[e] = current_level[e] - pulsecontrol[e].speed
 					if current_level[e] <= emStrength then

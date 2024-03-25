@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player a potion boost or deduction if consumed.
--- Potion v12
+-- Potion v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Potion consumed"]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMana"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for useage sound.
 -- DESCRIPTION: <Sound1> for collection sound.
 
@@ -26,11 +27,12 @@ local pickup_style = {}
 local effect = {}
 local user_global_affected = {}
 local prompt_display = {}
+local item_highlight = {}
 local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
 
-function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display)
+function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
 	potion[e].prompt_text = prompt_text
 	potion[e].prompt_if_collectable = prompt_if_collectable
 	potion[e].useage_text = useage_text
@@ -40,6 +42,7 @@ function potion_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 	potion[e].effect = effect
 	potion[e].user_global_affected = user_global_affected
 	potion[e].prompt_display = prompt_display
+	potion[e].item_highlight = item_highlight	
 end
 
 function potion_init(e)
@@ -52,7 +55,8 @@ function potion_init(e)
 	potion[e].pickup_style = 1
 	potion[e].effect = 1
 	potion[e].user_global_affected = "MyMana"
-	potion[e].prompt_display = 1	
+	potion[e].prompt_display = 1
+	potion[e].item_highlight = 0	
 	use_item_now[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
@@ -71,7 +75,7 @@ function potion_main(e)
 	end
 	if potion[e].pickup_style == 2 and PlayerDist < potion[e].pickup_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,potion[e].pickup_range,300)
+		module_misclib.pinpoint(e,potion[e].pickup_range,potion[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		if PlayerDist < potion[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Task Tool v7 by Necrym59
+-- Task Tool v9 by Necrym59
 -- DESCRIPTION: This object will give the player a designated task-tool if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
@@ -7,6 +7,7 @@
 -- DESCRIPTION: [@TOOL_TYPE=1(1=Crowbar, 2=Screwdriver, 3=Spanner, 4=Cutter, 5=Named Tool)]
 -- DESCRIPTION: [TOOL_NAME$="Named Tool"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: Play the audio <Sound0> when picked up.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -22,20 +23,21 @@ local pickup_style 		= {}
 local tool_type			= {}
 local tool_name 		= {}
 local prompt_display 	= {}
+local item_highlight 	= {}
 
 local collected 		= {}
 local status 			= {}
 local tEnt				= {}
 local selectobj			= {}
 
-function task_tool_properties(e, prompt_text, pickup_range, pickup_style, tool_type, tool_name, prompt_display)
-	tasktool[e] = g_Entity[e]
+function task_tool_properties(e, prompt_text, pickup_range, pickup_style, tool_type, tool_name, prompt_display, item_highlight)
 	tasktool[e].prompt_text = prompt_text
 	tasktool[e].pickup_range = pickup_range
 	tasktool[e].pickup_style = pickup_style
 	tasktool[e].tool_type = tool_type
 	tasktool[e].tool_name = tool_name
 	tasktool[e].prompt_display = prompt_display
+	tasktool[e].item_highlight = item_highlight
 end
 
 function task_tool_init(e)
@@ -46,7 +48,8 @@ function task_tool_init(e)
 	tasktool[e].tool_type = 1
 	tasktool[e].tool_name = ""
 	tasktool[e].prompt_display = 1
-
+	tasktool[e].item_highlight = 0
+	
 	g_tasktool = 0
 	g_tEnt = 0
 	collected[e] = 0
@@ -56,7 +59,7 @@ function task_tool_init(e)
 end
 
 function task_tool_main(e)
-	tasktool[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		if tasktool[e].tool_type == 1 then tasktool[e].tool_name = "Crowbar" end
 		if tasktool[e].tool_type == 2 then tasktool[e].tool_name = "Screwdriver" end
@@ -95,7 +98,7 @@ function task_tool_main(e)
 		local LookingAt = GetPlrLookingAtEx(e,1)
 		if LookingAt == 1 and PlayerDist < tasktool[e].pickup_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,tasktool[e].pickup_range,300)
+			module_misclib.pinpoint(e,tasktool[e].pickup_range,tasktool[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

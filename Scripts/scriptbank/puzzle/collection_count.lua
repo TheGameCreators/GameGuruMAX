@@ -1,93 +1,94 @@
--- Collection Count v5 by Necrym59 and Lee
--- DESCRIPTION: Allows for a collection of items to complete the level or activate an IfUsed entity.
--- DESCRIPTION: Collect all [OBJECTIVES=6] to win within the allotted
--- DESCRIPTION: [COLLECTION_TIME=60(10,500)] in seconds
--- DESCRIPTION: [PICKUP_RANGE=80(0,100)]
+-- Collection Count v8 by Necrym59
+-- DESCRIPTION: This behavior allows for a Collection Item for pickup
+-- DESCRIPTION: Set a Collection Control behavior for a collection configuration
+-- DESCRIPTION: [PICKUP_RANGE=100(0,100)]
 -- DESCRIPTION: [TIME_BONUS=0(0,100)] in seconds
 -- DESCRIPTION: [TIME_PENALTY=0(0,100)] in seconds
 -- DESCRIPTION: [HEALTH_BONUS=0(0,100)] in units
 -- DESCRIPTION: [HEALTH_PENALTY=0(0,100)] in units
--- DESCRIPTION: [@COMPLETION=1(1=End Level, 2=Activate if Used)] controls whether to end level or activate if used object.
+-- DESCRIPTION: [GLOBAL_BONUS=0(0,100)] in units
+-- DESCRIPTION: [GLOBAL_PENALTY=0(0,100)] in units
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyPoints"]
 -- DESCRIPTION: <Sound0> plays when objective picked up
--- DESCRIPTION: <Sound1> plays when collection completed
 
-g_collection_count = {}
-g_collection_count_counts = 0
-g_collection_count_time = {}
+g_collection_objectives	= {}
+g_collection_time		= {}
+g_collection_counted	= 0
 
-local collection_time = {}
-local pickup_range = {}
-local time_bonus = {}
-local time_penalty = {}
-local health_bonus = {}
-local health_penalty = {}
-local completion = {}
-local status = {}
+local cc_count			= {}
+local pickup_range		= {}
+local time_bonus		= {}
+local time_penalty		= {}
+local health_bonus		= {}
+local health_penalty	= {}
+local global_bonus		= {}
+local global_penalty	= {}
+local user_global_affected = {}
 
-function collection_count_properties(e, objectives, collection_time, pickup_range, time_bonus, time_penalty, health_bonus, health_penalty, completion)
-	g_collection_count[e].objectives = objectives
-	g_collection_count[e].collection_time = collection_time
-	g_collection_count[e].pickup_range = pickup_range
-	g_collection_count[e].time_bonus =  time_bonus or 0
-	g_collection_count[e].time_penalty = time_penalty or 0
-	g_collection_count[e].health_bonus = health_bonus or 0	
-	g_collection_count[e].health_penalty = health_penalty or 0
-	g_collection_count[e].completion = completion
+local currentvalue		= {}
+local status			= {}
+
+function collection_count_properties(e, pickup_range, time_bonus, time_penalty, health_bonus, health_penalty, global_bonus, global_penalty, user_global_affected)
+	cc_count[e].pickup_range = pickup_range
+	cc_count[e].time_bonus = time_bonus or 0
+	cc_count[e].time_penalty = time_penalty or 0
+	cc_count[e].health_bonus = health_bonus or 0
+	cc_count[e].health_penalty = health_penalty or 0
+	cc_count[e].global_bonus = global_bonus or 0
+	cc_count[e].global_penalty = global_penalty or 0
+	cc_count[e].user_global_affected = user_global_affected
 end
 
 function collection_count_init(e)
-	g_collection_count[e] = {}
-	g_collection_count[e].objectives = 6
-	g_collection_count[e].collection_time = 60
-	g_collection_count[e].pickup_range = 80
-	g_collection_count[e].time_bonus = 0
-	g_collection_count[e].time_penalty = 0
-	g_collection_count[e].health_bonus = 0	
-	g_collection_count[e].health_penalty = 0	
-	g_collection_count[e].completion = 1
+	cc_count[e] = {}
+	cc_count[e].pickup_range = 100
+	cc_count[e].time_bonus = 0
+	cc_count[e].time_penalty = 0
+	cc_count[e].health_bonus = 0
+	cc_count[e].health_penalty = 0
+	cc_count[e].global_bonus = 0
+	cc_count[e].global_penalty = 0
+	cc_count[e].user_global_affected = ""
 
+	currentvalue[e] = 0
 	status[e] = "init"
 end
 
 function collection_count_main(e)
 	if status[e] == "init" then
-		g_collection_count_time = g_collection_count[e].collection_time * 1000
-		g_collection_count_counts = 0
+		g_collection_counted = 0
 		status[e] = "endinit"
 	end
 
 	local PlayerDist = GetPlayerDistance(e)
 
-	if PlayerDist <= g_collection_count[e].pickup_range then
-		if g_collection_count_counts == 0 then StartTimer(e) end
+	if PlayerDist <= cc_count[e].pickup_range then
 		PlaySound(e,0)
 		PerformLogicConnections(e)
+		if cc_count[e].time_bonus > 0 then g_collection_time = g_collection_time + (cc_count[e].time_bonus * 1000) end
+		if cc_count[e].time_penalty > 0 then g_collection_time = g_collection_time - (cc_count[e].time_penalty * 1000) end
+		if cc_count[e].health_bonus > 0 then
+			SetPlayerHealth(g_PlayerHealth + cc_count[e].health_bonus)
+			if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+			SetPlayerHealthCore(g_PlayerHealth)
+		end
+		if cc_count[e].health_penalty > 0 then
+			SetPlayerHealth(g_PlayerHealth - cc_count[e].health_penalty)
+			SetPlayerHealthCore(g_PlayerHealth)
+		end
+		if cc_count[e].user_global_affected > "" then
+			if cc_count[e].global_bonus > 0 then
+				if _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] = currentvalue[e] + cc_count[e].global_bonus
+			end
+			if cc_count[e].global_penalty > 0 then
+				if _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] = currentvalue[e] - cc_count[e].global_penalty
+			end
+		end
+		if g_collection_counted ~= g_collection_objectives then
+			g_collection_counted = g_collection_counted + 1
+		end
 		Destroy(e)
-		g_collection_count_time = g_collection_count_time + (g_collection_count[e].time_bonus * 1000)
-		g_collection_count_time = g_collection_count_time - (g_collection_count[e].time_penalty * 1000)
-		if g_collection_count[e].health_bonus > 0 then
-			SetPlayerHealth(g_PlayerHealth + g_collection_count[e].health_bonus)
-			if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end			
-			SetPlayerHealthCore(g_PlayerHealth)
-		end
-		if g_collection_count[e].health_penalty > 0 then
-			SetPlayerHealth(g_PlayerHealth - g_collection_count[e].health_penalty)
-			SetPlayerHealthCore(g_PlayerHealth)
-		end
-		if g_collection_count_counts ~= g_collection_count[e].objectives then
-			g_collection_count_counts = g_collection_count_counts + 1
-		end
-		if g_collection_count_counts >= g_collection_count[e].objectives then
-			PlaySound(e,1)
-			if g_collection_count[e].completion == 1 then JumpToLevelIfUsed(e) end
-			if g_collection_count[e].completion == 2 then ActivateIfUsed(e) end
-		end
-	end
-	if g_collection_count_time > 0 and g_collection_count_counts > 0 then
-		g_collection_count_time = g_collection_count_time - 3.600
-		Prompt(g_collection_count_counts.."/"..g_collection_count[e].objectives	.." completed " ..math.floor(g_collection_count_time/1000).. " seconds left")
-	end
-	if g_collection_count_time <= 0 then
-		LoseGame()
 	end
 end

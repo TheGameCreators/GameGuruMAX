@@ -1,4 +1,4 @@
--- MASTER INTERPRETER
+-- MASTER INTERPRETER - V2 - Contributors; Necrym59
 local master_interpreter_core = {}
 
 -- Slows down logic for closer debugging
@@ -79,6 +79,7 @@ g_masterinterpreter_cond_usinghud = 62 -- Using HUD (Is true when using a HUD sc
 g_masterinterpreter_cond_targetreachable = 63 -- Target Reachable (Is true when a valid path can be made to the target)
 g_masterinterpreter_cond_withinnavmesh = 64 -- Within Navmesh (Is true if the object is within a valid navmesh)
 g_masterinterpreter_cond_canmeleetarget = 65 -- Can Melee Target (Is true if there is nothing between object and the target)
+g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the current target name matches the specified string)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -187,6 +188,9 @@ g_masterinterpreter_act_showhud = 102 -- Show HUD (Show the specified HUD screen
 g_masterinterpreter_act_changeglobal = 103 -- Change Global (Change the value of a global using LUA formatted string)
 g_masterinterpreter_act_changecontainer = 104 -- Change Container (Change the non-player container for the next time a HUD screen is used)
 g_masterinterpreter_act_logicboost = 105 -- Logic Boost (Instructs logic instructions to run in a batch of the specified count)
+g_masterinterpreter_act_collisionoff = 106 -- Turn Collision Off (Switch off collision for this object)
+g_masterinterpreter_act_collisionon = 107 -- Turn Collision On (Switch on collision for this object)
+
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -419,6 +423,7 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
  if conditiontype == g_masterinterpreter_cond_targetdestwithin then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_targetpathvalid then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_targetreachable then usestarget = 1 end
+ if conditiontype == g_masterinterpreter_cond_istargetname then usestarget = 1 end
  if usestarget ~= 0 then
   local usetargetXYZ = 0
   if usestarget == 1 then
@@ -886,7 +891,12 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   local hit = masterinterpreter_rayscan(e, output_e, fromx,fromy,fromz,TargetX,TargetY+waistheightforcharacter,TargetZ,g_Entity[e]['obj'], 1)
   if hit == 0 then return 1 end
  end
-
+ if conditiontype == g_masterinterpreter_cond_istargetname then 
+  if conditionparam1 ~= nil then
+   if conditionparam1 == GetEntityName(output_e['targete']) then return 1 end
+  end
+ end
+ 
  -- Condition is false
  return 0
 
@@ -2134,7 +2144,17 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  if actiontype == g_masterinterpreter_act_logicboost then
   g_masterinterpreter_logicboostcount = actionparam1value
  end 
-
+ 
+ -- Turn Collison Off
+ if actiontype == g_masterinterpreter_act_collisionoff then
+  CollisionOff(e)
+ end 
+ 
+ -- Turn Collison On
+ if actiontype == g_masterinterpreter_act_collisionon then
+  CollisionOn(e)
+ end
+ 
 end
 
 function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )

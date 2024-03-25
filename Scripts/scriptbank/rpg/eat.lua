@@ -10,6 +10,7 @@
 -- DESCRIPTION: [RESPAWNING=0!=0]
 -- DESCRIPTION: [RESPAWN_TIME=1(1,60)] in minutes
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when consuming.
 -- DESCRIPTION: <Sound1> when poisoned.
 
@@ -27,6 +28,7 @@ local poisoning_effect 		= {}
 local respawning 			= {}
 local respawn_time 			= {}
 local prompt_display 		= {}
+local item_highlight 		= {}
 
 local tEnt 					= {}
 local selectobj 			= {}
@@ -40,7 +42,7 @@ local actioned				= {}
 local respawntime			= {}
 local status 				= {}
 
-function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, respawning, respawn_time, prompt_display)
+function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_global_affected, poisoning_effect, respawning, respawn_time, prompt_display, item_highlight)
 	eat[e].prompt_text = prompt_text
 	eat[e].quantity = quantity
 	eat[e].pickup_range = pickup_range
@@ -50,6 +52,7 @@ function eat_properties(e, prompt_text, quantity, pickup_range, effect, user_glo
 	eat[e].respawning = respawning	
 	eat[e].respawn_time = respawn_time
 	eat[e].prompt_display = prompt_display
+	eat[e].item_highlight = item_highlight
 end
 
 function eat_init(e)
@@ -62,7 +65,8 @@ function eat_init(e)
 	eat[e].poisoned = 0
 	eat[e].respawning = 0	
 	eat[e].respawn_time = 10
-	eat[e].prompt_display = 1	
+	eat[e].prompt_display = 1
+	eat[e].item_highlight = 0
 	
 	currentvalue[e] = 0
 	addquantity[e] = 0
@@ -91,7 +95,7 @@ function eat_main(e)
 	
 	if PlayerDist < eat[e].pickup_range and GetEntityVisibility(e) == 1 then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,eat[e].pickup_range,300)
+		module_misclib.pinpoint(e,eat[e].pickup_range,eat[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		

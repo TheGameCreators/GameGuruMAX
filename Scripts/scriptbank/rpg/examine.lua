@@ -1,10 +1,11 @@
--- Examine v7: by Necrym59
+-- Examine v8: by Necrym59
 -- DESCRIPTION: Allows to examine an object.
 -- DESCRIPTION: [PICKUP_RANGE=90(0,100)]
 -- DESCRIPTION: [PICKUP_MESSAGE$="E to Examine object"]
 -- DESCRIPTION: [EXAMINE_MESSAGE$="Hmmm..."]
 -- DESCRIPTION: [EXAMINE_SPEED=50]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -21,6 +22,7 @@ local pickup_message		= {}
 local examine_message		= {}
 local examine_speed			= {}
 local prompt_display 		= {}
+local item_highlight 		= {}
 
 local exminetime		= {}
 local status 			= {}
@@ -39,13 +41,14 @@ local prop_z 			= {}
 local prop_h 			= {}	
 local last_gun			= {}
 
-function examine_properties(e, pickup_range, pickup_message, examine_message, examine_speed, prompt_display)
+function examine_properties(e, pickup_range, pickup_message, examine_message, examine_speed, prompt_display, item_highlight)
 	examine[e] = g_Entity[e]
 	examine[e].pickup_range = pickup_range
 	examine[e].pickup_message =  pickup_message
 	examine[e].examine_message = examine_message
 	examine[e].examine_speed = examine_speed
 	examine[e].prompt_display = prompt_display
+	examine[e].item_highlight = item_highlight
 end 
 
 function examine_init(e)
@@ -55,6 +58,7 @@ function examine_init(e)
 	examine[e].examine_message = "Hmmm..."
 	examine[e].examine_speed = 50
 	examine[e].prompt_display = 1
+	examine[e].item_highlight = 0
 	
 	status[e] = "init"
 	exminetime[e] = 0
@@ -83,7 +87,7 @@ function examine_main(e)
 	if status[e] == "pick up" then 	
 		if PlayerDist < examine[e].pickup_range then			
 			--pinpoint select object--
-			module_misclib.pinpoint(e,examine[e].pickup_range,300)
+			module_misclib.pinpoint(e,examine[e].pickup_range,examine[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--	
 		end	

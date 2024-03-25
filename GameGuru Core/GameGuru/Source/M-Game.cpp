@@ -2159,71 +2159,6 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		}
 	}
 
-	// STATIC SHADOW REDUCER OPTIMIZATION
-	/* LB: too crude, would only work with a GPU query to see if the object shadow is entirely covered by another object shadow
-	// first create list of all point and spot light zones as should not switch off shadows inside these
-	struct sLightZone
-	{
-		float x;
-		float y;
-		float z;
-		float radius;
-	};
-	std::vector<sLightZone> lightZone;
-	lightZone.clear();
-	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
-	{
-		t.entid = t.entityelement[t.e].bankindex;
-		if (t.e < g.entityelementlist && (t.entityprofile[t.entid].ismarker == 2 || t.entityprofile[t.entid].ismarker == 5))
-		{
-			sLightZone item;
-			item.x = t.entityelement[t.e].x;
-			item.y = t.entityelement[t.e].y;
-			item.z = t.entityelement[t.e].z;
-			item.radius = t.entityelement[t.e].eleprof.light.range;
-			lightZone.push_back(item);
-		}
-	}
-	// locate position of directional light sun
-	float fSunX = 0; // work out from t.visuals.SunAngleX;
-	float fSunY = 50000;
-	float fSunZ = 0;
-	// go through level objects and switch off "cast shadows" for static objects that are entirely masked from the sun position by other static objects
-	// such as static boxes inside a static building and would never get to cast through own 'sun' shadow from the directional light
-	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
-	{
-		// for each object
-		t.obj = t.entityelement[t.e].obj;
-		t.entid = t.entityelement[t.e].bankindex;
-		if (t.obj > 0 && t.e < g.entityelementlist && t.entityprofile[t.entid].ismarker == 0 && t.entityelement[t.e].staticflag != 0)
-		{
-			bool bWithinLightZone = false;
-			for (int i = 0; i < lightZone.size(); i++)
-			{
-				float dx = t.entityelement[t.e].x - lightZone[i].x;
-				float dy = t.entityelement[t.e].y - lightZone[i].y;
-				float dz = t.entityelement[t.e].z - lightZone[i].z;
-				float dist = sqrt(fabs(dx*dx) + fabs(dy*dy) + fabs(dz*dz));
-				if (dist < lightZone[i].radius)
-				{
-					bWithinLightZone = true;
-					break;
-				}
-			}
-			if (bWithinLightZone == false)
-			{
-				int iRayResult = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z, fSunX, fSunY, fSunZ, t.entityelement[t.e].obj, 1, 0, 0, 0, true);
-				if(iRayResult != 0)
-				{
-					// intersected with something solid and static (terrain or another object), so let THAT cast the shadow and switch this one off
-					sObject* pObject = GetObjectData(t.obj);
-					WickedCall_SetObjectCastShadows(pObject, false);
-				}
-			}
-		}
-	}
-	*/
-
 	// Create nav mesh from entire level geometry
 	timestampactivity(0, "Attempt to create nav mesh");
 	if (t.game.gameisexe == 1)
@@ -2801,6 +2736,10 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 {
 	// at the point we leave the loop, stop VR mode when leaving the level if required
 	if (t.game.gameisexe == 1 && g.vrglobals.GGVREnabled == 2) g_iActivelyUsingVRNow = 0;
+
+	// must stop extra thread right away
+	extern void GuruLoopStopExtraThread(void);
+	GuruLoopStopExtraThread();
 
 	// first save current level stats before reset LUA
 	// must now preserve state of level when leave it
@@ -4126,7 +4065,6 @@ void game_stopallsounds ( void )
 
 void game_freelevel ( void )
 {
-	#ifdef WICKEDENGINE
 	// remove any bulletholes
 	bulletholes_free();
 
@@ -4137,7 +4075,6 @@ void game_freelevel ( void )
 	extern int g_iLastProgressPercentage;
 	g_iLastProgressPercentage = 0;
 	g.isGameBeingPlayed = false;
-	#endif
 
 	//  hide any jetpacks, etc
 	hud_free ( );
@@ -4164,9 +4101,7 @@ void game_freelevel ( void )
 
 	// remove bits created by LUA scripts
 	lua_freeprompt3d();
-	#ifdef VRTECH
 	lua_freeallperentity3d();
-	#endif
 
 	//  close down game entities
 	entity_free ( );
@@ -4180,10 +4115,8 @@ void game_freelevel ( void )
 	//  free physics
 	physics_free ( );
 
-	#ifdef WICKEDENGINE
 	// Clear the static physics data so we can get the dynamic data.
 	BPhys_ClearDebugDrawData();
-	#endif
 
 	//  deselect current gun and hide all gun objects
 	gun_free ( );
@@ -4191,9 +4124,7 @@ void game_freelevel ( void )
 	gun_removempgunsfromlist ( );
 
 	//  remove water and sky effects
-	#if defined(ENABLEIMGUI) && !defined(USEOLDIDE) 
 	if( t.game.gameisexe >= 1) //Keep sky for editor.
-	#endif
 	sky_free ( );
 
 	terrain_water_free ( );
@@ -4219,20 +4150,11 @@ void game_freelevel ( void )
 	//  free projectiles
 	weapon_projectile_free ( );
 
-	//  free particles
-	#ifdef WICKEDENGINE
-	// this REALLY slows down return from test game!
-	#else
-	ravey_particles_free ( );
-	#endif
-
 	// finally delete entity element objs (only if standalone)
 	if ( t.game.gameisexe == 1 )
 	{
-		#ifdef WICKEDENGINE
 		//PE: Need to delete all particle emtters.
 		gpup_deleteAllEffects();
-		#endif
 
 		// only for standalone as test game needs entities for editor :)
 		entity_delete ( );
@@ -4625,6 +4547,10 @@ void game_main_loop ( void )
 	OPTICK_EVENT();
 #endif
 
+	// this trigger informs the in-game extra thread to begin for one frame (extra stuff done at end (when GPU/Wicked doing its thing)
+	extern bool g_bInGameCPUFrameComplete;
+	g_bInGameCPUFrameComplete = true;
+
 	//  Timer (  based movement )
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling game_timeelapsed");
 	game_timeelapsed ( );
@@ -4871,7 +4797,9 @@ void game_main_loop ( void )
 			// Handle physics
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
-			physics_loop ( );
+			//physics_loop ( );
+			physics_player_control (); // has LUA calls inside it
+			physics_player_handledeath (); // handles sound, so keep in main thread
 			wiProfiler::EndRange(range2);
 
 			// read all slider values for player

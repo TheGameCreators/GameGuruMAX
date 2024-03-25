@@ -158,53 +158,65 @@ void entity_lua_collisionoff ( void )
 // PROCESSING VIS FOR EVERYONE EVERY CYCLE IS SLOW, DO IT ON A LIST
 #ifdef WICKEDENGINE
 std::vector<int> g_EntityPlrVisList;
+#include "GGThread.h"
+using namespace GGThread;
+threadLock g_PlrVisibilityListLock;
 void entity_lua_getentityplrvisible_clear ( void )
 {
+	while (!g_PlrVisibilityListLock.Acquire()) {}
 	g_EntityPlrVisList.clear();
+	g_PlrVisibilityListLock.Release();
 }
 void entity_lua_getentityplrvisible_processlist (void)
 {
 	if (g_EntityPlrVisList.size() > 0)
 	{
 		// entity to process
-		t.e = g_EntityPlrVisList.front();// .back();
-		g_EntityPlrVisList.erase(g_EntityPlrVisList.begin());
-		if (t.e > 0)
+		while (!g_PlrVisibilityListLock.Acquire()) {}
+		//t.e = g_EntityPlrVisList.front();// .back();
+		//g_EntityPlrVisList.erase(g_EntityPlrVisList.begin());
+		for ( int i = 0; i < g_EntityPlrVisList.size(); i++ )
 		{
-			// calculate vis for this entity (LBOPT: can further optimize by placing this on a timer (no need to work out plr visibilty 30 times per second)
-			t.tobj = t.entityelement[t.e].obj;
-			if (t.tobj > 0)
+			t.e = g_EntityPlrVisList[i];
+			if (t.e > 0)
 			{
-				if (ObjectExist(t.tobj) == 1)
+				// calculate vis for this entity (LBOPT: can further optimize by placing this on a timer (no need to work out plr visibilty 30 times per second)
+				t.tobj = t.entityelement[t.e].obj;
+				if (t.tobj > 0)
 				{
-					t.charanimstate.e = t.e;
-					t.charanimstate.obj = t.tobj;
-					darkai_calcplrvisible();
+					if (ObjectExist(t.tobj) == 1)
+					{
+						t.charanimstate.e = t.e;
+						t.charanimstate.obj = t.tobj;
+						darkai_calcplrvisible();
+					}
 				}
-			}
 
-			// and erase all other instances of E in list, as now up to date for plrvis
-			for (int i = 0; i < g_EntityPlrVisList.size(); i++)
-			{
-				if (g_EntityPlrVisList[i] == t.e)
+				// and erase all other instances of E in list, as now up to date for plrvis
+				for (int i = 0; i < g_EntityPlrVisList.size(); i++)
 				{
-					g_EntityPlrVisList.erase(g_EntityPlrVisList.begin() + i);
-					i--;
+					if (g_EntityPlrVisList[i] == t.e)
+					{
+						g_EntityPlrVisList[i] = 0;
+					}
 				}
 			}
 		}
+		g_EntityPlrVisList.clear();
+		g_PlrVisibilityListLock.Release();
 	}
 }
 #endif
 
 void entity_lua_getentityplrvisible ( void )
 {
-	// seems old duplication here, now using centralized function
 	if(t.e>0)
 	{
 		// only add if not already in list (solves issue of this list getting insanely massive)
+		while (!g_PlrVisibilityListLock.Acquire()) {}
 		int i = 0; for (; i < g_EntityPlrVisList.size(); i++) if (g_EntityPlrVisList[i] == t.e) break;
 		if(i >= g_EntityPlrVisList.size()) g_EntityPlrVisList.push_back(t.e);
+		g_PlrVisibilityListLock.Release();
 	}
 }
 

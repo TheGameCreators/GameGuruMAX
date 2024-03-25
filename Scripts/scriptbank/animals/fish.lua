@@ -1,5 +1,5 @@
 -- DESCRIPTION: Will animate and move this object as though a fish.
--- Fish v2
+-- Fish V3
 -- DESCRIPTION: [RandomScale!=1]
 local U = require "scriptbank\\utillib"
 local Q = require "scriptbank\\quatlib"
@@ -194,8 +194,8 @@ local function avoidObjects( e, fish, timeNow )
 		
 			local obj = 0
 			if fish.e ~= nil then
-			 --obj = IntersectStaticPerformant(fish.x, fish.y, fish.z, pcp.x,  fish.y, pcp.z, fish.obj, fish.e, 500 ) - no detect!
-			 obj = IntersectAll( fish.x, fish.y, fish.z,  pcp.x, fish.y, pcp.z, fish.obj )	
+			 --obj = IntersectAll( fish.x, fish.y, fish.z,  pcp.x, fish.y, pcp.z, fish.obj )	
+			 obj = IntersectStaticPerformant(fish.x, fish.y, fish.z,  pcp.x, fish.y, pcp.z, fish.obj, fish.e, 500 )
 			end
 									   
 			if obj ~= nil and obj > 0 then 

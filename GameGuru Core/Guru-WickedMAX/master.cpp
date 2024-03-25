@@ -1492,7 +1492,7 @@ void Master::RunCustom()
 
 			// must be outside a render pass and only called once, even if VR renders twice
 			CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-			range = wiProfiler::BeginRangeCPU("Update - Particles");
+			auto range = wiProfiler::BeginRangeCPU("Update - Particles");
 			gpup_update(deltaTime, cmd);
 			wiProfiler::EndRange(range);
 
@@ -2019,11 +2019,11 @@ void MasterRenderer::Update(float dt)
 	// otherwise continue
 	if (m_bRenderingVR == false)
 	{
-		// regular update mode
-		auto range = wiProfiler::BeginRangeCPU("Update - Logic");
 #ifdef OPTICK_ENABLE
 		OPTICK_EVENT("GuruLoopLogic");
 #endif
+		// regular update mode
+		auto range = wiProfiler::BeginRangeCPU("Update - Logic");
 		bool bFullyInitialised = GuruLoopLogic();
 		wiProfiler::EndRange(range);
 		if (bFullyInitialised == true)
@@ -2033,7 +2033,7 @@ void MasterRenderer::Update(float dt)
 
 			// must be outside a render pass and only called once, even if VR renders twice
 			CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-			range = wiProfiler::BeginRangeCPU("Update - Particles");
+			auto range = wiProfiler::BeginRangeCPU("Update - Particles");
 			gpup_update(dt, cmd);
 			wiProfiler::EndRange(range);
 

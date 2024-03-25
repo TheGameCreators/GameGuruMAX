@@ -34,6 +34,28 @@ extern bool g_bSkipAnyDedicatedDepthRendering;
 std::vector< GGHANDLE > g_EffectParamHandleList;
 int g_iCurrentGunObj = 0; // updated in G-Entity.cpp
 
+// Offloads interect tests when performance needed to extra thread
+#include "..\\..\\..\\..\\Guru-WickedMAX\\GGThread.h"
+GGThread::threadLock g_IntersectDatabaseExtraThreadItemListLock;
+struct sIntersectDatabaseExtraThreadItem
+{
+	int iPrimaryStart;
+	int iPrimaryEnd;
+	float fX;
+	float fY;
+	float fZ;
+	float fNewX;
+	float fNewY;
+	float fNewZ;
+	int iIgnoreObjNo;
+	int iStaticOnly;
+	int iIndexInIntersectDatabase;
+	int iLifeInMilliseconds;
+	int iIgnorePlayerCapsule;
+	bool bFullWickedAccuracy;
+};
+std::vector<sIntersectDatabaseExtraThreadItem> g_IntersectDatabaseExtraThreadItemList;
+
 #ifndef NOSTEAMORVIDEO
 void timestampactivity(int i, char* desc_s); // for debug
 #endif
@@ -7594,24 +7616,39 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 		if (iLifeInMilliseconds == -1)
 		{
 			// skip database early exit so can generate new result right after target switch
-
-			//PE: No need to do the actual raycast.
 			g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() - 1.0;
 			return g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase];
 		}
 		else
 		{
-			if (timeGetTime() < g_pIntersectDatabase[iIndexInIntersectDatabase])
+			// update intersect database entry using extra thread
+			if (timeGetTime() > g_pIntersectDatabase[iIndexInIntersectDatabase])
 			{
-				// we can use last result
-				bUseHitResultFromIntersectDatabase = true;
-				iHitValue = g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase];
+				g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() + iLifeInMilliseconds;
+				sIntersectDatabaseExtraThreadItem item;
+				item.iPrimaryStart = iPrimaryStart;
+				item.iPrimaryEnd = iPrimaryEnd;
+				item.fX = fX;
+				item.fY = fY;
+				item.fZ = fZ;
+				item.fNewX = fNewX;
+				item.fNewY = fNewY;
+				item.fNewZ = fNewZ;
+				item.iIgnoreObjNo = iIgnoreObjNo;
+				item.iStaticOnly = iStaticOnly;
+				item.iIndexInIntersectDatabase = iIndexInIntersectDatabase;
+				item.iLifeInMilliseconds = iLifeInMilliseconds;
+				item.iIgnorePlayerCapsule = iIgnorePlayerCapsule;
+				item.bFullWickedAccuracy = bFullWickedAccuracy;
+				while(!g_IntersectDatabaseExtraThreadItemListLock.Acquire()) {}
+				g_IntersectDatabaseExtraThreadItemList.push_back(item);
+				g_IntersectDatabaseExtraThreadItemListLock.Release();
 			}
-			if (bUseHitResultFromIntersectDatabase == true)
-			{
-				// return hit from database (calculated previously)
-				return iHitValue;
-			}
+
+			// we can use last result
+			bUseHitResultFromIntersectDatabase = true;
+			iHitValue = g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase];
+			return iHitValue;
 		}
 	}
 
@@ -7767,6 +7804,40 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 
 	// return hit value
 	return iHitValue;
+}
+
+DARKSDK_DLL void ProcessIntersectDatabaseExtraThreadItemList ( void )
+{
+	// go through all extra thread items and work out intersections for perforant intersect all command
+	if (g_pIntersectDatabase)
+	{
+		while (!g_IntersectDatabaseExtraThreadItemListLock.Acquire()) {}
+		if (g_IntersectDatabaseExtraThreadItemList.size() > 0)
+		{
+			for (int i = 0; i < (int)g_IntersectDatabaseExtraThreadItemList.size(); i++)
+			{
+				sIntersectDatabaseExtraThreadItem* pItem = &g_IntersectDatabaseExtraThreadItemList[i];
+				int iHitValue = IntersectAllEx(pItem->iPrimaryStart, pItem->iPrimaryEnd, pItem->fX, pItem->fY, pItem->fZ, pItem->fNewX, pItem->fNewY, pItem->fNewZ, pItem->iIgnoreObjNo, 0, 0, 0, pItem->iIgnorePlayerCapsule, pItem->bFullWickedAccuracy);
+				g_pIntersectDatabaseLastResult[pItem->iIndexInIntersectDatabase] = iHitValue;
+			}
+			g_IntersectDatabaseExtraThreadItemList.clear();
+		}
+		g_IntersectDatabaseExtraThreadItemListLock.Release();
+	}
+}
+
+DARKSDK_DLL void ResetIntersectDatabaseExtraThreadItemList (void)
+{
+	if (g_pIntersectDatabase)
+	{
+		while (!g_IntersectDatabaseExtraThreadItemListLock.Acquire()) {}
+		g_IntersectDatabaseExtraThreadItemList.clear();
+		for (int i = 0; i < g_dwIntersectDatabaseSize; i++)
+		{
+			g_pIntersectDatabaseLastResult[i] = -1;
+		}
+		g_IntersectDatabaseExtraThreadItemListLock.Release();
+	}
 }
 
 DARKSDK_DLL int IntersectAll(int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo)

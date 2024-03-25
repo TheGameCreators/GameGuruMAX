@@ -21,6 +21,87 @@
 // Globals
 int g_iInitializationSequence = 0;
 bool g_bNoGGUntilGameGuruMainCalled = false;
+bool g_bInGameCPUFrameComplete = false;
+
+// Extra thread to run clean logic code alongside main thread
+bool g_bInitExtraThreadForGameLogic = true;
+bool g_bTriggerSomeGameLogic = false;
+int g_iCountNumberOfExtraThreadCalls = 0;
+#include "GGThread.h"
+using namespace GGThread;
+
+class GuruLogicClass : public GGThread
+{
+protected:
+	//static threadLock lock;
+	static GuruLogicClass* pThreads;
+	static uint32_t iNumThreads;
+	static threadLock lock;
+public:
+	static bool AnyRunning()
+	{
+		for (uint32_t i = 0; i < iNumThreads; i++)
+		{
+			if (pThreads[i].IsRunning()) return true;
+		}
+		return false;
+	}
+	static void WaitForAll()
+	{
+		for (uint32_t i = 0; i < iNumThreads; i++) pThreads[i].Join();
+	}
+	static void StartThreads()
+	{
+		for (uint32_t i = 0; i < iNumThreads; i++) pThreads[i].Start();
+	}
+	static void StopThreads()
+	{
+		for (uint32_t i = 0; i < iNumThreads; i++) pThreads[i].Stop();		
+	}
+	static void SetThreads(uint32_t numThreads)
+	{
+		if (numThreads == iNumThreads) return;
+		if (pThreads) delete[] pThreads;
+		pThreads = new GuruLogicClass[numThreads];
+		iNumThreads = numThreads;
+	}
+	uint32_t Run()
+	{
+		while (1)
+		{
+			if (bTerminate) return 0;
+			while (!lock.Acquire());
+			lock.Release();
+			if (g_bTriggerSomeGameLogic == true)
+			{
+				// savely moved out of main thread
+				auto range1 = wiProfiler::BeginRangeCPU("Extra - Logic - Physics");
+				physics_loop ();
+				wiProfiler::EndRange(range1);
+				auto range2 = wiProfiler::BeginRangeCPU("Extra - Logic - Intersects");
+				ProcessIntersectDatabaseExtraThreadItemList();
+				wiProfiler::EndRange(range2);
+				auto range3 = wiProfiler::BeginRangeCPU("Extra - Logic - Visibility");
+				entity_lua_getentityplrvisible_processlist();
+				wiProfiler::EndRange(range3);
+
+				g_iCountNumberOfExtraThreadCalls++;
+				g_bTriggerSomeGameLogic = false;
+			}
+		}
+		return 0;
+	}
+	GuruLogicClass() : GGThread()
+	{
+	}
+	~GuruLogicClass()
+	{
+		if (pThreads) delete[] pThreads;
+	}
+};
+GuruLogicClass* GuruLogicClass::pThreads = 0;
+uint32_t GuruLogicClass::iNumThreads = 0;
+threadLock GuruLogicClass::lock;
 
 // extern into DBDLLCore module
 extern void ConstantNonDisplayUpdate(void);
@@ -110,6 +191,31 @@ void GuruLoopRender ( void )
 		return;
 
 	common_loop_render();
+
+	// call on an extra thread to do clean game logic work (that does not tap graphics devices, etc)
+	if (g_bInGameCPUFrameComplete == true)
+	{
+		g_bInGameCPUFrameComplete = false;
+		extern bool g_bInitExtraThreadForGameLogic;
+		if (g_bInitExtraThreadForGameLogic == true)
+		{
+			GuruLogicClass::SetThreads(1);
+			GuruLogicClass::StartThreads();
+			g_bInitExtraThreadForGameLogic = false;
+		}
+		extern bool g_bTriggerSomeGameLogic;
+		g_bTriggerSomeGameLogic = true;
+	}
+}
+
+void GuruLoopStopExtraThread (void)
+{
+	GuruLogicClass::StopThreads();
+	g_bInitExtraThreadForGameLogic = true;
+	g_bTriggerSomeGameLogic = false;
+	g_bInGameCPUFrameComplete = false;
+	ResetIntersectDatabaseExtraThreadItemList();
+	entity_lua_getentityplrvisible_clear();
 }
 
 bool GuruUpdate (void)

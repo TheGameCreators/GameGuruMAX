@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Crawling Insect v2
+-- Crawling Insect V3
 -- All crawling insect animations are named idle, walk, run, death, eat
 -- DESCRIPTION: Will animate and move this object as though a crawling insect.
 
@@ -124,7 +124,7 @@ local function canSee( crawler, dist, x, y, z )
 		local xo, yo, zo = U.Rotate3D( 0, 0, dist, rad( ax ), rad( ay ), rad( az ) )
 		x, y, z = cx + xo, cy + yo + 5, cz + zo
 	end
-	--local obj = IntersectAll( cx, cy + 5, cz, x, y, z, crawler.obj )
+
 	local obj = 0
 	if crawler.e ~= nil then
 	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, crawler.obj, crawler.e, 500 )

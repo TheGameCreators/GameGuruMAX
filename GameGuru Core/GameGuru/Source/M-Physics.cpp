@@ -2476,7 +2476,7 @@ void physics_player ( void )
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_gatherkeycontrols");
 			physics_player_gatherkeycontrols ( );
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_control");
-			physics_player_control ( );
+			//physics_player_control ( ); moved out of extra thread and called in main thread
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling gun_update_hud");
 			gun_update_hud ( );
 			if ( ++physics_player_listener_delay > 3 )
@@ -2506,7 +2506,7 @@ void physics_player ( void )
 
 		}
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player_handledeath");
-		physics_player_handledeath ( );
+		//physics_player_handledeath ( ); // handles sound, so keep in main thread
 	}
 }
 

@@ -17,7 +17,7 @@
 	
 //  AI Freeze Distances 
 #define MAXNEVERFREEZEDISTANCE 999000
-#define MAXFREEZEDISTANCE 3000
+#define MAXFREEZEDISTANCE 2000
 
 //  Importer constants (tab indices exclusively used by the importer)
 #define IMPORTERTEXTURESMAX 200

@@ -121,7 +121,7 @@ local function canSee( critter, dist, x, y, z )
 		local xo, yo, zo = U.Rotate3D( 0, 0, dist, rad( ax ), rad( ay ), rad( az ) )
 		x, y, z = cx + xo, cy + yo + 5, cz + zo
 	end
-	--local obj = IntersectAll( cx, cy + 5, cz, x, y, z, critter.obj )
+
 	local obj = 0
 	if critter.e ~= nil then
 	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, critter.obj, critter.e, 500 ,1 , 1)

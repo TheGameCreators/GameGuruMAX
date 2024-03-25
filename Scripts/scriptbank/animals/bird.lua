@@ -1,4 +1,5 @@
 -- DESCRIPTION: Will animate and move this object as though a bird.
+-- Bird V3
 local Q = require "scriptbank\\quatlib"
 local U = require "scriptbank\\utillib"
 local V = require "scriptbank\\vectlib"
@@ -151,7 +152,6 @@ local function canSee( bird, dist, x, y, z )
 		x, y, z = cx + xo, cy + yo + 5, cz + zo
 	end
 	
-	--local obj = IntersectAll( cx, cy + 5, cz, x, y, z, bird.obj )
 	local obj = 0
 	if bird.e ~= nil then
 	 obj = IntersectStaticPerformant(cx, cy + 5, cz, x, y, z, bird.obj, bird.e, 500 )

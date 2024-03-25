@@ -292,6 +292,8 @@ DARKSDK void SetSphereRadius			( int iID, float fRadius );
 DARKSDK float IntersectObject			( int iObjectID, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ );
 DARKSDK int IntersectAllEx				( int iStart, int iEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy );
 DARKSDK int IntersectAll				( int iStart, int iEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo );
+DARKSDK void ProcessIntersectDatabaseExtraThreadItemList (void);
+DARKSDK void ResetIntersectDatabaseExtraThreadItemList (void);
 DARKSDK void SetObjectCollisionProperty ( int iObjectID, int iPropertyValue );
 DARKSDK void AutomaticObjectCollision	( int iObjectID, float fRadius, int iResponse );
 DARKSDK void AutomaticCameraCollision	( int iCameraID, float fRadius, int iResponse, int iStandGroundMode );

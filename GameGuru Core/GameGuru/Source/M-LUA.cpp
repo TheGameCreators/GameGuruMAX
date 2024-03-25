@@ -896,8 +896,10 @@ void lua_loop_allentities ( void )
 
 			// only process logic within plr freeze range
 			t.te = t.e; entity_getmaxfreezedistance ( );
-			//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
-			if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
+			//if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
+			int iDistanceForLogicToBeProcessed = t.maximumnonefreezedistance;
+			if (t.entityelement[t.e].eleprof.phyalways == 0 && t.entityprofile[thisentid].ischaracter == 0) iDistanceForLogicToBeProcessed = 750; // use always active if want further than interactive range
+			if (t.entityelement[t.e].plrdist < iDistanceForLogicToBeProcessed || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
 			{
 				//  If entity is waypoint zone, determine if player inside or outside
 				t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
@@ -1043,27 +1045,31 @@ void lua_loop_allentities ( void )
 					bSkipLUAScriptEntityRefreshOnly = true;
 				}
 
-				//  Update each cycle as entity position, health and GetFrame (  change constantly )
-				
-				//if ( t.entityelement[t.e].plrdist<t.maximumnonefreezedistance/4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0 ) 
-				if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 4 || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0)
+				// Update each cycle as entity position, health and GetFrame (  change constantly )
+				//if (t.entityelement[t.e].plrdist < iDistanceForLogicToBeProcessed || t.entityprofile[thisentid].ischaracter == 1 || t.entityelement[t.e].eleprof.phyalways != 0)
+				if (t.entityelement[t.e].plrdist < iDistanceForLogicToBeProcessed || t.entityelement[t.e].eleprof.phyalways != 0)
 				{
-					//  first quarter of freeze range get full updates - also characters and those with alwaysactive flags
-					//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance || t.entityelement[t.e].eleprof.phyalways != 0)
-					if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0)
-						t.entityelement[t.e].lua.flagschanged=1;
+					// first quarter of freeze range get full updates - also characters and those with alwaysactive flags
+					if (t.entityelement[t.e].eleprof.phyalways != 0 || (t.entityprofile[thisentid].ischaracter == 1 && t.entityelement[t.e].plrdist < 1000))
+					{
+						// always update each frame - critical logic indicated with always active or clos enough character
+						t.entityelement[t.e].lua.flagschanged = 1;
+					}
+					else
+					{
+						// on average, 6 times per second
+						if (Rnd(5) == 1) t.entityelement[t.e].lua.flagschanged = 1;
+					}
 				}
 				else
 				{
 					//  rest gets updates every now and again based on distance
-					//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance / 2.0f)
 					if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 2.0f)
 					{
 						if (  Rnd(25) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
 					}
 					else
 					{
-						//if (t.entityelement[t.e].plrdist < t.maximumnonefreezedistance / 1.25f)
 						if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 1.25f)
 						{
 							if (  Rnd(50) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
@@ -1074,14 +1080,13 @@ void lua_loop_allentities ( void )
 				// if game state in progress, do not run any entity logic
 				if ( t.luaglobal.gamestatechange == 0 )
 				{
+					// Called when entity states change
 					// this ensures the game loads in _G[x] states BEFORE we start the game scripts
 					// to avoid issues such as the start splash appearing when loading mid-way in level from main menu
-					// Called when entity states change
-					if ( t.entityelement[t.e].lua.flagschanged == 1 ) // || (t.game.runasmultiplayer  ==  1 && g.mp.endplay  ==  1) ) the MP constant call would be slow!
+					if ( t.entityelement[t.e].lua.flagschanged == 1 )
 					{
-						//  do not refresh activated and animating as these are set INSIDE LUA!!
-						// 190516 - ensure we can only call UpdateEntityRT if we previously called UpdateEntity!!
-						if ( t.entityelement[t.e].staticflag == 0 && t.entityelement[t.e].lua.firsttime == 2 ) // 300316 - no need for entity details for static scenery entities in LUA
+						// do not refresh activated and animating as these are set INSIDE LUA!!
+						if ( t.entityelement[t.e].staticflag == 0 && t.entityelement[t.e].lua.firsttime == 2 )
 						{
 							LuaSetFunction("UpdateEntityRT", 21, 0);
 							LuaPushInt (  t.e );
@@ -1115,7 +1120,7 @@ void lua_loop_allentities ( void )
 							
 							// 201115 - pass in any hit limb name
 							LPSTR pLimbByName = "";
-							if ( t.entityelement[t.e].detectedlimbhit >=0 )
+							if ( t.entityelement[t.e].detectedlimbhit >= 0 )
 							{
 								int iObjectNumber = g.entitybankoffset + t.entityelement[t.e].bankindex;
 								if (ObjectExist(iObjectNumber) == 1)
@@ -1144,12 +1149,30 @@ void lua_loop_allentities ( void )
 					//  Call each cycle
 					if (  t.entityelement[t.e].eleprof.aimain == 1 && bSkipLUAScriptEntityRefreshOnly==false ) 
 					{
+						bool bCanSkipNow = false;
+						LPSTR pTestScriptName = t.entityelement[t.e].eleprof.aimainname_s.Get();
+						if (strlen(pTestScriptName) == 20)
+						{
+							if (strcmp(pTestScriptName, "no_behavior_selected") == NULL)
+							{
+								bCanSkipNow = true;
+							}
+						}
+						else
+						{
+							if (strlen(pTestScriptName) == 7)
+							{
+								if (strcmp(pTestScriptName, "default") == NULL)
+								{
+									bCanSkipNow = true;
+								}
+							}
+						}
+
 						if (  Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 						{
 							// can call LUA main function
-							t.tcall = 1;
-							if ( t.entityelement[t.e].eleprof.aimainname_s.Lower() == "default" ) t.tcall = 0;		
-							if ( t.tcall == 1 ) 
+							if (bCanSkipNow == false )
 							{
 								if ( t.entityelement[t.e].eleprof.aipreexit >= 1 )
 								{
@@ -1168,9 +1191,10 @@ void lua_loop_allentities ( void )
 								}
 								else
 								{
-									t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get())+"_main");
-									LuaSetFunction ( t.strwork.Get() ,1,0 );
-									LuaPushInt (  t.e  ); LuaCall (  );
+									t.strwork = cstr(cstr(t.entityelement[t.e].eleprof.aimainname_s.Get()) + "_main");
+									LuaSetFunction (t.strwork.Get(), 1, 0);
+									LuaPushInt (t.e); 
+									LuaCall ();
 								}
 							}
 						}
@@ -1203,6 +1227,7 @@ void lua_loop_allentities ( void )
 		{
 			if (e < TABLEOFPERFORMANCEMAX)
 			{
+				if (t.entityelement[e].active == 0) g_tableofperformancetimers[e] = 0;
 				if (g_tableofperformancetimers[e] > iWorstOffender[0])
 				{
 					iWorstOffenderE[0] = e;
@@ -1271,7 +1296,7 @@ void lua_loop_finish (void)
 	g.projectileEventType_explosion = LuaGetInt("g_projectileevent_explosion");
 
 	// always handle the entiy vis list
-	entity_lua_getentityplrvisible_processlist();
+	//entity_lua_getentityplrvisible_processlist(); moved to extra thread to calc for next cycle (includes all character intersectall calls!)
 }
 
 void lua_loop ( void )

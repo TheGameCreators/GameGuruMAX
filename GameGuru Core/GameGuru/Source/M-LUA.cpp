@@ -813,6 +813,8 @@ void lua_ensureentityglobalarrayisinitialised ( void )
 #define TABLEOFPERFORMANCEMAX 5000
 int g_iViewPerformanceTimers = 0;
 LONGLONG g_tableofperformancetimers[TABLEOFPERFORMANCEMAX];
+#define SWITCHTO30FPSRANGE 1000
+uint32_t LuaFrameCount = 0;
 
 void lua_loop_allentities ( void )
 {
@@ -820,9 +822,17 @@ void lua_loop_allentities ( void )
 	OPTICK_EVENT();
 #endif
 
+	LuaFrameCount++;
+
 	// Go through all entities with active LUA scripts
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
+		extern bool bEnable30FpsAnimations;
+		if (bEnable30FpsAnimations && LuaFrameCount > 360 && t.entityelement[t.e].plrdist > SWITCHTO30FPSRANGE)
+		{
+			if ((LuaFrameCount + t.e) % 2 == 0)
+				continue;
+		}
 		// reset performance measure
 		if ( t.e < TABLEOFPERFORMANCEMAX) g_tableofperformancetimers[t.e] = 0;
 

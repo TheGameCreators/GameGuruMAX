@@ -115,6 +115,7 @@ float fWickedMaxCenterTest = 0.0f;
 uint32_t iCulledPointShadows = 0;
 uint32_t iCulledSpotShadows = 0;
 uint32_t iCulledAnimations = 0;
+bool bEnable30FpsAnimations = false;
 bool bEnableTerrainChunkCulling = true;
 bool bEnablePointShadowCulling = true;
 bool bEnableSpotShadowCulling = true;

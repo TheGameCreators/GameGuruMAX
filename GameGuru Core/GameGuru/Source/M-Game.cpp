@@ -833,6 +833,9 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	// also hide rendering of 3D while we set up a new level
 	SyncMaskOverride ( 0 );
 
+	extern uint32_t LuaFrameCount;
+	LuaFrameCount = 0;
+
 	// Loading page
 	timestampactivity(0,"_titles_loadingpageupdate");
 	if ( t.game.gameisexe == 1 ) 

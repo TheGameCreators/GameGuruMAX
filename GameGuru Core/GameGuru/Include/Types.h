@@ -3889,6 +3889,10 @@ struct visualstype
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
 
+	bool bEnable30FpsAnimations;
+	bool g_bDelayedShadows;
+	bool g_bDelayedShadowsLaptop;
+
 	bool bBloomEnabled;
 	float fsetBloomThreshold;
 	float ApparentSize;
@@ -4128,6 +4132,10 @@ struct visualstype
 		 bEnableObjectCulling = false;
 		 bEnableAnimationCulling = false;
 
+		 bEnable30FpsAnimations = false;
+		 g_bDelayedShadows = false;
+		 g_bDelayedShadowsLaptop = false;
+
 		 fsetBloomThreshold = 2.0f;
 		 ApparentSize = 0.000008f;
 		 fsetBloomStrength = 1.0f;
@@ -4271,6 +4279,10 @@ struct visualsdatastoragetype
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
 
+	bool bEnable30FpsAnimations;
+	bool g_bDelayedShadows;
+	bool g_bDelayedShadowsLaptop;
+
 	bool bSSREnabled;
 	bool bReflectionsEnabled;
 	bool bLightShafts;
@@ -4307,6 +4319,10 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = false;
 		bEnableObjectCulling = false;
 		bEnableAnimationCulling = false;
+
+		bEnable30FpsAnimations = false;
+		g_bDelayedShadows = false;
+		g_bDelayedShadowsLaptop = false;
 
 		bBloomEnabled = false;
 		bSSREnabled = false;
@@ -4347,6 +4363,10 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = visuals.bEnableSpotShadowCulling;
 		bEnableObjectCulling = visuals.bEnableObjectCulling;
 		bEnableAnimationCulling = visuals.bEnableAnimationCulling;
+
+		bEnable30FpsAnimations = visuals.bEnable30FpsAnimations;
+		g_bDelayedShadows = visuals.g_bDelayedShadows;
+		g_bDelayedShadowsLaptop = visuals.g_bDelayedShadowsLaptop;
 
 		bSSREnabled = visuals.bSSREnabled;
 		bReflectionsEnabled = visuals.bReflectionsEnabled;

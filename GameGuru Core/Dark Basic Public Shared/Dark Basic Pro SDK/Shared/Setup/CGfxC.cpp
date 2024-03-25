@@ -150,6 +150,7 @@ bool										g_bNoSwapchainPresent = false;
 bool										g_bNo2DRender = false;
 bool										g_bNoTerrainRender = false;
 bool										g_bDelayedShadows = true;
+bool										g_bDelayedShadowsLaptop = false;
 bool										g_bNoVSync = false;
 float										maxApparentSize = 0.000008f; // 0.000002f;// 0.000007f; 0.000008; // 0.000002f;
 ///GGMATRIX m_worldMatrix;

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v16 by Necrym59
+-- Toxic Zone v17 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -8,6 +8,7 @@
 -- DESCRIPTION: Zone Height [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [@TOXIC_TO_NPC=1(1=Yes, 2=No)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyUserGlobal"]
+-- DESCRIPTION: [@GLOBAL_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: <Sound0> - Zone Effect Sound
 -- DESCRIPTION: <Sound1> - Pain Sound
@@ -23,6 +24,7 @@ local damage 				= {}
 local zoneheight			= {}
 local toxic_to_npc			= {}
 local user_global_affected	= {}
+local global_affect			= {}
 local spawnatstart			= {}
 local currentvalue			= {}
 local doonce				= {}
@@ -30,13 +32,14 @@ local status				= {}
 local EntityID				= {}
 local EntityAL				= {}
 
-function toxiczone_properties(e, prompt_text, effect, damage, zoneheight, toxic_to_npc, user_global_affected, spawnatstart)
+function toxiczone_properties(e, prompt_text, effect, damage, zoneheight, toxic_to_npc, user_global_affected, global_affect, spawnatstart)
 	toxiczone[e].prompt_text = prompt_text
 	toxiczone[e].effect = effect
 	toxiczone[e].damage = damage
 	toxiczone[e].zoneheight = zoneheight or 100
 	toxiczone[e].toxic_to_npc = toxic_to_npc
 	toxiczone[e].user_global_affected = user_global_affected
+	toxiczone[e].global_affect = global_affect	
 	toxiczone[e].spawnatstart = spawnatstart or 1
 end
 
@@ -48,6 +51,7 @@ function toxiczone_init(e)
 	toxiczone[e].zoneheight = 100
 	toxiczone[e].toxic_to_npc = 1
 	toxiczone[e].user_global_affected = ""
+	toxiczone[e].global_affect = 1		
 	toxiczone[e].spawnatstart = 1
 	currentvalue[e] = 0
 	doonce[e] = 0
@@ -80,7 +84,11 @@ function toxiczone_main(e)
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
 					end
-					if toxiczone[e].user_global_affected ~= "" then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 1 then
+						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
+						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] + toxiczone[e].damage
+					end
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 2 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end
@@ -97,7 +105,11 @@ function toxiczone_main(e)
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
 					end
-					if toxiczone[e].user_global_affected ~= "" then
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 1 then
+						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
+						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] + toxiczone[e].damage
+					end
+					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect = 2 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] = currentvalue[e] - toxiczone[e].damage
 					end

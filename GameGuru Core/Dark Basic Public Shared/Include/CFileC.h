@@ -48,6 +48,7 @@ extern "C"
 {
 	const char* GG_GetWritePath();
 	void SetWriteSameAsRoot(bool bEnable);
+	void SetWriteAsRootTemp(bool bEnable);
 	int GG_CreatePath(const char *path);
 	int GG_GetRealPath( char* fullPath, int create );
 	int GG_FileExists( const char* filename );

@@ -92,10 +92,15 @@ int GG_CreatePath( const char *path )
 }
 
 bool g_bUseRootAsWriteAreaForStandaloneGames = false;
-
 void SetWriteSameAsRoot(bool bEnable)
 {
 	g_bUseRootAsWriteAreaForStandaloneGames = bEnable;
+}
+
+bool g_bSetWriteAsRootTemp = false;
+void SetWriteAsRootTemp(bool bEnable)
+{
+	g_bSetWriteAsRootTemp = bEnable;
 }
 
 void FileRedirectSetup()
@@ -237,7 +242,14 @@ int GG_GetRealPath( char* fullPath, int create )
 	{
 		// trying to access root folder
 		char newPath[ MAX_PATH ];
-		strcpy_s( newPath, MAX_PATH, szWriteDir );
+		if(g_bSetWriteAsRootTemp==true)
+		{
+			strcpy_s(newPath, MAX_PATH, szRootDir);
+		}
+		else
+		{
+			strcpy_s(newPath, MAX_PATH, szWriteDir);
+		}
 		strcat_s( newPath, MAX_PATH, fullPath+rootLen );
 		DWORD attrib = GetFileAttributes(newPath);
 		if ( attrib != INVALID_FILE_ATTRIBUTES )

@@ -33976,7 +33976,9 @@ void Welcome_Screen(void)
 			rect.Max = rect.Min + ImVec2(600, 100);
 			if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
 			{
-				ImGui::SetTooltip("%s", "Help us improve with your feedback by clicking here");
+				char pTip[256];
+				sprintf(pTip, "%s : Help us improve with your feedback by clicking here", g.version_s.Get());
+				ImGui::SetTooltip("%s", pTip);
 				if (ImGui::IsAnyMouseDown() == true)
 				{
 					ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/wiki/Help-Us-Improve-with-your-Feedback", "", "", 0);

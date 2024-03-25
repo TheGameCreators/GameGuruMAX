@@ -3954,6 +3954,27 @@ void FPSC_Setup(void)
 	//  get version information from version file 
 	g.version_s = "";
 	g.gversion = 10000;
+	if (FileExist("versionauto.ini") == 1)
+	{
+		// auto generate todays version number
+		time_t now = time(0);
+		tm* ltm = localtime(&now);
+		int iDay = ltm->tm_mday;
+		int iMonth = ltm->tm_mon + 1;
+		int iYear = ltm->tm_year - 100;
+
+		char pMAXBuildVersionString[256];
+		sprintf(pMAXBuildVersionString, "GameGuru MAX Build 20%d.%02d.%02d", iYear, iMonth, iDay);
+		char pAbsPathToRoot[MAX_PATH];
+		strcpy(pAbsPathToRoot, GetDir());
+		strcat(pAbsPathToRoot, "\\version.ini");
+		SetWriteAsRootTemp(true);
+		if (FileExist(pAbsPathToRoot) == 1) DeleteFileA(pAbsPathToRoot);
+		OpenToWrite(1, pAbsPathToRoot);
+		WriteString(1, pMAXBuildVersionString);
+		CloseFile(1);
+		SetWriteAsRootTemp(false);
+	}
 	if (FileExist("version.ini") == 1)
 	{
 		Dim(t.data_s, 99);

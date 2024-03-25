@@ -833,7 +833,7 @@ bool AdjustPositionSoNoOverlap (int iEntityIndex, float* pX, float* pZ, float fO
 	return bCanSafelyShiftXYZ;
 }
 
-void darkai_handlegotomove (void)
+void darkai_handlegotomove(void)
 {
 	// if any movement required, switch character into a mover (if never need to move, it can animate inplace with good foot planting)
 	if (t.charanimstate.requiremovementnow == 0)
@@ -850,7 +850,7 @@ void darkai_handlegotomove (void)
 	bool bObjectIsSpineTracked = false;
 	int iID = t.charanimstate.obj;
 	sObject* pObject = GetObjectData(iID);
-	if (pObject )
+	if (pObject)
 	{
 		// first handle any movewithanimation functionality (to get to distance we need the second part of the code to MOVE the object)
 		if (pObject->ppFrameList)
@@ -873,8 +873,8 @@ void darkai_handlegotomove (void)
 					{
 						// work out BIP01 shift since last anim
 						GGVECTOR3 vecLastBip01PosOffset;
-						GetPositionFromAnimFrameLimb (&vecLastBip01PosOffset, pFrame->pAnimRef, fLastAnimFrame);
-						GetPositionFromAnimFrameLimb (&vecBip01PosOffset, pFrame->pAnimRef, fAnimFrame);
+						GetPositionFromAnimFrameLimb(&vecLastBip01PosOffset, pFrame->pAnimRef, fLastAnimFrame);
+						GetPositionFromAnimFrameLimb(&vecBip01PosOffset, pFrame->pAnimRef, fAnimFrame);
 						vecBip01PosOffset = vecBip01PosOffset - vecLastBip01PosOffset;
 						float fShiftSinceLastAnimX = vecBip01PosOffset.x;
 						float fShiftSinceLastAnimZ = vecBip01PosOffset.z;
@@ -889,9 +889,9 @@ void darkai_handlegotomove (void)
 							//fShiftSinceLastAnimZ = 0.0f;
 							// still not perfect as I think there is time displacement between multithread anim and core thread movemement!
 							GGVECTOR3 vecFirstBip01PosOffsetFrame;
-							GetPositionFromAnimFrameLimb (&vecFirstBip01PosOffsetFrame, pFrame->pAnimRef, pObject->fAnimLoopStart);
+							GetPositionFromAnimFrameLimb(&vecFirstBip01PosOffsetFrame, pFrame->pAnimRef, pObject->fAnimLoopStart);
 							GGVECTOR3 vecLastBip01PosOffsetFrame;
-							GetPositionFromAnimFrameLimb (&vecLastBip01PosOffsetFrame, pFrame->pAnimRef, pObject->fAnimFrameEnd);
+							GetPositionFromAnimFrameLimb(&vecLastBip01PosOffsetFrame, pFrame->pAnimRef, pObject->fAnimFrameEnd);
 							GGVECTOR3 vecFullBip01PosOffsetDisplacement;
 							vecFullBip01PosOffsetDisplacement = vecLastBip01PosOffsetFrame - vecFirstBip01PosOffsetFrame;
 							fShiftSinceLastAnimX -= vecFullBip01PosOffsetDisplacement.x;
@@ -967,7 +967,7 @@ void darkai_handlegotomove (void)
 	// if have movement
 	bool bReversingOrStrafing = false;
 	float fAdvanceTheMovement = 0.0f;
-	if (bObjectIsSpineTracked == true )
+	if (bObjectIsSpineTracked == true)
 	{
 		// movement controlled by animation (spinetracking)
 		if (t.charanimstate.movingbackward == 1)
@@ -982,7 +982,7 @@ void darkai_handlegotomove (void)
 			fAdvanceTheMovement = -t.smoothanim[iID].movedeltaz;
 		}
 		if (fabs(t.smoothanim[iID].movedeltax) > fAdvanceTheMovement) bReversingOrStrafing = true; // strafing
-		if (t.charanimstate.iRotationAlongPathMode == 0 ) bReversingOrStrafing = true; // called by behavior when want animation to perform without rotating to follow projected path
+		if (t.charanimstate.iRotationAlongPathMode == 0) bReversingOrStrafing = true; // called by behavior when want animation to perform without rotating to follow projected path
 	}
 	else
 	{
@@ -1005,7 +1005,7 @@ void darkai_handlegotomove (void)
 	float fOldPosX = t.entityelement[t.charanimstate.e].x;
 	float fOldPosZ = t.entityelement[t.charanimstate.e].z;
 	// if we are advancing a move, do it here
-	if ( fAdvanceTheMovement > 0.0f )
+	if (fAdvanceTheMovement > 0.0f)
 	{
 		// we need to move the object
 		float fCurrentMoveDistance = fAdvanceTheMovement;
@@ -1016,7 +1016,7 @@ void darkai_handlegotomove (void)
 			// reset until need it (at end of path traversal)
 			t.charanimstate.remainingMoveDistanceOnPath_f = 0;
 			t.charanimstate.remainingOverallDistanceToDest_f = 0;
-			
+
 			// eat through points until above movement distance used up
 			float fDiffA = t.charanimstate.moveangle_f; // redundant, but assighned here to show cyclic nature of fDiffA
 			float fCurrentX = t.entityelement[t.charanimstate.e].x;
@@ -1032,7 +1032,7 @@ void darkai_handlegotomove (void)
 					thisPoint[2] = t.charanimstate.pointz[iPointIndex];
 					float fDiffX = thisPoint[0] - fCurrentX;
 					float fDiffZ = thisPoint[2] - fCurrentZ;
-					float tdisttopoint = sqrt(fabs(fDiffX*fDiffX) + fabs(fDiffZ*fDiffZ));
+					float tdisttopoint = sqrt(fabs(fDiffX * fDiffX) + fabs(fDiffZ * fDiffZ));
 					fDiffA = GGToDegree(atan2(fDiffX, fDiffZ));
 					if (fDiffA < -180) fDiffA = fDiffA + 360;
 					if (fDiffA > 180) fDiffA = fDiffA - 360;
@@ -1042,7 +1042,7 @@ void darkai_handlegotomove (void)
 					float fFinalPointZ = t.charanimstate.pointz[iPointCount - 1];
 					float fFinalDiffX = fFinalPointX - fCurrentX;
 					float fFinalDiffZ = fFinalPointZ - fCurrentZ;
-					float fFinalDist = sqrt(fabs(fFinalDiffX*fFinalDiffX) + fabs(fFinalDiffZ*fFinalDiffZ));
+					float fFinalDist = sqrt(fabs(fFinalDiffX * fFinalDiffX) + fabs(fFinalDiffZ * fFinalDiffZ));
 					t.charanimstate.remainingOverallDistanceToDest_f = fFinalDist;
 					float fStopAheadOfFinishingPositionBy = t.charanimstate.iStopFromEnd;// 10.0f;// 75.0f; //LB: would be good to scale this by genral movement speed (anim or non-anim based)
 					bool bEndThisPathTraversal = false;
@@ -1074,7 +1074,7 @@ void darkai_handlegotomove (void)
 							}
 						}
 					}
-					if (bEndThisPathTraversal == true )
+					if (bEndThisPathTraversal == true)
 					{
 						bEatPointsInPath = false;
 						fCurrentMoveDistance = 0.0f;
@@ -1101,7 +1101,7 @@ void darkai_handlegotomove (void)
 				{
 					float fDX = t.charanimstate.pointx[iScanPointIndex] - t.entityelement[t.charanimstate.e].x;
 					float fDZ = t.charanimstate.pointz[iScanPointIndex] - t.entityelement[t.charanimstate.e].z;
-					fDistNow = sqrt(fabs(fDX*fDX) + fabs(fDZ*fDZ));
+					fDistNow = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
 					fLookAheadAngle = GGToDegree(atan2(fDX, fDZ));
 					if (fLookAheadAngle < -180) fLookAheadAngle = fLookAheadAngle + 360;
 					if (fLookAheadAngle > 180) fLookAheadAngle = fLookAheadAngle - 360;
@@ -1162,7 +1162,7 @@ void darkai_handlegotomove (void)
 	t.smoothanim[iID].movedeltax = 0;
 	t.smoothanim[iID].movedeltaz = 0;
 	// ensure free of other characters
-	if (AdjustPositionSoNoOverlap (t.charanimstate.e, &t.entityelement[t.charanimstate.e].x, &t.entityelement[t.charanimstate.e].z, fOldPosX, fOldPosZ) == true)
+	if (AdjustPositionSoNoOverlap(t.charanimstate.e, &t.entityelement[t.charanimstate.e].x, &t.entityelement[t.charanimstate.e].z, fOldPosX, fOldPosZ) == true)
 	{
 		// no overlap, or was allowed to shift around another character safely (still in nav mesh)
 		t.entityelement[t.charanimstate.e].lua.dynamicavoidance = 0;
@@ -1180,86 +1180,96 @@ void darkai_handlegotomove (void)
 		t.entityelement[t.charanimstate.e].lua.dynamicavoidance = 1000;
 		t.entityelement[t.charanimstate.e].lua.interuptpath--;
 	}
-	// find surface for object at this XZ position, faster than capsule and ensures object is purely navmesh/movement driven (not softy physics driven)
-	bool bSurfaceFound = false;
-	float fStepUp = 35.0f;
-	float fStepDown = 50000.0f;
-	int iCollisionMode = (1 << (0)) | (1 << (1)) | (1 << (3)); //COL_TERRAIN | COL_OBJECT | COL_OBJECT_DYNAMIC;
-	float fSurfaceYPosition = -10000.0f;
-	for (int iBoxScan = 0; iBoxScan < 4; iBoxScan++)
+
+	//PE: Optimize 2024 Dont process below if we did not move (rays).
+	float fDX = t.entityelement[t.charanimstate.e].x - t.entityelement[t.charanimstate.e].lastx;
+	float fDY = t.entityelement[t.charanimstate.e].y - t.entityelement[t.charanimstate.e].lasty;
+	float fDZ = t.entityelement[t.charanimstate.e].z - t.entityelement[t.charanimstate.e].lastz;
+	float fMoved = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
+	if (fMoved > 0.05)
 	{
-		float fOffsetX = -1.0f;
-		float fOffsetZ = -1.0f;
-		if (iBoxScan == 1) { fOffsetX =  1.0f; fOffsetZ = -1.0f; }
-		if (iBoxScan == 2) { fOffsetX = -1.0f; fOffsetZ =  1.0f; }
-		if (iBoxScan == 3) { fOffsetX =  1.0f; fOffsetZ =  1.0f; }
-		if (ODERayTerrainEx (t.entityelement[t.charanimstate.e].x + fOffsetX, t.entityelement[t.charanimstate.e].y + fStepUp, t.entityelement[t.charanimstate.e].z + fOffsetZ, t.entityelement[t.charanimstate.e].x + fOffsetX, t.entityelement[t.charanimstate.e].y - fStepDown, t.entityelement[t.charanimstate.e].z + fOffsetZ, iCollisionMode, false) == 1)
+		// find surface for object at this XZ position, faster than capsule and ensures object is purely navmesh/movement driven (not softy physics driven)
+		bool bSurfaceFound = false;
+		float fStepUp = 35.0f;
+		float fStepDown = 50000.0f;
+		int iCollisionMode = (1 << (0)) | (1 << (1)) | (1 << (3)); //COL_TERRAIN | COL_OBJECT | COL_OBJECT_DYNAMIC;
+		float fSurfaceYPosition = -10000.0f;
+		for (int iBoxScan = 0; iBoxScan < 4; iBoxScan++)
 		{
-			float fThisSurfaceY = ODEGetRayCollisionY();
+			float fOffsetX = -1.0f;
+			float fOffsetZ = -1.0f;
+			if (iBoxScan == 1) { fOffsetX = 1.0f; fOffsetZ = -1.0f; }
+			if (iBoxScan == 2) { fOffsetX = -1.0f; fOffsetZ = 1.0f; }
+			if (iBoxScan == 3) { fOffsetX = 1.0f; fOffsetZ = 1.0f; }
+			if (ODERayTerrainEx(t.entityelement[t.charanimstate.e].x + fOffsetX, t.entityelement[t.charanimstate.e].y + fStepUp, t.entityelement[t.charanimstate.e].z + fOffsetZ, t.entityelement[t.charanimstate.e].x + fOffsetX, t.entityelement[t.charanimstate.e].y - fStepDown, t.entityelement[t.charanimstate.e].z + fOffsetZ, iCollisionMode, false) == 1)
+			{
+				float fThisSurfaceY = ODEGetRayCollisionY();
+				if (fThisSurfaceY > fSurfaceYPosition) fSurfaceYPosition = fThisSurfaceY;
+				bSurfaceFound = true;
+			}
+		}
+		if (bSurfaceFound == false)
+		{
+			// probably on steep terrain, step up of 15 at high speed cannot handle this, so ensure LOWEST point is terrain 
+			float fThisSurfaceY = BT_GetGroundHeight(0, t.entityelement[t.charanimstate.e].x, t.entityelement[t.charanimstate.e].z);
 			if (fThisSurfaceY > fSurfaceYPosition) fSurfaceYPosition = fThisSurfaceY;
-			bSurfaceFound = true;
+		}
+		if (fSurfaceYPosition > -10000.0f)
+		{
+			float fYPosition = t.entityelement[t.charanimstate.e].y;
+			float fDifference = fSurfaceYPosition - t.entityelement[t.charanimstate.e].y;
+			if (fDifference < 0.0f)
+			{
+				// a drop, make object fall using gravity of 1G
+				t.entityelement[t.charanimstate.e].climbgravity -= g.timeelapsed_f * 0.2f;
+				if (t.entityelement[t.charanimstate.e].climbgravity < -50.0f) t.entityelement[t.charanimstate.e].climbgravity = -50.0f;
+				fYPosition += g.timeelapsed_f * 6 * t.entityelement[t.charanimstate.e].climbgravity;
+				if (fYPosition < fSurfaceYPosition) fYPosition = fSurfaceYPosition;
+			}
+			else
+			{
+				// walkable surface raises or stays level, set fNewYPosition to surface using a lerp curve, and reset to no gravity fall
+				fYPosition += g.timeelapsed_f * fDifference * 0.5f;
+				t.entityelement[t.charanimstate.e].climbgravity = 0.0f;
+			}
+			t.entityelement[t.charanimstate.e].y = fYPosition;
+		}
+		// tilt object X axis if tilt mode active (for non-bipeds like rats, horses)
+		if (t.charanimstate.iTiltMode == 1)
+		{
+			float fX = t.entityelement[t.charanimstate.e].x;
+			float fY = t.entityelement[t.charanimstate.e].y;
+			float fZ = t.entityelement[t.charanimstate.e].z;
+			float fNewY = fY;
+			if (g_RecastDetour.isWithinNavMesh(fX, fY, fZ) == true)
+			{
+				fY = g_RecastDetour.getYFromPos(fX, fY, fZ);
+			}
+			else
+			{
+				fY = BT_GetGroundHeight(0, fX, fZ);
+			}
+			float fNewX = NewXValue(fX, t.charanimstate.currentangle_f, 5.0f);
+			float fNewZ = NewZValue(fZ, t.charanimstate.currentangle_f, 5.0f);
+			if (g_RecastDetour.isWithinNavMesh(fNewX, fY, fNewZ) == true)
+			{
+				fNewY = g_RecastDetour.getYFromPos(fNewX, fY, fNewZ);
+			}
+			else
+			{
+				fNewY = BT_GetGroundHeight(0, fNewX, fNewZ);
+			}
+			float fDX = fNewX - fX;
+			float fDZ = fNewZ - fZ;
+			float fDistXZ = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+			float fDistY = fNewY - fY;
+			float fTiltXAxis = LimbAngleX(iID, 0);
+			float fTiltXAxisDest = GGToDegree(atan2(fDistY, fDistXZ));
+			fTiltXAxis += (fTiltXAxisDest - fTiltXAxis) * 0.1f;
+			RotateLimb(iID, 0, fTiltXAxis, 0, 0);
 		}
 	}
-	if ( bSurfaceFound == false )
-	{
-		// probably on steep terrain, step up of 15 at high speed cannot handle this, so ensure LOWEST point is terrain 
-		float fThisSurfaceY = BT_GetGroundHeight(0, t.entityelement[t.charanimstate.e].x, t.entityelement[t.charanimstate.e].z);
-		if (fThisSurfaceY > fSurfaceYPosition) fSurfaceYPosition = fThisSurfaceY;
-	}
-	if (fSurfaceYPosition > -10000.0f)
-	{
-		float fYPosition = t.entityelement[t.charanimstate.e].y;
-		float fDifference = fSurfaceYPosition - t.entityelement[t.charanimstate.e].y;
-		if (fDifference < 0.0f)
-		{
-			// a drop, make object fall using gravity of 1G
-			t.entityelement[t.charanimstate.e].climbgravity -= g.timeelapsed_f * 0.2f;
-			if (t.entityelement[t.charanimstate.e].climbgravity < -50.0f) t.entityelement[t.charanimstate.e].climbgravity = -50.0f;
-			fYPosition += g.timeelapsed_f * 6 * t.entityelement[t.charanimstate.e].climbgravity;
-			if (fYPosition < fSurfaceYPosition) fYPosition = fSurfaceYPosition;
-		}
-		else
-		{
-			// walkable surface raises or stays level, set fNewYPosition to surface using a lerp curve, and reset to no gravity fall
-			fYPosition += g.timeelapsed_f * fDifference * 0.5f;
-			t.entityelement[t.charanimstate.e].climbgravity = 0.0f;
-		}
-		t.entityelement[t.charanimstate.e].y = fYPosition;
-	}
-	// tilt object X axis if tilt mode active (for non-bipeds like rats, horses)
-	if ( t.charanimstate.iTiltMode == 1 )
-	{
-		float fX = t.entityelement[t.charanimstate.e].x;
-		float fY = t.entityelement[t.charanimstate.e].y;
-		float fZ = t.entityelement[t.charanimstate.e].z;
-		float fNewY = fY;
-		if (g_RecastDetour.isWithinNavMesh(fX, fY, fZ) == true)
-		{
-			fY = g_RecastDetour.getYFromPos(fX, fY, fZ);
-		}
-		else
-		{
-			fY = BT_GetGroundHeight(0, fX, fZ);
-		}
-		float fNewX = NewXValue(fX, t.charanimstate.currentangle_f, 5.0f);
-		float fNewZ = NewZValue(fZ, t.charanimstate.currentangle_f, 5.0f);
-		if (g_RecastDetour.isWithinNavMesh(fNewX, fY, fNewZ) == true)
-		{
-			fNewY = g_RecastDetour.getYFromPos(fNewX, fY, fNewZ);
-		}
-		else
-		{
-			fNewY = BT_GetGroundHeight(0, fNewX, fNewZ);
-		}
-		float fDX = fNewX - fX;
-		float fDZ = fNewZ - fZ;
-		float fDistXZ = sqrt(fabs(fDX*fDX) + fabs(fDZ*fDZ));
-		float fDistY = fNewY - fY;
-		float fTiltXAxis = LimbAngleX(iID, 0);
-		float fTiltXAxisDest = GGToDegree(atan2(fDistY, fDistXZ));
-		fTiltXAxis += (fTiltXAxisDest - fTiltXAxis)*0.1f;
-		RotateLimb (iID, 0, fTiltXAxis, 0, 0);
-	}
+
 	// run physics to ensure capsule keeps up with world position of object (includes PositionObject for final XYZ placement)
 	int stte = t.te;
 	int sttv = t.tv_f;

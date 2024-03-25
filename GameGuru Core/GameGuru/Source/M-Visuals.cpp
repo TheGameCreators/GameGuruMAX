@@ -251,6 +251,9 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.bEnableObjectCulling = false;
 	t.visuals.bEnableAnimationCulling = false;
 
+	t.visuals.bEnable30FpsAnimations = false;
+	t.visuals.g_bDelayedShadows = false;
+	t.visuals.g_bDelayedShadowsLaptop = false;
 
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.ApparentSize = 0.000008f;
@@ -806,6 +809,12 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableAnimationCulling=" + Str(t.visuals.bEnableAnimationCulling);
 	WriteString(1, t.strwork.Get());
 
+	t.strwork = ""; t.strwork = t.strwork + "visuals.Enable30FpsAnimations=" + Str(t.visuals.bEnable30FpsAnimations);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DelayedShadows=" + Str(t.visuals.g_bDelayedShadows);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DelayedShadowsLaptop=" + Str(t.visuals.g_bDelayedShadowsLaptop);
+	WriteString(1, t.strwork.Get());
 
 
 	t.strwork = ""; t.strwork = t.strwork + "visuals.BloomEnabled=" + Str(t.visuals.bBloomEnabled);
@@ -1075,6 +1084,10 @@ void visuals_load ( void )
 	t.visuals.bEnableSpotShadowCulling = false;
 	t.visuals.bEnableObjectCulling = false;
 	t.visuals.bEnableAnimationCulling = false;
+
+	t.visuals.bEnable30FpsAnimations = false;
+	t.visuals.g_bDelayedShadows = false;
+	t.visuals.g_bDelayedShadowsLaptop = false;
 
 	t.visuals.fsetBloomThreshold = 2.0f;
 	t.visuals.ApparentSize = 0.000008f;
@@ -1356,6 +1369,11 @@ void visuals_load ( void )
 			t.try_s = "visuals.EnableSpotShadowCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableSpotShadowCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EnableObjectCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableObjectCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EnableAnimationCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableAnimationCulling = ValF(t.tvalue_s.Get());
+
+
+			t.try_s = "visuals.Enable30FpsAnimations"; if (t.tfield_s == t.try_s)  t.visuals.bEnable30FpsAnimations = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DelayedShadows"; if (t.tfield_s == t.try_s)  t.visuals.g_bDelayedShadows = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DelayedShadowsLaptop"; if (t.tfield_s == t.try_s)  t.visuals.g_bDelayedShadowsLaptop = ValF(t.tvalue_s.Get());
 
 
 			t.try_s = "visuals.BloomEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bBloomEnabled = ValF(t.tvalue_s.Get());

@@ -6974,6 +6974,7 @@ void tab_tab_visuals(int iPage, int iMode)
 #ifdef ADVANCEDCOLORS
 			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram]);
 #endif
+
 			if (ImGui::StyleCollapsingHeader("Post Processing", wflags))
 			{
 				ImGui::Indent(10);
@@ -6995,6 +6996,40 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 
 				//PE: Optimizing
+				extern bool bEnable30FpsAnimations;
+				extern bool g_bDelayedShadows;
+				extern bool g_bDelayedShadowsLaptop;
+				ImGui::PushItemWidth(-10);
+				if (ImGui::Checkbox("Lower Animation & LUA Speed##Animationsculling", &bEnable30FpsAnimations))
+				{
+					t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations = bEnable30FpsAnimations;
+					g.projectmodified = 1;
+
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Lower Animation Speed will lower the updating of animation & LUA to 30 FPS for increased speed when using many animations.");
+				ImGui::PopItemWidth();
+
+				ImGui::PushItemWidth(-10);
+				if (ImGui::Checkbox("Delayed Shadows##Animationsculling", &g_bDelayedShadows))
+				{
+					t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows = g_bDelayedShadows;
+					g.projectmodified = 1;
+
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fever cascade shadow updates and increase your FPS.");
+				if (g_bDelayedShadows)
+				{
+					ImGui::SameLine();
+					if (ImGui::Checkbox("Laptop##Animationsculling", &g_bDelayedShadowsLaptop))
+					{
+						t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop = g_bDelayedShadowsLaptop;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows (Laptop) will make even fever cascade shadow updates and increase your FPS.");
+				}
+				ImGui::PopItemWidth();
+
+
 				extern bool bEnableObjectCulling;
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("Occlusion Culling##bOcclusionCulling", &t.visuals.bOcclusionCulling))
@@ -7005,7 +7040,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					{
 						bEnableObjectCulling = true;
 						t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
-				}
+					}
 				}
 				if (wiRenderer::GetOcclusionCullingEnabled() != t.visuals.bOcclusionCulling)
 				{
@@ -7021,7 +7056,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					//if (bOCDebug)
 					//{
 					//}
-						ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
+					ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
 				}
 				if(t.visuals.bOcclusionCulling)
 				{
@@ -7097,10 +7132,10 @@ void tab_tab_visuals(int iPage, int iMode)
 						}
 						ImGui::Text("Total Objects: %d", iObjects);
 						if(bOCDebug)
-						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
+							ImGui::Text("Hidden Objects: %d", iHiddenObjects);
 						ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
 						if(bOCDebug)
-						ImGui::Text("Occluded Objects: %d", occ);
+							ImGui::Text("Occluded Objects: %d", occ);
 
 						extern uint32_t iOccludedTerrainChunks;
 						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
@@ -7650,7 +7685,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Toggle whether the navigation system debug visuals should be shown");
 				ImGui::PopItemWidth();
-
+				
 				float but_gadget_size = ImGui::GetFontSize()*10.0;
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 				if (ImGui::StyleButton("Edit Behaviors##TabTabEditBehaviors", ImVec2(but_gadget_size, 0)))
@@ -8598,7 +8633,7 @@ void Wicked_Update_Visuals(void *voidvisual)
 		master_renderer->setReflectionsEnabled(visuals->bReflectionsEnabled);
 		master_renderer->setFXAAEnabled(visuals->bFXAAEnabled);
 		wiRenderer::SetOcclusionCullingEnabled(visuals->bOcclusionCulling);
-
+		
 		if (visuals->ApparentSize < 0.000001f)
 			visuals->ApparentSize = 0.000001f;
 		if (visuals->ApparentSize > 0.2f)
@@ -8617,6 +8652,13 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bEnableObjectCulling = visuals->bEnableObjectCulling;
 		extern bool bEnableAnimationCulling;
 		bEnableAnimationCulling = visuals->bEnableAnimationCulling;
+
+		extern bool bEnable30FpsAnimations;
+		bEnable30FpsAnimations = visuals->bEnable30FpsAnimations;
+		extern bool g_bDelayedShadows;
+		g_bDelayedShadows = visuals->g_bDelayedShadows;
+		extern bool g_bDelayedShadowsLaptop;
+		g_bDelayedShadowsLaptop = visuals->g_bDelayedShadowsLaptop;
 
 		// when in editor, keep enforcing a fixed exposure value (so we dont see fade-ins all the time)
 		if (t.game.set.ismapeditormode==0 || pref.iEnableAutoExposureInEditor )
@@ -51283,7 +51325,7 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
 								if (object->IsOccluded() || object->IsCulled())
 								{
 									if(object->IsOccluded())
-									total++;
+										total++;
 									if (bDebug)
 									{
 
@@ -51293,7 +51335,7 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
 										if(t.entityelement[t.e].bankindex > 0 && t.entityprofile[t.entityelement[t.e].bankindex].ischaracter)
 											DrawDot("*", center.x, center.y, center.z);
 										else if(object->IsCulled())
-										DrawDot(".", center.x, center.y, center.z);
+											DrawDot(".", center.x, center.y, center.z);
 										else
 											DrawDot("-", center.x, center.y, center.z);
 									}
@@ -51353,7 +51395,7 @@ void tmpdebugfunc(void)
 		{
 			bProfilerEnable = true;
 			wiProfiler::SetEnabled(true);
-}
+		}
 
 		wiScene::Scene* pScene = &wiScene::GetScene();
 		int iObjects = pScene->objects.GetCount();

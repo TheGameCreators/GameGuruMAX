@@ -1,9 +1,0 @@
-READINESS ZONE
-
-Will arm or disarm player when entering the zone.
-Attach to a trigger Zone
-
-Set the PROMPT TEXT eg: "Lock and Load"
-Set the WEAPON MODE for 'Arm' or 'Disarm'
-Set the ZONEHEIGHT default is 100
-Set the SpawnAtStart if unchecked use a switch or other trigger to spawn this zone

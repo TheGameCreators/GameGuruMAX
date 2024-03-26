@@ -9,7 +9,7 @@
 -- DESCRIPTION: [END_TEXT$="All Targets in Area Eliminated"]
 -- DESCRIPTION: [END_TEXT_DURATION=2(0,10)] Seconds
 -- DESCRIPTION: [HIDE_OBJECT!=0]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] "MyMoney" for example
 -- DESCRIPTION: [GLOBAL_AFFECTED_VALUE=100(1,100)]
 -- DESCRIPTION: <Sound0> will play at event start.
 -- DESCRIPTION: <Sound1> will play at event end.

@@ -1,4 +1,4 @@
--- Collection Control v8 by Necrym59
+-- Collection Control v9 by Necrym59
 -- DESCRIPTION: This behavior allows for configuration for control of a collection count.
 -- DESCRIPTION: Use the Collection Count behavior for the pickup items.
 -- DESCRIPTION: [OBJECTIVES=6] to collect to win
@@ -25,6 +25,7 @@ local display_y			= {}
 local display_size		= {}
 local status			= {}
 local doonce			= {}
+local doend				= {}
 local timeleft			= {}
 
 function collection_control_properties(e, objectives, collection_time, on_completion, on_failure, display_x, display_y, display_size)
@@ -48,6 +49,7 @@ function collection_control_init(e)
 	cc_control[e].display_size = 3	
 	status[e] = "init"
 	doonce[e] = 0
+	doend[e] = 0
 	timeleft[e] = 0
 end
 
@@ -61,12 +63,15 @@ function collection_control_main(e)
 	end
 
 	if g_collection_counted >= cc_control[e].objectives then
-		PlaySound(e,0)
-		if cc_control[e].on_completion == 1 then JumpToLevelIfUsed(e) end
-		if cc_control[e].on_completion == 2 then PerformLogicConnections(e) end
-		if cc_control[e].on_completion == 3 then ActivateIfUsed(e) end	
-		if cc_control[e].on_completion == 4 then WinGame() end
-		Destroy(e)
+		if doend[e] == 0 then
+			PlaySound(e,0)
+			if cc_control[e].on_completion == 1 then JumpToLevelIfUsed(e) end
+			if cc_control[e].on_completion == 2 then PerformLogicConnections(e) end
+			if cc_control[e].on_completion == 3 then ActivateIfUsed(e) end	
+			if cc_control[e].on_completion == 4 then WinGame() end			
+			doend[e] = 1
+			SwitchScript(e,"no_behavior_selected.lua")
+		end
 	end
 	if g_collection_counted > 0 and doonce[e] == 0 then
 		StartTimer(e)

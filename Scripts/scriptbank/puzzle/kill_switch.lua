@@ -174,9 +174,7 @@ function kill_switch_main(e)
 				SwitchScript(e,"no_behavior_selected.lua")
 			end
 		end
-		if killswitch[e].user_global_affected == "" then Text(50,50,3,"NO GLOBAL") end
-	end
-	
+	end	
 end
 
 function GetFlatDistance(e,v)

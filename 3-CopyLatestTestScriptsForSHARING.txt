@@ -1,0 +1,3 @@
+Scripts\scriptbank\animals\crawling_insect.lua
+Scripts\scriptbank\animals\fish.lua
+Scripts\scriptbank\animals\mammal_generic.lua

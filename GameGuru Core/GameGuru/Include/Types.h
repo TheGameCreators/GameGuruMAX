@@ -10074,7 +10074,7 @@ struct charanimstatetype
 	int healthlevel;
 	float currentangleslowlyspeed_f;
 	float currentangle_f;
-	float warmupwalk_f;
+	float warmupcharacteratstart_f;
 	float animationspeed_f;
 	int disablephysicsupdate;
 	int outofrange;
@@ -10160,7 +10160,7 @@ struct charanimstatetype
 		 dormanttimer = 0;
 		 disablephysicsupdate = 0;
 		 animationspeed_f = 0.0f;
-		 warmupwalk_f = 0.0f;
+		 warmupcharacteratstart_f = 0.0f;
 		 currentangle_f = 0.0f;
 		 currentangleslowlyspeed_f = 0.0f;
 		 healthlevel = 0;

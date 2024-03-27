@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Switch v9 by Necrym59
--- DESCRIPTION: Attach this behaviour to an object. Link to be activated by switch or zone.
--- DESCRIPTION: When all enemies have been killed it then activates another linked object or item.
+-- Kill Switch v10 by Necrym59
+-- DESCRIPTION: Attach to an object and link to be activated by switch or zone.
+-- DESCRIPTION: When all enemies have been killed it then activates linked or IfUsed entitities and can increment a user global.
 -- DESCRIPTION: [EVENT_TEXT$="Kill all Targets in Area"]
 -- DESCRIPTION: [ENEMY_RANGE=1000(100, 3000)]
 -- DESCRIPTION: [@ENEMY_COUNTER=1(1=Off, 2=On)]
@@ -9,15 +9,22 @@
 -- DESCRIPTION: [END_TEXT$="All Targets in Area Eliminated"]
 -- DESCRIPTION: [END_TEXT_DURATION=2(0,10)] Seconds
 -- DESCRIPTION: [HIDE_OBJECT!=0]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] "MyMoney" for example
+-- DESCRIPTION: [GLOBAL_AFFECTED_VALUE=100(1,100)]
 -- DESCRIPTION: <Sound0> will play at event start.
 -- DESCRIPTION: <Sound1> will play at event end.
 
 
-local killswitch 	= {}
-local range 		= {}
-local enemy_counter	= {}
-local counter_text	= {}
-local end_text 		= {}
+local killswitch 		= {}
+local event_text		= {}
+local enemy_range		= {}
+local enemy_counter		= {}
+local counter_text		= {}
+local end_text 			= {}
+local end_text_duration	= {}
+local hide_object		= {}
+local user_global_affected	= {}
+local global_affected_value	= {}
 
 local pEntno		= {}
 local pEntalive 	= {}
@@ -29,18 +36,20 @@ local wait			= {}
 local waitonce		= {}
 local endcheck		= {}
 local endonce		= {}
+local currentvalue	= {}
 local state			= {}
 local status	 	= {}
 
-function kill_switch_properties(e, event_text, enemy_range, enemy_counter, counter_text, end_text, end_text_duration, hide_object)
-	 killswitch[e] = g_Entity[e]
-	 killswitch[e].event_text = event_text
-	 killswitch[e].enemy_range = enemy_range
-	 killswitch[e].enemy_counter = enemy_counter
-	 killswitch[e].counter_text = counter_text
-	 killswitch[e].end_text = end_text
-	 killswitch[e].end_text_duration = end_text_duration
-	 killswitch[e].hide_object = hide_object	 
+function kill_switch_properties(e, event_text, enemy_range, enemy_counter, counter_text, end_text, end_text_duration, hide_object, user_global_affected, global_affected_value)
+	killswitch[e] = g_Entity[e]
+	killswitch[e].event_text = event_text
+	killswitch[e].enemy_range = enemy_range
+	killswitch[e].enemy_counter = enemy_counter
+	killswitch[e].counter_text = counter_text
+	killswitch[e].end_text = end_text
+	killswitch[e].end_text_duration = end_text_duration
+	killswitch[e].user_global_affected = user_global_affected
+	killswitch[e].global_affected_value = global_affected_value
 end 
 
 function kill_switch_init(e)
@@ -52,6 +61,8 @@ function kill_switch_init(e)
 	killswitch[e].end_text = "All Targets in Area Eliminated"
 	killswitch[e].end_text_duration = 2
 	killswitch[e].hide_object = 0
+	killswitch[e].user_global_affected = ""
+	killswitch[e].global_affected_value = 100	
 	
 	pEntno[e] = 0
 	pEntalive[e] = 0
@@ -138,7 +149,11 @@ function kill_switch_main(e)
 				PromptDuration(killswitch[e].end_text,killswitch[e].end_text_duration*1000)					
 				PlaySound(e,1)
 				ActivateIfUsed(e)
-				PerformLogicConnections(e)					
+				PerformLogicConnections(e)
+				if killswitch[e].user_global_affected > "" then
+					if _G["g_UserGlobal['"..killswitch[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..killswitch[e].user_global_affected.."']"] end
+					_G["g_UserGlobal['"..killswitch[e].user_global_affected.."']"] = currentvalue[e] + killswitch[e].global_affected_value
+				end
 				doend[e] = 1
 				doonce[e] = 0
 				waitonce[e] = 0

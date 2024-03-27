@@ -1182,11 +1182,12 @@ void darkai_handlegotomove(void)
 	}
 
 	//PE: Optimize 2024 Dont process below if we did not move (rays).
+	//LB: However this stops characters falling down if placed above a surface, so added warmupcharacteratstart_f
 	float fDX = t.entityelement[t.charanimstate.e].x - t.entityelement[t.charanimstate.e].lastx;
 	float fDY = t.entityelement[t.charanimstate.e].y - t.entityelement[t.charanimstate.e].lasty;
 	float fDZ = t.entityelement[t.charanimstate.e].z - t.entityelement[t.charanimstate.e].lastz;
 	float fMoved = sqrt(fabs(fDX * fDX) + fabs(fDY * fDY) + fabs(fDZ * fDZ));
-	if (fMoved > 0.05)
+	if (fMoved > 0.05 || (t.charanimstate.dormant==0 && t.charanimstate.warmupcharacteratstart_f > 0.0f) )
 	{
 		// find surface for object at this XZ position, faster than capsule and ensures object is purely navmesh/movement driven (not softy physics driven)
 		bool bSurfaceFound = false;
@@ -1225,6 +1226,9 @@ void darkai_handlegotomove(void)
 				if (t.entityelement[t.charanimstate.e].climbgravity < -50.0f) t.entityelement[t.charanimstate.e].climbgravity = -50.0f;
 				fYPosition += g.timeelapsed_f * 6 * t.entityelement[t.charanimstate.e].climbgravity;
 				if (fYPosition < fSurfaceYPosition) fYPosition = fSurfaceYPosition;
+
+				// ensure fall for newly minted characters continues until we hit the surface
+				t.charanimstate.warmupcharacteratstart_f = 1.0f;
 			}
 			else
 			{
@@ -1268,6 +1272,13 @@ void darkai_handlegotomove(void)
 			fTiltXAxis += (fTiltXAxisDest - fTiltXAxis) * 0.1f;
 			RotateLimb(iID, 0, fTiltXAxis, 0, 0);
 		}
+	}
+
+	// run t.charanimstate.warmupcharacteratstart_f down to zero
+	if (t.charanimstate.dormant == 0 && t.charanimstate.warmupcharacteratstart_f > 0.0f)
+	{
+		t.charanimstate.warmupcharacteratstart_f -= g.timeelapsed_f;
+		if (t.charanimstate.warmupcharacteratstart_f < 0) t.charanimstate.warmupcharacteratstart_f = 0.0f;
 	}
 
 	// run physics to ensure capsule keeps up with world position of object (includes PositionObject for final XYZ placement)
@@ -1552,6 +1563,7 @@ void darkai_setupcharacter (void)
 		t.charanimstates[g.charanimindex].dormant = 1;
 		t.charanimstates[g.charanimindex].dormanttimer = timeGetTime() + (rand() % 1000);
 	}
+	t.charanimstates[g.charanimindex].warmupcharacteratstart_f = 2.0f;
 	t.charanimstates[g.charanimindex].currentangle_f = t.entityelement[t.charanimstates[g.charanimindex].e].ry;
 	t.charanimstates[g.charanimindex].moveangle_f = t.charanimstates[g.charanimindex].currentangle_f;
 	t.charanimstates[g.charanimindex].moveToMode = 0;

@@ -47,6 +47,8 @@ hud0_mapView_ScrollY = 0
 hud0_mapView_Scale = 1.0
 
 hud0_populateallcontainers = 1
+hud0_populateallcontainersfillshop = ""
+hud0_populateallcontainersfilled = {}
 
 hud0_scrollbar_forscreen = 0
 hud0_scrollbar_mode = 0
@@ -89,9 +91,10 @@ function hud0.init()
 	hud0_playercontainer_e[hud0_playercontainer_screenID][1] = {}
  end
  -- default container is a shop container
- g_UserGlobalContainer = "shop"
+ g_UserGlobalContainer = ""
  g_UserGlobalContainerLast = ""
  g_UserGlobalContainerRefresh = 0
+ g_UserGlobalContainerFilled = ""
  -- default settings
  hud0_scrollbar_mode = -1
  hud0_scrollbar_boxw = 0
@@ -244,7 +247,17 @@ function hud0.main()
 
  -- This section controls which HUD screens are shown to the player whilst in-game (not paused or in a menu screen)
  if IsPlayerInGame() then
- 
+
+  if hud0_populateallcontainers == 0 then  
+    if g_UserGlobalContainer ~= "" then
+		if g_UserGlobalContainer ~= g_UserGlobalContainerFilled then
+			g_UserGlobalContainerFilled = g_UserGlobalContainer
+			hud0_populateallcontainersfillshop = "inventory:"
+			hud0_populateallcontainersfillshop = hud0_populateallcontainersfillshop .. g_UserGlobalContainerFilled
+			hud0_populateallcontainers = 2
+		end
+	end
+  end
   if hud0_populateallcontainers == 1 then 
     -- create all shop and chest containers
 	local tcollectionmax = GetCollectionItemQuantity()
@@ -261,44 +274,56 @@ function hud0.main()
 			tcontainerfullname = tcontainerfullname .. tcontainername
 			MakeInventoryContainer(tcontainerfullname)
 		end
+		hud0_populateallcontainersfilled[tcollectionindex] = 0
 	end
-	-- create shop items from collection for this level
+	hud0_populateallcontainers = 0
+ end
+ if hud0_populateallcontainers == 2 and hud0_populateallcontainersfillshop ~= "" then 
+	-- fill shop items from collection for this level
 	local tcollectionmax = GetCollectionItemQuantity()
 	for tcollectionindex = 1, tcollectionmax, 1 do
-		local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-		local anyee = 0
-		for ee = 1, g_EntityElementMax, 1 do
-			if e ~= ee then
-				if g_Entity[ee] ~= nil then
-					if GetEntityName(ee) == tname then
-						anyee = ee
-						break
-					end
-				end
-			end
-		end
-		if anyee > 0 then
-			-- item object is in 3D world, create a clone for the shop
-			local newe = SpawnNewEntity(anyee)
+		if hud0_populateallcontainersfilled[tcollectionindex] == 0 then
+			local applyqty = -1
 			local tcontainerfullname = "inventory:shop"
 			local tcontainernameunparsed = GetCollectionItemAttribute(tcollectionindex,"container")
 			if tcontainernameunparsed ~= nil then
 				i, j = string.find(tcontainernameunparsed,"=")
 				if i ~= nil then
 					tcontainername = string.sub(tcontainernameunparsed,1,i-1)
-					local tqty = string.sub(tcontainernameunparsed,i+1,-1)
-					SetEntityQuantity(newe,tonumber(tqty))
+					local qty = string.sub(tcontainernameunparsed,i+1,-1)
+					applyqty = tonumber(tqty)
 				else
 					tcontainername = tcontainernameunparsed
 				end
 				tcontainerfullname = "inventory:"
 				tcontainerfullname = tcontainerfullname .. tcontainername
 			end
-			SetEntityCollected(newe,3,-1,tcontainerfullname)
-			SetEntityActive(newe,0)
+			if tcontainerfullname == hud0_populateallcontainersfillshop	then
+				local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+				local anyee = 0
+				for ee = 1, g_EntityElementMax, 1 do
+					if e ~= ee then
+						if g_Entity[ee] ~= nil then
+							if GetEntityName(ee) == tname then
+								anyee = ee
+								break
+							end
+						end
+					end
+				end
+				if anyee > 0 then
+					-- item object is in 3D world, create a clone for the shop
+					local newe = SpawnNewEntity(anyee)
+					SetEntityCollected(newe,3,-1,tcontainerfullname)
+					SetEntityActive(newe,0)
+					if applyqty ~= -1 then
+						SetEntityQuantity(newe,applyqty)
+					end
+				end
+				hud0_populateallcontainersfilled[tcollectionindex] = 1
+			end
 		end
-	end			
-	-- finished creating container items and entities
+	end
 	hud0_populateallcontainers = 0
   end
  

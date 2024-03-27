@@ -930,12 +930,12 @@ void decal_triggermaterialdebris ( void )
 	}
 }
 
-void decal_find ( void )
+void decal_find (void)
 {
 	// Load all decals
-	for ( t.decalid = 1 ; t.decalid <= g.decalmax; t.decalid++ )
+	for (t.decalid = 1; t.decalid <= g.decalmax; t.decalid++)
 	{
-		if ( t.decal[t.decalid].name_s == t.decal_s  )  break;
+		if (t.decal[t.decalid].name_s == t.decal_s)  break;
 	}
 	if (t.decalid > g.decalmax)
 	{
@@ -946,11 +946,17 @@ void decal_find ( void )
 			for (t.decalid = 1; t.decalid <= g.decalmax; t.decalid++)
 			{
 				LPSTR pLookAt = t.decal[t.decalid].name_s.Get();
-				if ( strnicmp (pLookAt + strlen(pLookAt) - strlen(pPattern), pPattern, strlen(pPattern) ) == NULL ) break;
+				if (strnicmp (pLookAt + strlen(pLookAt) - strlen(pPattern), pPattern, strlen(pPattern)) == NULL) break;
 			}
 		}
 		else
+		{
 			t.decalid = -1;
+		}
+	}
+	if (t.decalid > g.decalmax)
+	{
+		t.decalid = -1;
 	}
 }
 

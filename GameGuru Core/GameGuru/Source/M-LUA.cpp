@@ -1057,8 +1057,16 @@ void lua_loop_allentities ( void )
 					}
 					else
 					{
-						// on average, 6 times per second
-						if (Rnd(5) == 1) t.entityelement[t.e].lua.flagschanged = 1;
+						if (t.entityelement[t.e].plrdist < 300)
+						{
+							// always update things that are VERY close (like lifts, ladders, ziplines, etc)
+							t.entityelement[t.e].lua.flagschanged = 1;
+						}
+						else
+						{
+							// on average, 6 times per second for more mid-distant non critical logic
+							if (Rnd(5) == 1) t.entityelement[t.e].lua.flagschanged = 1;
+						}
 					}
 				}
 				else

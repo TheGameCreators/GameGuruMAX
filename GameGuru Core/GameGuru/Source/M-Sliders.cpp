@@ -28,437 +28,17 @@ extern UINT g_StereoEyeToggle;
 
 void sliders_init ( void )
 {
-	image_setlegacyimageloading(true);
 	//  load images for slider resources
-	t.timgbase=g.slidersmenuimageoffset;
-	SetMipmapNum(1); //PE: mipmaps not needed.
-	#ifdef WICKEDENGINE
-	// MAX does not use sliders at all now
-	#else
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\bar.png",t.timgbase+1,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\handle.png",t.timgbase+2,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\paneltop.png",t.timgbase+3,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\panelmiddle.png",t.timgbase+4,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\panelbottom.png",t.timgbase+5,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\glass-tube.png",t.timgbase+6,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\dropdown.png",t.timgbase+7,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\fill.png",t.timgbase+8,1 );
-	for ( t.t = 0 ; t.t<=  6; t.t++ )
-	{
-		if (  t.t == 0  )  t.t_s = "red";
-		if (  t.t == 1  )  t.t_s = "green";
-		if (  t.t == 2  )  t.t_s = "blue";
-		if (  t.t == 3  )  t.t_s = "orange";
-		if (  t.t == 4  )  t.t_s = "yellow";
-		if (  t.t == 5  )  t.t_s = "purple";
-		if (  t.t == 6  )  t.t_s = "cyan";
-		LoadImage ( cstr(cstr( "languagebank\\neutral\\gamecore\\huds\\sliders\\bar-")+t.t_s+"-start.png").Get(),t.timgbase+11+(t.t*3),1 );
-		LoadImage (  cstr(cstr( "languagebank\\neutral\\gamecore\\huds\\sliders\\bar-")+t.t_s+".png").Get(),t.timgbase+12+(t.t*3),1 );
-		LoadImage (  cstr(cstr( "languagebank\\neutral\\gamecore\\huds\\sliders\\bar-")+t.t_s+"-end.png").Get(),t.timgbase+13+(t.t*3),1 );
-	}
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\minmaxbutton.png",t.timgbase+32,0 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\sliders\\minmaxbuttonlit.png",t.timgbase+33,0 );
-	#endif
-
-	#ifdef PRODUCTV3
-	// VRQ has no ammo/weapons!
-	#else
-
-	#ifndef WICKEDENGINE
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-health-panel.png",t.timgbase+51,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\horizontal-line.png",t.timgbase+52,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\vertical-line.png",t.timgbase+53,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-colt.png",t.timgbase+54,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-magnum.png",t.timgbase+55,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-uzi.png",t.timgbase+56,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-shotgun.png",t.timgbase+57,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-riffle.png",t.timgbase+58,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-rpg.png",t.timgbase+59,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-grenade.png",t.timgbase+60,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-bow.png",t.timgbase+61,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-mace.png",t.timgbase+62,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-stone.png",t.timgbase+63,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-sword.png",t.timgbase+64,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\icon-staff.png",t.timgbase+65,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-handgun.png",t.timgbase+71,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-handgun.png",t.timgbase+72,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-riffle.png",t.timgbase+73,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-shotgun.png",t.timgbase+74,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-riffle.png",t.timgbase+75,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-rpg.png",t.timgbase+76,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-grenade.png",t.timgbase+77,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-bow.png",t.timgbase+78,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-none.png",t.timgbase+79,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-none.png",t.timgbase+80,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-none.png",t.timgbase+81,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-staff.png",t.timgbase+82,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\health-icon.png",t.timgbase+91,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\lives-icon.png",t.timgbase+92,1 );
-	LoadImage (  "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-infinity.png",t.timgbase+93,1 );
-	#endif
-
-	#endif
-	SetMipmapNum(-1);
-	image_setlegacyimageloading(false);
-
-	//LB: Reinstating some sliders for AMMO and HEALTH for MAX
-	//#ifdef WICKEDENGINE
-	////PE: Moved here , sliders images are used around the code for gradiant ...
-	//return;
-	//#endif
+	//t.timgbase=g.slidersmenuimageoffset;
 
 	//  Multiple panels allowed
 	g.slidersmenumax=0;
 
-	#ifndef WICKEDENGINE
-	//  Special A.I Drill Down panel
-	++g.slidersmenumax;
-	t.slidersmenunames.aidrilldown=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=-99;
-	t.slidersmenu[g.slidersmenumax].title_s="A.I DETAIL";
-	t.slidersmenu[g.slidersmenumax].itemcount=6;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="LUA Engine";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][1].expanddetect=-1;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Entity Updates";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][2].expanddetect=-1;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="DarkAI Control";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][3].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][3].expanddetect=-1;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="DarkAI Update";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][4].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][4].expanddetect=-1;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Character Logic";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][5].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][5].expanddetect=-1;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Attachments";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][6].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][6].expanddetect=-1;
-
-	//  Performance panel
-	++g.slidersmenumax;
-	t.slidersmenunames.performance=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=-1;
-	t.slidersmenu[g.slidersmenumax].title_s="PERFORMANCE";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=13;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenu[g.slidersmenumax].ttop=5;
-	t.slidersmenu[g.slidersmenumax].tleft=5;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="A.I.";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][1].expanddetect=t.slidersmenunames.aidrilldown;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Physics";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex=2;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Vegetation";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][3].readmodeindex=3;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Shadows";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][4].readmodeindex=3;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Sky & Water";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][5].readmodeindex=3;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Rendering";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][6].readmodeindex=4;
-	t.slidersmenuvalue[g.slidersmenumax][7].name_s="Controls";
-	t.slidersmenuvalue[g.slidersmenumax][7].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][7].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][8].name_s="Misc";
-	t.slidersmenuvalue[g.slidersmenumax][8].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][8].readmodeindex=5;
-	#ifdef VRTECH
-	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="HUD";
-	#else
-	 t.slidersmenuvalue[g.slidersmenumax][9].name_s="Weapons";
-	#endif
-	t.slidersmenuvalue[g.slidersmenumax][9].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][9].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][10].name_s="Occlusion";
-	t.slidersmenuvalue[g.slidersmenumax][10].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][10].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][11].name_s="Postprocessing";
-	t.slidersmenuvalue[g.slidersmenumax][11].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][11].readmodeindex=5;
-	t.slidersmenuvalue[g.slidersmenumax][12].name_s="Polygons";
-	t.slidersmenuvalue[g.slidersmenumax][12].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][12].readmodeindex=1;
-	t.slidersmenuvalue[g.slidersmenumax][13].name_s="Draw Calls";
-	t.slidersmenuvalue[g.slidersmenumax][13].value=0;
-	t.slidersmenuvalue[g.slidersmenumax][13].readmodeindex=2;
-
-	//  Visuals panel
-	++g.slidersmenumax;
-	t.slidersmenunames.visuals=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="VISUAL SETTINGS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].ttop=5;
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=18;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Fog Nearest";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.FogNearest_f/100.0;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Fog Distance";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.FogDistance_f/500.0;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Fog Red";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.FogR_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Fog Green";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=t.visuals.FogG_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Fog Blue";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=t.visuals.FogB_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Fog Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=t.visuals.FogA_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][7].name_s="Ambience Level";
-	t.slidersmenuvalue[g.slidersmenumax][7].value=t.visuals.AmbienceIntensity_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][8].name_s="Ambience Red";
-	t.slidersmenuvalue[g.slidersmenumax][8].value=t.visuals.AmbienceRed_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][9].name_s="Ambience Green";
-	t.slidersmenuvalue[g.slidersmenumax][9].value=t.visuals.AmbienceGreen_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][10].name_s="Ambience Blue";
-	t.slidersmenuvalue[g.slidersmenumax][10].value=t.visuals.AmbienceBlue_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][11].name_s="Surface Level";
-	t.slidersmenuvalue[g.slidersmenumax][11].value=t.visuals.SurfaceIntensity_f*33;
-	t.slidersmenuvalue[g.slidersmenumax][12].name_s="Surface Red";
-	t.slidersmenuvalue[g.slidersmenumax][12].value=t.visuals.SurfaceRed_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][13].name_s="Surface Green";
-	t.slidersmenuvalue[g.slidersmenumax][13].value=t.visuals.SurfaceGreen_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][14].name_s="Surface Blue";
-	t.slidersmenuvalue[g.slidersmenumax][14].value=t.visuals.SurfaceBlue_f/2.55;
-	t.slidersmenuvalue[g.slidersmenumax][15].name_s="Surface Sun Factor";
-	t.slidersmenuvalue[g.slidersmenumax][15].value=t.visuals.SurfaceSunFactor_f * 100;
-	t.slidersmenuvalue[g.slidersmenumax][16].name_s="Global Specular";
-	t.slidersmenuvalue[g.slidersmenumax][16].value=t.visuals.Specular_f * 100;
-	t.slidersmenuvalue[g.slidersmenumax][17].name_s="Brightness";
-	t.slidersmenuvalue[g.slidersmenumax][17].value=(t.visuals.PostBrightness_f+0.5) * 100;
-	t.slidersmenuvalue[g.slidersmenumax][18].name_s="Contrast";
-	t.slidersmenuvalue[g.slidersmenumax][18].value=t.visuals.PostContrast_f * 30;
-
-	//  Camera panel
-	++g.slidersmenumax;
-	t.slidersmenunames.camera=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="CAMERA SETTINGS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].ttop=5;
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=4;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Camera Distance";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.CameraFAR_f/3000.0;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Camera Horizontal FOV";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=(((t.visuals.CameraFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Camera Zoom Percentage";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.CameraFOVZoomed_f*100;
-	#ifdef VRTECH
-	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="HUD Horizontal FOV";
-	#else
-	 t.slidersmenuvalue[g.slidersmenumax][4].name_s="Weapon Horizontal FOV";
-	#endif
-	t.slidersmenuvalue[g.slidersmenumax][4].value=(((t.visuals.WeaponFOV_f*t.visuals.CameraASPECT_f)-20.0)/90.0)*100.0;
-
-	//  Water panel
-	++g.slidersmenumax;
-	t.slidersmenunames.water = g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage = 2;
-	t.slidersmenu[g.slidersmenumax].title_s = "WATER SETTINGS";
-	t.slidersmenu[g.slidersmenumax].thighlight = -1;
-	t.slidersmenu[g.slidersmenumax].ttop = 5;
-	t.slidersmenu[g.slidersmenumax].tleft = GetDisplayWidth() - 256 - 16 - 5 - 260 - 260 - 260 -260;
-	t.slidersmenu[g.slidersmenumax].titlemargin = 63;
-	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
-	t.slidersmenu[g.slidersmenumax].itemcount = 13;
-	t.slidersmenu[g.slidersmenumax].panelheight = 30 + (t.slidersmenu[g.slidersmenumax].itemcount * 38);
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Water Height";
-	t.slidersmenuvalue[g.slidersmenumax][1].value = SlidersCutExtendedValues(g.gdefaultwaterheight/10);
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Water Red";
-	t.slidersmenuvalue[g.slidersmenumax][2].value = SlidersCutExtendedValues(t.visuals.WaterRed_f/2.55);
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s = "Water Green";
-	t.slidersmenuvalue[g.slidersmenumax][3].value = SlidersCutExtendedValues(t.visuals.WaterGreen_f/2.55);
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Water Blue";
-	t.slidersmenuvalue[g.slidersmenumax][4].value = SlidersCutExtendedValues(t.visuals.WaterBlue_f/2.55);
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s = "Wave Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][5].value = SlidersCutExtendedValues(t.visuals.WaterWaveIntensity_f/2);
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s = "Water Transparancy";
-	t.slidersmenuvalue[g.slidersmenumax][6].value = SlidersCutExtendedValues(t.visuals.WaterTransparancy_f*100.0);
-	t.slidersmenuvalue[g.slidersmenumax][7].name_s = "Water Reflection";
-	t.slidersmenuvalue[g.slidersmenumax][7].value = SlidersCutExtendedValues(t.visuals.WaterReflection_f*100.0);
-	t.slidersmenuvalue[g.slidersmenumax][8].name_s = "Reflection Sparkle Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][8].value = SlidersCutExtendedValues(t.visuals.WaterReflectionSparkleIntensity *5.0);
-	t.slidersmenuvalue[g.slidersmenumax][9].name_s = "Flow Direction X";
-	t.slidersmenuvalue[g.slidersmenumax][9].value = SlidersCutExtendedValues(t.visuals.WaterFlowDirectionX * 10 + 50);
-	t.slidersmenuvalue[g.slidersmenumax][10].name_s = "Flow Direction Y";
-	t.slidersmenuvalue[g.slidersmenumax][10].value = SlidersCutExtendedValues(t.visuals.WaterFlowDirectionY * 10 + 50);
-	t.slidersmenuvalue[g.slidersmenumax][11].name_s = "Water Distortion Waves";
-	t.slidersmenuvalue[g.slidersmenumax][11].value = SlidersCutExtendedValues(t.visuals.WaterDistortionWaves*1000);
-	t.slidersmenuvalue[g.slidersmenumax][12].name_s = "Water Ripple Speed";
-	t.slidersmenuvalue[g.slidersmenumax][12].value = SlidersCutExtendedValues(100-t.visuals.WaterSpeed1);
-	t.slidersmenuvalue[g.slidersmenumax][13].name_s = "Water Speed";
-	t.slidersmenuvalue[g.slidersmenumax][13].value = SlidersCutExtendedValues(t.visuals.WaterFlowSpeed*10.0);
-
-	//  Post Effects panel
-	++g.slidersmenumax;
-	t.slidersmenunames.posteffects=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="POST EFFECTS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=13;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260;
-	t.slidersmenu[g.slidersmenumax].ttop=GetDisplayHeight()-t.slidersmenu[t.slidersmenunames.posteffects].panelheight-82;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Bloom";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.bloommode;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Vignette Radius";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.VignetteRadius_f*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Vignette Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.VignetteIntensity_f*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Motion Blur Distance";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=t.visuals.MotionDistance_f*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Motion Blur Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=t.visuals.MotionIntensity_f*100.0;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Depth Of Field Distance";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=t.visuals.DepthOfFieldDistance_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][7].name_s="Depth Of Field Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][7].value=t.visuals.DepthOfFieldIntensity_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][8].name_s="Lightray Length";
-	t.slidersmenuvalue[g.slidersmenumax][8].value=t.visuals.LightrayLength_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][9].name_s="Lightray Quality";
-	t.slidersmenuvalue[g.slidersmenumax][9].value=t.visuals.LightrayQuality_f;
-	t.slidersmenuvalue[g.slidersmenumax][10].name_s="Lightray Decay";
-	t.slidersmenuvalue[g.slidersmenumax][10].value=t.visuals.LightrayDecay_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][11].name_s="SAO Radius";
-	t.slidersmenuvalue[g.slidersmenumax][11].value=t.visuals.SAORadius_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][12].name_s="SAO Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][12].value=t.visuals.SAOIntensity_f*100;
-	t.slidersmenuvalue[g.slidersmenumax][13].name_s="Lens Flare Intensity";
-	t.slidersmenuvalue[g.slidersmenumax][13].value=t.visuals.LensFlare_f*100;
-
-	//  Quality panel
-	++g.slidersmenumax;
-	t.slidersmenunames.qualitypanel=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="QUALITY SETTINGS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].ttop=5;
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260-260;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=7;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Terrain LOD Near";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.TerrainLOD1_f/100;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Terrain LOD Midrange";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.TerrainLOD2_f/100;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Terrain LOD Far";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.TerrainLOD3_f/100;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Terrain Size";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=t.visuals.TerrainSize_f;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Vegetation Quantity";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=t.visuals.VegQuantity_f;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Vegetation Width";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=t.visuals.VegWidth_f;
-	t.slidersmenuvalue[g.slidersmenumax][7].name_s="Vegetation Height";
-	t.slidersmenuvalue[g.slidersmenumax][7].value=t.visuals.VegHeight_f;
-
-	//  World Settings panel
-	++g.slidersmenumax;
-	t.slidersmenunames.worldpanel=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="WORLD SETTINGS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].ttop=5;
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260-260-260;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	#ifdef VRTECH
-	t.slidersmenu[g.slidersmenumax].itemcount=4;
-	#else
-	t.slidersmenu[g.slidersmenumax].itemcount=3;
-	#endif
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Sky Type";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.skyindex;
-	t.slidersmenuvalue[g.slidersmenumax][1].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][1].gadgettypevalue=1;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Terrain Type";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.terrainindex;
-	t.slidersmenuvalue[g.slidersmenumax][2].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][2].gadgettypevalue=2;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Vegetation Type";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.vegetationindex;
-	t.slidersmenuvalue[g.slidersmenumax][3].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][3].gadgettypevalue=3;
-	#ifdef VRTECH
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s = "Weather";
-	t.slidersmenuvalue[g.slidersmenumax][4].value = t.visuals.iEnvironmentWeather+1;
-	t.slidersmenuvalue[g.slidersmenumax][4].gadgettype = 1;
-	t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue = 40;
-	for ( t.tn = 1 ; t.tn<=  4; t.tn++ )
-	#else
-	for ( t.tn = 1 ; t.tn<=  3; t.tn++ )
-	#endif
-	{
-		t.slidersmenuindex=g.slidersmenumax;
-		t.slidersmenuvaluechoice=t.slidersmenuvalue[g.slidersmenumax][t.tn].gadgettypevalue;
-		t.slidersmenuvalueindex=t.slidersmenuvalue[g.slidersmenumax][t.tn].value;
-		sliders_getnamefromvalue ( );
-		t.slidersmenuvalue[g.slidersmenumax][t.tn].value_s=t.slidervaluename_s;
-	}
-	#endif
-
 	//  Weapons in-game panel
 	++g.slidersmenumax;
 	t.slidersmenunames.weapon=g.slidersmenumax;
-	#ifdef WICKEDENGINE
 	// no VR to worry about for EA version of MAX
 	t.slidersmenu[g.slidersmenumax].tabpage = 0;
-	#else
-	if (g.vrqcontrolmode != 0 || g.gvrmodeoriginal != 0)
-	{
-		// hide ammo/weapon panel if no weapon specified at start
-		t.slidersmenu[g.slidersmenumax].tabpage = -10;
-	}
-	else
-	{
-		t.slidersmenu[g.slidersmenumax].tabpage = 0;
-	}
-	t.slidersmenu[g.slidersmenumax].title_s = "";
-	t.slidersmenu[g.slidersmenumax].thighlight = -1;
-	t.slidersmenu[g.slidersmenumax].tleft = 5;
-	t.slidersmenu[g.slidersmenumax].titlemargin = 20;
-	t.slidersmenu[g.slidersmenumax].leftmargin = 25;
-	t.slidersmenu[g.slidersmenumax].itemcount = 2;
-	t.slidersmenu[g.slidersmenumax].panelheight = (t.slidersmenu[g.slidersmenumax].itemcount * 38) - 40;
-	t.slidersmenu[g.slidersmenumax].ttop = GetDisplayHeight() - 146;
-	t.slidersmenu[g.slidersmenumax].readonly = 1;
-	t.slidersmenu[g.slidersmenumax].customimage = g.slidersmenuimageoffset + 51;
-	t.slidersmenu[g.slidersmenumax].customimagetype = 1;
-	t.slidersmenu[g.slidersmenumax].customimagesubtype = 2;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Ammo";
-	t.slidersmenuvalue[g.slidersmenumax][1].value = 0;
-	t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 7;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Clips";
-	t.slidersmenuvalue[g.slidersmenumax][2].value = 0;
-	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 6;
-	#endif
 
 	// Player status in-game panel
 	++g.slidersmenumax;
@@ -472,16 +52,12 @@ void sliders_init ( void )
 	t.slidersmenu[g.slidersmenumax].titlemargin=20;
 	t.slidersmenu[g.slidersmenumax].leftmargin=25;
 	t.slidersmenu[g.slidersmenumax].itemcount = 2;
-	#ifdef WICKEDENGINE
+
 	// reserve old lives value for something else (perhaps armour/shield for player)?
 	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "";
 	t.slidersmenuvalue[g.slidersmenumax][1].value = 0;
 	t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 5;
-	#else
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s = "Lives";
-	t.slidersmenuvalue[g.slidersmenumax][1].value = t.player[1].lives;
-	t.slidersmenuvalue[g.slidersmenumax][1].readmodeindex = 5;
-	#endif
+
 	t.slidersmenuvalue[g.slidersmenumax][2].name_s = "Health";
 	t.slidersmenuvalue[g.slidersmenumax][2].value = t.player[1].health;
 	t.slidersmenuvalue[g.slidersmenumax][2].readmodeindex = 4;
@@ -491,93 +67,6 @@ void sliders_init ( void )
 	t.slidersmenu[g.slidersmenumax].customimage=g.slidersmenuimageoffset+51;
 	t.slidersmenu[g.slidersmenumax].customimagetype=2;
 	t.slidersmenu[g.slidersmenumax].customimagesubtype=0;
-
-	#ifndef WICKEDENGINE
-	//  Graphics Options panel
-	++g.slidersmenumax;
-	t.slidersmenunames.graphicoptions=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="GRAPHIC OPTIONS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=6;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260-260-260;
-	t.slidersmenu[g.slidersmenumax].ttop=GetDisplayHeight()-t.slidersmenu[g.slidersmenumax].panelheight-87;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Water and Reflections";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.reflectionmode;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Shadows";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.shadowmode;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Lightrays";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.lightraymode;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Vegetation";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=t.visuals.vegetationmode;
-	t.slidersmenuvalue[g.slidersmenumax][5].name_s="Occlusion";
-	t.slidersmenuvalue[g.slidersmenumax][5].value=t.visuals.occlusionvalue;
-	t.slidersmenuvalue[g.slidersmenumax][6].name_s="Debug Visuals";
-	t.slidersmenuvalue[g.slidersmenumax][6].value=t.visuals.debugvisualsmode;
-
-	//  Shader Options panel
-	++g.slidersmenumax;
-	t.slidersmenunames.shaderoptions=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=2;
-	t.slidersmenu[g.slidersmenumax].title_s="SHADER OPTIONS";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].titlemargin=63;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=6;
-	if ( g.gpbroverride == 1 ) t.slidersmenu[g.slidersmenumax].itemcount=4;
-	t.slidersmenu[g.slidersmenumax].panelheight=30+(t.slidersmenu[g.slidersmenumax].itemcount*38);
-	t.slidersmenu[g.slidersmenumax].tleft=GetDisplayWidth()-256-16-5-260-260;
-	t.slidersmenu[g.slidersmenumax].ttop=GetDisplayHeight()-t.slidersmenu[t.slidersmenunames.graphicoptions].panelheight-87;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Terrain Shader";
-	t.slidersmenuvalue[g.slidersmenumax][1].value=t.visuals.shaderlevels.terrain;
-	t.slidersmenuvalue[g.slidersmenumax][1].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][1].gadgettypevalue=4;
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="Entity Shader";
-	t.slidersmenuvalue[g.slidersmenumax][2].value=t.visuals.shaderlevels.entities;
-	t.slidersmenuvalue[g.slidersmenumax][2].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][2].gadgettypevalue=5;
-	t.slidersmenuvalue[g.slidersmenumax][3].name_s="Grass Shader";
-	t.slidersmenuvalue[g.slidersmenumax][3].value=t.visuals.shaderlevels.vegetation;
-	t.slidersmenuvalue[g.slidersmenumax][3].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][3].gadgettypevalue=6;
-	t.slidersmenuvalue[g.slidersmenumax][4].name_s="Lighting";
-	t.slidersmenuvalue[g.slidersmenumax][4].value=t.visuals.shaderlevels.lighting;
-	t.slidersmenuvalue[g.slidersmenumax][4].gadgettype=1;
-	t.slidersmenuvalue[g.slidersmenumax][4].gadgettypevalue=7;
-	for ( t.tn = 1 ; t.tn<=  4; t.tn++ )
-	{
-		t.slidersmenuindex=g.slidersmenumax;
-		t.slidersmenuvaluechoice=t.slidersmenuvalue[g.slidersmenumax][t.tn].gadgettypevalue;
-		t.slidersmenuvalueindex=t.slidersmenuvalue[g.slidersmenumax][t.tn].value;
-		sliders_getnamefromvalue ( );
-		t.slidersmenuvalue[g.slidersmenumax][t.tn].value_s=t.slidervaluename_s;
-	}
-	if ( g.gpbroverride == 0 )
-	{
-		t.slidersmenuvalue[g.slidersmenumax][5].name_s="Distance Transition";
-		t.slidersmenuvalue[g.slidersmenumax][5].value=t.visuals.DistanceTransitionStart_f / 100;
-		t.slidersmenuvalue[g.slidersmenumax][6].name_s="Transition Range";
-		t.slidersmenuvalue[g.slidersmenumax][6].value=t.visuals.DistanceTransitionRange_f / 10;
-	}
-
-	//  YES/NO Message panel
-	++g.slidersmenumax;
-	t.slidersmenunames.yesnopanel=g.slidersmenumax;
-	t.slidersmenu[g.slidersmenumax].tabpage=-9;
-	t.slidersmenu[g.slidersmenumax].title_s="LOW FPS DETECTED";
-	t.slidersmenu[g.slidersmenumax].thighlight=-1;
-	t.slidersmenu[g.slidersmenumax].titlemargin=20;
-	t.slidersmenu[g.slidersmenumax].leftmargin=25;
-	t.slidersmenu[g.slidersmenumax].itemcount=0;
-	t.slidersmenu[g.slidersmenumax].panelheight=55;
-	t.slidersmenu[g.slidersmenumax].tleft=(GetDisplayWidth()-256)/2;
-	t.slidersmenu[g.slidersmenumax].ttop=(GetDisplayHeight()-128)/2;
-	t.slidersmenuvalue[g.slidersmenumax][1].name_s="Do you want to improve your performance?";
-	t.slidersmenuvalue[g.slidersmenumax][2].name_s="[YES]            [NO]";
-	#endif
 }
 
 void sliders_free ( void )
@@ -1588,6 +1077,7 @@ void sliders_draw ( void )
 	// only if HUDs allowed to be drawn
 	if (  t.tokay == 1 ) 
 	{
+		/* no longer used no slider graphics loaded
 		//  draw slider menus
 		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
 		{
@@ -1625,118 +1115,110 @@ void sliders_draw ( void )
 					}
 					else
 					{
-					t.tpanely += 32;
-					t.tpanelheight=t.slidersmenu[t.slidersmenuindex].panelheight;
-					for ( t.tty = 0 ; t.tty<=  t.tpanelheight/32; t.tty++ )
-					{
-						PasteImage (  t.timgbase+4,t.rmposx,t.tpanely,1 );
-						t.tpanely+=32;
-					}
-					PasteImage (  t.timgbase+5,t.rmposx,t.tpanely,1 );
-
-					#ifdef VRTECH
-					#else
-					// draw character kit buttons here so they go over the backdrop but under the drop down lists
-					if (  t.characterkit.inUse  ==  1 ) 
-					{
-						characterkit_draw_buttons ( );
-					}
-					#endif
-
-					// draw contents of panel
-					if (  t.slidersmenu[t.slidersmenuindex].itemcount == 0 ) 
-					{
-						//  message panel
-						t.ttnumwidth=getbitmapfontwidth(t.slidersmenu[t.slidersmenuindex].title_s.Get(),1)/2;
-						pastebitmapfont(t.slidersmenu[t.slidersmenuindex].title_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+22,1,255);
-						t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][1].name_s;
-						t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
-						pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+44+(20*1),2,255);
-						t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][2].name_s;
-						t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
-						pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+44+(20*2),2,255);
-					}
-					else
-					{
-						//  alternative slider menu
-						t.slidersmenualternativeindex=t.slidersmenuindex;
-						if (  t.slidersmenuindex == t.slidersmenunames.performance ) 
+						t.tpanely += 32;
+						t.tpanelheight=t.slidersmenu[t.slidersmenuindex].panelheight;
+						for ( t.tty = 0 ; t.tty<=  t.tpanelheight/32; t.tty++ )
 						{
-							if (  g.sliderspecialview>0 ) 
-							{
-								//  used for drill-down menus (such as A.I drill down)
-								t.slidersmenualternativeindex=g.sliderspecialview;
-							}
+							PasteImage (  t.timgbase+4,t.rmposx,t.tpanely,1 );
+							t.tpanely+=32;
 						}
+						PasteImage (  t.timgbase+5,t.rmposx,t.tpanely,1 );
 
-						//  controller panel
-						t.rmposytopy=t.rmposy+t.slidersmenu[t.slidersmenuindex].titlemargin;
-						pastebitmapfont(t.slidersmenu[t.slidersmenualternativeindex].title_s.Get(),t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin,t.rmposy+22,1,255);
-						for ( t.rmi = 0 ; t.rmi<=  t.slidersmenu[t.slidersmenualternativeindex].itemcount-1; t.rmi++ )
+						// draw contents of panel
+						if (  t.slidersmenu[t.slidersmenuindex].itemcount == 0 ) 
 						{
-							pastebitmapfont(t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].name_s.Get(),t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin,t.rmposytopy+(t.rmi*38),2,255);
-							if ( t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].useCustomRange == 0 )
+							//  message panel
+							t.ttnumwidth=getbitmapfontwidth(t.slidersmenu[t.slidersmenuindex].title_s.Get(),1)/2;
+							pastebitmapfont(t.slidersmenu[t.slidersmenuindex].title_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+22,1,255);
+							t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][1].name_s;
+							t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
+							pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+44+(20*1),2,255);
+							t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][2].name_s;
+							t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
+							pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+128-t.ttnumwidth,t.rmposy+44+(20*2),2,255);
+						}
+						else
+						{
+							//  alternative slider menu
+							t.slidersmenualternativeindex=t.slidersmenuindex;
+							if (  t.slidersmenuindex == t.slidersmenunames.performance ) 
 							{
-								//  (Dave) to handle sliders that have a custom min and max
-								t.tdata=t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value;
-							}
-							else
-							{
-								t.tdata = SlidersAdjustValue ( t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value, t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].valueMin, t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].valueMax, 0, 100 );
-							}
-							if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].gadgettype == 0 ) 
-							{
-								//  slider or readout bar
-								if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].readmodeindex == 0 ) 
+								if (  g.sliderspecialview>0 ) 
 								{
-									//  slider control
-									PasteImage (  t.timgbase+1,t.rmposx+25,t.rmposytopy+20+(t.rmi*38),1 );
-									t.tpos_f=t.tdata ; t.tpos_f=(188.0/100.0)*t.tpos_f;
-									PasteImage (  t.timgbase+2,t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin+t.tpos_f,t.rmposytopy+14+(t.rmi*38),1 );
+									//  used for drill-down menus (such as A.I drill down)
+									t.slidersmenualternativeindex=g.sliderspecialview;
+								}
+							}
+
+							//  controller panel
+							t.rmposytopy=t.rmposy+t.slidersmenu[t.slidersmenuindex].titlemargin;
+							pastebitmapfont(t.slidersmenu[t.slidersmenualternativeindex].title_s.Get(),t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin,t.rmposy+22,1,255);
+							for ( t.rmi = 0 ; t.rmi<=  t.slidersmenu[t.slidersmenualternativeindex].itemcount-1; t.rmi++ )
+							{
+								pastebitmapfont(t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].name_s.Get(),t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin,t.rmposytopy+(t.rmi*38),2,255);
+								if ( t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].useCustomRange == 0 )
+								{
+									//  (Dave) to handle sliders that have a custom min and max
+									t.tdata=t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value;
 								}
 								else
 								{
-									//  read only resource bar (uses slidersmenualternativeindex)
-									t.tcolorofbar=t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].readmodeindex;
-									PasteImage (  t.timgbase+6,t.rmposx+25,t.rmposytopy+18+(t.rmi*38),1 );
-									if (  t.tdata>0 ) 
-									{
-										t.tcappeddata=t.tdata;
-										if (  t.tcappeddata>100  )  t.tcappeddata = 100;
-										t.tfillx=0;
-										//  (Dave) color of the bar could go over the max amount, so wrapping it round
-										while ( t.tcolorofbar > 7 ) { t.tcolorofbar -= 7 ; }
-										t.tfillimg=t.timgbase+11+((t.tcolorofbar-1)*3);
-										PasteImage (  t.tfillimg+0,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
-										t.tfillx+=5;
-										t.tfillwidth=((ImageWidth(t.timgbase+6)-20)/100.0)*t.tcappeddata;
-										for ( t.ttfill = 0 ; t.ttfill <= t.tfillwidth ; t.ttfill += 10 )
-										{
-											PasteImage (  t.tfillimg+1,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
-											t.tfillx += 10;
-										}
-										PasteImage (  t.tfillimg+2,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
-									}
+									t.tdata = SlidersAdjustValue ( t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value, t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].valueMin, t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].valueMax, 0, 100 );
 								}
-								//  (Dave) Check if custom range
-								if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].useCustomRange  ==  1  )  t.tdata  =  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value;
-								//  Use original values for better accuracy
-								if (  t.slidersmenualternativeindex == t.slidersmenunames.performance && 1+t.rmi == 12  )  t.tdata = t.mainstatistic1;
-								if (  t.slidersmenualternativeindex == t.slidersmenunames.performance && 1+t.rmi == 13  )  t.tdata = t.mainstatistic5;
-								//  Ensure correct FOV is reported from slider
-								if (  t.slidersmenualternativeindex == t.slidersmenunames.camera && 1+t.rmi == 2  )  t.tdata = 20+(((t.tdata+0.0)/100.0)*90);
-								t.ttnumwidth=getbitmapfontwidth(Str(t.tdata),2);
-								pastebitmapfont(Str(t.tdata),t.rmposx+256-25-t.ttnumwidth,t.rmposytopy+(t.rmi*38),2,255);
-							}
-							else
-							{
-								if (  t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].gadgettype == 1 ) 
+								if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].gadgettype == 0 ) 
 								{
-									//  combobox gadget
-									t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value_s;
-									PasteImage (  t.timgbase+7,t.rmposx+256-32-128,t.rmposytopy+(t.rmi*38),1 );
-									t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
-									pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+256-32-64-t.ttnumwidth,t.rmposytopy+(t.rmi*38)+9,2,255);
+									//  slider or readout bar
+									if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].readmodeindex == 0 ) 
+									{
+										//  slider control
+										PasteImage (  t.timgbase+1,t.rmposx+25,t.rmposytopy+20+(t.rmi*38),1 );
+										t.tpos_f=t.tdata ; t.tpos_f=(188.0/100.0)*t.tpos_f;
+										PasteImage (  t.timgbase+2,t.rmposx+t.slidersmenu[t.slidersmenuindex].leftmargin+t.tpos_f,t.rmposytopy+14+(t.rmi*38),1 );
+									}
+									else
+									{
+										//  read only resource bar (uses slidersmenualternativeindex)
+										t.tcolorofbar=t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].readmodeindex;
+										PasteImage (  t.timgbase+6,t.rmposx+25,t.rmposytopy+18+(t.rmi*38),1 );
+										if (  t.tdata>0 ) 
+										{
+											t.tcappeddata=t.tdata;
+											if (  t.tcappeddata>100  )  t.tcappeddata = 100;
+											t.tfillx=0;
+											//  (Dave) color of the bar could go over the max amount, so wrapping it round
+											while ( t.tcolorofbar > 7 ) { t.tcolorofbar -= 7 ; }
+											t.tfillimg=t.timgbase+11+((t.tcolorofbar-1)*3);
+											PasteImage (  t.tfillimg+0,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
+											t.tfillx+=5;
+											t.tfillwidth=((ImageWidth(t.timgbase+6)-20)/100.0)*t.tcappeddata;
+											for ( t.ttfill = 0 ; t.ttfill <= t.tfillwidth ; t.ttfill += 10 )
+											{
+												PasteImage (  t.tfillimg+1,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
+												t.tfillx += 10;
+											}
+											PasteImage (  t.tfillimg+2,t.rmposx+25+1+t.tfillx,t.rmposytopy+20+1+(t.rmi*38),1 );
+										}
+									}
+									//  (Dave) Check if custom range
+									if (  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].useCustomRange  ==  1  )  t.tdata  =  t.slidersmenuvalue[t.slidersmenualternativeindex][1+t.rmi].value;
+									//  Use original values for better accuracy
+									if (  t.slidersmenualternativeindex == t.slidersmenunames.performance && 1+t.rmi == 12  )  t.tdata = t.mainstatistic1;
+									if (  t.slidersmenualternativeindex == t.slidersmenunames.performance && 1+t.rmi == 13  )  t.tdata = t.mainstatistic5;
+									//  Ensure correct FOV is reported from slider
+									if (  t.slidersmenualternativeindex == t.slidersmenunames.camera && 1+t.rmi == 2  )  t.tdata = 20+(((t.tdata+0.0)/100.0)*90);
+									t.ttnumwidth=getbitmapfontwidth(Str(t.tdata),2);
+									pastebitmapfont(Str(t.tdata),t.rmposx+256-25-t.ttnumwidth,t.rmposytopy+(t.rmi*38),2,255);
+								}
+								else
+								{
+									if (  t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].gadgettype == 1 ) 
+									{
+										//  combobox gadget
+										t.tvaluestring_s=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value_s;
+										PasteImage (  t.timgbase+7,t.rmposx+256-32-128,t.rmposytopy+(t.rmi*38),1 );
+										t.ttnumwidth=getbitmapfontwidth(t.tvaluestring_s.Get(),2)/2;
+										pastebitmapfont(t.tvaluestring_s.Get(),t.rmposx+256-32-64-t.ttnumwidth,t.rmposytopy+(t.rmi*38)+9,2,255);
+									}
 								}
 							}
 						}
@@ -1744,7 +1226,7 @@ void sliders_draw ( void )
 				}
 			}
 		}
-		}
+		*/
 
 		// Tabs
 		importer_tabs_draw ( );

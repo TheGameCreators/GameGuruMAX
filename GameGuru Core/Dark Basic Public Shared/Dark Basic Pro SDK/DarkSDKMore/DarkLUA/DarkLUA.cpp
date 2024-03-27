@@ -2631,7 +2631,12 @@ luaMessage** ppLuaMessages = NULL;
 	 int iEntityIndex = lua_tonumber(L, 1);
 	 if (iEntityIndex > 0)
 	 {
+		 //WickedCall_PresetObjectCreateOnDemand(true);
 		 iNewE = SpawnNewEntityCore(iEntityIndex);
+		 //WickedCall_PresetObjectCreateOnDemand(false);
+		 char pMsg[256];
+		 sprintf(pMsg, "SpawnNewEntityCore : %d from %d", iNewE, iEntityIndex);
+		 timestampactivity(0, pMsg);
 	 }
 	 lua_pushinteger (L, iNewE);
 	 return 1;

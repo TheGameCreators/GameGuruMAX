@@ -2272,14 +2272,17 @@ bool g_bForceRagdoll = false;
 void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 {
 	// iSilentOrDamage  0 : none, 1 : silent, 2 : damage
-	#ifdef WICKEDENGINE
 	if (t.v == -12345)
 	{
 		// set health to zero, but also force ragdoll over preferred death anim
 		g_bForceRagdoll = true;
 		t.v = 0;
 	}
-	#endif
+	// cannot set any health/damage if currently in ragdoll phase
+	if (t.entityelement[t.e].ragdollplusactivate != 0)
+	{
+		return;
+	}
 	// if new health is zero, apply damage to entity directly
 	if ( t.v <= 0 && iSilentOrDamage == 0 )
 	{

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v17 by Necrym59
+-- Toxic Zone v18 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: Zone Height [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [@TOXIC_TO_NPC=1(1=Yes, 2=No)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyUserGlobal"]
--- DESCRIPTION: [@GLOBAL_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
+-- DESCRIPTION: [@GLOBAL_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: <Sound0> - Zone Effect Sound
 -- DESCRIPTION: <Sound1> - Pain Sound
 
@@ -32,15 +32,15 @@ local status				= {}
 local EntityID				= {}
 local EntityAL				= {}
 
-function toxiczone_properties(e, prompt_text, effect, damage, zoneheight, toxic_to_npc, user_global_affected, global_affect, spawnatstart)
+function toxiczone_properties(e, prompt_text, effect, damage, zoneheight, toxic_to_npc, user_global_affected, spawnatstart, global_affect)
 	toxiczone[e].prompt_text = prompt_text
 	toxiczone[e].effect = effect
 	toxiczone[e].damage = damage
 	toxiczone[e].zoneheight = zoneheight or 100
 	toxiczone[e].toxic_to_npc = toxic_to_npc
 	toxiczone[e].user_global_affected = user_global_affected
-	toxiczone[e].global_affect = global_affect	
 	toxiczone[e].spawnatstart = spawnatstart or 1
+	toxiczone[e].global_affect = global_affect	
 end
 
 function toxiczone_init(e)
@@ -51,8 +51,8 @@ function toxiczone_init(e)
 	toxiczone[e].zoneheight = 100
 	toxiczone[e].toxic_to_npc = 1
 	toxiczone[e].user_global_affected = ""
-	toxiczone[e].global_affect = 1		
 	toxiczone[e].spawnatstart = 1
+	toxiczone[e].global_affect = 1		
 	currentvalue[e] = 0
 	doonce[e] = 0
 	g_gasmask_on = 0

@@ -153,6 +153,7 @@ function elevator_main(e)
 			ResetPosition(e,g_Entity[e]['x'],current_height[e],g_Entity[e]['z'])
 			if switchcall[e] == 0 then
 				SetFreezePosition(g_PlayerPosX,(g_Entity[e]['y'] + 38), g_PlayerPosZ)
+				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly()
 			end
 			CollisionOn(e)
@@ -166,6 +167,7 @@ function elevator_main(e)
 			ResetPosition(e,g_Entity[e]['x'],destination_heightUp[e],g_Entity[e]['z'])
 			if switchcall[e] == 0 then
 				SetFreezePosition(g_PlayerPosX,(g_Entity[e]['y'] + 38), g_PlayerPosZ)
+				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly()
 			end
 			CollisionOn(e)
@@ -187,6 +189,7 @@ function elevator_main(e)
 			ResetPosition(e,g_Entity[e]['x'],current_height[e],g_Entity[e]['z'])
 			if switchcall[e] == 0 then
 				SetFreezePosition(g_PlayerPosX,(g_Entity[e]['y'] + 38), g_PlayerPosZ)
+				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly()
 			end
 			CollisionOn(e)
@@ -200,6 +203,7 @@ function elevator_main(e)
 			ResetPosition(e,g_Entity[e]['x'],current_height[e],g_Entity[e]['z'])
 			if switchcall[e] == 0 then
 				SetFreezePosition(g_PlayerPosX,(g_Entity[e]['y'] + 38), g_PlayerPosZ)
+				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly()
 			end
 			CollisionOn(e)

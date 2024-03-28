@@ -1171,6 +1171,10 @@ void lua_setfreezepositionay ( void )
 	#endif
 }
 void lua_setfreezepositionaz ( void ) { t.freezeplayeraz = t.v_f; }
+void lua_setprioritytotransporter (void)
+{
+	t.entityelement[t.e].eleprof.phyalways = t.v;
+}
 void lua_transporttofreezeposition ( void )
 {
 	// t.v = 1 = position only, leave camera and player rotation unaffected

@@ -54,7 +54,6 @@ function winkill_main(e)
 		end			
 		status[e] = 'run'
 	end
-	
 	if status[e] == 'run' then
 		if winkill[e].enemy_counter == 2 then TextCenterOnX(50,95,3,winkill[e].counter_text.. "  " ..pEntalive[e]) end
 		if pEntalive[e] == 0 then

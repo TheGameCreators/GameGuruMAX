@@ -126,6 +126,7 @@ function zipline_main(e)
 							SetFreezeAngle(0,GetEntityAngleY(e),0)								
 							SetFreezePosition(g_Entity[e].x,g_Entity[e].y,g_Entity[e].z)
 							total_distance[3] = GetPlayerFlatDistance(other_point[e])
+							SetPriorityToTransporter(e,1)
 							TransportToFreezePosition()
 							state[e] = "zip"							
 						end 
@@ -137,6 +138,7 @@ function zipline_main(e)
 			local perc = GetPlayerFlatDistance(other_point[e])/total_distance[3]
 			dropdown[e] = total_distance[1] * (1 - perc)			
 			SetFreezePosition(g_PlayerPosX+(total_distance[0]*(zipline[e].zip_speed/60)),(anchor1[e]-playerheight[e])+dropdown[e],g_PlayerPosZ+(total_distance[2]*(zipline[e].zip_speed/60)))
+			SetPriorityToTransporter(e,1)
 			TransportToFreezePositionOnly()				
 			LoopSound(e,0)
 			if GetPlayerFlatDistance(other_point[e]) <= zipline[e].use_range*1.3 then

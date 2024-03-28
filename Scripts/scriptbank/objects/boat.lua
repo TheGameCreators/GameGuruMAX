@@ -168,6 +168,7 @@ function boat_main(e)
 			end
 			if g_KeyPressQ == 1 then -- Q key
 				SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
+				SetPriorityToTransporter(e,1)
 				TransportToFreezePosition()
 				boat_release[e]=0
 				boat_active[e]=0
@@ -177,6 +178,7 @@ function boat_main(e)
 				heightTerrain[e] = GetTerrainHeight(g_Entity[e].x,g_Entity[e].z)
 				if (g_Entity[e].y - boat[e].boat_draft) <= heightTerrain[e] then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
+					SetPriorityToTransporter(e,1)
 					TransportToFreezePosition()
 					boat_aground = 1
 					speed = -1
@@ -189,6 +191,7 @@ function boat_main(e)
 				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,1,0)				
 				if colobj[e] > 0 or colobj[e] == -1 then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
+					SetPriorityToTransporter(e,1)
 					TransportToFreezePosition()
 					boat_aground = 1
 					speed = -1
@@ -216,6 +219,7 @@ function boat_main(e)
 			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)
 			GravityOn(e)
 			CollisionOn(e)
+			SetPriorityToTransporter(e,1)
 			TransportToFreezePositionOnly()
 			if speed>0 and g_KeyPressW == 0 then speed=speed-(boat[e].drag/10000) end
 			if speed<0 and g_KeyPressS == 0 then speed=speed/1.1 end

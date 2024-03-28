@@ -1,4 +1,4 @@
--- Navigation Bar Objective v7 by Smallg and Necrym59
+-- Navigation Bar Objective v8 by Smallg and Necrym59
 -- DESCRIPTION: Adds the entity to the Navigation Bar.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\objective.png"] icon for the navigation bar.
 -- DESCRIPTION: [FIXEDSIZE!=0] if 1 will scale icon with the distance
@@ -15,6 +15,7 @@ local isadded 			= {}
 local imagename 		= {}
 local fixedsize 		= {}
 local ignorerange 		= {}
+local tname 			= {}
 local proximity_range 	= {}
 local when_in_proximity = {}
 local entity_type 		= {}
@@ -22,7 +23,6 @@ local entity_name 		= {}
 local entity_no 		= {}
 
 function navbar_objective_properties(e, imagename, fixedsize, ignorerange, proximity_range, when_in_proximity, entity_type, entity_name)
-	g_navigation_entity[e] = g_Entity[e]
 	g_navigation_entity[e].imagename = imagename or imagefile
 	g_navigation_entity[e].fixedsize = fixedsize
 	g_navigation_entity[e].ignorerange = ignorerange
@@ -32,7 +32,7 @@ function navbar_objective_properties(e, imagename, fixedsize, ignorerange, proxi
 	g_navigation_entity[e].entity_name = lower(entity_name) or ""	
 end 
 
-function navbar_objective_init(e)
+function navbar_objective_init_name(e,name)
 	g_navigation_entity[e] = {}
 	g_navigation_entity[e].imagename = ""
 	g_navigation_entity[e].fixedsize = 0
@@ -41,6 +41,7 @@ function navbar_objective_init(e)
 	g_navigation_entity[e].when_in_proximity = 1
 	g_navigation_entity[e].entity_type = 1
 	g_navigation_entity[e].entity_name = ""
+	g_navigation_entity[e].tname = name
 	entity_no[e] = 0
 end 
 
@@ -70,7 +71,7 @@ function navbar_objective_main(e)
 	if 	g_navigation_entity[e].entity_type == 1 and  GetEntityVisibility(e) ~= 0 then
 		if not isadded[e] then 
 			if nbar ~= 0 then 
-				isadded[e] = AddToNavbar(e, g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange)
+				isadded[e] = AddToNavbar(e, g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange, g_navigation_entity[e].tname)
 			end
 		end
 	end	
@@ -86,9 +87,9 @@ function navbar_objective_main(e)
 					end
 				end			
 				if nbar ~= 0 then 
-					isadded[e] = AddToNavbar(entity_no[e], g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange)
+					isadded[e] = AddToNavbar(entity_no[e], g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange, g_navigation_entity[e].tname)
 				end
 			end
-		end	
-	end	
+		end
+	end		
 end 

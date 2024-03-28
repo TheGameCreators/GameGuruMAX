@@ -1,4 +1,4 @@
--- Navigation Bar v7 by Smallg and Necrym59
+-- Navigation Bar v8 by Smallg and Necrym59
 -- DESCRIPTION: Adds a Nagigation Bar to your game 
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\navbar.png"]
 -- DESCRIPTION: [VIEWRANGE=6000] of objectives shown on the radar
@@ -16,7 +16,7 @@
 -- DESCRIPTION: [COMPASS_G=255(0,255)] compass green color value
 -- DESCRIPTION: [COMPASS_B=255(0,255)] compass blue color value
 -- DESCRIPTION: [COMPASS_FONT_SIZE=2(1,5)] compass font size
--- DESCRIPTION: [@OBJECTIVE_DATA=1(1=On ,2=Off)] objective data on/off
+-- DESCRIPTION: [@OBJECTIVE_DATA=1(1=On,2=Off)] objective data on/off
 --
 
 U = require "scriptbank\\utillib"
@@ -30,6 +30,7 @@ local navbarsprite		= {}
 local navbar_entity		= {}
 local isfixedsize		= {}
 local ignorerange		= {}
+local thisname			= {}
 local icon_position_y	= {}
 local compass_mode		= {}
 local compass_y			= {}
@@ -111,7 +112,7 @@ function navbar_main(e)
 	if nbar.compass_mode == 1 then show_Compass() end
 	
 	if g_UserGlobalQuestTitleActiveE > 0 and queststatus[e] == 0 then
-		AddToNavbar(g_UserGlobalQuestTitleActiveE, "imagebank\\navbar\\currentquest.png", fixedsize, ignorerange)
+		AddToNavbar(g_UserGlobalQuestTitleActiveE, "imagebank\\navbar\\currentquest.png", fixedsize, ignorerange, "")
 		questentity[e] = g_UserGlobalQuestTitleActiveE
 		queststatus[e] = 1
 	end
@@ -151,15 +152,16 @@ function navbar_main(e)
 				PasteSpritePosition(iconsprite[b],iconx,icony+nbar.icon_position_y)
 				if nbar.objective_data == 1 then 
 					local infoposy = nbar.icon_position_y+2.5
-					if g_Entity[b]['y'] > g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy,2,math.floor(dist).. " +") end
-					if g_Entity[b]['y'] < g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy,2,math.floor(dist).. " -") end
-				end	
+					TextCenterOnX(iconx,icony+infoposy,2,thisname[b])
+					if g_Entity[b]['y'] > g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy+1,2,math.floor(dist).. " +") end
+					if g_Entity[b]['y'] < g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy+1,2,math.floor(dist).. " -") end
+				end
 			end
 		end
 	end
 end 
 
-function AddToNavbar(ee, imgname, fixsize, ignorerng)
+function AddToNavbar(ee, imgname, fixsize, ignorerng, tname)
 	if navbar_entity[ee] == nil then 
 		local img = LoadImage(imgname)
 		local spr = CreateSprite(img)
@@ -171,6 +173,7 @@ function AddToNavbar(ee, imgname, fixsize, ignorerng)
 		navbar_entity[ee] = ee
 		isfixedsize[ee] = fixsize
 		ignorerange[ee] = ignorerng
+		thisname[ee] = tname
 		return true
 	else 
 		return false 

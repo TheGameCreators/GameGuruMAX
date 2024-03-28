@@ -1193,6 +1193,7 @@ void lua_transporttofreezeposition ( void )
 		#endif
 	}
 	physics_setupplayer ( );
+	ODESetWorldGravity(0, 0, 0, 0);
 	if ( t.freezeplayerposonly==0 )
 	{
 		t.camangx_f = t.freezeplayerax;

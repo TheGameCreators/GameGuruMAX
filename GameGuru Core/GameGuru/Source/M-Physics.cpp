@@ -1472,6 +1472,8 @@ void physics_setupplayernoreset ( void )
 	PositionObject (  t.aisystem.objectstartindex,t.terrain.playerx_f,t.terrain.playery_f,t.terrain.playerz_f );
 	if ( t.freezeplayerposonly==0 ) RotateObject (  t.aisystem.objectstartindex,t.terrain.playerax_f,t.terrain.playeray_f,t.terrain.playeraz_f );
 	SetObjectArbitaryValue (  t.aisystem.objectstartindex, 6 ); // 6-flesh
+
+	// allow SetWorldGravity to decide players gravity value (and prevents slow drop when holding onto ladder and constantly calling this function)
 	ODECreateDynamicCharacterController (  t.aisystem.objectstartindex,t.playercontrol.gravity_f,t.playercontrol.fallspeed_f,t.playercontrol.climbangle_f );
 }
 
@@ -2879,6 +2881,7 @@ void physics_getcorrectjumpframes ( int entid, float* fStartFrame, float* fHoldF
 		*fResumeFrame = t.entityanim[entid][t.q].finish;
 }
 
+/* no F9 mode any more
 void physics_player_control_F9 ( void )
 {
 	// completely skip use of mousemovexy so LUA mouse system can use it for its own pointer
@@ -3380,6 +3383,7 @@ void physics_player_control_F9 ( void )
 		RotateCamera (  t.terrain.gameplaycamera,CameraAngleX(t.terrain.gameplaycamera)+t.playercontrol.flinchcurrentx_f,CameraAngleY(t.terrain.gameplaycamera)+t.playercontrol.flinchcurrenty_f,CameraAngleZ(t.terrain.gameplaycamera)+t.playercontrol.flinchcurrentz_f+(t.playercontrol.leanover_f/-10.0) );
 	}
 }
+*/
 
 void physics_player_control_LUA ( void )
 {
@@ -3390,7 +3394,7 @@ void physics_player_control_LUA ( void )
 		if ( t.conkit.editmodeactive != 0 )
 		{
 			// F9 movement control (for some reason LuaCall does not run PlayerControl in global.lua)??!
-			physics_player_control_F9();
+			//physics_player_control_F9();
 		}
 		else
 		{

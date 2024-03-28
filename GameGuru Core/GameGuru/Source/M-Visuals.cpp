@@ -2927,8 +2927,8 @@ void visuals_shaderlevels_lighting_update ( void )
 
 void visuals_underwater_on ( void )
 {
-	//  save all our shader settings then set the underwater fog action
-	if (  t.visuals.underwatermode  ==  0 ) 
+	// save all our shader settings then set the underwater fog action
+	if ( t.visuals.underwatermode  ==  0 ) 
 	{
 		t.tDrowning_OldReflectionMode = t.visuals.reflectionmode;
 		t.tDrowning_OldFogFar_f = t.visuals.FogDistance_f;
@@ -2941,70 +2941,39 @@ void visuals_underwater_on ( void )
 		//PE: Terrain reflection from underwater looks strange , so render reflections without terrain.
 		t.visuals.reflectionmode = 1;
 		// don't change fog underwater, handled by the shader
-		/*
-		t.visuals.FogDistance_f = 1100;
-		t.visuals.FogNearest_f = 1;
-		//PE: Even if no fog is used on level , fog settings can still be used to set underwater fog colors.
-		t.visuals.FogR_f = t.visuals.FogR_f*0.45; // make it darker but follow users colors.
-		t.visuals.FogG_f = t.visuals.FogG_f*0.45;
-		t.visuals.FogB_f = t.visuals.FogB_f*0.45;
-		*/
-#ifndef WICKEDENGINE
-		t.visuals.FogA_f = 255;
-#endif
 		//PE: SSAO looks wrong underwater so perhaps disable it. or increase fog distance.
 		//PE: remove head bobbing
 		t.playercontrol.wobbleheight_f = 0.0;
 
-		if (g.underwatermode == 1) {
+		if (g.underwatermode == 1) 
+		{
 			//PE: You can control how the post process make waves to make it look like we are underwater.
 			SetVector4(g.terrainvectorindex1, 1.0, 40.0, 0.0135, 0.17);  //PE: Active=1,Speed,Distortion,Scale
 			SetEffectConstantV(g.postprocesseffectoffset + 0, "UnderWaterSettings", g.terrainvectorindex1); //PE: post bloom.
 			SetEffectConstantV(g.postprocesseffectoffset + 4, "UnderWaterSettings", g.terrainvectorindex1); //PE: also post sao.
 		}
 
-		//PE: old setup. looks all black and dont follow tab tab sliders.
-//		t.visuals.reflectionmode = 0;
-//		t.visuals.FogDistance_f = 400;
-//		t.visuals.FogNearest_f = 1;
-//		t.visuals.FogR_f = 12;
-//		t.visuals.FogG_f = 10;
-//		t.visuals.FogB_f = 8;
-//		t.visuals.FogA_f = 255;
-
-		//PE: lower gravity underwater.
-		//PE: for community to approve or remove :)
+		// water gravity control
 		if (t.playercontrol.gravityactive == 1)
-		{
-			#ifdef WICKEDENGINE
 			ODESetWorldGravity(0, -0.5f, 0, 150.0);
-			#else
-			//PE: setting the gravity lower make you sink to slow so.
-			ODESetWorldGravity(0, -15.0, 0, 150.0);
-			#endif
-		}
 		else
-		{
 			ODESetWorldGravity(0, 0, 0);
-		}
 
 		t.tFogR_f = t.visuals.FogR_f; t.tFogG_f = t.visuals.FogG_f; t.tFogB_f = t.visuals.FogB_f ; t.tFogA_f = t.visuals.FogA_f;
 		t.tFogNear_f = t.visuals.FogNearest_f; t.tFogFar_f = t.visuals.FogDistance_f;
 		terrain_setfog ( );
 		terrain_water_setfog ( );
 		t.visuals.underwatermode = 1;
-		visuals_justshaderupdate(); //PE: objects underwater also need fog.
+
+		//PE: objects underwater also need fog.
+		visuals_justshaderupdate(); 
 	}
-
-return;
-
 }
 
 void visuals_underwater_off ( void )
 {
-
-	//  reset all our shaders back
-	if (  t.visuals.underwatermode  ==  1 ) 
+	// reset all our shaders back
+	if ( t.visuals.underwatermode  ==  1 ) 
 	{
 		t.visuals.reflectionmode = t.tDrowning_OldReflectionMode;
 		t.visuals.FogDistance_f = t.tDrowning_OldFogFar_f;
@@ -3021,24 +2990,19 @@ void visuals_underwater_off ( void )
 		terrain_water_setfog ( );
 		t.visuals.underwatermode = 0;
 
-		//PE: Restore gravity.
+		// restore to ground gravity
 		if (t.playercontrol.gravityactive == 1)
-		{
 			ODESetWorldGravity(0, -20, 0 , 0);
-		}
 		else
-		{
 			ODESetWorldGravity(0, 0, 0);
-		}
-
 
 		//PE: Restore normal fog and disable screen wave effect.
 		visuals_justshaderupdate();
-		if (g.underwatermode == 1) {
+		if (g.underwatermode == 1) 
+		{
 			SetVector4(g.terrainvectorindex, 0.0, 155.0, 0.0095, 0.0);
 			SetEffectConstantV(g.postprocesseffectoffset + 0, "UnderWaterSettings", g.terrainvectorindex); //PE: post bloom.
 			SetEffectConstantV(g.postprocesseffectoffset + 4, "UnderWaterSettings", g.terrainvectorindex); //PE: also post sao.
 		}
 	}
-
 }

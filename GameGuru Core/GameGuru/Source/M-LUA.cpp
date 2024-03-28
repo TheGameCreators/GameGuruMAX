@@ -1059,7 +1059,8 @@ void lua_loop_allentities ( void )
 					{
 						if (t.entityelement[t.e].plrdist < 300)
 						{
-							// always update things that are VERY close (like lifts, ladders, ziplines, etc)
+							// always update things that are VERY close
+							// also added new command "" to ensure things like lifts, ladders are always active
 							t.entityelement[t.e].lua.flagschanged = 1;
 						}
 						else

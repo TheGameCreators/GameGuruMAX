@@ -704,9 +704,11 @@ function SetPriorityToTransporter(e,priority)
 end
 function TransportToFreezePosition()
  SendMessageI_transporttofreezeposition(0)
+ if g_gravityhold ~= nil then g_gravityhold = 5 end
 end
 function TransportToFreezePositionOnly()
  SendMessageI_transporttofreezeposition(1)
+ if g_gravityhold ~= nil then g_gravityhold = 5 end
 end
 function ActivateMouse()
  SendMessageI_activatemouse(0)

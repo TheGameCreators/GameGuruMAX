@@ -644,6 +644,7 @@ void conkitedit_loop ( void )
 			}
 		}
 
+		/* old conedit no longer used
 		//  gravity control
 		if (  t.inputsys.k_s == "g" ) 
 		{
@@ -666,6 +667,7 @@ void conkitedit_loop ( void )
 		{
 			t.playercontrol.gravityactivepress=0;
 		}
+
 		if (  t.inputsys.k_s == "l" ) 
 		{
 			if (  t.playercontrol.lockatheightpress == 0 ) 
@@ -720,6 +722,7 @@ void conkitedit_loop ( void )
 			t.playercontrol.controlheightpress=0;
 			t.playercontrol.controlheight=0;
 		}
+		*/
 
 		//  update terrain shader highlight cursor
 		if (  ObjectExist(t.conkit.objectstartnumber+0) == 0 ) 
@@ -1143,7 +1146,7 @@ void conkitedit_switchoff ( void )
 	t.conkit.edit.conkitkeypressed=0;
 	t.playercontrol.lockatheight=0;
 	t.playercontrol.gravityactive=1;
-	ODESetWorldGravity (  0,-20,0 );
+	//ODESetWorldGravity (  0,-20,0 ); coneditor not used anymore - remove at some point
 	conkitedit_resetentityhighlighted ( );
 	if (  ObjectExist(t.conkit.objectstartnumber+1) == 1  )  DeleteObject (  t.conkit.objectstartnumber+1 );
 	t.conkit.edit.entityeditgrabbed=0;

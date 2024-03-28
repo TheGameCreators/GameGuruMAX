@@ -38,6 +38,9 @@ g_swimeffects = 0
 g_VRswitchweapondelay = 0
 g_vrthumbx = 0
 g_vrthumby = 0
+g_gravitymode = 0
+g_gravitymoderefresh = 1
+g_gravityhold = 0
 
 function gameplayercontrol.main()
  -- grab thumb state just once
@@ -1782,8 +1785,6 @@ function gameplayercontrol.control()
 
       -- Move player using Bullet character controller
       if ( GetGamePlayerStateRiftMode()>0 ) then ttfinalplrmovey = ttfinalplrmovey + 0 end
-	  
-      --if ( ttvrheadtrackermode == 1 ) then ttfinalplrmovey = ttfinalplrmovey + GetHeadTrackerYaw() end
       ControlDynamicCharacterController ( ttfinalplrmovey,GetGamePlayerStateJetpackVerticalMove(),ttfinalplrspeed,tplayerjumpnow,GetGamePlayerStatePlayerDucking(),GetGamePlayerControlPushangle(),finalpushforce,GetGamePlayerControlJetpackThrust() )
       if GetDynamicCharacterControllerDidJump() == 1 then
          ttsnd = GetGamePlayerControlSoundStartIndex()+6
@@ -1933,7 +1934,8 @@ function gameplayercontrol.control()
 	
 		-- If player is already swimming, prevent them from reaching a height where gravity pushes them down, provided there is no land or static objects beneath them.
 		if(GetGamePlayerControlInWaterState() >= 2) then
-			SetWorldGravity(0, -0.5, 0, 150.0);
+			g_gravitymode = 1
+			g_gravitymoderefresh = 1
 			SetGamePlayerStatePlayerDucking(2)
 			if(camY > GetGamePlayerStateWaterlineY() + 19) then
 				if(IntersectStatic(camX, camY, camZ, camX, camY - 100, camZ, 1000) == 0) then
@@ -1945,7 +1947,8 @@ function gameplayercontrol.control()
 					SetGamePlayerControlInWaterState(1)
 					SetGamePlayerControlDrownTimestamp(0)
 					SetUnderwaterOff()
-					SetWorldGravity(0, -20, 0, 0);
+					g_gravitymode = 0
+					g_gravitymoderefresh = 1
 				end
 			end	
 		end
@@ -2012,7 +2015,8 @@ function gameplayercontrol.control()
 				if ( GetGamePlayerControlInWaterState() < 2 ) then 
 					SetGamePlayerControlInWaterState(2)
 					SetUnderwaterOn()
-					SetWorldGravity(0, -0.5, 0, 150.0);
+					g_gravitymode = 1
+					g_gravitymoderefresh = 1
 					if( g_PlayerUnderwaterMode == 1 ) then
 						-- added delay before drowning damage starts
 						SetGamePlayerControlDrownTimestamp(Timer() + 8000)
@@ -2133,11 +2137,11 @@ function gameplayercontrol.control()
 			else
 				-- head comes out of water
 				if ( GetGamePlayerControlInWaterState() > 1 ) then 
-				
-				SetGamePlayerControlInWaterState(1)
-				SetGamePlayerControlDrownTimestamp(0)
-				SetUnderwaterOff()
-				SetWorldGravity(0, -20, 0, 0);
+					SetGamePlayerControlInWaterState(1)
+					SetGamePlayerControlDrownTimestamp(0)
+					SetUnderwaterOff()
+					g_gravitymode = 0
+					g_gravitymoderefresh = 1
 				end
 			end
 		else
@@ -2145,19 +2149,38 @@ function gameplayercontrol.control()
 			if ( GetGamePlayerControlInWaterState() > 0 ) then 
 				ttsnd = GetGamePlayerControlSoundStartIndex()+14
 				if ( RawSoundExist ( ttsnd ) == 1 ) then
-				PlayRawSound ( ttsnd )
+					PlayRawSound ( ttsnd )
 				end
 				SetGamePlayerControlInWaterState(0)
 				SetUnderwaterOff()
-				SetWorldGravity(0, -20, 0, 0);		
+				g_gravitymode = 0
+				g_gravitymoderefresh = 1
 			end
 		end
 	else
       SetGamePlayerControlInWaterState(0)
       SetUnderwaterOff()
-	  SetWorldGravity(0, -20, 0, 0); 
+	  g_gravitymode = 0
+	  g_gravitymoderefresh = 1
 	end
-   
+	
+	if g_gravitymoderefresh == 1 then
+		if g_gravitymode == 0 then 
+			SetWorldGravity(0, -20, 0, 0)
+		else
+			SetWorldGravity(0, -0.5, 0, 150.0)
+		end
+		g_gravitymoderefresh = 0
+	end
+	if g_gravityhold > 0 then
+		SetWorldGravity(0, 0, 0, 0)
+		g_gravityhold = g_gravityhold - 1
+		if g_gravityhold <= 0 then
+			g_gravityhold = 0
+			g_gravitymoderefresh = 1
+		end
+	end
+	
 end
 
 function gameplayercontrol.debug()

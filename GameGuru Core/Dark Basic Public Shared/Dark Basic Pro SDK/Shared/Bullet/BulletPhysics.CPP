@@ -902,23 +902,16 @@ float BULLETCosineInterpolate ( float y1, float y2, float mu )
 void Update(float fTimeStep)
 {
 	// step physics simulation
-	// Dave 27/03/2013 - original line that was the cause of the slowdown on less powerful machines
-	// g_dynamicsWorld->stepSimulation ( fTimeStep, 20, 1.0f/120.0f ); // highest 120fps lowest 6fps
-	// Dave 27/03/2014 - changed to 5 steps which will cater for 12fps (a huge timestep of 0.083f compared to the usual ideal 0.01f)
-	// Might need to put the last param back in if people end up walking through walls etc.
-	//	g_dynamicsWorld->stepSimulation (fTimeStep , 7 , 1.0f/120.0f );
-
 	//PE: 1.0f/120.0f is what is killing the bullet engine (fps drops) , simulation in 1:1 is 1.0f / 60.0f, 1.0f/120.0f run twice as fast.
 	//PE: We are calling it at 60 fps , so bullet is always behind and need to call the simulation many times per frame to keep up.
-
 	//PE: Well this change physics demos and how they are coded , bad luck ...
 	//PE: We should consider to use this as the default in Max.
-#ifdef FASTBULLETPHYSICS
-	//PE: fixed timestep with interpolation set at 1/60.
-	g_dynamicsWorld->stepSimulation(fTimeStep, 7, btScalar(1.) / btScalar(60.));
-#else
-	g_dynamicsWorld->stepSimulation(fTimeStep, 7, 1.0f / 120.0f);
-#endif
+	#ifdef FASTBULLETPHYSICS
+		//PE: fixed timestep with interpolation set at 1/60.
+		g_dynamicsWorld->stepSimulation(fTimeStep, 7, btScalar(1.) / btScalar(60.));
+	#else
+		g_dynamicsWorld->stepSimulation(fTimeStep, 7, 1.0f / 120.0f);
+	#endif
 
 	// update ragdoll simulations
 	ragdollManager->Update();
@@ -943,26 +936,10 @@ void Update(float fTimeStep)
 			fMoveY = (fMoveY * fVerticalSmoothing);
 			fMoveZ = (fMoveZ * fHorizontalSmoothing);
 			float newX = p1->position.vecPosition.x - fMoveX;
-			float newY = p1->position.vecPosition.y - fMoveY;
 			float newZ = p1->position.vecPosition.z - fMoveZ;
+			float newY = p1->position.vecPosition.y;// -fMoveY; // ensures when 0,0,0 gravity set, character does not slide downward (ladder/zipline)
+			if (m_character->getGravity()!=0.0f ) newY -= fMoveY;
 			PositionObject(g_CharacterControlObject, newX, newY, newZ);
-
-			//PE: Keep test code here for now.
-//			if (bPlayerShouldbeMoving) {
-//				if (fPlayerLastGoodX != newX || fPlayerLastGoodY != newY || fPlayerLastGoodZ != newZ)
-//				{
-//					fPlayerLastGoodX = newX;
-//					fPlayerLastGoodY = newY;
-//					fPlayerLastGoodZ = newZ;
-//					iPlayerStuckErrors = 0;
-//				}
-//				else {
-//					if (iPlayerStuckErrors++ > 100)
-//					{
-//						//Check what is wrong.
-//					}
-//				}
-//			}
 
 			// update object rotation which returns status (X=whether can jump)
 			float fAngleX = 0.0f;
@@ -1003,19 +980,11 @@ void Update(float fTimeStep)
 			if (g_PhyObjectList[j].bCapsuleControl)
 			{
 				// Update DBP object position so can get coordinate back in DBP
-				#ifdef WICKEDENGINE
 				// handled differently, capsules are secondary and controlled from movement system
 				// LB: can set arbvalue here based on material 'arb' being stood on, so the footfall of the
 				// capsule (character) is accurate to the material being traversed
 				int materialindex = 0;
 				g_PhyObjectList[j].body->setUserPointer((void*)(1+materialindex));
-				#else
-				float fCapsuleCenterToObjPos = g_PhyObjectList[j].fRaised;
-				float fFinalX = trans.getOrigin().getX()*gSc;
-				float fFinalY = (trans.getOrigin().getY()*gSc) - fCapsuleCenterToObjPos;
-				float fFinalZ = trans.getOrigin().getZ()*gSc;
-				PositionObject(g_PhyObjectList[j].iID, fFinalX, fFinalY, fFinalZ);
-				#endif
 			}
 			else
 			{
@@ -1050,11 +1019,9 @@ void Update(float fTimeStep)
 				float fYOffset = (pObject->collision.vecMin.y * pObject->position.vecScale.y) + (fYSize / 2.0f);
 				float fZOffset = (pObject->collision.vecMin.z * pObject->position.vecScale.z) + (fZSize / 2.0f);
 
-				#ifdef WICKEDENGINE
 				if (pObject->pFrame)
 				{
 					//PE: This only work for box, dont work for dynamic convexhull shapes ?
-
 					//PE: pFrame->vecOffset  is already in matTranslation, so only offset center of rotation.
 					fXOffset += -(pObject->pFrame->vecOffset.x * pObject->position.vecScale.x);
 					fYOffset += -(pObject->pFrame->vecOffset.y * pObject->position.vecScale.y);
@@ -1067,47 +1034,17 @@ void Update(float fTimeStep)
 					matRotation = matRotateFrameX * matRotateFrameY * matRotateFrameZ * matRotation;
 				}
 
-				//if (pObject->pFrame)
-				//{
-				//	//PE: Add pFrame->vecRotation to matWorld.
-				//	//PE: pFrame->vecOffset  is already in matTranslation, so only offset center of rotation.
-				//	GGMATRIX matRotateFrameX, matRotateFrameY, matRotateFrameZ;
-				//	GGMatrixRotationX(&matRotateFrameX, GGToRadian(pObject->pFrame->vecRotation.x));	// x rotation
-				//	GGMatrixRotationY(&matRotateFrameY, GGToRadian(pObject->pFrame->vecRotation.y));	// y rotation
-				//	GGMatrixRotationZ(&matRotateFrameZ, GGToRadian(pObject->pFrame->vecRotation.z));	// z rotation
-				//	matRotation = matRotateFrameX * matRotateFrameY * matRotateFrameZ * matRotation;
-				//	GGMATRIX matRotateOffset = matRotateFrameX * matRotateFrameY * matRotateFrameZ;
-				//	GGVECTOR3 rotatedOffset;
-				//	GGVec3TransformCoord(&rotatedOffset, &pObject->pFrame->vecOffset, &matRotateOffset);
-				//	fXOffset += -(pObject->pFrame->vecOffset.x * pObject->position.vecScale.x);
-				//	fYOffset += -(pObject->pFrame->vecOffset.y * pObject->position.vecScale.y);
-				//	fZOffset += -(pObject->pFrame->vecOffset.z * pObject->position.vecScale.z);
-				//}
-
 				// All, the trick was to put 'matCenterColOffset' before the rotation step to correct object offset issue :)
 				PositionObject(g_PhyObjectList[j].iID, trans.getOrigin().getX()*gSc, trans.getOrigin().getY()*gSc, trans.getOrigin().getZ()*gSc);
 				GGMatrixTranslation(&matCenterColOffset, -fXOffset, -fYOffset, -fZOffset);
 				GGMATRIX matWorld = pObject->position.matScale * matCenterColOffset * matRotation * matTranslation;
-				#else
-				GGMatrixTranslation(&matCenterColOffset, -fXOffset, -fYOffset, -fZOffset);
-				// Update DBP object position so can get coordinate back in DBP
-				PositionObject(g_PhyObjectList[j].iID, trans.getOrigin().getX()*gSc, trans.getOrigin().getY()*gSc, trans.getOrigin().getZ()*gSc);
-				// final world matrix for physics object back to dbpro object
-				GGMATRIX matWorld;
-				//matWorld = pObject->position.matScale * matRotation * matTranslation * matCenterColOffset; //PE: ? who added this ?
-				//PE: Classic has always used this:
-				matWorld = pObject->position.matScale * matCenterColOffset * matRotation * matTranslation;
-
-				#endif
 
 				// use ODE matrix, not regular DBPro matrix
 				pObject->position.bCustomWorldMatrix = true;
 				pObject->position.matWorld = matWorld;
 
-				#ifdef WICKEDENGINE
 				// communicate custom world matrix to wicked
 				WickedCall_UpdateObject(pObject);
-				#endif
 
 				// update DBPro object position and rotation to match physics
 				pObject->position.vecPosition = GGVECTOR3(matWorld._41, matWorld._42, matWorld._43);
@@ -1131,117 +1068,18 @@ void Update(float fTimeStep)
 			{
 				float fForce = fWaterLine / g_fWaterLineY;
 				if (fForce > 0.03f) fForce = 0.03f;
-
-				#ifdef WICKEDENGINE
-				{
-					btVector3 vOldVel = body->getLinearVelocity();
-					float fYVel = vOldVel.getY();
-					if (fYVel > 2.0f) fYVel = 2.0f; // Slow ascent
-					body->setLinearVelocity(btVector3(vOldVel.getX()*0.75f, fYVel*0.75f, vOldVel.getZ()*0.75f));
-					vOldVel = body->getAngularVelocity();
-					body->setAngularVelocity(btVector3(vOldVel.getX()*0.99f, fYVel*0.99f, vOldVel.getZ()*0.99f));
-					body->applyDamping(0.5f);
-				}
-				#else
-				{
-					body->applyImpulse(btVector3(0.0f, fForce / gSc, 0.0f), btVector3(0, 0, 0));
-					body->activate();
-					btVector3 vOldVel = body->getLinearVelocity();
-					float fYVel = vOldVel.getY();
-					if (fYVel > 2.0f) fYVel = 2.0f; // Slow ascent
-					// If we're close to the surface, we provide extra damping on the y velocity to avoid bouncing issues
-					if (abs(fWaterLine) < 5) fYVel *= 0.975f;
-					body->setLinearVelocity(btVector3(vOldVel.getX()*0.975f, fYVel*0.995f, vOldVel.getZ()*0.975f));
-					vOldVel = body->getAngularVelocity();
-					body->setAngularVelocity(btVector3(vOldVel.getX()*0.99f, fYVel*0.99f, vOldVel.getZ()*0.99f));
-					body->applyDamping(0.5f);
-				}
-				#endif // WICKEDENGINE
+				btVector3 vOldVel = body->getLinearVelocity();
+				float fYVel = vOldVel.getY();
+				if (fYVel > 2.0f) fYVel = 2.0f; // Slow ascent
+				body->setLinearVelocity(btVector3(vOldVel.getX()*0.75f, fYVel*0.75f, vOldVel.getZ()*0.75f));
+				vOldVel = body->getAngularVelocity();
+				body->setAngularVelocity(btVector3(vOldVel.getX()*0.99f, fYVel*0.99f, vOldVel.getZ()*0.99f));
+				body->applyDamping(0.5f);
 			}
-
-			/*
-			// two largest axis (so bouyancy produces flat raft effect)
-			float fXSize = ( pObject->collision.vecMax.x - pObject->collision.vecMin.x ) * pObject->position.vecScale.x;
-			float fYSize = ( pObject->collision.vecMax.y - pObject->collision.vecMin.y ) * pObject->position.vecScale.y;
-			float fZSize = ( pObject->collision.vecMax.z - pObject->collision.vecMin.z ) * pObject->position.vecScale.z;
-			int iBiggestAxis = 0;
-			float fBiggest = fXSize;
-			if ( fYSize > fBiggest ) { iBiggestAxis=1; fBiggest = fYSize; }
-			if ( fZSize > fBiggest ) { iBiggestAxis=2; fBiggest = fZSize; }
-			int iSecondBiggestAxis = 0;
-			float fSecondBiggest = fXSize;
-			if ( iBiggestAxis==0 ) { iSecondBiggestAxis=1; fSecondBiggest=fYSize; }
-			if ( fZSize > fSecondBiggest && iBiggestAxis!=2 ) { iSecondBiggestAxis=2; fSecondBiggest = fZSize; }
-			GGVECTOR3 vecFloaters = GGVECTOR3(0,0,0);
-			if ( iBiggestAxis==0 ) vecFloaters.x = fBiggest;
-			if ( iBiggestAxis==1 ) vecFloaters.y = fBiggest;
-			if ( iBiggestAxis==2 ) vecFloaters.z = fBiggest;
-			if ( iSecondBiggestAxis==0 ) vecFloaters.x = fSecondBiggest;
-			if ( iSecondBiggestAxis==1 ) vecFloaters.y = fSecondBiggest;
-			if ( iSecondBiggestAxis==2 ) vecFloaters.z = fSecondBiggest;
-			int iSmallestAxis = 0;
-			if ( iBiggestAxis==0 || iSecondBiggestAxis==0 ) iSmallestAxis = 1;
-			if ( iBiggestAxis==1 || iSecondBiggestAxis==1 ) iSmallestAxis = 2;
-			float fSmallestDim = fXSize;
-			if ( iSmallestAxis==1 ) fSmallestDim = fYSize;
-			if ( iSmallestAxis==2 ) fSmallestDim = fZSize;
-
-			// make the rotation matrix
-			GGMATRIX matRotation;
-			GGQUATERNION qRotation;
-			btQuaternion angles;
-			angles = body->getOrientation();
-			qRotation.x = angles.getX();
-			qRotation.y = angles.getY();
-			qRotation.z = angles.getZ();
-			qRotation.w = angles.getW();
-			GGMatrixRotationQuaternion ( &matRotation, &qRotation );
-			if ( pObject->position.bApplyPivot )
-				matRotation = pObject->position.matPivot * matRotation;
-
-			// four primary points
-			for ( int ppi=0; ppi<9; ppi++ )
-			{
-				// model space floater locations
-				GGVECTOR3 vecFP;
-				if ( ppi==0 ) vecFP = GGVECTOR3(vecFloaters.x,vecFloaters.y,vecFloaters.z);
-				if ( ppi==1 ) vecFP = GGVECTOR3(vecFloaters.x,vecFloaters.y,-vecFloaters.z);
-				if ( ppi==2 ) vecFP = GGVECTOR3(vecFloaters.x,-vecFloaters.y,vecFloaters.z);
-				if ( ppi==3 ) vecFP = GGVECTOR3(vecFloaters.x,-vecFloaters.y,-vecFloaters.z);
-				if ( ppi==4 ) vecFP = GGVECTOR3(-vecFloaters.x,vecFloaters.y,vecFloaters.z);
-				if ( ppi==5 ) vecFP = GGVECTOR3(-vecFloaters.x,vecFloaters.y,-vecFloaters.z);
-				if ( ppi==6 ) vecFP = GGVECTOR3(-vecFloaters.x,-vecFloaters.y,vecFloaters.z);
-				if ( ppi==7 ) vecFP = GGVECTOR3(-vecFloaters.x,-vecFloaters.y,-vecFloaters.z);
-				if ( ppi==8 ) vecFP = GGVECTOR3(0,0,0);
-
-				// rotate vectors to current object matrix
-				GGVec3TransformCoord(&vecFP, &vecFP, &matRotation );
-
-				// if beneath water line, apply impulse
-				float fPressureStr = (fXSize*fYSize*fZSize)/85000000.0f;
-				float fDepthOfThisPoint = (fWaterLine - vecFP.y) + 20.0f;
-				if ( fDepthOfThisPoint > 0.0f )
-				{
-					// locate points on physics body for force application
-					btVector3 floatationpoint = btVector3(vecFP.x, vecFP.y, vecFP.z);
-					float fMag = fDepthOfThisPoint / 50.0f;
-					if ( fMag > 1.0f ) fMag = 1.0f;
-					float fUpwardForce = fPressureStr * (50.0f*fMag);
-					//body->applyImpulse(btVector3(0.0f, fUpwardForce, 0.0f), floatationpoint);
-					body->applyImpulse(btVector3(0.0f, fUpwardForce/gSc, 0.0f), floatationpoint);
-					body->activate();
-					btVector3 vOldVel = body->getLinearVelocity();
-					body->setLinearVelocity(btVector3(vOldVel.getX()*0.999f,vOldVel.getY()*0.995f,vOldVel.getZ()*0.999f));
-					body->setAngularVelocity(body->getAngularVelocity()*0.995f);
-					body->applyDamping(0.3f);
-				}
-			}
-			*/
 		}
 	}
 
 	// Draw the debug physics objects.
-	#ifdef WICKEDENGINE
 	if (g_debugDrawer.getDebugMode() != 0)
 	{
 		btRigidBody* rBody = nullptr;
@@ -1252,15 +1090,12 @@ void Update(float fTimeStep)
 		{
 			rBody = g_PhyObjectList[i].body;
 			if (rBody == nullptr) continue;
-
 			if (!rBody->isStaticObject())
 			{
 				rBody->getMotionState()->getWorldTransform(transform);
-
 				// LB: not sure wwhy this was commented out??
 				g_dynamicsWorld->debugDrawObject(transform, rBody->getCollisionShape(), btVector3(0, 1, 0));
 			}
-
 			rBody = nullptr;
 		}
 
@@ -1269,16 +1104,13 @@ void Update(float fTimeStep)
 		for (int i = 0; i < iConstraintCount; i++)
 		{
 			btTypedConstraint* constraint = jointManager->GetJoint(i)->GetConstraint();
-
 			if (constraint)
 			{
 				constraint->setDbgDrawSize(0.5f);
 				g_dynamicsWorld->debugDrawConstraint(constraint);
 			}
-
 		}
 	}
-	#endif
 }
 
 void ODEUpdate ( void )

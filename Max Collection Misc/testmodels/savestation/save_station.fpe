@@ -1,0 +1,59 @@
+;Saved by Model Importer
+;header
+desc             = save_station
+
+;orientation
+model            = save_station.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = save_station_color.dds
+baseColorMap     = save_station_color.dds
+alpharef         = 1.00
+normalMap        = save_station_normal.dds
+normalStrength   = 1.00
+surfaceMap       = save_station_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+emissiveMap      = save_station_emissive.png
+emissiveStrength = 10.50
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 4294967040
+textureref1       = save_station_color.dds
+textureref2       = save_station_normal.dds
+textureref3       = save_station_surface.dds
+textureref4       = save_station_emissive.png
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 100
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 359.032227
+thumbnailrotatey = 325.754852

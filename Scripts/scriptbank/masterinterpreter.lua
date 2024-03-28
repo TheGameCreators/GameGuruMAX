@@ -397,8 +397,7 @@ function masterinterpreter_rayscan(e, output_e, fromx,fromy,fromz,tox,toy,toz,ig
  local hit = 0
  if RayTerrain(fromx,fromy,fromz,tox,toy,toz) ~= 0 then hit = -1 end
  if hit == 0 then
-  hit = IntersectStaticPerformant(fromx,fromy,fromz,tox,toy,toz,ignoreobj,0,0,ignoreplayer) -- was e,500,ignoreplayer (messed with plrvisible!
-  --hit = IntersectStaticPerformant(fromx,fromy,fromz,tox,toy,toz,ignoreobj,e,500,ignoreplayer) -- faster but not quite right
+  hit = IntersectStaticPerformant(fromx,fromy,fromz,tox,toy,toz,ignoreobj,e,500,ignoreplayer) -- now uses extra thread for faster intersects
   local ee = output_e['targete']
   if ee > 0 then
    if hit == g_Entity[ ee ]['obj'] then hit = 0 end

@@ -699,6 +699,9 @@ function SetFreezeAngle(ax,ay,az)
  SendMessageF_setfreezepositionay(ay)
  SendMessageF_setfreezepositionaz(az)
 end
+function SetPriorityToTransporter(e,priority)
+ SendMessageI_setprioritytotransporter(e,priority)
+end
 function TransportToFreezePosition()
  SendMessageI_transporttofreezeposition(0)
 end

@@ -36523,6 +36523,101 @@ bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 	return(0);
 }
 
+bool DoTreeNodeGroup(int groupindex, bool bMoveCameraToObjectPosition)
+{
+	for (int i = 1; i < t.entityelement.size(); i++)
+	{
+		bool bValid = true;
+		if (t.entityelement[i].iIsSmarkobjectDummyObj == 1) bValid = false;
+		if (bValid)
+		{
+			if ( groupindex > 0 )
+			{
+				int iGroupID = isEntityInGroupList(i);
+				if (groupindex == iGroupID)
+				{
+					char cName[512];
+					int masterid = t.entityelement[i].bankindex;
+					strcpy(cName, t.entityprofileheader[masterid].desc_s.Get());
+					if (t.entityelement[i].eleprof.name_s.Len() > 0)
+						strcpy(cName, t.entityelement[i].eleprof.name_s.Get());
+
+					ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+					node_flags = ImGuiTreeNodeFlags_Leaf;
+
+					//Find selection here.
+					bool bSelected = false;
+					if (bSelected)
+						node_flags |= ImGuiTreeNodeFlags_Selected;
+					else
+						node_flags &= ~ImGuiTreeNodeFlags_Selected;
+
+					ImGui::PushItemWidth(-20.0);
+
+					std::string treename = "#" + std::to_string(i);
+					if (t.widget.pickedEntityIndex == i && t.gridentity == masterid)
+						treename = treename + " (Cursor) " + cName;
+					else
+						treename = treename + " " + cName;
+
+					bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
+					ImGui::PopItemWidth();
+
+					if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+					{
+						//PE: Find object in scene. and move camera. and select to cursor.
+						if (t.entityelement[i].obj > 0)
+						{
+							t.widget.pickedEntityIndex = i;
+							t.widget.pickedObject = t.entityelement[t.widget.pickedEntityIndex].obj;
+							g.entityrubberbandlist.clear();
+							bEditorInFreeFlightMode = true;
+							t.editorfreeflight.mode = 1;
+							int group = isEntityInGroupList(t.widget.pickedEntityIndex);
+							if (group >= 0)
+							{
+								//PE: Add all groups with entity to rubberband.
+								CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
+							}
+							if (bMoveCameraToObjectPosition == true)
+							{
+								//float zoom = 500;
+								//float zoom = ObjectSize(t.entityelement[i].obj, 1) * 2.0;
+								//if (zoom < 30.0f) zoom = 30.0f;
+								//float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
+								//float camy = realcamy;
+								//if (camy < 30.0f) camy = 30.0f;
+								//if (t.entityprofile[masterid].ismarker > 0)
+								//{
+								//	zoom = 100.0;
+								//	camy = 50.0;
+								//}
+								PositionCamera(t.entityelement[i].x, t.entityelement[i].y+500, t.entityelement[i].z-500);
+								PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+								//MoveCamera(0, -zoom);
+								//PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
+								//PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy * 0.5), t.entityelement[i].z);
+								t.editorfreeflight.c.x_f = CameraPositionX();
+								t.editorfreeflight.c.y_f = CameraPositionY();
+								t.editorfreeflight.c.z_f = CameraPositionZ();
+								t.editorfreeflight.c.angx_f = CameraAngleX();
+								t.editorfreeflight.c.angy_f = CameraAngleY();
+								t.cx_f = t.editorfreeflight.c.x_f;
+								t.cy_f = t.editorfreeflight.c.z_f;
+							}
+						}
+					}
+					if (TreeNodeOpen)
+					{
+						ImGui::TreePop();
+					}
+				}
+			}
+		}
+	}
+	return(0);
+}
+
 void SetupDecalObject(int obj, int elementID)
 {
 	//SetAlphaMappingOn(obj, 100.0);

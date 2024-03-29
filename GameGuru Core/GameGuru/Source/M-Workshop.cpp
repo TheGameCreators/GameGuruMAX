@@ -445,11 +445,13 @@ void workshop_update ( bool bRefreshIfFlagged )
 			}
 			delete pEntries;
 			g_bUpdateWorkshopDownloads = false;
-			g_bUpdateWorkshopDownloadsAlwaysPerformOnce = false;
-			g_bUpdateWorkshopDownloadsAlwaysPerformOnceAtLaunch = false;
 			g_bStillDownloadingThingsWithDelay = true;
 			g_iStillDownloadingThingsWithDelayTimer = Timer();
 		}
+
+		// ensure once flag reset
+		g_bUpdateWorkshopDownloadsAlwaysPerformOnce = false;
+		g_bUpdateWorkshopDownloadsAlwaysPerformOnceAtLaunch = false;
 	}
 
 	// special unsubscribe forcer to hopefully overcome Steams inability to update to latest workship item content

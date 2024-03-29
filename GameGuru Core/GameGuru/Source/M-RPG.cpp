@@ -447,7 +447,8 @@ bool save_rpg_system_items(char* name, bool bIncludeELEFile)
 			}
 			int iStoreEntEleCount = g.entityelementlist;
 			g.entityelementlist = iEntitiesToSaveCount;
-			entity_saveelementsdata();
+			bool bForCollectionELE = true;
+			entity_saveelementsdata(bForCollectionELE);
 			for (int storee = 0; storee < iEntitiesToSaveCount; storee++)
 			{
 				t.entityelement[1 + storee] = pStoreEntEle[storee];

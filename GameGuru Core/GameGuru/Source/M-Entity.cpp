@@ -6368,6 +6368,53 @@ void c_entity_loadelementsdata ( void )
 				}
 			}
 		}
+
+		// could have group data corruption, storing entityelements that are not in the level
+		int iNumberOfGroups = MAXGROUPSLISTS;
+		for (int gi = 0; gi < iNumberOfGroups; gi++)
+		{
+			int iItemsInThisGroup = vEntityGroupList[gi].size();
+			for (int i = 0; i < iItemsInThisGroup; i++)
+			{
+				int e = vEntityGroupList[gi][i].e;
+				if (e > 0 && e <= g.entityelementlist)
+				{
+					if (t.entityelement[e].bankindex == 0)
+					{
+						vEntityGroupList[gi].erase(vEntityGroupList[gi].begin() + i);
+						iItemsInThisGroup--;
+						i--;
+					}
+				}
+			}
+		}
+
+		// could have entities in more than one group, remove them from duplicates
+		for (int gi = 0; gi < iNumberOfGroups; gi++)
+		{
+			int iItemsInThisGroup = vEntityGroupList[gi].size();
+			for (int i = 0; i < iItemsInThisGroup; i++)
+			{
+				int e = vEntityGroupList[gi][i].e;
+				if (e > 0 && e <= g.entityelementlist)
+				{
+					for (int gi2 = 0; gi2 < iNumberOfGroups; gi2++)
+					{
+						if (gi2 != gi)
+						{
+							for (int i2 = 0; i2 < vEntityGroupList[gi2].size(); i2++)
+							{
+								if (vEntityGroupList[gi2][i2].e == e)
+								{
+									vEntityGroupList[gi2].erase(vEntityGroupList[gi2].begin() + i2);
+									i2--;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
 #endif
@@ -6902,7 +6949,7 @@ public:
 	}
 };
 
-void entity_saveelementsdata ( void )
+void entity_saveelementsdata (bool bForCollectionELE)
 {
 	//  Uses elementfilename$
 	if ( t.elementsfilename_s == ""  )  t.elementsfilename_s = g.mysystem.levelBankTestMap_s+"map.ele";
@@ -7339,18 +7386,21 @@ void entity_saveelementsdata ( void )
 						for (int gi = 0; gi < iNumberOfGroups; gi++)
 						{
 							int iImgIndex = iEntityGroupListImage[gi];
-							char pGroupImgFilename[MAX_PATH];
-							sprintf(pGroupImgFilename, "%sgroupimg%d.png", g.mysystem.levelBankTestMap_s.Get(), gi );
-							if (FileExist(pGroupImgFilename) == 1) DeleteAFile(pGroupImgFilename );
-							if (iEntityGroupListImage[gi] > 0)
+							if (bForCollectionELE == false)
 							{
-								if (ImageExist(iImgIndex) == 1)
+								char pGroupImgFilename[MAX_PATH];
+								sprintf(pGroupImgFilename, "%sgroupimg%d.png", g.mysystem.levelBankTestMap_s.Get(), gi);
+								if (FileExist(pGroupImgFilename) == 1) DeleteAFile(pGroupImgFilename);
+								if (iEntityGroupListImage[gi] > 0)
 								{
-									// img value not important, only as reference to image file creating now for the loader
-									SaveImage(pGroupImgFilename, iImgIndex );
+									if (ImageExist(iImgIndex) == 1)
+									{
+										// img value not important, only as reference to image file creating now for the loader
+										SaveImage(pGroupImgFilename, iImgIndex);
+									}
 								}
 							}
-							writer.WriteLong( iImgIndex > 0 ? 1 : 0 );
+							writer.WriteLong(iImgIndex > 0 ? 1 : 0);
 						}
 					}
 				}

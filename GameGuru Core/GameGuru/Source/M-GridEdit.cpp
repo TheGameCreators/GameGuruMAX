@@ -13684,7 +13684,7 @@ void mapeditorexecutable_loop(void)
 			}
 
 			ImGui::SetCursorPos(ImVec2(restore_pos.x-8.0f, restore_pos.y));
-			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List" };
+			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List", "Group List" };
 
 			int isortbySize = IM_ARRAYSIZE(sortby_modes);
 			if (!pref.iEnableAdvancedEntityList)
@@ -13762,35 +13762,48 @@ void mapeditorexecutable_loop(void)
 				sorted_entity_files.clear();
 				if (iMasterEntid >= 1)
 				{
-					//Sort list.
-					for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+					if (current_sort_order == 6)
 					{
-						//std::string stmp = t.entityprofile[t.entid].model_s.Get();
-						std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
-						#ifdef WICKEDENGINE
-						if (current_sort_order == 2 || current_sort_order == 3)
+						// Sort group list
+						for (int gi = 0; gi < MAXGROUPSLISTS; gi++)
 						{
-							//Convert to sortable by string.
-							if(t.entid < 10)
-								stmp = "000" + std::to_string(t.entid);
-							else if (t.entid < 100)
-								stmp = "00" + std::to_string(t.entid);
-							else if (t.entid < 1000)
-								stmp = "0" + std::to_string(t.entid);
-							else
-								stmp = std::to_string(t.entid);
+							if (vEntityGroupList[gi].size() > 0)
+							{
+								std::string stmp = "Group " + std::to_string(gi);
+								sorted_entity_files.push_back(std::make_pair(stmp, gi));
+							}
 						}
-						#endif
-						stmp += "###"; //We need it to be unique so add this.
-						stmp += t.entityprofile[t.entid].model_s.Get();
-						stmp += "###";
-						stmp += std::to_string(t.entid);
-						int itmp = t.entid;
-						sorted_entity_files.push_back(std::make_pair(stmp, itmp));
 					}
-					std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
-					if (current_sort_order == 1 || current_sort_order == 2)
-						std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+					else
+					{
+						// Sort entity parent list.
+						for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+						{
+							//std::string stmp = t.entityprofile[t.entid].model_s.Get();
+							std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
+							if (current_sort_order == 2 || current_sort_order == 3)
+							{
+								//Convert to sortable by string.
+								if (t.entid < 10)
+									stmp = "000" + std::to_string(t.entid);
+								else if (t.entid < 100)
+									stmp = "00" + std::to_string(t.entid);
+								else if (t.entid < 1000)
+									stmp = "0" + std::to_string(t.entid);
+								else
+									stmp = std::to_string(t.entid);
+							}
+							stmp += "###"; //We need it to be unique so add this.
+							stmp += t.entityprofile[t.entid].model_s.Get();
+							stmp += "###";
+							stmp += std::to_string(t.entid);
+							int itmp = t.entid;
+							sorted_entity_files.push_back(std::make_pair(stmp, itmp));
+						}
+						std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
+						if (current_sort_order == 1 || current_sort_order == 2)
+							std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+					}
 				}
 				last_entidmaster = iMasterEntid;
 				last_include_icon_set = iIncludeLeftIconSet;
@@ -13829,7 +13842,7 @@ void mapeditorexecutable_loop(void)
 				iColumns_leftpanel = 1;
 
 			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-			if(current_sort_order == 4 || current_sort_order == 5) //PE: Detailed display in one column.
+			if(current_sort_order == 4 || current_sort_order == 5 || current_sort_order == 6) //PE: Detailed display in one column.
 				iColumns_leftpanel = 1;
 			#endif
 
@@ -13888,7 +13901,7 @@ void mapeditorexecutable_loop(void)
 						{
 							if (iloop == 0 && current_sort_order == 5)
 							{
-								// prep for drawinf list
+								// Collection Items List (5)
 								ImGui::SetWindowFontScale(1.0);
 
 								// should we show this item
@@ -13949,9 +13962,56 @@ void mapeditorexecutable_loop(void)
 									ImGui::NextColumn();
 								}
 							}
+							else if (iloop == 0 && current_sort_order == 6)
+							{
+								// Group List (6)
+								ImGui::SetWindowFontScale(1.0);
+
+								// should we show this item
+								int groupindex = it->second;
+								char cName[512];
+								strcpy(cName, sEntityGroupListName[groupindex].Get());
+								if(strlen(cName)>4) cName[strlen(cName) - 4] = 0;
+								if (strlen(cName) == 0) sprintf(cName, "Group %d", 1+groupindex);
+								bool DisplayEntry = false;
+								if (vEntityGroupList[groupindex].size() > 0)
+								{
+									DisplayEntry = true;
+								}
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char* cFind = strstr(cName, "###");
+									if (cFind) cFind[0] = '\0';
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow; //Got sub selections.
+									bool bSelected = false;
+									ImGui::PushItemWidth(-20.0);
+									std::string treename = cName;
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(groupindex + 99000), node_flags, treename.c_str());
+									bool bHovered = ImGui::IsItemHovered();
+									ImGui::PopItemWidth();
+									if (TreeNodeOpen)
+									{
+										ImGui::Indent(-5);
+										bool bMoveCameraToObjectPosition = true;
+										DoTreeNodeGroup(groupindex, bMoveCameraToObjectPosition);
+										ImGui::Indent(5);
+										ImGui::TreePop();
+									}
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
 							else if (iloop == 0 && current_sort_order == 4)
 							{
-								//Display detailed list of entities.
+								// Detailed Object List (4)
 								ImGui::SetWindowFontScale(1.0);
 
 								bool DisplayEntry = true;
@@ -29204,7 +29264,7 @@ void gridedit_save_test_map ( void )
 	timestampactivity(0,"SAVETESTMAP: Save elements");
 	entity_savebank ( );
 	entity_savebank_ebe ( );
-	entity_saveelementsdata ( );
+	entity_saveelementsdata ( false );
 
 	//  Save waypoints
 	timestampactivity(0,"SAVETESTMAP: Save waypoints");

@@ -20,7 +20,7 @@ void entity_updatetextureandeffectfromeleprof ( void );
 void entity_updatetextureandeffectfromgrideleprof ( void );
 void entity_getgunidandflakid ( void );
 void entity_loadtexturesandeffect ( void );
-void entity_saveelementsdata ( void );
+void entity_saveelementsdata ( bool bForCollectionELE );
 void entity_savebank ( void );
 void entity_savebank_ebe ( void );
 void entity_loadbank ( void );

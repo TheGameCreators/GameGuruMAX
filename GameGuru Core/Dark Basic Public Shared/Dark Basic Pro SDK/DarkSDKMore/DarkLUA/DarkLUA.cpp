@@ -10107,7 +10107,9 @@ enum eInternalCommandNames
 	enum_setpostdepthoffielddistance,
 	enum_setpostdepthoffieldintensity,
 	enum_performlogicconnectionsaskey,
-	enum_setprioritytotransporter
+	enum_setprioritytotransporter,
+	enum_hidelimbs,
+	enum_showlimbs
 };
 
 // NoParam commands:
@@ -10321,6 +10323,8 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_setentityhealthwithdamage: entity_lua_setentityhealthwithdamage(); break;
 		case enum_performlogicconnectionsaskey: entity_lua_performlogicconnectionsaskey(); break;
 		case enum_setprioritytotransporter : lua_setprioritytotransporter(); break;
+		case enum_hidelimbs: entity_lua_hidelimbs(); break;
+		case enum_showlimbs: entity_lua_showlimbs(); break;
 	}
 	t.e = storee;
 	t.v = storev;
@@ -10353,6 +10357,8 @@ int SendMessageI_setplayerlives(lua_State* L) { return int_core_sendmessagei(L, 
 int SendMessageI_setplayerpower(lua_State* L) { return int_core_sendmessagei(L, enum_setplayerpower); }
 int SendMessageI_hide(lua_State* L) { return int_core_sendmessagei(L, enum_hide); }
 int SendMessageI_show(lua_State* L) { return int_core_sendmessagei(L, enum_show); }
+int SendMessageI_hidelimbs(lua_State* L) { return int_core_sendmessagei(L, enum_hidelimbs); }
+int SendMessageI_showlimbs(lua_State* L) { return int_core_sendmessagei(L, enum_showlimbs); }
 int SendMessageI_setanimationframes(lua_State* L) { return int_core_sendmessagei(L, enum_setanimationframes); }
 int SendMessageI_removeplayerweapon(lua_State* L) { return int_core_sendmessagei(L, enum_removeplayerweapon); }
 int SendMessageI_setgamemusicvolume(lua_State* L) { return int_core_sendmessagei(L, enum_setgamemusicvolume); }
@@ -10489,6 +10495,8 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_setplayerpower", SendMessageI_setplayerpower);
 	lua_register(lua, "SendMessageI_hide", SendMessageI_hide);
 	lua_register(lua, "SendMessageI_show", SendMessageI_show);
+	lua_register(lua, "SendMessageI_hidelimbs", SendMessageI_hidelimbs);
+	lua_register(lua, "SendMessageI_showlimbs", SendMessageI_showlimbs);
 	lua_register(lua, "SendMessageI_setanimationframes", SendMessageI_setanimationframes);
 	lua_register(lua, "SendMessageI_removeplayerweapon", SendMessageI_removeplayerweapon);
 	lua_register(lua, "SendMessageI_setgamemusicvolume", SendMessageI_setgamemusicvolume);

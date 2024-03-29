@@ -778,6 +778,18 @@ end
 function Show(e)
  SendMessageI_show(e)
 end
+function HideLimb(e,limb)
+ SendMessageI_hidelimbs(e,limb)
+end
+function ShowLimb(e,limb)
+ SendMessageI_showlimbs(e,limb)
+end
+function HideLimbsExcept(e,limb)
+ SendMessageI_hidelimbs(e,limb*-1)
+end
+function ShowLimbsExcept(e,limb)
+ SendMessageI_showlimbs(e,limb*-1)
+end
 function Spawn(e)
  SendMessageI_spawn(e)
 end

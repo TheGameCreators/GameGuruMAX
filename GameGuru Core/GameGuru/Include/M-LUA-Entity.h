@@ -15,8 +15,10 @@ void entity_lua_getentityplrvisible_processlist (void);
 #endif
 void entity_lua_getentityplrvisible ( void );
 void entity_lua_getentityinzone ( void );
-void entity_lua_hide ( void );
-void entity_lua_show ( void );
+void entity_lua_hide (void);
+void entity_lua_show (void);
+void entity_lua_hidelimbs (void);
+void entity_lua_showlimbs (void);
 void entity_lua_spawn_core ( void );
 void entity_lua_spawn ( void );
 void entity_lua_setactivated ( void );

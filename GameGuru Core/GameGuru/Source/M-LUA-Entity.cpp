@@ -321,6 +321,52 @@ void entity_lua_show ( void )
 	}
 }
 
+void entity_lua_hideshowlimbs_core (bool bHide)
+{
+	if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 0)
+	{
+		t.tobj = t.entityelement[t.e].obj;
+		if (t.tobj > 0)
+		{
+			if (ObjectExist(t.tobj) == 1)
+			{
+				if (t.v > 0)
+				{
+					// simple hide or show specified limb
+					if (bHide == true)
+						HideLimb(t.tobj, t.v - 1);
+					else
+						ShowLimb(t.tobj, t.v - 1);
+				}
+				else
+				{
+					// hide/show all 'except specified limb'
+					int iSpecifiedLimb = abs(t.v) - 1;
+					sObject* pObject = g_ObjectList[t.tobj];
+					for (int iLimb = 0; iLimb < pObject->iFrameCount; iLimb++)
+					{
+						if (iSpecifiedLimb != iLimb)
+						{
+							if (bHide == true)
+								HideLimb(t.tobj, iLimb);
+							else
+								ShowLimb(t.tobj, iLimb);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+void entity_lua_hidelimbs (void)
+{
+	entity_lua_hideshowlimbs_core(true);
+}
+void entity_lua_showlimbs (void)
+{
+	entity_lua_hideshowlimbs_core(false);
+}
+
 void entity_lua_spawn_core ( void )
 {
 	//  resurrect dead entity

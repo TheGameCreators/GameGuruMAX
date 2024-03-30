@@ -549,10 +549,11 @@ void entity_free ( void )
 						// new ragdoll plus wipes pivot, need this restoring
 						RotateLimb(t.obj, 0, 0, 0, 0);
 						RotateObject (t.obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
+
 						// pivot character to face right way
-						ResetObjectPivot(t.obj);
-						RotateObject(t.obj, 0, 180, 0); 
-						FixObjectPivot(t.obj);
+						//ResetObjectPivot(t.obj);
+						//RotateObject(t.obj, 0, 180, 0); this inverts rotation of character when load a saved game position!!
+						//FixObjectPivot(t.obj);
 					}
 					else
 					{

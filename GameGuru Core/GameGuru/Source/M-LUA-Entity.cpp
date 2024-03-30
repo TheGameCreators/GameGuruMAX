@@ -924,7 +924,8 @@ void entity_lua_refreshentity ( void )
 					if (t.entityelement[t.e].eleprof.spawnatstart == 0)
 					{
 						// not spawned yet, so needs creating for future spawn
-						iRefreshMode = 3;
+						// iRefreshMode = 3; this caused characters to spawn twice when loading a saved game
+						// so remove this to solve the reversing character issue, and keep an eye on other objects that might want this..
 					}
 					else
 					{

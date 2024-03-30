@@ -35,6 +35,11 @@ function restoregame.now()
  for i = 1, g_EntityElementMax, 1 do
   if g_Entity[i] ~= nil then
   if g_Entity[i]['x'] ~= nil then
+   if g_EntityExtra[i]['collision'] == 1 then 
+    CollisionOn(i) 
+   else
+    CollisionOff(i) 
+   end
    ResetPosition ( i, g_Entity[i]['x'], g_Entity[i]['y'], g_Entity[i]['z'] )
    ResetRotation ( i, g_Entity[i]['anglex'], g_Entity[i]['angley'], g_Entity[i]['anglez'] )
    SetEntityActive ( i, g_Entity[i]['active'] )
@@ -53,7 +58,6 @@ function restoregame.now()
    if g_EntityExtra[i]['spawnatstart']==2 and g_Entity[i]['health'] > 0 then
     Spawn ( i )
    end
-   if g_EntityExtra[i]['collision'] == 0 then CollisionOff(i) end
   end
   end
  end 

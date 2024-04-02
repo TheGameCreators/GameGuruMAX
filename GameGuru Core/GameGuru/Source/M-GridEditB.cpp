@@ -8768,11 +8768,31 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bSetting = t.showeditorveg;
 	else
 		bSetting = t.visuals.bEndableGrassDrawing;
-
 	gggrass_global_params.draw_enabled = bSetting;
 
-	// update env probe resolution if this changes (Wicked only allocates if there is a change)
-	//wiScene::GetScene().SetEnvProbeResolution(t.visuals.iEnvProbeResolution); Wicked Not Entirely Support Changing This (For Now)!
+	// can call this to affect some visibles without causing water to flicker
+	Wicked_Update_Visibles(voidvisual);
+}
+
+void Wicked_Update_Visibles(void* voidvisual)
+{
+	// vars
+	bool bSetting = false;
+
+	// If in Test Level or in standalone, use visual settings, otherwise just use the temporary editor setting.
+	if (t.game.set.ismapeditormode == 1)
+	{
+		bSetting = t.showeditorterrain;
+	}
+	else
+	{
+		bSetting = t.visuals.bEndableTerrainDrawing;
+		if (bSetting == true)
+		{
+			if (t.hardwareinfoglobals.noterrain == 1) bSetting = false;
+		}
+	}
+	GGTerrain::ggterrain_draw_enabled = (int)bSetting;
 }
 
 #endif
@@ -50686,7 +50706,7 @@ void TestLevel_ToggleBoundary(bool _2d, bool _3d)
 
 }
 
-void TestLevel_ToggleTreeVegWater(bool tree, bool veg, bool water)
+void TestLevel_ToggleTreeVegWater(bool tree, bool veg, bool water, bool terrain)
 {
 	if (t.game.gameisexe == 0)
 	{
@@ -50695,6 +50715,7 @@ void TestLevel_ToggleTreeVegWater(bool tree, bool veg, bool water)
 		t.gamevisuals.bWaterEnable = water;
 		t.gamevisuals.bEndableTreeDrawing = tree;
 		t.gamevisuals.bEndableGrassDrawing = veg;
+		t.gamevisuals.bEndableTerrainDrawing = terrain;
 	}
 }
 

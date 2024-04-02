@@ -80,6 +80,7 @@ g_masterinterpreter_cond_targetreachable = 63 -- Target Reachable (Is true when 
 g_masterinterpreter_cond_withinnavmesh = 64 -- Within Navmesh (Is true if the object is within a valid navmesh)
 g_masterinterpreter_cond_canmeleetarget = 65 -- Can Melee Target (Is true if there is nothing between object and the target)
 g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the current target name matches the specified string)
+g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -190,6 +191,8 @@ g_masterinterpreter_act_changecontainer = 104 -- Change Container (Change the no
 g_masterinterpreter_act_logicboost = 105 -- Logic Boost (Instructs logic instructions to run in a batch of the specified count)
 g_masterinterpreter_act_collisionoff = 106 -- Turn Collision Off (Switch off collision for this object)
 g_masterinterpreter_act_collisionon = 107 -- Turn Collision On (Switch on collision for this object)
+g_masterinterpreter_act_hideterrain = 108 -- Hide Terrain (Switches off all terrain rendering)
+g_masterinterpreter_act_showterrain = 109 -- Show Terrain (Switches on all terrain rendering)
 
 
 -- special callout manager to avoid insane chatter for characters
@@ -894,6 +897,10 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if conditionparam1 ~= nil then
    if conditionparam1 == GetEntityName(output_e['targete']) then return 1 end
   end
+ end
+ if conditiontype == g_masterinterpreter_cond_withinzone then 
+  if conditionparam1value == nil then conditionparam1value = 100 end
+  if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+conditionparam1value then return 1 end
  end
  
  -- Condition is false
@@ -2152,6 +2159,16 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  -- Turn Collison On
  if actiontype == g_masterinterpreter_act_collisionon then
   CollisionOn(e)
+ end
+ 
+ -- Hide Terrain
+ if actiontype == g_masterinterpreter_act_hideterrain then
+  HideTerrain()
+ end
+ 
+ -- Show Terrain
+ if actiontype == g_masterinterpreter_act_showterrain then
+  ShowTerrain()
  end
  
 end

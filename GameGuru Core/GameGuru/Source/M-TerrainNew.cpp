@@ -11559,6 +11559,7 @@ void procedural_new_level(void)
 						// ggtrees_global_params.draw_enabled = 0; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 						
 						//PE: Default tree and grass setup.
 						if (iLastTreeGrassSettings != 0)
@@ -11633,6 +11634,7 @@ void procedural_new_level(void)
 
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 2)
 						{
@@ -11708,6 +11710,7 @@ void procedural_new_level(void)
 						// ggtrees_global_params.draw_enabled = 1; //PE: Trees is now only controlled by visual.ini t.visuals.bEndableTreeDrawing
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 3)
 						{
@@ -11781,6 +11784,7 @@ void procedural_new_level(void)
 						ggterrain_global_params.seed = Random2();
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 4)
 						{
@@ -11853,6 +11857,7 @@ void procedural_new_level(void)
 						ggterrain_global_params.seed = Random2();
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 5)
 						{
@@ -11925,6 +11930,7 @@ void procedural_new_level(void)
 						ggterrain_global_params.seed = Random2();
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 6)
 						{
@@ -11996,6 +12002,7 @@ void procedural_new_level(void)
 						ggterrain_global_params.seed = Random2();
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 1;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 1;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						if (iLastTreeGrassSettings != 7)
 						{
@@ -12062,9 +12069,11 @@ void procedural_new_level(void)
 						if (bRandomizeTimeOfDay && iRandomThemeChoice == 0) iRandomTimeOfDayChoice = (rand() % 7);
 						if (iRandomThemeChoice == 0) bSelectRandomSkybox = true;
 						iSelectedThemeChoice = 8;
+
 						// sets ggterrain_global_params.iProceduralTerrainType to 0
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
+						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 
 						//PE: Default tree and grass setup.
 						if (iLastTreeGrassSettings != 0)
@@ -13537,7 +13546,6 @@ void procedural_new_level(void)
 		}
 		if (!bProceduralLevel)
 		{
-			//ggterrain_draw_enabled = 1; //PE: Enable terrain render again.
 			#ifndef DIGAHOLE
 			extern bool g_bNoTerrainRender;
 			g_bNoTerrainRender = false;

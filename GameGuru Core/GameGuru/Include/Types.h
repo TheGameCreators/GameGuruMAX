@@ -3990,6 +3990,7 @@ struct visualstype
 
 	bool bEndableTreeDrawing = false;
 	bool bEndableGrassDrawing = false;
+	bool bEndableTerrainDrawing = true;
 
 	int iHeightmapWidth = 0;
 	int iHeightmapHeight = 0;
@@ -4225,6 +4226,7 @@ struct visualstype
 
 		 bEndableTreeDrawing = false;
 		 bEndableGrassDrawing = false;
+		 bEndableTerrainDrawing = true;
 
 		 iHeightmapWidth = 0;
 		 iHeightmapHeight = 0;

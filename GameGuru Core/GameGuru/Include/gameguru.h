@@ -5826,6 +5826,7 @@ struct Stemps
 	int showeditortrees;
 	int showeditorveg;
 	int showeditorwater;
+	int showeditorterrain;
 	int showtestgameelements;
 	int showtestgame2dbounds;
 	int showtestgame3dbounds;
@@ -8812,6 +8813,7 @@ struct Stemps
 		 showeditortrees = -1;
 		 showeditorveg = -1;
 		 showeditorwater = -1;
+		 showeditorterrain = -1;
 		 showtestgameelements = 0;
 		 showtestgame2dbounds = 0;
 		 showtestgame3dbounds = 0;

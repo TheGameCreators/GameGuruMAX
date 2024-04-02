@@ -1018,11 +1018,15 @@ void lua_finishlevel ( void )
 void lua_hideterrain ( void )
 {
 	t.hardwareinfoglobals.noterrain=1;
+	extern void Wicked_Update_Visibles(void* voidvisual);
+	Wicked_Update_Visibles(&t.visuals);
 }
 
 void lua_showterrain ( void )
 {
 	t.hardwareinfoglobals.noterrain=0;
+	extern void Wicked_Update_Visibles(void* voidvisual);
+	Wicked_Update_Visibles(&t.visuals);
 }
 
 void lua_hidewater ( void )

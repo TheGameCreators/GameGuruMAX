@@ -122,6 +122,7 @@ int screen_editor(int nodeid, bool standalone = false, char *screen = NULL);
 #include ".\..\..\Guru-WickedMAX\wickedcalls.h"
 void tab_tab_visuals(int iPage, int iMode);
 void Wicked_Update_Visuals(void *voidvisual);
+void Wicked_Update_Visibles(void* voidvisual);
 void DrawLogicNodes(bool bVisible);
 void CreateDotObject(int obj);
 void PositionDotObject(int obj);

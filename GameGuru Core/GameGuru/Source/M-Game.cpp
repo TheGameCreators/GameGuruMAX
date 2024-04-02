@@ -4935,9 +4935,6 @@ void game_main_loop ( void )
 
 		t.game.perf.terrain2 += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 	}
-	else // fix to stop shadows going wonky when terrain is off
-	{
-	}
 	if (  t.hardwareinfoglobals.nosky == 0 ) 
 	{
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling sky_loop");

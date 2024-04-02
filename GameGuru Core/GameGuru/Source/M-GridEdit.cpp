@@ -13344,17 +13344,11 @@ void mapeditorexecutable_loop(void)
 		//###########################
 
 		static std::map<std::string, std::int32_t> entity_folders;
-#ifdef WICKEDENGINE
-		//if (refresh_gui_docking == 0) ImGui::SetNextWindowPos(viewPortPos + ImVec2(280, 140), ImGuiCond_Always); //ImGuiCond_FirstUseEver
-//		if (refresh_gui_docking == 0 || bResetObjectLibrarySize) ImGui::SetNextWindowSize(ImVec2(68 * ImGui::GetFontSize(), (39 * ImGui::GetFontSize()) + 12.0), ImGuiCond_Always); //ImGuiCond_FirstUseEver
+
 		//PE: Exactly fit for 9 normal object, and 6 that include dlua description.
 		if (refresh_gui_docking == 0 || bResetObjectLibrarySize) ImGui::SetNextWindowSize(ImVec2(66 * ImGui::GetFontSize(), (43 * ImGui::GetFontSize()) + 19.0), ImGuiCond_Always); //ImGuiCond_FirstUseEver
 		if (refresh_gui_docking == 0 || bResetObjectLibrarySize) ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 		if (refresh_gui_docking == 0) init_Left_Categories_Column_Width = 3;
-#else
-		if (refresh_gui_docking == 0) ImGui::SetNextWindowPos(viewPortPos + ImVec2(180, 140), ImGuiCond_Always); //ImGuiCond_FirstUseEver
-		if (refresh_gui_docking == 0) ImGui::SetNextWindowSize(ImVec2(54 * ImGui::GetFontSize(), 33 * ImGui::GetFontSize()), ImGuiCond_Always); //ImGuiCond_FirstUseEver
-#endif
 		ImGuiWindowFlags ex_window_flags = 0;
 		if (refresh_gui_docking == 0 && !bExternal_Entities_Window)
 		{
@@ -13383,14 +13377,11 @@ void mapeditorexecutable_loop(void)
 		//#### Level Entities ####
 		//########################
 
-		#ifdef WICKEDENGINE
 		if (iDragDropActive > 0)
 			iDragDropActive--;
 
 		//PE: V2SEARCHBAR will display the new search layout.
 		#define V2SEARCHBAR
-
-		#endif
 
 		if (refresh_gui_docking == 0) 
 		{
@@ -13496,24 +13487,6 @@ void mapeditorexecutable_loop(void)
 
 			ImGui::PushItemWidth(-1);
 
-			//	ImGui::Begin("Information##AddObjectInformation", &bInformationWindow);
-		
-				////	Display the tutorial on adding objects to the world (not yet implemented).
-				//if (GetImageExistEx(INFOIMAGE))
-				//{
-				//	float fRegionWidth = ImGui::GetContentRegionAvailWidth();
-				//	float img_w = ImageWidth(INFOIMAGE);
-				//	float img_h = ImageHeight(INFOIMAGE);
-				//	float fRatio = img_h / img_w;
-				//	ImGui::ImgBtn(INFOIMAGE, ImVec2(fRegionWidth, fRegionWidth*fRatio), ImVec4(0.0, 0.0, 0.0, 0.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0),
-				//		ImVec4(1.0, 1.0, 1.0, 1.0), 0, 0, 0, 0, false);
-				//}
-				
-				//ImGui::End();
-
-			
-			
-			
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(-6.0, 0));
@@ -14431,8 +14404,6 @@ void mapeditorexecutable_loop(void)
 
 			ImGui::EndChild();
 
-			#ifdef NEWGAMEELEMENTGRID
-
 			// number of game element buttson shown
 			entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 13;
 
@@ -14470,7 +14441,7 @@ void mapeditorexecutable_loop(void)
 
 			int offset = 0;
 			if (bViewOptionsOpen)
-				offset = 205;// 115;
+				offset = 225;// 205;// 115;
 
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, ImGui::GetContentRegionAvail().y - offset
 				- ((entity_w / entity_icons_columns) * iIconRows) - ImGui::GetFontSize() * 4.0f + 10.0f));
@@ -14532,9 +14503,6 @@ void mapeditorexecutable_loop(void)
 			if (ImGui::StyleCollapsingHeader("View Options##viewoptions"))
 			{
 				bViewOptionsOpen = true;
-				// Control viewing of game elements and editable area boundaries.
-				//ImGui::TextCenter("View Options");
-
 				ImGui::Columns(3);
 
 				ImGuiWindow* win = ImGui::GetCurrentWindow();
@@ -14557,111 +14525,9 @@ void mapeditorexecutable_loop(void)
 				ImGui::Text("Vegetation");
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
 				ImGui::Text("Water");
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
+				ImGui::Text("Terrain");
 				ImGui::NextColumn();
-			#if 0
-				ImGui::SetColumnWidth(1, content_avail.x * 0.2f);
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(-1.0f, 0.0f));
-				ImGui::Text("Editor");
-
-				// Editor game elements.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				bool bShow = t.showeditorelements;
-				if (ImGui::Checkbox("##EditorElements", &bShow))
-				{
-					t.showeditorelements = bShow;
-					editor_toggle_element_vis(bShow);
-				}
-
-				// Editor 2D boundary.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE) ? 1 : 0;
-				if (ImGui::Checkbox("##Editor2DBounds", &bShow))
-				{
-					if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-					else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-				}
-
-				// Editor 3D boundary.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
-				if (ImGui::Checkbox("##Editor3DBounds", &bShow))
-				{
-					if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-					else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-				}
-
-				// Editor Trees.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (ImGui::Checkbox("##EditorTrees", &t.visuals.bEndableTreeDrawing))
-				{
-					t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
-					ggtrees_global_params.draw_enabled = t.visuals.bEndableTreeDrawing;
-				}
-
-				// Editor Vegetation.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (ImGui::Checkbox("##EditorVeg", &t.visuals.bEndableGrassDrawing))
-				{
-					t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
-					gggrass_global_params.draw_enabled = t.visuals.bEndableGrassDrawing;
-				}
-
-				// Editor Water.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (ImGui::Checkbox("##EditorWater", &t.visuals.bWaterEnable))
-				{
-					t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
-					Wicked_Update_Visuals((void *)&t.visuals);
-				}
-				ImGui::NextColumn();
-
-
-				ImGui::SetColumnWidth(2, content_avail.x * 0.18f);
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(1.0f, 0.0f));
-				ImGui::Text("Level");
-
-				// Test level game elements.
-				bShow = t.showtestgameelements;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelElements", &bShow))
-					t.showtestgameelements = bShow;
-
-				// Test level 2D boundary.
-				bShow = t.showtestgame2dbounds;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##Level2DBounds", &bShow))
-					t.showtestgame2dbounds = bShow;
-
-				// Test level 3D boundary.
-				bShow = t.showtestgame3dbounds;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##Level3DBounds", &bShow))
-					t.showtestgame3dbounds = bShow;
-
-				// Test level Trees.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				bShow = t.showtestgametrees;
-				if (ImGui::Checkbox("##LevelTrees", &bShow))
-				{
-					t.showtestgametrees = bShow;
-					//t.gamevisuals.bEndableTreeDrawing = bShow;
-				}
-
-				// Test level Vegetation.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				bShow = t.showtestgameveg;
-				if (ImGui::Checkbox("##LevelVeg", &bShow))
-					t.showtestgameveg = bShow;
-
-				// Test level Water.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				bShow = t.showtestgamewater;
-				if (ImGui::Checkbox("##LevelWater", &bShow))
-					t.showtestgamewater = bShow;
-				
-
-				ImGui::Columns(1);
-			#else
 				ImGui::SetColumnWidth(1, content_avail.x * 0.2f);
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(-1.0f, 0.0f));
 				ImGui::Text("Editor");
@@ -14714,28 +14580,34 @@ void mapeditorexecutable_loop(void)
 				bShow = t.showeditorveg;
 				if (ImGui::Checkbox("##EditorVeg", &bShow))
 				{
-					//t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
-					//gggrass_global_params.draw_enabled = t.visuals.bEndableGrassDrawing;
 					gggrass_global_params.draw_enabled = bShow;
 					t.showeditorveg = bShow;
 				}
 				
 				// Editor Water.
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				// Should be done when loading level.
 				if (t.showeditorwater < 0)
 					t.showeditorwater = t.visuals.bWaterEnable;
 				bShow = t.showeditorwater;
 				if (ImGui::Checkbox("##EditorWater", &bShow))
 				{
-					//t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
 					t.showeditorwater = bShow;
-					Wicked_Update_Visuals((void *)&t.visuals);
-				
+					Wicked_Update_Visuals((void *)&t.visuals);	
 				}
+
+				// Editor Terrain.
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+				if (t.showeditorterrain < 0)
+					t.showeditorterrain = t.visuals.bEndableTerrainDrawing;
+				bShow = t.showeditorterrain;
+				if (ImGui::Checkbox("##EditorTerrain", &bShow))
+				{
+					t.showeditorterrain = bShow;
+					Wicked_Update_Visuals((void*)&t.visuals);
+				}
+
 				ImGui::NextColumn();
-				
-				
+								
 				ImGui::SetColumnWidth(2, content_avail.x * 0.18f);
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(1.0f, 0.0f));
 				ImGui::Text("Level");
@@ -14774,215 +14646,20 @@ void mapeditorexecutable_loop(void)
 				if (ImGui::Checkbox("##LevelWater", &t.visuals.bWaterEnable))
 					t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
 				
+				// Test level Terrain.
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+				if (ImGui::Checkbox("##LevelTerrain", &t.visuals.bEndableTerrainDrawing))
+					t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing;
+
 				ImGui::Columns(1);
-			#endif
 			}
-
-#else
-						// used to hide game elements so UI not too cluttered when in SHOOTER/RPG/PUZZLE GAMEPLAY panel mode
-			//PE: Changed in new design to display all 15 icons. so bHideGameElementsWhenInSpecialGameplayMode always false.
-			bool bHideGameElementsWhenInSpecialGameplayMode = false;
-
-
-#ifdef WICKEDENGINE
-#ifdef INCLUDELEFTENTITYTOOLICONS
-			if (bHideGameElementsWhenInSpecialGameplayMode == false)
-			{
-				entity_icons = 10;
-				//entity_icons_columns = 5;
-				int entity_images[] = { ENTITY_LIGHT,ENTITY_WIN,ENTITY_VIDEO,ENTITY_MUSIC,ENTITY_START,ENTITY_TEXT,ENTITY_SOUND,ENTITY_PARTICLE,ENTITY_IMAGE,ENTITY_CHECKPOINT };
-				cstr entity_scripts[] = {
-					"_markers\\White Light.fpe",
-					"_markers\\Win Zone.fpe",
-					"_markers\\Video Zone.fpe",
-					"_markers\\Ambience Zone.fpe",
-					"_markers\\Player Start.fpe",
-					"_markers\\Text Zone.fpe",
-					"_markers\\Audio Zone.fpe",
-					"_markers\\Particles.fpe",
-					"_markers\\Image Zone.fpe",
-					"_markers\\Player Checkpoint.fpe" };
-				cstr entity_tooltip[] = {
-					"Add Light",
-					"Add Win Zone",
-					"Add Video Zone",
-					"Add Music Zone",
-					"Add Player Start Position and Settings",
-					"Add Text Zone",
-					"Add Audio Zone",
-					"Add Particle",
-					"Add Image Zone",
-					"Add Player Checkpoint" };
-
-				ImVec4 IconColor = ImVec4(1.0, 1.0, 1.0, 1.0);
-				ImGui::Indent(4);
-				for (int i = 0; i < entity_icons; i++)
-				{
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(fSpacer, 0.0f));
-
-					if (ImGui::ImgBtn(entity_images[i], ImVec2(entity_image_size, entity_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), IconColor, ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, false)) //no bBoostIconColors
-					{
-						FreeTempImageList(); //PE: Whenever g.entidmaster can change we must make sure to free any "temp" objects loaded.
-
-						//Open light window.
-						t.addentityfile_s = entity_scripts[i];
-						if (t.addentityfile_s != "")
-						{
-							entity_adduniqueentity(false);
-							t.tasset = t.entid;
-							if (t.talreadyloaded == 0)
-							{
-								editor_filllibrary();
-							}
-						}
-
-						iExtractMode = 0; //PE: Always start in find floor mode.
-						t.inputsys.constructselection = t.tasset;
-						t.gridentity = t.entid;
-						t.inputsys.constructselection = t.entid;
-						t.inputsys.domodeentity = 1;
-						t.grideditselect = 5;
-						Entity_Tools_Window = true;
-						//Make sure we use a fresh t.grideleprof
-						entity_fillgrideleproffromprofile();
-						editor_refresheditmarkers();
-
-					}
-					if (ImGui::IsItemHovered() && bToolTipActive) ImGui::SetTooltip(entity_tooltip[i].Get());
-					BeginDragDropFPE(entity_scripts[i].Get(), entity_images[i], bToolTipActive, ImVec2(entity_image_size, entity_image_size));
-
-					ImVec2 restore_cursorpos = ImGui::GetCursorPos();
-					if ((i + 1) % entity_icons_columns != 0 && i != entity_icons - 1)
-						ImGui::SameLine();
-				}
-				ImGui::Indent(-4);
-
-			}
-#endif
-
-#ifdef WICKEDENGINE
-#ifdef SHOOTERGAMEBUTTON
-			if (Shooter_Tools_Window)
-			{
-				int shooter_icons = 5, shooter_icons_columns = 5;
-				int shooter_images[] = { ENTITY_FLAG,ENTITY_GUNS,ENTITY_AMMO,ENTITY_ENEMIES,ENTITY_ALLIES };
-				cstr shooter_scripts[] = {
-					"_markers\\flag.fpe",
-					"guns",
-					"ammo",
-					"enemies",
-					"allies" };
-				cstr shooter_tooltip[] = {
-					"Add Flag",
-					"Add Guns",
-					"Add Ammo",
-					"Add Enemies",
-					"Add Allies" };
-
-				ImVec4 IconColor = ImVec4(1.0, 1.0, 1.0, 1.0);
-				ImGui::Indent(4);
-				for (int i = 0; i < shooter_icons; i++)
-				{
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(fSpacer, 0.0f));
-					if (ImGui::ImgBtn(shooter_images[i], ImVec2(entity_image_size, entity_image_size), ImVec4(0.0, 0.0, 0.0, 0.0), IconColor, ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false, false, false, false, false, false)) //no bBoostIconColors
-					{
-						FreeTempImageList();
-						t.addentityfile_s = shooter_scripts[i];
-						int iJumpToObjectSelection = 0;
-						if (stricmp(t.addentityfile_s.Get(), "guns") == NULL || stricmp(t.addentityfile_s.Get(), "ammo") == NULL
-							|| stricmp(t.addentityfile_s.Get(), "enemies") == NULL || stricmp(t.addentityfile_s.Get(), "allies") == NULL)
-						{
-							iJumpToObjectSelection = i;
-						}
-						if (iJumpToObjectSelection == 0)
-						{
-							// add flag element to scene
-							if (t.addentityfile_s != "")
-							{
-								entity_adduniqueentity(false);
-								t.tasset = t.entid;
-								if (t.talreadyloaded == 0)
-								{
-									editor_filllibrary();
-								}
-							}
-							iExtractMode = 0;
-							t.inputsys.constructselection = t.tasset;
-							t.gridentity = t.entid;
-							t.inputsys.constructselection = t.entid;
-							t.inputsys.domodeentity = 1;
-							t.grideditselect = 5;
-							//stay in shooter mode
-							//Entity_Tools_Window = true;
-							entity_fillgrideleproffromprofile();
-							editor_refresheditmarkers();
-						}
-						else
-						{
-							// go to ADD object with specific type
-							bExternal_Entities_Window = true;
-							iDisplayLibraryType = 0;
-							iDisplayLibrarySubType = 0;
-							iLastDisplayLibraryType = -1;
-							switch (iJumpToObjectSelection)
-							{
-							case 1: sStartLibrarySearchString = "weapon"; break;
-							case 2: sStartLibrarySearchString = "ammo"; break;
-							case 3: sStartLibrarySearchString = "characters"; break;
-							case 4: sStartLibrarySearchString = "ally"; break;
-							}
-						}
-					}
-					if (ImGui::IsItemHovered() && bToolTipActive) ImGui::SetTooltip(shooter_tooltip[i].Get());
-					BeginDragDropFPE(shooter_scripts[i].Get(), shooter_images[i], bToolTipActive, ImVec2(entity_image_size, entity_image_size));
-					ImVec2 restore_cursorpos = ImGui::GetCursorPos();
-					if ((i + 1) % shooter_icons_columns != 0 && i != shooter_icons - 1)
-						ImGui::SameLine();
-				}
-				bHideGameElementsWhenInSpecialGameplayMode = true;
-				ImGui::Indent(-4);
-			}
-#endif
-#endif
-
-			//PE: SECTION_LEVEL_ENTITIES
-			content_avail = ImGui::GetContentRegionAvail();
-			content_avail.y -= 6.0;
-
-			//Child need to be same color as frame color.
-			ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, ImVec4(0, 0, 0, 0));
-
-			ImGui::BeginChild("##MainEntitiesLeftPanelButton", content_avail, false, iGenralWindowsFlags | ImGuiWindowFlags_NoScrollbar); //, false, ImGuiWindowFlags_HorizontalScrollbar);
-
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 3.0f));
-
-			float but_gadget_size = content_avail.x - 17.0f;
-			char* button_label = "Show Game Elements";
-			if (t.showeditorelements) button_label = "Hide Game Elements";
-
-			if (ImGui::StyleButton(button_label, ImVec2(but_gadget_size, 0)))
-			{
-				// Toggle the show editor elements flag, so the correct button label is displayed.
-				t.showeditorelements = !t.showeditorelements;
-				editor_toggle_element_vis(t.showeditorelements);
-
-			}
-			if (ImGui::IsItemHovered() && bToolTipActive) ImGui::SetTooltip("%s", "Toggle visibility of game elements");
-
-			ImGui::EndChild();
-			ImGui::PopStyleColor();
-#endif
-
-#endif
 
 			//Drag/Drop to remove objects.
 			ImRect bb = { ImGui::GetWindowContentRegionMin()+ImGui::GetWindowPos(),ImGui::GetWindowContentRegionMax() + ImGui::GetWindowPos() };
 
-			#ifdef WICKEDENGINE
 			if (bTrashcanIconActive)
 				bTrashcanIconActive = false;
 			DragDrop_CheckTrashcanDrop(bb);
-			#endif
 
 			if (ImGui::BeginDragDropTargetCustom(bb, 12345))
 			{
@@ -18092,21 +17769,6 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	// switch off any rubber band entity highlighting
 	gridedit_clearentityrubberbandlist();
 
-	// View Options menu changed so Level now alters both test level and standalone, so no need for these toggles.
-	#if 0
-	#ifdef WICKEDENGINE
-	// Can optionally toggle trees, vegetation and water in test level.
-	// Store what the values were before the change, so they can be restored when going back to editor.
-	int prevWater = t.gamevisuals.bWaterEnable;
-	int prevTree = t.gamevisuals.bEndableTreeDrawing;
-	int prevGrass = t.gamevisuals.bEndableGrassDrawing;
-	TestLevel_ToggleTreeVegWater(t.showtestgametrees, t.showtestgameveg, t.showtestgamewater);
-	t.showtestgametrees = prevTree;
-	t.showtestgamewater = prevWater;
-	t.showtestgameveg = prevGrass;
-	#endif
-	#endif
-
 	// 210917 - refresh HLSL shaders (flagged as doing shader work)
 	if ( g.gforceloadtestgameshaders == 1 )
 	{
@@ -19134,8 +18796,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.iCombatMusicTrackVolume = t.gamevisuals.iCombatMusicTrackVolume;
 
 	t.visuals.bEndableTreeDrawing = t.gamevisuals.bEndableTreeDrawing;
-
 	t.visuals.bEndableGrassDrawing = t.gamevisuals.bEndableGrassDrawing;
+	t.visuals.bEndableTerrainDrawing = t.gamevisuals.bEndableTerrainDrawing;
 
 	t.visuals.iHeightmapWidth = t.gamevisuals.iHeightmapWidth;
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight;

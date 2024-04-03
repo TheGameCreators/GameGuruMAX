@@ -717,7 +717,7 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 
 	// add a time out so callbacks can do there thing (five seconds on five off)
 	extern bool g_bFreeTrialVersion;
-	if (g_bFreeTrialVersion == true)
+	if (g_bFreeTrialVersion == false)
 	{
 		if (g_iFiveOnOffTimer < Timer())
 		{

@@ -39,7 +39,14 @@ void workshop_init (bool bLoggedIn)
 	g_sStillDownloadingLog.clear();
 	g_sStillDownloadingLogTitle.clear();
 	g_iStillDownloadingLogCount = 0;
-	g_bWorkshopAvailable = true;// bLoggedIn;
+
+	// no workshop in free version!
+	extern bool g_bFreeTrialVersion;
+	if (g_bFreeTrialVersion == false)
+	{
+		g_bWorkshopAvailable = true;
+	}
+
 	g_bUpdateWorkshopItemList = true;
 	g_WorkshopUserPrompt = "";
 	g_workshopItemsList.clear();
@@ -709,96 +716,100 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 	}
 
 	// add a time out so callbacks can do there thing (five seconds on five off)
-	if (g_iFiveOnOffTimer < Timer())
+	extern bool g_bFreeTrialVersion;
+	if (g_bFreeTrialVersion == true)
 	{
-		g_iFiveOnOffTimerState = 1 - g_iFiveOnOffTimerState;
-		g_iFiveOnOffTimer = Timer() + 5000;
-	}
-	if(g_iFiveOnOffTimerState==0)
-	{
-		// ensure workshop items not installed or in need of updating are given the download item command
-		if (SteamUGC())
+		if (g_iFiveOnOffTimer < Timer())
 		{
-			g_bStillDownloadingThings = false;
-			uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
-			PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
-			SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
-			for (int i = 0; i < numSubscribed; i++)
+			g_iFiveOnOffTimerState = 1 - g_iFiveOnOffTimerState;
+			g_iFiveOnOffTimer = Timer() + 5000;
+		}
+		if (g_iFiveOnOffTimerState == 0)
+		{
+			// ensure workshop items not installed or in need of updating are given the download item command
+			if (SteamUGC())
 			{
-				// for each item found
-				PublishedFileId_t thisItem = pEntries[i];
-				uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-				if (!(unItemState & k_EItemStateInstalled) || unItemState & k_EItemStateNeedsUpdate)
+				g_bStillDownloadingThings = false;
+				uint32 numSubscribed = SteamUGC()->GetNumSubscribedItems();
+				PublishedFileId_t* pEntries = new PublishedFileId_t[numSubscribed];
+				SteamUGC()->GetSubscribedItems(pEntries, numSubscribed);
+				for (int i = 0; i < numSubscribed; i++)
 				{
-					if (SteamUGC()->DownloadItem (thisItem, true) == true)
+					// for each item found
+					PublishedFileId_t thisItem = pEntries[i];
+					uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+					if (!(unItemState & k_EItemStateInstalled) || unItemState & k_EItemStateNeedsUpdate)
 					{
-						// downloaddone callback not in API, instead wait until item status reads as installed
-						for (int i = 0; i < g_workshopItemsList.size(); i++)
+						if (SteamUGC()->DownloadItem (thisItem, true) == true)
 						{
-							if (g_workshopItemsList[i].nPublishedFileId == thisItem)
+							// downloaddone callback not in API, instead wait until item status reads as installed
+							for (int i = 0; i < g_workshopItemsList.size(); i++)
 							{
-								g_workshopItemsList[i].bDownloadItemTriggered = true;
+								if (g_workshopItemsList[i].nPublishedFileId == thisItem)
+								{
+									g_workshopItemsList[i].bDownloadItemTriggered = true;
+									break;
+								}
+							}
+						}
+					}
+					if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
+					{
+						// this item is ready to use
+					}
+					else
+					{
+						// this item is not ready to use, we are still busy downloading things
+						g_bStillDownloadingThings = true;
+						g_bStillDownloadingThingsWithDelay = true;
+						g_iStillDownloadingThingsWithDelayTimer = Timer();
+					}
+				}
+
+				// check for any items not subcribed, but need to be
+				for (int i = 0; i < g_workshopTrustedItems.size(); i++)
+				{
+					PublishedFileId_t thisItem = g_workshopTrustedItems[i];
+					if (thisItem > 0)
+					{
+						bool bAlreadySubscribed = false;
+						for (int i = 0; i < numSubscribed; i++)
+						{
+							if (pEntries[i] == thisItem)
+							{
+								bAlreadySubscribed = true;
 								break;
 							}
 						}
-					}
-				}
-				if (unItemState == k_EItemStateInstalled | k_EItemStateSubscribed)
-				{
-					// this item is ready to use
-				}
-				else
-				{
-					// this item is not ready to use, we are still busy downloading things
-					g_bStillDownloadingThings = true;
-					g_bStillDownloadingThingsWithDelay = true;
-					g_iStillDownloadingThingsWithDelayTimer = Timer();
-				}
-			}
-
-			// check for any items not subcribed, but need to be
-			for (int i = 0; i < g_workshopTrustedItems.size(); i++)
-			{
-				PublishedFileId_t thisItem = g_workshopTrustedItems[i];
-				if (thisItem > 0)
-				{
-					bool bAlreadySubscribed = false;
-					for (int i = 0; i < numSubscribed; i++)
-					{
-						if (pEntries[i] == thisItem)
+						if (bAlreadySubscribed == false)
 						{
-							bAlreadySubscribed = true;
-							break;
-						}
-					}
-					if (bAlreadySubscribed == false)
-					{
-						uint32 unItemState = SteamUGC()->GetItemState(thisItem);
-						char pSubscribeAttempt[MAX_PATH];
-						sprintf(pSubscribeAttempt, "Subscribing to trusted item unItemState=%d", (int)unItemState);
-						timestampactivity(0, pSubscribeAttempt);
-						if (unItemState == k_EItemStateNone)
-						{
-							// item is not subscribed to, so subscrube to trusted item
-							SteamUGC()->SubscribeItem(thisItem);
-							timestampactivity(0, ">SteamUGC()->SubscribeItem");
-							if (SteamUGC()->DownloadItem (thisItem, true) == true)
+							uint32 unItemState = SteamUGC()->GetItemState(thisItem);
+							char pSubscribeAttempt[MAX_PATH];
+							sprintf(pSubscribeAttempt, "Subscribing to trusted item unItemState=%d", (int)unItemState);
+							timestampactivity(0, pSubscribeAttempt);
+							if (unItemState == k_EItemStateNone)
 							{
-								timestampactivity(0, ">SteamUGC()->DownloadItem");
-								g_bStillDownloadingThings = true;
-								g_bStillDownloadingThingsWithDelay = true;
-								g_iStillDownloadingThingsWithDelayTimer = Timer();
+								// item is not subscribed to, so subscrube to trusted item
+								SteamUGC()->SubscribeItem(thisItem);
+								timestampactivity(0, ">SteamUGC()->SubscribeItem");
+								if (SteamUGC()->DownloadItem (thisItem, true) == true)
+								{
+									timestampactivity(0, ">SteamUGC()->DownloadItem");
+									g_bStillDownloadingThings = true;
+									g_bStillDownloadingThingsWithDelay = true;
+									g_iStillDownloadingThingsWithDelayTimer = Timer();
+								}
 							}
 						}
 					}
 				}
-			}
 
-			// free resource
-			if (pEntries)
-			{
-				delete pEntries;
-				pEntries = 0;
+				// free resource
+				if (pEntries)
+				{
+					delete pEntries;
+					pEntries = 0;
+				}
 			}
 		}
 	}

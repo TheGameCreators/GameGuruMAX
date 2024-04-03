@@ -6300,14 +6300,17 @@ void mp_update_all_projectiles ( void )
 							MakeObjectBox (  t.tsteamBObj,20,20,20 );
 						}
 
-						//  setup particle emitters for this projectile
-						//  but only if entities not set to LOWEST as particle trails are expensive!
+						// setup particle emitters for this projectile
+						/*
+						// but only if entities not set to LOWEST as particle trails are expensive!
 						t.mp_bullets[t.tbulletloop].particles = -1;
-						t.tokay = 1 ; if (  t.visuals.shaderlevels.entities == 3  )  t.tokay = 0;
-						if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 ) 
+						t.tokay = 1 ; if (  t.visuals.shade rlevels.entities == 3  )  t.tokay = 0;
+						if (  t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].particleType>0 && t.tokay == 1 )
+						*/
+						if ( t.WeaponProjectileBase[t.mp_bullets[t.tbulletloop].btype].particleType > 0 )
 						{
 							ravey_particles_get_free_emitter ( );
-							if (  t.tResult>0 ) 
+							if ( t.tResult>0 ) 
 							{
 								t.tobj = t.tsteamBObj;
 								weapon_add_projectile_particles ( );

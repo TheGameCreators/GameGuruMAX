@@ -1463,7 +1463,6 @@ void mapfile_loadproject_fpm ( void )
 			t.visuals.refreshterraintexture=1;
 			t.visuals.refreshvegtexture=1;
 
-			#ifdef WICKEDENGINE
 			//PE: Remember sun angle.
 			float oSx = t.visuals.SunAngleX;
 			float oSy = t.visuals.SunAngleY;
@@ -1481,15 +1480,8 @@ void mapfile_loadproject_fpm ( void )
 
 			// if change sky, regenerate env map
 			cubemap_generateglobalenvmap();
-
 			visuals_loop();
 
-			#else
-			visuals_loop ( );
-			visuals_shaderlevels_update ( );
-			#endif
-
-			#ifdef WICKEDENGINE
 			//PE: In wicked we want to restore the sun angle from the map and not use skyspec.ini settings. (only when loading a old level).
 			if (t.visuals.skyindex == 0 || t.visuals.bDisableSkybox)
 			{
@@ -1500,7 +1492,6 @@ void mapfile_loadproject_fpm ( void )
 			}
 			extern void Wicked_Update_Visuals(void *voidvisual);
 			Wicked_Update_Visuals((void*) &t.visuals );
-			#endif
 		}
 	}
 	else

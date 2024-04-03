@@ -6332,6 +6332,33 @@ bool gridedit_loadbehavior (LPSTR pByteFilename)
 	return true;
 }
 
+void gridedit_setvsync(bool bLevelVSyncEnabled)
+{
+	master.bVsyncEnabled = bLevelVSyncEnabled;
+	wiEvent::SetVSync(master.bVsyncEnabled);
+}
+
+void gridedit_setreflection(bool bReflecctionFlag)
+{
+	master_renderer->setReflectionsEnabled(bReflecctionFlag);
+}
+
+void gridedit_setsky(int iSkyMode)
+{
+	extern wiECS::Entity g_weatherEntityID;
+	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+	if (iSkyMode == 0)
+	{
+		weather->SetRealisticSky(true);
+		weather->SetVolumetricClouds(true);
+	}
+	if (iSkyMode == 1)
+	{
+		weather->SetRealisticSky(false);
+		weather->SetVolumetricClouds(false);
+	}
+}
+
 void tab_tab_visuals(int iPage, int iMode)
 {
 	//iMode = 0 , editor.
@@ -6927,28 +6954,9 @@ void tab_tab_visuals(int iPage, int iMode)
 			
 					ImGui::Text("");
 					ImGui::Columns(1);
-					/*;
-								fCWidth = ImGui::GetContentRegionAvailWidth();
-								ImGuiWindow* window = ImGui::GetCurrentWindow();
-								//Add background rect.
-								ImVec4 background_col = ImGui::GetStyle().Colors[ImGuiCol_Button]; //ImVec4(0.5, 0.5, 0.5, 0.6);
-								background_col.w = 0.60;
-								const ImRect image_bb((window->DC.CursorPos), window->DC.CursorPos + ImVec2(fCWidth, fCWidth));
-								window->DrawList->AddRectFilled(image_bb.Min, image_bb.Max, ImGui::GetColorU32(background_col), 8.0f, 15);
-
-								if (is_selected)
-								{
-									ImVec4 tool_selected_col = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
-									ImVec2 padding = { 3.0, 3.0 };
-									const ImRect image_bb((window->DC.CursorPos - padding), window->DC.CursorPos + padding + ImVec2(fCWidth, fCWidth));
-									window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-								}
-*/
-				}
-				
+				}		
 				ImGui::PopItemWidth();
 			}
-
 			ImGui::EndChild();
 			ImGui::Indent(-10);
 		}
@@ -6968,34 +6976,37 @@ void tab_tab_visuals(int iPage, int iMode)
 				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects);
 			}
 
-			if (pref.bAutoClosePropertySections && iLastOpenHeader != 8)
-				ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-
 #ifdef ADVANCEDCOLORS
 			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram]);
 #endif
 
-			if (ImGui::StyleCollapsingHeader("Post Processing", wflags))
+			if (pref.bAutoClosePropertySections && iLastOpenHeader != 16)
+				ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
+			//PE: Optimizing
+			if (ImGui::StyleCollapsingHeader("Graphics and Performance", wflags))
 			{
 				ImGui::Indent(10);
-				iLastOpenHeader = 8;
+				iLastOpenHeader = 16;
 
-				// only show option if not disabled VSYNC in SETUP.INI
-				if (g.gvsync != 0)
+				// graphics options mode
+				ImGui::PushItemWidth(-10);
+				char* current_gfx_mode = "";
+				int iGFXMode = iGFXMode = t.visuals.shaderlevels.entities - 1;
+				const char* gfx_mode_combo[] = { "Highest (best for quality)", "Custom (tailored)" , "Low (best for performance)" };
+				if (iGFXMode == 0) current_gfx_mode = (char*)gfx_mode_combo[0];
+				if (iGFXMode == 1) current_gfx_mode = (char*)gfx_mode_combo[1];
+				if (iGFXMode == 2) current_gfx_mode = (char*)gfx_mode_combo[2];
+				if (ImGui::Combo("##ComboGFX_mode_combo", &iGFXMode, gfx_mode_combo, IM_ARRAYSIZE(gfx_mode_combo)))
 				{
-					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("VSync##setVSyncEnabled", &t.visuals.bLevelVSyncEnabled))
-					{
-						t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
-						master.bVsyncEnabled = t.visuals.bLevelVSyncEnabled;
-						wiEvent::SetVSync(master.bVsyncEnabled);
-						g.projectmodified = 1;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
-					ImGui::PopItemWidth();
+					if (iGFXMode == 0) visuals_shaderlevels_setlevel(1,true);
+					if (iGFXMode == 1) visuals_shaderlevels_setlevel(3,true);
+					if (iGFXMode == 2) visuals_shaderlevels_setlevel(4,true);
 				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose the ideal graphics mode for this level, or set custom settings");
+				ImGui::PopItemWidth();
 
-				//PE: Optimizing
+				// optimizations
 				extern bool bEnable30FpsAnimations;
 				extern bool g_bDelayedShadows;
 				extern bool g_bDelayedShadowsLaptop;
@@ -7058,90 +7069,90 @@ void tab_tab_visuals(int iPage, int iMode)
 					//}
 					ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
 				}
-				if(t.visuals.bOcclusionCulling)
+				if (t.visuals.bOcclusionCulling)
 				{
-						extern uint32_t iCulledPointShadows;
-						extern uint32_t iCulledSpotShadows;
-						extern uint32_t iCulledAnimations;
-						extern bool bEnableTerrainChunkCulling;
-						extern bool bEnablePointShadowCulling;
-						extern bool bEnableSpotShadowCulling;
-						extern bool bEnableAnimationCulling;
+					extern uint32_t iCulledPointShadows;
+					extern uint32_t iCulledSpotShadows;
+					extern uint32_t iCulledAnimations;
+					extern bool bEnableTerrainChunkCulling;
+					extern bool bEnablePointShadowCulling;
+					extern bool bEnableSpotShadowCulling;
+					extern bool bEnableAnimationCulling;
 
-						if (ImGui::Checkbox("Terrain Chunk Culling", &bEnableTerrainChunkCulling))
+					if (ImGui::Checkbox("Terrain Chunk Culling", &bEnableTerrainChunkCulling))
+					{
+						t.gamevisuals.bEnableTerrainChunkCulling = t.visuals.bEnableTerrainChunkCulling = bEnableTerrainChunkCulling;
+						g.projectmodified = 1;
+						if (bEnableTerrainChunkCulling && !t.visuals.bOcclusionCulling)
 						{
-							t.gamevisuals.bEnableTerrainChunkCulling = t.visuals.bEnableTerrainChunkCulling = bEnableTerrainChunkCulling;
-							g.projectmodified = 1;
-							if (bEnableTerrainChunkCulling && !t.visuals.bOcclusionCulling)
-							{
-								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
-							}
+							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
-						//if (bEnableTerrainChunkCulling)
-						//{
-						//	extern int OCCLODSTART;
-						//	ImGui::PushItemWidth(-10);
-						//	ImGui::SliderInt("Terrain LOD Culling Start", &OCCLODSTART, 0, 8);
-						//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("Terrain Chunk Culling Start LOD Level. For less occlusion check make value higher.");
-						//	ImGui::PopItemWidth();
-						//}
-						if (ImGui::Checkbox("Point Shadow Culling", &bEnablePointShadowCulling))
+					}
+					//if (bEnableTerrainChunkCulling)
+					//{
+					//	extern int OCCLODSTART;
+					//	ImGui::PushItemWidth(-10);
+					//	ImGui::SliderInt("Terrain LOD Culling Start", &OCCLODSTART, 0, 8);
+					//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("Terrain Chunk Culling Start LOD Level. For less occlusion check make value higher.");
+					//	ImGui::PopItemWidth();
+					//}
+					if (ImGui::Checkbox("Point Shadow Culling", &bEnablePointShadowCulling))
+					{
+						t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling = bEnablePointShadowCulling;
+						g.projectmodified = 1;
+						if (bEnablePointShadowCulling && !t.visuals.bOcclusionCulling)
 						{
-							t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling = bEnablePointShadowCulling;
-							g.projectmodified = 1;
-							if (bEnablePointShadowCulling && !t.visuals.bOcclusionCulling)
-							{
-								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
-							}
+							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
-						if (ImGui::Checkbox("Spot Shadow Culling", &bEnableSpotShadowCulling))
+					}
+					if (ImGui::Checkbox("Spot Shadow Culling", &bEnableSpotShadowCulling))
+					{
+						t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
+						g.projectmodified = 1;
+						if (bEnableSpotShadowCulling && !t.visuals.bOcclusionCulling)
 						{
-							t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
-							g.projectmodified = 1;
-							if (bEnableSpotShadowCulling && !t.visuals.bOcclusionCulling)
-							{
-								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
-							}
+							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
+					}
 
-						if (ImGui::Checkbox("Object Culling", &bEnableObjectCulling))
+					if (ImGui::Checkbox("Object Culling", &bEnableObjectCulling))
+					{
+						t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
+						g.projectmodified = 1;
+						if (bEnableObjectCulling && !t.visuals.bOcclusionCulling)
 						{
-							t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
-							g.projectmodified = 1;
-							if (bEnableObjectCulling && !t.visuals.bOcclusionCulling)
-							{
-								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
-							}
+							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
+					}
 
-						if (ImGui::Checkbox("Animation Culling", &bEnableAnimationCulling))
+					if (ImGui::Checkbox("Animation Culling", &bEnableAnimationCulling))
+					{
+						t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling = bEnableAnimationCulling;
+						g.projectmodified = 1;
+						if (bEnableAnimationCulling && !t.visuals.bOcclusionCulling)
 						{
-							t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling = bEnableAnimationCulling;
-							g.projectmodified = 1;
-							if (bEnableAnimationCulling && !t.visuals.bOcclusionCulling)
-							{
-								t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
-							}
+							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
+					}
 
-						wiScene::Scene* pScene = &wiScene::GetScene();
-						if (pScene)
-						{
-							iObjects = pScene->objects.GetCount();
-							iFrustumCulled = wiProfiler::GetFrustumCulled();
-						}
-						ImGui::Text("Total Objects: %d", iObjects);
-						if(bOCDebug)
-							ImGui::Text("Hidden Objects: %d", iHiddenObjects);
-						ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
-						if(bOCDebug)
-							ImGui::Text("Occluded Objects: %d", occ);
+					wiScene::Scene* pScene = &wiScene::GetScene();
+					if (pScene)
+					{
+						iObjects = pScene->objects.GetCount();
+						iFrustumCulled = wiProfiler::GetFrustumCulled();
+					}
+					ImGui::Text("Total Objects: %d", iObjects);
+					if (bOCDebug)
+						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
+					ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
+					if (bOCDebug)
+						ImGui::Text("Occluded Objects: %d", occ);
 
-						extern uint32_t iOccludedTerrainChunks;
-						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
-						ImGui::Text("Occluded Point Shadows: %d", iCulledPointShadows);
-						ImGui::Text("Occluded Spot Shadows: %d", iCulledSpotShadows);
-						ImGui::Text("Culled Animations: %d", iCulledAnimations);
+					extern uint32_t iOccludedTerrainChunks;
+					ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
+					ImGui::Text("Occluded Point Shadows: %d", iCulledPointShadows);
+					ImGui::Text("Occluded Spot Shadows: %d", iCulledSpotShadows);
+					ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
 				extern float maxApparentSize;
@@ -7155,7 +7166,31 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Max Object Apparent Size will cull objects when they get smaller on screen");
 				ImGui::PopItemWidth();
 
-				ImGui::Separator();
+				// end performance
+				ImGui::Indent(-10);
+			}
+
+			if (pref.bAutoClosePropertySections && iLastOpenHeader != 8)
+				ImGui::SetNextItemOpen(false, ImGuiCond_Always);
+
+			if (ImGui::StyleCollapsingHeader("Post Processing", wflags))
+			{
+				ImGui::Indent(10);
+				iLastOpenHeader = 8;
+
+				// only show option if not disabled VSYNC in SETUP.INI
+				if (g.gvsync != 0)
+				{
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("VSync##setVSyncEnabled", &t.visuals.bLevelVSyncEnabled))
+					{
+						t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
+						gridedit_setvsync(t.visuals.bLevelVSyncEnabled);
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
+					ImGui::PopItemWidth();
+				}
 
 				//Bloom
 				ImGui::PushItemWidth(-10);
@@ -7220,80 +7255,6 @@ void tab_tab_visuals(int iPage, int iMode)
 
 				ImGui::PopItemWidth();
 
-				
-				#ifdef POSTPROCESSRAIN
-				/* moving to weather section
-				ImGui::PushItemWidth(-10);
-
-				if (ImGui::Checkbox("Rain##setRainEnabled", &t.visuals.bRainEnabled)) {
-					t.gamevisuals.bRainEnabled = t.visuals.bRainEnabled;
-					if (master_renderer)
-						master_renderer->setRainEnabled(t.visuals.bRainEnabled); //PE: test post process shader.
-					g.projectmodified = 1;
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enable Rain Post Process");
-				ImGui::PopItemWidth();
-
-				if (t.visuals.bRainEnabled)
-				{
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Rain Speed X");
-					if (ImGui::SliderFloat("##Rain Speed X", &t.visuals.fRainSpeedX,-100.0,100.0))
-					{
-						t.gamevisuals.fRainSpeedX = t.visuals.fRainSpeedX;
-					}
-					ImGui::PopItemWidth();
-
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Rain Speed Y");
-					if (ImGui::SliderFloat("##Rain Speed Y", &t.visuals.fRainSpeedY, -100.0, 100.0))
-					{
-						t.gamevisuals.fRainSpeedY = t.visuals.fRainSpeedY;
-					}
-					ImGui::PopItemWidth();
-
-
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Rain Opacity");
-					if (ImGui::SliderFloat("##Rain Opacity", &t.visuals.fRainOpacity,-1.0,1.0))
-					{
-						master_renderer->setRainOpacity(t.visuals.fRainOpacity);
-						t.gamevisuals.fRainOpacity = t.visuals.fRainOpacity;
-					}
-					ImGui::PopItemWidth();
-
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Rain Scale X");
-					if (ImGui::SliderFloat("##Rain Scal X", &t.visuals.fRainScaleX, -4.0, 4.0))
-					{
-						master_renderer->setRainScaleX(t.visuals.fRainScaleX);
-						t.gamevisuals.fRainScaleX = t.visuals.fRainScaleX;
-					}
-					ImGui::PopItemWidth();
-
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Rain Scale Y");
-					if (ImGui::SliderFloat("##Rain Scal Y", &t.visuals.fRainScaleY, -4.0, 4.0))
-					{
-						master_renderer->setRainScaleY(t.visuals.fRainScaleY);
-						t.gamevisuals.fRainScaleY = t.visuals.fRainScaleY;
-					}
-					ImGui::PopItemWidth();
-
-
-					ImGui::PushItemWidth(-10);
-					ImGui::TextCenter("Refreaction Scale");
-					if (ImGui::SliderFloat("##RefreactionScale", &t.visuals.fRainRefreactionScale, 0.0, 0.5))
-					{
-						master_renderer->setRainRefreactionScale(t.visuals.fRainRefreactionScale);
-						t.gamevisuals.fRainRefreactionScale = t.visuals.fRainRefreactionScale;
-					}
-					ImGui::PopItemWidth();
-
-				}
-				*/
-				#endif
-
 				//tab_tab_Column_text("FXAA", fTabColumnWidth);
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("FXAA##setFXAAEnabled", &t.visuals.bFXAAEnabled)) {
@@ -7305,9 +7266,9 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("FXAA can smooth out edges on-screen that look pixelated, at the cost of a slight blur");
 				ImGui::PopItemWidth();
 
+				/*
 				//tab_tab_Column_text("Tessellation", fTabColumnWidth);
 				//PE: Tessellation dont work, it deform some objects , so cant be used for now. it need to be controlled per mesh.
-				/*
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("Tessellation##setTessellationEnabled", &t.visuals.bTessellation)) {
 					t.gamevisuals.bTessellation = t.visuals.bTessellation;
@@ -7318,7 +7279,6 @@ void tab_tab_visuals(int iPage, int iMode)
 					g.projectmodified = 1;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Increases polygon counts for some objects based on how close they are to the camera");
-
 				ImGui::PopItemWidth();
 				*/
 
@@ -7333,56 +7293,7 @@ void tab_tab_visuals(int iPage, int iMode)
 						g.projectmodified = 1;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enables light rays to cast from the sun");
-
-					//if (t.visuals.bLightShafts)
-					//{
-					//	ImGui::PushItemWidth(-20.0f);
-					//	float fTmp = 0.0f;
-					//	int iLightShaftsNeedUpdating = 0;
-					//
-					//	fTmp = t.visuals.lightShaftDensity * 100.0f;
-					//	ImGui::TextCenter("Density");
-					//	if (ImGui::MaxSliderInputFloat("##LightShaftDensity", &fTmp, 0.0f, 100.0f, 0))
-					//	{
-					//		t.visuals.lightShaftDensity = fTmp * 0.01f;
-					//		t.gamevisuals.lightShaftDensity = t.visuals.lightShaftDensity;
-					//		iLightShaftsNeedUpdating = 1;
-					//	}
-					//	fTmp = t.visuals.lightShaftWeight * 100.0f;
-					//	ImGui::TextCenter("Weight");
-					//	if (ImGui::MaxSliderInputFloat("##LightShaftWeight", &fTmp, 0.0f, 100.0f, 0))
-					//	{
-					//		t.visuals.lightShaftWeight = fTmp * 0.01f;
-					//		t.gamevisuals.lightShaftWeight = t.visuals.lightShaftWeight;
-					//		iLightShaftsNeedUpdating = 1;
-					//	}
-					//	fTmp = t.visuals.lightShaftDecay * 100.0f;
-					//	ImGui::TextCenter("Decay");
-					//	if (ImGui::MaxSliderInputFloat("##LightShaftDecay", &fTmp, 0.0f, 100.0f, 0))
-					//	{
-					//		t.visuals.lightShaftDecay = fTmp * 0.01f;
-					//		t.gamevisuals.lightShaftDecay = t.visuals.lightShaftDecay;
-					//		iLightShaftsNeedUpdating = 1;
-					//	}
-					//	fTmp = t.visuals.lightShaftExposure * 100.0f;
-					//	ImGui::TextCenter("Exposure");
-					//	if (ImGui::MaxSliderInputFloat("##LightShaftExposure", &fTmp, 0.0f, 100.0f, 0))
-					//	{
-					//		t.visuals.lightShaftExposure = fTmp * 0.01f;
-					//		t.gamevisuals.lightShaftExposure = t.visuals.lightShaftExposure;
-					//		iLightShaftsNeedUpdating = 1;
-					//	}
-					//
-					//	if (iLightShaftsNeedUpdating)
-					//	{
-					//		WickedCall_SetLightShaftParameters(t.visuals.lightShaftDensity, t.visuals.lightShaftWeight,
-					//			t.visuals.lightShaftDecay, t.visuals.lightShaftExposure);
-					//		g.projectmodified = 1;
-					//	}
-					//	ImGui::PopItemWidth();
-					//}
 					ImGui::PopItemWidth();
-
 				}
 
 				// LB: aded lens flare
@@ -7495,6 +7406,8 @@ void tab_tab_visuals(int iPage, int iMode)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Ambient Occlusion power (default=1.0)");
 					ImGui::PopItemWidth();
 				}
+
+				// end post processing
 				ImGui::Indent(-10);
 			}
 			#ifdef ADVANCEDCOLORS
@@ -8624,8 +8537,8 @@ void Wicked_Update_Visuals(void *voidvisual)
 			// VSYNC override to switch OFF the VSYNC (each level can control on/off of the VSYNC in MAX)
 			master.bVsyncEnabled = false;
 		}
-		wiEvent::SetVSync(master.bVsyncEnabled);
-		
+		gridedit_setvsync(master.bVsyncEnabled);
+
 		master_renderer->setBloomEnabled(visuals->bBloomEnabled);
 		master_renderer->setBloomThreshold(visuals->fsetBloomThreshold);
 		master_renderer->setBloomStrength(visuals->fsetBloomStrength);
@@ -25707,32 +25620,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				bLightChanged = true;
 			}
 			ImGui::PopItemWidth();
-
-			/* Wicked Not Entirely Support Changing This (For Now)!
-			// drop down to control env map resolution
-			ImGui::TextCenter("Global Probe Resolution");
-			const char* items_align[] = { "128", "256", "512", "1024", "2048" };
-			int type_selection = 0;
-			if (t.visuals.iEnvProbeResolution == 128) type_selection = 0;
-			else if (t.visuals.iEnvProbeResolution == 256) type_selection = 1;
-			else if (t.visuals.iEnvProbeResolution == 512) type_selection = 2;
-			else if (t.visuals.iEnvProbeResolution == 1024) type_selection = 3;
-			else if (t.visuals.iEnvProbeResolution == 2048) type_selection = 4;
-			ImGui::PushItemWidth(-10);
-			if (ImGui::Combo("##setenvproberesolution", &type_selection, items_align, IM_ARRAYSIZE(items_align)))
-			{
-				if (type_selection == 0) t.visuals.iEnvProbeResolution = 128;
-				else if (type_selection == 1) t.visuals.iEnvProbeResolution = 256;
-				else if (type_selection == 2) t.visuals.iEnvProbeResolution = 512;
-				else if (type_selection == 3) t.visuals.iEnvProbeResolution = 1024;
-				else if (type_selection == 4) t.visuals.iEnvProbeResolution = 2048;
-				Wicked_Update_Visuals((void*)&t.visuals);
-				g.projectmodified = 1;
-				g_bLightProbeScaleChanged = true;
-				bLightChanged = true;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Choose a global envrionment map resolution for light probes. Note that this is a per-level global setting and affects all probes in the level");
-			*/
 
 			// and done
 			return;
@@ -48401,34 +48288,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 								if (Storyboard.Nodes[nodeid].widget_action[index] == STORYBOARD_ACTIONS_NONE)
 								{
-									// depends on name of this button for the action (replace with better 'external custom' list instead of these internal enums)
+									// depends on name of this button for the action
 									int iActionTypeInternalByName = 0;
 									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGHEST") == 0) iActionTypeInternalByName = 1;
-									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "HIGH") == 0) iActionTypeInternalByName = 2;
 									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "MEDIUM") == 0) iActionTypeInternalByName = 3;
 									if (stricmp(Storyboard.Nodes[nodeid].widget_label[index], "LOW") == 0) iActionTypeInternalByName = 4;
 									if (iActionTypeInternalByName >= 1 && iActionTypeInternalByName <= 4)
 									{
-										if (iActionTypeInternalByName == 1)
-										{
-											t.visuals.shaderlevels.entities = 1;
-											t.visuals.shaderlevels.terrain = 1;
-											t.visuals.shaderlevels.vegetation = 1;
-										}
-										if (iActionTypeInternalByName == 2 || iActionTypeInternalByName == 3)
-										{
-											t.visuals.shaderlevels.entities = 2;
-											t.visuals.shaderlevels.terrain = 3;
-											t.visuals.shaderlevels.vegetation = 3;
-										}
-										if (iActionTypeInternalByName == 4)
-										{
-											t.visuals.shaderlevels.entities = 3;
-											t.visuals.shaderlevels.terrain = 4;
-											t.visuals.shaderlevels.vegetation = 4;
-										}
-										extern void visuals_shaderlevels_update();
-										visuals_shaderlevels_update();
+										extern void visuals_shaderlevels_setlevel (int, bool);
+										visuals_shaderlevels_setlevel(iActionTypeInternalByName,true);
 									}
 								}
 

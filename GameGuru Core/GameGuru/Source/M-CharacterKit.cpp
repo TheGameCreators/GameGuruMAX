@@ -920,29 +920,19 @@ void characterkit_draw ( void )
 	{
 		pastebitmapfont(t.tccmessage_s.Get(),(GetChildWindowWidth()/2) - (getbitmapfontwidth (t.tccmessage_s.Get(),1)/2),GetChildWindowHeight()-70,1,255);
 	}
-	else
-	{
-		#ifdef VRTECH
-		#else
-		 pastebitmapfont("Left click the section of the object you wish to change",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("Left click the section of the object you wish to change",1)/2),GetChildWindowHeight()-100,1,255);
-		 pastebitmapfont("or right click to rotate",(GetChildWindowWidth()/2) - (getbitmapfontwidth ("or right click to rotate",1)/2),GetChildWindowHeight()-70,1,255);
-		#endif
-	}
 
 	//  draw to screen if active
 	if (  t.characterkit.loaded == 1 ) 
 	{
-
 		t.inputsys.xmouse = t.tccoldmousex;
 		t.inputsys.ymouse = t.tccoldmousey;
 
-		//  Draw the sliders
+		// Draw the sliders
 		t.characterkit.inUse = 1;
 		sliders_readall ( );
 		sliders_loop ( );
 		sliders_draw ( );
 		t.characterkit.inUse = 0;
-
 	}
 }
 

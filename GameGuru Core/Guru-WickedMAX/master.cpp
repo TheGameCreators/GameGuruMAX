@@ -476,11 +476,7 @@ void Master::InitializeSecondaries()
 	int iDisplayHeight = masterrenderer.GetPhysicalHeight();
 	InitDisplayAndGlob(hInst, hMainWnd, gUnpackDirectory, iDisplayWidth, iDisplayHeight);
 
-	// set this size early befiore probe resources created later
-	//wiScene::GetScene().SetEnvProbeResolution(128); Wicked Not Entirely Support Changing This (For Now)!
-
 	// Some constructor calls still required
-
 	CameraConstructor();
 	LightConstructor();
 	SoundConstructor();

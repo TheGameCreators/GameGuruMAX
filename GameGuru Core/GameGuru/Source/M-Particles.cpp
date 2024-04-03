@@ -1572,12 +1572,6 @@ void env_add_test_particles(float fSpeedAdjust)
 
 		//Reset after use.
 		g.tEmitter.imageNumberSecond = 0;
-
-		//ravey_particles_load_effect("effectbank\\reloaded\\decal_basicface.fx", environment_emitter_id3);
-		//ravey_particles_load_effect("effectbank\\reloaded\\decal_basic.fx", environment_emitter_id3);
-		//visuals_shaderlevels_entities_update();
-
-		//"effectbank\\reloaded\\decal_basic.fx"
 	}
 }
 

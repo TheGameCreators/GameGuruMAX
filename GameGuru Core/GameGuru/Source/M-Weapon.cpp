@@ -1475,14 +1475,17 @@ void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPe
 		}
 	}
 
-	//  setup particle emitters for this projectile
-	//  but only if entities not set to LOWEST as particle trails are expensive!
-	t.tokay = 1 ; if (  t.visuals.shaderlevels.entities == 3  )  t.tokay = 0;
-	if (  t.WeaponProjectileBase[t.tProjectileType].particleType>0 && t.tokay == 1 ) 
+	// setup particle emitters for this projectile
+	/*
+	// but only if entities not set to LOWEST as particle trails are expensive!
+	t.tokay = 1 ; if (  t.visuals.shader levels.entities == 3  )  t.tokay = 0;
+	if (  t.WeaponProjectileBase[t.tProjectileType].particleType>0 && t.tokay == 1 )
+	*/
+	if ( t.WeaponProjectileBase[t.tProjectileType].particleType > 0 ) 
 	{
 		ravey_particles_get_free_emitter ( );
 		t.WeaponProjectile[t.tNewProj].tempEmitter = t.tResult;
-		if (  t.tResult>0 ) 
+		if ( t.tResult>0 ) 
 		{
 			weapon_add_projectile_particles ( );
 		}

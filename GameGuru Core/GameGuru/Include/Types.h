@@ -3865,7 +3865,6 @@ struct visualstype
 	float WaterFlowSpeed;
 	int iEnvironmentWeather;
 
-#ifdef WICKEDENGINE
 	float WaterFogMinDist;
 	float WaterFogMaxDist;
 	float WaterFogMinAmount;
@@ -3999,8 +3998,9 @@ struct visualstype
 
 	int iEnvProbeResolution = 128;
 
+	int newperformancepresets = 0;
+
 	cStr customTexturesFolder = "";
-#endif
 
 	// Constructor
 	visualstype ( )

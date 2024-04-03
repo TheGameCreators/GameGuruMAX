@@ -27,20 +27,20 @@ namespace GGGrass
 void visuals_init ( void )
 {
 	//  Default visual settings
-	if ( GetMaxPixelShaderValue() >= 3.0 ) 
-	{
-		t.visuals.shaderlevels.terrain=1;
-		t.visuals.shaderlevels.entities=1;
-		t.visuals.shaderlevels.vegetation=1;
-		t.visuals.shaderlevels.lighting=2;
-	}
-	else
-	{
-		t.visuals.shaderlevels.terrain=3;
-		t.visuals.shaderlevels.entities=2;
-		t.visuals.shaderlevels.vegetation=3;
-		t.visuals.shaderlevels.lighting=2;
-	}
+	//if ( GetMaxPixelShaderValue() >= 3.0 ) // Yikes - that was old :)
+	//{
+	t.visuals.shaderlevels.terrain=1;
+	t.visuals.shaderlevels.entities=1;
+	t.visuals.shaderlevels.vegetation=1;
+	t.visuals.shaderlevels.lighting=2;
+	//}
+	//else
+	//{
+	//	t.visuals.shaderlevels.terrain=3;
+	//	t.visuals.shaderlevels.entities=2;
+	//	t.visuals.shaderlevels.vegetation=3;
+	//	t.visuals.shaderlevels.lighting=2;
+	//}
 
 	//  Global settings
 	t.visuals.mode=1;
@@ -115,30 +115,21 @@ void visuals_calcsunanglefromtimeofday(int iTimeOfday, float* pfSunAngleX, float
 
 void visuals_resetvalues (bool bNewLevel)
 {
-	//  Visual Settings
-
+	// Visual Settings
 	t.visuals.FogR_f=140;
 	t.visuals.FogG_f=158;
 	t.visuals.FogB_f=173;
 	t.visuals.FogA_f=128;
 	t.visuals.AmbienceIntensity_f=128.0f;
-	#ifdef WICKEDENGINE
+
 	t.visuals.FogNearest_f = 40000;
 	t.visuals.FogDistance_f = 700000;
 	t.visuals.AmbienceRed_f = 70;
 	t.visuals.AmbienceGreen_f = 70;
 	t.visuals.AmbienceBlue_f = 70;
-	//t.visuals.AmbienceRed_f = 60;
-	//t.visuals.AmbienceGreen_f = 60;
-	//t.visuals.AmbienceBlue_f = 60;
+
 	t.visuals.iPhysicsDebugDraw = 0;
-	#else
-	t.visuals.FogNearest_f = 5800;
-	t.visuals.FogDistance_f = 50000;
-	t.visuals.AmbienceRed_f=128;
-	t.visuals.AmbienceGreen_f=128;
-	t.visuals.AmbienceBlue_f=128;
-	#endif
+
 	t.visuals.SurfaceIntensity_f=1.333;
 	t.visuals.SurfaceRed_f=255;
 	t.visuals.SurfaceGreen_f=255;
@@ -166,15 +157,9 @@ void visuals_resetvalues (bool bNewLevel)
 	//  Camera settings
 	t.visuals.CameraNEAR_f=DEFAULT_NEAR_PLANE;
 	t.visuals.CameraFAR_f=DEFAULT_FAR_PLANE;
-	#ifdef WICKEDENGINE
 	t.visuals.CameraASPECT_f = 1920.0 / 1080.0; //PE: Fixed in wicked, or fov will be wrong on widescreen.
 	t.visuals.CameraFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0; //PE: Fixed in wicked.
 	t.visuals.WeaponFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0;
-	#else
-	t.visuals.CameraASPECT_f=g.realaspect_f;
-	t.visuals.CameraFOV_f=80/t.visuals.CameraASPECT_f;
-	t.visuals.WeaponFOV_f=80/t.visuals.CameraASPECT_f;
-	#endif
 	t.visuals.CameraFOVZoomed_f=1.0;
 
 	//  Quality Settings
@@ -182,15 +167,9 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.TerrainLOD2_f=5000.0;
 	t.visuals.TerrainLOD3_f=5500.0;
 	t.visuals.TerrainSize_f=100.0;
-	#ifdef WICKEDENGINE
 	t.visuals.VegQuantity_f=100.0;
 	t.visuals.VegWidth_f=50.0;
 	t.visuals.VegHeight_f=50.0;
-	#else
-	t.visuals.VegQuantity_f=50.0;
-	t.visuals.VegWidth_f=50.0;
-	t.visuals.VegHeight_f=50.0;
-	#endif
 
 	//  World Settings (reset to default selections)
 	terrain_initstyles_reset ( );
@@ -212,20 +191,14 @@ void visuals_resetvalues (bool bNewLevel)
 	t.strwork = ""; t.strwork = t.strwork +"visuals.vegetation$="+t.visuals.vegetation_s;
 	timestampactivity(0,t.strwork.Get());
 
-
-	#ifdef WICKEDENGINE
 	float fWaterLine = t.terrain.waterliney_f;
-	#endif
 
 	visuals_water_reset();
 
-	#ifdef WICKEDENGINE
 	//PE: Dont change water line as each biome is different.
 	if (!bNewLevel)
 		g.gdefaultwaterheight = t.terrain.waterliney_f = fWaterLine;
-	#endif
 
-	#ifdef WICKEDENGINE
 	t.visuals.CameraFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0;
 	t.visuals.WeaponFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0;
 
@@ -318,16 +291,13 @@ void visuals_resetvalues (bool bNewLevel)
 
 	t.visuals.fLevelDifficulty = 50.0;
 
-	for (int iL = 0; iL < 32; iL++) {
+	for (int iL = 0; iL < 32; iL++) 
+	{
 		t.visuals.sTerrainTextures[iL] = "";
 		t.visuals.sTerrainTexturesName[iL] = "";
-		#ifndef WICKEDENGINE
-		//PE: Currently we dont have any custom texture so no need to reload all.
-		extern bool iDeleteAllTerrainTextures;
-		iDeleteAllTerrainTextures = true;
-		#endif
 	}
-	for (int iL = 0; iL < 128; iL++) {
+	for (int iL = 0; iL < 128; iL++) 
+	{
 		t.visuals.sGrassTextures[iL] = "";
 		t.visuals.sGrassTexturesName[iL] = "";
 		extern bool iDeleteAllGrassTextures;
@@ -375,6 +345,8 @@ void visuals_resetvalues (bool bNewLevel)
 
 	t.visuals.iEnvProbeResolution = 128;
 
+	t.visuals.newperformancepresets = 0;
+
 	if (t.visuals.skyindex == 0)
 	{
 		extern wiECS::Entity g_weatherEntityID;
@@ -396,7 +368,6 @@ void visuals_resetvalues (bool bNewLevel)
 	void Wicked_Update_Visuals(void *voidvisual);
 	Wicked_Update_Visuals((void *)&t.visuals);
 	//PE: MEM - 1480 : Done Wicked_Update_Visuals((void *)&t.visuals);          S:889MB V : (4510, 0)
-#endif
 }
 
 void visuals_editordefaults ( void )
@@ -407,27 +378,12 @@ void visuals_editordefaults ( void )
 	t.visuals.shaderlevels.entities=2;
 	t.visuals.shaderlevels.vegetation=3;
 	t.visuals.shaderlevels.lighting=2;
+
 	t.visuals.TerrainLOD1_f=8000.0;
 	t.visuals.TerrainLOD2_f=15000.0;
 	t.visuals.TerrainLOD3_f=20000.0;
 	t.visuals.TerrainSize_f=100.0f;
 	t.visuals.AmbienceIntensity_f=89.25f;
-	#ifdef WICKEDENGINE
-
-	//PE: Allow any ambience in editor - https://github.com/TheGameCreators/GameGuruRepo/issues/1298
-	//t.visuals.AmbienceRed_f = 190;
-	//t.visuals.AmbienceGreen_f = 190;
-	//t.visuals.AmbienceBlue_f = 190;
-
-	//t.visuals.AmbienceRed_f = 60;
-	//t.visuals.AmbienceGreen_f = 60;
-	//t.visuals.AmbienceBlue_f = 60;
-
-	#else
-	t.visuals.AmbienceRed_f=128;
-	t.visuals.AmbienceGreen_f=128;
-	t.visuals.AmbienceBlue_f=128;
-	#endif
 	//PE: We should always have light in editor, addition to issue: https://github.com/TheGameCreators/GameGuruRepo/issues/352#event-2404317522
 	//PE: fix for commit: https://github.com/TheGameCreators/GameGuruRepo/commit/4aff257545b19a969e4676c7b057a42d8e93fdf1
 	t.visuals.SurfaceSunFactor_f = 1.0;
@@ -435,50 +391,29 @@ void visuals_editordefaults ( void )
 	t.visuals.SurfaceRed_f=255;
 	t.visuals.SurfaceGreen_f=255;
 	t.visuals.SurfaceBlue_f=255;
-#ifndef WICKEDENGINE
-	t.visuals.FogNearest_f=10000;
-	t.visuals.FogDistance_f=500000;
-	t.visuals.FogR_f=0;
-	t.visuals.FogG_f=0;
-	t.visuals.FogB_f=0;
-	t.visuals.FogA_f=0;
-#endif
 	t.visuals.PostBrightness_f=0.0;
 	t.visuals.PostContrast_f=1.1666f;
 
-	#ifdef WICKEDENGINE
 	t.visuals.CameraASPECT_f = 1920.0 / 1080.0; //PE: Fixed in wicked, or fov will be wrong on widescreen.
 	t.visuals.CameraFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0; //PE: Fixed in wicked.
 	t.visuals.WeaponFOV_f = 60; //LB:Default now 90 degree (XM_PI/(fov/15.0f) was 45.0;
-	#else
-	t.visuals.CameraASPECT_f=g.realaspect_f;
-	t.visuals.CameraFOV_f = 80 / t.visuals.CameraASPECT_f;
-	t.visuals.WeaponFOV_f = 85 / t.visuals.CameraASPECT_f;
-	#endif
+
 	//PE: Only have camera settings in test game.
 	t.visuals.CameraNEAR_f = DEFAULT_NEAR_PLANE;
 	t.visuals.CameraFAR_f = DEFAULT_FAR_PLANE;
 	t.visuals.CameraFOVZoomed_f=1.0f;
 	t.visuals.shadowmode=100;
 
-	#ifdef WICKEDENGINE
 	if (t.visuals.FogA_f > 2.0)
 		t.visuals.FogA_f = 0;
-	#endif
 	
 	t.editorvisuals=t.visuals;
-
-
 }
 
 void visuals_water_reset(void)
 {
 	//Water Shader Settings
-	#ifdef WICKEDENGINE
 	g.gdefaultwaterheight = -500.0f;// GGORIGIN_Y; properly out the picture (stops it showing on grey grid level)
-	#else
-	g.gdefaultwaterheight = GGORIGIN_Y;
-	#endif
 	t.terrain.waterliney_f = g.gdefaultwaterheight;
 	t.visuals.WaterRed_f = 9;
 	t.visuals.WaterGreen_f = 21;
@@ -492,11 +427,9 @@ void visuals_water_reset(void)
 	t.visuals.WaterFlowDirectionY = 1;
 	t.visuals.WaterDistortionWaves = 0.030f;
 	t.visuals.WaterSpeed1 = 0.06f;
-	#ifdef WICKEDENGINE
 	t.visuals.WaterFogMaxDist = 11500.0f;
 	t.visuals.WaterFogMinDist = 0.0f;
 	t.visuals.WaterFogMinAmount = 0.25f;
-	#endif
 	t.visuals.WaterFlowSpeed = 1.0f;
 }
 
@@ -769,7 +702,6 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Weather=" + Str(t.visuals.iEnvironmentWeather);
 	WriteString(1, t.strwork.Get());
 
-#ifdef WICKEDENGINE
 	t.strwork = ""; t.strwork = t.strwork + "visuals.SunIntensity=" + Str(t.visuals.SunIntensity_f);
 	WriteString(1, t.strwork.Get());
 
@@ -941,7 +873,8 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LevelDifficulty=" + Str(t.visuals.fLevelDifficulty);
 	WriteString(1, t.strwork.Get());
 	
-	for (int iL = 0; iL < 32; iL++) {
+	for (int iL = 0; iL < 32; iL++) 
+	{
 		if (t.visuals.sTerrainTextures[iL] != "")
 		{
 			t.strwork = ""; t.strwork = t.strwork + "visuals.TerrainTextures" + cStr(iL) + "=" + cStr(t.visuals.sTerrainTextures[iL]);
@@ -950,7 +883,8 @@ void visuals_save ( void )
 			WriteString(1, t.strwork.Get());
 		}
 	}
-	for (int iL = 0; iL < 128; iL++) {
+	for (int iL = 0; iL < 128; iL++) 
+	{
 		if (t.visuals.sGrassTextures[iL] != "")
 		{
 			t.strwork = ""; t.strwork = t.strwork + "visuals.GrassTextures" + cStr(iL) + "=" + cStr(t.visuals.sGrassTextures[iL]);
@@ -1034,13 +968,13 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.EnvProbeResolution=" + Str(t.visuals.iEnvProbeResolution);
 	WriteString(1, t.strwork.Get());
 
-#endif
+	t.strwork = ""; t.strwork = t.strwork + "visuals.NewPerformancePresets=" + Str(t.visuals.newperformancepresets);
+	WriteString(1, t.strwork.Get());
 
 	WriteString (  1, "" );
+
 	CloseFile (  1 );
-
-return;
-
+	return;
 }
 
 void visuals_load ( void )
@@ -1066,7 +1000,6 @@ void visuals_load ( void )
 	visuals_water_reset();
 
 	//Wicked defaults.
-	#ifdef WICKEDENGINE
 	t.visuals.SkyIntensity_f = 1.0f;
 	t.visuals.SunIntensity_f = 9.0f;
 	t.visuals.SunRed_f = 255.0f;
@@ -1148,15 +1081,6 @@ void visuals_load ( void )
 
 	t.visuals.fLevelDifficulty = 50.0;
 
-	for (int iL = 0; iL < 32; iL++) {
-		//t.visuals.sTerrainTextures[iL] = "";
-		//t.visuals.sTerrainTexturesName[iL] = "";
-		#ifndef WICKEDENGINE
-		//PE: Currently we dont have any custom texture so no need to reload all.
-		extern bool iDeleteAllTerrainTextures;
-		iDeleteAllTerrainTextures = true;
-		#endif
-	}
 	for (int iL = 0; iL < 128; iL++) 
 	{
 		t.visuals.sGrassTextures[iL] = "";
@@ -1198,12 +1122,15 @@ void visuals_load ( void )
 	t.visuals.fSnowOpacity = 1.0;
 	t.visuals.fSnowOffset = 0.0;
 
-	#endif
+	// special flag to know when new performance defaults applied
+	t.visuals.newperformancepresets = 0;
 
-	//  load all visual settings
-	if (  g.fpscrootdir_s == "" ) 
+	// load all visual settings
+	bool bVisualFileFromLevel = false;
+	if ( g.fpscrootdir_s == "" ) 
 	{
 		t.visfile_s="visuals.ini";
+		bVisualFileFromLevel = true;
 	}
 	else
 	{
@@ -1343,7 +1270,6 @@ void visuals_load ( void )
 			t.try_s = "visuals.WaterFlowSpeed"; if (t.tfield_s == t.try_s)  t.visuals.WaterFlowSpeed = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.Weather"; if (t.tfield_s == t.try_s)  t.visuals.iEnvironmentWeather = ValF(t.tvalue_s.Get());
 
-			#ifdef WICKEDENGINE
 			//PE: Why was SunIntensity disabled (commented out) ? , re enabled it so it can be saved/loaded with levels.
 			t.try_s = "visuals.SunIntensity"; if (t.tfield_s == t.try_s)  t.visuals.SunIntensity_f = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.SunRed"; if (t.tfield_s == t.try_s)  t.visuals.SunRed_f = ValF(t.tvalue_s.Get());
@@ -1457,16 +1383,8 @@ void visuals_load ( void )
 
 			t.try_s = "visuals.LevelDifficulty"; if (t.tfield_s == t.try_s)  t.visuals.fLevelDifficulty = ValF(t.tvalue_s.Get());
 
-			// Moving to custommaterials.dat
-			/*for (int iL = 0; iL < 32; iL++) {
-				t.try_s = cStr("visuals.TerrainTextures")+cStr(iL);
-				if (t.tfield_s == t.try_s)
-					t.visuals.sTerrainTextures[iL] = t.tvalue_s;
-				t.try_s = cStr("visuals.TerrainTexturesName") + cStr(iL);
-				if (t.tfield_s == t.try_s)
-					t.visuals.sTerrainTexturesName[iL] = t.tvalue_s;
-			}*/
-			for (int iL = 0; iL < 128; iL++) {
+			for (int iL = 0; iL < 128; iL++) 
+			{
 				t.try_s = cStr("visuals.GrassTextures") + cStr(iL);
 				if (t.tfield_s == t.try_s)
 					t.visuals.sGrassTextures[iL] = t.tvalue_s;
@@ -1478,7 +1396,6 @@ void visuals_load ( void )
 				if (t.tfield_s == t.try_s)
 					t.visuals.sFactionName[iL] = t.tvalue_s;
 			}
-
 
 			t.try_s = "visuals.EndableAmbientMusicTrack"; if (t.tfield_s == t.try_s)  t.visuals.bEndableAmbientMusicTrack = ValF(t.tvalue_s.Get());
 			t.try_s = cStr("visuals.AmbientMusicTrack"); if (t.tfield_s == t.try_s) t.visuals.sAmbientMusicTrack = t.tvalue_s;
@@ -1519,12 +1436,12 @@ void visuals_load ( void )
 
 			t.try_s = "visuals.EnvProbeResolution"; if (t.tfield_s == t.try_s)  t.visuals.iEnvProbeResolution = ValF(t.tvalue_s.Get());
 
-			#endif
+			t.try_s = "visuals.NewPerformancePresets"; if (t.tfield_s == t.try_s)  t.visuals.newperformancepresets = ValF(t.tvalue_s.Get());
 
 		} while ( !(  Len(t.tline_s.Get())<2 ) );
+
 		CloseFile (  1 );
 
-		#ifdef WICKEDENGINE
 		// LB: Detect old MAX level values, and correct here
 		if (t.visuals.WaterSpeed1 > 1.0f)
 		{
@@ -1534,17 +1451,26 @@ void visuals_load ( void )
 			t.visuals.fWaterPatchLength = 10.0f;
 			t.visuals.bWaterEnable = false;
 		}
-		#endif
 		t.terrain.waterliney_f = g.gdefaultwaterheight;
 
-		#ifdef WICKEDENGINE
 		if (!t.visuals.bWaterEnable)
 		{
 			t.terrain.waterliney_f = g.gdefaultwaterheight = -10000.0f;
 		}
+
 		// reset grass type choices to paint with
 		grass_resetchoices();
-		#endif
+
+		// if older visuals file and loaded into new performance aware engine, add best defaults for PERFORMANCE! No-one remarks on QUALITY in Steam Reviews, so favor PERFORMANCE.
+		if (bVisualFileFromLevel == true)
+		{
+			if (t.visuals.newperformancepresets == 0)
+			{
+				bool bUpdateEngine = false;
+				visuals_shaderlevels_setlevel(4, bUpdateEngine); // LOW - best for performance :)
+				t.visuals.newperformancepresets = 1;
+			}
+		}
 	}
 
 	//  Right away we cap 'VERTICAL' CameraFOV# for legacy levels which could set it VERY high
@@ -2679,25 +2605,119 @@ void visuals_loop ( void )
 	#endif
 }
 
-void visuals_shaderlevels_update (void)
+void visuals_shaderlevels_update_core (bool bUpdateEngine)
 {
-	//HIGHEST
-	//t.visuals.shaderlevels.entities = 1;
-	//t.visuals.shaderlevels.terrain = 1;
-	//t.visuals.shaderlevels.vegetation = 1;
+	// HIGHEST
+	// t.visuals.shaderlevels.entities = 1;
+	// t.visuals.shaderlevels.terrain = 1;
+	// t.visuals.shaderlevels.vegetation = 1;
+	// MEDIUM
+	// t.visuals.shaderlevels.entities = 2;
+	// t.visuals.shaderlevels.terrain = 3;
+	// t.visuals.shaderlevels.vegetation = 3;
+	// LOWEST
+	// t.visuals.shaderlevels.entities = 3;
+	// t.visuals.shaderlevels.terrain = 4;
+	// t.visuals.shaderlevels.vegetation = 4;
 
-	//MEDIUM
-	//t.visuals.shaderlevels.entities = 2;
-	//t.visuals.shaderlevels.terrain = 3;
-	//t.visuals.shaderlevels.vegetation = 3;
-
-	//LOWEST
-	//t.visuals.shaderlevels.entities = 3;
-	//t.visuals.shaderlevels.terrain = 4;
-	//t.visuals.shaderlevels.vegetation = 4;
+	// Settings for Editor and Game
+	extern bool bEnable30FpsAnimations;
+	extern bool g_bDelayedShadows;
+	extern bool g_bDelayedShadowsLaptop;
+	extern bool bEnableTerrainChunkCulling;
+	extern bool bEnablePointShadowCulling;
+	extern bool bEnableSpotShadowCulling;
+	extern bool bEnableObjectCulling;
+	extern bool bEnableAnimationCulling;
+	extern float maxApparentSize;
+	bool bPerformAnUpdate = false;
+	if (t.visuals.shaderlevels.entities == 2) // CUSTOM (MEDIUM)
+	{
+		// Custom settings - do not override
+	}
+	else
+	{
+		if (t.visuals.shaderlevels.entities == 1) // HIGHEST
+		{
+			bEnable30FpsAnimations = false;
+			g_bDelayedShadows = false;
+			g_bDelayedShadowsLaptop = false;
+			float fASize = 0.08f;
+			maxApparentSize = fASize / 10000.0f;
+			t.visuals.bLevelVSyncEnabled = true;
+			t.visuals.bReflectionsEnabled = true;
+			t.visuals.skyindex = 0;
+		}
+		if (t.visuals.shaderlevels.entities == 3) // LOW
+		{
+			bEnable30FpsAnimations = true;
+			g_bDelayedShadows = true;
+			g_bDelayedShadowsLaptop = true;
+			float fASize = 1.0f;
+			maxApparentSize = fASize / 10000.0f;
+			t.visuals.bLevelVSyncEnabled = false;
+			t.visuals.bReflectionsEnabled = false;
+			t.visuals.skyindex = 1;
+		}
+		t.visuals.bOcclusionCulling = true;
+		bEnableObjectCulling = true;
+		bEnableTerrainChunkCulling = true;
+		bEnablePointShadowCulling = true;
+		bEnableSpotShadowCulling = true;
+		bEnableAnimationCulling = true;
+		t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox = false;
+		bPerformAnUpdate = true;
+	}
+	if ( bPerformAnUpdate == true )
+	{
+		t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations = bEnable30FpsAnimations;
+		t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows = g_bDelayedShadows;
+		t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop = g_bDelayedShadowsLaptop;
+		t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
+		t.gamevisuals.bEnableTerrainChunkCulling = t.visuals.bEnableTerrainChunkCulling = bEnableTerrainChunkCulling;
+		t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling = bEnablePointShadowCulling;
+		t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
+		t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
+		t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling = bEnableAnimationCulling;
+		t.gamevisuals.ApparentSize = t.visuals.ApparentSize = maxApparentSize;
+		t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
+		if (bEnableTerrainChunkCulling && !t.visuals.bOcclusionCulling)
+		{
+			t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+		}
+		if (bEnablePointShadowCulling && !t.visuals.bOcclusionCulling)
+		{
+			t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+		}
+		if (bEnableSpotShadowCulling && !t.visuals.bOcclusionCulling)
+		{
+			t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+		}
+		if (bEnableObjectCulling && !t.visuals.bOcclusionCulling)
+		{
+			t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+		}
+		if (bEnableAnimationCulling && !t.visuals.bOcclusionCulling)
+		{
+			t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
+		}
+		t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling;
+		t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
+		if (bUpdateEngine == true)
+		{
+			wiRenderer::SetOcclusionCullingEnabled(t.visuals.bOcclusionCulling);
+			extern void gridedit_setvsync (bool);
+			gridedit_setvsync(t.visuals.bLevelVSyncEnabled);
+			extern void gridedit_setreflection (bool);
+			gridedit_setreflection(t.visuals.bReflectionsEnabled);
+			extern void gridedit_setsky (int);
+			gridedit_setsky(t.visuals.skyindex);
+			g.projectmodified = 1;
+		}
+	}
 
 	// Only do this in standalone as it will otherwise mess up editor settings!
-	if (t.game.gameisexe == 1)
+	if (bUpdateEngine == true && t.game.gameisexe == 1)
 	{
 		// Wicked controls some early performance levers:
 		static bool bInitGraphicsSettingsValues = true;
@@ -2763,170 +2783,34 @@ void visuals_shaderlevels_update (void)
 	}
 }
 
-/* all replaced to old shaders pre-Wicked
-void visuals_shaderlevels_update ( void )
+void visuals_shaderlevels_setlevel (int iActionTypeInternalByName, bool bUpdateEngine)
 {
-	#ifdef WICKEDENGINE
-	#else
-	if (  t.terrain.effectstartindex>0 ) 
+	if (iActionTypeInternalByName == 1)
 	{
-		if ( GetEffectExist(t.terrain.effectstartindex+0) == 1 ) visuals_shaderlevels_terrain_update ( );
+		t.visuals.shaderlevels.entities = 1;
+		t.visuals.shaderlevels.terrain = 1;
+		t.visuals.shaderlevels.vegetation = 1;
 	}
-	visuals_shaderlevels_entities_update ( );
-	if (  t.terrain.vegetationshaderindex>0 ) 
+	if (iActionTypeInternalByName == 3)
 	{
-		if ( GetEffectExist(t.terrain.vegetationshaderindex) == 1 ) visuals_shaderlevels_vegetation_update ( );
+		t.visuals.shaderlevels.entities = 2;
+		t.visuals.shaderlevels.terrain = 3;
+		t.visuals.shaderlevels.vegetation = 3;
 	}
-	#endif
+	if (iActionTypeInternalByName == 4)
+	{
+		t.visuals.shaderlevels.entities = 3;
+		t.visuals.shaderlevels.terrain = 4;
+		t.visuals.shaderlevels.vegetation = 4;
+	}
+	visuals_shaderlevels_update_core(bUpdateEngine);
 }
 
-void visuals_shaderlevels_terrain_update ( void )
+void visuals_shaderlevels_update (void)
 {
-	//  set the terrain shader technique
-	if (  t.visuals.shaderlevels.lighting == 1 && t.game.set.ismapeditormode == 0 ) 
-	{
-		if (  t.visuals.shaderlevels.terrain == 1 ) SetEffectTechnique ( t.terrain.terrainshaderindex, "Highest_Prebake" );
-		if (  t.visuals.shaderlevels.terrain == 2 ) SetEffectTechnique ( t.terrain.terrainshaderindex, "High_Prebake" );
-		if (  t.visuals.shaderlevels.terrain == 3 ) SetEffectTechnique ( t.terrain.terrainshaderindex, "Medium_Prebake" );
-		if (  t.visuals.shaderlevels.terrain == 4 ) SetEffectTechnique ( t.terrain.terrainshaderindex, "Lowest_Prebake" );
-	}
-	else
-	{
-		if (  t.game.set.ismapeditormode == 1 ) 
-		{
-			// for the editor view
-			SetEffectTechnique ( t.terrain.terrainshaderindex, "Medium" );
-		}
-		else
-		{
-			if (  t.visuals.shaderlevels.terrain == 1 ) SetEffectTechnique ( t.terrain.terrainshaderindex,"Highest" );
-			if (  t.visuals.shaderlevels.terrain == 2 ) SetEffectTechnique ( t.terrain.terrainshaderindex,"High" );
-			if (  t.visuals.shaderlevels.terrain == 3 ) SetEffectTechnique ( t.terrain.terrainshaderindex,"Medium" );
-			if (  t.visuals.shaderlevels.terrain == 4 ) SetEffectTechnique ( t.terrain.terrainshaderindex,"Lowest" );
-		}
-	}
-	//  terrain shader technique determines whether we must force NEAR techniques
-	if (  t.game.set.ismapeditormode == 1 ) 
-	{
-		BT_ForceTerrainTechnique (  1 );
-	}
-	else
-	{
-		if (  t.visuals.shaderlevels.terrain == 1 || t.visuals.shaderlevels.terrain == 2 ) 
-		{
-			BT_ForceTerrainTechnique (  1 );
-		}
-		else
-		{
-			BT_ForceTerrainTechnique (  0 );
-		}
-	}
+	bool bUpdateEngineToo = true;
+	visuals_shaderlevels_update_core (bUpdateEngineToo);
 }
-
-void visuals_shaderlevels_entities_update ( void )
-{
-	//  All entity shaders
-	for ( t.t = -6 ; t.t<=  g.effectbankmax; t.t++ )
-	{
-		if (  t.t == -6  )  t.teffectid = g.lightmappbreffectillum;
-		#ifdef VRTECH
-		if (  t.t == -5  )  t.teffectid = g.controllerpbreffect;
-		#else
-		if (t.t == -5)  continue;
-		#endif
-		if (  t.t == -4  )  t.teffectid = g.lightmappbreffect;
-		if (  t.t == -3  )  t.teffectid = g.thirdpersonentityeffect;
-		if (  t.t == -2  )  t.teffectid = g.thirdpersoncharactereffect;
-		if (  t.t == -1  )  t.teffectid = g.staticlightmapeffectoffset;
-		if (  t.t == 0  )  t.teffectid = g.staticshadowlightmapeffectoffset;
-		if (  t.t>0  )  t.teffectid = g.effectbankoffset+t.t;
-		if (  GetEffectExist(t.teffectid) == 1 ) 
-		{
-			#ifdef VRTECH
-			 // Distributor complained about entity shadows, so switch them off (and improve performance as a bonus)
-			 SetEffectTechnique ( t.teffectid, "Lowest" );
-			#else
-			 if (  t.visuals.shaderlevels.entities == 1  )  SetEffectTechnique (  t.teffectid,"Highest" );
-			 if (  t.visuals.shaderlevels.entities == 2  )  SetEffectTechnique (  t.teffectid,"Medium" );
-			 if (  t.visuals.shaderlevels.entities == 3  )  SetEffectTechnique (  t.teffectid,"Lowest" );
-			#endif
-		}
-	}
-
-	// All weapon shaders
-	for ( t.tgunid = 0; t.tgunid <= g.gunmax; t.tgunid++ )
-	{
-		t.teffectid = 0;
-		if ( t.tgunid == 0 ) t.teffectid = t.playercontrol.jetpackeffect;
-		if ( t.tgunid > 0 ) t.teffectid = t.gun[t.tgunid].effectidused;
-		if ( t.teffectid > 0 ) 
-		{
-			if ( GetEffectExist(t.teffectid) == 1 ) 
-			{
-				if ( t.visuals.shaderlevels.entities == 1 ) SetEffectTechnique ( t.teffectid, "Highest" );
-				if ( t.visuals.shaderlevels.entities == 2 ) SetEffectTechnique ( t.teffectid, "Medium" );
-				if ( t.visuals.shaderlevels.entities == 3 ) SetEffectTechnique ( t.teffectid, "Lowest" );
-			}
-		}
-	}
-}
-
-void visuals_shaderlevels_vegetation_update ( void )
-{
-	// grass techniques
-	if (  t.visuals.shaderlevels.vegetation == 1  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"Highest" );
-	if (  t.visuals.shaderlevels.vegetation == 2  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"High" );
-	if (  t.visuals.shaderlevels.vegetation == 3  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"Medium" );
-	if (  t.visuals.shaderlevels.vegetation == 4  )  SetEffectTechnique (  t.terrain.vegetationshaderindex,"Lowest" );
-}
-
-void visuals_shaderlevels_lighting_update ( void )
-{
-	// intersept use of PREBAKE mode, check if any LMSTUFF exists
-	if ( g.lightmappedterrainoffset == -1 && t.visuals.shaderlevels.lighting == 1 ) 
-	{
-		// show prompt if we reverted
-		if ( t.game.runasmultiplayer == 0 && t.game.gameisexe == 0 ) 
-		{
-			// show user a prompt
-			t.luaglobal.scriptprompttime=Timer()+3000;
-			t.luaglobal.scriptprompt_s="No baked light maps found, reverting to real time shadowing";
-		}
-	}
-
-	// perform the update
-	if ( t.visuals.shaderlevels.lighting == 1 && t.game.set.ismapeditormode == 0 ) 
-	{
-		//  prebake - show lighting objects and glass terrain shadows (hide real entities)
-		if ( g.inGameLightingMode == 0 )
-		{
-			g.inGameLightingMode = 1;
-			lm_showall ( );
-		}
-		if ( g.inGameLightingMode != 1 )
-		{
-			g.inGameLightingMode = 1;
-			lm_show_lmos ( );
-			HideIgnoredObjects ( );
-		}
-	}
-	else
-	{
-		// realtime - hide lighting objects and glass terrain shadows (show real entities)
-		if ( g.inGameLightingMode == 0 )
-		{
-			g.inGameLightingMode = 2;
-			lm_restoreall ( );
-		}
-		if ( g.inGameLightingMode != 2 )
-		{	
-			g.inGameLightingMode = 2;
-			lm_hide_lmos ( );
-			ShowIgnoredObjects ( );					
-		}
-	}
-}
-*/
 
 void visuals_underwater_on ( void )
 {

@@ -8897,7 +8897,7 @@ void imgui_Customize_Sky_V2(int mode)
 {
 	int wflags = ImGuiTreeNodeFlags_DefaultOpen;
 
-	if (pref.bAutoClosePropertySections && iLastOpenHeader != 1 && iLastOpenHeader < 14)
+	if (pref.bAutoClosePropertySections && iLastOpenHeader != 1)// && iLastOpenHeader < 14)
 		ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 
 	if (ImGui::StyleCollapsingHeader("Customize Sky", wflags))
@@ -8924,17 +8924,6 @@ void imgui_Customize_Sky_V2(int mode)
 		else if (!bSimulatedSky) iSkyType = 1;
 		else iSkyType = 0;
 
-		//if (ImGui::Checkbox("Simulated Sky", &bSimulatedSky))
-
-		//PE: Test simple sky still not a option. light shaft interfere.
-		//static bool bSimpleSkyTest = false;
-		//if (ImGui::Checkbox("Simulated Sky", &bSimpleSkyTest))
-		//{
-		//	extern wiECS::Entity g_weatherEntityID;
-		//	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-		//	if(weather) weather->SetSimpleSky(bSimpleSkyTest);
-		//}
-
 		const char* sky_combo[] = { "Simulated Sky", "Sky Box" , "None" };
 		if (ImGui::Combo("##Combosky_combo", &iSkyType, sky_combo, IM_ARRAYSIZE(sky_combo)))
 		{
@@ -8959,10 +8948,8 @@ void imgui_Customize_Sky_V2(int mode)
 			}
 
 			//NONE only possible with new t.visuals.int
-
 			extern wiECS::Entity g_weatherEntityID;
 			wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-
 			int skyindex = 0;
 			if (t.visuals.bDisableSkybox)
 			{
@@ -8978,18 +8965,13 @@ void imgui_Customize_Sky_V2(int mode)
 			else 
 			{
 				weather->SetRealisticSky( true );
-#ifdef GGTERRAIN_USE_NEW_TERRAIN
 				weather->SetVolumetricClouds( true );
 				t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday;
 				visuals_calcsunanglefromtimeofday(t.gamevisuals.iTimeOfday, &t.gamevisuals.SunAngleX, &t.gamevisuals.SunAngleY, &t.gamevisuals.SunAngleZ);
 				t.visuals.SunAngleX = t.gamevisuals.SunAngleX;
 				t.visuals.SunAngleY = t.gamevisuals.SunAngleY;
 				t.visuals.SunAngleZ = t.gamevisuals.SunAngleZ;
-				//PE: When using t.skyname_s == "None" we need visual update.
 				bRunUpdateVisual = true;
-				//Wicked_Update_Visuals((void *)&t.visuals);
-				//g.projectmodified = 1;
-#endif
 			}
 
 			t.visuals.skyindex = skyindex;

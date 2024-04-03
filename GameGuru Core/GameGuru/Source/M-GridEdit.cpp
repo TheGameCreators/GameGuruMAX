@@ -17955,18 +17955,14 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.vegetation_s=t.visuals.vegetation_s;
 	t.gamevisuals.iEnvironmentWeather = t.visuals.iEnvironmentWeather;
 
-	#ifdef WICKEDENGINE
 	// the visuals vs gamevisuals could do with some work, I noticed our ambience is being overwritten
-	// when it really needed to be transferred to the gamevisuals
-	// is this done elsewhere??
+	// when it really needed to be transferred to the gamevisuals (is this done elsewhere?)
 	t.gamevisuals.AmbienceRed_f = t.visuals.AmbienceRed_f;
 	t.gamevisuals.AmbienceGreen_f = t.visuals.AmbienceGreen_f;
 	t.gamevisuals.AmbienceBlue_f = t.visuals.AmbienceBlue_f;
 	t.gamevisuals.SunAngleX = t.visuals.SunAngleX;
 	t.gamevisuals.SunAngleY = t.visuals.SunAngleY;
 	t.gamevisuals.SunAngleZ = t.visuals.SunAngleZ;
-
-	//PE: Backup SetGlobalGraphicsSettings
 	t.gamevisuals.bSSREnabled = t.visuals.bSSREnabled;
 	t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled;
 	t.gamevisuals.bLightShafts = t.visuals.bLightShafts;
@@ -17977,13 +17973,30 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.iShadowPointResolution = t.visuals.iShadowPointResolution;
 	t.gamevisuals.iShadowSpotMax = t.visuals.iShadowSpotMax;
 	t.gamevisuals.iShadowSpotResolution = t.visuals.iShadowSpotResolution;
-
 	t.gamevisuals.iEnvProbeResolution = t.visuals.iEnvProbeResolution;
+	t.gamevisuals.newperformancepresets = t.visuals.newperformancepresets;
 
-	#endif
+	// ensure all optimization states are transferred to the game
+	t.gamevisuals.shaderlevels.entities = t.visuals.shaderlevels.entities;
+	t.gamevisuals.shaderlevels.lighting = t.visuals.shaderlevels.lighting;
+	t.gamevisuals.shaderlevels.terrain = t.visuals.shaderlevels.terrain;
+	t.gamevisuals.shaderlevels.vegetation = t.visuals.shaderlevels.vegetation;
+	t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling;
+	t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling;
+	t.gamevisuals.bEnableTerrainChunkCulling = t.visuals.bEnableTerrainChunkCulling;
+	t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling;
+	t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling;
+	t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling;
+	t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
+	t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations;
+	t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows;
+	t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop;
+	t.gamevisuals.ApparentSize = t.visuals.ApparentSize;
+	t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
+	t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
 
 	// copy game visuals to visuals for use in level play
-	t.visuals=t.gamevisuals;
+	t.visuals = t.gamevisuals;
 
 	#ifdef WICKEDENGINE
 	//PE: SetGlobalGraphicsSettings 2 = highest , this is the users current settings, user knows best dont change there settings.
@@ -18609,38 +18622,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	// remember game states for next time
 	visuals_save ( );
 
-	//PE: Before doing this, we should make sure that t.visuals LUA changes is not part of t.visuals.
-#ifdef PRODUCTCLASSIC
-	//PE: Restore settings from sliders. so .lua changes is not included.
-	t.slidersmenuindex = t.slidersmenunames.visuals;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.water;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.camera;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.posteffects;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.qualitypanel;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.worldpanel;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.graphicoptions;
-	sliders_write(true);
-	t.slidersmenuindex = t.slidersmenunames.shaderoptions;
-	sliders_write(true);
-
-#endif
-
-#ifdef WICKEDENGINE
-	//PE: t.visuals LUA changes Problem:
-	//PE: Max: Just dont copy gamevisuals = visuals ( all changes already goes to gamevisuals).
-	//PE: TODO validate that all "test game" settings is also changed in gamevisuals.
-	//PE: TODO after then removed line below on MAX only t.gamevisuals=t.visuals;
-#endif
-
-#ifndef WICKEDENGINE
 	t.gamevisuals=t.visuals;
-#endif
 
 	// and restore as would otherwise interfere with ?
 	g.gdefaultwaterheight = fStoreWaterLevel;
@@ -18655,16 +18637,9 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.vegetation_s=t.gamevisuals.vegetation_s;
 	t.visuals.iEnvironmentWeather = t.gamevisuals.iEnvironmentWeather;
 
-	#ifdef WICKEDENGINE
-	//t.visuals.AmbienceIntensity_f = 89.25f;
 	t.visuals.AmbienceRed_f = t.gamevisuals.AmbienceRed_f;
 	t.visuals.AmbienceGreen_f = t.gamevisuals.AmbienceGreen_f;
 	t.visuals.AmbienceBlue_f = t.gamevisuals.AmbienceBlue_f;
-
-	//PE: Comment out to always use editor camera and fov
-//	t.visuals.CameraNEAR_f = t.gamevisuals.CameraNEAR_f;
-//	t.visuals.CameraFAR_f = t.gamevisuals.CameraFAR_f;
-//	t.visuals.CameraFOV_f = t.gamevisuals.CameraFOV_f;
 
 	t.visuals.FogR_f = t.gamevisuals.FogR_f;
 	t.visuals.FogG_f = t.gamevisuals.FogG_f;
@@ -18734,14 +18709,9 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bTransparentShadows = t.gamevisuals.bTransparentShadows;
 
 	t.visuals.iEnvProbeResolution = t.gamevisuals.iEnvProbeResolution;
+	t.visuals.newperformancepresets = t.gamevisuals.newperformancepresets;
 
 	t.visuals.fShadowFarPlane = t.gamevisuals.fShadowFarPlane;
-
-	#if 0
-	#ifdef WICKEDENGINE
-	TestLevel_ToggleTreeVegWater(t.showtestgametrees, t.showtestgameveg, t.showtestgamewater);
-	#endif
-	#endif
 
 	t.visuals.bWaterEnable = t.gamevisuals.bWaterEnable;
 	t.visuals.fWaterWaveAmplitude = t.gamevisuals.fWaterWaveAmplitude;
@@ -18775,16 +18745,16 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fLevelDifficulty = t.gamevisuals.fLevelDifficulty;
 	
 
-	for (int iL = 0; iL < 32; iL++) {
+	for (int iL = 0; iL < 32; iL++) 
+	{
 		t.visuals.sTerrainTextures[iL] = t.gamevisuals.sTerrainTextures[iL];
 		t.visuals.sTerrainTexturesName[iL] = t.gamevisuals.sTerrainTexturesName[iL];
 	}
 	
-
-	for (int iL = 0; iL < 128; iL++) {
+	for (int iL = 0; iL < 128; iL++) 
+	{
 		t.visuals.sGrassTextures[iL] = t.gamevisuals.sGrassTextures[iL];
 		t.visuals.sGrassTexturesName[iL] = t.gamevisuals.sGrassTexturesName[iL];
-
 		t.visuals.sFactionName[iL] = t.gamevisuals.sFactionName[iL];
 	}
 
@@ -18821,8 +18791,6 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fSnowOpacity = t.gamevisuals.fSnowOpacity;
 	t.visuals.fSnowOffset = t.gamevisuals.fSnowOffset;
 
-	#endif
-
 	// and refresh assets based on restore
 	t.visuals.refreshshaders=1;
 	visuals_loop ( );
@@ -18834,8 +18802,6 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	// Second call will toggle keyboard/mouse back to FOREGROUND
 	SetWindowModeOn ( );
 
-	#ifdef ENABLEIMGUI
-	#ifndef USEOLDIDE
 	//PE: Need to restore original settings.
 	//PE: Setup the window here. pos size. Docking ?
 	SetWindowSettings(5, 1, 1);
@@ -18850,15 +18816,6 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 
 	//PE: enable outside windows again.
 	ImGui::ShowAllViewPortWindows();
-	#ifndef WICKEDENGINE
-	LRESULT CALLBACK ImguiWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	#endif
-	#ifdef USERENDERTARGET
-	//PE: keep it at current resolution for now.
-	//SetCameraToImage(0, 21, OldrenderTargetSize.x, OldrenderTargetSize.y, 2);
-	#endif
-	#endif
-	#endif
 
 	// Close popup message
 	if ( t.conkit.modified == 1 ) 
@@ -18877,14 +18834,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 
 	// restore if project modified
 	t.tignoreinvalidateobstacles=1;
-	#ifndef WICKEDENGINE
-	//PE: In Wickede we use the flags directly.
-	g.projectmodified = t.storeprojectmodified; if ( g.projectmodified == 1 ) gridedit_changemodifiedflag ( );
-	g.projectmodifiedstatic = g_tstoreprojectmodifiedstatic; 
-	#else
-	//PE: Ups - g.projectmodified Still used for save.
 	g.projectmodified = t.storeprojectmodified;
-	#endif
 	t.tignoreinvalidateobstacles=0;
 
 	// Something is clipping objects when returning to editor

@@ -93,7 +93,7 @@ void sliders_loop ( void )
 		}
 	}
 	return;
-
+	/*
 	// Show / Hide LUA Sprites
 	if ( g.tabmode != g.lastTabMode )
 	{
@@ -113,56 +113,18 @@ void sliders_loop ( void )
 		RECT r;
 		GetWindowRect(g_pGlob->hWnd, &r);
 		ClipCursor(&r);
-
-		if ( t.game.gameisexe == 1 ) 
-		{
-			// standalone
-			t.tgamemousex_f = MouseX();
-			t.tgamemousey_f = MouseY();
-			t.tmouseclick = MouseClick();
-		}
-		else
-		{
-			#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
-			//t.inputsys.xmouse is always at 960 in testgame.
-			t.tgamemousex_f = MouseX(); //t.inputsys.xmouse; //((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth()) * t.inputsys.xmouse;
-			t.tgamemousey_f = MouseY(); //t.inputsys.ymouse; //((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight()) * t.inputsys.ymouse;
-			t.tmouseclick = MouseClick(); //t.inputsys.mclick;
-			#else
-			OpenFileMap (  1, "FPSEXCHANGE" );
-			SetEventAndWait (  1 );
-			//  from map editor client window (800x600)
-			t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-			t.tgamemousex_f=t.tgamemousex_f/800.0;
-			t.tgamemousey_f=t.tgamemousey_f/600.0;
-			t.tgamemousex_f=t.tgamemousex_f*(GetDisplayWidth()+0.0);
-			t.tgamemousey_f=t.tgamemousey_f*(GetDisplayHeight()+0.0);
-			t.tmouseclick = MouseClick();
-			//CloseFileMap (  1 );
-			#endif
-		}
+		t.tgamemousex_f = MouseX();
+		t.tgamemousey_f = MouseY();
+		t.tmouseclick = MouseClick();
 	}
 	else
 	{
 		if ( t.importer.importerActive == 1 || t.characterkit.inUse == 1 ) 
 		{
-			#if defined(ENABLEIMGUI) && !defined(USEOLDIDE)
 			//In Editor we need to convert values.
 			t.tgamemousex_f = t.inputsys.xmouse *((GetChildWindowWidth(-1) + 0.0) / (float)GetDisplayWidth());
 			t.tgamemousey_f = t.inputsys.ymouse *((GetChildWindowHeight(-1) + 0.0) / (float)GetDisplayHeight());
 			t.tmouseclick = t.inputsys.mclick;
-			#else
-			OpenFileMap (  1, "FPSEXCHANGE" );
-			SetEventAndWait (  1 );
-			//  from map editor client window (800x600)
-			t.tgamemousex_f=GetFileMapDWORD( 1, 0 );
-			t.tgamemousey_f=GetFileMapDWORD( 1, 4 );
-			t.tgamemousex_f=t.tgamemousex_f*(GetChildWindowWidth()/800.0);
-			t.tgamemousey_f=t.tgamemousey_f*(GetChildWindowHeight()/600.0);
-			t.tmouseclick = t.inputsys.mclick;
-			//CloseFileMap (  1 );
-			#endif
 		}
 		else
 		{
@@ -233,10 +195,6 @@ void sliders_loop ( void )
 						}
 						visuals_shaderlevels_update ( );
 					}
-					else
-					{
-						//  NO
-					}
 					//  remove panel from now on
 					g.lowfpswarning=2;
 				}
@@ -245,606 +203,530 @@ void sliders_loop ( void )
 	}
 	else
 	{
-	//  control slider panels
-	if (  t.tmouseclick == 0 && g.slidersmenufreshclick == 2  )  g.slidersmenufreshclick = 0;
-	if (  g.slidersmenufreshclick == 1  )  g.slidersmenufreshclick = 2;
-	if (  t.tmouseclick == 1 && g.slidersmenufreshclick == 0  )  g.slidersmenufreshclick = 1;
-	// 261115 - first scan to ensure we are not clicking a header for panel dragging
-	bool bHoveringOverAPanelHeader = false;
-	for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
-	{
-		t.tabviewflag=0;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-		if (  t.tabviewflag == 1 ) 
+		//  control slider panels
+		if (  t.tmouseclick == 0 && g.slidersmenufreshclick == 2  )  g.slidersmenufreshclick = 0;
+		if (  g.slidersmenufreshclick == 1  )  g.slidersmenufreshclick = 2;
+		if (  t.tmouseclick == 1 && g.slidersmenufreshclick == 0  )  g.slidersmenufreshclick = 1;
+		// 261115 - first scan to ensure we are not clicking a header for panel dragging
+		bool bHoveringOverAPanelHeader = false;
+		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
 		{
-			if ( t.slidersmenu[t.slidersmenuindex].thighlight == -1 ) 
+			t.tabviewflag=0;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+			if (  t.tabviewflag == 1 ) 
 			{
+				if ( t.slidersmenu[t.slidersmenuindex].thighlight == -1 ) 
+				{
+					t.tmx=t.tgamemousex_f-t.slidersmenu[t.slidersmenuindex].tleft;
+					t.tmy=t.tgamemousey_f-t.slidersmenu[t.slidersmenuindex].ttop;
+					t.tmargin=t.slidersmenu[t.slidersmenuindex].titlemargin;
+					if ( t.tmy>0 && t.tmy<t.tmargin ) 
+					{
+						if ( t.tmx>0 && t.tmx<256 ) 
+						{
+							bHoveringOverAPanelHeader = true;
+						}
+					}
+				}
+			}
+		}
+		// now scan for slider menus
+		for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
+		{
+			t.tabviewflag=0;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
+			if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+			if (  t.tabviewflag == 1 ) 
+			{
+				//  get relative mouse position and panel settings
 				t.tmx=t.tgamemousex_f-t.slidersmenu[t.slidersmenuindex].tleft;
 				t.tmy=t.tgamemousey_f-t.slidersmenu[t.slidersmenuindex].ttop;
 				t.tmargin=t.slidersmenu[t.slidersmenuindex].titlemargin;
-				if ( t.tmy>0 && t.tmy<t.tmargin ) 
+				t.tpanelheight=t.slidersmenu[t.slidersmenuindex].panelheight;
+				t.tconx=t.slidersmenu[t.slidersmenuindex].leftmargin;
+				//  alternative slider menu
+				t.slidersmenualternativeindex=t.slidersmenuindex;
+				if (  t.slidersmenuindex == t.slidersmenunames.performance ) 
 				{
-					if ( t.tmx>0 && t.tmx<256 ) 
+					if (  g.sliderspecialview>0 ) 
 					{
-						bHoveringOverAPanelHeader = true;
+						//  used for drill-down menus (such as A.I drill down)
+						t.slidersmenualternativeindex=g.sliderspecialview;
 					}
 				}
-			}
-		}
-	}
-	// now scan for slider menus
-	for ( t.slidersmenuindex = 1 ; t.slidersmenuindex<=  g.slidersmenumax; t.slidersmenuindex++ )
-	{
-		t.tabviewflag=0;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
-		if (  t.slidersmenu[t.slidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-		if (  t.tabviewflag == 1 ) 
-		{
-			//  get relative mouse position and panel settings
-			t.tmx=t.tgamemousex_f-t.slidersmenu[t.slidersmenuindex].tleft;
-			t.tmy=t.tgamemousey_f-t.slidersmenu[t.slidersmenuindex].ttop;
-			t.tmargin=t.slidersmenu[t.slidersmenuindex].titlemargin;
-			t.tpanelheight=t.slidersmenu[t.slidersmenuindex].panelheight;
-			t.tconx=t.slidersmenu[t.slidersmenuindex].leftmargin;
-			//  alternative slider menu
-			t.slidersmenualternativeindex=t.slidersmenuindex;
-			if (  t.slidersmenuindex == t.slidersmenunames.performance ) 
-			{
-				if (  g.sliderspecialview>0 ) 
+				t.tnumoptions=t.slidersmenu[t.slidersmenualternativeindex].itemcount;
+				//  drag or not
+				if (  t.slidersmenu[t.slidersmenuindex].thighlight == -1 ) 
 				{
-					//  used for drill-down menus (such as A.I drill down)
-					t.slidersmenualternativeindex=g.sliderspecialview;
-				}
-			}
-			t.tnumoptions=t.slidersmenu[t.slidersmenualternativeindex].itemcount;
-			//  drag or not
-			if (  t.slidersmenu[t.slidersmenuindex].thighlight == -1 ) 
-			{
-				//  not dragging
-				t.thighlight=0;
-				if (  t.tmy>0 && t.tmy<t.tpanelheight+t.tmargin ) 
-				{
-					if (  t.tmx>0 && t.tmx<256 ) 
+					//  not dragging
+					t.thighlight=0;
+					if (  t.tmy>0 && t.tmy<t.tpanelheight+t.tmargin ) 
 					{
-						//  find if over any slider
-						if ( bHoveringOverAPanelHeader==false )
+						if (  t.tmx>0 && t.tmx<256 ) 
 						{
-							if ( t.slidersmenu[t.slidersmenuindex].minimised==0 )
+							//  find if over any slider
+							if ( bHoveringOverAPanelHeader==false )
 							{
-						if (  t.slidersmenu[t.slidersmenuindex].readonly == 0 ) 
-						{
-							for ( t.t = 0 ; t.t<=  t.tnumoptions-1; t.t++ )
-							{
-								t.tcony=t.tmargin+(t.t*38);
-								if (  t.tmy>t.tcony && t.tmy<t.tcony+38 ) 
+								if ( t.slidersmenu[t.slidersmenuindex].minimised==0 )
 								{
-									t.thighlight=1+t.t;
+							if (  t.slidersmenu[t.slidersmenuindex].readonly == 0 ) 
+							{
+								for ( t.t = 0 ; t.t<=  t.tnumoptions-1; t.t++ )
+								{
+									t.tcony=t.tmargin+(t.t*38);
+									if (  t.tmy>t.tcony && t.tmy<t.tcony+38 ) 
+									{
+										t.thighlight=1+t.t;
+									}
 								}
 							}
-						}
+								}
 							}
-						}
-						// 261115 - find if over minmax button
-						if ( t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit != -1 )
-						{
-							t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit = 0;
-							if ( t.tmx>230 && t.tmx<230+13 && t.tmy>=20 && t.tmy<20+13 )
+							// 261115 - find if over minmax button
+							if ( t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit != -1 )
 							{
-								t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit = 1;
-							}
-						}
-						//  take action
-						if (  t.tmouseclick == 0 && t.slidersmenu[t.slidersmenuindex].tclick == 2 ) { t.slidersmenu[t.slidersmenuindex].tclick = 0 ; t.slidersmenu[t.slidersmenuindex].tallowdragging = 0; t.bDraggingHeaderRightNow = false;}
-						if (  t.tmouseclick == 1 && t.slidersmenu[t.slidersmenuindex].tclick == 0  )  t.slidersmenu[t.slidersmenuindex].tclick = 1;
-						if (  t.slidersmenu[t.slidersmenuindex].tclick == 1 ) 
-						{
-							if ( t.thighlight>0 && t.bDraggingHeaderRightNow==false ) 
-							{
-								//  highlight an item
-								t.thighlightedmenu=t.slidersmenuindex;
-								t.t=t.thighlight;
-								if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].gadgettype == 0 ) 
+								t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit = 0;
+								if ( t.tmx>230 && t.tmx<230+13 && t.tmy>=20 && t.tmy<20+13 )
 								{
-									//  if special expanding slider
-									if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect != 0 ) 
+									t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit = 1;
+								}
+							}
+							//  take action
+							if (  t.tmouseclick == 0 && t.slidersmenu[t.slidersmenuindex].tclick == 2 ) { t.slidersmenu[t.slidersmenuindex].tclick = 0 ; t.slidersmenu[t.slidersmenuindex].tallowdragging = 0; t.bDraggingHeaderRightNow = false;}
+							if (  t.tmouseclick == 1 && t.slidersmenu[t.slidersmenuindex].tclick == 0  )  t.slidersmenu[t.slidersmenuindex].tclick = 1;
+							if (  t.slidersmenu[t.slidersmenuindex].tclick == 1 ) 
+							{
+								if ( t.thighlight>0 && t.bDraggingHeaderRightNow==false ) 
+								{
+									//  highlight an item
+									t.thighlightedmenu=t.slidersmenuindex;
+									t.t=t.thighlight;
+									if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].gadgettype == 0 ) 
 									{
-										//  expand A.I metrics into performance panel
-										if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect != -1 ) 
+										//  if special expanding slider
+										if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect != 0 ) 
 										{
-											g.sliderspecialview=t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect;
+											//  expand A.I metrics into performance panel
+											if (  t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect != -1 ) 
+											{
+												g.sliderspecialview=t.slidersmenuvalue[t.slidersmenualternativeindex][t.t].expanddetect;
+											}
+											else
+											{
+												g.sliderspecialview=0;
+											}
 										}
 										else
 										{
-											g.sliderspecialview=0;
+											// do not adjust metrics view
+											if ( t.slidersmenuindex != 2 )
+											{
+												//  if slider
+												if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].useCustomRange  ==  1 ) 
+												{
+													//  (Dave) to allow for custom value
+													t.slidersmenuvalue[t.slidersmenuindex][t.t].value=SlidersAdjustValue(t.slidersmenuvalue[t.slidersmenuindex][t.t].value,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax,0,100);
+												}
+												t.tpos_f=t.slidersmenuvalue[t.slidersmenuindex][t.t].value ; t.tpos_f=(188.0/100.0)*t.tpos_f;
+												t.tblobx=t.tconx+t.tpos_f;
+												if ( t.tmx<t.tblobx-5 ) 
+												{
+													// step left
+													t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value-10;
+													if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value<0  )  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value = 0;
+												}
+												else
+												{
+													if ( t.tmx>t.tblobx+25 ) 
+													{
+														// step right
+														t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value+10;
+														if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value>100  )  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value = 100;
+													}
+													else
+													{
+														//  click to drag
+														t.slidersmenu[t.slidersmenuindex].thighlight=t.t;
+														t.slidersmenu[t.slidersmenuindex].tdrag=(t.tblobx-t.tmx)/2.0;
+													}
+												}
+												if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].useCustomRange  ==  1 ) 
+												{
+													//  (Dave) tranfer the bar value back to the custom range
+													t.slidersmenuvalue[t.slidersmenuindex][t.t].value=SlidersAdjustValue(t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value,0,100,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax);
+												}
+											}
 										}
 									}
 									else
 									{
-										// do not adjust metrics view
-										if ( t.slidersmenuindex != 2 )
+										//  gadget
+										if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].gadgettype == 1 ) 
 										{
-											//  if slider
-											if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].useCustomRange  ==  1 ) 
+											//  dropdown gadget
+											t.slidersmenu[t.slidersmenuindex].thighlight=t.t;
+											t.slidersdropdown=t.slidersmenuindex;
+											t.slidersmenuvaluechoice=t.slidersmenuvalue[t.slidersmenuindex][t.t].gadgettypevalue;
+											t.slidersdropdownchoice=t.slidersmenuvaluechoice;
+											sliders_getchoice ( );
+											t.slidersdropdownmax=t.sliderschoicemax;
+											t.slidersdropdownindex=-1;
+											t.rmposx=t.slidersmenu[t.slidersmenuindex].tleft;
+											t.rmposy=t.slidersmenu[t.slidersmenuindex].ttop;
+											t.rmposytopy=t.rmposy+t.slidersmenu[t.slidersmenuindex].titlemargin;
+											t.slidersdropdownleft=t.rmposx+256-32-128;
+											t.slidersdropdowntop=t.rmposytopy+((t.t-1)*38)+32;
+											g.slidersmenudropdownscroll_f=1;
+										}
+									}
+								}
+								if ( t.thighlight <= 0 )
+								{
+									// drag the panel around
+									if (  t.tmy>0 && t.tmy<t.tmargin ) 
+									{
+										if (  t.importer.importerActive == 0 ) 
+										{
+											//  dragging header start (dragging not allowed in importer)
+											if (  g.slidersmenufreshclick == 1 ) 
 											{
-												//  (Dave) to allow for custom value
-												t.slidersmenuvalue[t.slidersmenuindex][t.t].value=SlidersAdjustValue(t.slidersmenuvalue[t.slidersmenuindex][t.t].value,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax,0,100);
+												t.slidersmenu[t.slidersmenuindex].tallowdragging=1;
 											}
-											t.tpos_f=t.slidersmenuvalue[t.slidersmenuindex][t.t].value ; t.tpos_f=(188.0/100.0)*t.tpos_f;
-											t.tblobx=t.tconx+t.tpos_f;
-											if ( t.tmx<t.tblobx-5 ) 
+											if (  t.slidersmenu[t.slidersmenuindex].tallowdragging == 1 ) 
 											{
-												// step left
-												t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value-10;
-												if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value<0  )  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value = 0;
-											}
-											else
-											{
-												if ( t.tmx>t.tblobx+25 ) 
-												{
-													// step right
-													t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value+10;
-													if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value>100  )  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value = 100;
-												}
+												t.tsliderdragx_f=t.slidersmenu[t.slidersmenuindex].tleft-t.tgamemousex_f;
+												t.tsliderdragy_f=t.slidersmenu[t.slidersmenuindex].ttop-t.tgamemousey_f;
+												t.tsliderdragoriginaltleft = t.slidersmenu[t.slidersmenuindex].tleft;
+												t.tsliderdragoriginalttop = t.slidersmenu[t.slidersmenuindex].ttop;
+												t.bDraggingHeaderRightNow = true;
+												if ( t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle==true )
+													t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap = true;
 												else
-												{
-													//  click to drag
-													t.slidersmenu[t.slidersmenuindex].thighlight=t.t;
-													t.slidersmenu[t.slidersmenuindex].tdrag=(t.tblobx-t.tmx)/2.0;
-												}
-											}
-											if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].useCustomRange  ==  1 ) 
-											{
-												//  (Dave) tranfer the bar value back to the custom range
-												t.slidersmenuvalue[t.slidersmenuindex][t.t].value=SlidersAdjustValue(t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value,0,100,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax);
+													t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap = false;
+
+												t.slidersmenu[t.slidersmenuindex].thighlight=0;
 											}
 										}
 									}
+								}
+								// 261115 - minimise functionality
+								if ( t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit==1 )
+								{
+									// minimise and maximise panel
+									t.slidersmenu[t.slidersmenuindex].minimised = 1 - t.slidersmenu[t.slidersmenuindex].minimised;
+
+									// if expand panel, also ensure we minimise any that get in our way
+									if ( t.slidersmenu[t.slidersmenuindex].minimised==0 )
+									{
+										// work out size of maximised panel
+										t.twholepanelheight = t.tmargin - 8;
+										t.tpanelheight=((int)(t.slidersmenu[t.slidersmenuindex].panelheight/32))*32;
+										t.twholepanelheight += t.tpanelheight + 20;
+
+										// go through all panels, and squash and move overlapped panels
+										for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
+										{
+											if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
+											{
+												t.tabviewflag=0;
+												if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+												if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
+												if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+												if (  t.tabviewflag == 1 ) 
+												{
+													// adjust for minimised panels
+													t.twholethispanelheight = t.tmargin - 8;
+													if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
+													{
+														t.twholethispanelheight += 8;
+													}
+													else
+													{
+														t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
+														t.twholethispanelheight += t.tpanelheight + 20;
+													}
+
+													// are we in this panel?
+													bool bEnteredAnotherPanel = false;
+													if ( t.slidersmenu[t.slidersmenuindex].tleft<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
+														if ( t.slidersmenu[t.slidersmenuindex].tleft+256>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
+															if (t.slidersmenu[t.slidersmenuindex].ttop<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
+																if ( t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
+																	bEnteredAnotherPanel = true;
+
+													// squash and move
+													if ( bEnteredAnotherPanel==true )
+													{
+														t.slidersmenu[t.tcheckslidersmenuindex].minimised = 1;
+														t.slidersmenu[t.tcheckslidersmenuindex].ttop = t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight+1;
+														int iMinimisedPanelHeight = t.tmargin;
+														if ( t.slidersmenu[t.tcheckslidersmenuindex].ttop > GetDisplayHeight()-iMinimisedPanelHeight )  
+															t.slidersmenu[t.tcheckslidersmenuindex].ttop = GetDisplayHeight()-iMinimisedPanelHeight;
+													}
+												}
+											}
+										}
+									}
+								}
+								// Ensure it is a single click (then later release)
+								t.slidersmenu[t.slidersmenuindex].tclick=2;
+							}
+						}
+					}
+				}
+				else
+				{
+					//  dragging
+					t.thighlight=t.slidersmenu[t.slidersmenuindex].thighlight;
+					if (  t.tmouseclick == 0 && t.slidersmenu[t.slidersmenuindex].thighlight != -1 ) 
+					{
+						t.slidersmenu[t.slidersmenuindex].thighlight=-1;
+						if (  t.slidersdropdown>0 ) 
+						{
+							if (  t.slidersdropdownindex != -1 ) 
+							{
+								t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value=g.slidersmenudropdownscroll_f+t.slidersdropdownindex;
+								t.slidersmenuvaluechoice=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].gadgettypevalue;
+								t.slidersmenuvalueindex=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value;
+								sliders_getnamefromvalue ( );
+								t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value_s=t.slidervaluename_s;
+								t.whichmenuitem = 1+t.rmi;
+								sliders_write ( );
+							}
+							t.slidersdropdownindex=-1;
+							t.slidersdropdown=0;
+						}
+					}
+					if (  t.slidersmenu[t.slidersmenuindex].thighlight != -1 ) 
+					{
+						if (  t.thighlight>0 && t.thighlightedmenu==t.slidersmenuindex ) 
+						{
+							if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].gadgettype == 0 ) 
+							{
+								//  slider control
+								t.t=t.slidersmenu[t.slidersmenuindex].thighlight;
+								t.tnewblobx=((t.tmx-t.tconx)/188.0)*100.0;
+								//  Update panel value and call real-time update subroutine
+								t.tValue=t.tnewblobx+t.slidersmenu[t.slidersmenuindex].tdrag;
+								if (  t.tValue<0  )  t.tValue = 0;
+								if (  t.tValue>100  )  t.tValue = 100;
+								//  (Dave) take into account if there is a custom value range
+								if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].useCustomRange  ==  0 ) 
+								{
+									t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.tValue;
 								}
 								else
 								{
-									//  gadget
-									if (  t.slidersmenuvalue[t.slidersmenuindex][t.t].gadgettype == 1 ) 
-									{
-										//  dropdown gadget
-										t.slidersmenu[t.slidersmenuindex].thighlight=t.t;
-										t.slidersdropdown=t.slidersmenuindex;
-										t.slidersmenuvaluechoice=t.slidersmenuvalue[t.slidersmenuindex][t.t].gadgettypevalue;
-										t.slidersdropdownchoice=t.slidersmenuvaluechoice;
-										sliders_getchoice ( );
-										t.slidersdropdownmax=t.sliderschoicemax;
-										t.slidersdropdownindex=-1;
-										t.rmposx=t.slidersmenu[t.slidersmenuindex].tleft;
-										t.rmposy=t.slidersmenu[t.slidersmenuindex].ttop;
-										t.rmposytopy=t.rmposy+t.slidersmenu[t.slidersmenuindex].titlemargin;
-										t.slidersdropdownleft=t.rmposx+256-32-128;
-										t.slidersdropdowntop=t.rmposytopy+((t.t-1)*38)+32;
-										g.slidersmenudropdownscroll_f=1;
-									}
+									t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=SlidersAdjustValue(t.tValue,0,100,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax);
 								}
-							}
-							if ( t.thighlight <= 0 )
-							{
-								// drag the panel around
-								if (  t.tmy>0 && t.tmy<t.tmargin ) 
-								{
-									if (  t.importer.importerActive == 0 ) 
-									{
-										//  dragging header start (dragging not allowed in importer)
-										if (  g.slidersmenufreshclick == 1 ) 
-										{
-											t.slidersmenu[t.slidersmenuindex].tallowdragging=1;
-										}
-										if (  t.slidersmenu[t.slidersmenuindex].tallowdragging == 1 ) 
-										{
-											t.tsliderdragx_f=t.slidersmenu[t.slidersmenuindex].tleft-t.tgamemousex_f;
-											t.tsliderdragy_f=t.slidersmenu[t.slidersmenuindex].ttop-t.tgamemousey_f;
-											t.tsliderdragoriginaltleft = t.slidersmenu[t.slidersmenuindex].tleft;
-											t.tsliderdragoriginalttop = t.slidersmenu[t.slidersmenuindex].ttop;
-											t.bDraggingHeaderRightNow = true;
-											if ( t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle==true )
-												t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap = true;
-											else
-												t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap = false;
-
-											t.slidersmenu[t.slidersmenuindex].thighlight=0;
-										}
-									}
-								}
-							}
-							// 261115 - minimise functionality
-							if ( t.slidersmenu[t.slidersmenuindex].minmaxbuttonlit==1 )
-							{
-								// minimise and maximise panel
-								t.slidersmenu[t.slidersmenuindex].minimised = 1 - t.slidersmenu[t.slidersmenuindex].minimised;
-
-								// if expand panel, also ensure we minimise any that get in our way
-								if ( t.slidersmenu[t.slidersmenuindex].minimised==0 )
-								{
-									// work out size of maximised panel
-									t.twholepanelheight = t.tmargin - 8;
-									t.tpanelheight=((int)(t.slidersmenu[t.slidersmenuindex].panelheight/32))*32;
-									t.twholepanelheight += t.tpanelheight + 20;
-
-									// go through all panels, and squash and move overlapped panels
-									for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
-									{
-										if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
-										{
-											t.tabviewflag=0;
-											if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-											if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
-											if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-											if (  t.tabviewflag == 1 ) 
-											{
-												// adjust for minimised panels
-												t.twholethispanelheight = t.tmargin - 8;
-												if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
-												{
-													t.twholethispanelheight += 8;
-												}
-												else
-												{
-													t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
-													t.twholethispanelheight += t.tpanelheight + 20;
-												}
-
-												// are we in this panel?
-												bool bEnteredAnotherPanel = false;
-												if ( t.slidersmenu[t.slidersmenuindex].tleft<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
-													if ( t.slidersmenu[t.slidersmenuindex].tleft+256>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
-														if (t.slidersmenu[t.slidersmenuindex].ttop<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
-															if ( t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
-																bEnteredAnotherPanel = true;
-
-												// squash and move
-												if ( bEnteredAnotherPanel==true )
-												{
-													t.slidersmenu[t.tcheckslidersmenuindex].minimised = 1;
-													t.slidersmenu[t.tcheckslidersmenuindex].ttop = t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight+1;
-													int iMinimisedPanelHeight = t.tmargin;
-													if ( t.slidersmenu[t.tcheckslidersmenuindex].ttop > GetDisplayHeight()-iMinimisedPanelHeight )  
-														t.slidersmenu[t.tcheckslidersmenuindex].ttop = GetDisplayHeight()-iMinimisedPanelHeight;
-												}
-											}
-										}
-									}
-								}
-							}
-							// Ensure it is a single click (then later release)
-							t.slidersmenu[t.slidersmenuindex].tclick=2;
-						}
-					}
-				}
-			}
-			else
-			{
-				//  dragging
-				t.thighlight=t.slidersmenu[t.slidersmenuindex].thighlight;
-				if (  t.tmouseclick == 0 && t.slidersmenu[t.slidersmenuindex].thighlight != -1 ) 
-				{
-					t.slidersmenu[t.slidersmenuindex].thighlight=-1;
-					if (  t.slidersdropdown>0 ) 
-					{
-						if (  t.slidersdropdownindex != -1 ) 
-						{
-							t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value=g.slidersmenudropdownscroll_f+t.slidersdropdownindex;
-							t.slidersmenuvaluechoice=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].gadgettypevalue;
-							t.slidersmenuvalueindex=t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value;
-							sliders_getnamefromvalue ( );
-							t.slidersmenuvalue[t.slidersmenuindex][1+t.rmi].value_s=t.slidervaluename_s;
-							t.whichmenuitem = 1+t.rmi;
-							sliders_write ( );
-						}
-						t.slidersdropdownindex=-1;
-						t.slidersdropdown=0;
-					}
-				}
-				if (  t.slidersmenu[t.slidersmenuindex].thighlight != -1 ) 
-				{
-					if (  t.thighlight>0 && t.thighlightedmenu==t.slidersmenuindex ) 
-					{
-						if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].gadgettype == 0 ) 
-						{
-							//  slider control
-							t.t=t.slidersmenu[t.slidersmenuindex].thighlight;
-							t.tnewblobx=((t.tmx-t.tconx)/188.0)*100.0;
-							//  Update panel value and call real-time update subroutine
-							t.tValue=t.tnewblobx+t.slidersmenu[t.slidersmenuindex].tdrag;
-							if (  t.tValue<0  )  t.tValue = 0;
-							if (  t.tValue>100  )  t.tValue = 100;
-							//  (Dave) take into account if there is a custom value range
-							if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].useCustomRange  ==  0 ) 
-							{
-								t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=t.tValue;
+								t.whichmenuitem = t.thighlight;
+								sliders_write ( );
 							}
 							else
 							{
-								t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].value=SlidersAdjustValue(t.tValue,0,100,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMin,t.slidersmenuvalue[t.slidersmenuindex][t.t].valueMax);
-							}
-							t.whichmenuitem = t.thighlight;
-							sliders_write ( );
-						}
-						else
-						{
-							//  gadget
-							if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].gadgettype == 1 ) 
-							{
-								//  dropdown highlighting sub-item
-								if (  t.tgamemousey_f >= t.slidersdropdowntop+5 ) 
+								//  gadget
+								if (  t.slidersmenuvalue[t.slidersmenuindex][t.thighlight].gadgettype == 1 ) 
 								{
-									t.slidersdropdownindex=(t.tgamemousey_f-t.slidersdropdowntop-5)/16;
-									if (  t.slidersdropdownindex<0  )  t.slidersdropdownindex = -1;
-									if (  t.slidersdropdownindex >= t.slidersdropdownmax  )  t.slidersdropdownindex = -1;
-								}
-								else
-								{
-									t.slidersdropdownindex=-1;
-								}
-								//  can scroll contents of drop down
-								if (  t.tgamemousey_f != 0 ) 
-								{
-									int iBottomOfScreenInUI = GetChildWindowHeight();
-									if (  t.tgamemousey_f >= iBottomOfScreenInUI-40 || t.tgamemousey_f<0 ) 
+									//  dropdown highlighting sub-item
+									if (  t.tgamemousey_f >= t.slidersdropdowntop+5 ) 
 									{
-										g.slidersmenudropdownscroll_f += 0.4f;
-										t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((iBottomOfScreenInUI-t.slidersdropdowntop)/16));
-										if (  g.slidersmenudropdownscroll_f>t.tlastchunkcanseemax ) 
-										{
-											g.slidersmenudropdownscroll_f=t.tlastchunkcanseemax;
-										}
+										t.slidersdropdownindex=(t.tgamemousey_f-t.slidersdropdowntop-5)/16;
+										if (  t.slidersdropdownindex<0  )  t.slidersdropdownindex = -1;
+										if (  t.slidersdropdownindex >= t.slidersdropdownmax  )  t.slidersdropdownindex = -1;
 									}
 									else
 									{
-										if (  t.tgamemousey_f <= t.slidersdropdowntop-5 ) 
-										{
-											g.slidersmenudropdownscroll_f -= 0.4f ; if (  g.slidersmenudropdownscroll_f<1  )  g.slidersmenudropdownscroll_f = 1;
-										}
+										t.slidersdropdownindex=-1;
 									}
-								}
-							}
-						}
-					}
-					else
-					{
-						//  drag whole panel
-						// adjust for minimised panel being moved
-						t.twholepanelheight = t.tmargin - 8;
-						if ( t.slidersmenu[t.slidersmenuindex].minimised==1 )
-						{
-							t.twholepanelheight += 8;
-						}
-						else
-						{
-							t.tpanelheight=((int)(t.slidersmenu[t.slidersmenuindex].panelheight/32))*32;
-							t.twholepanelheight += t.tpanelheight + 20;
-						}
-
-						// ensure when getting mouse position, dont get if OFF 3D view area
-						if ( t.tgamemousex_f < 40000.0f )
-						{
-						t.tnewpanelx_f=t.tsliderdragx_f+t.tgamemousex_f;
-						t.tnewpanely_f=t.tsliderdragy_f+t.tgamemousey_f;
-						}
-						if (  t.tnewpanelx_f<0  )  t.tnewpanelx_f = 0;
-						if (  t.tnewpanely_f<0  )  t.tnewpanely_f = 0;
-						if (  t.tnewpanelx_f>GetDisplayWidth()-256-16  )  t.tnewpanelx_f = GetDisplayWidth()-256-16;
-						if (  t.tnewpanely_f>GetDisplayHeight()-t.twholepanelheight  )  t.tnewpanely_f = GetDisplayHeight()-t.twholepanelheight;
-
-						//  ensure new position never overlaps existing panel
-						for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
-						{
-							if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
-							{
-								t.tabviewflag=0;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-								if (  t.tabviewflag == 1 ) 
-								{
-									// adjust for minimised panels
-									t.twholethispanelheight = t.tmargin - 8;
-									if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
+									//  can scroll contents of drop down
+									if (  t.tgamemousey_f != 0 ) 
 									{
-										t.twholethispanelheight += 8;
-									}
-									else
-									{
-										t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
-										t.twholethispanelheight += t.tpanelheight + 20;
-									}
-
-									// are we in this panel?
-									bool bEnteredAnotherPanel = false;
-									if (  t.tnewpanelx_f<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
-										if (  t.tnewpanelx_f+256>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
-											if (  t.tnewpanely_f<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
-												if (  t.tnewpanely_f+t.twholepanelheight>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
-													bEnteredAnotherPanel = true;
-
-									// yes we are
-									if ( bEnteredAnotherPanel==true )
-												{
-										// determine which edge is best
-										int iBestEdge = 0;
-										int iBestDistance = 99999;
-										int iLeft = abs ( t.slidersmenu[t.slidersmenuindex].tleft - (t.slidersmenu[t.tcheckslidersmenuindex].tleft+256) );
-										int iRight = abs ( (t.slidersmenu[t.slidersmenuindex].tleft+256) - t.slidersmenu[t.tcheckslidersmenuindex].tleft );
-										int iTop = abs ( t.slidersmenu[t.slidersmenuindex].ttop - (t.slidersmenu[t.tcheckslidersmenuindex].ttop + t.twholethispanelheight) );
-										int iBottom = abs ( (t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight) - t.slidersmenu[t.tcheckslidersmenuindex].ttop );
-										if ( iLeft < iBestDistance ) { iBestEdge=0; iBestDistance=iLeft; }
-										if ( iRight < iBestDistance ) { iBestEdge=1; iBestDistance=iRight; }
-										if ( iTop < iBestDistance ) { iBestEdge=2; iBestDistance=iTop; }
-										if ( iBottom < iBestDistance ) { iBestEdge=3; iBestDistance=iBottom; }
-
-										// check if moving by X solves it
-										if ( iBestEdge==0 || iBestEdge==1 )
+										int iBottomOfScreenInUI = GetChildWindowHeight();
+										if (  t.tgamemousey_f >= iBottomOfScreenInUI-40 || t.tgamemousey_f<0 ) 
 										{
-											if ( t.tsliderdragoriginaltleft+128 < t.slidersmenu[t.tcheckslidersmenuindex].tleft+128 ) 
+											g.slidersmenudropdownscroll_f += 0.4f;
+											t.tlastchunkcanseemax=2+(t.slidersdropdownmax-((iBottomOfScreenInUI-t.slidersdropdowntop)/16));
+											if (  g.slidersmenudropdownscroll_f>t.tlastchunkcanseemax ) 
 											{
-												t.tnewpanelx_f = t.slidersmenu[t.tcheckslidersmenuindex].tleft - 256 - 1;
-												}
-											if ( t.tsliderdragoriginaltleft+128 > t.slidersmenu[t.tcheckslidersmenuindex].tleft+128 ) 
-											{
-												t.tnewpanelx_f = t.slidersmenu[t.tcheckslidersmenuindex].tleft+256+1;
+												g.slidersmenudropdownscroll_f=t.tlastchunkcanseemax;
 											}
 										}
 										else
 										{
-											if ( t.tsliderdragoriginalttop+(t.twholethispanelheight/2) < t.slidersmenu[t.tcheckslidersmenuindex].ttop+(t.twholethispanelheight/2) ) 
+											if (  t.tgamemousey_f <= t.slidersdropdowntop-5 ) 
 											{
-												t.tnewpanely_f = t.slidersmenu[t.tcheckslidersmenuindex].ttop - t.twholepanelheight - 1;
+												g.slidersmenudropdownscroll_f -= 0.4f ; if (  g.slidersmenudropdownscroll_f<1  )  g.slidersmenudropdownscroll_f = 1;
+											}
+										}
 									}
-											if ( t.tsliderdragoriginalttop+(t.twholethispanelheight/2) > t.slidersmenu[t.tcheckslidersmenuindex].ttop+(t.twholethispanelheight/2) ) 
-											{
-												t.tnewpanely_f = t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight + 1;
 								}
 							}
 						}
-								}
-							}
-						}
-
-						// one final screen bounds check before we apply to actual panel
-						if (  t.tnewpanelx_f<0  )  t.tnewpanelx_f = 0;
-						if (  t.tnewpanely_f<0  )  t.tnewpanely_f = 0;
-						if (  t.tnewpanelx_f>GetDisplayWidth()-256-16  )  t.tnewpanelx_f = GetDisplayWidth()-256-16;
-						if (  t.tnewpanely_f>GetDisplayHeight()-t.twholepanelheight  )  t.tnewpanely_f = GetDisplayHeight()-t.twholepanelheight;
-						bool bStillInsideAPanel = false;
-						for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
-						{
-							if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
-							{
-								t.tabviewflag=0;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
-								if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
-								if (  t.tabviewflag == 1 ) 
-								{
-									// adjust for minimised panels
-									t.twholethispanelheight = t.tmargin - 8;
-									if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
-									{
-										t.twholethispanelheight += 8;
-									}
-									else
-									{
-										t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
-										t.twholethispanelheight += t.tpanelheight + 20;
-									}
-									// and check this panel
-									if ( t.tnewpanelx_f+1<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
-										if ( t.tnewpanelx_f+256-8>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
-											if (t.tnewpanely_f+1<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
-												if ( t.tnewpanely_f+t.twholepanelheight-8>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
-													bStillInsideAPanel = true;
-								}
-							}
-						}
-
-						// remember this panel overlaps, to allow us to move it around
-						// next time around (otherwise this flag above freezes the panel)
-						if ( bStillInsideAPanel==true )
-							t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle = true;
 						else
-							t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle = false;
-
-						// decide if new panel position warranted
-						if ( bStillInsideAPanel==false || t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap==true )
 						{
-							// give panel its new good position							
-							t.slidersmenu[t.slidersmenuindex].tleft=t.tnewpanelx_f;
-							t.slidersmenu[t.slidersmenuindex].ttop=t.tnewpanely_f;
+							//  drag whole panel
+							// adjust for minimised panel being moved
+							t.twholepanelheight = t.tmargin - 8;
+							if ( t.slidersmenu[t.slidersmenuindex].minimised==1 )
+							{
+								t.twholepanelheight += 8;
+							}
+							else
+							{
+								t.tpanelheight=((int)(t.slidersmenu[t.slidersmenuindex].panelheight/32))*32;
+								t.twholepanelheight += t.tpanelheight + 20;
+							}
+
+							// ensure when getting mouse position, dont get if OFF 3D view area
+							if ( t.tgamemousex_f < 40000.0f )
+							{
+							t.tnewpanelx_f=t.tsliderdragx_f+t.tgamemousex_f;
+							t.tnewpanely_f=t.tsliderdragy_f+t.tgamemousey_f;
+							}
+							if (  t.tnewpanelx_f<0  )  t.tnewpanelx_f = 0;
+							if (  t.tnewpanely_f<0  )  t.tnewpanely_f = 0;
+							if (  t.tnewpanelx_f>GetDisplayWidth()-256-16  )  t.tnewpanelx_f = GetDisplayWidth()-256-16;
+							if (  t.tnewpanely_f>GetDisplayHeight()-t.twholepanelheight  )  t.tnewpanely_f = GetDisplayHeight()-t.twholepanelheight;
+
+							//  ensure new position never overlaps existing panel
+							for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
+							{
+								if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
+								{
+									t.tabviewflag=0;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+									if (  t.tabviewflag == 1 ) 
+									{
+										// adjust for minimised panels
+										t.twholethispanelheight = t.tmargin - 8;
+										if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
+										{
+											t.twholethispanelheight += 8;
+										}
+										else
+										{
+											t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
+											t.twholethispanelheight += t.tpanelheight + 20;
+										}
+
+										// are we in this panel?
+										bool bEnteredAnotherPanel = false;
+										if (  t.tnewpanelx_f<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
+											if (  t.tnewpanelx_f+256>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
+												if (  t.tnewpanely_f<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
+													if (  t.tnewpanely_f+t.twholepanelheight>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
+														bEnteredAnotherPanel = true;
+
+										// yes we are
+										if ( bEnteredAnotherPanel==true )
+													{
+											// determine which edge is best
+											int iBestEdge = 0;
+											int iBestDistance = 99999;
+											int iLeft = abs ( t.slidersmenu[t.slidersmenuindex].tleft - (t.slidersmenu[t.tcheckslidersmenuindex].tleft+256) );
+											int iRight = abs ( (t.slidersmenu[t.slidersmenuindex].tleft+256) - t.slidersmenu[t.tcheckslidersmenuindex].tleft );
+											int iTop = abs ( t.slidersmenu[t.slidersmenuindex].ttop - (t.slidersmenu[t.tcheckslidersmenuindex].ttop + t.twholethispanelheight) );
+											int iBottom = abs ( (t.slidersmenu[t.slidersmenuindex].ttop+t.twholepanelheight) - t.slidersmenu[t.tcheckslidersmenuindex].ttop );
+											if ( iLeft < iBestDistance ) { iBestEdge=0; iBestDistance=iLeft; }
+											if ( iRight < iBestDistance ) { iBestEdge=1; iBestDistance=iRight; }
+											if ( iTop < iBestDistance ) { iBestEdge=2; iBestDistance=iTop; }
+											if ( iBottom < iBestDistance ) { iBestEdge=3; iBestDistance=iBottom; }
+
+											// check if moving by X solves it
+											if ( iBestEdge==0 || iBestEdge==1 )
+											{
+												if ( t.tsliderdragoriginaltleft+128 < t.slidersmenu[t.tcheckslidersmenuindex].tleft+128 ) 
+												{
+													t.tnewpanelx_f = t.slidersmenu[t.tcheckslidersmenuindex].tleft - 256 - 1;
+													}
+												if ( t.tsliderdragoriginaltleft+128 > t.slidersmenu[t.tcheckslidersmenuindex].tleft+128 ) 
+												{
+													t.tnewpanelx_f = t.slidersmenu[t.tcheckslidersmenuindex].tleft+256+1;
+												}
+											}
+											else
+											{
+												if ( t.tsliderdragoriginalttop+(t.twholethispanelheight/2) < t.slidersmenu[t.tcheckslidersmenuindex].ttop+(t.twholethispanelheight/2) ) 
+												{
+													t.tnewpanely_f = t.slidersmenu[t.tcheckslidersmenuindex].ttop - t.twholepanelheight - 1;
+										}
+												if ( t.tsliderdragoriginalttop+(t.twholethispanelheight/2) > t.slidersmenu[t.tcheckslidersmenuindex].ttop+(t.twholethispanelheight/2) ) 
+												{
+													t.tnewpanely_f = t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight + 1;
+									}
+								}
+							}
+									}
+								}
+							}
+
+							// one final screen bounds check before we apply to actual panel
+							if (  t.tnewpanelx_f<0  )  t.tnewpanelx_f = 0;
+							if (  t.tnewpanely_f<0  )  t.tnewpanely_f = 0;
+							if (  t.tnewpanelx_f>GetDisplayWidth()-256-16  )  t.tnewpanelx_f = GetDisplayWidth()-256-16;
+							if (  t.tnewpanely_f>GetDisplayHeight()-t.twholepanelheight  )  t.tnewpanely_f = GetDisplayHeight()-t.twholepanelheight;
+							bool bStillInsideAPanel = false;
+							for ( t.tcheckslidersmenuindex = 1 ; t.tcheckslidersmenuindex<=  g.slidersmenumax; t.tcheckslidersmenuindex++ )
+							{
+								if (  t.tcheckslidersmenuindex != t.slidersmenuindex ) 
+								{
+									t.tabviewflag=0;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == g.tabmode  )  t.tabviewflag = 1;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -1 && g.tabmode>0  )  t.tabviewflag = 1;
+									if (  t.slidersmenu[t.tcheckslidersmenuindex].tabpage == -2 && (g.tabmode == 0 || g.tabmode == 2)  )  t.tabviewflag = 1;
+									if (  t.tabviewflag == 1 ) 
+									{
+										// adjust for minimised panels
+										t.twholethispanelheight = t.tmargin - 8;
+										if ( t.slidersmenu[t.tcheckslidersmenuindex].minimised==1 )
+										{
+											t.twholethispanelheight += 8;
+										}
+										else
+										{
+											t.tpanelheight=((int)(t.slidersmenu[t.tcheckslidersmenuindex].panelheight/32))*32;
+											t.twholethispanelheight += t.tpanelheight + 20;
+										}
+										// and check this panel
+										if ( t.tnewpanelx_f+1<t.slidersmenu[t.tcheckslidersmenuindex].tleft+256 ) 
+											if ( t.tnewpanelx_f+256-8>t.slidersmenu[t.tcheckslidersmenuindex].tleft ) 
+												if (t.tnewpanely_f+1<t.slidersmenu[t.tcheckslidersmenuindex].ttop+t.twholethispanelheight ) 
+													if ( t.tnewpanely_f+t.twholepanelheight-8>t.slidersmenu[t.tcheckslidersmenuindex].ttop ) 
+														bStillInsideAPanel = true;
+									}
+								}
+							}
+
+							// remember this panel overlaps, to allow us to move it around
+							// next time around (otherwise this flag above freezes the panel)
+							if ( bStillInsideAPanel==true )
+								t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle = true;
+							else
+								t.slidersmenu[t.slidersmenuindex].bFrozenPanelFromLastCycle = false;
+
+							// decide if new panel position warranted
+							if ( bStillInsideAPanel==false || t.slidersmenu[t.slidersmenuindex].bPermitMovementEvenIfOverlap==true )
+							{
+								// give panel its new good position							
+								t.slidersmenu[t.slidersmenuindex].tleft=t.tnewpanelx_f;
+								t.slidersmenu[t.slidersmenuindex].ttop=t.tnewpanely_f;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-	}
+	*/
 }
 
 void sliders_readall ( void )
 {
-	#ifndef WICKEDENGINE
-	//  Populate slider menu when called
-	if (  t.slidersmenuindex == t.slidersmenunames.performance ) 
-	{
-		//  Performance Readouts
-		t.slidersmenu[t.slidersmenuindex].title_s=cstr("METRICS  ")+Str(GetDisplayFPS())+"fps  "+Str(int(t.sky.currenthour_f))+"HR";
-		t.game.perf.smoothcounter=t.game.perf.smoothcounter+1;
-		if (  t.game.perf.overall>0 && t.game.perf.smoothcounter>5 ) 
-		{
-			t.game.perf.smoothcounter=0;
-			t.toverall_f=t.game.perf.overall;
-			t.perftai_f=(t.game.perf.ai+0.0)/t.toverall_f;
-			t.perftai1_f=(t.game.perf.ai1+0.0)/t.toverall_f;
-			t.perftai2_f=(t.game.perf.ai2+0.0)/t.toverall_f;
-			t.perftai3_f=(t.game.perf.ai3+0.0)/t.toverall_f;
-			t.perftai4_f=(t.game.perf.ai4+0.0)/t.toverall_f;
-			t.perftai5_f=(t.game.perf.ai5+0.0)/t.toverall_f;
-			t.perftai6_f=(t.game.perf.ai6+0.0)/t.toverall_f;
-			t.perftphysics_f=(t.game.perf.physics+0.0)/t.toverall_f;
-			t.perftterrain1_f=(t.game.perf.terrain1+0.0)/t.toverall_f;
-			t.perftterrain2_f=(t.game.perf.terrain2+0.0)/t.toverall_f;
-			t.perftterrain3_f=(t.game.perf.terrain3+0.0)/t.toverall_f;
-			t.perftsynctime_f=(t.game.perf.synctime+0.0)/t.toverall_f;
-			t.perftmisc1_f=(t.game.perf.misc+0.0)/t.toverall_f;
-			t.perftmisc2_f=(t.game.perf.resttosync+0.0)/t.toverall_f;
-			t.perftmisc3_f=(t.game.perf.gun+0.0)/t.toverall_f;
-			t.perftmisc4_f=(t.game.perf.occlusion+0.0)/t.toverall_f;
-			t.perftmisc5_f=(t.game.perf.postprocessing+0.0)/t.toverall_f;
-			t.game.perf.overall=0;
-			t.game.perf.ai=0;
-			t.game.perf.ai1=0;
-			t.game.perf.ai2=0;
-			t.game.perf.ai3=0;
-			t.game.perf.ai4=0;
-			t.game.perf.ai5=0;
-			t.game.perf.ai6=0;
-			t.game.perf.physics=0;
-			t.game.perf.terrain1=0;
-			t.game.perf.terrain2=0;
-			t.game.perf.terrain3=0;
-			t.game.perf.synctime=0;
-			t.game.perf.misc=0;
-			t.game.perf.resttosync=0;
-			t.game.perf.gun=0;
-			t.game.perf.occlusion=0;
-			t.game.perf.postprocessing=0;
-		}
-		if (  g.sliderspecialview>0 ) 
-		{
-			//  A.I drill-down statistics
-			t.slidersmenuvalue[g.sliderspecialview][1].value=CurveValue(t.perftai1_f*100.0,t.slidersmenuvalue[g.sliderspecialview][1].value,2.0);
-			t.slidersmenuvalue[g.sliderspecialview][2].value=CurveValue(t.perftai2_f*100.0,t.slidersmenuvalue[g.sliderspecialview][2].value,2.0);
-			t.slidersmenuvalue[g.sliderspecialview][3].value=CurveValue(t.perftai3_f*100.0,t.slidersmenuvalue[g.sliderspecialview][3].value,2.0);
-			t.slidersmenuvalue[g.sliderspecialview][4].value=CurveValue(t.perftai4_f*100.0,t.slidersmenuvalue[g.sliderspecialview][4].value,2.0);
-			t.slidersmenuvalue[g.sliderspecialview][5].value=CurveValue(t.perftai5_f*100.0,t.slidersmenuvalue[g.sliderspecialview][5].value,2.0);
-			t.slidersmenuvalue[g.sliderspecialview][6].value=CurveValue(t.perftai6_f*100.0,t.slidersmenuvalue[g.sliderspecialview][6].value,2.0);
-		}
-		else
-		{
-			//  Default performance statistics
-			t.slidersmenuvalue[t.slidersmenuindex][1].value=CurveValue(t.perftai_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][1].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][2].value=CurveValue(t.perftphysics_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][2].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][3].value=CurveValue(t.perftterrain1_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][3].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][4].value=CurveValue(t.perftterrain2_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][4].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][5].value=CurveValue(t.perftterrain3_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][5].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][6].value=CurveValue(t.perftsynctime_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][6].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][7].value=CurveValue(t.perftmisc1_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][7].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][8].value=CurveValue(t.perftmisc2_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][8].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][9].value=CurveValue(t.perftmisc3_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][9].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][10].value=CurveValue(t.perftmisc4_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][10].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][11].value=CurveValue(t.perftmisc5_f*100.0,t.slidersmenuvalue[t.slidersmenuindex][11].value,2.0);
-			t.slidersmenuvalue[t.slidersmenuindex][12].value=t.mainstatistic1/2000;
-			t.slidersmenuvalue[t.slidersmenuindex][13].value=t.mainstatistic5/3;
-		}
-	}
-	#endif
-
 	if ( t.slidersmenuindex == t.slidersmenunames.weapon ) 
 	{
 		if ( g.weaponammoindex>0 ) 
@@ -864,12 +746,8 @@ void sliders_readall ( void )
 	if (  t.slidersmenuindex == t.slidersmenunames.player ) 
 	{
 		//  Player readout
-		#ifdef WICKEDENGINE
 		// figure something out for this extra reserved place in the HUD
 		t.slidersmenuvalue[t.slidersmenuindex][1].value = 0;
-		#else
-		t.slidersmenuvalue[t.slidersmenuindex][1].value = t.player[1].lives;
-		#endif
 		t.slidersmenuvalue[t.slidersmenuindex][2].value=t.player[1].health;
 	}
 }
@@ -1739,13 +1617,6 @@ void sliders_write (bool bOnlyVisualSettings )
 			t.visuals.refreshshaders = 1;
 		}
 	}
-//  `if slidersmenuindex=slidersmenunames.sky
-	////  Sky settings
-	//terrain.sundirectionx#=0+((slidersmenuvalue(slidersmenuindex,1).value-50)*1000)
-	//terrain.sundirectiony#=0+((slidersmenuvalue(slidersmenuindex,2).value-0)*1000)
-	//terrain.sundirectionz#=0+((slidersmenuvalue(slidersmenuindex,3).value-50)*1000)
-	//visuals.refreshshaders=1
-//  `endif
 	if (  t.slidersmenuindex == t.slidersmenunames.qualitypanel ) 
 	{
 		//  Quality panel
@@ -1889,7 +1760,6 @@ void sliders_write (bool bOnlyVisualSettings )
 			{
 				t.storeprojectmodified = 1;
 				t.visuals.shaderlevels.lighting = t.slidersmenuvalue[t.slidersmenuindex][4].value;
-				//visuals_shaderlevels_lighting_update();
 				//  the above subroutine can change lighting back to REALTIME
 				t.slidersmenuvalue[t.slidersmenuindex][4].value = t.visuals.shaderlevels.lighting;
 				if (t.slidersmenuvalue[t.slidersmenuindex][4].value >= 2)
@@ -1899,9 +1769,6 @@ void sliders_write (bool bOnlyVisualSettings )
 					sliders_getnamefromvalue();
 					t.slidersmenuvalue[t.slidersmenuindex][4].value_s = t.slidervaluename_s;
 				}
-				//visuals_shaderlevels_terrain_update();
-				//visuals_shaderlevels_entities_update();
-				//visuals_shaderlevels_vegetation_update();
 				t.visuals.refreshshaders = 1;
 			}
 		}

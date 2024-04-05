@@ -1199,10 +1199,13 @@ void Master::Update(float dt)
 			//extern bool bSpecialEditorFromStandalone;
 			if (bAreWeAEditor == true && bSpecialStandalone==false && bSpecialEditorFromStandalone==false)
 			{
-				// play sound over splash
-				LPSTR pIntroSoundFile = "Files\\editors\\uiv3\\MAX.wav";
-				LoadSound(pIntroSoundFile, 8809); // g.introsoundsoundoffset = 8809;
-				if (SoundExist(8809) == 1) PlaySound(8809);
+				if (g_bFreeTrialVersion == true)
+				{
+					// play sound over splash (only for the free trial users)
+					LPSTR pIntroSoundFile = "Files\\editors\\uiv3\\MAX.wav";
+					LoadSound(pIntroSoundFile, 8809); // g.introsoundsoundoffset = 8809;
+					if (SoundExist(8809) == 1) PlaySound(8809);
+				}
 			}
 		}
 		/* now below

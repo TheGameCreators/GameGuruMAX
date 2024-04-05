@@ -2211,7 +2211,7 @@ void launchOrShowBuildingEditor(void)
 void mapeditorexecutable_loop(void)
 {
 	// the moment storyboard is used, we can load the rest of the common assets needed for editor and game
-	if (bStoryboardWindow == true)
+	if (bStoryboardWindow == true || pref.iDisplayWelcomeScreen == 0)
 	{
 		// Generic asset loading common to editor and game that can be deferred until user opens a project for first time
 		if (g_bCommonAssetsLoadOnce == true)

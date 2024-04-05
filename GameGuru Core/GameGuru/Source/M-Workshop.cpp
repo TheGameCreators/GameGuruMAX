@@ -823,9 +823,6 @@ void CSteamUserGeneratedWorkshopItem::CreateOrUpdateWorkshopItem()
 	{
 		// get AppID
 		uint32 consumerAppID = SteamUtils()->GetAppID();
-		#ifdef TESTSTEAMFREETRIAL
-		consumerAppID = 1247289; // // dummy app, forces the free trial mode
-		#endif
 
 		// check if already have item
 		int iItemExistsIndex = -1;

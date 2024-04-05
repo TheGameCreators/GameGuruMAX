@@ -186,7 +186,7 @@ void GuruLoopRender ( void )
 	OPTICK_EVENT();
 #endif
 
-	// not until main has started
+	// not until main has started 
 	if (g_bNoGGUntilGameGuruMainCalled == false)
 		return;
 

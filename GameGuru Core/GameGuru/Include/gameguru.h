@@ -352,6 +352,7 @@ struct Sglobals
 	int slidersmenufreshclick;
 	int soundbankoffsetfinish;
 	int temppreviewsoundoffset;
+	int introsoundsoundoffset;
 	int temporarydarkaiobject;
 	int temporarydarkaiobjectend;
 	int luadrawredirectobjectoffset;
@@ -2051,6 +2052,7 @@ struct Sglobals
 		 timebasepercyclestamp = 0;
 		 temporarydarkaiobject = 0;
 		 temppreviewsoundoffset = 0;
+		 introsoundsoundoffset = 0;
 		 soundbankoffsetfinish = 0;
 		 slidersmenufreshclick = 0;
 		 shroudsizedefaultsize = 0;

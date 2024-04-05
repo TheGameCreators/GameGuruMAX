@@ -840,11 +840,8 @@ void common_loop_render(void)
 	if ( t.game.gameisexe == 1 )
 	{
 		// so can draw sprites and render using IMGUI
-		#ifdef WICKEDENGINE
 		extern bool	g_bDrawSpritesFirst;
-		if (!g_bDrawSpritesFirst)
-		#endif
-			UpdateSprites();
+		if (!g_bDrawSpritesFirst) UpdateSprites();
 		extern bool bRenderTabTab;
 		bRenderTabTab = true;
 		ImGui_RenderLast();
@@ -856,11 +853,8 @@ void common_loop_render(void)
 		extern bool bImGuiInTestGame;
 		if (bImGuiInTestGame)
 		{
-			#ifdef WICKEDENGINE
 			extern bool	g_bDrawSpritesFirst;
-			if (!g_bDrawSpritesFirst)
-			#endif
-				UpdateSprites(); //Draw all batched sprites. (like hand in pickupsimple.lua).
+			if (!g_bDrawSpritesFirst) UpdateSprites(); //Draw all batched sprites. (like hand in pickupsimple.lua).
 		}
 		ImGui_RenderLast();
 	}
@@ -1044,18 +1038,10 @@ void common_init_globals ( void )
 
 	//  Sound Resources
 	g.soundbankoffset = 1;
-	#ifdef VRTECH
 	g.soundbankoffsetfinish = 8798;
 	g.temppreviewsoundoffset = 8799;
-	#else
-	g.soundbankoffsetfinish = 8799;
-	#endif
-	#ifdef WICKEDENGINE
-	//g.temppreviewsoundoffset = object lib sound, +2 = storyboard menu background music, +3=Ambient Music Track, +4= menu button click sound, +5=Combat Music Track
+	g.introsoundsoundoffset = 8809;
 	g.titlessoundoffset = 8810;
-	#else
-	g.titlessoundoffset = 8800;
-	#endif
 	g.weaponssoundoffset = 8900;
 	g.playercontrolsoundoffset = 9000;
 	g.silentsoundoffset = 10000;
@@ -5041,6 +5027,9 @@ void FPSC_Setup(void)
 		//  Generic asset loading common to editor and game
 		common_loadfonts();
 		common_loadcommonassets(1);
+		common_loadcommonassets_delayed(1);
+		extern bool g_bCommonAssetsLoadOnce;
+		g_bCommonAssetsLoadOnce = false;
 
 		// This used by 3D prompts in standalone
 		g.guishadereffectindex = loadinternaleffect("effectbank\\reloaded\\gui_basic.fx");
@@ -5243,7 +5232,6 @@ void common_loadfonts ( void )
 
 void common_loadcommonassets(int iShowScreenPrompts)
 {
-
 	//PE: Per country text in standalone.
 	t.screenprompt_s = "PREPARING CORE FILES";
 	sprintf(t.szwork, "languagebank\\%s\\inittext.ssp", g.language_s.Get());
@@ -5264,24 +5252,18 @@ void common_loadcommonassets(int iShowScreenPrompts)
 	timestampactivity(0, "initbitmapfont");
 	loadallfonts();
 
+	/* old shader system
 	// loading shaders message more accurate
 	t.tsplashstatusprogress_s = "LOADING SHADERS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
-
-	// choose non-PBR or PBR shaders
 	LPSTR pEffectStatic = "effectbank\\reloaded\\entity_basic.fx";
 	LPSTR pEffectAnimated = "effectbank\\reloaded\\character_basic.fx";
 	if (g.gpbroverride == 1)
 	{
 		pEffectStatic = "effectbank\\reloaded\\apbr_basic.fx";
-		#ifdef VRTECH
 		pEffectAnimated = "effectbank\\reloaded\\apbr_animwithtran.fx";
-		#else
-		pEffectAnimated = "effectbank\\reloaded\\apbr_anim.fx";
-		#endif
 	}
-
 	// load common lightmapper PBR shader
 	if (GetEffectExist(g.lightmappbreffect) == 0)
 	{
@@ -5295,8 +5277,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 		LoadEffect(pLightmapPBREffect, g.lightmappbreffectillum, 0);
 		filleffectparamarray(g.lightmappbreffectillum);
 	}
-
-	#ifdef VRTECH
 	// load common controller PBR shader
 	if (GetEffectExist(g.controllerpbreffect) == 0)
 	{
@@ -5304,7 +5284,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 		LoadEffect(pPBREffect, g.controllerpbreffect, 0);
 		filleffectparamarray(g.controllerpbreffect);
 	}
-	#endif
 
 	// load common third person character shader
 	if (GetEffectExist(g.thirdpersoncharactereffect) == 0)
@@ -5320,42 +5299,48 @@ void common_loadcommonassets(int iShowScreenPrompts)
 
 	// Also preload the entity basic shader so editor does not freeze on first object load
 	int tunusedhereid = loadinternaleffect(pEffectStatic);
+	*/
 
 	//  Setup visual settings
 	t.tsplashstatusprogress_s = "INIT VECTORS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	common_vectorsinit();
-	//Sync (  );
+
+	// rest loaded via common_loadcommonassets_delayed
+	return;
+}
+
+void common_loadcommonassets_delayed(int iShowScreenPrompts)
+{
 	t.tsplashstatusprogress_s = "INIT SKY ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	sky_init();
-	//Sync (  );
+
 	t.tsplashstatusprogress_s = "INIT TERRAIN ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	terrain_initstyles();
 	grass_initstyles();
-	//Sync (  );
+
 	t.tsplashstatusprogress_s = "INIT GAME VISUAL ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	visuals_init();
-	//Sync (  );
+
 	t.tsplashstatusprogress_s = "INIT DECAL ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	decal_init();
-	//Sync (  );
+
 	t.tsplashstatusprogress_s = "INIT LIGHTMAP ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate();
 	lm_init();
-	//Sync (  );
 
 	//  Setup default paths
-	t.levelmapptah_s = g.mysystem.levelBankTestMap_s; //"levelbank\\testmap\\";
+	t.levelmapptah_s = g.mysystem.levelBankTestMap_s;
 	g.projectfilename_s = "";
 
 	//  Get list of guns and flak for data
@@ -5373,20 +5358,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 	version_splashtext_statusupdate();
 	g.gplayerstyle_s = ""; material_loadplayersounds();
 
-	#ifdef VRTECH
-	#else
-	// Sky details for terrain lighting
-	if ( t.game.gameisexe == 0 )
-	{
-		t.screenprompt_s=t.screenprompt_s+".";
-		if ( iShowScreenPrompts == 1 ) printscreenprompt(t.screenprompt_s.Get());
-		t.tsplashstatusprogress_s="SCANNING SKY SETTINGS";
-		timestampactivity(0,t.tsplashstatusprogress_s.Get());
-		version_splashtext_statusupdate ( );
-		sky_skyspec_init ( );
-	}
-	#endif
-
 	//  Create terrain (eventually default terrain randomised)
 	t.screenprompt_s = t.screenprompt_s + ".";
 	if (iShowScreenPrompts == 1) printscreenprompt(t.screenprompt_s.Get());
@@ -5395,13 +5366,11 @@ void common_loadcommonassets(int iShowScreenPrompts)
 	version_splashtext_statusupdate();
 	terrain_setupedit();
 
-	#ifdef ENABLEIMGUI
 	if (t.game.gameisexe == 0)
 	{
 		t.terrain.terrainobjectindex = t.terrain.objectstartindex + 3;
 		BT_ForceTerrainTechnique(1);
 		t.terrain.waterliney_f = g.gdefaultwaterheight;
-
 		if (GetEffectExist(t.terrain.effectstartindex + 0) == 0)
 		{
 			LPSTR pEffectToUse = "effectbank\\reloaded\\terrain_basic.fx";
@@ -5424,11 +5393,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 		t.inputsys.donewflat = 0;
 		t.inputsys.donew = 0;
 
-		#ifdef WICKEDENGINE
-		#else
-		t.terrain.terrainobjectindex = 0; //reload of textures.
-		#endif
-
 		terrain_make_image_only();
 		if (GetImageExistEx(t.terrain.imagestartindex + 13) && GetImageExistEx(t.terrain.imagestartindex + 21))
 		{
@@ -5447,9 +5411,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 	{
 		terrain_make();
 	}
-	#else
-	terrain_make();
-	#endif
 
 	// Sky details for terrain lighting
 	if (t.game.gameisexe == 0)
@@ -5467,7 +5428,6 @@ void common_loadcommonassets(int iShowScreenPrompts)
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ( );
 	postprocess_general_init ( );
-	//postprocess_forcheapshadows ( );
 
 	//  Initialise ragdoll resources
 	t.tsplashstatusprogress_s="INIT RAGDOLL SYSTEM";

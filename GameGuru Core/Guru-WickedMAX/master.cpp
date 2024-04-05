@@ -125,6 +125,7 @@ Entity g_entitySunLight;
 MasterRenderer * master_renderer;
 wiSprite* pboundbox[4];
 int g_envProbeResolution = 128;
+int g_iShowSplashForFirstFewCycles = 10;
 
 extern ImVec2 renderTargetAreaPos;
 extern ImVec2 renderTargetAreaSize;
@@ -618,9 +619,21 @@ void Master::Update(float dt)
 	// super update to keep things ticking along during setup and regular loop
 	__super::Update(dt);
 
+	// failed attempt to uyse an intro video for splash
+	//static int iIntroVideoID = -999;
+
+	// push splash render to end of function FLICKER - MAKE THIS WORK!!!!
+	static bool bCustomSplash = false;
+	wiImageParams fx;
+	fx.enableFullScreen();
+	fx.blendFlag = BLENDMODE_OPAQUE;
+
 	// while init phase, show splash
 	if (GuruUpdate() == false)
 	{
+		// to avoid screen goping white and black while splashscreening at launch
+		g_iShowSplashForFirstFewCycles = 10;
+
 		// output graphcs card log created earlier
 		static bool bOnlyReportOnce = true;
 		if (bOnlyReportOnce == true)
@@ -639,24 +652,20 @@ void Master::Update(float dt)
 
 		// until we are loaded and ready, present splash screen
 		timestampactivity(0, "initial setup");
-		CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-		wiRenderer::GetDevice()->RenderPassBegin(&swapChain, cmd);
-		wiImage::SetCanvas(canvas, cmd);
-		wiFont::SetCanvas(canvas, cmd);
-		Viewport viewport;
-		viewport.Width = (float)swapChain.desc.width;
-		viewport.Height = (float)swapChain.desc.height;
-		wiRenderer::GetDevice()->BindViewports(1, &viewport, cmd);
-		wiFontParams params;
-		params.posX = 5.f;
-		params.posY = 5.f;
+		//CommandList cmd = wiRenderer::GetDevice()->BeginCommandList(); now below
+		//wiRenderer::GetDevice()->RenderPassBegin(&swapChain, cmd);
+		//wiImage::SetCanvas(canvas, cmd);
+		//wiFont::SetCanvas(canvas, cmd);
+		//Viewport viewport;
+		//viewport.Width = (float)swapChain.desc.width;
+		//viewport.Height = (float)swapChain.desc.height;
+		//wiRenderer::GetDevice()->BindViewports(1, &viewport, cmd);
+		//wiFontParams params;
+		//params.posX = 5.f;
+		//params.posY = 5.f;
 
 		// load and show MAX splash
 		timestampactivity(0, "splash screen");
-		wiImageParams fx;
-		fx.enableFullScreen();
-		fx.blendFlag = BLENDMODE_OPAQUE;
-		static bool bCustomSplash = false;
 		if (b_gSplashTextureLoaded == false)
 		{
 			// determine if in editor or game/standalone
@@ -711,15 +720,6 @@ void Master::Update(float dt)
 				// are we non-steam
 				SetDir("..");
 				LPSTR pCurrentDirChecking = GetDir();
-				/*
-				timestampactivity(0, "GameGuru MAX Updater exist check");
-				if (FileExist("GameGuru MAX Updater.exe") == 1 || FileExist("GameGuru MAX Updater (new).exe") == 1)
-				{
-					// TGC Downloaded
-					timestampactivity(0, "GameGuru MAX Updater exists!");
-					g_bUpdateAppAvailable = true;
-				}
-				*/
 
 				// restore current in Max folder
 				SetDir(pOldDir);
@@ -733,17 +733,16 @@ void Master::Update(float dt)
 				#endif
 
 				// test for Steam functionality 
-				//#define TESTSTEAMFREETRIAL
-				//#define TESTSTEAMAUTHANDTRIAL
-				#ifdef TESTSTEAMAUTHANDTRIAL
-				g_bUpdateAppAvailable = false;
-				#endif
+				///#define TESTSTEAMFREETRIAL
 
 				// if steam, do auth check
 				if (g_bUpdateAppAvailable == false)
 				{
 					#ifndef GGMAXEDU
 					// Steam Purchased (Owned)
+					char pInstallSteamTrialFile[MAX_PATH];
+					strcpy(pInstallSteamTrialFile, pOldDir);
+					strcat(pInstallSteamTrialFile, "\\installsteamtrial.dat");
 					char pInstallSteamFile[MAX_PATH];
 					strcpy(pInstallSteamFile, pOldDir);
 					strcat(pInstallSteamFile,"\\installsteam.dat");
@@ -776,6 +775,9 @@ void Master::Update(float dt)
 								g_bFreeTrialVersion = true;
 								extern bool bFreeTrial_Window;
 								bFreeTrial_Window = true;
+
+								// install file is different for free trial
+								strcpy(pInstallSteamFile, pInstallSteamTrialFile);
 
 								// also stop intro video as gets in way of upgrade scree
 								extern bool bEnsureIntroVideoIsNotRun;
@@ -819,6 +821,7 @@ void Master::Update(float dt)
 							}
 
 							// update install steam date stamp (so can run afterwards offline for 30 days - or 7 days if free trial)
+							// do not create the "pInstallSteamFile" file when running free trial
 							if(g_bFreeTrialVersion==false || (g_bFreeTrialVersion==true && FileExist(pInstallSteamFile)==0))
 							{
 								if (FileExist(pInstallSteamFile) == 1) DeleteFileA(pInstallSteamFile);
@@ -877,7 +880,7 @@ void Master::Update(float dt)
 						iSteamErrorCode = 1;
 					}
 
-					// alkways init workshop for testing purposes if not logged in
+					// always init workshop for testing purposes if not logged in
 					extern void workshop_init(bool);
 					workshop_init(bLoggedIntoSteamForWorkshop);
 
@@ -1110,8 +1113,7 @@ void Master::Update(float dt)
 			else
 				sprintf(fileName, "Files\\editors\\%s\\loadingsplash.jpg", pFolderToUse);
 
-			#ifdef STORYBOARD
-			//PE: Do we have a storyboard ?
+			// Do we have a storyboard ?
 			if ( bAreWeAEditor == false )
 			{
 				// only for standalones while showing splash screen (moved from later in init sequence for elegance)
@@ -1170,12 +1172,8 @@ void Master::Update(float dt)
 				SetDir("..");
 				bCustomSplash = true;
 			}
-			#endif
 			std::shared_ptr<wiResource> tex = wiResourceManager::Load(fileName);
-			if (tex)
-			{
-				g_pSplashTexture = tex->texture;
-			}
+			if (tex) g_pSplashTexture = tex->texture;
 			if (g_pSplashTexture.desc.Width == 0)
 			{
 				// could be a DDS renamed as JPG
@@ -1197,28 +1195,33 @@ void Master::Update(float dt)
 				g_pGlob->Encrypt(VirtualFilename);
 			}
 			b_gSplashTextureLoaded = true;
+			extern bool bSpecialStandalone;
+			//extern bool bSpecialEditorFromStandalone;
+			if (bAreWeAEditor == true && bSpecialStandalone==false && bSpecialEditorFromStandalone==false)
+			{
+				// play sound over splash
+				LPSTR pIntroSoundFile = "Files\\editors\\uiv3\\MAX.wav";
+				LoadSound(pIntroSoundFile, 8809); // g.introsoundsoundoffset = 8809;
+				if (SoundExist(8809) == 1) PlaySound(8809);
+			}
 		}
+		/* now below
 		if (g_pSplashTexture.IsValid())
 		{
-			#ifdef STORYBOARD
 			if (bCustomSplash)
 			{
 				float screenheight = canvas.GetLogicalHeight();
 				float screenwidth = canvas.GetLogicalWidth();
-
-				//PE: New default - Zoom Image.
 				float img_w = g_pSplashTexture.desc.Width;
 				float img_h = g_pSplashTexture.desc.Height;
-
 				float fRatio = 1.0f / (img_h / img_w);
 				img_h = screenheight;
 				img_w = screenheight * fRatio;
 				if (img_w < screenwidth)
 				{
 					img_w = screenwidth;
-					img_h = screenwidth * (1.0f / ( (float) g_pSplashTexture.desc.Width / (float) g_pSplashTexture.desc.Height));
+					img_h = screenwidth * (1.0f / ((float)g_pSplashTexture.desc.Width / (float)g_pSplashTexture.desc.Height));
 				}
-
 				fx.disableFullScreen();
 				fx.pos.x = screenwidth * 0.5;
 				fx.pos.y = screenheight * 0.5;
@@ -1227,16 +1230,228 @@ void Master::Update(float dt)
 				fx.siz.x = img_w;
 				fx.siz.y = img_h;
 			}
-			#endif
 			wiImage::Draw(&g_pSplashTexture, fx, cmd);
 		}
 		wiRenderer::GetDevice()->RenderPassEnd(cmd);
 		wiRenderer::GetDevice()->SubmitCommandLists();
+		*/
+
+		/* attempt to make a video intro while loading
+		ID3D11ShaderResourceView* lpIntroVideoTexture = NULL;
+		if (bAreWeAEditor == true)
+		{
+			// video intro at start of MAX - Dream It Build It Play It
+			static bool bUseIntroVideoSplash = true;
+			if (bUseIntroVideoSplash == true)
+			{
+				// load intro animation
+				for (int i = 1; i <= 32; i++)
+				{
+					if (AnimationExist(i) == 0) { iIntroVideoID = i; break; }
+				}
+				LPSTR pIntroVideoFile = "Files\\videobank\\MAX.mp4";
+				if (LoadAnimation(pIntroVideoFile, iIntroVideoID, g.videoprecacheframes, g.videodelayedload, 1) == true)
+				{
+					PlaceAnimation (iIntroVideoID, 0, 0, GetDisplayWidth() + 1, GetDisplayHeight() + 1);
+					PlayAnimation(iIntroVideoID);
+					Sleep(50); //Sleep so we get a video texture in the next call.
+					UpdateAllAnimation();
+				}
+				else
+				{
+					iIntroVideoID = -999;
+				}
+				bUseIntroVideoSplash = false;
+			}
+			else
+			{
+				// run intro animation
+				if (iIntroVideoID > 0)
+				{
+					extern void UpdateAllAnimation(void);
+					UpdateAllAnimation();
+					if (AnimationExist(iIntroVideoID))
+					{
+						if (AnimationPlaying(iIntroVideoID) == 1)
+						{
+							// grab active ptr to animation texture data
+							lpIntroVideoTexture = GetAnimPointerView(iIntroVideoID);
+						}
+					}
+				}
+			}
+		}
+		else
+		if (lpIntroVideoTexture != NULL)
+		{
+			//ImGuiWindow* window = ImGui::GetCurrentWindow();
+			//const ImRect image_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(100,100));
+			//window->DrawList->AddImage((ImTextureID)lpIntroVideoTexture, image_bb.Min, image_bb.Max, uv0, uv1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
+			//with current system need IMGUI to render Directly using DX11 calls using the IMGUI Hook in Wicked Engine
+			//as there are no direct methods in Wicked Engine to take lpIntroVideoTexture and render it..
+			/////////////////////
+			// could I copy the texture data into the existing splash texture?
+			//float fVideoW = GetAnimWidth(iIntroVideoID);
+			//float fVideoH = GetAnimHeight(iIntroVideoID);
+			//SetRenderAnimToImage(iIntroVideoID, true);
+			//TextureDesc desc;
+			//desc.BindFlags = BIND_RENDER_TARGET | BIND_SHADER_RESOURCE;
+			//desc.Format = FORMAT_R16G16B16A16_FLOAT;
+			//desc.Width = internalResolution.x;
+			//desc.Height = internalResolution.y;
+			//desc.SampleCount = getMSAASampleCount();
+			//device->CreateTexture(&desc, nullptr, &rtParticleDistortion);
+			//TextureDesc desc;
+			//desc.BindFlags = BIND_SHADER_RESOURCE | BIND_UNORDERED_ACCESS | BIND_RENDER_TARGET;
+			//desc.Format = FORMAT_R11G11B10_FLOAT;
+			//desc.Width = internalResolution.x / 2;
+			//desc.Height = internalResolution.y / 2;
+			//desc.MipLevels = std::min(8u, (uint32_t)std::log2(std::max(desc.Width, desc.Height)));
+			//device->CreateTexture(&desc, nullptr, &rtSceneCopy);
+			//for (uint32_t i = 0; i < g_pSplashTexture.GetDesc().MipLevels; ++i)
+			//{
+				//int subresource_index;
+				//subresource_index = device->CreateSubresource(&g_pSplashTexture, SRV, 0, 1, i, 1);
+			//}
+			GraphicsDevice* device = wiRenderer::GetDevice();
+			static Texture stagingTex;
+			static bool bCreateIntroStageOnce = true;
+			if (bCreateIntroStageOnce == true)
+			{
+				TextureDesc staging_desc = g_pSplashTexture.GetDesc();
+				staging_desc.Usage = USAGE_STAGING;
+				staging_desc.CPUAccessFlags = CPU_ACCESS_READ | CPU_ACCESS_WRITE;
+				staging_desc.BindFlags = 0;
+				staging_desc.MiscFlags = 0;
+				staging_desc.MipLevels = 1;
+				staging_desc.layout = IMAGE_LAYOUT_COPY_SRC;
+				bool success = device->CreateTexture(&staging_desc, nullptr, &stagingTex);
+				bCreateIntroStageOnce = false;
+			}
+			uint32_t texWidth = stagingTex.GetDesc().Width;
+			uint32_t texHeight = stagingTex.GetDesc().Height;
+			Mapping mapping;
+			mapping._flags = Mapping::FLAG_WRITE;//Mapping::FLAG_READ;
+			mapping.size = texWidth * texHeight * sizeof(uint32_t);
+			device->Map(&stagingTex, &mapping);
+			if (mapping.data)
+			{
+				uint32_t pitch = mapping.rowpitch / sizeof(uint32_t);
+				for (uint32_t y = 0; y < texHeight; y++)
+				{
+					uint32_t index = y * pitch;
+					uint32_t* dataPtr = ((uint32_t*)mapping.data) + index;
+					for (uint32_t x = 0; x < texWidth; x++)
+					{
+						//uint32_t value = *dataPtr;
+						*dataPtr = (uint32_t)rand() % 9999999;
+						dataPtr++;
+					}
+				}
+				device->Unmap(&stagingTex);
+			}
+			//CommandList cmd2 = device->BeginCommandList();
+			//GPUBarrier barriers1[] = {
+			//	GPUBarrier::Image(&stagingTex, stagingTex.desc.layout, IMAGE_LAYOUT_COPY_DST, 0)
+			//};
+			//device->Barrier(barriers1, arraysize(barriers1), cmd);
+			device->CopyResource(&g_pSplashTexture, &stagingTex, cmd);
+			//GPUBarrier barriers2[] = {
+			//	GPUBarrier::Image(&stagingTex, IMAGE_LAYOUT_COPY_DST, stagingTex.desc.layout, 0)
+			//};
+			//device->Barrier(barriers2, arraysize(barriers2), cmd);
+			//device->SubmitCommandLists();
+			//device->WaitForGPU();
+			////////////////////
+			// intro video must not survive the regular running of MAX
+			if (iIntroVideoID > 0)
+			{
+				if (AnimationExist(iIntroVideoID))
+				{
+					if (AnimationPlaying(iIntroVideoID) == 0)
+					{
+						StopAnimation(iIntroVideoID);
+						DeleteAnimation(iIntroVideoID);
+						setCompletelyLoaded(true);
+						iIntroVideoID = -999;
+					}
+				}
+			}
+		}
+		*/
 	}
 	else
 	{
 		// when GG completely initialised, can proceed normally
-		setCompletelyLoaded(true);
+		//setCompletelyLoaded(true); // moved further down
+	}
+
+	// handle visual splash until not needed
+	if (g_iShowSplashForFirstFewCycles > 0)
+	{
+		// render splash screen here
+		CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
+		wiRenderer::GetDevice()->RenderPassBegin(&swapChain, cmd);
+		wiImage::SetCanvas(canvas, cmd);
+		wiFont::SetCanvas(canvas, cmd);
+		Viewport viewport;
+		viewport.Width = (float)swapChain.desc.width;
+		viewport.Height = (float)swapChain.desc.height;
+		wiRenderer::GetDevice()->BindViewports(1, &viewport, cmd);
+		wiFontParams params;
+		params.posX = 5.f;
+		params.posY = 5.f;
+		if (g_pSplashTexture.IsValid())
+		{
+			if (bCustomSplash)
+			{
+				float screenheight = canvas.GetLogicalHeight();
+				float screenwidth = canvas.GetLogicalWidth();
+				float img_w = g_pSplashTexture.desc.Width;
+				float img_h = g_pSplashTexture.desc.Height;
+				float fRatio = 1.0f / (img_h / img_w);
+				img_h = screenheight;
+				img_w = screenheight * fRatio;
+				if (img_w < screenwidth)
+				{
+					img_w = screenwidth;
+					img_h = screenwidth * (1.0f / ((float)g_pSplashTexture.desc.Width / (float)g_pSplashTexture.desc.Height));
+				}
+				fx.disableFullScreen();
+				fx.pos.x = screenwidth * 0.5;
+				fx.pos.y = screenheight * 0.5;
+				fx.pivot.x = 0.5;
+				fx.pivot.y = 0.5;
+				fx.siz.x = img_w;
+				fx.siz.y = img_h;
+			}
+			wiImage::Draw(&g_pSplashTexture, fx, cmd);
+		}
+		wiRenderer::GetDevice()->RenderPassEnd(cmd);
+		wiRenderer::GetDevice()->SubmitCommandLists();
+		g_iShowSplashForFirstFewCycles--;
+		if (g_iShowSplashForFirstFewCycles <= 0)
+		{
+			if (SoundExist(g.temppreviewsoundoffset) == 1)
+			{
+				if (SoundPlaying(g.temppreviewsoundoffset) == 1)
+				{
+					// hold off one ending splash sequence until intro sound has finished!
+					g_iShowSplashForFirstFewCycles = 1;
+				}
+				else
+				{
+					// and remove intro sound
+					DeleteSound(8809);
+				}
+			}
+		}
+		if (g_iShowSplashForFirstFewCycles <= 0 )
+		{
+			// only hand over rendering submissions when splash is no longer needed
+			g_iShowSplashForFirstFewCycles = 0;
+			setCompletelyLoaded(true);
+		}
 	}
 }
 
@@ -2022,7 +2237,13 @@ void MasterRenderer::Update(float dt)
 		auto range = wiProfiler::BeginRangeCPU("Update - Logic");
 		bool bFullyInitialised = GuruLoopLogic();
 		wiProfiler::EndRange(range);
-		if (bFullyInitialised == true)
+
+		// no further than logic while in splash show mode
+		if (g_iShowSplashForFirstFewCycles > 0)
+		{
+			return;
+		}
+		if (bFullyInitialised == true )
 		{
 			// normal update
 			wiScene::CameraComponent &camera = wiScene::GetCamera();

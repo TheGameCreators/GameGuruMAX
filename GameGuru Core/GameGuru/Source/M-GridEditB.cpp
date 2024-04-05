@@ -32641,9 +32641,15 @@ cstr ListboxFilesListForWelcomeScreen_v2(char *currentselection, int columns, in
 							{
 								if (AnimationExist(i) == 0) { iWelcomeVideoID = i; break; }
 							}
-
 							if (iWelcomeVideoID > 0)
 							{
+								for (int i = 1; i <= 32; i++)
+								{
+									if (i != iWelcomeVideoID && AnimationExist(i) == 1)
+									{ 
+										StopAnimation(i);
+									}
+								}
 								if (LoadAnimation((LPSTR)sVideoFile.c_str(), iWelcomeVideoID, g.videoprecacheframes, g.videodelayedload, 1) == false)
 								{
 									iWelcomeVideoID = -999;
@@ -33023,7 +33029,6 @@ void Welcome_Screen(void)
 	static bool bCheckIntroScreenDone = true;
 
 	extern bool bSpecialEditorFromStandalone;
-	
 	if (bCheckIntroScreenDone)
 	{
 		extern bool bSpecialStandalone;
@@ -33033,38 +33038,25 @@ void Welcome_Screen(void)
 		}
 		bCheckIntroScreenDone = false;
 
-		#ifdef WICKEDENGINE
 		void CheckForNewUpdateWicked(void);
 		CheckForNewUpdateWicked(); //PE: Check if update process is done, and ask if user like to update.
-		#endif
 	}
-
 	if (bRemoveVideoInNextFrame)
 	{
-		if (iWelcomeVideoID > 0) {
+		if (iWelcomeVideoID > 0)
+		{
 			if (AnimationExist(iWelcomeVideoID))
 			{
-				if (AnimationPlaying(iWelcomeVideoID))
-					StopAnimation(iWelcomeVideoID);
+				if (AnimationPlaying(iWelcomeVideoID)) StopAnimation(iWelcomeVideoID);
 				DeleteAnimation(iWelcomeVideoID);
 				iWelcomeVideoID = 0;
 			}
 		}
 		bRemoveVideoInNextFrame = false;
 	}
-	#ifdef WICKEDENGINE
 	extern bool bEnsureIntroVideoIsNotRun;
 	if (!bIntroScreenDone && !bSpecialEditorFromStandalone && bEnsureIntroVideoIsNotRun==false)
-	#else
-	if (!bIntroScreenDone)
-	#endif // WICKEDENGINE
 	{
-		//bDisplayAsModal = false;
-
-		//##################################
-		//#### New welcome page for EA. ####
-		//##################################
-
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 
 		// Window Size control
@@ -33072,7 +33064,6 @@ void Welcome_Screen(void)
 		if (viewport->Size.x < 1900)
 		{
 			//PE: Reduce size on smaller screens.
-			//WindowSize = ImVec2(32 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize()); was too thin on my NUC test PC, a little wider will be nice
 			WindowSize = ImVec2(42 * ImGui::GetFontSize(), 34 * ImGui::GetFontSize());
 		}
 
@@ -33144,36 +33135,12 @@ void Welcome_Screen(void)
 			// set the window size
 			ImGui::SetNextWindowViewport(viewport->ID);
 			ImGui::SetNextWindowSize(WindowSize, ImGuiCond_Once);
-
-			/* this does not seem to do anything, already set the correct window size above and this code is skipped after initial 'bad' window sizes
-			static int iWelcomeStateChanged = -1; //Always trigger on first.
-			if (iWelcomeStateChanged != bWelcomeVideoMaximized)
-			{
-				if (bWelcomeVideoMaximized)
-				{
-					ImGui::SetNextWindowSize(WindowSize * ImVec2(1.8, 1.3), ImGuiCond_Always);
-				}
-				else
-				{
-					//ImGui::SetNextWindowSize(WindowSize, ImGuiCond_Always);
-					ImGui::SetNextWindowSize(WindowSize * ImVec2(1.6, 1.3), ImGuiCond_Always);
-				}
-				iWelcomeStateChanged = bWelcomeVideoMaximized;
-			}
-			*/
-
-			// by always centering the window, we ensure the intro video stays in the middle
-			//if (bDisplayAsModal)
-			//	ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-			//else
-			//	ImGui::SetNextWindowPosCenter(ImGuiCond_Once);
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 
 			if (bDisplayAsModal)
 				ImGui::BeginPopupModal("Welcome Screen##WelcomeScreenWindowModal", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
 			else
 				ImGui::Begin("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
-
 
 			ImGui::Indent(10);
 
@@ -33415,16 +33382,6 @@ void Welcome_Screen(void)
 					ImGui::SetCursorPos(vOldPos);
 				}
 
-				/* disable double click to maximise for EA
-				if (ImGui::IsMouseHoveringRect(image_bb.Min, image_bb.Max))
-				{
-					if (ImGui::IsMouseDoubleClicked(0))
-					{
-						bWelcomeVideoMaximized = 1 - bWelcomeVideoMaximized;
-					}
-				}
-				*/
-
 				ImGui::EndChild();
 				ImGui::GetStyle().Colors[ImGuiCol_ChildWindowBg] = oldImGuiCol_ChildWindowBg;
 
@@ -33494,103 +33451,21 @@ void Welcome_Screen(void)
 							iWelcomeVideoDelayExecute = 1; //play - restart.
 						}
 						if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Restart");
-
-						/* disable min/ax button to keep intro video simple
-						if (!bWelcomeVideoMaximized)
-						{
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x) - 40.0, ImGui::GetCursorPosY()));
-							if (ImGui::ImgBtn(MEDIA_MAXIMIZE, ImVec2(MEDIAICONSIZE, MEDIAICONSIZE), ImColor(255, 255, 255, 0), drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, true, false, false, false, false, bBoostIconColors))
-							{
-								bWelcomeVideoMaximized = true;
-							}
-							if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Maximize");
-						}
-						else
-						{
-							ImGui::SameLine();
-							ImGui::SetCursorPos(ImVec2((ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x) - 40.0, ImGui::GetCursorPosY()));
-							if (ImGui::ImgBtn(MEDIA_MINIMIZE, ImVec2(MEDIAICONSIZE, MEDIAICONSIZE), ImColor(255, 255, 255, 0), drawCol_normal, drawCol_hover, drawCol_Down, -1, 0, 0, 0, true, false, false, false, false, bBoostIconColors))
-							{
-								bWelcomeVideoMaximized = false;
-							}
-							if (ImGui::windowTabVisible() && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Minimize");
-						}
-						*/
 					}
 				}
 			}
 			ImGui::Indent(-10);
 
-			//#################
-			//#### Buttons ####
-			//#################
-			/* button removed in design, perhaps add to welcome screen ?
-			
-			float fFontSize = ImGui::GetFontSize();
-			ImGui::SetWindowFontScale(1.4);
-			float fContentWidth = ImGui::GetContentRegionAvailWidth() - 20.0f;
-			float fButWidth = fContentWidth * 0.5;
-			ImVec2 vCurPos = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(vCurPos + ImVec2(0.0, 12));
-			if (ImGui::StyleButton("Create a new game project", ImVec2(fButWidth, 0)))
-			{
-				//
-				//bWelcomeScreen_Window = false;
-				//bStoryboardWindow = true;
-				strcpy(pref.cLastUsedStoryboardProject, "");
-				bStoryboardInitNodes = false; //Just init again.
-				bStoryboardFirstRunSetInitPos = false;
-				process_storeboard(true); //Init a new project.
-				bTriggerSaveAsAfterNewLevel = true;
-				bTriggerSaveAs = true;
-				strcpy(SaveProjectAsName, "");
-				strcpy(SaveProjectAsError, "");
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Create a new game project");
-
-			if (bTriggerSaveAs)
-			{
-				ImGui::SetWindowFontScale(1.0);
-				int iCreateRet = save_create_storyboard_project();
-				if (iCreateRet == 1)
-				{
-					//PE: New project created.
-					bWelcomeScreen_Window = false;
-					bStoryboardWindow = true;
-				}
-				ImGui::SetWindowFontScale(1.4);
-			}
-
-			ImGui::SetCursorPos(vCurPos + ImVec2(fButWidth + 10.0, 12));
-			if (ImGui::StyleButton("Load an existing game project", ImVec2(fButWidth, 0)))
-			{
-				bWelcomeScreen_Window = false;
-				bStoryboardWindowOpenLoad = true;
-				bStoryboardWindow = true;
-				bOpenProjectsFromWelcome = true;
-				iDelayTriggerOpenProject = 3; //PE: Need to be delayed to get on top.
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Load an existing game project");
-
-			ImGui::SetWindowFontScale(1.0);
-
-			ImGui::Text("");
-			*/
-			
 			ImGui::SetWindowFontScale(1.2);
 
-			if (1)
+			bool bTmp = 1 - pref.iDisplayIntroScreen;
+			float fTextWidth = ImGui::CalcTextSize("Hide intro video next time").x + 20.0f;
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
+			if (ImGui::Checkbox("Hide intro video next time", &bTmp))
 			{
-				bool bTmp = 1 - pref.iDisplayIntroScreen;
-				float fTextWidth = ImGui::CalcTextSize("Hide intro video next time").x + 20.0f;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Hide intro video next time", &bTmp))
-				{
-					pref.iDisplayIntroScreen = 1 - bTmp;
-				}
-
+				pref.iDisplayIntroScreen = 1 - bTmp;
 			}
+
 			//Skip button
 			ImGui::SameLine();
 			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth() - 180.0), 0.0));
@@ -33599,34 +33474,9 @@ void Welcome_Screen(void)
 				bIntroScreenDone = true;
 				bResizeWelcome = true;
 				bStopVideo = true;
-				//bWelcomeScreen_Window = false;
 			}
 
 			ImGui::SetWindowFontScale(1.0);
-
-			/*
-			if (1)
-			{
-				//PE: Reverse.
-				bool bTmp = 1 - pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Tick to skip welcome screen and start editing the last edited game project and level").x + 20.0f;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Tick to skip welcome screen and start editing the last edited game project and level", &bTmp))
-				{
-					pref.iDisplayWelcomeScreen = 1 - bTmp;
-				}
-			}
-			else
-			{
-				bool bTmp = pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Untick to skip welcome screen and resume last edited game project").x + 20.0f;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Untick to skip welcome screen and resume last edited game project", &bTmp))
-				{
-					pref.iDisplayWelcomeScreen = bTmp;
-				}
-			}
-			*/
 
 			ImGui::Indent(-10);
 
@@ -33651,7 +33501,6 @@ void Welcome_Screen(void)
 	{
 		bool bUseFullScreen = true;
 		//Welcome Screen Start
-		//ImVec2 vWindowSize = ImVec2(94 * ImGui::GetFontSize(), 57 * ImGui::GetFontSize());
 		ImVec2 vWindowSize = ImVec2(104 * ImGui::GetFontSize(), 59 * ImGui::GetFontSize());
 		float tab_box_height = 630.0f;
 
@@ -33877,7 +33726,7 @@ void Welcome_Screen(void)
 			float fFontSize = ImGui::GetFontSize();
 			ImGui::SetWindowFontScale(1.0);
 
-			// may help Steam review ratings...
+			#ifdef HUBOLDFEEDBACKBOX
 			ImRect rect;
 			rect.Min = ImVec2(1067,36);
 			rect.Max = rect.Min + ImVec2(600, 100);
@@ -33891,8 +33740,8 @@ void Welcome_Screen(void)
 					ExecuteFile("https://github.com/TheGameCreators/GameGuruRepo/wiki/Help-Us-Improve-with-your-Feedback", "", "", 0);
 				}
 			}
+			#endif
 
-			//PE: Moved here after swap.
 			// Display a button that allows the user to exit the welcome screen window.
 			// Store the previous cursor position so that it can be reset (adding the below button at the start of the window causes it to appear faded and i'm not sure why).
 			ImVec2 vPrevCursorPos(ImGui::GetCursorPos());

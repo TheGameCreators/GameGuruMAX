@@ -55,6 +55,7 @@ bool bStoryboardFirstRunSetInitPos = false;
 bool bStoryboardInitNodes = false;
 bool bJustRederedScreenEditor = false;
 int g_iRefreshLibraryFolders = 0;
+bool g_bCommonAssetsLoadOnce = true;
 
 #ifdef GGMAXEPIC
 // No discounts mentioned in Epic Store listing for now
@@ -853,7 +854,7 @@ void mapeditorexecutable_init ( void )
 	version_splashtext_statusupdate ( );
 	sliders_init ( );
 
-	//  Generic asset loading common to editor and game
+	// Generic asset loading common to editor and game
 	t.tresetforstartofeditor=1;
 	t.tsplashstatusprogress_s="LOAD COMMON ASSETS";
 	timestampactivity(0,t.tsplashstatusprogress_s.Get());
@@ -881,7 +882,10 @@ void mapeditorexecutable_init ( void )
 	t.visuals=t.editorvisuals;
 	t.visuals.refreshshaders=1;
 	visuals_loop ( );
-	visuals_shaderlevels_update ( );
+	bool bUpdateEngineToo = false;
+	extern void visuals_shaderlevels_update_core (bool);
+	visuals_shaderlevels_update_core (bUpdateEngineToo);
+	//visuals_shaderlevels_update ( );
 
 	#ifdef WICKEDENGINE
 	//PE: FOV has changed here if on widescreen that adjust fov depending on aspect ratio.
@@ -1002,7 +1006,6 @@ void mapeditorexecutable_init ( void )
 	DWORD dwStartOfEditingSession = timeGetTime() + (1000*60*5);
 	DWORD dwSecondReminder = 0;
 
-	#ifdef ENABLEIMGUI
 	//Load needed images.
 	image_preload_files_reset(); //PE: At this point we have no more thread loaded images to use.
 	SetMipmapNum(1); //PE: mipmaps not needed.
@@ -1021,11 +1024,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\newwaypoints.png", TOOL_NEWWAYPOINTS);
 	LoadImage("editors\\uiv3\\testgame.png", TOOL_TESTGAME);
 	LoadImage("editors\\uiv3\\vrmode.png", TOOL_VRMODE);
-	#ifdef WICKEDENGINE
 	LoadImage("editors\\uiv3\\savestandalone.png", TOOL_SOCIALVR);
-	#else
-	LoadImage("editors\\uiv3\\socialvr.png", TOOL_SOCIALVR);
-	#endif
 	LoadImage("editors\\uiv3\\newlevel.png", TOOL_NEWLEVEL);
 	LoadImage("editors\\uiv3\\loadlevel.png", TOOL_LOADLEVEL);
 	LoadImage("editors\\uiv3\\savelevel.png", TOOL_SAVELEVEL);
@@ -1049,22 +1048,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\media-recordprocessing.png", MEDIA_RECORDPROCESSING);
 	LoadImage("editors\\uiv3\\pointer2.png", TUTORIAL_POINTER);
 	LoadImage("editors\\uiv3\\pointer3.png", TUTORIAL_POINTERUP);	
-	#ifdef USETOOLBARHEADER
-	LoadImage("editors\\uiv3\\theader.png", TOOL_HEADER);
-	#endif
-	/*
-	if (FileExist("editors\\uiv3\\gameguru-max-logo-ea2.png"))
-	{
-		LoadImage("editors\\uiv3\\gameguru-max-logo-ea2.png", ABOUT_LOGO);
-		iAboutLogoType = 2;
-	}
-	else
-	{
-		gameguru - max - logo
-		LoadImage("editors\\uiv3\\gameguru-max-logo-ea.png", ABOUT_LOGO);
-		iAboutLogoType = 0;
-	}
-	*/	
+
 	LoadImage("editors\\uiv3\\gameguru-max-logo.png", ABOUT_LOGO);
 	iAboutLogoType = 0;
 	LoadImage("editors\\uiv3\\ABOUT-TGC.png", ABOUT_TGC);
@@ -1077,7 +1061,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\dotcircle.png", TOOL_DOTCIRCLE);
 	LoadImage("editors\\uiv3\\dotcircles.png", TOOL_DOTCIRCLE_S);
 	LoadImage("editors\\uiv3\\dotcirclem.png", TOOL_DOTCIRCLE_M);
-	#ifdef WICKEDENGINE
+
 	LoadImage("editors\\uiv3\\ent-properties.png", TOOL_ENT_EDIT);
 	LoadImage("editors\\uiv3\\ent-extract.png", TOOL_ENT_EXTRACT);
 	LoadImage("editors\\uiv3\\ent-duplicate.png", TOOL_ENT_DUPLICATE);
@@ -1085,15 +1069,11 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\ent-findfloor.png", TOOL_ENT_FINDFLOOR);
 	LoadImage("editors\\uiv3\\ent-delete.png", TOOL_ENT_DELETE);
 	LoadImage("editors\\uiv3\\ent-search.png", TOOL_ENT_SEARCH);
-#endif	
-	#ifdef PRODUCTV3
-	#else
+
 	LoadImage("editors\\uiv3\\circle.png", TOOL_CIRCLE);
 	LoadImage("editors\\uiv3\\circles.png", TOOL_CIRCLE_S);
 	LoadImage("editors\\uiv3\\circlem.png", TOOL_CIRCLE_M);
-	#endif
 
-	#ifdef WICKEDENGINE
 	LoadImage("editors\\uiv3\\environment.png", TOOL_VISUALS);
 	LoadImage("editors\\uiv3\\camera.png", TOOL_CAMERA);
 	LoadImage("editors\\uiv3\\light.png", TOOL_CAMERALIGHT);
@@ -1101,14 +1081,11 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\media-maximize.png", MEDIA_MAXIMIZE);
 	LoadImage("editors\\uiv3\\media-minimize.png", MEDIA_MINIMIZE);
 
-
 	LoadImage("editors\\uiv3\\weather-sun.png", ENV_SUN);
 	LoadImage("editors\\uiv3\\weather-rain.png", ENV_RAIN);
 	LoadImage("editors\\uiv3\\weather-snow.png", ENV_SNOW);
 	LoadImage("editors\\uiv3\\weather.png", ENV_WEATHER);
 
-	//LoadImage("editors\\uiv3\\rpg-game.png", TOOL_RPG);
-	//LoadImage("editors\\uiv3\\puzzle.png", TOOL_PUZZLE);
 	LoadImage("editors\\uiv3\\logic.png", TOOL_LOGIC);// shooter.png", TOOL_SHOOTER);
 	
 	LoadImage("entitybank\\_markers\\Trigger Zone.bmp", TOOL_TRIGGERZONE);
@@ -1116,9 +1093,6 @@ void mapeditorexecutable_init ( void )
 
 	LoadImage("editors\\uiv3\\pencil-small.png", TOOL_PENCIL);
 
-	//LoadImage("editors\\uiv3\\dotchrome.dds", UI3D_DOTOBJECTS);// dotobject.png", UI3D_DOTOBJECTS);
-	//LoadImage("editors\\uiv3\\brain_marker.dds", UI3D_DOTMIDDLEOBJECTS);//dotmiddleobject.png", UI3D_DOTMIDDLEOBJECTS);
-	//LoadImage("editors\\uiv3\\brain_mark_three.png", UI3D_DOTMIDDLEOBJECTS);//dotmiddleobject.png", UI3D_DOTMIDDLEOBJECTS);
 	LoadImage("editors\\uiv3\\logichighlight.png", UI3D_DOTOBJECTS);	
 	LoadImage("editors\\uiv3\\brain_logic_marker.dds", UI3D_DOTMIDDLEOBJECTS);
 
@@ -1222,28 +1196,10 @@ void mapeditorexecutable_init ( void )
 		LoadImage(pWelcomeHeaderHUB, WELCOME_HEADER);
 		iWelcomeHeaderType = 3;
 	}
-	/*
-	else if (FileExist("editors\\uiv3\\welcome-header-ea2.png"))
-	{
-		LoadImage("editors\\uiv3\\welcome-header-ea2.png", WELCOME_HEADER);
-		iWelcomeHeaderType = 2;
-	}
-	else if (FileExist("editors\\uiv3\\welcome-header-ea.png"))
-	{
-		LoadImage("editors\\uiv3\\welcome-header-ea.png", WELCOME_HEADER);
-		iWelcomeHeaderType = 1;
-	}
-	else
-	{
-		LoadImage("editors\\uiv3\\welcome-header.png", WELCOME_HEADER);
-		iWelcomeHeaderType = 0;
-	}
-	*/
 
 	LoadImage("editors\\uiv3\\filetype-ogg.png", FILETYPE_OGG);
 	LoadImage("editors\\uiv3\\filetype-wav.png", FILETYPE_WAV);
 	LoadImage("editors\\uiv3\\filetype-mp3.png", FILETYPE_MP3);
-
 
 	LoadImage("editors\\uiv3\\filetype-video.png", FILETYPE_VIDEO);
 
@@ -1254,7 +1210,6 @@ void mapeditorexecutable_init ( void )
 	SetIconSet(true);
 	SetMipmapNum(1); //PE: mipmaps not needed.
 	image_setlegacyimageloading(true);
-
 
 	LoadImage("editors\\uiv3\\light-point.png", LIGHT_POINT);
 	LoadImage("editors\\uiv3\\light-spot.png", LIGHT_SPOT);
@@ -1291,23 +1246,7 @@ void mapeditorexecutable_init ( void )
 		LoadImage("editors\\uiv3\\storyboard-header5.png", STORYBOARD_HEADER);
 		g_Storyboard_header_height = 114.0f; //PE: Way better on ultra wide monitors.
 	}
-	/*
-	else if (FileExist("editors\\uiv3\\storyboard-header4.png"))
-	{
-		LoadImage("editors\\uiv3\\storyboard-header4.png", STORYBOARD_HEADER);
-		g_Storyboard_header_height = 130.0f; //PE: Way better on ultra wide monitors.
-	}
-	else if (FileExist("editors\\uiv3\\storyboard-header3.png"))
-	{
-		LoadImage("editors\\uiv3\\storyboard-header3.png", STORYBOARD_HEADER);
-		g_Storyboard_header_height = 130.0f; //PE: Way better on ultra wide monitors.
-	}
-	else
-	{
-		LoadImage("editors\\uiv3\\storyboard-header2.png", STORYBOARD_HEADER);
-		g_Storyboard_header_height = 150.0f;
-	}
-	*/
+
 	LoadImage("editors\\uiv3\\entity_image2.png", STORYBOARD_BACKDROP);
 	LoadImage("editors\\uiv3\\entity_music2.png", STORYBOARD_MUSIC);
 	LoadImage("editors\\uiv3\\entity_checkpoint2.png", STORYBOARD_PREVIEW);
@@ -1328,7 +1267,6 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\icon-question.png", QUESTION_ICON);
 
 	LoadImage("editors\\uiv3\\terrain mover.dds", UI3D_TERRAINMOVER);//dotmiddleobject.png", UI3D_DOTMIDDLEOBJECTS);
-
 
 	LoadImage("editors\\uiv3\\icon_bush.png", TOOL_PAINTBUSH); //PE: Need another one for this, no +
 	LoadImage("editors\\uiv3\\add_bush.png", TOOL_BUSH_ADD);
@@ -1359,23 +1297,12 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\progressbar-icon.png", SCREENEDITOR_PROGRESSBAR);
 	LoadImage("editors\\uiv3\\textarea-icon.png", SCREENEDITOR_TEXTAREA);
 
-	#endif
-
-	#ifdef STORYBOARD
 	ImNodes::CreateContext();
-	#endif
 
-	#ifdef WICKEDENGINE
 	gridedit_makelighthybrid();
-	#endif
 
 	image_setlegacyimageloading(false);
 	SetMipmapNum(-1);
-
-#ifdef STORYBOARD
-	//ImFont* ScreenFonts[]
-
-#endif
 
 	ChangeGGFont("editors\\uiv3\\Roboto-Medium.ttf",15);
 
@@ -1434,14 +1361,9 @@ void mapeditorexecutable_init ( void )
 	{
 	}
 
-	#ifdef USERENDERTARGET
 	//PE: redirect all to image.
 	SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2);
 	imgui_is_running = true;
-	#endif
-
-	//Allow drag drop from outside.
-	//DragAcceptFiles(g_pGlob->hWnd, TRUE); - cannot find this with 64 bit compile!
 
 	//Make sure we have envmap.
 	visuals_justshaderupdate();
@@ -1473,35 +1395,18 @@ void mapeditorexecutable_init ( void )
 	iStartupTime = Timer();
 	timestampactivity(0, "Guru Map Editor Loop Starts");
 
-	#ifdef WICKEDENGINE
 	//Default to OBJECT TOOL panel (so can view tutorials right away)
 	bForceKey = true;
 	csForceKey = "o";
-	#else
-	//Default to TERRAIN TOOL panel
-	bForceKey = true;
-	csForceKey = "t";
-	bForceKey2 = true;
-	csForceKey2 = "6";
-	t.inputsys.domodeterrain = 1; t.inputsys.dowaypointview = 0;
-	t.terrain.terrainpaintermode = 1;// 6; start off in sculpt mode
-	bTerrain_Tools_Window = true;
-	#endif
 	t.gridentitymarkersmodeonly = 0; 
 	t.grideditselect = 0;
-	#else
-	timestampactivity(0,"Guru Map Editor Loop Starts");
-	#endif
 	
 	// trigger an alha/beta prompt
-	#ifdef WICKEDENGINE
 	g_iCountdownToAlphaBetaMessage = 20;
-	#endif
 
-	#ifdef WICKEDENGINE
-	bWelcomeScreen_Window = false;
-	#ifdef USEWELCOMESCREEN
 	//Trigger welcome screen.
+	bWelcomeScreen_Window = false;
+
 	extern bool bSpecialEditorFromStandalone;
 	extern bool bEnsureIntroVideoIsNotRun;
 	extern bool bReturnToWelcome;
@@ -1518,6 +1423,7 @@ void mapeditorexecutable_init ( void )
 			bWelcomeScreen_Window = true;
 		}
 	}
+
 	//LB: ensure special return from standalone flag reset if final destination was welcome HUB (to prevent storyboard being forced to switch)
 	if (bReturnToWelcome == true)
 	{
@@ -1525,8 +1431,6 @@ void mapeditorexecutable_init ( void )
 		bEnsureIntroVideoIsNotRun = true;
 		bReturnToWelcome = false;
 	}
-	#endif
-	#endif
 
 	t.gridentitygridlock = pref.iGridMode;
 }
@@ -2306,6 +2210,20 @@ void launchOrShowBuildingEditor(void)
 
 void mapeditorexecutable_loop(void)
 {
+	// the moment storyboard is used, we can load the rest of the common assets needed for editor and game
+	if (bStoryboardWindow == true)
+	{
+		// Generic asset loading common to editor and game that can be deferred until user opens a project for first time
+		if (g_bCommonAssetsLoadOnce == true)
+		{
+			t.tsplashstatusprogress_s = "LOAD DELAYED COMMON ASSETS";
+			timestampactivity(0, t.tsplashstatusprogress_s.Get());
+			version_splashtext_statusupdate ();
+			common_loadcommonassets_delayed (0);
+			g_bCommonAssetsLoadOnce = false;
+		}
+	}
+
 	if (g_iCountdownToAlphaBetaMessage > 0)
 	{
 		g_iCountdownToAlphaBetaMessage--;
@@ -17325,9 +17243,10 @@ int AskSaveBeforeNewAction(void)
 
 void editor_detect_invalid_screen ( void )
 {
-	if (  GetDisplayInvalid() != 0 || MatrixExist(g.m4_projection) == 0 ) 
+	/* legacy method to detect GPU card switching out - no longer needed
+	if ( GetDisplayInvalid() != 0 || MatrixExist(g.m4_projection) == 0 ) 
 	{
-		if (  1 ) 
+		if ( 1 ) 
 		{
 			#ifdef FPSEXCHANGE
 			OpenFileMap (  1, "FPSEXCHANGE" );
@@ -17362,6 +17281,7 @@ void editor_detect_invalid_screen ( void )
 			ExitProcess ( 0 );
 		}
 	}
+	*/
 }
 
 void editor_showhelppage ( int iHelpType )
@@ -20832,7 +20752,8 @@ void imgui_input_getcontrols(void)
 	}
 #endif
 
-	if (WinTitle != CurrentWinTitle) {
+	if (WinTitle != CurrentWinTitle) 
+	{
 		//Change windows title
 		CurrentWinTitle = WinTitle;
 		#ifdef VRTECH
@@ -20853,10 +20774,6 @@ void imgui_input_getcontrols(void)
 		SetWindowTitle(NewTitle.Get());
 #endif
 	}
-
-	//  Update status bar out of action subroutines
-	//gridedit_updatestatusbar();
-
 
 }
 #endif

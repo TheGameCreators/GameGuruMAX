@@ -852,11 +852,12 @@ DARKSDK void DB_UpdateEntireWindow(bool bFullUpdate, bool bMovement)
 		#endif
 	}
 
-	// Paint after window switch
-	if(bMovement)
-		InvalidateRect(NULL, NULL, FALSE);
-	else
-		InvalidateRect(m_hWnd, NULL, FALSE);
+	// Paint after window switch (fixed issue of splash being whited out)
+	//GGREDUCED
+	//if(bMovement)
+	//	InvalidateRect(NULL, NULL, FALSE);
+	//else
+	//	InvalidateRect(m_hWnd, NULL, FALSE);
 
 	UpdateWindow(m_hWnd);
 }

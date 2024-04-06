@@ -699,6 +699,7 @@ void entity_lua_performlogicconnections_core ( int iMode )
 						case 9:  // Zone + Object
 						case 10: // Object + Object
 						{
+							t.entityelement[iRelationShipEntityID].eleprof.phyalways = 1; // any logic connections are always obeyed!
 							t.entityelement[iRelationShipEntityID].whoactivated = t.e;
 							switch (iObjectRelationshipData)
 							{

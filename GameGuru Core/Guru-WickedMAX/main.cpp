@@ -53,7 +53,7 @@ const char*			pestrcasestr(const char *arg1, const char *arg2);
 bool g_bActiveApp = true;
 bool g_bAppActiveStat = true;
 bool g_bLostFocus = false;
-char g_pGraphicsCardLog[10240];
+//char g_pGraphicsCardLog[10240];
 char g_pStartingDirectory[260];
 
 // Encapsulates all other classes for Wicked Engine control
@@ -171,9 +171,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	}
 	#endif
 
+	/* Fixed for real - turns out more care needed when using RSSetScissorRects
 	// Get and save out the graphics card name
 	strcpy(g_pGraphicsCardLog, "Graphics Card Log: ");
-
 	//PE: check graphics card. Workaround for amd issues.
 	bool bUseAMDHotFIx = true;
 	if (RAW_FileExists("noamdfix.ini") == 1) bUseAMDHotFIx = false;
@@ -188,7 +188,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			if (!f) break;
 			char cDeviceName[MAX_PATH];
 			int length = wcstombs(cDeviceName, dd.DeviceString, MAX_PATH);
-			/*
 			AMD driver bug.
 			PE: this is the card i noted had the problem, there might be more :)
 			AMD Radeon RX 6600m
@@ -199,11 +198,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			AMD Radeon RX 7900
 			Radeon RX 6700 XT
 			AMD Radeon RX 6500 XT
-
 			MSI RX 5500 XT 4 GB
-
 			NOTE: make sure shaders\\d3d11.dll , shaders\\dxgi.dll get copied to the standalone.
-			*/
 			if (length > 0)
 			{
 				strcat(g_pGraphicsCardLog, " '");
@@ -270,6 +266,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 	//MessageBoxA(NULL, g_pGraphicsCardLog, g_pGraphicsCardLog, MB_OK);
+	*/
 
 	// Grab for later use in EPIC platform code
 	GetCurrentDirectoryA(MAX_PATH, g_pStartingDirectory);

@@ -3958,10 +3958,10 @@ void mapfile_savestandalone_stage4 ( void )
 	#endif
 
 	// AMD Black Screen fix file
-	strcpy(pCritDLLFilename, "amdfix.ini");
-	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
-	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile(t.dest_s.Get());
-	CopyAFile(pCritDLLFilename, t.dest_s.Get());
+	//strcpy(pCritDLLFilename, "amdfix.ini");
+	//t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
+	//if (FileExist(t.dest_s.Get()) == 1) DeleteAFile(t.dest_s.Get());
+	//CopyAFile(pCritDLLFilename, t.dest_s.Get());
 	
 	// Users report that people who don't have Max installed cannot play standalones
 	strcpy(pCritDLLFilename, "dxil.dll");

@@ -638,8 +638,8 @@ void Master::Update(float dt)
 		static bool bOnlyReportOnce = true;
 		if (bOnlyReportOnce == true)
 		{
-			extern char g_pGraphicsCardLog[10240];
-			timestampactivity(0, g_pGraphicsCardLog);
+			//extern char g_pGraphicsCardLog[10240];
+			//timestampactivity(0, g_pGraphicsCardLog);
 			GraphicsDevice* device = wiRenderer::GetDevice();
 			if (device->GetGraphicsCardName())
 			{

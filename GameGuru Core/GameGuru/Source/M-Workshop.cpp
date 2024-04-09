@@ -619,7 +619,8 @@ cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile)
 	return result_s;
 }
 
-bool workshop_verifyandorreplacescript ( int e, int entid )
+//PE: Im getting a strange crash here witout OPTICK_ENABLE ? , moved this to m-entity.cpp fixed it ?
+bool workshop_verifyandorreplacescript2 ( int e, int entid )
 {
 	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;

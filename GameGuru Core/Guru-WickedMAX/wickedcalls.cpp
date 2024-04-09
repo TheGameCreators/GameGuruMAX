@@ -3426,6 +3426,63 @@ bool WickedCall_GetObjectPlanerReflection(sObject* pObject)
 	return bPlanerReflection;
 }
 
+bool bActivateStandaloneOutline = false;
+
+void WickedCall_SetObjectOutline(sObject* pObject, float fHighlight)
+{
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	if (pObject)
+	{
+		if (ObjectExist(pObject->dwObjectNumber))
+		{
+			if (fHighlight > 1.1)
+			{
+				//PE: Keep a list and keep updating them.
+				g_StandaloneObjectHighlightList.push_back(pObject->dwObjectNumber);
+				bActivateStandaloneOutline = true;
+			}
+			else if (fHighlight > 0.1)
+			{
+				//PE: Fire only one time. effect will be lost on next frame.
+				//void WickedCall_DrawObjctBox(sObject * pObject, XMFLOAT4 color, bool bThickLine, bool ForceBox);
+				WickedCall_DrawObjctBox(pObject, XMFLOAT4(0.8f, 0.8f, 0.8f, 0.8f), false, false);
+				bActivateStandaloneOutline = true;
+			}
+			else
+			{
+				for (int i = 0; i < g_StandaloneObjectHighlightList.size(); i++)
+				{
+					if (g_StandaloneObjectHighlightList[i] == pObject->dwObjectNumber)
+					{
+						g_StandaloneObjectHighlightList.erase(g_StandaloneObjectHighlightList.begin() + i);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+bool WickedCall_GetObjectOutline(sObject* pObject)
+{
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	if (pObject)
+	{
+		if (ObjectExist(pObject->dwObjectNumber))
+		{
+			for (int i = 0; i < g_StandaloneObjectHighlightList.size(); i++)
+			{
+				if (g_StandaloneObjectHighlightList[i] == pObject->dwObjectNumber)
+				{
+					g_StandaloneObjectHighlightList.erase(g_StandaloneObjectHighlightList.begin() + i);
+					return(true);
+				}
+			}
+		}
+	}
+	return(false);
+}
+
 void WickedCall_SetObjectCastShadows(sObject* pObject, bool bCastShadow)
 {
 	for (int i = 0; i < pObject->iFrameCount; i++)
@@ -5248,7 +5305,8 @@ void WickedCall_SetObjectHighlight(sObject* pObject, bool bHighlight)
 		}
 		else 
 		{
-			if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
+			if (pWickedObject)
+				pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
 		}
 	}
 	
@@ -5330,7 +5388,7 @@ void WickedCall_DrawObjctBox(sObject* pObject, XMFLOAT4 color, bool bThickLine, 
 
 	if(!bUseEditorOutlineSelection())
 		ForceBox = true;
-	if (!ForceBox)
+	if (!ForceBox || bImGuiInTestGame)
 	{
 		if (ObjectExist(pObject->dwObjectNumber))
 		{

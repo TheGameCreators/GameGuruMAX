@@ -666,9 +666,15 @@ void entity_lua_activateifused ( void )
 
 void entity_lua_performlogicconnections_core ( int iMode )
 {
-	// iMode : 0-normal, 1-askey
+	// iMode : 0-normal, 1-askey , 2=only activate special Relationships
 	for (int i = 0; i < 10; i++)
 	{
+		if (iMode == 2)
+		{
+			if (t.v < 0 || t.v > 9)
+				return;
+			i = t.v;
+		}
 		if (t.entityelement[t.e].eleprof.iObjectRelationships[i] > 0)
 		{
 			int iRelationShipObject = 0, iRelationShipEntityID = 0;
@@ -687,7 +693,7 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				int iObjectRelationshipsType = t.entityelement[t.e].eleprof.iObjectRelationshipsType[i];
 
 				// what logic type should be performed
-				if (iMode == 0)
+				if (iMode == 0 || iMode == 2)
 				{
 					// simple one way logic - activations
 					switch (iObjectRelationshipsType)
@@ -779,12 +785,18 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				t.entityelement[iRelationShipEntityID].lua.flagschanged = 1;
 			}
 		}
+		if (iMode == 2)
+			return;
 	}
 }
 
 void entity_lua_performlogicconnections()
 {
 	entity_lua_performlogicconnections_core(0);
+}
+void entity_lua_performlogicconnectionnumber()
+{
+	entity_lua_performlogicconnections_core(2);
 }
 
 void entity_lua_performlogicconnectionsaskey()

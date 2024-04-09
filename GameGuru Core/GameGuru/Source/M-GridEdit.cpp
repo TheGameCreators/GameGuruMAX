@@ -18183,6 +18183,11 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	gridedit_restartanybehaviorediting();
 	#endif
 
+	//PE: Clear any test mode / standalone highlights.
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	g_StandaloneObjectHighlightList.clear(); //PE: They clear on all frames so this is the only thing needed.
+	extern bool bActivateStandaloneOutline;
+	bActivateStandaloneOutline = false;
 	// game loop init code
 	game_masterroot_initcode ( iUseVRTest );
 }

@@ -9673,6 +9673,12 @@ int SetMaterialData(lua_State *L, int mode)
 					WickedCall_TextureObject(pObject, NULL);
 					break;
 				}
+				case 15:
+				{
+					WickedCall_SetObjectOutline(pObject, fValue);
+					break;
+				}
+
 			}
 		}
 		else
@@ -9743,6 +9749,8 @@ int GetMaterialData(lua_State *L, int mode)
 			case 12: fResult = (float)WickedCall_GetObjectPlanerReflection (pObject); break;
 			case 13: fResult = (float)WickedCall_GetObjectCastShadows(pObject); break;
 			case 14: fResult = (float)t.entityprofile[t.entityelement[iEntityID].bankindex].zdepth; break;
+			case 15: fResult = (float)WickedCall_GetObjectOutline(pObject); break;
+
 			// reserve 21-30
 		}
 		lua_pushnumber(L, fResult);
@@ -9780,9 +9788,13 @@ int GetEntityCastShadows (lua_State *L) { return GetMaterialData (L, 13); }
 int SetEntityZDepthMode (lua_State *L) { return SetMaterialData (L, 14); }
 int GetEntityZDepthMode (lua_State *L) { return GetMaterialData (L, 14); }
 
+int SetEntityOutline(lua_State* L) { return SetMaterialData(L, 15); }
+int GetEntityOutline(lua_State* L) { return GetMaterialData(L, 15); }
+
 int SetEntityTexture (lua_State *L) { return SetMaterialData (L, 21); }
 int SetEntityTextureScale (lua_State *L) { return SetMaterialData (L, 22); }
 int SetEntityTextureOffset (lua_State *L) { return SetMaterialData (L, 23); }
+
 
 int IsPlayerInGame(lua_State* L) 
 { 
@@ -10109,7 +10121,8 @@ enum eInternalCommandNames
 	enum_performlogicconnectionsaskey,
 	enum_setprioritytotransporter,
 	enum_hidelimbs,
-	enum_showlimbs
+	enum_showlimbs,
+	enum_performlogicconnectionnumber,
 };
 
 // NoParam commands:
@@ -10318,6 +10331,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_charactercontrolmanual: entity_lua_charactercontrolmanual(); break;
 		case enum_charactercontrolunarmed: entity_lua_charactercontrolunarmed(); break;
 		case enum_performlogicconnections: entity_lua_performlogicconnections(); break;
+		case enum_performlogicconnectionnumber: entity_lua_performlogicconnectionnumber(); break;
 		case enum_setcharactervisiondelay: entity_lua_setcharactervisiondelay(); break;
 		case enum_transporttofreezeposition: lua_transporttofreezeposition(); break;
 		case enum_setentityhealthwithdamage: entity_lua_setentityhealthwithdamage(); break;
@@ -10461,6 +10475,7 @@ int SendMessageI_charactercontrolfidget(lua_State* L) { return int_core_sendmess
 int SendMessageI_charactercontrolmanual(lua_State* L) { return int_core_sendmessagei(L, enum_charactercontrolmanual); }
 int SendMessageI_charactercontrolunarmed(lua_State* L) { return int_core_sendmessagei(L, enum_charactercontrolunarmed); }
 int SendMessageI_performlogicconnections(lua_State* L) { return int_core_sendmessagei(L, enum_performlogicconnections); }
+int SendMessageI_performlogicconnectionnumber(lua_State* L) { return int_core_sendmessagei(L, enum_performlogicconnectionnumber); }
 int SendMessageI_setcharactervisiondelay(lua_State* L) { return int_core_sendmessagei(L, enum_setcharactervisiondelay); }
 int SendMessageI_transporttofreezeposition(lua_State* L) { return int_core_sendmessagei(L, enum_transporttofreezeposition); }
 int SendMessageI_setentityhealthwithdamage(lua_State* L) { return int_core_sendmessagei(L, enum_setentityhealthwithdamage); }
@@ -10599,6 +10614,7 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_charactercontrolmanual", SendMessageI_charactercontrolmanual);
 	lua_register(lua, "SendMessageI_charactercontrolunarmed", SendMessageI_charactercontrolunarmed);
 	lua_register(lua, "SendMessageI_performlogicconnections", SendMessageI_performlogicconnections);
+	lua_register(lua, "SendMessageI_performlogicconnectionnumber", SendMessageI_performlogicconnectionnumber);
 	lua_register(lua, "SendMessageI_setcharactervisiondelay", SendMessageI_setcharactervisiondelay);
 	lua_register(lua, "SendMessageI_transporttofreezeposition", SendMessageI_transporttofreezeposition);
 	lua_register(lua, "SendMessageI_setentityhealthwithdamage", SendMessageI_setentityhealthwithdamage);
@@ -12273,6 +12289,8 @@ void addFunctions()
 	lua_register(lua, "GetEntityCastShadows", GetEntityCastShadows);
 	lua_register(lua, "SetEntityZDepthMode", SetEntityZDepthMode);
 	lua_register(lua, "GetEntityZDepthMode", GetEntityZDepthMode);
+	lua_register(lua, "SetEntityOutline", SetEntityOutline);
+	lua_register(lua, "GetEntityOutline", GetEntityOutline);
 
 	// texture commands
 	lua_register(lua, "SetEntityTexture", SetEntityTexture);

@@ -316,7 +316,6 @@ function platform_main(e)
 		if riding[e] == 1 then	
 			if platform[e].riding == 1 then
 				SetFreezePosition(g_Entity[e]['x'],(g_Entity[e]['y'] + 38), g_Entity[e]['z'])					
-				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly()
 			end	
 		end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Slider Script v13
+-- Slider Script v14
 -- DESCRIPTION: Slides an object in 90 degree directions, ideal for crawler or grid style games.
 -- DESCRIPTION: Can be activated by player or zone/switch
 -- DESCRIPTION: Set Physics=ON, IsImobile=ON, AlwaysActive=ON.
@@ -182,7 +182,7 @@ function slider_main(e)
 				open_time[e] = GetTimer(e) + (slider[e].slide_close_delay * 1000)
 			end			
 		end
-		if GetPlayerDistance(e) < slider[e].range and slider[e].slide_speed >= 5 then
+		if GetPlayerDistance(e) < slider[e].range then
 			if g_Time > damage_time[e] then HurtPlayer(-1,slider[e].damage_amount) end
 			Prompt("")
 			damage_time[e] = g_Time + 100

@@ -1,4 +1,4 @@
--- Weapon v12 - Necrym and Lee
+-- Weapon v14 - Necrym and Lee
 -- DESCRIPTION: Assign to a weapon object to be collected, and play an optional pickup <Sound0>.
 -- DESCRIPTION: [PICKUP_RANGE=75(1,200)]
 -- DESCRIPTION: [@PICKUP_STYLE=2(1=Ranged, 2=Accurate)]
@@ -13,15 +13,20 @@ g_tEnt = {}
 local weapon			= {}
 local pickup_range		= {}
 local pickup_style		= {}
-local item_highlight = {}
+local play_pickup		= {}
+local activate_logic	= {}
+local item_highlight 	= {}
+
+local weapon_name		= {}
+
 weapon_therecanbeonlyone = 0
 weapon_temprompttimer = 0
 
-function weapon_properties(e, pickup_range, pickup_style,play_pickup, activate_logic, item_highlight)
+function weapon_properties(e, pickup_range, pickup_style, play_pickup, activate_logic, item_highlight)
 	weapon[e].pickup_range = pickup_range or 75
 	weapon[e].pickup_style = pickup_style
 	weapon[e].play_pickup = play_pickup or 0
-	weapon[e].activate_logic = activate_logic or 0 
+	weapon[e].activate_logic = activate_logic or 0
 	weapon[e].item_highlight = item_highlight or 0
 end
 
@@ -33,9 +38,6 @@ function weapon_init_name(e,name)
 	weapon[e].activate_logic = 0
 	weapon[e].item_highlight = 0
 	weapon_name[e] = name
-	weapon[e].lastdistance1 = -1
-	weapon[e].lastdistance2 = -2
-	weapon[e].lastdistance3 = -3
 end
 
 function weapon_main(e)
@@ -44,8 +46,8 @@ function weapon_main(e)
 	if weapon_therecanbeonlyone==-1 then
 		if g_KeyPressE == 0 and g_InKey == "" then weapon_therecanbeonlyone = 0 end
 	end
-	if weapon[e].pickup_style == 2 then 
-		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then		
+	if weapon[e].pickup_style == 2 then
+		if PlayerDist < weapon[e].pickup_range and g_PlayerHealth > 0 and g_PlayerThirdPerson==0 then
 			--pinpoint select object--
 			module_misclib.pinpoint(e,weapon[e].pickup_range,weapon[e].item_highlight)
 			--end pinpoint select object--
@@ -56,7 +58,7 @@ function weapon_main(e)
 		if weapon[e].pickup_style == 1 then
 			if LookingAt == 1 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
 			if LookingAt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
-		end	
+		end
 		if weapon[e].pickup_style == 2 then
 			if g_tEnt > 0 and weapon_therecanbeonlyone==0 then weapon_therecanbeonlyone = e end
 			if g_tEnt == 0 and weapon_therecanbeonlyone==e then weapon_therecanbeonlyone = 0 end
@@ -72,16 +74,16 @@ function weapon_main(e)
 				if Timer() > weapon_temprompttimer + 3000 then weapon_temprompttimer = 0 end
 			else
 				if g_Entity[e]['haskey'] ~= 1 then
-					if g_PlayerGunID > 0 then		
+					if g_PlayerGunID > 0 then
 						local actiontext = "pick up"
 						if GetInventoryExist("inventory:player") == 0 then
 							local possibleslotchoices = -1
-							for a = 1, 9 do 
-								if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then 			
-									possibleslotchoices = a 
+							for a = 1, 9 do
+								if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then
+									possibleslotchoices = a
 									break
-								end 
-							end 
+								end
+							end
 							if possibleslotchoices <= 0 then
 								actiontext = "permanently replace with"
 							end
@@ -137,12 +139,12 @@ function weapon_main(e)
 					   end
 					else
 						local sslot = -1
-						for a = 1, 9 do 
-							if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then 			
-								sslot = a 
+						for a = 1, 9 do
+							if GetWeaponSlot(a) <= 0 and GetWeaponSlotPref(a) == 0 then
+								sslot = a
 								break
-							end 
-						end 
+							end
+						end
 					    if sslot > 0 then
 							-- can add to weapon slots
 							SetEntityCollected(e,2,sslot-1)

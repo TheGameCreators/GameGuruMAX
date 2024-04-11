@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v21   by Necrym59
+-- Helmet v22   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup/Wear"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -19,7 +19,8 @@
 
 local U = require "scriptbank\\utillib"
 
-g_helmet = {}
+g_have_helmet = {}
+
 local helmet = {}
 local pickup_text = {}
 local pickup_range = {}
@@ -59,37 +60,38 @@ local default_FogDistance = {}
 local current_fov = {}
 
 function helmet_properties(e, pickup_text, pickup_range, useage_text, helmet_mode, min_zoom, max_zoom, zoom_speed, readout_x, readout_y, compass, compass_position, screen_image)
-	g_helmet[e] = g_Entity[e]
-	g_helmet[e]['pickup_text'] = pickup_text
-	g_helmet[e]['pickup_range'] = pickup_range
-	g_helmet[e]['useage_text'] = useage_text
-	g_helmet[e]['helmet_mode'] = helmet_mode
-	g_helmet[e]['min_zoom'] = min_zoom
-	g_helmet[e]['max_zoom'] = max_zoom
-	g_helmet[e]['zoom_speed'] = zoom_speed
-	g_helmet[e]['readout_x'] = readout_x
-	g_helmet[e]['readout_y'] = readout_y
-	g_helmet[e]['compass'] = compass or 2
-	g_helmet[e]['compass_position'] = compass_position
-	g_helmet[e]['screen_image'] = imagefile or screen_image
-end -- End properties
+	helmet[e] = g_Entity[e]
+	helmet[e].pickup_text = pickup_text
+	helmet[e].pickup_range = pickup_range
+	helmet[e].useage_text = useage_text
+	helmet[e].helmet_mode = helmet_mode
+	helmet[e].min_zoom = min_zoom
+	helmet[e].max_zoom = max_zoom
+	helmet[e].zoom_speed = zoom_speed
+	helmet[e].readout_x = readout_x
+	helmet[e].readout_y = readout_y
+	helmet[e].compass = compass or 2
+	helmet[e].compass_position = compass_position
+	helmet[e].screen_image = imagefile or screen_image
+end
 
 function helmet_init(e)
-	g_helmet[e] = {}
-	g_helmet[e]['pickup_text'] = "E to Pickup/Wear"
-	g_helmet[e]['pickup_range'] = 80
-	g_helmet[e]['useage_text'] = "Hold B + Wheel to zoom, N=Nightvision ON/OFF,  P=Remove/Wear Helmet"
-	g_helmet[e]['helmet_mode'] = 1
-	g_helmet[e]['min_zoom'] = -10
-	g_helmet[e]['max_zoom'] = 30
-	g_helmet[e]['zoom_speed'] = 1
-	g_helmet[e]['readout_x'] = 50
-	g_helmet[e]['readout_y'] = 10
-	g_helmet[e]['compass'] = 2
-	g_helmet[e]['compass_position'] = 1
-	g_helmet[e]['screen_image'] = "imagebank\\misc\\testimages\\helmethud1.png"
+	helmet[e] = {}
+	helmet[e].pickup_text = "E to Pickup/Wear"
+	helmet[e].pickup_range = 80
+	helmet[e].useage_text = "Hold B + Wheel to zoom, N=Nightvision ON/OFF,  P=Remove/Wear Helmet"
+	helmet[e].helmet_mode = 1
+	helmet[e].min_zoom = -10
+	helmet[e].max_zoom = 30
+	helmet[e].zoom_speed = 1
+	helmet[e].readout_x = 50
+	helmet[e].readout_y = 10
+	helmet[e].compass = 2
+	helmet[e].compass_position = 1
+	helmet[e].screen_image = "imagebank\\misc\\testimages\\helmethud1.png"
 
 	have_helmet[e] = 0
+	g_have_helmet = 0
 	start_wheel = 0
 	mod = 0
 	fov = 0
@@ -115,17 +117,17 @@ end
 function helmet_main(e)
 
 	if status[e] == "init" then
-		helmetsp[e] = CreateSprite(LoadImage(g_helmet[e]['screen_image']))
+		helmetsp[e] = CreateSprite(LoadImage(helmet[e].screen_image))
 		SetSpriteSize(helmetsp[e],100,100)
 		SetSpriteDepth(helmetsp[e],100)
 		SetSpritePosition(helmetsp[e],1000,1000)
-		if g_helmet[e]['helmet_mode'] == 1 then have_helmet[e] = 0 end
-		if g_helmet[e]['helmet_mode'] == 3 then have_helmet[e] = 1 end
-		compass_pos = g_helmet[e]['compass_position']
+		compass_pos = helmet[e].compass_position
 		mod = g_PlayerFOV
 		fov = g_PlayerFOV
 		current_fov[e] = fov
 		have_helmet[e] = 0
+		if helmet[e].helmet_mode == 1 then have_helmet[e] = 0 end
+		if helmet[e].helmet_mode == 3 then have_helmet[e] = 1 end
 		keypause1[e] = g_Time + 1000
 		keypause2[e] = g_Time + 1000
 		status[e] = "endinit"
@@ -134,34 +136,36 @@ function helmet_main(e)
 	PlayerDist = GetPlayerDistance(e)
 	if fov == nil then fov = g_PlayerFOV end
 
-	if g_helmet[e]['compass'] == 1 then
+	if helmet[e].compass == 1 then
 		if have_helmet[e] == 1 then
 			show_compass()
 		end
 	end
 
 	if have_helmet[e] == 0 then
-		if g_helmet[e]['helmet_mode'] == 1 or g_helmet[e]['helmet_mode'] == 2 then
-			if PlayerDist < g_helmet[e]['pickup_range'] and g_PlayerHealth > 0 and have_helmet[e] == 0 then
-				PromptLocalForVR(e,g_helmet[e]['pickup_text'])
+		g_have_helmet = have_helmet[e]
+		if helmet[e].helmet_mode == 1 or helmet[e].helmet_mode == 2 then
+			if PlayerDist < helmet[e].pickup_range and g_PlayerHealth > 0 and have_helmet[e] == 0 then
+				PromptLocal(e,helmet[e].pickup_text)
 				if g_KeyPressE == 1 then
 					have_helmet[e] = 1
+					if GetEntityCollectable(e) == 1 then SetEntityCollected(e,1) end
 					PlaySound(e,0)
+					LoopNon3DSound(e,1)					
 					Hide(e)
 					CollisionOff(e)
 					SetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)					
 					ActivateIfUsed(e)
 				end
 			end
-		end
+		end		
 	end
-	
 	if have_helmet[e] == 1 then
-		
+		g_have_helmet = have_helmet[e]		
 		if hmswitch[e] == 0 then
 			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			PasteSpritePosition(helmetsp[e],0,0)
-			TextCenterOnXColor(50,95,2,g_helmet[e]['useage_text'],100,255,100)
+			TextCenterOnXColor(50,95,2,helmet[e].useage_text,100,255,100)
 			if doloop[e] == 0 then
 				LoopNon3DSound(e,1)
 				doloop[e] = 1
@@ -181,18 +185,18 @@ function helmet_main(e)
 				gunstatus[e] = 1
 			end
 			if g_MouseWheel < 0 then
-				mod = mod - g_helmet[e]['zoom_speed']
+				mod = mod - helmet[e].zoom_speed
 			elseif g_MouseWheel > 0 then
-				mod = mod + g_helmet[e]['zoom_speed']
+				mod = mod + helmet[e].zoom_speed
 			end
-			if mod < g_helmet[e]['min_zoom'] then
-				mod = g_helmet[e]['min_zoom']
-			elseif mod > g_helmet[e]['max_zoom'] then
-				mod = g_helmet[e]['max_zoom']
+			if mod < helmet[e].min_zoom then
+				mod = helmet[e].min_zoom
+			elseif mod > helmet[e].max_zoom then
+				mod = helmet[e].max_zoom
 			end
 			SetPlayerFOV(fov-mod)
 			current_fov[e] = (fov-mod)
-			TextCenterOnX(g_helmet[e]['readout_x'],g_helmet[e]['readout_y'],3,"Magnification Factor: " ..mod)
+			TextCenterOnX(helmet[e].readout_x,helmet[e].readout_y,3,"Magnification Factor: " ..mod)
 		else
 			start_wheel = g_MouseWheel
 			mod = 0
@@ -233,7 +237,7 @@ function helmet_main(e)
 				nvswitch[e] = 0
 			end
 		end
-		if g_helmet[e]['helmet_mode'] == 1 then
+		if helmet[e].helmet_mode == 1 then
 			if GetInKey() == "p" or GetInKey() == "P" then
 				local ox,oy,oz = U.Rotate3D( 0, 60, 0, math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ), math.rad( g_PlayerAngZ ) )
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
@@ -248,13 +252,15 @@ function helmet_main(e)
 				SetFogGreen(default_FogGreen)
 				SetFogBlue(default_FogBlue)
 				PlaySound(e,0)
-				nvswitch[e] = 0
+				StopSound(e,1)
+				nvswitch[e] = 0				
 				keypause1[e] = g_Time + 1000
 				have_helmet[e] = 0
+				g_have_helmet = have_helmet[e]
 				SetPlayerFOV(fov)
 			end
 		end
-		if g_helmet[e]['helmet_mode'] == 2 then --reuseable	
+		if helmet[e].helmet_mode == 2 then --reuseable	
 			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			if g_Time > keypause2[e] and hmswitch[e] == 0 then
 				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 0 then

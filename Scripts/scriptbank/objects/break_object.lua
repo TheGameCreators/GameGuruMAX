@@ -90,6 +90,7 @@ function break_object_main(e)
 				Hide(e)
 				CollisionOff(e)
 				Destroy(e)
+				SetEntityBaseAlpha(e,100)
 			end
 		end
 	end

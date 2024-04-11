@@ -1,4 +1,4 @@
--- Flashlight v24: by Necrym59
+-- Flashlight v26: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -21,6 +21,7 @@
 -- DESCRIPTION: [UltraVioletMode!=0] highlights transparent enemies.
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyBatteryEnergy"]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [LightRangeKill!=0] will kill entity within light range and radius.
 -- DESCRIPTION: <Sound0> for Pickup sound
 -- DESCRIPTION: <Sound1> for switching on/off
 -- DESCRIPTION: <Sound2> for battery low
@@ -51,6 +52,7 @@ local depletion_trigger		= {}
 local UltraVioletMode		= {}
 local user_global_affected	= {}
 local item_highlight 		= {}
+local LightRangeKill		= {}
 
 local have_flashlight 	= {}
 local drain_level		= {}
@@ -65,8 +67,9 @@ local nearestEnt		= {}
 local spottedEnt		= {}
 local spottedDist		= {}
 local spottedTran		= {}
+local cleanuptime		= {}
 	
-function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useage_text, flashlight_range, flashlight_radius, flashlight_r, flashlight_g, flashlight_b, flashlight_shadows, battery_level, battery_drain, battery_recharge, battery_indicator, indicator_text, light_activation, pickup_trigger, depletion_trigger, UltraVioletMode, user_global_affected, item_highlight)
+function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useage_text, flashlight_range, flashlight_radius, flashlight_r, flashlight_g, flashlight_b, flashlight_shadows, battery_level, battery_drain, battery_recharge, battery_indicator, indicator_text, light_activation, pickup_trigger, depletion_trigger, UltraVioletMode, user_global_affected, item_highlight, LightRangeKill)
 	flashlight[e] = g_Entity[e]
 	flashlight[e].pickup_text = pickup_text
 	flashlight[e].pickup_range = pickup_range
@@ -86,9 +89,10 @@ function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useag
 	flashlight[e].light_activation = light_activation
 	flashlight[e].pickup_trigger = pickup_trigger
 	flashlight[e].depletion_trigger = depletion_trigger
-	flashlight[e].UltraVioletMode = UltraVioletMode
+	flashlight[e].UltraVioletMode = UltraVioletMode or 0
 	flashlight[e].user_global_affected = user_global_affected or ""	
-	flashlight[e].item_highlight = item_highlight	
+	flashlight[e].item_highlight = item_highlight
+	flashlight[e].LightRangeKill = LightRangeKill or 0
 end 	
 	
 function flashlight_init(e)
@@ -113,7 +117,8 @@ function flashlight_init(e)
 	flashlight[e].depletion_trigger = 1
 	flashlight[e].UltraVioletMode =	0
 	flashlight[e].user_global_affected = "MyBatteryEnergy"
-	flashlight[e].item_highlight = 0	
+	flashlight[e].item_highlight = 0
+	flashlight[e].LightRangeKill = 0
 	
 	have_flashlight[e] = 0
 	drain_level[e] = 0
@@ -124,6 +129,7 @@ function flashlight_init(e)
 	played[e] = 0
 	currentvalue[e] = 0
 	flashswitch[e] = 0
+	cleanuptime[e] = 0
 	selectobj[e] = 0
 	SetFlashLightKeyEnabled(0)
 	g_batteryenergy = 0
@@ -180,8 +186,7 @@ function flashlight_main(e)
 				end
 				Hide(e)
 				CollisionOff(e)
-				ResetPosition(e,0,-5000,0)
-				ActivateIfUsed(e)
+				ResetPosition(e,0,-5000,0)				
 				have_flashlight[e] = 1
 				if flashlight[e].user_global_affected > "" then _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] = currentvalue[e] + flashlight[e].battery_level end
 				if flashlight[e].pickup_trigger == 2 then
@@ -243,11 +248,11 @@ function flashlight_main(e)
 			if flashlight[e].depletion_trigger == 3 then LoseGame() end
 			status[e] = 'OFF'
 		end		
-		--------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
 		if flashlight[e].UltraVioletMode ==	1 then
-			nearestEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,flashlight[e].flashlight_range/1.5)
-			
+			nearestEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,flashlight[e].flashlight_range/1.5)			
 			local allegiance = GetEntityAllegiance(nearestEnt[e])
+			PromptLocal(spottedEnt[e])
 			if nearestEnt[e] ~= nil and nearestEnt[e] > 0 and g_Entity[nearestEnt[e]]['animating'] == 1 and allegiance == 0 then
 			    spottedEnt[e] = nearestEnt[e]
 				spottedDist[e] = GetPlayerDistance(spottedEnt[e])				
@@ -269,9 +274,23 @@ function flashlight_main(e)
 			else
 				spottedEnt[e] = 0
 				nearestEnt[e] = 0
-			end
+			end			
 		end
-		----------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
+		if flashlight[e].LightRangeKill == 1 then
+			nearestEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,(flashlight[e].flashlight_range/1.5)+GetGamePlayerStateFlashlightRadius())
+			local allegiance = GetEntityAllegiance(nearestEnt[e])
+			if nearestEnt[e] ~= nil and nearestEnt[e] > 0 and g_Entity[nearestEnt[e]]['animating'] == 1 and g_Entity[nearestEnt[e]]['health'] >= 0 and allegiance == 0 then
+				spottedEnt[e] = nearestEnt[e]	
+				if PlayerLooking(spottedEnt[e],flashlight[e].flashlight_range/1.5,GetGamePlayerStateFlashlightRadius()/1.5) == 1 then
+					SetEntityHealth(spottedEnt[e],0)
+				end	
+			else
+				spottedEnt[e] = 0
+				nearestEnt[e] = 0
+			end			
+		end		
+		------------------------------------------------------------------------------------------------------------------------	
 	end
 	
 	if status[e] == 'OFF' then

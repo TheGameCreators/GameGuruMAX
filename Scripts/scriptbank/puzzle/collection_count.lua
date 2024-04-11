@@ -8,7 +8,7 @@
 -- DESCRIPTION: [HEALTH_PENALTY=0(0,100)] in units
 -- DESCRIPTION: [GLOBAL_BONUS=0(0,100)] in units
 -- DESCRIPTION: [GLOBAL_PENALTY=0(0,100)] in units
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyPoints"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global eg: "MyPoints" 
 -- DESCRIPTION: <Sound0> plays when objective picked up
 
 g_collection_objectives	= {}
@@ -76,7 +76,7 @@ function collection_count_main(e)
 			SetPlayerHealth(g_PlayerHealth - cc_count[e].health_penalty)
 			SetPlayerHealthCore(g_PlayerHealth)
 		end
-		if cc_count[e].user_global_affected > "" then
+		if cc_count[e].user_global_affected ~= "" and cc_count[e].user_global_affected ~= nil then
 			if cc_count[e].global_bonus > 0 then
 				if _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] end
 				_G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] = currentvalue[e] + cc_count[e].global_bonus

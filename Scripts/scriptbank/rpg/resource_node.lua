@@ -91,7 +91,7 @@ function resource_node_main(e)
 		end
 		if resnode[e].node_max_quantity > 10 then resnode[e].node_max_quantity = 10 end
 		if resnode[e].node_entity_spawntime > 60 then resnode[e].node_entity_spawntime = 60 end
-		if resnode[e].node_entity_no == 0 or resnode[e].node_entity_no == nil then
+		if resnode[e].node_entity_no == 0 then
 			for ee = 1, g_EntityElementMax do
 				if ee ~= nil and e~= ee and g_Entity[ee] ~= nil then
 					if lower(GetEntityName(ee)) == lower(resnode[e].node_entity_name) then
@@ -187,7 +187,7 @@ function resource_node_main(e)
 		end
 	end	
 
-	if status[e] == "create_resource" then			
+	if status[e] == "create_resource" and resnode[e].node_entity_no ~= 0 then			
 		if doonce[e] == 0 and created[e] < resnode[e].node_max_quantity then			
 			local etoclone = resnode[e].node_entity_no
 			newEntn[e] = SpawnNewEntity(etoclone)			

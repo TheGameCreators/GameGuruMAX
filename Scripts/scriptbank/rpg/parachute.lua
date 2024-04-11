@@ -171,7 +171,6 @@ function parachute_main(e)
 					pos_z = g_Entity[e]['z'] + (math.cos(new_y) * parachute[e].mount_z_adjustment)				
 					SetFreezePosition(pos_x,g_Entity[e]['y']+parachute[e].min_deploy_height,pos_z)
 					SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley'],g_Entity[e]['anglez'])			
-					SetPriorityToTransporter(e,1)
 					TransportToFreezePosition()				
 					state[e] = "parachuting"				
 				end
@@ -188,7 +187,6 @@ function parachute_main(e)
 				pos_z = g_Entity[e]['z'] + (math.cos(new_y) * parachute[e].mount_z_adjustment)
 				SetFreezePosition(pos_x,g_Entity[e]['y']+parachute[e].min_deploy_height,pos_z)
 				SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley'],g_Entity[e]['anglez'])
-				SetPriorityToTransporter(e,1)
 				TransportToFreezePosition()
 				state[e] = "parachuting"		 
 			end
@@ -210,7 +208,6 @@ function parachute_main(e)
 		end
 		SetFreezePosition(pos_x,(g_Entity[e]['y']+parachute[e].min_deploy_height),pos_z)
 		SetFreezeAngle(g_PlayerAngx,g_PlayerAngY,g_PlayerAngZ)
-		SetPriorityToTransporter(e,1)
 		TransportToFreezePositionOnly()
 		
 		landonobject[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_PlayerPosX,g_PlayerPosY-10,g_PlayerPosZ,0)

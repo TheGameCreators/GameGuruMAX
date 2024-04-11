@@ -1,4 +1,4 @@
--- Income Generator v3 by Necrym59 with thanks to oosayeroo
+-- Income Generator v4 by Necrym59 with thanks to oosayeroo
 -- DESCRIPTION: The object will give the player a generated income value over time to a User Global.
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Ranged, 2=Manual, 3=Automatic)]
@@ -8,7 +8,7 @@
 -- DESCRIPTION: [INCOME=10(1,500)]
 -- DESCRIPTION: [UPKEEP=10(1,500)]
 -- DESCRIPTION: [ELAPSE_TIME=10(1,100)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] Your user global eg: 'MyMoney'
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for collection sound.
@@ -48,7 +48,7 @@ function income_generator_properties(e, pickup_range, pickup_style, pickup_text,
 	ic_generator[e].income = income
 	ic_generator[e].upkeep = upkeep
 	ic_generator[e].elapse_time = elapse_time	
-	ic_generator[e].user_global_affected = "MyMoney"
+	ic_generator[e].user_global_affected = user_global_affected or ""
 	ic_generator[e].prompt_display = prompt_display
 	ic_generator[e].item_highlight = item_highlight	
 end
@@ -63,7 +63,7 @@ function income_generator_init(e)
 	ic_generator[e].income = 1
 	ic_generator[e].upkeep = 1
 	ic_generator[e].elapse_time = 10
-	ic_generator[e].user_global_affected = "MyMoney"
+	ic_generator[e].user_global_affected = ""
 	ic_generator[e].prompt_display = 1
 	ic_generator[e].item_highlight = 0
 	

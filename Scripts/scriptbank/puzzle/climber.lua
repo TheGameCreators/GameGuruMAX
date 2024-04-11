@@ -109,7 +109,6 @@ function climber_main(e)
 		if climber.use_prompt == 1 then Prompt( climber.prompt_text ) end				
 		
 		SetFreezePosition( climber.x, climber.ypos + playerheight, climber.z )		
-		SetPriorityToTransporter(e,1)
 		TransportToFreezePositionOnly()
 
 		local keyScan = g_Scancode
@@ -140,7 +139,6 @@ function climber_main(e)
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz + 2
 				-- 'forwardposx' ( / y / z ) are the values for "forwards" based on the direction the player is looking
 				SetFreezePosition( forwardposx, forwardposy, forwardposz )
-				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly( forwardposx, forwardposy, forwardposz )				
 				ForcePlayer( g_PlayerAngY, climbers[e].exit_force )	
 				climber.z = climber.z - 40

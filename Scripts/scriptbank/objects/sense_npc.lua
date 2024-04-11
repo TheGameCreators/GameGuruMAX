@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Sense Npc v2 
--- DESCRIPTION: Allows any linked object(s) to be activated once when a named entity is within range.
+-- DESCRIPTION: Allows an object to activate logic links or IfUsed when a named entity is in range
 -- DESCRIPTION: Attach to an object/entity and set AlwaysActive=ON, IsImobile=YES
 -- DESCRIPTION: [SENSE_RANGE=250(0,1000)]
 -- DESCRIPTION: [NPC_NAME$=""] to monitor.

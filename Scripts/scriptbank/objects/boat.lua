@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v14 by Necrym59
+-- Boat v15 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
 -- DESCRIPTION: Edit the[PROMPT_TEXT$="E to embark"], Activation [BOAT_RANGE=80] the [MIN_SPEED=2(0,10)], [MAX_SPEED=4(0,100)], [TURN_SPEED=2(1,10)], [DRAG=5].
 -- DESCRIPTION: Adjust [#PLAYER_Z_POSITION=0(-100,100)] and [#PLAYER_Y_POSITION=20(-100,100)].
@@ -168,17 +168,17 @@ function boat_main(e)
 			end
 			if g_KeyPressQ == 1 then -- Q key
 				SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
-				SetPriorityToTransporter(e,1)
 				TransportToFreezePosition()
 				boat_release[e]=0
 				boat_active[e]=0
 			end
 			if  boat_active[e]==1 then
+				GravityOff(e)
+				CollisionOff(e)
 				--Draft Check-------------------------------------------------------------------------------
 				heightTerrain[e] = GetTerrainHeight(g_Entity[e].x,g_Entity[e].z)
 				if (g_Entity[e].y - boat[e].boat_draft) <= heightTerrain[e] then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
-					SetPriorityToTransporter(e,1)
 					TransportToFreezePosition()
 					boat_aground = 1
 					speed = -1
@@ -191,13 +191,14 @@ function boat_main(e)
 				colobj[e] = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj,0,0,1,0)				
 				if colobj[e] > 0 or colobj[e] == -1 then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
-					SetPriorityToTransporter(e,1)
 					TransportToFreezePosition()
 					boat_aground = 1
 					speed = -1
 					boat_release[e]=0
 					boat_active[e]=0
-				end	
+				end
+				GravityOn(e)
+				CollisionOn(e)				
 				-------------------------------------------------------------------------------------------				
 			end
 			boatangledeg=math.rad(boatangle+boat[e].boat_rotation)
@@ -216,10 +217,7 @@ function boat_main(e)
 			GravityOff(e)
 			CollisionOff(e)
 			SetPosition(e,boatx,boaty,boatz)
-			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)
-			GravityOn(e)
-			CollisionOn(e)
-			SetPriorityToTransporter(e,1)
+			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)			
 			TransportToFreezePositionOnly()
 			if speed>0 and g_KeyPressW == 0 then speed=speed-(boat[e].drag/10000) end
 			if speed<0 and g_KeyPressS == 0 then speed=speed/1.1 end

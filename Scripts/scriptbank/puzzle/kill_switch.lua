@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Switch v10 by Necrym59
+-- Kill Switch v11 by Necrym59
 -- DESCRIPTION: Attach to an object and link to be activated by switch or zone.
 -- DESCRIPTION: When all enemies have been killed it then activates linked or IfUsed entitities and can increment a user global.
 -- DESCRIPTION: [EVENT_TEXT$="Kill all Targets in Area"]
@@ -49,8 +49,8 @@ function kill_switch_properties(e, event_text, enemy_range, enemy_counter, count
 	killswitch[e].end_text = end_text
 	killswitch[e].end_text_duration = end_text_duration
 	killswitch[e].user_global_affected = user_global_affected
-	killswitch[e].global_affected_value = global_affected_value
-end 
+	killswitch[e].global_affected_value = global_affected_value or ""
+end
 
 function kill_switch_init(e)
 	killswitch[e] = {}
@@ -62,8 +62,8 @@ function kill_switch_init(e)
 	killswitch[e].end_text_duration = 2
 	killswitch[e].hide_object = 0
 	killswitch[e].user_global_affected = ""
-	killswitch[e].global_affected_value = 100	
-	
+	killswitch[e].global_affected_value = 100
+
 	pEntno[e] = 0
 	pEntalive[e] = 0
 	pEnthealth[e] = 0
@@ -72,8 +72,9 @@ function kill_switch_init(e)
 	doend[e] = 0
 	waitonce[e] = 0
 	endonce[e] = 0
+	currentvalue[e] = 0
 	wait[e] = math.huge
-	endcheck[e] = math.huge	
+	endcheck[e] = math.huge
 	state[e] = 0
 	status[e] = 'start'
 	SetEntityActivated(e,0)
@@ -85,68 +86,68 @@ function kill_switch_main(e)
 		CollisionOff(e)
 		Hide(e)
 	end
-	
+
 	if g_Entity[e]['activated'] == 1 then
-		
+
 		if status[e] == 'start' then
-			if waitonce[e] == 0 then 
-				wait[e] = g_Time + 1000	
+			if waitonce[e] == 0 then
+				wait[e] = g_Time + 1000
 				waitonce[e] = 1
-			end				
+			end
 			if  g_Time > wait[e] then status[e] = 'init' end
 		end
-		
+
 		if status[e] == 'init' then
 			if doonce[e] == 0 then
-				PromptDuration(killswitch[e].event_text,2000)	
+				PromptDuration(killswitch[e].event_text,2000)
 				PlaySound(e,0)
 				doonce[e] = 1
-			end	
-			for a = 1, g_EntityElementMax do				
+			end
+			for a = 1, g_EntityElementMax do
 				if a ~= nil and g_Entity[a] ~= nil then
 					if GetEntityAllegiance(a) == 0 then
 						pEntrange[e] = math.ceil(GetFlatDistance(e,a))
 						if g_Entity[a]['health'] > 0 and pEntrange[e] < killswitch[e].enemy_range then
 							pEntno[e] = a
 							pEntalive[e] = pEntalive[e] + 1
-						end						
+						end
 					end
 				end
-			end			
-			for b = 1, g_EntityElementMax do				
+			end
+			for b = 1, g_EntityElementMax do
 				if b ~= nil and g_Entity[b] ~= nil then
 					if GetEntityAllegiance(b) == 0 then
 						pEntrange[e] = math.ceil(GetFlatDistance(e,b))
 						if g_Entity[b]['health'] > 0 and pEntrange[e] < killswitch[e].enemy_range and g_Entity[b]['active'] == 0 then
 							pEntalive[e] = pEntalive[e] - 1
-						end						
+						end
 					end
 				end
 			end
 			if pEntalive[e] > 0 then state[e] = 1 end
-			if pEntalive[e] == 0 then 
+			if pEntalive[e] == 0 then
 				state[e] = 0
 				if endonce[e] == 0 then
 					endcheck[e] = g_Time + 5000
 					endonce[e] = 1
-				end	
-			end			
+				end
+			end
 			status[e] = 'run'
 		end
 
 		if status[e] == 'run' then
 			if killswitch[e].enemy_counter == 2 and pEntalive[e] > 0 then TextCenterOnX(50,95,3,killswitch[e].counter_text.. "  " ..pEntalive[e]) end
-			if pEntalive[e] == 0 then				
+			if pEntalive[e] == 0 then
 				status[e] = 'endevent'
 			end
-			if pEntalive[e] > 0 then		
+			if pEntalive[e] > 0 then
 				pEntalive[e] = 0
 				status[e] = 'start'
 			end
 		end
-		if status[e] == 'endevent' then	
+		if status[e] == 'endevent' then
 			if doend[e] == 0 then
-				PromptDuration(killswitch[e].end_text,killswitch[e].end_text_duration*1000)					
+				PromptDuration(killswitch[e].end_text,killswitch[e].end_text_duration*1000)
 				PlaySound(e,1)
 				ActivateIfUsed(e)
 				PerformLogicConnections(e)
@@ -157,23 +158,23 @@ function kill_switch_main(e)
 				doend[e] = 1
 				doonce[e] = 0
 				waitonce[e] = 0
-				wait[e] = math.huge		
+				wait[e] = math.huge
 				endcheck[e] = g_Time + killswitch[e].end_text_duration*1000
-			else 
+			else
 				if g_Time >= endcheck[e] then
 					status[e] = 'end'
 				end
-			end			
+			end
 		end
 		if status[e] == 'end' then
 			SetEntityActivated(e,0)
-			if killswitch[e].hide_object == 1 then 
+			if killswitch[e].hide_object == 1 then
 				Destroy(e)
 			else
 				SwitchScript(e,"no_behavior_selected.lua")
-			end			
-		end	
-	end
+			end
+		end
+	end	
 end
 
 function GetFlatDistance(e,v)

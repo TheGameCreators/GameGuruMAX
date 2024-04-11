@@ -1,4 +1,4 @@
--- Navigation Bar v7 by Smallg and Necrym59
+-- Navigation Bar v10 by Smallg and Necrym59
 -- DESCRIPTION: Adds a Nagigation Bar to your game 
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\navbar.png"]
 -- DESCRIPTION: [VIEWRANGE=6000] of objectives shown on the radar
@@ -16,8 +16,8 @@
 -- DESCRIPTION: [COMPASS_G=255(0,255)] compass green color value
 -- DESCRIPTION: [COMPASS_B=255(0,255)] compass blue color value
 -- DESCRIPTION: [COMPASS_FONT_SIZE=2(1,5)] compass font size
--- DESCRIPTION: [@OBJECTIVE_DATA=1(1=On ,2=Off)] objective data on/off
---
+-- DESCRIPTION: [@OBJECTIVE_DATA=1(1=On,2=Off)] objective data on/off
+-- DESCRIPTION: [COMPASS_SPACER$="."] compass spacer character
 
 U = require "scriptbank\\utillib"
 
@@ -30,6 +30,7 @@ local navbarsprite		= {}
 local navbar_entity		= {}
 local isfixedsize		= {}
 local ignorerange		= {}
+local thisname			= {}
 local icon_position_y	= {}
 local compass_mode		= {}
 local compass_y			= {}
@@ -38,13 +39,15 @@ local compass_r			= {}
 local compass_g			= {}
 local compass_b			= {}
 local compass_font_size = {}
+local objective_data	= {}
+local compass_spacer 	= {}
 
 local compass			= {}
 local questentity 		= {}
 local queststatus 		= {}
 local status			= ""
 
-function navbar_properties(e, navbarimage, viewrange, width, height, position_x, position_y, icon_width, icon_height, icon_position_y, compass_mode, compass_y, compass_view, compass_r, compass_g, compass_b, compass_font_size, objective_data)
+function navbar_properties(e, navbarimage, viewrange, width, height, position_x, position_y, icon_width, icon_height, icon_position_y, compass_mode, compass_y, compass_view, compass_r, compass_g, compass_b, compass_font_size, objective_data, compass_spacer)
 	nbar.navbarimage = navbarimage or imagefile
 	nbar.viewrange = viewrange
 	nbar.width = width
@@ -62,6 +65,7 @@ function navbar_properties(e, navbarimage, viewrange, width, height, position_x,
 	nbar.compass_b = compass_b
 	nbar.compass_font_size = compass_font_size
 	nbar.objective_data = objective_data
+	nbar.compass_spacer = compass_spacer
 end 
 
 function navbar_init(e)
@@ -84,6 +88,7 @@ function navbar_init(e)
 	nbar.compass_b = 255
 	nbar.compass_font_size = 2
 	nbar.objective_data = 1
+	nbar.compass_spacer = "."	
 	queststatus[e] = 0
 	questentity[e] = 0
 	status = "init"
@@ -111,7 +116,7 @@ function navbar_main(e)
 	if nbar.compass_mode == 1 then show_Compass() end
 	
 	if g_UserGlobalQuestTitleActiveE > 0 and queststatus[e] == 0 then
-		AddToNavbar(g_UserGlobalQuestTitleActiveE, "imagebank\\navbar\\currentquest.png", fixedsize, ignorerange)
+		AddToNavbar(g_UserGlobalQuestTitleActiveE, "imagebank\\navbar\\currentquest.png", fixedsize, ignorerange, "")
 		questentity[e] = g_UserGlobalQuestTitleActiveE
 		queststatus[e] = 1
 	end
@@ -151,15 +156,16 @@ function navbar_main(e)
 				PasteSpritePosition(iconsprite[b],iconx,icony+nbar.icon_position_y)
 				if nbar.objective_data == 1 then 
 					local infoposy = nbar.icon_position_y+2.5
-					if g_Entity[b]['y'] > g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy,2,math.floor(dist).. " +") end
-					if g_Entity[b]['y'] < g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy,2,math.floor(dist).. " -") end
-				end	
+					TextCenterOnX(iconx,icony+infoposy,2,thisname[b])
+					if g_Entity[b]['y'] > g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy+1,2,math.floor(dist).. " +") end
+					if g_Entity[b]['y'] < g_PlayerPosY then TextCenterOnX(iconx,icony+infoposy+1,2,math.floor(dist).. " -") end
+				end
 			end
 		end
 	end
 end 
 
-function AddToNavbar(ee, imgname, fixsize, ignorerng)
+function AddToNavbar(ee, imgname, fixsize, ignorerng, tname)
 	if navbar_entity[ee] == nil then 
 		local img = LoadImage(imgname)
 		local spr = CreateSprite(img)
@@ -171,6 +177,7 @@ function AddToNavbar(ee, imgname, fixsize, ignorerng)
 		navbar_entity[ee] = ee
 		isfixedsize[ee] = fixsize
 		ignorerange[ee] = ignorerng
+		thisname[ee] = tname
 		return true
 	else 
 		return false 
@@ -232,7 +239,7 @@ function defn_Compass()
 		elseif i == 271 then compass[i] = "W"  
 		elseif i == 316 then compass[i] = "NW"
 		elseif math.fmod(i,10) == 1 then
-			compass[i] = "." 
+			compass[i] = nbar.compass_spacer
 		else
 			compass[i] = " "
 		end

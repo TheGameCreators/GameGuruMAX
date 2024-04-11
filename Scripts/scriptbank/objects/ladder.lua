@@ -114,7 +114,6 @@ function ladder_main(e)
 		if ladder.use_prompt == 1 then Prompt( ladder.prompt_text ) end				
 		
 		SetFreezePosition( ladder.x, ladder.ypos + playerheight, ladder.z ) 
-		SetPriorityToTransporter(e,1)
 		TransportToFreezePositionOnly()
 		
 		-- Allow ladders to work whilst swimming
@@ -148,7 +147,6 @@ function ladder_main(e)
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz + 2
 				-- 'forwardposx' ( / y / z ) are the values for "forwards" based on the direction the player is looking
 				SetFreezePosition( forwardposx, forwardposy, forwardposz )
-				SetPriorityToTransporter(e,1)
 				TransportToFreezePositionOnly( forwardposx, forwardposy, forwardposz )				
 				ForcePlayer( g_PlayerAngY, ladders[e].exit_force )
 				ladder.z = ladder.z - 40

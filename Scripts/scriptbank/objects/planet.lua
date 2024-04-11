@@ -58,6 +58,7 @@ local adjustrange	= {}
 local status		= {}
 local doonce		= {}
 local endvid 		= {}
+local pname			= {}
 
 function planet_properties(e, planet_adjust_x, planet_adjust_y, planet_adjust_z, cloud_sphere, atmos_sphere, rings_circle, cloud_scale, atmos_scale, rings_scale, planet_rotation, cloud_rotation, rings_rotation, sense_range, sense_text, sense_trigger, video_skip, resetstates)
 	planet[e] = g_Entity[e]
@@ -202,7 +203,7 @@ function planet_main(e)
 		if GetPlayerDistance(e) > adjustrange[e] then
 			if doonce[e] == 1 then
 				doonce[e] = 0
-				endvid[e] = 0
+				endvid[e] = 0				
 			end
 		end	
 	end

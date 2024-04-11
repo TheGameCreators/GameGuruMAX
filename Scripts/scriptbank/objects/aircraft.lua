@@ -158,7 +158,6 @@ local function AttachPlayer(h,xa,ya,za)
 	if cmode == 1 then SetCameraAngle (0,deg(xa)+3,deg(ya),deg(za)) end
 	if cmode == 2 then SetCameraAngle (0,g_PlayerAngX,g_PlayerAngY,g_PlayerAngZ) end
 	SetFreezePosition( h.pos.x, h.pos.y + 80, h.pos.z - 80 )
-	SetPriorityToTransporter(e,1)
 	TransportToFreezePositionOnly()
 end
 
@@ -274,7 +273,6 @@ function aircraft_main(e)
 						if deathfall[e] == 0 then fposy = fposy+25 end
 						fposz=fposz+200
 						SetFreezePosition(fposx,fposy,fposz)
-						SetPriorityToTransporter(e,1)
 						TransportToFreezePositionOnly(fposx,fposy,fposz)
 						SetCameraOverride(0)
 						DeactivateMouse()
@@ -610,7 +608,6 @@ function aircraft_main(e)
 								Destroy(h.ent)
 							else
 								SetFreezePosition(ex,ey,ez)								
-								SetPriorityToTransporter(e,1)
 								TransportToFreezePositionOnly()							
 								h.vec.z = 0
 								h.vec.y = 0

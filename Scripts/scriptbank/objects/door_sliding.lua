@@ -1,4 +1,4 @@
--- Door Sliding v27 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v28 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -8,7 +8,7 @@
 -- DESCRIPTION: [!IsUnlocked=1]
 -- DESCRIPTION: [UnLockedText$="E to use door"] 
 -- DESCRIPTION: [@DOOR_TYPE=2(1=Auto, 2=Manual, 3=Switched)]
--- DESCRIPTION: [@DOOR_STYLE=1(1=None, 2=DelayedClose, 3=DelayedClose+Lock)]
+-- DESCRIPTION: [@DOOR_STYLE=1(1=None, 2=DelayedClose, 3=DelayedClose+Lock, 4=Open+Lock)]
 -- DESCRIPTION: [DOOR_RANGE=100(0,500)]
 -- DESCRIPTION: [CLOSE_DELAY#=5.0] seconds
 -- DESCRIPTION: [@TRIGGER=4(1=On Open, 2=On Close, 3=On Open+Close, 4=None)] to trigger links
@@ -258,7 +258,14 @@ function door_sliding_main(e)
 			door.blocking = 2
 			if door.door_style == 2 or door.door_style == 3 then
 				door.closeTime = g_Time + door.closedelay
-			end	
+			end
+			if door.door_style == 4 then
+				PositionDoor(e,door)
+				SetEntityActivated(e,0)
+				SetActivated(e,0)
+				SwitchScript(e,"no_behavior_selected.lua")
+			end
+				
 		end
 		PositionDoor(e,door)
 		SetEntityActivated(e,0)

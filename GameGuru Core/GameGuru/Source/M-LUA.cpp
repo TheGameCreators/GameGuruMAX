@@ -1072,16 +1072,24 @@ void lua_loop_allentities ( void )
 				}
 				else
 				{
-					//  rest gets updates every now and again based on distance
-					if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 2.0f)
+					if (t.entityelement[t.e].eleprof.phyalways != 0)
 					{
-						if (  Rnd(25) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
+						// always active, EVEN if really far away
+						t.entityelement[t.e].lua.flagschanged = 1;
 					}
 					else
 					{
-						if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 1.25f)
+						//  rest gets updates every now and again based on distance
+						if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 2.0f)
 						{
-							if (  Rnd(50) == 1  )  t.entityelement[t.e].lua.flagschanged = 1;
+							if (Rnd(25) == 1)  t.entityelement[t.e].lua.flagschanged = 1;
+						}
+						else
+						{
+							if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE / 1.25f)
+							{
+								if (Rnd(50) == 1)  t.entityelement[t.e].lua.flagschanged = 1;
+							}
 						}
 					}
 				}

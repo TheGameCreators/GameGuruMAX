@@ -6,20 +6,32 @@
 -- DESCRIPTION: Select if the door can [AutoClose!=0] after a [AutoCloseDelay=5000]
 -- DESCRIPTION: Set [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
 -- DESCRIPTION: [!USE_SWITCH=0]
+-- DESCRIPTION: [SWITCH_TEXT$="Door is operated by a switch"]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 local NAVMESH = require "scriptbank\\navmeshlib"
 g_tEnt = {}
 
-local door 			= {}
-local door_pressed 	= {}
-local autodelay		= {}
-local tEnt 			= {}
-local selectobj 	= {}
-local prompt_display= {}
+local door				= {}
+local range				= {}
+local delay				= {}
+local unlocked			= {}
+local lockedtext		= {}
+local cannotclose		= {}
+local toopentext 		= {}
+local autoclose 		= {}
+local autoclosedelay 	= {}
+local prompt_display 	= {}
+local use_switch 		= {}
+local switch_text 		= {}
 
-function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, toopentext, autoclose, autoclosedelay, prompt_display, use_switch)
+local door_pressed 		= {}
+local autodelay			= {}
+local tEnt 				= {}
+local selectobj 		= {}
+
+function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, toopentext, autoclose, autoclosedelay, prompt_display, use_switch, switch_text)
 	door[e]['range'] = range
 	door[e]['delay'] = delay
 	door[e]['unlocked'] = unlocked
@@ -30,6 +42,7 @@ function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, too
 	door[e]['autoclosedelay'] = autoclosedelay or 0
 	door[e]['prompt_display'] = prompt_display
 	door[e]['use_switch'] = use_switch or 0
+	door[e]['switch_text'] = switch_text
 end
 
 function door_init(e)
@@ -122,6 +135,13 @@ function door_main(e)
 			end
 		end
 	end	
+	if door[e]['use_switch'] == 1 then
+		local LookingAt = GetPlrLookingAtEx(e,1)
+		if PlayerDist < nRange and GetEntityVisibility(e) == 1 and LookingAt == 1 then
+			if door[e]['prompt_display'] == 1 then TextCenterOnX(50,52,1,door[e]['switch_text']) end
+			if door[e]['prompt_display'] == 2 then Prompt(door[e]['switch_text']) end
+		end
+	end
 
 	if door[e]['use_switch'] == 1 and g_Entity[e]['haskey'] == 1 then
 		if g_Entity[e]['activated'] == 1 and door_pressed[e] == 0 then
@@ -172,8 +192,9 @@ function door_main(e)
 			PlaySound(e,1)
 			PerformLogicConnections(e)
 			door[e]['mode'] = 0
-			door[e]['blocking'] = 1			
-		end
+			door[e]['blocking'] = 1	
+			SetActivated(e,0)
+		end		
 	end
 	if g_KeyPressE == 0 then
 		door_pressed[e] = 0
@@ -181,6 +202,4 @@ function door_main(e)
 	
 	-- navmesh blocker system
 	door[e]['blocking'] = NAVMESH.HandleBlocker(e,door[e]['blocking'],door[e]['originalx'],door[e]['originaly'],door[e]['originalz'])
-
-	
 end

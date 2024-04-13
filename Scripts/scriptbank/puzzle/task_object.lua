@@ -66,6 +66,7 @@ function task_object_init(e)
 	played[e] = 0
 	wait[e] = math.huge
 	g_tasktool = 0
+	g_swcvalue = 0
 end
 
 function task_object_main(e)

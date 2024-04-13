@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Slider Script v14
+-- Slider Script v15
 -- DESCRIPTION: Slides an object in 90 degree directions, ideal for crawler or grid style games.
 -- DESCRIPTION: Can be activated by player or zone/switch
 -- DESCRIPTION: Set Physics=ON, IsImobile=ON, AlwaysActive=ON.
@@ -31,7 +31,6 @@ local damage_time = {}
 local doonce = {}
 
 function slider_properties(e, prompt, range, slide_mode, slide_type, slide_direction, slide_close_delay, slide_amount, slide_speed, damage_amount)
-	slider[e] = g_Entity[e]
 	slider[e].prompt = prompt
 	slider[e].range = range
 	slider[e].slide_mode = slide_mode
@@ -44,7 +43,7 @@ function slider_properties(e, prompt, range, slide_mode, slide_type, slide_direc
 end
 
 function slider_init(e)
-	slider[e] = g_Entity[e]
+	slider[e] = {}
 	slider[e].prompt = "Press E to Activate"
 	slider[e].range = 80
 	slider[e].slide_mode = 1	
@@ -63,7 +62,6 @@ function slider_init(e)
 end
 
 function slider_main(e)
-	slider[e] = g_Entity[e]
 
 	if GetPlayerDistance(e) < slider[e].range and slider[e].slide_mode == 1 then
 		Prompt(slider[e].prompt)

@@ -1,10 +1,11 @@
--- Teleport v11 - by Necrym59
+-- Teleport v12 - by Necrym59
 -- DESCRIPTION: Allows for a teleport to a local connected point or to another level.
 -- DESCRIPTION: [TELEPORT_ZONEHEIGHT=100]
 -- DESCRIPTION: [@TELEPORT_TYPE=1(1=Instant, 2=Delayed, 3=Delayed + Countdown)]
 -- DESCRIPTION: [@TELEPORT_MODE=1(1=Single-use, 2=Re-useable)]
 -- DESCRIPTION: [TELEPORT_DELAY=5(1,5))]
 -- DESCRIPTION: [@TELEPORT_EFFECT=1(1=None, 2=Warp, 3=Particle)]
+-- DESCRIPTION: [TELEPORT_EXIT_ANGLE=1(1,360))] Player exit angle upon teleport
 -- DESCRIPTION: [PARTICLE_NAME$="TeleportParticle"]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this teleport
 -- DESCRIPTION: [@DESTINATION=1(1=Local, 2=Level)] [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone.
@@ -20,40 +21,44 @@ local teleport_type = {}
 local teleport_mode = {}
 local teleport_delay = {}	
 local teleport_timer = {}
-local teleport_effect = {}	
+local teleport_effect = {}
+local teleport_exit_angle = {}	
 local player_level = {}
 local particle_name = {}
-local particle_no = {}
 local destination = {}
 
+local particle_no = {}
 local teleport_timer = {}
 local tlevelrequired = {}
 local tplayerlevel = {}
+local dest_angle = {}
 local effect = {}
 local played = {}
 local doonce = {}
 local status = {}
 	
-function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mode, teleport_delay, teleport_effect, particle_name, player_level, destination)
+function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mode, teleport_delay, teleport_effect, teleport_exit_angle, particle_name, player_level, destination)
 	g_teleport[e].teleport_target 		= GetEntityString(e,0)
 	g_teleport[e].teleport_zoneheight 	= teleport_zoneheight
 	g_teleport[e].teleport_type 		= teleport_type
 	g_teleport[e].teleport_mode 		= teleport_mode
 	g_teleport[e].teleport_delay 		= teleport_delay
 	g_teleport[e].teleport_effect		= teleport_effect
+	g_teleport[e].teleport_exit_angle	= teleport_exit_angle
 	g_teleport[e].particle_name			= lower(particle_name)
-	g_teleport[e].teleport_level		= player_level	
-	g_teleport[e].destination			= destination	
+	g_teleport[e].teleport_level		= player_level or 0	
+	g_teleport[e].destination			= destination
 end
 
 function teleport_init(e)
 	g_teleport[e] = {}
-	g_teleport[e].teleport_target 		= GetEntityString(e,0)
+	g_teleport[e].teleport_target 		= GetEntityString(e,0)	
 	g_teleport[e].teleport_zoneheight 	= 100
 	g_teleport[e].teleport_type 		= 1
 	g_teleport[e].teleport_delay 		= 0
 	g_teleport[e].teleport_mode			= 2
 	g_teleport[e].teleport_effect		= 0
+	g_teleport[e].teleport_exit_angle	= 0	
 	g_teleport[e].particle_name			= ""
 	g_teleport[e].teleport_level		= 0
 	g_teleport[e].destination			= 1
@@ -62,6 +67,7 @@ function teleport_init(e)
 	g_teleport[e].teleport_timer 		= 0	
 	fov = GetGamePlayerStateCameraFov()
 	tplayerlevel[e] = 0
+	dest_angle[e] = 0
 	tlevelrequired[e] = 0
 	effect[e] = 0
 	played[e] = 0
@@ -74,6 +80,8 @@ function teleport_main(e)
 	if status[e] == "init" then
 		tlevelrequired[e] = g_teleport[e].teleport_level
 		fov = GetGamePlayerStateCameraFov()
+		dest_angle[e] = g_teleport[e].teleport_exit_angle
+
 		if g_teleport[e].teleport_effect == 3 then
 			if g_teleport[e].particle_no == 0 or g_teleport[e].particle_no == nil then
 				for n = 1, g_EntityElementMax do
@@ -96,11 +104,12 @@ function teleport_main(e)
 			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then				
 				if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
 				if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
-				if tplayerlevel[e] >= tlevelrequired[e] then				
+				if tplayerlevel[e] >= tlevelrequired[e] then					
 					if g_teleport[e].teleport_target ~= nil then
 						if g_teleport[e].teleport_effect == 1 then
 							PlaySound(e,0)
 							TransportToIfUsed(e)
+							SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 							PerformLogicConnections(e)
 							SetPlayerFOV(fov)
 							effect[e] = 0
@@ -117,6 +126,7 @@ function teleport_main(e)
 							if effect[e] <= -50 then
 								PlaySound(e,0)
 								TransportToIfUsed(e)
+								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 								SetPlayerFOV(fov)
 								effect[e] = 0
 								if g_teleport[e].teleport_mode == 1 then Destroy(e) end
@@ -133,7 +143,8 @@ function teleport_main(e)
 							if effect[e] < 100 then	effect[e] = effect[e] + 0.5 end
 							if effect[e] >= 100 then
 								PlaySound(e,0)
-								TransportToIfUsed(e)							
+								TransportToIfUsed(e)
+								SetGamePlayerControlFinalCameraAngley(dest_angle[e])								
 								PerformLogicConnections(e)
 								effect[e] = 0
 								SetCameraOverride(0)
@@ -177,6 +188,7 @@ function teleport_main(e)
 								Prompt("")
 								PlaySound(e,0)
 								TransportToIfUsed(e)
+								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 								PerformLogicConnections(e)
 								SetPlayerFOV(fov)
 								effect[e] = 0
@@ -193,7 +205,8 @@ function teleport_main(e)
 								if effect[e] <= -50 then
 									Prompt("")
 									PlaySound(e,0)
-									TransportToIfUsed(e)								
+									TransportToIfUsed(e)
+									SetGamePlayerControlFinalCameraAngley(dest_angle[e])									
 									PerformLogicConnections(e)
 									effect[e] = 0
 									SetPlayerFOV(fov)																		
@@ -213,7 +226,8 @@ function teleport_main(e)
 							if effect[e] >= 100 and g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
 								Prompt("")
 								PlaySound(e,0)
-								TransportToIfUsed(e)							
+								TransportToIfUsed(e)
+								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 								PerformLogicConnections(e)
 								SetCameraOverride(0)
 								effect[e] = 0

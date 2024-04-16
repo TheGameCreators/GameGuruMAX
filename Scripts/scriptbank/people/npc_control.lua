@@ -546,6 +546,7 @@ function npc_control_main(e)
 			SetEntityMoveSpeed(e,npc_control[e].npc_run_speed)
 			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
 			MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))
+
 			if npc_control[e].force_move == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)

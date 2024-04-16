@@ -1,32 +1,36 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- TeleSwitch v6: by Necrym59
+-- TeleSwitch v7: by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object to teleport to a linked object.
 -- DESCRIPTION: It is better to use a small or a flat object to avoid getting stuck when you reappear.
 -- DESCRIPTION: [PROMPT_TEXT$="to Teleport"]
 -- DESCRIPTION: [USE_RANGE=90(1,100)]
 -- DESCRIPTION: [PlayerLevel=0(0,100))] player level to be able use this switch
+-- DESCRIPTION: [TELEPORT_EXIT_ANGLE=1(1,360))] Player exit angle upon teleport
 -- DESCRIPTION: Play <Sound0> when the object is switched ON.
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
-local teleswitch 		= {}
-local prompt_text 		= {}
-local use_range 		= {}
-local playerlevel 		= {}
+local teleswitch 			= {}
+local prompt_text 			= {}
+local use_range 			= {}
+local playerlevel 			= {}
+local teleport_exit_angle 	= {}
 
 local tlevelrequired 	= {}
 local tplayerlevel 		= {}
+local dest_angle 		= {}
 local status 			= {}
 local tEnt 				= {}
 local selectobj 		= {}
 
-function teleswitch_properties(e, prompt_text, use_range, playerlevel)
+function teleswitch_properties(e, prompt_text, use_range, playerlevel, teleport_exit_angle)
 	teleswitch[e] = g_Entity[e]
 	teleswitch[e].prompt_text = prompt_text
 	teleswitch[e].use_range = use_range
-	teleswitch[e].playerlevel = playerlevel	
+	teleswitch[e].playerlevel = playerlevel
+	teleswitch[e].teleport_exit_angle = teleport_exit_angle	or 1
 	teleswitch[e].initialstate = 0
 end
 
@@ -35,11 +39,13 @@ function teleswitch_init(e)
 	teleswitch[e].prompt_text = ""
 	teleswitch[e].use_range = 90
 	teleswitch[e].playerlevel = 0
+	teleswitch[e].teleport_exit_angle = 1	
 	teleswitch[e].initialstate = 0
 	teleswitch[e].teleport_target = GetEntityString(e,0)
 	
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
+	dest_angle[e] = 0
 	g_tEnt = 0
 	status = "init"
 end
@@ -49,6 +55,7 @@ function teleswitch_main(e)
 	if status == "init" then
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = teleswitch[e].playerlevel
+		dest_angle[e] = teleswitch[e].teleport_exit_angle
 		status = "endinit"
 	end
 	local PlayerDist = GetPlayerDistance(e)
@@ -80,6 +87,7 @@ function teleswitch_main(e)
 				PlayAnimation(e)
 				PlaySound(e,0)
 				TransportToIfUsed(e)
+				SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 				PerformLogicConnections(e)				
 			end
 		end

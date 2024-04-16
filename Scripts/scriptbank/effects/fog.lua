@@ -1,6 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Fog v5 by Necrym59
--- DESCRIPTION: When activated sets fog to the required settings. Add to an object then link to a Zone to activate, link to a second Zone to de-activate.
+-- Fog v6 by Necrym59
+-- DESCRIPTION: When activated will create incoming fog to the required settings or recede to default fog setting in the fog panel.
+-- DESCRIPTION: Add to an object then link to a switch or multi-trigger zone to activate/de-activate.
 -- DESCRIPTION: [PROMPT_TEXT$="Fog strength is changing"]
 -- DESCRIPTION: [FOG_NEAREST=1(0,1000)] [FOG_DISTANCE=5(0,1000)] [FOG_SPEED=10(1,100)]
 
@@ -54,15 +55,14 @@ function fog_main(e)
 		fbspeed[e] = fog[e].fog_speed
 		if fogdist[e] > fog[e].fog_distance then fogswitch[e] = 0 end
 		if fogdist[e] < default_fogd[e] then fogswitch[e] = 1 end
-		SetEntityActive(e,0)		
+		SetActivated(e,0)
 		status[e] = "endinit"
 	end
 	
 	if g_Entity[e]['activated'] == 1 then		
-	
+
 		if fogswitch[e] == 0 then
-			Prompt(fog[e].prompt_text)
-			
+			Prompt(fog[e].prompt_text)			
 			if fognear[e] > fog[e].fog_nearest then
 				fognear[e] = fognear[e] - fbspeed[e]
 				SetFogNearest(fognear[e])
@@ -76,12 +76,12 @@ function fog_main(e)
 			
 			if fognear[e] == fog[e].fog_nearest*100 and fogdist[e] == fog[e].fog_distance*100 then
 				fogswitch[e] = 1
-				SetEntityActive(e,0)
+				SetActivated(e,0)
 			end
 		end
 
 		if fogswitch[e] == 1 then
-			
+			Prompt(fog[e].prompt_text)
 			if fognear[e] < default_fogn[e] then
 				fognear[e] = fognear[e] + fbspeed[e]/10
 				SetFogNearest(fognear[e])
@@ -95,7 +95,7 @@ function fog_main(e)
 			
 			if fognear[e] == default_fogn[e] and fogdist[e] == default_fogd[e] then
 				fogswitch[e] = 0
-				SetEntityActive(e,0)
+				SetActivated(e,0)
 			end
 		end
 	end

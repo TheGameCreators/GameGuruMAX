@@ -9,7 +9,7 @@
 -- DESCRIPTION: [TASK_DONE_TEXT$="Task Completed"]
 -- DESCRIPTION: [@VISIBLE=1(1=Yes, 2=No)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [SWITCH_VALUE=1(1,99)] success result for use with combo switches
+-- DESCRIPTION: [SWITCH_VALUE=0(0,99)] success result for use with combo switches
 -- DESCRIPTION: Play <Sound0> when using tool.
 -- DESCRIPTION: Play <Sound1> task completed.
 

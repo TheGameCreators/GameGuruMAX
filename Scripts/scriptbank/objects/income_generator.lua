@@ -1,8 +1,8 @@
--- Income Generator v4 by Necrym59 with thanks to oosayeroo
+-- Income Generator v5 by Necrym59 with thanks to oosayeroo
 -- DESCRIPTION: The object will give the player a generated income value over time to a User Global.
--- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [@PICKUP_STYLE=1(1=Ranged, 2=Manual, 3=Automatic)]
--- DESCRIPTION: [PICKUP_TEXT$="E to Collect"]
+-- DESCRIPTION: [COLLECTION_RANGE=80(1,100)]
+-- DESCRIPTION: [@COLLECTION_STYLE=1(1=Ranged, 2=Manual, 3=Automatic)]
+-- DESCRIPTION: [COLLECTION_PROMPT$="E to Collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Income Collected"]
 -- DESCRIPTION: [GENERATING_TEXT$="Accumulating Income"]
 -- DESCRIPTION: [INCOME=10(1,500)]
@@ -18,15 +18,14 @@ local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
 local ic_generator			= {}
-local pickup_range			= {}
-local pickup_style			= {}
-local pickup_text			= {}
+local collection_range		= {}
+local collection_style		= {}
+local collection_prompt		= {}
 local collected_text		= {}
 local generating_text		= {}
 local income				= {}
 local upkeep				= {}
-local pickup_range			= {}
-local pickup_style			= {}
+local collection_style		= {}
 local elapse_time			= {}
 local user_global_affected	= {}
 local prompt_display 		= {}
@@ -39,10 +38,10 @@ local currentvalue		= {}
 local collectiontime	= {}
 local status			= {}
 
-function income_generator_properties(e, pickup_range, pickup_style, pickup_text, collected_text, generating_text, income, upkeep, elapse_time, user_global_affected, prompt_display, item_highlight)
-	ic_generator[e].pickup_range = pickup_range
-	ic_generator[e].pickup_style = pickup_style	
-	ic_generator[e].pickup_text = pickup_text
+function income_generator_properties(e, collection_range, collection_style, collection_prompt, collected_text, generating_text, income, upkeep, elapse_time, user_global_affected, prompt_display, item_highlight)
+	ic_generator[e].collection_range = collection_range
+	ic_generator[e].collection_style = collection_style	
+	ic_generator[e].collection_prompt = collection_prompt
 	ic_generator[e].collected_text = collected_text
 	ic_generator[e].generating_text = generating_text
 	ic_generator[e].income = income
@@ -55,9 +54,9 @@ end
 
 function income_generator_init(e)
 	ic_generator[e] = {}
-	ic_generator[e].pickup_range = 80
-	ic_generator[e].pickup_style = 1	
-	ic_generator[e].pickup_text = "E to Collect"
+	ic_generator[e].collection_range = 80
+	ic_generator[e].collection_style = 1	
+	ic_generator[e].collection_prompt = "E to Collect"
 	ic_generator[e].collected_text = "Income Collected"
 	ic_generator[e].generating_text = "Accumulating Income"
 	ic_generator[e].income = 1
@@ -84,7 +83,7 @@ function income_generator_main(e)
 	
 	local PlayerDist = GetPlayerDistance(e)	
 	
-	if ic_generator[e].pickup_style == 1 and PlayerDist < ic_generator[e].pickup_range and GetEntityVisibility(e) == 1 then
+	if ic_generator[e].collection_style == 1 and PlayerDist < ic_generator[e].collection_range and GetEntityVisibility(e) == 1 then
 		if status[e] == "ready" then
 			if ic_generator[e].prompt_display == 1 then PromptLocal(e,ic_generator[e].collected_text) end
 			if ic_generator[e].prompt_display == 2 then Prompt(ic_generator[e].collected_text) end			
@@ -115,16 +114,16 @@ function income_generator_main(e)
 		end
 	end
 	
-	if ic_generator[e].pickup_style == 2 and PlayerDist < ic_generator[e].pickup_range then
+	if ic_generator[e].collection_style == 2 and PlayerDist < ic_generator[e].collection_range then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,ic_generator[e].pickup_range,ic_generator[e].item_highlight)
+		module_misclib.pinpoint(e,ic_generator[e].collection_range,ic_generator[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 		
-		if PlayerDist < ic_generator[e].pickup_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
+		if PlayerDist < ic_generator[e].collection_range and tEnt[e] ~= 0 and GetEntityVisibility(e) == 1 then
 			if status[e] == "ready" then
-				if ic_generator[e].prompt_display == 1 then PromptLocal(e,ic_generator[e].pickup_text) end
-				if ic_generator[e].prompt_display == 2 then Prompt(ic_generator[e].pickup_text) end			
+				if ic_generator[e].prompt_display == 1 then PromptLocal(e,ic_generator[e].collection_prompt) end
+				if ic_generator[e].prompt_display == 2 then Prompt(ic_generator[e].collection_prompt) end			
 			else
 				if ic_generator[e].prompt_display == 1 then PromptLocal(e,ic_generator[e].generating_text) end
 				if ic_generator[e].prompt_display == 2 then Prompt(ic_generator[e].generating_text) end
@@ -164,7 +163,7 @@ function income_generator_main(e)
 		end
 	end
 	
-	if ic_generator[e].pickup_style == 3 then
+	if ic_generator[e].collection_style == 3 then
 		if status[e] == "ready" then
 			if ic_generator[e].prompt_display == 1 then PromptLocal(e,ic_generator[e].collected_text) end
 			if ic_generator[e].prompt_display == 2 then Prompt(ic_generator[e].collected_text) end		

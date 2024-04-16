@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Timed Event v4 - by Necrym59
+-- Timed Event v5 - by Necrym59
 -- DESCRIPTION: Will activate timed delayed linked events.
 -- DESCRIPTION: Attach this behavior to an object. Link a zone or switch to activate this object.
 -- DESCRIPTION: Link from this object to other entities for delayed single or multiple activation.
@@ -26,7 +26,7 @@ function timed_event_properties(e, event_text, event_count, event_delay, visibil
 	timedevent[e].event_count = event_count
 	timedevent[e].event_delay = event_delay
 	timedevent[e].visibility = visibility
-end 
+end
 
 function timed_event_init(e)
 	timedevent[e] = g_Entity[e]
@@ -34,7 +34,7 @@ function timed_event_init(e)
 	timedevent[e].event_count = 1
 	timedevent[e].event_delay = 5
 	timedevent[e].visibility = 2
-	wait[e] = math.huge	
+	wait[e] = math.huge
 	delaytime[e] = 0
 	eventcount[e] = 0
 	doonece[e] = 0
@@ -43,29 +43,29 @@ end
 
 function timed_event_main(e)
 	timedevent[e] = g_Entity[e]
-	
+
 	if status[e] == "init" then
 		eventcount[e] = timedevent[e].event_count
 		delaytime[e] = timedevent[e].event_delay * 1000
 		status[e] = "endinit"
 	end
-	
+
 	if g_Entity[e]['activated'] == 1 then
-		if timedevent[e].visibility == 1 then			
+		if timedevent[e].visibility == 1 then
 			Hide(e)
 			CollisionOff(e)
-		end	
+		end
 		if doonece[e] == 0 then
 			wait[e] = g_Time + delaytime[e]
 			doonece[e] = 1
 			status[e] = 'process'
-		end			
+		end
 	end
 	if status[e] == 'process' then
-		if g_Time > wait[e] then			
+		if g_Time > wait[e] then
 			if eventcount[e] > 0 then
 				PromptDuration(timedevent[e].event_text,1000)
-				PlaySound(e,0)				
+				PlaySound(e,0)
 				SetActivatedWithMP(e,201)
 				PerformLogicConnections(e)
 				eventcount[e] = eventcount[e]-1
@@ -73,8 +73,10 @@ function timed_event_main(e)
 					status[e] = "finished"
 				end
 				wait[e] = g_Time + delaytime[e]
-			end			
+			end
 		end
 	end
-	if status[e] == "finished" then end	
+	if status[e] == "finished" then
+		SetActivated(e,0)
+	end
 end

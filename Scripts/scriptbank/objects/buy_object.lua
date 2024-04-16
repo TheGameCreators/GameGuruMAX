@@ -79,7 +79,7 @@ function buy_object_main(e)
 			if g_KeyPressE == 1 then
 				if buyobject[e].user_global_affected > "" then
 					if _G["g_UserGlobal['"..buyobject[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..buyobject[e].user_global_affected.."']"] end
-					if currentvalue[e] > buyobject[e].buy_cost then
+					if currentvalue[e] >= buyobject[e].buy_cost then
 						_G["g_UserGlobal['"..buyobject[e].user_global_affected.."']"] = currentvalue[e] - buyobject[e].buy_cost
 						PerformLogicConnections(e)
 						if played[e] == 0 then

@@ -68,7 +68,7 @@ function plrinzone_main(e)
 			end
 			if plrinzone[e].multi_trigger == 2 then
 				ActivateIfUsed(e)
-				PerformLogicConnections(e)
+				PerformLogicConnections(e)				
 				Destroy(e)
 			end
 		end	

@@ -1,12 +1,12 @@
--- Income Generator v6 by Necrym59 with thanks to oosayeroo
+-- Income Generator v7 by Necrym59 with thanks to oosayeroo
 -- DESCRIPTION: The object will give the player a generated income value over time to a User Global.
 -- DESCRIPTION: [COLLECTION_RANGE=80(1,100)]
 -- DESCRIPTION: [@COLLECTION_STYLE=1(1=Ranged, 2=Manual, 3=Automatic)]
 -- DESCRIPTION: [COLLECTION_PROMPT$="E to Collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Income Collected"]
 -- DESCRIPTION: [GENERATING_TEXT$="Accumulating Income"]
--- DESCRIPTION: [INCOME=10(1,500)]
--- DESCRIPTION: [UPKEEP=10(1,500)]
+-- DESCRIPTION: [INCOME=10(0,500)]
+-- DESCRIPTION: [UPKEEP=10(0,500)]
 -- DESCRIPTION: [ELAPSE_TIME=10(1,100)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] Your user global eg: 'MyMoney'
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
@@ -84,7 +84,13 @@ function income_generator_main(e)
 	if status[e] == "init" then	
 		if ic_generator[e].ActiveAtStart == 0 then SetActivated(e,0) end
 		if ic_generator[e].ActiveAtStart == 1 then SetActivated(e,1) end
-		status[e] = "ready"
+		if ic_generator[e].collection_style == 1 or ic_generator[e].collection_style == 2 then
+			status[e] = "ready"
+		end
+		if ic_generator[e].collection_style == 3 then
+			collectiontime[e] = GetTimer(e) + ic_generator[e].elapse_time * 1000
+			status[e] = "collected"
+		end
 	end
 	
 	local PlayerDist = GetPlayerDistance(e)	

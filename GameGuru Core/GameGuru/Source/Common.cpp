@@ -3284,6 +3284,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 							// Will use the pref value instead
 						}
 					}
+					extern int g_iUseLODObjects;
+					t.tryfield_s = "uselodobjects"; if (t.field_s == t.tryfield_s) g_iUseLODObjects = t.value1;
+						
 
 					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "globalhudscale"; if (t.field_s == t.tryfield_s)  g.globalhudscale = t.value1 / 100.0f;

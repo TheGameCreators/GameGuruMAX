@@ -90,6 +90,8 @@ std::vector<int> g_ObjectHighlightList;
 // stores original resolution of editor when enter VR, as need to restore it after VR
 int g_iStoreRenderResolutionWidth = -1;
 int g_iStoreRenderResolutionHeight = -1;
+float fLODMultiplier = 1.0f;
+
 
 bool g_bLightShaftState = true;
 bool g_bLensFlareState = true;
@@ -525,6 +527,18 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 					nor.y = vecNorm.y;
 					nor.z = vecNorm.z;
 					mesh.vertex_normals.push_back(nor);
+				}
+				if (offsetMap.dwDiffuse > 0)
+				{
+					//PE Wicked: Alpha , Blue , green , red
+					#define GGCOLOR_ABGR(r,g,b,a) ((GGCOLOR)((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
+					DWORD color = *(DWORD*)((DWORD*)pDBOMesh->pVertexData + offsetMap.dwDiffuse + (offsetMap.dwSize * v));
+					int r = (int)((color & 0x00FF0000) >> 16);
+					int g = (int)((color & 0x0000FF00) >> 8);
+					int b = (int)((color & 0x000000FF));
+					int a = (int)((color & 0xFF000000) >> 24);
+					color = GGCOLOR_ABGR(r, g, b, a);
+					mesh.vertex_colors.push_back(color);
 				}
 				if (offsetMap.dwTU[2] > 0)
 				{
@@ -1206,6 +1220,58 @@ void WickedCall_AddObject ( sObject* pObject )
 	sFrame* pRootFrame = pObject->pFrame;
 	WickedCall_LoadNode ( pRootFrame, rootEntity, rootEntity, state );
 	
+
+	for (int iM = 0; iM < pObject->iMeshCount; iM++)
+	{
+		sMesh* pDBOMesh = pObject->ppMeshList[iM];
+		if (pDBOMesh)
+		{
+			uint64_t meshindex = pDBOMesh->wickedmeshindex;
+			if (meshindex > 0)
+			{
+				wiScene::MeshComponent* mesh = pScene->meshes.GetComponent(meshindex);
+				if (mesh)
+				{
+					if (mesh->vertex_colors.size() > 0)
+					{
+						uint64_t wickedmaterialindex = pDBOMesh->wickedmaterialindex;
+						if(wickedmaterialindex == 0)
+							wickedmaterialindex = pDBOMesh->master_wickedmaterialindex;
+						if (wickedmaterialindex != 0)
+						{
+							wiScene::MaterialComponent* material = pScene->materials.GetComponent(wickedmaterialindex);
+							if (material)
+							{
+								//PE: defaults.
+								material->roughness = 1;
+								material->metalness = 0;
+								material->reflectance = 0.04f;// 0.002f;
+								if (pDBOMesh->iReservedForFuture > 10)
+								{
+									//PE: activate as lod object. with vertexcolors off by default.
+									if (pDBOMesh->pFrameAttachedTo)
+									{
+										ObjectComponent* object = wiScene::GetScene().objects.GetComponent(pDBOMesh->pFrameAttachedTo->wickedobjindex);
+										if (object)
+										{
+											//pDBOMesh->pFrameAttachedTo->wickedobjindex
+											object->SetLOD(true);
+											object->SetLodDistance(pDBOMesh->iReservedForFuture);
+										}
+									}
+								}
+								else
+									material->SetUseVertexColors(true);
+								material->SetDirty();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
 	// Create armature-bone mappings (connect armature bone collection to frame entities created in LoadNode)
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)
 	{
@@ -1237,6 +1303,18 @@ void WickedCall_AddObject ( sObject* pObject )
 
 						// assign the bone entity to this armature mesh's bone collection
 						armature.boneCollection[i] = boneEntity;
+					}
+				}
+
+				//PE: Make sure all boneCollection has a transform , or we get a crash.
+				for (Entity boneEntity : armature.boneCollection)
+				{
+					const TransformComponent& bone = *pScene->transforms.GetComponent(boneEntity);
+					if (!&bone)
+					{
+						pScene->armatures.Remove(pDBOMesh->wickedarmatureindex);
+						pDBOMesh->wickedarmatureindex = 0;
+						break;
 					}
 				}
 			}
@@ -2338,7 +2416,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 
 							// If SURFACE texture not present, create it
-							if (bGotSurfaceTexture == false)
+							if (bGotSurfaceTexture == false && (!pObjectMaterial->IsUsingVertexColors() || pMesh->iReservedForFuture > 10 ))
 							{
 								// PBR Surface texture
 								if (pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource) //PE: Delete first if already active.

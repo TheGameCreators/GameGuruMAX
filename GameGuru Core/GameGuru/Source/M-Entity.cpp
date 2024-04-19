@@ -999,11 +999,29 @@ bool entity_load (bool bCalledFromLibrary)
 			}
 
 			bool bNewDecal = false;
+			bool bLODLoaded = false;
 			//  Load entity (compile does not need the dynamic objects)
 			if (t.entobj > 0)
 			{
 				if (ObjectExist(t.entobj) == 0)
 				{
+					extern int g_iUseLODObjects;
+					if (g_iUseLODObjects > 0)
+					{
+						//PE: Try to locate a LOD object.
+						std::string lodname = t.tFPEName_s.Get();
+						replaceAll(lodname, ".fpe", "_lod.dbo");
+
+						if (FileExist( (char *) lodname.c_str()))
+						{
+							LoadObject((char *) lodname.c_str(), t.entobj);
+							if (ObjectExist(t.entobj))
+							{
+								bLODLoaded = true;
+							}
+						}
+
+					}
 					// load entity model
 					g_iWickedEntityId = t.entid;
 					char debug[ 1024 ];
@@ -1011,8 +1029,11 @@ bool entity_load (bool bCalledFromLibrary)
 					timestampactivity(0, debug);
 							
 					char* tfile_s = t.tfile_s.Get();
-					if ( *tfile_s ) LoadObject(t.tfile_s.Get(), t.entobj);
-					else MakeObjectBox( t.entobj, 1,1,1 );
+					if (!bLODLoaded)
+					{
+						if (*tfile_s) LoadObject(t.tfile_s.Get(), t.entobj);
+						else MakeObjectBox(t.entobj, 1, 1, 1);
+					}
 					g_iWickedEntityId = -1;
 
 					if (ObjectExist(t.entobj) == 0)
@@ -1184,7 +1205,7 @@ bool entity_load (bool bCalledFromLibrary)
 						t.tdbofile_s = pAppendFinalModelFilename;
 
 				// Save if DBO not exist for entity (for fast loading)
-				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true)
+				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true && !bLODLoaded )
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
 					// in wicked, only save if not exist, otherwise existing DBO is not to be touched!

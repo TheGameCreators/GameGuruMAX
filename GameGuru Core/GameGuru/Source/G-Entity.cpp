@@ -4779,13 +4779,18 @@ void entity_createobj ( void )
 							if (Master_WEMaterial->bTransparency[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bTransparency[iMesh] ||
 								Master_WEMaterial->fRenderOrderBias[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fRenderOrderBias[iMesh] ||
 								Master_WEMaterial->bPlanerReflection[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bPlanerReflection[iMesh] ||
-								Master_WEMaterial->bCastShadows[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bCastShadows[iMesh] ||
-								Master_WEMaterial->fReflectance[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fReflectance[iMesh])
+								Master_WEMaterial->bCastShadows[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bCastShadows[iMesh])
 							{
 								bUseInstancing = false;
 								break;
 							}
-
+							//PE: Set later so make double check.
+							if (Master_WEMaterial->fReflectance[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fReflectance[iMesh] &&
+								t.entityprofile[t.tentid].WEMaterial.bDoubleSided[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fReflectance[iMesh])
+							{
+								bUseInstancing = false;
+								break;
+							}
 							//PE: fMetallness different first set later. so check both.
 							if (Master_WEMaterial->fMetallness[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fMetallness[iMesh] &&
 								t.entityprofile[t.tentid].WEMaterial.fMetallness[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fMetallness[iMesh])

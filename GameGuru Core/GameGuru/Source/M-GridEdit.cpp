@@ -326,6 +326,7 @@ int iWelcomeHeaderType = 0;
 int iAboutLogoType = 0;
 int active_tools_obj = 0;
 int active_tools_entity_index = 0;
+int g_iUseLODObjects = 0;
 
 #endif //WICKEDENGINE
 

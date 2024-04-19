@@ -828,7 +828,7 @@ void lua_loop_allentities ( void )
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		extern bool bEnable30FpsAnimations;
-		if (bEnable30FpsAnimations && LuaFrameCount > 360 && t.entityelement[t.e].plrdist > SWITCHTO30FPSRANGE)
+		if (bEnable30FpsAnimations && LuaFrameCount > 360 && t.entityelement[t.e].plrdist > SWITCHTO30FPSRANGE && t.entityelement[t.e].eleprof.phyalways == 0)
 		{
 			if ((LuaFrameCount + t.e) % 2 == 0)
 				continue;

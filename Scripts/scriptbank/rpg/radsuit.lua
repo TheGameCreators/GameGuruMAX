@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Rad suit v14   by Necrym59
+-- Rad suit v15   by Necrym59
 -- DESCRIPTION: The applied object will give the player radiation protection. Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1-200)]
@@ -108,9 +108,6 @@ function radsuit_main(e)
 			end
 		end
 	end
-
-	if GetEntityCollected(tEnt[e]) == 0 then have_radsuit = 0 end
-	if GetEntityCollected(tEnt[e]) == 1 then have_radsuit = 1 end
 
 	if have_radsuit == 1 then
 		if rsswitch[e] == 0 then

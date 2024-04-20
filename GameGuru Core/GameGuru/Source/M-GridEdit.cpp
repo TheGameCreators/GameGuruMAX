@@ -17908,6 +17908,7 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling;
 	t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling;
 	t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling;
+	t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier;
 	t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
 	t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations;
 	t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows;
@@ -18594,6 +18595,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bEnableSpotShadowCulling = t.gamevisuals.bEnableSpotShadowCulling;
 	t.visuals.bEnableObjectCulling = t.gamevisuals.bEnableObjectCulling;
 	t.visuals.bEnableAnimationCulling = t.gamevisuals.bEnableAnimationCulling;
+	t.visuals.fLODMultiplier = t.gamevisuals.fLODMultiplier;
 
 	t.visuals.bEnable30FpsAnimations = t.gamevisuals.bEnable30FpsAnimations;
 	t.visuals.g_bDelayedShadows = t.gamevisuals.g_bDelayedShadows;

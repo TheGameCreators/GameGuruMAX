@@ -90,7 +90,7 @@ std::vector<int> g_ObjectHighlightList;
 // stores original resolution of editor when enter VR, as need to restore it after VR
 int g_iStoreRenderResolutionWidth = -1;
 int g_iStoreRenderResolutionHeight = -1;
-float fLODMultiplier = 1.0f;
+float fLODMultiplier = 2.0f;
 
 
 bool g_bLightShaftState = true;

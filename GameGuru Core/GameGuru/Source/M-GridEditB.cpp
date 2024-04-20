@@ -7158,12 +7158,25 @@ void tab_tab_visuals(int iPage, int iMode)
 				extern float maxApparentSize;
 				ImGui::PushItemWidth(-10);
 				float fASize = t.visuals.ApparentSize * 10000.0f;
+				ImGui::Text("Apparent Size");
 				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
 				{
 					maxApparentSize = fASize / 10000.0f;
 					t.gamevisuals.ApparentSize = t.visuals.ApparentSize = maxApparentSize;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Max Object Apparent Size will cull objects when they get smaller on screen");
+				ImGui::PopItemWidth();
+
+
+				extern float fLODMultiplier;
+				ImGui::Text("LOD Multiplier");
+				ImGui::PushItemWidth(-10);
+				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.02f, 5.0f, "%.2f", 1.0f))
+				{
+					if (fLODMultiplier < 0)
+						fLODMultiplier = 0;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change LOD distance before switching from normal object to LOD");
 				ImGui::PopItemWidth();
 
 				// end performance
@@ -8565,6 +8578,8 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bEnableObjectCulling = visuals->bEnableObjectCulling;
 		extern bool bEnableAnimationCulling;
 		bEnableAnimationCulling = visuals->bEnableAnimationCulling;
+		extern float fLODMultiplier;
+		fLODMultiplier = visuals->fLODMultiplier;
 
 		extern bool bEnable30FpsAnimations;
 		bEnable30FpsAnimations = visuals->bEnable30FpsAnimations;

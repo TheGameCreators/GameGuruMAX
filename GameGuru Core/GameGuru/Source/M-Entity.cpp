@@ -999,11 +999,29 @@ bool entity_load (bool bCalledFromLibrary)
 			}
 
 			bool bNewDecal = false;
+			bool bLODLoaded = false;
 			//  Load entity (compile does not need the dynamic objects)
 			if (t.entobj > 0)
 			{
 				if (ObjectExist(t.entobj) == 0)
 				{
+					extern int g_iUseLODObjects;
+					if (g_iUseLODObjects > 0)
+					{
+						//PE: Try to locate a LOD object.
+						std::string lodname = t.tFPEName_s.Get();
+						replaceAll(lodname, ".fpe", "_lod.dbo");
+
+						if (FileExist( (char *) lodname.c_str()))
+						{
+							LoadObject((char *) lodname.c_str(), t.entobj);
+							if (ObjectExist(t.entobj))
+							{
+								bLODLoaded = true;
+							}
+						}
+
+					}
 					// load entity model
 					g_iWickedEntityId = t.entid;
 					char debug[ 1024 ];
@@ -1011,8 +1029,11 @@ bool entity_load (bool bCalledFromLibrary)
 					timestampactivity(0, debug);
 							
 					char* tfile_s = t.tfile_s.Get();
-					if ( *tfile_s ) LoadObject(t.tfile_s.Get(), t.entobj);
-					else MakeObjectBox( t.entobj, 1,1,1 );
+					if (!bLODLoaded)
+					{
+						if (*tfile_s) LoadObject(t.tfile_s.Get(), t.entobj);
+						else MakeObjectBox(t.entobj, 1, 1, 1);
+					}
 					g_iWickedEntityId = -1;
 
 					if (ObjectExist(t.entobj) == 0)
@@ -1184,7 +1205,7 @@ bool entity_load (bool bCalledFromLibrary)
 						t.tdbofile_s = pAppendFinalModelFilename;
 
 				// Save if DBO not exist for entity (for fast loading)
-				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true)
+				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true && !bLODLoaded )
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
 					// in wicked, only save if not exist, otherwise existing DBO is not to be touched!
@@ -10069,4 +10090,68 @@ void entity_calculateeuleryfromquat (int e)
 	{
 		// otherwise we already have the euler values
 	}
+}
+
+#include "M-Workshop.h"
+extern std::vector<sWorkshopItem> g_workshopItemsList;
+extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
+extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
+
+bool workshop_verifyandorreplacescript(int e, int entid)
+{
+#ifndef OPTICK_ENABLE
+	bool bReplacedScript = false;
+	char pScriptFile[MAX_PATH];
+	strcpy(pScriptFile, "scriptbank\\");
+	if (entid > 0)
+		strcat(pScriptFile, t.entityprofile[entid].aimain_s.Get());
+	else
+		strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
+	GG_GetRealPath(pScriptFile, false);
+	if (FileExist(pScriptFile) == 0)
+	{
+		// was missing script a core file
+		if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
+		{
+			// can only do verify replace if Steam Client active and have the list to hand
+			if (g_workshopItemsList.size() == 0)
+			{
+				// No Steam Client - warn user the object they dropped in has an outdated script
+				extern bool bTriggerMessage;
+				extern int iTriggerMessageDelay;
+				extern char cTriggerMessage[MAX_PATH];
+				strcpy(cTriggerMessage, "The behaviour for this object is out of date, you need to log into Steam Client to obtain the latest version.");
+				iTriggerMessageDelay = 10;
+				bTriggerMessage = true;
+			}
+			else
+			{
+				// yes, now check for tristed replacement
+				cstr trustedReplacement_s = "";
+				if (entid > 0)
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityprofile[entid].aimain_s.Get());
+				else
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityelement[e].eleprof.aimain_s.Get());
+				if (trustedReplacement_s.Len() > 0)
+				{
+					strcpy(pScriptFile, "scriptbank\\");
+					strcat(pScriptFile, trustedReplacement_s.Get());
+					GG_GetRealPath(pScriptFile, false);
+					if (FileExist(pScriptFile) == 1)
+					{
+						if (entid > 0)
+							t.entityprofile[entid].aimain_s = trustedReplacement_s;
+						else
+							t.entityelement[e].eleprof.aimain_s = trustedReplacement_s;
+
+						bReplacedScript = true;
+					}
+				}
+			}
+		}
+	}
+	return bReplacedScript;
+#else
+	return false;
+#endif
 }

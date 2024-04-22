@@ -26,6 +26,7 @@ void entity_lua_setactivatedformp ( void );
 void entity_lua_resetlimbhit ( void );
 void entity_lua_activateifused ( void );
 void entity_lua_performlogicconnections(void);
+void entity_lua_performlogicconnectionnumber(void);
 void entity_lua_performlogicconnectionsaskey(void);
 void entity_lua_activateifusedfromqueue ( void );
 void entity_lua_spawnifused ( void );

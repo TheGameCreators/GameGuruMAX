@@ -3887,7 +3887,7 @@ struct visualstype
 	bool bEnableSpotShadowCulling;
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
-
+	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
@@ -4132,7 +4132,7 @@ struct visualstype
 		 bEnableSpotShadowCulling = false;
 		 bEnableObjectCulling = false;
 		 bEnableAnimationCulling = false;
-
+		 fLODMultiplier = 2.0f;
 		 bEnable30FpsAnimations = false;
 		 g_bDelayedShadows = false;
 		 g_bDelayedShadowsLaptop = false;
@@ -4280,7 +4280,7 @@ struct visualsdatastoragetype
 	bool bEnableSpotShadowCulling;
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
-
+	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
@@ -4321,7 +4321,7 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = false;
 		bEnableObjectCulling = false;
 		bEnableAnimationCulling = false;
-
+		fLODMultiplier = 2.0f;
 		bEnable30FpsAnimations = false;
 		g_bDelayedShadows = false;
 		g_bDelayedShadowsLaptop = false;
@@ -4365,6 +4365,7 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = visuals.bEnableSpotShadowCulling;
 		bEnableObjectCulling = visuals.bEnableObjectCulling;
 		bEnableAnimationCulling = visuals.bEnableAnimationCulling;
+		fLODMultiplier = visuals.fLODMultiplier;
 
 		bEnable30FpsAnimations = visuals.bEnable30FpsAnimations;
 		g_bDelayedShadows = visuals.g_bDelayedShadows;

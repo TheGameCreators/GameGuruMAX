@@ -326,6 +326,7 @@ int iWelcomeHeaderType = 0;
 int iAboutLogoType = 0;
 int active_tools_obj = 0;
 int active_tools_entity_index = 0;
+int g_iUseLODObjects = 0;
 
 #endif //WICKEDENGINE
 
@@ -17907,6 +17908,7 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling;
 	t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling;
 	t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling;
+	t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier;
 	t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
 	t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations;
 	t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows;
@@ -18183,6 +18185,11 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	gridedit_restartanybehaviorediting();
 	#endif
 
+	//PE: Clear any test mode / standalone highlights.
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	g_StandaloneObjectHighlightList.clear(); //PE: They clear on all frames so this is the only thing needed.
+	extern bool bActivateStandaloneOutline;
+	bActivateStandaloneOutline = false;
 	// game loop init code
 	game_masterroot_initcode ( iUseVRTest );
 }
@@ -18588,6 +18595,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bEnableSpotShadowCulling = t.gamevisuals.bEnableSpotShadowCulling;
 	t.visuals.bEnableObjectCulling = t.gamevisuals.bEnableObjectCulling;
 	t.visuals.bEnableAnimationCulling = t.gamevisuals.bEnableAnimationCulling;
+	t.visuals.fLODMultiplier = t.gamevisuals.fLODMultiplier;
 
 	t.visuals.bEnable30FpsAnimations = t.gamevisuals.bEnable30FpsAnimations;
 	t.visuals.g_bDelayedShadows = t.gamevisuals.g_bDelayedShadows;

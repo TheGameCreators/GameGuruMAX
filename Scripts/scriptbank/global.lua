@@ -811,6 +811,9 @@ end
 function PerformLogicConnections(e)
  SendMessageI_performlogicconnections(e)
 end
+function PerformLogicConnectionNumber(e,v)
+ SendMessageI_performlogicconnectionnumber(e,v)
+end
 function PerformLogicConnectionsAsKey(e)
  SendMessageI_performlogicconnectionsaskey(e)
 end
@@ -2306,6 +2309,8 @@ GetEntityZDepthMode: value = GetEntityZDepthMode(e) -- this command gets the ent
 SetEntityTexture: SetEntityTexture(e,imageID) -- change the texture of an entity to that specified by imageID
 SetEntityTextureScale: SetEntityTextureScale(e,u,v) -- change the texture UV map of an entity to scale it (1.0=no change)
 SetEntityTextureOffset: SetEntityTextureOffset(e,u,v) -- change the texture UV map of an entity to offset all coordinates (0.0=no change)
+SetEntityOutline: SetEntityOutline(e,value) -- this command changes the entity object outline property.
+GetEntityOutline: GetEntityOutline(e) -- this command gets the entity object outline property.
 
 IsPlayerInGame: IsPlayerInGame() -- return 1 if the player is in the game
 SetLevelFadeoutEnabled: SetLevelFadeoutEnabled(mode) -- sets the fade out system mode to zero or one

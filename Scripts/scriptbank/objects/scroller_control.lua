@@ -1,4 +1,4 @@
--- Scroller_Control v6 by Necrym59
+-- Scroller_Control v7 by Necrym59
 -- DESCRIPTION: Changes the object texture when activated by another object.
 -- DESCRIPTION: Default texture is [IMAGEFILE1$=""]
 -- DESCRIPTION: Default [#EMISSIVE_STRENGTH=300.0]
@@ -11,7 +11,7 @@
 -- DESCRIPTION: [@TELEPORTATION=1(1=Off, 2=On)] to IfUsed destination
 -- DESCRIPTION: [@SHUDDERS=1(1=Off, 2=At Start, 3=At End, 4=Start+End)]
 -- DESCRIPTION: [@ALWAYS_ON=2(1=Yes, 2=No)]
--- DESCRIPTION: [DIAGNOSTICS!=0]
+-- DESCRIPTION: [TELEPORT_EXIT_ANGLE=1(1,360))] Player exit angle upon teleport
 -- DESCRIPTION: <Sound0> for Startup
 -- DESCRIPTION: <Sound1> for Running
 -- DESCRIPTION: <Sound2> for Stopping
@@ -30,14 +30,15 @@ local shudders = {}
 local texture_offset_u = {}
 local texture_offset_v = {}
 local always_on = {}
-local diagnostics	= {}
+local teleport_exit_angle = {}
+
 local imagefile1id = {}
 
 local current_time = {}
 local status = {}
 local doonce = {}
 
-function scroller_control_properties(e,imagefile1, emissive_strength, scroll_amount_u,scroll_amount_v, scroll_direction, startup_time, running_time, stopping_time, teleportation, shudders, always_on, diagnostics)
+function scroller_control_properties(e,imagefile1, emissive_strength, scroll_amount_u,scroll_amount_v, scroll_direction, startup_time, running_time, stopping_time, teleportation, shudders, always_on, teleport_exit_angle)
 	scroller[e] = g_Entity[e]
 	scroller[e].imagefile1 = imagefile1
 	scroller[e].emissive_strength = emissive_strength
@@ -51,8 +52,8 @@ function scroller_control_properties(e,imagefile1, emissive_strength, scroll_amo
 	scroller[e].shudders = shudders
 	scroller[e].texture_offset_u = 0
 	scroller[e].texture_offset_v = 0
-	scroller[e].always_on = always_on
-	scroller[e].diagnostics = diagnostics
+	scroller[e].always_on = always_on	
+	scroller[e].teleport_exit_angle = teleport_exit_angle or 1
 	scroller[e].imagefile1id = LoadImage(imagefile1)
 	if string.len(imagefile1)>0 then
 		SetEntityTexture(e,scroller[e].imagefile1id)
@@ -75,7 +76,7 @@ function scroller_control_init_name(e,name)
 	scroller[e].texture_offset_u = 0
 	scroller[e].texture_offset_v = 0
 	scroller[e].always_on = 1
-	scroller[e].diagnostics = 0
+	scroller[e].teleport_exit_angle = 1	
 	scroller[e].imagefile1id = 0
 	current_time[e] = 0
 	status[e] = "init"
@@ -198,24 +199,12 @@ function scroller_control_main(e)
 				StopSound(e,1)
 				StopSound(e,2)
 				status[e] = "init"
-				if scroller[e].teleportation == 2 then TransportToIfUsed(e) end
+				if scroller[e].teleportation == 2 then
+					TransportToIfUsed(e)
+					SetGamePlayerControlFinalCameraAngley(scroller[e].teleport_exit_angle)
+				end
 				SetActivated(e,0)
 			end
-		end
-
-		if scroller[e].diagnostics ==1 then
-			Text(5,70,3,"Scroll U: " ..scroller[e].scroll_amount_u)
-			Text(5,72,3,"Scroll V: " ..scroller[e].scroll_amount_v)
-			if scroller[e].scroll_direction == 1 then Text(5,74,3,"Direction: Positive" ) end
-			if scroller[e].scroll_direction == 2 then Text(5,74,3,"Direction: Negative" ) end
-			Text(5,76,3,"Status: " ..status[e])
-			Text(5,78,3,"Value: " ..current_time[e])
-			if scroller[e].teleportation == 1 then Text(5,80,3,"Teleport: Off") end
-			if scroller[e].teleportation == 2 then Text(5,80,3,"Teleport: On") end
-			if scroller[e].shudders == 1 then Text(5,82,3,"Shudder Mode: Off") end
-			if scroller[e].shudders == 2 then Text(5,82,3,"Shudder Mode: At Start") end
-			if scroller[e].shudders == 3 then Text(5,82,3,"Shudder Mode: At End") end
-			if scroller[e].shudders == 4 then Text(5,82,3,"Shudder Mode: Start+End") end
 		end
 	end
 end

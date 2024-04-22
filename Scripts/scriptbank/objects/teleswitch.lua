@@ -22,11 +22,11 @@ local tlevelrequired 	= {}
 local tplayerlevel 		= {}
 local dest_angle 		= {}
 local status 			= {}
+local doonce			= {}
 local tEnt 				= {}
 local selectobj 		= {}
 
 function teleswitch_properties(e, prompt_text, use_range, playerlevel, teleport_exit_angle)
-	teleswitch[e] = g_Entity[e]
 	teleswitch[e].prompt_text = prompt_text
 	teleswitch[e].use_range = use_range
 	teleswitch[e].playerlevel = playerlevel
@@ -35,7 +35,7 @@ function teleswitch_properties(e, prompt_text, use_range, playerlevel, teleport_
 end
 
 function teleswitch_init(e)
-	teleswitch[e] = g_Entity[e]
+	teleswitch[e] = {}
 	teleswitch[e].prompt_text = ""
 	teleswitch[e].use_range = 90
 	teleswitch[e].playerlevel = 0
@@ -46,12 +46,13 @@ function teleswitch_init(e)
 	tplayerlevel[e] = 0
 	tlevelrequired[e] = 0
 	dest_angle[e] = 0
+	doonce[e] = 0
 	g_tEnt = 0
 	status = "init"
 end
 
 function teleswitch_main(e)
-	teleswitch[e] = g_Entity[e]
+
 	if status == "init" then
 		tplayerlevel[e] = 0
 		tlevelrequired[e] = teleswitch[e].playerlevel
@@ -66,7 +67,7 @@ function teleswitch_main(e)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 	end	
-
+	
 	if PlayerDist < teleswitch[e].use_range and tEnt[e] ~= 0 then
 		if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
 		if tplayerlevel[e] < tlevelrequired[e] then PromptLocal(e,"You need to be level "..tlevelrequired[e].." to use this switch") end
@@ -82,15 +83,20 @@ function teleswitch_main(e)
 				end
 			end
 			if g_KeyPressE == 1 then
-				SetActivatedWithMP(e,101)
-				SetAnimationName(e,"on")
-				PlayAnimation(e)
-				PlaySound(e,0)
-				TransportToIfUsed(e)
-				SetGamePlayerControlFinalCameraAngley(dest_angle[e])
-				PerformLogicConnections(e)				
+				if doonce[e] == 0 then
+					SetActivatedWithMP(e,101)
+					SetAnimationName(e,"on")
+					PlayAnimation(e)
+					PlaySound(e,0)
+					TransportToIfUsed(e)
+					SetGamePlayerControlFinalCameraAngley(dest_angle[e])
+					PerformLogicConnections(e)
+					status = "init"
+					doonce[e] = 1
+				end	
 			end
 		end
+		doonce[e] = 0
 	end
 	if g_Entity[e]['activated'] == 201 then
 		SetAnimationName(e,"off")

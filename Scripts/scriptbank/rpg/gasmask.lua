@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Gasmask v14   by Necrym59
+-- Gasmask v15   by Necrym59
 -- DESCRIPTION: The applied object will give the player a gas protection mask. Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup"] 
 -- DESCRIPTION: [PICKUP_RANGE=80(1-200)]
@@ -107,9 +107,7 @@ function gasmask_main(e)
 			end
 		end
 	end
-	if GetEntityCollected(tEnt[e]) == 0 then have_gasmask = 0 end
-	if GetEntityCollected(tEnt[e]) == 1 then have_gasmask = 1 end
-	
+		
 	if have_gasmask == 1 then	
 		if gmswitch[e] == 0 then 
 			if GetInKey() == "g" or GetInKey() == "G" and gmswitch[e] == 0 then

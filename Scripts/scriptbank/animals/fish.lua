@@ -1,5 +1,5 @@
 -- DESCRIPTION: Will animate and move this object as though a fish.
--- Fish V3
+-- Fish V4
 -- DESCRIPTION: [RandomScale!=1]
 local U = require "scriptbank\\utillib"
 local Q = require "scriptbank\\quatlib"
@@ -20,8 +20,9 @@ local max  = math.max
 local abs  = math.abs
 local pi   = math.pi
 
-local fishes   = {}
+local fishes   		= {}
 
+local RandomScale = {}
 local maxSpeed  = 800
 local scareDist = 150
 local lastTime  = 0
@@ -47,6 +48,7 @@ function fish_init_name( e, name )
 					species = name,
 					scale = randVal( 40, 112 ) / 100,															
 					RandomScale = 1 }
+	local fish = fishes[ e ]				
 	CollisionOff( e )
 	MoveWithAnimation( e, 0 )
 	--	Scale( e, fishes[ e ].scale * 100 ) **moved to state init in main 

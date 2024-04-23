@@ -1,5 +1,5 @@
 -- DESCRIPTION: A global script that provides utility functions for common tasks.
--- Module_Misclib v12 - Necrym59 and Lee
+-- Module_Misclib v15 - Necrym59 and Lee
 
 g_module_misclib = {}
 g_tEnt = {}
@@ -15,21 +15,25 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 		selectobj[e]= U.ObjectPlayerLookingAt(pickuprange)
 		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
 			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) 	-- Cross
-				--TextCenterOnXColor(50,50-0.4,3,".",255,255,255) 	-- Dot
+				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) 	-- Cross pointer
 				g_tEnt = e
-				if highlight == 1 then SetEntityEmissiveStrength(g_tEnt,500) end
-				if highlight == 2 then end -- for future outline option
+				local r,g,b = GetEntityEmissiveColor(g_tEnt)
+				if r==0 and g==0 and b==0 then SetEntityEmissiveColor(g_tEnt,0,80,0) end
+				if highlight == 1 then										 
+					SetEntityEmissiveStrength(g_tEnt,500)
+				end -- shape option
+				if highlight == 2 then SetEntityOutline(g_tEnt,1) end -- outline option
 			else
-				if highlight == 1 then SetEntityEmissiveStrength(g_tEnt,0) end
-				if highlight == 2 then end -- for future outline option
-				g_tEnt = 0				
+				if highlight == 1 then SetEntityEmissiveStrength(g_tEnt,0) end -- shape option
+				if highlight == 2 then SetEntityOutline(g_tEnt,0) end -- outline option
+				g_tEnt = 0
 			end
 		end
 		if selectobj[e] == 0 or selectobj[e] == nil then
 			g_tEnt = 0
-			TextCenterOnXColor(50-0.01,50,3,"+",150,150,150) 	-- Cross
-			--TextCenterOnXColor(50,50-0.4,3,".",150,150,150) 	-- Dot
+			if U.PlayerLookingNear(e,pickuprange,60) then
+				TextCenterOnXColor(50,50-0.4,3,".",180,180,180) 		-- Dot pointer
+			end	
 		end					
 	end
 	--end pinpoint select object--

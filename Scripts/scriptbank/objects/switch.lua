@@ -1,4 +1,4 @@
--- Switch v12
+-- Switch v14
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Play the audio <Sound0> when the object is switched ON by the player, and <Sound1> when the object is switched OFF. 
 -- DESCRIPTION: Use the [SwitchedOn!=1] state to decide if the switch is initially off or on, and customize the [OnText$="To Turn Switch ON"] and [OffText$="To Turn Switch OFF"].
@@ -6,6 +6,7 @@
 -- DESCRIPTION: [PlayerLevel=0(0,100))] player level to be able use this switch
 -- DESCRIPTION: [@SwitchType=1(1=Multi-Use, 2=Single-Use)]
 -- DESCRIPTION: [@NPC_TRIGGER=2(1=On, 2=Off)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -19,6 +20,7 @@ local userange 			= {}
 local playerlevel 		= {}
 local switchtype 		= {}
 local npc_trigger 		= {}
+local item_highlight	= {}
 
 local status 			= {}
 local tEnt 				= {}
@@ -29,14 +31,15 @@ local tplayerlevel 		= {}
 local sensecheck 		= {}
 local doonce			= {}
 
-function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel, switchtype, npc_trigger)
+function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel, switchtype, npc_trigger, item_highlight)
 	switch[e].initialstate = switchedon
 	switch[e].ontext = ontext
 	switch[e].offtext = offtext
 	switch[e].userange = userange or 90
 	switch[e].playerlevel = playerlevel or 0
 	switch[e].switchtype = switchtype or 1
-	switch[e].npc_trigger = npc_trigger or 2	
+	switch[e].npc_trigger = npc_trigger or 2
+	switch[e].item_highlight = item_highlight or 0	
 end 
 
 function switch_init(e)
@@ -47,7 +50,8 @@ function switch_init(e)
 	switch[e].userange = 90	
 	switch[e].playerlevel = 0
 	switch[e].switchtype = 1
-	switch[e].npc_trigger = 1	
+	switch[e].npc_trigger = 1
+	switch[e].item_highlight = 0
 	tEnt[e] = 0
 	selectobj[e] = 0
 	switched[e] = 0
@@ -78,7 +82,7 @@ function switch_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < switch[e].userange then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,switch[e].userange,200)
+		module_misclib.pinpoint(e,switch[e].userange,switch[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
 	end	

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast Fireball damage on the target.
--- Fireball Spell v21
+-- Fireball Spell v22
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Fireball Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Fireball damage inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -162,6 +162,7 @@ function fireball_spell_main(e)
 			tAllegiance[e] = GetEntityAllegiance(tEnt[e]) 								-- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 			if tAllegiance[e] == 0 and tEnt[e] ~= nil then								-- if allegiance = enemy then give option to target
 				tTarget[e] = tEnt[e]													-- entity set as target								
+				SetEntityOutline(tEnt[e],1)				
 			end
 			if tTarget[e] > 0 then
 				TextCenterOnX(50,20,3,"TARGETED")

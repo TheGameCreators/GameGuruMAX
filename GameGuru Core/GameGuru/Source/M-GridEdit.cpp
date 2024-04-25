@@ -23570,6 +23570,11 @@ void editor_mainfunctionality ( void )
 						quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
 
 						// get quat from entity directly
+						if (t.entityelement[te].quatmode == 0)
+						{
+							// if no orig quaty, calc it now
+							entity_updatequatfromeuler(te);
+						}
 						GGQUATERNION toriginalAngle = GGQUATERNION(t.entityelement[te].quatx, t.entityelement[te].quaty, t.entityelement[te].quatz, t.entityelement[te].quatw);
 
 						// apply the rotation event to the angle of the object
@@ -23591,23 +23596,6 @@ void editor_mainfunctionality ( void )
 
 						// mark as static if it was
 						if (t.entityelement[te].staticflag == 1) g.projectmodifiedstatic = 1;
-
-						/* messed up due to internal gimble lock correction in rotobjquat
-						// object rotation 
-						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
-						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(fMoveAngX));
-						GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(fMoveAngY));
-						GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(fMoveAngZ));
-						quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
-						GGQUATERNION quatCurrentOrientation = GGQUATERNION(t.entityelement[t.widget.pickedEntityIndex].quatx, t.entityelement[t.widget.pickedEntityIndex].quaty, t.entityelement[t.widget.pickedEntityIndex].quatz, t.entityelement[t.widget.pickedEntityIndex].quatw);
-						GGQUATERNION quatNewOrientation;
-						GGQuaternionMultiply(&quatNewOrientation, &quatCurrentOrientation, &quatRotationEvent);
-						entity_updatequat(t.widget.pickedEntityIndex, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
-						RotateObjectQuat(iObj, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
-						t.entityelement[t.widget.pickedEntityIndex].rx = ObjectAngleX(iObj);
-						t.entityelement[t.widget.pickedEntityIndex].ry = ObjectAngleY(iObj);
-						t.entityelement[t.widget.pickedEntityIndex].rz = ObjectAngleZ(iObj);
-						*/
 
 						// special case for characters, only want the Y angle
 						if (t.entityprofile[entid].ischaracter == 1)

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to hold the target for a period.
--- Root Spell v20
+-- Root Spell v22
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Root Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -165,6 +165,7 @@ function root_spell_main(e)
 			tAllegiance[e] = GetEntityAllegiance(tEnt[e]) 								-- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 			if tAllegiance[e] == 0 and tEnt[e] ~= nil then								-- if allegiance = enemy then give option to target
 				tTarget[e] = tEnt[e]													-- entity set as target
+				SetEntityOutline(tEnt[e],1)
 			end
 			if tTarget[e] > 0 then
 				TextCenterOnX(50,20,3,"TARGETED")

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- FuseBox v5 by Necrym59
+-- FuseBox v6 by Necrym59
 -- DESCRIPTION: This object will be treated as a switch object for activating other linked objects and/or IfUsed game element. Set Always Active = On
 -- DESCRIPTION: [PROMPT_TEXT$ = "E to use"],
 -- DESCRIPTION: [USE_RANGE=80(1,100)] 
@@ -24,7 +24,6 @@ local doonce = {}
 local wait = {}
 
 function fusebox_properties(e, prompt_text, use_range, fail_text, success_text, status, fuses_required)
-	fusebox[e] = g_Entity[e]
 	fusebox[e].prompt_text = prompt_text
 	fusebox[e].use_range = use_range
 	fusebox[e].fail_text = fail_text
@@ -34,7 +33,7 @@ function fusebox_properties(e, prompt_text, use_range, fail_text, success_text, 
 end 
 
 function fusebox_init(e)
-	fusebox[e] = g_Entity[e]
+	fusebox[e] = {}
 	fusebox[e].prompt_text = "to use"	
 	fusebox[e].use_range = 80
 	fusebox[e].fail_text = "Fuse Needed"
@@ -43,14 +42,13 @@ function fusebox_init(e)
 	fusebox[e].fuses_required = 1
 	fuses_level[e] = 0	
 	activated[e] = 0
-	g_fuses = g_fuses
+	g_fuses = 0
 	played[e] = 0
 	doonce[e] = 0
 	wait[e] = 0
 end
 
 function fusebox_main(e)
-	fusebox[e] = g_Entity[e]	
 	
 	local PlayerDist = GetPlayerDistance(e)
 		

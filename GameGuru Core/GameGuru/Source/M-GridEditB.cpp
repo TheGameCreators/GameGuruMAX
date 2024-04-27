@@ -11051,15 +11051,6 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Turn on and off the auto save system");
 
-			#ifdef ENABLEAUTOLEVELSAVE
-			bTmp = pref.iDisableLevelAutoSave;
-			if (ImGui::Checkbox("Disable Level Auto Save", &bTmp)) {
-				pref.iDisableLevelAutoSave = bTmp;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Disable Level Auto Save");
-
-			#endif
-
 			#ifdef PROCEDURALTERRAINWINDOW
 			if (g_iDevToolsOpen)
 			{

@@ -1,12 +1,14 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Resource Node v9 by Necrym59
+-- Resource Node v11 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
 -- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name (eg: enhanced\ak)
 -- DESCRIPTION: [NODE_MAX_QUANTITY=1(1,10)]
 -- DESCRIPTION: [NODE_SPAWNTIME=0(0,100)] Minutes
--- DESCRIPTION: [NODE_ENTITY_SPAWNTIME=1(0,100)] Minutes
--- DESCRIPTION: [NODE_ENTITY_NAME$=""]
+-- DESCRIPTION: [RESOURCE_ENTITY_SPAWNTIME=1(0,100)] Minutes
+-- DESCRIPTION: [RESOURCE_ENTITY_NAME$=""]
+-- DESCRIPTION: [!USE_SCALER=1]
+-- DESCRIPTION: <Sound0> for harvest/extraction sound
 
 local lower = string.lower
 
@@ -15,9 +17,11 @@ local resnode					= {}
 local node_type 				= {}
 local node_tool_name			= {}
 local node_max_quantity			= {}
-local entity_spawntime			= {}
-local node_entity_name			= {}
-local node_entity_no			= {}
+local resource_entity_spawntime	= {}
+local resource_entity_name		= {}
+local use_scaler				= {}
+local resource_entity_no		= {}
+
 
 local origin_x		= {}
 local origin_y		= {}
@@ -41,14 +45,15 @@ local starthealth	= {}
 local healthcheck	= {}
 local wait			= {}
 
-function resource_node_properties(e, node_type, node_tool_name, node_max_quantity, node_spawntime, node_entity_spawntime, node_entity_name, node_entity_no)
+function resource_node_properties(e, node_type, node_tool_name, node_max_quantity, node_spawntime, resource_entity_spawntime, resource_entity_name, use_scaler)
 	resnode[e].node_type = node_type
 	resnode[e].node_tool_name = lower(node_tool_name)
 	resnode[e].node_max_quantity = node_max_quantity
 	resnode[e].node_spawntime = node_spawntime
-	resnode[e].node_entity_spawntime = node_entity_spawntime
-	resnode[e].node_entity_name = lower(node_entity_name) or ""
-	resnode[e].node_entity_no = 0
+	resnode[e].resource_entity_spawntime = resource_entity_spawntime
+	resnode[e].resource_entity_name = lower(resource_entity_name) or ""
+	resnode[e].use_scaler = use_scaler or 1
+	resnode[e].resource_entity_no = 0
 end
 
 function resource_node_init(e)
@@ -57,9 +62,10 @@ function resource_node_init(e)
 	resnode[e].node_tool_name = "Any"
 	resnode[e].node_max_quantity = 1
 	resnode[e].node_spawntime = 0
-	resnode[e].node_entity_spawntime = 1	
-	resnode[e].node_entity_name = ""
-	resnode[e].node_entity_no = 0
+	resnode[e].resource_entity_spawntime = 1	
+	resnode[e].resource_entity_name = ""
+	resnode[e].use_scaler = 1
+	resnode[e].resource_entity_no = 0	
 
 	status[e] = "init"
 	newEntn[e] = 0
@@ -90,12 +96,12 @@ function resource_node_main(e)
 			status[e] = "start"
 		end
 		if resnode[e].node_max_quantity > 10 then resnode[e].node_max_quantity = 10 end
-		if resnode[e].node_entity_spawntime > 60 then resnode[e].node_entity_spawntime = 60 end
-		if resnode[e].node_entity_no == 0 then
+		if resnode[e].resource_entity_spawntime > 60 then resnode[e].resource_entity_spawntime = 60 end
+		if resnode[e].resource_entity_no == 0 then
 			for ee = 1, g_EntityElementMax do
 				if ee ~= nil and e~= ee and g_Entity[ee] ~= nil then
-					if lower(GetEntityName(ee)) == lower(resnode[e].node_entity_name) then
-						resnode[e].node_entity_no = ee
+					if lower(GetEntityName(ee)) == lower(resnode[e].resource_entity_name) then
+						resnode[e].resource_entity_no = ee
 						origin_x[e] = g_Entity[ee]['x']
 						origin_y[e] = g_Entity[ee]['y']
 						origin_z[e] = g_Entity[ee]['z']
@@ -113,12 +119,12 @@ function resource_node_main(e)
 	if status[e] == "start" then
 		if resnode[e].node_type == 1 then
 			if g_ResnodeCollected ~= 0 and g_ResnodeCollected == newEntn[e] and spawning[e] == 0 then
-				if resnode[e].node_entity_spawntime == 0 then
+				if resnode[e].resource_entity_spawntime == 0 then
 					spawntimer[e] = g_Time + (1 * 1000)*2
 					spawning[e] = 1
 				end			
-				if resnode[e].node_entity_spawntime > 0 then
-					spawntimer[e] = g_Time + (resnode[e].node_entity_spawntime * 1000)*60
+				if resnode[e].resource_entity_spawntime > 0 then
+					spawntimer[e] = g_Time + (resnode[e].resource_entity_spawntime * 1000)*60
 					spawning[e] = 1
 				end	
 			end
@@ -148,9 +154,12 @@ function resource_node_main(e)
 				if g_Entity[e]['health'] < healthcheck[e] then				
 					local drop = math.random(1,2)
 					if drop == 2 then
-						scaler[e] = scaler[e] - (scaler[e]/resnode[e].node_max_quantity)
-						Scale(e,scaler[e])
+						if resnode[e].use_scaler == 1 then
+							scaler[e] = scaler[e] - (scaler[e]/resnode[e].node_max_quantity)
+							Scale(e,scaler[e])
+						end
 						status[e] = "create_resource"
+						PlaySound(e,0)
 						healthcheck[e] = g_Entity[e]['health']
 						if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "any" then
 							SetEntityHealth(e,healthcheck[e])
@@ -163,6 +172,7 @@ function resource_node_main(e)
 					if created[e] < resnode[e].node_max_quantity then
 						status[e] = "create_resource"
 						healthcheck[e] = 1
+						PromptLocal(e,"")
 						SetEntityHealth(e,healthcheck[e])
 					end
 				end
@@ -187,9 +197,9 @@ function resource_node_main(e)
 		end
 	end	
 
-	if status[e] == "create_resource" and resnode[e].node_entity_no ~= 0 then			
+	if status[e] == "create_resource" and resnode[e].resource_entity_no ~= 0 then			
 		if doonce[e] == 0 and created[e] < resnode[e].node_max_quantity then			
-			local etoclone = resnode[e].node_entity_no
+			local etoclone = resnode[e].resource_entity_no
 			newEntn[e] = SpawnNewEntity(etoclone)			
 			Show(newEntn[e])
 			GravityOff(newEntn[e])

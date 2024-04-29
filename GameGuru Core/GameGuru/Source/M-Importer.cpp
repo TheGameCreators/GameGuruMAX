@@ -1053,7 +1053,15 @@ bool animsystem_buildanimslots(int objectnumber)
 			animslotitem.fStep1 = 0;
 			animslotitem.fStep2 = 0;
 			animslotitem.fStep3 = 0;
-			strcpy(animslotitem.pName, pAnimSet->szName);
+			if (strlen(pAnimSet->szName) >= 32)
+			{
+				memcpy(animslotitem.pName, pAnimSet->szName, 31);
+				animslotitem.pName[31] = 0;
+			}
+			else
+			{
+				strcpy(animslotitem.pName, pAnimSet->szName);
+			}
 			if (strlen(animslotitem.pName) == 0) strcpy(animslotitem.pName, "Included");
 			animslotitem.fStart = iObjectFramesRunningTotal;
 			animslotitem.fFinish = iObjectFramesRunningTotal + pAnimSet->ulLength;
@@ -1102,7 +1110,15 @@ void animsystem_prepareobjectforanimtool(int objectnumber, int iNotUsed)
 				animslotitem.fStep1 = 0;
 				animslotitem.fStep2 = 0;
 				animslotitem.fStep3 = 0;
-				strcpy(animslotitem.pName, pAnimSet->szName);
+				if (strlen(pAnimSet->szName) >= 32)
+				{
+					memcpy(animslotitem.pName, pAnimSet->szName, 31);
+					animslotitem.pName[31] = 0;
+				}
+				else
+				{
+					strcpy(animslotitem.pName, pAnimSet->szName);
+				}
 				if (strlen(animslotitem.pName) == 0) strcpy(animslotitem.pName, "Included");
 				animslotitem.fStart = iObjectFramesRunningTotal;
 				animslotitem.fFinish = iObjectFramesRunningTotal + pAnimSet->ulLength;
@@ -1143,7 +1159,15 @@ void animsystem_prepareobjectforanimtool(int objectnumber, int iNotUsed)
 			animslotitem.fStep1 = 0;
 			animslotitem.fStep2 = 0;
 			animslotitem.fStep3 = 0;
-			strcpy(animslotitem.pName, pAnimCoreSet->szName);
+			if (strlen(pAnimCoreSet->szName) >= 32)
+			{
+				memcpy(animslotitem.pName, pAnimCoreSet->szName, 31);
+				animslotitem.pName[31] = 0;
+			}
+			else
+			{
+				strcpy(animslotitem.pName, pAnimCoreSet->szName);
+			}
 			animslotitem.fStart = 0;
 			animslotitem.fFinish = pAnimCoreSet->ulLength;
 			animslotitem.bLooped = true;

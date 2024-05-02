@@ -1,4 +1,4 @@
--- Money v7
+-- Money v8 By Necrym59
 -- DESCRIPTION: The object will give the player money.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Money Collected"]
@@ -37,7 +37,7 @@ function money_properties(e, pickup_text, collected_text, quantity, pickup_range
 	money[e].quantity = quantity
 	money[e].pickup_range = pickup_range
 	money[e].pickup_style = pickup_style
-	money[e].user_global_affected = "MyMoney"
+	money[e].user_global_affected = user_global_affected
 	money[e].effect = effect
 	money[e].prompt_display = prompt_display
 	money[e].item_highlight = item_highlight	
@@ -50,7 +50,7 @@ function money_init(e)
 	money[e].quantity = 1
 	money[e].pickup_range = 80
 	money[e].pickup_style = 1
-	money[e].user_global_affected = "MyMoney"
+	money[e].user_global_affected = ""
 	money[e].effect = 1
 	money[e].prompt_display = 1
 	money[e].item_highlight = 0
@@ -73,18 +73,20 @@ function money_main(e)
 			PlaySound(e,0)
 			played[e] = 1
 		end
-		if money[e].user_global_affected > "" then
-			if money[e].effect == 1	then
+		if money[e].effect == 1	then
+			if money[e].user_global_affected > "" then
 				if _G["g_UserGlobal['"..money[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..money[e].user_global_affected.."']"] end
 				_G["g_UserGlobal['"..money[e].user_global_affected.."']"] = currentvalue[e] + money[e].quantity
-			end	
-			if money[e].effect == 2	then
+			end
+		end
+		if money[e].effect == 2	then
+			if money[e].user_global_affected > "" then
 				if _G["g_UserGlobal['"..money[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..money[e].user_global_affected.."']"] end
 				_G["g_UserGlobal['"..money[e].user_global_affected.."']"] = currentvalue[e] - money[e].quantity
 			end	
 		end	
 		Destroy(e)
-		tEnt[e] = 0		
+		tEnt[e] = 0
 	end
 	
 	if money[e].pickup_style == 2 and PlayerDist < money[e].pickup_range then
@@ -104,12 +106,14 @@ function money_main(e)
 					PlaySound(e,0)
 					played[e] = 1
 				end
-				if money[e].user_global_affected > "" then
-					if money[e].effect == 1	then
+				if money[e].effect == 1	then
+					if money[e].user_global_affected > "" then
 						if _G["g_UserGlobal['"..money[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..money[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..money[e].user_global_affected.."']"] = currentvalue[e] + money[e].quantity
-					end	
-					if money[e].effect == 2	then
+					end
+				end
+				if money[e].effect == 2	then
+					if money[e].user_global_affected > "" then
 						if _G["g_UserGlobal['"..money[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..money[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..money[e].user_global_affected.."']"] = currentvalue[e] - money[e].quantity
 					end	

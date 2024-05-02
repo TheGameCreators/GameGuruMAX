@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V33 by Necrym59 and Lee
+-- Carry Object V34 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=80(1,500)]
 -- DESCRIPTION: [MAX_PICKUP_WEIGHT=99(1,99)]
 -- DESCRIPTION: [MAX_PICKUP_SIZE=40(1,100)]
--- DESCRIPTION: [RELEASE_TEXT$="Use R or LMB to drop"]
+-- DESCRIPTION: [RELEASE_TEXT$="R or LMB to drop, MMW Up/Down, Z to Rotate"]
 -- DESCRIPTION: [THROW_TEXT$="Shift to add force - Release RMB to throw"]
 -- DESCRIPTION: [REARM_WEAPON!=0]
 -- DESCRIPTION: [DIAGNOSTICS!=0]
@@ -232,10 +232,12 @@ function carry_object_main(e)
 			objheight[tEnt[e]] = objheight[tEnt[e]] + 1
 			if objheight[tEnt[e]] > 25 then objheight[tEnt[e]] = 25 end
 		end
-		new_y[tEnt[e]] = math.rad(g_PlayerAngY)
+		new_y[tEnt[e]] = math.rad(g_PlayerAngY)		
 		prop_x[tEnt[e]] = g_PlayerPosX + (math.sin(new_y[tEnt[e]]) * carrydist[tEnt[e]])
 		prop_y[tEnt[e]] = g_PlayerPosY - math.sin(math.rad(g_PlayerAngX))* carrydist[tEnt[e]]
 		prop_z[tEnt[e]] = g_PlayerPosZ + (math.cos(new_y[tEnt[e]]) * carrydist[tEnt[e]])
+		if g_InKey == "z" or g_InKey == "Z" then SetRotation(tEnt[e],0,g_Entity[tEnt[e]]['angley']+1,g_PlayerAngZ) end
+		
 		local px, py, pz = prop_x[tEnt[e]], prop_y[tEnt[e]], prop_z[tEnt[e]]
 		local rayX, rayY, rayZ = 5,0,10
 		local paX, paY, paZ = math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ)

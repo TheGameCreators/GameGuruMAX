@@ -43787,7 +43787,6 @@ void process_storeboard(bool bInitOnly)
 					if (strlen(t.game.pSwitchToPage) == 0)
 					{
 						strcpy(lastpage, startpage);
-						//strcpy(startpage, "loading");
 						extern cstr g_Storyboard_LoaderScreen_Name;
 						strcpy(startpage, g_Storyboard_LoaderScreen_Name.Get());
 					}
@@ -44461,19 +44460,36 @@ int FindLuaScreenNode(char *name)
 		// Do not render in-game HUD when HideHuds() has been called
 		return -1;
 	}
-
 	if (strlen(Storyboard.gamename) <= 0) return(-1);
-	std::string lua_name = name;
-	replaceAll(lua_name, ".lua", "");
-	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+
+	// node id or name
+	if (strncmp (name, ":node:", 6) == NULL)
 	{
-		if (Storyboard.Nodes[i].used)
+		//Find by node id passed in via string
+		int iNode = atoi(&name[6]);
+		if (iNode >= 0 && iNode < STORYBOARD_MAXNODES)
 		{
-			std::string check_lua_name = Storyboard.Nodes[i].lua_name;
-			replaceAll(check_lua_name, ".lua", "");
-			if (stricmp(check_lua_name.c_str(), lua_name.c_str()) == NULL)
+			if (Storyboard.Nodes[iNode].used)
 			{
-				return i;
+				return iNode;
+			}
+		}
+	}
+	else
+	{
+		// regular name search (prone to finding a duplicate if old corrupt project nodes)
+		std::string lua_name = name;
+		replaceAll(lua_name, ".lua", "");
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used)
+			{
+				std::string check_lua_name = Storyboard.Nodes[i].lua_name;
+				replaceAll(check_lua_name, ".lua", "");
+				if (stricmp(check_lua_name.c_str(), lua_name.c_str()) == NULL)
+				{
+					return i;
+				}
 			}
 		}
 	}
@@ -46662,9 +46678,6 @@ void TriggerScreenFromKeyPress()
 						{
 							t.game.activeStoryboardScreen = i;
 						}
-						// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
-						//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
-						//t.game.titleloop = 0;
 						return;
 					}
 				}
@@ -48377,10 +48390,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 										}
 										if (iNodeToLinkTo > 0)
 										{
-											lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
-											replaceAll(lua_name, ".lua", "");
-											t.s_s = lua_name.c_str();
+											// screens can have same name (old corruption issue), so new method to identify screen by node
+											//lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
+											//replaceAll(lua_name, ".lua", "");
+											//t.s_s = lua_name.c_str();
+											std::string node_ident_name = ":node:";
+											node_ident_name += std::to_string(iNodeToLinkTo);
+											t.s_s = node_ident_name.c_str();
 											lua_switchpage();
+
 											bLuaPageClosing = true; //always stop music.
 											iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 										}
@@ -48395,9 +48413,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 											{
 												if (strlen(Storyboard.Nodes[iNewNode].lua_name) > 0)
 												{
-													std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
-													replaceAll(lua_name, ".lua", "");
-													t.s_s = lua_name.c_str();
+													// screens can have same name (old corruption issue), so new method to identify screen by node
+													//std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
+													//replaceAll(lua_name, ".lua", "");
+													//t.s_s = lua_name.c_str();
+													std::string node_ident_name = ":node:"; 
+													node_ident_name += std::to_string(iNewNode);
+													t.s_s = node_ident_name.c_str();
 													lua_switchpage();
 													if (strlen(Storyboard.Nodes[iNewNode].screen_music) > 0) //PE: Only stop music if new swcreen have its own.
 														bLuaPageClosing = true;
@@ -48418,10 +48440,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 														{
 															if (Storyboard.Nodes[nodeid].output_linkto[index] == 0)
 															{
-																std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
-																replaceAll(lua_name, ".lua", "");
-																t.s_s = lua_name.c_str();
+																// screens can have same name (old corruption issue), so new method to identify screen by node
+																//std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
+																//replaceAll(lua_name, ".lua", "");
+																//t.s_s = lua_name.c_str();
+																std::string node_ident_name = ":node:";
+																node_ident_name += std::to_string(nodeid);
+																t.s_s = node_ident_name.c_str();
 																lua_switchpage();
+
 																bLuaPageClosing = true; //always stop music.
 																iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 															}

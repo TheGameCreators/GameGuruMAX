@@ -1618,11 +1618,9 @@ void lua_switchpage ( void )
 	// SWITCH TO NEW LUA PAGE
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, t.s_s.Get() );
-	#ifdef WICKEDENGINE
 	//PE: We need 2 frames when switching page, 1 that call "_free_ and one that call "_init" on new page.
 	extern int iBlockRenderingForFrames;
 	iBlockRenderingForFrames = 2;
-	#endif
 
 }
 void lua_switchpageback ( void )

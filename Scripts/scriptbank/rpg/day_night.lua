@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Day_Night v14 by Necrym59 and Lee
+-- Day_Night v15 by Necrym59 and Lee
 -- DESCRIPTION: A Day/Night Time Cycler. Set ALWAYS ON
 -- DESCRIPTION: [#START_ANGLE=-95(-180,180)]
 -- DESCRIPTION: [TIME_DILATION=1(1,1000)]
@@ -63,7 +63,7 @@ local status = {}
 local state = {}
 local tod = {}
 local currentdaytime = {}
-local doonce = {}
+local changeday = {}
 local mode = {}
 local event_trig = {}
 
@@ -135,7 +135,7 @@ function day_night_init(e)
 	currentdaytime[e] = 0
 	mode[e] = ""
 	tod[e] = ""
-	doonce[e] = 0
+	changeday[e] = 0
 	Hide(e)
 end
 
@@ -221,10 +221,10 @@ function day_night_main(e)
 		end			
 		--Swap in Sun Image if possible
 		if sunmoonroll[e] > 90 and sunmoonroll[e] < -90 then mode[e] = "Night" end
-		doonce[e] = 0	
+		changeday[e] = 0
 	end
 	if sunmoonroll[e] > -165.5 then
-		tod[e] = "12pm"
+		tod[e] = "12am"
 	end
 	if sunmoonroll[e] > -150.0 then
 		tod[e] = "1am"
@@ -271,7 +271,7 @@ function day_night_main(e)
 		if day_night[e].trigger_event == 11 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] == 0 then 
-		tod[e] = "12am"
+		tod[e] = "12pm"
 		if day_night[e].trigger_event == 12 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 15.0 then
@@ -319,15 +319,15 @@ function day_night_main(e)
 		if day_night[e].trigger_event == 23 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 165.5 then 
-		tod[e] = "12pm"		
+		tod[e] = "12am"		
 		if day_night[e].trigger_event == 24 then event_trig[e] = 1 end
-		if doonce[e] == 0 then
-			if day_night[e].start_day < 7 then day_night[e].start_day = day_night[e].start_day + 1 end
-			if day_night[e].start_day == 7 then day_night[e].start_day = 1 end
-			doonce[e] = 1
-		end
 	end
-
+	if sunmoonroll[e] >= 165.5 and changeday[e] == 0 then		
+		day_night[e].start_day = day_night[e].start_day + 1
+		if day_night[e].start_day == 8 then day_night[e].start_day = 1 end
+		changeday[e] = 1
+	end
+	
 	if day_night[e].start_day == 1 then currentdaytime[e] = ("Sunday  " ..tod[e]) end
 	if day_night[e].start_day == 2 then currentdaytime[e] = ("Monday  " ..tod[e]) end
 	if day_night[e].start_day == 3 then currentdaytime[e] = ("Tuesday  " ..tod[e]) end
@@ -348,7 +348,7 @@ function day_night_main(e)
 	
 		
 	if day_night[e].diagnostics == 1 then
-		Text(1,22,3,currentdaytime[e])
+		Text(1,22,3,"Day/Time: " ..currentdaytime[e])
 		Text(1,24,3,"Sun/Moon Angle: " ..math.floor(sunmoonroll[e]))
 		Text(1,26,3,"Time Mode: " ..mode[e])	
 		Text(1,28,3,"Dialation: " ..day_night[e].time_dilation)
@@ -357,8 +357,7 @@ function day_night_main(e)
 		Text(1,34,3,"Ambience G: " ..math.floor(ambgvalue[e]))
 		Text(1,36,3,"Ambience B: " ..math.floor(ambbvalue[e]))
 		Text(1,38,3,"Exposure: " ..math.floor(expovalue[e]*100)/100)
-		Text(1,40,3,"Intensity: " ..math.floor(sintvalue[e]*100)/100)
-		Text(1,50,3,"Hour: " ..tod[e])
+		Text(1,40,3,"Intensity: " ..math.floor(sintvalue[e]*100)/100)		
 	end
 end
 

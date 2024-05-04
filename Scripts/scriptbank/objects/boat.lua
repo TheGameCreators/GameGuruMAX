@@ -1,31 +1,41 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v15 by Necrym59
+-- Boat v16 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
--- DESCRIPTION: Edit the[PROMPT_TEXT$="E to embark"], Activation [BOAT_RANGE=80] the [MIN_SPEED=2(0,10)], [MAX_SPEED=4(0,100)], [TURN_SPEED=2(1,10)], [DRAG=5].
--- DESCRIPTION: Adjust [#PLAYER_Z_POSITION=0(-100,100)] and [#PLAYER_Y_POSITION=20(-100,100)].
--- DESCRIPTION: Adjust [BOAT_ROTATION=0(0,180)], [BOAT_DRAFT=30], [BOAT_POWER=5(0,50)], [BOAT_BRAKE=5(0,50)], [BOAT_BUOYANCY=1(1,5)].
--- DESCRIPTION: <Sound0> - Entry/Exit 
--- DESCRIPTION: <Sound1> - Moving Loop
--- DESCRIPTION: <Sound2> - Run Aground
+-- DESCRIPTION: [PROMPT_TEXT$="E to embark"]
+-- DESCRIPTION: [USE_RANGE=80]
+-- DESCRIPTION: [MIN_SPEED=2(0,10)]
+-- DESCRIPTION: [MAX_SPEED=4(0,100)]
+-- DESCRIPTION: [TURN_SPEED=2(1,10)]
+-- DESCRIPTION: [DRAG=5]
+-- DESCRIPTION: [#PLAYER_Z_POSITION=0(-100,100)]
+-- DESCRIPTION: [#PLAYER_Y_POSITION=20(-100,100)]
+-- DESCRIPTION: [BOAT_ROTATION=0(0,180)]
+-- DESCRIPTION: [BOAT_DRAFT=30]
+-- DESCRIPTION: [BOAT_POWER=5(0,50)]
+-- DESCRIPTION: [BOAT_BRAKE=5(0,50)]
+-- DESCRIPTION: [BOAT_BUOYANCY=1(1,5)]
+-- DESCRIPTION: <Sound0> Entry/Exit 
+-- DESCRIPTION: <Sound1> Moving Loop
+-- DESCRIPTION: <Sound2> Run Aground
 
 local U = require "scriptbank\\utillib"
 
-local boat = {}
-local prompt_text = {}
-local boat_range = {}
-local min_speed = {}
-local max_speed = {}
-local turn_speed = {}
-local drag = {}
+local boat 				= {}
+local prompt_text 		= {}
+local use_range			= {}
+local min_speed			= {}
+local max_speed			= {}
+local turn_speed		= {}
+local drag				= {}
 local player_z_position = {}
 local player_y_position = {}
-local boat_rotation = {}
-local boat_draft = {}
-local boat_power = {}
-local boat_brake = {}
-local boat_buoyancy = {}
-local water_height = {}
-local playerdistance = {}
+local boat_rotation		= {}
+local boat_draft		= {}
+local boat_power		= {}
+local boat_brake		= {}
+local boat_buoyancy		= {}
+
+local playerdistance	= {}
 local boat_active = {}
 local boat_release = {}
 local boat_aground = {}
@@ -35,12 +45,16 @@ local colobj = {}
 local boatlength = {}
 local heightTerrain = {}
 local heightSurface = {}
+local boatx = {}
+local boaty = {}
+local boatz = {}
+local speed = {}
 local status = {}
 
-function boat_properties(e, prompt_text, boat_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy)
+function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy)
 	boat[e] = g_Entity[e]
 	boat[e].prompt_text = prompt_text
-	boat[e].boat_range = boat_range
+	boat[e].use_range = use_range
 	boat[e].min_speed = min_speed
 	boat[e].max_speed = max_speed
 	boat[e].turn_speed = turn_speed
@@ -52,13 +66,12 @@ function boat_properties(e, prompt_text, boat_range, min_speed, max_speed, turn_
 	boat[e].boat_power = boat_power
 	boat[e].boat_brake = boat_brake
 	boat[e].boat_buoyancy = boat_buoyancy or 1
-	boat[e].water_height = water_height
 end
 
 function boat_init(e)
 	boat[e] = {}
 	boat[e].prompt_text = "E to embark"
-	boat[e].boat_range = 80
+	boat[e].use_range = 80
 	boat[e].min_speed = 2
 	boat[e].max_speed = 4
 	boat[e].turn_speed = 2
@@ -70,15 +83,16 @@ function boat_init(e)
 	boat[e].boat_power = 5
 	boat[e].boat_brake = 5
 	boat[e].boat_buoyancy = 1
+	
 	boat_active[e] = 0
 	boat_release[e] = 0
-	boat_aground =0
-	speed=0
-	boatx=g_Entity[e].x
-	boaty=g_Entity[e].y
-	boatz=g_Entity[e].z
+	boat_aground[e] =0
+	speed[e]=0
+	boatx[e]=g_Entity[e].x
+	boaty[e]=g_Entity[e].y
+	boatz[e]=g_Entity[e].z
 	boatlength[e] = 0
-	turn=0
+	--turn=0
 	onboatcheck[e]=0
 	floatangle[e]=0
 	colobj[e]=0
@@ -105,7 +119,7 @@ function boat_main(e)
 		PlayerDist = math.sqrt(math.abs(PlayerDX*PlayerDX)+math.abs(PlayerDZ*PlayerDZ));
 		playerdistance[e]=PlayerDist
 		onboatcheck[e]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ+35,g_PlayerPosX,g_Entity[e].y+36,g_PlayerPosZ,0)
-		if onboatcheck[e] == g_Entity[e].obj or playerdistance[e] < boat[e].boat_range and boat_active[e]==0 then
+		if onboatcheck[e] == g_Entity[e].obj or playerdistance[e] < boat[e].use_range and boat_active[e]==0 then
 			if boat_active[e]==0 then Prompt(boat[e].prompt_text) end
 			if g_KeyPressE==1 and boat_release[e]==0 and boat_active[e]==0 then
 				boat_active[e]=1
@@ -124,37 +138,36 @@ function boat_main(e)
 			local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)
 			SetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
 			ResetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
-			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)		
+			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)			
 			GravityOn(e)
 			CollisionOn(e)
 			StopSound(e,1)
 		end  
-
 		if boat_active[e]==1 then			
 			local nfloatheight = boat[e].boat_buoyancy
 			floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)
 			local fFinalY = GetWaterHeight() + nfloatheight + (math.cos(floatangle[e])*nfloatheight)
 			local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)
-			boatx=g_Entity[e].x
-			boaty=g_Entity[e].y
-			boatz=g_Entity[e].z
+			boatx[e]=g_Entity[e].x
+			boaty[e]=g_Entity[e].y
+			boatz[e]=g_Entity[e].z
 			SetFreezePosition(freezex,g_Entity[e].y+5,freezez)
 			TriggerWaterRipple(g_Entity[e].x,g_Entity[e].y-5,g_Entity[e].z)
 			-- Boat speed control
 			if g_KeyPressW == 1 then  -- W key
-				if speed<boat[e].max_speed then
-					speed=speed+(boat[e].boat_power/100)
+				if speed[e] < boat[e].max_speed then
+					speed[e] = speed[e]+(boat[e].boat_power/100)
 					LoopSound(e,1)
 				end
 			end
 			if g_KeyPressS == 1 then -- S key
-				if speed>boat[e].min_speed then
-					speed=speed-(boat[e].boat_brake/100)
+				if speed[e] > boat[e].min_speed then
+					speed[e] = speed[e]-(boat[e].boat_brake/100)
 					LoopSound(e,1)
 				end
-				if boat_aground == 1 then
-					speed=speed-0.5
-					boat_aground = 0
+				if boat_aground[e] == 1 then
+					speed[e] = speed[e]-0.5
+					boat_aground[e] = 0
 					StopSound(e,1)
 					PlaySound(e,2)
 				end
@@ -180,8 +193,8 @@ function boat_main(e)
 				if (g_Entity[e].y - boat[e].boat_draft) <= heightTerrain[e] then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
 					TransportToFreezePosition()
-					boat_aground = 1
-					speed = -1
+					boat_aground[e] = 1
+					speed[e] = -1
 					boat_release[e]=0
 					boat_active[e]=0
 				end
@@ -192,8 +205,8 @@ function boat_main(e)
 				if colobj[e] > 0 or colobj[e] == -1 then
 					SetFreezePosition(freezex,(g_Entity[e].y + 40),freezez)
 					TransportToFreezePosition()
-					boat_aground = 1
-					speed = -1
+					boat_aground[e] = 1
+					speed[e] = -1
 					boat_release[e]=0
 					boat_active[e]=0
 				end
@@ -205,22 +218,22 @@ function boat_main(e)
 			boatangleleftdeg=math.rad(boatangle)
 			boatanglerightdeg=math.rad(boatangle)
 			-- Boat collision
-			boatx=boatx+(math.sin(boatangledeg)*speed)
-			boaty=g_Entity[e].y
-			boatz=boatz+(math.cos(boatangledeg)*speed)
+			boatx[e]=boatx[e]+(math.sin(boatangledeg)*speed[e])
+			boaty[e]=g_Entity[e].y
+			boatz[e]=boatz[e]+(math.cos(boatangledeg)*speed[e])
 			-- Update location
 			if boat_active[e]==1 then
-				freezex=g_Entity[e].x+(math.sin(boatangledeg)*(boat[e].player_z_position-speed)*-1)
-				freezez=g_Entity[e].z+(math.cos(boatangledeg)*(boat[e].player_z_position-speed)*-1)
+				freezex=g_Entity[e].x+(math.sin(boatangledeg)*(boat[e].player_z_position-speed[e])*-1)
+				freezez=g_Entity[e].z+(math.cos(boatangledeg)*(boat[e].player_z_position-speed[e])*-1)
 				SetFreezePosition(freezex,g_Entity[e].y+boat[e].player_y_position,freezez)
 			end
 			GravityOff(e)
 			CollisionOff(e)
-			SetPosition(e,boatx,boaty,boatz)
+			SetPosition(e,boatx[e],boaty[e],boatz[e])
 			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)			
 			TransportToFreezePositionOnly()
-			if speed>0 and g_KeyPressW == 0 then speed=speed-(boat[e].drag/10000) end
-			if speed<0 and g_KeyPressS == 0 then speed=speed/1.1 end
+			if speed[e] > 0 and g_KeyPressW == 0 then speed[e] = speed[e]-(boat[e].drag/10000) end
+			if speed[e] < 0 and g_KeyPressS == 0 then speed[e] = speed[e]/1.1 end
 		end
 	end
 end

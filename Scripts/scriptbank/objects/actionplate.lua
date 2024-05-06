@@ -93,8 +93,6 @@ function actionplate_main(e)
 			end								
 		end
 	end
-	Text(50,70,3,max_height[e])
-	Text(50,72,3,min_height[e])
 end
 	
 function actionplate_exit(e)	

@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Arrow Trap v3 - by Necrym59 
--- DESCRIPTION: The Arrow will an arrows when in range. Always Active ON. Physics OFF
+-- Arrow Trap v4 - by Necrym59 
+-- DESCRIPTION: The Arrow Trap will shoot arrow(s) when in range. Always Active ON. Physics OFF
 -- DESCRIPTION: Attach to an arrow, and place at the firing start point.
 -- DESCRIPTION: When the player is within [TRAP_RANGE=50(10,500)] the traps [TRAP_SPEED=2(1,10)] and causing [TRAP_DAMAGE=3(0,500)]
 -- DESCRIPTION: The [@TRAP_MODE=1(1=One shot, 2=Repeating)] the [HIT_DISTANCE=30(1,50)] and [RESET_DISTANCE=200(1,500)]
@@ -25,7 +25,6 @@
 	local movedist = {}
 	
 function arrowtrap_properties(e, trap_range, trap_speed, trap_damage, trap_mode, hit_distance, reset_distance)
-	arrowtrap[e] = g_Entity[e]
 	arrowtrap[e].trap_range 		= trap_range			--trigger trap_range
 	arrowtrap[e].trap_speed			= trap_speed			--how fast the arrow will travel
 	arrowtrap[e].trap_damage		= trap_damage			--trap_damage applied
@@ -35,7 +34,7 @@ function arrowtrap_properties(e, trap_range, trap_speed, trap_damage, trap_mode,
 end
 
 function arrowtrap_init(e)
-	arrowtrap[e] = g_Entity[e]
+	arrowtrap[e] = {}
 	arrowtrap[e].trap_range 			= 50
 	arrowtrap[e].trap_speed 			= 2
 	arrowtrap[e].trap_damage 			= 3
@@ -50,7 +49,7 @@ function arrowtrap_init(e)
 end
 
 function arrowtrap_main(e)
-	arrowtrap[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		GravityOff(e)		
 		if startx[e] == nil or starty[e] == nil or startz[e] == nil then		

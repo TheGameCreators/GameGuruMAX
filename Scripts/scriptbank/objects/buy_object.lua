@@ -1,4 +1,4 @@
--- Buy Object v4 Necrym59 and oosayeroo 
+-- Buy Object v5 Necrym59 and oosayeroo 
 -- DESCRIPTION: The object will act as a switch to trigger logic connection if the global affected variable amount is valid.
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [BUY_TEXT$="E to purchase"]
@@ -38,7 +38,7 @@ function buy_object_properties(e, use_range, buy_text, bought_text, insufficient
 	buyobject[e].text_display = text_display	
 	buyobject[e].buy_cost = buy_cost
 	buyobject[e].delete_on_buy = delete_on_buy
-	buyobject[e].user_global_affected = "MyMoney"
+	buyobject[e].user_global_affected = user_global_affected
 end
 
 function buy_object_init(e)
@@ -50,7 +50,7 @@ function buy_object_init(e)
 	buyobject[e].text_display = 1	
 	buyobject[e].buy_cost = 1
 	buyobject[e].delete_on_buy = 1
-	buyobject[e].user_global_affected = "MyMoney"	
+	buyobject[e].user_global_affected = ""	
 	
 	currentvalue[e] = 0
 	played[e] = 0
@@ -95,7 +95,7 @@ function buy_object_main(e)
 			end	
 		end
 	end
-
+	
 	if status[e] == "bought" then
 		if buyobject[e].text_display == 1 then PromptLocal(e,buyobject[e].bought_text) end
 		if buyobject[e].text_display == 2 then PromptDuration(buyobject[e].bought_text,2000) end

@@ -1557,6 +1557,13 @@ float g_fListenQuickScale = 0.0f;
 GGVECTOR3 g_vListenQuickPos = GGVECTOR3(-1, -1, -1);
 GGVECTOR3 g_vListenQuickAngle = GGVECTOR3(-1, -1, -1);
 
+DARKSDK void ResetListener ( void )
+{
+	g_fListenQuickScale = 0.0f;
+	g_vListenQuickPos = GGVECTOR3(-1, -1, -1);
+	g_vListenQuickAngle = GGVECTOR3(-1, -1, -1);
+}
+
 DARKSDK void PositionListener ( float fX, float fY, float fZ )
 {
 	if ( pDSListener )

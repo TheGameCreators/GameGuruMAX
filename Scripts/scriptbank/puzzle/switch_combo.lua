@@ -1,4 +1,4 @@
--- Switch Combo v10 
+-- Switch Combo v11 
 -- DESCRIPTION: A combo-value switch to add to 100 to Activate IfUsed and/or logic linked object.
 -- DESCRIPTION: [UseRange=90(1,200)]
 -- DESCRIPTION: [SwitchedOn!=0] state to decide if the switch is initially off or on, and customize the
@@ -8,6 +8,7 @@
 -- DESCRIPTION: [SwitchValue=0(0,100)] for this switch value
 -- DESCRIPTION: [DeferLinks!=0] to defer linked connection trigger
 -- DESCRIPTION: [DeferLinksValue=50(1,99)] defer linked connection trigger value
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> when the object is switched ON.
 -- DESCRIPTION: <Sound1> when the object is switched OFF.
  
@@ -26,6 +27,8 @@ local switchtype 		= {}
 local switchvalue 		= {}
 local deferlinks 		= {}
 local deferlinksvalue 	= {}
+local item_highlight	= {}
+
 local doonce 			= {}
 local dooncePC			= {}
 local status 			= {}
@@ -37,7 +40,7 @@ local tplayerlevel 		= {}
 local reachedvalue		= {}
 local reachedcheck		= {}
 
-function switch_combo_properties(e, userange, switchedon, ontext, offtext, playerlevel, switchtype, switchvalue, deferlinks, deferlinksvalue)
+function switch_combo_properties(e, userange, switchedon, ontext, offtext, playerlevel, switchtype, switchvalue, deferlinks, deferlinksvalue, item_highlight)
 	switch_combo[e] = g_Entity[e]
 	switch_combo[e].userange = userange or 90
 	switch_combo[e].initialstate = switchedon
@@ -48,6 +51,7 @@ function switch_combo_properties(e, userange, switchedon, ontext, offtext, playe
 	switch_combo[e].switchvalue = switchvalue
 	switch_combo[e].deferlinks = deferlinks
 	switch_combo[e].deferlinksvalue = deferlinksvalue or 99
+	switch_combo[e].item_highlight = item_highlight	or 0	
 end 
 
 function switch_combo_init(e)
@@ -60,7 +64,9 @@ function switch_combo_init(e)
 	switch_combo[e].switchtype = 1
 	switch_combo[e].switchvalue = 0	
 	switch_combo[e].deferlinks = 0
-	switch_combo[e].deferlinksvalue = 99	
+	switch_combo[e].deferlinksvalue = 99
+	switch_combo[e].item_highlight = 0
+	
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
@@ -96,7 +102,7 @@ function switch_combo_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < switch_combo[e].userange then
 		--pinpoint select object--
-		module_misclib.pinpoint(e,switch_combo[e].userange,300)
+		module_misclib.pinpoint(e,switch_combo[e].userange,switch_combo[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--	
 	end	

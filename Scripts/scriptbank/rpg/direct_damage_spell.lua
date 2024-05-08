@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v21
+-- Direct Damage Spell v22
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -160,13 +160,14 @@ function direct_damage_spell_main(e)
 			if tEnt[e] ~= nil then tHealth[e] = g_Entity[tEnt[e]]['health'] end			-- get entity health
 			tAllegiance[e] = GetEntityAllegiance(tEnt[e]) 								-- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 			if tAllegiance[e] == 0 and tEnt[e] ~= nil then								-- if allegiance = enemy then give option to target
-				tTarget[e] = tEnt[e]													-- entity set as target								
+				tTarget[e] = tEnt[e]													-- entity set as target	
+				SetEntityOutline(tEnt[e],1)
 			end
 			if tTarget[e] > 0 then
-				TextCenterOnX(50,20,3,"TARGETED")
+				TextCenterOnX(50,20,3,"TARGETED")				
 				if tAllegiance[e] == 0 then TextCenterOnX(50,22,3,tName[e]) end
 			end
-		end				
+		end	
 		
 		local tusedvalue = GetEntityUsed(e)	
 		if g_MouseClick == 1 and tTarget[e] ~= 0 then SetEntityUsed(e,1) end

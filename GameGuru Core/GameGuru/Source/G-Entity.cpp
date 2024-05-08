@@ -3598,47 +3598,22 @@ void entity_hasbulletrayhit(void)
 	t.tmaterialvalue = -1;
 
 	// first cast a ray at any terrain
-	#ifdef WICKEDENGINE
 	GGVECTOR3 vecRayHitNormal = GGVECTOR3(0, 0, 0);
-	#endif
 	if (ODERayTerrain(t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, false) == 1)
 	{
 		//  and shorten the ray if we hit terra firma!
 		t.brayx2_f = ODEGetRayCollisionX();
 		t.brayy2_f = ODEGetRayCollisionY();
 		t.brayz2_f = ODEGetRayCollisionZ();
-		#ifdef WICKEDENGINE
 		// get extra collision data, need to know surface normal
 		vecRayHitNormal = GGVECTOR3(ODEGetRayNormalX(), ODEGetRayNormalY(), ODEGetRayNormalZ());
 		// LEELEE = need to get TERRAIN MATERIAL ID HERE TOO!!
 		t.tttriggerdecalimpact = 10;
-		#else
-		// trigger dust flume at coords
-		t.tttriggerdecalimpact = 10;
-		#endif
 	}
 	
 	// Character creator can override the limb hit, to make the cc head report the head limb of the main character
 	t.ccLimbHitOverride = false;
 
-	// create a ray and check for object hit (first intersectall command simply fills a secondary range of objects)
-	#ifndef WICKEDENGINE
-	if(g.lightmappedobjectoffset >= g.lightmappedobjectoffsetfinish)
-		t.ttt = IntersectAll(87000, 87000 + g.merged_new_objects - 1, 0, 0, 0, 0, 0, 0, -123);
-	else
-		t.ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
-	// check if character creator characters are in the game
-	if (t.characterkitcontrol.gameHasCharacterCreatorIn == 1)
-	{
-		// 010715 - will even detect GLUED OBJECTS thanks to new code in IntersectAll (  )
-		t.ttt = IntersectAll(g.charactercreatorrmodelsoffset + ((t.characterkitcontrol.minEntity * 3) - t.characterkitcontrol.offset), g.charactercreatorrmodelsoffset + ((t.characterkitcontrol.maxEntity * 3) - t.characterkitcontrol.offset), 0, 0, 0, 0, 0, 0, -124);
-	}
-	if (g.firemodes[t.gunid][0].settings.detectcoloff == 1)
-	{
-		// 111215 - '-125' is ignore collision property where entity was CollisionOff(e)
-		t.ttt = IntersectAll(0, 0, 0, 0, 0, 0, 0, 0, -125); 
-	}
-	#endif
 	// if TPP, can ignore entity used as player
 	int iIgnoreOneEntityObj = 0;
 	if ( t.playercontrol.thirdperson.enabled == 1 )
@@ -3646,7 +3621,6 @@ void entity_hasbulletrayhit(void)
 		// 220217 - cannot shoot self with weapon!
 		iIgnoreOneEntityObj = t.entityelement[t.playercontrol.thirdperson.charactere].obj;
 	}
-	//t.thitvalue = IntersectAll(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, iIgnoreOneEntityObj);
 	bool bFullWickedAccuracy = true;
 	t.thitvalue = IntersectAllEx (g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, 0, 0, 0, 0, 0, bFullWickedAccuracy);
 	if ( t.thitvalue>0 ) 
@@ -3664,23 +3638,6 @@ void entity_hasbulletrayhit(void)
 				}
 			}
 		}
-		#ifdef WICKEDENGINE
-		// allow for any limb to be detected at this point
-		#else
-		// check if it was a character creator object hit and find the main body object
-		if ( t.characterkitcontrol.gameHasCharacterCreatorIn  ==  1 ) 
-		{
-			if (  t.thitvalue >= g.charactercreatorrmodelsoffset+((t.characterkitcontrol.minEntity*3)-t.characterkitcontrol.offset) && t.thitvalue  <=  g.charactercreatorrmodelsoffset+((t.characterkitcontrol.maxEntity*3)-t.characterkitcontrol.offset) ) 
-			{
-				t.toldthitvalue=t.thitvalue;
-				t.tTheE = ((t.thitvalue - g.charactercreatorrmodelsoffset) + t.characterkitcontrol.offset) / 3;
-				t.thitvalue = t.entityelement[t.tTheE].obj;
-				//Character creator can override the limb hit, to make the cc head report the head limb of the main character
-				t.ccLimbHitOverride = true;
-				t.ccLimbHitOverrideLimb  = getlimbbyname(t.entityelement[t.tTheE].obj, "Bip01_Head");
-			}
-		}
-		#endif
 		// record object number we hit
 		t.tsteamLastHit=t.thitvalue;
 		t.bulletrayhit=t.thitvalue;
@@ -3719,9 +3676,7 @@ void entity_hasbulletrayhit(void)
 				t.brayx2_f=ODEGetRayCollisionX();
 				t.brayy2_f=ODEGetRayCollisionY();
 				t.brayz2_f=ODEGetRayCollisionZ();
-				#ifdef WICKEDENGINE
 				vecRayHitNormal = GGVECTOR3(ODEGetRayNormalX(), ODEGetRayNormalY(), ODEGetRayNormalZ());
-				#endif
 				t.bulletraylimbhit=0;
 				if (t.tfoundentityindexhit != -1)
 				{
@@ -3741,16 +3696,12 @@ void entity_hasbulletrayhit(void)
 			t.brayx2_f=ChecklistFValueA(6);
 			t.brayy2_f=ChecklistFValueB(6);
 			t.brayz2_f=ChecklistFValueC(6);
-
-			#ifdef WICKEDENGINE
 			vecRayHitNormal = GGVECTOR3(ChecklistFValueA(7), ChecklistFValueB(7), ChecklistFValueC(7));
-			#endif
 
 			// get limb we hit (for flinch effect when we hit enemy limb)
 			t.tlimbhit=ChecklistValueB(1);
 
 			// return material index and use to trigger decal
-			#ifdef WICKEDENGINE
 			// ChecklistValueA 9 not reliable, get material from entity properties!
 			if (t.tfoundentityindexhit != -1)
 			{
@@ -3760,13 +3711,9 @@ void entity_hasbulletrayhit(void)
 			{
 				t.tmaterialvalue = ChecklistValueA(9);
 			}
-			#else
-			t.tmaterialvalue = ChecklistValueA(9);
-			#endif
 
 			// check if we hit character creator head and adjust limbhit to the head of the character
 			// simpler head shot detection (gun and other things can get in the way)
-			#ifdef WICKEDENGINE
 			if (t.tfoundentityindexhit != -1)
 			{
 				if (t.entityprofile[t.tentid].ischaracter == 1)
@@ -3795,7 +3742,6 @@ void entity_hasbulletrayhit(void)
 					t.tmaterialvalue = t.entityprofile[t.tentid].materialindex;
 				}
 			}
-			#endif
 
 			// reset and assign detectedlimbhit flag for script
 			if ( t.tfoundentityindexhit != -1 ) 

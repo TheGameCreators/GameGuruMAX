@@ -198,7 +198,6 @@ void mapfile_saveproject_fpm ( void )
 	{
 		t.ttempprojfilename_s=g.projectfilename_s;
 	}
-	#ifdef WICKEDENGINE
 	//PE: Default folder could be d:\max\ , and write folder could be f:\docwrite\
 	//PE: So then moving zip, it takes from d:\... and move to f:\... , d:\\ dont exists so .fpm file is deleted.
 	//PE: To solve always use full path to .fpm
@@ -206,8 +205,6 @@ void mapfile_saveproject_fpm ( void )
 	strcpy(destination, t.ttempprojfilename_s.Get());
 	GG_GetRealPath(destination, 1);
 	t.ttempprojfilename_s = destination;
-	#endif
-	//75593 : Saving FPM g.level file: D:\github\GameGuruRepo\GameGuru\Files\map bank\my-test-map.fpm S:0MB   V: (579,0) 
 	if (g.editorsavebak == 1) 
 	{
 		//PE: Make a backup before overwriting a fpm level.
@@ -242,7 +239,6 @@ void mapfile_saveproject_fpm ( void )
 
 	//  Copy visuals.ini into levelfile folder
 	t.tincludevisualsfile=0;
-	#ifdef WICKEDENGINE
 	char pRealVisFile[MAX_PATH];
 	strcpy(pRealVisFile, g.fpscrootdir_s.Get());
 	strcat(pRealVisFile, "\\visuals.ini");
@@ -254,15 +250,6 @@ void mapfile_saveproject_fpm ( void )
 		CopyAFile(pRealVisFile, t.tvisfile_s.Get());
 		t.tincludevisualsfile = 1;
 	}
-	#else
-	if (  FileExist( cstr(g.fpscrootdir_s+"\\visuals.ini").Get() ) == 1 ) 
-	{
-		t.tvisfile_s=g.mysystem.levelBankTestMap_s+"visuals.ini"; //"levelbank\\testmap\\visuals.ini";
-		if (  FileExist(t.tvisfile_s.Get()) == 1  )  DeleteAFile (  t.tvisfile_s.Get() );
-		CopyAFile (  cstr(g.fpscrootdir_s+"\\visuals.ini").Get(),t.tvisfile_s.Get() );
-		t.tincludevisualsfile=1;
-	}
-	#endif
 
 	//  And switch back for benefit to editor visuals
 	t.visuals=t.editorvisuals; // messes up when click test game again, old: gosub _visuals_save
@@ -277,16 +264,14 @@ void mapfile_saveproject_fpm ( void )
 	if (  FileExist( cfgfile_s.Get() ) == 1 )
 	{
 		if ( FileExist( cfginlevelbank_s.Get() ) == 1 ) DeleteAFile ( cfginlevelbank_s.Get() );
-#ifdef WICKEDENGINE
 		//PE: We need full path from write folder in wicked.
 		char destination[MAX_PATH];
 		strcpy(destination, cfgfile_s.Get());
 		GG_GetRealPath(destination, 1);
 		cfgfile_s = destination;
-#endif
 		CopyAFile ( cfgfile_s.Get(), cfginlevelbank_s.Get() );
 	}
-	#ifdef WICKEDENGINE
+
 	//PE: For some reason cfg.cfg is missing from the fpm ?
 	if (FileExist(cfginlevelbank_s.Get()) == 0)
 	{
@@ -294,9 +279,7 @@ void mapfile_saveproject_fpm ( void )
 		editor_savecfg(cfginlevelbank_s.Get());
 		timestampactivity(0, cstr(cstr("Creating cfg.cfg file: ") + cfginlevelbank_s).Get());
 	}
-	#endif
 
-	#ifdef WICKEDENGINE
 	extern std::vector<sRubberBandType> vEntityLockedList;
 	cfginlevelbank_s = g.mysystem.levelBankTestMap_s + "locked.cfg";
 	//PE: Save a copy of locked objects.
@@ -308,7 +291,6 @@ void mapfile_saveproject_fpm ( void )
 		WriteLong(1, vEntityLockedList[i].e);
 	}
 	CloseFile(1);
-	#endif
 
 	// Create a FPM (zipfile)
 	CreateFileBlock (  1, t.ttempprojfilename_s.Get() );
@@ -316,9 +298,7 @@ void mapfile_saveproject_fpm ( void )
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() ); // "levelbank\\testmap\\" );
 	AddFileToBlock (  1, "header.dat" );
 	AddFileToBlock (  1, "playerconfig.dat" );
-	#ifdef WICKEDENGINE
 	AddFileToBlock(1, "locked.cfg");
-	#endif
 	AddFileToBlock (  1, "cfg.cfg" );
 	// entity and waypoint files
 	AddFileToBlock (  1, "map.ele" );
@@ -327,7 +307,6 @@ void mapfile_saveproject_fpm ( void )
 	// darkai obstacle data (container zero)
 	AddFileToBlock (  1, "map.obs" );
 	// terrain files
-	#ifdef WICKEDENGINE
 	// save all node folders (containing terrain geometry and virtual textures)
 	ChecklistForFiles (  );
 	std::vector<std::string> terrainNodeFolders;
@@ -363,19 +342,6 @@ void mapfile_saveproject_fpm ( void )
 			}
 		}
 	}
-	// and associated nav mesh
-	//AddFileToBlock (1, "rawlevelgeometry.obj"); not needed, calculated in realtime!
-	#else
-	AddFileToBlock (  1, "m.dat" );
-	#ifdef VRTECH
-	AddFileToBlock (  1, "vegmask.png");// dds" );
-	#else
-	AddFileToBlock (  1, "vegmask.dds" );
-	#endif
-	AddFileToBlock (  1, "vegmaskgrass.dat" );
-	if ( FileExist ( "superpalette.ter" ) == 1 ) 
-		AddFileToBlock ( 1, "superpalette.ter" );
-	#endif
 
 	#ifdef WICKEDENGINE
 	#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp
@@ -390,14 +356,9 @@ void mapfile_saveproject_fpm ( void )
 	}
 	#endif
 
-	#ifdef WICKEDENGINE
 	// new multi-grass system stores grass choices in testmap folder
 	AddFileToBlock ( 1, "grass_coloronly.dds" );
-	//AddFileToBlock ( 1, "grass_normal.dds" );
-	//AddFileToBlock ( 1, "grass_surface.dds" );
-	#endif
 
-	#ifdef WICKEDENGINE
 	// new terrain system saves its data settings
 	cstr TerrainDataFile_s = g.mysystem.levelBankTestMap_s + "ggterrain.dat";
 	GGTerrainFile_SaveTerrainData(TerrainDataFile_s.Get(), g.gdefaultwaterheight);
@@ -520,37 +481,6 @@ void mapfile_saveproject_fpm ( void )
 
 	}
 
-	#else
-	#ifdef VRTECH
-	// add custom content
-	LPSTR pOldDir2 = GetDir();
-	SetDir(pOldDir); //PE: We need to be here for ScanLevelForCustomContent to work.
-	cstr sStoreProjAsItGetsChanged = g.projectfilename_s;
-	ScanLevelForCustomContent ( t.ttempprojfilename_s.Get() );
-	g.projectfilename_s = sStoreProjAsItGetsChanged;
-	SetDir(pOldDir2);
-	// putting back optional custom terrain texture
-	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.dds" );
-	if ( FileExist ( "Texture_D.jpg" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.jpg" );
-	#else
-	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.dds" );
-	#endif
-	#ifdef VRTECH
-	// Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-	#else
-	AddFileToBlock (  1, "watermask.dds" );
-	if ( FileExist ( "globalenvmap.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "globalenvmap.dds" );
-	if ( FileExist ( "Texture_N.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_N.dds" );
-	if ( FileExist ( "Texture_N.jpg" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_N.jpg" );
-	#endif
-	#endif
-
 	// lightmap files
 	if ( PathExist("lightmaps") == 1 ) 
 	{
@@ -599,7 +529,6 @@ void mapfile_saveproject_fpm ( void )
 		}
 	}
 
-	#ifdef VRTECH
 	// ttsfiles files
 	if ( PathExist("ttsfiles") == 1 ) 
 	{
@@ -624,7 +553,6 @@ void mapfile_saveproject_fpm ( void )
 			AddFileToBlock ( 1, cstr(cstr("ttsfiles\\")+ttsfileslist[t.c]).Get() );
 		}
 	}
-	#endif
 
 	//  visual settings
 	if (  t.tincludevisualsfile == 1  )  AddFileToBlock (  1, "visuals.ini" );
@@ -646,62 +574,13 @@ void mapfile_saveproject_fpm ( void )
 				cstr tNameOnly = Left(t.tfile_s.Get(),strlen(t.tfile_s.Get())-4);
 				cstr tThisFile = tNameOnly + cstr(".fpe");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef WICKEDENGINE
 				// wicked saves DBOs
 				tThisFile = tNameOnly + cstr(".dbo");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				// wicked saves EBE texture DDSs (further below)
-				#else
-				#ifdef VRTECH
-				tThisFile = tNameOnly + cstr(".x");
-				#else
-				tThisFile = tNameOnly + cstr(".dbo");
-				#endif
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				tThisFile = tNameOnly + cstr(".bmp");
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef VRTECH
-				tThisFile = tNameOnly + cstr("_D.jpg");
-				#else
-				tThisFile = tNameOnly + cstr("_D.dds");
-				#endif
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef VRTECH
-				 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-				#else
-				 tThisFile = tNameOnly + cstr("_N.dds");
-				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				 tThisFile = tNameOnly + cstr("_S.dds");
-				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#endif
-				#endif
 			}
-			#ifdef WICKEDENGINE
-			// see above
-			#else
-			strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			#ifdef VRTECH
-			if ( strcmp ( strEnt.Get(), "_d.jpg" ) == NULL )
-			#else
-			if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
-			#endif
-			{
-				AddFileToBlock ( 1, t.tfile_s.Get() );
-			}
-			#ifdef VRTECH
-			 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-			#else
-			 strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			 if ( strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
-			 {
-				AddFileToBlock ( 1, t.tfile_s.Get() );
-			 }
-			#endif
-			#endif
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// cannot just discover EBE textures, so go through all entity parents for all EBEs and save their textures
 	for ( int iEntID = 1; iEntID <= g.entidmaster; iEntID++ )
 	{
@@ -721,38 +600,118 @@ void mapfile_saveproject_fpm ( void )
 			}
 		}
 	}
-	#endif
 
-	/* g_bTerrainGeneratorChooseRealTerrain no longer used
-	#ifdef WICKEDENGINE
-	LPSTR pTerrainPreference = "TerrainPreference.tmp";
-	if (FileExist(pTerrainPreference) == 1) DeleteFileA(pTerrainPreference);
-	extern bool g_bTerrainGeneratorChooseRealTerrain;
-	OpenToWrite(3, pTerrainPreference);
-	if (g_bTerrainGeneratorChooseRealTerrain == true)
-	{
-		WriteString(3, "terrainisgrass");
-	}
-	else
-	{
-		WriteString(3, "terrainisgrid");
-	}
-	CloseFile(3);
-	AddFileToBlock (1, pTerrainPreference);
-	#endif
-	*/
-
-	#ifdef CUSTOMTEXTURES
-	//  
 	cstr terrainMaterialFile = g.mysystem.levelBankTestMap_s + "custommaterials.dat";
 	SaveTerrainTextureFolder(terrainMaterialFile.Get());
 	AddFileToBlock(1, "custommaterials.dat");
-	#endif
 
 	SetDir ( pOldDir );
 	SaveFileBlock ( 1 );
 
-	#ifdef WICKEDENGINE
+	// New automated backup system for FPM files (stored in destination var)
+	#define AUTOSAVEBACKUP
+	#ifdef AUTOSAVEBACKUP
+	timestampactivity(0, "Auto-save a copy of every save to the mapbank\_automatedbackups folder");
+	char automatedcopyfpm[MAX_PATH];
+	char automatedcopyname[MAX_PATH];
+	strcpy(automatedcopyfpm, "");
+	strcpy(automatedcopyname, destination);
+	for (int i = strlen(automatedcopyname)-8; i > 0; i--)
+	{
+		if (strnicmp(automatedcopyname + i, "mapbank\\", 8)==NULL || strnicmp(automatedcopyname + i, "mapbank/", 8) == NULL)
+		{
+			strcpy(automatedcopyfpm, automatedcopyname+i+8);
+			automatedcopyname[i+8] = 0;
+			break;
+		}
+	}
+	if (strlen(automatedcopyfpm) > 0)
+	{
+		// replace \\ and chop ext
+		for (int i = 0; i < strlen(automatedcopyfpm); i++)
+		{
+			if (automatedcopyfpm[i] == '\\' || automatedcopyfpm[i] == '/') automatedcopyfpm[i] = '_';
+		}
+		LPSTR pExtDot = strrchr(automatedcopyfpm, '.');
+		if(pExtDot) *pExtDot = 0;
+
+		// create folder
+		strcpy(automatedcopyname, automatedcopyname);
+		strcat(automatedcopyname, "_automatedbackups\\");
+		CreateDirectoryA(automatedcopyname, NULL);
+
+		// version num tracker file
+		int iVersionNumber = 1;
+		char pTrackerFile[MAX_PATH];
+		strcpy(pTrackerFile, automatedcopyname);
+		strcat(pTrackerFile, automatedcopyfpm);
+		strcat(pTrackerFile, ".dat");
+		if (FileExist(pTrackerFile) == 1)
+		{
+			OpenToRead(1, pTrackerFile);
+			iVersionNumber = atoi(ReadString(1));
+			CloseFile(1);
+		}
+
+		// create auto backup filename
+		char pCheckFile[MAX_PATH];
+		strcpy(pCheckFile, automatedcopyname);
+		strcat(pCheckFile, automatedcopyfpm);
+		strcat(pCheckFile, "_1");
+		char* pNum = strrchr(pCheckFile, '_');
+		if (pNum)
+		{
+			sprintf(pNum, "_%d", iVersionNumber);
+			strcat(pCheckFile, ".fpm");
+		}
+
+		// find next available version number
+		while(FileExist(pCheckFile) == 1)
+		{
+			char *pDot = strrchr(pCheckFile, '.');
+			if (pDot)
+			{
+				char *pNum = strrchr(pCheckFile, '_');
+				if (pNum && pNum < pDot)
+				{
+					int iNum = atoi(pNum + 1);
+					iNum++;
+					*pNum = 0;
+					sprintf(pNum, "_%d", iNum);
+					strcat(pCheckFile, ".fpm");
+					iVersionNumber = iNum;
+				}
+			}
+		}
+		DeleteAFile(pCheckFile);
+		CopyAFile(destination, pCheckFile);
+
+		// save version tracker file for next time
+		if (FileExist(pTrackerFile) == 1) DeleteFileA(pTrackerFile);
+		{
+			OpenToWrite(1, pTrackerFile);
+			char pVersionNum[256];
+			sprintf(pVersionNum, "%d", iVersionNumber);
+			WriteString(1, pVersionNum);
+			CloseFile(1);
+		}
+
+		// and remove older files so storage does not become an issue
+		if(iVersionNumber > 9)
+		{
+			for (int i = 1; i < iVersionNumber - 9; i++)
+			{
+				strcpy(pCheckFile, automatedcopyname);
+				strcat(pCheckFile, automatedcopyfpm);
+				strcat(pCheckFile, "_");
+				strcat(pCheckFile, Str(i));
+				strcat(pCheckFile, ".fpm");
+				DeleteAFile(pCheckFile);
+			}
+		}
+	}
+	#endif
+
 	// collect ALL entity profile files
 	g.filecollectionmax = 0;
 	Undim (t.filecollection_s);
@@ -766,6 +725,7 @@ void mapfile_saveproject_fpm ( void )
 			addthisentityprofilesfilestocollection ();
 		}
 	}
+
 	// create an itinery LST file (so auto updater can find and download dependent files)
 	cstr LSTFile_s = cstr(Left(g.projectfilename_s.Get(), Len(g.projectfilename_s.Get()) - 4)) + ".lst";
 	if (FileExist(LSTFile_s.Get()) == 1) DeleteAFile (LSTFile_s.Get());
@@ -794,7 +754,6 @@ void mapfile_saveproject_fpm ( void )
 	}
 	SaveArray (LSTFile_s.Get(), lstlist_s);
 	UnDim (lstlist_s);
-	#endif
 
 	// save any changes to game collection list and ELE file
 	extern preferences pref;
@@ -802,11 +761,6 @@ void mapfile_saveproject_fpm ( void )
 
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
-	#ifdef VRTECH
-	//mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
-	#else
-	mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
-	#endif
 
 	//  log prompts
 	timestampactivity(0,"Saving FPM level file complete");

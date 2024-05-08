@@ -229,6 +229,9 @@ void gun_manager ( void )
 	if ( t.gunclick == 1 && g.firemodes[t.gunid][g.firemode].settings.disablerunandshoot == 1 && t.playercontrol.isrunning == 1 && t.player[1].state.moving == 1  )  t.gunclick = 0;
 	if ( t.gunclick == 1 && (g.lowfpswarning == 1 || g.lowfpswarning == 2)  )  t.gunclick = 0;
 
+	// stop gun firing if in any HUD screen
+	if (t.game.activeStoryboardScreen > -1) t.gunclick = 0;
+
 	// in VR mode, if trigger being used to open/close/activate, disable any shooting
 	extern int g_iActivelyUsingVRNow;
 	if (g_iActivelyUsingVRNow == 1)

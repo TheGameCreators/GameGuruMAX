@@ -119,6 +119,10 @@ void bulletholes_changesinglehole (int iVertIndex, float fNX, float fNY, float f
 
 void bulletholes_add (int iMaterialIndex, float fX, float fY, float fZ, float fNX, float fNY, float fNZ)
 {
+	// no holes for silent materials
+	if (iMaterialIndex <= 0)
+		return;
+
 	// map materialindex to atlas (could make this a settings file to update via text file easily in the future)
 	float fBulletHoleRadius = 1.25f;
 	int iAtlasIndex = iMaterialIndex;
@@ -199,18 +203,12 @@ void bulletholes_add (int iMaterialIndex, float fX, float fY, float fZ, float fN
 			V_f = VSize_f * across;
 			U_f = iAtlasIndex * USize_f ;
 		}
+
 		//MD: Bullet holes had white atrefacts due to float inaccuracy, shaving off the edges fixed this
-		#ifdef WICKEDENGINE
 		g_vecBulletHoleQuadUV[0] = GGVECTOR3(U_f + 0.01f, V_f + 0.01f, 0);
 		g_vecBulletHoleQuadUV[1] = GGVECTOR3(U_f + USize_f - 0.01f, V_f + 0.01f, 0);
 		g_vecBulletHoleQuadUV[2] = GGVECTOR3(U_f + 0.01f, V_f + VSize_f - 0.01f, 0);
 		g_vecBulletHoleQuadUV[3] = GGVECTOR3(U_f + USize_f - 0.01f, V_f + VSize_f - 0.01f, 0);
-		#else
-		g_vecBulletHoleQuadUV[0] = GGVECTOR3(U_f, V_f, 0);
-		g_vecBulletHoleQuadUV[1] = GGVECTOR3(U_f + USize_f, V_f, 0);
-		g_vecBulletHoleQuadUV[2] = GGVECTOR3(U_f, V_f + VSize_f, 0);
-		g_vecBulletHoleQuadUV[3] = GGVECTOR3(U_f + USize_f, V_f + VSize_f, 0);
-		#endif // WICKEDENGINE
 
 		// add bullet hole to list
 		sBulletHole bullethole;

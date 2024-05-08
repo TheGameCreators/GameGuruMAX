@@ -2318,10 +2318,14 @@ void titleslua_main_inandout ( LPSTR pPageName )
 	strcpy ( pLUAFree, cstr(cstr(pCurrentPage)+"_free").Get() );
 	LuaSetFunction ( pLUAFree, 0, 0 ); 
 	LuaCall (  );
-	if ( strcmp ( t.game.pSwitchToPage, "-1")==NULL )
-		strcpy ( pCurrentPage, t.game.pSwitchToLastPage );
+	if (strcmp (t.game.pSwitchToPage, "-1") == NULL)
+	{
+		strcpy (pCurrentPage, t.game.pSwitchToLastPage);
+	}
 	else
-		strcpy ( pCurrentPage, t.game.pSwitchToPage );
+	{
+		strcpy (pCurrentPage, t.game.pSwitchToPage);
+	}
 	t.conkit.cooldown = 100;
 }
 
@@ -2344,11 +2348,13 @@ void titleslua_main_stage1_init(LPSTR pPageName)
 int GetStoryboardCustomScreenNode(char* page);
 void titleslua_main_stage2_preloop(void)
 {
-	// title preloop
 	// call init function to set up resources
 	char pLUAInit[256];
-
-	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	int CustomScreenNode = 0;
+	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
+		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	else
+		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
 	if (CustomScreenNode >= 0)
 	{
 		strcpy(pLUAInit,"custom_init");
@@ -2374,13 +2380,20 @@ bool bForceRender = false;
 void titleslua_main_stage3_inloop(void)
 {
 	// title loop
+
 	// Machine independent speed update (makes g_TimeElapsed available)
 	game_timeelapsed();
 
 	// run LUA logic
 	lua_loop_begin();
 
-	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	//int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	int CustomScreenNode = 0;
+	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
+		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	else
+		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+
 	if (CustomScreenNode >= 0)
 	{
 		LuaSetFunction("custom_main", 0, 0);
@@ -2441,7 +2454,13 @@ void titleslua_main_stage4_afterloop(void)
 	char pLUAFree[256];
 	strcpy ( pLUAFree, cstr(cstr(g_pTitleCurrentPage)+"_free").Get() );
 
-	int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	//int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+	int CustomScreenNode = 0;
+	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
+		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	else
+		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+
 	if (CustomScreenNode >= 0)
 	{
 		LuaSetFunction("custom_free", 0, 0);
@@ -2453,10 +2472,14 @@ void titleslua_main_stage4_afterloop(void)
 		LuaCall();
 	}
 	// switch to new page name
-	if ( strcmp ( t.game.pSwitchToPage, "-1")==NULL )
-		strcpy ( g_pTitleCurrentPage, t.game.pSwitchToLastPage );
+	if (strcmp (t.game.pSwitchToPage, "-1") == NULL)
+	{
+		strcpy (g_pTitleCurrentPage, t.game.pSwitchToLastPage);
+	}
 	else
-		strcpy ( g_pTitleCurrentPage, t.game.pSwitchToPage );
+	{
+		strcpy (g_pTitleCurrentPage, t.game.pSwitchToPage);
+	}
 
 	// ensure IMGUI does not attempt to render to wicked during resource shifting (between page unload/load)
 	#ifndef PRODUCTCLASSIC

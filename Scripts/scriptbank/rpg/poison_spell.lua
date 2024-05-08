@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Poison effect to damage the target.
--- Poison Spell v21
+-- Poison Spell v22
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Poison Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Poison spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -165,6 +165,7 @@ function poison_spell_main(e)
 			tAllegiance[e] = GetEntityAllegiance(tEnt[e]) 								-- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 			if tAllegiance[e] == 0 and tEnt[e] ~= nil then								-- if allegiance = enemy then give option to target
 				tTarget[e] = tEnt[e]													-- entity set as target								
+				SetEntityOutline(tEnt[e],1)	
 			end
 			if tTarget[e] > 0 then
 				TextCenterOnX(50,20,3,"TARGETED")

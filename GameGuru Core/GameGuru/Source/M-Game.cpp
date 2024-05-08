@@ -993,6 +993,10 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	// NOTE: Level can collect materials (and material depth) and apply here to quicken material loader (2s)
 	material_loadsounds ( 0 );
 
+	// and reset 3D listener for consistency each level
+	extern void ResetListener (void);
+	ResetListener();
+
 	// if multiplayer, detect spawn positions and add extra UBER characters
 	if ( t.game.runasmultiplayer == 1 ) 
 	{
@@ -2654,6 +2658,7 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 				//PE: This is not always in standalone ? , so:
 				audio_volume_init();
 			}
+
 			// and update internal volume values so music update can use volumes!
 			audio_volume_update ( );
 		}

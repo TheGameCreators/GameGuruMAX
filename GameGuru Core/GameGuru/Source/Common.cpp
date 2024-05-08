@@ -3447,30 +3447,6 @@ void FPSC_LoadKEYMAP ( void )
 	}
 }
 
-#ifdef WICKEDENGINE
-// using new DocWrite system
-#else
-void common_switchtomysystemfolder ( void )
-{
-	g.fpscrootdir_s = g.mysystem.root_s;
-	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.levelBankTestMap_s;
-	g.mysystem.editorsGrideditAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.editorsGridedit_s;
-	g.mysystem.mapbankAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.mapbank_s;
-	g.rootdir_s = g.fpscrootdir_s + "\\Files\\";
-	LPSTR pStDir = GetDir();
-	SetDir ( g.rootdir_s.Get() );
-	g.rootdir_s = cstr(GetDir()) + "\\";
-	SetDir ( pStDir );
-	g.currentmeshdir_s = g.rootdir_s+"meshbank\\";
-	g.currententitydir_s = g.rootdir_s+"entitybank\\";
-	g.currenttexdir_s = g.rootdir_s+"texturebank\\";
-	g.currentfxdir_s = g.rootdir_s+"effectbank\\";
-	g.currentpredir_s = g.rootdir_s+"prefabs\\";
-	g.currentsegdir_s = g.rootdir_s+"segments\\";
-	g.currentvideodir_s = g.rootdir_s+"videobank\\";
-}
-#endif
-
 void GenerateDOCDOCHelpFiles ( void )
 {
 	// init string list for help file

@@ -1,33 +1,43 @@
--- Switch_Count v8
+-- Switch_Count v9
 -- DESCRIPTION: Will create a switch series to ActivateIfUsed when completed.
 -- DESCRIPTION: Activate all [SWITCHES=4] to complete.
 -- DESCRIPTION: Switch [@SWITCH_STATE=1(1=On, 2=Off)].
 -- DESCRIPTION: Set [USE_RANGE=60 (1,100)] distance
 -- DESCRIPTION: Set [USE_PROMPT$="E to use"]
 -- DESCRIPTION: Count [MESSAGE_DURATION=2 (1,5)] seconds.
+-- DESCRIPTION: Select [@COMPLETION=1(1=End Level, 2=Activate if Used)] controls whether to end level or activate if used object.
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: Play <Sound0> when switch activated
 -- DESCRIPTION: Play <Sound1> when completed
--- DESCRIPTION: Select [@COMPLETION=1(1=End Level, 2=Activate if Used)] controls whether to end level or activate if used object.
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
 g_SwitchesActivated = 0
 
-local switch_count = {}
+local switch_count 		= {}
+local switches			= {}
+local state				= {}
+local use_range			= {}
+local use_prompt		= {}
+local message_duration	= {}
+local completion		= {}
+local item_highlight	= {}
+
 local switch_count_active 	= {}
 local doonce 				= {}
 local tEnt 					= {}
 local selectobj 			= {}
+local item_highlight	= {}
 
-function switch_count_properties(e, switches, state, use_range, use_prompt, message_duration, completion)
-	switch_count[e] = g_Entity[e]
+function switch_count_properties(e, switches, state, use_range, use_prompt, message_duration, completion, item_highlight)
 	switch_count[e].switches = switches
 	switch_count[e].state = state
 	switch_count[e].use_range = use_range
 	switch_count[e].use_prompt = use_prompt
 	switch_count[e].message_duration = message_duration
 	switch_count[e].completion = completion
+	switch_count[e].item_highlight = item_highlight	or 0
 end 
 
 function switch_count_init(e)
@@ -38,6 +48,8 @@ function switch_count_init(e)
 	switch_count[e].use_prompt = "E to use"
 	switch_count[e].message_duration = 1
 	switch_count[e].completion = 1
+	switch_count[e].item_highlight = 0
+	
 	switch_count_active[e] = 1
 	doonce[e] = 0
 	tEnt[e] = 0
@@ -65,7 +77,7 @@ function switch_count_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist <= switch_count[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,switch_count[e].use_range,300)
+			module_misclib.pinpoint(e,switch_count[e].use_range,switch_count[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--			
 		end	

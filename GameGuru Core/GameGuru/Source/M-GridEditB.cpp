@@ -71,7 +71,6 @@ extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
 extern char g_Storyboard_Current_Loading_Page[256];
 extern std::vector<std::string> projectbank_list;
-//extern std::vector<bool> projectbank_list_exist; 
 extern std::vector<std::string> projectbank_image;
 extern std::vector<int> projectbank_imageid;
 extern StoryboardStruct Storyboard;
@@ -32825,9 +32824,28 @@ void GetProjectSortData (std::vector<ProjectSortData>& output)
 				wchar_t filePath[MAX_PATH];
 				MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
 
-				HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL,
-					OPEN_EXISTING, 0, NULL);
-
+				HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					strcpy(project, destination);
+					strcat(project, folder.Get());
+					strcat(project, "\\remoteproject.txt");
+					if(GG_FileExists(project))
+					{
+						char pAbsTrueProjectPath[MAX_PATH];
+						OpenToRead(1, project);
+						strcpy(pAbsTrueProjectPath, ReadString(1));
+						CloseFile(1);
+						GG_GetRealPath(pAbsTrueProjectPath, 0);
+						strcpy(project, pAbsTrueProjectPath);
+						strcat(project, folder.Get());
+						strcat(project, "\\Files\\projectbank\\");
+						strcat(project, folder.Get());
+						strcat(project, "\\project.dat");
+						MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
+						hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+					}
+				}
 				if (hFile != INVALID_HANDLE_VALUE)
 				{
 					// Get the last write time for this file.
@@ -32872,15 +32890,6 @@ void SortProjects(int iProjectSortMode)
 
 	std::vector<ProjectSortData> sortData;
 	GetProjectSortData(sortData);
-
-	//// Attach image IDs to the project data so its new order can be determined.
-	//for (int i = 0; i < sortData.size(); i++)
-	//{
-	//	//sortData[i].imageID = projectbank_imageid[i];
-	//	//sortData[i].imageName = projectbank_image[i];
-	//}
-	//projectbank_imageid.clear();
-	//projectbank_image.clear();
 	
 	// Perform the sort.
 	switch (iProjectSortMode)
@@ -32911,7 +32920,6 @@ void SortProjects(int iProjectSortMode)
 
 	// Set the new order of project names.
 	projectbank_list.clear();
-	//projectbank_list_exist.clear();
 	for (int i = 0; i < sortData.size(); i++)
 	{
 		projectbank_list.push_back(sortData[i].folderName);
@@ -32931,12 +32939,30 @@ void GetProjectThumbnails()
 			char project[MAX_PATH];
 			strcpy(project, "projectbank\\");
 			strcat(project, projectbank_list[i].c_str());
+			strcat(project, "\\remoteproject.txt");
+			FILE* projectfile = NULL;
+			if (GG_FileExists(project))
+			{
+				// this project is a remote project
+				char pAbsTrueProjectPath[MAX_PATH];
+				OpenToRead(1, project);
+				strcpy(pAbsTrueProjectPath, ReadString(1));
+				CloseFile(1);
+				GG_GetRealPath(pAbsTrueProjectPath, 0);
+				strcpy(project, pAbsTrueProjectPath);
+				strcat(project, projectbank_list[i].c_str());
+				strcat(project, "\\Files\\projectbank\\");
+			}
+			else
+			{
+				// regular projectbank project
+				strcpy(project, "projectbank\\");
+			}
+			strcat(project, projectbank_list[i].c_str());
 			strcat(project, "\\project.dat");
-
-			FILE* projectfile = GG_fopen(project, "rb");
+			projectfile = GG_fopen(project, "rb");
 			if (projectfile)
 			{
-				//size_t size = fread(&smallcheckproject, 1, sizeof(smallcheckproject), projectfile);
 				//PE: Need full load now, as we can have Game Settings.
 				size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 
@@ -33942,7 +33968,7 @@ void Welcome_Screen(void)
 					float colwidth = ImGui::GetContentRegionAvailWidth(); //padding.
 					float fRatio = colwidth / 512.0f;
 					ImVec2 iThumbSize = { (float)512.0*fRatio, (float)288.0*fRatio };
-					int iCount = projectbank_list.size();
+					int iCount = projectbank_list.size() + 1;
 					if (iCount < 9) iCount = 9; //PE: Always display min. 9 empty slots.
 					for (int i = 0; i < iCount; i++)
 					{
@@ -39859,149 +39885,6 @@ void process_storeboard(bool bInitOnly)
 		}
 
 		int iCreateRet = save_create_storyboard_project();
-		/*
-		if (bTriggerSaveAs)
-		{
-			//Ask to save as.
-
-			ImGui::OpenPopup("Save As#Storyboard");
-			ImGui::SetNextWindowSize(ImVec2(0, 524), ImGuiCond_Once);
-			static int popwinheight = 0;
-			if (popwinheight > 800 || iSkibFramesBeforeLaunch > 0)
-			{
-				ImGui::SetNextWindowSize(ImVec2(0, 524), ImGuiCond_Always);
-			}
-			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-			bool bSaveAsWindow = true;
-			if (ImGui::BeginPopupModal("Save As#Storyboard", &bSaveAsWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
-			{
-				popwinheight = ImGui::GetWindowSize().y;
-				ImGui::Indent(10);
-				ImGui::Text("");
-				ImGui::SetWindowFontScale(1.4);
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::TextCenter("Create New Game Project");
-					ImGui::SetWindowFontScale(1.0);
-					ImGui::Text("");
-				}
-				else
-				{
-					ImGui::TextCenter("Save Game Project As");
-				}
-				ImGui::Separator();
-
-				ImGui::Dummy(ImVec2(460, 1));
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::Text("");
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::Text("Please give your new game project a name and click 'save'");
-				}
-				else
-				{
-					ImGui::Text("To save your game project, please give your project a name and click 'save'");
-				}
-				ImGui::Text("");
-				ImGui::TextWrapped("NOTE: This name will also be used as your standalone game name.");
-				ImGui::Text("");
-				if (strlen(SaveProjectAsError) > 0)
-				{
-					ImGui::Text(SaveProjectAsError);
-					ImGui::Text("");
-				}
-				ImGui::Text("Game Project Name");
-				ImGui::PushItemWidth(-10);
-				if (ImGui::InputText("##SaveAsNameStoryboard", SaveProjectAsName, 250, ImGuiInputTextFlags_None))//ImGuiInputTextFlags_None ImGuiInputTextFlags_ReadOnly
-				{
-					//Clean name.
-					std::string sCleanName = SaveProjectAsName;
-					replaceAll(sCleanName, """", "");
-					replaceAll(sCleanName, "\\", "");
-					replaceAll(sCleanName, "/", "");
-					replaceAll(sCleanName, "^", "");
-					replaceAll(sCleanName, "?", "");
-					replaceAll(sCleanName, "@", "");
-					strcpy(SaveProjectAsName, sCleanName.c_str());
-				}
-				ImGui::PopItemWidth();
-
-				ImGui::Text("");
-
-				ImGui::SetWindowFontScale(1.4);
-
-				bool bClicked = false;
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2( (ImGui::GetContentRegionAvailWidth()*0.25), 0)); //Center with new header.
-					bClicked = ImGui::StyleButton("Save", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f));
-				}
-				else
-					bClicked = ImGui::StyleButton("Save As", ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f));
-
-				if(bClicked)
-				{
-					if (strlen(SaveProjectAsName) > 0)
-					{
-						char destination[MAX_PATH];
-						strcpy(destination, "projectbank\\");
-						strcat(destination, SaveProjectAsName);
-						GG_GetRealPath(destination, 1);
-						int bOkSave = true;
-						if (PathExist(destination) == 1)
-						{
-							int iAction = askBoxCancel("Project already exists, do you want to overwrite ?", "Confirmation"); //1==Yes 2=Cancel 0=No
-							if (iAction == 1)
-							{
-								//backup old folder.
-								int i_loop = 1;
-								char backup[MAX_PATH];
-								sprintf(backup, "%s_backup_%d", destination, i_loop++);
-								while (MoveFileA(destination, backup) == 0)
-										sprintf(backup, "%s_backup_%d", destination, i_loop++);
-							}
-							else
-							{
-								//Cancel.
-								bOkSave = false;
-							}
-						}
-						if (bOkSave)
-						{
-							//Continue.
-							MakeDirectory(destination);
-							strcat(destination, "\\project.dat");
-							strcpy(Storyboard.gamename, SaveProjectAsName);
-							Storyboard.project_readonly = 0;
-							save_storyboard(Storyboard.gamename, false);
-							bTriggerSaveAs = false;
-							bTriggerSaveAsAfterNewLevel = false;
-						}
-					}
-					else
-					{
-						strcpy(SaveProjectAsError, "Error: Please give your game project a name before saving.");
-					}
-				}
-				if (!bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::SameLine();
-					if (ImGui::StyleButton("Cancel", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
-					{
-						//Cancel.
-						bTriggerSaveAs = false;
-						bTriggerSaveAsAfterNewLevel = false;
-					}
-				}
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::Text("");
-
-				bImGuiGotFocus = true;
-				ImGui::Indent(-10);
-				ImGui::EndPopup();
-			}
-		}
-		*/
 
 		if (!bPopModalStoryboard)
 		{
@@ -40977,6 +40860,10 @@ void process_storeboard(bool bInitOnly)
 							bStoryboardWindow = false;
 							cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
 							bSortProjects = true;
+
+							// and in case this was a remote project, restore to writables regular
+							extern void switch_to_regular_projects(void);
+							switch_to_regular_projects();
 						}
 					}
 				}
@@ -44046,6 +43933,49 @@ int save_level_as( void )
 	return(iRet);
 }
 
+void switch_to_remote_project(LPSTR ProjectAsName)
+{
+	// store writables folder
+	char pStoreWriteable[MAX_PATH];
+	strcpy(pStoreWriteable, pref.cCustomWriteFolder);
+
+	// before move to new project folder, create projectbank marker so can load this remove located project
+	char pRemoteProject[MAX_PATH];
+	strcpy(pRemoteProject, "projectbank\\");
+	strcat(pRemoteProject, ProjectAsName);
+	strcat(pRemoteProject, "\\remoteproject.txt");
+	GG_GetRealPath(pRemoteProject, 1);
+
+	// create new project folder area
+	strcpy(pref.cCustomWriteFolder, Storyboard.customprojectfolder);
+	if (pref.cCustomWriteFolder[strlen(pref.cCustomWriteFolder) - 1] != '\\') strcat(pref.cCustomWriteFolder, "\\");
+	strcat(pref.cCustomWriteFolder, ProjectAsName);
+	if (pref.cCustomWriteFolder[strlen(pref.cCustomWriteFolder) - 1] != '\\') strcat(pref.cCustomWriteFolder, "\\");
+	SetUpdaterWritePathFile(pref.cCustomWriteFolder);
+	FileRedirectChangeWritableArea("");
+
+	// create remote project marker
+	OpenToWrite(1, pRemoteProject);
+	WriteString(1, Storyboard.customprojectfolder);
+	CloseFile(1);
+
+	// restore writables folder
+	strcpy(pref.cCustomWriteFolder, pStoreWriteable);
+}
+
+void switch_to_regular_projects(void)
+{
+	// generate app folder using exe name
+	HMODULE hModule = GetModuleHandle(NULL);
+	char szModule[MAX_PATH] = "";
+	char szDrive[10] = "";
+	char szDir[MAX_PATH] = "";
+	char szEXE[MAX_PATH] = "";
+	GetModuleFileNameA(hModule, szModule, MAX_PATH);
+	_splitpath_s(szModule, szDrive, 10, szDir, MAX_PATH, szEXE, MAX_PATH, NULL, 0);
+	FileRedirectRestoreWritableArea(szEXE);
+}
+
 int save_create_storyboard_project(void)
 {
 	int iRet = 0;
@@ -44168,12 +44098,64 @@ int save_create_storyboard_project(void)
 			ImGui::PopItemWidth();
 
 			ImGui::Text("");
-
 			ImGui::SetWindowFontScale(1.4);
 
+			// New project Systemn Setting
+			ImGui::TextCenter("Optional Project Folder");
+			ImGui::SetWindowFontScale(1.2);
+			ImGui::TextCenter("By default all projects are stored in the projectbank area.");
+			ImGui::TextCenter("You have the option to create your game project folder at any location");
+			ImGui::TextCenter("and ensure that all media used in your game is copied to this sepoarate");
+			ImGui::TextCenter("location, allowing your project to keep all necessary files in one place");
+			float path_gadget_size = ImGui::GetFontSize() * 2.0;
+			ImGui::PushItemWidth(-10 - path_gadget_size);
+			static bool bSeparateProjectFolder = false;
+			if (strlen(Storyboard.customprojectfolder) == 0) bSeparateProjectFolder = false;
+			if (strlen(Storyboard.customprojectfolder) > 0) bSeparateProjectFolder = true;
+			if (ImGui::Checkbox("Separate project folder", &bSeparateProjectFolder))
+			{
+				if(bSeparateProjectFolder==false)
+				{
+					strcpy(Storyboard.customprojectfolder, "");
+				}
+				else
+				{
+					if (strlen(Storyboard.customprojectfolder) == 0)
+					{
+						strcpy(Storyboard.customprojectfolder, "C:\\Dropbox\\");
+					}
+				}
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose whether the game project should be a completely separate project area");
+			if (bSeparateProjectFolder)
+			{
+				ImGui::InputText("##InputCustomNewProjectFolder", &Storyboard.customprojectfolder[0], 250, ImGuiInputTextFlags_ReadOnly);
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Location of separate project folder");
+				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+				ImGui::SameLine();
+				ImGui::PushItemWidth(path_gadget_size);
+				if (ImGui::StyleButton("...##pathCustomNewProjectFolder"))
+				{
+					cStr tOldDir = GetDir();
+					char* cFileSelected;
+					cstr fulldir = pref.cCustomWriteFolder;
+					cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", fulldir.Get(), NULL);
+					SetDir(tOldDir.Get());
+					if (cFileSelected && strlen(cFileSelected) > 0)
+					{
+						strcpy(Storyboard.customprojectfolder, cFileSelected);
+						if (Storyboard.customprojectfolder[strlen(Storyboard.customprojectfolder) - 1] != '\\') strcat(Storyboard.customprojectfolder, "\\");
+					}
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify location for separate project folder");
+				ImGui::PopItemWidth();
+			}
+			ImGui::PopItemWidth();
+			ImGui::Text("");
+#
+			// Create Project Button
 			if (bTriggerSaveAsAfterNewLevel)
 			{
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2( (ImGui::GetContentRegionAvailWidth()*0.25), 0)); //Center with new header.
 				bClicked = ImGui::StyleButton("Create Game Project", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f));
 			}
 			else
@@ -44181,6 +44163,12 @@ int save_create_storyboard_project(void)
 
 			if (bClicked || bForceClicked)
 			{
+				// if custom project folder, new wriables
+				if (strlen(Storyboard.customprojectfolder) > 0)
+				{
+					switch_to_remote_project(SaveProjectAsName);
+				}
+
 				//PE: Trim
 				std::string sCleanName = SaveProjectAsName;
 				sCleanName.erase(sCleanName.find_last_not_of(" \t") + 1); //PE: No spaces tab at end.
@@ -45373,17 +45361,32 @@ void load_storyboard(char *name)
 	strcat(project, name);
 	strcat(project, "\\project.dat");
 	FILE* projectfile = GG_fopen(project, "rb");
+	if (projectfile==NULL)
+	{
+		// switch to remote project
+		strcpy(project, "projectbank\\");
+		strcat(project, name);
+		strcat(project, "\\remoteproject.txt");
+		if (GG_FileExists(project))
+		{
+			// get remote folder
+			OpenToRead(1, project);
+			LPSTR pRemoteProject = ReadString(1);
+			CloseFile(1);
+
+			// switch to it now
+			strcpy(Storyboard.customprojectfolder, pRemoteProject);
+			switch_to_remote_project(name);
+
+			// proceed as normal, loading now from the remote folder
+			strcpy(project, "projectbank\\");
+			strcat(project, name);
+			strcat(project, "\\project.dat");
+			projectfile = GG_fopen(project, "rb");
+		}
+	}
 	if (projectfile)
 	{
-		// full reset of nodes (in case added new fields and need defaults)
-		//for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-		//{
-		//	for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
-		//	{
-		//		Storyboard.widget_ingamehidden[i][iWidgetIndex] = 0;
-		//		Storyboard.widget_drawordergroup[i][iWidgetIndex] = 0;
-		//	}
-		//}
 		//this sets ALL fields data to zero, and only filled with known structure (members added at end not part of the copy to remain zeros)
 		memset(&checkproject, 0, sizeof(StoryboardStruct));
 
@@ -45487,6 +45490,7 @@ void load_storyboard(char *name)
 		GG_GetRealPath(projectfolder, 1);
 		SetDir(projectfolder);
 
+		/* never used
 		// files folder
 		if (PathExist("Files") == 0) CreateDirectoryA("Files", NULL);
 		SetDir("Files");
@@ -45508,8 +45512,13 @@ void load_storyboard(char *name)
 			// SetDir(mediafolder);
 			// if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
 		}
+		*/
 	}
 	SetDir(pOldDir);
+
+	//
+	// NOTE: RefreshPurchasedFolder creates unncessary FILES folder in projectbank!!!
+	//
 
 	// also trigger a refresh of files lists, the project folder contributes to library file choices!
 	extern void RefreshPurchasedFolder (void);
@@ -45577,7 +45586,6 @@ void GetProjectList(char *path, bool bGetThumbs)
 	if (cLastProjectList != path)
 	{
 		projectbank_list.clear();
-		//projectbank_list_exist.clear();
 		projectbank_imageid.clear();
 		projectbank_image.clear();
 
@@ -45600,33 +45608,34 @@ void GetProjectList(char *path, bool bGetThumbs)
 				if (folder != "." && folder != "..")
 				{
 					bool bIgnore = true;
+
+					bool bHaveAProject = false;
 					char project[MAX_PATH];
 					strcpy(project, destination);
 					strcat(project, folder.Get());
 					strcat(project, "\\project.dat");
-
+					if (GG_FileExists(project))
+					{
+						bHaveAProject = true;
+					}
+					else
+					{
+						strcpy(project, destination);
+						strcat(project, folder.Get());
+						strcat(project, "\\remoteproject.txt");
+						if (GG_FileExists(project))
+						{
+							bHaveAProject = true;
+						}
+					}
 					//PE: Must have a project.
-					if ( GG_FileExists(project) )
+					if (bHaveAProject == true)
 					{
 						bIgnore = false;
 					}
 					if (!bIgnore)
 					{
 						projectbank_list.push_back(folder.Get());
-
-						// quick check to see if the folder exists
-						//bool bProjectExist = false;
-						//char pProjFolderFile[MAX_PATH];
-						//strcpy(pProjFolderFile, "projectbank\\");
-						//strcat(pProjFolderFile, folder.Get());
-						//strcat(pProjFolderFile, "\\project.dat");
-						//GG_GetRealPath(pProjFolderFile, false);
-						//if (FileExist(pProjFolderFile) == 1)
-						//	bProjectExist = true;
-						//else
-						//	bProjectExist = false;
-						//projectbank_list_exist.push_back(bProjectExist);
-
 						if (!bGetThumbs)
 						{
 							projectbank_image.push_back(""); //Just use CLICK HERE.
@@ -45648,12 +45657,30 @@ void GetProjectList(char *path, bool bGetThumbs)
 					char project[MAX_PATH];
 					strcpy(project, "projectbank\\");
 					strcat(project, projectbank_list[i].c_str());
+					strcat(project, "\\remoteproject.txt");
+					FILE* projectfile = NULL;
+					if (GG_FileExists(project))
+					{
+						// this project is a remote project (aproj7\Files\projectbank\aproj7)
+						char pAbsTrueProjectPath[MAX_PATH];
+						OpenToRead(1, project);
+						strcpy(pAbsTrueProjectPath, ReadString(1));
+						CloseFile(1);
+						GG_GetRealPath(pAbsTrueProjectPath, 0);
+						strcpy(project, pAbsTrueProjectPath);
+						strcat(project, projectbank_list[i].c_str());
+						strcat(project, "\\Files\\projectbank\\");
+					}
+					else
+					{
+						// regular projectbank project
+						strcpy(project, "projectbank\\");
+					}
+					strcat(project, projectbank_list[i].c_str());
 					strcat(project, "\\project.dat");
-
-					FILE* projectfile = GG_fopen(project, "rb");
+					projectfile = GG_fopen(project, "rb");
 					if (projectfile)
 					{
-						//size_t size = fread(&smallcheckproject, 1, sizeof(smallcheckproject), projectfile);
 						//PE: Need full load now, as we can have Game Settings.
 						size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 

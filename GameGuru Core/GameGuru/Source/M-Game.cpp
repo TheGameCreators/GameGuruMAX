@@ -3111,11 +3111,6 @@ bool game_masterroot_levelloop_initcode(int iUseVRTest)
 			replaceAll(sLevelTitle, "mapbank\\", "");
 			t.game.jumplevel_s = sLevelTitle.c_str();
 		}
-//		char project[MAX_PATH];
-//		strcpy(project, "projectbank\\");
-//		strcat(project, t.game.jumplevel_s);
-//		strcat(project, "\\project.dat");
-
 #endif
 	}
 

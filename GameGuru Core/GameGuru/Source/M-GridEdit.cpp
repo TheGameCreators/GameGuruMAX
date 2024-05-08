@@ -30,7 +30,6 @@ char g_Storyboard_Current_fpm[256];
 char g_Storyboard_Current_lua[256];
 char g_Storyboard_Current_Loading_Page[256];
 std::vector<std::string> projectbank_list;
-//std::vector<bool> projectbank_list_exist;
 std::vector<std::string> projectbank_image;
 std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
@@ -1783,9 +1782,9 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 void mapeditorexecutable_full_folder_refresh(void)
 {
 	// work out the project folder path for third location of assets
-	static char cFullProjectWriteBasePath[MAX_PATH];
-	strcpy(cFullProjectWriteBasePath, "projectbank\\");
-	strcat(cFullProjectWriteBasePath, Storyboard.gamename);
+	//static char cFullProjectWriteBasePath[MAX_PATH];
+	//strcpy(cFullProjectWriteBasePath, "projectbank\\");
+	//strcat(cFullProjectWriteBasePath, Storyboard.gamename);
 	static char cFullProjectWritePath[MAX_PATH];
 	static char cFullWritePath[MAX_PATH];
 
@@ -1827,9 +1826,10 @@ void mapeditorexecutable_full_folder_refresh(void)
 			{
 				// tracks folder creations
 				cFolderItem* pLastFolder = &MainEntityList;
-
-				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
 				cFolderItem* pFirstOfTheLastFolder = NULL;
+
+				/* new project system works a little differently
+				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
 				if (iMediaFolderType >= 0 && iMediaFolderType <= 4)
 				{
 					strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
@@ -1843,6 +1843,7 @@ void mapeditorexecutable_full_folder_refresh(void)
 					}
 					pFirstOfTheLastFolder = pLastFolder;
 				}
+				*/
 
 				// writables folder
 				GetMainEntityList(cFullWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
@@ -16592,14 +16593,10 @@ void mapeditorexecutable_finish(void)
 		//}
 
 		cstr prefile = defaultWriteFolder;
-#ifdef WICKEDENGINE
 		prefile += "gamegurumax.pref";
-#else
-		prefile += "gameguru.pref";
-#endif
-
 		FILE* preffile = GG_fopen(prefile.Get(), "wb+");
-		if (preffile) {
+		if (preffile) 
+		{
 			fwrite(&pref, 1, sizeof(pref), preffile);
 			fclose(preffile);
 		}

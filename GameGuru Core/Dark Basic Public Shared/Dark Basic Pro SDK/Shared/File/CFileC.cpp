@@ -103,6 +103,76 @@ void SetWriteAsRootTemp(bool bEnable)
 	g_bSetWriteAsRootTemp = bEnable;
 }
 
+bool FileRedirectChangeWritableArea ( LPSTR szEXE )
+{
+	bool bResult = false;
+	extern preferences pref;
+	strcpy(szWriteDirAdditional, "");
+	if (strlen(pref.cCustomWriteFolder) > 0)
+	{
+		strcpy(szWriteDir, pref.cCustomWriteFolder);
+		if (GG_CreatePath(szWriteDir))
+		{
+			//Check if we can write to this folder.
+			char TestWrite[MAX_PATH];
+			strcpy(TestWrite, szWriteDir);
+			strcat(TestWrite, "test.tst");
+			FILE* testFile = fopen(TestWrite, "w");
+			if (testFile)
+			{
+				fprintf(testFile, "test");
+				fclose(testFile);
+			}
+			if (FileExist(TestWrite) == 1)
+			{
+				DeleteAFile(TestWrite);
+				//Write success , use this folder.
+				if (!SHGetSpecialFolderPath(NULL, szWriteDirAdditional, CSIDL_MYDOCUMENTS, TRUE))
+				{
+					//PE: This happened for a user , even when they got the document folder ? , try the new way.
+					HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDirAdditional);
+					if (result != S_OK)
+					{
+						strcpy(szWriteDirAdditional, "");
+						return false;
+					}
+				}
+				if (strlen(szEXE) > 0)
+				{
+					strcat_s(szWriteDirAdditional, MAX_PATH, "\\GameGuruApps\\");
+					strcat_s(szWriteDirAdditional, MAX_PATH, szEXE);
+					strcat_s(szWriteDirAdditional, MAX_PATH, "\\");
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void FileRedirectRestoreWritableArea (LPSTR szEXE)
+{
+	// restore to regular writeables system
+	if (!SHGetSpecialFolderPath(NULL, szWriteDir, CSIDL_MYDOCUMENTS, TRUE))
+	{
+		//PE: This happened for a user , even when they got the document folder ? , try the new way.
+		HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDir);
+		if (result != S_OK)
+		{
+			// if no my documents folder use exe location
+			strcpy(szWriteDir, szRootDir);
+
+			//PE: Dont add to this folder , so just return.
+			return;
+		}
+	}
+
+	// create the initial documents path
+	strcat_s(szWriteDir, MAX_PATH, "\\GameGuruApps\\");
+	strcat_s(szWriteDir, MAX_PATH, szEXE);
+	strcat_s(szWriteDir, MAX_PATH, "\\");
+}
+
 void FileRedirectSetup()
 {
 	// leave if already set up
@@ -132,45 +202,9 @@ void FileRedirectSetup()
 	}
 	else
 	{
-		extern preferences pref;
-		strcpy(szWriteDirAdditional, "");
-		if (strlen(pref.cCustomWriteFolder) > 0)
-		{
-			strcpy(szWriteDir, pref.cCustomWriteFolder);
-			if (GG_CreatePath(szWriteDir))
-			{
-				//Check if we can write to this folder.
-				char TestWrite[MAX_PATH];
-				strcpy(TestWrite, szWriteDir);
-				strcat(TestWrite, "test.tst");
-
-				FILE* testFile = fopen(TestWrite, "w");
-				if (testFile)
-				{
-					fprintf(testFile, "test");
-					fclose(testFile);
-				}
-				if (FileExist(TestWrite) == 1)
-				{
-					DeleteAFile(TestWrite);
-					//Write success , use this folder.
-					if (!SHGetSpecialFolderPath(NULL, szWriteDirAdditional, CSIDL_MYDOCUMENTS, TRUE))
-					{
-						//PE: This happened for a user , even when they got the document folder ? , try the new way.
-						HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDirAdditional);
-						if (result != S_OK)
-						{
-							strcpy(szWriteDirAdditional, "");
-							return;
-						}
-					}
-					strcat_s(szWriteDirAdditional, MAX_PATH, "\\GameGuruApps\\");
-					strcat_s(szWriteDirAdditional, MAX_PATH, szEXE);
-					strcat_s(szWriteDirAdditional, MAX_PATH, "\\");
-					return;
-				}
-			}
-		}
+		if (FileRedirectChangeWritableArea (szEXE) == true) return;
+		FileRedirectRestoreWritableArea(szEXE);
+		/*
 		if (!SHGetSpecialFolderPath(NULL, szWriteDir, CSIDL_MYDOCUMENTS, TRUE))
 		{
 			//PE: This happened for a user , even when they got the document folder ? , try the new way.
@@ -183,11 +217,11 @@ void FileRedirectSetup()
 				return;
 			}
 		}
-
 		// create the initial documents path
 		strcat_s( szWriteDir, MAX_PATH, "\\GameGuruApps\\" );
 		strcat_s( szWriteDir, MAX_PATH, szEXE );
 		strcat_s( szWriteDir, MAX_PATH, "\\" );
+		*/
 	}
 
 	// use this writable area folder

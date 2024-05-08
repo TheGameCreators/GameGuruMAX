@@ -326,6 +326,7 @@ int iAboutLogoType = 0;
 int active_tools_obj = 0;
 int active_tools_entity_index = 0;
 int g_iUseLODObjects = 0;
+bool bDisableLODLoad = true;
 
 #endif //WICKEDENGINE
 
@@ -21544,7 +21545,8 @@ void editor_restoreeditcamera ( void )
 {
 	#ifdef WICKEDENGINE
 	// when returning from a VR session, need to restore camera perspective and original resolution settings
-	master.masterrenderer.Set3DResolution( master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight() );
+	//PE: GetPhysicalWidth/Height are wrong here, we set the correct values when "ResizeBuffer" are also called. triggered by WM_SIZE
+	//master.masterrenderer.Set3DResolution( master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight() );
 	#endif
 
 	// editor starting camera position - reset camera

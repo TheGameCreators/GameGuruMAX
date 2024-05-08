@@ -9,6 +9,7 @@
 #include <stack>
 #include <stdio.h>
 #include <math.h>
+#include <mutex>
 
 // Bullet specific includes
 #include "btBulletDynamicsCommon.h"
@@ -899,6 +900,7 @@ float BULLETCosineInterpolate ( float y1, float y2, float mu )
  return ( y1 * ( 1 - mu2 ) + y2 * mu2 );
 }
 
+std::mutex physicslock = {};
 void Update(float fTimeStep)
 {
 	// step physics simulation
@@ -906,12 +908,17 @@ void Update(float fTimeStep)
 	//PE: We are calling it at 60 fps , so bullet is always behind and need to call the simulation many times per frame to keep up.
 	//PE: Well this change physics demos and how they are coded , bad luck ...
 	//PE: We should consider to use this as the default in Max.
+	
+	//PE: Cant touch physics object while running stepsimulation.
+	physicslock.lock();
 	#ifdef FASTBULLETPHYSICS
 		//PE: fixed timestep with interpolation set at 1/60.
 		g_dynamicsWorld->stepSimulation(fTimeStep, 7, btScalar(1.) / btScalar(60.));
 	#else
 		g_dynamicsWorld->stepSimulation(fTimeStep, 7, 1.0f / 120.0f);
 	#endif
+
+	physicslock.unlock();
 
 	// update ragdoll simulations
 	ragdollManager->Update();
@@ -949,6 +956,7 @@ void Update(float fTimeStep)
 	}
 
 	// print positions of all objects
+	physicslock.lock();
 	for (int j = ((int)g_PhyObjectList.size()) - 1; j >= 0; j--)
 	{
 		// get this object
@@ -1078,6 +1086,7 @@ void Update(float fTimeStep)
 			}
 		}
 	}
+	physicslock.unlock();
 
 	// Draw the debug physics objects.
 	if (g_debugDrawer.getDebugMode() != 0)
@@ -1371,6 +1380,9 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	if ( iTipOverMode == 12 ) { bLeavePlayerAlone = true; iTipOverMode = 0; }
 	if ( iTipOverMode == 13 ) { bDoNotCollideWithCapsuleCharacters = true; iTipOverMode = 0; }
 
+	//PE: Weapon drop , must wait for physics thread to end.
+	physicslock.lock();
+
 	// create a bullet shape
 	btCollisionShape* boxShape = NULL;
 	if ( iTipOverMode==0 )
@@ -1469,6 +1481,8 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 
 	// add physics object details to pbject list
 	ODEAddObject ( iObjectNumber, pObject, body, isDynamic, myMotionState, false, bBouyant, NULL, NULL, 1, 1, fFriction, mass );
+	
+	physicslock.unlock();
 }
 
 void StartStaticObject ( int iObjectNumber )
@@ -3456,13 +3470,22 @@ int ODECreateSliderDouble( int iObjectNumA, int iObjectNumB,
 {
 	return CreateSliderDouble( iObjectNumA, iObjectNumB, qXa, qYa, qZa, qWa, fXa, fYa, fZa, qXb, qYb, qZb, qWb, fXb, fYb, fZb, useLinearReferenceFrameA );
 }
+
+
 void ODEDestroyObject ( int iObjectNumber )
 {
+	//PE: dont touch while simulation is processed.
+	physicslock.lock();
 	// get reference object
 	sObjectList* pPhyObject = ODEFindID ( iObjectNumber );
-	if ( pPhyObject==NULL ) return;
+	if (pPhyObject == NULL)
+	{
+		physicslock.unlock();
+		return;
+	}
 	DestroyThisObject ( pPhyObject );
 	ODERemoveObject ( iObjectNumber );
+	physicslock.unlock();
 }
 
 // Does not work at the moment
@@ -3556,6 +3579,7 @@ int BPhys_RagDollAddBone(int startLimbID, int endLimbID, float diameter, int col
 
 int BPhys_RagDollAddBone2(int startLimbID, int endLimbID, float diameter, float lengthmod, int collisionGroup, int collisionMask)
 {
+	if (startLimbID == -1 || endLimbID == -1) return -1;
 	if(currentDBProRagDoll != NULL)
 	{
 		return currentDBProRagDoll->AddBone(currentDBProRagDoll->GetID(), startLimbID, endLimbID, diameter, lengthmod, collisionGroup, collisionMask);
@@ -3569,6 +3593,7 @@ int BPhys_RagDollAddBone2(int startLimbID, int endLimbID, float diameter, float 
 
 void BPhys_RagDollBoneAddLimbID(int boneID, int limbID) 
 {
+	if (limbID == -1) return;
 	if(currentDBProRagDoll != NULL)
 	{
 		currentDBProRagDoll->AssignLimbIDToBone( boneID, limbID);
@@ -3581,6 +3606,7 @@ void BPhys_RagDollBoneAddLimbID(int boneID, int limbID)
 
 void BPhys_RagDollAddHingeJoint(int boneAID, int boneBID, int limbID, int jointRotationVec3, int limitsVec2)
 {
+	if (boneAID == -1 || boneBID == -1 || limbID == -1) return;
 	if(currentDBProRagDoll!=NULL)
 	{
 		DBProToBullet::AssertValidVector(jointRotationVec3, "Parameter Passed To BPhys_RagDollAddHingeJoint Invalid");
@@ -3597,6 +3623,7 @@ void BPhys_RagDollAddHingeJoint(int boneAID, int boneBID, int limbID, int jointR
 
 void BPhys_RagDollAddTwistJoint(int boneAID, int boneBID, int limbID, int jointRotationVec3, int limitsVec3)
 {
+	if (limbID == -1 || boneBID == -1 || boneAID == -1) return;
 	if(currentDBProRagDoll!=NULL)
 	{
 		DBProToBullet::AssertValidVector(jointRotationVec3, "Parameter Passed To BPhys_RagDollAddTwistJoint Invalid");
@@ -3771,8 +3798,10 @@ void ODESetLinearVelocity ( int iObject, float fX, float fY, float fZ )
 	if ( pPhyObject->body==NULL ) return;
 
 	// apply linear velocity
+	physicslock.lock();
 	pPhyObject->body->activate();
 	pPhyObject->body->setLinearVelocity(btVector3(fX/gSc,fY/gSc,fZ/gSc));
+	physicslock.unlock();
 }
 
 void ODESetLinearVelocityXZWithGravity ( int iObject, float fX, float fZ, float fGravityForce )

@@ -133,11 +133,14 @@ DARKSDK bool UpdateSoundPtr ( int iID )
 	// update internal pointer
 
 	// set the pointer to null
-	m_ptr = NULL;
+	//m_ptr = NULL;  //PE: not thread safe, as others can use it. moved to if failed.
 	
 	// attempt to retrive the data
-	if ( ! ( m_ptr = m_SDKSoundManager.GetData ( iID ) ) )
+	if (!(m_ptr = m_SDKSoundManager.GetData(iID)))
+	{
+		m_ptr = NULL;
 		return false;
+	}
 
 	// if we got it ok then return true
 	return true;

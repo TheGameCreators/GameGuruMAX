@@ -8789,8 +8789,18 @@ void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float qua
 	g_envProbeList.push_back(item);
 }
 
-
+#ifdef TERRAINTHREADSAFE
 std::mutex terrainlock = {};
+#else
+class terrainlockclass
+{
+public:
+	void lock(void) {};
+	void unlock(void) {};
+};
+terrainlockclass terrainlock;
+#endif
+
 // update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
 {

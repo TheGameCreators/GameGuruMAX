@@ -4750,9 +4750,16 @@ void game_main_loop ( void )
 			// Handle physics
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
-			//physics_loop ( );
+
+			// reinstated physics into main CPU thread for stability over performance
+			physics_loop ( );
+
+			// special mode for testing
 			if (iEnterGodMode != 2)
+			{
 				physics_player_control (); // has LUA calls inside it
+			}
+
 			physics_player_handledeath (); // handles sound, so keep in main thread
 			wiProfiler::EndRange(range2);
 

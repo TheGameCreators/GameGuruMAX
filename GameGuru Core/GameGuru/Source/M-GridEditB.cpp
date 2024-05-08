@@ -50101,6 +50101,16 @@ int GetStoryboardCustomScreenNode(char *page)
 	return -1;
 }
 
+void GetStoryboardCustomScreenNodeName(int iNode, char* pRealNameStr)
+{
+	strcpy(pRealNameStr, Storyboard.Nodes[iNode].lua_name);
+	if (strnicmp(pRealNameStr + strlen(pRealNameStr) - 4, ".lua", 4) == NULL)
+	{
+		// chop any .lua extension
+		pRealNameStr[strlen(pRealNameStr) - 4] = 0;
+	}
+}
+
 bool bTempDisableRain = false;
 bool bTempDisableSnow = false;
 

@@ -74,10 +74,12 @@ public:
 			lock.Release();
 			if (g_bTriggerSomeGameLogic == true)
 			{
+				// physics on thread causes crashes and need of thread locking, so commented out for now
 				// savely moved out of main thread
-				auto range1 = wiProfiler::BeginRangeCPU("Extra - Logic - Physics");
-				physics_loop ();
-				wiProfiler::EndRange(range1);
+				//auto range1 = wiProfiler::BeginRangeCPU("Extra - Logic - Physics");
+				//physics_loop ();
+				//wiProfiler::EndRange(range1);
+
 				auto range2 = wiProfiler::BeginRangeCPU("Extra - Logic - Intersects");
 				ProcessIntersectDatabaseExtraThreadItemList();
 				wiProfiler::EndRange(range2);

@@ -2345,33 +2345,43 @@ void titleslua_main_stage1_init(LPSTR pPageName)
 	strcpy ( t.game.pSwitchToLastPage, g_pTitleCurrentPage );	
 }
 
+void GetStoryboardCustomScreenNodeName(int iNode, char* pRealNameStr);
 int GetStoryboardCustomScreenNode(char* page);
 void titleslua_main_stage2_preloop(void)
 {
+	char pRealNameOfScreen[256];
+	strcpy(pRealNameOfScreen, g_pTitleCurrentPage);
+
 	// call init function to set up resources
 	char pLUAInit[256];
 	int CustomScreenNode = 0;
 	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
-		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	{
+		int realnodeid = atoi(t.game.pSwitchToPage + 6);
+		GetStoryboardCustomScreenNodeName(realnodeid, pRealNameOfScreen);
+		CustomScreenNode = GetStoryboardCustomScreenNode(pRealNameOfScreen);
+	}
 	else
 		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+
 	if (CustomScreenNode >= 0)
 	{
 		strcpy(pLUAInit,"custom_init");
 		strcpy(g_strErrorClue, pLUAInit);
 		LuaSetFunction(pLUAInit, 1, 0);
-		LuaPushString(g_pTitleCurrentPage);
+		LuaPushString(pRealNameOfScreen);
 		LuaCall();
 	}
 	else
 	{
-		strcpy(pLUAInit, cstr(cstr(g_pTitleCurrentPage) + "_init").Get());
+		strcpy(pLUAInit, cstr(cstr(pRealNameOfScreen) + "_init").Get());
 		strcpy(g_strErrorClue, pLUAInit);
 		LuaSetFunction(pLUAInit, 0, 0);
 		LuaCall();
 	}
+
 	// stay in main until page is quit
-	strcpy(g_pTitleLUAMain, cstr(cstr(g_pTitleCurrentPage) + "_main").Get());
+	strcpy(g_pTitleLUAMain, cstr(cstr(pRealNameOfScreen) + "_main").Get());
 	strcpy(g_strErrorClue, g_pTitleLUAMain);
 	t.game.titleloop = 1;
 }
@@ -2380,6 +2390,8 @@ bool bForceRender = false;
 void titleslua_main_stage3_inloop(void)
 {
 	// title loop
+	char pRealNameOfScreen[256];
+	strcpy(pRealNameOfScreen, g_pTitleCurrentPage);
 
 	// Machine independent speed update (makes g_TimeElapsed available)
 	game_timeelapsed();
@@ -2390,7 +2402,11 @@ void titleslua_main_stage3_inloop(void)
 	//int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
 	int CustomScreenNode = 0;
 	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
-		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	{
+		int realnodeid = atoi(t.game.pSwitchToPage + 6);
+		GetStoryboardCustomScreenNodeName(realnodeid, pRealNameOfScreen);
+		CustomScreenNode = GetStoryboardCustomScreenNode(pRealNameOfScreen);
+	}
 	else
 		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
 
@@ -2447,19 +2463,26 @@ void titleslua_main_stage3_inloop(void)
 void titleslua_main_stage4_afterloop(void)
 {
 	// title afterloop
+	char pRealNameOfScreen[256];
+	strcpy(pRealNameOfScreen, g_pTitleCurrentPage);
+
 	// wait for mouse click release
 	while ( MouseClick()!=0 ) { Sleep(1); }
-
-	// call to allow local resources to be freed
-	char pLUAFree[256];
-	strcpy ( pLUAFree, cstr(cstr(g_pTitleCurrentPage)+"_free").Get() );
 
 	//int CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
 	int CustomScreenNode = 0;
 	if (strncmp(g_pTitleCurrentPage, ":node:", 6) == NULL)
-		CustomScreenNode = atoi(t.game.pSwitchToPage + 6);
+	{
+		int realnodeid = atoi(t.game.pSwitchToPage + 6);
+		GetStoryboardCustomScreenNodeName(realnodeid, pRealNameOfScreen);
+		CustomScreenNode = GetStoryboardCustomScreenNode(pRealNameOfScreen);
+	}
 	else
 		CustomScreenNode = GetStoryboardCustomScreenNode(g_pTitleCurrentPage);
+
+	// call to allow local resources to be freed
+	char pLUAFree[256];
+	strcpy (pLUAFree, cstr(cstr(pRealNameOfScreen) + "_free").Get());
 
 	if (CustomScreenNode >= 0)
 	{

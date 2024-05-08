@@ -1,4 +1,4 @@
--- Fuel v9
+-- Fuel v10
 -- DESCRIPTION: The attached object will give the player a fuel resource if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [AMOUNT=5(1,30)]
@@ -26,6 +26,8 @@ local item_highlight 	= {}
 local total 			= {}
 local tEnt 				= {}
 local selectobj 		= {}
+local collected			= {}
+local doonce			= {}
 
 function fuel_properties(e, prompt_text, amount, pickup_range, pickup_style, collected_text, prompt_display, item_highlight)
 	fuel[e].prompt_text = prompt_text
@@ -46,10 +48,13 @@ function fuel_init_name(e)
 	fuel[e].collected_text = "Collected Fuel"
 	fuel[e].prompt_display = 1
 	fuel[e].item_highlight = 0
+	
 	g_fuel = 0
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
+	collected[e] = 0
+	doonce[e] = 0
 end
 
 function fuel_main(e)
@@ -57,14 +62,26 @@ function fuel_main(e)
 	local PlayerDist = GetPlayerDistance(e)
 
 	if fuel[e].pickup_style == 1 then
-		if PlayerDist < fuel[e].pickup_range then
-			if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
-			if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
-			PlaySound(e,0)
-			PerformLogicConnections(e)
-			g_fuel = g_fuel + fuel[e].amount
-			Destroy(e)
-		end
+		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 then
+			if GetEntityCollectable(tEnt[e]) == 0 then
+				if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
+				if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
+				PlaySound(e,0)
+				PerformLogicConnections(e)
+				g_fuel = g_fuel + fuel[e].amount
+				collected[e] = 1
+				Destroy(e)
+			end
+			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
+				if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
+				if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
+				PlaySound(e,0)
+				PerformLogicConnections(e)
+				g_fuel = g_fuel + fuel[e].amount
+				SetEntityCollected(tEnt[e],1)
+				collected[e] = 1
+			end
+		end		
 	end
 
 	if fuel[e].pickup_style == 2 then
@@ -74,17 +91,29 @@ function fuel_main(e)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
-		if PlayerDist < fuel[e].pickup_range and tEnt[e] ~= 0 then
+		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and tEnt[e] ~= 0 then
 			if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].prompt_text) end
-			if fuel[e].prompt_display == 2 then Prompt(fuel[e].prompt_text) end
+			if fuel[e].prompt_display == 2 then Prompt(fuel[e].prompt_text) end			
 			if g_KeyPressE == 1 then
-				PlaySound(e,0)
-				PerformLogicConnections(e)
-				g_fuel = g_fuel + fuel[e].amount
-				if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
-				if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
-				Destroy(e)
-			end
+				if GetEntityCollectable(tEnt[e]) == 0 then
+					PlaySound(e,0)
+					PerformLogicConnections(e)
+					g_fuel = g_fuel + fuel[e].amount
+					if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
+					if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
+					collected[e] = 1 
+					Destroy(e)
+				end
+				if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
+					PlaySound(e,0)
+					PerformLogicConnections(e)
+					g_fuel = g_fuel + fuel[e].amount
+					if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
+					if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
+					SetEntityCollected(tEnt[e],1)
+					collected[e] = 1
+				end				
+			end	
 		end
 	end
 end

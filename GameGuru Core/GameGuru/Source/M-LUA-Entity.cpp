@@ -177,25 +177,29 @@ void entity_lua_getentityplrvisible_processlist (void)
 		//g_EntityPlrVisList.erase(g_EntityPlrVisList.begin());
 		for ( int i = 0; i < g_EntityPlrVisList.size(); i++ )
 		{
-			t.e = g_EntityPlrVisList[i];
-			if (t.e > 0)
+			//PE: We should never use globals in threads (t.e), it get changed everywhere,got a crash here (as it got changed while inside the function).
+			int te = g_EntityPlrVisList[i];
+			if (te > 0)
 			{
 				// calculate vis for this entity (LBOPT: can further optimize by placing this on a timer (no need to work out plr visibilty 30 times per second)
-				t.tobj = t.entityelement[t.e].obj;
-				if (t.tobj > 0)
+				int ttobj = t.entityelement[te].obj;
+				if (ttobj > 0)
 				{
-					if (ObjectExist(t.tobj) == 1)
+					if (ObjectExist(ttobj) == 1)
 					{
-						t.charanimstate.e = t.e;
-						t.charanimstate.obj = t.tobj;
-						darkai_calcplrvisible();
+						charanimstatetype threadcas;
+						threadcas.e = te;
+						threadcas.obj = ttobj;
+						threadcas.neckRightAndLeft = 0; //PE: ? we dont have it here.
+						//PE: NOTE - t.plrid should also be changeable when mp :)
+						darkai_calcplrvisible(threadcas);
 					}
 				}
 
 				// and erase all other instances of E in list, as now up to date for plrvis
 				for (int i = 0; i < g_EntityPlrVisList.size(); i++)
 				{
-					if (g_EntityPlrVisList[i] == t.e)
+					if (g_EntityPlrVisList[i] == te)
 					{
 						g_EntityPlrVisList[i] = 0;
 					}

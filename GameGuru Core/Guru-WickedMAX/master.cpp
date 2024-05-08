@@ -1671,6 +1671,7 @@ void Master::RunCustom()
 		if ( !activePath ) return;
 
 		// for an active VR session, set resolution
+		//PE: resolutionScale need to be changed when we use FSR , this must be controlled by internalresolution. both FSR upscaling and internalresolution down scaling.
 		float resolutionScale = 1.0f;
 		if (!OpenXRIsSessionSetup())
 		{
@@ -2289,6 +2290,10 @@ void MasterRenderer::ResizeBuffers(void)
 #endif
 	if ( GetInternalResolution().x == 0 || GetInternalResolution().y == 0 ) return;
 
+
+	//PE: Must be the same, currently its out of synch with internal resolution.
+	master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false); //GGREDUCED
+
 	//PE: Resizebuffers change FOV.
 
 	__super::ResizeBuffers();
@@ -2300,8 +2305,6 @@ void MasterRenderer::ResizeBuffers(void)
 	{
 		TextureDesc desc;
 		//PE: wiRenderer::GetInternalResolution() dont match the depthbuffer size if using MSAA and cant be used.
-//		desc.Width = wiRenderer::GetInternalResolution().x;
-//		desc.Height = wiRenderer::GetInternalResolution().y;
 		desc.Width = GetWidth3D();
 		desc.Height = GetHeight3D();
 		desc.SampleCount = 1;

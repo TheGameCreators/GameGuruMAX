@@ -11,7 +11,7 @@ void darkai_free (void);
 void darkai_createinternaldebugvisuals (void);
 void darkai_destroyinternaldebugvisuals (void);
 void darkai_updatedebugobjects_forcharacter(bool bCharIsActive);
-void darkai_calcplrvisible (void);
+void darkai_calcplrvisible (charanimstatetype& cas);
 void darkai_loop (void);
 void darkai_update (void);
 void darkai_killai (void);

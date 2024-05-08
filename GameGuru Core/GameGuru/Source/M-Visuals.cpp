@@ -2639,6 +2639,7 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 	extern float maxApparentSize;
 	extern float fLODMultiplier;
 	bool bPerformAnUpdate = false;
+	int iChangeSkyType = -1;
 	if (t.visuals.shaderlevels.entities == 2) // CUSTOM (MEDIUM)
 	{
 		// Custom settings - do not override
@@ -2654,7 +2655,12 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 			maxApparentSize = fASize / 10000.0f;
 			t.visuals.bLevelVSyncEnabled = true;
 			t.visuals.bReflectionsEnabled = true;
-			t.visuals.skyindex = 0;
+			//PE: Only change if user has not selected a custom skybox and use bDisableSkybox
+			if (t.visuals.skyindex == 0)
+			{
+				t.visuals.bDisableSkybox = false;
+				iChangeSkyType = 0;
+			}
 			fLODMultiplier = 4.0f;
 		}
 		if (t.visuals.shaderlevels.entities == 3) // LOW
@@ -2666,7 +2672,12 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 			maxApparentSize = fASize / 10000.0f;
 			t.visuals.bLevelVSyncEnabled = false;
 			t.visuals.bReflectionsEnabled = false;
-			t.visuals.skyindex = 1;
+			//PE: Only change if user has not selected a custom skybox and use bDisableSkybox
+			if (t.visuals.skyindex == 0)
+			{
+				t.visuals.bDisableSkybox = true;
+				iChangeSkyType = 1;
+			}
 			fLODMultiplier = 2.0f;
 
 		}
@@ -2676,7 +2687,7 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 		bEnablePointShadowCulling = true;
 		bEnableSpotShadowCulling = true;
 		bEnableAnimationCulling = true;
-		t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox = false;
+		t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
 		bPerformAnUpdate = true;
 	}
 	if ( bPerformAnUpdate == true )
@@ -2724,7 +2735,8 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 			extern void gridedit_setreflection (bool);
 			gridedit_setreflection(t.visuals.bReflectionsEnabled);
 			extern void gridedit_setsky (int);
-			gridedit_setsky(t.visuals.skyindex);
+			if(iChangeSkyType >= 0)
+				gridedit_setsky(iChangeSkyType);
 			g.projectmodified = 1;
 		}
 	}

@@ -1,5 +1,6 @@
 #include "BulletDebugDrawer.h"
 #include "gameguru.h"
+#include <mutex>
 
 BulletDebugDrawer::BulletDebugDrawer()
 {
@@ -8,8 +9,22 @@ BulletDebugDrawer::BulletDebugDrawer()
 	drawTransforms = false;
 }
 
+std::mutex lock;
 void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 {
+	//PE: This is not threadsafe so.
+	lock.lock();
+
+	//PE: This can keep running even if debug not set, so make it safe.
+	if (lineData.size() > 1000000)
+	{
+		BPhys_ClearDebugDrawData();
+	}
+	if (mode == 0)
+	{
+		lock.unlock();
+		return;
+	}
 	if (elementCount + 6 <= lineData.size())
 	{
 		lineData[elementCount + 0] = from.x() * scale;
@@ -22,7 +37,7 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 		//lineData[elementCount + 7] = color.y();
 		//lineData[elementCount + 8] = color.z();
 		elementCount += 6;
-
+		lock.unlock();
 		return;
 	}
 
@@ -36,6 +51,7 @@ void BulletDebugDrawer::drawLine(const btVector3& from, const btVector3& to, con
 	//lineData.push_back(color.y());
 	//lineData.push_back(color.z());
 	elementCount += 6;
+	lock.unlock();
 }
 
 void BulletDebugDrawer::drawTransform(const btTransform& transform, btScalar orthoLen)

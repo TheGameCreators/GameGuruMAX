@@ -88,6 +88,11 @@ public:
 				g_iCountNumberOfExtraThreadCalls++;
 				g_bTriggerSomeGameLogic = false;
 			}
+			else
+			{
+				//PE: This thread is taken over 33% of total cpu time even if it has nothing to do so:
+				Sleep(1);
+			}
 		}
 		return 0;
 	}

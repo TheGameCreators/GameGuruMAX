@@ -1006,7 +1006,8 @@ bool entity_load (bool bCalledFromLibrary)
 				if (ObjectExist(t.entobj) == 0)
 				{
 					extern int g_iUseLODObjects;
-					if (g_iUseLODObjects > 0)
+					extern bool bDisableLODLoad;
+					if (g_iUseLODObjects > 0 && !bDisableLODLoad)
 					{
 						//PE: Try to locate a LOD object.
 						std::string lodname = t.tFPEName_s.Get();

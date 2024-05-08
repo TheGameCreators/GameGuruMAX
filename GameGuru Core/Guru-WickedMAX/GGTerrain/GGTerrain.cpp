@@ -3101,6 +3101,8 @@ public:
 			for( int chunkX = iStartChunkX; chunkX <= iEndChunkX; chunkX++ )
 			{
 				uint8_t index = chunkZ * 8 + chunkX;
+				if (!chunkGrid[index])
+					continue;
 				if ( !first && !chunkGrid[ index ]->IsVisible() ) continue;
 
 				int iSX = iStartX - (chunkX * numSegments);
@@ -8787,6 +8789,8 @@ void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float qua
 	g_envProbeList.push_back(item);
 }
 
+
+std::mutex terrainlock = {};
 // update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
 void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
 {
@@ -9264,7 +9268,8 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 
 	if ( !ggterrain_initialised ) return;
-
+	
+	terrainlock.lock();
 	if ( ggterrain_update_enabled ) 
 	{
 		ggterrain.CheckParams();
@@ -9280,6 +9285,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			ggterrain_global_params.bForceUpdate = 1 - ggterrain_global_params.bForceUpdate;
 		}
 	}
+	terrainlock.unlock();
 
 	GGTerrainLODSet* pCurrLODs = ggterrain.GetCurrentLODs();
 	GGTerrainLODSet* pNewLODs = ggterrain.GetNewLODs();
@@ -9834,8 +9840,10 @@ void GGTerrain_ResetPaintData()
 	GGTerrain_InvalidateEverything( GGTERRAIN_INVALIDATE_TEXTURES );
 }
 
+
 int GGTerrain_GetMaterialIndex( float x, float z )
 {
+	terrainlock.lock();
 	float fX = x / ggterrain_local_render_params2.editable_size;
 	fX = fX * 0.5f + 0.5f;
 	fX *= GGTERRAIN_MATERIALMAP_SIZE;
@@ -9855,7 +9863,11 @@ int GGTerrain_GetMaterialIndex( float x, float z )
 
 	// calculate material from height and slope
 	float normalY;
-	if ( !GGTerrain_GetNormal( x, z, 0, &normalY, 0 ) ) return 31;
+	if (!GGTerrain_GetNormal(x, z, 0, &normalY, 0))
+	{
+		terrainlock.unlock();
+		return 31;
+	}
 	normalY = 1 - abs(normalY);
 
 	for( int i = 0; i < 2; i++ )
@@ -9863,7 +9875,11 @@ int GGTerrain_GetMaterialIndex( float x, float z )
 		float slopeStart = ggterrain_local_render_params.slopeStart[ i ];
 		float transition = 1.0f / (ggterrain_local_render_params.slopeEnd[ i ] - ggterrain_local_render_params.slopeStart[ i ]);
 		float t = (normalY - slopeStart) * transition;
-		if ( t > 0.5 ) return ggterrain_local_render_params.slopeMatIndex[ i ] & 0xFF;
+		if (t > 0.5)
+		{
+			terrainlock.unlock();
+			return ggterrain_local_render_params.slopeMatIndex[i] & 0xFF;
+		}
 	}
 
 	float height = 0;
@@ -9873,9 +9889,13 @@ int GGTerrain_GetMaterialIndex( float x, float z )
 		float start = ggterrain_local_render_params.layerStartHeight[ i ];
 		float transition = 1.0f / (ggterrain_local_render_params.layerEndHeight[ i ] - ggterrain_local_render_params.layerStartHeight[ i ]);
 		float t = (height - start) * transition;
-		if ( t > 0.45 ) return ggterrain_local_render_params.layerMatIndex[ i ] & 0xFF;
+		if (t > 0.45)
+		{
+			terrainlock.unlock();
+			return ggterrain_local_render_params.layerMatIndex[i] & 0xFF;
+		}
 	}
-
+	terrainlock.unlock();
 	return ggterrain_local_render_params.baseLayerMaterial & 0xFF;
 }
 

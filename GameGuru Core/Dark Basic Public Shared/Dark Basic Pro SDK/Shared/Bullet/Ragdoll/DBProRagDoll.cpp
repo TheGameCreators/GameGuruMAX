@@ -711,6 +711,7 @@ void DBProRagDoll::Update()
 
 void DBProRagDoll::AssignLimbIDToBone(int boneIndex, int dbproLimbID)
 {
+	if (boneIndex == -1) return;
 	int objectID = m_id;
 	m_ragDollBoneArray[boneIndex]->AddDBProLimbID(dbproLimbID);
 	//Store the initial rotation of the Dbpro objects limbs.

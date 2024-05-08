@@ -117,12 +117,18 @@ float fWickedMaxCenterTest = 0.0f;
 uint32_t iCulledPointShadows = 0;
 uint32_t iCulledSpotShadows = 0;
 uint32_t iCulledAnimations = 0;
+uint32_t iRenderedPointShadows = 0;
+uint32_t iRenderedSpotShadows = 0;
+
 bool bEnable30FpsAnimations = false;
 bool bEnableTerrainChunkCulling = true;
 bool bEnablePointShadowCulling = true;
 bool bEnableSpotShadowCulling = true;
 bool bEnableObjectCulling = true;
 bool bEnableAnimationCulling = true;
+bool bShadowsInFrontTakesPriority = false;
+int iEnterGodMode = 0;
+bool bTmpTesting = false;
 
 float fWickedCallShadowFarPlane = DEFAULT_FAR_PLANE;
 
@@ -3197,7 +3203,15 @@ void WickedCall_UpdateMeshVertexData(sMesh* pDBOMesh)
 			// for now, we are only interested in updating the UV data from the original to the wicked mesh
 			sOffsetMap offsetMap;
 			GetFVFOffsetMapFixedForBones(pDBOMesh, &offsetMap);
-		
+
+			//PE: The size can change in phyics debug drawer so:
+			if(offsetMap.dwZ > 0 && mesh->vertex_positions.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_positions.resize(pDBOMesh->dwVertexCount);
+			if (offsetMap.dwTU[0] > 0 && mesh->vertex_uvset_0.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_uvset_0.resize(pDBOMesh->dwVertexCount);
+			if (offsetMap.dwNZ > 0 && mesh->vertex_normals.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_normals.resize(pDBOMesh->dwVertexCount);
+
 			for (size_t v = 0; v < pDBOMesh->dwVertexCount; v++)
 			{
 				if (offsetMap.dwZ > 0)

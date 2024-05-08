@@ -617,10 +617,15 @@ DARKSDK_DLL void ResizeObjectList ( int iSize )
 			pNewObjectListRef [ iTemp ] = g_ObjectListRef [ iTemp ];
 			pNewObjectList [ iTemp ] = g_ObjectList [ iTemp ];
 		}
-		SAFE_DELETE_ARRAY ( g_ObjectListRef );
-		SAFE_DELETE_ARRAY ( g_ObjectList );
+		DBPRO_GLOBAL int* free1 = g_ObjectListRef;
+		DBPRO_GLOBAL sObject** free2 = g_ObjectList;
+
 		g_ObjectListRef = pNewObjectListRef;
 		g_ObjectList = pNewObjectList;
+
+		//PE: When more threads are using this, it will crash while freeing old data, and others are still reading from it.
+		SAFE_DELETE_ARRAY(free1);
+		SAFE_DELETE_ARRAY(free2);
 	}
 }
 

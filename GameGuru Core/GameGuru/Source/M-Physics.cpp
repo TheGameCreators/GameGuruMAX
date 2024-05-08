@@ -1893,9 +1893,12 @@ void physics_loop ( void )
 	physics_managevirtualtreecylinders();
 
 	// Player control
-	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_player");
-	physics_player ( );
-
+	extern int iEnterGodMode;
+	if (iEnterGodMode != 2)
+	{
+		if (g.gproducelogfiles == 2) timestampactivity(0, "calling physics_player");
+		physics_player();
+	}
 	//  Update physics system
 	if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling timeGetSecond");
 	t.tphysicsadvance_f = timeGetSecond() - t.machineindependentphysicsupdate;
@@ -1907,10 +1910,11 @@ void physics_loop ( void )
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling ODEUpdate");
 		ODEUpdate ( t.tphysicsadvance_f );
 	}
-	if (BPhys_GetDebugDrawerMode() != 0)
-	{
-		physics_render_debug_meshes();
-	}
+	//PE: This cant run in the thread.
+	//if (BPhys_GetDebugDrawerMode() != 0)
+	//{
+	//	physics_render_debug_meshes();
+	//}
 }
 
 void physics_free ( void )

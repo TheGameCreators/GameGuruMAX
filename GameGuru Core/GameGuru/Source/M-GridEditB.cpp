@@ -5286,6 +5286,7 @@ void CheckMinimumDockSpaceSize(float minsize)
 #define TABPAGEWEATHER 1
 
 #include "..\..\Guru-WickedMAX\master.h"
+#include <direct.h>
 
 extern wiECS::Entity g_weatherEntityID;
 extern MasterRenderer * master_renderer;
@@ -6819,40 +6820,42 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 
 				// Load the thumbnails for the filters, so its easier to see the effect it will have on the scene.
-				SetDir("thumbnails");
-				ChecklistForFiles();
-
-				image_setlegacyimageloading(true);
-				for (int f = 1; f <= ChecklistQuantity(); f++)
+				if (_chdir("thumbnails") == 0)
 				{
-					cstr tfile_s = ChecklistString(f);
-					LPSTR pFilename = tfile_s.Get();
-					if (tfile_s != "." && tfile_s != "..")
+					//SetDir("thumbnails"); //PE: Standalone do not have this.
+					ChecklistForFiles();
+
+					image_setlegacyimageloading(true);
+					for (int f = 1; f <= ChecklistQuantity(); f++)
 					{
-						// Only load .jpg files for the thumbnails.
-						if (strnicmp(pFilename + strlen(pFilename) - 4, ".jpg", 4) == NULL)
+						cstr tfile_s = ChecklistString(f);
+						LPSTR pFilename = tfile_s.Get();
+						if (tfile_s != "." && tfile_s != "..")
 						{
-							LoadImage(pFilename, FILTER_THUMBS+iFilterThumbnailCount);
-							if (ImageExist(FILTER_THUMBS+iFilterThumbnailCount))
+							// Only load .jpg files for the thumbnails.
+							if (strnicmp(pFilename + strlen(pFilename) - 4, ".jpg", 4) == NULL)
 							{
-								iFilterThumbnailCount++;
-							}
-							else
-							{
-								// Number of loaded thumbnails must match the number of filters, otherwise they will be mismatched.
-								for (int i = FILTER_THUMBS; i < FILTER_THUMBS + iFilterThumbnailCount; i++)
+								LoadImage(pFilename, FILTER_THUMBS + iFilterThumbnailCount);
+								if (ImageExist(FILTER_THUMBS + iFilterThumbnailCount))
 								{
-									// Load failed, free any loaded images and display text only.
-									if (ImageExist(i))
-										DeleteImage(i);
+									iFilterThumbnailCount++;
 								}
-								iFilterThumbnailCount = 0;
+								else
+								{
+									// Number of loaded thumbnails must match the number of filters, otherwise they will be mismatched.
+									for (int i = FILTER_THUMBS; i < FILTER_THUMBS + iFilterThumbnailCount; i++)
+									{
+										// Load failed, free any loaded images and display text only.
+										if (ImageExist(i))
+											DeleteImage(i);
+									}
+									iFilterThumbnailCount = 0;
+								}
 							}
 						}
 					}
+					image_setlegacyimageloading(false);
 				}
-				image_setlegacyimageloading(false);
-
 				SetDir(oldDir_s.Get());
 			}
 
@@ -6968,12 +6971,12 @@ void tab_tab_visuals(int iPage, int iMode)
 			static int iHiddenObjects = 0;
 			static int iObjects = 0;
 			static int iFrustumCulled = 0;
-
+			int iSpot = 0 , iPoint = 0;
 			int occ = 0;
-			if (bOCDebug && g_iDevToolsOpen >= 1) //t.visuals.bLevelVSyncEnabled
+			if (bOCDebug && g_iDevToolsOpen >= 1)
 			{
-				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr );
-				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects);
+				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr, int* spot = nullptr, int* point = nullptr);
+				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects,&iSpot,&iPoint);
 			}
 
 #ifdef ADVANCEDCOLORS
@@ -6999,9 +7002,9 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (iGFXMode == 2) current_gfx_mode = (char*)gfx_mode_combo[2];
 				if (ImGui::Combo("##ComboGFX_mode_combo", &iGFXMode, gfx_mode_combo, IM_ARRAYSIZE(gfx_mode_combo)))
 				{
-					if (iGFXMode == 0) visuals_shaderlevels_setlevel(1,true);
-					if (iGFXMode == 1) visuals_shaderlevels_setlevel(3,true);
-					if (iGFXMode == 2) visuals_shaderlevels_setlevel(4,true);
+					if (iGFXMode == 0) visuals_shaderlevels_setlevel(1, true);
+					if (iGFXMode == 1) visuals_shaderlevels_setlevel(3, true);
+					if (iGFXMode == 2) visuals_shaderlevels_setlevel(4, true);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose the ideal graphics mode for this level, or set custom settings");
 				ImGui::PopItemWidth();
@@ -7141,17 +7144,28 @@ void tab_tab_visuals(int iPage, int iMode)
 						iObjects = pScene->objects.GetCount();
 						iFrustumCulled = wiProfiler::GetFrustumCulled();
 					}
-					ImGui::Text("Total Objects: %d", iObjects);
 					if (bOCDebug)
-						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
+						ImGui::Text("Total Objects: %d Hidden: %d", iObjects, iHiddenObjects);
+					else
+						ImGui::Text("Total Objects: %d", iObjects);
 					ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
 					if (bOCDebug)
 						ImGui::Text("Occluded Objects: %d", occ);
 
 					extern uint32_t iOccludedTerrainChunks;
 					ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
-					ImGui::Text("Occluded Point Shadows: %d", iCulledPointShadows);
-					ImGui::Text("Occluded Spot Shadows: %d", iCulledSpotShadows);
+
+					extern uint32_t iRenderedPointShadows;
+					extern uint32_t iRenderedSpotShadows;
+
+					if(bOCDebug)
+						ImGui::Text("Occluded Point Shadows: (%d) %d r(%d)", iPoint,iCulledPointShadows, iRenderedPointShadows);
+					else
+						ImGui::Text("Occluded Point Shadows: %d r(%d)", iCulledPointShadows, iRenderedPointShadows);
+					if (bOCDebug)
+						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot , iCulledSpotShadows, iRenderedSpotShadows);
+					else
+						ImGui::Text("Occluded Spot Shadows: %d r(%d)", iCulledSpotShadows, iRenderedSpotShadows);
 					ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
@@ -7589,7 +7603,11 @@ void tab_tab_visuals(int iPage, int iMode)
 					bForceRefreshLightCount = true;
 					bVisualUpdated = true;
 				}
-				ImGui::PopItemWidth();
+				//ImGui::PopItemWidth(); //PE: This looks wrong, try removing it.
+
+				extern bool bShadowsInFrontTakesPriority;
+				ImGui::Checkbox("Front Shadows Priority", &bShadowsInFrontTakesPriority);
+
 				ImGui::Indent(-10);
 			}
 		}
@@ -51119,10 +51137,16 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 	}
 }
 
-int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
+//#pragma optimize("", off)
+int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, int* point)
 {
 	int total = 0;
-	iHiddenObjects = 0;
+	if(iHiddenObjects)
+		*iHiddenObjects = 0;
+	if (point)
+		*point = 0;
+	if(spot)
+		*spot = 0;
 	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 	{
 		if (t.entityelement[t.e].obj > 0)
@@ -51180,13 +51204,58 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
 				}
 				else
 				{
-					iHiddenObjects++;
+					if (iHiddenObjects)
+						*iHiddenObjects = *iHiddenObjects + 1;
+				}
+			}
+		}
+	}
+	if (bDebug)
+	{
+		int lsize = wiScene::GetScene().lights.GetCount();
+		for (int i = 0; i < lsize; i++)
+		{
+			LightComponent& light = wiScene::GetScene().lights[i];
+			if (light.IsCastingShadow())
+			{
+				if (light.GetType() == ENTITY_TYPE_POINTLIGHT)
+				{
+					if (point)
+						*point = *point + 1;
+					AABB aabb = wiScene::GetScene().aabb_lights[i];
+					XMFLOAT3 center = aabb.getCenter();
+					void DrawDot(char* text, float x, float y, float z);
+					if (light.history == 0)
+					{
+						DrawDot("p", center.x, center.y, center.z);
+					}
+					else
+					{
+						DrawDot("P", center.x, center.y, center.z);
+					}
+				}
+				if (light.GetType() == ENTITY_TYPE_SPOTLIGHT)
+				{
+					if (spot)
+						*spot = *spot + 1;
+					AABB aabb = wiScene::GetScene().aabb_lights[i];
+					XMFLOAT3 center = aabb.getCenter();
+					void DrawDot(char* text, float x, float y, float z);
+					if (light.history == 0)
+					{
+						DrawDot("s", center.x, center.y, center.z);
+					}
+					else
+					{
+						DrawDot("S", center.x, center.y, center.z);
+					}
 				}
 			}
 		}
 	}
 	return total;
 }
+//#pragma optimize("", on)
 
 void DrawDot(char* text, float x, float y, float z)
 {
@@ -51222,7 +51291,8 @@ void tmpdebugfunc(void)
 		int iFrustumCulled = wiProfiler::GetFrustumCulled();
 		int dc = wiProfiler::GetDrawCalls();
 		int iHiddenObjects = 0;
-		int occ = DrawOccludedObjects(true,false,&iHiddenObjects);
+		int spot = 0, point = 0;
+		int occ = DrawOccludedObjects(true,false,&iHiddenObjects,&spot,&point);
 
 		//ImGui::Text("DrawCalls: %d", dc);
 		char memtmp[255];

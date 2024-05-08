@@ -3470,11 +3470,24 @@ void game_loadinleveldata ( void )
 	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
 
+	char debug[MAX_PATH];
+	sprintf(debug, "Setup objects: %ld", g.entityelementlist);
+	timestampactivity(0, debug);
+	extern bool bNoHierarchySorting;
+	bNoHierarchySorting = true;
+	extern int iInstancedTotal;
+	iInstancedTotal = 0;
+
 	for ( t.tupdatee = 1 ; t.tupdatee<=  g.entityelementlist; t.tupdatee++ )
 	{
 		entity_updateentityobj ( );
 		if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 	}
+
+	sprintf(debug, "Instanced objects: %ld", iInstancedTotal);
+	timestampactivity(0, debug);
+	bNoHierarchySorting = false;
+
 	t.terrain.terrainpainteroneshot=0;
 
 	//  default start position is edit-camera XZ (Y done in physics init call)
@@ -4541,6 +4554,11 @@ extern int NumberOfObjects;
 extern int NumberOfGroupsShown;
 extern int NumberOfObjectsShown;
 
+extern int iEnterGodMode;
+float camx, camy, camz, gcamax, gcamay, gcamaz;
+float godcamx, godcamy, godcamz, godcamax, godcamay, godcamaz;
+
+
 void game_main_loop ( void )
 {	
 #ifdef OPTICK_ENABLE
@@ -4694,14 +4712,47 @@ void game_main_loop ( void )
 		t.promptextra_s = ""; t.promptextra_s=t.promptextra_s + "FPS:"+Str(GetDisplayFPS())+" TIME:"+t.pm_s;
 		t.game.perf.misc += PerformanceTimer()-g.gameperftimestamp ; g.gameperftimestamp=PerformanceTimer();
 
+		if (t.playercontrol.thirdperson.enabled != 1)
+		{
+			if (iEnterGodMode == 1)
+			{
+				godcamx = camx = CameraPositionX(t.terrain.gameplaycamera);
+				godcamy = camy = CameraPositionY(t.terrain.gameplaycamera);
+				godcamz = camz = CameraPositionZ(t.terrain.gameplaycamera);
+				godcamax = gcamax = CameraAngleX(t.terrain.gameplaycamera);
+				godcamay = gcamay = CameraAngleY(t.terrain.gameplaycamera);
+				godcamaz = gcamaz = CameraAngleZ(t.terrain.gameplaycamera);
+				iEnterGodMode++;
+			}
+			if (iEnterGodMode == 2)
+			{
+				if (g.luacameraoverride != 1 && g.luacameraoverride != 3)
+				{
+					PositionCamera(t.terrain.gameplaycamera, camx, camy, camz);
+					RotateCamera(t.terrain.gameplaycamera, gcamax, gcamay, gcamaz);
+					t.tobj = t.aisystem.objectstartindex;
+					if (ObjectExist(t.tobj))
+						PositionObject(t.tobj, camx, camy, camz);
+				}
+			}
+		}
+
+
+		//PE: Moved of of thread, none of the object functions are 100% thread safe.
+		if (BPhys_GetDebugDrawerMode() != 0)
+		{
+			physics_render_debug_meshes();
+		}
+
 		//  loop physics
-		if (  t.hardwareinfoglobals.nophysics == 0 ) 
+		if (  t.hardwareinfoglobals.nophysics == 0 )
 		{
 			// Handle physics
 			if ( g.gproducelogfiles == 2 ) timestampactivity(0,"calling physics_loop");
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
 			//physics_loop ( );
-			physics_player_control (); // has LUA calls inside it
+			if (iEnterGodMode != 2)
+				physics_player_control (); // has LUA calls inside it
 			physics_player_handledeath (); // handles sound, so keep in main thread
 			wiProfiler::EndRange(range2);
 
@@ -4725,7 +4776,9 @@ void game_main_loop ( void )
 
 		// In-Game Mode (moved from above so LUA is AFTER physics)
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
-		if ( t.conkit.editmodeactive == 0 ) 
+
+
+		if ( t.conkit.editmodeactive == 0 )
 		{
 			// if third person, trick AI by moving camera to protagonist location
 			if ( t.playercontrol.thirdperson.enabled == 1 ) 
@@ -4781,6 +4834,26 @@ void game_main_loop ( void )
 			{
 				PositionCamera (  t.terrain.gameplaycamera,t.playercontrol.thirdperson.storecamposx,t.playercontrol.thirdperson.storecamposy,t.playercontrol.thirdperson.storecamposz );
 			}
+		}
+		else
+		{
+			if (iEnterGodMode == 2)
+			{
+				if (g.luacameraoverride != 1 && g.luacameraoverride != 3)
+				{
+					//PE: Move godcam here.
+
+					PositionCamera(t.terrain.gameplaycamera, godcamx, godcamy, godcamz);
+					RotateCamera(t.terrain.gameplaycamera, godcamax, godcamay, godcamaz);
+					void GodCameraControl(float& x, float& y, float& z, float& ax, float& ay, float& az);
+					GodCameraControl(godcamx, godcamy, godcamz, godcamax, godcamay, godcamaz);
+					t.tobj = t.aisystem.objectstartindex;
+					if (ObjectExist(t.tobj))
+						PositionObject(t.tobj, camx, camy, camz);
+
+				}
+			}
+
 		}
 
 		//  Gun control
@@ -5159,4 +5232,120 @@ void game_end_of_level_check ( void )
 	if (  t.audioVolume.music > t.postprocessings.fadeinvalue_f * 100.0  )  t.audioVolume.music  =  t.postprocessings.fadeinvalue_f * 100.0;
 	if (  t.audioVolume.sound > t.postprocessings.fadeinvalue_f * 100.0  )  t.audioVolume.sound  =  t.postprocessings.fadeinvalue_f * 100.0;
 	audio_volume_update ( );
+}
+
+void GodCameraControl(float &x, float &y, float &z, float& ax, float& ay, float& az)
+{
+	ImGuiIO& io = ImGui::GetIO();
+	
+	if (1)
+	{
+		if (ImGui::IsMouseDown(1))
+		{
+			float speed = 6.0f;
+			float xdiff = ImGui::GetIO().MouseDelta.x / speed;
+			float ydiff = ImGui::GetIO().MouseDelta.y / speed;
+			ax += ydiff;
+			ay += xdiff;
+			if (ax > 180.0f)  ax = ax - 360.0f;
+			if (ax < -89.999f)  ax = -89.999f;
+			if (ax > 89.999f)  ax = 89.999f;
+			RotateCamera(ax, ay, 0);
+		}
+
+	}
+
+	if(1)
+	{
+		static float fAccelerationTimer = 0.0f;
+		if (t.inputsys.keyup == 1)  t.plrkeyW = 1; else t.plrkeyW = 0;
+		if (t.inputsys.keyleft == 1)  t.plrkeyA = 1; else t.plrkeyA = 0;
+		if (t.inputsys.keydown == 1)  t.plrkeyS = 1; else t.plrkeyS = 0;
+		if (t.inputsys.keyright == 1)  t.plrkeyD = 1; else t.plrkeyD = 0;
+
+		//  mouse wheel mimmics W and S when no CONTROL key pressed (170616 - but not when in EBE mode as its used for grid layer control)
+		int usingWheel = 0;
+		t.traise_f = 0.0;
+		if (t.inputsys.keyshift == 1 || io.KeyShift)
+		{
+
+			fAccelerationTimer += g.timeelapsed_f * 0.005f;
+			if (fAccelerationTimer > 1.0f) fAccelerationTimer = 1.0f;
+			t.tffcspeed_f = 10.0 * g.timeelapsed_f;
+		}
+		else
+		{
+			fAccelerationTimer = 0.0f;
+			if (t.inputsys.keycontrol == 1 || io.KeyCtrl)
+			{
+				// reduce this until we sort out scale!
+				t.tffcspeed_f = 1.0 * g.timeelapsed_f;
+			}
+			else
+			{
+				// reduce this until we sort out scale!
+				t.tffcspeed_f = 5.0 * g.timeelapsed_f;
+			}
+		}
+
+		
+		if(1)
+		{
+			float fHeightAtThisPartOfTerrain = BT_GetGroundHeight(t.terrain.TerrainID, x, z);
+			float height = y - fHeightAtThisPartOfTerrain;
+			if (height < 0) height = 0;
+			float modifier = height * height * 0.00001f + 2 + 50 * fAccelerationTimer;
+			if (modifier > 50) modifier = 50;
+			if (modifier < 2) modifier = 2;
+			t.tffcspeed_f *= modifier;
+		}
+
+		// speed up wheel movement
+		//if (usingWheel) t.tffcspeed_f *= 4;
+
+		if (t.inputsys.k_s == "e" || ImGui::IsKeyDown(69))  t.traise_f = -90;
+		if (t.inputsys.k_s == "q" || ImGui::IsKeyDown(81))  t.traise_f = 90;
+
+		PositionCamera(x, y, z);
+
+		if (t.plrkeyW == 1 || ImGui::IsKeyDown(87) || ImGui::IsKeyDown(38))
+			MoveCamera(t.tffcspeed_f);
+		if (t.plrkeyS == 1 || ImGui::IsKeyDown(83) || ImGui::IsKeyDown(40))
+			MoveCamera(t.tffcspeed_f * -1);
+
+		if (t.plrkeyA == 1 || ImGui::IsKeyDown(65) || ImGui::IsKeyDown(37)) { RotateCamera(0, ay - 90, 0); MoveCamera(t.tffcspeed_f); }
+		if (t.plrkeyD == 1 || ImGui::IsKeyDown(68) || ImGui::IsKeyDown(39)) { RotateCamera(0, ay + 90, 0); MoveCamera(t.tffcspeed_f); }
+
+		if (t.traise_f != 0) { RotateCamera(t.traise_f, 0, 0); MoveCamera(t.tffcspeed_f); }
+		if (MouseClick() == 4)
+		{
+			//  new middle mouse panning
+			RotateCamera(0, ay, 0);
+			MoveCamera(t.cammousemovey_f * -2);
+			if (t.cammousemovex_f < 0) { RotateCamera(0, ay - 90, 0); MoveCamera(abs(t.cammousemovex_f * 2)); }
+			if (t.cammousemovex_f > 0) { RotateCamera(0, ay + 90, 0); MoveCamera(t.cammousemovex_f * 2); }
+		}
+		x = CameraPositionX();
+		y = CameraPositionY();
+		z = CameraPositionZ();
+	}
+
+	//  ensure camera NEVER goes into Floor (  )
+	if (0)
+	{
+		t.tcurrenth_f = BT_GetGroundHeight(t.terrain.TerrainID, x, z) + 10.0;
+		if (y < t.tcurrenth_f)
+		{
+			y = t.tcurrenth_f;
+		}
+
+		if (t.editorfreeflight.s.y_f < t.tcurrenth_f)
+		{
+			t.editorfreeflight.s.y_f = t.tcurrenth_f;
+		}
+	}
+
+	PositionCamera(x, y, z);
+	RotateCamera(ax, ay, 0);
+
 }

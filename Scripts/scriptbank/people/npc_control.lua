@@ -244,7 +244,7 @@ function npc_control_init_name(e,name)
 	state[e] = "flag_pathing"
 	state_choice[e] = 0
 	idle_delay[e] = math.huge
-	root_time[e] =  math.huge
+	root_time[e] =  math.huge	
 	startx[e] = 0
 	starty[e] = 0
 	startz[e] = 0
@@ -265,9 +265,9 @@ function npc_control_init_name(e,name)
 	name1[e] = name
 	colobj[e] = 0
 	allegiance[e] = 0
-	avoidance[e] = 0
+	avoidance[e] = 0	
 	playgsound[e] = 0
-	plrwithinmesh[e] = 1
+	plrwithinmesh[e] = 1	
 	svolume[e] = 0
 	resetstate[e] = 0
 end
@@ -275,8 +275,8 @@ end
 function npc_control_main(e)
 
 	CollisionOn(e)
-	if status[e] == "init" then
-		allegiance[e] = GetEntityAllegiance(e) -- (0-enemy, 1-ally, 2-neutral)
+	if status[e] == "init" then		
+		allegiance[e] = GetEntityAllegiance(e) -- (0-enemy, 1-ally, 2-neutral)		
 		SetAnimationSpeed(e,npc_control[e].npc_anim_speed)
 		SetEntityMoveSpeed(e,npc_control[e].npc_move_speed)
 		SetEntityTurnSpeed(e,npc_control[e].npc_turn_speed)
@@ -294,7 +294,7 @@ function npc_control_main(e)
 		regen[e] = g_Time + 3000
 		state_choice[e] = math.random(1,5)
 		LoadGlobalSound("audiobank\\user\\" ..name1[e].. ".wav", g_Entity[e])
-		status[e] = "endinit"
+		status[e] = "endinit"		
 	end
 
 	-- Functions ------------------------------------------
@@ -395,7 +395,7 @@ function npc_control_main(e)
 	--------------------------------------------------------------------------------------------------------------------------------
 	plrwithinmesh[e] = RDIsWithinMesh(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ) -- returns 1 if the XYZ coordinate is on the nav mesh
 	allegiance[e] = GetEntityAllegiance(e)
-
+	
 	if GetPlayerDistance(e) > npc_control[e].sense_range and allegiance[e] ~= 0 then
 		if npc_control[e].npc_can_roam == 1 then
 			if g_Time > action_delay[e] then
@@ -407,7 +407,7 @@ function npc_control_main(e)
 			end
 		end
 	end
-
+	
 	if GetPlayerDistance(e) <= npc_control[e].sense_range and aggro[e] == 0 and allegiance[e] > 2 then
 		if npc_control[e].npc_can_roam == 1 then state[e] = "roam" end
 	end
@@ -415,14 +415,14 @@ function npc_control_main(e)
 	if GetPlayerDistance(e) <= npc_control[e].sense_range and aggro[e] == 0 and allegiance[e] == 0 and plrwithinmesh[e] == 1 then
 		state[e] = "sensed"
 	end
-
+	
 	GetEntityPlayerVisibility(e)
 	if GetPlayerDistance(e) > npc_control[e].sense_range and g_Entity[e]['plrvisible'] == 1 and aggro[e] == 0 and allegiance[e] == 0 and plrseen[e] == 0 and plrwithinmesh[e] == 1 then
 		npc_control[e].sense_range = GetEntityViewRange(e)
 		plrseen[e] = 1
 		state[e] = "sensed"
-	end
-
+	end	
+	
 	local flee_range = math.random(2,3)
 	if GetPlayerDistance(e) <= npc_control[e].sense_range/flee_range and aggro[e] == 0 and allegiance[e] == 2 then
 		if npc_control[e].npc_can_roam == 1 then
@@ -440,10 +440,10 @@ function npc_control_main(e)
 				state[e] = "roam"
 			end
 		end
-	end
+	end	
 	---------------------------------------------------------------------------------------------------------------------------------
 	if state[e] == "sensed" then
-		GetEntityPlayerVisibility(e)
+		GetEntityPlayerVisibility(e)		
 		--StopSound(e,0)
 		if GetPlayerDistance(e) < npc_control[e].sense_range or g_Entity[e]['plrvisible'] == 1 and allegiance[e] == 0 then
 			issensed[e] = 1
@@ -457,7 +457,7 @@ function npc_control_main(e)
 					if sayonce[e] == 0 then
 						PromptDuration(npc_control[e].sense_text,1000)
 						sayonce[e] = 1
-					end
+					end	
 				end
 				senseonce[e] = 1
 				action_delay[e] = g_Time + 100
@@ -482,18 +482,18 @@ function npc_control_main(e)
 		--End Combat Music
 		StopGlobalSound(g_Entity[e])
 		playgsound[e] = 0
-	end
-
-	if state[e] == "attack" then
+	end	
+	
+	if state[e] == "attack" then	
 		-- Trigger Combat Music
-		if playgsound[e] == 0 then
-			PlayGlobalSound(g_Entity[e])
+		if playgsound[e] == 0 then			
+			PlayGlobalSound(g_Entity[e])				
 			playgsound[e] = 1
-		end
+		end				
 		-----------------------
-		svolume[e] = (2000-GetPlayerDistance(e))/10
+		svolume[e] = (2000-GetPlayerDistance(e))/10		
 		SetSoundVolume(svolume[e])
-		if GetPlayerDistance(e) > npc_control[e].attack_range and aggro[e] == 1 then
+		if GetPlayerDistance(e) > npc_control[e].attack_range and aggro[e] == 1 then			
 			if g_Time > pathdelay[e] or hurtonce[e] == 1 then
 				local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
 				destx[e] = g_PlayerPosX
@@ -506,7 +506,7 @@ function npc_control_main(e)
 					if npc_control[e].npc_tilting == 1 then StartMoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e),1,0) end
 					if npc_control[e].npc_tilting == 2 then StartMoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e),0,0) end
 				end
-				GetEntityPlayerVisibility(e)
+				GetEntityPlayerVisibility(e)						
 				if g_Entity[e]['plrvisible'] == 0 or plrwithinmesh[e] == 0 and plrlost[e] == 0 then
 					if currpause[e] < lostsight[e] then
 						currpause[e] = currpause[e] + 1
@@ -514,10 +514,10 @@ function npc_control_main(e)
 					if currpause[e] >= lostsight[e] then
 						plrlost[e] = 1
 						currpause[e] = 0
-					end
-				end
+					end	
+				end	
 				if g_Entity[e]['plrvisible'] == 1 then currpause[e] = 0 end
-
+				
 				if pointcount[e] == 0 or plrlost[e] == 1 then
 					if resetstate[e] == 0 then
 						local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
@@ -531,7 +531,7 @@ function npc_control_main(e)
 						npc_control[e].sense_range = start_sense_range[e]
 						resetstate[e] = 1
 						plrlost[e] = 0
-					end
+					end					
 					idlemonce[e] = 0
 					aggro[e] = 0
 					issensed[e] = 0
@@ -550,19 +550,19 @@ function npc_control_main(e)
 			SetEntityMoveSpeed(e,npc_control[e].npc_run_speed)
 			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
 			MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))
-
+			
 			----------------------------------------------------------------
 			local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 			local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)
 			colobj[e] = IntersectAll(ex,ey+35,ez,ex+ox,ey+oy+35,ez+oz,g_Entity[e]['obj'])
 			if colobj[e] == nil then colobj[e] = 0 end
 			if colobj[e] > 0 then
-				wandonce[e] = 0
+				wandonce[e] = 0		
 				avoidance[e] = 1
 				root_time[e] = g_Time + 800
 				state[e] = "roam"
-			end
-			----------------------------------------------------------------
+			end			
+			----------------------------------------------------------------			
 			if npc_control[e].force_move == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)
@@ -693,28 +693,22 @@ function npc_control_main(e)
 	if state[e] == "roam" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
 		SetSoundVolume(svolume[e])
+		local dist = 0
 		if wandonce[e] == 0 then -- get a random point on a circle around the current location
 			if avoidance[e] == 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(1,360))
-				local dist = npc_control[e].roam_range
+				dist = npc_control[e].roam_range
 				if scare[e] == 0 then dist = npc_control[e].roam_range end
 				if scare[e] == 1 then dist = (npc_control[e].roam_range*2) end
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist
-				local result = RDIsWithinMesh(destx[e],desty[e],destz[e])
-				if result == 0 then
-					dist = dist-50
-					destx[e] = startx[e] + math.cos(ang) * dist
-					desty[e] = starty[e]
-					destz[e] = startz[e] + math.sin(ang) * dist	
-				end
-			end
+			end	
 			if avoidance[e] == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
+				dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist
@@ -727,14 +721,16 @@ function npc_control_main(e)
 			if colobj[e] > 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
+				dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist
 				avoidance[e] = 1
-			end
-			----------------------------------------------------------------
-			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])			
+			end			
+			----------------------------------------------------------------			
+			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
+			local result = RDIsWithinMesh(destx[e],desty[e],destz[e])
+			if result == 0 then dist = dist-50 end
 			pointcount[e] = RDGetPathPointCount()
 			if pointcount[e] > 0 then
 				if npc_control[e].npc_tilting == 1 then StartMoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e),1,0) end
@@ -808,7 +804,7 @@ function npc_control_main(e)
 		if GetPlayerDistance(e) <= npc_control[e].sense_range/2 and allegiance[e] == 2 and npc_control[e].npc_will_flee == 2 then
 			RotateY(e,math.random(90,240))
 		end
-
+		
 		if avoidance[e] == 1 and g_Time > root_time[e] then
 			aggro[e] = 1
 			state[e] = "attack"
@@ -936,12 +932,12 @@ function npc_control_main(e)
 	end
 
 	--- Check Health and Hurt Animation -------------------------------------
-
+	
 	if g_Time > regen[e] and g_Entity[e]['health'] > 1000 and g_Entity[e]['health'] < 1500 then
 		SetEntityHealth(e,g_Entity[e]['health']+1)
 		regen[e] = g_Time + 2000
 	end
-
+	
 	if g_Entity[e]['health'] < 1000 and state[e] ~= "die" then
 		local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
 		destx[e] = ex
@@ -949,21 +945,21 @@ function npc_control_main(e)
 		destz[e] = ez
 		RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
 		pointcount[e] = RDGetPathPointCount()
-		SetEntityMoveSpeed(e,0)
+		SetEntityMoveSpeed(e,0)	
 		animonce[e] = 0
 		StopSound(e,0)
 		PlaySound(e,3)
 		state[e] = "die"
-	end
-
-	if g_Entity[e]['health'] > 1000 then
-		if g_Entity[e]['health'] < start_health[e] then
-			SetEntityMoveSpeed(e,0)
+	end		
+	
+	if g_Entity[e]['health'] > 1000 then	
+		if g_Entity[e]['health'] < start_health[e] then			
+			SetEntityMoveSpeed(e,0)	
 			if hurtonce[e] == 0 then
 				if g_Entity[e]['animating'] == 0 then MoveForward(e,-5) end
 				StopAnimation(e)
 				SetAnimationName(e,npc_control[e].hurt_animation)
-				StopSound(e,0)
+				StopSound(e,0)				
 				PlaySound(e,2)
 				PlayAnimation(e)
 				LookAtPlayer(e)
@@ -1011,7 +1007,7 @@ function npc_control_main(e)
 					state_choice[e] = 0
 				end
 			end
-		end
+		end		
 	end
 
 	--Diagnostic text -----------------------------------

@@ -2352,6 +2352,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			strcat(project, Storyboard.gamename);
 			addfoldertocollection(project);
 
+			/* not used any more, new project system has WHOLE folder to itself
 			//PE: Also add everything from the project files folder.
 			strcpy(project_files, project);
 			strcat(project_files, "\\files");
@@ -2364,6 +2365,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				addallinfoldertocollection(project_files, project_files);
 				SetDir(olddir.Get());
 			}
+			*/
 
 			// add loading splash in case of a needed fallback
 			addtocollection("editors\\uiv3\\loadingsplash.jpg");

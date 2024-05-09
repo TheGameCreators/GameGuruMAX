@@ -31,8 +31,8 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
-    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\Canyon Offensive\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\The hermit of the forest V2-crashwhenloadsave\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
+    <LocalDebuggerCommand>D:\DEV\DOWNLOADS\The hermit of the forest V2-crashwhenloadsave\The hermit of the forest.exe</LocalDebuggerCommand>
   </PropertyGroup>
 </Project>

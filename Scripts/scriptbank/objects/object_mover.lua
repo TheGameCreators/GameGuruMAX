@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Object Mover v5   by Necrym59
--- DESCRIPTION: This will move an object by a specified amount and can be used as a switch object for activating other objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
+-- Object Mover v6   by Necrym59
+-- DESCRIPTION: This will move an object by a specified amount either by player or a switch/zone and can be used as a switch for activating other objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
 -- DESCRIPTION: Customise the [PROMPT_TEXT$ = "E to move"] [USE_RANGE=90(1,500)]
 -- DESCRIPTION: [@MOVEMENT_TYPE=1(1=Push, 2=Pull, 3=Slide-Left, 4=Slide-Right, 5=Slide-Up, 6=Slide-Down, 7=Rotate X , 8=Rotate Y , 9=Rotate Z)]
 -- DESCRIPTION: [MOVEMENT=100(1,500)]
@@ -47,13 +47,13 @@ function object_mover_main(e)
 
 	local PlayerDist = GetPlayerDistance(e)
 	
-	if PlayerDist < g_objectmover[e]['use_range'] and g_PlayerHealth > 0 then
+	if PlayerDist < g_objectmover[e]['use_range'] and g_PlayerHealth > 0 or g_Entity[e]['activated'] == 1 then
 		local LookingAt = GetPlrLookingAtEx(e,1)
 		
 		if status[e] == "unmoved" then  --Unmoved
-			if LookingAt == 1 then
+			if LookingAt == 1 or g_Entity[e]['activated'] == 1 then
 				if status[e] ~= "moved" then PromptLocal(e,g_objectmover[e]['prompt_text']) end
-				if g_KeyPressE == 1 then
+				if g_KeyPressE == 1 or g_Entity[e]['activated'] == 1 then
 							
 					if g_objectmover[e]['movement_type'] == 1 then	--Push
 						if objpushval[e] < g_objectmover[e]['movement'] then							
@@ -70,7 +70,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)						
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -91,7 +91,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)						
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -112,7 +112,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)						
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -133,7 +133,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)							
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -154,7 +154,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)							
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -175,7 +175,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)							
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"	
@@ -194,7 +194,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)						
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -213,7 +213,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)							
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"
@@ -232,7 +232,7 @@ function object_mover_main(e)
 							StopSound(e,0)
 							PlaySound(e,1)
 							if g_objectmover[e]['use_as_switch'] == 2 then
-								SetActivatedWithMP(e,201)							
+								ActivateIfUsed(e)							
 								PerformLogicConnections(e)
 							end
 							status[e] = "moved"

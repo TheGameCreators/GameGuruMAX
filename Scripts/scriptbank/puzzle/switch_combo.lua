@@ -1,4 +1,4 @@
--- Switch Combo v11 
+-- Switch Combo v12
 -- DESCRIPTION: A combo-value switch to add to 100 to Activate IfUsed and/or logic linked object.
 -- DESCRIPTION: [UseRange=90(1,200)]
 -- DESCRIPTION: [SwitchedOn!=0] state to decide if the switch is initially off or on, and customize the
@@ -211,9 +211,9 @@ function switch_combo_main(e)
 	if reachedvalue[e] == 100 and doonce[e] == 0 then
 		if doonce[e] == 0 then			
 			if switch_combo[e].deferlinks == 1 and dooncePC[e] ~= 1 then
-				PerformLogicConnections(e)
-				ActivateIfUsed(e)
-			end	
+				PerformLogicConnections(e)				
+			end
+			ActivateIfUsed(e)
 			doonce[e] = 1
 		end
 	end

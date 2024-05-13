@@ -9868,7 +9868,11 @@ int GGTerrain_GetMaterialIndex( float x, float z )
 	if ( iX >= 0 && iZ >= 0 && iX < GGTERRAIN_MATERIALMAP_SIZE && iZ < GGTERRAIN_MATERIALMAP_SIZE )
 	{
 		uint32_t index = iZ * GGTERRAIN_MATERIALMAP_SIZE + iX;
-		if ( pMaterialMap[ index ] > 0 ) return pMaterialMap[ index ] - 1;
+		if (pMaterialMap[index] > 0)
+		{
+			terrainlock.unlock();
+			return pMaterialMap[index] - 1;
+		}
 	}
 
 	// calculate material from height and slope

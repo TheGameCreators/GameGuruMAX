@@ -900,17 +900,17 @@ float BULLETCosineInterpolate ( float y1, float y2, float mu )
  return ( y1 * ( 1 - mu2 ) + y2 * mu2 );
 }
 
-#ifdef PUTPHYSICSBACKINMAINTHREADSEQUENCE
+//#ifdef PUTPHYSICSBACKINMAINTHREADSEQUENCE
 std::mutex physicslock = {};
-#else
-class physicslockclass
-{
-public:
-	void lock(void) {};
-	void unlock(void) {};
-};
-physicslockclass physicslock;
-#endif
+//#else
+//class physicslockclass
+//{
+//public:
+//	void lock(void) {};
+//	void unlock(void) {};
+//};
+//physicslockclass physicslock;
+//#endif
 
 void Update(float fTimeStep)
 {

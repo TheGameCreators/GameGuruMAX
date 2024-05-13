@@ -43992,6 +43992,7 @@ void switch_to_regular_projects(void)
 	GetModuleFileNameA(hModule, szModule, MAX_PATH);
 	_splitpath_s(szModule, szDrive, 10, szDir, MAX_PATH, szEXE, MAX_PATH, NULL, 0);
 	FileRedirectRestoreWritableArea(szEXE);
+	FileRedirectChangeWritableArea(szEXE);
 }
 
 int save_create_storyboard_project(void)

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Light Mover v1 by Necrym59
+-- Light Mover v2 by Necrym59
 -- DESCRIPTION: Allows a light to be attached to a moving object.
 -- DESCRIPTION: Attach to a light and edit the settings.
 -- DESCRIPTION: [OBJECT_NAME$=""] object name to attach to
@@ -86,5 +86,9 @@ function light_mover_main(e)
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])
 		--Set Light Position
 		SetLightPosition(lightNum[e], x+offsetx[e]+lightmover[e].adjust_x_offset, y+offsety[e]+lightmover[e].adjust_y_offset, z+offsetz[e]+lightmover[e].adjust_z_offset)
+	end
+	if g_Entity[attachTo[e]]['health'] <= 0 then
+		SetLightRange(lightNum[e],0)
+		Destroy(lightNum[e])
 	end
 end

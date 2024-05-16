@@ -1,5 +1,5 @@
 --LUA Script - precede every function and global member with lowercase name of script + '_main'
---Platform Script V14  by Necrym59 with thanks to smallg
+--Platform Script V15  by Necrym59 with thanks to smallg
 --DESCRIPTION: Attach to an object. With Physics ON, Gravity OFF, Weight and Friction 0, IsImobile ON
 --DESCRIPTION: Change [PROMPT_TEXT$="E to start"]
 --DESCRIPTION: The direction 
@@ -51,7 +51,7 @@
 	local visibility 		= {}	
 	local riding 			= {}
 	local mode 				= {}
-	local extended	= {}
+	local extended			= {}
 	
 	local wait_time			= {}
 	local direction 		= {}
@@ -65,7 +65,6 @@
 	local onplatform		= {}
 
 function platform_properties(e, prompt_text, direction_x, direction_y, direction_z, distance_x, distance_y, distance_z, speed_x, speed_y, speed_z, lock_x_position, lock_y_position, lock_z_position, lock_x_rotation, lock_y_rotation, lock_z_rotation, auto_eject, visibility, riding, mode, extended)
-	platform[e] = g_Entity[e]
 	platform[e].prompt_text 			= prompt_text
 	platform[e].direction_x 			= direction_x
 	platform[e].direction_y 			= direction_y
@@ -90,7 +89,7 @@ function platform_properties(e, prompt_text, direction_x, direction_y, direction
 end 
 
 function platform_init(e)
-	platform[e] = g_Entity[e]
+	platform[e] = {}
 	platform[e].prompt_text 			= ""
 	platform[e].direction_x 			= 0
 	platform[e].direction_y 			= 0

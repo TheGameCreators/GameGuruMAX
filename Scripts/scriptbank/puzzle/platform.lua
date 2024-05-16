@@ -2,7 +2,7 @@
 --Platform Script V15  by Necrym59 with thanks to smallg
 --DESCRIPTION: Attach to an object. With Physics ON, Gravity OFF, Weight and Friction 0, IsImobile ON
 --DESCRIPTION: Change [PROMPT_TEXT$="E to start"]
---DESCRIPTION: The direction 
+--DESCRIPTION: The direction  
 --DESCRIPTION: [DIRECTION_X!=0]
 --DESCRIPTION: [DIRECTION_Y!=0]
 --DESCRIPTION: [DIRECTION_Z!=0]

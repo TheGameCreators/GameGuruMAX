@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- WinObject v5: by Necrym59
+-- WinObject v5: by Necrym59 
 -- DESCRIPTION: Will win the level by obtaining this object? Set Always Active ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to pickup"]
 -- DESCRIPTION: [USEAGE_TEXT$="U to use"]

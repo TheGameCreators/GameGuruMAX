@@ -223,9 +223,17 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.bEnableSpotShadowCulling = false;
 	t.visuals.bEnableObjectCulling = false;
 	t.visuals.bEnableAnimationCulling = false;
-	t.visuals.fLODMultiplier = 2.0f;
+	t.visuals.fLODMultiplier = 1.0f;
 
 	t.visuals.bEnable30FpsAnimations = false;
+
+	t.visuals.bShadowsLowestLOD = false;
+	t.visuals.bProbesLowestLOD = false;
+	t.visuals.bRaycastLowestLOD = false;
+	t.visuals.bPhysicsLowestLOD = false;
+	t.visuals.bThreadedPhysics = false;
+	t.visuals.bReflectionsLowestLOD = false;
+
 	t.visuals.g_bDelayedShadows = false;
 	t.visuals.g_bDelayedShadowsLaptop = false;
 
@@ -747,10 +755,26 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LODMultiplier=" + Str(t.visuals.fLODMultiplier);
 	WriteString(1, t.strwork.Get());
 
+	t.strwork = ""; t.strwork = t.strwork + "visuals.ThreadedPhysics=" + Str(t.visuals.bThreadedPhysics);
+	WriteString(1, t.strwork.Get());
 	
 
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Enable30FpsAnimations=" + Str(t.visuals.bEnable30FpsAnimations);
 	WriteString(1, t.strwork.Get());
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.ShadowsLowestLOD=" + Str(t.visuals.bShadowsLowestLOD);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.ProbesLowestLOD=" + Str(t.visuals.bProbesLowestLOD);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.RaycastLowestLOD=" + Str(t.visuals.bRaycastLowestLOD);
+	WriteString(1, t.strwork.Get());
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.PhysicsLowestLOD=" + Str(t.visuals.bPhysicsLowestLOD);
+	WriteString(1, t.strwork.Get());
+	
+	t.strwork = ""; t.strwork = t.strwork + "visuals.ReflectionsLowestLOD=" + Str(t.visuals.bReflectionsLowestLOD);
+	WriteString(1, t.strwork.Get());
+
 	t.strwork = ""; t.strwork = t.strwork + "visuals.DelayedShadows=" + Str(t.visuals.g_bDelayedShadows);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.DelayedShadowsLaptop=" + Str(t.visuals.g_bDelayedShadowsLaptop);
@@ -1024,9 +1048,17 @@ void visuals_load ( void )
 	t.visuals.bEnableSpotShadowCulling = false;
 	t.visuals.bEnableObjectCulling = false;
 	t.visuals.bEnableAnimationCulling = false;
-	t.visuals.fLODMultiplier = 2.0f;
+	t.visuals.fLODMultiplier = 1.0f;
 
 	t.visuals.bEnable30FpsAnimations = false;
+
+	t.visuals.bPhysicsLowestLOD = false;
+	t.visuals.bShadowsLowestLOD = false;
+	t.visuals.bProbesLowestLOD = false;
+	t.visuals.bRaycastLowestLOD = false;
+	t.visuals.bThreadedPhysics = false;
+	t.visuals.bReflectionsLowestLOD = false;
+
 	t.visuals.g_bDelayedShadows = false;
 	t.visuals.g_bDelayedShadowsLaptop = false;
 
@@ -1306,8 +1338,17 @@ void visuals_load ( void )
 			t.try_s = "visuals.EnableAnimationCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableAnimationCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.LODMultiplier"; if (t.tfield_s == t.try_s)  t.visuals.fLODMultiplier = ValF(t.tvalue_s.Get());
 			
+			t.try_s = "visuals.ThreadedPhysics"; if (t.tfield_s == t.try_s)  t.visuals.bThreadedPhysics = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.Enable30FpsAnimations"; if (t.tfield_s == t.try_s)  t.visuals.bEnable30FpsAnimations = ValF(t.tvalue_s.Get());
+
+			t.try_s = "visuals.PhysicsLowestLOD"; if (t.tfield_s == t.try_s)  t.visuals.bPhysicsLowestLOD = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.ShadowsLowestLOD"; if (t.tfield_s == t.try_s)  t.visuals.bShadowsLowestLOD = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.ProbesLowestLOD"; if (t.tfield_s == t.try_s)  t.visuals.bProbesLowestLOD = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.RaycastLowestLOD"; if (t.tfield_s == t.try_s)  t.visuals.bRaycastLowestLOD = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.ReflectionsLowestLOD"; if (t.tfield_s == t.try_s)  t.visuals.bReflectionsLowestLOD = ValF(t.tvalue_s.Get());
+
+
 			t.try_s = "visuals.DelayedShadows"; if (t.tfield_s == t.try_s)  t.visuals.g_bDelayedShadows = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.DelayedShadowsLaptop"; if (t.tfield_s == t.try_s)  t.visuals.g_bDelayedShadowsLaptop = ValF(t.tvalue_s.Get());
 
@@ -2629,6 +2670,12 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 
 	// Settings for Editor and Game
 	extern bool bEnable30FpsAnimations;
+	extern bool bShadowsLowestLOD;
+	extern bool bProbesLowestLOD;
+	extern bool bRaycastLowestLOD;
+	extern bool bPhysicsLowestLOD;
+	extern bool bReflectionsLowestLOD;
+
 	extern bool g_bDelayedShadows;
 	extern bool g_bDelayedShadowsLaptop;
 	extern bool bEnableTerrainChunkCulling;
@@ -2638,6 +2685,7 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 	extern bool bEnableAnimationCulling;
 	extern float maxApparentSize;
 	extern float fLODMultiplier;
+	extern bool bThreadedPhysics;
 	bool bPerformAnUpdate = false;
 	int iChangeSkyType = -1;
 	if (t.visuals.shaderlevels.entities == 2) // CUSTOM (MEDIUM)
@@ -2648,7 +2696,13 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 	{
 		if (t.visuals.shaderlevels.entities == 1) // HIGHEST
 		{
+			bShadowsLowestLOD = false;
+			bProbesLowestLOD = false;
+			bRaycastLowestLOD = true;
+			bReflectionsLowestLOD = false;
+
 			bEnable30FpsAnimations = false;
+			bPhysicsLowestLOD = false;
 			g_bDelayedShadows = false;
 			g_bDelayedShadowsLaptop = false;
 			float fASize = 0.08f;
@@ -2661,11 +2715,18 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 				t.visuals.bDisableSkybox = false;
 				iChangeSkyType = 0;
 			}
-			fLODMultiplier = 4.0f;
+			fLODMultiplier = 3.0f;
 		}
 		if (t.visuals.shaderlevels.entities == 3) // LOW
 		{
+			bShadowsLowestLOD = true;
+			bProbesLowestLOD = true;
+			bRaycastLowestLOD = true;
+			bPhysicsLowestLOD = true;
+			bReflectionsLowestLOD = true;
+
 			bEnable30FpsAnimations = true;
+
 			g_bDelayedShadows = true;
 			g_bDelayedShadowsLaptop = true;
 			float fASize = 1.0f;
@@ -2678,7 +2739,7 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 				t.visuals.bDisableSkybox = true;
 				iChangeSkyType = 1;
 			}
-			fLODMultiplier = 2.0f;
+			fLODMultiplier = 1.0f;
 
 		}
 		t.visuals.bOcclusionCulling = true;
@@ -2693,6 +2754,13 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 	if ( bPerformAnUpdate == true )
 	{
 		t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations = bEnable30FpsAnimations;
+
+		t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD = bPhysicsLowestLOD;
+		t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD = bShadowsLowestLOD;
+		t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD = bProbesLowestLOD;
+		t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD = bRaycastLowestLOD;
+		t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD = bReflectionsLowestLOD;
+
 		t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows = g_bDelayedShadows;
 		t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop = g_bDelayedShadowsLaptop;
 		t.gamevisuals.bEnableObjectCulling = t.visuals.bEnableObjectCulling = bEnableObjectCulling;
@@ -2703,6 +2771,8 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 		t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling = bEnableAnimationCulling;
 		t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier = fLODMultiplier;
 
+		t.gamevisuals.bThreadedPhysics = t.visuals.bThreadedPhysics = bThreadedPhysics;
+		
 		t.gamevisuals.ApparentSize = t.visuals.ApparentSize = maxApparentSize;
 		t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
 		if (bEnableTerrainChunkCulling && !t.visuals.bOcclusionCulling)

@@ -36,6 +36,8 @@ extern UndoRedoMemory g_TerrainRedoMem;
 void GGGrass_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* pEventData = nullptr);
 void GGGrass_PerformUndoRedoAction(int type, void* pEventData, int eList);
 
+int gggrass_initialised = 0;
+
 namespace GGGrass
 {
 
@@ -302,6 +304,7 @@ struct GrassChunk
 
 	int Update()
 	{
+		if (!gggrass_initialised) return 0;
 		if ( !GGTerrain_IsReady() ) return 0;
 
 		minHeight = 1e9f;
@@ -531,6 +534,8 @@ wiGraphics::FORMAT ConvertDDSFormat( tinyddsloader::DDSFile::DXGIFormat format )
 
 void GGGrass_LoadTextureDDS( const char* filename, Texture* tex ) 
 { 
+	if (!gggrass_initialised) return;
+
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	char filePath[ MAX_PATH ];
@@ -584,6 +589,8 @@ void GGGrass_LoadTextureDDS( const char* filename, Texture* tex )
 
 void GGGrass_CreateEmptyTexture( int width, int height, int mipLevels, int levels, FORMAT format, Texture* tex ) 
 {
+	if (!gggrass_initialised) return;
+
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	TextureDesc texDesc = {};
@@ -602,6 +609,8 @@ void GGGrass_CreateEmptyTexture( int width, int height, int mipLevels, int level
 
 void GGGrass_LoadTextureDDSIntoSlice( const char* filename, Texture* tex, uint32_t arraySlice ) 
 { 
+	if (!gggrass_initialised) return;
+
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	char filePath[ MAX_PATH ];
@@ -627,6 +636,8 @@ void GGGrass_LoadTextureDDSIntoSlice( const char* filename, Texture* tex, uint32
 // only call this when grass heights need to be updated, e.g. when the terrain has changed
 int GGGrass_UpdateInstances()
 {
+	if (!gggrass_initialised) return 0;
+
 	for( uint32_t i = 0; i < numGrassChunks; i++ )
 	{
 		if ( !pGrassChunks[ i ].Update() ) return 0;
@@ -655,6 +666,7 @@ float GrassTimer()
 
 void GGGrass_Init()
 {
+	gggrass_initialised = 1;
 	GrassTimerInit();
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -825,11 +837,13 @@ int GGGrass_UsingBrush()
 
 void GGGrass_BindGrassArray( uint32_t slot, wiGraphics::CommandList cmd )
 {
+	if (!gggrass_initialised) return;
 	wiRenderer::GetDevice()->BindResource( PS, &texGrass, slot, cmd ); 
 }
 
 uint32_t GGGrass_GetGrassMap( float x, float z )
 {
+	if (!gggrass_initialised) return 0;
 	float fX = x / ggterrain_global_render_params2.editable_size;
 	fX = fX * 0.5f + 0.5f;
 	fX *= GGGRASS_MAP_SIZE;
@@ -856,6 +870,7 @@ uint32_t GGGrass_GetGrassMap( float x, float z )
 // not for external use
 void GGGrass_SetGrassMap( float x, float z, uint8_t grassID )
 {
+	if (!gggrass_initialised) return;
 	float fX = x / ggterrain_global_render_params2.editable_size;
 	fX = fX * 0.5f + 0.5f;
 	fX *= GGGRASS_MAP_SIZE;
@@ -903,6 +918,7 @@ void GGGrass_SetPerformanceMode( uint32_t mode )
 
 void GGGrass_AddAll()
 {
+	if (!gggrass_initialised) return;
 	uint32_t numTypes = 0;
 	uint64_t values = gggrass_global_params.paint_type;
 	uint32_t currMat = gggrass_global_params.paint_material;
@@ -980,6 +996,7 @@ void GGGrass_AddAll()
 
 void GGGrass_RemoveAll()
 {
+	if (!gggrass_initialised) return;
 	for( uint32_t z = 0; z < GGGRASS_MAP_SIZE; z++ )
 	{
 		for( uint32_t x = 0; x < GGGRASS_MAP_SIZE; x++ )
@@ -1017,6 +1034,7 @@ uint32_t GGGrass_GetDataSize()
 
 int GGGrass_GetData( uint8_t* data )
 {
+	if (!gggrass_initialised) return 0;
 	uint32_t size = GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE * sizeof(uint8_t);
 	memcpy( data, pGrassMap, size );
 
@@ -1025,6 +1043,7 @@ int GGGrass_GetData( uint8_t* data )
 
 int GGGrass_SetData( uint32_t size, uint8_t* data, sUndoSysEventGrass* pEvent)
 {
+	if (!gggrass_initialised) return 0;
 	if(!pEvent)
 	{ 
 		uint32_t size1 = GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE * sizeof(uint8_t);
@@ -1055,6 +1074,7 @@ int GGGrass_SetData( uint32_t size, uint8_t* data, sUndoSysEventGrass* pEvent)
 
 void GGGrass_UpdateFlatArea( int mode, int type, float posX, float posZ, float sx, float sz, float angle )
 {
+	if (!gggrass_initialised) return;
 	if ( !pGrassMap ) return;
 
 	float realMinX = 1e20f;
@@ -1183,6 +1203,7 @@ void GGGrass_UpdateFlatArea( int mode, int type, float posX, float posZ, float s
 
 void GGGrass_RestoreAllFlattened()
 {
+	if (!gggrass_initialised) return;
 	if ( !pGrassMap ) return;
 
 	for( uint32_t y = 0; y < GGGRASS_MAP_SIZE; y++ )
@@ -1199,6 +1220,7 @@ void GGGrass_RestoreAllFlattened()
 
 void GGGrass_Update_Painting( RAY ray )
 {
+	if (!gggrass_initialised) return;
 	float pickX = 0, pickY = 0, pickZ = 0;
 	int pickHit = GGTerrain_RayCast( ray, &pickX, &pickY, &pickZ, 0, 0, 0, 0 );
 
@@ -1418,6 +1440,7 @@ void GGGrass_Update_Painting( RAY ray )
 
 void GGGrass_Update( wiScene::CameraComponent* camera, CommandList cmd, bool bRenderTargetFocus)
 {
+	if (!gggrass_initialised) return;
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
@@ -1593,6 +1616,7 @@ void GGGrass_Update( wiScene::CameraComponent* camera, CommandList cmd, bool bRe
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGGrass_Draw_Prepass( const Frustum* frustum, int mode, CommandList cmd )
 {
+	if (!gggrass_initialised) return;
 	if ( !gggrass_global_params.draw_enabled ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -1702,6 +1726,7 @@ extern "C" void GGGrass_Draw_ShadowMap( const Frustum* frustum, int cascade, Com
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGGrass_Draw( const Frustum* frustum, int mode, CommandList cmd )
 {
+	if (!gggrass_initialised) return;
 	if ( !gggrass_global_params.draw_enabled ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -1765,6 +1790,7 @@ extern "C" void GGGrass_Draw( const Frustum* frustum, int mode, CommandList cmd 
 #ifdef GGGRASS_UNDOREDO
 void GGGrass_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* pEventData)
 {
+	if (!gggrass_initialised) return;
 	// User performed this undo action, so clear the redo stack since it now contains outdated events.
 	if (bUserAction == true)
 	{
@@ -1802,6 +1828,7 @@ void GGGrass_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* p
 
 void GGGrass_PerformUndoRedoAction(int type, void* pEventData, int eList)
 {
+	if (!gggrass_initialised) return;
 	if (!pEventData)
 		return;
 

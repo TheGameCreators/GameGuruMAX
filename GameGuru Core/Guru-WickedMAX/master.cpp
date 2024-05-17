@@ -1714,9 +1714,13 @@ void Master::RunCustom()
 			// terrain processing
 			#ifdef GGTERRAIN_USE_NEW_TERRAIN
 			extern bool bImGuiRenderTargetFocus;
-			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
+			extern int g_iDisableTerrainSystem;
+			GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+			if (g_iDisableTerrainSystem == 0)
+			{
+				GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+				GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+			}
 			#endif
 
 			// now just prepared IMGUI, but actual render called from Wicked hook
@@ -2259,14 +2263,18 @@ void MasterRenderer::Update(float dt)
 			wiProfiler::EndRange(range);
 
 			// terrain processing
+			extern int g_iDisableTerrainSystem;
 			auto range3 = wiProfiler::BeginRangeCPU("Update - Terrain");
 			extern bool bImGuiRenderTargetFocus;
-			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_UpdateFrustumCulling( &camera );
-			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
+			GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+			if (g_iDisableTerrainSystem == 0)
+			{
+				GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+				GGTrees_UpdateFrustumCulling(&camera);
+				GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+			}
 			wiProfiler::EndRange(range3);
-
+			
 			// now just prepared IMGUI, but actual render called from Wicked hook
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Render");
 			GuruLoopRender();

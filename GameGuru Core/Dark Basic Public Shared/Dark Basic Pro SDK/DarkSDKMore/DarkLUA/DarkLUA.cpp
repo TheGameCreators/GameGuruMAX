@@ -9796,6 +9796,24 @@ int SetEntityTextureScale (lua_State *L) { return SetMaterialData (L, 22); }
 int SetEntityTextureOffset (lua_State *L) { return SetMaterialData (L, 23); }
 
 
+int SetWeaponArmsVisible(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	extern bool bHideWeapons;
+	bHideWeapons = lua_tonumber(L, 1);
+	return 1;
+}
+
+int GetWeaponArmsVisible(lua_State* L)
+{
+	lua = L;
+	extern bool bHideWeapons;
+	lua_pushboolean(L, bHideWeapons);
+	return 1;
+}
+
 int IsPlayerInGame(lua_State* L) 
 { 
 	bool bInGame = t.game.gameloop > 0 && t.game.titleloop == 0; 
@@ -12296,6 +12314,10 @@ void addFunctions()
 	lua_register(lua, "SetEntityTexture", SetEntityTexture);
 	lua_register(lua, "SetEntityTextureScale", SetEntityTextureScale);
 	lua_register(lua, "SetEntityTextureOffset", SetEntityTextureOffset);
+
+
+	lua_register(lua, "SetWeaponArmsVisible", SetWeaponArmsVisible);
+	lua_register(lua, "GetWeaponArmsVisible", GetWeaponArmsVisible);
 
 	// In-game HUD
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);

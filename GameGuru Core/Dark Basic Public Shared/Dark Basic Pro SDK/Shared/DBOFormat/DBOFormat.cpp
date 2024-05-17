@@ -1914,8 +1914,10 @@ DARKSDK_DLL bool CreateSingleMeshFromObjectCore ( sMesh** ppMesh, sObject* pObje
 					// convert mesh to standard temp mesh-format
 					sMesh* pStandardMesh = new sMesh;
 					MakeLocalMeshFromOtherLocalMesh ( pStandardMesh, pFrameMesh );
-					ConvertLocalMeshToFVF ( pStandardMesh, dwNewMeshFVF );
-					
+					//ConvertLocalMeshToFVF ( pStandardMesh, dwNewMeshFVF );
+					//PE: Make sure to follow wicked special FVF.
+					DARKSDK_DLL void ConvertLocalMeshToFVFBones(sMesh * pMesh, DWORD dwFVF, bool bForceRepack);
+					ConvertLocalMeshToFVFBones(pStandardMesh, dwNewMeshFVF,false);
 					// U75 - 010410 - this is redundant as the check is performed earlier in this function
 					// leeadd - 081208 - U71 - if mesh has NO index data, all mesh must have NO index data, so switch to vertex only
 					//if ( pFrameMesh->dwIndexCount==0 )
@@ -2492,6 +2494,73 @@ DARKSDK_DLL void ConvertLocalMeshToFVF ( sMesh* pMesh, DWORD dwFVF )
 		SAFE_RELEASE(pDXMesh);
 	}
 	#endif
+}
+//#pragma optimize("", off)
+
+DARKSDK_DLL void ConvertLocalMeshToFVFBones(sMesh* pMesh, DWORD dwFVF, bool bForceRepack)
+{
+#ifdef DX11
+	if (pMesh->dwFVF != dwFVF || bForceRepack)
+	{
+		// convert current mesh VB data to new dwFVF
+		sOffsetMap offsetMap, offsetMapNew;
+		GetFVFOffsetMapFixedForBones(pMesh, &offsetMap);
+		pMesh->dwFVF = dwFVF;
+		GetFVFOffsetMapFixedForBones(pMesh, &offsetMapNew);
+		DWORD dwNewFVFSize = offsetMapNew.dwByteSize;
+		DWORD dwNumberOfVertices = pMesh->dwVertexCount;
+		DWORD dwNewVertexDataSize = dwNumberOfVertices * dwNewFVFSize;
+		LPSTR pNewVertexData = new char[dwNewVertexDataSize];
+		for (int iCurrentVertex = 0; iCurrentVertex < (int)dwNumberOfVertices; iCurrentVertex++)
+		{
+			if (dwFVF & GGFVF_XYZ)
+			{
+				GGVECTOR3 vecPos = *(GGVECTOR3*)((float*)pMesh->pVertexData + offsetMap.dwX + (offsetMap.dwSize * iCurrentVertex));
+				*(GGVECTOR3*)((float*)pNewVertexData + offsetMapNew.dwX + (offsetMapNew.dwSize * iCurrentVertex)) = vecPos;
+			}
+			if (dwFVF & GGFVF_NORMAL)
+			{
+				GGVECTOR3 vecNorm = *(GGVECTOR3*)((float*)pMesh->pVertexData + offsetMap.dwNX + (offsetMap.dwSize * iCurrentVertex));
+				*(GGVECTOR3*)((float*)pNewVertexData + offsetMapNew.dwNX + (offsetMapNew.dwSize * iCurrentVertex)) = vecNorm;
+			}
+			if ((dwFVF & GGFVF_DIFFUSE) && offsetMap.dwDiffuse > 0 && offsetMapNew.dwDiffuse > 0 )
+			{
+				DWORD dwDiffuseColour = *(DWORD*)((float*)pMesh->pVertexData + offsetMap.dwDiffuse + (offsetMap.dwSize * iCurrentVertex));
+				*(DWORD*)((float*)pNewVertexData + offsetMapNew.dwDiffuse + (offsetMapNew.dwSize * iCurrentVertex)) = dwDiffuseColour;
+			}
+			/* oops! GGFVF_TEX1 actually means ONE texture set, GGFVF_TEX2 means two texture sets (i.e. lightmapping)
+			if ( dwFVF & GGFVF_TEX1 )
+			{
+				float fTex = *(float*)( ( float* ) pMesh->pVertexData + offsetMap.dwTU[0] + ( offsetMap.dwSize * iCurrentVertex ) );
+				*(float*)( ( float* ) pNewVertexData + offsetMapNew.dwTU[0] + ( offsetMapNew.dwSize * iCurrentVertex ) ) = fTex;
+			}
+			if ( dwFVF & GGFVF_TEX2 )
+			*/
+			if ((dwFVF & GGFVF_TEX1 || dwFVF & GGFVF_TEX2))
+			{
+				GGVECTOR2 vecTex = *(GGVECTOR2*)((float*)pMesh->pVertexData + offsetMap.dwTU[0] + (offsetMap.dwSize * iCurrentVertex));
+				*(GGVECTOR2*)((float*)pNewVertexData + offsetMapNew.dwTU[0] + (offsetMapNew.dwSize * iCurrentVertex)) = vecTex;
+
+			}
+			if ((dwFVF & GGFVF_TEX2) && offsetMap.dwTU[1] > 0 && offsetMapNew.dwTU[1] > 0)
+			{
+				GGVECTOR2 vecTex = *(GGVECTOR2*)((float*)pMesh->pVertexData + offsetMap.dwTU[1] + (offsetMap.dwSize * iCurrentVertex));
+				*(GGVECTOR2*)((float*)pNewVertexData + offsetMapNew.dwTU[1] + (offsetMapNew.dwSize * iCurrentVertex)) = vecTex;
+			}
+		}
+		SAFE_DELETE(pMesh->pVertexData);
+		pMesh->pVertexData = (BYTE*)pNewVertexData;
+		pMesh->dwFVF = dwFVF;
+		pMesh->dwFVFSize = dwNewFVFSize;
+	}
+#else
+	if (pMesh->dwFVF != dwFVF)
+	{
+		LPGGMESH pDXMesh = LocalMeshToDXMesh(pMesh, NULL, dwFVF);
+		UpdateLocalMeshWithDXMesh(pMesh, pDXMesh);
+		SAFE_RELEASE(pDXMesh);
+	}
+#endif
 }
 
 DARKSDK_DLL void ConvertLocalMeshToVertsOnly ( sMesh* pMesh, bool bIs32BitIndexData )

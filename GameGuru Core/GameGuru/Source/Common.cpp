@@ -3287,6 +3287,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					extern int g_iUseLODObjects;
 					t.tryfield_s = "uselodobjects"; if (t.field_s == t.tryfield_s) g_iUseLODObjects = t.value1;
 						
+					extern int g_iDisableTerrainSystem;
+					t.tryfield_s = "disableterrainsystem"; if (t.field_s == t.tryfield_s) g_iDisableTerrainSystem = t.value1;
+
 
 					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "globalhudscale"; if (t.field_s == t.tryfield_s)  g.globalhudscale = t.value1 / 100.0f;
@@ -6915,3 +6918,37 @@ void LineEx ( int x1, int y1, int x2, int y2 )
 		SizeSprite ( 123, 1+(x2-x1), height );
 	PasteSprite ( 123, x1, y1 );
 }
+
+void GetSetupIniEarly( void )
+{
+	//PE: Standalone option to make sure no mem is used by terrain system.
+	char appname[1024];
+	GetModuleFileNameA(g_pGlob->hInstance, appname, 1024);
+	if(!pestrcasestr(appname,"gamegurumax.exe"))
+	{
+		//PE: Cant use any special commands at this point. so simple parsing only what we need at this point.
+		FILE* file = fopen("setup.ini", "r");
+		if (file)
+		{
+			char t[2048];
+			while (!feof(file))
+			{
+				fgets(t, 2047, file);
+				if (pestrcasestr(t, "disableterrainsystem"))
+				{
+					if (pestrcasestr(t, "1"))
+					{
+						extern int g_iDisableTerrainSystem;
+						g_iDisableTerrainSystem = 1;
+					}
+					break;
+				}
+			}
+			fclose(file);
+		}
+
+	}
+
+}
+
+

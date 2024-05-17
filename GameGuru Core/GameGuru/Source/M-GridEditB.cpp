@@ -7157,14 +7157,15 @@ void tab_tab_visuals(int iPage, int iMode)
 					extern uint32_t iRenderedPointShadows;
 					extern uint32_t iRenderedSpotShadows;
 
-					if(bOCDebug)
-						ImGui::Text("Occluded Point Shadows: (%d) %d r(%d)", iPoint,iCulledPointShadows, iRenderedPointShadows);
+					if (bOCDebug)
+						ImGui::Text("Occluded Point Shadows: (%d) %d r(%d)", iPoint, iCulledPointShadows, iRenderedPointShadows);
 					else
 						ImGui::Text("Occluded Point Shadows: %d r(%d)", iCulledPointShadows, iRenderedPointShadows);
 					if (bOCDebug)
-						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot , iCulledSpotShadows, iRenderedSpotShadows);
+						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot, iCulledSpotShadows, iRenderedSpotShadows);
 					else
 						ImGui::Text("Occluded Spot Shadows: %d r(%d)", iCulledSpotShadows, iRenderedSpotShadows);
+
 					ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
@@ -7184,13 +7185,74 @@ void tab_tab_visuals(int iPage, int iMode)
 				extern float fLODMultiplier;
 				ImGui::Text("LOD Multiplier");
 				ImGui::PushItemWidth(-10);
-				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.02f, 5.0f, "%.2f", 1.0f))
+				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.0f, 15.0f, "%.2f", 1.0f))
 				{
 					if (fLODMultiplier < 0)
 						fLODMultiplier = 0;
+					t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier = fLODMultiplier;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change LOD distance before switching from normal object to LOD");
 				ImGui::PopItemWidth();
+
+				extern int g_iUseLODObjects;
+				extern bool bDisableLODLoad;
+				ImGui::Checkbox("Disable LOD Load", &bDisableLODLoad);
+
+				if (g_iUseLODObjects > 0 && !bDisableLODLoad)
+				{
+					extern bool bShadowsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Shadows Use Lowest LOD##Animationsculling", &bShadowsLowestLOD))
+					{
+						t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD = bShadowsLowestLOD;
+						g.projectmodified = 1;
+
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All shadows will use lowest LOD available to render.");
+					ImGui::PopItemWidth();
+
+					extern bool bProbesLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Probes Use Lowest LOD##Animationsculling", &bProbesLowestLOD))
+					{
+						t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD = bProbesLowestLOD;
+						g.projectmodified = 1;
+
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All probes will use lowest LOD available to render.");
+					ImGui::PopItemWidth();
+
+					extern bool bRaycastLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Raycast Use Lowest LOD##Animationsculling", &bRaycastLowestLOD))
+					{
+						t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD = bRaycastLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All raycast will use lowest LOD available for intersect checks.");
+					ImGui::PopItemWidth();
+
+
+					extern bool bPhysicsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Physics Use Lowest LOD##Animationsculling", &bPhysicsLowestLOD))
+					{
+						t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD = bPhysicsLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All physics objects is created using lowest LOD.");
+					ImGui::PopItemWidth();
+
+					extern bool bReflectionsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Reflections Use Lowest LOD##Animationsculling", &bReflectionsLowestLOD))
+					{
+						t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD = bReflectionsLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All reflection rendering is using lowest LOD.");
+					ImGui::PopItemWidth();
+				}
 
 				// end performance
 				ImGui::Indent(-10);
@@ -8605,6 +8667,21 @@ void Wicked_Update_Visuals(void *voidvisual)
 		extern bool g_bDelayedShadowsLaptop;
 		g_bDelayedShadowsLaptop = visuals->g_bDelayedShadowsLaptop;
 
+		extern bool bShadowsLowestLOD;
+		extern bool bProbesLowestLOD;
+		extern bool bRaycastLowestLOD;
+		extern bool bPhysicsLowestLOD;
+		extern bool bReflectionsLowestLOD;
+
+		bShadowsLowestLOD = visuals->bShadowsLowestLOD;
+		bProbesLowestLOD = visuals->bProbesLowestLOD;
+		bRaycastLowestLOD = visuals->bRaycastLowestLOD;
+		bPhysicsLowestLOD = visuals->bPhysicsLowestLOD;
+		bReflectionsLowestLOD = visuals->bReflectionsLowestLOD;
+
+		extern bool bThreadedPhysics;
+		bThreadedPhysics = visuals->bThreadedPhysics;
+		
 		// when in editor, keep enforcing a fixed exposure value (so we dont see fade-ins all the time)
 		if (t.game.set.ismapeditormode==0 || pref.iEnableAutoExposureInEditor )
 			master_renderer->setEyeAdaptionEnabled(visuals->bAutoExposure);
@@ -51286,7 +51363,12 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, i
 					}
 					else
 					{
-						DrawDot("P", center.x, center.y, center.z);
+						t.tdiffx_f = center.x - CameraPositionX();
+						t.tdiffy_f = center.y - CameraPositionY();
+						t.tdiffz_f = center.z - CameraPositionZ();
+						float dist = Sqrt(abs(t.tdiffx_f * t.tdiffx_f) + abs(t.tdiffy_f * t.tdiffy_f) + abs(t.tdiffz_f * t.tdiffz_f));
+						std::string sdist = "P: " + std::to_string((int)dist);
+						DrawDot( (char *) sdist.c_str(), center.x, center.y, center.z);
 					}
 				}
 				if (light.GetType() == ENTITY_TYPE_SPOTLIGHT)
@@ -51302,7 +51384,12 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, i
 					}
 					else
 					{
-						DrawDot("S", center.x, center.y, center.z);
+						t.tdiffx_f = center.x - CameraPositionX();
+						t.tdiffy_f = center.y - CameraPositionY();
+						t.tdiffz_f = center.z - CameraPositionZ();
+						float dist = Sqrt(abs(t.tdiffx_f * t.tdiffx_f) + abs(t.tdiffy_f * t.tdiffy_f) + abs(t.tdiffz_f * t.tdiffz_f));
+						std::string sdist = "S: " + std::to_string((int)dist);
+						DrawDot((char *)sdist.c_str(), center.x, center.y, center.z);
 					}
 				}
 			}

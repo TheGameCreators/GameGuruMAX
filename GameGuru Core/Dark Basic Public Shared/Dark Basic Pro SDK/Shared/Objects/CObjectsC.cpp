@@ -521,7 +521,7 @@ DARKSDK_DLL void LoadCore ( char* szFilename, char* szOrgFilename, int iID, int 
 		return;
 
 	#ifdef WICKEDENGINE
-	//PE: Until we get LOD support , hide lowest LOD frames.
+	//PE: Hide lowest LOD frames.
 	Wicked_Hide_Lower_Lod_Meshes(iID);
 	#endif
 

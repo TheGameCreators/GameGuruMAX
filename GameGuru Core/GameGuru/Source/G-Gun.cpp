@@ -3374,6 +3374,8 @@ void gun_flash ( void )
 
 void gun_brass ( void )
 {
+	extern bool bHideWeapons;
+	if (bHideWeapons) return;
 	//  If gun has no brass, skip this creation moment
 	if (  g.firemodes[t.gunid][g.firemode].settings.brass == 0  )  return;
 

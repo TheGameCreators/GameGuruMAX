@@ -127,6 +127,7 @@
   //#define RAVEY_PARTICLES_MAX 100
   //PE: 700 seams fine now, we must have done something good somewhere :)
   #define RAVEY_PARTICLES_MAX 700
+  #define RAVEY_PARTICLES_MAX_FIRST_BATCH 200
 #endif
 #endif
 
@@ -3889,6 +3890,14 @@ struct visualstype
 	bool bEnableAnimationCulling;
 	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
+	bool bPhysicsLowestLOD;
+
+	bool bShadowsLowestLOD;
+	bool bProbesLowestLOD;
+	bool bRaycastLowestLOD;
+	bool bThreadedPhysics;
+	bool bReflectionsLowestLOD;
+
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
 
@@ -4132,8 +4141,16 @@ struct visualstype
 		 bEnableSpotShadowCulling = false;
 		 bEnableObjectCulling = false;
 		 bEnableAnimationCulling = false;
-		 fLODMultiplier = 2.0f;
+		 fLODMultiplier = 1.0f;
 		 bEnable30FpsAnimations = false;
+
+		 bPhysicsLowestLOD = false;
+		 bShadowsLowestLOD = false;
+		 bProbesLowestLOD = false;
+		 bRaycastLowestLOD = false;
+		 bThreadedPhysics = false;
+		 bReflectionsLowestLOD = false;
+
 		 g_bDelayedShadows = false;
 		 g_bDelayedShadowsLaptop = false;
 
@@ -4282,6 +4299,14 @@ struct visualsdatastoragetype
 	bool bEnableAnimationCulling;
 	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
+
+	bool bPhysicsLowestLOD;
+	bool bShadowsLowestLOD;
+	bool bProbesLowestLOD;
+	bool bRaycastLowestLOD;
+	bool bThreadedPhysics;
+	bool bReflectionsLowestLOD;
+
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
 
@@ -4321,8 +4346,16 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = false;
 		bEnableObjectCulling = false;
 		bEnableAnimationCulling = false;
-		fLODMultiplier = 2.0f;
+		fLODMultiplier = 1.0f;
 		bEnable30FpsAnimations = false;
+
+		bPhysicsLowestLOD = false;
+		bShadowsLowestLOD = false;
+		bProbesLowestLOD = false;
+		bRaycastLowestLOD = false;
+		bThreadedPhysics = false;
+		bReflectionsLowestLOD = false;
+
 		g_bDelayedShadows = false;
 		g_bDelayedShadowsLaptop = false;
 
@@ -4366,8 +4399,16 @@ struct visualsdatastoragetype
 		bEnableObjectCulling = visuals.bEnableObjectCulling;
 		bEnableAnimationCulling = visuals.bEnableAnimationCulling;
 		fLODMultiplier = visuals.fLODMultiplier;
+		bThreadedPhysics = visuals.bThreadedPhysics;
 
 		bEnable30FpsAnimations = visuals.bEnable30FpsAnimations;
+
+		bShadowsLowestLOD = visuals.bShadowsLowestLOD;
+		bProbesLowestLOD = visuals.bProbesLowestLOD;
+		bRaycastLowestLOD = visuals.bRaycastLowestLOD;
+		bPhysicsLowestLOD = visuals.bPhysicsLowestLOD;
+		bReflectionsLowestLOD = visuals.bReflectionsLowestLOD;
+
 		g_bDelayedShadows = visuals.g_bDelayedShadows;
 		g_bDelayedShadowsLaptop = visuals.g_bDelayedShadowsLaptop;
 
@@ -11050,7 +11091,7 @@ struct travey_particle
 	int iDelayUpdate;
 	float fFpsUpdate;
 	float fFpsTimePassed;
-
+	int iCreated;
 	// Constructor
 	travey_particle ( )
 	{
@@ -11091,6 +11132,7 @@ struct travey_particle
 		 emitterID = 0;
 		 inUse = 0;
 		 iDelayUpdate = 0;
+		 iCreated = false;
 	}
 };
 

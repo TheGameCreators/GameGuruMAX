@@ -22,6 +22,94 @@ int particle_copy = 0;
 bool g_bOnlyCreateOnceForFasterNewLevels = true;
 #endif
 
+//PE: Still suffer for many wicked objects , limit it and only use what is needed. only add batch of 30 to make it fast.
+void add_more( void )
+{
+	int iCount = 0;
+	for (int i = RAVEY_PARTICLES_MAX_FIRST_BATCH - 1; i < RAVEY_PARTICLES_MAX; i++)
+	{
+		if (t.ravey_particles[i].iCreated == 0)
+		{
+			if (iCount++ > 30)
+				break;
+			t.ravey_particles[i].inUse = 0;
+			t.ravey_particles[i].iCreated = 1;
+
+			particle_copy = g.raveyparticlesobjectoffset + RAVEY_PARTICLES_MAX;
+			if (ObjectExist(particle_copy) == 0)
+			{
+				MakeObjectPlane(particle_copy, 100, 100);
+				FixObjectPivot(particle_copy);
+				HideObject(particle_copy);
+
+				//PE: No light.
+				LockVertexDataForLimbCore(particle_copy, 0, 1);
+				SetVertexDataNormals(0, 0, 1, 0);
+				SetVertexDataNormals(1, 0, 1, 0);
+				SetVertexDataNormals(2, 0, 1, 0);
+				SetVertexDataNormals(3, 0, 1, 0);
+				SetVertexDataNormals(4, 0, 1, 0);
+				SetVertexDataNormals(5, 0, 1, 0);
+				UnlockVertexData();
+			}
+			//  create particle object
+			int obj = g.raveyparticlesobjectoffset + i;
+			if (ObjectExist(obj) == 1)  DeleteObject(obj);
+
+			if (ObjectExist(particle_copy) == 1)
+			{
+				CloneObject(obj, particle_copy);
+			}
+			else
+			{
+				MakeObjectPlane(obj, 100, 100);
+			}
+
+			FixObjectPivot(obj);
+			SetObjectTransparency(obj, 6);
+			SetObjectCollisionOff(obj);
+
+			SetObjectTextureMode(obj, 0, 0);
+			SetObjectLight(obj, 0);
+
+			// ensure VR can see particles too!
+			if (g.vrglobals.GGVREnabled > 0)
+				SetObjectMask(obj, (1 << 6) + (1 << 7) + 1);
+			else
+				SetObjectMask(obj, 1);
+
+			HideObject(obj);
+			TextureObject(obj, RAVEY_PARTICLES_IMAGETYPE_LIGHTSMOKE + g.particlesimageoffset);
+			SetObjectEffect(obj, g.decaleffectoffset);
+			SetObjectCull(obj, 0);
+
+			//  lock UV here and fill with 8x8 UV grid ref
+			LockVertexDataForLimbCore(obj, 0, 1);
+			SetVertexDataUV(0, 1.0 / 8.0, 0);
+			SetVertexDataUV(1, 0, 0);
+			SetVertexDataUV(2, 1.0 / 8.0, 1.0 / 8.0);
+			SetVertexDataUV(3, 0, 0);
+			SetVertexDataUV(4, 0, 1.0 / 8.0);
+			SetVertexDataUV(5, 1.0 / 8.0, 1.0 / 8.0);
+
+			SetVertexDataNormals(0, 0, 1, 0);
+			SetVertexDataNormals(1, 0, 1, 0);
+			SetVertexDataNormals(2, 0, 1, 0);
+			SetVertexDataNormals(3, 0, 1, 0);
+			SetVertexDataNormals(4, 0, 1, 0);
+			SetVertexDataNormals(5, 0, 1, 0);
+
+			UnlockVertexData();
+
+			sObject* pVegObject = GetObjectData(obj);
+			if (pVegObject)
+			{
+				WickedCall_SetObjectCastShadows(pVegObject, false); //PE: No shadows on particles for now.
+			}
+		}
+	}
+}
+
 void ravey_particles_init ( void )
 {
 	#ifdef WICKEDENGINE
@@ -34,7 +122,7 @@ void ravey_particles_init ( void )
 	#endif
 
 		// pre create max particles
-		for (int i = 0; i < RAVEY_PARTICLES_MAX; i++)
+		for (int i = 0; i < RAVEY_PARTICLES_MAX_FIRST_BATCH; i++)
 		{
 #ifdef WICKEDENGINE
 			particle_copy = g.raveyparticlesobjectoffset + RAVEY_PARTICLES_MAX;
@@ -146,6 +234,10 @@ void ravey_particles_init ( void )
 	for ( int i = 0 ; i <  RAVEY_PARTICLES_MAX; i++ )
 	{
 		t.ravey_particles[ i ].inUse = 0;
+		if (i < RAVEY_PARTICLES_MAX_FIRST_BATCH)
+			t.ravey_particles[i].iCreated = 1;
+		else
+			t.ravey_particles[i].iCreated = 0;
 	}
 
 	g.ravey_particles_old_time = 0;
@@ -583,6 +675,9 @@ void ravey_particles_generate_particle( int iID, float fPosX, float fPosY, float
 		{
 			if ( t.ravey_particles[ i ].inUse == 0 && t.ravey_particles[i].effectId == this_emitter->effectId )
 			{
+				//PE: always in sequence so we can do it this fast way.
+				if (t.ravey_particles[i].iCreated == 0)
+					add_more();
 				tfound = i;
 				break;
 			}
@@ -595,6 +690,8 @@ void ravey_particles_generate_particle( int iID, float fPosX, float fPosY, float
 			{
 				if ( t.ravey_particles[i].inUse == 0 )
 				{
+					if (t.ravey_particles[i].iCreated == 0)
+						add_more();
 					tfound = i;
 					break;
 				}
@@ -657,6 +754,9 @@ void ravey_particles_update_emitters( void )
 					{
 						if ( t.ravey_particles[ i ].inUse == 0 )
 						{
+							if (t.ravey_particles[i].iCreated == 0)
+								add_more();
+
 							tfound = i;
 							break;
 						}

@@ -1,11 +1,13 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Resource Node v11 by Necrym59
+-- Resource Node v15 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
 -- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name (eg: enhanced\ak)
--- DESCRIPTION: [NODE_RESPAWN_TIME=0(0,100)] Minutes
--- DESCRIPTION: [NODE_RESOURCE_QUANTITY=1(1,10)]
+-- DESCRIPTION: [NODE_RESPAWN_TIME=0(0,100)] Minutes (if 0 then destroyed)
+-- DESCRIPTION: [NODE_RESPAWNS=1(1,20)] number of resource node respawns
+-- DESCRIPTION: [NODE_RESOURCE_QUANTITY=3(1,10)]
 -- DESCRIPTION: [RESOURCE_SPAWN_TIME=1(0,100)] Minutes
+-- DESCRIPTION: [RESOURCE_SPAWN_SPREAD=20(0,100)] distance spread
 -- DESCRIPTION: [RESOURCE_ENTITY_NAME$=""]
 -- DESCRIPTION: [NODE_USE_RANGE=100(0,200)]
 -- DESCRIPTION: [NODE_USE_PROMPT$="Extract Resources"]
@@ -20,8 +22,10 @@ local resnode						= {}
 local node_type 					= {}
 local node_tool_name				= {}
 local node_respawn_time				= {}
+local node_respawns					= {}
 local node_resource_quantity		= {}
 local resource_spawn_time			= {}
+local resource_spawn_spread			= {}
 local resource_entity_name			= {}
 local node_use_range				= {}
 local node_use_prompt				= {}
@@ -46,6 +50,7 @@ local nodelist		= {}
 local created		= {}
 local spawntimer	= {}
 local nodetimer		= {}
+local nodecount		= {}
 local spawning		= {}
 local scaler		= {}
 local setupnode		= {}
@@ -53,18 +58,20 @@ local starthealth	= {}
 local healthcheck	= {}
 local wait			= {}
 
-function resource_node_properties(e, node_type, node_tool_name, node_respawn_time, node_resource_quantity, resource_spawn_time, resource_entity_name, node_use_range,  node_use_prompt, node_tool_prompt, node_scaler, hide_node)
+function resource_node_properties(e, node_type, node_tool_name, node_respawn_time, node_respawns, node_resource_quantity, resource_spawn_time, resource_spawn_spread, resource_entity_name, node_use_range,  node_use_prompt, node_tool_prompt, node_scaler, hide_node)
 	resnode[e].node_type = node_type
 	resnode[e].node_tool_name = lower(node_tool_name)
 	resnode[e].node_respawn_time = node_respawn_time
+	resnode[e].node_respawns = node_respawns or 1	
 	resnode[e].node_resource_quantity = node_resource_quantity
 	resnode[e].resource_spawn_time = resource_spawn_time
+	resnode[e].resource_spawn_spread = resource_spawn_spread or 0	
 	resnode[e].resource_entity_name = lower(resource_entity_name) or ""
 	resnode[e].node_use_range = node_use_range
 	resnode[e].node_use_prompt = node_use_prompt
 	resnode[e].node_tool_prompt	= node_tool_prompt
 	resnode[e].node_scaler = node_scaler or 1
-	resnode[e].hide_node = hide_node or 0	
+	resnode[e].hide_node = hide_node or 0
 	resnode[e].resource_entity_no = 0
 end
 
@@ -73,22 +80,25 @@ function resource_node_init(e)
 	resnode[e].node_type = 1
 	resnode[e].node_tool_name = "Any"
 	resnode[e].node_respawn_time = 1
+	resnode[e].node_respawns = 1	
 	resnode[e].node_resource_quantity = 1
 	resnode[e].resource_spawn_time = 1	
+	resnode[e].resource_spawn_spread = 0	
 	resnode[e].resource_entity_name = ""
 	resnode[e].node_use_range = 100
 	resnode[e].node_use_prompt = "Extract Resources"
 	resnode[e].node_tool_prompt	= "Tool required to extract Resources"
 	resnode[e].node_scaler = 1
-	resnode[e].hide_node = 0	
+	resnode[e].hide_node = 0
 	resnode[e].resource_entity_no = 0	
 
 	status[e] = "init"
 	newEntn[e] = 0
 	cntEntn[e] = 0
 	spawntimer[e] = 0
-	nodetimer[e] = 0
+	nodetimer[e] = math.huge	
 	spawning[e] = 0
+	nodecount[e] = 0
 	doonce[e] = 0
 	playonce[e] = 0
 	scaler[e] = 100	
@@ -153,13 +163,18 @@ function resource_node_main(e)
 				if resnode[e].node_respawn_time == 0 then					
 					Destroy(e)
 				end
-				if resnode[e].node_respawn_time > 0 and spawning[e] == 0 then
-					nodetimer[e] = g_Time + (resnode[e].node_respawn_time * 1000)*60
-					spawning[e] = 2
+				if resnode[e].node_respawn_time > 0 and spawning[e] == 1 then
+					if nodecount[e] < resnode[e].node_respawns then
+						nodetimer[e] = g_Time + (resnode[e].node_respawn_time * 1000)*60
+						spawning[e] = 2
+					end
+					if nodecount[e] == resnode[e].node_respawns then
+						Hide(e)
+						Destroy(e)
+					end						
 				end
 			end
 		end
-	
 		if resnode[e].node_type == 2 then
 			if setupnode[e] == 0 then				
 				SetEntityHealth(e,starthealth[e])
@@ -211,11 +226,17 @@ function resource_node_main(e)
 						Destroy(e)
 					end
 					if resnode[e].node_respawn_time > 0 and spawning[e] == 0 then
-						nodetimer[e] = g_Time + (resnode[e].node_respawn_time * 1000)*60
-						CollisionOff(e)
-						Hide(e)
-						spawning[e] = 2
-					end
+						if nodecount[e] < resnode[e].node_respawns then
+							nodetimer[e] = g_Time + (resnode[e].node_respawn_time * 1000)*60
+							CollisionOff(e)
+							Hide(e)
+							spawning[e] = 2
+						end
+						if nodecount[e] == resnode[e].node_respawns then
+							Hide(e)
+							Destroy(e)
+						end	
+					end	
 				end	
 			end			
 		end
@@ -230,15 +251,24 @@ function resource_node_main(e)
 			CollisionOff(newEntn[e])
 			table.insert(nodelist,newEntn[e])
 			if resnode[e].node_type == 1 then
-				newposx[e] = origin_x[e]
-				newposy[e] = origin_y[e]
-				newposz[e] = origin_z[e]
+				if resnode[e].resource_spawn_spread == 0 then 
+					local newya = math.random(0,360)
+					newposx[e] = origin_x[e]
+					newposy[e] = origin_y[e]
+					newposz[e] = origin_z[e]
+				end	
+				if resnode[e].resource_spawn_spread > 0 then 
+					local newya = math.random(0,360)
+					newposx[e] = origin_x[e] + math.cos(newya) * math.random(-resnode[e].resource_spawn_spread,resnode[e].resource_spawn_spread)
+					newposz[e] = origin_z[e] + math.sin(newya) * math.random(-resnode[e].resource_spawn_spread,resnode[e].resource_spawn_spread)
+					newposy[e] = GetSurfaceHeight(newposx[e],origin_y[e], newposz[e])
+				end
 			end	
 			if resnode[e].node_type == 2 then
 				local newya = math.random(0,360)
-				newposx[e] = g_Entity[e]['x'] + math.cos(newya) * math.random(-30,30)
-				newposz[e] = g_Entity[e]['z'] + math.sin(newya) * math.random(-30,30)
-				newposy[e] = GetTerrainHeight(newposx[e],newposz[e])+ math.random(5,30)	
+				newposx[e] = g_Entity[e]['x'] + math.cos(newya) * math.random(-resnode[e].resource_spawn_spread,resnode[e].resource_spawn_spread)
+				newposz[e] = g_Entity[e]['z'] + math.sin(newya) * math.random(-resnode[e].resource_spawn_spread,resnode[e].resource_spawn_spread)
+				newposy[e] = GetSurfaceHeight(newposx[e],origin_y[e], newposz[e])+ math.random(5,10)
 			end			
 			ResetPosition(newEntn[e],newposx[e],newposy[e],newposz[e])
 			CollisionOn(newEntn[e])
@@ -261,14 +291,17 @@ function resource_node_main(e)
 		spawning[e] = 0
 	end
 	if g_Time > nodetimer[e] and spawning[e] == 2 then
+		nodecount[e] = nodecount[e] + 1
 		SetEntityHealth(e,starthealth[e])
 		healthcheck[e] = starthealth[e]
 		Scale(e,100)
 		scaler[e] = 100
 		created[e] = 0		
 		if resnode[e].node_type == 1 then
-			CollisionOff(e)
-			Hide(e)
+			if resnode[e].hide_node == 1 then 
+				CollisionOff(e)
+				Hide(e)
+			end	
 			spawning[e] = 1
 			status[e] = "create_resource"
 		end		

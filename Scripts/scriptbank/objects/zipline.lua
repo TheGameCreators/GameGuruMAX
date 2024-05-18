@@ -1,16 +1,16 @@
--- Zipline v4 by Necrym 59 with thanks to smallg
+-- Zipline v5 by Necrym 59 with thanks to smallg
 -- DESCRIPTION: Apply to two connected zip anchor objects with same name.
--- DESCRIPTION: Set both to Physics=ON, IsImobile=Yes, Always Active=ON
--- DESCRIPTION: then place the unique named zipline object anywhere nearby
--- DESCRIPTION: type the unique zipline object name into the behavior
+-- DESCRIPTION: Set both to Physics=ON, IsImobile=Yes, Always Active=ON.
+-- DESCRIPTION: Place the unique named zipline object anywhere nearby and type its name into the behavior
 -- DESCRIPTION: [PROMPT_TEXT$="E to use"]
 -- DESCRIPTION: [USE_RANGE=100(1-300)]
 -- DESCRIPTION: [@ZIP_TYPE=2(1=High to Low Travel, 2=Two Way Travel)]
 -- DESCRIPTION: [ZIP_SPEED#=0.10(0.01,2.00)]
--- DESCRIPTION: [@ZIP_RELEASE=2(1=Manual Hold/Release, 2=Auto Release)]
--- DESCRIPTION: [ZIP_RELEASE_TEXT$="Hold E until ready to release"]
+-- DESCRIPTION: [@ZIP_RELEASE=2(1=Manual Release, 2=Auto Release)]
+-- DESCRIPTION: [ZIP_RELEASE_TEXT$="Q to release"]
 -- DESCRIPTION: [ZIPLINE_OBJECT$="zipline"]
 -- DESCRIPTION: [@ANCHOR_STATE=1(1=Visible, 2=Invisible)]
+-- DESCRIPTION: [#RELEASE_ADJUSTMENT=0.10(0.10,3.00)]
 -- DESCRIPTION: <Sound0> loop for zipline travel
 
 local U = require "scriptbank\\utillib"
@@ -27,6 +27,7 @@ local zip_release_text = {}
 local zipline_object = {}
 local zipline_objnum = {}	
 local anchor_state = {}
+local release_adjustment = {}
 
 local other_point = {}
 local state = {}
@@ -39,8 +40,7 @@ local anchor2 = {}
 local playerheight ={}
 local dropdown = {}
 	
-function zipline_properties(e, prompt_text, use_range, zip_type, zip_speed, zip_release, zip_release_text, zipline_object, anchor_state)
-	zipline[e] = g_Entity[e]
+function zipline_properties(e, prompt_text, use_range, zip_type, zip_speed, zip_release, zip_release_text, zipline_object, anchor_state, release_adjustment)
 	zipline[e].prompt_text = prompt_text
 	zipline[e].use_range = use_range
 	zipline[e].zip_type = zip_type
@@ -49,6 +49,7 @@ function zipline_properties(e, prompt_text, use_range, zip_type, zip_speed, zip_
 	zipline[e].zip_release_text = zip_release_text
 	zipline[e].zipline_object = lower(zipline_object)
 	zipline[e].anchor_state = anchor_state
+	zipline[e].release_adjustment = release_adjustment or 0
 end 
 
 function zipline_init_name(e,name)
@@ -61,17 +62,18 @@ function zipline_init_name(e,name)
 	zipline[e].zip_release_text = ""
 	zipline[e].zipline_object = "zipline"
 	zipline[e].anchor_state = 1
+	zipline[e].release_adjustment = 1.03	
 	zipline_name[e] = name
 	zipline_objnum[e] = 0
 	other_point[e] = 0
 	state[e] = "init"
 	playerheight[e] = 35
+	line_distance[e] = 0
 	anchor1[e] = 0
 	anchor2[e] = 0
 end 
 
 function zipline_main(e)
-	zipline[e] = g_Entity[e]
 	PlayerDist = GetPlayerDistance(e)
 	
 	if state[e] == "init" then
@@ -86,7 +88,7 @@ function zipline_main(e)
 					end			
 				end
 			end
-		end	
+		end
 		state[e] = "wait"
 	end
 	if other_point[e] == 0 then 
@@ -114,7 +116,6 @@ function zipline_main(e)
 				local LookingAt = GetPlrLookingAtEx(e,1)
 				if LookingAt == 1 then
 					if zipline[e].zip_type == 2 or g_Entity[e].y >= g_Entity[other_point[e]].y then				
-						--PromptLocal(e,zipline[e].prompt_text)
 						if zipline[e].zip_release == 1 then PromptLocal(e,zipline[e].prompt_text.. " " ..zipline[e].zip_release_text) end
 						if zipline[e].zip_release == 2 then PromptLocal(e,zipline[e].prompt_text) end
 						if g_KeyPressE == 1 then							
@@ -131,7 +132,7 @@ function zipline_main(e)
 						end 
 					end 
 				end
-			end
+			end			
 		elseif state[e] == "zip" then
 			if zipline[e].zip_release == 1 then Prompt(zipline[e].zip_release_text) end
 			local perc = GetPlayerFlatDistance(other_point[e])/total_distance[3]
@@ -139,21 +140,31 @@ function zipline_main(e)
 			SetFreezePosition(g_PlayerPosX+(total_distance[0]*(zipline[e].zip_speed/60)),(anchor1[e]-playerheight[e])+dropdown[e],g_PlayerPosZ+(total_distance[2]*(zipline[e].zip_speed/60)))
 			TransportToFreezePositionOnly()				
 			LoopSound(e,0)
-			if GetPlayerFlatDistance(other_point[e]) <= zipline[e].use_range*1.3 then
+			if zipline[e].zip_release == 1 and g_KeyPressQ == 1 then
 				state[e] = "drop"
 				state[other_point[e]] = "drop"
 				StopSound(e,0)
-			end 
-			if zipline[e].zip_release == 1 and g_KeyPressE == 0 then 
-				state[e] = "drop"
-				state[other_point[e]] = "drop"
-				StopSound(e,0)
-			end			
-		elseif state[e] == "drop" then			
+			end
+			if zipline[e].zip_release == 1 and g_KeyPressQ == 0 then
+				if GetPlayerFlatDistance(other_point[e]) <= zipline[e].use_range*zipline[e].release_adjustment then
+					state[e] = "drop"
+					state[other_point[e]] = "drop"
+					StopSound(e,0)
+				end
+			end
+			if zipline[e].zip_release == 2 then 
+				if GetPlayerFlatDistance(other_point[e]) <= zipline[e].use_range*zipline[e].release_adjustment then
+					state[e] = "drop"
+					state[other_point[e]] = "drop"
+					StopSound(e,0)
+				end
+			end
+		end
+		if state[e] == "drop" then			
 			state[e] = "wait"
 			StopSound(e,0)
-		end	
-	end		
+		end		
+	end	
 end 
 
 function zipline_exit(e)

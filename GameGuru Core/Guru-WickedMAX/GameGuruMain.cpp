@@ -77,7 +77,7 @@ public:
 				// physics on thread causes crashes and need of thread locking, so commented out for now
 				// savely moved out of main thread
 				auto range1 = wiProfiler::BeginRangeCPU("Extra - Logic - Physics");
-				//physics_loop ();
+				physics_loop ();
 				wiProfiler::EndRange(range1);
 
 				auto range2 = wiProfiler::BeginRangeCPU("Extra - Logic - Intersects");
@@ -140,15 +140,18 @@ bool GuruLoopLogic ( void )
 				
 				//PE: Start early , while setting up terrain.
 				int iUpdateCheckRetValue = ExecuteFile("..\\..\\GameGuru MAX Update Check.exe", "", "", 0, 1);
-
-				// terrain init
-				timestampactivity(0, "GGTerrain::GGTerrain_Init();");
-				wiGraphics::CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
-				GGTerrain::GGTerrain_Init( cmd );
-				timestampactivity(0, "GGTrees::GGTrees_Init();");
-				GGTrees::GGTrees_Init();
-				timestampactivity(0, "GGGrass::GGGrass_Init();");
-				GGGrass::GGGrass_Init();
+				extern int g_iDisableTerrainSystem;
+				if (g_iDisableTerrainSystem == 0)
+				{
+					// terrain init
+					timestampactivity(0, "GGTerrain::GGTerrain_Init();");
+					wiGraphics::CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
+					GGTerrain::GGTerrain_Init(cmd);
+					timestampactivity(0, "GGTrees::GGTrees_Init();");
+					GGTrees::GGTrees_Init();
+					timestampactivity(0, "GGGrass::GGGrass_Init();");
+					GGGrass::GGGrass_Init();
+				}
 				#endif
 				g_iInitializationSequence = 3;
 				break;

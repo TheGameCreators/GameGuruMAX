@@ -654,7 +654,15 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 							iObjToUseForNavMesh = g.temp2objectoffset;
 							RotateObject(iObjToUseForNavMesh, ObjectAngleX(iObj), ObjectAngleY(iObj), ObjectAngleZ(iObj));
 							ScaleObject(iObjToUseForNavMesh, ObjectScaleX(iObj), ObjectScaleY(iObj), ObjectScaleZ(iObj));
-						}						
+						}
+						else
+						{
+							if (t.entityprofile[iBankindex].collisionmode == 1)
+							{
+								//PE: TODO NEWLOD - Use lowest LOD available for all polygon collision objects.
+								//PE: Perhaps add a CloneObjectToLowestLOD()
+							}
+						}
 					}
 					// regular mesh from object
 					MakeMeshFromObject(iBuildAllLevelMesh, iObjToUseForNavMesh);
@@ -2416,6 +2424,11 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	old_render_params2 = ggterrain_global_render_params2.flags2;
 	ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 	ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_BRUSH_SIZE;
+
+	//PE: Always start with weapon render on.
+	extern bool bHideWeapons;
+	bHideWeapons = false;
+
 	// The map bounds can optionally be shown in testgame.
 	extern void TestLevel_ToggleBoundary(bool, bool);
 	TestLevel_ToggleBoundary(t.showtestgame2dbounds, t.showtestgame3dbounds);
@@ -3047,6 +3060,10 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	if (SoundExist(iFreeSoundID) == 1) DeleteSound(iFreeSoundID);
 	//PE: restore old terrain settings.
 	ggterrain_global_render_params2.flags2 = old_render_params2;
+
+	//PE: Always turn back on weapon render.
+	extern bool bHideWeapons;
+	bHideWeapons = false;
 }
 
 bool game_masterroot_levelloop_initcode(int iUseVRTest)
@@ -4752,7 +4769,7 @@ void game_main_loop ( void )
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
 
 			// reinstated physics into main CPU thread for stability over performance
-			physics_loop ( );
+			//physics_loop ( );
 
 			// special mode for testing
 			if (iEnterGodMode != 2)

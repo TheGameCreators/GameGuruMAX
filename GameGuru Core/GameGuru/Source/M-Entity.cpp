@@ -9953,6 +9953,115 @@ void Wicked_Highlight_LockedList(void)
 	}
 }
 
+void Wicked_Ignore_Frame_Mesh(int obj)
+{
+	if (obj <= 0 || obj > MAXIMUMVALUE) return;
+	sObject* pObject = g_ObjectList[obj];
+	if (!pObject) return;
+
+	for (int i = 0; i < pObject->iFrameCount; i++)
+	{
+		if (pObject->ppFrameList[i])
+		{
+			pObject->ppFrameList[i]->bIgnoreMesh = false;
+		}
+	}
+
+	extern bool bDisableLODLoad;
+	if (bDisableLODLoad) return;
+
+	int bestlod = -1;
+	bool bHasLOD = false;
+
+	for (int i = 0; i < pObject->iFrameCount; i++)
+	{
+		sFrame* pFrame = pObject->ppFrameList[i];
+		if (pFrame)
+		{
+			LPSTR pName = pFrame->szName;
+			if (pName && strlen(pName) > 0)
+			{
+				char* r5 = nullptr;
+				cstr lname = Lower(pName);
+				if (strlen(lname.Get()) >= 5)
+				{
+					r5 = lname.Get() + strlen(lname.Get()) - 5;
+					if (r5)
+					{
+						if ((stricmp(r5, "lod_1") == 0 || stricmp(r5, "_lod1") == 0))
+							bHasLOD = true;
+						if ((stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0))
+							bHasLOD = true;
+
+						if ((stricmp(r5, "lod_1") == 0 || stricmp(r5, "_lod1") == 0) && (bestlod == -1 || bestlod > 1))
+						{
+							bestlod = 1;
+						}
+						else
+						{
+							if ((stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0) && (bestlod == -1))
+							{
+								bestlod = 2;
+							}
+							else
+							{
+								bestlod = 0;
+							}
+						}
+
+					}
+				}
+
+				if (stricmp(lname.Get(), "collision_mesh") == 0)
+				{
+					pFrame->bIgnoreMesh = true;
+				}
+				//PE: UCX unreal collision mesh must include LOD
+				if (strnicmp(lname.Get(), "UCX_", 4) == 0 && r5 && stricmp(r5, "_lod0") == 0)
+				{
+					pFrame->bIgnoreMesh = true;
+				}
+			}
+		}
+	}
+
+	if (bHasLOD)
+	{
+		for (int i = 0; i < pObject->iFrameCount; i++)
+		{
+			sFrame* pFrame = pObject->ppFrameList[i];
+			if (pFrame)
+			{
+				LPSTR pName = pFrame->szName;
+				if (pName && strlen(pName) > 0)
+				{
+					char* r5 = nullptr;
+					cstr lname = Lower(pName);
+					if (strlen(lname.Get()) >= 5)
+					{
+						r5 = lname.Get() + strlen(lname.Get()) - 5;
+						if (bestlod == 0 && (stricmp(r5, "lod_1") == 0 || stricmp(r5, "lod_2") == 0 || stricmp(r5, "lod_3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 0 && (stricmp(r5, "_lod1") == 0 || stricmp(r5, "_lod2") == 0 || stricmp(r5, "_lod3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 1 && (stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 2 && (stricmp(r5, "lod_3") == 0 || stricmp(r5, "_lod3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 void Wicked_Hide_Lower_Lod_Meshes(int obj)
 {

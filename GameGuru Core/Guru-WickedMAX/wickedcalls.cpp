@@ -90,7 +90,7 @@ std::vector<int> g_ObjectHighlightList;
 // stores original resolution of editor when enter VR, as need to restore it after VR
 int g_iStoreRenderResolutionWidth = -1;
 int g_iStoreRenderResolutionHeight = -1;
-float fLODMultiplier = 2.0f;
+float fLODMultiplier = 1.0f;
 
 
 bool g_bLightShaftState = true;
@@ -127,6 +127,15 @@ bool bEnableSpotShadowCulling = true;
 bool bEnableObjectCulling = true;
 bool bEnableAnimationCulling = true;
 bool bShadowsInFrontTakesPriority = false;
+
+bool bShadowsLowestLOD = false;
+bool bProbesLowestLOD = false;
+bool bRaycastLowestLOD = false;
+bool bPhysicsLowestLOD = false;
+bool bThreadedPhysics = false;
+bool bHideWeapons = false;
+bool bReflectionsLowestLOD = false;
+
 int iEnterGodMode = 0;
 bool bTmpTesting = false;
 
@@ -404,6 +413,21 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 	// the DBO mesh needs to have geometry, or not point creating object (just the entity further down)
 	bool bUseFrameMatrix = true;
 	sMesh* pDBOMesh = pFrame->pMesh;
+
+	//PE: Make sure not to add more objects then needed.
+	if (pDBOMesh)
+	{
+		pDBOMesh->pFrameAttachedTo = pFrame;
+		if (pFrame->bIgnoreMesh)
+		{
+			pFrame->wickedobjindex = 0;
+			// recurse through all frames
+			if (pFrame->pChild) WickedCall_LoadNode(pFrame->pChild, entity, root, state);
+			if (pFrame->pSibling) WickedCall_LoadNode(pFrame->pSibling, parent, root, state);
+			return;
+		}
+	}
+
 	if (pDBOMesh && pDBOMesh->dwVertexCount > 0 && pDBOMesh->iPrimitiveType == GGPT_TRIANGLELIST ) // pDBOMesh->dwIndexCount > 0 ) nned to support indexless models
 	{
 		// Create object to hold mesh
@@ -590,8 +614,58 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 			mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
 			mesh.subsets.back().indexOffset = 0;
 			mesh.subsets.back().indexCount = (uint32_t)mesh.indices.size();
+			mesh.subsets.back().active = true;
 
+			mesh.lodlevels = 0; //PE: NEWLOD
+			if (pDBOMesh->dwIndexCountLOD1 > 0)
+			{
+				mesh.lodlevels = 1;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD1;
+				mesh.subsets.back().active = false;
 
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD1; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 1]);
+				}
+			}
+			if (pDBOMesh->dwIndexCountLOD2 > 0)
+			{
+				mesh.lodlevels = 2;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD2;
+				mesh.subsets.back().active = false;
+
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD2; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 1]);
+				}
+			}
+			if (pDBOMesh->dwIndexCountLOD3 > 0)
+			{
+				mesh.lodlevels = 3;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD3;
+				mesh.subsets.back().active = false;
+
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD3; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 1]);
+				}
+			}
+			
 			//PE: Test Tessellation
 			//mesh.tessellationFactor = 50.0; //PE: Many objects dont work with this and deform, disable for now
 			
@@ -1453,6 +1527,8 @@ void WickedCall_PlayObject(sObject* pObject, float fStart, float fEnd, bool bLoo
 	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
+		if (!pAnimSet)
+			return;
 		//while ( pAnimSet != NULL )
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;

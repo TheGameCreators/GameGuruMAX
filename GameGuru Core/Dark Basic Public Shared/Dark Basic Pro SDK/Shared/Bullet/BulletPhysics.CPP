@@ -1,7 +1,7 @@
 // BulletPhysics PHYSICS COMMANDS
 
 //#define FASTBULLETPHYSICS
-
+#define PUTPHYSICSBACKINMAINTHREADSEQUENCE
 #pragma warning( disable: 4312 ) // conversion from 'int' to 'void *' of greater size
 
 // Includes
@@ -2100,8 +2100,41 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	}
 
 	// determine if using LOD, if so, choose lowest
+	extern bool bPhysicsLowestLOD;
+	bool bGotLowestLOD = false;
+
+	if (bPhysicsLowestLOD && bObjectUsesOBJCollisionMesh == false)
+	{
+		for (int iFrame = 0; iFrame < pRealObject->iFrameCount; iFrame++)
+		{
+			sFrame* pFrame = pRealObject->ppFrameList[iFrame];
+			if (pFrame)
+			{
+				sMesh* pMesh = pFrame->pMesh;
+				if (pMesh)
+				{
+					if (pMesh->dwIndexCountLOD3 > 0 && pMesh->pIndicesLOD3)
+					{
+						bGotLowestLOD = true;
+						break;
+					}
+					else if (pMesh->dwIndexCountLOD2 > 0 && pMesh->pIndicesLOD2)
+					{
+						bGotLowestLOD = true;
+						break;
+					}
+					else if (pMesh->dwIndexCountLOD1 > 0 && pMesh->pIndicesLOD1)
+					{
+						bGotLowestLOD = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	int iChooseLowLOD = -1;
-	if (bObjectUsesOBJCollisionMesh == false)
+	if (bObjectUsesOBJCollisionMesh == false && !bGotLowestLOD)
 	{
 		// if no OBJ, rely on internal mesh stored in object (prefer frame named 'collision_mesh')
 		int iBestLowLOD = 0;
@@ -2112,10 +2145,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 			{
 				if (pFrame->pMesh)
 				{
-					if (stricmp (pFrame->szName, "lod_0") == NULL && iBestLowLOD < 1) { iChooseLowLOD = iFrame; iBestLowLOD = 1; }
-					if (stricmp (pFrame->szName, "lod_1") == NULL && iBestLowLOD < 2) { iChooseLowLOD = iFrame; iBestLowLOD = 2; }
-					if (stricmp (pFrame->szName, "lod_2") == NULL && iBestLowLOD < 3) { iChooseLowLOD = iFrame; iBestLowLOD = 3; }
-					if (stricmp (pFrame->szName, "collision_mesh") == NULL && iBestLowLOD < 4) { iChooseLowLOD = iFrame; iBestLowLOD = 4; }
+					if (stricmp(pFrame->szName, "lod_0") == NULL && iBestLowLOD < 1) { iChooseLowLOD = iFrame; iBestLowLOD = 1; }
+					if (stricmp(pFrame->szName, "lod_1") == NULL && iBestLowLOD < 2) { iChooseLowLOD = iFrame; iBestLowLOD = 2; }
+					if (stricmp(pFrame->szName, "lod_2") == NULL && iBestLowLOD < 3) { iChooseLowLOD = iFrame; iBestLowLOD = 3; }
+					if (stricmp(pFrame->szName, "collision_mesh") == NULL && iBestLowLOD < 4) { iChooseLowLOD = iFrame; iBestLowLOD = 4; }
 				}
 			}
 		}
@@ -2135,8 +2168,34 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 				{
 					if (pMesh->Collision.dwArbitaryValue != 99999) // mesh excluded for collision purposes
 					{
-						totalVerts = totalVerts + pMesh->dwVertexCount;
-						totalIndices = totalIndices + pMesh->dwIndexCount;
+						if (!bObjectUsesOBJCollisionMesh && bPhysicsLowestLOD)
+						{
+							if (pMesh->dwIndexCountLOD3 > 0 && pMesh->pIndicesLOD3)
+							{
+								totalVerts = totalVerts + pMesh->dwVertexCount;
+								totalIndices = totalIndices + pMesh->dwIndexCountLOD3;
+							}
+							else if (pMesh->dwIndexCountLOD2 > 0 && pMesh->pIndicesLOD2)
+							{
+								totalVerts = totalVerts + pMesh->dwVertexCount;
+								totalIndices = totalIndices + pMesh->dwIndexCountLOD2;
+							}
+							else if (pMesh->dwIndexCountLOD1 > 0 && pMesh->pIndicesLOD1)
+							{
+								totalVerts = totalVerts + pMesh->dwVertexCount;
+								totalIndices = totalIndices + pMesh->dwIndexCountLOD1;
+							}
+							else
+							{
+								totalVerts = totalVerts + pMesh->dwVertexCount;
+								totalIndices = totalIndices + pMesh->dwIndexCount;
+							}
+						}
+						else
+						{
+							totalVerts = totalVerts + pMesh->dwVertexCount;
+							totalIndices = totalIndices + pMesh->dwIndexCount;
+						}
 					}
 				}
 			}
@@ -2215,8 +2274,29 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 							ch_vertexBuffer.push_back(btVector3(vec.x, vec.y, vec.z));
 							pVertData += dwSkip;
 						}
+
 						WORD* pIndexData = (WORD*)pMesh->pIndices;
-						for (int i = 0; i < (int)pMesh->dwIndexCount; i++)
+						int iIndexCount = pMesh->dwIndexCount;
+						if (!bObjectUsesOBJCollisionMesh && bPhysicsLowestLOD)
+						{
+							if (pMesh->dwIndexCountLOD3 > 0 && pMesh->pIndicesLOD3)
+							{
+								pIndexData = (WORD*)pMesh->pIndicesLOD3;
+								iIndexCount = pMesh->dwIndexCountLOD3;
+							}
+							else if (pMesh->dwIndexCountLOD2 > 0 && pMesh->pIndicesLOD2)
+							{
+								pIndexData = (WORD*)pMesh->pIndicesLOD2;
+								iIndexCount = pMesh->dwIndexCountLOD2;
+							}
+							else if (pMesh->dwIndexCountLOD1 > 0 && pMesh->pIndicesLOD1)
+							{
+								pIndexData = (WORD*)pMesh->pIndicesLOD1;
+								iIndexCount = pMesh->dwIndexCountLOD1;
+							}
+						}
+
+						for (int i = 0; i < (int) iIndexCount; i++)
 						{
 							if (bDWORDSizeIndices == true)
 								((DWORD*)gIndices)[icount + i] = vcount + (*pIndexData);
@@ -2225,7 +2305,7 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 							pIndexData++;
 						}
 						vcount += pMesh->dwVertexCount;
-						icount += pMesh->dwIndexCount;
+						icount += iIndexCount;
 					}
 				}
 			}

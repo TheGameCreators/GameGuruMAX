@@ -1108,187 +1108,191 @@ void mapfile_loadproject_fpm ( void )
 		bTreeGlobalInit = false;
 
 		//PE: Restore Sculpt Data.
-		terrain_sculpt_size = GGTerrain::GGTerrain_GetSculptDataSize();
-		char *data = new char[terrain_sculpt_size];
-		if (data)
+		char* data;
+		extern int g_iDisableTerrainSystem;
+		if (g_iDisableTerrainSystem == 0)
 		{
-			cstr sculpt_data_name = cstr((int)terrain_sculpt_size) + cstr(".dat");
-			if (FileExist(sculpt_data_name.Get()) == 1)
+			terrain_sculpt_size = GGTerrain::GGTerrain_GetSculptDataSize();
+			data = new char[terrain_sculpt_size];
+			if (data)
 			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, sculpt_data_name.Get());
-				if (DB_FileExist(FilenameString))
+				cstr sculpt_data_name = cstr((int)terrain_sculpt_size) + cstr(".dat");
+				if (FileExist(sculpt_data_name.Get()) == 1)
 				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, sculpt_data_name.Get());
+					if (DB_FileExist(FilenameString))
 					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, terrain_sculpt_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGTerrain::GGTerrain_SetSculptData(terrain_sculpt_size, (uint8_t*) data);
-					}
-				}
-			}
-			delete(data);
-		}
-
-		void check_new_terrain_parameters(void);
-		check_new_terrain_parameters();
-
-		void reset_terrain_paint_date(void);
-		reset_terrain_paint_date(); //PE: Reset old paint textures, after this. try loading from saved fpm.
-
-		#ifdef CUSTOMTEXTURES
-		if (FileExist("custommaterials.dat") == 1)
-		{
-			LoadTerrainTextureFolder("custommaterials.dat");
-		}
-		#endif
-
-		//PE: Restore Paint Texture Data.
-		terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
-		data = new char[terrain_paint_size];
-		if (data)
-		{
-			cstr paint_data_name = cstr((int)terrain_paint_size) + cstr(".ptd");
-			if (FileExist(paint_data_name.Get()) == 1)
-			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, paint_data_name.Get());
-				if (DB_FileExist(FilenameString))
-				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
-					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, terrain_paint_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGTerrain::GGTerrain_SetPaintData(terrain_paint_size, (uint8_t*)data);
-						//PE: We already made a delay invalidate region so all fine...
-					}
-				}
-			}
-			delete(data);
-		}
-
-		//PE: Default hide all tree's.
-		GGTrees::GGTrees_HideAll();
-
-		//PE: Restore Tree Data.
-		tree_data_size = GGTrees::GGTrees_GetDataSize() * 4;
-		data = new char[tree_data_size];
-		if (data)
-		{
-			cstr tree_data_name = cstr((int)tree_data_size) + cstr(".tre");
-			cstr old_tree_data_name = "4800000.tre"; //PE: Tree format 1.0
-			bool bConvertOldFormat = false;
-			if (FileExist(old_tree_data_name.Get()) == 1)
-			{
-				bConvertOldFormat = true;
-			}
-			if (FileExist(tree_data_name.Get()) == 1 || bConvertOldFormat)
-			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, tree_data_name.Get());
-				if (bConvertOldFormat)
-				{
-					strcpy(FilenameString, old_tree_data_name.Get());
-					uint32_t* dataInt = (uint32_t*)data;
-					dataInt[0] = 2; //PE: New version
-					data += 4;
-					tree_data_size -= 4;
-				}
-				if (DB_FileExist(FilenameString))
-				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
-					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, tree_data_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						if (!bConvertOldFormat)
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
 						{
-							//PE: Skip conversion from 2.0 to 3.0 as the 2.0 using 3.0 data have been out for some time now. and people would already have saved 3.0 trees with 2.0 version.
-							//PE: Mainly so people will not have to correct the trees again. No way to see if 3.0 data has been saved as 2.0 now.
-							uint32_t* dataInt = (uint32_t*)data;
-							if (dataInt[0] == 2) dataInt[0] = 3;
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, terrain_sculpt_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGTerrain::GGTerrain_SetSculptData(terrain_sculpt_size, (uint8_t*)data);
 						}
-						if (bConvertOldFormat)
-						{
-							int size = GGTrees::GGTrees_GetDataSize();
-							size--; //PE: Remove version.
-							uint32_t* dataInt = (uint32_t*)data;
-							int scale = 85; //PE: 85=1.0 hlsl: GetTreeScale( uint data ) { return ((data >> 16) & 0xFF) / 170.0 + 0.5; }
+					}
+				}
+				delete(data);
+			}
 
-							for (int i = 0; i < size; i += 3 )
+			void check_new_terrain_parameters(void);
+			check_new_terrain_parameters();
+
+			void reset_terrain_paint_date(void);
+			reset_terrain_paint_date(); //PE: Reset old paint textures, after this. try loading from saved fpm.
+
+#ifdef CUSTOMTEXTURES
+			if (FileExist("custommaterials.dat") == 1)
+			{
+				LoadTerrainTextureFolder("custommaterials.dat");
+			}
+#endif
+
+			//PE: Restore Paint Texture Data.
+			terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
+			data = new char[terrain_paint_size];
+			if (data)
+			{
+				cstr paint_data_name = cstr((int)terrain_paint_size) + cstr(".ptd");
+				if (FileExist(paint_data_name.Get()) == 1)
+				{
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, paint_data_name.Get());
+					if (DB_FileExist(FilenameString))
+					{
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, terrain_paint_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGTerrain::GGTerrain_SetPaintData(terrain_paint_size, (uint8_t*)data);
+							//PE: We already made a delay invalidate region so all fine...
+						}
+					}
+				}
+				delete(data);
+			}
+
+			//PE: Default hide all tree's.
+			GGTrees::GGTrees_HideAll();
+
+			//PE: Restore Tree Data.
+			tree_data_size = GGTrees::GGTrees_GetDataSize() * 4;
+			data = new char[tree_data_size];
+			if (data)
+			{
+				cstr tree_data_name = cstr((int)tree_data_size) + cstr(".tre");
+				cstr old_tree_data_name = "4800000.tre"; //PE: Tree format 1.0
+				bool bConvertOldFormat = false;
+				if (FileExist(old_tree_data_name.Get()) == 1)
+				{
+					bConvertOldFormat = true;
+				}
+				if (FileExist(tree_data_name.Get()) == 1 || bConvertOldFormat)
+				{
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, tree_data_name.Get());
+					if (bConvertOldFormat)
+					{
+						strcpy(FilenameString, old_tree_data_name.Get());
+						uint32_t* dataInt = (uint32_t*)data;
+						dataInt[0] = 2; //PE: New version
+						data += 4;
+						tree_data_size -= 4;
+					}
+					if (DB_FileExist(FilenameString))
+					{
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, tree_data_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							if (!bConvertOldFormat)
 							{
-								//PE: Convert old tree data to new 2.0 format.
-								uint32_t data = dataInt[2 + i];
-								uint32_t type = (data & 0xF);
-								uint32_t visible = (data & 0x100);
-								uint32_t id = (data >> 10);
-								uint32_t scaleindex = (data >> 4) & 0x7; //hlsl: uint index = (IN.data >> 4) & 0x7;
-								float randScale = (scaleindex / 7.0 ) * 0.25 + 0.75; //hlsl. old scale.
-								int newscale = (int)((float) (57 + (scaleindex*4.0)) * randScale);
-								type &= 0x1F;
-								uint32_t varIndex = id & 0x7;
-								data = (type << 11) | (varIndex << 8);
-								if (visible) data |= 0x1;
-								else data &= ~0x1;
-								dataInt[2 + i] = data;
-								dataInt[2 + i] = (dataInt[2 + i] & 0xFF00FFFF) | (newscale << 16);
+								//PE: Skip conversion from 2.0 to 3.0 as the 2.0 using 3.0 data have been out for some time now. and people would already have saved 3.0 trees with 2.0 version.
+								//PE: Mainly so people will not have to correct the trees again. No way to see if 3.0 data has been saved as 2.0 now.
+								uint32_t* dataInt = (uint32_t*)data;
+								if (dataInt[0] == 2) dataInt[0] = 3;
 							}
+							if (bConvertOldFormat)
+							{
+								int size = GGTrees::GGTrees_GetDataSize();
+								size--; //PE: Remove version.
+								uint32_t* dataInt = (uint32_t*)data;
+								int scale = 85; //PE: 85=1.0 hlsl: GetTreeScale( uint data ) { return ((data >> 16) & 0xFF) / 170.0 + 0.5; }
+
+								for (int i = 0; i < size; i += 3)
+								{
+									//PE: Convert old tree data to new 2.0 format.
+									uint32_t data = dataInt[2 + i];
+									uint32_t type = (data & 0xF);
+									uint32_t visible = (data & 0x100);
+									uint32_t id = (data >> 10);
+									uint32_t scaleindex = (data >> 4) & 0x7; //hlsl: uint index = (IN.data >> 4) & 0x7;
+									float randScale = (scaleindex / 7.0) * 0.25 + 0.75; //hlsl. old scale.
+									int newscale = (int)((float)(57 + (scaleindex * 4.0)) * randScale);
+									type &= 0x1F;
+									uint32_t varIndex = id & 0x7;
+									data = (type << 11) | (varIndex << 8);
+									if (visible) data |= 0x1;
+									else data &= ~0x1;
+									dataInt[2 + i] = data;
+									dataInt[2 + i] = (dataInt[2 + i] & 0xFF00FFFF) | (newscale << 16);
+								}
+								data -= 4;
+							}
+							GGTrees::GGTrees_SetData((float*)data);
+						}
+						else if (bConvertOldFormat)
+						{
 							data -= 4;
 						}
-						GGTrees::GGTrees_SetData((float*)data);
 					}
 					else if (bConvertOldFormat)
 					{
 						data -= 4;
 					}
 				}
-				else if (bConvertOldFormat)
-				{
-					data -= 4;
-				}
+				delete(data);
 			}
-			delete(data);
-		}
 
 
-		//PE: Restore grass Data.
-		grass_data_size = GGGrass::GGGrass_GetDataSize();
-		data = new char[grass_data_size];
-		if (data)
-		{
-			cstr grass_data_name = cstr((int)grass_data_size) + cstr(".gra");
-			if (FileExist(grass_data_name.Get()) == 1)
+			//PE: Restore grass Data.
+			grass_data_size = GGGrass::GGGrass_GetDataSize();
+			data = new char[grass_data_size];
+			if (data)
 			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, grass_data_name.Get());
-				if (DB_FileExist(FilenameString))
+				cstr grass_data_name = cstr((int)grass_data_size) + cstr(".gra");
+				if (FileExist(grass_data_name.Get()) == 1)
 				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, grass_data_name.Get());
+					if (DB_FileExist(FilenameString))
 					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, grass_data_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGGrass::GGGrass_SetData(grass_data_size,(uint8_t*)data);
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, grass_data_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGGrass::GGGrass_SetData(grass_data_size, (uint8_t*)data);
+						}
 					}
 				}
+				delete(data);
 			}
-			delete(data);
 		}
-
 		#endif
 
 		//  load in visuals from loaded file
@@ -3333,6 +3337,12 @@ int mapfile_savestandalone_stage2c ( void )
 				t.tentityname_s=t.tentityname1_s;
 			}
 			addtocollection(t.tentityname_s.Get());
+
+			//PE: NEWLOD
+			std::string lodname = t.tentityname_s.Get();
+			replaceAll(lodname, ".fpe", "_lod.dbo");
+			replaceAll(lodname, ".bin", "_lod.dbo");
+			addtocollection( (char *) lodname.c_str());
 
 			//  entity files in folder
 			t.tentityfolder_s=t.tentityname_s;

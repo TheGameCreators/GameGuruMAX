@@ -44,6 +44,7 @@ void GGTrees_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* p
 void GGTrees_PerformUndoRedoAction(int type, void* pEventData, int eList);
 
 int g_iActiveTreeEvent = 0;
+int ggtrees_initialised = 0;
 
 namespace GGTrees
 {
@@ -435,6 +436,7 @@ struct TreeChunk
 
 	int RayCast( RAY ray, float maxDist, float* outDist, InstanceTree** pTree )
 	{
+		if (!ggtrees_initialised) return 0;
 		if ( !RayCastBox( ray, maxDist, 0 ) ) return 0;
 
 		int hit = 0;
@@ -515,6 +517,7 @@ struct TreeChunk
 
 	void Update()
 	{
+		if (!ggtrees_initialised) return;
 		if ( pInstances.NumItems() == 0 ) return;
 
 		InstanceTreeGPU* pData = new InstanceTreeGPU[ pInstances.NumItems() ];
@@ -562,6 +565,7 @@ struct TreeChunk
 
 	void RemoveTree( InstanceTree* pTree )
 	{
+		if (!ggtrees_initialised) return;
 		for( uint32_t i = 0; i < pInstances.NumItems(); i++ )
 		{
 			if ( pInstances[ i ] == pTree )
@@ -716,6 +720,7 @@ wiGraphics::FORMAT ConvertDDSFormat( tinyddsloader::DDSFile::DXGIFormat format )
 
 void GGTrees_LoadTextureDDS( const char* filename, Texture* tex ) 
 { 
+	if (!ggtrees_initialised) return;
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	char filePath[ MAX_PATH ];
@@ -769,6 +774,7 @@ void GGTrees_LoadTextureDDS( const char* filename, Texture* tex )
 
 void GGTrees_CreateEmptyTexture( int width, int height, int mipLevels, int levels, FORMAT format, Texture* tex ) 
 {
+	if (!ggtrees_initialised) return;
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	TextureDesc texDesc = {};
@@ -787,6 +793,7 @@ void GGTrees_CreateEmptyTexture( int width, int height, int mipLevels, int level
 
 void GGTrees_LoadTextureDDSIntoSlice( const char* filename, Texture* tex, uint32_t arraySlice ) 
 { 
+	if (!ggtrees_initialised) return;
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	
 	char filePath[ MAX_PATH ];
@@ -1020,6 +1027,7 @@ uint32_t GGTrees_GetNumHighDetail()
 // only call this when tree heights need to be updated, e.g. when the terrain has changed
 int GGTrees_UpdateInstances( int accurate )
 {
+	if (!ggtrees_initialised) return 0;
 	if ( !GGTerrain_IsReady() ) return 0;
 
 	for( uint32_t j = 0; j < numTotalTrees; j++ )
@@ -1072,6 +1080,7 @@ int GGTrees_UpdateInstances( int accurate )
 
 void GGTrees_Init()
 {
+	ggtrees_initialised = 1;
 	GraphicsDevice* device = wiRenderer::GetDevice();
 
 	wiRenderer::LoadShader( VS, shaderTreesVS, "GGTreesVS.cso" );
@@ -1405,6 +1414,7 @@ bool GGTrees_GetDefaultDataV2(char *filename)
 
 int GGTrees_GetClosest( float x, float z, float radius, GGTreePoint** pOutPoints )
 {
+	if (!ggtrees_initialised) return 0;
 	UnorderedArray<GGTreePoint> points;
 	uint32_t numPoints = 0;
 
@@ -1468,6 +1478,7 @@ int GGTrees_GetClosest( float x, float z, float radius, GGTreePoint** pOutPoints
 // returns 1 if hit, 0 if not. If hit then treeID will be populated
 int GGTrees_RayCast( RAY ray, float maxDist, float* outDist, uint32_t* treeID )
 {
+	if (!ggtrees_initialised) return 0;
 	if ( isnan(ray.direction.x) || isnan(ray.direction.y) || isnan(ray.direction.z) ) return 0;
 
 	float currDist = 1e20f;
@@ -1503,6 +1514,7 @@ uint32_t GGTrees_GetDataSize()
 
 int GGTrees_GetData( float* data )
 {
+	if (!ggtrees_initialised) return 0;
 	uint32_t* dataInt = (uint32_t*) data;
 	dataInt[ 0 ] = GGTREES_CURRENT_VERSION;
 	
@@ -1522,6 +1534,7 @@ int GGTrees_GetData( float* data )
 // Using this instead of GGTrees_GetData to allow reuse of g_pTerrainSnapshot.
 int GGTrees_GetSnapshot(uint8_t* data)
 {
+	if (!ggtrees_initialised) return 0;
 	uint32_t size1 = sizeof(InstanceTree) * numTotalTrees;
 	memcpy(data, &pAllTrees, size1);
 
@@ -1533,6 +1546,7 @@ int GGTrees_GetSnapshot(uint8_t* data)
 
 int GGTrees_SetData( float* data )
 {
+	if (!ggtrees_initialised) return 0;
 	uint32_t* dataInt = (uint32_t*) data;
 	uint32_t version = dataInt[ 0 ];
 	if ( version < 2 ) // can't import from before version 2
@@ -1677,6 +1691,7 @@ void GGTrees_SetPerformanceMode( uint32_t mode )
 
 void GGTrees_SetTreePosition( uint32_t treeID, float x, float z ) 
 {
+	if (!ggtrees_initialised) return;
 	if ( treeID >= numTotalTrees ) return;
 
 	InstanceTree* pInstance = &pAllTrees[ treeID ];
@@ -1722,6 +1737,7 @@ uint32_t GGTrees_GetNumTypes()
 
 void GGTrees_Update_Painting( RAY ray )
 {
+	if (!ggtrees_initialised) return;
 	float pickX = 0, pickY = 0, pickZ = 0;
 	int pickHit = GGTerrain_RayCast( ray, &pickX, &pickY, &pickZ, 0, 0, 0, 0 );
 
@@ -2030,7 +2046,7 @@ void GGTrees_Update_Painting( RAY ray )
 
 void GGTrees_Delete_Trees(float pickX,float pickZ, float radius)
 {
-
+	if (!ggtrees_initialised) return;
 	float minX = pickX - radius;
 	float minZ = pickZ - radius;
 	float maxX = pickX + radius;
@@ -2065,6 +2081,7 @@ void GGTrees_Delete_Trees(float pickX,float pickZ, float radius)
 
 void GGTrees_UpdateFrustumCulling( wiScene::CameraComponent* camera )
 {
+	if (!ggtrees_initialised) return;
 	if (!ggtrees_global_params.draw_enabled) return; //OPT3
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
@@ -2168,6 +2185,7 @@ void GGTrees_UpdateFrustumCulling( wiScene::CameraComponent* camera )
 
 void GGTrees_Update( float camX, float camY, float camZ, CommandList cmd, bool bRenderTargetFocus )
 {
+	if (!ggtrees_initialised) return;
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
@@ -2361,6 +2379,7 @@ void GGTrees_Update( float camX, float camY, float camZ, CommandList cmd, bool b
 
 void GGTrees_HideAll()
 {
+	if (!ggtrees_initialised) return;
 	pInvisibleTrees.Clear();
 
 	for (uint32_t i = 0; i < numTotalTrees; i++)
@@ -2378,6 +2397,7 @@ void GGTrees_HideAll()
 }
 void GGTrees_DeselectHighlightedTree(void)
 {
+	if (!ggtrees_initialised) return;
 	if ( treeHighlighted < numTotalTrees )
 	{
 		pAllTrees[ treeHighlighted ].SetHighlighted( 0 );
@@ -2388,6 +2408,7 @@ void GGTrees_DeselectHighlightedTree(void)
 
 void GGTrees_LockVisibility()
 {
+	if (!ggtrees_initialised) return;
 	// Convert any trees on slopes from invalid to invisible so they are always hidden, 
 	// and set everything as user moved so visible trees won't be hidden by slopes
 	// Warning: This can only be undone by GGTrees_RepopulateInstances
@@ -2423,6 +2444,7 @@ float GGTrees_GetImageScale( uint32_t index )
 
 void GGTrees_UpdateFlatArea( int mode, int type, float posX, float posZ, float sx, float sz, float angle )
 {
+	if (!ggtrees_initialised) return;
 	float realMinX = 1e20f;
 	float realMinZ = 1e20f;
 	float realMaxX = -1e20f;
@@ -2511,6 +2533,7 @@ void GGTrees_UpdateFlatArea( int mode, int type, float posX, float posZ, float s
 
 void GGTrees_RestoreAllFlattened()
 {
+	if (!ggtrees_initialised) return;
 	for( uint32_t i = 0; i < numTotalTrees; i++ )
 	{
 		pAllTrees[ i ].SetFlattened( 0 );
@@ -2521,6 +2544,7 @@ void GGTrees_RestoreAllFlattened()
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTrees_Draw_Prepass( const Frustum* frustum, int mode, CommandList cmd )
 {
+	if (!ggtrees_initialised) return;
 	if ( !ggtrees_global_params.draw_enabled ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -2611,6 +2635,7 @@ extern "C" void GGTrees_Draw_Prepass( const Frustum* frustum, int mode, CommandL
 // called from WickedEngine wiRenderer::DrawShadowmaps()
 extern "C" void GGTrees_Draw_ShadowMap( const Frustum* frustum, int cascade, CommandList cmd )
 {
+	if (!ggtrees_initialised) return;
 	if ( !ggtrees_global_params.draw_enabled ) return;
 	if ( !ggtrees_global_params.draw_shadows ) return;
 
@@ -2694,6 +2719,7 @@ extern "C" void GGTrees_Draw_ShadowMap( const Frustum* frustum, int cascade, Com
 // called from WickedEngine wiRenderer::RefreshEnvProbes()
 extern "C" void GGTrees_Draw_EnvProbe( const SPHERE* culler, const Frustum* frusta, uint32_t frustum_count, CommandList cmd )
 {
+	if (!ggtrees_initialised) return;
 	if ( !ggtrees_global_params.draw_enabled ) return;
 	if ( frustum_count > 255 ) frustum_count = 255; // limited to 8 bits in instance data
 
@@ -2887,6 +2913,7 @@ extern "C" void GGTrees_Draw_EnvProbe( const SPHERE* culler, const Frustum* frus
 // called from WickedEngine RenderPath3D::Render()
 extern "C" void GGTrees_Draw( const Frustum* frustum, int mode, CommandList cmd )
 {
+	if (!ggtrees_initialised) return;
 	if ( !ggtrees_global_params.draw_enabled ) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
@@ -2979,6 +3006,7 @@ extern "C" void GGTrees_Draw( const Frustum* frustum, int mode, CommandList cmd 
 #ifdef GGTREES_UNDOREDO
 void GGTrees_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* pEventData)
 {
+	if (!ggtrees_initialised) return;
 	// User performed this undo action, so clear the redo stack since it now contains outdated events.
 	if (bUserAction == true)
 	{
@@ -3117,6 +3145,7 @@ void GGTrees_CreateUndoRedoAction(int type, int eList, bool bUserAction, void* p
 
 void GGTrees_PerformUndoRedoAction(int type, void* pEventData, int eList)
 {
+	if (!ggtrees_initialised) return;
 	if (!pEventData)
 		return;
 

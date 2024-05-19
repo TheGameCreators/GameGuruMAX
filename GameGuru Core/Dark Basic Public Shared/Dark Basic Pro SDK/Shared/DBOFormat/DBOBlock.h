@@ -139,6 +139,14 @@
 //        - they save and want to save out this data
 #define	DBOBLOCK_OBJECT_CUSTOMDATA			406
 
+//PE: NEWLOD
+#define	DBOBLOCK_MESH_INDEXDATA_LOD1		500
+#define	DBOBLOCK_MESH_INDEXDATA_LOD2		501
+#define	DBOBLOCK_MESH_INDEXDATA_LOD3		502
+#define	DBOBLOCK_MESH_INDEXCOUNT_LOD1		503
+#define	DBOBLOCK_MESH_INDEXCOUNT_LOD2		504
+#define	DBOBLOCK_MESH_INDEXCOUNT_LOD3		505
+
 DARKSDK bool DBOConvertObjectToBlock	( sObject* pObject, void** ppBlock, DWORD* pdwBlockSize );
 DARKSDK bool DBOConvertBlockToObject	( void* pBlock, DWORD dwBlockSize, sObject** ppObject );
 DARKSDK bool DBOLoadBlockFile			( LPSTR pFilename, void** ppBlock, DWORD* pdwSize );

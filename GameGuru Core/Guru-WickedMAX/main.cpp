@@ -296,6 +296,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	wiRenderer::SetShaderPath("shaders/");
 	//wiFont::SetFontPath("fonts/"); no longer exists
 
+	//PE: need setup.ini before any logic.
+	void GetSetupIniEarly(void);
+	GetSetupIniEarly();
+
 	// Main application loop
 	MSG msg = { 0 };
 	while (msg.message != WM_QUIT)

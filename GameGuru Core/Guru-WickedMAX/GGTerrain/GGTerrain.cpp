@@ -1,5 +1,6 @@
 
 #define PEOPTIMIZING
+#define TERRAINTHREADSAFE
 
 #include <string>
 #include "Utility/stb_image.h"
@@ -4068,6 +4069,7 @@ GGTerrain ggterrain;
 
 int ggterrain_initialised = 0;
 int ggterrain_draw_enabled = 1;
+int ggprobe_initialised = 0;
 
 int ggterrain_render_wireframe = 0;
 int ggterrain_render_debug = 0;
@@ -7002,6 +7004,8 @@ int GGTerrain_Init( wiGraphics::CommandList cmd )
 	undosys_terrain_init(GGTerrain_GetSculptDataSize(),  GGTERRAIN_HEIGHTMAP_EDIT_SIZE);
 	#endif
 
+	ggprobe_initialised = 1;
+
 	// global probe used to have at least some kind of correct env map for places where local probes not extending
 	float globalrange = 50000;
 	globalEnvProbePos = XMFLOAT3( 0, ggterrain_local_params.height, 0 );
@@ -7919,6 +7923,7 @@ void GGTerrain_CheckReadBack()
 
 void GGTerrain_InvalidateRegion( float minX, float minZ, float maxX, float maxZ, uint32_t flags )
 {
+	if (!ggterrain_initialised) return;
 	GGTerrainLODSet* pLODs = ggterrain.GetNewLODs();
 	if ( !pLODs->IsGenerating() ) pLODs = ggterrain.GetCurrentLODs();
 
@@ -8778,6 +8783,7 @@ void GGTerrain_InstantEnvProbeRefresh(int iCoolDownIndex)
 		}
 	}
 }
+
 void GGTerrain_AddEnvProbeList(float x, float y, float z, float range, float quatx, float quaty, float quatz, float quatw, float sx, float sy, float sz)
 {
 	envProbeItem item;
@@ -8807,7 +8813,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
 #endif
-	if (g_iDeferTextureUpdateToNow > 0)
+	if (g_iDeferTextureUpdateToNow > 0 && ggterrain_initialised)
 	{
 		cstr oldDir = GetDir();
 		if (g_iDeferTextureUpdateToNow == 1)
@@ -8828,7 +8834,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		}
 	}
 
-	if ( !bImGuiGotFocus )
+	if ( !bImGuiGotFocus && ggterrain_initialised)
 	{
 		GGTerrain_CheckKeys();
 
@@ -8881,6 +8887,47 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	// Environmental Light Probe System
 	// 
 
+	if(!ggprobe_initialised)
+	{
+		ggprobe_initialised = 1;
+		float globalrange = 50000;
+		globalEnvProbePos = XMFLOAT3(0, ggterrain_local_params.height, 0);
+		globalEnvProbe = wiScene::GetScene().Entity_CreateEnvironmentProbe("globalEnvProbe", globalEnvProbePos);
+		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(globalEnvProbe);
+		probe->range = globalrange;
+		probe->userdata = 255;
+		probe->SetDirty();
+		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(globalEnvProbe);
+		pTransform->ClearTransform();
+		pTransform->Translate(globalEnvProbePos);
+		pTransform->Scale(XMFLOAT3(globalrange, globalrange, globalrange));
+		pTransform->UpdateTransform();
+		pTransform->SetDirty();
+
+		// local env probe creation
+		float range = 1;
+		for (int i = 0; i < LOCALENVPROBECOUNT; i++)
+		{
+			range = 1;
+			localEnvProbePos[i] = XMFLOAT3(0, 0, 0);
+			char strName[64];
+			sprintf_s(strName, "localEnvProbe%d", i);
+			localEnvProbe[i] = wiScene::GetScene().Entity_CreateEnvironmentProbe(strName, localEnvProbePos[i]);
+			probe = wiScene::GetScene().probes.GetComponent(localEnvProbe[i]);
+			probe->range = range; // env cube range
+			probe->userdata = 0; // 0-255 alpha
+			probe->SetDirty();
+			pTransform = wiScene::GetScene().transforms.GetComponent(localEnvProbe[i]);
+			pTransform->ClearTransform();
+			pTransform->Translate(localEnvProbePos[i]);
+			pTransform->Scale(XMFLOAT3(range, range, range));
+			pTransform->UpdateTransform();
+			pTransform->SetDirty();
+		}
+
+		// current probe for player to use
+		currLocalEnvProbe = 0;
+	}
 	// find the eight closest env light probes to the player
 	bool bUseOld2SwapSystem = true;
 	if (g_envProbeList.size() > 0 || bImGuiInTestGame==true)
@@ -9734,6 +9781,8 @@ int GGTerrain_GetSculptData( uint8_t* data )
 
 int GGTerrain_SetSculptData( uint32_t size, uint8_t* data, sUndoSysEventTerrainSculpt* sculptEvent )
 {
+	if (!ggterrain_initialised) return 0;
+
 	if (!sculptEvent)
 	{
 		uint32_t size1 = GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE * sizeof(uint8_t);
@@ -9795,6 +9844,7 @@ int GGTerrain_GetPaintData( uint8_t* data )
 
 int GGTerrain_SetPaintData( uint32_t size, uint8_t* data, sUndoSysEventTerrainPaint* pPaintEvent)
 {
+	if (!ggterrain_initialised) return 0;
 	if (!pPaintEvent)
 	{
 		uint32_t size1 = GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE * sizeof(uint8_t);

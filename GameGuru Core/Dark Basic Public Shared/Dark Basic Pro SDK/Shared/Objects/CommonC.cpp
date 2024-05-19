@@ -1014,6 +1014,23 @@ DARKSDK_DLL bool SetNewObjectFinalProperties ( int iID, float fRadius )
 			memset ( pMesh->pTextures, 0, sizeof(sTexture)*pMesh->dwTextureCount );
 			strcpy ( pMesh->pTextures[0].pName, "" );
 		}
+
+		//PE: Validate iDrawPrimitives for now. later iDrawPrimitives should use lowest lod if possible.
+		if (pMesh)
+		{
+			if (pMesh->dwIndexCount == 0)
+			{
+				if (pMesh->iDrawPrimitives > pMesh->dwVertexCount / 3)
+				{
+					pMesh->iDrawPrimitives = pMesh->dwVertexCount / 3;
+				}
+			}
+			else if (pMesh->iDrawPrimitives > pMesh->dwIndexCount / 3)
+			{
+				pMesh->iDrawPrimitives = pMesh->dwIndexCount / 3;
+			}
+		}
+
 	}
 	#endif
 
@@ -1078,6 +1095,11 @@ DARKSDK_DLL bool SetNewObjectFinalProperties ( int iID, float fRadius )
 			}
 		}
 	}
+
+	//PE: Mark mesh'es that need to be ignored by wicked. to reduce wicked objects count.
+	void Wicked_Ignore_Frame_Mesh(int obj);
+	Wicked_Ignore_Frame_Mesh(iID);
+
 	AddObjectToObjectListRef(iID);
 	m_ObjectManager.ReplaceAllFlaggedObjectsInBuffers();
 	#endif

@@ -325,8 +325,9 @@ int iWelcomeHeaderType = 0;
 int iAboutLogoType = 0;
 int active_tools_obj = 0;
 int active_tools_entity_index = 0;
-int g_iUseLODObjects = 0;
-bool bDisableLODLoad = true;
+int g_iUseLODObjects = 1;
+bool bDisableLODLoad = false;
+int g_iDisableTerrainSystem = 0;
 
 #endif //WICKEDENGINE
 
@@ -17367,6 +17368,14 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier;
 	t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
 	t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations;
+
+	t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD;
+	t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD;
+	t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD;
+	t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD;
+	t.gamevisuals.bThreadedPhysics = t.visuals.bThreadedPhysics;
+	t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD;
+
 	t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows;
 	t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop;
 	t.gamevisuals.ApparentSize = t.visuals.ApparentSize;
@@ -18054,6 +18063,15 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fLODMultiplier = t.gamevisuals.fLODMultiplier;
 
 	t.visuals.bEnable30FpsAnimations = t.gamevisuals.bEnable30FpsAnimations;
+
+	t.visuals.bShadowsLowestLOD = t.gamevisuals.bShadowsLowestLOD;
+	t.visuals.bProbesLowestLOD = t.gamevisuals.bProbesLowestLOD;
+	t.visuals.bRaycastLowestLOD = t.gamevisuals.bRaycastLowestLOD;
+	t.visuals.bPhysicsLowestLOD = t.gamevisuals.bPhysicsLowestLOD;
+	t.visuals.bThreadedPhysics = t.gamevisuals.bThreadedPhysics;
+	t.visuals.bReflectionsLowestLOD = t.gamevisuals.bReflectionsLowestLOD;
+
+	
 	t.visuals.g_bDelayedShadows = t.gamevisuals.g_bDelayedShadows;
 	t.visuals.g_bDelayedShadowsLaptop = t.gamevisuals.g_bDelayedShadowsLaptop;
 

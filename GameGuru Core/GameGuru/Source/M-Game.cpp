@@ -2428,6 +2428,10 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	//PE: Always start with weapon render on.
 	extern bool bHideWeapons;
 	bHideWeapons = false;
+	extern bool bHideWeaponsMuzzle;
+	extern bool bHideWeaponsSmoke;
+	bHideWeaponsMuzzle = false;
+	bHideWeaponsSmoke = false;
 
 	// The map bounds can optionally be shown in testgame.
 	extern void TestLevel_ToggleBoundary(bool, bool);
@@ -3064,6 +3068,11 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	//PE: Always turn back on weapon render.
 	extern bool bHideWeapons;
 	bHideWeapons = false;
+	extern bool bHideWeaponsMuzzle;
+	extern bool bHideWeaponsSmoke;
+	bHideWeaponsMuzzle = false;
+	bHideWeaponsSmoke = false;
+
 }
 
 bool game_masterroot_levelloop_initcode(int iUseVRTest)

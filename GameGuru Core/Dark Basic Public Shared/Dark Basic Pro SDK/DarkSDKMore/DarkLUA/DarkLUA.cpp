@@ -9801,8 +9801,15 @@ int SetWeaponArmsVisible(lua_State* L)
 	lua = L;
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
+
+	extern bool bHideWeaponsMuzzle;
+	extern bool bHideWeaponsSmoke;
 	extern bool bHideWeapons;
 	bHideWeapons = lua_tonumber(L, 1);
+	if(n == 2)
+		bHideWeaponsMuzzle = lua_tonumber(L, 2);
+	if (n >= 3)
+		bHideWeaponsSmoke = lua_tonumber(L, 3);
 	return 1;
 }
 

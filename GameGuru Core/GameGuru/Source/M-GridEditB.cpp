@@ -44069,6 +44069,7 @@ void switch_to_regular_projects(void)
 	GetModuleFileNameA(hModule, szModule, MAX_PATH);
 	_splitpath_s(szModule, szDrive, 10, szDir, MAX_PATH, szEXE, MAX_PATH, NULL, 0);
 	FileRedirectRestoreWritableArea(szEXE);
+	FileRedirectChangeWritableArea(szEXE);
 }
 
 int save_create_storyboard_project(void)
@@ -44200,7 +44201,7 @@ int save_create_storyboard_project(void)
 			ImGui::SetWindowFontScale(1.2);
 			ImGui::TextCenter("By default all projects are stored in the projectbank area.");
 			ImGui::TextCenter("You have the option to create your game project folder at any location");
-			ImGui::TextCenter("and ensure that all media used in your game is copied to this sepoarate");
+			ImGui::TextCenter("and ensure that all media used in your game is copied to this separate");
 			ImGui::TextCenter("location, allowing your project to keep all necessary files in one place");
 			float path_gadget_size = ImGui::GetFontSize() * 2.0;
 			ImGui::PushItemWidth(-10 - path_gadget_size);

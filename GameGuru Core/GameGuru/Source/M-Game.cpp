@@ -4778,7 +4778,7 @@ void game_main_loop ( void )
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Logic - Physics");
 
 			// reinstated physics into main CPU thread for stability over performance
-			//physics_loop ( );
+			physics_loop ( );
 
 			// special mode for testing
 			if (iEnterGodMode != 2)

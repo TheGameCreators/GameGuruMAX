@@ -11402,14 +11402,16 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						ImGui::SameLine();
 
 						ImGui::PushItemWidth(-10 - 4);
-						float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
-						if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
+						//float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
+						//if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
+						int iNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
+						if (ImGui::SliderInt("##Transparency distance bias", &iNeedToGoInPropertiesSoCanSave, -500, 500))
 						{
-							WickedCall_SetRenderOrderBias(pChosenMesh, fNeedToGoInPropertiesSoCanSave);
+							WickedCall_SetRenderOrderBias(pChosenMesh, iNeedToGoInPropertiesSoCanSave);
 							bHaveMaterialUpdate = true;
 
 							// This only does something if t.importer.bEditAllMesh is true.
-							importer_set_all_material_settings(7, fNeedToGoInPropertiesSoCanSave);
+							importer_set_all_material_settings(7, iNeedToGoInPropertiesSoCanSave);
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Render Order Distance Bias");
 						ImGui::PopItemWidth();

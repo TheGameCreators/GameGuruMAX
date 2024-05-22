@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v14 by Necrym59 and Lee
+-- Winzone v15 by Necrym59 and Lee
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -12,16 +12,18 @@
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 
 local winzone 			= {}
+local notes_text		= {}
 local zoneheight		= {}
-local ending_mode		= {}
-local ending_imagefile	= {}
 local spawnatstart		= {}
 local resetstates		= {}
+local ending_mode		= {}
+local ending_imagefile	= {}
 local status			= {}
 local endimg			= {}
 local endvid			= {}
 	
 function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates, ending_mode, ending_imagefile)
+	winzone[e].notes_text = notes_text
 	winzone[e].zoneheight = zoneheight or 100
 	winzone[e].spawnatstart = spawnatstart
 	winzone[e].resetstates = resetstates
@@ -33,6 +35,7 @@ end
  
 function winzone_init(e)
 	winzone[e] = {}
+	winzone[e].notes_text = ""	
 	winzone[e].zoneheight = 100
 	winzone[e].spawnatstart = 1
 	winzone[e].resetstates = 0

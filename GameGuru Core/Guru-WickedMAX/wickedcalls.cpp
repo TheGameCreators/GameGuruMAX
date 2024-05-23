@@ -2535,7 +2535,9 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 									// surface file location must be temp if not in MAX folder or GameGuruApps folder
 									char newSurfaceFileTemp[MAX_PATH];
+									GG_SetWritablesToRoot(true);
 									strcpy(newSurfaceFileTemp, GG_GetWritePath());
+									GG_SetWritablesToRoot(false);
 									if (strnicmp (pSurfaceTexFile, g_rootFolder.c_str(), strlen(g_rootFolder.c_str())) != NULL
 										&& strnicmp (pSurfaceTexFile, newSurfaceFileTemp, strlen(newSurfaceFileTemp)) != NULL)
 									{

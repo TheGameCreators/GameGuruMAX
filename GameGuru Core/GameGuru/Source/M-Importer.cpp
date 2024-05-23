@@ -12528,7 +12528,7 @@ void importer_delete_old_surface_files()
 		}
 	}
 
-	// imported_models folder only needed as a temporary location to store files.
+	// imported models folder only needed as a temporary location to store files.
 	extern BOOL DB_DeleteDir(char* Dirname);
 	DB_DeleteDir(pPath.Get()); // Will only delete the folder if it is empty  (if there were any files in there before this importer session, they will be left untouched.)
 

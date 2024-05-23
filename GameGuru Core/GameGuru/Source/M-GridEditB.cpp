@@ -14649,9 +14649,11 @@ void GrabBackBufferCopy(void)
 				strcpy(pRealICONFile, BackBufferSaveCacheName.Get());
 				pRealICONFile[strlen(pRealICONFile) - 4] = 0;
 				strcat(pRealICONFile, ".png");
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pRealICONFile, 1);
 				if (FileExist(pRealICONFile) == 1) DeleteAFile(pRealICONFile);
 				SaveImage(pRealICONFile, iIconImageID);
+				GG_SetWritablesToRoot(false);
 			}
 		}
 	}
@@ -14758,9 +14760,11 @@ void GrabBackBufferCopy(void)
 				// ensure we save to writables area only
 				char pRealThumbFile[MAX_PATH];
 				strcpy(pRealThumbFile, BackBufferSaveCacheName.Get());
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pRealThumbFile, 1);
 				if (FileExist(pRealThumbFile) == 1) DeleteAFile(pRealThumbFile);
 				SaveImage(pRealThumbFile, BackBufferImageID);
+				GG_SetWritablesToRoot(false);
 			}
 			BackBufferSaveCacheName = "";
 		}
@@ -14886,23 +14890,30 @@ bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForS
 			src_file = src_file + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
 			LPSTR pSrcFile = (LPSTR)src_file.c_str();
 			char pAssociatedThumb[MAX_PATH];
+			GG_SetWritablesToRoot(true);
 			if (FileExist(pSrcFile) == 0)
 			{
 				// any object that has a JPG of the same FPE name can force a custom thumb
 				char pRelativePath[MAX_PATH];
 				strcpy(pAssociatedThumb, file);
 				strcpy(pRelativePath, pAssociatedThumb);
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pAssociatedThumb, 0);
+				GG_SetWritablesToRoot(false);
 				if (FileExist(pAssociatedThumb) == 0)
 				{
 					// sometimes the file path is passed in without the entitybank
 					strcpy(pAssociatedThumb, "entitybank\\");
 					strcat(pAssociatedThumb, file);
 					strcpy(pRelativePath, pAssociatedThumb);
+					GG_SetWritablesToRoot(true);
 					GG_GetRealPath(pAssociatedThumb, 0);
+					GG_SetWritablesToRoot(false);
 				}
+				GG_SetWritablesToRoot(true);
 				if (FileExist(pAssociatedThumb) == 1)
 				{
+					GG_SetWritablesToRoot(false);
 					// so as not to disrupt purchased and other thumbs generated, just tackle building editor for now
 					if (strnicmp(pRelativePath, "entitybank\\user\\buildingeditor", 30) == NULL)
 					{
@@ -14922,6 +14933,7 @@ bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForS
 					}
 				}
 			}
+			GG_SetWritablesToRoot(false);
 
 			// file destination not exist, copy src to it to save time
 			CopyFileA (pSrcFile, BackBufferCacheName.Get(), TRUE);
@@ -15703,12 +15715,15 @@ void process_entity_library(void)
 														iTooltipObjectReady = false;
 
 													}
-													else {
+													else 
+													{
 														if (iTooltipHoveredTimer - iTooltipTimer > 2000) { // 2 sec before starting.
-															if (iTooltipObjectReady) {
-																if (iTooltipLastObjectId > 0) {
-
-																	if (GetImageExistEx(g.importermenuimageoffset + 50)) {
+															if (iTooltipObjectReady) 
+															{
+																if (iTooltipLastObjectId > 0) 
+																{
+																	if (GetImageExistEx(g.importermenuimageoffset + 50)) 
+																	{
 																		float TooltipImageSize = 320.0f;
 																		float ImgX = ImageWidth(g.importermenuimageoffset + 50);
 																		float ImgY = ImageHeight(g.importermenuimageoffset + 50);
@@ -15731,21 +15746,21 @@ void process_entity_library(void)
 																		//char hchar[MAX_PATH];
 																		//ImGui::Text("%s", hchar);
 																		ImGui::EndTooltip();
-
 																	}
 																	else
 																		ImGui::SetTooltip("%s", sFinal.c_str());
 																}
 															}
-															else {
+															else 
+															{
 																//Generate Thumbnail of object.
 																std::string sFpeName = path_for_filename.c_str();
 																sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 																t.addentityfile_s = sFpeName.c_str();
 
-																#ifdef WICKEDENGINE
 																CreateBackBufferCacheName(t.addentityfile_s.Get(), 512, 512);
 																BackBufferSaveCacheName = BackBufferCacheName;
+																GG_SetWritablesToRoot(true);
 																if (FileExist(BackBufferCacheName.Get()))
 																{
 																	SetMipmapNum(1); //PE: mipmaps not needed.
@@ -15755,13 +15770,13 @@ void process_entity_library(void)
 																	LoadImage((char *)BackBufferCacheName.Get(), g.importermenuimageoffset + 50);
 																	image_setlegacyimageloading(false);
 																	SetMipmapNum(-1);
+																	GG_SetWritablesToRoot(false);
 																	iTooltipObjectReady = true;
 																	iTooltipLastObjectId = t.entid;
 																}
 																else
 																{
-																#endif
-
+																	GG_SetWritablesToRoot(false);
 																	t.entdir_s = "entitybank\\";
 																	if (cstr(Lower(Left(t.addentityfile_s.Get(), 11))) == "entitybank\\")
 																	{
@@ -15783,7 +15798,6 @@ void process_entity_library(void)
 																	}
 																	if (t.talreadyloaded == 0)
 																	{
-
 																		//  Allocate one more entity item in array
 																		if (g.entidmaster > g.entitybankmax - 4)
 																		{
@@ -15799,7 +15813,8 @@ void process_entity_library(void)
 																		++g.entidmaster; entity_validatearraysize();
 																		t.entitybank_s[g.entidmaster] = t.addentityfile_s;
 
-																		if (ObjectExist(g.entitybankoffset + g.entidmaster)) {
+																		if (ObjectExist(g.entitybankoffset + g.entidmaster)) 
+																		{
 																			DeleteObject(g.entitybankoffset + g.entidmaster);
 																		}
 
@@ -15833,18 +15848,12 @@ void process_entity_library(void)
 																	iTooltipLastObjectId = t.entid;
 																	iTooltipAlreadyLoaded = t.talreadyloaded;
 																	iTooltipObjectReady = true;
-#ifdef WICKEDENGINE
 																	BackBufferObjectID = g.entitybankoffset + t.entid;
 																	BackBufferImageID = g.importermenuimageoffset + 50;
 																	BackBufferSizeX = 512;
 																	BackBufferSizeY = 512;
 																	BackBufferSaveCacheName = ""; //Dont save for now.
-#else
-																	iLaunchAfterSync = 30; //Generate the thumb.
-#endif
-#ifdef WICKEDENGINE
 																}
-#endif
 															}
 														}
 													}
@@ -17394,11 +17403,13 @@ void process_entity_library_v2(void)
 						bool bGetOut = false;
 
 						// delete old thumb image and give chance for new one to be saved (g_bThumbBankCopyMode)
+						GG_SetWritablesToRoot(true);
 						if (FileExist(BackBufferCacheName.Get()))
 						{
 							DeleteAFile(BackBufferCacheName.Get());
 							g_bThumbBankCopyMode = false;
 						}
+						GG_SetWritablesToRoot(false);
 
 						cFolderItem *pDontRefreshFolder = NULL;
 						cFolderItem::sFolderFiles * updatefiles = NULL;
@@ -19526,6 +19537,7 @@ void process_entity_library_v2(void)
 											t.addentityfile_s = sFpeName.c_str();
 										}
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+										GG_SetWritablesToRoot(true);
 										image_setlegacyimageloading(true);
 										if (FileExist(BackBufferCacheName.Get()))
 										{
@@ -19539,9 +19551,11 @@ void process_entity_library_v2(void)
 												//PE: Mark as ok in new format.
 												myfiles->iBigPreview = iDefaultTexture;
 											}
+											GG_SetWritablesToRoot(false);
 										}
 										else 
 										{
+											GG_SetWritablesToRoot(false);
 											//PE: Try to make a thumb here.
 											if (iDisplayLibraryType == 3)
 											{
@@ -19561,12 +19575,12 @@ void process_entity_library_v2(void)
 
 														std::string sVideoName = myfiles->m_sPath.Get();
 														sVideoName = sVideoName + "\\" + myfiles->m_sName.Get();
-
 														if (iVideoGetFirstFrame == 0)
 														{
-
-															if (iVideoPreviewThumbID > 0) {
-																if (AnimationExist(iVideoPreviewThumbID)) {
+															if (iVideoPreviewThumbID > 0) 
+															{
+																if (AnimationExist(iVideoPreviewThumbID)) 
+																{
 																	if (AnimationPlaying(iVideoPreviewThumbID))
 																		StopAnimation(iVideoPreviewThumbID);
 																	DeleteAnimation(iVideoPreviewThumbID);
@@ -20829,11 +20843,13 @@ void process_entity_library_v2(void)
 										{
 											//Start rotate instant.
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+											GG_SetWritablesToRoot(true);
 											if (FileExist(BackBufferCacheName.Get()) == 0)
 											{
 												// only save new thumb if not exist in root
 												BackBufferSaveCacheName = BackBufferCacheName;
 											}
+											GG_SetWritablesToRoot(false);
 											bDoBackbufferUpdate = true;
 											iTooltipTimer = iTooltipHoveredTimer - 750;
 											iTooltipObjectReady = true;
@@ -20861,11 +20877,13 @@ void process_entity_library_v2(void)
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
 												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+												GG_SetWritablesToRoot(true);
 												if (FileExist(BackBufferCacheName.Get()) == 0)
 												{
 													// only save new thumb if not exist in root
 													BackBufferSaveCacheName = BackBufferCacheName;
 												}
+												GG_SetWritablesToRoot(false);
 												bDoBackbufferUpdate = true;
 											}
 										}
@@ -20974,10 +20992,12 @@ void process_entity_library_v2(void)
 											sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 											t.addentityfile_s = sFpeName.c_str();
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+											GG_SetWritablesToRoot(true);
 											if (!FileExist(BackBufferCacheName.Get()))
 											{
 												bLoadedInNewFormat = false; //Try it.
 											}
+											GG_SetWritablesToRoot(false);
 										}
 									}
 								}
@@ -21006,11 +21026,13 @@ void process_entity_library_v2(void)
 									if (!bDoBackbufferUpdate && !bLoadedInNewFormat)
 									{
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+										GG_SetWritablesToRoot(true);
 										if (FileExist(BackBufferCacheName.Get()) == 0)
 										{
 											// only save new thumb if not exist in root
 											BackBufferSaveCacheName = BackBufferCacheName;
 										}
+										GG_SetWritablesToRoot(false);
 
 										//PE: Triggered auto.
 										if (myfiles->iBigPreview == 0)
@@ -21094,10 +21116,12 @@ void process_entity_library_v2(void)
 													{
 														//PE: Drop rotate if we already got the original group thumb.
 														CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+														GG_SetWritablesToRoot(true);
 														if (FileExist(BackBufferCacheName.Get()))
 														{
 															update = false;
 														}
+														GG_SetWritablesToRoot(false);
 													}
 												}
 											}
@@ -21202,10 +21226,12 @@ void process_entity_library_v2(void)
 												{
 													//PE: Drop rotate if we already got the original group thumb.
 													CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+													GG_SetWritablesToRoot(true);
 													if (FileExist(BackBufferCacheName.Get()))
 													{
 														update = false;
 													}
+													GG_SetWritablesToRoot(false);
 												}
 											}
 											g_bDisplayWarnings = true;
@@ -21623,21 +21649,23 @@ void process_entity_library_v2(void)
 												std::string sFpeName = path_for_filename.c_str();
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
-
-
 												CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
+												GG_SetWritablesToRoot(true);
 												if (FileExist(BackBufferCacheName.Get()))
 												{
 													DeleteAFile(BackBufferCacheName.Get());
 													if (myfiles->iPreview > 0)
 													{
-														if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) { //PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
+														if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) 
+														{ 
+															//PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
 															iDeleteInNextUpdate = myfiles->iPreview;
 														}
 													}
 													myfiles->iPreview = 0;
 													myfiles->iBigPreview = 0;
 												}
+												GG_SetWritablesToRoot(false);
 												ContextSelection = NULL;
 											}
 
@@ -24098,7 +24126,9 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			{
 				cstr fname = (find + 11);
 				CreateBackBufferCacheNameEx(fname.Get(), 512, 288, true);
+				GG_SetWritablesToRoot(true);
 				SaveImage(BackBufferCacheName.Get(), iEntityGroupListImage[current_selected_group]);
+				GG_SetWritablesToRoot(false);
 			}
 		}
 	}
@@ -26532,6 +26562,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				CreateBackBufferCacheName(img.Get(), 512, 288);
 				SetMipmapNum(1); //PE: mipmaps not needed.
 				image_setlegacyimageloading(true);
+				GG_SetWritablesToRoot(true);
 				if (FileExist(BackBufferCacheName.Get()))
 				{
 					LoadImage((char *)BackBufferCacheName.Get(), Predefined_Particle_Image[i]);
@@ -26546,6 +26577,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				}
 				image_setlegacyimageloading(false);
 				SetMipmapNum(-1);
+				GG_SetWritablesToRoot(false);
 			}
 
 			iPredefinedParticles = iPredefinedParticleSetups;
@@ -26602,6 +26634,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					img = img + cstr(".arx");
 
 					CreateBackBufferCacheName(img.Get(), 512, 288);
+					GG_SetWritablesToRoot(true);
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					image_setlegacyimageloading(true);
 					if (FileExist(BackBufferCacheName.Get()))
@@ -26618,6 +26651,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					}
 					image_setlegacyimageloading(false);
 					SetMipmapNum(-1);
+					GG_SetWritablesToRoot(false);
 
 					iPredefinedParticles++;
 				}
@@ -27871,6 +27905,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 						bool CreateBackBufferCacheName(char *file, int width, int height);
 						extern cstr BackBufferCacheName;
 						CreateBackBufferCacheName((char *)stmp.c_str(), 512, 288);
+						GG_SetWritablesToRoot(true);
 						SetMipmapNum(1); //PE: mipmaps not needed.
 						image_setlegacyimageloading(true);
 						if (FileExist(BackBufferCacheName.Get()))
@@ -27879,6 +27914,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 						}
 						image_setlegacyimageloading(false);
 						SetMipmapNum(-1);
+						GG_SetWritablesToRoot(false);
 						if (!GetImageExistEx(VIDEOFILEID))
 						{
 							videofile_preview_id = 0;
@@ -32011,6 +32047,7 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 				//PE: Skip cached thumbs for now.
 				CreateBackBufferCacheName(g_LibraryFileList[n].cFile.Get(), iThumbWidth, iThumbHeight);
 				g_LibraryFileList[n].iImage = 0;
+				GG_SetWritablesToRoot(true);
 				if (1==2 && FileExist(BackBufferCacheName.Get()))
 				{
 					SetMipmapNum(1); //PE: mipmaps not needed.
@@ -32029,7 +32066,6 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					image_setlegacyimageloading(true);
 					//Create thumb.
-					//LoadImage((char *)g_LibraryFileList[n].cFile.Get(), uniqueId + n, 0, 8192); //Test
 					LoadImageSize((char *)g_LibraryFileList[n].cFile.Get(), uniqueId + n, iThumbWidth, iThumbHeight);
 					if (1==2 && ImageExist(uniqueId + n))
 					{
@@ -32048,6 +32084,7 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 					image_setlegacyimageloading(false);
 					SetMipmapNum(-1);
 				}
+				GG_SetWritablesToRoot(false);
 				BackBufferCacheName = "";
 			}
 		}
@@ -39212,6 +39249,7 @@ void process_storeboard(bool bInitOnly)
 				if (iWaitFor2DEditor == 1)
 				{
 					//Closed.
+					GG_SetWritablesToRoot(true);
 					if (FileExist("thumbbank\\lastnewlevel.jpg"))
 					{
 						image_setlegacyimageloading(true);
@@ -39250,6 +39288,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
+					GG_SetWritablesToRoot(false);
+
 					//Close down.
 					iWaitFor2DEditor = 0;
 					iWaitFor2DEditorNode = -1;
@@ -39282,6 +39322,7 @@ void process_storeboard(bool bInitOnly)
 						{
 							//Closed, check created screenshot.
 							bGotAThumb = false;
+							GG_SetWritablesToRoot(true);
 							if (FileExist("thumbbank\\lastnewlevel.jpg"))
 							{
 								image_setlegacyimageloading(true);
@@ -39291,6 +39332,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(STORYBOARD_THUMBS + 401))
 									bGotAThumb = true;
 							}
+							GG_SetWritablesToRoot(false);
 
 							if(!bGotAThumb)
 							{
@@ -39344,10 +39386,12 @@ void process_storeboard(bool bInitOnly)
 								if (bPopModalTakeMapSnapshot == true)
 								{
 									// Load into map snapshot image then save alongside mapbank FPM level file
+									GG_SetWritablesToRoot(true);
 									int iMapImageID = Storyboard.Nodes[iScreenshotNode].thumb_id;
 									image_setlegacyimageloading(true);
 									LoadImageSize("thumbbank\\lastnewlevel.jpg", iMapImageID, 2048, 2048);
 									image_setlegacyimageloading(false);
+									GG_SetWritablesToRoot(false);
 									if (ImageExist(iMapImageID)==1)
 									{
 										// filename to save map image alongside mapbank FPM file
@@ -39385,9 +39429,11 @@ void process_storeboard(bool bInitOnly)
 								if(bDoScreenshotForThumb==true)
 								{
 									//Load into node slot.
+									GG_SetWritablesToRoot(true);
 									image_setlegacyimageloading(true);
 									LoadImageSize("thumbbank\\lastnewlevel.jpg", Storyboard.Nodes[iScreenshotNode].thumb_id, 512, 288);
 									image_setlegacyimageloading(false);
+									GG_SetWritablesToRoot(false);
 									if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
 									{
 										//Save into thumbbank , and save thumb filename in node.
@@ -40029,7 +40075,6 @@ void process_storeboard(bool bInitOnly)
 						{
 							if (strlen(Storyboard.Nodes[i].thumb) > 0)
 							{
-								//CreateBackBufferCacheName(Storyboard.Nodes[i].thumb, 512, 288); //PE: Thumb is already in CacheName format.
 								char *find = (char *)pestrcasestr(Storyboard.Nodes[i].thumb, "thumbbank\\");
 								if (find)
 								{
@@ -40066,8 +40111,8 @@ void process_storeboard(bool bInitOnly)
 					}
 				}
 			}
-			//PE: Initial position. and initial nodes.
 
+			//PE: Initial position. and initial nodes.
 			if (ImageExist(Storyboard.game_icon_id)) DeleteImage(Storyboard.game_icon_id);
 			if (ImageExist(Storyboard.game_thumb_id)) DeleteImage(Storyboard.game_thumb_id);
 			if (strlen(Storyboard.game_thumb) > 0)
@@ -41227,7 +41272,9 @@ void process_storeboard(bool bInitOnly)
 												iScreenshotNode = i;
 
 												//Make sure we have a fresh thumb.
+												GG_SetWritablesToRoot(true);
 												if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+												GG_SetWritablesToRoot(false);
 											}
 										}
 									}
@@ -41695,7 +41742,9 @@ void process_storeboard(bool bInitOnly)
 									iNewLevelNode = i;
 
 									//Make sure we have a fresh thumb. if generated by new level.
+									GG_SetWritablesToRoot(true);
 									if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+									GG_SetWritablesToRoot(false);
 
 									//PE: Switch to normal message.
 									strcpy(cTriggerMessage, "Preparing the Terrain Generator. Please wait...");
@@ -42416,7 +42465,7 @@ void process_storeboard(bool bInitOnly)
 									//PE: Vaidate path, must be inside the mapbank to work.
 									extern char szRootDir[MAX_PATH];
 									extern char szWriteDir[MAX_PATH];
-									extern char szWriteDirAdditional[MAX_PATH];
+									extern char szAddWriteDirAdditional[MAX_PATH];
 
 									bool bValidPath = false;
 									int rootLen = strlen(szWriteDir);
@@ -42424,8 +42473,8 @@ void process_storeboard(bool bInitOnly)
 									{
 										bValidPath = true;
 									}
-									rootLen = strlen(szWriteDirAdditional);
-									if (!bValidPath && strnicmp(tmp, szWriteDirAdditional, rootLen) == 0)
+									rootLen = strlen(szAddWriteDirAdditional);
+									if (!bValidPath && strnicmp(tmp, szAddWriteDirAdditional, rootLen) == 0)
 									{
 										bValidPath = true;
 									}
@@ -43823,6 +43872,7 @@ int save_level_as( void )
 			//Grab any thumbs created.
 			if (ImageExist(STORYBOARD_THUMBS + 402)) DeleteImage(STORYBOARD_THUMBS + 402);
 
+			GG_SetWritablesToRoot(true);
 			if (FileExist("thumbbank\\lastnewlevel.jpg"))
 			{
 				image_setlegacyimageloading(true);
@@ -43831,6 +43881,7 @@ int save_level_as( void )
 				if (ImageExist(STORYBOARD_THUMBS + 402))
 					bGotAThumb = true;
 			}
+			GG_SetWritablesToRoot(false);
 			strcpy(NewLevelName, "");
 			strcpy(NewLevelError, "");
 			iSetKeyboardFocusHere = 10;
@@ -49953,7 +50004,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					g_pGlob->pCurrentBitmapSurface = pTmpSurface;
 
+					GG_SetWritablesToRoot(true);
 					if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+					GG_SetWritablesToRoot(false);
 
 					if (bValid)
 					{
@@ -49961,7 +50014,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						{
 							char destination[MAX_PATH];
 							strcpy(destination, "thumbbank\\lastnewlevel.jpg");
+							GG_SetWritablesToRoot(true);
 							GG_GetRealPath(destination, 1);
+							GG_SetWritablesToRoot(false);
 							//Need a no alpha save.
 							extern bool g_bDontUseImageAlpha;
 							g_bDontUseImageAlpha = true;

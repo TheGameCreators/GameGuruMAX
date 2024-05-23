@@ -6277,6 +6277,7 @@ void mapeditorexecutable_loop(void)
 							strcpy(cTmp, "entitybank\\");
 							strcat(cTmp, pref.last_import_files[i]);
 							CreateBackBufferCacheName(pref.last_import_files[i], 512, 288);
+							GG_SetWritablesToRoot(true);
 							if (FileExist(BackBufferCacheName.Get()) && FileExist(cTmp) )
 							{
 								SetMipmapNum(1);
@@ -6292,7 +6293,7 @@ void mapeditorexecutable_loop(void)
 								image_setlegacyimageloading(false);
 								SetMipmapNum(-1);
 							}
-
+							GG_SetWritablesToRoot(false);
 						}
 						if (iImportPromoIcon >= STOREPROMOICONS)
 							break;
@@ -18293,17 +18294,15 @@ void editor_multiplayermode ( void )
 
 	// As multiplayer can load OTHER things, restore level to state before we clicked MM button
 	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
-	if (  FileExist(t.tfile_s.Get()) == 1 ) 
+	if ( FileExist(t.tfile_s.Get()) == 1 ) 
 	{
 		timestampactivity(0,"reloading your level after MM button");
 		t.skipfpmloading=0;
 		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
 		editor_loadcfg ( );
 		gridedit_load_map ( );
-		#ifdef WICKEDENGINE
 		grass_init();
 		bUpdateVeg = true;
-		#endif
 
 		//  added to solve fog issue when go in and out of MP menu
 		visuals_editordefaults ( );
@@ -22100,10 +22099,8 @@ void editor_filemapinit ( void )
 
 void editor_loadcfg (bool bFromFPM)
 {
-	//  Load existing config file
+	// Load existing config file
 	cstr cfgfile_s = g.mysystem.editorsGridedit_s + "cfg.cfg";
-
-	#ifdef WICKEDENGINE
 	if (bFromFPM)
 	{
 		cfgfile_s = g.mysystem.levelBankTestMap_s + "cfg.cfg";
@@ -22112,17 +22109,13 @@ void editor_loadcfg (bool bFromFPM)
 			cfgfile_s = g.mysystem.editorsGridedit_s + "cfg.cfg";
 		}
 	}
-	#endif
-
 	if ( FileExist(cfgfile_s.Get()) == 1 ) 
 	{
 		OpenToRead (  1,cfgfile_s.Get() );
-		//  Current Camera Position
 		t.cx_f = ReadFloat ( 1 );
 		t.cy_f = ReadFloat ( 1 );
 		t.gridzoom_f = ReadFloat ( 1 );
 		t.gridlayer = ReadLong ( 1 );
-		//  Edit Vars
 		t.nogridsmart = ReadLong ( 1 );
 		t.grideditartmode = ReadLong ( 1 );
 
@@ -22136,6 +22129,7 @@ void editor_loadcfg (bool bFromFPM)
 		{
 			t.grideditselect = iTestGridEditSelect;
 		}
+
 		//  Project (only need project name if skipping FPM=using temp.fpm)
 		t.temp_s = ReadString ( 1 ); if (  t.skipfpmloading == 1  )  g.projectfilename_s = t.temp_s;
 		g.currentFPG_s = ReadString ( 1 );
@@ -22144,7 +22138,6 @@ void editor_loadcfg (bool bFromFPM)
 		t.a = ReadLong ( 1 );
 		g.gridlayershowsingle = ReadLong ( 1 );
 
-		#ifdef WICKEDENGINE
 		//PE: Restore all camera settings.
 		if (bFromFPM)
 		{
@@ -22173,7 +22166,6 @@ void editor_loadcfg (bool bFromFPM)
 			//PE: In wicked after loading a new fpm. we need some frames before terrain height is ready.
 			iDelayedCameraRestore = 240; //It can take some time before full terrain is regenerated, so 4 sec.
 		}
-		#endif
 		CloseFile (  1 );
 	}
 
@@ -22187,25 +22179,20 @@ void editor_loadcfg (bool bFromFPM)
 
 	//  Current project name stored for next time
 	t.currentprojectfilename_s=g.projectfilename_s;
-
 	return;
 }
 
 void editor_savecfg (char *filename)
 {
-	//  Delete config file
-	//t.strwork = "" ; t.strwork = t.strwork + "editors\\gridedit\\cfg.cfg";
+	// Delete config file
 	t.strwork = g.mysystem.editorsGridedit_s + "cfg.cfg";
 	if (filename)
 	{
 		t.strwork = filename;
 	}
 
-	if (FileOpen(1) == 1) CloseFile(1); //PE: To make sure, was missing a cfg.cfg file in fpm so...
-
-	if (  FileExist( t.strwork.Get() ) == 1  )  DeleteAFile ( t.strwork.Get() );
-
-	//PE: editors\gridedit\cfg.cfg , if exists in c:program.. and cant be deleted OpenToWrite fails (already exists).
+	if ( FileOpen(1) == 1) CloseFile(1); //PE: To make sure, was missing a cfg.cfg file in fpm so...
+	if ( FileExist( t.strwork.Get() ) == 1  )  DeleteAFile ( t.strwork.Get() );
 
 	//  Save config file
 	OpenToWrite (  1, t.strwork.Get() );
@@ -22224,19 +22211,21 @@ void editor_savecfg (char *filename)
 	}
 	WriteFloat (  1,t.gridzoom_f );
 	WriteLong (  1,t.gridlayer );
+
 	//  Edit Vars
 	WriteLong (  1,t.nogridsmart );
 	WriteLong (  1,t.grideditartmode );
 	WriteLong (  1,t.grideditselect );
+
 	//  Project
 	WriteString (  1,g.projectfilename_s.Get() );
 	WriteString (  1,g.currentFPG_s.Get() );
+
 	//  Shroud Settings
 	WriteLong (  1,g.shroudsize );
 	WriteLong (  1,g.gridlayershowsingle );
-
-	#ifdef WICKEDENGINE
 	WriteString(1, "V2");
+
 	//PE: Write out all camera settings.
 	WriteLong(1, t.editorfreeflight.mode);
 	WriteFloat(1, t.editorfreeflight.c.x_f);
@@ -22246,11 +22235,9 @@ void editor_savecfg (char *filename)
 	WriteFloat(1, t.cy_f);
 	WriteFloat(1, t.editorfreeflight.c.angx_f);
 	WriteFloat(1, t.editorfreeflight.c.angy_f);
-	#endif
+
+	// finish
 	CloseFile (  1 );
-
-return;
-
 }
 
 void editor_constructionselection ( void )

@@ -762,6 +762,7 @@ bool entity_load (bool bCalledFromLibrary)
 			bool CreateBackBufferCacheName(char *file, int width, int height);
 			extern cstr BackBufferCacheName;
 			CreateBackBufferCacheName(t.addentityfile_s.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
@@ -770,9 +771,11 @@ bool entity_load (bool bCalledFromLibrary)
 					t.entityprofile[t.entid].iThumbnailLarge = ENTITY_CACHE_ICONS_LARGE + t.entid;
 					g_iAbortedAsEntityIsGroupFileMode = 0;
 					//PE: No need to read the group and load the files we have the thumb.
+					GG_SetWritablesToRoot(false);
 					return(false);
 				}
 			}
+			GG_SetWritablesToRoot(false);
 		}
 		
 		g_iAbortedAsEntityIsGroupFileMode = 3;
@@ -823,9 +826,11 @@ bool entity_load (bool bCalledFromLibrary)
 		t.strwork = t.entdir_s + t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s = t.tthumbbmpfile_s + Left(t.strwork.Get(), (Len(t.entdir_s.Get()) + Len(t.ent_s.Get())) - 4) + ".bmp";
 
+		GG_SetWritablesToRoot(true);
 		image_setlegacyimageloading(true);
 		LoadImage(t.tthumbbmpfile_s.Get(), ENTITY_CACHE_ICONS + t.entid);
 		image_setlegacyimageloading(false);
+		GG_SetWritablesToRoot(false);
 		t.entityprofile[t.entid].iThumbnailSmall = ENTITY_CACHE_ICONS + t.entid;
 		if (!ImageExist(t.entityprofile[t.entid].iThumbnailSmall))
 			t.entityprofile[t.entid].iThumbnailSmall = TOOL_ENTITY;
@@ -847,6 +852,7 @@ bool entity_load (bool bCalledFromLibrary)
 		{
 			//PE: Check if a got the original image for this smart object.
 			CreateBackBufferCacheName(LastGroupFilename_s.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
@@ -856,19 +862,21 @@ bool entity_load (bool bCalledFromLibrary)
 					bWeGotaThumb = true;
 				}
 			}
+			GG_SetWritablesToRoot(false);
 		}
 
 		if (!bWeGotaThumb)
 		{
 			CreateBackBufferCacheName(t.strwork.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
 				if (ImageExist(ENTITY_CACHE_ICONS_LARGE + t.entid))
 					t.entityprofile[t.entid].iThumbnailLarge = ENTITY_CACHE_ICONS_LARGE + t.entid;
 			}
+			GG_SetWritablesToRoot(false);
 		}
-
 		image_setlegacyimageloading(false);
 		SetMipmapNum(-1);
 		#endif

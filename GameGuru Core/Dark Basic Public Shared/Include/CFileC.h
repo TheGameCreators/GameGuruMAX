@@ -50,6 +50,7 @@ extern "C"
 	bool FileRedirectChangeWritableArea (char* szEXE);
 	void FileRedirectRestoreWritableArea (char* szEXE);
 	const char* GG_GetWritePath();
+	void GG_SetWritablesToRoot(bool bFlag);
 	void SetWriteSameAsRoot(bool bEnable);
 	void SetWriteAsRootTemp(bool bEnable);
 	int GG_CreatePath(const char *path);

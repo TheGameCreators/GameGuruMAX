@@ -13506,7 +13506,9 @@ void procedural_new_level(void)
 					{
 						char destination[MAX_PATH];
 						strcpy(destination, "thumbbank\\lastnewlevel.jpg");
+						GG_SetWritablesToRoot(true);
 						GG_GetRealPath(destination, 1);
+						GG_SetWritablesToRoot(false);
 						extern bool g_bDontUseImageAlpha;
 						g_bDontUseImageAlpha = true;
 						SaveImage(destination, STORYBOARD_THUMBS + 400);

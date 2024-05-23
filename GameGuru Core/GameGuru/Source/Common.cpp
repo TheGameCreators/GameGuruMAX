@@ -4543,7 +4543,9 @@ void FPSC_Setup(void)
 	g.mysystem.thumbbank_s = g.fpscrootdir_s + "\\Files\\thumbbank\\";
 	char pCacheFolder[MAX_PATH];
 	strcpy(pCacheFolder, g.mysystem.thumbbank_s.Get());
+	GG_SetWritablesToRoot(true);
 	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
+	GG_SetWritablesToRoot(false);
 	g.mysystem.thumbbank_s = pCacheFolder;
 
 	// also create particlebank\user folder for Particle Editor Exports

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Level Zone v14 by Necrym59
+-- Level Zone v15 by Necrym59
 -- DESCRIPTION: When the player enters this zone it will launch a designated level.
 -- DESCRIPTION: [@LAUNCH_MODE=1(1=None, 2=Keystroke, 3=Image+Keystroke)]
 -- DESCRIPTION: [IMAGEFILE$=""] for optional image
@@ -8,26 +8,33 @@
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 -- DESCRIPTION: [ResetStates!=0] when entering the new level
+-- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global for using spawn markers
+-- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
 -- DESCRIPTION: <Sound0> - In zone Effect Sound
 
-local level_zone 		= {}
-local launch_mode		= {}
-local imagefile			= {}
-local prompt_text		= {}
-local zoneheight		= {}
-local spawnatstart		= {}
-local resetstates		= {}
+local level_zone 				= {}
+local launch_mode				= {}
+local imagefile					= {}
+local prompt_text				= {}
+local zoneheight				= {}
+local spawnatstart				= {}
+local resetstates				= {}
+local spawn_marker_user_global	= {}
+local spawn_marker_name			= {}
+
 local status			= {}
 local played			= {}
 local endimg			= {}
 
-function level_zone_properties(e, launch_mode, imagefile, prompt_text, zoneheight, spawnatstart, resetstates)
+function level_zone_properties(e, launch_mode, imagefile, prompt_text, zoneheight, spawnatstart, resetstates, spawn_marker_user_global, spawn_marker_name)
 	level_zone[e].launch_mode = launch_mode or 1
 	level_zone[e].imagefile = imagefile
 	level_zone[e].prompt_text = prompt_text
 	level_zone[e].zoneheight = zoneheight or 100
 	level_zone[e].spawnatstart = spawnatstart
 	level_zone[e].resetstates = resetstates
+	level_zone[e].spawn_marker_user_global = spawn_marker_user_global
+	level_zone[e].spawn_marker_name = spawn_marker_name
 end
 
 function level_zone_init(e)
@@ -38,6 +45,8 @@ function level_zone_init(e)
 	level_zone[e].zoneheight = 100
 	level_zone[e].spawnatstart = 1
 	level_zone[e].resetstates = 0
+	level_zone[e].spawn_marker_user_global = ""
+	level_zone[e].spawn_marker_name = ""
 
 	status[e] = "init"
 	played[e] = 0
@@ -57,6 +66,7 @@ function level_zone_main(e)
 	end
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+level_zone[e].zoneheight then
+			if _G["g_UserGlobal['"..level_zone[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..level_zone[e].spawn_marker_user_global.."']"] = level_zone[e].spawn_marker_name end
 			if played[e] == 0 then
 				PlaySound(e,0)
 				played[e] = 1

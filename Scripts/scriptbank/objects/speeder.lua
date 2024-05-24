@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v5 by Necrym59 and smallg
+-- Speeder v9 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -7,18 +7,23 @@
 -- DESCRIPTION: [PLAYER_XZ_ADJUSTMENT=-8(-100,100)]
 -- DESCRIPTION: [PLAYER_Y_ADJUSTMENT=40(0,100)]
 -- DESCRIPTION: [PLAYER_ANGLE_ADJUSTMENT=0(0,360)]
--- DESCRIPTION: [MAXIMUM_SPEED=40(1,100)]
--- DESCRIPTION: [MINIMUM_SPEED=-40(-100,100)]
--- DESCRIPTION: [TURN_SPEED=1(1,100)]
+-- DESCRIPTION: [#MAXIMUM_SPEED=30.00(1.00,100.00)]
+-- DESCRIPTION: [#MINIMUM_SPEED=-20.00(-100.00,100.00)]
+-- DESCRIPTION: [#TURN_SPEED=0.05(0.00,50.00)]
 -- DESCRIPTION: [#ACCELERATION=3.0(0.0,10.0)]
 -- DESCRIPTION: [#DECCELERATION=0.15(0.0,10.0)]
 -- DESCRIPTION: [IMPACT_RANGE=150(1,500)]
 -- DESCRIPTION: [IMPACT_ANGLE=40(1,360)]
 -- DESCRIPTION: [SPEEDER_HEALTH=1000(100,1000)]
 -- DESCRIPTION: [MAXIMUM_SLOPE=19(1,100)]
+-- DESCRIPTION: [USE_TEXT$="WASD-drive, SPACE-Brake, /-Radio"]
 -- DESCRIPTION: <Sound0> Moving
 -- DESCRIPTION: <Sound1> Idle Loop
 -- DESCRIPTION: <Sound2> Impact
+-- DESCRIPTION: <Sound3> Radio
+
+local U = require "scriptbank\\utillib"
+local P = require "scriptbank\\physlib"
 
 local speeder = {}
 local prompt_text = {}
@@ -36,6 +41,7 @@ local impact_range = {}
 local impact_angle = {}
 local speeder_health = {}
 local maximum_slope = {}
+local use_text = {}
 
 local old_health = {}
 local pos_x = {}
@@ -49,10 +55,12 @@ local speed = {}
 local shealth = {}
 local vpressed = {}
 local heightdiff = {}
-local heightstop = {}
+local keypause = {}
+local radioswitch = {}
 local oldy = {}
+local tEnt = {}
 
-function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope)
+function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text)
 	speeder[e].prompt_text = prompt_text
 	speeder[e].enter_range = enter_range
 	speeder[e].enter_angle = enter_angle
@@ -68,10 +76,12 @@ function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_
 	speeder[e].impact_angle = impact_angle	
 	speeder[e].speeder_health = speeder_health
 	speeder[e].maximum_slope = maximum_slope
+	speeder[e].use_text	= use_text
 end
 
 function speeder_init(e)
 	speeder[e] = {}
+	speeder[e].prompt_text = "E to mount speeder"	
 	speeder[e].enter_range = 150
 	speeder[e].enter_angle = 35
 	speeder[e].player_xz_adjustment = -8
@@ -86,6 +96,7 @@ function speeder_init(e)
 	speeder[e].impact_angle = 40
 	speeder[e].speeder_health = 1000
 	speeder[e].maximum_slope = 19
+	speeder[e].use_text	= "WASD-drive, SPACE-Brake, /-Radio"	
 
 	status[e] = "init"
 	speed[e] = 0
@@ -99,11 +110,15 @@ function speeder_init(e)
 	plrpos_z[e] = 0
 	vpressed[e] = 0
 	heightdiff[e] = 1
+	keypause[e] = math.huge
+	radioswitch[e] = "Off"
 	oldy[e] = 0 
+	tEnt[e] = 0
 end 
 
 function speeder_main(e)
 	if status[e] == "init" then
+		keypause[e] = g_Time + 1000
 		shealth[e] = speeder[e].speeder_health
 		status[e] = "wait"
 	end
@@ -115,25 +130,27 @@ function speeder_main(e)
 		CollisionOn(e)
 		GetInspeeder(e)
 	end
-	if status[e] == "drive" then 
+	if status[e] == "drive" then		
+		GravityOff(e)
 		UpdatePosition(e)
 		UpdatePlayerPosition(e)
 		Controlspeeder(e)				
 		if speed[e] > 0 - (speeder[e].maximum_speed/10) and speed[e] < 0 + (speeder[e].maximum_speed/10) then 
-			Prompt("E to exit speeder")
+			Prompt("E to exit speeder")			
 		else 
 			CheckForHittingNPC(e)
-			CheckForHittingTerrainOrSlopes(e)
+			CollisionCheck(e)			
 		end
+		if speed[e] < 10 then TextCenterOnX(50,95,3,speeder[e].use_text) end
 		GetOutspeeder(e)
 		if g_PlayerHealth < 1 then 
 			SetEntityHealth(e,0)
 		end
-		CheckForHittingTerrainOrSlopes(e)
+		CollisionCheck(e)
 	end
 	if g_KeyPressE == 0 then 
 		vpressed[e] = 0 
-	end
+	end	
 end
 
 function speeder_exit(e)
@@ -144,7 +161,8 @@ function GetInspeeder(e)
 		if shealth[e] <= 0 then	PromptLocal(e," Vehicle inoperative") end
 		if shealth[e] > 0 then PromptLocal(e,speeder[e].prompt_text) end
 		if g_KeyPressE == 1 and vpressed[e] == 0 and shealth[e] > 0 then 
-			vpressed[e] = 1 
+			vpressed[e] = 1
+			speed[e] = 0			
 			old_health[e] = g_PlayerHealth
 			SetEntityHealth(e,shealth[e])
 			new_y = math.rad(g_Entity[e]['angley'])
@@ -167,16 +185,17 @@ function UpdatePosition(e)
 	new_y = math.rad(g_Entity[e]['angley'])
 	pos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * (speed[e]/10))
 	pos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * (speed[e]/10))
-	pos_y[e] = GetTerrainHeight(pos_x[e],pos_z[e])	
-	ResetPosition(e,pos_x[e],pos_y[e],pos_z[e])
+	pos_y[e] = g_Entity[e]['y']
+	pos_y[e] = GetSurfaceHeight(pos_x[e], pos_y[e], pos_z[e])
+	PositionObject(g_Entity[e]['obj'],pos_x[e],pos_y[e],pos_z[e])
 end
 
 function UpdatePlayerPosition(e)
 	new_y = math.rad(g_Entity[e]['angley'])
 	plrpos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_xz_adjustment)
 	plrpos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_xz_adjustment)
-	plrpos_y[e] = g_Entity[e]['y'] + speeder[e].player_y_adjustment
-	SetCameraPosition(0,plrpos_x[e],plrpos_y[e]+ speeder[e].player_y_adjustment,plrpos_z[e])
+	plrpos_y[e] = g_Entity[e]['y']
+	SetCameraPosition(0,plrpos_x[e],pos_y[e]+speeder[e].player_y_adjustment,plrpos_z[e])
 	SetFreezePosition(plrpos_x[e],plrpos_y[e],plrpos_z[e])
 	TransportToFreezePositionOnly()
 end 
@@ -214,37 +233,54 @@ function Controlspeeder(e)
 			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']-speeder[e].turn_speed,g_Entity[e]['anglez'])
 		elseif g_KeyPressD == 1 then 
 			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].turn_speed,g_Entity[e]['anglez'])
-		end 
+		end
+		if g_KeyPressSPACE == 1 then
+			if speed[e] > 0 then 
+				speed[e] = speed[e] - speeder[e].decceleration*2 
+				if speed[e] <= 0 then speed[e] = 0 end
+			else	
+				speed[e] = 0
+			end
+		end
+		if g_Time > keypause[e] and radioswitch[e] == "Off" then
+			if GetInKey() == "/" or GetInKey() == "?" then
+				LoopSound(e,3)				
+				radioswitch[e] = "On"
+				keypause[e] = g_Time + 1000
+			end	
+		end
+		if g_Time > keypause[e] and radioswitch[e] == "On" then
+			if GetInKey() == "/" or GetInKey() == "?" then
+				StopSound(e,3)				
+				radioswitch[e] = "Off"
+				keypause[e] = g_Time + 1000
+			end	
+		end
 	end
 end
 
-function CheckForHittingTerrainOrSlopes(e)
-	local x1 = GetEntityPositionX(e) +6 	-- fine tune for collision with entities
-	local y1 = GetEntityPositionY(e) +4		-- fine tune for collision with entities 
-	local z1 = GetEntityPositionZ(e) +28	-- fine tune for collision with entities 
-	local obstructionhit = IntersectAllIncludeTerrain(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,x1,y1,z1,g_Entity[e]['obj'])
-	if obstructionhit == nil and (y1(e,a,speeder[e].impact_range,speeder[e].impact_angle) == 1 and speed[e] > 0) or (EntityLooking(e,a,speeder[e].impact_range,360-speeder[e].impact_angle) == 0 and GetDistance(e,a) < speeder[e].impact_range and speed[e] < 0) then 	
-		obstructionhit = 0 
-	end
+function CollisionCheck(e)
+	local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
+	ey = ey+18
+	local ox,oy,oz = U.Rotate3D(speeder[e].impact_range/2,0,speeder[e].impact_range,0,math.rad(eay),0)
+	local obstructionhit = IntersectAllIncludeTerrain(ex,ey,ez,ex+ox,ey+oy,ez+oz,g_Entity[e].obj)
 	if obstructionhit > 0 then
 		speed[e] = speeder[e].minimum_speed
-		shealth[e] = (shealth[e] - 20)
+		shealth[e] = (shealth[e] - 15)
 		if shealth[e] < g_PlayerHealth then old_health[e] = (old_health[e] - 3) end
 		SetPlayerHealth(old_health[e])
 		PlaySoundIfSilent(e,2) -- crash sound
-	elseif heightdiff[e] == 1  then	
+	end
+	if heightdiff[e] == 1  then	
 		local slopeH = g_PlayerPosY - oldy[e]
 		if slopeH > speeder[e].maximum_slope then   
-			speed[e] = -1
-		end
-		if slopeH > speeder[e].maximum_slope + 2 then   
 			speed[e] = -2
 		end
-		if slopeH > speeder[e].maximum_slope + 5 then   
-			speed[e] = -5
-		end
 	end
-	if shealth[e] <= 0 then	speed[e] = -1 end		
+	if shealth[e] <= 0 then
+		speed[e] = -1
+		StopSound(e,0)
+	end
 end
 
 function CheckForHittingNPC(e)
@@ -253,11 +289,11 @@ function CheckForHittingNPC(e)
 		for a,b in pairs (g_Entity) do 
 			local alleg = GetEntityAllegiance(b)
 			if alleg > -1 then 
-				if b.health > 0 then 	
-					if (EntityLooking(e,a,speeder[e].impact_range,speeder[e].impact_angle) == 1 and speed[e] > 0) or (EntityLooking(e,a,speeder[e].impact_range,360-speeder[e].impact_angle) == 0 and GetDistance(e,a) < speeder[e].impact_range and speed[e] < 0) then  
-						SetEntityHealth(a,0)            
+				if b.health > 0 then 					
+					if (EntityLooking(e,a,speeder[e].impact_range,speeder[e].impact_angle) == 1 and speed[e] > 0) or (EntityLooking(e,a,speeder[e].impact_range,360-speeder[e].impact_angle) == 0 and GetDistance(e,a) < speeder[e].impact_range and speed[e] < 0) then  						
+						SetEntityHealth(a,0)
 						SetEntityRagdollForce(a,"head",g_Entity[a]['x']-g_Entity[e]['x'],10,g_Entity[a]['z']-g_Entity[e]['z'],math.random(math.abs(speed[e])*100,math.abs(speed[e])*150)) 
-						SetEntityHealth(e,speeder[e].speeder_health-20)
+						SetEntityHealth(e,speeder[e].speeder_health-5)
 					end
 				end 
 			end
@@ -269,7 +305,7 @@ function GetOutspeeder(e)
 	if shealth[e] <= 0 then		
 		PromptLocal(e," Vehicle inoperative")
 		g_KeyPressE = 1		
-	end
+	end	
 	if g_KeyPressE == 1 and speed[e] > 0 - (speeder[e].maximum_speed/10) and speed[e] < 0 + (speeder[e].maximum_speed/10) and vpressed[e] == 0 then 
 		vpressed[e] = 1 
 		speed[e] = 0 

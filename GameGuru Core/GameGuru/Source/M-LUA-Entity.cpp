@@ -224,9 +224,15 @@ void entity_lua_getentityplrvisible ( void )
 	}
 }
 
-void entity_lua_getentityinzone ( void )
+void entity_lua_getentityinzone ( int mode )
 {
-	// If entity is zone, determine if ANY OTHER entity is inside it
+	// mode = 0 all If entity is zone, determine if ANY OTHER entity is inside it
+	// mode = 1 to detect only active objects
+	// mode = 2 to only detect characters that are active.
+	// mode = 3 to only detect non-characters that are active.
+	// mode = 4 to only detect non static objects.
+	// mode = 5 to only detect static objects.
+
 	bool bEntityIsReallyInZone = false;
 	t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 	if (  t.waypointindex>0 ) 
@@ -244,12 +250,45 @@ void entity_lua_getentityinzone ( void )
 						t.tokay = 0; waypoint_ispointinzone ( );
 						if ( t.tokay != 0 )
 						{
-							if (t.entityelement[t.e].lua.entityinzone == 0)
+							bool bCheckon = false;
+							if (mode == 0)
+								bCheckon = true;
+							else if(mode == 1 && t.entityelement[othere].active > 0)
+								bCheckon = true;
+							else if (mode == 2 && t.entityelement[othere].active > 0)
 							{
-								t.entityelement[t.e].lua.entityinzone = othere;
-								t.entityelement[t.e].lua.flagschanged = 1;
+								int masterid = t.entityelement[othere].bankindex;
+								if (masterid > 0 && t.entityprofile[masterid].ischaracter > 0)
+								{
+									bCheckon = true;
+								}
 							}
-							bEntityIsReallyInZone = true;
+							else if (mode == 3 && t.entityelement[othere].active > 0)
+							{
+								int masterid = t.entityelement[othere].bankindex;
+								if (masterid > 0 && t.entityprofile[masterid].ischaracter == 0)
+								{
+									bCheckon = true;
+								}
+							}
+							else if (mode == 4 && t.entityelement[othere].staticflag == 0)
+							{
+								bCheckon = true;
+							}
+							else if (mode == 5 && t.entityelement[othere].staticflag > 0)
+							{
+								bCheckon = true;
+							}
+							
+							if (bCheckon)
+							{
+								if (t.entityelement[t.e].lua.entityinzone == 0)
+								{
+									t.entityelement[t.e].lua.entityinzone = othere;
+									t.entityelement[t.e].lua.flagschanged = 1;
+								}
+								bEntityIsReallyInZone = true;
+							}
 						}
 					}
 				}

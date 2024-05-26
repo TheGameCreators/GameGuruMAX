@@ -9796,6 +9796,33 @@ int SetEntityTextureScale (lua_State *L) { return SetMaterialData (L, 22); }
 int SetEntityTextureOffset (lua_State *L) { return SetMaterialData (L, 23); }
 
 
+int GetEntityInZoneWithFilter(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	int storee = t.e;
+	int storev = t.v;
+	if (n == 1)
+	{
+		t.v = lua_tonumber(L, 1);
+		t.e = t.v; // old legacy code confused LuaMessageInt() and LuaMessageIndex(), assigning to t.e and t.v arbitarily!
+		entity_lua_getentityinzone(0);
+	}
+	if (n == 2)
+	{
+		t.e = lua_tonumber(L, 1);
+		t.v = lua_tonumber(L, 2);
+		entity_lua_getentityinzone(t.v);
+	}
+
+	t.e = storee;
+	t.v = storev;
+	return 0;
+
+}
+
 int SetWeaponArmsVisible(lua_State* L)
 {
 	lua = L;
@@ -10330,7 +10357,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_deactivatemouse: lua_deactivatemouse(); break;
 		case enum_addplayerhealth: entity_lua_addplayerhealth(); break;
 		case enum_addplayerweapon: entity_lua_addplayerweapon(); break;
-		case enum_getentityinzone: entity_lua_getentityinzone(); break;
+		case enum_getentityinzone: entity_lua_getentityinzone(0); break;
 		case enum_musicsetdefault: t.m = t.e; lua_musicsetdefault(); break;
 		case enum_playvideonoskip: entity_lua_playvideonoskip(0, 1); break;
 		case enum_setentityhealth: entity_lua_setentityhealth(); break;
@@ -12325,6 +12352,8 @@ void addFunctions()
 
 	lua_register(lua, "SetWeaponArmsVisible", SetWeaponArmsVisible);
 	lua_register(lua, "GetWeaponArmsVisible", GetWeaponArmsVisible);
+
+	lua_register(lua, "GetEntityInZoneWithFilter", GetEntityInZoneWithFilter);
 
 	// In-game HUD
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);

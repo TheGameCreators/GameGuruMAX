@@ -14,7 +14,7 @@ void entity_lua_getentityplrvisible_clear (void);
 void entity_lua_getentityplrvisible_processlist (void);
 #endif
 void entity_lua_getentityplrvisible ( void );
-void entity_lua_getentityinzone ( void );
+void entity_lua_getentityinzone ( int mode = 0 );
 void entity_lua_hide (void);
 void entity_lua_show (void);
 void entity_lua_hidelimbs (void);

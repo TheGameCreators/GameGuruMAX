@@ -1,4 +1,4 @@
--- FreezePlayer v11
+-- Freeze Player v12
 -- DESCRIPTION: When a player enters zone will freeze the player, and stay in a frozen state for
 -- DESCRIPTION: [FREEZETIME=3] seconds. Set the [ZONEHEIGHT=100(1,500)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone

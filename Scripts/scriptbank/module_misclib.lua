@@ -1,5 +1,5 @@
 -- DESCRIPTION: A global script that provides utility functions for common tasks.
--- Module_Misclib v15 - Necrym59 and Lee
+-- Module_Misclib v16 - Necrym59 and Lee
 
 g_module_misclib = {}
 g_tEnt = {}
@@ -7,6 +7,8 @@ g_tEnt = {}
 local module_misclib = {}
 local U = require "scriptbank\\utillib"
 local selectobj = {}
+local rgbtemp = 0
+local emvalue = 0
 
 function module_misclib.pinpoint(e,pickuprange,highlight)
 	--pinpoint select object--
@@ -18,19 +20,33 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) 	-- Cross pointer
 				g_tEnt = e
 				local r,g,b = GetEntityEmissiveColor(g_tEnt)
-				if r==0 and g==0 and b==0 then SetEntityEmissiveColor(g_tEnt,0,80,0) end
-				if highlight == 1 then										 
-					SetEntityEmissiveStrength(g_tEnt,500)
-				end -- shape option
+				emvalue = GetEntityEmissiveStrength(g_tEnt)				
+				if r==0 and g==0 and b==0 then
+					SetEntityEmissiveColor(g_tEnt,0,80,0)
+					rgbtemp = 1
+				end
+				if highlight == 1 then					
+					if emvalue > 0 then						
+						SetEntityEmissiveStrength(g_tEnt,emvalue)
+					else						
+						SetEntityEmissiveStrength(g_tEnt,500)
+					end
+				end
 				if highlight == 2 then SetEntityOutline(g_tEnt,1) end -- outline option
 			else
-				if highlight == 1 then SetEntityEmissiveStrength(g_tEnt,0) end -- shape option
+				if highlight == 1 then
+					if rgbtemp == 1 then
+						SetEntityEmissiveColor(g_tEnt,0,0,0)
+						rgbtemp = 0
+					end
+				end -- shape option
 				if highlight == 2 then SetEntityOutline(g_tEnt,0) end -- outline option
 				g_tEnt = 0
 			end
 		end
 		if selectobj[e] == 0 or selectobj[e] == nil then
 			g_tEnt = 0
+			emvalue = 0
 			if U.PlayerLookingNear(e,pickuprange,60) then
 				TextCenterOnXColor(50,50-0.4,3,".",180,180,180) 		-- Dot pointer
 			end	

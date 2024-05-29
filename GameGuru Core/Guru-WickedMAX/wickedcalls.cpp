@@ -134,6 +134,8 @@ bool bRaycastLowestLOD = false;
 bool bPhysicsLowestLOD = false;
 bool bThreadedPhysics = false;
 bool bHideWeapons = false;
+bool bHideWeaponsMuzzle = false;
+bool bHideWeaponsSmoke = false;
 bool bReflectionsLowestLOD = false;
 
 int iEnterGodMode = 0;

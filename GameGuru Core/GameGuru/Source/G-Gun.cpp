@@ -3296,6 +3296,9 @@ void gun_flashbrass_position (float* pfWorldPosX, float* pfWorldPosY, float* pfW
 
 void gun_flash ( void )
 {
+	extern bool bHideWeaponsMuzzle;
+	if (bHideWeaponsMuzzle) return;
+
 	// hide muzzle if (  still visible (quick shot  )  zoom bug)
 	if ( t.plrzoomin_f != 0.0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom == 0 ) 
 	{
@@ -3501,6 +3504,9 @@ void gun_brass_indi ( void )
 
 void gun_smoke ( void )
 {
+	extern bool bHideWeaponsSmoke;
+	if (bHideWeaponsSmoke) return;
+
 	//  FPSCV104RC5-twingun
 	t.gunsmoke2 = 0 ; if (  t.gunsmoke == 1 && t.gun[t.gunid].settings.flashlimb2 != -1  )  t.gunsmoke2 = 1;
 

@@ -328,6 +328,7 @@ int active_tools_entity_index = 0;
 int g_iUseLODObjects = 1;
 bool bDisableLODLoad = false;
 int g_iDisableTerrainSystem = 0;
+bool bSprayMoveWithMouse = false;
 
 #endif //WICKEDENGINE
 
@@ -8975,6 +8976,10 @@ void mapeditorexecutable_loop(void)
 									{
 										iDisplayCircleFrames = 20;
 									}
+									if (ImGui::Checkbox("Move Spray Center With Mouse", &bSprayMoveWithMouse))
+									{
+									}
+
 								}
 								ImGui::PopItemWidth();
 								static bool bOldSprayMode = t.gridedit.entityspraymode;
@@ -27347,6 +27352,13 @@ void gridedit_mapediting ( void )
 							t.gridentityscalex_f=t.storegridentityscalex_f;
 							t.gridentityscaley_f=t.storegridentityscaley_f;
 							t.gridentityscalez_f=t.storegridentityscalez_f;
+							
+							if (t.gridedit.entityspraymode == 1 && bSprayMoveWithMouse)
+							{
+								t.gridentityposx_f = t.inputsys.localx_f;
+								t.gridentityposy_f = t.inputsys.localcurrentterrainheight_f;
+								t.gridentityposz_f = t.inputsys.localy_f;
+							}
 						}
 						else
 						{

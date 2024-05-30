@@ -1,8 +1,10 @@
--- ActiveHud v2   by Necrym59
--- DESCRIPTION: Makes a hidden Game Hud active based on certain condition.
+-- ActiveHud v3   by Necrym59
+-- DESCRIPTION: Makes a player Game Hud active based on certain condition.
 -- DESCRIPTION: Attach to an object and set AlwaysActive = ON
--- DESCRIPTION: [@SHOW_CONDITION=1(1=Home Key, 2=Health Damage, 3=Shooting, 4=Gun Zoom)]
+-- DESCRIPTION: [@SHOW_CONDITION=1(1=Home Key, 2=Health Damage, 3=Shooting, 4=Gun Zoom, 5=Scroll-Lock Toggle)]
 -- DESCRIPTION: [SHOW_TIME=8(1,30)] Seconds
+
+g_sendtriggeredaction	= {}
 
 local activehud			= {}
 local show_condition	= {}
@@ -11,6 +13,8 @@ local show_time			= {}
 local wait				= {}
 local doonce			= {}
 local curhealth			= {}
+local toggle			= {}
+local keypause			= {}
 local status			= {}
 	
 	
@@ -24,8 +28,11 @@ function activehud_init(e)
 	activehud[e] = {}
 	activehud[e].show_condition = 1
 	activehud[e].show_time = 8
+	
 	wait[e] = math.huge
 	doonce[e] = 0
+	toggle[e] = 0
+	keypause[e] = math.huge
 	status[e] = "init"
 end
 
@@ -33,7 +40,12 @@ function activehud_main(e)
 	activehud[e] = g_Entity[e]
 	if status[e] == "init" then
 		curhealth[e] = g_PlayerHealth
-		HideHuds()		
+		keypause[e] = g_Time +500
+		HideHuds()
+		if activehud[e].show_condition == 5 then
+			ShowHuds()
+			toggle[e] = 1
+		end	
 		status[e] = "endinit"
 	end
 	
@@ -69,6 +81,19 @@ function activehud_main(e)
 		end
 	end
 	
+	if activehud[e].show_condition == 5 then
+		if g_Scancode == 70 and toggle[e] == 0 and g_Time > keypause[e] then
+			ShowHuds()
+			keypause[e] = g_Time +500
+			toggle[e] = 1
+		end
+		if g_Scancode == 70 and toggle[e] == 1 and g_Time > keypause[e] then
+			HideHuds()
+			keypause[e] = g_Time +500
+			toggle[e] = 0
+		end
+	end
+
 	if g_Time > wait[e] then
 		HideHuds()
 		doonce[e] = 0

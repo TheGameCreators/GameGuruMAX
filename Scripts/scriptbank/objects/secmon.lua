@@ -42,10 +42,10 @@ function secmon_properties(e, monitor_mode, attached_to, activation_text, useage
 	secmon.camera_feed_y 		= camera_feed_y
 	secmon.camera_name 			= lower(camera_name)
 	secmon.camera_target_name 	= lower(camera_target_name)
-	secmon.camera_target_z 		= camera_target_z	
+	secmon.camera_target_z 		= camera_target_z
 	secmon.camera_target_no		= camera_target_no or 0
 	secmon.camera_number 		= camera_number or 0
-	secmon.attached_to_number	= attached_to_number or 0	
+	secmon.attached_to_number	= attached_to_number or 0
 	if imagefile ~= hud_image then secmon.hud_image = imagefile	end
 end
 
@@ -65,9 +65,9 @@ function secmon_init(e)
 		camera_name			= "Security Camera",
 		camera_target_name	= "",
 		camera_target_no	= 0,
-		camera_target_z		= 0,		
+		camera_target_z		= 0,
 		camera_number 		= 0,
-		attached_to_number	= 0,		
+		attached_to_number	= 0,
 		cam_feed 			= 0,
 		gunstatus 			= 0,
 		status				= "init",
@@ -82,17 +82,17 @@ function secmon_init(e)
 		fov 				= g_PlayerFOV,
 		doonce              = true
 	  }
-	startangy[e] = 0 
+	startangy[e] = 0
 	StartTimer(e)
 end
 
 function secmon_main(e)
 	local secmon = secmons[e]
 	if secmon == nil then return end
-	
+
 	if secmon.status == "init" then
 		secmon.fov = g_PlayerFOV
-		
+
 		if secmon.camera_hud == 2 then
 			secmon.overlaysp = CreateSprite( LoadImage(secmon.hud_image))
 			SetSpriteSize(secmon.overlaysp,100,100)
@@ -114,13 +114,13 @@ function secmon_main(e)
 			end
 		end
 		if secmon.camera_target_no_name ~= "" then
-			for n = 1, g_EntityElementMax do			
-				if n ~= nil and g_Entity[n] ~= nil then										
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
 					if lower(GetEntityName(n)) == secmon.camera_target_name then
-						secmon.camera_target_no = n						
+						secmon.camera_target_no = n
 						break
-					end			
-				end				
+					end
+				end
 			end
 		end
 		if secmon.attached_to ~="" and secmon.attached_to_number == 0 then
@@ -132,23 +132,23 @@ function secmon_main(e)
 					end
 				end
 			end
-		end		
+		end
 		secmon.status = "monitor"
 	end
 
 	if secmon.status == "monitor" then
 		--- reposition with with entity
-		if secmon.monitor_mode == 2 and secmon.attached_to_number ~= 0 then 
+		if secmon.monitor_mode == 2 and secmon.attached_to_number ~= 0 then
 			GravityOff(e)
 			CollisionOff(e)
 			ResetPosition(e,g_Entity[secmon.attached_to_number]['x'], g_PlayerPosY+40,g_Entity[secmon.attached_to_number]['z'])
 			Hide(e)
-		end	
-		-------------------------------		
+		end
+		-------------------------------
 		if U.PlayerCloserThan(e,secmon.useage_range) and secmon.monitor_mode == 1 then
 			local LookingAt = GetPlrLookingAtEx(e,1)
 			if LookingAt == 1 then
-				Prompt( secmon.activation_text )				
+				Prompt( secmon.activation_text )
 				if g_KeyPressE == 1 then
 					SetGamePlayerStateFlashlightControl(0.0)
 					startangy[e] = g_PlayerAngY
@@ -156,7 +156,7 @@ function secmon_main(e)
 					if secmon.camera_number > 0 then
 						PlaySound( e, 0 )
 						secmon.wait = g_Time + 1000
-						if secmon.camera_hud ~= 3 then HideHuds() end						
+						if secmon.camera_hud ~= 3 then HideHuds() end
 						secmon.status = "camfeed"
 					end
 				end
@@ -164,7 +164,7 @@ function secmon_main(e)
 		end
 		if GetPlayerDistance(e) < secmon.useage_range and secmon.monitor_mode == 2 then
 			TextCenterOnX(50,5,3,"[Mobile Monitor Detected, Press INS to use]")
-			if GetScancode() == 82 or GetScancode() == 210 then				
+			if GetScancode() == 82 or GetScancode() == 210 then
 				if secmon.camera_number == 0 then Prompt("No camera connected") end
 				if secmon.camera_number > 0 then
 					PlaySound( e, 0 )
@@ -172,9 +172,9 @@ function secmon_main(e)
 					if secmon.camera_hud ~= 3 then HideHuds() end
 					secmon.status = "camfeed"
 				end
-			end	
-		end			
-			
+			end
+		end
+
 	elseif secmon.status == "camfeed" then
 		if secmon.monitor_mode == 2 and secmon.angle_cycle_key == 0 then TextCenterOnX(50,5,3,"[Press DEL to exit]") end
 		if secmon.monitor_mode == 2 and secmon.angle_cycle_key == 1 and secmon.camera_target_no == 0 then TextCenterOnX(50,5,3,"[Press DEL to exit, R to cycle camera angle]") end
@@ -193,9 +193,9 @@ function secmon_main(e)
 			FreezePlayer()
 			SetCameraOverride(3)
 			StartTimer(e)
-			SetCameraPosition(0,secmon.seccamxpos,secmon.seccamypos,secmon.seccamzpos)						
+			SetCameraPosition(0,secmon.seccamxpos,secmon.seccamypos,secmon.seccamzpos)
 		end
-		if secmon.camera_target_no == 0 then			
+		if secmon.camera_target_no == 0 then
 			local x,y,z,Ax,Ay,Az = GetEntityPosAng(secmon.camera_number)
 			if secmon.camera_feed_angle == 1 then
 				Ax = 0
@@ -210,7 +210,7 @@ function secmon_main(e)
 				Ax = Ax + 90
 			elseif
 			   secmon.camera_feed_angle == 5 then
-				Ax = Ax - 90	
+				Ax = Ax - 90
 			elseif
 			   secmon.camera_feed_angle == 6 then
 				Ax = 0
@@ -236,7 +236,7 @@ function secmon_main(e)
 			local dims = P.GetObjectDimensions(g_Entity[secmon.camera_target_no]['obj'])
 			local midpoint = dims.h/2
 			if secmon.monitor_mode == 1 then PointCamera(0, GetEntityPositionX(secmon.camera_target_no), GetEntityPositionY(secmon.camera_target_no)+dims.h/2, GetEntityPositionZ(secmon.camera_target_no)) end
-			if secmon.monitor_mode == 2 then 
+			if secmon.monitor_mode == 2 then
 				local x,y,z,Ax,Ay,Az = GetEntityPosAng(secmon.camera_number)
 				SetCameraPosition(0,x,y + secmon.camera_feed_y,z+secmon.camera_target_z)
 				PointCamera(0, GetEntityPositionX(secmon.camera_target_no), GetEntityPositionY(secmon.camera_target_no)+dims.h/2, GetEntityPositionZ(secmon.camera_target_no))
@@ -284,18 +284,20 @@ function secmon_main(e)
 					secmon.gunstatus = 0
 				end
 			end
-			if g_MouseWheel < 0 then secmon.mod = secmon.mod - 4 end		
+			if g_MouseWheel < 0 then secmon.mod = secmon.mod - 4 end
 			if g_MouseWheel > 0 then secmon.mod = secmon.mod + 4 end
 			if secmon.mod <= 0 then secmon.mod = 0 end
 			if secmon.mod > 60 then secmon.mod = 60 end
 			SetPlayerFOV(secmon.fov-secmon.mod)
-		end	
+		end
 		if secmon.monitor_mode == 2 then
 			if GetScancode() == 83 or GetScancode() == 211 then
 				secmon.status = "init"
 				ScreenToggle("")
+				g_PlayerAngY = startangy[e]
 				SetCameraPosition(0,g_PlayerPosX,g_PlayerPosY+35,g_PlayerPosZ)
 				SetCameraAngle(0,g_PlayerAngX,g_PlayerAngY,g_PlayerAngZ)
+				SetGamePlayerControlFinalCameraAngley(startangy[e])
 				secmon.mod = 0
 				SetPlayerFOV(secmon.fov)
 				UnFreezePlayer()
@@ -310,8 +312,8 @@ function secmon_main(e)
 					secmon.gunstatus = 0
 				end
 			end
-		end		
-		
+		end
+
 		if g_Time > secmon.wait then
 			if secmon.doonce then
 				SetActivatedWithMP(e,201)

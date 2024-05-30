@@ -1,11 +1,11 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Conveyor Script v7
--- DESCRIPTION: Creates a conveyor object to propell the player in conveyors direction?
+-- Conveyor Script v8
+-- DESCRIPTION:Creates a conveyor object to propell the player in conveyors direction?
 -- DESCRIPTION:[#MOVESPEED=5(1,200)] the conveyor move speed
--- DESCRIPTION: [SHOW_CONVEYOR!=0] to hide/unhide conveyor object. 
--- DESCRIPTION: [@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
--- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
--- DESCRIPTION: <Sound0> - for conveyor.
+-- DESCRIPTION:[SHOW_CONVEYOR!=0] to hide/unhide conveyor object. 
+-- DESCRIPTION:[@USE_VARIABLE_SWITCH=2(1=Yes,2=No)]
+-- DESCRIPTION:[VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
+-- DESCRIPTION:<Sound0> - for conveyor.
 
 local U = require "scriptbank\\utillib"
 local rad = math.rad
@@ -20,7 +20,7 @@ local variable_switch_user_global	= {}
 local conveyor_active 	= {}
 local state				= {}
 local onconveyor		= {}
-local current_level		= {}
+local current_alpha		= {}
 local currentvalue		= {}
 local conveyorxpos 		= {}
 local conveyorypos 		= {}
@@ -34,7 +34,7 @@ function conveyor_properties(e, movespeed, show_conveyor, use_variable_switch, v
 	conveyor[e].show_conveyor = show_conveyor
 	conveyor[e].use_variable_switch = use_variable_switch
 	conveyor[e].variable_switch_user_global	= variable_switch_user_global
-end -- End properties
+end
 
 function conveyor_init(e)
 	conveyor[e] = {}	
@@ -46,18 +46,17 @@ function conveyor_init(e)
 	conveyor_active[e] = 0
 	onconveyor[e] = 0
 	currentvalue[e] = 0
-	current_level[e] = GetEntityBaseAlpha(e)
+	current_alpha[e] = GetEntityBaseAlpha(e)
 	SetEntityTransparency(e,1)	
 	state[e] = "init"	
-end -- End init
+end
 
 function conveyor_main(e)
 	
-	-- Conveyor Init
 	if state[e] == 'init' then
-		conveyoryang[e] = g_Entity[e]['angley']
+		conveyorxpos[e],conveyorypos[e],conveyorzpos[e],conveyorxang[e],conveyoryang[e],conveyorzang[e] = GetEntityPosAng(e)
 		if conveyor[e].show_conveyor == 0 then SetEntityBaseAlpha(e,0) end
-		if conveyor[e].show_conveyor == 1 then SetEntityBaseAlpha(e,current_level[e]) end	
+		if conveyor[e].show_conveyor == 1 then SetEntityBaseAlpha(e,current_alpha[e]) end	
 		state[e] = "endinit"		
 	end
 		
@@ -97,6 +96,6 @@ function conveyor_main(e)
 end
 	
 function conveyor_exit(e)
-	SetEntityBaseAlpha(e,current_level[e])
+	SetEntityBaseAlpha(e,current_alpha[e])
 	SetEntityTransparency(e,0)
 end

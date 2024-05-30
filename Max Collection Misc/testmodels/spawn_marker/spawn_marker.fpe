@@ -40,7 +40,7 @@ textureref1       = spawn_marker.dds
 effect           = effectbank\reloaded\apbr_basic.fx
 
 ;ai
-aimain           = markers\spawn_marker.lua
+aimain           = 
 
 ;thumbnail
 thumbnailbackdrop = Blue showroom.dds

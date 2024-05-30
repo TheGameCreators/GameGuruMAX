@@ -9930,28 +9930,10 @@ void ProcessPreferences(void)
 
 			//pref.iDisplayWelcomeScreen
 			bool bWelcomeStartup = pref.iDisplayWelcomeScreen;
-			if (ImGui::Checkbox("Show GameGuru MAX Hub on Startup", &bWelcomeStartup)) {
+			if (ImGui::Checkbox("Show GameGuru MAX Hub on Startup", &bWelcomeStartup)) 
+			{
 				pref.iDisplayWelcomeScreen = bWelcomeStartup;
 			}
-			//PE: Wicked - Moving away from showonstartup.ini and only use pref.iDisplayWelcomeScreen
-			/*
-			bool bWelcomeStartup = g.gshowonstartup;
-			if (ImGui::Checkbox("Show Welcome Screen on Startup", &bWelcomeStartup)) {
-				g.gshowonstartup = 1 - g.gshowonstartup;
-				// save setting
-				t.tfile_s = g.fpscrootdir_s + "\\showonstartup.ini";
-				DeleteAFile(t.tfile_s.Get());
-				if (FileOpen(1) == 1) CloseFile(1);
-				OpenToWrite(1, t.tfile_s.Get());
-				WriteString(1, cstr(g.gshowonstartup).Get());
-				WriteString(1, "10");
-				for (int n = 0; n < 10; n++)
-				{
-					WriteString(1, "0");
-				}
-				CloseFile(1);
-			}
-			*/
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Show or hide the Welcome Screen when GameGuru MAX first loads");
 
 			ImGui::Checkbox("Auto Close Property Sections", &pref.bAutoClosePropertySections);
@@ -35800,38 +35782,16 @@ void Welcome_Screen(void)
 			//###########################################################
 			//#### SWAP TOOL_GOBACK was here "Exit GameGuru MAX Hub" ####
 			//###########################################################
-
-#ifdef USEWELCOMESCREEN
 			if (projectbank_list.size() > 0)
 			{
-				/*
 				bool bTmp = 1 - pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Tick to skip welcome screen and start editing the last edited game project and level").x + 20.0f;
+				float fTextWidth = ImGui::CalcTextSize("Tick to skip GameGuru MAX Hub and continue editing the last game project").x + 20.0f;
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Tick to skip welcome screen and start editing the last edited game project and level", &bTmp))
+				if (ImGui::Checkbox("Tick to skip GameGuru MAX Hub and continue editing the last game project", &bTmp))
 				{
 					pref.iDisplayWelcomeScreen = 1 - bTmp;
 				}
-				*/
-				//PE: From Rick Hover - "Tick this to skip the Welcome Screen to start editing your current game project" , But its the same text as above so...
-
-				//PE: Hub
-				bool bTmp = 1 - pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Tick to skip GameGuru MAX Hub and start editing the last edited game project and level").x + 20.0f;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Tick to skip GameGuru MAX Hub and start editing the last edited game project and level", &bTmp))
-				{
-					pref.iDisplayWelcomeScreen = 1 - bTmp;
-				}
-
 			}
-			//bool bTmp = pref.iDisplayWelcomeScreen;
-			//if (ImGui::Checkbox("Untick to skip welcome screen in future", &bTmp))
-			//{
-			//	pref.iDisplayWelcomeScreen = bTmp;
-			//}
-#endif
-
 
 			ImGui::SetWindowFontScale(1.0);
 			ImGui::Columns(1);
@@ -38851,46 +38811,6 @@ void CheckWindowsOnTop(ImGuiWindow* storyboard_window)
 		}
 	}
 
-	/*
-	if (bTriggerOpenProject)
-	{
-		ImGuiWindow* win = ImGui::FindWindowByName("Open Project##Storyboard");
-		if (win)
-		{
-			int settings_idx = ImGui_GetWindowOrder(win);
-			if (settings_idx < storyboard_idx)
-			{
-				//Focus settings
-				strcpy(cNextWindowFocus, "Open Project##Storyboard");
-				iSkibFramesBeforeLaunch = 2;
-				iZOrderIsSorting = iSkibFramesBeforeLaunch + 2;
-				iLaunchAfterSync = 81; //Delayed window focus.
-			}
-			secondscreen_idx = settings_idx;
-		}
-	}
-	*/
-
-	#ifdef RPG_GAMES
-	if (bRPGSetup_Window)
-	{
-		ImGuiWindow* win = ImGui::FindWindowByName("RPG setup##MustBeUnique");
-		if (win)
-		{
-			int settings_idx = ImGui_GetWindowOrder(win);
-			if (settings_idx < storyboard_idx)
-			{
-				//Focus settings
-				strcpy(cNextWindowFocus, "RPG setup##MustBeUnique");
-				iSkibFramesBeforeLaunch = 2;
-				iZOrderIsSorting = iSkibFramesBeforeLaunch + 2;
-				iLaunchAfterSync = 81; //Delayed window focus.
-			}
-			secondscreen_idx = settings_idx;
-		}
-	}
-	#endif
-
 	if (bPreferences_Window)
 	{
 		ImGuiWindow* win = ImGui::FindWindowByName("Settings");
@@ -39868,9 +39788,7 @@ void process_storeboard(bool bInitOnly)
 				ImGui::Indent(-10);
 				ImGui::EndPopup();
 			}
-
 		}
-
 
 		bool bReadyToOpen = false;
 		if (bTriggerOpenProject)
@@ -39906,7 +39824,6 @@ void process_storeboard(bool bInitOnly)
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 			bool bOpenWindow = true;
 			//PE: Somehow cant get this window ontop ?
-			//if (ImGui::BeginPopupModal("Open Project##Storyboard", &bOpenWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 			if (ImGui::BeginPopupModal("Open Project##Storyboard", &bOpenWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 			{
 				popwinheight = ImGui::GetWindowSize().y;
@@ -39928,7 +39845,11 @@ void process_storeboard(bool bInitOnly)
 				}
 				//Ignore _backup files.
 
+				// when in a remote project, need to rebuild the latest writables based project list
+				GG_SetWritablesToRoot(true);
 				GetProjectList("projectbank\\");
+				GG_SetWritablesToRoot(false);
+
 				static std::string current_project_selected = "";
 				ImVec2 size = { ImGui::GetContentRegionAvailWidth(),0 };
 
@@ -39980,6 +39901,10 @@ void process_storeboard(bool bInitOnly)
 				ImGui::SetWindowFontScale(1.4);
 				if (bTriggerLoad || ImGui::StyleButton("Open Project", ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f)))
 				{
+					// and in case this was a remote project, restore to writables regular
+					extern void switch_to_regular_projects(void);
+					switch_to_regular_projects();
+
 					//Open
 					load_storyboard( (char *) current_project_selected.c_str());
 					iGamePausedNodeID = storyboard_add_missing_nodex(8, preview_size_x, fNodeWidth, fNodeHeight + 20.0, false);
@@ -40960,64 +40885,70 @@ void process_storeboard(bool bInitOnly)
 				ImVec2 vIconSize = { (float)ImGui::GetFontSize()*3.5f, (float)ImGui::GetFontSize()*3.5f };
 				ImGui::SetCursorPos(ImVec2(3.0f, fStartWinPosY + 1.0f));
 				ImGui::SetItemAllowOverlap();
-				if (ImGui::ImgBtn(TOOL_GOBACK, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
+				if (pref.iDisplayWelcomeScreen != 0)
 				{
-					bool bAbort = false;
-					if (Storyboard.iChanged)
+					// now only allows backing from storyboard if have a HUB to go to
+					if (ImGui::ImgBtn(TOOL_GOBACK, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 					{
-						if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+						bool bAbort = false;
+						if (Storyboard.iChanged)
 						{
-							save_storyboard(Storyboard.gamename, false);
-						}
-						else
-						{
-							int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-							if (iAction == 1)
+							if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
 							{
-								//Save.
-								if (strlen(Storyboard.gamename) > 0)
-									save_storyboard(Storyboard.gamename, false);
-								else
+								save_storyboard(Storyboard.gamename, false);
+							}
+							else
+							{
+								int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+								if (iAction == 1)
 								{
-									bAbort = true;
-									save_storyboard(Storyboard.gamename, true);
+									//Save.
+									if (strlen(Storyboard.gamename) > 0)
+										save_storyboard(Storyboard.gamename, false);
+									else
+									{
+										bAbort = true;
+										save_storyboard(Storyboard.gamename, true);
+									}
 								}
 							}
 						}
-					}
-					if (!bAbort)
-					{
-						iLevelEditorFromStoryboardID = -1;
-						if (pref.iDisplayWelcomeScreen == 0)
+						if (!bAbort)
 						{
-							//Welcome not open , so to level editor.
-							bStoryboardWindow = false;
-						}
-						else
-						{
-							//Back to welcome.
-							bWelcomeScreen_Window = true;
-							bStoryboardWindow = false;
-							cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
-							bSortProjects = true;
+							iLevelEditorFromStoryboardID = -1;
+							//if (pref.iDisplayWelcomeScreen == 0) no longer can be called
+							//{
+							//	//Welcome not open , so to level editor.
+							//	bStoryboardWindow = false;
+							//}
+							//else
+							{
+								//Back to welcome.
+								bWelcomeScreen_Window = true;
+								bStoryboardWindow = false;
+								cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
+								bSortProjects = true;
 
-							// and in case this was a remote project, restore to writables regular
-							extern void switch_to_regular_projects(void);
-							switch_to_regular_projects();
+								// and in case this was a remote project, restore to writables regular
+								extern void switch_to_regular_projects(void);
+								switch_to_regular_projects();
+							}
 						}
 					}
-				}
-				if (pref.iDisplayWelcomeScreen == 0)
-				{
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to Level Editor");
-				}
-				else
-				{
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to GameGuru MAX Hub"); //Welcome Screen
 				}
+				// Bouncing between storyboard and 'last' level breaks the flow and use of storyboard as the parent
+				// and this also prevents levels from potentially floating free and causing other connected issues
+				//if (pref.iDisplayWelcomeScreen == 0)
+				//{
+				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to Level Editor");
+				//}
+				//else
+				//{
+				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to GameGuru MAX Hub"); //Welcome Screen
+				//}
 				//
 
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, -40.0)); //PE: Without a header use this.
 				ImGui::SetWindowFontScale(2.0); //1.4
 				//ImGui::TextCenter("GAME STORYBOARD");
 				ImGui::TextCenter(""); //New header already have this text.
@@ -42447,8 +42378,21 @@ void process_storeboard(bool bInitOnly)
 					{
 						iStoryboardExecuteKey = 0;
 						cStr tOldDir = GetDir();
-						char * cFileSelected;
-						cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+
+						// we know we need to focus on the mapbank associated with the current storyboard
+						cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+						if (correctFPMLocation_s.Len() > 0)
+						{
+							correctFPMLocation_s += Storyboard.gamename;
+							correctFPMLocation_s += "\\Files\\mapbank";
+						}
+						else
+						{
+							correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+						}
+						//cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+						char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+
 						SetDir(tOldDir.Get());
 						if (cFileSelected && strlen(cFileSelected) > 0)
 						{
@@ -43859,7 +43803,9 @@ int save_level_as( void )
 	int iRet = 0;
 	static bool bGotAThumb = false;
 	static int iSetKeyboardFocusHere = 10;
-	if (iNewLevelNode < 0) return(0);
+
+	// LB: allow levels to be saved, even if not currently connected to game project (for HUB skippers)
+	//if (iNewLevelNode < 0) return(0);
 
 	if (bTriggerTerrainSaveAsWindow)
 	{
@@ -44008,29 +43954,31 @@ int save_level_as( void )
 							strcpy(cTriggerMessage, "Saving Level ...");
 							bTriggerMessage = true;
 
-							strcpy(Storyboard.Nodes[iNewLevelNode].title, NewLevelName);
-							strcpy(Storyboard.Nodes[iNewLevelNode].level_name, g.projectfilename_s.Get());
-
-							if (bGotAThumb)
+							if (iNewLevelNode >= 0)
 							{
-								CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
-								SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
-								if (FileExist(BackBufferCacheName.Get()))
+								strcpy(Storyboard.Nodes[iNewLevelNode].title, NewLevelName);
+								strcpy(Storyboard.Nodes[iNewLevelNode].level_name, g.projectfilename_s.Get());
+								if (bGotAThumb)
 								{
-									if (CopyToProjectFolder(BackBufferCacheName.Get()))
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
+									SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
+									if (FileExist(BackBufferCacheName.Get()))
 									{
-										//PE: Use relative projectbank filename.
-										if (FileExist(ProjectCacheName.Get()))
-											BackBufferCacheName = ProjectCacheName;
-									}
+										if (CopyToProjectFolder(BackBufferCacheName.Get()))
+										{
+											//PE: Use relative projectbank filename.
+											if (FileExist(ProjectCacheName.Get()))
+												BackBufferCacheName = ProjectCacheName;
+										}
 
-									//Load to correct id.
-									SetMipmapNum(1);
-									image_setlegacyimageloading(true);
-									LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
-									image_setlegacyimageloading(false);
-									SetMipmapNum(-1);
-									strcpy(Storyboard.Nodes[iNewLevelNode].thumb, BackBufferCacheName.Get());
+										//Load to correct id.
+										SetMipmapNum(1);
+										image_setlegacyimageloading(true);
+										LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
+										image_setlegacyimageloading(false);
+										SetMipmapNum(-1);
+										strcpy(Storyboard.Nodes[iNewLevelNode].thumb, BackBufferCacheName.Get());
+									}
 								}
 							}
 
@@ -44041,9 +43989,6 @@ int save_level_as( void )
 						{
 							//Cancel just ignore.
 						}
-
-						//strcpy(Storyboard.Nodes[node].level_name, "");
-						//Overwrite ?
 					}
 					else
 					{
@@ -44066,16 +44011,16 @@ int save_level_as( void )
 				ImGui::EndPopup();
 
 				if (bDigAHoleToHWND && bwindow)
+				{
 					bwindow->DrawList->AddCallback((ImDrawCallback)11, NULL); //disable force render.
+				}
 			}
-
 		}
 	}
 	else
 	{
 		iTerrainSaveAsProcess = 0;
 	}
-
 	return(iRet);
 }
 
@@ -44310,10 +44255,16 @@ int save_create_storyboard_project(void)
 
 			if (bClicked || bForceClicked)
 			{
+				// and in case this was a remote project, restore to writables regular
+				extern void switch_to_regular_projects(void);
+				switch_to_regular_projects();
+
 				// if custom project folder, new wriables
 				if (strlen(Storyboard.customprojectfolder) > 0)
 				{
+					GG_SetWritablesToRoot(true);
 					switch_to_remote_project(SaveProjectAsName);
+					GG_SetWritablesToRoot(false);
 				}
 
 				//PE: Trim
@@ -45002,7 +44953,6 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 						//Open Game Project
 						bTriggerOpenProject = true;
 					}
-					//
 				}
 				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -45626,6 +45576,7 @@ void load_storyboard(char *name)
 	init_rpg_system();
 	load_rpg_system(name);
 
+	/* never used
 	// ensure basic project specific media folders are present
 	LPSTR pOldDir = GetDir();
 	if (Storyboard.project_readonly == 0 && bProjectLoaded == true)
@@ -45637,7 +45588,6 @@ void load_storyboard(char *name)
 		GG_GetRealPath(projectfolder, 1);
 		SetDir(projectfolder);
 
-		/* never used
 		// files folder
 		if (PathExist("Files") == 0) CreateDirectoryA("Files", NULL);
 		SetDir("Files");
@@ -45659,9 +45609,9 @@ void load_storyboard(char *name)
 			// SetDir(mediafolder);
 			// if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
 		}
-		*/
 	}
 	SetDir(pOldDir);
+	*/
 
 	//
 	// NOTE: RefreshPurchasedFolder creates unncessary FILES folder in projectbank!!!

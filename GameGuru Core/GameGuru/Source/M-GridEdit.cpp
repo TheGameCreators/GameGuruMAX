@@ -2406,8 +2406,21 @@ void mapeditorexecutable_loop(void)
 
 					//PE: filedialogs change dir so.
 					cStr tOldDir = GetDir();
-					char * cFileSelected;
-					cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+
+					// we know we need to focus on the mapbank associated with the current storyboard
+					cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+					if (correctFPMLocation_s.Len() > 0)
+					{
+						correctFPMLocation_s += Storyboard.gamename;
+						correctFPMLocation_s += "\\Files\\mapbank";
+					}
+					else
+					{
+						correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+					}
+
+					//cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+					char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
 					SetDir(tOldDir.Get());
 					if (cFileSelected && strlen(cFileSelected) > 0)
 					{
@@ -15336,7 +15349,13 @@ void mapeditorexecutable_loop(void)
 			}
 			else if (!pref.iDisplayWelcomeScreen)
 			{
-				if (pref.iLastInStoryboard)
+				// LB: If we are not displaying the welcome screen, we should display the storyboard window.
+				// as the iLastInStoryboard flag to take the user direct to the last level edited does not work
+				// but taking the user to the last used storyboard allows the user to select the level they 
+				// wish to work on and avoids ever being in a level that has no associated FPM level.
+				//if (pref.iLastInStoryboard)
+				bool bAlwaysTakeUserWhoSkipsHubToLastStoryboard = true;
+				if(bAlwaysTakeUserWhoSkipsHubToLastStoryboard==true)
 				{
 					bStoryboardWindow = true;
 					GGTerrain_CancelRamp();
@@ -15594,7 +15613,22 @@ void mapeditorexecutable_loop(void)
 
 					t.returnstring_s = "";
 					cStr tOldDir = GetDir();
-					char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL,true);
+
+					// we know we need to focus on the mapbank associated with the current storyboard
+					cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+					if (correctFPMLocation_s.Len() > 0)
+					{
+						correctFPMLocation_s += Storyboard.gamename;
+						correctFPMLocation_s += "\\Files\\mapbank";
+					}
+					else
+					{
+						correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+					}
+
+					//char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", correctFPMLocatrion_s.Get(), NULL, true);
+					char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+
 					SetDir(tOldDir.Get());
 					if (cFileSelected && strlen(cFileSelected) > 0) 
 					{

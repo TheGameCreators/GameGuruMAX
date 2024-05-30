@@ -13538,13 +13538,16 @@ void procedural_new_level(void)
 					bProceduralLevel = false;
 			}
 
+			// LB: Disagree with this, ALL LEVELS must have a name and FPM or bad things happen!
+			/*
 			if (!bProceduralLevelFromStoryboard)
 			{
 				//Started from editor , just go back.
 				bProceduralLevel = false;
-				bTriggerTerrainSaveAsWindow = false;
 				iQuitProceduralLevel = 0;
+				bTriggerTerrainSaveAsWindow = false;
 			}
+			*/
 		}
 		if (!bProceduralLevel)
 		{

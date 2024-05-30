@@ -17,15 +17,15 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 		selectobj[e]= U.ObjectPlayerLookingAt(pickuprange)
 		if selectobj[e] ~= 0 or selectobj[e] ~= nil then
 			if g_Entity[e]['obj'] == selectobj[e] then
-				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) 	-- Cross pointer
+				TextCenterOnXColor(50-0.01,50,3,"+",255,255,255) -- Cross pointer
 				g_tEnt = e
 				local r,g,b = GetEntityEmissiveColor(g_tEnt)
-				emvalue = GetEntityEmissiveStrength(g_tEnt)				
+				emvalue = GetEntityEmissiveStrength(g_tEnt)
 				if r==0 and g==0 and b==0 then
 					SetEntityEmissiveColor(g_tEnt,0,80,0)
 					rgbtemp = 1
 				end
-				if highlight == 1 then					
+				if highlight == 1 then -- shape option					
 					if emvalue > 0 then						
 						SetEntityEmissiveStrength(g_tEnt,emvalue)
 					else						
@@ -34,21 +34,23 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 				end
 				if highlight == 2 then SetEntityOutline(g_tEnt,1) end -- outline option
 			else
-				if highlight == 1 then
+				if highlight == 1 then -- end shape option
 					if rgbtemp == 1 then
 						SetEntityEmissiveColor(g_tEnt,0,0,0)
+						SetEntityEmissiveStrength(g_tEnt,0)
 						rgbtemp = 0
 					end
-				end -- shape option
-				if highlight == 2 then SetEntityOutline(g_tEnt,0) end -- outline option
-				g_tEnt = 0
+				end 
+				if highlight == 2 then SetEntityOutline(g_tEnt,0) end -- end outline option				
+				g_tEnt = 0				
 			end
 		end
 		if selectobj[e] == 0 or selectobj[e] == nil then
 			g_tEnt = 0
 			emvalue = 0
+			rgbtemp = 0
 			if U.PlayerLookingNear(e,pickuprange,60) then
-				TextCenterOnXColor(50,50-0.4,3,".",180,180,180) 		-- Dot pointer
+				TextCenterOnXColor(50,50-0.4,3,".",180,180,180) -- Dot pointer
 			end	
 		end					
 	end

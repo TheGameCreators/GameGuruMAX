@@ -40,7 +40,7 @@ function activehud_main(e)
 	activehud[e] = g_Entity[e]
 	if status[e] == "init" then
 		curhealth[e] = g_PlayerHealth
-		keypause[e] = g_Time +500
+		keypause[e] = g_Time +1000
 		HideHuds()
 		if activehud[e].show_condition == 5 then
 			ShowHuds()
@@ -84,12 +84,12 @@ function activehud_main(e)
 	if activehud[e].show_condition == 5 then
 		if g_Scancode == 70 and toggle[e] == 0 and g_Time > keypause[e] then
 			ShowHuds()
-			keypause[e] = g_Time +500
+			keypause[e] = g_Time + 1000
 			toggle[e] = 1
 		end
 		if g_Scancode == 70 and toggle[e] == 1 and g_Time > keypause[e] then
 			HideHuds()
-			keypause[e] = g_Time +500
+			keypause[e] = g_Time + 1000
 			toggle[e] = 0
 		end
 	end

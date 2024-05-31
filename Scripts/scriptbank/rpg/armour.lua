@@ -1,5 +1,5 @@
 -- DESCRIPTION: The object will give the player an armour boost or deduction if used.
--- Armour v13
+-- Armour v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USEAGE_TEXT$="Armour applied"]
@@ -31,7 +31,6 @@ local tEnt = {}
 local selectobj = {}
 
 function armour_properties(e, prompt_text, prompt_if_collectable, useage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
-	armour[e] = g_Entity[e]	
 	armour[e].prompt_text = prompt_text
 	armour[e].prompt_if_collectable = prompt_if_collectable
 	armour[e].useage_text = useage_text
@@ -45,7 +44,7 @@ function armour_properties(e, prompt_text, prompt_if_collectable, useage_text, q
 end
 
 function armour_init(e)
-	armour[e] = g_Entity[e]
+	armour[e] = {}
 	armour[e].prompt_text = "E to Use"
 	armour[e].prompt_if_collectable = "E to collect"
 	armour[e].useage_text = "Armour worn"
@@ -63,7 +62,7 @@ function armour_init(e)
 end
 
 function armour_main(e)
-	armour[e] = g_Entity[e]
+
 	PlayerDist = GetPlayerDistance(e)	
 	if armour[e].pickup_style == 1 then
 		if PlayerDist < armour[e].pickup_range then

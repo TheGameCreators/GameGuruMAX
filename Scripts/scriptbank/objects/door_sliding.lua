@@ -1,4 +1,4 @@
--- Door Sliding v28 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v29 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -12,6 +12,7 @@
 -- DESCRIPTION: [DOOR_RANGE=100(0,500)]
 -- DESCRIPTION: [CLOSE_DELAY#=5.0] seconds
 -- DESCRIPTION: [@TRIGGER=4(1=On Open, 2=On Close, 3=On Open+Close, 4=None)] to trigger links
+-- DESCRIPTION: [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
 -- DESCRIPTION: <Sound0> When door opening
 -- DESCRIPTION: <Sound1> When the door is closing
 -- DESCRIPTION: <Sound2> When the door is locking
@@ -37,6 +38,7 @@ local defaultLockedText   = "Door is locked. Find a way to open it"
 local defaultIsUnlocked = false
 local defaultUnLockedText = "E to use door"
 local defaultTrigger = 4
+local prompt_display = 1
 local played = {}
 
 g_door_sliding = {}
@@ -45,7 +47,7 @@ local doorTypes = { 'Auto', 'Manual', 'Switched' }
 
 function door_sliding_properties( e, move_angle, move_distance, move_delay, move_period, lockedtext, 
                                   IsUnlocked, unlockedtext, door_type, door_style, door_range,
-								  closedelay, trigger)
+								  closedelay, trigger, prompt_display)
 	local door = g_door_sliding[ e ]
 	if door == nil then return end
 	if door_type ~= nil then
@@ -58,6 +60,7 @@ function door_sliding_properties( e, move_angle, move_distance, move_delay, move
 	door.move_delay = move_delay or defaultDoorDelay
 	door.move_period = move_period or defaultPeriod
 	door.trigger = trigger or defaultTrigger
+	door.prompt_display = prompt_display
 	if closedelay ~= nil then
 		door.closedelay = closedelay * 1000
 	end
@@ -91,6 +94,7 @@ function door_sliding_init( e )
 							door_range   	= defaultDoorRange,
 							closedelay		= defaultCloseDelay,
 							trigger			= defaultTrigger,
+							prompt_display	= 1,
 							blocking        = 1,
 							originalx		= -1,
 							originaly		= -1,
@@ -196,8 +200,14 @@ function door_sliding_main(e)
 	elseif		
 	   door.mode == 'closed' then
 		if door.door_type == 'Switched' then
-			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == false then Prompt(door.lockedtext) end
-			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == true then Prompt(door.lockedtext) end
+			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == false then
+				if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+				if door.prompt_display == 2 then Prompt(door.lockedtext) end
+			end	
+			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == true then
+				if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+				if door.prompt_display == 2 then Prompt(door.lockedtext) end
+			end
 			if g_Entity[e]['activated'] == 1 then
 				if door.IsUnlocked == true then					
 					SetEntityActivated(e,1)
@@ -206,7 +216,8 @@ function door_sliding_main(e)
 					door.time     =  g_Time + door.move_delay
 					PlaySound(e,0 )
 				else
-					Prompt(door.lockedtext)
+					if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+					if door.prompt_display == 2 then Prompt(door.lockedtext) end
 				end	
 				if door.trigger == 1 or door.trigger == 3 then PerformLogicConnections(e) end
 			end	
@@ -221,13 +232,15 @@ function door_sliding_main(e)
 						door.time     =  g_Time + door.move_delay
 						PlaySound(e,0)
 					else
-						Prompt(door.lockedtext)
+						if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+						if door.prompt_display == 2 then Prompt(door.lockedtext) end
 					end	
 					if door.trigger == 1 or door.trigger == 3  then PerformLogicConnections(e) end
 				end				
 				if door.door_type == 'Manual' and LookingAt(e) then
 					if door.IsUnlocked == true then
-						Prompt(door.unlockedtext)	
+						if door.prompt_display == 1 then PromptLocal(e,door.unlockedtext) end
+						if door.prompt_display == 2 then Prompt(door.unlockedtext) end
 						if g_KeyPressE == 1 then
 							SetEntityActivated(e,1)
 							door.mode     = 'delay'
@@ -238,10 +251,11 @@ function door_sliding_main(e)
 						end
 					end	
 					if door.IsUnlocked == false then
-						Prompt( door.lockedtext )
+						if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+						if door.prompt_display == 2 then Prompt(door.lockedtext) end
 					end
 				end
-			end
+			end  
 		end		
 	elseif
 	   door.mode == 'delay' then
@@ -294,8 +308,9 @@ function door_sliding_main(e)
 				g_Entity[e]['haskey'] = 1
 				SetEntityHasKey(e,1)				
 			end			
-			if door.IsUnlocked == true then				
-				Prompt( door.unlockedtext )
+			if door.IsUnlocked == true then
+				if door.prompt_display == 1 then PromptLocal(e,door.unlockedtext) end
+				if door.prompt_display == 2 then Prompt(door.unlockedtext) end			
 				if g_KeyPressE == 1 then
 					SetEntityActivated(e,1)
 					door.mode     = 'delay'			

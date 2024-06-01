@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v16 by Necrym59 and Lee
+-- Winzone v15 by Necrym59 and Lee
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [@ENDING_MODE=1(1=None, 2=Image, 3=Video, 4=Video+Image)] Type of end level modes
 -- DESCRIPTION: [ENDING_IMAGEFILE$=""] for optional ending image
 -- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$=""] user global required for using spawn markers (eg: MySpawnMarkers)
--- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
+-- DESCRIPTION: [SPAWN_MARKER_NAME$=""] name of spawn marker to relocate spawn on next map
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 -- DESCRIPTION: [ResetStates!=0] when entering the next level
 -- DESCRIPTION: <Video Slot> for optional ending video

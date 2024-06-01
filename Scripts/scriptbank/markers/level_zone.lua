@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Level Zone v15 by Necrym59
+-- Level Zone v16 by Necrym59
 -- DESCRIPTION: When the player enters this zone it will launch a designated level.
 -- DESCRIPTION: [@LAUNCH_MODE=1(1=None, 2=Keystroke, 3=Image+Keystroke)]
 -- DESCRIPTION: [IMAGEFILE$=""] for optional image
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 -- DESCRIPTION: [ResetStates!=0] when entering the new level
--- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global for using spawn markers
--- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
+-- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$=""] user global required for using spawn markers (eg: MySpawnMarkers)
+-- DESCRIPTION: [SPAWN_MARKER_NAME$=""] name of spawn marker to relocate spawn on next map
 -- DESCRIPTION: <Sound0> - In zone Effect Sound
 
 local level_zone 				= {}

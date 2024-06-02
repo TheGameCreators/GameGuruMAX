@@ -61,7 +61,7 @@ function global_affected_zone_main(e)
 
 	if g_Entity[e]['activated'] == 1 then
 
-		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY < g_Entity[e]['y']+gazone[e].ZoneHeight then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+gazone[e].ZoneHeight then
 			if doonce[e] < 5 then
 				PromptDuration(gazone[e].prompt_text,3000)
 			end

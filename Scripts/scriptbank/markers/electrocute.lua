@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Electrocute v10
+-- Electrocute v11
 -- DESCRIPTION: Will elecrocute player when entering the zone
 -- DESCRIPTION: [PROMPT_TEXT$=""]
 -- DESCRIPTION: [DAMAGE=10(1,500)]
@@ -17,7 +17,6 @@ local shock_time	= {}
 local status		= {}
 
 function electrocute_properties(e, prompt_text, damage, zoneheight, SpawnAtStart)
-	electrocute[e] = g_Entity[e]
 	electrocute[e].prompt_text = prompt_text
 	electrocute[e].damage = damage
 	electrocute[e].zoneheight = zoneheight or 100
@@ -25,7 +24,7 @@ function electrocute_properties(e, prompt_text, damage, zoneheight, SpawnAtStart
 end
 
 function electrocute_init(e)
-	electrocute[e] = g_Entity[e]
+	electrocute[e] = {}
 	electrocute[e].prompt_text = ""
 	electrocute[e].damage = 10
 	electrocute[e].zoneheight = 100
@@ -36,7 +35,6 @@ function electrocute_init(e)
 end
 
 function electrocute_main(e)
-	electrocute[e] = g_Entity[e]
 	
 	if status[e] == "init" then
 		if electrocute[e].SpawnAtStart == 1 then SetActivated(e,1) end

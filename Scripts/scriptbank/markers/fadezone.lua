@@ -65,7 +65,7 @@ function fadezone_main(e)
 	end
 
 	if g_Entity[e]['activated'] == 1 then
-		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY < g_Entity[e]['y']+fadezone[e].zoneheight then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+fadezone[e].zoneheight then
 			if doonce[e] == 0 then
 				Prompt(fadezone[e].prompt_text)
 				doonce[e] = 1

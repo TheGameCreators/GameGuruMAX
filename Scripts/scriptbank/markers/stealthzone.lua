@@ -23,7 +23,6 @@ local sallegiance 		= {}
 local doonce			= {}
 
 function stealthzone_properties(e, prompt_text, discovery_range, icon_imagefile, icon_position_x, icon_position_y, zoneheight)
-	stealthzone[e] = g_Entity[e]
 	stealthzone[e].prompt_text = prompt_text
 	stealthzone[e].discovery_range = discovery_range
 	stealthzone[e].icon_imagefile = icon_imagefile

@@ -122,7 +122,8 @@
   // limit particle quantity in debug mode (too slow to create all scene elements in debug?!)
   // eventually replace all this with a GPU based particle system (no more eating wicked resources)
   #define RAVEY_PARTICLES_MAX 50
- #else
+  #define RAVEY_PARTICLES_MAX_FIRST_BATCH 40
+#else
   // lots of object quads REALLY slow down Wicked Engine! Need to replace with GPU particles asap.
   //#define RAVEY_PARTICLES_MAX 100
   //PE: 700 seams fine now, we must have done something good somewhere :)

@@ -2108,18 +2108,21 @@ void entity_loaddata ( void )
 					cmpStrConst( t_field_s, "ccpassembly" );
 					if (matched)
 					{
+						char pLowCase[MAX_PATH];
+						strcpy(pLowCase, t.value_s.Get());
+						strlwr(pLowCase);
 						t.entityprofile[t.entid].characterbasetype = -1;
-						if (strstr (t.value_s.Get(), "adult male") != NULL) t.entityprofile[t.entid].characterbasetype = 0;
-						if (strstr (t.value_s.Get(), "adult female") != NULL) t.entityprofile[t.entid].characterbasetype = 1;
-						if (strstr (t.value_s.Get(), "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
-						if (strstr (t.value_s.Get(), "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
+						if (strstr (pLowCase, "adult male") != NULL) t.entityprofile[t.entid].characterbasetype = 0;
+						if (strstr (pLowCase, "adult female") != NULL) t.entityprofile[t.entid].characterbasetype = 1;
+						if (strstr (pLowCase, "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
+						if (strstr (pLowCase, "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
 						if (t.entityprofile[t.entid].characterbasetype == -1)
 						{
-							for (int t = 0; t < g_CharacterType.size(); t++)
+							for (int i = 0; i < g_CharacterType.size(); i++)
 							{
-								if (strstr (t.value_s.Get(), g_CharacterType[t].pPartsFolder) != NULL)
+								if (strnicmp (pLowCase, g_CharacterType[i].pPartsFolder, strlen(g_CharacterType[i].pPartsFolder)) == NULL)
 								{
-									t.entityprofile[t.entid].characterbasetype = t;
+									t.entityprofile[t.entid].characterbasetype = i;
 									break;
 								}
 							}

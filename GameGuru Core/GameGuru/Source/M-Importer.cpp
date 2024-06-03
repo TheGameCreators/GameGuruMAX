@@ -3080,6 +3080,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 	bool bRefreshObjectAnimationSet = false;
 	if (g_bNowPopulateWithCorrectAnimSet == true)
 	{
+		bool bWipeOutOverrideIfCustomType = false;
 		LPSTR pCurrentWeapon = edit_grideleprof->hasweapon_s.Get();
 		LPSTR pWeaponType = "";
 		if (strlen(pCurrentWeapon) > 0)
@@ -3089,12 +3090,26 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 			int gunid = t.foundgunid;
 			pWeaponType = animsystem_getweapontype(pCurrentWeapon, t.gun[gunid].animsetoverride.Get());
 		}
-		LPSTR pGender = "";
+		LPSTR pCharTypeName = "";
 		if (iAnimationSetType == 1 || iAnimationSetType == 2)
 		{
 			// soldier or melee
-			pGender = "adult male";
-			if (characterbasetype == 1 || characterbasetype == 3) pGender = "adult female";
+			if (characterbasetype >= 0 && characterbasetype <= 3)
+			{
+				pCharTypeName = "adult male";
+				if (characterbasetype == 1 || characterbasetype == 3) pCharTypeName = "adult female";
+			}
+			else
+			{
+				if(characterbasetype > 0)
+				{
+					pCharTypeName = g_CharacterType[characterbasetype].pPartsFolder;
+				}
+				else
+				{
+					bWipeOutOverrideIfCustomType = true;
+				}
+			}
 
 			// melee will need melee animations if no specific weapon
 			if (iAnimationSetType == 2)
@@ -3105,8 +3120,22 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		if (iAnimationSetType == 3)
 		{
 			// zombie
-			pGender = "zombie male";
-			if (characterbasetype == 1 || characterbasetype == 3) pGender = "zombie female";
+			if (characterbasetype >= 0 && characterbasetype <= 3)
+			{
+				pCharTypeName = "zombie male";
+				if (characterbasetype == 1 || characterbasetype == 3) pCharTypeName = "zombie female";
+			}
+			else
+			{
+				if (characterbasetype > 0)
+				{
+					pCharTypeName = g_CharacterType[characterbasetype].pPartsFolder;
+				}
+				else
+				{
+					bWipeOutOverrideIfCustomType = true;
+				}
+			}
 		}
 		if (iAnimationSetType == 4)
 		{
@@ -3115,17 +3144,23 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		else
 		{
 			char pPathToWeaponAnim[MAX_PATH];
-			sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pGender, pWeaponType);
+			sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pCharTypeName, pWeaponType);
 			if (FileExist(pPathToWeaponAnim) == 0)
 			{
 				// if not weapon specific animation set, use regular base default
-				sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations.dbo", pGender);
+				sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations.dbo", pCharTypeName);
 			}
 			if (FileExist(pPathToWeaponAnim))
 			{
 				// correct default for base type and weapon held
 				edit_grideleprof->overrideanimset_s = pPathToWeaponAnim;
 			}
+		}
+
+		// used when character type not determined (probably custom character type, ie low poly)
+		if (bWipeOutOverrideIfCustomType == true)
+		{
+			edit_grideleprof->overrideanimset_s = "-";
 		}
 
 		// in any event, refresh object when change behavior (and associated anim)

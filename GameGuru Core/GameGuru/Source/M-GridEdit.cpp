@@ -1390,9 +1390,13 @@ void mapeditorexecutable_init ( void )
 
 	// Moved last so we can load levels before main loop.
 	// start thread loader for Character Creator texture files (multi-threaded loading) (saves 2s if started CCP)
-
 	timestampactivity(0, "preload CCP textures early");
 	charactercreatorplus_preloadinitialcharacter();
+
+	// build character types list early as needed for FPE parsing
+	extern void charactercreatorplus_populatechartypes(void);
+	timestampactivity(0, "preload FPE character types");
+	charactercreatorplus_populatechartypes();
 
 	//  Main loop
 	iStartupTime = Timer();

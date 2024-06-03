@@ -46,6 +46,14 @@ struct sCharacterType
 };
 extern std::vector<sCharacterType> g_CharacterType;
 extern char pCharacterTypeDropDownList[32][260];
+extern std::vector<int> g_CharacterTypeRoomPref;
+
+struct sRoomType
+{
+	char pPartsFolder[260];
+};
+extern std::vector<sRoomType> g_RoomType;
+extern char pRoomTypeDropDownList[32][260];
 
 #ifdef WICKEDENGINE
 // Some parts (e.g. head gear) require specific head shapes or hair styles to ensure no meshes overlap.

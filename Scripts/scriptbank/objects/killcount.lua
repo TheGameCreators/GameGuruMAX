@@ -1,36 +1,49 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Kill Count v2 by Necrym59
--- DESCRIPTION: Creates a counter for all enemies killed.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: "MyKillCounter")
+-- Kill Count v3 by Necrym59
+-- DESCRIPTION: Creates counters for all enemies killed in level and/or game.
+-- DESCRIPTION: [LEVEL_COUNT_USER_GLOBAL$=""] User global for Level count (eg: "MyLevelCounter").
+-- DESCRIPTION: [GAME_COUNT_USER_GLOBAL$=""] User global for Game count (eg: "MyGameCounter").
 
-local killcount 	= {}
-local user_global_affected	= {}
+local killcount					= {}
+local level_count_user_global	= {}
+local game_count_user_global	= {}
 
 local pEntalive 	= {}
 local pEnttotal		= {}
 local status	 	= {}
 local checktime		= {}
-local currcount 	= {} 
+local currcount 	= {}
+local currentval	= {}
 local doonce		= {}
 
-function killcount_properties(e, user_global_affected)
+function killcount_properties(e, level_count_user_global, game_count_user_global)
 	killcount[e] = g_Entity[e]
-	killcount[e].user_global_affected = user_global_affected
+	killcount[e].level_count_user_global = level_count_user_global
+	killcount[e].game_count_user_global = game_count_user_global
 end 
 
 function killcount_init(e)
 	killcount[e] = g_Entity[e]
-	killcount[e].user_global_affected = ""
+	killcount[e].level_count_user_global = ""
+	killcount[e].game_count_user_global = ""
 	
+	currentval[e] = 0
 	pEntalive[e] = 0
 	pEnttotal[e] = 0
 	checktime[e] = math.huge
 	currcount[e] = 0
 	doonce[e] = 0
-	status[e] = 'check'
+	status[e] = 'init'
 end
 
 function killcount_main(e)
+
+	if status[e] == 'init' then
+		if killcount[e].level_count_user_global ~= "" then
+			_G["g_UserGlobal['"..killcount[e].level_count_user_global.."']"] = 0
+		end
+		status[e] = 'check'
+	end
 
 	if status[e] == 'check' then
 		pEntalive[e] = 0
@@ -54,13 +67,21 @@ function killcount_main(e)
 	end
 	
 	if status[e] == 'run' then
-		if killcount[e].user_global_affected > "" then
-			if _G["g_UserGlobal['"..killcount[e].user_global_affected.."']"] ~= nil then
-				_G["g_UserGlobal['"..killcount[e].user_global_affected.."']"] = currcount[e]
-			end
-		end	
+		if killcount[e].level_count_user_global ~= "" then
+			_G["g_UserGlobal['"..killcount[e].level_count_user_global.."']"] = currcount[e]
+		end
 		if g_Time > checktime[e] then		
 			if pEntalive[e] > 0 then status[e] = 'check' end
+			if pEntalive[e] == 0 then status[e] = 'end' end
 		end	
+	end
+	
+	if status[e] == 'end' then
+		if killcount[e].game_count_user_global ~= "" then
+			if _G["g_UserGlobal['"..killcount[e].game_count_user_global.."']"] ~= nil then currentval[e] = _G["g_UserGlobal['"..killcount[e].game_count_user_global.."']"] end
+			_G["g_UserGlobal['"..killcount[e].game_count_user_global.."']"] = currentval[e] + currcount[e]
+		end
+		status[e] = 'stop'
+		SwitchScript(e,"no_behavior_selected.lua")
 	end
 end

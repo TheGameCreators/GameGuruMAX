@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v11 by Necrym59
+-- vendoror v12 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -48,7 +48,6 @@ local currentvalue	= {}
 local wait			= {}
 
 function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty)
-	vendor[e] = g_Entity[e]
 	vendor[e].prompt_text = prompt_text or ""
 	vendor[e].prompt_range = prompt_range
 	vendor[e].noise_range = noise_range
@@ -91,7 +90,7 @@ function vendor_init(e)
 end
 
 function vendor_main(e)
-	vendor[e] = g_Entity[e]
+
 	if status[e] == "init" then		
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end

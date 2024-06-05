@@ -18,7 +18,6 @@ local reset				= {}
 local state				= {}
 	
 function alarm_properties(e, prompt_text, alarm_reset, alert_range)
-	alarm[e] = g_Entity[e]
 	alarm[e].prompt_text = prompt_text
 	alarm[e].alarm_reset = alarm_reset
 	alarm[e].alert_range = alert_range

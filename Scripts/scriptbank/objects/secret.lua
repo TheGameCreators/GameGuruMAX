@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Secret v2 by Necrym59
--- DESCRIPTION: When activated an will inform the player they have found a secret, and can increment a user global by a set amount.
+-- Secret v3 by Necrym59
+-- DESCRIPTION: When activated an will inform the player they have found a secret, and can increment a user global by a set amount and can activate other connected logic and/or Activate IfUsed links.
 -- DESCRIPTION: Attach to an object and logic link from a switch or zone to activate.
 -- DESCRIPTION: [PROMPT_TEXT$="You have found a secret"]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MySecretCounter)
@@ -44,6 +44,7 @@ function secret_main(e)
 		if doonce[e] == 0 then
 			PromptDuration(secret[e].prompt_text,2000)
 			PlaySound(e,0)
+			ActivateIfUsed(e)
 			PerformLogicConnections(e)
 			if secret[e].user_global_affected > "" then
 				if _G["g_UserGlobal['"..secret[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..secret[e].user_global_affected.."']"] end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v16 by Necrym59
+-- Boat v17 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
 -- DESCRIPTION: [PROMPT_TEXT$="E to embark"]
 -- DESCRIPTION: [USE_RANGE=80]
@@ -52,7 +52,6 @@ local speed = {}
 local status = {}
 
 function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy)
-	boat[e] = g_Entity[e]
 	boat[e].prompt_text = prompt_text
 	boat[e].use_range = use_range
 	boat[e].min_speed = min_speed
@@ -102,7 +101,7 @@ function boat_init(e)
 end
 
 function boat_main(e)
-	boat[e] = g_Entity[e]
+
 	if status[e] == 'init' then
 		local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox(g_Entity[e]['obj'])
 		local sx,sy,sz = GetObjectScales(g_Entity[e]['obj'])

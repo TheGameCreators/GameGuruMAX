@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v14 by Necrym59
+-- vendoror v15 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [VENDORED_ENTITY_COST=0(0,100)]
 -- DESCRIPTION: [VENDORED_ENTITY_LIFESPAN=1(0,100)] Minutes (0=Eternal)
 -- DESCRIPTION: [VENDORED_ENTITY_NAME$=""]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyMoney"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User global for payment (eg; MyMoney)
 -- DESCRIPTION: [@WHEN_EMPTY=1(1=Do Nothing, 2=Destroy Vendor)]
 -- DESCRIPTION: [VENDING_DELAY=0(0,100)] in seconds
 -- DESCRIPTION: <Sound0> Activation sound
@@ -60,7 +60,7 @@ function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_ani
 	vendor[e].vendored_entity_cost = vendored_entity_cost	
 	vendor[e].vendored_entity_lifespan = vendored_entity_lifespan
 	vendor[e].vendored_entity_name = lower(vendored_entity_name)
-	vendor[e].user_global_affected = "MyMoney"
+	vendor[e].user_global_affected = user_global_affected
 	vendor[e].when_empty = when_empty
 	vendor[e].vending_delay = vending_delay or 0
 	vendor[e].vendored_entity_no = 0
@@ -76,7 +76,7 @@ function vendor_init(e)
 	vendor[e].vendored_entity_cost = 0	
 	vendor[e].vendored_entity_lifespan = 1	
 	vendor[e].vendored_entity_name = ""
-	vendor[e].user_global_affected = "MyMoney"
+	vendor[e].user_global_affected = ""
 	vendor[e].when_empty = 1
 	vendor[e].vending_delay = 0	
 	vendor[e].vendored_entity_no = 0	

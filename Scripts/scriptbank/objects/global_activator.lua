@@ -4,7 +4,7 @@
 -- DESCRIPTION: Attach to an entity. Trigger by switch, zone or range.
 -- DESCRIPTION: [@ACTIVATION_STYLE=1(1=Switch/Zone, 2=Range)]
 -- DESCRIPTION: [#ACTIVATION_RANGE=0(0,100)]
--- DESCRIPTION: [USER_GLOBAL$="MyGlobal"]
+-- DESCRIPTION: [USER_GLOBAL$=""] eg: MyGlobal
 -- DESCRIPTION: [TRIGGER_VALUE=50(1,100)] value to triggered event
 -- DESCRIPTION: [TRIGGER_DELAY=0(0,100)] in seconds to delay triggered event.
 -- DESCRIPTION: [@VISIBILITY=1(1=Hide, 2=Show)]
@@ -17,7 +17,7 @@ local activation_range	= {}
 local user_global 		= {}
 local trigger_value		= {}
 local trigger_delay		= {}
-local trigger_monitor		= {}
+local trigger_monitor	= {}
 
 local status		= {}
 local currentvalue	= {}
@@ -39,7 +39,7 @@ function global_activator_init(e)
 	glactivator[e] = {}
 	glactivator[e].activation_style = 1
 	glactivator[e].activation_range = 0
-	glactivator[e].user_global = "MyGlobal"
+	glactivator[e].user_global = ""
 	glactivator[e].trigger_value = 50
 	glactivator[e].trigger_delay = 0
 	glactivator[e].visibility = 1

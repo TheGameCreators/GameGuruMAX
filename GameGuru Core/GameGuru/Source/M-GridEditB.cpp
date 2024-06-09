@@ -7029,7 +7029,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					g.projectmodified = 1;
 
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fever cascade shadow updates and increase your FPS.");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fewer cascade shadow updates and increase your FPS.");
 				if (g_bDelayedShadows)
 				{
 					ImGui::SameLine();
@@ -7066,10 +7066,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					ImGui::SameLine();
 					ImGui::Checkbox("Debug", &bOCDebug);
-					//if (bOCDebug)
-					//{
-					//}
-					ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
+					ImGui::Checkbox("Debug Bounding Box", &bBoxDebug);
 				}
 				if (t.visuals.bOcclusionCulling)
 				{

@@ -12443,17 +12443,6 @@ void mapeditorexecutable_loop(void)
 								}
 							}
 
-							//  Team field
-#ifdef PHOTONMP
-#else
-							if (t.tflagteamfield == 1)
-							{
-								//							setpropertylist3(t.group, t.controlindex, Str(t.grideleprof.teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
-							}
-#endif
-
-
-
 							//  Physics Data (non-multiplayer)
 							if (t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0)
 							{

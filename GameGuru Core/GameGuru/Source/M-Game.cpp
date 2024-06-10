@@ -1110,7 +1110,7 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 				if ( t.entityprofile[t.entid].ismarker == 7 && t.tmpstartindex <= MP_MAX_NUMBER_OF_PLAYERS ) 
 				{
 					// add start markers for free for all or team a
-					if ( t.entityelement[t.e].eleprof.teamfield < 2 ) 
+					if ( 1 ) //t.entityelement[t.e].eleprof.teamfield < 2 ) 
 					{
 						// a spawn GetPoint ( for the multiplayer )
 						t.mpmultiplayerstart[t.tmpstartindex].active=1;

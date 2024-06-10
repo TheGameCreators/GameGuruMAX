@@ -5846,7 +5846,7 @@ struct entityprofiletype
 	int rotatethrow;
 	int explodable;
 	int explodedamage;
-	int teamfield;
+	int explodeheight; // was teamfield
 	headspinetrackertype headspinetracker;
 	int headframestart;
 	int headframefinish;
@@ -6011,7 +6011,7 @@ struct entityprofiletype
 		 hairframefinish = 0;
 		 hideframestart = 0;
 		 hideframefinish = 0;
-		 teamfield = 0;
+		 explodeheight = 0;
 		 explodedamage = 0;
 		 explodable = 0;
 		 rotatethrow = 0;
@@ -6308,7 +6308,7 @@ struct entityeleproftype
 	int rotatethrow;
 	int explodable;
 	int explodedamage;
-	int teamfield;
+	int explodeheight; // was teamfield
 	//PE: This takes up mem , should be converted to *PropertiesVariable
 	//PE: 10000 object * this ...
 	PropertiesVariables PropertiesVariable;
@@ -6398,7 +6398,7 @@ struct entityeleproftype
 
 		 disableascharacter = 0;
 		 groupreference = -1;
-		 teamfield = 0;
+		 explodeheight = 0;
 		 explodedamage = 0;
 		 explodable = 0;
 		 rotatethrow = 0;

@@ -2025,8 +2025,8 @@ void entity_loop ( void )
 				}
 				t.obj=t.entityelement[t.e].obj;
 
-				// do not hide if ragdollified
-				if (t.entityelement[t.e].ragdollified == 0)
+				// hide if NOT ragdollified OR explodable
+				if (t.entityelement[t.e].ragdollified == 0 || t.entityelement[t.e].eleprof.explodable != 0 )
 				{
 					if (t.obj > 0)
 					{
@@ -2199,7 +2199,9 @@ void entity_loop ( void )
 					t.tProjectileName_s = "";
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
 					#endif
-					t.tx_f=t.entityelement[t.ee].x ; t.ty_f=t.entityelement[t.ee].y ; t.tz_f=t.entityelement[t.ee].z;
+					t.tx_f=t.entityelement[t.ee].x; 
+					t.ty_f=t.entityelement[t.ee].y + t.entityelement[t.ee].eleprof.explodeheight;
+					t.tz_f=t.entityelement[t.ee].z;
 					t.tDamage_f = t.entityelement[t.ee].eleprof.explodedamage; 
 					t.tradius_f = 300;
 					t.tSourceEntity = t.ee;

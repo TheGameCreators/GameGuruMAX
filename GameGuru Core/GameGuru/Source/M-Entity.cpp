@@ -1840,7 +1840,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].fullbounds=0;
 		t.entityprofile[t.entid].cpuanims=0;
 		t.entityprofile[t.entid].ignoredefanim=0;
-		t.entityprofile[t.entid].teamfield=0;
+		t.entityprofile[t.entid].explodeheight=0;
 		t.entityprofile[t.entid].scale=100;
 		t.entityprofile[t.entid].addhandle_s="";
 		t.entityprofile[t.entid].addhandlelimb=0;
@@ -4240,7 +4240,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.rotatethrow=t.entityprofile[t.entid].rotatethrow;
 	t.grideleprof.explodable=t.entityprofile[t.entid].explodable;
 	t.grideleprof.explodedamage=t.entityprofile[t.entid].explodedamage;
-	t.grideleprof.teamfield=t.entityprofile[t.entid].teamfield;
+	t.grideleprof.explodeheight =t.entityprofile[t.entid].explodeheight;
 
 	// 301115 - data extracted from neighbors (LOD Modifiers are shared across all parent copies)
 	int iThisBankIndex = t.entid;
@@ -5792,7 +5792,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload >= 307 ) 
 					{
 						//  GameGuru 1.00.020
-						t.a = c_ReadLong ( 1 ); t.entityelement[t.e].eleprof.teamfield=t.a;
+						t.a = c_ReadLong ( 1 ); t.entityelement[t.e].eleprof.explodeheight =t.a;
 					}
 					if (  t.versionnumberload >= 308 ) 
 					{
@@ -6235,7 +6235,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload<307 ) 
 					{
 						//  GameGuru 1.00.020
-						t.entityelement[t.e].eleprof.teamfield=t.entityprofile[t.ttentid].teamfield;
+						t.entityelement[t.e].eleprof.explodeheight =t.entityprofile[t.ttentid].explodeheight;
 					}
 					if (  t.versionnumberload<310 ) 
 					{
@@ -7232,7 +7232,7 @@ void entity_saveelementsdata (bool bForCollectionELE)
 				if ( t.versionnumbersave >= 307 ) 
 				{
 					//  Guru 1.00.020
-					writer.WriteLong( t.entityelement[ent].eleprof.teamfield );
+					writer.WriteLong( t.entityelement[ent].eleprof.explodeheight);
 				}
 				if ( t.versionnumbersave >= 308 ) 
 				{

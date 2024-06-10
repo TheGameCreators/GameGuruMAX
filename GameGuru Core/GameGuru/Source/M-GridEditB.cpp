@@ -1762,7 +1762,8 @@ void interface_copydatatoentity ( void )
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[590].Get()) ) == 0 )  t.grideleprof.rotatethrow = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[592].Get()) ) == 0 )  t.grideleprof.explodable = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[594].Get()) ) == 0 )  t.grideleprof.explodedamage = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("team")  ) == 0 )  t.grideleprof.teamfield = ValF(t.tdata_s.Get());
+			
+			//if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("team")  ) == 0 )  t.grideleprof.teamfield = ValF(t.tdata_s.Get());
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[463].Get()) ) == 0 ) 
 			{
@@ -25182,10 +25183,11 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 				ImGui::SetTooltip("%s", newtext.c_str());
 			}
 
-			//t.grideleprof.explodedamage = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.explodedamage), t.strarr_s[594].Get(), t.strarr_s[595].Get()));
+			// Explosion Properties
 			ImGui::TextCenter("Explosion Damage");
-			desc = t.strarr_s[595];
-			ImGui::MaxSliderInputInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 1000, desc.Get());
+			ImGui::MaxSliderInputInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 1000, t.strarr_s[595].Get());
+			ImGui::TextCenter("Explosion Height");
+			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
 		}
 
 		ImGui::PopItemWidth();
@@ -28525,23 +28527,16 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	// if not static, we may explode it
 	if (t.entityelement[elementID].staticflag == 0)
 	{
-		//actually, you need to be able to blow up turrets!!
-		//if (t.entityprofile[entid].isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		//if (t.entityelement[elementID].eleprof.isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		//{
-			// special case cannot blow up things like collectables, ammo, weapons, etc
-		//}
-		//else
-		//{
-			ImGui::Indent(10);
-			edit_grideleprof->explodable = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->explodable), "Explodable", "If set this object will explode when destroyed", 0, readonly);
-			if (edit_grideleprof->explodable != 0)
-			{
-				ImGui::TextCenter("Explosion Damage");
-				ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
-			}
-			ImGui::Indent(-10);
-		//}
+		ImGui::Indent(10);
+		edit_grideleprof->explodable = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->explodable), "Explodable", "If set this object will explode when destroyed", 0, readonly);
+		if (edit_grideleprof->explodable != 0)
+		{
+			ImGui::TextCenter("Explosion Damage");
+			ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
+			ImGui::TextCenter("Explosion Height");
+			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
+		}
+		ImGui::Indent(-10);
 	}
 
 	// Moved Always Active to general properties
@@ -28917,15 +28912,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			}
 		}
 
-		//  Team field
-		#ifdef PHOTONMP
-		#else
-		if (t.tflagteamfield == 1)
-		{
-			// setpropertylist3(t.group, t.controlindex, Str(edit_grideleprof->teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
-		}
-		#endif
-
+		// physics for FPE
 		DisplayFPEPhysics(false, entid, edit_grideleprof);
 
 		//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre

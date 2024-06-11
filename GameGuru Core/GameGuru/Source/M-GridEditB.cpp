@@ -7152,7 +7152,8 @@ void tab_tab_visuals(int iPage, int iMode)
 						ImGui::Text("Occluded Objects: %d", occ);
 
 					extern uint32_t iOccludedTerrainChunks;
-					ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
+					if (bOCDebug)
+						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
 
 					extern uint32_t iRenderedPointShadows;
 					extern uint32_t iRenderedSpotShadows;
@@ -7165,14 +7166,16 @@ void tab_tab_visuals(int iPage, int iMode)
 						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot, iCulledSpotShadows, iRenderedSpotShadows);
 					else
 						ImGui::Text("Occluded Spot Shadows: %d r(%d)", iCulledSpotShadows, iRenderedSpotShadows);
-
-					ImGui::Text("Culled Animations: %d", iCulledAnimations);
+					
+					if (bOCDebug)
+						ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
 				extern float maxApparentSize;
 				ImGui::PushItemWidth(-10);
 				float fASize = t.visuals.ApparentSize * 10000.0f;
-				ImGui::Text("Apparent Size");
+				//ImGui::Text("Apparent Size");
+				tab_tab_Column_text("Apparent Size", fTabColumnWidth);
 				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
 				{
 					maxApparentSize = fASize / 10000.0f;
@@ -7183,7 +7186,8 @@ void tab_tab_visuals(int iPage, int iMode)
 
 
 				extern float fLODMultiplier;
-				ImGui::Text("LOD Multiplier");
+				//ImGui::Text("LOD Multiplier");
+				tab_tab_Column_text("LOD Multiplier", fTabColumnWidth);
 				ImGui::PushItemWidth(-10);
 				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.0f, 15.0f, "%.2f", 1.0f))
 				{

@@ -1701,6 +1701,10 @@ void entity_loop ( void )
 			#endif
 
 			// Entity Prompt Local
+			extern bool bActivatePromptXYOffset;
+			extern int iPromptXOffset;
+			extern int iPromptYOffset;
+
 			if ( t.entityelement[t.e].overprompttimer>0 ) 
 			{
 				if ( ObjectExist(t.tobj) == 1 ) 
@@ -1712,6 +1716,9 @@ void entity_loop ( void )
 							t.entityelement[t.e].overprompttimer=0;
 						else
 							lua_hideperentity3d ( t.e );
+						bActivatePromptXYOffset = false;
+						iPromptXOffset = 0;
+						iPromptYOffset = 0;
 					}
 					else
 					{
@@ -1720,7 +1727,10 @@ void entity_loop ( void )
 							if ( GetInScreen(t.tobj) == 1 ) 
 							{
 								t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
-								pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
+								if(bActivatePromptXYOffset)
+									pastebitmapfont(t.t_s.Get(), (GetScreenX(t.tobj) - t.twidth) + iPromptXOffset, GetScreenY(t.tobj) + iPromptYOffset, 1, 255);
+								else
+									pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
 							}
 						}
 						else

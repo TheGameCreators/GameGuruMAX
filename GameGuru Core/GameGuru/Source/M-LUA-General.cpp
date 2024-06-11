@@ -231,6 +231,12 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 			#endif
 			t.entityelement[t.e].overprompt_s=t.s_s;
 			t.entityelement[t.e].overprompttimer=Timer()+1000;
+			extern bool bActivatePromptXYOffset;
+			extern int iPromptXOffset;
+			extern int iPromptYOffset;
+			bActivatePromptXYOffset = false;
+			iPromptXOffset = 0;
+			iPromptYOffset = 0;
 		}
 	}
 }

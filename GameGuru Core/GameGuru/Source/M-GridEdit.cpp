@@ -17387,6 +17387,10 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
 	t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
 
+	t.gamevisuals.ColorGradingLUT = t.visuals.ColorGradingLUT;
+	t.gamevisuals.bColorGrading = t.visuals.bColorGrading;
+
+
 	// copy game visuals to visuals for use in level play
 	t.visuals = t.gamevisuals;
 

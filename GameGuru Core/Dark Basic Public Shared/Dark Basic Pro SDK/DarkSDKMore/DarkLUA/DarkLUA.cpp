@@ -9929,7 +9929,18 @@ int PromptLocalOffset(lua_State* L)
 }
 
 //PE: USE - SetLutTo("editors\\lut\\sephia.png")
+//PE: USE - string = GetLut()
 void Wicked_Update_Visuals(void* voidvisual);
+int lua_get_lut(lua_State* L)
+{
+	std::string retstr = t.visuals.ColorGradingLUT.Get();
+	if(retstr.length() > 0)
+		lua_pushstring(lua, retstr.c_str());
+	else
+		lua_pushstring(lua, "None");
+	return 1;
+}
+
 int lua_set_lut(lua_State* L)
 {
 	int n = lua_gettop(L);
@@ -12431,6 +12442,7 @@ void addFunctions()
 
 
 	lua_register(lua, "SetLutTo", lua_set_lut);
+	lua_register(lua, "GetLut", lua_get_lut);
 	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);
 	
 }

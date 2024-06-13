@@ -1,7 +1,7 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V35 by Necrym59 and Lee
--- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
--- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
+-- Carry Object V36 by Necrym59 and Lee
+-- DESCRIPTION: A global or local behaviour for object handling.
+-- DESCRIPTION: If using globally. Set AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
 -- DESCRIPTION: [PICKUP_TEXT$="Press Q or Hold LMB to carry, RMB to carry/throw"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,500)]
@@ -62,6 +62,8 @@ local surfacecheck		= {}
 local heightcheck		= {}
 local weightcheck		= {}
 local objlookedat		= {}
+local objectlist 		= {}
+local checktimer			= {}
 
 function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, diagnostics)
 	carry_object[e].pickup_text = pickup_text
@@ -112,6 +114,7 @@ function carry_object_init(e)
 	heightcheck[e] = 0
 	weightcheck[e] = 0
 	objlookedat[e] = 0
+	checktimer[e] = math.huge
 end
 
 function carry_object_main(e)
@@ -119,11 +122,35 @@ function carry_object_main(e)
 	if status[e] == 'init' then
 		if carry_object[e].pickup_weight > 99 then carry_object[e].pickup_weight = 99 end
 		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end	
+		checktimer[e] = g_Time + 500
+		for n = 1, g_EntityElementMax do
+			if n ~= nil and g_Entity[n] ~= nil then
+				if GetEntityWeight(n) < 100 then					
+					table.insert(objectlist,n)
+				end
+			end
+		end
 		status[e] = 'pickup'
 	end
 
 	if status[e] == 'pickup' then
-		objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
+		if g_Time > checktimer[e] then
+			objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
+			if objlookedat[e] > 0 then
+				for a,b in pairs (objectlist) do
+					if g_Entity[b]['obj'] == objlookedat[e] then
+						status[e] = "pickup2"
+						break
+					end
+				end				
+			else
+				objlookedat[e] = 0
+				checktimer[e] = g_Time + 500
+			end			
+		end	
+	end
+
+	if status[e] == 'pickup2' then	
 		if objlookedat[e] > 0 then
 			nearEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,carry_object[e].pickup_range)
 			weightcheck[e] = GetEntityWeight(nearEnt[e])
@@ -175,7 +202,7 @@ function carry_object_main(e)
 			else
 				nearEnt[e] = 0
 				selectobj[e] = 0
-				tEnt[e] = 0				
+				tEnt[e] = 0					
 			end
 			
 			if tEnt[e] ~= 0 then
@@ -216,8 +243,6 @@ function carry_object_main(e)
 					thrown[e] = 1
 				end
 			end
-		else
-			objlookedat[e] = 0
 		end
 	end
 	
@@ -296,6 +321,8 @@ function carry_object_main(e)
 			status[e] = 'pickup'
 			g_carrying = 0
 			g_carryingweight = 0
+			checktimer[e] = g_Time + 500
+			objlookedat[e] = 0
 			if carry_object[e].rearm_weapon == 1 then
 				ChangePlayerWeapon(last_gun[e])
 				SetPlayerWeapons(1)
@@ -329,39 +356,45 @@ function carry_object_main(e)
 					selectobj[e] = 0
 					tEnt[e] = 0	
 					status[e] = 'pickup'
+					checktimer[e] = g_Time + 500
+					objlookedat[e] = 0
 				end
 				if g_Entity[v] == nil then
 					fgain[e] = 0
 					status[e] = 'pickup'
+					checktimer[e] = g_Time + 500
+					objlookedat[e] = 0
 				end	
 			end
 		end
 		if hurtonce[e] == 1 then
 			hurtonce[e] = 0
+			checktimer[e] = g_Time + 500
+			objlookedat[e] = 0
 			status[e] = 'pickup'			
 		end
 	end
 
 	if carry_object[e].diagnostics == 1 then		
-		Text(10,54,3,"Entity #: ")
-		Text(20,54,3,tEnt[e])
-		Text(10,56,3,"Max Weight: ")
-		Text(20,56,3,carry_object[e].pickup_weight)
-		Text(10,58,3,"Weight: ")
-		Text(20,58,3,objweight[tEnt[e]])
-		Text(10,60,3,"Max Size: ")
-		Text(20,60,3,carry_object[e].pickup_size.. " Width/Length")
-		Text(10,62,3,"Width: ")
-		Text(20,62,3,objwidth[tEnt[e]])
-		Text(10,64,3,"Length: ")
-		Text(20,64,3,objlength[tEnt[e]])
-		Text(10,66,3,"Mass: ")
-		Text(20,66,3,objmass[tEnt[e]])
-		Text(10,68,3,"Force: ")
-		Text(20,68,3,objforce[tEnt[e]])
-		Text(10,70,3,"Force Gain: ")
-		Text(20,70,3,fgain[e])
-		if nocarry[e] == 0 then	Text(10,74,3,"Can Carry :   Yes") end
-		if nocarry[e] == 1 then	Text(10,74,3,"Can Carry :   No") end	
+		Text(10,54,1,"Entity #: ")
+		Text(13,54,1,tEnt[e])
+		Text(10,56,1,"Max Weight: ")
+		Text(13,56,1,carry_object[e].pickup_weight)
+		Text(10,58,1,"Weight: ")
+		Text(13,58,1,objweight[tEnt[e]])
+		Text(10,60,1,"Max Size: ")
+		Text(13,60,1,carry_object[e].pickup_size.. " Width/Length")
+		Text(10,62,1,"Width: ")
+		Text(13,62,1,objwidth[tEnt[e]])
+		Text(10,64,1,"Length: ")
+		Text(13,64,1,objlength[tEnt[e]])
+		Text(10,66,1,"Mass: ")
+		Text(13,66,1,objmass[tEnt[e]])
+		Text(10,68,1,"Force: ")
+		Text(13,68,1,objforce[tEnt[e]])
+		Text(10,70,1,"Gain: ")
+		Text(13,70,1,fgain[e])
+		if nocarry[e] == 0 then	Text(10,74,1,"Can Carry :   Yes") end
+		if nocarry[e] == 1 then	Text(10,74,1,"Can Carry :   No") end	
 	end
 end

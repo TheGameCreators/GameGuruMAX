@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V34 by Necrym59 and Lee
+-- Carry Object V35 by Necrym59 and Lee
 -- DESCRIPTION: A gobal behaviour for object handling, place on one in map object only.
 -- DESCRIPTION: Set Object to Physics=ON, AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -60,6 +60,8 @@ local terrain			= {}
 local terraincheck		= {}
 local surfacecheck		= {}
 local heightcheck		= {}
+local weightcheck		= {}
+local objlookedat		= {}
 
 function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, diagnostics)
 	carry_object[e].pickup_text = pickup_text
@@ -108,106 +110,114 @@ function carry_object_init(e)
 	terraincheck[e] = 0
 	surfacecheck[e] = 0
 	heightcheck[e] = 0
+	weightcheck[e] = 0
+	objlookedat[e] = 0
 end
 
 function carry_object_main(e)
-
+	
 	if status[e] == 'init' then
 		if carry_object[e].pickup_weight > 99 then carry_object[e].pickup_weight = 99 end
-		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end
+		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end	
 		status[e] = 'pickup'
 	end
 
 	if status[e] == 'pickup' then
-		nearEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,carry_object[e].pickup_range*3)
-		if nearEnt[e] ~= 0 or nearEnt[e] ~= 1 and nearEnt[e] > 1 then
-			nocarry[e] = 2
-			-- pinpoint select object--
-			selectobj[e]= U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
-			if selectobj[e] ~= 0 then
-				tEnt[e] = P.ObjectToEntity(selectobj[e])
-				allegiance[e] = GetEntityAllegiance(tEnt[e])
-				if allegiance[e] == -1 then
-					local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox(g_Entity[tEnt[e]]['obj'])
-					local sx, sy, sz = GetObjectScales(g_Entity[tEnt[e]]['obj'])
-					local w, h, l = (xmax - xmin) * sx, (ymax - ymin) * sy, (zmax - zmin) * sz
-					local massmod = GetEntityWeight(tEnt[e])/100
-					local weight = GetEntityWeight(tEnt[e])
-					objmass[tEnt[e]] = (w*h*l)/50*massmod
-					objheight[tEnt[e]] = 5
-					objweight[tEnt[e]] = weight
-					objforce[tEnt[e]] = math.min(weight,objmass[tEnt[e]])/1.5
-					objwidth[tEnt[e]] = w
-					objlength[tEnt[e]] = l
-					local pd = GetPlayerDistance(tEnt[e])
-					carrydist[tEnt[e]] = GetPlayerDistance(tEnt[e])
-					nocarry[e] = 0
-					if w > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
-					if l > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
-					if l > carry_object[e].pickup_size and w > carry_object[e].pickup_size then nocarry[e] = 1 end					
-					if objweight[tEnt[e]] == 0 then nocarry[e] = 1 end
-				end
-				if allegiance[e] == -1 then
-					if objweight[tEnt[e]] <= carry_object[e].pickup_weight and nocarry[e] == 0 or nocarry[e] == nil then
-						TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
-						TextCenterOnX(50,95,3,carry_object[e].pickup_text)
+		objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
+		if objlookedat[e] > 0 then
+			nearEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,carry_object[e].pickup_range)
+			weightcheck[e] = GetEntityWeight(nearEnt[e])
+			if nearEnt[e] ~= 0 or nearEnt[e] ~= 1 and nearEnt[e] > 1 and weightcheck[e] < 100 then
+				nocarry[e] = 2			
+				-- pinpoint select object--
+				selectobj[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)			
+				if selectobj[e] ~= 0 then
+					tEnt[e] = P.ObjectToEntity(selectobj[e])
+					allegiance[e] = GetEntityAllegiance(tEnt[e])
+					if allegiance[e] == -1 then
+						local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox(g_Entity[tEnt[e]]['obj'])
+						local sx, sy, sz = GetObjectScales(g_Entity[tEnt[e]]['obj'])
+						local w, h, l = (xmax - xmin) * sx, (ymax - ymin) * sy, (zmax - zmin) * sz
+						local massmod = GetEntityWeight(tEnt[e])/100
+						local weight = GetEntityWeight(tEnt[e])
+						objmass[tEnt[e]] = (w*h*l)/50*massmod
+						objheight[tEnt[e]] = 5
+						objweight[tEnt[e]] = weight
+						objforce[tEnt[e]] = math.min(weight,objmass[tEnt[e]])/1.5
+						objwidth[tEnt[e]] = w
+						objlength[tEnt[e]] = l
+						local pd = GetPlayerDistance(tEnt[e])
+						carrydist[tEnt[e]] = GetPlayerDistance(tEnt[e])
+						nocarry[e] = 0
+						if w > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
+						if l > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
+						if l > carry_object[e].pickup_size and w > carry_object[e].pickup_size then nocarry[e] = 1 end					
+						if objweight[tEnt[e]] == 0 then nocarry[e] = 1 end
 					end
-					if objweight[tEnt[e]] > carry_object[e].pickup_weight or nocarry[e] == 1 then
+					if allegiance[e] == -1 then
+						if objweight[tEnt[e]] <= carry_object[e].pickup_weight and nocarry[e] == 0 or nocarry[e] == nil then
+							TextCenterOnXColor(50-0.01,50,3,"+",255,255,255)
+							TextCenterOnX(50,95,3,carry_object[e].pickup_text)
+						end
+						if objweight[tEnt[e]] > carry_object[e].pickup_weight or nocarry[e] == 1 then
+							tEnt[e] = 0
+						end
+					end
+					if allegiance[e] ~= -1 then					
 						tEnt[e] = 0
-					end
-				end
-				if allegiance[e] ~= -1 then					
-					tEnt[e] = 0
-				end	
-				--end pinpoint select object--
-			end
-			if selectobj[e] == 0 then tEnt[e] = 0 end
-			if nearEnt[e] ~= tEnt[e] then				
+					end	
+					--end pinpoint select object--
+				end			
+				if selectobj[e] == 0 then tEnt[e] = 0 end
+				if nearEnt[e] ~= tEnt[e] then				
+					selectobj[e] = 0
+				end			
+			else
+				nearEnt[e] = 0
 				selectobj[e] = 0
-			end			
+				tEnt[e] = 0				
+			end
+			
+			if tEnt[e] ~= 0 then
+				if g_KeyPressQ == 1 and g_carrying == 0 then
+					kpressed[e] = 1				
+					status[e] = 'carry'
+					g_carrying = 1
+					last_gun[e] = g_PlayerGunName
+					if g_PlayerGunID > 0 then
+						CurrentlyHeldWeaponID = GetPlayerWeaponID()
+						SetPlayerWeapons(0)
+					end
+					PlaySound(e,0)
+				end
+				if g_MouseClick == 1 and g_carrying == 0 then
+					g_KeyPressQ = 1
+					last_gun[e] = g_PlayerGunName
+					if g_PlayerGunID > 0 then
+						CurrentlyHeldWeaponID = GetPlayerWeaponID()
+						SetPlayerWeapons(0)
+					end
+					PlaySound(e,0)
+					status[e] = 'carry'
+					g_carrying = 1
+					PlaySound(e,0)
+				end
+				if g_MouseClick == 2 and g_carrying == 0 then
+					g_KeyPressQ = 1
+					last_gun[e] = g_PlayerGunName
+					if g_PlayerGunID > 0 then
+						CurrentlyHeldWeaponID = GetPlayerWeaponID()
+						SetPlayerWeapons(0)
+					end
+					PlaySound(e,0)
+					status[e] = 'carry'
+					g_carrying = 1
+					PlaySound(e,0)
+					thrown[e] = 1
+				end
+			end
 		else
-			nearEnt[e] = 0
-			selectobj[e] = 0
-			tEnt[e] = 0
-		end
-		
-		if tEnt[e] ~= 0 and GetEntityVisibility(tEnt[e]) == 1 then			
-			if g_KeyPressQ == 1 and g_carrying == 0 then
-				kpressed[e] = 1				
-				status[e] = 'carry'
-				g_carrying = 1
-				last_gun[e] = g_PlayerGunName
-				if g_PlayerGunID > 0 then
-					CurrentlyHeldWeaponID = GetPlayerWeaponID()
-					SetPlayerWeapons(0)
-				end
-				PlaySound(e,0)
-			end
-			if g_MouseClick == 1 and g_carrying == 0 then
-				g_KeyPressQ = 1
-				last_gun[e] = g_PlayerGunName
-				if g_PlayerGunID > 0 then
-					CurrentlyHeldWeaponID = GetPlayerWeaponID()
-					SetPlayerWeapons(0)
-				end
-				PlaySound(e,0)
-				status[e] = 'carry'
-				g_carrying = 1
-				PlaySound(e,0)
-			end
-			if g_MouseClick == 2 and g_carrying == 0 then
-				g_KeyPressQ = 1
-				last_gun[e] = g_PlayerGunName
-				if g_PlayerGunID > 0 then
-					CurrentlyHeldWeaponID = GetPlayerWeaponID()
-					SetPlayerWeapons(0)
-				end
-				PlaySound(e,0)
-				status[e] = 'carry'
-				g_carrying = 1
-				PlaySound(e,0)
-				thrown[e] = 1
-			end
+			objlookedat[e] = 0
 		end
 	end
 	
@@ -306,6 +316,7 @@ function carry_object_main(e)
 			status[e] = 'thrown'
 		end
 	end
+	
 	if status[e] == 'thrown' then
 		for _, v in pairs(U.ClosestEntities(90,math.huge,g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])) do
 			if GetEntityAllegiance(v) >= -1 then
@@ -314,6 +325,9 @@ function carry_object_main(e)
 					SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
 					fgain[e] = 0
 					hurtonce[e] = 1
+					nearEnt[e] = 0
+					selectobj[e] = 0
+					tEnt[e] = 0	
 					status[e] = 'pickup'
 				end
 				if g_Entity[v] == nil then

@@ -138,7 +138,7 @@ function carry_object_main(e)
 			objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
 			if objlookedat[e] > 0 then
 				for a,b in pairs (objectlist) do
-					if g_Entity[b]['obj'] == objlookedat[e] then
+					if g_Entity[b]['obj'] == objlookedat[e] and g_Entity[b]['health'] > 0 then
 						status[e] = "pickup2"
 						break
 					end
@@ -147,7 +147,7 @@ function carry_object_main(e)
 				objlookedat[e] = 0
 				checktimer[e] = g_Time + 500
 			end			
-		end	
+		end
 	end
 
 	if status[e] == 'pickup2' then	
@@ -374,7 +374,7 @@ function carry_object_main(e)
 			status[e] = 'pickup'			
 		end
 	end
-
+	
 	if carry_object[e].diagnostics == 1 then		
 		Text(10,54,1,"Entity #: ")
 		Text(13,54,1,tEnt[e])
@@ -394,7 +394,11 @@ function carry_object_main(e)
 		Text(13,68,1,objforce[tEnt[e]])
 		Text(10,70,1,"Gain: ")
 		Text(13,70,1,fgain[e])
-		if nocarry[e] == 0 then	Text(10,74,1,"Can Carry :   Yes") end
-		if nocarry[e] == 1 then	Text(10,74,1,"Can Carry :   No") end	
+		Text(10,72,1,"Health: ")
+		if tEnt[e] ~= 0 then Text(13,72,1,g_Entity[tEnt[e]]['health']) end
+		
+		Text(10,75,1,"Can Carry:")	
+		if nocarry[e] == 0 then	Text(13,75,1,"Yes") end
+		if nocarry[e] == 1 then	Text(13,75,1,"No") end	
 	end
 end

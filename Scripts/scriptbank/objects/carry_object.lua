@@ -10,6 +10,7 @@
 -- DESCRIPTION: [RELEASE_TEXT$="R or LMB to drop, MMW Up/Down, Z to Rotate"]
 -- DESCRIPTION: [THROW_TEXT$="Shift to add force - Release RMB to throw"]
 -- DESCRIPTION: [REARM_WEAPON!=0]
+-- DESCRIPTION: [THROW_DAMAGE!=0]
 -- DESCRIPTION: [DIAGNOSTICS!=0]
 -- DESCRIPTION: <Sound0> when picking up object.
 
@@ -63,9 +64,10 @@ local heightcheck		= {}
 local weightcheck		= {}
 local objlookedat		= {}
 local objectlist 		= {}
-local checktimer			= {}
+local checktimer		= {}
+local throwtimer		= {}
 
-function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, diagnostics)
+function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, throw_damage, diagnostics)
 	carry_object[e].pickup_text = pickup_text
 	carry_object[e].pickup_range = pickup_range
 	carry_object[e].pickup_weight = max_pickup_weight or 99
@@ -73,6 +75,7 @@ function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight
 	carry_object[e].release_text = release_text
 	carry_object[e].throw_text = throw_text	
 	carry_object[e].rearm_weapon = rearm_weapon
+	carry_object[e].throw_damage = throw_damage
 	carry_object[e].diagnostics = diagnostics
 end
 
@@ -85,6 +88,7 @@ function carry_object_init(e)
 	carry_object[e].release_text = "Use R or LMB to drop"
 	carry_object[e].throw_text = "Release RMB to throw"	
 	carry_object[e].rearm_weapon = 0
+	carry_object[e].throw_damage = 0
 	carry_object[e].diagnostics = 0
 	carry_mode[e] = 0
 	new_y[e] = 0
@@ -115,6 +119,7 @@ function carry_object_init(e)
 	weightcheck[e] = 0
 	objlookedat[e] = 0
 	checktimer[e] = math.huge
+	throwtimer[e] = math.huge
 end
 
 function carry_object_main(e)
@@ -123,6 +128,7 @@ function carry_object_main(e)
 		if carry_object[e].pickup_weight > 99 then carry_object[e].pickup_weight = 99 end
 		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end	
 		checktimer[e] = g_Time + 500
+		throwtimer[e] = g_Time + 500
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if GetEntityWeight(n) < 100 then					
@@ -340,16 +346,22 @@ function carry_object_main(e)
 			thrown[e] = 2
 			g_carrying = 0
 			g_carryingweight = 0
+			throwtimer[e] = g_Time + 500
 			status[e] = 'thrown'
 		end
 	end
 	
 	if status[e] == 'thrown' then
-		for _, v in pairs(U.ClosestEntities(90,math.huge,g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])) do
-			if GetEntityAllegiance(v) >= -1 then
+		for _, v in pairs(U.ClosestEntities(80,math.huge,g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])) do
+			if GetEntityAllegiance(v) > -1 then
 				if g_Entity[v]['health'] > 0 then
 					SetEntityHealth(v,g_Entity[v]['health']-(objforce[tEnt[e]]))
-					SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
+					if carry_object[e].throw_damage == 1 then
+						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
+					else
+						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-0)
+					end	
+					throwtimer[e] = g_Time + 500
 					fgain[e] = 0
 					hurtonce[e] = 1
 					nearEnt[e] = 0
@@ -358,20 +370,26 @@ function carry_object_main(e)
 					status[e] = 'pickup'
 					checktimer[e] = g_Time + 500
 					objlookedat[e] = 0
-				end
-				if g_Entity[v] == nil then
+				end	
+			end
+			if g_Time > throwtimer[e] and GetEntityAllegiance(v) < 0 then
+				if g_Entity[v]['health'] > 0 then
+					if carry_object[e].throw_damage == 1 then						
+						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
+					else
+						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-0)
+					end	
+					throwtimer[e] = g_Time + 500
 					fgain[e] = 0
+					hurtonce[e] = 0
+					nearEnt[e] = 0
+					selectobj[e] = 0
+					tEnt[e] = 0						
 					status[e] = 'pickup'
 					checktimer[e] = g_Time + 500
 					objlookedat[e] = 0
 				end	
 			end
-		end
-		if hurtonce[e] == 1 then
-			hurtonce[e] = 0
-			checktimer[e] = g_Time + 500
-			objlookedat[e] = 0
-			status[e] = 'pickup'			
 		end
 	end
 	

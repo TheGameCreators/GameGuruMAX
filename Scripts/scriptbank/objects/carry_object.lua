@@ -73,7 +73,7 @@ function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight
 	carry_object[e].pickup_weight = max_pickup_weight or 99
 	carry_object[e].pickup_size = max_pickup_size
 	carry_object[e].release_text = release_text
-	carry_object[e].throw_text = throw_text	
+	carry_object[e].throw_text = throw_text
 	carry_object[e].rearm_weapon = rearm_weapon
 	carry_object[e].throw_damage = throw_damage
 	carry_object[e].diagnostics = diagnostics
@@ -86,7 +86,7 @@ function carry_object_init(e)
 	carry_object[e].pickup_weight = 99
 	carry_object[e].pickup_size = 40
 	carry_object[e].release_text = "Use R or LMB to drop"
-	carry_object[e].throw_text = "Release RMB to throw"	
+	carry_object[e].throw_text = "Release RMB to throw"
 	carry_object[e].rearm_weapon = 0
 	carry_object[e].throw_damage = 0
 	carry_object[e].diagnostics = 0
@@ -123,15 +123,15 @@ function carry_object_init(e)
 end
 
 function carry_object_main(e)
-	
+
 	if status[e] == 'init' then
 		if carry_object[e].pickup_weight > 99 then carry_object[e].pickup_weight = 99 end
-		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end	
+		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end
 		checktimer[e] = g_Time + 500
 		throwtimer[e] = g_Time + 500
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
-				if GetEntityWeight(n) < 100 then					
+				if GetEntityWeight(n) < 100 then
 					table.insert(objectlist,n)
 				end
 			end
@@ -148,22 +148,25 @@ function carry_object_main(e)
 						status[e] = "pickup2"
 						break
 					end
-				end				
+				end
 			else
+				nearEnt[e] = 0
+				selectobj[e] = 0
+				tEnt[e] = 0
 				objlookedat[e] = 0
 				checktimer[e] = g_Time + 500
-			end			
+			end
 		end
 	end
 
-	if status[e] == 'pickup2' then	
+	if status[e] == 'pickup2' then
 		if objlookedat[e] > 0 then
 			nearEnt[e] = U.ClosestEntToPos(g_PlayerPosX, g_PlayerPosZ,carry_object[e].pickup_range)
 			weightcheck[e] = GetEntityWeight(nearEnt[e])
 			if nearEnt[e] ~= 0 or nearEnt[e] ~= 1 and nearEnt[e] > 1 and weightcheck[e] < 100 then
-				nocarry[e] = 2			
+				nocarry[e] = 2
 				-- pinpoint select object--
-				selectobj[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)			
+				selectobj[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
 				if selectobj[e] ~= 0 then
 					tEnt[e] = P.ObjectToEntity(selectobj[e])
 					allegiance[e] = GetEntityAllegiance(tEnt[e])
@@ -184,7 +187,7 @@ function carry_object_main(e)
 						nocarry[e] = 0
 						if w > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
 						if l > carrydist[tEnt[e]] then carrydist[tEnt[e]] = carrydist[tEnt[e]] + 15 end
-						if l > carry_object[e].pickup_size and w > carry_object[e].pickup_size then nocarry[e] = 1 end					
+						if l > carry_object[e].pickup_size and w > carry_object[e].pickup_size then nocarry[e] = 1 end
 						if objweight[tEnt[e]] == 0 then nocarry[e] = 1 end
 					end
 					if allegiance[e] == -1 then
@@ -196,24 +199,24 @@ function carry_object_main(e)
 							tEnt[e] = 0
 						end
 					end
-					if allegiance[e] ~= -1 then					
+					if allegiance[e] ~= -1 then
 						tEnt[e] = 0
-					end	
+					end
 					--end pinpoint select object--
-				end			
+				end
 				if selectobj[e] == 0 then tEnt[e] = 0 end
-				if nearEnt[e] ~= tEnt[e] then				
+				if nearEnt[e] ~= tEnt[e] then
 					selectobj[e] = 0
-				end			
+				end
 			else
 				nearEnt[e] = 0
 				selectobj[e] = 0
-				tEnt[e] = 0					
+				tEnt[e] = 0
 			end
-			
+
 			if tEnt[e] ~= 0 then
 				if g_KeyPressQ == 1 and g_carrying == 0 then
-					kpressed[e] = 1				
+					kpressed[e] = 1
 					status[e] = 'carry'
 					g_carrying = 1
 					last_gun[e] = g_PlayerGunName
@@ -251,7 +254,7 @@ function carry_object_main(e)
 			end
 		end
 	end
-	
+
 	if status[e] == 'carry' then
 		g_carryingweight = GetEntityWeight(tEnt[e])
 		if doonce[e] == 0 then
@@ -263,31 +266,31 @@ function carry_object_main(e)
 			doonce[e] = 1
 			GravityOff(tEnt[e])
 			CollisionOff(tEnt[e])
-		end		
+		end
 		if g_MouseWheel < 0 then
 			SetPlayerWeapons(0)
-			objheight[tEnt[e]] = objheight[tEnt[e]] - 1			
-			if objheight[tEnt[e]] < -10 then objheight[tEnt[e]] = -10 end			
+			objheight[tEnt[e]] = objheight[tEnt[e]] - 1
+			if objheight[tEnt[e]] < -10 then objheight[tEnt[e]] = -10 end
 		elseif g_MouseWheel > 0 then
 			SetPlayerWeapons(0)
 			objheight[tEnt[e]] = objheight[tEnt[e]] + 1
 			if objheight[tEnt[e]] > 25 then objheight[tEnt[e]] = 25 end
 		end
-		new_y[tEnt[e]] = math.rad(g_PlayerAngY)		
+		new_y[tEnt[e]] = math.rad(g_PlayerAngY)
 		prop_x[tEnt[e]] = g_PlayerPosX + (math.sin(new_y[tEnt[e]]) * carrydist[tEnt[e]])
 		prop_y[tEnt[e]] = g_PlayerPosY - math.sin(math.rad(g_PlayerAngX))* carrydist[tEnt[e]]
 		prop_z[tEnt[e]] = g_PlayerPosZ + (math.cos(new_y[tEnt[e]]) * carrydist[tEnt[e]])
 		if g_InKey == "z" or g_InKey == "Z" then SetRotation(tEnt[e],0,g_Entity[tEnt[e]]['angley']+1,g_PlayerAngZ) end
-		
+
 		local px, py, pz = prop_x[tEnt[e]], prop_y[tEnt[e]], prop_z[tEnt[e]]
 		local rayX, rayY, rayZ = 5,0,10
 		local paX, paY, paZ = math.rad(g_PlayerAngX), math.rad(g_PlayerAngY), math.rad(g_PlayerAngZ)
-		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)		
+		rayX, rayY, rayZ = U.Rotate3D(rayX, rayY, rayZ, paX, paY, paZ)
 		colobj[tEnt[e]]=IntersectAll(px,py,pz, px+rayX, py, pz+rayZ,g_Entity[tEnt[e]]['obj']) --avoids pushing carryobj through wall!
 		--colobj[tEnt[e]]=IntersectAll(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ, px+rayX, py, pz+rayZ,g_Entity[tEnt[e]]['obj'])
 		if colobj[tEnt[e]] > 0 then
 			CollisionOn(tEnt[e])
-			ForcePlayer(g_PlayerAngY + 180,0.3)			
+			ForcePlayer(g_PlayerAngY + 180,0.3)
 		end
 		PositionObject(g_Entity[tEnt[e]]['obj'],prop_x[tEnt[e]],prop_y[tEnt[e]]+objheight[tEnt[e]],prop_z[tEnt[e]])
 		RotateObject(g_Entity[tEnt[e]]['obj'],0,g_Entity[tEnt[e]]['angley'],g_PlayerAngZ)
@@ -301,29 +304,29 @@ function carry_object_main(e)
 		else
 			TextCenterOnX(50,95,3,carry_object[e].release_text)
 		end
-		
+
 		if ( GetGamePlayerStateCamAngleX()<-35) then SetGamePlayerStateCamAngleX(-35) end
-		if ( GetGamePlayerStateCamAngleX()>35) then SetGamePlayerStateCamAngleX(35) end			
-				
+		if ( GetGamePlayerStateCamAngleX()>35) then SetGamePlayerStateCamAngleX(35) end
+
 		if g_MouseClick == 2 and g_carrying == 1 then thrown[e] = 1 end
 		if g_KeyPressR == 1 or g_MouseClick == 1 or g_MouseClick == 2 then kpressed[e] = 0 end
-		if kpressed[e] == 0 and g_MouseClick == 0 and colobj[e] == 0 then			
+		if kpressed[e] == 0 and g_MouseClick == 0 and colobj[e] == 0 then
 			SetEntityZDepthMode(tEnt[e],1)
 			terrain[e] = GetTerrainHeight(g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])
-			surface[e] = GetSurfaceHeight(g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['y'],g_Entity[tEnt[e]]['z'])	
+			surface[e] = GetSurfaceHeight(g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['y'],g_Entity[tEnt[e]]['z'])
 			terraincheck[e] = (g_Entity[tEnt[e]]['y'] - terrain[e])
-			surfacecheck[e] = (g_Entity[tEnt[e]]['y'] - surface[e])					
+			surfacecheck[e] = (g_Entity[tEnt[e]]['y'] - surface[e])
 			if surfacecheck[e] < terraincheck[e] then
 				heightcheck[e] = surfacecheck[e]
 			else
 				heightcheck[e] = terraincheck[e]
-			end	
+			end
 			if prop_y[tEnt[e]] < heightcheck[e] then prop_y[tEnt[e]] = heightcheck[e] end
 			CollisionOff(tEnt[e])
 			PositionObject(g_Entity[tEnt[e]]['obj'],prop_x[tEnt[e]],prop_y[tEnt[e]],prop_z[tEnt[e]])
-			CollisionOn(tEnt[e])			
+			CollisionOn(tEnt[e])
 			objheight[tEnt[e]] = 5
-			doonce[e] = 0			
+			doonce[e] = 0
 			status[e] = 'pickup'
 			g_carrying = 0
 			g_carryingweight = 0
@@ -335,14 +338,14 @@ function carry_object_main(e)
 				ChangePlayerWeaponID(CurrentlyHeldWeaponID)
 			else
 				SetPlayerWeapons(1)
-			end			
+			end
 		end
 		if thrown[e] == 1 and g_MouseClick == 0 and g_KeyPressQ == 0 and GetEntityVisibility(tEnt[e]) == 1 then
 			SetEntityZDepthMode(tEnt[e],1)
 			local paX, paY, paZ = math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ),math.rad( g_PlayerAngZ )
 			local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
 			objforce[tEnt[e]] = objforce[tEnt[e]] + (fgain[e]*10)
-			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )			
+			PushObject(g_Entity[tEnt[e]]['obj'],vx*objforce[tEnt[e]], vy*objforce[tEnt[e]], vz*objforce[tEnt[e]], math.random()/100, math.random()/100, math.random()/100 )
 			thrown[e] = 2
 			g_carrying = 0
 			g_carryingweight = 0
@@ -350,7 +353,7 @@ function carry_object_main(e)
 			status[e] = 'thrown'
 		end
 	end
-	
+
 	if status[e] == 'thrown' then
 		for _, v in pairs(U.ClosestEntities(80,math.huge,g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])) do
 			if GetEntityAllegiance(v) > -1 then
@@ -360,63 +363,65 @@ function carry_object_main(e)
 						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
 					else
 						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-0)
-					end	
+					end
 					throwtimer[e] = g_Time + 500
 					fgain[e] = 0
 					hurtonce[e] = 1
 					nearEnt[e] = 0
 					selectobj[e] = 0
-					tEnt[e] = 0	
+					tEnt[e] = 0
 					status[e] = 'pickup'
 					checktimer[e] = g_Time + 500
 					objlookedat[e] = 0
-				end	
+				end
 			end
 			if g_Time > throwtimer[e] and GetEntityAllegiance(v) < 0 then
 				if g_Entity[v]['health'] > 0 then
-					if carry_object[e].throw_damage == 1 then						
+					if carry_object[e].throw_damage == 1 then
 						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-(objforce[tEnt[e]]))
 					else
 						SetEntityHealth(tEnt[e],g_Entity[tEnt[e]]['health']-0)
-					end	
+					end
 					throwtimer[e] = g_Time + 500
 					fgain[e] = 0
 					hurtonce[e] = 0
 					nearEnt[e] = 0
 					selectobj[e] = 0
-					tEnt[e] = 0						
+					tEnt[e] = 0
 					status[e] = 'pickup'
 					checktimer[e] = g_Time + 500
 					objlookedat[e] = 0
-				end	
+				end
 			end
 		end
 	end
-	
-	if carry_object[e].diagnostics == 1 then		
-		Text(10,54,1,"Entity #: ")
-		Text(13,54,1,tEnt[e])
-		Text(10,56,1,"Max Weight: ")
-		Text(13,56,1,carry_object[e].pickup_weight)
-		Text(10,58,1,"Weight: ")
-		Text(13,58,1,objweight[tEnt[e]])
-		Text(10,60,1,"Max Size: ")
-		Text(13,60,1,carry_object[e].pickup_size.. " Width/Length")
-		Text(10,62,1,"Width: ")
-		Text(13,62,1,objwidth[tEnt[e]])
-		Text(10,64,1,"Length: ")
-		Text(13,64,1,objlength[tEnt[e]])
-		Text(10,66,1,"Mass: ")
-		Text(13,66,1,objmass[tEnt[e]])
-		Text(10,68,1,"Force: ")
-		Text(13,68,1,objforce[tEnt[e]])
-		Text(10,70,1,"Gain: ")
-		Text(13,70,1,fgain[e])
-		Text(10,72,1,"Health: ")
-		if tEnt[e] ~= 0 then Text(13,72,1,g_Entity[tEnt[e]]['health']) end
-		
-		Text(10,75,1,"Can Carry:")	
-		if nocarry[e] == 0 then	Text(13,75,1,"Yes") end
-		if nocarry[e] == 1 then	Text(13,75,1,"No") end	
+
+	if carry_object[e].diagnostics == 1 then
+		if tEnt[e] > 0 then
+			Text(10,54,1,"Entity #: ")
+			Text(13,54,1,tEnt[e])
+			Text(10,56,1,"Max Weight: ")
+			Text(13,56,1,carry_object[e].pickup_weight)
+			Text(10,58,1,"Weight: ")
+			Text(13,58,1,objweight[tEnt[e]])
+			Text(10,60,1,"Max Size: ")
+			Text(13,60,1,carry_object[e].pickup_size.. " Width/Length")
+			Text(10,62,1,"Width: ")
+			Text(13,62,1,objwidth[tEnt[e]])
+			Text(10,64,1,"Length: ")
+			Text(13,64,1,objlength[tEnt[e]])
+			Text(10,66,1,"Mass: ")
+			Text(13,66,1,objmass[tEnt[e]])
+			Text(10,68,1,"Force: ")
+			Text(13,68,1,objforce[tEnt[e]])
+			Text(10,70,1,"Gain: ")
+			Text(13,70,1,fgain[e])
+			Text(10,72,1,"Health: ")
+			if tEnt[e] ~= 0 then Text(13,72,1,g_Entity[tEnt[e]]['health']) end
+
+			Text(10,75,1,"Can Carry:")
+			if nocarry[e] == 0 then	Text(13,75,1,"Yes") end
+			if nocarry[e] == 1 then	Text(13,75,1,"No") end
+		end
 	end
 end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v9 by Necrym59 and smallg
+-- Speeder v10 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -59,6 +59,7 @@ local keypause = {}
 local radioswitch = {}
 local oldy = {}
 local tEnt = {}
+local underwater = {}
 
 function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text)
 	speeder[e].prompt_text = prompt_text
@@ -111,6 +112,7 @@ function speeder_init(e)
 	vpressed[e] = 0
 	heightdiff[e] = 1
 	keypause[e] = math.huge
+	underwater[e] = 0
 	radioswitch[e] = "Off"
 	oldy[e] = 0 
 	tEnt[e] = 0
@@ -119,6 +121,7 @@ end
 function speeder_main(e)
 	if status[e] == "init" then
 		keypause[e] = g_Time + 1000
+		sinktime[e] = g_Time + 2000
 		shealth[e] = speeder[e].speeder_health
 		status[e] = "wait"
 	end
@@ -277,6 +280,17 @@ function CollisionCheck(e)
 			speed[e] = -2
 		end
 	end
+	if GetGamePlayerControlInWaterState()== 2 or GetGamePlayerControlInWaterState()== 3 then
+		if underwater[e] < 200 then
+			underwater[e] = underwater[e] + 1
+			if underwater[e] >= 200 then underwater[e] = 200 end
+		end
+		if underwater[e] == 200 then
+			speed[e] = 0
+			shealth[e] = 0
+			SetPlayerHealth(old_health[e]-3)
+		end	
+	end
 	if shealth[e] <= 0 then
 		speed[e] = -1
 		StopSound(e,0)
@@ -301,7 +315,7 @@ function CheckForHittingNPC(e)
 	end 
 end
 
-function GetOutspeeder(e)
+function GetOutspeeder(e)			
 	if shealth[e] <= 0 then		
 		PromptLocal(e," Vehicle inoperative")
 		g_KeyPressE = 1		
@@ -316,6 +330,7 @@ function GetOutspeeder(e)
 		SetFreezePosition(pos_x[e],exitheight+35,pos_z[e])
 		TransportToFreezePositionOnly()
 		CollisionOn(e)
+		GravityOn(e)
 		SetPlayerHealth(old_health[e])
 		status[e] = "wait" 
 	end 

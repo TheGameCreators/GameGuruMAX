@@ -9,7 +9,7 @@
 -- DESCRIPTION: [PLAYER_ANGLE_ADJUSTMENT=0(0,360)]
 -- DESCRIPTION: [#MAXIMUM_SPEED=30.00(1.00,100.00)]
 -- DESCRIPTION: [#MINIMUM_SPEED=-20.00(-100.00,100.00)]
--- DESCRIPTION: [#TURN_SPEED=0.05(0.00,50.00)]
+-- DESCRIPTION: [#TURN_SPEED=5.00(0.00,50.00)]
 -- DESCRIPTION: [#ACCELERATION=3.0(0.0,10.0)]
 -- DESCRIPTION: [#DECCELERATION=0.15(0.0,10.0)]
 -- DESCRIPTION: [IMPACT_RANGE=150(1,500)]
@@ -89,7 +89,7 @@ function speeder_init(e)
 	speeder[e].player_angle_adjustment = 0
 	speeder[e].maximum_speed = 150
 	speeder[e].minimum_speed = -5
-	speeder[e].turn_speed = 1
+	speeder[e].turn_speed = 5.00
 	speeder[e].acceleration = 3 
 	speeder[e].decceleration = 0.15
 	speeder[e].impact_range = 150
@@ -230,9 +230,9 @@ function Controlspeeder(e)
 			end 
 		end 
 		if g_KeyPressA == 1 then 
-			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']-speeder[e].turn_speed,g_Entity[e]['anglez'])
+			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']-speeder[e].turn_speed/10,g_Entity[e]['anglez'])
 		elseif g_KeyPressD == 1 then 
-			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].turn_speed,g_Entity[e]['anglez'])
+			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].turn_speed/10,g_Entity[e]['anglez'])
 		end
 		if g_KeyPressSPACE == 1 then
 			if speed[e] > 0 then 
@@ -244,7 +244,7 @@ function Controlspeeder(e)
 		end
 		if g_Time > keypause[e] and radioswitch[e] == "Off" then
 			if GetInKey() == "/" or GetInKey() == "?" then
-				LoopSound(e,3)				
+				LoopNon3DSound(e,3)
 				radioswitch[e] = "On"
 				keypause[e] = g_Time + 1000
 			end	

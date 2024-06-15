@@ -121,7 +121,6 @@ end
 function speeder_main(e)
 	if status[e] == "init" then
 		keypause[e] = g_Time + 1000
-		sinktime[e] = g_Time + 2000
 		shealth[e] = speeder[e].speeder_health
 		status[e] = "wait"
 	end

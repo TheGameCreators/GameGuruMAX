@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v10 by Necrym59 and smallg
+-- Speeder v11 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -253,7 +253,7 @@ function Controlspeeder(e)
 		end
 		if g_Time > keypause[e] and radioswitch[e] == "On" then
 			if GetInKey() == "/" or GetInKey() == "?" then
-				StopSound(e,3)				
+				StopSound(e,3)
 				radioswitch[e] = "Off"
 				keypause[e] = g_Time + 1000
 			end	
@@ -330,6 +330,8 @@ function GetOutspeeder(e)
 		TransportToFreezePositionOnly()
 		CollisionOn(e)
 		GravityOn(e)
+		StopSound(e,3)
+		radioswitch[e] = "Off"		
 		SetPlayerHealth(old_health[e])
 		status[e] = "wait" 
 	end 

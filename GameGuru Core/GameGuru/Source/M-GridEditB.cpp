@@ -7150,7 +7150,8 @@ void tab_tab_visuals(int iPage, int iMode)
 						ImGui::Text("Occluded Objects: %d", occ);
 
 					extern uint32_t iOccludedTerrainChunks;
-					ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
+					if (bOCDebug)
+						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
 
 					extern uint32_t iRenderedPointShadows;
 					extern uint32_t iRenderedSpotShadows;
@@ -7163,14 +7164,16 @@ void tab_tab_visuals(int iPage, int iMode)
 						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot, iCulledSpotShadows, iRenderedSpotShadows);
 					else
 						ImGui::Text("Occluded Spot Shadows: %d r(%d)", iCulledSpotShadows, iRenderedSpotShadows);
-
-					ImGui::Text("Culled Animations: %d", iCulledAnimations);
+					
+					if (bOCDebug)
+						ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
 				extern float maxApparentSize;
 				ImGui::PushItemWidth(-10);
 				float fASize = t.visuals.ApparentSize * 10000.0f;
-				ImGui::Text("Apparent Size");
+				//ImGui::Text("Apparent Size");
+				tab_tab_Column_text("Apparent Size", fTabColumnWidth);
 				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
 				{
 					maxApparentSize = fASize / 10000.0f;
@@ -7181,7 +7184,8 @@ void tab_tab_visuals(int iPage, int iMode)
 
 
 				extern float fLODMultiplier;
-				ImGui::Text("LOD Multiplier");
+				//ImGui::Text("LOD Multiplier");
+				tab_tab_Column_text("LOD Multiplier", fTabColumnWidth);
 				ImGui::PushItemWidth(-10);
 				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.0f, 15.0f, "%.2f", 1.0f))
 				{
@@ -17109,6 +17113,28 @@ void process_entity_library_v2(void)
 					ImGui::PopItemWidth();
 					ImGui::Indent(-10);
 				}
+
+				ImGui::Indent(10);
+				if (ImGui::StyleButton("LOD Generator Lite", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
+				{
+					//PE: Startup Lod Generator Lite.
+					std::string LODFile = "entitybank\\";
+					LODFile = LODFile + t.entitybank_s[BackBufferEntityID].Get();
+					char pDestinationFile[10240];
+					strcpy(pDestinationFile, LODFile.c_str());
+					GG_GetRealPath(pDestinationFile, 0);
+					char pOldDir[MAX_PATH];
+					strcpy(pOldDir, GetDir());
+					SetDir("..");
+					SetDir("Tools\\");
+					SetDir("Lod Generator Lite");
+					std::string params = "\"";
+					params = params + pDestinationFile;
+					params = params + "\"";
+					HINSTANCE hinstance = ShellExecuteA(NULL, "open", "LODGeneratorLite.exe", params.c_str(), "", SW_SHOWDEFAULT);
+					SetDir(pOldDir);
+				}
+				ImGui::Indent(-10);
 
 				if (ObjectExist(BackBufferObjectID) && GetNumberOfFrames(BackBufferObjectID) > 0 && t.entityprofile[BackBufferEntityID].animmax > 0)
 				{

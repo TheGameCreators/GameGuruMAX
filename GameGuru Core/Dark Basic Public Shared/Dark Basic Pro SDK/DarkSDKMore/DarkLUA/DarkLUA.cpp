@@ -9906,6 +9906,78 @@ int GetExposure(lua_State* L)
 	return 1;
 }
 
+
+bool bActivatePromptXYOffset = false;
+int iPromptXOffset = 0;
+int iPromptYOffset = 0;
+int PromptLocalOffset(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int storee = t.e;
+	cstr stores = t.s_s;
+	if (n == 2)
+	{
+		iPromptXOffset = lua_tonumber(L, 1);
+		iPromptYOffset = lua_tonumber(L, 2);
+		bActivatePromptXYOffset = true;
+	}
+	t.e = storee;
+	t.s_s = stores;
+	return 0;
+
+}
+
+//PE: USE - SetLutTo("editors\\lut\\sephia.png")
+//PE: USE - string = GetLut()
+void Wicked_Update_Visuals(void* voidvisual);
+int lua_get_lut(lua_State* L)
+{
+	std::string retstr = t.visuals.ColorGradingLUT.Get();
+	if(retstr.length() > 0)
+		lua_pushstring(lua, retstr.c_str());
+	else
+		lua_pushstring(lua, "None");
+	return 1;
+}
+
+int lua_set_lut(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int storee = t.e;
+	cstr stores = t.s_s;
+	if (n == 1)
+	{
+		const char* pStrPtr = lua_tostring(L, 1);
+		if (pStrPtr)
+			t.s_s = pStrPtr;
+		else
+			t.s_s = "";
+	}
+	//PE: Keep away from lutImages_s, so we dont need to load anything.
+	//PE: Only use gamevisuals so when we go back it restore the original settings.
+	if (t.s_s.Len() > 0)
+	{
+		if (FileExist(t.s_s.Get()))
+		{
+			t.gamevisuals.ColorGradingLUT = t.s_s;
+			t.gamevisuals.bColorGrading = true;
+		}
+		else
+		{
+			//PE: None.
+			t.gamevisuals.ColorGradingLUT = "None";
+			t.gamevisuals.bColorGrading = false;
+		}
+		Wicked_Update_Visuals(&t.gamevisuals);
+	}
+
+	t.e = storee;
+	t.s_s = stores;
+	return 0;
+}
+
 // 260 LUA Internal Commands (was in lua_loop_finish)
 enum eInternalCommandNames
 {
@@ -12367,6 +12439,12 @@ void addFunctions()
 	// Lighting
 	lua_register(lua, "SetExposure", SetExposure);
 	lua_register(lua, "GetExposure", GetExposure);
+
+
+	lua_register(lua, "SetLutTo", lua_set_lut);
+	lua_register(lua, "GetLut", lua_get_lut);
+	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);
+	
 }
 
  /*

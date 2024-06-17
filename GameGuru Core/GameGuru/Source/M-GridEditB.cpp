@@ -17125,6 +17125,28 @@ void process_entity_library_v2(void)
 					ImGui::Indent(-10);
 				}
 
+				ImGui::Indent(10);
+				if (ImGui::StyleButton("LOD Generator Lite", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
+				{
+					//PE: Startup Lod Generator Lite.
+					std::string LODFile = "entitybank\\";
+					LODFile = LODFile + t.entitybank_s[BackBufferEntityID].Get();
+					char pDestinationFile[10240];
+					strcpy(pDestinationFile, LODFile.c_str());
+					GG_GetRealPath(pDestinationFile, 0);
+					char pOldDir[MAX_PATH];
+					strcpy(pOldDir, GetDir());
+					SetDir("..");
+					SetDir("Tools\\");
+					SetDir("Lod Generator Lite");
+					std::string params = "\"";
+					params = params + pDestinationFile;
+					params = params + "\"";
+					HINSTANCE hinstance = ShellExecuteA(NULL, "open", "LODGeneratorLite.exe", params.c_str(), "", SW_SHOWDEFAULT);
+					SetDir(pOldDir);
+				}
+				ImGui::Indent(-10);
+
 				if (ObjectExist(BackBufferObjectID) && GetNumberOfFrames(BackBufferObjectID) > 0 && t.entityprofile[BackBufferEntityID].animmax > 0)
 				{
 					//PE: Make sure we set anim speed. we only use parent object in this system.

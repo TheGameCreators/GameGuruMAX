@@ -28664,8 +28664,8 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 
 		t.group = 1;
 		//if (ImGui::StyleCollapsingHeader(t.strarr_s[415].Get(), ImGuiTreeNodeFlags_DefaultOpen))
-		if (t.entityprofile[entid].lives == 0)
-			ImGui::TextCenter(t.strarr_s[415].Get());
+		//if (t.entityprofile[entid].lives == 0)
+		ImGui::TextCenter(t.strarr_s[415].Get());
 		{
 			//  Basic AI
 			if (t.tflagai == 1)
@@ -28696,7 +28696,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			}
 			
 			// Has Weapon
-			if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2 && edit_grideleprof->lives == 0)
+			if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2 )//&& edit_grideleprof->lives == 0)
 			{
 				edit_grideleprof->hasweapon_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->hasweapon_s.Get(), t.strarr_s[419].Get(), t.strarr_s[209].Get(), 1,readonly, true, true, true, 0);
 			}
@@ -28748,7 +28748,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 					edit_grideleprof->rateoffire = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->rateoffire), t.strarr_s[431].Get(), t.strarr_s[221].Get(),readonly));
 				}
 			}
-			if (t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 && edit_grideleprof->lives == 0)
+			if (t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 )//&& edit_grideleprof->lives == 0)
 			{
 				edit_grideleprof->quantity = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->quantity), t.strarr_s[432].Get(), t.strarr_s[222].Get(),readonly));
 			}
@@ -28822,18 +28822,35 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			t.group = 1;
 			ImGui::TextCenter(t.strarr_s[451].Get());
 			{
-				#ifdef PRODUCTV3
-				#else
-				//if (t.tflaglives == 1)
-				//{
-				//	edit_grideleprof->lives = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->lives), t.strarr_s[452].Get(), t.strarr_s[242].Get(),readonly));
-				//}
+				if (t.tflaglives == 1)
+				{
+					// see if this level has any checkpoints to stave off lives logic
+					bool bUsingCheckpoint = false;
+					for ( int e = 1; e <= g.entityelementlist; e++)
+					{
+						int entid = t.entityelement[e].bankindex;
+						if (t.entityprofile[entid].ismarker == 6)
+						{
+							bUsingCheckpoint = true;
+							break;
+						}
+					}
+					if (bUsingCheckpoint==true)
+					{
+						ImGui::TextCenter("Lives");
+						ImGui::TextCenter("NOTE: Checkpoint detected, infinite retries");
+						edit_grideleprof->lives = 0;
+					}
+					else
+					{
+						edit_grideleprof->lives = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->lives), t.strarr_s[452].Get(), "Specifies how many lives the player starts with. Enter zero for infinite lives.", readonly));
+					}
+				}
 				if (t.tflagvis == 1 || t.tflagstats == 1)
 				{
 					if (t.tflaglives == 1)
 					{
-						if(edit_grideleprof->lives == 0) // Dont display for player start marker, already there.
-							edit_grideleprof->strength = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->strength), t.strarr_s[453].Get(), t.strarr_s[243].Get(),readonly));
+						edit_grideleprof->strength = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->strength), t.strarr_s[453].Get(), t.strarr_s[243].Get(),readonly));
 					}
 					else
 					{
@@ -28848,7 +28865,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						{
 							edit_grideleprof->isviolent = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0,readonly);
 						}
-						if (t.tflagnotionofhealth == 1 && edit_grideleprof->lives == 0)
+						if (t.tflagnotionofhealth == 1 )//&& edit_grideleprof->lives == 0)
 						{
 							t.playercontrol.regenrate = atol(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.regenrate), "Regeneration Rate", "Sets the increase value at which the players health will restore",readonly));
 							t.playercontrol.regenspeed = atol(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.regenspeed), "Regeneration Speed", "Sets the speed in milliseconds at which the players health will regenerate",readonly));
@@ -28857,8 +28874,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						edit_grideleprof->usespotlighting = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->usespotlighting), "Flashlight Disabled", "Sets whether the flashlight is disabled for the player", 0, readonly);
 					}
 
-					if(edit_grideleprof->lives == 0)
-						edit_grideleprof->speed = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->speed), t.strarr_s[455].Get(), t.strarr_s[245].Get(),readonly));
+					edit_grideleprof->speed = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->speed), t.strarr_s[455].Get(), t.strarr_s[245].Get(),readonly));
 					if (t.playercontrol.thirdperson.enabled == 1)
 					{
 						t.tanimspeed_f = t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
@@ -28882,7 +28898,6 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				{
 					edit_grideleprof->hurtfall = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->hurtfall), t.strarr_s[456].Get(), t.strarr_s[246].Get(),readonly));
 				}
-				#endif
 				if (t.tflagplayersettings == 1)
 				{
 					t.playercontrol.jumpmax_f = atof(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.jumpmax_f), "Jump Speed", "Sets the jump speed of the player which controls overall jump height",readonly));
@@ -44176,6 +44191,8 @@ int save_create_storyboard_project(void)
 			ImGui::Text("");
 			ImGui::SetWindowFontScale(1.4);
 
+			//#define NEWPROJSYSWORKINPROGRESS
+			#ifdef NEWPROJSYSWORKINPROGRESS
 			// New project Systemn Setting
 			ImGui::TextCenter("Optional Project Folder");
 			ImGui::SetWindowFontScale(1.2);
@@ -44228,6 +44245,7 @@ int save_create_storyboard_project(void)
 			}
 			ImGui::PopItemWidth();
 			ImGui::Text("");
+			#endif
 #
 			// Create Project Button
 			if (bTriggerSaveAsAfterNewLevel)

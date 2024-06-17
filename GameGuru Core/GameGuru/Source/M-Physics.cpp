@@ -2220,16 +2220,16 @@ void physics_player_init ( void )
 		t.playercontrol.speedratio_f=1.0;
 	}
 	// see if this level has any checkpoints to stave off lives logic
-	bool bUsingCheckpoint = false;
-	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
-	{
-		t.entid = t.entityelement[t.e].bankindex;
-		if (t.entityprofile[t.entid].ismarker == 6)
-		{
-			bUsingCheckpoint = true;
-			break;
-		}
-	}
+	//bool bUsingCheckpoint = false;
+	//for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+	//{
+	//	t.entid = t.entityelement[t.e].bankindex;
+	//	if (t.entityprofile[t.entid].ismarker == 6)
+	//	{
+	//		bUsingCheckpoint = true;
+	//		break;
+	//	}
+	//}
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
@@ -2256,15 +2256,16 @@ void physics_player_init ( void )
 			//  Player Global Settings for this level
 			if ( t.game.levelplrstatsetup == 1 )
 			{
-				if (bUsingCheckpoint == true)
-				{
-					// if using checkpoints, ignore lives system (infinite restarts)
-					t.playercontrol.startlives = 0;
-				}
-				else
-				{
+				//this ended up confusing folk!
+				//if (bUsingCheckpoint == true)
+				//{
+				//	// if using checkpoints, ignore lives system (infinite restarts)
+				//	t.playercontrol.startlives = 0;
+				//}
+				//else
+				//{
 					t.playercontrol.startlives = t.entityelement[t.e].eleprof.lives;
-				}
+				//}
 				t.playercontrol.startstrength=t.entityelement[t.e].eleprof.strength;
 				if (  t.playercontrol.thirdperson.enabled == 1 ) 
 				{

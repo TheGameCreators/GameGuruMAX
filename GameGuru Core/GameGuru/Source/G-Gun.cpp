@@ -347,15 +347,42 @@ void gun_manager ( void )
 		}
 	}
 
-	//  gun Blocking
-	t.block = t.player[1].state.blockingaction;
-	if (  t.block  ==  1 && t.gunmode<100 ) 
+	// gun Blocking
+	//t.block = t.player[1].state.blockingaction;
+	//if ( t.block == 1 && t.gunmode < 100 ) 
+	//{
+	//	t.gunmode = 1001;
+	//}
+	//else
+	//{
+	//	if ( t.block != 2 ) t.player[1].state.blockingaction = 0;
+	//}
+	// trigger melee block
+	if (t.player[1].state.blockingaction > 0 && t.gunmode < 100)
 	{
-		t.gunmode=1001;
-	}
-	else
-	{
-		if (  t.block  !=  2  )  t.player[1].state.blockingaction  =  0;
+		if (g.firemodes[t.gunid][g.firemode].blockaction.start.s > 0)
+		{
+			if (t.gunzoommode >= 8) t.gunzoommode = 11;
+			if (t.player[1].state.blockingaction == 1)
+			{
+				t.player[1].state.blockingaction = 2;
+			}
+			else
+			{
+				if (t.player[1].state.blockingaction == 2)
+				{
+					t.gunmode = 1001;
+				}
+				else
+				{
+					t.player[1].state.blockingaction = 0;
+				}
+			}
+		}
+		else
+		{
+			t.player[1].state.blockingaction = 0;
+		}
 	}
 
 	// trigger melee attack
@@ -363,8 +390,7 @@ void gun_manager ( void )
 	{
 		if (  g.firemodes[t.gunid][g.firemode].meleeaction.start.s>0 ) 
 		{
-			//if (  t.gunzoommode == 10  )  t.gunzoommode = 11;
-			if ( t.gunzoommode >=8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
+			if ( t.gunzoommode >= 8 ) t.gunzoommode = 11; // catches all states of a zoomed in state
 			if ( t.gun[t.gunid].settings.ismelee == 2 ) t.gunmode = 1020;
 			if ( g.firemodes[t.gunid][g.firemode].settings.simplezoom != 0 && g.firemodes[t.gunid][g.firemode].settings.simplezoomanim != 0 && t.gunzoommode != 0 ) 
 			{
@@ -1953,8 +1979,10 @@ void gun_control ( void )
 		if (  t.tempmeani != 0 ) { t.tmeleeanim = t.tempmeani  ; t.tempmeani = 0; }
 	}
 
-	//  Burst and block control
-	t.gblock = g.firemodes[t.gunid][g.firemode].action.block;
+	//block code updated for improved melee
+	//t.gblock = g.firemodes[t.gunid][g.firemode].action.block;
+
+	// Burst control
 	if (  t.gunburst <= 0 ) 
 	{
 		t.gunburst=g.firemodes[t.gunid][g.firemode].settings.burst;
@@ -2241,50 +2269,42 @@ void gun_control ( void )
 		}
 	}
 
-	//  gun blocking control
-	if (  t.gunmode == 1001 ) 
+	// gun blocking control
+	if ( t.gunmode == 1001 ) 
 	{
-		t.gunmode=1002;
-#ifdef WICKEDENGINE
+		t.gunmode = 1002;
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
-		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		gun_SetObjectInterpolation (  t.currentgunobj,100 );
-		gun_PlayObject (  t.currentgunobj,t.gblock.s,t.gblock.e );
+		gun_SetObjectSpeed ( t.currentgunobj,t.currentgunanimspeed_f );
+		gun_SetObjectInterpolation ( t.currentgunobj,100 );
+		t.gblock.s = g.firemodes[t.gunid][g.firemode].blockaction.start.s;
+		t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
+		gun_PlayObject ( t.currentgunobj,t.gblock.s,t.gblock.e );
 	}
-
 	if (  t.gunmode == 1002 ) 
 	{
-		if (  GetFrame(t.currentgunobj) >= t.gblock.e  )  t.gunmode = 1003;
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
+		if ( GetFrame(t.currentgunobj) >= t.gblock.e  )  t.gunmode = 1003;
 	}
 	if (  t.gunmode == 1003 ) 
 	{
 		t.gunmode=5;
-		t.player[1].state.blockingaction=2;
+		t.player[1].state.blockingaction=3;
 	}
 
-	//  melee gun modes
+	// melee gun modes
 	if (  t.gunmode == 1020 ) 
 	{
 		t.gunmode=1021;
-#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		gun_SetObjectInterpolation (  t.currentgunobj,100 );
 		gun_PlayObject (  t.currentgunobj,t.gstart.s,t.gstart.e );
 	}
 	if (  t.gunmode == 1021 ) 
 	{
-#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gstart.e  )  t.gunmode = 1022;
 	}
@@ -2295,11 +2315,7 @@ void gun_control ( void )
 	}
 	if (  t.gunmode == 1023 ) 
 	{
-#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
 		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) {  t.gun[t.gunid].settings.ismelee = 0  ; t.gunmode = 5 ; t.tmeleeanim = 0; }
 	}

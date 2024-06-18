@@ -370,7 +370,6 @@ void material_loadplayersounds ( void )
 			if (  SoundExist(t.playercontrol.soundstartindex+t.s) == 1 ) 
 				DeleteSound (  t.playercontrol.soundstartindex+t.s );
 
-		#ifdef WICKEDENGINE
 		LoadSound (cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\player_voice_hit_1.wav").Get(), t.playercontrol.soundstartindex + 1);
 		LoadSound (cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\player_voice_hit_2.wav").Get(), t.playercontrol.soundstartindex + 2);
 		LoadSound (cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\player_voice_hit_3.wav").Get(), t.playercontrol.soundstartindex + 3);
@@ -410,85 +409,6 @@ void material_loadplayersounds ( void )
 		LoadSound(cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\player_swim_underwater_3.wav").Get(), t.playercontrol.soundstartindex + 41);
 		LoadSound(cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\player_swim_underwater_4.wav").Get(), t.playercontrol.soundstartindex + 42);
 		// 100 through to 995 - other sounds as required
-		#else
-		#ifdef VRTECH
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+1 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+2 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+3 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+4 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hardland.wav").Get(),t.playercontrol.soundstartindex+5 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\leap.wav").Get(),t.playercontrol.soundstartindex+6 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\spawn.wav").Get(),t.playercontrol.soundstartindex+7 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+8 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+9 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+10 );
-		LoadSound (cstr(cstr("audiobank\\voices\\") + t.tplayerstyle_s + "\\silent.wav").Get(), t.playercontrol.soundstartindex + 11);
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\gaspforair.wav").Get(),t.playercontrol.soundstartindex+12 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterin.wav").Get(),t.playercontrol.soundstartindex+13 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterout.wav").Get(),t.playercontrol.soundstartindex+14 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\swim.wav").Get(),t.playercontrol.soundstartindex+15 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\heartbeat.wav").Get(),t.playercontrol.soundstartindex+17 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\jetpack.wav").Get(),t.playercontrol.soundstartindex+18 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+19 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathHold.wav").Get(),t.playercontrol.soundstartindex+31 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOut.wav").Get(),t.playercontrol.soundstartindex+32 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOutFast.wav").Get(),t.playercontrol.soundstartindex+33 );
-		//  reserved 34 to 99 for here!
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+16 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+21 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+22 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+23 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+24 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+25 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+26 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+27 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\silent.wav").Get(),t.playercontrol.soundstartindex+28 );
-		#else
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\finalmoan.wav").Get(),t.playercontrol.soundstartindex+1 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hurt1.wav").Get(),t.playercontrol.soundstartindex+2 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hurt2.wav").Get(),t.playercontrol.soundstartindex+3 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hurt3.wav").Get(),t.playercontrol.soundstartindex+4 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\hardland.wav").Get(),t.playercontrol.soundstartindex+5 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\leap.wav").Get(),t.playercontrol.soundstartindex+6 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\spawn.wav").Get(),t.playercontrol.soundstartindex+7 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\punched1.wav").Get(),t.playercontrol.soundstartindex+8 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\punched2.wav").Get(),t.playercontrol.soundstartindex+9 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\punched3.wav").Get(),t.playercontrol.soundstartindex+10 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\drown.wav").Get(),t.playercontrol.soundstartindex+11 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\gaspforair.wav").Get(),t.playercontrol.soundstartindex+12 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterin.wav").Get(),t.playercontrol.soundstartindex+13 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\waterout.wav").Get(),t.playercontrol.soundstartindex+14 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\swim.wav").Get(),t.playercontrol.soundstartindex+15 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\heartbeat.wav").Get(),t.playercontrol.soundstartindex+17 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\jetpack.wav").Get(),t.playercontrol.soundstartindex+18 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\noammo.wav").Get(),t.playercontrol.soundstartindex+19 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathHold.wav").Get(),t.playercontrol.soundstartindex+31 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOut.wav").Get(),t.playercontrol.soundstartindex+32 );
-		LoadSound (  cstr(cstr("audiobank\\voices\\")+t.tplayerstyle_s+"\\BreathOutFast.wav").Get(),t.playercontrol.soundstartindex+33 );
-		//  reserved 34 to 99 for here!
-		//  load generic collect sound
-		LPSTR pAmmoSnd = "audiobank\\misc\\ammo.wav";
-		if ( FileExist ( pAmmoSnd ) == 1 ) LoadSound ( pAmmoSnd,t.playercontrol.soundstartindex+16 );
-		//  load generic character sounds
-		LPSTR pDie = "audiobank\\voices\\characters\\die01.wav";
-		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+21 );
-		pDie = "audiobank\\voices\\characters\\die02.wav";
-		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+22 );
-		pDie = "audiobank\\voices\\characters\\die03.wav";
-		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+23 );
-		pDie = "audiobank\\voices\\characters\\die04.wav";
-		if ( FileExist ( pDie ) == 1 ) Load3DSound ( pDie, t.playercontrol.soundstartindex+24 );
-		//  load bullet whiz sounds
-		LPSTR pFlyBy = "audiobank\\misc\\Bullet_FlyBy_01.wav";
-		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+25 );
-		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_02.wav";
-		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+26 );
-		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_03.wav";
-		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+27 );
-		pFlyBy = "audiobank\\misc\\Bullet_FlyBy_04.wav";
-		if ( FileExist ( pFlyBy ) == 1 ) Load3DSound ( pFlyBy, t.playercontrol.soundstartindex+28 );
-		#endif
-		#endif
 	}
 }
 

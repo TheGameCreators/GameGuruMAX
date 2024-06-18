@@ -3096,25 +3096,24 @@ void physics_player_takedamage ( void )
 		t.playercontrol.camerashake_f = (t.tdamage / 100.0f) * 25.0f * fMoreShakeIfMeleeBased;
 	}
 
+	// a successful block with deflect any further damage event
+	bool bSuccessfullyBlockingNow = false;
+	if (t.player[1].state.blockingaction == 2)
+	{
+		float protectedstart = g.firemodes[t.gunid][g.firemode].blockaction.idle.s;
+		float protectedend = g.firemodes[t.gunid][g.firemode].blockaction.idle.e;
+		float fFrameNow = GetFrame(t.currentgunobj);
+		if (fFrameNow >= protectedstart && fFrameNow <= protectedend)
+		{
+			bSuccessfullyBlockingNow = true;
+		}
+	}
+
 	// player cannot be damaged when immune!
 	if ( t.huddamage.immunity>0  )  return;
 
 	// quite early if in F9 editing mode
 	if ( t.conkit.editmodeactive != 0  )  return;
-
-	/* now handled inside gameplayerhealth
-	#ifdef WICKEDENGINE
-	extern bool bInvulnerableMode;
-	if (bInvulnerableMode)
-	{
-		if (t.player[t.plrid].health < 100)
-		{
-			//LB: new player health intercept
-			t.player[t.plrid].health = 100;
-		}
-	}
-	#endif
-	*/
 
 	//  Apply player health damage
 	if (  (t.tdamage>0 && t.player[t.plrid].health>0 && t.player[t.plrid].health<99999) || t.tdamage>65000 ) 
@@ -3123,7 +3122,7 @@ void physics_player_takedamage ( void )
 		if (  t.playercontrol.regentime>0  )  t.playercontrol.regentime = Timer();
 
 		//  Deduct health from player
-		if (t.playercontrol.startstrength > 0)
+		if (t.playercontrol.startstrength > 0 && bSuccessfullyBlockingNow==false)
 		{	
 			// deduct player health
 			//LB: new player health intercept
@@ -3135,15 +3134,15 @@ void physics_player_takedamage ( void )
 		}
 
 		// if NOT drowning, do usual damage stuff
-		if ( t.tDrownDamageFlag  ==  0 ) 
+		if ( t.tDrownDamageFlag == 0 ) 
 		{
 			// Instruct HUD about player damage
-			if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 )
+			if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 && bSuccessfullyBlockingNow==false )
 			{
 				if ( t.playercontrol.thirdperson.enabled == 1 ) 
 				{
-					//  third person character produces blood
-					if (  t.te != -1 ) 
+					// third person character produces blood
+					if ( t.te != -1 ) 
 					{
 						t.ttobj1=t.entityelement[t.playercontrol.thirdperson.charactere].obj;
 						t.decalx1=ObjectPositionX(t.ttobj1);
@@ -3176,12 +3175,12 @@ void physics_player_takedamage ( void )
 				{
 					if (  t.te != -1 ) 
 					{
-						//  only if entity caused damage
+						// only if entity caused damage
 						new_damage_marker(t.te,ObjectPositionX(t.entityelement[t.te].obj),ObjectPositionY(t.entityelement[t.te].obj),ObjectPositionZ(t.entityelement[t.te].obj),t.tdamage);
 					}
 					else
 					{
-						//  hurt from non-entity source
+						// hurt from non-entity source
 						for ( t.iter = 0 ; t.iter<=  9; t.iter++ )
 						{
 							placeblood(50,0,0,0,0);
@@ -3189,42 +3188,75 @@ void physics_player_takedamage ( void )
 					}
 				}
 			}
-			//  Trigger player grunt noise
-			if (  t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
+
+			// Trigger player grunt noise or block sound
+			if(bSuccessfullyBlockingNow==false)
 			{
-				if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
+				if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
 				{
-					//  only every one in three or if been a while since we grunted
-					t.playercontrol.timesincelastgrunt = Timer();
-					int iLastOne = t.tplrhurt;
-					bool bHaveUniqueSound = false;
-					while (bHaveUniqueSound == false)
+					if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
 					{
-						int iRandomHurt = Rnd(15);
-						switch (iRandomHurt)
+						//  only every one in three or if been a while since we grunted
+						t.playercontrol.timesincelastgrunt = Timer();
+						int iLastOne = t.tplrhurt;
+						bool bHaveUniqueSound = false;
+						while (bHaveUniqueSound == false)
 						{
-							case 0: t.tplrhurt = 1; break;
-							case 1: t.tplrhurt = 2; break;
-							case 2: t.tplrhurt = 3; break;
-							case 3: t.tplrhurt = 4; break;
-							case 4: t.tplrhurt = 8; break;
-							case 5: t.tplrhurt = 9; break;
-							case 6: t.tplrhurt = 10; break;
-							case 7: t.tplrhurt = 16; break;
-							case 8: t.tplrhurt = 21; break;
-							case 9: t.tplrhurt = 22; break;
-							case 10: t.tplrhurt = 23; break;
-							case 11: t.tplrhurt = 24; break;
-							case 12: t.tplrhurt = 25; break;
-							case 13: t.tplrhurt = 26; break;
-							case 14: t.tplrhurt = 27; break;
-							case 15: t.tplrhurt = 28; break;
+							int iRandomHurt = Rnd(12);
+							switch (iRandomHurt)
+							{
+								case 0: t.tplrhurt = 1; break;
+								case 1: t.tplrhurt = 2; break;
+								case 2: t.tplrhurt = 3; break;
+								case 3: t.tplrhurt = 4; break;
+								case 4: t.tplrhurt = 8; break;
+								case 5: t.tplrhurt = 9; break;
+								case 6: t.tplrhurt = 10; break;
+								case 7: t.tplrhurt = 16; break;
+								case 8: t.tplrhurt = 21; break;
+								case 9: t.tplrhurt = 22; break;
+								case 10: t.tplrhurt = 23; break;
+								case 11: t.tplrhurt = 24; break;
+								case 12: t.tplrhurt = 25; break;
+							}
+							if (iLastOne != t.tplrhurt) bHaveUniqueSound = true;
 						}
-						if (iLastOne != t.tplrhurt) bHaveUniqueSound = true;
+						t.tsnd = t.playercontrol.soundstartindex + t.tplrhurt;
+						playinternalsound(t.tsnd);
 					}
-					t.tsnd = t.playercontrol.soundstartindex + t.tplrhurt;
-					playinternalsound(t.tsnd);
 				}
+			}
+			else
+			{
+				//  if player is blocking, no damage
+				int iRandomBlockSnd = Rnd(3);
+				switch (iRandomBlockSnd)
+				{
+					case 0: t.tplrhurt = 26; break;
+					case 1: t.tplrhurt = 27; break;
+					case 2: t.tplrhurt = 28; break;
+				}
+				t.tsnd = t.playercontrol.soundstartindex + t.tplrhurt;
+				playinternalsound(t.tsnd);
+				int iMinDamage = t.tdamage;
+				if (t.tdamage < 50) iMinDamage = 50;
+				t.playercontrol.camerashake_f = (iMinDamage / 100.0f) * 100.0f;
+
+				// but repel their damage back to the attacher
+				t.ttte = t.te;
+				t.tdamage = t.tdamage/2.0f;
+				t.tdamageforce = 0.0f;
+				t.tdamagesource = 0;
+				t.brayx1_f = t.entityelement[t.te].x;
+				t.brayx2_f = t.entityelement[t.te].x;
+				t.brayy1_f = t.entityelement[t.te].y;
+				t.brayy2_f = t.entityelement[t.te].y;
+				t.brayz1_f = t.entityelement[t.te].z;
+				t.brayz2_f = t.entityelement[t.te].z;
+				entity_applydamage ();
+
+				// no further player damage code
+				return;
 			}
 		}
 		

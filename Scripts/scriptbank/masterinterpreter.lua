@@ -81,6 +81,7 @@ g_masterinterpreter_cond_withinnavmesh = 64 -- Within Navmesh (Is true if the ob
 g_masterinterpreter_cond_canmeleetarget = 65 -- Can Melee Target (Is true if there is nothing between object and the target)
 g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the current target name matches the specified string)
 g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
+g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -909,6 +910,9 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if conditionparam1value == nil then conditionparam1value = 100 end
   if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+conditionparam1value then return 1 end
  end
+ if conditiontype == g_masterinterpreter_cond_wasblocked then 
+  if GetGamePlayerStateBlockingAction() > 0 then return 1 end
+ end 
  
  -- Condition is false
  return 0

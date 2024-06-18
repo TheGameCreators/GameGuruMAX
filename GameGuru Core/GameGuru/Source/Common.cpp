@@ -1729,38 +1729,9 @@ void common_init_globals ( void )
 	//  +0 -
 	t.weapons.soundstartindex=g.weaponssoundoffset;
 
-	//  soundstartindex
+	//  soundstartindex (see material_loadplayersounds)
 	t.playercontrol.soundstartindex=g.playercontrolsoundoffset;
-	//  0 - reserved
-	//  1 - player sound ; finalmoan
-	//  2 - player sound ; hurt1
-	//  3 - player sound ; hurt2
-	//  4 - player sound ; hurt3
-	//  5 - player sound ; land
-	//  6 - player sound ; leap
-	//  7 - player sound ; spawn
-	//  8 - player sound ; punched1
-	//  9 - player sound ; punched2
-	//  10 - player sound ; punched3
-	//  11 - player sound ; drown
-	//  12 - player sound ; gasp
-	//  13 - player sound ; water in
-	//  14 - player sound ; water out
-	//  15 - player sound ; swim
-	//  16 - player sound ; pickup ammo from corpse
-	//  17 - player sound; heart beat
-	//  21 - AI character die 1
-	//  22 - AI character die 2
-	//  23 - AI character die 3
-	//  24 - AI character die 4
-	//  25 - Bullet whiz 1
-	//  26 - Bullet whiz 2
-	//  27 - Bullet whiz 3
-	//  28 - Bullet whiz 4
-	//	34 - underwater ambience
-	//  35-42 - swimming sounds
-	//  to 99 - reserved for player sounds (will be deleted if new player soundset used)
-	//  100 through to 995 - other sounds as required
+
 	Dim (  t.musictrack,MUSICSYSTEM_MAXTRACKS );
 
 	g.characterSoundCount = 0;

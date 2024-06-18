@@ -7968,8 +7968,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
 
 		// 190-200 reserved for MOTION CONTROLLER actions
-	
-		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
+		case 201: t.gun[gunId].settings.ismelee = lua_tonumber(L, param); break;
 		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
 		case 203 : t.gun[gunId].settings.modessharemags  = lua_tonumber( L, param ); break;
 		case 204 : t.gun[gunId].settings.alternateisflak = lua_tonumber( L, param ); break;
@@ -8338,7 +8337,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 			break;
 		#endif
 
-		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
+		case 201: lua_pushnumber (L, t.gun[gunId].settings.ismelee); break;
 		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
 		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
 		case 204 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisflak ); break;
@@ -8373,6 +8372,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 325 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.hasempty          ); break;
 		case 326 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].action.block.s			   ); break;
 		case 327 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.meleewithrightclick ); break;
+		case 328: lua_pushnumber (L, g.firemodes[gunId][fireMode].settings.blockwithrightclick); break;
 
 		// for extra commands as yet unimagined :)
 		case 401: lua_pushnumber (L, t.playerlight.flashlightcontrol_range_f); break;
@@ -8615,7 +8615,8 @@ int GetGamePlayerStateFiringMode ( lua_State *L ) { return GetGamePlayerControlD
 int GetGamePlayerStateWeaponAmmoIndex ( lua_State *L ) { return GetGamePlayerControlData ( L, 103 ); }
 int GetGamePlayerStateAmmoOffset ( lua_State *L ) { return GetGamePlayerControlData ( L, 104 ); }
 int GetGamePlayerStateGunMeleeKey ( lua_State *L ) { return GetGamePlayerControlData ( L, 105 ); }
-int GetGamePlayerStateBlockingAction ( lua_State *L ) { return GetGamePlayerControlData ( L, 106 ); }
+int SetGamePlayerStateBlockingAction ( lua_State *L ) { return SetGamePlayerControlData ( L, 106 ); }
+int GetGamePlayerStateBlockingAction (lua_State* L) { return GetGamePlayerControlData (L, 106); }
 int SetGamePlayerStateGunShootNoAmmo ( lua_State *L ) { return SetGamePlayerControlData ( L, 107 ); }
 int GetGamePlayerStateGunShootNoAmmo ( lua_State *L ) { return GetGamePlayerControlData ( L, 107 ); }
 int SetGamePlayerStateUnderwater ( lua_State *L ) { return SetGamePlayerControlData ( L, 108 ); }
@@ -8876,6 +8877,7 @@ int SetFireModeSettingsHasEmpty ( lua_State *L ) { return SetGamePlayerControlDa
 int GetFireModeSettingsHasEmpty ( lua_State *L ) { return GetGamePlayerControlData ( L, 325 ); }
 int GetFireModeSettingsActionBlockStart ( lua_State *L ) { return GetGamePlayerControlData ( L, 326 ); }
 int GetFireModeSettingsMeleeWithRightClick (lua_State *L) { return GetGamePlayerControlData (L, 327); }
+int GetFireModeSettingsBlockWithRightClick (lua_State* L) { return GetGamePlayerControlData (L, 328); }
 
 int SetGamePlayerStateGunSound ( lua_State *L ) { return SetGamePlayerControlData ( L, 501 ); }
 int GetGamePlayerStateGunSound ( lua_State *L ) { return GetGamePlayerControlData ( L, 501 ); }
@@ -11942,7 +11944,8 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateWeaponAmmoIndex" , GetGamePlayerStateWeaponAmmoIndex );
 	lua_register(lua, "GetGamePlayerStateAmmoOffset" , GetGamePlayerStateAmmoOffset );
 	lua_register(lua, "GetGamePlayerStateGunMeleeKey" , GetGamePlayerStateGunMeleeKey );
-	lua_register(lua, "GetGamePlayerStateBlockingAction" , GetGamePlayerStateBlockingAction );
+	lua_register(lua, "SetGamePlayerStateBlockingAction", SetGamePlayerStateBlockingAction);
+	lua_register(lua, "GetGamePlayerStateBlockingAction", GetGamePlayerStateBlockingAction);
 	lua_register(lua, "SetGamePlayerStateGunShootNoAmmo" , SetGamePlayerStateGunShootNoAmmo );
 	lua_register(lua, "GetGamePlayerStateGunShootNoAmmo" , GetGamePlayerStateGunShootNoAmmo );
 	lua_register(lua, "SetGamePlayerStateUnderwater" , SetGamePlayerStateUnderwater );
@@ -12211,8 +12214,8 @@ void addFunctions()
 	lua_register(lua, "GetFireModeSettingsHasEmpty" , GetFireModeSettingsHasEmpty );
 	lua_register(lua, "GetFireModeSettingsActionBlockStart", GetFireModeSettingsActionBlockStart);
 	lua_register(lua, "GetFireModeSettingsMeleeWithRightClick", GetFireModeSettingsMeleeWithRightClick);
-	
-	
+	lua_register(lua, "GetFireModeSettingsBlockWithRightClick", GetFireModeSettingsBlockWithRightClick);
+		
 	lua_register(lua, "SetGamePlayerStateGunSound" , SetGamePlayerStateGunSound );
 	lua_register(lua, "GetGamePlayerStateGunSound" , GetGamePlayerStateGunSound );
 	lua_register(lua, "SetGamePlayerStateGunAltSound" , SetGamePlayerStateGunAltSound );

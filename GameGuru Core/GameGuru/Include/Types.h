@@ -7444,6 +7444,7 @@ struct gunsettingstype
 	int ismelee;
 	int disablerunandshoot;
 	int meleewithrightclick;
+	int blockwithrightclick;
 	int altpoolindex;
 	int poolindex;
 	int isempty;
@@ -7767,6 +7768,7 @@ struct gunsettingstype
 		 poolindex = 0;
 		 altpoolindex = 0;
 		 disablerunandshoot = 0;
+		 blockwithrightclick = 0;
 		 meleewithrightclick = 0;
 		 ismelee = 0;
 		 altmeleenoscorch = 0;
@@ -7943,7 +7945,7 @@ struct guntype
 	gunanimtype emptyaltactionto;
 	gunanimtype emptyaltactionfrom;
 	gunactionstype meleeaction;
-	gunactionstype altmeleeaction;
+	gunactionstype blockaction;
 	int statuspanelcode;
 	int texdid;
 	int texnid;

@@ -359,6 +359,8 @@ void gun_loaddata ( void )
 					if (matched)  g.firemodes[t.gunid][0].settings.disablerunandshoot = t.value1;
 					cmpStrConst(t_field_s, "meleewithrightclick");
 					if (matched)  g.firemodes[t.gunid][0].settings.meleewithrightclick = t.value1;
+					cmpStrConst(t_field_s, "blockwithrightclick");
+					if (matched)  g.firemodes[t.gunid][0].settings.blockwithrightclick = t.value1;
 					cmpStrConst( t_field_s, "force" );
 					if( matched )  g.firemodes[t.gunid][0].settings.force = t.value1;
 					cmpStrConst( t_field_s, "melee force" );
@@ -535,7 +537,7 @@ void gun_loaddata ( void )
 					{
 						int animfields = 0;
 						bool bAnimationField = false;
-						for (; animfields <= 80; animfields++)
+						for (; animfields <= 83; animfields++)
 						{
 							LPSTR pFieldName = "";
 							if (animfields == 0) pFieldName = "select";
@@ -619,6 +621,9 @@ void gun_loaddata ( void )
 							if (animfields == 78) pFieldName = "zoom move";
 							if (animfields == 79) pFieldName = "altto";
 							if (animfields == 80) pFieldName = "altfrom";
+							if (animfields == 81) pFieldName = "block start";
+							if (animfields == 82) pFieldName = "block loop";
+							if (animfields == 83) pFieldName = "block end";
 							cmpStrConst(t_field_s, pFieldName);
 							if (matched)
 							{
@@ -660,6 +665,7 @@ void gun_loaddata ( void )
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 69) g.firemodes[t.gunid][iAltIndex].zoomaction.start2.e = t.value1 - 1; // pFieldName = "zoom start fire 2";
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 70) g.firemodes[t.gunid][iAltIndex].zoomaction.start3.e = t.value1 - 1; // pFieldName = "zoom start fire 3";
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 75) g.firemodes[t.gunid][iAltIndex].zoomaction.laststart.e = t.value1 - 1; // pFieldName = "zoom last start fire";
+									if (iModifyTheLastFinishFrameWhenKnowPerc == 81) g.firemodes[t.gunid][iAltIndex].blockaction.start.e = t.value1 - 1; // pFieldName = "block start";
 									iModifyTheLastFinishFrameWhenKnowPerc = 0;
 								}
 								fLastFinishFrameFromAnimName = -1;
@@ -692,6 +698,7 @@ void gun_loaddata ( void )
 									if (animfields == 69) bPartOfStartEndSet = true; // pFieldName = "zoom start fire 2";
 									if (animfields == 70) bPartOfStartEndSet = true; // pFieldName = "zoom start fire 3";
 									if (animfields == 75) bPartOfStartEndSet = true; // pFieldName = "zoom last start fire";
+									if (animfields == 81) bPartOfStartEndSet = true; // pFieldName = "block start";
 									if (bPartOfStartEndSet == true)
 									{
 										fLastStartFrameFromAnimName = t.value1;
@@ -887,6 +894,14 @@ void gun_loaddata ( void )
 					cmpStrConst( t_field_s, "zoom move" );
 					if( matched ) { g.firemodes[t.gunid][0].zoomaction.move.s = t.value1  ; g.firemodes[t.gunid][0].zoomaction.move.e = t.value2; }
 
+					// more animations supported
+					cmpStrConst(t_field_s, "block start");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.start.s = t.value1; g.firemodes[t.gunid][0].blockaction.start.e = t.value2; }
+					cmpStrConst(t_field_s, "block loop");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.idle.s = t.value1; g.firemodes[t.gunid][0].blockaction.idle.e = t.value2; }
+					cmpStrConst(t_field_s, "block end");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.finish.s = t.value1; g.firemodes[t.gunid][0].blockaction.finish.e = t.value2; }
+
 					//  Gun repeat-fire sound
 					cmpStrConst( t_field_s, "fireloop" );
 					if( matched )  g.firemodes[t.gunid][0].sound.fireloopend = t.value1;
@@ -1045,6 +1060,8 @@ void gun_loaddata ( void )
 					if (matched)  g.firemodes[t.gunid][1].settings.disablerunandshoot = t.value1;
 					cmpStrConst(t_field_s, "altmeleewithrightclick");
 					if (matched)  g.firemodes[t.gunid][1].settings.meleewithrightclick = t.value1;
+					cmpStrConst(t_field_s, "altblockwithrightclick");
+					if (matched)  g.firemodes[t.gunid][1].settings.blockwithrightclick = t.value1;			
 					cmpStrConst( t_field_s, "altforce" );
 					if( matched )  g.firemodes[t.gunid][1].settings.force = t.value1;
 					cmpStrConst( t_field_s, "altmelee force" );
@@ -1055,11 +1072,8 @@ void gun_loaddata ( void )
 					if( matched )  g.firemodes[t.gunid][1].settings.zoomhidecrosshair = t.value1;
 					cmpStrConst( t_field_s, "altdoesnotuseammo" );
 					if( matched )  g.firemodes[t.gunid][1].settings.doesnotuseammo = t.value1;
-#ifdef WICKEDENGINE
 					cmpStrConst( t_field_s, "usemeleedamageonly" );
-					if( matched )  
-						g.firemodes[t.gunid][1].settings.usemeleedamageonly = t.value1;
-#endif
+					if( matched )  g.firemodes[t.gunid][1].settings.usemeleedamageonly = t.value1;
 
 					//  Brass details
 					cmpStrConst( t_field_s, "altbrass" );

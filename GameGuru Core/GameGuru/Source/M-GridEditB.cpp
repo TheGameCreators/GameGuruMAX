@@ -7204,55 +7204,55 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					extern bool bShadowsLowestLOD;
 					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("Shadows Use Lowest LOD##Animationsculling", &bShadowsLowestLOD))
+					if (ImGui::Checkbox("Shadows Use Fastest LOD##Animationsculling", &bShadowsLowestLOD))
 					{
 						t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD = bShadowsLowestLOD;
 						g.projectmodified = 1;
 
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All shadows will use lowest LOD available to render.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All shadows will use fastest LOD available to render.");
 					ImGui::PopItemWidth();
 
 					extern bool bProbesLowestLOD;
 					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("Probes Use Lowest LOD##Animationsculling", &bProbesLowestLOD))
+					if (ImGui::Checkbox("Probes Use Fastest LOD##Animationsculling", &bProbesLowestLOD))
 					{
 						t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD = bProbesLowestLOD;
 						g.projectmodified = 1;
 
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All probes will use lowest LOD available to render.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All probes will use fastest LOD available to render.");
 					ImGui::PopItemWidth();
 
 					extern bool bRaycastLowestLOD;
 					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("Raycast Use Lowest LOD##Animationsculling", &bRaycastLowestLOD))
+					if (ImGui::Checkbox("Raycast Use Fastest LOD##Animationsculling", &bRaycastLowestLOD))
 					{
 						t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD = bRaycastLowestLOD;
 						g.projectmodified = 1;
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All raycast will use lowest LOD available for intersect checks.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All raycast will use fastest LOD available for intersect checks.");
 					ImGui::PopItemWidth();
 
 
 					extern bool bPhysicsLowestLOD;
 					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("Physics Use Lowest LOD##Animationsculling", &bPhysicsLowestLOD))
+					if (ImGui::Checkbox("Physics Use Fastest LOD##Animationsculling", &bPhysicsLowestLOD))
 					{
 						t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD = bPhysicsLowestLOD;
 						g.projectmodified = 1;
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All physics objects is created using lowest LOD.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All physics objects is created using fastest LOD.");
 					ImGui::PopItemWidth();
 
 					extern bool bReflectionsLowestLOD;
 					ImGui::PushItemWidth(-10);
-					if (ImGui::Checkbox("Reflections Use Lowest LOD##Animationsculling", &bReflectionsLowestLOD))
+					if (ImGui::Checkbox("Reflections Use Fastest LOD##Animationsculling", &bReflectionsLowestLOD))
 					{
 						t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD = bReflectionsLowestLOD;
 						g.projectmodified = 1;
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All reflection rendering is using lowest LOD.");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All reflection rendering is using fastest LOD.");
 					ImGui::PopItemWidth();
 				}
 

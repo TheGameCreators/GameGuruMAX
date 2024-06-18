@@ -30102,9 +30102,12 @@ void gridedit_recreateentitycursor ( void )
 				if (strlen(pOverrideAnimSet) > 1) // "" = default to weapon type, "-" = default to object anim
 				{
 					// replace actual object animations
-					sObject* pObject = GetObjectData(t.obj);
-					AppendObject(pOverrideAnimSet, t.obj, 0);
-					WickedCall_RefreshObjectAnimations(pObject, pObject->wickedloaderstateptr);
+					if (FileExist(pOverrideAnimSet) == 1)
+					{
+						sObject* pObject = GetObjectData(t.obj);
+						AppendObject(pOverrideAnimSet, t.obj, 0);
+						WickedCall_RefreshObjectAnimations(pObject, pObject->wickedloaderstateptr);
+					}
 				}
 			}
 

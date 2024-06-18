@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v18 by Necrym59
+-- Toxic Zone v19 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -126,7 +126,7 @@ function toxiczone_main(e)
 			g_toxiczone = ""
 		end
 
-		GetEntityInZone(e)
+		GetEntityInZoneWithFilter(e,2)
 		EntityID[e] = g_Entity[e]['entityinzone']
 		EntityAL[e] = GetEntityAllegiance(EntityID[e])
 		if g_Entity[e]['entityinzone'] > 0 and EntityID[e] > 0 and EntityAL[e] ~= -1 and g_Entity[EntityID[e]]['y'] > g_Entity[e]['y']-10 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y']+toxiczone[e].zoneheight then

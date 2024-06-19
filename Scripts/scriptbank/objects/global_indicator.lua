@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Indicator v3 by Necrym59
+-- Global Indicator v5 by Necrym59
 -- DESCRIPTION: Will display and update a screen image indicator based on a global value.
 -- DESCRIPTION: Attach to an entity. Set to AlwaysActive
 -- DESCRIPTION: [@GLOBAL_TO_MONITOR=1(1=Health, 2=User Global)]
@@ -48,7 +48,6 @@ local sp_imgheight	= {}
 local sp_aspect		= {} 
 
 function global_indicator_properties(e, global_to_monitor, user_global, screen_position_x, screen_position_y, screen_scale, first_imagefile, first_indicator_value, second_imagefile, second_indicator_value, third_imagefile, third_indicator_value, fourth_imagefile, fourth_indicator_value, fifth_imagefile, fifth_indicator_value)
-	glindicator[e] = g_Entity[e]
 	glindicator[e].global_to_monitor = global_to_monitor or 1
 	glindicator[e].user_global = user_global
 	glindicator[e].screen_position_x = screen_position_x
@@ -87,7 +86,6 @@ function global_indicator_init(e)
 	status[e] = "init"
 	currentvalue[e] = 0
 	played[e] = 0
-	trigdelay[e] = math.huge
 end
 
 function global_indicator_main(e)

@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Spawn Locator v2 by Necrym59
--- DESCRIPTION: Will relocate the player to a designated spawn marker.
+-- Spawn Locator v3 by Necrym59
+-- DESCRIPTION: Will relocate the player to a designated spawn marker. Place under the Player Start Marker.
 -- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global required for using spawn markers
 
 local lower = string.lower
@@ -32,9 +32,16 @@ function spawn_locator_init(e)
 end
 
 function spawn_locator_main(e)
+	if status[e] == "init" then
+		spawn_locator[e].spawn_marker_number = 0
+		status[e] = "endinit"
+	end
+	
 	if _G["g_UserGlobal['"..spawn_locator[e].spawn_marker_user_global.."']"] ~= nil then
 		spawn_locator[e].spawn_marker_name = _G["g_UserGlobal['"..spawn_locator[e].spawn_marker_user_global.."']"]
+		spawn_locator[e].spawn_marker_number = 0
 	end	
+	
 	if spawn_locator[e].spawn_marker_number == 0 and spawn_locator[e].spawn_marker_name ~= "" then		
 		for ee = 1, g_EntityElementMax do
 			if ee ~= nil and g_Entity[ee] ~= nil then
@@ -45,7 +52,7 @@ function spawn_locator_main(e)
 					pos_z[e] = g_Entity[ee]['z']
 					ang_y[e] = g_Entity[ee]['angley']
 					CollisionOff(ee)
-					Hide(ee)
+					Hide(ee)					
 					status[e] = "spawnplayer"
 					break
 				end				
@@ -53,14 +60,14 @@ function spawn_locator_main(e)
 		end
 	end
 	if status[e] == "spawnplayer" then
-		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+spawn_locator[e].zoneheight then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+spawn_locator[e].zoneheight and g_PlayerHealth >= g_gameloop_StartHealth then
 			if spawn_locator[e].marker_number ~= 0 then
 				SetFreezePosition(pos_x[e],pos_y[e]+35,pos_z[e])
 				TransportToFreezePositionOnly()
 				SetGamePlayerControlFinalCameraAngley(ang_y[e])
-				status[e] = "endspawnplayer"
+				status[e] = "init"
 			end
 		end
-	end	
+	end
 end
 

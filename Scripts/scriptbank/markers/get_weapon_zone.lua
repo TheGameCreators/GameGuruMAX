@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Get Weapon Zone v4 by Amen Moses and Necrym59
+-- Get Weapon Zone v5 by Amen Moses and Necrym59
 -- DESCRIPTION: Gets closest weapon within set range to this zone and gives to the player, then destroys the zone.
 -- DESCRIPTION: [SearchRange=1000(1,5000)]
 -- DESCRIPTION: [ZoneHeight=100(0,1000)]
@@ -64,8 +64,8 @@ function get_weapon_zone_main(e)
 		status[e] = "endinit"		
 	end
 	
-	if g_Entity[e].activated == 1 then
-		if g_Entity[e].plrinzone == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + gwzone[e].ZoneHeight then
+	if g_Entity[e]['activated'] == 1 then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + gwzone[e].ZoneHeight then
 			if doonce[e] == 0 then
 				AddPlayerWeapon(gwzweapon[e])				
 				ActivateIfUsed(gwzweapon[e])

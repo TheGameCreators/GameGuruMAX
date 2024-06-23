@@ -114,8 +114,8 @@ function sniper_main(e)
 				sx = g_Entity[e]['x']
 				sy = g_Entity[e]['y'] + 100
 				sz = g_Entity[e]['z']
-				px = g_PlayerPosY
-				py = g_PlayerPosX
+				px = g_PlayerPosX
+				py = g_PlayerPosY
 				pz = g_PlayerPosZ
 				shothit[e] = RayTerrain(sx,sy,sz,px,py+15,pz)
 				if shothit[e] == 1 then

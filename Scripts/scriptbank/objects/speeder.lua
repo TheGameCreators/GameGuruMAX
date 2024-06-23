@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v11 by Necrym59 and smallg
+-- Speeder v12 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -203,7 +203,11 @@ function UpdatePlayerPosition(e)
 end 
 
 function Controlspeeder(e)
-	if shealth[e] > 0 then
+	if shealth[e] > 0 then		
+		if g_KeyPressW == 0 and speed[e] > speeder[e].minimum_speed then
+			LoopSound(e,1) 
+			StopSound(e,0)
+		end
 		if g_KeyPressW == 1 then 
 			LoopSound(e,0) -- drive sound
 			StopSound(e,1) 
@@ -231,16 +235,19 @@ function Controlspeeder(e)
 				LoopSound(e,1)
 			end 
 		end 
-		if g_KeyPressA == 1 then 
+		if g_KeyPressA == 1 and speed[e] ~= 0 then 
 			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']-speeder[e].turn_speed/10,g_Entity[e]['anglez'])
-		elseif g_KeyPressD == 1 then 
+		end	
+		if g_KeyPressD == 1 and speed[e] ~= 0 then 
 			SetRotation(e,g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].turn_speed/10,g_Entity[e]['anglez'])
 		end
 		if g_KeyPressSPACE == 1 then
 			if speed[e] > 0 then 
 				speed[e] = speed[e] - speeder[e].decceleration*2 
 				if speed[e] <= 0 then speed[e] = 0 end
-			else	
+			else
+				StopSound(e,0)
+				LoopSound(e,1)			
 				speed[e] = 0
 			end
 		end

@@ -1292,6 +1292,10 @@ void mapfile_loadproject_fpm ( void )
 				}
 				delete(data);
 			}
+			//PE: Make sure to trigger a delayed update, so everything is placed correctly, grass/trees need height.
+			extern int iTriggerInvalidateAfterFrames;
+			iTriggerInvalidateAfterFrames = 60; //PE: Height data need to be set first, then we can adjust grass/trees/virtual texture.
+
 		}
 		#endif
 

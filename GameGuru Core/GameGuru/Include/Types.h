@@ -3917,7 +3917,8 @@ struct visualstype
 	float fExposure;
 	float fGamma;
 	int iMSAASampleCount;
-
+	int iFSRMode;
+	float fFSRSharpness;
 	int iMSAO;
 	float fMSAOPower;
 
@@ -4169,7 +4170,8 @@ struct visualstype
 		 fExposure = 1.0f;
 		 fGamma = 2.2f;
 		 iMSAASampleCount = 1;
-
+		 iFSRMode = 0;
+		 fFSRSharpness = 0.2f;
 		 iMSAO = 1;
 		 fMSAOPower = 1.0;
 

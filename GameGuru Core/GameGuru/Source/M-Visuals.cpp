@@ -256,6 +256,8 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.fExposure = 1.0f;
 	t.visuals.fGamma = 2.2f;
 	t.visuals.iMSAASampleCount = 1;
+	t.visuals.iFSRMode = 0;
+	t.visuals.fFSRSharpness = 0.2f;
 
 	t.visuals.iMSAO = 1;
 	t.visuals.fMSAOPower = 1.0;
@@ -816,6 +818,12 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.MSAASampleCount=" + Str(t.visuals.iMSAASampleCount);
 	WriteString(1, t.strwork.Get());
 
+	t.strwork = ""; t.strwork = t.strwork + "visuals.FSRMode=" + Str(t.visuals.iFSRMode);
+	WriteString(1, t.strwork.Get());
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.FSRSharpness=" + Str(t.visuals.fFSRSharpness);
+	WriteString(1, t.strwork.Get());
+
 	t.strwork = ""; t.strwork = t.strwork + "visuals.MSAO=" + Str(t.visuals.iMSAO);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.MSAOPower=" + Str(t.visuals.fMSAOPower);
@@ -1077,6 +1085,8 @@ void visuals_load ( void )
 	t.visuals.fExposure = 1.0f;
 	t.visuals.fGamma = 2.2f;
 	t.visuals.iMSAASampleCount = 1;
+	t.visuals.iFSRMode = 0;
+	t.visuals.fFSRSharpness = 0.2f;
 
 	t.visuals.iMSAO = 1;
 	t.visuals.fMSAOPower = 1.0;
@@ -1372,7 +1382,10 @@ void visuals_load ( void )
 			//PE: Who removed gamme ? we need it when restoring saved levels ? it was commented out ?
 			t.try_s = "visuals.Gamma"; if (t.tfield_s == t.try_s)  t.visuals.fGamma = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.MSAASampleCount"; if (t.tfield_s == t.try_s)  t.visuals.iMSAASampleCount = ValF(t.tvalue_s.Get());
-		
+
+			t.try_s = "visuals.FSRMode"; if (t.tfield_s == t.try_s)  t.visuals.iFSRMode = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.FSRSharpness"; if (t.tfield_s == t.try_s)  t.visuals.fFSRSharpness = ValF(t.tvalue_s.Get());
+
 			t.try_s = "visuals.MSAO"; if (t.tfield_s == t.try_s)  t.visuals.iMSAO = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.MSAOPower"; if (t.tfield_s == t.try_s)  t.visuals.fMSAOPower = ValF(t.tvalue_s.Get());
 

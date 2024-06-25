@@ -1,4 +1,4 @@
--- Door Sliding v29 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v31 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -21,6 +21,8 @@ local Q = require "scriptbank\\quatlib"
 local U = require "scriptbank\\utillib"
 local V = require "scriptbank\\vectlib"
 local NAVMESH = require "scriptbank\\navmeshlib"
+local module_misclib = require "scriptbank\\module_misclib"
+g_tEnt = {}
 
 local rad = math.rad
 local deg = math.deg
@@ -40,6 +42,8 @@ local defaultUnLockedText = "E to use door"
 local defaultTrigger = 4
 local prompt_display = 1
 local played = {}
+local tEnt = {}
+local selectobj = {}
 
 g_door_sliding = {}
 
@@ -101,6 +105,9 @@ function door_sliding_init( e )
 							originalz		= -1
 					      }
 	played[e] = 0
+	tEnt[e] = 0
+	g_tEnt = 0	
+	selectobj[e] = 0
 	------------------------------------------------------
 	local door = g_door_sliding[ e ]
 	door.obj = g_Entity[ e ].obj
@@ -201,11 +208,11 @@ function door_sliding_main(e)
 	   door.mode == 'closed' then
 		if door.door_type == 'Switched' then
 			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == false then
-				if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+				if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.lockedtext) end
 				if door.prompt_display == 2 then Prompt(door.lockedtext) end
 			end	
 			if U.PlayerCloserThanPos(door.pos.x,door.pos.y,door.pos.z,door.door_range) and door.IsUnlocked == true then
-				if door.prompt_display == 1 then PromptLocal(e,door.lockedtext) end
+				if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.lockedtext) end
 				if door.prompt_display == 2 then Prompt(door.lockedtext) end
 			end
 			if g_Entity[e]['activated'] == 1 then
@@ -238,8 +245,12 @@ function door_sliding_main(e)
 					if door.trigger == 1 or door.trigger == 3  then PerformLogicConnections(e) end
 				end				
 				if door.door_type == 'Manual' and LookingAt(e) then
-					if door.IsUnlocked == true then
-						if door.prompt_display == 1 then PromptLocal(e,door.unlockedtext) end
+					--pinpoint select object--
+					module_misclib.pinpoint(e,door.door_range,0)
+					tEnt[e] = g_tEnt
+					--end pinpoint select object--	
+					if door.IsUnlocked == true and tEnt[e] ~= 0 then
+						if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.lockedtext) end
 						if door.prompt_display == 2 then Prompt(door.unlockedtext) end
 						if g_KeyPressE == 1 then
 							SetEntityActivated(e,1)
@@ -277,6 +288,7 @@ function door_sliding_main(e)
 				PositionDoor(e,door)
 				SetEntityActivated(e,0)
 				SetActivated(e,0)
+				PlaySound(e,2)
 				SwitchScript(e,"no_behavior_selected.lua")
 			end
 				
@@ -309,7 +321,7 @@ function door_sliding_main(e)
 				SetEntityHasKey(e,1)				
 			end			
 			if door.IsUnlocked == true then
-				if door.prompt_display == 1 then PromptLocal(e,door.unlockedtext) end
+				if door.prompt_display == 1 then TextCenterOnX(50,52,1,door.lockedtext) end
 				if door.prompt_display == 2 then Prompt(door.unlockedtext) end			
 				if g_KeyPressE == 1 then
 					SetEntityActivated(e,1)

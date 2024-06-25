@@ -1,36 +1,39 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Healthbar v4 - by Necrym,59
--- DESCRIPTION: Will display viewed enemy health in a bar or text, set Always Active.
--- DESCRIPTION: Place the Health Bar object on your map (sample found in Max Collection\misc\testmodels).
--- DESCRIPTION: It will be hidden on game startup. Link this behavior to the Health Bar object.
+-- DESCRIPTION: A global behavior that display a viewed enemys health in a bar or text, set Always Active.
+-- DESCRIPTION: Place the Health Bar object on your map.
+-- DESCRIPTION: Attach this behavior to the Health Bar object.
 -- DESCRIPTION: [DISPLAY_RANGE=500(500,1000)]
 -- DESCRIPTION: [@DISPLAY_MODE=1(1=Bar, 2=Text)]
--- DESCRIPTION: [DISPLAY_Y=80(0,200)]
+-- DESCRIPTION: [Y_ADJUSTMENT=0(-50,50)]
 
+local P = require "scriptbank\\physlib"
 local healthbar = {}
 local display_range = {}
 local display_mode = {}
-local display_y = {}
+local y_adjustment = {}
 
 local allegiance = {}
+local entheight	= {}
 local health = {}
 
-function healthbar_properties(e, display_range, display_mode, display_y)
+function healthbar_properties(e, display_range, display_mode, y_adjustment)
 	healthbar[e] = g_Entity[e]
 	healthbar[e].display_range = display_range or 500
 	healthbar[e].display_mode = display_mode or 1
-	healthbar[e].display_y = display_y
+	healthbar[e].y_adjustment = y_adjustment or 0	
 end
 
 function healthbar_init(e)
 	healthbar[e] = g_Entity[e]
 	healthbar[e].display_range = 500
 	healthbar[e].display_mode = 1
-	healthbar[e].display_y = 80
+	healthbar[e].y_adjustment = 0
 	
 	healthbar[e].allegiance = 0
 	healthbar[e].health = 0
-	Hide(e)	
+	Hide(e)
+	entheight[e] = 0
 end
 
 function healthbar_main(e)
@@ -42,23 +45,25 @@ function healthbar_main(e)
 			if a ~= nil and g_Entity[a] ~= nil then 
 				local allegiance = GetEntityAllegiance(a) -- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
 				if allegiance == 0 then
-					Ent = g_Entity[a]					
+					Ent = g_Entity[a]
+					local dims = P.GetObjectDimensions(Ent.obj)
+					entheight[e] = (healthbar[e].y_adjustment + dims.h)
 					if PlayerLooking(a,healthbar[e].display_range,5) == 1 then
-						PlayerDist = GetPlayerDistance(a)
-						if healthbar[e].display_mode == 1 then 
+						PlayerDist = GetPlayerDistance(a)				
+						if healthbar[e].display_mode == 1 and g_Entity[a]['health'] > 0 then
 							if PlayerDist < (healthbar[e].display_range - 100) then Show(e) end
 							if PlayerDist > (healthbar[e].display_range - 100) then Hide(e) end
 						end
-						if healthbar[e].display_mode == 2 then
+						if healthbar[e].display_mode == 2 and g_Entity[a]['health'] > 0 then
 							if PlayerDist < (healthbar[e].display_range - 100) then PromptLocal(a,"Health: "..g_Entity[a]['health']) end
 							if PlayerDist > (healthbar[e].display_range - 100) then PromptLocal(a,"") end
 						end
 						if g_Entity[a]['health'] < 9000 then														
 							ScaleObject(g_Entity[e]['obj'],g_Entity[a]['health']/5,100,1)
-							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+healthbar[e].display_y, g_Entity[a]['z'])
-							ResetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+healthbar[e].display_y, g_Entity[a]['z'])																					
-							if g_Entity[a]['health'] > 80 then SetRotation(e,0,g_PlayerAngY+180,g_PlayerAngZ) end
-							if g_Entity[a]['health'] < 80 then SetRotation(e,0,g_PlayerAngY,g_PlayerAngZ) end
+							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+entheight[e], g_Entity[a]['z'])
+							ResetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+entheight[e], g_Entity[a]['z'])																					
+							if g_Entity[a]['health'] > 100 then SetRotation(e,0,g_PlayerAngY+180,g_PlayerAngZ) end
+							if g_Entity[a]['health'] < 100 then SetRotation(e,0,g_PlayerAngY,g_PlayerAngZ) end
 						end
 					end					
 				end

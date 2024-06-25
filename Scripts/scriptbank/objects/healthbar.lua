@@ -1,29 +1,33 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Healthbar v3 - by Necrym,59
+-- Healthbar v4 - by Necrym,59
 -- DESCRIPTION: Will display viewed enemy health in a bar or text, set Always Active.
 -- DESCRIPTION: Place the Health Bar object on your map (sample found in Max Collection\misc\testmodels).
 -- DESCRIPTION: It will be hidden on game startup. Link this behavior to the Health Bar object.
 -- DESCRIPTION: [DISPLAY_RANGE=500(500,1000)]
 -- DESCRIPTION: [@DISPLAY_MODE=1(1=Bar, 2=Text)]
+-- DESCRIPTION: [DISPLAY_Y=80(0,200)]
 
 local healthbar = {}
 local display_range = {}
 local display_mode = {}
+local display_y = {}
+
 local allegiance = {}
 local health = {}
 
-function healthbar_properties(e, display_range, display_mode, allegiance, health)
+function healthbar_properties(e, display_range, display_mode, display_y)
 	healthbar[e] = g_Entity[e]
 	healthbar[e].display_range = display_range or 500
 	healthbar[e].display_mode = display_mode or 1
-	healthbar[e].allegiance = 0
-	healthbar[e].health = 0	
+	healthbar[e].display_y = display_y
 end
 
 function healthbar_init(e)
 	healthbar[e] = g_Entity[e]
 	healthbar[e].display_range = 500
 	healthbar[e].display_mode = 1
+	healthbar[e].display_y = 80
+	
 	healthbar[e].allegiance = 0
 	healthbar[e].health = 0
 	Hide(e)	
@@ -33,7 +37,7 @@ function healthbar_main(e)
 	healthbar[e] = g_Entity[e]	
 	GravityOff(e)	
 	 
-	if healthbar[e]['allegiance'] == 0 then 
+	if healthbar[e].allegiance == 0 then 
 		for a = 1, g_EntityElementMax do 
 			if a ~= nil and g_Entity[a] ~= nil then 
 				local allegiance = GetEntityAllegiance(a) -- get the allegiance value for this entity (0-enemy, 1-ally, 2-neutral)
@@ -51,8 +55,8 @@ function healthbar_main(e)
 						end
 						if g_Entity[a]['health'] < 9000 then														
 							ScaleObject(g_Entity[e]['obj'],g_Entity[a]['health']/5,100,1)
-							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+80, g_Entity[a]['z'])
-							ResetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+80, g_Entity[a]['z'])																					
+							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+healthbar[e].display_y, g_Entity[a]['z'])
+							ResetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+healthbar[e].display_y, g_Entity[a]['z'])																					
 							if g_Entity[a]['health'] > 80 then SetRotation(e,0,g_PlayerAngY+180,g_PlayerAngZ) end
 							if g_Entity[a]['health'] < 80 then SetRotation(e,0,g_PlayerAngY,g_PlayerAngZ) end
 						end

@@ -41,7 +41,7 @@ function valve_main(e)
 			end			
 			if g_KeyPressE == 1 then
 				PlaySound(e,0)
-				Prompt(e,"Collected",3)
+				Prompt(e,"Collected")
 				PerformLogicConnections(e)
 				g_valve = 1
 				Destroy(e)				

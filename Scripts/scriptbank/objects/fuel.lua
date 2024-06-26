@@ -1,4 +1,4 @@
--- Fuel v10
+-- Fuel v11
 -- DESCRIPTION: The attached object will give the player a fuel resource if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to Collect"]
 -- DESCRIPTION: [AMOUNT=5(1,30)]
@@ -12,7 +12,10 @@
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
+
 g_fuel = {}
+g_fuelamount = {}
+g_fuelcollected = {}
 
 local fuel 				= {}
 local prompt_text 		= {}
@@ -27,6 +30,7 @@ local total 			= {}
 local tEnt 				= {}
 local selectobj 		= {}
 local collected			= {}
+local collectonce		= {}
 local doonce			= {}
 
 function fuel_properties(e, prompt_text, amount, pickup_range, pickup_style, collected_text, prompt_display, item_highlight)
@@ -50,6 +54,8 @@ function fuel_init_name(e)
 	fuel[e].item_highlight = 0
 	
 	g_fuel = 0
+	g_fuelamount = 0
+	g_fuelcollected = 0
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
@@ -60,25 +66,36 @@ end
 function fuel_main(e)
 
 	local PlayerDist = GetPlayerDistance(e)
+	
+	if PlayerDist < fuel[e].pickup_range and g_fuelcollected == 1 then
+		if fuel[e].prompt_display == 1 then PromptLocal(e,"Only one fuel cannister can be carried at a time") end
+		if fuel[e].prompt_display == 2 then Prompt("Only one fuel cannister can be carried at a time") end
+	end
 
 	if fuel[e].pickup_style == 1 then
-		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 then
-			if GetEntityCollectable(tEnt[e]) == 0 then
+		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and g_fuelcollected == 0 then
+			if GetEntityCollectable(e) == 0 then
 				if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
 				if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
 				PlaySound(e,0)
 				PerformLogicConnections(e)
-				g_fuel = g_fuel + fuel[e].amount
+				g_fuelamount = g_fuelamount+fuel[e].amount
 				collected[e] = 1
+				Hide(e)
+				CollisionOff(e)
 				Destroy(e)
 			end
-			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
+			if GetEntityCollectable(e) == 1 or GetEntityCollectable(e) == 2 then
 				if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
 				if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
 				PlaySound(e,0)
 				PerformLogicConnections(e)
-				g_fuel = g_fuel + fuel[e].amount
-				SetEntityCollected(tEnt[e],1)
+				SetEntityCollected(e,1)
+				g_fuel = e
+				g_fuelamount = g_fuelamount+fuel[e].amount
+				g_fuelcollected = 1
+				Hide(e)
+				CollisionOff(e)
 				collected[e] = 1
 			end
 		end		
@@ -91,27 +108,35 @@ function fuel_main(e)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
-		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and tEnt[e] ~= 0 then
+		if PlayerDist < fuel[e].pickup_range and collected[e] == 0 and tEnt[e] ~= 0 and g_fuelcollected == 0 then
 			if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].prompt_text) end
 			if fuel[e].prompt_display == 2 then Prompt(fuel[e].prompt_text) end			
 			if g_KeyPressE == 1 then
 				if GetEntityCollectable(tEnt[e]) == 0 then
 					PlaySound(e,0)
 					PerformLogicConnections(e)
-					g_fuel = g_fuel + fuel[e].amount
 					if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
 					if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
-					collected[e] = 1 
+					collected[e] = 1
+					g_fuel = e					
+					g_fuelamount = g_fuelamount + fuel[e].amount
+					g_fuelcollected = 1	
+					Hide(e)
+					CollisionOff(e)
 					Destroy(e)
 				end
 				if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then
 					PlaySound(e,0)
 					PerformLogicConnections(e)
-					g_fuel = g_fuel + fuel[e].amount
 					if fuel[e].prompt_display == 1 then PromptLocal(e,fuel[e].collected_text) end
 					if fuel[e].prompt_display == 2 then Prompt(fuel[e].collected_text) end
 					SetEntityCollected(tEnt[e],1)
 					collected[e] = 1
+					g_fuel = e
+					g_fuelamount = g_fuelamount + fuel[e].amount
+					g_fuelcollected = 1					
+					Hide(e)					
+ 					CollisionOff(e)				
 				end				
 			end	
 		end

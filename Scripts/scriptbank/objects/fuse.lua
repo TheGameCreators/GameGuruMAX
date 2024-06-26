@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Fuse v5 by Necrym59
+-- Fuse v7 by Necrym59
 -- DESCRIPTION: The attached object will give the player a fuse if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -55,14 +55,26 @@ function fuse_main(e)
 
 	if fuse[e].pickup_style == 1 then
 		if PlayerDist < fuse[e].pickup_range and collected[e] == 0 then
-			if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
-			if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
-			PlaySound(e,0)
-			PerformLogicConnections(e)
-			g_fuses = 1
-			collected[e] = 1
-			Destroy(e)
-		end
+			if GetEntityCollectable(e) == 0 then
+				g_fuses = e	
+				Hide(e)
+				CollisionOff(e)
+				collected[e] = 1
+				PerformLogicConnections(e)
+				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
+				if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
+			end
+			if GetEntityCollectable(e) == 1 or GetEntityCollectable(e) == 2 then -- if collectable or resource
+				g_fuses = e
+				Hide(e)
+				CollisionOff(e)
+				SetEntityCollected(e,1)
+				collected[e] = 1
+				PerformLogicConnections(e)
+				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
+				if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
+			end
+		end	
 	end	
 	
 	if fuse[e].pickup_style == 2 then
@@ -73,17 +85,31 @@ function fuse_main(e)
 			--end pinpoint select object--
 		end
 		if PlayerDist < fuse[e].pickup_range and tEnt[e] ~= 0 then
-			if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].prompt_text) end
-			if fuse[e].prompt_display == 2 then Prompt(fuse[e].prompt_text) end
-			if g_KeyPressE == 1 then				
+			if GetEntityCollectable(tEnt[e]) == 0 then
 				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
 				if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
 				PlaySound(e,0)
 				PerformLogicConnections(e)
-				g_fuses = 1
+				Hide(e)
+				CollisionOff(e)				
+				g_fuses = e
 				collected[e] = 1
-				Destroy(e)
 			end
+			if GetEntityCollectable(tEnt[e]) == 1 or GetEntityCollectable(tEnt[e]) == 2 then  -- if collectable or resource
+				if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].prompt_text) end
+				if fuse[e].prompt_display == 2 then Prompt(fuse[e].prompt_text) end
+				if g_KeyPressE == 1 then				
+					if fuse[e].prompt_display == 1 then PromptLocal(e,fuse[e].collected_text) end
+					if fuse[e].prompt_display == 2 then PromptDuration(fuse[e].collected_text,2000) end
+					SetEntityCollected(tEnt[e],1)
+					PlaySound(e,0)
+					PerformLogicConnections(e)
+					Hide(e)
+					CollisionOff(e)					
+					g_fuses = e
+					collected[e] = 1
+				end
+			end	
 		end
 	end		
 end

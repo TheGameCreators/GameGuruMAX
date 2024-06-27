@@ -55,26 +55,26 @@ function healthbar_main(e)
 								Show(e)
 							end
 							if healthbar[e].display_mode == 2 and g_Entity[a]['health'] > 0 then
-								Prompt3D("Health: "..g_Entity[a]['health'],1000)
+								Prompt3D("Health: "..g_Entity[a]['health'],10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
 							end
 							if healthbar[e].display_mode == 3 and g_Entity[a]['health'] > 0 then
 								Show(e)
-								Prompt3D("Health: "..g_Entity[a]['health'],1000)
+								Prompt3D("Health: "..g_Entity[a]['health'],10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
 							end							
 						end
-						if PlayerDist > healthbar[e].display_range -20 then
+						if PlayerDist > healthbar[e].display_range -20 or g_Entity[a]['health'] < 1 then
 							if healthbar[e].display_mode == 1 then
 								Hide(e)
 							end
 							if healthbar[e].display_mode == 2 then
-								Prompt3D("",500)
+								Prompt3D("",10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
 							end
 							if healthbar[e].display_mode == 2 then
 								Hide(e)
-								Prompt3D("",500)
+								Prompt3D("",10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
 							end
 						end

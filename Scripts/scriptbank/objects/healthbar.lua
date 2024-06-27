@@ -1,10 +1,10 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Healthbar v4 - by Necrym,59
+-- Healthbar v5 - by Necrym,59
 -- DESCRIPTION: A global behavior that display a viewed enemys health in a bar or text, set Always Active.
 -- DESCRIPTION: Place the Health Bar object on your map.
 -- DESCRIPTION: Attach this behavior to the Health Bar object.
--- DESCRIPTION: [DISPLAY_RANGE=500(500,1000)]
--- DESCRIPTION: [@DISPLAY_MODE=1(1=Bar, 2=Text)]
+-- DESCRIPTION: [DISPLAY_RANGE=200(100,1000)]
+-- DESCRIPTION: [@DISPLAY_MODE=1(1=Bar, 2=Text, 3=Text+Bar)]
 -- DESCRIPTION: [Y_ADJUSTMENT=0(-50,50)]
 
 local P = require "scriptbank\\physlib"
@@ -49,24 +49,44 @@ function healthbar_main(e)
 					local dims = P.GetObjectDimensions(Ent.obj)
 					entheight[e] = (healthbar[e].y_adjustment + dims.h)
 					if PlayerLooking(a,healthbar[e].display_range,5) == 1 then
-						PlayerDist = GetPlayerDistance(a)				
-						if healthbar[e].display_mode == 1 and g_Entity[a]['health'] > 0 then
-							if PlayerDist < (healthbar[e].display_range - 100) then Show(e) end
-							if PlayerDist > (healthbar[e].display_range - 100) then Hide(e) end
+						PlayerDist = GetPlayerDistance(a)
+						if PlayerDist < healthbar[e].display_range then 
+							if healthbar[e].display_mode == 1 and g_Entity[a]['health'] > 0 then
+								Show(e)
+							end
+							if healthbar[e].display_mode == 2 and g_Entity[a]['health'] > 0 then
+								Prompt3D("Health: "..g_Entity[a]['health'],1000)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
+							end
+							if healthbar[e].display_mode == 3 and g_Entity[a]['health'] > 0 then
+								Show(e)
+								Prompt3D("Health: "..g_Entity[a]['health'],1000)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
+							end							
 						end
-						if healthbar[e].display_mode == 2 and g_Entity[a]['health'] > 0 then
-							if PlayerDist < (healthbar[e].display_range - 100) then PromptLocal(a,"Health: "..g_Entity[a]['health']) end
-							if PlayerDist > (healthbar[e].display_range - 100) then PromptLocal(a,"") end
+						if PlayerDist > healthbar[e].display_range -20 then
+							if healthbar[e].display_mode == 1 then
+								Hide(e)
+							end
+							if healthbar[e].display_mode == 2 then
+								Prompt3D("",500)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
+							end
+							if healthbar[e].display_mode == 2 then
+								Hide(e)
+								Prompt3D("",500)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
+							end
 						end
 						if g_Entity[a]['health'] < 9000 then														
 							ScaleObject(g_Entity[e]['obj'],g_Entity[a]['health']/5,100,1)
-							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+entheight[e], g_Entity[a]['z'])
+							SetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+entheight[e], g_Entity[a]['z'])							
 							ResetPosition(e,g_Entity[a]['x'], g_Entity[a]['y']+entheight[e], g_Entity[a]['z'])																					
 							if g_Entity[a]['health'] > 100 then SetRotation(e,0,g_PlayerAngY+180,g_PlayerAngZ) end
 							if g_Entity[a]['health'] < 100 then SetRotation(e,0,g_PlayerAngY,g_PlayerAngZ) end
-						end
-					end					
-				end
+						end						
+					end
+				end				
 			end 
 		end	
 	end	
@@ -90,34 +110,34 @@ function PlayerLooking(e,dis,v)
 			elseif angle > 360 then
 				angle = angle - 360
 			end
-		while g_PlayerAngY < 0 or g_PlayerAngY > 360 do
-			if g_PlayerAngY <= 0 then
-				g_PlayerAngY = 360 + g_PlayerAngY
-			elseif g_PlayerAngY > 360 then
-				g_PlayerAngY = g_PlayerAngY - 360
+			while g_PlayerAngY < 0 or g_PlayerAngY > 360 do
+				if g_PlayerAngY <= 0 then
+					g_PlayerAngY = 360 + g_PlayerAngY
+				elseif g_PlayerAngY > 360 then
+					g_PlayerAngY = g_PlayerAngY - 360
+				end
 			end
+			local L = angle - v
+			local R = angle + v
+			if L <= 0 then
+				L = 360 + L 
+			elseif L > 360 then
+				L = L - 360
+			end
+			if R <= 0 then
+				R = 360 + R
+			elseif R > 360 then
+				R = R - 360
+			end
+			if (L < R and math.abs(g_PlayerAngY) > L and math.abs(g_PlayerAngY) < R) then
+				return 1
+			elseif (L > R and (math.abs(g_PlayerAngY) > L or math.abs(g_PlayerAngY) < R)) then
+				return 1
+			else
+				return 0
+			end
+		else		
+			return 0		
 		end
-		local L = angle - v
-		local R = angle + v
-		if L <= 0 then
-			L = 360 + L 
-		elseif L > 360 then
-			L = L - 360
-		end
-		if R <= 0 then
-			R = 360 + R
-		elseif R > 360 then
-			R = R - 360
-		end
-		if (L < R and math.abs(g_PlayerAngY) > L and math.abs(g_PlayerAngY) < R) then
-			return 1
-		elseif (L > R and (math.abs(g_PlayerAngY) > L or math.abs(g_PlayerAngY) < R)) then
-			return 1
-		else
-			return 0
-		end
-	else		
-		return 0		
-	end
 	end
 end

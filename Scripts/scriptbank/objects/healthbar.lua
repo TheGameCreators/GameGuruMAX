@@ -18,14 +18,13 @@ local entheight	= {}
 local health = {}
 
 function healthbar_properties(e, display_range, display_mode, y_adjustment)
-	healthbar[e] = g_Entity[e]
 	healthbar[e].display_range = display_range or 500
 	healthbar[e].display_mode = display_mode or 1
 	healthbar[e].y_adjustment = y_adjustment or 0	
 end
 
 function healthbar_init(e)
-	healthbar[e] = g_Entity[e]
+	healthbar[e] = {}
 	healthbar[e].display_range = 500
 	healthbar[e].display_mode = 1
 	healthbar[e].y_adjustment = 0
@@ -33,12 +32,11 @@ function healthbar_init(e)
 	healthbar[e].allegiance = 0
 	healthbar[e].health = 0
 	Hide(e)
+	GravityOff(e)
 	entheight[e] = 0
 end
 
 function healthbar_main(e)
-	healthbar[e] = g_Entity[e]	
-	GravityOff(e)	
 	 
 	if healthbar[e].allegiance == 0 then 
 		for a = 1, g_EntityElementMax do 

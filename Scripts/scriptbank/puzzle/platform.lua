@@ -1,5 +1,5 @@
 --LUA Script - precede every function and global member with lowercase name of script + '_main'
---Platform Script V15  by Necrym59 with thanks to smallg
+--Platform Script V16  by Necrym59 with thanks to smallg
 --DESCRIPTION: Attach to an object. With Physics ON, Gravity OFF, Weight and Friction 0, IsImobile ON
 --DESCRIPTION: Change [PROMPT_TEXT$="E to start"]
 --DESCRIPTION: The direction 
@@ -317,6 +317,7 @@ function platform_main(e)
 				TransportToFreezePositionOnly()
 			end	
 		end
+		if g_PlayerHealth == 0 then platform[e].riding = 0 end
 		CollisionOn(e)
 		GravityOn(e)
 		if platform[e].lock_x_rotation == 1 then 

@@ -229,11 +229,14 @@ void mapfile_saveproject_fpm ( void )
 	#endif
 
 	// ensure when export visual, always start with HIGHEST mode to reflect settings chosen when editing level (i.e. grass distance)
-	t.gamevisuals.shaderlevels.terrain = 1;
-	t.gamevisuals.shaderlevels.entities = 1;
-	t.gamevisuals.shaderlevels.vegetation = 1;
-	t.gamevisuals.shaderlevels.lighting = 1;
-
+	//PE: Respect custom settings, some levels need to disable some optimizing settings...
+	if (t.gamevisuals.shaderlevels.entities != 2)
+	{
+		t.gamevisuals.shaderlevels.terrain = 1;
+		t.gamevisuals.shaderlevels.entities = 1;
+		t.gamevisuals.shaderlevels.vegetation = 1;
+		t.gamevisuals.shaderlevels.lighting = 1;
+	}
 	//  Switch visuals to gamevisuals as this is what we want to save
 	t.editorvisuals=t.visuals ; t.visuals=t.gamevisuals  ; visuals_save ( );
 

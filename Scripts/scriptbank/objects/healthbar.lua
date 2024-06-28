@@ -53,11 +53,13 @@ function healthbar_main(e)
 								Show(e)
 							end
 							if healthbar[e].display_mode == 2 and g_Entity[a]['health'] > 0 then
+								ScaleObject(5999,20.0,50.0,20.0)
 								Prompt3D("Health: "..g_Entity[a]['health'],10)
-								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
 							end
 							if healthbar[e].display_mode == 3 and g_Entity[a]['health'] > 0 then
 								Show(e)
+								ScaleObject(5999,20.0,50.0,20.0) 
 								Prompt3D("Health: "..g_Entity[a]['health'],10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
 							end							

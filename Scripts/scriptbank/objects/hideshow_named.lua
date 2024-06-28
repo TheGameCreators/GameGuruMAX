@@ -1,12 +1,13 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- HideShow_Named v12
+-- HideShow_Named v14
 -- DESCRIPTION: Will Hide or Show a named object when this object is activated from a linked Trigger Zone or Switch
 -- DESCRIPTION: Attach to any object set Always ON
 -- DESCRIPTION: [OBJECT_NAME$=""] to Hide/Show
--- DESCRIPTION: Change the [PROMPT_TEXT$="What was that"]
--- DESCRIPTION: Object [@MODE=1(1=Hide, 2=Show, 3=Fade-Hide, 4=Fade-Show)],
+-- DESCRIPTION: [PROMPT_TEXT$="What was that"]
+-- DESCRIPTION: [@MODE=1(1=Hide, 2=Show, 3=Fade-Hide, 4=Fade-Show)] the mode of action
 -- DESCRIPTION: [DELAY=0(0,30)] in seconds, fade fade_speed [#FADE_SPEED=0.02(0.00,10.00)]
--- DESCRIPTION: play <Sound0>
+-- DESCRIPTION: <Sound0> played when hiding
+-- DESCRIPTION: <Sound1> played when showing
 
 local lower = string.lower
 
@@ -23,7 +24,6 @@ local played		= {}
 local doonce		= {}
 	
 function hideshow_named_properties(e, object_name, prompt_text, mode, delay, fade_speed)
-	hsobject[e] = g_Entity[e]
 	hsobject[e].object_name = lower(object_name)
 	hsobject[e].prompt_text = prompt_text
 	hsobject[e].mode = mode	
@@ -43,11 +43,9 @@ function hideshow_named_init(e)
 	played[e] = 0
 	doonce[e] = 0
 	objEnt[e] = 0
-	StartTimer(e)
 end
  
 function hideshow_named_main(e)
-	hsobject[e] = g_Entity[e]
 	if status[e] == "init" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
@@ -69,7 +67,8 @@ function hideshow_named_main(e)
 			Hide(objEnt[e])
 			CollisionOff(objEnt[e])
 		end
-		status[e] = "end"
+		StartTimer(e)
+		status[e] = "endinit"
 	end
 	
 	if g_Entity[e]['activated'] == 0 then played[e] = 0 end	
@@ -105,7 +104,7 @@ function hideshow_named_main(e)
 					doonce[e] = 1
 				end	
 				if played[e] == 0 then
-					PlaySound(e,0)
+					PlaySound(e,1)
 					played[e] = 1
 				end				
 				g_Entity[e]['activated'] = 0
@@ -155,7 +154,7 @@ function hideshow_named_main(e)
 					doonce[e] = 1
 				end
 				if played[e] == 0 then
-					PlaySound(e,0)
+					PlaySound(e,1)
 					played[e] = 1
 				end				
 				g_Entity[e]['activated'] = 0

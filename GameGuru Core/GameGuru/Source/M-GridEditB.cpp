@@ -7258,7 +7258,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					ImGui::PopItemWidth();
 				}
 
-				/*
+				// FSR Mode (FidelityFX Super Resolution)
 				const char* fsr_items_align[] = { "None", "Ultra Quality","Quality", "Balanced", "Performance" };
 				int fsr_current_type_selection = t.visuals.iFSRMode;
 				tab_tab_Column_text("FSR", fTabColumnWidth);
@@ -7320,15 +7320,12 @@ void tab_tab_visuals(int iPage, int iMode)
 						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
 					}
 
-
 					//PE: change.
 					g.projectmodified = 1;
 				}
-				//if (ImGui::IsItemHovered()) ImGui::SetTooltip("");
 
 				ImGui::PopItemWidth();
-
-			
+	
 				if (master.masterrenderer.getFSREnabled())
 				{
 					ImGui::Text("FSR Sharpness");
@@ -7343,7 +7340,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change FSR Sharpness");
 					ImGui::PopItemWidth();
 				}
-				*/
+
 				// end performance
 				ImGui::Indent(-10);
 			}

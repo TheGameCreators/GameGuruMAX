@@ -70,7 +70,7 @@ function healthbar_main(e)
 								Prompt3D("",10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'],g_PlayerAngY)
 							end
-							if healthbar[e].display_mode == 2 then
+							if healthbar[e].display_mode == 3 then
 								Hide(e)
 								Prompt3D("",10)
 								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)

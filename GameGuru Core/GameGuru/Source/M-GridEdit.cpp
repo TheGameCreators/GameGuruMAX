@@ -343,6 +343,7 @@ bool bRotScaleAlreadyUpdated = false;
 //float fEditorGridSizeY = 100.0f;
 //float fEditorGridSizeZ = 100.0f;
 int old_iMSAASampleCount = -1;
+int old_iFSRMode = -1;
 int old_iMSAO = -1;
 float old_fMSAOPower = -1.0;
 int old_iShadowSpotCascadeResolution = -1;
@@ -18132,6 +18133,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.SkyCloudSpeed = t.gamevisuals.SkyCloudSpeed;
 
 	t.visuals.iMSAASampleCount = t.gamevisuals.iMSAASampleCount;
+	t.visuals.iFSRMode = t.gamevisuals.iFSRMode;
+	t.visuals.fFSRSharpness = t.gamevisuals.fFSRSharpness;
 
 	t.visuals.iMSAO = t.gamevisuals.iMSAO;
 	t.visuals.fMSAOPower = t.gamevisuals.fMSAOPower;

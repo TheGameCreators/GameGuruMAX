@@ -6114,6 +6114,15 @@ void WickedCall_DrawImguiNow(void)
 	ImGuiHook_RenderCall_Direct((void*)m_pImmediateContext, (void*)m_pD3D);
 }
 
+//PE: Changing the far plane in indoor levels can really boost the FPS.
+void WickedCall_SetCameraFarPlanes(float farplane)
+{
+	float fNear = wiScene::GetCamera().zNearP;
+	float fFar = farplane;
+	float fCameraFov = wiScene::GetCamera().fov;
+	wiScene::GetCamera().CreatePerspective((float)master.masterrenderer.GetLogicalWidth(), (float)master.masterrenderer.GetLogicalHeight(), fNear, fFar, fCameraFov);
+}
+
 void WickedCall_SetCameraFOV ( float fFOV )
 {
 	// from wicked camera

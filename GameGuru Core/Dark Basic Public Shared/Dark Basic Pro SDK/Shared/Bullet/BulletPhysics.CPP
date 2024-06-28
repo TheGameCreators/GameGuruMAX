@@ -2208,17 +2208,10 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 		bDWORDSizeIndices = true;
 	}
 	gVertices = new float[totalVerts * 4];
-	memset (gVertices, 0, sizeof(float)*totalVerts * 4);
-	if (bDWORDSizeIndices == true)
-	{
-		gIndices = (LPVOID)new DWORD[totalIndices];
-		memset (gIndices, 0, sizeof(DWORD)*totalIndices);
-	}
-	else
-	{
-		gIndices = (LPVOID)new WORD[totalIndices];
-		memset (gIndices, 0, sizeof(WORD)*totalIndices);
-	}
+	memset(gVertices, 0, sizeof(float) * totalVerts * 4);
+
+	//PE: We need to convert some triangle lists to indices.
+	std::vector<DWORD> dwIndices;
 
 	//LB: get root node rotation to ensure mesh is right way up
 	GGMATRIX matRootRotOnly;
@@ -2227,6 +2220,9 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 	matRootRotOnly._42 = 0;
 	matRootRotOnly._43 = 0;
 
+	//PE: This system do not work with Mesh->dwIndexCount == 0 triangle lists they are ignored.
+	//PE: use dwIndices and convert triangle lists to indices based.
+	
 	// for convex hull, collect for vert only initially
 	int vcount = 0, icount = 0;
 	for (int iFrame = 0; iFrame < pObjectUsedToExtractPhysicsMesh->iFrameCount; iFrame++)
@@ -2295,14 +2291,26 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 								iIndexCount = pMesh->dwIndexCountLOD1;
 							}
 						}
-
-						for (int i = 0; i < (int) iIndexCount; i++)
+						if (iIndexCount == 0)
 						{
-							if (bDWORDSizeIndices == true)
-								((DWORD*)gIndices)[icount + i] = vcount + (*pIndexData);
-							else
-								((WORD*)gIndices)[icount + i] = vcount + (*pIndexData);
-							pIndexData++;
+							//PE: Convert triangle lists.
+							for (int v = 0; v < (int)pMesh->dwVertexCount; v++)
+							{
+								dwIndices.push_back(vcount + v);
+								iIndexCount++;
+							}
+						}
+						else
+						{
+							for (int i = 0; i < (int)iIndexCount; i++)
+							{
+								dwIndices.push_back(vcount + (*pIndexData));
+								//if (bDWORDSizeIndices == true)
+								//	((DWORD*)gIndices)[icount + i] = vcount + (*pIndexData);
+								//else
+								//	((WORD*)gIndices)[icount + i] = vcount + (*pIndexData);
+								pIndexData++;
+							}
 						}
 						vcount += pMesh->dwVertexCount;
 						icount += iIndexCount;
@@ -2311,6 +2319,29 @@ void CreateMesh ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTerrai
 			}
 		}
 	}
+	
+	totalIndices = dwIndices.size();
+
+	if (bDWORDSizeIndices == true)
+	{
+		gIndices = (LPVOID)new DWORD[totalIndices];
+		memset(gIndices, 0, sizeof(DWORD) * totalIndices);
+	}
+	else
+	{
+		gIndices = (LPVOID)new WORD[totalIndices];
+		memset(gIndices, 0, sizeof(WORD) * totalIndices);
+	}
+
+	//PE: Copy from dwIndices to gIndices.
+	for( int i = 0; i < dwIndices.size(); i++)
+	{
+		if (bDWORDSizeIndices == true)
+			((DWORD*)gIndices)[i] = dwIndices[i];
+		else
+			((WORD*)gIndices)[i] = (WORD) dwIndices[i];
+	}
+	dwIndices.clear();
 
 	// if turns out this is index buffer based, ch_vertexBuffer data not enough
 	if (totalIndices > 0)

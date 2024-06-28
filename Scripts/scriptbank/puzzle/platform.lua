@@ -26,7 +26,7 @@
 --DESCRIPTION: [@RIDING=1(1=Locked, 2=Unlocked)]
 --DESCRIPTION: [@MODE=1(1=Manual, 2=Auto)]
 --DESCRIPTION: [EXTENDED!=0] to start at extended position
---DESCRIPTION: [RESPAWN_ON_PLATFORM!=1] to respawn on platform upon player death
+--DESCRIPTION: [RESPAWN_ON_PLATFORM!=0] to respawn on platform upon player death
 --DESCRIPTION: <Sound0> - for platform starting
 --DESCRIPTION: <Sound1> - for platform running
 --DESCRIPTION: <Sound2> - for platform stopping
@@ -87,7 +87,7 @@ function platform_properties(e, prompt_text, direction_x, direction_y, direction
 	platform[e].riding 					= riding or 1
 	platform[e].mode 					= mode or 1
 	platform[e].extended				= extended or 0
-	platform[e].respawn_on_platform		= respawn_on_platform or 1
+	platform[e].respawn_on_platform		= respawn_on_platform or 0
 end 
 
 function platform_init(e)

@@ -26,6 +26,7 @@
 --DESCRIPTION: [@RIDING=1(1=Locked, 2=Unlocked)]
 --DESCRIPTION: [@MODE=1(1=Manual, 2=Auto)]
 --DESCRIPTION: [EXTENDED!=0] to start at extended position
+--DESCRIPTION: [RESPAWN_ON_PLATFORM!=1] to respawn on platform upon player death
 --DESCRIPTION: <Sound0> - for platform starting
 --DESCRIPTION: <Sound1> - for platform running
 --DESCRIPTION: <Sound2> - for platform stopping
@@ -64,7 +65,7 @@
 	local state 			= {}
 	local onplatform		= {}
 
-function platform_properties(e, prompt_text, direction_x, direction_y, direction_z, distance_x, distance_y, distance_z, speed_x, speed_y, speed_z, lock_x_position, lock_y_position, lock_z_position, lock_x_rotation, lock_y_rotation, lock_z_rotation, auto_eject, visibility, riding, mode, extended)
+function platform_properties(e, prompt_text, direction_x, direction_y, direction_z, distance_x, distance_y, distance_z, speed_x, speed_y, speed_z, lock_x_position, lock_y_position, lock_z_position, lock_x_rotation, lock_y_rotation, lock_z_rotation, auto_eject, visibility, riding, mode, extended, respawn_on_platform)
 	platform[e].prompt_text 			= prompt_text
 	platform[e].direction_x 			= direction_x
 	platform[e].direction_y 			= direction_y
@@ -85,7 +86,8 @@ function platform_properties(e, prompt_text, direction_x, direction_y, direction
 	platform[e].visibility 				= visibility or 1
 	platform[e].riding 					= riding or 1
 	platform[e].mode 					= mode or 1
-	platform[e].extended				= extended
+	platform[e].extended				= extended or 0
+	platform[e].respawn_on_platform		= respawn_on_platform or 1
 end 
 
 function platform_init(e)
@@ -111,6 +113,7 @@ function platform_init(e)
 	platform[e].riding					= 1
 	platform[e].mode 					= 1
 	platform[e].extended				= 0
+	platform[e].respawn_on_platform		= 1
 	riding[e] = 1
 	onplatform[e] = 0
 	state[e] = "init"
@@ -317,7 +320,7 @@ function platform_main(e)
 				TransportToFreezePositionOnly()
 			end	
 		end
-		if g_PlayerHealth == 0 then platform[e].riding = 0 end
+		if platform[e].respawn_on_platform == 0 and g_PlayerHealth == 0 then platform[e].riding = 0 end
 		CollisionOn(e)
 		GravityOn(e)
 		if platform[e].lock_x_rotation == 1 then 

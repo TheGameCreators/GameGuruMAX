@@ -1,24 +1,25 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- HideShow v12
+-- HideShow v14
 -- DESCRIPTION: Will Hide or Show an object activated from a linked Trigger Zone or Switch
 -- DESCRIPTION: Attach to the object(s) to be hidden/shown. Physics=ON, IsImobile=YES
--- DESCRIPTION: Change the [PROMPT_TEXT$="What was that"], Object [@MODE=1(1=Hide, 2=Show, 3=Fade-Hide, 4=Fade-Show)],
+-- DESCRIPTION: [PROMPT_TEXT$="What was that"]
+-- DESCRIPTION: [@MODE=1(1=Hide, 2=Show, 3=Fade-Hide, 4=Fade-Show)] Mode of action
 -- DESCRIPTION: [DELAY=0(0,30)] in seconds, fade fade_speed [#FADE_SPEED=0.02(0.00,10.00)]
--- DESCRIPTION: play <Sound0>
+-- DESCRIPTION: <Sound0> played when hiding
+-- DESCRIPTION: <Sound1> played when showing
 
-	local hsobject 		= {}
-	local prompt_text 	= {}
-	local mode			= {}
-	local delay			= {}
-	local status		= {}
-	local hs_time		= {}
-	local fade_speed	= {}
-	local current_level = {}
-	local played		= {}
-	local doonce		= {}
+local hsobject 		= {}
+local prompt_text 	= {}
+local mode			= {}
+local delay			= {}
+local status		= {}
+local hs_time		= {}
+local fade_speed	= {}
+local current_level = {}
+local played		= {}
+local doonce		= {}
 	
 function hideshow_properties(e, prompt_text, mode, delay, fade_speed)
-	hsobject[e] = g_Entity[e]
 	hsobject[e].prompt_text = prompt_text
 	hsobject[e].mode = mode	
 	hsobject[e].delay = delay
@@ -41,7 +42,6 @@ function hideshow_init(e)
 end
  
 function hideshow_main(e)
-	hsobject[e] = g_Entity[e]
 	if status[e] == "init" then
 		if hsobject[e].mode == 3 then current_level[e] = 100 end
 		if hsobject[e].mode == 4 then current_level[e] = 0 end		
@@ -53,6 +53,7 @@ function hideshow_main(e)
 			Hide(e)
 			CollisionOff(e)
 		end
+		StartTimer(e)
 		status[e] = "end"
 	end
 	
@@ -89,7 +90,7 @@ function hideshow_main(e)
 					doonce[e] = 1
 				end	
 				if played[e] == 0 then
-					PlaySound(e,0)
+					PlaySound(e,1)
 					played[e] = 1
 				end				
 				g_Entity[e]['activated'] = 0
@@ -107,6 +108,7 @@ function hideshow_main(e)
 					current_level[e] = 0
 					SetEntityBaseAlpha(e,current_level[e])					
 					Hide(e)
+					CollisionOff(e)
 				end
 				if doonce[e] == 0 then
 					PromptDuration(hsobject[e].prompt_text,2000)
@@ -137,7 +139,7 @@ function hideshow_main(e)
 					doonce[e] = 1
 				end
 				if played[e] == 0 then
-					PlaySound(e,0)
+					PlaySound(e,1)
 					played[e] = 1
 				end					
 				g_Entity[e]['activated'] = 0

@@ -2535,7 +2535,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				entityeleproftype tempeleprof = t.entityelement[t.e].eleprof;
 				InitParseLuaScript(&tempeleprof);
 				cstr script_name = "";
-				if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				//if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) 
+				script_name = "scriptbank\\";
 				script_name += tempeleprof.aimain_s;
 				ParseLuaScript(&tempeleprof, script_name.Get());
 
@@ -3251,6 +3252,373 @@ int mapfile_savestandalone_stage2b ( void )
 	return iMoveAlong;
 }
 
+void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
+{
+	// Store current
+	int iStoredEntID = t.entid;
+	t.entid = entid;
+
+	// Check for custom images loaded in lua script
+	if (pEleProf->aimain_s != "")
+	{
+		cstr tLuaScript = g.fpscrootdir_s + "\\Files\\scriptbank\\";
+		tLuaScript += pEleProf->aimain_s;
+		FILE* tLuaScriptFile = GG_fopen (tLuaScript.Get(), "r");
+		if (tLuaScriptFile)
+		{
+			char tTempLine[2048];
+			while (!feof(tLuaScriptFile))
+			{
+				fgets (tTempLine, 2047, tLuaScriptFile);
+				if (strstr (tTempLine, "LoadImages"))
+				{
+					char* pImageFolder = strstr (tTempLine, "\"");
+					if (pImageFolder)
+					{
+						pImageFolder++;
+						char* pImageFolderEnd = strstr (pImageFolder, "\"");
+						if (pImageFolderEnd)
+						{
+							*pImageFolderEnd = '\0';
+							cstr tFolderToAdd = cstr(cstr("scriptbank\\images\\") + cstr(pImageFolder));
+							addfoldertocollection (tFolderToAdd.Get());
+						}
+					}
+				}
+
+				// Handle new load image and sound commands, they can be in nested folders
+				if (strstr (tTempLine, "LoadImage ")
+					|| strstr (tTempLine, "LoadImage(")
+					|| strstr (tTempLine, "LoadGlobalSound("))
+				{
+					char* pImageFolder = strstr (tTempLine, "\"");
+					if (pImageFolder)
+					{
+						pImageFolder++;
+						char* pImageFolderEnd = strstr (pImageFolder, "\"");
+						if (pImageFolderEnd)
+						{
+							*pImageFolderEnd = '\0';
+							cstr pFile = cstr(pImageFolder);
+							addtocollection (pFile.Get());
+						}
+					}
+				}
+				if (strstr(tTempLine, "SetSkyTo(")) {
+					char* pSkyFolder = strstr(tTempLine, "\"");
+					if (pSkyFolder)
+					{
+						pSkyFolder++;
+						char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
+						if (pSkyFolderEnd)
+						{
+							*pSkyFolderEnd = '\0';
+							cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
+							addfoldertocollection(tFolderToAdd.Get());
+						}
+					}
+				}
+			}
+			fclose (tLuaScriptFile);
+		}
+	}
+
+	//  entity profile file
+	t.tentityname1_s = cstr("entitybank\\") + t.entitybank_s[t.entid];
+	t.tentityname2_s = cstr(Left(t.tentityname1_s.Get(), Len(t.tentityname1_s.Get()) - 4)) + ".bin";
+	if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tentityname2_s).Get()) == 1)
+	{
+		t.tentityname_s = t.tentityname2_s;
+	}
+	else
+	{
+		t.tentityname_s = t.tentityname1_s;
+	}
+	addtocollection(t.tentityname_s.Get());
+
+	//PE: NEWLOD
+	std::string lodname = t.tentityname_s.Get();
+	replaceAll(lodname, ".fpe", "_lod.dbo");
+	replaceAll(lodname, ".bin", "_lod.dbo");
+	addtocollection((char*)lodname.c_str());
+
+	//  entity files in folder
+	t.tentityfolder_s = t.tentityname_s;
+	for (t.n = Len(t.tentityname_s.Get()); t.n >= 1; t.n += -1)
+	{
+		if (cstr(Mid(t.tentityname_s.Get(), t.n)) == "\\" || cstr(Mid(t.tentityname_s.Get(), t.n)) == "/")
+		{
+			t.tentityfolder_s = Left(t.tentityfolder_s.Get(), t.n);
+			break;
+		}
+	}
+
+	//  model files (main model, final appended model and all other append
+	int iModelAppendFileCount = t.entityprofile[t.entid].appendanimmax;
+	if (Len (t.entityappendanim[t.entid][0].filename.Get()) > 0) iModelAppendFileCount = 0;
+	for (int iModels = -1; iModels <= iModelAppendFileCount; iModels++)
+	{
+		LPSTR pModelFile = "";
+		if (iModels == -1)
+		{
+			pModelFile = t.entityprofile[t.entid].model_s.Get();
+		}
+		else
+		{
+			pModelFile = t.entityappendanim[t.entid][iModels].filename.Get();
+		}
+		t.tlocaltofpe = 1;
+		for (t.n = 1; t.n <= Len(pModelFile); t.n++)
+		{
+			if (cstr(Mid(pModelFile, t.n)) == "\\" || cstr(Mid(pModelFile, t.n)) == "/")
+			{
+				t.tlocaltofpe = 0; break;
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile1_s = t.tentityfolder_s + pModelFile;
+		}
+		else
+		{
+			t.tfile1_s = pModelFile;
+		}
+		t.tfile2_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dbo";
+		if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile2_s).Get()) == 1)
+		{
+			t.tfile_s = t.tfile2_s;
+		}
+		else
+		{
+			t.tfile_s = t.tfile1_s;
+		}
+		t.tmodelfile_s = t.tfile_s;
+		addtocollection(t.tmodelfile_s.Get());
+		// if entity did not specify texture it is multi-texture, so interogate model file
+		// do it for every model
+		findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entid].texpath_s.Get());
+	}
+
+	// Export entity FPE BMP file if flagged
+	if (g.gexportassets == 1)
+	{
+		t.tfile3_s = cstr(Left(t.tentityname_s.Get(), Len(t.tentityname_s.Get()) - 4)) + ".bmp";
+		if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
+		{
+			addtocollection(t.tfile3_s.Get());
+		}
+	}
+
+	// entity characterpose file (if any)
+	t.tfile3_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dat";
+	if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
+	{
+		addtocollection(t.tfile3_s.Get());
+	}
+
+	//  texture files
+	for (int iBothTypes = 0; iBothTypes < 2; iBothTypes++)
+	{
+		// can be from ELEPROF of entityelement (older maps point to old texture names) or parent ELEPROF original
+		cstr pTextureFile = "", pAltTextureFile = "";
+		if (iBothTypes == 0) { pTextureFile = pEleProf->texd_s; pAltTextureFile = pEleProf->texaltd_s; }
+		if (iBothTypes == 1) { pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; }
+
+		t.tlocaltofpe = 1;
+		for (t.n = 1; t.n <= Len(pTextureFile.Get()); t.n++)
+		{
+			if (cstr(Mid(pTextureFile.Get(), t.n)) == "\\" || cstr(Mid(pTextureFile.Get(), t.n)) == "/")
+			{
+				t.tlocaltofpe = 0; break;
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile_s = t.tentityfolder_s + pTextureFile;
+		}
+		else
+		{
+			t.tfile_s = pTextureFile;
+		}
+		addtocollection(t.tfile_s.Get());
+
+		// always allow a DDS texture of same name to be copied over (for test game compatibility)
+		for (int iTwoExtensions = 0; iTwoExtensions <= 1; iTwoExtensions++)
+		{
+			if (iTwoExtensions == 0) t.tfileext_s = Right (t.tfile_s.Get(), 3);
+			if (iTwoExtensions == 1) t.tfileext_s = "dds";
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 6)), 2)) == "_d")
+			{
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_n." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_s." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_i." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_o." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_cube." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+			}
+			int iNewPBRTextureMode = 0;
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 10)), 6)) == "_color") iNewPBRTextureMode = 6 + 4;
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 11)), 7)) == "_albedo") iNewPBRTextureMode = 7 + 4;
+			if (iNewPBRTextureMode > 0)
+			{
+				cstr pToAdd;
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_color." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_albedo." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_normal." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_specular." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_metalness." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_gloss." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_mask." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_ao." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_height." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_detail." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_emissive." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_i." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile_s = t.tentityfolder_s + pAltTextureFile;
+		}
+		else
+		{
+			t.tfile_s = pAltTextureFile;
+		}
+		addtocollection(t.tfile_s.Get());
+	}
+
+	// also include textures specified by textureref entries (from importer export)
+	cstr tFPEFilePath = g.fpscrootdir_s + "\\Files\\";
+	tFPEFilePath += t.tentityname1_s;
+	FILE* tFPEFile = GG_fopen (tFPEFilePath.Get(), "r");
+	if (tFPEFile)
+	{
+		char tTempLine[2048];
+		while (!feof(tFPEFile))
+		{
+			fgets (tTempLine, 2047, tFPEFile);
+			if (strstr (tTempLine, "textureref"))
+			{
+				char* pToFilename = strstr (tTempLine, "=");
+				if (pToFilename)
+				{
+					while (*pToFilename == '=' || *pToFilename == 32) pToFilename++;
+					if (pToFilename[strlen(pToFilename) - 1] == 13) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 10) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 13) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 10) pToFilename[strlen(pToFilename) - 1] = 0;
+					cstr tTextureFile = cstr(t.tentityfolder_s + cstr(pToFilename));
+					addtocollection (tTextureFile.Get());
+				}
+			}
+		}
+		fclose (tFPEFile);
+	}
+
+	//  shader file
+	t.tfile_s = pEleProf->effect_s; addtocollection(t.tfile_s.Get());
+	//Try to take the .blob.
+	if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+		t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+		t.tfile_s = t.tfile_s + ".blob";
+		if (FileExist(t.tfile_s.Get()) == 1)
+		{
+			addtocollection(t.tfile_s.Get());
+		}
+	}
+	//  script files
+	cstr script_name = "";
+	//if (strnicmp(pEleProf->aimain_s.Get(), "projectbank", 11) != NULL) 
+	script_name = "scriptbank\\";
+	script_name += pEleProf->aimain_s;
+	t.tfile_s = script_name;
+	addtocollection(t.tfile_s.Get());
+	//  for the script associated, scan it and include any references to other scripts
+	scanscriptfileandaddtocollection(t.tfile_s.Get());
+	//  sound files
+	//PE: Make sure voiceset from player start marker is added.
+	if (t.entityprofile[t.entid].ismarker == 1 && pEleProf->soundset_s.Len() > 0) {
+		t.tfile_s = pEleProf->soundset_s;
+		addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
+	}
+	t.tfile_s = pEleProf->soundset_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset1_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset2_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset3_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset5_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset6_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->overrideanimset_s; addtocollection(t.tfile_s.Get());
+	//  collectable guns
+	cstr pGunPresent = "";
+	if (Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1) pGunPresent = t.entityprofile[t.entid].isweapon_s;
+	if (t.entityprofile[t.entid].isammo == 0)
+	{
+		// 270618 - only accept HASWEAPON if NOT ammo, so executables are not bloated with ammo that specifies another weapon type
+		if (Len(pEleProf->hasweapon_s.Get()) > 1) pGunPresent = pEleProf->hasweapon_s;
+	}
+	if (Len(pGunPresent.Get()) > 1)
+	{
+		t.tfile_s = cstr("gamecore\\guns\\") + pGunPresent; addfoldertocollection(t.tfile_s.Get());
+		t.findgun_s = Lower(pGunPresent.Get());
+		gun_findweaponindexbyname ();
+		if (t.foundgunid > 0)
+		{
+			// ammo and brass
+			for (t.x = 0; t.x <= 1; t.x++)
+			{
+				// ammo files
+				t.tpoolindex = g.firemodes[t.foundgunid][t.x].settings.poolindex;
+				if (t.tpoolindex > 0)
+				{
+					t.tfile_s = cstr("gamecore\\ammo\\") + t.ammopool[t.tpoolindex].name_s;
+					if (PathExist (t.tfile_s.Get())) addfoldertocollection(t.tfile_s.Get());
+				}
+
+				// brass files
+				int iBrassIndex = g.firemodes[t.foundgunid][t.x].settings.brass;
+				if (iBrassIndex > 0)
+				{
+					t.tfile_s = cstr(cstr("gamecore\\brass\\brass") + Str(iBrassIndex));
+					if (PathExist (t.tfile_s.Get()))
+						addfoldertocollection(t.tfile_s.Get());
+				}
+			}
+
+			// and any projectile files associated with it
+			cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
+			if (Len(pProjectilePresent.Get()) > 1)
+			{
+				t.tfile_s = cstr("gamecore\\projectiletypes\\") + pProjectilePresent;
+				addfoldertocollection(t.tfile_s.Get());
+			}
+		}
+	}
+	// zone marker can reference other levels to jump to
+	if (t.entityprofile[t.entid].ismarker == 3)
+	{
+		t.tlevelfile_s = pEleProf->ifused_s;
+		if (Len(t.tlevelfile_s.Get()) > 1)
+		{
+			t.tlevelfile_s = cstr("mapbank\\") + g_mapfile_levelpathfolder + t.tlevelfile_s + ".fpm";
+			if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tlevelfile_s).Get()) == 1)
+			{
+				//++t.levelmax; // created earlier now
+				//t.levellist_s[t.levelmax]=t.tlevelfile_s;
+				addtocollection(t.tlevelfile_s.Get());
+			}
+			else
+			{
+				// nope, just a regular string entry in the marker field
+				t.tlevelfile_s = "";
+			}
+		}
+	}
+	t.entid = iStoredEntID;
+}
+
 int mapfile_savestandalone_stage2c ( void )
 {
 	// choose all entities and associated files
@@ -3260,411 +3628,7 @@ int mapfile_savestandalone_stage2c ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			// Check for custom images loaded in lua script
-			if ( t.entityelement[t.e].eleprof.aimain_s != "" )
-			{
-				cstr tLuaScript = g.fpscrootdir_s+"\\Files\\scriptbank\\";
-				tLuaScript += t.entityelement[t.e].eleprof.aimain_s;
-				FILE* tLuaScriptFile = GG_fopen ( tLuaScript.Get() , "r" );
-				if ( tLuaScriptFile )
-				{
-					char tTempLine[2048];
-					while ( !feof(tLuaScriptFile) )
-					{
-						fgets ( tTempLine , 2047 , tLuaScriptFile );
-						if ( strstr ( tTempLine , "LoadImages" ) )
-						{
-							char* pImageFolder = strstr ( tTempLine , "\"" );
-							if ( pImageFolder )
-							{
-								pImageFolder++;
-								char* pImageFolderEnd = strstr ( pImageFolder , "\"" );
-								if ( pImageFolderEnd )
-								{
-									*pImageFolderEnd = '\0';
-									cstr tFolderToAdd = cstr( cstr("scriptbank\\images\\") + cstr(pImageFolder) );
-									addfoldertocollection ( tFolderToAdd.Get() );
-								}
-							}
-						}
-
-						// Handle new load image and sound commands, they can be in nested folders
-						if ( strstr ( tTempLine , "LoadImage " ) 
-						||	 strstr ( tTempLine , "LoadImage(" )
-						||	 strstr ( tTempLine , "LoadGlobalSound(" ) )
-						{
-							char* pImageFolder = strstr ( tTempLine , "\"" );
-							if ( pImageFolder )
-							{
-								pImageFolder++;
-								char* pImageFolderEnd = strstr ( pImageFolder , "\"" );
-								if ( pImageFolderEnd )
-								{
-									*pImageFolderEnd = '\0';
-									cstr pFile = cstr(pImageFolder);
-									addtocollection ( pFile.Get() );
-								}
-							}
-						}
-						if (strstr(tTempLine, "SetSkyTo(" )) {
-							char* pSkyFolder = strstr(tTempLine, "\"");
-							if (pSkyFolder)
-							{
-								pSkyFolder++;
-								char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
-								if (pSkyFolderEnd)
-								{
-									*pSkyFolderEnd = '\0';
-									cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
-									addfoldertocollection(tFolderToAdd.Get());
-								}
-							}
-						}
-					}
-					fclose ( tLuaScriptFile );
-				}
-			}
-
-			//  entity profile file
-			t.tentityname1_s=cstr("entitybank\\")+t.entitybank_s[t.entid];
-			t.tentityname2_s=cstr(Left(t.tentityname1_s.Get(),Len(t.tentityname1_s.Get())-4))+".bin";
-			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tentityname2_s).Get() ) == 1 ) 
-			{
-				t.tentityname_s=t.tentityname2_s;
-			}
-			else
-			{
-				t.tentityname_s=t.tentityname1_s;
-			}
-			addtocollection(t.tentityname_s.Get());
-
-			//PE: NEWLOD
-			std::string lodname = t.tentityname_s.Get();
-			replaceAll(lodname, ".fpe", "_lod.dbo");
-			replaceAll(lodname, ".bin", "_lod.dbo");
-			addtocollection( (char *) lodname.c_str());
-
-			//  entity files in folder
-			t.tentityfolder_s=t.tentityname_s;
-			for ( t.n = Len(t.tentityname_s.Get()) ; t.n >= 1 ; t.n+= -1 )
-			{
-				if (  cstr(Mid(t.tentityname_s.Get(),t.n)) == "\\" || cstr(Mid(t.tentityname_s.Get(),t.n)) == "/" ) 
-				{
-					t.tentityfolder_s=Left(t.tentityfolder_s.Get(),t.n);
-					break;
-				}
-			}
-
-			//  model files (main model, final appended model and all other append
-			int iModelAppendFileCount = t.entityprofile[t.entid].appendanimmax;
-			if ( Len ( t.entityappendanim[t.entid][0].filename.Get() ) > 0 ) iModelAppendFileCount = 0;
-			for ( int iModels = -1; iModels <= iModelAppendFileCount; iModels++ )
-			{
-				LPSTR pModelFile = "";
-				if ( iModels == -1 ) 
-				{
-					pModelFile = t.entityprofile[t.entid].model_s.Get();
-				}
-				else
-				{
-					pModelFile = t.entityappendanim[t.entid][iModels].filename.Get();
-				}
-				t.tlocaltofpe=1;
-				for ( t.n = 1 ; t.n <= Len(pModelFile); t.n++ )
-				{
-					if (  cstr(Mid(pModelFile,t.n)) == "\\" || cstr(Mid(pModelFile,t.n)) == "/" ) 
-					{
-						t.tlocaltofpe=0 ; break;
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile1_s=t.tentityfolder_s+pModelFile;
-				}
-				else
-				{
-					t.tfile1_s=pModelFile;
-				}
-				t.tfile2_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dbo";
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile2_s).Get() ) == 1 ) 
-				{
-					t.tfile_s=t.tfile2_s;
-				}
-				else
-				{
-					t.tfile_s=t.tfile1_s;
-				}
-				t.tmodelfile_s=t.tfile_s;
-				addtocollection(t.tmodelfile_s.Get());
-				// if entity did not specify texture it is multi-texture, so interogate model file
-				// do it for every model
-				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
-			}
-
-			// Export entity FPE BMP file if flagged
-			if ( g.gexportassets == 1 ) 
-			{
-				t.tfile3_s=cstr(Left(t.tentityname_s.Get(),Len(t.tentityname_s.Get())-4))+".bmp";
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
-				{
-					addtocollection(t.tfile3_s.Get());
-				}
-			}
-
-			// entity characterpose file (if any)
-			t.tfile3_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dat";
-			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
-			{
-				addtocollection(t.tfile3_s.Get());
-			}
-
-			//  texture files
-			for ( int iBothTypes = 0; iBothTypes < 2; iBothTypes++ )
-			{
-				// can be from ELEPROF of entityelement (older maps point to old texture names) or parent ELEPROF original
-				cstr pTextureFile = "", pAltTextureFile = "";
-				if ( iBothTypes == 0 ) { pTextureFile = t.entityelement[t.e].eleprof.texd_s; pAltTextureFile = t.entityelement[t.e].eleprof.texaltd_s; } 
-				if ( iBothTypes == 1 ) { pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; } 
-
-				t.tlocaltofpe=1;
-				for ( t.n = 1 ; t.n<=  Len(pTextureFile.Get()); t.n++ )
-				{
-					if (  cstr(Mid(pTextureFile.Get(),t.n)) == "\\" || cstr(Mid(pTextureFile.Get(),t.n)) == "/" ) 
-					{
-						t.tlocaltofpe=0 ; break;
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile_s=t.tentityfolder_s+pTextureFile;
-				}
-				else
-				{
-					t.tfile_s=pTextureFile;
-				}
-				addtocollection(t.tfile_s.Get());
-
-				// always allow a DDS texture of same name to be copied over (for test game compatibility)
-				for ( int iTwoExtensions = 0; iTwoExtensions <= 1; iTwoExtensions++ )
-				{
-					if ( iTwoExtensions == 0 ) t.tfileext_s = Right ( t.tfile_s.Get(), 3);
-					if ( iTwoExtensions == 1 ) t.tfileext_s = "dds";
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),6)),2)) == "_d" ) 
-					{
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_n."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_s."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_i."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_o."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_cube."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-					}
-					int iNewPBRTextureMode = 0;
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),10)),6)) == "_color" ) iNewPBRTextureMode = 6+4;
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),11)),7)) == "_albedo" ) iNewPBRTextureMode = 7+4;
-					if ( iNewPBRTextureMode > 0 ) 
-					{
-						cstr pToAdd;
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_color." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_albedo." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_normal." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_specular." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_metalness." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_gloss." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_mask." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_ao." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_height." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_detail." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_emissive." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_i." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
-						/*
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_color."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_albedo."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_normal."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_specular."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_metalness."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_gloss."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_mask."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_ao."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_height."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_detail."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_emissive."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
-						*/
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile_s=t.tentityfolder_s+pAltTextureFile;
-				}
-				else
-				{
-					t.tfile_s=pAltTextureFile;
-				}
-				addtocollection(t.tfile_s.Get());
-			}
-
-			// also include textures specified by textureref entries (from importer export)
-			cstr tFPEFilePath = g.fpscrootdir_s+"\\Files\\";
-			tFPEFilePath += t.tentityname1_s;
-			FILE* tFPEFile = GG_fopen ( tFPEFilePath.Get() , "r" );
-			if ( tFPEFile )
-			{
-				char tTempLine[2048];
-				while ( !feof(tFPEFile) )
-				{
-					fgets ( tTempLine , 2047 , tFPEFile );
-					if ( strstr ( tTempLine , "textureref" ) )
-					{
-						char* pToFilename = strstr ( tTempLine , "=" );
-						if ( pToFilename )
-						{
-							while ( *pToFilename == '=' || *pToFilename == 32 ) pToFilename++;
-							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
-							cstr tTextureFile = cstr( t.tentityfolder_s + cstr(pToFilename) );
-							addtocollection ( tTextureFile.Get() );
-						}
-					}
-				}
-				fclose ( tFPEFile );
-			}
-
-			//#ifdef WICKEDENGINE
-			//// Not all emissive files are picked up here, so grab them from the entity if they are there.
-			//if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
-			//{
-			//	sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
-			//	if (pObject)
-			//	{
-			//		for (int i = 0; i < pObject->iMeshCount; i++)
-			//		{
-			//			sMesh* pMesh = pObject->ppMeshList[i];
-			//			if (pMesh)
-			//			{
-			//				wiScene::MeshComponent* pMeshComponent = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
-			//				if (pMeshComponent)
-			//				{
-			//					uint64_t materialEntity = pMeshComponent->subsets[0].materialID;
-			//					wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-			//					if (pMeshMaterial)
-			//					{
-			//						if (pMeshMaterial->textures[3].name.length() > 0)
-			//						{
-			//							addtocollection((char*)pMeshMaterial->textures[3].name.c_str());
-			//						}
-			//					}
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-			//#endif
-
-			//  shader file
-			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
-			//Try to take the .blob.
-			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
-				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
-				t.tfile_s = t.tfile_s + ".blob";
-				if (FileExist(t.tfile_s.Get()) == 1)
-				{
-					addtocollection(t.tfile_s.Get());
-				}
-			}
-			//  script files
-			cstr script_name = "";
-			if (strnicmp(t.entityelement[t.e].eleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
-			script_name += t.entityelement[t.e].eleprof.aimain_s;
-			t.tfile_s = script_name;// cstr("scriptbank\\") + t.entityelement[t.e].eleprof.aimain_s;
-			addtocollection(t.tfile_s.Get());
-			//  for the script associated, scan it and include any references to other scripts
-			scanscriptfileandaddtocollection(t.tfile_s.Get());
-			//  sound files
-			//PE: Make sure voiceset from player start marker is added.
-			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0) {
-				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
-				addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
-			}
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset5_s; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset6_s; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.overrideanimset_s; addtocollection(t.tfile_s.Get());
-			//  collectable guns
-			cstr pGunPresent = "";
-			if ( Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1 ) pGunPresent = t.entityprofile[t.entid].isweapon_s;
-			if ( t.entityprofile[t.entid].isammo == 0 )
-			{
-				// 270618 - only accept HASWEAPON if NOT ammo, so executables are not bloated with ammo that specifies another weapon type
-				if ( Len(t.entityelement[t.e].eleprof.hasweapon_s.Get()) > 1 ) pGunPresent = t.entityelement[t.e].eleprof.hasweapon_s;
-			}
-			if ( Len(pGunPresent.Get()) > 1 )
-			{
-				t.tfile_s=cstr("gamecore\\guns\\")+pGunPresent; addfoldertocollection(t.tfile_s.Get());
-				t.findgun_s = Lower( pGunPresent.Get() ) ; 
-				gun_findweaponindexbyname ( );
-				if ( t.foundgunid > 0 ) 
-				{
-					// ammo and brass
-					for ( t.x = 0; t.x <= 1; t.x++ )
-					{
-						// ammo files
-						t.tpoolindex=g.firemodes[t.foundgunid][t.x].settings.poolindex;
-						if (  t.tpoolindex>0 ) 
-						{
-							t.tfile_s=cstr("gamecore\\ammo\\")+t.ammopool[t.tpoolindex].name_s;
-							if ( PathExist ( t.tfile_s.Get() ) ) addfoldertocollection(t.tfile_s.Get());
-						}
-
-						// brass files
-						int iBrassIndex = g.firemodes[t.foundgunid][t.x].settings.brass;
-						if ( iBrassIndex > 0 ) 
-						{
-							t.tfile_s = cstr(cstr("gamecore\\brass\\brass")+Str(iBrassIndex));
-							if ( PathExist ( t.tfile_s.Get() ) )
-								addfoldertocollection(t.tfile_s.Get());
-						}
-					}
-
-					// and any projectile files associated with it
-					cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
-					if ( Len(pProjectilePresent.Get()) > 1 )
-					{
-						t.tfile_s=cstr("gamecore\\projectiletypes\\")+pProjectilePresent; 
-						addfoldertocollection(t.tfile_s.Get());
-					}
-				}
-			}
-			// zone marker can reference other levels to jump to
-			if ( t.entityprofile[t.entid].ismarker == 3 ) 
-			{
-				t.tlevelfile_s=t.entityelement[t.e].eleprof.ifused_s;
-				if ( Len(t.tlevelfile_s.Get())>1 ) 
-				{
-					t.tlevelfile_s=cstr("mapbank\\")+g_mapfile_levelpathfolder+t.tlevelfile_s+".fpm";
-					if ( FileExist(cstr(g.fpscrootdir_s+"\\Files\\"+t.tlevelfile_s).Get()) == 1 ) 
-					{
-						//++t.levelmax; // created earlier now
-						//t.levellist_s[t.levelmax]=t.tlevelfile_s;
-						addtocollection(t.tlevelfile_s.Get());
-					}
-					else
-					{
-						// nope, just a regular string entry in the marker field
-						t.tlevelfile_s="";
-					}
-				}
-			}
+			mapfile_addallentityrelatedfiles(t.entid, &t.entityelement[t.e].eleprof);
 		}
 	}
 	else
@@ -4678,8 +4642,11 @@ void addfoldertocollection ( char* path_s )
 				extern char szWriteDir[MAX_PATH];
 				cstr testPath = cstr(szWriteDir) + "Files\\" + path_s;// usePath;
 				SetDir(told_s.Get());
-				SetDir(testPath.Get());
-				ChecklistForFiles();
+				if (PathExist(testPath.Get()))
+				{
+					SetDir(testPath.Get());
+					ChecklistForFiles();
+				}
 			}
 		}
 		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )

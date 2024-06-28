@@ -103,7 +103,8 @@ void lua_loadscriptin ( void )
 			}
 
 			cstr script_name = "";
-			if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += t.tscriptname_s;
 
 			t.tfile_s = ""; t.tfile_s = t.tfile_s + script_name;// "scriptbank\\" + t.tscriptname_s;
@@ -114,7 +115,8 @@ void lua_loadscriptin ( void )
 				t.tscriptname_s = t.entityprofile[entid].aimain_s;
 
 				script_name = "";
-				if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				//if (strnicmp(t.tscriptname_s.Get(), "projectbank", 11) != NULL) 
+				script_name = "scriptbank\\";
 				script_name += t.tscriptname_s;
 
 				t.tfile_s = ""; t.tfile_s = t.tfile_s + script_name;// "scriptbank\\" + t.tscriptname_s;

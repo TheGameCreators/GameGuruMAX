@@ -15770,10 +15770,12 @@ void process_entity_library(void)
 																	{
 																		t.entdir_s = "";
 																	}
+																	#ifndef NEWPROJSYSWORKINPROGRESS
 																	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 																	{
 																		t.entdir_s = "";
 																	}
+																	#endif
 
 																	t.talreadyloaded = 0;
 																	for (t.t = 1; t.t <= g.entidmaster; t.t++)
@@ -16430,12 +16432,14 @@ bool DoTreeNodeSearch(int parentid, char *lookup)
 	return(0);
 }
 
+bool bDisplayProjectMedia = false;
 bool bDisplayFavorite = false;
 
 void process_gotopurchaedandrefreshtopurchases ( void )
 {
 	seleted_tree_item = -1;
 	strcpy(cSearchAllEntities[0], "Purchased");
+	bDisplayProjectMedia = false;
 	bDisplayFavorite = false;
 	bViewAllFolders = false;
 	bViewShowcase = false;
@@ -17567,6 +17571,7 @@ void process_entity_library_v2(void)
 							}
 						}
 
+						bDisplayProjectMedia = false;
 						bDisplayFavorite = false;
 						bViewAllFolders = false;
 						bViewShowcase = false;
@@ -18397,9 +18402,13 @@ void process_entity_library_v2(void)
 		{
 			bViewAllFolders = false;
 			bDisplayFavorite = false;
+			bDisplayProjectMedia = false;
 		}
 		if (bViewAllFolders)
+		{
 			bDisplayFavorite = false;
+			bDisplayProjectMedia = false;
+		}
 
 		if (ImGui::Selectable("View All", bViewAllFolders) || bSelectLibraryViewAll )
 		{
@@ -18412,6 +18421,7 @@ void process_entity_library_v2(void)
 			bCheckboxFilters[2] = true;
 			bCheckboxFilters[3] = true;
 			bCheckboxFilters[4] = true;
+			bDisplayProjectMedia = false;
 			bDisplayFavorite = false;
 			bViewShowcase = false;
 			bViewPurchased = false;
@@ -18429,20 +18439,6 @@ void process_entity_library_v2(void)
 			}
 			else
 			{
-				/* removed showcase that had a folder full of duplicates! May return as a better system with no file duplication.
-				if (stricmp(cSearchAllEntities[0], "Showcase") != 0) bViewShowcase = false;
-				if (ImGui::Selectable("Showcase", &bViewShowcase, 0))
-				{
-					seleted_tree_item = -1;
-					strcpy(cSearchAllEntities[0], "Showcase");
-					bDisplayFavorite = false;
-					bViewAllFolders = false;
-					bViewShowcase = true;
-					bViewPurchased = false;
-					bUpdateSearchSorting = true;
-					bUpdateSearchScrollbar = true;
-				}
-				*/
 				if (stricmp(cSearchAllEntities[0], "Purchased") != 0) bViewPurchased = false;
 				if (ImGui::Selectable("Purchased", &bViewPurchased, 0))
 				{
@@ -18465,22 +18461,33 @@ void process_entity_library_v2(void)
 			}
 		}
 
-		bool bProjectMediaSelected = strstr(cSearchAllEntities[0], "project");
-		if (ImGui::Selectable("Project Media##projectmedia", &bProjectMediaSelected, 0))
+		// only show project media if in a remote project now
+		extern StoryboardStruct Storyboard;
+		if ( strlen(Storyboard.customprojectfolder) > 0 )
 		{
-			seleted_tree_item = -1;
-			strcpy(cSearchAllEntities[0], "projectbank");
-			bDisplayFavorite = false;
-			bViewAllFolders = false;
-			bViewShowcase = false;
-			bUpdateSearchSorting = true;
-			bUpdateSearchScrollbar = true;
+			bool bProjectMediaSelected = strstr(cSearchAllEntities[0], "project");
+			#ifdef NEWPROJSYSWORKINPROGRESS
+			if (ImGui::Selectable("Current Project##projectmedia", &bProjectMediaSelected, 0))
+			#else
+			if (ImGui::Selectable("Project Media##projectmedia", &bProjectMediaSelected, 0))
+			#endif
+			{
+				seleted_tree_item = -1;
+				strcpy(cSearchAllEntities[0], "");
+				bDisplayProjectMedia = true;
+				bDisplayFavorite = false;
+				bViewAllFolders = false;
+				bViewShowcase = false;
+				bUpdateSearchSorting = true;
+				bUpdateSearchScrollbar = true;
+			}
 		}
 
 		if (ImGui::Selectable("Favorites##favourites", &bDisplayFavorite, 0))
 		{
 			seleted_tree_item = -1;
 			strcpy(cSearchAllEntities[0], "");
+			bDisplayProjectMedia = false;
 			bDisplayFavorite = true;
 			bViewAllFolders = false;
 			bViewShowcase = false;
@@ -18655,8 +18662,6 @@ void process_entity_library_v2(void)
 							{
 								if (i == 0 && bCheckboxFilters[0]) //"showcase"
 								{
-									//if (pestrcasestr(find, "showcase"))
-									//	bDisplayEverythingHere = true;
 									if (pestrcasestr(find, "hud assets"))
 										bDisplayEverythingHere = true;
 								}
@@ -18860,19 +18865,7 @@ void process_entity_library_v2(void)
 									cstr test = pNewFolder->m_sFolderFullPath + "\\" + myfiles->m_sName;
 									if (pestrcasestr(test.Get(), sGotoPreviewWithFile.Get()))
 									{
-										// ZJ: Following importer feedback, user folder should be displayed in the object library...
-										// ...instead of just searching for the imported object.
-										////Found it.
-										//sStartLibrarySearchString = myfiles->m_sName;
-										//if(sStartLibrarySearchString.Len() > 4)
-										//	sStartLibrarySearchString = Left(sStartLibrarySearchString.Get(), sStartLibrarySearchString.Len() - 4);
-										//std::string sString = sStartLibrarySearchString.Get();
-										//replaceAll(sString, "_", " ");
-										//replaceAll(sString, "-", " ");
-										//sStartLibrarySearchString = sString.c_str();
-
 										sStartLibrarySearchString = "user";
-
 										iLastDisplayLibraryType = -1;
 										//Refresh with new search.
 										//Load dbo and display large preview.
@@ -18913,6 +18906,20 @@ void process_entity_library_v2(void)
 								if (bDisplayFavorite && !myfiles->bFavorite)
 								{
 									bIsVisible = false;
+								}
+
+								if (bDisplayProjectMedia == true)
+								{
+									// if not in project folder, hide
+									char pFindProjectEntityFolder[MAX_PATH];
+									extern StoryboardStruct Storyboard;
+									strcpy(pFindProjectEntityFolder, Storyboard.customprojectfolder);
+									strcat(pFindProjectEntityFolder, Storyboard.gamename);
+									LPSTR pFileFolderToCheck = pNewFolder->m_sFolderFullPath.Get();
+									if (strnicmp(pFileFolderToCheck, pFindProjectEntityFolder, strlen(pFindProjectEntityFolder)) != NULL)
+									{
+										bIsVisible = false;
+									}
 								}
 
 								uniqueId++;
@@ -19536,7 +19543,8 @@ void process_entity_library_v2(void)
 										{
 											//PE: Changed to support subfolders.
 											sFpeName = "";
-											if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sFpeName = "particlesbank\\";
+											//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+											sFpeName = "particlesbank\\";
 											sFpeName = sFpeName + path_for_filename.c_str();
 											sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 											replaceAll(sFpeName, "\\\\", "\\");
@@ -19951,14 +19959,14 @@ void process_entity_library_v2(void)
 							if (sMakeDefaultSelecting != "")
 							{
 								std::string sMediaName = "";
-								if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
-								{
+								//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+								//{
 									if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
 									if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
 									if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
 									if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
 									if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
-								}
+								//}
 								sMediaName = sMediaName + path_for_filename.c_str();
 								if (path_for_filename.length() == 0)
 									sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -20371,14 +20379,14 @@ void process_entity_library_v2(void)
 									}
 
 									std::string sMediaName = "";
-									if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
-									{
+									//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+									//{
 										if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
 										if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
 										if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
 										if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
 										if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
-									}
+									//}
 									sMediaName = sMediaName + path_for_filename.c_str();
 									if(path_for_filename.length() == 0)
 										sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -20580,7 +20588,8 @@ void process_entity_library_v2(void)
 											DeleteSound(g.temppreviewsoundoffset);
 										}
 										std::string sSoundName = "";
-										if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
+										//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+										sSoundName = "audiobank\\";
 										sSoundName = sSoundName + path_for_filename.c_str();
 										sSoundName = sSoundName + "\\" + myfiles->m_sName.Get();
 										LoadSound((char *) sSoundName.c_str(), g.temppreviewsoundoffset);
@@ -21080,10 +21089,12 @@ void process_entity_library_v2(void)
 											{
 												t.entdir_s = "";
 											}
+											#ifndef NEWPROJSYSWORKINPROGRESS
 											if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 											{
 												t.entdir_s = "";
 											}
+											#endif
 										}
 
 										t.talreadyloaded = 0;
@@ -21978,7 +21989,8 @@ void process_entity_library_v2(void)
 						std::string sSoundName = "";
 						if (iDisplayLibraryType == 1)
 						{
-							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
+							//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+							sSoundName = "audiobank\\";
 						}
 						sSoundName = sSoundName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
@@ -22074,7 +22086,8 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sImageName = "";
-						if(strnicmp(final_name,"projectbank",11)!=NULL) sImageName = "imagebank\\";
+						//if(strnicmp(final_name,"projectbank",11)!=NULL) 
+						sImageName = "imagebank\\";
 						sImageName = sImageName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sImageName = sImageName + selectedmediafile->m_sName.Get();
@@ -22173,7 +22186,8 @@ void process_entity_library_v2(void)
 						std::string sVideoName = "";
 						if (iDisplayLibraryType == 3)
 						{
-							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sVideoName = "videobank\\";
+							//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+							sVideoName = "videobank\\";
 						}
 						sVideoName = sVideoName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
@@ -22432,7 +22446,8 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sScriptName = "";
-						if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sScriptName = "particlesbank\\";
+						//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+						sScriptName = "particlesbank\\";
 						sScriptName = sScriptName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sScriptName = sScriptName + selectedmediafile->m_sName.Get();
@@ -25443,7 +25458,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				script_name_append += edit_grideleprof->aimain_s;
 
 			cstr script_name = "";
-			if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += script_name_append;
 
 			#ifdef USENEWMEDIASELECTWINDOWS
@@ -25638,7 +25654,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		{
 			//Load in lua and check for custom properties.
 			cstr script_name = "";
-			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			fpe_current_loaded_script = 9999;
@@ -27141,7 +27158,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		{
 			//Load in lua and check for custom properties.
 			cstr script_name = "";
-			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			//Try to parse script.
@@ -27526,7 +27544,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				else
 					script_name_appendage += edit_grideleprof->aimain_s;
 				cstr script_name = "";
-				if (strnicmp(script_name_appendage.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				//if (strnicmp(script_name_appendage.Get(), "projectbank", 11) != NULL) 
+				script_name = "scriptbank\\";
 				script_name += script_name_appendage;
 
 				#ifdef USENEWMEDIASELECTWINDOWS
@@ -27722,7 +27741,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				{
 					//Load in lua and check for custom properties.
 					cstr script_name = "";
-					if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+					//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+					script_name = "scriptbank\\";
 					script_name += edit_grideleprof->aimain_s;
 
 					#ifdef USENEWMEDIASELECTWINDOWS
@@ -44217,7 +44237,6 @@ int save_create_storyboard_project(void)
 			ImGui::Text("");
 			ImGui::SetWindowFontScale(1.4);
 
-			//#define NEWPROJSYSWORKINPROGRESS
 			#ifdef NEWPROJSYSWORKINPROGRESS
 			// New project Systemn Setting
 			ImGui::TextCenter("Optional Project Folder");
@@ -50797,7 +50816,8 @@ void ReloadEntityIDInSitu ( int entIndex)
 
 	// set entity name and reload it in
 	t.entdir_s = "";
-	if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) t.entdir_s = "entitybank\\";
+	//if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) 
+	t.entdir_s = "entitybank\\";
 	t.ent_s = t.entitybank_s[entIndex];
 	t.entpath_s = getpath(t.ent_s.Get());
 
@@ -51253,7 +51273,8 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 							char pImageFile[MAX_PATH];
 							strcpy(pImageFile, "");
 							LPSTR pFile = (LPSTR)currentLevelFiles[iIndex].c_str();
-							if (strnicmp(pFile, "projectbank", 11) != NULL) strcat(pImageFile, "entitybank\\");
+							//if (strnicmp(pFile, "projectbank", 11) != NULL) 
+							strcat(pImageFile, "entitybank\\");
 							strcat(pImageFile, pFile);
 							WickedCall_DeleteImage(pImageFile);
 						}

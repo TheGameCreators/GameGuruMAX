@@ -1789,9 +1789,6 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 void mapeditorexecutable_full_folder_refresh(void)
 {
 	// work out the project folder path for third location of assets
-	//static char cFullProjectWriteBasePath[MAX_PATH];
-	//strcpy(cFullProjectWriteBasePath, "projectbank\\");
-	//strcat(cFullProjectWriteBasePath, Storyboard.gamename);
 	static char cFullProjectWritePath[MAX_PATH];
 	static char cFullWritePath[MAX_PATH];
 
@@ -11431,7 +11428,8 @@ void mapeditorexecutable_loop(void)
 											script_name_append += t.grideleprof.aimain_s;
 
 										cstr script_name = "";
-										if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+										//if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) 
+										script_name = "scriptbank\\";
 										script_name += script_name_append;
 
 										//Try to parse script.

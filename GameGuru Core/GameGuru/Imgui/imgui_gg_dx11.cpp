@@ -5974,12 +5974,14 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 			}
 
 			// project folder passed in override specific detection above
+			#ifndef NEWPROJSYSWORKINPROGRESS
 			LPSTR pFindProjectBankFolder = "\\projectbank";
 			if (strnicmp(pPathSearch + n, pFindProjectBankFolder, strlen(pFindProjectBankFolder)) == NULL)
 			{
 				pNewItem->m_iEntityOffset = n;
 				break;
 			}
+			#endif
 		}
 
 		strcpy(pNewItem->cfolder, pNewItem->m_sFolderFullPath.Get() );

@@ -138,10 +138,12 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	{
 		t.entdir_s = "";
 	}
+	#ifndef NEWPROJSYSWORKINPROGRESS
 	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 	{
 		t.entdir_s = "";
 	}
+	#endif
 
 	//  Check if entity already loaded in
 	t.talreadyloaded=0;
@@ -173,11 +175,67 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 		if (g_iAbortedAsEntityIsGroupFileMode != 3)
 			g_iAbortedAsEntityIsGroupFileMode = 1;
 
+		// if using remote project, first duplicate the entity file to local project
+		bool bAlsoCopyOverAllRelatedEntityFiles = false;
+		extern StoryboardStruct Storyboard;
+		char pPreferredProjectEntityFolder[MAX_PATH];
+		strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+		strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+		if (strlen(Storyboard.customprojectfolder) > 0)
+		{
+			char fullRealPath[MAX_PATH];
+			strcpy(fullRealPath, "entitybank\\");
+			strcat(fullRealPath, t.addentityfile_s.Get());
+			GG_GetRealPath(fullRealPath, 0);
+			if (strnicmp (fullRealPath, pPreferredProjectEntityFolder,strlen(pPreferredProjectEntityFolder)) != NULL)
+			{
+				// file not in local project, copy it over
+				strcpy(pPreferredProjectEntityFolder, "entitybank\\");
+				strcat(pPreferredProjectEntityFolder, t.addentityfile_s.Get());
+				GG_GetRealPath(pPreferredProjectEntityFolder, 1);
+				CopyFileA(fullRealPath, pPreferredProjectEntityFolder, TRUE);
+
+				// after entity loaded, copy over all related files
+				bAlsoCopyOverAllRelatedEntityFiles = true;
+			}
+		}
+
 		//  Load extra entity
 		t.entid = g.entidmaster;
 		t.ent_s = t.entitybank_s[t.entid];
 		t.entpath_s = getpath(t.ent_s.Get());
 		entity_load ();
+
+		// copy over all related files if using a remote project
+		if (bAlsoCopyOverAllRelatedEntityFiles == true)
+		{
+			// clear file collection
+			g.filecollectionmax = 0;
+			Undim (t.filecollection_s);
+			Dim (t.filecollection_s, 500);
+
+			// collect all the associated files into filecollection
+			extern void mapfile_addallentityrelatedfiles(int,entityeleproftype*);
+			entity_fillgrideleproffromprofile();
+			mapfile_addallentityrelatedfiles (t.entid, &t.grideleprof);
+
+			// copy all the file collection to the remote project
+			strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+			strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+			for (int files = 1; files < g.filecollectionmax; files++)
+			{
+				char pFileToCopy[MAX_PATH];
+				strcpy(pFileToCopy, t.filecollection_s[files].Get());
+				GG_GetRealPath(pFileToCopy, 0);
+				if (strnicmp (pFileToCopy, pPreferredProjectEntityFolder, strlen(pPreferredProjectEntityFolder)) != NULL)
+				{
+					char pFileToCopyTo[MAX_PATH];
+					strcpy(pFileToCopyTo, t.filecollection_s[files].Get());
+					GG_GetRealPath(pFileToCopyTo, 1);
+					CopyFileA(pFileToCopy, pFileToCopyTo, FALSE);
+				}
+			}
+		}
 
 		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
 		if (stricmp (t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe") == NULL)
@@ -537,10 +595,12 @@ bool entity_load_thread_prepare(LPSTR pFpeFile)
 	{
 		sEntityBank = "";
 	}
+	#ifndef NEWPROJSYSWORKINPROGRESS
 	if (cstr(Lower(Left(sFpeFile.Get(), 12))) == "projectbank\\")
 	{
 		sEntityBank = "";
 	}
+	#endif
 
 	// already have this loaded into the level
 	for (t.t = 1; t.t <= g.entidmaster; t.t++)
@@ -1741,7 +1801,9 @@ void entity_loaddata ( void )
 	t.tprotectBINfile=0;
 	if (t.ent_s.Get()[1] == ':') t.entdir_s = "";
 
+#ifndef NEWPROJSYSWORKINPROGRESS
 	if (strnicmp(t.ent_s.Get(), "projectbank", 11) == NULL) t.entdir_s = "";
+#endif
 
 	t.tFPEName_s=t.entdir_s+t.ent_s;
 	if (  FileExist(t.tFPEName_s.Get()) == 0 ) 

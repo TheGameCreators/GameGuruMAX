@@ -23,7 +23,6 @@ local status	 	= {}
 local wait			= {}
 
 function winkill_properties(e, enemy_counter, counter_text, end_text, end_delay, resetstates)
-	winkill[e] = g_Entity[e]
 	winkill[e].enemy_counter = enemy_counter
 	winkill[e].counter_text = counter_text
 	winkill[e].end_text = end_text
@@ -32,7 +31,7 @@ function winkill_properties(e, enemy_counter, counter_text, end_text, end_delay,
 end 
 
 function winkill_init(e)
-	winkill[e] = g_Entity[e]
+	winkill[e] = {}
 	winkill[e].enemy_counter = 1
 	winkill[e].counter_text = "Targets Remaining"
 	winkill[e].end_text = "All Targets Eliminated"

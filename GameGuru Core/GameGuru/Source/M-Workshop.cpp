@@ -788,7 +788,7 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 							char pSubscribeAttempt[MAX_PATH];
 							sprintf(pSubscribeAttempt, "Subscribing to trusted item unItemState=%d", (int)unItemState);
 							timestampactivity(0, pSubscribeAttempt);
-							if (unItemState == k_EItemStateNone)
+							if (unItemState == k_EItemStateNone || unItemState == k_EItemStateInstalled ) // k_EItemStateInstalled in case of stale item state!
 							{
 								// item is not subscribed to, so subscrube to trusted item
 								SteamUGC()->SubscribeItem(thisItem);

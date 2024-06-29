@@ -2269,7 +2269,7 @@ void gun_control ( void )
 		}
 	}
 
-	// gun blocking control
+	// blocking control
 	if ( t.gunmode == 1001 ) 
 	{
 		t.gunmode = 1002;
@@ -2285,12 +2285,36 @@ void gun_control ( void )
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
 		t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
-		if ( GetFrame(t.currentgunobj) >= t.gblock.e  )  t.gunmode = 1003;
+		if (GetFrame(t.currentgunobj) >= t.gblock.e)
+		{
+			t.gunmode = 1003;
+		}
+		else
+		{
+			// if block has failed, play block fail animation
+			if (t.player[1].state.blockingaction == 4)
+			{
+				int blockfailstart = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.s;
+				int blockfailfinish = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.e;
+				gun_PlayObject (t.currentgunobj, blockfailstart, blockfailfinish);
+				t.gunmode = 1004;
+			}
+		}
 	}
 	if (  t.gunmode == 1003 ) 
 	{
 		t.gunmode=5;
 		t.player[1].state.blockingaction=3;
+	}
+	if (t.gunmode == 1004)
+	{
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		int blockfailfinish = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.e;
+		if (GetFrame(t.currentgunobj) >= blockfailfinish)
+		{
+			t.gunmode = 1003;
+		}
 	}
 
 	// melee gun modes

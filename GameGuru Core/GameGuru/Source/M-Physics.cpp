@@ -3107,6 +3107,11 @@ void physics_player_takedamage ( void )
 		{
 			bSuccessfullyBlockingNow = true;
 		}
+		else
+		{
+			// block has failed, player hurt outside of block range
+			t.player[1].state.blockingaction = 4;
+		}
 	}
 
 	// player cannot be damaged when immune!

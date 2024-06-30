@@ -17820,8 +17820,31 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 		{
 			if ( ObjectExist(t.obj) == 1 ) 
 			{
+				// ensure particles can be restored (realtime changes)
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Speed_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Speed_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.bParticle_Size_Original = t.entityelement[t.e].eleprof.newparticle.bParticle_Size_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_R_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_R_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_G_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_G_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_B_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_B_Original;
+
 				// only if still exists - could have been deleted
-				t.entityelement[t.e]=t.storedentityelement[t.e];
+				t.entityelement[t.e] = t.storedentityelement[t.e];
+
+				// and if particle, restore the real-time changes (emitter rot and pos)
+				entity_updateparticleemitter(t.e);
+
+				// and then wipe those stored settings
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Speed_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.bParticle_Size_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_R_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_G_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_B_Original = -123.0f;
 			}
 		}
 	}

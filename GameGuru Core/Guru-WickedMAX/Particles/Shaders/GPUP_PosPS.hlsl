@@ -135,10 +135,11 @@ float4 main( PixelIn IN ) : SV_TARGET
 				if ( vc.z < 0.0 ) vc.z = -emittersize.z + vc.z * 0.1;
 				else vc.z = emittersize.z + vc.z * 0.1;
 			}
-			
-			//flawed!
+
+			// original			
 			//float3x3 rota = rot(emitterrotation.rgb);
-			//vc = mul(rota, vc) +localemitter;
+			//vc = mul(rota, vc) + localemitter;
+			//lees fix for rings/cubes/etc
 			float3 ang = emitterrotation.rgb;
 			float3x3 rotxx = float3x3(1.0, 0.0, 0.0, 0.0, cos(ang.x), -sin(ang.x), 0.0, sin(ang.x), cos(ang.x));
 			float3x3 rotyy = float3x3(cos(ang.y), 0.0, sin(ang.y), 0.0, 1.0, 0.0, -sin(ang.y), 0.0, cos(ang.y));

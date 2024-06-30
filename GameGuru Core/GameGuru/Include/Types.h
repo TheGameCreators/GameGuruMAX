@@ -5498,8 +5498,40 @@ struct newparticletype
 	float fParticle_Fullscreen_Fadein;
 	float fParticle_Fullscreen_Fadeout;
 	cstr Particle_Fullscreen_Transition;
+	bool bParticle_SpeedChange;
 	float fParticle_Speed;
+	float fParticle_Speed_Original;
+	bool bParticle_OpacityChange;
 	float fParticle_Opacity;
+	float fParticle_Opacity_Original;
+	bool bParticle_Offset_Used;
+	float bParticle_Offset_X;
+	float bParticle_Offset_Y;
+	float bParticle_Offset_Z;
+	bool bParticle_LocalRot_Used;
+	float bParticle_LocalRot_X;
+	float bParticle_LocalRot_Y;
+	float bParticle_LocalRot_Z;
+	bool bParticle_SizeChange;
+	float bParticle_Size;
+	float bParticle_Size_Original;
+	bool bParticle_Fire;
+	int iParticle_Floor_Active;
+	float fParticle_Floor_Height;
+	float fParticle_Floor_Height_Original;
+	bool fParticle_BouncinessChange;
+	float fParticle_Bounciness;
+	float fParticle_Bounciness_Original;
+	bool bParticle_ColorChange;
+	float fParticle_R;
+	float fParticle_R_Original;
+	float fParticle_G;
+	float fParticle_G_Original;
+	float fParticle_B;
+	float fParticle_B_Original;
+	bool bParticle_LifespanChange;
+	float fParticle_Lifespan_Original;
+	float fParticle_Lifespan;
 
 	// Constructor
 	newparticletype ( )
@@ -5514,8 +5546,39 @@ struct newparticletype
 		fParticle_Fullscreen_Fadein = 1.0f; //Sec.
 		fParticle_Fullscreen_Fadeout = 1.0f; //Sec.
 		Particle_Fullscreen_Transition = "";
+		bParticle_SpeedChange = false;
 		fParticle_Speed = 1.0f;
+		bParticle_OpacityChange = false;
 		fParticle_Opacity = 1.0f;
+		bParticle_Offset_Used = false;
+		bParticle_Offset_X = 0.0f;
+		bParticle_Offset_Y = 0.0f;
+		bParticle_Offset_Z = 0.0f;
+		bParticle_LocalRot_Used = false;
+		bParticle_LocalRot_X = 0.0f;
+		bParticle_LocalRot_Y = 0.0f;
+		bParticle_LocalRot_Z = 0.0f;
+		bParticle_SizeChange = false;
+		bParticle_Size = 1.0f;
+		bParticle_Fire = false;
+		iParticle_Floor_Active = 0;
+		fParticle_Floor_Height = 0.0f;
+		fParticle_BouncinessChange = false;
+		fParticle_Bounciness = 1.0f;
+		bParticle_ColorChange = false;
+		fParticle_R = 1.0f;
+		fParticle_G = 1.0f;
+		fParticle_B = 1.0f;
+
+		fParticle_Speed_Original = -123.0f;
+		fParticle_Opacity_Original = -123.0f;
+		bParticle_Size_Original = -123.0f;
+		fParticle_Floor_Height_Original = -123.0f;
+		fParticle_Bounciness_Original = -123.0f;
+		fParticle_R_Original = -123.0f;
+		fParticle_G_Original = -123.0f;
+		fParticle_B_Original = -123.0f;
+		fParticle_Lifespan_Original = -123.0f;
 	}
 };
 

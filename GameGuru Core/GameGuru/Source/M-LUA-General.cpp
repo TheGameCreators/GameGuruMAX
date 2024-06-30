@@ -1490,8 +1490,6 @@ void lua_startparticleemitter ( void )
 			ravey_particles_add_emitter ( );
 		}
 	}
-return;
-
 }
 
 void lua_stopparticleemitter ( void )
@@ -1503,13 +1501,11 @@ void lua_stopparticleemitter ( void )
 		ravey_particles_delete_emitter ( );
 		t.entityelement[t.e].particleemitterid=0;
 	}
-return;
+}
 
 // 
 //  Prompts and Images
 // 
-
-}
 
 void lua_loadimages ( void )
 {

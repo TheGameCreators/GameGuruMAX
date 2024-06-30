@@ -2049,9 +2049,11 @@ void gpup_getEmitterSpeedAngleAdjustment(int ID, float* x, float* y, float* z)
 void gpup_setEmitterSpeedAngleAdjustment(int ID, float x, float y, float z)
 {
 	if (ID < 0 || ID >= gpup_maxeffects) return;
-	if (gpup_emitter[ID].emitter_type == 2)
+	if (gpup_emitter[ID].emitter_type == 0 || gpup_emitter[ID].emitter_type == 2)
 	{
-		// only change smoke style particles
+		// only affects:
+		// 0 = box spawn emitters (newly added for fountain directional)
+		// 2 = smoke style emitters
 		gpup_emitter[ID].emitter_speedadjustment_x = x;
 		gpup_emitter[ID].emitter_speedadjustment_y = y;
 		gpup_emitter[ID].emitter_speedadjustment_z = z;
@@ -2138,9 +2140,13 @@ void gpup_setLocalPosition( int ID, float x, float y, float z )
 {
 	if ( ID < 0 || ID >= gpup_maxeffects ) return;
 
-	gpup_emitter[ID].emitter_local_x = (x - gpup_emitter[ID].globalx[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
-	gpup_emitter[ID].emitter_local_y = (y - gpup_emitter[ID].globaly[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
-	gpup_emitter[ID].emitter_local_z = (z - gpup_emitter[ID].globalz[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	// coordinates already passed in as relative to the particle global position
+	//gpup_emitter[ID].emitter_local_x = (x - gpup_emitter[ID].globalx[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	//gpup_emitter[ID].emitter_local_y = (y - gpup_emitter[ID].globaly[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	//gpup_emitter[ID].emitter_local_z = (z - gpup_emitter[ID].globalz[0]) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	gpup_emitter[ID].emitter_local_x = (x) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	gpup_emitter[ID].emitter_local_y = (y) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
+	gpup_emitter[ID].emitter_local_z = (z) / (gpup_emitter[ID].varea * gpup_emitter[ID].globalSize * 2.0f) + 0.5f;
 	if ( gpup_emitter[ID].effectLoaded == 1 )
 	{
 		gpup_emitter[ID].posConstantData.localemitter.x = gpup_emitter[ID].emitter_local_x * 4.0f - 2.0f;
@@ -2240,6 +2246,11 @@ void gpup_emitterBurstLoopAutoMode(int ID, int iAuto)
 	if (ID < 0 || ID >= gpup_maxeffects) return;
 	gpup_emitter[ID].emitter_burst_auto = iAuto;
 }
+void gpup_emitterBurstMode(int ID, int iMode)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return;
+	gpup_emitter[ID].emitter_burst_mode = iMode;
+}
 void gpup_emitterFire(int ID)
 {
 	if (ID < 0 || ID >= gpup_maxeffects) return;
@@ -2278,6 +2289,13 @@ void gpup_floorReflection( int ID, int active, float height )
 	
 	if ( gpup_emitter[ID].effectLoaded == 1 ) gpup_updatesettings( ID );
 }
+void gpup_restoreFloorReflection(int ID, int active, float height)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return;
+	gpup_emitter[ID].floorHeight = height;
+	gpup_emitter[ID].floorActive = (active == 1) ? 1.0f : 0.0f;
+	if (gpup_emitter[ID].effectLoaded == 1) gpup_updatesettings(ID);
+}
 
 // Sets the parameters of the spherical reflection
 void gpup_sphereReflection( int ID, int active, float x, float y, float z, float radius ) 
@@ -2299,7 +2317,7 @@ void gpup_setBounciness( int ID, float value )
 {
 	if ( ID < 0 || ID >= gpup_maxeffects ) return;
 	
-	if ( value > 0.0f ) value = 0.0f;
+	if ( value < 0.0f ) value = 0.0f;
 	if ( value > 1.0f ) value = 1.0f;
 	gpup_emitter[ID].bounciness = value;
 	if ( gpup_emitter[ID].effectLoaded == 1 ) gpup_updatesettings( ID );
@@ -2451,17 +2469,52 @@ void gpup_setEffectVisible( int ID, int visible )
 int gpup_getEffectVisible ( int ID )
 {
 	if ( ID < 0 || ID >= gpup_maxeffects ) return 0;
-
 	return gpup_emitter[ID].effectVisible;
 }
-
+float gpup_getParticleSpeed(int ID)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return 0;
+	return gpup_emitter[ID].emitter_animation_speed;
+}
+float gpup_getParticleOpacity(int ID)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return 0;
+	return gpup_emitter[ID].opacity;
+}
+float gpup_getParticleSize(int ID)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return 0;
+	return gpup_emitter[ID].particleSize;
+}
+float gpup_getBounciness(int ID)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return 0;
+	return gpup_emitter[ID].bounciness;
+}
+float gpup_getFloorReflectionHeight(int ID)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return 0;
+	return gpup_emitter[ID].floorHeight;
+}
+void gpup_getEffectColor(int ID, float* r, float* g, float* b)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return;
+	*r = gpup_emitter[ID].r / 0.00390625f;
+	*g = gpup_emitter[ID].g / 0.00390625f;
+	*b = gpup_emitter[ID].b / 0.00390625f;
+}
 float gpup_getEffectLifespan(int ID)
 {
 	if (ID < 0 || ID >= gpup_maxeffects) return 0;
-
 	return (gpup_emitter[ID].lifespan * 60 * 10);
 }
 
+void gpup_setEffectLifespan(int ID, float value)
+{
+	if (ID < 0 || ID >= gpup_maxeffects) return;
+	
+	gpup_emitter[ID].lifespan = value / (60 * 10);
+}
 
 void gpup_setEffectAnimationSpeed(int ID,float speed)
 {

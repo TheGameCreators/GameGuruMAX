@@ -19,10 +19,14 @@
 // DarkLUA needs access to the T global (but could be in two locations)
 #include "..\..\..\..\GameGuru\Include\gameguru.h"
 
-#ifdef WICKEDENGINE
+// Control of NAVMESH
 #include "..\..\..\..\Guru-WickedMAX\GGRecastDetour\GGRecastDetour.h"
 extern GGRecastDetour g_RecastDetour;
-#endif
+
+// Control of PARTICLES
+#define NOTFORMAINENGINE
+#include "..\..\..\..\Guru-WickedMAX\GPUParticles.h"
+#undef NOTFORMAINENGINE
 
 #ifdef STORYBOARD
 #ifdef ENABLEIMGUI
@@ -9276,7 +9280,161 @@ int ParticlesDeleteEmitter( lua_State *L )
 	return 0;
 }
 
-int GetBulletHit(lua_State *L)
+// New Particle Effects System
+
+int EffectStart(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Show_At_Start = 1;
+	return 0;
+}
+int EffectStop(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Show_At_Start = 0;
+	return 0;
+}
+int EffectSetLocalPosition(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float z = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Used = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_X = x;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Y = y;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Z = z;
+	return 0;
+}
+int EffectSetLocalRotation(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float z = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Used = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_X = x;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Y = y;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Z = z;
+	return 0;
+}
+int EffectSetSpeed(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float speed = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_SpeedChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Speed = speed;
+	return 0;
+}
+int EffectSetOpacity(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float opacity = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_OpacityChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Opacity = opacity;
+	return 0;
+}
+int EffectSetParticleSize(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float opacity = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_SizeChange = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_Size = opacity;
+	return 0;
+}
+int EffectSetBurstMode(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	int automode = lua_tonumber(L, 2);
+	t.entityelement[e].eleprof.newparticle.bParticle_Looping_Animation = 1 - automode;
+	return 0;
+}
+int EffectFireBurst(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Fire = true;
+	return 0;
+}
+int EffectSetFloorReflection(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	int e = lua_tonumber(L, 1);
+	int active = lua_tonumber(L, 2);
+	float height = lua_tonumber(L, 3);
+	t.entityelement[e].eleprof.newparticle.iParticle_Floor_Active = 1 + active;
+	t.entityelement[e].eleprof.newparticle.fParticle_Floor_Height = height;
+	return 0;
+}
+int EffectSetBounciness(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float bounciness = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.fParticle_BouncinessChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Bounciness = bounciness;
+	return 0;
+}
+int EffectSetColor(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float r = lua_tonumber(L, 2);
+	float g = lua_tonumber(L, 3);
+	float b = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_ColorChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_R = r;
+	t.entityelement[e].eleprof.newparticle.fParticle_G = g;
+	t.entityelement[e].eleprof.newparticle.fParticle_B = b;
+	return 0;
+}
+int EffectSetLifespan(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float lifespan = lua_tonumber(L, 2) * 10.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_LifespanChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Lifespan = lifespan;
+	return 0;
+}
+
+// Misc Commands
+
+int GetBulletHit(lua_State* L)
 {
 	if (t.tdamagesource == 1)
 	{
@@ -12254,6 +12412,7 @@ void addFunctions()
 
 	lua_register(lua, "SetRotationYSlowly" , SetRotationYSlowly );
 
+	// OLD Particle System
 	lua_register(lua, "ParticlesGetFreeEmitter" , ParticlesGetFreeEmitter );
 	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
 	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
@@ -12273,8 +12432,22 @@ void addFunctions()
 	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector );
 	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind );
 
-	lua_register(lua, "GetBulletHit",             GetBulletHit);
+	// NEW Particle Effects System
+	lua_register(lua, "EffectStart",				EffectStart);
+	lua_register(lua, "EffectStop",					EffectStop);
+	lua_register(lua, "EffectSetLocalPosition",		EffectSetLocalPosition);
+	lua_register(lua, "EffectSetLocalRotation",		EffectSetLocalRotation);
+	lua_register(lua, "EffectSetSpeed",				EffectSetSpeed);
+	lua_register(lua, "EffectSetOpacity",			EffectSetOpacity);
+	lua_register(lua, "EffectSetParticleSize",		EffectSetParticleSize);
+	lua_register(lua, "EffectSetBurstMode",			EffectSetBurstMode);
+	lua_register(lua, "EffectFireBurst",			EffectFireBurst);
+	lua_register(lua, "EffectSetFloorReflection",	EffectSetFloorReflection);
+	lua_register(lua, "EffectSetBounciness",		EffectSetBounciness);
+	lua_register(lua, "EffectSetColor",				EffectSetColor);
+	lua_register(lua, "EffectSetLifespan",			EffectSetLifespan);
 
+	lua_register(lua, "GetBulletHit",             GetBulletHit);
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
 	lua_register(lua, "SetOcclusion" , SetOcclusion );
@@ -12424,7 +12597,6 @@ void addFunctions()
 	lua_register(lua, "SetEntityTextureScale", SetEntityTextureScale);
 	lua_register(lua, "SetEntityTextureOffset", SetEntityTextureOffset);
 
-
 	lua_register(lua, "SetWeaponArmsVisible", SetWeaponArmsVisible);
 	lua_register(lua, "GetWeaponArmsVisible", GetWeaponArmsVisible);
 
@@ -12443,11 +12615,9 @@ void addFunctions()
 	lua_register(lua, "SetExposure", SetExposure);
 	lua_register(lua, "GetExposure", GetExposure);
 
-
 	lua_register(lua, "SetLutTo", lua_set_lut);
 	lua_register(lua, "GetLut", lua_get_lut);
-	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);
-	
+	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);	
 }
 
  /*

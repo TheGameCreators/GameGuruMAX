@@ -49,7 +49,7 @@ function envirozone_main(e)
 	end
 
 	if g_Entity[e]['activated'] == 1 then
-		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY < g_Entity[e]['y']+envirozone[e].zoneheight then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+envirozone[e].zoneheight then
 
 			if envirozone[e].effect == 1 then	--Inhibited Walk/Run
 				Prompt(envirozone[e].prompt_text)

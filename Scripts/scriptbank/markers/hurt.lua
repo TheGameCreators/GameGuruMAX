@@ -1,4 +1,4 @@
--- Hurt v5
+-- Hurt v6
 -- DESCRIPTION: Hurts the player over time or once only when they enter the zone.
 -- DESCRIPTION: Can also update a specified User Global by the same amount.
 -- DESCRIPTION: Set the Hurt [AMOUNT=1(1-20)] and the [TIMING=1(1,10)] and the [ZONEHEIGHT=100(1,500)]
@@ -25,7 +25,6 @@ local hurt_now 		= {}
 local status		= {}
 
 function hurt_properties(e, amount, timing, zoneheight, SpawnAtStart, HurtOnceOnly, user_global_affected)
-	hurt[e] = g_Entity[e]
 	hurt[e]['amount'] = amount
 	hurt[e]['timing'] = timing
 	hurt[e]['zoneheight'] = zoneheight or 100
@@ -35,7 +34,7 @@ function hurt_properties(e, amount, timing, zoneheight, SpawnAtStart, HurtOnceOn
 end
 
 function hurt_init(e)
-	hurt[e] = g_Entity[e]
+	hurt[e] = {}
 	hurt[e]['amount'] = 1
 	hurt[e]['timing'] = 1
 	hurt[e]['zoneheight'] = 100
@@ -51,7 +50,7 @@ function hurt_init(e)
 end
 
 function hurt_main(e)
-	hurt[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		if hurt[e]['SpawnAtStart'] == 1 then SetActivated(e,1) end
 		if hurt[e]['SpawnAtStart'] == 0 then SetActivated(e,0) end

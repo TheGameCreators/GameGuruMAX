@@ -1,14 +1,16 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Npc Remove v5 by Necrym59
+-- Npc Remove v7 by Necrym59
 -- DESCRIPTION: If npc enters the zone, displays a [NOTIFICATION$="NPC removed"] and will
 -- DESCRIPTION: remove/destroy the NPC, activates any logic links, then destroys this zone.
--- DESCRIPTION: NPC [@REMOVE_STYLE=1 (1=Instant, 2=Fade)]
+-- DESCRIPTION: NPC [@REMOVE_STYLE=1 (1=Instant, 2=Fade, 3=Timed)]
+-- DESCRIPTION: [REMOVE_TIME=1(0,100)] Seconds
+-- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered
 -- DESCRIPTION: Plays <Sound0> when triggered.
 
 local npc_remove 	= {}	
-local npc_type 		= {}
 local notification 	= {}
 local remove_style 	= {}
+local remove_time 	= {}
 local zoneheight	= {}
 local played 		= {}
 local wait			= {}
@@ -17,20 +19,20 @@ local doonce		= {}
 local EntityID		= {}
 local status		= {}
 	
-function npc_remove_properties(e, notification, remove_style, zoneheight)
-	npc_remove[e] = g_Entity[e]
-	npc_remove[e].npc_type = npc_type
+function npc_remove_properties(e, notification, remove_style, remove_time, zoneheight)
 	npc_remove[e].notification = notification
 	npc_remove[e].remove_style = remove_style
+	npc_remove[e].remove_time = remove_time	
 	npc_remove[e].zoneheight = zoneheight or 100
 end 
 
 function npc_remove_init(e)
 	npc_remove[e] = {}
-	npc_remove[e].npc_type = 0
 	npc_remove[e].notification = "NPC removed"
 	npc_remove[e].remove_style = 1
+	npc_remove[e].remove_time = 0	
 	npc_remove[e].zoneheight = 100
+	
 	played[e] = 0
 	EntityID[e] = 0
 	doonce[e] = 0
@@ -38,11 +40,10 @@ function npc_remove_init(e)
 end
 
 function npc_remove_main(e)
-	npc_remove[e] = g_Entity[e]
 	
-	GetEntityInZone(e)
+	GetEntityInZoneWithFilter(e,2)
 	EntityID[e] = g_Entity[e]['entityinzone']
-	if EntityID[e] ~= 0 or nil and g_Entity[e]['entityinzone'] < g_Entity[e]['y'] + npc_remove[e].zoneheight then
+	if EntityID[e] ~= 0 or nil and g_Entity[EntityID[e]]['y'] > g_Entity[e]['y']-1 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y'] + npc_remove[e].zoneheight then
 		if doonce[e] == 0 then
 			SetEntityBaseAlpha(EntityID[e],100)
 			SetEntityTransparency(EntityID[e],1)
@@ -79,6 +80,10 @@ function npc_remove_main(e)
 					wait[e] = g_Time + 1000
 				end
 			end
+			if npc_remove[e].remove_style == 3 then
+				StopAnimation(EntityID[e])
+				wait[e] = g_Time + (npc_remove[e].remove_time * 1000)
+			end			
 		end	
 	end
 	if g_Time > wait[e] then

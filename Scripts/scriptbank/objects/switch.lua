@@ -1,4 +1,4 @@
--- Switch v14
+-- Switch v15
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Play the audio <Sound0> when the object is switched ON by the player, and <Sound1> when the object is switched OFF. 
 -- DESCRIPTION: Use the [SwitchedOn!=1] state to decide if the switch is initially off or on, and customize the [OnText$="To Turn Switch ON"] and [OffText$="To Turn Switch OFF"].
@@ -183,6 +183,7 @@ function switch_main(e)
 		PlayAnimation(e)
 		if switch[e].initialstate == -1 then 
 			PerformLogicConnections(e)
+			ActivateIfUsed(e)
 			PlaySound(e,0) 
 		end
 		switch[e].initialstate = -1

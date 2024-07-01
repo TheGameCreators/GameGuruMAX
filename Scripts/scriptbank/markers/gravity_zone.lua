@@ -1,4 +1,4 @@
--- Gravity Zone v4  Necrym59
+-- Gravity Zone v5  Necrym59
 -- DESCRIPTION: Will alter the gravity while a player is in the zone, and can trigger selected option upon reaching a trigger height.
 -- DESCRIPTION: [#GRAVITY_LEVEL=-3(-20,20)]
 -- DESCRIPTION: [#FALL_RATE=300.0(1.0,1000.0)]
@@ -62,8 +62,8 @@ function gravity_zone_main(e)
 		if gravity_zone[e].gravity_lift > 0 then gravity_zone[e].zoneheight = gravity_zone[e].trigger_height end
 		status[e] = "endinit"
 	end
-	if g_Entity[e].activated == 1 then
-		if g_Entity[e].plrinzone == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + gravity_zone[e].zoneheight then
+	if g_Entity[e]['activated'] == 1 then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + gravity_zone[e].zoneheight then
 			SetWorldGravity(0,gravity_zone[e].gravity_level,0,gravity_zone[e].fall_rate) -- Set to required gravity
 			if gravity_zone[e].gravity_lift ~= 0 and g_Entity[e]['y'] < gravity_zone[e].trigger_height then
 				GravityOff(e)
@@ -78,7 +78,7 @@ function gravity_zone_main(e)
 			end			
 		end
 		
-		if g_Entity[e].plrinzone == 1 and g_PlayerPosY >= gravity_zone[e].trigger_height then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY >= gravity_zone[e].trigger_height then
 			if gravity_zone[e].trigger_type == 2 then
 				if doonce[e] == 0 then 
 					PlaySound(e,1)
@@ -98,7 +98,7 @@ function gravity_zone_main(e)
 			end			
 		end
 		
-		if g_Entity[e].plrinzone == 0 then
+		if g_Entity[e]['plrinzone'] == 0 then
 			SetWorldGravity(0,-20,0,0) -- Reset to normal gravity
 			StopSound(e,0)
 			played[e] = 0

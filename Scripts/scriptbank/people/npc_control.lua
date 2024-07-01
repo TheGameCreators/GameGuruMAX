@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- NPC Control v71 by Necrym 59
+-- NPC Control v72 by Necrym 59
 -- DESCRIPTION: The attached npc entity will be controlled by this behavior.
 -- DESCRIPTION: [#SENSE_TEXT$="Who's that ..an intruder??"]
 -- DESCRIPTION: [#SENSE_RANGE=500(0,2000)]
@@ -693,11 +693,12 @@ function npc_control_main(e)
 	if state[e] == "roam" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
 		SetSoundVolume(svolume[e])
+		local dist = 0
 		if wandonce[e] == 0 then -- get a random point on a circle around the current location
 			if avoidance[e] == 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(1,360))
-				local dist = npc_control[e].roam_range
+				dist = npc_control[e].roam_range
 				if scare[e] == 0 then dist = npc_control[e].roam_range end
 				if scare[e] == 1 then dist = (npc_control[e].roam_range*2) end
 				destx[e] = startx[e] + math.cos(ang) * dist
@@ -707,7 +708,7 @@ function npc_control_main(e)
 			if avoidance[e] == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
+				dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist
@@ -720,7 +721,7 @@ function npc_control_main(e)
 			if colobj[e] > 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
+				dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist

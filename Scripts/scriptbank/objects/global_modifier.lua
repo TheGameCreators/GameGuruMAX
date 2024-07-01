@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Global Modifier v6: by Necrym59
+-- Global Modifier v7: by Necrym59
 -- DESCRIPTION: The attached object when activated will pass a global modifier value for use with other behaviors, such as countdowns or monitors.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Modifier collected"]
 -- DESCRIPTION: [MODIFIER_LEVEL=10(1,30)]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
 -- DESCRIPTION: [@ACTIVATION_STYLE=1(1=Automatic Pickup, 2=Manual Pickup, 3=External Triggered)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyGlobalModifier"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyGlobalModifier)
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [HEALTH_MODIFIER=0(0,100)]
 -- DESCRIPTION: [@WHEN ACTIVATED=1(1=Do Nothing, 2=Hide, 3=Show, 4=Destroy)]
@@ -37,7 +37,6 @@ local tEnt				= {}
 local selectobj			= {}
 
 function global_modifier_properties(e, prompt_text, collected_text, modifier_level, pickup_range, activation_style, user_global_affected, effect, health_modifier, when_activated, prompt_display)
-	modifier[e] = g_Entity[e]
 	modifier[e].prompt_text = prompt_text
 	modifier[e].collected_text = collected_text
 	modifier[e].modifier_level = modifier_level
@@ -57,7 +56,7 @@ function global_modifier_init(e)
 	modifier[e].modifier_level = 0
 	modifier[e].pickup_range = 50
 	modifier[e].activation_style = activation_style
-	modifier[e].user_global_affected = "MyModifier"
+	modifier[e].user_global_affected = ""
 	modifier[e].effect = 1
 	modifier[e].health_modifier = 0
 	modifier[e].when_activated = 1

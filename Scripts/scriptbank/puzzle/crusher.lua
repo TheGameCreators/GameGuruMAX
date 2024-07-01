@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Crusher Script v4
+-- Crusher Script v6
 -- DESCRIPTION: This script is attached to the crusher object. Physics ON, Gravity OFF, Weight & Friction = 0, IsImobile ON
 -- DESCRIPTION: [TRIGGER_RANGE=500(50,2000)]
 -- DESCRIPTION: [MOVE_SPEED=60(1,500)]
@@ -9,6 +9,7 @@
 -- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch1"]
 -- DESCRIPTION: <Sound0> for Crusher Loop
 -- DESCRIPTION: <Sound1> for Crush Sound
+-- DESCRIPTION: <Sound2> for Crusher hit
 
 local crusher 						= {}
 local trigger_range 				= {}
@@ -47,6 +48,7 @@ function crusher_init(e)
 	
 	minheight[e] = 0
 	maxheight[e] = 0
+	starty[e] = g_Entity[e]['y']
 	currentvalue[e] = 0
 	status[e] = "init"
 	played = 0
@@ -55,8 +57,8 @@ end
 function crusher_main(e)
 
 	if status[e] == "init" then
-		minheight[e] = (GetTerrainHeight(g_Entity[e]['x'],g_Entity[e]['z']))
-		maxheight[e] = g_Entity[e]['y']
+		minheight[e] = (GetSurfaceHeight(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z']))
+		maxheight[e] = starty[e]
 		status[e] = "crush"
 	end
 	
@@ -89,6 +91,7 @@ function crusher_main(e)
 				end
 			end			
 			if g_Entity[e]['y'] <= minheight[e] then
+				PlaySound(e,2)
 				status[e] = "reset"					
 			end
 			CollisionOn(e)			

@@ -1,15 +1,15 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Helmet v22   by Necrym59
+-- Helmet v23   by Necrym59
 -- DESCRIPTION: The applied object will give the player a Helmet Hud? Set Always active ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to Pickup/Wear"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
--- DESCRIPTION: [USEAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF, P=Remove/Wear Helmet"]
+-- DESCRIPTION: [USAGE_TEXT$="Hold B + Wheel to zoom, N=Nightvision ON/OFF, H=Remove/Wear Helmet"]
 -- DESCRIPTION: [@HELMET_MODE=1(1=Pickup/Drop, 2=Pickup/Retain, 3=Always On)]
 -- DESCRIPTION: [#MIN_ZOOM=-10(-30,1)]
 -- DESCRIPTION: [MAX_ZOOM=30(1,50)]
 -- DESCRIPTION: [ZOOM_SPEED=1(1,10)]
--- DESCRIPTION: [READOUT_X=50(1,100)]
--- DESCRIPTION: [READOUT_Y=10(1,100)]
+-- DESCRIPTION: [ZOOM_READOUT_X=50(1,100)]
+-- DESCRIPTION: [ZOOM_READOUT_Y=10(1,100)]
 -- DESCRIPTION: [@COMPASS=2(1=On, 2=Off)]
 -- DESCRIPTION: [@COMPASS_POSITION=2(1=Top, 2=Bottom)]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\helmethud1.png"] for the Helmet overlay image
@@ -24,7 +24,7 @@ g_have_helmet = {}
 local helmet = {}
 local pickup_text = {}
 local pickup_range = {}
-local useage_text = {}
+local usage_text = {}
 local start_wheel = {}
 local mod = {}
 local zoom_speed = {}
@@ -32,8 +32,8 @@ local helmet_mode = {}
 local min_zoom = {}
 local max_zoom = {}
 local screen_image = {}
-local readout_x = {}
-local readout_y = {}
+local zoom_readout_x = {}
+local zoom_readout_y = {}
 local compass = {}
 local compass_position = {}
 
@@ -59,17 +59,17 @@ local default_FogNearest = {}
 local default_FogDistance = {}
 local current_fov = {}
 
-function helmet_properties(e, pickup_text, pickup_range, useage_text, helmet_mode, min_zoom, max_zoom, zoom_speed, readout_x, readout_y, compass, compass_position, screen_image)
+function helmet_properties(e, pickup_text, pickup_range, usage_text, helmet_mode, min_zoom, max_zoom, zoom_speed, zoom_readout_x, zoom_readout_y, compass, compass_position, screen_image)
 	helmet[e] = g_Entity[e]
 	helmet[e].pickup_text = pickup_text
 	helmet[e].pickup_range = pickup_range
-	helmet[e].useage_text = useage_text
+	helmet[e].usage_text = usage_text
 	helmet[e].helmet_mode = helmet_mode
 	helmet[e].min_zoom = min_zoom
 	helmet[e].max_zoom = max_zoom
 	helmet[e].zoom_speed = zoom_speed
-	helmet[e].readout_x = readout_x
-	helmet[e].readout_y = readout_y
+	helmet[e].zoom_readout_x = zoom_readout_x
+	helmet[e].zoom_readout_y = zoom_readout_y
 	helmet[e].compass = compass or 2
 	helmet[e].compass_position = compass_position
 	helmet[e].screen_image = imagefile or screen_image
@@ -79,13 +79,13 @@ function helmet_init(e)
 	helmet[e] = {}
 	helmet[e].pickup_text = "E to Pickup/Wear"
 	helmet[e].pickup_range = 80
-	helmet[e].useage_text = "Hold B + Wheel to zoom, N=Nightvision ON/OFF,  P=Remove/Wear Helmet"
+	helmet[e].usage_text = "Hold B + Wheel to zoom, N=Nightvision ON/OFF, H=Remove/Wear Helmet"
 	helmet[e].helmet_mode = 1
 	helmet[e].min_zoom = -10
 	helmet[e].max_zoom = 30
 	helmet[e].zoom_speed = 1
-	helmet[e].readout_x = 50
-	helmet[e].readout_y = 10
+	helmet[e].zoom_readout_x = 50
+	helmet[e].zoom_readout_y = 10
 	helmet[e].compass = 2
 	helmet[e].compass_position = 1
 	helmet[e].screen_image = "imagebank\\misc\\testimages\\helmethud1.png"
@@ -119,7 +119,7 @@ function helmet_main(e)
 	if status[e] == "init" then
 		helmetsp[e] = CreateSprite(LoadImage(helmet[e].screen_image))
 		SetSpriteSize(helmetsp[e],100,100)
-		SetSpriteDepth(helmetsp[e],100)
+		SetSpriteDepth(helmetsp[e],100)		
 		SetSpritePosition(helmetsp[e],1000,1000)
 		compass_pos = helmet[e].compass_position
 		mod = g_PlayerFOV
@@ -135,12 +135,6 @@ function helmet_main(e)
 
 	PlayerDist = GetPlayerDistance(e)
 	if fov == nil then fov = g_PlayerFOV end
-
-	if helmet[e].compass == 1 then
-		if have_helmet[e] == 1 then
-			show_compass()
-		end
-	end
 
 	if have_helmet[e] == 0 then
 		g_have_helmet = have_helmet[e]
@@ -165,11 +159,16 @@ function helmet_main(e)
 		if hmswitch[e] == 0 then
 			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			PasteSpritePosition(helmetsp[e],0,0)
-			TextCenterOnXColor(50,95,2,helmet[e].useage_text,100,255,100)
+			TextCenterOnXColor(50,95,2,helmet[e].usage_text,100,255,100)
 			if doloop[e] == 0 then
 				LoopNon3DSound(e,1)
 				doloop[e] = 1
-			end 
+			end
+			if helmet[e].compass == 1 then
+				if have_helmet[e] == 1 then
+					show_compass()
+				end
+			end			
 		end
 		if hmswitch[e] == 1 then
 			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
@@ -196,7 +195,7 @@ function helmet_main(e)
 			end
 			SetPlayerFOV(fov-mod)
 			current_fov[e] = (fov-mod)
-			TextCenterOnX(helmet[e].readout_x,helmet[e].readout_y,3,"Magnification Factor: " ..mod)
+			TextCenterOnX(helmet[e].zoom_readout_x,helmet[e].zoom_readout_y,3,"Magnification Factor: " ..mod)
 		else
 			start_wheel = g_MouseWheel
 			mod = 0
@@ -238,7 +237,7 @@ function helmet_main(e)
 			end
 		end
 		if helmet[e].helmet_mode == 1 then
-			if GetInKey() == "p" or GetInKey() == "P" then
+			if GetInKey() == "h" or GetInKey() == "H" then
 				local ox,oy,oz = U.Rotate3D( 0, 60, 0, math.rad( g_PlayerAngX ), math.rad( g_PlayerAngY ), math.rad( g_PlayerAngZ ) )
 				local forwardposx, forwardposy, forwardposz = g_PlayerPosX + ox, g_PlayerPosY + oy, g_PlayerPosZ + oz
 				ResetPosition(e,forwardposx, forwardposy, forwardposz)
@@ -263,7 +262,7 @@ function helmet_main(e)
 		if helmet[e].helmet_mode == 2 then --reuseable	
 			ResetPosition(e,g_PlayerPosX,g_PlayerPosY+500,g_PlayerPosZ)
 			if g_Time > keypause2[e] and hmswitch[e] == 0 then
-				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 0 then
+				if GetInKey() == "h" or GetInKey() == "H" and hmswitch[e] == 0 then
 					Hide(e)
 					SetAmbienceRed(default_AmbienceRed)
 					SetAmbienceBlue(default_AmbienceBlue)
@@ -281,7 +280,7 @@ function helmet_main(e)
 				end
 			end
 			if g_Time > keypause2[e] and hmswitch[e] == 1 then
-				if GetInKey() == "p" or GetInKey() == "P" and hmswitch[e] == 1 then
+				if GetInKey() == "h" or GetInKey() == "H" and hmswitch[e] == 1 then
 					Hide(e)
 					SetAmbienceRed(default_AmbienceRed)
 					SetAmbienceBlue(default_AmbienceBlue)

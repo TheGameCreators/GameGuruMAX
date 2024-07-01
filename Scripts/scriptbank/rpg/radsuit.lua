@@ -34,7 +34,6 @@ local selectobj 		= {}
 local tEnt 				= {}
 
 function radsuit_properties(e, pickup_text, pickup_range, useage_text, screen_image, prompt_display, item_highlight)
-	radsuit[e] = g_Entity[e]
 	radsuit[e].pickup_text = pickup_text
 	radsuit[e].pickup_range = pickup_range
 	radsuit[e].useage_text = useage_text
@@ -44,7 +43,7 @@ function radsuit_properties(e, pickup_text, pickup_range, useage_text, screen_im
 end
 
 function radsuit_init(e)
-	radsuit[e] = g_Entity[e]
+	radsuit[e] = {}
 	radsuit[e].pickup_text = "E to Pickup"
 	radsuit[e].pickup_range = 80
 	radsuit[e].useage_text = "K to wear, Q to remove"
@@ -64,7 +63,7 @@ function radsuit_init(e)
 end
 
 function radsuit_main(e)
-	radsuit[e] = g_Entity[e]
+
 	if status[e] == "init" then
 		radmasksp = CreateSprite(LoadImage(radsuit[e].screen_image))
 		SetSpriteSize(radmasksp,100,100)

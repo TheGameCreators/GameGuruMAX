@@ -52,7 +52,7 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 			if U.PlayerLookingNear(e,pickuprange,60) then
 				TextCenterOnXColor(50,50-0.4,3,".",180,180,180) -- Dot pointer
 			end	
-		end					
+		end
 	end
 	--end pinpoint select object--
 end

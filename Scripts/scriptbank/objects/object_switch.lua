@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Object Switch v9   by Necrym59
+-- Object Switch v10   by Necrym59
 -- DESCRIPTION: This object will be treated as a one time switch for activating other objects or game elements. Set Physics=ON, Always Active = ON, IsImobile=ON
 -- DESCRIPTION: Customise the [PROMPT_TEXT$ = "E to use"]
 -- DESCRIPTION: [USE_RANGE=90(1,300)]
@@ -91,7 +91,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objpushval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -112,7 +112,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objpullval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -133,7 +133,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objslideval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -154,7 +154,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objslideval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)						
+						ActivateIfUsed(e)					
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -175,7 +175,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objslideval[e] >= objectswitch[e].switch_movement then
-						SetActivatedWithMP(e,201)						
+						ActivateIfUsed(e)						
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -196,7 +196,7 @@ function object_switch_main(e)
 						CollisionOn(e)							
 					end
 					if objslideval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)
@@ -215,7 +215,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objrotval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -234,7 +234,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objrotval[e] >= objectswitch[e].switch_movement then						
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							
@@ -253,7 +253,7 @@ function object_switch_main(e)
 						CollisionOn(e)
 					end
 					if objrotval[e] >= objectswitch[e].switch_movement then							
-						SetActivatedWithMP(e,201)
+						ActivateIfUsed(e)	
 						PerformLogicConnections(e)
 						StopSound(e,0)
 						PlaySound(e,1)							

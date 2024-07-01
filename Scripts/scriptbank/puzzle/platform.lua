@@ -1,11 +1,11 @@
 --LUA Script - precede every function and global member with lowercase name of script + '_main'
---Platform Script V14  by Necrym59 with thanks to smallg
+--Platform Script V16  by Necrym59 with thanks to smallg
 --DESCRIPTION: Attach to an object. With Physics ON, Gravity OFF, Weight and Friction 0, IsImobile ON
 --DESCRIPTION: Change [PROMPT_TEXT$="E to start"]
 --DESCRIPTION: The direction 
 --DESCRIPTION: [DIRECTION_X!=0]
 --DESCRIPTION: [DIRECTION_Y!=0]
---DESCRIPTION: [DIRECTION_Z!=0]
+--DESCRIPTION: [DIRECTION_Z!=1]
 --DESCRIPTION: The distance to travel
 --DESCRIPTION: [DISTANCE_X=0(0,3000)]
 --DESCRIPTION: [DISTANCE_Y=0(0,3000)]
@@ -26,6 +26,7 @@
 --DESCRIPTION: [@RIDING=1(1=Locked, 2=Unlocked)]
 --DESCRIPTION: [@MODE=1(1=Manual, 2=Auto)]
 --DESCRIPTION: [EXTENDED!=0] to start at extended position
+--DESCRIPTION: [RESPAWN_ON_PLATFORM!=0] to respawn on platform upon player death
 --DESCRIPTION: <Sound0> - for platform starting
 --DESCRIPTION: <Sound1> - for platform running
 --DESCRIPTION: <Sound2> - for platform stopping
@@ -51,7 +52,7 @@
 	local visibility 		= {}	
 	local riding 			= {}
 	local mode 				= {}
-	local extended	= {}
+	local extended			= {}
 	
 	local wait_time			= {}
 	local direction 		= {}
@@ -64,8 +65,7 @@
 	local state 			= {}
 	local onplatform		= {}
 
-function platform_properties(e, prompt_text, direction_x, direction_y, direction_z, distance_x, distance_y, distance_z, speed_x, speed_y, speed_z, lock_x_position, lock_y_position, lock_z_position, lock_x_rotation, lock_y_rotation, lock_z_rotation, auto_eject, visibility, riding, mode, extended)
-	platform[e] = g_Entity[e]
+function platform_properties(e, prompt_text, direction_x, direction_y, direction_z, distance_x, distance_y, distance_z, speed_x, speed_y, speed_z, lock_x_position, lock_y_position, lock_z_position, lock_x_rotation, lock_y_rotation, lock_z_rotation, auto_eject, visibility, riding, mode, extended, respawn_on_platform)
 	platform[e].prompt_text 			= prompt_text
 	platform[e].direction_x 			= direction_x
 	platform[e].direction_y 			= direction_y
@@ -86,11 +86,12 @@ function platform_properties(e, prompt_text, direction_x, direction_y, direction
 	platform[e].visibility 				= visibility or 1
 	platform[e].riding 					= riding or 1
 	platform[e].mode 					= mode or 1
-	platform[e].extended				= extended
+	platform[e].extended				= extended or 0
+	platform[e].respawn_on_platform		= respawn_on_platform or 0
 end 
 
 function platform_init(e)
-	platform[e] = g_Entity[e]
+	platform[e] = {}
 	platform[e].prompt_text 			= ""
 	platform[e].direction_x 			= 0
 	platform[e].direction_y 			= 0
@@ -112,6 +113,7 @@ function platform_init(e)
 	platform[e].riding					= 1
 	platform[e].mode 					= 1
 	platform[e].extended				= 0
+	platform[e].respawn_on_platform		= 1
 	riding[e] = 1
 	onplatform[e] = 0
 	state[e] = "init"
@@ -123,8 +125,7 @@ function platform_init(e)
 end 
 
 function platform_main(e)
-	platform[e] = g_Entity[e]
-	
+
 	if g_Entity[e]['activated'] == 1 then
 		state[e] = "active"
 		SetActivated(e,0)
@@ -319,6 +320,7 @@ function platform_main(e)
 				TransportToFreezePositionOnly()
 			end	
 		end
+		if platform[e].respawn_on_platform == 0 and g_PlayerHealth == 0 then platform[e].riding = 0 end
 		CollisionOn(e)
 		GravityOn(e)
 		if platform[e].lock_x_rotation == 1 then 

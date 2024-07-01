@@ -1,4 +1,4 @@
--- Resource v7 by Necrym59
+-- Resource v8 by Necrym59
 -- DESCRIPTION: The object will give the player a crafting resource. Object must be set to 'Collectable' and 'Resource'.
 -- DESCRIPTION: [PICKUP_TEXT$="E to harvest"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Resource harvested"]
@@ -12,7 +12,6 @@
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
-g_ResnodeCollected = {}
 
 local resource = {}
 local pickup_text = {}
@@ -65,7 +64,6 @@ function resource_main(e)
 				PlaySound(e,0)
 				SetEntityQuantity(e,resource[e].quantity)
 				SetEntityCollected(e,1,-1)
-				g_ResnodeCollected = e
 			end
 		end
 	end
@@ -88,7 +86,6 @@ function resource_main(e)
 						PlaySound(e,0)
 						SetEntityQuantity(e,resource[e].quantity)
 						SetEntityCollected(e,1,-1)
-						g_ResnodeCollected = e
 					end
 				end
 			end

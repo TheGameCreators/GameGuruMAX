@@ -42,7 +42,6 @@ local prop_h 			= {}
 local last_gun			= {}
 
 function examine_properties(e, pickup_range, pickup_message, examine_message, examine_speed, prompt_display, item_highlight)
-	examine[e] = g_Entity[e]
 	examine[e].pickup_range = pickup_range
 	examine[e].pickup_message =  pickup_message
 	examine[e].examine_message = examine_message
@@ -69,7 +68,6 @@ function examine_init(e)
 end 
 
 function examine_main(e)
-	examine[e] = g_Entity[e]
 	
 	local PlayerDist = GetPlayerDistance(e)
 	if status[e] == "init" then

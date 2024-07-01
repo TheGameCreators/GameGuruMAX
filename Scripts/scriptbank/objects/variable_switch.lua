@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Variable Switch v3: by Necrym59
+-- Variable Switch v4: by Necrym59
 -- DESCRIPTION: This object will be treated as a variable switch to change the state of an object or light.
 -- DESCRIPTION: [PROMPT_TEXT$="+ to increase, - to decrease"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [USE_RANGE=90(1,200)]
--- DESCRIPTION: [STARTER VALUE=0(0,100)] Base Starting value
--- DESCRIPTION: [MINIMUM VALUE=0(0,100)] Minimum variable value
--- DESCRIPTION: [MAXIMUM VALUE=100(1,1000)] Maximum variable value
+-- DESCRIPTION: [#STARTER VALUE=0.0(0.0,100.0)] Base Starting value
+-- DESCRIPTION: [#MINIMUM VALUE=0.0(0.0,100.0)] Minimum variable value
+-- DESCRIPTION: [#MAXIMUM VALUE=100.0(1.0,1000.0)] Maximum variable value
 -- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch#1"] Unique User Global for this switch.
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> when the object is used by the player.
@@ -90,11 +90,11 @@ function variable_switch_main(e)
 		if varswitch[e].prompt_display == 1 then PromptLocal(e,varswitch[e].prompt_text) end
 		if varswitch[e].prompt_display == 2 then Prompt(varswitch[e].prompt_text) end
 		if GetInKey() == "+" or GetInKey() == "=" then
-			if varswitch[e].prompt_display == 1 then PromptLocal(e,"Setting: "..switch_value[e]) end
-			if varswitch[e].prompt_display == 2 then Prompt("Setting: "..switch_value[e]) end
+			if varswitch[e].prompt_display == 1 then PromptLocal(e,"Setting: "..math.floor(switch_value[e]*10)/10) end
+			if varswitch[e].prompt_display == 2 then Prompt("Setting: "..math.floor(switch_value[e]*10)/10) end
 			SetAnimationName(e,"on")
 			PlayAnimation(e)
-			switch_value[e] = switch_value[e] + 1			
+			switch_value[e] = switch_value[e] + 0.02
 			if switch_value[e] >= varswitch[e].maximum_value then switch_value[e] = varswitch[e].maximum_value end
 			if varswitch[e].variable_switch_user_global ~= "" then
 				if _G["g_UserGlobal['"..varswitch[e].variable_switch_user_global.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..varswitch[e].variable_switch_user_global.."']"] end
@@ -106,11 +106,11 @@ function variable_switch_main(e)
 			end
 		end
 		if GetInKey() == "-" or GetInKey() == "_" then
-			if varswitch[e].prompt_display == 1 then PromptLocal(e,"Setting: "..switch_value[e]) end
-			if varswitch[e].prompt_display == 2 then Prompt("Setting: "..switch_value[e]) end
+			if varswitch[e].prompt_display == 1 then PromptLocal(e,"Setting: "..math.floor(switch_value[e]*10)/10) end			
+			if varswitch[e].prompt_display == 2 then Prompt("Setting: "..math.floor(switch_value[e]*10)/10) end
 			SetAnimationName(e,"off")
 			PlayAnimation(e)
-			switch_value[e] = switch_value[e] - 1			
+			switch_value[e] = switch_value[e] - 0.02			
 			if switch_value[e] <= varswitch[e].minimum_value then switch_value[e] = varswitch[e].minimum_value end
 			if varswitch[e].variable_switch_user_global ~= "" then
 				if _G["g_UserGlobal['"..varswitch[e].variable_switch_user_global.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..varswitch[e].variable_switch_user_global.."']"] end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Npcinzone v8 by Necrym59
+-- Npcinzone v9 by Necrym59
 -- DESCRIPTION: If npc of [@NPC_TYPE=0(0=Enemy, 1=Ally, 2=Neutral, 3=Any)] type enters the zone, displays a 
 -- DESCRIPTION: [NOTIFICATION$="NPC in zone"] and can activate an object or zone, then destroys this zone.
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -20,7 +20,6 @@ local doonce			= {}
 local status			= {}
 	
 function npcinzone_properties(e, npc_type, notification, zoneheight, spawnatstart)
-	npcinzone[e] = g_Entity[e]
 	npcinzone[e].npc_type = npc_type
 	npcinzone[e].notification = notification
 	npcinzone[e].zoneheight = zoneheight
@@ -49,10 +48,10 @@ function npcinzone_main(e)
 		status[e] = "endinit"
 	end
 	if g_Entity[e]['activated'] == 1 then		
-		GetEntityInZone(e)
+		GetEntityInZoneWithFilter(e,2)
 		EntityID[e] = g_Entity[e]['entityinzone']
 		EntityAL[e] = GetEntityAllegiance(EntityID[e])
-		if g_Entity[e]['entityinzone'] > 0 and EntityID[e] > 0 and EntityAL[e] ~= -1 and g_Entity[EntityID[e]]['y'] > g_Entity[e]['y']-10 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y']+npcinzone[e].zoneheight then
+		if g_Entity[e]['entityinzone'] > 0 and EntityID[e] > 0 and EntityAL[e] ~= -1 and g_Entity[EntityID[e]]['y'] > g_Entity[e]['y']-1 and g_Entity[EntityID[e]]['y'] < g_Entity[e]['y']+npcinzone[e].zoneheight then
 			if npcinzone[e].npc_type ~= 3 then
 				if EntityAL[e] == npcinzone[e].npc_type then
 					Prompt(npcinzone[e].notification)

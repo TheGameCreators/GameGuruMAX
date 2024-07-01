@@ -1,4 +1,4 @@
--- FreezePlayer v11
+-- Freeze Player v14
 -- DESCRIPTION: When a player enters zone will freeze the player, and stay in a frozen state for
 -- DESCRIPTION: [FREEZETIME=3] seconds. Set the [ZONEHEIGHT=100(1,500)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
@@ -56,8 +56,8 @@ function FreezePlayer_main(e)
 		if freeze[e].SpawnAtStart == 0 then SetActivated(e,0) end
 		status[e] = "endinit"
 	end
-	if g_Entity[e].activated == 1 then
-		if g_Entity[e].plrinzone ==1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e].y and g_PlayerPosY < g_Entity[e].y + freeze[e].zoneheight then
+	if g_Entity[e]['activated'] == 1 then
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + freeze[e].zoneheight then
 			if freeze[e].FreezeStyle == 1 then
 				if freeze[e].freezetime ~= nil and frozenmode[e] == 0 then
 					SetCameraOverride(3)
@@ -108,7 +108,7 @@ function FreezePlayer_main(e)
 				end
 			end
 		end	
-		if g_Entity[e].plrinzone == 0 then
+		if g_Entity[e]['plrinzone'] == 0 then
 			frozenmode[e] = 0
 			played[e] = 0
 		end

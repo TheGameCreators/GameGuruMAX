@@ -43,7 +43,6 @@ local doonce		= {}
 local playonce		= {}
 
 function hack_properties(e, use_range, use_text, hack_time, hack_text, success_text, failure_text, failure_count, failure_alarm, alarm_reset, noise_range, hack_trigger, hackbar_image)
-	hack[e] = g_Entity[e]
 	hack[e].use_range = use_range
 	hack[e].use_text = use_text
 	hack[e].hack_time = hack_time
@@ -85,7 +84,7 @@ function hack_init(e)
 end
 
 function hack_main(e)
-	hack[e] = g_Entity[e]
+
 	local PlayerDist = GetPlayerDistance(e)
 
 	if status[e] == "init" then

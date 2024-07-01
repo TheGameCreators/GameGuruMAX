@@ -1,4 +1,4 @@
--- Security Cam Monitor v30  by Necrym59
+-- Security Cam Monitor v31  by Necrym59
 -- DESCRIPTION: Will give the player access to a Security Camera Monitor? Always active ON
 -- DESCRIPTION: [@MONITOR_MODE=1(1=Static, 2=Mobile)]
 -- DESCRIPTION: [ATTACHED_TO$=""]
@@ -25,6 +25,7 @@ local upper = string.upper
 
 local secmons = {}
 local hud_image = "imagebank\\misc\\testimages\\camerahud01.png"
+local startangy = {}
 
 function secmon_properties(e, monitor_mode, attached_to, activation_text, useage_text, useage_range, camera_hud, hud_screen, imagefile, camera_feed_angle, angle_cycle_key, camera_feed_y, camera_name, camera_target_name, camera_target_z, camera_target_no, camera_number, attached_to_number)
 	local secmon = secmons[e]
@@ -81,13 +82,14 @@ function secmon_init(e)
 		fov 				= g_PlayerFOV,
 		doonce              = true
 	  }
+	startangy[e] = 0 
 	StartTimer(e)
 end
 
 function secmon_main(e)
 	local secmon = secmons[e]
 	if secmon == nil then return end
-
+	
 	if secmon.status == "init" then
 		secmon.fov = g_PlayerFOV
 		
@@ -130,7 +132,7 @@ function secmon_main(e)
 					end
 				end
 			end
-		end
+		end		
 		secmon.status = "monitor"
 	end
 
@@ -146,13 +148,15 @@ function secmon_main(e)
 		if U.PlayerCloserThan(e,secmon.useage_range) and secmon.monitor_mode == 1 then
 			local LookingAt = GetPlrLookingAtEx(e,1)
 			if LookingAt == 1 then
-				Prompt( secmon.activation_text )
+				Prompt( secmon.activation_text )				
 				if g_KeyPressE == 1 then
+					SetGamePlayerStateFlashlightControl(0.0)
+					startangy[e] = g_PlayerAngY
 					if secmon.camera_number == 0 then Prompt("No camera connected") end
 					if secmon.camera_number > 0 then
 						PlaySound( e, 0 )
 						secmon.wait = g_Time + 1000
-						if secmon.camera_hud ~= 3 then HideHuds() end
+						if secmon.camera_hud ~= 3 then HideHuds() end						
 						secmon.status = "camfeed"
 					end
 				end
@@ -262,13 +266,16 @@ function secmon_main(e)
 			if GetInKey() == "q" or GetInKey() == "Q" then
 				secmon.status = "init"
 				ScreenToggle("")
+				g_PlayerAngY = startangy[e]
 				SetCameraPosition(0,g_PlayerPosX,g_PlayerPosY+35,g_PlayerPosZ)
 				SetCameraAngle(0,g_PlayerAngX,g_PlayerAngY,g_PlayerAngZ)
+				SetGamePlayerControlFinalCameraAngley(startangy[e])
 				secmon.mod = 0
 				SetPlayerFOV(secmon.fov)
 				UnFreezePlayer()
 				SetCameraOverride(0)
 				PlaySound(e,0)
+				ShowHuds()
 				secmon.cam_feed = 0
 				if secmon.gunstatus == 1 then
 					ChangePlayerWeapon(secmon.last_gun)
@@ -287,13 +294,16 @@ function secmon_main(e)
 			if GetScancode() == 83 or GetScancode() == 211 then
 				secmon.status = "init"
 				ScreenToggle("")
+				g_PlayerAngY = startangy[e]
 				SetCameraPosition(0,g_PlayerPosX,g_PlayerPosY+35,g_PlayerPosZ)
 				SetCameraAngle(0,g_PlayerAngX,g_PlayerAngY,g_PlayerAngZ)
+				SetGamePlayerControlFinalCameraAngley(startangy[e])
 				secmon.mod = 0
 				SetPlayerFOV(secmon.fov)
 				UnFreezePlayer()
 				SetCameraOverride(0)
 				PlaySound(e,0)
+				ShowHuds()
 				secmon.cam_feed = 0
 				if secmon.gunstatus == 1 then
 					ChangePlayerWeapon(secmon.last_gun)

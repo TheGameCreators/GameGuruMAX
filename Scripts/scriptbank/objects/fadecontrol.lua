@@ -1,4 +1,4 @@
--- Fade Control v6 by Necrym59
+-- Fade Control v7 by Necrym59
 -- DESCRIPTION: Fades the transparency of an object when player is in zone or switched by control.
 -- DESCRIPTION: Attach to object and set Physics ON/OFF, Always active ON. 
 -- DESCRIPTION: Change [PROMPT_TEXT$="What was that"] [@MODE=1(1=Increase Visibility, 2=Decrease Visibility)] [LEVEL=80] [#SPEED=0.02(0,5)] and play <Sound0>
@@ -44,7 +44,7 @@ function fadecontrol_main(e)
 			doonce = 1
 		end
 		if fadecontrol[e].mode == 1 then -- Increase Visibility
-			if current_level[e] < 100 then				
+			if current_level[e] < fadecontrol[e].level then				
 				SetEntityBaseAlpha(e,current_level[e])
 				current_level[e] = current_level[e] + fadecontrol[e].speed
 			end	
@@ -53,6 +53,9 @@ function fadecontrol_main(e)
 			if current_level[e] > 0 then				
 				SetEntityBaseAlpha(e,current_level[e])
 				current_level[e] = current_level[e] - fadecontrol[e].speed
+			end	
+			if current_level[e] <= fadecontrol[e].level then
+				current_level[e] = fadecontrol[e].level
 			end	
 			if current_level[e] <= 0 then
 				CollisionOff(e)

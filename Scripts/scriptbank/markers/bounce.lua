@@ -1,4 +1,4 @@
--- Bounce v4 - thanks to Necrym59
+-- Bounce v5 - thanks to Necrym59
 -- DESCRIPTION: Will launch the player upwards at a specfic [HEIGHT=300]
 -- DESCRIPTION: and forward at [#VELOCITY=3.0(0.1,10.0)]
 -- DESCRIPTION: and play audio specified in <Sound0>.
@@ -23,7 +23,7 @@ end
 
 function bounce_main(e)
 	if status[e] == "start" then
-		if g_Entity[e].plrinzone == 1 then
+		if g_Entity[e]['plrinzone'] == 1 then
 			ttdeductspeed=(GetGamePlayerControlMaxspeed()*GetGamePlayerControlSpeedRatio())*GetTimeElapsed()*0.01
 			SetGamePlayerControlSpeed(GetGamePlayerControlSpeed()-ttdeductspeed)		
 			if GetGamePlayerControlJumpMode() == 0 and g_gameplayercontrol_powerjump == 0 then

@@ -1,4 +1,4 @@
--- Countdown v10 by Necrym59
+-- Countdown v11 by Necrym59
 -- DESCRIPTION: Countdown timer to count down to an end action.
 -- DESCRIPTION: Attach to an object. Set Always Active ON. Trigger from a zone or switch.
 -- DESCRIPTION: [#MAXIMUM_TIME=1.00(0.25,60.00)]
@@ -8,7 +8,7 @@
 -- DESCRIPTION: [DISPLAY_Y=10]
 -- DESCRIPTION: [DISPLAY_SIZE=3(1,5)]
 -- DESCRIPTION: [@END_ACTION=1(1=Terminate Player, 2=Hurt Player, 3=Activate Entities, 4=Lose Game, 5=Win Game, 6=Display Hud Screen)]
--- DESCRIPTION: [USER_GLOBAL_MODIFIER$="MyGlobalModifier"]
+-- DESCRIPTION: [USER_GLOBAL_MODIFIER$=""] eg: MyGlobalModifier
 -- DESCRIPTION: [@LAUNCH_WARNING=1(1=Off, 2=On)]
 -- DESCRIPTION: [END_SCREEN$="HUD Screen #"]
 -- DESCRIPTION: <Sound0> for commence sound

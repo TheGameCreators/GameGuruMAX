@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Lurker v9 by Necrym 59 
+-- Lurker v10 by Necrym 59 
 -- DESCRIPTION: The attached character entity will be a lurker and watch, follow or attack when not looked at.
 -- DESCRIPTION: [REACTION_TEXT$="What the.."]
 -- DESCRIPTION: [SENSE_RANGE=1000(1,2000)]
@@ -43,11 +43,11 @@
 	local start_z 				= {}
 	local start_health 			= {}
 	local scare 				= {}
+	local surfaceY				= {}
 	local movecount				= {}
 	local doonce				= {}
 
 function lurker_properties(e, reaction_text, sense_range, sense_angle, approach_speed, rotation_speed, mode, attack_range, attack_delay, attack_damage, transparency, emissiveness, idle_animation, attack_animation)
-	lurker[e] = g_Entity[e]
 	lurker[e].reaction_text = reaction_text
 	lurker[e].sense_range = sense_range
 	lurker[e].sense_angle = sense_angle
@@ -64,7 +64,7 @@ function lurker_properties(e, reaction_text, sense_range, sense_angle, approach_
 end
 
 function lurker_init(e)
-	lurker[e] = g_Entity[e]
+	lurker[e] = {}
 	lurker[e].reaction_text = "What the.."
 	lurker[e].sense_range = 500
 	lurker[e].sense_angle = 70
@@ -84,11 +84,13 @@ function lurker_init(e)
 	lurker[e].attack_animation = ""
 	movecount[e] = 0
 	doonce[e] = 0
-	status[e] = "init"	
+	surfaceY[e] = 0
+	status[e] = "init"
+	CollisionOn(e)	
 end
 
 function lurker_main(e)
-	lurker[e] = g_Entity[e]
+
 	local PlayerDist = GetPlayerDistance(e)
 	
 	if status[e] == "init" then		
@@ -108,21 +110,24 @@ function lurker_main(e)
 		SetAnimationName(e,"idle")
 		PlayAnimation(e)
 	end
+	
+	surfaceY[e] = GetSurfaceHeight(g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'])	
+	ResetPosition(e,g_Entity[e]['x'],surfaceY[e],g_Entity[e]['z'])
 
-	if PlayerDist <= lurker[e].sense_range then	
-		if PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) == 1 then doonce[e] = 0 end
-		if PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then			
+	if PlayerDist <= lurker[e].sense_range then
+		if PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) == 1 then
+			SetAnimationName(e,lurker[e].idle_animation)
+			PlayAnimation(e)
+			doonce[e] = 0
+		end
+		if PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then
 			LookAtPlayer(e)			
 			if PlayerDist >= lurker[e].sense_range/2 then
-				CollisionOff(e)
 				RotateToPlayerSlowly(e,lurker[e].rotation_speed)
-				CollisionOn(e)
 			else
-				CollisionOff(e)			
 				RotateToPlayer(e)
-				CollisionOn(e)
 			end
-			if PlayerDist <= lurker[e].attack_range then							
+			if PlayerDist <= lurker[e].attack_range then
 				if GetTimer(e) > lurker[e].attack_delay and PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then
 					if lurker[e].mode == 1 then
 						SetAnimationName(e,lurker[e].idle_animation)
@@ -143,9 +148,7 @@ function lurker_main(e)
 					if lurker[e].mode == 2 then PlaySound(e,2) end
 					sound_delay[e] = GetTimer(e) + default_sound_delay[e]
 				end
-			else
-				GravityOff(e)
-				CollisionOff(e)
+			else				
 				if lurker[e].mode == 1 then MoveForward(e,math.random(1,lurker[e].approach_speed)) end
 				if lurker[e].mode == 2 then	MoveForward(e,lurker[e].approach_speed) end
 				if lurker[e].mode == 3 then	LookAtPlayer(e) end
@@ -156,7 +159,7 @@ function lurker_main(e)
 						doonce[e] = 1
 					end
 				end
-				LookAtPlayer(e)
+				LookAtPlayer(e)				
 				PlaySound(e,0)				
 				sound_delay[e] = GetTimer(e) + (default_sound_delay[e] / 2)
 				lurker[e].attack_delay = GetTimer(e) + default_attack_delay[e]
@@ -170,23 +173,17 @@ function lurker_main(e)
 		end
 	end	
 	if g_Entity[e]['health'] < start_health[e] then
-		CollisionOff(e)
 		scare[e]=math.random(1,2)
 		if scare[e] == 1 then
-			SetPosition(e,g_Entity[e]['x']-math.random(-200,200),g_Entity[e]['y'],g_Entity[e]['z']-math.random(-200,200))
 			ResetPosition(e,g_Entity[e]['x']-math.random(-200,200),g_Entity[e]['y'],g_Entity[e]['z']-math.random(-200,200))
 		end
 		if scare[e] == 2 then 
-			SetPosition(e,start_x[e],g_Entity[e]['y'],start_z[e])
-			ResetPosition(e,start_x[e],g_Entity[e]['y'],start_z[e])
+			ResetPosition(e,start_x[e],start_y[e],start_z[e])
 		end
 		RotateToPlayer(e)
 		LookAtPlayer(e)
 		start_health[e] = g_Entity[e]['health']
-		CollisionOn(e)		
-	end		
-	CollisionOn(e)
-	GravityOn(e)
+	end
 end
 
 function PlayerLooking(e,dis,v)

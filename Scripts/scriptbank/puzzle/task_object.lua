@@ -9,7 +9,7 @@
 -- DESCRIPTION: [TASK_DONE_TEXT$="Task Completed"]
 -- DESCRIPTION: [@VISIBLE=1(1=Yes, 2=No)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
--- DESCRIPTION: [SWITCH_VALUE=0(0,99)] success result for use with combo switches
+-- DESCRIPTION: [SWITCH_VALUE=1(1,99)] success result for use with combo switches
 -- DESCRIPTION: Play <Sound0> when using tool.
 -- DESCRIPTION: Play <Sound1> task completed.
 
@@ -44,7 +44,7 @@ function task_object_properties(e, task_text, use_range, tool_required, tool_nam
 	taskobject[e].task_done_text = task_done_text
 	taskobject[e].visible = visible
 	taskobject[e].prompt_display = prompt_display
-	taskobject[e].switch_value = switch_value
+	taskobject[e].switch_value = switch_value or 1
 end
 
 function task_object_init(e)
@@ -57,7 +57,7 @@ function task_object_init(e)
 	taskobject[e].task_done_text = ""
 	taskobject[e].visible = 1
 	taskobject[e].prompt_display = 1
-	taskobject[e].switch_value = 0
+	taskobject[e].switch_value = 1
 
 	status[e] = "init"
 	unlocked[e] = 0

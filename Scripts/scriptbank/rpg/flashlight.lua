@@ -1,4 +1,4 @@
--- Flashlight v26: by Necrym59
+-- Flashlight v27: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -70,7 +70,6 @@ local spottedTran		= {}
 local cleanuptime		= {}
 	
 function flashlight_properties(e, pickup_text, pickup_range, pickup_style, useage_text, flashlight_range, flashlight_radius, flashlight_r, flashlight_g, flashlight_b, flashlight_shadows, battery_level, battery_drain, battery_recharge, battery_indicator, indicator_text, light_activation, pickup_trigger, depletion_trigger, UltraVioletMode, user_global_affected, item_highlight, LightRangeKill)
-	flashlight[e] = g_Entity[e]
 	flashlight[e].pickup_text = pickup_text
 	flashlight[e].pickup_range = pickup_range
 	flashlight[e].pickup_style = pickup_style
@@ -136,7 +135,7 @@ function flashlight_init(e)
 end
  
 function flashlight_main(e)
-	flashlight[e] = g_Entity[e]
+
 	local PlayerDist = GetPlayerDistance(e)
 	
 	if status[e] == 'init' then

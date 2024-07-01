@@ -5650,7 +5650,6 @@ void gun_tagmpgunstolist ( void )
 									}
 									if (  t.tfounddecalspec  ==  1 && t.tfounddecaltex  ==  1 ) 
 									{
-
 										t.newdecal_s=t.tdecal_s;
 										for ( t.tdecalid = 1 ; t.tdecalid<=  g.decalmax; t.tdecalid++ )
 										{
@@ -5670,7 +5669,6 @@ void gun_tagmpgunstolist ( void )
 											++t.decalid;
 											g.decalmax=t.decalid-1;
 										}
-
 									}
 								}
 							}

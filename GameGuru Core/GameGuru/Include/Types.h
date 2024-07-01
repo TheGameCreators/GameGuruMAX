@@ -8145,6 +8145,7 @@ struct decaltype
 	float playspeed_f;
 	int framemax;
 	decalparticletype particle;
+	newparticletype newparticle;
 
 	// Constructor
 	decaltype ( )
@@ -8160,9 +8161,7 @@ struct decaltype
 		 active = 0;
 	}
 	// End of Constructor
-
 };
-
 
 //  Decal Element Structure (reusable instances)
 struct decalelementtype
@@ -8191,6 +8190,7 @@ struct decalelementtype
 	int particlemirror;
 	int burstloop;
 	int decalforward;
+	newparticletype newparticle;
 
 	// Constructor
 	decalelementtype ( )

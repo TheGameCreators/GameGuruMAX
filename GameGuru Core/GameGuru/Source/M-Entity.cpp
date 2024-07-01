@@ -9186,36 +9186,35 @@ void entity_redo ( void )
 }
 #endif
 
-#ifdef WICKEDENGINE
-void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
+void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation)
 {
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
 	extern bool bImGuiInTestGame;
-	if ( bImGuiInTestGame == true )
-		bShowThisParticle = pEleprof->newparticle.bParticle_Show_At_Start;
+	if (bImGuiInTestGame == true)
+		bShowThisParticle = pParticle->bParticle_Show_At_Start;
 	else
-		bShowThisParticle = pEleprof->newparticle.bParticle_Preview;
-	
-	int iParticleEmitter = pEleprof->newparticle.emitterid;
+		bShowThisParticle = pParticle->bParticle_Preview;
+
+	int iParticleEmitter = pParticle->emitterid;
 	if (iParticleEmitter == -1)
 	{
 		if (bShowThisParticle == true)
 		{
-			iParticleEmitter = gpup_loadEffect(pEleprof->newparticle.emittername.Get(), 0, 0, 0, 1.0);
+			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
 			gpup_emitterActive(iParticleEmitter, 0);
-			pEleprof->newparticle.emitterid = iParticleEmitter;
+			pParticle->emitterid = iParticleEmitter;
 		}
 	}
 	if (iParticleEmitter != -1)
 	{
 		// set emitter position, rotation and scale
 		gpup_setGlobalPosition(iParticleEmitter, fX, fY, fZ);
-		if (pEleprof->newparticle.bParticle_Offset_Used == true)
+		if (pParticle->bParticle_Offset_Used == true)
 		{
-			float x = pEleprof->newparticle.bParticle_Offset_X;
-			float y = pEleprof->newparticle.bParticle_Offset_Y;
-			float z = pEleprof->newparticle.bParticle_Offset_Z;
+			float x = pParticle->bParticle_Offset_X;
+			float y = pParticle->bParticle_Offset_Y;
+			float z = pParticle->bParticle_Offset_Z;
 			gpup_setLocalPosition(iParticleEmitter, x, y, z);
 		}
 		else
@@ -9223,29 +9222,29 @@ void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, fl
 			gpup_resetLocalPosition(iParticleEmitter);
 		}
 		float fSpeedX, fSpeedY, fSpeedZ;
-		sObject* pObject = GetObjectData(iObj);
 		gpup_getEmitterSpeedAngleAdjustment(iParticleEmitter, &fSpeedX, &fSpeedY, &fSpeedZ);
 		GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
-		if (pObject)
+		if (pParticle->bParticle_LocalRot_Used == true)
 		{
 			// local emitter rotation
-			if (pEleprof->newparticle.bParticle_LocalRot_Used == true)
+			float x = GGToRadian(pParticle->bParticle_LocalRot_X);
+			float y = GGToRadian(pParticle->bParticle_LocalRot_Y);
+			float z = GGToRadian(pParticle->bParticle_LocalRot_Z);
+			GGMATRIX matLocalRot;
+			GGMatrixRotationYawPitchRoll(&matLocalRot, y, x, z);
+			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &matLocalRot);
+			if (pmatBaseRotation)
 			{
-				float x = GGToRadian(pEleprof->newparticle.bParticle_LocalRot_X);
-				float y = GGToRadian(pEleprof->newparticle.bParticle_LocalRot_Y);
-				float z = GGToRadian(pEleprof->newparticle.bParticle_LocalRot_Z);
-				GGMATRIX matLocalRot;
-				GGMatrixRotationYawPitchRoll(&matLocalRot, y, x, z);
-				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &matLocalRot);
+				// global rotation
+				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, pmatBaseRotation);
 			}
-			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &pObject->position.matRotation);
 			gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
 		}
 		gpup_setGlobalRotation(iParticleEmitter, fRX, fRY, fRZ);
 		gpup_setGlobalScale(iParticleEmitter, 100.0f + fScale);
 
 		// set whether burst mode loops
-		if (pEleprof->newparticle.bParticle_Looping_Animation == true)
+		if (pParticle->bParticle_Looping_Animation == true)
 			gpup_emitterBurstMode(iParticleEmitter, 0);
 		else
 			gpup_emitterBurstMode(iParticleEmitter, 1);
@@ -9257,108 +9256,124 @@ void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, fl
 			gpup_emitterActive(iParticleEmitter, 0);
 
 		// specify psrticle speed
-		if (pEleprof->newparticle.bParticle_SpeedChange == true)
+		if (pParticle->bParticle_SpeedChange == true)
 		{
-			if (pEleprof->newparticle.fParticle_Speed_Original == -123.0f) pEleprof->newparticle.fParticle_Speed_Original = gpup_getParticleSpeed(iParticleEmitter);
-			gpup_setEffectAnimationSpeed(iParticleEmitter, pEleprof->newparticle.fParticle_Speed);
+			if (pParticle->fParticle_Speed_Original == -123.0f) pParticle->fParticle_Speed_Original = gpup_getParticleSpeed(iParticleEmitter);
+			gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_Speed_Original != -123.0f)
+			if (pParticle->fParticle_Speed_Original != -123.0f)
 			{
-				gpup_setEffectAnimationSpeed(iParticleEmitter, pEleprof->newparticle.fParticle_Speed_Original);
+				gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed_Original);
 			}
 		}
 
 		// specify psrticle opacity
-		if (pEleprof->newparticle.bParticle_OpacityChange == true)
+		if (pParticle->bParticle_OpacityChange == true)
 		{
-			if (pEleprof->newparticle.fParticle_Opacity_Original == -123.0f) pEleprof->newparticle.fParticle_Opacity_Original = gpup_getParticleOpacity(iParticleEmitter);
-			gpup_setEffectOpacity(iParticleEmitter, pEleprof->newparticle.fParticle_Opacity);
+			if (pParticle->fParticle_Opacity_Original == -123.0f) pParticle->fParticle_Opacity_Original = gpup_getParticleOpacity(iParticleEmitter);
+			gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_Opacity_Original != -123.0f)
+			if (pParticle->fParticle_Opacity_Original != -123.0f)
 			{
-				gpup_setEffectOpacity(iParticleEmitter, pEleprof->newparticle.fParticle_Opacity_Original);
+				gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity_Original);
 			}
 		}
 
 		// specify particle size
-		if (pEleprof->newparticle.bParticle_SizeChange == true)
+		if (pParticle->bParticle_SizeChange == true)
 		{
-			if (pEleprof->newparticle.bParticle_Size_Original == -123.0f) pEleprof->newparticle.bParticle_Size_Original = gpup_getParticleSize(iParticleEmitter);
-			gpup_setParticleScale(iParticleEmitter, pEleprof->newparticle.bParticle_Size);
+			if (pParticle->bParticle_Size_Original == -123.0f) pParticle->bParticle_Size_Original = gpup_getParticleSize(iParticleEmitter);
+			gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size);
 		}
 		else
 		{
-			if (pEleprof->newparticle.bParticle_Size_Original != -123.0f)
+			if (pParticle->bParticle_Size_Original != -123.0f)
 			{
-				gpup_setParticleScale(iParticleEmitter, pEleprof->newparticle.bParticle_Size_Original);
+				gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size_Original);
 			}
 		}
 
 		// handle any triggering of a fire burst
-		if (pEleprof->newparticle.bParticle_Fire == true)
+		if (pParticle->bParticle_Fire == true)
 		{
 			gpup_emitterFire(iParticleEmitter);
-			pEleprof->newparticle.bParticle_Fire = false;
+			pParticle->bParticle_Fire = false;
 		}
 
 		// handle particle collisions with floor and sphere (for reflection bounce)
-		if (pEleprof->newparticle.fParticle_BouncinessChange == true)
+		if (pParticle->fParticle_BouncinessChange == true)
 		{
-			if (pEleprof->newparticle.fParticle_Bounciness_Original == -123.0f) pEleprof->newparticle.fParticle_Bounciness_Original = gpup_getBounciness(iParticleEmitter) * 5.0f;
-			gpup_setBounciness(iParticleEmitter, pEleprof->newparticle.fParticle_Bounciness / 5.0f);
+			if (pParticle->fParticle_Bounciness_Original == -123.0f) pParticle->fParticle_Bounciness_Original = gpup_getBounciness(iParticleEmitter) * 5.0f;
+			gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness / 5.0f);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_Bounciness_Original != -123.0f)
+			if (pParticle->fParticle_Bounciness_Original != -123.0f)
 			{
-				gpup_setBounciness(iParticleEmitter, pEleprof->newparticle.fParticle_Bounciness_Original / 5.0f);
+				gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness_Original / 5.0f);
 			}
 		}
-		if (pEleprof->newparticle.iParticle_Floor_Active > 0)
+		if (pParticle->iParticle_Floor_Active > 0)
 		{
-			if (pEleprof->newparticle.fParticle_Floor_Height_Original == -123.0f) pEleprof->newparticle.fParticle_Floor_Height_Original = gpup_getFloorReflectionHeight(iParticleEmitter);
-			gpup_floorReflection(iParticleEmitter, pEleprof->newparticle.iParticle_Floor_Active - 1, pEleprof->newparticle.fParticle_Floor_Height);
+			if (pParticle->fParticle_Floor_Height_Original == -123.0f) pParticle->fParticle_Floor_Height_Original = gpup_getFloorReflectionHeight(iParticleEmitter);
+			gpup_floorReflection(iParticleEmitter, pParticle->iParticle_Floor_Active - 1, pParticle->fParticle_Floor_Height);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_Floor_Height_Original != -123.0f)
+			if (pParticle->fParticle_Floor_Height_Original != -123.0f)
 			{
-				gpup_restoreFloorReflection(iParticleEmitter, 1, pEleprof->newparticle.fParticle_Floor_Height_Original);
+				gpup_restoreFloorReflection(iParticleEmitter, 1, pParticle->fParticle_Floor_Height_Original);
 			}
 		}
 
 		// handle color if particle effect
-		if (pEleprof->newparticle.bParticle_ColorChange == true)
+		if (pParticle->bParticle_ColorChange == true)
 		{
-			if (pEleprof->newparticle.fParticle_R_Original == -123.0f) gpup_getEffectColor(iParticleEmitter, &pEleprof->newparticle.fParticle_R_Original, &pEleprof->newparticle.fParticle_G_Original, &pEleprof->newparticle.fParticle_B_Original);
-			gpup_setEffectColor(iParticleEmitter, pEleprof->newparticle.fParticle_R, pEleprof->newparticle.fParticle_G, pEleprof->newparticle.fParticle_B);
+			if (pParticle->fParticle_R_Original == -123.0f) gpup_getEffectColor(iParticleEmitter, &pParticle->fParticle_R_Original, &pParticle->fParticle_G_Original, &pParticle->fParticle_B_Original);
+			gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R, pParticle->fParticle_G, pParticle->fParticle_B);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_R_Original != -123.0f)
+			if (pParticle->fParticle_R_Original != -123.0f)
 			{
-				gpup_setEffectColor(iParticleEmitter, pEleprof->newparticle.fParticle_R_Original, pEleprof->newparticle.fParticle_G_Original, pEleprof->newparticle.fParticle_B_Original);
+				gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R_Original, pParticle->fParticle_G_Original, pParticle->fParticle_B_Original);
 			}
 		}
 
 		// handle change of lifespan
-		if (pEleprof->newparticle.bParticle_LifespanChange == true)
+		if (pParticle->bParticle_LifespanChange == true)
 		{
-			if (pEleprof->newparticle.fParticle_Lifespan_Original == -123.0f) pEleprof->newparticle.fParticle_Lifespan_Original = gpup_getEffectLifespan(iParticleEmitter);
-			gpup_setEffectLifespan(iParticleEmitter, pEleprof->newparticle.fParticle_Lifespan);
+			if (pParticle->fParticle_Lifespan_Original == -123.0f) pParticle->fParticle_Lifespan_Original = gpup_getEffectLifespan(iParticleEmitter);
+			gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan);
 		}
 		else
 		{
-			if (pEleprof->newparticle.fParticle_Lifespan_Original != -123.0f)
+			if (pParticle->fParticle_Lifespan_Original != -123.0f)
 			{
-				gpup_setEffectLifespan(iParticleEmitter, pEleprof->newparticle.fParticle_Lifespan_Original);
+				gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan_Original);
 			}
-		}	
+		}
 	}
+}
+
+void newparticle_deleteparticleemitter( int iParticleEffect )
+{
+	gpup_deleteEffect(iParticleEffect);
+}
+
+void entity_updateparticleemitterbyID ( entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
+{
+	// get base rotation of object (for speed vector control)
+	GGMATRIX* pmatBaseRotation = NULL;
+	sObject* pObject = GetObjectData(iObj);
+	if (pObject) pmatBaseRotation = &pObject->position.matRotation;
+
+	// control particle settings via ptr
+	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation);
 }
 
 void entity_updateparticleemitter ( int e )
@@ -9534,7 +9549,6 @@ void entity_autoFlattenWhenAdded(int e, int obj)
 		}
 	}
 }
-#endif
 
 bool ObjectIsEntity(void* pTestObject)
 {

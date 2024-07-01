@@ -28150,35 +28150,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			}
 		}
 	}
-
-	// particle file moved here for WICKED
-	#ifdef WICKEDENGINE
-	#ifndef USENEWPARTICLESETUP
-	if (t.entityprofile[entid].ismarker == 10)
-	{
-		cstr newfile_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->newparticle.emittername.Get(), "Particle File", "Select a particle file (this is temporary and not the final design)", "particlesbank\\",readonly);
-		if (strnicmp(newfile_s.Get() + strlen(newfile_s.Get()) - 4, ".arx", 4) == NULL) newfile_s = Left(newfile_s.Get(), Len(newfile_s.Get()) - 4);
-		if (newfile_s != edit_grideleprof->newparticle.emittername)
-		{
-			edit_grideleprof->newparticle.emittername = newfile_s;
-			if (edit_grideleprof->newparticle.emitterid != -1)
-			{
-				gpup_deleteEffect(edit_grideleprof->newparticle.emitterid);
-				edit_grideleprof->newparticle.emitterid = -1;
-			}
-			//PE: Activate instantly.
-			if (elementID > 0)
-			{
-				t.entityelement[elementID].eleprof.newparticle.emittername = edit_grideleprof->newparticle.emittername;
-				t.entityelement[elementID].eleprof.newparticle.emitterid = -1;
-				entity_updateparticleemitter(elementID);
-				edit_grideleprof->newparticle.emitterid = t.entityelement[elementID].eleprof.newparticle.emitterid;
-			}
-		}
-	}
-	#endif
-	#endif
-
 	if (readonly)
 	{
 		ImGui::PopItemFlag();

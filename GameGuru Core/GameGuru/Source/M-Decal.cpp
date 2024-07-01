@@ -2,12 +2,17 @@
 //--- GAMEGURU - M-Decal
 //----------------------------------------------------
 
+// Includes
 #include "stdafx.h"
 #include "gameguru.h"
 
+// OPTICK Performance
 #ifdef OPTICK_ENABLE
 #include "optick.h"
 #endif
+
+// Externs
+extern void newparticle_updateparticleemitter (newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation);
 
 // 
 //  Decal Module
@@ -194,12 +199,37 @@ void decal_loaddata ( void )
 
 void decal_load ( void )
 {
-	//  Load decal data
+	// Load decal data
 	decal_loaddata ( );
 
-	//  Load decal image and store name in bank
+	// Load decal image and store name in bank
 	t.strwork = "" ; t.strwork = t.strwork+"gamecore\\decals\\"+t.decal_s+"\\decal.dds";
 	loaddecal( t.strwork.Get() ,t.decalid);
+
+	// Detect and load any new particle associated with this decal
+	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\newparticle";
+	t.decal[t.decalid].newparticle.emitterid = -1;
+	t.decal[t.decalid].newparticle.emittername = t.strwork.Get();
+	char pAbsPathToParticle[MAX_PATH];
+	strcpy(pAbsPathToParticle, t.decal[t.decalid].newparticle.emittername.Get());
+	strcat(pAbsPathToParticle, ".arx");
+	GG_GetRealPath(pAbsPathToParticle, 0);
+	if (FileExist(pAbsPathToParticle) == 1)
+	{
+		GGMATRIX* pmatBaseRotation = NULL;
+		float fScale = 1.0f;
+		float fX = 0.0f;
+		float fY = 0.0f;
+		float fZ = 0.0f;
+		float fRX = 0.0f;
+		float fRY = 0.0f;
+		float fRZ = 0.0f;
+		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
+		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // pre-load!
+		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
+		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
+		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // update it!
+	}
 }
 
 void decal_scaninallref ( void )
@@ -266,44 +296,6 @@ void decal_scaninallref ( void )
 	g.decalmax = t.decalid - 1;
 	t.strwork = ""; t.strwork = t.strwork + "total decals=" + Str(g.decalmax);
 	timestampactivity(0, t.strwork.Get());
-
-	/*
-	//  Scan entire decals folder
-	SetDir (  "gamecore"  ); t.decalid=1;
-	UnDim (t.filelist_s);
-	buildfilelist("decals","");
-	SetDir (  ".." );
-	if (  ArrayCount(t.filelist_s)>0 ) 
-	{
-		for ( t.chkfile = 0 ; t.chkfile<=  ArrayCount(t.filelist_s); t.chkfile++ )
-		{
-			t.file_s=t.filelist_s[t.chkfile];
-			if (  t.file_s != "." && t.file_s != ".." ) 
-			{
-				t.tryfile_s=Lower(Right(t.file_s.Get(),13));
-				if (  t.tryfile_s == "decalspec.txt" ) 
-				{
-					t.newdecal_s=Left(t.file_s.Get(),Len(t.file_s.Get())-14);
-					for ( t.tdecalid = 1 ; t.tdecalid<=  g.decalmax; t.tdecalid++ )
-					{
-						if (  t.decal[t.tdecalid].name_s == t.newdecal_s  )  break;
-					}
-					if (  t.tdecalid>g.decalmax ) 
-					{
-						if (  t.decalid>g.decalmax ) 
-						{
-							g.decalmax=t.decalid;
-							Dim (  t.decal,g.decalmax );
-						}
-						t.decal[t.decalid].name_s=t.newdecal_s;
-						++t.decalid;
-					}
-				}
-			}
-		}
-	}
-	g.decalmax=t.decalid-1;
-	*/
 }
 
 void decal_scaninall_findnewlyaddedgun (void)
@@ -443,12 +435,10 @@ void decalelement_create ( void )
 	if (  t.tddd>g.decalrange  )  return;
 
 	//  find free decal element
-	//for (t.d = 1; t.d <= g.decalelementmax; t.d++) The CanyonOffensive level (old pre-V1) can somehow eat the first used decals (corrupting them)
-	// so for now until we know HOW, skip these with a random initial choice (whole system being replaced with REAL volumetric particles with direction/vel/etc)
 	t.d = 1 + Rnd(50);
 	for (; t.d <= g.decalelementmax; t.d++)
 	{
-		if (  t.decalelement[t.d].active == 0  )  break;
+		if ( t.decalelement[t.d].active == 0 )  break;
 	}
 	if ( t.d < g.decalelementmax ) 
 	{
@@ -461,198 +451,228 @@ void decalelement_create ( void )
 		t.decalelement[t.d].zpos=g.decalz;
 		t.decalelement[t.d].burstloop=t.decalburstloop;
 		t.decalelement[t.d].decalforward=t.decalforward;
-		if (  t.decal[t.decalid].variants>1 ) 
-		{
-			t.tvariantsection=t.decal[t.decalid].framemax/t.decal[t.decalid].variants;
-			t.tvarchoice=Rnd(t.decal[t.decalid].variants-1);
-			t.decalelement[t.d].frame=t.tvarchoice*t.tvariantsection;
-			t.decalelement[t.d].framefinish=((t.tvarchoice+1)*t.tvariantsection);
-		}
-		else
-		{
-			t.decalelement[t.d].frame=0;
-			t.decalelement[t.d].framefinish=t.decal[t.decalid].framemax;
-		}
 		t.decalelement[t.d].orient=t.decalorient;
 		t.decalelement[t.d].originator=t.originatore;
 		t.decalelement[t.d].originatorobj=t.originatorobj;
-		t.decalelement[t.d].particle=t.decal[t.decalid].particle;
-		//  scale affects
-		if (  t.decalscalemodx != 0 ) 
+
+		// legacy decal or new particle
+		if (t.decal[t.decalid].newparticle.emitterid != -1)
 		{
-			t.decalelement[t.d].particle.randomstartx=(t.decalelement[t.d].particle.randomstartx/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.randomstarty=(t.decalelement[t.d].particle.randomstarty/100.0)*t.decalscalemody;
-			t.decalelement[t.d].particle.randomstartz=(t.decalelement[t.d].particle.randomstartz/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.linearmotionx=(t.decalelement[t.d].particle.linearmotionx/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.linearmotiony=(t.decalelement[t.d].particle.linearmotiony/100.0)*t.decalscalemody;
-			t.decalelement[t.d].particle.linearmotionz=(t.decalelement[t.d].particle.linearmotionz/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.lineargravity=(t.decalelement[t.d].particle.lineargravity/100.0)*t.decalscalemody;
-			t.decalelement[t.d].particle.randommotionx=(t.decalelement[t.d].particle.randommotionx/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.randommotiony=(t.decalelement[t.d].particle.randommotiony/100.0)*t.decalscalemody;
-			t.decalelement[t.d].particle.randommotionz=(t.decalelement[t.d].particle.randommotionz/100.0)*t.decalscalemodx;
-			t.decalelement[t.d].particle.camerazshift=(t.decalelement[t.d].particle.camerazshift/100.0)*t.decalscalemodx;
-		}
-		t.decalelement[t.d].fadestarttime=Timer();
-		if (  t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13 ) 
-		{
-			t.decalelement[t.d].fadespan=750*(100.0/t.decalelement[t.d].particle.lifeincrement);
+			// new particle - uses new particle system
+			t.decalelement[t.d].newparticle = t.decal[t.decalid].newparticle;
+			t.decalelement[t.d].newparticle.bParticle_Show_At_Start = true;
+			t.decalelement[t.d].newparticle.bParticle_Fire = true;
+
+			// force a new particle to be loaded (can we simply create a new particle from data copied from the original? speed)
+			t.decalelement[t.d].newparticle.emitterid = -2;
+
+			// orientation support for some new partidle effects
+			//if (t.decalelement[t.d].orient == 0)
+			{
+				// always face camera using Y angle only
+				t.decalelement[t.d].newparticle.bParticle_LocalRot_Used = true;
+				float fCorrectAngleForParticlesToSpray = GGToDegree(atan2(t.tdxx, t.tdzz)); // angle from camera to point we hit
+				fCorrectAngleForParticlesToSpray += 90; // but rotate 90 degrees as FOUNTAIN_DIRECTION pours out to the RIGHT, so need to pour at us (-Z)
+				t.decalelement[t.d].newparticle.bParticle_LocalRot_Y = fCorrectAngleForParticlesToSpray;
+			}
+
+			// no object required
+			t.tobj = 0;
 		}
 		else
 		{
-			if (  t.decalelement[t.d].orient == 11 ) 
+			// legacy decal
+			t.decalelement[t.d].particle = t.decal[t.decalid].particle;
+
+			// frame handling
+			if (t.decal[t.decalid].variants > 1)
 			{
-				t.decalelement[t.d].fadespan=50;
+				t.tvariantsection = t.decal[t.decalid].framemax / t.decal[t.decalid].variants;
+				t.tvarchoice = Rnd(t.decal[t.decalid].variants - 1);
+				t.decalelement[t.d].frame = t.tvarchoice * t.tvariantsection;
+				t.decalelement[t.d].framefinish = ((t.tvarchoice + 1) * t.tvariantsection);
 			}
 			else
 			{
-				t.decalelement[t.d].fadespan=200;
+				t.decalelement[t.d].frame = 0;
+				t.decalelement[t.d].framefinish = t.decal[t.decalid].framemax;
 			}
-		}
-		entity_assignentityparticletodecalelement ( );
-		if (  t.decalelement[t.d].orient == 7 || t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13 ) 
-		{
-			//  decal based particle adjust the Y pos, mirror and IX
-			t.decalelement[t.d].xpos=t.decalelement[t.d].xpos-((Rnd(t.decalelement[t.d].particle.randomstartx)-(t.decalelement[t.d].particle.randomstartx/2))/100.0);
-			t.decalelement[t.d].ypos=t.decalelement[t.d].ypos-((Rnd(t.decalelement[t.d].particle.randomstarty)-(t.decalelement[t.d].particle.randomstarty/2))/100.0);
-			t.decalelement[t.d].zpos=t.decalelement[t.d].zpos-((Rnd(t.decalelement[t.d].particle.randomstartz)-(t.decalelement[t.d].particle.randomstartz/2))/100.0);
-			t.decalelement[t.d].particleix=((t.decalelement[t.d].particle.randommotionx/2)-Rnd(t.decalelement[t.d].particle.randommotionx))/100.0;
-			t.decalelement[t.d].particleiy=((t.decalelement[t.d].particle.randommotiony/2)-Rnd(t.decalelement[t.d].particle.randommotiony))/100.0;
-			t.decalelement[t.d].particleiz=((t.decalelement[t.d].particle.randommotionz/2)-Rnd(t.decalelement[t.d].particle.randommotionz))/100.0;
-			if (  t.decal[t.decalid].particle.mirrormode == 0  )  t.decalelement[t.d].particlemirror = 0;
-			if (  t.decal[t.decalid].particle.mirrormode == 1  )  t.decalelement[t.d].particlemirror = 1;
-			if (  t.decal[t.decalid].particle.mirrormode == 2  )  t.decalelement[t.d].particlemirror = Rnd(1);
-		}
-		//  prepare decal object
-		t.tobj=t.decalelement[t.d].obj;
-		if (  t.decalscalemodx == 0 ) 
-		{
-			t.decalelement[t.d].particle.offsety=t.decal[t.decalid].particle.offsety;
-		}
-		else
-		{
-			t.decalelement[t.d].particle.offsety=(t.decal[t.decalid].particle.offsety/100.0)*(t.decalscalemody+0.0);
-		}
-		PositionObject (  t.tobj,t.decalelement[t.d].xpos,t.decalelement[t.d].ypos+t.decalelement[t.d].particle.offsety,t.decalelement[t.d].zpos );
-		//  can use root limb to rotate around Z (muzzle flash, etc)
-		RotateLimb (  t.tobj,0,0,0,0 );
-		//  face camera or leave as is
-		if (  t.decalelement[t.d].orient == 0 ) 
-		{
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			XRotateObject (  t.tobj,0  ); ZRotateObject (  t.tobj,0 );
-		}
-		if (  t.decalelement[t.d].orient == 1 ) 
-		{
-			RotateObject (  t.tobj,t.decalorientx_f,t.decalorienty_f,t.decalorientz_f );
-		}
-		if (  t.decalelement[t.d].orient == 2 ) 
-		{
-			RotateObject (  t.tobj,90,0,0 );
-		}
-		if (  t.decalelement[t.d].orient == 3 ) 
-		{
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-		}
-		if (  t.decalelement[t.d].orient == 4 ) 
-		{
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			MoveObject (  t.tobj,5.0 );
-		}
-		if (  t.decalelement[t.d].orient == 5 ) 
-		{
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			MoveObject (  t.tobj,15.0 );
-		}
-		if (  t.decalelement[t.d].orient == 7 || t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13 ) 
-		{
-			//  spawn a decal based particle fragment (for new flame and fire) (once)
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			MoveObject (  t.tobj,t.decalelement[t.d].particle.camerazshift/100.0 );
-			t.decalelement[t.d].xpos=ObjectPositionX(t.tobj);
-			t.decalelement[t.d].ypos=ObjectPositionY(t.tobj);
-			t.decalelement[t.d].zpos=ObjectPositionZ(t.tobj);
-			if (  t.decalelement[t.d].orient == 8 ) 
-			{
-				//  single image rotate Z~360
-				RotateLimb (  t.tobj,0,0,0,Rnd(360) );
-			}
-		}
-		if (  t.decalelement[t.d].orient == 11 ) 
-		{
-			//  231213 - single frame muzzle image with fade
-			RotateLimb (  t.tobj,0,0,0,Rnd(360) );
-			PointObject (  t.tobj,CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			MoveObject (  t.tobj,5.0+(t.decalforward/10.0) );
-		}
-		EnableObjectZBias (  t.tobj,0.0,0.0 );
-		//  texture for this decal type
-		if (  t.decalelement[t.d].orient == 13 ) 
-		{
-			TextureObject (  t.tobj,t.huddamage.bloodstart+Rnd(t.huddamage.maxbloodsplats) );
-		}
-		else
-		{
-			TextureObject (  t.tobj,t.decal[t.decalid].imageid );
-		}
-		//  scale the decal
-		if (  t.decalscalemodx == 0 ) 
-		{
-			t.decalelement[t.d].scalemodx=t.decalelement[t.d].particle.scale*(t.decalelement[t.d].particle.scaleonlyx/100.0);
-			t.decalelement[t.d].scalemody=t.decalelement[t.d].particle.scale;
-		}
-		else
-		{
-			t.decalelement[t.d].scalemodx=t.decalscalemodx*(t.decalelement[t.d].particle.scale/100.0)*(t.decalelement[t.d].particle.scaleonlyx/100.0);
-			t.decalelement[t.d].scalemody=t.decalscalemody*(t.decalelement[t.d].particle.scale/100.0);
-		}
-		ScaleObject (  t.tobj,t.decalelement[t.d].scalemodx,t.decalelement[t.d].scalemody,100 );
-		SetAlphaMappingOn (  t.tobj,0 );
-		//SetBlend
-		//  UV data prep
-		if (  t.decal[t.decalid].across>1 ) 
-		{
-			t.qx_f=1.0/(t.decal[t.decalid].across+0.0);
-			t.qy_f=1.0/(t.decal[t.decalid].across+0.0);
-		}
-		else
-		{
-			t.qx_f=1.0;
-			t.qy_f=1.0;
-		}
-		if (  t.decalelement[t.d].orient == 7 && t.decalelement[t.d].particlemirror == 1 ) 
-		{
-			//  decal based particle can mirror the image
-			t.qx_f=t.qx_f*-1;
-		}
-		SetObjectEffect ( t.tobj, g.decaleffectoffset );
-		SetObjectCull ( t.tobj, 0 );
-		DisableObjectZWrite ( t.tobj );
-		SetObjectMask ( t.tobj, 1 );
 
-		LockVertexDataForLimb (  t.tobj,0 );
-		SetVertexDataUV (  0,t.qx_f,0 );
-		SetVertexDataUV (  1,0,0 );
-		SetVertexDataUV (  2,t.qx_f,t.qy_f );
-		SetVertexDataUV (  3,0,0 );
-		SetVertexDataUV (  4,0,t.qy_f );
-		SetVertexDataUV (  5,t.qx_f,t.qy_f );
-		UnlockVertexData (  );
-
-		//  show decal object
-		#ifdef WICKEDENGINE
-		sObject* pObject = GetObjectData(t.tobj);
-		if (pObject)
-		{
-			uint64_t mat = pObject->ppMeshList[0]->wickedmaterialindex;
-			wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(mat);
-			if (pObjectMaterial)
+			//  scale affects
+			if (t.decalscalemodx != 0)
 			{
-				pObjectMaterial->userBlendMode = (BLENDMODE)g_iBlendMode;
-				pObjectMaterial->SetDirty();
+				t.decalelement[t.d].particle.randomstartx = (t.decalelement[t.d].particle.randomstartx / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.randomstarty = (t.decalelement[t.d].particle.randomstarty / 100.0) * t.decalscalemody;
+				t.decalelement[t.d].particle.randomstartz = (t.decalelement[t.d].particle.randomstartz / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.linearmotionx = (t.decalelement[t.d].particle.linearmotionx / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.linearmotiony = (t.decalelement[t.d].particle.linearmotiony / 100.0) * t.decalscalemody;
+				t.decalelement[t.d].particle.linearmotionz = (t.decalelement[t.d].particle.linearmotionz / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.lineargravity = (t.decalelement[t.d].particle.lineargravity / 100.0) * t.decalscalemody;
+				t.decalelement[t.d].particle.randommotionx = (t.decalelement[t.d].particle.randommotionx / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.randommotiony = (t.decalelement[t.d].particle.randommotiony / 100.0) * t.decalscalemody;
+				t.decalelement[t.d].particle.randommotionz = (t.decalelement[t.d].particle.randommotionz / 100.0) * t.decalscalemodx;
+				t.decalelement[t.d].particle.camerazshift = (t.decalelement[t.d].particle.camerazshift / 100.0) * t.decalscalemodx;
 			}
+			t.decalelement[t.d].fadestarttime = Timer();
+			if (t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13)
+			{
+				t.decalelement[t.d].fadespan = 750 * (100.0 / t.decalelement[t.d].particle.lifeincrement);
+			}
+			else
+			{
+				if (t.decalelement[t.d].orient == 11)
+				{
+					t.decalelement[t.d].fadespan = 50;
+				}
+				else
+				{
+					t.decalelement[t.d].fadespan = 200;
+				}
+			}
+			entity_assignentityparticletodecalelement ();
+			if (t.decalelement[t.d].orient == 7 || t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13)
+			{
+				//  decal based particle adjust the Y pos, mirror and IX
+				t.decalelement[t.d].xpos = t.decalelement[t.d].xpos - ((Rnd(t.decalelement[t.d].particle.randomstartx) - (t.decalelement[t.d].particle.randomstartx / 2)) / 100.0);
+				t.decalelement[t.d].ypos = t.decalelement[t.d].ypos - ((Rnd(t.decalelement[t.d].particle.randomstarty) - (t.decalelement[t.d].particle.randomstarty / 2)) / 100.0);
+				t.decalelement[t.d].zpos = t.decalelement[t.d].zpos - ((Rnd(t.decalelement[t.d].particle.randomstartz) - (t.decalelement[t.d].particle.randomstartz / 2)) / 100.0);
+				t.decalelement[t.d].particleix = ((t.decalelement[t.d].particle.randommotionx / 2) - Rnd(t.decalelement[t.d].particle.randommotionx)) / 100.0;
+				t.decalelement[t.d].particleiy = ((t.decalelement[t.d].particle.randommotiony / 2) - Rnd(t.decalelement[t.d].particle.randommotiony)) / 100.0;
+				t.decalelement[t.d].particleiz = ((t.decalelement[t.d].particle.randommotionz / 2) - Rnd(t.decalelement[t.d].particle.randommotionz)) / 100.0;
+				if (t.decal[t.decalid].particle.mirrormode == 0)  t.decalelement[t.d].particlemirror = 0;
+				if (t.decal[t.decalid].particle.mirrormode == 1)  t.decalelement[t.d].particlemirror = 1;
+				if (t.decal[t.decalid].particle.mirrormode == 2)  t.decalelement[t.d].particlemirror = Rnd(1);
+			}
+			//  prepare decal object
+			t.tobj = t.decalelement[t.d].obj;
+			if (t.decalscalemodx == 0)
+			{
+				t.decalelement[t.d].particle.offsety = t.decal[t.decalid].particle.offsety;
+			}
+			else
+			{
+				t.decalelement[t.d].particle.offsety = (t.decal[t.decalid].particle.offsety / 100.0) * (t.decalscalemody + 0.0);
+			}
+			PositionObject (t.tobj, t.decalelement[t.d].xpos, t.decalelement[t.d].ypos + t.decalelement[t.d].particle.offsety, t.decalelement[t.d].zpos);
+			//  can use root limb to rotate around Z (muzzle flash, etc)
+			RotateLimb (t.tobj, 0, 0, 0, 0);
+			//  face camera or leave as is
+			if (t.decalelement[t.d].orient == 0)
+			{
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				XRotateObject (t.tobj, 0); ZRotateObject (t.tobj, 0);
+			}
+			if (t.decalelement[t.d].orient == 1)
+			{
+				RotateObject (t.tobj, t.decalorientx_f, t.decalorienty_f, t.decalorientz_f);
+			}
+			if (t.decalelement[t.d].orient == 2)
+			{
+				RotateObject (t.tobj, 90, 0, 0);
+			}
+			if (t.decalelement[t.d].orient == 3)
+			{
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+			}
+			if (t.decalelement[t.d].orient == 4)
+			{
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				MoveObject (t.tobj, 5.0);
+			}
+			if (t.decalelement[t.d].orient == 5)
+			{
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				MoveObject (t.tobj, 15.0);
+			}
+			if (t.decalelement[t.d].orient == 7 || t.decalelement[t.d].orient == 8 || t.decalelement[t.d].orient == 13)
+			{
+				//  spawn a decal based particle fragment (for new flame and fire) (once)
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				MoveObject (t.tobj, t.decalelement[t.d].particle.camerazshift / 100.0);
+				t.decalelement[t.d].xpos = ObjectPositionX(t.tobj);
+				t.decalelement[t.d].ypos = ObjectPositionY(t.tobj);
+				t.decalelement[t.d].zpos = ObjectPositionZ(t.tobj);
+				if (t.decalelement[t.d].orient == 8)
+				{
+					//  single image rotate Z~360
+					RotateLimb (t.tobj, 0, 0, 0, Rnd(360));
+				}
+			}
+			if (t.decalelement[t.d].orient == 11)
+			{
+				//  231213 - single frame muzzle image with fade
+				RotateLimb (t.tobj, 0, 0, 0, Rnd(360));
+				PointObject (t.tobj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				MoveObject (t.tobj, 5.0 + (t.decalforward / 10.0));
+			}
+			EnableObjectZBias (t.tobj, 0.0, 0.0);
+			//  texture for this decal type
+			if (t.decalelement[t.d].orient == 13)
+			{
+				TextureObject (t.tobj, t.huddamage.bloodstart + Rnd(t.huddamage.maxbloodsplats));
+			}
+			else
+			{
+				TextureObject (t.tobj, t.decal[t.decalid].imageid);
+			}
+			//  scale the decal
+			if (t.decalscalemodx == 0)
+			{
+				t.decalelement[t.d].scalemodx = t.decalelement[t.d].particle.scale * (t.decalelement[t.d].particle.scaleonlyx / 100.0);
+				t.decalelement[t.d].scalemody = t.decalelement[t.d].particle.scale;
+			}
+			else
+			{
+				t.decalelement[t.d].scalemodx = t.decalscalemodx * (t.decalelement[t.d].particle.scale / 100.0) * (t.decalelement[t.d].particle.scaleonlyx / 100.0);
+				t.decalelement[t.d].scalemody = t.decalscalemody * (t.decalelement[t.d].particle.scale / 100.0);
+			}
+			ScaleObject (t.tobj, t.decalelement[t.d].scalemodx, t.decalelement[t.d].scalemody, 100);
+			SetAlphaMappingOn (t.tobj, 0);
+			//SetBlend
+			//  UV data prep
+			if (t.decal[t.decalid].across > 1)
+			{
+				t.qx_f = 1.0 / (t.decal[t.decalid].across + 0.0);
+				t.qy_f = 1.0 / (t.decal[t.decalid].across + 0.0);
+			}
+			else
+			{
+				t.qx_f = 1.0;
+				t.qy_f = 1.0;
+			}
+			if (t.decalelement[t.d].orient == 7 && t.decalelement[t.d].particlemirror == 1)
+			{
+				//  decal based particle can mirror the image
+				t.qx_f = t.qx_f * -1;
+			}
+			SetObjectEffect (t.tobj, g.decaleffectoffset);
+			SetObjectCull (t.tobj, 0);
+			DisableObjectZWrite (t.tobj);
+			SetObjectMask (t.tobj, 1);
+
+			LockVertexDataForLimb (t.tobj, 0);
+			SetVertexDataUV (0, t.qx_f, 0);
+			SetVertexDataUV (1, 0, 0);
+			SetVertexDataUV (2, t.qx_f, t.qy_f);
+			SetVertexDataUV (3, 0, 0);
+			SetVertexDataUV (4, 0, t.qy_f);
+			SetVertexDataUV (5, t.qx_f, t.qy_f);
+			UnlockVertexData ();
+
+			//  show decal object
+			sObject* pObject = GetObjectData(t.tobj);
+			if (pObject)
+			{
+				uint64_t mat = pObject->ppMeshList[0]->wickedmaterialindex;
+				wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(mat);
+				if (pObjectMaterial)
+				{
+					pObjectMaterial->userBlendMode = (BLENDMODE)g_iBlendMode;
+					pObjectMaterial->SetDirty();
+				}
+			}
+			ShowObject (t.tobj);
 		}
-		#endif
-		ShowObject (  t.tobj );
 	}
 	else
 	{
@@ -662,18 +682,25 @@ void decalelement_create ( void )
 
 void decalelement_continue ( void )
 {
-	//  decal is looping, merely need to continue the current decal
-	t.d=t.currentdecald;
-	if (  t.d>0 && t.decalelement[t.d].originator == t.originatore ) 
+	// decal is looping, merely need to continue the current decal
+	t.d = t.currentdecald;
+	if (t.decalelement[t.d].newparticle.emitterid <= -1)
 	{
-		//  simply reset decal
-		t.decalelement[t.d].frame=0;
+		// no loop control required - built-in!
 	}
 	else
 	{
-		//  different, so recreate
-		t.decalforward=t.decalelement[t.d].decalforward;
-		decalelement_create ( );
+		if (t.d > 0 && t.decalelement[t.d].originator == t.originatore)
+		{
+			// simply reset decal
+			t.decalelement[t.d].frame = 0;
+		}
+		else
+		{
+			// different, so recreate
+			t.decalforward = t.decalelement[t.d].decalforward;
+			decalelement_create ();
+		}
 	}
 }
 
@@ -686,224 +713,262 @@ void decalelement_control ( void )
 	// True camera position (returns tcamerapositionx#,tcamerapositiony#,tcamerapositionz#)
 	entity_gettruecamera ( );
 
-	//  Control all decal activity
+	// Control all decal activity
 	for ( t.f = 1 ; t.f<=  g.decalelementmax; t.f++ )
 	{
-		if (  t.decalelement[t.f].active == 1 ) 
+		if ( t.decalelement[t.f].active == 1)
 		{
-			//  decal speed machine independent
-			t.decaltimeelapsed_f=g.timeelapsed_f;
-			//  update decal object
-			t.tobj=t.decalelement[t.f].obj ; t.tdetonate=0;
-			//  if decal not in visible screen, destroy for performance - off no code
-			if (  t.tdetonate == 0 ) 
+			// decal speed machine independent
+			t.decaltimeelapsed_f = g.timeelapsed_f;
+			if (t.decalelement[t.f].newparticle.emitterid == -2 || t.decalelement[t.f].newparticle.emitterid >= 0)
 			{
-				//  possible movement
-				if (  t.decalelement[t.f].orient == 7 || t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 13 ) 
+				// initial one loads/clones an instance of the particle
+				if (t.decalelement[t.f].newparticle.emitterid == -2)
 				{
-					//  decal based particle moves in 3D space
-					t.decalelement[t.f].xpos=t.decalelement[t.f].xpos+(((t.decalelement[t.f].particleix/100.0)*100.0)*t.decaltimeelapsed_f);
-					t.decalelement[t.f].ypos=t.decalelement[t.f].ypos+(((t.decalelement[t.f].particleiy/100.0)*100.0)*t.decaltimeelapsed_f);
-					t.decalelement[t.f].zpos=t.decalelement[t.f].zpos+(((t.decalelement[t.f].particleiz/100.0)*100.0)*t.decaltimeelapsed_f);
-					t.decalelement[t.f].xpos=t.decalelement[t.f].xpos+((t.decalelement[t.f].particle.linearmotionx/100.0)*t.decaltimeelapsed_f);
-					t.decalelement[t.f].ypos=t.decalelement[t.f].ypos+((t.decalelement[t.f].particle.linearmotiony/100.0)*t.decaltimeelapsed_f);
-					t.decalelement[t.f].zpos=t.decalelement[t.f].zpos+((t.decalelement[t.f].particle.linearmotionz/100.0)*t.decaltimeelapsed_f);
-					if (  t.decalelement[t.f].particle.lineargravity != 0 ) 
-					{
-						t.decalelement[t.f].particle.linearmotiony=t.decalelement[t.f].particle.linearmotiony-((t.decalelement[t.f].particle.lineargravity/100.0)*t.decaltimeelapsed_f*10.0);
-					}
+					// will force a load inside 'newparticle_updateparticleemitter'
+					t.decalelement[t.f].newparticle.emitterid = -1;
+					t.decalelement[t.f].framedelay = 0;
 				}
-				if (  t.decalelement[t.f].orient == 13 ) 
+
+				// update new particle decal
+				GGMATRIX pmatBaseRotation;
+				float fScale = 0.0f;
+				float fX = t.decalelement[t.f].xpos;
+				float fY = t.decalelement[t.f].ypos;
+				float fZ = t.decalelement[t.f].zpos;
+				float fRX = 0.0f;
+				float fRY = 0.0f;
+				float fRZ = 0.0f;
+				GGMatrixRotationY(&pmatBaseRotation, GGToRadian(fRY));
+				newparticle_updateparticleemitter(&t.decalelement[t.f].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, NULL);
+
+				// detect when burst finished so can set active back to zero and remove emitter
+				t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f * 2 * t.decal[t.decalid].playspeed_f);
+				if (t.decalelement[t.f].framedelay >= 100)
 				{
-					//  in addition, for blood, move towards player for spray effect (see below)
-				}
-				//  animation
-				t.decalid=t.decalelement[t.f].decalid;
-				//  next frame
-				t.decalelement[t.f].framedelay=t.decalelement[t.f].framedelay+(t.decaltimeelapsed_f*2*t.decal[t.decalid].playspeed_f);
-				if (  t.decalelement[t.f].framedelay >= 1 ) 
-				{
-					t.tmultiple=t.decalelement[t.f].framedelay;
-					t.decalelement[t.f].framedelay=0;
-					t.decalelement[t.f].frame=t.decalelement[t.f].frame+((t.decalelement[t.f].particle.lifeincrement/100.0)*t.tmultiple);
-				}
-				if (  t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 13 ) 
-				{
-					//  Sin ( gle image fader Timer (  based life ) )
-					t.decalelement[t.f].frame=0;
-					if ( (int)((Timer()-t.decalelement[t.f].fadestarttime)) > t.decalelement[t.f].fadespan ) 
-					{
-						t.tdetonate=1;
-					}
-				}
-				else
-				{
-					//  regular frame end detection
-					if (  t.decalelement[t.f].frame>t.decalelement[t.f].framefinish-1 ) 
-					{
-						//  no more animation
-						t.decalelement[t.f].frame=t.decalelement[t.f].framefinish-0.1;
-						t.tdetonate=1;
-					}
-				}
-				//  write UV for correct anim frame
-				if (  GetVisible(t.tobj) == 1 && GetInScreen(t.tobj) == 1 && t.tdetonate == 0 || t.decalelement[t.f].decalid == t.decalglobal.splashdecalrippleid && t.tdetonate == 0 && ObjectExist(t.tobj) ) 
-				{
-					if (  t.decalelement[t.f].decalid == t.decalglobal.splashdecalrippleid && ObjectExist(t.tobj)  )  SetAlphaMappingOn (  t.tobj,8 );
-					//  rotate to face camera if flagged
-					if (  t.decalelement[t.f].orient == 0 ) 
-					{
-						PointObject (  t.tobj,t.tcamerapositionx_f,t.tcamerapositiony_f,t.tcamerapositionz_f );
-						XRotateObject (  t.tobj,0  ); ZRotateObject (  t.tobj,0 );
-					}
-					//LB: this caused cull mode to be set, but never unset when decal reused! Missing decals bug - phew!
-					//if (  t.decalelement[t.f].orient == 2 ) 
-					//{
-					//SetObjectCull (  t.tobj,1 );
-					//}
-					//else
-					{
-						SetObjectCull (  t.tobj,0 );
-					}
-					if (  t.decalelement[t.f].orient == 3 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 12 ) 
-					{
-						PointObject (  t.tobj,t.tcamerapositionx_f,t.tcamerapositiony_f,t.tcamerapositionz_f );
-					}
-					if (  t.decalelement[t.f].orient == 7 || t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 13 ) 
-					{
-						//  decal based particle faces camera always and moves
-						t.ty=t.decalelement[t.f].particle.offsety;
-						PositionObject (  t.tobj,t.decalelement[t.f].xpos,t.decalelement[t.f].ypos+t.ty,t.decalelement[t.f].zpos );
-						PointObject (  t.tobj,t.tcamerapositionx_f,t.tcamerapositiony_f,t.tcamerapositionz_f );
-						if (  t.decalelement[t.f].orient == 13 ) 
-						{
-							//  spray towards player too
-							MoveObject (  t.tobj,2.0*t.decaltimeelapsed_f );
-							t.decalelement[t.f].xpos=ObjectPositionX(t.tobj);
-							t.decalelement[t.f].ypos=ObjectPositionY(t.tobj);
-							t.decalelement[t.f].zpos=ObjectPositionZ(t.tobj);
-						}
-					}
-					if (  t.decalelement[t.f].orient == 0 || t.decalelement[t.f].orient == 1 || t.decalelement[t.f].orient == 3 || t.decalelement[t.f].orient == 4 || t.decalelement[t.f].orient == 5 ) 
-					{
-						SetAlphaMappingOn (  t.tobj,100.0 );
-					}
-					if (  t.decalelement[t.f].orient == 2 ) 
-					{
-						SetAlphaMappingOn (t.tobj, 100.0);
-						// fade in and out over life of decal animation
-						t.pt_f=t.decalelement[t.f].framefinish;
-						t.p_f=(t.decalelement[t.f].framefinish-t.decalelement[t.f].frame)/t.pt_f;
-						if (  t.p_f >= 0.5 ) 
-						{
-							SetAlphaMappingOn (  t.tobj,100.0-((t.p_f-0.5)*200.0) );
-						}
-						else
-						{
-							SetAlphaMappingOn (  t.tobj,t.p_f*200.0 );
-						}
-					}
-					if (  t.decalelement[t.f].orient == 7 ) 
-					{
-						//  fade over life of decal animation
-						t.pt_f=t.decalelement[t.f].framefinish;
-						t.p_f=(t.decalelement[t.f].framefinish-t.decalelement[t.f].frame)/t.pt_f;
-						SetAlphaMappingOn (  t.tobj,Sin(t.p_f*180)*t.decalelement[t.f].particle.alphaintensity );
-					}
-					if (  t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 13 ) 
-					{
-						//  single image fader
-						t.tfadeperc_f=((Timer()-t.decalelement[t.f].fadestarttime)+0.0)/(t.decalelement[t.f].fadespan+0.0);
-						if (  t.tfadeperc_f<0.0  )  t.tfadeperc_f = 0.0;
-						if (  t.tfadeperc_f>1.0  )  t.tfadeperc_f = 1.0;
-						t.tfinalalphavalue_f=t.decalelement[t.f].particle.alphaintensity/100.0;
-						if (  t.decalelement[t.f].burstloop>0  )  t.tfinalalphavalue_f = t.tfinalalphavalue_f*0.7;
-						SetAlphaMappingOn (  t.tobj,(100.0-(t.tfadeperc_f*100.0))*t.tfinalalphavalue_f );
-					}
-					if (  t.decalelement[t.f].orient == 12 ) 
-					{
-						//  multi-image fader (fades towards end)
-						t.pt_f=t.decalelement[t.f].framefinish;
-						t.p_f=(t.decalelement[t.f].framefinish-t.decalelement[t.f].frame)/t.pt_f;
-						SetAlphaMappingOn (  t.tobj,Sin(t.p_f*180)*100 );
-					}
-					//  decal animation setting
-					if (  t.decalelement[t.f].orient == 7 && t.decalelement[t.f].particle.animated != 1 && t.decalelement[t.f].decalid != t.decalglobal.splashdecalrippleid ) 
-					{
-						//  decal based particle only uses first animation frame
-						t.tframe=0;
-					}
-					else
-					{
-						t.tframe=t.decalelement[t.f].frame;
-					}
-					//  animation UVs
-					if (  t.decal[t.decalid].across>1 ) 
-					{
-						t.ty=t.tframe/t.decal[t.decalid].across ; t.tx=t.tframe-(t.ty*t.decal[t.decalid].across);
-						t.qx_f=1.0/(t.decal[t.decalid].across+0.0) ; t.tx_f=t.tx*t.qx_f;
-						t.qy_f=1.0/(t.decal[t.decalid].across+0.0) ; t.ty_f=t.ty*t.qy_f;
-					}
-					else
-					{
-						t.qx_f=1.0 ; t.tx_f=0;
-						t.qy_f=1.0 ; t.ty_f=0;
-					}
-					if (  t.decalelement[t.f].orient == 7 && t.decalelement[t.f].particlemirror == 1 ) 
-					{
-						//  decal based particle can mirror the image
-						t.tx_f=(t.tx*t.qx_f)+t.qx_f;
-					}
-					#ifdef WICKEDENGINE
-					SetObjectUVManually ( t.tobj, t.tframe, t.decal[t.decalid].across, t.decal[t.decalid].down );
-					#else
-					ScaleObjectTexture (  t.tobj,t.tx_f,t.ty_f );
-					#endif
+					// delete used particle
+					extern void newparticle_deleteparticleemitter (int);
+					newparticle_deleteparticleemitter(t.decalelement[t.f].newparticle.emitterid);
+					t.decalelement[t.f].newparticle.emitterid = -1;
+					
+					// end instance
+					t.decalelement[t.f].active = 0;
 				}
 			}
-			//  detonate trigger
-			if (  t.tdetonate == 1 ) 
+			else
 			{
-				HideObject (  t.decalelement[t.f].obj );
-				t.decalelement[t.f].originator=0;
-				t.decalelement[t.f].active=0;
-				if (  t.decalelement[t.f].burstloop>0 ) 
+				// update legacy decal object
+				t.tobj = t.decalelement[t.f].obj; t.tdetonate = 0;
+				//  if decal not in visible screen, destroy for performance - off no code
+				if (t.tdetonate == 0)
 				{
-					//  re-create decal if burstloop active
-					t.decalelement[t.f].burstloop=t.decalelement[t.f].burstloop-1;
-					if (  t.decalelement[t.f].burstloop>0 ) 
+					//  possible movement
+					if (t.decalelement[t.f].orient == 7 || t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 13)
 					{
-						t.decalid=t.decalelement[t.f].decalid;
-						t.toriginatorobj=t.decalelement[t.f].originatorobj;
-						if (  t.toriginatorobj>0 ) 
+						//  decal based particle moves in 3D space
+						t.decalelement[t.f].xpos = t.decalelement[t.f].xpos + (((t.decalelement[t.f].particleix / 100.0) * 100.0) * t.decaltimeelapsed_f);
+						t.decalelement[t.f].ypos = t.decalelement[t.f].ypos + (((t.decalelement[t.f].particleiy / 100.0) * 100.0) * t.decaltimeelapsed_f);
+						t.decalelement[t.f].zpos = t.decalelement[t.f].zpos + (((t.decalelement[t.f].particleiz / 100.0) * 100.0) * t.decaltimeelapsed_f);
+						t.decalelement[t.f].xpos = t.decalelement[t.f].xpos + ((t.decalelement[t.f].particle.linearmotionx / 100.0) * t.decaltimeelapsed_f);
+						t.decalelement[t.f].ypos = t.decalelement[t.f].ypos + ((t.decalelement[t.f].particle.linearmotiony / 100.0) * t.decaltimeelapsed_f);
+						t.decalelement[t.f].zpos = t.decalelement[t.f].zpos + ((t.decalelement[t.f].particle.linearmotionz / 100.0) * t.decaltimeelapsed_f);
+						if (t.decalelement[t.f].particle.lineargravity != 0)
 						{
-							//  check the object exists
-							if (  ObjectExist(t.toriginatorobj)  ==  1 ) 
+							t.decalelement[t.f].particle.linearmotiony = t.decalelement[t.f].particle.linearmotiony - ((t.decalelement[t.f].particle.lineargravity / 100.0) * t.decaltimeelapsed_f * 10.0);
+						}
+					}
+					if (t.decalelement[t.f].orient == 13)
+					{
+						//  in addition, for blood, move towards player for spray effect (see below)
+					}
+					//  animation
+					t.decalid = t.decalelement[t.f].decalid;
+					//  next frame
+					t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f * 2 * t.decal[t.decalid].playspeed_f);
+					if (t.decalelement[t.f].framedelay >= 1)
+					{
+						t.tmultiple = t.decalelement[t.f].framedelay;
+						t.decalelement[t.f].framedelay = 0;
+						t.decalelement[t.f].frame = t.decalelement[t.f].frame + ((t.decalelement[t.f].particle.lifeincrement / 100.0) * t.tmultiple);
+					}
+					if (t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 13)
+					{
+						//  Sin ( gle image fader Timer (  based life ) )
+						t.decalelement[t.f].frame = 0;
+						if ((int)((Timer() - t.decalelement[t.f].fadestarttime)) > t.decalelement[t.f].fadespan)
+						{
+							t.tdetonate = 1;
+						}
+					}
+					else
+					{
+						//  regular frame end detection
+						if (t.decalelement[t.f].frame > t.decalelement[t.f].framefinish - 1)
+						{
+							//  no more animation
+							t.decalelement[t.f].frame = t.decalelement[t.f].framefinish - 0.1;
+							t.tdetonate = 1;
+						}
+					}
+					//  write UV for correct anim frame
+					if (GetVisible(t.tobj) == 1 && GetInScreen(t.tobj) == 1 && t.tdetonate == 0 || t.decalelement[t.f].decalid == t.decalglobal.splashdecalrippleid && t.tdetonate == 0 && ObjectExist(t.tobj))
+					{
+						if (t.decalelement[t.f].decalid == t.decalglobal.splashdecalrippleid && ObjectExist(t.tobj))  SetAlphaMappingOn (t.tobj, 8);
+						//  rotate to face camera if flagged
+						if (t.decalelement[t.f].orient == 0)
+						{
+							PointObject (t.tobj, t.tcamerapositionx_f, t.tcamerapositiony_f, t.tcamerapositionz_f);
+							XRotateObject (t.tobj, 0); ZRotateObject (t.tobj, 0);
+						}
+						//LB: this caused cull mode to be set, but never unset when decal reused! Missing decals bug - phew!
+						//if (  t.decalelement[t.f].orient == 2 ) 
+						//{
+						//SetObjectCull (  t.tobj,1 );
+						//}
+						//else
+						{
+							SetObjectCull (t.tobj, 0);
+						}
+						if (t.decalelement[t.f].orient == 3 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 12)
+						{
+							PointObject (t.tobj, t.tcamerapositionx_f, t.tcamerapositiony_f, t.tcamerapositionz_f);
+						}
+						if (t.decalelement[t.f].orient == 7 || t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 13)
+						{
+							//  decal based particle faces camera always and moves
+							t.ty = t.decalelement[t.f].particle.offsety;
+							PositionObject (t.tobj, t.decalelement[t.f].xpos, t.decalelement[t.f].ypos + t.ty, t.decalelement[t.f].zpos);
+							PointObject (t.tobj, t.tcamerapositionx_f, t.tcamerapositiony_f, t.tcamerapositionz_f);
+							if (t.decalelement[t.f].orient == 13)
 							{
-								g.decalx=ObjectPositionX(t.toriginatorobj);
-								g.decaly=ObjectPositionY(t.toriginatorobj);
-								g.decalz=ObjectPositionZ(t.toriginatorobj);
+								//  spray towards player too
+								MoveObject (t.tobj, 2.0 * t.decaltimeelapsed_f);
+								t.decalelement[t.f].xpos = ObjectPositionX(t.tobj);
+								t.decalelement[t.f].ypos = ObjectPositionY(t.tobj);
+								t.decalelement[t.f].zpos = ObjectPositionZ(t.tobj);
+							}
+						}
+						if (t.decalelement[t.f].orient == 0 || t.decalelement[t.f].orient == 1 || t.decalelement[t.f].orient == 3 || t.decalelement[t.f].orient == 4 || t.decalelement[t.f].orient == 5)
+						{
+							SetAlphaMappingOn (t.tobj, 100.0);
+						}
+						if (t.decalelement[t.f].orient == 2)
+						{
+							SetAlphaMappingOn (t.tobj, 100.0);
+							// fade in and out over life of decal animation
+							t.pt_f = t.decalelement[t.f].framefinish;
+							t.p_f = (t.decalelement[t.f].framefinish - t.decalelement[t.f].frame) / t.pt_f;
+							if (t.p_f >= 0.5)
+							{
+								SetAlphaMappingOn (t.tobj, 100.0 - ((t.p_f - 0.5) * 200.0));
 							}
 							else
 							{
-								g.decalx=t.decalelement[t.f].xpos;
-								g.decaly=t.decalelement[t.f].ypos;
-								g.decalz=t.decalelement[t.f].zpos;
+								SetAlphaMappingOn (t.tobj, t.p_f * 200.0);
 							}
+						}
+						if (t.decalelement[t.f].orient == 7)
+						{
+							//  fade over life of decal animation
+							t.pt_f = t.decalelement[t.f].framefinish;
+							t.p_f = (t.decalelement[t.f].framefinish - t.decalelement[t.f].frame) / t.pt_f;
+							SetAlphaMappingOn (t.tobj, Sin(t.p_f * 180) * t.decalelement[t.f].particle.alphaintensity);
+						}
+						if (t.decalelement[t.f].orient == 8 || t.decalelement[t.f].orient == 11 || t.decalelement[t.f].orient == 13)
+						{
+							//  single image fader
+							t.tfadeperc_f = ((Timer() - t.decalelement[t.f].fadestarttime) + 0.0) / (t.decalelement[t.f].fadespan + 0.0);
+							if (t.tfadeperc_f < 0.0)  t.tfadeperc_f = 0.0;
+							if (t.tfadeperc_f > 1.0)  t.tfadeperc_f = 1.0;
+							t.tfinalalphavalue_f = t.decalelement[t.f].particle.alphaintensity / 100.0;
+							if (t.decalelement[t.f].burstloop > 0)  t.tfinalalphavalue_f = t.tfinalalphavalue_f * 0.7;
+							SetAlphaMappingOn (t.tobj, (100.0 - (t.tfadeperc_f * 100.0)) * t.tfinalalphavalue_f);
+						}
+						if (t.decalelement[t.f].orient == 12)
+						{
+							//  multi-image fader (fades towards end)
+							t.pt_f = t.decalelement[t.f].framefinish;
+							t.p_f = (t.decalelement[t.f].framefinish - t.decalelement[t.f].frame) / t.pt_f;
+							SetAlphaMappingOn (t.tobj, Sin(t.p_f * 180) * 100);
+						}
+						//  decal animation setting
+						if (t.decalelement[t.f].orient == 7 && t.decalelement[t.f].particle.animated != 1 && t.decalelement[t.f].decalid != t.decalglobal.splashdecalrippleid)
+						{
+							//  decal based particle only uses first animation frame
+							t.tframe = 0;
 						}
 						else
 						{
-							g.decalx=t.decalelement[t.f].xpos;
-							g.decaly=t.decalelement[t.f].ypos;
-							g.decalz=t.decalelement[t.f].zpos;
+							t.tframe = t.decalelement[t.f].frame;
 						}
-						t.decalscalemodx=0;
-						t.decalorient=t.decalelement[t.f].orient;
-						t.originatore=-1;
-						t.decalburstloop=t.decalelement[t.f].burstloop;
-						t.decalforward=t.decalelement[t.f].decalforward;
-						decalelement_create ( );
-						t.decalburstloop=0;
+						//  animation UVs
+						if (t.decal[t.decalid].across > 1)
+						{
+							t.ty = t.tframe / t.decal[t.decalid].across; t.tx = t.tframe - (t.ty * t.decal[t.decalid].across);
+							t.qx_f = 1.0 / (t.decal[t.decalid].across + 0.0); t.tx_f = t.tx * t.qx_f;
+							t.qy_f = 1.0 / (t.decal[t.decalid].across + 0.0); t.ty_f = t.ty * t.qy_f;
+						}
+						else
+						{
+							t.qx_f = 1.0; t.tx_f = 0;
+							t.qy_f = 1.0; t.ty_f = 0;
+						}
+						if (t.decalelement[t.f].orient == 7 && t.decalelement[t.f].particlemirror == 1)
+						{
+							//  decal based particle can mirror the image
+							t.tx_f = (t.tx * t.qx_f) + t.qx_f;
+					}
+#ifdef WICKEDENGINE
+						SetObjectUVManually (t.tobj, t.tframe, t.decal[t.decalid].across, t.decal[t.decalid].down);
+#else
+						ScaleObjectTexture (t.tobj, t.tx_f, t.ty_f);
+#endif
+				}
+			}
+				//  detonate trigger
+				if (t.tdetonate == 1)
+				{
+					HideObject (t.decalelement[t.f].obj);
+					t.decalelement[t.f].originator = 0;
+					t.decalelement[t.f].active = 0;
+					if (t.decalelement[t.f].burstloop > 0)
+					{
+						//  re-create decal if burstloop active
+						t.decalelement[t.f].burstloop = t.decalelement[t.f].burstloop - 1;
+						if (t.decalelement[t.f].burstloop > 0)
+						{
+							t.decalid = t.decalelement[t.f].decalid;
+							t.toriginatorobj = t.decalelement[t.f].originatorobj;
+							if (t.toriginatorobj > 0)
+							{
+								//  check the object exists
+								if (ObjectExist(t.toriginatorobj) == 1)
+								{
+									g.decalx = ObjectPositionX(t.toriginatorobj);
+									g.decaly = ObjectPositionY(t.toriginatorobj);
+									g.decalz = ObjectPositionZ(t.toriginatorobj);
+								}
+								else
+								{
+									g.decalx = t.decalelement[t.f].xpos;
+									g.decaly = t.decalelement[t.f].ypos;
+									g.decalz = t.decalelement[t.f].zpos;
+								}
+							}
+							else
+							{
+								g.decalx = t.decalelement[t.f].xpos;
+								g.decaly = t.decalelement[t.f].ypos;
+								g.decalz = t.decalelement[t.f].zpos;
+							}
+							t.decalscalemodx = 0;
+							t.decalorient = t.decalelement[t.f].orient;
+							t.originatore = -1;
+							t.decalburstloop = t.decalelement[t.f].burstloop;
+							t.decalforward = t.decalelement[t.f].decalforward;
+							decalelement_create ();
+							t.decalburstloop = 0;
+						}
 					}
 				}
 			}
@@ -1100,7 +1165,5 @@ int loaddecal ( char* tfile_s, int decalid )
 	int timg = 0;
 	timg=loadinternalimagecompress(tfile_s,5);
 	t.decal[decalid].imageid=timg;
-//endfunction timg
-	return timg
-;
+	return timg;
 }

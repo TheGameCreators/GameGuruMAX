@@ -4886,8 +4886,10 @@ void imgui_importer_loop(void)
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 			if (bBatchConverting == true)
 			{
-				// show files in progress
-				if (batchFileList.size() > 0)
+				// show files in progress 
+				static bool bNextTimeYouWillQuit = false; // only sets this at start of EXE
+				if (batchFileList.size() > 0 ) bNextTimeYouWillQuit = false;
+				if (batchFileList.size() >= 0 && bNextTimeYouWillQuit == false )
 				{
 					ImGui::TextCenter("");
 					extern cstr sGotoPreviewWithFile;
@@ -4902,11 +4904,14 @@ void imgui_importer_loop(void)
 						ImGui::TextCenter(pTitleFilesToBatch);
 						for (int f = batchFileList.size() - 1; f > 0; f--)
 						{
-							ImGui::TextCenter(batchFileList[f].Get());
-							if (f > 14)
+							if (f >= 0)
 							{
-								ImGui::TextCenter("...");
-								break;
+								ImGui::TextCenter(batchFileList[f].Get());
+								if (f > 14)
+								{
+									ImGui::TextCenter("...");
+									break;
+								}
 							}
 						}
 
@@ -4916,6 +4921,13 @@ void imgui_importer_loop(void)
 
 						// Trigger save Object to happen
 						iDelayedExecute = 3;
+
+						// now check if we need to END the batch process
+						if (batchFileList.size() == 0)
+						{
+							// next time we are generally here, we will quit
+							bNextTimeYouWillQuit = true;
+						}
 					}
 				}
 				else

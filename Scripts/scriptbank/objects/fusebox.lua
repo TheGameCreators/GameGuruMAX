@@ -17,6 +17,7 @@ local fail_text = {}
 local success_text = {}
 local status = {}
 local fuses_required = {}
+local prompt_display = {}
 local fuses_level = {}
 local activated = {}
 local timer = {}

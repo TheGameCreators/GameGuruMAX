@@ -45,8 +45,8 @@ end
 
 function money_init(e)
 	money[e] = {}
-	money[e].pickup_text = "E to harvest"
-	money[e].collected_text = "money harvested"
+	money[e].pickup_text = "E to collect"
+	money[e].collected_text = "Money collected"
 	money[e].quantity = 1
 	money[e].pickup_range = 80
 	money[e].pickup_style = 1

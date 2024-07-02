@@ -42,7 +42,6 @@ function hurt_npc_init(e)
 	status[e] = "init"
 end
 
-
 function hurt_npc_main(e)
 	if status[e] == "init" then
 		for n = 1, g_EntityElementMax do
@@ -54,29 +53,32 @@ function hurt_npc_main(e)
 		end
 		status[e] = "endinit"
 	end
-	if hurtnpc[e].HurtOnceOnly == 0 then
-		if g_Time > htimer[e] then
-			htimer[e] = g_Time + (hurtnpc[e].hurt_time*1000)
-			for _, v in pairs( U.ClosestEntities(hurtnpc[e].hurt_range,math.huge,g_Entity[hEnt[e]]['x'],g_Entity[hEnt[e]]['z'])) do
-				if GetEntityAllegiance(v) ~= -1 then
-					if g_Entity[v]['health'] > 0 then
-						SetEntityHealth(v,g_Entity[v]['health']-hurtnpc[e].hurt_amount)
+	
+	if g_Entity[e]['activated'] == 1 then
+		if hurtnpc[e].HurtOnceOnly == 0 then
+			if g_Time > htimer[e] then
+				htimer[e] = g_Time + (hurtnpc[e].hurt_time*1000)
+				for _, v in pairs( U.ClosestEntities(hurtnpc[e].hurt_range,math.huge,g_Entity[hEnt[e]]['x'],g_Entity[hEnt[e]]['z'])) do
+					if GetEntityAllegiance(v) ~= -1 then
+						if g_Entity[v]['health'] > 0 then
+							SetEntityHealth(v,g_Entity[v]['health']-hurtnpc[e].hurt_amount)
+						end
 					end
 				end
 			end
+		end	
+		if hurtnpc[e].HurtOnceOnly == 1 then
+			if hurtonce[e] == 0 then
+				for _, v in pairs( U.ClosestEntities(hurtnpc[e].hurt_range,math.huge,g_Entity[hEnt[e]]['x'],g_Entity[hEnt[e]]['z'])) do
+					if GetEntityAllegiance(v) ~= -1 then
+						if g_Entity[v]['health'] > 0 then
+							SetEntityHealth(v,g_Entity[v]['health']-hurtnpc[e].hurt_amount)
+							hurtonce[e] = 1
+							SwitchScript(e,"no_behavior_selected.lua")
+						end
+					end
+				end			
+			end		
 		end
 	end	
-	if hurtnpc[e].HurtOnceOnly == 1 then
-		if hurtonce[e] == 0 then
-			for _, v in pairs( U.ClosestEntities(hurtnpc[e].hurt_range,math.huge,g_Entity[hEnt[e]]['x'],g_Entity[hEnt[e]]['z'])) do
-				if GetEntityAllegiance(v) ~= -1 then
-					if g_Entity[v]['health'] > 0 then
-						SetEntityHealth(v,g_Entity[v]['health']-hurtnpc[e].hurt_amount)
-						hurtonce[e] = 1
-						SwitchScript(e,"no_behavior_selected.lua")
-					end
-				end
-			end			
-		end		
-	end
 end

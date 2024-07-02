@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Spawn Locator v3 by Necrym59
+-- Spawn Locator v5 by Necrym59
 -- DESCRIPTION: Will relocate the player to a designated spawn marker. Place under the Player Start Marker.
 -- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global required for using spawn markers
 
@@ -14,7 +14,7 @@ local pos_x	= {}
 local pos_y	= {}
 local pos_z	= {}
 local ang_y	= {}
-local status= {}
+local status = {}
 
 function spawn_locator_properties(e, spawn_marker_user_global, spawn_marker_name)
 	spawn_locator[e].spawn_marker_user_global = spawn_marker_user_global
@@ -51,8 +51,9 @@ function spawn_locator_main(e)
 					pos_y[e] = g_Entity[ee]['y']
 					pos_z[e] = g_Entity[ee]['z']
 					ang_y[e] = g_Entity[ee]['angley']
+					GravityOff(ee)
 					CollisionOff(ee)
-					Hide(ee)					
+					Hide(ee)
 					status[e] = "spawnplayer"
 					break
 				end				

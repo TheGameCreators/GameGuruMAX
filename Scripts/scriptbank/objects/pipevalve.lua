@@ -13,9 +13,11 @@ g_valve = {}
 local pipevalve = {}
 local prompt_text = {}
 local use_range = {}
-
 local status = {}
 local valve_required = {}
+local unused_text = {}
+local used_text = {}
+local prompt_display = {}
 local valve_level = {}
 local activated = {}
 local tusedvalue = {}

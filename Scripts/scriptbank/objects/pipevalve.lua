@@ -22,26 +22,25 @@ local tusedvalue = {}
 local use_item_now = {}
 local pressed = {}
 
-function pipevalve_properties(e, prompt_text, use_range, unused_text, used_text, prompt_display)
-	pipevalve[e] = g_Entity[e]
+function pipevalve_properties(e, prompt_text, use_range, status, valve_required, unused_text, used_text, prompt_display)
 	pipevalve[e].prompt_text = prompt_text
 	pipevalve[e].use_range = use_range
+	pipevalve[e].status = 1
+	pipevalve[e].valve_required = 1		
 	pipevalve[e].unused_text = unused_text		
 	pipevalve[e].used_text = used_text	
 	pipevalve[e].prompt_display = prompt_display
-	pipevalve[e].status = 1
-	pipevalve[e].valve_required = 1	
 end 
 
 function pipevalve_init(e)
-	pipevalve[e] = g_Entity[e]
+	pipevalve[e] = {}
 	pipevalve[e].prompt_text = "E to use"	
 	pipevalve[e].use_range = 80
+	pipevalve[e].status = 1
+	pipevalve[e].valve_required = 1	
 	pipevalve[e].unused_text = "Valve wheel required"		
 	pipevalve[e].used_text = "Valve Opened"	
 	pipevalve[e].prompt_display = 1	
-	pipevalve[e].status = 1
-	pipevalve[e].valve_required = 1
 	valve_level[e] = 0	
 	activated[e] = 0
 	tusedvalue[e] = 0
@@ -51,7 +50,7 @@ function pipevalve_init(e)
 end
 
 function pipevalve_main(e)
-	pipevalve[e] = g_Entity[e]	
+
 	local PlayerDist = GetPlayerDistance(e)
 	
 	if PlayerDist < pipevalve[e].use_range and g_PlayerHealth > 0 then

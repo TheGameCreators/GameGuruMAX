@@ -27,14 +27,14 @@ local wait = {}
 local tusedvalue = {}
 local use_item_now = {}
 
-function fusebox_properties(e, prompt_text, use_range, fail_text, success_text, prompt_display)
+function fusebox_properties(e, prompt_text, use_range, fail_text, success_text, status, fuses_required, prompt_display)
 	fusebox[e].prompt_text = prompt_text
 	fusebox[e].use_range = use_range
 	fusebox[e].fail_text = fail_text
 	fusebox[e].success_text = success_text
-	fusebox[e].prompt_display = prompt_display
 	fusebox[e].status = 1
 	fusebox[e].fuses_required = 1
+	fusebox[e].prompt_display = prompt_display	
 end 
 
 function fusebox_init(e)
@@ -43,9 +43,9 @@ function fusebox_init(e)
 	fusebox[e].use_range = 80
 	fusebox[e].fail_text = "Fuse Needed"
 	fusebox[e].success_text = "Power Flow Enabled"
-	fusebox[e].prompt_display = 1	
 	fusebox[e].status = 1
 	fusebox[e].fuses_required = 1
+	fusebox[e].prompt_display = 1	
 	
 	fuses_level[e] = 0	
 	activated[e] = 0

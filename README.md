@@ -47,7 +47,7 @@ Compiling GAMEGURU MAX:
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in the DEV folder (i.e. D:\DEV\GAMEGURUMAXREPO).
 11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone.
 12. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
-13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. Find the folder 'GameGuru Core' and copy it to GAMEGURUMAXREPO
+13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. These files are some of the contents of the folder 'GameGuru Core', so locate "GAMEGURUMAXREPO\GameGuru Core" and copy the files to this destination
 14. For the above, you should be looking to overwrite this folder 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core'. It will add some extra LIBs.
 15. Now open the project "GameGuru Core\GameGuruWickedMAX.sln" using VS2022
 16. Set the Solution Configuration from "Debug" to "Release"

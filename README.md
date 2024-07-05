@@ -45,7 +45,7 @@ Compiling GAMEGURU MAX:
 7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in the DEV folder (i.e. D:\DEV\GAMEGURUMAXREPO).
-11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone.
+11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone. If it does exist due to previous build steps, simply delete it so the clone can proceed.
 12. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
 13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. These files are some of the contents of the folder 'GameGuru Core', so locate "GAMEGURUMAXREPO\GameGuru Core" and copy the files to this destination
 14. For the above, you should be looking to overwrite this folder 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core'. It will add some extra LIBs.

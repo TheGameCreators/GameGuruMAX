@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast to heal the player.
--- Heal Spell v21
+-- Heal Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Healing Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="You gain some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_VALUE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=50(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
@@ -66,15 +66,15 @@ end
 function heal_spell_init(e)
 	heal_spell[e] = g_Entity[e]
 	heal_spell[e].prompt_text = "E to Collect"
-	heal_spell[e].useage_text = "Area Damage Inflicted"
+	heal_spell[e].useage_text = "You gain some health"
 	heal_spell[e].pickup_range = 80
 	heal_spell[e].user_global_affected = "MyMana"
 	heal_spell[e].mana_cost = 10
 	heal_spell[e].cast_value = 500
 	heal_spell[e].cast_radius = 90
 	heal_spell[e].player_level = 0
-	heal_spell[e].particle1_name = "SpellParticle1"
-	heal_spell[e].particle2_name = "SpellParticle2"
+	heal_spell[e].particle1_name = ""
+	heal_spell[e].particle2_name = ""
 	heal_spell[e].particle1_number = 0
 	heal_spell[e].particle2_number = 0
 	heal_spell[e].item_highlight = 0
@@ -97,7 +97,7 @@ end
 function heal_spell_main(e)
 	heal_spell[e] = g_Entity[e]
 	-- get particles for spell effects
-	if heal_spell[e].particle1_number == 0 or nil then
+	if heal_spell[e].particle1_number == 0 and heal_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == heal_spell[e].particle1_name then
@@ -109,7 +109,7 @@ function heal_spell_main(e)
 			end
 		end
 	end
-	if heal_spell[e].particle2_number == 0 or nil then
+	if heal_spell[e].particle2_number == 0 and heal_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == heal_spell[e].particle2_name then
@@ -155,13 +155,13 @@ function heal_spell_main(e)
 		if Timer() > heal_spell[e].cast_timeout + 2100 then
 			heal_spell[e].cast_timeout = 0
 			-- hide the spell effect particles again
-			if heal_spell[e].particle1_number > 0 or nil then Hide(heal_spell[e].particle1_number) end
-			if heal_spell[e].particle1_number > 0 or nil then Hide(heal_spell[e].particle2_number) end
+			if heal_spell[e].particle1_number > 0 then Hide(heal_spell[e].particle1_number) end
+			if heal_spell[e].particle2_number > 0 then Hide(heal_spell[e].particle2_number) end
 		else
 			-- scale spell to see it radiate outward
 			local tscaleradius = 5.0 + ((Timer()-heal_spell[e].cast_timeout)/cradius[e])
 			if heal_spell[e].particle1_number > 0 then Scale(heal_spell[e].particle1_number,tscaleradius) end
-			if heal_spell[e].particle1_number > 0 then Scale(heal_spell[e].particle2_number,tscaleradius) end
+			if heal_spell[e].particle2_number > 0 then Scale(heal_spell[e].particle2_number,tscaleradius) end
 			-- apply effect as radius increases
 			-- do the magic
 			for ee = 1, g_EntityElementMax, 1 do
@@ -222,11 +222,11 @@ function heal_spell_main(e)
 				-- enough mana, deduct from player
 				mymana = mymana - heal_spell[e].mana_cost
 				-- setup and show the spell effect particles
-				if heal_spell[e].particle1_number > 0 or nil then
+				if heal_spell[e].particle1_number > 0 then
 					ResetPosition(heal_spell[e].particle1_number,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
 					Show(heal_spell[e].particle1_number)
 				end
-				if heal_spell[e].particle2_number > 0 or nil then
+				if heal_spell[e].particle2_number > 0 then
 					ResetPosition(heal_spell[e].particle2_number,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)				
 					Show(heal_spell[e].particle2_number)
 				end

@@ -98,7 +98,7 @@ end
 function fireball_spell_main(e)
 
 	-- get particles for spell effects
-	if fireball_spell[e].particle1_number == 0 or nil and fireball_spell[e].particle1_name ~= "" then
+	if fireball_spell[e].particle1_number == 0 or fireball_spell[e].particle1_number == nil and fireball_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == fireball_spell[e].particle1_name then
@@ -110,7 +110,7 @@ function fireball_spell_main(e)
 			end
 		end
 	end
-	if fireball_spell[e].particle2_number == 0 or nil and fireball_spell[e].particle2_name ~= "" then
+	if fireball_spell[e].particle2_number == 0 or fireball_spell[e].particle2_number == nil and fireball_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == fireball_spell[e].particle2_name then
@@ -176,8 +176,8 @@ function fireball_spell_main(e)
 			if Timer() > fireball_spell[e].cast_timeout + 2100 then
 				fireball_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if fireball_spell[e].particle1_number > 0 or nil then Hide(fireball_spell[e].particle1_number) end
-				if fireball_spell[e].particle2_number > 0 or nil then Hide(fireball_spell[e].particle2_number) end
+				if fireball_spell[e].particle1_number > 0 then Hide(fireball_spell[e].particle1_number) end
+				if fireball_spell[e].particle2_number > 0 then Hide(fireball_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
@@ -249,11 +249,11 @@ function fireball_spell_main(e)
 					-- enough mana, deduct from player
 					mymana = mymana - fireball_spell[e].mana_cost
 					-- setup and show the spell effect particles
-					if fireball_spell[e].particle1_number > 0 or nil then
+					if fireball_spell[e].particle1_number > 0 then
 						ResetPosition(fireball_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y']+200, g_Entity[tTarget[e]]['z'])
 						Show(fireball_spell[e].particle1_number)
 					end
-					if fireball_spell[e].particle2_number > 0 or nil then
+					if fireball_spell[e].particle2_number > 0 then
 						ResetPosition(fireball_spell[e].particle2_number,g_Entity[tTarget[e]]['x']+ math.random(1,10), g_Entity[tTarget[e]]['y']+200, g_Entity[tTarget[e]]['z']+ math.random(1,10))
 						Show(fireball_spell[e].particle2_number)
 					end			

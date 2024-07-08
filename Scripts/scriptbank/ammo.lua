@@ -7,7 +7,7 @@
 -- DESCRIPTION: You can change the [COLLECTION_TEXT$="Ammunition collected"]
 -- DESCRIPTION: [!PLAY_PICKUP=1]
 -- DESCRIPTION: [!ACTIVATE_LOGIC=1]
--- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"

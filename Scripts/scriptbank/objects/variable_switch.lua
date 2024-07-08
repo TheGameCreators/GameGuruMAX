@@ -4,9 +4,9 @@
 -- DESCRIPTION: [PROMPT_TEXT$="+ to increase, - to decrease"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [USE_RANGE=90(1,200)]
--- DESCRIPTION: [#STARTER VALUE=0.0(0.0,100.0)] Base Starting value
--- DESCRIPTION: [#MINIMUM VALUE=0.0(0.0,100.0)] Minimum variable value
--- DESCRIPTION: [#MAXIMUM VALUE=100.0(1.0,1000.0)] Maximum variable value
+-- DESCRIPTION: [STARTER VALUE=0(0,100)] Base Starting value
+-- DESCRIPTION: [MINIMUM VALUE=0(0,100)] Minimum variable value
+-- DESCRIPTION: [MAXIMUM VALUE=100(1,1000)] Maximum variable value
 -- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch#1"] Unique User Global for this switch.
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> when the object is used by the player.

@@ -19,6 +19,7 @@ local gunstatus				= {}
 local resettime				= {}
 
 function readiness_zone_properties(e, prompt_text, weapon_mode, zoneheight, spawnatstart)
+	readiness_zone[e] = g_Entity[e]
 	readiness_zone[e].prompt_text = prompt_text
 	readiness_zone[e].weapon_mode = weapon_mode
 	readiness_zone[e].zoneheight = zoneheight or 100
@@ -26,7 +27,7 @@ function readiness_zone_properties(e, prompt_text, weapon_mode, zoneheight, spaw
 end
 
 function readiness_zone_init(e)
-	readiness_zone[e] = {}
+	readiness_zone[e] = g_Entity[e]
 	readiness_zone[e].prompt_text = ""
 	readiness_zone[e].weapon_mode = 1
 	readiness_zone[e].zoneheight = 100
@@ -39,6 +40,7 @@ function readiness_zone_init(e)
 end
 
 function readiness_zone_main(e)
+	readiness_zone[e] = g_Entity[e]
 	if status[e] == "init" then
 		if readiness_zone[e].spawnatstart == 1 then SetActivated(e,1) end
 		if readiness_zone[e].spawnatstart == 0 then SetActivated(e,0) end

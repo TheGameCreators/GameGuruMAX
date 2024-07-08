@@ -5,7 +5,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@TOOL_TYPE=1(1=Crowbar, 2=Screwdriver, 3=Spanner, 4=Cutter, 5=Named Tool)]
--- DESCRIPTION: [TOOL_NAME$=""] Name of entity for Named Tool
+-- DESCRIPTION: [TOOL_NAME$="Named Tool"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: Play the audio <Sound0> when picked up.
@@ -51,7 +51,6 @@ function task_tool_init(e)
 	tasktool[e].item_highlight = 0
 	
 	g_tasktool = 0
-	g_tasktoolname = ""
 	g_tEnt = 0
 	collected[e] = 0
 	tEnt[e] = 0

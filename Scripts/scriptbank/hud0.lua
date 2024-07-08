@@ -394,7 +394,7 @@ function hud0.main()
 						hud0_scrollbar_mode = 0
 					end
 					if hud0_scrollbar_mode == 0 then		
-						if hud0_itemindexmaxslotused - (hud0_scrollpanel_mainrow*hud0_scrollpanel_maincolumn) >= 0 then
+						if hud0_itemindexmaxslotused - (hud0_scrollpanel_mainrow*hud0_scrollpanel_maincolumn) > 0 then
 							SetScreenElementVisibility(elementID,1)
 						else
 							SetScreenElementVisibility(elementID,0)

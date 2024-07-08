@@ -158,7 +158,7 @@ function gameplayercontrol.weaponfire()
       end
       -- Melee with a key press
       if ( GetGamePlayerStateGunMeleeKey()>0 ) then 
-         if ( GetKeyState(GetGamePlayerStateGunMeleeKey()) == 1 and g_meleekeynotfree == 0 and GetGamePlayerStateIsMelee() == 0 and GetGamePlayerStateBlockingAction() == 0) then 
+         if ( GetKeyState(GetGamePlayerStateGunMeleeKey()) == 1 and g_meleekeynotfree == 0 and GetGamePlayerStateIsMelee() == 0 ) then 
             SetGamePlayerStateIsMelee(1) 
             g_meleekeynotfree = 1 
          end
@@ -166,21 +166,14 @@ function gameplayercontrol.weaponfire()
       else
          g_meleekeynotfree=0
       end
-      -- Melee or Block with a right mouse click
-	  if ( GetFireModeSettingsBlockWithRightClick() == 1 ) then
-		  if ( g_MouseClick == 2 and g_meleeclicknotfree == 0 and GetGamePlayerStateBlockingAction() == 0 ) then 
-			 SetGamePlayerStateBlockingAction(1) 
-			 g_meleeclicknotfree = 1
-		  end
+      -- Melee with a right mouse click
+	  if ( GetFireModeSettingsMeleeWithRightClick() == 1 ) then
+	   if ( g_MouseClick == 2 and g_meleeclicknotfree == 0 and GetGamePlayerStateIsMelee() == 0 ) then 
+		 SetGamePlayerStateIsMelee(1) 
+		 g_meleeclicknotfree = 1 
+	   end
 	  else
-		  if ( GetFireModeSettingsMeleeWithRightClick() == 1 ) then
-		     if ( g_MouseClick == 2 and g_meleeclicknotfree == 0 and GetGamePlayerStateIsMelee() == 0 ) then 
-			   SetGamePlayerStateIsMelee(1) 
-			   g_meleeclicknotfree = 1 
-		     end
-		  else
-		     g_meleeclicknotfree = 0
-		  end
+	   g_meleeclicknotfree = 0
 	  end
 	  if ( g_meleeclicknotfree == 1 and g_MouseClick ~= 2 ) then g_meleeclicknotfree = 0 end
 	  -- handle melee																								  

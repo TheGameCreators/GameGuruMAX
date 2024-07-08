@@ -30,7 +30,6 @@ char g_Storyboard_Current_fpm[256];
 char g_Storyboard_Current_lua[256];
 char g_Storyboard_Current_Loading_Page[256];
 std::vector<std::string> projectbank_list;
-//std::vector<bool> projectbank_list_exist;
 std::vector<std::string> projectbank_image;
 std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
@@ -326,6 +325,10 @@ int iWelcomeHeaderType = 0;
 int iAboutLogoType = 0;
 int active_tools_obj = 0;
 int active_tools_entity_index = 0;
+int g_iUseLODObjects = 1;
+bool bDisableLODLoad = false;
+int g_iDisableTerrainSystem = 0;
+bool bSprayMoveWithMouse = false;
 
 #endif //WICKEDENGINE
 
@@ -340,6 +343,7 @@ bool bRotScaleAlreadyUpdated = false;
 //float fEditorGridSizeY = 100.0f;
 //float fEditorGridSizeZ = 100.0f;
 int old_iMSAASampleCount = -1;
+int old_iFSRMode = -1;
 int old_iMSAO = -1;
 float old_fMSAOPower = -1.0;
 int old_iShadowSpotCascadeResolution = -1;
@@ -1387,9 +1391,13 @@ void mapeditorexecutable_init ( void )
 
 	// Moved last so we can load levels before main loop.
 	// start thread loader for Character Creator texture files (multi-threaded loading) (saves 2s if started CCP)
-
 	timestampactivity(0, "preload CCP textures early");
 	charactercreatorplus_preloadinitialcharacter();
+
+	// build character types list early as needed for FPE parsing
+	extern void charactercreatorplus_populatechartypes(void);
+	timestampactivity(0, "preload FPE character types");
+	charactercreatorplus_populatechartypes();
 
 	//  Main loop
 	iStartupTime = Timer();
@@ -1782,9 +1790,6 @@ void SetGlobalGraphicsSettings( int level ) // 0=lowest, 1=medium, 2=high, 3=ult
 void mapeditorexecutable_full_folder_refresh(void)
 {
 	// work out the project folder path for third location of assets
-	static char cFullProjectWriteBasePath[MAX_PATH];
-	strcpy(cFullProjectWriteBasePath, "projectbank\\");
-	strcat(cFullProjectWriteBasePath, Storyboard.gamename);
 	static char cFullProjectWritePath[MAX_PATH];
 	static char cFullWritePath[MAX_PATH];
 
@@ -1826,9 +1831,10 @@ void mapeditorexecutable_full_folder_refresh(void)
 			{
 				// tracks folder creations
 				cFolderItem* pLastFolder = &MainEntityList;
-
-				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
 				cFolderItem* pFirstOfTheLastFolder = NULL;
+
+				/* new project system works a little differently
+				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
 				if (iMediaFolderType >= 0 && iMediaFolderType <= 4)
 				{
 					strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
@@ -1842,6 +1848,7 @@ void mapeditorexecutable_full_folder_refresh(void)
 					}
 					pFirstOfTheLastFolder = pLastFolder;
 				}
+				*/
 
 				// writables folder
 				GetMainEntityList(cFullWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
@@ -2274,7 +2281,6 @@ void mapeditorexecutable_loop(void)
 	//PE: Some function require we have a empty imgui , so launch here.
 	extern bool g_bNoSwapchainPresent;
 
-	#ifdef WICKEDENGINE
 	bLastSmallVideoPlayerMaximized = bSmallVideoPlayerMaximized; //We need to status one frame behind.
 	bSmallVideoPlayerMaximized = false;
 
@@ -2291,197 +2297,199 @@ void mapeditorexecutable_loop(void)
 	{
 		switch (iLaunchAfterSync)
 		{
-		case 203: //PE: trigger a WM_SIZE so resolution,scissor,targetarea all match.
-		{
-			iLaunchAfterSync = 0;
-			if (gWindowMaximized == 1) {
-				ShowWindow(g_pGlob->hWnd, SW_MAXIMIZE);
-			}
-			else {
-				SetWindowPos(g_pGlob->hWnd, HWND_TOP, gWindowPosXOld, gWindowPosYOld, gWindowSizeXOld + gWindowSizeAddX, gWindowSizeYOld + gWindowSizeAddY, SWP_SHOWWINDOW);
-				ShowWindow(g_pGlob->hWnd, SW_SHOWNORMAL);
-			}
-			bUpdateVeg = true;
-			bTriggerFovUpdate = true;
-			break;
-		}
-		case 502: //Do the actual level load.
-		{
-			g.projectfilename_s = sNextLevelToLoad;
-			
-			extern bool g_bAllowBackwardCompatibleConversion;
-			g_bAllowBackwardCompatibleConversion = true;
-			gridedit_load_map();
-			g_bAllowBackwardCompatibleConversion = false;
-
-			#ifdef WICKEDENGINE
-
-			if(!bCloseStoryboardAfterLoad)
-				iLevelEditorFromStoryboardID = -1; //If loaded from here, we cant update storyboard.
-
-			t.terrain.grassregionx1 = t.terrain.grassregionx2;
-			grass_init();
-			bUpdateVeg = true;
-			#endif
-
-			iLaunchAfterSync = 80; //Update env
-			iSkibFramesBeforeLaunch = 5;
-
-			int firstempty = -1;
-			int i = 0;
-			for (; i < REMEMBERLASTFILES; i++) {
-				if (firstempty == -1 && strlen(pref.last_open_files[i]) <= 0)
-					firstempty = i;
-
-				if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) { //already there
-					break;
-				}
-			}
-			if (i >= REMEMBERLASTFILES) {
-				if (firstempty == -1) {
-					//No empty slots , rotate.
-					for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) {
-						strcpy(pref.last_open_files[ii], pref.last_open_files[ii + 1]);
-					}
-					strcpy(pref.last_open_files[REMEMBERLASTFILES - 1], g.projectfilename_s.Get());
-				}
-				else
-					strcpy(pref.last_open_files[firstempty], g.projectfilename_s.Get());
-			}
-
-			//Locate player start marker.
-			for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+			case 203: //PE: trigger a WM_SIZE so resolution,scissor,targetarea all match.
 			{
-				if (t.entityelement[t.e].bankindex > 0)
+				iLaunchAfterSync = 0;
+				if (gWindowMaximized == 1) 
 				{
-					if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 1 && t.entityprofile[t.entityelement[t.e].bankindex].lives != -1)
-					{
-						//Point camera.
-						t.obj = t.entityelement[t.e].obj;
-						if (t.obj > 0) {
-							float offsetx = ((float)GetDesktopWidth() - renderTargetAreaSize.x) * 0.25f;
-							t.cx_f = ObjectPositionX(t.obj) + offsetx; //t.editorfreeflight.c.x_f;
-							t.cy_f = ObjectPositionZ(t.obj); //t.editorfreeflight.c.z_f;
-						}
+					ShowWindow(g_pGlob->hWnd, SW_MAXIMIZE);
+				}
+				else 
+				{
+					SetWindowPos(g_pGlob->hWnd, HWND_TOP, gWindowPosXOld, gWindowPosYOld, gWindowSizeXOld + gWindowSizeAddX, gWindowSizeYOld + gWindowSizeAddY, SWP_SHOWWINDOW);
+					ShowWindow(g_pGlob->hWnd, SW_SHOWNORMAL);
+				}
+				bUpdateVeg = true;
+				bTriggerFovUpdate = true;
+				break;
+			}
+			case 502: //Do the actual level load.
+			{
+				g.projectfilename_s = sNextLevelToLoad;
+			
+				extern bool g_bAllowBackwardCompatibleConversion;
+				g_bAllowBackwardCompatibleConversion = true;
+				gridedit_load_map();
+				g_bAllowBackwardCompatibleConversion = false;
+
+				#ifdef WICKEDENGINE
+
+				if(!bCloseStoryboardAfterLoad)
+					iLevelEditorFromStoryboardID = -1; //If loaded from here, we cant update storyboard.
+
+				t.terrain.grassregionx1 = t.terrain.grassregionx2;
+				grass_init();
+				bUpdateVeg = true;
+				#endif
+
+				iLaunchAfterSync = 80; //Update env
+				iSkibFramesBeforeLaunch = 5;
+
+				int firstempty = -1;
+				int i = 0;
+				for (; i < REMEMBERLASTFILES; i++) {
+					if (firstempty == -1 && strlen(pref.last_open_files[i]) <= 0)
+						firstempty = i;
+
+					if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) { //already there
 						break;
 					}
 				}
-			}
+				if (i >= REMEMBERLASTFILES) {
+					if (firstempty == -1) {
+						//No empty slots , rotate.
+						for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) {
+							strcpy(pref.last_open_files[ii], pref.last_open_files[ii + 1]);
+						}
+						strcpy(pref.last_open_files[REMEMBERLASTFILES - 1], g.projectfilename_s.Get());
+					}
+					else
+						strcpy(pref.last_open_files[firstempty], g.projectfilename_s.Get());
+				}
 
-			#ifdef WICKEDENGINE
-			//PE: Just let the old fade out.
-			//strcpy(cTriggerMessage, "Level loaded");
-			//bTriggerMessage = true;
-			#endif
-			iLastUpdateVeg = 0;
-			bUpdateVeg = true;
-			//extern bool bFullVegUpdate;
-			//bFullVegUpdate = true; // seems to be a lot of bUpdateVeg=true calls, but no good at showing grass initially, needed bFullVegUpdate ?!? 
-			extern int g_iSuperTriggerFullGrassReveal; // hmm, shoved in to get the damn grass showing on initial load!
-			g_iSuperTriggerFullGrassReveal = 10;
-
-			//PE: Always start in object mode.
-			bForceKey = true;
-			csForceKey = "o";
-			bTerrain_Tools_Window = false;
-			Entity_Tools_Window = true;
-			break;
-		}
-		case 2: //Open
-			#ifdef WICKEDENGINE
-			GGTerrain_CancelRamp();
-			#endif
-			iLaunchAfterSync = 0;
-			int iRet;
-			iRet = AskSaveBeforeNewAction();
-			if (iRet != 2)
-			{
-				//t.returnstring_s must have full path to .fpm.
-
-				//PE: filedialogs change dir so.
-				cStr tOldDir = GetDir();
-				char * cFileSelected;
-				cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
-				SetDir(tOldDir.Get());
-				if (cFileSelected && strlen(cFileSelected) > 0)
+				//Locate player start marker.
+				for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 				{
-					t.returnstring_s = cFileSelected;
-					if (t.returnstring_s != "")
+					if (t.entityelement[t.e].bankindex > 0)
 					{
-						if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+						if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 1 && t.entityprofile[t.entityelement[t.e].bankindex].lives != -1)
 						{
-							t.gridentity = 0;
-							t.inputsys.constructselection = 0;
-							//In wicked keep current window open, terrain , entity...
-							#ifndef WICKEDENGINE
-							t.inputsys.domodeentity = 1;
-							t.grideditselect = 5;
-							#endif
-							editor_refresheditmarkers();
+							//Point camera.
+							t.obj = t.entityelement[t.e].obj;
+							if (t.obj > 0) {
+								float offsetx = ((float)GetDesktopWidth() - renderTargetAreaSize.x) * 0.25f;
+								t.cx_f = ObjectPositionX(t.obj) + offsetx; //t.editorfreeflight.c.x_f;
+								t.cy_f = ObjectPositionZ(t.obj); //t.editorfreeflight.c.z_f;
+							}
+							break;
+						}
+					}
+				}
 
-							g.projectfilename_s = t.returnstring_s;
+				#ifdef WICKEDENGINE
+				//PE: Just let the old fade out.
+				//strcpy(cTriggerMessage, "Level loaded");
+				//bTriggerMessage = true;
+				#endif
+				iLastUpdateVeg = 0;
+				bUpdateVeg = true;
+				//extern bool bFullVegUpdate;
+				//bFullVegUpdate = true; // seems to be a lot of bUpdateVeg=true calls, but no good at showing grass initially, needed bFullVegUpdate ?!? 
+				extern int g_iSuperTriggerFullGrassReveal; // hmm, shoved in to get the damn grass showing on initial load!
+				g_iSuperTriggerFullGrassReveal = 10;
+
+				//PE: Always start in object mode.
+				bForceKey = true;
+				csForceKey = "o";
+				bTerrain_Tools_Window = false;
+				Entity_Tools_Window = true;
+				break;
+			}
+			case 2: //Open
+				#ifdef WICKEDENGINE
+				GGTerrain_CancelRamp();
+				#endif
+				iLaunchAfterSync = 0;
+				int iRet;
+				iRet = AskSaveBeforeNewAction();
+				if (iRet != 2)
+				{
+					//t.returnstring_s must have full path to .fpm.
+
+					//PE: filedialogs change dir so.
+					cStr tOldDir = GetDir();
+
+					// we know we need to focus on the mapbank associated with the current storyboard
+					cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+					if (correctFPMLocation_s.Len() > 0)
+					{
+						correctFPMLocation_s += Storyboard.gamename;
+						correctFPMLocation_s += "\\Files\\mapbank";
+					}
+					else
+					{
+						correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+					}
+
+					//cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+					char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+					SetDir(tOldDir.Get());
+					if (cFileSelected && strlen(cFileSelected) > 0)
+					{
+						t.returnstring_s = cFileSelected;
+						if (t.returnstring_s != "")
+						{
+							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+							{
+								t.gridentity = 0;
+								t.inputsys.constructselection = 0;
+								editor_refresheditmarkers();
+								g.projectfilename_s = t.returnstring_s;
 							
-							sNextLevelToLoad = t.returnstring_s;
-							iLaunchAfterSync = 502; //Load actual level.
-							iSkibFramesBeforeLaunch = 3;
-							strcpy(cTriggerMessage, "Loading Level ...");
-							bTriggerMessage = true;
+								//Load actual level.
+								sNextLevelToLoad = t.returnstring_s;
+								iLaunchAfterSync = 502; 
+								iSkibFramesBeforeLaunch = 3;
+								strcpy(cTriggerMessage, "Loading Level ...");
+								bTriggerMessage = true;
+							}
 						}
 					}
 				}
-			}
-			iLastUpdateVeg = 0;
-			//bUpdateVeg = true;
-			extern int g_iSuperTriggerFullGrassReveal; // hmm, shoved in to get the damn grass showing on initial load!
-			g_iSuperTriggerFullGrassReveal = 10;
-			break;
+				// hmm, shoved in to get the damn grass showing on initial load!
+				extern int g_iSuperTriggerFullGrassReveal; 
+				g_iSuperTriggerFullGrassReveal = 10;
+				iLastUpdateVeg = 0;
+				break;
 
-		case 7: // Direct Open
-		{
-			#ifdef WICKEDENGINE
-			GGTerrain_CancelRamp();
-			#endif
-			iLaunchAfterSync = 0;
-			int iRet;
-			iRet = AskSaveBeforeNewAction();
-			if (iRet != 2)
+			case 7: // Direct Open
 			{
-				if (strlen(cDirectOpen) > 0) {
+				GGTerrain_CancelRamp();
+				iLaunchAfterSync = 0;
+				int iRet;
+				iRet = AskSaveBeforeNewAction();
+				if (iRet != 2)
+				{
+					if (strlen(cDirectOpen) > 0) {
 
-					t.returnstring_s = cDirectOpen;
-					if (t.returnstring_s != "")
-					{
-						if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+						t.returnstring_s = cDirectOpen;
+						if (t.returnstring_s != "")
 						{
-							t.gridentity = 0;
-							t.inputsys.constructselection = 0;
-							//In wicked keep current window open, terrain , entity...
-							#ifndef WICKEDENGINE
-							t.inputsys.domodeentity = 1;
-							t.grideditselect = 5;
-							#endif
-							editor_refresheditmarkers();
+							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".fpm")
+							{
+								t.gridentity = 0;
+								t.inputsys.constructselection = 0;
+								editor_refresheditmarkers();
+								g.projectfilename_s = t.returnstring_s;
 
-							g.projectfilename_s = t.returnstring_s;
-
-							sNextLevelToLoad = t.returnstring_s;
-							iLaunchAfterSync = 502; //Load actual level.
-							iSkibFramesBeforeLaunch = 3;
-							strcpy(cTriggerMessage, "Loading Level ...");
-							bTriggerMessage = true;
+								//Load actual level.
+								sNextLevelToLoad = t.returnstring_s;
+								iLaunchAfterSync = 502; 
+								iSkibFramesBeforeLaunch = 3;
+								strcpy(cTriggerMessage, "Loading Level ...");
+								bTriggerMessage = true;
+							}
 						}
 					}
 				}
+				// hmm, shoved in to get the damn grass showing on initial load!
+				extern int g_iSuperTriggerFullGrassReveal; 
+				g_iSuperTriggerFullGrassReveal = 10;
+				iLastUpdateVeg = 0;
+				break;
 			}
-			iLastUpdateVeg = 0;
-			//bUpdateVeg = true;
-			extern int g_iSuperTriggerFullGrassReveal; // hmm, shoved in to get the damn grass showing on initial load!
-			g_iSuperTriggerFullGrassReveal = 10;
-			break;
-		}
 		}
 	}
-	#endif
 
 	switch(iLaunchAfterSync)
 	{
@@ -3819,13 +3827,11 @@ void mapeditorexecutable_loop(void)
 		#define HIDE_MOVED_MENU_TO_STORYBOARD
 		#endif
 
-		#ifdef WICKEDENGINE
 		if (bOldWelcomeScreen_Window)
 		{
 			//Disable
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		}
-		#endif
 
 		if (ImGui::BeginMenuBar() && bExternal_Entities_Window==false && bPreferences_Window==false) // cannot have MENU when viewing XX Library
 		{
@@ -3833,162 +3839,69 @@ void mapeditorexecutable_loop(void)
 			{
 				//PE: YES new/load/save as is back :)
 
-				#ifdef WICKEDENGINE
 				// recommend an actual dialog to control how terrain/sky/veg/trees/stuff are generated
 				// to start the user off with something more interesting than bumpy terrain!
 				if (pref.iEnableLevelEditorOpenAndNew)
 				{
 					if (ImGui::MenuItem("New Level", "CTRL+N"))
-					#else
-					if (ImGui::MenuItem("New Random Level"))
 					{
-						if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-						if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-						if (t.ebe.on == 1) ebe_hide();
-
-						#ifdef ALPHAEXPIRESYSTEM
-						MessageBoxA(NULL, "PERLIN Random Terrain disabled for this Build", "Build Message", MB_OK);
-						#else
-						iLaunchAfterSync = 6;
-						iSkibFramesBeforeLaunch = 5;
-						#endif
-					}
-					if (ImGui::MenuItem("New Flat Level"))
-#endif
-					{
-						#ifndef ENABLEAUTOLEVELSAVE
 						int iRet = AskSaveBeforeNewAction();
 						if (iRet == 0) //No save
 						{
 							g.projectmodified = 0; gridedit_changemodifiedflag();
 							g.projectmodifiedstatic = 0;
 						}
-
-						#else
-						int iRet = 0;
-						#endif
 						if (iRet != 2)
 						{
-							#ifdef WICKEDENGINE
 							bNoSecondAsk = true;
-							#endif
 							CloseAllOpenTools();
 						}
-						#ifdef WICKEDENGINE
-						#ifdef ENABLEAUTOLEVELSAVE
-						if (!pref.iDisableLevelAutoSave && g.projectfilename_s != "")
+						if (iRet != 2)
 						{
-							//Auto save.
-							iLaunchAfterSync = 504; //Do the actualy save here.
-							iSkibFramesBeforeLaunch = 3;
-							strcpy(cTriggerMessage, "Auto Saving Level ...");
-							bTriggerMessage = true;
-							iLaunchAfterSyncAction = 3; //New Level.
+							//PE: Default to terrain tools , like when we launch Max.
+							bForceKey = true;
+							csForceKey = "t";
+							bForceKey2 = true;
+							csForceKey2 = "6";
+							t.inputsys.domodeterrain = 1; t.inputsys.dowaypointview = 0;
+							t.gridentitymarkersmodeonly = 0; t.grideditselect = 0;
+							t.terrain.terrainpaintermode = 6;
+							bTerrain_Tools_Window = true;
+							// must reset any manual editing
+							GGTerrain_ResetSculpting();
+							void reset_terrain_paint_date(void);
+							reset_terrain_paint_date();
+							bProceduralLevelFromStoryboard = false;
+							iLaunchAfterSync = 5;
+							iSkibFramesBeforeLaunch = 5;
 						}
-						else
-						#endif
-						{
-							if (iRet != 2)
-							{
-
-								//PE: Default to terrain tools , like when we launch Max.
-								bForceKey = true;
-								csForceKey = "t";
-								bForceKey2 = true;
-								csForceKey2 = "6";
-								t.inputsys.domodeterrain = 1; t.inputsys.dowaypointview = 0;
-								t.gridentitymarkersmodeonly = 0; t.grideditselect = 0;
-								t.terrain.terrainpaintermode = 6;
-								bTerrain_Tools_Window = true;
-								// must reset any manual editing
-								GGTerrain_ResetSculpting();
-								void reset_terrain_paint_date(void);
-								reset_terrain_paint_date();
-								bProceduralLevelFromStoryboard = false;
-								iLaunchAfterSync = 5;
-								iSkibFramesBeforeLaunch = 5;
-							}
-						}
-						#else
-						iLaunchAfterSync = 5;
-						iSkibFramesBeforeLaunch = 5;
-						#endif
 					}
-
-				#ifdef WICKEDENGINE
 				}
-				#endif
 
-
-				#ifdef WICKEDENGINE
 				if (pref.iEnableLevelEditorOpenAndNew)
 				{
 					if (ImGui::MenuItem("Open Level", "CTRL+O"))
-					#else
-					if (ImGui::MenuItem("Open", "CTRL+O"))
-					#endif
 					{
 						CloseAllOpenToolsThatNeedSave();
-						//#ifdef ALPHAEXPIRESYSTEM
-						//MessageBoxA ( NULL, "Level loading has been disabled for this Build", "Build Message", MB_OK );
-						//#else
-
-						#ifdef WICKEDENGINE
-						#ifdef ENABLEAUTOLEVELSAVE
-						if (!pref.iDisableLevelAutoSave && g.projectfilename_s != "")
-						{
-							//Auto save.
-							iLaunchAfterSync = 504; //Do the actualy save here.
-							iSkibFramesBeforeLaunch = 3;
-							strcpy(cTriggerMessage, "Auto Saving Level ...");
-							bTriggerMessage = true;
-							iLaunchAfterSyncAction = 2; //Load level.
-						}
-						else
-						#endif
-						{
-						#endif
-							iLaunchAfterSync = 2;
-							iSkibFramesBeforeLaunch = 5;
-						#ifdef WICKEDENGINE
-						}
-						#endif
+						iLaunchAfterSync = 2;
+						iSkibFramesBeforeLaunch = 5;
 					}
-					#ifdef WICKEDENGINE
 				}
-				#endif
 
-
-				#ifdef WICKEDENGINE
 				if (ImGui::MenuItem("Save Level", "CTRL+B"))
-				#else
-				if (ImGui::MenuItem("Save", "CTRL+Q"))
-				#endif
 				{
+					//Save
 					CloseAllOpenToolsThatNeedSave();
-					//#ifdef ALPHAEXPIRESYSTEM
-					//MessageBoxA ( NULL, "Level saving has been disabled for this Build", "Build Message", MB_OK );
-					//#else
-					iLaunchAfterSync = 3; //Save
+					iLaunchAfterSync = 3; 
 					iSkibFramesBeforeLaunch = 5;
-					//#endif
 				}
 
-				#ifdef WICKEDENGINE
 				if (ImGui::MenuItem("Save Level As...", ""))//CTRL+R" ) )//F12") )
-				#else
-				if (ImGui::MenuItem("Save As...", ""))//CTRL+R" ) )//F12") )
-				#endif
 				{
+					//Save As
 					CloseAllOpenToolsThatNeedSave();
-					//#ifdef ALPHAEXPIRESYSTEM
-					//MessageBoxA ( NULL, "Level saving has been disabled for this Build", "Build Message", MB_OK );
-					//#else
-					iLaunchAfterSync = 4; //Save As
+					iLaunchAfterSync = 4; 
 					iSkibFramesBeforeLaunch = 5;
-					//#endif
 				}
 
 				#ifndef WICKEDENGINE
@@ -4133,13 +4046,13 @@ void mapeditorexecutable_loop(void)
 
 				ImGui::Separator();
 
-				#ifdef WICKEDENGINE
 				if (pref.iEnableLevelEditorOpenAndNew)
-				#endif
 				{
 					//for (int ii = 0; ii < REMEMBERLASTFILES; ii++) { //reverse
-					for (int ii = REMEMBERLASTFILES - 1; ii >= 0; ii--) {
-						if (strlen(pref.last_open_files[ii]) > 0) {
+					for (int ii = REMEMBERLASTFILES - 1; ii >= 0; ii--) 
+					{
+						if (strlen(pref.last_open_files[ii]) > 0) 
+						{
 							char tmp[260];
 							strcpy(tmp, pref.last_open_files[ii]);
 							int pos = strlen(tmp);
@@ -4150,20 +4063,19 @@ void mapeditorexecutable_loop(void)
 							s_tmp += ": ";
 							s_tmp += &tmp[pos + 1];
 
-							if (ImGui::MenuItem(s_tmp.c_str())) {
+							if (ImGui::MenuItem(s_tmp.c_str())) 
+							{
 								if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
 								if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
 								if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
 								if (bEntity_Properties_Window) bEntity_Properties_Window = false;
 								if (t.ebe.on == 1) ebe_hide();
-
 								strcpy(cDirectOpen, pref.last_open_files[ii]);
 								iLaunchAfterSync = 7; //Direct open.
 								iSkibFramesBeforeLaunch = 5;
 							}
 						}
 					}
-
 					ImGui::Separator();
 				}
 
@@ -6381,6 +6293,7 @@ void mapeditorexecutable_loop(void)
 							strcpy(cTmp, "entitybank\\");
 							strcat(cTmp, pref.last_import_files[i]);
 							CreateBackBufferCacheName(pref.last_import_files[i], 512, 288);
+							GG_SetWritablesToRoot(true);
 							if (FileExist(BackBufferCacheName.Get()) && FileExist(cTmp) )
 							{
 								SetMipmapNum(1);
@@ -6396,7 +6309,7 @@ void mapeditorexecutable_loop(void)
 								image_setlegacyimageloading(false);
 								SetMipmapNum(-1);
 							}
-
+							GG_SetWritablesToRoot(false);
 						}
 						if (iImportPromoIcon >= STOREPROMOICONS)
 							break;
@@ -6895,418 +6808,6 @@ void mapeditorexecutable_loop(void)
 				}
 
 				ImGui::SetWindowFontScale(1.0);
-
-				/* no more importer in market place
-				ImGui::NextColumn();
-				ImGui::Text("");
-
-				TextureID = MARKETPLACE_FILLER;
-				if (ImageExist(MARKETPLACE_IMPORT))
-					TextureID = MARKETPLACE_IMPORT;
-
-				ImGui::ImgBtn(TextureID, vLogoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), ImVec4(1, 1, 1, 1), 0, 0, 0, 0, false, false, false, false, false, false);
-
-				ImGui::Text("");
-				vCurPos = ImGui::GetCursorPos();
-
-				static int import_process = 0;
-				static cstr import_filename = "";
-				static cstr import_error = "";
-				static char import_name[MAX_PATH] = "\0";
-				bool bMissing4Icons = true;
-				*/
-
-				/* importer has no previews for now
-				bool bMissing4Icons = false;
-				for (int i = 0; i < StorePromoItems; i++)
-				{
-					TextureID = MARKETPLACE_FILLER;
-					ImVec4 vFadeIcons = { 1.0,1.0,1.0,0.2 };
-
-					if (iDisplayLibraryType == 2) //Image
-					{
-						//Need its own ?
-					}
-					else if (iDisplayLibraryType == 1) //Music and Sound
-					{
-						//Need its own ?
-					}
-					else if (iDisplayLibraryType == 3) //Video
-					{
-						//Need its own ?
-					}
-					else if (iDisplayLibraryType == 4) //Script
-					{
-						//Need its own ?
-					}
-					else if (iDisplayLibraryType == 5) //Particles
-					{
-						//Need its own ?
-					}
-					else
-					{
-						if (ImageExist(import_image[i]))
-						{
-							TextureID = import_image[i];
-							vFadeIcons = { 1.0,1.0,1.0,1.0 };
-						}
-					}
-					if (ImGui::ImgBtn(TextureID, vPromoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1)*vFadeIcons, drawCol_hover*vFadeIcons, drawCol_Down*vFadeIcons, 0, 0, 0, 0, false, false, false, false, false, false))
-					{
-						if (iDisplayLibraryType == 2)
-						{
-							//Image
-						}
-						else if (iDisplayLibraryType == 1)
-						{
-							//Music
-						}
-						else if (iDisplayLibraryType == 3)
-						{
-							//Video
-						}
-						else if (iDisplayLibraryType == 4)
-						{
-							//Script
-						}
-						else if (iDisplayLibraryType == 5)
-						{
-							//Particles
-						}
-						else
-						{
-							if (import_fpe[i].Len() > 0)
-							{
-								//Add to level ?
-								if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-								if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-								if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-
-								//Make sure we are in entity mode.
-								bForceKey = true;
-								csForceKey = "o";
-
-								//bBlockBackBufferUpdating = true;
-								DeleteWaypointsAddedToCurrentCursor();
-								CloseDownEditorProperties();
-								#ifdef WICKEDENGINE
-								FreeTempImageList(); //PE: Make sure we free all not used textures before adding new objects.
-								iLastEntityOnCursor = 0;
-								#endif
-
-								t.addentityfile_s = import_fpe[i];
-								if (t.addentityfile_s != "")
-								{
-									entity_adduniqueentity(false);
-									t.tasset = t.entid;
-									if (t.talreadyloaded == 0)
-									{
-										editor_filllibrary();
-									}
-								}
-
-								iExtractMode = 0; //PE: Always start in find floor mode.
-
-								t.inputsys.constructselection = t.tasset;
-								t.gridentity = t.entid;
-								t.inputsys.constructselection = t.entid;
-								t.inputsys.domodeentity = 1;
-								t.grideditselect = 5;
-
-								//Make sure we use a fresh t.grideleprof
-								entity_fillgrideleproffromprofile();
-
-								editor_refresheditmarkers();
-								//PE: Close window for now.
-								bCheckForClosing = true;
-								bImGuiRenderTargetFocus = true; //PE: needed for window overlap check.
-								bDraggingActive = false;
-
-								bMarketplace_Window = false;
-								bTriggerCloseEntityWindow = true;
-								bCheckForClosingForce = true; //Force window to close.
-							}
-						}
-					}
-
-					if (iDisplayLibraryType == 1 || iDisplayLibraryType == 2 || iDisplayLibraryType == 3 || iDisplayLibraryType == 4 || iDisplayLibraryType == 5)
-					{
-						if (i == 3)
-						{
-							if (import_process > 0)
-							{
-								//Then we must break;
-								bMissing4Icons = true;
-								break;
-							}
-							//No last import music files yet so...
-							bMissing4Icons = true;
-							break;
-						}
-					}
-					else
-					{
-						if (i == 3 && !ImageExist(import_image[i + 1]))
-						{
-							bMissing4Icons = true;
-							break;
-						}
-					}
-					if (i % 2 == 0) ImGui::SameLine();
-				}
-				*/
-
-				//###################################################
-				//#### Small importers for different media types ####
-				//###################################################
-
-				/* changed minds - move importer out of marketplace :)
-				float fImportTextHeight = fPromoHeight * 0.5;// fPromoHeight * 0.75;
-
-				if (iDisplayLibraryType == 5) //Particles
-				{
-					if (bMissing4Icons)
-					{
-						ImGui::Text("");
-						ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-						ImGui::TextCenter("GameGuru MAX supports the import");
-						ImGui::TextCenter("of ARX files.");
-					}
-
-					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (ImGui::StyleButton("Import Particles", ImVec2(vLogoSize.x, fFontSize*2.0)))
-					{
-						//Not needed
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Particle");
-					ImGui::SetWindowFontScale(1.0);
-
-				}
-				else if (iDisplayLibraryType == 4) //Script
-				{
-					if (bMissing4Icons)
-					{
-						ImGui::Text("");
-						ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-						ImGui::TextCenter("GameGuru MAX supports the import");
-						ImGui::TextCenter("of LUA files.");
-					}
-
-					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (ImGui::StyleButton("Import Script", ImVec2(vLogoSize.x, fFontSize*2.0)))
-					{
-						//Not needed
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import LUA Script");
-					ImGui::SetWindowFontScale(1.0);
-				}
-				else if (iDisplayLibraryType == 3) //Video
-				{
-					if (bMissing4Icons)
-					{
-						ImGui::Text("");
-						ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-						ImGui::TextCenter("GameGuru MAX supports the import");
-						ImGui::TextCenter("of WMV,MP4 files.");
-					}
-
-					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (ImGui::StyleButton("Import Video", ImVec2(vLogoSize.x, fFontSize*2.0)))
-					{
-						//Not needed
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Video");
-					ImGui::SetWindowFontScale(1.0);
-
-				}
-				else if (iDisplayLibraryType == 2) //Images
-				{
-					if (bMissing4Icons)
-					{
-						ImGui::Text("");
-						ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-						ImGui::TextCenter("GameGuru MAX supports the import");
-						ImGui::TextCenter("of PNG,DDS,BMP,JPG,TIF,GIF files.");
-					}
-
-					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (ImGui::StyleButton("Import Image", ImVec2(vLogoSize.x, fFontSize*2.0)))
-					{
-						//Not needed
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Image");
-					ImGui::SetWindowFontScale(1.0);
-
-				}
-				else if (iDisplayLibraryType == 1) //Music
-				{
-					if (bMissing4Icons)
-					{
-						if (import_process > 0)
-						{
-							static char import_to[MAX_PATH];
-							strcpy(import_to, "audiobank\\users"); //currently fixed.
-							ImGui::PushItemWidth(-10);
-							ImGui::Text("Import From");
-							ImGui::InputText("##ImportImportFrom", import_filename.Get(), 250, ImGuiInputTextFlags_ReadOnly);
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-							ImGui::Text("To Path");
-							if (import_error.Len() > 0)
-							{
-								ImGui::Text(import_error.Get());
-							}
-							ImGui::InputText("##ImportToPath", import_to, 250, ImGuiInputTextFlags_ReadOnly);
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-							ImGui::Text("Name");
-							ImGui::InputText("##ImportImportName", &import_name[0], 250, 0);
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-
-							ImGui::SetWindowFontScale(1.4);
-							ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-							if (ImGui::StyleButton("Convert", ImVec2((vLogoSize.x*0.5) - 4.0f, fFontSize*2.0)))
-							{
-								bool bValid = true;
-								if (strlen(import_name) < 1)
-								{
-									import_error = "* Error: Please enter a name.";
-									bValid = false;
-								}
-								if (bValid)
-								{
-									extern char g_pAbsPathToConverter[MAX_PATH];
-									std::string process_name = g_pAbsPathToConverter;
-									replaceAll(process_name, "\\Guru-Converter.exe" ,"\\ffmpeg.exe");
-									HANDLE g_hConvertImportTOOggProcess = NULL;
-									DARKSDK BOOL DB_ExecuteFile(HANDLE* phExecuteFileProcess, char* Operation, char* Filename, char* String, char* Path, bool bWaitForTermination);
-									char parameters[MAX_PATH];
-									char destination[MAX_PATH];
-									strcpy(destination, "audiobank\\user\\");
-									strcat(destination, import_name);
-									strcat(destination, ".ogg");
-									GG_GetRealPath(destination, 1);
-
-									strcpy(parameters, "-i \"");
-									strcat(parameters, import_filename.Get());
-									strcat(parameters, "\" -c:a libvorbis -q:a 4 \"");
-									strcat(parameters, destination);
-									strcat(parameters, "\"");
-
-									::SetCursor(::LoadCursor(NULL, IDC_WAIT));
-									DB_ExecuteFile(&g_hConvertImportTOOggProcess, "hide", (char *) process_name.c_str(), parameters, "", true);
-									int iRunning = 1;
-									DWORD dwStartTime = timeGetTime();
-									while (iRunning == 1)
-									{
-										iRunning = 0;
-										if (timeGetTime() < dwStartTime + (10*1000)) // forget after 10 seconds!
-										{
-											DWORD dwStatus;
-											if (GetExitCodeProcess(g_hConvertImportTOOggProcess, &dwStatus) == TRUE)
-												if (dwStatus == STILL_ACTIVE)
-													iRunning = 1;
-										}
-										else
-										{
-											// otherwise kill process, it has frozen!
-											TerminateProcess (g_hConvertImportTOOggProcess, 0);
-										}
-									}
-									CloseHandle(g_hConvertImportTOOggProcess);
-									::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-
-									//Done close down.
-									bMarketplace_Window = false;
-									import_process = 0;
-									iLastDisplayLibraryType = -1; //Update search and refresh if any new files found.
-								}
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Start Converting File");
-
-							ImGui::SameLine();
-							if (ImGui::StyleButton("Cancel", ImVec2((vLogoSize.x*0.5) - 4.0f, fFontSize*2.0)))
-							{
-								import_process = 0;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Cancel Import");
-
-							ImGui::SetWindowFontScale(1.0);
-
-							ImGui::PopItemWidth();
-						}
-						else
-						{
-							ImGui::Text("");
-							ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-							ImGui::TextCenter("GameGuru MAX supports the import");
-							ImGui::TextCenter("of WAV,MP3,OGG files.");
-						}
-					}
-
-					if (import_process == 0)
-					{
-						ImGui::SetWindowFontScale(1.4);
-						ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-						if (ImGui::StyleButton("Import Music And Sound", ImVec2(vLogoSize.x, fFontSize*2.0)))
-						{
-							//Select File.
-							//Select name.
-							//Convert and copy to 'audiobank/users'.
-							//ffmpeg can be used.
-							cStr tOldDir = GetDir();
-							char * cFileSelected;
-							cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "wav\0*.wav\0ogg\0*.ogg\0mp3\0*.mp3\0", g.mysystem.mapbankAbs_s.Get(), NULL);
-							SetDir(tOldDir.Get());
-							if (cFileSelected && strlen(cFileSelected) > 0)
-							{
-								import_filename = cFileSelected;
-
-								//import_name
-								cstr importer_getfilenameonly(LPSTR pFileAndPossiblePath);
-								cstr tmp = importer_getfilenameonly(import_filename.Get());
-								strcpy(import_name, tmp.Get());
-								if (tmp.Len() > 4)
-								{
-									import_name[strlen(import_name) - 4] = 0;
-								}
-								import_process = 1;
-							}
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Music or Sound");
-					}
-					ImGui::SetWindowFontScale(1.0);
-				}
-				else
-				{
-					ImGui::Text("");
-					if (bMissing4Icons)
-					{
-						ImGui::SetCursorPos(vCurPos + ImVec2(0, fImportTextHeight - (fFontSize*2.5)));
-						ImGui::TextCenter("GameGuru MAX supports the import");
-						ImGui::TextCenter("of OBJ, FBX, GLTF and DBO formats for models");
-						ImGui::TextCenter("and PNG, JPG and DDS for textures.");
-					}
-
-					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(vCurPos + vYOffsetToButtons);
-					if (ImGui::StyleButton("Import 3D Models", ImVec2(vLogoSize.x, fFontSize*2.0))) 
-					{
-						DeleteWaypointsAddedToCurrentCursor();
-						CloseDownEditorProperties();
-						CloseAllOpenTools();
-						iLaunchAfterSync = 8; //Import model
-						iSkibFramesBeforeLaunch = 5;
-						bMarketplace_Window = false;
-						bTriggerCloseEntityWindow = true;
-						bCheckForClosingForce = true; //Force window to close.
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Your Own 3D Model");
-					ImGui::SetWindowFontScale(1.0);
-				}
-				*/
 
 				// completed marketplace
 				ImGui::Columns(1);
@@ -9490,6 +8991,10 @@ void mapeditorexecutable_loop(void)
 									{
 										iDisplayCircleFrames = 20;
 									}
+									if (ImGui::Checkbox("Move Spray Center With Mouse", &bSprayMoveWithMouse))
+									{
+									}
+
 								}
 								ImGui::PopItemWidth();
 								static bool bOldSprayMode = t.gridedit.entityspraymode;
@@ -11924,7 +11429,8 @@ void mapeditorexecutable_loop(void)
 											script_name_append += t.grideleprof.aimain_s;
 
 										cstr script_name = "";
-										if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+										//if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) 
+										script_name = "scriptbank\\";
 										script_name += script_name_append;
 
 										//Try to parse script.
@@ -12935,17 +12441,6 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 							}
-
-							//  Team field
-#ifdef PHOTONMP
-#else
-							if (t.tflagteamfield == 1)
-							{
-								//							setpropertylist3(t.group, t.controlindex, Str(t.grideleprof.teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
-							}
-#endif
-
-
 
 							//  Physics Data (non-multiplayer)
 							if (t.entityprofile[t.gridentity].ismarker == 0 && t.entityprofile[t.gridentity].islightmarker == 0)
@@ -15846,7 +15341,13 @@ void mapeditorexecutable_loop(void)
 			}
 			else if (!pref.iDisplayWelcomeScreen)
 			{
-				if (pref.iLastInStoryboard)
+				// LB: If we are not displaying the welcome screen, we should display the storyboard window.
+				// as the iLastInStoryboard flag to take the user direct to the last level edited does not work
+				// but taking the user to the last used storyboard allows the user to select the level they 
+				// wish to work on and avoids ever being in a level that has no associated FPM level.
+				//if (pref.iLastInStoryboard)
+				bool bAlwaysTakeUserWhoSkipsHubToLastStoryboard = true;
+				if(bAlwaysTakeUserWhoSkipsHubToLastStoryboard==true)
 				{
 					bStoryboardWindow = true;
 					GGTerrain_CancelRamp();
@@ -15943,10 +15444,6 @@ void mapeditorexecutable_loop(void)
 				case 503: //Save the actual map here!
 				{
 					iLaunchAfterSync = 0;
-					#ifdef WICKEDENGINE
-					//PE: Just let the old "saving level..." fade away.
-					//strcpy(cTriggerMessage, "Level saved");
-					//bTriggerMessage = true;
 					if (iLaunchAfterSyncAction == 11)
 					{
 						strcpy(cTriggerMessage, "A start marker has been added to your new level. This is where you will start in this level when you press Test Level.");
@@ -15963,11 +15460,9 @@ void mapeditorexecutable_loop(void)
 						t.editorfreeflight.c.angx_f = 70.0f;
 						t.editorfreeflight.c.angy_f = -70.0f;
 					}
-					#endif
 					gridedit_save_map();
 					g.projectmodified = 0; gridedit_changemodifiedflag();
 					g.projectmodifiedstatic = 0;
-
 					break;
 				}
 				case 504: //Save the actual map here!
@@ -16013,25 +15508,29 @@ void mapeditorexecutable_loop(void)
 					iLaunchAfterSyncAction = 0;
 					break;
 				}
+
 				case 3: //Save
-					#ifdef WICKEDENGINE
+
 					GGTerrain_CancelRamp();
-					#endif
 
 					iLaunchAfterSync = 0;
 					if (g.projectmodified == 1)
 					{
+						// Make sure we have last ebe changes.
 						if (t.ebe.on == 1)
-							ebe_hide(); //Make sure we have last ebe changes.
+						{
+							ebe_hide();
+						}
 
-						//  yes save first
+						// yes save first
 						if (g.projectfilename_s == "")
 						{
 							t.returnstring_s = "";
 							cStr tOldDir = GetDir();
 							char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL,true);
 							SetDir(tOldDir.Get());
-							if (cFileSelected && strlen(cFileSelected) > 0) {
+							if (cFileSelected && strlen(cFileSelected) > 0) 
+							{
 								t.returnstring_s = cFileSelected;
 							}
 							if (t.returnstring_s != "")
@@ -16039,32 +15538,37 @@ void mapeditorexecutable_loop(void)
 								if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".fpm")  t.returnstring_s = t.returnstring_s + ".fpm";
 								g.projectfilename_s = t.returnstring_s;
 								bool oksave = true;
-								if (FileExist(g.projectfilename_s.Get())) {
+								if (FileExist(g.projectfilename_s.Get())) 
+								{
 									oksave = overWriteFileBox(g.projectfilename_s.Get());
 								}
 								if (oksave) 
 								{
-
-									iLaunchAfterSync = 503; //Do the actualy save here.
+									//Do the actualy save here.
+									iLaunchAfterSync = 503; 
 									iSkibFramesBeforeLaunch = 3;
-
-									//gridedit_save_map();
 
 									//Add newly saved fpm level to recent list.
 									int firstempty = -1;
 									int i = 0;
-									for (; i < REMEMBERLASTFILES; i++) {
+									for (; i < REMEMBERLASTFILES; i++) 
+									{
 										if (firstempty == -1 && strlen(pref.last_open_files[i]) <= 0)
 											firstempty = i;
 
-										if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) { //already there
+										if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) 
+										{ 
+											//already there
 											break;
 										}
 									}
-									if (i >= REMEMBERLASTFILES) {
-										if (firstempty == -1) {
+									if (i >= REMEMBERLASTFILES) 
+									{
+										if (firstempty == -1) 
+										{
 											//No empty slots , rotate.
-											for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) {
+											for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) 
+											{
 												strcpy(pref.last_open_files[ii], pref.last_open_files[ii + 1]);
 											}
 											strcpy(pref.last_open_files[REMEMBERLASTFILES - 1], g.projectfilename_s.Get());
@@ -16072,27 +15576,19 @@ void mapeditorexecutable_loop(void)
 										else
 											strcpy(pref.last_open_files[firstempty], g.projectfilename_s.Get());
 									}
-
-									#ifdef WICKEDENGINE
 									strcpy(cTriggerMessage, "Saving Level ...");
 									bTriggerMessage = true;
-									#endif
 								}
 							}
 						}
 						else
 						{
-							iLaunchAfterSync = 503; //Do the actualy save here.
+							//Do the actualy save here.
+							iLaunchAfterSync = 503; 
 							iSkibFramesBeforeLaunch = 3;
-							//gridedit_save_map();
-							#ifdef WICKEDENGINE
 							strcpy(cTriggerMessage, "Saving Level ...");
 							bTriggerMessage = true;
-							#endif
 						}
-
-						//g.projectmodified = 0; gridedit_changemodifiedflag();
-						//g.projectmodifiedstatic = 0;
 					}
 					break;
 
@@ -16109,9 +15605,25 @@ void mapeditorexecutable_loop(void)
 
 					t.returnstring_s = "";
 					cStr tOldDir = GetDir();
-					char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL,true);
+
+					// we know we need to focus on the mapbank associated with the current storyboard
+					cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+					if (correctFPMLocation_s.Len() > 0)
+					{
+						correctFPMLocation_s += Storyboard.gamename;
+						correctFPMLocation_s += "\\Files\\mapbank";
+					}
+					else
+					{
+						correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+					}
+
+					//char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", correctFPMLocatrion_s.Get(), NULL, true);
+					char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+
 					SetDir(tOldDir.Get());
-					if (cFileSelected && strlen(cFileSelected) > 0) {
+					if (cFileSelected && strlen(cFileSelected) > 0) 
+					{
 						t.returnstring_s = cFileSelected;
 					}
 					if (t.returnstring_s != "")
@@ -16120,7 +15632,8 @@ void mapeditorexecutable_loop(void)
 						g.projectfilename_s = t.returnstring_s;
 
 						bool oksave = true;
-						if (FileExist(g.projectfilename_s.Get())) {
+						if (FileExist(g.projectfilename_s.Get())) 
+						{
 							oksave = overWriteFileBox(g.projectfilename_s.Get());
 						}
 						if (oksave) 
@@ -16128,17 +15641,23 @@ void mapeditorexecutable_loop(void)
 							//Add newly saved fpm level to recent list.
 							int firstempty = -1;
 							int i = 0;
-							for (; i < REMEMBERLASTFILES; i++) {
+							for (; i < REMEMBERLASTFILES; i++) 
+							{
 								if (firstempty == -1 && strlen(pref.last_open_files[i]) <= 0)
 									firstempty = i;
-								if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) { //already there
+								if (strlen(pref.last_open_files[i]) > 0 && pestrcasestr(g.projectfilename_s.Get(), pref.last_open_files[i])) 
+								{
+									//already there
 									break;
 								}
 							}
-							if (i >= REMEMBERLASTFILES) {
-								if (firstempty == -1) {
+							if (i >= REMEMBERLASTFILES) 
+							{
+								if (firstempty == -1) 
+								{
 									//No empty slots , rotate.
-									for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) {
+									for (int ii = 0; ii < REMEMBERLASTFILES - 1; ii++) 
+									{
 										strcpy(pref.last_open_files[ii], pref.last_open_files[ii + 1]);
 									}
 									strcpy(pref.last_open_files[REMEMBERLASTFILES - 1], g.projectfilename_s.Get());
@@ -16180,19 +15699,10 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 							}
-
-//							gridedit_save_map();
-
-							#ifdef WICKEDENGINE
 							strcpy(cTriggerMessage, "Saving Level ...");
 							bTriggerMessage = true;
-							#endif
 						}
 					}
-
-					//g.projectmodified = 0; gridedit_changemodifiedflag();
-					//g.projectmodifiedstatic = 0;
-
 					break;
 				}
 
@@ -17117,14 +16627,10 @@ void mapeditorexecutable_finish(void)
 		//}
 
 		cstr prefile = defaultWriteFolder;
-#ifdef WICKEDENGINE
 		prefile += "gamegurumax.pref";
-#else
-		prefile += "gameguru.pref";
-#endif
-
 		FILE* preffile = GG_fopen(prefile.Get(), "wb+");
-		if (preffile) {
+		if (preffile) 
+		{
 			fwrite(&pref, 1, sizeof(pref), preffile);
 			fclose(preffile);
 		}
@@ -17184,22 +16690,6 @@ int AskSaveBeforeNewAction(void)
 	int iAction = 0;
 	if (g.projectmodified == 1)
 	{
-		#ifdef WICKEDENGINE
-		#ifdef ENABLEAUTOLEVELSAVE
-		if (!pref.iDisableLevelAutoSave && g.projectfilename_s != "")
-		{
-			//PE: We can do any messages when called from WM_CLOSE
-			//PE: Change different functions instead.
-			//Auto save. no message
-			gridedit_save_map();
-			bTriggerMessage = false;
-
-			g.projectmodified = 0; gridedit_changemodifiedflag();
-			g.projectmodifiedstatic = 0;
-			return(1); //Return saved.
-		}
-		#endif
-		#endif
 		iAction = askBoxCancel("Do you wish to save first?", "Confirmation"); //1==Yes 2=Cancel 0=No
 
 		if (iAction == 1)
@@ -17907,13 +17397,26 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.bEnablePointShadowCulling = t.visuals.bEnablePointShadowCulling;
 	t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling;
 	t.gamevisuals.bEnableAnimationCulling = t.visuals.bEnableAnimationCulling;
+	t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier;
 	t.gamevisuals.bDisableSkybox = t.visuals.bDisableSkybox;
 	t.gamevisuals.bEnable30FpsAnimations = t.visuals.bEnable30FpsAnimations;
+
+	t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD;
+	t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD;
+	t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD;
+	t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD;
+	t.gamevisuals.bThreadedPhysics = t.visuals.bThreadedPhysics;
+	t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD;
+
 	t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows;
 	t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop;
 	t.gamevisuals.ApparentSize = t.visuals.ApparentSize;
 	t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
 	t.gamevisuals.bLevelVSyncEnabled = t.visuals.bLevelVSyncEnabled;
+
+	t.gamevisuals.ColorGradingLUT = t.visuals.ColorGradingLUT;
+	t.gamevisuals.bColorGrading = t.visuals.bColorGrading;
+
 
 	// copy game visuals to visuals for use in level play
 	t.visuals = t.gamevisuals;
@@ -18183,6 +17686,11 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	gridedit_restartanybehaviorediting();
 	#endif
 
+	//PE: Clear any test mode / standalone highlights.
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	g_StandaloneObjectHighlightList.clear(); //PE: They clear on all frames so this is the only thing needed.
+	extern bool bActivateStandaloneOutline;
+	bActivateStandaloneOutline = false;
 	// game loop init code
 	game_masterroot_initcode ( iUseVRTest );
 }
@@ -18312,8 +17820,31 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 		{
 			if ( ObjectExist(t.obj) == 1 ) 
 			{
+				// ensure particles can be restored (realtime changes)
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Speed_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Speed_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.bParticle_Size_Original = t.entityelement[t.e].eleprof.newparticle.bParticle_Size_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_R_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_R_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_G_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_G_Original;
+				t.storedentityelement[t.e].eleprof.newparticle.fParticle_B_Original = t.entityelement[t.e].eleprof.newparticle.fParticle_B_Original;
+
 				// only if still exists - could have been deleted
-				t.entityelement[t.e]=t.storedentityelement[t.e];
+				t.entityelement[t.e] = t.storedentityelement[t.e];
+
+				// and if particle, restore the real-time changes (emitter rot and pos)
+				entity_updateparticleemitter(t.e);
+
+				// and then wipe those stored settings
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Speed_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Opacity_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.bParticle_Size_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Floor_Height_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_Bounciness_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_R_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_G_Original = -123.0f;
+				t.entityelement[t.e].eleprof.newparticle.fParticle_B_Original = -123.0f;
 			}
 		}
 	}
@@ -18588,8 +18119,18 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bEnableSpotShadowCulling = t.gamevisuals.bEnableSpotShadowCulling;
 	t.visuals.bEnableObjectCulling = t.gamevisuals.bEnableObjectCulling;
 	t.visuals.bEnableAnimationCulling = t.gamevisuals.bEnableAnimationCulling;
+	t.visuals.fLODMultiplier = t.gamevisuals.fLODMultiplier;
 
 	t.visuals.bEnable30FpsAnimations = t.gamevisuals.bEnable30FpsAnimations;
+
+	t.visuals.bShadowsLowestLOD = t.gamevisuals.bShadowsLowestLOD;
+	t.visuals.bProbesLowestLOD = t.gamevisuals.bProbesLowestLOD;
+	t.visuals.bRaycastLowestLOD = t.gamevisuals.bRaycastLowestLOD;
+	t.visuals.bPhysicsLowestLOD = t.gamevisuals.bPhysicsLowestLOD;
+	t.visuals.bThreadedPhysics = t.gamevisuals.bThreadedPhysics;
+	t.visuals.bReflectionsLowestLOD = t.gamevisuals.bReflectionsLowestLOD;
+
+	
 	t.visuals.g_bDelayedShadows = t.gamevisuals.g_bDelayedShadows;
 	t.visuals.g_bDelayedShadowsLaptop = t.gamevisuals.g_bDelayedShadowsLaptop;
 
@@ -18615,6 +18156,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.SkyCloudSpeed = t.gamevisuals.SkyCloudSpeed;
 
 	t.visuals.iMSAASampleCount = t.gamevisuals.iMSAASampleCount;
+	t.visuals.iFSRMode = t.gamevisuals.iFSRMode;
+	t.visuals.fFSRSharpness = t.gamevisuals.fFSRSharpness;
 
 	t.visuals.iMSAO = t.gamevisuals.iMSAO;
 	t.visuals.fMSAOPower = t.gamevisuals.fMSAOPower;
@@ -18811,17 +18354,15 @@ void editor_multiplayermode ( void )
 
 	// As multiplayer can load OTHER things, restore level to state before we clicked MM button
 	t.tfile_s=g.mysystem.editorsGridedit_s+"cfg.cfg";//"editors\\gridedit\\cfg.cfg";
-	if (  FileExist(t.tfile_s.Get()) == 1 ) 
+	if ( FileExist(t.tfile_s.Get()) == 1 ) 
 	{
 		timestampactivity(0,"reloading your level after MM button");
 		t.skipfpmloading=0;
 		g.projectfilename_s=g.mysystem.editorsGrideditAbs_s+"worklevel.fpm";//g.fpscrootdir_s+"\\Files\\editors\\gridedit\\worklevel.fpm";
 		editor_loadcfg ( );
 		gridedit_load_map ( );
-		#ifdef WICKEDENGINE
 		grass_init();
 		bUpdateVeg = true;
-		#endif
 
 		//  added to solve fog issue when go in and out of MP menu
 		visuals_editordefaults ( );
@@ -22081,7 +21622,8 @@ void editor_restoreeditcamera ( void )
 {
 	#ifdef WICKEDENGINE
 	// when returning from a VR session, need to restore camera perspective and original resolution settings
-	master.masterrenderer.Set3DResolution( master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight() );
+	//PE: GetPhysicalWidth/Height are wrong here, we set the correct values when "ResizeBuffer" are also called. triggered by WM_SIZE
+	//master.masterrenderer.Set3DResolution( master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight() );
 	#endif
 
 	// editor starting camera position - reset camera
@@ -22617,10 +22159,8 @@ void editor_filemapinit ( void )
 
 void editor_loadcfg (bool bFromFPM)
 {
-	//  Load existing config file
+	// Load existing config file
 	cstr cfgfile_s = g.mysystem.editorsGridedit_s + "cfg.cfg";
-
-	#ifdef WICKEDENGINE
 	if (bFromFPM)
 	{
 		cfgfile_s = g.mysystem.levelBankTestMap_s + "cfg.cfg";
@@ -22629,17 +22169,13 @@ void editor_loadcfg (bool bFromFPM)
 			cfgfile_s = g.mysystem.editorsGridedit_s + "cfg.cfg";
 		}
 	}
-	#endif
-
 	if ( FileExist(cfgfile_s.Get()) == 1 ) 
 	{
 		OpenToRead (  1,cfgfile_s.Get() );
-		//  Current Camera Position
 		t.cx_f = ReadFloat ( 1 );
 		t.cy_f = ReadFloat ( 1 );
 		t.gridzoom_f = ReadFloat ( 1 );
 		t.gridlayer = ReadLong ( 1 );
-		//  Edit Vars
 		t.nogridsmart = ReadLong ( 1 );
 		t.grideditartmode = ReadLong ( 1 );
 
@@ -22653,6 +22189,7 @@ void editor_loadcfg (bool bFromFPM)
 		{
 			t.grideditselect = iTestGridEditSelect;
 		}
+
 		//  Project (only need project name if skipping FPM=using temp.fpm)
 		t.temp_s = ReadString ( 1 ); if (  t.skipfpmloading == 1  )  g.projectfilename_s = t.temp_s;
 		g.currentFPG_s = ReadString ( 1 );
@@ -22661,7 +22198,6 @@ void editor_loadcfg (bool bFromFPM)
 		t.a = ReadLong ( 1 );
 		g.gridlayershowsingle = ReadLong ( 1 );
 
-		#ifdef WICKEDENGINE
 		//PE: Restore all camera settings.
 		if (bFromFPM)
 		{
@@ -22690,7 +22226,6 @@ void editor_loadcfg (bool bFromFPM)
 			//PE: In wicked after loading a new fpm. we need some frames before terrain height is ready.
 			iDelayedCameraRestore = 240; //It can take some time before full terrain is regenerated, so 4 sec.
 		}
-		#endif
 		CloseFile (  1 );
 	}
 
@@ -22704,25 +22239,20 @@ void editor_loadcfg (bool bFromFPM)
 
 	//  Current project name stored for next time
 	t.currentprojectfilename_s=g.projectfilename_s;
-
 	return;
 }
 
 void editor_savecfg (char *filename)
 {
-	//  Delete config file
-	//t.strwork = "" ; t.strwork = t.strwork + "editors\\gridedit\\cfg.cfg";
+	// Delete config file
 	t.strwork = g.mysystem.editorsGridedit_s + "cfg.cfg";
 	if (filename)
 	{
 		t.strwork = filename;
 	}
 
-	if (FileOpen(1) == 1) CloseFile(1); //PE: To make sure, was missing a cfg.cfg file in fpm so...
-
-	if (  FileExist( t.strwork.Get() ) == 1  )  DeleteAFile ( t.strwork.Get() );
-
-	//PE: editors\gridedit\cfg.cfg , if exists in c:program.. and cant be deleted OpenToWrite fails (already exists).
+	if ( FileOpen(1) == 1) CloseFile(1); //PE: To make sure, was missing a cfg.cfg file in fpm so...
+	if ( FileExist( t.strwork.Get() ) == 1  )  DeleteAFile ( t.strwork.Get() );
 
 	//  Save config file
 	OpenToWrite (  1, t.strwork.Get() );
@@ -22741,19 +22271,21 @@ void editor_savecfg (char *filename)
 	}
 	WriteFloat (  1,t.gridzoom_f );
 	WriteLong (  1,t.gridlayer );
+
 	//  Edit Vars
 	WriteLong (  1,t.nogridsmart );
 	WriteLong (  1,t.grideditartmode );
 	WriteLong (  1,t.grideditselect );
+
 	//  Project
 	WriteString (  1,g.projectfilename_s.Get() );
 	WriteString (  1,g.currentFPG_s.Get() );
+
 	//  Shroud Settings
 	WriteLong (  1,g.shroudsize );
 	WriteLong (  1,g.gridlayershowsingle );
-
-	#ifdef WICKEDENGINE
 	WriteString(1, "V2");
+
 	//PE: Write out all camera settings.
 	WriteLong(1, t.editorfreeflight.mode);
 	WriteFloat(1, t.editorfreeflight.c.x_f);
@@ -22763,11 +22295,9 @@ void editor_savecfg (char *filename)
 	WriteFloat(1, t.cy_f);
 	WriteFloat(1, t.editorfreeflight.c.angx_f);
 	WriteFloat(1, t.editorfreeflight.c.angy_f);
-	#endif
+
+	// finish
 	CloseFile (  1 );
-
-return;
-
 }
 
 void editor_constructionselection ( void )
@@ -23562,6 +23092,11 @@ void editor_mainfunctionality ( void )
 						quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
 
 						// get quat from entity directly
+						if (t.entityelement[te].quatmode == 0)
+						{
+							// if no orig quaty, calc it now
+							entity_updatequatfromeuler(te);
+						}
 						GGQUATERNION toriginalAngle = GGQUATERNION(t.entityelement[te].quatx, t.entityelement[te].quaty, t.entityelement[te].quatz, t.entityelement[te].quatw);
 
 						// apply the rotation event to the angle of the object
@@ -23583,23 +23118,6 @@ void editor_mainfunctionality ( void )
 
 						// mark as static if it was
 						if (t.entityelement[te].staticflag == 1) g.projectmodifiedstatic = 1;
-
-						/* messed up due to internal gimble lock correction in rotobjquat
-						// object rotation 
-						GGQUATERNION QuatAroundX, QuatAroundY, QuatAroundZ;
-						GGQuaternionRotationAxis(&QuatAroundX, &GGVECTOR3(1, 0, 0), GGToRadian(fMoveAngX));
-						GGQuaternionRotationAxis(&QuatAroundY, &GGVECTOR3(0, 1, 0), GGToRadian(fMoveAngY));
-						GGQuaternionRotationAxis(&QuatAroundZ, &GGVECTOR3(0, 0, 1), GGToRadian(fMoveAngZ));
-						quatRotationEvent = QuatAroundX * QuatAroundY * QuatAroundZ;
-						GGQUATERNION quatCurrentOrientation = GGQUATERNION(t.entityelement[t.widget.pickedEntityIndex].quatx, t.entityelement[t.widget.pickedEntityIndex].quaty, t.entityelement[t.widget.pickedEntityIndex].quatz, t.entityelement[t.widget.pickedEntityIndex].quatw);
-						GGQUATERNION quatNewOrientation;
-						GGQuaternionMultiply(&quatNewOrientation, &quatCurrentOrientation, &quatRotationEvent);
-						entity_updatequat(t.widget.pickedEntityIndex, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
-						RotateObjectQuat(iObj, quatNewOrientation.x, quatNewOrientation.y, quatNewOrientation.z, quatNewOrientation.w);
-						t.entityelement[t.widget.pickedEntityIndex].rx = ObjectAngleX(iObj);
-						t.entityelement[t.widget.pickedEntityIndex].ry = ObjectAngleY(iObj);
-						t.entityelement[t.widget.pickedEntityIndex].rz = ObjectAngleZ(iObj);
-						*/
 
 						// special case for characters, only want the Y angle
 						if (t.entityprofile[entid].ischaracter == 1)
@@ -27889,6 +27407,13 @@ void gridedit_mapediting ( void )
 							t.gridentityscalex_f=t.storegridentityscalex_f;
 							t.gridentityscaley_f=t.storegridentityscaley_f;
 							t.gridentityscalez_f=t.storegridentityscalez_f;
+							
+							if (t.gridedit.entityspraymode == 1 && bSprayMoveWithMouse)
+							{
+								t.gridentityposx_f = t.inputsys.localx_f;
+								t.gridentityposy_f = t.inputsys.localcurrentterrainheight_f;
+								t.gridentityposz_f = t.inputsys.localy_f;
+							}
 						}
 						else
 						{
@@ -28840,11 +28365,9 @@ void gridedit_save_test_map ( void )
 
 void gridedit_save_map ( void )
 {
-	#ifdef WICKEDENGINE
 	// seems save can cause IMGUI to crash out when rendering a texture that no longer exists
 	extern bool bBlockImGuiUntilNewFrame;
 	bBlockImGuiUntilNewFrame = true;
-	#endif
 
 	// Proper saving message to user
 	if (  t.recoverdonotuseany3dreferences == 0 ) 
@@ -30139,19 +29662,6 @@ void gridedit_new_map_ask ( void )
 
 void gridedit_save_map_ask ( void )
 {
-	#ifdef WICKEDENGINE
-	#ifdef ENABLEAUTOLEVELSAVE
-	if (!pref.iDisableLevelAutoSave && g.projectfilename_s != "")
-	{
-		//Auto save.
-		gridedit_save_map();
-		g.projectmodified = 0; gridedit_changemodifiedflag();
-		g.projectmodifiedstatic = 0;
-		return;
-	}
-	#endif
-	#endif
-
 	if (  g.projectfilename_s == "" ) 
 	{
 		gridedit_saveas_map ( );
@@ -30160,8 +29670,6 @@ void gridedit_save_map_ask ( void )
 	{
 		gridedit_save_map ( );
 	}
-return;
-
 }
 
 void gridedit_saveas_map ( void )
@@ -30618,9 +30126,12 @@ void gridedit_recreateentitycursor ( void )
 				if (strlen(pOverrideAnimSet) > 1) // "" = default to weapon type, "-" = default to object anim
 				{
 					// replace actual object animations
-					sObject* pObject = GetObjectData(t.obj);
-					AppendObject(pOverrideAnimSet, t.obj, 0);
-					WickedCall_RefreshObjectAnimations(pObject, pObject->wickedloaderstateptr);
+					if (FileExist(pOverrideAnimSet) == 1)
+					{
+						sObject* pObject = GetObjectData(t.obj);
+						AppendObject(pOverrideAnimSet, t.obj, 0);
+						WickedCall_RefreshObjectAnimations(pObject, pObject->wickedloaderstateptr);
+					}
 				}
 			}
 

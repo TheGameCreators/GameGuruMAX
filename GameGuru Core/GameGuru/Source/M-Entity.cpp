@@ -138,10 +138,12 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 	{
 		t.entdir_s = "";
 	}
+	#ifndef NEWPROJSYSWORKINPROGRESS
 	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 	{
 		t.entdir_s = "";
 	}
+	#endif
 
 	//  Check if entity already loaded in
 	t.talreadyloaded=0;
@@ -173,11 +175,67 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 		if (g_iAbortedAsEntityIsGroupFileMode != 3)
 			g_iAbortedAsEntityIsGroupFileMode = 1;
 
+		// if using remote project, first duplicate the entity file to local project
+		bool bAlsoCopyOverAllRelatedEntityFiles = false;
+		extern StoryboardStruct Storyboard;
+		char pPreferredProjectEntityFolder[MAX_PATH];
+		strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+		strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+		if (strlen(Storyboard.customprojectfolder) > 0)
+		{
+			char fullRealPath[MAX_PATH];
+			strcpy(fullRealPath, "entitybank\\");
+			strcat(fullRealPath, t.addentityfile_s.Get());
+			GG_GetRealPath(fullRealPath, 0);
+			if (strnicmp (fullRealPath, pPreferredProjectEntityFolder,strlen(pPreferredProjectEntityFolder)) != NULL)
+			{
+				// file not in local project, copy it over
+				strcpy(pPreferredProjectEntityFolder, "entitybank\\");
+				strcat(pPreferredProjectEntityFolder, t.addentityfile_s.Get());
+				GG_GetRealPath(pPreferredProjectEntityFolder, 1);
+				CopyFileA(fullRealPath, pPreferredProjectEntityFolder, TRUE);
+
+				// after entity loaded, copy over all related files
+				bAlsoCopyOverAllRelatedEntityFiles = true;
+			}
+		}
+
 		//  Load extra entity
 		t.entid = g.entidmaster;
 		t.ent_s = t.entitybank_s[t.entid];
 		t.entpath_s = getpath(t.ent_s.Get());
 		entity_load ();
+
+		// copy over all related files if using a remote project
+		if (bAlsoCopyOverAllRelatedEntityFiles == true)
+		{
+			// clear file collection
+			g.filecollectionmax = 0;
+			Undim (t.filecollection_s);
+			Dim (t.filecollection_s, 500);
+
+			// collect all the associated files into filecollection
+			extern void mapfile_addallentityrelatedfiles(int,entityeleproftype*);
+			entity_fillgrideleproffromprofile();
+			mapfile_addallentityrelatedfiles (t.entid, &t.grideleprof);
+
+			// copy all the file collection to the remote project
+			strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+			strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+			for (int files = 1; files < g.filecollectionmax; files++)
+			{
+				char pFileToCopy[MAX_PATH];
+				strcpy(pFileToCopy, t.filecollection_s[files].Get());
+				GG_GetRealPath(pFileToCopy, 0);
+				if (strnicmp (pFileToCopy, pPreferredProjectEntityFolder, strlen(pPreferredProjectEntityFolder)) != NULL)
+				{
+					char pFileToCopyTo[MAX_PATH];
+					strcpy(pFileToCopyTo, t.filecollection_s[files].Get());
+					GG_GetRealPath(pFileToCopyTo, 1);
+					CopyFileA(pFileToCopy, pFileToCopyTo, FALSE);
+				}
+			}
+		}
 
 		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list
 		if (stricmp (t.addentityfile_s.Get(), "..\\ebebank\\_builder\\New Site.fpe") == NULL)
@@ -537,10 +595,12 @@ bool entity_load_thread_prepare(LPSTR pFpeFile)
 	{
 		sEntityBank = "";
 	}
+	#ifndef NEWPROJSYSWORKINPROGRESS
 	if (cstr(Lower(Left(sFpeFile.Get(), 12))) == "projectbank\\")
 	{
 		sEntityBank = "";
 	}
+	#endif
 
 	// already have this loaded into the level
 	for (t.t = 1; t.t <= g.entidmaster; t.t++)
@@ -762,6 +822,7 @@ bool entity_load (bool bCalledFromLibrary)
 			bool CreateBackBufferCacheName(char *file, int width, int height);
 			extern cstr BackBufferCacheName;
 			CreateBackBufferCacheName(t.addentityfile_s.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
@@ -770,9 +831,11 @@ bool entity_load (bool bCalledFromLibrary)
 					t.entityprofile[t.entid].iThumbnailLarge = ENTITY_CACHE_ICONS_LARGE + t.entid;
 					g_iAbortedAsEntityIsGroupFileMode = 0;
 					//PE: No need to read the group and load the files we have the thumb.
+					GG_SetWritablesToRoot(false);
 					return(false);
 				}
 			}
+			GG_SetWritablesToRoot(false);
 		}
 		
 		g_iAbortedAsEntityIsGroupFileMode = 3;
@@ -823,9 +886,11 @@ bool entity_load (bool bCalledFromLibrary)
 		t.strwork = t.entdir_s + t.ent_s;
 		t.tthumbbmpfile_s = "";	t.tthumbbmpfile_s = t.tthumbbmpfile_s + Left(t.strwork.Get(), (Len(t.entdir_s.Get()) + Len(t.ent_s.Get())) - 4) + ".bmp";
 
+		GG_SetWritablesToRoot(true);
 		image_setlegacyimageloading(true);
 		LoadImage(t.tthumbbmpfile_s.Get(), ENTITY_CACHE_ICONS + t.entid);
 		image_setlegacyimageloading(false);
+		GG_SetWritablesToRoot(false);
 		t.entityprofile[t.entid].iThumbnailSmall = ENTITY_CACHE_ICONS + t.entid;
 		if (!ImageExist(t.entityprofile[t.entid].iThumbnailSmall))
 			t.entityprofile[t.entid].iThumbnailSmall = TOOL_ENTITY;
@@ -847,6 +912,7 @@ bool entity_load (bool bCalledFromLibrary)
 		{
 			//PE: Check if a got the original image for this smart object.
 			CreateBackBufferCacheName(LastGroupFilename_s.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
@@ -856,19 +922,21 @@ bool entity_load (bool bCalledFromLibrary)
 					bWeGotaThumb = true;
 				}
 			}
+			GG_SetWritablesToRoot(false);
 		}
 
 		if (!bWeGotaThumb)
 		{
 			CreateBackBufferCacheName(t.strwork.Get(), 512, 288);
+			GG_SetWritablesToRoot(true);
 			if (FileExist(BackBufferCacheName.Get()))
 			{
 				LoadImage((char *)BackBufferCacheName.Get(), ENTITY_CACHE_ICONS_LARGE + t.entid);
 				if (ImageExist(ENTITY_CACHE_ICONS_LARGE + t.entid))
 					t.entityprofile[t.entid].iThumbnailLarge = ENTITY_CACHE_ICONS_LARGE + t.entid;
 			}
+			GG_SetWritablesToRoot(false);
 		}
-
 		image_setlegacyimageloading(false);
 		SetMipmapNum(-1);
 		#endif
@@ -999,11 +1067,30 @@ bool entity_load (bool bCalledFromLibrary)
 			}
 
 			bool bNewDecal = false;
+			bool bLODLoaded = false;
 			//  Load entity (compile does not need the dynamic objects)
 			if (t.entobj > 0)
 			{
 				if (ObjectExist(t.entobj) == 0)
 				{
+					extern int g_iUseLODObjects;
+					extern bool bDisableLODLoad;
+					if (g_iUseLODObjects > 0 && !bDisableLODLoad)
+					{
+						//PE: Try to locate a LOD object.
+						std::string lodname = t.tFPEName_s.Get();
+						replaceAll(lodname, ".fpe", "_lod.dbo");
+
+						if (FileExist( (char *) lodname.c_str()))
+						{
+							LoadObject((char *) lodname.c_str(), t.entobj);
+							if (ObjectExist(t.entobj))
+							{
+								bLODLoaded = true;
+							}
+						}
+
+					}
 					// load entity model
 					g_iWickedEntityId = t.entid;
 					char debug[ 1024 ];
@@ -1011,8 +1098,11 @@ bool entity_load (bool bCalledFromLibrary)
 					timestampactivity(0, debug);
 							
 					char* tfile_s = t.tfile_s.Get();
-					if ( *tfile_s ) LoadObject(t.tfile_s.Get(), t.entobj);
-					else MakeObjectBox( t.entobj, 1,1,1 );
+					if (!bLODLoaded)
+					{
+						if (*tfile_s) LoadObject(t.tfile_s.Get(), t.entobj);
+						else MakeObjectBox(t.entobj, 1, 1, 1);
+					}
 					g_iWickedEntityId = -1;
 
 					if (ObjectExist(t.entobj) == 0)
@@ -1184,7 +1274,7 @@ bool entity_load (bool bCalledFromLibrary)
 						t.tdbofile_s = pAppendFinalModelFilename;
 
 				// Save if DBO not exist for entity (for fast loading)
-				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true)
+				if (Len(t.tdbofile_s.Get()) > 1 && bSavingDBOAllowed == true && !bLODLoaded )
 				{
 					// ensure legacy compatibility (avoids new mapedito crashing build process)
 					// in wicked, only save if not exist, otherwise existing DBO is not to be touched!
@@ -1711,7 +1801,9 @@ void entity_loaddata ( void )
 	t.tprotectBINfile=0;
 	if (t.ent_s.Get()[1] == ':') t.entdir_s = "";
 
+#ifndef NEWPROJSYSWORKINPROGRESS
 	if (strnicmp(t.ent_s.Get(), "projectbank", 11) == NULL) t.entdir_s = "";
+#endif
 
 	t.tFPEName_s=t.entdir_s+t.ent_s;
 	if (  FileExist(t.tFPEName_s.Get()) == 0 ) 
@@ -1810,7 +1902,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].fullbounds=0;
 		t.entityprofile[t.entid].cpuanims=0;
 		t.entityprofile[t.entid].ignoredefanim=0;
-		t.entityprofile[t.entid].teamfield=0;
+		t.entityprofile[t.entid].explodeheight=0;
 		t.entityprofile[t.entid].scale=100;
 		t.entityprofile[t.entid].addhandle_s="";
 		t.entityprofile[t.entid].addhandlelimb=0;
@@ -2078,18 +2170,21 @@ void entity_loaddata ( void )
 					cmpStrConst( t_field_s, "ccpassembly" );
 					if (matched)
 					{
+						char pLowCase[MAX_PATH];
+						strcpy(pLowCase, t.value_s.Get());
+						strlwr(pLowCase);
 						t.entityprofile[t.entid].characterbasetype = -1;
-						if (strstr (t.value_s.Get(), "adult male") != NULL) t.entityprofile[t.entid].characterbasetype = 0;
-						if (strstr (t.value_s.Get(), "adult female") != NULL) t.entityprofile[t.entid].characterbasetype = 1;
-						if (strstr (t.value_s.Get(), "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
-						if (strstr (t.value_s.Get(), "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
+						if (strstr (pLowCase, "adult male") != NULL) t.entityprofile[t.entid].characterbasetype = 0;
+						if (strstr (pLowCase, "adult female") != NULL) t.entityprofile[t.entid].characterbasetype = 1;
+						if (strstr (pLowCase, "zombie male") != NULL) t.entityprofile[t.entid].characterbasetype = 2;
+						if (strstr (pLowCase, "zombie female") != NULL) t.entityprofile[t.entid].characterbasetype = 3;
 						if (t.entityprofile[t.entid].characterbasetype == -1)
 						{
-							for (int t = 0; t < g_CharacterType.size(); t++)
+							for (int i = 0; i < g_CharacterType.size(); i++)
 							{
-								if (strstr (t.value_s.Get(), g_CharacterType[t].pPartsFolder) != NULL)
+								if (strnicmp (pLowCase, g_CharacterType[i].pPartsFolder, strlen(g_CharacterType[i].pPartsFolder)) == NULL)
 								{
-									t.entityprofile[t.entid].characterbasetype = t;
+									t.entityprofile[t.entid].characterbasetype = i;
 									break;
 								}
 							}
@@ -4207,7 +4302,7 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.rotatethrow=t.entityprofile[t.entid].rotatethrow;
 	t.grideleprof.explodable=t.entityprofile[t.entid].explodable;
 	t.grideleprof.explodedamage=t.entityprofile[t.entid].explodedamage;
-	t.grideleprof.teamfield=t.entityprofile[t.entid].teamfield;
+	t.grideleprof.explodeheight =t.entityprofile[t.entid].explodeheight;
 
 	// 301115 - data extracted from neighbors (LOD Modifiers are shared across all parent copies)
 	int iThisBankIndex = t.entid;
@@ -5759,7 +5854,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload >= 307 ) 
 					{
 						//  GameGuru 1.00.020
-						t.a = c_ReadLong ( 1 ); t.entityelement[t.e].eleprof.teamfield=t.a;
+						t.a = c_ReadLong ( 1 ); t.entityelement[t.e].eleprof.explodeheight =t.a;
 					}
 					if (  t.versionnumberload >= 308 ) 
 					{
@@ -6202,7 +6297,7 @@ void c_entity_loadelementsdata ( void )
 					if (  t.versionnumberload<307 ) 
 					{
 						//  GameGuru 1.00.020
-						t.entityelement[t.e].eleprof.teamfield=t.entityprofile[t.ttentid].teamfield;
+						t.entityelement[t.e].eleprof.explodeheight =t.entityprofile[t.ttentid].explodeheight;
 					}
 					if (  t.versionnumberload<310 ) 
 					{
@@ -7199,7 +7294,7 @@ void entity_saveelementsdata (bool bForCollectionELE)
 				if ( t.versionnumbersave >= 307 ) 
 				{
 					//  Guru 1.00.020
-					writer.WriteLong( t.entityelement[ent].eleprof.teamfield );
+					writer.WriteLong( t.entityelement[ent].eleprof.explodeheight);
 				}
 				if ( t.versionnumbersave >= 308 ) 
 				{
@@ -9091,49 +9186,68 @@ void entity_redo ( void )
 }
 #endif
 
-#ifdef WICKEDENGINE
-void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
+void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation)
 {
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
 	extern bool bImGuiInTestGame;
-	if ( bImGuiInTestGame == true )
-		bShowThisParticle = pEleprof->newparticle.bParticle_Show_At_Start;
+	if (bImGuiInTestGame == true)
+		bShowThisParticle = pParticle->bParticle_Show_At_Start;
 	else
-		bShowThisParticle = pEleprof->newparticle.bParticle_Preview;
-	
-	int iParticleEmitter = pEleprof->newparticle.emitterid;
+		bShowThisParticle = pParticle->bParticle_Preview;
+
+	int iParticleEmitter = pParticle->emitterid;
 	if (iParticleEmitter == -1)
 	{
 		if (bShowThisParticle == true)
 		{
-			iParticleEmitter = gpup_loadEffect(pEleprof->newparticle.emittername.Get(), 0, 0, 0, 1.0);
+			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
 			gpup_emitterActive(iParticleEmitter, 0);
-			pEleprof->newparticle.emitterid = iParticleEmitter;
+			pParticle->emitterid = iParticleEmitter;
 		}
 	}
 	if (iParticleEmitter != -1)
 	{
 		// set emitter position, rotation and scale
 		gpup_setGlobalPosition(iParticleEmitter, fX, fY, fZ);
-		gpup_resetLocalPosition(iParticleEmitter);
+		if (pParticle->bParticle_Offset_Used == true)
+		{
+			float x = pParticle->bParticle_Offset_X;
+			float y = pParticle->bParticle_Offset_Y;
+			float z = pParticle->bParticle_Offset_Z;
+			gpup_setLocalPosition(iParticleEmitter, x, y, z);
+		}
+		else
+		{
+			gpup_resetLocalPosition(iParticleEmitter);
+		}
 		float fSpeedX, fSpeedY, fSpeedZ;
-		sObject* pObject = GetObjectData(iObj);
 		gpup_getEmitterSpeedAngleAdjustment(iParticleEmitter, &fSpeedX, &fSpeedY, &fSpeedZ);
 		GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
-		if (pObject)
+		if (pParticle->bParticle_LocalRot_Used == true)
 		{
-			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &pObject->position.matRotation);
+			// local emitter rotation
+			float x = GGToRadian(pParticle->bParticle_LocalRot_X);
+			float y = GGToRadian(pParticle->bParticle_LocalRot_Y);
+			float z = GGToRadian(pParticle->bParticle_LocalRot_Z);
+			GGMATRIX matLocalRot;
+			GGMatrixRotationYawPitchRoll(&matLocalRot, y, x, z);
+			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &matLocalRot);
+			if (pmatBaseRotation)
+			{
+				// global rotation
+				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, pmatBaseRotation);
+			}
 			gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
 		}
 		gpup_setGlobalRotation(iParticleEmitter, fRX, fRY, fRZ);
 		gpup_setGlobalScale(iParticleEmitter, 100.0f + fScale);
 
 		// set whether burst mode loops
-		if (pEleprof->newparticle.bParticle_Looping_Animation == true)
-			gpup_emitterBurstLoopAutoMode(iParticleEmitter, 1);
+		if (pParticle->bParticle_Looping_Animation == true)
+			gpup_emitterBurstMode(iParticleEmitter, 0);
 		else
-			gpup_emitterBurstLoopAutoMode(iParticleEmitter, 0);
+			gpup_emitterBurstMode(iParticleEmitter, 1);
 
 		// switch emitter on or off
 		if (bShowThisParticle == true)
@@ -9141,10 +9255,125 @@ void entity_updateparticleemitterbyID (entityeleproftype* pEleprof, int iObj, fl
 		else
 			gpup_emitterActive(iParticleEmitter, 0);
 
-		// specify extra emitter attributes
-		gpup_setEffectAnimationSpeed(iParticleEmitter, pEleprof->newparticle.fParticle_Speed);
-		gpup_setEffectOpacity(iParticleEmitter, pEleprof->newparticle.fParticle_Opacity);
+		// specify psrticle speed
+		if (pParticle->bParticle_SpeedChange == true)
+		{
+			if (pParticle->fParticle_Speed_Original == -123.0f) pParticle->fParticle_Speed_Original = gpup_getParticleSpeed(iParticleEmitter);
+			gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed);
+		}
+		else
+		{
+			if (pParticle->fParticle_Speed_Original != -123.0f)
+			{
+				gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed_Original);
+			}
+		}
+
+		// specify psrticle opacity
+		if (pParticle->bParticle_OpacityChange == true)
+		{
+			if (pParticle->fParticle_Opacity_Original == -123.0f) pParticle->fParticle_Opacity_Original = gpup_getParticleOpacity(iParticleEmitter);
+			gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity);
+		}
+		else
+		{
+			if (pParticle->fParticle_Opacity_Original != -123.0f)
+			{
+				gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity_Original);
+			}
+		}
+
+		// specify particle size
+		if (pParticle->bParticle_SizeChange == true)
+		{
+			if (pParticle->bParticle_Size_Original == -123.0f) pParticle->bParticle_Size_Original = gpup_getParticleSize(iParticleEmitter);
+			gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size);
+		}
+		else
+		{
+			if (pParticle->bParticle_Size_Original != -123.0f)
+			{
+				gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size_Original);
+			}
+		}
+
+		// handle any triggering of a fire burst
+		if (pParticle->bParticle_Fire == true)
+		{
+			gpup_emitterFire(iParticleEmitter);
+			pParticle->bParticle_Fire = false;
+		}
+
+		// handle particle collisions with floor and sphere (for reflection bounce)
+		if (pParticle->fParticle_BouncinessChange == true)
+		{
+			if (pParticle->fParticle_Bounciness_Original == -123.0f) pParticle->fParticle_Bounciness_Original = gpup_getBounciness(iParticleEmitter) * 5.0f;
+			gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness / 5.0f);
+		}
+		else
+		{
+			if (pParticle->fParticle_Bounciness_Original != -123.0f)
+			{
+				gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness_Original / 5.0f);
+			}
+		}
+		if (pParticle->iParticle_Floor_Active > 0)
+		{
+			if (pParticle->fParticle_Floor_Height_Original == -123.0f) pParticle->fParticle_Floor_Height_Original = gpup_getFloorReflectionHeight(iParticleEmitter);
+			gpup_floorReflection(iParticleEmitter, pParticle->iParticle_Floor_Active - 1, pParticle->fParticle_Floor_Height);
+		}
+		else
+		{
+			if (pParticle->fParticle_Floor_Height_Original != -123.0f)
+			{
+				gpup_restoreFloorReflection(iParticleEmitter, 1, pParticle->fParticle_Floor_Height_Original);
+			}
+		}
+
+		// handle color if particle effect
+		if (pParticle->bParticle_ColorChange == true)
+		{
+			if (pParticle->fParticle_R_Original == -123.0f) gpup_getEffectColor(iParticleEmitter, &pParticle->fParticle_R_Original, &pParticle->fParticle_G_Original, &pParticle->fParticle_B_Original);
+			gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R, pParticle->fParticle_G, pParticle->fParticle_B);
+		}
+		else
+		{
+			if (pParticle->fParticle_R_Original != -123.0f)
+			{
+				gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R_Original, pParticle->fParticle_G_Original, pParticle->fParticle_B_Original);
+			}
+		}
+
+		// handle change of lifespan
+		if (pParticle->bParticle_LifespanChange == true)
+		{
+			if (pParticle->fParticle_Lifespan_Original == -123.0f) pParticle->fParticle_Lifespan_Original = gpup_getEffectLifespan(iParticleEmitter);
+			gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan);
+		}
+		else
+		{
+			if (pParticle->fParticle_Lifespan_Original != -123.0f)
+			{
+				gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan_Original);
+			}
+		}
 	}
+}
+
+void newparticle_deleteparticleemitter( int iParticleEffect )
+{
+	gpup_deleteEffect(iParticleEffect);
+}
+
+void entity_updateparticleemitterbyID ( entityeleproftype* pEleprof, int iObj, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ)
+{
+	// get base rotation of object (for speed vector control)
+	GGMATRIX* pmatBaseRotation = NULL;
+	sObject* pObject = GetObjectData(iObj);
+	if (pObject) pmatBaseRotation = &pObject->position.matRotation;
+
+	// control particle settings via ptr
+	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation);
 }
 
 void entity_updateparticleemitter ( int e )
@@ -9320,7 +9549,6 @@ void entity_autoFlattenWhenAdded(int e, int obj)
 		}
 	}
 }
-#endif
 
 bool ObjectIsEntity(void* pTestObject)
 {
@@ -9931,6 +10159,115 @@ void Wicked_Highlight_LockedList(void)
 	}
 }
 
+void Wicked_Ignore_Frame_Mesh(int obj)
+{
+	if (obj <= 0 || obj > MAXIMUMVALUE) return;
+	sObject* pObject = g_ObjectList[obj];
+	if (!pObject) return;
+
+	for (int i = 0; i < pObject->iFrameCount; i++)
+	{
+		if (pObject->ppFrameList[i])
+		{
+			pObject->ppFrameList[i]->bIgnoreMesh = false;
+		}
+	}
+
+	extern bool bDisableLODLoad;
+	if (bDisableLODLoad) return;
+
+	int bestlod = -1;
+	bool bHasLOD = false;
+
+	for (int i = 0; i < pObject->iFrameCount; i++)
+	{
+		sFrame* pFrame = pObject->ppFrameList[i];
+		if (pFrame)
+		{
+			LPSTR pName = pFrame->szName;
+			if (pName && strlen(pName) > 0)
+			{
+				char* r5 = nullptr;
+				cstr lname = Lower(pName);
+				if (strlen(lname.Get()) >= 5)
+				{
+					r5 = lname.Get() + strlen(lname.Get()) - 5;
+					if (r5)
+					{
+						if ((stricmp(r5, "lod_1") == 0 || stricmp(r5, "_lod1") == 0))
+							bHasLOD = true;
+						if ((stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0))
+							bHasLOD = true;
+
+						if ((stricmp(r5, "lod_1") == 0 || stricmp(r5, "_lod1") == 0) && (bestlod == -1 || bestlod > 1))
+						{
+							bestlod = 1;
+						}
+						else
+						{
+							if ((stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0) && (bestlod == -1))
+							{
+								bestlod = 2;
+							}
+							else
+							{
+								bestlod = 0;
+							}
+						}
+
+					}
+				}
+
+				if (stricmp(lname.Get(), "collision_mesh") == 0)
+				{
+					pFrame->bIgnoreMesh = true;
+				}
+				//PE: UCX unreal collision mesh must include LOD
+				if (strnicmp(lname.Get(), "UCX_", 4) == 0 && r5 && stricmp(r5, "_lod0") == 0)
+				{
+					pFrame->bIgnoreMesh = true;
+				}
+			}
+		}
+	}
+
+	if (bHasLOD)
+	{
+		for (int i = 0; i < pObject->iFrameCount; i++)
+		{
+			sFrame* pFrame = pObject->ppFrameList[i];
+			if (pFrame)
+			{
+				LPSTR pName = pFrame->szName;
+				if (pName && strlen(pName) > 0)
+				{
+					char* r5 = nullptr;
+					cstr lname = Lower(pName);
+					if (strlen(lname.Get()) >= 5)
+					{
+						r5 = lname.Get() + strlen(lname.Get()) - 5;
+						if (bestlod == 0 && (stricmp(r5, "lod_1") == 0 || stricmp(r5, "lod_2") == 0 || stricmp(r5, "lod_3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 0 && (stricmp(r5, "_lod1") == 0 || stricmp(r5, "_lod2") == 0 || stricmp(r5, "_lod3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 1 && (stricmp(r5, "lod_2") == 0 || stricmp(r5, "_lod2") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+						if (bestlod == 2 && (stricmp(r5, "lod_3") == 0 || stricmp(r5, "_lod3") == 0))
+						{
+							pFrame->bIgnoreMesh = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 void Wicked_Hide_Lower_Lod_Meshes(int obj)
 {
@@ -10069,4 +10406,68 @@ void entity_calculateeuleryfromquat (int e)
 	{
 		// otherwise we already have the euler values
 	}
+}
+
+#include "M-Workshop.h"
+extern std::vector<sWorkshopItem> g_workshopItemsList;
+extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
+extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
+
+bool workshop_verifyandorreplacescript(int e, int entid)
+{
+#ifndef OPTICK_ENABLE
+	bool bReplacedScript = false;
+	char pScriptFile[MAX_PATH];
+	strcpy(pScriptFile, "scriptbank\\");
+	if (entid > 0)
+		strcat(pScriptFile, t.entityprofile[entid].aimain_s.Get());
+	else
+		strcat(pScriptFile, t.entityelement[e].eleprof.aimain_s.Get());
+	GG_GetRealPath(pScriptFile, false);
+	if (FileExist(pScriptFile) == 0)
+	{
+		// was missing script a core file
+		if (strnicmp(pScriptFile, g.fpscrootdir_s.Get(), strlen(g.fpscrootdir_s.Get())) == NULL)
+		{
+			// can only do verify replace if Steam Client active and have the list to hand
+			if (g_workshopItemsList.size() == 0)
+			{
+				// No Steam Client - warn user the object they dropped in has an outdated script
+				extern bool bTriggerMessage;
+				extern int iTriggerMessageDelay;
+				extern char cTriggerMessage[MAX_PATH];
+				strcpy(cTriggerMessage, "The behaviour for this object is out of date, you need to log into Steam Client to obtain the latest version.");
+				iTriggerMessageDelay = 10;
+				bTriggerMessage = true;
+			}
+			else
+			{
+				// yes, now check for tristed replacement
+				cstr trustedReplacement_s = "";
+				if (entid > 0)
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityprofile[entid].aimain_s.Get());
+				else
+					trustedReplacement_s = workshop_findtrustedreplacement(t.entityelement[e].eleprof.aimain_s.Get());
+				if (trustedReplacement_s.Len() > 0)
+				{
+					strcpy(pScriptFile, "scriptbank\\");
+					strcat(pScriptFile, trustedReplacement_s.Get());
+					GG_GetRealPath(pScriptFile, false);
+					if (FileExist(pScriptFile) == 1)
+					{
+						if (entid > 0)
+							t.entityprofile[entid].aimain_s = trustedReplacement_s;
+						else
+							t.entityelement[e].eleprof.aimain_s = trustedReplacement_s;
+
+						bReplacedScript = true;
+					}
+				}
+			}
+		}
+	}
+	return bReplacedScript;
+#else
+	return false;
+#endif
 }

@@ -122,11 +122,13 @@
   // limit particle quantity in debug mode (too slow to create all scene elements in debug?!)
   // eventually replace all this with a GPU based particle system (no more eating wicked resources)
   #define RAVEY_PARTICLES_MAX 50
- #else
+  #define RAVEY_PARTICLES_MAX_FIRST_BATCH 40
+#else
   // lots of object quads REALLY slow down Wicked Engine! Need to replace with GPU particles asap.
   //#define RAVEY_PARTICLES_MAX 100
   //PE: 700 seams fine now, we must have done something good somewhere :)
   #define RAVEY_PARTICLES_MAX 700
+  #define RAVEY_PARTICLES_MAX_FIRST_BATCH 200
 #endif
 #endif
 
@@ -3887,8 +3889,16 @@ struct visualstype
 	bool bEnableSpotShadowCulling;
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
-
+	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
+	bool bPhysicsLowestLOD;
+
+	bool bShadowsLowestLOD;
+	bool bProbesLowestLOD;
+	bool bRaycastLowestLOD;
+	bool bThreadedPhysics;
+	bool bReflectionsLowestLOD;
+
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
 
@@ -3908,7 +3918,8 @@ struct visualstype
 	float fExposure;
 	float fGamma;
 	int iMSAASampleCount;
-
+	int iFSRMode;
+	float fFSRSharpness;
 	int iMSAO;
 	float fMSAOPower;
 
@@ -4132,8 +4143,16 @@ struct visualstype
 		 bEnableSpotShadowCulling = false;
 		 bEnableObjectCulling = false;
 		 bEnableAnimationCulling = false;
-
+		 fLODMultiplier = 1.0f;
 		 bEnable30FpsAnimations = false;
+
+		 bPhysicsLowestLOD = false;
+		 bShadowsLowestLOD = false;
+		 bProbesLowestLOD = false;
+		 bRaycastLowestLOD = false;
+		 bThreadedPhysics = false;
+		 bReflectionsLowestLOD = false;
+
 		 g_bDelayedShadows = false;
 		 g_bDelayedShadowsLaptop = false;
 
@@ -4152,7 +4171,8 @@ struct visualstype
 		 fExposure = 1.0f;
 		 fGamma = 2.2f;
 		 iMSAASampleCount = 1;
-
+		 iFSRMode = 0;
+		 fFSRSharpness = 0.2f;
 		 iMSAO = 1;
 		 fMSAOPower = 1.0;
 
@@ -4280,8 +4300,16 @@ struct visualsdatastoragetype
 	bool bEnableSpotShadowCulling;
 	bool bEnableObjectCulling;
 	bool bEnableAnimationCulling;
-
+	float fLODMultiplier;
 	bool bEnable30FpsAnimations;
+
+	bool bPhysicsLowestLOD;
+	bool bShadowsLowestLOD;
+	bool bProbesLowestLOD;
+	bool bRaycastLowestLOD;
+	bool bThreadedPhysics;
+	bool bReflectionsLowestLOD;
+
 	bool g_bDelayedShadows;
 	bool g_bDelayedShadowsLaptop;
 
@@ -4321,8 +4349,16 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = false;
 		bEnableObjectCulling = false;
 		bEnableAnimationCulling = false;
-
+		fLODMultiplier = 1.0f;
 		bEnable30FpsAnimations = false;
+
+		bPhysicsLowestLOD = false;
+		bShadowsLowestLOD = false;
+		bProbesLowestLOD = false;
+		bRaycastLowestLOD = false;
+		bThreadedPhysics = false;
+		bReflectionsLowestLOD = false;
+
 		g_bDelayedShadows = false;
 		g_bDelayedShadowsLaptop = false;
 
@@ -4365,8 +4401,17 @@ struct visualsdatastoragetype
 		bEnableSpotShadowCulling = visuals.bEnableSpotShadowCulling;
 		bEnableObjectCulling = visuals.bEnableObjectCulling;
 		bEnableAnimationCulling = visuals.bEnableAnimationCulling;
+		fLODMultiplier = visuals.fLODMultiplier;
+		bThreadedPhysics = visuals.bThreadedPhysics;
 
 		bEnable30FpsAnimations = visuals.bEnable30FpsAnimations;
+
+		bShadowsLowestLOD = visuals.bShadowsLowestLOD;
+		bProbesLowestLOD = visuals.bProbesLowestLOD;
+		bRaycastLowestLOD = visuals.bRaycastLowestLOD;
+		bPhysicsLowestLOD = visuals.bPhysicsLowestLOD;
+		bReflectionsLowestLOD = visuals.bReflectionsLowestLOD;
+
 		g_bDelayedShadows = visuals.g_bDelayedShadows;
 		g_bDelayedShadowsLaptop = visuals.g_bDelayedShadowsLaptop;
 
@@ -5453,8 +5498,40 @@ struct newparticletype
 	float fParticle_Fullscreen_Fadein;
 	float fParticle_Fullscreen_Fadeout;
 	cstr Particle_Fullscreen_Transition;
+	bool bParticle_SpeedChange;
 	float fParticle_Speed;
+	float fParticle_Speed_Original;
+	bool bParticle_OpacityChange;
 	float fParticle_Opacity;
+	float fParticle_Opacity_Original;
+	bool bParticle_Offset_Used;
+	float bParticle_Offset_X;
+	float bParticle_Offset_Y;
+	float bParticle_Offset_Z;
+	bool bParticle_LocalRot_Used;
+	float bParticle_LocalRot_X;
+	float bParticle_LocalRot_Y;
+	float bParticle_LocalRot_Z;
+	bool bParticle_SizeChange;
+	float bParticle_Size;
+	float bParticle_Size_Original;
+	bool bParticle_Fire;
+	int iParticle_Floor_Active;
+	float fParticle_Floor_Height;
+	float fParticle_Floor_Height_Original;
+	bool fParticle_BouncinessChange;
+	float fParticle_Bounciness;
+	float fParticle_Bounciness_Original;
+	bool bParticle_ColorChange;
+	float fParticle_R;
+	float fParticle_R_Original;
+	float fParticle_G;
+	float fParticle_G_Original;
+	float fParticle_B;
+	float fParticle_B_Original;
+	bool bParticle_LifespanChange;
+	float fParticle_Lifespan_Original;
+	float fParticle_Lifespan;
 
 	// Constructor
 	newparticletype ( )
@@ -5469,8 +5546,39 @@ struct newparticletype
 		fParticle_Fullscreen_Fadein = 1.0f; //Sec.
 		fParticle_Fullscreen_Fadeout = 1.0f; //Sec.
 		Particle_Fullscreen_Transition = "";
+		bParticle_SpeedChange = false;
 		fParticle_Speed = 1.0f;
+		bParticle_OpacityChange = false;
 		fParticle_Opacity = 1.0f;
+		bParticle_Offset_Used = false;
+		bParticle_Offset_X = 0.0f;
+		bParticle_Offset_Y = 0.0f;
+		bParticle_Offset_Z = 0.0f;
+		bParticle_LocalRot_Used = false;
+		bParticle_LocalRot_X = 0.0f;
+		bParticle_LocalRot_Y = 0.0f;
+		bParticle_LocalRot_Z = 0.0f;
+		bParticle_SizeChange = false;
+		bParticle_Size = 1.0f;
+		bParticle_Fire = false;
+		iParticle_Floor_Active = 0;
+		fParticle_Floor_Height = 0.0f;
+		fParticle_BouncinessChange = false;
+		fParticle_Bounciness = 1.0f;
+		bParticle_ColorChange = false;
+		fParticle_R = 1.0f;
+		fParticle_G = 1.0f;
+		fParticle_B = 1.0f;
+
+		fParticle_Speed_Original = -123.0f;
+		fParticle_Opacity_Original = -123.0f;
+		bParticle_Size_Original = -123.0f;
+		fParticle_Floor_Height_Original = -123.0f;
+		fParticle_Bounciness_Original = -123.0f;
+		fParticle_R_Original = -123.0f;
+		fParticle_G_Original = -123.0f;
+		fParticle_B_Original = -123.0f;
+		fParticle_Lifespan_Original = -123.0f;
 	}
 };
 
@@ -5803,7 +5911,7 @@ struct entityprofiletype
 	int rotatethrow;
 	int explodable;
 	int explodedamage;
-	int teamfield;
+	int explodeheight; // was teamfield
 	headspinetrackertype headspinetracker;
 	int headframestart;
 	int headframefinish;
@@ -5968,7 +6076,7 @@ struct entityprofiletype
 		 hairframefinish = 0;
 		 hideframestart = 0;
 		 hideframefinish = 0;
-		 teamfield = 0;
+		 explodeheight = 0;
 		 explodedamage = 0;
 		 explodable = 0;
 		 rotatethrow = 0;
@@ -6265,7 +6373,7 @@ struct entityeleproftype
 	int rotatethrow;
 	int explodable;
 	int explodedamage;
-	int teamfield;
+	int explodeheight; // was teamfield
 	//PE: This takes up mem , should be converted to *PropertiesVariable
 	//PE: 10000 object * this ...
 	PropertiesVariables PropertiesVariable;
@@ -6355,7 +6463,7 @@ struct entityeleproftype
 
 		 disableascharacter = 0;
 		 groupreference = -1;
-		 teamfield = 0;
+		 explodeheight = 0;
 		 explodedamage = 0;
 		 explodable = 0;
 		 rotatethrow = 0;
@@ -7401,6 +7509,7 @@ struct gunsettingstype
 	int ismelee;
 	int disablerunandshoot;
 	int meleewithrightclick;
+	int blockwithrightclick;
 	int altpoolindex;
 	int poolindex;
 	int isempty;
@@ -7724,6 +7833,7 @@ struct gunsettingstype
 		 poolindex = 0;
 		 altpoolindex = 0;
 		 disablerunandshoot = 0;
+		 blockwithrightclick = 0;
 		 meleewithrightclick = 0;
 		 ismelee = 0;
 		 altmeleenoscorch = 0;
@@ -7900,7 +8010,7 @@ struct guntype
 	gunanimtype emptyaltactionto;
 	gunanimtype emptyaltactionfrom;
 	gunactionstype meleeaction;
-	gunactionstype altmeleeaction;
+	gunactionstype blockaction;
 	int statuspanelcode;
 	int texdid;
 	int texnid;
@@ -8035,6 +8145,7 @@ struct decaltype
 	float playspeed_f;
 	int framemax;
 	decalparticletype particle;
+	newparticletype newparticle;
 
 	// Constructor
 	decaltype ( )
@@ -8050,9 +8161,7 @@ struct decaltype
 		 active = 0;
 	}
 	// End of Constructor
-
 };
-
 
 //  Decal Element Structure (reusable instances)
 struct decalelementtype
@@ -8081,6 +8190,7 @@ struct decalelementtype
 	int particlemirror;
 	int burstloop;
 	int decalforward;
+	newparticletype newparticle;
 
 	// Constructor
 	decalelementtype ( )
@@ -11049,7 +11159,7 @@ struct travey_particle
 	int iDelayUpdate;
 	float fFpsUpdate;
 	float fFpsTimePassed;
-
+	int iCreated;
 	// Constructor
 	travey_particle ( )
 	{
@@ -11090,6 +11200,7 @@ struct travey_particle
 		 emitterID = 0;
 		 inUse = 0;
 		 iDelayUpdate = 0;
+		 iCreated = false;
 	}
 };
 

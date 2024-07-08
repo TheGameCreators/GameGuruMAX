@@ -90,6 +90,8 @@ std::vector<int> g_ObjectHighlightList;
 // stores original resolution of editor when enter VR, as need to restore it after VR
 int g_iStoreRenderResolutionWidth = -1;
 int g_iStoreRenderResolutionHeight = -1;
+float fLODMultiplier = 1.0f;
+
 
 bool g_bLightShaftState = true;
 bool g_bLensFlareState = true;
@@ -115,12 +117,29 @@ float fWickedMaxCenterTest = 0.0f;
 uint32_t iCulledPointShadows = 0;
 uint32_t iCulledSpotShadows = 0;
 uint32_t iCulledAnimations = 0;
+uint32_t iRenderedPointShadows = 0;
+uint32_t iRenderedSpotShadows = 0;
+
 bool bEnable30FpsAnimations = false;
 bool bEnableTerrainChunkCulling = true;
 bool bEnablePointShadowCulling = true;
 bool bEnableSpotShadowCulling = true;
 bool bEnableObjectCulling = true;
 bool bEnableAnimationCulling = true;
+bool bShadowsInFrontTakesPriority = false;
+
+bool bShadowsLowestLOD = false;
+bool bProbesLowestLOD = false;
+bool bRaycastLowestLOD = false;
+bool bPhysicsLowestLOD = false;
+bool bThreadedPhysics = false;
+bool bHideWeapons = false;
+bool bHideWeaponsMuzzle = false;
+bool bHideWeaponsSmoke = false;
+bool bReflectionsLowestLOD = false;
+
+int iEnterGodMode = 0;
+bool bTmpTesting = false;
 
 float fWickedCallShadowFarPlane = DEFAULT_FAR_PLANE;
 
@@ -396,6 +415,21 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 	// the DBO mesh needs to have geometry, or not point creating object (just the entity further down)
 	bool bUseFrameMatrix = true;
 	sMesh* pDBOMesh = pFrame->pMesh;
+
+	//PE: Make sure not to add more objects then needed.
+	if (pDBOMesh)
+	{
+		pDBOMesh->pFrameAttachedTo = pFrame;
+		if (pFrame->bIgnoreMesh)
+		{
+			pFrame->wickedobjindex = 0;
+			// recurse through all frames
+			if (pFrame->pChild) WickedCall_LoadNode(pFrame->pChild, entity, root, state);
+			if (pFrame->pSibling) WickedCall_LoadNode(pFrame->pSibling, parent, root, state);
+			return;
+		}
+	}
+
 	if (pDBOMesh && pDBOMesh->dwVertexCount > 0 && pDBOMesh->iPrimitiveType == GGPT_TRIANGLELIST ) // pDBOMesh->dwIndexCount > 0 ) nned to support indexless models
 	{
 		// Create object to hold mesh
@@ -526,6 +560,18 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 					nor.z = vecNorm.z;
 					mesh.vertex_normals.push_back(nor);
 				}
+				if (offsetMap.dwDiffuse > 0)
+				{
+					//PE Wicked: Alpha , Blue , green , red
+					#define GGCOLOR_ABGR(r,g,b,a) ((GGCOLOR)((((a)&0xff)<<24)|(((b)&0xff)<<16)|(((g)&0xff)<<8)|((r)&0xff)))
+					DWORD color = *(DWORD*)((DWORD*)pDBOMesh->pVertexData + offsetMap.dwDiffuse + (offsetMap.dwSize * v));
+					int r = (int)((color & 0x00FF0000) >> 16);
+					int g = (int)((color & 0x0000FF00) >> 8);
+					int b = (int)((color & 0x000000FF));
+					int a = (int)((color & 0xFF000000) >> 24);
+					color = GGCOLOR_ABGR(r, g, b, a);
+					mesh.vertex_colors.push_back(color);
+				}
 				if (offsetMap.dwTU[2] > 0)
 				{
 					XMFLOAT4 tan = XMFLOAT4(0, 0, 0, 0);
@@ -570,8 +616,58 @@ void WickedCall_LoadNode(sFrame* pFrame, Entity parent, Entity root, WickedLoade
 			mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
 			mesh.subsets.back().indexOffset = 0;
 			mesh.subsets.back().indexCount = (uint32_t)mesh.indices.size();
+			mesh.subsets.back().active = true;
 
+			mesh.lodlevels = 0; //PE: NEWLOD
+			if (pDBOMesh->dwIndexCountLOD1 > 0)
+			{
+				mesh.lodlevels = 1;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD1;
+				mesh.subsets.back().active = false;
 
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD1; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD1[i + 1]);
+				}
+			}
+			if (pDBOMesh->dwIndexCountLOD2 > 0)
+			{
+				mesh.lodlevels = 2;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD2;
+				mesh.subsets.back().active = false;
+
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD2; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD2[i + 1]);
+				}
+			}
+			if (pDBOMesh->dwIndexCountLOD3 > 0)
+			{
+				mesh.lodlevels = 3;
+				mesh.subsets.push_back(wiScene::MeshComponent::MeshSubset());
+				mesh.subsets.back().materialID = pDBOMesh->wickedmaterialindex;
+				mesh.subsets.back().indexOffset = mesh.indices.size();
+				mesh.subsets.back().indexCount = pDBOMesh->dwIndexCountLOD3;
+				mesh.subsets.back().active = false;
+
+				for (size_t i = 0; i < pDBOMesh->dwIndexCountLOD3; i += 3)
+				{
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 0]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 2]);
+					mesh.indices.push_back(pDBOMesh->pIndicesLOD3[i + 1]);
+				}
+			}
+			
 			//PE: Test Tessellation
 			//mesh.tessellationFactor = 50.0; //PE: Many objects dont work with this and deform, disable for now
 			
@@ -1206,6 +1302,58 @@ void WickedCall_AddObject ( sObject* pObject )
 	sFrame* pRootFrame = pObject->pFrame;
 	WickedCall_LoadNode ( pRootFrame, rootEntity, rootEntity, state );
 	
+
+	for (int iM = 0; iM < pObject->iMeshCount; iM++)
+	{
+		sMesh* pDBOMesh = pObject->ppMeshList[iM];
+		if (pDBOMesh)
+		{
+			uint64_t meshindex = pDBOMesh->wickedmeshindex;
+			if (meshindex > 0)
+			{
+				wiScene::MeshComponent* mesh = pScene->meshes.GetComponent(meshindex);
+				if (mesh)
+				{
+					if (mesh->vertex_colors.size() > 0)
+					{
+						uint64_t wickedmaterialindex = pDBOMesh->wickedmaterialindex;
+						if(wickedmaterialindex == 0)
+							wickedmaterialindex = pDBOMesh->master_wickedmaterialindex;
+						if (wickedmaterialindex != 0)
+						{
+							wiScene::MaterialComponent* material = pScene->materials.GetComponent(wickedmaterialindex);
+							if (material)
+							{
+								//PE: defaults.
+								material->roughness = 1;
+								material->metalness = 0;
+								material->reflectance = 0.04f;// 0.002f;
+								if (pDBOMesh->iReservedForFuture > 10)
+								{
+									//PE: activate as lod object. with vertexcolors off by default.
+									if (pDBOMesh->pFrameAttachedTo)
+									{
+										ObjectComponent* object = wiScene::GetScene().objects.GetComponent(pDBOMesh->pFrameAttachedTo->wickedobjindex);
+										if (object)
+										{
+											//pDBOMesh->pFrameAttachedTo->wickedobjindex
+											object->SetLOD(true);
+											object->SetLodDistance(pDBOMesh->iReservedForFuture);
+										}
+									}
+								}
+								else
+									material->SetUseVertexColors(true);
+								material->SetDirty();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
 	// Create armature-bone mappings (connect armature bone collection to frame entities created in LoadNode)
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)
 	{
@@ -1237,6 +1385,18 @@ void WickedCall_AddObject ( sObject* pObject )
 
 						// assign the bone entity to this armature mesh's bone collection
 						armature.boneCollection[i] = boneEntity;
+					}
+				}
+
+				//PE: Make sure all boneCollection has a transform , or we get a crash.
+				for (Entity boneEntity : armature.boneCollection)
+				{
+					const TransformComponent& bone = *pScene->transforms.GetComponent(boneEntity);
+					if (!&bone)
+					{
+						pScene->armatures.Remove(pDBOMesh->wickedarmatureindex);
+						pDBOMesh->wickedarmatureindex = 0;
+						break;
 					}
 				}
 			}
@@ -1369,6 +1529,8 @@ void WickedCall_PlayObject(sObject* pObject, float fStart, float fEnd, bool bLoo
 	if ( pObject->pAnimationSet )
 	{
 		sAnimationSet* pAnimSet = pObject->pAnimationSet;
+		if (!pAnimSet)
+			return;
 		//while ( pAnimSet != NULL )
 		{
 			Entity animentity = pAnimSet->wickedanimentityindex;
@@ -2338,7 +2500,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							}
 
 							// If SURFACE texture not present, create it
-							if (bGotSurfaceTexture == false)
+							if (bGotSurfaceTexture == false && (!pObjectMaterial->IsUsingVertexColors() || pMesh->iReservedForFuture > 10 ))
 							{
 								// PBR Surface texture
 								if (pObjectMaterial->textures[MaterialComponent::SURFACEMAP].resource) //PE: Delete first if already active.
@@ -2375,7 +2537,9 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 									// surface file location must be temp if not in MAX folder or GameGuruApps folder
 									char newSurfaceFileTemp[MAX_PATH];
+									GG_SetWritablesToRoot(true);
 									strcpy(newSurfaceFileTemp, GG_GetWritePath());
+									GG_SetWritablesToRoot(false);
 									if (strnicmp (pSurfaceTexFile, g_rootFolder.c_str(), strlen(g_rootFolder.c_str())) != NULL
 										&& strnicmp (pSurfaceTexFile, newSurfaceFileTemp, strlen(newSurfaceFileTemp)) != NULL)
 									{
@@ -3119,7 +3283,15 @@ void WickedCall_UpdateMeshVertexData(sMesh* pDBOMesh)
 			// for now, we are only interested in updating the UV data from the original to the wicked mesh
 			sOffsetMap offsetMap;
 			GetFVFOffsetMapFixedForBones(pDBOMesh, &offsetMap);
-		
+
+			//PE: The size can change in phyics debug drawer so:
+			if(offsetMap.dwZ > 0 && mesh->vertex_positions.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_positions.resize(pDBOMesh->dwVertexCount);
+			if (offsetMap.dwTU[0] > 0 && mesh->vertex_uvset_0.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_uvset_0.resize(pDBOMesh->dwVertexCount);
+			if (offsetMap.dwNZ > 0 && mesh->vertex_normals.size() != pDBOMesh->dwVertexCount)
+				mesh->vertex_normals.resize(pDBOMesh->dwVertexCount);
+
 			for (size_t v = 0; v < pDBOMesh->dwVertexCount; v++)
 			{
 				if (offsetMap.dwZ > 0)
@@ -3424,6 +3596,63 @@ bool WickedCall_GetObjectPlanerReflection(sObject* pObject)
 		}
 	}
 	return bPlanerReflection;
+}
+
+bool bActivateStandaloneOutline = false;
+
+void WickedCall_SetObjectOutline(sObject* pObject, float fHighlight)
+{
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	if (pObject)
+	{
+		if (ObjectExist(pObject->dwObjectNumber))
+		{
+			if (fHighlight > 1.1)
+			{
+				//PE: Keep a list and keep updating them.
+				g_StandaloneObjectHighlightList.push_back(pObject->dwObjectNumber);
+				bActivateStandaloneOutline = true;
+			}
+			else if (fHighlight > 0.1)
+			{
+				//PE: Fire only one time. effect will be lost on next frame.
+				//void WickedCall_DrawObjctBox(sObject * pObject, XMFLOAT4 color, bool bThickLine, bool ForceBox);
+				WickedCall_DrawObjctBox(pObject, XMFLOAT4(0.8f, 0.8f, 0.8f, 0.8f), false, false);
+				bActivateStandaloneOutline = true;
+			}
+			else
+			{
+				for (int i = 0; i < g_StandaloneObjectHighlightList.size(); i++)
+				{
+					if (g_StandaloneObjectHighlightList[i] == pObject->dwObjectNumber)
+					{
+						g_StandaloneObjectHighlightList.erase(g_StandaloneObjectHighlightList.begin() + i);
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+
+bool WickedCall_GetObjectOutline(sObject* pObject)
+{
+	extern std::vector<int> g_StandaloneObjectHighlightList;
+	if (pObject)
+	{
+		if (ObjectExist(pObject->dwObjectNumber))
+		{
+			for (int i = 0; i < g_StandaloneObjectHighlightList.size(); i++)
+			{
+				if (g_StandaloneObjectHighlightList[i] == pObject->dwObjectNumber)
+				{
+					g_StandaloneObjectHighlightList.erase(g_StandaloneObjectHighlightList.begin() + i);
+					return(true);
+				}
+			}
+		}
+	}
+	return(false);
 }
 
 void WickedCall_SetObjectCastShadows(sObject* pObject, bool bCastShadow)
@@ -5248,7 +5477,8 @@ void WickedCall_SetObjectHighlight(sObject* pObject, bool bHighlight)
 		}
 		else 
 		{
-			if (pWickedObject) pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
+			if (pWickedObject)
+				pWickedObject->SetUserStencilRef(EDITORSTENCILREF_CLEAR);
 		}
 	}
 	
@@ -5330,7 +5560,7 @@ void WickedCall_DrawObjctBox(sObject* pObject, XMFLOAT4 color, bool bThickLine, 
 
 	if(!bUseEditorOutlineSelection())
 		ForceBox = true;
-	if (!ForceBox)
+	if (!ForceBox || bImGuiInTestGame)
 	{
 		if (ObjectExist(pObject->dwObjectNumber))
 		{
@@ -5882,6 +6112,15 @@ void WickedCall_DrawImguiNow(void)
 	//ImGuiHook_RenderCall((void*)pContext);
 	//ImGuiHook_RenderCall((void*)m_pImmediateContext);
 	ImGuiHook_RenderCall_Direct((void*)m_pImmediateContext, (void*)m_pD3D);
+}
+
+//PE: Changing the far plane in indoor levels can really boost the FPS.
+void WickedCall_SetCameraFarPlanes(float farplane)
+{
+	float fNear = wiScene::GetCamera().zNearP;
+	float fFar = farplane;
+	float fCameraFov = wiScene::GetCamera().fov;
+	wiScene::GetCamera().CreatePerspective((float)master.masterrenderer.GetLogicalWidth(), (float)master.masterrenderer.GetLogicalHeight(), fNear, fFar, fCameraFov);
 }
 
 void WickedCall_SetCameraFOV ( float fFOV )

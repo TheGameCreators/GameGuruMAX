@@ -1,6 +1,6 @@
 -- Document v18 - thanks to Necrym59 and Lee
 -- DESCRIPTION: Change the [PICKUP_TEXT$="E to look at document"].
--- DESCRIPTION: View position [SCREEN_X=25(0,100)] and [SCREEN_Y=10(0,100)]
+-- DESCRIPTION: View position [SCREEN_X=50(0,100)] and [SCREEN_Y=50(0,100)]
 -- DESCRIPTION: Set the [SPRITE_SIZE=15(1,100)] percentage.
 -- DESCRIPTION: The document [IMAGEFILE$="imagebank\\documents\\default_doc.png"]
 -- DESCRIPTION: Set the [PICKUP_RANGE=80(1,300)] 

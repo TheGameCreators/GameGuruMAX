@@ -1,12 +1,13 @@
--- Elevator Call Switch v5 by Necrym59
+-- Elevator Call Switch v6 by Necrym59
 -- DESCRIPTION: Calls an Elevator to level
 -- DESCRIPTION: Attach switch to activate
--- DESCRIPTION: [USE_RANGE=80(1,200)]
+-- DESCRIPTION: [USE_RANGE=90(1,200)]
 -- DESCRIPTION: [USE_MESSAGE$="Press E to call Elevator"]
 -- DESCRIPTION: [CALL_MESSAGE$="Calling Elevator.."]
 -- DESCRIPTION: [ELEVATOR_LEVEL_NO=0(0,100)]
 -- DESCRIPTION: [ELEVATOR_NAME$="Elevator1"]
 -- DESCRIPTION: [TRIGGER_PROXIMITY=120(1,300)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> when activated
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -23,6 +24,7 @@ local call_message 		= {}
 local elevator_level_no	= {}
 local elevator_name		= {}
 local trigger_proximity = {}
+local item_highlight	= {}
 
 local played			= {}
 local proximity			= {}
@@ -33,25 +35,26 @@ local tEnt 				= {}
 local selectobj 		= {}
 local status			= {}
 
-function elevator_call_switch_properties(e, use_range, use_message, call_message, elevator_level_no, elevator_name, trigger_proximity)
-	elcallswitch[e] = g_Entity[e]
-	elcallswitch[e].use_range = use_range
+function elevator_call_switch_properties(e, use_range, use_message, call_message, elevator_level_no, elevator_name, trigger_proximity, item_highlight)
+	elcallswitch[e].use_range = use_range or 90
 	elcallswitch[e].use_message = use_message
 	elcallswitch[e].call_message = call_message
 	elcallswitch[e].elevator_level_no = elevator_level_no
 	elcallswitch[e].elevator_name = lower(elevator_name)
 	elcallswitch[e].trigger_proximity = trigger_proximity
+	elcallswitch[e].item_highlight = item_highlight or 0	
 end
 
 function elevator_call_switch_init(e)
 	elcallswitch[e] = {}
-	elcallswitch[e].use_range = 80
+	elcallswitch[e].use_range = 90
 	elcallswitch[e].use_message = "Press E to call Elevator"
 	elcallswitch[e].call_message = "Calling Elevator.."
 	elcallswitch[e].elevator_level_no = 0
 	elcallswitch[e].elevator_name = "Elevator1"
 	elcallswitch[e].trigger_proximity = 120
-
+	elcallswitch[e].item_highlight = 0 
+	
 	played[e] = 0
 	doonce[e] = 0
 	proximity[e] = 0
@@ -74,7 +77,7 @@ function elevator_call_switch_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < elcallswitch[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,elcallswitch[e].use_range,200)
+			module_misclib.pinpoint(e,elcallswitch[e].use_range,elcallswitch[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end

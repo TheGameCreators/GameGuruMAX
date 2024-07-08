@@ -131,7 +131,7 @@ extern ImVec2 renderTargetAreaPos;
 extern ImVec2 renderTargetAreaSize;
 extern bool bImGuiInTestGame;
 extern int g_iActivelyUsingVRNow;
-
+extern bool bActivateStandaloneOutline;
 
 // extern functions (ideally these dependencies are moved away from the master code)
 //extern void GGVR_SetHandObjectForMAX(int iLeftOrRightHand, float fHandX, float fHandY, float fHandZ, float fHandAngX, float fHandAngY, float fHandAngZ);
@@ -1671,6 +1671,7 @@ void Master::RunCustom()
 		if ( !activePath ) return;
 
 		// for an active VR session, set resolution
+		//PE: resolutionScale need to be changed when we use FSR , this must be controlled by internalresolution. both FSR upscaling and internalresolution down scaling.
 		float resolutionScale = 1.0f;
 		if (!OpenXRIsSessionSetup())
 		{
@@ -1713,9 +1714,13 @@ void Master::RunCustom()
 			// terrain processing
 			#ifdef GGTERRAIN_USE_NEW_TERRAIN
 			extern bool bImGuiRenderTargetFocus;
-			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
+			extern int g_iDisableTerrainSystem;
+			GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+			if (g_iDisableTerrainSystem == 0)
+			{
+				GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+				GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+			}
 			#endif
 
 			// now just prepared IMGUI, but actual render called from Wicked hook
@@ -2258,14 +2263,18 @@ void MasterRenderer::Update(float dt)
 			wiProfiler::EndRange(range);
 
 			// terrain processing
+			extern int g_iDisableTerrainSystem;
 			auto range3 = wiProfiler::BeginRangeCPU("Update - Terrain");
 			extern bool bImGuiRenderTargetFocus;
-			GGTerrain_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_Update( camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			GGTrees_UpdateFrustumCulling( &camera );
-			GGGrass_Update( &camera, cmd, bImGuiRenderTargetFocus);
+			GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+			if (g_iDisableTerrainSystem == 0)
+			{
+				GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+				GGTrees_UpdateFrustumCulling(&camera);
+				GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+			}
 			wiProfiler::EndRange(range3);
-
+			
 			// now just prepared IMGUI, but actual render called from Wicked hook
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Render");
 			GuruLoopRender();
@@ -2289,6 +2298,10 @@ void MasterRenderer::ResizeBuffers(void)
 #endif
 	if ( GetInternalResolution().x == 0 || GetInternalResolution().y == 0 ) return;
 
+
+	//PE: Must be the same, currently its out of synch with internal resolution.
+	master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false); //GGREDUCED
+
 	//PE: Resizebuffers change FOV.
 
 	__super::ResizeBuffers();
@@ -2300,8 +2313,6 @@ void MasterRenderer::ResizeBuffers(void)
 	{
 		TextureDesc desc;
 		//PE: wiRenderer::GetInternalResolution() dont match the depthbuffer size if using MSAA and cant be used.
-//		desc.Width = wiRenderer::GetInternalResolution().x;
-//		desc.Height = wiRenderer::GetInternalResolution().y;
 		desc.Width = GetWidth3D();
 		desc.Height = GetHeight3D();
 		desc.SampleCount = 1;
@@ -2388,6 +2399,26 @@ void Wicked_Render_Opaque_Scene(CommandList cmd)
 {
 	extern bool g_bNo2DRender;
 	extern bool BackBufferSnapShotMode;
+	if (bImGuiInTestGame)
+	{
+		if (bActivateStandaloneOutline && master_renderer->GetDepthStencil() != nullptr) //&& !translator.selected.empty())
+		{
+			GraphicsDevice* device = wiRenderer::GetDevice();
+
+			XMFLOAT4 area;
+			bool ImGuiHook_GetScissorArea(float* pX1, float* pY1, float* pX2, float* pY2);
+			if (ImGuiHook_GetScissorArea(&area.x, &area.y, &area.z, &area.w) == true)
+				device->SetScissorArea(cmd, area);
+
+			wiRenderer::BindCommonResources(cmd);
+			XMFLOAT4 col = XMFLOAT4(0.8f, 0.8f, 0.8f, 0.8f);;
+			wiRenderer::Postprocess_Outline(rt_Outline, cmd, 0.1f, 0.8f, col);
+			device->EventEnd(cmd);
+			area = { 0, 0, (float)master.masterrenderer.GetWidth3D(), (float)master.masterrenderer.GetHeight3D() };
+			device->SetScissorArea(cmd, area);
+		}
+		return;
+	}
 
 	if (!bImGuiInTestGame && (!g_bNo2DRender || BackBufferSnapShotMode) )
 	{
@@ -2438,6 +2469,7 @@ void MasterRenderer::Render( int mode ) const
 }
 
 // moved into function so we can call it at the right time from within renderpath3D, just before 2D is rendered
+std::vector<int> g_StandaloneObjectHighlightList;
 void MasterRenderer::RenderOutlineHighlighers(CommandList cmd) const
 {
 #ifdef OPTICK_ENABLE
@@ -2447,7 +2479,6 @@ void MasterRenderer::RenderOutlineHighlighers(CommandList cmd) const
 	{
 		// regular update
 		// PE: Make sure highlight and other editor functions is not redered in test game.
-
 		void WickedCall_RenderEditorFunctions(void);
 		//PE: Moved to function so we can delete any already setup highlights.
 		//if (!bImGuiInTestGame) WickedCall_RenderEditorFunctions();
@@ -2501,6 +2532,63 @@ void MasterRenderer::RenderOutlineHighlighers(CommandList cmd) const
 					device->RenderPassBegin(&renderpass_Outline_Blue, cmd);
 					// Draw solid blocks of selected objects
 					fx.stencilRef = EDITORSTENCILREF_HIGHLIGHT_OBJECT_BLUE;
+					wiImage::Draw(wiTextureHelper::getWhite(), fx, cmd);
+					device->RenderPassEnd(cmd);
+				}
+				device->EventEnd(cmd);
+			}
+		}
+		else
+		{
+			if (!bActivateStandaloneOutline) return;
+
+			//PE: Add objects here for standalone highlights/Outline.
+			if (g_StandaloneObjectHighlightList.size() > 0)
+			{
+				for (int i = 0; i < (int)g_StandaloneObjectHighlightList.size(); i++)
+				{
+					int obj = g_StandaloneObjectHighlightList[i];
+					if (obj > 0)
+					{
+						if (ObjectExist(obj))
+						{
+							void* GetObjectsInternalData(int iID);
+							sObject* pObject = (sObject*)GetObjectsInternalData(obj);
+							if (pObject)
+							{
+								//WickedCall_SetObjectHighlight(pObject, false);
+								void WickedCall_DrawObjctBox(sObject * pObject, XMFLOAT4 color, bool bThickLine, bool ForceBox);
+								WickedCall_DrawObjctBox(pObject, XMFLOAT4(0.8f, 0.8f, 0.8f, 0.8f), false, false);
+							}
+						}
+					}
+				}
+			}
+
+
+			if (GetDepthStencil() != nullptr)
+			{
+				GraphicsDevice* device = wiRenderer::GetDevice();
+				CommandList cmd = device->BeginCommandList();
+
+				device->EventBegin("GGMax - Selection Outline Mask", cmd);
+
+				Viewport vp;
+				vp.Width = (float)rt_Outline.GetDesc().Width;
+				vp.Height = (float)rt_Outline.GetDesc().Height;
+				device->BindViewports(1, &vp, cmd);
+
+				wiImageParams fx;
+				fx.enableFullScreen();
+				fx.stencilComp = STENCILMODE::STENCILMODE_EQUAL;
+				fx.stencilRefMode = STENCILREFMODE_USER;
+
+				// Objects outline:
+				{
+					device->UnbindResources(TEXSLOT_ONDEMAND0, 1, cmd);
+					device->RenderPassBegin(&renderpass_Outline, cmd);
+					// Draw solid blocks of selected objects
+					fx.stencilRef = EDITORSTENCILREF_HIGHLIGHT_OBJECT;
 					wiImage::Draw(wiTextureHelper::getWhite(), fx, cmd);
 					device->RenderPassEnd(cmd);
 				}

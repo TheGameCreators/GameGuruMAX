@@ -153,6 +153,13 @@ void btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject, in
 
 void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 {
+
+	btBroadphaseProxy* proxy = colObj->getBroadphaseHandle();
+	if (!proxy)
+	{
+		return;
+	}
+
 	btVector3 minAabb, maxAabb;
 	colObj->getCollisionShape()->getAabb(colObj->getWorldTransform(), minAabb, maxAabb);
 	//need to increase the aabb for contact thresholds
@@ -175,7 +182,7 @@ void btCollisionWorld::updateSingleAabb(btCollisionObject* colObj)
 	//moving objects should be moderately sized, probably something wrong if not
 	if (colObj->isStaticObject() || ((maxAabb - minAabb).length2() < btScalar(1e12)))
 	{
-		bp->setAabb(colObj->getBroadphaseHandle(), minAabb, maxAabb, m_dispatcher1);
+		bp->setAabb(proxy, minAabb, maxAabb, m_dispatcher1);
 	}
 	else
 	{

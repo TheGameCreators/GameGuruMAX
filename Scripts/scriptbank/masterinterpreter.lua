@@ -81,6 +81,7 @@ g_masterinterpreter_cond_withinnavmesh = 64 -- Within Navmesh (Is true if the ob
 g_masterinterpreter_cond_canmeleetarget = 65 -- Can Melee Target (Is true if there is nothing between object and the target)
 g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the current target name matches the specified string)
 g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
+g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -227,8 +228,6 @@ function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
 	      bestdistance = thowclosedd
 	      bestentityindex = ee
 		  if anywilldo == 1 then return bestentityindex end
-		 else
-		  --PromptLocal(e,"masterinterpreter_scanforenemy="..hit.." ("..g_Entity[e]['obj']..")")
 	     end
 		end
 	   end
@@ -447,6 +446,7 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
    -- target specified by allegiance (so can have one target but still spot the enemy, see 'g_masterinterpreter_cond_ifseeenemy')
    if GetEntityAllegiance(e) ~= 2 then
     if GetEntityAllegiance(e) == 0 then
+	 -- Enemy
      TargetDistance = GetPlayerDistance(e)
      GetEntityPlayerVisibility(e)
 	 if TargetDistance <= GetEntityViewRange(e) then
@@ -454,6 +454,7 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
 	 end
     end
     if GetEntityAllegiance(e) == 1 then
+	 -- Ally (scan for enemy and distance check done inside g_masterinterpreter_cond_ifseeenemy)
 	 usetargetXYZ = 1
     end  
    end
@@ -660,18 +661,25 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
  if conditiontype == g_masterinterpreter_cond_ifseeenemy then
   if g_Entity[ e ]['active'] == 0 then return 0 end
   if conditionparam1value == nil then conditionparam1value = GetEntityViewRange(e) end
-  if TargetDistance <= conditionparam1value then
-   local allegiance = GetEntityAllegiance(e)
-   if allegiance == 0 then
-    -- this is an enemy (hates the player)
+  local allegiance = GetEntityAllegiance(e)
+  if allegiance == 0 then
+   -- this is an enemy (hates the player)
+   if TargetDistance <= conditionparam1value then
     GetEntityPlayerVisibility(e)
     return g_Entity[e]['plrvisible']
-   end  
-   if allegiance == 1 then
-    -- this is an ally (friends with player)
-	local anywilldo = 1
-	local resultofthis = masterinterpreter_scanforenemy (e, output_e, anywilldo)
-	if resultofthis > 0 then return 1 end
+   end
+  end  
+  if allegiance == 1 then
+   -- this is an ally (friends with player)
+   local anywilldo = 1
+   local resultofthis = masterinterpreter_scanforenemy (e, output_e, anywilldo)
+   if resultofthis > 0 then 
+	local thowclosex = g_Entity[ resultofthis ]['x'] - g_Entity[ e ]['x']
+	local thowclosez = g_Entity[ resultofthis ]['z'] - g_Entity[ e ]['z']
+	local thowclosedd = math.sqrt(math.abs(thowclosex*thowclosex)+math.abs(thowclosez*thowclosez))
+    if thowclosedd <= conditionparam1value then
+     return 1 
+	end
    end
   end
  end
@@ -902,6 +910,9 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if conditionparam1value == nil then conditionparam1value = 100 end
   if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+conditionparam1value then return 1 end
  end
+ if conditiontype == g_masterinterpreter_cond_wasblocked then 
+  if GetGamePlayerStateBlockingAction() > 0 then return 1 end
+ end 
  
  -- Condition is false
  return 0

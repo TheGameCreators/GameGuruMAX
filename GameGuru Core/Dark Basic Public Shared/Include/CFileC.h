@@ -43,10 +43,14 @@
 
 #include <stdio.h>
 
+
 // must be extern "C" to be compatible with .c files like those contained in LUA
 extern "C" 
 {
+	bool FileRedirectChangeWritableArea (char* szEXE);
+	void FileRedirectRestoreWritableArea (char* szEXE);
 	const char* GG_GetWritePath();
+	void GG_SetWritablesToRoot(bool bFlag);
 	void SetWriteSameAsRoot(bool bEnable);
 	void SetWriteAsRootTemp(bool bEnable);
 	int GG_CreatePath(const char *path);
@@ -58,7 +62,6 @@ extern "C"
 	FILE* GG_wfopen( const wchar_t* filename, const wchar_t* mode );
 	HANDLE GG_CreateFile( LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile );
 	HANDLE GG_CreateFileW( LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile );
-	//HANDLE GG_CreateFileMapping( HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect, DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName );
 }
 
 #ifdef DARKSDK_COMPILE

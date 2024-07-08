@@ -71,17 +71,23 @@ float custom_back_color[4] = { 0,0,0,0 };
 
 bool UpdateCameraPtr ( int iID )
 {
+
+
 	// use this to get the camera data, every function needs to call this
 	// it's made as a separate function so if we need to make any changes
 	// we only need to do it in 1 place
 
 	// set the pointer to null
-	m_ptr = NULL;
+	//m_ptr = NULL; //PE: If thread and mainthread is using camera, this can make one of them crash.
 	
 	// see if the camera is valid and we can get the data, if this fails
 	// return false and let the caller know we couldn't get the data
-	if ( !( m_ptr = m_CameraManager.GetData ( iID ) ) )
+	if (!(m_ptr = m_CameraManager.GetData(iID)))
+	{
+		//PE: m_ptr get set to null when thread and mainthread use it at the same time, one of them will crash if they are not done using the pointer.
+		m_ptr = NULL;
 		return false;
+	}
 	
 	// return true if everything is ok - we are able to update the pointer
 	return true;

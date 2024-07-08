@@ -69,6 +69,10 @@ static std::map<std::string, std::string> CharacterCreatorAnnotatedTagLegs_s;
 
 std::vector<sCharacterType> g_CharacterType;
 char pCharacterTypeDropDownList[32][260];
+std::vector<int> g_CharacterTypeRoomPref;
+
+std::vector<sRoomType> g_RoomType;
+char pRoomTypeDropDownList[32][260];
 
 std::vector<AutoSwapData*> g_headGearMandatorySwaps;
 AutoSwapData* g_previousAutoSwap = nullptr;
@@ -106,6 +110,7 @@ static std::map<std::string, std::string> CharacterCreatorType_s;
 int iDressRoom = 0, iCharObj = 0, iCharObjHeadGear = 0, iCharObjHair = 0, iCharObjHead = 0, iCharObjEyeglasses = 0, iCharObjFacialHair = 0, iCharObjLegs = 0, iCharObjFeet = 0;
 
 bool bCharObjVisible = false;
+char CCP_Room[260] = "lockers";
 char CCP_Type[260] = "adult male";
 char CCP_Name[260] = "\0";
 static char CCP_Script[260] = "people\\patrol.lua";
@@ -152,15 +157,70 @@ void charactercreatorplus_populatechartypes (void)
 {
 	if (g_bCharacterCreatorTypesInit == false)
 	{
+		// store current dir
+		LPSTR pOldDir = GetDir();
+		GG_SetWritablesToRoot(1);
+
+		// collect rooms
+		sRoomType roomtypeitem;
+		strcpy (roomtypeitem.pPartsFolder, "locker room");  g_RoomType.push_back(roomtypeitem); //0
+		strcpy (roomtypeitem.pPartsFolder, "pine dressing room");  g_RoomType.push_back(roomtypeitem); //1
+		strcpy (roomtypeitem.pPartsFolder, "zombie locker room");  g_RoomType.push_back(roomtypeitem); //2
+		SetDir("charactercreatorplus\\rooms");
+		ChecklistForFiles();
+		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+		{
+			t.tfile_s = ChecklistString(t.c);
+			LPSTR pThisFile = t.tfile_s.Get();
+			if (Len(pThisFile) > 2)
+			{
+				if (stricmp(pThisFile, "locker room") == NULL || stricmp(pThisFile, "pine dressing room") == NULL || stricmp(pThisFile, "zombie locker room") == NULL)
+				{
+					// already have these from above
+				}
+				else
+				{
+					char pCheckRoomFile[MAX_PATH];
+					sprintf(pCheckRoomFile, "%s\\room.dbo", t.tfile_s.Get());
+					if (FileExist (pCheckRoomFile) == 1)
+					{
+						strcpy (roomtypeitem.pPartsFolder, t.tfile_s.Get());
+						g_RoomType.push_back(roomtypeitem);
+					}
+				}
+			}
+		}
+		// make dropdown string array from above
+		int n = 0;
+		for (; n < g_RoomType.size(); n++)
+		{
+			bool bCapitaliseOnNewWord = true;
+			strcpy (pRoomTypeDropDownList[n], g_RoomType[n].pPartsFolder);
+			for (int t = 0; t < strlen(pRoomTypeDropDownList[n]); t++)
+			{
+				if (pRoomTypeDropDownList[n][t] >= 'a' && pRoomTypeDropDownList[n][t] <= 'z')
+				{
+					if (bCapitaliseOnNewWord == true)
+					{
+						pRoomTypeDropDownList[n][t] -= 32;
+					}
+				}
+				bCapitaliseOnNewWord = false;
+				if (pRoomTypeDropDownList[n][t] == ' ') bCapitaliseOnNewWord = true;
+			}
+		}
+		for (; n < 32; n++) strcpy(pRoomTypeDropDownList[n], "");
+		SetDir(pOldDir);
+
 		// gather character creator types database
 		sCharacterType chartypeitem;
-		strcpy (chartypeitem.pPartsFolder, "adult male");  g_CharacterType.push_back(chartypeitem);
-		strcpy (chartypeitem.pPartsFolder, "adult female");  g_CharacterType.push_back(chartypeitem);
-		strcpy (chartypeitem.pPartsFolder, "zombie male");  g_CharacterType.push_back(chartypeitem);
-		strcpy (chartypeitem.pPartsFolder, "zombie female");  g_CharacterType.push_back(chartypeitem);
-		LPSTR pOldDir = GetDir();
+		strcpy (chartypeitem.pPartsFolder, "adult male");  g_CharacterType.push_back(chartypeitem); g_CharacterTypeRoomPref.push_back(0);
+		strcpy (chartypeitem.pPartsFolder, "adult female");  g_CharacterType.push_back(chartypeitem); g_CharacterTypeRoomPref.push_back(1);
+		strcpy (chartypeitem.pPartsFolder, "zombie male");  g_CharacterType.push_back(chartypeitem); g_CharacterTypeRoomPref.push_back(2);
+		strcpy (chartypeitem.pPartsFolder, "zombie female");  g_CharacterType.push_back(chartypeitem); g_CharacterTypeRoomPref.push_back(2);
 		SetDir("charactercreatorplus\\parts");
 		ChecklistForFiles();
+		// first pass for annotations
 		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 		{
 			t.tfile_s = ChecklistString(t.c);
@@ -182,14 +242,45 @@ void charactercreatorplus_populatechartypes (void)
 						sCharacterType chartypeitem;
 						strcpy (chartypeitem.pPartsFolder, t.tfile_s.Get());
 						g_CharacterType.push_back(chartypeitem);
+						g_CharacterTypeRoomPref.push_back(0);
 					}
 				}
 			}
 		}
-		SetDir(pOldDir);
-
+		// second pass for roomprefs
+		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+		{
+			t.tfile_s = ChecklistString(t.c);
+			LPSTR pThisCharFile = t.tfile_s.Get();
+			if (Len(pThisCharFile) > 2)
+			{
+				char pCheckRoomPrefFile[MAX_PATH];
+				sprintf(pCheckRoomPrefFile, "%s\\roompref.txt", pThisCharFile);
+				if (FileExist (pCheckRoomPrefFile) == 1)
+				{
+					OpenToRead(1, pCheckRoomPrefFile);
+					LPSTR pRoomPref = ReadString(1);
+					CloseFile(1);
+					for (int n = 0; n < g_CharacterType.size(); n++)
+					{
+						if (stricmp(g_CharacterType[n].pPartsFolder, pThisCharFile) == NULL)
+						{
+							// find pRoomPref string in room types list
+							for (int r = 0; r < g_RoomType.size(); r++)
+							{
+								if (stricmp(g_RoomType[r].pPartsFolder, pRoomPref) == NULL)
+								{
+									g_CharacterTypeRoomPref[n] = r;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 		// make dropdown string array from above
-		int n = 0;
+		n = 0;
 		for (; n < g_CharacterType.size(); n++)
 		{
 			bool bCapitaliseOnNewWord = true;
@@ -210,6 +301,8 @@ void charactercreatorplus_populatechartypes (void)
 		for (; n < 32; n++) strcpy(pCharacterTypeDropDownList[n], "");
 
 		// completed init
+		SetDir(pOldDir);
+		GG_SetWritablesToRoot(0);
 		g_bCharacterCreatorTypesInit = true;
 	}
 }
@@ -2106,8 +2199,8 @@ void charactercreatorplus_init(void)
 	timestampactivity ( 0, "Start character creator plus initialisation" );
 	g_CharacterCreatorPlus.bInitialised = true;
 
-	// grab all char types from parts folder
-	charactercreatorplus_populatechartypes();
+	// grab all char types from parts folder 
+	//charactercreatorplus_populatechartypes(); now done much earlier in mapexecutable!
 
 	// create voice list for choices
 	pCCPVoiceSet = "";
@@ -2831,12 +2924,17 @@ void charactercreatorplus_initautoswaps()
 	}
 }
 
-int current_dress_room = -1;
-void change_dress_room(int room)
+int current_dress_room = -999;
+void change_dress_room(int charactertypeindex)
 {
+	// if charactertypeindex is negative, specifying roomID!
+	int room = fabs(charactertypeindex);
+	if (charactertypeindex>=0) room = g_CharacterTypeRoomPref[charactertypeindex];
 	if (room != current_dress_room)
 	{
 		current_dress_room = room;
+		strcpy(CCP_Room, g_RoomType[current_dress_room].pPartsFolder);
+
 		iDressRoom = g.characterkitobjectoffset + 16;
 		int iDressRoomImage = g.charactercreatorEditorImageoffset + 121;
 		if (ObjectExist(iDressRoom)) DeleteObject(iDressRoom);
@@ -2852,6 +2950,17 @@ void change_dress_room(int room)
 		
 		wiScene::MaterialComponent::SHADERTYPE shadertype = wiScene::MaterialComponent::SHADERTYPE_PBR;
 
+		// switch to new room
+		LPSTR pRomFolder = g_RoomType[current_dress_room].pPartsFolder;
+		char pRoomFilePath[MAX_PATH];
+		sprintf(pRoomFilePath, "charactercreatorplus\\rooms\\%s\\room.dbo", pRomFolder); LoadObject(pRoomFilePath, iDressRoom);
+		sprintf(pRoomFilePath, "charactercreatorplus\\rooms\\%s\\room_color.dds", pRomFolder); LoadImage(pRoomFilePath, iDressRoomImage);
+		newVisuals.SunIntensity_f = 0.0f;
+		wiScene::Scene& scene = wiScene::GetScene();
+		iLightIndex = scene.Entity_CreateLight("CCPLight", XMFLOAT3(0, 0, 0), XMFLOAT3(1, 1, 1), 7, 550, wiScene::LightComponent::LightType::POINT);
+		WickedCall_UpdateLight(iLightIndex, g_HeadTransition.to[0] + 100, g_HeadTransition.to[1] + 40, g_HeadTransition.to[2] - 110, 0, 0, 0, 550, 0, 255, 255, 255, true);
+
+		/* old method, new one allows custom rooms
 		if (current_dress_room == 0)
 		{
 			LoadObject("charactercreatorplus\\locker room.dbo", iDressRoom);
@@ -2899,20 +3008,18 @@ void change_dress_room(int room)
 			WickedCall_UpdateLight(iLightIndex, g_DefaultCamPosition[0], g_DefaultCamPosition[1], g_DefaultCamPosition[2],
 				g_DefaultCamAngle[0] +12, g_DefaultCamAngle[1], g_DefaultCamAngle[2], 1000, 34, 255, 255, 255, true);
 		}
+		*/
 
 		// The current settings will not be stored, as they are already stored in t.visualsStorage, so create throwaway object.
 		visualsdatastoragetype throwaway;
 		set_temp_visuals(t.visuals, throwaway, newVisuals);
-		//t.visuals.refreshskysettings = 1; keep custom settings
 		visuals_loop();
-
 		TextureObject(iDressRoom, 0, iDressRoomImage);
 
 		sObject* pObject = GetObjectData(iDressRoom);
 		if (pObject)
 		{
 			WickedCall_SetObjectCastShadows(pObject, false);
-
 			for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
 			{
 				sMesh* pMesh = pObject->ppMeshList[iMesh];
@@ -2931,7 +3038,6 @@ void change_dress_room(int room)
 						if (pObjectMaterial)
 						{
 							pObjectMaterial->SetReflectance(0.0f);
-							//pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_UNLIT; //PE: 1:1 mapping.
 							pObjectMaterial->shaderType = shadertype;
 							
 							//PE: Also ignoes all other material settings , so its perfect.
@@ -3081,7 +3187,6 @@ void charactercreatorplus_imgui_v3(void)
 				//t.visuals.refreshskysettings = 1; keep custom settings
 				visuals_loop();
 
-				//terrain_height = BT_GetGroundHeight(t.terrain.TerrainID, ObjectPositionX(iCharObj), ObjectPositionZ(iCharObj), 1);
 				fCharObjectY = 180000.0f;
 				PositionObject(iCharObj, ObjectPositionX(iCharObj), fCharObjectY, ObjectPositionZ(iCharObj));
 
@@ -3093,8 +3198,6 @@ void charactercreatorplus_imgui_v3(void)
 				ccpObjTargetAZ = ObjectAngleZ(iCharObj);
 
 				t.editorfreeflight.mode = 1;
-				//t.editorfreeflight.c.y_f = fCharObjectY + 60;
-				//t.editorfreeflight.c.angx_f = 11;
 				t.editorfreeflight.c.y_f = fCharObjectY + 60;
 				t.editorfreeflight.c.angx_f = 0;
 				t.editorfreeflight.s = t.editorfreeflight.c;
@@ -3134,7 +3237,7 @@ void charactercreatorplus_imgui_v3(void)
 				int iDressRoomImage = g.charactercreatorEditorImageoffset + 121;
 
 				cstr check = "";
-				int roomID = 0;
+				int charactertypeindex = 0;
 				for (int i = 0; i < g_CharacterType.size(); i++)
 				{
 					if (i == 0)
@@ -3152,15 +3255,13 @@ void charactercreatorplus_imgui_v3(void)
 							check = g_CharacterType[i].pPartsFolder;
 						}
 					}
-
 					if (stricmp(CCP_Type, check.Get()) == 0)
 					{
-						roomID = i;
+						charactertypeindex = i;
 						break;
 					}
-
 				}
-				change_dress_room(roomID);
+				change_dress_room(charactertypeindex);
 				SetObjectToCameraOrientation(iDressRoom);
 				PositionObject(iDressRoom, ccpTargetX, fCharObjectY - g_fLockerRoomOffset, ccpTargetZ);
 				dressroomTargetAY = ObjectAngleY(iCharObj);
@@ -3231,7 +3332,7 @@ void charactercreatorplus_imgui_v3(void)
 			// ZJ: Made global so when user has auto close enabled, the selection is still known.
 			//int item_current_type_selection = 0;
 			static int ccp_part_selection = 5;
-
+			static int item_current_room_selection = 0;
 
 			extern int iLastOpenHeader;
   																			//if no other headers are open this should be.                                                                 
@@ -3257,13 +3358,12 @@ void charactercreatorplus_imgui_v3(void)
 
 				ImGui::PopItemWidth();
 
+				// Character Type
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 				ImGui::Text("Type");
 				ImGui::SameLine();
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
 				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
-
-				//const char* items[] = { "Adult Male", "Adult Female", "Zombie Male", "Zombie Female" }; 
 				static int g_chartypes_item_count = 0;
 				static char** g_chartypes_items = NULL;
 				if (g_chartypes_item_count != g_CharacterType.size())
@@ -3281,7 +3381,6 @@ void charactercreatorplus_imgui_v3(void)
 						strcpy(g_chartypes_items[i], pCharacterTypeDropDownList[i]);
 					}
 				}
-
 				for (int i = 0; i < g_chartypes_item_count; i++)
 				{
 					if (pestrcasestr(CCP_Type, g_chartypes_items[i]))
@@ -3290,7 +3389,6 @@ void charactercreatorplus_imgui_v3(void)
 						break;
 					}
 				}
-
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Combo("##TypeCCP", &item_current_type_selection, g_chartypes_items, g_chartypes_item_count))
 				{
@@ -3299,7 +3397,6 @@ void charactercreatorplus_imgui_v3(void)
 					if (item_current_type_selection == 2 || item_current_type_selection == 3) iThumbsOffsetY = 50;
 					iDelayExecute = 1;
 					DisplaySmallImGuiMessage("Loading ...");
-					//PE: Change dress room.
 					change_dress_room(item_current_type_selection);
 					charactercreatorplus_changecameratransition(5);
 					ccp_part_selection = 5;
@@ -3314,10 +3411,72 @@ void charactercreatorplus_imgui_v3(void)
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Character Type");
 
+				// Dressing Room
+				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+				ImGui::Text("Room");
+				ImGui::SameLine();
+				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() - 3));
+				ImGui::SetCursorPos(ImVec2(col_start, ImGui::GetCursorPosY()));
+				static int g_roomtypes_item_count = 0;
+				static char** g_roomtypes_items = NULL;
+				if (g_roomtypes_item_count != g_RoomType.size())
+				{
+					if (g_roomtypes_items)
+					{
+						for (int i = 0; i < g_roomtypes_item_count; i++) SAFE_DELETE(g_roomtypes_items[i]);
+						SAFE_DELETE(g_roomtypes_items);
+					}
+					g_roomtypes_item_count = g_RoomType.size();
+					g_roomtypes_items = new char* [g_roomtypes_item_count];
+					for (int i = 0; i < g_roomtypes_item_count; i++)
+					{
+						g_roomtypes_items[i] = new char[256];
+						strcpy(g_roomtypes_items[i], pRoomTypeDropDownList[i]);
+					}
+				}
+				for (int i = 0; i < g_roomtypes_item_count; i++)
+				{
+					if (stricmp(CCP_Room, g_roomtypes_items[i])==NULL)
+					{
+						item_current_room_selection = i;
+						break;
+					}
+				}
+				ImGui::PushItemWidth(-10);
+				if (ImGui::Combo("##RoomCCP", &item_current_room_selection, g_roomtypes_items, g_roomtypes_item_count))
+				{
+					strcpy(CCP_Room, g_roomtypes_items[item_current_room_selection]);
+					iThumbsOffsetY = 0;
+					iDelayExecute = 1;
+					DisplaySmallImGuiMessage("Loading ...");
+					change_dress_room(item_current_room_selection * -1);
+
+					// change preferred room for this character type and save locally 
+					g_CharacterTypeRoomPref[item_current_type_selection] = item_current_room_selection;
+					char pRoomPrefFile[MAX_PATH];
+					sprintf(pRoomPrefFile, "charactercreatorplus\\parts\\%s\\roompref.txt", CCP_Type);
+					GG_SetWritablesToRoot(1);
+					GG_GetRealPath(pRoomPrefFile, 1);
+					if (FileExist(pRoomPrefFile)) DeleteFileA(pRoomPrefFile);
+					OpenToWrite(1, pRoomPrefFile);
+					WriteString(1, CCP_Room);
+					CloseFile(1);
+					GG_SetWritablesToRoot(0);
+
+					charactercreatorplus_changecameratransition(5);
+					SetObjectToCameraOrientation(iDressRoom);
+					PositionObject(iDressRoom, ccpTargetX, fCharObjectY - g_fLockerRoomOffset, ccpTargetZ);
+					RotateObject(iDressRoom, ObjectAngleX(iCharObj), dressroomTargetAY, ObjectAngleZ(iCharObj));
+					MoveObject(iDressRoom, 150);
+					ShowObject(iDressRoom);
+					fCharObjectY = 180000.0f;
+					PositionObject(iDressRoom, ObjectPositionX(iDressRoom), fCharObjectY - g_fLockerRoomOffset, ObjectPositionZ(iDressRoom));
+					HideObject(iCharObj);
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Dressing Room");
+
 				ImGui::PopItemWidth();
-
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 8)); //3
-
 				ImGui::Indent(-10);
 			}
 

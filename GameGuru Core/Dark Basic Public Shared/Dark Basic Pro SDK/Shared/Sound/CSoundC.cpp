@@ -133,11 +133,14 @@ DARKSDK bool UpdateSoundPtr ( int iID )
 	// update internal pointer
 
 	// set the pointer to null
-	m_ptr = NULL;
+	//m_ptr = NULL;  //PE: not thread safe, as others can use it. moved to if failed.
 	
 	// attempt to retrive the data
-	if ( ! ( m_ptr = m_SDKSoundManager.GetData ( iID ) ) )
+	if (!(m_ptr = m_SDKSoundManager.GetData(iID)))
+	{
+		m_ptr = NULL;
 		return false;
+	}
 
 	// if we got it ok then return true
 	return true;
@@ -1556,6 +1559,13 @@ DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 float g_fListenQuickScale = 0.0f;
 GGVECTOR3 g_vListenQuickPos = GGVECTOR3(-1, -1, -1);
 GGVECTOR3 g_vListenQuickAngle = GGVECTOR3(-1, -1, -1);
+
+DARKSDK void ResetListener ( void )
+{
+	g_fListenQuickScale = 0.0f;
+	g_vListenQuickPos = GGVECTOR3(-1, -1, -1);
+	g_vListenQuickAngle = GGVECTOR3(-1, -1, -1);
+}
 
 DARKSDK void PositionListener ( float fX, float fY, float fZ )
 {

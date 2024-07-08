@@ -231,6 +231,12 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 			#endif
 			t.entityelement[t.e].overprompt_s=t.s_s;
 			t.entityelement[t.e].overprompttimer=Timer()+1000;
+			extern bool bActivatePromptXYOffset;
+			extern int iPromptXOffset;
+			extern int iPromptYOffset;
+			bActivatePromptXYOffset = false;
+			iPromptXOffset = 0;
+			iPromptYOffset = 0;
 		}
 	}
 }
@@ -899,8 +905,12 @@ void lua_setoptionocclusion ( void )
 
 void lua_setcameradistance ( void )
 {
-	t.visuals.CameraFAR_f=t.v_f;
-	t.visuals.refreshmaincameras = 1;
+	//PE: for lua script to trigger far plane changes.
+	//PE: t.visuals.refreshmaincameras = 1 do not work for near/farplane changes in wicked.
+	t.visuals.CameraFAR_f=t.v_f; //PE: Only to display it in tab tab.
+	//t.visuals.refreshmaincameras = 1;
+	void WickedCall_SetCameraFarPlanes(float farplane);
+	WickedCall_SetCameraFarPlanes(t.v_f);
 }
 
 void lua_setcamerafov ( void )
@@ -1480,8 +1490,6 @@ void lua_startparticleemitter ( void )
 			ravey_particles_add_emitter ( );
 		}
 	}
-return;
-
 }
 
 void lua_stopparticleemitter ( void )
@@ -1493,13 +1501,11 @@ void lua_stopparticleemitter ( void )
 		ravey_particles_delete_emitter ( );
 		t.entityelement[t.e].particleemitterid=0;
 	}
-return;
+}
 
 // 
 //  Prompts and Images
 // 
-
-}
 
 void lua_loadimages ( void )
 {
@@ -1618,11 +1624,9 @@ void lua_switchpage ( void )
 	// SWITCH TO NEW LUA PAGE
 	t.game.titleloop=0;
 	strcpy ( t.game.pSwitchToPage, t.s_s.Get() );
-	#ifdef WICKEDENGINE
 	//PE: We need 2 frames when switching page, 1 that call "_free_ and one that call "_init" on new page.
 	extern int iBlockRenderingForFrames;
 	iBlockRenderingForFrames = 2;
-	#endif
 
 }
 void lua_switchpageback ( void )

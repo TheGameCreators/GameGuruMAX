@@ -8024,21 +8024,8 @@ void mp_save_workshop_files_needed ( void )
 			if (  mp_check_if_entity_is_from_install(t.name_s.Get())  ==  0 ) 
 			{
 				WriteString (  1,t.name_s.Get() );
-
-				/* old system!
-				//  check if it is character creator, if it is, check for the existance of a texture
-				if (  cstr(Lower(Left(t.name_s.Get(),32)))  ==  "entitybank\\user\\charactercreator" ) 
-				{
-					t.tname_s = cstr(Left(t.name_s.Get(), Len(t.name_s.Get())-4)) + "_cc.dds";
-					if (  FileExist(t.tname_s.Get())  ==  1 ) 
-					{
-						WriteString (  1,t.tname_s.Get() );
-						++t.thowmanyadded;
-					}
-				}
-				*/
-
 				++t.thowmanyadded;
+
 				//  09032015 - 017 - If its a gun, grab the muzzleflash, decals and include them
 				if (  cstr(Right(t.name_s.Get(),11))  ==  "gunspec.txt" ) 
 				{
@@ -8094,7 +8081,6 @@ void mp_save_workshop_files_needed ( void )
 			}
 		}
 	}
-
 	CloseFile (  1 );
 
 	//  if (  it is just the fpm  )  there are is no custom media with this level

@@ -122,8 +122,6 @@
 	//#define POSTPROCESSRAIN
 	//#define POSTPROCESSSNOW
 
-	//#define ENABLEAUTOLEVELSAVE
-
 	//PE: Save mem.
 	#define DISABLEOCCLUSIONMAP
 	//PE: few levels use more then 50 master objects, and sure it will increase if needed.
@@ -138,6 +136,7 @@
 
 	//#define BUSHUI
 
+	#define NEWPROJSYSWORKINPROGRESS
 
   #else
    // Flags to compile the Classic version of GameGuru

@@ -40,14 +40,14 @@ Compiling GAMEGURU MAX:
 2. Copy contents of the 'MAX root' to new 'BUILD\GameGuru Wicked MAX Build Area\Max' folder created inside DEV folder (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
 3. In Windows 10, type ENV in the search box in the bottom left and hit ENTER
 4. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
-5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
+5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
 6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
 7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied
 10. Ensure folder you specify is called GAMEGURUMAXREPO, located in the DEV folder (i.e. D:\DEV\GAMEGURUMAXREPO).
-11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone.
+11. Ensure the folder GAMEGURUMAXREPO does not exist before you start the clone. If it does exist due to previous build steps, simply delete it so the clone can proceed.
 12. When cloning complete, check to make sure you also have this file existing: "GAMEGURUMAXREPO\GameGuru Core\GameGuru\Include\assimp\config.h"
-13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. Find the folder 'GameGuru Core' and copy it to GAMEGURUMAXREPO
+13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. These files are some of the contents of the folder 'GameGuru Core', so locate "GAMEGURUMAXREPO\GameGuru Core" and copy the files to this destination
 14. For the above, you should be looking to overwrite this folder 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core'. It will add some extra LIBs.
 15. Now open the project "GameGuru Core\GameGuruWickedMAX.sln" using VS2022
 16. Set the Solution Configuration from "Debug" to "Release"

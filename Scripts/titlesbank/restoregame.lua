@@ -48,6 +48,12 @@ function restoregame.now()
    SetEntityHasKey ( i, g_Entity[i]['haskey'] )
    SetEntityHealth ( i, g_Entity[i]['health'] )
    RefreshEntity ( i )
+   -- RefreshEntity restores collision to default, so override again
+   if g_EntityExtra[i]['collision'] == 1 then 
+    CollisionOn(i) 
+   else
+    CollisionOff(i) 
+   end
    SetAnimationFrame ( i, g_Entity[i]['frame'] )
    if g_EntityExtra[i]['visible']==1 then
     Show ( i )

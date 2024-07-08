@@ -177,25 +177,29 @@ void entity_lua_getentityplrvisible_processlist (void)
 		//g_EntityPlrVisList.erase(g_EntityPlrVisList.begin());
 		for ( int i = 0; i < g_EntityPlrVisList.size(); i++ )
 		{
-			t.e = g_EntityPlrVisList[i];
-			if (t.e > 0)
+			//PE: We should never use globals in threads (t.e), it get changed everywhere,got a crash here (as it got changed while inside the function).
+			int te = g_EntityPlrVisList[i];
+			if (te > 0)
 			{
 				// calculate vis for this entity (LBOPT: can further optimize by placing this on a timer (no need to work out plr visibilty 30 times per second)
-				t.tobj = t.entityelement[t.e].obj;
-				if (t.tobj > 0)
+				int ttobj = t.entityelement[te].obj;
+				if (ttobj > 0)
 				{
-					if (ObjectExist(t.tobj) == 1)
+					if (ObjectExist(ttobj) == 1)
 					{
-						t.charanimstate.e = t.e;
-						t.charanimstate.obj = t.tobj;
-						darkai_calcplrvisible();
+						charanimstatetype threadcas;
+						threadcas.e = te;
+						threadcas.obj = ttobj;
+						threadcas.neckRightAndLeft = 0; //PE: ? we dont have it here.
+						//PE: NOTE - t.plrid should also be changeable when mp :)
+						darkai_calcplrvisible(threadcas);
 					}
 				}
 
 				// and erase all other instances of E in list, as now up to date for plrvis
 				for (int i = 0; i < g_EntityPlrVisList.size(); i++)
 				{
-					if (g_EntityPlrVisList[i] == t.e)
+					if (g_EntityPlrVisList[i] == te)
 					{
 						g_EntityPlrVisList[i] = 0;
 					}
@@ -220,9 +224,15 @@ void entity_lua_getentityplrvisible ( void )
 	}
 }
 
-void entity_lua_getentityinzone ( void )
+void entity_lua_getentityinzone ( int mode )
 {
-	// If entity is zone, determine if ANY OTHER entity is inside it
+	// mode = 0 all If entity is zone, determine if ANY OTHER entity is inside it
+	// mode = 1 to detect only active objects
+	// mode = 2 to only detect characters that are active.
+	// mode = 3 to only detect non-characters that are active.
+	// mode = 4 to only detect non static objects.
+	// mode = 5 to only detect static objects.
+
 	bool bEntityIsReallyInZone = false;
 	t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 	if (  t.waypointindex>0 ) 
@@ -240,12 +250,45 @@ void entity_lua_getentityinzone ( void )
 						t.tokay = 0; waypoint_ispointinzone ( );
 						if ( t.tokay != 0 )
 						{
-							if (t.entityelement[t.e].lua.entityinzone == 0)
+							bool bCheckon = false;
+							if (mode == 0)
+								bCheckon = true;
+							else if(mode == 1 && t.entityelement[othere].active > 0)
+								bCheckon = true;
+							else if (mode == 2 && t.entityelement[othere].active > 0)
 							{
-								t.entityelement[t.e].lua.entityinzone = othere;
-								t.entityelement[t.e].lua.flagschanged = 1;
+								int masterid = t.entityelement[othere].bankindex;
+								if (masterid > 0 && t.entityprofile[masterid].ischaracter > 0)
+								{
+									bCheckon = true;
+								}
 							}
-							bEntityIsReallyInZone = true;
+							else if (mode == 3 && t.entityelement[othere].active > 0)
+							{
+								int masterid = t.entityelement[othere].bankindex;
+								if (masterid > 0 && t.entityprofile[masterid].ischaracter == 0)
+								{
+									bCheckon = true;
+								}
+							}
+							else if (mode == 4 && t.entityelement[othere].staticflag == 0)
+							{
+								bCheckon = true;
+							}
+							else if (mode == 5 && t.entityelement[othere].staticflag > 0)
+							{
+								bCheckon = true;
+							}
+							
+							if (bCheckon)
+							{
+								if (t.entityelement[t.e].lua.entityinzone == 0)
+								{
+									t.entityelement[t.e].lua.entityinzone = othere;
+									t.entityelement[t.e].lua.flagschanged = 1;
+								}
+								bEntityIsReallyInZone = true;
+							}
 						}
 					}
 				}
@@ -666,9 +709,15 @@ void entity_lua_activateifused ( void )
 
 void entity_lua_performlogicconnections_core ( int iMode )
 {
-	// iMode : 0-normal, 1-askey
+	// iMode : 0-normal, 1-askey , 2=only activate special Relationships
 	for (int i = 0; i < 10; i++)
 	{
+		if (iMode == 2)
+		{
+			if (t.v < 0 || t.v > 9)
+				return;
+			i = t.v;
+		}
 		if (t.entityelement[t.e].eleprof.iObjectRelationships[i] > 0)
 		{
 			int iRelationShipObject = 0, iRelationShipEntityID = 0;
@@ -687,7 +736,7 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				int iObjectRelationshipsType = t.entityelement[t.e].eleprof.iObjectRelationshipsType[i];
 
 				// what logic type should be performed
-				if (iMode == 0)
+				if (iMode == 0 || iMode == 2)
 				{
 					// simple one way logic - activations
 					switch (iObjectRelationshipsType)
@@ -779,12 +828,18 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				t.entityelement[iRelationShipEntityID].lua.flagschanged = 1;
 			}
 		}
+		if (iMode == 2)
+			return;
 	}
 }
 
 void entity_lua_performlogicconnections()
 {
 	entity_lua_performlogicconnections_core(0);
+}
+void entity_lua_performlogicconnectionnumber()
+{
+	entity_lua_performlogicconnections_core(2);
 }
 
 void entity_lua_performlogicconnectionsaskey()

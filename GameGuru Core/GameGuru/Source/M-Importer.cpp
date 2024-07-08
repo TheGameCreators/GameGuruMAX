@@ -1053,7 +1053,15 @@ bool animsystem_buildanimslots(int objectnumber)
 			animslotitem.fStep1 = 0;
 			animslotitem.fStep2 = 0;
 			animslotitem.fStep3 = 0;
-			strcpy(animslotitem.pName, pAnimSet->szName);
+			if (strlen(pAnimSet->szName) >= 32)
+			{
+				memcpy(animslotitem.pName, pAnimSet->szName, 31);
+				animslotitem.pName[31] = 0;
+			}
+			else
+			{
+				strcpy(animslotitem.pName, pAnimSet->szName);
+			}
 			if (strlen(animslotitem.pName) == 0) strcpy(animslotitem.pName, "Included");
 			animslotitem.fStart = iObjectFramesRunningTotal;
 			animslotitem.fFinish = iObjectFramesRunningTotal + pAnimSet->ulLength;
@@ -1102,7 +1110,15 @@ void animsystem_prepareobjectforanimtool(int objectnumber, int iNotUsed)
 				animslotitem.fStep1 = 0;
 				animslotitem.fStep2 = 0;
 				animslotitem.fStep3 = 0;
-				strcpy(animslotitem.pName, pAnimSet->szName);
+				if (strlen(pAnimSet->szName) >= 32)
+				{
+					memcpy(animslotitem.pName, pAnimSet->szName, 31);
+					animslotitem.pName[31] = 0;
+				}
+				else
+				{
+					strcpy(animslotitem.pName, pAnimSet->szName);
+				}
 				if (strlen(animslotitem.pName) == 0) strcpy(animslotitem.pName, "Included");
 				animslotitem.fStart = iObjectFramesRunningTotal;
 				animslotitem.fFinish = iObjectFramesRunningTotal + pAnimSet->ulLength;
@@ -1143,7 +1159,15 @@ void animsystem_prepareobjectforanimtool(int objectnumber, int iNotUsed)
 			animslotitem.fStep1 = 0;
 			animslotitem.fStep2 = 0;
 			animslotitem.fStep3 = 0;
-			strcpy(animslotitem.pName, pAnimCoreSet->szName);
+			if (strlen(pAnimCoreSet->szName) >= 32)
+			{
+				memcpy(animslotitem.pName, pAnimCoreSet->szName, 31);
+				animslotitem.pName[31] = 0;
+			}
+			else
+			{
+				strcpy(animslotitem.pName, pAnimCoreSet->szName);
+			}
 			animslotitem.fStart = 0;
 			animslotitem.fFinish = pAnimCoreSet->ulLength;
 			animslotitem.bLooped = true;
@@ -3056,6 +3080,7 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 	bool bRefreshObjectAnimationSet = false;
 	if (g_bNowPopulateWithCorrectAnimSet == true)
 	{
+		bool bWipeOutOverrideIfCustomType = false;
 		LPSTR pCurrentWeapon = edit_grideleprof->hasweapon_s.Get();
 		LPSTR pWeaponType = "";
 		if (strlen(pCurrentWeapon) > 0)
@@ -3065,12 +3090,26 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 			int gunid = t.foundgunid;
 			pWeaponType = animsystem_getweapontype(pCurrentWeapon, t.gun[gunid].animsetoverride.Get());
 		}
-		LPSTR pGender = "";
+		LPSTR pCharTypeName = "";
 		if (iAnimationSetType == 1 || iAnimationSetType == 2)
 		{
 			// soldier or melee
-			pGender = "adult male";
-			if (characterbasetype == 1 || characterbasetype == 3) pGender = "adult female";
+			if (characterbasetype >= 0 && characterbasetype <= 3)
+			{
+				pCharTypeName = "adult male";
+				if (characterbasetype == 1 || characterbasetype == 3) pCharTypeName = "adult female";
+			}
+			else
+			{
+				if(characterbasetype > 0)
+				{
+					pCharTypeName = g_CharacterType[characterbasetype].pPartsFolder;
+				}
+				else
+				{
+					bWipeOutOverrideIfCustomType = true;
+				}
+			}
 
 			// melee will need melee animations if no specific weapon
 			if (iAnimationSetType == 2)
@@ -3081,8 +3120,22 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		if (iAnimationSetType == 3)
 		{
 			// zombie
-			pGender = "zombie male";
-			if (characterbasetype == 1 || characterbasetype == 3) pGender = "zombie female";
+			if (characterbasetype >= 0 && characterbasetype <= 3)
+			{
+				pCharTypeName = "zombie male";
+				if (characterbasetype == 1 || characterbasetype == 3) pCharTypeName = "zombie female";
+			}
+			else
+			{
+				if (characterbasetype > 0)
+				{
+					pCharTypeName = g_CharacterType[characterbasetype].pPartsFolder;
+				}
+				else
+				{
+					bWipeOutOverrideIfCustomType = true;
+				}
+			}
 		}
 		if (iAnimationSetType == 4)
 		{
@@ -3091,17 +3144,23 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		else
 		{
 			char pPathToWeaponAnim[MAX_PATH];
-			sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pGender, pWeaponType);
+			sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pCharTypeName, pWeaponType);
 			if (FileExist(pPathToWeaponAnim) == 0)
 			{
 				// if not weapon specific animation set, use regular base default
-				sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations.dbo", pGender);
+				sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations.dbo", pCharTypeName);
 			}
 			if (FileExist(pPathToWeaponAnim))
 			{
 				// correct default for base type and weapon held
 				edit_grideleprof->overrideanimset_s = pPathToWeaponAnim;
 			}
+		}
+
+		// used when character type not determined (probably custom character type, ie low poly)
+		if (bWipeOutOverrideIfCustomType == true)
+		{
+			edit_grideleprof->overrideanimset_s = "-";
 		}
 
 		// in any event, refresh object when change behavior (and associated anim)
@@ -4827,8 +4886,10 @@ void imgui_importer_loop(void)
 			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 			if (bBatchConverting == true)
 			{
-				// show files in progress
-				if (batchFileList.size() > 0)
+				// show files in progress 
+				static bool bNextTimeYouWillQuit = false; // only sets this at start of EXE
+				if (batchFileList.size() > 0 ) bNextTimeYouWillQuit = false;
+				if (batchFileList.size() >= 0 && bNextTimeYouWillQuit == false )
 				{
 					ImGui::TextCenter("");
 					extern cstr sGotoPreviewWithFile;
@@ -4843,11 +4904,14 @@ void imgui_importer_loop(void)
 						ImGui::TextCenter(pTitleFilesToBatch);
 						for (int f = batchFileList.size() - 1; f > 0; f--)
 						{
-							ImGui::TextCenter(batchFileList[f].Get());
-							if (f > 14)
+							if (f >= 0)
 							{
-								ImGui::TextCenter("...");
-								break;
+								ImGui::TextCenter(batchFileList[f].Get());
+								if (f > 14)
+								{
+									ImGui::TextCenter("...");
+									break;
+								}
 							}
 						}
 
@@ -4857,6 +4921,13 @@ void imgui_importer_loop(void)
 
 						// Trigger save Object to happen
 						iDelayedExecute = 3;
+
+						// now check if we need to END the batch process
+						if (batchFileList.size() == 0)
+						{
+							// next time we are generally here, we will quit
+							bNextTimeYouWillQuit = true;
+						}
 					}
 				}
 				else
@@ -11378,14 +11449,16 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						ImGui::SameLine();
 
 						ImGui::PushItemWidth(-10 - 4);
-						float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
-						if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
+						//float fNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
+						//if (ImGui::SliderFloat("##Transparency distance bias", &fNeedToGoInPropertiesSoCanSave, -500.0f, 500.0f))
+						int iNeedToGoInPropertiesSoCanSave = WickedCall_GetRenderOrderBias(pChosenMesh);
+						if (ImGui::SliderInt("##Transparency distance bias", &iNeedToGoInPropertiesSoCanSave, -500, 500))
 						{
-							WickedCall_SetRenderOrderBias(pChosenMesh, fNeedToGoInPropertiesSoCanSave);
+							WickedCall_SetRenderOrderBias(pChosenMesh, iNeedToGoInPropertiesSoCanSave);
 							bHaveMaterialUpdate = true;
 
 							// This only does something if t.importer.bEditAllMesh is true.
-							importer_set_all_material_settings(7, fNeedToGoInPropertiesSoCanSave);
+							importer_set_all_material_settings(7, iNeedToGoInPropertiesSoCanSave);
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Render Order Distance Bias");
 						ImGui::PopItemWidth();
@@ -12502,7 +12575,7 @@ void importer_delete_old_surface_files()
 		}
 	}
 
-	// imported_models folder only needed as a temporary location to store files.
+	// imported models folder only needed as a temporary location to store files.
 	extern BOOL DB_DeleteDir(char* Dirname);
 	DB_DeleteDir(pPath.Get()); // Will only delete the folder if it is empty  (if there were any files in there before this importer session, they will be left untouched.)
 

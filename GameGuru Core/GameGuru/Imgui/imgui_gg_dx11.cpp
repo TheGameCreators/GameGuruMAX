@@ -5974,12 +5974,14 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 			}
 
 			// project folder passed in override specific detection above
+			#ifndef NEWPROJSYSWORKINPROGRESS
 			LPSTR pFindProjectBankFolder = "\\projectbank";
 			if (strnicmp(pPathSearch + n, pFindProjectBankFolder, strlen(pFindProjectBankFolder)) == NULL)
 			{
 				pNewItem->m_iEntityOffset = n;
 				break;
 			}
+			#endif
 		}
 
 		strcpy(pNewItem->cfolder, pNewItem->m_sFolderFullPath.Get() );
@@ -7540,6 +7542,7 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							bool CreateBackBufferCacheName(char *file, int width, int height);
 							extern cstr BackBufferCacheName;
 							CreateBackBufferCacheName( (char *) stmp.c_str(), 512, 288);
+							GG_SetWritablesToRoot(true);
 							SetMipmapNum(1); //PE: mipmaps not needed.
 							image_setlegacyimageloading(true);
 							if (FileExist(BackBufferCacheName.Get()))
@@ -7548,6 +7551,7 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							}
 							image_setlegacyimageloading(false);
 							SetMipmapNum(-1); //PE: mipmaps not needed.
+							GG_SetWritablesToRoot(false);
 							if (!GetImageExistEx(VIDEOFILEID))
 							{
 								videofile_preview_id = 0;

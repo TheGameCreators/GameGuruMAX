@@ -521,7 +521,7 @@ DARKSDK_DLL void LoadCore ( char* szFilename, char* szOrgFilename, int iID, int 
 		return;
 
 	#ifdef WICKEDENGINE
-	//PE: Until we get LOD support , hide lowest LOD frames.
+	//PE: Hide lowest LOD frames.
 	Wicked_Hide_Lower_Lod_Meshes(iID);
 	#endif
 
@@ -7582,7 +7582,7 @@ DWORD* g_pIntersectDatabase = NULL;
 int* g_pIntersectDatabaseLastResult = NULL;
 
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
-DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy)
+DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy, bool bThreadSafe)
 {
 	// shiny new system for intersect tests
 	// iStaticOnly : 0-dynamic, 1-static, 2-line of sight only performant from LUA scripts
@@ -7691,7 +7691,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 					// hit some other non-entity object (weapon, etc)
 				}
 			}
-			if (iHitValue != 0)
+			if (iHitValue != 0 && !bThreadSafe) //PE: Not needed in thread, just ruin the checklist for mainthread.
 			{
 				// 5 - world space coordinate where the collision struck!
 				g_pGlob->checklist[5].fvaluea = pOutX;
@@ -7771,7 +7771,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 						// hit some other non-entity object (weapon, etc)
 					}
 				}
-				if (iHitValue != 0)
+				if (iHitValue != 0 && !bThreadSafe)
 				{
 					// 5 - world space coordinate where the collision struck!
 					g_pGlob->checklist[5].fvaluea = pOutX;
@@ -7800,7 +7800,8 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 	}
 
 	// ensure the checklist hack to carry results back ensure the checklist qty does not force a return of zero (nasty bug this one)!
-	g_pGlob->checklistqty = 7;
+	if(!bThreadSafe)
+		g_pGlob->checklistqty = 7;
 
 	// return hit value
 	return iHitValue;
@@ -7817,7 +7818,7 @@ DARKSDK_DLL void ProcessIntersectDatabaseExtraThreadItemList ( void )
 			for (int i = 0; i < (int)g_IntersectDatabaseExtraThreadItemList.size(); i++)
 			{
 				sIntersectDatabaseExtraThreadItem* pItem = &g_IntersectDatabaseExtraThreadItemList[i];
-				int iHitValue = IntersectAllEx(pItem->iPrimaryStart, pItem->iPrimaryEnd, pItem->fX, pItem->fY, pItem->fZ, pItem->fNewX, pItem->fNewY, pItem->fNewZ, pItem->iIgnoreObjNo, 0, 0, 0, pItem->iIgnorePlayerCapsule, pItem->bFullWickedAccuracy);
+				int iHitValue = IntersectAllEx(pItem->iPrimaryStart, pItem->iPrimaryEnd, pItem->fX, pItem->fY, pItem->fZ, pItem->fNewX, pItem->fNewY, pItem->fNewZ, pItem->iIgnoreObjNo, 0, 0, 0, pItem->iIgnorePlayerCapsule, pItem->bFullWickedAccuracy, true);
 				g_pIntersectDatabaseLastResult[pItem->iIndexInIntersectDatabase] = iHitValue;
 			}
 			g_IntersectDatabaseExtraThreadItemList.clear();

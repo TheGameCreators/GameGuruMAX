@@ -851,6 +851,19 @@ DARKSDK_DLL bool ScanMesh ( sMesh* pMesh, LPSTR* ppBlock, DWORD* pdwSize )
 		WriteDWORD ( pMesh->dwIndexCount, ppBlock, pdwSize );
 		WriteCR ( ppBlock, pdwSize );
 
+		//PE: NEWLOD
+		WriteCODE(DBOBLOCK_MESH_INDEXCOUNT_LOD1, 4, ppBlock, pdwSize);
+		WriteDWORD(pMesh->dwIndexCountLOD1, ppBlock, pdwSize);
+		WriteCR(ppBlock, pdwSize);
+
+		WriteCODE(DBOBLOCK_MESH_INDEXCOUNT_LOD2, 4, ppBlock, pdwSize);
+		WriteDWORD(pMesh->dwIndexCountLOD2, ppBlock, pdwSize);
+		WriteCR(ppBlock, pdwSize);
+
+		WriteCODE(DBOBLOCK_MESH_INDEXCOUNT_LOD3, 4, ppBlock, pdwSize);
+		WriteDWORD(pMesh->dwIndexCountLOD3, ppBlock, pdwSize);
+		WriteCR(ppBlock, pdwSize);
+
 		// If non-standard vertex declaration, write it
 		if ( pMesh->dwFVF==0 )
 		{
@@ -880,6 +893,26 @@ DARKSDK_DLL bool ScanMesh ( sMesh* pMesh, LPSTR* ppBlock, DWORD* pdwSize )
 			WriteCODE	( DBOBLOCK_MESH_INDEXDATA, pMesh->dwIndexCount*sizeof(WORD), ppBlock, pdwSize );
 			WriteIndices ( pMesh->pIndices, pMesh->dwIndexCount, ppBlock, pdwSize );
 			WriteCR ( ppBlock, pdwSize );
+		}
+
+		//PE: NEWLOD
+		if (pMesh->dwIndexCountLOD1)
+		{
+			WriteCODE(DBOBLOCK_MESH_INDEXDATA_LOD1, pMesh->dwIndexCountLOD1 * sizeof(WORD), ppBlock, pdwSize);
+			WriteIndices(pMesh->pIndicesLOD1, pMesh->dwIndexCountLOD1, ppBlock, pdwSize);
+			WriteCR(ppBlock, pdwSize);
+		}
+		if (pMesh->dwIndexCountLOD2)
+		{
+			WriteCODE(DBOBLOCK_MESH_INDEXDATA_LOD2, pMesh->dwIndexCountLOD2 * sizeof(WORD), ppBlock, pdwSize);
+			WriteIndices(pMesh->pIndicesLOD2, pMesh->dwIndexCountLOD2, ppBlock, pdwSize);
+			WriteCR(ppBlock, pdwSize);
+		}
+		if (pMesh->dwIndexCountLOD3)
+		{
+			WriteCODE(DBOBLOCK_MESH_INDEXDATA_LOD3, pMesh->dwIndexCountLOD3 * sizeof(WORD), ppBlock, pdwSize);
+			WriteIndices(pMesh->pIndicesLOD3, pMesh->dwIndexCountLOD3, ppBlock, pdwSize);
+			WriteCR(ppBlock, pdwSize);
 		}
 
 		// Write primitive type
@@ -1599,6 +1632,13 @@ DARKSDK_DLL bool ConstructMesh ( sMesh** ppMesh, LPSTR* ppBlock )
 			case DBOBLOCK_MESH_FVFSIZE :		ReadDWORD      ( &(*ppMesh)->dwFVFSize,			ppBlock );													break;
 			case DBOBLOCK_MESH_VERTEXCOUNT :	ReadDWORD      ( &(*ppMesh)->dwVertexCount,		ppBlock );													break;
 			case DBOBLOCK_MESH_INDEXCOUNT :		ReadDWORD      ( &(*ppMesh)->dwIndexCount,		ppBlock );													break;
+
+			//PE: NEWLOD
+			case DBOBLOCK_MESH_INDEXCOUNT_LOD1:		ReadDWORD(&(*ppMesh)->dwIndexCountLOD1, ppBlock);													break;
+			case DBOBLOCK_MESH_INDEXCOUNT_LOD2:		ReadDWORD(&(*ppMesh)->dwIndexCountLOD2, ppBlock);													break;
+			case DBOBLOCK_MESH_INDEXCOUNT_LOD3:		ReadDWORD(&(*ppMesh)->dwIndexCountLOD3, ppBlock);													break;
+
+
 			case DBOBLOCK_MESH_VERTEXDEC :		ReadIntoMemory ( (BYTE*)(*ppMesh)->pVertexDeclaration, sizeof((*ppMesh)->pVertexDeclaration), ppBlock );	break;
 
 			case DBOBLOCK_MESH_SUBFRAMES :
@@ -1634,6 +1674,35 @@ DARKSDK_DLL bool ConstructMesh ( sMesh** ppMesh, LPSTR* ppBlock )
 					*ppBlock += dwCodeSize;
 			}
 			break;
+
+			//PE: NEWLOD
+			case DBOBLOCK_MESH_INDEXDATA_LOD1:
+			{
+				ReadIndexData(&(*ppMesh)->pIndicesLOD1, (*ppMesh)->dwIndexCountLOD1, ppBlock);
+
+				if ((*ppMesh)->dwIndexCountLOD1 == 0)
+					*ppBlock += dwCodeSize;
+			}
+			break;
+
+			case DBOBLOCK_MESH_INDEXDATA_LOD2:
+			{
+				ReadIndexData(&(*ppMesh)->pIndicesLOD2, (*ppMesh)->dwIndexCountLOD2, ppBlock);
+
+				if ((*ppMesh)->dwIndexCountLOD2 == 0)
+					*ppBlock += dwCodeSize;
+			}
+			break;
+
+			case DBOBLOCK_MESH_INDEXDATA_LOD3:
+			{
+				ReadIndexData(&(*ppMesh)->pIndicesLOD3, (*ppMesh)->dwIndexCountLOD3, ppBlock);
+
+				if ((*ppMesh)->dwIndexCountLOD3 == 0)
+					*ppBlock += dwCodeSize;
+			}
+			break;
+
 
 			case DBOBLOCK_MESH_PRIMTYPE :		ReadDWORD              ( (DWORD*)&(*ppMesh)->iPrimitiveType, ppBlock );								break;
 			case DBOBLOCK_MESH_DRAWVERTCOUNT :	ReadDWORD              ( (DWORD*)&(*ppMesh)->iDrawVertexCount, ppBlock );							break;
@@ -1690,7 +1759,6 @@ DARKSDK_DLL bool ConstructMesh ( sMesh** ppMesh, LPSTR* ppBlock )
 		// get next code
 		ReadCODE ( &dwCode, &dwCodeSize, ppBlock );
 	}
-
 	// okay
 	return true;
 }
@@ -1922,7 +1990,8 @@ DARKSDK_DLL bool ConstructObject ( sObject** ppObject, LPSTR* ppBlock )
 
 		// 280305 - new custom data
 		// lee - 280306 - u6rc2 - ONLY if there is more block data (older DBO files did not have any more data)
-		if ( *ppBlock < g_pBlockEnd ) ConstructCustomData ( ppObject, ppBlock );
+		if ( *ppBlock < g_pBlockEnd )
+			ConstructCustomData ( ppObject, ppBlock );
 	}
 	else
 	{

@@ -81,6 +81,7 @@ void Wicked_Highlight_Rubberband(void);
 void Wicked_Highlight_Selection(void);
 void Wicked_Highlight_LockedList(void);
 void Wicked_Hide_Lower_Lod_Meshes(int obj);
+void Wicked_Delete_Lower_Lod_Meshes(int obj);
 int GetLodLevels(int obj);
 
 void entity_placeprobe(int obj, float fLightProbeScale);

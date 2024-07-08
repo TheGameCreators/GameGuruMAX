@@ -24,7 +24,7 @@ function watercontrol_properties(e, prompt_text, action, adjustment_amount, adju
 end 
 
 function watercontrol_init(e)
-	watercontrol[e] = g_Entity[e]
+	watercontrol[e] = {}
 	watercontrol[e].prompt_text = "Don't drown"
 	watercontrol[e].action = 1
 	watercontrol[e].adjustment_amount = 80

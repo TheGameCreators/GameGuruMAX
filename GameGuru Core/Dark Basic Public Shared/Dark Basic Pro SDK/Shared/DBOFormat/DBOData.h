@@ -584,6 +584,14 @@ struct sMesh : public sMeshFVF,
 	uint64_t						master_wickedmaterialindex;
 	uint64_t						master_wickedarmatureindex;
 	bool							bInstanced;
+
+	DWORD							dwIndexCountLOD1;								// number of indices
+	WORD*							pIndicesLOD1;
+	DWORD							dwIndexCountLOD2;								// number of indices
+	WORD*							pIndicesLOD2;
+	DWORD							dwIndexCountLOD3;								// number of indices
+	WORD*							pIndicesLOD3;
+
 	#endif
 
 	// constructor and destructor
@@ -679,6 +687,7 @@ struct sFrame : public sFrameID,
 	uint64_t						wickedobjindex;								// reference to wicked object representing frame
 	bool							bHasTransformed;							// records if any transformation has occured along the bone hierarchy
 	bool							bRemovedScale;								// scaling was removed from this frame matrix during import, used by animations to also remove scale
+	bool							bIgnoreMesh;
 	#endif
 
 	// constructor and destructor

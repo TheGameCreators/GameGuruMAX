@@ -133,7 +133,8 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 void WickedCall_GetMouseDeltas(float* pfX, float* pfY);
 uint32_t WickedCall_GetTextureWidth(void* ptex);
 uint32_t WickedCall_GetTextureHeight(void* ptex);
-void WickedCall_SetObjectHighlight(sObject* pObject, bool bHighlight); 
+void WickedCall_SetObjectOutline(sObject* pObject, float fHighlight);
+bool WickedCall_GetObjectOutline(sObject* pObject);
 void WickedCall_SetObjectHighlightColor(sObject* pObject, bool bHighlight, int highlightColorType);
 void WickedCall_SetObjectHighlightRed(sObject* pObject, bool bHighlight);
 void WickedCall_SetObjectHighlightBlue(sObject* pObject, bool bHighlight);
@@ -145,6 +146,7 @@ void WickedCall_SetMeshTransparent(sMesh* pMesh);
 void WickedCall_SetMeshCullmode(sMesh* pMesh);
 void WickedCall_SetObjectCullmode(sObject* pObject);
 void WickedCall_SetObjectDoubleSided(sObject* pObject, bool bDoubleSided);
+void WickedCall_SetObjectHighlight(sObject* pObject, bool bHighlight);
 bool WickedCall_GetObjectDoubleSided(sObject* pObject);
 void WickedCall_SetObjectTransparent(sObject* pObject);
 void WickedCall_SetObjectDisableDepth(sObject* pObject, bool bDisable);

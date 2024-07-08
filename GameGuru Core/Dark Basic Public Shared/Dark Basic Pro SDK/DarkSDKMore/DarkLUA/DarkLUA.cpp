@@ -19,10 +19,14 @@
 // DarkLUA needs access to the T global (but could be in two locations)
 #include "..\..\..\..\GameGuru\Include\gameguru.h"
 
-#ifdef WICKEDENGINE
+// Control of NAVMESH
 #include "..\..\..\..\Guru-WickedMAX\GGRecastDetour\GGRecastDetour.h"
 extern GGRecastDetour g_RecastDetour;
-#endif
+
+// Control of PARTICLES
+#define NOTFORMAINENGINE
+#include "..\..\..\..\Guru-WickedMAX\GPUParticles.h"
+#undef NOTFORMAINENGINE
 
 #ifdef STORYBOARD
 #ifdef ENABLEIMGUI
@@ -7968,8 +7972,7 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 189 : g.charanimindex = lua_tonumber(L, 1); break;	
 
 		// 190-200 reserved for MOTION CONTROLLER actions
-	
-		case 201 : t.gun[gunId].settings.ismelee         = lua_tonumber( L, param ); break;
+		case 201: t.gun[gunId].settings.ismelee = lua_tonumber(L, param); break;
 		case 202 : t.gun[gunId].settings.alternate       = lua_tonumber( L, param ); break;
 		case 203 : t.gun[gunId].settings.modessharemags  = lua_tonumber( L, param ); break;
 		case 204 : t.gun[gunId].settings.alternateisflak = lua_tonumber( L, param ); break;
@@ -8338,7 +8341,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 			break;
 		#endif
 
-		case 201 : lua_pushnumber ( L, t.gun[gunId].settings.ismelee         ); break;
+		case 201: lua_pushnumber (L, t.gun[gunId].settings.ismelee); break;
 		case 202 : lua_pushnumber ( L, t.gun[gunId].settings.alternate       ); break;
 		case 203 : lua_pushnumber ( L, t.gun[gunId].settings.modessharemags  ); break;
 		case 204 : lua_pushnumber ( L, t.gun[gunId].settings.alternateisflak ); break;
@@ -8373,6 +8376,7 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 325 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.hasempty          ); break;
 		case 326 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].action.block.s			   ); break;
 		case 327 : lua_pushnumber ( L, g.firemodes[gunId][fireMode].settings.meleewithrightclick ); break;
+		case 328: lua_pushnumber (L, g.firemodes[gunId][fireMode].settings.blockwithrightclick); break;
 
 		// for extra commands as yet unimagined :)
 		case 401: lua_pushnumber (L, t.playerlight.flashlightcontrol_range_f); break;
@@ -8615,7 +8619,8 @@ int GetGamePlayerStateFiringMode ( lua_State *L ) { return GetGamePlayerControlD
 int GetGamePlayerStateWeaponAmmoIndex ( lua_State *L ) { return GetGamePlayerControlData ( L, 103 ); }
 int GetGamePlayerStateAmmoOffset ( lua_State *L ) { return GetGamePlayerControlData ( L, 104 ); }
 int GetGamePlayerStateGunMeleeKey ( lua_State *L ) { return GetGamePlayerControlData ( L, 105 ); }
-int GetGamePlayerStateBlockingAction ( lua_State *L ) { return GetGamePlayerControlData ( L, 106 ); }
+int SetGamePlayerStateBlockingAction ( lua_State *L ) { return SetGamePlayerControlData ( L, 106 ); }
+int GetGamePlayerStateBlockingAction (lua_State* L) { return GetGamePlayerControlData (L, 106); }
 int SetGamePlayerStateGunShootNoAmmo ( lua_State *L ) { return SetGamePlayerControlData ( L, 107 ); }
 int GetGamePlayerStateGunShootNoAmmo ( lua_State *L ) { return GetGamePlayerControlData ( L, 107 ); }
 int SetGamePlayerStateUnderwater ( lua_State *L ) { return SetGamePlayerControlData ( L, 108 ); }
@@ -8876,6 +8881,7 @@ int SetFireModeSettingsHasEmpty ( lua_State *L ) { return SetGamePlayerControlDa
 int GetFireModeSettingsHasEmpty ( lua_State *L ) { return GetGamePlayerControlData ( L, 325 ); }
 int GetFireModeSettingsActionBlockStart ( lua_State *L ) { return GetGamePlayerControlData ( L, 326 ); }
 int GetFireModeSettingsMeleeWithRightClick (lua_State *L) { return GetGamePlayerControlData (L, 327); }
+int GetFireModeSettingsBlockWithRightClick (lua_State* L) { return GetGamePlayerControlData (L, 328); }
 
 int SetGamePlayerStateGunSound ( lua_State *L ) { return SetGamePlayerControlData ( L, 501 ); }
 int GetGamePlayerStateGunSound ( lua_State *L ) { return GetGamePlayerControlData ( L, 501 ); }
@@ -9274,7 +9280,161 @@ int ParticlesDeleteEmitter( lua_State *L )
 	return 0;
 }
 
-int GetBulletHit(lua_State *L)
+// New Particle Effects System
+
+int EffectStart(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Show_At_Start = 1;
+	return 0;
+}
+int EffectStop(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Show_At_Start = 0;
+	return 0;
+}
+int EffectSetLocalPosition(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float z = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Used = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_X = x;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Y = y;
+	t.entityelement[e].eleprof.newparticle.bParticle_Offset_Z = z;
+	return 0;
+}
+int EffectSetLocalRotation(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float x = lua_tonumber(L, 2);
+	float y = lua_tonumber(L, 3);
+	float z = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Used = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_X = x;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Y = y;
+	t.entityelement[e].eleprof.newparticle.bParticle_LocalRot_Z = z;
+	return 0;
+}
+int EffectSetSpeed(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float speed = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_SpeedChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Speed = speed;
+	return 0;
+}
+int EffectSetOpacity(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float opacity = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_OpacityChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Opacity = opacity;
+	return 0;
+}
+int EffectSetParticleSize(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float opacity = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_SizeChange = true;
+	t.entityelement[e].eleprof.newparticle.bParticle_Size = opacity;
+	return 0;
+}
+int EffectSetBurstMode(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	int automode = lua_tonumber(L, 2);
+	t.entityelement[e].eleprof.newparticle.bParticle_Looping_Animation = 1 - automode;
+	return 0;
+}
+int EffectFireBurst(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int e = lua_tonumber(L, 1);
+	t.entityelement[e].eleprof.newparticle.bParticle_Fire = true;
+	return 0;
+}
+int EffectSetFloorReflection(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	int e = lua_tonumber(L, 1);
+	int active = lua_tonumber(L, 2);
+	float height = lua_tonumber(L, 3);
+	t.entityelement[e].eleprof.newparticle.iParticle_Floor_Active = 1 + active;
+	t.entityelement[e].eleprof.newparticle.fParticle_Floor_Height = height;
+	return 0;
+}
+int EffectSetBounciness(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float bounciness = lua_tonumber(L, 2) / 100.0f;
+	t.entityelement[e].eleprof.newparticle.fParticle_BouncinessChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Bounciness = bounciness;
+	return 0;
+}
+int EffectSetColor(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+	int e = lua_tonumber(L, 1);
+	float r = lua_tonumber(L, 2);
+	float g = lua_tonumber(L, 3);
+	float b = lua_tonumber(L, 4);
+	t.entityelement[e].eleprof.newparticle.bParticle_ColorChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_R = r;
+	t.entityelement[e].eleprof.newparticle.fParticle_G = g;
+	t.entityelement[e].eleprof.newparticle.fParticle_B = b;
+	return 0;
+}
+int EffectSetLifespan(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	int e = lua_tonumber(L, 1);
+	float lifespan = lua_tonumber(L, 2) * 10.0f;
+	t.entityelement[e].eleprof.newparticle.bParticle_LifespanChange = true;
+	t.entityelement[e].eleprof.newparticle.fParticle_Lifespan = lifespan;
+	return 0;
+}
+
+// Misc Commands
+
+int GetBulletHit(lua_State* L)
 {
 	if (t.tdamagesource == 1)
 	{
@@ -9673,6 +9833,12 @@ int SetMaterialData(lua_State *L, int mode)
 					WickedCall_TextureObject(pObject, NULL);
 					break;
 				}
+				case 15:
+				{
+					WickedCall_SetObjectOutline(pObject, fValue);
+					break;
+				}
+
 			}
 		}
 		else
@@ -9743,6 +9909,8 @@ int GetMaterialData(lua_State *L, int mode)
 			case 12: fResult = (float)WickedCall_GetObjectPlanerReflection (pObject); break;
 			case 13: fResult = (float)WickedCall_GetObjectCastShadows(pObject); break;
 			case 14: fResult = (float)t.entityprofile[t.entityelement[iEntityID].bankindex].zdepth; break;
+			case 15: fResult = (float)WickedCall_GetObjectOutline(pObject); break;
+
 			// reserve 21-30
 		}
 		lua_pushnumber(L, fResult);
@@ -9780,9 +9948,65 @@ int GetEntityCastShadows (lua_State *L) { return GetMaterialData (L, 13); }
 int SetEntityZDepthMode (lua_State *L) { return SetMaterialData (L, 14); }
 int GetEntityZDepthMode (lua_State *L) { return GetMaterialData (L, 14); }
 
+int SetEntityOutline(lua_State* L) { return SetMaterialData(L, 15); }
+int GetEntityOutline(lua_State* L) { return GetMaterialData(L, 15); }
+
 int SetEntityTexture (lua_State *L) { return SetMaterialData (L, 21); }
 int SetEntityTextureScale (lua_State *L) { return SetMaterialData (L, 22); }
 int SetEntityTextureOffset (lua_State *L) { return SetMaterialData (L, 23); }
+
+
+int GetEntityInZoneWithFilter(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	int storee = t.e;
+	int storev = t.v;
+	if (n == 1)
+	{
+		t.v = lua_tonumber(L, 1);
+		t.e = t.v; // old legacy code confused LuaMessageInt() and LuaMessageIndex(), assigning to t.e and t.v arbitarily!
+		entity_lua_getentityinzone(0);
+	}
+	if (n == 2)
+	{
+		t.e = lua_tonumber(L, 1);
+		t.v = lua_tonumber(L, 2);
+		entity_lua_getentityinzone(t.v);
+	}
+
+	t.e = storee;
+	t.v = storev;
+	return 0;
+
+}
+
+int SetWeaponArmsVisible(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+
+	extern bool bHideWeaponsMuzzle;
+	extern bool bHideWeaponsSmoke;
+	extern bool bHideWeapons;
+	bHideWeapons = lua_tonumber(L, 1);
+	if(n == 2)
+		bHideWeaponsMuzzle = lua_tonumber(L, 2);
+	if (n >= 3)
+		bHideWeaponsSmoke = lua_tonumber(L, 3);
+	return 1;
+}
+
+int GetWeaponArmsVisible(lua_State* L)
+{
+	lua = L;
+	extern bool bHideWeapons;
+	lua_pushboolean(L, bHideWeapons);
+	return 1;
+}
 
 int IsPlayerInGame(lua_State* L) 
 { 
@@ -9840,6 +10064,78 @@ int GetExposure(lua_State* L)
 {
 	lua_pushnumber(L, t.visuals.fExposure);
 	return 1;
+}
+
+
+bool bActivatePromptXYOffset = false;
+int iPromptXOffset = 0;
+int iPromptYOffset = 0;
+int PromptLocalOffset(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int storee = t.e;
+	cstr stores = t.s_s;
+	if (n == 2)
+	{
+		iPromptXOffset = lua_tonumber(L, 1);
+		iPromptYOffset = lua_tonumber(L, 2);
+		bActivatePromptXYOffset = true;
+	}
+	t.e = storee;
+	t.s_s = stores;
+	return 0;
+
+}
+
+//PE: USE - SetLutTo("editors\\lut\\sephia.png")
+//PE: USE - string = GetLut()
+void Wicked_Update_Visuals(void* voidvisual);
+int lua_get_lut(lua_State* L)
+{
+	std::string retstr = t.visuals.ColorGradingLUT.Get();
+	if(retstr.length() > 0)
+		lua_pushstring(lua, retstr.c_str());
+	else
+		lua_pushstring(lua, "None");
+	return 1;
+}
+
+int lua_set_lut(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int storee = t.e;
+	cstr stores = t.s_s;
+	if (n == 1)
+	{
+		const char* pStrPtr = lua_tostring(L, 1);
+		if (pStrPtr)
+			t.s_s = pStrPtr;
+		else
+			t.s_s = "";
+	}
+	//PE: Keep away from lutImages_s, so we dont need to load anything.
+	//PE: Only use gamevisuals so when we go back it restore the original settings.
+	if (t.s_s.Len() > 0)
+	{
+		if (FileExist(t.s_s.Get()))
+		{
+			t.gamevisuals.ColorGradingLUT = t.s_s;
+			t.gamevisuals.bColorGrading = true;
+		}
+		else
+		{
+			//PE: None.
+			t.gamevisuals.ColorGradingLUT = "None";
+			t.gamevisuals.bColorGrading = false;
+		}
+		Wicked_Update_Visuals(&t.gamevisuals);
+	}
+
+	t.e = storee;
+	t.s_s = stores;
+	return 0;
 }
 
 // 260 LUA Internal Commands (was in lua_loop_finish)
@@ -10109,7 +10405,8 @@ enum eInternalCommandNames
 	enum_performlogicconnectionsaskey,
 	enum_setprioritytotransporter,
 	enum_hidelimbs,
-	enum_showlimbs
+	enum_showlimbs,
+	enum_performlogicconnectionnumber,
 };
 
 // NoParam commands:
@@ -10292,7 +10589,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_deactivatemouse: lua_deactivatemouse(); break;
 		case enum_addplayerhealth: entity_lua_addplayerhealth(); break;
 		case enum_addplayerweapon: entity_lua_addplayerweapon(); break;
-		case enum_getentityinzone: entity_lua_getentityinzone(); break;
+		case enum_getentityinzone: entity_lua_getentityinzone(0); break;
 		case enum_musicsetdefault: t.m = t.e; lua_musicsetdefault(); break;
 		case enum_playvideonoskip: entity_lua_playvideonoskip(0, 1); break;
 		case enum_setentityhealth: entity_lua_setentityhealth(); break;
@@ -10318,6 +10615,7 @@ int int_core_sendmessagei(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_charactercontrolmanual: entity_lua_charactercontrolmanual(); break;
 		case enum_charactercontrolunarmed: entity_lua_charactercontrolunarmed(); break;
 		case enum_performlogicconnections: entity_lua_performlogicconnections(); break;
+		case enum_performlogicconnectionnumber: entity_lua_performlogicconnectionnumber(); break;
 		case enum_setcharactervisiondelay: entity_lua_setcharactervisiondelay(); break;
 		case enum_transporttofreezeposition: lua_transporttofreezeposition(); break;
 		case enum_setentityhealthwithdamage: entity_lua_setentityhealthwithdamage(); break;
@@ -10461,6 +10759,7 @@ int SendMessageI_charactercontrolfidget(lua_State* L) { return int_core_sendmess
 int SendMessageI_charactercontrolmanual(lua_State* L) { return int_core_sendmessagei(L, enum_charactercontrolmanual); }
 int SendMessageI_charactercontrolunarmed(lua_State* L) { return int_core_sendmessagei(L, enum_charactercontrolunarmed); }
 int SendMessageI_performlogicconnections(lua_State* L) { return int_core_sendmessagei(L, enum_performlogicconnections); }
+int SendMessageI_performlogicconnectionnumber(lua_State* L) { return int_core_sendmessagei(L, enum_performlogicconnectionnumber); }
 int SendMessageI_setcharactervisiondelay(lua_State* L) { return int_core_sendmessagei(L, enum_setcharactervisiondelay); }
 int SendMessageI_transporttofreezeposition(lua_State* L) { return int_core_sendmessagei(L, enum_transporttofreezeposition); }
 int SendMessageI_setentityhealthwithdamage(lua_State* L) { return int_core_sendmessagei(L, enum_setentityhealthwithdamage); }
@@ -10599,6 +10898,7 @@ void addInternalFunctions_integer()
 	lua_register(lua, "SendMessageI_charactercontrolmanual", SendMessageI_charactercontrolmanual);
 	lua_register(lua, "SendMessageI_charactercontrolunarmed", SendMessageI_charactercontrolunarmed);
 	lua_register(lua, "SendMessageI_performlogicconnections", SendMessageI_performlogicconnections);
+	lua_register(lua, "SendMessageI_performlogicconnectionnumber", SendMessageI_performlogicconnectionnumber);
 	lua_register(lua, "SendMessageI_setcharactervisiondelay", SendMessageI_setcharactervisiondelay);
 	lua_register(lua, "SendMessageI_transporttofreezeposition", SendMessageI_transporttofreezeposition);
 	lua_register(lua, "SendMessageI_setentityhealthwithdamage", SendMessageI_setentityhealthwithdamage);
@@ -11802,7 +12102,8 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateWeaponAmmoIndex" , GetGamePlayerStateWeaponAmmoIndex );
 	lua_register(lua, "GetGamePlayerStateAmmoOffset" , GetGamePlayerStateAmmoOffset );
 	lua_register(lua, "GetGamePlayerStateGunMeleeKey" , GetGamePlayerStateGunMeleeKey );
-	lua_register(lua, "GetGamePlayerStateBlockingAction" , GetGamePlayerStateBlockingAction );
+	lua_register(lua, "SetGamePlayerStateBlockingAction", SetGamePlayerStateBlockingAction);
+	lua_register(lua, "GetGamePlayerStateBlockingAction", GetGamePlayerStateBlockingAction);
 	lua_register(lua, "SetGamePlayerStateGunShootNoAmmo" , SetGamePlayerStateGunShootNoAmmo );
 	lua_register(lua, "GetGamePlayerStateGunShootNoAmmo" , GetGamePlayerStateGunShootNoAmmo );
 	lua_register(lua, "SetGamePlayerStateUnderwater" , SetGamePlayerStateUnderwater );
@@ -12071,8 +12372,8 @@ void addFunctions()
 	lua_register(lua, "GetFireModeSettingsHasEmpty" , GetFireModeSettingsHasEmpty );
 	lua_register(lua, "GetFireModeSettingsActionBlockStart", GetFireModeSettingsActionBlockStart);
 	lua_register(lua, "GetFireModeSettingsMeleeWithRightClick", GetFireModeSettingsMeleeWithRightClick);
-	
-	
+	lua_register(lua, "GetFireModeSettingsBlockWithRightClick", GetFireModeSettingsBlockWithRightClick);
+		
 	lua_register(lua, "SetGamePlayerStateGunSound" , SetGamePlayerStateGunSound );
 	lua_register(lua, "GetGamePlayerStateGunSound" , GetGamePlayerStateGunSound );
 	lua_register(lua, "SetGamePlayerStateGunAltSound" , SetGamePlayerStateGunAltSound );
@@ -12111,6 +12412,7 @@ void addFunctions()
 
 	lua_register(lua, "SetRotationYSlowly" , SetRotationYSlowly );
 
+	// OLD Particle System
 	lua_register(lua, "ParticlesGetFreeEmitter" , ParticlesGetFreeEmitter );
 	lua_register(lua, "ParticlesAddEmitter" ,     ParticlesAddEmitter );
 	lua_register(lua, "ParticlesAddEmitterEx" ,   ParticlesAddEmitterEx );
@@ -12130,8 +12432,22 @@ void addFunctions()
 	lua_register(lua, "ParticlesSetWindVector",   ParticlesSetWindVector );
 	lua_register(lua, "ParticlesSetNoWind",       ParticlesSetNoWind );
 
-	lua_register(lua, "GetBulletHit",             GetBulletHit);
+	// NEW Particle Effects System
+	lua_register(lua, "EffectStart",				EffectStart);
+	lua_register(lua, "EffectStop",					EffectStop);
+	lua_register(lua, "EffectSetLocalPosition",		EffectSetLocalPosition);
+	lua_register(lua, "EffectSetLocalRotation",		EffectSetLocalRotation);
+	lua_register(lua, "EffectSetSpeed",				EffectSetSpeed);
+	lua_register(lua, "EffectSetOpacity",			EffectSetOpacity);
+	lua_register(lua, "EffectSetParticleSize",		EffectSetParticleSize);
+	lua_register(lua, "EffectSetBurstMode",			EffectSetBurstMode);
+	lua_register(lua, "EffectFireBurst",			EffectFireBurst);
+	lua_register(lua, "EffectSetFloorReflection",	EffectSetFloorReflection);
+	lua_register(lua, "EffectSetBounciness",		EffectSetBounciness);
+	lua_register(lua, "EffectSetColor",				EffectSetColor);
+	lua_register(lua, "EffectSetLifespan",			EffectSetLifespan);
 
+	lua_register(lua, "GetBulletHit",             GetBulletHit);
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
 	lua_register(lua, "SetOcclusion" , SetOcclusion );
@@ -12273,11 +12589,18 @@ void addFunctions()
 	lua_register(lua, "GetEntityCastShadows", GetEntityCastShadows);
 	lua_register(lua, "SetEntityZDepthMode", SetEntityZDepthMode);
 	lua_register(lua, "GetEntityZDepthMode", GetEntityZDepthMode);
+	lua_register(lua, "SetEntityOutline", SetEntityOutline);
+	lua_register(lua, "GetEntityOutline", GetEntityOutline);
 
 	// texture commands
 	lua_register(lua, "SetEntityTexture", SetEntityTexture);
 	lua_register(lua, "SetEntityTextureScale", SetEntityTextureScale);
 	lua_register(lua, "SetEntityTextureOffset", SetEntityTextureOffset);
+
+	lua_register(lua, "SetWeaponArmsVisible", SetWeaponArmsVisible);
+	lua_register(lua, "GetWeaponArmsVisible", GetWeaponArmsVisible);
+
+	lua_register(lua, "GetEntityInZoneWithFilter", GetEntityInZoneWithFilter);
 
 	// In-game HUD
 	lua_register(lua, "IsPlayerInGame", IsPlayerInGame);
@@ -12291,6 +12614,10 @@ void addFunctions()
 	// Lighting
 	lua_register(lua, "SetExposure", SetExposure);
 	lua_register(lua, "GetExposure", GetExposure);
+
+	lua_register(lua, "SetLutTo", lua_set_lut);
+	lua_register(lua, "GetLut", lua_get_lut);
+	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);	
 }
 
  /*

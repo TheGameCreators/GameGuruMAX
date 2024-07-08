@@ -619,7 +619,8 @@ cstr workshop_findtrustedreplacement(LPSTR pCoreScriptFile)
 	return result_s;
 }
 
-bool workshop_verifyandorreplacescript ( int e, int entid )
+//PE: Im getting a strange crash here witout OPTICK_ENABLE ? , moved this to m-entity.cpp fixed it ?
+bool workshop_verifyandorreplacescript2 ( int e, int entid )
 {
 	#ifndef OPTICK_ENABLE
 	bool bReplacedScript = false;
@@ -787,7 +788,7 @@ void CSteamUserGeneratedWorkshopItem::SteamRunCallbacks()
 							char pSubscribeAttempt[MAX_PATH];
 							sprintf(pSubscribeAttempt, "Subscribing to trusted item unItemState=%d", (int)unItemState);
 							timestampactivity(0, pSubscribeAttempt);
-							if (unItemState == k_EItemStateNone)
+							if (unItemState == k_EItemStateNone || unItemState == k_EItemStateInstalled ) // k_EItemStateInstalled in case of stale item state!
 							{
 								// item is not subscribed to, so subscrube to trusted item
 								SteamUGC()->SubscribeItem(thisItem);

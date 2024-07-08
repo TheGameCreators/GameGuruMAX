@@ -1729,38 +1729,9 @@ void common_init_globals ( void )
 	//  +0 -
 	t.weapons.soundstartindex=g.weaponssoundoffset;
 
-	//  soundstartindex
+	//  soundstartindex (see material_loadplayersounds)
 	t.playercontrol.soundstartindex=g.playercontrolsoundoffset;
-	//  0 - reserved
-	//  1 - player sound ; finalmoan
-	//  2 - player sound ; hurt1
-	//  3 - player sound ; hurt2
-	//  4 - player sound ; hurt3
-	//  5 - player sound ; land
-	//  6 - player sound ; leap
-	//  7 - player sound ; spawn
-	//  8 - player sound ; punched1
-	//  9 - player sound ; punched2
-	//  10 - player sound ; punched3
-	//  11 - player sound ; drown
-	//  12 - player sound ; gasp
-	//  13 - player sound ; water in
-	//  14 - player sound ; water out
-	//  15 - player sound ; swim
-	//  16 - player sound ; pickup ammo from corpse
-	//  17 - player sound; heart beat
-	//  21 - AI character die 1
-	//  22 - AI character die 2
-	//  23 - AI character die 3
-	//  24 - AI character die 4
-	//  25 - Bullet whiz 1
-	//  26 - Bullet whiz 2
-	//  27 - Bullet whiz 3
-	//  28 - Bullet whiz 4
-	//	34 - underwater ambience
-	//  35-42 - swimming sounds
-	//  to 99 - reserved for player sounds (will be deleted if new player soundset used)
-	//  100 through to 995 - other sounds as required
+
 	Dim (  t.musictrack,MUSICSYSTEM_MAXTRACKS );
 
 	g.characterSoundCount = 0;
@@ -3284,6 +3255,12 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 							// Will use the pref value instead
 						}
 					}
+					extern int g_iUseLODObjects;
+					t.tryfield_s = "uselodobjects"; if (t.field_s == t.tryfield_s) g_iUseLODObjects = t.value1;
+						
+					extern int g_iDisableTerrainSystem;
+					t.tryfield_s = "disableterrainsystem"; if (t.field_s == t.tryfield_s) g_iDisableTerrainSystem = t.value1;
+
 
 					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "globalhudscale"; if (t.field_s == t.tryfield_s)  g.globalhudscale = t.value1 / 100.0f;
@@ -3443,30 +3420,6 @@ void FPSC_LoadKEYMAP ( void )
 		}
 	}
 }
-
-#ifdef WICKEDENGINE
-// using new DocWrite system
-#else
-void common_switchtomysystemfolder ( void )
-{
-	g.fpscrootdir_s = g.mysystem.root_s;
-	g.mysystem.levelBankTestMapAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.levelBankTestMap_s;
-	g.mysystem.editorsGrideditAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.editorsGridedit_s;
-	g.mysystem.mapbankAbs_s = g.fpscrootdir_s+"\\Files\\"+g.mysystem.mapbank_s;
-	g.rootdir_s = g.fpscrootdir_s + "\\Files\\";
-	LPSTR pStDir = GetDir();
-	SetDir ( g.rootdir_s.Get() );
-	g.rootdir_s = cstr(GetDir()) + "\\";
-	SetDir ( pStDir );
-	g.currentmeshdir_s = g.rootdir_s+"meshbank\\";
-	g.currententitydir_s = g.rootdir_s+"entitybank\\";
-	g.currenttexdir_s = g.rootdir_s+"texturebank\\";
-	g.currentfxdir_s = g.rootdir_s+"effectbank\\";
-	g.currentpredir_s = g.rootdir_s+"prefabs\\";
-	g.currentsegdir_s = g.rootdir_s+"segments\\";
-	g.currentvideodir_s = g.rootdir_s+"videobank\\";
-}
-#endif
 
 void GenerateDOCDOCHelpFiles ( void )
 {
@@ -4561,7 +4514,9 @@ void FPSC_Setup(void)
 	g.mysystem.thumbbank_s = g.fpscrootdir_s + "\\Files\\thumbbank\\";
 	char pCacheFolder[MAX_PATH];
 	strcpy(pCacheFolder, g.mysystem.thumbbank_s.Get());
+	GG_SetWritablesToRoot(true);
 	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
+	GG_SetWritablesToRoot(false);
 	g.mysystem.thumbbank_s = pCacheFolder;
 
 	// also create particlebank\user folder for Particle Editor Exports
@@ -6936,3 +6891,37 @@ void LineEx ( int x1, int y1, int x2, int y2 )
 		SizeSprite ( 123, 1+(x2-x1), height );
 	PasteSprite ( 123, x1, y1 );
 }
+
+void GetSetupIniEarly( void )
+{
+	//PE: Standalone option to make sure no mem is used by terrain system.
+	char appname[1024];
+	GetModuleFileNameA(g_pGlob->hInstance, appname, 1024);
+	if(!pestrcasestr(appname,"gamegurumax.exe"))
+	{
+		//PE: Cant use any special commands at this point. so simple parsing only what we need at this point.
+		FILE* file = fopen("setup.ini", "r");
+		if (file)
+		{
+			char t[2048];
+			while (!feof(file))
+			{
+				fgets(t, 2047, file);
+				if (pestrcasestr(t, "disableterrainsystem"))
+				{
+					if (pestrcasestr(t, "1"))
+					{
+						extern int g_iDisableTerrainSystem;
+						g_iDisableTerrainSystem = 1;
+					}
+					break;
+				}
+			}
+			fclose(file);
+		}
+
+	}
+
+}
+
+

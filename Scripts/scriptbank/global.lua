@@ -741,12 +741,6 @@ function SetEntityRagdollForce(e,limb,x,y,z,v)
  SendMessageI_setforcelimb(e,limb)
  SendMessageI_ragdollforce(e,v)
 end
-function StartParticleEmitter(e)
- SendMessageF_startparticleemitter(e,0);
-end
-function StopParticleEmitter(e)
- SendMessageF_stopparticleemitter(e,0);
-end
 function StartTimer(e)
  g_Entity[e]['timer'] = g_Time
 end
@@ -810,6 +804,9 @@ function ActivateIfUsed(e)
 end
 function PerformLogicConnections(e)
  SendMessageI_performlogicconnections(e)
+end
+function PerformLogicConnectionNumber(e,v)
+ SendMessageI_performlogicconnectionnumber(e,v)
 end
 function PerformLogicConnectionsAsKey(e)
  SendMessageI_performlogicconnectionsaskey(e)
@@ -1377,6 +1374,14 @@ function music_set_fadetime(f)
 	SendMessageI_musicsetfadetime(f)
 end
 
+-- OLD Particle System (the old legacy commands, the new 'effect' commands are directly added to LUA in Engine for speed)
+function StartParticleEmitter(e)
+ SendMessageF_startparticleemitter(e,0);
+end
+function StopParticleEmitter(e)
+ SendMessageF_stopparticleemitter(e,0);
+end
+
 --Ancient AI Globals (old legacy globals no longer supported with newer scripts)
 AI_CLOSEST_TO_PLAYER = 50
 ai_old_health = {}
@@ -1633,8 +1638,8 @@ SetGamePlayerControlJetpackCollected: SetGamePlayerControlJetpackCollected ( iVa
 GetGamePlayerControlJetpackCollected: iValue = GetGamePlayerControlJetpackCollected() -- gets the specified player control data value
 SetGamePlayerControlSoundStartIndex: SetGamePlayerControlSoundStartIndex ( iValue ) -- sets the player control data to specified value
 GetGamePlayerControlSoundStartIndex: iValue = GetGamePlayerControlSoundStartIndex() -- gets the specified player control data value
-SetGamePlayerControlJetpackParticleEmitterIndex: SetGamePlayerControlJetpackParticleEmitterIndex ( iValue ) -- sets the player control data to specified value
-GetGamePlayerControlJetpackParticleEmitterIndex: iValue = GetGamePlayerControlJetpackParticleEmitterIndex() -- gets the specified player control data value
+SetGamePlayerControlJetpackParticleEmitterIndex: SetGamePlayerControlJetpackParticleEmitterIndex ( iValue ) -- uses the OLD particle system
+GetGamePlayerControlJetpackParticleEmitterIndex: iValue = GetGamePlayerControlJetpackParticleEmitterIndex() -- uses the OLD particle system
 SetGamePlayerControlJetpackThrust: SetGamePlayerControlJetpackThrust ( iValue ) -- sets the player control data to specified value
 GetGamePlayerControlJetpackThrust: iValue = GetGamePlayerControlJetpackThrust() -- gets the specified player control data value
 
@@ -1724,9 +1729,27 @@ ResetUnderwaterState: ResetUnderwaterState() -- resets the underwater sub-system
 SetUnderwaterOn: SetUnderwaterOn() -- use this when the player goes underwater for visual changes
 SetUnderwaterOff: SetUnderwaterOff() -- use this when the player goes above water for visual changes
 
-------- Particle system commands --------- 
-ParticlesGetFreeEmitter: emitterId = ParticlesGetFreeEmitter() -- where emitterId is the index of the particle emitter
+------- NEW Particle Effects System --------- 
 
+EffectStart: EffectStart(e) -- starts the animation of a particle effect of the specified Entity
+EffectStop: EffectStop(e) -- stops the animation of a particle effect of the specified Entity
+EffectSetLocalPosition: EffectSetLocalPosition(e,x,y,z) - sets the local position of the emitter of this particle effect
+EffectSetLocalRotation: EffectSetLocalRotation(e,x,y,z) - sets the local rotation of the emitter of this particle effect
+EffectSetSpeed: EffectSetSpeed(e,speed) -- sets the overall speed of the specified Entity particle effect, default is 100
+EffectSetOpacity: EffectSetOpacity(e,opacity) -- sets the overall opacity of the specified Entity particle effect, default is 100
+EffectSetParticleSize: EffectSetParticleSize(e,size) -- sets the overall size of the particle associated with particle effect, default is 100
+EffectSetBurstMode: EffectSetBurstMode(e,mode) -- set mode to 0 to have the particle effect repeat, 1 for a single burst when fired
+EffectFireBurst: EffectFireBurst(e) -- trigger a particle effect set to automode of zero to burst a particle effect one time
+EffectSetFloorReflection: EffectSetFloorReflection(e,active,height) -- set the collision reflection floor for this particle effect
+EffectSetBounciness: EffectSetBounciness(e,bounciness) -- set the bounciness of the particle, the default is 100 and ranges from 0 to 500
+EffectSetColor: EffectSetColor(e,red,green,blue) -- sets the overall color of the specified Entity particle effect, component range is 0 to 255
+EffectSetLifespan: EffectSetLifespan(e,lifespan) -- sets the overall lifespan of a single particle in the particle effect, default is 100
+
+---------------------------------------------
+
+
+------- OLD Particle system commands --------- 
+ParticlesGetFreeEmitter: emitterId = ParticlesGetFreeEmitter() -- where emitterId is the index of the particle emitter
 ParticlesAddEmitter: 
 	ParticlesAddEmitter(emitterId,               -- create a particle emitter with the following parameters..
 						animationSpeed,          -- 
@@ -1757,24 +1780,18 @@ ParticlesAddEmitter:
 						alphaEndMax,             --
 						frequency                -- frequency with which particles are spawned in milliseconds
 					   )
- 
 ParticlesAddEmitterEx:  Same as ParticlesAddEmitter with 4 extra parameters (i.e. following the frequency parameter)
 						entityid,				 -- particles will be spawned at the location of the given entity ( or -1 )
 						limbindex,			     -- particles spawned at limb if applicable ( or 0 )
 						particleimage,			 -- specified imageFile value will be used ( see ParticlesLoadImage )
-						imageframe               -- for custom images specifies number of frames ( 64, 16 or 4 )
-						
+						imageframe               -- for custom images specifies number of frames ( 64, 16 or 4 )					
 ParticlesDeleteEmitter: ParticlesDeleteEmitter(emitterId) -- where emitterId is the index of the particle emitter
-
 ParticlesLoadImage:  Example imageFile = ParticlesLoadImage( "effectbank\\particles\\flowerpuff.dds" )
 					Allows dynamic loading of custom image files which can then be passed into ParticlesAddEmitterEx
 					Note: sprite sheets have to be square, e.g. 2x2 or 6x6 (4 frames and 36 frames respectively), maximum
-					size is 64x64 (4096 frames)
-					
+					size is 64x64 (4096 frames)				
 ParticlesLoadEffect: Example effectId = ParticlesLoadEffect( "effectbank\\reloaded\\decal_basic_additive.fx", emitterId )
-                    Changes the shader effect used for a given particle emitter
-
-					
+                    Changes the shader effect used for a given particle emitter					
 -- the following commands allow on-the-fly altering of specific particle creation parameters
 ParticlesSpawnParticle( emitterId, xPos, yPos, zPos ) -- forces the emitter to spawn a particle at the specified position
 ParticlesSetFrames( emitterId, animationSpeed, startFrame, endFrame )
@@ -1785,28 +1802,24 @@ ParticlesSetOffset( emitterId,  offsetMinX, offsetMinY, offsetMinZ,
 ParticlesSetScale( emitterId, scaleStartMin, scaleStartMax, scaleEndMin, scaleEndMax )  
 ParticlesSetAlpha( emitterId, alphaStartMin, alphaStartMax, alphaEndMin, alphaEndMax )
 ParticlesSetAngle( emitterId, xAngle, yAngle, zAngle )  - Euler angles 
-
 -- the '0' parameters below are not yet fully implemented in the engine, basically they are placeholders for the future
 ParticlesSetRotation:   ParticlesSetRotation( emitterId, 0, 0, rotateSpeedMinZ, 0, 0, rotateSpeedMaxZ )
 ParticlesSetLife:		ParticlesSetLife( emitterId, lifeMin, lifeMax, maxParticles, 0, maxPerFrame ) 
 -- maxParticles default is 100, maxPerFrame default is 50
-
 -- This command mimics a basic wind effect, all particles will be effected by this ..
 ParticlesSetWindVector: ParticlesSetWindVector( windX, windZ ) -- values are X & Z units per frame
 -- unless specifically omitted sith this command
 ParticlesSetNoWind( emitterId )  -- All particles created by the specified emitter will not be affected by wind.
-
 -- This command mimics a basic gravity component
 ParticlesSetGravity( emitterId, startG, endG ) -- values are Y units per frame
-
------------------------------------------
+----------------------------------------------
 
 GetGamePlayerControlJetpackMode: GetGamePlayerControlJetpackMode() -- command used by the default player control mechanism
 GetGamePlayerControlJetpackFuel: GetGamePlayerControlJetpackFuel() -- command used by the default player control mechanism
 GetGamePlayerControlJetpackHidden: GetGamePlayerControlJetpackHidden() -- command used by the default player control mechanism
 GetGamePlayerControlJetpackCollected: GetGamePlayerControlJetpackCollected() -- command used by the default player control mechanism
 GetGamePlayerControlSoundStartIndex: GetGamePlayerControlSoundStartIndex() -- command used by the default player control mechanism
-GetGamePlayerControlJetpackParticleEmitterIndex: GetGamePlayerControlJetpackParticleEmitterIndex() -- command used by the default player control mechanism
+GetGamePlayerControlJetpackParticleEmitterIndex: GetGamePlayerControlJetpackParticleEmitterIndex() -- uses the OLD particle system
 GetGamePlayerControlJetpackThrust: GetGamePlayerControlJetpackThrust() -- command used by the default player control mechanism
 GetGamePlayerControlStartStrength: GetGamePlayerControlStartStrength() -- command used by the default player control mechanism
 GetGamePlayerControlIsRunning: GetGamePlayerControlIsRunning() -- command used by the default player control mechanism
@@ -1891,7 +1904,7 @@ SetGamePlayerControlJetpackFuel: SetGamePlayerControlJetpackFuel() -- command us
 SetGamePlayerControlJetpackHidden: SetGamePlayerControlJetpackHidden() -- command used by the default player control mechanism
 SetGamePlayerControlJetpackCollected: SetGamePlayerControlJetpackCollected() -- command used by the default player control mechanism
 SetGamePlayerControlSoundStartIndex: SetGamePlayerControlSoundStartIndex() -- command used by the default player control mechanism
-SetGamePlayerControlJetpackParticleEmitterIndex: SetGamePlayerControlJetpackParticleEmitterIndex() -- command used by the default player control mechanism
+SetGamePlayerControlJetpackParticleEmitterIndex: SetGamePlayerControlJetpackParticleEmitterIndex() -- uses the OLD particle system
 SetGamePlayerControlJetpackThrust: SetGamePlayerControlJetpackThrust() -- command used by the default player control mechanism
 SetGamePlayerControlStartStrength: SetGamePlayerControlStartStrength() -- command used by the default player control mechanism
 SetGamePlayerControlIsRunning: SetGamePlayerControlIsRunning() -- command used by the default player control mechanism
@@ -2306,6 +2319,8 @@ GetEntityZDepthMode: value = GetEntityZDepthMode(e) -- this command gets the ent
 SetEntityTexture: SetEntityTexture(e,imageID) -- change the texture of an entity to that specified by imageID
 SetEntityTextureScale: SetEntityTextureScale(e,u,v) -- change the texture UV map of an entity to scale it (1.0=no change)
 SetEntityTextureOffset: SetEntityTextureOffset(e,u,v) -- change the texture UV map of an entity to offset all coordinates (0.0=no change)
+SetEntityOutline: SetEntityOutline(e,value) -- this command changes the entity object outline property.
+GetEntityOutline: GetEntityOutline(e) -- this command gets the entity object outline property.
 
 IsPlayerInGame: IsPlayerInGame() -- return 1 if the player is in the game
 SetLevelFadeoutEnabled: SetLevelFadeoutEnabled(mode) -- sets the fade out system mode to zero or one

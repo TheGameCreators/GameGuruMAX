@@ -136,6 +136,14 @@ sMesh::sMesh ( )
 	wickedmaterialindex		= 0;
 	wickedarmatureindex		= 0;
 	pFrameAttachedTo = NULL;
+
+	dwIndexCountLOD1 = 0;
+	dwIndexCountLOD2 = 0;
+	dwIndexCountLOD3 = 0;
+	pIndicesLOD1 = 0;
+	pIndicesLOD2 = 0;
+	pIndicesLOD3 = 0;
+
 	#endif
 }
 
@@ -180,6 +188,14 @@ sMesh::~sMesh ( )
 	SAFE_DELETE_ARRAY ( pMultiMaterial );
 	SAFE_DELETE ( pDrawBuffer );
 	SAFE_DELETE_ARRAY ( pAttributeWorkData );
+
+	if (dwIndexCountLOD1 > 0)
+		SAFE_DELETE_ARRAY(pIndicesLOD1);
+	if (dwIndexCountLOD2 > 0)
+		SAFE_DELETE_ARRAY(pIndicesLOD2);
+	if (dwIndexCountLOD3 > 0)
+		SAFE_DELETE_ARRAY(pIndicesLOD3);
+
 }
 
 sFrame::sFrame ( )
@@ -212,6 +228,7 @@ sFrame::sFrame ( )
 
 	#ifdef WICKEDENGINE
 	wickedobjindex = 0;
+	bIgnoreMesh = false;
 	#endif
 }
 

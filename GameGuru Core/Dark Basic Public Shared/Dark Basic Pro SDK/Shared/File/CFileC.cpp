@@ -33,11 +33,30 @@ int fileRedirectSetup = 0;
 FILE *pLogFile = 0;
 char szRootDir[ MAX_PATH ];
 char szWriteDir[ MAX_PATH ];
-char szWriteDirAdditional[MAX_PATH];
+char szAddWriteDirAdditional[MAX_PATH];
+
+// separate writabkes for root/global writing and rest for remote project location (or can also be in global if no remote set)
+bool bUseRootAsWriteArea = false;
+char szRootWriteDir[MAX_PATH];
 
 //#define FILE_LOG_ACCESS
 
-const char* GG_GetWritePath() { return szWriteDir; }
+const char* GG_GetWritePath()
+{ 
+	if (bUseRootAsWriteArea==true)
+	{
+		return szRootWriteDir;
+	}
+	else
+	{
+		return szWriteDir;
+	}
+}
+
+void GG_SetWritablesToRoot(bool bFlag)
+{
+	bUseRootAsWriteArea = bFlag;
+}
 
 int GG_CreatePath( const char *path )
 {
@@ -103,6 +122,79 @@ void SetWriteAsRootTemp(bool bEnable)
 	g_bSetWriteAsRootTemp = bEnable;
 }
 
+bool FileRedirectChangeWritableArea ( LPSTR szEXE )
+{
+	bool bResult = false;
+	extern preferences pref;
+	strcpy(szAddWriteDirAdditional, "");
+	if (strlen(pref.cCustomWriteFolder) > 0)
+	{
+		strcpy(szWriteDir, pref.cCustomWriteFolder);
+		if (GG_CreatePath(szWriteDir))
+		{
+			//Check if we can write to this folder.
+			char TestWrite[MAX_PATH];
+			strcpy(TestWrite, szWriteDir);
+			strcat(TestWrite, "test.tst");
+			FILE* testFile = fopen(TestWrite, "w");
+			if (testFile)
+			{
+				fprintf(testFile, "test");
+				fclose(testFile);
+			}
+			if (FileExist(TestWrite) == 1)
+			{
+				DeleteAFile(TestWrite);
+				//Write success , use this folder.
+				if (!SHGetSpecialFolderPath(NULL, szAddWriteDirAdditional, CSIDL_MYDOCUMENTS, TRUE))
+				{
+					//PE: This happened for a user , even when they got the document folder ? , try the new way.
+					HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szAddWriteDirAdditional);
+					if (result != S_OK)
+					{
+						strcpy(szAddWriteDirAdditional, "");
+						return false;
+					}
+				}
+				if (strlen(szEXE) > 0)
+				{
+					strcat_s(szAddWriteDirAdditional, MAX_PATH, "\\GameGuruApps\\");
+					strcat_s(szAddWriteDirAdditional, MAX_PATH, szEXE);
+					strcat_s(szAddWriteDirAdditional, MAX_PATH, "\\");
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+void FileRedirectRestoreWritableArea (LPSTR szEXE)
+{
+	// restore to regular writeables system
+	if (!SHGetSpecialFolderPath(NULL, szWriteDir, CSIDL_MYDOCUMENTS, TRUE))
+	{
+		//PE: This happened for a user , even when they got the document folder ? , try the new way.
+		HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDir);
+		if (result != S_OK)
+		{
+			// if no my documents folder use exe location
+			strcpy(szWriteDir, szRootDir);
+
+			//PE: Dont add to this folder , so just return.
+			return;
+		}
+	}
+
+	// create the initial documents path
+	strcat_s(szWriteDir, MAX_PATH, "\\GameGuruApps\\");
+	strcat_s(szWriteDir, MAX_PATH, szEXE);
+	strcat_s(szWriteDir, MAX_PATH, "\\");
+
+	// then copy to root write dir (used during int)
+	strcpy_s(szRootWriteDir, MAX_PATH, szWriteDir);
+}
+
 void FileRedirectSetup()
 {
 	// leave if already set up
@@ -129,65 +221,13 @@ void FileRedirectSetup()
 	{
 		// use exe location for standalone games
 		strcpy(szWriteDir, szRootDir);
+		strcpy(szRootWriteDir, szRootDir);
 	}
 	else
 	{
-		extern preferences pref;
-		strcpy(szWriteDirAdditional, "");
-		if (strlen(pref.cCustomWriteFolder) > 0)
-		{
-			strcpy(szWriteDir, pref.cCustomWriteFolder);
-			if (GG_CreatePath(szWriteDir))
-			{
-				//Check if we can write to this folder.
-				char TestWrite[MAX_PATH];
-				strcpy(TestWrite, szWriteDir);
-				strcat(TestWrite, "test.tst");
-
-				FILE* testFile = fopen(TestWrite, "w");
-				if (testFile)
-				{
-					fprintf(testFile, "test");
-					fclose(testFile);
-				}
-				if (FileExist(TestWrite) == 1)
-				{
-					DeleteAFile(TestWrite);
-					//Write success , use this folder.
-					if (!SHGetSpecialFolderPath(NULL, szWriteDirAdditional, CSIDL_MYDOCUMENTS, TRUE))
-					{
-						//PE: This happened for a user , even when they got the document folder ? , try the new way.
-						HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDirAdditional);
-						if (result != S_OK)
-						{
-							strcpy(szWriteDirAdditional, "");
-							return;
-						}
-					}
-					strcat_s(szWriteDirAdditional, MAX_PATH, "\\GameGuruApps\\");
-					strcat_s(szWriteDirAdditional, MAX_PATH, szEXE);
-					strcat_s(szWriteDirAdditional, MAX_PATH, "\\");
-					return;
-				}
-			}
-		}
-		if (!SHGetSpecialFolderPath(NULL, szWriteDir, CSIDL_MYDOCUMENTS, TRUE))
-		{
-			//PE: This happened for a user , even when they got the document folder ? , try the new way.
-			HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, szWriteDir);
-			if (result != S_OK)
-			{
-				// if no my documents folder use exe location
-				strcpy(szWriteDir, szRootDir);
-				//PE: Dont add to this folder , so just return.
-				return;
-			}
-		}
-
-		// create the initial documents path
-		strcat_s( szWriteDir, MAX_PATH, "\\GameGuruApps\\" );
-		strcat_s( szWriteDir, MAX_PATH, szEXE );
-		strcat_s( szWriteDir, MAX_PATH, "\\" );
+		// szWriteDir and szRootWriteDir set in FileRedirectChangeWritableArea
+		if (FileRedirectChangeWritableArea (szEXE) == true) return;
+		FileRedirectRestoreWritableArea(szEXE);
 	}
 
 	// use this writable area folder
@@ -248,7 +288,14 @@ int GG_GetRealPath( char* fullPath, int create )
 		}
 		else
 		{
-			strcpy_s(newPath, MAX_PATH, szWriteDir);
+			if(bUseRootAsWriteArea == true)
+			{
+				strcpy_s(newPath, MAX_PATH, szRootWriteDir);
+			}
+			else
+			{
+				strcpy_s(newPath, MAX_PATH, szWriteDir);
+			}
 		}
 		strcat_s( newPath, MAX_PATH, fullPath+rootLen );
 		DWORD attrib = GetFileAttributes(newPath);
@@ -263,18 +310,21 @@ int GG_GetRealPath( char* fullPath, int create )
 		{
 			//PE: If using custom docwrite folder, try to read from original /USER/ folder.
 			//PE: if user did not copy over all media after changing to a custom docwrite folder.
-			//PE: szWriteDirAdditional is a readonly folder.
-			if (!create && strlen(szWriteDirAdditional) > 0)
+			//PE: szAddWriteDirAdditional is a readonly folder.
+			if (bUseRootAsWriteArea == false)
 			{
-				strcpy_s(newPath, MAX_PATH, szWriteDirAdditional);
-				strcat_s(newPath, MAX_PATH, fullPath + rootLen);
-				DWORD attrib = GetFileAttributes(newPath);
-				if ( attrib != INVALID_FILE_ATTRIBUTES )
+				if (!create && strlen(szAddWriteDirAdditional) > 0)
 				{
-					// found, redirect fullPath to file in documents
-					strcpy_s(fullPath, MAX_PATH, newPath);
-					if ( attrib == FILE_ATTRIBUTE_DIRECTORY ) return 2;
-					else return 1;
+					strcpy_s(newPath, MAX_PATH, szAddWriteDirAdditional);
+					strcat_s(newPath, MAX_PATH, fullPath + rootLen);
+					DWORD attrib = GetFileAttributes(newPath);
+					if (attrib != INVALID_FILE_ATTRIBUTES)
+					{
+						// found, redirect fullPath to file in documents
+						strcpy_s(fullPath, MAX_PATH, newPath);
+						if (attrib == FILE_ATTRIBUTE_DIRECTORY) return 2;
+						else return 1;
+					}
 				}
 			}
 

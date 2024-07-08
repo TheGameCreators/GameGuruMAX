@@ -904,6 +904,8 @@ struct StoryboardStruct
 	int widget_ingamehidden[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 	int widget_drawordergroup[STORYBOARD_MAXNODES][STORYBOARD_MAXWIDGETS];
 
+	char customprojectfolder[256];
+
 	//PE: To add new variables add them here, always add to botton of list.
 
 };

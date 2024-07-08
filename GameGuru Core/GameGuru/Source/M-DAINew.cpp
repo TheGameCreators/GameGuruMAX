@@ -341,95 +341,95 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 	}
 }
 
-void darkai_calcplrvisible (void)
+//PE: Now thread safe, not using any globals.
+void darkai_calcplrvisible (charanimstatetype &cas)
 {
 	// takes tcharanimindex - work out if entity A.I can see (stored until recalculated)
-	t.entityelement[t.charanimstate.e].plrvisible = 0;
-	t.entityelement[t.charanimstate.e].lua.flagschanged = 1;
+	t.entityelement[cas.e].plrvisible = 0;
+	t.entityelement[cas.e].lua.flagschanged = 1;
 	if (t.player[t.plrid].health > 0)
 	{
 		// work out distance between player and entity
-		t.ttdx_f = ObjectPositionX(t.aisystem.objectstartindex) - ObjectPositionX(t.charanimstate.obj);
-		t.ttdz_f = ObjectPositionZ(t.aisystem.objectstartindex) - ObjectPositionZ(t.charanimstate.obj);
-		t.ttdd_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdz_f*t.ttdz_f));
+		float tttdx_f = ObjectPositionX(t.aisystem.objectstartindex) - ObjectPositionX(cas.obj);
+		float tttdz_f = ObjectPositionZ(t.aisystem.objectstartindex) - ObjectPositionZ(cas.obj);
+		float tttdd_f = Sqrt(abs(tttdx_f*tttdx_f) + abs(tttdz_f*tttdz_f));
 		float fDistanceRangeToCheck = MAXFREEZEDISTANCE;// t.maximumnonefreezedistance;
-		if (t.entityelement[t.charanimstate.e].eleprof.conerange > 0) fDistanceRangeToCheck = t.entityelement[t.charanimstate.e].eleprof.conerange;
-		if (t.ttdd_f < fDistanceRangeToCheck)
+		if (t.entityelement[cas.e].eleprof.conerange > 0) fDistanceRangeToCheck = t.entityelement[cas.e].eleprof.conerange;
+		if (tttdd_f < fDistanceRangeToCheck)
 		{
 			// get object facing angle, also apply any head turning activity
-			float fAIObjAngleY = ObjectAngleY(t.charanimstate.obj);
-			fAIObjAngleY += t.charanimstate.neckRightAndLeft;
+			float fAIObjAngleY = ObjectAngleY(cas.obj);
+			fAIObjAngleY += cas.neckRightAndLeft;
 
 			// player within units, otherwise skip further vis checking
-			t.ttda_f = atan2deg(t.ttdx_f, t.ttdz_f);
-			t.ttdiff_f = WrapValue(t.ttda_f) - WrapValue(fAIObjAngleY);
-			if (t.ttdiff_f < -180) t.ttdiff_f = t.ttdiff_f + 360;
-			if (t.ttdiff_f > 180) t.ttdiff_f = t.ttdiff_f - 360;
-			t.tconeangle = t.entityelement[t.charanimstate.e].eleprof.coneangle;
-			if (t.tconeangle == 0) t.tconeangle = 179;
-			if (abs(t.ttdiff_f) <= t.tconeangle)
+			float tttda_f = atan2deg(tttdx_f, tttdz_f);
+			float tttdiff_f = WrapValue(tttda_f) - WrapValue(fAIObjAngleY);
+			if (tttdiff_f < -180) tttdiff_f = tttdiff_f + 360;
+			if (tttdiff_f > 180) tttdiff_f = tttdiff_f - 360;
+			int ttconeangle = t.entityelement[cas.e].eleprof.coneangle;
+			if (ttconeangle == 0) ttconeangle = 179;
+			if (abs(tttdiff_f) <= ttconeangle)
 			{
 				// assume visible unless blocked (below)
-				t.ttokay = 1;
-
+				int tttokay = 1;
+				float tbrayx1_f, tbrayy1_f, tbrayz1_f;
 				// match ray cast with masterinterpreter raycasting (baseY+65)
 				bool bFoundEyeball = false;
-				int headlimbofcharacter = t.entityprofile[t.entityelement[t.charanimstate.e].bankindex].headlimb;
+				int headlimbofcharacter = t.entityprofile[t.entityelement[cas.e].bankindex].headlimb;
 				if (headlimbofcharacter > 0)
 				{
-					if (LimbExist(t.charanimstate.obj, headlimbofcharacter) == 1)
+					if (LimbExist(cas.obj, headlimbofcharacter) == 1)
 					{
-						sObject* pObject = GetObjectData(t.charanimstate.obj);
-						WickedCall_GetLimbData(pObject, headlimbofcharacter, &t.brayx1_f, &t.brayy1_f, &t.brayz1_f, 0, 0, 0, 0);
+						sObject* pObject = GetObjectData(cas.obj);
+						WickedCall_GetLimbData(pObject, headlimbofcharacter, &tbrayx1_f, &tbrayy1_f, &tbrayz1_f, 0, 0, 0, 0);
 						bFoundEyeball = true;
 					}
 				}
 				if (bFoundEyeball == false)
 				{
-					t.brayx1_f = ObjectPositionX(t.charanimstate.obj);
-					t.brayy1_f = ObjectPositionY(t.charanimstate.obj) + 60;// need them to SEE from the head +35;// 65 - this fixes characters shooting from the eyeballs!
-					t.brayz1_f = ObjectPositionZ(t.charanimstate.obj);
+					tbrayx1_f = ObjectPositionX(cas.obj);
+					tbrayy1_f = ObjectPositionY(cas.obj) + 60;// need them to SEE from the head +35;// 65 - this fixes characters shooting from the eyeballs!
+					tbrayz1_f = ObjectPositionZ(cas.obj);
 				}
 
 				// location of player (if player camera can see enemy, vice versa)
-				t.tcamerapositionx_f = CameraPositionX(t.terrain.gameplaycamera);
-				t.tcamerapositiony_f = CameraPositionY(t.terrain.gameplaycamera);
-				t.tcamerapositionz_f = CameraPositionZ(t.terrain.gameplaycamera);
-				t.brayx2_f = t.tcamerapositionx_f;
-				t.brayy2_f = t.tcamerapositiony_f;
-				t.brayz2_f = t.tcamerapositionz_f;
+				float tbrayx2_f = CameraPositionX(t.terrain.gameplaycamera);
+				float tbrayy2_f = CameraPositionY(t.terrain.gameplaycamera);
+				float tbrayz2_f = CameraPositionZ(t.terrain.gameplaycamera);
 
 				// first ensure not going through physics terrain
-				if (ODERayTerrain(t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, true) == 1)
+				if (ODERayTerrain(tbrayx1_f, tbrayy1_f, tbrayz1_f, tbrayx2_f, tbrayy2_f, tbrayz2_f, true) == 1)
 				{
-					t.ttokay = 0;
+					tttokay = 0;
 				}
-				if (t.ttokay == 1)
+				if (tttokay == 1)
 				{
 					// actually move ray BACK a little in case enemy right up against something!
-					t.ttdx_f = t.brayx2_f - t.brayx1_f;
-					t.ttdy_f = t.brayy2_f - t.brayy1_f;
-					t.ttdz_f = t.brayz2_f - t.brayz1_f;
-					t.ttdd_f = Sqrt(abs(t.ttdx_f*t.ttdx_f) + abs(t.ttdy_f*t.ttdy_f) + abs(t.ttdz_f*t.ttdz_f));
-					t.ttdx_f = t.ttdx_f / t.ttdd_f;
-					t.ttdy_f = t.ttdy_f / t.ttdd_f;
-					t.ttdz_f = t.ttdz_f / t.ttdd_f;
+
+					//PE: Below not used anymore. when not moving anyway.
+					//tttdx_f = tbrayx2_f - tbrayx1_f;
+					//float tttdy_f = tbrayy2_f - tbrayy1_f;
+					//tttdz_f = tbrayz2_f - tbrayz1_f;
+					//tttdd_f = Sqrt(abs(tttdx_f*tttdx_f) + abs(tttdy_f*tttdy_f) + abs(tttdz_f*tttdz_f));
+					//tttdx_f = tttdx_f / tttdd_f;
+					//tttdy_f = tttdy_f / tttdd_f;
+					//tttdz_f = tttdz_f / tttdd_f;
 
 					//then again no, start further forward to miss character body as vweap filter no longer works as we needed to glue the weapon
 					//LB: do not move start position, it can GO THROUGH WALLS!
-					//t.brayx1_f = t.brayx1_f + (t.ttdx_f*40.0);
-					//t.brayy1_f = t.brayy1_f + (t.ttdy_f*40.0);
-					//t.brayz1_f = t.brayz1_f + (t.ttdz_f*40.0);
-					t.tintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, t.brayx1_f, t.brayy1_f, t.brayz1_f, t.brayx2_f, t.brayy2_f, t.brayz2_f, t.charanimstate.obj, 0, t.charanimstate.e, 500, 1, false);
-					if (t.tintersectvalue != 0)
+					//tbrayx1_f = tbrayx1_f + (tttdx_f*40.0);
+					//tbrayy1_f = tbrayy1_f + (tttdy_f*40.0);
+					//tbrayz1_f = tbrayz1_f + (tttdz_f*40.0);
+					int ttintersectvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, tbrayx1_f, tbrayy1_f, tbrayz1_f, tbrayx2_f, tbrayy2_f, tbrayz2_f, cas.obj, 0, cas.e, 500, 1, false);
+					if (ttintersectvalue != 0)
 					{
-						t.ttokay = 0;
+						tttokay = 0;
 					}
 				}
-				if (t.ttokay == 1)
+				if (tttokay == 1)
 				{
-					t.entityelement[t.charanimstate.e].plrvisible = 1;
-					t.entityelement[t.charanimstate.e].lua.flagschanged = 1;
+					t.entityelement[cas.e].plrvisible = 1;
+					t.entityelement[cas.e].lua.flagschanged = 1;
 				}
 			}
 		}
@@ -2108,7 +2108,7 @@ int darkai_canshoot (void)
 		// recalc PLRVISIBLE to ensure the enemy can truly STILL see PLAYER
 		if (t.entityelement[t.charanimstate.e].bPlrVisibleCheckDone == false)
 		{
-			darkai_calcplrvisible();
+			darkai_calcplrvisible(t.charanimstate);
 			t.entityelement[t.charanimstate.e].bPlrVisibleCheckDone = true;
 		}
 	}

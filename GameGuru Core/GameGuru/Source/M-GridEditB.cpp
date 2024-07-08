@@ -71,7 +71,6 @@ extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
 extern char g_Storyboard_Current_Loading_Page[256];
 extern std::vector<std::string> projectbank_list;
-//extern std::vector<bool> projectbank_list_exist; 
 extern std::vector<std::string> projectbank_image;
 extern std::vector<int> projectbank_imageid;
 extern StoryboardStruct Storyboard;
@@ -285,6 +284,7 @@ extern bool bRotScaleAlreadyUpdated;
 //extern float fEditorGridSizeY;
 //extern float fEditorGridSizeZ;
 extern int old_iMSAASampleCount;
+extern int old_iFSRMode;
 extern int old_iMSAO;
 extern float old_fMSAOPower;
 extern int old_iShadowSpotCascadeResolution;
@@ -540,6 +540,8 @@ bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
 int g_iCheckExistingFilesModifiedDelayed = 0;
 ImRect g_rStealMonitorArea;
+
+std::vector<cstr> lutImages_s;
 
 // helps track myglobals and use them in dropdowns for storyboard screen editor
 bool g_bRefreshGlobalList = false;
@@ -1763,7 +1765,8 @@ void interface_copydatatoentity ( void )
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[590].Get()) ) == 0 )  t.grideleprof.rotatethrow = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[592].Get()) ) == 0 )  t.grideleprof.explodable = ValF(t.tdata_s.Get());
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[594].Get()) ) == 0 )  t.grideleprof.explodedamage = ValF(t.tdata_s.Get());
-			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("team")  ) == 0 )  t.grideleprof.teamfield = ValF(t.tdata_s.Get());
+			
+			//if (  strcmp ( Lower(t.tfield_s.Get()) , Lower("team")  ) == 0 )  t.grideleprof.teamfield = ValF(t.tdata_s.Get());
 
 			if (  strcmp ( Lower(t.tfield_s.Get()) , Lower(t.strarr_s[463].Get()) ) == 0 ) 
 			{
@@ -5286,6 +5289,7 @@ void CheckMinimumDockSpaceSize(float minsize)
 #define TABPAGEWEATHER 1
 
 #include "..\..\Guru-WickedMAX\master.h"
+#include <direct.h>
 
 extern wiECS::Entity g_weatherEntityID;
 extern MasterRenderer * master_renderer;
@@ -6421,7 +6425,6 @@ void tab_tab_visuals(int iPage, int iMode)
 	bool bVisualUpdated = false;
 	float fTabColumnWidth = 120;
 	static bool bSetSimpleSky = false;
-	static std::vector<cstr> lutImages_s;
 	static int g_lutimage_item_count = 0;
 	static char** g_lutimage_items = NULL;
 	static int current_lutimage_selection = 0;
@@ -6819,40 +6822,42 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 
 				// Load the thumbnails for the filters, so its easier to see the effect it will have on the scene.
-				SetDir("thumbnails");
-				ChecklistForFiles();
-
-				image_setlegacyimageloading(true);
-				for (int f = 1; f <= ChecklistQuantity(); f++)
+				if (_chdir("thumbnails") == 0)
 				{
-					cstr tfile_s = ChecklistString(f);
-					LPSTR pFilename = tfile_s.Get();
-					if (tfile_s != "." && tfile_s != "..")
+					//SetDir("thumbnails"); //PE: Standalone do not have this.
+					ChecklistForFiles();
+
+					image_setlegacyimageloading(true);
+					for (int f = 1; f <= ChecklistQuantity(); f++)
 					{
-						// Only load .jpg files for the thumbnails.
-						if (strnicmp(pFilename + strlen(pFilename) - 4, ".jpg", 4) == NULL)
+						cstr tfile_s = ChecklistString(f);
+						LPSTR pFilename = tfile_s.Get();
+						if (tfile_s != "." && tfile_s != "..")
 						{
-							LoadImage(pFilename, FILTER_THUMBS+iFilterThumbnailCount);
-							if (ImageExist(FILTER_THUMBS+iFilterThumbnailCount))
+							// Only load .jpg files for the thumbnails.
+							if (strnicmp(pFilename + strlen(pFilename) - 4, ".jpg", 4) == NULL)
 							{
-								iFilterThumbnailCount++;
-							}
-							else
-							{
-								// Number of loaded thumbnails must match the number of filters, otherwise they will be mismatched.
-								for (int i = FILTER_THUMBS; i < FILTER_THUMBS + iFilterThumbnailCount; i++)
+								LoadImage(pFilename, FILTER_THUMBS + iFilterThumbnailCount);
+								if (ImageExist(FILTER_THUMBS + iFilterThumbnailCount))
 								{
-									// Load failed, free any loaded images and display text only.
-									if (ImageExist(i))
-										DeleteImage(i);
+									iFilterThumbnailCount++;
 								}
-								iFilterThumbnailCount = 0;
+								else
+								{
+									// Number of loaded thumbnails must match the number of filters, otherwise they will be mismatched.
+									for (int i = FILTER_THUMBS; i < FILTER_THUMBS + iFilterThumbnailCount; i++)
+									{
+										// Load failed, free any loaded images and display text only.
+										if (ImageExist(i))
+											DeleteImage(i);
+									}
+									iFilterThumbnailCount = 0;
+								}
 							}
 						}
 					}
+					image_setlegacyimageloading(false);
 				}
-				image_setlegacyimageloading(false);
-
 				SetDir(oldDir_s.Get());
 			}
 
@@ -6968,12 +6973,12 @@ void tab_tab_visuals(int iPage, int iMode)
 			static int iHiddenObjects = 0;
 			static int iObjects = 0;
 			static int iFrustumCulled = 0;
-
+			int iSpot = 0 , iPoint = 0;
 			int occ = 0;
-			if (bOCDebug && g_iDevToolsOpen >= 1) //t.visuals.bLevelVSyncEnabled
+			if (bOCDebug && g_iDevToolsOpen >= 1)
 			{
-				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr );
-				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects);
+				int DrawOccludedObjects(bool bDebug, bool bBox = false, int * bHiddenObjects = nullptr, int* spot = nullptr, int* point = nullptr);
+				occ = DrawOccludedObjects(bOCDebug, bBoxDebug, &iHiddenObjects,&iSpot,&iPoint);
 			}
 
 #ifdef ADVANCEDCOLORS
@@ -6999,9 +7004,9 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (iGFXMode == 2) current_gfx_mode = (char*)gfx_mode_combo[2];
 				if (ImGui::Combo("##ComboGFX_mode_combo", &iGFXMode, gfx_mode_combo, IM_ARRAYSIZE(gfx_mode_combo)))
 				{
-					if (iGFXMode == 0) visuals_shaderlevels_setlevel(1,true);
-					if (iGFXMode == 1) visuals_shaderlevels_setlevel(3,true);
-					if (iGFXMode == 2) visuals_shaderlevels_setlevel(4,true);
+					if (iGFXMode == 0) visuals_shaderlevels_setlevel(1, true);
+					if (iGFXMode == 1) visuals_shaderlevels_setlevel(3, true);
+					if (iGFXMode == 2) visuals_shaderlevels_setlevel(4, true);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose the ideal graphics mode for this level, or set custom settings");
 				ImGui::PopItemWidth();
@@ -7027,7 +7032,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					g.projectmodified = 1;
 
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fever cascade shadow updates and increase your FPS.");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fewer cascade shadow updates and increase your FPS.");
 				if (g_bDelayedShadows)
 				{
 					ImGui::SameLine();
@@ -7064,10 +7069,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					ImGui::SameLine();
 					ImGui::Checkbox("Debug", &bOCDebug);
-					//if (bOCDebug)
-					//{
-					//}
-					ImGui::Checkbox("Debug Bouding Box", &bBoxDebug);
+					ImGui::Checkbox("Debug Bounding Box", &bBoxDebug);
 				}
 				if (t.visuals.bOcclusionCulling)
 				{
@@ -7141,23 +7143,39 @@ void tab_tab_visuals(int iPage, int iMode)
 						iObjects = pScene->objects.GetCount();
 						iFrustumCulled = wiProfiler::GetFrustumCulled();
 					}
-					ImGui::Text("Total Objects: %d", iObjects);
 					if (bOCDebug)
-						ImGui::Text("Hidden Objects: %d", iHiddenObjects);
+						ImGui::Text("Total Objects: %d Hidden: %d", iObjects, iHiddenObjects);
+					else
+						ImGui::Text("Total Objects: %d", iObjects);
 					ImGui::Text("Frustum/Apparent Culled: %d", iFrustumCulled);
 					if (bOCDebug)
 						ImGui::Text("Occluded Objects: %d", occ);
 
 					extern uint32_t iOccludedTerrainChunks;
-					ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
-					ImGui::Text("Occluded Point Shadows: %d", iCulledPointShadows);
-					ImGui::Text("Occluded Spot Shadows: %d", iCulledSpotShadows);
-					ImGui::Text("Culled Animations: %d", iCulledAnimations);
+					if (bOCDebug)
+						ImGui::Text("Occluded Terrain chunks: %d", iOccludedTerrainChunks);
+
+					extern uint32_t iRenderedPointShadows;
+					extern uint32_t iRenderedSpotShadows;
+
+					if (bOCDebug)
+						ImGui::Text("Occluded Point Shadows: (%d) %d r(%d)", iPoint, iCulledPointShadows, iRenderedPointShadows);
+					else
+						ImGui::Text("Occluded Point Shadows: %d r(%d)", iCulledPointShadows, iRenderedPointShadows);
+					if (bOCDebug)
+						ImGui::Text("Occluded Spot Shadows: (%d) %d r(%d)", iSpot, iCulledSpotShadows, iRenderedSpotShadows);
+					else
+						ImGui::Text("Occluded Spot Shadows: %d r(%d)", iCulledSpotShadows, iRenderedSpotShadows);
+					
+					if (bOCDebug)
+						ImGui::Text("Culled Animations: %d", iCulledAnimations);
 				}
 
 				extern float maxApparentSize;
 				ImGui::PushItemWidth(-10);
 				float fASize = t.visuals.ApparentSize * 10000.0f;
+				//ImGui::Text("Apparent Size");
+				tab_tab_Column_text("Apparent Size", fTabColumnWidth);
 				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
 				{
 					maxApparentSize = fASize / 10000.0f;
@@ -7165,6 +7183,163 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Max Object Apparent Size will cull objects when they get smaller on screen");
 				ImGui::PopItemWidth();
+
+
+				extern float fLODMultiplier;
+				//ImGui::Text("LOD Multiplier");
+				tab_tab_Column_text("LOD Multiplier", fTabColumnWidth);
+				ImGui::PushItemWidth(-10);
+				if (ImGui::SliderFloat("##fLODMultiplier", &fLODMultiplier, 0.0f, 15.0f, "%.2f", 1.0f))
+				{
+					if (fLODMultiplier < 0)
+						fLODMultiplier = 0;
+					t.gamevisuals.fLODMultiplier = t.visuals.fLODMultiplier = fLODMultiplier;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change LOD distance before switching from normal object to LOD");
+				ImGui::PopItemWidth();
+
+				extern int g_iUseLODObjects;
+				extern bool bDisableLODLoad;
+				ImGui::Checkbox("Disable LOD Load", &bDisableLODLoad);
+
+				if (g_iUseLODObjects > 0 && !bDisableLODLoad)
+				{
+					extern bool bShadowsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Shadows Use Fastest LOD##Animationsculling", &bShadowsLowestLOD))
+					{
+						t.gamevisuals.bShadowsLowestLOD = t.visuals.bShadowsLowestLOD = bShadowsLowestLOD;
+						g.projectmodified = 1;
+
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All shadows will use fastest LOD available to render.");
+					ImGui::PopItemWidth();
+
+					extern bool bProbesLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Probes Use Fastest LOD##Animationsculling", &bProbesLowestLOD))
+					{
+						t.gamevisuals.bProbesLowestLOD = t.visuals.bProbesLowestLOD = bProbesLowestLOD;
+						g.projectmodified = 1;
+
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All probes will use fastest LOD available to render.");
+					ImGui::PopItemWidth();
+
+					extern bool bRaycastLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Raycast Use Fastest LOD##Animationsculling", &bRaycastLowestLOD))
+					{
+						t.gamevisuals.bRaycastLowestLOD = t.visuals.bRaycastLowestLOD = bRaycastLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All raycast will use fastest LOD available for intersect checks.");
+					ImGui::PopItemWidth();
+
+
+					extern bool bPhysicsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Physics Use Fastest LOD##Animationsculling", &bPhysicsLowestLOD))
+					{
+						t.gamevisuals.bPhysicsLowestLOD = t.visuals.bPhysicsLowestLOD = bPhysicsLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All physics objects is created using fastest LOD.");
+					ImGui::PopItemWidth();
+
+					extern bool bReflectionsLowestLOD;
+					ImGui::PushItemWidth(-10);
+					if (ImGui::Checkbox("Reflections Use Fastest LOD##Animationsculling", &bReflectionsLowestLOD))
+					{
+						t.gamevisuals.bReflectionsLowestLOD = t.visuals.bReflectionsLowestLOD = bReflectionsLowestLOD;
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("All reflection rendering is using fastest LOD.");
+					ImGui::PopItemWidth();
+				}
+
+				// FSR Mode (FidelityFX Super Resolution)
+				const char* fsr_items_align[] = { "None", "Ultra Quality","Quality", "Balanced", "Performance" };
+				int fsr_current_type_selection = t.visuals.iFSRMode;
+				tab_tab_Column_text("FSR", fTabColumnWidth);
+				ImGui::PushItemWidth(-10);
+				if (ImGui::Combo("##setiFSRMode", &fsr_current_type_selection, fsr_items_align, IM_ARRAYSIZE(fsr_items_align)))
+				{
+					t.visuals.iFSRMode = fsr_current_type_selection;
+					t.gamevisuals.iFSRMode = t.visuals.iFSRMode;
+					if (t.visuals.iFSRMode == 1)
+					{
+						master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+						master.masterrenderer.SetFSRScale(1.3f);
+						master.masterrenderer.setFSREnabled(true);
+						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+						master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+						t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+						if (master_renderer)
+							master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+					}
+					else if (t.visuals.iFSRMode == 2)
+					{
+						master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+						master.masterrenderer.SetFSRScale(1.5f);
+						master.masterrenderer.setFSREnabled(true);
+						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+						master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+						t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+						if (master_renderer)
+							master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+					}
+					else if (t.visuals.iFSRMode == 3)
+					{
+						master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+						master.masterrenderer.SetFSRScale(1.7f);
+						master.masterrenderer.setFSREnabled(true);
+						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+						master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+						t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+						if (master_renderer)
+							master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+					}
+					else if (t.visuals.iFSRMode == 4)
+					{
+						master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+						master.masterrenderer.SetFSRScale(2.0f);
+						master.masterrenderer.setFSREnabled(true);
+						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+						master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+						t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+						if (master_renderer)
+							master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+					}
+					else
+					{
+						//PE: Disable FSR
+						master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+						master.masterrenderer.SetFSRScale(1.0f);
+						master.masterrenderer.setFSREnabled(false);
+						master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+					}
+
+					//PE: change.
+					g.projectmodified = 1;
+				}
+
+				ImGui::PopItemWidth();
+	
+				if (master.masterrenderer.getFSREnabled())
+				{
+					ImGui::Text("FSR Sharpness");
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##fFSRSharpness", &t.visuals.fFSRSharpness, 0.0f, 2.0f, "%.2f", 1.0f))
+					{
+						if (t.visuals.fFSRSharpness < 0)
+							t.visuals.fFSRSharpness = 0;
+						t.gamevisuals.fFSRSharpness = t.visuals.fFSRSharpness;
+						master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Change FSR Sharpness");
+					ImGui::PopItemWidth();
+				}
 
 				// end performance
 				ImGui::Indent(-10);
@@ -7576,7 +7751,11 @@ void tab_tab_visuals(int iPage, int iMode)
 					bForceRefreshLightCount = true;
 					bVisualUpdated = true;
 				}
-				ImGui::PopItemWidth();
+				//ImGui::PopItemWidth(); //PE: This looks wrong, try removing it.
+
+				extern bool bShadowsInFrontTakesPriority;
+				ImGui::Checkbox("Front Shadows Priority", &bShadowsInFrontTakesPriority);
+
 				ImGui::Indent(-10);
 			}
 		}
@@ -8565,6 +8744,8 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bEnableObjectCulling = visuals->bEnableObjectCulling;
 		extern bool bEnableAnimationCulling;
 		bEnableAnimationCulling = visuals->bEnableAnimationCulling;
+		extern float fLODMultiplier;
+		fLODMultiplier = visuals->fLODMultiplier;
 
 		extern bool bEnable30FpsAnimations;
 		bEnable30FpsAnimations = visuals->bEnable30FpsAnimations;
@@ -8573,6 +8754,21 @@ void Wicked_Update_Visuals(void *voidvisual)
 		extern bool g_bDelayedShadowsLaptop;
 		g_bDelayedShadowsLaptop = visuals->g_bDelayedShadowsLaptop;
 
+		extern bool bShadowsLowestLOD;
+		extern bool bProbesLowestLOD;
+		extern bool bRaycastLowestLOD;
+		extern bool bPhysicsLowestLOD;
+		extern bool bReflectionsLowestLOD;
+
+		bShadowsLowestLOD = visuals->bShadowsLowestLOD;
+		bProbesLowestLOD = visuals->bProbesLowestLOD;
+		bRaycastLowestLOD = visuals->bRaycastLowestLOD;
+		bPhysicsLowestLOD = visuals->bPhysicsLowestLOD;
+		bReflectionsLowestLOD = visuals->bReflectionsLowestLOD;
+
+		extern bool bThreadedPhysics;
+		bThreadedPhysics = visuals->bThreadedPhysics;
+		
 		// when in editor, keep enforcing a fixed exposure value (so we dont see fade-ins all the time)
 		if (t.game.set.ismapeditormode==0 || pref.iEnableAutoExposureInEditor )
 			master_renderer->setEyeAdaptionEnabled(visuals->bAutoExposure);
@@ -8596,6 +8792,64 @@ void Wicked_Update_Visuals(void *voidvisual)
 			old_iMSAASampleCount = visuals->iMSAASampleCount;
 			master_renderer->setMSAASampleCount(visuals->iMSAASampleCount);
 		}
+		
+		if (old_iFSRMode != visuals->iFSRMode) {
+			old_iFSRMode = visuals->iFSRMode;
+			if (visuals->iFSRMode == 1)
+			{
+				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+				master.masterrenderer.SetFSRScale(1.3f);
+				master.masterrenderer.setFSREnabled(true);
+				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+				if (master_renderer)
+					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+			}
+			else if (visuals->iFSRMode == 2)
+			{
+				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+				master.masterrenderer.SetFSRScale(1.5f);
+				master.masterrenderer.setFSREnabled(true);
+				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+				if (master_renderer)
+					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+			}
+			else if (visuals->iFSRMode == 3)
+			{
+				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+				master.masterrenderer.SetFSRScale(1.7f);
+				master.masterrenderer.setFSREnabled(true);
+				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+				if (master_renderer)
+					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+			}
+			else if (visuals->iFSRMode == 4)
+			{
+				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+				master.masterrenderer.SetFSRScale(2.0f);
+				master.masterrenderer.setFSREnabled(true);
+				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+				if (master_renderer)
+					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+			}
+			else
+			{
+				//PE: Disable FSR
+				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+				master.masterrenderer.SetFSRScale(1.0f);
+				master.masterrenderer.setFSREnabled(false);
+				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+			}
+
+		}
+		
 
 		if (old_iMSAO != visuals->iMSAO || old_fMSAOPower != visuals->fMSAOPower)
 		{
@@ -9821,28 +10075,10 @@ void ProcessPreferences(void)
 
 			//pref.iDisplayWelcomeScreen
 			bool bWelcomeStartup = pref.iDisplayWelcomeScreen;
-			if (ImGui::Checkbox("Show GameGuru MAX Hub on Startup", &bWelcomeStartup)) {
+			if (ImGui::Checkbox("Show GameGuru MAX Hub on Startup", &bWelcomeStartup)) 
+			{
 				pref.iDisplayWelcomeScreen = bWelcomeStartup;
 			}
-			//PE: Wicked - Moving away from showonstartup.ini and only use pref.iDisplayWelcomeScreen
-			/*
-			bool bWelcomeStartup = g.gshowonstartup;
-			if (ImGui::Checkbox("Show Welcome Screen on Startup", &bWelcomeStartup)) {
-				g.gshowonstartup = 1 - g.gshowonstartup;
-				// save setting
-				t.tfile_s = g.fpscrootdir_s + "\\showonstartup.ini";
-				DeleteAFile(t.tfile_s.Get());
-				if (FileOpen(1) == 1) CloseFile(1);
-				OpenToWrite(1, t.tfile_s.Get());
-				WriteString(1, cstr(g.gshowonstartup).Get());
-				WriteString(1, "10");
-				for (int n = 0; n < 10; n++)
-				{
-					WriteString(1, "0");
-				}
-				CloseFile(1);
-			}
-			*/
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Show or hide the Welcome Screen when GameGuru MAX first loads");
 
 			ImGui::Checkbox("Auto Close Property Sections", &pref.bAutoClosePropertySections);
@@ -11035,15 +11271,6 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				pref.iDisableProjectAutoSave = bTmp;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Turn on and off the auto save system");
-
-			#ifdef ENABLEAUTOLEVELSAVE
-			bTmp = pref.iDisableLevelAutoSave;
-			if (ImGui::Checkbox("Disable Level Auto Save", &bTmp)) {
-				pref.iDisableLevelAutoSave = bTmp;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Disable Level Auto Save");
-
-			#endif
 
 			#ifdef PROCEDURALTERRAINWINDOW
 			if (g_iDevToolsOpen)
@@ -14549,9 +14776,11 @@ void GrabBackBufferCopy(void)
 				strcpy(pRealICONFile, BackBufferSaveCacheName.Get());
 				pRealICONFile[strlen(pRealICONFile) - 4] = 0;
 				strcat(pRealICONFile, ".png");
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pRealICONFile, 1);
 				if (FileExist(pRealICONFile) == 1) DeleteAFile(pRealICONFile);
 				SaveImage(pRealICONFile, iIconImageID);
+				GG_SetWritablesToRoot(false);
 			}
 		}
 	}
@@ -14658,9 +14887,11 @@ void GrabBackBufferCopy(void)
 				// ensure we save to writables area only
 				char pRealThumbFile[MAX_PATH];
 				strcpy(pRealThumbFile, BackBufferSaveCacheName.Get());
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pRealThumbFile, 1);
 				if (FileExist(pRealThumbFile) == 1) DeleteAFile(pRealThumbFile);
 				SaveImage(pRealThumbFile, BackBufferImageID);
+				GG_SetWritablesToRoot(false);
 			}
 			BackBufferSaveCacheName = "";
 		}
@@ -14786,23 +15017,30 @@ bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForS
 			src_file = src_file + std::to_string(width) + "x" + std::to_string(height) + ".jpg";
 			LPSTR pSrcFile = (LPSTR)src_file.c_str();
 			char pAssociatedThumb[MAX_PATH];
+			GG_SetWritablesToRoot(true);
 			if (FileExist(pSrcFile) == 0)
 			{
 				// any object that has a JPG of the same FPE name can force a custom thumb
 				char pRelativePath[MAX_PATH];
 				strcpy(pAssociatedThumb, file);
 				strcpy(pRelativePath, pAssociatedThumb);
+				GG_SetWritablesToRoot(true);
 				GG_GetRealPath(pAssociatedThumb, 0);
+				GG_SetWritablesToRoot(false);
 				if (FileExist(pAssociatedThumb) == 0)
 				{
 					// sometimes the file path is passed in without the entitybank
 					strcpy(pAssociatedThumb, "entitybank\\");
 					strcat(pAssociatedThumb, file);
 					strcpy(pRelativePath, pAssociatedThumb);
+					GG_SetWritablesToRoot(true);
 					GG_GetRealPath(pAssociatedThumb, 0);
+					GG_SetWritablesToRoot(false);
 				}
+				GG_SetWritablesToRoot(true);
 				if (FileExist(pAssociatedThumb) == 1)
 				{
+					GG_SetWritablesToRoot(false);
 					// so as not to disrupt purchased and other thumbs generated, just tackle building editor for now
 					if (strnicmp(pRelativePath, "entitybank\\user\\buildingeditor", 30) == NULL)
 					{
@@ -14822,6 +15060,7 @@ bool CreateBackBufferCacheNameEx(char *file,int width,int height, bool bUsedForS
 					}
 				}
 			}
+			GG_SetWritablesToRoot(false);
 
 			// file destination not exist, copy src to it to save time
 			CopyFileA (pSrcFile, BackBufferCacheName.Get(), TRUE);
@@ -15603,12 +15842,15 @@ void process_entity_library(void)
 														iTooltipObjectReady = false;
 
 													}
-													else {
+													else 
+													{
 														if (iTooltipHoveredTimer - iTooltipTimer > 2000) { // 2 sec before starting.
-															if (iTooltipObjectReady) {
-																if (iTooltipLastObjectId > 0) {
-
-																	if (GetImageExistEx(g.importermenuimageoffset + 50)) {
+															if (iTooltipObjectReady) 
+															{
+																if (iTooltipLastObjectId > 0) 
+																{
+																	if (GetImageExistEx(g.importermenuimageoffset + 50)) 
+																	{
 																		float TooltipImageSize = 320.0f;
 																		float ImgX = ImageWidth(g.importermenuimageoffset + 50);
 																		float ImgY = ImageHeight(g.importermenuimageoffset + 50);
@@ -15631,21 +15873,21 @@ void process_entity_library(void)
 																		//char hchar[MAX_PATH];
 																		//ImGui::Text("%s", hchar);
 																		ImGui::EndTooltip();
-
 																	}
 																	else
 																		ImGui::SetTooltip("%s", sFinal.c_str());
 																}
 															}
-															else {
+															else 
+															{
 																//Generate Thumbnail of object.
 																std::string sFpeName = path_for_filename.c_str();
 																sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 																t.addentityfile_s = sFpeName.c_str();
 
-																#ifdef WICKEDENGINE
 																CreateBackBufferCacheName(t.addentityfile_s.Get(), 512, 512);
 																BackBufferSaveCacheName = BackBufferCacheName;
+																GG_SetWritablesToRoot(true);
 																if (FileExist(BackBufferCacheName.Get()))
 																{
 																	SetMipmapNum(1); //PE: mipmaps not needed.
@@ -15655,13 +15897,13 @@ void process_entity_library(void)
 																	LoadImage((char *)BackBufferCacheName.Get(), g.importermenuimageoffset + 50);
 																	image_setlegacyimageloading(false);
 																	SetMipmapNum(-1);
+																	GG_SetWritablesToRoot(false);
 																	iTooltipObjectReady = true;
 																	iTooltipLastObjectId = t.entid;
 																}
 																else
 																{
-																#endif
-
+																	GG_SetWritablesToRoot(false);
 																	t.entdir_s = "entitybank\\";
 																	if (cstr(Lower(Left(t.addentityfile_s.Get(), 11))) == "entitybank\\")
 																	{
@@ -15671,10 +15913,12 @@ void process_entity_library(void)
 																	{
 																		t.entdir_s = "";
 																	}
+																	#ifndef NEWPROJSYSWORKINPROGRESS
 																	if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 																	{
 																		t.entdir_s = "";
 																	}
+																	#endif
 
 																	t.talreadyloaded = 0;
 																	for (t.t = 1; t.t <= g.entidmaster; t.t++)
@@ -15683,7 +15927,6 @@ void process_entity_library(void)
 																	}
 																	if (t.talreadyloaded == 0)
 																	{
-
 																		//  Allocate one more entity item in array
 																		if (g.entidmaster > g.entitybankmax - 4)
 																		{
@@ -15699,7 +15942,8 @@ void process_entity_library(void)
 																		++g.entidmaster; entity_validatearraysize();
 																		t.entitybank_s[g.entidmaster] = t.addentityfile_s;
 
-																		if (ObjectExist(g.entitybankoffset + g.entidmaster)) {
+																		if (ObjectExist(g.entitybankoffset + g.entidmaster)) 
+																		{
 																			DeleteObject(g.entitybankoffset + g.entidmaster);
 																		}
 
@@ -15733,18 +15977,12 @@ void process_entity_library(void)
 																	iTooltipLastObjectId = t.entid;
 																	iTooltipAlreadyLoaded = t.talreadyloaded;
 																	iTooltipObjectReady = true;
-#ifdef WICKEDENGINE
 																	BackBufferObjectID = g.entitybankoffset + t.entid;
 																	BackBufferImageID = g.importermenuimageoffset + 50;
 																	BackBufferSizeX = 512;
 																	BackBufferSizeY = 512;
 																	BackBufferSaveCacheName = ""; //Dont save for now.
-#else
-																	iLaunchAfterSync = 30; //Generate the thumb.
-#endif
-#ifdef WICKEDENGINE
 																}
-#endif
 															}
 														}
 													}
@@ -16337,12 +16575,14 @@ bool DoTreeNodeSearch(int parentid, char *lookup)
 	return(0);
 }
 
+bool bDisplayProjectMedia = false;
 bool bDisplayFavorite = false;
 
 void process_gotopurchaedandrefreshtopurchases ( void )
 {
 	seleted_tree_item = -1;
 	strcpy(cSearchAllEntities[0], "Purchased");
+	bDisplayProjectMedia = false;
 	bDisplayFavorite = false;
 	bViewAllFolders = false;
 	bViewShowcase = false;
@@ -17021,6 +17261,28 @@ void process_entity_library_v2(void)
 					ImGui::Indent(-10);
 				}
 
+				ImGui::Indent(10);
+				if (ImGui::StyleButton("LOD Generator Lite", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
+				{
+					//PE: Startup Lod Generator Lite.
+					std::string LODFile = "entitybank\\";
+					LODFile = LODFile + t.entitybank_s[BackBufferEntityID].Get();
+					char pDestinationFile[10240];
+					strcpy(pDestinationFile, LODFile.c_str());
+					GG_GetRealPath(pDestinationFile, 0);
+					char pOldDir[MAX_PATH];
+					strcpy(pOldDir, GetDir());
+					SetDir("..");
+					SetDir("Tools\\");
+					SetDir("Lod Generator Lite");
+					std::string params = "\"";
+					params = params + pDestinationFile;
+					params = params + "\"";
+					HINSTANCE hinstance = ShellExecuteA(NULL, "open", "LODGeneratorLite.exe", params.c_str(), "", SW_SHOWDEFAULT);
+					SetDir(pOldDir);
+				}
+				ImGui::Indent(-10);
+
 				if (ObjectExist(BackBufferObjectID) && GetNumberOfFrames(BackBufferObjectID) > 0 && t.entityprofile[BackBufferEntityID].animmax > 0)
 				{
 					//PE: Make sure we set anim speed. we only use parent object in this system.
@@ -17294,11 +17556,13 @@ void process_entity_library_v2(void)
 						bool bGetOut = false;
 
 						// delete old thumb image and give chance for new one to be saved (g_bThumbBankCopyMode)
+						GG_SetWritablesToRoot(true);
 						if (FileExist(BackBufferCacheName.Get()))
 						{
 							DeleteAFile(BackBufferCacheName.Get());
 							g_bThumbBankCopyMode = false;
 						}
+						GG_SetWritablesToRoot(false);
 
 						cFolderItem *pDontRefreshFolder = NULL;
 						cFolderItem::sFolderFiles * updatefiles = NULL;
@@ -17450,6 +17714,7 @@ void process_entity_library_v2(void)
 							}
 						}
 
+						bDisplayProjectMedia = false;
 						bDisplayFavorite = false;
 						bViewAllFolders = false;
 						bViewShowcase = false;
@@ -18280,9 +18545,13 @@ void process_entity_library_v2(void)
 		{
 			bViewAllFolders = false;
 			bDisplayFavorite = false;
+			bDisplayProjectMedia = false;
 		}
 		if (bViewAllFolders)
+		{
 			bDisplayFavorite = false;
+			bDisplayProjectMedia = false;
+		}
 
 		if (ImGui::Selectable("View All", bViewAllFolders) || bSelectLibraryViewAll )
 		{
@@ -18295,6 +18564,7 @@ void process_entity_library_v2(void)
 			bCheckboxFilters[2] = true;
 			bCheckboxFilters[3] = true;
 			bCheckboxFilters[4] = true;
+			bDisplayProjectMedia = false;
 			bDisplayFavorite = false;
 			bViewShowcase = false;
 			bViewPurchased = false;
@@ -18312,20 +18582,6 @@ void process_entity_library_v2(void)
 			}
 			else
 			{
-				/* removed showcase that had a folder full of duplicates! May return as a better system with no file duplication.
-				if (stricmp(cSearchAllEntities[0], "Showcase") != 0) bViewShowcase = false;
-				if (ImGui::Selectable("Showcase", &bViewShowcase, 0))
-				{
-					seleted_tree_item = -1;
-					strcpy(cSearchAllEntities[0], "Showcase");
-					bDisplayFavorite = false;
-					bViewAllFolders = false;
-					bViewShowcase = true;
-					bViewPurchased = false;
-					bUpdateSearchSorting = true;
-					bUpdateSearchScrollbar = true;
-				}
-				*/
 				if (stricmp(cSearchAllEntities[0], "Purchased") != 0) bViewPurchased = false;
 				if (ImGui::Selectable("Purchased", &bViewPurchased, 0))
 				{
@@ -18348,22 +18604,33 @@ void process_entity_library_v2(void)
 			}
 		}
 
-		bool bProjectMediaSelected = strstr(cSearchAllEntities[0], "project");
-		if (ImGui::Selectable("Project Media##projectmedia", &bProjectMediaSelected, 0))
+		// only show project media if in a remote project now
+		extern StoryboardStruct Storyboard;
+		if ( strlen(Storyboard.customprojectfolder) > 0 )
 		{
-			seleted_tree_item = -1;
-			strcpy(cSearchAllEntities[0], "projectbank");
-			bDisplayFavorite = false;
-			bViewAllFolders = false;
-			bViewShowcase = false;
-			bUpdateSearchSorting = true;
-			bUpdateSearchScrollbar = true;
+			bool bProjectMediaSelected = strstr(cSearchAllEntities[0], "project");
+			#ifdef NEWPROJSYSWORKINPROGRESS
+			if (ImGui::Selectable("Current Project##projectmedia", &bProjectMediaSelected, 0))
+			#else
+			if (ImGui::Selectable("Project Media##projectmedia", &bProjectMediaSelected, 0))
+			#endif
+			{
+				seleted_tree_item = -1;
+				strcpy(cSearchAllEntities[0], "");
+				bDisplayProjectMedia = true;
+				bDisplayFavorite = false;
+				bViewAllFolders = false;
+				bViewShowcase = false;
+				bUpdateSearchSorting = true;
+				bUpdateSearchScrollbar = true;
+			}
 		}
 
 		if (ImGui::Selectable("Favorites##favourites", &bDisplayFavorite, 0))
 		{
 			seleted_tree_item = -1;
 			strcpy(cSearchAllEntities[0], "");
+			bDisplayProjectMedia = false;
 			bDisplayFavorite = true;
 			bViewAllFolders = false;
 			bViewShowcase = false;
@@ -18538,8 +18805,6 @@ void process_entity_library_v2(void)
 							{
 								if (i == 0 && bCheckboxFilters[0]) //"showcase"
 								{
-									//if (pestrcasestr(find, "showcase"))
-									//	bDisplayEverythingHere = true;
 									if (pestrcasestr(find, "hud assets"))
 										bDisplayEverythingHere = true;
 								}
@@ -18743,19 +19008,7 @@ void process_entity_library_v2(void)
 									cstr test = pNewFolder->m_sFolderFullPath + "\\" + myfiles->m_sName;
 									if (pestrcasestr(test.Get(), sGotoPreviewWithFile.Get()))
 									{
-										// ZJ: Following importer feedback, user folder should be displayed in the object library...
-										// ...instead of just searching for the imported object.
-										////Found it.
-										//sStartLibrarySearchString = myfiles->m_sName;
-										//if(sStartLibrarySearchString.Len() > 4)
-										//	sStartLibrarySearchString = Left(sStartLibrarySearchString.Get(), sStartLibrarySearchString.Len() - 4);
-										//std::string sString = sStartLibrarySearchString.Get();
-										//replaceAll(sString, "_", " ");
-										//replaceAll(sString, "-", " ");
-										//sStartLibrarySearchString = sString.c_str();
-
 										sStartLibrarySearchString = "user";
-
 										iLastDisplayLibraryType = -1;
 										//Refresh with new search.
 										//Load dbo and display large preview.
@@ -18796,6 +19049,20 @@ void process_entity_library_v2(void)
 								if (bDisplayFavorite && !myfiles->bFavorite)
 								{
 									bIsVisible = false;
+								}
+
+								if (bDisplayProjectMedia == true)
+								{
+									// if not in project folder, hide
+									char pFindProjectEntityFolder[MAX_PATH];
+									extern StoryboardStruct Storyboard;
+									strcpy(pFindProjectEntityFolder, Storyboard.customprojectfolder);
+									strcat(pFindProjectEntityFolder, Storyboard.gamename);
+									LPSTR pFileFolderToCheck = pNewFolder->m_sFolderFullPath.Get();
+									if (strnicmp(pFileFolderToCheck, pFindProjectEntityFolder, strlen(pFindProjectEntityFolder)) != NULL)
+									{
+										bIsVisible = false;
+									}
 								}
 
 								uniqueId++;
@@ -19419,13 +19686,15 @@ void process_entity_library_v2(void)
 										{
 											//PE: Changed to support subfolders.
 											sFpeName = "";
-											if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sFpeName = "particlesbank\\";
+											//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+											sFpeName = "particlesbank\\";
 											sFpeName = sFpeName + path_for_filename.c_str();
 											sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 											replaceAll(sFpeName, "\\\\", "\\");
 											t.addentityfile_s = sFpeName.c_str();
 										}
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+										GG_SetWritablesToRoot(true);
 										image_setlegacyimageloading(true);
 										if (FileExist(BackBufferCacheName.Get()))
 										{
@@ -19439,9 +19708,11 @@ void process_entity_library_v2(void)
 												//PE: Mark as ok in new format.
 												myfiles->iBigPreview = iDefaultTexture;
 											}
+											GG_SetWritablesToRoot(false);
 										}
 										else 
 										{
+											GG_SetWritablesToRoot(false);
 											//PE: Try to make a thumb here.
 											if (iDisplayLibraryType == 3)
 											{
@@ -19461,12 +19732,12 @@ void process_entity_library_v2(void)
 
 														std::string sVideoName = myfiles->m_sPath.Get();
 														sVideoName = sVideoName + "\\" + myfiles->m_sName.Get();
-
 														if (iVideoGetFirstFrame == 0)
 														{
-
-															if (iVideoPreviewThumbID > 0) {
-																if (AnimationExist(iVideoPreviewThumbID)) {
+															if (iVideoPreviewThumbID > 0) 
+															{
+																if (AnimationExist(iVideoPreviewThumbID)) 
+																{
 																	if (AnimationPlaying(iVideoPreviewThumbID))
 																		StopAnimation(iVideoPreviewThumbID);
 																	DeleteAnimation(iVideoPreviewThumbID);
@@ -19831,14 +20102,14 @@ void process_entity_library_v2(void)
 							if (sMakeDefaultSelecting != "")
 							{
 								std::string sMediaName = "";
-								if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
-								{
+								//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+								//{
 									if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
 									if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
 									if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
 									if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
 									if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
-								}
+								//}
 								sMediaName = sMediaName + path_for_filename.c_str();
 								if (path_for_filename.length() == 0)
 									sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -20251,14 +20522,14 @@ void process_entity_library_v2(void)
 									}
 
 									std::string sMediaName = "";
-									if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
-									{
+									//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL)
+									//{
 										if (iDisplayLibraryType == 1) sMediaName = "audiobank\\";
 										if (iDisplayLibraryType == 2) sMediaName = "imagebank\\";
 										if (iDisplayLibraryType == 3) sMediaName = "videobank\\";
 										if (iDisplayLibraryType == 5) sMediaName = "particlesbank\\";
 										if (iDisplayLibraryType == 0 && iDisplayLibrarySubType == 1) sMediaName = "charactercreatorplus\\animations\\";
-									}
+									//}
 									sMediaName = sMediaName + path_for_filename.c_str();
 									if(path_for_filename.length() == 0)
 										sMediaName = sMediaName + myfiles->m_sName.Get();
@@ -20460,7 +20731,8 @@ void process_entity_library_v2(void)
 											DeleteSound(g.temppreviewsoundoffset);
 										}
 										std::string sSoundName = "";
-										if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
+										//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+										sSoundName = "audiobank\\";
 										sSoundName = sSoundName + path_for_filename.c_str();
 										sSoundName = sSoundName + "\\" + myfiles->m_sName.Get();
 										LoadSound((char *) sSoundName.c_str(), g.temppreviewsoundoffset);
@@ -20729,11 +21001,13 @@ void process_entity_library_v2(void)
 										{
 											//Start rotate instant.
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+											GG_SetWritablesToRoot(true);
 											if (FileExist(BackBufferCacheName.Get()) == 0)
 											{
 												// only save new thumb if not exist in root
 												BackBufferSaveCacheName = BackBufferCacheName;
 											}
+											GG_SetWritablesToRoot(false);
 											bDoBackbufferUpdate = true;
 											iTooltipTimer = iTooltipHoveredTimer - 750;
 											iTooltipObjectReady = true;
@@ -20761,11 +21035,13 @@ void process_entity_library_v2(void)
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
 												CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+												GG_SetWritablesToRoot(true);
 												if (FileExist(BackBufferCacheName.Get()) == 0)
 												{
 													// only save new thumb if not exist in root
 													BackBufferSaveCacheName = BackBufferCacheName;
 												}
+												GG_SetWritablesToRoot(false);
 												bDoBackbufferUpdate = true;
 											}
 										}
@@ -20874,10 +21150,12 @@ void process_entity_library_v2(void)
 											sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 											t.addentityfile_s = sFpeName.c_str();
 											CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+											GG_SetWritablesToRoot(true);
 											if (!FileExist(BackBufferCacheName.Get()))
 											{
 												bLoadedInNewFormat = false; //Try it.
 											}
+											GG_SetWritablesToRoot(false);
 										}
 									}
 								}
@@ -20906,11 +21184,13 @@ void process_entity_library_v2(void)
 									if (!bDoBackbufferUpdate && !bLoadedInNewFormat)
 									{
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+										GG_SetWritablesToRoot(true);
 										if (FileExist(BackBufferCacheName.Get()) == 0)
 										{
 											// only save new thumb if not exist in root
 											BackBufferSaveCacheName = BackBufferCacheName;
 										}
+										GG_SetWritablesToRoot(false);
 
 										//PE: Triggered auto.
 										if (myfiles->iBigPreview == 0)
@@ -20952,10 +21232,12 @@ void process_entity_library_v2(void)
 											{
 												t.entdir_s = "";
 											}
+											#ifndef NEWPROJSYSWORKINPROGRESS
 											if (cstr(Lower(Left(t.addentityfile_s.Get(), 12))) == "projectbank\\")
 											{
 												t.entdir_s = "";
 											}
+											#endif
 										}
 
 										t.talreadyloaded = 0;
@@ -20994,10 +21276,12 @@ void process_entity_library_v2(void)
 													{
 														//PE: Drop rotate if we already got the original group thumb.
 														CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+														GG_SetWritablesToRoot(true);
 														if (FileExist(BackBufferCacheName.Get()))
 														{
 															update = false;
 														}
+														GG_SetWritablesToRoot(false);
 													}
 												}
 											}
@@ -21102,10 +21386,12 @@ void process_entity_library_v2(void)
 												{
 													//PE: Drop rotate if we already got the original group thumb.
 													CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
+													GG_SetWritablesToRoot(true);
 													if (FileExist(BackBufferCacheName.Get()))
 													{
 														update = false;
 													}
+													GG_SetWritablesToRoot(false);
 												}
 											}
 											g_bDisplayWarnings = true;
@@ -21523,21 +21809,23 @@ void process_entity_library_v2(void)
 												std::string sFpeName = path_for_filename.c_str();
 												sFpeName = sFpeName + "\\" + myfiles->m_sName.Get();
 												t.addentityfile_s = sFpeName.c_str();
-
-
 												CreateBackBufferCacheNameEx(t.addentityfile_s.Get(), thumb_x, thumb_y, true);
+												GG_SetWritablesToRoot(true);
 												if (FileExist(BackBufferCacheName.Get()))
 												{
 													DeleteAFile(BackBufferCacheName.Get());
 													if (myfiles->iPreview > 0)
 													{
-														if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) { //PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
+														if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) 
+														{ 
+															//PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
 															iDeleteInNextUpdate = myfiles->iPreview;
 														}
 													}
 													myfiles->iPreview = 0;
 													myfiles->iBigPreview = 0;
 												}
+												GG_SetWritablesToRoot(false);
 												ContextSelection = NULL;
 											}
 
@@ -21844,7 +22132,8 @@ void process_entity_library_v2(void)
 						std::string sSoundName = "";
 						if (iDisplayLibraryType == 1)
 						{
-							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sSoundName = "audiobank\\";
+							//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+							sSoundName = "audiobank\\";
 						}
 						sSoundName = sSoundName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
@@ -21940,7 +22229,8 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sImageName = "";
-						if(strnicmp(final_name,"projectbank",11)!=NULL) sImageName = "imagebank\\";
+						//if(strnicmp(final_name,"projectbank",11)!=NULL) 
+						sImageName = "imagebank\\";
 						sImageName = sImageName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sImageName = sImageName + selectedmediafile->m_sName.Get();
@@ -22039,7 +22329,8 @@ void process_entity_library_v2(void)
 						std::string sVideoName = "";
 						if (iDisplayLibraryType == 3)
 						{
-							if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sVideoName = "videobank\\";
+							//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+							sVideoName = "videobank\\";
 						}
 						sVideoName = sVideoName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
@@ -22298,7 +22589,8 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sScriptName = "";
-						if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) sScriptName = "particlesbank\\";
+						//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
+						sScriptName = "particlesbank\\";
 						sScriptName = sScriptName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
 							sScriptName = sScriptName + selectedmediafile->m_sName.Get();
@@ -23998,7 +24290,9 @@ bool SaveGroup(int iGroupID, LPSTR pObjectSavedFilename)
 			{
 				cstr fname = (find + 11);
 				CreateBackBufferCacheNameEx(fname.Get(), 512, 288, true);
+				GG_SetWritablesToRoot(true);
 				SaveImage(BackBufferCacheName.Get(), iEntityGroupListImage[current_selected_group]);
+				GG_SetWritablesToRoot(false);
 			}
 		}
 	}
@@ -25073,10 +25367,11 @@ void DisplayFPEPhysics(bool readonly, int entid, entityeleproftype *edit_gridele
 				ImGui::SetTooltip("%s", newtext.c_str());
 			}
 
-			//t.grideleprof.explodedamage = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.explodedamage), t.strarr_s[594].Get(), t.strarr_s[595].Get()));
+			// Explosion Properties
 			ImGui::TextCenter("Explosion Damage");
-			desc = t.strarr_s[595];
-			ImGui::MaxSliderInputInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 1000, desc.Get());
+			ImGui::MaxSliderInputInt("##damagephysics", &edit_grideleprof->explodedamage, 0, 1000, t.strarr_s[595].Get());
+			ImGui::TextCenter("Explosion Height");
+			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
 		}
 
 		ImGui::PopItemWidth();
@@ -25306,7 +25601,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				script_name_append += edit_grideleprof->aimain_s;
 
 			cstr script_name = "";
-			if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(script_name_append.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += script_name_append;
 
 			#ifdef USENEWMEDIASELECTWINDOWS
@@ -25501,7 +25797,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		{
 			//Load in lua and check for custom properties.
 			cstr script_name = "";
-			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			fpe_current_loaded_script = 9999;
@@ -26432,6 +26729,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				CreateBackBufferCacheName(img.Get(), 512, 288);
 				SetMipmapNum(1); //PE: mipmaps not needed.
 				image_setlegacyimageloading(true);
+				GG_SetWritablesToRoot(true);
 				if (FileExist(BackBufferCacheName.Get()))
 				{
 					LoadImage((char *)BackBufferCacheName.Get(), Predefined_Particle_Image[i]);
@@ -26446,6 +26744,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				}
 				image_setlegacyimageloading(false);
 				SetMipmapNum(-1);
+				GG_SetWritablesToRoot(false);
 			}
 
 			iPredefinedParticles = iPredefinedParticleSetups;
@@ -26502,6 +26801,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					img = img + cstr(".arx");
 
 					CreateBackBufferCacheName(img.Get(), 512, 288);
+					GG_SetWritablesToRoot(true);
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					image_setlegacyimageloading(true);
 					if (FileExist(BackBufferCacheName.Get()))
@@ -26518,6 +26818,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 					}
 					image_setlegacyimageloading(false);
 					SetMipmapNum(-1);
+					GG_SetWritablesToRoot(false);
 
 					iPredefinedParticles++;
 				}
@@ -27000,7 +27301,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		{
 			//Load in lua and check for custom properties.
 			cstr script_name = "";
-			if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+			//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+			script_name = "scriptbank\\";
 			script_name += edit_grideleprof->aimain_s;
 
 			//Try to parse script.
@@ -27385,7 +27687,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				else
 					script_name_appendage += edit_grideleprof->aimain_s;
 				cstr script_name = "";
-				if (strnicmp(script_name_appendage.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				//if (strnicmp(script_name_appendage.Get(), "projectbank", 11) != NULL) 
+				script_name = "scriptbank\\";
 				script_name += script_name_appendage;
 
 				#ifdef USENEWMEDIASELECTWINDOWS
@@ -27581,7 +27884,8 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				{
 					//Load in lua and check for custom properties.
 					cstr script_name = "";
-					if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+					//if (strnicmp(edit_grideleprof->aimain_s.Get(), "projectbank", 11) != NULL) 
+					script_name = "scriptbank\\";
 					script_name += edit_grideleprof->aimain_s;
 
 					#ifdef USENEWMEDIASELECTWINDOWS
@@ -27771,6 +28075,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 						bool CreateBackBufferCacheName(char *file, int width, int height);
 						extern cstr BackBufferCacheName;
 						CreateBackBufferCacheName((char *)stmp.c_str(), 512, 288);
+						GG_SetWritablesToRoot(true);
 						SetMipmapNum(1); //PE: mipmaps not needed.
 						image_setlegacyimageloading(true);
 						if (FileExist(BackBufferCacheName.Get()))
@@ -27779,6 +28084,7 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 						}
 						image_setlegacyimageloading(false);
 						SetMipmapNum(-1);
+						GG_SetWritablesToRoot(false);
 						if (!GetImageExistEx(VIDEOFILEID))
 						{
 							videofile_preview_id = 0;
@@ -27844,35 +28150,6 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			}
 		}
 	}
-
-	// particle file moved here for WICKED
-	#ifdef WICKEDENGINE
-	#ifndef USENEWPARTICLESETUP
-	if (t.entityprofile[entid].ismarker == 10)
-	{
-		cstr newfile_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->newparticle.emittername.Get(), "Particle File", "Select a particle file (this is temporary and not the final design)", "particlesbank\\",readonly);
-		if (strnicmp(newfile_s.Get() + strlen(newfile_s.Get()) - 4, ".arx", 4) == NULL) newfile_s = Left(newfile_s.Get(), Len(newfile_s.Get()) - 4);
-		if (newfile_s != edit_grideleprof->newparticle.emittername)
-		{
-			edit_grideleprof->newparticle.emittername = newfile_s;
-			if (edit_grideleprof->newparticle.emitterid != -1)
-			{
-				gpup_deleteEffect(edit_grideleprof->newparticle.emitterid);
-				edit_grideleprof->newparticle.emitterid = -1;
-			}
-			//PE: Activate instantly.
-			if (elementID > 0)
-			{
-				t.entityelement[elementID].eleprof.newparticle.emittername = edit_grideleprof->newparticle.emittername;
-				t.entityelement[elementID].eleprof.newparticle.emitterid = -1;
-				entity_updateparticleemitter(elementID);
-				edit_grideleprof->newparticle.emitterid = t.entityelement[elementID].eleprof.newparticle.emitterid;
-			}
-		}
-	}
-	#endif
-	#endif
-
 	if (readonly)
 	{
 		ImGui::PopItemFlag();
@@ -28410,23 +28687,16 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 	// if not static, we may explode it
 	if (t.entityelement[elementID].staticflag == 0)
 	{
-		//actually, you need to be able to blow up turrets!!
-		//if (t.entityprofile[entid].isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		//if (t.entityelement[elementID].eleprof.isimmobile == 1 && t.entityprofile[entid].ischaracter == 0)
-		//{
-			// special case cannot blow up things like collectables, ammo, weapons, etc
-		//}
-		//else
-		//{
-			ImGui::Indent(10);
-			edit_grideleprof->explodable = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->explodable), "Explodable", "If set this object will explode when destroyed", 0, readonly);
-			if (edit_grideleprof->explodable != 0)
-			{
-				ImGui::TextCenter("Explosion Damage");
-				ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
-			}
-			ImGui::Indent(-10);
-		//}
+		ImGui::Indent(10);
+		edit_grideleprof->explodable = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->explodable), "Explodable", "If set this object will explode when destroyed", 0, readonly);
+		if (edit_grideleprof->explodable != 0)
+		{
+			ImGui::TextCenter("Explosion Damage");
+			ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
+			ImGui::TextCenter("Explosion Height");
+			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
+		}
+		ImGui::Indent(-10);
 	}
 
 	// Moved Always Active to general properties
@@ -28554,8 +28824,8 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 
 		t.group = 1;
 		//if (ImGui::StyleCollapsingHeader(t.strarr_s[415].Get(), ImGuiTreeNodeFlags_DefaultOpen))
-		if (t.entityprofile[entid].lives == 0)
-			ImGui::TextCenter(t.strarr_s[415].Get());
+		//if (t.entityprofile[entid].lives == 0)
+		ImGui::TextCenter(t.strarr_s[415].Get());
 		{
 			//  Basic AI
 			if (t.tflagai == 1)
@@ -28586,7 +28856,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			}
 			
 			// Has Weapon
-			if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2 && edit_grideleprof->lives == 0)
+			if (t.tflaghasweapon == 1 && t.playercontrol.thirdperson.enabled == 0 && g.quickparentalcontrolmode != 2 )//&& edit_grideleprof->lives == 0)
 			{
 				edit_grideleprof->hasweapon_s = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->hasweapon_s.Get(), t.strarr_s[419].Get(), t.strarr_s[209].Get(), 1,readonly, true, true, true, 0);
 			}
@@ -28638,7 +28908,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 					edit_grideleprof->rateoffire = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->rateoffire), t.strarr_s[431].Get(), t.strarr_s[221].Get(),readonly));
 				}
 			}
-			if (t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 && edit_grideleprof->lives == 0)
+			if (t.tflagquantity == 1 && g.quickparentalcontrolmode != 2 )//&& edit_grideleprof->lives == 0)
 			{
 				edit_grideleprof->quantity = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->quantity), t.strarr_s[432].Get(), t.strarr_s[222].Get(),readonly));
 			}
@@ -28712,18 +28982,35 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			t.group = 1;
 			ImGui::TextCenter(t.strarr_s[451].Get());
 			{
-				#ifdef PRODUCTV3
-				#else
-				//if (t.tflaglives == 1)
-				//{
-				//	edit_grideleprof->lives = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->lives), t.strarr_s[452].Get(), t.strarr_s[242].Get(),readonly));
-				//}
+				if (t.tflaglives == 1)
+				{
+					// see if this level has any checkpoints to stave off lives logic
+					bool bUsingCheckpoint = false;
+					for ( int e = 1; e <= g.entityelementlist; e++)
+					{
+						int entid = t.entityelement[e].bankindex;
+						if (t.entityprofile[entid].ismarker == 6)
+						{
+							bUsingCheckpoint = true;
+							break;
+						}
+					}
+					if (bUsingCheckpoint==true)
+					{
+						ImGui::TextCenter("Lives");
+						ImGui::TextCenter("NOTE: Checkpoint detected, infinite retries");
+						edit_grideleprof->lives = 0;
+					}
+					else
+					{
+						edit_grideleprof->lives = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->lives), t.strarr_s[452].Get(), "Specifies how many lives the player starts with. Enter zero for infinite lives.", readonly));
+					}
+				}
 				if (t.tflagvis == 1 || t.tflagstats == 1)
 				{
 					if (t.tflaglives == 1)
 					{
-						if(edit_grideleprof->lives == 0) // Dont display for player start marker, already there.
-							edit_grideleprof->strength = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->strength), t.strarr_s[453].Get(), t.strarr_s[243].Get(),readonly));
+						edit_grideleprof->strength = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->strength), t.strarr_s[453].Get(), t.strarr_s[243].Get(),readonly));
 					}
 					else
 					{
@@ -28738,7 +29025,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						{
 							edit_grideleprof->isviolent = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0,readonly);
 						}
-						if (t.tflagnotionofhealth == 1 && edit_grideleprof->lives == 0)
+						if (t.tflagnotionofhealth == 1 )//&& edit_grideleprof->lives == 0)
 						{
 							t.playercontrol.regenrate = atol(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.regenrate), "Regeneration Rate", "Sets the increase value at which the players health will restore",readonly));
 							t.playercontrol.regenspeed = atol(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.regenspeed), "Regeneration Speed", "Sets the speed in milliseconds at which the players health will regenerate",readonly));
@@ -28747,8 +29034,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						edit_grideleprof->usespotlighting = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->usespotlighting), "Flashlight Disabled", "Sets whether the flashlight is disabled for the player", 0, readonly);
 					}
 
-					if(edit_grideleprof->lives == 0)
-						edit_grideleprof->speed = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->speed), t.strarr_s[455].Get(), t.strarr_s[245].Get(),readonly));
+					edit_grideleprof->speed = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->speed), t.strarr_s[455].Get(), t.strarr_s[245].Get(),readonly));
 					if (t.playercontrol.thirdperson.enabled == 1)
 					{
 						t.tanimspeed_f = t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
@@ -28772,7 +29058,6 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				{
 					edit_grideleprof->hurtfall = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->hurtfall), t.strarr_s[456].Get(), t.strarr_s[246].Get(),readonly));
 				}
-				#endif
 				if (t.tflagplayersettings == 1)
 				{
 					t.playercontrol.jumpmax_f = atof(imgui_setpropertystring2_v2(t.group, Str(t.playercontrol.jumpmax_f), "Jump Speed", "Sets the jump speed of the player which controls overall jump height",readonly));
@@ -28802,15 +29087,7 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 			}
 		}
 
-		//  Team field
-		#ifdef PHOTONMP
-		#else
-		if (t.tflagteamfield == 1)
-		{
-			// setpropertylist3(t.group, t.controlindex, Str(edit_grideleprof->teamfield), "Team", "Specifies any team affiliation for multiplayer start marker", 0); ++t.controlindex;
-		}
-		#endif
-
+		// physics for FPE
 		DisplayFPEPhysics(false, entid, edit_grideleprof);
 
 		//  Ammo data (FPGC - 280809 - filtered fpgcgenre=1 is shooter genre
@@ -31911,6 +32188,7 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 				//PE: Skip cached thumbs for now.
 				CreateBackBufferCacheName(g_LibraryFileList[n].cFile.Get(), iThumbWidth, iThumbHeight);
 				g_LibraryFileList[n].iImage = 0;
+				GG_SetWritablesToRoot(true);
 				if (1==2 && FileExist(BackBufferCacheName.Get()))
 				{
 					SetMipmapNum(1); //PE: mipmaps not needed.
@@ -31929,7 +32207,6 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					image_setlegacyimageloading(true);
 					//Create thumb.
-					//LoadImage((char *)g_LibraryFileList[n].cFile.Get(), uniqueId + n, 0, 8192); //Test
 					LoadImageSize((char *)g_LibraryFileList[n].cFile.Get(), uniqueId + n, iThumbWidth, iThumbHeight);
 					if (1==2 && ImageExist(uniqueId + n))
 					{
@@ -31948,6 +32225,7 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 					image_setlegacyimageloading(false);
 					SetMipmapNum(-1);
 				}
+				GG_SetWritablesToRoot(false);
 				BackBufferCacheName = "";
 			}
 		}
@@ -32819,9 +33097,28 @@ void GetProjectSortData (std::vector<ProjectSortData>& output)
 				wchar_t filePath[MAX_PATH];
 				MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
 
-				HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL,
-					OPEN_EXISTING, 0, NULL);
-
+				HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					strcpy(project, destination);
+					strcat(project, folder.Get());
+					strcat(project, "\\remoteproject.txt");
+					if(GG_FileExists(project))
+					{
+						char pAbsTrueProjectPath[MAX_PATH];
+						OpenToRead(1, project);
+						strcpy(pAbsTrueProjectPath, ReadString(1));
+						CloseFile(1);
+						GG_GetRealPath(pAbsTrueProjectPath, 0);
+						strcpy(project, pAbsTrueProjectPath);
+						strcat(project, folder.Get());
+						strcat(project, "\\Files\\projectbank\\");
+						strcat(project, folder.Get());
+						strcat(project, "\\project.dat");
+						MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
+						hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+					}
+				}
 				if (hFile != INVALID_HANDLE_VALUE)
 				{
 					// Get the last write time for this file.
@@ -32866,15 +33163,6 @@ void SortProjects(int iProjectSortMode)
 
 	std::vector<ProjectSortData> sortData;
 	GetProjectSortData(sortData);
-
-	//// Attach image IDs to the project data so its new order can be determined.
-	//for (int i = 0; i < sortData.size(); i++)
-	//{
-	//	//sortData[i].imageID = projectbank_imageid[i];
-	//	//sortData[i].imageName = projectbank_image[i];
-	//}
-	//projectbank_imageid.clear();
-	//projectbank_image.clear();
 	
 	// Perform the sort.
 	switch (iProjectSortMode)
@@ -32905,7 +33193,6 @@ void SortProjects(int iProjectSortMode)
 
 	// Set the new order of project names.
 	projectbank_list.clear();
-	//projectbank_list_exist.clear();
 	for (int i = 0; i < sortData.size(); i++)
 	{
 		projectbank_list.push_back(sortData[i].folderName);
@@ -32925,12 +33212,30 @@ void GetProjectThumbnails()
 			char project[MAX_PATH];
 			strcpy(project, "projectbank\\");
 			strcat(project, projectbank_list[i].c_str());
+			strcat(project, "\\remoteproject.txt");
+			FILE* projectfile = NULL;
+			if (GG_FileExists(project))
+			{
+				// this project is a remote project
+				char pAbsTrueProjectPath[MAX_PATH];
+				OpenToRead(1, project);
+				strcpy(pAbsTrueProjectPath, ReadString(1));
+				CloseFile(1);
+				GG_GetRealPath(pAbsTrueProjectPath, 0);
+				strcpy(project, pAbsTrueProjectPath);
+				strcat(project, projectbank_list[i].c_str());
+				strcat(project, "\\Files\\projectbank\\");
+			}
+			else
+			{
+				// regular projectbank project
+				strcpy(project, "projectbank\\");
+			}
+			strcat(project, projectbank_list[i].c_str());
 			strcat(project, "\\project.dat");
-
-			FILE* projectfile = GG_fopen(project, "rb");
+			projectfile = GG_fopen(project, "rb");
 			if (projectfile)
 			{
-				//size_t size = fread(&smallcheckproject, 1, sizeof(smallcheckproject), projectfile);
 				//PE: Need full load now, as we can have Game Settings.
 				size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 
@@ -33936,7 +34241,7 @@ void Welcome_Screen(void)
 					float colwidth = ImGui::GetContentRegionAvailWidth(); //padding.
 					float fRatio = colwidth / 512.0f;
 					ImVec2 iThumbSize = { (float)512.0*fRatio, (float)288.0*fRatio };
-					int iCount = projectbank_list.size();
+					int iCount = projectbank_list.size() + 1;
 					if (iCount < 9) iCount = 9; //PE: Always display min. 9 empty slots.
 					for (int i = 0; i < iCount; i++)
 					{
@@ -35636,38 +35941,16 @@ void Welcome_Screen(void)
 			//###########################################################
 			//#### SWAP TOOL_GOBACK was here "Exit GameGuru MAX Hub" ####
 			//###########################################################
-
-#ifdef USEWELCOMESCREEN
 			if (projectbank_list.size() > 0)
 			{
-				/*
 				bool bTmp = 1 - pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Tick to skip welcome screen and start editing the last edited game project and level").x + 20.0f;
+				float fTextWidth = ImGui::CalcTextSize("Tick to skip GameGuru MAX Hub and continue editing the last game project").x + 20.0f;
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Tick to skip welcome screen and start editing the last edited game project and level", &bTmp))
+				if (ImGui::Checkbox("Tick to skip GameGuru MAX Hub and continue editing the last game project", &bTmp))
 				{
 					pref.iDisplayWelcomeScreen = 1 - bTmp;
 				}
-				*/
-				//PE: From Rick Hover - "Tick this to skip the Welcome Screen to start editing your current game project" , But its the same text as above so...
-
-				//PE: Hub
-				bool bTmp = 1 - pref.iDisplayWelcomeScreen;
-				float fTextWidth = ImGui::CalcTextSize("Tick to skip GameGuru MAX Hub and start editing the last edited game project and level").x + 20.0f;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(((ImGui::GetContentRegionAvailWidth() - 10.0) * 0.5) - (fTextWidth * 0.5), 0));
-				if (ImGui::Checkbox("Tick to skip GameGuru MAX Hub and start editing the last edited game project and level", &bTmp))
-				{
-					pref.iDisplayWelcomeScreen = 1 - bTmp;
-				}
-
 			}
-			//bool bTmp = pref.iDisplayWelcomeScreen;
-			//if (ImGui::Checkbox("Untick to skip welcome screen in future", &bTmp))
-			//{
-			//	pref.iDisplayWelcomeScreen = bTmp;
-			//}
-#endif
-
 
 			ImGui::SetWindowFontScale(1.0);
 			ImGui::Columns(1);
@@ -38687,46 +38970,6 @@ void CheckWindowsOnTop(ImGuiWindow* storyboard_window)
 		}
 	}
 
-	/*
-	if (bTriggerOpenProject)
-	{
-		ImGuiWindow* win = ImGui::FindWindowByName("Open Project##Storyboard");
-		if (win)
-		{
-			int settings_idx = ImGui_GetWindowOrder(win);
-			if (settings_idx < storyboard_idx)
-			{
-				//Focus settings
-				strcpy(cNextWindowFocus, "Open Project##Storyboard");
-				iSkibFramesBeforeLaunch = 2;
-				iZOrderIsSorting = iSkibFramesBeforeLaunch + 2;
-				iLaunchAfterSync = 81; //Delayed window focus.
-			}
-			secondscreen_idx = settings_idx;
-		}
-	}
-	*/
-
-	#ifdef RPG_GAMES
-	if (bRPGSetup_Window)
-	{
-		ImGuiWindow* win = ImGui::FindWindowByName("RPG setup##MustBeUnique");
-		if (win)
-		{
-			int settings_idx = ImGui_GetWindowOrder(win);
-			if (settings_idx < storyboard_idx)
-			{
-				//Focus settings
-				strcpy(cNextWindowFocus, "RPG setup##MustBeUnique");
-				iSkibFramesBeforeLaunch = 2;
-				iZOrderIsSorting = iSkibFramesBeforeLaunch + 2;
-				iLaunchAfterSync = 81; //Delayed window focus.
-			}
-			secondscreen_idx = settings_idx;
-		}
-	}
-	#endif
-
 	if (bPreferences_Window)
 	{
 		ImGuiWindow* win = ImGui::FindWindowByName("Settings");
@@ -39085,6 +39328,7 @@ void process_storeboard(bool bInitOnly)
 				if (iWaitFor2DEditor == 1)
 				{
 					//Closed.
+					GG_SetWritablesToRoot(true);
 					if (FileExist("thumbbank\\lastnewlevel.jpg"))
 					{
 						image_setlegacyimageloading(true);
@@ -39123,6 +39367,8 @@ void process_storeboard(bool bInitOnly)
 							}
 						}
 					}
+					GG_SetWritablesToRoot(false);
+
 					//Close down.
 					iWaitFor2DEditor = 0;
 					iWaitFor2DEditorNode = -1;
@@ -39155,6 +39401,7 @@ void process_storeboard(bool bInitOnly)
 						{
 							//Closed, check created screenshot.
 							bGotAThumb = false;
+							GG_SetWritablesToRoot(true);
 							if (FileExist("thumbbank\\lastnewlevel.jpg"))
 							{
 								image_setlegacyimageloading(true);
@@ -39164,6 +39411,7 @@ void process_storeboard(bool bInitOnly)
 								if (ImageExist(STORYBOARD_THUMBS + 401))
 									bGotAThumb = true;
 							}
+							GG_SetWritablesToRoot(false);
 
 							if(!bGotAThumb)
 							{
@@ -39217,10 +39465,12 @@ void process_storeboard(bool bInitOnly)
 								if (bPopModalTakeMapSnapshot == true)
 								{
 									// Load into map snapshot image then save alongside mapbank FPM level file
+									GG_SetWritablesToRoot(true);
 									int iMapImageID = Storyboard.Nodes[iScreenshotNode].thumb_id;
 									image_setlegacyimageloading(true);
 									LoadImageSize("thumbbank\\lastnewlevel.jpg", iMapImageID, 2048, 2048);
 									image_setlegacyimageloading(false);
+									GG_SetWritablesToRoot(false);
 									if (ImageExist(iMapImageID)==1)
 									{
 										// filename to save map image alongside mapbank FPM file
@@ -39258,9 +39508,11 @@ void process_storeboard(bool bInitOnly)
 								if(bDoScreenshotForThumb==true)
 								{
 									//Load into node slot.
+									GG_SetWritablesToRoot(true);
 									image_setlegacyimageloading(true);
 									LoadImageSize("thumbbank\\lastnewlevel.jpg", Storyboard.Nodes[iScreenshotNode].thumb_id, 512, 288);
 									image_setlegacyimageloading(false);
+									GG_SetWritablesToRoot(false);
 									if (ImageExist(Storyboard.Nodes[iScreenshotNode].thumb_id))
 									{
 										//Save into thumbbank , and save thumb filename in node.
@@ -39695,9 +39947,7 @@ void process_storeboard(bool bInitOnly)
 				ImGui::Indent(-10);
 				ImGui::EndPopup();
 			}
-
 		}
-
 
 		bool bReadyToOpen = false;
 		if (bTriggerOpenProject)
@@ -39733,7 +39983,6 @@ void process_storeboard(bool bInitOnly)
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 			bool bOpenWindow = true;
 			//PE: Somehow cant get this window ontop ?
-			//if (ImGui::BeginPopupModal("Open Project##Storyboard", &bOpenWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 			if (ImGui::BeginPopupModal("Open Project##Storyboard", &bOpenWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
 			{
 				popwinheight = ImGui::GetWindowSize().y;
@@ -39755,7 +40004,11 @@ void process_storeboard(bool bInitOnly)
 				}
 				//Ignore _backup files.
 
+				// when in a remote project, need to rebuild the latest writables based project list
+				GG_SetWritablesToRoot(true);
 				GetProjectList("projectbank\\");
+				GG_SetWritablesToRoot(false);
+
 				static std::string current_project_selected = "";
 				ImVec2 size = { ImGui::GetContentRegionAvailWidth(),0 };
 
@@ -39807,6 +40060,10 @@ void process_storeboard(bool bInitOnly)
 				ImGui::SetWindowFontScale(1.4);
 				if (bTriggerLoad || ImGui::StyleButton("Open Project", ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f)))
 				{
+					// and in case this was a remote project, restore to writables regular
+					extern void switch_to_regular_projects(void);
+					switch_to_regular_projects();
+
 					//Open
 					load_storyboard( (char *) current_project_selected.c_str());
 					iGamePausedNodeID = storyboard_add_missing_nodex(8, preview_size_x, fNodeWidth, fNodeHeight + 20.0, false);
@@ -39853,149 +40110,6 @@ void process_storeboard(bool bInitOnly)
 		}
 
 		int iCreateRet = save_create_storyboard_project();
-		/*
-		if (bTriggerSaveAs)
-		{
-			//Ask to save as.
-
-			ImGui::OpenPopup("Save As#Storyboard");
-			ImGui::SetNextWindowSize(ImVec2(0, 524), ImGuiCond_Once);
-			static int popwinheight = 0;
-			if (popwinheight > 800 || iSkibFramesBeforeLaunch > 0)
-			{
-				ImGui::SetNextWindowSize(ImVec2(0, 524), ImGuiCond_Always);
-			}
-			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-			bool bSaveAsWindow = true;
-			if (ImGui::BeginPopupModal("Save As#Storyboard", &bSaveAsWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
-			{
-				popwinheight = ImGui::GetWindowSize().y;
-				ImGui::Indent(10);
-				ImGui::Text("");
-				ImGui::SetWindowFontScale(1.4);
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::TextCenter("Create New Game Project");
-					ImGui::SetWindowFontScale(1.0);
-					ImGui::Text("");
-				}
-				else
-				{
-					ImGui::TextCenter("Save Game Project As");
-				}
-				ImGui::Separator();
-
-				ImGui::Dummy(ImVec2(460, 1));
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::Text("");
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::Text("Please give your new game project a name and click 'save'");
-				}
-				else
-				{
-					ImGui::Text("To save your game project, please give your project a name and click 'save'");
-				}
-				ImGui::Text("");
-				ImGui::TextWrapped("NOTE: This name will also be used as your standalone game name.");
-				ImGui::Text("");
-				if (strlen(SaveProjectAsError) > 0)
-				{
-					ImGui::Text(SaveProjectAsError);
-					ImGui::Text("");
-				}
-				ImGui::Text("Game Project Name");
-				ImGui::PushItemWidth(-10);
-				if (ImGui::InputText("##SaveAsNameStoryboard", SaveProjectAsName, 250, ImGuiInputTextFlags_None))//ImGuiInputTextFlags_None ImGuiInputTextFlags_ReadOnly
-				{
-					//Clean name.
-					std::string sCleanName = SaveProjectAsName;
-					replaceAll(sCleanName, """", "");
-					replaceAll(sCleanName, "\\", "");
-					replaceAll(sCleanName, "/", "");
-					replaceAll(sCleanName, "^", "");
-					replaceAll(sCleanName, "?", "");
-					replaceAll(sCleanName, "@", "");
-					strcpy(SaveProjectAsName, sCleanName.c_str());
-				}
-				ImGui::PopItemWidth();
-
-				ImGui::Text("");
-
-				ImGui::SetWindowFontScale(1.4);
-
-				bool bClicked = false;
-				if (bTriggerSaveAsAfterNewLevel)
-				{
-					//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2( (ImGui::GetContentRegionAvailWidth()*0.25), 0)); //Center with new header.
-					bClicked = ImGui::StyleButton("Save", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f));
-				}
-				else
-					bClicked = ImGui::StyleButton("Save As", ImVec2(ImGui::GetContentRegionAvail().x*0.5 - 20.0f, 0.0f));
-
-				if(bClicked)
-				{
-					if (strlen(SaveProjectAsName) > 0)
-					{
-						char destination[MAX_PATH];
-						strcpy(destination, "projectbank\\");
-						strcat(destination, SaveProjectAsName);
-						GG_GetRealPath(destination, 1);
-						int bOkSave = true;
-						if (PathExist(destination) == 1)
-						{
-							int iAction = askBoxCancel("Project already exists, do you want to overwrite ?", "Confirmation"); //1==Yes 2=Cancel 0=No
-							if (iAction == 1)
-							{
-								//backup old folder.
-								int i_loop = 1;
-								char backup[MAX_PATH];
-								sprintf(backup, "%s_backup_%d", destination, i_loop++);
-								while (MoveFileA(destination, backup) == 0)
-										sprintf(backup, "%s_backup_%d", destination, i_loop++);
-							}
-							else
-							{
-								//Cancel.
-								bOkSave = false;
-							}
-						}
-						if (bOkSave)
-						{
-							//Continue.
-							MakeDirectory(destination);
-							strcat(destination, "\\project.dat");
-							strcpy(Storyboard.gamename, SaveProjectAsName);
-							Storyboard.project_readonly = 0;
-							save_storyboard(Storyboard.gamename, false);
-							bTriggerSaveAs = false;
-							bTriggerSaveAsAfterNewLevel = false;
-						}
-					}
-					else
-					{
-						strcpy(SaveProjectAsError, "Error: Please give your game project a name before saving.");
-					}
-				}
-				if (!bTriggerSaveAsAfterNewLevel)
-				{
-					ImGui::SameLine();
-					if (ImGui::StyleButton("Cancel", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f)))
-					{
-						//Cancel.
-						bTriggerSaveAs = false;
-						bTriggerSaveAsAfterNewLevel = false;
-					}
-				}
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::Text("");
-
-				bImGuiGotFocus = true;
-				ImGui::Indent(-10);
-				ImGui::EndPopup();
-			}
-		}
-		*/
 
 		if (!bPopModalStoryboard)
 		{
@@ -40045,7 +40159,6 @@ void process_storeboard(bool bInitOnly)
 						{
 							if (strlen(Storyboard.Nodes[i].thumb) > 0)
 							{
-								//CreateBackBufferCacheName(Storyboard.Nodes[i].thumb, 512, 288); //PE: Thumb is already in CacheName format.
 								char *find = (char *)pestrcasestr(Storyboard.Nodes[i].thumb, "thumbbank\\");
 								if (find)
 								{
@@ -40082,8 +40195,8 @@ void process_storeboard(bool bInitOnly)
 					}
 				}
 			}
-			//PE: Initial position. and initial nodes.
 
+			//PE: Initial position. and initial nodes.
 			if (ImageExist(Storyboard.game_icon_id)) DeleteImage(Storyboard.game_icon_id);
 			if (ImageExist(Storyboard.game_thumb_id)) DeleteImage(Storyboard.game_thumb_id);
 			if (strlen(Storyboard.game_thumb) > 0)
@@ -40931,60 +41044,70 @@ void process_storeboard(bool bInitOnly)
 				ImVec2 vIconSize = { (float)ImGui::GetFontSize()*3.5f, (float)ImGui::GetFontSize()*3.5f };
 				ImGui::SetCursorPos(ImVec2(3.0f, fStartWinPosY + 1.0f));
 				ImGui::SetItemAllowOverlap();
-				if (ImGui::ImgBtn(TOOL_GOBACK, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
+				if (pref.iDisplayWelcomeScreen != 0)
 				{
-					bool bAbort = false;
-					if (Storyboard.iChanged)
+					// now only allows backing from storyboard if have a HUB to go to
+					if (ImGui::ImgBtn(TOOL_GOBACK, vIconSize, ImVec4(0, 0, 0, 0), drawCol_normal, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 					{
-						if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
+						bool bAbort = false;
+						if (Storyboard.iChanged)
 						{
-							save_storyboard(Storyboard.gamename, false);
-						}
-						else
-						{
-							int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
-							if (iAction == 1)
+							if (!pref.iDisableProjectAutoSave && strlen(Storyboard.gamename) > 0)
 							{
-								//Save.
-								if (strlen(Storyboard.gamename) > 0)
-									save_storyboard(Storyboard.gamename, false);
-								else
+								save_storyboard(Storyboard.gamename, false);
+							}
+							else
+							{
+								int iAction = askBoxCancel(STORYBOARD_SAVE_MESSAGE, "Confirmation"); //1==Yes 2=Cancel 0=No
+								if (iAction == 1)
 								{
-									bAbort = true;
-									save_storyboard(Storyboard.gamename, true);
+									//Save.
+									if (strlen(Storyboard.gamename) > 0)
+										save_storyboard(Storyboard.gamename, false);
+									else
+									{
+										bAbort = true;
+										save_storyboard(Storyboard.gamename, true);
+									}
 								}
 							}
 						}
-					}
-					if (!bAbort)
-					{
-						iLevelEditorFromStoryboardID = -1;
-						if (pref.iDisplayWelcomeScreen == 0)
+						if (!bAbort)
 						{
-							//Welcome not open , so to level editor.
-							bStoryboardWindow = false;
-						}
-						else
-						{
-							//Back to welcome.
-							bWelcomeScreen_Window = true;
-							bStoryboardWindow = false;
-							cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
-							bSortProjects = true;
+							iLevelEditorFromStoryboardID = -1;
+							//if (pref.iDisplayWelcomeScreen == 0) no longer can be called
+							//{
+							//	//Welcome not open , so to level editor.
+							//	bStoryboardWindow = false;
+							//}
+							//else
+							{
+								//Back to welcome.
+								bWelcomeScreen_Window = true;
+								bStoryboardWindow = false;
+								cLastProjectList = ""; //Trigger a reload of projects, if anything changed.
+								bSortProjects = true;
+
+								// and in case this was a remote project, restore to writables regular
+								extern void switch_to_regular_projects(void);
+								switch_to_regular_projects();
+							}
 						}
 					}
-				}
-				if (pref.iDisplayWelcomeScreen == 0)
-				{
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to Level Editor");
-				}
-				else
-				{
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to GameGuru MAX Hub"); //Welcome Screen
 				}
+				// Bouncing between storyboard and 'last' level breaks the flow and use of storyboard as the parent
+				// and this also prevents levels from potentially floating free and causing other connected issues
+				//if (pref.iDisplayWelcomeScreen == 0)
+				//{
+				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to Level Editor");
+				//}
+				//else
+				//{
+				//	if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Exit to GameGuru MAX Hub"); //Welcome Screen
+				//}
 				//
 
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, -40.0)); //PE: Without a header use this.
 				ImGui::SetWindowFontScale(2.0); //1.4
 				//ImGui::TextCenter("GAME STORYBOARD");
 				ImGui::TextCenter(""); //New header already have this text.
@@ -41239,7 +41362,9 @@ void process_storeboard(bool bInitOnly)
 												iScreenshotNode = i;
 
 												//Make sure we have a fresh thumb.
+												GG_SetWritablesToRoot(true);
 												if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+												GG_SetWritablesToRoot(false);
 											}
 										}
 									}
@@ -41707,7 +41832,9 @@ void process_storeboard(bool bInitOnly)
 									iNewLevelNode = i;
 
 									//Make sure we have a fresh thumb. if generated by new level.
+									GG_SetWritablesToRoot(true);
 									if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+									GG_SetWritablesToRoot(false);
 
 									//PE: Switch to normal message.
 									strcpy(cTriggerMessage, "Preparing the Terrain Generator. Please wait...");
@@ -42410,8 +42537,21 @@ void process_storeboard(bool bInitOnly)
 					{
 						iStoryboardExecuteKey = 0;
 						cStr tOldDir = GetDir();
-						char * cFileSelected;
-						cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+
+						// we know we need to focus on the mapbank associated with the current storyboard
+						cstr correctFPMLocation_s = Storyboard.customprojectfolder;
+						if (correctFPMLocation_s.Len() > 0)
+						{
+							correctFPMLocation_s += Storyboard.gamename;
+							correctFPMLocation_s += "\\Files\\mapbank";
+						}
+						else
+						{
+							correctFPMLocation_s = g.mysystem.mapbankAbs_s.Get();
+						}
+						//cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", g.mysystem.mapbankAbs_s.Get(), NULL, true);
+						char* cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "fpm\0*.fpm\0", correctFPMLocation_s.Get(), NULL, true);
+
 						SetDir(tOldDir.Get());
 						if (cFileSelected && strlen(cFileSelected) > 0)
 						{
@@ -42428,7 +42568,7 @@ void process_storeboard(bool bInitOnly)
 									//PE: Vaidate path, must be inside the mapbank to work.
 									extern char szRootDir[MAX_PATH];
 									extern char szWriteDir[MAX_PATH];
-									extern char szWriteDirAdditional[MAX_PATH];
+									extern char szAddWriteDirAdditional[MAX_PATH];
 
 									bool bValidPath = false;
 									int rootLen = strlen(szWriteDir);
@@ -42436,8 +42576,8 @@ void process_storeboard(bool bInitOnly)
 									{
 										bValidPath = true;
 									}
-									rootLen = strlen(szWriteDirAdditional);
-									if (!bValidPath && strnicmp(tmp, szWriteDirAdditional, rootLen) == 0)
+									rootLen = strlen(szAddWriteDirAdditional);
+									if (!bValidPath && strnicmp(tmp, szAddWriteDirAdditional, rootLen) == 0)
 									{
 										bValidPath = true;
 									}
@@ -43781,7 +43921,6 @@ void process_storeboard(bool bInitOnly)
 					if (strlen(t.game.pSwitchToPage) == 0)
 					{
 						strcpy(lastpage, startpage);
-						//strcpy(startpage, "loading");
 						extern cstr g_Storyboard_LoaderScreen_Name;
 						strcpy(startpage, g_Storyboard_LoaderScreen_Name.Get());
 					}
@@ -43823,7 +43962,9 @@ int save_level_as( void )
 	int iRet = 0;
 	static bool bGotAThumb = false;
 	static int iSetKeyboardFocusHere = 10;
-	if (iNewLevelNode < 0) return(0);
+
+	// LB: allow levels to be saved, even if not currently connected to game project (for HUB skippers)
+	//if (iNewLevelNode < 0) return(0);
 
 	if (bTriggerTerrainSaveAsWindow)
 	{
@@ -43836,6 +43977,7 @@ int save_level_as( void )
 			//Grab any thumbs created.
 			if (ImageExist(STORYBOARD_THUMBS + 402)) DeleteImage(STORYBOARD_THUMBS + 402);
 
+			GG_SetWritablesToRoot(true);
 			if (FileExist("thumbbank\\lastnewlevel.jpg"))
 			{
 				image_setlegacyimageloading(true);
@@ -43844,6 +43986,7 @@ int save_level_as( void )
 				if (ImageExist(STORYBOARD_THUMBS + 402))
 					bGotAThumb = true;
 			}
+			GG_SetWritablesToRoot(false);
 			strcpy(NewLevelName, "");
 			strcpy(NewLevelError, "");
 			iSetKeyboardFocusHere = 10;
@@ -43970,29 +44113,31 @@ int save_level_as( void )
 							strcpy(cTriggerMessage, "Saving Level ...");
 							bTriggerMessage = true;
 
-							strcpy(Storyboard.Nodes[iNewLevelNode].title, NewLevelName);
-							strcpy(Storyboard.Nodes[iNewLevelNode].level_name, g.projectfilename_s.Get());
-
-							if (bGotAThumb)
+							if (iNewLevelNode >= 0)
 							{
-								CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
-								SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
-								if (FileExist(BackBufferCacheName.Get()))
+								strcpy(Storyboard.Nodes[iNewLevelNode].title, NewLevelName);
+								strcpy(Storyboard.Nodes[iNewLevelNode].level_name, g.projectfilename_s.Get());
+								if (bGotAThumb)
 								{
-									if (CopyToProjectFolder(BackBufferCacheName.Get()))
+									CreateBackBufferCacheNameEx(Storyboard.Nodes[iNewLevelNode].level_name, 512, 288, true);
+									SaveImage(BackBufferCacheName.Get(), STORYBOARD_THUMBS + 402);
+									if (FileExist(BackBufferCacheName.Get()))
 									{
-										//PE: Use relative projectbank filename.
-										if (FileExist(ProjectCacheName.Get()))
-											BackBufferCacheName = ProjectCacheName;
-									}
+										if (CopyToProjectFolder(BackBufferCacheName.Get()))
+										{
+											//PE: Use relative projectbank filename.
+											if (FileExist(ProjectCacheName.Get()))
+												BackBufferCacheName = ProjectCacheName;
+										}
 
-									//Load to correct id.
-									SetMipmapNum(1);
-									image_setlegacyimageloading(true);
-									LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
-									image_setlegacyimageloading(false);
-									SetMipmapNum(-1);
-									strcpy(Storyboard.Nodes[iNewLevelNode].thumb, BackBufferCacheName.Get());
+										//Load to correct id.
+										SetMipmapNum(1);
+										image_setlegacyimageloading(true);
+										LoadImageSize(BackBufferCacheName.Get(), Storyboard.Nodes[iNewLevelNode].thumb_id, 512, 288);
+										image_setlegacyimageloading(false);
+										SetMipmapNum(-1);
+										strcpy(Storyboard.Nodes[iNewLevelNode].thumb, BackBufferCacheName.Get());
+									}
 								}
 							}
 
@@ -44003,9 +44148,6 @@ int save_level_as( void )
 						{
 							//Cancel just ignore.
 						}
-
-						//strcpy(Storyboard.Nodes[node].level_name, "");
-						//Overwrite ?
 					}
 					else
 					{
@@ -44028,17 +44170,61 @@ int save_level_as( void )
 				ImGui::EndPopup();
 
 				if (bDigAHoleToHWND && bwindow)
+				{
 					bwindow->DrawList->AddCallback((ImDrawCallback)11, NULL); //disable force render.
+				}
 			}
-
 		}
 	}
 	else
 	{
 		iTerrainSaveAsProcess = 0;
 	}
-
 	return(iRet);
+}
+
+void switch_to_remote_project(LPSTR ProjectAsName)
+{
+	// store writables folder
+	char pStoreWriteable[MAX_PATH];
+	strcpy(pStoreWriteable, pref.cCustomWriteFolder);
+
+	// before move to new project folder, create projectbank marker so can load this remove located project
+	char pRemoteProject[MAX_PATH];
+	strcpy(pRemoteProject, "projectbank\\");
+	strcat(pRemoteProject, ProjectAsName);
+	strcat(pRemoteProject, "\\remoteproject.txt");
+	GG_GetRealPath(pRemoteProject, 1);
+
+	// create new project folder area
+	strcpy(pref.cCustomWriteFolder, Storyboard.customprojectfolder);
+	if (pref.cCustomWriteFolder[strlen(pref.cCustomWriteFolder) - 1] != '\\') strcat(pref.cCustomWriteFolder, "\\");
+	strcat(pref.cCustomWriteFolder, ProjectAsName);
+	if (pref.cCustomWriteFolder[strlen(pref.cCustomWriteFolder) - 1] != '\\') strcat(pref.cCustomWriteFolder, "\\");
+	SetUpdaterWritePathFile(pref.cCustomWriteFolder);
+	FileRedirectChangeWritableArea("");
+
+	// create remote project marker
+	OpenToWrite(1, pRemoteProject);
+	WriteString(1, Storyboard.customprojectfolder);
+	CloseFile(1);
+
+	// restore writables folder
+	strcpy(pref.cCustomWriteFolder, pStoreWriteable);
+}
+
+void switch_to_regular_projects(void)
+{
+	// generate app folder using exe name
+	HMODULE hModule = GetModuleHandle(NULL);
+	char szModule[MAX_PATH] = "";
+	char szDrive[10] = "";
+	char szDir[MAX_PATH] = "";
+	char szEXE[MAX_PATH] = "";
+	GetModuleFileNameA(hModule, szModule, MAX_PATH);
+	_splitpath_s(szModule, szDrive, 10, szDir, MAX_PATH, szEXE, MAX_PATH, NULL, 0);
+	FileRedirectRestoreWritableArea(szEXE);
+	FileRedirectChangeWritableArea(szEXE);
 }
 
 int save_create_storyboard_project(void)
@@ -44163,12 +44349,66 @@ int save_create_storyboard_project(void)
 			ImGui::PopItemWidth();
 
 			ImGui::Text("");
-
 			ImGui::SetWindowFontScale(1.4);
 
+			#ifdef NEWPROJSYSWORKINPROGRESS
+			// New project Systemn Setting
+			ImGui::TextCenter("Optional Project Folder");
+			ImGui::SetWindowFontScale(1.2);
+			ImGui::TextCenter("By default all projects are stored in the projectbank area.");
+			ImGui::TextCenter("You have the option to create your game project folder at any location");
+			ImGui::TextCenter("and ensure that all media used in your game is copied to this separate");
+			ImGui::TextCenter("location, allowing your project to keep all necessary files in one place");
+			float path_gadget_size = ImGui::GetFontSize() * 2.0;
+			ImGui::PushItemWidth(-10 - path_gadget_size);
+			static bool bSeparateProjectFolder = false;
+			if (strlen(Storyboard.customprojectfolder) == 0) bSeparateProjectFolder = false;
+			if (strlen(Storyboard.customprojectfolder) > 0) bSeparateProjectFolder = true;
+			if (ImGui::Checkbox("Separate project folder", &bSeparateProjectFolder))
+			{
+				if(bSeparateProjectFolder==false)
+				{
+					strcpy(Storyboard.customprojectfolder, "");
+				}
+				else
+				{
+					if (strlen(Storyboard.customprojectfolder) == 0)
+					{
+						strcpy(Storyboard.customprojectfolder, "C:\\Dropbox\\");
+					}
+				}
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Choose whether the game project should be a completely separate project area");
+			if (bSeparateProjectFolder)
+			{
+				ImGui::InputText("##InputCustomNewProjectFolder", &Storyboard.customprojectfolder[0], 250, ImGuiInputTextFlags_ReadOnly);
+				if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Location of separate project folder");
+				if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+				ImGui::SameLine();
+				ImGui::PushItemWidth(path_gadget_size);
+				if (ImGui::StyleButton("...##pathCustomNewProjectFolder"))
+				{
+					cStr tOldDir = GetDir();
+					char* cFileSelected;
+					cstr fulldir = pref.cCustomWriteFolder;
+					cFileSelected = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_DIR, "All\0*.*\0", fulldir.Get(), NULL);
+					SetDir(tOldDir.Get());
+					if (cFileSelected && strlen(cFileSelected) > 0)
+					{
+						strcpy(Storyboard.customprojectfolder, cFileSelected);
+						if (Storyboard.customprojectfolder[strlen(Storyboard.customprojectfolder) - 1] != '\\') strcat(Storyboard.customprojectfolder, "\\");
+					}
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify location for separate project folder");
+				ImGui::PopItemWidth();
+			}
+			ImGui::PopItemWidth();
+			ImGui::Text("");
+			#endif
+#
+			// Create Project Button
 			if (bTriggerSaveAsAfterNewLevel)
 			{
-				//ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2( (ImGui::GetContentRegionAvailWidth()*0.25), 0)); //Center with new header.
 				bClicked = ImGui::StyleButton("Create Game Project", ImVec2(ImGui::GetContentRegionAvail().x - 10.0f, 0.0f));
 			}
 			else
@@ -44176,6 +44416,18 @@ int save_create_storyboard_project(void)
 
 			if (bClicked || bForceClicked)
 			{
+				// and in case this was a remote project, restore to writables regular
+				extern void switch_to_regular_projects(void);
+				switch_to_regular_projects();
+
+				// if custom project folder, new wriables
+				if (strlen(Storyboard.customprojectfolder) > 0)
+				{
+					GG_SetWritablesToRoot(true);
+					switch_to_remote_project(SaveProjectAsName);
+					GG_SetWritablesToRoot(false);
+				}
+
 				//PE: Trim
 				std::string sCleanName = SaveProjectAsName;
 				sCleanName.erase(sCleanName.find_last_not_of(" \t") + 1); //PE: No spaces tab at end.
@@ -44455,19 +44707,36 @@ int FindLuaScreenNode(char *name)
 		// Do not render in-game HUD when HideHuds() has been called
 		return -1;
 	}
-
 	if (strlen(Storyboard.gamename) <= 0) return(-1);
-	std::string lua_name = name;
-	replaceAll(lua_name, ".lua", "");
-	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+
+	// node id or name
+	if (strncmp (name, ":node:", 6) == NULL)
 	{
-		if (Storyboard.Nodes[i].used)
+		//Find by node id passed in via string
+		int iNode = atoi(&name[6]);
+		if (iNode >= 0 && iNode < STORYBOARD_MAXNODES)
 		{
-			std::string check_lua_name = Storyboard.Nodes[i].lua_name;
-			replaceAll(check_lua_name, ".lua", "");
-			if (stricmp(check_lua_name.c_str(), lua_name.c_str()) == NULL)
+			if (Storyboard.Nodes[iNode].used)
 			{
-				return i;
+				return iNode;
+			}
+		}
+	}
+	else
+	{
+		// regular name search (prone to finding a duplicate if old corrupt project nodes)
+		std::string lua_name = name;
+		replaceAll(lua_name, ".lua", "");
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used)
+			{
+				std::string check_lua_name = Storyboard.Nodes[i].lua_name;
+				replaceAll(check_lua_name, ".lua", "");
+				if (stricmp(check_lua_name.c_str(), lua_name.c_str()) == NULL)
+				{
+					return i;
+				}
 			}
 		}
 	}
@@ -44845,7 +45114,6 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 						//Open Game Project
 						bTriggerOpenProject = true;
 					}
-					//
 				}
 				if (!bIsMenuHovered) bIsMenuHovered = ImGui::IsItemHovered();
 
@@ -45351,17 +45619,32 @@ void load_storyboard(char *name)
 	strcat(project, name);
 	strcat(project, "\\project.dat");
 	FILE* projectfile = GG_fopen(project, "rb");
+	if (projectfile==NULL)
+	{
+		// switch to remote project
+		strcpy(project, "projectbank\\");
+		strcat(project, name);
+		strcat(project, "\\remoteproject.txt");
+		if (GG_FileExists(project))
+		{
+			// get remote folder
+			OpenToRead(1, project);
+			LPSTR pRemoteProject = ReadString(1);
+			CloseFile(1);
+
+			// switch to it now
+			strcpy(Storyboard.customprojectfolder, pRemoteProject);
+			switch_to_remote_project(name);
+
+			// proceed as normal, loading now from the remote folder
+			strcpy(project, "projectbank\\");
+			strcat(project, name);
+			strcat(project, "\\project.dat");
+			projectfile = GG_fopen(project, "rb");
+		}
+	}
 	if (projectfile)
 	{
-		// full reset of nodes (in case added new fields and need defaults)
-		//for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-		//{
-		//	for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
-		//	{
-		//		Storyboard.widget_ingamehidden[i][iWidgetIndex] = 0;
-		//		Storyboard.widget_drawordergroup[i][iWidgetIndex] = 0;
-		//	}
-		//}
 		//this sets ALL fields data to zero, and only filled with known structure (members added at end not part of the copy to remain zeros)
 		memset(&checkproject, 0, sizeof(StoryboardStruct));
 
@@ -45454,6 +45737,7 @@ void load_storyboard(char *name)
 	init_rpg_system();
 	load_rpg_system(name);
 
+	/* never used
 	// ensure basic project specific media folders are present
 	LPSTR pOldDir = GetDir();
 	if (Storyboard.project_readonly == 0 && bProjectLoaded == true)
@@ -45488,6 +45772,11 @@ void load_storyboard(char *name)
 		}
 	}
 	SetDir(pOldDir);
+	*/
+
+	//
+	// NOTE: RefreshPurchasedFolder creates unncessary FILES folder in projectbank!!!
+	//
 
 	// also trigger a refresh of files lists, the project folder contributes to library file choices!
 	extern void RefreshPurchasedFolder (void);
@@ -45555,7 +45844,6 @@ void GetProjectList(char *path, bool bGetThumbs)
 	if (cLastProjectList != path)
 	{
 		projectbank_list.clear();
-		//projectbank_list_exist.clear();
 		projectbank_imageid.clear();
 		projectbank_image.clear();
 
@@ -45578,33 +45866,34 @@ void GetProjectList(char *path, bool bGetThumbs)
 				if (folder != "." && folder != "..")
 				{
 					bool bIgnore = true;
+
+					bool bHaveAProject = false;
 					char project[MAX_PATH];
 					strcpy(project, destination);
 					strcat(project, folder.Get());
 					strcat(project, "\\project.dat");
-
+					if (GG_FileExists(project))
+					{
+						bHaveAProject = true;
+					}
+					else
+					{
+						strcpy(project, destination);
+						strcat(project, folder.Get());
+						strcat(project, "\\remoteproject.txt");
+						if (GG_FileExists(project))
+						{
+							bHaveAProject = true;
+						}
+					}
 					//PE: Must have a project.
-					if ( GG_FileExists(project) )
+					if (bHaveAProject == true)
 					{
 						bIgnore = false;
 					}
 					if (!bIgnore)
 					{
 						projectbank_list.push_back(folder.Get());
-
-						// quick check to see if the folder exists
-						//bool bProjectExist = false;
-						//char pProjFolderFile[MAX_PATH];
-						//strcpy(pProjFolderFile, "projectbank\\");
-						//strcat(pProjFolderFile, folder.Get());
-						//strcat(pProjFolderFile, "\\project.dat");
-						//GG_GetRealPath(pProjFolderFile, false);
-						//if (FileExist(pProjFolderFile) == 1)
-						//	bProjectExist = true;
-						//else
-						//	bProjectExist = false;
-						//projectbank_list_exist.push_back(bProjectExist);
-
 						if (!bGetThumbs)
 						{
 							projectbank_image.push_back(""); //Just use CLICK HERE.
@@ -45626,12 +45915,30 @@ void GetProjectList(char *path, bool bGetThumbs)
 					char project[MAX_PATH];
 					strcpy(project, "projectbank\\");
 					strcat(project, projectbank_list[i].c_str());
+					strcat(project, "\\remoteproject.txt");
+					FILE* projectfile = NULL;
+					if (GG_FileExists(project))
+					{
+						// this project is a remote project (aproj7\Files\projectbank\aproj7)
+						char pAbsTrueProjectPath[MAX_PATH];
+						OpenToRead(1, project);
+						strcpy(pAbsTrueProjectPath, ReadString(1));
+						CloseFile(1);
+						GG_GetRealPath(pAbsTrueProjectPath, 0);
+						strcpy(project, pAbsTrueProjectPath);
+						strcat(project, projectbank_list[i].c_str());
+						strcat(project, "\\Files\\projectbank\\");
+					}
+					else
+					{
+						// regular projectbank project
+						strcpy(project, "projectbank\\");
+					}
+					strcat(project, projectbank_list[i].c_str());
 					strcat(project, "\\project.dat");
-
-					FILE* projectfile = GG_fopen(project, "rb");
+					projectfile = GG_fopen(project, "rb");
 					if (projectfile)
 					{
-						//size_t size = fread(&smallcheckproject, 1, sizeof(smallcheckproject), projectfile);
 						//PE: Need full load now, as we can have Game Settings.
 						size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 
@@ -46656,9 +46963,6 @@ void TriggerScreenFromKeyPress()
 						{
 							t.game.activeStoryboardScreen = i;
 						}
-						// If using M-Titles.cpp to handle screen scripts, will need to use t.game.pSwitchToPage instead
-						//strncpy(t.game.pSwitchToPage, node.lua_name, strlen(node.lua_name)-strlen(".lua"));
-						//t.game.titleloop = 0;
 						return;
 					}
 				}
@@ -48371,10 +48675,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 										}
 										if (iNodeToLinkTo > 0)
 										{
-											lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
-											replaceAll(lua_name, ".lua", "");
-											t.s_s = lua_name.c_str();
+											// screens can have same name (old corruption issue), so new method to identify screen by node
+											//lua_name = Storyboard.Nodes[iNodeToLinkTo].lua_name;
+											//replaceAll(lua_name, ".lua", "");
+											//t.s_s = lua_name.c_str();
+											std::string node_ident_name = ":node:";
+											node_ident_name += std::to_string(iNodeToLinkTo);
+											t.s_s = node_ident_name.c_str();
 											lua_switchpage();
+
 											bLuaPageClosing = true; //always stop music.
 											iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 										}
@@ -48389,9 +48698,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 											{
 												if (strlen(Storyboard.Nodes[iNewNode].lua_name) > 0)
 												{
-													std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
-													replaceAll(lua_name, ".lua", "");
-													t.s_s = lua_name.c_str();
+													// screens can have same name (old corruption issue), so new method to identify screen by node
+													//std::string lua_name = Storyboard.Nodes[iNewNode].lua_name;
+													//replaceAll(lua_name, ".lua", "");
+													//t.s_s = lua_name.c_str();
+													std::string node_ident_name = ":node:"; 
+													node_ident_name += std::to_string(iNewNode);
+													t.s_s = node_ident_name.c_str();
 													lua_switchpage();
 													if (strlen(Storyboard.Nodes[iNewNode].screen_music) > 0) //PE: Only stop music if new swcreen have its own.
 														bLuaPageClosing = true;
@@ -48412,10 +48725,15 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 														{
 															if (Storyboard.Nodes[nodeid].output_linkto[index] == 0)
 															{
-																std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
-																replaceAll(lua_name, ".lua", "");
-																t.s_s = lua_name.c_str();
+																// screens can have same name (old corruption issue), so new method to identify screen by node
+																//std::string lua_name = Storyboard.Nodes[nodeid].output_action[index];
+																//replaceAll(lua_name, ".lua", "");
+																//t.s_s = lua_name.c_str();
+																std::string node_ident_name = ":node:";
+																node_ident_name += std::to_string(nodeid);
+																t.s_s = node_ident_name.c_str();
 																lua_switchpage();
+
 																bLuaPageClosing = true; //always stop music.
 																iRet = STORYBOARD_ACTIONS_GOTOSCREEN;
 															}
@@ -49797,7 +50115,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					g_pGlob->pCurrentBitmapSurface = pTmpSurface;
 
+					GG_SetWritablesToRoot(true);
 					if (FileExist("thumbbank\\lastnewlevel.jpg")) DeleteAFile("thumbbank\\lastnewlevel.jpg");
+					GG_SetWritablesToRoot(false);
 
 					if (bValid)
 					{
@@ -49805,7 +50125,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						{
 							char destination[MAX_PATH];
 							strcpy(destination, "thumbbank\\lastnewlevel.jpg");
+							GG_SetWritablesToRoot(true);
 							GG_GetRealPath(destination, 1);
+							GG_SetWritablesToRoot(false);
 							//Need a no alpha save.
 							extern bool g_bDontUseImageAlpha;
 							g_bDontUseImageAlpha = true;
@@ -50021,6 +50343,16 @@ int GetStoryboardCustomScreenNode(char *page)
 		}
 	}
 	return -1;
+}
+
+void GetStoryboardCustomScreenNodeName(int iNode, char* pRealNameStr)
+{
+	strcpy(pRealNameStr, Storyboard.Nodes[iNode].lua_name);
+	if (strnicmp(pRealNameStr + strlen(pRealNameStr) - 4, ".lua", 4) == NULL)
+	{
+		// chop any .lua extension
+		pRealNameStr[strlen(pRealNameStr) - 4] = 0;
+	}
 }
 
 bool bTempDisableRain = false;
@@ -50598,7 +50930,8 @@ void ReloadEntityIDInSitu ( int entIndex)
 
 	// set entity name and reload it in
 	t.entdir_s = "";
-	if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) t.entdir_s = "entitybank\\";
+	//if (strnicmp(t.entitybank_s[entIndex].Get(), "projectbank", 11) != NULL) 
+	t.entdir_s = "entitybank\\";
 	t.ent_s = t.entitybank_s[entIndex];
 	t.entpath_s = getpath(t.ent_s.Get());
 
@@ -51054,7 +51387,8 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 							char pImageFile[MAX_PATH];
 							strcpy(pImageFile, "");
 							LPSTR pFile = (LPSTR)currentLevelFiles[iIndex].c_str();
-							if (strnicmp(pFile, "projectbank", 11) != NULL) strcat(pImageFile, "entitybank\\");
+							//if (strnicmp(pFile, "projectbank", 11) != NULL) 
+							strcat(pImageFile, "entitybank\\");
 							strcat(pImageFile, pFile);
 							WickedCall_DeleteImage(pImageFile);
 						}
@@ -51104,10 +51438,16 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 	}
 }
 
-int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
+//#pragma optimize("", off)
+int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, int* point)
 {
 	int total = 0;
-	iHiddenObjects = 0;
+	if(iHiddenObjects)
+		*iHiddenObjects = 0;
+	if (point)
+		*point = 0;
+	if(spot)
+		*spot = 0;
 	for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 	{
 		if (t.entityelement[t.e].obj > 0)
@@ -51165,13 +51505,68 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects)
 				}
 				else
 				{
-					iHiddenObjects++;
+					if (iHiddenObjects)
+						*iHiddenObjects = *iHiddenObjects + 1;
+				}
+			}
+		}
+	}
+	if (bDebug)
+	{
+		int lsize = wiScene::GetScene().lights.GetCount();
+		for (int i = 0; i < lsize; i++)
+		{
+			LightComponent& light = wiScene::GetScene().lights[i];
+			if (light.IsCastingShadow())
+			{
+				if (light.GetType() == ENTITY_TYPE_POINTLIGHT)
+				{
+					if (point)
+						*point = *point + 1;
+					AABB aabb = wiScene::GetScene().aabb_lights[i];
+					XMFLOAT3 center = aabb.getCenter();
+					void DrawDot(char* text, float x, float y, float z);
+					if (light.history == 0)
+					{
+						DrawDot("p", center.x, center.y, center.z);
+					}
+					else
+					{
+						t.tdiffx_f = center.x - CameraPositionX();
+						t.tdiffy_f = center.y - CameraPositionY();
+						t.tdiffz_f = center.z - CameraPositionZ();
+						float dist = Sqrt(abs(t.tdiffx_f * t.tdiffx_f) + abs(t.tdiffy_f * t.tdiffy_f) + abs(t.tdiffz_f * t.tdiffz_f));
+						std::string sdist = "P: " + std::to_string((int)dist);
+						DrawDot( (char *) sdist.c_str(), center.x, center.y, center.z);
+					}
+				}
+				if (light.GetType() == ENTITY_TYPE_SPOTLIGHT)
+				{
+					if (spot)
+						*spot = *spot + 1;
+					AABB aabb = wiScene::GetScene().aabb_lights[i];
+					XMFLOAT3 center = aabb.getCenter();
+					void DrawDot(char* text, float x, float y, float z);
+					if (light.history == 0)
+					{
+						DrawDot("s", center.x, center.y, center.z);
+					}
+					else
+					{
+						t.tdiffx_f = center.x - CameraPositionX();
+						t.tdiffy_f = center.y - CameraPositionY();
+						t.tdiffz_f = center.z - CameraPositionZ();
+						float dist = Sqrt(abs(t.tdiffx_f * t.tdiffx_f) + abs(t.tdiffy_f * t.tdiffy_f) + abs(t.tdiffz_f * t.tdiffz_f));
+						std::string sdist = "S: " + std::to_string((int)dist);
+						DrawDot((char *)sdist.c_str(), center.x, center.y, center.z);
+					}
 				}
 			}
 		}
 	}
 	return total;
 }
+//#pragma optimize("", on)
 
 void DrawDot(char* text, float x, float y, float z)
 {
@@ -51207,7 +51602,8 @@ void tmpdebugfunc(void)
 		int iFrustumCulled = wiProfiler::GetFrustumCulled();
 		int dc = wiProfiler::GetDrawCalls();
 		int iHiddenObjects = 0;
-		int occ = DrawOccludedObjects(true,false,&iHiddenObjects);
+		int spot = 0, point = 0;
+		int occ = DrawOccludedObjects(true,false,&iHiddenObjects,&spot,&point);
 
 		//ImGui::Text("DrawCalls: %d", dc);
 		char memtmp[255];

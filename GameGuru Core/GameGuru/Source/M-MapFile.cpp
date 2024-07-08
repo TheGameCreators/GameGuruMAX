@@ -198,7 +198,6 @@ void mapfile_saveproject_fpm ( void )
 	{
 		t.ttempprojfilename_s=g.projectfilename_s;
 	}
-	#ifdef WICKEDENGINE
 	//PE: Default folder could be d:\max\ , and write folder could be f:\docwrite\
 	//PE: So then moving zip, it takes from d:\... and move to f:\... , d:\\ dont exists so .fpm file is deleted.
 	//PE: To solve always use full path to .fpm
@@ -206,8 +205,6 @@ void mapfile_saveproject_fpm ( void )
 	strcpy(destination, t.ttempprojfilename_s.Get());
 	GG_GetRealPath(destination, 1);
 	t.ttempprojfilename_s = destination;
-	#endif
-	//75593 : Saving FPM g.level file: D:\github\GameGuruRepo\GameGuru\Files\map bank\my-test-map.fpm S:0MB   V: (579,0) 
 	if (g.editorsavebak == 1) 
 	{
 		//PE: Make a backup before overwriting a fpm level.
@@ -232,17 +229,19 @@ void mapfile_saveproject_fpm ( void )
 	#endif
 
 	// ensure when export visual, always start with HIGHEST mode to reflect settings chosen when editing level (i.e. grass distance)
-	t.gamevisuals.shaderlevels.terrain = 1;
-	t.gamevisuals.shaderlevels.entities = 1;
-	t.gamevisuals.shaderlevels.vegetation = 1;
-	t.gamevisuals.shaderlevels.lighting = 1;
-
+	//PE: Respect custom settings, some levels need to disable some optimizing settings...
+	if (t.gamevisuals.shaderlevels.entities != 2)
+	{
+		t.gamevisuals.shaderlevels.terrain = 1;
+		t.gamevisuals.shaderlevels.entities = 1;
+		t.gamevisuals.shaderlevels.vegetation = 1;
+		t.gamevisuals.shaderlevels.lighting = 1;
+	}
 	//  Switch visuals to gamevisuals as this is what we want to save
 	t.editorvisuals=t.visuals ; t.visuals=t.gamevisuals  ; visuals_save ( );
 
 	//  Copy visuals.ini into levelfile folder
 	t.tincludevisualsfile=0;
-	#ifdef WICKEDENGINE
 	char pRealVisFile[MAX_PATH];
 	strcpy(pRealVisFile, g.fpscrootdir_s.Get());
 	strcat(pRealVisFile, "\\visuals.ini");
@@ -254,15 +253,6 @@ void mapfile_saveproject_fpm ( void )
 		CopyAFile(pRealVisFile, t.tvisfile_s.Get());
 		t.tincludevisualsfile = 1;
 	}
-	#else
-	if (  FileExist( cstr(g.fpscrootdir_s+"\\visuals.ini").Get() ) == 1 ) 
-	{
-		t.tvisfile_s=g.mysystem.levelBankTestMap_s+"visuals.ini"; //"levelbank\\testmap\\visuals.ini";
-		if (  FileExist(t.tvisfile_s.Get()) == 1  )  DeleteAFile (  t.tvisfile_s.Get() );
-		CopyAFile (  cstr(g.fpscrootdir_s+"\\visuals.ini").Get(),t.tvisfile_s.Get() );
-		t.tincludevisualsfile=1;
-	}
-	#endif
 
 	//  And switch back for benefit to editor visuals
 	t.visuals=t.editorvisuals; // messes up when click test game again, old: gosub _visuals_save
@@ -277,16 +267,14 @@ void mapfile_saveproject_fpm ( void )
 	if (  FileExist( cfgfile_s.Get() ) == 1 )
 	{
 		if ( FileExist( cfginlevelbank_s.Get() ) == 1 ) DeleteAFile ( cfginlevelbank_s.Get() );
-#ifdef WICKEDENGINE
 		//PE: We need full path from write folder in wicked.
 		char destination[MAX_PATH];
 		strcpy(destination, cfgfile_s.Get());
 		GG_GetRealPath(destination, 1);
 		cfgfile_s = destination;
-#endif
 		CopyAFile ( cfgfile_s.Get(), cfginlevelbank_s.Get() );
 	}
-	#ifdef WICKEDENGINE
+
 	//PE: For some reason cfg.cfg is missing from the fpm ?
 	if (FileExist(cfginlevelbank_s.Get()) == 0)
 	{
@@ -294,9 +282,7 @@ void mapfile_saveproject_fpm ( void )
 		editor_savecfg(cfginlevelbank_s.Get());
 		timestampactivity(0, cstr(cstr("Creating cfg.cfg file: ") + cfginlevelbank_s).Get());
 	}
-	#endif
 
-	#ifdef WICKEDENGINE
 	extern std::vector<sRubberBandType> vEntityLockedList;
 	cfginlevelbank_s = g.mysystem.levelBankTestMap_s + "locked.cfg";
 	//PE: Save a copy of locked objects.
@@ -308,7 +294,6 @@ void mapfile_saveproject_fpm ( void )
 		WriteLong(1, vEntityLockedList[i].e);
 	}
 	CloseFile(1);
-	#endif
 
 	// Create a FPM (zipfile)
 	CreateFileBlock (  1, t.ttempprojfilename_s.Get() );
@@ -316,9 +301,7 @@ void mapfile_saveproject_fpm ( void )
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() ); // "levelbank\\testmap\\" );
 	AddFileToBlock (  1, "header.dat" );
 	AddFileToBlock (  1, "playerconfig.dat" );
-	#ifdef WICKEDENGINE
 	AddFileToBlock(1, "locked.cfg");
-	#endif
 	AddFileToBlock (  1, "cfg.cfg" );
 	// entity and waypoint files
 	AddFileToBlock (  1, "map.ele" );
@@ -327,7 +310,6 @@ void mapfile_saveproject_fpm ( void )
 	// darkai obstacle data (container zero)
 	AddFileToBlock (  1, "map.obs" );
 	// terrain files
-	#ifdef WICKEDENGINE
 	// save all node folders (containing terrain geometry and virtual textures)
 	ChecklistForFiles (  );
 	std::vector<std::string> terrainNodeFolders;
@@ -363,19 +345,6 @@ void mapfile_saveproject_fpm ( void )
 			}
 		}
 	}
-	// and associated nav mesh
-	//AddFileToBlock (1, "rawlevelgeometry.obj"); not needed, calculated in realtime!
-	#else
-	AddFileToBlock (  1, "m.dat" );
-	#ifdef VRTECH
-	AddFileToBlock (  1, "vegmask.png");// dds" );
-	#else
-	AddFileToBlock (  1, "vegmask.dds" );
-	#endif
-	AddFileToBlock (  1, "vegmaskgrass.dat" );
-	if ( FileExist ( "superpalette.ter" ) == 1 ) 
-		AddFileToBlock ( 1, "superpalette.ter" );
-	#endif
 
 	#ifdef WICKEDENGINE
 	#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp
@@ -390,14 +359,9 @@ void mapfile_saveproject_fpm ( void )
 	}
 	#endif
 
-	#ifdef WICKEDENGINE
 	// new multi-grass system stores grass choices in testmap folder
 	AddFileToBlock ( 1, "grass_coloronly.dds" );
-	//AddFileToBlock ( 1, "grass_normal.dds" );
-	//AddFileToBlock ( 1, "grass_surface.dds" );
-	#endif
 
-	#ifdef WICKEDENGINE
 	// new terrain system saves its data settings
 	cstr TerrainDataFile_s = g.mysystem.levelBankTestMap_s + "ggterrain.dat";
 	GGTerrainFile_SaveTerrainData(TerrainDataFile_s.Get(), g.gdefaultwaterheight);
@@ -520,37 +484,6 @@ void mapfile_saveproject_fpm ( void )
 
 	}
 
-	#else
-	#ifdef VRTECH
-	// add custom content
-	LPSTR pOldDir2 = GetDir();
-	SetDir(pOldDir); //PE: We need to be here for ScanLevelForCustomContent to work.
-	cstr sStoreProjAsItGetsChanged = g.projectfilename_s;
-	ScanLevelForCustomContent ( t.ttempprojfilename_s.Get() );
-	g.projectfilename_s = sStoreProjAsItGetsChanged;
-	SetDir(pOldDir2);
-	// putting back optional custom terrain texture
-	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.dds" );
-	if ( FileExist ( "Texture_D.jpg" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.jpg" );
-	#else
-	if ( FileExist ( "Texture_D.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_D.dds" );
-	#endif
-	#ifdef VRTECH
-	// Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-	#else
-	AddFileToBlock (  1, "watermask.dds" );
-	if ( FileExist ( "globalenvmap.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "globalenvmap.dds" );
-	if ( FileExist ( "Texture_N.dds" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_N.dds" );
-	if ( FileExist ( "Texture_N.jpg" ) == 1 ) 
-		AddFileToBlock ( 1, "Texture_N.jpg" );
-	#endif
-	#endif
-
 	// lightmap files
 	if ( PathExist("lightmaps") == 1 ) 
 	{
@@ -599,7 +532,6 @@ void mapfile_saveproject_fpm ( void )
 		}
 	}
 
-	#ifdef VRTECH
 	// ttsfiles files
 	if ( PathExist("ttsfiles") == 1 ) 
 	{
@@ -624,7 +556,6 @@ void mapfile_saveproject_fpm ( void )
 			AddFileToBlock ( 1, cstr(cstr("ttsfiles\\")+ttsfileslist[t.c]).Get() );
 		}
 	}
-	#endif
 
 	//  visual settings
 	if (  t.tincludevisualsfile == 1  )  AddFileToBlock (  1, "visuals.ini" );
@@ -646,62 +577,13 @@ void mapfile_saveproject_fpm ( void )
 				cstr tNameOnly = Left(t.tfile_s.Get(),strlen(t.tfile_s.Get())-4);
 				cstr tThisFile = tNameOnly + cstr(".fpe");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef WICKEDENGINE
 				// wicked saves DBOs
 				tThisFile = tNameOnly + cstr(".dbo");
 				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				// wicked saves EBE texture DDSs (further below)
-				#else
-				#ifdef VRTECH
-				tThisFile = tNameOnly + cstr(".x");
-				#else
-				tThisFile = tNameOnly + cstr(".dbo");
-				#endif
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				tThisFile = tNameOnly + cstr(".bmp");
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef VRTECH
-				tThisFile = tNameOnly + cstr("_D.jpg");
-				#else
-				tThisFile = tNameOnly + cstr("_D.dds");
-				#endif
-				if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#ifdef VRTECH
-				 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-				#else
-				 tThisFile = tNameOnly + cstr("_N.dds");
-				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				 tThisFile = tNameOnly + cstr("_S.dds");
-				 if ( FileExist(tThisFile.Get()) ) AddFileToBlock ( 1, tThisFile.Get() );
-				#endif
-				#endif
 			}
-			#ifdef WICKEDENGINE
-			// see above
-			#else
-			strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			#ifdef VRTECH
-			if ( strcmp ( strEnt.Get(), "_d.jpg" ) == NULL )
-			#else
-			if ( strcmp ( strEnt.Get(), "_d.dds" ) == NULL || strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
-			#endif
-			{
-				AddFileToBlock ( 1, t.tfile_s.Get() );
-			}
-			#ifdef VRTECH
-			 // Don't include large files until find a nice to way reduce them considerably (or find a faster way to transfer multiplayer FPM)
-			#else
-			 strEnt = cstr(Lower(Right(t.tfile_s.Get(),6)));
-			 if ( strcmp ( strEnt.Get(), "_n.dds" ) == NULL || strcmp ( strEnt.Get(), "_s.dds" ) == NULL )
-			 {
-				AddFileToBlock ( 1, t.tfile_s.Get() );
-			 }
-			#endif
-			#endif
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	// cannot just discover EBE textures, so go through all entity parents for all EBEs and save their textures
 	for ( int iEntID = 1; iEntID <= g.entidmaster; iEntID++ )
 	{
@@ -721,38 +603,118 @@ void mapfile_saveproject_fpm ( void )
 			}
 		}
 	}
-	#endif
 
-	/* g_bTerrainGeneratorChooseRealTerrain no longer used
-	#ifdef WICKEDENGINE
-	LPSTR pTerrainPreference = "TerrainPreference.tmp";
-	if (FileExist(pTerrainPreference) == 1) DeleteFileA(pTerrainPreference);
-	extern bool g_bTerrainGeneratorChooseRealTerrain;
-	OpenToWrite(3, pTerrainPreference);
-	if (g_bTerrainGeneratorChooseRealTerrain == true)
-	{
-		WriteString(3, "terrainisgrass");
-	}
-	else
-	{
-		WriteString(3, "terrainisgrid");
-	}
-	CloseFile(3);
-	AddFileToBlock (1, pTerrainPreference);
-	#endif
-	*/
-
-	#ifdef CUSTOMTEXTURES
-	//  
 	cstr terrainMaterialFile = g.mysystem.levelBankTestMap_s + "custommaterials.dat";
 	SaveTerrainTextureFolder(terrainMaterialFile.Get());
 	AddFileToBlock(1, "custommaterials.dat");
-	#endif
 
 	SetDir ( pOldDir );
 	SaveFileBlock ( 1 );
 
-	#ifdef WICKEDENGINE
+	// New automated backup system for FPM files (stored in destination var)
+	#define AUTOSAVEBACKUP
+	#ifdef AUTOSAVEBACKUP
+	timestampactivity(0, "Auto-save a copy of every save to the mapbank\_automatedbackups folder");
+	char automatedcopyfpm[MAX_PATH];
+	char automatedcopyname[MAX_PATH];
+	strcpy(automatedcopyfpm, "");
+	strcpy(automatedcopyname, destination);
+	for (int i = strlen(automatedcopyname)-8; i > 0; i--)
+	{
+		if (strnicmp(automatedcopyname + i, "mapbank\\", 8)==NULL || strnicmp(automatedcopyname + i, "mapbank/", 8) == NULL)
+		{
+			strcpy(automatedcopyfpm, automatedcopyname+i+8);
+			automatedcopyname[i+8] = 0;
+			break;
+		}
+	}
+	if (strlen(automatedcopyfpm) > 0)
+	{
+		// replace \\ and chop ext
+		for (int i = 0; i < strlen(automatedcopyfpm); i++)
+		{
+			if (automatedcopyfpm[i] == '\\' || automatedcopyfpm[i] == '/') automatedcopyfpm[i] = '_';
+		}
+		LPSTR pExtDot = strrchr(automatedcopyfpm, '.');
+		if(pExtDot) *pExtDot = 0;
+
+		// create folder
+		strcpy(automatedcopyname, automatedcopyname);
+		strcat(automatedcopyname, "_automatedbackups\\");
+		CreateDirectoryA(automatedcopyname, NULL);
+
+		// version num tracker file
+		int iVersionNumber = 1;
+		char pTrackerFile[MAX_PATH];
+		strcpy(pTrackerFile, automatedcopyname);
+		strcat(pTrackerFile, automatedcopyfpm);
+		strcat(pTrackerFile, ".dat");
+		if (FileExist(pTrackerFile) == 1)
+		{
+			OpenToRead(1, pTrackerFile);
+			iVersionNumber = atoi(ReadString(1));
+			CloseFile(1);
+		}
+
+		// create auto backup filename
+		char pCheckFile[MAX_PATH];
+		strcpy(pCheckFile, automatedcopyname);
+		strcat(pCheckFile, automatedcopyfpm);
+		strcat(pCheckFile, "_1");
+		char* pNum = strrchr(pCheckFile, '_');
+		if (pNum)
+		{
+			sprintf(pNum, "_%d", iVersionNumber);
+			strcat(pCheckFile, ".fpm");
+		}
+
+		// find next available version number
+		while(FileExist(pCheckFile) == 1)
+		{
+			char *pDot = strrchr(pCheckFile, '.');
+			if (pDot)
+			{
+				char *pNum = strrchr(pCheckFile, '_');
+				if (pNum && pNum < pDot)
+				{
+					int iNum = atoi(pNum + 1);
+					iNum++;
+					*pNum = 0;
+					sprintf(pNum, "_%d", iNum);
+					strcat(pCheckFile, ".fpm");
+					iVersionNumber = iNum;
+				}
+			}
+		}
+		DeleteAFile(pCheckFile);
+		CopyAFile(destination, pCheckFile);
+
+		// save version tracker file for next time
+		if (FileExist(pTrackerFile) == 1) DeleteFileA(pTrackerFile);
+		{
+			OpenToWrite(1, pTrackerFile);
+			char pVersionNum[256];
+			sprintf(pVersionNum, "%d", iVersionNumber);
+			WriteString(1, pVersionNum);
+			CloseFile(1);
+		}
+
+		// and remove older files so storage does not become an issue
+		if(iVersionNumber > 9)
+		{
+			for (int i = 1; i < iVersionNumber - 9; i++)
+			{
+				strcpy(pCheckFile, automatedcopyname);
+				strcat(pCheckFile, automatedcopyfpm);
+				strcat(pCheckFile, "_");
+				strcat(pCheckFile, Str(i));
+				strcat(pCheckFile, ".fpm");
+				DeleteAFile(pCheckFile);
+			}
+		}
+	}
+	#endif
+
 	// collect ALL entity profile files
 	g.filecollectionmax = 0;
 	Undim (t.filecollection_s);
@@ -766,6 +728,7 @@ void mapfile_saveproject_fpm ( void )
 			addthisentityprofilesfilestocollection ();
 		}
 	}
+
 	// create an itinery LST file (so auto updater can find and download dependent files)
 	cstr LSTFile_s = cstr(Left(g.projectfilename_s.Get(), Len(g.projectfilename_s.Get()) - 4)) + ".lst";
 	if (FileExist(LSTFile_s.Get()) == 1) DeleteAFile (LSTFile_s.Get());
@@ -794,7 +757,6 @@ void mapfile_saveproject_fpm ( void )
 	}
 	SaveArray (LSTFile_s.Get(), lstlist_s);
 	UnDim (lstlist_s);
-	#endif
 
 	// save any changes to game collection list and ELE file
 	extern preferences pref;
@@ -802,11 +764,6 @@ void mapfile_saveproject_fpm ( void )
 
 	//  does crazy cool stuff
 	t.tsteamsavefilename_s = t.ttempprojfilename_s;
-	#ifdef VRTECH
-	//mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
-	#else
-	mp_save_workshop_files_needed ( ); // no longer needed, not using workshop
-	#endif
 
 	//  log prompts
 	timestampactivity(0,"Saving FPM level file complete");
@@ -1154,187 +1111,195 @@ void mapfile_loadproject_fpm ( void )
 		bTreeGlobalInit = false;
 
 		//PE: Restore Sculpt Data.
-		terrain_sculpt_size = GGTerrain::GGTerrain_GetSculptDataSize();
-		char *data = new char[terrain_sculpt_size];
-		if (data)
+		char* data;
+		extern int g_iDisableTerrainSystem;
+		if (g_iDisableTerrainSystem == 0)
 		{
-			cstr sculpt_data_name = cstr((int)terrain_sculpt_size) + cstr(".dat");
-			if (FileExist(sculpt_data_name.Get()) == 1)
+			terrain_sculpt_size = GGTerrain::GGTerrain_GetSculptDataSize();
+			data = new char[terrain_sculpt_size];
+			if (data)
 			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, sculpt_data_name.Get());
-				if (DB_FileExist(FilenameString))
+				cstr sculpt_data_name = cstr((int)terrain_sculpt_size) + cstr(".dat");
+				if (FileExist(sculpt_data_name.Get()) == 1)
 				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, sculpt_data_name.Get());
+					if (DB_FileExist(FilenameString))
 					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, terrain_sculpt_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGTerrain::GGTerrain_SetSculptData(terrain_sculpt_size, (uint8_t*) data);
-					}
-				}
-			}
-			delete(data);
-		}
-
-		void check_new_terrain_parameters(void);
-		check_new_terrain_parameters();
-
-		void reset_terrain_paint_date(void);
-		reset_terrain_paint_date(); //PE: Reset old paint textures, after this. try loading from saved fpm.
-
-		#ifdef CUSTOMTEXTURES
-		if (FileExist("custommaterials.dat") == 1)
-		{
-			LoadTerrainTextureFolder("custommaterials.dat");
-		}
-		#endif
-
-		//PE: Restore Paint Texture Data.
-		terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
-		data = new char[terrain_paint_size];
-		if (data)
-		{
-			cstr paint_data_name = cstr((int)terrain_paint_size) + cstr(".ptd");
-			if (FileExist(paint_data_name.Get()) == 1)
-			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, paint_data_name.Get());
-				if (DB_FileExist(FilenameString))
-				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
-					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, terrain_paint_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGTerrain::GGTerrain_SetPaintData(terrain_paint_size, (uint8_t*)data);
-						//PE: We already made a delay invalidate region so all fine...
-					}
-				}
-			}
-			delete(data);
-		}
-
-		//PE: Default hide all tree's.
-		GGTrees::GGTrees_HideAll();
-
-		//PE: Restore Tree Data.
-		tree_data_size = GGTrees::GGTrees_GetDataSize() * 4;
-		data = new char[tree_data_size];
-		if (data)
-		{
-			cstr tree_data_name = cstr((int)tree_data_size) + cstr(".tre");
-			cstr old_tree_data_name = "4800000.tre"; //PE: Tree format 1.0
-			bool bConvertOldFormat = false;
-			if (FileExist(old_tree_data_name.Get()) == 1)
-			{
-				bConvertOldFormat = true;
-			}
-			if (FileExist(tree_data_name.Get()) == 1 || bConvertOldFormat)
-			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, tree_data_name.Get());
-				if (bConvertOldFormat)
-				{
-					strcpy(FilenameString, old_tree_data_name.Get());
-					uint32_t* dataInt = (uint32_t*)data;
-					dataInt[0] = 2; //PE: New version
-					data += 4;
-					tree_data_size -= 4;
-				}
-				if (DB_FileExist(FilenameString))
-				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
-					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, tree_data_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						if (!bConvertOldFormat)
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
 						{
-							//PE: Skip conversion from 2.0 to 3.0 as the 2.0 using 3.0 data have been out for some time now. and people would already have saved 3.0 trees with 2.0 version.
-							//PE: Mainly so people will not have to correct the trees again. No way to see if 3.0 data has been saved as 2.0 now.
-							uint32_t* dataInt = (uint32_t*)data;
-							if (dataInt[0] == 2) dataInt[0] = 3;
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, terrain_sculpt_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGTerrain::GGTerrain_SetSculptData(terrain_sculpt_size, (uint8_t*)data);
 						}
-						if (bConvertOldFormat)
-						{
-							int size = GGTrees::GGTrees_GetDataSize();
-							size--; //PE: Remove version.
-							uint32_t* dataInt = (uint32_t*)data;
-							int scale = 85; //PE: 85=1.0 hlsl: GetTreeScale( uint data ) { return ((data >> 16) & 0xFF) / 170.0 + 0.5; }
+					}
+				}
+				delete(data);
+			}
 
-							for (int i = 0; i < size; i += 3 )
+			void check_new_terrain_parameters(void);
+			check_new_terrain_parameters();
+
+			void reset_terrain_paint_date(void);
+			reset_terrain_paint_date(); //PE: Reset old paint textures, after this. try loading from saved fpm.
+
+#ifdef CUSTOMTEXTURES
+			if (FileExist("custommaterials.dat") == 1)
+			{
+				LoadTerrainTextureFolder("custommaterials.dat");
+			}
+#endif
+
+			//PE: Restore Paint Texture Data.
+			terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
+			data = new char[terrain_paint_size];
+			if (data)
+			{
+				cstr paint_data_name = cstr((int)terrain_paint_size) + cstr(".ptd");
+				if (FileExist(paint_data_name.Get()) == 1)
+				{
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, paint_data_name.Get());
+					if (DB_FileExist(FilenameString))
+					{
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, terrain_paint_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGTerrain::GGTerrain_SetPaintData(terrain_paint_size, (uint8_t*)data);
+							//PE: We already made a delay invalidate region so all fine...
+						}
+					}
+				}
+				delete(data);
+			}
+
+			//PE: Default hide all tree's.
+			GGTrees::GGTrees_HideAll();
+
+			//PE: Restore Tree Data.
+			tree_data_size = GGTrees::GGTrees_GetDataSize() * 4;
+			data = new char[tree_data_size];
+			if (data)
+			{
+				cstr tree_data_name = cstr((int)tree_data_size) + cstr(".tre");
+				cstr old_tree_data_name = "4800000.tre"; //PE: Tree format 1.0
+				bool bConvertOldFormat = false;
+				if (FileExist(old_tree_data_name.Get()) == 1)
+				{
+					bConvertOldFormat = true;
+				}
+				if (FileExist(tree_data_name.Get()) == 1 || bConvertOldFormat)
+				{
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, tree_data_name.Get());
+					if (bConvertOldFormat)
+					{
+						strcpy(FilenameString, old_tree_data_name.Get());
+						uint32_t* dataInt = (uint32_t*)data;
+						dataInt[0] = 2; //PE: New version
+						data += 4;
+						tree_data_size -= 4;
+					}
+					if (DB_FileExist(FilenameString))
+					{
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, tree_data_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							if (!bConvertOldFormat)
 							{
-								//PE: Convert old tree data to new 2.0 format.
-								uint32_t data = dataInt[2 + i];
-								uint32_t type = (data & 0xF);
-								uint32_t visible = (data & 0x100);
-								uint32_t id = (data >> 10);
-								uint32_t scaleindex = (data >> 4) & 0x7; //hlsl: uint index = (IN.data >> 4) & 0x7;
-								float randScale = (scaleindex / 7.0 ) * 0.25 + 0.75; //hlsl. old scale.
-								int newscale = (int)((float) (57 + (scaleindex*4.0)) * randScale);
-								type &= 0x1F;
-								uint32_t varIndex = id & 0x7;
-								data = (type << 11) | (varIndex << 8);
-								if (visible) data |= 0x1;
-								else data &= ~0x1;
-								dataInt[2 + i] = data;
-								dataInt[2 + i] = (dataInt[2 + i] & 0xFF00FFFF) | (newscale << 16);
+								//PE: Skip conversion from 2.0 to 3.0 as the 2.0 using 3.0 data have been out for some time now. and people would already have saved 3.0 trees with 2.0 version.
+								//PE: Mainly so people will not have to correct the trees again. No way to see if 3.0 data has been saved as 2.0 now.
+								uint32_t* dataInt = (uint32_t*)data;
+								if (dataInt[0] == 2) dataInt[0] = 3;
 							}
+							if (bConvertOldFormat)
+							{
+								int size = GGTrees::GGTrees_GetDataSize();
+								size--; //PE: Remove version.
+								uint32_t* dataInt = (uint32_t*)data;
+								int scale = 85; //PE: 85=1.0 hlsl: GetTreeScale( uint data ) { return ((data >> 16) & 0xFF) / 170.0 + 0.5; }
+
+								for (int i = 0; i < size; i += 3)
+								{
+									//PE: Convert old tree data to new 2.0 format.
+									uint32_t data = dataInt[2 + i];
+									uint32_t type = (data & 0xF);
+									uint32_t visible = (data & 0x100);
+									uint32_t id = (data >> 10);
+									uint32_t scaleindex = (data >> 4) & 0x7; //hlsl: uint index = (IN.data >> 4) & 0x7;
+									float randScale = (scaleindex / 7.0) * 0.25 + 0.75; //hlsl. old scale.
+									int newscale = (int)((float)(57 + (scaleindex * 4.0)) * randScale);
+									type &= 0x1F;
+									uint32_t varIndex = id & 0x7;
+									data = (type << 11) | (varIndex << 8);
+									if (visible) data |= 0x1;
+									else data &= ~0x1;
+									dataInt[2 + i] = data;
+									dataInt[2 + i] = (dataInt[2 + i] & 0xFF00FFFF) | (newscale << 16);
+								}
+								data -= 4;
+							}
+							GGTrees::GGTrees_SetData((float*)data);
+						}
+						else if (bConvertOldFormat)
+						{
 							data -= 4;
 						}
-						GGTrees::GGTrees_SetData((float*)data);
 					}
 					else if (bConvertOldFormat)
 					{
 						data -= 4;
 					}
 				}
-				else if (bConvertOldFormat)
-				{
-					data -= 4;
-				}
+				delete(data);
 			}
-			delete(data);
-		}
 
 
-		//PE: Restore grass Data.
-		grass_data_size = GGGrass::GGGrass_GetDataSize();
-		data = new char[grass_data_size];
-		if (data)
-		{
-			cstr grass_data_name = cstr((int)grass_data_size) + cstr(".gra");
-			if (FileExist(grass_data_name.Get()) == 1)
+			//PE: Restore grass Data.
+			grass_data_size = GGGrass::GGGrass_GetDataSize();
+			data = new char[grass_data_size];
+			if (data)
 			{
-				char FilenameString[_MAX_PATH];
-				strcpy(FilenameString, grass_data_name.Get());
-				if (DB_FileExist(FilenameString))
+				cstr grass_data_name = cstr((int)grass_data_size) + cstr(".gra");
+				if (FileExist(grass_data_name.Get()) == 1)
 				{
-					// Open file to be read
-					HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-					if (hreadfile != INVALID_HANDLE_VALUE)
+					char FilenameString[_MAX_PATH];
+					strcpy(FilenameString, grass_data_name.Get());
+					if (DB_FileExist(FilenameString))
 					{
-						// Read file into memory
-						DWORD bytesread;
-						ReadFile(hreadfile, data, grass_data_size, &bytesread, NULL);
-						CloseHandle(hreadfile);
-						GGGrass::GGGrass_SetData(grass_data_size,(uint8_t*)data);
+						// Open file to be read
+						HANDLE hreadfile = GG_CreateFile(FilenameString, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+						if (hreadfile != INVALID_HANDLE_VALUE)
+						{
+							// Read file into memory
+							DWORD bytesread;
+							ReadFile(hreadfile, data, grass_data_size, &bytesread, NULL);
+							CloseHandle(hreadfile);
+							GGGrass::GGGrass_SetData(grass_data_size, (uint8_t*)data);
+						}
 					}
 				}
+				delete(data);
 			}
-			delete(data);
-		}
+			//PE: Make sure to trigger a delayed update, so everything is placed correctly, grass/trees need height.
+			extern int iTriggerInvalidateAfterFrames;
+			iTriggerInvalidateAfterFrames = 60; //PE: Height data need to be set first, then we can adjust grass/trees/virtual texture.
 
+		}
 		#endif
 
 		//  load in visuals from loaded file
@@ -2398,6 +2363,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			strcat(project, Storyboard.gamename);
 			addfoldertocollection(project);
 
+			/* not used any more, new project system has WHOLE folder to itself
 			//PE: Also add everything from the project files folder.
 			strcpy(project_files, project);
 			strcat(project_files, "\\files");
@@ -2410,6 +2376,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				addallinfoldertocollection(project_files, project_files);
 				SetDir(olddir.Get());
 			}
+			*/
 
 			// add loading splash in case of a needed fallback
 			addtocollection("editors\\uiv3\\loadingsplash.jpg");
@@ -2575,7 +2542,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				entityeleproftype tempeleprof = t.entityelement[t.e].eleprof;
 				InitParseLuaScript(&tempeleprof);
 				cstr script_name = "";
-				if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
+				//if (strnicmp(tempeleprof.aimain_s.Get(), "projectbank", 11) != NULL) 
+				script_name = "scriptbank\\";
 				script_name += tempeleprof.aimain_s;
 				ParseLuaScript(&tempeleprof, script_name.Get());
 
@@ -3291,6 +3259,373 @@ int mapfile_savestandalone_stage2b ( void )
 	return iMoveAlong;
 }
 
+void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
+{
+	// Store current
+	int iStoredEntID = t.entid;
+	t.entid = entid;
+
+	// Check for custom images loaded in lua script
+	if (pEleProf->aimain_s != "")
+	{
+		cstr tLuaScript = g.fpscrootdir_s + "\\Files\\scriptbank\\";
+		tLuaScript += pEleProf->aimain_s;
+		FILE* tLuaScriptFile = GG_fopen (tLuaScript.Get(), "r");
+		if (tLuaScriptFile)
+		{
+			char tTempLine[2048];
+			while (!feof(tLuaScriptFile))
+			{
+				fgets (tTempLine, 2047, tLuaScriptFile);
+				if (strstr (tTempLine, "LoadImages"))
+				{
+					char* pImageFolder = strstr (tTempLine, "\"");
+					if (pImageFolder)
+					{
+						pImageFolder++;
+						char* pImageFolderEnd = strstr (pImageFolder, "\"");
+						if (pImageFolderEnd)
+						{
+							*pImageFolderEnd = '\0';
+							cstr tFolderToAdd = cstr(cstr("scriptbank\\images\\") + cstr(pImageFolder));
+							addfoldertocollection (tFolderToAdd.Get());
+						}
+					}
+				}
+
+				// Handle new load image and sound commands, they can be in nested folders
+				if (strstr (tTempLine, "LoadImage ")
+					|| strstr (tTempLine, "LoadImage(")
+					|| strstr (tTempLine, "LoadGlobalSound("))
+				{
+					char* pImageFolder = strstr (tTempLine, "\"");
+					if (pImageFolder)
+					{
+						pImageFolder++;
+						char* pImageFolderEnd = strstr (pImageFolder, "\"");
+						if (pImageFolderEnd)
+						{
+							*pImageFolderEnd = '\0';
+							cstr pFile = cstr(pImageFolder);
+							addtocollection (pFile.Get());
+						}
+					}
+				}
+				if (strstr(tTempLine, "SetSkyTo(")) {
+					char* pSkyFolder = strstr(tTempLine, "\"");
+					if (pSkyFolder)
+					{
+						pSkyFolder++;
+						char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
+						if (pSkyFolderEnd)
+						{
+							*pSkyFolderEnd = '\0';
+							cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
+							addfoldertocollection(tFolderToAdd.Get());
+						}
+					}
+				}
+			}
+			fclose (tLuaScriptFile);
+		}
+	}
+
+	//  entity profile file
+	t.tentityname1_s = cstr("entitybank\\") + t.entitybank_s[t.entid];
+	t.tentityname2_s = cstr(Left(t.tentityname1_s.Get(), Len(t.tentityname1_s.Get()) - 4)) + ".bin";
+	if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tentityname2_s).Get()) == 1)
+	{
+		t.tentityname_s = t.tentityname2_s;
+	}
+	else
+	{
+		t.tentityname_s = t.tentityname1_s;
+	}
+	addtocollection(t.tentityname_s.Get());
+
+	//PE: NEWLOD
+	std::string lodname = t.tentityname_s.Get();
+	replaceAll(lodname, ".fpe", "_lod.dbo");
+	replaceAll(lodname, ".bin", "_lod.dbo");
+	addtocollection((char*)lodname.c_str());
+
+	//  entity files in folder
+	t.tentityfolder_s = t.tentityname_s;
+	for (t.n = Len(t.tentityname_s.Get()); t.n >= 1; t.n += -1)
+	{
+		if (cstr(Mid(t.tentityname_s.Get(), t.n)) == "\\" || cstr(Mid(t.tentityname_s.Get(), t.n)) == "/")
+		{
+			t.tentityfolder_s = Left(t.tentityfolder_s.Get(), t.n);
+			break;
+		}
+	}
+
+	//  model files (main model, final appended model and all other append
+	int iModelAppendFileCount = t.entityprofile[t.entid].appendanimmax;
+	if (Len (t.entityappendanim[t.entid][0].filename.Get()) > 0) iModelAppendFileCount = 0;
+	for (int iModels = -1; iModels <= iModelAppendFileCount; iModels++)
+	{
+		LPSTR pModelFile = "";
+		if (iModels == -1)
+		{
+			pModelFile = t.entityprofile[t.entid].model_s.Get();
+		}
+		else
+		{
+			pModelFile = t.entityappendanim[t.entid][iModels].filename.Get();
+		}
+		t.tlocaltofpe = 1;
+		for (t.n = 1; t.n <= Len(pModelFile); t.n++)
+		{
+			if (cstr(Mid(pModelFile, t.n)) == "\\" || cstr(Mid(pModelFile, t.n)) == "/")
+			{
+				t.tlocaltofpe = 0; break;
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile1_s = t.tentityfolder_s + pModelFile;
+		}
+		else
+		{
+			t.tfile1_s = pModelFile;
+		}
+		t.tfile2_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dbo";
+		if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile2_s).Get()) == 1)
+		{
+			t.tfile_s = t.tfile2_s;
+		}
+		else
+		{
+			t.tfile_s = t.tfile1_s;
+		}
+		t.tmodelfile_s = t.tfile_s;
+		addtocollection(t.tmodelfile_s.Get());
+		// if entity did not specify texture it is multi-texture, so interogate model file
+		// do it for every model
+		findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entid].texpath_s.Get());
+	}
+
+	// Export entity FPE BMP file if flagged
+	if (g.gexportassets == 1)
+	{
+		t.tfile3_s = cstr(Left(t.tentityname_s.Get(), Len(t.tentityname_s.Get()) - 4)) + ".bmp";
+		if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
+		{
+			addtocollection(t.tfile3_s.Get());
+		}
+	}
+
+	// entity characterpose file (if any)
+	t.tfile3_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dat";
+	if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
+	{
+		addtocollection(t.tfile3_s.Get());
+	}
+
+	//  texture files
+	for (int iBothTypes = 0; iBothTypes < 2; iBothTypes++)
+	{
+		// can be from ELEPROF of entityelement (older maps point to old texture names) or parent ELEPROF original
+		cstr pTextureFile = "", pAltTextureFile = "";
+		if (iBothTypes == 0) { pTextureFile = pEleProf->texd_s; pAltTextureFile = pEleProf->texaltd_s; }
+		if (iBothTypes == 1) { pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; }
+
+		t.tlocaltofpe = 1;
+		for (t.n = 1; t.n <= Len(pTextureFile.Get()); t.n++)
+		{
+			if (cstr(Mid(pTextureFile.Get(), t.n)) == "\\" || cstr(Mid(pTextureFile.Get(), t.n)) == "/")
+			{
+				t.tlocaltofpe = 0; break;
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile_s = t.tentityfolder_s + pTextureFile;
+		}
+		else
+		{
+			t.tfile_s = pTextureFile;
+		}
+		addtocollection(t.tfile_s.Get());
+
+		// always allow a DDS texture of same name to be copied over (for test game compatibility)
+		for (int iTwoExtensions = 0; iTwoExtensions <= 1; iTwoExtensions++)
+		{
+			if (iTwoExtensions == 0) t.tfileext_s = Right (t.tfile_s.Get(), 3);
+			if (iTwoExtensions == 1) t.tfileext_s = "dds";
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 6)), 2)) == "_d")
+			{
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_n." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_s." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_i." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_o." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+				t.tfile_s = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 6)) + "_cube." + t.tfileext_s; addtocollection(t.tfile_s.Get());
+			}
+			int iNewPBRTextureMode = 0;
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 10)), 6)) == "_color") iNewPBRTextureMode = 6 + 4;
+			if (cstr(Left(Lower(Right(t.tfile_s.Get(), 11)), 7)) == "_albedo") iNewPBRTextureMode = 7 + 4;
+			if (iNewPBRTextureMode > 0)
+			{
+				cstr pToAdd;
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_color." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_albedo." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_normal." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_specular." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_metalness." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_gloss." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_mask." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_ao." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_height." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_detail." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_emissive." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_i." + t.tfileext_s; addtocollection(pToAdd.Get());
+				pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
+			}
+		}
+		if (t.tlocaltofpe == 1)
+		{
+			t.tfile_s = t.tentityfolder_s + pAltTextureFile;
+		}
+		else
+		{
+			t.tfile_s = pAltTextureFile;
+		}
+		addtocollection(t.tfile_s.Get());
+	}
+
+	// also include textures specified by textureref entries (from importer export)
+	cstr tFPEFilePath = g.fpscrootdir_s + "\\Files\\";
+	tFPEFilePath += t.tentityname1_s;
+	FILE* tFPEFile = GG_fopen (tFPEFilePath.Get(), "r");
+	if (tFPEFile)
+	{
+		char tTempLine[2048];
+		while (!feof(tFPEFile))
+		{
+			fgets (tTempLine, 2047, tFPEFile);
+			if (strstr (tTempLine, "textureref"))
+			{
+				char* pToFilename = strstr (tTempLine, "=");
+				if (pToFilename)
+				{
+					while (*pToFilename == '=' || *pToFilename == 32) pToFilename++;
+					if (pToFilename[strlen(pToFilename) - 1] == 13) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 10) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 13) pToFilename[strlen(pToFilename) - 1] = 0;
+					if (pToFilename[strlen(pToFilename) - 1] == 10) pToFilename[strlen(pToFilename) - 1] = 0;
+					cstr tTextureFile = cstr(t.tentityfolder_s + cstr(pToFilename));
+					addtocollection (tTextureFile.Get());
+				}
+			}
+		}
+		fclose (tFPEFile);
+	}
+
+	//  shader file
+	t.tfile_s = pEleProf->effect_s; addtocollection(t.tfile_s.Get());
+	//Try to take the .blob.
+	if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+		t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
+		t.tfile_s = t.tfile_s + ".blob";
+		if (FileExist(t.tfile_s.Get()) == 1)
+		{
+			addtocollection(t.tfile_s.Get());
+		}
+	}
+	//  script files
+	cstr script_name = "";
+	//if (strnicmp(pEleProf->aimain_s.Get(), "projectbank", 11) != NULL) 
+	script_name = "scriptbank\\";
+	script_name += pEleProf->aimain_s;
+	t.tfile_s = script_name;
+	addtocollection(t.tfile_s.Get());
+	//  for the script associated, scan it and include any references to other scripts
+	scanscriptfileandaddtocollection(t.tfile_s.Get());
+	//  sound files
+	//PE: Make sure voiceset from player start marker is added.
+	if (t.entityprofile[t.entid].ismarker == 1 && pEleProf->soundset_s.Len() > 0) {
+		t.tfile_s = pEleProf->soundset_s;
+		addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
+	}
+	t.tfile_s = pEleProf->soundset_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset1_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset2_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset3_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset5_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->soundset6_s; addtocollection(t.tfile_s.Get());
+	t.tfile_s = pEleProf->overrideanimset_s; addtocollection(t.tfile_s.Get());
+	//  collectable guns
+	cstr pGunPresent = "";
+	if (Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1) pGunPresent = t.entityprofile[t.entid].isweapon_s;
+	if (t.entityprofile[t.entid].isammo == 0)
+	{
+		// 270618 - only accept HASWEAPON if NOT ammo, so executables are not bloated with ammo that specifies another weapon type
+		if (Len(pEleProf->hasweapon_s.Get()) > 1) pGunPresent = pEleProf->hasweapon_s;
+	}
+	if (Len(pGunPresent.Get()) > 1)
+	{
+		t.tfile_s = cstr("gamecore\\guns\\") + pGunPresent; addfoldertocollection(t.tfile_s.Get());
+		t.findgun_s = Lower(pGunPresent.Get());
+		gun_findweaponindexbyname ();
+		if (t.foundgunid > 0)
+		{
+			// ammo and brass
+			for (t.x = 0; t.x <= 1; t.x++)
+			{
+				// ammo files
+				t.tpoolindex = g.firemodes[t.foundgunid][t.x].settings.poolindex;
+				if (t.tpoolindex > 0)
+				{
+					t.tfile_s = cstr("gamecore\\ammo\\") + t.ammopool[t.tpoolindex].name_s;
+					if (PathExist (t.tfile_s.Get())) addfoldertocollection(t.tfile_s.Get());
+				}
+
+				// brass files
+				int iBrassIndex = g.firemodes[t.foundgunid][t.x].settings.brass;
+				if (iBrassIndex > 0)
+				{
+					t.tfile_s = cstr(cstr("gamecore\\brass\\brass") + Str(iBrassIndex));
+					if (PathExist (t.tfile_s.Get()))
+						addfoldertocollection(t.tfile_s.Get());
+				}
+			}
+
+			// and any projectile files associated with it
+			cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
+			if (Len(pProjectilePresent.Get()) > 1)
+			{
+				t.tfile_s = cstr("gamecore\\projectiletypes\\") + pProjectilePresent;
+				addfoldertocollection(t.tfile_s.Get());
+			}
+		}
+	}
+	// zone marker can reference other levels to jump to
+	if (t.entityprofile[t.entid].ismarker == 3)
+	{
+		t.tlevelfile_s = pEleProf->ifused_s;
+		if (Len(t.tlevelfile_s.Get()) > 1)
+		{
+			t.tlevelfile_s = cstr("mapbank\\") + g_mapfile_levelpathfolder + t.tlevelfile_s + ".fpm";
+			if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tlevelfile_s).Get()) == 1)
+			{
+				//++t.levelmax; // created earlier now
+				//t.levellist_s[t.levelmax]=t.tlevelfile_s;
+				addtocollection(t.tlevelfile_s.Get());
+			}
+			else
+			{
+				// nope, just a regular string entry in the marker field
+				t.tlevelfile_s = "";
+			}
+		}
+	}
+	t.entid = iStoredEntID;
+}
+
 int mapfile_savestandalone_stage2c ( void )
 {
 	// choose all entities and associated files
@@ -3300,405 +3635,7 @@ int mapfile_savestandalone_stage2c ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			// Check for custom images loaded in lua script
-			if ( t.entityelement[t.e].eleprof.aimain_s != "" )
-			{
-				cstr tLuaScript = g.fpscrootdir_s+"\\Files\\scriptbank\\";
-				tLuaScript += t.entityelement[t.e].eleprof.aimain_s;
-				FILE* tLuaScriptFile = GG_fopen ( tLuaScript.Get() , "r" );
-				if ( tLuaScriptFile )
-				{
-					char tTempLine[2048];
-					while ( !feof(tLuaScriptFile) )
-					{
-						fgets ( tTempLine , 2047 , tLuaScriptFile );
-						if ( strstr ( tTempLine , "LoadImages" ) )
-						{
-							char* pImageFolder = strstr ( tTempLine , "\"" );
-							if ( pImageFolder )
-							{
-								pImageFolder++;
-								char* pImageFolderEnd = strstr ( pImageFolder , "\"" );
-								if ( pImageFolderEnd )
-								{
-									*pImageFolderEnd = '\0';
-									cstr tFolderToAdd = cstr( cstr("scriptbank\\images\\") + cstr(pImageFolder) );
-									addfoldertocollection ( tFolderToAdd.Get() );
-								}
-							}
-						}
-
-						// Handle new load image and sound commands, they can be in nested folders
-						if ( strstr ( tTempLine , "LoadImage " ) 
-						||	 strstr ( tTempLine , "LoadImage(" )
-						||	 strstr ( tTempLine , "LoadGlobalSound(" ) )
-						{
-							char* pImageFolder = strstr ( tTempLine , "\"" );
-							if ( pImageFolder )
-							{
-								pImageFolder++;
-								char* pImageFolderEnd = strstr ( pImageFolder , "\"" );
-								if ( pImageFolderEnd )
-								{
-									*pImageFolderEnd = '\0';
-									cstr pFile = cstr(pImageFolder);
-									addtocollection ( pFile.Get() );
-								}
-							}
-						}
-						if (strstr(tTempLine, "SetSkyTo(" )) {
-							char* pSkyFolder = strstr(tTempLine, "\"");
-							if (pSkyFolder)
-							{
-								pSkyFolder++;
-								char* pSkyFolderEnd = strstr(pSkyFolder, "\"");
-								if (pSkyFolderEnd)
-								{
-									*pSkyFolderEnd = '\0';
-									cstr tFolderToAdd = cstr(cstr("skybank\\") + cstr(pSkyFolder));
-									addfoldertocollection(tFolderToAdd.Get());
-								}
-							}
-						}
-					}
-					fclose ( tLuaScriptFile );
-				}
-			}
-
-			//  entity profile file
-			t.tentityname1_s=cstr("entitybank\\")+t.entitybank_s[t.entid];
-			t.tentityname2_s=cstr(Left(t.tentityname1_s.Get(),Len(t.tentityname1_s.Get())-4))+".bin";
-			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tentityname2_s).Get() ) == 1 ) 
-			{
-				t.tentityname_s=t.tentityname2_s;
-			}
-			else
-			{
-				t.tentityname_s=t.tentityname1_s;
-			}
-			addtocollection(t.tentityname_s.Get());
-
-			//  entity files in folder
-			t.tentityfolder_s=t.tentityname_s;
-			for ( t.n = Len(t.tentityname_s.Get()) ; t.n >= 1 ; t.n+= -1 )
-			{
-				if (  cstr(Mid(t.tentityname_s.Get(),t.n)) == "\\" || cstr(Mid(t.tentityname_s.Get(),t.n)) == "/" ) 
-				{
-					t.tentityfolder_s=Left(t.tentityfolder_s.Get(),t.n);
-					break;
-				}
-			}
-
-			//  model files (main model, final appended model and all other append
-			int iModelAppendFileCount = t.entityprofile[t.entid].appendanimmax;
-			if ( Len ( t.entityappendanim[t.entid][0].filename.Get() ) > 0 ) iModelAppendFileCount = 0;
-			for ( int iModels = -1; iModels <= iModelAppendFileCount; iModels++ )
-			{
-				LPSTR pModelFile = "";
-				if ( iModels == -1 ) 
-				{
-					pModelFile = t.entityprofile[t.entid].model_s.Get();
-				}
-				else
-				{
-					pModelFile = t.entityappendanim[t.entid][iModels].filename.Get();
-				}
-				t.tlocaltofpe=1;
-				for ( t.n = 1 ; t.n <= Len(pModelFile); t.n++ )
-				{
-					if (  cstr(Mid(pModelFile,t.n)) == "\\" || cstr(Mid(pModelFile,t.n)) == "/" ) 
-					{
-						t.tlocaltofpe=0 ; break;
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile1_s=t.tentityfolder_s+pModelFile;
-				}
-				else
-				{
-					t.tfile1_s=pModelFile;
-				}
-				t.tfile2_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dbo";
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile2_s).Get() ) == 1 ) 
-				{
-					t.tfile_s=t.tfile2_s;
-				}
-				else
-				{
-					t.tfile_s=t.tfile1_s;
-				}
-				t.tmodelfile_s=t.tfile_s;
-				addtocollection(t.tmodelfile_s.Get());
-				// if entity did not specify texture it is multi-texture, so interogate model file
-				// do it for every model
-				findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
-			}
-
-			// Export entity FPE BMP file if flagged
-			if ( g.gexportassets == 1 ) 
-			{
-				t.tfile3_s=cstr(Left(t.tentityname_s.Get(),Len(t.tentityname_s.Get())-4))+".bmp";
-				if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
-				{
-					addtocollection(t.tfile3_s.Get());
-				}
-			}
-
-			// entity characterpose file (if any)
-			t.tfile3_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dat";
-			if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile3_s).Get() ) == 1 ) 
-			{
-				addtocollection(t.tfile3_s.Get());
-			}
-
-			//  texture files
-			for ( int iBothTypes = 0; iBothTypes < 2; iBothTypes++ )
-			{
-				// can be from ELEPROF of entityelement (older maps point to old texture names) or parent ELEPROF original
-				cstr pTextureFile = "", pAltTextureFile = "";
-				if ( iBothTypes == 0 ) { pTextureFile = t.entityelement[t.e].eleprof.texd_s; pAltTextureFile = t.entityelement[t.e].eleprof.texaltd_s; } 
-				if ( iBothTypes == 1 ) { pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; } 
-
-				t.tlocaltofpe=1;
-				for ( t.n = 1 ; t.n<=  Len(pTextureFile.Get()); t.n++ )
-				{
-					if (  cstr(Mid(pTextureFile.Get(),t.n)) == "\\" || cstr(Mid(pTextureFile.Get(),t.n)) == "/" ) 
-					{
-						t.tlocaltofpe=0 ; break;
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile_s=t.tentityfolder_s+pTextureFile;
-				}
-				else
-				{
-					t.tfile_s=pTextureFile;
-				}
-				addtocollection(t.tfile_s.Get());
-
-				// always allow a DDS texture of same name to be copied over (for test game compatibility)
-				for ( int iTwoExtensions = 0; iTwoExtensions <= 1; iTwoExtensions++ )
-				{
-					if ( iTwoExtensions == 0 ) t.tfileext_s = Right ( t.tfile_s.Get(), 3);
-					if ( iTwoExtensions == 1 ) t.tfileext_s = "dds";
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),6)),2)) == "_d" ) 
-					{
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_n."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_s."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_i."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_o."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-						t.tfile_s=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-6))+"_cube."+t.tfileext_s ; addtocollection(t.tfile_s.Get());
-					}
-					int iNewPBRTextureMode = 0;
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),10)),6)) == "_color" ) iNewPBRTextureMode = 6+4;
-					if ( cstr(Left(Lower(Right(t.tfile_s.Get(),11)),7)) == "_albedo" ) iNewPBRTextureMode = 7+4;
-					if ( iNewPBRTextureMode > 0 ) 
-					{
-						cstr pToAdd;
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_color." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_albedo." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_normal." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_specular." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_metalness." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_gloss." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_mask." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_ao." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_height." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_detail." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_emissive." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_i." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
-						/*
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_color."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_albedo."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_normal."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_specular."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_metalness."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_surface." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_gloss."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_mask."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_ao."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_height."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_detail."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illumination." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_illum." + t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd=cstr(Left(t.tfile_s.Get(),Len(t.tfile_s.Get())-iNewPBRTextureMode))+"_emissive."+t.tfileext_s; addtocollection(pToAdd.Get());
-						pToAdd = cstr(Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - iNewPBRTextureMode)) + "_cube." + t.tfileext_s; addtocollection(pToAdd.Get());
-						*/
-					}
-				}
-				if (  t.tlocaltofpe == 1 ) 
-				{
-					t.tfile_s=t.tentityfolder_s+pAltTextureFile;
-				}
-				else
-				{
-					t.tfile_s=pAltTextureFile;
-				}
-				addtocollection(t.tfile_s.Get());
-			}
-
-			// also include textures specified by textureref entries (from importer export)
-			cstr tFPEFilePath = g.fpscrootdir_s+"\\Files\\";
-			tFPEFilePath += t.tentityname1_s;
-			FILE* tFPEFile = GG_fopen ( tFPEFilePath.Get() , "r" );
-			if ( tFPEFile )
-			{
-				char tTempLine[2048];
-				while ( !feof(tFPEFile) )
-				{
-					fgets ( tTempLine , 2047 , tFPEFile );
-					if ( strstr ( tTempLine , "textureref" ) )
-					{
-						char* pToFilename = strstr ( tTempLine , "=" );
-						if ( pToFilename )
-						{
-							while ( *pToFilename == '=' || *pToFilename == 32 ) pToFilename++;
-							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 13 ) pToFilename[strlen(pToFilename)-1] = 0;
-							if ( pToFilename[strlen(pToFilename)-1] == 10 ) pToFilename[strlen(pToFilename)-1] = 0;
-							cstr tTextureFile = cstr( t.tentityfolder_s + cstr(pToFilename) );
-							addtocollection ( tTextureFile.Get() );
-						}
-					}
-				}
-				fclose ( tFPEFile );
-			}
-
-			//#ifdef WICKEDENGINE
-			//// Not all emissive files are picked up here, so grab them from the entity if they are there.
-			//if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
-			//{
-			//	sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
-			//	if (pObject)
-			//	{
-			//		for (int i = 0; i < pObject->iMeshCount; i++)
-			//		{
-			//			sMesh* pMesh = pObject->ppMeshList[i];
-			//			if (pMesh)
-			//			{
-			//				wiScene::MeshComponent* pMeshComponent = wiScene::GetScene().meshes.GetComponent(pMesh->wickedmeshindex);
-			//				if (pMeshComponent)
-			//				{
-			//					uint64_t materialEntity = pMeshComponent->subsets[0].materialID;
-			//					wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
-			//					if (pMeshMaterial)
-			//					{
-			//						if (pMeshMaterial->textures[3].name.length() > 0)
-			//						{
-			//							addtocollection((char*)pMeshMaterial->textures[3].name.c_str());
-			//						}
-			//					}
-			//				}
-			//			}
-			//		}
-			//	}
-			//}
-			//#endif
-
-			//  shader file
-			t.tfile_s=t.entityelement[t.e].eleprof.effect_s ; addtocollection(t.tfile_s.Get());
-			//Try to take the .blob.
-			if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
-				t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
-				t.tfile_s = t.tfile_s + ".blob";
-				if (FileExist(t.tfile_s.Get()) == 1)
-				{
-					addtocollection(t.tfile_s.Get());
-				}
-			}
-			//  script files
-			cstr script_name = "";
-			if (strnicmp(t.entityelement[t.e].eleprof.aimain_s.Get(), "projectbank", 11) != NULL) script_name = "scriptbank\\";
-			script_name += t.entityelement[t.e].eleprof.aimain_s;
-			t.tfile_s = script_name;// cstr("scriptbank\\") + t.entityelement[t.e].eleprof.aimain_s;
-			addtocollection(t.tfile_s.Get());
-			//  for the script associated, scan it and include any references to other scripts
-			scanscriptfileandaddtocollection(t.tfile_s.Get());
-			//  sound files
-			//PE: Make sure voiceset from player start marker is added.
-			if (t.entityprofile[t.entid].ismarker == 1 && t.entityelement[t.e].eleprof.soundset_s.Len() > 0) {
-				t.tfile_s = t.entityelement[t.e].eleprof.soundset_s;
-				addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
-			}
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset1_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset2_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset3_s ; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset5_s; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.soundset6_s; addtocollection(t.tfile_s.Get());
-			t.tfile_s = t.entityelement[t.e].eleprof.overrideanimset_s; addtocollection(t.tfile_s.Get());
-			//  collectable guns
-			cstr pGunPresent = "";
-			if ( Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1 ) pGunPresent = t.entityprofile[t.entid].isweapon_s;
-			if ( t.entityprofile[t.entid].isammo == 0 )
-			{
-				// 270618 - only accept HASWEAPON if NOT ammo, so executables are not bloated with ammo that specifies another weapon type
-				if ( Len(t.entityelement[t.e].eleprof.hasweapon_s.Get()) > 1 ) pGunPresent = t.entityelement[t.e].eleprof.hasweapon_s;
-			}
-			if ( Len(pGunPresent.Get()) > 1 )
-			{
-				t.tfile_s=cstr("gamecore\\guns\\")+pGunPresent; addfoldertocollection(t.tfile_s.Get());
-				t.findgun_s = Lower( pGunPresent.Get() ) ; 
-				gun_findweaponindexbyname ( );
-				if ( t.foundgunid > 0 ) 
-				{
-					// ammo and brass
-					for ( t.x = 0; t.x <= 1; t.x++ )
-					{
-						// ammo files
-						t.tpoolindex=g.firemodes[t.foundgunid][t.x].settings.poolindex;
-						if (  t.tpoolindex>0 ) 
-						{
-							t.tfile_s=cstr("gamecore\\ammo\\")+t.ammopool[t.tpoolindex].name_s;
-							if ( PathExist ( t.tfile_s.Get() ) ) addfoldertocollection(t.tfile_s.Get());
-						}
-
-						// brass files
-						int iBrassIndex = g.firemodes[t.foundgunid][t.x].settings.brass;
-						if ( iBrassIndex > 0 ) 
-						{
-							t.tfile_s = cstr(cstr("gamecore\\brass\\brass")+Str(iBrassIndex));
-							if ( PathExist ( t.tfile_s.Get() ) )
-								addfoldertocollection(t.tfile_s.Get());
-						}
-					}
-
-					// and any projectile files associated with it
-					cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
-					if ( Len(pProjectilePresent.Get()) > 1 )
-					{
-						t.tfile_s=cstr("gamecore\\projectiletypes\\")+pProjectilePresent; 
-						addfoldertocollection(t.tfile_s.Get());
-					}
-				}
-			}
-			// zone marker can reference other levels to jump to
-			if ( t.entityprofile[t.entid].ismarker == 3 ) 
-			{
-				t.tlevelfile_s=t.entityelement[t.e].eleprof.ifused_s;
-				if ( Len(t.tlevelfile_s.Get())>1 ) 
-				{
-					t.tlevelfile_s=cstr("mapbank\\")+g_mapfile_levelpathfolder+t.tlevelfile_s+".fpm";
-					if ( FileExist(cstr(g.fpscrootdir_s+"\\Files\\"+t.tlevelfile_s).Get()) == 1 ) 
-					{
-						//++t.levelmax; // created earlier now
-						//t.levellist_s[t.levelmax]=t.tlevelfile_s;
-						addtocollection(t.tlevelfile_s.Get());
-					}
-					else
-					{
-						// nope, just a regular string entry in the marker field
-						t.tlevelfile_s="";
-					}
-				}
-			}
+			mapfile_addallentityrelatedfiles(t.entid, &t.entityelement[t.e].eleprof);
 		}
 	}
 	else
@@ -4712,8 +4649,11 @@ void addfoldertocollection ( char* path_s )
 				extern char szWriteDir[MAX_PATH];
 				cstr testPath = cstr(szWriteDir) + "Files\\" + path_s;// usePath;
 				SetDir(told_s.Get());
-				SetDir(testPath.Get());
-				ChecklistForFiles();
+				if (PathExist(testPath.Get()))
+				{
+					SetDir(testPath.Get());
+					ChecklistForFiles();
+				}
 			}
 		}
 		for ( c = 1 ; c<=  ChecklistQuantity(); c++ )

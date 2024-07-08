@@ -1,7 +1,9 @@
 #pragma once
 
+#ifndef NOTFORMAINENGINE
 #include "wiGraphicsDevice.h"
 #include "wiScene.h"
+#endif
 
 namespace GPUParticles
 {
@@ -27,10 +29,12 @@ int gpup_addSubPosition( int ID, float x, float y, float z ); // Add a sub-emitt
 int gpup_deleteSubPosition( int ID, int pos );
 int gpup_getSubPositionCount( int ID ); // query the number of current sub-emitters
 void gpup_emitterBurstLoopAutoMode(int ID, int iAuto); // Control if burst repeats
+void gpup_emitterBurstMode(int ID, int iMode); // Set burst mode on/off
 void gpup_emitterFire( int ID ); // Fire a burst emitter
 void gpup_setBlendmode( int ID, int usel );
 void gpup_setAutoFire( int ID, int act ); // Toggle the auto fire option for burst emitters
-void gpup_floorReflection( int ID, int active, float height ) ;
+void gpup_floorReflection(int ID, int active, float height);
+void gpup_restoreFloorReflection(int ID, int active, float height);
 void gpup_sphereReflection( int ID, int active, float x, float y, float z, float radius ) ;
 void gpup_setBounciness( int ID, float value ); // Change the bounciness of the particles of an effect with reflections
 void gpup_setLine( int ID, float x1, float y1, float z1, float x2, float y2, float z2 ); // Sets the end points of line and beam emitters
@@ -43,14 +47,22 @@ int gpup_deleteEffect( int ID );
 void gpup_deleteAllEffects(void);
 void gpup_setEffectVisible( int ID, int visible );
 int gpup_getEffectVisible ( int ID );
+float gpup_getParticleSpeed(int ID);
+float gpup_getParticleOpacity(int ID);
+float gpup_getParticleSize(int ID);
+float gpup_getBounciness(int ID);
+float gpup_getFloorReflectionHeight(int ID);
+void gpup_getEffectColor(int ID, float* r, float* g, float* b);
 float gpup_getEffectLifespan( int ID );
+void gpup_setEffectLifespan(int ID, float value);
 void gpup_setEffectAnimationSpeed(int ID, float speed);
 void gpup_setBilinear( int ID, int active );
 
+#ifndef NOTFORMAINENGINE
 void gpup_update( float frameTime, wiGraphics::CommandList cmd ); // must not be called from a render pass
-
 extern "C" void gpup_draw( const wiScene::CameraComponent& camera, wiGraphics::CommandList cmd ); // must be called from a render pass
 extern "C" void gpup_draw_init(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd); // must be called from a render pass
 extern "C" void gpup_draw_bydistance(const wiScene::CameraComponent & camera, wiGraphics::CommandList cmd, float fDistanceFromCamera); // must be called from a render pass
+#endif
 
 }

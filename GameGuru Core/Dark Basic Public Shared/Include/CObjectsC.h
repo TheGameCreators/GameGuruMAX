@@ -290,7 +290,7 @@ DARKSDK void SetGlobalCollisionOn		( void );
 DARKSDK void SetGlobalCollisionOff		( void );
 DARKSDK void SetSphereRadius			( int iID, float fRadius );
 DARKSDK float IntersectObject			( int iObjectID, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ );
-DARKSDK int IntersectAllEx				( int iStart, int iEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy );
+DARKSDK int IntersectAllEx(int iStart, int iEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy, bool bThreadSafe = false);
 DARKSDK int IntersectAll				( int iStart, int iEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo );
 DARKSDK void ProcessIntersectDatabaseExtraThreadItemList (void);
 DARKSDK void ResetIntersectDatabaseExtraThreadItemList (void);

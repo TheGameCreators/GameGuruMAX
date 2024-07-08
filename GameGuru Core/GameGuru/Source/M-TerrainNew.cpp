@@ -9656,10 +9656,14 @@ void imgui_Customize_Sky(int mode)
 
 void terrain_resetfornewlevel (void)
 {
-	// so loading new level, making new level clears sculpt data
-	GGTerrain_ResetSculpting();
-	reset_terrain_paint_date();
-	undosys_terrain_preparefornewlevel();
+	extern int g_iDisableTerrainSystem;
+	if (g_iDisableTerrainSystem == 0)
+	{
+		// so loading new level, making new level clears sculpt data
+		GGTerrain_ResetSculpting();
+		reset_terrain_paint_date();
+		undosys_terrain_preparefornewlevel();
+	}
 }
 
 // Placeholders until new terrain system established
@@ -9886,9 +9890,16 @@ void terrain_renderonly ( void ) {}
 float BT_GetGroundHeight ( unsigned long value, float x, float z )
 {
 	#ifdef GGTERRAIN_USE_NEW_TERRAIN
-	float height;
-	if ( GGTerrain_GetHeight( x, z, &height ) ) return height;
-	else return GGORIGIN_Y;
+	extern int g_iDisableTerrainSystem;
+	if (g_iDisableTerrainSystem == 0)
+	{
+
+		float height;
+		if (GGTerrain_GetHeight(x, z, &height)) return height;
+		else return GGORIGIN_Y;
+	}
+	else
+		return GGORIGIN_Y;
 	#endif
 
 	/* g_pTerrain no longer used
@@ -9910,9 +9921,16 @@ float BT_GetGroundHeight ( unsigned long value, float x, float z )
 float BT_GetGroundHeight ( unsigned long value, float x, float z, bool dsadsadsa )
 {
 	#ifdef GGTERRAIN_USE_NEW_TERRAIN
-	float height;
-	if ( GGTerrain_GetHeight( x, z, &height ) ) return height;
-	else return GGORIGIN_Y;
+	extern int g_iDisableTerrainSystem;
+	if (g_iDisableTerrainSystem == 0)
+	{
+
+		float height;
+		if (GGTerrain_GetHeight(x, z, &height)) return height;
+		else return GGORIGIN_Y;
+	}
+	else
+		return GGORIGIN_Y;
 	#endif
 
 	/* g_pTerrain no longer used
@@ -13488,7 +13506,9 @@ void procedural_new_level(void)
 					{
 						char destination[MAX_PATH];
 						strcpy(destination, "thumbbank\\lastnewlevel.jpg");
+						GG_SetWritablesToRoot(true);
 						GG_GetRealPath(destination, 1);
+						GG_SetWritablesToRoot(false);
 						extern bool g_bDontUseImageAlpha;
 						g_bDontUseImageAlpha = true;
 						SaveImage(destination, STORYBOARD_THUMBS + 400);
@@ -13518,13 +13538,16 @@ void procedural_new_level(void)
 					bProceduralLevel = false;
 			}
 
+			// LB: Disagree with this, ALL LEVELS must have a name and FPM or bad things happen!
+			/*
 			if (!bProceduralLevelFromStoryboard)
 			{
 				//Started from editor , just go back.
 				bProceduralLevel = false;
-				bTriggerTerrainSaveAsWindow = false;
 				iQuitProceduralLevel = 0;
+				bTriggerTerrainSaveAsWindow = false;
 			}
+			*/
 		}
 		if (!bProceduralLevel)
 		{

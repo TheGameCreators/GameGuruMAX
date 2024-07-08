@@ -151,6 +151,7 @@ function carry_object_main(e)
 					end
 				end
 			end
+			updatetimer[e] = g_Time + 500
 		end	
 		if g_Time > checktimer[e] then
 			objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)

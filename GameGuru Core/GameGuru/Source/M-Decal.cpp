@@ -79,8 +79,8 @@ void decal_init ( void )
 		if (  t.tdscan == 6  )  t.decal_s = "splash_foam";
 		if (  t.tdscan == 7  )  t.decal_s = "dustflume";
 		if (  t.tdscan == 8  )  t.decal_s = "impact";
-		#ifdef PRODUCTV3
-		 if (  t.tdscan == 9  )  t.decal_s = "splat";
+		#ifdef DETECTANDUSENEWPARTICLEDECALS
+		 if (  t.tdscan == 9  )  t.decal_s = "blood";
 		#else
 		 if (  t.tdscan == 9  )  t.decal_s = "bloodsplat";
 		#endif
@@ -207,6 +207,7 @@ void decal_load ( void )
 	loaddecal( t.strwork.Get() ,t.decalid);
 
 	// Detect and load any new particle associated with this decal
+	#ifdef DETECTANDUSENEWPARTICLEDECALS
 	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\newparticle";
 	t.decal[t.decalid].newparticle.emitterid = -1;
 	t.decal[t.decalid].newparticle.emittername = t.strwork.Get();
@@ -217,7 +218,7 @@ void decal_load ( void )
 	if (FileExist(pAbsPathToParticle) == 1)
 	{
 		GGMATRIX* pmatBaseRotation = NULL;
-		float fScale = 1.0f;
+		float fScale = -80.0f;
 		float fX = 0.0f;
 		float fY = 0.0f;
 		float fZ = 0.0f;
@@ -225,11 +226,14 @@ void decal_load ( void )
 		float fRY = 0.0f;
 		float fRZ = 0.0f;
 		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
+		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = true;
+		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = true;
 		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // pre-load!
 		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
 		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
 		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // update it!
 	}
+	#endif
 }
 
 void decal_scaninallref ( void )
@@ -732,7 +736,7 @@ void decalelement_control ( void )
 
 				// update new particle decal
 				GGMATRIX pmatBaseRotation;
-				float fScale = 0.0f;
+				float fScale = -80.0f;
 				float fX = t.decalelement[t.f].xpos;
 				float fY = t.decalelement[t.f].ypos;
 				float fZ = t.decalelement[t.f].zpos;
@@ -1147,7 +1151,11 @@ void decal_triggerbloodsplat ( void )
 	t.originatore=-1;
 	t.decalscalemodx=40+Rnd(20) ; t.decalscalemody=40+Rnd(20);
 	t.decalforward=0;
-	t.decalid=t.decalglobal.bloodsplatid ; t.decalorient=13 ; decalelement_create ( );
+	#ifdef DETECTANDUSENEWPARTICLEDECALS
+	t.decalid = t.decalglobal.bloodsplatid; t.decalorient = 0; decalelement_create ();
+	#else
+	t.decalid = t.decalglobal.bloodsplatid; t.decalorient = 13; decalelement_create ();
+	#endif
 }
 
 void decal_triggermaterialdecal ( void )

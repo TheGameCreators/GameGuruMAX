@@ -50,7 +50,7 @@ Compiling GAMEGURU MAX:
 13. Download the "GameGuruMAX-MissingLIBs.zip" zip (see below) and extract to a temp folder. These files are some of the contents of the folder 'GameGuru Core', so locate "GAMEGURUMAXREPO\GameGuru Core" and copy the files to this destination
 14. For the above, you should be looking to overwrite this folder 'D:\DEV\GAMEGURUMAXREPO\GameGuru Core'. It will add some extra LIBs.
 15. Now open the project "GameGuru Core\GameGuruWickedMAX.sln" using VS2022
-16. Set the Solution Configuration from "Debug" to "ReleaseForSteam"
+16. Set the Solution Configuration from "Debug" to "Release"
 17. Right click the "Wicked-MAX" project (at the bottom) and select "Set as Startup Project"
 18. Right click "Wicked-MAX" again and select REBUILD
 19. When the compiling has finished, press the "Local Windows Debugger" button at the top to run GameGuru MAX via Visual Studio

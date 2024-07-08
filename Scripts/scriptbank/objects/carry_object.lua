@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V36 by Necrym59 and Lee
+-- Carry Object V37 by Necrym59 and Lee
 -- DESCRIPTION: A global or local behaviour for object handling.
 -- DESCRIPTION: If using globally. Set AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -66,6 +66,7 @@ local objlookedat		= {}
 local objectlist 		= {}
 local checktimer		= {}
 local throwtimer		= {}
+local updatetimer		= {}
 
 function carry_object_properties(e, pickup_text, pickup_range, max_pickup_weight, max_pickup_size, release_text, throw_text, rearm_weapon, throw_damage, diagnostics)
 	carry_object[e].pickup_text = pickup_text
@@ -120,6 +121,7 @@ function carry_object_init(e)
 	objlookedat[e] = 0
 	checktimer[e] = math.huge
 	throwtimer[e] = math.huge
+	updatetimer[e] = math.huge
 end
 
 function carry_object_main(e)
@@ -129,6 +131,7 @@ function carry_object_main(e)
 		if carry_object[e].pickup_size > 100 then carry_object[e].pickup_size = 100 end
 		checktimer[e] = g_Time + 500
 		throwtimer[e] = g_Time + 500
+		updatetimer[e] = g_Time + 500		
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if GetEntityWeight(n) < 100 then
@@ -140,6 +143,15 @@ function carry_object_main(e)
 	end
 
 	if status[e] == 'pickup' then
+		if g_Time > updatetimer[e] then
+			for n = 1, g_EntityElementMax do
+				if n ~= nil and g_Entity[n] ~= nil then
+					if GetEntityWeight(n) < 100 then
+						table.insert(objectlist,n)
+					end
+				end
+			end
+		end	
 		if g_Time > checktimer[e] then
 			objlookedat[e] = U.ObjectPlayerLookingAt(carry_object[e].pickup_range)
 			if objlookedat[e] > 0 then
@@ -154,7 +166,7 @@ function carry_object_main(e)
 				selectobj[e] = 0
 				tEnt[e] = 0
 				objlookedat[e] = 0
-				checktimer[e] = g_Time + 500
+				checktimer[e] = g_Time + 250
 			end
 		end
 	end
@@ -201,17 +213,23 @@ function carry_object_main(e)
 					end
 					if allegiance[e] ~= -1 then
 						tEnt[e] = 0
-					end
+					end					
 					--end pinpoint select object--
 				end
-				if selectobj[e] == 0 then tEnt[e] = 0 end
+				if selectobj[e] == 0 then
+					tEnt[e] = 0
+					objlookedat[e] = 0
+					status[e] = 'pickup'
+				end
 				if nearEnt[e] ~= tEnt[e] then
 					selectobj[e] = 0
 				end
 			else
 				nearEnt[e] = 0
+				objlookedat[e] = 0
 				selectobj[e] = 0
 				tEnt[e] = 0
+				status[e] = 'pickup'
 			end
 
 			if tEnt[e] ~= 0 then
@@ -330,8 +348,8 @@ function carry_object_main(e)
 			status[e] = 'pickup'
 			g_carrying = 0
 			g_carryingweight = 0
-			checktimer[e] = g_Time + 500
-			objlookedat[e] = 0
+			checktimer[e] = g_Time + 250
+			objlookedat[e] = 0			
 			if carry_object[e].rearm_weapon == 1 then
 				ChangePlayerWeapon(last_gun[e])
 				SetPlayerWeapons(1)
@@ -371,7 +389,7 @@ function carry_object_main(e)
 					selectobj[e] = 0
 					tEnt[e] = 0
 					status[e] = 'pickup'
-					checktimer[e] = g_Time + 500
+					checktimer[e] = g_Time + 250
 					objlookedat[e] = 0
 				end
 			end
@@ -389,7 +407,7 @@ function carry_object_main(e)
 					selectobj[e] = 0
 					tEnt[e] = 0
 					status[e] = 'pickup'
-					checktimer[e] = g_Time + 500
+					checktimer[e] = g_Time + 250
 					objlookedat[e] = 0
 				end
 			end

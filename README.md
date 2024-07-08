@@ -40,7 +40,7 @@ Compiling GAMEGURU MAX:
 2. Copy contents of the 'MAX root' to new 'BUILD\GameGuru Wicked MAX Build Area\Max' folder created inside DEV folder (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
 3. In Windows 10, type ENV in the search box in the bottom left and hit ENTER
 4. Click ENVIRONMENT VARIABLES and click NEW in the system variables section
-5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area\Max)
+5. Enter "GG_MAX_BUILD_PATH" for the variable name and the path for the variable value, enter the BUILD folder above (i.e. D:\DEV\BUILD\GameGuru Wicked MAX Build Area)
 6. The BUILD folder might look like: "C:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\" (see below for understanding GG_MAX_BUILD_PATH). Click OK and OK.
 7. Now to go the CODE tab above, then click the green CODE button and copy the HTTPS Repository URL into your clipboard (https://github.com/TheGameCreators/GameGuruMAX.git)
 9. Use GitHub Desktop to CLONE a new repository, and provide the URL you previously copied

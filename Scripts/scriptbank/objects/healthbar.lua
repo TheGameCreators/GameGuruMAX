@@ -12,26 +12,22 @@ local healthbar = {}
 local display_range = {}
 local display_mode = {}
 local y_adjustment = {}
-
 local allegiance = {}
-local entheight	= {}
-local health = {}
 
-function healthbar_properties(e, display_range, display_mode, allegiance, health, y_adjustment)
+local entheight	= {}
+
+function healthbar_properties(e, display_range, display_mode, y_adjustment)
 	healthbar[e].display_range = display_range or 500
 	healthbar[e].display_mode = display_mode or 1
-	healthbar[e].allegiance = 0
-	healthbar[e].health = 0
-	healthbar[e].y_adjustment = y_adjustment or 0	
+	healthbar[e].y_adjustment = y_adjustment	
 end
 
 function healthbar_init(e)
 	healthbar[e] = {}
 	healthbar[e].display_range = 500
 	healthbar[e].display_mode = 1
-	healthbar[e].allegiance = 0
-	healthbar[e].health = 0
 	healthbar[e].y_adjustment = 0	
+	healthbar[e].allegiance = 0
 	Hide(e)
 	GravityOff(e)
 	entheight[e] = 0
@@ -46,7 +42,7 @@ function healthbar_main(e)
 				if allegiance == 0 then
 					Ent = g_Entity[a]
 					local dims = P.GetObjectDimensions(Ent.obj)
-					entheight[e] = (healthbar[e].y_adjustment + dims.h)
+					entheight[e] = (dims.h + healthbar[e].y_adjustment)
 					if PlayerLooking(a,healthbar[e].display_range,5) == 1 then
 						PlayerDist = GetPlayerDistance(a)
 						if PlayerDist < healthbar[e].display_range then 
@@ -90,7 +86,7 @@ function healthbar_main(e)
 				end				
 			end 
 		end	
-	end	
+	end
 end
 
 function PlayerLooking(e,dis,v)

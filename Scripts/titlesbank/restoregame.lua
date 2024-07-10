@@ -64,7 +64,15 @@ function restoregame.now()
    if g_EntityExtra[i]['spawnatstart']==2 and g_Entity[i]['health'] > 0 then
     Spawn ( i )
    end
-  end
+   -- Trigger lights refresh to last known active state
+   if g_module_lightcontrol ~= nil then
+	if g_module_lightcontrol[i] ~= nil then
+	 if g_module_lightcontrol[i]['activestate'] ~= nil then
+	  g_module_lightcontrol[i]['initialstate'] = g_module_lightcontrol[i]['activestate']
+	 end
+	end
+   end
+   end
   end
  end 
  -- restore all level containers (first two are always players main and hotkeys)
@@ -87,22 +95,24 @@ function restoregame.now()
 					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
 					local anyee = 0
 					for ee = 1, g_EntityElementMax, 1 do
-						if e ~= ee then
-							if g_Entity[ee] ~= nil then
-								if g_Entity[ee]['active'] > 0 then
-									if GetEntityName(ee) == tname then
-										anyee = ee
-										break
-									end
+						if g_Entity[ee] ~= nil then
+							if g_Entity[ee]['active'] > 0 then
+								if GetEntityName(ee) == tname then
+									anyee = ee
+									break
 								end
 							end
 						end
 					end
+					if c == 0 then invindex = 1 end
+					if c == 1 then invindex = 2 end
 					if anyee > 0 then
+						-- can use thisd spawned one as parent loaded in the level
 						local newe = SpawnNewEntity(anyee)
-						if c == 0 then invindex = 1 end
-						if c == 1 then invindex = 2 end
 						SetEntityCollectedForce(newe,invindex,slot)
+					else
+						-- is not yet spawned or existing, so include in inventory via tcollectionindex
+						SetEntityCollectedForce(0,invindex,slot,inventorycontainer,tcollectionindex)
 					end
 				end
 			end
@@ -133,7 +143,7 @@ function restoregame.now()
 					local slot = g_UserContainerSlot[fulloffset]
 					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
 					if tcollectione > 0 then
-						SetEntityCollectedForce(tcollectione,3,slot,inventorycontainer)
+						SetEntityCollectedForce(tcollectione,3,slot,inventorycontainer,tcollectionindex)
 					end
 				end
 			end

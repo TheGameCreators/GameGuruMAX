@@ -1139,7 +1139,7 @@ luaMessage** ppLuaMessages = NULL;
 	// bForceMode when true will ignore state of entity, only interested in adding to inventory (used for saved game restoring)
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 2 || n > 4 ) return 0;
+	if ( n < 2 || n > 5 ) return 0;
 	int iReturnSlot = -1;
 	bool bItemHandled = false;
 	bool bRemoveEntityFromGame = false;
@@ -1153,8 +1153,10 @@ luaMessage** ppLuaMessages = NULL;
 	{
 		int iSlotIndex = -1;
 		const char* pSpecifiedContainer = "";
-		if (n == 3) iSlotIndex = lua_tonumber(L, 3);
-		if (n == 4) pSpecifiedContainer = lua_tostring(L, 4);
+		if (n >= 3) iSlotIndex = lua_tonumber(L, 3);
+		if (n >= 4) pSpecifiedContainer = lua_tostring(L, 4);
+		int iOptionalCollectionID = -1;
+		if (n >= 5) iOptionalCollectionID = lua_tonumber(L, 5);
 		for (int containerindex = 0; containerindex < t.inventoryContainers.size(); containerindex++)
 		{
 			if (iCollectState > 0)
@@ -1172,7 +1174,7 @@ luaMessage** ppLuaMessages = NULL;
 							break;
 
 					// hotkeys only permits one of each type (so duplicate weapons are deflected to main inv)
-					if (iCollectState == 2)
+					if (iCollectState == 2 && iEntityIndex > 0)
 					{
 						int entid = t.entityelement[iEntityIndex].bankindex;
 						if (t.entityprofile[entid].isweapon > 0)
@@ -1199,46 +1201,59 @@ luaMessage** ppLuaMessages = NULL;
 						// add item to inventory
 						inventoryContainerType item;
 						item.e = iEntityIndex;
+						item.collectionID = -1;
 
 						// find collection ID by matching object name with collection name (cannot use index as user may add to list!)
-						int entid = t.entityelement[iEntityIndex].bankindex;
-						if (t.entityprofile[entid].isweapon > 0)
+						if (iEntityIndex > 0)
 						{
-							// is a weapon (that are auto added) must use proper internal name for correct identification
-							item.collectionID = find_rpg_collectionindex(t.entityprofile[entid].isweapon_s.Get());
-							if (item.collectionID == 0)
+							int entid = t.entityelement[iEntityIndex].bankindex;
+							if (t.entityprofile[entid].isweapon > 0)
 							{
-								// fallback uses regular visible name (ooften used by UI renamed stock weapons)
+								// is a weapon (that are auto added) must use proper internal name for correct identification
+								item.collectionID = find_rpg_collectionindex(t.entityprofile[entid].isweapon_s.Get());
+								if (item.collectionID == 0)
+								{
+									// fallback uses regular visible name (ooften used by UI renamed stock weapons)
+									item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+								}
+							}
+							else
+							{
 								item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
 							}
-
 						}
-						else
+						if(item.collectionID==-1)
 						{
 							// not a weapon, can use given name
-							item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
+							if (iOptionalCollectionID != -1)
+							{
+								// or collection ID if passed in
+								item.collectionID = iOptionalCollectionID;
+							}
 						}
 
 						// if resource and no slot specified (collected in game), merge with any existing
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2 && iSlotIndex == -1)
+						if (iEntityIndex > 0)
 						{
-							for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+							if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2 && iSlotIndex == -1)
 							{
-								if (t.inventoryContainer[containerindex][n].collectionID == item.collectionID)
+								for (int n = 0; n < t.inventoryContainer[containerindex].size(); n++)
 								{
-									// already have this resource in container
-									iSlotIndex = t.inventoryContainer[containerindex][n].slot;
-									break;
+									if (t.inventoryContainer[containerindex][n].collectionID == item.collectionID)
+									{
+										// already have this resource in container
+										iSlotIndex = t.inventoryContainer[containerindex][n].slot;
+										break;
+									}
 								}
 							}
-						}
-
-						// if resource can never be less than one
-						if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
-						{
-							int iQtyToCheck = t.entityelement[iEntityIndex].eleprof.quantity;
-							if (iQtyToCheck < 1) iQtyToCheck = 1;
-							t.entityelement[iEntityIndex].eleprof.quantity = iQtyToCheck;
+							// if resource can never be less than one
+							if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+							{
+								int iQtyToCheck = t.entityelement[iEntityIndex].eleprof.quantity;
+								if (iQtyToCheck < 1) iQtyToCheck = 1;
+								t.entityelement[iEntityIndex].eleprof.quantity = iQtyToCheck;
+							}
 						}
 
 						// manage slot for this item
@@ -1266,22 +1281,25 @@ luaMessage** ppLuaMessages = NULL;
 							{
 								if (t.inventoryContainer[containerindex][n].slot == iSlotIndex)
 								{
-									if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
+									if (iEntityIndex > 0)
 									{
-										// being used by resource - can merge these
-										int existingee = t.inventoryContainer[containerindex][n].e;
-										if (existingee > 0)
+										if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
 										{
-											if (t.entityelement[existingee].eleprof.iscollectable == 2)
+											// being used by resource - can merge these
+											int existingee = t.inventoryContainer[containerindex][n].e;
+											if (existingee > 0)
 											{
-												// merge both objects into the present one in the container
-												int iQtyToAdd = t.entityelement[iEntityIndex].eleprof.quantity;
-												if (iQtyToAdd < 1) iQtyToAdd = 1;
-												t.entityelement[existingee].eleprof.quantity += iQtyToAdd;
+												if (t.entityelement[existingee].eleprof.iscollectable == 2)
+												{
+													// merge both objects into the present one in the container
+													int iQtyToAdd = t.entityelement[iEntityIndex].eleprof.quantity;
+													if (iQtyToAdd < 1) iQtyToAdd = 1;
+													t.entityelement[existingee].eleprof.quantity += iQtyToAdd;
 
-												// hide other object until need again
-												t.entityelement[iEntityIndex].eleprof.quantity = 0;
-												bRemoveEntityFromGame = true;
+													// hide other object until need again
+													t.entityelement[iEntityIndex].eleprof.quantity = 0;
+													bRemoveEntityFromGame = true;
+												}
 											}
 										}
 									}

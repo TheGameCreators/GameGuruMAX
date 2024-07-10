@@ -137,6 +137,7 @@
 	//#define BUSHUI
 
 	#define NEWPROJSYSWORKINPROGRESS
+	#define DETECTANDUSENEWPARTICLEDECALS
 
   #else
    // Flags to compile the Classic version of GameGuru

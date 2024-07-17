@@ -1,0 +1,56 @@
+;Saved by Model Importer
+;header
+desc             = moon
+
+;orientation
+model            = moon.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = moon_color.dds
+baseColorMap     = moon_color.dds
+alpharef         = 1.00
+normalMap        = moon_normal.dds
+normalStrength   = 1.00
+surfaceMap       = moon_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 4294967040
+textureref1       = moon_color.dds
+textureref2       = moon_normal.dds
+textureref3       = moon_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

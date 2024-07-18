@@ -209,3 +209,5 @@ void WickedCall_UpdateWaterHeight(float height);
 void WickedCall_RemoveObjectTextures(sObject* pObject);
 
 void WickedCall_SetExposure(float exposure);
+
+void WickedCall_CreateDecal(sObject* pObject);

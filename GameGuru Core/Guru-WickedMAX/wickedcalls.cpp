@@ -6758,3 +6758,42 @@ void WickedCall_SetExposure(float exposure)
 	master.masterrenderer.setExposure(exposure);
 }
 
+/* Experiment to stain surfaces, should not use decal projection
+bool bDoJustOne = true;
+
+void WickedCall_CreateDecal(sObject* pObject)
+{
+	// get object to attach it to
+	//for (int i = 0; i < pObject->iMeshCount; i++)
+	//{
+		//sMesh* pMesh = pObject->ppMeshList[i];
+		//if (pMesh)
+		//{
+	if (bDoJustOne == true)
+	{
+			Scene& scene = wiScene::GetScene();
+			//Entity entity = scene.Entity_CreateDecal("DecalProjection", "gamecore/extras/enhanced/EAI Enhanced Weapon_Arms_UV_Template.png");
+			Entity entity = scene.Entity_CreateDecal("DecalProjection", "databank/bloodsplash1.png");
+			TransformComponent& transform = *scene.transforms.GetComponent(entity);
+			//transform.MatrixTransform(pObject->orientation);
+			//transform.RotateRollPitchYaw(XMFLOAT3(0, 0, 0)); //XMFLOAT3(XM_PIDIV2, 0, 0));
+			//transform.Scale(XMFLOAT3(200, 200, 200));
+			//scene.Component_Attach(entity, pMesh->wickedmeshindex);
+
+			transform.ClearTransform();
+			float x = 5000;// 5000 + (rand() % 500);
+			float z = 0;// rand() % 500;
+			transform.Translate(XMFLOAT3(x, 60, z));
+			transform.RotateRollPitchYaw(XMFLOAT3(XMFLOAT3(XM_PIDIV2, 0, 0)));
+			transform.Scale(XMFLOAT3(40, 40, 40));
+			transform.UpdateTransform();
+			transform.SetDirty();
+
+			bDoJustOne = false;
+	}
+
+			//break;
+		//}
+	//}
+}
+*/

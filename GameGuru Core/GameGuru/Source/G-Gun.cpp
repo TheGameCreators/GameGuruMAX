@@ -5274,6 +5274,11 @@ void gun_load ( void )
 		g.firemodes[t.gunid][t.i].settings.smokeimg=t.imgid;
 	}
 
+	/// EXPERIMENTAL DECAL PROJECTION - NOT USEFUL FOR HAND STAINING!
+	//sObject* pSplatDecalOnThisObject = GetObjectData(t.currentgunobj);
+	//WickedCall_CreateDecal(pSplatDecalOnThisObject);
+	/// 
+
 	//  Setup gun with crosshair
 	t.crosshair_s = "";
 	t.crosshair_s=t.crosshair_s+"gamecore\\"+g.fpgchuds_s+"\\"+t.gun_s+"\\crosshair.dds";

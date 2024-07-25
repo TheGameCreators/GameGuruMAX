@@ -1169,9 +1169,17 @@ luaMessage** ppLuaMessages = NULL;
 				{
 					// if not already collected
 					int n = 0;
-					for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
-						if (t.inventoryContainer[containerindex][n].e == iEntityIndex)
-							break;
+					if (iEntityIndex > 0 || bForceMode == false)
+					{
+						for (n = 0; n < t.inventoryContainer[containerindex].size(); n++)
+							if (t.inventoryContainer[containerindex][n].e == iEntityIndex)
+								break;
+					}
+					else
+					{
+						// forcing to this slot if iEntityIndex zero and forcing in (populating inventory on game load)
+						n = t.inventoryContainer[containerindex].size();
+					}
 
 					// hotkeys only permits one of each type (so duplicate weapons are deflected to main inv)
 					if (iCollectState == 2 && iEntityIndex > 0)

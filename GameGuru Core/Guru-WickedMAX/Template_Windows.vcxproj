@@ -173,7 +173,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>D:\DEV\DOWNLOADS\GGMAX USERS\The hermit of the forest 36 ITEMS\The hermit of the forest\</OutDir>
+    <OutDir>D:\DEV\DOWNLOADS\GGMAX USERS\HERMIT-SAMPEY\The hermit of the forest\</OutDir>
     <TargetName>The hermit of the forest</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\DirectXTex\DirectXTex;$(SolutionDir)SDK\OGG\include;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\OPTICK\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)SDK\PhotonSDK\Common-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\LoadBalancing-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\Photon-cpp\lib\;$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\OGG\lib64\Release\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Release\;$(SolutionDir)SDK\OpenXR\lib64\Release;$(SolutionDir)SDK\OPTICK\lib\x64\release;$(LibraryPath)</LibraryPath>

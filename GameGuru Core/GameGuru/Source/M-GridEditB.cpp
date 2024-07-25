@@ -46653,6 +46653,10 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return (void*)&g.firemodes[t.gunid][g.firemode].ammoimg;
 	}
+	else if (strcmp(readoutTitle, "Lives Remaining") == 0)
+	{
+		return (void*)&t.player[t.plrid].lives;
+	}
 	else if (strcmp(readoutTitle, "VSync") == 0)
 	{
 		return (void*)&master.bVsyncEnabled;
@@ -48042,20 +48046,27 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 										}
 										else
 										{
-											if (stricmp(storeFirstEntry, "Ammo Remaining") == NULL)
+											if (stricmp(storeFirstEntry, "Lives Remaining") == NULL)
 											{
-												readoutValueFromLUA1 = t.slidersmenuvalue[1][1].value;
+												readoutValueFromLUA1 = t.player[t.plrid].lives;
 											}
 											else
 											{
-												if (stricmp(storeFirstEntry, "Maximum Ammo") == NULL)
+												if (stricmp(storeFirstEntry, "Ammo Remaining") == NULL)
 												{
-													readoutValueFromLUA1 = t.slidersmenuvalue[1][2].value;
+													readoutValueFromLUA1 = t.slidersmenuvalue[1][1].value;
 												}
 												else
 												{
-													sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
-													readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+													if (stricmp(storeFirstEntry, "Maximum Ammo") == NULL)
+													{
+														readoutValueFromLUA1 = t.slidersmenuvalue[1][2].value;
+													}
+													else
+													{
+														sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", storeFirstEntry);
+														readoutValueFromLUA1 = LuaGetInt(pUserDefinedGlobal);
+													}
 												}
 											}
 										}
@@ -48221,6 +48232,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							{
 								if (stricmp (Storyboard.widget_readout[nodeid][index], "Health Remaining") == NULL) bHideThis = true;
 								if (stricmp (Storyboard.widget_readout[nodeid][index], "Maximum Health") == NULL) bHideThis = true;
+								if (stricmp (Storyboard.widget_readout[nodeid][index], "Lives Remaining") == NULL) bHideThis = true;
 							}
 						
 							// Display the variable value that this readout represents
@@ -49885,7 +49897,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								}
 								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
 								ImGui::PopItemWidth();
-								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global or one of the presets (Health Remaining, Ammo Remaining, Maximum Ammo)");
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Specify a user defined global or one of the presets (Health Remaining, Ammo Remaining, Maximum Ammo, Lives Remaining)");
 							}
 
 							// globals pairs are used for things like status bars (current value var and max var)

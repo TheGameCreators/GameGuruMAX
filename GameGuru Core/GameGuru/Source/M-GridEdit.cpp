@@ -30601,6 +30601,12 @@ void init_readouts()
 	readoutTypes.push_back(READOUT_INT);
 	readoutCallbacks.push_back(nullptr);
 
+	readoutTitles.push_back("Lives Remaining");
+	readoutWidgetTypes.push_back(STORYBOARD_WIDGET_TEXT);
+	readoutLayers.push_back(READOUT_GAMEPLAY);
+	readoutTypes.push_back(READOUT_INT);
+	readoutCallbacks.push_back(nullptr);
+
 	// Removed for now
 	/*readoutTitles.push_back("VSync");
 	readoutWidgetTypes.push_back(STORYBOARD_WIDGET_TICKBOX);

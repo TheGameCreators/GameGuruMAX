@@ -138,13 +138,11 @@ function restoregame.now()
 				local fulloffset = (c*100000)+tinventoryindex
 				if g_UserContainerIndex[fulloffset] ~= nil then
 					local tcollectionindex = g_UserContainerIndex[fulloffset]
-					local tcollectione = g_UserContainerE[fulloffset]
+					--local tcollectione = g_UserContainerE[fulloffset]
 					local qty = g_UserContainerQty[fulloffset]
 					local slot = g_UserContainerSlot[fulloffset]
 					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-					if tcollectione > 0 then
-						SetEntityCollectedForce(tcollectione,3,slot,inventorycontainer,tcollectionindex)
-					end
+					SetEntityCollectedForce(0,3,slot,inventorycontainer,tcollectionindex)
 				end
 			end
 		end

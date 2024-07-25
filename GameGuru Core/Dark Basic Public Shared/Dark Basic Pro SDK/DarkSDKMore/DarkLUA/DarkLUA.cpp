@@ -4906,6 +4906,28 @@ int GetCombatMusicTrackPlaying(lua_State *L)
 	lua_pushnumber (L, iPlaying);
 	return 1;
 }
+
+int SetSoundMusicMode(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	extern bool g_bSoundIsMusic[65536];
+	int iSoundIndex = lua_tonumber(L, 1);
+	g_bSoundIsMusic[iSoundIndex] = lua_tonumber(L, 2);
+	return 1;
+}
+int GetSoundMusicMode(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	extern bool g_bSoundIsMusic[65536];
+	int iSoundIndex = lua_tonumber(L, 1);
+	lua_pushnumber (L, g_bSoundIsMusic[iSoundIndex]);
+	return 1;
+}
+
 #endif
 
 // Voice
@@ -11821,6 +11843,9 @@ void addFunctions()
 	lua_register(lua, "StopCombatMusicTrack", StopCombatMusicTrack);
 	lua_register(lua, "SetCombatMusicTrackVolume", SetCombatMusicTrackVolume);
 	lua_register(lua, "GetCombatMusicTrackPlaying", GetCombatMusicTrackPlaying);
+
+	lua_register(lua, "SetSoundMusicMode", SetSoundMusicMode);
+	lua_register(lua, "GetSoundMusicMode", GetSoundMusicMode);
 
 	#ifdef VRTECH
 	lua_register(lua, "GetSpeech" , GetSpeech );

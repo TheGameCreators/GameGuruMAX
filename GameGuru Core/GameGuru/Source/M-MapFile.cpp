@@ -3870,6 +3870,21 @@ void mapfile_savestandalone_stage4 ( void )
 	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
 	#endif
 
+	// and change the icon using project icons if exists
+	char projectico[MAX_PATH];
+	char projectfinal_ico[MAX_PATH];
+	strcpy(projectico, "projectbank\\");
+	strcat(projectico, Storyboard.gamename);
+	strcpy(projectfinal_ico, "Files\\");
+	strcat(projectfinal_ico, projectico);
+	strcat(projectfinal_ico, "\\project256.ico");
+	GG_GetRealPath(projectfinal_ico, 1);
+	if (FileExist(projectfinal_ico)==1)
+	{
+		void InjectIconToExe(char* icon, char* exe, int intresourcenumber);
+		InjectIconToExe(projectfinal_ico, t.dest_s.Get(), 1);
+	}
+
 	// Copy critical DLLs
 	#ifdef WICKEDENGINE
 

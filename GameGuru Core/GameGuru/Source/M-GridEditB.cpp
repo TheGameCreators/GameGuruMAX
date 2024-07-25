@@ -40771,8 +40771,9 @@ void process_storeboard(bool bInitOnly)
 							ImGui::SetWindowFontScale(1.0);
 
 							//TEST
+							//#define TESTICONINJECT
 							#ifdef TESTICONINJECT
-							if (ImGui::StyleButton("TEST -> char1.exe", ImVec2(buttonwide, 0.0f)))
+							if (ImGui::StyleButton("TEST -> FISHLAKE.exe", ImVec2(buttonwide, 0.0f)))
 							{
 								void InjectIconToExe(char *icon, char *exe, int intresourcenumber);
 								char projectico[MAX_PATH];
@@ -40783,7 +40784,12 @@ void process_storeboard(bool bInitOnly)
 								strcpy(projectfinal_ico, projectico);
 								strcat(projectfinal_ico, "\\project256.ico");
 								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 1);
+								InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 1);
+
+								//strcpy(projectfinal_ico, projectico);
+								//strcat(projectfinal_ico, "\\project16.ico");
+								//GG_GetRealPath(projectfinal_ico, 1);
+								//InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 6);
 
 								//PE: Only 256 used for now.
 								/*
@@ -40791,22 +40797,18 @@ void process_storeboard(bool bInitOnly)
 								strcat(projectfinal_ico, "\\project128.ico");
 								GG_GetRealPath(projectfinal_ico, 1);
 								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe",2);
-
 								strcpy(projectfinal_ico, projectico);
 								strcat(projectfinal_ico, "\\project64.ico");
 								GG_GetRealPath(projectfinal_ico, 1);
 								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 3);
-
 								strcpy(projectfinal_ico, projectico);
 								strcat(projectfinal_ico, "\\project48.ico");
 								GG_GetRealPath(projectfinal_ico, 1);
 								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 4);
-
 								strcpy(projectfinal_ico, projectico);
 								strcat(projectfinal_ico, "\\project32.ico");
 								GG_GetRealPath(projectfinal_ico, 1);
 								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 5);
-
 								strcpy(projectfinal_ico, projectico);
 								strcat(projectfinal_ico, "\\project16.ico");
 								GG_GetRealPath(projectfinal_ico, 1);

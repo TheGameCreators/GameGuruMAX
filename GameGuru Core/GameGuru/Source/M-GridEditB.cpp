@@ -6666,11 +6666,15 @@ void tab_tab_visuals(int iPage, int iMode)
 							{
 								t.visuals.sAmbientMusicTrack = cNewMusicTrack;
 								t.gamevisuals.sAmbientMusicTrack = t.visuals.sAmbientMusicTrack;
+								extern bool entity_copytoremoteifnotthere(LPSTR);
+								entity_copytoremoteifnotthere(t.visuals.sAmbientMusicTrack.Get());
 							}
 							if (iGlobalGameSounds == 1)
 							{
 								t.visuals.sCombatMusicTrack = cNewMusicTrack;
 								t.gamevisuals.sCombatMusicTrack = t.visuals.sCombatMusicTrack;
+								extern bool entity_copytoremoteifnotthere(LPSTR);
+								entity_copytoremoteifnotthere(t.visuals.sCombatMusicTrack.Get());
 							}
 							if (SoundExist(iFreeSoundID) == 1 && SoundPlaying(iFreeSoundID) == 1)
 							{
@@ -22151,6 +22155,10 @@ void process_entity_library_v2(void)
 						{
 							sSelectedLibrarySting = sSoundName.c_str();
 							iSelectedLibraryStingReturnID = iLibraryStingReturnToID;
+
+							// if remote project, copy over to that
+							extern bool entity_copytoremoteifnotthere(LPSTR);
+							entity_copytoremoteifnotthere((LPSTR)sSoundName.c_str());
 						}
 						bCheckForClosing = true;
 						bImGuiRenderTargetFocus = true; //PE: needed for window overlap check.
@@ -22236,7 +22244,7 @@ void process_entity_library_v2(void)
 
 						std::string path_for_filename = final_name;
 						std::string sImageName = "";
-						//if(strnicmp(final_name,"projectbank",11)!=NULL) 
+
 						sImageName = "imagebank\\";
 						sImageName = sImageName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
@@ -22247,6 +22255,10 @@ void process_entity_library_v2(void)
 						{
 							sSelectedLibrarySting = sImageName.c_str();
 							iSelectedLibraryStingReturnID = iLibraryStingReturnToID;
+
+							// if remote project, copy over to that
+							extern bool entity_copytoremoteifnotthere(LPSTR);
+							entity_copytoremoteifnotthere((LPSTR)sImageName.c_str());
 						}
 						bCheckForClosing = true;
 						bImGuiRenderTargetFocus = true; //PE: needed for window overlap check.
@@ -22256,7 +22268,6 @@ void process_entity_library_v2(void)
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add Selected Image");
 				}
 			}
-
 
 			//###############
 			//#### Video ####
@@ -22348,6 +22359,10 @@ void process_entity_library_v2(void)
 						{
 							sSelectedLibrarySting = sVideoName.c_str();
 							iSelectedLibraryStingReturnID = iLibraryStingReturnToID;
+
+							// if remote project, copy over to that
+							extern bool entity_copytoremoteifnotthere(LPSTR);
+							entity_copytoremoteifnotthere((LPSTR)sVideoName.c_str());
 						}
 						bCheckForClosing = true;
 						bImGuiRenderTargetFocus = true; //PE: needed for window overlap check.
@@ -22520,6 +22535,13 @@ void process_entity_library_v2(void)
 
 						// trigger selected
 						strcpy (pChosenSelectedBehaviorFile, sScriptName.c_str());
+
+						// if remote project, copy over to that
+						if (sScriptName != "")
+						{
+							extern bool entity_copytoremoteifnotthere(LPSTR);
+							entity_copytoremoteifnotthere((LPSTR)sScriptName.c_str());
+						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add Selected Behavior");
 				}
@@ -22563,15 +22585,6 @@ void process_entity_library_v2(void)
 						extern void launchOrShowParticleEditor(void);
 						launchOrShowParticleEditor();
 					}
-					/* no longer sell functionality
-					else
-					{
-						if (g_bUpdateAppAvailable == true)
-							ExecuteFile("https://www.game-guru.com/order?_ga=2.121561419.292858542.1654524806-1982497974.1625668666#dlc", "", "", 0);
-						else
-							ExecuteFile("https://store.steampowered.com/dlc/1247290/GameGuru_MAX/", "", "", 0);
-					}
-					*/
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip(pParticleEditorTooltip);
 
@@ -22595,18 +22608,22 @@ void process_entity_library_v2(void)
 							final_name++;
 
 						std::string path_for_filename = final_name;
-						std::string sScriptName = "";
-						//if (strnicmp(path_for_filename.c_str(), "projectbank", 11) != NULL) 
-						sScriptName = "particlesbank\\";
-						sScriptName = sScriptName + path_for_filename.c_str();
+						std::string sParticlesName = "";
+
+						sParticlesName = "particlesbank\\";
+						sParticlesName = sParticlesName + path_for_filename.c_str();
 						if (path_for_filename.length() == 0)
-							sScriptName = sScriptName + selectedmediafile->m_sName.Get();
+							sParticlesName = sParticlesName + selectedmediafile->m_sName.Get();
 						else
-							sScriptName = sScriptName + "\\" + selectedmediafile->m_sName.Get();
-						if (sScriptName != "")
+							sParticlesName = sParticlesName + "\\" + selectedmediafile->m_sName.Get();
+						if (sParticlesName != "")
 						{
-							sSelectedLibrarySting = sScriptName.c_str();
+							sSelectedLibrarySting = sParticlesName.c_str();
 							iSelectedLibraryStingReturnID = iLibraryStingReturnToID;
+
+							// if remote project, copy over to that
+							extern bool entity_copytoremoteifnotthere(LPSTR);
+							entity_copytoremoteifnotthere((LPSTR)sParticlesName.c_str());
 						}
 						bCheckForClosing = true;
 						bImGuiRenderTargetFocus = true; //PE: needed for window overlap check.
@@ -22614,8 +22631,7 @@ void process_entity_library_v2(void)
 						selectedmediafile = NULL;
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add Selected Particles");
-				}
-				
+				}	
 			}
 		}
 		else
@@ -22906,6 +22922,104 @@ void process_entity_library_v2(void)
 			{
 				title = "Particle Library - What do you want to add to your level?";
 				titlesmall = "Particle Library";
+
+				// very special case to monitor the legacy writables area where
+				// the particle editor tool exports its MAX particles, and if there is
+				// a file count difference, force the new file to copy over to the
+				// remote project area, and also force a refresh of the particle library
+				if (strlen(Storyboard.customprojectfolder) > 0)
+				{
+					static int iParticleLastKnownFileCount = 0;
+					static std::vector<cStr> vParticleLastKnownFiles;
+					static unsigned long iParticleCheckerTimer = 0;
+					if (iParticleCheckerTimer < timeGetTime())
+					{
+						// regular checking
+						cstr pOldDir = GetDir();
+						iParticleCheckerTimer = timeGetTime() + 1000;
+
+						// check the particle editor writables area
+						char pParticleWriteAreaPath[MAX_PATH];
+						sprintf(pParticleWriteAreaPath, "%s\\Files\\particlesbank\\user", g.fpscrootdir_s.Get());
+						GG_SetWritablesToRoot(true);
+						GG_GetRealPath(pParticleWriteAreaPath, 0);
+						GG_SetWritablesToRoot(false);
+						SetDir(pParticleWriteAreaPath);
+
+						// count latest particle files
+						int iParticleEditorFileCount = 0;
+						ChecklistForFiles();
+						for (int f = 1; f <= ChecklistQuantity(); f++)
+						{
+							cstr tfile_s = ChecklistString(f);
+							LPSTR pFilename = tfile_s.Get();
+							if (tfile_s != "." && tfile_s != "..")
+							{
+								if (strnicmp(pFilename + strlen(pFilename) - 4, ".arx", 4) == NULL || strnicmp(pFilename + strlen(pFilename) - 4, ".png", 4) == NULL)
+								{
+									iParticleEditorFileCount++;
+								}
+							}
+						}
+
+						// if different, copy over and refresh
+						if (iParticleEditorFileCount != iParticleLastKnownFileCount)
+						{
+							std::vector<cStr> vParticleThisKnownFiles;
+							vParticleThisKnownFiles.clear();
+							for (int f = 1; f <= ChecklistQuantity(); f++)
+							{
+								cstr tfile_s = ChecklistString(f);
+								LPSTR pFilename = tfile_s.Get();
+								if (tfile_s != "." && tfile_s != "..")
+								{
+									if (strnicmp(pFilename + strlen(pFilename) - 4, ".arx", 4) == NULL || strnicmp(pFilename + strlen(pFilename) - 4, ".png", 4) == NULL)
+									{
+										bool bDidItAlreadyExist = false;
+										for (int i = 0; i < vParticleLastKnownFiles.size(); i++)
+										{
+											if (vParticleLastKnownFiles[i] == tfile_s)
+											{
+												bDidItAlreadyExist = true;
+												break;
+											}
+										}
+										if (bDidItAlreadyExist == false)
+										{
+											// copy over to remote project
+											if (iParticleLastKnownFileCount > 0)
+											{
+												// only if additions since first checked
+												char pRemotePath[MAX_PATH];
+												sprintf(pRemotePath, "%s\\Files\\particlesbank\\user\\%s", g.fpscrootdir_s.Get(), pFilename);
+												GG_GetRealPath(pRemotePath, 1);
+												if (FileExist(pRemotePath) == 0)
+												{
+													CopyFileA(pFilename, pRemotePath, TRUE);
+												}
+											}
+
+											// force a refresh so user can see their particle right away!
+											extern int g_iRefreshLibraryFolders;
+											g_iRefreshLibraryFolders = 1;
+										}
+
+										// record for next time when current list is last list next time
+										vParticleThisKnownFiles.push_back(tfile_s);
+									}
+								}
+							}
+
+							// when complete, copy this list to last known
+							vParticleLastKnownFiles.clear();
+							vParticleLastKnownFiles = vParticleThisKnownFiles;
+							iParticleLastKnownFileCount = iParticleEditorFileCount;
+						}
+
+						// restore current folder now file ops finished
+						SetDir(pOldDir.Get());
+					}
+				}
 			}
 		}
 		float fTextSize = ImGui::CalcTextSize(title.Get()).x;
@@ -44477,7 +44591,7 @@ int save_create_storyboard_project(void)
 					}
 					if (bOkSave)
 					{
-						//Continue.
+						// Create the new project folder, and place project.dat inside it
 						MakeDirectory(destination);
 						strcat(destination, "\\project.dat");
 						strcpy(Storyboard.gamename, SaveProjectAsName);
@@ -44486,6 +44600,123 @@ int save_create_storyboard_project(void)
 						bTriggerSaveAs = false;
 						bTriggerSaveAsAfterNewLevel = false;
 						iRet = 1;
+
+						// to allow completely isolated files for per-project customization
+						// copy files that ALL standalone games will load by default
+						if (strlen(Storyboard.customprojectfolder) > 0)
+						{
+							// clear file collection
+							g.filecollectionmax = 0;
+							Undim (t.filecollection_s);
+							Dim (t.filecollection_s, 500);
+
+							// all the files/folders that are needed by the standalone regardless
+							addfoldertocollection ("audiobank\\materials");
+							addfoldertocollection ("audiobank\\materials\\dirt");
+							addfoldertocollection ("audiobank\\materials\\grass");
+							addfoldertocollection ("audiobank\\materials\\gravel");
+							addfoldertocollection ("audiobank\\materials\\metal");
+							addfoldertocollection ("audiobank\\materials\\puddle");
+							addfoldertocollection ("audiobank\\materials\\sand");
+							addfoldertocollection ("audiobank\\materials\\snow");
+							addfoldertocollection ("audiobank\\materials\\underwater");
+							addfoldertocollection ("audiobank\\materials\\wood");
+							addtocollection ("audiobank\\misc\\ammo.wav");
+							addtocollection ("audiobank\\misc\\explode.wav");
+							addtocollection ("audiobank\\misc\\silence.wav");
+							addtocollection ("audiobank\\misc\\bullet_flyby_01.wav");
+							addtocollection ("audiobank\\misc\\bullet_flyby_02.wav");
+							addtocollection ("audiobank\\misc\\bullet_flyby_03.wav");
+							addtocollection ("audiobank\\misc\\bullet_flyby_04.wav");
+							addfoldertocollection ("charactercreatorplus\\skins");
+							addfoldertocollection ("databank");
+							addtocollection ("editors\\keymap\\default.ini");
+							addfoldertocollection ("editors\\lut");
+							addfoldertocollection ("editors\\templates\\backdrops");
+							addfoldertocollection ("editors\\templates\\buttons");
+							addfoldertocollection ("editors\\templates\\fonts");
+							addfoldertocollection ("editors\\templates\\screeneditor");
+							addtocollection ("editors\\uiv3\\loadingsplash.jpg");
+							addtocollection ("editors\\uiv3\\roboto-medium.ttf");
+							addfoldertocollection ("effectbank\\common");
+							addfoldertocollection ("effectbank\\explosion");
+							addfoldertocollection ("effectbank\\particles");
+							addfoldertocollection ("effectbank\\particles\\weather");
+							addfoldertocollection ("languagebank\\english\\artwork\\watermark");
+							addfoldertocollection ("languagebank\\english\\textfiles");
+							addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\ammohealth");
+							//addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\sliders");
+							addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\panels"); // used in LUA command
+							addfoldertocollection ("fontbank");
+							addfoldertocollection ("gamecore\\bulletholes");
+							addfoldertocollection ("gamecore\\decals\\splat");
+							addfoldertocollection ("gamecore\\decals\\bloodsplat");
+							addfoldertocollection ("gamecore\\decals\\dust");
+							addfoldertocollection ("gamecore\\decals\\impact");
+							addfoldertocollection ("gamecore\\decals\\gunsmoke");
+							addfoldertocollection ("gamecore\\decals\\smoke1");
+							addfoldertocollection ("gamecore\\decals\\sparks");
+							addfoldertocollection ("gamecore\\decals\\muzzleflash4");
+							addfoldertocollection ("gamecore\\decals\\splash_droplets");
+							addfoldertocollection ("gamecore\\decals\\splash_foam");
+							addfoldertocollection ("gamecore\\decals\\splash_large");
+							addfoldertocollection ("gamecore\\decals\\splash_misty");
+							addfoldertocollection ("gamecore\\decals\\splash_ripple");
+							addfoldertocollection ("gamecore\\decals\\splash_small");
+							addfoldertocollection ("gamecore\\decals\\splinters");
+							addfoldertocollection ("gamecore\\vrcontroller");
+							addfoldertocollection ("gamecore\\vrcontroller\\oculus");
+							addfoldertocollection ("gamecore\\muzzleflash");
+							addfoldertocollection ("gamecore\\projectiletypes");
+							addfoldertocollection ("gamecore\\projectiletypes\\common\\explode");
+							addfoldertocollection ("gamecore\\projectiletypes\\enhanced\\m67");
+							addfoldertocollection ("gamecore\\vrcontroller");
+							addfoldertocollection ("grassbank");
+							addfoldertocollection ("imagebank\\hud");
+							addfoldertocollection ("imagebank\\hud library\\max");
+							addfoldertocollection ("lensflares");
+							addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
+							addfoldertocollection ("terraintextures");
+							addfoldertocollection ("terraintextures\\mat1");
+							addfoldertocollection ("terraintextures\\mat2");
+							addfoldertocollection ("terraintextures\\mat3");
+							addfoldertocollection ("terraintextures\\mat4");
+							addfoldertocollection ("terraintextures\\mat5");
+							addfoldertocollection ("terraintextures\\mat6");
+							addfoldertocollection ("terraintextures\\mat7");
+							addfoldertocollection ("terraintextures\\mat8");
+							addfoldertocollection ("terraintextures\\mat9");
+							addfoldertocollection ("terraintextures\\mat10");
+							addfoldertocollection ("terraintextures\\mat11");
+							addfoldertocollection ("terraintextures\\mat12");
+							addfoldertocollection ("terraintextures\\mat13");
+							addfoldertocollection ("terraintextures\\mat14");
+							addfoldertocollection ("terraintextures\\mat15");
+							addfoldertocollection ("terraintextures\\mat16");
+							addfoldertocollection ("terraintextures\\mat17");
+							addfoldertocollection ("terraintextures\\mat18");
+							addfoldertocollection ("terraintextures\\mat19");
+							addfoldertocollection ("terraintextures\\mat20");
+							addfoldertocollection ("terraintextures\\mat21");
+							addfoldertocollection ("terraintextures\\mat22");
+							addfoldertocollection ("terraintextures\\mat23");
+							addfoldertocollection ("terraintextures\\mat24");
+							addfoldertocollection ("terraintextures\\mat25");
+							addfoldertocollection ("terraintextures\\mat26");
+							addfoldertocollection ("terraintextures\\mat27");
+							addfoldertocollection ("terraintextures\\mat28");
+							addfoldertocollection ("terraintextures\\mat29");
+							addfoldertocollection ("terraintextures\\mat30");
+							addfoldertocollection ("terraintextures\\mat31");
+							addfoldertocollection ("terraintextures\\mat32");
+							addfoldertocollection ("treebank");
+							addfoldertocollection ("treebank\\billboards");
+							addfoldertocollection ("treebank\\textures");
+
+							// finally copy all indicated files to remote project area for initial file set
+							extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
+							mapfile_copyallfilecollectiontopreferredprojectfolder();
+						}
 					}
 				}
 				else

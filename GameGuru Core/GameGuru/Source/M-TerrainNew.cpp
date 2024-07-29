@@ -13345,6 +13345,11 @@ void procedural_new_level(void)
 					t.widget.pickedObject = 0;
 					t.gridentityextractedindex = 0;
 
+					// when choose a biome, ensure any ambient and combat music copied over to remote project
+					extern bool entity_copytoremoteifnotthere(LPSTR);
+					entity_copytoremoteifnotthere(t.visuals.sAmbientMusicTrack.Get());
+					entity_copytoremoteifnotthere(t.visuals.sCombatMusicTrack.Get());
+
 					//Code
 					iQuitProceduralLevel = 5;
 					bTreeGlobalInit = false;

@@ -37,6 +37,7 @@ void grass_init ( void )
 	return;
 	#endif
 
+	/* very old grass system
 	//  init our resource values
 	t.tGrassObj=t.terrain.objectstartindex+6;
 	t.tGrassImg=t.terrain.imagestartindex+8;
@@ -81,18 +82,11 @@ void grass_init ( void )
 	if (  ObjectExist(t.tGrassObj)  ==  1  )  DeleteObject (  t.tGrassObj );
 	if (  GetMeshExist(t.tGrassObj)  ==  1  )  DeleteMesh (  t.tGrassObj );
 
-	#ifdef WICKEDENGINE
-	//cstr pFileToLoad = cstr("vegbank\\veg.dbo");
 	cstr pFileToLoad = cstr("vegbank\\clump.dbo");
-	#else
-	cstr pFileToLoad = cstr(cstr("vegbank\\")+g.vegstyle_s+"\\veg.DBO");
-	if ( FileExist ( pFileToLoad.Get() ) == 0 ) pFileToLoad = cstr(cstr("vegbank\\")+g.vegstyle_s+"\\veg.X");
-	#endif
 	LoadObject ( pFileToLoad.Get(),t.tGrassObj );
 	ScaleObject ( t.tGrassObj,200,200,200 );
 	MakeMeshFromObject ( t.tGrassObj,t.tGrassObj );
 
-	#ifdef WICKEDENGINE
 	// to correct for grass quad being lit from different angles, shoot normal straight up (equal lighting no matter Y rotation :)
 	LockVertexDataForMesh(t.tGrassObj);
 	int iVerts = GetVertexDataVertexCount();
@@ -104,8 +98,6 @@ void grass_init ( void )
 
 	HideObject(t.tGrassObj);
 
-	#endif
-
 	// load our grass piece image
 	grass_setgrassimage();
 
@@ -114,17 +106,11 @@ void grass_init ( void )
 
 	//  if the user has updated the grass bitmap in the editor and the init function has been called, we are testing a level
 	//  and a new grass memblock file needs to be made from the bitmap. Otherwise there should be one to load
-	#ifdef WICKEDENGINE
 	t.tfileveggrass_s=g.mysystem.levelBankTestMap_s+"TTR0XR0\\vegmaskgrass.dat"; //"levelbank\\testmap\\vegmaskgrass.dat";
-	#else
-	t.tfileveggrass_s=g.mysystem.levelBankTestMap_s+"vegmaskgrass.dat"; //"levelbank\\testmap\\vegmaskgrass.dat";
-	#endif
 	if (  t.terrain.grassregionx1 != t.terrain.grassregionx2 || t.terrain.grassregionupdate == 2 || FileExist(t.tfileveggrass_s.Get()) == 0 ) 
 	{
-		#ifdef WICKEDENGINE
 		//PE: If the file dont exists , reset grass.
 		grass_buildblankgrass_fornew();
-		#endif
 		grass_updategrassfrombitmap ( );
 	}
 	else
@@ -168,7 +154,7 @@ void grass_init ( void )
 	RefreshGridExistArray();
 	UpdateBlitzTerrain(CameraPositionX(0), CameraPositionZ(0), t.terrain.TerrainID, g.postprocessimageoffset + 5);
 	SetVegetationGridVisible(true);
-
+	*/
 }
 
 void grass_initstyles ( void )
@@ -176,31 +162,13 @@ void grass_initstyles ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// Collect vegetation styles
 	g.vegstylemax=0;
-	#ifdef WICKEDENGINE
-	#else
-	SetDir ( "vegbank" );
-	ChecklistForFiles();
-	for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
-	{
-		t.tfile_s=ChecklistString(t.c);
-		if (  ChecklistValueA(t.c) == 1 ) 
-		{
-			if (  t.tfile_s.Get()[0] != '.' ) 
-			{
-				++g.vegstylemax;
-				Dim (  t.vegstylebank_s,g.vegstylemax );
-				t.vegstylebank_s[g.vegstylemax]=Lower(t.tfile_s.Get());
-			}
-		}
-	}
-	SetDir (  ".." );
-	#endif
 
 	// and init grass choice
 	grass_initstyles_reset();
+	*/
 }
 
 void grass_initstyles_reset ( void )
@@ -208,12 +176,10 @@ void grass_initstyles_reset ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
-	#ifdef WICKEDENGINE
+	/*
 	// when init grass plate, copy it from original (typically only done once for each new level)
 	g.vegstyle_s=""; 
 	g.vegstyleindex = 0;
-	//for (int iGrassTexSet = 0; iGrassTexSet < 3; iGrassTexSet++)
 	for (int iGrassTexSet = 0; iGrassTexSet < 1; iGrassTexSet++)
 	{
 		char pParentOriginal[MAX_PATH];
@@ -231,30 +197,7 @@ void grass_initstyles_reset ( void )
 		if (FileExist(pRealDestFile) == 1) DeleteFileA(pRealDestFile);
 		CopyFileA(pParentOriginal, pRealDestFile, FALSE);
 	}
-	#else
-	#ifdef VRTECH
-	g.vegstyle_s = "weedy 01"; //PE: hanged from: "lushy";
-	#else
-	g.vegstyle_s="lushy";
-	#endif
-	if ( PathExist( cstr(cstr("vegbank\\")+g.vegstyle_s).Get() ) == 0 ) 
-	{
-		g.vegstyle_s=t.vegstylebank_s[1];
-	}
-	//  find vegstyle index
-	for ( g.vegstyleindex = 1 ; g.vegstyleindex<=  g.vegstylemax; g.vegstyleindex++ )
-	{
-		if ( cstr(Lower(g.vegstyle_s.Get())) == t.vegstylebank_s[g.vegstyleindex] ) 
-		{
-			break;
-		}
-	}
-	if ( g.vegstyleindex > g.vegstylemax )
-	{
-		g.vegstyleindex = g.vegstylemax;
-		g.vegstyle_s = t.vegstylebank_s[g.vegstyleindex];
-	}
-	#endif
+	*/
 }
 
 void grass_assignnewshader ( void )
@@ -262,12 +205,8 @@ void grass_assignnewshader ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// Choose the vegetation shader to use
-	//if ( g.gpbroverride == 1 ) // t.terrain.iTerrainPBRMode == 1 )
-	//	t.terrain.vegetationshaderindex = t.terrain.effectstartindex+6;
-	//else
-	//	t.terrain.vegetationshaderindex = t.terrain.effectstartindex+2;
 	t.terrain.vegetationshaderindex = t.terrain.effectstartindex+2;
 
 	// Veg shader constants
@@ -290,6 +229,7 @@ void grass_assignnewshader ( void )
 		// wipe any previous param storage
 		ResetEffect ( t.terrain.vegetationshaderindex );
 	}
+	*/
 }
 
 void grass_applyshader ( void )
@@ -297,13 +237,14 @@ void grass_applyshader ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// Choose the vegetation shader to use
 	grass_assignnewshader();
 
 	// Apply veg shader to all veg objects
 	UpdateGrassTexture ( g.gpbroverride );//t.terrain.iTerrainPBRMode );
 	UpdateGrassShader ( t.terrain.vegetationshaderindex );
+	*/
 }
 
 void grass_setgrassimage ( void )
@@ -311,7 +252,7 @@ void grass_setgrassimage ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	SetImageAutoMipMap (  1 );
 	t.tGrassImg=t.terrain.imagestartindex+8;
 	if ( ImageExist(t.tGrassImg)  ==  1  )  DeleteImage (  t.tGrassImg );
@@ -341,6 +282,7 @@ void grass_setgrassimage ( void )
 	#endif
 	UpdateGrassTexture ( g.gpbroverride );
 	SetImageAutoMipMap ( 0 );
+	*/
 }
 
 void grass_setgrassgridandfade ( void )
@@ -348,7 +290,7 @@ void grass_setgrassgridandfade ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	#ifdef WICKEDENGINE
 	//PE: @Lee loading of visuals.ini reset this value , so after load level , test game ... so gridsize = 0
 	// for saome reason wicked not setting this, it is ZERO!
@@ -361,25 +303,19 @@ void grass_setgrassgridandfade ( void )
 	t.terrain.vegetationgridsize = (20+(t.visuals.vegetationmode*0.8f)) * 0.3;
 	#endif
 	t.tGrassFadeDistance = terrain_veg_areawidth * (t.terrain.vegetationgridsize/2 - 1);
+	*/
 }
 
 void grass_loop ( void )
 {
-#ifdef OPTICK_ENABLE
-	OPTICK_EVENT();
-#endif;
+	#ifdef OPTICK_ENABLE
+		OPTICK_EVENT();
+	#endif;
 	//#ifdef PAULNEWGRASSSYSTEM
 	return;
-	//#endif
 	/*
-	#ifdef WICKEDENGINE
-	// for saome reason wicked not setting this, it is ZERO!
-	t.visuals.vegetationmode = 100;
-	#endif
-
 	// early exit if no veg used
 	if ( t.visuals.vegetationmode == 0  )  return;
-
 	{
 		// do we need to update after an terrain raise
 		if ( t.terrain.grassupdateafterterrain == 1 ) 
@@ -412,7 +348,7 @@ void grass_clearregion ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	//  clear the grass memblock in the described terrain region
 	t.tvegareax1=((t.terrain.terrainregionx1+0.0)/5)-1;
 	t.tvegareax2=((t.terrain.terrainregionx2+0.0)/5)+1;
@@ -430,6 +366,7 @@ void grass_clearregion ( void )
 			WriteMemblockByte (  t.terrain.grassmemblock,(4+4+4+((t.tvx+t.tZStep)*4))+2,0 );
 		}
 	}
+	*/
 }
 
 void grass_updatedirtyregionfast ( void )
@@ -487,10 +424,11 @@ void grass_clamptomemblockres ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	//  clamps input value tValue to the memblock resolution
 	if (  t.tValue < 0  )  t.tValue  =  0;
 	if (  t.tValue  >=  MAXTEXTURESIZE  )  t.tValue  =  MAXTEXTURESIZE - 1;
+	*/
 }
 
 void grass_updategrassfrombitmap ( void )
@@ -498,7 +436,7 @@ void grass_updategrassfrombitmap ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	#ifdef WICKEDENGINE
 	// we skip the need for t.terrain.imagestartindex+2 and use t.terrain.grassmemblock directly in wicked for grass
 	#else
@@ -514,6 +452,7 @@ void grass_updategrassfrombitmap ( void )
 
 	// slopes and water can't exist in superflat mode, so only delete invalid grass in terrain mode
 	if ( t.terrain.superflat == 0  )  DeleteInvalidGrass (  t.terrain.TerrainID,t.terrain.waterliney_f,1.0 );
+	*/
 }
 
 void grass_loadgrass ( void )
@@ -521,7 +460,7 @@ void grass_loadgrass ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// load grass data memblock
 	if ( FileExist(t.tfileveggrass_s.Get()) == 1 ) 
 	{
@@ -550,6 +489,7 @@ void grass_loadgrass ( void )
 	{
 		grass_buildblankgrass ( );
 	}
+	*/
 }
 
 void grass_savegrass ( void )
@@ -557,7 +497,7 @@ void grass_savegrass ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// regenerate the memblock from the vegmask bitmap for consistency
 	t.terrain.grassregionupdate=0;
 	grass_updategrassfrombitmap ( );
@@ -569,6 +509,7 @@ void grass_savegrass ( void )
 		WriteMemblock (  3,t.terrain.grassmemblock );
 		CloseFile (  3 );
 	}
+	*/
 }
 
 void grass_buildblankgrass ( void )
@@ -576,7 +517,7 @@ void grass_buildblankgrass ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	//  make a blank grass data memblock, or clear the one that already exists
 	//  151214 - wrong format but VEH module deals with nonraw-image memblocks as ZERO
 	if (  MemblockExist(t.terrain.grassmemblock)  ==  0 ) 
@@ -593,6 +534,7 @@ void grass_buildblankgrass ( void )
 		t.tPindex += 4;
 	}
 	grass_savegrass ( );
+	*/
 }
 
 void grass_buildblankgrass_fornew ( void )
@@ -600,7 +542,7 @@ void grass_buildblankgrass_fornew ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	void SetVegetationGridVisibleForce(bool bShow);
 
 	SetVegetationGridVisibleForce(false);
@@ -629,7 +571,7 @@ void grass_buildblankgrass_fornew ( void )
 //			HideObject(iObj);
 //		}
 //	}
-
+	*/
 }
 
 void grass_free ( void )
@@ -637,9 +579,10 @@ void grass_free ( void )
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	//  We used to DeleteVegetationGrid (  here to clear away veg. Now to save time during testing we HideVegetationGrid (  instead. ) )
 	HideVegetationGrid (  );
+	*/
 }
 
 void grass_changevegstyle(void)
@@ -647,7 +590,7 @@ void grass_changevegstyle(void)
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 #ifdef WICKEDENGINE
 	grass_setgrassimage();
 #else
@@ -658,6 +601,7 @@ void grass_changevegstyle(void)
 		grass_setgrassimage();
 	}
 #endif
+	*/
 }
 
 //
@@ -669,7 +613,7 @@ void grass_editcontrol(void)
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// this replaces the old terrain based paint system, retaining old grass approach for now
 	// locate terrain coordinate
 	t.terrain.X_f = t.inputsys.localx_f;
@@ -767,6 +711,7 @@ void grass_editcontrol(void)
 		// allows second sculpt/paint to erase first undo buffer
 		//if ( t.mc == 0  )  t.terrainundo.mode = 0;
 	}
+	*/
 }
 
 void grass_paint(void)
@@ -774,7 +719,7 @@ void grass_paint(void)
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	// this replaces the old terrain based paint system, retaining old grass approach for now
 	// receives terrain.X# Y# RADIUS# texselect texpainttype
 	// create memblock for image manipulation
@@ -874,15 +819,15 @@ void grass_paint(void)
 		bUpdateVeg = true;
 		#endif
 	}
+	*/
 }
 
-#ifdef WICKEDENGINE
 void grass_resetchoices ( void )
 {
 	#ifdef PAULNEWGRASSSYSTEM
 	return;
 	#endif
-
+	/*
 	extern bool bCurrentGrassTextureForPaint[16];
 	extern cStr sGrassChangedTextures[16];
 	for (int iL = 0; iL < 16; iL++)
@@ -891,5 +836,5 @@ void grass_resetchoices ( void )
 		bCurrentGrassTextureForPaint[iL] = false;
 	}
 	bCurrentGrassTextureForPaint[0] = true;
+	*/
 }
-#endif

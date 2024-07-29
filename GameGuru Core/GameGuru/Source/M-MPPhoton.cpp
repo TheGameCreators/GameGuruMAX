@@ -7818,9 +7818,9 @@ void mp_save_workshop_files_needed ( void )
 	 }
 	#endif
 	#ifdef WICKEDENGINE
-	addtocollection("vegbank\\AllGrass.png");
-	addtocollection("vegbank\\veg.dbo");
-	addtocollection("vegbank\\clump.dbo");
+	//addtocollection("vegbank\\AllGrass.png");
+	//addtocollection("vegbank\\veg.dbo");
+	//addtocollection("vegbank\\clump.dbo");
 	#else
 	addfoldertocollection( cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
 	#endif

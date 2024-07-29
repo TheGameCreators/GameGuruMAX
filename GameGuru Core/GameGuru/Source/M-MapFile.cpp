@@ -735,7 +735,7 @@ void mapfile_saveproject_fpm ( void )
 	std::vector <cstr> lstlist_s;
 	Dim (lstlist_s, g.filecollectionmax);
 	int iListIndex = 0;
-	for (int i = 0; i < g.filecollectionmax; i++)
+	for (int i = 0; i <= g.filecollectionmax; i++)
 	{
 		LPSTR pThisFile = t.filecollection_s[i].Get();
 		int iThisSize = strlen (pThisFile);
@@ -2049,7 +2049,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	Dim ( t.filecollection_s, 500 );
 
 	//  Stage 1 - specify all common files
-	//addtocollection("editors\\gfx\\guru-forexe.ico");
 	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
 	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
 	addtocollection(cstr(cstr("languagebank\\") + g.language_s + "\\inittext.ssp").Get());
@@ -2072,7 +2071,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayercontrol.lua");
 	addtocollection("scriptbank\\gameplayerhealth.lua");
 	addtocollection("scriptbank\\global.lua");
-	//addtocollection("scriptbank\\music.lua");
+
 	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark").Get() );
 	addfoldertocollection("scriptbank\\people\\ai");
 	addtocollection("scriptbank\\people\\patrol.byc");
@@ -2090,7 +2089,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayerspeed.lua");
 	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
 
-#ifdef WICKEDENGINE
 	//PE: Missing foot step material sounds
 	addfoldertocollection("audiobank\\materials\\dirt");
 	addfoldertocollection("audiobank\\materials\\grass");
@@ -2103,7 +2101,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\materials\\tarmac");
 	addfoldertocollection("audiobank\\materials\\underwater");
 	addfoldertocollection("audiobank\\materials\\wood");
-#endif
 
 	addfoldertocollection("audiobank\\music\\theescape");
 	addfoldertocollection("audiobank\\voices\\player");
@@ -2116,26 +2113,17 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("audiobank\\character\\soldier\\onIdle");
 	addfoldertocollection("audiobank\\character\\soldier\\onInteract");
 	addfoldertocollection("databank");
-	//addfoldertocollection("savegames");
 	addallinfoldertocollection("titlesbank", "titlesbank"); // need the ENTIRE contents - now includes the root files not just the folders!
-	//addfoldertocollection("titlesbank\\default\\");
-	//addtocollection("titlesbank\\cursorcontrol.lua");
-	//addtocollection("titlesbank\\resolutions.lua");
-	//addtocollection("titlesbank\\fillgameslots.lua");
-	//addtocollection("titlesbank\\gamedata.lua");
-	//addtocollection("titlesbank\\restoregame.lua");
 	addfoldertocollection("effectbank\\reloaded");
 	addfoldertocollection("effectbank\\reloaded\\media");
 	addfoldertocollection("effectbank\\reloaded\\media\\materials");
 	addfoldertocollection("effectbank\\explosion");
 	addfoldertocollection("effectbank\\particles");
-	#ifdef WICKEDENGINE
 	addfoldertocollection("effectbank\\particles\\weather");
 	addfoldertocollection("lensflares");
-	#endif
 	addfoldertocollection("fontbank");
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\ammohealth");
-	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\sliders");
+	//addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\sliders");
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\panels");
 	addfoldertocollection("gamecore\\decals\\splat");
 	addfoldertocollection("gamecore\\decals\\bloodsplat");
@@ -2162,8 +2150,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\bulletholes");
 
 	addfoldertocollection("editors\\lut");
-	addfoldertocollection("terrainbank\\temp\\");
-	addtocollection("terrainbank\\desert\\default.obj"); // for temp flat terrain!
+
+	// no longer supported
+	//addfoldertocollection("terrainbank\\temp\\");
+	//addtocollection("terrainbank\\desert\\default.obj"); // for temp flat terrain!
 
 	addfoldertocollection("treebank"); // for temp flat terrain!
 	addfoldertocollection("treebank\\billboards"); // for temp flat terrain!
@@ -2181,8 +2171,8 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	//addfoldertocollection("particlesbank");
-	//addfoldertocollection("particlesbank\\user");
-	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone
+	//addfoldertocollection("particlesbank\\user");	
+	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
 
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");
@@ -2207,7 +2197,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\muzzleflash");
 	addfoldertocollection("gamecore\\projectiletypes");
 	//addfoldertocollection("gamecore\\brass"); // now done below when detect guns used in level
-	addfoldertocollection("gamecore\\hudlayers");
+	//addfoldertocollection("gamecore\\hudlayers"); JetPack Not used since Classic
 
 	// we will much improve this with the new project system!!
 	addfoldertocollection("gamecore\\hands\\Animations");
@@ -2243,12 +2233,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	// Stage 2 - collect all files (from all levels)
 	t.levelindex=0;
 	Dim ( t.levellist_s, 100  );
-	#ifdef WICKEDENGINE
 	addtocollection(t.visuals.sAmbientMusicTrack.Get());
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
-	#endif
-	#ifdef STORYBOARD
 
+	#ifdef STORYBOARD
 	// Add images from collection list (can be stored in thumbbank)
 	for (int n = 0; n < g_collectionList.size(); n++)
 	{
@@ -2270,11 +2258,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	{
 		addfoldertocollection("editors\\templates\\fonts");
 		addtocollection("editors\\uiv3\\Roboto-Medium.ttf");
-
-		#ifdef STANDALONENOTICE
-		addtocollection("editors\\uiv3\\standalone_ea.png");
-		addtocollection("editors\\uiv3\\standalone_ea-ea.png");
-		#endif
 
 		// go through and add all FPMs to export
 		char pIncludeMapFile[MAX_PATH];
@@ -2362,21 +2345,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			strcpy(project, "projectbank\\");
 			strcat(project, Storyboard.gamename);
 			addfoldertocollection(project);
-
-			/* not used any more, new project system has WHOLE folder to itself
-			//PE: Also add everything from the project files folder.
-			strcpy(project_files, project);
-			strcat(project_files, "\\files");
-			extern char szWriteDir[MAX_PATH];
-			cstr usePath = cstr(szWriteDir) + "Files\\";
-			if (PathExist(usePath.Get()))
-			{
-				cstr olddir = GetDir();
-				SetDir(usePath.Get());
-				addallinfoldertocollection(project_files, project_files);
-				SetDir(olddir.Get());
-			}
-			*/
 
 			// add loading splash in case of a needed fallback
 			addtocollection("editors\\uiv3\\loadingsplash.jpg");
@@ -2512,15 +2480,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	//  chosen sky, terrain and veg
 	addfoldertocollection(cstr(cstr("skybank\\")+t.skybank_s[g.skyindex]).Get() );
-	addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
-	#ifdef WICKEDENGINE
-	addtocollection("vegbank\\AllGrass.png");
-	addtocollection("vegbank\\veg.dbo");
-	addtocollection("vegbank\\clump.dbo");
-	#else
-	addtocollection("skybank\\cloudportal.dds");
-	addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
-	#endif
+
+	//no longer supported!
+	//addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
+	// old vegbank system not used!
+	//addtocollection("vegbank\\AllGrass.png");
+	//addtocollection("vegbank\\veg.dbo");
+	//addtocollection("vegbank\\clump.dbo");
 
 	// pre-add the skins folder - can optimize later to find only skins we used (118MB)
 	addfoldertocollection("charactercreatorplus\\skins" );
@@ -3238,15 +3204,12 @@ int mapfile_savestandalone_stage2b ( void )
 
 		//  chosen sky, terrain and veg
 		addfoldertocollection(cstr(cstr("skybank\\")+t.skybank_s[g.skyindex]).Get() );
-		addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
-		#ifdef WICKEDENGINE
-		addtocollection("vegbank\\AllGrass.png");
-		addtocollection("vegbank\\veg.dbo");
-		addtocollection("vegbank\\clump.dbo");
-		#else
-		addtocollection("skybank\\cloudportal.dds");
-		addfoldertocollection(cstr(cstr("vegbank\\")+g.vegstyle_s).Get() );
-		#endif
+
+		// no longer supported!
+		//addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
+		//addtocollection("vegbank\\AllGrass.png");
+		//addtocollection("vegbank\\veg.dbo");
+		//addtocollection("vegbank\\clump.dbo");
 
 		// start for loop
 		t.e = 1;
@@ -3612,8 +3575,6 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 			t.tlevelfile_s = cstr("mapbank\\") + g_mapfile_levelpathfolder + t.tlevelfile_s + ".fpm";
 			if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tlevelfile_s).Get()) == 1)
 			{
-				//++t.levelmax; // created earlier now
-				//t.levellist_s[t.levelmax]=t.tlevelfile_s;
 				addtocollection(t.tlevelfile_s.Get());
 			}
 			else
@@ -3624,6 +3585,26 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 		}
 	}
 	t.entid = iStoredEntID;
+}
+
+void mapfile_copyallfilecollectiontopreferredprojectfolder(void)
+{
+	char pPreferredProjectEntityFolder[MAX_PATH];
+	strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+	strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+	for (int files = 1; files <= g.filecollectionmax; files++)
+	{
+		char pFileToCopy[MAX_PATH];
+		strcpy(pFileToCopy, t.filecollection_s[files].Get());
+		GG_GetRealPath(pFileToCopy, 0);
+		if (strnicmp (pFileToCopy, pPreferredProjectEntityFolder, strlen(pPreferredProjectEntityFolder)) != NULL)
+		{
+			char pFileToCopyTo[MAX_PATH];
+			strcpy(pFileToCopyTo, t.filecollection_s[files].Get());
+			GG_GetRealPath(pFileToCopyTo, 1);
+			CopyFileA(pFileToCopy, pFileToCopyTo, FALSE);
+		}
+	}
 }
 
 int mapfile_savestandalone_stage2c ( void )
@@ -3885,9 +3866,6 @@ void mapfile_savestandalone_stage4 ( void )
 		InjectIconToExe(projectfinal_ico, t.dest_s.Get(), 1);
 	}
 
-	// Copy critical DLLs
-	#ifdef WICKEDENGINE
-
 	// AssImp DLL tied to executable, may also need it for non-DBO model loading?!
 	char pCritDLLFilename[MAX_PATH];
 	strcpy(pCritDLLFilename, "assimp.dll");
@@ -3895,26 +3873,12 @@ void mapfile_savestandalone_stage4 ( void )
 	if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
 	CopyAFile ( pCritDLLFilename, t.dest_s.Get() );
 
-	#ifdef GGMAXEPIC
-	// Epic DLL now required for authentication step (not needed for standalone game running)
-	strcpy(pCritDLLFilename, "EOSSDK-Win64-Shipping.dll");
-	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
-	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
-	CopyAFile (pCritDLLFilename, t.dest_s.Get());
-	#else
 	// Steam DLL now required for authentication step (not needed for standalone game running)
 	strcpy(pCritDLLFilename, "steam_api64.dll");
 	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
 	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
 	CopyAFile (pCritDLLFilename, t.dest_s.Get());
-	#endif
 
-	// AMD Black Screen fix file
-	//strcpy(pCritDLLFilename, "amdfix.ini");
-	//t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
-	//if (FileExist(t.dest_s.Get()) == 1) DeleteAFile(t.dest_s.Get());
-	//CopyAFile(pCritDLLFilename, t.dest_s.Get());
-	
 	// Users report that people who don't have Max installed cannot play standalones
 	strcpy(pCritDLLFilename, "dxil.dll");
 	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
@@ -3967,31 +3931,6 @@ void mapfile_savestandalone_stage4 ( void )
 
 	// restore to original folder 
 	SetDir ( g.originalrootdir_s.Get() );
-
-	#else
-	#ifdef PHOTONMP
-	 int iSkipSteamFilesIfPhoton = 4; // do not need GGWMR any more!
-	#else
-	 int iSkipSteamFilesIfPhoton = 7;
-	#endif
-	for ( int iCritDLLs = 1; iCritDLLs <= iSkipSteamFilesIfPhoton; iCritDLLs++ )
-	{
-		LPSTR pCritDLLFilename = "";
-		switch ( iCritDLLs )
-		{
-			case 1 : pCritDLLFilename = "avcodec-57.dll"; break;
-			case 2 : pCritDLLFilename = "avformat-57.dll"; break;
-			case 3 : pCritDLLFilename = "avutil-55.dll"; break;
-			case 4 : pCritDLLFilename = "swresample-2.dll"; break;
-			//case 5 : pCritDLLFilename = "GGWMR.dll"; break;
-			case 5 : pCritDLLFilename = "steam_api.dll"; break;
-			case 6 : pCritDLLFilename = "sdkencryptedappticket.dll"; break;
-		}
-		t.dest_s=t.exepath_s+t.exename_s+"\\"+pCritDLLFilename;
-		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
-		CopyAFile ( pCritDLLFilename, t.dest_s.Get() );
-	}
-	#endif
 
 	// Copy steam files (see above)
 	#ifdef PHOTONMP
@@ -4255,9 +4194,6 @@ void mapfile_savestandalone_stage4 ( void )
 int mapfile_savestandalone_continue ( void )
 {
 	int iSuccess = 0;
-	//#ifdef WICKEDENGINE
-	//static bool bOnceOnly = false;
-	//#endif
 	switch ( g_mapfile_iStage )
 	{
 		case 1 :	g_mapfile_fProgress+=0.1f; 
@@ -4339,9 +4275,6 @@ float mapfile_savestandalone_getprogress ( void )
 
 void mapfile_savestandalone_finish ( void )
 {
-	//#ifdef WICKEDENGINE
-	// disable encryption for now, wicked cannot load encrypted images!
-	//#else
 	// encrypt media
 	t.dest_s=t.exepath_s+t.exename_s;
 	if ( g.gexportassets == 0 ) 
@@ -4352,7 +4285,6 @@ void mapfile_savestandalone_finish ( void )
 			EncryptAllFiles ( cstr(t.dest_s + "\\Files").Get() );
 		}
 	}
-	//#endif
 
 	//  if not tignorelevelbankfiles, copy unencrypted files
 	if (  t.tignorelevelbankfiles == 0 ) 
@@ -4398,7 +4330,7 @@ void mapfile_savestandalone_finish ( void )
 		SetDir ( cstr(t.exepath_s+t.exename_s+"\\Files\\levelbank\\testmap").Get() );
 		if (  PathExist("lightmaps") == 0  )  MakeDirectory (  "lightmaps" );
 		SetDir (  cstr(g.fpscrootdir_s+"\\Files\\").Get() );
-		for ( t.fileindex = 1 ; t.fileindex<=  g.filecollectionmax; t.fileindex++ )
+		for ( t.fileindex = 1 ; t.fileindex <= g.filecollectionmax; t.fileindex++ )
 		{
 			t.src_s=t.filecollection_s[t.fileindex];
 			if (  FileExist(t.src_s.Get()) == 1 ) 

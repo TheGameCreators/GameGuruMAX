@@ -126,6 +126,32 @@ void entity_addtoselection ( void )
 	entity_addtoselection_core ( );
 }
 
+bool entity_copytoremoteifnotthere ( LPSTR pPathToFile )
+{
+	// if using remote project, first duplicate the entity file to local project
+	bool bWeCopiedTheFileOver = false;
+	extern StoryboardStruct Storyboard;
+	char pPreferredProjectEntityFolder[MAX_PATH];
+	strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
+	strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
+	if (strlen(Storyboard.customprojectfolder) > 0)
+	{
+		// yes, a remote project
+		char fullRealPath[MAX_PATH];
+		strcpy(fullRealPath, pPathToFile);
+		GG_GetRealPath(fullRealPath, 0);
+		if (strnicmp (fullRealPath, pPreferredProjectEntityFolder, strlen(pPreferredProjectEntityFolder)) != NULL)
+		{
+			// file not in local project, copy it over
+			strcpy(pPreferredProjectEntityFolder, pPathToFile);
+			GG_GetRealPath(pPreferredProjectEntityFolder, 1);
+			CopyFileA(fullRealPath, pPreferredProjectEntityFolder, TRUE);
+			bWeCopiedTheFileOver = true;
+		}
+	}
+	return bWeCopiedTheFileOver;
+}
+
 void entity_adduniqueentity ( bool bAllowDuplicates )
 {
 	// Ensure 'entitybank\' is not part of entity filename
@@ -177,6 +203,15 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 
 		// if using remote project, first duplicate the entity file to local project
 		bool bAlsoCopyOverAllRelatedEntityFiles = false;
+		char pThisEntityFile[MAX_PATH];
+		strcpy(pThisEntityFile, "entitybank\\");
+		strcat(pThisEntityFile, t.addentityfile_s.Get());
+		if (entity_copytoremoteifnotthere(pThisEntityFile) == true)
+		{
+			// and if successfully copied over, copy over all related files
+			bAlsoCopyOverAllRelatedEntityFiles = true;
+		}
+		/*
 		extern StoryboardStruct Storyboard;
 		char pPreferredProjectEntityFolder[MAX_PATH];
 		strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
@@ -199,6 +234,7 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 				bAlsoCopyOverAllRelatedEntityFiles = true;
 			}
 		}
+		*/
 
 		//  Load extra entity
 		t.entid = g.entidmaster;
@@ -220,21 +256,8 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 			mapfile_addallentityrelatedfiles (t.entid, &t.grideleprof);
 
 			// copy all the file collection to the remote project
-			strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
-			strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
-			for (int files = 1; files < g.filecollectionmax; files++)
-			{
-				char pFileToCopy[MAX_PATH];
-				strcpy(pFileToCopy, t.filecollection_s[files].Get());
-				GG_GetRealPath(pFileToCopy, 0);
-				if (strnicmp (pFileToCopy, pPreferredProjectEntityFolder, strlen(pPreferredProjectEntityFolder)) != NULL)
-				{
-					char pFileToCopyTo[MAX_PATH];
-					strcpy(pFileToCopyTo, t.filecollection_s[files].Get());
-					GG_GetRealPath(pFileToCopyTo, 1);
-					CopyFileA(pFileToCopy, pFileToCopyTo, FALSE);
-				}
-			}
+			extern void mapfile_copyallfilecollectiontopreferredprojectfolder(void);
+			mapfile_copyallfilecollectiontopreferredprojectfolder();
 		}
 
 		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list

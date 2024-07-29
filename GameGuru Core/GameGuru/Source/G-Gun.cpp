@@ -4491,7 +4491,7 @@ void gun_load ( void )
 	{
 		if (FileExist(legacygunfile_s.Get()) == 1)
 		{
-			// load secondary hands
+			// load secondary hands 
 			cstr pHands_s = g.fpscrootdir_s + cstr("\\Files\\gamecore\\hands\\") + customArms_s + cstr("\\arms.dbo");
 			if(FileExist(pHands_s.Get())==0)
 			{

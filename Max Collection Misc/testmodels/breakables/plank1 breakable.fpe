@@ -1,0 +1,88 @@
+;Saved by Model Importer
+;header
+desc             = plank1 breakable
+
+;orientation
+model            = plank1 breakable.dbo
+scale            = 3000.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 3
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = plank1_breakable_color.dds
+alphaRef0        = 1.00
+normalMap0       = plank1_breakable_normal.dds
+normalStrength0  = 2.26
+surfaceMap0      = plank1_breakable_surface.dds
+roughnessStrength0= 0.42
+metalnessStrength0= 0.40
+transparency0    = 0
+renderorderbias0 = 0.00
+reflectance0     = 0.0400
+basecolor0       = 4294967295
+emissivecolor0   = 0
+baseColorMap1    = plank1_breakable_color.dds
+alphaRef1        = 1.00
+normalMap1       = plank1_breakable_normal.dds
+normalStrength1  = 2.26
+surfaceMap1      = plank1_breakable_surface.dds
+roughnessStrength1= 0.42
+metalnessStrength1= 0.40
+transparency1    = 0
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 0
+baseColorMap2    = plank1_breakable_color.dds
+alphaRef2        = 1.00
+normalMap2       = plank1_breakable_normal.dds
+normalStrength2  = 2.26
+surfaceMap2      = plank1_breakable_surface.dds
+roughnessStrength2= 0.42
+metalnessStrength2= 0.40
+transparency2    = 0
+renderorderbias2 = 0.00
+reflectance2     = 0.0400
+basecolor2       = 4294967295
+emissivecolor2   = 0
+textureref1      = plank1_breakable_color.dds
+textureref2      = plank1_breakable_normal.dds
+textureref3      = plank1_breakable_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 = 1
+phyweight 	 = 100
+phyfriction 	 = 100
+isimmobile	 = 1
+
+;identity details
+ischaracter      = 0
+hasweapon        = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 80
+explodable       = 0
+
+;ai
+aimain           = plank\plank.lua
+
+;anim
+animspeed        = 100.00
+animmax          = 1
+anim0            = 0,31
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 35.102592
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000
+thumbnailanimset = 0

@@ -11,7 +11,7 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTEST|x64'">
-    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\FISHLAKE\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\GGMAX USERS\The hermit of the forest 36 ITEMS\The hermit of the forest\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
@@ -31,8 +31,8 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
-    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\The hermit of the forest V2-crashwhenloadsave\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\GGMAX USERS\The hermit of the forest 36 ITEMS\The hermit of the forest\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommand>D:\DEV\DOWNLOADS\The hermit of the forest V2-crashwhenloadsave\The hermit of the forest.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
 </Project>

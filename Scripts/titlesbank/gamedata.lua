@@ -270,6 +270,13 @@ function gamedata.save(slotnumber,uniquename)
 			end
 		end
 	end
+	
+	-- states in HUD0 that must be retained
+	save("hud0_populateallcontainers",hud0_populateallcontainers)
+	local tcollectionmax = GetCollectionItemQuantity()
+	for c = 1, tcollectionmax, 1 do
+		save("hud0_populateallcontainersfilled["..c.."]",hud0_populateallcontainersfilled[c])
+	end
 
 	-- will mean load returning successful means whole file read
 	io.write("successful=1\n") 

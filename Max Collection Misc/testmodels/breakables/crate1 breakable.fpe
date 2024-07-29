@@ -1,0 +1,63 @@
+;Saved by Model Importer
+;header
+desc             = crate1 breakable
+
+;orientation
+model            = crate1 breakable.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 3
+cullmode         = 1
+
+;visualinfo
+textured         = crate1_breakable_color.dds
+baseColorMap     = crate1_breakable_color.dds
+alpharef         = 1.00
+normalMap        = crate1_breakable_normal.dds
+normalStrength   = 1.00
+surfaceMap       = crate1_breakable_surface.dds
+roughnessStrength= 0.00
+metalnessStrength= 0.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = crate1_breakable_color.dds
+textureref2       = crate1_breakable_normal.dds
+textureref3       = crate1_breakable_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 	 = 1
+phyweight 	 	 = 100
+phyfriction 	 = 100
+
+;identity details
+ischaracter      = 0
+hasweapon        = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 20
+explodable       = 0
+
+;ai
+aimain           = crate\crate.lua
+
+;anim
+animspeed        = 100.00
+animmax          = 1
+anim0            = 0,75
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = -13.420090
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.881325
+thumbnailrotatey = 315.390289
+thumbnailanimset = 0

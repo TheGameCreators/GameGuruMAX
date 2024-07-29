@@ -2850,6 +2850,13 @@ int fillgloballistwithCharAnimSetsQuick(int iSpecialValue)
 		// zombie female
 		iIndex++; t.list_s[iIndex] = "Zombie Female";
 	}
+	if (iSpecialValue == 7)
+	{
+		// low poly melee
+		iIndex++; t.list_s[iIndex] = "Low Poly Melee";
+		iIndex++; t.list_s[iIndex] = "Low Poly Axe";
+		iIndex++; t.list_s[iIndex] = "Low Poly Spear";
+	}
 	// return count
 	return iIndex;
 }
@@ -29557,6 +29564,10 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie male\\default animations.dbo") == NULL) thisLabel = "Zombie Male";
 			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie female\\default animations.dbo") == NULL) thisLabel = "Zombie Female";
 
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-melee.dbo") == NULL) thisLabel = "Low Poly Melee";
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-axe.dbo") == NULL) thisLabel = "Low Poly Axe";
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-spear.dbo") == NULL) thisLabel = "Low Poly Spear";
+
 			if (n == -1)
 				ldata_s = thisLabel;
 			else
@@ -29682,6 +29693,10 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 
 			if (stricmp (thisLabel.Get(), "Zombie Male") == NULL) thisLabel = "charactercreatorplus\\parts\\zombie male\\default animations.dbo";
 			if (stricmp (thisLabel.Get(), "Zombie Female") == NULL) thisLabel = "charactercreatorplus\\parts\\zombie female\\default animations.dbo";
+
+			if (stricmp(thisLabel.Get(), "Low Poly Melee") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-melee.dbo";
+			if (stricmp(thisLabel.Get(), "Low Poly Axe") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-axe.dbo";
+			if (stricmp(thisLabel.Get(), "Low Poly Spear") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-spear.dbo";
 
 			if (n == -1)
 				ldata_s = thisLabel;

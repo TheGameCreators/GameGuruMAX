@@ -3174,39 +3174,51 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 	if (g_iDevToolsOpen == 0 && iAnimationSetType != 4)
 	{
 		int iSpecialValue = 0;
-		if (iAnimationSetType == 1)
+		if (characterbasetype >= 4)
 		{
-			if (characterbasetype == 0 || characterbasetype == 2)
+			// Specifies Gender-Neutral Animation
+			iSpecialValue = 7;
+		}
+		else
+		{
+			if (iAnimationSetType == 1)
 			{
-				iSpecialValue = 1;
+				// Handles Soldier SetType
+				if (characterbasetype == 0 || characterbasetype == 2)
+				{
+					iSpecialValue = 1;
+				}
+				else
+				{
+					iSpecialValue = 3;
+				}
 			}
-			else
+			if (iAnimationSetType == 2)
 			{
-				iSpecialValue = 3;
+				// Handles Melee SetType
+				if (characterbasetype == 0 || characterbasetype == 2)
+				{
+					iSpecialValue = 2;
+				}
+				else
+				{
+					iSpecialValue = 4;
+				}
+			}
+			if (iAnimationSetType == 3)
+			{
+				// Handles Zombie SetType
+				if (characterbasetype == 0 || characterbasetype == 2)
+				{
+					iSpecialValue = 5;
+				}
+				else
+				{
+					iSpecialValue = 6;
+				}
 			}
 		}
-		if (iAnimationSetType == 2)
-		{
-			if (characterbasetype == 0 || characterbasetype == 2)
-			{
-				iSpecialValue = 2;
-			}
-			else
-			{
-				iSpecialValue = 4;
-			}
-		}
-		if (iAnimationSetType == 3)
-		{
-			if (characterbasetype == 0 || characterbasetype == 2)
-			{
-				iSpecialValue = 5;
-			}
-			else
-			{
-				iSpecialValue = 6;
-			}
-		}
+
 		if (iSpecialValue > 0)
 		{
 			// standard users only see choices if a character base type

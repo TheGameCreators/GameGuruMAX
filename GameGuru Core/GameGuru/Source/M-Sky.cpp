@@ -262,6 +262,11 @@ void sky_skyspec_init(bool bResetVisuals)
 
 		} while (!(t.line_s == ""));
 		CloseFile(1);
+
+		// when using a skybank, ensure it is copied over to remote project if not there
+		cstr sFolderToCopy = cstr(cstr("skybank\\") + t.skyname_s);
+		extern void mapfile_ensurethisfolderexistsinremoteproject(LPSTR);
+		mapfile_ensurethisfolderexistsinremoteproject(sFolderToCopy.Get());
 	}
 
 	if (t.game.runasmultiplayer == 1) mp_refresh();

@@ -74,7 +74,6 @@ void terrain_updatewatermechanism ( void );
 void terrain_updatewaterphysics ( void );
 void terrain_water_setfog ( void );
 void imgui_Customize_Terrain(int mode);
-void imgui_Customize_Sky(int mode);
 void imgui_Customize_Sky_V2(int mode);
 void imgui_Customize_Vegetation(int mode);
 void imgui_Customize_Weather(int mode);

@@ -3607,6 +3607,17 @@ void mapfile_copyallfilecollectiontopreferredprojectfolder(void)
 	}
 }
 
+void mapfile_ensurethisfolderexistsinremoteproject(LPSTR pFolderToCopy)
+{
+	// clear filecollection, specify new folder, copy all to preferred project folder
+	g.filecollectionmax = 0;
+	Undim (t.filecollection_s);
+	Dim (t.filecollection_s, 500);
+	addfoldertocollection (pFolderToCopy);
+	extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
+	mapfile_copyallfilecollectiontopreferredprojectfolder();
+}
+
 int mapfile_savestandalone_stage2c ( void )
 {
 	// choose all entities and associated files

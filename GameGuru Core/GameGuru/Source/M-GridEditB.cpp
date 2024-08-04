@@ -22989,6 +22989,11 @@ void process_entity_library_v2(void)
 											// copy over to remote project
 											if (iParticleLastKnownFileCount > 0)
 											{
+												// ensure user folder exists
+												char pUserFolder[MAX_PATH];
+												sprintf(pUserFolder, "%s\\Files\\particlesbank\\user", g.fpscrootdir_s.Get());
+												GG_GetRealPath(pUserFolder, 1);
+												
 												// only if additions since first checked
 												char pRemotePath[MAX_PATH];
 												sprintf(pRemotePath, "%s\\Files\\particlesbank\\user\\%s", g.fpscrootdir_s.Get(), pFilename);

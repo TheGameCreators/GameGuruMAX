@@ -1671,7 +1671,6 @@ void imgui_terrain_loop_v2(void)
 #endif // GGTERRAIN_USE_NEW_TERRAIN
 			}
 
-			//imgui_Customize_Sky(0); //PE: Moved to visuals.
 			if (current_mode == TOOL_PAINTTEXTURE)
 				imgui_Customize_Terrain(0);
 			if (current_mode == TOOL_PAINTGRASS)
@@ -3460,7 +3459,6 @@ void imgui_terrain_loop(void)
 				}
 			}
 
-			//imgui_Customize_Sky(0); //PE: Moved to visuals.
 			if (current_mode == TOOL_PAINTTEXTURE)
 				imgui_Customize_Terrain(0);
 			if (current_mode == TOOL_PAINTGRASS)
@@ -9468,189 +9466,6 @@ void imgui_Customize_Sky_V2(int mode)
 
 		ImGui::Indent(-10);
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-	}
-}
-
-void imgui_Customize_Sky(int mode)
-{
-	int wflags = ImGuiTreeNodeFlags_DefaultOpen;
-	//PE: First in list now always open by default.
-	//if (mode == 1) wflags = ImGuiTreeNodeFlags_None;
-	if(pref.bAutoClosePropertySections && iLastOpenHeader != 1)
-		ImGui::SetNextItemOpen(false, ImGuiCond_Always);
-
-	if (ImGui::StyleCollapsingHeader("Customize Sky", wflags)) {
-		iLastOpenHeader = 1;
-		ImGui::Indent(10);
-		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-		ImGui::PushItemWidth(-10);
-
-		char * current_sky = t.skybank_s[t.visuals.skyindex].Get();
-		if (t.skybank_s[t.visuals.skyindex] == "None") current_sky = "Dynamic Clouds";
-		if (!current_sky) current_sky = "NA";
-		if (ImGui::BeginCombo("##SelectSkyCombo", current_sky)) // The second parameter is the label previewed before opening the combo.
-		{
-
-			for (int skyindex = 0; skyindex <= g.skymax; skyindex++)
-			{
-
-				if (t.skybank_s[skyindex].Len() > 0)
-				{
-					bool is_selected = false;
-					if (t.skybank_s[skyindex].Get() == current_sky)
-						is_selected = true;
-					cstr  sSkyname = t.skybank_s[skyindex];
-					if (sSkyname == "None") sSkyname = "Dynamic Clouds";
-					if (ImGui::Selectable(sSkyname.Get(), is_selected))
-					{
-						g.projectmodified = 1;
-						current_sky = t.skybank_s[g.skyindex].Get();//t.terrainstylebank_s[skyindex].Get();
-						t.visuals.skyindex = skyindex;
-						t.gamevisuals.skyindex = t.visuals.skyindex;
-
-						g.skyindex = t.visuals.skyindex;
-						t.visuals.sky_s = t.skybank_s[g.skyindex];
-						t.gamevisuals.sky_s = t.skybank_s[g.skyindex];
-						t.terrainskyspecinitmode = 0; sky_skyspec_init();
-						t.sky.currenthour_f = 8.0;
-						t.sky.daynightprogress = 0;
-
-						visuals_justshaderupdate();
-						// if change sky, regenerate env map
-						t.visuals.refreshskysettingsfromlua = true;
-						cubemap_generateglobalenvmap();
-						t.visuals.refreshskysettingsfromlua = false;
-
-					}
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
-
-					//t.skybank_s[skyindex];
-				}
-			}
-
-			ImGui::EndCombo();
-		}
-		if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Sky Settings");
-
-		ImGui::PopItemWidth();
-		ImGui::Indent(-10);
-		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
-
-		if (t.visuals.skyindex == 0)
-		{
-			//No skybox , add weather options.
-			extern wiECS::Entity g_weatherEntityID;
-			wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
-			float fAmbience[4], fSunColor[4], fHorizonColor[4], fZenith[4];
-
-			fSunColor[0] = t.visuals.SunRed_f / 255.0;
-			fSunColor[1] = t.visuals.SunGreen_f / 255.0;
-			fSunColor[2] = t.visuals.SunBlue_f / 255.0;
-			fSunColor[3] = 1.0;
-			ImGui::PushItemWidth(-10);
-			if (ImGui::ColorEdit3("##V2WickedSunColor", &fSunColor[0], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
-			{
-				t.gamevisuals.SunRed_f = t.visuals.SunRed_f = fSunColor[0] * 255.0;
-				t.gamevisuals.SunGreen_f = t.visuals.SunGreen_f = fSunColor[1] * 255.0;
-				t.gamevisuals.SunBlue_f = t.visuals.SunBlue_f = fSunColor[2] * 255.0;
-				g.projectmodified = 1;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				WickedCall_UpdateProbes();
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sun Color");
-			ImGui::PopItemWidth();
-
-			fHorizonColor[0] = t.visuals.FogR_f / 255.0;
-			fHorizonColor[1] = t.visuals.FogG_f / 255.0;
-			fHorizonColor[2] = t.visuals.FogB_f / 255.0;
-			fHorizonColor[3] = 1.0;
-			//ImGui::Text("Horizon - Fog");
-			ImGui::PushItemWidth(-10);
-			if (ImGui::ColorEdit3("##V2WickedfHorizonColor", &fHorizonColor[0], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
-			{
-				t.gamevisuals.FogR_f = t.visuals.FogR_f = fHorizonColor[0] * 255.0;
-				t.gamevisuals.FogG_f = t.visuals.FogG_f = fHorizonColor[1] * 255.0;
-				t.gamevisuals.FogB_f = t.visuals.FogB_f = fHorizonColor[2] * 255.0;
-				g.projectmodified = 1;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				WickedCall_UpdateProbes();
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Horizon Color");
-			ImGui::PopItemWidth();
-
-			fZenith[0] = t.visuals.ZenithRed_f / 255.0;
-			fZenith[1] = t.visuals.ZenithGreen_f / 255.0;
-			fZenith[2] = t.visuals.ZenithBlue_f / 255.0;
-			fZenith[3] = 1.0;
-			ImGui::PushItemWidth(-10);
-//			ImGui::Text("Zenith");
-			if (ImGui::ColorEdit3("##V2WickedZenithColor", &fZenith[0], ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_DisplayRGB))
-			{
-				t.gamevisuals.ZenithRed_f = t.visuals.ZenithRed_f = fZenith[0] * 255.0;
-				t.gamevisuals.ZenithGreen_f = t.visuals.ZenithGreen_f = fZenith[1] * 255.0;
-				t.gamevisuals.ZenithBlue_f = t.visuals.ZenithBlue_f = fZenith[2] * 255.0;
-				g.projectmodified = 1;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				WickedCall_UpdateProbes();
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Zenith Color");
-			ImGui::PopItemWidth();
-
-			ImGui::PushItemWidth(-10);
-			if (ImGui::SliderFloat("##V2WickedSkyCloudiness", &t.visuals.SkyCloudiness, 0.0f, 4.0f))
-			{
-				t.gamevisuals.SkyCloudiness = t.visuals.SkyCloudiness;
-				weather->cloudiness = t.visuals.SkyCloudiness;
-				weather->volumetricCloudParameters.CoverageAmount = t.visuals.SkyCloudiness;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sky Cloudiness");
-			ImGui::PopItemWidth();
-
-			ImGui::PushItemWidth(-10);
-			ImGui::TextCenter("Cloud Coverage");
-			if (ImGui::SliderFloat("##V2WickedSkyCloudCoverage", &t.visuals.SkyCloudCoverage, 0.0f, 2.0f))
-			{
-				t.gamevisuals.SkyCloudCoverage = t.visuals.SkyCloudCoverage;
-				weather->volumetricCloudParameters.CoverageMinimum = t.visuals.SkyCloudCoverage;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sky Cloud Coverage");
-			ImGui::PopItemWidth();
-
-			ImGui::PushItemWidth(-10);
-			float cloudHeight = GGTerrain_UnitsToMeters( t.visuals.SkyCloudHeight );
-			if (ImGui::SliderFloat("##V2WickedSkyCloudHeight", &cloudHeight, -50, 1500))
-			{
-				t.visuals.SkyCloudHeight = GGTerrain_MetersToUnits( cloudHeight );
-				t.gamevisuals.SkyCloudHeight = t.visuals.SkyCloudHeight;
-				weather->volumetricCloudParameters.CloudStartHeight = cloudHeight;
-				weather->cloudScale = t.visuals.SkyCloudHeight;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sky Cloud Height (meters)");
-			ImGui::PopItemWidth();
-
-			ImGui::PushItemWidth(-10);
-			cloudHeight = GGTerrain_UnitsToMeters( t.visuals.SkyCloudThickness );
-			if (ImGui::SliderFloat("##V2WickedSkyCloudThickness", &cloudHeight, 0, 4000))
-			{
-				t.visuals.SkyCloudThickness = GGTerrain_MetersToUnits( cloudHeight );
-				t.gamevisuals.SkyCloudThickness = t.visuals.SkyCloudThickness;
-				weather->volumetricCloudParameters.CloudThickness = cloudHeight;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sky Cloud Thickness (meters)");
-			ImGui::PopItemWidth();
-
-			ImGui::PushItemWidth(-10);
-			if (ImGui::SliderFloat("##V2WickedSkyCloudSpeed", &t.visuals.SkyCloudSpeed, 0.0f, 5.0f))
-			{
-				t.gamevisuals.SkyCloudSpeed = t.visuals.SkyCloudSpeed;
-				weather->cloudSpeed = t.visuals.SkyCloudSpeed;
-				weather->volumetricCloudParameters.CoverageWindSpeed = t.visuals.SkyCloudSpeed;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sky Cloud Speed");
-			ImGui::PopItemWidth();
-
-		}
 	}
 }
 

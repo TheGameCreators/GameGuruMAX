@@ -186,10 +186,20 @@ void FileRedirectRestoreWritableArea (LPSTR szEXE)
 		}
 	}
 
-	// create the initial documents path
-	strcat_s(szWriteDir, MAX_PATH, "\\GameGuruApps\\");
-	strcat_s(szWriteDir, MAX_PATH, szEXE);
-	strcat_s(szWriteDir, MAX_PATH, "\\");
+	// store writables folder
+	extern preferences pref;
+	if (strlen(pref.cCustomWriteFolder) > 0)
+	{
+		// override writables with known custom writables folder
+		strcpy_s(szWriteDir, MAX_PATH, pref.cCustomWriteFolder);
+	}
+	else
+	{
+		// create the initial documents path
+		strcat_s(szWriteDir, MAX_PATH, "\\GameGuruApps\\");
+		strcat_s(szWriteDir, MAX_PATH, szEXE);
+		strcat_s(szWriteDir, MAX_PATH, "\\");
+	}
 
 	// then copy to root write dir (used during int)
 	strcpy_s(szRootWriteDir, MAX_PATH, szWriteDir);

@@ -246,19 +246,23 @@ void entity_adduniqueentity ( bool bAllowDuplicates )
 		// copy over all related files if using a remote project
 		if (bAlsoCopyOverAllRelatedEntityFiles == true)
 		{
-			// clear file collection
-			g.filecollectionmax = 0;
-			Undim (t.filecollection_s);
-			Dim (t.filecollection_s, 500);
+			extern bool g_bMakingAStandaloneUsingFileCollectionArray;
+			if (g_bMakingAStandaloneUsingFileCollectionArray == false)
+			{
+				// clear file collection
+				g.filecollectionmax = 0;
+				Undim (t.filecollection_s);
+				Dim (t.filecollection_s, 500);
 
-			// collect all the associated files into filecollection
-			extern void mapfile_addallentityrelatedfiles(int,entityeleproftype*);
-			entity_fillgrideleproffromprofile();
-			mapfile_addallentityrelatedfiles (t.entid, &t.grideleprof);
+				// collect all the associated files into filecollection
+				extern void mapfile_addallentityrelatedfiles(int, entityeleproftype*);
+				entity_fillgrideleproffromprofile();
+				mapfile_addallentityrelatedfiles (t.entid, &t.grideleprof);
 
-			// copy all the file collection to the remote project
-			extern void mapfile_copyallfilecollectiontopreferredprojectfolder(void);
-			mapfile_copyallfilecollectiontopreferredprojectfolder();
+				// copy all the file collection to the remote project
+				extern void mapfile_copyallfilecollectiontopreferredprojectfolder(void);
+				mapfile_copyallfilecollectiontopreferredprojectfolder();
+			}
 		}
 
 		// 090317 - ignore ebebank new structure to avoid empty EBE icons being added to local library left list

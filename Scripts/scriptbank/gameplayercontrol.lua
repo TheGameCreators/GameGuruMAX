@@ -2239,7 +2239,8 @@ function gameplayercontrol.combatmusic()
  else
   if g_CombatMusicMode == 1 then
    -- wait for combat to finish
-   local delayBeforeFadeOut = 3000
+   local delayBeforeFadeOut = g_CombatMusicModeDuration
+   if delayBeforeFadeOut == nil then delayBeforeFadeOut = 3000 end
    if Timer() > g_CombatMusicLatest + delayBeforeFadeOut then
 	 g_CombatMusicLatest = 0
      g_CombatMusicMode = 2

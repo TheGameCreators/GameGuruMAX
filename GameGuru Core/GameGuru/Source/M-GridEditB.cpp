@@ -42906,246 +42906,246 @@ void process_storeboard(bool bInitOnly)
 						{
 							//PE: Converting settings.
 							//PE: ALL ai_ lua scripts will not work in wicked.
-
-							Undim(t.filecollection_s);
-							g.filecollectionmax = 0;
-							Dim(t.filecollection_s, 500);
-
-							for (int i = 1; i <= g.entityelementmax; i++)
+							extern bool g_bMakingAStandaloneUsingFileCollectionArray;
+							if (g_bMakingAStandaloneUsingFileCollectionArray == false)
 							{
-								t.e = i;
-								int masterid = t.entityelement[t.e].bankindex;
-								if (masterid > 0)
+								Undim(t.filecollection_s);
+								g.filecollectionmax = 0;
+								Dim(t.filecollection_s, 500);
+
+								for (int i = 1; i <= g.entityelementmax; i++)
 								{
-									if (t.entityprofile[masterid].ischaractercreator == 1)
+									t.e = i;
+									int masterid = t.entityelement[t.e].bankindex;
+									if (masterid > 0)
 									{
-										//Delete Old Character Creator
-										t.tentitytoselect = t.e;
-										g_UndoSysObjectIsBeingMoved = false;
-										entity_deleteentityfrommap();
-										//gridedit_deleteentityfrommap();
-									}
-									if (t.entityelement[t.e].eleprof.aimain_s.Len() > 0)
-									{
-										t.entityelement[t.e].eleprof.soundset5_s = t.entityelement[t.e].eleprof.soundset4_s;
-										t.entityelement[t.e].eleprof.soundset4_s = "";
-
-										//PE: Map scripts.
-										if (t.entityelement[t.e].eleprof.aimain_s != "no_behavior_selected.lua")
+										if (t.entityprofile[masterid].ischaractercreator == 1)
 										{
-											char script[MAX_PATH];
+											//Delete Old Character Creator
+											t.tentitytoselect = t.e;
+											g_UndoSysObjectIsBeingMoved = false;
+											entity_deleteentityfrommap();
+											//gridedit_deleteentityfrommap();
+										}
+										if (t.entityelement[t.e].eleprof.aimain_s.Len() > 0)
+										{
+											t.entityelement[t.e].eleprof.soundset5_s = t.entityelement[t.e].eleprof.soundset4_s;
+											t.entityelement[t.e].eleprof.soundset4_s = "";
 
-											strcpy(script, t.entityelement[t.e].eleprof.aimain_s.Get());
-											bool bIncludeMarker = pestrcasestr(script, "markers");
-											bool bIncludeObjects = pestrcasestr(script, "objects");
-											
-											//PE: Convert old script to new DLUA versions.
-											if (!bIncludeMarker && pestrcasestr(script, "winzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\winzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "teleport.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\teleport.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "plrinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\plrinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "FlameLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlameLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "soundinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "ToggleLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ToggleLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "StrobeLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\StrobeLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "FlickerLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlickerLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "RotateLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\RotateLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "ambienceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "imageinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\imageinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "fadezone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\fadezone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "electrocute.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\electrocute.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "textinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\textinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "envirozone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\envirozone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "hurt.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\hurt.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "npcinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\npcinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "heal.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\heal.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "stealthzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\stealthzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "watercontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\watercontrol.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "slip.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\slip.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "bounce.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\bounce.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "FreezePlayer.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FreezePlayer.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "videoinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\videoinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "checkpoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\checkpoint.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "ambienceonceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceonceinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "soundrepeatinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundrepeatinzone.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "module_lightcontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\module_lightcontrol.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "ConstantLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ConstantLight.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "sendpulse.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\sendpulse.lua";
-											else if (!bIncludeMarker && pestrcasestr(script, "particle.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\particle.lua";
-											//PE: new DLUA in Objects.
-											else if (!bIncludeObjects && pestrcasestr(script, "proximity_mine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\proximity_mine.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "ladder.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\ladder.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "healthbar.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\healthbar.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "change_texture.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\change_texture.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "door_rotate.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_rotate.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "secmon.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\secmon.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "winswitch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\winswitch.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "spin.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\spin.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "dynamite.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\dynamite.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "seccam.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\seccam.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "hideshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hideshow.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "boat.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\boat.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "door_sliding.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_sliding.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "carry_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\carry_object.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "door.lua"))
+											//PE: Map scripts.
+											if (t.entityelement[t.e].eleprof.aimain_s != "no_behavior_selected.lua")
 											{
-												//door_properties(0\"70\",0\"1000\",3\"0\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")
-												//g_Entity[e]['haskey'] ?
-												t.entityelement[t.e].eleprof.soundset4_s = "door_properties(0\"70\",0\"1000\",3\"1\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")";
-												t.entityelement[t.e].eleprof.aimain_s = "objects\\door.lua";
-											}
-											else if (!bIncludeObjects && pestrcasestr(script, "decalshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\decalshow.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "sentry.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\sentry.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "mines.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "proximine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "face_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\face_object.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "document.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\document.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "switch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\switch.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "move_near.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_near.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "invisible.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "move_away.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_away.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "loopwaypoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\loopwaypoint.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "invisibleprompt.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisibleprompt.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "hover.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hover.lua";
+												char script[MAX_PATH];
 
-											else if (!bIncludeObjects && pestrcasestr(script, "health.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\health.lua";
-											else if (!bIncludeObjects && pestrcasestr(script, "radar.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\radar.lua";
+												strcpy(script, t.entityelement[t.e].eleprof.aimain_s.Get());
+												bool bIncludeMarker = pestrcasestr(script, "markers");
+												bool bIncludeObjects = pestrcasestr(script, "objects");
 
-											else if (pestrcasestr(script, "invisible_wall.lua"))
-												t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
-											else if (pestrcasestr(script, "ai_") && t.entityprofile[masterid].ischaracter == 1)
-											{
-												//PE: No old AI_ is working in max.
-												t.entityelement[t.e].eleprof.aimain_s = "";
-											}
-											else if (pestrcasestr(script, "stories\\T"))
-											{
-												//PE: TBE stories dont work., LoadImages("The Big Escape",0)
-												t.entityelement[t.e].eleprof.aimain_s = "";
-											}
-											else
-											{
-												//PE: Missing. copy to docwrite script folder , old lua script might work.
-												//PE: Check if its already in max scripts.
-												char scriptfile[MAX_PATH];
-												strcpy(scriptfile, "scriptbank\\");
-												strcat(scriptfile, t.entityelement[t.e].eleprof.aimain_s.Get());
-												if (!FileExist(scriptfile))
+												//PE: Convert old script to new DLUA versions.
+												if (!bIncludeMarker && pestrcasestr(script, "winzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\winzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "teleport.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\teleport.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "plrinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\plrinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "FlameLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlameLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "soundinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "ToggleLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ToggleLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "StrobeLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\StrobeLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "FlickerLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FlickerLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "RotateLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\RotateLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "ambienceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "imageinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\imageinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "fadezone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\fadezone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "electrocute.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\electrocute.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "textinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\textinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "envirozone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\envirozone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "hurt.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\hurt.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "npcinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\npcinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "heal.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\heal.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "stealthzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\stealthzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "watercontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\watercontrol.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "slip.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\slip.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "bounce.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\bounce.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "FreezePlayer.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\FreezePlayer.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "videoinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\videoinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "checkpoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\checkpoint.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "ambienceonceinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ambienceonceinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "soundrepeatinzone.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\soundrepeatinzone.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "module_lightcontrol.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\module_lightcontrol.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "ConstantLight.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\ConstantLight.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "sendpulse.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\sendpulse.lua";
+												else if (!bIncludeMarker && pestrcasestr(script, "particle.lua")) t.entityelement[t.e].eleprof.aimain_s = "markers\\particle.lua";
+												//PE: new DLUA in Objects.
+												else if (!bIncludeObjects && pestrcasestr(script, "proximity_mine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\proximity_mine.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "ladder.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\ladder.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "healthbar.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\healthbar.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "change_texture.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\change_texture.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "door_rotate.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_rotate.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "secmon.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\secmon.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "winswitch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\winswitch.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "spin.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\spin.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "dynamite.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\dynamite.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "seccam.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\seccam.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "hideshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hideshow.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "boat.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\boat.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "door_sliding.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\door_sliding.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "carry_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\carry_object.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "door.lua"))
 												{
-													char WriteTo[MAX_PATH];
-													char ReadFrom[MAX_PATH];
-													strcpy(WriteTo, scriptfile);
-													GG_GetRealPath(WriteTo, 1);
-													strcpy(ReadFrom, pReconstructGameGuruRootFiles);
-													strcat(ReadFrom, scriptfile);
-													bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
-													scanscriptfileandaddtocollection(ReadFrom, &pReconstructGameGuruRootFiles[0]);
+													//door_properties(0\"70\",0\"1000\",3\"0\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")
+													//g_Entity[e]['haskey'] ?
+													t.entityelement[t.e].eleprof.soundset4_s = "door_properties(0\"70\",0\"1000\",3\"1\",2\"Door locked. Find key\",3\"0\",2\"Press E To Open\")";
+													t.entityelement[t.e].eleprof.aimain_s = "objects\\door.lua";
+												}
+												else if (!bIncludeObjects && pestrcasestr(script, "decalshow.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\decalshow.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "sentry.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\sentry.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "mines.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "proximine.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\mines.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "face_object.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\face_object.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "document.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\document.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "switch.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\switch.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "move_near.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_near.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "invisible.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "move_away.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\move_away.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "loopwaypoint.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\loopwaypoint.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "invisibleprompt.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\invisibleprompt.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "hover.lua")) t.entityelement[t.e].eleprof.aimain_s = "objects\\hover.lua";
+
+												else if (!bIncludeObjects && pestrcasestr(script, "health.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\health.lua";
+												else if (!bIncludeObjects && pestrcasestr(script, "radar.lua")) t.entityelement[t.e].eleprof.aimain_s = "rpg\\radar.lua";
+
+												else if (pestrcasestr(script, "invisible_wall.lua"))
+													t.entityelement[t.e].eleprof.aimain_s = "objects\\invisible.lua";
+												else if (pestrcasestr(script, "ai_") && t.entityprofile[masterid].ischaracter == 1)
+												{
+													//PE: No old AI_ is working in max.
+													t.entityelement[t.e].eleprof.aimain_s = "";
+												}
+												else if (pestrcasestr(script, "stories\\T"))
+												{
+													//PE: TBE stories dont work., LoadImages("The Big Escape",0)
+													t.entityelement[t.e].eleprof.aimain_s = "";
+												}
+												else
+												{
+													//PE: Missing. copy to docwrite script folder , old lua script might work.
+													//PE: Check if its already in max scripts.
+													char scriptfile[MAX_PATH];
+													strcpy(scriptfile, "scriptbank\\");
+													strcat(scriptfile, t.entityelement[t.e].eleprof.aimain_s.Get());
+													if (!FileExist(scriptfile))
+													{
+														char WriteTo[MAX_PATH];
+														char ReadFrom[MAX_PATH];
+														strcpy(WriteTo, scriptfile);
+														GG_GetRealPath(WriteTo, 1);
+														strcpy(ReadFrom, pReconstructGameGuruRootFiles);
+														strcat(ReadFrom, scriptfile);
+														bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
+														scanscriptfileandaddtocollection(ReadFrom, &pReconstructGameGuruRootFiles[0]);
+													}
 												}
 											}
 										}
-									}
 
-									if (t.entityprofile[masterid].model_s.Len() > 0)
-									{
-										//PE: 24 bits dds.
-										if (pestrcasestr(t.entityprofile[masterid].model_s.Get(), "FireFlies.X"))
+										if (t.entityprofile[masterid].model_s.Len() > 0)
 										{
-											//Remove.
-											t.entityelement[t.e].bankindex = 0;
-										}
-									}
-									char pGameCoreAsset[MAX_PATH];
-									strcpy(pGameCoreAsset, "");
-									//#define INCLUDECLASSICWEAPONS
-									#ifdef INCLUDECLASSICWEAPONS
-									if (t.entityprofile[masterid].ischaracter == 1)
-									{
-										strcpy(pGameCoreAsset, t.entityprofile[masterid].hasweapon_s.Get());
-									}
-									if (t.entityprofile[masterid].ismarker == 1)
-									{
-										strcpy(pGameCoreAsset, t.entityelement[t.e].eleprof.hasweapon_s.Get());
-									}
-									#endif
-									if (strlen(pGameCoreAsset) > 0)
-									{
-										char pGameCoreFolder[MAX_PATH];
-										strcpy(pGameCoreFolder, pGameCoreAsset);
-										LPSTR pOldDir = GetDir();
-										char pSrcFolder[MAX_PATH];
-										strcpy(pSrcFolder, pReconstructGameGuruRootFiles);
-										strcat(pSrcFolder, "gamecore\\guns\\");
-										strcat(pSrcFolder, pGameCoreFolder);
-										if (PathExist(pSrcFolder))
-										{
-											SetDir(pSrcFolder);
-											ChecklistForFiles();
-											SetDir(pOldDir);
-											strcat(pGameCoreFolder, "\\");
-											strcat(pSrcFolder, "\\");
-											for (int c = 1; c <= ChecklistQuantity(); c++)
+											//PE: 24 bits dds.
+											if (pestrcasestr(t.entityprofile[masterid].model_s.Get(), "FireFlies.X"))
 											{
-												LPSTR pFileName = ChecklistString(c);
-												if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
+												//Remove.
+												t.entityelement[t.e].bankindex = 0;
+											}
+										}
+										char pGameCoreAsset[MAX_PATH];
+										strcpy(pGameCoreAsset, "");
+										//#define INCLUDECLASSICWEAPONS
+	#ifdef INCLUDECLASSICWEAPONS
+										if (t.entityprofile[masterid].ischaracter == 1)
+										{
+											strcpy(pGameCoreAsset, t.entityprofile[masterid].hasweapon_s.Get());
+										}
+										if (t.entityprofile[masterid].ismarker == 1)
+										{
+											strcpy(pGameCoreAsset, t.entityelement[t.e].eleprof.hasweapon_s.Get());
+										}
+	#endif
+										if (strlen(pGameCoreAsset) > 0)
+										{
+											char pGameCoreFolder[MAX_PATH];
+											strcpy(pGameCoreFolder, pGameCoreAsset);
+											LPSTR pOldDir = GetDir();
+											char pSrcFolder[MAX_PATH];
+											strcpy(pSrcFolder, pReconstructGameGuruRootFiles);
+											strcat(pSrcFolder, "gamecore\\guns\\");
+											strcat(pSrcFolder, pGameCoreFolder);
+											if (PathExist(pSrcFolder))
+											{
+												SetDir(pSrcFolder);
+												ChecklistForFiles();
+												SetDir(pOldDir);
+												strcat(pGameCoreFolder, "\\");
+												strcat(pSrcFolder, "\\");
+												for (int c = 1; c <= ChecklistQuantity(); c++)
 												{
-													char pSrcFile[MAX_PATH];
-													char pDestFile[MAX_PATH];
-													strcpy(pSrcFile, pSrcFolder);
-													strcat(pSrcFile, pFileName);
-													strcpy(pDestFile, "gamecore\\guns\\");
-													strcat(pDestFile, pGameCoreFolder);
-													strcat(pDestFile, pFileName);
-													if (!FileExist(pDestFile))
+													LPSTR pFileName = ChecklistString(c);
+													if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
 													{
-														GG_GetRealPath(pDestFile, 1);
-														CopyFileA(pSrcFile, pDestFile, TRUE);
+														char pSrcFile[MAX_PATH];
+														char pDestFile[MAX_PATH];
+														strcpy(pSrcFile, pSrcFolder);
+														strcat(pSrcFile, pFileName);
+														strcpy(pDestFile, "gamecore\\guns\\");
+														strcat(pDestFile, pGameCoreFolder);
+														strcat(pDestFile, pFileName);
+														if (!FileExist(pDestFile))
+														{
+															GG_GetRealPath(pDestFile, 1);
+															CopyFileA(pSrcFile, pDestFile, TRUE);
+														}
+													}
+												}
+											}
+										}
+
+									}
+								}
+								if (g.filecollectionmax > 0)
+								{
+									for (int i = 0; i <= g.filecollectionmax; i++)
+									{
+										LPSTR pThisFile = t.filecollection_s[i].Get();
+										int iThisSize = strlen(pThisFile);
+										if (iThisSize > 0)
+										{
+											// must have a file specified
+											if (pThisFile[iThisSize - 1] == '\\' || pThisFile[iThisSize - 1] == '/')
+											{
+												// ignore folders
+											}
+											else
+											{
+												char ReadFrom[MAX_PATH];
+												strcpy(ReadFrom, pReconstructGameGuruRootFiles);
+												strcat(ReadFrom, pThisFile);
+												if (FileExist(ReadFrom) == 1)
+												{
+													char WriteTo[MAX_PATH];
+													strcpy(WriteTo, pThisFile);
+													if (!FileExist(pThisFile))
+													{
+														GG_GetRealPath(WriteTo, 1);
+														bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
 													}
 												}
 											}
 										}
 									}
-
+									Undim(t.filecollection_s);
+									g.filecollectionmax = 0;
+									Dim(t.filecollection_s, 500);
 								}
-							}
-
-							if (g.filecollectionmax > 0)
-							{
-								for (int i = 0; i <= g.filecollectionmax; i++)
-								{
-									LPSTR pThisFile = t.filecollection_s[i].Get();
-									int iThisSize = strlen(pThisFile);
-									if (iThisSize > 0)
-									{
-										// must have a file specified
-										if (pThisFile[iThisSize - 1] == '\\' || pThisFile[iThisSize - 1] == '/')
-										{
-											// ignore folders
-										}
-										else
-										{
-											char ReadFrom[MAX_PATH];
-											strcpy(ReadFrom, pReconstructGameGuruRootFiles);
-											strcat(ReadFrom, pThisFile);
-											if (FileExist(ReadFrom) == 1)
-											{
-												char WriteTo[MAX_PATH];
-												strcpy(WriteTo, pThisFile);
-												if (!FileExist(pThisFile))
-												{
-													GG_GetRealPath(WriteTo, 1);
-													bool bRet = CopyFileA(ReadFrom, WriteTo, TRUE);
-												}
-											}
-										}
-									}
-								}
-								Undim(t.filecollection_s);
-								g.filecollectionmax = 0;
-								Dim(t.filecollection_s, 500);
-
 							}
 
 							t.tentitytoselect = 0;
-
 							strcpy(cTriggerMessage, "Creating New Level ...");
 							bTriggerMessage = true;
 							iTriggerMessageDelay = 0;
@@ -44610,117 +44610,121 @@ int save_create_storyboard_project(void)
 						// copy files that ALL standalone games will load by default
 						if (strlen(Storyboard.customprojectfolder) > 0)
 						{
-							// clear file collection
-							g.filecollectionmax = 0;
-							Undim (t.filecollection_s);
-							Dim (t.filecollection_s, 500);
+							extern bool g_bMakingAStandaloneUsingFileCollectionArray;
+							if (g_bMakingAStandaloneUsingFileCollectionArray == false)
+							{
+								// clear file collection
+								g.filecollectionmax = 0;
+								Undim (t.filecollection_s);
+								Dim (t.filecollection_s, 500);
 
-							// all the files/folders that are needed by the standalone regardless
-							addfoldertocollection ("audiobank\\materials");
-							addfoldertocollection ("audiobank\\materials\\dirt");
-							addfoldertocollection ("audiobank\\materials\\grass");
-							addfoldertocollection ("audiobank\\materials\\gravel");
-							addfoldertocollection ("audiobank\\materials\\metal");
-							addfoldertocollection ("audiobank\\materials\\puddle");
-							addfoldertocollection ("audiobank\\materials\\sand");
-							addfoldertocollection ("audiobank\\materials\\snow");
-							addfoldertocollection ("audiobank\\materials\\underwater");
-							addfoldertocollection ("audiobank\\materials\\wood");
-							addtocollection ("audiobank\\misc\\ammo.wav");
-							addtocollection ("audiobank\\misc\\explode.wav");
-							addtocollection ("audiobank\\misc\\silence.wav");
-							addtocollection ("audiobank\\misc\\bullet_flyby_01.wav");
-							addtocollection ("audiobank\\misc\\bullet_flyby_02.wav");
-							addtocollection ("audiobank\\misc\\bullet_flyby_03.wav");
-							addtocollection ("audiobank\\misc\\bullet_flyby_04.wav");
-							addfoldertocollection ("charactercreatorplus\\skins");
-							addfoldertocollection ("databank");
-							addtocollection ("editors\\keymap\\default.ini");
-							addfoldertocollection ("editors\\lut");
-							addfoldertocollection ("editors\\templates\\backdrops");
-							addfoldertocollection ("editors\\templates\\buttons");
-							addfoldertocollection ("editors\\templates\\fonts");
-							addfoldertocollection ("editors\\templates\\screeneditor");
-							addtocollection ("editors\\uiv3\\loadingsplash.jpg");
-							addtocollection ("editors\\uiv3\\roboto-medium.ttf");
-							addfoldertocollection ("effectbank\\common");
-							addfoldertocollection ("effectbank\\explosion");
-							addfoldertocollection ("effectbank\\particles");
-							addfoldertocollection ("effectbank\\particles\\weather");
-							addfoldertocollection ("languagebank\\english\\artwork\\watermark");
-							addfoldertocollection ("languagebank\\english\\textfiles");
-							addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\ammohealth");
-							//addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\sliders");
-							addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\panels"); // used in LUA command
-							addfoldertocollection ("fontbank");
-							addfoldertocollection ("gamecore\\bulletholes");
-							addfoldertocollection ("gamecore\\decals\\splat");
-							addfoldertocollection ("gamecore\\decals\\bloodsplat");
-							addfoldertocollection ("gamecore\\decals\\dust");
-							addfoldertocollection ("gamecore\\decals\\impact");
-							addfoldertocollection ("gamecore\\decals\\gunsmoke");
-							addfoldertocollection ("gamecore\\decals\\smoke1");
-							addfoldertocollection ("gamecore\\decals\\sparks");
-							addfoldertocollection ("gamecore\\decals\\muzzleflash4");
-							addfoldertocollection ("gamecore\\decals\\splash_droplets");
-							addfoldertocollection ("gamecore\\decals\\splash_foam");
-							addfoldertocollection ("gamecore\\decals\\splash_large");
-							addfoldertocollection ("gamecore\\decals\\splash_misty");
-							addfoldertocollection ("gamecore\\decals\\splash_ripple");
-							addfoldertocollection ("gamecore\\decals\\splash_small");
-							addfoldertocollection ("gamecore\\decals\\splinters");
-							addfoldertocollection ("gamecore\\vrcontroller");
-							addfoldertocollection ("gamecore\\vrcontroller\\oculus");
-							addfoldertocollection ("gamecore\\muzzleflash");
-							addfoldertocollection ("gamecore\\projectiletypes");
-							addfoldertocollection ("gamecore\\projectiletypes\\common\\explode");
-							addfoldertocollection ("gamecore\\projectiletypes\\enhanced\\m67");
-							addfoldertocollection ("gamecore\\vrcontroller");
-							addfoldertocollection ("grassbank");
-							addfoldertocollection ("imagebank\\hud");
-							addfoldertocollection ("imagebank\\hud library\\max");
-							addfoldertocollection ("lensflares");
-							addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
-							addfoldertocollection ("terraintextures");
-							addfoldertocollection ("terraintextures\\mat1");
-							addfoldertocollection ("terraintextures\\mat2");
-							addfoldertocollection ("terraintextures\\mat3");
-							addfoldertocollection ("terraintextures\\mat4");
-							addfoldertocollection ("terraintextures\\mat5");
-							addfoldertocollection ("terraintextures\\mat6");
-							addfoldertocollection ("terraintextures\\mat7");
-							addfoldertocollection ("terraintextures\\mat8");
-							addfoldertocollection ("terraintextures\\mat9");
-							addfoldertocollection ("terraintextures\\mat10");
-							addfoldertocollection ("terraintextures\\mat11");
-							addfoldertocollection ("terraintextures\\mat12");
-							addfoldertocollection ("terraintextures\\mat13");
-							addfoldertocollection ("terraintextures\\mat14");
-							addfoldertocollection ("terraintextures\\mat15");
-							addfoldertocollection ("terraintextures\\mat16");
-							addfoldertocollection ("terraintextures\\mat17");
-							addfoldertocollection ("terraintextures\\mat18");
-							addfoldertocollection ("terraintextures\\mat19");
-							addfoldertocollection ("terraintextures\\mat20");
-							addfoldertocollection ("terraintextures\\mat21");
-							addfoldertocollection ("terraintextures\\mat22");
-							addfoldertocollection ("terraintextures\\mat23");
-							addfoldertocollection ("terraintextures\\mat24");
-							addfoldertocollection ("terraintextures\\mat25");
-							addfoldertocollection ("terraintextures\\mat26");
-							addfoldertocollection ("terraintextures\\mat27");
-							addfoldertocollection ("terraintextures\\mat28");
-							addfoldertocollection ("terraintextures\\mat29");
-							addfoldertocollection ("terraintextures\\mat30");
-							addfoldertocollection ("terraintextures\\mat31");
-							addfoldertocollection ("terraintextures\\mat32");
-							addfoldertocollection ("treebank");
-							addfoldertocollection ("treebank\\billboards");
-							addfoldertocollection ("treebank\\textures");
+								// all the files/folders that are needed by the standalone regardless
+								addfoldertocollection ("audiobank\\materials");
+								addfoldertocollection ("audiobank\\materials\\dirt");
+								addfoldertocollection ("audiobank\\materials\\grass");
+								addfoldertocollection ("audiobank\\materials\\gravel");
+								addfoldertocollection ("audiobank\\materials\\metal");
+								addfoldertocollection ("audiobank\\materials\\puddle");
+								addfoldertocollection ("audiobank\\materials\\sand");
+								addfoldertocollection ("audiobank\\materials\\snow");
+								addfoldertocollection ("audiobank\\materials\\underwater");
+								addfoldertocollection ("audiobank\\materials\\wood");
+								addtocollection ("audiobank\\misc\\ammo.wav");
+								addtocollection ("audiobank\\misc\\explode.wav");
+								addtocollection ("audiobank\\misc\\silence.wav");
+								addtocollection ("audiobank\\misc\\bullet_flyby_01.wav");
+								addtocollection ("audiobank\\misc\\bullet_flyby_02.wav");
+								addtocollection ("audiobank\\misc\\bullet_flyby_03.wav");
+								addtocollection ("audiobank\\misc\\bullet_flyby_04.wav");
+								addfoldertocollection ("charactercreatorplus\\skins");
+								addfoldertocollection ("databank");
+								addtocollection ("editors\\keymap\\default.ini");
+								addfoldertocollection ("editors\\lut");
+								addfoldertocollection ("editors\\templates\\backdrops");
+								addfoldertocollection ("editors\\templates\\buttons");
+								addfoldertocollection ("editors\\templates\\fonts");
+								addfoldertocollection ("editors\\templates\\screeneditor");
+								addtocollection ("editors\\uiv3\\loadingsplash.jpg");
+								addtocollection ("editors\\uiv3\\roboto-medium.ttf");
+								addfoldertocollection ("effectbank\\common");
+								addfoldertocollection ("effectbank\\explosion");
+								addfoldertocollection ("effectbank\\particles");
+								addfoldertocollection ("effectbank\\particles\\weather");
+								addfoldertocollection ("languagebank\\english\\artwork\\watermark");
+								addfoldertocollection ("languagebank\\english\\textfiles");
+								addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\ammohealth");
+								//addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\sliders");
+								addfoldertocollection ("languagebank\\neutral\\gamecore\\huds\\panels"); // used in LUA command
+								addfoldertocollection ("fontbank");
+								addfoldertocollection ("gamecore\\bulletholes");
+								addfoldertocollection ("gamecore\\decals\\splat");
+								addfoldertocollection ("gamecore\\decals\\bloodsplat");
+								addfoldertocollection ("gamecore\\decals\\dust");
+								addfoldertocollection ("gamecore\\decals\\impact");
+								addfoldertocollection ("gamecore\\decals\\gunsmoke");
+								addfoldertocollection ("gamecore\\decals\\smoke1");
+								addfoldertocollection ("gamecore\\decals\\sparks");
+								addfoldertocollection ("gamecore\\decals\\muzzleflash4");
+								addfoldertocollection ("gamecore\\decals\\splash_droplets");
+								addfoldertocollection ("gamecore\\decals\\splash_foam");
+								addfoldertocollection ("gamecore\\decals\\splash_large");
+								addfoldertocollection ("gamecore\\decals\\splash_misty");
+								addfoldertocollection ("gamecore\\decals\\splash_ripple");
+								addfoldertocollection ("gamecore\\decals\\splash_small");
+								addfoldertocollection ("gamecore\\decals\\splinters");
+								addfoldertocollection ("gamecore\\vrcontroller");
+								addfoldertocollection ("gamecore\\vrcontroller\\oculus");
+								addfoldertocollection ("gamecore\\muzzleflash");
+								addfoldertocollection ("gamecore\\projectiletypes");
+								addfoldertocollection ("gamecore\\projectiletypes\\common\\explode");
+								addfoldertocollection ("gamecore\\projectiletypes\\enhanced\\m67");
+								addfoldertocollection ("gamecore\\vrcontroller");
+								addfoldertocollection ("grassbank");
+								addfoldertocollection ("imagebank\\hud");
+								addfoldertocollection ("imagebank\\hud library\\max");
+								addfoldertocollection ("lensflares");
+								addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
+								addfoldertocollection ("terraintextures");
+								addfoldertocollection ("terraintextures\\mat1");
+								addfoldertocollection ("terraintextures\\mat2");
+								addfoldertocollection ("terraintextures\\mat3");
+								addfoldertocollection ("terraintextures\\mat4");
+								addfoldertocollection ("terraintextures\\mat5");
+								addfoldertocollection ("terraintextures\\mat6");
+								addfoldertocollection ("terraintextures\\mat7");
+								addfoldertocollection ("terraintextures\\mat8");
+								addfoldertocollection ("terraintextures\\mat9");
+								addfoldertocollection ("terraintextures\\mat10");
+								addfoldertocollection ("terraintextures\\mat11");
+								addfoldertocollection ("terraintextures\\mat12");
+								addfoldertocollection ("terraintextures\\mat13");
+								addfoldertocollection ("terraintextures\\mat14");
+								addfoldertocollection ("terraintextures\\mat15");
+								addfoldertocollection ("terraintextures\\mat16");
+								addfoldertocollection ("terraintextures\\mat17");
+								addfoldertocollection ("terraintextures\\mat18");
+								addfoldertocollection ("terraintextures\\mat19");
+								addfoldertocollection ("terraintextures\\mat20");
+								addfoldertocollection ("terraintextures\\mat21");
+								addfoldertocollection ("terraintextures\\mat22");
+								addfoldertocollection ("terraintextures\\mat23");
+								addfoldertocollection ("terraintextures\\mat24");
+								addfoldertocollection ("terraintextures\\mat25");
+								addfoldertocollection ("terraintextures\\mat26");
+								addfoldertocollection ("terraintextures\\mat27");
+								addfoldertocollection ("terraintextures\\mat28");
+								addfoldertocollection ("terraintextures\\mat29");
+								addfoldertocollection ("terraintextures\\mat30");
+								addfoldertocollection ("terraintextures\\mat31");
+								addfoldertocollection ("terraintextures\\mat32");
+								addfoldertocollection ("treebank");
+								addfoldertocollection ("treebank\\billboards");
+								addfoldertocollection ("treebank\\textures");
 
-							// finally copy all indicated files to remote project area for initial file set
-							extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
-							mapfile_copyallfilecollectiontopreferredprojectfolder();
+								// finally copy all indicated files to remote project area for initial file set
+								extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
+								mapfile_copyallfilecollectiontopreferredprojectfolder();
+							}
 						}
 					}
 				}

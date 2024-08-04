@@ -180,6 +180,7 @@ cstr g_mapfile_mapbankpath;
 cstr g_mapfile_levelpathfolder;
 bool g_bAllowBackwardCompatibleConversion = false;
 bool g_bNeedToConvertClassicPositionsToMAX = false;
+bool g_bMakingAStandaloneUsingFileCollectionArray = false;
 
 #ifdef ENABLEIMGUI
 bool restore_old_map = false;
@@ -2264,7 +2265,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		FindFirstLevel(g_Storyboard_First_Level_Node, g_Storyboard_First_fpm);
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
-		int foundlevel = FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm);
+		int foundlevel = 1; // FindNextLevel(g_Storyboard_Current_Level, g_Storyboard_Current_fpm); thix would ignore the first level, instead assume first level is good level
 		while (foundlevel == 1)
 		{
 			bool bAlreadyAdded = false;
@@ -3012,6 +3013,9 @@ void mapfile_savestandalone_start ( void )
 	}
 	if ( cstr(Right(t.exepath_s.Get(),1)) != "\\"  ) t.exepath_s = t.exepath_s+"\\";
 
+	// ensure filecollection array unmolesterd during level loads (some remote project code would have tried to reuse this array)
+	g_bMakingAStandaloneUsingFileCollectionArray = true;
+
 	// Collect all files and folders and store in t.filecollection_s
 	mapfile_collectfoldersandfiles ( levelpathfolder );
 
@@ -3609,13 +3613,17 @@ void mapfile_copyallfilecollectiontopreferredprojectfolder(void)
 
 void mapfile_ensurethisfolderexistsinremoteproject(LPSTR pFolderToCopy)
 {
-	// clear filecollection, specify new folder, copy all to preferred project folder
-	g.filecollectionmax = 0;
-	Undim (t.filecollection_s);
-	Dim (t.filecollection_s, 500);
-	addfoldertocollection (pFolderToCopy);
-	extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
-	mapfile_copyallfilecollectiontopreferredprojectfolder();
+	extern bool g_bMakingAStandaloneUsingFileCollectionArray;
+	if (g_bMakingAStandaloneUsingFileCollectionArray == false)
+	{
+		// clear filecollection, specify new folder, copy all to preferred project folder
+		g.filecollectionmax = 0;
+		Undim (t.filecollection_s);
+		Dim (t.filecollection_s, 500);
+		addfoldertocollection (pFolderToCopy);
+		extern void mapfile_copyallfilecollectiontopreferredprojectfolder (void);
+		mapfile_copyallfilecollectiontopreferredprojectfolder();
+	}
 }
 
 int mapfile_savestandalone_stage2c ( void )
@@ -3709,7 +3717,7 @@ void mapfile_savestandalone_stage2e ( void )
 void mapfile_savestandalone_stage3 ( void )
 {
 	// prompt
-	//popup_text_change("Saving Standalone Game : Creating Paths");
+	//popup_text_change("Saving Standalone Game : Creating Paths"); 
 
 	//  Create game folder
 	SetDir (  t.exepath_s.Get() );
@@ -4286,6 +4294,9 @@ float mapfile_savestandalone_getprogress ( void )
 
 void mapfile_savestandalone_finish ( void )
 {
+	// completed exclusive use of filecollection array (some remote project code would have tried to reuse this array)
+	g_bMakingAStandaloneUsingFileCollectionArray = false;
+
 	// encrypt media
 	t.dest_s=t.exepath_s+t.exename_s;
 	if ( g.gexportassets == 0 ) 
@@ -4377,6 +4388,9 @@ void mapfile_savestandalone_restoreandclose ( void )
 
 	// no longer making standalone
 	t.levelsforstandalone = 0;
+
+	// no longer exclusive use of file collection array
+	g_bMakingAStandaloneUsingFileCollectionArray = false;
 }
 #else
 #endif

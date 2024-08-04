@@ -143,7 +143,7 @@ g_masterinterpreter_act_adjustlookhoffset = 55 -- Adjust Look HOffset (Sets the 
 g_masterinterpreter_act_adjustlookvlimit = 56 -- Adjust Look VLimit (Sets the maximum angle the head can angle up and down)
 g_masterinterpreter_act_adjustlookvoffset = 57 -- Adjust Look VOffset (Sets the initial pose offset of the heads up/down angle)
 g_masterinterpreter_act_adjustaimhlimit = 58 -- Adjust Aim HLimit (Sets the maximum angle the weapon can turn left and right)
-g_masterinterpreter_act_adjustaimhoffset = 95 -- Adjust Aim HOffset (Sets the initial pose offset of the weapon left/right angle)
+g_masterinterpreter_act_adjustaimhoffset = 59 -- Adjust Aim HOffset (Sets the initial pose offset of the weapon left/right angle)
 g_masterinterpreter_act_adjustaimvlimit = 60 -- Adjust Aim VLimit (Sets the maximum angle the weapon can angle up and down)
 g_masterinterpreter_act_adjustaimvoffset = 61 -- Adjust Aim VOffset (Sets the initial pose offset of the weapon up/down angle)
 g_masterinterpreter_act_gotostepleft = 62 -- Go To Step Left (Plot a navigation path to step left to ensure can navigate when stepping)
@@ -2099,9 +2099,13 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Trigger Combat Music
  if actiontype == g_masterinterpreter_act_triggercombatmusic then
+  if actionparam1value == nil then actionparam1value = 3000 end
+  if actionparam1value == 0 then actionparam1value = 3000 end
   if GetCombatMusicTrackPlaying() == 0 then g_CombatMusicMode = 0 g_CombatMusicLatest = 0 end
   if g_CombatMusicLatest == 0 or g_CombatMusicLatest == nil then
    StartCombatMusicTrack()
+   if g_CombatMusicModeDuration == nil then g_CombatMusicModeDuration = actionparam1value end
+   if g_CombatMusicModeDuration ~= nil and actionparam1value > 0 then g_CombatMusicModeDuration = actionparam1value end
    g_CombatMusicMode = 0
   end
   g_CombatMusicLatest = Timer()

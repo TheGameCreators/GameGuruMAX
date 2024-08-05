@@ -46031,13 +46031,10 @@ void load_storyboard(char *name)
 	SetDir(pOldDir);
 	*/
 
-	//
-	// NOTE: RefreshPurchasedFolder creates unncessary FILES folder in projectbank!!!
-	//
-
+	// NOTE: Skipped this as adds 10+ seconds to storyboard load time, use files already gathered (and rely on a REFRESH event)
 	// also trigger a refresh of files lists, the project folder contributes to library file choices!
-	extern void RefreshPurchasedFolder (void);
-	RefreshPurchasedFolder();
+	//extern void RefreshPurchasedFolder (void);
+	//RefreshPurchasedFolder();
 
 	// complete
 	iLastNode = -1;

@@ -961,6 +961,25 @@ void entity_lua_refreshentity ( void )
 	// all entity data updated directly, now  
 	// ensure visible entity matches data again (for reloading game)
 	t.obj = t.entityelement[t.e].obj;
+	if (t.obj == 0)
+	{
+		// scenario of entity cloned after level start, but when
+		// game save reloaded, this entity does not exist, and needs to be created (as though previously cloned)
+		if (t.e != t.v)
+		{
+			// if different, two params passed in, i.e: RefreshEntity(e,parente)
+			t.gridentityoverwritemode = t.e;
+			extern int SpawnNewEntityCore(int iEntityIndex);
+			int iNewE = SpawnNewEntityCore(t.v);
+			t.gridentityoverwritemode = 0;
+			if (iNewE == t.e)
+			{
+				// success, created in same slot ;)
+				// finally we can proceed as though object always existed in this level
+				t.obj = t.entityelement[t.e].obj;
+			}
+		}
+	}
 	if ( t.obj > 0 )
 	{
 		if ( ObjectExist ( t.obj ) == 1 )

@@ -320,7 +320,7 @@ end
 
 function UpdateEntity(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,ani,hea,frm,pdst,avd,lmb,lmi)
  g_Entity[e] = {x=x; y=y; z=z; anglex=rx; angley=ry; anglez=rz; active=ave; activated=act; animating=ani; collected=col; haskey=key; plrinzone=zon; entityinzone=ezon; plrvisible=plrvis; obj=object; health=hea; strength=hea; frame=frm; timer=0; plrdist=pdst; avoid=avd; limbhit=lmb; limbhitindex=lmi; debuggermode=0;}
- g_EntityExtra[e] = {visible=1; spawnatstart=1; beingreset=0; collision=1;}
+ g_EntityExtra[e] = {visible=1; spawnatstart=1; beingreset=0; collision=1; clonedsincelevelstart=0;}
 end
 
 function UpdateEntityRT(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,hea,frm,pdst,avd,lmb,lmi)
@@ -819,6 +819,9 @@ function TransportToIfUsed(e)
 end
 function RefreshEntity(e)
  SendMessageI_refreshentity(e)
+end
+function RefreshEntityFromParent(e,parente)
+ SendMessageI_refreshentity(e,parente)
 end
 function Collected(e)
  SendMessageI_collected(e,1)
@@ -2041,6 +2044,7 @@ SetGamePlayerStateLuaActiveMouse: SetGamePlayerStateLuaActiveMouse() -- command 
 GetGamePlayerStateLuaActiveMouse: GetGamePlayerStateLuaActiveMouse() -- command used by the default player control mechanism
 SetGamePlayerStateRealFov: SetGamePlayerStateRealFov() -- command used by the default player control mechanism
 GetGamePlayerStateRealFov: GetGamePlayerStateRealFov() -- command used by the default player control mechanism
+GetPlayerFOV: fov = GetPlayerFOV() -- command used to retrieve the latest player FOV (previously set by SetPlayerFOV)
 SetGamePlayerStateDisablePeeking: SetGamePlayerStateDisablePeeking() -- command used by the default player control mechanism
 GetGamePlayerStateDisablePeeking: GetGamePlayerStateDisablePeeking() -- command used by the default player control mechanism
 SetGamePlayerStatePlrHasFocus: SetGamePlayerStatePlrHasFocus() -- command used by the default player control mechanism

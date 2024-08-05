@@ -2661,9 +2661,7 @@ luaMessage** ppLuaMessages = NULL;
 	 int iEntityIndex = lua_tonumber(L, 1);
 	 if (iEntityIndex > 0)
 	 {
-		 //WickedCall_PresetObjectCreateOnDemand(true);
 		 iNewE = SpawnNewEntityCore(iEntityIndex);
-		 //WickedCall_PresetObjectCreateOnDemand(false);
 		 char pMsg[256];
 		 sprintf(pMsg, "SpawnNewEntityCore : %d from %d", iNewE, iEntityIndex);
 		 timestampactivity(0, pMsg);
@@ -8488,6 +8486,13 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 	}
 	return 1;
 }
+int GetPlayerFov (lua_State* L)
+{
+	// to match the SetPlayerFOV command - or you could have used 'g_PlayerFOV'
+	int iPlayerFOVPerc = (((t.visuals.CameraFOV_f * t.visuals.CameraASPECT_f) - 20.0) / 180.0) * 114.0f;// 100.0;
+	lua_pushnumber (L, iPlayerFOVPerc);
+	return 1;
+}
 int GetGamePlayerControlJetpackMode ( lua_State *L ) { return GetGamePlayerControlData ( L, 1 ); }
 int GetGamePlayerControlJetpackFuel ( lua_State *L ) { return GetGamePlayerControlData ( L, 2 ); }
 int GetGamePlayerControlJetpackHidden ( lua_State *L ) { return GetGamePlayerControlData ( L, 3 ); }
@@ -12222,6 +12227,7 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateLowFpsWarning" , GetGamePlayerStateLowFpsWarning );
 	lua_register(lua, "SetGamePlayerStateCameraFov" , SetGamePlayerStateCameraFov );
 	lua_register(lua, "GetGamePlayerStateCameraFov" , GetGamePlayerStateCameraFov );
+	lua_register(lua, "GetPlayerFov", GetPlayerFov);
 	lua_register(lua, "SetGamePlayerStateCameraFovZoomed" , SetGamePlayerStateCameraFovZoomed );
 	lua_register(lua, "GetGamePlayerStateCameraFovZoomed" , GetGamePlayerStateCameraFovZoomed );
 	lua_register(lua, "SetGamePlayerStateMouseInvert" , SetGamePlayerStateMouseInvert );

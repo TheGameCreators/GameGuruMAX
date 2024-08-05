@@ -89,6 +89,7 @@ function gamedata.save(slotnumber,uniquename)
 				save("g_Entity[" .. e .. "]['frame']", g_Entity[e]['frame'])
 				save("g_EntityExtra[" .. e .. "]['visible']", GetEntityVisibility(e))
 				save("g_EntityExtra[" .. e .. "]['spawnatstart']", GetEntitySpawnAtStart(e))
+				save("g_EntityExtra[" .. e .. "]['clonedsincelevelstart']", g_EntityExtra[e]['clonedsincelevelstart'])
 			end
 		end
 	end
@@ -277,6 +278,10 @@ function gamedata.save(slotnumber,uniquename)
 	for c = 1, tcollectionmax, 1 do
 		save("hud0_populateallcontainersfilled["..c.."]",hud0_populateallcontainersfilled[c])
 	end
+	save("hud0_quest_qty",hud0_quest_qty)
+	for c = 1, hud0_quest_qty, 1 do
+		save("hud0_quest_status["..c.."]",hud0_quest_status[c])
+	end
 
 	-- will mean load returning successful means whole file read
 	io.write("successful=1\n") 
@@ -285,6 +290,9 @@ function gamedata.save(slotnumber,uniquename)
 end
 
 function gamedata.load(slotnumber)
+
+	-- if cloned extra entities in the game save, need to creatr these in the table
+	local oldEntityElementMax = g_EntityElementMax
 	-- load game data
 	successful = 0
 	--local file = assert(io.open("savegames\\gameslot" .. slotnumber .. ".dat", "r"))
@@ -332,14 +340,29 @@ function gamedata.load(slotnumber)
 				-- skip bad lines as bad lines crash gg also check for bug reported in 2002 re incorrect type returned from load
 				if func then
 				  local ok, add = pcall(func)
-				  if ok then
-					--print(add(2,3))
-				  else
-					--print("Execution error:", add)
-					--PromptDuration("eeor:"..strField,5000)
+				  if ok then	  
+					if string.sub(strField,1,18) == "g_EntityElementMax" then
+						for i = oldEntityElementMax+1, g_EntityElementMax, 1 do
+							g_Entity[i] = {}
+							g_Entity[i]['x'] = 0
+							g_Entity[i]['y'] = 0
+							g_Entity[i]['z'] = 0
+							g_Entity[i]['anglex'] = 0
+							g_Entity[i]['angley'] = 0
+							g_Entity[i]['anglez'] = 0
+							g_Entity[i]['active'] = 0
+							g_Entity[i]['activated'] = 0
+							g_Entity[i]['collected'] = 0
+							g_Entity[i]['haskey'] = 0
+							g_Entity[i]['health'] = 0
+							g_Entity[i]['frame'] = 0
+							g_EntityExtra[i] = {}
+							g_EntityExtra[i]['visible'] = 0
+							g_EntityExtra[i]['spawnatstart'] = 0
+							g_EntityExtra[i]['clonedsincelevelstart'] = 0
+						end
+					end
 				  end
-				else
-				  --print("Compilation error:", err)
 				end				
 				
 			end

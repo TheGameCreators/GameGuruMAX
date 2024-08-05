@@ -1,4 +1,5 @@
 -- DESCRIPTION: When the player enters this zone any zones with the same script which are currently playing ambience/background music/sounds stops and audio from this <Sound0> is looped. [!OnlyPlayInZone=0] will cause the sound to stop playing when the player leaves the zone. [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
+-- V2 by Lee
 
 g_ambienceinzone_soundlooping = 0
 g_ambienceinzone = {}
@@ -35,6 +36,15 @@ function ambienceinzone_main(e)
      StopSound(g_ambienceinzone_soundlooping,0)
      g_ambienceinzone_soundlooping = 0
     end
+   end
+  end
+ end
+ -- restore logic
+ if g_EntityExtra[e]['restoremenow'] ~= nil then
+  if g_EntityExtra[e]['restoremenow'] == 1 then
+   g_EntityExtra[e]['restoremenow'] = 0
+   if g_ambienceinzone_soundlooping > 0 then
+    LoopNon3DSound(g_ambienceinzone_soundlooping,0)
    end
   end
  end

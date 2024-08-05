@@ -2210,10 +2210,14 @@ void entity_loop ( void )
 					t.tProjectileResult = WEAPON_PROJECTILERESULT_EXPLODE;
 					#endif
 					t.tx_f=t.entityelement[t.ee].x; 
-					t.ty_f=t.entityelement[t.ee].y + t.entityelement[t.ee].eleprof.explodeheight;
+					float fRaiseAboveTheFloor = t.entityelement[t.ee].eleprof.explodeheight;
+					if (fRaiseAboveTheFloor < 5) fRaiseAboveTheFloor = 5;
+					t.ty_f=t.entityelement[t.ee].y + fRaiseAboveTheFloor;
 					t.tz_f=t.entityelement[t.ee].z;
 					t.tDamage_f = t.entityelement[t.ee].eleprof.explodedamage; 
-					t.tradius_f = 300;
+					float fRadiusBasedOnDamage = 300; // feature request to control this via properties
+					if (fRadiusBasedOnDamage < 300) fRadiusBasedOnDamage = 300;
+					t.tradius_f = fRadiusBasedOnDamage;
 					t.tSourceEntity = t.ee;
 					// provide the explosion sound (as it cannot come from projectile)
 					t.tSoundID=0;
@@ -3250,11 +3254,7 @@ void entity_applydamage ( void )
 				if (t.tdamagesource == 2)
 				{
 					//  explosion is time delayed
-					#ifdef WICKEDENGINE
 					t.entityelement[t.ttte].explodefusetime = Timer() + 350 + ( rand() % 250 );
-					#else
-					t.entityelement[t.ttte].explodefusetime = Timer() + 250;
-					#endif
 				}
 				else
 				{

@@ -4203,6 +4203,7 @@ int ODERayEx (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, 
 		g_dynamicsWorld->rayTest(Start, End, RayCallback); // nice and fast!
 		if (RayCallback.hasHit())
 		{
+			int iHitRegistered = 1;
 			g_hitObjectNumber = 0;
 			const btRigidBody* hitbody = btRigidBody::upcast(RayCallback.m_collisionObject);
 			if (hitbody)
@@ -4215,7 +4216,8 @@ int ODERayEx (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, 
 					{
 						if ((iIgnoreObj1 > 0 && iIgnoreObj1 == g_PhyObjectList[j].iID) || (iIgnoreObj2 > 0 && iIgnoreObj2 == g_PhyObjectList[j].iID))
 						{
-							// we can ignore this one
+							// we can ignore this one (added iHitRegistered to ensure ignored hit results in NO detection)
+							iHitRegistered = 0;
 						}
 						else
 						{
@@ -4233,9 +4235,12 @@ int ODERayEx (float fX, float fY, float fZ, float fToX, float fToY, float fToZ, 
 			}
 			End = RayCallback.m_hitPointWorld;
 			Normal = RayCallback.m_hitNormalWorld;
-			g_hitPointWorld = End * gSc;
-			g_hitNormalWorld = Normal;
-			return 1;
+			if (iHitRegistered == 1)
+			{
+				g_hitPointWorld = End * gSc;
+				g_hitNormalWorld = Normal;
+			}
+			return iHitRegistered;
 		}
 	}
 	return 0;

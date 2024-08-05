@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Clone_Entity v19 by Necrym59 and Lee
+-- Clone_Entity v20 by Necrym59 and Lee
 -- DESCRIPTION: Allows cloning of a Named Entity when triggered.
 -- DESCRIPTION: Attach to an object then logic link to a switch or zone to activate, or directly assign to a zone.
 -- DESCRIPTION: [CLONE_QUANTITY=1(1,100)]
@@ -130,6 +130,14 @@ function clone_entity_main(e)
 		end
 
 		if status[e] == "monitor_lifespan" then
+			for _,v in pairs (_G[tableName[e]]) do
+				if g_Entity[v] ~= nil then
+					if g_Entity[v]["health"] > 0 then
+						if g_EntityExtra[v] == nil then g_EntityExtra[v] = {} end
+						g_EntityExtra[v]['clonedsincelevelstart'] = clone_entity[e].entity_no
+					end
+				end
+			end
 			clonesdead[e] = true
 			for _,v in pairs (_G[tableName[e]]) do
 				if g_Entity[v] ~= nil then

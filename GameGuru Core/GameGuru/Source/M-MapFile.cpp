@@ -720,13 +720,13 @@ void mapfile_saveproject_fpm ( void )
 	g.filecollectionmax = 0;
 	Undim (t.filecollection_s);
 	Dim (t.filecollection_s, 500);
-	void addthisentityprofilesfilestocollection (void);
+	void addthisentityprofilesfilestocollection (entityeleproftype * pEleProf);
 	for (int entid = 1; entid <= g.entidmaster; entid++)
 	{
 		if (strlen(t.entitybank_s[entid].Get()) > 0)
 		{
 			t.e = 0; t.entid = entid;
-			addthisentityprofilesfilestocollection ();
+			addthisentityprofilesfilestocollection (NULL);
 		}
 	}
 
@@ -1657,9 +1657,27 @@ void mapfile_saveplayerconfig ( void )
 }
 
 #ifdef VRTECH
-void addthisentityprofilesfilestocollection ( void )
+void addthisentityprofilesfilestocollection (entityeleproftype* pEleProf)
 {
-	// takes t.entid 
+	// takes t.entid and t.e/pEleProf
+	// Ensure we also collect any textures for Building Editor entities - they are not included with the export
+	entityprofiletype& entProfile = t.entityprofile[t.entid];
+	if (strstr(entProfile.model_s.Get(), "smartchild"))
+	{
+		WickedMaterial& material = entProfile.WEMaterial;
+		for (int i = 0; i < MAXMESHMATERIALS; i++)
+		{
+			if (material.baseColorMapName[i].Len() > 0)
+			{
+				addtocollection(material.baseColorMapName[i].Get());
+				addtocollection(material.normalMapName[i].Get());
+				addtocollection(material.emissiveMapName[i].Get());
+				addtocollection(material.surfaceMapName[i].Get());
+				addtocollection(material.displacementMapName[i].Get());
+			}
+		}
+	}
+
 	// entity profile file
 	t.tentityname1_s = cstr("entitybank\\") + t.entitybank_s[t.entid];
 	t.tentityname2_s = cstr(Left(t.tentityname1_s.Get(), Len(t.tentityname1_s.Get()) - 4)) + ".bin";
@@ -1673,7 +1691,18 @@ void addthisentityprofilesfilestocollection ( void )
 	}
 	addtocollection(t.tentityname_s.Get());
 
-	//  entity files in folder
+	//PE: NEWLOD
+	std::string lodname = t.tentityname_s.Get();
+	replaceAll(lodname, ".fpe", "_lod.dbo");
+	replaceAll(lodname, ".bin", "_lod.dbo");
+	addtocollection((char*)lodname.c_str());
+
+	// and the BULLET file if exist (caused slowdown of standalone level loads!)
+	std::string bulletname = t.tentityname_s.Get();
+	replaceAll(bulletname, ".fpe", ".bullet");
+	addtocollection((char*)bulletname.c_str());
+
+	// entity files in folder
 	t.tentityfolder_s = t.tentityname_s;
 	for (t.n = Len(t.tentityname_s.Get()); t.n >= 1; t.n += -1)
 	{
@@ -1715,8 +1744,6 @@ void addthisentityprofilesfilestocollection ( void )
 			t.tfile1_s = pModelFile;
 		}
 
-		#ifdef WICKEDENGINE
-		//Wicked prefer DBO over X.
 		t.tfile2_s = cstr(Left(t.tfile1_s.Get(), Len(t.tfile1_s.Get()) - 2)) + ".dbo";
 		if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile2_s).Get()) == 1)
 		{
@@ -1726,24 +1753,11 @@ void addthisentityprofilesfilestocollection ( void )
 		{
 			t.tfile_s = t.tfile1_s;
 		}
-		#else
-		// never prefer DBO over X, always transport X (for Player)
-		//t.tfile2_s=cstr(Left(t.tfile1_s.Get(),Len(t.tfile1_s.Get())-2))+".dbo";
-		//if (  FileExist( cstr(g.fpscrootdir_s+"\\Files\\"+t.tfile2_s).Get() ) == 1 ) 
-		//{
-		//	t.tfile_s=t.tfile2_s;
-		//}
-		//else
-		//{
-		t.tfile_s = t.tfile1_s;
-		//}
-		#endif
 		t.tmodelfile_s = t.tfile_s;
 		addtocollection(t.tmodelfile_s.Get());
 
-		#ifdef WICKEDENGINE
 		//PE: CCP have missing textures the body part, i seen entrys like 'baseColorMap0    = tempfinalalbedo0.dds' , so always copy over main texture.
-		if (t.entityprofile[t.entityelement[t.e].bankindex].ischaracter)
+		if (t.entityprofile[t.entid].ischaracter)
 		{
 			cstr ccpname = t.tmodelfile_s;
 			std::string sParseName = t.tmodelfile_s.Get();
@@ -1757,11 +1771,9 @@ void addthisentityprofilesfilestocollection ( void )
 			replaceAll(sParseName, ".dbo", "2.dds"); //PE: Feets with custom skin also need to be added.
 			addtocollection((char *)sParseName.c_str());
 		}
-		#endif
 
 		// if entity did not specify texture it is multi-texture, so interogate model file
-		// do it for every model
-		findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entityelement[t.e].bankindex].texpath_s.Get());
+		findalltexturesinmodelfile(t.tmodelfile_s.Get(), t.tentityfolder_s.Get(), t.entityprofile[t.entid].texpath_s.Get());
 	}
 
 	// Export entity FPE BMP file if flagged
@@ -1781,25 +1793,36 @@ void addthisentityprofilesfilestocollection ( void )
 		addtocollection(t.tfile3_s.Get());
 	}
 
-	#ifdef WICKEDENGINE
 	// bullet physics hull decomp file (if any)
 	t.tfile3_s = cstr(Left(t.tentityname_s.Get(), Len(t.tentityname_s.Get()) - 4)) + ".bullet";
 	if (FileExist(cstr(g.fpscrootdir_s + "\\Files\\" + t.tfile3_s).Get()) == 1)
 	{
 		addtocollection(t.tfile3_s.Get());
 	}
-	#endif
 
-	//  texture files
+	// texture files
 	int iStartingType = 0;
 	if (t.e == 0) iStartingType = 1; // parent profile only
+	if (pEleProf) iStartingType = 0; // comes from standalone exporter, using pEleProf as alternative to t.e
 	for (int iBothTypes = iStartingType; iBothTypes < 2; iBothTypes++)
 	{
 		// can be from ELEPROF of entityelement (older maps point to old texture names) or parent ELEPROF original
 		cstr pTextureFile = "", pAltTextureFile = "";
-		if (iBothTypes == 0) { pTextureFile = t.entityelement[t.e].eleprof.texd_s; pAltTextureFile = t.entityelement[t.e].eleprof.texaltd_s; }
-		if (iBothTypes == 1) { pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; }
-
+		if (iBothTypes == 0)
+		{ 
+			if (pEleProf)
+			{
+				pTextureFile = pEleProf->texd_s; pAltTextureFile = pEleProf->texaltd_s;
+			}
+			else
+			{
+				pTextureFile = t.entityelement[t.e].eleprof.texd_s; pAltTextureFile = t.entityelement[t.e].eleprof.texaltd_s;
+			}
+		}
+		if (iBothTypes == 1) 
+		{ 
+			pTextureFile = t.entityprofile[t.entid].texd_s; pAltTextureFile = t.entityprofile[t.entid].texaltd_s; 
+		}
 		t.tlocaltofpe = 1;
 		for (t.n = 1; t.n <= Len(pTextureFile.Get()); t.n++)
 		{
@@ -2141,21 +2164,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\vrcontroller");
 	addfoldertocollection("gamecore\\vrcontroller\\oculus");
 	addfoldertocollection("gamecore\\projectiletypes");
-	//addfoldertocollection("gamecore\\projectiletypes\\fantasy\\fireball");
-	//addfoldertocollection("gamecore\\projectiletypes\\fantasy\\magicbolt");
-	//addfoldertocollection("gamecore\\projectiletypes\\modern\\handgrenade");
-	//addfoldertocollection("gamecore\\projectiletypes\\modern\\rpggrenade");
 	addfoldertocollection("gamecore\\projectiletypes\\common\\explode");
 	addfoldertocollection("gamecore\\projectiletypes\\enhanced\\m67");
-
 	addfoldertocollection("gamecore\\bulletholes");
-
 	addfoldertocollection("editors\\lut");
-
-	// no longer supported
-	//addfoldertocollection("terrainbank\\temp\\");
-	//addtocollection("terrainbank\\desert\\default.obj"); // for temp flat terrain!
-
 	addfoldertocollection("treebank"); // for temp flat terrain!
 	addfoldertocollection("treebank\\billboards"); // for temp flat terrain!
 	addfoldertocollection("treebank\\textures"); // for temp flat terrain!
@@ -2171,8 +2183,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("grassbank");
 
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
-	//addfoldertocollection("particlesbank");
-	//addfoldertocollection("particlesbank\\user");	
 	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
 
 	addtocollection("effectbank\\common\\noise64.png");
@@ -2197,8 +2207,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	addfoldertocollection("gamecore\\muzzleflash");
 	addfoldertocollection("gamecore\\projectiletypes");
-	//addfoldertocollection("gamecore\\brass"); // now done below when detect guns used in level
-	//addfoldertocollection("gamecore\\hudlayers"); JetPack Not used since Classic
 
 	// we will much improve this with the new project system!!
 	addfoldertocollection("gamecore\\hands\\Animations");
@@ -2232,10 +2240,12 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	fppFilesToRemoveList.clear();
 
 	// Stage 2 - collect all files (from all levels)
-	t.levelindex=0;
-	Dim ( t.levellist_s, 100  );
+	t.levelmax = 0;
+	Dim ( t.levellist_s, 100 );
+	for (int i = 0; i < 100; i++) t.levellist_s[i] = "";
 	addtocollection(t.visuals.sAmbientMusicTrack.Get());
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
+	t.levelindex = 1;
 
 	#ifdef STORYBOARD
 	// Add images from collection list (can be stored in thumbbank)
@@ -2303,31 +2313,34 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		{
 			if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
 			{
+				// get level name
 				cStr levelName = Storyboard.Nodes[i].level_name;
-				bool bAlreadyCollected = false;
-
-				// Check if this Storyboard level has already been marked for collection of its files
-				for (int j = 0; j < t.levelmax; j++)
+				if (strlen(levelName.Get()) > 0)
 				{
-					if (strcmp(levelName.Get(), t.levellist_s[j].Get()) == 0)
+					// only valid if have a level name here
+					// Check if this Storyboard level has already been marked for collection of its files
+					bool bAlreadyCollected = false;
+					for (int j = 1; j <= t.levelmax; j++)
 					{
-						bAlreadyCollected = true;
-						break;
+						if (strcmp(levelName.Get(), t.levellist_s[j].Get()) == 0)
+						{
+							bAlreadyCollected = true;
+							break;
+						}
 					}
-				}
-
-				if (!bAlreadyCollected)
-				{
-					// This level has not yet been marked for collection
-					++t.levelmax;
-					t.levellist_s[t.levelmax] = levelName;
-					addtocollection(levelName.Get());
-					if (levelName.Len() > 5)
+					if (!bAlreadyCollected)
 					{
-						strcpy(pIncludeMapFile, levelName.Get());
-						pIncludeMapFile[strlen(pIncludeMapFile) - 4] = 0;
-						strcat(pIncludeMapFile, ".png");
-						addtocollection(pIncludeMapFile);
+						// This level has not yet been marked for collection
+						++t.levelmax;
+						t.levellist_s[t.levelmax] = levelName;
+						addtocollection(levelName.Get());
+						if (levelName.Len() > 5)
+						{
+							strcpy(pIncludeMapFile, levelName.Get());
+							pIncludeMapFile[strlen(pIncludeMapFile) - 4] = 0;
+							strcat(pIncludeMapFile, ".png");
+							addtocollection(pIncludeMapFile);
+						}
 					}
 				}
 			}
@@ -2401,6 +2414,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	}
 	#endif
 
+	/* this is duplicated below in stage code
 	t.tlevelstoprocess = 1;
 	t.tlevelfile_s="";
 	g.projectfilename_s=t.tmasterlevelfile_s;
@@ -2574,10 +2588,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 				FILE* tLuaScriptFile = GG_fopen ( tLuaScript.Get() , "r" );
 				if ( tLuaScriptFile )
 				{
-					#ifdef WICKEDENGINE
-					/*bool bExtractedDLuaFiles = false;*/
-					#endif
-
 					char tTempLine[2048];
 					while ( !feof(tLuaScriptFile) )
 					{
@@ -2815,12 +2825,12 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		}
 	}
 
-	//  decide if another level needs loading/processing
-	if (  t.levelindex<t.levelmax ) 
+	// decide if another level needs loading/processing
+	if ( t.levelindex < t.levelmax ) 
 	{
 		t.tlevelfile_s = "";
 		t.tlevelstoprocess = 0;
-		while ( t.levelindex<t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
+		while ( t.levelindex < t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
 		{
 			++t.levelindex;
 			t.ttrylevelfile_s=t.levellist_s[t.levelindex];
@@ -2847,17 +2857,12 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	//  for each level file
 	}
 
-	//  if multi-level, do NOT include the levelbank\testmap temp files
+	// if multi-level, do NOT include the levelbank\testmap temp files
 	t.tignorelevelbankfiles=0;
 	if (  g.projectfilename_s != t.tmasterlevelfile_s ) 
 	{
 		timestampactivity(0,"Ignoring levelbank testmap folder for multilevel standalone");
 		t.tignorelevelbankfiles=1;
-	}
-	else
-	{
-		//addfoldertocollection("levelbank\\testmap"); // 190417 - dont need contents, comes from FPM load!
-		//addtocollection("levelbank\\testmap\\header.dat"); // 190719 - this does not exist at time of scan, and created as part of FPM anyhoo
 	}
 
 	// 010917 - go through and remove any X files that have DBO counterparts
@@ -2896,6 +2901,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			removeanymatchingfromcollection ( pRemoveFile.Get() );
 		}
 	}
+	*/
 }
 
 void mapfile_savestandalone_start ( void )
@@ -3031,12 +3037,12 @@ void mapfile_savestandalone_start ( void )
 
 void mapfile_savestandalone_stage2a ( void )
 {
-	// Stage 2 - count ALL levels referenced and make a list
+	// Stage 2 - have all level from previous start step
+	//t.levelmax = 0;
+	//Dim (t.levellist_s, 100);
+	//for (int i = 0; i < 100; i++) t.levellist_s[i] = "";
 	bool bWeUnloadedTheFirstLevel = false;
-	t.levelindex=0;
-	t.levelmax=0;
-	Dim ( t.levellist_s, 100 );
-
+	t.levelindex = 1;
 	if (g.bUseStoryBoardSetup)
 	{
 		// restore to first level.
@@ -3044,7 +3050,6 @@ void mapfile_savestandalone_stage2a ( void )
 		g_Storyboard_Current_Level = g_Storyboard_First_Level_Node;
 		strcpy(g_Storyboard_Current_fpm, g_Storyboard_First_fpm);
 	}
-
 	t.tlevelfile_s="";
 	t.tlevelstoprocess = 1;
 	g_mapfile_iNumberOfEntitiesAcrossAllLevels = 0;
@@ -3081,11 +3086,11 @@ void mapfile_savestandalone_stage2a ( void )
 				}
 			}
 		}
-		if ( t.levelindex<t.levelmax ) 
+		if ( t.levelindex < t.levelmax ) 
 		{
 			t.tlevelfile_s = "";
 			t.tlevelstoprocess = 0;
-			while ( t.levelindex<t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
+			while ( t.levelindex < t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
 			{
 				++t.levelindex;
 				t.ttrylevelfile_s=t.levellist_s[t.levelindex];
@@ -3134,11 +3139,6 @@ int mapfile_savestandalone_stage2b ( void )
 			g.projectfilename_s=t.tlevelfile_s;
 			mapfile_loadproject_fpm ( );
 			game_loadinentitiesdatainlevel ( );
-
-			//LB: Nah - objects not created to produce this file, so...generate it when loading each level in standalone (phew)
-			// force generation of nav mesh file!
-			//extern void game_createnavmeshfromlevel (bool bYup);
-			//game_createnavmeshfromlevel(true);
 		}
 
 		// 061018 - check if an FPP file exists for this level file
@@ -3209,11 +3209,8 @@ int mapfile_savestandalone_stage2b ( void )
 		//  chosen sky, terrain and veg
 		addfoldertocollection(cstr(cstr("skybank\\")+t.skybank_s[g.skyindex]).Get() );
 
-		// no longer supported!
-		//addfoldertocollection(cstr(cstr("terrainbank\\")+g.terrainstyle_s).Get() );
-		//addtocollection("vegbank\\AllGrass.png");
-		//addtocollection("vegbank\\veg.dbo");
-		//addtocollection("vegbank\\clump.dbo");
+		// pre-add the skins folder - can optimize later to find only skins we used (118MB)
+		addfoldertocollection("charactercreatorplus\\skins");
 
 		// start for loop
 		t.e = 1;
@@ -3235,6 +3232,73 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 	// Check for custom images loaded in lua script
 	if (pEleProf->aimain_s != "")
 	{
+		// Check for files required by the script via DLua
+		extern void InitParseLuaScript(entityeleproftype * tmpeleprof);
+		extern void ParseLuaScript(entityeleproftype * tmpeleprof, char* script);
+
+		// PropertiesVariables are not filled automatically for t.entityelement[t.e], so create a temp variable and parse the script to fill the values
+		// PropertiesVariables may eventually be saved with entityelement data, so we could remove this step in future
+		entityeleproftype tempeleprof = *pEleProf;
+		InitParseLuaScript(&tempeleprof);
+		cstr script_name = "";
+		script_name = "scriptbank\\";
+		script_name += tempeleprof.aimain_s;
+		ParseLuaScript(&tempeleprof, script_name.Get());
+
+		// We now have the properties variables
+		for (int i = 0; i < MAXPROPERTIESVARIABLES; i++)
+		{
+			// Check the lua variable is a string.
+			if (tempeleprof.PropertiesVariable.VariableType[i] == 2)
+			{
+				// Check if the string contains a file.
+				int variableLength = strlen(tempeleprof.PropertiesVariable.VariableValue[i]);
+				if (variableLength > 4 && tempeleprof.PropertiesVariable.VariableValue[i][variableLength - 4] == '.')
+				{
+					// can specify a textfile, but needs to be specified as relative
+					LPSTR pStringOrFile = tempeleprof.PropertiesVariable.VariableValue[i];
+					if (pStringOrFile[1] == ':')
+					{
+						// replace absolute paths with relative ones
+						char pRelativePathAndFile[MAX_PATH];
+						strcpy(pRelativePathAndFile, pStringOrFile);
+						GG_GetRealPath(pRelativePathAndFile, 0);
+						extern char szWriteDir[MAX_PATH];
+						char pRemoveAbsPart[MAX_PATH];
+						strcpy(pRemoveAbsPart, szWriteDir);
+						strcat(pRemoveAbsPart, "Files\\");
+						if (strnicmp(pRelativePathAndFile, pRemoveAbsPart, strlen(pRemoveAbsPart)) == NULL)
+						{
+							strcpy(pRelativePathAndFile, pStringOrFile + strlen(pRemoveAbsPart));
+						}
+						addtocollection(pRelativePathAndFile);
+					}
+					else
+					{
+						addtocollection(pStringOrFile);
+					}
+
+					//PE: if .dds or.png also add - _normal and _emissive and _surface (behavior: Change Texture).
+					if (pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".dds") || pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], ".png"))
+					{
+						if (pestrcasestr(tempeleprof.PropertiesVariable.VariableValue[i], "_color"))
+						{
+							std::string sParseName = tempeleprof.PropertiesVariable.VariableValue[i];
+							replaceAll(sParseName, "_color.", "_normal.");
+							addtocollection((char*)sParseName.c_str());
+							replaceAll(sParseName, "_normal.", "_surface.");
+							addtocollection((char*)sParseName.c_str());
+							replaceAll(sParseName, "_surface.", "_emissive.");
+							addtocollection((char*)sParseName.c_str());
+							replaceAll(sParseName, "_emissive.", "_illumination.");
+							addtocollection((char*)sParseName.c_str());
+						}
+					}
+				}
+			}
+		}
+
+		// Copy any files specified directly in Lua script
 		cstr tLuaScript = g.fpscrootdir_s + "\\Files\\scriptbank\\";
 		tLuaScript += pEleProf->aimain_s;
 		FILE* tLuaScriptFile = GG_fopen (tLuaScript.Get(), "r");
@@ -3262,8 +3326,9 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 
 				// Handle new load image and sound commands, they can be in nested folders
 				if (strstr (tTempLine, "LoadImage ")
-					|| strstr (tTempLine, "LoadImage(")
-					|| strstr (tTempLine, "LoadGlobalSound("))
+				|| strstr (tTempLine, "LoadImage(")
+				|| strstr (tTempLine, "LoadGlobalSound ")
+				|| strstr (tTempLine, "LoadGlobalSound("))
 				{
 					char* pImageFolder = strstr (tTempLine, "\"");
 					if (pImageFolder)
@@ -3278,7 +3343,8 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 						}
 					}
 				}
-				if (strstr(tTempLine, "SetSkyTo(")) {
+				if (strstr(tTempLine, "SetSkyTo(")) 
+				{
 					char* pSkyFolder = strstr(tTempLine, "\"");
 					if (pSkyFolder)
 					{
@@ -3297,6 +3363,10 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 		}
 	}
 
+	// gives "t.entid" and adds ALL entity profile related files to the collection (not t.e(pEleProf specific)
+	addthisentityprofilesfilestocollection(pEleProf);
+
+	/* now elsewhere
 	//  entity profile file
 	t.tentityname1_s = cstr("entitybank\\") + t.entitybank_s[t.entid];
 	t.tentityname2_s = cstr(Left(t.tentityname1_s.Get(), Len(t.tentityname1_s.Get()) - 4)) + ".bin";
@@ -3315,6 +3385,11 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 	replaceAll(lodname, ".fpe", "_lod.dbo");
 	replaceAll(lodname, ".bin", "_lod.dbo");
 	addtocollection((char*)lodname.c_str());
+
+	// and the BULLET file if exist (caused slowdown of standalone level loads!)
+	std::string bulletname = t.tentityname_s.Get();
+	replaceAll(bulletname, ".fpe", ".bullet");
+	addtocollection((char*)bulletname.c_str());
 
 	//  entity files in folder
 	t.tentityfolder_s = t.tentityname_s;
@@ -3491,11 +3566,13 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 		}
 		fclose (tFPEFile);
 	}
+	*/
 
-	//  shader file
+	// shader file
 	t.tfile_s = pEleProf->effect_s; addtocollection(t.tfile_s.Get());
 	//Try to take the .blob.
-	if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") {
+	if (cstr(Lower(Right(t.tfile_s.Get(), 3))) == ".fx") 
+	{
 		t.tfile_s = Left(t.tfile_s.Get(), Len(t.tfile_s.Get()) - 3);
 		t.tfile_s = t.tfile_s + ".blob";
 		if (FileExist(t.tfile_s.Get()) == 1)
@@ -3503,18 +3580,25 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 			addtocollection(t.tfile_s.Get());
 		}
 	}
-	//  script files
+
+	// script files
 	cstr script_name = "";
-	//if (strnicmp(pEleProf->aimain_s.Get(), "projectbank", 11) != NULL) 
 	script_name = "scriptbank\\";
 	script_name += pEleProf->aimain_s;
 	t.tfile_s = script_name;
 	addtocollection(t.tfile_s.Get());
-	//  for the script associated, scan it and include any references to other scripts
+	// Copy .byc too
+	std::string sLuaFile = t.tfile_s.Get();
+	replaceAll(sLuaFile, ".lua", ".byc");
+	addtocollection((char*)sLuaFile.c_str());
+
+	// for the script associated, scan it and include any references to other scripts
 	scanscriptfileandaddtocollection(t.tfile_s.Get());
-	//  sound files
-	//PE: Make sure voiceset from player start marker is added.
-	if (t.entityprofile[t.entid].ismarker == 1 && pEleProf->soundset_s.Len() > 0) {
+
+	// sound files
+	if (t.entityprofile[t.entid].ismarker == 1 && pEleProf->soundset_s.Len() > 0) 
+	{
+		//PE: Make sure voiceset from player start marker is added.
 		t.tfile_s = pEleProf->soundset_s;
 		addfoldertocollection(cstr(cstr("audiobank\\voices\\") + cstr(t.tfile_s.Get())).Get());
 	}
@@ -3525,7 +3609,16 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 	t.tfile_s = pEleProf->soundset5_s; addtocollection(t.tfile_s.Get());
 	t.tfile_s = pEleProf->soundset6_s; addtocollection(t.tfile_s.Get());
 	t.tfile_s = pEleProf->overrideanimset_s; addtocollection(t.tfile_s.Get());
-	//  collectable guns
+
+	// lipsync files associated with soundset references
+	cstr tmpFile_s = pEleProf->soundset_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+	tmpFile_s = pEleProf->soundset1_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+	tmpFile_s = pEleProf->soundset2_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+	tmpFile_s = pEleProf->soundset3_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+	tmpFile_s = pEleProf->soundset5_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+	tmpFile_s = pEleProf->soundset6_s; tmpFile_s = cstr(Left(tmpFile_s.Get(), strlen(tmpFile_s.Get()) - 4)) + ".lip"; addtocollection(tmpFile_s.Get());
+
+	// collectable guns
 	cstr pGunPresent = "";
 	if (Len(t.entityprofile[t.entid].isweapon_s.Get()) > 1) pGunPresent = t.entityprofile[t.entid].isweapon_s;
 	if (t.entityprofile[t.entid].isammo == 0)
@@ -3559,6 +3652,14 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 					if (PathExist (t.tfile_s.Get()))
 						addfoldertocollection(t.tfile_s.Get());
 				}
+
+				// and any projectile files associated with it
+				cstr pProjectilePresent = t.gun[t.foundgunid].projectile_s;
+				if (Len(pProjectilePresent.Get()) > 1)
+				{
+					t.tfile_s = cstr("gamecore\\projectiletypes\\") + pProjectilePresent;
+					addfoldertocollection(t.tfile_s.Get());
+				}
 			}
 
 			// and any projectile files associated with it
@@ -3570,6 +3671,18 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 			}
 		}
 	}
+
+	// player start marler
+	if (t.entityprofile[t.entid].ismarker == 1)
+	{
+		// can specify custom arms for weapons, need the hands
+		if (pEleProf->texaltd_s.Len() > 0)
+		{
+			t.tfile_s = cstr("gamecore\\hands\\") + pEleProf->texaltd_s;
+			addfoldertocollection(t.tfile_s.Get());
+		}
+	}
+
 	// zone marker can reference other levels to jump to
 	if (t.entityprofile[t.entid].ismarker == 3)
 	{
@@ -3593,6 +3706,23 @@ void mapfile_addallentityrelatedfiles ( int entid, entityeleproftype* pEleProf )
 
 void mapfile_copyallfilecollectiontopreferredprojectfolder(void)
 {
+	// before the copy, some files should never move across (core scripts, etc)
+	removefromcollection ("scriptbank\\global.lua");
+	removefromcollection ("scriptbank\\gameloop.lua");
+	removefromcollection ("scriptbank\\masterinterpreter.lua");
+	removefromcollection ("scriptbank\\physlib.lua");
+	removefromcollection ("scriptbank\\quatlib.lua");
+	removefromcollection ("scriptbank\\utillib.lua");
+	removefromcollection ("scriptbank\\vectlib.lua");
+	removefromcollection ("scriptbank\\hud0.lua");
+	removefromcollection ("scriptbank\\module_activationcontrol.lua");
+	removefromcollection ("scriptbank\\module_misclib.lua");
+	removefromcollection ("scriptbank\\navmeshlib.lua");
+	removefromcollection ("scriptbank\\perlin_noise.lua");
+	removefromcollection ("scriptbank\\ai\\module_cameraoverride.lua");
+	removefromcollection ("scriptbank\\no_behavior_selected.lua");
+	
+	// do the copy
 	char pPreferredProjectEntityFolder[MAX_PATH];
 	strcpy(pPreferredProjectEntityFolder, Storyboard.customprojectfolder);
 	strcat(pPreferredProjectEntityFolder, Storyboard.gamename);
@@ -3635,7 +3765,40 @@ int mapfile_savestandalone_stage2c ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
+			// most eleprof related files
 			mapfile_addallentityrelatedfiles(t.entid, &t.entityelement[t.e].eleprof);
+
+			// and purey entity element related files
+			if (t.entityelement[t.e].eleprof.bCustomWickedMaterialActive)
+			{
+				// Also add any custom material textures
+				sObject* pObject = GetObjectData(t.entityelement[t.e].obj);
+				if (pObject)
+				{
+					for (int i = 0; i < pObject->iFrameCount; i++)
+					{
+						sFrame* pFrame = pObject->ppFrameList[i];
+						if (pFrame)
+						{
+							sMesh* pMesh = pFrame->pMesh;
+							if (pMesh)
+							{
+								wiScene::MaterialComponent* pMaterialComponent = wiScene::GetScene().materials.GetComponent(pMesh->wickedmaterialindex);
+								if (pMaterialComponent)
+								{
+									if (pMaterialComponent->textures[0].name.length() > 0)
+									{
+										addtocollection((char*)pMaterialComponent->textures[0].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[1].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[2].name.c_str());
+										addtocollection((char*)pMaterialComponent->textures[3].name.c_str());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	else
@@ -3669,11 +3832,11 @@ int mapfile_savestandalone_stage2c ( void )
 void mapfile_savestandalone_stage2d ( void )
 {
 	// decide if another level needs loading/processing
-	if ( t.levelindex<t.levelmax ) 
+	if ( t.levelindex < t.levelmax ) 
 	{
 		t.tlevelfile_s = "";
 		t.tlevelstoprocess = 0;
-		while ( t.levelindex<t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
+		while ( t.levelindex < t.levelmax && strcmp ( t.tlevelfile_s.Get(), "" )==NULL ) 
 		{
 			++t.levelindex;
 			t.ttrylevelfile_s=t.levellist_s[t.levelindex];
@@ -3709,7 +3872,6 @@ void mapfile_savestandalone_stage2e ( void )
 	}
 	else
 	{
-		//addfoldertocollection("levelbank\\testmap"); // 190417 - dont need contents, comes from FPM load!
 		addtocollection("levelbank\\testmap\\header.dat");
 	}
 }
@@ -4248,6 +4410,7 @@ int mapfile_savestandalone_continue ( void )
 			if (mapfile_savestandalone_stage2c() == 0)
 			{
 				g_mapfile_fProgress += (80.0f / g_mapfile_fProgressSpan);
+				if (g_mapfile_fProgress > 84) g_mapfile_fProgress = 84;
 			}
 			else
 			{
@@ -5212,6 +5375,7 @@ bool IsFileAStockAsset ( LPSTR pCheckThisFile )
 	return false;
 }
 
+/* not used
 void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved )
 {
 	// just before save an FPM, if any custom content used, add it to the FPM 
@@ -5296,36 +5460,35 @@ void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved )
 					// check if the DBO is not necessary (i.e. a character creator part)
 					bool bAllowCustomFileToBeAdded = true;
 					if (g.globals.generateassetitinerary == 2) bAllowCustomFileToBeAdded = false;
-					/* though we do need DBO when saving an FPM and sharing it between VRQ users
-					if ( strnicmp ( pCustomRefFileSource.Get()+strlen(pCustomRefFileSource.Get())-4,".dbo",4) == NULL )
-					{
-						// for DBO files, we either delete them (making the compat. with Player and keeping file sizes down)
-						char pFPEAlongside[MAX_PATH];
-						strcpy(pFPEAlongside, pCustomRefFileSource.Get());
-						pFPEAlongside[strlen(pFPEAlongside) - 4] = 0;
-						strcat(pFPEAlongside, ".fpe");
-						if (FileExist(pFPEAlongside) == 1)
-						{
-							// inspect FPE, if it contains 'ccpassembly', then its a character creator DBO 
-							// and we can skip including this file into the final FPM
-							FILE* tFPEFile = GG_fopen ( pFPEAlongside, "r" );
-							if (tFPEFile)
-							{
-								char tTempLine[2048];
-								while (!feof(tFPEFile))
-								{
-									fgets(tTempLine, 2047, tFPEFile);
-									if (strstr(tTempLine, "ccpassembly"))
-									{
-										bAllowCustomFileToBeAdded = false;
-										break;
-									}
-								}
-								fclose(tFPEFile);
-							}
-						}
-					}
-					*/
+					// though we do need DBO when saving an FPM and sharing it between VRQ users
+					//if ( strnicmp ( pCustomRefFileSource.Get()+strlen(pCustomRefFileSource.Get())-4,".dbo",4) == NULL )
+					//{
+					//	// for DBO files, we either delete them (making the compat. with Player and keeping file sizes down)
+					//	char pFPEAlongside[MAX_PATH];
+					//	strcpy(pFPEAlongside, pCustomRefFileSource.Get());
+					//	pFPEAlongside[strlen(pFPEAlongside) - 4] = 0;
+					//	strcat(pFPEAlongside, ".fpe");
+					//	if (FileExist(pFPEAlongside) == 1)
+					//	{
+					//		// inspect FPE, if it contains 'ccpassembly', then its a character creator DBO 
+					//		// and we can skip including this file into the final FPM
+					//		FILE* tFPEFile = GG_fopen ( pFPEAlongside, "r" );
+					//		if (tFPEFile)
+					//		{
+					//			char tTempLine[2048];
+					//			while (!feof(tFPEFile))
+					//			{
+					//				fgets(tTempLine, 2047, tFPEFile);
+					//				if (strstr(tTempLine, "ccpassembly"))
+					//				{
+					//					bAllowCustomFileToBeAdded = false;
+					//					break;
+					//				}
+					//			}
+					//			fclose(tFPEFile);
+					//		}
+					//	}
+					//}					
 					if ( bAllowCustomFileToBeAdded == true )
 					{
 						if (FileExist(sFileRefOneFileDest.Get())) DeleteFileA(sFileRefOneFileDest.Get());
@@ -5342,6 +5505,7 @@ void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved )
 	SetDir ( cstr(g.fpscrootdir_s + "\\Files\\").Get() );
 	SetDir ( g.mysystem.levelBankTestMap_s.Get() );
 }
+*/
 #endif
 
 #ifdef WICKEDENGINE

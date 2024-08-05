@@ -722,6 +722,10 @@ void decalelement_control ( void )
 	{
 		if ( t.decalelement[t.f].active == 1)
 		{
+			// error trap decalIDs that exceed the current decal array
+			if (t.decalid >= t.decal.size())
+				continue;
+
 			// decal speed machine independent
 			t.decaltimeelapsed_f = g.timeelapsed_f;
 			if (t.decalelement[t.f].newparticle.emitterid == -2 || t.decalelement[t.f].newparticle.emitterid >= 0)

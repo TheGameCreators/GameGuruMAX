@@ -2024,7 +2024,7 @@ void physics_free ( void )
 
 void physics_explodesphere ( void )
 {
-	//  takes texplodex#,texplodey#,texplodez#,texploderadius#
+	//  takes texplodex#,texplodey#,texplodez#,texploderadius#,t.texplodesourceEntity
 	t.tstrengthofexplosion_f = t.tDamage_f;
 
 	//  detect if player within radius and apply damage
@@ -2094,8 +2094,14 @@ void physics_explodesphere ( void )
 		{
 			if (  t.texplodesourceEntity > 0 && t.e == t.texplodesourceEntity  )  t.entid = 0;
 		}
-		if (  t.entid > 0 && t.entityelement[t.e].obj > 0 ) 
+		if ( t.entid > 0 && t.entityelement[t.e].obj > 0 ) 
 		{
+			// early rejects
+			if (t.entityprofile[t.entid].ismarker != 0) continue;
+			if (t.entityelement[t.e].active == 0) continue;
+			if (t.entityelement[t.e].staticflag == 1) continue;
+			if (t.entityelement[t.e].y <= -899999) continue;
+
 			// 220618 - use center of object, not coordinate of entity XYZ
 			float fCenterOfEntityX = ObjectPositionX(t.entityelement[t.e].obj) + GetObjectCollisionCenterX(t.entityelement[t.e].obj);
 			float fCenterOfEntityY = ObjectPositionY(t.entityelement[t.e].obj) + GetObjectCollisionCenterY(t.entityelement[t.e].obj);
@@ -2110,12 +2116,12 @@ void physics_explodesphere ( void )
 				float fRayDestFromExplosionX = fCenterOfEntityX - t.texplodex_f;
 				float fRayDestFromExplosionY = fCenterOfEntityY - t.texplodey_f;
 				float fRayDestFromExplosionZ = fCenterOfEntityZ - t.texplodez_f;
-				fRayDestFromExplosionX /= t.tdd_f;
-				fRayDestFromExplosionY /= t.tdd_f;
-				fRayDestFromExplosionZ /= t.tdd_f;
-				fRayDestFromExplosionX *= t.texploderadius_f;
-				fRayDestFromExplosionY *= t.texploderadius_f;
-				fRayDestFromExplosionZ *= t.texploderadius_f;
+				//fRayDestFromExplosionX /= t.tdd_f; no benefit to extending ray beyond target entity (hits walls beyond target=-1)
+				//fRayDestFromExplosionY /= t.tdd_f;
+				//fRayDestFromExplosionZ /= t.tdd_f;
+				//fRayDestFromExplosionX *= t.texploderadius_f;
+				//fRayDestFromExplosionY *= t.texploderadius_f;
+				//fRayDestFromExplosionZ *= t.texploderadius_f;
 				fRayDestFromExplosionX += t.texplodex_f;
 				fRayDestFromExplosionY += t.texplodey_f;
 				fRayDestFromExplosionZ += t.texplodez_f;
@@ -2175,8 +2181,11 @@ void physics_explodesphere ( void )
 					t.braydist_f = Sqrt(abs(t.braydx_f*t.braydx_f)+abs(t.braydz_f*t.braydz_f));
 					if ( t.braydist_f < 75 ) t.brayy2_f = t.texplodey_f + 100.0;
 					if ( t.tdamageforce > 150 ) t.tdamageforce = 150;
+					// explosion (time delayed explosion), except when a grenade/missile vs exploder, instead make it instant :)
 					t.tdamagesource = 2;
+					if (t.texplodesourceEntity == 0) t.tdamagesource = 3;
 					t.ttte = t.e ; entity_applydamage( ); t.e = t.ttte;
+
 					//  inform darkAI of the explosion
 					t.tsx_f = t.entityelement[t.e].x; 
 					t.tsz_f = t.entityelement[t.e].z;

@@ -1179,10 +1179,7 @@ void lua_setfreezepositionax ( void ) { t.freezeplayerax = t.v_f; }
 void lua_setfreezepositionay ( void ) 
 { 
 	t.freezeplayeray = t.v_f; 
-	#ifdef WICKEDENGINE
-	// need restored camera to face way that was set by the SetFreezeAngle command!
 	t.freezeplayercamangy_f = t.v_f;
-	#endif
 }
 void lua_setfreezepositionaz ( void ) { t.freezeplayeraz = t.v_f; }
 void lua_setprioritytotransporter (void)
@@ -1698,22 +1695,16 @@ void lua_setgamequality ( void )
 }
 void lua_setplayerfov ( void )
 {
-	#ifdef WICKEDENGINE
 	// ZJ: Replaced 100 with 114 to limit the FOV so you can't see the ends of guns.
 	// Would probably be better to allow editing the placement of the arms and guns on screen, rather than limiting fov
 	//LB: only call massive FPS hungry update if FOV does indeed change!
 	if (g_fLastKnownFOVin != t.v)
 	{
 		g_fLastKnownFOVin = t.v;
-		t.visuals.CameraFOV_f = (20 + ((t.v + 0.0) / 114.0)*180.0) / t.visuals.CameraASPECT_f;
+		t.visuals.CameraFOV_f = (20 + ((g_fLastKnownFOVin + 0.0) / 114.0)*180.0) / t.visuals.CameraASPECT_f;
 		t.visuals.refreshshaders = 1;
 		visuals_loop ();
 	}
-	#else
-	t.visuals.CameraFOV_f=(20+((t.v+0.0)/100.0)*180.0)/t.visuals.CameraASPECT_f;
-	t.visuals.refreshshaders = 1;
-	visuals_loop ();
-	#endif
 }
 void lua_setgamesoundvolume ( void )
 {

@@ -11,6 +11,10 @@ end
 function restoregame.now()
  -- trigger entire game to restore to saved game state
  if g_restoregame_mode == 0 then
+  SetGamePlayerStateCamMouseMoveX(0)
+  SetGamePlayerStateCamMouseMoveY(0)
+  if iPlayerAngX > 180 then iPlayerAngX = iPlayerAngX - 360 end
+  if iPlayerAngX < -180 then iPlayerAngX = iPlayerAngX + 360 end
   SetFreezePosition(iPlayerPosX,iPlayerPosY,iPlayerPosZ)
   SetFreezeAngle(iPlayerAngX,iPlayerAngY,iPlayerAngZ)
   TransportToFreezePosition()
@@ -35,10 +39,18 @@ function restoregame.now()
  for i = 1, g_EntityElementMax, 1 do
   if g_Entity[i] ~= nil then
   if g_Entity[i]['x'] ~= nil then
-   if g_EntityExtra[i]['collision'] == 1 then 
-    CollisionOn(i) 
-   else
-    CollisionOff(i) 
+   if g_EntityExtra[i]['clonedsincelevelstart'] ~= nil then 
+    if g_EntityExtra[i]['clonedsincelevelstart'] > 0 then 
+	 -- this entiy was cloned since level start (rabbits, etc) so must be created before can be restored
+	 RefreshEntityFromParent ( i, g_EntityExtra[i]['clonedsincelevelstart'] )
+    end
+   end
+   if g_EntityExtra[i]['collision'] ~= nil then 
+    if g_EntityExtra[i]['collision'] == 1 then 
+     CollisionOn(i) 
+    else
+     CollisionOff(i) 
+    end
    end
    ResetPosition ( i, g_Entity[i]['x'], g_Entity[i]['y'], g_Entity[i]['z'] )
    ResetRotation ( i, g_Entity[i]['anglex'], g_Entity[i]['angley'], g_Entity[i]['anglez'] )
@@ -49,32 +61,40 @@ function restoregame.now()
    SetEntityHealth ( i, g_Entity[i]['health'] )
    RefreshEntity ( i )
    -- RefreshEntity restores collision to default, so override again
-   if g_EntityExtra[i]['collision'] == 1 then 
-    CollisionOn(i) 
-   else
-    CollisionOff(i) 
+   if g_EntityExtra[i]['collision'] ~= nil then 
+    if g_EntityExtra[i]['collision'] == 1 then 
+     CollisionOn(i) 
+    else
+     CollisionOff(i) 
+    end
    end
    SetAnimationFrame ( i, g_Entity[i]['frame'] )
-   if g_EntityExtra[i]['visible']==1 then
-    Show ( i )
-   else
-    Hide ( i )
+   if g_EntityExtra[i]['visible'] ~= nil then 
+    if g_EntityExtra[i]['visible']==1 then
+     Show ( i )
+    else
+     Hide ( i )
+    end
    end
-   SetEntitySpawnAtStart ( i, g_EntityExtra[i]['spawnatstart'] )
-   if g_EntityExtra[i]['spawnatstart']==2 and g_Entity[i]['health'] > 0 then
-    Spawn ( i )
-   end
+   if g_EntityExtra[i]['spawnatstart'] ~= nil then 
+    SetEntitySpawnAtStart ( i, g_EntityExtra[i]['spawnatstart'] )
+    if g_EntityExtra[i]['spawnatstart']==2 and g_Entity[i]['health'] > 0 then
+     Spawn ( i )
+    end
+   end  
    -- Trigger lights refresh to last known active state
    if g_module_lightcontrol ~= nil then
 	if g_module_lightcontrol[i] ~= nil then
 	 if g_module_lightcontrol[i]['activestate'] ~= nil then
 	  g_module_lightcontrol[i]['initialstate'] = g_module_lightcontrol[i]['activestate']
 	 end
-	end
+    end
    end
-   end
+   -- Custom/New Scripts too numerous to anticipate restoration sequence - give job to script!
+   g_EntityExtra[i]['restoremenow'] = 1
   end
- end 
+  end
+ end
  -- restore all level containers (first two are always players main and hotkeys)
  if g_UserContainerTotal ~= nil then
 	DeleteAllInventoryContainers()

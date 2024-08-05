@@ -31,7 +31,7 @@ void findalltexturesinmodelfile ( char* file_s, char* folder_s, char* texpath_s 
 void CreateItineraryFile ( void );
 void scanallfolder ( cstr subThisFolder_s, cstr subFolder_s );
 bool IsFileAStockAsset ( LPSTR pCheckThisFile );
-void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved );
+//void ScanLevelForCustomContent ( LPSTR pFPMBeingSaved );
 
 #ifdef WICKEDENGINE
 void mapfile_convertCLASSICtoMAX(LPSTR pFPMLoaded);

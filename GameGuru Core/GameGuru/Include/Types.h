@@ -3908,6 +3908,10 @@ struct visualstype
 	bool bSSREnabled;
 	bool bReflectionsEnabled;
 	bool bFXAAEnabled;
+	bool bDOF;
+	float fDOFStrength;
+	float fDOFApertureSize;
+	float fDOFFocalLength;
 	bool bTessellation;
 	bool bLightShafts;
 	bool bLensFlare;
@@ -3962,6 +3966,16 @@ struct visualstype
 	float fWeatherThunder;
 	float fWeatherWind;
 
+	bool bPPSnow;
+	float voxel_steps;
+	float pp_size;
+	float pp_alpha;
+	float wind_direction_x;
+	float wind_direction_y;
+	float wind_direction_z;
+	float wind_speed;
+	float wind_randomness;
+	bool bpp_disable_indoor;
 	float fLevelDifficulty;
 	cStr sFactionName[128];
 
@@ -4161,6 +4175,10 @@ struct visualstype
 		 bSSREnabled = false;
 		 bReflectionsEnabled = true;
 		 bFXAAEnabled = false;
+		 bDOF = false;
+		 fDOFStrength = 10.0f;
+		 fDOFApertureSize = 0.2f;
+		 fDOFFocalLength = 300.0f;
 		 bTessellation = true;
 		 bLightShafts = true;
 		 bLensFlare = true;
@@ -4213,6 +4231,17 @@ struct visualstype
 		 fWeatherLighting = 0.0;
 		 fWeatherThunder = 0.0;
 		 fWeatherWind = 50.0;
+
+		 bPPSnow = false;
+		 voxel_steps = 16.0f;
+		 pp_size = 1.0f;
+		 pp_alpha = 1.0f;
+		 wind_direction_x = 1.0f;
+		 wind_direction_y = -7.0f;
+		 wind_direction_z = 1.0f;
+		 wind_speed =  1.0f;
+		 wind_randomness = 1.0f;
+		 bpp_disable_indoor = true;
 
 		 fLevelDifficulty = 50.0;
 

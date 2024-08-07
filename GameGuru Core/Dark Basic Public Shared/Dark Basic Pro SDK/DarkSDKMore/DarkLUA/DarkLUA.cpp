@@ -9908,19 +9908,30 @@ int GetExposure(lua_State* L)
 
 
 bool bActivatePromptXYOffset = false;
+bool bActivatePromptOffset3D = false;
 int iPromptXOffset = 0;
 int iPromptYOffset = 0;
+int iPromptZOffset = 0;
 int PromptLocalOffset(lua_State* L)
 {
 	int n = lua_gettop(L);
 	if (n < 1) return 0;
 	int storee = t.e;
 	cstr stores = t.s_s;
-	if (n == 2)
+	if (n == 3)
+	{
+		iPromptXOffset = lua_tonumber(L, 1);
+		iPromptYOffset = lua_tonumber(L, 2);
+		iPromptZOffset = lua_tonumber(L, 3);
+		bActivatePromptXYOffset = true;
+		bActivatePromptOffset3D = true;
+	}
+	else if (n == 2)
 	{
 		iPromptXOffset = lua_tonumber(L, 1);
 		iPromptYOffset = lua_tonumber(L, 2);
 		bActivatePromptXYOffset = true;
+		bActivatePromptOffset3D = false;
 	}
 	t.e = storee;
 	t.s_s = stores;

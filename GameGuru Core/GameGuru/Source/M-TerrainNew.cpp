@@ -8852,11 +8852,140 @@ void imgui_Customize_Weather_V2(int mode)
 
 		ImGui::Separator();
 
+		static bool bUpdatePPWeather = true;
+
 		if (ImGui::Checkbox("Display Weather in Editor##DisplayWeather", &bEnableWeather))
 		{
 			reset_env_particles();
 			g.projectmodified = 1;
+			bUpdatePPWeather = true;
 		}
+
+		ImGui::Indent(-10);
+		if (ImGui::StyleCollapsingHeader("Post Processing Weather", ImGuiTreeNodeFlags_DefaultOpen))
+		{
+
+			//PE: Weather wind speed.
+			float iItemWidth = -10;
+			float fWickedStartX = 130;
+			if (ImGui::Checkbox("PP Snow / Dust", &t.visuals.bPPSnow))
+			{
+				t.gamevisuals.bPPSnow = t.visuals.bPPSnow;
+				bUpdatePPWeather = true;
+				if(t.visuals.bPPSnow)
+					bEnableWeather = true;
+			}
+
+			if (ImGui::Checkbox("Disable When Indoor", &t.visuals.bpp_disable_indoor))
+			{
+				t.gamevisuals.bpp_disable_indoor = t.visuals.bpp_disable_indoor;
+				bUpdatePPWeather = true;
+			}
+
+			ImGui::Text("Wind Speed");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)iItemWidth);
+			if (ImGui::SliderFloat("##Wind Speed", &t.visuals.wind_speed, 0.0f, 5.0f,"%.2f"))
+			{
+				t.gamevisuals.wind_speed = t.visuals.wind_speed;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+			float dir_width = ((ImGui::GetContentRegionAvailWidth() - fWickedStartX) / 3.0) - 6.0f;
+
+			ImGui::Text("Wind Direction");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)dir_width);
+			if (ImGui::SliderFloat("##Wind Direction X", &t.visuals.wind_direction_x, -20.0f, 20.0f, "%.1f"))
+			{
+				t.gamevisuals.wind_direction_x = t.visuals.wind_direction_x;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::SameLine();
+			ImGui::PushItemWidth((float)dir_width);
+			if (ImGui::SliderFloat("##Wind Direction Y", &t.visuals.wind_direction_y, -20.0f, 20.0f, "%.1f"))
+			{
+				t.gamevisuals.wind_direction_y = t.visuals.wind_direction_y;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::SameLine();
+			ImGui::PushItemWidth((float)dir_width);
+			if (ImGui::SliderFloat("##Wind Direction Z", &t.visuals.wind_direction_z, -20.0f, 20.0f, "%.1f"))
+			{
+				t.gamevisuals.wind_direction_z = t.visuals.wind_direction_z;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+			ImGui::Text("Wind Randomness");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)iItemWidth);
+			if (ImGui::SliderFloat("##Windrandomness", &t.visuals.wind_randomness, 0.0f, 2.0f, "%.2f"))
+			{
+				t.gamevisuals.wind_randomness = t.visuals.wind_randomness;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+
+			ImGui::Text("PP Alpha");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)iItemWidth);
+			if (ImGui::SliderFloat("##PPpp_alpha", &t.visuals.pp_alpha, 0.0f, 5.0f, "%.2f"))
+			{
+				t.gamevisuals.pp_alpha = t.visuals.pp_alpha;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+
+			ImGui::Text("PP Size");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)iItemWidth);
+			if (ImGui::SliderFloat("##PPpp_size", &t.visuals.pp_size, 0.0f, 1.1f, "%.2f"))
+			{
+				t.gamevisuals.pp_size = t.visuals.pp_size;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+
+			ImGui::Text("PP Voxel Steps");
+			ImGui::SameLine(); ImGui::SetCursorPosX(fWickedStartX);
+			ImGui::PushItemWidth((float)iItemWidth);
+			if (ImGui::SliderFloat("##voxel_steps", &t.visuals.voxel_steps, 1.0f, 40.0f, "%.0f"))
+			{
+				t.gamevisuals.voxel_steps = t.visuals.voxel_steps;
+				bUpdatePPWeather = true;
+			}
+			ImGui::PopItemWidth();
+
+			if (bUpdatePPWeather)
+			{
+				bUpdatePPWeather = false;
+				extern wiECS::Entity g_weatherEntityID;
+				wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+				if (weather)
+				{
+					weather->pp_voxel_steps = t.visuals.voxel_steps;
+					weather->windDirection = XMFLOAT3(t.visuals.wind_direction_x, t.visuals.wind_direction_y, t.visuals.wind_direction_z);
+					weather->windSpeed = t.visuals.wind_speed;
+					weather->windWaveSize = t.visuals.pp_size;
+					weather->pp_alpha = t.visuals.pp_alpha;
+					weather->windRandomness = t.visuals.wind_randomness;
+					if(bEnableWeather)
+						weather->SetPPSnowEnabled(t.visuals.bPPSnow);
+					else
+						weather->SetPPSnowEnabled(false);
+				}
+			}
+		}
+		ImGui::Indent(10);
 
 		if (!bRenderTabTab && !pref.bHideTutorials)
 		{

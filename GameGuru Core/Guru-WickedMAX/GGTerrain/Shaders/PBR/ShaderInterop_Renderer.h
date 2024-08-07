@@ -539,6 +539,10 @@ static const uint OPTION_BIT_DISABLE_ALBEDO_MAPS = 1 << 9;
 static const uint OPTION_BIT_SHADOW_MASK = 1 << 10;
 static const uint OPTION_BIT_WATER_ENABLED = 1 << 11;
 
+static const uint OPTION_BIT_SNOW_ENABLED = 1 << 12;
+static const uint OPTION_BIT_DUST_ENABLED = 1 << 13;
+static const uint OPTION_BIT_RAIN_ENABLED = 1 << 14;
+
 // ---------- Common Constant buffers: -----------------
 
 CBUFFER(FrameCB, CBSLOT_RENDERER_FRAME)
@@ -566,7 +570,7 @@ CBUFFER(FrameCB, CBSLOT_RENDERER_FRAME)
 
 	float4		g_xFrame_Fog;								// Fog Start,End,Height Start,Height End
 
-	float		g_xFrame_padding0;
+	float		g_xFrame_PP_Alpha;
 	float		g_xFrame_FogHeightSky;
 	float		g_xFrame_SkyExposure;
 	float		g_xFrame_VoxelRadianceMaxDistance;			// maximum raymarch distance for voxel GI in world-space
@@ -643,7 +647,7 @@ CBUFFER(FrameCB, CBSLOT_RENDERER_FRAME)
 	float		g_xFrame_WaterFogMin;
 	float		g_xFrame_WaterFogMax;
 	float		g_xFrame_WaterFogMinAmount;
-	float       g_xFrame_padding2;
+	uint		g_xFrame_Voxel_Steps;
 
 	int			g_xFrame_ObjectShaderSamplerIndex;
 	float		g_xFrame_BlueNoisePhase;

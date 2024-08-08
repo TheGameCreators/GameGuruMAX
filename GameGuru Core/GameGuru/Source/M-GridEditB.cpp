@@ -7525,7 +7525,7 @@ void tab_tab_visuals(int iPage, int iMode)
 
 				//PE: Added DOF.
 				ImGui::PushItemWidth(-10);
-				if (ImGui::Checkbox("Deep Of Field (DOF)##DOF", &t.visuals.bDOF)) {
+				if (ImGui::Checkbox("Depth Of Field (DOF)##DOF", &t.visuals.bDOF)) {
 					t.gamevisuals.bDOF = t.visuals.bDOF;
 					if (master_renderer)
 					{
@@ -7541,7 +7541,7 @@ void tab_tab_visuals(int iPage, int iMode)
 					}
 					g.projectmodified = 1;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Deep Of Field (DOF): Is the area of acceptable sharpness in front of and behind the subject which the camera lens is focused.");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Depth Of Field (DOF): Is the area of acceptable sharpness in front of and behind the subject which the camera lens is focused.");
 				ImGui::PopItemWidth();
 
 				if (t.visuals.bDOF)

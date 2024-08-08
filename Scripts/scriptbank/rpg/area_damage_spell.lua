@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v21
+-- Area Damage Spell v22
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=50(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
@@ -68,8 +68,8 @@ function area_damage_spell_init(e)
 	area_damage_spell[e].cast_damage = 500
 	area_damage_spell[e].cast_radius = 90
 	area_damage_spell[e].player_level = 0	
-	area_damage_spell[e].particle1_name = "SpellParticle1"
-	area_damage_spell[e].particle2_name = "SpellParticle2"
+	area_damage_spell[e].particle1_name = ""
+	area_damage_spell[e].particle2_name = ""
 	area_damage_spell[e].particle1_number = 0
 	area_damage_spell[e].particle2_number = 0
 	area_damage_spell[e].item_highlight = 0	
@@ -205,11 +205,11 @@ function area_damage_spell_main(e)
 				-- enough mana, deduct from player
 				mymana = mymana - area_damage_spell[e].mana_cost
 				-- setup and show the spell effect particles
-				if area_damage_spell[e].particle1_number > 0 or nil then
+				if area_damage_spell[e].particle1_number > 0 then
 					ResetPosition(area_damage_spell[e].particle1_number,g_PlayerPosX,g_PlayerPosY+10,g_PlayerPosZ)
 					Show(area_damage_spell[e].particle1_number)
 				end
-				if area_damage_spell[e].particle2_number > 0 or nil then					
+				if area_damage_spell[e].particle2_number > 0 then					
 					ResetPosition(area_damage_spell[e].particle2_number,g_PlayerPosX,g_PlayerPosY+10,g_PlayerPosZ)					
 					Show(area_damage_spell[e].particle2_number)
 				end

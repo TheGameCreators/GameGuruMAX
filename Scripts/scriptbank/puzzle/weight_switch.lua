@@ -1,4 +1,4 @@
--- Weight Switch v11 - Necrym59 with special thanks to Amen Moses
+-- Weight Switch v14 - Necrym59 with special thanks to Amen Moses
 -- DESCRIPTION: Attach to the Weight Switch Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Weight needed to activate"]
@@ -6,7 +6,10 @@
 -- DESCRIPTION: [ACTIVATION_WEIGHT=300(0,1000)]
 -- DESCRIPTION: [PLAYER_WEIGHT=100(0,100)]
 -- DESCRIPTION: [MOVEMENT=3(1,10)]
--- DESCRIPTION: Play <Sound0> when used.
+-- DESCRIPTION: [!RESET_SWITCH=0] after activation
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global that will be affected by accumulated weight value (eg; MyWeight)
+-- DESCRIPTION: [@PROCESS_AFFECT=1(1=Add, 2=Deduct)]
+-- DESCRIPTION: <Sound0> when activated
 
 local U = require "scriptbank\\utillib"
 local P = require "scriptbank\\physlib"
@@ -17,27 +20,36 @@ local switches = {}
 local rayCast      = IntersectAll
 local getObjPosAng = GetObjectPosAng
 local doonce = {}
+local currentvalue = {}
 	
-function weight_switch_properties(e, prompt_text, activation_text, activation_weight, player_weight, switch_movement)
+function weight_switch_properties(e, prompt_text, activation_text, activation_weight, player_weight, switch_movement, reset_switch, user_global_affected, process_affect)
 	local switch = switches[e]
-	switch.prompt_text       = prompt_text	
-	switch.activation_text   = activation_text
-	switch.activation_weight = activation_weight
-	switch.player_weight     = player_weight
-	switch.switch_movement   = switch_movement
+	switch.prompt_text       	= prompt_text	
+	switch.activation_text   	= activation_text
+	switch.activation_weight 	= activation_weight
+	switch.player_weight     	= player_weight
+	switch.switch_movement   	= switch_movement
+	switch.reset_switch			= reset_switch
+	switch.user_global_affected	= user_global_affected
+	switch.process_affect		= process_affect
 end 
 
 function weight_switch_init(e)
-	switches[e] = { prompt_text       = "Weight needed to activate",
-	                activation_text   = "You have activated the switch",
-	                activation_weight = 300,
-	                player_weight     = 100,
-                    switch_movement   = 10,
+	switches[e] = { prompt_text			= "Weight needed to activate",
+	                activation_text		= "You have activated the switch",
+	                activation_weight	= 300,
+	                player_weight		= 100,
+                    switch_movement		= 10,
+					reset_switch		= 0,
+					user_global_affected= "",
+					process_affect		= 1,
 					playerOn          = false,
 	                state             = 'init'
 				  }
 				  
 	doonce[e] = 0
+	currentvalue[e] = 0
+	g_ExtTrigger = 0
 end 
 
 local gEnt = g_Entity
@@ -112,7 +124,8 @@ function weight_switch_main(e)
 		switch.ypos = Ent.y
 		switch.dims = P.GetObjectDimensions(switch.obj)
 		switch.maxd = max(switch.dims.l,switch.dims.w) * 0.75
-		switch.activated = false		
+		switch.activated = false
+		if switch.reset_switch == 1 then switch.player_weight = 0 end
 		switch.state = 'checkweight'
 	elseif 
 	   switch.state == 'checkweight' then
@@ -128,7 +141,7 @@ function weight_switch_main(e)
 				switch.state = 'checkweight'
 			elseif 
 			   not switch.activated then
-				PromptDuration(switch.activation_text,3000)
+				PromptDuration(switch.activation_text,1000)
 				ActivateIfUsed(e)
 				if PerformLogicConnections ~= nil then
 					PerformLogicConnections(e)
@@ -138,12 +151,25 @@ function weight_switch_main(e)
 				switch.state = 'activated'
 				return
 			end
-		end		
+		end
 	elseif 
 	   switch.state == 'activated' then
 		for _, v in pairs( switch.stackList ) do
-			PushObject(v.obj,0,0,0)
+			PushObject(v.obj,0,0,0)	
 		end
+		-------------------------------------------------------
+		if switch.user_global_affected ~= "" then
+			if _G["g_UserGlobal['"..switch.user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..switch.user_global_affected.."']"] end
+			if switch.process_affect == 1 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] + switch.accrued_weight end
+			if switch.process_affect == 2 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] - switch.accrued_weight end
+		end	
+		if switch.reset_switch == 1 then
+			for _, v in pairs( switch.stackList ) do
+				Destroy(v.ent)
+			end			
+			switch.state = 'init'
+		end	
+		-------------------------------------------------------
 		if g_Time > switch.timer then
 			checkWeight(e,switch,Ent)
 			switch.timer = g_Time + 200
@@ -159,8 +185,7 @@ function weight_switch_main(e)
 	   Ent.y < switch.ypos then
 		CollisionOff(e)
 		PositionObject(switch.obj,Ent.x,Ent.y + 0.5,Ent.z)
-		CollisionOn(e)
-		
+		CollisionOn(e)		
 	elseif
 	   switch.state == 'activated' and 
 	   Ent.y > switch.ypos - switch.switch_movement then
@@ -168,5 +193,5 @@ function weight_switch_main(e)
 		PositionObject( switch.obj,Ent.x,Ent.y - 0.5,Ent.z)
 		CollisionOn(e)
 		switch.state = 'end'
-	end
+	end	
 end

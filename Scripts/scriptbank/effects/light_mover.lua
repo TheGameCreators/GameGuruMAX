@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Light Mover v2 by Necrym59
+-- Light Mover v4 by Necrym59
 -- DESCRIPTION: Allows a light to be attached to a moving object.
 -- DESCRIPTION: Attach to a light and edit the settings.
 -- DESCRIPTION: [OBJECT_NAME$=""] object name to attach to
@@ -7,27 +7,28 @@
 -- DESCRIPTION: [ADJUST_Y_OFFSET=0(-100,100)] ajdust y offset
 -- DESCRIPTION: [ADJUST_Z_OFFSET=0(-100,100)] ajdust z offset
 
-	module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
-	local rad = math.rad
+module_lightcontrol = require "scriptbank\\markers\\module_lightcontrol"
+local rad = math.rad
+local lower = string.lower
 
-	local lightmover = {}
-	local light_range = {}
-	local object_name = {}
-	local adjust_x_offset = {}
-	local adjust_y_offset = {}
-	local adjust_z_offset = {}
-	local object_number = {}
+local lightmover = {}
+local light_range = {}
+local object_name = {}
+local adjust_x_offset = {}
+local adjust_y_offset = {}
+local adjust_z_offset = {}
+local object_number = {}
 
-	local status = {}
-	local attachTo = {}
-	local lightattached = {}
-	local lightNum = {}
-	local tpositionx = {}
-	local tpositiony = {}
-	local tpositionz = {}
-	local offsetx = {}
-	local offsety = {}
-	local offsetz = {}
+local status = {}
+local attachTo = {}
+local lightattached = {}
+local lightNum = {}
+local tpositionx = {}
+local tpositiony = {}
+local tpositionz = {}
+local offsetx = {}
+local offsety = {}
+local offsetz = {}
 
 function light_mover_properties(e, object_name, adjust_x_offset, adjust_y_offset, adjust_z_offset)
 	module_lightcontrol.init(e,1)
@@ -61,10 +62,10 @@ end
 function light_mover_main(e)
 	if status[e] == "init" then
 		tpositionx[e], tpositiony[e], tpositionz[e] = GetLightPosition(lightNum[e])
-		if lightmover[e].object_number == 0 or lightmover[e].object_number == nil then
+		if lightmover[e].object_name > "" and lightmover[e].object_number == 0 then
 			for a = 1, g_EntityElementMax do
 				if a ~= nil and g_Entity[a] ~= nil then
-					if string.lower(GetEntityName(a)) == string.lower(lightmover[e].object_name) then
+					if string.lower(GetEntityName(a)) == lightmover[e].object_name then
 						lightmover[e].object_number = a
 						attachTo[e] = lightmover[e].object_number
 						lightattached[e] = 1

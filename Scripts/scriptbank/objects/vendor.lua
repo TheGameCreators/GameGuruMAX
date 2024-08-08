@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v15 by Necrym59
+-- vendoror v18 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -10,13 +10,14 @@
 -- DESCRIPTION: [VENDORED_ENTITY_LIFESPAN=1(0,100)] Minutes (0=Eternal)
 -- DESCRIPTION: [VENDORED_ENTITY_NAME$=""]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User global for payment (eg; MyMoney)
--- DESCRIPTION: [@WHEN_EMPTY=1(1=Do Nothing, 2=Destroy Vendor)]
+-- DESCRIPTION: [@WHEN_EMPTY=1(1=Nothing, 2=Destroy Vendor, 3=Event Triggers, 4=Lose Game, 5=Win Game)]
 -- DESCRIPTION: [VENDING_DELAY=0(0,100)] in seconds
 -- DESCRIPTION: <Sound0> Activation sound
 -- DESCRIPTION: <Sound1> Vending sound
 -- DESCRIPTION: <Sound2> Empty sounds
 
 local lower = string.lower
+g_CloneEntityNo = {}
 
 local vendor 					= {}
 local prompt_text 				= {}
@@ -42,7 +43,7 @@ local doonce		= {}
 local isempty		= {}
 local playonce		= {}
 local pressed		= {}
-local vendlist		= {}
+local tableName 	= {}
 local dispensed		= {}
 local lifetimer		= {}
 local eternal		= {}
@@ -82,6 +83,7 @@ function vendor_init(e)
 	vendor[e].vendored_entity_no = 0	
 
 	status[e] = "init"
+	g_CloneEntityNo = 0	
 	newEntn[e] = 0
 	cntEntn[e] = 0
 	lifetimer[e] = 0
@@ -92,6 +94,8 @@ function vendor_init(e)
 	dispensed[e] = 0
 	isempty[e] = 0
 	currentvalue[e] = 0
+	tableName[e] = "vendlist" ..tostring(e)
+	_G[tableName[e]] = {}
 	wait[e] = math.huge
 	vdelay[e] = math.huge
 end
@@ -112,27 +116,28 @@ function vendor_main(e)
 						origin_x[e] = g_Entity[ee]['x']
 						origin_y[e] = g_Entity[ee]['y']
 						origin_z[e] = g_Entity[ee]['z']
-						CollisionOff(ee)
+						CollisionOff(ee)						
 						Hide(ee)						
 						status[e] = "vendor"
 						break
 					end
 				end
 			end
-		end
+		end		
 	end
 	
 	local PlayerDist = GetPlayerDistance(e)
-	if status[e] == "vendor" then
+	if status[e] == "vendor" and g_Entity[e]['activated'] == 1 then
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
-		end
-		if PlayerDist < vendor[e].prompt_range then
+		end		
+
+		if PlayerDist < vendor[e].prompt_range or g_Entity[e]['activated'] == 1 then
 			if dispensed[e] < vendor[e].vendored_max_quantity then PromptLocal(e,vendor[e].prompt_text) end
-			if dispensed[e] == vendor[e].vendored_max_quantity then PromptLocal(e,"") end
-			if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then PromptLocal(e,"Insufficent Funds") end
+			if dispensed[e] == vendor[e].vendored_max_quantity then PromptLocal(e,"") end			
+			if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then PromptLocal(e,"Insufficent Funds") end			
 			if currentvalue[e] >= vendor[e].vendored_entity_cost then				
-				if g_KeyPressE == 1 and pressed[e] == 0 then
+				if g_KeyPressE == 1 or g_Entity[e]['activated'] == 1 and pressed[e] == 0 then					
 					vdelay[e] = g_Time + (vendor[e].vending_delay*1000)				
 					SetAnimationName(e,vendor[e].vendor_animation)
 					PlayAnimation(e)
@@ -153,8 +158,9 @@ function vendor_main(e)
 						pressed[e] = 1
 						status[e] = "vendor"
 					end	
-					if vendor[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,vendor[e].noise_range,1,e) end				
-				end
+					if vendor[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,vendor[e].noise_range,1,e) end
+					SetActivated(e,0)
+				end				
 			end
 		end
 	end
@@ -163,14 +169,16 @@ function vendor_main(e)
 		if doonce[e] == 0 and dispensed[e] < vendor[e].vendored_max_quantity then
 			PlaySound(e,1)
 			local etoclone = vendor[e].vendored_entity_no
+			local x,y,z,_,_,_ = GetEntityPosAng(vendor[e].vendored_entity_no)
 			newEntn[e] = SpawnNewEntity(etoclone)			
 			Show(newEntn[e])
 			GravityOff(newEntn[e])
 			CollisionOff(newEntn[e])
-			table.insert(vendlist,newEntn[e])
-			local newposx = origin_x[e]
-			local newposy = origin_y[e]
-			local newposz = origin_z[e]
+			table.insert(_G[tableName[e]],newEntn[e])
+			g_CloneEntityNo = newEntn[e]
+			local newposx = x
+			local newposy = y
+			local newposz = z		
 			ResetPosition(newEntn[e],newposx,newposy,newposz)
 			CollisionOn(newEntn[e])
 			GravityOn(newEntn[e])
@@ -189,35 +197,50 @@ function vendor_main(e)
 	
 	if status[e] == "vended" then		
 		if dispensed[e] == vendor[e].vendored_max_quantity then
-			if vendor[e].when_empty == 1 then
+			if vendor[e].when_empty == 1 then -- Nothing
+				if isempty[e] == 0 then
+					isempty[e] = 1
+				end	
+			end
+			if vendor[e].when_empty == 2 then -- Destroy
+				Hide(e)
+				CollisionOff(e)
+				Destroy(e)
+			end	
+			if vendor[e].when_empty == 3 then -- Triggers
 				if isempty[e] == 0 then
 					ActivateIfUsed(e)
 					PerformLogicConnections(e)
 					isempty[e] = 1
 				end	
 			end
-			if vendor[e].when_empty == 2 then 
-				ActivateIfUsed(e)
-				PerformLogicConnections(e)
-				Hide(e)
-				CollisionOff(e)
-				Destroy(e)
-			end	
+			if vendor[e].when_empty == 4 then -- Lose Game
+				if isempty[e] == 0 then
+					LoseGame()
+					isempty[e] = 1						
+				end	
+			end
+			if vendor[e].when_empty == 5 then -- Win Game
+				if isempty[e] == 0 then
+					WinGame()
+					isempty[e] = 1
+				end	
+			end				
 		end		
 		pressed[e] = 0
-		doonce[e] = 0
+		doonce[e] = 0		
 		status[e] = "vendor"
 	end
 	
 	if dispensed[e] == vendor[e].vendored_max_quantity and eternal[e] == 0 then
 		if g_Time > lifetimer[e] then				
 			if cntEntn[e] > 0 then					
-				for a,b in pairs (vendlist) do 
+				for a,b in pairs (_G[tableName[e]]) do 				
 					if g_Entity[b] ~= nil then
 						CollisionOff(e)
 						Destroy(b)
 						DeleteNewEntity(b)
-						vendlist[a] = nil
+						_G[tableName[e]][a] = nil
 					end
 				end
 			end	
@@ -227,5 +250,5 @@ function vendor_main(e)
 				status[e] = "vendor"
 			end
 		end
-	end
+	end	
 end

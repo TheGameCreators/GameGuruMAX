@@ -2,7 +2,7 @@
 -- WinObject v5: by Necrym59
 -- DESCRIPTION: Will win the level by obtaining this object? Set Always Active ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to pickup"]
--- DESCRIPTION: [USEAGE_TEXT$="U to use"]
+-- DESCRIPTION: [USEAGE_TEXT$="X to use"]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,200)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]

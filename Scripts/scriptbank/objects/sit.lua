@@ -1,4 +1,4 @@
--- Sit v7 by Necrym59
+-- Sit v9 by Necrym59
 -- DESCRIPTION: The attached object will allow the player to sit down
 -- DESCRIPTION: [USE_PROMPT$="Press E to sit/stand"]
 -- DESCRIPTION: [USE_RANGE=90(1,300)]
@@ -12,6 +12,7 @@
 -- DESCRIPTION: [VERTICAL_VIEW_LIMIT=50(1,90)] the vertical view limit while seated
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [@SIT_TRIGGER=0(0=None,1=Trigger,2=Trigger+Stand)]
 -- DESCRIPTION: <Sound0> when sitting down.
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -30,6 +31,7 @@ local horizontal_view_limit	= {}
 local vertical_view_limit	= {}
 local prompt_display		= {}
 local item_highlight		= {}
+local sit_trigger			= {}
 
 local seat_posx	 			= {}
 local seat_posy	 			= {}
@@ -39,17 +41,17 @@ local seat_angy	 			= {}
 local seat_angz	 			= {}
 local sittime 				= {}
 local sitmove				= {}
-local currentY				= {}
 local status 				= {}
 local keypause				= {}
 local sitstate				= {}
-local stangle				= {}
 local wait					= {}
 local last_gun				= {}
 local selectobj				= {}
 local tEnt					= {}
+local done					= {}
+local freezeangy			= {}
 
-function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, seated_y_position, seated_z_position, stand_adjustment, seating_speed, horizontal_view_limit, vertical_view_limit, prompt_display, item_highlight)
+function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, seated_y_position, seated_z_position, stand_adjustment, seating_speed, horizontal_view_limit, vertical_view_limit, prompt_display, item_highlight, sit_trigger)
 	sit[e].use_prompt = use_prompt
 	sit[e].use_range = use_range
 	sit[e].use_style = use_style	
@@ -62,6 +64,7 @@ function sit_properties(e, use_prompt, use_range, use_style, seated_x_position, 
 	sit[e].vertical_view_limit = vertical_view_limit
 	sit[e].prompt_display = prompt_display
 	sit[e].item_highlight =	item_highlight
+	sit[e].sit_trigger = sit_trigger
 end
 
 function sit_init(e)
@@ -78,6 +81,7 @@ function sit_init(e)
 	sit[e].vertical_view_limit = 50
 	sit[e].prompt_display = 1
 	sit[e].item_highlight =	0
+	sit[e].sit_trigger = 0	
 
 	seat_posx[e] = 0
 	seat_posy[e] = 0
@@ -88,12 +92,12 @@ function sit_init(e)
 	sittime[e] = 0
 	sitmove[e] = 0
 	last_gun[e] = 0
-	stangle[e] = 0
 	keypause[e] = 0
 	sitstate[e] = 0	
-	currentY[e] = 0
+	freezeangy[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
+	done[e] = 0
 	selectobj[e] = 0	
 	status[e] = "init"
 end
@@ -166,27 +170,41 @@ function sit_main(e)
 		CollisionOff(e)
 		if GetCameraPositionY(0) > seat_posy[e]+sit[e].seated_y_position and sitstate[e] == 1 then
 			SetCameraPosition(0,seat_posx[e]+sit[e].seated_x_position,GetCameraPositionY(0)-sittime[e],seat_posz[e]+sit[e].seated_z_position)
-			SetCameraAngle(0,GetCameraAngleX(0),seat_angy[e]-180,GetCameraAngleZ(0))			
+			SetCameraAngle(0,GetCameraAngleX(0),GetCameraAngleY(0)-180,GetCameraAngleZ(0))			
 			if GetCameraPositionY(0) <= seat_posy[e]+sit[e].seated_y_position then
 				SetCameraAngle(0,GetCameraAngleX(0),GetCameraAngleY(0)-180,GetCameraAngleZ(0))
 				SetCameraPosition(0,seat_posx[e]+sit[e].seated_x_position,seat_posy[e]+sit[e].seated_y_position,seat_posz[e]+sit[e].seated_z_position)	
 				sittime[e] = seat_posy[e]+sit[e].seated_y_position
 				sitstate[e] = 2
+				freezeangy[e] = seat_angy[e]
+				SetGamePlayerControlFinalCameraAngley(freezeangy[e])
 			end
 			sittime[e] = sittime[e] + sit[e].seating_speed/60
 		end
 		if sitstate[e] == 2 then
 			SetCameraPosition(0,seat_posx[e]+sit[e].seated_x_position,seat_posy[e]+sit[e].seated_y_position,seat_posz[e]+sit[e].seated_z_position)			
 			SetCameraAngle(0,GetCameraAngleX(0),GetCameraAngleY(0)-180,GetCameraAngleZ(0))
-			SetFreezeAngle(GetCameraAngleX(0),GetCameraAngleY(0),GetCameraAngleZ(0))
-			SetFreezePosition(GetCameraPositionX(0),sittime[e],GetCameraPositionZ(0))	
-			TransportToFreezePositionOnly()
+			SetFreezeAngle(GetCameraAngleX(0),GetCameraAngleY(0),GetCameraAngleZ(0))			
+			SetFreezePosition(GetCameraPositionX(0),sittime[e],GetCameraPositionZ(0))			
+			TransportToFreezePositionOnly()	
 			--Set Lateral View Limit
-			if GetGamePlayerControlFinalCameraAngley()>sit[e].horizontal_view_limit then SetGamePlayerControlFinalCameraAngley(sit[e].horizontal_view_limit) end
-			if GetGamePlayerControlFinalCameraAngley()<-sit[e].horizontal_view_limit then SetGamePlayerControlFinalCameraAngley(-sit[e].horizontal_view_limit) end
+			if GetGamePlayerControlFinalCameraAngley()>sit[e].horizontal_view_limit+freezeangy[e] then SetGamePlayerControlFinalCameraAngley(sit[e].horizontal_view_limit+freezeangy[e]) end
+			if GetGamePlayerControlFinalCameraAngley()<-sit[e].horizontal_view_limit+freezeangy[e]then SetGamePlayerControlFinalCameraAngley(-sit[e].horizontal_view_limit+freezeangy[e]) end
 			--Set Vertical View Limit
 			if (GetGamePlayerStateCamAngleX()<-sit[e].vertical_view_limit) then SetGamePlayerStateCamAngleX(-sit[e].vertical_view_limit) end
 			if (GetGamePlayerStateCamAngleX()>sit[e].vertical_view_limit) then SetGamePlayerStateCamAngleX(sit[e].vertical_view_limit) end
+			if sit[e].sit_trigger == 1 and done[e] == 0 then 
+				ActivateIfUsed(e)
+				PerformLogicConnections(e)
+				done[e] = 1
+			end	
+			if sit[e].sit_trigger == 2 and done[e] == 0 then 
+				ActivateIfUsed(e)
+				PerformLogicConnections(e)
+				status[e] = "stand"
+				keypause[e] = g_Time + 1000
+				sitstate[e] = 0
+			end
 		end	
 		
 		if g_Time > keypause[e] and sitstate[e] == 2 then
@@ -208,6 +226,7 @@ function sit_main(e)
 		SetPlayerWeapons(1)
 		CollisionOn(e)
 		sittime[e] = 0
+		done[e] = 0
 		status[e] = "wait"
 	end
 end

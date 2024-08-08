@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Root effect to hold the target for a period.
--- Root Spell v22
+-- Root Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Root Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast a Root spell"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_DAMAGE=25(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle1
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
 
@@ -67,7 +67,7 @@ end
 function root_spell_init(e)
 	root_spell[e] = {}
 	root_spell[e].prompt_text = "E to Collect"
-	root_spell[e].useage_text = "Direct Damage Inflicted"
+	root_spell[e].useage_text = "You cast a Root spell"
 	root_spell[e].pickup_range = 90
 	root_spell[e].user_global_affected = "MyMana"
 	root_spell[e].mana_cost = 10
@@ -102,7 +102,7 @@ end
 function root_spell_main(e)
 
 	-- get particles for spell effects
-	if root_spell[e].particle1_number == 0 or nil then
+	if root_spell[e].particle1_number == 0 and root_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == root_spell[e].particle1_name then
@@ -114,7 +114,7 @@ function root_spell_main(e)
 			end
 		end
 	end
-	if root_spell[e].particle2_number == 0 or nil then
+	if root_spell[e].particle2_number == 0 and root_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == root_spell[e].particle2_name then
@@ -180,8 +180,8 @@ function root_spell_main(e)
 			if Timer() > root_spell[e].cast_timeout + 6100 then
 				root_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if root_spell[e].particle1_number > 0 or nil then Hide(root_spell[e].particle1_number) end
-				if root_spell[e].particle2_number > 0 or nil then Hide(root_spell[e].particle2_number) end
+				if root_spell[e].particle1_number > 0 then Hide(root_spell[e].particle1_number) end
+				if root_spell[e].particle2_number > 0 then Hide(root_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
@@ -206,8 +206,8 @@ function root_spell_main(e)
 				casttarget[e] = 0
 				current_time[e] = 0
 				root_spell[e].cast_timeout = 0
-				if root_spell[e].particle1_number > 0 or nil then Hide(root_spell[e].particle1_number) end
-				if root_spell[e].particle2_number > 0 or nil then Hide(root_spell[e].particle2_number) end
+				if root_spell[e].particle1_number > 0 then Hide(root_spell[e].particle1_number) end
+				if root_spell[e].particle2_number > 0 then Hide(root_spell[e].particle2_number) end
 				SetEntityUsed(e,0)
 				played[e] = 0
 				doonce[e] = 0
@@ -229,11 +229,11 @@ function root_spell_main(e)
 					-- enough mana, deduct from player
 					mymana = mymana - root_spell[e].mana_cost
 					-- setup and show the spell effect particles
-					if root_spell[e].particle1_number > 0 or nil then
+					if root_spell[e].particle1_number > 0 then
 						ResetPosition(root_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(root_spell[e].particle1_number)
 					end
-					if root_spell[e].particle2_number > 0 or nil then
+					if root_spell[e].particle2_number > 0 then
 						ResetPosition(root_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(root_spell[e].particle2_number)
 					end

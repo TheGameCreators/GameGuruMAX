@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as a Direct Damage effect to the target.
--- Direct Damage Spell v22
+-- Direct Damage Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Direct Damage Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Direct Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when cast effect successful
 -- DESCRIPTION: <Sound1> when cast effect unsuccessful
@@ -98,7 +98,7 @@ end
 function direct_damage_spell_main(e)
 
 	-- get particles for spell effects
-	if direct_damage_spell[e].particle1_number == 0 or nil then
+	if direct_damage_spell[e].particle1_number == 0 and direct_damage_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == direct_damage_spell[e].particle1_name then
@@ -110,7 +110,7 @@ function direct_damage_spell_main(e)
 			end
 		end
 	end
-	if direct_damage_spell[e].particle2_number == 0 or nil then
+	if direct_damage_spell[e].particle2_number == 0 and direct_damage_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == direct_damage_spell[e].particle2_name then
@@ -176,8 +176,8 @@ function direct_damage_spell_main(e)
 			if Timer() > direct_damage_spell[e].cast_timeout + 2100 then
 				direct_damage_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if direct_damage_spell[e].particle1_number > 0 or nil then Hide(direct_damage_spell[e].particle1_number) end
-				if direct_damage_spell[e].particle2_number > 0 or nil then Hide(direct_damage_spell[e].particle2_number) end
+				if direct_damage_spell[e].particle1_number > 0 then Hide(direct_damage_spell[e].particle1_number) end
+				if direct_damage_spell[e].particle2_number > 0 then Hide(direct_damage_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
@@ -236,11 +236,11 @@ function direct_damage_spell_main(e)
 					-- enough mana, deduct from player
 					mymana = mymana - direct_damage_spell[e].mana_cost
 					-- setup and show the spell effect particles
-					if direct_damage_spell[e].particle1_number > 0 or nil then
+					if direct_damage_spell[e].particle1_number > 0 then
 						ResetPosition(direct_damage_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(direct_damage_spell[e].particle1_number)
 					end
-					if direct_damage_spell[e].particle2_number > 0 or nil then
+					if direct_damage_spell[e].particle2_number > 0 then
 						ResetPosition(direct_damage_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(direct_damage_spell[e].particle2_number)
 					end			

@@ -44,5 +44,5 @@ function animated_object_main(e)
 		if _G["g_UserGlobal['"..animatedobject[e].variable_switch_user_global.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..animatedobject[e].variable_switch_user_global.."']"] end
 		animatedobject[e].animation_speed = _G["g_UserGlobal['"..animatedobject[e].variable_switch_user_global.."']"]
 		ModulateSpeed(e,animatedobject[e].animation_speed)
-	end
+	end	
 end

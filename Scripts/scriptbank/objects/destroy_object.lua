@@ -1,4 +1,4 @@
--- Destroy Object v5 by Necrym59
+-- Destroy Object v6 by Necrym59
 -- DESCRIPTION: Attached object can monitor a Named Objects health or destroy instantly when triggered by a linked switch or zone.
 -- DESCRIPTION: [MESSAGE$="Destroyed"]
 -- DESCRIPTION: [OBJECT_NAME$=""]
@@ -95,6 +95,7 @@ function destroy_object_main(e)
 				ResetPosition(desobject[e].particle_no,g_Entity[desobject[e].object_no]['x'],g_Entity[desobject[e].object_no]['y'],g_Entity[desobject[e].object_no]['z'])
 				if desobject[e].particle_name > "" then Show(desobject[e].particle_no) end
 				PerformLogicConnections(e)
+				ActivateIfUsed(e)
 				destroy_delay[e] = GetTimer(e) + 500
 				doonce[e] = 1
 			end	

@@ -42,7 +42,7 @@
 -- DESCRIPTION: <Sound3> for death sound effect
 
 local U = require "scriptbank\\utillib"
-
+g_LegacyNPC = {}
 local lower = string.lower
 local npc_control = {}
 local sense_text = {}
@@ -270,6 +270,7 @@ function npc_control_init_name(e,name)
 	plrwithinmesh[e] = 1	
 	svolume[e] = 0
 	resetstate[e] = 0
+	g_LegacyNPC = 0
 end
 
 function npc_control_main(e)
@@ -408,6 +409,12 @@ function npc_control_main(e)
 		end
 	end
 	
+	if GetPlayerDistance(e) <= npc_control[e].sense_range and allegiance[e] == 0 then
+		g_LegacyNPC = 1
+	else
+		g_LegacyNPC = 0
+	end
+	
 	if GetPlayerDistance(e) <= npc_control[e].sense_range and aggro[e] == 0 and allegiance[e] > 2 then
 		if npc_control[e].npc_can_roam == 1 then state[e] = "roam" end
 	end
@@ -442,7 +449,7 @@ function npc_control_main(e)
 		end
 	end	
 	---------------------------------------------------------------------------------------------------------------------------------
-	if state[e] == "sensed" then
+	if state[e] == "sensed" then		
 		GetEntityPlayerVisibility(e)		
 		--StopSound(e,0)
 		if GetPlayerDistance(e) < npc_control[e].sense_range or g_Entity[e]['plrvisible'] == 1 and allegiance[e] == 0 then
@@ -693,12 +700,11 @@ function npc_control_main(e)
 	if state[e] == "roam" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
 		SetSoundVolume(svolume[e])
-		local dist = 0
 		if wandonce[e] == 0 then -- get a random point on a circle around the current location
 			if avoidance[e] == 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(1,360))
-				dist = npc_control[e].roam_range
+				local dist = npc_control[e].roam_range
 				if scare[e] == 0 then dist = npc_control[e].roam_range end
 				if scare[e] == 1 then dist = (npc_control[e].roam_range*2) end
 				destx[e] = startx[e] + math.cos(ang) * dist
@@ -708,7 +714,7 @@ function npc_control_main(e)
 			if avoidance[e] == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				dist = (npc_control[e].roam_range/90)
+				local dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist
@@ -721,7 +727,7 @@ function npc_control_main(e)
 			if colobj[e] > 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				dist = (npc_control[e].roam_range/90)
+				local dist = (npc_control[e].roam_range/90)
 				destx[e] = startx[e] + math.cos(ang) * dist
 				desty[e] = starty[e]
 				destz[e] = startz[e] + math.sin(ang) * dist

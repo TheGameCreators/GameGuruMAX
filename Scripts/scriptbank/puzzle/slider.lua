@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Slider Script v15
+-- Slider Script v16
 -- DESCRIPTION: Slides an object in 90 degree directions, ideal for crawler or grid style games.
 -- DESCRIPTION: Can be activated by player or zone/switch
 -- DESCRIPTION: Set Physics=ON, IsImobile=ON, AlwaysActive=ON.
@@ -9,9 +9,9 @@
 -- DESCRIPTION: [@SLIDE_DIRECTION=1(1=Left, 2=Right, 3=Up, 4=Down, 5=Forward, 6=Backward)]
 -- DESCRIPTION: [SLIDE_CLOSE_DELAY=1(1,100)], [SLIDE_AMOUNT=200], [SLIDE_SPEED=1(1,20)]
 -- DESCRIPTION: [DAMAGE_AMOUNT=0(0,1000)] to receive if in range and slider speed is 5 or faster
--- DESCRIPTION: <Sound0> for start move sound.
+-- DESCRIPTION: <Sound0> for start sound.
 -- DESCRIPTION: <Sound1> loop for moving sound.
--- DESCRIPTION: <Sound2> for end stop sound.
+-- DESCRIPTION: <Sound2> for end sound.
 
 local slider = {}
 local prompt = {}
@@ -26,6 +26,7 @@ local damage_amount = {}
 local state = {}
 local moved = {}
 local played = {}
+local svol = {}
 local open_time = {}
 local damage_time = {}
 local doonce = {}
@@ -57,8 +58,9 @@ function slider_init(e)
 	moved[e] = 0
 	played[e] = 0
 	doonce[e] = 0
+	svol[e] = 0
 	open_time[e] = 0
-	damage_time[e] = math.huge	
+	damage_time[e] = math.huge
 end
 
 function slider_main(e)
@@ -98,13 +100,15 @@ function slider_main(e)
 		end	
 	end
 		
-	if g_Entity[e].activated == 1 then
+	if g_Entity[e].activated == 1 then	
+		svol[e] = (3000-GetPlayerDistance(e))/30
+		SetSoundVolume(svol[e])	
 		if doonce[e] == 0 then
 			damage_time[e] = g_Time + 100
 			doonce[e] = 1
 		end
-		if state[e] == "opening" then
-			if played[e] == 0 then
+		if state[e] == "opening" then			
+			if played[e] == 0 then				
 				LoopSound(e,1)
 				played[e] = 1
 			end			
@@ -137,13 +141,14 @@ function slider_main(e)
 			else
 				state[e] = "open"
 				StopSound(e,1)
-				PlaySound(e,2)
+				PlaySound(e,0)
 				open_time[e] = GetTimer(e) + (slider[e].slide_close_delay * 1000)
 			end
 		end	
 
 		if state[e] == "closing" then
-			if played[e] == 1 then
+			SetSoundVolume(svol[e])
+			if played[e] == 1 then				
 				LoopSound(e,1)
 				played[e] = 0
 			end

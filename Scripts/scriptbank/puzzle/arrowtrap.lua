@@ -1,7 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- Arrow Trap v5 - by Necrym59
--- DESCRIPTION: The Arrow Trap will shoot arrow(s) when in range or activated by a switch/zone. Always Active ON. Physics OFF
+-- DESCRIPTION: The Arrow Trap will shoot arrow(s) when in range or activated by a switch/zone.
 -- DESCRIPTION: Attach to an arrow, and place at the firing start point.
+-- DESCRIPTION: Set Always Active ON. Physics OFF
 -- DESCRIPTION: [TRAP_RANGE=50(10,500)] for activation/damage range
 -- DESCRIPTION: [TRAP_SPEED=2(1,10)] for the arrow speed
 -- DESCRIPTION: [TRAP_DAMAGE=3(0,500)] for the damage caused
@@ -68,8 +69,8 @@ function arrowtrap_main(e)
 	end
 
 	if status[e] == "alert" then
-		if firing[e] == 0 then
-			if GetPlayerDistance(e) <= arrowtrap[e].trap_range or g_Entity[e]['activated'] == 1 then				
+		if firing[e] == 0 then			
+			if GetPlayerDistance(e) <= arrowtrap[e].trap_range or g_Entity[e]['activated'] == 1 then
 				hit[e] = 0
 				firing[e] = 1
 				PlaySound(e,0)

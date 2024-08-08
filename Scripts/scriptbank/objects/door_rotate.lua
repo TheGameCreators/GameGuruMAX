@@ -27,7 +27,7 @@ local tEnt = {}
 local selectobj = {}
 
 local defaultLockedText   = "Door is locked. Find a way to open it"
-local defaultIsUnlocked = true
+local defaultIsUnlocked = 1
 local defaultUnLockedText = "Press E to open door"
 local defaultCloseText = "Press E to close door"
 local defaultDoorType     = 'Manual'
@@ -254,14 +254,4 @@ function door_rotate_main(e)
 	-- navmesh blocker system (account for bounding size of entity)
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking, door.originalx,door.originaly, door.originalz)
 
-	-- restore logic
-	if g_EntityExtra[e]['restoremenow'] ~= nil then
-     if g_EntityExtra[e]['restoremenow'] == 1 then
-      g_EntityExtra[e]['restoremenow'] = 0
-	  if door.state == 'Closed' then
-	   door.blocking = 1
-	  end
-     end
-	end
-		
 end

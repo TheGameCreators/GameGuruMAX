@@ -63,9 +63,12 @@ function plrinzone_main(e)
 		end
 		if g_Time > wait[e] then
 			if plrinzone[e].multi_trigger == 1 and multi_switch[e] == 0 then
-				multi_switch[e] = 1
-				ActivateIfUsed(e)
-				PerformLogicConnections(e)
+				if doonce[e] == 1 then
+					multi_switch[e] = 1				
+					ActivateIfUsed(e)
+					PerformLogicConnections(e)
+					doonce[e] = 2
+				end	
 			end
 			if plrinzone[e].multi_trigger == 2 then
 				if multi_dead[e] == 0 then
@@ -79,7 +82,7 @@ function plrinzone_main(e)
 		if g_Entity[e]['plrinzone'] == 0 and multi_switch[e] == 1 then
 			StopSound(e,0)
 			doonce[e] = 0
-			multi_switch[e] = 0			
+			multi_switch[e] = 0
 		end		
 	end
 end

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can cast Lifetap effect to take health from the target and give to the player.
--- Lifetap Spell v22
+-- Lifetap Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Lifetap Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="You cast Lifetap and gained some health"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_DAMAGE=25(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
@@ -66,7 +66,7 @@ end
 function lifetap_spell_init(e)
 	lifetap_spell[e] = {}
 	lifetap_spell[e].prompt_text = "E to Collect"
-	lifetap_spell[e].useage_text = "Direct Damage Inflicted"
+	lifetap_spell[e].useage_text = "You cast Lifetap and gained some health"
 	lifetap_spell[e].pickup_range = 90
 	lifetap_spell[e].user_global_affected = "MyMana"
 	lifetap_spell[e].mana_cost = 10
@@ -98,7 +98,7 @@ end
 function lifetap_spell_main(e)
 
 	-- get particles for spell effects
-	if lifetap_spell[e].particle1_number == 0 or nil then
+	if lifetap_spell[e].particle1_number == 0 and lifetap_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == lifetap_spell[e].particle1_name then
@@ -110,7 +110,7 @@ function lifetap_spell_main(e)
 			end
 		end
 	end
-	if lifetap_spell[e].particle2_number == 0 or nil then
+	if lifetap_spell[e].particle2_number == 0 and lifetap_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == lifetap_spell[e].particle2_name then
@@ -176,8 +176,8 @@ function lifetap_spell_main(e)
 			if Timer() > lifetap_spell[e].cast_timeout + 2100 then
 				lifetap_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if lifetap_spell[e].particle1_number > 0 or nil then Hide(lifetap_spell[e].particle1_number) end
-				if lifetap_spell[e].particle2_number > 0 or nil then Hide(lifetap_spell[e].particle2_number) end
+				if lifetap_spell[e].particle1_number > 0 then Hide(lifetap_spell[e].particle1_number) end
+				if lifetap_spell[e].particle2_number > 0 then Hide(lifetap_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
@@ -237,11 +237,11 @@ function lifetap_spell_main(e)
 					-- enough mana, deduct from player
 					mymana = mymana - lifetap_spell[e].mana_cost
 					-- setup and show the spell effect particles
-					if lifetap_spell[e].particle1_number > 0 or nil then
+					if lifetap_spell[e].particle1_number > 0 then
 						ResetPosition(lifetap_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(lifetap_spell[e].particle1_number)
 					end
-					if lifetap_spell[e].particle2_number > 0 or nil then
+					if lifetap_spell[e].particle2_number > 0 then
 						ResetPosition(lifetap_spell[e].particle2_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y'], g_Entity[tTarget[e]]['z'])
 						Show(lifetap_spell[e].particle2_number)
 					end			

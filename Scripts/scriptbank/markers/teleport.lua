@@ -1,4 +1,4 @@
--- Teleport v14 - by Necrym59
+-- Teleport v17 - by Necrym59 and Lee
 -- DESCRIPTION: Allows for a teleport to a local connected point or to another level.
 -- DESCRIPTION: [TELEPORT_ZONEHEIGHT=100]
 -- DESCRIPTION: [@TELEPORT_TYPE=1(1=Instant, 2=Delayed, 3=Delayed + Countdown)]
@@ -57,7 +57,7 @@ function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mod
 	g_teleport[e].destination = destination
 	g_teleport[e].spawn_marker_user_global = spawn_marker_user_global
 	g_teleport[e].spawn_marker_name = spawn_marker_name
-	g_teleport[e].resetstates = resetstates
+	g_teleport[e].resetstates = resetstates	
 end
 
 function teleport_init(e)
@@ -74,11 +74,11 @@ function teleport_init(e)
 	g_teleport[e].destination = 1
 	g_teleport[e].spawn_marker_user_global = ""
 	g_teleport[e].spawn_marker_name = ""
-	g_teleport[e].resetstates = resetstates	
+	g_teleport[e].resetstates = 0
 
 	g_teleport[e].particle_no = 0
 	g_teleport[e].teleport_timer = 0	
-	fov = GetGamePlayerStateCameraFov()
+	fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
 	tplayerlevel[e] = 0
 	dest_angle[e] = 0
 	tlevelrequired[e] = 0
@@ -92,7 +92,7 @@ function teleport_main(e)
 
 	if status[e] == "init" then
 		tlevelrequired[e] = g_teleport[e].teleport_level
-		fov = GetGamePlayerStateCameraFov()
+		fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
 		dest_angle[e] = g_teleport[e].teleport_exit_angle
 
 		if g_teleport[e].teleport_effect == 3 then
@@ -108,10 +108,11 @@ function teleport_main(e)
 					end
 				end
 			end
-		end	
+		end
 		status[e] = "endinit"
 	end
 
+	
 	if g_teleport[e].teleport_type == 1 then
 		if g_teleport[e].destination == 1 then
 			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then				
@@ -120,7 +121,7 @@ function teleport_main(e)
 				if tplayerlevel[e] >= tlevelrequired[e] then					
 					if g_teleport[e].teleport_target ~= nil then
 						if g_teleport[e].teleport_effect == 1 then
-							PlaySound(e,0)
+							PlaySound(e,1)
 							TransportToIfUsed(e)
 							SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 							PerformLogicConnections(e)
@@ -278,6 +279,6 @@ function teleport_main(e)
 				end
 			end
 		end		
-	end	
+	end
 end
 	

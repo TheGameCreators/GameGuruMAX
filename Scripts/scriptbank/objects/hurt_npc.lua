@@ -51,6 +51,7 @@ function hurt_npc_main(e)
 				end
 			end
 		end
+		SetActivated(e,0)
 		status[e] = "endinit"
 	end
 	

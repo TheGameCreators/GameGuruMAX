@@ -1,4 +1,4 @@
--- Door Sliding v31 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v32 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -37,7 +37,7 @@ local defaultDoorDelay	  = 200
 local defaultPeriod       = 1500
 local defaultCloseDelay   = 5000
 local defaultLockedText   = "Door is locked. Find a way to open it"
-local defaultIsUnlocked = false
+local defaultIsUnlocked = 1
 local defaultUnLockedText = "E to use door"
 local defaultTrigger = 4
 local prompt_display = 1

@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast Fireball damage on the target.
--- Fireball Spell v22
+-- Fireball Spell v23
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Fireball Spell, T or RMB to target"]
 -- DESCRIPTION: [USEAGE_TEXT$="Fireball damage inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -8,8 +8,8 @@
 -- DESCRIPTION: [CAST_DAMAGE=500(1,100)]
 -- DESCRIPTION: [CAST_RADIUS=5(1,100))]
 -- DESCRIPTION: [PLAYER_LEVEL=0(0,100))] player level to be able use this spell
--- DESCRIPTION: [PARTICLE1_NAME$="SpellParticle1"]
--- DESCRIPTION: [PARTICLE2_NAME$="SpellParticle2"]
+-- DESCRIPTION: [PARTICLE1_NAME$=""] eg: SpellParticle1
+-- DESCRIPTION: [PARTICLE2_NAME$=""] eg: SpellParticle2
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when effect successful
 -- DESCRIPTION: <Sound1> when effect unsuccessful
@@ -50,7 +50,6 @@ local played			= {}
 local entaffected		= {}
 
 function fireball_spell_properties(e, prompt_text, useage_text, pickup_range, user_global_affected, mana_cost, cast_damage, cast_radius, player_level, particle1_name, particle2_name, item_highlight)
-	fireball_spell[e] = g_Entity[e]
 	fireball_spell[e].prompt_text = prompt_text
 	fireball_spell[e].useage_text = useage_text
 	fireball_spell[e].pickup_range = pickup_range
@@ -65,7 +64,7 @@ function fireball_spell_properties(e, prompt_text, useage_text, pickup_range, us
 end
 
 function fireball_spell_init(e)
-	fireball_spell[e] = g_Entity[e]
+	fireball_spell[e] = {}
 	fireball_spell[e].prompt_text = "E to Collect"
 	fireball_spell[e].useage_text = "Fireball damage inflicted"
 	fireball_spell[e].pickup_range = 90
@@ -97,9 +96,9 @@ function fireball_spell_init(e)
 end
 
 function fireball_spell_main(e)
-	fireball_spell[e] = g_Entity[e]
+
 	-- get particles for spell effects
-	if fireball_spell[e].particle1_number == 0 or nil then
+	if fireball_spell[e].particle1_number == 0 or fireball_spell[e].particle1_number == nil and fireball_spell[e].particle1_name ~= "" then
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if lower(GetEntityName(n)) == fireball_spell[e].particle1_name then
@@ -111,7 +110,7 @@ function fireball_spell_main(e)
 			end
 		end
 	end
-	if fireball_spell[e].particle2_number == 0 or nil then
+	if fireball_spell[e].particle2_number == 0 or fireball_spell[e].particle2_number == nil and fireball_spell[e].particle2_name ~= "" then
 		for m = 1, g_EntityElementMax do
 			if m ~= nil and g_Entity[m] ~= nil then
 				if lower(GetEntityName(m)) == fireball_spell[e].particle2_name then
@@ -177,8 +176,8 @@ function fireball_spell_main(e)
 			if Timer() > fireball_spell[e].cast_timeout + 2100 then
 				fireball_spell[e].cast_timeout = 0
 				-- hide the spell effect particles again
-				if fireball_spell[e].particle1_number > 0 or nil then Hide(fireball_spell[e].particle1_number) end
-				if fireball_spell[e].particle2_number > 0 or nil then Hide(fireball_spell[e].particle2_number) end
+				if fireball_spell[e].particle1_number > 0 then Hide(fireball_spell[e].particle1_number) end
+				if fireball_spell[e].particle2_number > 0 then Hide(fireball_spell[e].particle2_number) end
 				casttarget[e] = 0
 			else
 				-- scale spell to see it radiate outward
@@ -250,11 +249,11 @@ function fireball_spell_main(e)
 					-- enough mana, deduct from player
 					mymana = mymana - fireball_spell[e].mana_cost
 					-- setup and show the spell effect particles
-					if fireball_spell[e].particle1_number > 0 or nil then
+					if fireball_spell[e].particle1_number > 0 then
 						ResetPosition(fireball_spell[e].particle1_number,g_Entity[tTarget[e]]['x'], g_Entity[tTarget[e]]['y']+200, g_Entity[tTarget[e]]['z'])
 						Show(fireball_spell[e].particle1_number)
 					end
-					if fireball_spell[e].particle2_number > 0 or nil then
+					if fireball_spell[e].particle2_number > 0 then
 						ResetPosition(fireball_spell[e].particle2_number,g_Entity[tTarget[e]]['x']+ math.random(1,10), g_Entity[tTarget[e]]['y']+200, g_Entity[tTarget[e]]['z']+ math.random(1,10))
 						Show(fireball_spell[e].particle2_number)
 					end			

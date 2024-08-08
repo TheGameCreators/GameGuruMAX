@@ -1,11 +1,12 @@
--- Freeze Player v14
+-- Freeze Player v15
 -- DESCRIPTION: When a player enters zone will freeze the player, and stay in a frozen state for
--- DESCRIPTION: [FREEZETIME=3] seconds. Set the [ZONEHEIGHT=100(1,500)]
+-- DESCRIPTION: [FREEZETIME=3] in seconds. (0=infinite)
+-- DESCRIPTION: [ZONEHEIGHT=100(1,500)] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [MultiTrigger!=1] if unchecked will destroy this zone after use
 -- DESCRIPTION: [@FreezeStyle=1(1=Total Freeze, 2=Partial Freeze)]
--- DESCRIPTION: [ViewAngleLimit=90(1,180)]
--- DESCRIPTION: [@ZONE_TRIGGER=2(1=Yes, 2=No)]
+-- DESCRIPTION: [ViewAngleLimit=90(1,180)] Sets the lateral view range
+-- DESCRIPTION: [@ZONE_TRIGGER=2(1=Yes, 2=No)] Sets if zone will trigger other logic linked or IfUsed entities.
 -- DESCRIPTION: <Sound0> Sound to play when freezing
 -- DESCRIPTION: <Sound1> Sound to play when unfreezing
 
@@ -59,6 +60,15 @@ function FreezePlayer_main(e)
 	if g_Entity[e]['activated'] == 1 then
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + freeze[e].zoneheight then
 			if freeze[e].FreezeStyle == 1 then
+				if freeze[e].freezetime == 0 or freeze[e].freezetime == nil and frozenmode[e] == 0 then
+					SetCameraOverride(3)
+					frozentime[e] = g_Time * 2
+					if played[e] == 0 then 
+						PlaySound(e,0)
+						played[e] = 1
+					end
+					frozenmode[e] = 1
+				end
 				if freeze[e].freezetime ~= nil and frozenmode[e] == 0 then
 					SetCameraOverride(3)
 					frozentime[e] = g_Time + (freeze[e].freezetime * 1000)			
@@ -74,7 +84,20 @@ function FreezePlayer_main(e)
 					if freeze[e].MultiTrigger == 0 then Destroy(e) end
 				end
 			end
-			if freeze[e].FreezeStyle == 2 then				
+			if freeze[e].FreezeStyle == 2 then
+				if freeze[e].freezetime == 0 or freeze[e].freezetime == nil and frozenmode[e] == 0 then
+					frozentime[e] = g_Time * 2
+					freezex[e] = g_PlayerPosX
+					freezey[e] = g_PlayerPosY
+					freezez[e] = g_PlayerPosZ
+					freezeangy[e] = g_PlayerAngY					
+					frozenmode[e] = 1
+					if played[e] == 0 then 
+						PlaySound(e,0)
+						played[e] = 1
+					end
+					SetGamePlayerControlFinalCameraAngley(freezeangy[e])
+				end
 				if freeze[e].freezetime ~= nil and frozenmode[e] == 0 then
 					frozentime[e] = g_Time + (freeze[e].freezetime * 1000)
 					freezex[e] = g_PlayerPosX
@@ -112,5 +135,5 @@ function FreezePlayer_main(e)
 			frozenmode[e] = 0
 			played[e] = 0
 		end
-	end		
+	end
 end

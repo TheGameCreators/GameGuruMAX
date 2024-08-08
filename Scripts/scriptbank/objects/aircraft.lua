@@ -1,4 +1,4 @@
--- Aircraft v32 by Necrym59
+-- Aircraft v33 by Necrym59
 -- DESCRIPTION: Creates a controllable aircraft from an object.
 -- DESCRIPTION: Attach to an object. Set Physics On, Polygon Collision.
 -- DESCRIPTION: [@VEHICLE_TYPE=1(1=Plane,2=Helicopter,3=VTOL-Vehicle)]
@@ -240,16 +240,21 @@ function aircraft_main(e)
 			end
 		end
 		if h.state == 'start' then
+			if h.inCab == false and deathfall[e] == 1 then
+				ModulateSpeed(h.ent,60)
+				CollisionOff(h.ent)
+				GravityOff(h.ent)
+			end
 			if deathfall[e] == 1 and g_PlayerPosY <= terrain[e] + 80 then
 				HurtPlayer(-1,5000)
 				deathfall[e] = 0
 				Hide(h.ent)
 				Destroy(h.ent)
 				status[e] = "init"
-			end
+			end			
 			if h.inCab then
 				if g_KeyPressQ == 1 and flying == 1 then
-					animspeed[e] = 0
+					--animspeed[e] = 0					
 					if heightcheck[e] >= 30 and colobj[e] == 0 then deathfall[e] = 1 end
 					if colobj[e] > 0 then deathfall[e] = 0 end
 					terrain[e] = GetTerrainHeight( h.pos.x, h.pos.z )
@@ -487,7 +492,7 @@ function aircraft_main(e)
 							doonce[e] = 1
 							playonce[e] = 1
 						end
-					end
+					end					
 					if g_KeyPressSPACE == 1 then
 						LoopSound(e,1)
 						if g_Time > sndpause[e] then LoopSound(e,1) end
@@ -659,7 +664,7 @@ function aircraft_main(e)
 						if g_LandingZone == 1 then Prompt(vehicle[e].lz_text) end
 					end
 				end				
-				if g_LandingZone == 1 then Prompt(vehicle[e].lz_text) end
+				if g_LandingZone == 1 then Prompt(vehicle[e].lz_text) end			
 				
 				if vehicle[e].vehicle_type == 2 and flying == 1 and h.pos.y > terrain[e] + 20 and h.vec.z <= 0 and g_KeyPressSPACE == 0 and g_KeyPressSHIFT == 0 then
 					local nhoverheight = 0.5
@@ -763,6 +768,6 @@ function aircraft_main(e)
 					end
 				end
 			end
-		end
+		end		
 	end
 end

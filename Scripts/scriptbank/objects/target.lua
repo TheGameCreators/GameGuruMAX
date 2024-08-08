@@ -78,7 +78,8 @@ function target_properties(e, hit_text, target_type, target_move_x, target_move_
 	target[e] = g_Entity[e]
 	target[e].hit_text = hit_text
 	target[e].target_type = target_type
-	target[e].target_move_x = target_move_x	target[e].target_move_y = target_move_y
+	target[e].target_move_x = target_move_x
+	target[e].target_move_y = target_move_y
 	target[e].target_move_z = target_move_z
 	target[e].target_move_speed = target_move_speed	
 	target[e].target_reset = target_reset

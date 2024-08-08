@@ -4903,6 +4903,29 @@ void game_main_loop ( void )
 	update_env_particles();
 	ravey_particles_update();
 
+	if (t.visuals.bPPSnow && t.visuals.bpp_disable_indoor)
+	{
+		//Disable weather indoor.
+		float xPos = CameraPositionX();
+		float yPos = CameraPositionY();
+		float zPos = CameraPositionZ();
+		static int iDelayedRayCast;
+		if (iDelayedRayCast++ % 15 == 0)
+		{
+			extern wiECS::Entity g_weatherEntityID;
+			wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+			int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, xPos, yPos, zPos, xPos, yPos + 2000.0f, zPos, 0, 0, 0, 0, 1, true);
+			if (iHitObj > 0)
+			{
+				weather->SetPPSnowEnabled(false);
+			}
+			else
+			{
+				weather->SetPPSnowEnabled(t.visuals.bPPSnow);
+			}
+		}
+	}
+
 	//  Decal control
 	decalelement_control();
 

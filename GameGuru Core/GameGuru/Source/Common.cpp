@@ -4418,7 +4418,26 @@ void FPSC_Setup(void)
 		welcome_updatebackdrop("");
 	}
 	else
+	{
 		common_loadfonts();
+
+		//PE: Need to reload lensflare images for standalone to support encryption.
+		extern wiECS::Entity g_entitySunLight;
+		wiScene::LightComponent* lightSun = wiScene::GetScene().lights.GetComponent(g_entitySunLight);
+		int iFlareCount = 3;
+		lightSun->lensFlareRimTextures.resize(iFlareCount);
+		lightSun->lensFlareNames.resize(iFlareCount);
+		for (int iFlareChain = 0; iFlareChain < iFlareCount; iFlareChain++)
+		{
+			std::string fileName;
+			if (iFlareChain == 0) fileName = "lensflares\\flare1.jpg";
+			if (iFlareChain == 1) fileName = "lensflares\\flare2.jpg";
+			if (iFlareChain == 2) fileName = "lensflares\\flare3.jpg";
+			//lightSun->lensFlareRimTextures[iFlareChain] = wiResourceManager::Load(fileName);
+			lightSun->lensFlareRimTextures[iFlareChain] = WickedCall_LoadImage(fileName);
+			lightSun->lensFlareNames[iFlareChain] = fileName;
+		}
+	}
 
 	//  reposition default radar,compass and objective based on new screen resolution
 	g.radarx =(g.gdisplaywidth/100.0)*90;

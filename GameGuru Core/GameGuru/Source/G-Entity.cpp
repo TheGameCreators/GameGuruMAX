@@ -6,6 +6,16 @@
 #include "gameguru.h"
 #include "CObjectsC.h"
 
+#ifdef ENABLEIMGUI
+#include "..\Imgui\imgui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "..\Imgui\imgui_internal.h"
+#include "..\Imgui\imgui_impl_win32.h"
+#include "..\Imgui\imgui_gg_dx11.h"
+#endif
+
 #ifdef WICKEDENGINE
 #include ".\..\..\Guru-WickedMAX\wickedcalls.h"
 #include ".\\..\..\\Guru-WickedMAX\\GPUParticles.h"
@@ -1702,8 +1712,10 @@ void entity_loop ( void )
 
 			// Entity Prompt Local
 			extern bool bActivatePromptXYOffset;
+			extern bool bActivatePromptOffset3D;
 			extern int iPromptXOffset;
 			extern int iPromptYOffset;
+			extern int iPromptZOffset;
 
 			if ( t.entityelement[t.e].overprompttimer>0 ) 
 			{
@@ -1717,6 +1729,7 @@ void entity_loop ( void )
 						else
 							lua_hideperentity3d ( t.e );
 						bActivatePromptXYOffset = false;
+						bActivatePromptOffset3D = false;
 						iPromptXOffset = 0;
 						iPromptYOffset = 0;
 					}
@@ -1727,8 +1740,29 @@ void entity_loop ( void )
 							if ( GetInScreen(t.tobj) == 1 ) 
 							{
 								t.t_s=t.entityelement[t.e].overprompt_s ; t.twidth=getbitmapfontwidth(t.t_s.Get(),1)/2;
-								if(bActivatePromptXYOffset)
-									pastebitmapfont(t.t_s.Get(), (GetScreenX(t.tobj) - t.twidth) + iPromptXOffset, GetScreenY(t.tobj) + iPromptYOffset, 1, 255);
+								if (bActivatePromptXYOffset)
+								{
+									if (bActivatePromptOffset3D && t.tobj > 0)
+									{
+										sObject* pObject = g_ObjectList[t.tobj];
+										if (pObject)
+										{
+											DARKSDK_DLL void DB_ObjectScreenData(sObject* pObject, int* x, int* y);
+											GGVECTOR3 vecPosOld = pObject->position.vecPosition;
+											pObject->position.vecPosition.x += iPromptXOffset;
+											pObject->position.vecPosition.y += iPromptYOffset;
+											pObject->position.vecPosition.z += iPromptZOffset;
+											int scx = 0, scy = 0;
+											//PE: More precise placement of prompt text.
+											ImVec2 Convert3DTo2D(float x, float y, float z);
+											ImVec2 v2DPos = Convert3DTo2D(pObject->position.vecPosition.x, pObject->position.vecPosition.y, pObject->position.vecPosition.z);
+											pastebitmapfont(t.t_s.Get(), v2DPos.x - t.twidth, v2DPos.y, 1, 255);
+											pObject->position.vecPosition = vecPosOld;
+										}
+									}
+									else
+										pastebitmapfont(t.t_s.Get(), (GetScreenX(t.tobj) - t.twidth) + iPromptXOffset, GetScreenY(t.tobj) + iPromptYOffset, 1, 255);
+								}
 								else
 									pastebitmapfont(t.t_s.Get(),GetScreenX(t.tobj)-t.twidth,GetScreenY(t.tobj),1,255);
 							}

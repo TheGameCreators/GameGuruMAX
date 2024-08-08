@@ -2598,6 +2598,30 @@ void mapeditorexecutable_loop(void)
 	{
 		update_env_particles();
 		ravey_particles_update();
+
+		if (t.visuals.bPPSnow && t.visuals.bpp_disable_indoor)
+		{
+			//Disable weather indoor.
+			float xPos = CameraPositionX();
+			float yPos = CameraPositionY();
+			float zPos = CameraPositionZ();
+			static int iDelayedRayCast;
+			if (iDelayedRayCast++ % 15 == 0)
+			{
+				extern wiECS::Entity g_weatherEntityID;
+				wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+				int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, xPos, yPos, zPos, xPos, yPos + 2000.0f, zPos, 0, 0, 0, 0, 1, true);
+				if (iHitObj > 0)
+				{
+					weather->SetPPSnowEnabled(false);
+				}
+				else
+				{
+					weather->SetPPSnowEnabled(t.visuals.bPPSnow);
+				}
+			}
+		}
+
 	}
 
 	//PE: Imgui variables.
@@ -17375,6 +17399,12 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.SunAngleZ = t.visuals.SunAngleZ;
 	t.gamevisuals.bSSREnabled = t.visuals.bSSREnabled;
 	t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled;
+
+	t.gamevisuals.bDOF = t.visuals.bDOF;
+	t.gamevisuals.fDOFStrength = t.visuals.fDOFStrength;
+	t.gamevisuals.fDOFApertureSize = t.visuals.fDOFApertureSize;
+	t.gamevisuals.fDOFFocalLength = t.visuals.fDOFFocalLength;
+
 	t.gamevisuals.bLightShafts = t.visuals.bLightShafts;
 	t.gamevisuals.bLensFlare = t.visuals.bLensFlare;
 	t.gamevisuals.bReflectionsEnabled = t.visuals.bReflectionsEnabled;
@@ -18140,6 +18170,13 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bSSREnabled = t.gamevisuals.bSSREnabled;
 	t.visuals.bReflectionsEnabled = t.gamevisuals.bReflectionsEnabled;
 	t.visuals.bFXAAEnabled = t.gamevisuals.bFXAAEnabled;
+
+	t.visuals.bDOF = t.gamevisuals.bDOF;
+	t.visuals.fDOFStrength = t.gamevisuals.fDOFStrength;
+	t.visuals.fDOFApertureSize = t.gamevisuals.fDOFApertureSize;
+	t.visuals.fDOFFocalLength = t.gamevisuals.fDOFFocalLength;
+
+
 	t.visuals.bTessellation = t.gamevisuals.bTessellation;
 	t.visuals.bLightShafts = t.gamevisuals.bLightShafts;
 	t.visuals.bLensFlare = t.gamevisuals.bLensFlare;
@@ -18205,6 +18242,17 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fWeatherThunder = t.gamevisuals.fWeatherThunder;
 	t.visuals.fWeatherWind = t.gamevisuals.fWeatherWind;
 	
+	t.visuals.bPPSnow = t.gamevisuals.bPPSnow;
+	t.visuals.voxel_steps = t.gamevisuals.voxel_steps;
+	t.visuals.pp_size = t.gamevisuals.pp_size;
+	t.visuals.pp_alpha = t.gamevisuals.pp_alpha;
+	t.visuals.wind_direction_x = t.gamevisuals.wind_direction_x;
+	t.visuals.wind_direction_y = t.gamevisuals.wind_direction_y;
+	t.visuals.wind_direction_z = t.gamevisuals.wind_direction_z;
+	t.visuals.wind_speed = t.gamevisuals.wind_speed;
+	t.visuals.wind_randomness = t.gamevisuals.wind_randomness;
+
+
 	t.visuals.fLevelDifficulty = t.gamevisuals.fLevelDifficulty;
 	
 

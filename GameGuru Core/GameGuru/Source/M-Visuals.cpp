@@ -243,6 +243,12 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.bSSREnabled = false;
 	t.visuals.bReflectionsEnabled = true;
 	t.visuals.bFXAAEnabled = false;
+
+	t.visuals.bDOF = false;
+	t.visuals.fDOFStrength = 10.0f;
+	t.visuals.fDOFApertureSize = 0.2f;
+	t.visuals.fDOFFocalLength = 300.0f;
+
 	t.visuals.bTessellation = true;
 	t.visuals.bLightShafts = true;
 	t.visuals.lightShaftDensity = 0.8f;
@@ -299,6 +305,17 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.fWeatherLighting = 0.0;
 	t.visuals.fWeatherThunder = 0.0;
 	t.visuals.fWeatherWind = 50.0;
+
+	t.visuals.bPPSnow = false;
+	t.visuals.voxel_steps = 16.0f;
+	t.visuals.pp_size = 1.0f;
+	t.visuals.pp_alpha = 1.0f;
+	t.visuals.wind_direction_x = 1.0f;
+	t.visuals.wind_direction_y = -7.0f;
+	t.visuals.wind_direction_z = 1.0f;
+	t.visuals.wind_speed = 1.0f;
+	t.visuals.wind_randomness = 1.0f;
+	t.visuals.bpp_disable_indoor = true;
 
 	t.visuals.fLevelDifficulty = 50.0;
 
@@ -799,6 +816,18 @@ void visuals_save ( void )
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.FXAAEnabled=" + Str(t.visuals.bFXAAEnabled);
 	WriteString(1, t.strwork.Get());
+
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DOF=" + Str(t.visuals.bDOF);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DOFStrength=" + Str(t.visuals.fDOFStrength);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DOFApertureSize=" + Str(t.visuals.fDOFApertureSize);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DOFFocalLength=" + Str(t.visuals.fDOFFocalLength);
+	WriteString(1, t.strwork.Get());
+
+
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Tessellation=" + Str(t.visuals.bTessellation);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LightShafts=" + Str(t.visuals.bLightShafts);
@@ -905,6 +934,32 @@ void visuals_save ( void )
 	t.strwork = ""; t.strwork = t.strwork + "visuals.WeatherThunder=" + Str(t.visuals.fWeatherThunder);
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.WeatherWind=" + Str(t.visuals.fWeatherWind);
+	WriteString(1, t.strwork.Get());
+
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.bPPSnow=" + Str(t.visuals.bPPSnow);
+	WriteString(1, t.strwork.Get());
+
+
+	t.strwork = ""; t.strwork = t.strwork + "visuals.bPPSnow=" + Str(t.visuals.bPPSnow);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.voxel_steps=" + Str(t.visuals.voxel_steps);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.pp_size=" + Str(t.visuals.pp_size);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.pp_alpha=" + Str(t.visuals.pp_alpha);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_direction_x=" + Str(t.visuals.wind_direction_x);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_direction_x=" + Str(t.visuals.wind_direction_x);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_direction_y=" + Str(t.visuals.wind_direction_y);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_direction_z=" + Str(t.visuals.wind_direction_z);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_speed=" + Str(t.visuals.wind_speed);
+	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_randomness=" + Str(t.visuals.wind_randomness);
 	WriteString(1, t.strwork.Get());
 
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LevelDifficulty=" + Str(t.visuals.fLevelDifficulty);
@@ -1076,6 +1131,12 @@ void visuals_load ( void )
 	t.visuals.bSSREnabled = false;
 	t.visuals.bReflectionsEnabled = true;
 	t.visuals.bFXAAEnabled = false;
+
+	t.visuals.bDOF = false;
+	t.visuals.fDOFStrength = 10.0f;
+	t.visuals.fDOFApertureSize = 0.2f;
+	t.visuals.fDOFFocalLength = 300.0f;
+
 	t.visuals.bTessellation = true;
 	t.visuals.bLightShafts = true;
 	t.visuals.bLensFlare = true;
@@ -1126,6 +1187,17 @@ void visuals_load ( void )
 	t.visuals.fWeatherLighting = 0.0;
 	t.visuals.fWeatherThunder = 0.0;
 	t.visuals.fWeatherWind = 50.0;
+
+	t.visuals.bPPSnow = false;
+	t.visuals.voxel_steps = 16.0f;
+	t.visuals.pp_size = 1.0f;
+	t.visuals.pp_alpha = 1.0f;
+	t.visuals.wind_direction_x = 1.0f;
+	t.visuals.wind_direction_y = -7.0f;
+	t.visuals.wind_direction_z = 1.0f;
+	t.visuals.wind_speed = 1.0f;
+	t.visuals.wind_randomness = 1.0f;
+	t.visuals.bpp_disable_indoor = true;
 
 	t.visuals.fLevelDifficulty = 50.0;
 
@@ -1210,7 +1282,9 @@ void visuals_load ( void )
 				}
 			}
 			t.try_s = "visuals.shaderlevels.terrain" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.terrain = ValF(t.tvalue_s.Get());
-			t.try_s = "visuals.shaderlevels.entities" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.entities = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.shaderlevels.entities" ;
+			if (  t.tfield_s == t.try_s  )
+				t.visuals.shaderlevels.entities = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.vegetation" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.vegetation = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.shaderlevels.lighting" ; if (  t.tfield_s == t.try_s  )  t.visuals.shaderlevels.lighting = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.mode" ; if (  t.tfield_s == t.try_s  )  t.visuals.mode = ValF(t.tvalue_s.Get());
@@ -1344,7 +1418,9 @@ void visuals_load ( void )
 			t.try_s = "visuals.EnableTerrainChunkCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableTerrainChunkCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EnablePointShadowCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnablePointShadowCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EnableSpotShadowCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableSpotShadowCulling = ValF(t.tvalue_s.Get());
-			t.try_s = "visuals.EnableObjectCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableObjectCulling = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.EnableObjectCulling";
+			if (t.tfield_s == t.try_s)
+				t.visuals.bEnableObjectCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EnableAnimationCulling"; if (t.tfield_s == t.try_s)  t.visuals.bEnableAnimationCulling = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.LODMultiplier"; if (t.tfield_s == t.try_s)  t.visuals.fLODMultiplier = ValF(t.tvalue_s.Get());
 			
@@ -1372,6 +1448,12 @@ void visuals_load ( void )
 			t.try_s = "visuals.SSREnabled"; if (t.tfield_s == t.try_s)	t.visuals.bSSREnabled = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.ReflectionsEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bReflectionsEnabled = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.FXAAEnabled"; if (t.tfield_s == t.try_s)  t.visuals.bFXAAEnabled = ValF(t.tvalue_s.Get());
+
+
+			t.try_s = "visuals.DOF"; if (t.tfield_s == t.try_s)  t.visuals.bDOF = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DOFStrength"; if (t.tfield_s == t.try_s)  t.visuals.fDOFStrength = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DOFApertureSize"; if (t.tfield_s == t.try_s)  t.visuals.fDOFApertureSize = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DOFFocalLength"; if (t.tfield_s == t.try_s)  t.visuals.fDOFFocalLength = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.Tessellation"; if (t.tfield_s == t.try_s)  t.visuals.bTessellation = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.LightShafts"; if (t.tfield_s == t.try_s)  t.visuals.bLightShafts = ValF(t.tvalue_s.Get());
@@ -1441,6 +1523,17 @@ void visuals_load ( void )
 			t.try_s = "visuals.WeatherLighting"; if (t.tfield_s == t.try_s)  t.visuals.fWeatherLighting = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.WeatherThunder"; if (t.tfield_s == t.try_s)  t.visuals.fWeatherThunder = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.WeatherWind"; if (t.tfield_s == t.try_s)  t.visuals.fWeatherWind = ValF(t.tvalue_s.Get());
+
+
+			t.try_s = "visuals.bPPSnow"; if (t.tfield_s == t.try_s)  t.visuals.bPPSnow = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.voxel_steps"; if (t.tfield_s == t.try_s)  t.visuals.voxel_steps = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.pp_size"; if (t.tfield_s == t.try_s)  t.visuals.pp_size = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.pp_alpha"; if (t.tfield_s == t.try_s)  t.visuals.pp_alpha = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.wind_direction_x"; if (t.tfield_s == t.try_s)  t.visuals.wind_direction_x = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.wind_direction_y"; if (t.tfield_s == t.try_s)  t.visuals.wind_direction_y = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.wind_direction_z"; if (t.tfield_s == t.try_s)  t.visuals.wind_direction_z = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.wind_speed"; if (t.tfield_s == t.try_s)  t.visuals.wind_speed = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.wind_randomness"; if (t.tfield_s == t.try_s)  t.visuals.wind_randomness = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.LevelDifficulty"; if (t.tfield_s == t.try_s)  t.visuals.fLevelDifficulty = ValF(t.tvalue_s.Get());
 

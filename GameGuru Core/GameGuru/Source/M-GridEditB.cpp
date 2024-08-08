@@ -7508,23 +7508,92 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Automatically adjusts the appearance of the light intensity when the brightness of an area changes");
 				ImGui::PopItemWidth();
 
-				tab_tab_Column_text("Auto Exp Rate", fTabColumnWidth);
-				ImGui::PushItemWidth(-10);
-				if (ImGui::SliderFloat("##fAutoExpRate:", &t.visuals.fAutoExposureRate, 0.01, 4.0)) {
-					t.gamevisuals.fAutoExposureRate = t.visuals.fAutoExposureRate;
-					master_renderer->setEyeAdaptionRate(t.visuals.fAutoExposureRate);
-					g.projectmodified = 1;
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets how fast the brightness is adjusted");
+				if (t.visuals.bAutoExposure)
+				{
+					tab_tab_Column_text("Auto Exp Rate", fTabColumnWidth);
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##fAutoExpRate:", &t.visuals.fAutoExposureRate, 0.01, 4.0)) {
+						t.gamevisuals.fAutoExposureRate = t.visuals.fAutoExposureRate;
+						master_renderer->setEyeAdaptionRate(t.visuals.fAutoExposureRate);
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Sets how fast the brightness is adjusted");
 
-				tab_tab_Column_text("Auto Exp Level", fTabColumnWidth);
+					tab_tab_Column_text("Auto Exp Level", fTabColumnWidth);
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##fAutoExpKey:", &t.visuals.fAutoExposureKey, 0.01, 0.5)) {
+						t.gamevisuals.fAutoExposureKey = t.visuals.fAutoExposureKey;
+						master_renderer->setEyeAdaptionKey(t.visuals.fAutoExposureKey);
+						g.projectmodified = 1;
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Auto Exposure Level - lower values are darker, higher values are lighter");
+				}
+
+				//PE: Added DOF.
 				ImGui::PushItemWidth(-10);
-				if (ImGui::SliderFloat("##fAutoExpKey:", &t.visuals.fAutoExposureKey, 0.01, 0.5)) {
-					t.gamevisuals.fAutoExposureKey = t.visuals.fAutoExposureKey;
-					master_renderer->setEyeAdaptionKey(t.visuals.fAutoExposureKey);
+				if (ImGui::Checkbox("Depth Of Field (DOF)##DOF", &t.visuals.bDOF)) {
+					t.gamevisuals.bDOF = t.visuals.bDOF;
+					if (master_renderer)
+					{
+						if (t.visuals.bDOF)
+						{
+							wiScene::Scene& scene = wiScene::GetScene();
+							wiScene::CameraComponent& camera = wiScene::GetCamera();
+							camera.aperture_size = t.visuals.fDOFApertureSize;
+							camera.focal_length = t.visuals.fDOFFocalLength;
+							master_renderer->setDepthOfFieldStrength(t.visuals.fDOFStrength);
+						}
+						master_renderer->setDepthOfFieldEnabled(t.visuals.bDOF);
+					}
 					g.projectmodified = 1;
 				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Auto Exposure Level - lower values are darker, higher values are lighter");
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Depth Of Field (DOF): Is the area of acceptable sharpness in front of and behind the subject which the camera lens is focused.");
+				ImGui::PopItemWidth();
+
+				if (t.visuals.bDOF)
+				{
+					tab_tab_Column_text("DOF Strength", fTabColumnWidth);
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##DOF Strength", &t.visuals.fDOFStrength, 1.0f, 20.0f))
+					{
+						t.gamevisuals.fDOFStrength = t.visuals.fDOFStrength;
+						if (master_renderer)
+							master_renderer->setDepthOfFieldStrength(t.visuals.fDOFStrength);
+					}
+					ImGui::PopItemWidth();
+
+					tab_tab_Column_text("DOF ApertureSize", fTabColumnWidth);
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##DOF fDOFApertureSize", &t.visuals.fDOFApertureSize, 0.0f, 1.0f))
+					{
+						t.gamevisuals.fDOFApertureSize = t.visuals.fDOFApertureSize;
+						if (master_renderer)
+						{
+							wiScene::Scene& scene = wiScene::GetScene();
+							wiScene::CameraComponent& camera = wiScene::GetCamera();
+							camera.aperture_size = t.visuals.fDOFApertureSize;
+							camera.UpdateCamera();
+							camera.SetDirty();
+						}
+					}
+					ImGui::PopItemWidth();
+
+					tab_tab_Column_text("DOF Focal Length", fTabColumnWidth);
+					ImGui::PushItemWidth(-10);
+					if (ImGui::SliderFloat("##DOF focal_length", &t.visuals.fDOFFocalLength, 0.001f, 800.0f))
+					{
+						t.gamevisuals.fDOFFocalLength = t.visuals.fDOFFocalLength;
+						if (master_renderer)
+						{
+							wiScene::Scene& scene = wiScene::GetScene();
+							wiScene::CameraComponent& camera = wiScene::GetCamera();
+							camera.focal_length = t.visuals.fDOFFocalLength;
+							camera.UpdateCamera();
+							camera.SetDirty();
+						}
+					}
+					ImGui::PopItemWidth();
+				}
 
 				tab_tab_Column_text("Gamma", fTabColumnWidth);
 				ImGui::PushItemWidth(-10);
@@ -8627,6 +8696,20 @@ void Wicked_Update_Visuals(void *voidvisual)
 			weather->SetVolumetricClouds(false);
 		}
 
+		weather->pp_voxel_steps = visuals->voxel_steps;
+		weather->windDirection = XMFLOAT3(visuals->wind_direction_x, visuals->wind_direction_y, visuals->wind_direction_z);
+		weather->windSpeed = visuals->wind_speed;
+		weather->windWaveSize = visuals->pp_size;
+		weather->pp_alpha = visuals->pp_alpha;
+		weather->windRandomness = visuals->wind_randomness;
+
+		if (t.game.set.ismapeditormode != 1)
+			weather->SetPPSnowEnabled(visuals->bPPSnow);
+		else if (bEnableWeather)
+			weather->SetPPSnowEnabled(visuals->bPPSnow);
+		else
+			weather->SetPPSnowEnabled(false);
+
 		// If in Test Level or in standalone, use visual settings, otherwise just use the temporary editor setting.
 		bool bWaterEnabled;
 		if(t.game.set.ismapeditormode == 1)
@@ -8737,6 +8820,18 @@ void Wicked_Update_Visuals(void *voidvisual)
 		master_renderer->setFXAAEnabled(visuals->bFXAAEnabled);
 		wiRenderer::SetOcclusionCullingEnabled(visuals->bOcclusionCulling);
 		
+
+		master_renderer->setDepthOfFieldEnabled(visuals->bDOF);
+		if (visuals->bDOF)
+		{
+			wiScene::Scene& scene = wiScene::GetScene();
+			wiScene::CameraComponent& camera = wiScene::GetCamera();
+			camera.aperture_size = visuals->fDOFApertureSize;
+			camera.focal_length = visuals->fDOFFocalLength;
+			master_renderer->setDepthOfFieldStrength(visuals->fDOFStrength);
+		}
+
+
 		if (visuals->ApparentSize < 0.000001f)
 			visuals->ApparentSize = 0.000001f;
 		if (visuals->ApparentSize > 0.2f)
@@ -51761,6 +51856,25 @@ int DrawOccludedObjects(bool bDebug,bool bBox, int* iHiddenObjects, int* spot, i
 											XMFLOAT4X4 hoverBox;
 											XMStoreFloat4x4(&hoverBox, aabb->getAsBoxMatrix());
 											wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+
+											//PE: Expanded bounding box.
+											/*
+											XMMATRIX transform;
+											const float expand = 2.5f;
+											//extern wiScene::CameraComponent camera_previous;
+											wiScene::CameraComponent& camera_previous = wiScene::GetCamera();
+											XMMATRIX VP = camera_previous.GetViewProjection();
+											XMFLOAT3 ext = aabb->getHalfWidth();
+											ext.x++;
+											ext.y++;
+											ext.z++;
+											XMMATRIX sca = XMMatrixScaling(ext.x * expand, ext.y * expand, ext.z * expand);
+											XMFLOAT3 pos = aabb->getCenter();
+											XMMATRIX tra = XMMatrixTranslation(pos.x, pos.y, pos.z);
+											transform = (sca * tra); // *VP;
+											XMStoreFloat4x4(&hoverBox, transform);
+											wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f));
+											*/
 										}
 									}
 								}

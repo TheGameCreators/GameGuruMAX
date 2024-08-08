@@ -492,6 +492,16 @@ inline float3 shadowCube(in ShaderEntity light, in float3 L, in float3 Lunnormal
 	return shadow;
 }
 
+// Caustic pattern from: https://www.shadertoy.com/view/XtKfRG
+inline float caustic_pattern(float2 uv, float time)
+{
+    float3 k = float3(uv, time);
+    float3x3 m = float3x3(-2, -1, 2, 3, -2, 1, 1, 2, 2);
+    float3 a = mul(k, m) * 0.5;
+    float3 b = mul(a, m) * 0.4;
+    float3 c = mul(b, m) * 0.3;
+    return pow(min(min(length(0.5 - frac(a)), length(0.5 - frac(b))), length(0.5 - frac(c))), 7) * 25.;
+}
 
 inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Lighting lighting, in float shadow_mask = 1, in bool simple = false)
 {
@@ -586,6 +596,19 @@ inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Li
 			{
 				lighting.direct.specular += max(0, lightColor * surfaceToLight.NdotL * BRDF_GetSpecular(surface, surfaceToLight));
 			}
+			
+#ifndef WATER
+            float2 ocean_uv = (surface.P.xz + (surface.P.yy * 0.25)) * 0.0045;
+            float water_height = g_xFrame_WaterHeight;
+            if (surface.P.y < water_height)
+            {
+                float3 caustic = caustic_pattern(ocean_uv, g_xFrame_Time * 0.65);
+                caustic *= sqr(saturate((water_height - surface.P.y) * 0.0025)); // fade out at shoreline
+                caustic *= lightColor;
+                lighting.indirect.diffuse += caustic;
+            }
+#endif
+
 		}
 	}
 }

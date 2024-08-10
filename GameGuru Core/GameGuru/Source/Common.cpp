@@ -4384,23 +4384,6 @@ void FPSC_Setup(void)
 	timestampactivity(0,"pixel states");
 	SetChildWindowTruePixel ( 1 );
 
-	/* causes white screen to wipe out splash - so moved further up and removes title bar in splash as a bonus!
-	// 201017 - only for standalones
-	if ( t.game.gameisexe == 1 )
-	{
-		//  Must show the window (editor EXE hides by default)
-		SetWindowSettings ( 0, 0, 0 );
-		WindowToFront ( "Game Guru Standalone Executable" );
-		SetWindowSize ( GetDesktopWidth(), GetDesktopHeight() );
-		ShowWindow(); MaximiseWindow();
-		DisableEscapeKey();
-
-		// clear screen
-		Cls(); Sync();
-		Cls(); Sync();
-	}
-	*/
-
 	// 230517 - after display created, before any visual elements, load all core shaders
 	SETUPLoadAllCoreShadersFIRST(g.gforceloadtestgameshaders);
 

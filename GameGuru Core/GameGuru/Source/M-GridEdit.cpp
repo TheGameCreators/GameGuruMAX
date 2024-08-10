@@ -54,6 +54,7 @@ bool bStoryboardFirstRunSetInitPos = false;
 bool bStoryboardInitNodes = false;
 bool bJustRederedScreenEditor = false;
 int g_iRefreshLibraryFolders = 0;
+int g_iRefreshLibraryFoldersAfterDelay = 0;
 bool g_bCommonAssetsLoadOnce = true;
 
 #ifdef GGMAXEPIC
@@ -12882,6 +12883,19 @@ void mapeditorexecutable_loop(void)
 			if (bToolTipActive && ImGui::IsItemHovered()) ImGui::SetTooltip("Click here to add a new object to the game level");
 
 			// when click ADD, have the option to refresh library (activated in developer mode for users who import often as it is a performance hit)
+			if (g_iRefreshLibraryFoldersAfterDelay > 0)
+			{
+				g_iRefreshLibraryFoldersAfterDelay--;
+				if (g_iRefreshLibraryFoldersAfterDelay == 2)
+				{
+					strcpy(cTriggerMessage, "Refreshing Library Lists ...");
+					bTriggerMessage = true;
+				}
+				if (g_iRefreshLibraryFoldersAfterDelay == 0)
+				{
+					g_iRefreshLibraryFolders = 2;
+				}
+			}
 			if (g_iRefreshLibraryFolders != 0 )
 			{
 				timestampactivity(0, "REFRESHING LIBRARY FOLDERS");

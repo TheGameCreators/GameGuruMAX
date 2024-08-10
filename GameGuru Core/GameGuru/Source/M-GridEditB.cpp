@@ -44812,6 +44812,9 @@ int save_create_storyboard_project(void)
 								addfoldertocollection ("terraintextures\\mat30");
 								addfoldertocollection ("terraintextures\\mat31");
 								addfoldertocollection ("terraintextures\\mat32");
+								addtocollection ("titlesbank\\default\\cursor.png");
+								addtocollection ("titlesbank\\default\\cursor-33.png");
+								addtocollection ("titlesbank\\default\\cursor-big.png");
 								addfoldertocollection ("treebank");
 								addfoldertocollection ("treebank\\billboards");
 								addfoldertocollection ("treebank\\textures");
@@ -45993,6 +45996,10 @@ void load_storyboard(char *name)
 			strcat(project, name);
 			strcat(project, "\\project.dat");
 			projectfile = GG_fopen(project, "rb");
+
+			// remote project has own media, so update the library to include them!
+			extern int g_iRefreshLibraryFoldersAfterDelay;
+			g_iRefreshLibraryFoldersAfterDelay = 10;
 		}
 	}
 	if (projectfile)

@@ -5,7 +5,7 @@
 // Includes 
 #include "stdafx.h"
 #include "gameguru.h"
-#ifdef WICKEDENGINE
+
 #include "GGTerrain\GGTerrainFile.h"
 #include "GGTerrain\GGTerrain.h"
 #include "GGTerrain\GGTrees.h"
@@ -13,7 +13,7 @@
 using namespace GGTerrain;
 using namespace GGTrees;
 using namespace GGGrass;
-#endif
+
 
 #include "GGThread.h"
 using namespace GGThread;
@@ -147,14 +147,11 @@ threadLock ExtractZipThread::lock;
 ExtractZipThread* ExtractZipThread::pThreads = 0;
 uint32_t ExtractZipThread::iNumThreads = 0;
 
-#ifdef ENABLEIMGUI
 #include "..\Imgui\imgui.h"
 #include "..\Imgui\imgui_impl_win32.h"
 #include "..\Imgui\imgui_gg_dx11.h"
 std::vector<cstr> g_sDefaultAssetFiles;
-#endif
 
-#ifdef STORYBOARD
 extern StoryboardStruct Storyboard;
 extern int g_Storyboard_First_Level_Node;
 extern int g_Storyboard_Current_Level;
@@ -162,7 +159,6 @@ extern char g_Storyboard_First_fpm[256];
 extern char g_Storyboard_Current_fpm[256];
 extern char g_Storyboard_Current_lua[256];
 extern char g_Storyboard_Current_Loading_Page[256];
-#endif
 
 // 
 //  MAP FILE FORMAT
@@ -182,9 +178,8 @@ bool g_bAllowBackwardCompatibleConversion = false;
 bool g_bNeedToConvertClassicPositionsToMAX = false;
 bool g_bMakingAStandaloneUsingFileCollectionArray = false;
 
-#ifdef ENABLEIMGUI
 bool restore_old_map = false;
-#endif
+
 
 void mapfile_saveproject_fpm ( void )
 {
@@ -221,13 +216,11 @@ void mapfile_saveproject_fpm ( void )
 	//  log prompts
 	timestampactivity(0, cstr(cstr("Saving FPM level file: ")+t.ttempprojfilename_s).Get() );
 
-	#ifdef WICKEDENGINE
 	//PE: Save heightmap.
 	uint32_t iHeightmapSize = 0, iHeightmapWidth = 0, iHeightmapHeight = 0;
 	iHeightmapSize = GGTerrain::GGTerrain_GetHeightmapDataSize(iHeightmapWidth, iHeightmapHeight);
 	t.visuals.iHeightmapWidth = t.gamevisuals.iHeightmapWidth = iHeightmapWidth;
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight = iHeightmapHeight;
-	#endif
 
 	// ensure when export visual, always start with HIGHEST mode to reflect settings chosen when editing level (i.e. grass distance)
 	//PE: Respect custom settings, some levels need to disable some optimizing settings...
@@ -347,7 +340,6 @@ void mapfile_saveproject_fpm ( void )
 		}
 	}
 
-	#ifdef WICKEDENGINE
 	#define MAXGROUPSLISTS 100 // duplicated in GridEdit.cpp
 	for (int gi = 0; gi < MAXGROUPSLISTS; gi++)
 	{
@@ -358,7 +350,6 @@ void mapfile_saveproject_fpm ( void )
 			AddFileToBlock (1, pGroupImgFilename);
 		}
 	}
-	#endif
 
 	// new multi-grass system stores grass choices in testmap folder
 	AddFileToBlock ( 1, "grass_coloronly.dds" );
@@ -779,11 +770,7 @@ void mapfile_emptyebesfromtestmapfolder(bool bIgnoreValidTextureFiles)
 		if (t.tfile_s != "." && t.tfile_s != "..")
 		{
 			// only if not a CUSTOM content piece
-#ifdef VRTECH
 			if (strnicmp(t.tfile_s.Get(), "CUSTOM_", 7) != NULL)
-#else
-			if (1)
-#endif
 			{
 				cstr strEnt = cstr(Lower(Right(t.tfile_s.Get(), 4)));
 				if (stricmp(strEnt.Get(), ".ebe") == NULL || stricmp(strEnt.Get(), ".fpe") == NULL)
@@ -794,10 +781,10 @@ void mapfile_emptyebesfromtestmapfolder(bool bIgnoreValidTextureFiles)
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
 					tThisFile = tNameOnly + cstr(".dbo");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
-#ifdef VRTECH
+
 					tThisFile = tNameOnly + cstr(".x");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
-#endif
+
 					tThisFile = tNameOnly + cstr(".bmp");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
 					tThisFile = tNameOnly + cstr("_D.dds");
@@ -806,35 +793,25 @@ void mapfile_emptyebesfromtestmapfolder(bool bIgnoreValidTextureFiles)
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
 					tThisFile = tNameOnly + cstr("_S.dds");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
-#ifdef VRTECH
+
 					tThisFile = tNameOnly + cstr("_D.jpg");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
 					tThisFile = tNameOnly + cstr("_N.jpg");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
 					tThisFile = tNameOnly + cstr("_S.jpg");
 					if (FileExist(tThisFile.Get()) == 1) DeleteAFile(tThisFile.Get());
-#endif
+
 				}
 				strEnt = cstr(Lower(Right(t.tfile_s.Get(), 6)));
 				if (bIgnoreValidTextureFiles == false)
 				{
-#ifdef VRTECH
 					if (strcmp(strEnt.Get(), "_d.dds") == NULL || strcmp(strEnt.Get(), "_n.dds") == NULL || strcmp(strEnt.Get(), "_s.dds") == NULL
 						|| strcmp(strEnt.Get(), "_d.jpg") == NULL || strcmp(strEnt.Get(), "_n.jpg") == NULL || strcmp(strEnt.Get(), "_s.jpg") == NULL)
 					{
 						DeleteAFile(t.tfile_s.Get());
 					}
-#else
-					if (strcmp(strEnt.Get(), "_d.dds") == NULL || strcmp(strEnt.Get(), "_n.dds") == NULL || strcmp(strEnt.Get(), "_s.dds") == NULL)
-					{
-						if (stricmp(t.tfile_s.Get(), "Texture_D.dds") != NULL && stricmp(t.tfile_s.Get(), "Texture_N.dds") != NULL)
-						{
-							DeleteAFile(t.tfile_s.Get());
-						}
-					}
-#endif
 				}
-				}
+			}
 		}
 	}
 }
@@ -889,7 +866,6 @@ void mapfile_emptyterrainfilesfromtestmapfolder ( void )
 	#endif
 }
 
-#ifdef WICKEDENGINE
 void lm_emptylightmapandttsfilesfolder_wicked( void )
 {
 	//PE: lightmaps
@@ -939,7 +915,6 @@ void lm_emptylightmapandttsfilesfolder_wicked( void )
 		RemoveDirectoryA(pRealWritableArea);
 	}
 }
-#endif
 
 void mapfile_loadproject_fpm ( void )
 {
@@ -959,9 +934,7 @@ void mapfile_loadproject_fpm ( void )
 		timestampactivity(0,"LOADMAP: lm_emptylightmapandttsfilesfolder");
 		lm_emptylightmapandttsfilesfolder ( );
 
-		#ifdef WICKEDENGINE
 		lm_emptylightmapandttsfilesfolder_wicked();
-		#endif
 
 		// empty any terrain node files
 		mapfile_emptyterrainfilesfromtestmapfolder();
@@ -980,7 +953,6 @@ void mapfile_loadproject_fpm ( void )
 		if ( FileExist("map.obs") == 1 ) DeleteAFile ( "map.obs" );
 		if ( FileExist("locked.cfg") == 1) DeleteAFile("locked.cfg");
 
-		#ifdef WICKEDENGINE
 		if (FileExist("cfg.cfg") == 1) DeleteAFile("cfg.cfg");
 
 		// new terrain system loads its data settings in this file (see below)
@@ -1000,34 +972,19 @@ void mapfile_loadproject_fpm ( void )
 		cstr old_tree_data_name = "4800000.tre"; //PE: Tree format 1.0. Make sure it deleted.
 		if (FileExist(old_tree_data_name.Get()) == 1) DeleteAFile(old_tree_data_name.Get());
 
-
 		uint32_t grass_data_size = GGGrass::GGGrass_GetDataSize();
 		cstr grass_data_name = cstr((int)grass_data_size) + cstr(".gra");
 		if (FileExist(grass_data_name.Get()) == 1) DeleteAFile(grass_data_name.Get());
 
 		if (FileExist("heightmapdata.raw") == 1) DeleteAFile("heightmapdata.raw");
 
-		#else
-		//  Delete terrain texture files (if any)
-		if ( FileExist("Texture_D.dds") == 1 ) DeleteAFile ( "Texture_D.dds" );
-		if ( FileExist("Texture_N.dds") == 1 ) DeleteAFile ( "Texture_N.dds" );
-		#ifdef VRTECH
-		if ( FileExist("Texture_D.jpg") == 1 ) DeleteAFile ( "Texture_D.jpg" );
-		if ( FileExist("Texture_N.jpg") == 1 ) DeleteAFile ( "Texture_N.jpg" );
-		#endif
-		#endif
-
 		//  Delete env map for PBR (if any)
 		if ( FileExist("globalenvmap.dds") == 1 ) DeleteAFile ( "globalenvmap.dds" );
 
-		#ifdef CUSTOMTEXTURES
 		if (FileExist("custommaterials.dat") == 1) DeleteAFile("custommaterials.dat");
-		#endif
 
-		#ifdef WICKEDENGINE
 		LPSTR pTerrainPreference = "TerrainPreference.tmp";
 		if (FileExist(pTerrainPreference) == 1) DeleteFileA(pTerrainPreference);
-		#endif
 
 		// empty any ebe files
 		mapfile_emptyebesfromtestmapfolder(false);
@@ -1089,11 +1046,7 @@ void mapfile_loadproject_fpm ( void )
 
 		// If file still not present, extraction failed
 		SetDir ( g.mysystem.levelBankTestMapAbs_s.Get() );		
-		#ifdef VRTECH
 		if ( g.memskipwatermask == 0 && (FileExist("watermask.dds") == 0 || FileExist("watermask.png") == 0) )
-		#else
-		if ( g.memskipwatermask == 0  && FileExist("watermask.dds") == 0 )
-		#endif
 		{
 			//  Only Reloaded Formats have this texture file, so fail load if not there (Classic FPM)
 			t.tloadsuccessfully=2;
@@ -1148,12 +1101,10 @@ void mapfile_loadproject_fpm ( void )
 			void reset_terrain_paint_date(void);
 			reset_terrain_paint_date(); //PE: Reset old paint textures, after this. try loading from saved fpm.
 
-#ifdef CUSTOMTEXTURES
 			if (FileExist("custommaterials.dat") == 1)
 			{
 				LoadTerrainTextureFolder("custommaterials.dat");
 			}
-#endif
 
 			//PE: Restore Paint Texture Data.
 			terrain_paint_size = GGTerrain::GGTerrain_GetPaintDataSize();
@@ -1469,14 +1420,12 @@ void mapfile_loadproject_fpm ( void )
 	extern bool g_bLightProbeScaleChanged;
 	g_bLightProbeScaleChanged = true;
 
-	#ifdef WICKEDENGINE
 	// when finished loading an OLD LEVEL FROM CLASSIC, need to copy and convert assets to make it a MAX level
 	if ( t.tloadsuccessfully != 0 && g_bAllowBackwardCompatibleConversion == true)
 	{
 		// this ensures when level files acted on, they can be used in MAX
 		mapfile_convertCLASSICtoMAX(g.projectfilename_s.Get());
 	}
-	#endif
 }
 
 void mapfile_newmap ( void )
@@ -2247,7 +2196,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
 	t.levelindex = 1;
 
-	#ifdef STORYBOARD
 	// Add images from collection list (can be stored in thumbbank)
 	for (int n = 0; n < g_collectionList.size(); n++)
 	{
@@ -2412,7 +2360,22 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 			}
 		}
 	}
-	#endif
+
+	// if remote project, add ALL files in remote project folder to the files to be copied over
+	if ( strlen(Storyboard.customprojectfolder) > 0)
+	{
+		// add all files in the remote project folder
+		char pAbsRemoteProjectFolderToScan[MAX_PATH];
+		strcpy(pAbsRemoteProjectFolderToScan, Storyboard.customprojectfolder);
+		strcat(pAbsRemoteProjectFolderToScan, Storyboard.gamename);
+		strcat(pAbsRemoteProjectFolderToScan, "\\Files\\");
+		addallinfoldertocollection(pAbsRemoteProjectFolderToScan, "");
+
+		// and them remove any that are not needed in the standalone
+		removeanymatchingfromcollection("mapbank\\_automatedbackups");
+		removeanymatchingfromcollection("ebebank\\default");
+		removeanymatchingfromcollection("levelbank\\testmap");
+	}
 
 	/* this is duplicated below in stage code
 	t.tlevelstoprocess = 1;
@@ -2977,7 +2940,6 @@ void mapfile_savestandalone_start ( void )
 	//  the level to start off standalone export
 	t.tmasterlevelfile_s=cstr("mapbank\\")+g_mapfile_levelpathfolder+t.exename_s+".fpm";
 
-	#ifdef STORYBOARD
 	if (g.bUseStoryBoardSetup)
 	{
 		//Use project name as exename
@@ -2986,7 +2948,6 @@ void mapfile_savestandalone_start ( void )
 			t.exename_s = Storyboard.gamename;
 		}
 	}
-	#endif
 
 	timestampactivity(0,cstr(cstr("Saving standalone from ")+t.tmasterlevelfile_s).Get() );
 
@@ -4021,16 +3982,13 @@ void mapfile_savestandalone_stage4 ( void )
 	//  Copy game engine and rename it
 	t.dest_s=t.exepath_s+t.exename_s+"\\"+t.exename_s+".exe";
 	if (  FileExist(t.dest_s.Get()) == 1  )  DeleteAFile (  t.dest_s.Get() );
-	#ifdef ENABLEIMGUI
+
 	if (FileExist("VR Quest App.exe") == 1)
 		CopyAFile("VR Quest App.exe", t.dest_s.Get());
 	else if (FileExist("GameGuruMAX.exe") == 1)
 		CopyAFile("GameGuruMAX.exe", t.dest_s.Get());
 	else
 		CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
-	#else
-	CopyAFile ( "Guru-MapEditor.exe", t.dest_s.Get() );
-	#endif
 
 	// and change the icon using project icons if exists
 	char projectico[MAX_PATH];
@@ -4132,7 +4090,7 @@ void mapfile_savestandalone_stage4 ( void )
 		char pSrcVisFile[MAX_PATH];
 		strcpy(pSrcVisFile, "visuals.ini");
 		t.dest_s=t.exepath_s+t.exename_s+"\\visuals.ini";
-		#ifdef WICKEDENGINE
+
 		char pRealVisFile[MAX_PATH];
 		strcpy(pRealVisFile, t.dest_s.Get());
 		GG_GetRealPath(pRealVisFile, 1);
@@ -4141,7 +4099,7 @@ void mapfile_savestandalone_stage4 ( void )
 		strcpy(pRealSrcVisFile, pSrcVisFile);
 		GG_GetRealPath(pRealSrcVisFile, 1);
 		strcpy(pSrcVisFile, pRealSrcVisFile);
-		#endif
+
 		if ( FileExist(t.dest_s.Get()) == 1 ) DeleteAFile ( t.dest_s.Get() );
 		CopyAFile ( pSrcVisFile, t.dest_s.Get() );
 	}
@@ -4390,9 +4348,6 @@ int mapfile_savestandalone_continue ( void )
 		case 21 :	if ( mapfile_savestandalone_stage2b() == 0 )
 					{
 						g_mapfile_iStage = 22;
-						//#ifdef WICKEDENGINE
-						//bOnceOnly = false;
-						//#endif
 					}
 					else
 					{
@@ -4853,7 +4808,9 @@ void addallinfoldertocollection ( cstr subThisFolder_s, cstr subFolder_s )
 		cstr pFolderName = pFolders[f];
 		if ( pFolderName.Len() > 0 )
 		{
-			cstr relativeFolderPath_s = subFolder_s + "\\" + pFolderName; // subFolder_s always populated
+			cstr relativeFolderPath_s = subFolder_s;
+			if (strlen(subFolder_s.Get()) > 0) relativeFolderPath_s += "\\";
+			relativeFolderPath_s += pFolderName;
 			addallinfoldertocollection ( pFolderName, relativeFolderPath_s );
 		}
 	}
@@ -5086,9 +5043,9 @@ void findalltexturesinmodelfile ( char* inputfile_s, char* folder_s, char* texpa
 								if (strnicmp(texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 10, "_roughness", 10) == NULL) { texfilenoext_s = Left(texfilenoext_s.Get(), strlen(texfilenoext_s.Get()) - 10); bDetectedPBRTextureSetName = true; }
 								if (strnicmp(texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 6, "_gloss", 6) == NULL) { texfilenoext_s = Left(texfilenoext_s.Get(), strlen(texfilenoext_s.Get()) - 6); bDetectedPBRTextureSetName = true; }
 								if (strnicmp(texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 3, "_ao", 3) == NULL) { texfilenoext_s = Left(texfilenoext_s.Get(), strlen(texfilenoext_s.Get()) - 3); bDetectedPBRTextureSetName = true; }
-								#ifdef WICKEDENGINE
+							
 								if (strnicmp(texfilenoext_s.Get() + strlen(texfilenoext_s.Get()) - 3, "_surface", 3) == NULL) { texfilenoext_s = Left(texfilenoext_s.Get(), strlen(texfilenoext_s.Get()) - 3); bDetectedPBRTextureSetName = true; }
-								#endif
+					
 								if (bDetectedPBRTextureSetName == true)
 								{
 									//PE: Need to check filename only and current object folder.
@@ -5116,10 +5073,10 @@ void findalltexturesinmodelfile ( char* inputfile_s, char* folder_s, char* texpa
 											addtocollection(tmp.Get());
 											tmp = cstr(cstr(folder_s) + directfile + "_illumination.dds").Get();
 											addtocollection(tmp.Get());
-											#ifdef WICKEDENGINE
+									
 											tmp = cstr(cstr(folder_s) + directfile + "_surface.dds").Get();
 											addtocollection(tmp.Get());
-											#endif
+									
 											tex_found = true;
 										}
 										tmp = cstr(cstr(folder_s) + directfile + "_color.png").Get();
@@ -5136,11 +5093,11 @@ void findalltexturesinmodelfile ( char* inputfile_s, char* folder_s, char* texpa
 											addtocollection(tmp.Get());
 											tmp = cstr(cstr(folder_s) + directfile + "_illumination.png").Get();
 											addtocollection(tmp.Get());
-											#ifdef WICKEDENGINE
+									
 											//PE: surface still .dds
 											tmp = cstr(cstr(folder_s) + directfile + "_surface.dds").Get();
 											addtocollection(tmp.Get());
-											#endif
+										
 											tex_found = true;
 										}
 									}
@@ -5170,11 +5127,11 @@ void findalltexturesinmodelfile ( char* inputfile_s, char* folder_s, char* texpa
 											cstr texfileIllumination_s = texfilenoext_s + "_illumination.dds";
 											addtocollection(cstr(cstr(folder_s) + texpath_s + texfileIllumination_s).Get());
 											addtocollection(cstr(cstr(folder_s) + texfileIllumination_s).Get());
-											#ifdef WICKEDENGINE
+										
 											cstr texfilesurface_s = texfilenoext_s + "_surface.dds";
 											addtocollection(cstr(cstr(folder_s) + texpath_s + texfilesurface_s).Get());
 											addtocollection(cstr(cstr(folder_s) + texfilesurface_s).Get());
-											#endif
+									
 										}
 									}
 								}

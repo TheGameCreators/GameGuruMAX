@@ -1,4 +1,4 @@
--- Textinzone v8
+-- Textinzone v9 by Necrym59 and Kasseyus
 -- DESCRIPTION: While the player is within the zone the [PROMPT_TEXT$=""] is displayed.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [!ONLYONCE=0] Set for the text zone to be destroyed after activation.
@@ -57,7 +57,7 @@ function textinzone_main(e)
 	if status[e] == "init" then
 		if textinzone[e].spawnatstart == 1 then SetActivated(e,1) end
 		if textinzone[e].spawnatstart == 0 then SetActivated(e,0) end
-		status = "endinit"
+		status[e] = "endinit"
 	end
 
 	if g_Entity[e]['activated'] == 1 then

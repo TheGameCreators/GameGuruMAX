@@ -2425,6 +2425,8 @@ GetObjectPosAng : x, y, z, Ax, Ay, Az = GetObjectPosAng( obj ) -- returns positi
 GetEntityPosAng : x, y, z, Ax, Ay, Az = GetEntityPosAng( e )   -- returns position and Euler angles of entity
 GetObjectScales : xs, ys, zs = GetObjectScales( obj ) -- returns scale values of object in all axis (Note: uses object id not entity!)
 GetEntityWeight : weight = GetEntityWeight( e ) -- returns the Physics weight value of the entity
+
+SetEntityAlwaysActive : SetEntityAlwaysActive( e, flag ) -- sets the entity always active flag
 GetEntityAlwaysActive : flag = GetEntityAlwaysActive( e ) -- returns 1 if the entity is set to always active
 
 ***** Collision box is defined by coordinates of two opposing corners, from these it is easy to calculate the size of the object

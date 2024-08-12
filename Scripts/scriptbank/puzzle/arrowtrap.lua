@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Arrow Trap v5 - by Necrym59
+-- Arrow Trap v6 - by Necrym59 and Lee
 -- DESCRIPTION: The Arrow Trap will shoot arrow(s) when in range or activated by a switch/zone.
 -- DESCRIPTION: Attach to an arrow, and place at the firing start point.
 -- DESCRIPTION: Set Always Active ON. Physics OFF
@@ -51,10 +51,10 @@ function arrowtrap_init(e)
 	hit[e] = 0
 	status[e] = "init"
 	movedist[e] = 0
+	SetEntityAlwaysActive(e,1)
 end
 
 function arrowtrap_main(e)
-
 	if status[e] == "init" then
 		GravityOff(e)
 		if startx[e] == nil or starty[e] == nil or startz[e] == nil then

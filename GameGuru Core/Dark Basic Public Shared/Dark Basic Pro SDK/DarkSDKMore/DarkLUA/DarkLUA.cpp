@@ -1646,6 +1646,7 @@ luaMessage** ppLuaMessages = NULL;
 				}
 				break;
 			}
+			case 22: t.entityelement[iEntityIndex].eleprof.phyalways = (int)fValue; break;
 			case 23: t.entityelement[iEntityIndex].iCanGoUnderwater = (int)fValue; break;
 
 			case 105:
@@ -1869,6 +1870,8 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityName(lua_State *L)    { return GetEntityData ( L, 18 ); }
  int GetMovementDeltaManually(lua_State *L) { return GetEntityData ( L, 19 ); }
  int GetEntityMarkerMode(lua_State *L) { return GetEntityData (L, 21); }
+
+ int SetEntityAlwaysActive(lua_State* L) { return RawSetEntityData (L, 22); }
  int GetEntityAlwaysActive(lua_State* L) { return GetEntityData (L, 22); }
 
  int SetEntityUnderwaterMode(lua_State* L) { return RawSetEntityData (L, 23); }
@@ -11638,6 +11641,8 @@ void addFunctions()
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
 	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 	lua_register(lua, "GetEntityMarkerMode", GetEntityMarkerMode);
+	
+	lua_register(lua, "SetEntityAlwaysActive", SetEntityAlwaysActive);
 	lua_register(lua, "GetEntityAlwaysActive", GetEntityAlwaysActive);
 
 	lua_register(lua, "SetEntityUnderwaterMode", SetEntityUnderwaterMode);

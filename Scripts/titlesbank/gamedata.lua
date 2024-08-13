@@ -60,7 +60,8 @@ function gamedata.save(slotnumber,uniquename)
 			local fulloffset = (c*100000)+tinventoryindex
 			g_UserContainerIndex[fulloffset] = tcollectionindex
 			g_UserContainerSlot[fulloffset] = tslotindex
-			g_UserContainerQty[fulloffset] = 1
+			local tQty = GetEntityQuantity(tcollectionindexe)
+			g_UserContainerQty[fulloffset] = tQty
 			g_UserContainerE[fulloffset] = tcollectionindexe
 			save("g_UserContainerIndex[" .. fulloffset .. "]", g_UserContainerIndex[fulloffset])
 			save("g_UserContainerSlot[" .. fulloffset .. "]", g_UserContainerSlot[fulloffset])
@@ -87,9 +88,9 @@ function gamedata.save(slotnumber,uniquename)
 				save("g_Entity[" .. e .. "]['haskey']", g_Entity[e]['haskey'])
 				save("g_Entity[" .. e .. "]['health']", g_Entity[e]['health'])
 				save("g_Entity[" .. e .. "]['frame']", g_Entity[e]['frame'])
-				save("g_EntityExtra[" .. e .. "]['visible']", GetEntityVisibility(e))
+				save("g_EntityExtra[" .. e .. "]['visible']", g_EntityExtra[e]['visible'])
 				save("g_EntityExtra[" .. e .. "]['spawnatstart']", GetEntitySpawnAtStart(e))
-				save("g_EntityExtra[" .. e .. "]['clonedsincelevelstart']", g_EntityExtra[e]['clonedsincelevelstart'])
+				save("g_EntityExtra[" .. e .. "]['clonedsincelevelstart']", GetEntityClonedSinceStartValue(e))
 			end
 		end
 	end
@@ -357,9 +358,9 @@ function gamedata.load(slotnumber)
 							g_Entity[i]['health'] = 0
 							g_Entity[i]['frame'] = 0
 							g_EntityExtra[i] = {}
-							g_EntityExtra[i]['visible'] = 0
-							g_EntityExtra[i]['spawnatstart'] = 0
-							g_EntityExtra[i]['clonedsincelevelstart'] = 0
+							--g_EntityExtra[i]['visible'] = -1
+							--g_EntityExtra[i]['spawnatstart'] = 0
+							--g_EntityExtra[i]['clonedsincelevelstart'] = 0
 						end
 					end
 				  end

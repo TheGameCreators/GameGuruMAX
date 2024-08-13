@@ -960,6 +960,7 @@ void entity_lua_refreshentity ( void )
 {
 	// all entity data updated directly, now  
 	// ensure visible entity matches data again (for reloading game)
+	bool bWeRestoredACloneSoRefresh = false;
 	t.obj = t.entityelement[t.e].obj;
 	if (t.obj == 0)
 	{
@@ -977,6 +978,11 @@ void entity_lua_refreshentity ( void )
 				// success, created in same slot ;)
 				// finally we can proceed as though object always existed in this level
 				t.obj = t.entityelement[t.e].obj;
+
+				// this fires up the entity!
+				t.entityelement[iNewE].active = 0;
+				t.entityelement[iNewE].lua.flagschanged = 123;
+				bWeRestoredACloneSoRefresh = true;
 			}
 		}
 	}
@@ -1011,8 +1017,17 @@ void entity_lua_refreshentity ( void )
 						}
 						else
 						{
-							// entity has been destroyed
-							iRefreshMode = 1;
+							if (bWeRestoredACloneSoRefresh == true)
+							{
+								// entiy just restored an object that was cloned in the level, then game saved, then reloaded
+								// and needs to be fully restored in its original cloned/spawned state
+								iRefreshMode = 5;
+							}
+							else
+							{
+								// entity has been destroyed
+								iRefreshMode = 1;
+							}
 						}
 					}
 				}

@@ -45,6 +45,7 @@ function ambienceinzone_main(e)
    g_EntityExtra[e]['restoremenow'] = 0
    if g_ambienceinzone_soundlooping > 0 then
     LoopNon3DSound(g_ambienceinzone_soundlooping,0)
+    SetSoundMusicMode(GetEntityRawSound(g_ambienceinzone_soundlooping,0),1)
    end
   end
  end

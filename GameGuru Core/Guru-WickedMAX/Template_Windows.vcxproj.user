@@ -11,7 +11,7 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTEST|x64'">
-    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\GGMAX USERS\BLOOD-MOON-ARROWTRAPLEVEL3ONLY\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\GAMESAVEANDLOADTESTER\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>

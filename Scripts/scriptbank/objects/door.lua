@@ -1,4 +1,4 @@
--- Door v26 by Lee and Necrym59
+-- Door v27 by Lee and Necrym59
 -- DESCRIPTION: Open and closes an 'animating' door when the player is within [Range=70(50,500)],
 -- DESCRIPTION: and when triggered will open the door, play <Sound0> and turn collision off after a delay of [DELAY=1000].
 -- DESCRIPTION: When the door is closed, play <Sound1> is played. You can elect to keep the door [Unlocked!=1], and customize the [LockedText$="Door locked. Find key"].
@@ -202,4 +202,14 @@ function door_main(e)
 	
 	-- navmesh blocker system
 	door[e]['blocking'] = NAVMESH.HandleBlocker(e,door[e]['blocking'],door[e]['originalx'],door[e]['originaly'],door[e]['originalz'])
+
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  if door[e]['mode'] == 0 then
+	   door.blocking = 1
+	  end
+     end
+	end	
 end

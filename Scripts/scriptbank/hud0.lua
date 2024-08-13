@@ -987,11 +987,35 @@ function hud0.main()
 											if floorlevelhitvalue ~= 0 then 
 												floorlevelfordrop = GetIntersectCollisionY()
 											end
-											local tdropresourcespawn = 0
+											local tcancelregulardrop = 0
 											if GetEntityCollectable(entityindex) == 2 then
 												local tqty = GetEntityQuantity(entityindex)
+												if tqty > 1 then
+													-- special resource drop
+													local entityResourceParentID = GetEntityParentID(entityindex)
+													local findunusedresourceee = 0
+													for ee = 1, g_EntityElementMax, 1 do
+														if entityindex ~= ee then
+															if g_Entity[ee] ~= nil then
+																if GetEntityParentID(ee) == entityResourceParentID then
+																	if GetEntityCollected(ee) ~= 0 then
+																		findunusedresourceee = ee
+																		break
+																	end
+																end
+															end
+														end
+													end
+													if findunusedresourceee > 0 then
+														SetEntityCollected(findunusedresourceee,0,0)
+														ResetPosition(findunusedresourceee,g_PlayerPosX,floorlevelfordrop,g_PlayerPosZ)
+														Show(findunusedresourceee)
+														SetEntityQuantity(entityindex,tqty-1)
+													end
+													tcancelregulardrop = 1
+												end
 											end
-											if tdropresourcespawn == 0 then
+											if tcancelregulardrop == 0 then
 												if panelname == "inventory:hotkeys" then
 													-- remove from hot key location
 													if hud0_gridSelectedIndex >= 0 and hud0_gridSelectedIndex <= 9 then
@@ -1077,9 +1101,10 @@ function hud0.main()
 													tqtyto = tqtyto + 1
 													SetEntityQuantity(entityindexto,tqtyto)
 												else
-													-- need to create new resource item in destination (as source still needs its item as not depleted)
+													-- need to create ONE new resource item in destination (as source still needs its item as not depleted)
 													local newe = SpawnNewEntity(entityindexfrom)
 													SetEntityCollected(newe,3,-1,tinventorydest)
+													SetEntityQuantity(newe,1)
 													SetEntityActive(newe,0)
 													g_UserGlobalContainerRefresh = 1
 												end

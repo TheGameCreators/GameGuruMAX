@@ -17839,7 +17839,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	{
 		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
-			if (t.entityelement[t.e].iWasSpawnedInGame == 1)
+			if (t.entityelement[t.e].iWasSpawnedInGame > 0)
 			{
 				t.obj = t.entityelement[t.e].obj;
 				if (t.obj > 0)

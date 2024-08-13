@@ -1,4 +1,4 @@
--- One way Door v3
+-- One way Door v4 by Necrum59 and Lee
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
 -- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is opened, will close and lock permanently after a few seconds delay or when closed.
 -- DESCRIPTION: <Sound0> When door is opened.
@@ -153,4 +153,14 @@ function oneway_door_main(e)
 
 	-- navmesh blocker system
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking,door.originalx,door.originaly,door.originalz)
+	
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  if door.state == 'Closed' then
+	   door.blocking = 1
+	  end
+     end
+	end	
 end

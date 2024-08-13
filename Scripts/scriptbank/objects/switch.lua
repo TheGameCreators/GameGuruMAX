@@ -1,4 +1,4 @@
--- Switch v16
+-- Switch v17 by Necrym59 and Lee
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Play the audio <Sound0> when the object is switched ON by the player, and <Sound1> when the object is switched OFF. 
 -- DESCRIPTION: Use the [SwitchedOn!=1] state to decide if the switch is initially off or on, and customize the [OnText$="E To Turn Switch ON"] and [OffText$="E To Turn Switch OFF"].
@@ -14,7 +14,7 @@ local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
 local switch 			= {}
-local initialstate 		= {}
+
 local ontext 			= {}
 local offtext 			= {}
 local userange 			= {}
@@ -33,8 +33,11 @@ local tplayerlevel 		= {}
 local sensecheck 		= {}
 local doonce			= {}
 
+-- when you wish the state to be preserved after a game save and reload, always use g_nameofscript, ie
+g_switch = {}
+
 function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel, switchtype, npc_trigger, item_highlight, prompt_display)
-	switch[e].initialstate = switchedon
+	g_switch[e].initialstate = switchedon
 	switch[e].ontext = ontext
 	switch[e].offtext = offtext
 	switch[e].userange = userange or 90
@@ -46,8 +49,9 @@ function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel
 end 
 
 function switch_init(e)
+	g_switch[e] = {}
+	g_switch[e].initialstate = 1
 	switch[e] = {}
-	switch[e].initialstate = 1
 	switch[e].ontext = "To Turn Switch ON"
 	switch[e].offtext = "To Turn Switch OFF"
 	switch[e].userange = 90	
@@ -76,21 +80,19 @@ function switch_main(e)
 	end
 	if switch[e].ontext == nil then switch[e].ontext = "To Turn Switch ON" end
 	if switch[e].offtext == nil then switch[e].offtext = "To Turn Switch OFF" end
-	if switch[e].initialstate ~= nil then
-		if switch[e].initialstate >=0 then
-			if switch[e].initialstate == 0 then SetActivatedWithMP(e,101) end
-			if switch[e].initialstate == 1 then SetActivatedWithMP(e,201) end
+	if g_switch[e].initialstate ~= nil then
+		if g_switch[e].initialstate >=0 then
+			if g_switch[e].initialstate == 0 then SetActivatedWithMP(e,101) end
+			if g_switch[e].initialstate == 1 then SetActivatedWithMP(e,201) end
 		end
 	end
-
 	local PlayerDist = GetPlayerDistance(e)
 	if PlayerDist < switch[e].userange then
 		--pinpoint select object--
 		module_misclib.pinpoint(e,switch[e].userange,switch[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
-	end	
-	
+	end		
 	if PlayerDist < switch[e].userange and tEnt[e] ~= 0 then
 		if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
 		if tplayerlevel[e] < tlevelrequired[e] then PromptLocal(e,"You need to be level "..tlevelrequired[e].." to use this switch") end
@@ -139,7 +141,6 @@ function switch_main(e)
 			end
 		end
 	end
-	
 	if switch[e].npc_trigger == 1 and doonce[e] == 0 then
 		if g_Time > sensecheck[e] then
 			for a = 1, g_EntityElementMax do
@@ -166,7 +167,6 @@ function switch_main(e)
 			sensecheck[e] = g_Time + 1000
 		end
 	end	
-	
 	-- proximity independence
 	if g_Entity[e].activated == 100 then
 		SetActivated(e,0)
@@ -174,11 +174,11 @@ function switch_main(e)
 	if g_Entity[e].activated == 101 then
 		SetAnimationName(e,"off")
 		PlayAnimation(e)
-		if switch[e].initialstate == -1 then 
+		if g_switch[e].initialstate == -1 then 
 			PerformLogicConnections(e)
 			PlaySound(e,1) 
 		end
-		switch[e].initialstate = -1
+		g_switch[e].initialstate = -1
 		SetActivated(e,102)
 	end
 	if g_Entity[e].activated == 102 then
@@ -187,17 +187,23 @@ function switch_main(e)
 	if g_Entity[e].activated == 201 then
 		SetAnimationName(e,"on")
 		PlayAnimation(e)
-		if switch[e].initialstate == -1 then 
+		if g_switch[e].initialstate == -1 then 
 			PerformLogicConnections(e)
 			ActivateIfUsed(e)
 			PlaySound(e,0) 
 		end
-		switch[e].initialstate = -1
+		g_switch[e].initialstate = -1
 		SetActivated(e,202)		
 	end
 	if g_Entity[e].activated == 202 then
 		if g_KeyPressE == 0 then SetActivated(e,1) end
 	end  
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+     end
+	end	
 end
 
 function GetFlatDistance(e,v)

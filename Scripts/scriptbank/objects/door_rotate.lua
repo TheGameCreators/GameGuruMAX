@@ -1,4 +1,4 @@
--- Door Rotate v25 - Necrym59 and AmenMoses and Lee
+-- Door Rotate v26 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is initially opened, play <Sound0>. When the door is closing, play <Sound1>.
 -- DESCRIPTION: Customize the [LockedText$="Door is locked. Find a way to unlock it"]
 -- DESCRIPTION: and optionally [!IsUnlocked=1]
@@ -254,4 +254,14 @@ function door_rotate_main(e)
 	-- navmesh blocker system (account for bounding size of entity)
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking, door.originalx,door.originaly, door.originalz)
 
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  if door.state == 'Closed' then
+	   door.blocking = 1
+	  end
+     end
+	end
+	
 end

@@ -407,14 +407,6 @@ void lua_loop_begin ( void )
 	LuaSetInt (  "g_PlayerLastHitTime", t.playercontrol.regentime );
 	LuaSetInt (  "g_PlayerDeadTime", t.playercontrol.deadtime );
 
-	#ifdef VRTECH
-	#else
-	LuaSetFloat ( "g_CheckpointX", t.playercheckpoint.x );
-	LuaSetFloat ( "g_CheckpointY", t.playercheckpoint.y );
-	LuaSetFloat ( "g_CheckpointZ", t.playercheckpoint.z );
-	LuaSetFloat ( "g_CheckpointAngle", t.playercheckpoint.a );
-	#endif
-
 	//  Quick detection of E key
 	if (  t.aisystem.processplayerlogic == 1 ) 
 	{
@@ -655,7 +647,8 @@ void lua_loop_begin ( void )
 	#endif
 
 	// continuing settinf of LUA globals
-	LuaSetInt ( "g_EntityElementMax", g.entityelementlist );	
+	LuaSetInt ( "g_EntityElementMax", g.entityelementlist);
+
 	LuaSetInt("g_PlayerUnderwaterMode", g.underwatermode); // PE: underwater mode active.
 
 	// 020316 - call the global loop once per cycle (for things like loading game states)
@@ -1313,9 +1306,6 @@ void lua_loop_finish (void)
 
 	// update engine global at end of all LUA activity this cycle
 	g.projectileEventType_explosion = LuaGetInt("g_projectileevent_explosion");
-
-	// always handle the entiy vis list
-	//entity_lua_getentityplrvisible_processlist(); moved to extra thread to calc for next cycle (includes all character intersectall calls!)
 }
 
 void lua_loop ( void )

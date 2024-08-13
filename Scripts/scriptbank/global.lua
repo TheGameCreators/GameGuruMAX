@@ -320,7 +320,7 @@ end
 
 function UpdateEntity(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,ani,hea,frm,pdst,avd,lmb,lmi)
  g_Entity[e] = {x=x; y=y; z=z; anglex=rx; angley=ry; anglez=rz; active=ave; activated=act; animating=ani; collected=col; haskey=key; plrinzone=zon; entityinzone=ezon; plrvisible=plrvis; obj=object; health=hea; strength=hea; frame=frm; timer=0; plrdist=pdst; avoid=avd; limbhit=lmb; limbhitindex=lmi; debuggermode=0;}
- g_EntityExtra[e] = {visible=1; spawnatstart=1; beingreset=0; collision=1; clonedsincelevelstart=0;}
+ g_EntityExtra[e] = {visible=-1; spawnatstart=1; beingreset=0; collision=1; clonedsincelevelstart=0;}
 end
 
 function UpdateEntityRT(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,hea,frm,pdst,avd,lmb,lmi)
@@ -768,9 +768,13 @@ function GetEntityInZone(e)
 end
 function Hide(e)
  SendMessageI_hide(e)
+ if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
+ g_EntityExtra[e]['visible'] = 0
 end
 function Show(e)
  SendMessageI_show(e)
+ if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
+ g_EntityExtra[e]['visible'] = 1
 end
 function HideLimb(e,limb)
  SendMessageI_hidelimbs(e,limb)
@@ -1509,6 +1513,7 @@ GetEntityCollBox : GetEntityCollBox ( e ) -- useful command see below (though ty
 GetEntityColBox : minx,miny,minz,maxx,maxy,maxz = GetEntityColBox ( e ) -- returns the unrotated boundbox for the specified entity
 GetEntityScales : sx,sy,sz = GetEntityScales ( e ) -- returns the XYZ scale of the specified entity
 GetEntityName : string = GetEntityName ( e ) -- will return the name of the entity specified by e
+GetEntityParentID : value = GetEntityParentID ( e ) -- will return the parent ID used by this entity
 GetMovementDeltaManually : GetMovementDeltaManually ( e ) -- useful command
 
 SetEntityUnderwaterMode: SetEntityUnderwaterMode ( e, mode ) -- Set mode to 1 to allow character entity to survive underwater

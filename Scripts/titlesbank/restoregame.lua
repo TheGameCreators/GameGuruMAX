@@ -39,12 +39,6 @@ function restoregame.now()
  for i = 1, g_EntityElementMax, 1 do
   if g_Entity[i] ~= nil then
   if g_Entity[i]['x'] ~= nil then
-   if g_EntityExtra[i]['clonedsincelevelstart'] ~= nil then 
-    if g_EntityExtra[i]['clonedsincelevelstart'] > 0 then 
-	 -- this entiy was cloned since level start (rabbits, etc) so must be created before can be restored
-	 RefreshEntityFromParent ( i, g_EntityExtra[i]['clonedsincelevelstart'] )
-    end
-   end
    if g_EntityExtra[i]['collision'] ~= nil then 
     if g_EntityExtra[i]['collision'] == 1 then 
      CollisionOn(i) 
@@ -59,7 +53,17 @@ function restoregame.now()
    SetEntityCollected ( i, math.abs(g_Entity[i]['collected'])*-1 )
    SetEntityHasKey ( i, g_Entity[i]['haskey'] )
    SetEntityHealth ( i, g_Entity[i]['health'] )
-   RefreshEntity ( i )
+   local regularorclonerefresh = 0
+   if g_EntityExtra[i]['clonedsincelevelstart'] ~= nil then 
+    if g_EntityExtra[i]['clonedsincelevelstart'] > 0 then 
+	 -- this entiy was cloned since level start (rabbits, etc) so must be created before can be restored
+	 RefreshEntityFromParent ( i, g_EntityExtra[i]['clonedsincelevelstart'] )
+	 regularorclonerefresh = 1
+    end
+   end
+   if regularorclonerefresh == 0 then
+    RefreshEntity ( i )
+   end
    -- RefreshEntity restores collision to default, so override again
    if g_EntityExtra[i]['collision'] ~= nil then 
     if g_EntityExtra[i]['collision'] == 1 then 
@@ -70,11 +74,13 @@ function restoregame.now()
    end
    SetAnimationFrame ( i, g_Entity[i]['frame'] )
    if g_EntityExtra[i]['visible'] ~= nil then 
-    if g_EntityExtra[i]['visible']==1 then
-     Show ( i )
-    else
-     Hide ( i )
-    end
+    if g_EntityExtra[i]['visible']~=-1 then
+	 if g_EntityExtra[i]['visible']==1 then
+	  Show ( i )
+	 else
+	  Hide ( i )
+	 end
+	end
    end
    if g_EntityExtra[i]['spawnatstart'] ~= nil then 
     SetEntitySpawnAtStart ( i, g_EntityExtra[i]['spawnatstart'] )
@@ -103,36 +109,46 @@ function restoregame.now()
 		inventorycontainer = g_UserContainerName[c]
 		MakeInventoryContainer(inventorycontainer)
 		-- main and hotkeys cannot use E as they are level-specific, so use collectionindex and spawning
+		local invindex = 1
+		if c == 1 then invindex = 2 end
+		if c  > 1 then invindex = 3 end
 		if c == 0 or c == 1 then
 			-- player specific, use collection index
 			local tinventoryqty = g_UserContainerCount[c]
 			for tinventoryindex = 1, tinventoryqty, 1 do
 				local fulloffset = (c*100000)+tinventoryindex
 				if g_UserContainerIndex[fulloffset] ~= nil then
-					local tcollectionindex = g_UserContainerIndex[fulloffset]
+					local tcollectione = g_UserContainerE[fulloffset]
 					local qty = g_UserContainerQty[fulloffset]
 					local slot = g_UserContainerSlot[fulloffset]
-					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-					local anyee = 0
-					for ee = 1, g_EntityElementMax, 1 do
-						if g_Entity[ee] ~= nil then
-							if g_Entity[ee]['active'] > 0 then
-								if GetEntityName(ee) == tname then
-									anyee = ee
-									break
+					if tcollectione > 0 then
+						-- entity known
+						SetEntityCollectedForce(tcollectione,invindex,slot)
+						SetEntityQuantity(tcollectione,qty)
+					else
+						-- entity not known
+						local tcollectionindex = g_UserContainerIndex[fulloffset]
+						local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+						local anyee = 0
+						for ee = 1, g_EntityElementMax, 1 do
+							if g_Entity[ee] ~= nil then
+								if g_Entity[ee]['active'] > 0 then
+									if GetEntityName(ee) == tname then
+										anyee = ee
+										break
+									end
 								end
 							end
 						end
-					end
-					if c == 0 then invindex = 1 end
-					if c == 1 then invindex = 2 end
-					if anyee > 0 then
-						-- can use thisd spawned one as parent loaded in the level
-						local newe = SpawnNewEntity(anyee)
-						SetEntityCollectedForce(newe,invindex,slot)
-					else
-						-- is not yet spawned or existing, so include in inventory via tcollectionindex
-						SetEntityCollectedForce(0,invindex,slot,inventorycontainer,tcollectionindex)
+						if anyee > 0 then
+							-- can use thisd spawned one as parent loaded in the level
+							local newe = SpawnNewEntity(anyee)
+							SetEntityCollectedForce(newe,invindex,slot)
+							SetEntityQuantity(newe,qty)
+						else
+							-- is not yet spawned or existing, so include in inventory via tcollectionindex
+							SetEntityCollectedForce(0,invindex,slot,inventorycontainer,tcollectionindex)
+						end
 					end
 				end
 			end
@@ -152,17 +168,24 @@ function restoregame.now()
 				end
 			end
 		else
-			-- level specific, can use E
+			-- level specific (maybe use E in the future)
 			local tinventoryqty = g_UserContainerCount[c]
 			for tinventoryindex = 1, tinventoryqty, 1 do
 				local fulloffset = (c*100000)+tinventoryindex
 				if g_UserContainerIndex[fulloffset] ~= nil then
-					local tcollectionindex = g_UserContainerIndex[fulloffset]
-					--local tcollectione = g_UserContainerE[fulloffset]
-					local qty = g_UserContainerQty[fulloffset]
+					local tcollectione = g_UserContainerE[fulloffset]
 					local slot = g_UserContainerSlot[fulloffset]
-					local tname = GetCollectionItemAttribute(tcollectionindex,"title")
-					SetEntityCollectedForce(0,3,slot,inventorycontainer,tcollectionindex)
+					local qty = g_UserContainerQty[fulloffset]
+					--if tcollectione > 0 then
+					--	-- entity known
+					--	SetEntityCollectedForce(tcollectione,invindex,slot,inventorycontainer)
+					--	SetEntityQuantity(tcollectione,qty)
+					--else
+					-- entity not known
+					local tcollectionindex = g_UserContainerIndex[fulloffset]
+					--local tname = GetCollectionItemAttribute(tcollectionindex,"title")
+					SetEntityCollectedForce(tcollectione,3,slot,inventorycontainer,tcollectionindex,qty)
+					--end
 				end
 			end
 		end

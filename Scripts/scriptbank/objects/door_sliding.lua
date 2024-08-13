@@ -1,4 +1,4 @@
--- Door Sliding v32 - Necrym59 and AmenMoses and Lee
+-- Door Sliding v33 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Open and close a sliding door. 
 -- DESCRIPTION: [MOVE_ANGLE=0(0,360)] 
 -- DESCRIPTION: [MOVE_DISTANCE=90] 
@@ -379,4 +379,13 @@ function door_sliding_main(e)
 	end
 	-- navmesh blocker system
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking,door.originalx,door.originaly,door.originalz)	
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  if door.mode == 'closed' then
+	   door.blocking = 1
+	  end
+     end
+	end	
 end

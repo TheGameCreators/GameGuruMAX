@@ -1139,7 +1139,7 @@ luaMessage** ppLuaMessages = NULL;
 	// bForceMode when true will ignore state of entity, only interested in adding to inventory (used for saved game restoring)
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 2 || n > 5 ) return 0;
+	if ( n < 2 || n > 6 ) return 0;
 	int iReturnSlot = -1;
 	bool bItemHandled = false;
 	bool bRemoveEntityFromGame = false;
@@ -1157,6 +1157,8 @@ luaMessage** ppLuaMessages = NULL;
 		if (n >= 4) pSpecifiedContainer = lua_tostring(L, 4);
 		int iOptionalCollectionID = -1;
 		if (n >= 5) iOptionalCollectionID = lua_tonumber(L, 5);
+		int iQty = 1;
+		if (n >= 6) iQty = lua_tonumber(L, 6);
 		for (int containerindex = 0; containerindex < t.inventoryContainers.size(); containerindex++)
 		{
 			if (iCollectState > 0)
@@ -1229,6 +1231,11 @@ luaMessage** ppLuaMessages = NULL;
 							{
 								item.collectionID = find_rpg_collectionindex(t.entityelement[iEntityIndex].eleprof.name_s.Get());
 							}
+							if (item.collectionID == 0)
+							{
+								// if not found from entity details, fall back to specified container item passed in
+								item.collectionID = -1;
+							}
 						}
 						if(item.collectionID==-1)
 						{
@@ -1259,6 +1266,7 @@ luaMessage** ppLuaMessages = NULL;
 							if (t.entityelement[iEntityIndex].eleprof.iscollectable == 2)
 							{
 								int iQtyToCheck = t.entityelement[iEntityIndex].eleprof.quantity;
+								if (bForceMode == true ) iQtyToCheck  = iQty;
 								if (iQtyToCheck < 1) iQtyToCheck = 1;
 								t.entityelement[iEntityIndex].eleprof.quantity = iQtyToCheck;
 							}
@@ -1610,6 +1618,18 @@ luaMessage** ppLuaMessages = NULL;
 	return 1;
  }
 
+ int GetEntityClonedSinceStartValue(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iReturnValue = 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 iReturnValue = t.entityelement[iEntityIndex].iWasSpawnedInGame;
+	 lua_pushinteger (L, iReturnValue);
+	 return 1;
+ }
+
  int SetPreExitValue(lua_State *L)
  {
 	lua = L;
@@ -1781,6 +1801,7 @@ luaMessage** ppLuaMessages = NULL;
 						}
 						case 22: fReturnValue = t.entityelement[iEntityIndex].eleprof.phyalways; break;
 						case 23: fReturnValue = t.entityelement[iEntityIndex].iCanGoUnderwater; break;
+						case 24: fReturnValue = t.entityelement[iEntityIndex].bankindex; break;
 					}
 				}
 			}
@@ -1876,6 +1897,8 @@ luaMessage** ppLuaMessages = NULL;
 
  int SetEntityUnderwaterMode(lua_State* L) { return RawSetEntityData (L, 23); }
  int GetEntityUnderwaterMode(lua_State* L) { return GetEntityData (L, 23); }
+
+ int GetEntityParentID(lua_State* L) { return GetEntityData (L, 24); }
 
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
@@ -2591,6 +2614,7 @@ luaMessage** ppLuaMessages = NULL;
 				 t.entityelement[t.e] = t.storeentityelement[t.e];
 			 }
 		 }
+		 if (iEntityIndex > g.entityelementlist) g.entityelementlist = iEntityIndex;
 	 }
  }
 
@@ -2647,7 +2671,7 @@ luaMessage** ppLuaMessages = NULL;
 	// special limbo mode to skip activating this entity until next lua_begin cycle
 	t.entityelement[iNewE].active = 0;
 	t.entityelement[iNewE].lua.flagschanged = 123;
-	t.entityelement[iNewE].iWasSpawnedInGame = 1;
+	t.entityelement[iNewE].iWasSpawnedInGame = iEntityIndex;
 	t.e = storee;
 	t.entid = storeentid;
 	t.gridentity = 0;
@@ -4916,6 +4940,7 @@ int SetSoundMusicMode(lua_State* L)
 	extern bool g_bSoundIsMusic[65536];
 	int iSoundIndex = lua_tonumber(L, 1);
 	g_bSoundIsMusic[iSoundIndex] = lua_tonumber(L, 2);
+	audio_volume_update();
 	return 1;
 }
 int GetSoundMusicMode(lua_State* L)
@@ -11647,7 +11672,9 @@ void addFunctions()
 
 	lua_register(lua, "SetEntityUnderwaterMode", SetEntityUnderwaterMode);
 	lua_register(lua, "GetEntityUnderwaterMode", GetEntityUnderwaterMode);
-	
+
+	lua_register(lua, "GetEntityParentID", GetEntityParentID);
+
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);
 	lua_register(lua, "GetEntityAllegiance", GetEntityAllegiance);
@@ -11688,6 +11715,7 @@ void addFunctions()
 	lua_register(lua, "SetEntitySpawnAtStart", SetEntitySpawnAtStart);
 	lua_register(lua, "GetEntitySpawnAtStart", GetEntitySpawnAtStart);
 	lua_register(lua, "GetEntityFilePath", GetEntityFilePath);
+	lua_register(lua, "GetEntityClonedSinceStartValue", GetEntityClonedSinceStartValue);
 	lua_register(lua, "SetPreExitValue", SetPreExitValue);
 
 	lua_register(lua, "SetEntityAnimation", SetEntityAnimation);

@@ -90,7 +90,7 @@ void entity_init ( void )
 	//PE: Could we use collisionmode == 0 and only create it as a box ? and not all faces.
 	//PE: t.tobstype=t.entityprofile[t.entid].forcesimpleobstacle = true;
 	//PE: This takes 30 sec. and take 400 MB. mem in FatherIsland, perhaps another faster way could be made.
-	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
+	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
 		if (  t.entid>0 ) 

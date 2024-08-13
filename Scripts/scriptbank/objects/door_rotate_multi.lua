@@ -1,4 +1,4 @@
--- Door Rotate Multi - v24 Necrym59 and AmenMoses and Lee
+-- Door Rotate Multi - v25 Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door by zone, switch or player.
 -- DESCRIPTION: [@DOOR_STYLE=1(1=Manual,2=Switch/Zone, 3=Auto)]
 -- DESCRIPTION: Change the [OPEN_PROMPT$="Press E to open door"]
@@ -180,6 +180,15 @@ function door_rotate_multi_main( e )
 	end
 	-- navmesh blocker system
 	door.blocking = NAVMESH.HandleBlocker(e,door.blocking,door.origx,door.origy,door.origz)
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  if door.state == 'closed' then
+	   door.blocking = 1
+	  end
+     end
+	end	
 end
 
 function RotateDoor( e, door )

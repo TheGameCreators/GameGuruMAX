@@ -1481,6 +1481,7 @@ GetCameraAngleZ : V = GetCameraAngleZ ( c ) where V is the Z angle of the specif
 
 ForcePlayer : ForcePlayer ( angle, velocity ) where angle is the angle and physics velocity to push the player
 
+GetOriginalEntityElementMax: count = GetOriginalEntityElementMax() -- get original count of entities in level at fresh start
 SetEntityActive: SetEntityActive ( e, active flag ) -- Sets the entity data directly, e is entity index
 SetEntityActivated: SetEntityActivated ( e, activated flag ) -- Sets the entity data directly, e is entity index
 SetEntityHasKey : SetEntityHasKey ( e, haskey flag ) -- Sets the entity data directly, e is entity index
@@ -1668,6 +1669,7 @@ GetDeviceHeight: GetDeviceHeight() -- returns the current display height in pixe
 
 GetTimeElapsed: GetTimeElapsed() -- returns the time elapsed since the last cycle
 GetKeyState: x=GetKeyState(y) -- returns 1 in x when keycode specified in y is pressed
+SetGlobalTimer: SetGlobalTimer(milliseconds) -- adjusts the time returned by Timer() and g_Time to a new system time
 Timer: x=Timer() -- returns the global time in milliseconds since the system started
 MouseMoveX: x=MouseMoveX() -- returns the mouse delta since the last time it was called
 MouseMoveY: y=MouseMoveY() -- returns the mouse delta since the last time it was called

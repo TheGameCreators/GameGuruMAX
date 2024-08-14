@@ -253,7 +253,6 @@ function gamedata.save(slotnumber,uniquename)
 	
 						-- oddes and ends
 						if n == "g_InKey" then dumpout = 0
-							elseif n == "g_Time" then dumpout = 0
 							elseif n == "g_TimeElapsed" then dumpout = 0
 							elseif n == "g_GameStateChange" then dumpout = 0
 							elseif n == "g_LevelFilename" then dumpout = 0
@@ -292,8 +291,6 @@ end
 
 function gamedata.load(slotnumber)
 
-	-- if cloned extra entities in the game save, need to creatr these in the table
-	local oldEntityElementMax = g_EntityElementMax
 	-- load game data
 	successful = 0
 	--local file = assert(io.open("savegames\\gameslot" .. slotnumber .. ".dat", "r"))
@@ -314,6 +311,12 @@ function gamedata.load(slotnumber)
 			local err
 			
 			if string.find(strField,"{}$") == nil and string.find(strField, "=") then -- crashes  if {} ?  and need  = so skip
+
+				-- if cloned extra entities in the game save, need to creatr these in the table
+				local oldEntityElementMax = 0
+				if string.sub(strField,1,18) == "g_EntityElementMax" then
+					oldEntityElementMax = GetOriginalEntityElementMax()
+				end
 
 				if string.sub(strField,1,14) == "g_UserGlobal['" then
 					i, j = string.find(strField,"=")
@@ -358,9 +361,6 @@ function gamedata.load(slotnumber)
 							g_Entity[i]['health'] = 0
 							g_Entity[i]['frame'] = 0
 							g_EntityExtra[i] = {}
-							--g_EntityExtra[i]['visible'] = -1
-							--g_EntityExtra[i]['spawnatstart'] = 0
-							--g_EntityExtra[i]['clonedsincelevelstart'] = 0
 						end
 					end
 				  end

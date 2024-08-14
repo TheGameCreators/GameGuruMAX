@@ -17126,29 +17126,10 @@ void editor_showquickstart ( int iForceMainOpen )
 	t.inputsys.ymouse=0;
 }
 
-void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
+void editor_preparewindow (int iUseVRTest)
 {
-	//  store if project modified
-	t.storeprojectmodified=g.projectmodified;
-	g_tstoreprojectmodifiedstatic = g.projectmodifiedstatic; 
-
-	//  flag that we clicked TEST GAME
-	t.interactive.testgameused=1;
-
-	g.tabmodehidehuds = 0; //Enable HUD if lua disabled it in prev session.
-
-	//  Before launch test game, check if enough contiguous
-	checkmemoryforgracefulexit();
-
-#ifdef ENABLEIMGUI
-#ifndef USEOLDIDE
 	//PE: Test game mode.
-//	extern DWORD gWindowSizeX;
-//	extern DWORD gWindowSizeY;
 	extern DWORD gWindowVisible;
-
-	//gWindowSizeXOld = GetChildWindowWidth(-1); wrong size to restore!
-	//gWindowSizeYOld = GetChildWindowHeight(-1);
 
 	RECT rect = { NULL };
 	GetWindowRect(g_pGlob->hWnd, &rect);
@@ -17165,8 +17146,6 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 		gWindowMaximized = 1;
 	else
 		gWindowMaximized = 0;
-#endif
-#endif
 
 	HMONITOR monitor = MonitorFromWindow(g_pGlob->hWnd, MONITOR_DEFAULTTONEAREST);
 	MONITORINFO info;
@@ -17178,24 +17157,44 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	g_pGlob->dwWindowY = info.rcMonitor.top;
 
 	//  First call will toggle keyboard/mouse back to BACKGROUND (to capture all direct data)
-	SetWindowModeOn (  );
+	SetWindowModeOn ();
 
-#ifdef ENABLEIMGUI
-#ifndef USEOLDIDE
 	//PE: Test game mode.
 	SetWindowSettings(0, 0, 0);
 	SetWindowPos(g_pGlob->hWnd, HWND_TOP, g_pGlob->dwWindowX, g_pGlob->dwWindowY, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	SetForegroundWindow(g_pGlob->hWnd);
 	SetWindowSize(monitor_width, monitor_height);
 	ShowWindow(); MaximiseWindow();
+}
 
+void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
+{
+	//  store if project modified
+	t.storeprojectmodified=g.projectmodified;
+	g_tstoreprojectmodifiedstatic = g.projectmodifiedstatic; 
+
+	//  flag that we clicked TEST GAME
+	t.interactive.testgameused=1;
+
+	g.tabmodehidehuds = 0; //Enable HUD if lua disabled it in prev session.
+
+	//  Before launch test game, check if enough contiguous
+	checkmemoryforgracefulexit();
+
+	// called here for non-standalone
+	if (t.game.gameisexe == 0)
+	{
+		editor_preparewindow(iUseVRTest);
+	}
+	else
+	{
+		// and called earlier before splash screen so no flicker!
+	}
+	 
 	//Hide any windows outside main viewport.
 	ImGui::HideAllViewPortWindows();
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	//SetWindowLong(g_pGlob->hWnd, GWL_WNDPROC, (LONG)WindowProc);
-
-#endif
-#endif
 
 	//  center mouse pointer in editor (and hide it)
 	game_hidemouse ( );

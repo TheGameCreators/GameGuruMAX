@@ -21,6 +21,7 @@ function restoregame.now()
  end
  SetPlayerHealth(iPlayerHealth)
  SetPlayerLives(iPlayerLives)
+ SetGlobalTimer(g_Time)
  -- restore weapon stats
  ResetWeaponSystems()
  for i = 1, 10, 1 do
@@ -35,32 +36,29 @@ function restoregame.now()
  end 
  ChangePlayerWeapon(strPlayerGunName)
  -- restore entity stats
- CreateEntityIfNotPresent(g_EntityElementMax)
+ if g_restoregame_mode == 0 then
+  CreateEntityIfNotPresent(g_EntityElementMax)
+ end
  for i = 1, g_EntityElementMax, 1 do
   if g_Entity[i] ~= nil then
   if g_Entity[i]['x'] ~= nil then
-   if g_EntityExtra[i]['collision'] ~= nil then 
-    if g_EntityExtra[i]['collision'] == 1 then 
-     CollisionOn(i) 
-    else
-     CollisionOff(i) 
+   SetEntityActive ( i, g_Entity[i]['active'] )
+   local regularorclonerefresh = 0
+   if g_restoregame_mode == 0 then
+    if g_EntityExtra[i]['clonedsincelevelstart'] ~= nil then 
+     if g_EntityExtra[i]['clonedsincelevelstart'] > 0 then 
+	  -- this entiy was cloned since level start (rabbits, etc) so must be created before can be restored
+	  RefreshEntityFromParent ( i, g_EntityExtra[i]['clonedsincelevelstart'] )
+	  regularorclonerefresh = 1
+     end
     end
    end
    ResetPosition ( i, g_Entity[i]['x'], g_Entity[i]['y'], g_Entity[i]['z'] )
    ResetRotation ( i, g_Entity[i]['anglex'], g_Entity[i]['angley'], g_Entity[i]['anglez'] )
-   SetEntityActive ( i, g_Entity[i]['active'] )
    SetEntityActivated ( i, g_Entity[i]['activated'] )
    SetEntityCollected ( i, math.abs(g_Entity[i]['collected'])*-1 )
    SetEntityHasKey ( i, g_Entity[i]['haskey'] )
    SetEntityHealth ( i, g_Entity[i]['health'] )
-   local regularorclonerefresh = 0
-   if g_EntityExtra[i]['clonedsincelevelstart'] ~= nil then 
-    if g_EntityExtra[i]['clonedsincelevelstart'] > 0 then 
-	 -- this entiy was cloned since level start (rabbits, etc) so must be created before can be restored
-	 RefreshEntityFromParent ( i, g_EntityExtra[i]['clonedsincelevelstart'] )
-	 regularorclonerefresh = 1
-    end
-   end
    if regularorclonerefresh == 0 then
     RefreshEntity ( i )
    end

@@ -124,6 +124,16 @@ bool GuruLoopLogic ( void )
 			{
 				// start init sequence
 				g_iInitializationSequence = 1;
+
+				// sort out window BEFORE the splash for flicker free transition from splash
+				char pWhereAreWe[MAX_PATH];
+				GetCurrentDirectoryA(MAX_PATH, pWhereAreWe);
+				strcat(pWhereAreWe, "\\WorkshopTrustedItems.ini");
+				if(FileExist(pWhereAreWe)==0)
+				{
+					extern void editor_preparewindow(int);
+					editor_preparewindow(0);
+				}
 				break;
 			}
 			case 1:

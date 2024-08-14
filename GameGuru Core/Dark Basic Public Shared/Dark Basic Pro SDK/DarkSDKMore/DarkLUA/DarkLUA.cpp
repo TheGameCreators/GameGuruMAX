@@ -2587,6 +2587,14 @@ luaMessage** ppLuaMessages = NULL;
 
  // Entity creation and destruction
 
+ int GetOriginalEntityElementMax(lua_State* L)
+ {
+	 lua = L;
+	 int iEntityCount = g.entityelementlist;
+	 lua_pushinteger (L, iEntityCount);
+	 return 1;
+ }
+
  int CreateEntityIfNotPresent(lua_State* L)
  {
 	 lua = L;
@@ -4996,6 +5004,19 @@ int GetKeyState ( lua_State *L )
 	if ( n < 1 ) return 0;
 	int iKeyValue = lua_tonumber(L, 1);
 	lua_pushnumber ( L, KeyState(g.keymap[iKeyValue]) );
+	return 1;
+}
+
+int SetGlobalTimer (lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iRestoreToTime = lua_tonumber(L, 1);
+	extern DWORD g_dwAppLocalTimeStart;
+	extern void SetLocalTimerReset(void);
+	SetLocalTimerReset();
+	g_dwAppLocalTimeStart -= iRestoreToTime;
 	return 1;
 }
 
@@ -11741,6 +11762,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityAnimationStartFinish", GetEntityAnimationStartFinish);
 	
 	// Entity creation/destruction
+	lua_register(lua, "GetOriginalEntityElementMax", GetOriginalEntityElementMax);
 	lua_register(lua, "CreateEntityIfNotPresent", CreateEntityIfNotPresent);
 	lua_register(lua, "SpawnNewEntity", SpawnNewEntity);
 	lua_register(lua, "DeleteNewEntity", DeleteNewEntity);
@@ -11902,7 +11924,8 @@ void addFunctions()
 
 	lua_register(lua, "GetTimeElapsed" , GetTimeElapsed );
 	lua_register(lua, "GetKeyState" , GetKeyState );
-	lua_register(lua, "Timer" , GetGlobalTimer );
+	lua_register(lua, "SetGlobalTimer" , SetGlobalTimer);
+	lua_register(lua, "Timer", GetGlobalTimer);
 	lua_register(lua, "MouseMoveX" , MouseMoveX );
 	lua_register(lua, "MouseMoveY" , MouseMoveY );
 	lua_register(lua, "GetDesktopWidth" , GetDesktopWidth );

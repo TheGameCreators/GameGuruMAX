@@ -111,6 +111,7 @@ end
 
 function hud0.refreshHUD()
 	-- populate local HUD containers with collection list
+	local interestingtodebug = ""
 	local tgridqty = GetScreenElementsType("user defined global panel")
 	for gridi = 1, tgridqty, 1 do
 		local thegridelementID = GetScreenElementTypeID("user defined global panel",gridi)
@@ -190,13 +191,13 @@ function hud0.refreshHUD()
 							end
 							if itemindex == -1 then
 								itemindex = tslotindex
-								if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] == nil then
-									-- add this new arrival
-									hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
-									hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
-									local tentityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
-									hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tentityindex
-								end
+								--if hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] == nil then could replace some old item that was the same type but new E
+								-- add this new arrival
+								hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][gridi][itemindex] = tcollectionindex
+								hud0_playercontainer_img[hud0_playercontainer_screenID][gridi][itemindex] = LoadImage(titemimg)
+								local tentityindex = GetInventoryItemID(inventorycontainer,tinventoryindex)
+								hud0_playercontainer_e[hud0_playercontainer_screenID][gridi][itemindex] = tentityindex
+								--end
 							end
 						end
 					end
@@ -230,6 +231,7 @@ function hud0.refreshHUD()
 			end
 		end
 	end
+	if interestingtodebug > "" then PromptDuration("refreshHUD:"..interestingtodebug,4000) end
 end
 
 function hud0.main()

@@ -1086,6 +1086,20 @@ void entity_lua_refreshentity ( void )
 					entity_lua_collisionon();
 				}
 
+				// handle particles that may have been activated
+				if (iRefreshMode == 2)
+				{
+					// special case if particle was activated (and not spawned at start, need to show)
+					if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
+					{
+						// show/hide if particle based on activation state
+						if (t.entityelement[t.e].activated == 1)
+						{
+							entity_lua_manageactivationresult(t.e);
+						}
+					}
+				}
+
 				// this entity needs to be in 'unspawned state'
 				if ( iRefreshMode == 3 )
 				{

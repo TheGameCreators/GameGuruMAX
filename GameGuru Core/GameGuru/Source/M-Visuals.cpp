@@ -961,6 +961,8 @@ void visuals_save ( void )
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.wind_randomness=" + Str(t.visuals.wind_randomness);
 	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.bpp_disable_indoor=" + Str(t.visuals.bpp_disable_indoor);
+	WriteString(1, t.strwork.Get());
 
 	t.strwork = ""; t.strwork = t.strwork + "visuals.LevelDifficulty=" + Str(t.visuals.fLevelDifficulty);
 	WriteString(1, t.strwork.Get());
@@ -1534,6 +1536,7 @@ void visuals_load ( void )
 			t.try_s = "visuals.wind_direction_z"; if (t.tfield_s == t.try_s)  t.visuals.wind_direction_z = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.wind_speed"; if (t.tfield_s == t.try_s)  t.visuals.wind_speed = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.wind_randomness"; if (t.tfield_s == t.try_s)  t.visuals.wind_randomness = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.bpp_disable_indoor"; if (t.tfield_s == t.try_s)  t.visuals.bpp_disable_indoor = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.LevelDifficulty"; if (t.tfield_s == t.try_s)  t.visuals.fLevelDifficulty = ValF(t.tvalue_s.Get());
 

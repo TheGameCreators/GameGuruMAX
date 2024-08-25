@@ -8232,7 +8232,15 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 105 : lua_pushnumber ( L, g.ggunmeleekey ); break;
 		case 106 : lua_pushnumber ( L, t.player[t.plrid].state.blockingaction ); break;
 		case 107 : lua_pushnumber ( L, t.gunshootnoammo ); break;		
-		case 108 : lua_pushnumber ( L, g.playerunderwater ); break;		
+
+		case 108 :
+			//PE: Now controlled in lua. old (lua_pushnumber(L, g.playerunderwater); )
+			if(t.playercontrol.inwaterstate >= 2)
+				lua_pushnumber ( L, 1 );
+			else
+				lua_pushnumber(L, 0);
+			break;
+
 		case 109 : lua_pushnumber ( L, g.gdisablerightmousehold ); break;		
 		case 110 : lua_pushnumber ( L, g.gxbox ); break;		
 		case 111 : lua_pushnumber ( L, JoystickX() ); break;

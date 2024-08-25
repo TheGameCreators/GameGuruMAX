@@ -6708,6 +6708,20 @@ void WickedCall_SetRenderTargetMouseFocus(bool focus)
 	bRenderTargetHasFocus = focus;
 }
 
+
+
+void WickedCall_UpdateWaterColor(float red, float green, float blue)
+{
+	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+	if (weather)
+	{
+		XMFLOAT4 oldColor = weather->oceanParameters.waterColor;
+		XMFLOAT4 waterColor = XMFLOAT4(red / 255.0f, green / 255.0f, blue / 255.0f, oldColor.w);
+		weather->oceanParameters.waterColor = waterColor;
+	}
+}
+
+
 void WickedCall_UpdateWaterHeight(float height)
 {
 	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);

@@ -205,6 +205,7 @@ void WickedCall_GetLightShaftParameters(float& density, float& weight, float& de
 void WickedCall_SetRenderTargetMouseFocus(bool focus);
 
 void WickedCall_UpdateWaterHeight(float height);
+void WickedCall_UpdateWaterColor(float red, float green, float blue);
 
 void WickedCall_RemoveObjectTextures(sObject* pObject);
 

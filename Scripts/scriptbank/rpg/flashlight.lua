@@ -19,7 +19,7 @@
 -- DESCRIPTION: [@PICKUP_TRIGGER=1(1=Off, 2=On)]
 -- DESCRIPTION: [@DEPLETION_TRIGGER=1(1=None, 2=ActivateIfUsed, 3=Lose Game)]
 -- DESCRIPTION: [UltraVioletMode!=0] highlights transparent enemies.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyBatteryEnergy"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyBatteryEnergy)
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: [LightRangeKill!=0] will kill entity within light range and radius.
 -- DESCRIPTION: <Sound0> for Pickup sound
@@ -115,7 +115,7 @@ function flashlight_init(e)
 	flashlight[e].pickup_trigger = 1
 	flashlight[e].depletion_trigger = 1
 	flashlight[e].UltraVioletMode =	0
-	flashlight[e].user_global_affected = "MyBatteryEnergy"
+	flashlight[e].user_global_affected = ""
 	flashlight[e].item_highlight = 0
 	flashlight[e].LightRangeKill = 0
 	

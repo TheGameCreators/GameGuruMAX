@@ -1,10 +1,14 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Sleep v3 by Necrym59
+-- Sleep v6 by Necrym59
 -- DESCRIPTION: Allows player to sleep for the time set
 -- DESCRIPTION: [USE_RANGE=80(0,300)]
 -- DESCRIPTION: [PROMPT_TEXT$="E to sleep"]
 -- DESCRIPTION: [USE_TEXT$="1-8 to set Hours, Press ENTER to confirm"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global to affect eg: MyFatigue
+-- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
+-- DESCRIPTION: [EFFECT_AMOUNT=0(0,300)] for every hour sleep
+-- DESCRIPTION: [EFFECT_HEALTH!=0] with effect amount every hour sleep
 -- DESCRIPTION: <Sound0> Sleeping Sound
 
 g_sunrollposition = {}
@@ -14,23 +18,31 @@ local sleep					= {}
 local use_range				= {}
 local prompt_text			= {}
 local use_text				= {}
-local time_period 			= {}
 local prompt_display		= {}
-	
+local user_global_affected	= {}
+local effect				= {}
+local effect_amount			= {}
+local effect_health			= {}
+local time_period 			= {}
+
 local status			= {}
 local pressed			= {}
 local sleep_sprite 		= {}
 local current_level 	= {}
 local timeshift			= {}
 local timecheck			= {}
+local currentvalue		= {}
 	
-function sleep_properties(e, use_range, prompt_text, use_text, prompt_display, time_period )
+function sleep_properties(e, use_range, prompt_text, use_text, prompt_display, user_global_affected, effect, effect_amount, effect_health)
 	sleep[e].use_range = use_range
 	sleep[e].prompt_text = prompt_text
 	sleep[e].use_text = use_text
-	sleep[e].prompt_display = prompt_display	
-	sleep[e].time_period = 0
-	
+	sleep[e].prompt_display = prompt_display
+	sleep[e].user_global_affected = user_global_affected
+	sleep[e].effect = effect
+	sleep[e].effect_amount = effect_amount
+	sleep[e].effect_health = effect_health
+	sleep[e].time_period = 0	
 end
 
 function sleep_init(e)
@@ -39,6 +51,10 @@ function sleep_init(e)
 	sleep[e].prompt_text = "E to sleep"
 	sleep[e].use_text = "1-8 to set Hours, Press ENTER to confirm"
 	sleep[e].prompt_display = 1
+	sleep[e].user_global_affected = ""	
+	sleep[e].effect = 1	
+	sleep[e].effect_amount = 0	
+	sleep[e].effect_health = 0
 	sleep[e].time_period = 0	
 	
 	status[e] = "init"
@@ -46,6 +62,7 @@ function sleep_init(e)
 	current_level[e] = 0
 	timeshift[e] = 0
 	timecheck[e] = 0
+	currentvalue[e] = 0
 	g_updatedposition = 0
 end
 
@@ -90,6 +107,30 @@ function sleep_main(e)
 		if timeshift[e] < tonumber(sleep[e].time_period) and g_Time > timecheck[e] then
 			g_updatedposition = g_updatedposition + 15
 			timeshift[e] = timeshift[e] + 1
+			if sleep[e].effect == 1 then
+				if sleep[e].user_global_affected > "" then 
+					if _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] end
+					_G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] = currentvalue[e] + sleep[e].effect_amount
+					if _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] >= 100 then _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] = 100 end
+				end
+				if sleep[e].effect_health == 1 then
+					SetPlayerHealth(g_PlayerHealth + sleep[e].effect_amount)
+					if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
+					SetPlayerHealthCore(g_PlayerHealth)
+				end
+			end
+			if sleep[e].effect == 2 then
+				if sleep[e].user_global_affected > "" then 
+					if _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] end
+					_G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] = currentvalue[e] - sleep[e].effect_amount
+					if _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] <= 0 then _G["g_UserGlobal['"..sleep[e].user_global_affected.."']"] = 0 end
+				end
+				if sleep[e].effect_health == 1 then
+					SetPlayerHealth(g_PlayerHealth - sleep[e].effect_amount)
+					if g_PlayerHealth <= 0 then g_PlayerHealth = 0 end
+					SetPlayerHealthCore(g_PlayerHealth)
+				end
+			end
 			if timeshift[e] >= tonumber(sleep[e].time_period) then timeshift[e] = tonumber(sleep[e].time_period) end			
 			timecheck[e] = g_Time + 1000
 		end
@@ -97,6 +138,8 @@ function sleep_main(e)
 			SetCameraOverride(0)
 			StopSound(e,0)
 			pressed[e] = 0
+			timeshift[e] = 0
+			sleep[e].time_period = 0
 			status[e] = "start"
 		end	
 	end		

@@ -127,7 +127,7 @@ function vendor_main(e)
 	end
 	
 	local PlayerDist = GetPlayerDistance(e)
-	if status[e] == "vendor" and g_Entity[e]['activated'] == 1 then
+	if status[e] == "vendor" then
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
 		end		

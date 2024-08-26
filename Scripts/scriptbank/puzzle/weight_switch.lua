@@ -1,4 +1,4 @@
--- Weight Switch v14 - Necrym59 with special thanks to Amen Moses
+-- Weight Switch v15 - Necrym59 with special thanks to Amen Moses
 -- DESCRIPTION: Attach to the Weight Switch Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Weight needed to activate"]
@@ -16,11 +16,11 @@ local P = require "scriptbank\\physlib"
 local max = math.max
 local rad = math.rad
 
-local switches = {}
-local rayCast      = IntersectAll
-local getObjPosAng = GetObjectPosAng
-local doonce = {}
-local currentvalue = {}
+local switches		= {}
+local rayCast		= IntersectAll
+local getObjPosAng	= GetObjectPosAng
+local doonce		= {}
+local currentvalue	= {}
 	
 function weight_switch_properties(e, prompt_text, activation_text, activation_weight, player_weight, switch_movement, reset_switch, user_global_affected, process_affect)
 	local switch = switches[e]
@@ -101,7 +101,7 @@ end
 
 local function checkWeight(e,switch,Ent)
 	switch.stackList = {}
-	local elist = U.ClosestEntities(switch.maxd,50,Ent.x,Ent.z)
+	local elist = U.ClosestEntities(switch.maxd,80,Ent.x,Ent.z)
 	if #elist > 1 then
 		buildStackList(e,elist,switch,switch)
 	end
@@ -127,14 +127,14 @@ function weight_switch_main(e)
 		switch.activated = false
 		if switch.reset_switch == 1 then switch.player_weight = 0 end
 		switch.state = 'checkweight'
-	elseif 
-	   switch.state == 'checkweight' then
+	end
+	if switch.state == 'checkweight' then
 		checkWeight( e, switch, Ent )
-		switch.timer = g_Time + 200
+		switch.timer = g_Time + 150
 		switch.state = 'active'	
-	elseif 
-	   switch.state == 'active' then
-		if g_Time > switch.timer then
+	end
+	if switch.state == 'active' then
+		if g_Time > switch.timer then			
 			if switch.accrued_weight < switch.activation_weight then			
 				if switch.playerOn then PromptDuration(switch.prompt_text,500) end
 				switch.playerOn = false
@@ -152,8 +152,8 @@ function weight_switch_main(e)
 				return
 			end
 		end
-	elseif 
-	   switch.state == 'activated' then
+	end
+	if switch.state == 'activated' then
 		for _, v in pairs( switch.stackList ) do
 			PushObject(v.obj,0,0,0)	
 		end
@@ -166,21 +166,20 @@ function weight_switch_main(e)
 		if switch.reset_switch == 1 then
 			for _, v in pairs( switch.stackList ) do
 				Destroy(v.ent)
-			end			
+			end
 			switch.state = 'init'
 		end	
 		-------------------------------------------------------
 		if g_Time > switch.timer then
 			checkWeight(e,switch,Ent)
-			switch.timer = g_Time + 200
+			switch.timer = g_Time + 150
 			if switch.accrued_weight < switch.activation_weight then
 				switch.state = 'checkweight'
 				switch.activated = false
 			end
-			switch.timer = g_Time + 200
+			switch.timer = g_Time + 150
 		end
 	end
-
 	if switch.state == 'active' and 
 	   Ent.y < switch.ypos then
 		CollisionOff(e)

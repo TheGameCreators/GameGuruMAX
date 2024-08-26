@@ -1,4 +1,4 @@
--- Navigation Bar Objective v8 by Smallg and Necrym59
+-- Navigation Bar Objective v9 by Smallg and Necrym59
 -- DESCRIPTION: Adds the entity to the Navigation Bar.
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\navbar\\objective.png"] icon for the navigation bar.
 -- DESCRIPTION: [FIXEDSIZE!=0] if 1 will scale icon with the distance
@@ -87,7 +87,7 @@ function navbar_objective_main(e)
 					end
 				end			
 				if nbar ~= 0 then 
-					isadded[e] = AddToNavbar(entity_no[e], g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange, g_navigation_entity[e].tname)
+					isadded[e] = AddToNavbar(entity_no[e], g_navigation_entity[e].imagename,g_navigation_entity[e].fixedsize, g_navigation_entity[e].ignorerange, g_navigation_entity[e].entity_name)
 				end
 			end
 		end

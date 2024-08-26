@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Campfire v10 by Necrym59
+-- Campfire v11 by Necrym59
 -- DESCRIPTION: This object will stow and deploy like a camp fire?
 -- DESCRIPTION: Apply to an object to be used as a campfire.
 -- DESCRIPTION: [USE_RANGE=120]
@@ -185,8 +185,8 @@ function campfire_main(e)
 				if campfire_onoff[e] == "off" then
 					if campfire[e].prompt_display == 1 and tobeused[e] == 0 then PromptLocal(e,campfire[e].pickup_text.. " or " ..campfire[e].resource_required.. " is required to use") end
 					if campfire[e].prompt_display == 2 and tobeused[e] == 0 then PromptDuration(campfire[e].pickup_text.. " or " ..campfire[e].resource_required.. " is required to use",2000) end					
-					if campfire[e].prompt_display == 1 and tobeused[e] > 0 then PromptLocal(e,campfire[e].use_text) end
-					if campfire[e].prompt_display == 2 and tobeused[e] > 0 then Prompt(campfire[e].use_text) end					
+					if campfire[e].prompt_display == 1 and tobeused[e] > 0 then PromptLocal(e,campfire[e].use_text.. " or " ..campfire[e].pickup_text) end
+					if campfire[e].prompt_display == 2 and tobeused[e] > 0 then Prompt(campfire[e].use_text.. " or " ..campfire[e].pickup_text) end					
 				end
 				height_difference[e] = g_PlayerPosY - g_Entity[e].y
 				if g_Scancode == 201 and campfire_onoff[e] == "on" then --AttemptedPickup

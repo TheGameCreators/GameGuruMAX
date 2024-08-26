@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Stealth Shield v13
+-- Stealth Shield v15
 -- DESCRIPTION: The Stealth shield object will give the player Stealth capability while activated.
 -- DESCRIPTION: [@STYLE=1(1=Pickup, 2=Collected)]
 -- DESCRIPTION: [PICKUP_RANGE=80(0,100)]
@@ -17,6 +17,8 @@
 -- DESCRIPTION: [ICON_POSITION_Y=90(0,100)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
+-- DESCRIPTION: [DISABLE_WEAPON!=0]
+
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -39,20 +41,25 @@ local icon_position_x 	= {}
 local icon_position_y 	= {}
 local prompt_display 	= {}
 local item_highlight 	= {}
+local disable_weapon 	= {}
 
-local sp_imgwidth		= {}
-local sp_imgheight		= {}
-local sallegiance		= {}
 local shieldactive 		= {}
+local shieldedEnt		= {}
+local entrange			= {}
 local status 			= {}
 local shieldtime		= {}
 local useage_text 		= {}
 local use_count			= {}
-local stealthicon 		= {}
-local tEnt = {}
-local selectobj = {}
+local stealthicon		= {}
+local sp_imgwidth		= {}
+local sp_imgheight		= {}
+local tableName			= {}
+local tEnt 				= {}
+local selectobj 		= {}
+local last_gun			= {}
+local doonce			= {}
 
-function stealthshield_properties(e, style, pickup_range, prompt_text, use_text, on_text, off_text, mode, duration, discovery_range, shield_radius, no_of_uses, icon_imagefile, icon_position_x, icon_position_y, prompt_display, item_highlight)
+function stealthshield_properties(e, style, pickup_range, prompt_text, use_text, on_text, off_text, mode, duration, discovery_range, shield_radius, no_of_uses, icon_imagefile, icon_position_x, icon_position_y, prompt_display, item_highlight, disable_weapon)
 	stealthshield[e].style = style
 	stealthshield[e].pickup_range = pickup_range
 	stealthshield[e].prompt_text = prompt_text
@@ -69,6 +76,7 @@ function stealthshield_properties(e, style, pickup_range, prompt_text, use_text,
 	stealthshield[e].icon_position_y = icon_position_y
 	stealthshield[e].prompt_display = prompt_display
 	stealthshield[e].item_highlight = item_highlight
+	stealthshield[e].disable_weapon = disable_weapon or 0
 end
 
 function stealthshield_init(e)
@@ -89,22 +97,28 @@ function stealthshield_init(e)
 	stealthshield[e].icon_position_y = 80
 	stealthshield[e].prompt_display = 1
 	stealthshield[e].item_highlight = 0
+	stealthshield[e].disable_weapon = 0	
 
 	status[e] = "init"
 	shieldtime[e] = 0
 	shieldactive[e] = 0
+	shieldedEnt[e] = 0
 	use_count[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
-	stealthicon = CreateSprite(LoadImage(stealthshield[e].icon_image))
-	sp_imgwidth = GetImageWidth(LoadImage(stealthshield[e].icon_image))
-	sp_imgheight = GetImageHeight(LoadImage(stealthshield[e].icon_image))
-	SetSpriteSize(stealthicon,-1,-1)
-	SetSpriteDepth(stealthicon,1)
-	SetSpriteColor(stealthicon,255,255,255,3)
-	SetSpriteOffset(stealthicon,sp_imgwidth/2.0, sp_imgheight/2.0)
-	SetSpritePosition(stealthicon,200,200)
+	doonce[e] = 2
+	last_gun[e] = g_PlayerGunName
+	tableName[e] = "shieldlist" ..tostring(e)
+	_G[tableName[e]] = {}
+	stealthicon[e] = CreateSprite(LoadImage(stealthshield[e].icon_image))
+	sp_imgwidth[e] = GetImageWidth(LoadImage(stealthshield[e].icon_image))
+	sp_imgheight[e] = GetImageHeight(LoadImage(stealthshield[e].icon_image))
+	SetSpriteSize(stealthicon[e],-1,-1)
+	SetSpriteDepth(stealthicon[e],1)
+	SetSpriteColor(stealthicon[e],255,255,255,3)
+	SetSpriteOffset(stealthicon[e],sp_imgwidth[e]/2.0, sp_imgheight[e]/2.0)
+	SetSpritePosition(stealthicon[e],200,200)
 end
 
 function stealthshield_main(e)
@@ -117,6 +131,14 @@ function stealthshield_main(e)
 		end
 		if stealthshield[e].style == 1 then status[e] = "pickup" end
 		if stealthshield[e].style == 2 then status[e] = "collected" end
+		for n = 1, g_EntityElementMax do
+			if n ~= nil and g_Entity[n] ~= nil then
+				if GetEntityAllegiance(n) == 0 then
+					table.insert(_G[tableName[e]],n)
+				end
+			end
+		end
+		status[e] = "pickup"
 	end
 
 	if status[e] == "pickup" then
@@ -147,8 +169,12 @@ function stealthshield_main(e)
 				if stealthshield[e].mode == 1 then shieldtime[e] = g_Time + (stealthshield[e].duration * 1000) end
 				if stealthshield[e].mode == 2 then shieldtime[e] = (g_Time + (stealthshield[e].duration * math.random(1000,3000))) end
 				shieldactive[e] = 1
-				SetSpriteColor(stealthicon,255,255,255,3)
+				SetSpriteColor(stealthicon[e],255,255,255,100)
 				use_count[e] = use_count[e] + 1
+				if stealthshield[e].disable_weapon == 1 then 
+					last_gun[e] = g_PlayerGunName					
+					SetPlayerWeapons(0)
+				end	
 			end
 		end
 		if shieldactive[e] == 1 then
@@ -157,54 +183,70 @@ function stealthshield_main(e)
 				shieldactive[e] = 0
 				shieldtime[e] = 0
 				if use_count[e] == stealthshield[e].no_of_uses then Destroy(e) end
+				if stealthshield[e].disable_weapon == 1 then 
+					SetPlayerWeapons(1)
+					ChangePlayerWeapon(last_gun[e])
+				end
+				doonce[e] = 0
 			end
 		end
 
-		for a = 1, g_EntityElementMax do
-			if shieldtime[e] > g_Time then shieldactive[e] = 1 end
-			if a ~= nil and g_Entity[a] ~= nil then
-				sallegiance[e] = GetEntityAllegiance(a) -- get the allegiance (0-enemy, 1-ally, 2-neutral)
-				if sallegiance[e] == 0 then
-					Ent = g_Entity[a]
-					if shieldactive[e] == 1 and GetPlayerDistance(a) < stealthshield[e].shield_radius then
-						SetEntityAllegiance(a,2) -- Become Neutral
-					end
-					if shieldactive[e] == 1 and GetPlayerDistance(a) > stealthshield[e].shield_radius then
-						SetEntityAllegiance(a,0) -- Stay Enemy
+		if shieldactive[e] == 0 then
+			if doonce[e] == 0 then
+				for _,v in pairs (_G[tableName[e]]) do
+					if g_Entity[v] ~= nil then
+						shieldedEnt[e] = v
+						SetEntityAllegiance(v,0)
 					end
 				end
-				if sallegiance[e] == 2 then
-					Ent = g_Entity[a]
-					if shieldactive[e] == 0 and GetPlayerDistance(a) < stealthshield[e].shield_radius then
-						SetEntityAllegiance(a,0) -- Become Enemy
+			end	
+			doonce[e] = 1	
+		end
+		if shieldactive[e] == 1 then
+			for _,v in pairs (_G[tableName[e]]) do
+				if g_Entity[v] ~= nil then
+					entrange[e] = math.ceil(GetFlatDistanceToPlayer(v))
+					if g_Entity[v]["health"] > 0 and entrange[e] < stealthshield[e].shield_radius and entrange[e] > stealthshield[e].discovery_range then							
+						shieldedEnt[e] = v
+						SetEntityAllegiance(v,2)
+					else
+						SetEntityAllegiance(v,0)
+						shieldedEnt[e] = 0
 					end
 				end
+			end
+		end		
 
-				local PlayerDist = GetPlayerDistance(a)
-				if PlayerDist <= stealthshield[e].discovery_range and shieldactive[e] == 1 then
-					SetEntityAllegiance(a,0)
-					shieldtime[e] = 0
-					shieldactive[e] = 0
-				end
-				if g_Time >= shieldtime[e]-5 and shieldactive[e] == 1 then
-					SetEntityAllegiance(a,0)
-					shieldtime[e] = 0
-					shieldactive[e] = 0
-					PromptDuration(stealthshield[e].off_text,1000)
-				end
-				if shieldactive[e] == 1 then
-					if g_Time >= shieldtime[e]-3000 then SetSpriteColor(stealthicon,255,255,255,3) end
-					if g_Time >= shieldtime[e]-2000 then SetSpriteColor(stealthicon,255,255,255,2) end
-					if g_Time >= shieldtime[e]-1000 then SetSpriteColor(stealthicon,255,255,255,1) end
-					PasteSpritePosition(stealthicon,stealthshield[e].icon_position_x,stealthshield[e].icon_position_y)
-				end
+		if g_Time >= shieldtime[e]-5 and shieldactive[e] == 1 then
+			shieldactive[e] = 0
+			shieldtime[e] = 0
+			shieldactive[e] = 0
+			doonce[e] = 0
+			PromptDuration(stealthshield[e].off_text,1000)
+			if stealthshield[e].disable_weapon == 1 then 
+				SetPlayerWeapons(1)
+				ChangePlayerWeapon(last_gun[e])
 			end
 		end
 		if shieldactive[e] == 1 then
+			if g_Time >= shieldtime[e]-3000 then SetSpriteColor(stealthicon[e],255,255,255,80) end
+			if g_Time >= shieldtime[e]-2000 then SetSpriteColor(stealthicon[e],255,255,255,50) end
+			if g_Time >= shieldtime[e]-1000 then SetSpriteColor(stealthicon[e],255,255,255,1) end
+			PasteSpritePosition(stealthicon[e],stealthshield[e].icon_position_x,stealthshield[e].icon_position_y)
+		end
+		if shieldactive[e] == 1 then			
 			local sht = math.floor(shieldtime[e]-g_Time)
 			sht = math.floor(sht/1000)
 			TextCenterOnX(stealthshield[e].icon_position_x,stealthshield[e].icon_position_y,2,"Shield Time: " ..sht.. " seconds")
 			TextCenterOnX(stealthshield[e].icon_position_x,stealthshield[e].icon_position_y+1,2,"Uses Left: " ..stealthshield[e].no_of_uses - use_count[e])
 		end
+	end	
+end
+
+function GetFlatDistanceToPlayer(v)
+	if g_Entity[v] ~= nil then
+		local distDX = g_PlayerPosX - g_Entity[v]['x']
+		local distDZ = g_PlayerPosZ - g_Entity[v]['z']
+		return math.sqrt((distDX*distDX)+(distDZ*distDZ));
 	end
 end

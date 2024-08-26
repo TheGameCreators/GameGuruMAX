@@ -57,7 +57,6 @@ function healthbar_main(e)
 					entheight[e] = (dims.h + healthbar[e].y_adjustment)
 					if g_LegacyNPC == 0 then hreadout[e] = g_Entity[a]['health'] end
 					if g_LegacyNPC == 1 then hreadout[e] = g_Entity[a]['health']-1000 end
-					
 					if PlayerLooking(a,healthbar[e].display_range,5) == 1 then
 						PlayerDist = GetPlayerDistance(a)
 						if PlayerDist < healthbar[e].display_range then 
@@ -67,13 +66,17 @@ function healthbar_main(e)
 							if healthbar[e].display_mode == 2 and hreadout[e] > 0 then
 								ScaleObject(5999,20.0,50.0,20.0)
 								Prompt3D("Health: "..hreadout[e],10)
-								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']+2,g_Entity[e]['z'],g_PlayerAngY)
+								--PromptLocal(e,"Health: "..hreadout[e])
+								--PromptLocalOffset(0,healthbar[e].y_adjustment,0)
 							end
 							if healthbar[e].display_mode == 3 and hreadout[e] > 0 then
 								Show(e)
-								ScaleObject(5999,20.0,50.0,20.0) 
+								ScaleObject(5999,20.0,50.0,20.0)								
 								Prompt3D("Health: "..hreadout[e],10)
-								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']-5,g_Entity[e]['z'],g_PlayerAngY)
+								PositionPrompt3D(g_Entity[e]['x'],g_Entity[e]['y']+2,g_Entity[e]['z'],g_PlayerAngY)
+								--PromptLocal(e,"Health: "..hreadout[e])
+								--PromptLocalOffset(0,healthbar[e].y_adjustment,0)
 							end							
 						end
 						if PlayerDist > healthbar[e].display_range -20 or hreadout[e] < 1 then

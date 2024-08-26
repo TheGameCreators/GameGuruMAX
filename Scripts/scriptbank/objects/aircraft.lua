@@ -1,4 +1,4 @@
--- Aircraft v33 by Necrym59
+-- Aircraft v34 by Necrym59
 -- DESCRIPTION: Creates a controllable aircraft from an object.
 -- DESCRIPTION: Attach to an object. Set Physics On, Polygon Collision.
 -- DESCRIPTION: [@VEHICLE_TYPE=1(1=Plane,2=Helicopter,3=VTOL-Vehicle)]
@@ -16,8 +16,9 @@
 -- DESCRIPTION: [VELOCITY=1(1,20)]
 -- DESCRIPTION: [@FX_ANIMATION$=-1(0=AnimSetList)]
 -- DESCRIPTION: [FX_MODULATION=60(1,100)]
--- DESCRIPTION: [SHOW_READOUTS!=1]
--- DESCRIPTION: [PARTICLE_NO=0]
+-- DESCRIPTION: [SHOW_READOUTS!=1] Show In-flight readouts
+-- DESCRIPTION: [PARTICLE_NO=0] Entity number for take-off particle
+-- DESCRIPTION: [CAN_BAILOUT!=0] Player can bailout
 -- DESCRIPTION: <Sound0> for take-off sound
 -- DESCRIPTION: <Sound1> loop for in-flight
 -- DESCRIPTION: <Sound2> for landing sound
@@ -78,9 +79,9 @@ local last_gun      = ""
 local colobj		= {}
 local coltimer		= {}
 local particle_no 	= {}
+local can_bailout	= {}
 
-function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1, use_text2, lz_text, display_x, display_y, pilot_x, pilot_y, pilot_z, max_speed, velocity, fx_animation, fx_modulation, show_readouts, particle_no)
-	vehicle[e] = g_Entity[e]
+function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1, use_text2, lz_text, display_x, display_y, pilot_x, pilot_y, pilot_z, max_speed, velocity, fx_animation, fx_modulation, show_readouts, particle_no, can_bailout)
 	vehicle[e].vehicle_type = vehicle_type
 	vehicle[e].use_range = use_range
 	vehicle[e].prompt_text = prompt_text
@@ -96,8 +97,9 @@ function aircraft_properties(e, vehicle_type, use_range, prompt_text, use_text1,
 	vehicle[e].velocity = velocity
 	vehicle[e].fx_animation = "=" .. tostring(fx_animation)
 	vehicle[e].fx_modulation = fx_modulation or 1
-	vehicle[e].show_readouts = show_readouts
+	vehicle[e].show_readouts = show_readouts or 1
 	vehicle[e].particle_no = particle_no
+	vehicle[e].can_bailout = can_bailout or 0	
 end
 
 function aircraft_init(e)
@@ -123,6 +125,7 @@ function aircraft_init(e)
 	vehicle[e].fx_modulation = 60
 	vehicle[e].show_readouts = 1
 	vehicle[e].particle_no = 0
+	vehicle[e].can_bailout = 0
 
 	controlEnt    	= nil
 	timeLastFrame 	= nil
@@ -246,21 +249,23 @@ function aircraft_main(e)
 				GravityOff(h.ent)
 			end
 			if deathfall[e] == 1 and g_PlayerPosY <= terrain[e] + 80 then
-				HurtPlayer(-1,5000)
-				deathfall[e] = 0
-				Hide(h.ent)
+				deathfall[e] = 0				
+				ModulateSpeed(h.ent,0)
+				SetEntityHealth(h.ent,0)
 				Destroy(h.ent)
-				status[e] = "init"
+				LoseGame()
 			end			
 			if h.inCab then
-				if g_KeyPressQ == 1 and flying == 1 then
-					--animspeed[e] = 0					
-					if heightcheck[e] >= 30 and colobj[e] == 0 then deathfall[e] = 1 end
-					if colobj[e] > 0 then deathfall[e] = 0 end
-					terrain[e] = GetTerrainHeight( h.pos.x, h.pos.z )
-					flying = 0
-					SetGamePlayerStatePlrKeyForceKeystate(16)
-				end
+				if vehicle[e].can_bailout == 1 then 
+					if g_KeyPressQ == 1 and flying == 1 then
+						--animspeed[e] = 0					
+						if heightcheck[e] >= 30 and colobj[e] == 0 then deathfall[e] = 1 end
+						if colobj[e] > 0 then deathfall[e] = 0 end
+						terrain[e] = GetTerrainHeight( h.pos.x, h.pos.z )
+						flying = 0
+						SetGamePlayerStatePlrKeyForceKeystate(16)
+					end
+				end	
 				if g_KeyPressQ == 1 and flying == 0 then
 					if not EPressed then
 						EPressed = true
@@ -611,6 +616,7 @@ function aircraft_main(e)
 								HurtPlayer(e,g_PlayerHealth)
 								SetEntityHealth(h.ent,0)
 								Destroy(h.ent)
+								LoseGame()
 							else
 								SetFreezePosition(ex,ey,ez)								
 								TransportToFreezePositionOnly()							
@@ -730,7 +736,8 @@ function aircraft_main(e)
 						ChangePlayerWeapon(last_gun)
 						HurtPlayer(e,g_PlayerHealth)
 						SetEntityHealth(h.ent,0)
-						Destroy(h.ent)						
+						Destroy(h.ent)
+						LoseGame()						
 					end
 					h.vec.y = 0
 					h.pos.y = terrain[e]+2

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Moon v2 by Necrym59
+-- Moon v3 by Necrym59
 -- DESCRIPTION: Allows a moon object to rotate and orbit another named object
 -- DESCRIPTION: Attach this behavior to the moon object.
 -- DESCRIPTION: [#MOON_ADJUST_X=0.0(-20000.0,20000.0)]
@@ -11,7 +11,7 @@
 -- DESCRIPTION: [#ORBIT_SPEED=0.1(0.0,100.0)]
 -- DESCRIPTION: [SENSE_RANGE=1000]
 -- DESCRIPTION: [SENSE_TEXT$="Detected in Range"]
--- DESCRIPTION: [@SENSE_TRIGGER=1(1=Linked, 2=Video+ChangeLevel)]
+-- DESCRIPTION: [@SENSE_TRIGGER=1(1=Linked, 2=Video+ChangeLevel, 3=Video)]
 -- DESCRIPTION: [@VIDEO_SKIP=1(1=Yes, 2=No)]
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
 -- DESCRIPTION: [ResetStates!=0] when entering the new level
@@ -171,7 +171,12 @@ function moon_main(e)
 					end
 					doonce[e] = 1
 				end
-			end			
+				if moon[e].sense_trigger == 3 then
+					if moon[e].video_skip == 1 then PromptVideo(e,1) end
+					if moon[e].video_skip == 2 then PromptVideoNoSkip(e,1) end
+					doonce[e] = 1
+				end
+			end	
 		end
 		if GetPlayerDistance(e) > adjustrange[e] then
 			if doonce[e] == 1 then

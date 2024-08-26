@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hot_Key v3 by Necrym59
+-- Hot_Key v4 by Necrym59
 -- DESCRIPTION: Will display an icon image on screen for a specified resource and activation key
 -- DESCRIPTION: Attach to an entity. Set to AlwaysActive
 -- DESCRIPTION: [SCREEN_POSITION_X=2(0,100)]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [SCREEN_SCALE=10(1,100)]
 -- DESCRIPTION: [ICON1_IMAGEFILE$=""] Inactive icon image
 -- DESCRIPTION: [ICON2_IMAGEFILE$=""] Active icon image
--- DESCRIPTION: [RESOURCE_NAME$=""] eg: "Potion"
+-- DESCRIPTION: [RESOURCE_NAME$=""] eg: "Potion" has to collectable
 -- DESCRIPTION: [RESOURCE_AMOUNT=10(0,100)] Amount to add
 -- DESCRIPTION: [@APPLIED_TO=1(1=Health, 2=User Global)]
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg:(MyMana or MyStaminaMax)
@@ -51,7 +51,7 @@ function hot_key_properties(e, screen_position_x, screen_position_y, screen_scal
 	hotkey[e].icon2_imagefile = icon2_imagefile
 	hotkey[e].resource_name = string.lower(resource_name)
 	hotkey[e].resource_amount = resource_amount
-	hotkey[e].applied_to = resource_amount
+	hotkey[e].applied_to = applied_to
 	hotkey[e].user_global_affected = user_global_affected
 	hotkey[e].activation_key = activation_key
 end
@@ -140,7 +140,7 @@ function hot_key_main(e)
 							doonce[e] = 1
 						end
 						if hotkey[e].applied_to == 2 then
-							if  hotkey[e].user_global_affected > "" then 
+							if hotkey[e].user_global_affected > "" then								
 								if _G["g_UserGlobal['".. hotkey[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['".. hotkey[e].user_global_affected.."']"] end
 								_G["g_UserGlobal['".. hotkey[e].user_global_affected.."']"] = currentvalue[e] + hotkey[e].resource_amount
 							end

@@ -1769,18 +1769,20 @@ void update_env_particles(void)
 	bool disable_all_weather = false;
 	travey_particle_emitter* this_emitter;
 	int inumParticles = 0;
+	
+	int iMainWeatherParticles = 99999;
 
 	if (environment_emitter_id > 0) 
 	{
 		int i = environment_emitter_id;
 		this_emitter = &t.ravey_particle_emitters[i];
-
+		iMainWeatherParticles = this_emitter->maxParticles;
 		//Env always follow camera.
 		this_emitter->xPos = CameraPositionX();
 		this_emitter->yPos = CameraPositionY();
 		this_emitter->zPos = CameraPositionZ();
 
-		if (iDelayedRayCast++ % 10 == 0)
+		if (iDelayedRayCast++ % 15 == 0)
 		{
 			//Try a ray and check if we need to disable.(indoor)
 			#ifndef WICKEDENGINE
@@ -1789,7 +1791,7 @@ void update_env_particles(void)
 			else
 				int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
 			#endif
-			int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, this_emitter->xPos, this_emitter->yPos, this_emitter->zPos, this_emitter->xPos, this_emitter->yPos + 2000.0f, this_emitter->zPos, 0, 0, 0, 0, 1, false);
+			int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, this_emitter->xPos, this_emitter->yPos, this_emitter->zPos, this_emitter->xPos, this_emitter->yPos + 2000.0f, this_emitter->zPos, 0, 0, 0, 0, 1, true);
 			if (iHitObj > 0) 
 			{
 				//Disable temp.
@@ -1819,7 +1821,7 @@ void update_env_particles(void)
 		this_emitter->yPos = CameraPositionY();
 		this_emitter->zPos = CameraPositionZ();
 
-		if(disable_all_weather)
+		if(disable_all_weather || iMainWeatherParticles == 0)
 			this_emitter->maxParticles = 0;
 		else 
 		{
@@ -1840,7 +1842,7 @@ void update_env_particles(void)
 		this_emitter->xPos = CameraPositionX();
 		this_emitter->yPos = CameraPositionY();
 		this_emitter->zPos = CameraPositionZ();
-		if (disable_all_weather)
+		if (disable_all_weather || iMainWeatherParticles == 0)
 			this_emitter->maxParticles = 0;
 		else 
 		{

@@ -6639,12 +6639,20 @@ int SetWaterHeight(lua_State *L)
 }
 int SetWaterShaderColor(lua_State *L) 
 {
+#ifdef WICKEDENGINE
+	t.gamevisuals.WaterRed_f = lua_tonumber(L, 1);
+	t.gamevisuals.WaterGreen_f = lua_tonumber(L, 2);
+	t.gamevisuals.WaterBlue_f = lua_tonumber(L, 3);
+	WickedCall_UpdateWaterColor(t.gamevisuals.WaterRed_f, t.gamevisuals.WaterGreen_f, t.gamevisuals.WaterBlue_f);
+	return 0;
+#else
 	t.visuals.WaterRed_f = lua_tonumber(L, 1);
 	t.visuals.WaterGreen_f = lua_tonumber(L, 2);
 	t.visuals.WaterBlue_f = lua_tonumber(L, 3);
 	SetVector4(g.terrainvectorindex, t.visuals.WaterRed_f / 256, t.visuals.WaterGreen_f / 256, t.visuals.WaterBlue_f / 256, 0);
 	SetEffectConstantV(t.terrain.effectstartindex + 1, "WaterCol", g.terrainvectorindex);
 	return 0;
+#endif
 }
 int SetWaterWaveIntensity(lua_State *L)
 {
@@ -6708,19 +6716,31 @@ int GetWaterWaveIntensity(lua_State *L)
 int GetWaterShaderColorRed(lua_State *L)
 {
 	lua = L;
+#ifdef WICKEDENGINE
+	lua_pushnumber(L, t.gamevisuals.WaterRed_f);
+#else
 	lua_pushnumber(L, t.visuals.WaterRed_f);
+#endif
 	return 1;
 }
 int GetWaterShaderColorGreen(lua_State *L)
 {
 	lua = L;
+#ifdef WICKEDENGINE
+	lua_pushnumber(L, t.gamevisuals.WaterGreen_f);
+#else
 	lua_pushnumber(L, t.visuals.WaterGreen_f);
+#endif
 	return 1;
 }
 int GetWaterShaderColorBlue(lua_State *L)
 {
 	lua = L;
+#ifdef WICKEDENGINE
+	lua_pushnumber(L, t.gamevisuals.WaterBlue_f);
+#else
 	lua_pushnumber(L, t.visuals.WaterBlue_f);
+#endif
 	return 1;
 }
 int GetWaterTransparancy(lua_State *L)
@@ -8310,7 +8330,15 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 105 : lua_pushnumber ( L, g.ggunmeleekey ); break;
 		case 106 : lua_pushnumber ( L, t.player[t.plrid].state.blockingaction ); break;
 		case 107 : lua_pushnumber ( L, t.gunshootnoammo ); break;		
-		case 108 : lua_pushnumber ( L, g.playerunderwater ); break;		
+
+		case 108 :
+			//PE: Now controlled in lua. old (lua_pushnumber(L, g.playerunderwater); )
+			if(t.playercontrol.inwaterstate >= 2)
+				lua_pushnumber ( L, 1 );
+			else
+				lua_pushnumber(L, 0);
+			break;
+
 		case 109 : lua_pushnumber ( L, g.gdisablerightmousehold ); break;		
 		case 110 : lua_pushnumber ( L, g.gxbox ); break;		
 		case 111 : lua_pushnumber ( L, JoystickX() ); break;
@@ -10095,10 +10123,15 @@ int SetWeaponArmsVisible(lua_State* L)
 	extern bool bHideWeaponsSmoke;
 	extern bool bHideWeapons;
 	bHideWeapons = lua_tonumber(L, 1);
-	if(n == 2)
+	if (n == 2)
+	{
 		bHideWeaponsMuzzle = lua_tonumber(L, 2);
+	}
 	if (n >= 3)
+	{
+		bHideWeaponsMuzzle = lua_tonumber(L, 2);
 		bHideWeaponsSmoke = lua_tonumber(L, 3);
+	}
 	return 1;
 }
 

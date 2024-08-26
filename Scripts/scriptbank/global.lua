@@ -929,6 +929,9 @@ end
 function SetAnimationFrame(e,v)
  SendMessageF_setanimationframe(e,v)
 end
+function ChangeAnimationFrame(e,v)
+ SendMessageF_changeanimationframe(e,v)
+end
 function GetAnimationFrame(e)
  return g_Entity[e]['frame']
 end

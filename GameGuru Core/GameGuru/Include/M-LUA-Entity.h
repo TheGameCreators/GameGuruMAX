@@ -87,6 +87,7 @@ void entity_lua_loopanimationfrom (void);
 void entity_lua_stopanimation ( void );
 void entity_lua_movewithanimation ( void );
 void entity_lua_setanimationframe ( void );
+void entity_lua_changeanimationframe (void);
 void entity_lua_setanimationspeed ( void );
 void entity_lua_setentityhealth ( void );
 void entity_lua_setentityhealthsilent ( void );

@@ -5554,12 +5554,12 @@ int GetObjectExist ( lua_State *L )
 	lua_pushnumber ( L, ObjectExist(lua_tonumber(L, 1)) );
 	return 1;
 }
-int SetObjectFrame ( lua_State *L )
+int SetObjectFrame (lua_State* L)
 {
 	lua = L;
 	int n = lua_gettop(L);
-	if ( n < 2 ) return 0;
-	SetObjectFrame ( lua_tonumber(L, 1), lua_tonumber(L, 2) );
+	if (n < 2) return 0;
+	SetObjectFrame (lua_tonumber(L, 1), lua_tonumber(L, 2));
 	return 0;
 }
 int GetObjectFrame ( lua_State *L )
@@ -10459,6 +10459,7 @@ enum eInternalCommandNames
 	enum_setactivatedformp,
 	enum_setcameradistance,
 	enum_setanimationframe,
+	enum_changeanimationframe,
 	enum_setanimationspeed,
 	enum_setcharactersound,
 	enum_promptvideonoskip,
@@ -11240,6 +11241,7 @@ int int_core_sendmessagef(lua_State* L, eInternalCommandNames eInternalCommandVa
 		case enum_setfogblue: lua_setfogblue(); break;
 		case enum_setcameradistance: lua_setcameradistance(); break;
 		case enum_setanimationframe: entity_lua_setanimationframe(); break;
+		case enum_changeanimationframe: entity_lua_changeanimationframe(); break;
 		case enum_setanimationspeed: entity_lua_setanimationspeed(); break;
 		case enum_setglobalspecular: lua_setglobalspecular(); break;
 		case enum_setimagepositionx: lua_setimagepositionx(); break;
@@ -11354,6 +11356,7 @@ int SendMessageF_setfogred(lua_State* L) { return int_core_sendmessagef(L, enum_
 int SendMessageF_setfogblue(lua_State* L) { return int_core_sendmessagef(L, enum_setfogblue); }
 int SendMessageF_setcameradistance(lua_State* L) { return int_core_sendmessagef(L, enum_setcameradistance); }
 int SendMessageF_setanimationframe(lua_State* L) { return int_core_sendmessagef(L, enum_setanimationframe); }
+int SendMessageF_changeanimationframe(lua_State* L) { return int_core_sendmessagef(L, enum_changeanimationframe); }
 int SendMessageF_setanimationspeed(lua_State* L) { return int_core_sendmessagef(L, enum_setanimationspeed); }
 int SendMessageF_setglobalspecular(lua_State* L) { return int_core_sendmessagef(L, enum_setglobalspecular); }
 int SendMessageF_setimagepositionx(lua_State* L) { return int_core_sendmessagef(L, enum_setimagepositionx); }
@@ -11464,6 +11467,7 @@ void addInternalFunctions_float()
 	lua_register(lua, "SendMessageF_setfogblue", SendMessageF_setfogblue);
 	lua_register(lua, "SendMessageF_setcameradistance", SendMessageF_setcameradistance);
 	lua_register(lua, "SendMessageF_setanimationframe", SendMessageF_setanimationframe);
+	lua_register(lua, "SendMessageF_changeanimationframe", SendMessageF_changeanimationframe);
 	lua_register(lua, "SendMessageF_setanimationspeed", SendMessageF_setanimationspeed);
 	lua_register(lua, "SendMessageF_setglobalspecular", SendMessageF_setglobalspecular);
 	lua_register(lua, "SendMessageF_setimagepositionx", SendMessageF_setimagepositionx);
@@ -12000,7 +12004,7 @@ void addFunctions()
 	lua_register(lua, "PointCamera" , PointCamera );
 	lua_register(lua, "MoveCamera" , MoveCamera );
 	lua_register(lua, "GetObjectExist" , GetObjectExist );
-	lua_register(lua, "SetObjectFrame" , SetObjectFrame );
+	lua_register(lua, "SetObjectFrame", SetObjectFrame);
 	lua_register(lua, "GetObjectFrame" , GetObjectFrame );
 	lua_register(lua, "SetObjectSpeed" , SetObjectSpeed );
 	lua_register(lua, "GetObjectSpeed" , GetObjectSpeed );

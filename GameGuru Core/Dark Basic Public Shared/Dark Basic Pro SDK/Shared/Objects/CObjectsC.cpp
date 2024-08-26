@@ -3479,7 +3479,7 @@ DARKSDK_DLL void SetObjectDefAnim ( int iID, int iSkipDefFrameInIntersectAll )
 		pObject->bIgnoreDefAnim = false;
 }
 
-DARKSDK_DLL void SetObjectFrameEx ( int iID, float fFrame, int iRecalculateBounds )
+DARKSDK_DLL void SetObjectFrameEx ( int iID, float fFrame, int iRecalculateBounds, int iChangeNoStop )
 {
 	// check the object exists
 	if ( !ConfirmObject ( iID ) )
@@ -3490,7 +3490,10 @@ DARKSDK_DLL void SetObjectFrameEx ( int iID, float fFrame, int iRecalculateBound
 
 	#ifdef WICKEDENGINE
 	// can improve this to slerp using the animation lerp inside wicked at some point!
-	WickedCall_SetObjectFrame(pObject, fFrame);
+	if(iChangeNoStop==1)
+		WickedCall_SetObjectFrameEx(pObject, fFrame);
+	else
+		WickedCall_SetObjectFrame(pObject, fFrame);
 	#else
 	// control animation
 	if ( pObject->fAnimInterp==1.0f || pObject->bAnimPlaying )
@@ -3555,10 +3558,17 @@ DARKSDK_DLL void SetObjectFrameEx ( int iID, float fFrame, int iRecalculateBound
 	#endif
 }
 
+DARKSDK_DLL void ChangeObjectFrame (int iID, float fFrame)
+{
+	// by default it does not recalculate bounds as it is slow
+	int iChangeNoStop = 1;
+	SetObjectFrameEx (iID, fFrame, 0, iChangeNoStop);
+}
+
 DARKSDK_DLL void SetObjectFrameEx ( int iID, float fFrame )
 {
 	// by default it does not recalculate bounds as it is slow
-	SetObjectFrameEx ( iID, fFrame, 0 );
+	SetObjectFrameEx ( iID, fFrame, 0, 0 );
 }
 
 DARKSDK_DLL void SetObjectFrame ( int iID, int iFrame )

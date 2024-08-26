@@ -70,7 +70,7 @@ function restoregame.now()
      CollisionOff(i) 
     end
    end
-   SetAnimationFrame ( i, g_Entity[i]['frame'] )
+   ChangeAnimationFrame ( i, g_Entity[i]['frame'] )
    if g_EntityExtra[i]['visible'] ~= nil then 
     if g_EntityExtra[i]['visible']~=-1 then
 	 if g_EntityExtra[i]['visible']==1 then

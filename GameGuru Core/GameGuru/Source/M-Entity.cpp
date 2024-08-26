@@ -2104,6 +2104,13 @@ void entity_loaddata ( void )
 			{
 				if (  t.line_s.Get()[0] != ';' ) 
 				{
+					// safety check to ensure strings not overloaded (i.e. if trying to load an encrypted carbage FPE)
+					if (strlen(t.line_s.Get()) > 255)
+					{
+						t.value_s = "ERROR";
+						continue;
+					}
+
 					//  take fieldname and value
 					for ( t.c = 0 ; t.c < Len(t.line_s.Get()); t.c++ )
 					{

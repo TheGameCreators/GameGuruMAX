@@ -2388,6 +2388,7 @@ void entity_lua_setanimationframe ( void )
 		sObject* pObject = g_ObjectList [ iID ];
 		if ( pObject )
 		{
+			/* no longer needed
 			if ( (int)pObject->fAnimTotalFrames > 0 || t.v_f > 0.0f )
 			{
 				if ( pObject->bVisible == 1 && pObject->bUniverseVisible == 1 )
@@ -2395,6 +2396,7 @@ void entity_lua_setanimationframe ( void )
 					t.tte = t.e; entity_converttoclone ( );
 				}
 			}
+			*/
 		}
 		else
 			return;
@@ -2404,6 +2406,16 @@ void entity_lua_setanimationframe ( void )
 
 	// force a frame in the entity object
 	SetObjectFrameEx ( t.entityelement[t.e].obj, t.v_f );
+}
+
+void entity_lua_changeanimationframe (void)
+{
+	// only for animating entities, which are visible (to prevent ALL animatable objects to clone when reload a saved game position)
+	int iID = t.entityelement[t.e].obj; if (iID <=0 ) return;
+	sObject* pObject = g_ObjectList[iID]; if (!pObject) return;
+
+	// force a frame in the entity object WITHOUT stopping the animation
+	ChangeObjectFrame (t.entityelement[t.e].obj, t.v_f);
 }
 
 void entity_lua_setanimationspeed ( void )

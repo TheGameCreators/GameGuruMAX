@@ -1,4 +1,4 @@
--- Crosshair v7 by Necrym59
+-- Crosshair v8 by Necrym59
 -- DESCRIPTION: Will allow for an adaptive crosshair/hitmarker in gameplay. 
 -- DESCRIPTION: Apply to an object, set Always Active ON
 -- DESCRIPTION: [VIEW_RANGE=1000(0,3000)]
@@ -7,8 +7,6 @@
 -- DESCRIPTION: [HIGHLIGHTER!=0] If on enables active highlighting crosshairs 
 
 local U = require "scriptbank\\utillib"
-local P = require "scriptbank\\physlib"
-
 local crosshairs 			= {}
 local view_range 			= {}
 local crosshair_imagefile 	= {}
@@ -26,11 +24,12 @@ local sp_imgheight2	= {}
 local hitfader		= {}
 local fadetime		= {}
 
-local selectobj 	= {}
+local entrange		= {}
 local pEnt 			= {}
 local cEnt			= {}
 local cHit			= {}
 local status 		= {}
+local tableName		= {}
 local checktimer	= {}
 
 function crosshair_properties(e, view_range, crosshair_imagefile, hitmarker_imagefile, highlighter)
@@ -49,11 +48,13 @@ function crosshair_init(e)
 
 	hitfader[e] = 0
 	fadetime[e] = 0
-	selectobj[e] = 0
+	entrange[e] = 0
 	pEnt[e] = 0
 	cEnt[e] = 0
 	cHit[e] = 0
 	checktimer[e] =	math.huge
+	tableName[e] = "croshairlist" ..tostring(e)
+	_G[tableName[e]] = {}	
 	status[e] = "init"
 end
 
@@ -78,6 +79,14 @@ function crosshair_main(e)
 		SetSpriteOffset(sp_hitmarker,sp_imgwidth2/2.0, sp_imgheight2/2.0)
 		SetSpriteColor(sp_hitmarker,255,255,255,255)
 		
+		for n = 1, g_EntityElementMax do
+			if n ~= nil and g_Entity[n] ~= nil then
+				if GetEntityAllegiance(n) ~= -1 then
+					table.insert(_G[tableName[e]],n)
+				end
+			end
+		end	
+		
 		checktimer[e] = g_Time + 150
 		status[e] = "mouseplay"
 	end
@@ -90,16 +99,22 @@ function crosshair_main(e)
 		end
 		if crosshairs[e].highlighter == 1 then
 			if g_Time > checktimer[e] then
-				selectobj[e] = U.ObjectPlayerLookingAt(crosshairs[e].view_range)
-				if selectobj[e] == 0 then SetSpriteColor(sp_crosshair,255,255,255,100) end
-				pEnt[e] = P.ObjectToEntity(selectobj[e])				
-				if pEnt[e] and g_Entity[pEnt[e]] and g_Entity[pEnt[e]]["health"] > 0 then
-					if GetEntityAllegiance(pEnt[e]) == 0 then SetSpriteColor(sp_crosshair,255,0,0,255) end
-					if GetEntityAllegiance(pEnt[e]) == 1 then SetSpriteColor(sp_crosshair,0,255,0,255) end
-					if GetEntityAllegiance(pEnt[e]) == 2 then SetSpriteColor(sp_crosshair,0,255,255,255) end
-					cEnt[e] = 1
-				end	
-				checktimer[e] = g_Time + 150
+				pEnt[e] = 0
+				for _,v in pairs (_G[tableName[e]]) do
+					if g_Entity[v] ~= nil then
+						entrange[e] = math.ceil(GetFlatDistanceToPlayer(v))
+						if g_Entity[v]["health"] > 0 and entrange[e] < crosshairs[e].view_range and U.PlayerLookingAt(v,crosshairs[e].view_range) then
+							pEnt[e] = v
+							if GetEntityAllegiance(pEnt[e]) == 0 then SetSpriteColor(sp_crosshair,255,0,0,255) end
+							if GetEntityAllegiance(pEnt[e]) == 1 then SetSpriteColor(sp_crosshair,0,255,0,255) end
+							if GetEntityAllegiance(pEnt[e]) == 2 then SetSpriteColor(sp_crosshair,0,255,255,255) end
+							cEnt[e] = 1
+							break
+						end	
+					end
+				end
+				if pEnt[e] == 0 then SetSpriteColor(sp_crosshair,255,255,255,100) end				
+				checktimer[e] = g_Time + 100
 			end
 		end	
 		fadetime[e] = GetTimeElapsed()
@@ -110,11 +125,19 @@ function crosshair_main(e)
 			cHit[e] = 0
 		end	
 		if cHit[e] == 1 then
-			hitfader[e] = 255
+			hitfader[e] = 255			
 			SetSpriteColor(sp_hitmarker,255,255,255,hitfader[e])			
 		else
 			SetSpriteColor(sp_hitmarker,0,0,0,0)
 			cEnt[e] = 0
 		end
 	end	
+end
+
+function GetFlatDistanceToPlayer(v)
+	if g_Entity[v] ~= nil then
+		local distDX = g_PlayerPosX - g_Entity[v]['x']
+		local distDZ = g_PlayerPosZ - g_Entity[v]['z']
+		return math.sqrt((distDX*distDX)+(distDZ*distDZ));
+	end
 end

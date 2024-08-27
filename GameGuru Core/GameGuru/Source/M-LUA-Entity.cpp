@@ -1793,6 +1793,8 @@ void entity_lua_setpositionz ( void )
 	t.te=t.e ; t.tv_f=t.v_f ; g.charanimindex=0  ; entity_updatepos ( );
 }
 
+extern bool g_bResetPosIgnoreGravity;
+
 void entity_lua_resetpositionx ( void )
 {
 	t.entityelement[t.e].x=t.v_f;
@@ -1805,7 +1807,9 @@ void entity_lua_resetpositionx ( void )
 	}
 	else
 	{
+		g_bResetPosIgnoreGravity = true;
 		t.te=t.e ; t.tv_f=t.v_f ; g.charanimindex=0  ; entity_updatepos ( );
+		g_bResetPosIgnoreGravity = false;
 	}
 	entity_lua_findcharanimstate ( );
 	if ( t.tcharanimindex != -1 ) 
@@ -1826,7 +1830,9 @@ void entity_lua_resetpositiony ( void )
 	}
 	else
 	{
+		g_bResetPosIgnoreGravity = true;
 		t.te=t.e ; t.tv_f=t.v_f ; g.charanimindex=0  ; entity_updatepos ( );
+		g_bResetPosIgnoreGravity = false;
 	}
 	entity_lua_findcharanimstate ( );
 	if ( t.tcharanimindex != -1 ) 
@@ -1853,7 +1859,9 @@ void entity_lua_resetpositionz ( void )
 	}
 	else
 	{
+		g_bResetPosIgnoreGravity = true;
 		t.te=t.e ; t.tv_f=t.v_f ; g.charanimindex=0  ; entity_updatepos ( );
+		g_bResetPosIgnoreGravity = false;
 	}
 	entity_lua_findcharanimstate ( );
 	if ( t.tcharanimindex != -1 ) 

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Toxic Zone v19 by Necrym59
+-- Toxic Zone v20 by Necrym59
 -- DESCRIPTION: The player or npc will be effected with health loss while in this Zone unless using protection
 -- DESCRIPTION: Attach to a trigger Zone.
 -- DESCRIPTION: [PROMPT_TEXT$="In Toxic Zone use protection"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [DAMAGE=1(0,1000)] per second
 -- DESCRIPTION: Zone Height [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [@TOXIC_TO_NPC=1(1=Yes, 2=No)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyUserGlobal"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] (eg: MyUserGlobal)
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GLOBAL_AFFECT=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: <Sound0> - Zone Effect Sound
@@ -61,7 +61,7 @@ function toxiczone_init(e)
 	StartTimer(e)
 	EntityID[e] = nil
 	EntityAL[e] = nil
-	g_Entity[e]['entityinzone'] = -1
+	--g_Entity[e]['entityinzone'] = -1
 end
 
 function toxiczone_main(e)
@@ -83,6 +83,8 @@ function toxiczone_main(e)
 					if g_gasmask_on ~= 1 then
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
+						SetPlayerHealthCore(g_PlayerHealth)
+						if g_PlayerHealth <= 0 then LoseGame() end						
 					end
 					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 1 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end
@@ -104,6 +106,8 @@ function toxiczone_main(e)
 					if g_radsuit_on ~= 1 then
 						PlaySound(e,1)
 						SetPlayerHealth(g_PlayerHealth - toxiczone[e].damage)
+						SetPlayerHealthCore(g_PlayerHealth)
+						if g_PlayerHealth <= 0 then LoseGame() end
 					end
 					if toxiczone[e].user_global_affected ~= "" and toxiczone[e].global_affect == 1 then
 						if _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..toxiczone[e].user_global_affected.."']"] end

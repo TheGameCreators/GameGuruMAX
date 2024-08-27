@@ -319,8 +319,22 @@ void lua_launchallinitscripts ( void )
 		if (t.game.firstlevelinitializesanygameprojectlua == 123)
 		{
 			t.game.firstlevelinitializesanygameprojectlua = 0;
-			LuaSetFunction ("GameLoopClearGlobalStates", 0, 0);
-			LuaCall();
+			//did not locate the files to be deleted
+			//LuaSetFunction ("GameLoopClearGlobalStates", 0, 0);
+			//LuaCall();
+			for (int i = -1; i < 999; i++)
+			{
+				cstr pFile = "";
+				if ( i == -1) pFile = "savegames\\gameslot0-globals.dat";
+				else pFile = cstr("savegames\\gameslot0-") + cstr(i) + ".dat";
+				char pRealFile[MAX_PATH];
+				strcpy(pRealFile, pFile.Get());
+				GG_GetRealPath(pRealFile, 0);
+				if(FileExist(pRealFile)==1)
+				{
+					DeleteFileA(pRealFile);
+				}
+			}
 		}
 
 		// calls Init once per game (level?)

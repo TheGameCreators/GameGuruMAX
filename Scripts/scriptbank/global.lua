@@ -241,21 +241,6 @@ function file_exists(name)
    return f ~= nil and io.close(f)
 end
 
-function GameLoopClearGlobalStates()
-	local slotnumber = "0-globals"
-	local tfile = "savegames\\gameslot" .. slotnumber .. ".dat"
-	if file_exists(tfile) then
-		os.remove(tfile)
-	end
-	for storyboardnodeid = 0, 999, 1 do
-		slotnumber = "0-"..storyboardnodeid
-		tfile = "savegames\\gameslot" .. slotnumber .. ".dat"
-		if file_exists(tfile) then
-			os.remove(tfile)
-		end
-	end
-end
-
 function GameLoopSaveStats(storyboardnodeid)
  -- only when dealing with real levels
  if storyboardnodeid >=0 then
@@ -843,18 +828,19 @@ function SetHoverFactor(e,v)
  SendMessageF_sethoverfactor(e,v)
 end
 function SetPosition(e,x,y,z)
- if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
- if g_EntityExtra[e]['beingreset'] > 0 then 
-  g_EntityExtra[e]['beingreset']=g_EntityExtra[e]['beingreset']-1
- else
+ --interferes with game reload/level restore and scripts that use SetPosition
+ --if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
+ --if g_EntityExtra[e]['beingreset'] > 0 then 
+ --  g_EntityExtra[e]['beingreset']=g_EntityExtra[e]['beingreset']-1
+ --else
   SendMessageF_setpositionx(e,x)
   SendMessageF_setpositiony(e,y)
   SendMessageF_setpositionz(e,z)
- end
+ --end
 end
 function ResetPosition(e,x,y,z)
- if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
- if g_EntityExtra[e] ~= nil then g_EntityExtra[e]['beingreset'] = 2 end
+ --if g_EntityExtra[e] == nil then g_EntityExtra[e] = {} end
+ --if g_EntityExtra[e] ~= nil then g_EntityExtra[e]['beingreset'] = 2 end
  SendMessageF_resetpositionx(e,x)
  SendMessageF_resetpositiony(e,y)
  SendMessageF_resetpositionz(e,z)

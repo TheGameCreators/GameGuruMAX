@@ -2688,6 +2688,8 @@ void entity_getmaxfreezedistance ( void )
 	}
 }
 
+bool g_bResetPosIgnoreGravity = false;
+
 void entity_updatepos ( void )
 {
 	// takes te - but not tv# as already dealth with when moved entity X Y Z
@@ -2696,7 +2698,6 @@ void entity_updatepos ( void )
 	// move entity using physics
 	if ( t.entityelement[t.te].usingphysicsnow == 1 ) 
 	{
-		#ifdef WICKEDENGINE
 		if(t.entityprofile[t.entityelement[t.te].bankindex].ischaracter == 1 && t.entityelement[t.te].eleprof.disableascharacter == 0)
 		{
 			// old legacy system was glitchy, pulling back real XZ and causing huge jumps into the air
@@ -2740,193 +2741,27 @@ void entity_updatepos ( void )
 				ODESetLinearVelocityXZWithGravity(t.tobj, fForceToApplyX, fForceToApplyZ, t.tvgravity_f);
 			}
 		}
-		#else
-		//  control physics object (entity-driven)
-		t.tvx_f=t.entityelement[t.te].x-ObjectPositionX(t.tobj);
-		t.tvz_f=t.entityelement[t.te].z-ObjectPositionZ(t.tobj);
-		t.tvd_f=Sqrt(abs(t.tvx_f*t.tvx_f)+abs(t.tvz_f*t.tvz_f));
-
-		// cap relative to speed of entity
-		t.tentspeed_f = (t.entityelement[t.te].eleprof.speed+0.0)/100.0;
-		float fDistCap = 25.0f * t.tentspeed_f;
-
-		//  ensure it is capped for max physics object movement
-		if ( t.tvd_f > 0.0f )
-		{
-			t.tvx_f=t.tvx_f/t.tvd_f;
-			t.tvz_f=t.tvz_f/t.tvd_f;
-		}
-		if ( t.tvd_f > fDistCap ) t.tvd_f = fDistCap;
-		t.tvx_f=t.tvx_f*t.tvd_f;
-		t.tvz_f=t.tvz_f*t.tvd_f;
-		t.tvx_f=t.tvx_f*15.0;
-		t.tvz_f=t.tvz_f*15.0;
-
-		// entity speed modifier
-		t.tentinvspeed_f=100.0/(t.entityelement[t.te].eleprof.speed+0.0);
-
-		// special method for characters to climb 'stairs/ramps'
-		if ( t.entityelement[t.te].climbgravity > 0.0f )
-		{
-			// find ground Y of XZ position, then apply physics velocity to get object to that location
-			bool bClimbNeeded = true;
-			float fStepUp = 20.0f;
-			float fStepDown = 5.0f;
-			// advance 'step scan' a little so can anticipate a staircase (stuff to climb)
-			float fAdvanceX = NewXValue ( 0, t.entityelement[t.te].ry, 12.0f );
-			float fAdvanceZ = NewZValue ( 0, t.entityelement[t.te].ry, 12.0f );
-			int iCollisionMode = (1<<(0)) | (1<<(1)); //COL_TERRAIN | COL_OBJECT | COL_OBJECT_DYNAMIC;
-			if ( ODERayTerrainEx ( t.entityelement[t.te].x + fAdvanceX, t.entityelement[t.te].y + fStepUp, t.entityelement[t.te].z + fAdvanceZ, t.entityelement[t.te].x + fAdvanceX, t.entityelement[t.te].y - fStepDown, t.entityelement[t.te].z + fAdvanceZ, iCollisionMode, false ) == 1 )
-			{
-				t.entityelement[t.te].y = ODEGetRayCollisionY();
-			}
-			else
-			{
-				// detected no floor in step down test, revert to gravity eventually!
-				bClimbNeeded = false;
-			}
-			float fRiseY = t.entityelement[t.te].y - ObjectPositionY(t.tobj);
-
-			// rise AI to climb stairs/ramp
-			if ( fRiseY > 1.5f ) 
-			{
-				// need substantial upward rise to keep climbing to avoid setting stuck on impassable obstructions!
-				t.entityelement[t.te].climbgravity = 1.0f;
-			}
-			else
-			{
-				// if not climbing, and up against resistence, stop climb mode (eventually)
-				bClimbNeeded = false;
-			}
-			if ( fRiseY > 0.001f )
-			{
-				// climbing phyics
-				fRiseY=fRiseY*25.0f;
-				ODESetLinearVelocity ( t.tobj, t.tvx_f, fRiseY, t.tvz_f );
-			}
-			if ( bClimbNeeded == false )
-			{
-				// allows for subtle flat spots during climb, but deactivates if no upward movement after a while
-				//t.entityelement[t.te].climbgravity -= 0.05f; //100417 - many enemies and this takes AGES to get to zero, so AI keeps reseting with no physics movement (just slow grav countdown and lots of XZ math movement!)
-				t.entityelement[t.te].climbgravity -= g.timeelapsed_f * 2.0f;
-				if ( t.entityelement[t.te].climbgravity < 0.0f ) 
-					t.entityelement[t.te].climbgravity = 0.0f;
-			}
-		}
-		if ( t.entityelement[t.te].climbgravity == 0.0f )
-		{
-			// accelerate physics to reach entity X Y Z quickly
-			int entid = t.entityelement[t.te].bankindex;
-			if (t.tvd_f > 24.0*t.tentspeed_f) // use this to align AI bot position with physics object
-			{
-				// basically stops a physics object getting ahead of AI entity position
-				
-				// no velocity while we adjst dest to current stood location (possible vibrate fix)
-				ODESetLinearVelocity ( t.tobj,0,0,0 );
-
-				// ensure no new velocities applied while correct physics/entity alignment
-				t.tvx_f = 0; t.tvz_f = 0;
-
-				// ensure entity does not get too far from physics object
-				t.entityelement[t.te].x=ObjectPositionX(t.tobj);
-				t.entityelement[t.te].z=ObjectPositionZ(t.tobj);
-
-				// if AI bot, must reset its position to last valid pos (where phyiscs object is)
-				if ( g.charanimindex > 0 )
-				{
-					// otherwise it separates from its object terribly FAR!
-					AISetEntityPosition ( t.tobj,t.entityelement[t.te].x,t.entityelement[t.te].y,t.entityelement[t.te].z );
-				}
-
-				// if character finds themselves stopped by something, they can try a climb state
-				if ( t.entityprofile[entid].ischaracter == 1 )
-				{
-					t.entityelement[t.te].climbgravity = 1.0f;
-				}
-
-				// in all cases, register dynamic obstruction with LUA var
-				if ( t.entityelement[t.te].lua.dynamicavoidance == 0 )
-				{
-					t.entityelement[t.te].lua.dynamicavoidancestuckclock += 0.5f;
-					if ( t.entityelement[t.te].lua.dynamicavoidancestuckclock > 1.0f )
-					{
-						t.entityelement[t.te].lua.dynamicavoidance = 1;
-					}
-				}
-				t.entityelement[t.te].lua.flagschanged=1;
-			}
-			else
-			{
-				// apply normal velocity for entity movement (but gravity force for characters)
-				if ( t.entityprofile[entid].ischaracter == 1 )
-				{
-					// 100317 - special hover mode tracks surface below entity using raycast on physics
-					float fHoverFactor = t.entityprofile[entid].hoverfactor;
-					if ( fHoverFactor > 0.0f )
-					{
-						if ( t.entityelement[t.te].hoverfactoroverride > 0.0f )
-						{
-							// allows hover factor value to be changed in LUA script
-							fHoverFactor = t.entityelement[t.te].hoverfactoroverride;
-						}
-						int iCollisionMode = (1<<(0)) | (1<<(1)); //COL_TERRAIN | COL_OBJECT | COL_OBJECT_DYNAMIC;
-						if ( ODERayTerrainEx ( t.entityelement[t.te].x, t.entityelement[t.te].y + 75.0f, t.entityelement[t.te].z, t.entityelement[t.te].x, t.entityelement[t.te].y - 75.0f, t.entityelement[t.te].z, iCollisionMode, false ) == 1 )
-						{
-							t.entityelement[t.te].y = ODEGetRayCollisionY();
-							float tvy = (t.entityelement[t.te].y + fHoverFactor) - ObjectPositionY(t.tobj);
-							ODESetLinearVelocity ( t.tobj, t.tvx_f, tvy, t.tvz_f );
-						}
-						else
-						{
-							ODESetLinearVelocityXZWithGravity ( t.tobj, t.tvx_f, t.tvz_f, t.tvgravity_f/5.0f );
-						}
-					}
-					else
-					{
-						ODESetLinearVelocityXZWithGravity ( t.tobj, t.tvx_f, t.tvz_f, t.tvgravity_f );
-					}
-				}
-				else
-				{
-					#ifdef VRTECH
-					if ( t.entityelement[t.te].nogravity == 1 )
-					{
-						// special case of non character entity with gravity off (pickupable objects)
-						float fNoGravY = t.entityelement[t.te].y - ObjectPositionY(t.tobj);
-						if ( fabs(fNoGravY) > 0.0f )
-						{
-							if ( fNoGravY > fDistCap ) fNoGravY = fDistCap;
-							if ( fNoGravY < -fDistCap ) fNoGravY = -fDistCap;
-							fNoGravY *= 30.0f; // keep it in eye view when look up and down 15.0f;
-						}
-						ODESetLinearVelocity ( t.tobj, t.tvx_f*2, fNoGravY*2, t.tvz_f*2 );
-					}
-					else
-					{
-						// default
-						ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
-					}
-					#else
-					ODESetLinearVelocity ( t.tobj,t.tvx_f,t.tvgravity_f*5.0,t.tvz_f );
-					#endif
-				}
-			}
-		}
-		#endif
 	}
 	else
 	{
-		if (t.entityelement[t.te].nogravity == 0 && t.entityelement[t.te].collected == 0)
+		if (g_bResetPosIgnoreGravity == true)
 		{
-			// non physics objects stick with the floor
-			t.tterrainfloorposy_f = BT_GetGroundHeight (t.terrain.TerrainID, t.entityelement[t.te].x, t.entityelement[t.te].z);
-			t.entityelement[t.te].y = t.tterrainfloorposy_f;
+			// used when resetpositionxyz needs to set exact XYZ position of refreshed/loaded entity
 		}
 		else
 		{
-			// no gravity allows entities to be in the sky (birds and blimps)
+			if (t.entityelement[t.te].nogravity == 0 && t.entityelement[t.te].collected == 0)
+			{
+				// non physics objects stick with the floor
+				t.tterrainfloorposy_f = BT_GetGroundHeight (t.terrain.TerrainID, t.entityelement[t.te].x, t.entityelement[t.te].z);
+				t.entityelement[t.te].y = t.tterrainfloorposy_f;
+			}
+			else
+			{
+				// no gravity allows entities to be in the sky (birds and blimps)
+			}
 		}
-		PositionObject ( t.tobj, t.entityelement[t.te].x, t.entityelement[t.te].y, t.entityelement[t.te].z );
+		PositionObject (t.tobj, t.entityelement[t.te].x, t.entityelement[t.te].y, t.entityelement[t.te].z);
 	}
 }
 

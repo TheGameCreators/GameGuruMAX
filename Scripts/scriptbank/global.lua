@@ -305,7 +305,7 @@ end
 
 function UpdateEntity(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,ani,hea,frm,pdst,avd,lmb,lmi)
  g_Entity[e] = {x=x; y=y; z=z; anglex=rx; angley=ry; anglez=rz; active=ave; activated=act; animating=ani; collected=col; haskey=key; plrinzone=zon; entityinzone=ezon; plrvisible=plrvis; obj=object; health=hea; strength=hea; frame=frm; timer=0; plrdist=pdst; avoid=avd; limbhit=lmb; limbhitindex=lmi; debuggermode=0;}
- g_EntityExtra[e] = {visible=-1; spawnatstart=1; beingreset=0; collision=1; clonedsincelevelstart=0;}
+ g_EntityExtra[e] = {visible=-1; beingreset=0; collision=1; clonedsincelevelstart=0;}
 end
 
 function UpdateEntityRT(e,object,x,y,z,rx,ry,rz,ave,act,col,key,zon,ezon,plrvis,hea,frm,pdst,avd,lmb,lmi)

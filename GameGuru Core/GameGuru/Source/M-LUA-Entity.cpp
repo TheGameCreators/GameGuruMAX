@@ -422,7 +422,11 @@ void entity_lua_spawn_core ( void )
 
 	//  restore entity and it's AI
 	t.entityelement[t.e].active=1;
-	t.entityelement[t.e].health = t.entityelement[t.e].eleprof.strength; //oops - t.entityprofile[t.ttentid].strength;
+	if (t.entityprofile[t.ttentid].ismarker == 0)
+	{
+		// only for regular objects, not things like zones (which also need to be respawned when reloading game position)
+		t.entityelement[t.e].health = t.entityelement[t.e].eleprof.strength; //oops - t.entityprofile[t.ttentid].strength;
+	}
 	if ( Len(t.entityelement[t.e].eleprof.aimainname_s.Get())>1 ) 
 	{
 		t.entityelement[t.e].eleprof.aimain=1;
@@ -628,12 +632,16 @@ void entity_lua_createifusedlist ( LPSTR pIfUsedString )
 	}
 }
 
-void entity_lua_manageactivationresult (int iEntityID)
+bool entity_lua_manageactivationresult (int iEntityID)
 {
+	bool bResult = false;
+
 	if (iEntityID > 0)
 	{
 		// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-		if (t.entityelement[iEntityID].active == 0 && t.entityelement[iEntityID].health > 0)
+		//if (t.entityelement[iEntityID].active == 0 && t.entityelement[iEntityID].health > 0)
+		// active condition moved to caller as I need to call this even if active was 1 (loading saved games)
+		if (t.entityelement[iEntityID].health > 0)
 		{
 			if (t.entityelement[iEntityID].activated == 1)
 			{
@@ -652,6 +660,7 @@ void entity_lua_manageactivationresult (int iEntityID)
 					t.e = iEntityID;
 					entity_lua_spawn_core();
 					t.e = t.tstore;
+					bResult = true;
 				}
 			}
 		}
@@ -667,6 +676,8 @@ void entity_lua_manageactivationresult (int iEntityID)
 			entity_updateparticleemitter(iEntityID);
 		}
 	}
+
+	return bResult;
 }
 
 void entity_lua_activateifused ( void )
@@ -696,7 +707,10 @@ void entity_lua_activateifused ( void )
 					}
 
 					// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-					entity_lua_manageactivationresult(t.e);
+					if (t.entityelement[t.e].active == 0)
+					{
+						entity_lua_manageactivationresult(t.e);
+					}
 
 					// trigger LUA data to update for this element
 					t.entityelement[t.e].lua.flagschanged = 1;
@@ -822,7 +836,10 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				}
 
 				// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-				entity_lua_manageactivationresult(iRelationShipEntityID);
+				if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+				{
+					t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+				}
 
 				// trigger LUA data to update for this element
 				t.entityelement[iRelationShipEntityID].lua.flagschanged = 1;
@@ -1095,7 +1112,10 @@ void entity_lua_refreshentity ( void )
 						// show/hide if particle based on activation state
 						if (t.entityelement[t.e].activated == 1)
 						{
-							entity_lua_manageactivationresult(t.e);
+							if (t.entityelement[t.e].active == 0)
+							{
+								entity_lua_manageactivationresult(t.e);
+							}
 						}
 					}
 				}

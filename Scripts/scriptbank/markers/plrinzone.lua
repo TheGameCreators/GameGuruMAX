@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Player In Zone v12  by Necrym59 and Lee
+-- Player In Zone v13  by Necrym59 and Lee
 -- DESCRIPTION: Re-triggerable zone to trigger an event.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: Set for [@MULTI_TRIGGER=2(1=Yes, 2=No)]
@@ -45,9 +45,11 @@ function plrinzone_init(e)
 end
 
 function plrinzone_main(e)
+PromptLocal(e,"plrinzone[e].spawnatstart "..plrinzone[e].spawnatstart)
+
 	if status[e] == "init" then
 		if plrinzone[e].delay ~= nil then waittime[e] = plrinzone[e].delay * 1000 end
-		if plrinzone[e].spawnatstart == 1 then SetActivated(e,1) end
+		if plrinzone[e].spawnatstart > 0 then SetActivated(e,1) end
 		if plrinzone[e].spawnatstart == 0 then SetActivated(e,0) end
 		status[e] = "endinit"
 	end
@@ -85,4 +87,14 @@ function plrinzone_main(e)
 			multi_switch[e] = 0
 		end		
 	end
+	
+	-- restore logic
+	if g_EntityExtra[e]['restoremenow'] ~= nil then
+     if g_EntityExtra[e]['restoremenow'] == 1 then
+      g_EntityExtra[e]['restoremenow'] = 0
+	  status[e] = "init"
+	  plrinzone[e].spawnatstart = GetEntitySpawnAtStart(e)
+     end
+	end	
+	
 end

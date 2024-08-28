@@ -45,7 +45,6 @@ function plrinzone_init(e)
 end
 
 function plrinzone_main(e)
-PromptLocal(e,"plrinzone[e].spawnatstart "..plrinzone[e].spawnatstart)
 
 	if status[e] == "init" then
 		if plrinzone[e].delay ~= nil then waittime[e] = plrinzone[e].delay * 1000 end

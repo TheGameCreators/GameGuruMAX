@@ -377,6 +377,7 @@ IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
 #define SCREENEDITOR_PROGRESSBAR UIV3IMAGES+285
 #define SCREENEDITOR_RADIOBUTTON UIV3IMAGES+286
 #define SCREENEDITOR_TEXTAREA UIV3IMAGES+287
+#define SCREENEDITOR_VIDEO UIV3IMAGES+288
 
 //PE: 02-09-2021 moved range.
 //298,297 also used in backdrop.
@@ -871,7 +872,7 @@ struct StoryboardNodesStruct
 	//PE: You just add a new one, a line before the filler and cound the filler down.
 	int screen_backdrop_transparent;
 	int readouts_available = 0;
-	int widgets_available = ALLOW_TEXT | ALLOW_IMAGE;
+	int widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO;
 	int toggleKey = 0;
 	int showAtStart = 0;
 	int iFiller20[15];

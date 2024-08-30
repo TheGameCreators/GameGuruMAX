@@ -1301,6 +1301,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\slider-icon.png", SCREENEDITOR_SLIDER);
 	LoadImage("editors\\uiv3\\progressbar-icon.png", SCREENEDITOR_PROGRESSBAR);
 	LoadImage("editors\\uiv3\\textarea-icon.png", SCREENEDITOR_TEXTAREA);
+	LoadImage("editors\\uiv3\\video-icon.png", SCREENEDITOR_VIDEO);
 
 	ImNodes::CreateContext();
 
@@ -1834,23 +1835,6 @@ void mapeditorexecutable_full_folder_refresh(void)
 				cFolderItem* pLastFolder = &MainEntityList;
 				cFolderItem* pFirstOfTheLastFolder = NULL;
 
-				/* new project system works a little differently
-				// project folder (only for entitybank thru scriptbank, not particlesbank and charactercreatorplus)
-				if (iMediaFolderType >= 0 && iMediaFolderType <= 4)
-				{
-					strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
-					strcat(cFullProjectWritePath, "\\Files\\");
-					strcat(cFullProjectWritePath, pMediaFolderPattern);
-					GG_GetRealPath(cFullProjectWritePath, 1);
-					GetMainEntityList(cFullProjectWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
-					while (pLastFolder->m_pNext)
-					{
-						pLastFolder = pLastFolder->m_pNext;
-					}
-					pFirstOfTheLastFolder = pLastFolder;
-				}
-				*/
-
 				// writables folder
 				GetMainEntityList(cFullWritePath, "", pFirstOfTheLastFolder, "w:", true, iMediaFolderType);
 				pLastFolder = &MainEntityList;
@@ -1864,217 +1848,6 @@ void mapeditorexecutable_full_folder_refresh(void)
 				GetMainEntityList(pMediaFolderPattern, "", pLastFolder, "", false, iMediaFolderType);
 			}
 		}
-
-		/* replaced with above loop
-		//First get those in document folder.
-		strcpy(cFullWritePath, "entitybank");
-		GG_GetRealPath(cFullWritePath, 1);
-		LPSTR pOld = GetDir();
-		cStr CurrentPath = cStr(pOld) + cStr("\\entitybank");
-		bool bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 0);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("entitybank", "", pLastFolder, "", false, 0);
-		}
-		else
-		{
-			GetMainEntityList("entitybank", "", NULL, "", true, 0);
-		}
-		SetDir(pOld);
-
-		//PE: Append other files types.
-		#ifdef WICKEDENGINE
-		#ifdef USENEWMEDIASELECTWINDOWS
-		strcpy(cFullWritePath, "audiobank");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\audiobank");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 1);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("audiobank", "", pLastFolder, "", false, 1);
-		}
-		else
-		{
-			GetMainEntityList("audiobank", "", NULL, "", true, 1);
-		}
-
-		//Images - updated to handle project bank folder
-		strcpy(cFullWritePath, "imagebank");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\imagebank");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			// same folder means no separate writables area
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			// project folder
-			strcpy(cFullProjectWritePath, cFullProjectWriteBasePath);
-			strcat(cFullProjectWritePath, "\\Files\\imagebank");
-			GG_GetRealPath(cFullProjectWritePath, 1);
-			GetMainEntityList(cFullProjectWritePath, "", NULL, "w:", true, 2);
-			cFolderItem* pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-
-			// writables folder
-			GetMainEntityList(cFullWritePath, "", pLastFolder, "w:", true, 2);
-			pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-
-			// root folder
-			SetDir(pOld);
-			GetMainEntityList("imagebank", "", pLastFolder, "", false, 2);
-		}
-		else
-		{
-			// only root folder for non-writable systems
-			GetMainEntityList("imagebank", "", NULL, "", true, 2);
-		}
-
-		//Videos
-		strcpy(cFullWritePath, "videobank");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\videobank");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 3);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("videobank", "", pLastFolder, "", false, 3);
-		}
-		else
-		{
-			GetMainEntityList("videobank", "", NULL, "", true, 3);
-		}
-
-		//Script
-		strcpy(cFullWritePath, "scriptbank");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\scriptbank");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 4);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("scriptbank", "", pLastFolder, "", false, 4);
-		}
-		else
-		{
-			GetMainEntityList("scriptbank", "", NULL, "", true, 4);
-		}
-
-		//Particles
-		strcpy(cFullWritePath, "particlesbank");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\particlesbank");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 5);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("particlesbank", "", pLastFolder, "", false, 5);
-		}
-		else
-		{
-			GetMainEntityList("particlesbank", "", NULL, "", true, 5);
-		}
-
-		//Animations
-		strcpy(cFullWritePath, "charactercreatorplus\\animations");
-		GG_GetRealPath(cFullWritePath, 1);
-		pOld = GetDir();
-		CurrentPath = cStr(pOld) + cStr("\\charactercreatorplus\\animations");
-		bSkipDocWriteFolder = false;
-		if (strnicmp(CurrentPath.Get(), cFullWritePath, CurrentPath.Len()) == 0)
-		{
-			//Same Dirs.
-			bSkipDocWriteFolder = true;
-		}
-		if (!bSkipDocWriteFolder)
-		{
-			GetMainEntityList(cFullWritePath, "", NULL, "w:", true, 6);
-			SetDir(pOld);
-			cFolderItem *pLastFolder = &MainEntityList;
-			while (pLastFolder->m_pNext)
-			{
-				pLastFolder = pLastFolder->m_pNext;
-			}
-			GetMainEntityList("charactercreatorplus\\animations", "", pLastFolder, "", false, 6);
-		}
-		else
-		{
-			GetMainEntityList("charactercreatorplus\\animations", "", NULL, "", true, 6);
-		}
-		#endif
-		#endif
-		*/
 
 		//Sort folder entrys.
 		SetDir(pOld);
@@ -12674,7 +12447,6 @@ void mapeditorexecutable_loop(void)
 							{
 								if (ImGui::StyleCollapsingHeader(t.strarr_s[597].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
 
-									//t.grideleprof.soundset_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset_s.Get(), t.strarr_s[467].Get(), t.strarr_s[599].Get(), "audiobank\\");
 									t.grideleprof.soundset1_s = imgui_setpropertyfile2(t.group, t.grideleprof.soundset1_s.Get(), "Video Slot", t.strarr_s[601].Get(), "videobank\\");
 								}
 							}

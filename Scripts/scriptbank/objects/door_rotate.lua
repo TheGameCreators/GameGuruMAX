@@ -1,4 +1,4 @@
--- Door Rotate v26 - Necrym59 and AmenMoses and Lee
+-- Door Rotate v27 - Necrym59 and AmenMoses and Lee
 -- DESCRIPTION: Rotates a non-animating door when player interacts with it. When door is initially opened, play <Sound0>. When the door is closing, play <Sound1>.
 -- DESCRIPTION: Customize the [LockedText$="Door is locked. Find a way to unlock it"]
 -- DESCRIPTION: and optionally [!IsUnlocked=1]
@@ -7,6 +7,7 @@
 -- DESCRIPTION: [@DOOR_TYPE=2(1=Auto, 2=Manual)]
 -- DESCRIPTION: [DOOR_RANGE=100(0,500)]
 -- DESCRIPTION: [@PROMPT_DISPLAY=2(1=Local,2=Screen)]
+-- DESCRIPTION: [@OPENING_STYLE=1(1=Push, 2=Pull)]
 
 local module_misclib = require "scriptbank\\module_misclib"
 local Q = require "scriptbank\\quatlib"
@@ -38,7 +39,7 @@ g_door_rotate = {}
 
 local doorTypesRotation = { 'Auto', 'Manual' }
 
-function door_rotate_properties( e, lockedtext, isunlocked, unlockedtext, closetext, door_type, door_range, prompt_display )
+function door_rotate_properties( e, lockedtext, isunlocked, unlockedtext, closetext, door_type, door_range, prompt_display, opening_style)
 	local door = g_door_rotate[ e ]
 	if door == nil then return end
 	if lockedtext ~= nil then
@@ -58,6 +59,7 @@ function door_rotate_properties( e, lockedtext, isunlocked, unlockedtext, closet
 	end
 	door.door_range = door_range or defaultDoorRange
 	door.prompt_display = prompt_display or defaultPromptDisplay
+	door.opening_style = opening_style or 1
 end
 
 function door_rotate_init_name( e, name )
@@ -80,6 +82,7 @@ function door_rotate_init_name( e, name )
 							door_type = defaultDoorType,
 							door_range = defaultDoorRange,
 							prompt_display = prompt_display,
+							opening_style = opening_style,
 					      }
 	tEnt[e] = 0
 	selectobj[e] = 0
@@ -222,7 +225,7 @@ function door_rotate_main(e)
 			door.angle = door.angle + timeDiff
 			if door.angle > 90 then door.angle = 90 end
 			local rotAng = door.angle
-			if names[ e ] == 'Right' then rotAng = -rotAng end
+			if names[ e ] == 'Right' or door.opening_style == 2 then rotAng = -rotAng end
 			local rotq = Q.FromEuler( 0, rad( rotAng ), 0 )
 			local ax, ay, az = Q.ToEuler( Q.Mul( door.quat, rotq ) )
 			CollisionOff( e )
@@ -239,7 +242,7 @@ function door_rotate_main(e)
 			door.angle = door.angle - timeDiff
 			if door.angle < 0 then door.angle = 0 end
 			local rotAng = door.angle
-			if names[ e ] == 'Right' then rotAng = -rotAng end
+			if names[ e ] == 'Right' or door.opening_style == 2 then rotAng = -rotAng end
 			local rotq = Q.FromEuler( 0, rad( rotAng ), 0 )
 			local ax, ay, az = Q.ToEuler( Q.Mul( door.quat, rotq ) )
 			CollisionOff( e )

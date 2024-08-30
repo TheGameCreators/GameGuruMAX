@@ -549,6 +549,9 @@ std::vector<int> g_gameGlobalListNodeId;
 std::vector<int> g_gameGlobalListIndex;
 std::vector<int> g_gameGlobalListValue;
 
+// storyboard screen animation control
+int g_iStoryboardScreenVideoID = 0;
+
 #ifdef ENABLEIMGUI
 void imgui_set_openproperty_flags(int iMasterID)
 {
@@ -1448,13 +1451,8 @@ void interface_openpropertywindow ( void )
 			{
 				t.propfield[t.group]=t.controlindex;
 				++t.group ; startgroup(t.strarr_s[597].Get()) ; t.controlindex=0;
-				#ifdef VRTECH
 				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),t.strarr_s[469].Get(),t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
 				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video Slot",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
-				#else
-				setpropertyfile2(t.group,t.grideleprof.soundset_s.Get(),"Audio",t.strarr_s[599].Get(),"audiobank\\") ; ++t.controlindex;
-				setpropertyfile2(t.group,t.grideleprof.soundset1_s.Get(),"Video",t.strarr_s[601].Get(),"videobank\\") ; ++t.controlindex;
-				#endif
 			}
 
 			//  Third person settings
@@ -16722,7 +16720,6 @@ void process_entity_library_v2(void)
 	if (iStartVideoInNextFrame && iVideoGetFirstFrame == 0)
 	{
 		iVideoThumbID = 0;
-
 		for (int itl = 1; itl <= 32; itl++)
 		{
 			if (AnimationExist(itl) == 0) { iVideoThumbID = itl; break; }
@@ -19799,6 +19796,7 @@ void process_entity_library_v2(void)
 											replaceAll(sFpeName, "\\\\", "\\");
 											t.addentityfile_s = sFpeName.c_str();
 										}
+										// perhaps make this a common define!
 										CreateBackBufferCacheName(t.addentityfile_s.Get(), thumb_x, thumb_y);
 										GG_SetWritablesToRoot(true);
 										image_setlegacyimageloading(true);
@@ -37716,7 +37714,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 	// LB latest
 	int orgnode = node;
 	constexpr int allWidgets = ALLOW_BUTTON | ALLOW_TEXT | ALLOW_IMAGE | ALLOW_RADIOTYPE | ALLOW_SLIDER | ALLOW_TICKBOX | ALLOW_VIDEO | ALLOW_PROGRESS | ALLOW_TEXTAREA;
-	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_BUTTON;
+	constexpr int defaultWidgets = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO | ALLOW_BUTTON;
 	bool bUpdateStoryboardToV2 = false;
 
 	//General.
@@ -38966,7 +38964,7 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 		//2 Default Loading screen.
 		if (bValid && (Storyboard.Nodes[node].used == false || bForce))
 		{
-			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE;;
+			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO;
 			//iLoadingScreenNodeID;
 			//2 Default Loading screen.
 			Storyboard.Nodes[node].used = true;
@@ -39102,8 +39100,8 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 		}
 	}
 
-	if(node==iLoadingScreenNodeID)
-		Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE; //PE: Buttons cant work here.
+	if (node == iLoadingScreenNodeID)
+		Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO;
 	else
 		Storyboard.Nodes[node].widgets_available = defaultWidgets;
 	
@@ -42572,7 +42570,7 @@ void process_storeboard(bool bInitOnly)
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
 
 								//PE: New loading screen.
-								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE;
+								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO;
 								Storyboard.Nodes[node].used = true;
 								Storyboard.Nodes[node].type = STORYBOARD_TYPE_LEVEL;
 								Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iLoadingScreenNodeID].restore_position.x + 200 * iLoadingScreenCount, Storyboard.Nodes[iLoadingScreenNodeID].restore_position.y);
@@ -46746,18 +46744,22 @@ int AddWidgetToScreen(int nodeID, STORYBOARD_WIDGET_ type, std::string readoutTi
 			{
 				strcpy(node.widget_normal_thumb[widgetSlot], "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-icon-handgun.png");
 			}
-			// LB latest
 			else
 			{
-				strcpy(node.widget_normal_thumb[widgetSlot], "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-health-panel.png");
+				strcpy(node.widget_normal_thumb[widgetSlot], "editors\\templates\\panels\\image-panel.png");
 			}
 		}
 		else
 		{
-			strcpy(node.widget_normal_thumb[widgetSlot], "languagebank\\neutral\\gamecore\\huds\\ammohealth\\ammo-health-panel.png");
+			strcpy(node.widget_normal_thumb[widgetSlot], "editors\\templates\\panels\\image-panel.png");
 		}
 		// used as GRID ROW and COLUMN default (1x1)
 		Storyboard.widget_textoffset[nodeID][widgetSlot] = ImVec2(1, 1);
+	}
+	else if (type == STORYBOARD_WIDGET_VIDEO)
+	{
+		strcpy(node.widget_normal_thumb[widgetSlot], "editors\\templates\\panels\\video-panel.png");
+		strcpy(node.widget_highlight_thumb[widgetSlot], ""); // will ne used to store MP4 file
 	}
 	else if (type == STORYBOARD_WIDGET_TEXT || type == STORYBOARD_WIDGET_TEXTAREA)
 	{
@@ -47814,14 +47816,30 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 
 			ImVec2 spaceAvail = ImGui::GetContentRegionAvail();
 			ImVec2 vScreenEditorPanelSize = ImVec2(panelWidth, spaceAvail.y);
-			leftPanelAABB.Max = leftPanelAABB.Min + vScreenEditorPanelSize;// +ImVec2(22.0f, 0.0f);
+			leftPanelAABB.Max = leftPanelAABB.Min + vScreenEditorPanelSize;
+
+			// can make space easily as more icons are added by shrinking the size of each icon
+			int iIconsOnRow = 5;
+			int iSizeOfEachIcon = ((180+48)-((iIconsOnRow-1)*16)) / iIconsOnRow;
+
+			// also, old storyboards had old allowances, so if IMAGE allowed, can also have VIDEO
+			const StoryboardNodesStruct& node = Storyboard.Nodes[nodeid];
+			if (node.widgets_available & ALLOW_IMAGE)
+			{
+				// except for HUD Screens (which are live in game and video would hit performance)
+				char pHUDScreenName[256];
+				sprintf(pHUDScreenName, "HUD Screen");
+				if (strnicmp (Storyboard.Nodes[nodeid].title, pHUDScreenName, strlen(pHUDScreenName)) != NULL)
+				{
+					Storyboard.Nodes[nodeid].widgets_available |= ALLOW_VIDEO;
+				}
+			}
 
 			ImGui::BeginChild("##Screeneditorleftpanel", vScreenEditorPanelSize);
 			if (ImGui::StyleCollapsingHeader("Visuals##screeneditorvisual", ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent(10);
-				vIconSize = { 45,45 };
-				const StoryboardNodesStruct& node = Storyboard.Nodes[nodeid];
+				vIconSize = ImVec2(iSizeOfEachIcon, iSizeOfEachIcon);
 				int widgetsOnDisplay = 0;
 				if (node.widgets_available & ALLOW_IMAGE)
 				{
@@ -47835,13 +47853,26 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					widgetsOnDisplay++;
 				}
+				if (node.widgets_available & ALLOW_VIDEO)
+				{
+					if ((widgetsOnDisplay % iIconsOnRow) != 0) ImGui::SameLine();
+					if (ImGui::ImgBtn(SCREENEDITOR_VIDEO, vIconSize))
+					{
+						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_VIDEO);
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("Add a video");
+					}
+					widgetsOnDisplay++;
+				}
 				if (node.widgets_available & ALLOW_TEXT)
 				{
-					if ((widgetsOnDisplay % 4) != 0) ImGui::SameLine();
+					if ((widgetsOnDisplay % iIconsOnRow) != 0) ImGui::SameLine();
 					if (ImGui::ImgBtn(SCREENEDITOR_TEXT, vIconSize)) AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TEXT);
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add text line");
 					widgetsOnDisplay++;
-					if ((widgetsOnDisplay % 4) != 0) ImGui::SameLine();
+					if ((widgetsOnDisplay % iIconsOnRow) != 0) ImGui::SameLine();
 					if (ImGui::ImgBtn(SCREENEDITOR_TEXTAREA, vIconSize))
 					{
 						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TEXTAREA);
@@ -47851,7 +47882,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				}
 				if (node.widgets_available & ALLOW_BUTTON)
 				{
-					if ((widgetsOnDisplay % 4) != 0)
+					if ((widgetsOnDisplay % iIconsOnRow) != 0)
 					{
 						ImGui::SameLine();
 					}
@@ -47865,72 +47896,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					widgetsOnDisplay++;
 				}
-				// Removed until Lua integration with Screen Editor
-				/*
-				if (node.widgets_available & ALLOW_RADIOTYPE)
-				{
-					if ((widgetsOnDisplay % 4) != 0)
-					{
-						ImGui::SameLine();
-					}
-					if (ImGui::ImgBtn(SCREENEDITOR_RADIOBUTTON, vIconSize))
-					{
-						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_RADIOTYPE);
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Add a multiple-choice button");
-					}
-					widgetsOnDisplay++;
-				}
-				if (node.widgets_available & ALLOW_TICKBOX)
-				{
-					if ((widgetsOnDisplay % 4) != 0)
-					{
-						ImGui::SameLine();
-					}
-					if (ImGui::ImgBtn(SCREENEDITOR_TICKBOX, vIconSize))
-					{
-						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_TICKBOX);
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Add a tick-box button");
-					}
-					widgetsOnDisplay++;
-				}
-				if (node.widgets_available & ALLOW_SLIDER)
-				{
-					if ((widgetsOnDisplay % 4) != 0)
-					{
-						ImGui::SameLine();
-					}
-					if (ImGui::ImgBtn(SCREENEDITOR_SLIDER, vIconSize))
-					{
-						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_SLIDER);
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Add a slider");
-					}
-					widgetsOnDisplay++;
-				}
-				if (node.widgets_available & ALLOW_PROGRESS)
-				{
-					if ((widgetsOnDisplay % 4) != 0)
-					{
-						ImGui::SameLine();
-					}
-					if (ImGui::ImgBtn(SCREENEDITOR_PROGRESSBAR, vIconSize))
-					{
-						AddWidgetToScreen(nodeid, STORYBOARD_WIDGET_PROGRESS);
-					}
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::SetTooltip("Add a progress bar");
-					}
-					widgetsOnDisplay++;
-				}*/
 				ImGui::Indent(-10);
 			}
 			if (ImGui::StyleCollapsingHeader("Readouts##screeneditorreadout", ImGuiTreeNodeFlags_DefaultOpen))
@@ -47958,6 +47923,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_IMAGE)
 					{
 						imgID = SCREENEDITOR_IMAGE;
+					}
+					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_VIDEO)
+					{
+						imgID = SCREENEDITOR_VIDEO;
 					}
 					else if (readoutWidgetTypes[i] == STORYBOARD_WIDGET_TICKBOX)
 					{
@@ -47988,15 +47957,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImGui::SameLine();
 					ImGui::SetCursorPos(ImGui::GetCursorPos() - offset);
 					ImGui::Text(readoutTitles[i].c_str());
-				}
-				
+				}	
 				ImGui::Indent(-10);
 			}
 			ImGui::EndChild();
-		}
-		else
-		{
-			//DCCursorPos = ImVec2(0, 0);
 		}
 
 		const ImRect image_bb((DCCursorPos + ImVec2(vMonitorCenterX,0) + vMonitorPos - padding), DCCursorPos + ImVec2(vMonitorCenterX, 0) + vMonitorPos + padding + vMonitorSize);
@@ -48030,7 +47994,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			window->DrawList->AddRectFilled(image_bb.Min - vMonitorBorder, image_bb.Max + vMonitorBorder, ImGui::GetColorU32(monitor_border), 12.0, 15);
 			window->DrawList->AddRectFilled(image_bb.Min + padding, image_bb.Max - padding, ImGui::GetColorU32(monitor_col));
 			window->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-
 			if ( Storyboard.Nodes[nodeid].screen_backdrop_transparent && !bPreviewScreen) //PE: Support transparent if no backdrop.
 			{
 				ID3D11ShaderResourceView* lpTexture = GetImagePointerView(STORYBOARD_TRANSPARET);
@@ -48040,7 +48003,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					window->DrawList->AddImage((ImTextureID)lpTexture, image_bb.Min + padding, image_bb.Max - padding, ImVec2(0, 0), ImVec2(1, 1), ImGui::GetColorU32(ImVec4(1.0, 1.0, 1.0, 0.25)));
 				}
 			}
-
 		}
 		if (ImageExist(Storyboard.Nodes[nodeid].screen_backdrop_id))
 		{
@@ -48049,7 +48011,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			if (lpTexture)
 			{
 				//Support center,stretch,zoom
-				//Storyboard.Nodes[nodeid].screen_backdrop_placement
 				if (Storyboard.Nodes[nodeid].screen_backdrop_placement == 0)
 				{
 					//Center;
@@ -48060,11 +48021,13 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImVec2 vSize = ImVec2(preview_size_x, preview_size_y);
 					if (!standalone) vSize = vMonitorSize;
 
-					if (img_w > vSize.x || img_h > vSize.y) {
+					if (img_w > vSize.x || img_h > vSize.y) 
+					{
 						float fRatio = 1.0f / (img_w / img_h);
 						img_w = vSize.x;
 						img_h = vSize.x * fRatio;
-						if (img_h > vSize.y) {
+						if (img_h > vSize.y) 
+						{
 							float fRatio = 1.0f / (img_h / img_w);
 							img_h = vSize.y;
 							img_w = vSize.y * fRatio;
@@ -48093,7 +48056,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					{
 						float adjustx = vSize.x - img_w;
 						img_w += adjustx;
-						//img_h += adjustx * (1.0f / (img_h / img_w));
 						img_h += adjustx * (1.0f / (img_w / img_h)); //PE: Ups the other way around.
 					}
 
@@ -48134,7 +48096,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					ImVec2 vScale = vMonitorSize / vViewportSize;
 					ImVec4 tool_selected_col = ImVec4(0.75, 0.75, 0.75, 0.25); //ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
 					float grid_size = Storyboard.Nodes[nodeid].screen_grid_size;
-					//ImVec2 fOnePercent = ImVec2(1920.0 / 100.0, 1080.0 / 100.0); //PE: This can be changed in the future to support different screen ratio settings.
 					ImVec2 fOnePercent = ImVec2(vMonitorSize.x / 100.0, vMonitorSize.y / 100.0); //PE: This can be changed in the future to support different screen ratio settings.
 					float grid_step = (grid_size * fOnePercent.x); // *vScale.x;
 					for (float fx = (image_bb.Min.x + padding.x); fx < (image_bb.Max.x - padding.x); fx += grid_step)
@@ -48273,7 +48234,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				int iTextAdjustment = 1; // 0=left, 1=center , 2=right
 
 				ImVec2 widget_pos = Storyboard.Nodes[nodeid].widget_pos[index] * fOnePercent; //Real screen pos.
-				//widget_pos = widget_pos * vScale; //Scale to visible screen size.
 				ImVec2 widget_size = ImVec2(500, 74); //Default widget size.
 				widget_size = widget_size * vScale;
 				widget_size = widget_size * fGlobalScale;
@@ -48648,8 +48608,25 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						ImGui::PopTextWrapPos();
 				}
 
-				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_IMAGE)
+				// monitor for screen changes to remove any lingering video
+				static int g_iLastScreenNodeID = -1;
+				if (g_iLastScreenNodeID != nodeid)
 				{
+					g_iLastScreenNodeID = nodeid;
+					if (g_iStoryboardScreenVideoID > 0)
+					{
+						if (AnimationExist(g_iStoryboardScreenVideoID) == 0) DeleteAnimation(g_iStoryboardScreenVideoID);
+						g_iStoryboardScreenVideoID = 0;
+					}
+				}
+
+				if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_IMAGE
+				|| Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_VIDEO)
+				{
+					bool bWidgetIsVideo = false;
+					if (Storyboard.Nodes[nodeid].widget_type[index] == STORYBOARD_WIDGET_VIDEO ) 
+						bWidgetIsVideo = true;
+
 					int imgID = Storyboard.Nodes[nodeid].widget_normal_thumb_id[index];
 					if (nodeidStore == -1 && strlen(Storyboard.widget_readout[nodeid][index]) > 0)
 					{
@@ -48661,7 +48638,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							imgID = 0;
 						}
 					}
-					if (bImGuiInTestGame == true)
+					if (bWidgetIsVideo==false && bImGuiInTestGame == true)
 					{
 						// special code to hide certain HUDs
 						bool bHideThis = false;
@@ -48715,43 +48692,101 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 					else
 					{
-						//Display Image
-						void* lpTexture = GetImagePointer(imgID);
-						if (lpTexture)
+						// Handle Video
+						if (bWidgetIsVideo == true && t.game.gameisexe == 1)
 						{
-							ImGui::SetCursorPos(vMonitorStart + widget_pos);
-							ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-							ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
-							ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
-							ImGui::PopItemFlag();
+							// Display and Handle Video if in Standalone
+							if (g_iStoryboardScreenVideoID == 0)
+							{
+								for (int itl = 1; itl <= 32; itl++)
+								{
+									if (AnimationExist(itl) == 0) { g_iStoryboardScreenVideoID = itl; break; }
+								}
+								LPSTR pVideoFile = Storyboard.Nodes[nodeid].widget_highlight_thumb[index];
+								if (LoadAnimation((char*)pVideoFile, g_iStoryboardScreenVideoID, g.videoprecacheframes, 0, 1) == false)
+								{
+									g_iStoryboardScreenVideoID = -999;
+								}
+								if (g_iStoryboardScreenVideoID > 0)
+								{
+									SetVideoVolume(100.0);
+									if (Storyboard.Nodes[nodeid].widget_font_size[index] != 0)
+									{
+										LoopAnimation(g_iStoryboardScreenVideoID);
+									}
+									else
+									{
+										PlayAnimation(g_iStoryboardScreenVideoID);
+									}
+									SetRenderAnimToImage(g_iStoryboardScreenVideoID, true);
+									UpdateAllAnimation();
+								}
+							}
+							else
+							{
+								UpdateAllAnimation();
+								if (AnimationExist(g_iStoryboardScreenVideoID) && AnimationPlaying(g_iStoryboardScreenVideoID))
+								{
+									ID3D11ShaderResourceView* lpVideoTexture = GetAnimPointerView(g_iStoryboardScreenVideoID);
+									float fVideoW = GetAnimWidth(g_iStoryboardScreenVideoID);
+									float fVideoH = GetAnimHeight(g_iStoryboardScreenVideoID);
+									if (lpVideoTexture)
+									{
+										ImGuiWindow* window = ImGui::GetCurrentWindow();
+										ImGui::SetCursorPos(vMonitorStart + widget_pos);
+										ImRect image_bb(window->DC.CursorPos, window->DC.CursorPos + widget_size);
+										float animU = GetAnimU(g_iStoryboardScreenVideoID);
+										float animV = GetAnimV(g_iStoryboardScreenVideoID);
+										ImVec2 uv0 = ImVec2(0, 0);
+										ImVec2 uv1 = ImVec2(animU, animV);
+										window->DrawList->AddImage((ImTextureID)lpVideoTexture, image_bb.Min, image_bb.Max, uv0, uv1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
+									}
+								}
+							}
+						}
+						else
+						{
+							// Display Image
+							void* lpTexture = GetImagePointer(imgID);
+							if (lpTexture)
+							{
+								ImGui::SetCursorPos(vMonitorStart + widget_pos);
+								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+								ImVec4 imageColor = Storyboard.widget_colors[nodeid][Storyboard_ActiveWidgets[i]];
+								ImGui::ImgBtn(imgID, widget_size, ImColor(255, 255, 255, 0), imageColor, imageColor, imageColor, 0);
+								ImGui::PopItemFlag();
+							}
 						}
 					}
 
-					// no text if a global panel
-					bool bShowText = true;
-					cstr text = Storyboard.Nodes[nodeid].widget_label[index];
-					if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Image") == NULL) bShowText = false;
-					if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
-
-					//Text Label
-					if (bShowText == true)
+					if (bWidgetIsVideo == false)
 					{
-						LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
-						if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
-						ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
-						ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
-						if (iTextAdjustment == 0)
-							fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
-						else if (iTextAdjustment == 1)
-							fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
-						else if (iTextAdjustment == 2)
+						// no text if a global panel
+						bool bShowText = true;
+						cstr text = Storyboard.Nodes[nodeid].widget_label[index];
+						if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Image") == NULL) bShowText = false;
+						if (stricmp(Storyboard.widget_readout[nodeid][index], "User Defined Global Panel") == NULL) bShowText = false;
+
+						//Text Label
+						if (bShowText == true)
 						{
-							fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
-							fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+							LPSTR pTextToShow = Storyboard.Nodes[nodeid].widget_label[index];
+							if (Storyboard.Nodes[nodeid].widget_font_size[index] < 0) pTextToShow = "(H)";
+							ImVec2 fTextAdjust = ImVec2(0.0, 0.0);
+							ImVec2 fTextSize = ImGui::CalcTextSize(Storyboard.Nodes[nodeid].widget_label[index]); //Already scaled.
+							if (iTextAdjustment == 0)
+								fTextAdjust.y = (widget_size.y * 0.5) - (fTextSize.y * 0.5); //y always center
+							else if (iTextAdjustment == 1)
+								fTextAdjust = (widget_size * 0.5) - (fTextSize * 0.5);
+							else if (iTextAdjustment == 2)
+							{
+								fTextAdjust.x = widget_size.x - fTextSize.x - 4.0; //4.0 = padding.
+								fTextAdjust.y = widget_size.y * 0.5 - fTextSize.y * 0.5; //y always center
+							}
+							fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
+							ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
+							ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
 						}
-						fTextAdjust += Storyboard.widget_textoffset[nodeid][index];
-						ImGui::SetCursorPos(vMonitorStart + widget_pos + fTextAdjust);
-						ImGui::TextColored(Storyboard.Nodes[nodeid].widget_font_color[index], pTextToShow);
 					}
 				}
 
@@ -49128,9 +49163,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 											char pHUDScreenName[256];
 											sprintf(pHUDScreenName, "HUD Screen %d", iHUDNumber);
 											if (stricmp (node.title, pHUDScreenName) == NULL) bFoundHUDScreen = true;
-											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD2 && stricmp (node.title, "HUD Screen 2") == NULL) bFoundHUDScreen = true;
-											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD3 && stricmp (node.title, "HUD Screen 3") == NULL) bFoundHUDScreen = true;
-											//if (iActionID == STORYBOARD_ACTIONS_GOTOSCREENHUD4 && stricmp (node.title, "HUD Screen 4") == NULL) bFoundHUDScreen = true;
 											if (bFoundHUDScreen == true )
 											{
 												t.game.activeStoryboardScreen = i;
@@ -49608,7 +49640,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 				int widgetType = Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget];
 				if ( strlen(sTextText.Get())>0 )
 				{
-					if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE)
+					if (widgetType != STORYBOARD_WIDGET_PROGRESS && widgetType != STORYBOARD_WIDGET_IMAGE && widgetType != STORYBOARD_WIDGET_VIDEO)
 					{
 						// text size determines size and if visible in HUD
 						float fTextSize = Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget];
@@ -49684,7 +49716,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							ImGui::PopItemWidth();
 
 							ImGui::SetWindowFontScale(1.0);
-							//ImGui::PushFont(customfont);  //select defaultfont
 							ImGui::PopFont();
 
 							ImGui::TextCenter("Text Color");
@@ -49859,9 +49890,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_SLIDER
 					&& Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] != STORYBOARD_WIDGET_BAR)
 					{
-						cstr cursound = Storyboard.Nodes[nodeid].widget_click_sound[iCurrentSelectedWidget];
-						
-							
+						cstr cursound = Storyboard.Nodes[nodeid].widget_click_sound[iCurrentSelectedWidget];				
 						cstr butsound = imgui_setpropertyfile2_v2(0, cursound.Get(), cstr(sButtonText + cstr(" Sound")).Get(), cstr(cstr("Select ")+sButtonText+cstr(" Image Regular")).Get(), "audiobank\\", false);
 						if (butsound != cursound)
 						{
@@ -49952,50 +49981,124 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 						}
 						ImGui::PopItemWidth();
 					}
-
 				}
 
-				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_IMAGE)
+				if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_IMAGE
+				|| Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_VIDEO)
 				{
+					LPSTR pLabel = "Image";
+					LPSTR pLabelSelect = "Select Image";
+					LPSTR pLabelHide = "Hide Image In Game";
+					LPSTR pLabelSize = "Image Size";
+					LPSTR pWidgetUnique = "##imgsize";
+					LPSTR pSizeTip = "Set the size of this image as a percentage of original size";
+					LPSTR pWidgetPathToFile = "imagebank\\HUD\\";
 					char name[MAX_PATH];
 					strcpy (name, Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget]);
+					bool bWidgetIsVideo = false;
+					if (Storyboard.Nodes[nodeid].widget_type[iCurrentSelectedWidget] == STORYBOARD_WIDGET_VIDEO)
+					{
+						pLabel = "Video";
+						pLabelSelect = "Video File";
+						pLabelHide = "Hide Video In Game";
+						pLabelSize = "Video Size";
+						pWidgetUnique = "##vidsize";
+						pSizeTip = "Set the size of this video as a percentage of original size";
+						pWidgetPathToFile = "videobank\\";
+						strcpy (name, Storyboard.Nodes[nodeid].widget_highlight_thumb[iCurrentSelectedWidget]);
+						bWidgetIsVideo = true;
+					}
 					if (g_bSelectedMapImageTypeSpecialHelp == false)
 					{
-						cstr cNewImage = imgui_setpropertyfile2_v2(0, name, "Image", "Select Image", "imagebank\\HUD\\", false, "");
-						if (cNewImage.Len() > 0 && stricmp(name, cNewImage.Get()) != NULL)
+						cstr cNewImageOrVideo = imgui_setpropertyfile2_v2(0, name, pLabel, pLabelSelect, pWidgetPathToFile, false, "");
+						if (cNewImageOrVideo.Len() > 0 && stricmp(name, cNewImageOrVideo.Get()) != NULL)
 						{
-							// Delete old image and trigger reload of the newly chosen one
+							// Delete old image or video thumb and trigger reload of the newly chosen one
 							DeleteImage(Storyboard.Nodes[nodeid].widget_normal_thumb_id[iCurrentSelectedWidget]);
-							strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImage.Get());
+							if (bWidgetIsVideo == true)
+							{
+								// ensure original video stored for later use
+								strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImageOrVideo.Get());
+								strcpy(Storyboard.Nodes[nodeid].widget_highlight_thumb[iCurrentSelectedWidget], cNewImageOrVideo.Get());
+
+								// video needs to grab (if any) the video thumbnail (generated in the video library browser)
+								char pVideoThumb[MAX_PATH];
+								strcpy(pVideoThumb, cNewImageOrVideo.Get());
+								if (strnicmp(pVideoThumb, "videobank\\", strlen("videobank\\")) == NULL)
+								{
+									strcpy(pVideoThumb, cNewImageOrVideo.Get() + strlen("videobank\\"));
+									int thumb_x = 512; int thumb_y = 288;
+									CreateBackBufferCacheName(pVideoThumb, thumb_x, thumb_y);
+									char pThumbPath[MAX_PATH];
+									strcpy (pThumbPath, BackBufferCacheName.Get());
+									LPSTR pRelativePart = BackBufferCacheName.Get() + strlen(g.fpscrootdir_s.Get()) + strlen("\\Files\\");
+									if (pThumbPath[1] == ':')
+									{
+										// if absolute, replace with relative path
+										strcpy (pVideoThumb, pRelativePart);
+									}
+									if (FileExist(pVideoThumb)==0)
+									{
+										// if video in root, add underscore to find correct thumb (poss. bug)
+										strcpy(pVideoThumb, "thumbbank\\_");
+										strcat (pVideoThumb, pRelativePart + strlen("thumbbank\\"));
+									}
+									if (FileExist(pVideoThumb))
+									{
+										strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], pVideoThumb);
+									}
+								}
+							}
+							else
+							{
+								// can use image file directly
+								strcpy(Storyboard.Nodes[nodeid].widget_normal_thumb[iCurrentSelectedWidget], cNewImageOrVideo.Get());
+							}
 							iUpdateWidgetThumbNode = iCurrentSelectedWidget;
 							iUpdateWidgetThumbButton = iCurrentSelectedWidget;
 						}
 					}
 					bool bHidingImageInGame = false;
-					if (Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] == 1 ) bHidingImageInGame = true;
-					if (ImGui::Checkbox("Hide Image In Game", &bHidingImageInGame))
+					if (bWidgetIsVideo == false)
 					{
-						if(bHidingImageInGame==true)
-							Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 1;
-						else
-							Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 0;
-					}
-					ImGui::TextCenter("Image Color");
-					bool open_popup = ImGui::ColorButton("##StoryboardWidgetImageColor", Storyboard.widget_colors[nodeid][iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
-					if (open_popup)
-						ImGui::OpenPopup("##StoryboardWidgetImageColor");
-					if (ImGui::BeginPopup("##StoryboardWidgetImageColor", ImGuiWindowFlags_NoMove))
-					{
-						if (ImGui::ColorPicker4("##StoryboardPickerImageColor", (float*)&Storyboard.widget_colors[nodeid][iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+						if (Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] == 1) bHidingImageInGame = true;
+						if (ImGui::Checkbox(pLabelHide, &bHidingImageInGame))
 						{
-							
+							if (bHidingImageInGame == true)
+								Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 1;
+							else
+								Storyboard.widget_ingamehidden[nodeid][iCurrentSelectedWidget] = 0;
 						}
-						ImGui::EndPopup();
+					}
+					if (bWidgetIsVideo == false)
+					{
+						// image has color
+						ImGui::TextCenter("Image Color");
+						bool open_popup = ImGui::ColorButton("##StoryboardWidgetImageColor", Storyboard.widget_colors[nodeid][iCurrentSelectedWidget], 0, ImVec2(w - 20.0, 0));
+						if (open_popup)
+							ImGui::OpenPopup("##StoryboardWidgetImageColor");
+						if (ImGui::BeginPopup("##StoryboardWidgetImageColor", ImGuiWindowFlags_NoMove))
+						{
+							if (ImGui::ColorPicker4("##StoryboardPickerImageColor", (float*)&Storyboard.widget_colors[nodeid][iCurrentSelectedWidget], ImGuiColorEditFlags_AlphaBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview))
+							{
+							}
+							ImGui::EndPopup();
+						}
+					}
+					else
+					{
+						// video has playback controls
+						bool g_bVideoLooping = false;
+						if (Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] != 0) g_bVideoLooping = true;
+						if (ImGui::Checkbox("Loop Video Animation", &g_bVideoLooping))
+						{
+							Storyboard.Nodes[nodeid].widget_font_size[iCurrentSelectedWidget] = (int)g_bVideoLooping;
+						}
 					}
 
-					ImGui::TextCenter("Image Size");
+					ImGui::TextCenter(pLabelSize);
 					float fTmp = Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].x * 100.0f;
-					if( ImGui::MaxSliderInputFloat("##imgsize", &fTmp, 0, 100, "Set the size of this image as a percentage of original size", 0, 100))
+					if( ImGui::MaxSliderInputFloat(pWidgetUnique, &fTmp, 0, 100, pSizeTip, 0, 100))
 					{
 						if (fTmp < 1) fTmp = 1;
 						Storyboard.Nodes[nodeid].widget_size[iCurrentSelectedWidget].y = fTmp / 100.0f;
@@ -50003,9 +50106,9 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					}
 				}
 
+				// Display and allow editing of readouts
 				if (strlen(Storyboard.widget_readout[nodeid][iCurrentSelectedWidget]) > 0)
 				{
-					// Display and allow editing of readouts
 					ImGui::TextCenter("Readout");
 					ImGui::PushItemWidth(-10);
 					std::string readout = Storyboard.widget_readout[nodeid][iCurrentSelectedWidget];

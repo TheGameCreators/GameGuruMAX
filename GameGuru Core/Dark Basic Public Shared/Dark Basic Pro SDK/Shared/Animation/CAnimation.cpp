@@ -1691,12 +1691,20 @@ DARKSDK void UpdateAllAnimation(void)
 					{
 						if(Anim[AnimIndex].loop==true)
 						{
-							//if(Anim[AnimIndex].pMediaPosition)
-							//{
-							//	Anim[AnimIndex].pMediaPosition->put_CurrentPosition(0);
-							//}
-							StopVideo();
-							PlayVideoToImage(0);
+							// restore looping capability
+							///StopVideo();
+							///PlayVideoToImage(0);
+							if (g_bMFPlatExists)
+							{
+								SetVideoPosition(0);
+							}
+							else
+							{
+								//if (Anim[AnimIndex].pMediaPosition)
+								//{
+								//	Anim[AnimIndex].pMediaPosition->put_CurrentPosition(0);
+								//}
+							}
 						}
 						else
 						{
@@ -1940,18 +1948,26 @@ DARKSDK void DeleteAnimation( int animindex )
 		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
 }
 
-DARKSDK void PlayAnimation( int animindex )
+DARKSDK void PlayOrLoopAnimation(int animindex, int iLoopFlag)
 {
-	if(animindex>=1 && animindex<ANIMATIONMAX)
+	if (animindex >= 1 && animindex < ANIMATIONMAX)
 	{
-		if(animation[animindex].active==true)
+		if (animation[animindex].active == true)
 		{
-			if(DB_PlayAnimationToScreen(animindex, 0, 0, 0, 0, 0, true))
+			if (DB_PlayAnimationToScreen(animindex, 0, 0, 0, 0, 0, true))
 			{
-				DB_LoopAnimationOff(animindex);
-				animation[animindex].playing=true;
-				animation[animindex].looped=false;
-				animation[animindex].paused=false;
+				animation[animindex].playing = true;
+				animation[animindex].paused = false;
+				if (iLoopFlag == 1)
+				{
+					DB_LoopAnimationOn(animindex);
+					animation[animindex].looped = true;
+				}
+				else
+				{
+					DB_LoopAnimationOff(animindex);
+					animation[animindex].looped = false;
+				}
 			}
 		}
 		else
@@ -1959,6 +1975,16 @@ DARKSDK void PlayAnimation( int animindex )
 	}
 	else
 		RunTimeError(RUNTIMEERROR_ANIMNUMBERILLEGAL);
+}
+
+DARKSDK void PlayAnimation( int animindex )
+{
+	PlayOrLoopAnimation(animindex, 0);
+}
+
+DARKSDK void LoopAnimation(int animindex)
+{
+	PlayOrLoopAnimation(animindex, 1);
 }
 
 DARKSDK void StopAnimation( int animindex )

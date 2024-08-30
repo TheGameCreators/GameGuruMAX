@@ -74,7 +74,8 @@ DARKSDK bool LoadAnimation					( LPSTR pFilename, int iIndex, int precacheframes
 DARKSDK int GetAnimationLength				( int animindex );
 DARKSDK void PlayAnimation					( int iIndex );
 DARKSDK void DeleteAnimation				( int animindex );
-DARKSDK void PlayAnimation					( int animindex );
+DARKSDK void PlayAnimation					(int animindex);
+DARKSDK void LoopAnimation					(int animindex);
 DARKSDK void StopAnimation					( int animindex );
 DARKSDK void PauseAnimation					( int animindex );
 DARKSDK void ResumeAnimation				( int animindex );

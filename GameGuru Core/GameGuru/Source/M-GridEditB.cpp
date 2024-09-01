@@ -5322,7 +5322,7 @@ static void DisplayPerformanceData(bool* p_open)
 		ImVec2 window_pos = ImVec2((corner & 1) ? (viewport->Pos.x + viewport->Size.x - DISTANCE) : (viewport->Pos.x + DISTANCE), (corner & 2) ? (viewport->Pos.y + viewport->Size.y - DISTANCE) : (viewport->Pos.y + DISTANCE));
 		ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
 		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
-		ImGui::SetNextWindowViewport(viewport->ID); //PE: Always main viewport.
+		//ImGui::SetNextWindowViewport(viewport->ID); //PE: Always main viewport.
 	}
 	ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 	if (ImGui::Begin("##DisplayPerformanceData", p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
@@ -11224,8 +11224,6 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			ImGui::Indent(-10);
 
 			//
-			//
-			//
 
 			ImGui::Text("");
 			ImGui::Text("VR Support");
@@ -11234,7 +11232,7 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 			ImGui::Text("as OpenXR needs to know which VR device you are using:");
 			bool bVRFlag = false;
 			if (g.gvrmode > 0) bVRFlag = true;
-			if (ImGui::Checkbox("Enable VR Initialization", &bVRFlag))
+			if (ImGui::Checkbox("Enable Virtual Reality Support", &bVRFlag))
 			{
 				// toggle vr support
 				if (bVRFlag == true) 
@@ -11248,15 +11246,10 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				// if been activated, init system (no need to relaunch with OpenXR)
 				extern void vr_init(void);
 				vr_init();
-
-				// prompt user to relaunch MAX
-				//MessageBoxA(NULL, "You will need to relaunch GameGuru MAX for VR Support Switching. Ensure your OpenXR runtime is correctly configured.", "VR Support", MB_OK);
 			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Activates support for VR support via OpenXR");
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Activates experimental support for VR via OpenXR");
 			ImGui::Indent(-10);
 
-			//
-			//
 			//
 
 			if (g_iDevToolsOpen != 0)
@@ -19983,7 +19976,11 @@ void process_entity_library_v2(void)
 												else
 												{
 													// when the preview image file does not exist, use default
-													LoadImage("texturebank\\backdrops\\Black backdrop.dds", myfiles->iPreview);
+													if (iDisplayLibraryType == 0)
+													{
+														// buit only for object previews, leave other media types to their default icons (i.e WAV/OFF/MP3)
+														LoadImage("texturebank\\backdrops\\Black backdrop.dds", myfiles->iPreview);
+													}
 												}
 											}
 										}
@@ -20031,11 +20028,7 @@ void process_entity_library_v2(void)
 													myfiles->m_sDLuaDescription = dluaload.PropertiesVariable.VariableDescription;
 												}
 											}
-
-
 										}
-
-
 										if (!GetImageExistEx(myfiles->iPreview))
 										{
 											if (!bDontTouchThisID)
@@ -20048,7 +20041,8 @@ void process_entity_library_v2(void)
 												textureId = iDefaultTexture;
 											}
 										}
-										else {
+										else 
+										{
 											loaded_images++;
 											textureId = myfiles->iPreview;
 										}
@@ -20066,14 +20060,18 @@ void process_entity_library_v2(void)
 							else
 							{
 								//PE: Only delete in first run. so we dont delete a image that has already been sent to rendering.
-								if (bReleaseIconsDynamic && myfiles->iPreview > 0 ) {
+								if (bReleaseIconsDynamic && myfiles->iPreview > 0 ) 
+								{
 									//Only NOT Visible with a preview image..
 									int gcpy = ImGui::GetCursorPosY();
-									if (!isMarkers && (!(gcpy < iIconVisiblePosY && gcpy >= ImGui::GetScrollY() - media_icon_size) || !bIsVisible)) {
-
-										if ((long)tCurrentTimeSec - myfiles->last_used > 20) {
+									if (!isMarkers && (!(gcpy < iIconVisiblePosY && gcpy >= ImGui::GetScrollY() - media_icon_size) || !bIsVisible)) 
+									{
+										if ((long)tCurrentTimeSec - myfiles->last_used > 20) 
+										{
 											//Delete Image not visible for 20 sec.
-											if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) { //PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
+											if (GetImageExistEx(myfiles->iPreview) && myfiles->iPreview >= 4000 && myfiles->iPreview < UIV3IMAGES) 
+											{ 
+												//PE: Need to protect system images after tool img range has changed. (myfiles->iPreview can be a system icon)
 												image_setlegacyimageloading(true);
 												DeleteImage(myfiles->iPreview);
 												image_setlegacyimageloading(false);
@@ -20085,18 +20083,19 @@ void process_entity_library_v2(void)
 										else
 											textureId = myfiles->iPreview;
 									}
-									else {
+									else 
+									{
 										//Still visible update time.
-										if (bIsVisible || isMarkers)
-											myfiles->last_used = (long)tCurrentTimeSec;
+										if (bIsVisible || isMarkers) myfiles->last_used = (long)tCurrentTimeSec;
 										textureId = myfiles->iPreview;
 									}
 								}
 								else
+								{
 									textureId = myfiles->iPreview;
+								}
 							}
 						}
-
 						if (textureId == 0)
 						{
 							textureId = iDefaultTexture;
@@ -20272,10 +20271,9 @@ void process_entity_library_v2(void)
 									lastShiftFile = NULL;
 								}
 
-								if (firstShiftFile && lastShiftFile) {
-
-									if (myfiles == firstShiftFile)
-										bFirstShiftHasBeenSeen = true;
+								if (firstShiftFile && lastShiftFile) 
+								{
+									if (myfiles == firstShiftFile) bFirstShiftHasBeenSeen = true;
 									if (!bFirstShiftHasBeenSeen && myfiles == lastShiftFile)
 									{
 										//Swap around, last is first.
@@ -20286,8 +20284,8 @@ void process_entity_library_v2(void)
 									}
 
 									extern bool g_bFreeTrialVersion;
-
 									static bool bStartShiftActive = false;
+
 									myfiles->iFlags = 0;
 									if (myfiles == firstShiftFile) 
 									{
@@ -20308,7 +20306,6 @@ void process_entity_library_v2(void)
 									}
 								}
 							}
-
 
 							bool bBlockBackBufferUpdating = false;
 							if (bLargePreview || bImagesStillInImGuiQueue) bBlockBackBufferUpdating = true;
@@ -20662,8 +20659,6 @@ void process_entity_library_v2(void)
 										float fVideoH = GetAnimHeight(iVideoThumbID);
 										if (lpVideoTexture)
 										{
-											//float fRatio = 1.0f / (fVideoW / fVideoH);
-											//float videoboxheight = (ImGui::GetContentRegionAvail().x - 10.0) * fRatio;
 											ImGuiWindow* window = ImGui::GetCurrentWindow();
 											ImRect image_bb(window->DC.CursorPos + ImVec2(3, 2), window->DC.CursorPos + ImVec2(3, 2) + imgsize);
 											float animU = GetAnimU(iVideoThumbID);
@@ -20687,8 +20682,6 @@ void process_entity_library_v2(void)
 
 									if (playingiles == myfiles)
 									{
-										//float pos = GetSoundPosition(g.temppreviewsoundoffset);
-
 										if (iVideoThumbID > 0 && AnimationExist(iVideoThumbID) && AnimationPlaying(iVideoThumbID))
 										{
 											float progress = GetAnimPercentDone(iVideoThumbID) / 100.0f;
@@ -21036,7 +21029,6 @@ void process_entity_library_v2(void)
 									if (iDisplayLibraryType == 2)
 									{
 										//PE: Show large image preview.
-
 										float imgw = ImageWidth(textureId);
 										float imgh = ImageHeight(textureId);
 										float fWidth = 500.0f;
@@ -21047,31 +21039,8 @@ void process_entity_library_v2(void)
 										ImGui::BeginTooltip();
 										float icon_ratio;
 										ImGui::ImgBtn(textureId, imgsize, ImVec4(0.0, 0.0, 0.0, 1.0), ImVec4(1.0, 1.0, 1.0, 1.0), ImVec4(0.8, 0.8, 0.8, 0.8), ImVec4(0.8, 0.8, 0.8, 0.8), 0, 0, 0, 0, false);
-										//char hchar[MAX_PATH];
-										//ImGui::Text("%s", hchar);
 										ImGui::EndTooltip();
-
-										//ImGui::SetTooltip("Image Media");
 									}
-									
-									if (iDisplayLibraryType == 3)
-									{
-										//ImGui::SetTooltip("Video");
-									}
-									if (iDisplayLibraryType == 4)
-									{
-										//ImGui::SetTooltip("Script");
-									}
-									if (iDisplayLibraryType == 5)
-									{
-										//ImGui::SetTooltip("Particles");
-
-										if (!BackBufferParticlesMode)
-										{
-											//Animate particle.
-										}
-									}
-
 								}
 							}
 							else
@@ -21233,7 +21202,8 @@ void process_entity_library_v2(void)
 										}
 									}
 								}
-							} // if (iDisplayLibraryType > 0) - else.
+							}
+
 							//PE: Check if we need to generate a thumb or rotate a object in the thumb view.
 							bool bForceUpdate = false;
 							if (bCheckGotoPreview && pPreviewFile == myfiles)
@@ -21552,7 +21522,6 @@ void process_entity_library_v2(void)
 												//PE: Stop any running animations. set default pose.
 												int iFrameStart = t.entityanim[BackBufferEntityID][0].start;
 												SetObjectFrame(BackBufferObjectID, iFrameStart);
-												//StopObject(BackBufferObjectID); //Stop will cancel wicked updateonce.
 											}
 											BackBufferZoom = 1.0f;
 											BackBufferCamLeft = 0.0f;
@@ -21569,11 +21538,15 @@ void process_entity_library_v2(void)
 											}
 
 											if (bDoBackbufferUpdate)
+											{
 												if (textureId >= 4000 && textureId < UIV3IMAGES)
+												{
 													if (bLargePreview)
 														bRotateBackBuffer = false;
 													else
 														bRotateBackBuffer = true;
+												}
+											}
 
 											//PE: Prefer myfiles->m_Backdrop it has the latest changes.
 											if (!(t.entityprofile[t.entid].BackBufferZoom == -1.0f && t.entityprofile[t.entid].BackBufferCamLeft == -1.0f && t.entityprofile[t.entid].BackBufferRotateX == -1.0f))
@@ -21883,8 +21856,6 @@ void process_entity_library_v2(void)
 										else
 											ImGui::SetScrollY(0.0f);
 									}
-
-									//ImGui::SetScrollHereY(1.0f);
 								}
 							}
 
@@ -21897,6 +21868,7 @@ void process_entity_library_v2(void)
 							}
 
 							//PE: Right click context menu removed from design.
+							/*
 							if (0)
 							{
 								static cFolderItem::sFolderFiles * ContextSelection = NULL;
@@ -21969,35 +21941,33 @@ void process_entity_library_v2(void)
 									}
 								}
 							}
+							*/
 							ImGui::NextColumn();
-
 						}
 						ImGui::PopID();
 						preview_count++;
-
 					}
-
 					ImGui::SetWindowFontScale(1.0);
 
 				} //bValid
 
 			} //#### MAIN LOOP iLoop < sorted_files.size() ####
 
-
 			ImGui::EndColumns();
 
-			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+			if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+			{
 				//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 				ImGui::Text("");
 				ImGui::Text("");
 			}
-
-			//ImGui::Columns(1);
 		}
 
-		if (!bAnySelectedItemsAvailable) {
+		if (!bAnySelectedItemsAvailable) 
+		{
 			//PE: We got no selections , we can reset first shift seen.
-			if (!io.KeyShift) {
+			if (!io.KeyShift) 
+			{
 				firstShiftFile = NULL;
 			}
 		}
@@ -22009,7 +21979,8 @@ void process_entity_library_v2(void)
 			bImGuiGotFocus = true;
 			bEntityGotFocus = true;
 		}
-		if (ImGui::IsAnyItemFocused()) {
+		if (ImGui::IsAnyItemFocused()) 
+		{
 			bImGuiGotFocus = true;
 			bEntityGotFocus = true;
 		}
@@ -22022,7 +21993,8 @@ void process_entity_library_v2(void)
 			bImGuiGotFocus = true;
 			bEntityGotFocus = true;
 		}
-		if (ImGui::IsAnyItemFocused()) {
+		if (ImGui::IsAnyItemFocused()) 
+		{
 			bImGuiGotFocus = true;
 			bEntityGotFocus = true;
 		}
@@ -33655,12 +33627,13 @@ void Welcome_Screen(void)
 			{
 				ImGui::OpenPopup("Welcome Screen##WelcomeScreenWindowModal");
 			}
+
 			if (!bDisplayAsModal)
 			{
 				ImGui::SetNextWindowViewport(viewport->ID);
 				ImGui::SetNextWindowSize(viewport->Size, ImGuiCond_Always);
 				ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-				ImGui::Begin("##DummyWelcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoChangeZOrder | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+				ImGui::Begin("##DummyWelcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_None | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoChangeZOrder | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
 				ImGui::End();
 			}
 
@@ -33669,10 +33642,10 @@ void Welcome_Screen(void)
 			ImGui::SetNextWindowSize(WindowSize, ImGuiCond_Once);
 			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
 
-			if (bDisplayAsModal)
-				ImGui::BeginPopupModal("Welcome Screen##WelcomeScreenWindowModal", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
-			else
-				ImGui::Begin("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+			//if (bDisplayAsModal)
+			//	ImGui::BeginPopupModal("Welcome Screen##WelcomeScreenWindowModal", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+			//else
+			ImGui::Begin("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove  | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
 
 			ImGui::Indent(10);
 
@@ -34118,7 +34091,7 @@ void Welcome_Screen(void)
 				ImGui::SetNextWindowViewport(viewport->ID);
 				ImGui::SetNextWindowSize(viewport->Size, ImGuiCond_Always);
 				ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
-				ImGui::Begin("##DummyWelcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoBackground  | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoChangeZOrder | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+				ImGui::Begin("##DummyWelcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_None | ImGuiWindowFlags_NoBackground  | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoChangeZOrder | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
 				ImGui::End();
 			}
 
@@ -34155,12 +34128,15 @@ void Welcome_Screen(void)
 				}
 			}
 
-			if (bDisplayAsModal)
-				ImGui::BeginPopupModal("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
-			else
-				ImGui::Begin("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+			//if (bDisplayAsModal)
+			//	ImGui::BeginPopupModal("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
+			//else
+			ImGui::Begin("Welcome Screen##WelcomeScreenWindow", &bWelcomeScreen_Window, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_None | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings);
 			ImGui::Indent(10);
 
+			// basic menu so user can quit and go to settings
+			extern void hub_menubar(void);
+			hub_menubar();
 
 			//PE: Playing maximized must be on top.
 			ImGuiWindow* welcome_window = ImGui::GetCurrentWindow();
@@ -45381,6 +45357,37 @@ void mapNodeStyle(void)
 	GImNodes->Style.Colors[ImNodesCol_MiniMapCanvasOutline] = IM_COL32(200, 200, 200, 200);
 }
 
+void hub_menubar(void)
+{
+	if (ImGui::BeginMenuBar())
+	{
+		ImVec2 CursorMenuStart = ImGui::GetCursorPos();
+		if (ImGui::BeginMenu("File##Hub"))
+		{
+			if (ImGui::MenuItem("Exit to Desktop"))
+			{
+				int iAction = askBoxCancel("Are you sure you would like to exit to desktop?", "Confirmation"); //1==Yes 2=Cancel 0=No
+				if (iAction == 1)
+				{
+					bStoryboardWindow = false;
+					g_bCascadeQuitFlag = true;
+				}
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Edit##Storyboard"))
+		{
+			if (ImGui::MenuItem("Settings", ""))
+			{
+				strcpy(cPreferencesMessage, "");
+				bPreferences_Window = true;
+			}
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+}
+
 void storyboard_menubar(float area_width, float node_width, float node_height)
 {
 	static int iCloseDownCount = 100;
@@ -50296,7 +50303,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							}
 							if (strcmp(readout.c_str(), "User Defined Global Panel") == NULL)
 							{
-								const char* rpginventorykinds[] = { "inventory:player", "inventory:hotkeys", "inventory:container", "inventory:chest", "inventory:craft", "Custom Value" };
+								const char* rpginventorykinds[] = { "inventory:player", "inventory:hotkeys", "inventory:container", "inventory:craft", "Custom Value" };
 								int rpginventorykinds_selection = -1;
 								for (int n = 0; n <= IM_ARRAYSIZE(rpginventorykinds) - 2; n++)
 								{

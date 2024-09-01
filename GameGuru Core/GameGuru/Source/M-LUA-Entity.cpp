@@ -778,6 +778,15 @@ void entity_lua_performlogicconnections_core ( int iMode )
 								}
 								case 2: // toggle activation
 								{
+									// special case for particles that their active state is also their on/off state
+									if (t.entityprofile[t.entityelement[iRelationShipEntityID].bankindex].ismarker == 10)
+									{
+										if (t.entityelement[iRelationShipEntityID].eleprof.newparticle.bParticle_Show_At_Start == true)
+											t.entityelement[iRelationShipEntityID].activated = 1;
+										else
+											t.entityelement[iRelationShipEntityID].activated = 0;
+									}
+
 									if (t.entityelement[iRelationShipEntityID].activated == 0 || t.entityelement[iRelationShipEntityID].activated == 1)
 									{
 										// simple toggle

@@ -1186,7 +1186,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   if output_e['target'] == "player" then
    if g_masterinterpreter_playerfrozenby == 0 then
     FreezePlayer()
-    SetCameraOverride(2)
+    SetCameraOverride(3)
 	g_masterinterpreter_playerweaponid = g_PlayerGunID
     ChangePlayerWeaponID(0)
     output_e['frozentheplayer'] = 1

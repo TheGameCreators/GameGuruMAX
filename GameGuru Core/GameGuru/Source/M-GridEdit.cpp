@@ -7132,13 +7132,16 @@ void mapeditorexecutable_loop(void)
 				ImGui::Text("");
 
 				// VR mode
-				if (ImGui::Checkbox("Save with Virtual Reality Mode##setVRModeEnabled", &g_bStandaloneVRMode))
+				if (g.gvrmode != 0)
 				{
-					// VR Mode changed
-				}
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::SetTooltip("%s", "Setting your standalone to VR mode will attempt to launch the game on any available OpenXR device");
+					if (ImGui::Checkbox("Save with Experimental Virtual Reality Mode##setVRModeEnabled", &g_bStandaloneVRMode))
+					{
+						// VR Mode changed
+					}
+					if (ImGui::IsItemHovered())
+					{
+						ImGui::SetTooltip("%s", "Setting your standalone to VR mode will attempt to launch the game on any supported OpenXR device");
+					}
 				}
 
 				// Option to open folder automatically after saving standalone

@@ -112,8 +112,8 @@ bool g_bUpdateAnimationPreview = false;
 int g_iCurrentAnimationSlotIndex = 0;
 
 int g_iLootListCount = 0;
-cstr g_lootList_s[10];
-int g_lootListPercentage[10];
+cstr g_lootList_s[11];
+int g_lootListPercentage[11];
 
 extern cstr cInfoMessage;
 extern cstr cInfoImage;
@@ -3370,60 +3370,66 @@ void animsystem_createlootlist(cstr ifused_s)
 {
 	// format is: "name;name;name" or "name;*99;name;*33" etc
 	int iLootIndex = 0;
-	cstr cutmeup_s = ifused_s;
-	LPSTR pLootStr = cutmeup_s.Get();
+	char pLootStr[MAX_PATH];
+	strcpy(pLootStr, ifused_s.Get());
 	int iLootPercentage = 100;
 	int n = 0;
 	bool bOnlyShowOneChooseCollectible = false;
 	int iOptionalPercString = 0;
 	while (iLootIndex < 10 && n < strlen(pLootStr))
 	{
-		if (pLootStr[n] == ';' || n == strlen(pLootStr) - 1)
+		bool bTheEnd = false;
+		if (n == strlen(pLootStr) - 1) bTheEnd = true;
+		if (pLootStr[n] == ';' || bTheEnd == true)
 		{
 			bool bValid = true;
-			if (n != strlen(pLootStr) - 1) pLootStr[n] = 0;
-			if (stricmp(pLootStr, "(Choose Collectible)") == NULL)
+			char pThisOne[MAX_PATH];
+			strcpy(pThisOne, pLootStr);
+			if (bTheEnd==false)
+			{
+				strcpy(pLootStr, pLootStr + n + 1);
+				pThisOne[n] = 0;
+			}
+			if (stricmp(pThisOne, "(Choose Collectible)") == NULL)
 			{
 				bValid = false;
 				if (bOnlyShowOneChooseCollectible == false) bValid = true;
 				bOnlyShowOneChooseCollectible = true;
 			}
-			if (n == strlen(pLootStr) - 1)
+			if (bTheEnd==true)
 			{
 				if (bValid == true)
 				{
-					if (pLootStr[0] == '*')
+					if (pThisOne[0] == '*')
 					{
-						iLootPercentage = atoi(pLootStr+1);
+						iLootPercentage = atoi(pThisOne +1);
 						g_lootListPercentage[iLootIndex-1] = iLootPercentage;
 					}
 					else
 					{
-						g_lootList_s[iLootIndex] = pLootStr;
+						g_lootList_s[iLootIndex] = pThisOne;
 						g_lootListPercentage[iLootIndex] = 100; // poss. changed above
 						iLootIndex++;
 					}
 				}
-				break;
+				break; //! last one
 			}
 			else
 			{
 				if (bValid == true)
 				{
-					if (pLootStr[0] == '*')
+					if (pThisOne[0] == '*')
 					{
-						iLootPercentage = atoi(pLootStr + 1);
+						iLootPercentage = atoi(pThisOne + 1);
 						g_lootListPercentage[iLootIndex - 1] = iLootPercentage;
 					}
 					else
 					{
-						g_lootList_s[iLootIndex] = pLootStr;
+						g_lootList_s[iLootIndex] = pThisOne;
 						g_lootListPercentage[iLootIndex] = 100; // poss. changed above
 						iLootIndex++;
 					}
 				}
-				cutmeup_s = pLootStr + n + 1;
-				pLootStr = cutmeup_s.Get();
 				n = 0;
 			}
 		}
@@ -3439,6 +3445,7 @@ void animsystem_createlootlist(cstr ifused_s)
 		iLootIndex++;
 	}
 	g_iLootListCount = iLootIndex;
+	if (g_iLootListCount > 10) g_iLootListCount = 10;
 }
 
 void animsystem_dropcollectablesetproperty(bool readonly, entityeleproftype* edit_grideleprof)

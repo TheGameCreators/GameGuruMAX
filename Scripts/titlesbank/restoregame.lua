@@ -103,9 +103,11 @@ function restoregame.now()
  if g_UserContainerTotal ~= nil then
 	DeleteAllInventoryContainers()
 	local invtotal = g_UserContainerTotal
+	local debugcontainers = nil --"debugging containers; "
 	for c = 0, invtotal-1, 1 do
 		inventorycontainer = g_UserContainerName[c]
 		MakeInventoryContainer(inventorycontainer)
+		if debugcontainers ~= nil then debugcontainers = debugcontainers .. inventorycontainer .. ": " end
 		-- main and hotkeys cannot use E as they are level-specific, so use collectionindex and spawning
 		local invindex = 1
 		if c == 1 then invindex = 2 end
@@ -119,11 +121,16 @@ function restoregame.now()
 					local tcollectione = g_UserContainerE[fulloffset]
 					local qty = g_UserContainerQty[fulloffset]
 					local slot = g_UserContainerSlot[fulloffset]
-					if tcollectione > 0 then
-						-- entity known
-						SetEntityCollectedForce(tcollectione,invindex,slot)
-						SetEntityQuantity(tcollectione,qty)
-					else
+					if debugcontainers ~= nil then debugcontainers = debugcontainers .. g_UserContainerIndex[fulloffset] .. " " end
+					if debugcontainers ~= nil then debugcontainers = debugcontainers .. tcollectione .. " " end
+					if debugcontainers ~= nil then debugcontainers = debugcontainers .. qty .. " " end
+					if debugcontainers ~= nil then debugcontainers = debugcontainers .. slot .. " " end
+					-- the E is from the LAST level, not this new one, so E is out of date, must always source the local-level E!
+					--if tcollectione > 0 then
+					--	-- entity known
+					--	SetEntityCollectedForce(tcollectione,invindex,slot)
+					--	SetEntityQuantity(tcollectione,qty)
+					--else
 						-- entity not known
 						local tcollectionindex = g_UserContainerIndex[fulloffset]
 						local tname = GetCollectionItemAttribute(tcollectionindex,"title")
@@ -147,7 +154,7 @@ function restoregame.now()
 							-- is not yet spawned or existing, so include in inventory via tcollectionindex
 							SetEntityCollectedForce(0,invindex,slot,inventorycontainer,tcollectionindex)
 						end
-					end
+					--end
 				end
 			end
 			-- also check if player start weapon in hotkeys - only scenario where entity zero is okay
@@ -187,6 +194,9 @@ function restoregame.now()
 				end
 			end
 		end
+	end
+	if debugcontainers ~= nil then
+		PromptDuration(debugcontainers,10000)
 	end
  end
 end

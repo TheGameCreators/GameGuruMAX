@@ -86,6 +86,14 @@ void lua_init ( void )
 	t.inventoryContainers.push_back("inventory:hotkeys");
 	for ( int n=0; n<MAX_INVENTORY_CONTAINERS;n++)
 		t.inventoryContainer[n].clear();
+
+	// reset prompt at VERY start so restoregame script can output debug prompts in standalone
+	t.luaglobal.scriptprompttype = 0;
+	t.luaglobal.scriptprompt_s = "";
+	t.luaglobal.scriptprompttime = 0;
+	t.luaglobal.scriptprompttextsize = 0;
+	t.luaglobal.scriptprompt3dtime = 0;
+	strcpy (t.luaglobal.scriptprompt3dtext, "");
 }
 
 void lua_loadscriptin ( void )

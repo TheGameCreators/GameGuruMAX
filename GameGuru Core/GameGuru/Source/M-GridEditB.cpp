@@ -6343,6 +6343,12 @@ bool gridedit_loadbehavior (LPSTR pByteFilename)
 
 void gridedit_setvsync(bool bLevelVSyncEnabled)
 {
+	// ensure only test game and standalones obey VSYNC, editor should always run FULL SPEED
+	extern bool bImGuiInTestGame;
+	if (t.game.gameisexe == 0 && bImGuiInTestGame == false )
+	{
+		bLevelVSyncEnabled = false;
+	}
 	master.bVsyncEnabled = bLevelVSyncEnabled;
 	wiEvent::SetVSync(master.bVsyncEnabled);
 }
@@ -7183,7 +7189,6 @@ void tab_tab_visuals(int iPage, int iMode)
 				extern float maxApparentSize;
 				ImGui::PushItemWidth(-10);
 				float fASize = t.visuals.ApparentSize * 10000.0f;
-				//ImGui::Text("Apparent Size");
 				tab_tab_Column_text("Apparent Size", fTabColumnWidth);
 				if (ImGui::SliderFloat("##maxApparentSize", &fASize, 0.02f, 2.0f, "%.2f", 1.0f))
 				{
@@ -7372,7 +7377,7 @@ void tab_tab_visuals(int iPage, int iMode)
 						gridedit_setvsync(t.visuals.bLevelVSyncEnabled);
 						g.projectmodified = 1;
 					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling VSync will use less energy in some cases and prevent screen tearing");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Vertical Sync will prevent screen tearing and cap FPS in game to your monitors refresh rate");
 					ImGui::PopItemWidth();
 				}
 
@@ -22605,7 +22610,8 @@ void process_entity_library_v2(void)
 						if (sScriptName != "")
 						{
 							extern bool entity_copytoremoteifnotthere(LPSTR);
-							entity_copytoremoteifnotthere((LPSTR)sScriptName.c_str());
+							std::string sScriptBankScriptName = "scriptbank\\" + sScriptName;
+							entity_copytoremoteifnotthere((LPSTR)sScriptBankScriptName.c_str());
 						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Add Selected Behavior");

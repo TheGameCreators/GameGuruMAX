@@ -2350,20 +2350,20 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 	t.huddamage.immunity=1000;
 	t.game.gameloop=1;
 	g.timeelapsed_f=0;
-	#ifdef VRTECH
+
+	/*
+	// reset prompt at VERY start so restoregame script can output debug prompts in standalone - moved to lua_init
 	t.luaglobal.scriptprompttype = 0;
-	#endif
 	t.luaglobal.scriptprompt_s="";
 	t.luaglobal.scriptprompttime=0;
 	t.luaglobal.scriptprompttextsize=0;
 	t.luaglobal.scriptprompt3dtime=0;
 	strcpy ( t.luaglobal.scriptprompt3dtext, "" );
+	*/
 
-	#ifdef VRTECH
 	// 260220 - for some reason, Social VR sets view 0,0,1,1, and does not set it back!
 	// so we do so here to ensure we see the game
 	SetCameraView(0, 0, 0, GetDisplayWidth(), GetDisplayHeight());
-	#endif			
 
 	#ifdef WICKEDENGINE
 	// no more prompts, reset system so next time we can have a 2 seconds grace before any prompts (see printscreenprompt)
@@ -4810,7 +4810,6 @@ void game_main_loop ( void )
 		// In-Game Mode (moved from above so LUA is AFTER physics)
 		if ( g.gproducelogfiles == 2 ) timestampactivity(0,"checking in-game edit mode");
 
-
 		if ( t.conkit.editmodeactive == 0 )
 		{
 			// if third person, trick AI by moving camera to protagonist location
@@ -5267,8 +5266,8 @@ void game_finish_level_from_lua ( void )
 
 void game_end_of_level_check ( void )
 {
-	//  end of level fade out
-	t.game.levelendingcycle = t.game.levelendingcycle - (g.timeelapsed_f * 200.0);
+	// end of level fade out
+	t.game.levelendingcycle = t.game.levelendingcycle - (g.timeelapsed_f * 400.0);// 200.0); slicker!
 	t.huddamage.immunity=1000;
 	if (  t.game.levelendingcycle  <=  0 ) 
 	{
@@ -5277,17 +5276,20 @@ void game_end_of_level_check ( void )
 		t.postprocessings.fadeinenabled = 1;
 	}
 
-	//  control fade out of screen
+	// control fade out of screen
 	if (t.postprocessings.fadeinenabled)
 	{
 		t.postprocessings.fadeinvalue_f = t.game.levelendingcycle / 4500.0; //PE: fadeinvalue_f is a bit delayed , so just count down faster.
 		t.postprocessings.fadeinvalueupdate = 1;
 	}
 
-	//  fade audio
-	if (  t.audioVolume.music > t.postprocessings.fadeinvalue_f * 100.0  )  t.audioVolume.music  =  t.postprocessings.fadeinvalue_f * 100.0;
-	if (  t.audioVolume.sound > t.postprocessings.fadeinvalue_f * 100.0  )  t.audioVolume.sound  =  t.postprocessings.fadeinvalue_f * 100.0;
-	audio_volume_update ( );
+	// fade audio (can be slow, so only do at end)
+	if (t.game.levelendingcycle <= 100)
+	{
+		if (t.audioVolume.music > t.postprocessings.fadeinvalue_f * 100.0)  t.audioVolume.music = t.postprocessings.fadeinvalue_f * 100.0;
+		if (t.audioVolume.sound > t.postprocessings.fadeinvalue_f * 100.0)  t.audioVolume.sound = t.postprocessings.fadeinvalue_f * 100.0;
+		audio_volume_update ();
+	}
 }
 
 void GodCameraControl(float &x, float &y, float &z, float& ax, float& ay, float& az)

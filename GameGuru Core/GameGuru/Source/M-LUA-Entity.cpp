@@ -3014,75 +3014,15 @@ void entity_lua_set_gravity ( void )
 	#endif
 }
 
-void entity_lua_fireweapon ( bool instant)
+void entity_lua_fireweapon ( bool instant )
 {
-	#ifdef WICKEDENGINE
 	entity_lua_findcharanimstate();
 	if (t.tcharanimindex != -1)
 	{
+		// at this point, weapons already animating a fire so move this to canfire code
 		darkai_shoottarget(t.charanimstates[t.tcharanimindex].entityTarget);
 		t.charanimstates[t.tcharanimindex] = t.charanimstate;
 	}
-	#else
-	//  uses rateoffire
-	t.tnotokay=t.entityelement[t.e].eleprof.rateoffire;
-	
-	if (instant) {
-		//PE: Instant fire weapon for lua control.
-		t.tnotokay = 0;
-	}
-	else {
-		if (t.tnotokay > 100)
-		{
-			t.tnotokay = Rnd((t.tnotokay - 100) / 5);
-			if (t.tnotokay <= 1)  t.tnotokay = 0;
-		}
-		else
-		{
-			t.tnotokay = 0;
-		}
-	}
-	if ((DWORD)(Timer()) < t.playercontrol.ressurectionceasefire)  t.tnotokay = 1;
-	if (t.entityelement[t.e].limbhurt != 0)  t.tnotokay = 1;
-
-	if (  t.tnotokay == 0 ) 
-	{
-		entity_lua_findcharanimstate ( );
-		if (  t.tcharanimindex != -1 ) 
-		{
-			if (instant) {
-				//PE: for instant fire so it can be controlled from lua.
-				t.charanimstate.firerateaccumilator = 0;
-			}
-			if ( t.charanimstate.limbomanualmode == 1 )
-			{
-				// AI manual mode just shoots if instructed
-				darkai_shootplayer ( );
-			}
-			else
-			{
-				//  if character has weapon
-				if (  t.entityelement[t.e].eleprof.hasweapon>0 ) 
-				{
-					if ( t.charanimstate.ammoinclip == 0 ) 
-					{
-						//  if weapon empty, reload
-						if (  t.charanimcontrols[t.tcharanimindex].spotactioning == 0 ) 
-						{
-							t.charanimcontrols[t.tcharanimindex].spotactioning=1;
-						}
-					}
-					else
-					{
-						//  if still have ammo in weapon (pass in tcharanimindex)
-						darkai_shootplayer ( );
-					}
-				}
-			}
-			t.charanimstates[t.tcharanimindex] = t.charanimstate;
-		}
-	}
-	#endif
 }
 
 void entity_lua_hurtplayer ( void )
@@ -3189,9 +3129,31 @@ void entity_lua_addplayerweapon(void)
 
 void entity_lua_changeplayerweapon(void)
 {
-	// force this weapon NAME to be selected
+	// what weapon
 	t.findgun_s = t.s_s;
 	gun_findweaponindexbyname();
+
+	// before force this weapon, ensure if it does NOT exist, to create it first so can have ammo too
+	int iHaveThis = 0;
+	for (t.ws = 1; t.ws < 10; t.ws++)
+	{
+		if (t.weaponslot[t.ws].got == t.foundgunid)
+		{
+			iHaveThis = t.ws;
+			break;
+		}
+	}
+	if (iHaveThis == 0)
+	{
+		t.tqty = g.firemodes[t.foundgunid][0].settings.reloadqty;
+		t.weaponindex = t.foundgunid;
+		if (physics_player_addweapon() == true)
+		{
+			// weapon was added, with some ammo
+		}
+	}
+
+	// force this weapon NAME to be selected
 	g.autoloadgun = t.foundgunid; 
 	gun_change();
 }

@@ -4473,6 +4473,25 @@ void WickedCall_SetLimbVisible(sFrame* pFrame, bool bVisible)
 	}
 }
 
+void WickedCall_SetObjectPreventAnyApparentOcclusion (sObject* pObject, bool bPreventAnyApparentOcclusion)
+{
+	for (int iF = 0; iF < pObject->iFrameCount; iF++)
+	{
+		sFrame* pFrame = pObject->ppFrameList[iF];
+		if(pFrame)
+		{
+			if (pFrame->wickedobjindex > 0)
+			{
+				ObjectComponent* object = wiScene::GetScene().objects.GetComponent(pFrame->wickedobjindex);
+				if (object)
+				{
+					object->SetRenderPreventAnyKindOfCulling(bPreventAnyApparentOcclusion);
+				}
+			}
+		}
+	}
+}
+
 void WickedCall_SetObjectVisible ( sObject* pObject, bool bVisible )
 {
 	for (int iF = 0; iF < pObject->iFrameCount; iF++)

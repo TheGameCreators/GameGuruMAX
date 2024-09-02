@@ -583,6 +583,9 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if output_e['ammo'] == 0 then
    haveammotofire = 0
   end   
+  if GetEntityCanFire(e) == 0 then
+   haveammotofire = 0
+  end
   if output_e['target'] == "player" then
    if GetEntityCanFire(e) == 1 then 
     return haveammotofire

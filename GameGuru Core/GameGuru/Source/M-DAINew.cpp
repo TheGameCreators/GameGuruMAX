@@ -1631,6 +1631,10 @@ void darkai_setupcharacter (void)
 	// Set collision property
 	SetObjectCollisionProperty (t.charanimstates[g.charanimindex].obj, 0);
 
+	// Set special apparent size culling exception
+	sObject* pObject = GetObjectData(t.charanimstates[g.charanimindex].obj);
+	WickedCall_SetObjectPreventAnyApparentOcclusion(pObject,true);
+
 	// determine if character holds 'gun' or 'rocket' style weapon
 	if (t.charanimstates[g.charanimindex].weapstyle <= 1)
 	{
@@ -2119,6 +2123,26 @@ int darkai_canshoot (void)
 	bool bProceed = false;
 	if (t.charanimstate.entityTarget == 0 && ((t.charanimstate.firesoundindex == 0 || t.tpermitanoverride == 1) && t.entityelement[t.charanimstate.e].plrvisible == 1)) bProceed = true;
 	if (t.charanimstate.entityTarget > 0  && ((t.charanimstate.firesoundindex == 0 || t.tpermitanoverride == 1)) ) bProceed = true;
+
+	// reintroduce rate of fire
+	if (bProceed == true)
+	{
+		int iAbleToFire = 0;
+		if (t.entityelement[t.charanimstate.e].eleprof.rateoffire > 100)
+		{
+			int iRandomChance = Rnd((t.entityelement[t.charanimstate.e].eleprof.rateoffire - 100) / 5);
+			if (iRandomChance <= 1) iAbleToFire = 1;
+		}
+		else
+		{
+			iAbleToFire = 1;
+		}
+		if (iAbleToFire == 0)
+		{
+			bProceed = false;
+		}
+	}
+
 	if (bProceed == true)
 	{
 		// handle player being shot at
@@ -2131,50 +2155,6 @@ int darkai_canshoot (void)
 			t.tattachedobj = t.entityelement[t.te].attachmentobj;
 			if (t.tattachedobj > 0)
 			{
-				/* with new system for custom projectiles weapons, no guarentee orientation of weapon will be correct - for now
-				// cannot fire if weapon not pointing at player
-				t.tattachmentobjfirespotlimb = t.entityelement[t.te].attachmentobjfirespotlimb;
-				if (t.tgunid > 0 && t.tattachmentobjfirespotlimb != 0)
-				{
-					if (t.tattachmentobjfirespotlimb == -1) t.tattachmentobjfirespotlimb = 0;
-					float fTargetX = ObjectPositionX(t.aisystem.objectstartindex);
-					float fTargetY = ObjectPositionY(t.aisystem.objectstartindex);
-					float fTargetZ = ObjectPositionZ(t.aisystem.objectstartindex);
-					int ee = t.charanimstate.entityTarget;
-					if (ee > 0)
-					{
-						fTargetX = t.entityelement[ee].x;
-						fTargetZ = t.entityelement[ee].z;
-						fTargetY = t.entityelement[ee].y;
-
-						// added this as it seemed to be missing (ie enemy weapon pointing test was from the characters feet)
-						if (t.charanimstate.entityTargetYOffset_f != 0.0f)
-							fTargetY += t.charanimstate.entityTargetYOffset_f;
-						else
-							fTargetY += 65.0f;
-					}
-					t.tx_f = LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb) - fTargetX;
-					t.ty_f = LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb) - fTargetY;
-					t.tz_f = LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb) - fTargetZ;
-					t.tdist_f = Sqrt(abs(t.tx_f*t.tx_f) + abs(t.ty_f*t.ty_f) + abs(t.tz_f*t.tz_f));
-					if (ObjectExist(g.projectorsphereobjectoffset) == 0)
-					{
-						MakeObjectSphere (g.projectorsphereobjectoffset, 10);
-						HideObject (g.projectorsphereobjectoffset);
-					}
-					PositionObject (g.projectorsphereobjectoffset, LimbPositionX(t.tattachedobj, t.tattachmentobjfirespotlimb), LimbPositionY(t.tattachedobj, t.tattachmentobjfirespotlimb), LimbPositionZ(t.tattachedobj, t.tattachmentobjfirespotlimb));
-					RotateObject (g.projectorsphereobjectoffset, LimbDirectionX(t.tattachedobj, t.tattachmentobjfirespotlimb), LimbDirectionY(t.tattachedobj, t.tattachmentobjfirespotlimb), LimbDirectionZ(t.tattachedobj, t.tattachmentobjfirespotlimb));
-					MoveObject (g.projectorsphereobjectoffset, t.tdist_f*-1);
-					t.tx_f = ObjectPositionX(g.projectorsphereobjectoffset) - fTargetX;
-					t.ty_f = ObjectPositionY(g.projectorsphereobjectoffset) - fTargetY;
-					t.tz_f = ObjectPositionZ(g.projectorsphereobjectoffset) - fTargetZ;
-					t.tdist2_f = Sqrt(abs(t.tx_f*t.tx_f) + abs(t.ty_f*t.ty_f) + abs(t.tz_f*t.tz_f));
-					t.tactualdistance_f = t.tdist2_f;
-					t.tdist2_f = t.tdist2_f / t.tdist_f;
-					t.tdist2_f = int(t.tdist2_f * 100);
-					if (t.tdist2_f > 50 && t.tactualdistance_f > 100.0)  t.tcannotfirenow = 1;
-				}
-				*/
 			}
 			if (t.tgunid > 0 && t.tcannotfirenow == 0)
 			{

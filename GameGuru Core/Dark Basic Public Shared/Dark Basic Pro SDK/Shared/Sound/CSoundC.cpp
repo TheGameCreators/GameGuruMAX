@@ -476,7 +476,9 @@ DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int
 			m_ptr->pDSBuffer3D->GetAllParameters( &dsBufferParams );
 
 			// Set new 3D buffer parameters
+			#ifndef _DEBUG
 			m_ptr->pDSBuffer3D->SetAllParameters( &dsBufferParams, DS3D_DEFERRED );
+			#endif
 		}
 	}
 	else
@@ -676,7 +678,9 @@ DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound
 			m_ptr->pDSBuffer3D->GetAllParameters( &dsBufferParams );
 
 			// Set new 3D buffer parameters
+			#ifndef _DEBUG
 			m_ptr->pDSBuffer3D->SetAllParameters( &dsBufferParams, DS3D_DEFERRED );
+			#endif
 		}
 	}
 	else
@@ -1550,7 +1554,9 @@ DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 	m_ptr->vecPosition = GGVECTOR3 ( fX, fY, fZ );
 	if ( fabs ( GGVec3Length ( &(m_ptr->vecLast - m_ptr->vecPosition) ) ) > 0.09f )
 	{
+		#ifndef _DEBUG
 		m_ptr->pDSBuffer3D->SetPosition ( fX, fY, fZ, DS3D_DEFERRED );
+		#endif
 		m_ptr->vecLast = m_ptr->vecPosition;
 	}
 }
@@ -1582,7 +1588,9 @@ DARKSDK void PositionListener ( float fX, float fY, float fZ )
 		if (GGVec3Length(&(vecListenerPosition - g_vListenQuickPos)) > 0.5f) //5.0f
 		{
 			g_vListenQuickPos = vecListenerPosition;
+			#ifndef _DEBUG
 			pDSListener->SetPosition (fX, fY, fZ, DS3D_DEFERRED);
+			#endif
 		}
 	}
 }
@@ -1636,9 +1644,9 @@ DARKSDK void RotateListener ( float fX, float fY, float fZ )
 			GGMatrixMultiply(&matTop, &matTop, &matRot);
 
 			// rotate the listener data
-			pDSListener->SetOrientation(matFront._41, matFront._42, matFront._43,
-				matTop._41, matTop._42, matTop._43,
-				DS3D_DEFERRED);
+			#ifndef _DEBUG
+			pDSListener->SetOrientation(matFront._41, matFront._42, matFront._43, matTop._41, matTop._42, matTop._43, DS3D_DEFERRED);
+			#endif
 		}
 	}
 }
@@ -1661,8 +1669,10 @@ DARKSDK void ScaleListener ( float fScale )
 				// scale min and max (3000 is the default scene camera range)
 				if (ptr->pDSBuffer3D)
 				{
+					#ifndef _DEBUG
 					ptr->pDSBuffer3D->SetMinDistance(DS3D_DEFAULTMINDISTANCE * fScale, DS3D_DEFERRED);
 					ptr->pDSBuffer3D->SetMaxDistance(3000.0f * fScale, DS3D_DEFERRED);
+					#endif
 				}
 
 				// Next sound

@@ -8078,7 +8078,7 @@ struct guntype
 	int storeammo;
 	int storeclipammo;
 	int newweaponsystem;
-
+	cstr legacy_animation_s;
 	// Constructor
 	guntype ( )
 	{
@@ -8138,6 +8138,7 @@ struct guntype
 		 obj = 0;
 		 activeingame = 0;
 		 firemode = 0;
+		 legacy_animation_s = "";
 	}
 	// End of Constructor
 

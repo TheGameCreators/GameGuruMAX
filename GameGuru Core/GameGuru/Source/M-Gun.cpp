@@ -62,6 +62,8 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].storeammo = 0;
 	t.gun[t.gunid].storeclipammo = 0;
 
+	t.gun[t.gunid].legacy_animation_s = "";
+
 	//  two basic firemodes (i.e semi+full auto or shotgun+grenade)
 	for ( t.i = 0 ; t.i <= 1; t.i++ )
 	{
@@ -199,6 +201,9 @@ void gun_loaddata ( void )
 					if( matched )  t.gun[t.gunid].transparency = t.value1;
 					cmpStrConst( t_field_s, "vweaptex" );
 					if( matched )  t.gun[t.gunid].vweaptex_s = t.value_s;
+
+					cmpStrConst(t_field_s, "legacyanimation");
+					if (matched)  t.gun[t.gunid].legacy_animation_s = t.value_s;
 
 					//  control weapon shader using art flags
 					cmpStrConst( t_field_s, "invertnormal" );
@@ -1735,6 +1740,17 @@ void gun_loaddata ( void )
 	if (PathExist(pathtoresourcefolder_s.Get()) == 1 || FileExist(pathtohudorigfile_s.Get()) == 1)
 	{
 		t.gun[t.gunid].newweaponsystem = 1;
+	}
+	else
+	{
+		//PE: Support customs hand from new project system or write folder weapons.
+		char writefolder[MAX_PATH];
+		strcpy(writefolder, pathtoresourcefolder_s.Get());
+		GG_GetRealPath(writefolder, 0);
+		if (PathExist(writefolder) == 1)
+		{
+			t.gun[t.gunid].newweaponsystem = 1;
+		}
 	}
 }
 

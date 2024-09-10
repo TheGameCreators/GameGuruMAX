@@ -2615,6 +2615,24 @@ void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, cha
 }
 #endif
 
+int FillWeaponList(std::vector<std::string>& labels)
+{
+	int listmax = fillgloballistwithweaponsQuick(true, true, true, false);
+	int iWeaponListIndex = 0;
+
+	labels.push_back("No Weapon");
+	iWeaponListIndex++;
+	for (int gunid = 1; gunid <= g.gunmax; gunid++)
+	{
+		cstr thisLabel = t.gun[gunid].name_s;
+		if (strlen(thisLabel.Get()) == 0) thisLabel = "No Weapon";
+		labels.push_back(thisLabel.Get());
+		iWeaponListIndex++;
+	}
+
+	return(iWeaponListIndex);
+}
+
 int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee, bool bIncludeSlotNotUsedChoice)
 {
 	int retvalue = 0;

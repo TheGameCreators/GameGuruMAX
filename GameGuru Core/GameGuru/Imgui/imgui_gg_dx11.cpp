@@ -7042,6 +7042,27 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 										}
 										if (labels.size() == 2)
 										{
+											if (stricmp(labels[1].c_str(), "anyweaponlist") == NULL)
+											{
+												labels.clear();
+												labels.push_back(cVariable);
+												int iWeaponListIndex = 1;
+												int FillWeaponList(std::vector<std::string> &labels);
+												iWeaponListIndex += FillWeaponList( labels);
+
+												if (iWeaponListIndex > 0)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iWeaponListIndex;
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
+
+											}
+
 											if (stricmp(labels[1].c_str(), "questlist") == NULL)
 											{
 												labels.clear();

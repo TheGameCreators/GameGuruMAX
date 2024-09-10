@@ -4487,8 +4487,24 @@ void gun_load ( void )
 					}
 				}
 				pNoSpacesInGunName[n2] = 0;
-				pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
-				pAbsPathToAnim += ".dbo";
+
+				if (t.gun[t.gunid].legacy_animation_s.Len() > 0)
+				{
+					cstr path = pAbsPathToAnim;
+					pAbsPathToAnim += t.gun[t.gunid].legacy_animation_s;
+					pAbsPathToAnim += ".dbo";
+					if (!FileExist(pAbsPathToAnim.Get()))
+					{
+						pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
+						pAbsPathToAnim += ".dbo";
+					}
+				}
+				else
+				{
+					pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
+					pAbsPathToAnim += ".dbo";
+				}
+
 				sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
 				if (pSecondaryObject)
 				{

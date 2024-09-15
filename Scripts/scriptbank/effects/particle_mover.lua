@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Particle Mover v6 by Necrym59
+-- Particle Mover v7 by Necrym59
 -- DESCRIPTION: Allows a particle to be attached to a moving object.
 -- DESCRIPTION: Attach to an object. Set Always Active ON.
 -- DESCRIPTION: [PARTICLE_NAME$=""] particle name
@@ -85,20 +85,21 @@ function particle_mover_main(e)
 				if string.lower(GetEntityName(p)) == partmover[e].particle_name then
 					partmover[e].particle_number = p					
 					tpositionx[e], tpositiony[e], tpositionz[e] = GetEntityPosAng(partmover[e].particle_number)					
-					partattached[e] = 1
+					partattached[e] = 1						
 					break
 				end
 			end
-		end
-	end
-	
+		end		
+	end	
 	if attachTo[e] == -1 then return end
 	
-	if partattached[e] == 1 then
+	if partattached[e] == 1 and g_Entity[partmover[e].object_number]['activated'] == 1 then
 		local x,y,z,Ax,Ay,Az = GetEntityPosAng(attachTo[e])
 		--Set Particle Position
 		ResetPosition(partmover[e].particle_number, x+offsetx[e]+partmover[e].adjust_x_offset, y+offsety[e]+partmover[e].adjust_y_offset, z+offsetz[e]+partmover[e].adjust_z_offset)
 		Show(partmover[e].particle_number)
+	else
+		Hide(partmover[e].particle_number)
 	end
 	if g_Entity[attachTo[e]]['health'] <= 0 then
 		Hide(partmover[e].particle_number)

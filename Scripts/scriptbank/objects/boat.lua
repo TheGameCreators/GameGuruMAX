@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v17 by Necrym59
+-- Boat v18 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
 -- DESCRIPTION: [PROMPT_TEXT$="E to embark"]
 -- DESCRIPTION: [USE_RANGE=80]
@@ -49,6 +49,7 @@ local boatx = {}
 local boaty = {}
 local boatz = {}
 local speed = {}
+local wobble = {}
 local status = {}
 
 function boat_properties(e, prompt_text, use_range, min_speed, max_speed, turn_speed, drag, player_z_position, player_y_position, boat_rotation, boat_draft, boat_power, boat_brake, boat_buoyancy)
@@ -95,6 +96,7 @@ function boat_init(e)
 	onboatcheck[e]=0
 	floatangle[e]=0
 	colobj[e]=0
+	wobble[e] = GetGamePlayerControlWobbleHeight()
 	heightTerrain[e] = 0
 	heightSurface[e] = 0
 	status[e] = 'init'
@@ -109,7 +111,7 @@ function boat_main(e)
 		status[e] = 'boating'
 	end	
 
-	if status[e] == 'boating' then		
+	if status[e] == 'boating' then	
 		if boat_release[e]==nil then boat_release[e]=0 end
 		if boat_active[e]==nil then boat_active[e]=0 end
 		boatangle=g_Entity[e].angley
@@ -123,12 +125,13 @@ function boat_main(e)
 			if g_KeyPressE==1 and boat_release[e]==0 and boat_active[e]==0 then
 				boat_active[e]=1
 				boat_release[e]=1
-				PlaySound(e,0)
-				PromptDuration('Q to dismount',4000)
+				PlaySound(e,0)				
+				PromptDuration('Q to dismount',4000)				
 			end
 		end
 
 		if boat_active[e]==0 then
+			SetGamePlayerControlWobbleHeight(wobble[e])
 			GravityOff(e)
 			CollisionOff(e)
 			local nfloatheight = boat[e].boat_buoyancy
@@ -142,7 +145,8 @@ function boat_main(e)
 			CollisionOn(e)
 			StopSound(e,1)
 		end  
-		if boat_active[e]==1 then			
+		if boat_active[e]==1 then	
+			SetGamePlayerControlWobbleHeight(0)
 			local nfloatheight = boat[e].boat_buoyancy
 			floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)
 			local fFinalY = GetWaterHeight() + nfloatheight + (math.cos(floatangle[e])*nfloatheight)

@@ -57,7 +57,7 @@ function generator_init(e)
 	fuel_level[e] = 0	
 	running[e] = 0
 	timer[e] = 0
-	g_fuel = g_fuel
+	g_fuel = 0
 	g_fuelamount = g_fuelamount
 	played = 0
 	tusedvalue[e] = 0

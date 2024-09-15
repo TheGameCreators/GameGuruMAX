@@ -1,4 +1,4 @@
--- Weight Switch v15 - Necrym59 with special thanks to Amen Moses
+-- Weight Switch v16 - Necrym59 with special thanks to Amen Moses
 -- DESCRIPTION: Attach to the Weight Switch Object? This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Set Object to Physics=ON, Collision=BOX, IsImobile=ON. Use AlphaClipping to make invisible if required.
 -- DESCRIPTION: [PROMPT_TEXT$="Weight needed to activate"]
@@ -157,19 +157,6 @@ function weight_switch_main(e)
 		for _, v in pairs( switch.stackList ) do
 			PushObject(v.obj,0,0,0)	
 		end
-		-------------------------------------------------------
-		if switch.user_global_affected ~= "" then
-			if _G["g_UserGlobal['"..switch.user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..switch.user_global_affected.."']"] end
-			if switch.process_affect == 1 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] + switch.accrued_weight end
-			if switch.process_affect == 2 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] - switch.accrued_weight end
-		end	
-		if switch.reset_switch == 1 then
-			for _, v in pairs( switch.stackList ) do
-				Destroy(v.ent)
-			end
-			switch.state = 'init'
-		end	
-		-------------------------------------------------------
 		if g_Time > switch.timer then
 			checkWeight(e,switch,Ent)
 			switch.timer = g_Time + 150
@@ -177,6 +164,19 @@ function weight_switch_main(e)
 				switch.state = 'checkweight'
 				switch.activated = false
 			end
+			-------------------------------------------------------
+			if switch.user_global_affected ~= "" then			
+				if _G["g_UserGlobal['"..switch.user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..switch.user_global_affected.."']"] end
+				if switch.process_affect == 1 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] + switch.accrued_weight end
+				if switch.process_affect == 2 then _G["g_UserGlobal['"..switch.user_global_affected.."']"] = currentvalue[e] - switch.accrued_weight end
+			end	
+			if switch.reset_switch == 1 then
+				for _, v in pairs( switch.stackList ) do
+					Destroy(v.ent)
+				end
+				switch.state = 'init'
+			end	
+			-------------------------------------------------------
 			switch.timer = g_Time + 150
 		end
 	end

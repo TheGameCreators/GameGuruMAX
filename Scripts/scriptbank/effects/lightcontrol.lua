@@ -89,22 +89,23 @@ end
 function lightcontrol_main(e)
 	
 	if status[e] == "init" then
-		if lightcontrol[e].light_object_no == 0 or nil then
+		rwait[e] = g_Time + math.random(10,100)
+		lightNum = GetEntityLightNumber(e)
+		minrange[e] = GetLightRange(lightNum)
+		SetLightRange(lightNum,minrange[e])
+		current_level[e] = minrange[e]
+		if lightcontrol[e].light_object_no == 0 and lightcontrol[e].light_object_name > "" then
 			for a = 1, g_EntityElementMax do
 				if a ~= nil and g_Entity[a] ~= nil then
 					if lower(GetEntityName(a)) == lightcontrol[e].light_object_name then
-						lightcontrol[e].light_object_no = a
+						lightcontrol[e].light_object_no = GetEntityLightNumber(a)
 						SetEntityEmissiveStrength(a,0)
+						SetActivated(a,0)
 						break
 					end
 				end
 			end
 		end
-		rwait[e] = g_Time + math.random(10,100)
-		lightNum = GetEntityLightNumber( e )
-		minrange[e] = GetLightRange ( lightNum )
-		SetLightRange(lightNum,minrange[e])
-		current_level[e] = minrange[e]
 		status[e] = "endinit"
 	end
 
@@ -168,7 +169,7 @@ function lightcontrol_main(e)
 			SetActivated(e,1)
 		end
 	end	
-
+	
 	if g_Entity[e]['activated'] == 0 then
 		lightNum = GetEntityLightNumber( e )
 		if lightcontrol[e].mode == 1 then

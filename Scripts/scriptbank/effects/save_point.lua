@@ -1,11 +1,12 @@
--- Save Point v9 by Necrym59
+-- Save Point v10 by Necrym59
 -- DESCRIPTION: Saves a save point
 -- DESCRIPTION: Attach to an object, switch or trigger zone to activate
--- DESCRIPTION: [@ACTIVATION=1(1=By Object/Switch, 2=By Zone)]
+-- DESCRIPTION: [@ACTIVATION=1(1=By This Object, 2=By External Zone/Switch)]
 -- DESCRIPTION: [USE_RANGE=80(1,200)]
 -- DESCRIPTION: [PROMPT_MESSAGE$="Press E to save"]
 -- DESCRIPTION: [SAVE_MESSAGE$="Saving.."]
--- DESCRIPTION: [@MESSAGE_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> when activated
 
 local module_misclib = require "scriptbank\\module_misclib"
@@ -16,7 +17,8 @@ local savepoint 		= {}
 local activation 		= {}
 local use_range 		= {}
 local save_message 		= {}
-local message_display 	= {}
+local prompt_display 	= {}
+local item_highlight 	= {}
 
 local played			= {}
 local doonce			= {}
@@ -26,12 +28,13 @@ local tEnt 				= {}
 local selectobj 		= {}
 local status			= {}
 
-function save_point_properties(e, activation, use_range, prompt_message, save_message, message_display)
+function save_point_properties(e, activation, use_range, prompt_message, save_message, prompt_display, item_highlight)
 	savepoint[e].activation = activation
 	savepoint[e].use_range = use_range
 	savepoint[e].prompt_message = prompt_message
 	savepoint[e].save_message = save_message
-	savepoint[e].message_display = message_display
+	savepoint[e].prompt_display = prompt_display
+	savepoint[e].item_highlight = item_highlight
 end
 
 function save_point_init(e)
@@ -40,7 +43,9 @@ function save_point_init(e)
 	savepoint[e].use_range = 80
 	savepoint[e].prompt_message = "Press E to save"
 	savepoint[e].save_message = "Saving.."
-	savepoint[e].message_display = 1	
+	savepoint[e].prompt_display = 1
+	savepoint[e].item_highlight = 0
+	
 	played[e] = 0
 	doonce[e] = 0
 	animonce[e] = 0
@@ -61,13 +66,13 @@ function save_point_main(e)
 		local PlayerDist = GetPlayerDistance(e)
 		if PlayerDist < savepoint[e].use_range then
 			--pinpoint select object--
-			module_misclib.pinpoint(e,savepoint[e].use_range,0)
+			module_misclib.pinpoint(e,savepoint[e].use_range,savepoint[e].item_highlight)
 			tEnt[e] = g_tEnt
 			--end pinpoint select object--
 		end
 		if PlayerDist < savepoint[e].use_range and tEnt[e] ~= 0 then
-			if savepoint[e].message_display == 1 then PromptLocal(e,savepoint[e].prompt_message) end
-			if savepoint[e].message_display == 2 then Prompt(savepoint[e].prompt_message) end
+			if savepoint[e].prompt_display == 1 then PromptLocal(e,savepoint[e].prompt_message) end
+			if savepoint[e].prompt_display == 2 then Prompt(savepoint[e].prompt_message) end
 			if g_KeyPressE == 1 then
 				status[e] = "save"
 				SetActivated(e,1)
@@ -86,8 +91,8 @@ function save_point_main(e)
 			if doonce[e] == 0 then
 				if played[e] == 0 then
 					if savepoint[e].activation == 1 then
-						if savepoint[e].message_display == 1 then PromptLocal(e,savepoint[e].save_message) end
-						if savepoint[e].message_display == 2 then Prompt(savepoint[e].save_message) end
+						if savepoint[e].prompt_display == 1 then PromptLocal(e,savepoint[e].save_message) end
+						if savepoint[e].prompt_display == 2 then Prompt(savepoint[e].save_message) end
 						SetAnimationName(e,"on")
 						PlayAnimation(e)
 						PlaySound(e,0)

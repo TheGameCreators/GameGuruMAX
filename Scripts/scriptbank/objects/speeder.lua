@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v12 by Necrym59 and smallg
+-- Speeder v14 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -17,6 +17,7 @@
 -- DESCRIPTION: [SPEEDER_HEALTH=1000(100,1000)]
 -- DESCRIPTION: [MAXIMUM_SLOPE=19(1,100)]
 -- DESCRIPTION: [USE_TEXT$="WASD-drive, SPACE-Brake, /-Radio"]
+-- DESCRIPTION: [LOCK_PLAYER!=0]
 -- DESCRIPTION: <Sound0> Moving
 -- DESCRIPTION: <Sound1> Idle Loop
 -- DESCRIPTION: <Sound2> Impact
@@ -61,7 +62,7 @@ local oldy = {}
 local tEnt = {}
 local underwater = {}
 
-function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text)
+function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_adjustment, player_y_adjustment, player_angle_adjustment, maximum_speed, minimum_speed, turn_speed, acceleration, decceleration, impact_range, impact_angle, speeder_health, maximum_slope, use_text, lock_player)
 	speeder[e].prompt_text = prompt_text
 	speeder[e].enter_range = enter_range
 	speeder[e].enter_angle = enter_angle
@@ -78,6 +79,7 @@ function speeder_properties(e, prompt_text, enter_range, enter_angle, player_xz_
 	speeder[e].speeder_health = speeder_health
 	speeder[e].maximum_slope = maximum_slope
 	speeder[e].use_text	= use_text
+	speeder[e].lock_player = lock_player or 0
 end
 
 function speeder_init(e)
@@ -97,7 +99,8 @@ function speeder_init(e)
 	speeder[e].impact_angle = 40
 	speeder[e].speeder_health = 1000
 	speeder[e].maximum_slope = 19
-	speeder[e].use_text	= "WASD-drive, SPACE-Brake, /-Radio"	
+	speeder[e].use_text	= "WASD-drive, SPACE-Brake, /-Radio"
+	speeder[e].lock_player = 0 	
 
 	status[e] = "init"
 	speed[e] = 0
@@ -173,6 +176,7 @@ function GetInspeeder(e)
 			SetFreezePosition(pos_x[e],g_Entity[e]['y']+speeder[e].player_y_adjustment,pos_z[e])				
 			SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].player_angle_adjustment,g_Entity[e]['anglez'])
 			TransportToFreezePosition()
+			UpdatePlayerPosition(e)	
 			oldy[e] = g_Entity[e]['y']+speeder[e].player_y_adjustment			
 			ChangePlayerWeaponID(0)
 			LoopSound(e,1) -- idle sound
@@ -197,9 +201,17 @@ function UpdatePlayerPosition(e)
 	plrpos_x[e] = g_Entity[e]['x'] + (math.sin(new_y) * speeder[e].player_xz_adjustment)
 	plrpos_z[e] = g_Entity[e]['z'] + (math.cos(new_y) * speeder[e].player_xz_adjustment)
 	plrpos_y[e] = g_Entity[e]['y']
-	SetCameraPosition(0,plrpos_x[e],pos_y[e]+speeder[e].player_y_adjustment,plrpos_z[e])
-	SetFreezePosition(plrpos_x[e],plrpos_y[e],plrpos_z[e])
-	TransportToFreezePositionOnly()
+	if speeder[e].lock_player == 0 then 
+		SetCameraPosition(0,plrpos_x[e],pos_y[e]+speeder[e].player_y_adjustment,plrpos_z[e])
+		SetFreezePosition(plrpos_x[e],plrpos_y[e],plrpos_z[e])
+		TransportToFreezePositionOnly()
+	end
+	if speeder[e].lock_player == 1 then	
+		SetCameraPosition(0,plrpos_x[e],pos_y[e]+speeder[e].player_y_adjustment,plrpos_z[e])
+		SetFreezePosition(plrpos_x[e],plrpos_y[e],plrpos_z[e])
+		SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].player_angle_adjustment,g_Entity[e]['anglez'])
+		TransportToFreezePosition()
+	end
 end 
 
 function Controlspeeder(e)
@@ -300,6 +312,8 @@ function CollisionCheck(e)
 	if shealth[e] <= 0 then
 		speed[e] = -1
 		StopSound(e,0)
+		StopSound(e,1)
+		StopSound(e,3)
 	end
 end
 

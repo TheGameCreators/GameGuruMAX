@@ -1,4 +1,4 @@
--- Flashlight v27: by Necrym59
+-- Flashlight v28: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -131,6 +131,7 @@ function flashlight_init(e)
 	cleanuptime[e] = 0
 	selectobj[e] = 0
 	SetFlashLightKeyEnabled(0)
+	SetEntityAlwaysActive(e,1)
 	g_batteryenergy = 0
 end
  
@@ -295,8 +296,10 @@ function flashlight_main(e)
 	if status[e] == 'OFF' then
 		flashlight[e].battery_level = flashlight[e].battery_level + (flashlight[e].battery_recharge/20)
 		if flashlight[e].battery_level > 100 then flashlight[e].battery_level = 100 end
-		if flashlight[e].user_global_affected > "" then _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] = flashlight[e].battery_level end
-		if _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] > 100 then _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] = 100 end
+		if flashlight[e].user_global_affected > "" then
+			_G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] = flashlight[e].battery_level
+			if _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] > 100 then _G["g_UserGlobal['"..flashlight[e].user_global_affected.."']"] = 100 end
+		end	
 	end	
 	if g_batteryenergy > 0 then 
 		flashlight[e].battery_level = flashlight[e].battery_level + g_batteryenergy

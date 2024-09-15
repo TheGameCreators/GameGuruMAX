@@ -47,7 +47,7 @@ function stealthzone_init(e)
 	status[e] = "init"
 	doonce[e] = 0
 	entrange[e] = 0
-	tableName[e] = "shieldzone" ..tostring(e)
+	tableName[e] = "stealthzone" ..tostring(e)
 	_G[tableName[e]] = {}
 	stealthicon = CreateSprite(LoadImage(stealthzone[e].icon_imagefile))
 	SetSpriteSize(stealthicon,-1,-1)

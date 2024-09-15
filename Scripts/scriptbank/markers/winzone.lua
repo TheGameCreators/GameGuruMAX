@@ -64,7 +64,7 @@ function winzone_main(e)
 			SetSpriteSize(endimg[e],100,100)
 			SetSpriteDepth(endimg[e],1)
 			SetSpritePosition(endimg[e],500,500)
-		end			
+		end	
 		status[e] = "endinit"
 	end
 
@@ -109,7 +109,7 @@ function winzone_main(e)
 							JumpToLevelIfUsedEx(e,winzone[e].resetstates)
 						end
 					else
-						JumpToLevelIfUsedEx(e,winzone[e].resetstates)
+						JumpToLevelIfUsedEx(e,winzone[e].resetstates)						
 					end
 				end			
 			end

@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Carry Object V38 by Necrym59 and Lee
+-- Carry Object V39 by Necrym59 and Lee
 -- DESCRIPTION: A global or local behaviour for object handling.
 -- DESCRIPTION: If using globally. Set AlwaysActive=ON
 -- DESCRIPTION: Weight: Must be between 1-99. 0=No Pickup.
@@ -65,10 +65,6 @@ local cox				= {}
 local fgain				= {}
 local hurtonce			= {}
 local surface			= {}
-local terrain			= {}
-local terraincheck		= {}
-local surfacecheck		= {}
-local heightcheck		= {}
 local weightcheck		= {}
 local objlookedat		= {}
 local objectlist 		= {}
@@ -135,7 +131,6 @@ function carry_object_init(e)
 	terrain[e] = 0
 	terraincheck[e] = 0
 	surfacecheck[e] = 0
-	heightcheck[e] = 0
 	weightcheck[e] = 0
 	objlookedat[e] = 0
 	checktimer[e] = math.huge
@@ -368,21 +363,13 @@ function carry_object_main(e)
 
 		if ( GetGamePlayerStateCamAngleX()<-35) then SetGamePlayerStateCamAngleX(-35) end
 		if ( GetGamePlayerStateCamAngleX()>35) then SetGamePlayerStateCamAngleX(35) end
-
+		
 		if g_MouseClick == 2 and g_carrying == 1 then thrown[e] = 1 end
 		if g_KeyPressR == 1 or g_MouseClick == 1 or g_MouseClick == 2 then kpressed[e] = 0 end
 		if kpressed[e] == 0 and g_MouseClick == 0 and colobj[e] == 0 then
 			SetEntityZDepthMode(tEnt[e],1)
-			terrain[e] = GetTerrainHeight(g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['z'])
 			surface[e] = GetSurfaceHeight(g_Entity[tEnt[e]]['x'],g_Entity[tEnt[e]]['y'],g_Entity[tEnt[e]]['z'])
-			terraincheck[e] = (g_Entity[tEnt[e]]['y'] - terrain[e])
-			surfacecheck[e] = (g_Entity[tEnt[e]]['y'] - surface[e])
-			if surfacecheck[e] < terraincheck[e] then
-				heightcheck[e] = surfacecheck[e]
-			else
-				heightcheck[e] = terraincheck[e]
-			end
-			if prop_y[tEnt[e]] < heightcheck[e] then prop_y[tEnt[e]] = heightcheck[e] end
+			if prop_y[tEnt[e]] < surface[e] then prop_y[tEnt[e]] = surface[e] end
 			CollisionOff(tEnt[e])
 			PositionObject(g_Entity[tEnt[e]]['obj'],prop_x[tEnt[e]],prop_y[tEnt[e]],prop_z[tEnt[e]])
 			CollisionOn(tEnt[e])

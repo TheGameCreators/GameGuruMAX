@@ -63,7 +63,7 @@ end
 
 function armour_main(e)
 
-	PlayerDist = GetPlayerDistance(e)	
+	local PlayerDist = GetPlayerDistance(e)	
 	if armour[e].pickup_style == 1 then
 		if PlayerDist < armour[e].pickup_range then
 			if armour[e].prompt_display == 1 then PromptLocal(e,armour[e].useage_text) end

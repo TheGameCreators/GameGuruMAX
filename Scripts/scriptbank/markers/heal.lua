@@ -1,10 +1,10 @@
--- Heal v5
+-- Heal v6
 -- DESCRIPTION: Heals the player over time or once only when they enter the zone.
 -- DESCRIPTION: Can also update a specified User Global by the same amount.
 -- DESCRIPTION: Set the Heal [AMOUNT=1(1-20)] and the [TIMING=1(1,10)] and the [ZONEHEIGHT=100(1,500)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [HealOnceOnly!=0] to heal once only then zone is destroyed.
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyUserGlobal"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyUserGlobal
 -- DESCRIPTION: <Sound0> for when entering the zone
 
 module_activationcontrol = require "scriptbank\\module_activationcontrol"
@@ -47,6 +47,7 @@ function heal_init(e)
 	wait[e] = math.huge
 	heal_now[e] = 0
 	doonce[e] = 0
+	currentvalue[e] = 0
 	status[e] = "init"
 end
 

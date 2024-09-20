@@ -1542,6 +1542,13 @@ void visuals_load ( void )
 
 			for (int iL = 0; iL < 128; iL++) 
 			{
+				t.try_s = cStr("visuals.TerrainTextures") + cStr(iL);
+				if (t.tfield_s == t.try_s)
+					t.visuals.sTerrainTextures[iL] = t.tvalue_s;
+				t.try_s = cStr("visuals.TerrainTexturesName") + cStr(iL);
+				if (t.tfield_s == t.try_s)
+					t.visuals.sTerrainTexturesName[iL] = t.tvalue_s;
+
 				t.try_s = cStr("visuals.GrassTextures") + cStr(iL);
 				if (t.tfield_s == t.try_s)
 					t.visuals.sGrassTextures[iL] = t.tvalue_s;

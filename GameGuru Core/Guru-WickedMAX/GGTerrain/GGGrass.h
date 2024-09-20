@@ -49,6 +49,7 @@ namespace GGGrass
 
 	extern GGGrassParams gggrass_global_params; // modify this anywhere
 
+	void GGGrass_Init_Textures(LPSTR pRemoteGrassPath);
 	void GGGrass_Init();
 	void GGGrass_Update( wiScene::CameraComponent* camera, wiGraphics::CommandList cmd, bool bRenderTargetFocus );
 	void GGGrass_Update_Painting( RAY ray );

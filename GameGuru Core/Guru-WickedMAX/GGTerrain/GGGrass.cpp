@@ -664,6 +664,25 @@ float GrassTimer()
 	return (float) (i64CurrentTime / (double) i64TimeFreq);
 }
 
+void GGGrass_Init_Textures ( LPSTR pRemoteGrassPath )
+{
+	char grassFilename[256];
+	for (uint32_t i = 0; i < GGGRASS_NUM_TYPES; i++)
+	{
+		if (strlen(pRemoteGrassPath) > 0)
+		{
+			strcpy_s(grassFilename, pRemoteGrassPath);
+		}
+		else
+		{
+			strcpy_s(grassFilename, "");
+		}
+		strcat_s(grassFilename, "grassbank\\");
+		strcat_s(grassFilename, grassFiles[i].filename);
+		GGGrass_LoadTextureDDSIntoSlice(grassFilename, &texGrass, i);
+	}
+}
+
 void GGGrass_Init()
 {
 	gggrass_initialised = 1;
@@ -676,21 +695,11 @@ void GGGrass_Init()
 									  
 	wiRenderer::LoadShader( VS, shaderGrassPrepassVS, "GGGrassPrepassVS.cso" );
 	wiRenderer::LoadShader( PS, shaderGrassPrepassPS, "GGGrassPrepassPS.cso" );
-									  
-	//wiRenderer::LoadShader( VS, shaderGrassShadowVS, "GGGrassShadowMapVS.cso" );
-	//wiRenderer::LoadShader( PS, shaderGrassShadowPS, "GGGrassShadowMapPS.cso" );
 
-	
-	GGGrass_LoadTextureDDS( "Files/treebank/noise.dds", &texNoise );
-	  
-	GGGrass_CreateEmptyTexture( 1024, 1024, 9, GGGRASS_NUM_TYPES, FORMAT_BC3_UNORM_SRGB, &texGrass );
-	char grassFilename[ 256 ];
-	for( uint32_t i = 0; i < GGGRASS_NUM_TYPES; i++ )
-	{
-		strcpy_s( grassFilename, "Files/grassbank/" );
-		strcat_s( grassFilename, grassFiles[ i ].filename );
-		GGGrass_LoadTextureDDSIntoSlice( grassFilename, &texGrass, i );
-	}
+	GGGrass_LoadTextureDDS("Files/treebank/noise.dds", &texNoise);
+	GGGrass_CreateEmptyTexture(1024, 1024, 9, GGGRASS_NUM_TYPES, FORMAT_BC3_UNORM_SRGB, &texGrass);
+
+	GGGrass_Init_Textures("Files\\");
 
 	pGrassMap = new uint8_t[ GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE ];
 	memset( pGrassMap, 1, GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE );

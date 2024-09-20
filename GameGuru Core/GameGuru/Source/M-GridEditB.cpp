@@ -46125,47 +46125,25 @@ void load_storyboard(char *name)
 	init_rpg_system();
 	load_rpg_system(name);
 
-	/* never used
-	// ensure basic project specific media folders are present
-	LPSTR pOldDir = GetDir();
-	if (Storyboard.project_readonly == 0 && bProjectLoaded == true)
+	// as we load a storyboard project, ensure correct grass and lensflare assets are being used for editor mode
+	extern void ReloadLensFlareImages();
+	if (strlen(Storyboard.customprojectfolder) > 0)
 	{
-		// go to writable project folder
-		char projectfolder[MAX_PATH];
-		strcpy(projectfolder, "projectbank\\");
-		strcat(projectfolder, name);
-		GG_GetRealPath(projectfolder, 1);
-		SetDir(projectfolder);
-
-		// files folder
-		if (PathExist("Files") == 0) CreateDirectoryA("Files", NULL);
-		SetDir("Files");
-
-		// all media folders
-		char mediafolder[MAX_PATH];
-		LPSTR pProjFilesRoot = GetDir();
-		for (int iAllMediaFolders = 0; iAllMediaFolders <= 4; iAllMediaFolders++)
-		{
-			if (iAllMediaFolders == 0) strcpy(mediafolder, "audiobank");
-			if (iAllMediaFolders == 1) strcpy(mediafolder, "entitybank");
-			if (iAllMediaFolders == 2) strcpy(mediafolder, "imagebank");
-			if (iAllMediaFolders == 3) strcpy(mediafolder, "scriptbank");
-			if (iAllMediaFolders == 4) strcpy(mediafolder, "videobank");
-			SetDir(pProjFilesRoot);
-			if (PathExist(mediafolder) == 0) CreateDirectoryA(mediafolder, NULL);
-
-			// no one thought this was a good idea.
-			// SetDir(mediafolder);
-			// if (PathExist("Your Project Files") == 0) CreateDirectoryA("Your Project Files", NULL);
-		}
+		// load grass and lensflare from remote project area
+		char pRemotePathToGrass[MAX_PATH];
+		strcpy(pRemotePathToGrass, Storyboard.customprojectfolder);
+		strcat(pRemotePathToGrass, "\\");
+		strcat(pRemotePathToGrass, Storyboard.gamename);
+		strcat(pRemotePathToGrass, "\\Files\\");
+		GGGrass_Init_Textures(pRemotePathToGrass);
+		ReloadLensFlareImages();
 	}
-	SetDir(pOldDir);
-	*/
-
-	// NOTE: Skipped this as adds 10+ seconds to storyboard load time, use files already gathered (and rely on a REFRESH event)
-	// also trigger a refresh of files lists, the project folder contributes to library file choices!
-	//extern void RefreshPurchasedFolder (void);
-	//RefreshPurchasedFolder();
+	else
+	{
+		// load grass and lensflare from stock assets
+		GGGrass_Init_Textures("");
+		ReloadLensFlareImages();
+	}
 
 	// complete
 	iLastNode = -1;

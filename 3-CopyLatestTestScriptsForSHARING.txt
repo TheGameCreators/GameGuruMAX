@@ -1,9 +1,1 @@
-Scripts\scriptbank\markers\textinzone.lua
-Scripts\scriptbank\objects\door.lua
-Scripts\scriptbank\objects\door_rotate.lua
-Scripts\scriptbank\objects\door_rotate_multi.lua
-Scripts\scriptbank\objects\door_sliding.lua
-Scripts\scriptbank\objects\oneway_door.lua
-Scripts\scriptbank\objects\switch.lua
-Scripts\scriptbank\puzzle\arrowtrap.lua
-Scripts\scriptbank\rpg\clone_entity.lua
+Scripts\scriptbank\markers\plrinzone.lua

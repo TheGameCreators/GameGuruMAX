@@ -8827,7 +8827,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		{
 			// Update the textures for the terrain
 			g_DeferTextureUpdateIncompatibleTextures.clear();
-			SetDir(g_DeferTextureUpdateCurrentFolder_s.Get());
+			if(strlen(g_DeferTextureUpdateCurrentFolder_s.Get())>0) SetDir(g_DeferTextureUpdateCurrentFolder_s.Get());
 			GGTerrain_ReloadTextures(cmd, &g_DeferTextureUpdate, &g_DeferTextureUpdateIncompatibleTextures, g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
 			SetDir(oldDir.Get());
 			g_iDeferTextureUpdateToNow = 3;

@@ -17728,8 +17728,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 					//PE: Re-enable transparent on locked entities.
 					if(t.entityelement[t.tte].editorlock == 1)
 					{
-							t.entityelement[t.tte].isclone = 0;
-							entity_converttoclonetransparent();
+						t.entityelement[t.tte].isclone = 0;
+						entity_converttoclonetransparent();
 					}
 					else 
 					{
@@ -17830,7 +17830,6 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 					LoopObject(t.tobj); StopObject(t.tobj);
 				}
 			}
-
 		}
 		else 
 		{
@@ -17856,6 +17855,22 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 				}
 			}
 			#endif
+		}
+
+		// ensure any pivot influences are also restored
+		if (t.tobj > 0)
+		{
+			sObject* pObject = g_ObjectList[t.tobj];
+			if (pObject)
+			{
+				if (t.entityprofile[t.entid].fixnewy != 0)
+				{
+					RotateObject (t.tobj, 0, t.entityprofile[t.entid].fixnewy, 0);
+					FixObjectPivot (t.tobj);
+					CalculateObjectWorld (pObject, NULL);
+					WickedCall_UpdateObject(pObject);
+				}
+			}
 		}
 	}
 
@@ -29114,10 +29129,15 @@ void gridedit_load_map ( void )
 				// this can be zero if user is not connected to the Steam Client
 				if (g_workshopItemsList.size() == 0 )
 				{
-					strcpy(cTriggerMessage, "Some behavior scripts are missing and no alternative workshop content has been found");
-					iTriggerMessageDelay = 20;
-					bTriggerMessage = true;
-					iMessageTimer = 0;
+					extern int g_iDevToolsOpen;
+					if (g_iDevToolsOpen != 0)
+					{
+						// ensure we do not scare new users - this is normal behavior
+						strcpy(cTriggerMessage, "Some behavior scripts are missing and no alternative workshop content has been found");
+						iTriggerMessageDelay = 20;
+						bTriggerMessage = true;
+						iMessageTimer = 0;
+					}
 				}
 				#else
 				strcpy(cTriggerMessage, "Some behavior scripts are missing");

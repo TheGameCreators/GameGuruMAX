@@ -468,7 +468,8 @@ function gameplayercontrol.weaponselectzoom()
       g_forcealtswap = 0 
    end
    
-   if ( tselkeystate>0 and GetGamePlayerStateIsMelee() == 0 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or taltswapkeycalled == 1 ) then 
+   --if ( tselkeystate>0 and GetGamePlayerStateIsMelee() == 0 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or taltswapkeycalled == 1 ) then 
+   if ( tselkeystate>0 and (GetGamePlayerStateGunZoomMode() == 0 or (GetGamePlayerStateGunZoomMode()>=8 and GetGamePlayerStateGunZoomMode()<=10)) or taltswapkeycalled == 1 ) then 
       if ( taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2()>-1 and GetKeyState(GetGamePlayerStateGunAltSwapKey2())==1 or taltswapkeycalled == 1 and GetGamePlayerStateGunAltSwapKey2() == -1 or taltswapkeycalled == 0 ) then 
          if ( g_keyboardpress == 0 ) then 
             -- Change weapon - and prevent plr selecting gun if flagged

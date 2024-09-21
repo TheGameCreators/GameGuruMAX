@@ -1,4 +1,4 @@
--- v12 by Necrym and Lee
+-- v13 by Necrym and Lee
 -- DESCRIPTION: The object will give the player ammunition if collected, and optionally play <Sound0> for collection.
 -- DESCRIPTION: You can change the [PROMPTTEXT$="E to collect"]
 -- DESCRIPTION: Set the Ammo [&QUANTITY=(1,100)]
@@ -14,21 +14,13 @@ local U = require "scriptbank\\utillib"
 g_tEnt = {}
 
 local g_ammo = {}
-local prompttext = {}
-local quantity = {}
-local pickuprange = {}
-local pickup_style = {}
-local collection_text = {}
-local play_pickup = {}
-local activate_logic = {}
-local item_highlight = {}
 
 function ammo_properties(e, prompttext, quantity, pickuprange, pickup_style, collection_text, play_pickup, activate_logic, item_highlight)
-	g_ammo[e]['prompttext'] = prompttext
-	g_ammo[e]['quantity'] = quantity
-	g_ammo[e]['pickuprange'] = pickuprange
-	g_ammo[e]['pickup_style'] = pickup_style
-	g_ammo[e]['collection_text'] = collection_text
+	g_ammo[e]['prompttext'] = prompttext or "E to use"
+	g_ammo[e]['quantity'] = quantity or 0
+	g_ammo[e]['pickuprange'] = pickuprange or 90
+	g_ammo[e]['pickup_style'] = pickup_style or 1
+	g_ammo[e]['collection_text'] = collection_text or "Ammunition collected"
 	g_ammo[e]['play_pickup'] = play_pickup or 1
 	g_ammo[e]['activate_logic'] = activate_logic or 1
 	g_ammo[e]['item_highlight'] = item_highlight or 0	

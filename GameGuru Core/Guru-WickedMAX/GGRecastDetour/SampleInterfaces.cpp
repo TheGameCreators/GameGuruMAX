@@ -244,10 +244,10 @@ void DebugDrawMAX::vertex(const float* pos, unsigned int color)
 	DebugObjectVert.y = *(pos + 1);
 	DebugObjectVert.z = *(pos + 2);
 	DebugObjectVert.color = color;
-	//if (m_DebugObjectVertList.size() < 10000 * 3)//21840*3)
-	//{
+	if (m_DebugObjectVertList.size() < 21844*3)
+	{
 		m_DebugObjectVertList.push_back(DebugObjectVert);
-	//}
+	}
 }
 
 void DebugDrawMAX::vertex_raised(const float* pos, unsigned int color, float fRaiseY)
@@ -257,54 +257,49 @@ void DebugDrawMAX::vertex_raised(const float* pos, unsigned int color, float fRa
 	DebugObjectVert.y = (*(pos + 1)) + fRaiseY;
 	DebugObjectVert.z = *(pos + 2);
 	DebugObjectVert.color = color;
-	m_DebugObjectVertList.push_back(DebugObjectVert);
+	if (m_DebugObjectVertList.size() < 21844 * 3)
+	{
+		m_DebugObjectVertList.push_back(DebugObjectVert);
+	}
 }
 
 void DebugDrawMAX::vertex(const float x, const float y, const float z, unsigned int color)
 {
-	//glColor4ubv((GLubyte*)&color);
-	//glVertex3f(x,y,z);
 	sDebugObjectVert DebugObjectVert;
 	DebugObjectVert.x = x;
 	DebugObjectVert.y = y;
 	DebugObjectVert.z = z;
 	DebugObjectVert.color = color;
-	//if (m_DebugObjectVertList.size() < 10000 * 3)//21840*3)
-	//{
+	if (m_DebugObjectVertList.size() < 21844 * 3)
+	{
 		m_DebugObjectVertList.push_back(DebugObjectVert);
-	//}
+	}
 }
 
 void DebugDrawMAX::vertex(const float* pos, unsigned int color, const float* uv)
 {
-	//glColor4ubv((GLubyte*)&color);
-	//glTexCoord2fv(uv);
-	//glVertex3fv(pos);
 	sDebugObjectVert DebugObjectVert;
 	DebugObjectVert.x = *(pos + 0);
 	DebugObjectVert.y = *(pos + 1);
 	DebugObjectVert.z = *(pos + 2);
 	DebugObjectVert.color = color;
-	//if (m_DebugObjectVertList.size() < 10000 * 3)//21840*3)
-	//{
+	if (m_DebugObjectVertList.size() < 21844 * 3)
+	{
 		m_DebugObjectVertList.push_back(DebugObjectVert);
-	//}
+	}
 }
 
 void DebugDrawMAX::vertex(const float x, const float y, const float z, unsigned int color, const float u, const float v)
 {
-	//glColor4ubv((GLubyte*)&color);
-	//glTexCoord2f(u,v);
-	//glVertex3f(x,y,z);
 	sDebugObjectVert DebugObjectVert;
 	DebugObjectVert.x = x;
 	DebugObjectVert.y = y;
 	DebugObjectVert.z = z;
 	DebugObjectVert.color = color;
-	//if (m_DebugObjectVertList.size() < 10000*3)//21840*3)
-	//{
+	if (m_DebugObjectVertList.size() < 21844 * 3)
+	{
 		m_DebugObjectVertList.push_back(DebugObjectVert);
-	//}
+	}
 }
 
 void DebugDrawMAX::end()
@@ -347,9 +342,6 @@ void DebugDrawMAX::end()
 
 	// mark as refreshed
 	m_bDebugObjectRefreshed[iDebugObjectSlot] = true;
-	//glEnd();
-	//glLineWidth(1.0f);
-	//glPointSize(1.0f);
 }
 
 void DebugDrawMAX::init()

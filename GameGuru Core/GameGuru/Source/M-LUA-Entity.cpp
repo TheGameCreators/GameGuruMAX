@@ -844,10 +844,17 @@ void entity_lua_performlogicconnections_core ( int iMode )
 					}
 				}
 
-				// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-				if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+				// only perform code below if target object is not visible (i.e. not spawned)
+				bool bSkipResultsCode = false;
+				int iObjID = t.entityelement[iRelationShipEntityID].obj;
+				if (iObjID > 0 && ObjectExist(iObjID) == 1 && GetVisible(iObjID) == 1) bSkipResultsCode = true;
+				if ( bSkipResultsCode == false )
 				{
-					t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+					// if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
+					if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+					{
+						t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+					}
 				}
 
 				// trigger LUA data to update for this element

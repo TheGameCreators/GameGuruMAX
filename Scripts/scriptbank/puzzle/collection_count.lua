@@ -1,4 +1,4 @@
--- Collection Count v8 by Necrym59
+-- Collection Count v9 by Necrym59 and Lee
 -- DESCRIPTION: This behavior allows for a Collection Item for pickup
 -- DESCRIPTION: Set a Collection Control behavior for a collection configuration
 -- DESCRIPTION: [PICKUP_RANGE=100(0,100)]
@@ -11,8 +11,8 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global eg: "MyPoints" 
 -- DESCRIPTION: <Sound0> plays when objective picked up
 
-g_collection_objectives	= {}
-g_collection_time		= {}
+g_collection_objectives	= 0
+g_collection_time		= 0
 g_collection_counted	= 0
 
 local cc_count			= {}
@@ -30,6 +30,7 @@ local status			= {}
 
 function collection_count_properties(e, pickup_range, time_bonus, time_penalty, health_bonus, health_penalty, global_bonus, global_penalty, user_global_affected)
 	cc_count[e].pickup_range = pickup_range
+	if cc_count[e].pickup_range < 30 then cc_count[e].pickup_range = 30 end
 	cc_count[e].time_bonus = time_bonus or 0
 	cc_count[e].time_penalty = time_penalty or 0
 	cc_count[e].health_bonus = health_bonus or 0
@@ -61,7 +62,6 @@ function collection_count_main(e)
 	end
 
 	local PlayerDist = GetPlayerDistance(e)
-
 	if PlayerDist <= cc_count[e].pickup_range then
 		PlaySound(e,0)
 		PerformLogicConnections(e)

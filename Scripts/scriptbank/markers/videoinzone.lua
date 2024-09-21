@@ -1,4 +1,4 @@
--- videoinzone v4
+-- videoinzone v5 by Lee and Necrym59
 -- DESCRIPTION: When the player enters this zone the video from <Video Slot>.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: [@ALLOW_SKIP=1(1=Yes, 2=No)]
@@ -11,14 +11,15 @@ function videoinzone_init(e)
 	g_videoinzone_mode[e] = 0
 	g_videoinzone[e] = {}
 	g_videoinzone[e]['zoneheight'] = 100
-	g_videoinzone[e]['allow_skip'] = 2
+	g_videoinzone[e]['allow_skip'] = 1
 	g_videoinzone[e]['pause_ambient_track'] = 1	
 end
 
-function videoinzone_properties(e, zoneheight, allow_skip)
+function videoinzone_properties(e, zoneheight, allow_skip, pause_ambient_track)
 	g_videoinzone[e]['zoneheight'] = zoneheight
+	if allow_skip ~=1 and allow_skip ~=2 then allow_skip = 1 end
 	g_videoinzone[e]['allow_skip'] = allow_skip
-	g_videoinzone[e]['pause_ambient_track'] = 1		
+	g_videoinzone[e]['pause_ambient_track'] = pause_ambient_track		
 end
 
 function videoinzone_main(e)

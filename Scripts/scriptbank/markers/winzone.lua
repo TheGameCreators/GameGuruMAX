@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v16 by Necrym59 and Lee
+-- Winzone v17 by Necrym59 and Lee
 -- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
@@ -36,8 +36,8 @@ function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates
 	winzone[e].ending_mode = ending_mode
 	if ending_imagefile == nil then ending_imagefile = "" end
 	winzone[e].ending_imagefile = ending_imagefile
-	winzone[e].spawn_marker_user_global = spawn_marker_user_global
-	winzone[e].spawn_marker_name = spawn_marker_name
+	winzone[e].spawn_marker_user_global = spawn_marker_user_global or ""
+	winzone[e].spawn_marker_name = spawn_marker_name or ""
 end
  
 function winzone_init(e)
@@ -49,8 +49,7 @@ function winzone_init(e)
 	winzone[e].ending_mode = 1
 	winzone[e].ending_imagefile = ""
 	winzone[e].spawn_marker_user_global = ""
-	winzone[e].spawn_marker_name = ""
-	
+	winzone[e].spawn_marker_name = ""	
 	status[e] = "init"
 	endvid[e] = 0
 end
@@ -64,7 +63,7 @@ function winzone_main(e)
 			SetSpriteSize(endimg[e],100,100)
 			SetSpriteDepth(endimg[e],1)
 			SetSpritePosition(endimg[e],500,500)
-		end	
+		end			
 		status[e] = "endinit"
 	end
 
@@ -109,7 +108,7 @@ function winzone_main(e)
 							JumpToLevelIfUsedEx(e,winzone[e].resetstates)
 						end
 					else
-						JumpToLevelIfUsedEx(e,winzone[e].resetstates)						
+						JumpToLevelIfUsedEx(e,winzone[e].resetstates)
 					end
 				end			
 			end

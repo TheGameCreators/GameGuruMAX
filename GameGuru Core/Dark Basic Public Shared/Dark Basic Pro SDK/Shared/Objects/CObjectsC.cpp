@@ -4216,9 +4216,7 @@ void ResetObjectPivot ( int iID )
 		GGMatrixIdentity ( &pObject->ppFrameList[iLimbID]->matUserMatrix );
 	}
 
-	#ifdef WICKEDENGINE
 	WickedCall_UpdateObject(pObject);
-	#endif
 }
 
 void SetToObjectOrientationEx ( int iID, int iWhichID, int iLimbID, int iMode )

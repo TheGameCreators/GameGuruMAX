@@ -18823,13 +18823,16 @@ void process_entity_library_v2(void)
 							pNewFolder->m_fLastTimeUpdate = Timer() + 4000; //Check every 4-6 sec.
 							pNewFolder->m_fLastTimeUpdate += rand() % 2000; //Make sure we dont check folders in same cycle.
 							struct stat sb;
-							if (stat(pNewFolder->m_sFolderFullPath.Get(), &sb) == 0) 
+							if (PathExist(pNewFolder->m_sFolderFullPath.Get()))
 							{
-								if (sb.st_mtime != pNewFolder->m_tFolderModify) 
+								if (stat(pNewFolder->m_sFolderFullPath.Get(), &sb) == 0)
 								{
-									pNewFolder->m_tFolderModify = sb.st_mtime;
-									RefreshEntityFolder(pNewFolder->m_sFolderFullPath.Get(), pNewFolder);
-									bUpdateSearchSorting = true;
+									if (sb.st_mtime != pNewFolder->m_tFolderModify)
+									{
+										pNewFolder->m_tFolderModify = sb.st_mtime;
+										RefreshEntityFolder(pNewFolder->m_sFolderFullPath.Get(), pNewFolder);
+										bUpdateSearchSorting = true;
+									}
 								}
 							}
 						}

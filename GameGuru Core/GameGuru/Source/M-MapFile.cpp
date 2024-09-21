@@ -1322,16 +1322,19 @@ void mapfile_loadproject_fpm ( void )
 		}
 
 		// must trigger the terrain textures to update after visuals.ini load in terrain texture preferences
-		extern std::vector<std::string> g_DeferTextureUpdate;
-		g_DeferTextureUpdate.clear();
-		g_DeferTextureUpdate.reserve(32);
-		for (int i = 0; i < 32; i++)
+		if (strlen(t.visuals.sTerrainTextures[0].Get()) > 0)
 		{
-			std::string texture = t.visuals.sTerrainTextures[i].Get();
-			g_DeferTextureUpdate.push_back(texture);
+			extern std::vector<std::string> g_DeferTextureUpdate;
+			g_DeferTextureUpdate.clear();
+			g_DeferTextureUpdate.reserve(32);
+			for (int i = 0; i < 32; i++)
+			{
+				std::string texture = t.visuals.sTerrainTextures[i].Get();
+				g_DeferTextureUpdate.push_back(texture);
+			}
+			extern int g_iDeferTextureUpdateToNow;
+			g_iDeferTextureUpdateToNow = 2;
 		}
-		extern int g_iDeferTextureUpdateToNow;
-		g_iDeferTextureUpdateToNow = 2;
 
 #endif
 

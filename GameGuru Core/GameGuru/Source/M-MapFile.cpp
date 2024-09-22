@@ -1411,10 +1411,13 @@ void mapfile_loadproject_fpm ( void )
 			t.sky.changingsky = 1;
 
 			// if change sky, regenerate env map
+			timestampactivity(0, "LOADMAP: cubemap_generateglobalenvmap");
 			cubemap_generateglobalenvmap();
+			timestampactivity(0, "LOADMAP: visuals_loop");
 			visuals_loop();
 
 			//PE: In wicked we want to restore the sun angle from the map and not use skyspec.ini settings. (only when loading a old level).
+			timestampactivity(0, "LOADMAP: Wicked_Update_Visuals");
 			if (t.visuals.skyindex == 0 || t.visuals.bDisableSkybox)
 			{
 				//PE: Only if we re not using a simple skybox.
@@ -1439,6 +1442,7 @@ void mapfile_loadproject_fpm ( void )
 	if ( t.tloadsuccessfully != 0 && g_bAllowBackwardCompatibleConversion == true)
 	{
 		// this ensures when level files acted on, they can be used in MAX
+		timestampactivity(0, "LOADMAP: mapfile_convertCLASSICtoMAX");
 		mapfile_convertCLASSICtoMAX(g.projectfilename_s.Get());
 	}
 }

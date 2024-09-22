@@ -6593,7 +6593,8 @@ void entity_loadelementsdata(void)
 	// after all entity profiles and elements in, can refresh collection list that references entities
 	if(g_collectionLabels.size()>0)
 	{
-		if (refresh_collection_from_entities() == true)
+		bool bLoadingLevel = true;
+		if (refresh_collection_from_entities(bLoadingLevel) == true)
 		{
 			// refresh detected some entity profile/elements are missing
 			// these will be needed for multi-level consistency and carrying items around the whole game

@@ -794,7 +794,7 @@ void refresh_rpg_parents_of_items(void)
 	}
 }
 
-bool refresh_collection_from_entities(void)
+bool refresh_collection_from_entities(bool bLoadingLevel)
 {
 #ifdef OPTICK_ENABLE
 	OPTICK_EVENT();
@@ -877,27 +877,36 @@ bool refresh_collection_from_entities(void)
 				}
 				else
 				{
-					// weapon not in list, add it (isweapon or hasweapon)
-					bool bValid = false;
-					collectionItemType collectionitem;
-					if (bHoldingWeaponOnly == true)
+					if (bLoadingLevel == true)
 					{
-						// add just the weapon indicated
-						bValid = fill_rpg_item_defaults(&collectionitem, 0, e); // uses iAddThisItem mode 5 (weapon in eleprof)
+						// not adding when this is called while loading the level as it would create a never-ending sequence of
+						// detecting a weapon, adding to list, manually deleting TSV entry, deleting level entry, then re-adding when level loaded
+						// so skipping this add will allow users to delete TSV weapon entries and level instances to FULLY remove the old weapon
 					}
 					else
 					{
-						// entity itself is the collectible
-						bValid = fill_rpg_item_defaults(&collectionitem, entid, e);
-					}
-					if (bValid)
-					{
-						g_collectionList.push_back(collectionitem);
-					}
+						// weapon not in list, add it (isweapon or hasweapon)
+						bool bValid = false;
+						collectionItemType collectionitem;
+						if (bHoldingWeaponOnly == true)
+						{
+							// add just the weapon indicated
+							bValid = fill_rpg_item_defaults(&collectionitem, 0, e); // uses iAddThisItem mode 5 (weapon in eleprof)
+						}
+						else
+						{
+							// entity itself is the collectible
+							bValid = fill_rpg_item_defaults(&collectionitem, entid, e);
+						}
+						if (bValid)
+						{
+							g_collectionList.push_back(collectionitem);
+						}
 
-					// and save to collection list
-					extern bool g_bChangedGameCollectionList;
-					g_bChangedGameCollectionList = true;
+						// and save to collection list
+						extern bool g_bChangedGameCollectionList;
+						g_bChangedGameCollectionList = true;
+					}
 				}
 			}
 		}

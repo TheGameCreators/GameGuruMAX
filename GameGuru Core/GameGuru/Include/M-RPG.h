@@ -37,5 +37,5 @@ bool fill_rpg_item_defaults_passedin(collectionItemType* item, int entid, int e,
 bool fill_rpg_item_defaults(collectionItemType* item, int entid, int e);
 bool fill_rpg_quest_defaults(collectionQuestType* pItem, char* pName);
 void refresh_rpg_parents_of_items(void);
-bool refresh_collection_from_entities(void);
+bool refresh_collection_from_entities(bool bLoadingLevel);
 int find_rpg_collectionindex (char* pName);

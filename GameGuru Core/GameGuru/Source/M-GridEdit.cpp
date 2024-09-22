@@ -2061,7 +2061,8 @@ void mapeditorexecutable_loop(void)
 	// can update collection list with flag
 	if (g_bUpdateCollectionList == true)
 	{
-		refresh_collection_from_entities();
+		bool bLoadingLevel = false;
+		refresh_collection_from_entities(bLoadingLevel);
 		g_bUpdateCollectionList = false;
 	}
 

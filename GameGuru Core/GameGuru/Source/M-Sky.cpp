@@ -24,131 +24,148 @@ extern wiECS::Entity g_weatherEntityID;
 
 void sky_init ( void )
 {
-	// Sky directory
-	SetDir ( "skybank" );
-	timestampactivity(0, "entering skybank");
+	// refresh sky list
+	g.skymax = 0;
+	char pOldDir[MAX_PATH];
+	strcpy(pOldDir, GetDir());
 
-	// Assemble list of all skies
-	g.skymax=0;
-	ChecklistForFiles ( );
-	timestampactivity(0, "checking skybank files");
-	for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
+	// get local and remote locations of skybank
+	SetDir ("skybank");
+	char pLocalSkyDir[MAX_PATH];
+	strcpy(pLocalSkyDir, GetDir());
+	char pRemoteSkyDir[MAX_PATH];
+	strcpy(pRemoteSkyDir, "");
+	extern StoryboardStruct Storyboard;
+	int iSkyFoldersMax = 1;
+	if (strlen(Storyboard.customprojectfolder) > 0)
 	{
-		if ( ChecklistValueA(t.c) == 1 ) 
+		strcpy(pRemoteSkyDir, Storyboard.customprojectfolder);
+		strcat(pRemoteSkyDir, Storyboard.gamename);
+		strcat(pRemoteSkyDir, "\\Files\\skybank\\");
+		iSkyFoldersMax = 2;
+	}
+	for (int iSkyFolders = 0; iSkyFolders < iSkyFoldersMax; iSkyFolders++)
+	{
+		// Sky directory
+		timestampactivity(0, "entering skybank");
+		if (iSkyFolders == 0) SetDir(pLocalSkyDir);
+		if (iSkyFolders == 1) SetDir(pRemoteSkyDir);
+
+		// Assemble list of all skies
+		ChecklistForFiles ();
+		timestampactivity(0, "checking skybank files");
+		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 		{
-			t.file_s = ChecklistString(t.c);
-			if ( cstr(Left(t.file_s.Get(),1)) != "." )
+			if (ChecklistValueA(t.c) == 1)
 			{
-				// only if contains skyspec.txt
-				cstr pSkySpecFile = t.file_s + "\\skyspec.txt";
-				if (FileExist(pSkySpecFile.Get()) == 1)
+				t.file_s = ChecklistString(t.c);
+				if (cstr(Left(t.file_s.Get(), 1)) != ".")
 				{
-					timestampactivity(0, t.file_s.Get());
-					++g.skymax;
-					Dim (t.skybank_s, g.skymax);
-					#ifdef WICKEDENGINE
-					if (g.skymax == 1) {
-						t.skybank_s[0] = "None";
-					}
-					#endif
-					t.skybank_s[g.skymax] = Lower(t.file_s.Get());
-					#ifdef WICKEDENGINE
-					image_setlegacyimageloading(true);
-					cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\preview.bmp");
-					LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
-					if (ImageExist(SKYBOX_ICONS + g.skymax) == 0)
+					// only if contains skyspec.txt
+					cstr pSkySpecFile = t.file_s + "\\skyspec.txt";
+					if (FileExist(pSkySpecFile.Get()) == 1)
 					{
-						cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\" + Lower(t.file_s.Get())) + cstr("_cube.dds");
+						timestampactivity(0, t.file_s.Get());
+						++g.skymax;
+						Dim (t.skybank_s, g.skymax);
+						if (g.skymax == 1)
+						{
+							t.skybank_s[0] = "None";
+						}
+						t.skybank_s[g.skymax] = Lower(t.file_s.Get());
+						image_setlegacyimageloading(true);
+						cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\preview.bmp");
 						LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
 						if (ImageExist(SKYBOX_ICONS + g.skymax) == 0)
 						{
-							cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\" + Lower(t.file_s.Get())) + cstr(".png");
+							cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\" + Lower(t.file_s.Get())) + cstr("_cube.dds");
 							LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
 							if (ImageExist(SKYBOX_ICONS + g.skymax) == 0)
 							{
-								cImageName = cstr(t.skybank_s[g.skymax] + "\\" + cstr("up.bmp"));
+								cstr cImageName = cstr(t.skybank_s[g.skymax] + "\\" + Lower(t.file_s.Get())) + cstr(".png");
 								LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
+								if (ImageExist(SKYBOX_ICONS + g.skymax) == 0)
+								{
+									cImageName = cstr(t.skybank_s[g.skymax] + "\\" + cstr("up.bmp"));
+									LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
+								}
 							}
 						}
+						image_setlegacyimageloading(false);
 					}
-					image_setlegacyimageloading(false);
-					#endif
 				}
 			}
 		}
-	}
-
-	// Include one sub-folder in for artist skyboxes
-	for ( t.s = 1 ; t.s <= g.skymax; t.s++ )
-	{
-		t.ttry_s = t.skybank_s[t.s]+"\\skyspec.txt";
-		if ( FileExist(t.ttry_s.Get()) == 0 ) 
+		if (iSkyFolders == 0)
 		{
-			#ifdef WICKEDENGINE
-			//Load preview image.
-			#endif
-			// set entry to remove
-			t.removethisone=t.s;
-			// into the folder
-			SetDir ( t.skybank_s[t.s].Get() );
-			// now populate with any artist skies
-			ChecklistForFiles();
-			for ( t.c = 1 ; t.c <= ChecklistQuantity(); t.c++ )
+			// Only for stock skies
+			// Include one sub-folder in for artist skyboxes
+			for (t.s = 1; t.s <= g.skymax; t.s++)
 			{
-				if ( ChecklistValueA(t.c) == 1 ) 
+				t.ttry_s = t.skybank_s[t.s] + "\\skyspec.txt";
+				if (FileExist(t.ttry_s.Get()) == 0)
 				{
-					t.file_s = ChecklistString(t.c);
-					if ( cstr(Left(t.file_s.Get(),1)) != "." ) 
+					// set entry to remove
+					t.removethisone = t.s;
+					// into the folder
+					SetDir (t.skybank_s[t.s].Get());
+					// now populate with any artist skies
+					ChecklistForFiles();
+					for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 					{
-						++g.skymax;
-						Dim ( t.skybank_s,g.skymax );
-						#ifdef WICKEDENGINE
-						image_setlegacyimageloading(true);
-						cstr cImageName = cstr(t.skybank_s[t.s] + "\\" + Lower(t.file_s.Get())  + "\\" + Lower(t.file_s.Get())) + cstr(".png");
-						LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
-						image_setlegacyimageloading(false);
+						if (ChecklistValueA(t.c) == 1)
+						{
+							t.file_s = ChecklistString(t.c);
+							if (cstr(Left(t.file_s.Get(), 1)) != ".")
+							{
+								++g.skymax;
+								Dim (t.skybank_s, g.skymax);
+								image_setlegacyimageloading(true);
+								cstr cImageName = cstr(t.skybank_s[t.s] + "\\" + Lower(t.file_s.Get()) + "\\" + Lower(t.file_s.Get())) + cstr(".png");
+								LoadImage(cImageName.Get(), SKYBOX_ICONS + g.skymax);
+								image_setlegacyimageloading(false);
 
-						if (g.skymax == 1) {
-							t.skybank_s[0] = "None";
+								if (g.skymax == 1)
+								{
+									t.skybank_s[0] = "None";
+								}
+								t.skybank_s[g.skymax] = t.skybank_s[t.s] + "\\" + Lower(t.file_s.Get());
+							}
 						}
-						#endif
-						t.skybank_s[g.skymax]=t.skybank_s[t.s]+"\\"+Lower(t.file_s.Get());
 					}
-				}
-			}
-			// out of folder
-			SetDir ( ".." );
+					// out of folder
+					SetDir ("..");
 
-			// remove this empty folder entry
-			for ( t.ss = t.removethisone ; t.ss <= g.skymax-1; t.ss++ )
-			{
-				t.skybank_s[t.ss]=t.skybank_s[t.ss+1];
-				#ifdef WICKEDENGINE
-				char tmp[256];
-				strcpy(tmp, t.skybank_s[t.ss + 1].Get());
-				int a = 0;
-				for (a = strlen(tmp) ; a > 0 ; a--)
-				{
-					if (tmp[a] == '\\')
+					// remove this empty folder entry
+					for (t.ss = t.removethisone; t.ss <= g.skymax - 1; t.ss++)
 					{
-						a++;
-						break;
-					}
-				}
+						t.skybank_s[t.ss] = t.skybank_s[t.ss + 1];
+						char tmp[256];
+						strcpy(tmp, t.skybank_s[t.ss + 1].Get());
+						int a = 0;
+						for (a = strlen(tmp); a > 0; a--)
+						{
+							if (tmp[a] == '\\')
+							{
+								a++;
+								break;
+							}
+						}
 
-				//PE: Shift image position.
-				image_setlegacyimageloading(true);
-				cstr cImageName = cstr(t.skybank_s[t.ss + 1] + "\\" + Lower(&tmp[a])) + cstr(".png");
-				LoadImage(cImageName.Get(), SKYBOX_ICONS + t.ss);
-				image_setlegacyimageloading(false);
-				#endif
+						//PE: Shift image position.
+						image_setlegacyimageloading(true);
+						cstr cImageName = cstr(t.skybank_s[t.ss + 1] + "\\" + Lower(&tmp[a])) + cstr(".png");
+						LoadImage(cImageName.Get(), SKYBOX_ICONS + t.ss);
+						image_setlegacyimageloading(false);
+					}
+					--g.skymax;
+				}
 			}
-			--g.skymax;
 		}
 	}
 
 	// Restore Dir
-	SetDir ( ".." );
+	SetDir ( pOldDir );
 	timestampactivity(0, "finished sky bank scan");
 
 	// Default sky settings

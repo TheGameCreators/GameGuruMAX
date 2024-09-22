@@ -46148,6 +46148,12 @@ void load_storyboard(char *name)
 		ReloadLensFlareImages();
 	}
 
+	// also refresh SKY LIST as custom skies might exist there
+	t.tsplashstatusprogress_s = "REFRESH SKY ASSETS";
+	timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate();
+	sky_init();
+
 	// complete
 	iLastNode = -1;
 }
@@ -46162,8 +46168,35 @@ bool load_checkproject_storyboard(char *name)
 	strcat(project, name);
 	strcat(project, "\\project.dat");
 
+	bool bReadProjectDetails = false;
 	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
+	{
+		bReadProjectDetails = true;
+	}
+	else
+	{
+		// may be a remote project
+		strcpy(project, "projectbank\\");
+		strcat(project, name);
+		strcat(project, "\\remoteproject.txt");
+		if (FileExist(project) == 1)
+		{
+			OpenToRead(1, project);
+			strcpy(project, ReadString(1));
+			strcat(project, name);
+			strcat(project, "\\Files\\projectbank\\");
+			strcat(project, name);
+			strcat(project, "\\project.dat");
+			CloseFile(1);
+		}
+		projectfile = GG_fopen(project, "rb");
+		if (projectfile)
+		{
+			bReadProjectDetails = true;
+		}
+	}
+	if (bReadProjectDetails==true)
 	{
 		memset(&checkproject, 0, sizeof(StoryboardStruct));
 		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);

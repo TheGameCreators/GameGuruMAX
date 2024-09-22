@@ -48,8 +48,16 @@ void sky_init ( void )
 	{
 		// Sky directory
 		timestampactivity(0, "entering skybank");
-		if (iSkyFolders == 0) SetDir(pLocalSkyDir);
-		if (iSkyFolders == 1) SetDir(pRemoteSkyDir);
+		if (iSkyFolders == 0)
+		{
+			if (PathExist(pLocalSkyDir) == 0) continue;
+			SetDir(pLocalSkyDir);
+		}
+		if (iSkyFolders == 1)
+		{
+			if (PathExist(pRemoteSkyDir) == 0) continue;
+			SetDir(pRemoteSkyDir);
+		}
 
 		// Assemble list of all skies
 		ChecklistForFiles ();

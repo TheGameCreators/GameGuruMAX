@@ -1628,6 +1628,8 @@ void mapfile_saveplayerconfig ( void )
 void addthisentityprofilesfilestocollection (entityeleproftype* pEleProf)
 {
 	// takes t.entid and t.e/pEleProf
+	if ( t.entid >= t.entityprofile.size() ) return;
+	
 	// Ensure we also collect any textures for Building Editor entities - they are not included with the export
 	entityprofiletype& entProfile = t.entityprofile[t.entid];
 	if (strstr(entProfile.model_s.Get(), "smartchild"))

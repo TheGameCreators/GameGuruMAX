@@ -13886,6 +13886,7 @@ void ChooseTerrainTextureFolder(char* folder)
 					t.visuals.sTerrainTextures[i] = "";
 				}
 			}
+			t.gamevisuals.sTerrainTextures[i] = t.visuals.sTerrainTextures[i];
 		}
 	}
 

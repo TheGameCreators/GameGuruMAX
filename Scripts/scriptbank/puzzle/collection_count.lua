@@ -1,7 +1,9 @@
--- Collection Count v9 by Necrym59 and Lee
+-- Collection Count v10 by Necrym59 and Lee
 -- DESCRIPTION: This behavior allows for a Collection Item for pickup
 -- DESCRIPTION: Set a Collection Control behavior for a collection configuration
+-- DESCRIPTION: [OBJECTIVES=0(0,100)]
 -- DESCRIPTION: [PICKUP_RANGE=100(0,100)]
+-- DESCRIPTION: [PROMPT_DURATION=0(0,100)]
 -- DESCRIPTION: [TIME_BONUS=0(0,100)] in seconds
 -- DESCRIPTION: [TIME_PENALTY=0(0,100)] in seconds
 -- DESCRIPTION: [HEALTH_BONUS=0(0,100)] in units
@@ -11,83 +13,85 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User Global eg: "MyPoints" 
 -- DESCRIPTION: <Sound0> plays when objective picked up
 
+g_collection_count		= {}
 g_collection_objectives	= 0
 g_collection_time		= 0
 g_collection_counted	= 0
 
-local cc_count			= {}
-local pickup_range		= {}
-local time_bonus		= {}
-local time_penalty		= {}
-local health_bonus		= {}
-local health_penalty	= {}
-local global_bonus		= {}
-local global_penalty	= {}
-local user_global_affected = {}
-
 local currentvalue		= {}
-local status			= {}
 
-function collection_count_properties(e, pickup_range, time_bonus, time_penalty, health_bonus, health_penalty, global_bonus, global_penalty, user_global_affected)
-	cc_count[e].pickup_range = pickup_range
-	if cc_count[e].pickup_range < 30 then cc_count[e].pickup_range = 30 end
-	cc_count[e].time_bonus = time_bonus or 0
-	cc_count[e].time_penalty = time_penalty or 0
-	cc_count[e].health_bonus = health_bonus or 0
-	cc_count[e].health_penalty = health_penalty or 0
-	cc_count[e].global_bonus = global_bonus or 0
-	cc_count[e].global_penalty = global_penalty or 0
-	cc_count[e].user_global_affected = user_global_affected
+function collection_count_properties(e, objectives, pickup_range, prompt_duration, time_bonus, time_penalty, health_bonus, health_penalty, global_bonus, global_penalty, user_global_affected)
+	g_collection_count[e].objectives = objectives or 0 --legacy
+	g_collection_count[e].pickup_range = pickup_range or 100 --legacy
+	g_collection_count[e].prompt_duration = prompt_duration or 0 --legacy
+	if g_collection_count[e].objectives > 0 then g_collection_objectives = g_collection_count[e].objectives end
+	if g_collection_count[e].pickup_range < 50 then g_collection_count[e].pickup_range = 50 end
+	g_collection_count[e].time_bonus = time_bonus or 0
+	g_collection_count[e].time_penalty = time_penalty or 0
+	g_collection_count[e].health_bonus = health_bonus or 0
+	g_collection_count[e].health_penalty = health_penalty or 0
+	g_collection_count[e].global_bonus = global_bonus or 0
+	g_collection_count[e].global_penalty = global_penalty or 0
+	g_collection_count[e].user_global_affected = user_global_affected
 end
 
 function collection_count_init(e)
-	cc_count[e] = {}
-	cc_count[e].pickup_range = 100
-	cc_count[e].time_bonus = 0
-	cc_count[e].time_penalty = 0
-	cc_count[e].health_bonus = 0
-	cc_count[e].health_penalty = 0
-	cc_count[e].global_bonus = 0
-	cc_count[e].global_penalty = 0
-	cc_count[e].user_global_affected = ""
-
+	g_collection_count[e] = {}
+	g_collection_count[e].objectives = 0
+	g_collection_count[e].pickup_range = 100
+	g_collection_count[e].prompt_duration = 0
+	g_collection_count[e].time_bonus = 0
+	g_collection_count[e].time_penalty = 0
+	g_collection_count[e].health_bonus = 0
+	g_collection_count[e].health_penalty = 0
+	g_collection_count[e].global_bonus = 0
+	g_collection_count[e].global_penalty = 0
+	g_collection_count[e].user_global_affected = ""
 	currentvalue[e] = 0
-	status[e] = "init"
+	g_collection_count[e].status = "init"
 end
 
 function collection_count_main(e)
-	if status[e] == "init" then
+	if g_collection_count[e].status == "init" then
 		g_collection_counted = 0
-		status[e] = "endinit"
+		g_collection_count[e].status = "endinit"
 	end
-
 	local PlayerDist = GetPlayerDistance(e)
-	if PlayerDist <= cc_count[e].pickup_range then
+	if PlayerDist <= g_collection_count[e].pickup_range then
 		PlaySound(e,0)
 		PerformLogicConnections(e)
-		if cc_count[e].time_bonus > 0 then g_collection_time = g_collection_time + (cc_count[e].time_bonus * 1000) end
-		if cc_count[e].time_penalty > 0 then g_collection_time = g_collection_time - (cc_count[e].time_penalty * 1000) end
-		if cc_count[e].health_bonus > 0 then
-			SetPlayerHealth(g_PlayerHealth + cc_count[e].health_bonus)
+		if g_collection_count[e].time_bonus > 0 then g_collection_time = g_collection_time + (g_collection_count[e].time_bonus * 1000) end
+		if g_collection_count[e].time_penalty > 0 then g_collection_time = g_collection_time - (g_collection_count[e].time_penalty * 1000) end
+		if g_collection_count[e].health_bonus > 0 then
+			SetPlayerHealth(g_PlayerHealth + g_collection_count[e].health_bonus)
 			if g_PlayerHealth > g_PlayerStartStrength then g_PlayerHealth = g_PlayerStartStrength end
 			SetPlayerHealthCore(g_PlayerHealth)
 		end
-		if cc_count[e].health_penalty > 0 then
-			SetPlayerHealth(g_PlayerHealth - cc_count[e].health_penalty)
+		if g_collection_count[e].health_penalty > 0 then
+			SetPlayerHealth(g_PlayerHealth - g_collection_count[e].health_penalty)
 			SetPlayerHealthCore(g_PlayerHealth)
 		end
-		if cc_count[e].user_global_affected ~= "" and cc_count[e].user_global_affected ~= nil then
-			if cc_count[e].global_bonus > 0 then
-				if _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] end
-				_G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] = currentvalue[e] + cc_count[e].global_bonus
+		if g_collection_count[e].user_global_affected ~= "" and g_collection_count[e].user_global_affected ~= nil then
+			if g_collection_count[e].global_bonus > 0 then
+				if _G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] = currentvalue[e] + g_collection_count[e].global_bonus
 			end
-			if cc_count[e].global_penalty > 0 then
-				if _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] end
-				_G["g_UserGlobal['"..cc_count[e].user_global_affected.."']"] = currentvalue[e] - cc_count[e].global_penalty
+			if g_collection_count[e].global_penalty > 0 then
+				if _G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] end
+				_G["g_UserGlobal['"..g_collection_count[e].user_global_affected.."']"] = currentvalue[e] - g_collection_count[e].global_penalty
 			end
 		end
 		if g_collection_counted ~= g_collection_objectives then
 			g_collection_counted = g_collection_counted + 1
+			if g_collection_count[e].objectives > 0 then
+				if g_collection_counted == g_collection_objectives then
+					JumpToLevelIfUsed(e)
+				else 
+					if g_collection_count[e].prompt_duration > 0 then
+						PromptDuration(g_collection_counted.."/"..g_collection_objectives.." complete", g_collection_count[e].prompt_duration)
+					end
+				end
+			end
 		end
 		Destroy(e)
 	end

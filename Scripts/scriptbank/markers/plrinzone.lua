@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Player In Zone v13  by Necrym59 and Lee
+-- Player In Zone v14 by Necrym59 and Lee
 -- DESCRIPTION: Re-triggerable zone to trigger an event.
 -- DESCRIPTION: [ZONEHEIGHT=100] controls how far above the zone the player can be before the zone is not triggered.
 -- DESCRIPTION: Set for [@MULTI_TRIGGER=2(1=Yes, 2=No)]
@@ -9,11 +9,6 @@
 -- DESCRIPTION: <Sound0> when entering zone
 
 local plrinzone 	= {}
-local zoneheight	= {}
-local multi_trigger = {}
-local delay			= {}
-local spawnatstart	= {}
-local soundvolume	= {}
 local multi_dead	= {}
 local multi_switch	= {}
 local status		= {}
@@ -22,10 +17,10 @@ local wait			= {}
 local waittime 		= {}
 
 function plrinzone_properties(e, zoneheight, multi_trigger, delay, spawnatstart, soundvolume)
-	plrinzone[e].zoneheight = zoneheight
-	plrinzone[e].multi_trigger = multi_trigger
-	plrinzone[e].delay = delay
-	plrinzone[e].spawnatstart = spawnatstart
+	plrinzone[e].zoneheight = zoneheight or 100
+	plrinzone[e].multi_trigger = multi_trigger or 2
+	plrinzone[e].delay = delay or 0
+	plrinzone[e].spawnatstart = spawnatstart or 1
 	plrinzone[e].soundvolume = soundvolume or 1
 end
 
@@ -45,7 +40,6 @@ function plrinzone_init(e)
 end
 
 function plrinzone_main(e)
-
 	if status[e] == "init" then
 		if plrinzone[e].delay ~= nil then waittime[e] = plrinzone[e].delay * 1000 end
 		if plrinzone[e].spawnatstart > 0 then SetActivated(e,1) end
@@ -86,7 +80,6 @@ function plrinzone_main(e)
 			multi_switch[e] = 0
 		end		
 	end
-	
 	-- restore logic
 	if g_EntityExtra[e]['restoremenow'] ~= nil then
      if g_EntityExtra[e]['restoremenow'] == 1 then

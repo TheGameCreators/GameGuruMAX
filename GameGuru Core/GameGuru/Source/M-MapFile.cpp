@@ -2135,14 +2135,23 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("treebank"); // for temp flat terrain!
 	addfoldertocollection("treebank\\billboards"); // for temp flat terrain!
 	addfoldertocollection("treebank\\textures"); // for temp flat terrain!
-	
-	//PE: Storyboard - Need standalone / lua menu's working.
-	addfoldertocollection("terraintextures");
-	for (int i = 0; i < 42; i++)
+
+	// defauly or remote system
+	if (strlen(Storyboard.customprojectfolder) > 0)
 	{
-		char addfolder[MAX_PATH];
-		sprintf(addfolder, "terraintextures\\mat%d", i);
-		addfoldertocollection(addfolder);
+		// if remote project being used, it will copy its OWN terraintexture folder over
+		// so no need to include the default in case all custom textures used
+	}
+	else
+	{
+		//PE: Storyboard - Need standalone / lua menu's working.
+		addfoldertocollection("terraintextures");
+		for (int i = 0; i < 42; i++)
+		{
+			char addfolder[MAX_PATH];
+			sprintf(addfolder, "terraintextures\\mat%d", i);
+			addfoldertocollection(addfolder);
+		}
 	}
 	addfoldertocollection("grassbank");
 

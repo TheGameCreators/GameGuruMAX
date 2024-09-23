@@ -2572,6 +2572,15 @@ void mapfile_savestandalone_stage2a ( void )
 			t.entid=t.entityelement[t.e].bankindex;
 			if ( t.entid>0 ) 
 			{
+				// suspect old entID references, so produce a log if so
+				if (t.entid >= t.entityprofile.size())
+				{
+					// this is bad
+					cstr pOldEntIDReference = cstr("ENTITY REF ERROR:") + cstr(t.e) + cstr(" uses ParentID of ") + cstr(t.entid) + cstr(" >= ") + cstr((int)t.entityprofile.size());
+					timestampactivity(0, pOldEntIDReference.Get());
+					continue;
+				}
+
 				// zone marker can reference other levels to jump to
 				if ( t.entityprofile[t.entid].ismarker == 3 ) 
 				{
@@ -2640,10 +2649,14 @@ void mapfile_savestandalone_stage2a ( void )
 int mapfile_savestandalone_stage2b ( void )
 {
 	int iMoveAlong = 0;
-	if ( t.tlevelstoprocess == 1 ) 
+	cstr pProgressMarkerLog = cstr("tlevelstoprocess:") + t.tlevelstoprocess;
+	timestampactivity(0, pProgressMarkerLog.Get());
+	if ( t.tlevelstoprocess == 1 )
 	{
 		// load in level FPM
-		if ( Len(t.tlevelfile_s.Get())>1 ) 
+		cstr pProgressLevelLog = cstr("tlevelfile:") + t.tlevelfile_s;
+		timestampactivity(0, pProgressLevelLog.Get());
+		if ( Len(t.tlevelfile_s.Get())>1 )
 		{
 			g.projectfilename_s=t.tlevelfile_s;
 			mapfile_loadproject_fpm ( );
@@ -2720,7 +2733,8 @@ int mapfile_savestandalone_stage2b ( void )
 		}	
 
 		//  chosen sky, terrain and veg
-		timestampactivity(0, "adding skybank files");
+		cstr pSkyLog = cstr("adding skybank files:") + t.skybank_s[g.skyindex];
+		timestampactivity(0, pSkyLog.Get());
 		addfoldertocollection(cstr(cstr("skybank\\")+t.skybank_s[g.skyindex]).Get() );
 
 		// pre-add the skins folder - can optimize later to find only skins we used (118MB)
@@ -2729,6 +2743,8 @@ int mapfile_savestandalone_stage2b ( void )
 
 		// start for loop
 		t.e = 1;
+		cstr pProgressPercLog = cstr("g_mapfile_fProgressSpan:") + g_mapfile_fProgressSpan;
+		timestampactivity(0, pProgressPercLog.Get());
 		g_mapfile_fProgressSpan = g_mapfile_iNumberOfEntitiesAcrossAllLevels;
 	}
 	else

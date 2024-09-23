@@ -3940,7 +3940,6 @@ void entity_loadvideoid ( void )
 		{
 			if ( AnimationExist(t.tt) == 0 ) { t.tvideoid = t.tt  ; break; }
 		}
-		#ifdef VRTECH
 		char pFinalVideoFilePath[MAX_PATH];
 		strcpy(pFinalVideoFilePath, t.tvideofile_s.Get());
 		GG_GetRealPath(pFinalVideoFilePath, 0);
@@ -3948,9 +3947,6 @@ void entity_loadvideoid ( void )
 		{
 			t.tvideoid = -999;
 		}
-		#else
-		LoadAnimation(t.tvideofile_s.Get(), t.tvideoid, g.videoprecacheframes, g.videodelayedload, 1);
-		#endif
 	}
 }
 

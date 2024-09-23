@@ -3462,15 +3462,13 @@ void game_loadinentitiesdatainlevel ( void )
 	timestampactivity(0,t.screenprompt_s.Get());
 	entity_loadbank ( );
 
-	#ifdef VRTECH
 	// Load entity elements
 	t.screenprompt_s="LOADING ENTITY ELEMENTS";
 	if ( t.game.gameisexe == 0 ) printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
 	timestampactivity(0,t.screenprompt_s.Get());
-	#endif
+	timestampactivity(0, "s2:entity_loadelementsdata()");
 	entity_loadelementsdata ( );
-	timestampactivity(0, "e:entity_loadelementsdata()");
-
+	timestampactivity(0, "e2:entity_loadelementsdata()");
 }
 
 void game_loadinleveldata ( void )

@@ -16714,8 +16714,6 @@ void process_gotopurchaedandrefreshtopurchases ( void )
 bool bPopModalOpenEntity = false;
 void process_entity_library_v2(void)
 {
-
-
 	static int iStopVideoInNextFrame = 0;
 	static int iStartVideoInNextFrame = 0;
 	static int iVideoGetFirstFrame = 0;
@@ -16779,14 +16777,6 @@ void process_entity_library_v2(void)
 
 	if (bExternal_Entities_Window)
 	{
-		/*if (!g_bPreviewLighting)
-		{
-			visualsdatastoragetype desiredVisuals;
-			set_temp_visuals(t.editorvisuals, t.visualsStorage, desiredVisuals);
-			set_temp_visuals(t.visuals, t.visualsStorage, desiredVisuals);
-			g_bPreviewLighting = true;
-		}*/
-	
 		//PE:As we can switch type on the fly, make sure to free object images when we switch.
 		static int iOldDisplayLibraryType = -1;
 		static int iOldDisplayLibrarySubType = -1;
@@ -48747,8 +48737,10 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								{
 									if (AnimationExist(itl) == 0) { g_iStoryboardScreenVideoID = itl; break; }
 								}
-								LPSTR pVideoFile = Storyboard.Nodes[nodeid].widget_highlight_thumb[index];
-								if (LoadAnimation((char*)pVideoFile, g_iStoryboardScreenVideoID, g.videoprecacheframes, 0, 1) == false)
+								char pFinalVideoFilePath[MAX_PATH];
+								strcpy(pFinalVideoFilePath, Storyboard.Nodes[nodeid].widget_highlight_thumb[index]);
+								GG_GetRealPath(pFinalVideoFilePath, 0);
+								if (LoadAnimation(pFinalVideoFilePath, g_iStoryboardScreenVideoID, g.videoprecacheframes, 0, 1) == false)
 								{
 									g_iStoryboardScreenVideoID = -999;
 								}
@@ -48770,22 +48762,29 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 							else
 							{
 								UpdateAllAnimation();
-								if (AnimationExist(g_iStoryboardScreenVideoID) && AnimationPlaying(g_iStoryboardScreenVideoID))
+								if (g_iStoryboardScreenVideoID > 0)
 								{
-									ID3D11ShaderResourceView* lpVideoTexture = GetAnimPointerView(g_iStoryboardScreenVideoID);
-									float fVideoW = GetAnimWidth(g_iStoryboardScreenVideoID);
-									float fVideoH = GetAnimHeight(g_iStoryboardScreenVideoID);
-									if (lpVideoTexture)
+									if (AnimationExist(g_iStoryboardScreenVideoID) && AnimationPlaying(g_iStoryboardScreenVideoID))
 									{
-										ImGuiWindow* window = ImGui::GetCurrentWindow();
-										ImGui::SetCursorPos(vMonitorStart + widget_pos);
-										ImRect image_bb(window->DC.CursorPos, window->DC.CursorPos + widget_size);
-										float animU = GetAnimU(g_iStoryboardScreenVideoID);
-										float animV = GetAnimV(g_iStoryboardScreenVideoID);
-										ImVec2 uv0 = ImVec2(0, 0);
-										ImVec2 uv1 = ImVec2(animU, animV);
-										window->DrawList->AddImage((ImTextureID)lpVideoTexture, image_bb.Min, image_bb.Max, uv0, uv1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
+										ID3D11ShaderResourceView* lpVideoTexture = GetAnimPointerView(g_iStoryboardScreenVideoID);
+										float fVideoW = GetAnimWidth(g_iStoryboardScreenVideoID);
+										float fVideoH = GetAnimHeight(g_iStoryboardScreenVideoID);
+										if (lpVideoTexture)
+										{
+											ImGuiWindow* window = ImGui::GetCurrentWindow();
+											ImGui::SetCursorPos(vMonitorStart + widget_pos);
+											ImRect image_bb(window->DC.CursorPos, window->DC.CursorPos + widget_size);
+											float animU = GetAnimU(g_iStoryboardScreenVideoID);
+											float animV = GetAnimV(g_iStoryboardScreenVideoID);
+											ImVec2 uv0 = ImVec2(0, 0);
+											ImVec2 uv1 = ImVec2(animU, animV);
+											window->DrawList->AddImage((ImTextureID)lpVideoTexture, image_bb.Min, image_bb.Max, uv0, uv1, ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)));
+										}
 									}
+								}
+								else
+								{
+									// video was not loaded, so -999 in effect!
 								}
 							}
 						}

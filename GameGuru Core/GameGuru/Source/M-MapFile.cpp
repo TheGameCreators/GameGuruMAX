@@ -2565,6 +2565,8 @@ void mapfile_savestandalone_stage2a ( void )
 			bWeUnloadedTheFirstLevel = true;
 		}
 		g_mapfile_iNumberOfEntitiesAcrossAllLevels += g.entityelementlist;
+		cstr pLevelObjectsCountAllLevels = cstr("g_mapfile_iNumberOfEntitiesAcrossAllLevels==") + cstr(g_mapfile_iNumberOfEntitiesAcrossAllLevels);
+		timestampactivity(0, pLevelObjectsCountAllLevels.Get());
 		for ( t.e = 1; t.e <= g.entityelementlist; t.e++ )
 		{
 			t.entid=t.entityelement[t.e].bankindex;
@@ -2577,10 +2579,13 @@ void mapfile_savestandalone_stage2a ( void )
 					if ( Len(t.tlevelfile_s.Get()) > 1 ) 
 					{
 						t.tlevelfile_s=cstr("mapbank\\")+g_mapfile_levelpathfolder+t.tlevelfile_s+".fpm";
-						if ( FileExist(cstr(g.fpscrootdir_s+"\\Files\\"+t.tlevelfile_s).Get()) == 1 ) 
+						timestampactivity(0, t.tlevelfile_s.Get());
+						if ( FileExist(cstr(g.fpscrootdir_s+"\\Files\\"+t.tlevelfile_s).Get()) == 1 )
 						{
 							++t.levelmax;
 							t.levellist_s[t.levelmax]=t.tlevelfile_s;
+							cstr pLogLevelAdded = cstr("added to list ") + cstr(t.levelmax);
+							timestampactivity(0, pLogLevelAdded.Get());
 						}
 						else
 							t.tlevelfile_s="";
@@ -2617,6 +2622,8 @@ void mapfile_savestandalone_stage2a ( void )
 		}
 	}
 	g_mapfile_iNumberOfLevels = 1 + t.levelmax;
+	cstr pLogNumberOfLevels = cstr("number of levels==") + cstr(g_mapfile_iNumberOfLevels);
+	timestampactivity(0, pLogNumberOfLevels.Get());
 
 	// Stage 2 - collect all files (from all levels)
 	t.levelindex=0;
@@ -2645,7 +2652,9 @@ int mapfile_savestandalone_stage2b ( void )
 
 		// 061018 - check if an FPP file exists for this level file
 		cstr pFPPFile = cstr(Left(g.projectfilename_s.Get(),strlen(g.projectfilename_s.Get())-4)) + ".fpp";
-		if ( FileExist( pFPPFile.Get() ) == 1 ) 
+		cstr pLogFPP = cstr("pFPPFile:") + pFPPFile;
+		timestampactivity(0, pLogFPP.Get());
+		if ( FileExist( pFPPFile.Get() ) == 1 )
 		{
 			// used to specify additional files required for standalone executable
 			// handy as a workaround until reported issue resolved
@@ -2656,8 +2665,10 @@ int mapfile_savestandalone_stage2b ( void )
 			{
 				t.line_s = t.data_s[t.l];
 				LPSTR pLine = t.line_s.Get();
-				if ( Len(pLine) > 0 ) 
+				if ( Len(pLine) > 0 )
 				{
+					cstr pLofFPPLine = cstr("FPP:") + pLine;
+					timestampactivity(0, pLofFPPLine.Get());
 					if ( strnicmp ( pLine, "[standalone add files]", 22 ) == NULL )
 					{
 						// denotes our standalone extra files
@@ -2709,9 +2720,11 @@ int mapfile_savestandalone_stage2b ( void )
 		}	
 
 		//  chosen sky, terrain and veg
+		timestampactivity(0, "adding skybank files");
 		addfoldertocollection(cstr(cstr("skybank\\")+t.skybank_s[g.skyindex]).Get() );
 
 		// pre-add the skins folder - can optimize later to find only skins we used (118MB)
+		timestampactivity(0, "adding charactercreatorplus skin files");
 		addfoldertocollection("charactercreatorplus\\skins");
 
 		// start for loop

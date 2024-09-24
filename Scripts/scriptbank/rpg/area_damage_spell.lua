@@ -1,5 +1,5 @@
 -- DESCRIPTION: When collected can be cast as an Area Damage effect, damaging anything within an area surrounding the player.
--- Area Damage Spell v22
+-- Area Damage Spell v23 by Necrym59 and Lee
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect Area Damage Spell"]
 -- DESCRIPTION: [USEAGE_TEXT$="Area Damage Inflicted"]
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
@@ -189,7 +189,9 @@ function area_damage_spell_main(e)
 		ttargetanything = 1
 	end		
 	
-	if g_MouseClick == 1 and ttargetanything == 1 then SetEntityUsed(e,1) end
+	-- Cast the spell - use right mouse button (will need to customise this at some point)
+	--if g_MouseClick == 1 and ttargetanything == 1 then SetEntityUsed(e,1) end cast when ANY press was made!!
+	if g_MouseClick == 2 and ttargetanything == 1 then SetEntityUsed(e,1) end
 	
 	if tusedvalue > 0 and ttargetanything == 1 then
 		-- check player level		

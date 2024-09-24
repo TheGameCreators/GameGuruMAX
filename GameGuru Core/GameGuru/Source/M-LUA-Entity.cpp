@@ -707,7 +707,11 @@ void entity_lua_activateifused ( void )
 					}
 
 					// in addition, if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-					if (t.entityelement[t.e].active == 0)
+					bool bAllowActivationResultAction = false;
+					int entid = t.entityelement[t.e].bankindex;
+					if (t.entityprofile[entid].ismarker == 10) bAllowActivationResultAction = true;
+					if (t.entityelement[t.e].active == 0)  bAllowActivationResultAction = true;
+					if(bAllowActivationResultAction==true)
 					{
 						entity_lua_manageactivationresult(t.e);
 					}

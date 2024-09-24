@@ -48650,7 +48650,7 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 					g_iLastScreenNodeID = nodeid;
 					if (g_iStoryboardScreenVideoID > 0)
 					{
-						if (AnimationExist(g_iStoryboardScreenVideoID) == 0) DeleteAnimation(g_iStoryboardScreenVideoID);
+						if (AnimationExist(g_iStoryboardScreenVideoID) == 1) DeleteAnimation(g_iStoryboardScreenVideoID);
 						g_iStoryboardScreenVideoID = 0;
 					}
 				}

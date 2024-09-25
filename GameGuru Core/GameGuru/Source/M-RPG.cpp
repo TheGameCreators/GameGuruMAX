@@ -801,6 +801,9 @@ bool refresh_collection_from_entities(bool bLoadingLevel)
 #endif
 
 	// must ALWAYS add missing weapons to collection list, user does not manually add these
+	char pRefreshLogCount[MAX_PATH];
+	sprintf(pRefreshLogCount, "Refresh Collection From Entities: %d", g.entityelementmax);
+	timestampactivity(0, pRefreshLogCount);
 	for (int e = 1; e < g.entityelementmax; e++)
 	{
 		int entid = t.entityelement[e].bankindex;

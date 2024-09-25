@@ -6548,7 +6548,16 @@ void c_entity_loadelementsdata ( void )
 void entity_loadelementsdata(void)
 {
 	// fast loading of ELE file
+	char pLoadEntityData[MAX_PATH];
+	sprintf(pLoadEntityData, "c_entity_loadelementsdata: %s", t.elementsfilename_s.Get());
+	timestampactivity(0, pLoadEntityData);
+	char pLoadEntityDataBefore[MAX_PATH];
+	sprintf(pLoadEntityDataBefore, "c_entity_loadelementsdata before: %d", g.entityelementmax);
+	timestampactivity(0, pLoadEntityDataBefore);
 	c_entity_loadelementsdata();
+	char pLoadEntityDataAfter[MAX_PATH];
+	sprintf(pLoadEntityDataAfter, "c_entity_loadelementsdata after: %d", g.entityelementmax);
+	timestampactivity(0, pLoadEntityDataAfter);
 
 	// now entitybank and entityelement and vEntityGroupList are loaded, we need to refresh any smart objects (they may have changed externally, i.e BE)
 	bool bForceSmartObjectRefresh = true;
@@ -6589,14 +6598,24 @@ void entity_loadelementsdata(void)
 	// after all entity profiles and elements in, can refresh collection list that references entities
 	if(g_collectionLabels.size()>0)
 	{
+		// before
+		char pLogCollectionCountBefore[MAX_PATH];
+		sprintf(pLogCollectionCountBefore, "Collection list size before: %d", g_collectionList.size());
+		timestampactivity(0, pLogCollectionCountBefore);
 		bool bLoadingLevel = true;
 		if (refresh_collection_from_entities(bLoadingLevel) == true)
 		{
+			// after
+			char pLogCollectionCount[MAX_PATH];
+			sprintf(pLogCollectionCount, "Collection list size after: %d", g_collectionList.size());
+			timestampactivity(0, pLogCollectionCount);
+
 			// refresh detected some entity profile/elements are missing
 			// these will be needed for multi-level consistency and carrying items around the whole game
 			timestampactivity(0, "Loading additional entities for collection item list");
 
 			// build list of required entity profiles
+			timestampactivity(0, "entity bank additions");
 			std::vector<int> g_entityBankAdditionsCollectionIndex;
 			std::vector<cstr> g_entityBankAdditions;
 			for (int n = 0; n < g_collectionList.size(); n++)
@@ -6683,8 +6702,14 @@ void entity_loadelementsdata(void)
 								//PE: "none" will end up as a ebe missing file.
 								if( strlen(pCollectionItemProfile) > 1 && !(stricmp(pCollectionItemProfile, "none") == NULL) )
 								{
+									// add entity to additions
 									g_entityBankAdditions.push_back(pCollectionItemProfile);
 									g_entityBankAdditionsCollectionIndex.push_back(n);
+
+									// and log it
+									char pLogCollectionAdded[MAX_PATH];
+									sprintf(pLogCollectionAdded, "entity Bank Addition: %s", pCollectionItemProfile);
+									timestampactivity(0, pLogCollectionAdded);
 								}
 							}
 						}
@@ -8241,7 +8266,7 @@ void entity_loadentitiesnow ( void )
 			if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 			#endif
 		}
-		timestampactivity(0, "End Loading master objects:");
+		timestampactivity(0, "End Loading master objects!");
 	}
 }
 

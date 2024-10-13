@@ -1,4 +1,4 @@
--- Generator v11
+-- Generator v12
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements. Set Always Active = On
 -- DESCRIPTION: [PROMPT_TEXT$="E to use"]
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
@@ -91,7 +91,7 @@ function generator_main(e)
 						end
 						running[e] = 0
 						if generator[e].prompt_display == 1 then PromptLocal(e,generator[e].fail_text) end
-						if generator[e].prompt_display == 2 then Prompt(ggenerator[e].fail_text) end							
+						if generator[e].prompt_display == 2 then Prompt(generator[e].fail_text) end							
 						generator[e].status = 1
 					end
 				end

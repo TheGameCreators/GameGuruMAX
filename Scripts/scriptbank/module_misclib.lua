@@ -1,5 +1,5 @@
 -- DESCRIPTION: A global script that provides utility functions for common tasks.
--- Module_Misclib v16 - Necrym59 and Lee
+-- Module_Misclib v17 - Necrym59 and Lee
 
 g_module_misclib = {}
 g_tEnt = {}
@@ -21,11 +21,11 @@ function module_misclib.pinpoint(e,pickuprange,highlight)
 				g_tEnt = e
 				local r,g,b = GetEntityEmissiveColor(g_tEnt)
 				emvalue = GetEntityEmissiveStrength(g_tEnt)
-				if r==0 and g==0 and b==0 then
-					SetEntityEmissiveColor(g_tEnt,0,80,0)
-					rgbtemp = 1
-				end
-				if highlight == 1 then -- shape option					
+				if highlight == 1 then -- shape option
+					if r==0 and g==0 and b==0 then
+						SetEntityEmissiveColor(g_tEnt,0,80,0)
+						rgbtemp = 1
+					end				
 					if emvalue > 0 then						
 						SetEntityEmissiveStrength(g_tEnt,emvalue)
 					else						

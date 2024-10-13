@@ -2300,7 +2300,11 @@ void MasterRenderer::ResizeBuffers(void)
 
 
 	//PE: Must be the same, currently its out of synch with internal resolution.
-	master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false); //GGREDUCED
+	//PE: Cant change if in VR that have another resolution.
+	if (!m_bUsingVR)
+	{
+		master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false); //GGREDUCED
+	}
 
 	//PE: Resizebuffers change FOV.
 

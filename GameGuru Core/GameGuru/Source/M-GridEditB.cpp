@@ -8911,63 +8911,67 @@ void Wicked_Update_Visuals(void *voidvisual)
 			master_renderer->setMSAASampleCount(visuals->iMSAASampleCount);
 		}
 		
-		if (old_iFSRMode != visuals->iFSRMode) {
-			old_iFSRMode = visuals->iFSRMode;
-			if (visuals->iFSRMode == 1)
-			{
-				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
-				master.masterrenderer.SetFSRScale(1.3f);
-				master.masterrenderer.setFSREnabled(true);
-				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
-				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
-				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
-				if (master_renderer)
-					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
-			}
-			else if (visuals->iFSRMode == 2)
-			{
-				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
-				master.masterrenderer.SetFSRScale(1.5f);
-				master.masterrenderer.setFSREnabled(true);
-				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
-				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
-				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
-				if (master_renderer)
-					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
-			}
-			else if (visuals->iFSRMode == 3)
-			{
-				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
-				master.masterrenderer.SetFSRScale(1.7f);
-				master.masterrenderer.setFSREnabled(true);
-				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
-				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
-				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
-				if (master_renderer)
-					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
-			}
-			else if (visuals->iFSRMode == 4)
-			{
-				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
-				master.masterrenderer.SetFSRScale(2.0f);
-				master.masterrenderer.setFSREnabled(true);
-				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
-				master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
-				t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
-				if (master_renderer)
-					master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
-			}
-			else
-			{
-				//PE: Disable FSR
-				master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
-				master.masterrenderer.SetFSRScale(1.0f);
-				master.masterrenderer.setFSREnabled(false);
-				master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
-			}
+		//PE: FSR can't work with VR as it use the openXR resolution, for VR another way is needed.
+		extern bool	m_bUsingVR;
+		if (!m_bUsingVR)
+		{
+			if (old_iFSRMode != visuals->iFSRMode) {
+				old_iFSRMode = visuals->iFSRMode;
+				if (visuals->iFSRMode == 1)
+				{
+					master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+					master.masterrenderer.SetFSRScale(1.3f);
+					master.masterrenderer.setFSREnabled(true);
+					master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+					master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+					t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+					if (master_renderer)
+						master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+				}
+				else if (visuals->iFSRMode == 2)
+				{
+					master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+					master.masterrenderer.SetFSRScale(1.5f);
+					master.masterrenderer.setFSREnabled(true);
+					master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+					master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+					t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+					if (master_renderer)
+						master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+				}
+				else if (visuals->iFSRMode == 3)
+				{
+					master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+					master.masterrenderer.SetFSRScale(1.7f);
+					master.masterrenderer.setFSREnabled(true);
+					master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+					master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+					t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+					if (master_renderer)
+						master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+				}
+				else if (visuals->iFSRMode == 4)
+				{
+					master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+					master.masterrenderer.SetFSRScale(2.0f);
+					master.masterrenderer.setFSREnabled(true);
+					master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+					master.masterrenderer.setFSRSharpness(t.visuals.fFSRSharpness);
+					t.gamevisuals.bFXAAEnabled = t.visuals.bFXAAEnabled = true; //PE: need FXAA or FSR dont work.
+					if (master_renderer)
+						master_renderer->setFXAAEnabled(t.visuals.bFXAAEnabled);
+				}
+				else
+				{
+					//PE: Disable FSR
+					master.masterrenderer.Set3DResolution(master.masterrenderer.GetPhysicalWidth(), master.masterrenderer.GetPhysicalHeight(), false);
+					master.masterrenderer.SetFSRScale(1.0f);
+					master.masterrenderer.setFSREnabled(false);
+					master.masterrenderer.ResizeBuffers(); //PE: Force resizebuffers.
+				}
 
+			}
 		}
-		
 
 		if (old_iMSAO != visuals->iMSAO || old_fMSAOPower != visuals->fMSAOPower)
 		{

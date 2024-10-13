@@ -1437,6 +1437,23 @@ luaMessage** ppLuaMessages = NULL;
 	 }
 	 return 0;
  }
+
+ int GetEntityExplodable(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int e = lua_tonumber(L, 1);
+	 int iReturnValue = 0;
+	 if (e > 0)
+	 {
+		 iReturnValue = t.entityelement[e].eleprof.explodable;
+	 }
+	 lua_pushinteger(L, iReturnValue);
+	 return 1;
+
+ }
+
  int GetEntityObjective(lua_State* L)
  {
 	 lua = L;
@@ -11702,6 +11719,7 @@ void addFunctions()
 	lua_register(lua, "SetEntityCollectedForce", SetEntityCollectedForce);
 	lua_register(lua, "SetEntityUsed", SetEntityUsed);
 	lua_register(lua, "GetEntityObjective", GetEntityObjective);
+	lua_register(lua, "GetEntityExplodable", GetEntityExplodable);
 	lua_register(lua, "GetEntityCollectable", GetEntityCollectable);
 	lua_register(lua, "GetEntityCollected", GetEntityCollected);
 	lua_register(lua, "GetEntityUsed", GetEntityUsed);

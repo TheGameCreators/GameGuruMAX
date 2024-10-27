@@ -18,7 +18,7 @@
 #endif
 
 // Prototypes
-void lua_promptlocalcore ( int iTrueLocalOrForVR );
+void lua_promptlocalcore ( int iTrueLocalOrForVR , int addtime = 1000);
 
 //  Startup Steam
 void mp_init ( void )

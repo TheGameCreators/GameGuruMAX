@@ -7701,6 +7701,7 @@ struct gunsettingstype
 	int clipcapacity;
 	int weaponpropres1;
 	int weaponpropres2;
+	float fEmissiveStrength;
 
 	// Constructor
 	gunsettingstype ( )
@@ -7900,6 +7901,7 @@ struct gunsettingstype
 		 clipcapacity = 0;
 		 weaponpropres1 = 0;
 		 weaponpropres2 = 0;
+		 fEmissiveStrength = 1.0f;
 	}
 };
 

@@ -58,6 +58,9 @@ void gun_loaddata ( void )
 	t.gun[t.gunid].settings.fVRWeaponAngleY = 0;
 	t.gun[t.gunid].settings.fVRWeaponAngleZ = 0;
 	
+	t.gun[t.gunid].settings.fEmissiveStrength = 1.0f;
+
+
 	// stores legacy ammo/clip values when move slot weapons to player containers for storage
 	t.gun[t.gunid].storeammo = 0;
 	t.gun[t.gunid].storeclipammo = 0;
@@ -1614,7 +1617,13 @@ void gun_loaddata ( void )
 					if( matched ) t.gun[t.gunid].settings.fVRWeaponAngleY = t.value1;
 					cmpStrConst( t_field_s, "vrweaponanglez" );
 					if( matched ) t.gun[t.gunid].settings.fVRWeaponAngleZ = t.value1;
-										
+					
+
+					// New features.
+					
+					cmpStrConst(t_field_s, "emissivestrength");
+					if (matched) t.gun[t.gunid].settings.fEmissiveStrength = t.value1;
+
 				}
 			}
 		}

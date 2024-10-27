@@ -5072,6 +5072,15 @@ void entity_prepareobj ( void )
 			if(t.entityelement[t.tte].obj == 0 )
 				t.entityelement[t.tte].obj = t.tobj;
 			entity_updateparticleemitter(t.tte);
+			//PE: Must always update to org values here, effects are only triggered from LUA now.
+			int iParticleEmitter = t.entityelement[t.tte].eleprof.newparticle.emitterid;
+			if (iParticleEmitter != -1)
+			{
+				gpup_setParticleScale(iParticleEmitter, t.entityelement[t.tte].eleprof.newparticle.bParticle_Size);
+				gpup_setEffectAnimationSpeed(iParticleEmitter, t.entityelement[t.tte].eleprof.newparticle.fParticle_Speed);
+				gpup_setEffectOpacity(iParticleEmitter, t.entityelement[t.tte].eleprof.newparticle.fParticle_Opacity);
+			}
+
 		}
 	}
 }

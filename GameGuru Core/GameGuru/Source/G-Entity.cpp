@@ -3406,7 +3406,7 @@ void entity_applydamage ( void )
 	}
 }
 
-void entity_applydecalfordamage ( int ee )
+void entity_applydecalfordamage ( int ee, float fX, float fY, float fZ)
 {
 	// create either material decal specified in FPE or blood decal
 	if (t.entityelement[ee].health > 10)
@@ -3424,12 +3424,21 @@ void entity_applydecalfordamage ( int ee )
 		float fTorseAreaX = t.entityelement[ee].x;
 		float fTorseAreaY = t.entityelement[ee].y + 50;
 		float fTorseAreaZ = t.entityelement[ee].z;
-		int torselimbindex = t.entityprofile[entid].spine2;
-		if (torselimbindex > 0)
+		if (fX != -1 || fY != -1 || fZ != -1 )
 		{
-			fTorseAreaX = LimbPositionX(t.entityelement[ee].obj, torselimbindex);
-			fTorseAreaY = LimbPositionY(t.entityelement[ee].obj, torselimbindex);
-			fTorseAreaZ = LimbPositionZ(t.entityelement[ee].obj, torselimbindex);
+			fTorseAreaX = fX;
+			fTorseAreaY = fY;
+			fTorseAreaZ = fZ;
+		}
+		else
+		{
+			int torselimbindex = t.entityprofile[entid].spine2;
+			if (torselimbindex > 0)
+			{
+				fTorseAreaX = LimbPositionX(t.entityelement[ee].obj, torselimbindex);
+				fTorseAreaY = LimbPositionY(t.entityelement[ee].obj, torselimbindex);
+				fTorseAreaZ = LimbPositionZ(t.entityelement[ee].obj, torselimbindex);
+			}
 		}
 		entity_triggerdecalatimpact (fTorseAreaX, fTorseAreaY, fTorseAreaZ);
 	}
@@ -3829,7 +3838,17 @@ void entity_hasbulletrayhit(void)
 	}
 
 	// trigger decal at impact coordinate
-	entity_triggerdecalatimpact ( t.brayx2_f, t.brayy2_f, t.brayz2_f );
+	//entity_triggerdecalatimpact ( t.brayx2_f, t.brayy2_f, t.brayz2_f );
+	if (t.bulletrayhite > 0)
+	{
+		// if entity producing decal, ensure the right one being used
+		entity_applydecalfordamage(t.bulletrayhite, t.brayx2_f, t.brayy2_f, t.brayz2_f);
+	}
+	else
+	{
+		// default logic
+		entity_triggerdecalatimpact (t.brayx2_f, t.brayy2_f, t.brayz2_f);
+	}
 }
 
 void entity_hitentity ( int e, int obj )
@@ -3901,7 +3920,7 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 			{
 				for ( t.iter = 1 ; t.iter <= 3+Rnd(1); t.iter++ )
 				{
-					decal_triggerbloodsplat ( );
+					decal_triggerbloodsplat ();
 				}
 			}
 		}

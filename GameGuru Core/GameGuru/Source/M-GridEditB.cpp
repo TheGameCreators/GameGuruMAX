@@ -1206,64 +1206,6 @@ void interface_openpropertywindow ( void )
 			{
 				t.propfield[t.group]=t.controlindex;
 				++t.group ; startgroup(t.strarr_s[451].Get()) ; t.controlindex=0;
-				#ifdef VRTECH
-				#else
-				 if (  t.tflaglives == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.lives),t.strarr_s[452].Get(),t.strarr_s[242].Get())  ; ++t.controlindex; }
-				 if (  t.tflagvis == 1 || t.tflagstats == 1 ) 
-				 {
-					if (  t.tflaglives == 1 ) 
-					{
-						setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[453].Get(),t.strarr_s[243].Get()) ; ++t.controlindex;
-					}
-					else
-					{
-						#ifdef VRTECH
-						if ( t.tflagnotionofhealth == 1 )
-						{
-							setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
-						}
-						#else
-						setpropertystring2(t.group,Str(t.grideleprof.strength),t.strarr_s[454].Get(),t.strarr_s[244].Get()) ; ++t.controlindex;
-						#endif
-					}
-					if (  t.tflagplayersettings == 1 ) 
-					{
-						if ( g.quickparentalcontrolmode != 2 )
-						{
-							setpropertylist2(t.group,t.controlindex,Str(t.grideleprof.isviolent),"Blood Effects","Sets whether blood and screams should be used",0) ; ++t.controlindex;
-						}
-						#ifdef VRTECH
-						if ( t.tflagnotionofhealth == 1 )
-						{
-							setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
-							setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
-							setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
-						}
-						#else
-						setpropertystring2(t.group,Str(t.playercontrol.regenrate),"Regeneration Rate","Sets the increase value at which the players health will restore")  ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regenspeed),"Regeneration Speed","Sets the speed in milliseconds at which the players health will regenerate") ; ++t.controlindex;
-						setpropertystring2(t.group,Str(t.playercontrol.regendelay),"Regeneration Delay","Sets the delay in milliseconds after last damage hit before health starts regenerating") ; ++t.controlindex;
-						#endif
-					}
-					setpropertystring2(t.group,Str(t.grideleprof.speed),t.strarr_s[455].Get(),t.strarr_s[245].Get()) ; ++t.controlindex;
-					//PE: we cant do this , as t.playercontrol.thirdperson.enabled is a global and will trigger for ALL objects.
-					//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/310
-//					if (  t.playercontrol.thirdperson.enabled == 1 ) 
-//					{
-//						t.tanimspeed_f=t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
-//					}
-//					else
-//					{
-						t.tanimspeed_f=t.grideleprof.animspeed;
-//					}
-					#ifdef VRTECH
-					setpropertystring2(t.group,Str(t.tanimspeed_f),t.strarr_s[477].Get(),"Sets the default speed of any animation associated with this entity"); ++t.controlindex;
-					#else
-					setpropertystring2(t.group,Str(t.tanimspeed_f),"Anim Speed","Sets the default speed of any animation associated with this entity"); ++t.controlindex;
-					#endif
-				 }
-				 if (  t.tflaghurtfall == 1 ) { setpropertystring2(t.group,Str(t.grideleprof.hurtfall),t.strarr_s[456].Get(),t.strarr_s[246].Get())  ; ++t.controlindex; }
-				#endif
 				if (  t.tflagplayersettings == 1 ) 
 				{
 					setpropertystring2(t.group,Str(t.playercontrol.jumpmax_f),"Jump Speed","Sets the jump speed of the player which controls overall jump height") ; ++t.controlindex;
@@ -29135,7 +29077,10 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
 					edit_grideleprof->hasweapon_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->hasweapon_s.Get(), "Has Weapon", "The weapon assigned to this object", readonly);
 					if (g.quickparentalcontrolmode != 2)
-						edit_grideleprof->isviolent = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0,readonly);
+					{
+						// this one you see in Developer Settings UI
+						edit_grideleprof->isviolent = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0, readonly);
+					}
 					if (t.tflagsimpler == 0)
 					{
 						edit_grideleprof->colondeath = imgui_setpropertylist2_v2(t.group, t.controlindex, Str(edit_grideleprof->colondeath), "End Collision", "Set to NO switches off collision when die", 0,readonly);

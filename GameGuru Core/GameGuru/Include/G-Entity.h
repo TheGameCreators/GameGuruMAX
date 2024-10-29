@@ -25,7 +25,7 @@ void entity_determinegunforce ( void );
 void entity_find_charanimindex_fromttte ( void );
 void entity_adddestroyevent(int e);
 void entity_applydamage ( void );
-void entity_applydecalfordamage (int ee);
+void entity_applydecalfordamage (int ee, float fX, float fY, float fZ);
 void entity_gettruecamera ( void );
 void entity_gettrueplayerpos(void);
 void entity_hasbulletrayhit ( void );

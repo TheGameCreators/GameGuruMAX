@@ -2550,7 +2550,7 @@ void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 				t.brayz2_f = t.entityelement[t.e].z;
 				t.tallowanykindofdamage = 1;
 				entity_applydamage ();
-				entity_applydecalfordamage(t.e);
+				entity_applydecalfordamage(t.e, -1, -1, -1);
 				t.tallowanykindofdamage = 0;
 			}
 			else

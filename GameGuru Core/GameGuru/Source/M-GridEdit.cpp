@@ -12085,7 +12085,9 @@ void mapeditorexecutable_loop(void)
 										t.grideleprof.conerange = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.conerange), "View Range", "The range within which the AI may see the player. Zero triggers the characters default range."));
 										t.grideleprof.ifused_s = imgui_setpropertystring2(t.group, t.grideleprof.ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get());
 										if (g.quickparentalcontrolmode != 2)
+										{
 											t.grideleprof.isviolent = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0);
+										}
 										if (t.tflagsimpler == 0)
 										{
 											t.grideleprof.colondeath = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.colondeath), "End Collision", "Set to NO switches off collision when die", 0);
@@ -12155,67 +12157,8 @@ void mapeditorexecutable_loop(void)
 							if ((t.tflagvis == 1 || t.tflagobjective == 1 || t.tflaglives == 1 || t.tflagstats == 1) && t.tflagweap == 0 && t.tflagammo == 0)
 							{
 								t.group = 1;
-								if (ImGui::StyleCollapsingHeader(t.strarr_s[451].Get(), ImGuiTreeNodeFlags_DefaultOpen)) {
-
-									#ifdef VRTECH
-									#else
-										if (t.tflaglives == 1)
-										{
-										t.grideleprof.lives = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.lives), t.strarr_s[452].Get(), t.strarr_s[242].Get()));
-										}
-										if (t.tflagvis == 1 || t.tflagstats == 1)
-										{
-										if (t.tflaglives == 1)
-										{
-											t.grideleprof.strength = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.strength), t.strarr_s[453].Get(), t.strarr_s[243].Get()));
-										}
-										else
-										{
-											if (t.tflagnotionofhealth == 1)
-											{
-												t.grideleprof.strength = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.strength), t.strarr_s[454].Get(), t.strarr_s[244].Get()));
-											}
-										}
-										if (t.tflagplayersettings == 1)
-										{
-											if (g.quickparentalcontrolmode != 2)
-											{
-												t.grideleprof.isviolent = imgui_setpropertylist2(t.group, t.controlindex, Str(t.grideleprof.isviolent), "Blood Effects", "Sets whether blood and screams should be used", 0);
-											}
-											if (t.tflagnotionofhealth == 1)
-											{
-												t.playercontrol.regenrate = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regenrate), "Regeneration Rate", "Sets the increase value at which the players health will restore"));
-												t.playercontrol.regenspeed = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regenspeed), "Regeneration Speed", "Sets the speed in milliseconds at which the players health will regenerate"));
-												t.playercontrol.regendelay = atol(imgui_setpropertystring2(t.group, Str(t.playercontrol.regendelay), "Regeneration Delay", "Sets the delay in milliseconds after last damage hit before health starts regenerating"));
-											}
-										}
-										t.grideleprof.speed = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.speed), t.strarr_s[455].Get(), t.strarr_s[245].Get()));
-										if (t.playercontrol.thirdperson.enabled == 1)
-										{
-											t.tanimspeed_f = t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed;
-										}
-										else
-										{
-											t.tanimspeed_f = t.grideleprof.animspeed;
-										}
-										//477 missing.
-										//t.tanimspeed_f = atof(imgui_setpropertystring2(t.group, Str(t.tanimspeed_f), t.strarr_s[477].Get(), "Sets the default speed of any animation associated with this entity"));
-										t.tanimspeed_f = atof(imgui_setpropertystring2(t.group, Str(t.tanimspeed_f), "Anim Speed", "Sets the default speed of any animation associated with this entity"));
-
-										if (t.playercontrol.thirdperson.enabled == 1)
-										{
-											t.entityelement[t.playercontrol.thirdperson.charactere].eleprof.animspeed = t.tanimspeed_f;
-										}
-										else
-										{
-											t.grideleprof.animspeed = t.tanimspeed_f;
-										}
-
-										}
-										if (t.tflaghurtfall == 1) {
-										t.grideleprof.hurtfall = atol(imgui_setpropertystring2(t.group, Str(t.grideleprof.hurtfall), t.strarr_s[456].Get(), t.strarr_s[246].Get()));
-										}
-									#endif
+								if (ImGui::StyleCollapsingHeader(t.strarr_s[451].Get(), ImGuiTreeNodeFlags_DefaultOpen)) 
+								{
 									if (t.tflagplayersettings == 1)
 									{
 										t.playercontrol.jumpmax_f = atof(imgui_setpropertystring2(t.group, Str(t.playercontrol.jumpmax_f), "Jump Speed", "Sets the jump speed of the player which controls overall jump height"));

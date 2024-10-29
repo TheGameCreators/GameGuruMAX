@@ -2485,7 +2485,7 @@ void darkai_shooteffect (void)
 			entity_applydamage ();
 
 			// create either material decal specified in FPE or blood decal
-			entity_applydecalfordamage(ee);
+			entity_applydecalfordamage(ee,-1,-1,-1);
 		}
 		else
 		{

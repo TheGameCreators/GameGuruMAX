@@ -139,7 +139,7 @@ void lua_prompttextsize ( void )
 	t.luaglobal.scriptprompttextsize=t.v;
 }
 
-void lua_promptlocalcore ( int iTrueLocalOrForVR )
+void lua_promptlocalcore ( int iTrueLocalOrForVR , int addtime = 1000)
 {
 	if (t.e < 0 || t.e >= t.entityelement.size())
 		return;
@@ -160,9 +160,9 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 	{
 		// use VR prompt instead
 		#ifdef VRTECH
-		if ( iTrueLocalOrForVR == 0 ) lua_prompt3d ( t.s_s.Get(), Timer()+1000, 0 );
+		if ( iTrueLocalOrForVR == 0 ) lua_prompt3d ( t.s_s.Get(), Timer()+ addtime, 0 );
 		#else
-		lua_prompt3d ( t.s_s.Get(), Timer()+1000, 0 );
+		lua_prompt3d ( t.s_s.Get(), Timer()+ addtime, 0 );
 		#endif
 		float fObjCtrX = GetObjectCollisionCenterX(t.entityelement[t.e].obj);
 		float fObjCtrZ = GetObjectCollisionCenterZ(t.entityelement[t.e].obj);
@@ -230,7 +230,7 @@ void lua_promptlocalcore ( int iTrueLocalOrForVR )
 			t.entityelement[t.e].overpromptuse3D = false;
 			#endif
 			t.entityelement[t.e].overprompt_s=t.s_s;
-			t.entityelement[t.e].overprompttimer=Timer()+1000;
+			t.entityelement[t.e].overprompttimer=Timer()+ addtime;
 			extern bool bActivatePromptXYOffset;
 			extern int iPromptXOffset;
 			extern int iPromptYOffset;

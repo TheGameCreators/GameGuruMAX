@@ -51753,7 +51753,11 @@ void CheckExistingFilesModified(bool bResetTimeStamp)
 				char folderPath[MAX_PATH];
 				strcpy(folderPath, pFolder->m_sFolderFullPath.Get());
 				char folderRelPath[MAX_PATH];
-				strcpy(folderRelPath, pFolder->m_sFolderFullPath.Get() + pFolder->m_iEntityOffset + 1);
+				//PE: Crash here if folder only listing. 
+				if(pFolder->m_iEntityOffset+1 < pFolder->m_sFolderFullPath.Len())
+					strcpy(folderRelPath, pFolder->m_sFolderFullPath.Get() + pFolder->m_iEntityOffset + 1);
+				else
+					strcpy(folderRelPath, pFolder->m_sFolderFullPath.Get());
 				cFolderItem::sFolderFiles* pFolderFile = pFolder->m_pFirstFile;
 				pFolderFile = pFolder->m_pFirstFile->m_pNext;
 				while (pFolderFile)

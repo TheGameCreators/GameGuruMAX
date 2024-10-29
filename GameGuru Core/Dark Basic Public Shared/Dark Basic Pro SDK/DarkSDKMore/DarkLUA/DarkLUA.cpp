@@ -4167,6 +4167,34 @@ int PositionPrompt3D(lua_State *L)
 	return 1;
 }
 
+
+int PromptLocalDuration(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	int storee = t.e;
+	cstr stores = t.s_s;
+
+	t.e = lua_tonumber(L, 1);
+	const char* pStrPtr = lua_tostring(L, 2);
+	if (pStrPtr)
+		t.s_s = pStrPtr;
+	else
+		t.s_s = "";
+	int addtime = lua_tonumber(L, 3);
+	if (addtime < 100) addtime = 1000;
+
+	void lua_promptlocalcore(int iTrueLocalOrForVR, int addtime = 1000);
+	lua_promptlocalcore(0,addtime);
+
+	t.e = storee;
+	t.s_s = stores;
+
+	return 0;
+}
+
+
+
 // AGK IMAGE AND SPRITE COMMANDS
 
 int LoadImage(lua_State *L)
@@ -10299,7 +10327,11 @@ int lua_set_lut(lua_State* L)
 			t.gamevisuals.ColorGradingLUT = "None";
 			t.gamevisuals.bColorGrading = false;
 		}
+		//PE: g.gdefaultwaterheight must be = t.terrain.waterliney_f
+		float oldgdefaultwaterheight = g.gdefaultwaterheight;
+		g.gdefaultwaterheight = t.terrain.waterliney_f;
 		Wicked_Update_Visuals(&t.gamevisuals);
+		g.gdefaultwaterheight = oldgdefaultwaterheight;
 	}
 
 	t.e = storee;
@@ -12659,7 +12691,8 @@ void addFunctions()
 	// Prompt3D
 	lua_register(lua, "Prompt3D" , Prompt3D );	
 	lua_register(lua, "PositionPrompt3D" , PositionPrompt3D );	
-	
+	lua_register(lua, "PromptLocalDuration", PromptLocalDuration);
+
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
 	lua_register(lua, "IsTestGame", GetIsTestgame);

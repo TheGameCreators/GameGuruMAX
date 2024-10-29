@@ -851,7 +851,8 @@ void entity_lua_performlogicconnections_core ( int iMode )
 				// only perform code below if target object is not visible (i.e. not spawned)
 				bool bSkipResultsCode = false;
 				int iObjID = t.entityelement[iRelationShipEntityID].obj;
-				if (iObjID > 0 && ObjectExist(iObjID) == 1 && GetVisible(iObjID) == 1) bSkipResultsCode = true;
+				//PE: We must not do this if object is not visible. activated displayed cineguru camera.
+				if (iObjID > 0 && ObjectExist(iObjID) == 1 && GetVisible(iObjID) == 0) bSkipResultsCode = true;
 				if ( bSkipResultsCode == false )
 				{
 					// if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)

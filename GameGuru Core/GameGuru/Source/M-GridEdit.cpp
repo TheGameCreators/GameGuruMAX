@@ -27121,6 +27121,15 @@ void gridedit_mapediting ( void )
 										{
 											t.entityelement[t.e].eleprof.newparticle.emitterid = -1;
 											entity_updateparticleemitter(t.e);
+											//PE: Not from lua so must do these.
+											int iParticleEmitter = t.entityelement[t.e].eleprof.newparticle.emitterid;
+											if (iParticleEmitter != -1)
+											{
+												gpup_setParticleScale(iParticleEmitter, t.entityelement[t.e].eleprof.newparticle.bParticle_Size);
+												gpup_setEffectAnimationSpeed(iParticleEmitter, t.entityelement[t.e].eleprof.newparticle.fParticle_Speed);
+												gpup_setEffectOpacity(iParticleEmitter, t.entityelement[t.e].eleprof.newparticle.fParticle_Opacity);
+											}
+
 										}
 									}
 

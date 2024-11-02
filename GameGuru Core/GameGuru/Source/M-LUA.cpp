@@ -832,7 +832,8 @@ int g_iViewPerformanceTimers = 0;
 LONGLONG g_tableofperformancetimers[TABLEOFPERFORMANCEMAX];
 #define SWITCHTO30FPSRANGE 1000
 uint32_t LuaFrameCount = 0;
-
+uint32_t LuaFrameCount2 = 0;
+//#pragma optimize("", off)
 void lua_loop_allentities ( void )
 {
 #ifdef OPTICK_ENABLE
@@ -841,6 +842,7 @@ void lua_loop_allentities ( void )
 
 	LuaFrameCount++;
 
+	bool bMarkerCount = false;
 	// Go through all entities with active LUA scripts
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
@@ -916,10 +918,23 @@ void lua_loop_allentities ( void )
 			//if (t.entityelement[t.e].plrdist < MAXFREEZEDISTANCE || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
 			int iDistanceForLogicToBeProcessed = t.maximumnonefreezedistance;
 			if (t.entityelement[t.e].eleprof.phyalways == 0 && t.entityprofile[thisentid].ischaracter == 0) iDistanceForLogicToBeProcessed = 750; // use always active if want further than interactive range
+			//PE: Markers cant have always active , so process those in intervals.
+			t.waypointindex = t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
+			if (t.waypointindex > 0 && t.entityelement[t.e].plrdist >= iDistanceForLogicToBeProcessed)
+			{
+				if (!bMarkerCount)
+				{
+					//PE: Need own counter here as 30fps counter can make us never hit the below.
+					LuaFrameCount2++;
+					bMarkerCount = true;
+				}
+				if ((LuaFrameCount2 + t.e) % 30 == 0) //PE: Only every 0.5 sec.
+					iDistanceForLogicToBeProcessed = t.maximumnonefreezedistance * 4; //PE: Expand it a bit for zones as they can be large.
+			}
+
 			if (t.entityelement[t.e].plrdist < iDistanceForLogicToBeProcessed || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].lua.flagschanged == 2)
 			{
 				//  If entity is waypoint zone, determine if player inside or outside
-				t.waypointindex=t.entityelement[t.e].eleprof.trigger.waypointzoneindex;
 				if (  t.waypointindex>0 ) 
 				{
 					// should be the player pos to trigger this, NOT the camera (Thanks AmenMoses!)
@@ -1302,7 +1317,7 @@ void lua_loop_allentities ( void )
 		g_iViewPerformanceTimers = 0;
 	}
 }
-
+//#pragma optimize("", on)
 bool g_WarnOnlyOnce = true;
 
 void lua_loop_finish (void)

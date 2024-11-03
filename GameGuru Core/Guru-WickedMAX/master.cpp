@@ -1144,6 +1144,11 @@ void Master::Update(float dt)
 				SetDir("Files\\");
 				extern StoryboardStruct Storyboard;
 				strcpy(Storyboard.gamename, "");
+
+				//PE: Moved here load_storyboard now load media.
+				extern void SetCanUse_e_(int);
+				SetCanUse_e_(1);
+
 				load_storyboard(tmp);
 				if (strlen(Storyboard.gamename) > 0)
 				{
@@ -1151,8 +1156,6 @@ void Master::Update(float dt)
 					FindFirstSplash(fileName);
 
 					// Uses actual or virtual file..
-					extern void SetCanUse_e_(int);
-					SetCanUse_e_(1);
 					strcpy(VirtualFilename, fileName);
 					extern bool CheckForWorkshopFile(LPSTR);
 					CheckForWorkshopFile(VirtualFilename);

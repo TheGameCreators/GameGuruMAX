@@ -2703,6 +2703,8 @@ luaMessage** ppLuaMessages = NULL;
 	t.bSpawnCalledFromLua = false;
 	return iNewE;
  }
+ 
+ std::vector<int> vSpawnList;
 
  int SpawnNewEntity(lua_State* L)
  {
@@ -2714,6 +2716,7 @@ luaMessage** ppLuaMessages = NULL;
 	 if (iEntityIndex > 0)
 	 {
 		 iNewE = SpawnNewEntityCore(iEntityIndex);
+		 vSpawnList.push_back(iNewE);
 		 char pMsg[256];
 		 sprintf(pMsg, "SpawnNewEntityCore : %d from %d", iNewE, iEntityIndex);
 		 timestampactivity(0, pMsg);
@@ -2721,6 +2724,56 @@ luaMessage** ppLuaMessages = NULL;
 	 lua_pushinteger (L, iNewE);
 	 return 1;
  }
+
+ void CleanUpSpawedObject(void)
+ {
+	 int storee = t.e;
+	 int storeentid = t.entid;
+	 for (int i = 0; i < vSpawnList.size(); i++)
+	 {
+		 int iEntityIndex = vSpawnList[i];
+		 if (iEntityIndex > t.storedentityelementlist && iEntityIndex < t.entityelement.size())
+		 {
+			 // was created at run-time, can delete
+			 t.tentitytoselect = iEntityIndex;
+			 t.entid = t.entityelement[t.tentitytoselect].bankindex;
+			 if (t.entityelement[t.tentitytoselect].obj > 0)
+			 {
+				 if (t.entityelement[t.tentitytoselect].usingphysicsnow == 1)
+				 {
+					 t.tphyobj = t.entityelement[t.tentitytoselect].obj;
+					 physics_disableobject();
+					 t.entityelement[t.tentitytoselect].usingphysicsnow = 0;
+				 }
+				 t.entityelement[t.tentitytoselect].editorlock = 0;
+				 for (g.charanimindex = 1; g.charanimindex <= g.charanimindexmax; g.charanimindex++)
+				 {
+					 if (t.tentitytoselect == t.charanimstates[g.charanimindex].e)
+					 {
+						 t.charanimstates[g.charanimindex].e = 0;
+						 t.charanimstates[g.charanimindex].obj = 0;
+					 }
+				 }
+				 if (t.entityelement[t.tentitytoselect].attachmentobj > 0)
+				 {
+					 HideObject(t.entityelement[t.tentitytoselect].attachmentobj);
+					 t.entityelement[t.tentitytoselect].attachmentobj = 0;
+				 }
+				 entity_deleteentityfrommap();
+				 if (t.entityelement[t.tentitytoselect].ragdollified == 1)
+				 {
+					 //t.tphyobj = t.entityelement[t.tentitytoselect].obj; ragdoll_destroy ();
+					 t.entityelement[t.tentitytoselect].ragdollified = 0;
+				 }
+			 }
+		 }
+	 }
+	 vSpawnList.clear();
+	 t.e = storee;
+	 t.entid = storeentid;
+ }
+
+
  int DeleteNewEntity(lua_State* L)
  {
 	 lua = L;
@@ -2762,6 +2815,13 @@ luaMessage** ppLuaMessages = NULL;
 				 //t.tphyobj = t.entityelement[t.tentitytoselect].obj; ragdoll_destroy ();
 				 t.entityelement[t.tentitytoselect].ragdollified = 0;
 			 }
+
+
+			 auto it = std::find(vSpawnList.begin(), vSpawnList.end(), iEntityIndex);
+			 if (it != vSpawnList.end()) {
+				 vSpawnList.erase(it);
+			 }
+
 			 t.e = storee;
 			 t.entid = storeentid;
 		 }

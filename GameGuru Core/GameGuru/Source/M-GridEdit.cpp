@@ -17478,6 +17478,11 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.game.set.ismapeditormode=1;
 	extern int tgamesetismapeditormode;
 	tgamesetismapeditormode = 1;
+
+	//PE: This will make sure everything spawed is deleted , like physics / sound / waypoints / attachments ...
+	void CleanUpSpawedObject(void);
+	CleanUpSpawedObject();
+
 	#ifdef WICKEDENGINE
 	WickedCall_SetEditorCameraLight(true);
 	#endif

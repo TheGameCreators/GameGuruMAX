@@ -819,8 +819,10 @@ void ODEFinalizeWorld ( void )
 	g_fStartingCenterPositionZ = CameraPositionZ(0);
 	g_iActivationsPerCycle = 0;
 	if (g_bBeenActivatedSinceStart) delete g_bBeenActivatedSinceStart;
-	g_bBeenActivatedSinceStart = new bool[(int)g_PhyObjectList.size()+1];
-	for (int j = 0; j < (int)g_PhyObjectList.size(); j++)
+	//PE: We get a crash when spawning objects as there is no mem allocated for them.
+	uint32_t iReserveForSpawnedObjects = 1000;
+	g_bBeenActivatedSinceStart = new bool[(int)g_PhyObjectList.size() + iReserveForSpawnedObjects];
+	for (int j = 0; j < (int)g_PhyObjectList.size() + iReserveForSpawnedObjects; j++)
 		g_bBeenActivatedSinceStart[j] = false;
 }
 

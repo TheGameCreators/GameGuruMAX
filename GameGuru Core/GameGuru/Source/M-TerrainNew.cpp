@@ -4657,7 +4657,7 @@ void imgui_Customize_Terrain_v3(int mode)
 
 		//PE: Saved textures in visual.ini is not really possible at the monent, so reset every time. t.visuals.sTerrainTextures[0] == ""
 		//terraintextures\mat1\Color.dds
-		if (t.visuals.customTexturesFolder.Len() == 0 && (t.visuals.sTerrainTextures[0] != "terraintextures\\mat1\\Color.dds" || t.visuals.sTerrainTexturesName[0] != "Rainforest Overgrowth" ))
+		if (t.visuals.customTexturesFolder.Len() == 0 && (sTerrainTexturesID[0] == 0 || t.visuals.sTerrainTextures[0] != "terraintextures\\mat1\\Color.dds" || t.visuals.sTerrainTexturesName[0] != "Rainforest Overgrowth" ))
 		{
 			//Add a few default textures.
 			//PE: We always need a default texture in [0].
@@ -4717,6 +4717,15 @@ void imgui_Customize_Terrain_v3(int mode)
 			//bUpdateTerrainMaterials = true;
 			//PE: We now activate if not exists, when selecting, so no need to reset all textures on a fresh palette.
 			bUpdateTerrainMaterials = false;
+		}
+		//PE: Make sure we always have the correct ids, even if custom textures.
+		if (sTerrainTexturesID[0] == 0)
+		{
+			for (int iL = 0; iL < 32; iL++) {
+				sTerrainSelectionID[iL] = iL;
+				sTerrainTexturesID[iL] = t.terrain.imagestartindex + 80 + iL;
+				bTextureNameWindow[iL] = false;
+			}
 		}
 		int iUsedImages = 0;
 		cStr sTextureFolder = g.rootdir_s + "texturebank\\";

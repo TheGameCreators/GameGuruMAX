@@ -1145,6 +1145,10 @@ void Master::Update(float dt)
 				extern StoryboardStruct Storyboard;
 				strcpy(Storyboard.gamename, "");
 
+				//PE: Moved here load_storyboard now load media.
+				extern void SetCanUse_e_(int);
+				SetCanUse_e_(1);
+
 				load_storyboard(tmp);
 				if (strlen(Storyboard.gamename) > 0)
 				{

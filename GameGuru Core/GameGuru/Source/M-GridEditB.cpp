@@ -34586,7 +34586,8 @@ void Welcome_Screen(void)
 					ImGui::Columns(1);
 					ImGui::Indent(-2);
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -34595,7 +34596,8 @@ void Welcome_Screen(void)
 
 					ImGui::EndChild();
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -34605,16 +34607,94 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "My Games");
 
-
 				if (1) //Disable all other tabs.
 				{
 					ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 				}
 
 				ImGui::SetWindowFontScale(1.2);
-
 				ImGui::PopItemFlag(); //PE: Enable this tab.
 
+				// TRUSTED UDER ACCOUNT ID
+				bool bOnlyTrustedSteamUsersForNow = false;
+				uint64 uAccountID = 0;
+				#ifndef GGMAXEDU
+				if (SteamUGC())
+				{
+					// some concerns raised in the community of TGCs association with potential piracy - one bad apple and all that - sorry everyone!
+					uAccountID = SteamUser()->GetSteamID().GetAccountID();
+					if (uAccountID == 58134713 || uAccountID == 6704278)
+					{
+						// basically just means Steve :)
+						bOnlyTrustedSteamUsersForNow = true;
+					}
+				}
+				#endif
+
+				// User Guide
+				rect.Min = TabStartPos;
+				rect.Max = rect.Min + ImGui::TabItemCalcSize(" User Guide ", false);
+				TabStartPos.x += ImGui::TabItemCalcSize(" User Guide ", false).x + gui.Style.ItemInnerSpacing.x;
+				if (ImGui::BeginTabItem(" User Guide ", NULL, tabflags))
+				{
+					iCurrentOpenTab = 4;
+					ImGui::Text("");
+					ImGui::SetWindowFontScale(2.0);
+					ImGui::TextCenter("GameGuru MAX User Guide");
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::Text("");
+					ImGui::Text("");
+					float descwidth = ImGui::GetContentRegionAvail().x * 0.6f;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (descwidth * 0.5), 0));
+
+					float oldChildBorderSize = gui.Style.ChildBorderSize;
+					gui.Style.ChildBorderSize = 10.0;
+					ImVec2 oldFramePadding = gui.Style.FramePadding;
+					gui.Style.FramePadding = ImVec2(10.0, 10.0);
+					float guide_height = tab_box_height - 380.0;
+					if (guide_height < 375.0) guide_height = 375.0;
+					ImGui::BeginChild("##MyUserGuideForWelcome", ImVec2(descwidth - 5.0, guide_height), true, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+					ImGui::Indent(10);
+					ImGui::Text("");
+					ImGui::SetWindowFontScale(2.0);
+					ImGui::TextWrapped("The GameGuru MAX user guide is a comprehensive guide to the software.");
+					ImGui::Text("");
+					ImGui::TextWrapped("Provided as a simple PDF file, you can easily find the advice and help you are looking for.");
+					ImGui::Text("");
+					ImGui::TextWrapped("We hope this user guide offers the best advice to new and experienced game developers.");
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::Text("");
+					ImGui::Indent(-10);
+					ImGui::EndChild();
+
+					gui.Style.ChildBorderSize = oldChildBorderSize;
+					gui.Style.FramePadding = oldFramePadding;
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
+						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+						ImGui::Text("");
+						ImGui::Text("");
+						ImGui::Text("");
+					}
+
+					ImGui::EndTabItem();
+				}
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
+				{
+					if (uAccountID > 0)
+					{
+						char pExtraUserGuideTip[256];
+						sprintf(pExtraUserGuideTip, "User Guide (ID:%d)", uAccountID);
+						ImGui::SetTooltip("%s", pExtraUserGuideTip);
+					}
+					else
+					{
+						ImGui::SetTooltip("%s", "User Guide");
+					}
+				}
+				ImGui::SetWindowFontScale(1.2);
+
+				// Tutorials
 				rect.Min = TabStartPos;
 				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Tutorials ", false);
 				TabStartPos.x += ImGui::TabItemCalcSize(" Tutorials ", false).x + gui.Style.ItemInnerSpacing.x;
@@ -34727,10 +34807,8 @@ void Welcome_Screen(void)
 							}
 						}
 					}
-
 					ImGui::Columns(1);
 					ImGui::Indent(-2);
-
 					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
 					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
@@ -34738,9 +34816,7 @@ void Welcome_Screen(void)
 						ImGui::Text("");
 						ImGui::Text("");
 					}
-
 					ImGui::EndChild();
-
 					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
 					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
@@ -34751,97 +34827,111 @@ void Welcome_Screen(void)
 					ImGui::EndTabItem();
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Tutorials");
-
 				ImGui::SetWindowFontScale(1.2);
 
-				// TRUSTED UDER ACCOUNT ID
-				bool bOnlyTrustedSteamUsersForNow = false;
 				#ifndef GGMAXEDU
-				uint64 uAccountID = 0;
-				if (SteamUGC())
-				{
-					// some concerns raised in the community of TGCs association with potential piracy - one bad apple and all that - sorry everyone!
-					uAccountID = SteamUser()->GetSteamID().GetAccountID();
-					if (uAccountID == 58134713 || uAccountID == 6704278)
-					{
-						// basically just means Steve :)
-						bOnlyTrustedSteamUsersForNow = true;
-					}
-				}
-				#endif
-
+				//
+				// Community Tutorials
+				//
 				rect.Min = TabStartPos;
-				rect.Max = rect.Min + ImGui::TabItemCalcSize(" User Guide ", false);
-				TabStartPos.x += ImGui::TabItemCalcSize(" User Guide ", false).x + gui.Style.ItemInnerSpacing.x;
-				if (ImGui::BeginTabItem(" User Guide ", NULL, tabflags))
+				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Community Tutorials ", false);
+				TabStartPos.x += ImGui::TabItemCalcSize(" Community Tutorials ", false).x + gui.Style.ItemInnerSpacing.x;
+				if (ImGui::BeginTabItem(" Community Tutorials ", NULL, tabflags))
 				{
-					iCurrentOpenTab = 4;
 					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
-					ImGui::TextCenter("GameGuru MAX User Guide");
+					ImGui::TextCenter("GameGuru MAX Community Tutorials and Videos");
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 					ImGui::Text("");
-					float descwidth = ImGui::GetContentRegionAvail().x * 0.6f;
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5)- (descwidth*0.5), 0));
 
-					float oldChildBorderSize = gui.Style.ChildBorderSize;
-					gui.Style.ChildBorderSize = 10.0;
-					ImVec2 oldFramePadding = gui.Style.FramePadding;
-					gui.Style.FramePadding = ImVec2(10.0,10.0);
-					float guide_height = tab_box_height - 380.0;
-					if (guide_height < 375.0) guide_height = 375.0;
-					ImGui::BeginChild("##MyUserGuideForWelcome", ImVec2(descwidth - 5.0, guide_height), true, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
-					ImGui::Indent(10);
-					ImGui::Text("");
-					ImGui::SetWindowFontScale(2.0);
-					ImGui::TextWrapped("The GameGuru MAX user guide is a comprehensive guide to the software.");
-					ImGui::Text("");
-					ImGui::TextWrapped("Provided as a simple PDF file, you can easily find the advice and help you are looking for.");
-					ImGui::Text("");
-					ImGui::TextWrapped("We hope this user guide offers the best advice to new and experienced game developers.");
+					const char* items_commtut_header[] = { "Blood Moon Interactive", "Plemsoft" };
+					const char* items_commtut_desc[] = {
+						"Welcome to Blood Moon Interactive, the ultimate destination for GameGuru Max enthusiasts and aspiring game developers",
+						"Find out about all the amazing things Preben has created for the community"
+					};
+					const char* items_commtut_link[] = {
+						"https://www.youtube.com/@bloodmooninteractive",
+						"https://www.youtube.com/@MakingGames"
+					};
+					const int items_commtut_thumb[] = { HUB_COMMTUT1, HUB_COMMTUT2 };
+
+					iCurrentOpenTab = 42;  // Life, The Universe and Everything
+
 					ImGui::SetWindowFontScale(1.0);
-					ImGui::Text("");
-					ImGui::Indent(-10);
-					ImGui::EndChild();
+					ImVec2 vWidthOfCommtutArea = ImVec2(ImGui::GetContentRegionAvail().x - 2.0, tab_box_height);
+					float fIntendAmount = 0.0f;
+					ImGui::Indent(fIntendAmount);
+					ImGui::BeginChild("##CommunityTutorialsForWelcome", vWidthOfCommtutArea, false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+					ImGui::Indent(2);
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 6));
+					float total_width = ImGui::GetContentRegionAvailWidth();
+					ImGui::Columns(3, "CommunityTutorialsForWelcomecolumns", false);  //false no border
 
-					gui.Style.ChildBorderSize = oldChildBorderSize;
-					gui.Style.FramePadding = oldFramePadding;
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
-						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
+					float colwidth = ImGui::GetContentRegionAvailWidth(); //padding.
+					float fRatio = colwidth / 512.0f;
+					ImVec2 iThumbSize = { (float)512.0 * fRatio, (float)288.0 * fRatio };
+
+					char child[MAX_PATH];
+					for (int i = 0; i < IM_ARRAYSIZE(items_commtut_thumb); i++)
+					{
+						sprintf(child, "##CommunityTutorialsFrame%d", i);
+						ImGui::BeginChild(child, ImVec2(iThumbSize.x - 8.0, iThumbSize.x - 60.0), true, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
+
+						ImGui::SetWindowFontScale(1.6);
+						ImGui::TextCenter(items_commtut_header[i]);
+						ImGui::SetWindowFontScale(1.0);
+
+						int TextureID = items_commtut_thumb[i];
+						if (!ImageExist(TextureID))
+						{
+							TextureID = BOX_CLICK_HERE;
+						}
+
+						ImGui::PushID(554231 + i);
+						float wthumb = iThumbSize.x - 120.0;
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth() * 0.5) - (wthumb * 0.5) - 3.0, 0.0f));
+						if (ImGui::ImgBtn(TextureID, ImVec2(wthumb, wthumb), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false, false, true))
+						{
+							ExecuteFile((LPSTR)items_commtut_link[i], "", "", 0);
+						}
+						ImGui::PopID();
+						ImGui::EndChild();
+						ImGui::SetWindowFontScale(1.2);
+						ImGui::TextWrapped(items_commtut_desc[i]);
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0, 8));
+						ImGui::NextColumn();
+					}
+					ImGui::Columns(1);
+					ImGui::Indent(-2);
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0)
+					{
 						ImGui::Text("");
 						ImGui::Text("");
 						ImGui::Text("");
 					}
-
+					ImGui::EndChild();
+					ImGui::Indent(-fIntendAmount);
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0)
+					{
+						ImGui::Text("");
+						ImGui::Text("");
+						ImGui::Text("");
+					}
 					ImGui::EndTabItem();
 				}
-				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max))
-				{
-					#ifndef GGMAXEDU
-					if (uAccountID > 0)
-					{
-						char pExtraUserGuideTip[256];
-						sprintf(pExtraUserGuideTip, "User Guide (ID:%d)", uAccountID);
-						ImGui::SetTooltip("%s", pExtraUserGuideTip);
-					}
-					else
-					#endif
-					{
-						ImGui::SetTooltip("%s", "User Guide");
-					}
-				}
-
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Community Tutorials and Videos");
 				ImGui::SetWindowFontScale(1.2);
 
-				#ifndef GGMAXEDU
 				//
-				// Live Streams & Social
+				// Websites & Social
 				//
 				rect.Min = TabStartPos;
-				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Live Streams & Social ", false);
-				TabStartPos.x += ImGui::TabItemCalcSize(" Live Streams & Social ", false).x + gui.Style.ItemInnerSpacing.x;
-				if (ImGui::BeginTabItem(" Live Streams & Social ", NULL, tabflags))
+				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Websites & Social ", false);
+				TabStartPos.x += ImGui::TabItemCalcSize(" Websites & Social ", false).x + gui.Style.ItemInnerSpacing.x;
+				if (ImGui::BeginTabItem(" Websites & Social ", NULL, tabflags))
 				{
 					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
@@ -34931,7 +35021,8 @@ void Welcome_Screen(void)
 					ImGui::Columns(1);
 					ImGui::Indent(-2);
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
@@ -34941,17 +35032,17 @@ void Welcome_Screen(void)
 					ImGui::EndChild();
 					ImGui::Indent(-fIntendAmount);
 
-					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) {
+					if (ImGui::GetCurrentWindow()->ScrollbarSizes.x > 0) 
+					{
 						//Hitting exactly at the botton could cause flicker, so add some additional lines when scrollbar on.
 						ImGui::Text("");
 						ImGui::Text("");
 						ImGui::Text("");
 					}
-
-
 					ImGui::EndTabItem();
 				}
-				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Live Streams & Social");
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Websites & Social");
+				ImGui::SetWindowFontScale(1.2);
 
 				//
 				// Workshop Uploader and Workshop Viewer
@@ -35269,7 +35360,7 @@ void Welcome_Screen(void)
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
 				{
-					ImGui::SetWindowFontScale(1.4);
+					ImGui::SetWindowFontScale(1.6);
 					ImGui::TextCenter("Official Website");
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
@@ -35281,7 +35372,6 @@ void Welcome_Screen(void)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::StyleButton("Click Here to Visit The Website", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
 					{
-						/*ExecuteFile("https://www.game-guru.com/max", "", "", 0);*/
 						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
 					}
 					ImGui::SetWindowFontScale(1.0);
@@ -35291,8 +35381,8 @@ void Welcome_Screen(void)
 				iTextureID = HUB_LIVEBROADCAST;
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 
-				ImGui::SetWindowFontScale(1.4);
-				ImGui::TextCenter("Live Stream");
+				ImGui::SetWindowFontScale(1.6);
+				ImGui::TextCenter("Official Broadcasts and Videos");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
 				{
@@ -35305,7 +35395,7 @@ void Welcome_Screen(void)
 				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.4);
 
-				cstr desc = "Join us live and ask your burning questions!";
+				cstr desc = "Visit our YouTube Channel!";
 				{
 					ImGui::Indent(2);
 					ImVec2 cp = ImGui::GetCursorPos();
@@ -35500,6 +35590,55 @@ void Welcome_Screen(void)
 				// ensure steam callbacks are handled
 				extern void workshop_update(bool);
 				workshop_update(true);
+
+				// Workshop description (right side panel)
+				float image_size_sub_x = 310.0;
+				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x - 250.0;
+				int iTextureID = HUB_WEBSITE;
+				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
+				float ratio = 394.0 / 700.0;
+				ImGui::SetWindowFontScale(1.0);
+				if (iTextureID > 0)
+				{
+					ImGui::SetWindowFontScale(1.6);
+					ImGui::TextCenter("GameGuru MAX Workshop Community");
+					ImGui::TextCenter("");
+					ImGui::SetWindowFontScale(1.2);
+					ImGui::TextCenter("A place to discover new game assets for GameGuru MAX, created");
+					ImGui::TextCenter("by the community. Simply subscribe to a workshop item you like");
+					ImGui::TextCenter("and the assets contained will be added to your Library.");
+				}
+				ImGui::SetWindowFontScale(1.2);
+			}
+			else if (iCurrentOpenTab == 42)
+			{
+				// Community Tutorials and Videos (right side panel)
+				float image_size_sub_x = 310.0;
+				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x - 250.0;
+				int iTextureID = HUB_WEBSITE;
+				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
+				float ratio = 394.0 / 700.0;
+				ImGui::SetWindowFontScale(1.0);
+				if (iTextureID > 0)
+				{
+					ImGui::SetWindowFontScale(1.6);
+					ImGui::TextCenter("Community News");
+					ImGui::TextCenter("");
+					ImGui::SetWindowFontScale(1.2);
+					ImGui::TextCenter("You can discover the latest official news about GameGuru MAX");
+					ImGui::TextCenter("on the News page of the GameGuru MAX website, and for the hottest");
+					ImGui::TextCenter("news there is no better place that our DISCORD channel.");
+					ImGui::TextCenter("");
+
+					float image_size_sub_x = 310.0;
+					if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x - 250.0;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					if (ImGui::StyleButton("Join the community on DISCORD", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
+					{
+						ExecuteFile("https://bit.ly/MAX_Discord", "", "", 0);
+					}
+				}
+				ImGui::SetWindowFontScale(1.2);
 			}
 			#endif
 			else if (bUseTutorial)
@@ -36065,6 +36204,20 @@ void Welcome_Screen(void)
 							workshop_submit_item_now();
 						}
 					}
+				}
+			}
+			else if (iCurrentOpenTab == 7)
+			{
+				if (ImGui::StyleButton("Click here to view the Steam Workshop for GameGuru MAX", ImVec2(vPreviewSize.x + 4.0, fFontSize * 2.6)))
+				{
+					ExecuteFile("https://steamcommunity.com/app/1247290/workshop/", "", "", 0);
+				}
+			}
+			else if (iCurrentOpenTab == 42)
+			{
+				if (ImGui::StyleButton("Click here to view the latest GameGuru MAX News", ImVec2(vPreviewSize.x + 4.0, fFontSize * 2.6)))
+				{
+					ExecuteFile("https://www.game-guru.com/latest-news", "", "", 0);
 				}
 			}
 			#endif

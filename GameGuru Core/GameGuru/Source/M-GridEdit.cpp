@@ -1289,9 +1289,12 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\hub-workshopitem.png", HUB_WORKSHOPITEM);
 	LoadImage("editors\\uiv3\\hub-tiktok.png", HUB_TIKTOK);
 	LoadImage("editors\\uiv3\\hub-twitter.png", HUB_TWITTER);
-
 	LoadImage("editors\\uiv3\\hub-userguide.png", HUB_USERGUIDE);
 	LoadImage("editors\\uiv3\\hub-website.png", HUB_WEBSITE);
+
+	LoadImage("editors\\uiv3\\hub-commtut-0-placeholder.png", HUB_COMMTUT0);
+	LoadImage("editors\\uiv3\\hub-commtut-1-bmi.png", HUB_COMMTUT1);
+	LoadImage("editors\\uiv3\\hub-commtut-2-plemsoft.png", HUB_COMMTUT2);
 
 	LoadImage("editors\\uiv3\\image-icon.png", SCREENEDITOR_IMAGE);
 	LoadImage("editors\\uiv3\\text-icon.png", SCREENEDITOR_TEXT);
@@ -28328,7 +28331,6 @@ void gridedit_resetmemortracker ( void )
 	g.gamememactuallyusedstart = SMEMAvailable(1);
 }
 
-#ifdef VRTECH
 void gridedit_emptyallcustomfiles ( void )
 {
 	ChecklistForFiles();
@@ -28345,9 +28347,26 @@ void gridedit_emptyallcustomfiles ( void )
 		}
 	}
 }
-#endif
+void gridedit_emptyrogueoldfiles(void)
+{
+	ChecklistForFiles();
+	for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+	{
+		t.tfile_s = ChecklistString(t.c);
+		if (t.tfile_s != "." && t.tfile_s != "..")
+		{
+			if (strlen(t.tfile_s.Get()) > 4)
+			{
+				if (strnicmp (t.tfile_s.Get() + strlen(t.tfile_s.Get()) - 4, ".ele", 4) == NULL)
+				{
+					timestampactivity(0, t.tfile_s.Get());
+					DeleteAFile (t.tfile_s.Get());
+				}
+			}
+		}
+	}
+}
 
-#ifdef WICKEDENGINE
 void gridedit_emptyallterrainobjfiles (void)
 {
 	// Delete all terrainobj files so fresh caches can be created
@@ -28365,7 +28384,6 @@ void gridedit_emptyallterrainobjfiles (void)
 		}
 	}
 }
-#endif
 
 #ifdef WICKEDENGINE
 // force new level camera into free flight mode
@@ -28484,15 +28502,16 @@ void gridedit_new_map(void)
 	timestampactivity(0,"NEWMAP: mapfile_emptyebesfromtestmapfolder");
 	mapfile_emptyebesfromtestmapfolder(false);
 
-	#ifdef VRTECH
 	// Delete any CUSTOM files for new levels, otherwise messes up new asset addition work
 	timestampactivity(0,"NEWMAP: gridedit_emptyallcustomfiles");
 	gridedit_emptyallcustomfiles ( );
-	#endif
 
-	#ifdef WICKEDENGINE
+	// Delete any MAP.ELE old file as this might introduce old entities such as weapons!
+	timestampactivity(0, "NEWMAP: gridedit_emptyrogueoldfiles");
+	gridedit_emptyrogueoldfiles ();
+
+	// empty all terrain obj files if any
 	gridedit_emptyallterrainobjfiles();
-	#endif
 
 	// restore folder to default 
 	SetDir ( pStoreOld.Get() );

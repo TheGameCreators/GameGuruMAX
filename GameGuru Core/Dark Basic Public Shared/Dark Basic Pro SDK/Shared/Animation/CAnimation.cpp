@@ -1598,7 +1598,18 @@ DARKSDK void UpdateAllAnimation(void)
 							for ( int y = 0; y < iVideoHeight; y++ )
 							{
 								unsigned int* pThisLinePtr = (unsigned int*)pPtr;
-								uint32_t index = y*iVideoWidth/2;
+
+								// LB: seems the rows of the source video require a special pitch adjustment
+								// when the video is 1080x1920. Seems the minimum alignment is 8 integers
+								// uint32_t index = y * iVideoWidth / 2;
+								float fMinimumPitchForRow = (iVideoWidth / 2.0f) / 8.0f;
+								if ( fMinimumPitchForRow != (int)fMinimumPitchForRow )
+								{
+									fMinimumPitchForRow = (int)fMinimumPitchForRow + 1;
+								}
+								fMinimumPitchForRow *= 8.0f;
+								uint32_t index = (y * (int)fMinimumPitchForRow);
+
 								for ( int x = 0; x < iVideoWidth/2; x++ )
 								{
 									unsigned int value = pVideoFrameInt[ index ];

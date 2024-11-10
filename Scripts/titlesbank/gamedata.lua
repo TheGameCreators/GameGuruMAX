@@ -291,9 +291,17 @@ end
 
 function gamedata.load(slotnumber)
 
+	-- before load, systematically wipe out any old extra data, it messes with subsequent level loads and load game positions!
+	for i = 1, 9999, 1 do
+		g_EntityExtra[i] = {}
+		g_EntityExtra[i]['visible'] = -1
+		g_EntityExtra[i]['spawnatstart'] = nil
+		g_EntityExtra[i]['clonedsincelevelstart'] = -1
+		g_EntityExtra[i]['collision'] = nil
+	end
+
 	-- load game data
 	successful = 0
-	--local file = assert(io.open("savegames\\gameslot" .. slotnumber .. ".dat", "r"))
 	local file = io.open("savegames\\gameslot" .. slotnumber .. ".dat", "r")
 	if file ~= nil then
 		-- header for game ID

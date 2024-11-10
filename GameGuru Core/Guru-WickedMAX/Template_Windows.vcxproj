@@ -137,8 +137,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTEST|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(ProjectName)\$(Platform)\Debug</IntDir>
-    <OutDir>D:\DEV\DOWNLOADS\GGMAX USERS\OLDFLAK-Naelurec - Moltaren Mysteries\</OutDir>
-    <TargetName>Naelurec - Moltaren Mysteries</TargetName>
+    <OutDir>D:\DEV\DOWNLOADS\tom_hautning_demo 11_5_2024\</OutDir>
+    <TargetName>demo</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\DirectXTex\DirectXTex;$(SolutionDir)SDK\OGG\include;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\OPTICK\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)SDK\PhotonSDK\Common-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\LoadBalancing-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\Photon-cpp\lib\;$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\OGG\lib64\Debug\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Debug\;$(SolutionDir)SDK\OpenXR\lib64\Debug\;$(SolutionDir)SDK\OPTICK\lib\x64\debug;$(LibraryPath)</LibraryPath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>

@@ -2163,6 +2163,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
+	addallinfoldertocollection("particlesbank\\user", "particlesbank\\user");
 
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");

@@ -28297,12 +28297,18 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 				extern void animsystem_animationsetproperty (int, bool, entityeleproftype*, int, int);
 				animsystem_animationsetproperty(t.entityprofile[entid].characterbasetype, readonly, edit_grideleprof, iAnimationSetMentioned, elementID);
 			}
-			if (t.entityprofile[entid].ischaracter == 1)
-			{
-				extern void animsystem_dropcollectablesetproperty(bool, entityeleproftype*);
-				animsystem_dropcollectablesetproperty(readonly, edit_grideleprof);
-			}
+			//moved below, should not be dependent on having DLUA params, or some other attribute requirement
+			//if (t.entityprofile[entid].ischaracter == 1)
+			//{
+			//	extern void animsystem_dropcollectablesetproperty(bool, entityeleproftype*);
+			//	animsystem_dropcollectablesetproperty(readonly, edit_grideleprof);
+			//}
 		}
+	}
+	if (t.entityprofile[entid].ischaracter == 1)
+	{
+		extern void animsystem_dropcollectablesetproperty(bool, entityeleproftype*);
+		animsystem_dropcollectablesetproperty(readonly, edit_grideleprof);
 	}
 	if (readonly)
 	{

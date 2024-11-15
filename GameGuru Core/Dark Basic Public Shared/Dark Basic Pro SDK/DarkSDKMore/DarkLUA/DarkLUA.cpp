@@ -1686,6 +1686,8 @@ luaMessage** ppLuaMessages = NULL;
 			case 22: t.entityelement[iEntityIndex].eleprof.phyalways = (int)fValue; break;
 			case 23: t.entityelement[iEntityIndex].iCanGoUnderwater = (int)fValue; break;
 
+			case 104: t.entityelement[iEntityIndex].eleprof.conerange = fValue; break;
+
 			case 105:
 			{
 				t.entityelement[iEntityIndex].eleprof.iMoveSpeed = (int)fValue;
@@ -1922,6 +1924,8 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityHasWeapon(lua_State *L) { return GetEntityData (L, 102); }
  int GetEntityViewAngle(lua_State *L) { return GetEntityData (L, 103); }
  int GetEntityViewRange(lua_State *L) { return GetEntityData (L, 104); }
+ int SetEntityViewRange(lua_State *L) { return RawSetEntityData (L, 104); }
+ 
  int GetEntityMoveSpeed(lua_State *L) { return GetEntityData (L, 105); }
  int GetEntityTurnSpeed(lua_State *L) { return GetEntityData (L, 106); }
  int SetEntityMoveSpeed(lua_State *L) { return RawSetEntityData (L, 105); }
@@ -11860,6 +11864,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityHasWeapon", GetEntityHasWeapon);
 	lua_register(lua, "GetEntityViewAngle", GetEntityViewAngle);
 	lua_register(lua, "GetEntityViewRange", GetEntityViewRange);
+	lua_register(lua, "SetEntityViewRange", SetEntityViewRange);
 	lua_register(lua, "GetEntityMoveSpeed", GetEntityMoveSpeed);
 	lua_register(lua, "GetEntityTurnSpeed", GetEntityTurnSpeed);
 	lua_register(lua, "SetEntityMoveSpeed", SetEntityMoveSpeed);

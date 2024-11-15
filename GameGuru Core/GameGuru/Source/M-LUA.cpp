@@ -212,7 +212,8 @@ void lua_initscript ( void )
 	// call the INIT functions of all entities
 	if ( t.entityelement[t.e].active != 0 || t.entityelement[t.e].eleprof.spawnatstart == 0 )
 	{
-		if (  t.entityelement[t.e].eleprof.aimain == 1 ) 
+		//PE: Particles also need to have updated status before first call to _main.
+		if (  t.entityelement[t.e].eleprof.aimain == 1 || t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
 		{
 			// 151016 - need to ensure g_Entity globals are in place BEFORE INIT, so call update function
 			t.tfrm=0; t.tobj = t.entityelement[t.e].obj;

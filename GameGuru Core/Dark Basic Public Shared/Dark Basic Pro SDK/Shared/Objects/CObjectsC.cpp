@@ -4481,14 +4481,24 @@ DARKSDK_DLL void SetObjectUVManually ( int iObjID, int iFrameIndex, float fWidth
 	// set UV data manually for now, but see about replacing with Wicked GPU Particles for speed and efficiency!
 	float U_f = 0;
 	float V_f = 0;
-	float USize_f = 1.0f / fWidth;
-	float VSize_f = 1.0f / fHeight;
+	float USize_f = 1.0f / (float) fWidth;
+	float VSize_f = 1.0f / (float) fHeight;
+
 	if ( iFrameIndex != 0 )
 	{
-		int across = int(iFrameIndex/fWidth);
-		V_f = VSize_f * across;
-		U_f = iFrameIndex * USize_f;
+		//PE: U_f dont work here if we have large animations like 20x20
+		//int across = int(iFrameIndex/fWidth);
+		//V_f = VSize_f* across;
+		//U_f = iFrameIndex * USize_f;
+
+		//PE: Calculate the row and column of the sprite in the atlas
+		int row = iFrameIndex / fWidth;
+		int col = iFrameIndex % (int)fHeight;
+		//PE: Calculate the UV of the topleft corner
+		U_f = col * USize_f;
+		V_f = row * VSize_f;
 	}
+
 	LockVertexDataForLimb ( iObjID, 0 );
 	SetVertexDataUV(0, U_f, V_f);
 	SetVertexDataUV(1, U_f + USize_f, V_f);

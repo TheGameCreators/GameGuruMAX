@@ -9718,12 +9718,14 @@ void FreeLUASpritesAndImages ( void )
 		if ( SpriteExist ( c ) == 1 )
 			DeleteSprite ( c );
 	}
-
+	//PE: All lua loadimage files are loaded in legacy mode , so also need it for textures to be deleted.
+	image_setlegacyimageloading(true);
 	for ( int c = g.LUAImageoffset ; c <= g.LUAImageoffsetMax ; c++ )
 	{
 		if ( ImageExist ( c ) == 1 )
 			DeleteImage ( c );
 	}
+	image_setlegacyimageloading(false);
 }
 
 void HideOrShowLUASprites ( bool hide )

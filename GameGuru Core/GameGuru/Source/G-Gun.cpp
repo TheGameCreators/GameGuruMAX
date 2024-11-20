@@ -4531,12 +4531,16 @@ void gun_load ( void )
 				if (t.gun[t.gunid].legacy_animation_s.Len() > 0)
 				{
 					cstr path = pAbsPathToAnim;
-					pAbsPathToAnim += t.gun[t.gunid].legacy_animation_s;
-					pAbsPathToAnim += ".dbo";
-					if (!FileExist(pAbsPathToAnim.Get()))
+					path += t.gun[t.gunid].legacy_animation_s;
+					path += ".dbo";
+					if (!FileExist(path.Get()))
 					{
 						pAbsPathToAnim += pNoSpacesInGunName;// "EnhancedAK";
 						pAbsPathToAnim += ".dbo";
+					}
+					else
+					{
+						pAbsPathToAnim = path;
 					}
 				}
 				else
@@ -4546,15 +4550,23 @@ void gun_load ( void )
 				}
 
 				sObject* pSecondaryObject = GetObjectData(iGunSecondaryObj);
-				if (pSecondaryObject)
+				if (pSecondaryObject && FileExist(pAbsPathToAnim.Get()))
 				{
 					if (AppendAnimationFromFile(pSecondaryObject, pAbsPathToAnim.Get(), 0) == true)
 					{
 						WickedCall_RefreshObjectAnimations(pSecondaryObject, pSecondaryObject->wickedloaderstateptr);
 					}
+					bUsingLegacyArmReplacementTrick = true;
 				}
-				HideObject(iGunSecondaryObj);
-				bUsingLegacyArmReplacementTrick = true;
+				else
+				{
+					//PE: Anim not there , cant replace arms.
+					if (ObjectExist(iGunSecondaryObj) == 1)
+						DeleteObject(iGunSecondaryObj);
+					bUsingLegacyArmReplacementTrick = false;
+				}
+				if (ObjectExist(iGunSecondaryObj) == 1)
+					HideObject(iGunSecondaryObj);
 			}
 		}
 	}

@@ -2695,8 +2695,12 @@ void entity_updatepos ( void )
 	// takes te - but not tv# as already dealth with when moved entity X Y Z
 	t.tobj=t.entityelement[t.te].obj;
 
+	//PE: If physics is diabled in setting use PositionObject.
+	int ODEFind(int iID);
+	bool bPhysicsActive = ODEFind(t.tobj);
+
 	// move entity using physics
-	if ( t.entityelement[t.te].usingphysicsnow == 1 ) 
+	if ( t.entityelement[t.te].usingphysicsnow == 1 && bPhysicsActive)
 	{
 		if(t.entityprofile[t.entityelement[t.te].bankindex].ischaracter == 1 && t.entityelement[t.te].eleprof.disableascharacter == 0)
 		{

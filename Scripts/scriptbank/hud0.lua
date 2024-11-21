@@ -1,5 +1,5 @@
 -- DESCRIPTION: A global script that controls the in-game HUD. Do not assign to an object.
-
+-- Hud0 - Version 2 
 cursorControl = require "scriptbank\\huds\\cursorcontrol"
 local U = require "scriptbank\\utillib"
 
@@ -1699,36 +1699,38 @@ function hud0.main()
   -- handle awarding of XP points
   local maximumXP = 0 if _G["g_UserGlobal['".."MyXPMax".."']"] ~= nil then maximumXP = _G["g_UserGlobal['".."MyXPMax".."']"] end
   if maximumXP > 0 then
+	local currentXP = 0
+	if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then currentXP = _G["g_UserGlobal['".."MyXP".."']"] end
 	local entitykilled = GetNearestEntityDestroyed(0)
 	if entitykilled > 0 then
 		-- determine what has been destroyed
 		local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
 		if allegiance == 0 then
 			local scoredXP = 100
-			local currentXP = 0 if _G["g_UserGlobal['".."MyXP".."']"] ~= nil then currentXP = _G["g_UserGlobal['".."MyXP".."']"] end
 			currentXP = currentXP + scoredXP
-			if currentXP >= maximumXP then
-				-- levelling up!
-				triggerElementPrompt = "MyLevelUpText"
-				triggerElementPromptText = "YOU'VE LEVELLED UP!"
-				triggerElementPromptTimer = Timer()
-				if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
-				-- reset current XP
-				currentXP = currentXP - maximumXP
-				-- increase new points available
-				local pointavailable = 0 if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
-				_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable + 2
-				-- increase player level
-				local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-				playerlevel = playerlevel + 1
-				_G["g_UserGlobal['".."MyPlayerLevel".."']"] = playerlevel
-				-- new XP threshold for new player level
-				maximumXP = playerlevel * 500
-			end
-			modifyglobal = "MyXP" _G["g_UserGlobal['"..modifyglobal.."']"] = currentXP
-			modifyglobal = "MyXPMax" _G["g_UserGlobal['"..modifyglobal.."']"] = maximumXP
 		end
 	end
+	if currentXP >= maximumXP then
+		-- levelling up!
+		triggerElementPrompt = "MyLevelUpText"
+		triggerElementPromptText = "YOU'VE LEVELLED UP!"
+		triggerElementPromptTimer = Timer()
+		if GetGlobalSoundExist(hud0_sounds_levelup) ==1 then PlayGlobalSound(hud0_sounds_levelup) end
+		-- reset current XP
+		currentXP = currentXP - maximumXP
+		_G["g_UserGlobal['".."MyXP".."']"] = currentXP 
+		-- increase new points available
+		local pointavailable = 0 if _G["g_UserGlobal['".."MyNewPoints".."']"] ~= nil then pointavailable = _G["g_UserGlobal['".."MyNewPoints".."']"] end
+		_G["g_UserGlobal['".."MyNewPoints".."']"] = pointavailable + 2
+		-- increase player level
+		local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+		playerlevel = playerlevel + 1
+		_G["g_UserGlobal['".."MyPlayerLevel".."']"] = playerlevel
+		-- new XP threshold for new player level
+		maximumXP = playerlevel * 500
+	end
+	modifyglobal = "MyXP" _G["g_UserGlobal['"..modifyglobal.."']"] = currentXP
+	modifyglobal = "MyXPMax" _G["g_UserGlobal['"..modifyglobal.."']"] = maximumXP
   end
   
   -- handle any general element text work

@@ -2083,6 +2083,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayerspeed.lua");
 	addtocollection("scriptbank\\huds\\cursorcontrol.lua");
 
+	// not all cineguru scripts/associated files cover over, ensure they do
+	addfoldertocollection("scriptbank\\Cine Guru MAX");
+	addfoldertocollection("scriptbank\\user\\actors");
+
 	//PE: Missing foot step material sounds
 	addfoldertocollection("audiobank\\materials\\dirt");
 	addfoldertocollection("audiobank\\materials\\grass");

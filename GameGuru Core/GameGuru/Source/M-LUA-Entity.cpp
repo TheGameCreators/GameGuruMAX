@@ -1075,8 +1075,14 @@ void entity_lua_refreshentity ( void )
 				}
 				else
 				{
-					// entity needs creating
-					iRefreshMode = 2;
+					// in scenario where entity has been Hidden in the _INIT part of the script, do NOT refresh
+					// as cases such as CINEGURU elements, we keep them as is when they are hidden
+					sObject* pObject = g_ObjectList[t.obj];
+					if (pObject->bVisible == true)
+					{
+						// entity needs creating
+						iRefreshMode = 2;
+					}
 				}
 			}
 

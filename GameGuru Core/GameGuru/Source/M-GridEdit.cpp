@@ -6165,10 +6165,16 @@ void mapeditorexecutable_loop(void)
 
 				float fButWidth = 150.0f;
 				
+				/* sketchfab sold up and moved
 				if(bHideGGMaxMarketplace)
 					ImGui::Columns(2, "Marketplacecolumns4", false);  //false no border
 				else
 					ImGui::Columns(3, "Marketplacecolumns4", false);  //false no border
+				*/
+				if (bHideGGMaxMarketplace)
+					ImGui::Columns(1, "Marketplacecolumns4", false);  //false no border
+				else
+					ImGui::Columns(2, "Marketplacecolumns4", false);  //false no border
 
 				float fContentWidth = ImGui::GetContentRegionAvailWidth();
 				float fLogoWidth = fContentWidth;
@@ -6220,7 +6226,8 @@ void mapeditorexecutable_loop(void)
 					//ImGui::Text("");
 					vCurPos = ImGui::GetCursorPos();
 					fPromoHeight = ImGui::GetCursorPosY();
-					for (int i = 0; i < 3; i++)
+					//for (int i = 0; i < 3; i++) Sketchfab sold and moved, must remove
+					for (int i = 0; i < 2; i++)
 					{
 						TextureID = MARKETPLACE_FILLER;
 						ImVec4 vFadeIcons = { 1.0,1.0,1.0,0.2 };
@@ -6535,6 +6542,7 @@ void mapeditorexecutable_loop(void)
 					else
 					{
 						TextureID = MARKETPLACE_FILLER;
+						/*
 						if (ImageExist(MARKETPLACE_SKETCHFAB))
 							TextureID = MARKETPLACE_SKETCHFAB;
 
@@ -6568,28 +6576,7 @@ void mapeditorexecutable_loop(void)
 							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view this object on the Sketchfab Website");
 						}
 						ImGui::EndChild();
-						/* small previews rejected
-						for (int i = 0; i < StorePromoItems; i++)
-						{
-							TextureID = MARKETPLACE_FILLER;
-							ImVec4 vFadeIcons = { 1.0,1.0,1.0,0.2 };
 
-							if (ImageExist(sketchfab_dlc[i]))
-							{
-								TextureID = sketchfab_dlc[i];
-								vFadeIcons = { 1.0,1.0,1.0,1.0 };
-							}
-							if (ImGui::ImgBtn(TextureID, vPromoSize, ImVec4(0, 0, 0, 0), ImVec4(1, 1, 1, 1)*vFadeIcons, drawCol_hover*vFadeIcons, drawCol_Down*vFadeIcons, 0, 0, 0, 0, false, false, false, false, false, false))
-							{
-								if (sketchfab_link[i].Len() > 0)
-								{
-									ExecuteFile(sketchfab_link[i].Get(), "", "", 0);
-								}
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view this object on the Sketchfab Website");
-							if (i % 2 == 0) ImGui::SameLine();
-						}
-						*/
 						ImGui::Text("");
 						fPromoHeight = ImGui::GetCursorPosY() - fPromoHeight;
 
@@ -6605,6 +6592,7 @@ void mapeditorexecutable_loop(void)
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Click to view the Sketchfab Website");
 
+						*/
 						ImGui::SetWindowFontScale(1.0);
 					}
 				}

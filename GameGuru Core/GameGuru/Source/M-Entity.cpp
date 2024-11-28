@@ -2087,6 +2087,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].collectable.ingredients = "none";
 		t.entityprofile[t.entid].collectable.style = "none";
 
+		t.entityprofile[t.entid].blendmode = 0;
+
 		#endif
 
 		//  temp variable to hold which physics object we are on from the importer
@@ -4186,6 +4188,8 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.name_s=t.entityprofileheader[t.entid].desc_s;
 
 	#ifdef WICKEDENGINE
+	t.grideleprof.blendmode = t.entityprofile[t.entid].blendmode;
+
 	t.grideleprof.iFlattenID = -1; // never carries ID of individual elements
 	if (!g_bEnableAutoFlattenSystem) //PE: If disabled always disable autoflatten.
 		t.grideleprof.bAutoFlatten = false;
@@ -8702,6 +8706,9 @@ void entity_deleteentityfrommap ( void )
 	#endif
 
 	#ifdef WICKEDENGINE
+
+	t.entityelement[t.tupdatee].eleprof.blendmode = 0;
+
 	// remove flatten if any
 	if (t.entityelement[t.tupdatee].eleprof.iFlattenID != -1)
 	{

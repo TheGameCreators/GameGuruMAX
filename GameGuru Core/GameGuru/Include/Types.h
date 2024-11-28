@@ -5953,7 +5953,7 @@ struct entityprofiletype
 	float decaloffsety;
 	int ragdoll;
 	int nothrowscript;
-	int reserve1;
+	int blendmode;
 	int reserve2;
 	int reserve3;
 	int reserve4;
@@ -6093,7 +6093,7 @@ struct entityprofiletype
 		 reserve4 = 0;
 		 reserve3 = 0;
 		 reserve2 = 0;
-		 reserve1 = 0;
+		 blendmode = 0;
 		 nothrowscript = 0;
 		 ragdoll = 0;
 		 decaloffsety = 0.0f;
@@ -6438,6 +6438,7 @@ struct entityeleproftype
 	int clipcapacity;
 	int weaponpropres1;
 	int weaponpropres2;
+	int blendmode;
 
 	// Constructor
 	entityeleproftype ( )
@@ -6489,6 +6490,7 @@ struct entityeleproftype
 		clipcapacity = 0;
 		weaponpropres1 = 0;
 		weaponpropres2 = 0;
+		blendmode = 0;
 
 		 disableascharacter = 0;
 		 groupreference = -1;

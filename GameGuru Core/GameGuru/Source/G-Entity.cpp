@@ -868,6 +868,9 @@ void entity_reset_defaults(void)
 		t.entityelement[t.e].eleprof.iObjectRelationshipsData[i] = 0;
 		t.entityelement[t.e].eleprof.iObjectRelationshipsType[i] = 0;
 	}
+
+	t.entityelement[t.e].eleprof.blendmode = 0;
+
 	#endif
 }
 void entity_delete ( void )
@@ -5046,6 +5049,19 @@ void entity_prepareobj ( void )
 		{
 			//PE: AvengingEagle's Light Effects.
 			DisableObjectZWrite(t.tobj); //Additive blending.
+			void WickedCall_SetObjectBlendMode(sObject* pObject, int iBlendmode);
+			sObject* pObject = g_ObjectList[t.tobj];
+			if(pObject)
+				WickedCall_SetObjectBlendMode(pObject, BLENDMODE_ADDITIVE);
+			t.entityprofile[t.tentid].blendmode = BLENDMODE_ADDITIVE;
+			if (t.tte > 0)
+				t.entityelement[t.tte].eleprof.blendmode = BLENDMODE_ADDITIVE;
+			for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+			{
+				if (pObject->ppMeshList[iMesh]) pObject->ppMeshList[iMesh]->iCullMode = 0;
+			}
+			WickedCall_SetObjectCullmode(pObject);
+
 		}
 
 		if (t.entityprofile[t.tentid].bIsDecal)

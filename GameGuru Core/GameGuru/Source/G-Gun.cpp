@@ -18,6 +18,9 @@ cstr g_guns_customArms_s = "";
 int g_weaponbasicshadereffectindex = 0;
 int g_weaponboneshadereffectindex = 0;
 
+void gun_flashbrass_position(float* pfWorldPosX, float* pfWorldPosY, float* pfWorldPosZ, float fModX, float fModY, float fModZ);
+template<typename T> static inline T PELerp(T a, T b, float t) { return (T)(a + (b - a) * t); }
+
 // 
 //  GUN CORE
 // 
@@ -869,7 +872,17 @@ void gun_update_hud ( void )
 			{
 				// non-VR mode
 				t.gunax_f = CameraAngleX(); t.gunay_f = CameraAngleY();
-				RotateObject(g.hudbankoffset + 2, t.gunax_f, t.gunay_f, 0);
+
+				if (g.luacameraoverride == 3)
+				{
+					//PE: In this mode , make sure arms/weapon display correct and tilt with camera.
+					RotateObject(g.hudbankoffset + 2, CameraAngleX(), CameraAngleY(), CameraAngleZ());
+				}
+				else
+				{
+					RotateObject(g.hudbankoffset + 2, t.gunax_f, t.gunay_f, 0);
+				}
+
 				PositionObject(g.hudbankoffset + 2, CameraPositionX(), CameraPositionY() + t.tsimwoddle_f, CameraPositionZ());
 				if (g_bNeedToRestoreLimbsAfterVR == true)
 				{
@@ -1356,7 +1369,57 @@ void gun_control ( void )
 		if ( t.woy_f < fSwayYN ) t.woy_f = fSwayYN;
 		if ( t.woy_f > fSwayY ) t.woy_f = fSwayY;
 	}
+
 	RotateObject ( t.currentgunobj, t.wox_f, 180-t.woy_f, t.woz_f );
+
+	/*
+	//PE: Display line from weapon to where bullet hits.
+	wiRenderer::RenderableLine line;
+	float fX, fY, fZ;
+	static float fLX, fLY, fLZ;
+
+	int iSmokeLimb = t.gun[t.gunid].settings.smokelimb;
+	if (iSmokeLimb <= 0)  iSmokeLimb = t.gun[t.gunid].settings.brasslimb;
+	if (iSmokeLimb > 0)
+	{
+		// position from smoke or brass limb
+		fX = LimbPositionX(t.currentgunobj, iSmokeLimb);
+		fY = LimbPositionY(t.currentgunobj, iSmokeLimb);
+		fZ = LimbPositionZ(t.currentgunobj, iSmokeLimb);
+	}
+	else
+	{
+		// gun flash position
+		float fWorldPosX, fWorldPosY, fWorldPosZ;
+		gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+		fX = fWorldPosX;
+		fY = fWorldPosY;
+		fZ = fWorldPosZ;
+	}
+
+	fLX = PELerp(fLX, fX, 0.9f);
+	fLY = PELerp(fLY, fY, 0.9f);
+	fLZ = PELerp(fLZ, fZ, 0.9f);
+
+	MoveCamera(550.0);
+	line.color_start.x = 0.5f;
+	line.color_start.y = 0.3f;
+	line.color_start.z = 0.1f;
+	line.color_start.w = 0.2f;
+	line.color_end.x = 1.0f;
+	line.color_end.y = 0.3f;
+	line.color_end.z = 0.0f;
+	line.color_end.w = 0.9f;
+	line.start.x = fLX;
+	line.start.y = fLY;
+	line.start.z = fLZ;
+	line.end.x = CameraPositionX(0);
+	line.end.y = CameraPositionY(0);
+	line.end.z = CameraPositionZ(0);
+	MoveCamera(-550.0);
+	wiRenderer::DrawLine(line);
+	*/
+
 
 	//  hide the object if weapon-ammo and no qty left
 	//  OR a grenade with no ammo and not throwing at the time

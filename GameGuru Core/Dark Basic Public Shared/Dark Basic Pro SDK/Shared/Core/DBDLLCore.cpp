@@ -112,7 +112,9 @@ bool CheckTutorialAction(const char * action, float x_adder = 0.0f);
 bool CheckTutorialPlaceit(void);
 #endif
 
-#define INCLUDEVRAM
+//LB: g_iActiveAdapterNumber global does not exist in commit as at 1/12/2024
+//#define INCLUDEVRAM
+
 #ifdef INCLUDEVRAM
 float GetVramUsage(void);
 #endif

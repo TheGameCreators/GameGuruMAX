@@ -3377,6 +3377,30 @@ bool WickedCall_GetObjectTransparentDirect(sObject* pObject)
 	return bTransparent;
 }
 
+void WickedCall_SetObjectBlendMode(sObject* pObject, int iBlendmode)
+{
+	if (!pObject) return;
+
+	for (int iM = 0; iM < pObject->iMeshCount; iM++)
+	{
+		if (pObject->ppMeshList[iM])
+		{
+			wiScene::MeshComponent* mesh = wiScene::GetScene().meshes.GetComponent(pObject->ppMeshList[iM]->wickedmeshindex);
+			if (mesh)
+			{
+				uint64_t materialEntity = mesh->subsets[0].materialID;
+				wiScene::MaterialComponent* pObjectMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+				if (pObjectMaterial)
+				{
+					pObjectMaterial->userBlendMode = (BLENDMODE) iBlendmode;
+					pObjectMaterial->SetDirty(true);
+				}
+			}
+		}
+	}
+}
+
+
 void WickedCall_SetObjectAlphaRef(sObject* pObject, float fAlphaRef)
 {
 	for (int iM = 0; iM < pObject->iMeshCount; iM++)

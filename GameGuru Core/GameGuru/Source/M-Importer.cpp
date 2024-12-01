@@ -11918,7 +11918,11 @@ void Wicked_Set_Material_From_grideleprof_ThisMesh(void* pVObject, int mode, ent
 
 			// transparency
 			bTransparent = edit_grideleprof->WEMaterial.bTransparency[iSelectedMesh];
-			if (bTransparent)
+			if (edit_grideleprof->blendmode > 0)
+			{
+				pObjectMaterial->userBlendMode = (BLENDMODE) edit_grideleprof->blendmode;
+			}
+			else if (bTransparent)
 			{
 				pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
 			}

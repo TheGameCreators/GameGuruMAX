@@ -2844,7 +2844,10 @@ void game_masterroot_gameloop_afterloopcode(int iUseVRTest)
 	t.terrain.waterliney_f = g.gdefaultwaterheight;
 
 	reset_env_particles();
+	void delete_notused_decal_particles(void);
+	//PE: Make sure to delete not used decal particles.
 
+	delete_notused_decal_particles();
 	//PE: restore sun position for editor.
 	t.terrain.sundirectionx_f = t.terrain.skysundirectionx_f;
 	t.terrain.sundirectiony_f = t.terrain.skysundirectiony_f;

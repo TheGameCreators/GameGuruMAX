@@ -30197,6 +30197,26 @@ void gridedit_recreateentitycursor ( void )
 			t.entityprofile[t.gridentity].castshadow = -1;
 		}
 		
+		cstr sEffectLower = Lower(t.entityprofile[t.gridentity].effect_s.Get());
+		if (sEffectLower == "effectbank\\reloaded\\decal_animate1_additive.fx")
+		{
+			//PE: AvengingEagle's Light Effects.
+			DisableObjectZWrite(t.obj); //Additive blending.
+			void WickedCall_SetObjectBlendMode(sObject * pObject, int iBlendmode);
+			sObject* pObject = g_ObjectList[t.obj];
+			if (pObject)
+				WickedCall_SetObjectBlendMode(pObject, BLENDMODE_ADDITIVE);
+			t.entityprofile[t.gridentity].blendmode = BLENDMODE_ADDITIVE;
+			if (ele_id > 0)
+				t.entityelement[ele_id].eleprof.blendmode = BLENDMODE_ADDITIVE;
+			for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+			{
+				if (pObject->ppMeshList[iMesh]) pObject->ppMeshList[iMesh]->iCullMode = 0;
+			}
+			WickedCall_SetObjectCullmode(pObject);
+
+		}
+
 		//PE: Old decal support.
 		if (t.entityprofile[t.gridentity].bIsDecal)
 		{

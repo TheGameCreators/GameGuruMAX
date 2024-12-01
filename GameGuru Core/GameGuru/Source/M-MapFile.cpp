@@ -2211,6 +2211,11 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	// include original FPM
 	addtocollection(t.tmasterlevelfile_s.Get());
 
+	//PE: Add .lst version , this is to be used for thread loading of level textures and objects.
+	std::string lstfile = t.tmasterlevelfile_s.Get();
+	replaceAll(lstfile, ".fpm", ".lst");
+	addtocollection( (char *) lstfile.c_str());
+
 	// Pre-Stage 2 - clear a list which will collect all folders/files to REMOVE from the final standalone file transfer
 	// list, courtesy of the special FPP file which controls the final files to be used for standalone creation
 	// (eventually to be controlled from a nice UI)

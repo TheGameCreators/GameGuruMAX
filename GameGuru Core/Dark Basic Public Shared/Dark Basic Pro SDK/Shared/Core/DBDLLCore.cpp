@@ -112,6 +112,10 @@ bool CheckTutorialAction(const char * action, float x_adder = 0.0f);
 bool CheckTutorialPlaceit(void);
 #endif
 
+#define INCLUDEVRAM
+#ifdef INCLUDEVRAM
+float GetVramUsage(void);
+#endif
 const char *pestrcasestr(const char *arg1, const char *arg2);
 bool g_bDisableQuitFlag = false;
 
@@ -792,11 +796,27 @@ void ShowMemDebug(void)
 	extern ImFont* customfont;
 	if (draw && customfont)
 	{
-		float wide = 200;// 160;
-		float fGBMemUsed = (float)SMEMAvailable(1) / 1024.0 / 1024.0;
+		static uint32_t memupdatecount = 0;
+		float wide = 200.0f;// 160;
+		static float fGBMemUsed = 0;
+		static float oldfps = ImGui::GetIO().Framerate;
 		char memtmp[255];
-		sprintf(memtmp, "FPS: %.1f Mem GB: %.3f", ImGui::GetIO().Framerate, fGBMemUsed);
-		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y+3.0), IM_COL32(255, 255, 255, 255), memtmp);
+		memupdatecount++;
+		if(memupdatecount % 10 == 0)
+			fGBMemUsed = (float)SMEMAvailable(1) / 1024.0 / 1024.0;
+
+#ifdef INCLUDEVRAM
+		static float vram = 0;
+		if (memupdatecount % 13 == 0)
+			vram = GetVramUsage();
+		sprintf(memtmp, "FPS %.1f Mem %.2f VRam %.2f", (ImGui::GetIO().Framerate + oldfps) * 0.5f, fGBMemUsed, vram / 1024.0f);
+		wide = 210.0f;
+#else
+		//sprintf(memtmp, "FPS: %.1f Mem GB: %.3f", ImGui::GetIO().Framerate, fGBMemUsed);
+		sprintf(memtmp, "FPS: %.1f Mem GB: %.3f", (ImGui::GetIO().Framerate + oldfps) * 0.5f, fGBMemUsed);
+#endif
+		oldfps = ImGui::GetIO().Framerate;
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y+4.0), IM_COL32(255, 255, 255, 255), memtmp);
 	}
 }
 #endif
@@ -5656,3 +5676,20 @@ DARKSDK void SetDataPointer(LPSTR Current)
 		Current = g_pDataLabelEnd;
 	g_pDataLabelPtr = Current;
 }
+
+
+#ifdef INCLUDEVRAM
+#include <dxgi1_4.h>
+float GetVramUsage(void)
+{
+	extern uint32_t g_iActiveAdapterNumber;
+
+	IDXGIFactory4* pFactory;
+	CreateDXGIFactory1(__uuidof(IDXGIFactory4), (void**)&pFactory);
+	IDXGIAdapter3* adapter;
+	pFactory->EnumAdapters(0, reinterpret_cast<IDXGIAdapter**>(&adapter));
+	DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
+	adapter->QueryVideoMemoryInfo(g_iActiveAdapterNumber, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo);
+	return (float)videoMemoryInfo.CurrentUsage / 1024.0f / 1024.0f;
+}
+#endif

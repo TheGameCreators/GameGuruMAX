@@ -2087,6 +2087,8 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].collectable.ingredients = "none";
 		t.entityprofile[t.entid].collectable.style = "none";
 
+		t.entityprofile[t.entid].blendmode = 0;
+
 		#endif
 
 		//  temp variable to hold which physics object we are on from the importer
@@ -4186,6 +4188,8 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.name_s=t.entityprofileheader[t.entid].desc_s;
 
 	#ifdef WICKEDENGINE
+	t.grideleprof.blendmode = t.entityprofile[t.entid].blendmode;
+
 	t.grideleprof.iFlattenID = -1; // never carries ID of individual elements
 	if (!g_bEnableAutoFlattenSystem) //PE: If disabled always disable autoflatten.
 		t.grideleprof.bAutoFlatten = false;
@@ -8702,6 +8706,9 @@ void entity_deleteentityfrommap ( void )
 	#endif
 
 	#ifdef WICKEDENGINE
+
+	t.entityelement[t.tupdatee].eleprof.blendmode = 0;
+
 	// remove flatten if any
 	if (t.entityelement[t.tupdatee].eleprof.iFlattenID != -1)
 	{
@@ -9242,7 +9249,14 @@ void entity_redo ( void )
 	entity_undo ( );
 }
 #endif
-
+std::vector<int> delete_decal_particles;
+void delete_notused_decal_particles( void )
+{
+	for (int i = 0; i < delete_decal_particles.size(); i++)
+	{
+		gpup_deleteEffect(delete_decal_particles[i]);
+	}
+}
 void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation)
 {
 	// show or hide based on editor vs test game
@@ -9261,6 +9275,7 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
 			gpup_emitterActive(iParticleEmitter, 0);
 			pParticle->emitterid = iParticleEmitter;
+			delete_decal_particles.push_back(iParticleEmitter);
 		}
 	}
 	if (iParticleEmitter != -1)
@@ -9419,6 +9434,7 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 
 void newparticle_deleteparticleemitter( int iParticleEffect )
 {
+	delete_decal_particles.erase(std::remove(delete_decal_particles.begin(), delete_decal_particles.end(), iParticleEffect), delete_decal_particles.end());
 	gpup_deleteEffect(iParticleEffect);
 }
 

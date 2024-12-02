@@ -1185,7 +1185,6 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 	// Change any mesh settings so they display correctly.
 	for (int iMeshIndex = 0; iMeshIndex < pObjectToRecreateInWicked->iMeshCount; iMeshIndex++)
 	{
-		//char* pNameFromTexture = ;
 		for (int i = 0; i < g_MeshesThatNeedDoubleSided.size(); i++)
 		{
 			if (strstr(pObjectToRecreateInWicked->ppMeshList[iMeshIndex]->pTextures[1].pName, g_MeshesThatNeedDoubleSided[i]))
@@ -1213,7 +1212,16 @@ void charactercreatorplus_change(char *path, int part, char* tag)
 		}
 
 		// and set character to use full reflectance (as all body parts have alpha data in surface texture)
-		WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		// LB: reduced from 1.0 to 0.04 to reduce washed out look on no/minimal normal maps 
+		//LB: Changed back to 0.04 reflectance to solve washed out look on surfaces with no/minimal normal map
+		//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		char* pNameFromTexture = pObjectToRecreateInWicked->ppMeshList[iMeshIndex]->pTextures[0].pName;
+		bool bNeedReflectance = false;
+		if (pNameFromTexture && pestrcasestr(pNameFromTexture, "glasses")) bNeedReflectance = true;
+		if (bNeedReflectance)
+			WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		else
+			WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 0.04f);
 	}
 
 	for (int i = 0; i < 8; i++) g_iPartsThatNeedReloaded[i] = 0;
@@ -2124,17 +2132,18 @@ void charactercreatorplus_refreshtype(void)
 	WickedCall_UpdateObject ( pObjectToRecreateInWicked );
 	WickedCall_TextureObject ( pObjectToRecreateInWicked, NULL);
 	// and set character to use full reflectance (as all body parts have alpha data in surface texture)
-	//PE: reduced from 1.0 to 0.002 as it gives a bluish shine on the edges of the ccp.
+	// PE: reduced from 1.0 to 0.002 as it gives a bluish shine on the edges of the ccp.
 	for (int iMeshIndex = 0; iMeshIndex < pObjectToRecreateInWicked->iMeshCount; iMeshIndex++)
 	{
-		//char * pNameFromTexture = pObjectToRecreateInWicked->ppMeshList[iMeshIndex]->pTextures[0].pName;
-		//bool bNeedReflectance = false;
-		//if (pNameFromTexture && pestrcasestr(pNameFromTexture, "glasses")) bNeedReflectance = true;
-		//if (bNeedReflectance)
-			//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
-		//else
-			//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 0.002f);
-		WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		//LB: Changed back to 0.04 reflectance to solve washed out look on surfaces with no/minimal normal map
+		//WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		char * pNameFromTexture = pObjectToRecreateInWicked->ppMeshList[iMeshIndex]->pTextures[0].pName;
+		bool bNeedReflectance = false;
+		if (pNameFromTexture && pestrcasestr(pNameFromTexture, "glasses")) bNeedReflectance = true;
+		if (bNeedReflectance)
+			WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 1.0f);
+		else
+			WickedCall_SetReflectance(pObjectToRecreateInWicked->ppMeshList[iMeshIndex], 0.04f);
 	}
 
 	// place character in scene

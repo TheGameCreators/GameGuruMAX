@@ -12,7 +12,7 @@
 #endif
 
 // Externs
-extern void newparticle_updateparticleemitter (newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation);
+extern void newparticle_updateparticleemitter (newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation, bool bAutoDelete);
 
 // 
 //  Decal Module
@@ -228,10 +228,10 @@ void decal_load ( void )
 		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
 		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = true;
 		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = true;
-		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // pre-load!
+		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true); // pre-load!
 		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
 		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
-		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation); // update it!
+		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true); // update it!
 	}
 	#endif
 }
@@ -748,7 +748,7 @@ void decalelement_control ( void )
 				float fRY = 0.0f;
 				float fRZ = 0.0f;
 				GGMatrixRotationY(&pmatBaseRotation, GGToRadian(fRY));
-				newparticle_updateparticleemitter(&t.decalelement[t.f].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, NULL);
+				newparticle_updateparticleemitter(&t.decalelement[t.f].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, NULL, true);
 
 				// detect when burst finished so can set active back to zero and remove emitter
 				t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f * 2 * t.decal[t.decalid].playspeed_f);

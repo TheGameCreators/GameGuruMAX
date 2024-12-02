@@ -445,7 +445,12 @@ void entity_lua_spawn_core ( void )
 				t.tte=t.e ; entity_converttoinstance ( );
 				PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );
 				RotateObject (  t.obj,t.entityelement[t.e].rx,t.entityelement[t.e].ry,t.entityelement[t.e].rz );
-				t.tentid=t.entid ; t.tte=t.e ; t.tobj=t.obj  ; entity_resettodefaultanimation ( );
+				t.tentid=t.entid ; t.tte=t.e ; t.tobj=t.obj  ;
+				//PE: Do not touch animations if object is already visible, only on new spawed objects.
+				if (!GetVisible(t.tobj))
+				{
+					entity_resettodefaultanimation();
+				}
 				ShowObject (  t.obj );
 			}
 		}

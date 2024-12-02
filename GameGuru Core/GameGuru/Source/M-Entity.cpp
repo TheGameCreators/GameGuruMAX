@@ -9257,7 +9257,7 @@ void delete_notused_decal_particles( void )
 		gpup_deleteEffect(delete_decal_particles[i]);
 	}
 }
-void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation)
+void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation,bool bAutoDelete)
 {
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
@@ -9275,7 +9275,8 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
 			gpup_emitterActive(iParticleEmitter, 0);
 			pParticle->emitterid = iParticleEmitter;
-			delete_decal_particles.push_back(iParticleEmitter);
+			if(bAutoDelete)
+				delete_decal_particles.push_back(iParticleEmitter);
 		}
 	}
 	if (iParticleEmitter != -1)
@@ -9446,7 +9447,7 @@ void entity_updateparticleemitterbyID ( entityeleproftype* pEleprof, int iObj, f
 	if (pObject) pmatBaseRotation = &pObject->position.matRotation;
 
 	// control particle settings via ptr
-	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation);
+	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation,false);
 }
 
 void entity_updateparticleemitter ( int e )

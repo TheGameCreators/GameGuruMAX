@@ -34623,7 +34623,11 @@ void Welcome_Screen(void)
 
 				// TRUSTED UDER ACCOUNT ID
 				bool bOnlyTrustedSteamUsersForNow = false;
+				#ifndef GGMAXEPIC
 				uint64 uAccountID = 0;
+				#else
+				int uAccountID = 0;
+				#endif
 				#ifndef GGMAXEDU
 				if (SteamUGC())
 				{

@@ -977,7 +977,7 @@ void Master::Update(float dt)
 				SDKOptions.AllocateMemoryFunction = nullptr;
 				SDKOptions.ReallocateMemoryFunction = nullptr;
 				SDKOptions.ReleaseMemoryFunction = nullptr;
-				SDKOptions.ProductName = "GameGuruMAX";
+				SDKOptions.ProductName = "GameGuru MAX";
 				SDKOptions.ProductVersion = "1.0";
 				SDKOptions.SystemInitializeOptions = nullptr;
 				SDKOptions.OverrideThreadAffinity = nullptr;
@@ -1037,6 +1037,9 @@ void Master::Update(float dt)
 									Credentials.Type = EOS_ELoginCredentialType::EOS_LCT_ExchangeCode;
 									Credentials.Id = NULL;
 									Credentials.Token = pExchangeCode;
+									//char pExCode[MAX_PATH];
+									//sprintf(pExCode, "Exchange Code: %s (%s)", gRefCommandLineString, pExchangeCode);
+									//timestampactivity(0, pExCode);
 								}
 								else
 								{
@@ -1057,6 +1060,9 @@ void Master::Update(float dt)
 									FPlatform::Update();
 									Sleep(1);
 								}
+								//char pLoginResult[MAX_PATH];
+								//sprintf(pLoginResult, "Login Result: %s (%d)", g_pEPICLoginStatus.Get(), (int)g_pEPICLocalUserID);
+								//timestampactivity(0, pLoginResult);
 								if (g_pEPICLocalUserID)
 								{
 									timestampactivity(0, "[EOS SDK] EOS_Platform_GetEcomInterface...");
@@ -1065,10 +1071,11 @@ void Master::Update(float dt)
 									memset(&OwnershipOptions, 0, sizeof(OwnershipOptions));
 									OwnershipOptions.ApiVersion = EOS_ECOM_QUERYOWNERSHIP_API_LATEST;
 									OwnershipOptions.LocalUserId = g_pEPICLocalUserID;
-									EOS_Ecom_CatalogItemId CatalogItemArray[1];
-									CatalogItemArray[0] = "83a86f5a2ae4484c92038714256a2cd2";
+									EOS_Ecom_CatalogItemId CatalogItemArray[2];
+									CatalogItemArray[0] = "defe1f286d294267ae1d2d84c7bde024"; // from Full SKU spreadsheet
+									CatalogItemArray[1] = "ec6a6e2f5ac54daea88a18b9d7e58835"; // staging and live
 									OwnershipOptions.CatalogItemIds = CatalogItemArray;
-									OwnershipOptions.CatalogItemIdCount = 1;
+									OwnershipOptions.CatalogItemIdCount = 2;
 									OwnershipOptions.CatalogNamespace = NULL;
 									void* pMyVoidPtr = new int[10];
 									EOS_Ecom_QueryOwnership(EcomHandle, &OwnershipOptions, pMyVoidPtr, EOS_Ecom_OnQueryOwnershipCallbackFn);

@@ -10482,11 +10482,11 @@ void entity_calculateeuleryfromquat (int e)
 	}
 }
 
+#ifndef GGMAXEPIC
 #include "M-Workshop.h"
 extern std::vector<sWorkshopItem> g_workshopItemsList;
 extern std::vector<sWorkshopSteamUserName> g_workshopSteamUserNames;
 extern std::vector<PublishedFileId_t> g_workshopTrustedItems;
-
 bool workshop_verifyandorreplacescript(int e, int entid)
 {
 #ifndef OPTICK_ENABLE
@@ -10545,3 +10545,10 @@ bool workshop_verifyandorreplacescript(int e, int entid)
 	return false;
 #endif
 }
+#else
+bool workshop_verifyandorreplacescript(int e, int entid)
+{
+	// does nothing in EPIC mode
+	return false;
+}
+#endif

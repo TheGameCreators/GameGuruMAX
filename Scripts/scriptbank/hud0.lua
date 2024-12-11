@@ -3,6 +3,8 @@
 cursorControl = require "scriptbank\\huds\\cursorcontrol"
 local U = require "scriptbank\\utillib"
 
+g_liveHudScreen = 0
+
 g_sprCursorPtrX = 50
 g_sprCursorPtrY = 33
 g_sprCursorPtrClick = 0
@@ -358,7 +360,7 @@ function hud0.main()
   if GetCurrentScreen() > -1 then
   
 	-- switch to mouse mode  
-	if hud0_freezeforpointer == 0 then 
+	if hud0_freezeforpointer == 0 and g_liveHudScreen == 0 then 
 		SetCameraOverride(3)
 		FreezePlayer()
 		ActivateMouse()

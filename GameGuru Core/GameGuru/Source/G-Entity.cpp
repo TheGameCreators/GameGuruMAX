@@ -3416,10 +3416,14 @@ void entity_applydamage ( void )
 void entity_applydecalfordamage ( int ee, float fX, float fY, float fZ)
 {
 	// create either material decal specified in FPE or blood decal
-	if (t.entityelement[ee].health > 10)
+	if ( 1 )//t.entityelement[ee].health > 10) statics have no strength!
 	{
 		int entid = t.entityelement[ee].bankindex;
-		t.tttriggerdecalimpact = 2;
+		if (fX == -1 && fX == -1 && fX == -1)
+		{
+			// and only assume blood if called from a character/entity hurt function
+			t.tttriggerdecalimpact = 2;
+		}
 		if (t.entityprofile[entid].bloodscorch == 0)
 		{
 			if (t.entityprofile[entid].decalmax > 0 && t.entitydecal[entid][0] > 0)

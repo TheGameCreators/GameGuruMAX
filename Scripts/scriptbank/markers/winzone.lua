@@ -1,6 +1,6 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Winzone v17 by Necrym59 and Lee
--- DESCRIPTION: When the player enters this zone, <Sound0> will play and the level is complete.
+-- Winzone v18 by Necrym59 and Lee
+-- DESCRIPTION: When the player enters this zone or is optionally activated remotely, <Sound0> will play and the level is complete.
 -- DESCRIPTION: [NOTES_TEXT$="This winzone takes the user to a new level"]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 -- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
@@ -10,7 +10,7 @@
 -- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$=""] user global required for using spawn markers (eg: MySpawnMarkers)
 -- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether to load the next level in the Storyboard, or a specific level.
-
+-- DESCRIPTION: [REMOTE_ACTIVATED!=0] is allowed
 -- DESCRIPTION: <Video Slot> for optional ending video
 
 local winzone 					= {}
@@ -27,7 +27,7 @@ local status			= {}
 local endimg			= {}
 local endvid			= {}
 	
-function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates, ending_mode, ending_imagefile, spawn_marker_user_global, spawn_marker_name)
+function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates, ending_mode, ending_imagefile, spawn_marker_user_global, spawn_marker_name, gotolevelmode, remote_activated)
 	winzone[e].notes_text = notes_text
 	winzone[e].zoneheight = zoneheight or 100
 	winzone[e].spawnatstart = spawnatstart
@@ -38,6 +38,8 @@ function winzone_properties(e, notes_text, zoneheight, spawnatstart, resetstates
 	winzone[e].ending_imagefile = ending_imagefile
 	winzone[e].spawn_marker_user_global = spawn_marker_user_global or ""
 	winzone[e].spawn_marker_name = spawn_marker_name or ""
+	--gotolevelmode missing from params and seemingly not used
+	winzone[e].remote_activated = remote_activated or 0
 end
  
 function winzone_init(e)
@@ -50,6 +52,7 @@ function winzone_init(e)
 	winzone[e].ending_imagefile = ""
 	winzone[e].spawn_marker_user_global = ""
 	winzone[e].spawn_marker_name = ""	
+	winzone[e].remote_activated = 0
 	status[e] = "init"
 	endvid[e] = 0
 end
@@ -65,10 +68,12 @@ function winzone_main(e)
 			SetSpritePosition(endimg[e],500,500)
 		end			
 		status[e] = "endinit"
-	end
-
+	end	
 	if g_Entity[e]['activated'] == 1 then		
-		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+winzone[e].zoneheight then
+		tcanendthelevel = 0
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+winzone[e].zoneheight then tcanendthelevel = 1 end
+		if winzone[e].remote_activated == 1 then tcanendthelevel = 1 end
+		if g_PlayerHealth > 0 and tcanendthelevel == 1 then
 			if _G["g_UserGlobal['"..winzone[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..winzone[e].spawn_marker_user_global.."']"] = winzone[e].spawn_marker_name end
 			if winzone[e].ending_mode == 1 then 
 				JumpToLevelIfUsedEx(e,winzone[e].resetstates)

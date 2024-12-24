@@ -2608,6 +2608,7 @@ GetTerrainCollisionDetails( objectId, num )
 -- DisplayScreen : DisplayScreen
 -- DisplayCurrentScreen : buttonid = DisplayCurrentScreen() -- returns the ID of any HUD button pressed that has the 'return button ID to LUA' set
 -- GetCurrentScreen : GetCurrentScreen
+-- GetCurrentScreenName : GetCurrentScreenName
 -- CheckScreenToggles : CheckScreenToggles
 -- ScreenToggle : ScreenToggle ( HUD Screen Name ) -- switch to the specified HUD screen
 -- ScreenToggleByKey : ScreenToggleByKey ( HUD Screen Toggle Key ) -- switch to the specified HUD screen

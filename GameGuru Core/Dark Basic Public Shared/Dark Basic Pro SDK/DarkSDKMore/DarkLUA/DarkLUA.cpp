@@ -7070,6 +7070,17 @@ int GetCurrentScreen(lua_State* L)
 	lua_pushnumber(L, t.game.activeStoryboardScreen);
 	return 1;
 }
+int GetCurrentScreenName(lua_State* L)
+{
+	std::string check_lua_title = "";
+	if (t.game.activeStoryboardScreen >= 0)
+	{
+		check_lua_title = Storyboard.Nodes[t.game.activeStoryboardScreen].title;
+	}
+	lua_pushstring(L, check_lua_title.c_str());
+	return 1;
+}
+
 int GetScreenWidgetValue(lua_State *L)
 {
 	float fRet = -99999.0;
@@ -12798,6 +12809,7 @@ void addFunctions()
 	lua_register(lua, "DisplayScreen", DisplayScreen);
 	lua_register(lua, "DisplayCurrentScreen", DisplayCurrentScreen);
 	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
+	lua_register(lua, "GetCurrentScreenName", GetCurrentScreenName);
 	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
 	lua_register(lua, "ScreenToggle", ScreenToggle);
 	lua_register(lua, "ScreenToggleByKey", ScreenToggleByKey);

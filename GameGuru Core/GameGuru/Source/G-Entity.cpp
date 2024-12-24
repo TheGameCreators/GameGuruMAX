@@ -95,8 +95,12 @@ void entity_init ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if (  t.entid>0 ) 
 		{
-			//  Activate entity
-			t.entityelement[t.e].active=1;
+			// Activate entity
+			if (t.entityelement[t.e].eleprof.spawnatstart == 1 )
+			{
+				// LB: only activate entities that are set to spawn at start
+				t.entityelement[t.e].active = 1;
+			}
 			t.tobj=t.entityelement[t.e].obj;
 			if (  t.tobj>0 ) 
 			{

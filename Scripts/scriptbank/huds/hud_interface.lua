@@ -1,8 +1,9 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hud_Interface v8 by Necrym59
+-- Hud_Interface v9 by Necrym59 and Lee
 -- DESCRIPTION: Will this will enable to use a hud screen as an interface for the attached object. 
 -- DESCRIPTION: Ensure your Hud Button names match the ones you put in here and are set to "return id to lua".
 -- DESCRIPTION: Optionally reduce use range to 1 to allow HUD control anytime the specified HUD is visible.
+-- DESCRIPTION: If used by a zone, the specified HUD will show when the player enters the zone.
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [USE_TEXT$="E to Use"]
 -- DESCRIPTION: [HUD_SCREEN$="HUD Screen 9"]
@@ -109,6 +110,12 @@ function hud_interface_main(e)
 	end
 
 	if status[e] == "start" then
+		-- zone behaviour
+		if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+100 then
+			-- OPEN HUD
+			ScreenToggle(hud_interface[e].hud_screen)
+			status[e] = "interface"
+		end
 		if hud_interface[e].use_range == 1 then
 			-- responds instead whenever the HUD screen is visible (i.e opened by a hotkey)
 			if GetCurrentScreen() > 0 then

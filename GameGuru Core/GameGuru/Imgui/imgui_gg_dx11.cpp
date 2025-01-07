@@ -6853,15 +6853,18 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 	tmpeleprof->PropertiesVariable.iVariables = 0;
 	tmpeleprof->PropertiesVariable.VariableDescription = "";
 	//scriptbank\markers\storyinzone.lua fails.
+
 	FILE* fScript = GG_fopen(script, "r");
 	if (fScript)
 	{
-		char ctmp[4096];
+		char ctmp[8192];
+		int include_returns = 0;
+		int description_lines = 0;
 		bool bFirstLine = true;
 		while (!feof(fScript))
 		{
-			fgets(ctmp, 4095 , fScript);
-			ctmp[4095] = 0;
+			fgets(ctmp, 8190 , fScript);
+			ctmp[8190] = 0;
 			if (strlen(ctmp) > 0 && ctmp[strlen(ctmp) - 1] == '\n')
 				ctmp[strlen(ctmp) - 1] = 0;
 			int cadd = 0;
@@ -6885,12 +6888,32 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 					tmpeleprof->PropertiesVariable.VariableDescription += " "; 
 					tmpeleprof->PropertiesVariable.VariableDescription += ctmp;
 				}
+				description_lines++;
 				//Activate Propertie Variables.
 				bFirstLine = false;
 			}
-
 		}
 		fclose(fScript);
+
+		//PE: Make error for scripts with missing newline.
+		if (description_lines <= 1)
+		{
+			//PE: Check if lua files is missing \n newlines this can really give strange results.
+			strcpy(ctmp, tmpeleprof->PropertiesVariable.VariableDescription.Get());
+			//PE: Scan for non newline text file.
+			for (int i = 0; i < strlen(ctmp); i++)
+			{
+				if (ctmp[i] == '\r')
+				{
+					include_returns++;
+					break;
+				}
+			}
+			if (include_returns > 0)
+			{
+				tmpeleprof->PropertiesVariable.VariableDescription = "Lua script is missing 'newlines' and description can't be parsed!";
+			}
+		}
 
 		//Activate Propertie Variables.
 		bFirstLine = false;

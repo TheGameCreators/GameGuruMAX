@@ -7739,7 +7739,12 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							}
 						}
 					}
-					if (bIsAQuestList == true && iQuestIndex > 0)
+					bool bBelowQuestCombo = false;
+					if (strstr(tmpeleprof->PropertiesVariable.Variable[i], "QuestChoice") != NULL)
+					{
+						bBelowQuestCombo = true;
+					}
+					if (bBelowQuestCombo && bIsAQuestList == true && iQuestIndex > 0)
 					{
 						bool bDoARefresh = false;
 						float but_gadget_size = ImGui::GetFontSize() * 12.0;

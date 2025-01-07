@@ -1,6 +1,7 @@
 
 #define PEOPTIMIZING
 #define TERRAINTHREADSAFE
+#define ONLYLOADWHENUSED
 
 #include <string>
 #include "Utility/stb_image.h"
@@ -122,6 +123,11 @@ using namespace GGGrass;
 #define GGKEY_F6		0x75
 #define GGKEY_F7		0x76
 #define GGKEY_F8		0x77
+
+//extern std::string FinalGameGuruMaxFolder;
+#ifdef ONLYLOADWHENUSED
+bool bCheckForNewTerrainTextures = false;
+#endif
 
 extern wiECS::Entity g_entitySunLight;
 extern bool bImGuiGotFocus;
@@ -4116,13 +4122,30 @@ void GGTerrain_CreateFractalTexture( Texture* tex, uint32_t size )
 	}
 	*/
 
-	
+	uint8_t* imageData = new uint8_t[size * size];
+#ifdef ONLYLOADWHENUSED
+	FILE* loadfile = GG_fopen("files/treebank/FractalGenerator.dat", "rb");
+	if (loadfile)
+	{
+		size_t readsize = fread(imageData, 1, size * size, loadfile);
+		fclose(loadfile);
+	}
+	else
+	{
+#endif
+		//PE: This is slow , so cache it , it generate the same data anyway.
+		FractalGenerator::SetWork(imageData, size, size);
+		FractalGenerator::StartThreads();
+		FractalGenerator::WaitForAll();
+#ifdef ONLYLOADWHENUSED
+		FILE* savefile = GG_fopen("files/treebank/FractalGenerator.dat", "wb+");
+		if (savefile) {
+			size_t length = fwrite(imageData, 1, (size * size), savefile);
+			fclose(savefile);
+		}
+	}
+#endif
 
-	uint8_t* imageData = new uint8_t[ size * size ];
-	FractalGenerator::SetWork( imageData, size, size );
-	FractalGenerator::StartThreads();
-	FractalGenerator::WaitForAll();
-			
 	TextureDesc texDesc = {};
 	texDesc.BindFlags = BIND_SHADER_RESOURCE | BIND_RENDER_TARGET; // BIND_RENDER_TARGET must be set for generating mipmaps
 	texDesc.clear.color[0] = 1.0f;
@@ -4325,7 +4348,7 @@ void GGTerrain_LoadTextureDDS( const char* filename, Texture* tex )
 	device->SetName( tex, "imageTex" );
 }
 
-bool GGTerrain_LoadTextureDDSIntoSlice( const char* filename, Texture* tex, uint32_t arraySlice, DDSRequirements* requirements, wiGraphics::CommandList cmd)
+bool GGTerrain_LoadTextureDDSIntoSlice(const char* filename, Texture* tex, uint32_t arraySlice, DDSRequirements* requirements, wiGraphics::CommandList cmd, bool bFillAllSlots = false)
 { 
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	char filePath[MAX_PATH];
@@ -4364,15 +4387,32 @@ bool GGTerrain_LoadTextureDDSIntoSlice( const char* filename, Texture* tex, uint
 
 	#endif
 
-	uint32_t maxMip = dds.GetMipCount();
-	if ( maxMip > tex->desc.MipLevels ) maxMip = tex->desc.MipLevels;
-	std::vector<SubresourceData> InitData;
-	for (uint32_t mip = 0; mip < maxMip; ++mip)
+	if (bFillAllSlots)
 	{
-		auto imageData = dds.GetImageData(mip, 0);
-		device->UpdateTexture(tex, mip, arraySlice, 0, imageData->m_mem, imageData->m_memPitch, cmd);
+		for (uint32_t i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+		{
+			uint32_t maxMip = dds.GetMipCount();
+			if (maxMip > tex->desc.MipLevels) maxMip = tex->desc.MipLevels;
+			std::vector<SubresourceData> InitData;
+			for (uint32_t mip = 0; mip < maxMip; ++mip)
+			{
+				auto imageData = dds.GetImageData(mip, 0);
+				device->UpdateTexture(tex, mip, i, 0, imageData->m_mem, imageData->m_memPitch, cmd);
+			}
+			break;
+		}
 	}
-
+	else
+	{
+		uint32_t maxMip = dds.GetMipCount();
+		if (maxMip > tex->desc.MipLevels) maxMip = tex->desc.MipLevels;
+		std::vector<SubresourceData> InitData;
+		for (uint32_t mip = 0; mip < maxMip; ++mip)
+		{
+			auto imageData = dds.GetImageData(mip, 0);
+			device->UpdateTexture(tex, mip, arraySlice, 0, imageData->m_mem, imageData->m_memPitch, cmd);
+		}
+	}
 	return true;
 }
 
@@ -5499,7 +5539,9 @@ int GGTerrain_LoadSettings( const char* settingsJSON, bool bRestoreWater)
 	}
 
 	delete pObject;
-
+#ifdef ONLYLOADWHENUSED
+	bCheckForNewTerrainTextures = true;
+#endif
 	return 1;
 }
 
@@ -6149,11 +6191,22 @@ void GGTerrain_CreateSphere( float diameter, int rows, int columns )
 float pHeightMapEditMemMovedOutOfHeap[GGTERRAIN_HEIGHTMAP_EDIT_SIZE * GGTERRAIN_HEIGHTMAP_EDIT_SIZE];
 uint8_t pMaterialMapMemMoveOutOfHeap[GGTERRAIN_MATERIALMAP_SIZE * GGTERRAIN_MATERIALMAP_SIZE];
 
+#ifdef ONLYLOADWHENUSED
+bool bTextureUploaded[GGTERRAIN_MAX_SOURCE_TEXTURES+1];
+#endif
+
 // initialize the system
 int GGTerrain_Init( wiGraphics::CommandList cmd )
 {
 	if ( ggterrain_initialised ) return 1;
 	ggterrain_initialised = 1;
+
+#ifdef ONLYLOADWHENUSED
+	for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+	{
+		bTextureUploaded[i] = false;
+	}
+#endif
 
 	char pCurrDir[MAX_PATH];
 	GetCurrentDirectoryA(MAX_PATH, pCurrDir);
@@ -8826,6 +8879,13 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		if (g_iDeferTextureUpdateToNow == 2)
 		{
 			// Update the textures for the terrain
+#ifdef ONLYLOADWHENUSED
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = false;
+			}
+#endif
+
 			g_DeferTextureUpdateIncompatibleTextures.clear();
 			if(strlen(g_DeferTextureUpdateCurrentFolder_s.Get())>0) SetDir(g_DeferTextureUpdateCurrentFolder_s.Get());
 			GGTerrain_ReloadTextures(cmd, &g_DeferTextureUpdate, &g_DeferTextureUpdateIncompatibleTextures, g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
@@ -8833,7 +8893,12 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			g_iDeferTextureUpdateToNow = 3;
 		}
 	}
-
+#ifdef ONLYLOADWHENUSED
+	if (bCheckForNewTerrainTextures && ggterrain_initialised)
+	{
+		GGTerrain_CheckMaterialUsed(cmd);
+	}
+#endif
 	if ( !bImGuiGotFocus && ggterrain_initialised)
 	{
 		GGTerrain_CheckKeys();
@@ -9507,6 +9572,15 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 
 			case GGTERRAIN_EDIT_PAINT: 
 			{
+#ifdef ONLYLOADWHENUSED
+				int mat = ggterrain_extra_params.paint_material & 0xff;
+				if (mat > 0 && mat <= GGTERRAIN_MAX_SOURCE_TEXTURES)
+					mat--;
+				if (mat >= 0 && !bTextureUploaded[mat])
+				{
+					bCheckForNewTerrainTextures = true; //PE: Load texture.
+				}
+#endif
 				GGTerrain_Update_Painting( pickX, pickY, pickZ );
 			} break;
 
@@ -9854,6 +9928,10 @@ int GGTerrain_SetPaintData( uint32_t size, uint8_t* data, sUndoSysEventTerrainPa
 
 		//PE: Was needed so we can invalidate region and clear old textures.
 		wiRenderer::GetDevice()->UpdateTexture(&texMaterialMap, 0, 0, NULL, pMaterialMap, GGTERRAIN_MATERIALMAP_SIZE, -1);
+
+#ifdef ONLYLOADWHENUSED
+		bCheckForNewTerrainTextures = true;
+#endif
 
 		GGTerrain_InvalidateEverything(GGTERRAIN_INVALIDATE_TEXTURES);
 
@@ -10837,13 +10915,37 @@ void GGTerrain_ReloadTextures(wiGraphics::CommandList cmd, std::vector<std::stri
 
 			sprintf_s(szDstColorPath, MAX_PATH, "%s/Color.dds", szDstRoot);
 			sprintf_s(szDstNormalPath, MAX_PATH, "%s/Normal.dds", szDstRoot);
+#ifdef ONLYLOADWHENUSED
+			//PE: Load actual texture later when they are used.
+			if (bTextureUploaded[0] == false && i == 0)
+			{
+				bTextureUploaded[0] = true;
+				//PE: Only upload textures that are actually in use by terrain.
+				GGTerrain_LoadTextureDDSIntoSlice(szDstColorPath, &texColorArray, i, &colorDDS, cmd, true);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstNormalPath, &texNormalsArray, i, &normalDDS, cmd, true);
 
+				char szDstSurfacePath[MAX_PATH];
+				sprintf_s(szDstSurfacePath, MAX_PATH, "%s/Surface.dds", szDstRoot);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstSurfacePath, &texSurfaceArray, i, &surfaceDDS, cmd, true);
+			}
+			else if(bTextureUploaded[i] == false && (i == 2 || i == 4 || i == 17 || i == 20 || i == 31)) //PE: Default set.
+			{
+				bTextureUploaded[i] = true;
+				//PE: Only upload textures that are actually in use by terrain.
+				GGTerrain_LoadTextureDDSIntoSlice(szDstColorPath, &texColorArray, i, &colorDDS, cmd, false);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstNormalPath, &texNormalsArray, i, &normalDDS, cmd, false);
+
+				char szDstSurfacePath[MAX_PATH];
+				sprintf_s(szDstSurfacePath, MAX_PATH, "%s/Surface.dds", szDstRoot);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstSurfacePath, &texSurfaceArray, i, &surfaceDDS, cmd, false);
+			}
+#else
 			GGTerrain_LoadTextureDDSIntoSlice(szDstColorPath, &texColorArray, i, &colorDDS, cmd);
 			GGTerrain_LoadTextureDDSIntoSlice(szDstNormalPath, &texNormalsArray, i, &normalDDS, cmd);
-
 			char szDstSurfacePath[MAX_PATH];
 			sprintf_s(szDstSurfacePath, MAX_PATH, "%s/Surface.dds", szDstRoot);
 			GGTerrain_LoadTextureDDSIntoSlice(szDstSurfacePath, &texSurfaceArray, i, &surfaceDDS, cmd);
+#endif
 		}
 	}
 
@@ -10851,6 +10953,97 @@ void GGTerrain_ReloadTextures(wiGraphics::CommandList cmd, std::vector<std::stri
 	////ggterrain_internal_params.update_material_texture = 1;
 	GGTerrain_InvalidateEverything(GGTERRAIN_INVALIDATE_TEXTURES);
 }
+
+#ifdef ONLYLOADWHENUSED
+void GGTerrain_CheckMaterialUsed(wiGraphics::CommandList cmd)
+{
+
+	if (bCheckForNewTerrainTextures)
+	{
+		bool bMaterialUsed[256];
+		for (uint32_t i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+		{
+			bMaterialUsed[i] = false;
+		}
+
+		//PE: Add material settings.
+		for (int i = 0; i < 5; i++)
+		{
+			int mat = ggterrain_global_render_params.layerMatIndex[i] & 0xff;
+			bMaterialUsed[mat] = true;
+		}
+		int mat = ggterrain_global_render_params.baseLayerMaterial & 0xff;
+		bMaterialUsed[mat] = true;
+		mat = ggterrain_global_render_params.slopeMatIndex[0] & 0xff;
+		bMaterialUsed[mat] = true;
+		mat = ggterrain_global_render_params.slopeMatIndex[1] & 0xff;
+		bMaterialUsed[mat] = true;
+
+		if (ggterrain_extra_params.paint_material > 0)
+		{
+			mat = ggterrain_extra_params.paint_material & 0xff;
+			if(mat > 0 && mat <= GGTERRAIN_MAX_SOURCE_TEXTURES)
+				bMaterialUsed[mat-1] = true;
+		}
+
+		for (int x = 0; x < GGTERRAIN_MATERIALMAP_SIZE; x++)
+		{
+			for (int y = 0; y < GGTERRAIN_MATERIALMAP_SIZE; y++)
+			{
+				//uint8_t mat = GGTerrain_GetMaterialIndex(x, y);
+				uint32_t index = y * GGTERRAIN_MATERIALMAP_SIZE + x;
+				if (x >= 0 && y >= 0 && x < GGTERRAIN_MATERIALMAP_SIZE && y < GGTERRAIN_MATERIALMAP_SIZE)
+				{
+					uint8_t mat = pMaterialMap[index];
+					if (mat > 0)
+					{
+						if (mat <= GGTERRAIN_MAX_SOURCE_TEXTURES)
+							bMaterialUsed[mat-1] = true;
+					}
+				}
+
+			}
+		}
+		bool bTextChange = false;
+		for (uint32_t i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+		{
+			if(bMaterialUsed[i] == true && bTextureUploaded[i] == false)
+			{
+				//wiGraphics::CommandList cmd = wiRenderer::GetDevice()->BeginCommandList();
+
+				//PE: Check all material IDs if we need to update any.
+				char szDstRoot[MAX_PATH];
+				//sprintf_s(szDstRoot, MAX_PATH, "%sterraintextures/mat%d", FinalGameGuruMaxFolder.c_str(), i + 1);
+				sprintf_s(szDstRoot, MAX_PATH, "terraintextures/mat%d", i + 1);
+
+
+				char szDstColorPath[MAX_PATH];
+				char szDstNormalPath[MAX_PATH];
+
+				sprintf_s(szDstColorPath, MAX_PATH, "%s/Color.dds", szDstRoot);
+				sprintf_s(szDstNormalPath, MAX_PATH, "%s/Normal.dds", szDstRoot);
+				bTextureUploaded[i] = true;
+				bMaterialUsed[i] = false;
+				//PE: Only upload textures that are actually in use by terrain.
+				GGTerrain_LoadTextureDDSIntoSlice(szDstColorPath, &texColorArray, i, &colorDDS, cmd, false);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstNormalPath, &texNormalsArray, i, &normalDDS, cmd, false);
+
+				char szDstSurfacePath[MAX_PATH];
+				sprintf_s(szDstSurfacePath, MAX_PATH, "%s/Surface.dds", szDstRoot);
+				GGTerrain_LoadTextureDDSIntoSlice(szDstSurfacePath, &texSurfaceArray, i, &surfaceDDS, cmd, false);
+				bTextChange = true;
+			}
+		}
+		bCheckForNewTerrainTextures = false;
+		if (bTextChange)
+		{
+			//PE: update textures.
+			GGTerrain_InvalidateEverything(GGTERRAIN_INVALIDATE_TEXTURES);
+		}
+	}
+}
+#endif
+
 
 void GGTerrain_LoadDefaultTextureIntoSlot(int i, char* rootDir, wiGraphics::CommandList cmd)
 {

@@ -1,5 +1,7 @@
 #include "GGTrees.h"
 
+#define ONLYLOADWHENUSED
+
 #define GGTREES_CONSTANTS_FULL_DECL
 #include "Shaders/GGTreesConstants.hlsli"
 
@@ -45,6 +47,13 @@ void GGTrees_PerformUndoRedoAction(int type, void* pEventData, int eList);
 
 int g_iActiveTreeEvent = 0;
 int ggtrees_initialised = 0;
+
+#ifdef ONLYLOADWHENUSED
+bool bTreeTextureUploaded[255];
+bool bTreeTextureForceUploaded[255];
+//extern std::string FinalGameGuruMaxFolder;
+uint64_t last_paint_tree_bitfield;
+#endif
 
 namespace GGTrees
 {
@@ -1078,6 +1087,55 @@ int GGTrees_UpdateInstances( int accurate )
 	return 1;
 }
 
+#ifdef ONLYLOADWHENUSED
+void GGTrees_LoadTextures(bool bInit = false)
+{
+	char path[1024];
+	for (int i = 0; i < numTreeTypes; i++)
+	{
+		if (!bTreeTextureUploaded[i])
+		{
+			if (g_GGTrees[i].height > treeMaxHeight) treeMaxHeight = g_GGTrees[i].height;
+			if (ggtrees_global_params.paint_tree_bitfield & (1ULL << i) || bTreeTextureForceUploaded[i])
+			{
+				bTreeTextureUploaded[i] = true;
+
+				char szDstRoot[MAX_PATH];
+				//sprintf_s(szDstRoot, MAX_PATH, "%streebank/", FinalGameGuruMaxFolder.c_str());
+				if(bInit)
+					strcpy_s(szDstRoot, "files/treebank/");
+				else
+					strcpy_s(szDstRoot, "treebank/");
+
+				strcpy_s(path, szDstRoot);
+				strcat_s(path, "billboards/");
+				strcat_s(path, g_GGTrees[i].billboardFilename);
+				GGTrees_LoadTextureDDSIntoSlice(path, &texTree, i);
+
+				strcpy_s(path, szDstRoot);
+				strcat_s(path, "billboards/");
+				strcat_s(path, g_GGTrees[i].billboardNormalFilename);
+				GGTrees_LoadTextureDDSIntoSlice(path, &texTreeNormal, i);
+
+				strcpy_s(path, szDstRoot);
+				strcat_s(path, "textures/");
+				strcat_s(path, g_GGTrees[i].trunk->textureName);
+				GGTrees_LoadTextureDDSIntoSlice(path, &texTreeHigh, i);
+
+				if (g_GGTrees[i].branches)
+				{
+					strcpy_s(path, szDstRoot);
+					strcat_s(path, "textures/");
+					strcat_s(path, g_GGTrees[i].branches->textureName);
+					GGTrees_LoadTextureDDSIntoSlice(path, &texBranchesHigh, i);
+				}
+			}
+		}
+	}
+
+}
+#endif
+
 void GGTrees_Init()
 {
 	ggtrees_initialised = 1;
@@ -1126,6 +1184,17 @@ void GGTrees_Init()
 	GGTrees_CreateEmptyTexture( 1024, 1024, 9, numTreeTypes, FORMAT_BC1_UNORM_SRGB, &texTreeHigh );
 	GGTrees_CreateEmptyTexture( 1024, 1024, 9, numTreeTypes, FORMAT_BC3_UNORM_SRGB, &texBranchesHigh );
 
+#ifdef ONLYLOADWHENUSED
+	for (int i = 0; i < numTreeTypes; i++)
+	{
+		bTreeTextureUploaded[i] = false;
+		bTreeTextureForceUploaded[i] = false;
+		treeInstancesHigh[i] = new InstanceTreeGPU[1000];
+		treeInstancesHighShadow[i] = new InstanceTreeGPU[1000];
+	}
+	last_paint_tree_bitfield = ggtrees_global_params.paint_tree_bitfield;
+	GGTrees_LoadTextures(true);
+#else
 	char path[ 1024 ];
 	for( int i = 0; i < numTreeTypes; i++ )
 	{
@@ -1153,6 +1222,7 @@ void GGTrees_Init()
 		treeInstancesHigh[ i ] = new InstanceTreeGPU[ 1000 ];
 		treeInstancesHighShadow[ i ] = new InstanceTreeGPU[ 1000 ];
 	}
+#endif
 
 	//GGTerrain_DecompressImage( "E:/Programs/GameGuruMAX/Max/Files/pinetree_BC7.dds", "E:/Programs/GameGuruMAX/Max/Files/pinetree_RGB.dds" );
 
@@ -1595,6 +1665,9 @@ int GGTrees_SetData( float* data )
 			}
 			else
 			{
+#ifdef ONLYLOADWHENUSED
+				bTreeTextureForceUploaded[type] = true;
+#endif
 				pInstance->SetType( type );
 			}
 		}
@@ -1623,12 +1696,18 @@ int GGTrees_SetData( float* data )
 			pInstance->SetFlags( oldFlags );
 			pInstance->SetScale( oldScale );
 			pInstance->SetType( newType );
+#ifdef ONLYLOADWHENUSED
+			bTreeTextureForceUploaded[newType] = true;
+#endif
 		}
 		else
 		{
 			// this shouldn't happen
 			MessageBoxA( NULL, "Unrecognised tree version, trees will be laid out in the default pattern", "Warning", 0 );
 			GGTrees_RepopulateInstances();
+#ifdef ONLYLOADWHENUSED
+			last_paint_tree_bitfield = -1;
+#endif
 			return 0; // version check
 		}
 
@@ -1650,7 +1729,9 @@ int GGTrees_SetData( float* data )
 			}
 		}
 	}
-
+#ifdef ONLYLOADWHENUSED
+	last_paint_tree_bitfield = -1;
+#endif
 	GGTrees_UpdateInstances( 1 );
 	return 1;
 }
@@ -2191,6 +2272,14 @@ void GGTrees_Update( float camX, float camY, float camZ, CommandList cmd, bool b
 #endif
 
 	if ( !ggtrees_global_params.draw_enabled && ggtrees_global_params.hide_until_update == 0 ) return;
+
+#ifdef ONLYLOADWHENUSED
+	if (last_paint_tree_bitfield != ggtrees_global_params.paint_tree_bitfield)
+	{
+		last_paint_tree_bitfield = ggtrees_global_params.paint_tree_bitfield;
+		GGTrees_LoadTextures(false);
+	}
+#endif
 
 	if (ggtrees_global_params.hide_until_update)
 	{

@@ -17684,7 +17684,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 		{
 			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				if ( t.entityprofile[t.entid].ismarker == 0 ) 
+				//PE: Also restore moved particles.
+				if ( t.entityprofile[t.entid].ismarker == 0  || t.entityprofile[t.entid].ismarker == 10 )
 				{
 					// reset entity
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );

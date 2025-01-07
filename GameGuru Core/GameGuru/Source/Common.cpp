@@ -2190,6 +2190,7 @@ void FPSC_SetDefaults ( void )
 	g.gsetupdepth = 32;
 	g.gfullscreen = 0;
 	g.gvsync = 1;
+	g.iEditorVSync = 0;
 	g.gvrmode = 0;
 	g.gvrmodefordevelopers = 0;
 	g.gvrmodeoriginal = 0;
@@ -2615,6 +2616,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 
 					// DOCDOC: vsync = Enables the refresh of the render to match the current adapter refresh rate.
 					t.tryfield_s = "vsync"; if (t.field_s == t.tryfield_s)  g.gvsync = t.value1;
+
+					// DOCDOC: vsync = Enables the refresh of the render to match the current adapter refresh rate.
+					t.tryfield_s = "editorvsync"; if (t.field_s == t.tryfield_s)  g.iEditorVSync = t.value1;
 
 					// DOCDOC: fullscreen = Attempts to request a full-screen mode from the DirectX adapter.
 					t.tryfield_s = "fullscreen"; if (t.field_s == t.tryfield_s)  g.gfullscreen = t.value1;

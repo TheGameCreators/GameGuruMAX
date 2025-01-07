@@ -6365,7 +6365,8 @@ void gridedit_setvsync(bool bLevelVSyncEnabled)
 	extern bool bImGuiInTestGame;
 	if (t.game.gameisexe == 0 && bImGuiInTestGame == false )
 	{
-		bLevelVSyncEnabled = false;
+		if(g.iEditorVSync == 0)
+			bLevelVSyncEnabled = false;
 	}
 	master.bVsyncEnabled = bLevelVSyncEnabled;
 	wiEvent::SetVSync(master.bVsyncEnabled);

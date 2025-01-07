@@ -3556,7 +3556,7 @@ bool physics_player_addweapon ( void )
 		// check if we have a slot preference
 		t.tweaponisnew=1;
 		t.gotweaponpref=0;
-		for ( t.ws = 1 ; t.ws < 10; t.ws++ )
+		for ( t.ws = 1 ; t.ws < 12; t.ws++ )
 		{
 			if (  t.weaponslot[t.ws].pref == t.weaponindex )  
 				t.gotweaponpref = t.ws;
@@ -3680,12 +3680,15 @@ bool physics_player_addweapon ( void )
 			// when new weapon starts, get ammo from store (in case was moved to container and is brought back)
 			if (t.tweaponisnew == 1)
 			{
-				t.weaponammo[t.gotweapon] = t.gun[t.tgunid].storeammo;
-				t.weaponclipammo[t.gotweapon] = t.gun[t.tgunid].storeclipammo;
+				if (t.gotweapon < 10)
+				{
+					t.weaponammo[t.gotweapon] = t.gun[t.tgunid].storeammo;
+					t.weaponclipammo[t.gotweapon] = t.gun[t.tgunid].storeclipammo;
+				}
 			}
 
 			t.taltqty = 0;
-			if (t.weaponammo[t.gotweapon] == 0 && t.tweaponisnew == 1)
+			if (t.gotweapon < 10 && t.weaponammo[t.gotweapon] == 0 && t.tweaponisnew == 1)
 			{
 				// provide some alternative ammo (weaponammo+10)
 				if ( t.gun[t.tgunid].settings.modessharemags == 0 ) 
@@ -3787,31 +3790,34 @@ bool physics_player_addweapon ( void )
 			}
 			else
 			{
-				t.tpool=g.firemodes[t.tgunid][0].settings.poolindex;
-				t.altpool=g.firemodes[t.tgunid][1].settings.poolindex;
-				int iMaxClipCapacity = g.firemodes[t.tgunid][0].settings.clipcapacity * g.firemodes[t.tgunid][0].settings.reloadqty;
-				if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
-				if (t.tpool == 0)
+				if (t.gotweapon < 10)
 				{
-					t.weaponclipammo[t.gotweapon] = t.weaponclipammo[t.gotweapon] + t.tqty;
-					if (t.weaponclipammo[t.gotweapon] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon] = iMaxClipCapacity;
-				}
-				else
-				{
-					t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo + t.tqty;
-					if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
-				}
-				iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
-				if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
-				if (t.altpool == 0)
-				{
-					t.weaponclipammo[t.gotweapon + 10] = t.weaponclipammo[t.gotweapon + 10] + t.taltqty;
-					if (t.weaponclipammo[t.gotweapon + 10] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon + 10] = iMaxClipCapacity;
-				}
-				else
-				{
-					t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo + t.taltqty;
-					if (t.ammopool[t.altpool].ammo > iMaxClipCapacity) t.ammopool[t.altpool].ammo = iMaxClipCapacity;
+					t.tpool = g.firemodes[t.tgunid][0].settings.poolindex;
+					t.altpool = g.firemodes[t.tgunid][1].settings.poolindex;
+					int iMaxClipCapacity = g.firemodes[t.tgunid][0].settings.clipcapacity * g.firemodes[t.tgunid][0].settings.reloadqty;
+					if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
+					if (t.tpool == 0)
+					{
+						t.weaponclipammo[t.gotweapon] = t.weaponclipammo[t.gotweapon] + t.tqty;
+						if (t.weaponclipammo[t.gotweapon] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon] = iMaxClipCapacity;
+					}
+					else
+					{
+						t.ammopool[t.tpool].ammo = t.ammopool[t.tpool].ammo + t.tqty;
+						if (t.ammopool[t.tpool].ammo > iMaxClipCapacity) t.ammopool[t.tpool].ammo = iMaxClipCapacity;
+					}
+					iMaxClipCapacity = g.firemodes[t.tgunid][1].settings.clipcapacity * g.firemodes[t.tgunid][1].settings.reloadqty;
+					if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
+					if (t.altpool == 0)
+					{
+						t.weaponclipammo[t.gotweapon + 10] = t.weaponclipammo[t.gotweapon + 10] + t.taltqty;
+						if (t.weaponclipammo[t.gotweapon + 10] > iMaxClipCapacity) t.weaponclipammo[t.gotweapon + 10] = iMaxClipCapacity;
+					}
+					else
+					{
+						t.ammopool[t.altpool].ammo = t.ammopool[t.altpool].ammo + t.taltqty;
+						if (t.ammopool[t.altpool].ammo > iMaxClipCapacity) t.ammopool[t.altpool].ammo = iMaxClipCapacity;
+					}
 				}
 			}
 		}
@@ -3821,7 +3827,7 @@ bool physics_player_addweapon ( void )
 	physics_player_refreshcount ( );
 
 	//  if collected weapon, and is empty, trigger reload if gun anim able
-	if (  t.gotweapon>0 ) 
+	if (  t.gotweapon>0 && t.gotweapon < 10)
 	{
 		t.tgunid=t.weaponslot[t.gotweapon].pref;
 		if (  t.weaponammo[t.gotweapon] == 0 ) 
@@ -3840,11 +3846,11 @@ bool physics_player_addweapon ( void )
 void physics_player_removeweapon ( void )
 {
 	// check all weapon slots
-	for ( t.ws = 1 ; t.ws < 10; t.ws++ )
+	for ( t.ws = 1 ; t.ws < 12; t.ws++ )
 	{
 		if ( t.weaponslot[t.ws].got == t.weaponindex  )  break;
 	}
-	if (  t.ws < 10 ) 
+	if (  t.ws < 12 ) 
 	{
 		// Ensure gun is removed (if applicable)
 		if ( t.gunid>0 && t.weaponslot[t.ws].got == t.gunid ) 
@@ -3862,7 +3868,7 @@ void physics_player_removeweapon ( void )
 
 void physics_player_resetWeaponSlots( void )
 {
-	for (t.ws = 1; t.ws < 10; t.ws++)
+	for (t.ws = 1; t.ws < 12; t.ws++)
 	{
 		t.weaponslot[t.ws].got = 0;
 		t.weaponslot[t.ws].invpos = 0;

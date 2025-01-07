@@ -1240,7 +1240,7 @@ void lua_removeplayerweapon ( void )
 	t.ws = t.v;
 
 	// only if valid weapon slot
-	if (t.ws >= 1 && t.ws < 10)
+	if (t.ws >= 1 && t.ws < 12)
 	{
 		//PE: This could be a armour/spell/other and not a weapon. so check. Problem we cant have t.gunid=0 when we have a weapon.
 		if (t.weaponslot[t.ws].got > 0)
@@ -1249,9 +1249,11 @@ void lua_removeplayerweapon ( void )
 			if (t.gunid > 0)
 			{
 				// store ammo before remove from slot
-				t.gun[t.gunid].storeammo = t.weaponammo[t.ws];
-				t.gun[t.gunid].storeclipammo = t.weaponclipammo[t.ws];
-
+				if (t.ws < 10)
+				{
+					t.gun[t.gunid].storeammo = t.weaponammo[t.ws];
+					t.gun[t.gunid].storeclipammo = t.weaponclipammo[t.ws];
+				}
 				// clear weapon
 				t.weaponindex = t.gunid;
 				physics_player_removeweapon();
@@ -1266,17 +1268,30 @@ void lua_removeplayerweapons (void)
 	g.autoloadgun = 0;
 
 	//  clear all weapons and ammo (even if not collecte yet, why we are using pref)
-	for (t.ws = 1; t.ws < 10; t.ws++)
+	for (t.ws = 1; t.ws < 12; t.ws++)
 	{
 		t.weaponslot[t.ws].got = 0;
-		t.weaponammo[t.ws] = 0;
+		if(t.ws < 10)
+			t.weaponammo[t.ws] = 0;
 		t.tgunid = t.weaponslot[t.ws].pref;
 		if (t.tgunid > 0)
 		{
 			t.tpool = g.firemodes[t.tgunid][0].settings.poolindex;
 			t.altpool = g.firemodes[t.tgunid][1].settings.poolindex;
-			if (t.tpool == 0)  t.weaponclipammo[t.ws] = 0; else t.ammopool[t.tpool].ammo = 0;
-			if (t.altpool == 0)  t.weaponclipammo[t.ws + 10] = 0; else t.ammopool[t.altpool].ammo = 0;
+			if (t.tpool == 0)
+			{
+				if (t.ws < 10)
+					t.weaponclipammo[t.ws] = 0;
+			}
+			else
+				t.ammopool[t.tpool].ammo = 0;
+			if (t.altpool == 0)
+			{
+				if (t.ws < 10)
+					t.weaponclipammo[t.ws + 10] = 0;
+			}
+			else
+				t.ammopool[t.altpool].ammo = 0;
 			t.gun[t.tgunid].storeammo = 0;
 			t.gun[t.tgunid].storeclipammo = 0;
 		}

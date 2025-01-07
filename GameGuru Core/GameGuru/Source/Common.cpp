@@ -1493,11 +1493,15 @@ void common_init_globals ( void )
 #endif
 	Dim (  t.decalelement,g.decalelementmax );
 
-	Dim (  t.weaponslot,10 );
+	Dim (  t.weaponslot,12 ); //PE: 11 to be used for interaction hands, t.weaponammo[slot+10] still works.
 	Dim (  t.weaponammo,20 );
 	Dim (  t.weaponclipammo,20 );
-	Dim (  t.weaponhud,10 );
-	for ( t.ws = 1 ; t.ws <= 10 ; t.ws++ ) t.weaponslot[t.ws].pref=0 ;
+	Dim (  t.weaponhud,12 );
+	for (t.ws = 1; t.ws <= 12; t.ws++)
+	{
+		t.weaponslot[t.ws].pref = 0;
+		t.weaponslot[t.ws].got = 0;
+	}
 
 	//  Gun Data
 	g.noholster = 1;

@@ -5323,7 +5323,10 @@ int iTotalFiles = 0;
 
 #ifdef WICKEDENGINE
 
-std::vector< std::pair<std::string, time_t> > files_time_stamp;
+//std::vector< std::pair<std::string, time_t> > files_time_stamp;
+std::unordered_map<std::string, time_t> files_time_stamp;
+
+
 std::vector<std::string> files_favorite;
 std::vector<std::string> files_availableinfreetrial;
 std::vector<std::string> files_pinned_categories;
@@ -5652,8 +5655,9 @@ bool fpe_thread_in_progress(void)
 
 #endif
 
-std::vector<std::string> duplicate_files_check;
-
+//std::vector<std::string> duplicate_files_check;
+//PE: Converted to unordered_set using hash for faster lookups.
+std::unordered_set<std::string> duplicate_files_check;
 
 void CustomSortFiles(int iSortBy, cFolderItem::sFolderFiles * m_pFileSortStart)
 {
@@ -6120,7 +6124,8 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 							time_t ts = GetFileDateLong();
 							cstr file = pNewFolder->m_pNext->m_sFolderFullPath;
 							file = file + "\\" + file_s;
-							files_time_stamp.push_back( std::make_pair(file.Get(), ts ) );
+							//files_time_stamp.push_back( std::make_pair(file.Get(), ts ) );
+							files_time_stamp[file.Get()] = ts;
 							#endif
 						}
 					}
@@ -6206,11 +6211,16 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 						//sCheck = sCheck + cstr("\\") + sName;
 					}
 					sCheck = sCheck.Lower();
-					auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
-					if (itr != duplicate_files_check.end() && duplicate_files_check.size() > 0 )
+					//auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
+					//if (itr != duplicate_files_check.end() && duplicate_files_check.size() > 0 )
+					//	bAddToList = false;
+					//else
+					//	duplicate_files_check.push_back(sCheck.Get());
+					
+					if (duplicate_files_check.count(sCheck.Get()) > 0)
 						bAddToList = false;
 					else
-						duplicate_files_check.push_back(sCheck.Get());
+						duplicate_files_check.insert(sCheck.Get());
 				}
 				#endif
 				if (it->size() > 0 && bAddToList) 
@@ -6258,17 +6268,22 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 					struct stat sb;
 					cstr file = pNewFolder->m_pNext->m_sFolderFullPath;
 					file = file + "\\" + pNewItem->m_sName;
-					std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-					for (; its != files_time_stamp.end(); ++its)
-					{
-						if (its->first.size() > 0)
-						{
-							if( strcmp(its->first.c_str(),file.Get()) == 0 )
-							{
-								pNewItem->m_tFileModify = its->second;
-								break;
-							}
-						}
+					//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+					//for (; its != files_time_stamp.end(); ++its)
+					//{
+					//	if (its->first.size() > 0)
+					//	{
+					//		if( strcmp(its->first.c_str(),file.Get()) == 0 )
+					//		{
+					//			pNewItem->m_tFileModify = its->second;
+					//			break;
+					//		}
+					//	}
+					//}
+
+					auto it = files_time_stamp.find(file.Get());
+					if (it != files_time_stamp.end()) {
+						pNewItem->m_tFileModify = it->second;
 					}
 					std::vector<std::string>::iterator itf = files_favorite.begin();
 					for (; itf != files_favorite.end(); ++itf)
@@ -6443,19 +6458,25 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 						cstr file = pNewFolder->m_sFolderFullPath;
 						file = file + "\\" + file_s;
 
-						std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-						for (; its != files_time_stamp.end(); ++its)
-						{
-							if (its->first.size() > 0) {
-								if (strcmp(its->first.c_str(), file.Get()) == 0)
-								{
-									files_time_stamp.erase(its);
-									break;
-								}
-							}
+						//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+						//for (; its != files_time_stamp.end(); ++its)
+						//{
+						//	if (its->first.size() > 0) {
+						//		if (strcmp(its->first.c_str(), file.Get()) == 0)
+						//		{
+						//			files_time_stamp.erase(its);
+						//			break;
+						//		}
+						//	}
+						//}
+
+						auto it = files_time_stamp.find(file.Get());
+						if (it != files_time_stamp.end()) {
+							files_time_stamp.erase(it);
 						}
 
-						files_time_stamp.push_back(std::make_pair(file.Get(), ts));
+						//files_time_stamp.push_back(std::make_pair(file.Get(), ts));
+						files_time_stamp[file.Get()] = ts;
 						#endif
 
 					}
@@ -6544,9 +6565,13 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 						//sCheck = sCheck + cstr("\\") + sName;
 					}
 					sCheck = sCheck.Lower();
-					auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
-					if(!(itr != duplicate_files_check.end() && duplicate_files_check.size() > 0))
-						duplicate_files_check.push_back(sCheck.Get());
+					//auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
+					//if(!(itr != duplicate_files_check.end() && duplicate_files_check.size() > 0))
+					//	duplicate_files_check.push_back(sCheck.Get());
+
+					if (duplicate_files_check.count(sCheck.Get()) <= 0)
+						duplicate_files_check.insert(sCheck.Get());
+
 				}
 				#endif
 				if (it->size() > 0)
@@ -6593,18 +6618,25 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 					struct stat sb;
 					cstr file = pNewFolder->m_sFolderFullPath;
 					file = file + "\\" + pNewItem->m_sName;
-					std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-					for (; its != files_time_stamp.end(); ++its)
-					{
-						if (its->first.size() > 0) 
-						{
-							if (strcmp(its->first.c_str(), file.Get()) == 0)
-							{
-								pNewItem->m_tFileModify = its->second;
-								break;
-							}
-						}
+
+					//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+					//for (; its != files_time_stamp.end(); ++its)
+					//{
+					//	if (its->first.size() > 0) 
+					//	{
+					//		if (strcmp(its->first.c_str(), file.Get()) == 0)
+					//		{
+					//			pNewItem->m_tFileModify = its->second;
+					//			break;
+					//		}
+					//	}
+					//}
+
+					auto it = files_time_stamp.find(file.Get());
+					if (it != files_time_stamp.end()) {
+						pNewItem->m_tFileModify = it->second;
 					}
+
 					std::vector<std::string>::iterator itf = files_favorite.begin();
 					for (; itf != files_favorite.end(); ++itf)
 					{

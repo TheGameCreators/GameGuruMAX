@@ -85,9 +85,11 @@ void timestampactivity ( int i, char* desc_s )
 			Sync();
 		}
 		mem = DMEMAvailable();
+		float GetVramUsage(void);
+		float vram = GetVramUsage();
 		videomemdesc_s = Str((mem - g.timestampactivityvideomemthen)); videomemdesc_s = videomemdesc_s + "MB";
 		g.timestampactivityvideomemthen = mem;
-		videomemsofardesc_s = " ("; videomemsofardesc_s = videomemsofardesc_s + Str(smem / 1024) + "," + Str(DMEMAvailable()) + ")";
+		videomemsofardesc_s = " ("; videomemsofardesc_s = videomemsofardesc_s + Str(smem / 1024) + "," + Str((int)vram) + ")";
 		tpart1_s = Str(Timer()); tpart1_s = tpart1_s + " : " + desc_s + " ";
 		tpart2_s = "S:"; tpart2_s = tpart2_s + memdesc_s;
 		tpart3_s = "V:"; tpart3_s = tpart3_s + videomemsofardesc_s;

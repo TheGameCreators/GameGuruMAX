@@ -113,7 +113,13 @@ void gun_loaddata ( void )
 		g.firemodes[t.gunid][t.i].settings.brassdelay = 0;
 		g.firemodes[t.gunid][t.i].settings.zoombrassdelay = 0;
 		g.firemodes[t.gunid][t.i].settings.doesnotuseammo = 0;
+
 	}
+
+	//PE: We need to always be able to locate animation like 'idle'. so.
+	int iCurrentGunObj = t.currentgunobj;
+	if (iCurrentGunObj == 0)
+		iCurrentGunObj = t.gun[t.gunid].obj;
 
 	//  Load GUNSPEC details (270618 - increased to 1000 lines)
 	Dim ( t.data_s, 1000 );
@@ -540,8 +546,9 @@ void gun_loaddata ( void )
 					}
 
 					#ifdef WICKEDENGINE
+					//PE: This fails when called from entity_load , and t.currentgunobj == 0. We can use t.gun[t.gunid].obj instead.
 					// if no comma and anim field, look up start and finish frames from object directly
-					if (bFoundComma == false && t.currentgunobj != 0)
+					if (bFoundComma == false && iCurrentGunObj != 0)
 					{
 						int animfields = 0;
 						bool bAnimationField = false;
@@ -582,7 +589,7 @@ void gun_loaddata ( void )
 							if (animfields == 31) pFieldName = "pull down";
 							if (animfields == 32) pFieldName = "pull left";
 							if (animfields == 33) pFieldName = "pull right";
-							if (animfields == 34) pFieldName = "useempty";
+							if (animfields == 34) pFieldName = "NOTAANIMFIELD"; //PE: "useempty" never use comma.
 							if (animfields == 35) pFieldName = "empty shotgun";
 							if (animfields == 36) pFieldName = "empty putaway";
 							if (animfields == 37) pFieldName = "empty select";
@@ -681,7 +688,7 @@ void gun_loaddata ( void )
 							}
 							else
 							{
-								sObject* pObject = GetObjectData(t.currentgunobj);
+								sObject* pObject = GetObjectData(iCurrentGunObj);
 								float fFoundStart = 0, fFoundFinish = 0;
 								extern int entity_lua_getanimationnamefromobject (sObject* pObject, cstr FindThisName_s, float* fFoundStart, float* fFoundFinish);
 								if (entity_lua_getanimationnamefromobject(pObject, t.value_s, &fFoundStart, &fFoundFinish) > 0)
@@ -1578,9 +1585,9 @@ void gun_loaddata ( void )
 									{
 										t.gunsounditem[t.gunid][t.p].keyframe = (t.value1*t.keyframeratio);
 										// if soundanim name specified, add that animations start frame
-										if (strlen(lastsoundanimname_s.Get()) > 0 && t.currentgunobj != 0 )
+										if (strlen(lastsoundanimname_s.Get()) > 0 && iCurrentGunObj != 0 )
 										{
-											sObject* pObject = GetObjectData(t.currentgunobj);
+											sObject* pObject = GetObjectData(iCurrentGunObj);
 											float fFoundStart = 0, fFoundFinish = 0;
 											int entity_lua_getanimationnamefromobject (sObject* pObject, cstr FindThisName_s, float* fFoundStart, float* fFoundFinish);
 											if (entity_lua_getanimationnamefromobject(pObject, lastsoundanimname_s, &fFoundStart, &fFoundFinish) > 0)

@@ -392,7 +392,7 @@ IMGUI_IMPL_API bool     ImGui_ImplDX11_CreateDeviceObjects();
 #define FILTER_THUMBS UIV3IMAGES + 5900
 
 #define TERRAINGENERATOR_OBJECT 17998
-#define TERRAINGENERATOR_IMAGE 63340
+//#define TERRAINGENERATOR_IMAGE 63340 //PE: Not used and goes into storyboard uniqueids.
 
 //PE: STORYBOARD_THUMBS must be the last in the list here. if you need room here, increase STORYBOARD_THUMBS so its last.
 #define STORYBOARD_THUMBS UIV3IMAGES + 6000
@@ -690,14 +690,16 @@ enum eKeyboardShortcutType
 void UniversalKeyboardShortcut(eKeyboardShortcutType KST);
 
 #ifdef STORYBOARD
-#define STORYBOARD_MAXOUTPUTS 20
-#define STORYBOARD_MAXNODES 50
+#define STORYBOARD_MAXOUTPUTS 30
+#define STORYBOARD_MAXWIDGETS 100
+//PE: 150 = stack overflow.
+#define STORYBOARD_MAXNODES 150
+
 #define SMALL_STORYBOARD_MAXNODES 15
-#define STORYBOARDVERSION 202
+#define STORYBOARDVERSION 203
 #define NODE_WIDTH_PADDING -15.0
 #define NODE_HEIGHT_PADDING 23.0
 
-#define STORYBOARD_MAXWIDGETS 50
 
 
 void storyboard_menubar(float area_width, float node_width, float node_height);
@@ -880,6 +882,7 @@ struct StoryboardNodesStruct
 	int iFillerMaxOutputs20[20][STORYBOARD_MAXOUTPUTS];
 	char FillerCharMaxOutput20[20][STORYBOARD_MAXOUTPUTS][256];
 };
+
 struct StoryboardStruct
 {
 	char sig[12] = "Storyboard\0";
@@ -910,6 +913,108 @@ struct StoryboardStruct
 	//PE: To add new variables add them here, always add to botton of list.
 
 };
+
+#define STORYBOARD_MAXNODES202 50
+#define STORYBOARD_MAXOUTPUTS202 20
+#define STORYBOARD_MAXWIDGETS202 50
+
+struct StoryboardNodesStruct202
+{
+	int type;
+	int id;
+	ImVec2 restore_position;
+	int iEditEnable;
+	int used;
+	int thumb_id;
+	char title[256];
+	char levelnumber[256];
+	char thumb[256];
+	char level_name[256]; //PE: For custom lua scripts.
+	char lua_name[256]; //PE: For custom lua scripts.
+	char scene_name[256]; //PE: Scene temp files can have anykind of info, so just make each scene it own file.
+	int input_id[STORYBOARD_MAXOUTPUTS202];
+	int output_id[STORYBOARD_MAXOUTPUTS202];
+	char output_action[STORYBOARD_MAXOUTPUTS202][256];
+	char output_title[STORYBOARD_MAXOUTPUTS202][256];
+	int output_linkto[STORYBOARD_MAXOUTPUTS202];
+	int output_can_link_to_type[STORYBOARD_MAXOUTPUTS202];
+	char input_title[STORYBOARD_MAXOUTPUTS202][256];
+	char input_action[STORYBOARD_MAXOUTPUTS202][256];
+
+	//Screen
+	char screen_title[256];
+	char screen_music[256];
+	char screen_backdrop[256];
+	int screen_backdrop_id;
+	ImVec4 screen_back_color;
+	int screen_backdrop_placement; // center,stretch,zoom.
+	char screen_thumb[256];
+	int screen_backdrop_ratio_placement[10]; // 0=1920x1080 center,stretch,zoom. 1=1366x768 center,stretch,zoom ...
+	int screen_grid_size = 0;
+
+	//Editor.
+	int widget_used[STORYBOARD_MAXWIDGETS202];
+	char widget_label[STORYBOARD_MAXWIDGETS202][256];
+	ImVec2 widget_size[STORYBOARD_MAXWIDGETS202];
+	ImVec2 widget_pos[STORYBOARD_MAXWIDGETS202];
+	char widget_normal_thumb[STORYBOARD_MAXWIDGETS202][256];
+	int widget_normal_thumb_id[STORYBOARD_MAXWIDGETS202];
+	char widget_highlight_thumb[STORYBOARD_MAXWIDGETS202][256];
+	int widget_highlight_thumb_id[STORYBOARD_MAXWIDGETS202];
+	char widget_selected_thumb[STORYBOARD_MAXWIDGETS202][256]; //only for state change button, checkbox ...
+	int widget_selected_thumb_id[STORYBOARD_MAXWIDGETS202];
+	char widget_click_sound[STORYBOARD_MAXWIDGETS202][256];
+	int widget_action[STORYBOARD_MAXWIDGETS202];
+	char widget_font[STORYBOARD_MAXWIDGETS202][256];
+	ImVec4 widget_font_color[STORYBOARD_MAXWIDGETS202];
+	float widget_font_size[STORYBOARD_MAXWIDGETS202];
+	int widget_type[STORYBOARD_MAXWIDGETS202]; // but,text,image,video...
+	int widget_read_only[STORYBOARD_MAXWIDGETS202];
+	int widget_layer[STORYBOARD_MAXWIDGETS202];
+	//int widget_output_pin[STORYBOARD_MAXWIDGETS202]; //off,level,screen. 2023 - does not seem to be used
+	int widget_initial_value[STORYBOARD_MAXWIDGETS202]; //off,level,screen.
+	char widget_name[STORYBOARD_MAXWIDGETS202][256]; //for generating final images in titlebank/default/...
+	//PE: Lets do some fillers, so when starting to save project we can just expend it later.
+	//PE: You just add a new one, a line before the filler and cound the filler down.
+	int screen_backdrop_transparent;
+	int readouts_available = 0;
+	int widgets_available = ALLOW_TEXT | ALLOW_IMAGE | ALLOW_VIDEO;
+	int toggleKey = 0;
+	int showAtStart = 0;
+	int iFiller20[15];
+	float fFiller20[20];
+	int iFillerMaxOutputs20[20][STORYBOARD_MAXOUTPUTS202];
+	char FillerCharMaxOutput20[20][STORYBOARD_MAXOUTPUTS202][256];
+};
+
+struct StoryboardStruct202
+{
+	char sig[12] = "Storyboard\0";
+	char gamename[256];
+	int iStoryboardVersion = STORYBOARDVERSION; //PE: Just in case in the future if we need to convert this structure into a new struct.
+	int iChanged;
+	ImVec2 vEditorPanning = ImVec2(0.0f, 0.0f);
+	StoryboardNodesStruct202 Nodes[STORYBOARD_MAXNODES202];
+	int NodeRadioButtonSelected[STORYBOARD_MAXNODES202];
+	float NodeSliderValues[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202];
+	char game_icon[256];
+	char game_thumb[256];
+	char game_description[4096];
+	char game_world_edge_text[1024]; //PE: ? should be a node ? so display screen directly ?
+	int project_readonly;
+	int game_thumb_id;
+	int game_icon_id;
+	char game_developer_desc[1024];
+	// Have to add here instead of inside StoryboardNodesStruct, otherwise loaded storyboards would become corrupted
+	ImVec4 widget_colors[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202];
+	char widget_readout[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202][128];
+	ImVec2 widget_textoffset[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202];
+	int widget_ingamehidden[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202];
+	int widget_drawordergroup[STORYBOARD_MAXNODES202][STORYBOARD_MAXWIDGETS202];
+
+	char customprojectfolder[256];
+};
+
 //PE: SmallStoryboardStruct Not to be used, only for fast locating of thumbs.
 struct SmallStoryboardStruct
 {

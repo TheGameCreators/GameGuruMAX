@@ -35,6 +35,7 @@ std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
 StoryboardStruct StoryboardBackup;
 StoryboardStruct checkproject;
+StoryboardStruct202 updateproject202;
 std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
 bool bScreen_Editor_Window = false;
 int iScreen_Editor_Node = -1;

@@ -1162,6 +1162,14 @@ bool entity_load (bool bCalledFromLibrary)
 						t.entityprofile[t.entid].fDecalSpeed = 1.0; // ? later
 						bNewDecal = true;
 					}
+					if (sEffectLower == "effectbank\\reloaded\\decal_animate20.fx")
+					{
+						t.entityprofile[t.entid].bIsDecal = true;
+						t.entityprofile[t.entid].iDecalRows = 20;
+						t.entityprofile[t.entid].iDecalColumns = 20;
+						t.entityprofile[t.entid].fDecalSpeed = 1.0; // ? later
+						bNewDecal = true;
+					}
 					if (sEffectLower == "effectbank\\reloaded\\decal_animate10.fx" || sEffectLower == "effectbank\\reloaded\\decal_animate10x10.fx")
 					{
 						t.entityprofile[t.entid].bIsDecal = true;
@@ -9249,6 +9257,8 @@ void entity_redo ( void )
 	entity_undo ( );
 }
 #endif
+
+//#pragma optimize("", off)
 std::vector<int> delete_decal_particles;
 void delete_notused_decal_particles( void )
 {

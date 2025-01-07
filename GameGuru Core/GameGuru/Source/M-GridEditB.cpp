@@ -19730,7 +19730,8 @@ void process_entity_library_v2(void)
 									{
 										if (strlen(pCaptureAnyScriptDesc) < 8192)
 										{
-											strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+											//strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+											strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i].Get());
 											if (dluaload.PropertiesVariable.Variable[i] && strlen(dluaload.PropertiesVariable.Variable[i]) > 0)
 											{
 												//Split into segments.
@@ -19738,9 +19739,13 @@ void process_entity_library_v2(void)
 												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.Variable[i]);
 												strcat(pCaptureAnyScriptDesc, "]");
 											}
-											if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+											//if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+											//{
+											//	strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+											//}
+											if (dluaload.PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 											{
-												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i].Get());
 											}
 										}
 									}
@@ -20026,7 +20031,8 @@ void process_entity_library_v2(void)
 												{
 													if (strlen(pCaptureAnyScriptDesc) < 8192)
 													{
-														strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+														//strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+														strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i].Get());
 														if (dluaload.PropertiesVariable.Variable[i] && strlen(dluaload.PropertiesVariable.Variable[i]) > 0)
 														{
 															//Split into segments.
@@ -20034,9 +20040,13 @@ void process_entity_library_v2(void)
 															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.Variable[i]);
 															strcat(pCaptureAnyScriptDesc, "]");
 														}
-														if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+														//if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+														//{
+														//	strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+														//}
+														if (dluaload.PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 														{
-															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i].Get());
 														}
 													}
 												}
@@ -28243,11 +28253,13 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		strcpy(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableDescription.Get());
 		for (int i = 0; i < edit_grideleprof->PropertiesVariable.iVariables; i++)
 		{
-			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i]);
+			//strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i]);
+			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i].Get());
 		}
 		for (int i = 0; i < edit_grideleprof->PropertiesVariable.iVariables; i++)
 		{
-			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			//strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i].Get());
 		}
 		if (strstr(pCaptureAnyScriptDesc, "<Sound0>") != 0) bSound0Mentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;

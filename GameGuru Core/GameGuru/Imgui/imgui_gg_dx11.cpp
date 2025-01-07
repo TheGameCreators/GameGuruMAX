@@ -6819,8 +6819,10 @@ void InitParseLuaScript(entityeleproftype *tmpeleprof)
 		strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], "");
 		tmpeleprof->PropertiesVariable.VariableValueFrom[i] = 0.0f;
 		tmpeleprof->PropertiesVariable.VariableValueTo[i] = 0.0f;
-		strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[i], "");
-		strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i], "");
+		//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[i], "");
+		tmpeleprof->PropertiesVariable.VariableSectionDescription[i] = "";
+		//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i], "");
+		tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i] = "";
 	}
 
 	#ifdef WICKEDENGINE
@@ -6937,46 +6939,60 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 					if (tmpeleprof->PropertiesVariable.iVariables >= 1) 
 					{
 						//Add space
-						strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], " ");
-						strcat(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], " ");
+						//strcat(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables] = cStr(" ") + cStr(SectionDescription);
 					}
 					else 
 					{
-						strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables] = SectionDescription;
 					}
-					strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], "");
+					//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], "");
+					tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables] = "";
 					SectionDescription = find2 + 1;
 					if (!pestrcasestr(SectionDescription, "[")) 
 					{
 						if (SectionDescription[0] != 0) 
 						{
-							strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+							//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+							tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables] = SectionDescription;
 						}
 					}
 					tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 0;
-					strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], find + 1);
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "#"))
+
+					//PE: tmpeleprof->PropertiesVariable.Variable can be larger then 100 before '=' is found.
+					char tmpVariable[1024];
+					strcpy(tmpVariable, find + 1);
+
+					//PE: Scan all lua script for largest [] // [@MULTI_TRIGGER=2(1=Yes, 2=No)]
+					//if (strlen(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables]) > maxvariable)
+					//	maxvariable = strlen(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables]);
+
+					if (pestrcasestr(tmpVariable, "#"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 1; //float
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "$"))
+					if (pestrcasestr(tmpVariable, "$"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 2; //string
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "!"))
+					if (pestrcasestr(tmpVariable, "!"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 3; //bool
 					#ifdef WICKEDENGINE
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "@"))
+					if (pestrcasestr(tmpVariable, "@"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 4; // labelled int[]
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "*"))
+					if (pestrcasestr(tmpVariable, "*"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 5; // user specified in seconds
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "&"))
+					if (pestrcasestr(tmpVariable, "&"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 6; // should alter eleprof variable
 					#endif			
 
 					//Set default values search for =
-					char *find3 = (char *)pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "=");
+					char *find3 = (char *)pestrcasestr(tmpVariable, "=");
 					if (find3) 
 					{
 						strcpy(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], find3 + 1);
 						
 						find3[0] = 0; // remove = from Variable.
+						strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], tmpVariable);
+
 						//check if we got a range.
 						char *find4 = (char *)pestrcasestr(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], "(");
 						if (find4) 
@@ -7181,7 +7197,11 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 						}
 					}
 					else
+					{
 						strcpy(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], "");
+						tmpVariable[MAXVARIABLESIZE - 1] = 0;
+						strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], tmpVariable);
+					}
 
 					//Clean variable name.
 					std::string clean_string = tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables];
@@ -8219,11 +8239,16 @@ void fDisplayDescriptionBox(entityeleproftype *tmpeleprof, bool textonly = false
 	{
 		for (int i = 0; i < tmpeleprof->PropertiesVariable.iVariables; i++)
 		{
-			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i]);
+			//segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i]);
+			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i].Get());
 			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.Variable[i], IM_COL32(col.x, col.y, col.z, col.w), true);
-			if (strlen(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]) > 0) 
+			//if (strlen(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]) > 0) 
+			//{
+			//	segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			//}
+			if (tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 			{
-				segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+				segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i].Get());
 			}
 			if (curseg >= (MAXPROPERTIESVARIABLES * 3) - 1)
 				break;

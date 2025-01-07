@@ -11754,11 +11754,13 @@ void mapeditorexecutable_loop(void)
 							strcpy(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableDescription.Get());
 							for (int i = 0; i < t.grideleprof.PropertiesVariable.iVariables; i++)
 							{
-								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i]);
+								//strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i]);
+								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i].Get());
 							}
 							for (int i = 0; i < t.grideleprof.PropertiesVariable.iVariables; i++)
 							{
-								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i]);
+								//strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i]);
+								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i].Get());
 							}
 							if (strstr(pCaptureAnyScriptDesc, "<Sound0>") != 0) bSound0Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;

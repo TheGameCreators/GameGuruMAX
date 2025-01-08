@@ -7022,8 +7022,20 @@ int DisplayCurrentScreen(lua_State* L)
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
 }
+bool bDisableKeyToggles = false;
+int DisableBoundHudKeys(lua_State* L)
+{
+	bDisableKeyToggles = true;
+	return 0;
+}
+int EnableBoundHudKeys(lua_State* L)
+{
+	bDisableKeyToggles = false;
+	return 0;
+}
 int CheckScreenToggles(lua_State* L)
 {
+	if (bDisableKeyToggles) return 0;
 	extern void TriggerScreenFromKeyPress();
 	TriggerScreenFromKeyPress();
 	return 1;
@@ -12799,6 +12811,8 @@ void addFunctions()
 	lua_register(lua, "DisplayCurrentScreen", DisplayCurrentScreen);
 	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
 	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
+	lua_register(lua, "DisableBoundHudKeys", DisableBoundHudKeys);
+	lua_register(lua, "EnableBoundHudKeys", EnableBoundHudKeys);
 	lua_register(lua, "ScreenToggle", ScreenToggle);
 	lua_register(lua, "ScreenToggleByKey", ScreenToggleByKey);
 	lua_register(lua, "GetIfUsingTABScreen", GetIfUsingTABScreen);

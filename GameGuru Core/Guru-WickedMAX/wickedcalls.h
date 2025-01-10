@@ -126,6 +126,7 @@ void WickedCall_SetBip01Position(sObject* pObject, sFrame* pFrame, int iUseMode,
 void WickedCall_SetBip01Rotation(sObject* pObject, sFrame* pFrame, int iUseMode, float fY);
 void WickedCall_SetObjectPreFrames(sObject* pObject, LPSTR pParentFrameName, float fFrameToUse, float fSmoothSlerpToNextShape, int iPreFrameMode);
 void WickedCall_SetObjectRenderLayer ( sObject* pObject, int iLayerMask );
+bool Convert2Dto3D(long x, long y, float* pOutX, float* pOutY, float* pOutZ, float* pDirX, float* pDirY, float* pDirZ);
 bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask);
 bool WickedCall_GetPick ( float* pOutX, float* pOutY, float* pOutZ, float* pNormalX, float* pNormalY, float* pNormalZ, uint64_t* pObject, int iLayerMask );
 bool WickedCall_SentRay(float originx, float originy, float originz, float directionx, float directiony, float directionz, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask);

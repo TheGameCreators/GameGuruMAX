@@ -5834,6 +5834,59 @@ int QuatLERP(lua_State *L)
 	lua_pushnumber(L, qa.w * at + qb.w * bt );
 	return 4;
 }
+
+int ScreenCordsToPercent(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fPercentX = ( fX / (float) g_dwScreenWidth) * 100.0f;
+	float fPercentY = (fY / (float)g_dwScreenHeight) * 100.0f;
+	lua_pushnumber(L, fPercentX);
+	lua_pushnumber(L, fPercentY);
+	return 2;
+
+}
+
+int LuaConvert2DTo3D(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	
+	float x = (fX * g_dwScreenWidth) / 100.0f;
+	float y = (fY * g_dwScreenHeight) / 100.0f;
+
+	float fOutX = 0, fOutY = 0, fOutZ = 0;
+	float fDirX = 0, fDirY = 0, fDirZ = 0;
+	Convert2Dto3D(x, y, &fOutX, &fOutY, &fOutZ, &fDirX, &fDirY, &fDirZ);
+
+	lua_pushnumber(L, fOutX);
+	lua_pushnumber(L, fOutY);
+	lua_pushnumber(L, fOutZ);
+	lua_pushnumber(L, fDirX);
+	lua_pushnumber(L, fDirY);
+	lua_pushnumber(L, fDirZ);
+	return 6;
+}
+
+
+int LuaConvert3DTo2D(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fZ = lua_tonumber(L, 3);
+	ImVec2 Convert3DTo2D(float x, float y, float z);
+	ImVec2 v2DPos = Convert3DTo2D(fX, fY, fZ);
+	lua_pushnumber(L, v2DPos.x);
+	lua_pushnumber(L, v2DPos.y);
+	return 2;
+}
+
 // end of Fast Quaternion functions
 int RotateObject ( lua_State *L )
 {
@@ -12191,6 +12244,11 @@ void addFunctions()
 	lua_register(lua, "QuatSLERP",    QuatSLERP );
 	lua_register(lua, "QuatLERP",     QuatLERP );
 
+	lua_register(lua, "Convert3DTo2D", LuaConvert3DTo2D); // x,y = Convert3DTo2D(x,y,z)
+	lua_register(lua, "Convert2DTo3D", LuaConvert2DTo3D); // px,py,pz,dx,dy,dz = Convert2DTo3D(x percent,y percent) -- percent
+	lua_register(lua, "ScreenCordsToPercent", ScreenCordsToPercent); // percentx,percentx = ScreenCordsToPercent(x,y) -- return percent positions.
+
+	
 	// Lua control of dynamic light
 	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
 	lua_register(lua, "GetLightPosition",     GetLightPosition );

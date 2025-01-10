@@ -5016,6 +5016,20 @@ void WickedCall_SetObjectRenderLayer(sObject* pObject,int iLayerMask)
 	}
 }
 
+
+bool Convert2Dto3D(long x , long y, float* pOutX, float* pOutY, float* pOutZ, float* pDirX, float* pDirY, float* pDirZ)
+{
+	//PE: Wicked Mouse is relative to windows pos. ImGui is relative to screen.
+	RAY pickRay = wiRenderer::GetPickRay((long)x, (long)y, master.masterrenderer);
+	*pOutX = pickRay.origin.x;
+	*pOutY = pickRay.origin.y;
+	*pOutZ = pickRay.origin.z;
+	*pDirX = pickRay.direction.x;
+	*pDirY = pickRay.direction.y;
+	*pDirZ = pickRay.direction.z;
+	return true;
+}
+
 float fLastTerrainHitX = 0, fLastTerrainHitY = 0, fLastTerrainHitZ = 0;
 
 bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask)

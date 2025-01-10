@@ -5835,7 +5835,7 @@ int QuatLERP(lua_State *L)
 	return 4;
 }
 
-int ScreenCordsToPercent(lua_State* L)
+int ScreenCoordsToPercent(lua_State* L)
 {
 	int n = lua_gettop(L);
 	if (n < 2) return 0;
@@ -12246,7 +12246,7 @@ void addFunctions()
 
 	lua_register(lua, "Convert3DTo2D", LuaConvert3DTo2D); // x,y = Convert3DTo2D(x,y,z)
 	lua_register(lua, "Convert2DTo3D", LuaConvert2DTo3D); // px,py,pz,dx,dy,dz = Convert2DTo3D(x percent,y percent) -- percent
-	lua_register(lua, "ScreenCordsToPercent", ScreenCordsToPercent); // percentx,percentx = ScreenCordsToPercent(x,y) -- return percent positions.
+	lua_register(lua, "ScreenCoordsToPercent", ScreenCoordsToPercent); // percentx,percentx = ScreenCordsToPercent(x,y) -- return percent positions.
 
 	
 	// Lua control of dynamic light

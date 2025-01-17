@@ -9511,11 +9511,12 @@ void mapeditorexecutable_loop(void)
 													// drop down to make life easier
 													char cTmpInput[MAX_PATH];
 													strcpy(cTmpInput, g_collectionQuestList[iCollectionItemIndex].collectionFields[l].Get());
-													const char* items[] = { "Collect", "Destroy", "Deliver" };
+													const char* items[] = { "Collect", "Destroy", "Deliver", "Activate" };
 													int item_current = 0;
 													if (stricmp(cTmpInput, "collect") == NULL) item_current = 0;
 													if (stricmp(cTmpInput, "destroy") == NULL) item_current = 1;
 													if (stricmp(cTmpInput, "deliver") == NULL) item_current = 2;
+													if (stricmp(cTmpInput, "activate") == NULL) item_current = 3;
 													ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 													ImGui::Text("Quest Type");
 													ImGui::SameLine();
@@ -9527,6 +9528,7 @@ void mapeditorexecutable_loop(void)
 														if (item_current == 0) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "collect";
 														if (item_current == 1) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "destroy";
 														if (item_current == 2) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "deliver";
+														if (item_current == 3) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "activate";
 													}
 													ImGui::PopItemWidth();
 
@@ -17543,6 +17545,13 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	//PE: This will make sure everything spawed is deleted , like physics / sound / waypoints / attachments ...
 	void CleanUpSpawedObject(void);
 	CleanUpSpawedObject();
+
+
+	#ifdef WICKEDPARTICLESYSTEM
+	//PE: Clear all wicked particle effects created by lua.
+	void CleanUpEmitterEffects(void);
+	CleanUpEmitterEffects();
+	#endif
 
 	#ifdef WICKEDENGINE
 	WickedCall_SetEditorCameraLight(true);

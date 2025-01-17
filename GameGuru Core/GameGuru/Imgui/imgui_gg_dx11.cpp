@@ -7113,13 +7113,35 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 										}
 										if (labels.size() == 2)
 										{
+											//InterActionWeaponList
+											if (stricmp(labels[1].c_str(), "interactionweaponlist") == NULL)
+											{
+												labels.clear();
+												labels.push_back(cVariable);
+												int iWeaponListIndex = 1;
+												//PE: Add filter.
+												int FillWeaponList(std::vector<std::string>& labels, char* filter);
+												iWeaponListIndex += FillWeaponList(labels, "Interaction");
+
+												if (iWeaponListIndex > 0)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iWeaponListIndex;
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
+
+											}
 											if (stricmp(labels[1].c_str(), "anyweaponlist") == NULL)
 											{
 												labels.clear();
 												labels.push_back(cVariable);
 												int iWeaponListIndex = 1;
-												int FillWeaponList(std::vector<std::string> &labels);
-												iWeaponListIndex += FillWeaponList( labels);
+												int FillWeaponList(std::vector<std::string> &labels, char* filter);
+												iWeaponListIndex += FillWeaponList( labels , nullptr);
 
 												if (iWeaponListIndex > 0)
 												{
@@ -7842,6 +7864,11 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 								collectionQuestType item;
 								fill_rpg_quest_defaults(&item, tmpeleprof->name_s.Get());
 
+								//PE: Just to stop crash if not using storyboard.
+								if (g_collectionQuestLabels.size() == 0)
+								{
+									bFoundMatch = false;
+								}
 								// only add unique quest titles
 								if (bFoundMatch == false)
 								{

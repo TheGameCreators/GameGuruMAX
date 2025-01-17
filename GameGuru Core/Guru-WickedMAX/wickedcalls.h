@@ -214,3 +214,9 @@ void WickedCall_RemoveObjectTextures(sObject* pObject);
 void WickedCall_SetExposure(float exposure);
 
 void WickedCall_CreateDecal(sObject* pObject);
+
+uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto);
+void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root);
+void WickedCall_UpdateEmitters(void);
+uint32_t WickedCall_CreateEmitter(std::string& name, float posX, float posY, float posZ, uint32_t proot);
+

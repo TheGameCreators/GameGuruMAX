@@ -3,6 +3,14 @@
 
 //#define FASTBULLETPHYSICS
 
+#ifdef WINVER
+#undef WINVER
+#endif
+//PE: We need the latest dpi functions.
+#define WINVER 0x0605
+#include "Windows.h"
+#include "WinUser.h"
+
 #define _USING_V110_SDK71_
 #include "stdafx.h"
 #include "DarkLUA.h"
@@ -44,6 +52,13 @@ extern StoryboardStruct Storyboard;
 #ifdef OPTICK_ENABLE
 #include "optick.h"
 #endif
+
+#include "..\..\..\..\Guru-WickedMAX\wickedcalls.h"
+#include "WickedEngine.h"
+using namespace std;
+using namespace wiGraphics;
+using namespace wiScene;
+using namespace wiECS;
 
 // Prototypes
 extern void DrawSpritesFirst(void);
@@ -9736,6 +9751,172 @@ int EffectSetLifespan(lua_State* L)
 	return 0;
 }
 
+#ifdef WICKEDPARTICLESYSTEM
+std::vector<uint32_t> vWickedEmitterEffects;
+void CleanUpEmitterEffects(void)
+{
+	Scene& scene = wiScene::GetScene();
+
+	std::vector<uint32_t> vEntityDelete;
+	for (int i = 0; i < vWickedEmitterEffects.size(); i++)
+	{
+		uint32_t root = vWickedEmitterEffects[i];
+		for (int a = 0; a < scene.emitters.GetCount(); a++)
+		{
+			Entity emitter = scene.emitters.GetEntity(a);
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				if (hier->parentID == root)
+				{
+					vEntityDelete.push_back(emitter);
+				}
+			}
+		}
+		vEntityDelete.push_back(root);
+	}
+
+	for (int i = 0; i < vEntityDelete.size(); i++)
+	{
+		scene.Entity_Remove(vEntityDelete[i]);
+	}
+	vEntityDelete.clear();
+	vWickedEmitterEffects.clear();
+}
+
+//PE: WParticleEffectPosition("FileName") - Return EffectID
+int WParticleEffectLoad(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	
+	Scene& scene = wiScene::GetScene();
+
+	char pFileName[MAX_PATH];
+	strcpy(pFileName, lua_tostring(L, 1));
+
+	uint32_t root = 0;
+	uint32_t count_before = scene.emitters.GetCount();
+
+	cstr pOldDir = GetDir();
+
+	char path[MAX_PATH];
+	strcpy(path, pFileName);
+	GG_GetRealPath(path, 0);
+
+	WickedCall_LoadWiScene(path, false, NULL, NULL);
+	uint32_t count_after = scene.emitters.GetCount();
+	if (count_before != count_after)
+	{
+		Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
+		if (scene.emitters.GetCount() > 0)
+		{
+			Entity emitter = scene.emitters.GetEntity(0);
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				root = hier->parentID;
+			}
+		}
+		wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+		if (ec)
+		{
+			ec->Restart();
+			ec->SetVisible(true);
+		}
+	}
+	if (root != 0)
+		vWickedEmitterEffects.push_back(root);
+	lua_pushnumber(L, root);
+	return 1;
+
+}
+//PE: WParticleEffectPosition(EffectID,x,y,z)
+int WParticleEffectPosition(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	Entity root = lua_tonumber(L, 1);
+	float fX = lua_tonumber(L, 2);
+	float fY = lua_tonumber(L, 3);
+	float fZ = lua_tonumber(L, 4);
+
+	Scene& scene = wiScene::GetScene();
+	TransformComponent* root_tranform = scene.transforms.GetComponent(root);
+	if (root_tranform)
+	{
+		root_tranform->ClearTransform();
+		root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+		root_tranform->UpdateTransform();
+	}
+
+	//for (int i = 0; i < scene.emitters.GetCount(); i++)
+	//{
+	//	Entity emitter = scene.emitters.GetEntity(i);
+	//	HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+	//	if (hier)
+	//	{
+	//		if (hier->parentID == root)
+	//		{
+	//		}
+	//	}
+	//}
+
+	return 0;
+}
+int WParticleEffectVisible(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	Entity root = lua_tonumber(L, 1);
+	bool bVisible = lua_tonumber(L, 2);
+
+	Scene& scene = wiScene::GetScene();
+
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+		if (hier)
+		{
+			if (hier->parentID == root)
+			{
+				wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+				if (ec)
+				{
+					ec->SetVisible(bVisible);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+//WParticleEffectAction(EffectID,Action) - Action = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart
+int WParticleEffectAction(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	Entity root = lua_tonumber(L, 1);
+	int iAction = lua_tonumber(L, 2);
+	WickedCall_PerformEmitterAction(iAction, root);
+	return 0;
+}
+
+// rotate
+// Stop
+// copy lua code from app.
+// add emitter with all settings.
+#endif
+
+
 // Misc Commands
 
 int GetBulletHit(lua_State* L)
@@ -12800,6 +12981,15 @@ void addFunctions()
 	lua_register(lua, "EffectSetBounciness",		EffectSetBounciness);
 	lua_register(lua, "EffectSetColor",				EffectSetColor);
 	lua_register(lua, "EffectSetLifespan",			EffectSetLifespan);
+
+	//PE: Wicked particle system.
+#ifdef WICKEDPARTICLESYSTEM
+	lua_register(lua, "WParticleEffectLoad", WParticleEffectLoad);
+	lua_register(lua, "WParticleEffectPosition", WParticleEffectPosition);
+	lua_register(lua, "WParticleEffectVisible", WParticleEffectVisible);
+	lua_register(lua, "WParticleEffectAction", WParticleEffectAction);
+	
+#endif
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	

@@ -9909,7 +9909,26 @@ int WParticleEffectAction(lua_State* L)
 	WickedCall_PerformEmitterAction(iAction, root);
 	return 0;
 }
+//PE: Missing command for position sound if different then entity position.
+int entity_lua_positionsound(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 5) return 0;
+	int e = lua_tonumber(L, 1);
+	int v = lua_tonumber(L, 2);
+	float fX = lua_tonumber(L, 3);
+	float fY = lua_tonumber(L, 4);
+	float fZ = lua_tonumber(L, 5);
+	int entity_lua_sound_convertVtoTSND(int te, int tv);
+	int snd = entity_lua_sound_convertVtoTSND(e, v);
+	if (snd > 0)
+	{
+		PositionSound(snd, fX, fY, fZ);
+	}
+	return 0;
+}
 
+//disableindoor
 // rotate
 // Stop
 // copy lua code from app.
@@ -12982,13 +13001,16 @@ void addFunctions()
 	lua_register(lua, "EffectSetColor",				EffectSetColor);
 	lua_register(lua, "EffectSetLifespan",			EffectSetLifespan);
 
-	//PE: Wicked particle system.
 #ifdef WICKEDPARTICLESYSTEM
+	//PE: Wicked particle system.
 	lua_register(lua, "WParticleEffectLoad", WParticleEffectLoad);
 	lua_register(lua, "WParticleEffectPosition", WParticleEffectPosition);
 	lua_register(lua, "WParticleEffectVisible", WParticleEffectVisible);
 	lua_register(lua, "WParticleEffectAction", WParticleEffectAction);
 	
+	//PE: Other missing commands.
+	lua_register(lua, "PositionSound", entity_lua_positionsound);
+
 #endif
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);

@@ -1,3 +1,6 @@
+
+#define ONLYLOADWHENUSED
+
 #include "GGGrass.h"
 
 #include "wiRenderer.h"
@@ -22,6 +25,12 @@
 #include "optick.h"
 #endif
 
+#ifdef ONLYLOADWHENUSED
+bool bGrassTextureUploaded[255];
+bool bGrassTextureForceUploaded[255];
+//extern std::string FinalGameGuruMaxFolder;
+uint64_t last_paint_type;
+#endif
 using namespace GGTerrain;
 
 using namespace wiGraphics;
@@ -664,6 +673,86 @@ float GrassTimer()
 	return (float) (i64CurrentTime / (double) i64TimeFreq);
 }
 
+#ifdef ONLYLOADWHENUSED
+//#pragma optimize("", off)
+
+void GGGrass_LoadTextures(bool bAll = false,bool bInit = false)
+{
+	char grassFilename[256];
+	bool bChanged = false;
+	uint64_t values = gggrass_global_params.paint_type;
+	uint32_t currMat = gggrass_global_params.paint_material;
+
+	if (bInit)
+	{
+		//PE: Defaults 0,7
+		bGrassTextureUploaded[0] = true;
+		char szDstRoot[MAX_PATH];
+		strcpy_s(szDstRoot, "files/grassbank/");
+		strcpy_s(grassFilename, szDstRoot);
+		strcat_s(grassFilename, grassFiles[0].filename);
+		GGGrass_LoadTextureDDSIntoSlice(grassFilename, &texGrass, 0);
+
+		bGrassTextureUploaded[7] = true;
+		strcpy_s(grassFilename, szDstRoot);
+		strcat_s(grassFilename, grassFiles[7].filename);
+		GGGrass_LoadTextureDDSIntoSlice(grassFilename, &texGrass, 7);
+		bChanged = true;
+
+	}
+	else
+	{
+		for (uint32_t i = 0; i < GGGRASS_NUM_SELECTABLE_TYPES; i++)
+		{
+			if (values & 1)
+			{
+				uint32_t realIndex = 0;
+
+				realIndex = GGGrass_GetRealIndex(0, i); //PE: Manual paint version
+				if (realIndex >= GGGRASS_NUM_TYPES) realIndex = 0;
+
+				if (!bGrassTextureUploaded[realIndex])
+				{
+					bGrassTextureUploaded[realIndex] = true;
+					char szDstRoot[MAX_PATH];
+					strcpy_s(szDstRoot, "grassbank/");
+					strcpy_s(grassFilename, szDstRoot);
+					strcat_s(grassFilename, grassFiles[realIndex].filename);
+					GGGrass_LoadTextureDDSIntoSlice(grassFilename, &texGrass, realIndex);
+					bChanged = true;
+				}
+
+				realIndex = GGGrass_GetRealIndex(1, i);  //PE: Auto paint version
+				if (realIndex >= GGGRASS_NUM_TYPES) realIndex = 0;
+
+				if (!bGrassTextureUploaded[realIndex])
+				{
+					bGrassTextureUploaded[realIndex] = true;
+					char szDstRoot[MAX_PATH];
+					//sprintf_s(szDstRoot, MAX_PATH, "%sgrassbank/", FinalGameGuruMaxFolder.c_str());
+					if (bInit)
+						strcpy_s(szDstRoot, "files/grassbank/");
+					else
+						strcpy_s(szDstRoot, "grassbank/");
+
+					strcpy_s(grassFilename, szDstRoot);
+					strcat_s(grassFilename, grassFiles[realIndex].filename);
+					GGGrass_LoadTextureDDSIntoSlice(grassFilename, &texGrass, realIndex);
+					bChanged = true;
+				}
+
+				//pGrassMap[index] &= 0x80; // keep flattened state
+				//pGrassMap[index] |= realIndex + 2;
+			}
+			values >>= 1;
+		}
+	}
+	if (bChanged)
+	{
+		ggterrain_extra_params.iUpdateGrass = 5;
+	}
+}
+#endif
 void GGGrass_Init_Textures ( LPSTR pRemoteGrassPath )
 {
 	char grassFilename[256];
@@ -699,7 +788,18 @@ void GGGrass_Init()
 	GGGrass_LoadTextureDDS("Files/treebank/noise.dds", &texNoise);
 	GGGrass_CreateEmptyTexture(1024, 1024, 9, GGGRASS_NUM_TYPES, FORMAT_BC3_UNORM_SRGB, &texGrass);
 
+#ifdef ONLYLOADWHENUSED
+	for (uint32_t i = 0; i < GGGRASS_NUM_TYPES; i++)
+	{
+		bGrassTextureUploaded[i] = false;
+		bGrassTextureForceUploaded[i] = false;
+	}
+	last_paint_type = gggrass_global_params.paint_type;
+	GGGrass_LoadTextures(false,true);
+#else
+
 	GGGrass_Init_Textures("Files\\");
+#endif
 
 	pGrassMap = new uint8_t[ GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE ];
 	memset( pGrassMap, 1, GGGRASS_MAP_SIZE * GGGRASS_MAP_SIZE );
@@ -1061,6 +1161,21 @@ int GGGrass_SetData( uint32_t size, uint8_t* data, sUndoSysEventGrass* pEvent)
 		memcpy(pGrassMap, data, size1);
 
 		//wiRenderer::GetDevice()->UpdateTexture(&texGrassMap, 0, 0, NULL, pGrassMap, GGGRASS_MAP_SIZE, -1);
+#ifdef ONLYLOADWHENUSED
+		for (uint32_t y = 0; y < GGGRASS_MAP_SIZE; y++)
+		{
+			for (uint32_t x = 0; x < GGGRASS_MAP_SIZE; x++)
+			{
+				uint32_t index = y * GGGRASS_MAP_SIZE + x;
+				uint8_t grassID = pGrassMap[index] & 0x7F;
+				if (grassID > 2)
+				{
+					bGrassTextureForceUploaded[grassID-2] = true;
+				}
+			}
+		}
+		last_paint_type = -1;
+#endif
 
 		return 1;
 	}
@@ -1455,6 +1570,14 @@ void GGGrass_Update( wiScene::CameraComponent* camera, CommandList cmd, bool bRe
 #endif
 
 	if ( !gggrass_global_params.draw_enabled ) return;
+
+#ifdef ONLYLOADWHENUSED
+	if (last_paint_type != gggrass_global_params.paint_type)
+	{
+		GGGrass_LoadTextures(false,false);
+		last_paint_type = gggrass_global_params.paint_type;
+	}
+#endif
 
 	//auto range = wiProfiler::BeginRangeCPU( "Max - Grass Update" );
 

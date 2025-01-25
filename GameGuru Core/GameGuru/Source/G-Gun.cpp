@@ -31,7 +31,7 @@ void gun_restart ( void )
 	g.weaponammoindex=0;
 	g.autoloadgun=-1 ; t.gunid=0;
 	t.triggerweapononeifexists=1;
-	for ( t.t = 1 ; t.t<=  9; t.t++ )
+	for ( t.t = 1 ; t.t<=  11; t.t++ )
 	{
 		t.weaponslot[t.t].pref=0;
 		t.weaponslot[t.t].got=0;
@@ -159,7 +159,7 @@ void gun_loadonlypresent ( void )
 	}
 
 	//  And now fill in player weapon details
-	for ( t.tww = 1 ; t.tww<=  9; t.tww++ )
+	for ( t.tww = 1 ; t.tww<=  11; t.tww++ )
 	{
 		t.gunid=t.weaponslot[t.tww].pref;
 		if (  t.gunid>0 ) 
@@ -778,7 +778,7 @@ void gun_change ( void )
 		g.weaponammoindex=0;
 		if (  t.gunid>0 ) 
 		{
-			for ( t.ws = 1 ; t.ws < 10; t.ws++ )
+			for ( t.ws = 1 ; t.ws < 12; t.ws++ )
 			{
 				if (  t.weaponslot[t.ws].got == t.gunid ) 
 				{

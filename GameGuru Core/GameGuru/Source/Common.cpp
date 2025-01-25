@@ -1493,11 +1493,15 @@ void common_init_globals ( void )
 #endif
 	Dim (  t.decalelement,g.decalelementmax );
 
-	Dim (  t.weaponslot,10 );
+	Dim (  t.weaponslot,12 ); //PE: 11 to be used for interaction hands, t.weaponammo[slot+10] still works.
 	Dim (  t.weaponammo,20 );
 	Dim (  t.weaponclipammo,20 );
-	Dim (  t.weaponhud,10 );
-	for ( t.ws = 1 ; t.ws <= 10 ; t.ws++ ) t.weaponslot[t.ws].pref=0 ;
+	Dim (  t.weaponhud,12 );
+	for (t.ws = 1; t.ws <= 12; t.ws++)
+	{
+		t.weaponslot[t.ws].pref = 0;
+		t.weaponslot[t.ws].got = 0;
+	}
 
 	//  Gun Data
 	g.noholster = 1;
@@ -2186,6 +2190,7 @@ void FPSC_SetDefaults ( void )
 	g.gsetupdepth = 32;
 	g.gfullscreen = 0;
 	g.gvsync = 1;
+	g.iEditorVSync = 0;
 	g.gvrmode = 0;
 	g.gvrmodefordevelopers = 0;
 	g.gvrmodeoriginal = 0;
@@ -2611,6 +2616,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 
 					// DOCDOC: vsync = Enables the refresh of the render to match the current adapter refresh rate.
 					t.tryfield_s = "vsync"; if (t.field_s == t.tryfield_s)  g.gvsync = t.value1;
+
+					// DOCDOC: vsync = Enables the refresh of the render to match the current adapter refresh rate.
+					t.tryfield_s = "editorvsync"; if (t.field_s == t.tryfield_s)  g.iEditorVSync = t.value1;
 
 					// DOCDOC: fullscreen = Attempts to request a full-screen mode from the DirectX adapter.
 					t.tryfield_s = "fullscreen"; if (t.field_s == t.tryfield_s)  g.gfullscreen = t.value1;

@@ -11,6 +11,10 @@
 #include <vector>
 #include "M-CharacterCreatorPlus.h"
 
+
+//PE: MAX_PATH not defined in all source files.
+#define MAXPATH 1050
+
 //  Master settings (MAXTEXTURESIZEMULTIPLIER is 1024*? to get MAXTEXTURESIZE)
 #define MAXTEXTURESIZE 2048
 #define MAXTEXTURESIZEMULTIPLIER 2
@@ -2894,7 +2898,7 @@ struct importertype
 	bool bQuitForReload;
 	int iViewCollisionShapes;
 	bool bInvertNormalMap;
-	char pOrigNormalMap[MAX_PATH];
+	char pOrigNormalMap[MAXPATH];
 	std::vector<cstr> pSurfaceFilesToDelete;
 	std::vector<cstr> meshesToExclude;
 	#endif
@@ -6277,24 +6281,36 @@ struct entityprofiletype
 //PE: Saving memory - sizeof(PropertiesVariables)	85328	unsigned __int64 (this is per object on your level so... 5000 obj = 0.39gb.)
 //PE: No one is going to be feeding 80 variables into a single lua script so lowered this.
 //PE: Now - sizeof(PropertiesVariables)	32344	unsigned __int64 (this saving is per object added so huge 5000 obj = 0.15gb. 0.24gb saved).
-#define MAXPROPERTIESVARIABLES 35
+#define MAXPROPERTIESVARIABLES 40
 #define MAXVARIABLETEXTSIZE 260
 #define MAXVARIABLETEXTSIZELARGE 512
-#define MAXVARIABLESIZE 100
+#define MAXVARIABLESIZE 50
+
+//PE: 11/30/24 - 41160
+//PE: Necrym59 Need more, increase to 40 and decrease overall mem use.
+//PE: Scanning all lua scripts MAXVARIABLESIZE = 23 , so lower it to 50.
+//PE: Convert VariableSectionDescription into cstr to use min size 100 (add MAXPROPERTIESVARIABLES*100 to see less mem use)
+//PE: Convert VariableSectionEndDescription to cstr.
+//PE: use uint8_t VariableType[MAXPROPERTIESVARIABLES] = { 0 };
+
 struct PropertiesVariables {
-	int VariableType[MAXPROPERTIESVARIABLES] = { 0 };
+	uint8_t VariableType[MAXPROPERTIESVARIABLES] = { 0 };
 	char Variable[MAXPROPERTIESVARIABLES][MAXVARIABLESIZE] = { "\0" }; //This can be removed later only for debug.
 	char VariableValue[MAXPROPERTIESVARIABLES][MAXVARIABLETEXTSIZE] = { "\0" };
-	char VariableSectionDescription[MAXPROPERTIESVARIABLES][MAXVARIABLETEXTSIZELARGE] = { "\0" };
-	char VariableSectionEndDescription[MAXPROPERTIESVARIABLES][MAXVARIABLETEXTSIZE] = { "\0" };
+	//char VariableSectionDescription[MAXPROPERTIESVARIABLES][MAXVARIABLETEXTSIZELARGE] = { "\0" };
+	cStr VariableSectionDescription[MAXPROPERTIESVARIABLES] = { "" };
+	//char VariableSectionEndDescription[MAXPROPERTIESVARIABLES][MAXVARIABLETEXTSIZE] = { "\0" };
+	cStr VariableSectionEndDescription[MAXPROPERTIESVARIABLES] = { "" };
 	float VariableValueFrom[MAXPROPERTIESVARIABLES] = { 0.0f };
 	float VariableValueTo[MAXPROPERTIESVARIABLES] = { 0.0f };
 	bool bDescriptionOnly[MAXPROPERTIESVARIABLES] = { false };
-	char VariableScript[MAX_PATH];
+	char VariableScript[MAXPATH];
 	cstr VariableDescription;
 	int iVariables = 0;
 };
 
+
+//PE: 11/30/24 - 58432
 //  Entity Element Custom Profile Data
 struct entityeleproftype
 {
@@ -6696,6 +6712,7 @@ struct entityluadatastatestype
 //PE: We really need to save on entitytype memory used, if you have 10000+ objects you could look at using 1gb when also in test game.
 //PE: Have commented out not used variables, and really tried to limit cstr that preallocate STRMINSIZE.
 
+//PE: 11/30/24 - 59400
 //  Entity Elements Data (entityelement array)
 struct entitytype
 {

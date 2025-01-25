@@ -35,6 +35,7 @@ std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
 StoryboardStruct StoryboardBackup;
 StoryboardStruct checkproject;
+StoryboardStruct202 updateproject202;
 std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
 bool bScreen_Editor_Window = false;
 int iScreen_Editor_Node = -1;
@@ -1463,7 +1464,8 @@ void mapeditorexecutable_loop_leavetestgame(void)
 	bUpdateVeg = true;
 
 	// set vsync back on when we return to the editor so we don't 100% the GPU
-	wiEvent::SetVSync(false); // see if this improves performance in the level editor, was ( true );
+	if (g.iEditorVSync == 0)
+		wiEvent::SetVSync(false); // see if this improves performance in the level editor, was ( true );
 }
 #endif
 
@@ -9500,11 +9502,12 @@ void mapeditorexecutable_loop(void)
 													// drop down to make life easier
 													char cTmpInput[MAX_PATH];
 													strcpy(cTmpInput, g_collectionQuestList[iCollectionItemIndex].collectionFields[l].Get());
-													const char* items[] = { "Collect", "Destroy", "Deliver" };
+													const char* items[] = { "Collect", "Destroy", "Deliver", "Activate" };
 													int item_current = 0;
 													if (stricmp(cTmpInput, "collect") == NULL) item_current = 0;
 													if (stricmp(cTmpInput, "destroy") == NULL) item_current = 1;
 													if (stricmp(cTmpInput, "deliver") == NULL) item_current = 2;
+													if (stricmp(cTmpInput, "activate") == NULL) item_current = 3;
 													ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
 													ImGui::Text("Quest Type");
 													ImGui::SameLine();
@@ -9516,6 +9519,7 @@ void mapeditorexecutable_loop(void)
 														if (item_current == 0) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "collect";
 														if (item_current == 1) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "destroy";
 														if (item_current == 2) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "deliver";
+														if (item_current == 3) g_collectionQuestList[iCollectionItemIndex].collectionFields[l] = "activate";
 													}
 													ImGui::PopItemWidth();
 
@@ -11744,11 +11748,13 @@ void mapeditorexecutable_loop(void)
 							strcpy(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableDescription.Get());
 							for (int i = 0; i < t.grideleprof.PropertiesVariable.iVariables; i++)
 							{
-								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i]);
+								//strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i]);
+								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionDescription[i].Get());
 							}
 							for (int i = 0; i < t.grideleprof.PropertiesVariable.iVariables; i++)
 							{
-								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i]);
+								//strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i]);
+								strcat(pCaptureAnyScriptDesc, t.grideleprof.PropertiesVariable.VariableSectionEndDescription[i].Get());
 							}
 							if (strstr(pCaptureAnyScriptDesc, "<Sound0>") != 0) bSound0Mentioned = true;
 							if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;
@@ -17474,6 +17480,13 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	void CleanUpSpawedObject(void);
 	CleanUpSpawedObject();
 
+
+	#ifdef WICKEDPARTICLESYSTEM
+	//PE: Clear all wicked particle effects created by lua.
+	void CleanUpEmitterEffects(void);
+	CleanUpEmitterEffects();
+	#endif
+
 	#ifdef WICKEDENGINE
 	WickedCall_SetEditorCameraLight(true);
 	#endif
@@ -17617,7 +17630,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 		{
 			if ( ObjectExist(t.obj) == 1 ) 
 			{
-				if ( t.entityprofile[t.entid].ismarker == 0 ) 
+				//PE: Also restore moved particles.
+				if ( t.entityprofile[t.entid].ismarker == 0  || t.entityprofile[t.entid].ismarker == 10 )
 				{
 					// reset entity
 					PositionObject (  t.obj,t.entityelement[t.e].x,t.entityelement[t.e].y,t.entityelement[t.e].z );

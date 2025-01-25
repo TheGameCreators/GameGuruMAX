@@ -2285,6 +2285,10 @@ void MasterRenderer::Update(float dt)
 			}
 			wiProfiler::EndRange(range3);
 			
+#ifdef WICKEDPARTICLESYSTEM
+			WickedCall_UpdateEmitters();
+#endif
+
 			// now just prepared IMGUI, but actual render called from Wicked hook
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Render");
 			GuruLoopRender();

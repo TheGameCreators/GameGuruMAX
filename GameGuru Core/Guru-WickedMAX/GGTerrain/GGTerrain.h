@@ -343,7 +343,7 @@ void GGTerrain_ReloadTextures(wiGraphics::CommandList cmd = 0, std::vector<std::
 void GGTerrain_LoadDefaultTextureIntoSlot(int i, char* rootDir, wiGraphics::CommandList cmd = 0);
 
 void GGTerrain_DebugOutputFlattenedAreas(void);
-
+void GGTerrain_CheckMaterialUsed(wiGraphics::CommandList cmd);
 } // namespace GGTerrain
 
 #endif // _H_GGTERRAIN

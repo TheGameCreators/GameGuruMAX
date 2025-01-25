@@ -139,6 +139,8 @@
 	#define NEWPROJSYSWORKINPROGRESS
 	#define DETECTANDUSENEWPARTICLEDECALS
 
+	#define WICKEDPARTICLESYSTEM
+
   #else
    // Flags to compile the Classic version of GameGuru
    #define FPSEXCHANGE

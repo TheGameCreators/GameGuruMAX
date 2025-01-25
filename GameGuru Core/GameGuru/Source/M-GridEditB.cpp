@@ -75,7 +75,10 @@ extern std::vector<std::string> projectbank_image;
 extern std::vector<int> projectbank_imageid;
 extern StoryboardStruct Storyboard;
 extern StoryboardStruct checkproject;
+extern StoryboardStruct202 updateproject202;
 StoryboardStruct tempProjectData;
+//PE: StoryboardStruct is now so huge that you get a stackoverflow if added to a function, so moved here.
+StoryboardStruct templateStoryboard;
 extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
 extern bool bScreen_Editor_Window;
 extern int iScreen_Editor_Node;
@@ -540,6 +543,7 @@ bool bSortProjects = true;
 bool bResetProjectThumbnails = true;
 int g_iCheckExistingFilesModifiedDelayed = 0;
 ImRect g_rStealMonitorArea;
+bool bUpgradeAndBackupOldProject = false;
 
 std::vector<cstr> lutImages_s;
 
@@ -2557,19 +2561,32 @@ void setpropertyfile ( int group, char* data_s, char* field_s, char* desc_s, cha
 }
 #endif
 
-int FillWeaponList(std::vector<std::string>& labels)
+int FillWeaponList(std::vector<std::string>& labels, char *filter)
 {
 	int listmax = fillgloballistwithweaponsQuick(true, true, true, false);
 	int iWeaponListIndex = 0;
-
-	labels.push_back("No Weapon");
+	if (filter)
+	{
+		std::string label = "No " + std::string(filter);
+		labels.push_back(label.c_str());
+	}
+	else
+	{
+		labels.push_back("No Weapon");
+	}
 	iWeaponListIndex++;
 	for (int gunid = 1; gunid <= g.gunmax; gunid++)
 	{
 		cstr thisLabel = t.gun[gunid].name_s;
-		if (strlen(thisLabel.Get()) == 0) thisLabel = "No Weapon";
-		labels.push_back(thisLabel.Get());
-		iWeaponListIndex++;
+		bool bAdd = true;
+		if (filter && !pestrcasestr(thisLabel.Get(), filter))
+			bAdd = false;
+		if (bAdd)
+		{
+			if (strlen(thisLabel.Get()) == 0) thisLabel = "No Weapon";
+			labels.push_back(thisLabel.Get());
+			iWeaponListIndex++;
+		}
 	}
 
 	return(iWeaponListIndex);
@@ -6307,7 +6324,8 @@ void gridedit_setvsync(bool bLevelVSyncEnabled)
 	extern bool bImGuiInTestGame;
 	if (t.game.gameisexe == 0 && bImGuiInTestGame == false )
 	{
-		bLevelVSyncEnabled = false;
+		if(g.iEditorVSync == 0)
+			bLevelVSyncEnabled = false;
 	}
 	master.bVsyncEnabled = bLevelVSyncEnabled;
 	wiEvent::SetVSync(master.bVsyncEnabled);
@@ -19671,7 +19689,8 @@ void process_entity_library_v2(void)
 									{
 										if (strlen(pCaptureAnyScriptDesc) < 8192)
 										{
-											strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+											//strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+											strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i].Get());
 											if (dluaload.PropertiesVariable.Variable[i] && strlen(dluaload.PropertiesVariable.Variable[i]) > 0)
 											{
 												//Split into segments.
@@ -19679,9 +19698,13 @@ void process_entity_library_v2(void)
 												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.Variable[i]);
 												strcat(pCaptureAnyScriptDesc, "]");
 											}
-											if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+											//if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+											//{
+											//	strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+											//}
+											if (dluaload.PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 											{
-												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+												strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i].Get());
 											}
 										}
 									}
@@ -19967,7 +19990,8 @@ void process_entity_library_v2(void)
 												{
 													if (strlen(pCaptureAnyScriptDesc) < 8192)
 													{
-														strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+														//strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i]);
+														strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionDescription[i].Get());
 														if (dluaload.PropertiesVariable.Variable[i] && strlen(dluaload.PropertiesVariable.Variable[i]) > 0)
 														{
 															//Split into segments.
@@ -19975,9 +19999,13 @@ void process_entity_library_v2(void)
 															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.Variable[i]);
 															strcat(pCaptureAnyScriptDesc, "]");
 														}
-														if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+														//if (dluaload.PropertiesVariable.VariableSectionEndDescription[i] && strlen(dluaload.PropertiesVariable.VariableSectionEndDescription[i]) > 0)
+														//{
+														//	strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+														//}
+														if (dluaload.PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 														{
-															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i]);
+															strcat(pCaptureAnyScriptDesc, dluaload.PropertiesVariable.VariableSectionEndDescription[i].Get());
 														}
 													}
 												}
@@ -28184,11 +28212,13 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 		strcpy(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableDescription.Get());
 		for (int i = 0; i < edit_grideleprof->PropertiesVariable.iVariables; i++)
 		{
-			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i]);
+			//strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i]);
+			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionDescription[i].Get());
 		}
 		for (int i = 0; i < edit_grideleprof->PropertiesVariable.iVariables; i++)
 		{
-			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			//strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			strcat(pCaptureAnyScriptDesc, edit_grideleprof->PropertiesVariable.VariableSectionEndDescription[i].Get());
 		}
 		if (strstr(pCaptureAnyScriptDesc, "<Sound0>") != 0) bSound0Mentioned = true;
 		if (strstr(pCaptureAnyScriptDesc, "<Sound1>") != 0) bSound1Mentioned = true;
@@ -32328,11 +32358,16 @@ void GetFilesListForLibrary(char *path, bool bCreateThumbs, int win, int iThumbW
 									vTmp.cProject = project;
 
 									// quick check to see if the folder exists
-									char pProjFolderFile[MAX_PATH];					
-									strcpy(pProjFolderFile, "projectbank\\");
-									strcat(pProjFolderFile, vTmp.cProject.Get());
-									strcat(pProjFolderFile, "\\project.dat");
+									char pProjFolderFile[MAX_PATH];
+									sprintf(pProjFolderFile, "projectbank\\%s\\project%d.dat", vTmp.cProject.Get(), STORYBOARDVERSION);
 									GG_GetRealPath(pProjFolderFile, false);
+									if (FileExist(pProjFolderFile) == 0)
+									{
+										strcpy(pProjFolderFile, "projectbank\\");
+										strcat(pProjFolderFile, vTmp.cProject.Get());
+										strcat(pProjFolderFile, "\\project.dat");
+										GG_GetRealPath(pProjFolderFile, false);
+									}
 									if(FileExist(pProjFolderFile)==1)
 										vTmp.bProjectExists = true;
 									else
@@ -33259,16 +33294,26 @@ void GetProjectSortData (std::vector<ProjectSortData>& output)
 			if (folder != "." && folder != "..")
 			{
 				char project[MAX_PATH];
-				strcpy(project, destination);
-				strcat(project, folder.Get());
-				strcat(project, "\\project.dat");
-
+				sprintf(project, "%s%s\\project%d.dat", destination,folder.Get(), STORYBOARDVERSION);
 				ProjectSortData data;
 				data.folderName = std::string(folder.Get());
 				wchar_t filePath[MAX_PATH];
 				MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
 
 				HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+				if (hFile == INVALID_HANDLE_VALUE)
+				{
+					strcpy(project, destination);
+					strcat(project, folder.Get());
+					strcat(project, "\\project.dat");
+
+					ProjectSortData data;
+					data.folderName = std::string(folder.Get());
+					wchar_t filePath[MAX_PATH];
+					MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
+					hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+				}
+
 				if (hFile == INVALID_HANDLE_VALUE)
 				{
 					strcpy(project, destination);
@@ -33281,13 +33326,20 @@ void GetProjectSortData (std::vector<ProjectSortData>& output)
 						strcpy(pAbsTrueProjectPath, ReadString(1));
 						CloseFile(1);
 						GG_GetRealPath(pAbsTrueProjectPath, 0);
-						strcpy(project, pAbsTrueProjectPath);
-						strcat(project, folder.Get());
-						strcat(project, "\\Files\\projectbank\\");
-						strcat(project, folder.Get());
-						strcat(project, "\\project.dat");
+
+						sprintf(project, "%s%s\\Files\\projectbank\\%s\\project%d.dat", pAbsTrueProjectPath,folder.Get(), folder.Get(), STORYBOARDVERSION);
 						MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
 						hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+						if (hFile == INVALID_HANDLE_VALUE)
+						{
+							strcpy(project, pAbsTrueProjectPath);
+							strcat(project, folder.Get());
+							strcat(project, "\\Files\\projectbank\\");
+							strcat(project, folder.Get());
+							strcat(project, "\\project.dat");
+							MultiByteToWideChar(CP_UTF8, 0, &project[0], -1, filePath, MAX_PATH);
+							hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+						}
 					}
 				}
 				if (hFile != INVALID_HANDLE_VALUE)
@@ -33403,12 +33455,29 @@ void GetProjectThumbnails()
 				strcpy(project, "projectbank\\");
 			}
 			strcat(project, projectbank_list[i].c_str());
-			strcat(project, "\\project.dat");
+
+			char project2[MAX_PATH];
+			strcpy(project2, project);
+
+			sprintf(project, "%s\\project%d.dat", project2, STORYBOARDVERSION);
 			projectfile = GG_fopen(project, "rb");
+			if (!projectfile)
+			{
+				strcpy(project, project2);
+				strcat(project, "\\project.dat");
+				projectfile = GG_fopen(project, "rb");
+			}
+
 			if (projectfile)
 			{
+				fclose(projectfile);
+
+				//PE: Use this so we can upgrade from 202 to 203+
+				bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+				load__storyboard_into_struct(project, checkproject);
+
 				//PE: Need full load now, as we can have Game Settings.
-				size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
+				//size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 
 				char sig[12] = "Storyboard\0";
 				if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
@@ -33478,7 +33547,6 @@ void GetProjectThumbnails()
 				{
 					projectbank_image.push_back(""); //Just use CLICK HERE.
 				}
-				fclose(projectfile);
 			}
 			else
 			{
@@ -36111,17 +36179,29 @@ void Welcome_Screen(void)
 									strcpy(projectname, sCurrentGame.Get());
 									projectname[strlen(projectname) - 4] = 0;
 									char project[MAX_PATH];
-									strcpy(project, "projectbank\\");
-									strcat(project, projectname);
-									strcat(project, "\\project.dat");
-							
+
+									sprintf(project, "projectbank\\%s\\project%d.dat", projectname, STORYBOARDVERSION);
 									FILE* projectfile = GG_fopen(project, "rb");
+									if (!projectfile)
+									{
+										strcpy(project, "projectbank\\");
+										strcat(project, projectname);
+										strcat(project, "\\project.dat");
+										projectfile = GG_fopen(project, "rb");
+									}
 									if (projectfile)
 									{
-										tempProjectData.game_developer_desc[0] = 0;
-										size_t size = fread(&tempProjectData, 1, sizeof(tempProjectData), projectfile);
-										//Valid pref:
 										fclose(projectfile);
+
+										//PE: Use this so we can upgrade from 202 to 203+
+										bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+										load__storyboard_into_struct(project, tempProjectData);
+
+
+										//tempProjectData.game_developer_desc[0] = 0;
+										//size_t size = fread(&tempProjectData, 1, sizeof(tempProjectData), projectfile);
+										//Valid pref:
+										
 										if(strlen(tempProjectData.game_developer_desc) > 0)
 											sDevDescription = tempProjectData.game_developer_desc;
 
@@ -37600,22 +37680,26 @@ void reset_single_node(int node)
 void storeboard_fix_uniqueids( void )
 {
 	int iUniqueId = STORYBOARD_THUMBS;
+	int iUniqueIdsAdd = 1000;
 	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 	{
+		if (i == 100 || i == 200)
+			iUniqueIdsAdd += 100000;
+
 		int node = i;
 
 		for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 		{
 			//PE: input_id,output_id ID's broken in checkproject.
-			if (Storyboard.Nodes[node].input_id[l] != iUniqueId + 1000 + (1000 * l) ||
-				Storyboard.Nodes[node].output_id[l] != iUniqueId + 1000 + (1000 * l) + 500)
+			if (Storyboard.Nodes[node].input_id[l] != iUniqueId + iUniqueIdsAdd + (1000 * l) ||
+				Storyboard.Nodes[node].output_id[l] != iUniqueId + iUniqueIdsAdd + (1000 * l) + 500)
 			{
 				//PE: Something wrong reset.
 				bool bInputChanged = false;
-				if (Storyboard.Nodes[node].input_id[l] != iUniqueId + 1000 + (1000 * l)) bInputChanged = true;
+				if (Storyboard.Nodes[node].input_id[l] != iUniqueId + iUniqueIdsAdd + (1000 * l)) bInputChanged = true;
 				int oldinput = Storyboard.Nodes[node].input_id[l];
-				Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-				Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+				Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+				Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
 
 				if (bInputChanged)
 				{
@@ -37670,8 +37754,21 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 	strcpy(Storyboard.game_developer_desc, "");
 	Storyboard.project_readonly = 0;
 
+	//PE: STORYBOARD_MAXNODES = 150. Largest unique id = 199749 , lowest = 49000.
+	//PE: checkunique = { size=28500 }
+	//PE: STORYBOARD_MAXNODES = 150. STORYBOARD_MAXOUTPUTS = 30. STORYBOARD_MAXWIDGETS = 100. Largest unique id = 249949 , lowest = 49000.
+	//PE: checkunique = { size=54000 }
+	//#define TESTUNIQUEIDS
+
+	#ifdef TESTUNIQUEIDS
+	std::vector<int> checkunique;
+	#endif
+
+	int iUniqueIdsAdd = 1000;
 	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 	{
+		if (i == 100 || i == 200)
+			iUniqueIdsAdd += 100000;
 		reset_single_node(i);
 
 		StoryboardiActiveLinksId[i] = 0;
@@ -37683,15 +37780,35 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 
 		for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 		{
-			Storyboard.Nodes[i].input_id[l] = iUniqueIds + 1000 + (1000 * l);
-			Storyboard.Nodes[i].output_id[l] = iUniqueIds + 1000 + (1000 * l) + 500;
+			Storyboard.Nodes[i].input_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l);
+			Storyboard.Nodes[i].output_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 500;
+			#ifdef TESTUNIQUEIDS
+			if (std::find(checkunique.begin(), checkunique.end(), Storyboard.Nodes[i].input_id[l]) != checkunique.end())
+				printf("tmp");
+			checkunique.push_back(Storyboard.Nodes[i].input_id[l]);
+			if (std::find(checkunique.begin(), checkunique.end(), Storyboard.Nodes[i].output_id[l]) != checkunique.end())
+				printf("tmp");
+			checkunique.push_back(Storyboard.Nodes[i].output_id[l]);
+			#endif
 		}
 
 		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 		{
-			Storyboard.Nodes[i].widget_normal_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 600;
-			Storyboard.Nodes[i].widget_highlight_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 700;
-			Storyboard.Nodes[i].widget_selected_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 800;
+			Storyboard.Nodes[i].widget_normal_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 600;
+			Storyboard.Nodes[i].widget_highlight_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 700;
+			Storyboard.Nodes[i].widget_selected_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 800;
+
+			#ifdef TESTUNIQUEIDS
+			if (std::find(checkunique.begin(), checkunique.end(), Storyboard.Nodes[i].widget_normal_thumb_id[l]) != checkunique.end())
+				printf("tmp");
+			checkunique.push_back(Storyboard.Nodes[i].widget_normal_thumb_id[l]);
+			if (std::find(checkunique.begin(), checkunique.end(), Storyboard.Nodes[i].widget_highlight_thumb_id[l]) != checkunique.end())
+				printf("tmp");
+			checkunique.push_back(Storyboard.Nodes[i].widget_highlight_thumb_id[l]);
+			if (std::find(checkunique.begin(), checkunique.end(), Storyboard.Nodes[i].widget_selected_thumb_id[l]) != checkunique.end())
+				printf("tmp");
+			checkunique.push_back(Storyboard.Nodes[i].widget_selected_thumb_id[l]);
+			#endif
 		}
 		Storyboard.Nodes[i].screen_backdrop_id = iUniqueIds + 500;
 
@@ -39169,9 +39286,8 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 
 			// Storyboard does not yet have a HUD screen, so add one (copy from default template HUD in below filepath)
 			// In future, any screen default states should be saved into this file
-			StoryboardStruct templateStoryboard;
 			const char* filepath = "editors\\templates\\ScreenEditor\\project.dat";
-			extern bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+			bool load__storyboard_into_struct(const char*, StoryboardStruct&);
 			if (load__storyboard_into_struct(filepath, templateStoryboard))
 			{
 				StoryboardNodesStruct& thisNode = Storyboard.Nodes[node];
@@ -41481,7 +41597,7 @@ void process_storeboard(bool bInitOnly)
 
 
 				ImVec2 vNodeAreaStart = ImGui::GetCursorScreenPos();
-				int iUniqueIds = STORYBOARD_THUMBS;
+				//int iUniqueIds = STORYBOARD_THUMBS;
 
 				//PE: Make sure if we focus another window and go back , mouse dragging is reset.
 				extern bool g_bAppActiveStat;
@@ -42548,8 +42664,13 @@ void process_storeboard(bool bInitOnly)
 						sprintf_s(cScreenCount, "%d", iScreenCount);
 						// Find first free storyboard node that we can use for the new screen.
 						int node = -1;
+
+						int iUniqueIdsAdd = 1000;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 						{
+							if (i == 100 || i == 200)
+								iUniqueIdsAdd += 100000;
+
 							if (Storyboard.Nodes[i].used == 0)
 							{
 								// Reset node to default state, in case any old data remains.
@@ -42563,14 +42684,14 @@ void process_storeboard(bool bInitOnly)
 								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 								{
 									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
-									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
-									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
 								}
 								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 								{
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
 								}
 
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
@@ -42647,8 +42768,12 @@ void process_storeboard(bool bInitOnly)
 						sprintf_s(cLoadingScreenCount, "%d", iLoadingScreenCount);
 						// Find first free storyboard node that we can use for the new screen.
 						int node = -1;
+
+						int iUniqueIdsAdd = 1000;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 						{
+							if (i == 100 || i == 200)
+								iUniqueIdsAdd += 100000;
 							if (Storyboard.Nodes[i].used == 0)
 							{
 								// Reset node to default state, in case any old data remains.
@@ -42662,14 +42787,14 @@ void process_storeboard(bool bInitOnly)
 								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 								{
 									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
-									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
-									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
 								}
 								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 								{
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
 								}
 
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
@@ -42793,8 +42918,12 @@ void process_storeboard(bool bInitOnly)
 						sprintf_s(cHudCount, "%d", hudScreenCount);
 						// Find first free storyboard node that we can use for the new screen.
 						int node = -1;
+						int iUniqueIdsAdd = 1000;
 						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 						{
+							if (i == 100 || i == 200)
+								iUniqueIdsAdd += 100000;
+
 							if (Storyboard.Nodes[i].used == 0)
 							{
 								// Reset node to default state, in case any old data remains.
@@ -42808,14 +42937,14 @@ void process_storeboard(bool bInitOnly)
 								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 								{
 									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
-									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
-									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
+									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
+									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
 								}
 								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 								{
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + 1000 + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+									Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+									Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
 								}
 
 								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
@@ -43642,13 +43771,27 @@ void process_storeboard(bool bInitOnly)
 							{
 								// load in template screens from "RPG Template" project
 								char project[MAX_PATH];
-								strcpy(project, "projectbank\\RPG Template\\project.dat");
+								
+								sprintf(project, "projectbank\\RPG Template\\project%d.dat", STORYBOARDVERSION);
 								FILE* projectfile = GG_fopen(project, "rb");
+								if (!projectfile)
+								{
+									strcpy(project, "projectbank\\RPG Template\\project.dat");
+									projectfile = GG_fopen(project, "rb");
+								}
 								if (projectfile)
 								{
-									StoryboardStruct* checkproject = new StoryboardStruct;
-									memset(checkproject, 0, sizeof(StoryboardStruct));
-									size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
+									StoryboardStruct* checkproject = nullptr;
+									memset(&tempProjectData, 0, sizeof(StoryboardStruct));
+									fclose(projectfile);
+
+									//PE: Use this so we can upgrade from 202 to 203+
+									bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+									load__storyboard_into_struct(project, tempProjectData);
+									checkproject = &tempProjectData;
+
+
+									//size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
 									char sig[12] = "Storyboard\0";
 									if (checkproject->sig[0] == 'S' && checkproject->sig[8] == 'r')
 									{
@@ -43727,19 +43870,25 @@ void process_storeboard(bool bInitOnly)
 
 																		//PE: unique ids are wrong in checkproject so assign new here.
 																		int iUniqueId = STORYBOARD_THUMBS + newnodeid;
+																		int iUniqueIdsAdd = 1000;
+																		if (newnodeid >= 200)
+																			iUniqueIdsAdd = 200000;
+																		else if (newnodeid >= 100)
+																			iUniqueIdsAdd = 100000;
+
 																		Storyboard.Nodes[newnodeid].id = iUniqueId;
 																		Storyboard.Nodes[newnodeid].thumb_id = iUniqueId;
 																		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 																		{
 																			//PE: input_id,output_id ID's broken in checkproject.
-																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 600;
-																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 700;
-																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + 1000 + (1000 * l) + 800;
+																			Storyboard.Nodes[newnodeid].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
+																			Storyboard.Nodes[newnodeid].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
+																			Storyboard.Nodes[newnodeid].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
 																		}
 																		for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 																		{
-																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueId + 1000 + (1000 * l);
-																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueId + 1000 + (1000 * l) + 500;
+																			Storyboard.Nodes[newnodeid].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+																			Storyboard.Nodes[newnodeid].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
 																		}
 																		Storyboard.Nodes[newnodeid].screen_backdrop_id = iUniqueId + 500;
 
@@ -43761,13 +43910,12 @@ void process_storeboard(bool bInitOnly)
 												}
 											}
 										}
-										fclose(projectfile);
 									}
-									if (checkproject)
-									{
-										delete checkproject;
-										checkproject = NULL;
-									}
+									//if (checkproject)
+									//{
+									//	delete checkproject;
+									//	checkproject = NULL;
+									//}
 								}
 							}
 						}
@@ -46028,9 +46176,16 @@ void save_storyboard(char *name,bool bSaveAs)
 	cLastProjectList = ""; //PE: Update project files.
 
 	char project[MAX_PATH];
-	strcpy(project, "projectbank\\");
-	strcat(project, savename.Get());
-	strcat(project, "\\project.dat");
+	if (STORYBOARDVERSION > 202)
+	{
+		sprintf(project, "projectbank\\%s\\project%d.dat", savename.Get(), STORYBOARDVERSION);
+	}
+	else
+	{
+		strcpy(project, "projectbank\\");
+		strcat(project, savename.Get());
+		strcat(project, "\\project.dat");
+	}
 	FILE* projectfile = GG_fopen(project, "wb+");
 	if (projectfile) 
 	{
@@ -46104,10 +46259,16 @@ void load_storyboard(char *name)
 
 	bool bProjectLoaded = false;
 	char project[MAX_PATH];
-	strcpy(project, "projectbank\\");
-	strcat(project, name);
-	strcat(project, "\\project.dat");
+
+	sprintf(project, "projectbank\\%s\\project%d.dat", name, STORYBOARDVERSION);
 	FILE* projectfile = GG_fopen(project, "rb");
+	if (projectfile == NULL)
+	{
+		strcpy(project, "projectbank\\");
+		strcat(project, name);
+		strcat(project, "\\project.dat");
+		projectfile = GG_fopen(project, "rb");
+	}
 	if (projectfile==NULL)
 	{
 		// switch to remote project
@@ -46125,12 +46286,17 @@ void load_storyboard(char *name)
 			strcpy(Storyboard.customprojectfolder, pRemoteProject);
 			switch_to_remote_project(name);
 
-			// proceed as normal, loading now from the remote folder
-			strcpy(project, "projectbank\\");
-			strcat(project, name);
-			strcat(project, "\\project.dat");
+			sprintf(project, "projectbank\\%s\\project%d.dat", name, STORYBOARDVERSION);
 			projectfile = GG_fopen(project, "rb");
 
+			if (projectfile == NULL)
+			{
+				// proceed as normal, loading now from the remote folder
+				strcpy(project, "projectbank\\");
+				strcat(project, name);
+				strcat(project, "\\project.dat");
+				projectfile = GG_fopen(project, "rb");
+			}
 			// remote project has own media, so update the library to include them!
 			extern int g_iRefreshLibraryFoldersAfterDelay;
 			g_iRefreshLibraryFoldersAfterDelay = 10;
@@ -46138,10 +46304,21 @@ void load_storyboard(char *name)
 	}
 	if (projectfile)
 	{
-		//this sets ALL fields data to zero, and only filled with known structure (members added at end not part of the copy to remain zeros)
-		memset(&checkproject, 0, sizeof(StoryboardStruct));
+		fclose(projectfile);
 
-		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
+		//PE: Use this so we can upgrade from 202 to 203+
+		//PE: Must make a backup and save out project203.dat directly. when converting from here.
+		bUpgradeAndBackupOldProject = true;
+
+		bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+		load__storyboard_into_struct(project, checkproject);
+
+		bUpgradeAndBackupOldProject = false;
+
+		//this sets ALL fields data to zero, and only filled with known structure (members added at end not part of the copy to remain zeros)
+		//memset(&checkproject, 0, sizeof(StoryboardStruct));
+		//size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
+
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 		{
@@ -46163,7 +46340,6 @@ void load_storyboard(char *name)
 			bStoryboardFirstRunSetInitPos = false; //Load new thumbs, and reposition new nodes.
 			Storyboard.iChanged = false;
 			strcpy(pref.cLastUsedStoryboardProject, name);
-			fclose(projectfile);
 
 			//PE: Check if this is a readonly project.
 			char fullPath[MAX_PATH];
@@ -46208,15 +46384,19 @@ void load_storyboard(char *name)
 
 	// Reset all node and image IDs to default - they don't need their state retained by saving, and under some circumstances when loading them, they can be duplicated, causing problems with selecting nodes and images.
 	int iUniqueIds = STORYBOARD_THUMBS;
+	int iUniqueIdsAdd = 1000;
 	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 	{
+		if (i == 100 || i == 200)
+			iUniqueIdsAdd += 100000;
+
 		Storyboard.Nodes[i].id = iUniqueIds;
 		Storyboard.Nodes[i].thumb_id = iUniqueIds;
 		for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 		{
-			Storyboard.Nodes[i].widget_normal_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 600;
-			Storyboard.Nodes[i].widget_highlight_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 700;
-			Storyboard.Nodes[i].widget_selected_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 800;
+			Storyboard.Nodes[i].widget_normal_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 600;
+			Storyboard.Nodes[i].widget_highlight_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 700;
+			Storyboard.Nodes[i].widget_selected_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 800;
 		}
 		Storyboard.Nodes[i].screen_backdrop_id = iUniqueIds + 500;
 
@@ -46266,12 +46446,17 @@ bool load_checkproject_storyboard(char *name)
 	if (strlen(name) <= 0) return false;
 
 	char project[MAX_PATH];
-	strcpy(project, "projectbank\\");
-	strcat(project, name);
-	strcat(project, "\\project.dat");
+	sprintf(project, "projectbank\\%s\\project%d.dat", name, STORYBOARDVERSION);
+	FILE* projectfile = GG_fopen(project, "rb");
+	if (!projectfile)
+	{
+		strcpy(project, "projectbank\\");
+		strcat(project, name);
+		strcat(project, "\\project.dat");
+		projectfile = GG_fopen(project, "rb");
+	}
 
 	bool bReadProjectDetails = false;
-	FILE* projectfile = GG_fopen(project, "rb");
 	if (projectfile)
 	{
 		bReadProjectDetails = true;
@@ -46292,7 +46477,18 @@ bool load_checkproject_storyboard(char *name)
 			strcat(project, "\\project.dat");
 			CloseFile(1);
 		}
-		projectfile = GG_fopen(project, "rb");
+
+		char newversion[MAX_PATH];
+		sprintf(newversion, "project%d.dat", STORYBOARDVERSION);
+
+		std::string newname = project;
+		replaceAll(newname, "project.dat", newversion);
+		projectfile = GG_fopen(newname.c_str(), "rb");
+		if (!projectfile)
+			projectfile = GG_fopen(project, "rb");
+		else
+			strcpy(project, newname.c_str());
+
 		if (projectfile)
 		{
 			bReadProjectDetails = true;
@@ -46300,10 +46496,17 @@ bool load_checkproject_storyboard(char *name)
 	}
 	if (bReadProjectDetails==true)
 	{
-		memset(&checkproject, 0, sizeof(StoryboardStruct));
-		size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
-		//Valid pref:
 		fclose(projectfile);
+
+		//PE: Use this so we can upgrade from 202 to 203+
+		bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+		load__storyboard_into_struct(project, checkproject);
+
+		//memset(&checkproject, 0, sizeof(StoryboardStruct));
+		//size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
+		//Valid pref:
+		//fclose(projectfile);
+
 		char sig[12] = "Storyboard\0";
 		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 		{
@@ -46318,8 +46521,16 @@ bool load__storyboard_into_struct(const char *filepath, StoryboardStruct& storyb
 {
 	if (!filepath) return false;
 	if (strlen(filepath) <= 0) return false;
-
-	FILE* projectfile = GG_fopen(filepath, "rb");
+	
+	char project[MAX_PATH];
+	sprintf(project, "project%d.dat", STORYBOARDVERSION);
+	std::string newname = filepath;
+	replaceAll(newname, "project.dat", project);
+	FILE* projectfile = GG_fopen(newname.c_str(), "rb");
+	if (!projectfile)
+	{
+		projectfile = GG_fopen(filepath, "rb");
+	}
 	if (projectfile)
 	{
 		memset(&storyboard, 0, sizeof(StoryboardStruct));
@@ -46327,8 +46538,169 @@ bool load__storyboard_into_struct(const char *filepath, StoryboardStruct& storyb
 		//Valid pref:
 		fclose(projectfile);
 		char sig[12] = "Storyboard\0";
-		if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
+		if (storyboard.sig[0] == 'S' && storyboard.sig[8] == 'r')
 		{
+			//PE: Need convert 202 -> 202+
+			if (storyboard.iStoryboardVersion != STORYBOARDVERSION)
+			{
+				if (storyboard.iStoryboardVersion <= 202)
+				{
+					memset(&updateproject202, 0, sizeof(StoryboardStruct202));
+
+					FILE* projectfile = GG_fopen(filepath, "rb");
+					if (projectfile)
+					{
+						memset(&storyboard, 0, sizeof(StoryboardStruct));
+						size_t size = fread(&updateproject202, 1, sizeof(updateproject202), projectfile);
+						fclose(projectfile);
+
+						//PE: Copy data.
+						strcpy(storyboard.sig, updateproject202.sig);
+						strcpy(storyboard.gamename, updateproject202.gamename);
+						storyboard.iStoryboardVersion = STORYBOARDVERSION; //PE: New version.
+						storyboard.iChanged = updateproject202.iChanged;
+						storyboard.vEditorPanning = updateproject202.vEditorPanning;
+						for (int i = 0; i < STORYBOARD_MAXNODES202; i++)
+						{
+							//PE: Copy old nodes.
+
+							{
+								storyboard.Nodes[i].type = updateproject202.Nodes[i].type;
+								storyboard.Nodes[i].id = updateproject202.Nodes[i].id;
+								storyboard.Nodes[i].restore_position = updateproject202.Nodes[i].restore_position;
+								storyboard.Nodes[i].iEditEnable = updateproject202.Nodes[i].iEditEnable;
+								storyboard.Nodes[i].used = updateproject202.Nodes[i].used;
+								storyboard.Nodes[i].thumb_id = updateproject202.Nodes[i].thumb_id;
+
+								strcpy(storyboard.Nodes[i].title, updateproject202.Nodes[i].title);
+								strcpy(storyboard.Nodes[i].levelnumber, updateproject202.Nodes[i].levelnumber);
+								strcpy(storyboard.Nodes[i].thumb, updateproject202.Nodes[i].thumb);
+								strcpy(storyboard.Nodes[i].level_name, updateproject202.Nodes[i].level_name);
+								strcpy(storyboard.Nodes[i].lua_name, updateproject202.Nodes[i].lua_name);
+								strcpy(storyboard.Nodes[i].scene_name, updateproject202.Nodes[i].scene_name);
+
+								for (int b = 0; b < STORYBOARD_MAXOUTPUTS202; b++)
+								{
+									storyboard.Nodes[i].input_id[b] = updateproject202.Nodes[i].input_id[b];
+									storyboard.Nodes[i].output_id[b] = updateproject202.Nodes[i].output_id[b];
+									storyboard.Nodes[i].output_linkto[b] = updateproject202.Nodes[i].output_linkto[b];
+									storyboard.Nodes[i].output_can_link_to_type[b] = updateproject202.Nodes[i].output_can_link_to_type[b];
+									strcpy(storyboard.Nodes[i].output_action[b], updateproject202.Nodes[i].output_action[b]);
+									strcpy(storyboard.Nodes[i].output_title[b], updateproject202.Nodes[i].output_title[b]);
+									strcpy(storyboard.Nodes[i].input_title[b], updateproject202.Nodes[i].input_title[b]);
+									strcpy(storyboard.Nodes[i].input_action[b], updateproject202.Nodes[i].input_action[b]);
+								}
+
+								strcpy(storyboard.Nodes[i].screen_title, updateproject202.Nodes[i].screen_title);
+								strcpy(storyboard.Nodes[i].screen_music, updateproject202.Nodes[i].screen_music);
+								strcpy(storyboard.Nodes[i].screen_backdrop, updateproject202.Nodes[i].screen_backdrop);
+
+								storyboard.Nodes[i].screen_backdrop_id = updateproject202.Nodes[i].screen_backdrop_id;
+
+								storyboard.Nodes[i].screen_back_color = updateproject202.Nodes[i].screen_back_color;
+								storyboard.Nodes[i].screen_backdrop_placement = updateproject202.Nodes[i].screen_backdrop_placement;
+								storyboard.Nodes[i].screen_grid_size = updateproject202.Nodes[i].screen_grid_size;
+								for(int c = 0; c < 10; c++)
+									storyboard.Nodes[i].screen_backdrop_ratio_placement[c] = updateproject202.Nodes[i].screen_backdrop_ratio_placement[c];
+								
+								strcpy(storyboard.Nodes[i].screen_thumb, updateproject202.Nodes[i].screen_thumb);
+
+
+								for (int b = 0; b < STORYBOARD_MAXWIDGETS202; b++)
+								{
+									strcpy(storyboard.Nodes[i].widget_label[b], updateproject202.Nodes[i].widget_label[b]);
+									strcpy(storyboard.Nodes[i].widget_normal_thumb[b], updateproject202.Nodes[i].widget_normal_thumb[b]);
+
+									strcpy(storyboard.Nodes[i].widget_highlight_thumb[b], updateproject202.Nodes[i].widget_highlight_thumb[b]);
+									strcpy(storyboard.Nodes[i].widget_selected_thumb[b], updateproject202.Nodes[i].widget_selected_thumb[b]);
+									strcpy(storyboard.Nodes[i].widget_font[b], updateproject202.Nodes[i].widget_font[b]);
+									strcpy(storyboard.Nodes[i].widget_name[b], updateproject202.Nodes[i].widget_name[b]);
+									strcpy(storyboard.Nodes[i].widget_click_sound[b], updateproject202.Nodes[i].widget_click_sound[b]);
+
+									storyboard.Nodes[i].widget_used[b] = updateproject202.Nodes[i].widget_used[b];
+									storyboard.Nodes[i].widget_size[b] = updateproject202.Nodes[i].widget_size[b];
+
+									storyboard.Nodes[i].widget_pos[b] = updateproject202.Nodes[i].widget_pos[b];
+									storyboard.Nodes[i].widget_normal_thumb_id[b] = updateproject202.Nodes[i].widget_normal_thumb_id[b];
+									storyboard.Nodes[i].widget_highlight_thumb_id[b] = updateproject202.Nodes[i].widget_highlight_thumb_id[b];
+									storyboard.Nodes[i].widget_selected_thumb_id[b] = updateproject202.Nodes[i].widget_selected_thumb_id[b];
+									storyboard.Nodes[i].widget_action[b] = updateproject202.Nodes[i].widget_action[b];
+									storyboard.Nodes[i].widget_font_color[b] = updateproject202.Nodes[i].widget_font_color[b];
+
+									storyboard.Nodes[i].widget_font_size[b] = updateproject202.Nodes[i].widget_font_size[b];
+									storyboard.Nodes[i].widget_type[b] = updateproject202.Nodes[i].widget_type[b];
+									storyboard.Nodes[i].widget_read_only[b] = updateproject202.Nodes[i].widget_read_only[b];
+									storyboard.Nodes[i].widget_layer[b] = updateproject202.Nodes[i].widget_layer[b];
+									storyboard.Nodes[i].widget_initial_value[b] = updateproject202.Nodes[i].widget_initial_value[b];
+
+								}
+
+								storyboard.Nodes[i].screen_backdrop_transparent = updateproject202.Nodes[i].screen_backdrop_transparent;
+
+								storyboard.Nodes[i].readouts_available = updateproject202.Nodes[i].readouts_available;
+								storyboard.Nodes[i].widgets_available = updateproject202.Nodes[i].widgets_available;
+								storyboard.Nodes[i].toggleKey = updateproject202.Nodes[i].toggleKey;
+								storyboard.Nodes[i].showAtStart = updateproject202.Nodes[i].showAtStart;
+							}
+
+							storyboard.NodeRadioButtonSelected[i] = updateproject202.NodeRadioButtonSelected[i];
+							for (int b = 0; b < STORYBOARD_MAXWIDGETS202; b++)
+							{
+								storyboard.NodeSliderValues[i][b] = updateproject202.NodeSliderValues[i][b];
+								storyboard.widget_colors[i][b] = updateproject202.widget_colors[i][b];
+								strcpy(storyboard.widget_readout[i][b], updateproject202.widget_readout[i][b]);
+								storyboard.widget_textoffset[i][b] = updateproject202.widget_textoffset[i][b];
+								storyboard.widget_ingamehidden[i][b] = updateproject202.widget_ingamehidden[i][b];
+								storyboard.widget_drawordergroup[i][b] = updateproject202.widget_drawordergroup[i][b];
+							}
+						}
+						strcpy(storyboard.game_icon, updateproject202.game_icon);
+						strcpy(storyboard.game_thumb, updateproject202.game_thumb);
+						strcpy(storyboard.game_description, updateproject202.game_description);
+						strcpy(storyboard.game_world_edge_text, updateproject202.game_world_edge_text);
+						strcpy(storyboard.game_developer_desc, updateproject202.game_developer_desc);
+						strcpy(storyboard.customprojectfolder, updateproject202.customprojectfolder);
+						storyboard.project_readonly = updateproject202.project_readonly;
+						storyboard.game_thumb_id = updateproject202.game_thumb_id;
+						storyboard.game_icon_id = updateproject202.game_icon_id;
+
+						if (bUpgradeAndBackupOldProject)
+						{
+							char CopyFrom[MAX_PATH];
+							strcpy(CopyFrom, filepath);
+							GG_GetRealPath(CopyFrom, 0); //Resolve name. need full path.
+							extern char szRootDir[MAX_PATH];
+							int rootLen = strlen(szRootDir);
+							if (strnicmp(CopyFrom, szRootDir, rootLen) == 0)
+							{
+								//PE: Read only folder.
+								storyboard.project_readonly = 1;
+							}
+
+							if (storyboard.project_readonly != 1)
+							{
+								//PE: Make backup and save project203.dat.
+								char CopyTo[MAX_PATH];
+								strcpy(CopyTo, filepath);
+								strcat(CopyTo, ".bck");
+								GG_GetRealPath(CopyTo, 1); //Resolve name. need full path.
+								bool bRet = CopyFileA(CopyFrom, CopyTo, FALSE);
+
+								cstr savename = storyboard.gamename;
+								sprintf(project, "projectbank\\%s\\project%d.dat", savename.Get(), STORYBOARDVERSION);
+								FILE* projectfile = GG_fopen(project, "wb+");
+								if (projectfile)
+								{
+									fwrite(&storyboard, 1, sizeof(Storyboard), projectfile);
+									fclose(projectfile);
+								}
+							}
+						}
+
+					}
+
+				}
+			}
 			return true;
 		}
 	}
@@ -46370,9 +46742,13 @@ void GetProjectList(char *path, bool bGetThumbs)
 
 					bool bHaveAProject = false;
 					char project[MAX_PATH];
-					strcpy(project, destination);
-					strcat(project, folder.Get());
-					strcat(project, "\\project.dat");
+					sprintf(project, "projectbank\\%s\\project%d.dat", folder.Get(), STORYBOARDVERSION);
+					if (!GG_FileExists(project))
+					{
+						strcpy(project, destination);
+						strcat(project, folder.Get());
+						strcat(project, "\\project.dat");
+					}
 					if (GG_FileExists(project))
 					{
 						bHaveAProject = true;
@@ -46437,11 +46813,28 @@ void GetProjectList(char *path, bool bGetThumbs)
 					}
 					strcat(project, projectbank_list[i].c_str());
 					strcat(project, "\\project.dat");
-					projectfile = GG_fopen(project, "rb");
+
+					std::string newname = project;
+					char newversion[MAX_PATH];
+					sprintf(newversion, "project%d.dat", STORYBOARDVERSION);
+					replaceAll(newname, "project.dat", newversion);
+					projectfile = GG_fopen(newname.c_str(), "rb");
+
+					if (!projectfile)
+						projectfile = GG_fopen(project, "rb");
+					else
+						strcpy(project, newname.c_str());
+
 					if (projectfile)
 					{
+						fclose(projectfile);
+
+						//PE: Use this so we can upgrade from 202 to 203+
+						bool load__storyboard_into_struct(const char*, StoryboardStruct&);
+						load__storyboard_into_struct(project, checkproject);
+
 						//PE: Need full load now, as we can have Game Settings.
-						size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
+						//size_t size = fread(&checkproject, 1, sizeof(checkproject), projectfile);
 
 						char sig[12] = "Storyboard\0";
 						if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
@@ -46511,7 +46904,6 @@ void GetProjectList(char *path, bool bGetThumbs)
 						{
 							projectbank_image.push_back(""); //Just use CLICK HERE.
 						}
-						fclose(projectfile);
 					}
 					else
 					{
@@ -47578,20 +47970,26 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 			{
 				// Some users report runtime error 501, when the above code is called, regenerate unique IDs for the images just in-case
 				int iUniqueIds = STORYBOARD_THUMBS;
+				int iUniqueIdsAdd = 1000;
+				if (nodeid >= 200)
+					iUniqueIdsAdd = 200000;
+				else if (nodeid >= 100)
+					iUniqueIdsAdd = 100000;
+
 				Storyboard.Nodes[nodeid].id = iUniqueIds;
 				Storyboard.Nodes[nodeid].thumb_id = iUniqueIds;
 
 				for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
 				{
-					Storyboard.Nodes[nodeid].input_id[l] = iUniqueIds + 1000 + (1000 * l);
-					Storyboard.Nodes[nodeid].output_id[l] = iUniqueIds + 1000 + (1000 * l) + 500;
+					Storyboard.Nodes[nodeid].input_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l);
+					Storyboard.Nodes[nodeid].output_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 500;
 				}
 
 				for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
 				{
-					Storyboard.Nodes[nodeid].widget_normal_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 600;
-					Storyboard.Nodes[nodeid].widget_highlight_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 700;
-					Storyboard.Nodes[nodeid].widget_selected_thumb_id[l] = iUniqueIds + 1000 + (1000 * l) + 800;
+					Storyboard.Nodes[nodeid].widget_normal_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 600;
+					Storyboard.Nodes[nodeid].widget_highlight_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 700;
+					Storyboard.Nodes[nodeid].widget_selected_thumb_id[l] = iUniqueIds + iUniqueIdsAdd + (1000 * l) + 800;
 				}
 				Storyboard.Nodes[nodeid].screen_backdrop_id = iUniqueIds + 500;
 
@@ -52279,3 +52677,4 @@ void tmpdebugfunc(void)
 
 	}
 }
+

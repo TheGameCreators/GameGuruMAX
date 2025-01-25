@@ -5016,6 +5016,20 @@ void WickedCall_SetObjectRenderLayer(sObject* pObject,int iLayerMask)
 	}
 }
 
+
+bool Convert2Dto3D(long x , long y, float* pOutX, float* pOutY, float* pOutZ, float* pDirX, float* pDirY, float* pDirZ)
+{
+	//PE: Wicked Mouse is relative to windows pos. ImGui is relative to screen.
+	RAY pickRay = wiRenderer::GetPickRay((long)x, (long)y, master.masterrenderer);
+	*pOutX = pickRay.origin.x;
+	*pOutY = pickRay.origin.y;
+	*pOutZ = pickRay.origin.z;
+	*pDirX = pickRay.direction.x;
+	*pDirY = pickRay.direction.y;
+	*pDirZ = pickRay.direction.z;
+	return true;
+}
+
 float fLastTerrainHitX = 0, fLastTerrainHitY = 0, fLastTerrainHitZ = 0;
 
 bool WickedCall_GetPick2(float fMouseX, float fMouseY, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, uint64_t* pHitEntity, int iLayerMask)
@@ -6854,3 +6868,386 @@ void WickedCall_CreateDecal(sObject* pObject)
 	//}
 }
 */
+
+#ifdef WICKEDPARTICLESYSTEM
+uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
+{
+	Entity root = 0;
+
+	XMMATRIX& transformMatrix = XMMatrixIdentity();
+	Scene scene2;
+	wiArchive archive(filename, true);
+	if (archive.IsOpen())
+	{
+		if (archive.IsReadMode())
+		{
+			uint32_t reserved;
+			archive >> reserved;
+		}
+		else
+		{
+			uint32_t reserved = 0;
+			archive << reserved;
+		}
+
+		//PE: Keeping this alive to keep serialized resources alive until entity serialization ends:
+		wiResourceManager::ResourceSerializer resource_seri;
+		if (archive.GetVersion() >= 63)
+		{
+			wiResourceManager::Serialize(archive, resource_seri);
+		}
+
+		EntitySerializer seri;
+
+		scene2.names.Serialize(archive, seri);
+		scene2.layers.Serialize(archive, seri);
+		scene2.transforms.Serialize(archive, seri);
+		scene2.prev_transforms.Serialize(archive, seri);
+		scene2.hierarchy.Serialize(archive, seri);
+		scene2.materials.Serialize(archive, seri);
+		scene2.meshes.Serialize(archive, seri);
+		scene2.impostors.Serialize(archive, seri);
+		scene2.objects.Serialize(archive, seri);
+		scene2.aabb_objects.Serialize(archive, seri);
+		scene2.rigidbodies.Serialize(archive, seri);
+
+		scene2.softbodies.Serialize(archive, seri);
+
+		scene2.armatures.Serialize(archive, seri);
+		scene2.lights.Serialize(archive, seri);
+		scene2.aabb_lights.Serialize(archive, seri);
+		scene2.cameras.Serialize(archive, seri);
+		scene2.probes.Serialize(archive, seri);
+		scene2.aabb_probes.Serialize(archive, seri);
+		scene2.forces.Serialize(archive, seri);
+		scene2.decals.Serialize(archive, seri);
+		scene2.aabb_decals.Serialize(archive, seri);
+		scene2.animations.Serialize(archive, seri);
+		scene2.emitters.Serialize(archive, seri);
+		scene2.hairs.Serialize(archive, seri);
+		scene2.weathers.Serialize(archive, seri);
+		if (archive.GetVersion() >= 30)
+		{
+			scene2.sounds.Serialize(archive, seri);
+		}
+		if (archive.GetVersion() >= 37)
+		{
+			scene2.inverse_kinematics.Serialize(archive, seri);
+		}
+		if (archive.GetVersion() >= 38)
+		{
+			scene2.springs.Serialize(archive, seri);
+		}
+		if (archive.GetVersion() >= 46)
+		{
+			scene2.animation_datas.Serialize(archive, seri);
+		}
+
+		//PE: create new root:
+		root = CreateEntity();
+		scene2.transforms.Create(root);
+		scene2.layers.Create(root).layerMask = ~0;
+
+		//PE: Parent all unparented transforms to new root entity
+		for (size_t i = 0; i < scene2.transforms.GetCount() - 1; ++i) // GetCount() - 1 because the last added was the "root"
+		{
+			Entity entity = scene2.transforms.GetEntity(i);
+			if (!scene2.hierarchy.Contains(entity))
+			{
+				scene2.Component_Attach(entity, root);
+			}
+		}
+		//PE: The root component is transformed, scene is updated:
+		scene2.transforms.GetComponent(root)->MatrixTransform(transformMatrix);
+		scene2.Update(0);
+
+		if (!attached)
+		{
+			//PE: In this case, we don't care about the root anymore, so delete it. This will simplify overall hierarchy
+			scene2.Component_DetachChildren(root);
+			scene2.Entity_Remove(root);
+			root = INVALID_ENTITY;
+		}
+	}
+
+	//PE: Fix for GG moved enums
+	if (pestrcasestr(filename, ".wiscene"))
+	{
+		for (int i = 0; i < scene2.materials.GetCount(); i++)
+		{
+			if (scene2.materials[i].userBlendMode == BLENDMODE_PREMULTIPLIED)
+				scene2.materials[i].userBlendMode = BLENDMODE_MULTIPLY;
+			if (scene2.materials[i].userBlendMode == BLENDMODE_ALPHA)
+				scene2.materials[i].userBlendMode = BLENDMODE_ADDITIVE;
+			if (scene2.materials[i].userBlendMode == BLENDMODE_FORCEDEPTH)
+				scene2.materials[i].userBlendMode = BLENDMODE_PREMULTIPLIED;
+			if (scene2.materials[i].userBlendMode == BLENDMODE_ALPHANOZ)
+				scene2.materials[i].userBlendMode = BLENDMODE_ALPHA;
+			scene2.materials[i].SetDirty();
+		}
+	}
+
+	if (changename && changenameto)
+	{
+		for (int i = 0; i < scene2.names.GetCount(); i++)
+		{
+			if (stricmp(scene2.names[i].name.c_str(), changename) == 0)
+			{
+				scene2.names[i].name = changenameto;
+			}
+		}
+	}
+	GetScene().Merge(scene2);
+	return root;
+}
+
+//iAction = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart
+void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root)
+{
+
+	Scene& scene = wiScene::GetScene();
+
+	//PE: Scan emitters.
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+		if (hier)
+		{
+			if (hier->parentID == emitter_root)
+			{
+				wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+				switch (iAction)
+				{
+					case 1:
+					{
+						ec->Burst(0);
+						break;
+					}
+					case 2:
+					{
+						ec->SetPaused(true);
+						break;
+					}
+					case 3:
+					{
+						ec->SetPaused(false);
+						break;
+					}
+					case 4:
+					{
+						ec->Restart();
+						break;
+					}
+				}
+			}
+		}
+	}
+
+}
+
+//#define WPEDebug
+void WickedCall_UpdateEmitters(void)
+{
+	//PE: Scan emitters.
+	std::vector< uint32_t> parent_used;
+	parent_used.clear();
+	Scene& scene = wiScene::GetScene();
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+
+#ifdef WPEDebug
+		if (ec && ec->IsVolumeEnabled())
+		{
+			XMFLOAT4X4 hoverBox;
+			wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(emitter);
+			if (pTransform)
+			{
+				if (1)
+				{
+					AABB aabb;
+					XMFLOAT3 pos = pTransform->GetPosition();
+					//if (bIsUsingWidget && emitter_root != transform_entity)
+					//{
+					//	TransformComponent* root_tranform = scene.transforms.GetComponent(emitter_root);
+					//	//PE: Need to add root here , as its not updated before next frame in wicked.
+					//	if (root_tranform)
+					//	{
+					//		pos.x += root_tranform->GetPosition().x;
+					//		pos.y += root_tranform->GetPosition().y;
+					//		pos.z += root_tranform->GetPosition().z;
+					//	}
+					//}
+
+					XMFLOAT3 sca = pTransform->GetScale();
+					aabb._min = XMFLOAT3(pos.x - sca.x, pos.y, pos.z - sca.z);
+					aabb._max = XMFLOAT3(pos.x + sca.x, pos.y + sca.y, pos.z + sca.z);
+
+					XMStoreFloat4x4(&hoverBox, aabb.getAsBoxMatrix()); // *pTransform->GetLocalMatrix());
+					XMVECTOR S, R, T;
+					XMMatrixDecompose(&S, &R, &T, XMLoadFloat4x4(&hoverBox));
+
+					//XMVECTOR R_local = XMLoadFloat4(&root_tranform->rotation_local);
+					XMVECTOR R_local = XMLoadFloat4(&pTransform->rotation_local);
+					XMStoreFloat4x4(&hoverBox,
+						XMMatrixScalingFromVector(S) *
+						XMMatrixRotationQuaternion(R_local) *
+						XMMatrixTranslationFromVector(T));
+
+					wiRenderer::DrawBox(hoverBox, XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f));
+				}
+			}
+		}
+#endif
+
+		//PE: If bFollowCamera , find InDoor , OutDoor , UnderWater.
+		//PE: bFindFloor ONLY if ec->bFollowCamera
+		if (ec && (ec->bFindFloor || ec->bFollowCamera))
+		{
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				if (hier->parentID != wiECS::INVALID_ENTITY)
+				{
+					bool bAlreadySet = false;
+					for (int a = 0; a > parent_used.size(); a++)
+					{
+						if (parent_used[a] == hier->parentID)
+						{
+							bAlreadySet = true;
+							break;
+						}
+					}
+					if (!bAlreadySet)
+					{
+						parent_used.push_back(hier->parentID);
+						TransformComponent* root_tranform = scene.transforms.GetComponent(hier->parentID);
+						if (root_tranform)
+						{
+
+							if (ec->bFollowCamera)
+							{
+								float fX, fY, fZ;
+								//float PlayerHeight = 62.0f;
+								fX = CameraPositionX();
+								//PE: PlayerHeight might have to be removed in GGM
+								fY = CameraPositionY(); // -PlayerHeight;
+								fZ = CameraPositionZ();
+								root_tranform->ClearTransform();
+								root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+								root_tranform->UpdateTransform();
+							}
+							if (ec->bFindFloor && ec->bFollowCamera)
+							{
+								float fX = root_tranform->GetPosition().x;
+								float fZ = root_tranform->GetPosition().z;
+								float height = BT_GetGroundHeight(t.terrain.TerrainID, CameraPositionX(), CameraPositionZ());
+								root_tranform->ClearTransform();
+								root_tranform->Translate(XMFLOAT3(fX, height, fZ));
+								root_tranform->UpdateTransform();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+uint32_t WickedCall_CreateEmitter(std::string& name, float posX, float posY, float posZ, uint32_t proot)
+{
+	XMFLOAT3 position = { posX , posY, posZ };
+
+	//wiScene::Scene& scene = wiScene::GetScene();
+	Scene scene;
+	XMMATRIX& transformMatrix = XMMatrixIdentity();
+
+	//PE: Create emitter.
+	Entity entity = CreateEntity();
+
+	scene.names.Create(entity) = name;
+	scene.emitters.Create(entity).count = 10;
+
+	wiEmittedParticle* ec;
+	ec = scene.emitters.GetComponent(entity);
+	ec->count = 40;
+	ec->life = 2.5f;
+	ec->size = 2;
+	//ec->random_color = 1.0f;
+	ec->gravity = XMFLOAT3(0, 9, 0);
+
+	TransformComponent& transform = scene.transforms.Create(entity);
+	transform.ClearTransform();
+	transform.Translate(position);
+	transform.Scale(XMFLOAT3(3, 1, 3));
+	transform.UpdateTransform();
+
+	scene.materials.Create(entity).userBlendMode = BLENDMODE_ADDITIVE; // BLENDMODE_ALPHA;
+
+	//PE: Create root.
+	Entity root;
+	bool bUsePrevRoot = false;
+	if (proot > 0)
+	{
+		root = proot;
+		bUsePrevRoot = true;
+	}
+	else
+	{
+		root = CreateEntity();
+		scene.transforms.Create(root);
+		scene.layers.Create(root).layerMask = ~0;
+		//emitter_root = root;
+	}
+
+	if (!bUsePrevRoot)
+	{
+		//PE: Parent all unparented transforms to new root entity
+		for (size_t i = 0; i < scene.transforms.GetCount() - 1; ++i) // GetCount() - 1 because the last added was the "root"
+		{
+			Entity entity = scene.transforms.GetEntity(i);
+			if (!scene.hierarchy.Contains(entity))
+			{
+				scene.Component_Attach(entity, root);
+			}
+		}
+		//PE: The root component is transformed, scene is updated:
+		scene.transforms.GetComponent(root)->MatrixTransform(transformMatrix);
+		scene.Update(0);
+	}
+	GetScene().Merge(scene);
+
+	//PE: Find name;
+	wiScene::Scene& sceneR = wiScene::GetScene();
+
+	for (int i = 0; i < sceneR.emitters.GetCount(); i++)
+	{
+
+		Entity emitter = sceneR.emitters.GetEntity(i);
+		Entity text = sceneR.names.GetIndex(emitter);
+		if (text > 0)
+		{
+			if (sceneR.names[text].name == name)
+			{
+				entity = emitter;
+				break;
+			}
+		}
+	}
+
+	if (bUsePrevRoot)
+	{
+		sceneR.Component_Attach(entity, root);
+		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(entity);
+		pTransform->ClearTransform();
+		pTransform->Translate(position);
+		pTransform->UpdateTransform();
+	}
+
+	return entity;
+}
+
+#endif
+

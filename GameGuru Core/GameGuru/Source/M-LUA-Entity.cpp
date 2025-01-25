@@ -3162,7 +3162,7 @@ void entity_lua_changeplayerweapon(void)
 
 	// before force this weapon, ensure if it does NOT exist, to create it first so can have ammo too
 	int iHaveThis = 0;
-	for (t.ws = 1; t.ws < 10; t.ws++)
+	for (t.ws = 1; t.ws < 12; t.ws++)
 	{
 		if (t.weaponslot[t.ws].got == t.foundgunid)
 		{
@@ -3204,7 +3204,7 @@ void entity_lua_replaceplayerweapon ( void )
 	if (  t.gunid>0 ) 
 	{
 		//  find swap slot for old weapon (gunid)
-		for ( t.ws = 1 ; t.ws < 10; t.ws++ )
+		for ( t.ws = 1 ; t.ws < 12; t.ws++ )
 		{
 			if (  t.weaponslot[t.ws].pref == t.gunid  )  t.tswapslot = t.ws;
 		}
@@ -3218,7 +3218,8 @@ void entity_lua_replaceplayerweapon ( void )
 	if (  t.tswapslot>0 ) 
 	{
 		t.weaponslot[t.tswapslot].pref = t.weaponindex;
-		t.weaponammo[t.tswapslot] = 0; // reset so new weapon can work out its new ammo
+		if(t.tswapslot < 11)
+			t.weaponammo[t.tswapslot] = 0; // reset so new weapon can work out its new ammo
 	}
 	//  now collect weapon (will find freed up slot from above)
 	t.tqty=t.entityelement[t.e].eleprof.quantity;

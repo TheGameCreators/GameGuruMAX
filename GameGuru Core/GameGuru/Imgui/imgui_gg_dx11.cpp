@@ -5323,7 +5323,10 @@ int iTotalFiles = 0;
 
 #ifdef WICKEDENGINE
 
-std::vector< std::pair<std::string, time_t> > files_time_stamp;
+//std::vector< std::pair<std::string, time_t> > files_time_stamp;
+std::unordered_map<std::string, time_t> files_time_stamp;
+
+
 std::vector<std::string> files_favorite;
 std::vector<std::string> files_availableinfreetrial;
 std::vector<std::string> files_pinned_categories;
@@ -5652,8 +5655,9 @@ bool fpe_thread_in_progress(void)
 
 #endif
 
-std::vector<std::string> duplicate_files_check;
-
+//std::vector<std::string> duplicate_files_check;
+//PE: Converted to unordered_set using hash for faster lookups.
+std::unordered_set<std::string> duplicate_files_check;
 
 void CustomSortFiles(int iSortBy, cFolderItem::sFolderFiles * m_pFileSortStart)
 {
@@ -6120,7 +6124,8 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 							time_t ts = GetFileDateLong();
 							cstr file = pNewFolder->m_pNext->m_sFolderFullPath;
 							file = file + "\\" + file_s;
-							files_time_stamp.push_back( std::make_pair(file.Get(), ts ) );
+							//files_time_stamp.push_back( std::make_pair(file.Get(), ts ) );
+							files_time_stamp[file.Get()] = ts;
 							#endif
 						}
 					}
@@ -6206,11 +6211,16 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 						//sCheck = sCheck + cstr("\\") + sName;
 					}
 					sCheck = sCheck.Lower();
-					auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
-					if (itr != duplicate_files_check.end() && duplicate_files_check.size() > 0 )
+					//auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
+					//if (itr != duplicate_files_check.end() && duplicate_files_check.size() > 0 )
+					//	bAddToList = false;
+					//else
+					//	duplicate_files_check.push_back(sCheck.Get());
+					
+					if (duplicate_files_check.count(sCheck.Get()) > 0)
 						bAddToList = false;
 					else
-						duplicate_files_check.push_back(sCheck.Get());
+						duplicate_files_check.insert(sCheck.Get());
 				}
 				#endif
 				if (it->size() > 0 && bAddToList) 
@@ -6258,17 +6268,22 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 					struct stat sb;
 					cstr file = pNewFolder->m_pNext->m_sFolderFullPath;
 					file = file + "\\" + pNewItem->m_sName;
-					std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-					for (; its != files_time_stamp.end(); ++its)
-					{
-						if (its->first.size() > 0)
-						{
-							if( strcmp(its->first.c_str(),file.Get()) == 0 )
-							{
-								pNewItem->m_tFileModify = its->second;
-								break;
-							}
-						}
+					//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+					//for (; its != files_time_stamp.end(); ++its)
+					//{
+					//	if (its->first.size() > 0)
+					//	{
+					//		if( strcmp(its->first.c_str(),file.Get()) == 0 )
+					//		{
+					//			pNewItem->m_tFileModify = its->second;
+					//			break;
+					//		}
+					//	}
+					//}
+
+					auto it = files_time_stamp.find(file.Get());
+					if (it != files_time_stamp.end()) {
+						pNewItem->m_tFileModify = it->second;
 					}
 					std::vector<std::string>::iterator itf = files_favorite.begin();
 					for (; itf != files_favorite.end(); ++itf)
@@ -6443,19 +6458,25 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 						cstr file = pNewFolder->m_sFolderFullPath;
 						file = file + "\\" + file_s;
 
-						std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-						for (; its != files_time_stamp.end(); ++its)
-						{
-							if (its->first.size() > 0) {
-								if (strcmp(its->first.c_str(), file.Get()) == 0)
-								{
-									files_time_stamp.erase(its);
-									break;
-								}
-							}
+						//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+						//for (; its != files_time_stamp.end(); ++its)
+						//{
+						//	if (its->first.size() > 0) {
+						//		if (strcmp(its->first.c_str(), file.Get()) == 0)
+						//		{
+						//			files_time_stamp.erase(its);
+						//			break;
+						//		}
+						//	}
+						//}
+
+						auto it = files_time_stamp.find(file.Get());
+						if (it != files_time_stamp.end()) {
+							files_time_stamp.erase(it);
 						}
 
-						files_time_stamp.push_back(std::make_pair(file.Get(), ts));
+						//files_time_stamp.push_back(std::make_pair(file.Get(), ts));
+						files_time_stamp[file.Get()] = ts;
 						#endif
 
 					}
@@ -6544,9 +6565,13 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 						//sCheck = sCheck + cstr("\\") + sName;
 					}
 					sCheck = sCheck.Lower();
-					auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
-					if(!(itr != duplicate_files_check.end() && duplicate_files_check.size() > 0))
-						duplicate_files_check.push_back(sCheck.Get());
+					//auto itr = std::find(duplicate_files_check.begin(), duplicate_files_check.end(), sCheck.Get());
+					//if(!(itr != duplicate_files_check.end() && duplicate_files_check.size() > 0))
+					//	duplicate_files_check.push_back(sCheck.Get());
+
+					if (duplicate_files_check.count(sCheck.Get()) <= 0)
+						duplicate_files_check.insert(sCheck.Get());
+
 				}
 				#endif
 				if (it->size() > 0)
@@ -6593,18 +6618,25 @@ void RefreshEntityFolder(char* folder_s, void *pFolder)
 					struct stat sb;
 					cstr file = pNewFolder->m_sFolderFullPath;
 					file = file + "\\" + pNewItem->m_sName;
-					std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
-					for (; its != files_time_stamp.end(); ++its)
-					{
-						if (its->first.size() > 0) 
-						{
-							if (strcmp(its->first.c_str(), file.Get()) == 0)
-							{
-								pNewItem->m_tFileModify = its->second;
-								break;
-							}
-						}
+
+					//std::vector< std::pair<std::string, time_t> >::iterator its = files_time_stamp.begin();
+					//for (; its != files_time_stamp.end(); ++its)
+					//{
+					//	if (its->first.size() > 0) 
+					//	{
+					//		if (strcmp(its->first.c_str(), file.Get()) == 0)
+					//		{
+					//			pNewItem->m_tFileModify = its->second;
+					//			break;
+					//		}
+					//	}
+					//}
+
+					auto it = files_time_stamp.find(file.Get());
+					if (it != files_time_stamp.end()) {
+						pNewItem->m_tFileModify = it->second;
 					}
+
 					std::vector<std::string>::iterator itf = files_favorite.begin();
 					for (; itf != files_favorite.end(); ++itf)
 					{
@@ -6787,8 +6819,10 @@ void InitParseLuaScript(entityeleproftype *tmpeleprof)
 		strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], "");
 		tmpeleprof->PropertiesVariable.VariableValueFrom[i] = 0.0f;
 		tmpeleprof->PropertiesVariable.VariableValueTo[i] = 0.0f;
-		strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[i], "");
-		strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i], "");
+		//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[i], "");
+		tmpeleprof->PropertiesVariable.VariableSectionDescription[i] = "";
+		//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i], "");
+		tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i] = "";
 	}
 
 	#ifdef WICKEDENGINE
@@ -6821,15 +6855,18 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 	tmpeleprof->PropertiesVariable.iVariables = 0;
 	tmpeleprof->PropertiesVariable.VariableDescription = "";
 	//scriptbank\markers\storyinzone.lua fails.
+
 	FILE* fScript = GG_fopen(script, "r");
 	if (fScript)
 	{
-		char ctmp[4096];
+		char ctmp[8192];
+		int include_returns = 0;
+		int description_lines = 0;
 		bool bFirstLine = true;
 		while (!feof(fScript))
 		{
-			fgets(ctmp, 4095 , fScript);
-			ctmp[4095] = 0;
+			fgets(ctmp, 8190 , fScript);
+			ctmp[8190] = 0;
 			if (strlen(ctmp) > 0 && ctmp[strlen(ctmp) - 1] == '\n')
 				ctmp[strlen(ctmp) - 1] = 0;
 			int cadd = 0;
@@ -6853,12 +6890,32 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 					tmpeleprof->PropertiesVariable.VariableDescription += " "; 
 					tmpeleprof->PropertiesVariable.VariableDescription += ctmp;
 				}
+				description_lines++;
 				//Activate Propertie Variables.
 				bFirstLine = false;
 			}
-
 		}
 		fclose(fScript);
+
+		//PE: Make error for scripts with missing newline.
+		if (description_lines <= 1)
+		{
+			//PE: Check if lua files is missing \n newlines this can really give strange results.
+			strcpy(ctmp, tmpeleprof->PropertiesVariable.VariableDescription.Get());
+			//PE: Scan for non newline text file.
+			for (int i = 0; i < strlen(ctmp); i++)
+			{
+				if (ctmp[i] == '\r')
+				{
+					include_returns++;
+					break;
+				}
+			}
+			if (include_returns > 0)
+			{
+				tmpeleprof->PropertiesVariable.VariableDescription = "Lua script is missing 'newlines' and description can't be parsed!";
+			}
+		}
 
 		//Activate Propertie Variables.
 		bFirstLine = false;
@@ -6882,46 +6939,60 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 					if (tmpeleprof->PropertiesVariable.iVariables >= 1) 
 					{
 						//Add space
-						strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], " ");
-						strcat(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], " ");
+						//strcat(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables] = cStr(" ") + cStr(SectionDescription);
 					}
 					else 
 					{
-						strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						//strcpy(tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+						tmpeleprof->PropertiesVariable.VariableSectionDescription[tmpeleprof->PropertiesVariable.iVariables] = SectionDescription;
 					}
-					strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], "");
+					//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], "");
+					tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables] = "";
 					SectionDescription = find2 + 1;
 					if (!pestrcasestr(SectionDescription, "[")) 
 					{
 						if (SectionDescription[0] != 0) 
 						{
-							strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+							//strcpy(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables], SectionDescription);
+							tmpeleprof->PropertiesVariable.VariableSectionEndDescription[tmpeleprof->PropertiesVariable.iVariables] = SectionDescription;
 						}
 					}
 					tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 0;
-					strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], find + 1);
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "#"))
+
+					//PE: tmpeleprof->PropertiesVariable.Variable can be larger then 100 before '=' is found.
+					char tmpVariable[1024];
+					strcpy(tmpVariable, find + 1);
+
+					//PE: Scan all lua script for largest [] // [@MULTI_TRIGGER=2(1=Yes, 2=No)]
+					//if (strlen(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables]) > maxvariable)
+					//	maxvariable = strlen(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables]);
+
+					if (pestrcasestr(tmpVariable, "#"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 1; //float
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "$"))
+					if (pestrcasestr(tmpVariable, "$"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 2; //string
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "!"))
+					if (pestrcasestr(tmpVariable, "!"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 3; //bool
 					#ifdef WICKEDENGINE
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "@"))
+					if (pestrcasestr(tmpVariable, "@"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 4; // labelled int[]
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "*"))
+					if (pestrcasestr(tmpVariable, "*"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 5; // user specified in seconds
-					if (pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "&"))
+					if (pestrcasestr(tmpVariable, "&"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 6; // should alter eleprof variable
 					#endif			
 
 					//Set default values search for =
-					char *find3 = (char *)pestrcasestr(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], "=");
+					char *find3 = (char *)pestrcasestr(tmpVariable, "=");
 					if (find3) 
 					{
 						strcpy(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], find3 + 1);
 						
 						find3[0] = 0; // remove = from Variable.
+						strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], tmpVariable);
+
 						//check if we got a range.
 						char *find4 = (char *)pestrcasestr(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], "(");
 						if (find4) 
@@ -7042,13 +7113,35 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 										}
 										if (labels.size() == 2)
 										{
+											//InterActionWeaponList
+											if (stricmp(labels[1].c_str(), "interactionweaponlist") == NULL)
+											{
+												labels.clear();
+												labels.push_back(cVariable);
+												int iWeaponListIndex = 1;
+												//PE: Add filter.
+												int FillWeaponList(std::vector<std::string>& labels, char* filter);
+												iWeaponListIndex += FillWeaponList(labels, "Interaction");
+
+												if (iWeaponListIndex > 0)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = iWeaponListIndex;
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
+
+											}
 											if (stricmp(labels[1].c_str(), "anyweaponlist") == NULL)
 											{
 												labels.clear();
 												labels.push_back(cVariable);
 												int iWeaponListIndex = 1;
-												int FillWeaponList(std::vector<std::string> &labels);
-												iWeaponListIndex += FillWeaponList( labels);
+												int FillWeaponList(std::vector<std::string> &labels, char* filter);
+												iWeaponListIndex += FillWeaponList( labels , nullptr);
 
 												if (iWeaponListIndex > 0)
 												{
@@ -7126,7 +7219,11 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 						}
 					}
 					else
+					{
 						strcpy(tmpeleprof->PropertiesVariable.VariableValue[tmpeleprof->PropertiesVariable.iVariables], "");
+						tmpVariable[MAXVARIABLESIZE - 1] = 0;
+						strcpy(tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables], tmpVariable);
+					}
 
 					//Clean variable name.
 					std::string clean_string = tmpeleprof->PropertiesVariable.Variable[tmpeleprof->PropertiesVariable.iVariables];
@@ -7739,7 +7836,12 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 							}
 						}
 					}
-					if (bIsAQuestList == true && iQuestIndex > 0)
+					bool bBelowQuestCombo = false;
+					if (strstr(tmpeleprof->PropertiesVariable.Variable[i], "QuestChoice") != NULL)
+					{
+						bBelowQuestCombo = true;
+					}
+					if (bBelowQuestCombo && bIsAQuestList == true && iQuestIndex > 0)
 					{
 						bool bDoARefresh = false;
 						float but_gadget_size = ImGui::GetFontSize() * 12.0;
@@ -7762,6 +7864,11 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 								collectionQuestType item;
 								fill_rpg_quest_defaults(&item, tmpeleprof->name_s.Get());
 
+								//PE: Just to stop crash if not using storyboard.
+								if (g_collectionQuestLabels.size() == 0)
+								{
+									bFoundMatch = false;
+								}
 								// only add unique quest titles
 								if (bFoundMatch == false)
 								{
@@ -8159,11 +8266,16 @@ void fDisplayDescriptionBox(entityeleproftype *tmpeleprof, bool textonly = false
 	{
 		for (int i = 0; i < tmpeleprof->PropertiesVariable.iVariables; i++)
 		{
-			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i]);
+			//segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i]);
+			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionDescription[i].Get());
 			segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.Variable[i], IM_COL32(col.x, col.y, col.z, col.w), true);
-			if (strlen(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]) > 0) 
+			//if (strlen(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]) > 0) 
+			//{
+			//	segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+			//}
+			if (tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i].Len() > 0)
 			{
-				segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i]);
+				segs[curseg++] = Segment(tmpeleprof->PropertiesVariable.VariableSectionEndDescription[i].Get());
 			}
 			if (curseg >= (MAXPROPERTIESVARIABLES * 3) - 1)
 				break;

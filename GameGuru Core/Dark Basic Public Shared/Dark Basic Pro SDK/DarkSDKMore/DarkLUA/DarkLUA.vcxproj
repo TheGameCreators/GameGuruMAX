@@ -79,14 +79,14 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DARKLUA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GGREDUCED;WIN32;NDEBUG;_WINDOWS;_USRDLL;DARKLUA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>lua;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\Dark Wicked Shared\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\;$(ProjectDir)..\..\..\..\SDK\RecastContrib;$(ProjectDir)..\..\..\..\SDK\RecastContrib\fastlz;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DebugUtils/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Detour/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourCrowd/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourTileCache/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Recast/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\;$(ProjectDir)..\..\..\..\SDK\RecastContrib\SDL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../../../../WICKEDREPO/WickedEngine;lua;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\Dark Wicked Shared\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\;$(ProjectDir)..\..\..\..\SDK\RecastContrib;$(ProjectDir)..\..\..\..\SDK\RecastContrib\fastlz;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DebugUtils/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Detour/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourCrowd/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourTileCache/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Recast/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\;$(ProjectDir)..\..\..\..\SDK\RecastContrib\SDL\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4005;4995;4723</DisableSpecificWarnings>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
@@ -133,14 +133,14 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;DARKLUA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GGREDUCED;WIN32;NDEBUG;_WINDOWS;_USRDLL;DARKLUA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level1</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <AdditionalIncludeDirectories>lua;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\Dark Wicked Shared\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\;$(ProjectDir)..\..\..\..\SDK\RecastContrib;$(ProjectDir)..\..\..\..\SDK\RecastContrib\fastlz;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DebugUtils/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Detour/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourCrowd/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourTileCache/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Recast/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\;$(ProjectDir)..\..\..\..\SDK\RecastContrib\SDL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../../../../WICKEDREPO/WickedEngine;lua;%(AdditionalIncludeDirectories);$(ProjectDir)..\..\..\Include\;$(ProjectDir)..\..\..\..\Dark Wicked Shared\Include\;$(ProjectDir)..\..\..\..\GameGuru\Include\;$(ProjectDir)..\..\..\..\SDK\RecastContrib;$(ProjectDir)..\..\..\..\SDK\RecastContrib\fastlz;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DebugUtils/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Detour/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourCrowd/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\DetourTileCache/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\Recast/Include;$(ProjectDir)..\..\..\..\Guru-WickedMAX\GGRecastDetour\;$(ProjectDir)..\..\..\..\SDK\RecastContrib\SDL\include</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <DisableSpecificWarnings>4005;4995;4723</DisableSpecificWarnings>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>

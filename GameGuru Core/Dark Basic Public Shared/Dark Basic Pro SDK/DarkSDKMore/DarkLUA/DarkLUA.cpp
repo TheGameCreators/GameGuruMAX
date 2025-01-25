@@ -3,6 +3,14 @@
 
 //#define FASTBULLETPHYSICS
 
+#ifdef WINVER
+#undef WINVER
+#endif
+//PE: We need the latest dpi functions.
+#define WINVER 0x0605
+#include "Windows.h"
+#include "WinUser.h"
+
 #define _USING_V110_SDK71_
 #include "stdafx.h"
 #include "DarkLUA.h"
@@ -44,6 +52,13 @@ extern StoryboardStruct Storyboard;
 #ifdef OPTICK_ENABLE
 #include "optick.h"
 #endif
+
+#include "..\..\..\..\Guru-WickedMAX\wickedcalls.h"
+#include "WickedEngine.h"
+using namespace std;
+using namespace wiGraphics;
+using namespace wiScene;
+using namespace wiECS;
 
 // Prototypes
 extern void DrawSpritesFirst(void);
@@ -5834,6 +5849,59 @@ int QuatLERP(lua_State *L)
 	lua_pushnumber(L, qa.w * at + qb.w * bt );
 	return 4;
 }
+
+int ScreenCoordsToPercent(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fPercentX = ( fX / (float) g_dwScreenWidth) * 100.0f;
+	float fPercentY = (fY / (float)g_dwScreenHeight) * 100.0f;
+	lua_pushnumber(L, fPercentX);
+	lua_pushnumber(L, fPercentY);
+	return 2;
+
+}
+
+int LuaConvert2DTo3D(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	
+	float x = (fX * g_dwScreenWidth) / 100.0f;
+	float y = (fY * g_dwScreenHeight) / 100.0f;
+
+	float fOutX = 0, fOutY = 0, fOutZ = 0;
+	float fDirX = 0, fDirY = 0, fDirZ = 0;
+	Convert2Dto3D(x, y, &fOutX, &fOutY, &fOutZ, &fDirX, &fDirY, &fDirZ);
+
+	lua_pushnumber(L, fOutX);
+	lua_pushnumber(L, fOutY);
+	lua_pushnumber(L, fOutZ);
+	lua_pushnumber(L, fDirX);
+	lua_pushnumber(L, fDirY);
+	lua_pushnumber(L, fDirZ);
+	return 6;
+}
+
+
+int LuaConvert3DTo2D(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 3) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fZ = lua_tonumber(L, 3);
+	ImVec2 Convert3DTo2D(float x, float y, float z);
+	ImVec2 v2DPos = Convert3DTo2D(fX, fY, fZ);
+	lua_pushnumber(L, v2DPos.x);
+	lua_pushnumber(L, v2DPos.y);
+	return 2;
+}
+
 // end of Fast Quaternion functions
 int RotateObject ( lua_State *L )
 {
@@ -7022,8 +7090,20 @@ int DisplayCurrentScreen(lua_State* L)
 	lua_pushnumber(L, iSpecialLuaReturn);
 	return 1;
 }
+bool bDisableKeyToggles = false;
+int DisableBoundHudKeys(lua_State* L)
+{
+	bDisableKeyToggles = true;
+	return 0;
+}
+int EnableBoundHudKeys(lua_State* L)
+{
+	bDisableKeyToggles = false;
+	return 0;
+}
 int CheckScreenToggles(lua_State* L)
 {
+	if (bDisableKeyToggles) return 0;
 	extern void TriggerScreenFromKeyPress();
 	TriggerScreenFromKeyPress();
 	return 1;
@@ -9682,6 +9762,191 @@ int EffectSetLifespan(lua_State* L)
 	return 0;
 }
 
+#ifdef WICKEDPARTICLESYSTEM
+std::vector<uint32_t> vWickedEmitterEffects;
+void CleanUpEmitterEffects(void)
+{
+	Scene& scene = wiScene::GetScene();
+
+	std::vector<uint32_t> vEntityDelete;
+	for (int i = 0; i < vWickedEmitterEffects.size(); i++)
+	{
+		uint32_t root = vWickedEmitterEffects[i];
+		for (int a = 0; a < scene.emitters.GetCount(); a++)
+		{
+			Entity emitter = scene.emitters.GetEntity(a);
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				if (hier->parentID == root)
+				{
+					vEntityDelete.push_back(emitter);
+				}
+			}
+		}
+		vEntityDelete.push_back(root);
+	}
+
+	for (int i = 0; i < vEntityDelete.size(); i++)
+	{
+		scene.Entity_Remove(vEntityDelete[i]);
+	}
+	vEntityDelete.clear();
+	vWickedEmitterEffects.clear();
+}
+
+//PE: WParticleEffectPosition("FileName") - Return EffectID
+int WParticleEffectLoad(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	
+	Scene& scene = wiScene::GetScene();
+
+	char pFileName[MAX_PATH];
+	strcpy(pFileName, lua_tostring(L, 1));
+
+	uint32_t root = 0;
+	uint32_t count_before = scene.emitters.GetCount();
+
+	cstr pOldDir = GetDir();
+
+	char path[MAX_PATH];
+	strcpy(path, pFileName);
+	GG_GetRealPath(path, 0);
+
+	WickedCall_LoadWiScene(path, false, NULL, NULL);
+	uint32_t count_after = scene.emitters.GetCount();
+	if (count_before != count_after)
+	{
+		Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
+		if (scene.emitters.GetCount() > 0)
+		{
+			Entity emitter = scene.emitters.GetEntity(0);
+			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+			if (hier)
+			{
+				root = hier->parentID;
+			}
+		}
+		wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+		if (ec)
+		{
+			ec->Restart();
+			ec->SetVisible(true);
+		}
+	}
+	if (root != 0)
+		vWickedEmitterEffects.push_back(root);
+	lua_pushnumber(L, root);
+	return 1;
+
+}
+//PE: WParticleEffectPosition(EffectID,x,y,z)
+int WParticleEffectPosition(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 4) return 0;
+
+	Entity root = lua_tonumber(L, 1);
+	float fX = lua_tonumber(L, 2);
+	float fY = lua_tonumber(L, 3);
+	float fZ = lua_tonumber(L, 4);
+
+	Scene& scene = wiScene::GetScene();
+	TransformComponent* root_tranform = scene.transforms.GetComponent(root);
+	if (root_tranform)
+	{
+		root_tranform->ClearTransform();
+		root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+		root_tranform->UpdateTransform();
+	}
+
+	//for (int i = 0; i < scene.emitters.GetCount(); i++)
+	//{
+	//	Entity emitter = scene.emitters.GetEntity(i);
+	//	HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+	//	if (hier)
+	//	{
+	//		if (hier->parentID == root)
+	//		{
+	//		}
+	//	}
+	//}
+
+	return 0;
+}
+int WParticleEffectVisible(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+
+	Entity root = lua_tonumber(L, 1);
+	bool bVisible = lua_tonumber(L, 2);
+
+	Scene& scene = wiScene::GetScene();
+
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+		if (hier)
+		{
+			if (hier->parentID == root)
+			{
+				wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+				if (ec)
+				{
+					ec->SetVisible(bVisible);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+//WParticleEffectAction(EffectID,Action) - Action = 1 Burst all. 2 = Pause. - 3 = Resume. - 4 = Restart
+int WParticleEffectAction(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	Entity root = lua_tonumber(L, 1);
+	int iAction = lua_tonumber(L, 2);
+	WickedCall_PerformEmitterAction(iAction, root);
+	return 0;
+}
+//PE: Missing command for position sound if different then entity position.
+int entity_lua_positionsound(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 5) return 0;
+	int e = lua_tonumber(L, 1);
+	int v = lua_tonumber(L, 2);
+	float fX = lua_tonumber(L, 3);
+	float fY = lua_tonumber(L, 4);
+	float fZ = lua_tonumber(L, 5);
+	int entity_lua_sound_convertVtoTSND(int te, int tv);
+	int snd = entity_lua_sound_convertVtoTSND(e, v);
+	if (snd > 0)
+	{
+		PositionSound(snd, fX, fY, fZ);
+	}
+	return 0;
+}
+
+//disableindoor
+// rotate
+// Stop
+// copy lua code from app.
+// add emitter with all settings.
+#endif
+
+
 // Misc Commands
 
 int GetBulletHit(lua_State* L)
@@ -12190,6 +12455,11 @@ void addFunctions()
 	lua_register(lua, "QuatSLERP",    QuatSLERP );
 	lua_register(lua, "QuatLERP",     QuatLERP );
 
+	lua_register(lua, "Convert3DTo2D", LuaConvert3DTo2D); // x,y = Convert3DTo2D(x,y,z)
+	lua_register(lua, "Convert2DTo3D", LuaConvert2DTo3D); // px,py,pz,dx,dy,dz = Convert2DTo3D(x percent,y percent) -- percent
+	lua_register(lua, "ScreenCoordsToPercent", ScreenCoordsToPercent); // percentx,percentx = ScreenCordsToPercent(x,y) -- return percent positions.
+
+	
 	// Lua control of dynamic light
 	lua_register(lua, "GetEntityLightNumber", GetEntityLightNumber );
 	lua_register(lua, "GetLightPosition",     GetLightPosition );
@@ -12742,6 +13012,18 @@ void addFunctions()
 	lua_register(lua, "EffectSetColor",				EffectSetColor);
 	lua_register(lua, "EffectSetLifespan",			EffectSetLifespan);
 
+#ifdef WICKEDPARTICLESYSTEM
+	//PE: Wicked particle system.
+	lua_register(lua, "WParticleEffectLoad", WParticleEffectLoad);
+	lua_register(lua, "WParticleEffectPosition", WParticleEffectPosition);
+	lua_register(lua, "WParticleEffectVisible", WParticleEffectVisible);
+	lua_register(lua, "WParticleEffectAction", WParticleEffectAction);
+	
+	//PE: Other missing commands.
+	lua_register(lua, "PositionSound", entity_lua_positionsound);
+
+#endif
+
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
@@ -12811,6 +13093,8 @@ void addFunctions()
 	lua_register(lua, "GetCurrentScreen", GetCurrentScreen);
 	lua_register(lua, "GetCurrentScreenName", GetCurrentScreenName);
 	lua_register(lua, "CheckScreenToggles", CheckScreenToggles);
+	lua_register(lua, "DisableBoundHudKeys", DisableBoundHudKeys);
+	lua_register(lua, "EnableBoundHudKeys", EnableBoundHudKeys);
 	lua_register(lua, "ScreenToggle", ScreenToggle);
 	lua_register(lua, "ScreenToggleByKey", ScreenToggleByKey);
 	lua_register(lua, "GetIfUsingTABScreen", GetIfUsingTABScreen);

@@ -10387,7 +10387,7 @@ void procedural_new_level(void)
 				ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
 			}
 
-			if (ImageExist(TERRAINGENERATOR_IMAGE)) DeleteImage(TERRAINGENERATOR_IMAGE);
+			//if (ImageExist(TERRAINGENERATOR_IMAGE)) DeleteImage(TERRAINGENERATOR_IMAGE);
 			if (ObjectExist(TERRAINGENERATOR_OBJECT)) DeleteObject(TERRAINGENERATOR_OBJECT);
 			if (!bPopModalOpenProceduralCameraMode)
 			{
@@ -13530,7 +13530,7 @@ void procedural_new_level(void)
 				DeleteBitmapEx(99);
 			}
 
-			if (ImageExist(TERRAINGENERATOR_IMAGE)) DeleteImage(TERRAINGENERATOR_IMAGE);
+			//if (ImageExist(TERRAINGENERATOR_IMAGE)) DeleteImage(TERRAINGENERATOR_IMAGE);
 			if (ObjectExist(TERRAINGENERATOR_OBJECT)) DeleteObject(TERRAINGENERATOR_OBJECT);
 
 			//Restore fog.

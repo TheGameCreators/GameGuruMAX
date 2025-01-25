@@ -7585,6 +7585,9 @@ DARKSDK_DLL bool LoadDBO ( LPSTR pPassedInFilename, sObject** ppObject )
 		// construct the object
 		if (!DBOConvertBlockToObject((void*)pDBOBlock, dwBlockSize, ppObject))
 		{
+			char str[1024];
+			sprintf_s(str, "Failed to load object: %s", pFilename);
+			Message(0, str, "Error");
 			RunTimeError(RUNTIMEERROR_B3DOBJECTLOADFAILED);
 			return false;
 		}

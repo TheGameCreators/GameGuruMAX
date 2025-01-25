@@ -37,6 +37,10 @@ bool noDeleteCSTR = false;
 #define STRMINSIZE 128
 #endif
 
+//PE: ZTEMP just use double mem, no need, use a ringbuffer instead. And we have very many of these in entityelements.
+#define DISABLEZTEMP
+
+
 //#define TESTUSEOFSTRINGS
 #ifdef TESTUSEOFSTRINGS
 int CheckPreSize[5000];
@@ -56,16 +60,22 @@ cStr::cStr ( const cStr& cString )
 	if ( m_size >= STRMINSIZE )
 	{
 		m_pString = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#ifndef DISABLEZTEMP
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#endif
 	}
 	else
 	{
 		m_pString = new char [ STRMINSIZE ];
+#ifndef DISABLEZTEMP
 		m_szTemp = new char [ STRMINSIZE ];	
+#endif
 	}
 
 	memset ( m_pString, 0, sizeof ( m_pString ) );
+#ifndef DISABLEZTEMP
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 	strcpy ( m_pString, cString.m_pString );
 	
 }
@@ -80,16 +90,22 @@ cStr::cStr ( char* szString )
 	if ( m_size >= STRMINSIZE )
 	{
 		m_pString = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#ifndef DISABLEZTEMP
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#endif
 	}
 	else
 	{
 		m_pString = new char [ STRMINSIZE ];
+#ifndef DISABLEZTEMP
 		m_szTemp = new char [ STRMINSIZE ];
+#endif
 	}
 
 	memset ( m_pString, 0, sizeof ( m_pString ) );
+#ifndef DISABLEZTEMP
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 	strcpy ( m_pString, szString );
 	
 }
@@ -100,8 +116,10 @@ cStr::cStr ( int iValue )
 	memset ( m_pString, 0, sizeof ( m_pString ) );
 	sprintf ( m_pString, "%i", iValue );
 
+#ifndef DISABLEZTEMP
 	m_szTemp = new char [ STRMINSIZE ];
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 }
 
 cStr::cStr ( float fValue )
@@ -109,9 +127,10 @@ cStr::cStr ( float fValue )
 	m_pString = new char [ STRMINSIZE ];
 	memset ( m_pString, 0, sizeof ( m_pString ) );
 	sprintf ( m_pString, "%.2f", fValue );
-
+#ifndef DISABLEZTEMP
 	m_szTemp = new char [ STRMINSIZE ];
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 }
 
 cStr::cStr ( double dValue )
@@ -119,9 +138,10 @@ cStr::cStr ( double dValue )
 	m_pString = new char [ STRMINSIZE ];
 	memset ( m_pString, 0, sizeof ( m_pString ) );
 	sprintf ( m_pString, "%.2f", ( float ) dValue );
-
+#ifndef DISABLEZTEMP
 	m_szTemp = new char [ STRMINSIZE ];
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 }
 
 cStr::cStr ( )
@@ -129,9 +149,10 @@ cStr::cStr ( )
 	m_pString = new char [ STRMINSIZE ];
 	memset ( m_pString, 0, sizeof ( m_pString ) );
 	strcpy ( m_pString, "" );
-
+#ifndef DISABLEZTEMP
 	m_szTemp = new char [ STRMINSIZE ];
 	memset ( m_szTemp, 0, sizeof ( m_szTemp ) );
+#endif
 }
 
 cStr::~cStr ( )
@@ -140,11 +161,18 @@ cStr::~cStr ( )
 	{
 		if ( m_pString )
 			delete [ ] m_pString;
-
+#ifndef DISABLEZTEMP
 		if ( m_szTemp )
 			delete [] m_szTemp;  //PE: Heap error here if >256 strings and using s=s+" "
+#endif
 	}
 }
+
+#ifdef DISABLEZTEMP
+char* m_sTemp[20] = { nullptr };
+int m_iLen[20] = { 0 };
+int m_iCurrentBuffer = 0;
+#endif
 
 cStr cStr::operator + ( const cStr& other )
 {
@@ -154,7 +182,37 @@ cStr cStr::operator + ( const cStr& other )
 	// s += " " // This works.
 
 	m_size = (int) strlen ( other.m_pString ) + (int) strlen ( m_pString );
+#ifdef DISABLEZTEMP
 
+	//PE: Use a ringbuffer.
+	m_iCurrentBuffer++;
+	if (m_iCurrentBuffer >= 19)
+		m_iCurrentBuffer = 0;
+
+	if (m_iLen[m_iCurrentBuffer] <= (m_size + 50) || !m_sTemp[m_iCurrentBuffer])
+	{
+		if(m_sTemp[m_iCurrentBuffer])
+			delete[] m_sTemp[m_iCurrentBuffer];
+		m_sTemp[m_iCurrentBuffer] = new char[sizeof(char) * ((m_size) + 51)];
+		m_iLen[m_iCurrentBuffer] = (m_size + 50);
+	}
+
+	if (m_sTemp[m_iCurrentBuffer])
+	{
+		if (m_pString)
+			strcpy(m_sTemp[m_iCurrentBuffer], m_pString);
+		else
+			m_sTemp[m_iCurrentBuffer][0] = 0;
+
+		if (other.m_pString)
+			strcat(m_sTemp[m_iCurrentBuffer], other.m_pString);
+
+		return cStr(m_sTemp[m_iCurrentBuffer]);
+	}
+	else
+		return(cStr("m_sTemp[m_iCurrentBuffer] alloc failed.")); //PE: Debug only should never happen.
+
+#else
 	if ( m_size >= STRMINSIZE )
 	{
 #ifdef TESTUSEOFSTRINGS
@@ -173,7 +231,9 @@ cStr cStr::operator + ( const cStr& other )
 	if ( other.m_pString )
 		strcat ( m_szTemp, other.m_pString );
 
-	return cStr ( m_szTemp );
+	return cStr(m_szTemp);
+#endif
+
 }
 
 cStr& cStr::operator += ( const cStr& other )
@@ -191,8 +251,10 @@ cStr& cStr::operator += ( const cStr& other )
 		strcpy ( newstring , m_pString );
 		delete[] m_pString;
 		m_pString = newstring;
+#ifndef DISABLEZTEMP
 		delete[] m_szTemp;
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#endif
 	}
 
 	if ( other.m_pString )
@@ -214,8 +276,10 @@ cStr cStr::operator = ( const cStr& other )
 		char* newstring = new char [ sizeof ( char ) * ( m_size ) + 1 ];
 		delete[] m_pString;
 		m_pString = newstring;
+#ifndef DISABLEZTEMP
 		delete[] m_szTemp;
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#endif
 	}
 
 	strcpy ( m_pString, other.m_pString );
@@ -243,8 +307,10 @@ cStr& cStr::operator = ( const char* other )
 		char* newstring = new char [ sizeof ( char ) * ( m_size ) + 1 ];
 		delete[] m_pString;
 		m_pString = newstring;
+#ifndef DISABLEZTEMP
 		delete[] m_szTemp;
 		m_szTemp = new char [ sizeof ( char ) * ( m_size ) + 1 ];
+#endif
 	}
 	//PE: m_pString was 0 here ? called from line (t.tfile_s="audiobank\\materials\\materialdefault.txt";) ?
 	strcpy ( m_pString, other );

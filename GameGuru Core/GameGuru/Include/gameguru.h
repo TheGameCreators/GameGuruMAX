@@ -1160,6 +1160,7 @@ struct Sglobals
 	float grav_f;
 	int gunmax;
 	int gvsync;
+	int iEditorVSync;
 	int hudmax;
 	int L_Calf;
 	int L_Hand;
@@ -1341,6 +1342,7 @@ struct Sglobals
 		 L_Calf = 0;
 		 hudmax = 0;
 		 gvsync = 0;
+		 iEditorVSync = 0;
 		 gunmax = 0;
 		 grav_f = 0.0f;
 		 flashr = 0;

@@ -9823,7 +9823,6 @@ int WParticleEffectLoad(lua_State* L)
 		Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
 		if (scene.emitters.GetCount() > 0)
 		{
-			Entity emitter = scene.emitters.GetEntity(0);
 			HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
 			if (hier)
 			{

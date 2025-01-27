@@ -8871,10 +8871,19 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		cstr oldDir = GetDir();
 		if (g_iDeferTextureUpdateToNow == 1)
 		{
+#ifdef ONLYLOADWHENUSED
+			//PE: Reload textures here.
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = false;
+			}
+#endif
+
 			SetDir(g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
 			GGTerrain_ReloadTextures(cmd);
 			SetDir(oldDir.Get());
 			g_iDeferTextureUpdateToNow = 0;
+
 		}
 		if (g_iDeferTextureUpdateToNow == 2)
 		{
@@ -8891,6 +8900,15 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 			GGTerrain_ReloadTextures(cmd, &g_DeferTextureUpdate, &g_DeferTextureUpdateIncompatibleTextures, g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
 			SetDir(oldDir.Get());
 			g_iDeferTextureUpdateToNow = 3;
+
+#ifdef ONLYLOADWHENUSED
+			//PE: All will be loaded correct here.
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = true;
+			}
+#endif
+
 		}
 	}
 #ifdef ONLYLOADWHENUSED

@@ -2602,6 +2602,17 @@ GetTerrainCollisionDetails( objectId, num )
 
 --]]
 
+-- New Wicked Particle commands
+-- EffectID = WParticleEffectPosition("FileName") -- Load a particle effect and return EffectID
+-- WParticleEffectPosition(EffectID,x,y,z) -- Position the particle effect.
+-- WParticleEffectVisible(EffectID,0) -- Hide or show the particle effect (0 = Hide , 1 = Show)
+-- WParticleEffectAction(EffectID,Action) -- Perform actions on the particle effect (1 = Burst all. 2 = Pause. 3 = Resume. 4 = Restart)
+-- DisableBoundHudKeys() -- Disable HUD keys
+-- EnableBoundHudKeys() -- Enable HUD keys
+-- px,py,pz,dx,dy,dz = Convert2DTo3D(ScreenPercentX,ScreenPercentY) -- px,py,pz = 3D Position. dx,dy,dz = 3D Direction for use with IntersectAll or similar calls.
+-- ScreenPosX,ScreenPosY = Convert3DTo2D(x,y,z) -- Convert a 3D positon into 2D screen positions.
+-- ScreenPercentX,ScreenPercentX = ScreenCoordsToPercent(ScreenPosX,ScreenPosY) -- Convert 2D screen positions into screen percentage position.
+
 -- Storyboard commands
 -- SetScreenHUDGlobalScale : SetScreenHUDGlobalScale
 -- InitScreen : InitScreen

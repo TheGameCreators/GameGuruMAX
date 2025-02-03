@@ -34503,6 +34503,8 @@ void Welcome_Screen(void)
 									bStoryboardInitNodes = false; //Just init again.
 									bStoryboardFirstRunSetInitPos = false;
 									process_storeboard(true); //Init a new project.
+									//PE: Bug - When creating a new project , it would contain g_collectionList from prev. loaded project.
+									init_rpg_system();
 									bTriggerSaveAsAfterNewLevel = true;
 									bTriggerSaveAs = true;
 									strcpy(SaveProjectAsName, "");
@@ -36320,6 +36322,9 @@ void Welcome_Screen(void)
 					bStoryboardInitNodes = false; //Just init again.
 					bStoryboardFirstRunSetInitPos = false;
 					process_storeboard(true); //Init a new project.
+					//PE: Bug - When creating a new project, it would contain g_collectionList from prev. loaded project.
+					init_rpg_system();
+
 					bTriggerSaveAsAfterNewLevel = true;
 					bTriggerSaveAs = true;
 					strcpy(SaveProjectAsName, "");

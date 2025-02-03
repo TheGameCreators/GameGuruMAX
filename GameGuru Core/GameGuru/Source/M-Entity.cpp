@@ -128,6 +128,9 @@ void entity_addtoselection ( void )
 
 bool entity_copytoremoteifnotthere ( LPSTR pPathToFile )
 {
+	//PE: Bug fix , never copy in standalone.
+	if (t.game.gameisexe == 1) return false;
+
 	// this only works if destination folder already exists, use "mapfile_ensurethisfolderexistsinremoteproject" if want to copy whole folders!
 	// if using remote project, first duplicate the entity file to local project
 	bool bWeCopiedTheFileOver = false;

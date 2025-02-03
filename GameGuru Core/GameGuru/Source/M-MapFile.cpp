@@ -2169,6 +2169,12 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
 	addallinfoldertocollection("particlesbank\\user", "particlesbank\\user");
 
+	// TODO: only copy the emitter that each entity uses, rather than the whole folder
+	addfoldertocollection("emitterbank");
+	addfoldertocollection("emitterbank\\user");
+	addfoldertocollection("emitterbank\\demo");
+
+
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");
 	addfoldertocollection("effectbank\\common"); //Just in case we get more.
@@ -3082,6 +3088,8 @@ void mapfile_copyallfilecollectiontopreferredprojectfolder(void)
 
 void mapfile_ensurethisfolderexistsinremoteproject(LPSTR pFolderToCopy)
 {
+	//PE: Bug fix , in standalone skybox got copied to docwrite folder with _e_.
+	if (t.game.gameisexe == 1) return;
 	extern bool g_bMakingAStandaloneUsingFileCollectionArray;
 	if (g_bMakingAStandaloneUsingFileCollectionArray == false)
 	{

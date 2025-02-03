@@ -4541,6 +4541,14 @@ void FPSC_Setup(void)
 	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
 	#endif
 
+	cstr emitterbankfolder_s = g.fpscrootdir_s + "\\Files\\emitterbank\\";
+	strcpy(pCacheFolder, emitterbankfolder_s.Get());
+	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
+	emitterbankfolder_s = g.fpscrootdir_s + "\\Files\\emitterbank\\user\\";
+	strcpy(pCacheFolder, emitterbankfolder_s.Get());
+	GG_GetRealPath(pCacheFolder, 1); //make sure it exists.
+
+
 	// also create
 	cstr scriptbankfolder_s = g.fpscrootdir_s + "\\Files\\scriptbank\\user\\";
 	strcpy(pCacheFolder, scriptbankfolder_s.Get());

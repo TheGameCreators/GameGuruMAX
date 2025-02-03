@@ -6968,6 +6968,21 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 			scene2.Entity_Remove(root);
 			root = INVALID_ENTITY;
 		}
+
+		//PE: Support _e_ here for all materials.
+		for (int i = 0; i < scene2.materials.GetCount(); i++)
+		{
+			for (int a = 0; a < MaterialComponent::EMISSIVEMAP; a++)
+			{
+				if (scene2.materials[i].textures[a].name.size() > 0)
+				{
+					if (!scene2.materials[i].textures[a].resource)
+					{
+						scene2.materials[i].textures[a].resource = WickedCall_LoadImage(scene2.materials[i].textures[a].name);
+					}
+				}
+			}
+		}
 	}
 
 	//PE: Fix for GG moved enums

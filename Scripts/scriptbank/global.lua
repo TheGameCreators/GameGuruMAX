@@ -2603,7 +2603,7 @@ GetTerrainCollisionDetails( objectId, num )
 --]]
 
 -- New Wicked Particle commands
--- EffectID = WParticleEffectPosition("FileName") -- Load a particle effect and return EffectID
+-- EffectID = WParticleEffectLoad("FileName") -- Load a particle effect and return EffectID
 -- WParticleEffectPosition(EffectID,x,y,z) -- Position the particle effect.
 -- WParticleEffectVisible(EffectID,0) -- Hide or show the particle effect (0 = Hide , 1 = Show)
 -- WParticleEffectAction(EffectID,Action) -- Perform actions on the particle effect (1 = Burst all. 2 = Pause. 3 = Resume. 4 = Restart)

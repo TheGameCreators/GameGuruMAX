@@ -37382,6 +37382,7 @@ void SetIconSetCheck(bool bInstant)
 			LoadImage("editors\\uiv3\\entity_particle.png", ENTITY_PARTICLE);
 			LoadImage("editors\\uiv3\\entity_light.png", ENTITY_LIGHT);
 			LoadImage("editors\\uiv3\\entity_probe.png", ENTITY_PROBE);
+			LoadImage("editors\\uiv3\\entity_cover.png", ENTITY_COVER);
 			LoadImage("editors\\uiv3\\entity_win.png", ENTITY_WIN);
 			LoadImage("editors\\uiv3\\entity_image.png", ENTITY_IMAGE);
 			LoadImage("editors\\uiv3\\entity_music.png", ENTITY_MUSIC);

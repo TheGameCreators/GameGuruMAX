@@ -3401,6 +3401,12 @@ void mapfile_savestandalone_stage4 ( void )
 	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
 	CopyAFile (pCritDLLFilename, t.dest_s.Get());
 
+	// EPIC DLL required for authentication step (not needed for standalone game running)
+	strcpy(pCritDLLFilename, "EOSSDK-Win64-Shipping.dll");
+	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;
+	if (FileExist(t.dest_s.Get()) == 1) DeleteAFile (t.dest_s.Get());
+	CopyAFile (pCritDLLFilename, t.dest_s.Get());	
+
 	// Users report that people who don't have Max installed cannot play standalones
 	strcpy(pCritDLLFilename, "dxil.dll");
 	t.dest_s = t.exepath_s + t.exename_s + "\\" + pCritDLLFilename;

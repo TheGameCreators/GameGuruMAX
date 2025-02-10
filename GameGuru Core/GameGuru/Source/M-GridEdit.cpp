@@ -13613,9 +13613,9 @@ void mapeditorexecutable_loop(void)
 			ImGui::EndChild();
 
 			// number of game element buttson shown
-			entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 13;
+			entity_icons = 12; if (pref.iObjectEnableAdvanced)	entity_icons = 14;
 
-			int entity_images[] = { ENTITY_START, ENTITY_CHECKPOINT, ENTITY_FLAG, ENTITY_TRIGGERZONE, ENTITY_WIN, ENTITY_LIGHT,ENTITY_VIDEO,ENTITY_MUSIC,ENTITY_SOUND,ENTITY_PARTICLE,ENTITY_IMAGE, ENTITY_TEXT, ENTITY_PROBE };
+			int entity_images[] = { ENTITY_START, ENTITY_CHECKPOINT, ENTITY_FLAG, ENTITY_TRIGGERZONE, ENTITY_WIN, ENTITY_LIGHT,ENTITY_VIDEO,ENTITY_MUSIC,ENTITY_SOUND,ENTITY_PARTICLE,ENTITY_IMAGE, ENTITY_TEXT, ENTITY_PROBE, ENTITY_COVER };
 			cstr entity_scripts[] = {
 				"_markers\\Player Start.fpe",
 				"_markers\\Player Checkpoint.fpe",
@@ -13629,7 +13629,8 @@ void mapeditorexecutable_loop(void)
 				"_markers\\Particles.fpe",
 				"_markers\\Image Zone.fpe",
 				"_markers\\Text Zone.fpe",
-				"_markers\\Probe.fpe"
+				"_markers\\Probe.fpe",
+				"_markers\\Cover Zone.fpe"
 			};
 			cstr entity_tooltip[] = {
 				"Add Player Start Position",
@@ -13644,7 +13645,8 @@ void mapeditorexecutable_loop(void)
 				"Add Particle",
 				"Add Image Zone",
 				"Add Text Zone",
-				"Add Environment Probe"
+				"Add Environment Probe",
+				"Add Cover Zone"
 			};
 
 			int offset = 0;

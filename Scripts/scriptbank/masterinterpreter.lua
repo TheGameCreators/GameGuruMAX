@@ -82,6 +82,7 @@ g_masterinterpreter_cond_canmeleetarget = 65 -- Can Melee Target (Is true if the
 g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the current target name matches the specified string)
 g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
 g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
+g_masterinterpreter_cond_coverzonewithin = 69 -- Cover Zone Within (Is true if there is a cover zone within the specified range)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -194,11 +195,12 @@ g_masterinterpreter_act_collisionoff = 106 -- Turn Collision Off (Switch off col
 g_masterinterpreter_act_collisionon = 107 -- Turn Collision On (Switch on collision for this object)
 g_masterinterpreter_act_hideterrain = 108 -- Hide Terrain (Switches off all terrain rendering)
 g_masterinterpreter_act_showterrain = 109 -- Show Terrain (Switches on all terrain rendering)
-
+g_masterinterpreter_act_gotocoverzone = 110 -- Go To Cover Zone (Plot a navigation path to nearest cover zone)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
 g_calloutmanagertime = {}
+g_coverzone = {}
 
 function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
  local bestdistance = 99999
@@ -916,6 +918,39 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
  if conditiontype == g_masterinterpreter_cond_wasblocked then 
   if GetGamePlayerStateBlockingAction() > 0 then return 1 end
  end 
+ if conditiontype == g_masterinterpreter_cond_coverzonewithin then 
+  if conditionparam1value == nil then conditionparam1value = 1000 end
+  local closestdist = 9999999
+  local closestdisttotarget = GetPlayerDistance(e)
+  local rangedetection = conditionparam1value
+  local havecovere = 0
+  if g_coverzone ~= nil then
+   for ee = 1, g_EntityElementMax, 1 do
+    if g_Entity[ee] ~= nil then
+     if GetEntityMarkerMode(ee) == 3 then
+	  if g_coverzone[ee] ~= nil then
+	   if g_coverzone[ee].status ~= nil then
+	    if g_coverzone[ee].status == "normal" then
+         local thisdistance = GetDistanceTo(e,g_Entity[ee]['x'],g_Entity[ee]['y'],g_Entity[ee]['z'])
+         if thisdistance > 100 and thisdistance < closestdist and thisdistance < rangedetection then 
+	      local thisdistancetotarget = GetPlayerDistance(ee)
+	      if thisdistancetotarget < closestdisttotarget then
+           closestdisttotarget = thisdistancetotarget
+	       closestdist = thisdistance 
+	       havecovere = ee
+		  end
+		 end
+		end
+	   end
+	  end
+	 end
+    end
+   end
+  end
+  if havecovere > 0 then
+   return 1
+  end
+ end
  
  -- Condition is false
  return 0
@@ -944,6 +979,7 @@ function masterinterpreter_getactiontarget ( e, output_e, actiontype )
  if actiontype == g_masterinterpreter_act_gotostepbackward then usestarget = 1 end 
  if actiontype == g_masterinterpreter_act_gotonearbyspot then usestarget = 1 end 
  if actiontype == g_masterinterpreter_act_gotoattackspot then usestarget = 1 end 
+ if actiontype == g_masterinterpreter_act_gotocoverzone then usestarget = 1 end 
  if usestarget == 1 then
   TargetX, TargetY, TargetZ = masterinterpreter_gettargetxyz ( e, output_e )
  end
@@ -2079,7 +2115,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
    masterinterpreter_setnewtarget ( e, output_e, nearTargetX, nearTargetY, nearTargetZ, 0 )
   end
  end 
- 
+  
  -- Face Last Target
  if actiontype == g_masterinterpreter_act_facelasttarget then
   if output_e['lasttarget'] ~= "" then
@@ -2189,6 +2225,44 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   ShowTerrain()
  end
  
+ -- Go To Cover Zone
+ if actiontype == g_masterinterpreter_act_gotocoverzone then
+  if actionparam1value == nil then actionparam1value = 1000 end  
+  local closestdist = 9999999
+  local closestdisttotarget = GetPlayerDistance(e)
+  local havecovere = 0
+  local rangedetection = actionparam1value
+  if g_coverzone ~= nil then
+   for ee = 1, g_EntityElementMax, 1 do
+    if g_Entity[ee] ~= nil then
+     if GetEntityMarkerMode(ee) == 3 then
+	  if g_coverzone[ee] ~= nil then
+	   if g_coverzone[ee].status ~= nil then
+	    if g_coverzone[ee].status == "normal" then
+         local thisdistance = GetDistanceTo(e,g_Entity[ee]['x'],g_Entity[ee]['y'],g_Entity[ee]['z'])
+         if thisdistance > 100 and thisdistance < closestdist and thisdistance < rangedetection then 
+	      local thisdistancetotarget = GetPlayerDistance(ee)
+	      if thisdistancetotarget < closestdisttotarget then
+           closestdisttotarget = thisdistancetotarget
+	       closestdist = thisdistance 
+	       havecovere = ee
+		  end
+		 end
+		end
+	   end
+	  end
+	 end
+    end
+   end
+  end
+  if havecovere > 0 then
+   nearTargetX = g_Entity[havecovere]['x']
+   nearTargetY = g_Entity[havecovere]['y']
+   nearTargetZ = g_Entity[havecovere]['z']
+   masterinterpreter_setnewtarget ( e, output_e, nearTargetX, nearTargetY, nearTargetZ, 0 )   
+  end
+ end 
+  
 end
 
 function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )

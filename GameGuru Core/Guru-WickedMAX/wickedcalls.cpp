@@ -5790,12 +5790,14 @@ void WickedCall_RenderEditorFunctions( void )
 	{
 		try
 		{
-			//if (ObjectExist(g_selected_editor_objectID) == 1) returns true even if deleted!
-			int iObjNo = g_selected_editor_object->dwObjectNumber;
-			if (iObjNo > 0 && iObjNo <= 300000)
+			if (ObjectExist(g_selected_editor_objectID))
 			{
-				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
-				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+				int iObjNo = g_selected_editor_object->dwObjectNumber;
+				if (iObjNo > 0 && iObjNo <= 300000)
+				{
+					WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
+					WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+				}
 			}
 		}
 		catch(...)

@@ -33,7 +33,7 @@ std::vector<std::string> projectbank_list;
 std::vector<std::string> projectbank_image;
 std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
-StoryboardStruct StoryboardBackup;
+//StoryboardStruct StoryboardBackup; //PE: Not used.
 StoryboardStruct checkproject;
 StoryboardStruct202 updateproject202;
 std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;

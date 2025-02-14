@@ -78,7 +78,7 @@ extern StoryboardStruct checkproject;
 extern StoryboardStruct202 updateproject202;
 StoryboardStruct tempProjectData;
 //PE: StoryboardStruct is now so huge that you get a stackoverflow if added to a function, so moved here.
-StoryboardStruct templateStoryboard;
+//StoryboardStruct templateStoryboard; //PE: Not used.
 extern std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
 extern bool bScreen_Editor_Window;
 extern int iScreen_Editor_Node;
@@ -39295,10 +39295,10 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 			// In future, any screen default states should be saved into this file
 			const char* filepath = "editors\\templates\\ScreenEditor\\project.dat";
 			bool load__storyboard_into_struct(const char*, StoryboardStruct&);
-			if (load__storyboard_into_struct(filepath, templateStoryboard))
+			if (load__storyboard_into_struct(filepath, tempProjectData))
 			{
 				StoryboardNodesStruct& thisNode = Storyboard.Nodes[node];
-				StoryboardNodesStruct& source = templateStoryboard.Nodes[orgnode];
+				StoryboardNodesStruct& source = tempProjectData.Nodes[orgnode];
 				for (int j = 0; j < STORYBOARD_MAXWIDGETS; j++)
 				{
 					thisNode.widget_used[j] = source.widget_used[j];
@@ -39318,11 +39318,11 @@ int storyboard_add_missing_nodex(int node,float area_width, float node_width, fl
 					thisNode.widget_layer[j] = source.widget_layer[j];
 					thisNode.widget_initial_value[j] = source.widget_initial_value[j];
 					strcpy(thisNode.widget_name[j], source.widget_name[j]);
-					Storyboard.widget_colors[node][j] = templateStoryboard.widget_colors[orgnode][j];
-					strcpy(Storyboard.widget_readout[node][j], templateStoryboard.widget_readout[orgnode][j]);
-					Storyboard.widget_textoffset[node][j] = templateStoryboard.widget_textoffset[orgnode][j];
-					Storyboard.widget_ingamehidden[node][j] = templateStoryboard.widget_ingamehidden[orgnode][j];
-					Storyboard.widget_drawordergroup[node][j] = templateStoryboard.widget_drawordergroup[orgnode][j];
+					Storyboard.widget_colors[node][j] = tempProjectData.widget_colors[orgnode][j];
+					strcpy(Storyboard.widget_readout[node][j], tempProjectData.widget_readout[orgnode][j]);
+					Storyboard.widget_textoffset[node][j] = tempProjectData.widget_textoffset[orgnode][j];
+					Storyboard.widget_ingamehidden[node][j] = tempProjectData.widget_ingamehidden[orgnode][j];
+					Storyboard.widget_drawordergroup[node][j] = tempProjectData.widget_drawordergroup[orgnode][j];
 				}
 			}
 		}
@@ -43788,26 +43788,26 @@ void process_storeboard(bool bInitOnly)
 								}
 								if (projectfile)
 								{
-									StoryboardStruct* checkproject = nullptr;
+									StoryboardStruct* check_project = nullptr;
 									memset(&tempProjectData, 0, sizeof(StoryboardStruct));
 									fclose(projectfile);
 
 									//PE: Use this so we can upgrade from 202 to 203+
 									bool load__storyboard_into_struct(const char*, StoryboardStruct&);
 									load__storyboard_into_struct(project, tempProjectData);
-									checkproject = &tempProjectData;
+									check_project = &tempProjectData;
 
 
-									//size_t size = fread(checkproject, 1, sizeof(StoryboardStruct), projectfile);
+									//size_t size = fread(check_project, 1, sizeof(StoryboardStruct), projectfile);
 									char sig[12] = "Storyboard\0";
-									if (checkproject->sig[0] == 'S' && checkproject->sig[8] == 'r')
+									if (check_project->sig[0] == 'S' && check_project->sig[8] == 'r')
 									{
 										// go through and find all HUD Screens related to RPG
 										for (int i = 0; i < STORYBOARD_MAXNODES; i++)
 										{
-											if (checkproject->Nodes[i].used)
+											if (check_project->Nodes[i].used)
 											{
-												if (checkproject->Nodes[i].type == STORYBOARD_TYPE_HUD)
+												if (check_project->Nodes[i].type == STORYBOARD_TYPE_HUD)
 												{
 													//for (int hudi = 1; hudi <= 8; hudi++)
 													for (int hudi = 1; hudi <= 9; hudi++)
@@ -43820,7 +43820,7 @@ void process_storeboard(bool bInitOnly)
 																sprintf(pTitleLabel, "In-Game HUD");
 															else
 																sprintf(pTitleLabel, "HUD Screen %d", hudi);
-															if (pestrcasestr(checkproject->Nodes[i].title, pTitleLabel))
+															if (pestrcasestr(check_project->Nodes[i].title, pTitleLabel))
 															{
 																// find spare node
 																int newnodeid = 0;
@@ -43859,20 +43859,20 @@ void process_storeboard(bool bInitOnly)
 																	if (iFoundNodeID > 0)
 																	{
 																		// copy node from RPG Template project to current storyboard
-																		Storyboard.Nodes[newnodeid] = checkproject->Nodes[i];
+																		Storyboard.Nodes[newnodeid] = check_project->Nodes[i];
 																		Storyboard.Nodes[newnodeid].id = iFoundNodeID;
-																		Storyboard.NodeRadioButtonSelected[newnodeid] = checkproject->NodeRadioButtonSelected[i];
+																		Storyboard.NodeRadioButtonSelected[newnodeid] = check_project->NodeRadioButtonSelected[i];
 																		for (int iWidgetIndex = 0; iWidgetIndex < STORYBOARD_MAXWIDGETS; iWidgetIndex++)
 																		{
-																			Storyboard.NodeSliderValues[newnodeid][iWidgetIndex] = checkproject->NodeSliderValues[i][iWidgetIndex];
-																			Storyboard.widget_colors[newnodeid][iWidgetIndex] = checkproject->widget_colors[i][iWidgetIndex];
+																			Storyboard.NodeSliderValues[newnodeid][iWidgetIndex] = check_project->NodeSliderValues[i][iWidgetIndex];
+																			Storyboard.widget_colors[newnodeid][iWidgetIndex] = check_project->widget_colors[i][iWidgetIndex];
 																			for (int n = 0; n < 128; n++)
 																			{
-																				Storyboard.widget_readout[newnodeid][iWidgetIndex][n] = checkproject->widget_readout[i][iWidgetIndex][n];
+																				Storyboard.widget_readout[newnodeid][iWidgetIndex][n] = check_project->widget_readout[i][iWidgetIndex][n];
 																			}
-																			Storyboard.widget_textoffset[newnodeid][iWidgetIndex] = checkproject->widget_textoffset[i][iWidgetIndex];
-																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = checkproject->widget_ingamehidden[i][iWidgetIndex];
-																			Storyboard.widget_drawordergroup[newnodeid][iWidgetIndex] = checkproject->widget_drawordergroup[i][iWidgetIndex];
+																			Storyboard.widget_textoffset[newnodeid][iWidgetIndex] = check_project->widget_textoffset[i][iWidgetIndex];
+																			Storyboard.widget_ingamehidden[newnodeid][iWidgetIndex] = check_project->widget_ingamehidden[i][iWidgetIndex];
+																			Storyboard.widget_drawordergroup[newnodeid][iWidgetIndex] = check_project->widget_drawordergroup[i][iWidgetIndex];
 																		}
 
 																		//PE: unique ids are wrong in checkproject so assign new here.

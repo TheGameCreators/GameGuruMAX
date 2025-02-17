@@ -8617,6 +8617,52 @@ void Wicked_Update_LightColors(void* visual)
 	WickedCall_SetSunColors(visuals->SunRed_f / 255.0, visuals->SunGreen_f / 255.0, visuals->SunBlue_f / 255.0, visuals->SunIntensity_f, 1.0f, t.visuals.fSunShadowBias);
 }
 
+void Wicked_Update_Cloud(void* visual)
+{
+	visualstype* visuals = (visualstype*)visual;
+	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+	if (weather)
+	{
+		weather->cloudScale = visuals->SkyCloudHeight;
+		if (visuals->bDisableSkybox)
+		{
+			weather->cloudiness = 0.0f;
+			weather->cloudSpeed = 0.0f;
+			weather->volumetricCloudParameters.CoverageAmount = 0.0f;
+			weather->volumetricCloudParameters.CoverageMinimum = 0.0f;
+			weather->volumetricCloudParameters.WindSpeed = 0.0f;
+			weather->SetRealisticSky(false);
+			weather->SetVolumetricClouds(false);
+			//weather->SetSimpleSky(false);
+		}
+		else if (visuals->skyindex == 0)
+		{
+			weather->cloudiness = visuals->SkyCloudiness;
+			weather->cloudSpeed = visuals->SkyCloudSpeed;
+			weather->volumetricCloudParameters.CloudStartHeight = GGTerrain_UnitsToMeters(visuals->SkyCloudHeight);
+			weather->volumetricCloudParameters.CoverageAmount = visuals->SkyCloudiness;
+			weather->volumetricCloudParameters.CoverageMinimum = visuals->SkyCloudCoverage;
+			weather->volumetricCloudParameters.CloudThickness = GGTerrain_UnitsToMeters(visuals->SkyCloudThickness);
+			weather->volumetricCloudParameters.WindSpeed = visuals->SkyCloudSpeed;
+			weather->volumetricCloudParameters.CoverageWindSpeed = visuals->SkyCloudSpeed;
+			weather->SetRealisticSky(true);
+			weather->SetVolumetricClouds(true);
+		}
+		else
+		{
+			weather->cloudiness = 0.0f; //PE: This has changed in the new repo, same shader is now used and cloudiness turn it off, so must now be zero.
+			weather->cloudSpeed = 0.0f; //To stop moving lightshaft.
+			//PE: Also disable volumetricCloud.
+			weather->volumetricCloudParameters.CoverageAmount = 0.0f;
+			weather->volumetricCloudParameters.CoverageMinimum = 0.0f;
+			weather->volumetricCloudParameters.WindSpeed = 0.0f;
+			weather->SetRealisticSky(false);
+			weather->SetVolumetricClouds(false);
+		}
+
+	}
+}
+
 void Wicked_Update_Visuals(void *voidvisual)
 {
 	visualstype* visuals = (visualstype *) voidvisual;

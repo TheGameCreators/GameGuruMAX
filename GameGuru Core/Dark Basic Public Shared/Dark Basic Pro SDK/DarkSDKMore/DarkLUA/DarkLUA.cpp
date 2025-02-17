@@ -6804,6 +6804,75 @@ int SetShaderVariable ( lua_State *L )
 	return 0;
 }
 
+//PE: Control cloud shader
+void Wicked_Update_Cloud(void* visual);
+int GetCloudDensity(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.SkyCloudiness);
+	return 1;
+}
+int SetCloudDensity(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.SkyCloudiness = lua_tonumber(L, 1);
+	Wicked_Update_Cloud((void*) &t.gamevisuals);
+	return 0;
+}
+int GetCloudCoverage(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.SkyCloudCoverage);
+	return 1;
+}
+int SetCloudCoverage(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.SkyCloudCoverage = lua_tonumber(L, 1);
+	Wicked_Update_Cloud((void*)&t.gamevisuals);
+	return 0;
+}
+int GetCloudHeight(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.SkyCloudHeight);
+	return 1;
+}
+int SetCloudHeight(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.SkyCloudHeight = lua_tonumber(L, 1);
+	Wicked_Update_Cloud((void*)&t.gamevisuals);
+	return 0;
+}
+int GetCloudThickness(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.SkyCloudThickness);
+	return 1;
+}
+int SetCloudThickness(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.SkyCloudThickness = lua_tonumber(L, 1);
+	Wicked_Update_Cloud((void*)&t.gamevisuals);
+	return 0;
+}
+int GetCloudSpeed(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.SkyCloudSpeed);
+	return 1;
+}
+int SetCloudSpeed(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.SkyCloudSpeed = lua_tonumber(L, 1);
+	Wicked_Update_Cloud((void*)&t.gamevisuals);
+	return 0;
+}
+
+
 //Control Water Shader
 //setter
 int SetWaterHeight(lua_State *L) 
@@ -13055,6 +13124,19 @@ void addFunctions()
 	// utility
 	lua_register(lua, "MsgBox" , MsgBox );
 	lua_register(lua, "IsTestGame", GetIsTestgame);
+
+	//Cloud Shader
+	lua_register(lua, "GetCloudDensity", GetCloudDensity);
+	lua_register(lua, "GetCloudCoverage", GetCloudCoverage);
+	lua_register(lua, "GetCloudHeight", GetCloudHeight);
+	lua_register(lua, "GetCloudThickness", GetCloudThickness);
+	lua_register(lua, "GetCloudSpeed", GetCloudSpeed);
+	lua_register(lua, "SetCloudDensity", SetCloudDensity);
+	lua_register(lua, "SetCloudCoverage", SetCloudCoverage);
+	lua_register(lua, "SetCloudHeight", SetCloudHeight);
+	lua_register(lua, "SetCloudThickness", SetCloudThickness);
+	lua_register(lua, "SetCloudSpeed", SetCloudSpeed);
+
 
 	//Water Shader
 	//setter

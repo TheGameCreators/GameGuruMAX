@@ -19,7 +19,7 @@ struct PixelIn
 	float3 normal : TEXCOORD1;
 	uint RenderTargetIndex : SV_RenderTargetArrayIndex;
 	float2 uv : TEXCOORD2;
-	uint data : TEXCORRD4;
+    uint data : TEXCOORD4;
 	float3 origPos : TEXCOORD3;
 	bool isFront : SV_IsFrontFace;
 };

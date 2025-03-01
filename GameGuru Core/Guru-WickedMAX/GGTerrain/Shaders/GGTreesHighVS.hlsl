@@ -24,7 +24,7 @@ struct VertexOut
 	float3 normal : TEXCOORD1;
 	float  clip : SV_ClipDistance0;
 	float2 uv : TEXCOORD2;
-	uint data : TEXCORRD4;
+    uint data : TEXCOORD4; //PE: wrong spelling TEXCORRD4 made a DX11 debug layer error.
 	float3 origPos : TEXCOORD3;
 };
 

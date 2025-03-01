@@ -24,7 +24,7 @@ struct VertexOut
 	float3 normal : TEXCOORD1;
 	float  clip : SV_ClipDistance0;
 	float2 uv : TEXCOORD2;
-	uint data : TEXCORRD4;
+    uint data : TEXCOORD4;
 	float3 origPos : TEXCOORD3;
 };
 

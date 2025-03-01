@@ -2123,6 +2123,10 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\ammohealth");
 	//addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\sliders");
 	addfoldertocollection("languagebank\\neutral\\gamecore\\huds\\panels");
+
+	addfoldertocollection("gamecore\\decals\\blood"); //PE: New particle effects.
+	addfoldertocollection("gamecore\\decals\\explosion"); //PE: New particle effects.
+
 	addfoldertocollection("gamecore\\decals\\splat");
 	addfoldertocollection("gamecore\\decals\\bloodsplat");
 	addfoldertocollection("gamecore\\decals\\impact");
@@ -4108,6 +4112,13 @@ void addfoldertocollection ( char* path_s )
 	int c = 0;
 	told_s = GetDir();
 
+	//PE: Some docwrite folders have additional files that need to go into standalone.
+	bool bAddAdditionalFilesFromDocWrite = false;
+	if (pestrcasestr(path_s, "gamecore\\decals"))
+		bAddAdditionalFilesFromDocWrite = true;
+	if (pestrcasestr(path_s, "gamecore\\hands\\Animations"))
+		bAddAdditionalFilesFromDocWrite = true;
+
 	//PE: In wicked also check if folder is inside docwrite.
 	if (!PathExist(usePath.Get()))
 	{
@@ -4160,6 +4171,35 @@ void addfoldertocollection ( char* path_s )
 		char pDebugPath[10240];
 		sprintf(pDebugPath, "Tried adding path '%s' that does not exist here: %s", path_s, usePath.Get());
 		timestampactivity(0, pDebugPath);
+	}
+
+	//PE: Add additional files from docwrite folder.
+	if(bAddAdditionalFilesFromDocWrite)
+	{
+		if (g_bNormalOperations == true)
+		{
+			extern char szWriteDir[MAX_PATH];
+			cstr testPath = cstr(szWriteDir) + "Files\\" + path_s;// usePath;
+			if (PathExist(testPath.Get()))
+			{
+				usePath = testPath;
+				SetDir(usePath.Get());
+				ChecklistForFiles();
+				for (c = 1; c <= ChecklistQuantity(); c++)
+				{
+					if (ChecklistValueA(c) == 0)
+					{
+						tfile_s = ChecklistString(c);
+						if (tfile_s != "." && tfile_s != "..")
+						{
+							//PE: Still adding using the relative path path_s
+							addtocollection(cstr(cstr(path_s) + "\\" + tfile_s).Get());
+						}
+					}
+				}
+				SetDir(told_s.Get());
+			}
+		}
 	}
 }
 

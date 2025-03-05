@@ -18,6 +18,20 @@ using namespace GPUParticles;
 #include "GGTerrain\GGTerrain.h"
 using namespace GGTerrain;
 
+#include "..\..\..\..\Guru-WickedMAX\wickedcalls.h"
+#include "WickedEngine.h"
+using namespace std;
+using namespace wiGraphics;
+using namespace wiScene;
+using namespace wiECS;
+
+#ifdef WICKEDPARTICLESYSTEM
+#define MAXREADYDECALS 7
+#define MAXUNIQUEDECALS 25
+uint32_t ready_decals[MAXUNIQUEDECALS][MAXREADYDECALS] = { 0 };
+uint32_t decal_count[MAXUNIQUEDECALS] = { 0 };
+#endif
+
 // Globals for blacklist string array
 LPSTR* g_pBlackList = NULL;
 int g_iBlackListMax = 0;
@@ -9265,12 +9279,112 @@ void entity_redo ( void )
 std::vector<int> delete_decal_particles;
 void delete_notused_decal_particles( void )
 {
+#ifdef WICKEDPARTICLESYSTEM
+	//PE: Cleanup all decals.
+	for (int a = 0; a < MAXUNIQUEDECALS; a++)
+	{
+		for (int i = 0; i < MAXREADYDECALS; i++)
+		{
+			if (ready_decals[a][i] > 0)
+			{
+				void DeleteEmitterEffects(uint32_t root);
+				DeleteEmitterEffects(ready_decals[a][i]);
+				ready_decals[a][i] = 0;
+				decal_count[a] = 0;
+			}
+		}
+	}
+	for (int i = 1; i <= g.decalelementmax; i++)
+	{
+		if (t.decalelement[i].active == 1)
+		{
+			int did = t.decalelement[i].decalid;
+
+			if (did >= t.decal.size())
+				continue;
+
+			if (t.decal[did].newparticle.bWPE)
+			{
+				if (t.decalelement[i].newparticle.emitterid > 0)
+				{
+					int iParticleEffect = t.decalelement[i].newparticle.emitterid;
+					delete_decal_particles.erase(std::remove(delete_decal_particles.begin(), delete_decal_particles.end(), iParticleEffect), delete_decal_particles.end());
+					void DeleteEmitterEffects(uint32_t root);
+					DeleteEmitterEffects(iParticleEffect);
+					t.decalelement[i].newparticle.emitterid = -1;
+				}
+			}
+		}
+	}
+#endif
 	for (int i = 0; i < delete_decal_particles.size(); i++)
 	{
 		gpup_deleteEffect(delete_decal_particles[i]);
 	}
 }
-void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation,bool bAutoDelete)
+
+#ifdef WICKEDPARTICLESYSTEM
+uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2, char* filename, bool attached, char* changename, char* changenameto);
+void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
+{
+	//PE: Preload effects so there is no delays.
+	int iParticleEmitter = pParticle->emitterid;
+	if (iParticleEmitter == -1)
+	{
+		if (pParticle->bWPE)
+		{
+			Scene& scene = wiScene::GetScene();
+			for (int i = 0; i < MAXREADYDECALS; i++)
+			{
+				if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][i] == 0)
+				{
+					uint32_t root = 0;
+					uint32_t count_before = scene.emitters.GetCount();
+
+					char path[MAX_PATH];
+					strcpy(path, pParticle->emittername.Get());
+					GG_GetRealPath(path, 0);
+
+					WickedCall_LoadWiScene(path, false, NULL, NULL);
+					uint32_t count_after = scene.emitters.GetCount();
+					if (count_before != count_after)
+					{
+						Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
+						if (scene.emitters.GetCount() > 0)
+						{
+							HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+							if (hier)
+							{
+								root = hier->parentID;
+							}
+						}
+						wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+						if (ec)
+						{
+							//ec->Restart();
+							ec->SetVisible(true);
+						}
+					}
+					if (root != 0)
+					{
+						if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][i] == 0)
+						{
+							iParticleEmitter = pParticle->emitterid = root;
+							ready_decals[decal_id][i] = root;
+						}
+						else
+						{
+							iParticleEmitter = pParticle->emitterid = root;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+#endif
+
+void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation,bool bAutoDelete,int decal_id)
 {
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
@@ -9283,6 +9397,71 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 	int iParticleEmitter = pParticle->emitterid;
 	if (iParticleEmitter == -1)
 	{
+#ifdef WICKEDPARTICLESYSTEM
+		if (pParticle->bWPE)
+		{
+			Scene& scene = wiScene::GetScene();
+			if (bShowThisParticle == true)
+			{
+				//PE: Use Cached effects.
+				if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][decal_count[decal_id]] > 0)
+				{
+					iParticleEmitter = pParticle->emitterid = ready_decals[decal_id][decal_count[decal_id]];
+					decal_count[decal_id]++;
+					if (decal_count[decal_id] >= MAXREADYDECALS)
+						decal_count[decal_id] = 0;
+				}
+				else
+				{
+					uint32_t root = 0;
+					uint32_t count_before = scene.emitters.GetCount();
+
+					char path[MAX_PATH];
+					strcpy(path, pParticle->emittername.Get());
+					GG_GetRealPath(path, 0);
+
+					WickedCall_LoadWiScene(path, false, NULL, NULL);
+					uint32_t count_after = scene.emitters.GetCount();
+					if (count_before != count_after)
+					{
+						Entity emitter = scene.emitters.GetEntity(scene.emitters.GetCount() - 1);
+						if (scene.emitters.GetCount() > 0)
+						{
+							HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+							if (hier)
+							{
+								root = hier->parentID;
+							}
+						}
+						wiEmittedParticle* ec = scene.emitters.GetComponent(emitter);
+						if (ec)
+						{
+							ec->Restart();
+							ec->SetVisible(true);
+						}
+					}
+					if (root != 0)
+					{
+						if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][decal_count[decal_id]] == 0)
+						{
+							iParticleEmitter = pParticle->emitterid = root;
+							ready_decals[decal_id][decal_count[decal_id]] = root;
+						}
+						else
+						{
+							iParticleEmitter = pParticle->emitterid = root;
+							if (bAutoDelete)
+								delete_decal_particles.push_back(iParticleEmitter);
+						}
+						decal_count[decal_id]++;
+						if (decal_count[decal_id] >= MAXREADYDECALS)
+							decal_count[decal_id] = 0;
+					}
+				}
+			}
+		}
+		else
+#endif
 		if (bShowThisParticle == true)
 		{
 			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
@@ -9294,153 +9473,179 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 	}
 	if (iParticleEmitter != -1)
 	{
-		// set emitter position, rotation and scale
-		gpup_setGlobalPosition(iParticleEmitter, fX, fY, fZ);
-		if (pParticle->bParticle_Offset_Used == true)
+#ifdef WICKEDPARTICLESYSTEM
+		if (pParticle->bWPE)
 		{
-			float x = pParticle->bParticle_Offset_X;
-			float y = pParticle->bParticle_Offset_Y;
-			float z = pParticle->bParticle_Offset_Z;
-			gpup_setLocalPosition(iParticleEmitter, x, y, z);
-		}
-		else
-		{
-			gpup_resetLocalPosition(iParticleEmitter);
-		}
-		float fSpeedX, fSpeedY, fSpeedZ;
-		gpup_getEmitterSpeedAngleAdjustment(iParticleEmitter, &fSpeedX, &fSpeedY, &fSpeedZ);
-		GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
-		if (pParticle->bParticle_LocalRot_Used == true)
-		{
-			// local emitter rotation
-			float x = GGToRadian(pParticle->bParticle_LocalRot_X);
-			float y = GGToRadian(pParticle->bParticle_LocalRot_Y);
-			float z = GGToRadian(pParticle->bParticle_LocalRot_Z);
-			GGMATRIX matLocalRot;
-			GGMatrixRotationYawPitchRoll(&matLocalRot, y, x, z);
-			GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &matLocalRot);
-			if (pmatBaseRotation)
+			Scene& scene = wiScene::GetScene();
+			TransformComponent* root_tranform = scene.transforms.GetComponent(iParticleEmitter);
+			if (bShowThisParticle)
 			{
-				// global rotation
-				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, pmatBaseRotation);
-			}
-			gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
-		}
-		gpup_setGlobalRotation(iParticleEmitter, fRX, fRY, fRZ);
-		gpup_setGlobalScale(iParticleEmitter, 100.0f + fScale);
-
-		// set whether burst mode loops
-		if (pParticle->bParticle_Looping_Animation == true)
-			gpup_emitterBurstMode(iParticleEmitter, 0);
-		else
-			gpup_emitterBurstMode(iParticleEmitter, 1);
-
-		// switch emitter on or off
-		if (bShowThisParticle == true)
-			gpup_emitterActive(iParticleEmitter, 1);
-		else
-			gpup_emitterActive(iParticleEmitter, 0);
-
-		// specify psrticle speed
-		if (pParticle->bParticle_SpeedChange == true)
-		{
-			if (pParticle->fParticle_Speed_Original == -123.0f) pParticle->fParticle_Speed_Original = gpup_getParticleSpeed(iParticleEmitter);
-			gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed);
-		}
-		else
-		{
-			if (pParticle->fParticle_Speed_Original != -123.0f)
-			{
-				gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed_Original);
+				if (pParticle->bParticle_Fire == true)
+				{
+					if (root_tranform)
+					{
+						root_tranform->ClearTransform();
+						root_tranform->Translate(XMFLOAT3(fX, fY, fZ));
+						root_tranform->UpdateTransform();
+					}
+					WickedCall_PerformEmitterAction(3, iParticleEmitter); //PE: Resume
+					WickedCall_PerformEmitterAction(4, iParticleEmitter); //PE: Restart
+					WickedCall_PerformEmitterAction(1, iParticleEmitter); //PE: Burst All
+					pParticle->bParticle_Fire = false;
+				}
 			}
 		}
-
-		// specify psrticle opacity
-		if (pParticle->bParticle_OpacityChange == true)
-		{
-			if (pParticle->fParticle_Opacity_Original == -123.0f) pParticle->fParticle_Opacity_Original = gpup_getParticleOpacity(iParticleEmitter);
-			gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity);
-		}
 		else
+#endif
 		{
-			if (pParticle->fParticle_Opacity_Original != -123.0f)
+			// set emitter position, rotation and scale
+			gpup_setGlobalPosition(iParticleEmitter, fX, fY, fZ);
+			if (pParticle->bParticle_Offset_Used == true)
 			{
-				gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity_Original);
+				float x = pParticle->bParticle_Offset_X;
+				float y = pParticle->bParticle_Offset_Y;
+				float z = pParticle->bParticle_Offset_Z;
+				gpup_setLocalPosition(iParticleEmitter, x, y, z);
 			}
-		}
-
-		// specify particle size
-		if (pParticle->bParticle_SizeChange == true)
-		{
-			if (pParticle->bParticle_Size_Original == -123.0f) pParticle->bParticle_Size_Original = gpup_getParticleSize(iParticleEmitter);
-			gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size);
-		}
-		else
-		{
-			if (pParticle->bParticle_Size_Original != -123.0f)
+			else
 			{
-				gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size_Original);
+				gpup_resetLocalPosition(iParticleEmitter);
 			}
-		}
-
-		// handle any triggering of a fire burst
-		if (pParticle->bParticle_Fire == true)
-		{
-			gpup_emitterFire(iParticleEmitter);
-			pParticle->bParticle_Fire = false;
-		}
-
-		// handle particle collisions with floor and sphere (for reflection bounce)
-		if (pParticle->fParticle_BouncinessChange == true)
-		{
-			if (pParticle->fParticle_Bounciness_Original == -123.0f) pParticle->fParticle_Bounciness_Original = gpup_getBounciness(iParticleEmitter) * 5.0f;
-			gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness / 5.0f);
-		}
-		else
-		{
-			if (pParticle->fParticle_Bounciness_Original != -123.0f)
+			float fSpeedX, fSpeedY, fSpeedZ;
+			gpup_getEmitterSpeedAngleAdjustment(iParticleEmitter, &fSpeedX, &fSpeedY, &fSpeedZ);
+			GGVECTOR3 vecSpeedDirection = GGVECTOR3(fSpeedX - 0.5f, fSpeedY - 0.5f, fSpeedZ - 0.5f);
+			if (pParticle->bParticle_LocalRot_Used == true)
 			{
-				gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness_Original / 5.0f);
+				// local emitter rotation
+				float x = GGToRadian(pParticle->bParticle_LocalRot_X);
+				float y = GGToRadian(pParticle->bParticle_LocalRot_Y);
+				float z = GGToRadian(pParticle->bParticle_LocalRot_Z);
+				GGMATRIX matLocalRot;
+				GGMatrixRotationYawPitchRoll(&matLocalRot, y, x, z);
+				GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, &matLocalRot);
+				if (pmatBaseRotation)
+				{
+					// global rotation
+					GGVec3TransformCoord(&vecSpeedDirection, &vecSpeedDirection, pmatBaseRotation);
+				}
+				gpup_setEmitterSpeedAngleAdjustment(iParticleEmitter, 0.5f + vecSpeedDirection.x, 0.5f + vecSpeedDirection.y, 0.5f + vecSpeedDirection.z);
 			}
-		}
-		if (pParticle->iParticle_Floor_Active > 0)
-		{
-			if (pParticle->fParticle_Floor_Height_Original == -123.0f) pParticle->fParticle_Floor_Height_Original = gpup_getFloorReflectionHeight(iParticleEmitter);
-			gpup_floorReflection(iParticleEmitter, pParticle->iParticle_Floor_Active - 1, pParticle->fParticle_Floor_Height);
-		}
-		else
-		{
-			if (pParticle->fParticle_Floor_Height_Original != -123.0f)
-			{
-				gpup_restoreFloorReflection(iParticleEmitter, 1, pParticle->fParticle_Floor_Height_Original);
-			}
-		}
+			gpup_setGlobalRotation(iParticleEmitter, fRX, fRY, fRZ);
+			gpup_setGlobalScale(iParticleEmitter, 100.0f + fScale);
 
-		// handle color if particle effect
-		if (pParticle->bParticle_ColorChange == true)
-		{
-			if (pParticle->fParticle_R_Original == -123.0f) gpup_getEffectColor(iParticleEmitter, &pParticle->fParticle_R_Original, &pParticle->fParticle_G_Original, &pParticle->fParticle_B_Original);
-			gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R, pParticle->fParticle_G, pParticle->fParticle_B);
-		}
-		else
-		{
-			if (pParticle->fParticle_R_Original != -123.0f)
-			{
-				gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R_Original, pParticle->fParticle_G_Original, pParticle->fParticle_B_Original);
-			}
-		}
+			// set whether burst mode loops
+			if (pParticle->bParticle_Looping_Animation == true)
+				gpup_emitterBurstMode(iParticleEmitter, 0);
+			else
+				gpup_emitterBurstMode(iParticleEmitter, 1);
 
-		// handle change of lifespan
-		if (pParticle->bParticle_LifespanChange == true)
-		{
-			if (pParticle->fParticle_Lifespan_Original == -123.0f) pParticle->fParticle_Lifespan_Original = gpup_getEffectLifespan(iParticleEmitter);
-			gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan);
-		}
-		else
-		{
-			if (pParticle->fParticle_Lifespan_Original != -123.0f)
+			// switch emitter on or off
+			if (bShowThisParticle == true)
+				gpup_emitterActive(iParticleEmitter, 1);
+			else
+				gpup_emitterActive(iParticleEmitter, 0);
+
+			// specify psrticle speed
+			if (pParticle->bParticle_SpeedChange == true)
 			{
-				gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan_Original);
+				if (pParticle->fParticle_Speed_Original == -123.0f) pParticle->fParticle_Speed_Original = gpup_getParticleSpeed(iParticleEmitter);
+				gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed);
+			}
+			else
+			{
+				if (pParticle->fParticle_Speed_Original != -123.0f)
+				{
+					gpup_setEffectAnimationSpeed(iParticleEmitter, pParticle->fParticle_Speed_Original);
+				}
+			}
+
+			// specify psrticle opacity
+			if (pParticle->bParticle_OpacityChange == true)
+			{
+				if (pParticle->fParticle_Opacity_Original == -123.0f) pParticle->fParticle_Opacity_Original = gpup_getParticleOpacity(iParticleEmitter);
+				gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity);
+			}
+			else
+			{
+				if (pParticle->fParticle_Opacity_Original != -123.0f)
+				{
+					gpup_setEffectOpacity(iParticleEmitter, pParticle->fParticle_Opacity_Original);
+				}
+			}
+
+			// specify particle size
+			if (pParticle->bParticle_SizeChange == true)
+			{
+				if (pParticle->bParticle_Size_Original == -123.0f) pParticle->bParticle_Size_Original = gpup_getParticleSize(iParticleEmitter);
+				gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size);
+			}
+			else
+			{
+				if (pParticle->bParticle_Size_Original != -123.0f)
+				{
+					gpup_setParticleScale(iParticleEmitter, pParticle->bParticle_Size_Original);
+				}
+			}
+
+			// handle any triggering of a fire burst
+			if (pParticle->bParticle_Fire == true)
+			{
+				gpup_emitterFire(iParticleEmitter);
+				pParticle->bParticle_Fire = false;
+			}
+
+			// handle particle collisions with floor and sphere (for reflection bounce)
+			if (pParticle->fParticle_BouncinessChange == true)
+			{
+				if (pParticle->fParticle_Bounciness_Original == -123.0f) pParticle->fParticle_Bounciness_Original = gpup_getBounciness(iParticleEmitter) * 5.0f;
+				gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness / 5.0f);
+			}
+			else
+			{
+				if (pParticle->fParticle_Bounciness_Original != -123.0f)
+				{
+					gpup_setBounciness(iParticleEmitter, pParticle->fParticle_Bounciness_Original / 5.0f);
+				}
+			}
+			if (pParticle->iParticle_Floor_Active > 0)
+			{
+				if (pParticle->fParticle_Floor_Height_Original == -123.0f) pParticle->fParticle_Floor_Height_Original = gpup_getFloorReflectionHeight(iParticleEmitter);
+				gpup_floorReflection(iParticleEmitter, pParticle->iParticle_Floor_Active - 1, pParticle->fParticle_Floor_Height);
+			}
+			else
+			{
+				if (pParticle->fParticle_Floor_Height_Original != -123.0f)
+				{
+					gpup_restoreFloorReflection(iParticleEmitter, 1, pParticle->fParticle_Floor_Height_Original);
+				}
+			}
+
+			// handle color if particle effect
+			if (pParticle->bParticle_ColorChange == true)
+			{
+				if (pParticle->fParticle_R_Original == -123.0f) gpup_getEffectColor(iParticleEmitter, &pParticle->fParticle_R_Original, &pParticle->fParticle_G_Original, &pParticle->fParticle_B_Original);
+				gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R, pParticle->fParticle_G, pParticle->fParticle_B);
+			}
+			else
+			{
+				if (pParticle->fParticle_R_Original != -123.0f)
+				{
+					gpup_setEffectColor(iParticleEmitter, pParticle->fParticle_R_Original, pParticle->fParticle_G_Original, pParticle->fParticle_B_Original);
+				}
+			}
+
+			// handle change of lifespan
+			if (pParticle->bParticle_LifespanChange == true)
+			{
+				if (pParticle->fParticle_Lifespan_Original == -123.0f) pParticle->fParticle_Lifespan_Original = gpup_getEffectLifespan(iParticleEmitter);
+				gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan);
+			}
+			else
+			{
+				if (pParticle->fParticle_Lifespan_Original != -123.0f)
+				{
+					gpup_setEffectLifespan(iParticleEmitter, pParticle->fParticle_Lifespan_Original);
+				}
 			}
 		}
 	}
@@ -9460,7 +9665,7 @@ void entity_updateparticleemitterbyID ( entityeleproftype* pEleprof, int iObj, f
 	if (pObject) pmatBaseRotation = &pObject->position.matRotation;
 
 	// control particle settings via ptr
-	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation,false);
+	newparticle_updateparticleemitter(&pEleprof->newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation,false, -1);
 }
 
 void entity_updateparticleemitter ( int e )

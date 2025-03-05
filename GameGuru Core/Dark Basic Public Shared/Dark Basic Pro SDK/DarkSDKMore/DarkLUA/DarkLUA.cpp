@@ -9833,6 +9833,31 @@ int EffectSetLifespan(lua_State* L)
 
 #ifdef WICKEDPARTICLESYSTEM
 std::vector<uint32_t> vWickedEmitterEffects;
+void DeleteEmitterEffects(uint32_t root)
+{
+	Scene& scene = wiScene::GetScene();
+
+	std::vector<uint32_t> vEntityDelete;
+	for (int a = 0; a < scene.emitters.GetCount(); a++)
+	{
+		Entity emitter = scene.emitters.GetEntity(a);
+		HierarchyComponent* hier = scene.hierarchy.GetComponent(emitter);
+		if (hier)
+		{
+			if (hier->parentID == root)
+			{
+				vEntityDelete.push_back(emitter);
+			}
+		}
+	}
+	vEntityDelete.push_back(root);
+
+	for (int i = 0; i < vEntityDelete.size(); i++)
+	{
+		scene.Entity_Remove(vEntityDelete[i]);
+	}
+	vEntityDelete.clear();
+}
 void CleanUpEmitterEffects(void)
 {
 	Scene& scene = wiScene::GetScene();

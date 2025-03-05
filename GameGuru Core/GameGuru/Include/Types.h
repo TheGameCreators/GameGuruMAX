@@ -3981,6 +3981,7 @@ struct visualstype
 	float wind_speed;
 	float wind_randomness;
 	bool bpp_disable_indoor;
+	float tree_wind;
 	float fLevelDifficulty;
 	cStr sFactionName[128];
 
@@ -4246,6 +4247,7 @@ struct visualstype
 		 wind_direction_z = 1.0f;
 		 wind_speed =  1.0f;
 		 wind_randomness = 1.0f;
+		 tree_wind = 0.0f;
 		 bpp_disable_indoor = true;
 
 		 fLevelDifficulty = 50.0;
@@ -5094,7 +5096,7 @@ struct decalglobaltype
 	int dustflumeid;
 	int impactid;
 	int bloodsplatid;
-
+	int newexplosion;
 	// Constructor
 	decalglobaltype ( )
 	{
@@ -5107,6 +5109,7 @@ struct decalglobaltype
 		 splashdecallargeid = 0;
 		 splashdecalsmallid = 0;
 		 splashdecalrippleid = 0;
+		 newexplosion = 0;
 	}
 	// End of Constructor
 
@@ -5565,7 +5568,7 @@ struct newparticletype
 	bool bParticle_LifespanChange;
 	float fParticle_Lifespan_Original;
 	float fParticle_Lifespan;
-
+	bool bWPE;
 	// Constructor
 	newparticletype ( )
 	{
@@ -5612,6 +5615,7 @@ struct newparticletype
 		fParticle_G_Original = -123.0f;
 		fParticle_B_Original = -123.0f;
 		fParticle_Lifespan_Original = -123.0f;
+		bWPE = false;
 	}
 };
 

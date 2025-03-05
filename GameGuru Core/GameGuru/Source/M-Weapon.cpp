@@ -1683,7 +1683,23 @@ void weapon_projectileresult_make ( void )
 				float fSize = (float)t.tProjectileResultSize / 100.0f;
 				float fSmokeSize = (float)t.tProjectileResultSmokeSize / 100.0f;
 				float fSparksSize = (float)t.tProjectileResultSparksSize / 100.0f;
-				explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, fSize, fSmokeSize, fSparksSize, (int)t.tXPos_f, (int)t.tYPos_f, (int)t.tZPos_f);
+#ifdef WICKEDPARTICLESYSTEM
+				if (t.decalglobal.newexplosion > 0 && t.decal[t.decalglobal.newexplosion].newparticle.bWPE)
+				{
+					int olddecalrange = g.decalrange;
+					g.decalrange = 10000;
+					g.decalx = t.tXPos_f;
+					g.decaly = t.tYPos_f;
+					g.decalz = t.tZPos_f;
+					t.decalid = t.decalglobal.newexplosion; t.decalorient = 0;
+					decalelement_create();
+					g.decalrange = olddecalrange;
+				}
+				else
+#endif
+				{
+					explosion_custom(t.tProjectileResultExplosionImageID, iLightFlag, iSmokeImageID, iSparksCount, fSize, fSmokeSize, fSparksSize, (int)t.tXPos_f, (int)t.tYPos_f, (int)t.tZPos_f);
+				}
 			}
 			else
 			{

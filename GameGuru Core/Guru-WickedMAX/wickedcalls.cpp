@@ -937,10 +937,6 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 						{
 							animationcomponent.objectIndex = iVisibleIndex;
 						}
-						else
-						{
-							printf("tmp");
-						}
 					}
 				}
 			}
@@ -6872,12 +6868,12 @@ void WickedCall_CreateDecal(sObject* pObject)
 */
 
 #ifdef WICKEDPARTICLESYSTEM
-uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
+uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attached, char* changename, char* changenameto)
 {
 	Entity root = 0;
 
 	XMMATRIX& transformMatrix = XMMatrixIdentity();
-	Scene scene2;
+	
 	wiArchive archive(filename, true);
 	if (archive.IsOpen())
 	{
@@ -7014,6 +7010,13 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 			}
 		}
 	}
+	
+	return root;
+}
+uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
+{
+	Scene scene2;
+	Entity root = WickedCall_LoadWiSceneDirect(scene2, filename, attached, changename, changenameto);
 	GetScene().Merge(scene2);
 	return root;
 }

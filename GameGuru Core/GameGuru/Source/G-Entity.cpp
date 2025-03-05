@@ -3933,9 +3933,22 @@ void entity_triggerdecalatimpact ( float fX, float fY, float fZ )
 		{
 			if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
 			{
-				for ( t.iter = 1 ; t.iter <= 3+Rnd(1); t.iter++ )
+#ifdef WICKEDPARTICLESYSTEM
+				t.decalid = t.decalglobal.bloodsplatid; t.decalorient = 0;
+				if (t.decal[t.decalid].newparticle.bWPE)
 				{
-					decal_triggerbloodsplat ();
+					t.originatore = -1;
+					t.decalscalemodx = 40 + Rnd(20); t.decalscalemody = 40 + Rnd(20);
+					t.decalforward = 0;
+					decalelement_create();
+				}
+				else
+#endif
+				{
+					for (t.iter = 1; t.iter <= 3 + Rnd(1); t.iter++)
+					{
+						decal_triggerbloodsplat();
+					}
 				}
 			}
 		}

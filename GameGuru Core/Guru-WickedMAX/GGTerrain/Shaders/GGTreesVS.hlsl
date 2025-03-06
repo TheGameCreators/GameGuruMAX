@@ -1,11 +1,14 @@
 
+/*
 cbuffer CameraCB : register( b1 )
 {
 	float4x4	g_xCamera_VP;			// View*Projection
 	float4		g_xCamera_ClipPlane;
 	float3		g_xCamera_CamPos;
 };
+*/
 
+#include "PBR/globals.hlsli"
 #include "GGTreesConstants.hlsli"
 
 struct VertexIn

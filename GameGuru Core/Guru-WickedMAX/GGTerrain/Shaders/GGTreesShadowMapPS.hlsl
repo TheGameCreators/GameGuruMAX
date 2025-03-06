@@ -4,6 +4,7 @@ Texture2D<float> texNoise : register( t51 );
 SamplerState samplerBilinearWrap : register( s0 );
 SamplerState samplerTrilinearClamp : register( s1 );
 
+#include "PBR/ShaderInterop_Renderer.h"
 #include "GGTreesConstants.hlsli"
 
 struct PixelIn

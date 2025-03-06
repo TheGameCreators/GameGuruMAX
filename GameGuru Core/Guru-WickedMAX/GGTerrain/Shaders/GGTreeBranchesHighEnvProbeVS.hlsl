@@ -26,9 +26,9 @@ VertexOut main( VertexIn IN )
 {
     VertexOut OUT;
 
-	uint treeType = GetTreeType( IN.data );
-	uint index = GetTreeVariation( IN.data );
-	uint cubeFaceID = IN.data & 0xFF;
+	//uint treeType = GetTreeType( IN.data );
+	const uint index = GetTreeVariation( IN.data );
+	const uint cubeFaceID = IN.data & 0xFF;
 
 	OUT.data = IN.data;
 
@@ -41,6 +41,9 @@ VertexOut main( VertexIn IN )
 	 
 	pos.xyz *= GetTreeScale( IN.data );
 	pos.xyz += IN.offset;
+
+    pos.x += TreeWaveX(IN.position.y, IN.offset.x + IN.offset.z);
+    pos.z += TreeWaveZ(IN.position.y, IN.offset.z);
 
 	float3 normal = IN.normal.xyz * 2 - 1;
 

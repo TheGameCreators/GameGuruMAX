@@ -1,10 +1,12 @@
-
+/*
 cbuffer CameraCB : register( b1 )
 {
 	float4x4	g_xCamera_VP;			// View*Projection
 	float4		g_xCamera_ClipPlane;
 };
+*/
 
+#include "PBR/globals.hlsli"
 #include "GGTreesConstants.hlsli"
 
 struct VertexIn
@@ -32,8 +34,8 @@ VertexOut main( VertexIn IN )
 {
     VertexOut OUT;
 
-	uint treeType = GetTreeType( IN.data );
-	uint index = GetTreeVariation( IN.data );
+	//uint treeType = GetTreeType( IN.data );
+	const uint index = GetTreeVariation( IN.data );
 
 	OUT.data = IN.data;
 
@@ -47,6 +49,9 @@ VertexOut main( VertexIn IN )
 	pos.xyz *= GetTreeScale( IN.data );
 	pos.xyz += IN.offset;
 
+    pos.x += TreeWaveX(IN.position.y, IN.offset.x + IN.offset.z);
+    pos.z += TreeWaveZ(IN.position.y, IN.offset.z);
+	
 	float3 normal = IN.normal.xyz * 2 - 1;
 
 	OUT.worldPos = pos.xyz;

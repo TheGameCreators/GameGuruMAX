@@ -6779,6 +6779,15 @@ void WickedCall_UpdateWaterColor(float red, float green, float blue)
 }
 
 
+void WickedCall_UpdateTreeWind(float wind)
+{
+	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+	if (weather)
+	{
+		weather->tree_wind = wind;
+	}
+}
+
 void WickedCall_UpdateWaterHeight(float height)
 {
 	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);

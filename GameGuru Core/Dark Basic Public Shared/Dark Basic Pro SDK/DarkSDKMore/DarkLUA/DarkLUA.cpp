@@ -6872,6 +6872,22 @@ int SetCloudSpeed(lua_State* L)
 	return 0;
 }
 
+//PE: Other Shaders
+int SetTreeWind(lua_State* L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.gamevisuals.tree_wind = lua_tonumber(L, 1);
+	//void WickedCall_UpdateTreeWind(float wind)
+	WickedCall_UpdateTreeWind(t.gamevisuals.tree_wind);
+	return 0;
+}
+int GetTreeWind(lua_State* L)
+{
+	lua_pushnumber(L, t.gamevisuals.tree_wind);
+	return 1;
+}
+
 
 //Control Water Shader
 //setter
@@ -13162,6 +13178,9 @@ void addFunctions()
 	lua_register(lua, "SetCloudThickness", SetCloudThickness);
 	lua_register(lua, "SetCloudSpeed", SetCloudSpeed);
 
+	//PE: Other Shader
+	lua_register(lua, "SetTreeWind", SetTreeWind);
+	lua_register(lua, "GetTreeWind", GetTreeWind);
 
 	//Water Shader
 	//setter

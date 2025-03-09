@@ -7126,7 +7126,8 @@ void imgui_Customize_Vegetation_v3(int mode)
 		if (bInitNewGrassSystem || t.visuals.sGrassTextures[0] == "" || t.visuals.sGrassTextures[0] != "grassbank/course grass_mat1_SF_1.15.dds")
 		{
 			char grassFilename[ 256 ];
-			uint32_t currMat = gggrass_global_params.paint_material;
+			//PE: Use Auto mode to get all available textures in when init.
+			uint32_t currMat = 0; // gggrass_global_params.paint_material;
 			for (uint32_t i = 0; i < GGGRASS_NUM_SELECTABLE_TYPES; i++)
 			{
 				strcpy_s( grassFilename, "grassbank/" );
@@ -7192,16 +7193,21 @@ void imgui_Customize_Vegetation_v3(int mode)
 			{
 				if (iActiveGrass++ <= 20) //record buttom
 					fContentHeight = ImGui::GetCursorPosY() - curposy;
-
+				
 				if (!ImageExist(t.terrain.imagestartindex + 180 + iL))
 				{
 					//Load in image.
+					//PE: Was hitting each frame with /NONE
+					const char *bNoneGrass = pestrcasestr(t.visuals.sGrassTextures[iL].Get(), "/none");
 					image_setlegacyimageloading(true);
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					//t.terrain.imagestartindex = 63600
-					if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1) DeleteImage(t.terrain.imagestartindex + 180 + iL);
-					LoadImage(t.visuals.sGrassTextures[iL].Get(), t.terrain.imagestartindex + 180 + iL, 0, g.gdividetexturesize);
-					if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1)
+					if (!bNoneGrass)
+					{
+						if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1) DeleteImage(t.terrain.imagestartindex + 180 + iL);
+						LoadImage(t.visuals.sGrassTextures[iL].Get(), t.terrain.imagestartindex + 180 + iL, 0, g.gdividetexturesize);
+					}
+					if (!bNoneGrass && ImageExist(t.terrain.imagestartindex + 180 + iL) == 1)
 					{
 						sGrassTexturesID[iL] = t.terrain.imagestartindex + 180 + iL;
 					}

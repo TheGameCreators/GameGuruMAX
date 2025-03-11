@@ -862,6 +862,18 @@ void entity_lua_performlogicconnections_core ( int iMode )
 					bool bVisible = GetVisible(iObjID); //PE: Hide from script.
 					if (!bVisible) bSkipResultsCode = true;
 					if (t.entityelement[iRelationShipEntityID].eleprof.spawnatstart == 0) bSkipResultsCode = false; //PE: Hide from ! spawn at start.
+					//PE: Allow particle to be activated/deactivated.
+					if (t.entityprofile[t.entityelement[iRelationShipEntityID].bankindex].ismarker == 10)
+					{
+						if (t.entityelement[iRelationShipEntityID].activated == 1 && !t.entityelement[iRelationShipEntityID].eleprof.newparticle.bParticle_Show_At_Start)
+						{
+								bSkipResultsCode = false;
+						}
+						else if (t.entityelement[iRelationShipEntityID].activated == 0 && t.entityelement[iRelationShipEntityID].eleprof.newparticle.bParticle_Show_At_Start)
+						{
+							bSkipResultsCode = false;
+						}
+					}
 					if (bSkipResultsCode == false)
 					{
 						// if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)

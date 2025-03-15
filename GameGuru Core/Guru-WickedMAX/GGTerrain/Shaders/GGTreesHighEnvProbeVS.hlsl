@@ -18,7 +18,7 @@ struct VertexOut
 	float3 normal : TEXCOORD1;
 	uint RenderTargetIndex : SV_RenderTargetArrayIndex;
 	float2 uv : TEXCOORD2;
-	uint data : TEXCORRD4;
+    uint data : TEXCOORD4;
 	float3 origPos : TEXCOORD3;
 };
 
@@ -26,9 +26,9 @@ VertexOut main( VertexIn IN )
 {
     VertexOut OUT;
 
-	uint treeType = GetTreeType( IN.data );
-	uint index = GetTreeVariation( IN.data );
-	uint cubeFaceID = IN.data & 0xFF;
+	//uint treeType = GetTreeType( IN.data );
+	const uint index = GetTreeVariation( IN.data );
+	const uint cubeFaceID = IN.data & 0xFF;
 
 	OUT.data = IN.data;
 
@@ -42,6 +42,9 @@ VertexOut main( VertexIn IN )
 	pos.xyz *= GetTreeScale( IN.data );
 	pos.xyz += IN.offset;
 
+    pos.x += TreeWaveX(IN.position.y, IN.offset.x + IN.offset.z);
+    pos.z += TreeWaveZ(IN.position.y, IN.offset.z);
+	
 	float3 normal = IN.normal.xyz * 2 - 1;
 
 	OUT.worldPos = pos.xyz;

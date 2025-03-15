@@ -33,7 +33,7 @@ std::vector<std::string> projectbank_list;
 std::vector<std::string> projectbank_image;
 std::vector<int> projectbank_imageid;
 StoryboardStruct Storyboard;
-StoryboardStruct StoryboardBackup;
+//StoryboardStruct StoryboardBackup; //PE: Not used.
 StoryboardStruct checkproject;
 StoryboardStruct202 updateproject202;
 std::vector< std::pair<ImFont*, std::string>> StoryboardFonts;
@@ -2066,8 +2066,49 @@ void mapeditorexecutable_loop(void)
 	// can update collection list with flag
 	if (g_bUpdateCollectionList == true)
 	{
-		bool bLoadingLevel = false;
-		refresh_collection_from_entities(bLoadingLevel);
+		//PE: Problem , open a level outside this project , select a weapon. and it get saved in the current project.
+		//PE: https://youtu.be/LXyva4_786Y
+		//PE: Must validate that this level belong to the active project.
+
+		bool bPartOfStoreBoard = true; //PE: Running without a project.
+		if (strlen(Storyboard.gamename) > 0)
+		{
+			bPartOfStoreBoard = false; //PE: Running using a project.
+			char currentlevel[MAX_PATH];
+			strcpy(currentlevel, g.projectfilename_s.Get());
+			char* find = (char *) pestrcasestr(&currentlevel[0], "mapbank\\");
+			if (find)
+			{
+				strcpy(currentlevel, find + 8);
+			}
+			for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+			{
+				if (Storyboard.Nodes[i].used && Storyboard.Nodes[i].type == STORYBOARD_TYPE_LEVEL)
+				{
+					// get level name
+					if (strlen(Storyboard.Nodes[i].level_name) > 0)
+					{
+						char levelname[MAX_PATH];
+						strcpy(levelname, Storyboard.Nodes[i].level_name);
+						char* find = (char*)pestrcasestr(&levelname[0], "mapbank\\");
+						if (find)
+						{
+							strcpy(levelname, find + 8);
+						}
+						if (pestrcasestr(currentlevel, levelname))
+						{
+							bPartOfStoreBoard = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		if (bPartOfStoreBoard)
+		{
+			bool bLoadingLevel = false;
+			refresh_collection_from_entities(bLoadingLevel);
+		}
 		g_bUpdateCollectionList = false;
 	}
 
@@ -18010,7 +18051,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.wind_direction_z = t.gamevisuals.wind_direction_z;
 	t.visuals.wind_speed = t.gamevisuals.wind_speed;
 	t.visuals.wind_randomness = t.gamevisuals.wind_randomness;
-
+	t.visuals.tree_wind = t.gamevisuals.tree_wind;
+	
 
 	t.visuals.fLevelDifficulty = t.gamevisuals.fLevelDifficulty;
 	

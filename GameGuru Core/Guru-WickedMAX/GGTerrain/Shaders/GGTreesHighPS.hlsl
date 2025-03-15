@@ -7,6 +7,7 @@ SamplerState samplerTrilinearWrap : register( s2 );
 #include "PBR/brdf.hlsli"
 #include "PBR/lightingHF.hlsli"
 
+#include "PBR/ShaderInterop_Renderer.h"
 #include "GGTreesConstants.hlsli"
 
 #include "GGCommonFunctions.hlsli"

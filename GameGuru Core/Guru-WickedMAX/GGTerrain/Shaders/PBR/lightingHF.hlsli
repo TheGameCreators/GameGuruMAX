@@ -600,7 +600,7 @@ inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Li
 #ifndef WATER
             float2 ocean_uv = (surface.P.xz + (surface.P.yy * 0.25)) * 0.0045;
             float water_height = g_xFrame_WaterHeight;
-            if (surface.P.y < water_height)
+            if ((g_xFrame_Options & OPTION_BIT_WATER_ENABLED) && surface.P.y < water_height)
             {
                 float3 caustic = caustic_pattern(ocean_uv, g_xFrame_Time * 0.65);
                 caustic *= sqr(saturate((water_height - surface.P.y) * 0.0025)); // fade out at shoreline

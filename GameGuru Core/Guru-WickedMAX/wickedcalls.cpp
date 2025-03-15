@@ -937,10 +937,6 @@ void WickedCall_RefreshObjectAnimations(sObject* pObject, void* pstateptr)
 						{
 							animationcomponent.objectIndex = iVisibleIndex;
 						}
-						else
-						{
-							printf("tmp");
-						}
 					}
 				}
 			}
@@ -5790,12 +5786,14 @@ void WickedCall_RenderEditorFunctions( void )
 	{
 		try
 		{
-			//if (ObjectExist(g_selected_editor_objectID) == 1) returns true even if deleted!
-			int iObjNo = g_selected_editor_object->dwObjectNumber;
-			if (iObjNo > 0 && iObjNo <= 300000)
+			if (ObjectExist(g_selected_editor_objectID))
 			{
-				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
-				WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+				int iObjNo = g_selected_editor_object->dwObjectNumber;
+				if (iObjNo > 0 && iObjNo <= 300000)
+				{
+					WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color);
+					WickedCall_DrawObjctBox(g_selected_editor_object, g_selected_editor_color, true, true);
+				}
 			}
 		}
 		catch(...)
@@ -6781,6 +6779,15 @@ void WickedCall_UpdateWaterColor(float red, float green, float blue)
 }
 
 
+void WickedCall_UpdateTreeWind(float wind)
+{
+	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+	if (weather)
+	{
+		weather->tree_wind = wind;
+	}
+}
+
 void WickedCall_UpdateWaterHeight(float height)
 {
 	wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
@@ -6870,12 +6877,12 @@ void WickedCall_CreateDecal(sObject* pObject)
 */
 
 #ifdef WICKEDPARTICLESYSTEM
-uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
+uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attached, char* changename, char* changenameto)
 {
 	Entity root = 0;
 
 	XMMATRIX& transformMatrix = XMMatrixIdentity();
-	Scene scene2;
+	
 	wiArchive archive(filename, true);
 	if (archive.IsOpen())
 	{
@@ -6968,6 +6975,21 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 			scene2.Entity_Remove(root);
 			root = INVALID_ENTITY;
 		}
+
+		//PE: Support _e_ here for all materials.
+		for (int i = 0; i < scene2.materials.GetCount(); i++)
+		{
+			for (int a = 0; a < MaterialComponent::EMISSIVEMAP; a++)
+			{
+				if (scene2.materials[i].textures[a].name.size() > 0)
+				{
+					if (!scene2.materials[i].textures[a].resource)
+					{
+						scene2.materials[i].textures[a].resource = WickedCall_LoadImage(scene2.materials[i].textures[a].name);
+					}
+				}
+			}
+		}
 	}
 
 	//PE: Fix for GG moved enums
@@ -6997,6 +7019,13 @@ uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename,
 			}
 		}
 	}
+	
+	return root;
+}
+uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
+{
+	Scene scene2;
+	Entity root = WickedCall_LoadWiSceneDirect(scene2, filename, attached, changename, changenameto);
 	GetScene().Merge(scene2);
 	return root;
 }

@@ -1,3 +1,5 @@
+//#pragma optimize("", off)
+
 //----------------------------------------------------
 //--- GAMEGURU - M-Decal
 //----------------------------------------------------
@@ -11,8 +13,15 @@
 #include "optick.h"
 #endif
 
+#include "..\..\..\..\Guru-WickedMAX\wickedcalls.h"
+#include "WickedEngine.h"
+using namespace std;
+using namespace wiGraphics;
+using namespace wiScene;
+using namespace wiECS;
+
 // Externs
-extern void newparticle_updateparticleemitter (newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation, bool bAutoDelete);
+extern void newparticle_updateparticleemitter (newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation, bool bAutoDelete, int decal_id = -1);
 
 // 
 //  Decal Module
@@ -69,7 +78,12 @@ void decal_init ( void )
 	t.decalglobal.dustflumeid=0;
 	t.decalglobal.impactid=0;
 	t.decalglobal.bloodsplatid=0;
-	for ( t.tdscan = 1 ; t.tdscan<=  9; t.tdscan++ )
+	t.decalglobal.newexplosion=0;
+	int numdecals = 9;
+	#ifdef WICKEDPARTICLESYSTEM
+	numdecals = 10;
+	#endif
+	for ( t.tdscan = 1 ; t.tdscan<= numdecals; t.tdscan++ )
 	{
 		if (  t.tdscan == 1  )  t.decal_s = "splash_ripple";
 		if (  t.tdscan == 2  )  t.decal_s = "splash_small";
@@ -80,7 +94,10 @@ void decal_init ( void )
 		if (  t.tdscan == 7  )  t.decal_s = "dustflume";
 		if (  t.tdscan == 8  )  t.decal_s = "impact";
 		#ifdef DETECTANDUSENEWPARTICLEDECALS
-		 if (  t.tdscan == 9  )  t.decal_s = "blood";
+		 if (  t.tdscan == 9  ) t.decal_s = "blood";
+		#ifdef WICKEDPARTICLESYSTEM
+		 if (  t.tdscan == 10 ) t.decal_s = "explosion";
+		#endif
 		#else
 		 if (  t.tdscan == 9  )  t.decal_s = "bloodsplat";
 		#endif
@@ -96,6 +113,7 @@ void decal_init ( void )
 			if (  t.tdscan == 7  )  t.decalglobal.dustflumeid = t.decalid;
 			if (  t.tdscan == 8  )  t.decalglobal.impactid = t.decalid;
 			if (  t.tdscan == 9  )  t.decalglobal.bloodsplatid = t.decalid;
+			if (  t.tdscan == 10 )  t.decalglobal.newexplosion = t.decalid;
 		}
 	}
 
@@ -197,43 +215,68 @@ void decal_loaddata ( void )
 	t.decal[t.decalid].framemax=t.decal[t.decalid].across*t.decal[t.decalid].down;
 }
 
-void decal_load ( void )
+void decal_load(void)
 {
 	// Load decal data
-	decal_loaddata ( );
+	decal_loaddata();
 
 	// Load decal image and store name in bank
-	t.strwork = "" ; t.strwork = t.strwork+"gamecore\\decals\\"+t.decal_s+"\\decal.dds";
-	loaddecal( t.strwork.Get() ,t.decalid);
+	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\decal.dds";
+	loaddecal(t.strwork.Get(), t.decalid);
 
-	// Detect and load any new particle associated with this decal
-	#ifdef DETECTANDUSENEWPARTICLEDECALS
-	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\newparticle";
+	#ifdef WICKEDPARTICLESYSTEM
+	t.decal[t.decalid].newparticle.bWPE = false;
+	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\wpe.pe";
 	t.decal[t.decalid].newparticle.emitterid = -1;
 	t.decal[t.decalid].newparticle.emittername = t.strwork.Get();
 	char pAbsPathToParticle[MAX_PATH];
 	strcpy(pAbsPathToParticle, t.decal[t.decalid].newparticle.emittername.Get());
-	strcat(pAbsPathToParticle, ".arx");
 	GG_GetRealPath(pAbsPathToParticle, 0);
 	if (FileExist(pAbsPathToParticle) == 1)
 	{
-		GGMATRIX* pmatBaseRotation = NULL;
-		float fScale = -80.0f;
-		float fX = 0.0f;
-		float fY = 0.0f;
-		float fZ = 0.0f;
-		float fRX = 0.0f;
-		float fRY = 0.0f;
-		float fRZ = 0.0f;
 		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
-		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = true;
-		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = true;
-		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true); // pre-load!
 		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
 		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
-		newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true); // update it!
+		t.decal[t.decalid].newparticle.bWPE = true;
+		//PE: Preload some effects.
+		void preload_wicked_particle_effect(newparticletype * pParticle, int decal_id);
+		preload_wicked_particle_effect(&t.decal[t.decalid].newparticle, t.decalid);
 	}
+
+	if (!t.decal[t.decalid].newparticle.bWPE)
 	#endif
+	{
+		// Detect and load any new particle associated with this decal
+		#ifdef DETECTANDUSENEWPARTICLEDECALS
+		t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\newparticle";
+		t.decal[t.decalid].newparticle.emitterid = -1;
+		t.decal[t.decalid].newparticle.emittername = t.strwork.Get();
+		#ifndef WICKEDPARTICLESYSTEM
+		char pAbsPathToParticle[MAX_PATH];
+		#endif
+		strcpy(pAbsPathToParticle, t.decal[t.decalid].newparticle.emittername.Get());
+		strcat(pAbsPathToParticle, ".arx");
+		GG_GetRealPath(pAbsPathToParticle, 0);
+		if (FileExist(pAbsPathToParticle) == 1)
+		{
+			GGMATRIX* pmatBaseRotation = NULL;
+			float fScale = -80.0f;
+			float fX = 0.0f;
+			float fY = 0.0f;
+			float fZ = 0.0f;
+			float fRX = 0.0f;
+			float fRY = 0.0f;
+			float fRZ = 0.0f;
+			t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
+			t.decal[t.decalid].newparticle.bParticle_Show_At_Start = true;
+			t.decal[t.decalid].newparticle.bParticle_Looping_Animation = true;
+			newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true, t.decalid); // pre-load!
+			t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
+			t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
+			newparticle_updateparticleemitter(&t.decal[t.decalid].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, pmatBaseRotation, true, t.decalid); // update it!
+		}
+		#endif
+	}
 }
 
 void decal_scaninallref ( void )
@@ -446,6 +489,13 @@ void decalelement_create ( void )
 	}
 	if ( t.d < g.decalelementmax ) 
 	{
+#ifdef WICKEDPARTICLESYSTEM
+		bool bReuse = false;
+		if (t.decalelement[t.d].decalid == t.decalid && t.decalelement[t.d].newparticle.emitterid > 0)
+		{
+			bReuse = true;
+		}
+#endif
 		// activate new decal element
 		t.currentdecald=t.d;
 		t.decalelement[t.d].decalid=t.decalid;
@@ -459,6 +509,35 @@ void decalelement_create ( void )
 		t.decalelement[t.d].originator=t.originatore;
 		t.decalelement[t.d].originatorobj=t.originatorobj;
 
+		#ifdef WICKEDPARTICLESYSTEM
+		if (t.decal[t.decalid].newparticle.bWPE)
+		{
+			// new particle - uses new particle system
+			int iEmitterID = -2;
+			if (bReuse) //PE: Reuse already loaded effect.
+				iEmitterID = t.decalelement[t.d].newparticle.emitterid;
+
+			t.decalelement[t.d].newparticle = t.decal[t.decalid].newparticle;
+			t.decalelement[t.d].newparticle.bParticle_Show_At_Start = true;
+			t.decalelement[t.d].newparticle.bParticle_Fire = true;
+
+			t.decalelement[t.d].newparticle.emitterid = iEmitterID;
+
+			// orientation support for some new partidle effects
+			//if (t.decalelement[t.d].orient == 0)
+			{
+				// always face camera using Y angle only
+				t.decalelement[t.d].newparticle.bParticle_LocalRot_Used = true;
+				float fCorrectAngleForParticlesToSpray = GGToDegree(atan2(t.tdxx, t.tdzz)); // angle from camera to point we hit
+				fCorrectAngleForParticlesToSpray += 90; // but rotate 90 degrees as FOUNTAIN_DIRECTION pours out to the RIGHT, so need to pour at us (-Z)
+				t.decalelement[t.d].newparticle.bParticle_LocalRot_Y = fCorrectAngleForParticlesToSpray;
+			}
+
+			// no object required
+			t.tobj = 0;
+		}
+		else
+		#endif
 		// legacy decal or new particle
 		if (t.decal[t.decalid].newparticle.emitterid != -1)
 		{
@@ -722,8 +801,10 @@ void decalelement_control ( void )
 	{
 		if ( t.decalelement[t.f].active == 1)
 		{
+			int decalid = t.decalelement[t.f].decalid;
+
 			// error trap decalIDs that exceed the current decal array
-			if (t.decalid >= t.decal.size())
+			if (t.decalid >= t.decal.size() || decalid >= t.decal.size())
 				continue;
 
 			// decal speed machine independent
@@ -748,19 +829,35 @@ void decalelement_control ( void )
 				float fRY = 0.0f;
 				float fRZ = 0.0f;
 				GGMatrixRotationY(&pmatBaseRotation, GGToRadian(fRY));
-				newparticle_updateparticleemitter(&t.decalelement[t.f].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, NULL, true);
+				newparticle_updateparticleemitter(&t.decalelement[t.f].newparticle, fScale, fX, fY, fZ, fRX, fRY, fRZ, NULL, true, decalid);
 
-				// detect when burst finished so can set active back to zero and remove emitter
-				t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f * 2 * t.decal[t.decalid].playspeed_f);
-				if (t.decalelement[t.f].framedelay >= 100)
+#ifdef WICKEDPARTICLESYSTEM
+				if (t.decal[decalid].newparticle.bWPE)
 				{
-					// delete used particle
-					extern void newparticle_deleteparticleemitter (int);
-					newparticle_deleteparticleemitter(t.decalelement[t.f].newparticle.emitterid);
-					t.decalelement[t.f].newparticle.emitterid = -1;
-					
-					// end instance
-					t.decalelement[t.f].active = 0;
+					t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f);
+					if (t.decalelement[t.f].framedelay >= 100)
+					{
+						//PE: No need to stop effect it will end by itself.
+						t.decalelement[t.f].active = 0;
+						t.decalelement[t.f].framedelay = 0;
+						t.decalelement[t.f].newparticle.emitterid = -1;
+					}
+				}
+				if (!t.decal[decalid].newparticle.bWPE)
+#endif
+				{
+					// detect when burst finished so can set active back to zero and remove emitter
+					t.decalelement[t.f].framedelay = t.decalelement[t.f].framedelay + (t.decaltimeelapsed_f * 2 * t.decal[t.decalid].playspeed_f);
+					if (t.decalelement[t.f].framedelay >= 100)
+					{
+						// delete used particle
+						extern void newparticle_deleteparticleemitter(int);
+						newparticle_deleteparticleemitter(t.decalelement[t.f].newparticle.emitterid);
+						t.decalelement[t.f].newparticle.emitterid = -1;
+
+						// end instance
+						t.decalelement[t.f].active = 0;
+					}
 				}
 			}
 			else
@@ -1048,7 +1145,8 @@ void decal_activatedecalsfromentities ( void )
 		if (  t.tdecalid == t.decalglobal.dustflumeid  )  t.tokay = 1;
 		if (  t.tdecalid == t.decalglobal.impactid  )  t.tokay = 1;
 		if (  t.tdecalid == t.decalglobal.bloodsplatid  )  t.tokay = 1;
-		if (  t.tokay == 1 ) 
+		if (  t.tdecalid == t.decalglobal.newexplosion )  t.tokay = 1;
+		if (  t.tokay == 1 )
 		{
 			t.decal[t.tdecalid].active=1;
 		}
@@ -1106,22 +1204,31 @@ void decal_triggerwatersplash ( void )
 	t.originatore=-1;
 	t.decalforward=0;
 	t.decalscalemodx=(40+Rnd(20))*t.tInScale_f ; t.decalscalemody=(40+Rnd(20))*t.tInScale_f;
-	t.decalid=t.decalglobal.splashdecalrippleid ; t.decalorient=2 ; decalelement_create ( );
-	if (  Rnd(1) == 0 ) 
+#ifdef WICKEDPARTICLESYSTEM
+	if (t.decal[t.decalglobal.splashdecallargeid].newparticle.bWPE)
 	{
-		t.decalid=t.decalglobal.splashdecalsmallid ; t.decalorient=0 ; decalelement_create ( );
+		t.decalid = t.decalglobal.splashdecallargeid; t.decalorient = 0; decalelement_create();
 	}
 	else
+#endif
 	{
-		t.decalid=t.decalglobal.splashdecallargeid ; t.decalorient=0 ; decalelement_create ( );
+		t.decalid = t.decalglobal.splashdecalrippleid; t.decalorient = 2; decalelement_create();
+		if (Rnd(1) == 0)
+		{
+			t.decalid = t.decalglobal.splashdecalsmallid; t.decalorient = 0; decalelement_create();
+		}
+		else
+		{
+			t.decalid = t.decalglobal.splashdecallargeid; t.decalorient = 0; decalelement_create();
+		}
+		t.decalid = t.decalglobal.splashdecalmistyid; t.decalorient = 12; decalelement_create();
+		t.decalid = t.decalglobal.splashdecaldropletsid; t.decalorient = 8; decalelement_create();
+		t.decalid = t.decalglobal.splashdecaldropletsid; t.decalorient = 8; decalelement_create();
+		t.decalid = t.decalglobal.splashdecaldropletsid; t.decalorient = 8; decalelement_create();
+		t.decalid = t.decalglobal.splashdecaldropletsid; t.decalorient = 8; decalelement_create();
+		t.decalid = t.decalglobal.splashdecaldropletsid; t.decalorient = 8; decalelement_create();
+		t.decalid = t.decalglobal.splashdecalfoamid; t.decalorient = 2; decalelement_create();
 	}
-	t.decalid=t.decalglobal.splashdecalmistyid ; t.decalorient=12; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecaldropletsid ; t.decalorient=8 ; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecaldropletsid ; t.decalorient=8 ; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecaldropletsid ; t.decalorient=8 ; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecaldropletsid ; t.decalorient=8  ; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecaldropletsid ; t.decalorient=8 ; decalelement_create ( );
-	t.decalid=t.decalglobal.splashdecalfoamid ; t.decalorient=2 ; decalelement_create ( );
 }
 
 void decal_triggerwaterripple ( void )

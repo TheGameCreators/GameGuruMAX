@@ -2839,6 +2839,18 @@ void imgui_terrain_loop_v3(void)
 						ggterrain_extra_params.iUpdateTrees = 1;
 					}
 
+					ImGui::TextCenter("Tree Wind");
+					if (ImGui::SliderFloat("##TreeWind", &t.visuals.tree_wind, 0.0f, 1.0f, "%.2f", 1.0f))
+					{
+						t.gamevisuals.tree_wind = t.visuals.tree_wind;
+						extern wiECS::Entity g_weatherEntityID;
+						wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+						if (weather)
+						{
+							weather->tree_wind = t.visuals.tree_wind;
+						}
+					}
+
 					float but_gadget_size = ImGui::GetFontSize()*10.0;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 
@@ -7114,7 +7126,8 @@ void imgui_Customize_Vegetation_v3(int mode)
 		if (bInitNewGrassSystem || t.visuals.sGrassTextures[0] == "" || t.visuals.sGrassTextures[0] != "grassbank/course grass_mat1_SF_1.15.dds")
 		{
 			char grassFilename[ 256 ];
-			uint32_t currMat = gggrass_global_params.paint_material;
+			//PE: Use Auto mode to get all available textures in when init.
+			uint32_t currMat = 0; // gggrass_global_params.paint_material;
 			for (uint32_t i = 0; i < GGGRASS_NUM_SELECTABLE_TYPES; i++)
 			{
 				strcpy_s( grassFilename, "grassbank/" );
@@ -7180,16 +7193,21 @@ void imgui_Customize_Vegetation_v3(int mode)
 			{
 				if (iActiveGrass++ <= 20) //record buttom
 					fContentHeight = ImGui::GetCursorPosY() - curposy;
-
+				
 				if (!ImageExist(t.terrain.imagestartindex + 180 + iL))
 				{
 					//Load in image.
+					//PE: Was hitting each frame with /NONE
+					const char *bNoneGrass = pestrcasestr(t.visuals.sGrassTextures[iL].Get(), "/none");
 					image_setlegacyimageloading(true);
 					SetMipmapNum(1); //PE: mipmaps not needed.
 					//t.terrain.imagestartindex = 63600
-					if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1) DeleteImage(t.terrain.imagestartindex + 180 + iL);
-					LoadImage(t.visuals.sGrassTextures[iL].Get(), t.terrain.imagestartindex + 180 + iL, 0, g.gdividetexturesize);
-					if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1)
+					if (!bNoneGrass)
+					{
+						if (ImageExist(t.terrain.imagestartindex + 180 + iL) == 1) DeleteImage(t.terrain.imagestartindex + 180 + iL);
+						LoadImage(t.visuals.sGrassTextures[iL].Get(), t.terrain.imagestartindex + 180 + iL, 0, g.gdividetexturesize);
+					}
+					if (!bNoneGrass && ImageExist(t.terrain.imagestartindex + 180 + iL) == 1)
 					{
 						sGrassTexturesID[iL] = t.terrain.imagestartindex + 180 + iL;
 					}

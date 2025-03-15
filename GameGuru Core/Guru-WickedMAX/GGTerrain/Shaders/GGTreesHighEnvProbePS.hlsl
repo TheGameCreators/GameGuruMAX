@@ -6,6 +6,7 @@ SamplerState samplerTrilinearWrap : register( s2 );
 #include "PBR/brdf.hlsli"
 #include "PBR/lightingHF.hlsli"
 
+#include "PBR/ShaderInterop_Renderer.h"
 #include "GGTreesConstants.hlsli"
 
 #include "GGCommonFunctions.hlsli"
@@ -19,7 +20,7 @@ struct PixelIn
 	float3 normal : TEXCOORD1;
 	uint RenderTargetIndex : SV_RenderTargetArrayIndex;
 	float2 uv : TEXCOORD2;
-	uint data : TEXCORRD4;
+    uint data : TEXCOORD4;
 	float3 origPos : TEXCOORD3;
 	bool isFront : SV_IsFrontFace;
 };

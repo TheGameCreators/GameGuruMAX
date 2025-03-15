@@ -18,7 +18,7 @@
 extern "C" FILE* GG_fopen( const char* filename, const char* mode );
 
 bool noDeleteCSTR = false;
-#define STRMAXSIZE 4096
+#define STRMAXSIZE 8192
 //#define STRMINSIZE 256 // some DLUA strings can easily exceed 256 characters!
 #ifdef PRODUCTCLASSIC
 //PE: We cant affort this in classic, when you add one object to a level:
@@ -40,6 +40,12 @@ bool noDeleteCSTR = false;
 //PE: ZTEMP just use double mem, no need, use a ringbuffer instead. And we have very many of these in entityelements.
 #define DISABLEZTEMP
 
+
+#ifdef DISABLEZTEMP
+char* m_sTemp[30] = { nullptr };
+int m_iLen[30] = { 0 };
+int m_iCurrentBuffer = 0;
+#endif
 
 //#define TESTUSEOFSTRINGS
 #ifdef TESTUSEOFSTRINGS
@@ -168,12 +174,6 @@ cStr::~cStr ( )
 	}
 }
 
-#ifdef DISABLEZTEMP
-char* m_sTemp[20] = { nullptr };
-int m_iLen[20] = { 0 };
-int m_iCurrentBuffer = 0;
-#endif
-
 cStr cStr::operator + ( const cStr& other )
 {
 	//PE: We have a bug here if using >= 256 strings and using:
@@ -186,7 +186,7 @@ cStr cStr::operator + ( const cStr& other )
 
 	//PE: Use a ringbuffer.
 	m_iCurrentBuffer++;
-	if (m_iCurrentBuffer >= 19)
+	if (m_iCurrentBuffer >= 29)
 		m_iCurrentBuffer = 0;
 
 	if (m_iLen[m_iCurrentBuffer] <= (m_size + 50) || !m_sTemp[m_iCurrentBuffer])

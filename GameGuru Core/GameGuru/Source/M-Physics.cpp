@@ -498,9 +498,16 @@ void physics_createterraincollision ( void )
 	if (g_vPlayAreaMax.z > 50000)  g_vPlayAreaMax.z = 50000;
 
 	// above values are used by navmesh
-	ODECreateGGTerrain();
+	if (t.visuals.bEnableEmptyLevelMode == false)
+	{
+		// only bother creating terrain physics if we are not in 'empty level mode'
+		ODECreateGGTerrain();
+	}
+
+	// and we are done
 	return;
 
+	/* this code never used once ODECreateGGTerrain was invented!
 	// this is there the terrain physics is created
 	timestampactivity(0, "create terrain physics");
 	float fPlayAreaSizeX = g_vPlayAreaMax.x - g_vPlayAreaMin.x; // soon to be relegated to 'nav clusters'
@@ -1122,6 +1129,7 @@ void physics_createterraincollision ( void )
 		}
 	}
 	timestampactivity(0, "terrian physics complete");
+	*/
 }
 
 struct sVTreeObj

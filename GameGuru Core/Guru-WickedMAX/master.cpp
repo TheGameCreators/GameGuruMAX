@@ -2272,22 +2272,25 @@ void MasterRenderer::Update(float dt)
 			gpup_update(dt, cmd);
 			wiProfiler::EndRange(range);
 
-			// terrain processing
-			extern int g_iDisableTerrainSystem;
-			auto range3 = wiProfiler::BeginRangeCPU("Update - Terrain");
-			extern bool bImGuiRenderTargetFocus;
-			GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-			if (g_iDisableTerrainSystem == 0)
+			// terrain processing (if used)
+			if (t.visuals.bEnableEmptyLevelMode == false)
 			{
-				GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
-				GGTrees_UpdateFrustumCulling(&camera);
-				GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+				extern int g_iDisableTerrainSystem;
+				auto range3 = wiProfiler::BeginRangeCPU("Update - Terrain");
+				extern bool bImGuiRenderTargetFocus;
+				GGTerrain_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+				if (g_iDisableTerrainSystem == 0)
+				{
+					GGTrees_Update(camera.Eye.x, camera.Eye.y, camera.Eye.z, cmd, bImGuiRenderTargetFocus);
+					GGTrees_UpdateFrustumCulling(&camera);
+					GGGrass_Update(&camera, cmd, bImGuiRenderTargetFocus);
+				}
+				wiProfiler::EndRange(range3);
 			}
-			wiProfiler::EndRange(range3);
 			
-#ifdef WICKEDPARTICLESYSTEM
+			#ifdef WICKEDPARTICLESYSTEM
 			WickedCall_UpdateEmitters();
-#endif
+			#endif
 
 			// now just prepared IMGUI, but actual render called from Wicked hook
 			auto range2 = wiProfiler::BeginRangeCPU("Update - Render");

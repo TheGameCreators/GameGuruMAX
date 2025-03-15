@@ -8243,14 +8243,14 @@ void imgui_Customize_Water(int mode)
 	}
 }
 
-
-
 void imgui_Customize_Water_V2(int mode)
 {
 	void tab_tab_Column_text(char *text, float fColumn);
 
-	//PE: NOTE tabtab mode < 3 normally used iLastOpenHeader = 5
+	// have no access to water settings in completely-empty mode
+	if (t.visuals.bEnableEmptyLevelMode == true) return;
 
+	//PE: NOTE tabtab mode < 3 normally used iLastOpenHeader = 5
 	int wflags = ImGuiTreeNodeFlags_None;
 	if (mode == 4)
 	{
@@ -8264,20 +8264,9 @@ void imgui_Customize_Water_V2(int mode)
 		if (pref.bAutoClosePropertySections && iLastOpenHeader != 5)
 			ImGui::SetNextItemOpen(false, ImGuiCond_Always);
 	}
-	//if (mode < 3)
-	//{
-		
-	//}
-	//else
-	//{
-	//	if (mode == 4)
-	//		wflags = ImGuiTreeNodeFlags_DefaultOpen;
-	//}
-
 	ImVec2 vHoverRectStart = ImGui::GetCursorPos();
 	if (ImGui::StyleCollapsingHeader("Water", wflags))
 	{
-
 		if (mode != 4)
 			iLastOpenHeader = 5;
 		else
@@ -8291,33 +8280,9 @@ void imgui_Customize_Water_V2(int mode)
 
 		if (pref.iEnableAdvancedWater)
 		{
-			// ZJ: Moved to the View Options menu
-			/*
-			if (ImGui::Checkbox("Enable Water##v2bEnableWater", &t.visuals.bWaterEnable)) {
-				static int iRememberLastHeight = -1;
-				if (!t.visuals.bWaterEnable)
-				{
-					iRememberLastHeight = g.gdefaultwaterheight;
-					t.terrain.waterliney_f = g.gdefaultwaterheight = -10000.0f;
-					t.visuals.bWaterEnable = true; //PE We need the new water height set.
-					Wicked_Update_Visuals((void *)&t.visuals);
-					t.visuals.bWaterEnable = false;
-				}
-				else
-				{
-					float fWaterHeight = GGORIGIN_Y;
-					if (iRememberLastHeight != -1 && iRememberLastHeight > -9999)
-						fWaterHeight = iRememberLastHeight;
-					t.terrain.waterliney_f = g.gdefaultwaterheight = fWaterHeight;
-				}
-				t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
-				Wicked_Update_Visuals((void *)&t.visuals);
-				g.projectmodified = 1;
-			}
-			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enable Water");
-			*/
 		}
-		else {
+		else 
+		{
 			t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable = true;
 		}
 
@@ -8461,30 +8426,7 @@ void imgui_Customize_Water_V2(int mode)
 					Wicked_Update_Visuals((void *)&t.visuals);
 					g.projectmodified = 1;
 				}
-				//int iTmp = t.visuals.WaterFogMinAmount * 100;
-				//if (ImGui::MaxSliderInputInt("##fWaterFogMinAmount", &iTmp, 0.0f, 100.0f, "The minimum amount of under water fog that will always be present regardless of distance"))
-				//{
-				//	t.visuals.WaterFogMinAmount = iTmp * 0.01f;
-				//	t.gamevisuals.WaterFogMinAmount = t.visuals.WaterFogMinAmount;
-				//	Wicked_Update_Visuals((void *)&t.visuals);
-				//	g.projectmodified = 1;
-				//}
-
 			}
-
-			//if (!pref.iEnableAdvancedWater)
-			//{
-			//	ImVec2 label_size = ImGui::CalcTextSize("Advanced Settings", NULL, true) + ImVec2(8.0f, 0.0f);
-			//	ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvailWidth()*0.5) - (label_size.x*0.5), 0.0f));
-			//	if (ImGui::HyberlinkButton("Advanced Settings##1", ImVec2(label_size.x, 0)))
-			//	{
-			//		extern int iSetSettingsFocusTab;
-			//		extern bool bPreferences_Window;
-			//		iSetSettingsFocusTab = 2;
-			//		bPreferences_Window = true;
-			//	}
-			//}
-
 		}
 		ImGui::PopItemWidth();
 
@@ -8512,7 +8454,6 @@ void imgui_Customize_Water_V2(int mode)
 		ImGui::Indent(-10);
 	}
 }
-
 
 void imgui_Customize_Weather_V2(int mode)
 {
@@ -9862,9 +9803,8 @@ float BT_GetGroundHeight ( unsigned long value, float x, float z )
 {
 	#ifdef GGTERRAIN_USE_NEW_TERRAIN
 	extern int g_iDisableTerrainSystem;
-	if (g_iDisableTerrainSystem == 0)
+	if (g_iDisableTerrainSystem == 0 && t.visuals.bEnableEmptyLevelMode==false)
 	{
-
 		float height;
 		if (GGTerrain_GetHeight(x, z, &height)) return height;
 		else return GGORIGIN_Y;
@@ -11377,17 +11317,23 @@ void procedural_new_level(void)
 				static bool bRandomizeTimeOfDay = true;
 				static int iLastUserSelectedTimeOfDay = -1;
 				static bool bSelectRandomSkybox = false;
+				static bool bSelectNightSkybox = false;
 				static bool bSelectDayRandomSkybox = false;
 				static int iSelectedThemeChoice = 0;
 				static bool bFirtTimeInTheme = false;
 				static bool bFirstBiomes[9] = { true,true,true,true,true,true,true,true,true };
 
-				if(bSelectRandomSkybox)
+				if(bSelectRandomSkybox || bSelectNightSkybox)
 				{
 					bSelectRandomSkybox = false;
+
 					#ifdef RANDOMSKYBOX
 					int iRandom = (rand() % (t.skybank_s.size() ));
 					int skyindex = iRandom;
+					if (bSelectNightSkybox)
+					{
+						skyindex = iRandom = 5; //Night skybox.
+					}
 					bool bTriggerSetTimeOfDay = false;
 
 					wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
@@ -11400,7 +11346,7 @@ void procedural_new_level(void)
 						bForceDay = true;
 					}
 
-					if ((rand() % 3) == 0 || bForceDay )
+					if (((rand() % 3) == 0 || bForceDay) && bSelectNightSkybox == false)
 					{
 						//PE: Dynamic every 3 times randomly.
 						t.gamevisuals.skyindex = t.visuals.skyindex = 0;
@@ -11465,6 +11411,7 @@ void procedural_new_level(void)
 
 					}
 					fLastY = -1; //PE: Trigger a update to fog and dynamic sky.
+					bSelectNightSkybox = false;
 
 					//PE: Check if we need to update time of day if skybox changed and we have no random time of day.
 					if (bTriggerSetTimeOfDay)
@@ -12038,13 +11985,15 @@ void procedural_new_level(void)
 					if (ImGui::StyleButton("Empty", ImVec2(fButSizeX, fButSizeY)))
 					{
 						if (bRandomizeTimeOfDay && iRandomThemeChoice == 0) iRandomTimeOfDayChoice = (rand() % 7);
-						if (iRandomThemeChoice == 0) bSelectRandomSkybox = true;
+						//if (iRandomThemeChoice == 0) bSelectRandomSkybox = true;
+						bSelectNightSkybox = true;
 						iSelectedThemeChoice = 8;
 
 						// sets ggterrain_global_params.iProceduralTerrainType to 0
 						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
 						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
+						t.gamevisuals.bEnableEmptyLevelMode = t.visuals.bEnableEmptyLevelMode = false;
 
 						//PE: Default tree and grass setup.
 						if (iLastTreeGrassSettings != 0)
@@ -12102,141 +12051,531 @@ void procedural_new_level(void)
 					ggterrain_global_render_params2.editable_size = feditable_size;
 					ImGui::PopItemWidth();
 				}
-
-				if (ImGui::StyleCollapsingHeader("Terrain Shape", ImGuiTreeNodeFlags_DefaultOpen))
+				if (iSelectedThemeChoice == 8)
 				{
-					ImGui::Indent(10);
-
-					ImGui::TextCenter("Editable Area Size");
-					float numericboxwidth = 60.0f;
-
-					ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-
-					float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
-					if (ImGui::SliderFloat("##UI2TerrainEditableSizeKilometers", &fTmp, 0.5, 5.0f, " "))
+					if (ImGui::StyleCollapsingHeader("Empty Level Settings", ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						//Cam zoom. 420000 = 5.0 , 50000 = 0.5 , perhaps 48000 per 0.5
-						ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(fTmp / 2.0) * 1000.0f;
-
-						//Reset camera to point at center of edit area.
-						if (fSnapShotModeCameraY < (fTmp * 41000.0f))
+						bool bCompletelyEmpty = t.gamevisuals.bEnableEmptyLevelMode;
+						if (ImGui::Checkbox("Completely Empty", &bCompletelyEmpty))
 						{
-							fSnapShotModeCameraY = fTmp * 41000.0f;
-							if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
-							fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
-							fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
-							fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
-							fSnapShotModeCameraAngX = 90.0f; //Look down.
-						}
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
-					ImGui::PopItemWidth();
-					ImGui::SameLine();
-					ImGui::PushItemWidth(numericboxwidth);
-					if (ImGui::InputFloat("##UI2TerrainEditableSizeKilometersText", &fTmp, 0, 0, "%.1f Km"))
-					{
-						//ggterrain_global_render_params2.editable_size = fTmp * 39.3701 * 1000.0f;
-						ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(fTmp / 2.0) * 1000.0f;
-						fSnapShotModeCameraY = fTmp * 48000.0f;
-					}
-					if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
+							if (bCompletelyEmpty == true)
+							{
+								// everything off
+								t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = 0;
+								t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
+								t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 0;
+								t.showeditorwater = t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable = false;
+								t.showeditortrees = ggtrees_global_params.draw_enabled = false;
+								t.showeditorveg = gggrass_global_params.draw_enabled = false;
 
-					ImGui::PopItemWidth();
+								// make universe massive and hide all markings
+								ggterrain_global_render_params2.editable_size = 999999;
+								bShowEditArea = false; ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 
-					if (pref.iTerrainAdvanced)
-					{
-						if (ImGui::Checkbox("Show Editable Area", &bShowEditArea))
-						{
+								// master flag to activate completely empty mode
+								t.gamevisuals.bEnableEmptyLevelMode = t.visuals.bEnableEmptyLevelMode = true;
+							}
+							else
+							{
+								t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
+								t.gamevisuals.bEnableEmptyLevelMode = t.visuals.bEnableEmptyLevelMode = false;
+							}
+							Wicked_Update_Visuals((void*)&t.visuals);
 						}
-						ImGui::SameLine();
-
-						bShow3DBoundary = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
-						if (ImGui::Checkbox("3D Boundary##bShow3DBoundary", &bShow3DBoundary))
-						{
-							if (bShow3DBoundary) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-							else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Additionally removes terrain, water and related defaults");
 					}
-					#ifndef NOMINIMAP
-					bShowMiniMap = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP) != 0;
-					if (ImGui::Checkbox("Show Mini Map##bShowMiniMap", &bShowMiniMap))
-					{
-						if (bShowMiniMap) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
-						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
-					}
-					#endif
-					ImGui::Indent(-10);
 				}
-
-				// allow terrain to be changed except for EMPTY mode
-				if (ggterrain_extra_params.iProceduralTerrainType != 0)
+				if(t.visuals.bEnableEmptyLevelMode==false)
 				{
-					if (ImGui::StyleCollapsingHeader("Terrain Values", ImGuiTreeNodeFlags_DefaultOpen))
+					if (ImGui::StyleCollapsingHeader("Terrain Shape", ImGuiTreeNodeFlags_DefaultOpen))
 					{
 						ImGui::Indent(10);
 
-						ImGui::TextCenter("Height Range");
+						ImGui::TextCenter("Editable Area Size");
+						float numericboxwidth = 60.0f;
 
-						//Height Range
-						//FYI: fTerrainHeightStart is missing in ggterrain_global_params.
-						ImGui::PushItemWidth(-10 - 10 - 60);
-						ImGui::TextCenter("Max Height (meters)");
-						float meterValue = GGTerrain_UnitsToMeters(ggterrain_global_params.height);
-						if(ImGui::MaxSliderInputFloatPower("##HeightRange", &meterValue, 0.0f, 1000.0f, 0, 0, 1000, 60, 2.0f, 2 ))
-						{
-							ggterrain_global_params.height = GGTerrain_MetersToUnits(meterValue);
-							bTriggerStableY = true;
-						}
+						ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
 
-						if (pref.iTerrainAdvanced)
+						float fTmp = GGTerrain_UnitsToMeters(ggterrain_global_render_params2.editable_size * 2.0) / 1000.0f;
+						if (ImGui::SliderFloat("##UI2TerrainEditableSizeKilometers", &fTmp, 0.5, 5.0f, " "))
 						{
-							ImGui::TextCenter("Valley Depth (meters)");
-							meterValue = GGTerrain_UnitsToMeters(ggterrain_global_params.minHeight);
-							if(ImGui::MaxSliderInputFloatPower("##MinHeightRange", &meterValue, 0.0f, 1000.0f, 0, 0, 1000, 60, 2.0f, 2 ))
-							//if (ImGui::SliderFloat("##MinHeightRange", &meterValue, 0.0f, 1000.0f, "%.2f"))
+							//Cam zoom. 420000 = 5.0 , 50000 = 0.5 , perhaps 48000 per 0.5
+							ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(fTmp / 2.0) * 1000.0f;
+
+							//Reset camera to point at center of edit area.
+							if (fSnapShotModeCameraY < (fTmp * 41000.0f))
 							{
-								ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(meterValue);
-								bTriggerStableY = true;
+								fSnapShotModeCameraY = fTmp * 41000.0f;
+								if (fSnapShotModeCameraY > 344000) fSnapShotModeCameraY = 344000; //Hide ugly shadow for now.
+								fSnapShotModeCameraX = GGORIGIN_X; // +ggterrain_global_params.offset_x; It dont actual move from center.
+								fSnapShotModeCameraZ = GGORIGIN_Z; // +ggterrain_global_params.offset_z;
+								fSnapShotModeCameraAngZ = fSnapShotModeCameraAngY = 0.0f;
+								fSnapShotModeCameraAngX = 90.0f; //Look down.
 							}
 						}
-						ImGui::PopItemWidth();
-
-						//Water Height
-						//One meter = 39.3701 inch.
-						ImGui::TextCenter("Water Height (meters)");
-						float numericboxwidth = 60.0f;
-						ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-						float waterHeight = GGTerrain_UnitsToMeters(g.gdefaultwaterheight);
-						if (ImGui::SliderFloat("##UI2fWaterHeightMeters", &waterHeight, -500.0, 1500.0f, "%.1f", 2.0f))
-						{
-							g.gdefaultwaterheight = (int)GGTerrain_MetersToUnits(waterHeight);
-							t.terrain.waterliney_f = (float)g.gdefaultwaterheight;
-							Wicked_Update_Visuals((void *)&t.visuals);
-							ggterrain_extra_params.iUpdateTrees = 1;
-							bTriggerStableY = true;
-							fLastY = -1; //Trigger fog update.
-						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Height in Meters.");
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
 						ImGui::PopItemWidth();
 						ImGui::SameLine();
 						ImGui::PushItemWidth(numericboxwidth);
-						if (ImGui::InputFloat("##UI2fWaterHeightMetersText", &waterHeight, 0, 0, "%.1f M"))
+						if (ImGui::InputFloat("##UI2TerrainEditableSizeKilometersText", &fTmp, 0, 0, "%.1f Km"))
 						{
-							g.gdefaultwaterheight = (int)GGTerrain_MetersToUnits(waterHeight);
-							t.terrain.waterliney_f = (float)g.gdefaultwaterheight;
-							Wicked_Update_Visuals((void *)&t.visuals);
-							ggterrain_extra_params.iUpdateTrees = 1;
-							bTriggerStableY = true;
-							fLastY = -1; //Trigger fog update.
-
+							//ggterrain_global_render_params2.editable_size = fTmp * 39.3701 * 1000.0f;
+							ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits(fTmp / 2.0) * 1000.0f;
+							fSnapShotModeCameraY = fTmp * 48000.0f;
 						}
-						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Height in Meters.");
+						if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Editable Area Size in Kilometers.");
+
 						ImGui::PopItemWidth();
 
-						ImGui::TextCenter("Time of Day");
+						if (pref.iTerrainAdvanced)
+						{
+							if (ImGui::Checkbox("Show Editable Area", &bShowEditArea))
+							{
+							}
+							ImGui::SameLine();
 
-						const char* time_combo[] = { "Dawn", "Morning", "Midday","Afternoon", "Evening", "Dusk","Night" ,"Skybox: Fixed Time of Day" };
-						ImGui::PushItemWidth(-10);
+							bShow3DBoundary = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
+							if (ImGui::Checkbox("3D Boundary##bShow3DBoundary", &bShow3DBoundary))
+							{
+								if (bShow3DBoundary) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+								else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+							}
+						}
+						#ifndef NOMINIMAP
+						bShowMiniMap = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP) != 0;
+						if (ImGui::Checkbox("Show Mini Map##bShowMiniMap", &bShowMiniMap))
+						{
+							if (bShowMiniMap) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
+							else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MINI_MAP;
+						}
+						#endif
+						ImGui::Indent(-10);
+					}
+
+					// allow terrain to be changed except for EMPTY mode
+					if (ggterrain_extra_params.iProceduralTerrainType != 0)
+					{
+						if (ImGui::StyleCollapsingHeader("Terrain Values", ImGuiTreeNodeFlags_DefaultOpen))
+						{
+							ImGui::Indent(10);
+
+							ImGui::TextCenter("Height Range");
+
+							//Height Range
+							//FYI: fTerrainHeightStart is missing in ggterrain_global_params.
+							ImGui::PushItemWidth(-10 - 10 - 60);
+							ImGui::TextCenter("Max Height (meters)");
+							float meterValue = GGTerrain_UnitsToMeters(ggterrain_global_params.height);
+							if(ImGui::MaxSliderInputFloatPower("##HeightRange", &meterValue, 0.0f, 1000.0f, 0, 0, 1000, 60, 2.0f, 2 ))
+							{
+								ggterrain_global_params.height = GGTerrain_MetersToUnits(meterValue);
+								bTriggerStableY = true;
+							}
+
+							if (pref.iTerrainAdvanced)
+							{
+								ImGui::TextCenter("Valley Depth (meters)");
+								meterValue = GGTerrain_UnitsToMeters(ggterrain_global_params.minHeight);
+								if(ImGui::MaxSliderInputFloatPower("##MinHeightRange", &meterValue, 0.0f, 1000.0f, 0, 0, 1000, 60, 2.0f, 2 ))
+								//if (ImGui::SliderFloat("##MinHeightRange", &meterValue, 0.0f, 1000.0f, "%.2f"))
+								{
+									ggterrain_global_params.minHeight = GGTerrain_MetersToUnits(meterValue);
+									bTriggerStableY = true;
+								}
+							}
+							ImGui::PopItemWidth();
+
+							//Water Height
+							//One meter = 39.3701 inch.
+							ImGui::TextCenter("Water Height (meters)");
+							float numericboxwidth = 60.0f;
+							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+							float waterHeight = GGTerrain_UnitsToMeters(g.gdefaultwaterheight);
+							if (ImGui::SliderFloat("##UI2fWaterHeightMeters", &waterHeight, -500.0, 1500.0f, "%.1f", 2.0f))
+							{
+								g.gdefaultwaterheight = (int)GGTerrain_MetersToUnits(waterHeight);
+								t.terrain.waterliney_f = (float)g.gdefaultwaterheight;
+								Wicked_Update_Visuals((void *)&t.visuals);
+								ggterrain_extra_params.iUpdateTrees = 1;
+								bTriggerStableY = true;
+								fLastY = -1; //Trigger fog update.
+							}
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Height in Meters.");
+							ImGui::PopItemWidth();
+							ImGui::SameLine();
+							ImGui::PushItemWidth(numericboxwidth);
+							if (ImGui::InputFloat("##UI2fWaterHeightMetersText", &waterHeight, 0, 0, "%.1f M"))
+							{
+								g.gdefaultwaterheight = (int)GGTerrain_MetersToUnits(waterHeight);
+								t.terrain.waterliney_f = (float)g.gdefaultwaterheight;
+								Wicked_Update_Visuals((void *)&t.visuals);
+								ggterrain_extra_params.iUpdateTrees = 1;
+								bTriggerStableY = true;
+								fLastY = -1; //Trigger fog update.
+
+							}
+							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Water Height in Meters.");
+							ImGui::PopItemWidth();
+
+							ImGui::TextCenter("Time of Day");
+
+							const char* time_combo[] = { "Dawn", "Morning", "Midday","Afternoon", "Evening", "Dusk","Night" ,"Skybox: Fixed Time of Day" };
+							ImGui::PushItemWidth(-10);
+
+							int iChoises = IM_ARRAYSIZE(time_combo) - 1;
+							int iSelection = t.visuals.iTimeOfday;
+							bool bReadOnlyMode = !t.visuals.bDisableSkybox;
+							if (t.visuals.skyindex == 0 && t.visuals.bDisableSkybox == false) bReadOnlyMode = false; //PE: Dynamic.
+							if (bReadOnlyMode) iChoises++;
+							if (bReadOnlyMode) iSelection = 7;
+
+							if (!bReadOnlyMode)
+							{
+								ImGui::Checkbox("Random Time of Day", &bRandomizeTimeOfDay);
+							}
+
+							if (bReadOnlyMode)
+							{
+								ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+								ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+							}
+
+							if (ImGui::Combo("##ComboTimeOfDay2", &iSelection, time_combo, iChoises) || iRandomTimeOfDayChoice >= 0)
+							{
+								t.visuals.iTimeOfday = iSelection;
+								static int iLastRandomTimeOfDayChoice = -1;
+								if (iRandomTimeOfDayChoice >= 0)
+								{
+									if (iLastRandomTimeOfDayChoice == iRandomTimeOfDayChoice)
+									{
+										iRandomTimeOfDayChoice++;
+										if (iLastRandomTimeOfDayChoice == 6) iRandomTimeOfDayChoice = 0;
+									}
+								}
+								else
+								{
+									//PE: Disable randomize when user make a selection.
+									iLastUserSelectedTimeOfDay = iSelection;
+									bRandomizeTimeOfDay = false;
+								}
+								if (iRandomTimeOfDayChoice > 6) iRandomTimeOfDayChoice = 6;
+
+								if (bFirstBiomes[iSelectedThemeChoice])
+								{
+									bFirstBiomes[iSelectedThemeChoice] = false;
+									bSelectDayRandomSkybox = true;
+									//Select a day time.
+									if ((rand() % 3) == 1)
+										iRandomTimeOfDayChoice = 1;
+									else if ((rand() % 3) == 1)
+										iRandomTimeOfDayChoice = 4;
+									else
+										iRandomTimeOfDayChoice = 3;
+								}
+
+								if(iRandomTimeOfDayChoice >=0 )
+									t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday = iRandomTimeOfDayChoice;
+								else
+									t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday;
+								iLastRandomTimeOfDayChoice = iRandomTimeOfDayChoice;
+								visuals_calcsunanglefromtimeofday(t.gamevisuals.iTimeOfday, &t.gamevisuals.SunAngleX, &t.gamevisuals.SunAngleY, &t.gamevisuals.SunAngleZ);
+								t.visuals.SunAngleX = t.gamevisuals.SunAngleX;
+								t.visuals.SunAngleY = t.gamevisuals.SunAngleY;
+								t.visuals.SunAngleZ = t.gamevisuals.SunAngleZ;
+
+								oldSunAngleX = t.visuals.SunAngleX; //PE: Make sure to update after save.
+								oldSunAngleY = t.visuals.SunAngleY;
+								oldSunAngleZ = t.visuals.SunAngleZ;
+
+								Wicked_Update_Visuals((void *)&t.visuals);
+								bTriggerStableY = true;
+								fLastY = -1; //Trigger fog update.
+							}
+
+							if (bReadOnlyMode)
+							{
+								ImGui::PopItemFlag();
+								ImGui::PopStyleVar();
+							}
+
+							if (ImGui::IsItemHovered()) ImGui::SetTooltip("This sets the sun at the correct position for the time of day");
+							ImGui::PopItemWidth();
+
+
+							//Advanced start here!
+
+							extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
+							bool bStateUnchanged = true;
+							ControlAdvancedSetting(pref.iTerrainAdvanced, "advanced terrain tools", &bStateUnchanged);
+
+							if (pref.iTerrainAdvanced)
+							{
+								cstr cSpecialTooltip = "";
+								numericboxwidth = 60.0f;
+
+								//ggterrain_global_params.noise_power
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "Values above 1 make lower areas flatter, \nvalues less than 1 make higher areas flatter, \na value of 1 does not modify the noise value";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Curve");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fNoisePower", &ggterrain_global_params.noise_power, 0.0f, 10.0f, " "))
+								{
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Curve.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fNoisePowerText", &ggterrain_global_params.noise_power, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Curve.");
+								ImGui::PopItemWidth();
+
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "A value of 0 does not modify the noise value, \nvalues greater than 0 make lower areas smoother";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Falloff");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fNoiseFalloffPower", &ggterrain_global_params.noise_fallof_power, 0.0f, 10.0f, " "))
+								{
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Falloff.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fNoiseFalloffPowerText", &ggterrain_global_params.noise_fallof_power, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Falloff.");
+								ImGui::PopItemWidth();
+
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "The number of iterations of noise to use which get \nlayered on top of each other, the \nhigher the value the more bumpy the \nterrain will be, good \nvalues are around 10";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Iterations");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								float fTmp = ggterrain_global_params.fractal_levels;
+								if (ImGui::SliderFloat("##UI2fFractalIterations", &fTmp, 1.0f, 14.0f, " "))
+								{
+									ggterrain_global_params.fractal_levels = int(fTmp);
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Iterations.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fFractalIterationsText", &fTmp, 0, 0, "%.0f"))
+								{
+									ggterrain_global_params.fractal_levels = int(fTmp);
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Iterations.");
+								ImGui::PopItemWidth();
+
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "The frequency of the first layer of noise, \nlarger values will have smaller terrain features, \nsmaller values will have larger terrain features. \nSmaller values often require a larger \nheight value to get a good effect";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Initial Frequency");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fFractalInitialFrequence", &ggterrain_global_params.fractal_initial_freq, 0.01f, 8.0f, " "))
+								{
+									bTriggerStableY = true;
+
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Frequency.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fFractalInitialFrequenceText", &ggterrain_global_params.fractal_initial_freq, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Frequency.");
+								ImGui::PopItemWidth();
+
+								//PE: Noise Initial Amplitude
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "Noise Initial Amplitude: The multiplier used on the first noise layer.\nSetting this to 0 will make everything flat, whereas a value of 1\nwill utilise the full height range set by the Max Height parameter";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Initial Amplitude");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fNoise Initial Amplitude", &ggterrain_global_params.fractal_initial_amplitude, 0.0f, 1.0f, " "))
+								{
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Amplitude.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fNoise Initial AmplitudeText", &ggterrain_global_params.fractal_initial_amplitude, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Amplitude.");
+								ImGui::PopItemWidth();
+
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "How the frequency of the noise changes with \neach additional iteration, typically the frequency \nwill change by a multiple of 2.4 for each iteration. \nFor best results this value should be changed \nwith the \"Noise Amplitude Change\" value so that \n(Noise Amplitude Change)*(Noise Frequency Change) is close to 1";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Frequency Change");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fFractalFrequenceIncrease", &ggterrain_global_params.fractal_freq_increase, 0.01f, 8.0f, " "))
+								{
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Frequency Change.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fFractalFrequenceIncreaseText", &ggterrain_global_params.fractal_freq_increase, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Frequency Change.");
+								ImGui::PopItemWidth();
+
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "How the amplitude of the noise changes with \neach additional iteration, typically the amplitude \nwill change by a multiple of 0.4 for each iteration. \nFor best results this value should be changed \nwith the \"Noise Frequency Change\" value so that \n(Noise Amplitude Change)*(Noise Frequency Change) is close to 1";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Amplitude Change");
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fFractalFrequenceWeight", &ggterrain_global_params.fractal_freq_weight, 0.0f, 2.0f, " "))
+								{
+									bTriggerStableY = true;
+								}
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Amplitude Change.");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fFractalFrequenceWeightText", &ggterrain_global_params.fractal_freq_weight, 0, 0, "%.1f"))
+								{
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Amplitude Change.");
+								ImGui::PopItemWidth();
+
+								//Seed value.
+								ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
+								if (ImGui::IsItemHovered())
+								{
+									cSpecialTooltip = "A random seed that is used as \nan input to the noise generator to \ncreate different results";
+								}
+								ImGui::SameLine(); ImGui::SetCursorPosX(10);
+								ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
+								ImGui::TextCenter("Noise Seed Value");
+								ImGui::PushItemWidth(-10);
+								char ctmp[80];
+								sprintf(ctmp, "%u", ggterrain_global_params.seed);
+								if (ImGui::InputText("##seedText", ctmp, 78, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_CharsDecimal))
+								{
+									if (strlen(ctmp) > 0)
+									{
+										ggterrain_global_params.seed = atol(ctmp);
+										bTriggerStableY = true;
+								}
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Set Noise Seed Value");
+								if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
+								ImGui::PopItemWidth();
+
+								if (cSpecialTooltip != "")
+								{
+									//We are modal so special description popup.
+									ImGui::SetNextWindowSize(ImVec2(500, 0), ImGuiCond_Always);
+									ImGui::BeginTooltip();
+									ImGui::Indent(12);
+									ImGui::Text("");
+									ImGui::PushItemWidth(-12);
+									ImGui::TextWrapped(cSpecialTooltip.Get());
+									ImGui::PopItemWidth();
+									ImGui::Text("");
+									ImGui::Indent(-12);
+									ImGui::EndTooltip();
+								}
+
+							}
+
+							ImGui::Indent(-10);
+						}
+
+						extern bool bProfilerEnable;
+						if (bProfilerEnable)
+						{
+							ImGui::Separator();
+							wiScene::Scene* pScene = &wiScene::GetScene();
+							int iMeshes = pScene->meshes.GetCount();
+							int iMaterials = pScene->materials.GetCount();
+
+							int dc = wiProfiler::GetDrawCalls();
+							int dcs = wiProfiler::GetDrawCallsShadows();
+							int dct = wiProfiler::GetDrawCallsTransparent();
+
+							int tris = wiProfiler::GetPolygons();
+							int trisShadow = wiProfiler::GetPolygonsShadows();
+							int trisTransparent = wiProfiler::GetPolygonsTransparent();
+
+							ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+							ImGui::Text("DrawCalls: %d", dc);
+							ImGui::Text("DrawCallsShadows: %d", dcs);
+							ImGui::Text("DrawCallsTransparent: %d", dct);
+							ImGui::Text("Triangles: %d", tris);
+							ImGui::Text("TrianglesShadows: %d", trisShadow);
+							ImGui::Text("TrianglesTransparent: %d", trisTransparent);
+							ImGui::Text("Scene Meshes: %d", iMeshes);
+							ImGui::Text("Scene Materials: %d", iMaterials);
+							ImGui::Text("Scene Transforms: %d", (int)pScene->transforms.GetCount());
+							ImGui::Text("Scene Hierarchy: %d", (int)pScene->hierarchy.GetCount());
+							ImGui::Separator();
+							std::string profiler_data = wiProfiler::GetProfilerData();
+							ImGui::Text(profiler_data.c_str());
+						}
+					}
+					else
+					{
+						ImGui::TextCenter("Time of Day");
+				
+						const char* time_combo[] = { "Dawn", "Morning", "Midday","Afternoon", "Evening", "Dusk","Night" , "Skybox: Fixed Time of Day" };
 
 						int iChoises = IM_ARRAYSIZE(time_combo) - 1;
 						int iSelection = t.visuals.iTimeOfday;
@@ -12256,7 +12595,8 @@ void procedural_new_level(void)
 							ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 						}
 
-						if (ImGui::Combo("##ComboTimeOfDay2", &iSelection, time_combo, iChoises) || iRandomTimeOfDayChoice >= 0)
+						ImGui::PushItemWidth(-10);
+						if (ImGui::Combo("##ComboTimeOfDay3", &iSelection, time_combo, iChoises) || iRandomTimeOfDayChoice >= 0)
 						{
 							t.visuals.iTimeOfday = iSelection;
 							static int iLastRandomTimeOfDayChoice = -1;
@@ -12270,7 +12610,7 @@ void procedural_new_level(void)
 							}
 							else
 							{
-								//PE: Disable randomize when user make a selection.
+								//PE: Disable random when user make a selection.
 								iLastUserSelectedTimeOfDay = iSelection;
 								bRandomizeTimeOfDay = false;
 							}
@@ -12289,11 +12629,12 @@ void procedural_new_level(void)
 									iRandomTimeOfDayChoice = 3;
 							}
 
-							if(iRandomTimeOfDayChoice >=0 )
+							if (iRandomTimeOfDayChoice >= 0)
 								t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday = iRandomTimeOfDayChoice;
 							else
 								t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday;
 							iLastRandomTimeOfDayChoice = iRandomTimeOfDayChoice;
+
 							visuals_calcsunanglefromtimeofday(t.gamevisuals.iTimeOfday, &t.gamevisuals.SunAngleX, &t.gamevisuals.SunAngleY, &t.gamevisuals.SunAngleZ);
 							t.visuals.SunAngleX = t.gamevisuals.SunAngleX;
 							t.visuals.SunAngleY = t.gamevisuals.SunAngleY;
@@ -12316,818 +12657,462 @@ void procedural_new_level(void)
 
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("This sets the sun at the correct position for the time of day");
 						ImGui::PopItemWidth();
+					}
 
+					if (ImGui::StyleCollapsingHeader("Auto Populate Terrain", ImGuiTreeNodeFlags_DefaultOpen))
+					{
+						ImGui::Indent(10);
+						float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
 
-						//Advanced start here!
-
-						extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
-						bool bStateUnchanged = true;
-						ControlAdvancedSetting(pref.iTerrainAdvanced, "advanced terrain tools", &bStateUnchanged);
-
-						if (pref.iTerrainAdvanced)
+						if (ImGui::Checkbox("Trees", &t.visuals.bEndableTreeDrawing))
 						{
-							cstr cSpecialTooltip = "";
-							numericboxwidth = 60.0f;
-
-							//ggterrain_global_params.noise_power
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
+							t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
+							if (t.visuals.bEndableTreeDrawing)
 							{
-								cSpecialTooltip = "Values above 1 make lower areas flatter, \nvalues less than 1 make higher areas flatter, \na value of 1 does not modify the noise value";
+								ggtrees_global_params.draw_enabled = 1;
 							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Curve");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fNoisePower", &ggterrain_global_params.noise_power, 0.0f, 10.0f, " "))
+							else
 							{
-								bTriggerStableY = true;
+								ggtrees_global_params.draw_enabled = 0;
 							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Curve.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fNoisePowerText", &ggterrain_global_params.noise_power, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Curve.");
-							ImGui::PopItemWidth();
-
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "A value of 0 does not modify the noise value, \nvalues greater than 0 make lower areas smoother";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Falloff");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fNoiseFalloffPower", &ggterrain_global_params.noise_fallof_power, 0.0f, 10.0f, " "))
-							{
-								bTriggerStableY = true;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Falloff.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fNoiseFalloffPowerText", &ggterrain_global_params.noise_fallof_power, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Falloff.");
-							ImGui::PopItemWidth();
-
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "The number of iterations of noise to use which get \nlayered on top of each other, the \nhigher the value the more bumpy the \nterrain will be, good \nvalues are around 10";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Iterations");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							float fTmp = ggterrain_global_params.fractal_levels;
-							if (ImGui::SliderFloat("##UI2fFractalIterations", &fTmp, 1.0f, 14.0f, " "))
-							{
-								ggterrain_global_params.fractal_levels = int(fTmp);
-								bTriggerStableY = true;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Iterations.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fFractalIterationsText", &fTmp, 0, 0, "%.0f"))
-							{
-								ggterrain_global_params.fractal_levels = int(fTmp);
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Iterations.");
-							ImGui::PopItemWidth();
-
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "The frequency of the first layer of noise, \nlarger values will have smaller terrain features, \nsmaller values will have larger terrain features. \nSmaller values often require a larger \nheight value to get a good effect";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Initial Frequency");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fFractalInitialFrequence", &ggterrain_global_params.fractal_initial_freq, 0.01f, 8.0f, " "))
-							{
-								bTriggerStableY = true;
-
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Frequency.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fFractalInitialFrequenceText", &ggterrain_global_params.fractal_initial_freq, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Frequency.");
-							ImGui::PopItemWidth();
-
-							//PE: Noise Initial Amplitude
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "Noise Initial Amplitude: The multiplier used on the first noise layer.\nSetting this to 0 will make everything flat, whereas a value of 1\nwill utilise the full height range set by the Max Height parameter";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Initial Amplitude");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fNoise Initial Amplitude", &ggterrain_global_params.fractal_initial_amplitude, 0.0f, 1.0f, " "))
-							{
-								bTriggerStableY = true;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Amplitude.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fNoise Initial AmplitudeText", &ggterrain_global_params.fractal_initial_amplitude, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Initial Amplitude.");
-							ImGui::PopItemWidth();
-
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "How the frequency of the noise changes with \neach additional iteration, typically the frequency \nwill change by a multiple of 2.4 for each iteration. \nFor best results this value should be changed \nwith the \"Noise Amplitude Change\" value so that \n(Noise Amplitude Change)*(Noise Frequency Change) is close to 1";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Frequency Change");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fFractalFrequenceIncrease", &ggterrain_global_params.fractal_freq_increase, 0.01f, 8.0f, " "))
-							{
-								bTriggerStableY = true;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Frequency Change.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fFractalFrequenceIncreaseText", &ggterrain_global_params.fractal_freq_increase, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Frequency Change.");
-							ImGui::PopItemWidth();
-
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "How the amplitude of the noise changes with \neach additional iteration, typically the amplitude \nwill change by a multiple of 0.4 for each iteration. \nFor best results this value should be changed \nwith the \"Noise Frequency Change\" value so that \n(Noise Amplitude Change)*(Noise Frequency Change) is close to 1";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Amplitude Change");
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 6.0);
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fFractalFrequenceWeight", &ggterrain_global_params.fractal_freq_weight, 0.0f, 2.0f, " "))
-							{
-								bTriggerStableY = true;
-							}
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Amplitude Change.");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fFractalFrequenceWeightText", &ggterrain_global_params.fractal_freq_weight, 0, 0, "%.1f"))
-							{
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Noise Amplitude Change.");
-							ImGui::PopItemWidth();
-
-							//Seed value.
-							ImGui::ImgBtn(ICON_INFO, ImVec2(ImGui::GetFontSize(), ImGui::GetFontSize()), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false);
-							if (ImGui::IsItemHovered())
-							{
-								cSpecialTooltip = "A random seed that is used as \nan input to the noise generator to \ncreate different results";
-							}
-							ImGui::SameLine(); ImGui::SetCursorPosX(10);
-							ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0);
-							ImGui::TextCenter("Noise Seed Value");
-							ImGui::PushItemWidth(-10);
-							char ctmp[80];
-							sprintf(ctmp, "%u", ggterrain_global_params.seed);
-							if (ImGui::InputText("##seedText", ctmp, 78, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_CharsDecimal))
-							{
-								if (strlen(ctmp) > 0)
-								{
-									ggterrain_global_params.seed = atol(ctmp);
-									bTriggerStableY = true;
-							}
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Set Noise Seed Value");
-							if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-							ImGui::PopItemWidth();
-
-							if (cSpecialTooltip != "")
-							{
-								//We are modal so special description popup.
-								ImGui::SetNextWindowSize(ImVec2(500, 0), ImGuiCond_Always);
-								ImGui::BeginTooltip();
-								ImGui::Indent(12);
-								ImGui::Text("");
-								ImGui::PushItemWidth(-12);
-								ImGui::TextWrapped(cSpecialTooltip.Get());
-								ImGui::PopItemWidth();
-								ImGui::Text("");
-								ImGui::Indent(-12);
-								ImGui::EndTooltip();
-							}
-
 						}
-
+					
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(fButtonSizeX*0.5, ImGui::GetCursorPosY()));
+						if (ImGui::Checkbox("Vegetation", &t.visuals.bEndableGrassDrawing))
+						{
+							t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
+						}
+						if (t.visuals.bEndableGrassDrawing)
+						{
+							if (bFirstTimeVeg)
+							{
+								//PE: We need grass everywhere for this to work.
+								if (gggrass_global_params.paint_type == 0)
+									gggrass_global_params.paint_type = 1;
+								GGGrass::GGGrass_AddAll();
+								bFirstTimeVeg = false;
+							}
+							gggrass_global_params.draw_enabled = 1;
+						}
+						else
+						{
+							gggrass_global_params.draw_enabled = 0;
+						}
 						ImGui::Indent(-10);
 					}
 
-					extern bool bProfilerEnable;
-					if (bProfilerEnable)
+					if (ImGui::StyleCollapsingHeader("Import Heightmap", ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						ImGui::Separator();
-						wiScene::Scene* pScene = &wiScene::GetScene();
-						int iMeshes = pScene->meshes.GetCount();
-						int iMaterials = pScene->materials.GetCount();
+						float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 20.0f);
 
-						int dc = wiProfiler::GetDrawCalls();
-						int dcs = wiProfiler::GetDrawCallsShadows();
-						int dct = wiProfiler::GetDrawCallsTransparent();
+							ImGui::PushID(11116);
+							extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
+							ControlAdvancedSetting(pref.iEnableTerrainHeightmaps, "Heightmap Settings");
+							ImGui::PopID();
 
-						int tris = wiProfiler::GetPolygons();
-						int trisShadow = wiProfiler::GetPolygonsShadows();
-						int trisTransparent = wiProfiler::GetPolygonsTransparent();
-
-						ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-						ImGui::Text("DrawCalls: %d", dc);
-						ImGui::Text("DrawCallsShadows: %d", dcs);
-						ImGui::Text("DrawCallsTransparent: %d", dct);
-						ImGui::Text("Triangles: %d", tris);
-						ImGui::Text("TrianglesShadows: %d", trisShadow);
-						ImGui::Text("TrianglesTransparent: %d", trisTransparent);
-						ImGui::Text("Scene Meshes: %d", iMeshes);
-						ImGui::Text("Scene Materials: %d", iMaterials);
-						ImGui::Text("Scene Transforms: %d", (int)pScene->transforms.GetCount());
-						ImGui::Text("Scene Hierarchy: %d", (int)pScene->hierarchy.GetCount());
-						ImGui::Separator();
-						std::string profiler_data = wiProfiler::GetProfilerData();
-						ImGui::Text(profiler_data.c_str());
-					}
-				}
-				else
-				{
-					ImGui::TextCenter("Time of Day");
-				
-					const char* time_combo[] = { "Dawn", "Morning", "Midday","Afternoon", "Evening", "Dusk","Night" , "Skybox: Fixed Time of Day" };
-
-					int iChoises = IM_ARRAYSIZE(time_combo) - 1;
-					int iSelection = t.visuals.iTimeOfday;
-					bool bReadOnlyMode = !t.visuals.bDisableSkybox;
-					if (t.visuals.skyindex == 0 && t.visuals.bDisableSkybox == false) bReadOnlyMode = false; //PE: Dynamic.
-					if (bReadOnlyMode) iChoises++;
-					if (bReadOnlyMode) iSelection = 7;
-
-					if (!bReadOnlyMode)
-					{
-						ImGui::Checkbox("Random Time of Day", &bRandomizeTimeOfDay);
-					}
-
-					if (bReadOnlyMode)
-					{
-						ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-						ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-					}
-
-					ImGui::PushItemWidth(-10);
-					if (ImGui::Combo("##ComboTimeOfDay3", &iSelection, time_combo, iChoises) || iRandomTimeOfDayChoice >= 0)
-					{
-						t.visuals.iTimeOfday = iSelection;
-						static int iLastRandomTimeOfDayChoice = -1;
-						if (iRandomTimeOfDayChoice >= 0)
-						{
-							if (iLastRandomTimeOfDayChoice == iRandomTimeOfDayChoice)
+							//PE: Heightmaps.
+							if (pref.iEnableTerrainHeightmaps)
 							{
-								iRandomTimeOfDayChoice++;
-								if (iLastRandomTimeOfDayChoice == 6) iRandomTimeOfDayChoice = 0;
-							}
-						}
-						else
-						{
-							//PE: Disable random when user make a selection.
-							iLastUserSelectedTimeOfDay = iSelection;
-							bRandomizeTimeOfDay = false;
-						}
-						if (iRandomTimeOfDayChoice > 6) iRandomTimeOfDayChoice = 6;
-
-						if (bFirstBiomes[iSelectedThemeChoice])
-						{
-							bFirstBiomes[iSelectedThemeChoice] = false;
-							bSelectDayRandomSkybox = true;
-							//Select a day time.
-							if ((rand() % 3) == 1)
-								iRandomTimeOfDayChoice = 1;
-							else if ((rand() % 3) == 1)
-								iRandomTimeOfDayChoice = 4;
-							else
-								iRandomTimeOfDayChoice = 3;
-						}
-
-						if (iRandomTimeOfDayChoice >= 0)
-							t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday = iRandomTimeOfDayChoice;
-						else
-							t.gamevisuals.iTimeOfday = t.visuals.iTimeOfday;
-						iLastRandomTimeOfDayChoice = iRandomTimeOfDayChoice;
-
-						visuals_calcsunanglefromtimeofday(t.gamevisuals.iTimeOfday, &t.gamevisuals.SunAngleX, &t.gamevisuals.SunAngleY, &t.gamevisuals.SunAngleZ);
-						t.visuals.SunAngleX = t.gamevisuals.SunAngleX;
-						t.visuals.SunAngleY = t.gamevisuals.SunAngleY;
-						t.visuals.SunAngleZ = t.gamevisuals.SunAngleZ;
-
-						oldSunAngleX = t.visuals.SunAngleX; //PE: Make sure to update after save.
-						oldSunAngleY = t.visuals.SunAngleY;
-						oldSunAngleZ = t.visuals.SunAngleZ;
-
-						Wicked_Update_Visuals((void *)&t.visuals);
-						bTriggerStableY = true;
-						fLastY = -1; //Trigger fog update.
-					}
-
-					if (bReadOnlyMode)
-					{
-						ImGui::PopItemFlag();
-						ImGui::PopStyleVar();
-					}
-
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("This sets the sun at the correct position for the time of day");
-					ImGui::PopItemWidth();
-				}
-
-				if (ImGui::StyleCollapsingHeader("Auto Populate Terrain", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Indent(10);
-					float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
-
-					if (ImGui::Checkbox("Trees", &t.visuals.bEndableTreeDrawing))
-					{
-						t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
-						if (t.visuals.bEndableTreeDrawing)
-						{
-							ggtrees_global_params.draw_enabled = 1;
-						}
-						else
-						{
-							ggtrees_global_params.draw_enabled = 0;
-						}
-					}
-					
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(fButtonSizeX*0.5, ImGui::GetCursorPosY()));
-					if (ImGui::Checkbox("Vegetation", &t.visuals.bEndableGrassDrawing))
-					{
-						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
-					}
-					if (t.visuals.bEndableGrassDrawing)
-					{
-						if (bFirstTimeVeg)
-						{
-							//PE: We need grass everywhere for this to work.
-							if (gggrass_global_params.paint_type == 0)
-								gggrass_global_params.paint_type = 1;
-							GGGrass::GGGrass_AddAll();
-							bFirstTimeVeg = false;
-						}
-						gggrass_global_params.draw_enabled = 1;
-					}
-					else
-					{
-						gggrass_global_params.draw_enabled = 0;
-					}
-					ImGui::Indent(-10);
-				}
-
-				if (ImGui::StyleCollapsingHeader("Import Heightmap", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 20.0f);
-
-						ImGui::PushID(11116);
-						extern void ControlAdvancedSetting(int&, const char*, bool* = nullptr);
-						ControlAdvancedSetting(pref.iEnableTerrainHeightmaps, "Heightmap Settings");
-						ImGui::PopID();
-
-						//PE: Heightmaps.
-						if (pref.iEnableTerrainHeightmaps)
-						{
-							ImGui::Indent(10);
-							ImGui::TextCenter("Heightmap Scale");
-							float numericboxwidth = 60.0f;
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fheightmap_scaleslider", &ggterrain_global_params.heightmap_scale, 0.01, 10.0f, "%.2f", 2.0f))
-							{
-							bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Scale");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fheightmap_scaleText", &ggterrain_global_params.heightmap_scale, 0, 0, "%.2f"))
-							{
-							bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Scale");
-							ImGui::PopItemWidth();
-
-
-							ImGui::TextCenter("Heightmap File Format");
-
-							static int iRawFormat = 0;
-
-							//PE: Graphics program will normally export to small endian, so activate again.
-							ImGui::RadioButton("Big Endian", &iRawFormat, 0);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Big Endian");
-							ImGui::SameLine();
-							ImGui::RadioButton("Little Endian", &iRawFormat, 1);
-							if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Little Endian");
-
-							static bool bGenerateOutsideHeightmap = false;
-							if (ImGui::Checkbox("Generate Terrain Outside Heightmap", &bGenerateOutsideHeightmap))
-							{
-								GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
-								bTriggerStableY = true;
-							}
-
-							if (!bGenerateOutsideHeightmap)
-							{
-								ImGui::TextCenter("Height Value Outside Heightmap");
+								ImGui::Indent(10);
+								ImGui::TextCenter("Heightmap Scale");
+								float numericboxwidth = 60.0f;
 								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-								if (ImGui::SliderFloat("##UI2fheight_outside_heightmapslider", &ggterrain_global_params.height_outside_heightmap, -2000.0, 10000.0f, "%.2f", 2.0f))
+								if (ImGui::SliderFloat("##UI2fheightmap_scaleslider", &ggterrain_global_params.heightmap_scale, 0.01, 10.0f, "%.2f", 2.0f))
 								{
+								bTriggerStableY = true;
 								}
-								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Value Outside Heightmap");
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Scale");
 								ImGui::PopItemWidth();
 								ImGui::SameLine();
 								ImGui::PushItemWidth(numericboxwidth);
-								if (ImGui::InputFloat("##UI2fheight_outside_heightmapText", &ggterrain_global_params.height_outside_heightmap, 0, 0, "%.2f"))
+								if (ImGui::InputFloat("##UI2fheightmap_scaleText", &ggterrain_global_params.heightmap_scale, 0, 0, "%.2f"))
 								{
+								bTriggerStableY = true;
 								}
-								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Value Outside Heightmap");
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Scale");
 								ImGui::PopItemWidth();
-							}
 
-							ImGui::TextCenter("Height Map Fade Distance");
-							ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
-							if (ImGui::SliderFloat("##UI2fheight_outside_fadeslider", &ggterrain_global_params.fade_outside_heightmap, 0, 1000.0f, "%.2f", 2.0f))
-							{
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
-							ImGui::PopItemWidth();
-							ImGui::SameLine();
-							ImGui::PushItemWidth(numericboxwidth);
-							if (ImGui::InputFloat("##UI2fheight_outside_fadeText", &ggterrain_global_params.fade_outside_heightmap, 0, 0, "%.2f"))
-							{
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
-							ImGui::PopItemWidth();
 
-							//PE: Note - Should be able to import 16bit and 32bit ? and or also 32bit floats ?
-							static int mapwidth = 4096, mapheight = 4096;
-							const char* items_mapsize[] = { "1024x1024", "2048x2048", "4096x4096" ,"Custom" }; //PE: ,"Custom" later.
-							static int item_current_mapsize = 2;
+								ImGui::TextCenter("Heightmap File Format");
 
-							ImGui::TextCenter("Heightmap Raw Import Size");
+								static int iRawFormat = 0;
 
-							ImGui::PushItemWidth(-10);
-							if (ImGui::Combo("##HeightmapRawImportSize", &item_current_mapsize, items_mapsize, IM_ARRAYSIZE(items_mapsize)))
-							{
-								if (item_current_mapsize == 0)
-								{
-									mapwidth = mapheight = 1024;
-								}
-								else if (item_current_mapsize == 1)
-								{
-									mapwidth = mapheight = 2048;
-								}
-								else if (item_current_mapsize == 2)
-								{
-									mapwidth = mapheight = 4096;
-								}
-							}
-							ImGui::PopItemWidth();
-							float fContentWidth = ImGui::GetContentRegionAvailWidth();
-							if (item_current_mapsize == 3)
-							{
-								ImGui::PushItemWidth(fContentWidth * 0.25 - 10.0);
-								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-								ImGui::Text("Width ");
+								//PE: Graphics program will normally export to small endian, so activate again.
+								ImGui::RadioButton("Big Endian", &iRawFormat, 0);
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Big Endian");
 								ImGui::SameLine();
-								ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
-								if (ImGui::InputInt("##UI2imapwidthText", &mapwidth, 0, 0, 0))
-								{
+								ImGui::RadioButton("Little Endian", &iRawFormat, 1);
+								if (ImGui::IsItemHovered()) ImGui::SetTooltip("Format Little Endian");
 
-								}
-								ImGui::PopItemWidth();
-								ImGui::SameLine();
-								ImGui::SetCursorPos(ImVec2(fContentWidth*0.5 - 10.0, ImGui::GetCursorPosY()));
-								ImGui::Text("Height ");
-								ImGui::SameLine();
-								ImGui::PushItemWidth(fContentWidth * 0.25 - 10.0);
-								if (ImGui::InputInt("##UI2imapheightText", &mapheight, 0, 0, 0))
+								static bool bGenerateOutsideHeightmap = false;
+								if (ImGui::Checkbox("Generate Terrain Outside Heightmap", &bGenerateOutsideHeightmap))
 								{
-
-								}
-								ImGui::PopItemWidth();
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Raw Import Size");
-
-							if (ImGui::StyleButton("Choose Heightmap Raw File", ImVec2(fButtonSizeX, 0.0f)))
-							{
-								cStr tOldDir = GetDir();
-								char * cFileSelected;
-								cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0Raw\0*.raw\0Dat\0*.dat\0", g.mysystem.mapbankAbs_s.Get(), NULL);
-								SetDir(tOldDir.Get());
-								if (cFileSelected && strlen(cFileSelected) > 0)
-								{
+									GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
 									bTriggerStableY = true;
-									cstr import_filename = cFileSelected;
-									bool bImage = false;
-									if (import_filename.Len() > 4)
+								}
+
+								if (!bGenerateOutsideHeightmap)
+								{
+									ImGui::TextCenter("Height Value Outside Heightmap");
+									ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+									if (ImGui::SliderFloat("##UI2fheight_outside_heightmapslider", &ggterrain_global_params.height_outside_heightmap, -2000.0, 10000.0f, "%.2f", 2.0f))
 									{
-										if (cstr(Lower(Right(import_filename.Get(), 4))) == ".jpg") bImage = true;
-										if (cstr(Lower(Right(import_filename.Get(), 4))) == ".png") bImage = true;
-										if (cstr(Lower(Right(import_filename.Get(), 4))) == "jpeg") bImage = true;
 									}
-
-									if (bImage)
+									if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Value Outside Heightmap");
+									ImGui::PopItemWidth();
+									ImGui::SameLine();
+									ImGui::PushItemWidth(numericboxwidth);
+									if (ImGui::InputFloat("##UI2fheight_outside_heightmapText", &ggterrain_global_params.height_outside_heightmap, 0, 0, "%.2f"))
 									{
-										int heightmapSizeX = 0, heightmapSizeY = 0, heightmapChannels = 0;
-										uint8_t* heightmapImageData = stbi_load(import_filename.Get(), &heightmapSizeX, &heightmapSizeY, &heightmapChannels, 4);
+									}
+									if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Value Outside Heightmap");
+									ImGui::PopItemWidth();
+								}
 
-										int iDescIndex = 0;
-										if (heightmapImageData && heightmapSizeX >= 64 && heightmapSizeY >= 64 && heightmapSizeX <= 4096 && heightmapSizeY <= 4096)
+								ImGui::TextCenter("Height Map Fade Distance");
+								ImGui::PushItemWidth(-10 - 10 - numericboxwidth);
+								if (ImGui::SliderFloat("##UI2fheight_outside_fadeslider", &ggterrain_global_params.fade_outside_heightmap, 0, 1000.0f, "%.2f", 2.0f))
+								{
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
+								ImGui::PopItemWidth();
+								ImGui::SameLine();
+								ImGui::PushItemWidth(numericboxwidth);
+								if (ImGui::InputFloat("##UI2fheight_outside_fadeText", &ggterrain_global_params.fade_outside_heightmap, 0, 0, "%.2f"))
+								{
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Height Map Fade Distance");
+								ImGui::PopItemWidth();
+
+								//PE: Note - Should be able to import 16bit and 32bit ? and or also 32bit floats ?
+								static int mapwidth = 4096, mapheight = 4096;
+								const char* items_mapsize[] = { "1024x1024", "2048x2048", "4096x4096" ,"Custom" }; //PE: ,"Custom" later.
+								static int item_current_mapsize = 2;
+
+								ImGui::TextCenter("Heightmap Raw Import Size");
+
+								ImGui::PushItemWidth(-10);
+								if (ImGui::Combo("##HeightmapRawImportSize", &item_current_mapsize, items_mapsize, IM_ARRAYSIZE(items_mapsize)))
+								{
+									if (item_current_mapsize == 0)
+									{
+										mapwidth = mapheight = 1024;
+									}
+									else if (item_current_mapsize == 1)
+									{
+										mapwidth = mapheight = 2048;
+									}
+									else if (item_current_mapsize == 2)
+									{
+										mapwidth = mapheight = 4096;
+									}
+								}
+								ImGui::PopItemWidth();
+								float fContentWidth = ImGui::GetContentRegionAvailWidth();
+								if (item_current_mapsize == 3)
+								{
+									ImGui::PushItemWidth(fContentWidth * 0.25 - 10.0);
+									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+									ImGui::Text("Width ");
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, -3.0f));
+									if (ImGui::InputInt("##UI2imapwidthText", &mapwidth, 0, 0, 0))
+									{
+
+									}
+									ImGui::PopItemWidth();
+									ImGui::SameLine();
+									ImGui::SetCursorPos(ImVec2(fContentWidth*0.5 - 10.0, ImGui::GetCursorPosY()));
+									ImGui::Text("Height ");
+									ImGui::SameLine();
+									ImGui::PushItemWidth(fContentWidth * 0.25 - 10.0);
+									if (ImGui::InputInt("##UI2imapheightText", &mapheight, 0, 0, 0))
+									{
+
+									}
+									ImGui::PopItemWidth();
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("Set Heightmap Raw Import Size");
+
+								if (ImGui::StyleButton("Choose Heightmap Raw File", ImVec2(fButtonSizeX, 0.0f)))
+								{
+									cStr tOldDir = GetDir();
+									char * cFileSelected;
+									cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0Raw\0*.raw\0Dat\0*.dat\0", g.mysystem.mapbankAbs_s.Get(), NULL);
+									SetDir(tOldDir.Get());
+									if (cFileSelected && strlen(cFileSelected) > 0)
+									{
+										bTriggerStableY = true;
+										cstr import_filename = cFileSelected;
+										bool bImage = false;
+										if (import_filename.Len() > 4)
 										{
-											uint16_t *tmpdata = new uint16_t[heightmapSizeX * heightmapSizeY];
-											if (tmpdata)
-											{
-												for (int y = 0; y < heightmapSizeY; y++)
-												{
-													for (int x = 0; x < heightmapSizeX; x++)
-													{
-														int index = y * heightmapSizeX + x;
-														int iValue = heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-														if (x > 0 && y > 0 && x < heightmapSizeX - 1 && y < heightmapSizeY - 1)
-														{
-															//Some blur needed.
-															int index1 = (y + 1) * heightmapSizeX + (x + 1);
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-															index1 = y * heightmapSizeX + (x + 1);
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-															index1 = (y + 1) * heightmapSizeX + x;
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-
-															index1 = (y - 1) * heightmapSizeX + (x - 1);
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-															index1 = y * heightmapSizeX + (x - 1);
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-															index1 = (y - 1) * heightmapSizeX - x;
-															iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
-
-															iValue *= 0.2;
-														}
-														tmpdata[index] = iValue;
-
-													}
-												}
-												GGTerrain_SetHeightMap(tmpdata, heightmapSizeX, heightmapSizeY, false);
-											}
-											if (tmpdata) delete[] tmpdata;
-
+											if (cstr(Lower(Right(import_filename.Get(), 4))) == ".jpg") bImage = true;
+											if (cstr(Lower(Right(import_filename.Get(), 4))) == ".png") bImage = true;
+											if (cstr(Lower(Right(import_filename.Get(), 4))) == "jpeg") bImage = true;
 										}
 
-										if (heightmapImageData) delete[] heightmapImageData;
-									}
-									else
-									{
-										GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
-										int iRet = 0;
-										if (iRawFormat == 0)
-											iRet = GGTerrain_LoadHeightMap(import_filename.Get(), mapwidth, mapheight, true);
-										else
-											iRet = GGTerrain_LoadHeightMap(import_filename.Get(), mapwidth, mapheight, false);
-										bool bValid = false;
-										if (iRet == 0)
+										if (bImage)
 										{
-											//PE: If fail try finding the dimensions.
-											//The width and height can be calculated from the file size by taking the size in bytes, dividing by 2 and then square rooting
+											int heightmapSizeX = 0, heightmapSizeY = 0, heightmapChannels = 0;
+											uint8_t* heightmapImageData = stbi_load(import_filename.Get(), &heightmapSizeX, &heightmapSizeY, &heightmapChannels, 4);
 
-											DWORD filesize = 0;
-											HANDLE hfile = GG_CreateFile(import_filename.Get(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-											if (hfile != INVALID_HANDLE_VALUE)
+											int iDescIndex = 0;
+											if (heightmapImageData && heightmapSizeX >= 64 && heightmapSizeY >= 64 && heightmapSizeX <= 4096 && heightmapSizeY <= 4096)
 											{
-												filesize = GetFileSize(hfile, NULL);
-												CloseHandle(hfile);
-											}
-
-											if (filesize > 0)
-											{
-												int iSize = sqrt(filesize*0.5);
-												if (iRawFormat == 0)
-													iRet = GGTerrain_LoadHeightMap(import_filename.Get(), iSize, iSize, true);
-												else
-													iRet = GGTerrain_LoadHeightMap(import_filename.Get(), iSize, iSize, false);
-
-												if (iRet != 0)
+												uint16_t *tmpdata = new uint16_t[heightmapSizeX * heightmapSizeY];
+												if (tmpdata)
 												{
-													item_current_mapsize = 3;
-													mapwidth = mapheight = iSize;
+													for (int y = 0; y < heightmapSizeY; y++)
+													{
+														for (int x = 0; x < heightmapSizeX; x++)
+														{
+															int index = y * heightmapSizeX + x;
+															int iValue = heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+															if (x > 0 && y > 0 && x < heightmapSizeX - 1 && y < heightmapSizeY - 1)
+															{
+																//Some blur needed.
+																int index1 = (y + 1) * heightmapSizeX + (x + 1);
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+																index1 = y * heightmapSizeX + (x + 1);
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+																index1 = (y + 1) * heightmapSizeX + x;
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+
+																index1 = (y - 1) * heightmapSizeX + (x - 1);
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+																index1 = y * heightmapSizeX + (x - 1);
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+																index1 = (y - 1) * heightmapSizeX - x;
+																iValue += heightmapImageData[4 * index + 0] + heightmapImageData[4 * index + 1] + heightmapImageData[4 * index + 2];
+
+																iValue *= 0.2;
+															}
+															tmpdata[index] = iValue;
+
+														}
+													}
+													GGTerrain_SetHeightMap(tmpdata, heightmapSizeX, heightmapSizeY, false);
 												}
+												if (tmpdata) delete[] tmpdata;
+
 											}
+
+											if (heightmapImageData) delete[] heightmapImageData;
+										}
+										else
+										{
+											GGTerrain_SetGenerateTerrainOutsideHeightMap(bGenerateOutsideHeightmap);
+											int iRet = 0;
+											if (iRawFormat == 0)
+												iRet = GGTerrain_LoadHeightMap(import_filename.Get(), mapwidth, mapheight, true);
+											else
+												iRet = GGTerrain_LoadHeightMap(import_filename.Get(), mapwidth, mapheight, false);
+											bool bValid = false;
 											if (iRet == 0)
 											{
-												//PE: The heightmap selected was not in the correct format.
-												MessageBoxA(NULL, "The heightmap selected was not in the correct format.", "Error", 0);
-												//PE: Switch to custom raw date size if thats the problem.
-												item_current_mapsize = 3;
+												//PE: If fail try finding the dimensions.
+												//The width and height can be calculated from the file size by taking the size in bytes, dividing by 2 and then square rooting
+
+												DWORD filesize = 0;
+												HANDLE hfile = GG_CreateFile(import_filename.Get(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+												if (hfile != INVALID_HANDLE_VALUE)
+												{
+													filesize = GetFileSize(hfile, NULL);
+													CloseHandle(hfile);
+												}
+
+												if (filesize > 0)
+												{
+													int iSize = sqrt(filesize*0.5);
+													if (iRawFormat == 0)
+														iRet = GGTerrain_LoadHeightMap(import_filename.Get(), iSize, iSize, true);
+													else
+														iRet = GGTerrain_LoadHeightMap(import_filename.Get(), iSize, iSize, false);
+
+													if (iRet != 0)
+													{
+														item_current_mapsize = 3;
+														mapwidth = mapheight = iSize;
+													}
+												}
+												if (iRet == 0)
+												{
+													//PE: The heightmap selected was not in the correct format.
+													MessageBoxA(NULL, "The heightmap selected was not in the correct format.", "Error", 0);
+													//PE: Switch to custom raw date size if thats the problem.
+													item_current_mapsize = 3;
+												}
+												else
+												{
+													bValid = true;
+												}
 											}
 											else
 											{
 												bValid = true;
 											}
-										}
-										else
-										{
-											bValid = true;
-										}
-										if (bValid)
-										{
-											if (pestrcasestr(import_filename.Get(), "grandcanyon.raw"))
+											if (bValid)
 											{
-												ggterrain_global_params.noise_power = 1.0f;
-												ggterrain_global_params.noise_fallof_power = 0.0f;
-												ggterrain_global_params.fractal_initial_freq = 0.362f;
-												ggterrain_global_params.fractal_levels = 7;
-												ggterrain_global_params.fractal_freq_increase = 2.5f;
-												ggterrain_global_params.fractal_freq_weight = 0.4f;
-												ggterrain_global_params.heightmap_roughness = 0.5f;
-												ggterrain_global_params.height = GGTerrain_MetersToUnits(2290.0f);
-												ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(-55.0f);
-												ggterrain_global_params.heightmap_scale = 0.125f;
-												ggterrain_global_render_params.baseLayerMaterial = 0x100 | 30;
-												ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 30;
-												ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 14;
-												ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 15;
-												ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 16;
-												ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0);
-												ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(7.6f);
-												ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(1500);
-												ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(2.5f);
-												ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(68.24f);
-												ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(1800);
-												ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.slopeStart[0] = 0.2f;
-												ggterrain_global_render_params.slopeStart[1] = 1.0f;
-												ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-												ggterrain_global_render_params.slopeEnd[1] = 1.0f;
+												if (pestrcasestr(import_filename.Get(), "grandcanyon.raw"))
+												{
+													ggterrain_global_params.noise_power = 1.0f;
+													ggterrain_global_params.noise_fallof_power = 0.0f;
+													ggterrain_global_params.fractal_initial_freq = 0.362f;
+													ggterrain_global_params.fractal_levels = 7;
+													ggterrain_global_params.fractal_freq_increase = 2.5f;
+													ggterrain_global_params.fractal_freq_weight = 0.4f;
+													ggterrain_global_params.heightmap_roughness = 0.5f;
+													ggterrain_global_params.height = GGTerrain_MetersToUnits(2290.0f);
+													ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(-55.0f);
+													ggterrain_global_params.heightmap_scale = 0.125f;
+													ggterrain_global_render_params.baseLayerMaterial = 0x100 | 30;
+													ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 30;
+													ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 14;
+													ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 15;
+													ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 16;
+													ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0);
+													ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(7.6f);
+													ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(1500);
+													ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(2.5f);
+													ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(68.24f);
+													ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(1800);
+													ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.slopeStart[0] = 0.2f;
+													ggterrain_global_render_params.slopeStart[1] = 1.0f;
+													ggterrain_global_render_params.slopeEnd[0] = 0.4f;
+													ggterrain_global_render_params.slopeEnd[1] = 1.0f;
+												}
+												if (pestrcasestr(import_filename.Get(), "snowden.raw"))
+												{
+													ggterrain_global_params.noise_power = 1.0f;
+													ggterrain_global_params.noise_fallof_power = 0.0f;
+													ggterrain_global_params.fractal_initial_freq = 0.274f;
+													ggterrain_global_params.fractal_levels = 7;
+													ggterrain_global_params.fractal_freq_increase = 2.5f;
+													ggterrain_global_params.fractal_freq_weight = 0.4f;
+													ggterrain_global_params.heightmap_roughness = 1.0f;
+													ggterrain_global_params.heightmap_scale = 0.06f;
+													ggterrain_global_params.height = GGTerrain_MetersToUnits(1000.0f);
+													ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(-60.0f);
+													ggterrain_global_render_params.baseLayerMaterial = 0x100 | 17;
+													ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 2;
+													ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 19;
+													ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 0;
+													ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 4;
+													ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0);
+													ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(28.5f);
+													ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(2.5f);
+													ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(89.9f);
+													ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(10000);
+													ggterrain_global_render_params.slopeStart[0] = 0.2f;
+													ggterrain_global_render_params.slopeStart[1] = 1.0f;
+													ggterrain_global_render_params.slopeEnd[0] = 0.4f;
+													ggterrain_global_render_params.slopeEnd[1] = 1.0f;
+												}
 											}
-											if (pestrcasestr(import_filename.Get(), "snowden.raw"))
-											{
-												ggterrain_global_params.noise_power = 1.0f;
-												ggterrain_global_params.noise_fallof_power = 0.0f;
-												ggterrain_global_params.fractal_initial_freq = 0.274f;
-												ggterrain_global_params.fractal_levels = 7;
-												ggterrain_global_params.fractal_freq_increase = 2.5f;
-												ggterrain_global_params.fractal_freq_weight = 0.4f;
-												ggterrain_global_params.heightmap_roughness = 1.0f;
-												ggterrain_global_params.heightmap_scale = 0.06f;
-												ggterrain_global_params.height = GGTerrain_MetersToUnits(1000.0f);
-												ggterrain_global_params.offset_y = GGTerrain_MetersToUnits(-60.0f);
-												ggterrain_global_render_params.baseLayerMaterial = 0x100 | 17;
-												ggterrain_global_render_params.layerMatIndex[0] = 0x100 | 2;
-												ggterrain_global_render_params.layerMatIndex[1] = 0x100 | 19;
-												ggterrain_global_render_params.layerMatIndex[2] = 0x100 | 0;
-												ggterrain_global_render_params.slopeMatIndex[0] = 0x100 | 4;
-												ggterrain_global_render_params.layerStartHeight[0] = GGTerrain_MetersToUnits(0);
-												ggterrain_global_render_params.layerStartHeight[1] = GGTerrain_MetersToUnits(28.5f);
-												ggterrain_global_render_params.layerStartHeight[2] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerStartHeight[3] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerStartHeight[4] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerEndHeight[0] = GGTerrain_MetersToUnits(2.5f);
-												ggterrain_global_render_params.layerEndHeight[1] = GGTerrain_MetersToUnits(89.9f);
-												ggterrain_global_render_params.layerEndHeight[2] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerEndHeight[3] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.layerEndHeight[4] = GGTerrain_MetersToUnits(10000);
-												ggterrain_global_render_params.slopeStart[0] = 0.2f;
-												ggterrain_global_render_params.slopeStart[1] = 1.0f;
-												ggterrain_global_render_params.slopeEnd[0] = 0.4f;
-												ggterrain_global_render_params.slopeEnd[1] = 1.0f;
-											}
-										}
 
+										}
 									}
 								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Heightmap Raw File");
+
+								if (ImGui::StyleButton("Remove Heightmap Data", ImVec2(fButtonSizeX, 0.0f)))
+								{
+									GGTerrain_RemoveHeightMap();
+									bTriggerStableY = true;
+								}
+								if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Remove Heightmap Data");
+								ImGui::Indent(-10);
 							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Import Heightmap Raw File");
-
-							if (ImGui::StyleButton("Remove Heightmap Data", ImVec2(fButtonSizeX, 0.0f)))
-							{
-								GGTerrain_RemoveHeightMap();
-								bTriggerStableY = true;
-							}
-							if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Remove Heightmap Data");
-							ImGui::Indent(-10);
 						}
-					}
 
 
-				//## Terrain Buttons ##
-				ImGui::BeginChild("##ChildProceduralButtons", ImVec2(0, ImGui::GetFontSize() * 5.0 + 3.0), true, ImGuiWindowFlags_ForceRender | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoSavedSettings);
-				ImGui::Indent(10);
-				float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
+					//## Terrain Buttons ##
+					ImGui::BeginChild("##ChildProceduralButtons", ImVec2(0, ImGui::GetFontSize() * 5.0 + 3.0), true, ImGuiWindowFlags_ForceRender | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoSavedSettings);
+					ImGui::Indent(10);
+					float fButtonSizeX = (ImGui::GetContentRegionAvailWidth() - 10.0f);
 
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 10.0f));
-				if (ImGui::StyleButton("Save Terrain Settings", ImVec2(fButtonSizeX, 0.0f)))
-				{
-					//PE: Make sure folder exists.
-					char destination[MAX_PATH];
-					strcpy(destination, "databank\\terrainsettings\\");
-					GG_GetRealPath(destination, 1);
-					MakeDirectory(destination);
-					cstr terrainfile = "";
-
-					t.returnstring_s = "";
-					cStr tOldDir = GetDir();
-					char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "ter\0*.ter\0", destination, NULL, true);
-					SetDir(tOldDir.Get());
-					if (cFileSelected && strlen(cFileSelected) > 0) 
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 10.0f));
+					if (ImGui::StyleButton("Save Terrain Settings", ImVec2(fButtonSizeX, 0.0f)))
 					{
-						t.returnstring_s = cFileSelected;
-					}
-					if (t.returnstring_s != "")
-					{
-						if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".ter")  t.returnstring_s = t.returnstring_s + ".ter";
-						terrainfile = t.returnstring_s;
+						//PE: Make sure folder exists.
+						char destination[MAX_PATH];
+						strcpy(destination, "databank\\terrainsettings\\");
+						GG_GetRealPath(destination, 1);
+						MakeDirectory(destination);
+						cstr terrainfile = "";
 
-						bool oksave = true;
-						if (FileExist(terrainfile.Get())) {
-							oksave = overWriteFileBox(terrainfile.Get());
-						}
-						if (oksave)
+						t.returnstring_s = "";
+						cStr tOldDir = GetDir();
+						char * cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_SAVE, "ter\0*.ter\0", destination, NULL, true);
+						SetDir(tOldDir.Get());
+						if (cFileSelected && strlen(cFileSelected) > 0) 
 						{
-							//Save here.
-							GGTerrainFile_SaveTerrainData(terrainfile.Get(), g.gdefaultwaterheight);
+							t.returnstring_s = cFileSelected;
 						}
-					}
-
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Save Terrain Settings");
-
-				if (ImGui::StyleButton("Load Terrain Settings", ImVec2(fButtonSizeX, 0.0f)))
-				{
-					//PE: Make sure folder exists.
-					char destination[MAX_PATH];
-					strcpy(destination, "databank\\terrainsettings\\");
-					GG_GetRealPath(destination, 1);
-					MakeDirectory(destination);
-
-					cStr tOldDir = GetDir();
-					char * cFileSelected;
-					cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "ter\0*.ter\0", destination, NULL, true);
-					SetDir(tOldDir.Get());
-					if (cFileSelected && strlen(cFileSelected) > 0)
-					{
-						t.returnstring_s = cFileSelected;
 						if (t.returnstring_s != "")
 						{
-							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".ter")
+							if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) != ".ter")  t.returnstring_s = t.returnstring_s + ".ter";
+							terrainfile = t.returnstring_s;
+
+							bool oksave = true;
+							if (FileExist(terrainfile.Get())) {
+								oksave = overWriteFileBox(terrainfile.Get());
+							}
+							if (oksave)
 							{
-								//Load settings.
-								GGTerrainFile_LoadTerrainData(t.returnstring_s.Get(), true);
-								bTreeGlobalInit = false;
-								bTriggerStableY = true;
+								//Save here.
+								GGTerrainFile_SaveTerrainData(terrainfile.Get(), g.gdefaultwaterheight);
+							}
+						}
+
+					}
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Save Terrain Settings");
+
+					if (ImGui::StyleButton("Load Terrain Settings", ImVec2(fButtonSizeX, 0.0f)))
+					{
+						//PE: Make sure folder exists.
+						char destination[MAX_PATH];
+						strcpy(destination, "databank\\terrainsettings\\");
+						GG_GetRealPath(destination, 1);
+						MakeDirectory(destination);
+
+						cStr tOldDir = GetDir();
+						char * cFileSelected;
+						cFileSelected = (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "ter\0*.ter\0", destination, NULL, true);
+						SetDir(tOldDir.Get());
+						if (cFileSelected && strlen(cFileSelected) > 0)
+						{
+							t.returnstring_s = cFileSelected;
+							if (t.returnstring_s != "")
+							{
+								if (cstr(Lower(Right(t.returnstring_s.Get(), 4))) == ".ter")
+								{
+									//Load settings.
+									GGTerrainFile_LoadTerrainData(t.returnstring_s.Get(), true);
+									bTreeGlobalInit = false;
+									bTriggerStableY = true;
+								}
 							}
 						}
 					}
-				}
-				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Load Terrain Settings");
+					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Load Terrain Settings");
 
-				ImGui::SetWindowFontScale(1.0);
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
-				ImGui::Indent(-10);
-				ImGui::EndChild();
+					ImGui::SetWindowFontScale(1.0);
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, 3.0f));
+					ImGui::Indent(-10);
+					ImGui::EndChild();
+				}
 
 				//## Terrain Buttons END ##
 				if (!pref.bHideTutorials)

@@ -2814,8 +2814,6 @@ void mapeditorexecutable_loop(void)
 		ImVec2 tool_selected_padding = { 1.0, 1.0 };
 
 		CheckTutorialAction("TOOL_SHAPE", -10.0f); //Tutorial: check if we are waiting for this action
-		#ifdef WICKEDENGINE
-		//if (t.grideditselect == 0 && t.terrain.terrainpaintermode >= 1 && t.terrain.terrainpaintermode <= 5 ) 
 		if (t.grideditselect == 0 && t.terrain.terrainpaintermode >= 1 && t.terrain.terrainpaintermode <= 12)
 		{
 			//PE: Keep selection in all sculpt modes.
@@ -2827,36 +2825,29 @@ void mapeditorexecutable_loop(void)
 		{
 			drawCol_tmp = drawCol_back_terrain;
 		}
-		//if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, drawCol_tmp, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors))
-		if (ImGui::ImgBtn(TOOL_TERRAIN_TOOLBAR, iToolbarIconSize, drawCol_tmp, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors))
-		#else
-		if (current_mode == TOOL_SHAPE) drawCol_tmp = drawCol_back_terrain*drawCol_back_active; else drawCol_tmp = drawCol_back_terrain;
-		if (current_mode == TOOL_SHAPE && pref.current_style >= 0) window->DrawList->AddRect( (window->DC.CursorPos - tool_selected_padding) , window->DC.CursorPos + tool_selected_padding + iToolbarIconSize , ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-		if (ImGui::ImgBtn(TOOL_SHAPE, iToolbarIconSize, drawCol_tmp, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors))
-		#endif
+		if (t.visuals.bEnableEmptyLevelMode == false)
 		{
-			CloseAllOpenTools();
-			if (bTutorialCheckAction) TutorialNextAction();
-			#ifdef WICKEDENGINE
-			if (!pref.iEnableSingleRightPanelAdvanced)
+			if (ImGui::ImgBtn(TOOL_TERRAIN_TOOLBAR, iToolbarIconSize, drawCol_tmp, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant, false, false, false, bBoostIconColors))
 			{
-				Weather_Tools_Window = false;
-				Visuals_Tools_Window = false;
-				//LB: Shooter now a filter mode Shooter_Tools_Window = false;
-				iRestoreLastWindow = 0;
-			}
-			#endif
-
-			bForceKey = true;
-			csForceKey = "t";
-			bForceKey2 = true;
-			csForceKey2 = "1";
-		}
+				CloseAllOpenTools();
+				if (bTutorialCheckAction) TutorialNextAction();
 #ifdef WICKEDENGINE
-		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Terrain, Painting, Trees and Vegetation (T)"); //"Terrain Tools"
-#else
-		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Shape Mode");
+				if (!pref.iEnableSingleRightPanelAdvanced)
+				{
+					Weather_Tools_Window = false;
+					Visuals_Tools_Window = false;
+					//LB: Shooter now a filter mode Shooter_Tools_Window = false;
+					iRestoreLastWindow = 0;
+				}
 #endif
+
+				bForceKey = true;
+				csForceKey = "t";
+				bForceKey2 = true;
+				csForceKey2 = "1";
+			}
+			if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Terrain, Painting, Trees and Vegetation (T)"); //"Terrain Tools"
+		}
 		ImGui::SameLine();
 
 #ifndef WICKEDENGINE
@@ -3646,7 +3637,8 @@ void mapeditorexecutable_loop(void)
 		if (ImGui::ImgBtn(QUESTION_ICON, iToolbarIconSize, toggle_color, drawCol_normal/**drawCol_Selection*/, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant,
 			false, false, false, bBoostIconColors))
 		{
-			ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
+			//ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
+			ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 		}
 		if (ImGui::IsItemHovered())ImGui::SetTooltip("Open GameGuru MAX User Guide");
 
@@ -13725,18 +13717,21 @@ void mapeditorexecutable_loop(void)
 
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.25f));
 				ImGui::Text("Game Elements");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Editable Area 2D Edge");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Editable Area 3D Edge");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Trees");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Vegetation");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Water");
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize*0.5f));
-				ImGui::Text("Terrain");
+				if (t.visuals.bEnableEmptyLevelMode == false)
+				{
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Editable Area 2D Edge");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Editable Area 3D Edge");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Trees");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Vegetation");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Water");
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(0.0f, fFontSize * 0.5f));
+					ImGui::Text("Terrain");
+				}
 				ImGui::NextColumn();
 				ImGui::SetColumnWidth(1, content_avail.x * 0.2f);
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(-1.0f, 0.0f));
@@ -13751,71 +13746,72 @@ void mapeditorexecutable_loop(void)
 					t.showeditorelements = bShow;
 					editor_toggle_element_vis(bShow);
 				}
-				
-				// Editor 2D boundary.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE) ? 1 : 0;
-				if (ImGui::Checkbox("##Editor2DBounds", &bShow))
+				if (t.visuals.bEnableEmptyLevelMode == false)
 				{
-					if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-					else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
-				}
-				
-				// Editor 3D boundary.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
-				if (ImGui::Checkbox("##Editor3DBounds", &bShow))
-				{
-					if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-					else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
-				}
-				
-				// Editor Trees.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (t.showeditortrees < 0)
-					t.showeditortrees = t.visuals.bEndableTreeDrawing;
-				bShow = t.showeditortrees;
-				if (ImGui::Checkbox("##EditorTrees", &bShow))
-				{
-					//t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
-					//ggtrees_global_params.draw_enabled = t.visuals.bEndableTreeDrawing;
-					ggtrees_global_params.draw_enabled = bShow;
-					t.showeditortrees = bShow;
-				}
-				
-				// Editor Vegetation.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (t.showeditorveg < 0)
-					t.showeditorveg = t.visuals.bEndableGrassDrawing;
-				bShow = t.showeditorveg;
-				if (ImGui::Checkbox("##EditorVeg", &bShow))
-				{
-					gggrass_global_params.draw_enabled = bShow;
-					t.showeditorveg = bShow;
-				}
-				
-				// Editor Water.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (t.showeditorwater < 0)
-					t.showeditorwater = t.visuals.bWaterEnable;
-				bShow = t.showeditorwater;
-				if (ImGui::Checkbox("##EditorWater", &bShow))
-				{
-					t.showeditorwater = bShow;
-					Wicked_Update_Visuals((void *)&t.visuals);	
-				}
+					// Editor 2D boundary.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE) ? 1 : 0;
+					if (ImGui::Checkbox("##Editor2DBounds", &bShow))
+					{
+						if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
+						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
+					}
 
-				// Editor Terrain.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
-				if (t.showeditorterrain < 0)
-					t.showeditorterrain = t.visuals.bEndableTerrainDrawing;
-				bShow = t.showeditorterrain;
-				if (ImGui::Checkbox("##EditorTerrain", &bShow))
-				{
-					t.showeditorterrain = bShow;
-					Wicked_Update_Visuals((void*)&t.visuals);
-				}
+					// Editor 3D boundary.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					bShow = (ggterrain_global_render_params2.flags2 & GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D) != 0;
+					if (ImGui::Checkbox("##Editor3DBounds", &bShow))
+					{
+						if (bShow) ggterrain_global_render_params2.flags2 |= GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+						else ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE_3D;
+					}
 
+					// Editor Trees.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					if (t.showeditortrees < 0)
+						t.showeditortrees = t.visuals.bEndableTreeDrawing;
+					bShow = t.showeditortrees;
+					if (ImGui::Checkbox("##EditorTrees", &bShow))
+					{
+						//t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
+						//ggtrees_global_params.draw_enabled = t.visuals.bEndableTreeDrawing;
+						ggtrees_global_params.draw_enabled = bShow;
+						t.showeditortrees = bShow;
+					}
+
+					// Editor Vegetation.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					if (t.showeditorveg < 0)
+						t.showeditorveg = t.visuals.bEndableGrassDrawing;
+					bShow = t.showeditorveg;
+					if (ImGui::Checkbox("##EditorVeg", &bShow))
+					{
+						gggrass_global_params.draw_enabled = bShow;
+						t.showeditorveg = bShow;
+					}
+
+					// Editor Water.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					if (t.showeditorwater < 0)
+						t.showeditorwater = t.visuals.bWaterEnable;
+					bShow = t.showeditorwater;
+					if (ImGui::Checkbox("##EditorWater", &bShow))
+					{
+						t.showeditorwater = bShow;
+						Wicked_Update_Visuals((void*)&t.visuals);
+					}
+
+					// Editor Terrain.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(4.0f, 0.0f));
+					if (t.showeditorterrain < 0)
+						t.showeditorterrain = t.visuals.bEndableTerrainDrawing;
+					bShow = t.showeditorterrain;
+					if (ImGui::Checkbox("##EditorTerrain", &bShow))
+					{
+						t.showeditorterrain = bShow;
+						Wicked_Update_Visuals((void*)&t.visuals);
+					}
+				}
 				ImGui::NextColumn();
 								
 				ImGui::SetColumnWidth(2, content_avail.x * 0.18f);
@@ -13828,39 +13824,40 @@ void mapeditorexecutable_loop(void)
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
 				if (ImGui::Checkbox("##LevelElements", &bShow))
 				t.showtestgameelements = bShow;
-				
-				// Test level 2D boundary.
-				bShow = t.showtestgame2dbounds;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##Level2DBounds", &bShow))
-				t.showtestgame2dbounds = bShow;
-				
-				// Test level 3D boundary.
-				bShow = t.showtestgame3dbounds;
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##Level3DBounds", &bShow))
-				t.showtestgame3dbounds = bShow;
-				
-				// Test level Trees.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelTrees", &t.visuals.bEndableTreeDrawing))
-					t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
-				
-				// Test level Vegetation.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelVeg", &t.visuals.bEndableGrassDrawing))
-					t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
-				
-				// Test level Water.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelWater", &t.visuals.bWaterEnable))
-					t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
-				
-				// Test level Terrain.
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
-				if (ImGui::Checkbox("##LevelTerrain", &t.visuals.bEndableTerrainDrawing))
-					t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing;
+				if (t.visuals.bEnableEmptyLevelMode == false)
+				{
+					// Test level 2D boundary.
+					bShow = t.showtestgame2dbounds;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##Level2DBounds", &bShow))
+						t.showtestgame2dbounds = bShow;
 
+					// Test level 3D boundary.
+					bShow = t.showtestgame3dbounds;
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##Level3DBounds", &bShow))
+						t.showtestgame3dbounds = bShow;
+
+					// Test level Trees.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##LevelTrees", &t.visuals.bEndableTreeDrawing))
+						t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing;
+
+					// Test level Vegetation.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##LevelVeg", &t.visuals.bEndableGrassDrawing))
+						t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing;
+
+					// Test level Water.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##LevelWater", &t.visuals.bWaterEnable))
+						t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
+
+					// Test level Terrain.
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(5.0f, 0.0f));
+					if (ImGui::Checkbox("##LevelTerrain", &t.visuals.bEndableTerrainDrawing))
+						t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing;
+				}
 				ImGui::Columns(1);
 			}
 
@@ -13881,8 +13878,20 @@ void mapeditorexecutable_loop(void)
 				}
 			}
 
-			ImGui::End();
+			// note to show we are in completely empty level mode
+			if (t.visuals.bEnableEmptyLevelMode == true)
+			{
+				// this mode is activated when the terrain is first generated
+				ImGui::TextCenter("");
+				ImGui::TextCenter("Completely Empty Level Mode");
+				ImGui::TextCenter("");
+				ImGui::TextCenter("This is a special mode set in");
+				ImGui::TextCenter("the Terrain Generator to force");
+				ImGui::TextCenter("terrain, water and other default");
+				ImGui::TextCenter("elements to be removed from level");
+			}
 
+			ImGui::End();
 
 			#ifdef WICKEDENGINE
 			//#########################
@@ -18080,6 +18089,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bEndableTreeDrawing = t.gamevisuals.bEndableTreeDrawing;
 	t.visuals.bEndableGrassDrawing = t.gamevisuals.bEndableGrassDrawing;
 	t.visuals.bEndableTerrainDrawing = t.gamevisuals.bEndableTerrainDrawing;
+	t.visuals.bEnableEmptyLevelMode = t.gamevisuals.bEnableEmptyLevelMode;
 
 	t.visuals.iHeightmapWidth = t.gamevisuals.iHeightmapWidth;
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight;
@@ -24493,37 +24503,20 @@ void editor_camera(void)
 				t.traise_f=0.0;
 				if (  t.inputsys.keyshift == 1 ) 
 				{
-					#ifdef WICKEDENGINE
 					fAccelerationTimer += g.timeelapsed_f * 0.005f;
 					if (fAccelerationTimer > 1.0f) fAccelerationTimer = 1.0f;
-					// reduce this until we sort out scale!
 					t.tffcspeed_f=10.0*g.timeelapsed_f;
-					#else
-					t.tffcspeed_f=300.0*g.timeelapsed_f;
-					#endif
 				}
 				else
 				{
-					#ifdef WICKEDENGINE
 					fAccelerationTimer = 0.0f;
-					#endif					
 					if (  t.inputsys.keycontrol == 1 ) 
 					{
-						#ifdef WICKEDENGINE
-						// reduce this until we sort out scale!
 						t.tffcspeed_f=1.0*g.timeelapsed_f;
-						#else
-						t.tffcspeed_f=5.0*g.timeelapsed_f;
-						#endif
 					}
 					else
 					{
-						#ifdef WICKEDENGINE
-						// reduce this until we sort out scale!
 						t.tffcspeed_f=5.0*g.timeelapsed_f;
-						#else
-						t.tffcspeed_f=35.0*g.timeelapsed_f;
-						#endif
 					}
 				}
 				#if defined(ENABLEIMGUI)
@@ -24534,29 +24527,33 @@ void editor_camera(void)
 				}
 				#endif
 
-				//PE: Classic way to fast.
-				#ifndef PRODUCTCLASSIC
-				#ifndef PRODUCTV3
 				// Only increase movement speed when not in the importer or CCP.
 				if (t.importer.importerActive == 0 && !g_bCharacterCreatorPlusActivated)
 				{
-					// modify movement speed based on camera height
-					// LBNOTE: Should not be based on pure height, but height relative to terrain on which objects are being managed
-					float fHeightAtThisPartOfTerrain = BT_GetGroundHeight(t.terrain.TerrainID, t.editorfreeflight.c.x_f, t.editorfreeflight.c.z_f);
-					float height = t.editorfreeflight.c.y_f - fHeightAtThisPartOfTerrain;
-					if (height < 0) height = 0;
-					float modifier = height * height * 0.00001f + 2 + 50 * fAccelerationTimer; // ZJ: added 50 * fAccelerationTimer so you can reach the same high speed when holding shift, regardless of height.
-					if (modifier > 50) modifier = 50;
-					if (modifier < 2) modifier = 2;
-					t.tffcspeed_f *= modifier;
-
-					// Add additional acceleration when shift is pressed.
-					//t.tffcspeed_f += 30 * fAccelerationTimer;
+					if (t.visuals.bEnableEmptyLevelMode == true)
+					{
+						// modify movement speed based on time holding down shift
+						float modifier =  50 * fAccelerationTimer;
+						if (modifier > 50) modifier = 50;
+						if (modifier < 2) modifier = 2;
+						t.tffcspeed_f *= modifier;
+					}
+					else
+					{
+						// modify movement speed based on camera height
+						// LBNOTE: Should not be based on pure height, but height relative to terrain on which objects are being managed
+						float fHeightAtThisPartOfTerrain = BT_GetGroundHeight(t.terrain.TerrainID, t.editorfreeflight.c.x_f, t.editorfreeflight.c.z_f);
+						float height = t.editorfreeflight.c.y_f - fHeightAtThisPartOfTerrain;
+						if (height < 0) height = 0;
+						float modifier = height * height * 0.00001f + 2 + 50 * fAccelerationTimer; // ZJ: added 50 * fAccelerationTimer so you can reach the same high speed when holding shift, regardless of height.
+						if (modifier > 50) modifier = 50;
+						if (modifier < 2) modifier = 2;
+						t.tffcspeed_f *= modifier;
+					}
 				}
+
 				// speed up wheel movement
 				if ( usingWheel ) t.tffcspeed_f *= 4;
-				#endif
-				#endif
 
 				#ifdef WICKEDENGINE
 				if (t.inputsys.k_s == "e")  t.traise_f = -90;

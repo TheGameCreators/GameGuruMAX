@@ -2891,36 +2891,6 @@ btCollisionShape* g_pTerrainShape = 0;
 
 void ODECreateGGTerrain()
 {
-	/*
-	uint32_t iSizeX = 512;
-	uint32_t iSizeZ = 512;
-	float minHeight = 0;
-	float maxHeight = 50;
-	terrainOffsetY = (maxHeight-minHeight) / 2.0f;
-
-	float halfX = (iSizeX - 1) / 2.0f;
-	float halfZ = (iSizeZ - 1) / 2.0f;
-
-	float* data = new float[ iSizeX * iSizeZ ];
-	uint32_t index = 0;
-	for( uint32_t y = 0; y < iSizeZ; y++ )
-	{
-		float fY = y / halfZ;
-		if ( fY > 1 ) fY = 2 - fY;
-		float heightY = fY*fY * (3 - 2*fY);
-
-		for( uint32_t x = 0; x < iSizeX; x++ )
-		{
-			float fX = x / halfX;
-			if ( fX > 1 ) fX = 2 - fX;
-			float heightX = fX*fX * (3 - 2*fX);
-
-			data[ index ] = heightX * heightY * maxHeight;
-
-			index++;
-		}
-	}
-	*/
 	g_pTerrainShape = new GGTerrainPhysicsShape( gSc );
 
 	g_collisionShapes.push_back( g_pTerrainShape );

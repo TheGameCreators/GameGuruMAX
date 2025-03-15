@@ -346,6 +346,7 @@ void visuals_resetvalues (bool bNewLevel)
 		t.visuals.bEndableTreeDrawing = false;
 		t.visuals.bEndableGrassDrawing = false;
 		t.visuals.bEndableTerrainDrawing = true;
+		t.visuals.bEnableEmptyLevelMode = false;
 
 		t.showeditortrees = false; //Editor also follow this on new level.
 		t.showeditorveg = false;
@@ -1046,6 +1047,8 @@ void visuals_save ( void )
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.EndableTerrainDrawing=" + Str(t.visuals.bEndableTerrainDrawing);
 	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.EnableEmptyLevelMode=" + Str(t.visuals.bEnableEmptyLevelMode);
+	WriteString(1, t.strwork.Get());
 
 	t.strwork = ""; t.strwork = t.strwork + "visuals.HeightmapWidth=" + Str(t.visuals.iHeightmapWidth);
 	WriteString(1, t.strwork.Get());
@@ -1229,6 +1232,7 @@ void visuals_load ( void )
 	t.visuals.bEndableTreeDrawing = false;
 	t.visuals.bEndableGrassDrawing = false;
 	t.visuals.bEndableTerrainDrawing = true;
+	t.visuals.bEnableEmptyLevelMode = false;
 
 	t.visuals.iHeightmapWidth = 0;
 	t.visuals.iHeightmapHeight = 0;
@@ -1596,7 +1600,8 @@ void visuals_load ( void )
 			t.try_s = "visuals.EndableTreeDrawing"; if (t.tfield_s == t.try_s)  t.visuals.bEndableTreeDrawing = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EndableGrassDrawing"; if (t.tfield_s == t.try_s)  t.visuals.bEndableGrassDrawing = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.EndableTerrainDrawing"; if (t.tfield_s == t.try_s)  t.visuals.bEndableTerrainDrawing = ValF(t.tvalue_s.Get());
-
+			t.try_s = "visuals.EnableEmptyLevelMode"; if (t.tfield_s == t.try_s)  t.visuals.bEnableEmptyLevelMode = ValF(t.tvalue_s.Get());
+			
 			t.try_s = "visuals.HeightmapWidth"; if (t.tfield_s == t.try_s)  t.visuals.iHeightmapWidth = ValF(t.tvalue_s.Get());
 			t.try_s = "visuals.HeightmapHeight"; if (t.tfield_s == t.try_s)  t.visuals.iHeightmapHeight = ValF(t.tvalue_s.Get());
 

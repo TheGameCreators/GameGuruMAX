@@ -858,7 +858,11 @@ void lua_loop_allentities ( void )
 
 		// this entity
 		int thisentid = t.entityelement[t.e].bankindex;
-		if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
+		// LB210325 - why does "eleprof.spawnatstart==0" allow LUA_main to be called? Not active and not 'spawned at start' meansd no logic until something else spawns it (this caused cloned characters to clone the StartScript they moved into to be their main one, ie attack->patrol then stuck there)
+		// if ( thisentid>0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0 || t.entityelement[t.e].eleprof.spawnatstart==0) ) 
+		// and only allow phyalways to work if spawn at start is not 0 (otherwise the always run logic will apply to entities not spawned in the level)
+		//if (thisentid > 0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || t.entityelement[t.e].eleprof.phyalways != 0))
+		if (thisentid > 0 && (t.entityelement[t.e].active != 0 || t.entityelement[t.e].lua.flagschanged == 2 || (t.entityelement[t.e].eleprof.phyalways != 0 && t.entityelement[t.e].eleprof.spawnatstart != 0)))
 		{
 			// skip new entities still in spawn activation sequence
 			if (t.entityelement[t.e].lua.flagschanged == 123)

@@ -11994,6 +11994,7 @@ void procedural_new_level(void)
 						t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = 0;
 						t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = 1;
 						t.gamevisuals.bEnableEmptyLevelMode = t.visuals.bEnableEmptyLevelMode = false;
+						t.gamevisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode = false;
 
 						//PE: Default tree and grass setup.
 						if (iLastTreeGrassSettings != 0)
@@ -12053,10 +12054,10 @@ void procedural_new_level(void)
 				}
 				if (iSelectedThemeChoice == 8)
 				{
-					if (ImGui::StyleCollapsingHeader("Empty Level Settings", ImGuiTreeNodeFlags_DefaultOpen))
+					if (ImGui::StyleCollapsingHeader("Disable Level Aspects", ImGuiTreeNodeFlags_DefaultOpen))
 					{
 						bool bCompletelyEmpty = t.gamevisuals.bEnableEmptyLevelMode;
-						if (ImGui::Checkbox("Completely Empty", &bCompletelyEmpty))
+						if (ImGui::Checkbox("Completely Empty Level", &bCompletelyEmpty))
 						{
 							if (bCompletelyEmpty == true)
 							{
@@ -12069,7 +12070,9 @@ void procedural_new_level(void)
 								t.showeditorveg = gggrass_global_params.draw_enabled = false;
 
 								// make universe massive and hide all markings
-								ggterrain_global_render_params2.editable_size = 999999;
+								float fFiftyKilometersForSpaceGames = 50.0f;
+								static float fNewEditasbleSize = GGTerrain_MetersToUnits(fFiftyKilometersForSpaceGames / 2.0);
+								ggterrain_global_render_params2.editable_size = fNewEditasbleSize * 1000.0f;
 								bShowEditArea = false; ggterrain_global_render_params2.flags2 &= ~GGTERRAIN_SHADER_FLAG2_SHOW_MAP_SIZE;
 
 								// master flag to activate completely empty mode
@@ -12083,6 +12086,16 @@ void procedural_new_level(void)
 							Wicked_Update_Visuals((void*)&t.visuals);
 						}
 						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Additionally removes terrain, water and related defaults");
+
+						bool bZeroNavMeshMode = t.gamevisuals.bEnableZeroNavMeshMode;
+						if (ImGui::Checkbox("Do Not Generate Navmesh", &bZeroNavMeshMode))
+						{
+							if (bZeroNavMeshMode == true)
+								t.gamevisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode = true;
+							else
+								t.gamevisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode = false;
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Additionally removes navmesh generation (prevents any AI logic from detecting walkable areas");
 					}
 				}
 				if(t.visuals.bEnableEmptyLevelMode==false)

@@ -449,6 +449,21 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	vecMinArea.z -= 1000;
 	vecMaxArea.z += 1000;
 
+	// reuse navmeshlimiter to create a tiny navmesh nothing could possibly use (but keep navmesh calls working)
+	bool bIgnoreStaticStuff = false;
+	if (t.visuals.bEnableZeroNavMeshMode == true)
+	{
+		vecMinArea.x = -51050;
+		vecMaxArea.x = -51000;
+		vecMinArea.z = -51050;
+		vecMaxArea.z = -51000;
+		vecCustomPlayAreaMin.x = -51050;
+		vecCustomPlayAreaMax.x = -51000;
+		vecCustomPlayAreaMin.z = -51050;
+		vecCustomPlayAreaMax.z = -51000;
+		bIgnoreStaticStuff = true;
+	}
+
 	// terrain geometry
 	int iLimbIndex = 1;
 	int iTerrainObj = iBuildAllLevelObj;
@@ -543,132 +558,135 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	}
 
 	// all static objects in level
-	for (int e = 1; e <= g.entityelementlist; e++)
+	if (bIgnoreStaticStuff == false)
 	{
-		if (t.entityelement[e].staticflag == 1)
+		for (int e = 1; e <= g.entityelementlist; e++)
 		{
-			int iObj = t.entityelement[e].obj;
-			int iBankindex = t.entityelement[e].bankindex;
-			bool bValid = true;
-			if (t.entityprofile[iBankindex].ismarker != 0) bValid = false;
-			if (t.entityprofile[iBankindex].collisionmode == 11) bValid = false;
-			if (t.entityprofile[iBankindex].collisionmode == 12) bValid = false;
-			if (t.entityprofile[iBankindex].isammo == 1) bValid = false;
-			if (t.entityprofile[iBankindex].isweapon_s.Len() > 1) bValid = false;
-
-			if (bValid && iObj > 0 && ObjectExist(iObj) == 1)
+			if (t.entityelement[e].staticflag == 1)
 			{
-				// get position of static obstruction
-				GGVECTOR3 vecPos = GGVECTOR3(ObjectPositionX(iObj), ObjectPositionY(iObj), ObjectPositionZ(iObj));
-				if ( vecPos.x > editableSize || vecPos.x < -editableSize || vecPos.z > editableSize || vecPos.z < -editableSize ) continue;
+				int iObj = t.entityelement[e].obj;
+				int iBankindex = t.entityelement[e].bankindex;
+				bool bValid = true;
+				if (t.entityprofile[iBankindex].ismarker != 0) bValid = false;
+				if (t.entityprofile[iBankindex].collisionmode == 11) bValid = false;
+				if (t.entityprofile[iBankindex].collisionmode == 12) bValid = false;
+				if (t.entityprofile[iBankindex].isammo == 1) bValid = false;
+				if (t.entityprofile[iBankindex].isweapon_s.Len() > 1) bValid = false;
 
-				// also reject if object is moved to a non-visible position
-				if (vecPos.y <= -50000) continue;
-
-				// extra feature called NAVMESH LIMIT
-				if (bUsingNavMeshLimitCustomArea == true)
+				if (bValid && iObj > 0 && ObjectExist(iObj) == 1)
 				{
-					if (vecPos.x < vecCustomPlayAreaMin.x ||
-						vecPos.x > vecCustomPlayAreaMax.x ||
-						vecPos.z < vecCustomPlayAreaMin.z ||
-						vecPos.z > vecCustomPlayAreaMax.z)
-					{
-						// this object outside of custom navmesh limit area, can ignore
-						continue;
-					}
-				}
+					// get position of static obstruction
+					GGVECTOR3 vecPos = GGVECTOR3(ObjectPositionX(iObj), ObjectPositionY(iObj), ObjectPositionZ(iObj));
+					if (vecPos.x > editableSize || vecPos.x < -editableSize || vecPos.z > editableSize || vecPos.z < -editableSize) continue;
 
-				//PE: Add physics shapes here.
-				if (GetMeshExist(iBuildAllLevelMesh) == 1) DeleteMesh(iBuildAllLevelMesh);
-				if (iBankindex > 0 && t.entityprofile[iBankindex].collisionmode >= 50 && t.entityprofile[iBankindex].collisionmode < 60)
-				{
-					int newobj = g.tempobjectoffset + 1;
-					if (ObjectExist(newobj)) DeleteObject(newobj);
-					MakeObjectCylinder(newobj ,1);
+					// also reject if object is moved to a non-visible position
+					if (vecPos.y <= -50000) continue;
 
-					t.tSizeY_f = ObjectSizeY(iObj, 1);
-
-					//  if have ABS position from AI OBSTACLE calc, use that instead
-					if (t.entityelement[e].abscolx_f != -1)
+					// extra feature called NAVMESH LIMIT
+					if (bUsingNavMeshLimitCustomArea == true)
 					{
-						t.tFinalX_f = t.entityelement[e].abscolx_f;
-						t.tFinalZ_f = t.entityelement[e].abscolz_f;
-					}
-					else
-					{
-						t.tFinalX_f = ObjectPositionX(iObj);
-						t.tFinalZ_f = ObjectPositionZ(iObj);
-					}
-					t.tFinalY_f = ObjectPositionY(iObj) + (t.tSizeY_f / 2.0);
-
-					//  if have ABS radius from AI OBSTACLE calc, use that instead
-					if (t.entityelement[e].abscolradius_f != -1)
-					{
-						t.tSizeX_f = t.entityelement[e].abscolradius_f;
-						t.tSizeZ_f = t.entityelement[e].abscolradius_f;
-					}
-					else
-					{
-						t.tSizeX_f = 20;
-						t.tSizeZ_f = 20;
-					}
-
-					//  increase size by 25%
-					t.tSizeX_f = t.tSizeX_f*1.25;
-					t.tSizeZ_f = t.tSizeZ_f*1.25;
-
-					ScaleObject(newobj, t.tSizeX_f*100, t.tSizeY_f*100, t.tSizeZ_f*100);
-					MakeMeshFromObject(iBuildAllLevelMesh, newobj);
-					AddLimb(iBuildAllLevelObj, iLimbIndex, iBuildAllLevelMesh);
-					OffsetLimb(iBuildAllLevelObj, iLimbIndex, ObjectPositionX(iObj), ObjectPositionY(iObj)+(t.tSizeY_f*0.5), ObjectPositionZ(iObj));
-					iLimbIndex++;
-				}
-				else
-				{
-					// to make a cleaner NAVMESH, stairs are better as ramps, so use OBJ if present for this purpose
-					// if object uses convex hull, see if there is an OBJ we can swap inplace of the objects full mesh
-					int iObjToUseForNavMesh = iObj;
-					bool bHeavyPOlyShapesShouldCheckForOBJ = false;
-					if (t.entityprofile[iBankindex].collisionmode == 1) bHeavyPOlyShapesShouldCheckForOBJ = true; // polygon
-					if (t.entityprofile[iBankindex].collisionmode == 8) bHeavyPOlyShapesShouldCheckForOBJ = true; // polygon with OBJ
-					if (t.entityprofile[iBankindex].collisionmode == 9) bHeavyPOlyShapesShouldCheckForOBJ = true; // convex hull
-					if (t.entityprofile[iBankindex].collisionmode == 10) bHeavyPOlyShapesShouldCheckForOBJ = true; // hull decomp
-					if (bHeavyPOlyShapesShouldCheckForOBJ == true)
-					{
-						char pNoFPE[MAX_PATH];
-						strcpy(pNoFPE, t.entitybank_s[iBankindex].Get());
-						pNoFPE[strlen(pNoFPE) - 4] = 0;
-						char pOBJCollisionMesh[MAX_PATH];
-						sprintf(pOBJCollisionMesh, "%s\\Files\\entitybank\\%s.obj", g.fpscrootdir_s.Get(), pNoFPE);
-						GG_GetRealPath(pOBJCollisionMesh, 0);
-						if (FileExist(pOBJCollisionMesh) == 0)
+						if (vecPos.x < vecCustomPlayAreaMin.x ||
+							vecPos.x > vecCustomPlayAreaMax.x ||
+							vecPos.z < vecCustomPlayAreaMin.z ||
+							vecPos.z > vecCustomPlayAreaMax.z)
 						{
-							sprintf(pOBJCollisionMesh, "%s\\Files\\entitybank\\%s_COL.obj", g.fpscrootdir_s.Get(), pNoFPE);
-							GG_GetRealPath(pOBJCollisionMesh, 0);
+							// this object outside of custom navmesh limit area, can ignore
+							continue;
 						}
-						if (FileExist(pOBJCollisionMesh) == 1)
+					}
+
+					//PE: Add physics shapes here.
+					if (GetMeshExist(iBuildAllLevelMesh) == 1) DeleteMesh(iBuildAllLevelMesh);
+					if (iBankindex > 0 && t.entityprofile[iBankindex].collisionmode >= 50 && t.entityprofile[iBankindex].collisionmode < 60)
+					{
+						int newobj = g.tempobjectoffset + 1;
+						if (ObjectExist(newobj)) DeleteObject(newobj);
+						MakeObjectCylinder(newobj, 1);
+
+						t.tSizeY_f = ObjectSizeY(iObj, 1);
+
+						//  if have ABS position from AI OBSTACLE calc, use that instead
+						if (t.entityelement[e].abscolx_f != -1)
 						{
-							// can optimize this by keeping the low poly OBJ, perhaps add to DBO as a LOD??
-							if (ObjectExist(g.temp2objectoffset) == 1) DeleteObject(g.temp2objectoffset);
-							LoadObject (pOBJCollisionMesh, g.temp2objectoffset);
-							iObjToUseForNavMesh = g.temp2objectoffset;
-							RotateObject(iObjToUseForNavMesh, ObjectAngleX(iObj), ObjectAngleY(iObj), ObjectAngleZ(iObj));
-							ScaleObject(iObjToUseForNavMesh, ObjectScaleX(iObj), ObjectScaleY(iObj), ObjectScaleZ(iObj));
+							t.tFinalX_f = t.entityelement[e].abscolx_f;
+							t.tFinalZ_f = t.entityelement[e].abscolz_f;
 						}
 						else
 						{
-							if (t.entityprofile[iBankindex].collisionmode == 1)
+							t.tFinalX_f = ObjectPositionX(iObj);
+							t.tFinalZ_f = ObjectPositionZ(iObj);
+						}
+						t.tFinalY_f = ObjectPositionY(iObj) + (t.tSizeY_f / 2.0);
+
+						//  if have ABS radius from AI OBSTACLE calc, use that instead
+						if (t.entityelement[e].abscolradius_f != -1)
+						{
+							t.tSizeX_f = t.entityelement[e].abscolradius_f;
+							t.tSizeZ_f = t.entityelement[e].abscolradius_f;
+						}
+						else
+						{
+							t.tSizeX_f = 20;
+							t.tSizeZ_f = 20;
+						}
+
+						//  increase size by 25%
+						t.tSizeX_f = t.tSizeX_f * 1.25;
+						t.tSizeZ_f = t.tSizeZ_f * 1.25;
+
+						ScaleObject(newobj, t.tSizeX_f * 100, t.tSizeY_f * 100, t.tSizeZ_f * 100);
+						MakeMeshFromObject(iBuildAllLevelMesh, newobj);
+						AddLimb(iBuildAllLevelObj, iLimbIndex, iBuildAllLevelMesh);
+						OffsetLimb(iBuildAllLevelObj, iLimbIndex, ObjectPositionX(iObj), ObjectPositionY(iObj) + (t.tSizeY_f * 0.5), ObjectPositionZ(iObj));
+						iLimbIndex++;
+					}
+					else
+					{
+						// to make a cleaner NAVMESH, stairs are better as ramps, so use OBJ if present for this purpose
+						// if object uses convex hull, see if there is an OBJ we can swap inplace of the objects full mesh
+						int iObjToUseForNavMesh = iObj;
+						bool bHeavyPOlyShapesShouldCheckForOBJ = false;
+						if (t.entityprofile[iBankindex].collisionmode == 1) bHeavyPOlyShapesShouldCheckForOBJ = true; // polygon
+						if (t.entityprofile[iBankindex].collisionmode == 8) bHeavyPOlyShapesShouldCheckForOBJ = true; // polygon with OBJ
+						if (t.entityprofile[iBankindex].collisionmode == 9) bHeavyPOlyShapesShouldCheckForOBJ = true; // convex hull
+						if (t.entityprofile[iBankindex].collisionmode == 10) bHeavyPOlyShapesShouldCheckForOBJ = true; // hull decomp
+						if (bHeavyPOlyShapesShouldCheckForOBJ == true)
+						{
+							char pNoFPE[MAX_PATH];
+							strcpy(pNoFPE, t.entitybank_s[iBankindex].Get());
+							pNoFPE[strlen(pNoFPE) - 4] = 0;
+							char pOBJCollisionMesh[MAX_PATH];
+							sprintf(pOBJCollisionMesh, "%s\\Files\\entitybank\\%s.obj", g.fpscrootdir_s.Get(), pNoFPE);
+							GG_GetRealPath(pOBJCollisionMesh, 0);
+							if (FileExist(pOBJCollisionMesh) == 0)
 							{
-								//PE: TODO NEWLOD - Use lowest LOD available for all polygon collision objects.
-								//PE: Perhaps add a CloneObjectToLowestLOD()
+								sprintf(pOBJCollisionMesh, "%s\\Files\\entitybank\\%s_COL.obj", g.fpscrootdir_s.Get(), pNoFPE);
+								GG_GetRealPath(pOBJCollisionMesh, 0);
+							}
+							if (FileExist(pOBJCollisionMesh) == 1)
+							{
+								// can optimize this by keeping the low poly OBJ, perhaps add to DBO as a LOD??
+								if (ObjectExist(g.temp2objectoffset) == 1) DeleteObject(g.temp2objectoffset);
+								LoadObject (pOBJCollisionMesh, g.temp2objectoffset);
+								iObjToUseForNavMesh = g.temp2objectoffset;
+								RotateObject(iObjToUseForNavMesh, ObjectAngleX(iObj), ObjectAngleY(iObj), ObjectAngleZ(iObj));
+								ScaleObject(iObjToUseForNavMesh, ObjectScaleX(iObj), ObjectScaleY(iObj), ObjectScaleZ(iObj));
+							}
+							else
+							{
+								if (t.entityprofile[iBankindex].collisionmode == 1)
+								{
+									//PE: TODO NEWLOD - Use lowest LOD available for all polygon collision objects.
+									//PE: Perhaps add a CloneObjectToLowestLOD()
+								}
 							}
 						}
+						// regular mesh from object
+						MakeMeshFromObject(iBuildAllLevelMesh, iObjToUseForNavMesh);
+						AddLimb(iBuildAllLevelObj, iLimbIndex, iBuildAllLevelMesh);
+						OffsetLimb(iBuildAllLevelObj, iLimbIndex, ObjectPositionX(iObj), ObjectPositionY(iObj), ObjectPositionZ(iObj));
+						iLimbIndex++;
 					}
-					// regular mesh from object
-					MakeMeshFromObject(iBuildAllLevelMesh, iObjToUseForNavMesh);
-					AddLimb(iBuildAllLevelObj, iLimbIndex, iBuildAllLevelMesh);
-					OffsetLimb(iBuildAllLevelObj, iLimbIndex, ObjectPositionX(iObj), ObjectPositionY(iObj), ObjectPositionZ(iObj));
-					iLimbIndex++;
 				}
 			}
 		}
@@ -748,66 +766,69 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	// new method of adding trees, direct to the vertex soup
 	float* pVertices = pRawVertices;
 	uint32_t numVertices = numRawVertices;
-	if (bOldMethodOfAddingTreesToNavMesh == false)
+	if (bIgnoreStaticStuff == false)
 	{
-		if (ggtrees_global_params.draw_enabled == 1)
+		if (bOldMethodOfAddingTreesToNavMesh == false)
 		{
-			timestampactivity(0, "Adding all trees to post raw vertex soup (quicker)");
-			float fPlayAreaRadiusX = (vecMaxArea.x - vecMinArea.x) / 2;
-			float fPlayAreaRadiusZ = (vecMaxArea.z - vecMinArea.z) / 2;
-			float fPlayAreaCenterX = vecMinArea.x + fPlayAreaRadiusX;
-			float fPlayAreaCenterZ = vecMinArea.z + fPlayAreaRadiusZ;
-			float fPlayAreaRadius = fPlayAreaRadiusX;
-			if (fPlayAreaRadiusZ > fPlayAreaRadius) fPlayAreaRadius = fPlayAreaRadiusZ;
-			GGTrees::GGTreePoint* pOutPoints = NULL;
-			int iTreeCount = GGTrees::GGTrees_GetClosest (fPlayAreaCenterX, fPlayAreaCenterZ, fPlayAreaRadius, &pOutPoints);
-			if (pOutPoints)
+			if (ggtrees_global_params.draw_enabled == 1)
 			{
-				// reserve space for larger vertex soup
-				numVertices = numRawVertices + (iTreeCount*6*6);
-				pVertices = new float[numVertices * 3];
-				memcpy (pVertices, pRawVertices, sizeof(float)* numRawVertices * 3);
-
-				// for each tree, add a cube to vertex data
-				uint32_t numCurrentVertices = numRawVertices;
-				for (int n = 0; n < iTreeCount; n++)
+				timestampactivity(0, "Adding all trees to post raw vertex soup (quicker)");
+				float fPlayAreaRadiusX = (vecMaxArea.x - vecMinArea.x) / 2;
+				float fPlayAreaRadiusZ = (vecMaxArea.z - vecMinArea.z) / 2;
+				float fPlayAreaCenterX = vecMinArea.x + fPlayAreaRadiusX;
+				float fPlayAreaCenterZ = vecMinArea.z + fPlayAreaRadiusZ;
+				float fPlayAreaRadius = fPlayAreaRadiusX;
+				if (fPlayAreaRadiusZ > fPlayAreaRadius) fPlayAreaRadius = fPlayAreaRadiusZ;
+				GGTrees::GGTreePoint* pOutPoints = NULL;
+				int iTreeCount = GGTrees::GGTrees_GetClosest (fPlayAreaCenterX, fPlayAreaCenterZ, fPlayAreaRadius, &pOutPoints);
+				if (pOutPoints)
 				{
-					GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
-					sMesh* pTreeCubeShape = g_RawMeshList[g.meshgeneralwork2];
-					if (pTreeCubeShape)
-					{
-						float* pVertData = (float*)pTreeCubeShape->pVertexData;
-						uint32_t stride = pTreeCubeShape->dwFVFSize / 4;
-						for (DWORD dwI = 0; dwI < pTreeCubeShape->dwIndexCount; dwI++)
-						{
-							DWORD dwV = pTreeCubeShape->pIndices[dwI];
-							uint32_t vIndex = dwV * stride;
-							GGVECTOR3 vecXYZ = GGVECTOR3(pVertData[vIndex], pVertData[vIndex + 1], pVertData[vIndex + 2]);
-							uint32_t index = (numCurrentVertices + dwI) * 3;
-							pVertices[index + 0] = vecTreePos.x + vecXYZ.x;
-							pVertices[index + 1] = vecTreePos.y + vecXYZ.y;
-							pVertices[index + 2] = vecTreePos.z + vecXYZ.z;
-						}
-						numCurrentVertices += pTreeCubeShape->dwIndexCount;
-					}
-				}
-				delete pOutPoints;
+					// reserve space for larger vertex soup
+					numVertices = numRawVertices + (iTreeCount * 6 * 6);
+					pVertices = new float[numVertices * 3];
+					memcpy (pVertices, pRawVertices, sizeof(float) * numRawVertices * 3);
 
-				// remove old vert soup in favor of new one
-				if (pRawVertices) delete[] pRawVertices;
+					// for each tree, add a cube to vertex data
+					uint32_t numCurrentVertices = numRawVertices;
+					for (int n = 0; n < iTreeCount; n++)
+					{
+						GGVECTOR3 vecTreePos = GGVECTOR3(pOutPoints[n].x, pOutPoints[n].y, pOutPoints[n].z);
+						sMesh* pTreeCubeShape = g_RawMeshList[g.meshgeneralwork2];
+						if (pTreeCubeShape)
+						{
+							float* pVertData = (float*)pTreeCubeShape->pVertexData;
+							uint32_t stride = pTreeCubeShape->dwFVFSize / 4;
+							for (DWORD dwI = 0; dwI < pTreeCubeShape->dwIndexCount; dwI++)
+							{
+								DWORD dwV = pTreeCubeShape->pIndices[dwI];
+								uint32_t vIndex = dwV * stride;
+								GGVECTOR3 vecXYZ = GGVECTOR3(pVertData[vIndex], pVertData[vIndex + 1], pVertData[vIndex + 2]);
+								uint32_t index = (numCurrentVertices + dwI) * 3;
+								pVertices[index + 0] = vecTreePos.x + vecXYZ.x;
+								pVertices[index + 1] = vecTreePos.y + vecXYZ.y;
+								pVertices[index + 2] = vecTreePos.z + vecXYZ.z;
+							}
+							numCurrentVertices += pTreeCubeShape->dwIndexCount;
+						}
+					}
+					delete pOutPoints;
+
+					// remove old vert soup in favor of new one
+					if (pRawVertices) delete[] pRawVertices;
+				}
 			}
 		}
-	}
 
-	// final step to send all Y coords under waterline to depths to avoid paths under water (and character walking into drowning)
-	for (DWORD dwV = 0; dwV < numVertices; dwV++)
-	{
-		uint32_t index = dwV * 3;
-		float fY = pVertices[index + 1];
-		if (fY < t.terrain.waterliney_f)
+		// final step to send all Y coords under waterline to depths to avoid paths under water (and character walking into drowning)
+		for (DWORD dwV = 0; dwV < numVertices; dwV++)
 		{
-			// sink this vertex to the depths if underwater, cannot make path from this!
-			pVertices[index + 1] = -9999;
+			uint32_t index = dwV * 3;
+			float fY = pVertices[index + 1];
+			if (fY < t.terrain.waterliney_f)
+			{
+				// sink this vertex to the depths if underwater, cannot make path from this!
+				pVertices[index + 1] = -9999;
+			}
 		}
 	}
 

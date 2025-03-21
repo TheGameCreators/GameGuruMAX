@@ -9741,8 +9741,6 @@ void entity_updateautoflatten (int e, int obj)
 						LastSizeX = sx;
 						LastSizeZ = sz;
 						iLastFlattenID = iFlattenID;
-						//GGTerrain_UpdateFlatArea(iFlattenID, x, z, angDeg, sx, sz, y);
-						//GGTerrain_UpdateFlatArea(iFlattenID, x, z, angDeg, sx, sz);
 						GGTerrain_UpdateFlatArea(iFlattenID, x, z, angDeg, sx, sz, t.entityelement[e].y);
 					}
 				}

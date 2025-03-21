@@ -18090,6 +18090,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.bEndableGrassDrawing = t.gamevisuals.bEndableGrassDrawing;
 	t.visuals.bEndableTerrainDrawing = t.gamevisuals.bEndableTerrainDrawing;
 	t.visuals.bEnableEmptyLevelMode = t.gamevisuals.bEnableEmptyLevelMode;
+	t.visuals.bEnableZeroNavMeshMode = t.gamevisuals.bEnableZeroNavMeshMode;
 
 	t.visuals.iHeightmapWidth = t.gamevisuals.iHeightmapWidth;
 	t.visuals.iHeightmapHeight = t.gamevisuals.iHeightmapHeight;

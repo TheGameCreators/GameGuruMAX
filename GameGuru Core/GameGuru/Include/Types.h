@@ -4021,6 +4021,7 @@ struct visualstype
 	bool bEndableGrassDrawing = false;
 	bool bEndableTerrainDrawing = true;
 	bool bEnableEmptyLevelMode = false;
+	bool bEnableZeroNavMeshMode = false;
 
 	int iHeightmapWidth = 0;
 	int iHeightmapHeight = 0;
@@ -4284,6 +4285,7 @@ struct visualstype
 		 bEndableGrassDrawing = false;
 		 bEndableTerrainDrawing = true;
 		 bEnableEmptyLevelMode = false;
+		 bEnableZeroNavMeshMode = false;
 
 		 iHeightmapWidth = 0;
 		 iHeightmapHeight = 0;

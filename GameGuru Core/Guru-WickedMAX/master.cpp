@@ -2287,6 +2287,11 @@ void MasterRenderer::Update(float dt)
 				}
 				wiProfiler::EndRange(range3);
 			}
+			else
+			{
+				// still need for terrain globals to update local params (for editable_size reading)
+				GGTerrain_Update_EmptyLevel(camera.Eye.x, camera.Eye.y, camera.Eye.z);
+			}
 			
 			#ifdef WICKEDPARTICLESYSTEM
 			WickedCall_UpdateEmitters();

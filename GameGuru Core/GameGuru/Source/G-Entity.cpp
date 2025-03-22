@@ -1611,6 +1611,8 @@ void entity_loop ( void )
 								// perhaps transition to ragdoll for final settlement
 								t.entityelement[t.e].ragdollplusactivate = 99; // special mode - ignore ragdoll!!
 								t.entityelement[t.e].ragdollplusweapontypeused = 0;
+								//PE: Make sure to update lua health ... sometimes npc keep shooting ragdolls
+								t.entityelement[t.e].lua.flagschanged = 2;
 								bGoToRagdollNow = true;
 							}
 							else

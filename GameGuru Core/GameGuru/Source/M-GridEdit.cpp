@@ -17682,6 +17682,23 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 					ScaleObject(t.obj, 100 + t.entityelement[t.e].scalex, 100 + t.entityelement[t.e].scaley, 100 + t.entityelement[t.e].scalez);
 					ShowObject (  t.obj );
 
+					//PE: Sometimes NPC's face the wrong way after they have been ragdoll.
+					if (t.entityprofile[t.entid].ischaracter == 1)
+					{
+						sObject* pObject = GetObjectData(t.obj);
+						void entity_resetlimbtwists(sObject * pObject, int e);
+						entity_resetlimbtwists(pObject, t.e);
+						// new ragdoll plus wipes pivot, need this restoring
+						RotateLimb(t.obj, 0, 0, 0, 0);
+						//PE: Ragdoll can remove pivot , so reset if not set. (NPCs would face the wrong way)
+						if (!pObject->position.bApplyPivot)
+						{
+							FixObjectPivot(t.obj);
+							//PE: Need to rotate again for pivot to kick in.
+							RotateObject(t.obj, t.entityelement[t.e].rx, t.entityelement[t.e].ry, t.entityelement[t.e].rz);
+						}
+					}
+
 					// restore zdepth mode of this entity
 					entity_preparedepth(t.entid, t.obj);
 				}

@@ -1651,21 +1651,47 @@ void  gpup_doit( int enr, CommandList cmd )
 				
 		if ( gpup_emitter[enr].emitter_burst_mode == 0 )
 		{
-			float spawnamount = gpup_emitter[enr].emitter_amount * gpup_emitter[enr].maxed * emitter_time;
-			if ( gpup_emitter[enr].emitter_slow_mode == 1 ) spawnamount = spawnamount / 16.0f;
-			gpup_emitter[enr].spawnint = spawnamount;
-			if ( spawnamount < 1 )
+			//PE: Looping on, should respect emitter_burst_auto. Just like in the particle editor.
+			//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/5929#issuecomment-2740317619
+			if (gpup_emitter[enr].emitter_burst_auto == 1 && gpup_emitter[enr].emitterActive == 1)
 			{
-				gpup_emitter[enr].spawnCount = gpup_emitter[enr].spawnCount + 1;
-				if ( gpup_emitter[enr].spawnCount > (1.0f / spawnamount) )
+				gpup_emitter[enr].spawnint = 0;
+				if (gpup_emitter[enr].emitter_burst_fire > 0)
 				{
-					gpup_emitter[enr].spawnint = 1;
-					gpup_emitter[enr].spawnCount = 0;
+					gpup_emitter[enr].spawnint = buf * 0.9f * gpup_emitter[enr].emitter_amount;
+					gpup_emitter[enr].emitter_burst_fire = gpup_emitter[enr].emitter_burst_fire - 1;
+					gpup_settings.pauser = 0; //PE: Fire it right now.
+				}
+				if (gpup_emitter[enr].emitter_burst_auto == 1 && gpup_emitter[enr].emitterActive == 1)
+				{
+					gpup_emitter[enr].emitter_burst_delaycount = gpup_emitter[enr].emitter_burst_delaycount + 1.0f * emitter_time;
+					if (gpup_emitter[enr].emitter_burst_delaycount > (gpup_emitter[enr].emitter_burst_delay * 550.0f + 30.0f))
+					{
+						gpup_emitter[enr].spawnint = buf * 0.9f * gpup_emitter[enr].emitter_amount;
+						gpup_emitter[enr].emitter_burst_delaycount = 0;
+						gpup_emitter[enr].emitter_burst_fire = 1;
+					}
+				}
+			}
+			else
+			{
+				float spawnamount = gpup_emitter[enr].emitter_amount * gpup_emitter[enr].maxed * emitter_time;
+				if (gpup_emitter[enr].emitter_slow_mode == 1) spawnamount = spawnamount / 16.0f;
+				gpup_emitter[enr].spawnint = spawnamount;
+				if (spawnamount < 1)
+				{
+					gpup_emitter[enr].spawnCount = gpup_emitter[enr].spawnCount + 1;
+					if (gpup_emitter[enr].spawnCount > (1.0f / spawnamount))
+					{
+						gpup_emitter[enr].spawnint = 1;
+						gpup_emitter[enr].spawnCount = 0;
+					}
 				}
 			}
 		}
 		else
 		{
+			//PE: Looping off , so only single burst here.
 			gpup_emitter[enr].spawnint = 0;
 			if ( gpup_emitter[enr].emitter_burst_fire > 0 )
 			{
@@ -1673,6 +1699,8 @@ void  gpup_doit( int enr, CommandList cmd )
 				gpup_emitter[enr].emitter_burst_fire = gpup_emitter[enr].emitter_burst_fire - 1;
 				gpup_settings.pauser = 0; //PE: Fire it right now.
 			}
+			//PE: Moved so we only trigger one explosion when looping off. moved to above when looping on.
+			/*
 			if ( gpup_emitter[enr].emitter_burst_auto == 1 && gpup_emitter[enr].emitterActive == 1 )
 			{
 				gpup_emitter[enr].emitter_burst_delaycount = gpup_emitter[enr].emitter_burst_delaycount + 1.0f * emitter_time;
@@ -1683,6 +1711,7 @@ void  gpup_doit( int enr, CommandList cmd )
 					gpup_emitter[enr].emitter_burst_fire = 1;
 				}
 			}
+			*/
 		}
 				
 		if ( gpup_emitter[enr].activeTimer > 0.0f )

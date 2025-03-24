@@ -27,7 +27,7 @@ using namespace wiECS;
 
 #ifdef WICKEDPARTICLESYSTEM
 #define MAXREADYDECALS 7
-#define MAXUNIQUEDECALS 25
+#define MAXUNIQUEDECALS 100
 uint32_t ready_decals[MAXUNIQUEDECALS][MAXREADYDECALS] = { 0 };
 uint32_t decal_count[MAXUNIQUEDECALS] = { 0 };
 #endif

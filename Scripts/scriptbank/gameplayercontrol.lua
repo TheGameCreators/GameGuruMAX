@@ -675,8 +675,8 @@ function gameplayercontrol.lookmove()
          --   tttmousemovey = 0
          --end         
          if ( GetGamePlayerStateSlowMotion() == 1 and GetGamePlayerStateSmoothCameraKeys() == 1 ) then 
-            --SetGamePlayerStateCamMouseMoveX(GetGamePlayerStateCamMouseMoveX()+(MouseMoveX()/10.0))
-            --SetGamePlayerStateCamMouseMoveY(GetGamePlayerStateCamMouseMoveY()+(tttmousemovey/10.0))
+            SetGamePlayerStateCamMouseMoveX(GetGamePlayerStateCamMouseMoveX()+(MouseMoveX()/10.0))
+            SetGamePlayerStateCamMouseMoveY(GetGamePlayerStateCamMouseMoveY()+(tttmousemovey/10.0))
             SetGamePlayerStateCamMouseMoveX(GetGamePlayerStateCamMouseMoveX()*0.94)
             SetGamePlayerStateCamMouseMoveY(GetGamePlayerStateCamMouseMoveY()*0.94)
          else

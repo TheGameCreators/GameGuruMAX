@@ -2033,18 +2033,21 @@ void addthisentityprofilesfilestocollection (entityeleproftype* pEleProf)
 	}
 }
 
-void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
+// we set this during level loading, then action it near the end
+bool g_bUsingSomeKindOfTerrain = false;
+
+void mapfile_collectfoldersandfiles (cstr levelpathfolder)
 {
 	LPSTR pOldDir = GetDir();
 
 	// Collect ALL files in string array list
-	Undim ( t.filecollection_s );
+	Undim (t.filecollection_s);
 	g.filecollectionmax = 0;
-	Dim ( t.filecollection_s, 500 );
+	Dim (t.filecollection_s, 500);
 
 	//  Stage 1 - specify all common files
-	addtocollection( cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-wordcount.ini").Get() );
-	addtocollection(cstr(cstr("languagebank\\")+g.language_s+"\\textfiles\\guru-words.txt").Get() );
+	addtocollection(cstr(cstr("languagebank\\") + g.language_s + "\\textfiles\\guru-wordcount.ini").Get());
+	addtocollection(cstr(cstr("languagebank\\") + g.language_s + "\\textfiles\\guru-words.txt").Get());
 	addtocollection(cstr(cstr("languagebank\\") + g.language_s + "\\inittext.ssp").Get());
 	addtocollection("audiobank\\misc\\silence.wav");
 	addtocollection("audiobank\\misc\\explode.wav");
@@ -2066,7 +2069,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("scriptbank\\gameplayerhealth.lua");
 	addtocollection("scriptbank\\global.lua");
 
-	addfoldertocollection(cstr(cstr("languagebank\\")+g.language_s+"\\artwork\\watermark").Get() );
+	addfoldertocollection(cstr(cstr("languagebank\\") + g.language_s + "\\artwork\\watermark").Get());
 	addfoldertocollection("scriptbank\\people\\ai");
 	addtocollection("scriptbank\\people\\patrol.byc");
 	addtocollection("scriptbank\\people\\patrol.lua");
@@ -2146,11 +2149,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\projectiletypes\\enhanced\\m67");
 	addfoldertocollection("gamecore\\bulletholes");
 	addfoldertocollection("editors\\lut");
-	addfoldertocollection("treebank"); // for temp flat terrain!
-	addfoldertocollection("treebank\\billboards"); // for temp flat terrain!
-	addfoldertocollection("treebank\\textures"); // for temp flat terrain!
 
-	// defauly or remote system
+	// folders related to terrain system
+	g_bUsingSomeKindOfTerrain = false;
+	/* this now deferred unless at least ONE of the used levels use terrain
+	addfoldertocollection("treebank"); // all but completely empty level (basic flat terrain)
+	addfoldertocollection("treebank\\billboards");
+	addfoldertocollection("treebank\\textures");
 	if (strlen(Storyboard.customprojectfolder) > 0)
 	{
 		// if remote project being used, it will copy its OWN terraintexture folder over
@@ -2168,6 +2173,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 		}
 	}
 	addfoldertocollection("grassbank");
+	*/
 
 	// TODO: only copy the particles that each entity uses, rather than the whole folder
 	addallinfoldertocollection("particlesbank", "particlesbank"); // all particles so do not miss any for standalone (only 4MB for defaults)
@@ -2178,7 +2184,6 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("emitterbank\\user");
 	addfoldertocollection("emitterbank\\demo");
 
-
 	addtocollection("effectbank\\common\\noise64.png");
 	addtocollection("effectbank\\common\\dist2.png");
 	addfoldertocollection("effectbank\\common"); //Just in case we get more.
@@ -2188,13 +2193,13 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addtocollection("noise.dds");
 
 	addtocollection("skybank\\clear\\"); //for fallback.
-	
+
 	// add any material decals that are active
-	for ( t.m = 0; t.m <= g.gmaterialmax; t.m++ )
+	for (t.m = 0; t.m <= g.gmaterialmax; t.m++)
 	{
-		if ( t.material[t.m].usedinlevel == 1 )
+		if (t.material[t.m].usedinlevel == 1)
 		{
-			cstr decalFolder_s = cstr("gamecore\\decals\\")+t.material[t.m].decal_s;
+			cstr decalFolder_s = cstr("gamecore\\decals\\") + t.material[t.m].decal_s;
 			addfoldertocollection(decalFolder_s.Get());
 		}
 	}
@@ -2206,17 +2211,17 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	addfoldertocollection("gamecore\\hands\\Animations");
 
 	//  Stage 1B - Style dependent files
-	titles_getstyle ( );
+	titles_getstyle ();
 	addtocollection("titlesbank\\style.txt");
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1280x720").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1280x800").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1366x768").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1440x900").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1600x900").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1680x1050").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1080").Get() );
-	addfoldertocollection(cstr(cstr("titlesbank\\")+t.ttheme_s+"\\1920x1200").Get() );
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1280x720").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1280x800").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1366x768").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1440x900").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1600x900").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1680x1050").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1920x1080").Get());
+	addfoldertocollection(cstr(cstr("titlesbank\\") + t.ttheme_s + "\\1920x1200").Get());
 
 	// HUD elements
 	addfoldertocollection("imagebank\\HUD");
@@ -2228,7 +2233,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 	//PE: Add .lst version , this is to be used for thread loading of level textures and objects.
 	std::string lstfile = t.tmasterlevelfile_s.Get();
 	replaceAll(lstfile, ".fpm", ".lst");
-	addtocollection( (char *) lstfile.c_str());
+	addtocollection((char*)lstfile.c_str());
 
 	// Pre-Stage 2 - clear a list which will collect all folders/files to REMOVE from the final standalone file transfer
 	// list, courtesy of the special FPP file which controls the final files to be used for standalone creation
@@ -2240,7 +2245,7 @@ void mapfile_collectfoldersandfiles ( cstr levelpathfolder )
 
 	// Stage 2 - collect all files (from all levels)
 	t.levelmax = 0;
-	Dim ( t.levellist_s, 100 );
+	Dim (t.levellist_s, 100);
 	for (int i = 0; i < 100; i++) t.levellist_s[i] = "";
 	addtocollection(t.visuals.sAmbientMusicTrack.Get());
 	addtocollection(t.visuals.sCombatMusicTrack.Get());
@@ -2560,9 +2565,6 @@ void mapfile_savestandalone_start ( void )
 void mapfile_savestandalone_stage2a ( void )
 {
 	// Stage 2 - have all level from previous start step
-	//t.levelmax = 0;
-	//Dim (t.levellist_s, 100);
-	//for (int i = 0; i < 100; i++) t.levellist_s[i] = "";
 	bool bWeUnloadedTheFirstLevel = false;
 	t.levelindex = 1;
 	if (g.bUseStoryBoardSetup)
@@ -2583,6 +2585,11 @@ void mapfile_savestandalone_stage2a ( void )
 			mapfile_loadproject_fpm ( );
 			game_loadinentitiesdatainlevel ( );
 			bWeUnloadedTheFirstLevel = true;
+			if (t.gamevisuals.bEnableEmptyLevelMode == false)
+			{
+				// if even one level does NOT use completely-empty mode, we have basic terrain requirements
+				g_bUsingSomeKindOfTerrain = true;
+			}
 		}
 		g_mapfile_iNumberOfEntitiesAcrossAllLevels += g.entityelementlist;
 		cstr pLevelObjectsCountAllLevels = cstr("g_mapfile_iNumberOfEntitiesAcrossAllLevels==") + cstr(g_mapfile_iNumberOfEntitiesAcrossAllLevels);
@@ -2681,6 +2688,11 @@ int mapfile_savestandalone_stage2b ( void )
 			g.projectfilename_s=t.tlevelfile_s;
 			mapfile_loadproject_fpm ( );
 			game_loadinentitiesdatainlevel ( );
+			if (t.gamevisuals.bEnableEmptyLevelMode == false)
+			{
+				// if even one level does NOT use completely-empty mode, we have basic terrain requirements
+				g_bUsingSomeKindOfTerrain = true;
+			}
 		}
 
 		// 061018 - check if an FPP file exists for this level file
@@ -3229,8 +3241,30 @@ void mapfile_savestandalone_stage2e ( void )
 
 void mapfile_savestandalone_stage3 ( void )
 {
-	// prompt
-	//popup_text_change("Saving Standalone Game : Creating Paths"); 
+	// if any of the levels used terrain, add the terrain/tree/grass folders
+	if (g_bUsingSomeKindOfTerrain == true)
+	{
+		addfoldertocollection("treebank"); // all but completely empty level (basic flat terrain)
+		addfoldertocollection("treebank\\billboards");
+		addfoldertocollection("treebank\\textures");
+		if (strlen(Storyboard.customprojectfolder) > 0)
+		{
+			// if remote project being used, it will copy its OWN terraintexture folder over
+			// so no need to include the default in case all custom textures used
+		}
+		else
+		{
+			//PE: Storyboard - Need standalone / lua menu's working.
+			addfoldertocollection("terraintextures");
+			for (int i = 0; i < 42; i++)
+			{
+				char addfolder[MAX_PATH];
+				sprintf(addfolder, "terraintextures\\mat%d", i);
+				addfoldertocollection(addfolder);
+			}
+		}
+		addfoldertocollection("grassbank");
+	}
 
 	//  Create game folder
 	SetDir (  t.exepath_s.Get() );

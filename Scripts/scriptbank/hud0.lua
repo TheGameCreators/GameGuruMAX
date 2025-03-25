@@ -1,9 +1,10 @@
 -- DESCRIPTION: A global script that controls the in-game HUD. Do not assign to an object.
--- Hud0 - Version 2 
+-- Hud0 - Version 3 
 cursorControl = require "scriptbank\\huds\\cursorcontrol"
 local U = require "scriptbank\\utillib"
 
 g_liveHudScreen = 0
+g_CraftingClass = ""
 
 g_sprCursorPtrX = 50
 g_sprCursorPtrY = 33
@@ -551,12 +552,20 @@ function hud0.main()
 										-- cancel if moving item into recipe that is not a recipe
 										if panelnameTo == "inventory:craft" then
 											local findcollectionindex = hud0_playercontainer_collectionindex[hud0_playercontainer_screenID][hud0_gridSelected][hud0_gridSelectedIndex]
-											if findcollectionindex ~= -1 then
-												local tstyle = GetCollectionItemAttribute(findcollectionindex,"style")
-												if tstyle ~= "recipe" then
+											if findcollectionindex ~= -1 then												
+												local tstyleclass = GetCollectionItemAttribute(findcollectionindex,"style")
+												local tscindex = 6
+												local tstyle = string.sub(tstyleclass, 1, tscindex)
+												local tclass = string.sub(tstyleclass, tscindex+2, -1)
+												if tstyle ~= "recipe" then -- fail on non recipe
 													cancelmove = 1
 												end
-											end
+												if tstyle == "recipe" and g_CraftingClass ~= "" then
+													if tclass ~= "" and tclass ~= g_CraftingClass then -- fail on non matching class if any
+														cancelmove = 1
+													end  
+												end
+											end											
 										end															
 										
 										-- cancel if dragging into hotkeys and slot is blocked (Slot Not Used)
@@ -1140,6 +1149,7 @@ function hud0.main()
 				if actionOnScreen == 101 then
 					-- LEAVE HUD screen
 					ScreenToggle("")
+					g_CraftingClass = ""
 				end
 				if actionOnScreen == 102 then
 					-- TAKE ALL Contents
@@ -1157,6 +1167,7 @@ function hud0.main()
 						end
 					end
 				end
+				
 				if actionOnScreen == 103 then
 					-- CRAFT recipe from inventory:craft
 					local inventorycontainer = "inventory:craft"
@@ -1164,7 +1175,7 @@ function hud0.main()
 					if tinventoryindex == 1 then
 						-- determine if can craft 'nameofitemtomake'
 						local tcollectionindex = GetInventoryItem(inventorycontainer,tinventoryindex)
-						local nameofitemtomake = GetCollectionItemAttribute(tcollectionindex,"description")
+						local nameofitemtomake = GetCollectionItemAttribute(tcollectionindex,"description")						
 						local anyee = 0
 						for ee = 1, g_EntityElementMax, 1 do
 							if e ~= ee then

@@ -1035,6 +1035,9 @@
     <ClCompile Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.cpp">
       <Filter>EOS-SDK</Filter>
     </ClCompile>
+    <ClCompile Include="tracers\TracerManager.cpp">
+      <Filter>GGTerrain</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
@@ -1240,6 +1243,12 @@
       <Filter>GGTerrain\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="GGTerrain\Shaders\GGTreeBranchesHighEnvProbeVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="tracers\BulletTracerVS.hlsl">
+      <Filter>GGTerrain\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="tracers\BulletTracerPS.hlsl">
       <Filter>GGTerrain\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

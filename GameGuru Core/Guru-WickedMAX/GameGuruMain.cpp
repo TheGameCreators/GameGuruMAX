@@ -12,7 +12,8 @@
 #include "GGTerrain/GGTerrain.h"
 #include "GGTerrain/GGTrees.h"
 #include "GGTerrain/GGGrass.h"
-
+#include "tracers/TracerManager.h"
+using namespace Tracers;
 // For profiling
 #ifdef OPTICK_ENABLE
 #include "optick.h"
@@ -163,6 +164,9 @@ bool GuruLoopLogic ( void )
 					GGGrass::GGGrass_Init();
 				}
 				#endif
+				
+				Tracers::Initialize();
+
 				g_iInitializationSequence = 3;
 				break;
 			}

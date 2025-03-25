@@ -13,6 +13,9 @@
 #include "optick.h"
 #endif
 
+#include "tracers/TracerManager.h"
+using namespace Tracers;
+
 // global store for weapon shader effect indexes
 cstr g_guns_customArms_s = "";
 int g_weaponbasicshadereffectindex = 0;
@@ -4116,6 +4119,83 @@ void gun_shoot_oneray ( void )
 	t.bulletraytype=g.firemodes[t.gunid][g.firemode].settings.damagetype;
 	t.gunrange_f=t.range_f;
 
+	//PE: Do not make a tracer if melee.
+	//weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
+	if( t.gun[t.gunid].weapontype < 50 && t.gun[t.gunid].settings.ismelee == 0)
+	{
+		if (t.gun[t.gunid].settings.tracer_active)
+		{
+
+			t.flakangle_f = CameraAngleY();
+			t.flakpitch_f = CameraAngleX();
+
+			extern int g_iActivelyUsingVRNow;
+			if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
+			if (bNormalOrVRMode == true)
+			{
+				int iLaserGuideObj = GGVR_GetLaserGuideObject();
+				if (iLaserGuideObj > 0 && ObjectExist(iLaserGuideObj) == 1)
+				{
+					t.flakangle_f = ObjectAngleY(iLaserGuideObj);
+					t.flakpitch_f = ObjectAngleX(iLaserGuideObj);
+				}
+			}
+
+			// check if clearance in front of player, so can place grenade perfectly
+			t.flakx_f = CameraPositionX();
+			t.flaky_f = CameraPositionY();
+			t.flakz_f = CameraPositionZ();
+			float fGrenadePosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
+			float fGrenadePosY = CameraPositionY();
+			float fGrenadePosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
+			if (t.gun[t.gunid].settings.flashlimb != -1)
+			{
+				if (LimbExist(t.currentgunobj, t.gun[t.gunid].settings.flashlimb) == 1)
+				{
+					fGrenadePosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+					fGrenadePosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+					fGrenadePosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+				}
+			}
+
+			XMFLOAT3 tracer_from, tracer_hit;
+
+			tracer_from.x = fGrenadePosX;
+			tracer_from.y = fGrenadePosY;
+			tracer_from.z = fGrenadePosZ;
+
+			tracer_hit.x = t.x2_f; // t.brayx2_f;
+			tracer_hit.y = t.y2_f; // t.brayy2_f;
+			tracer_hit.z = t.z2_f; // t.brayz2_f;
+
+			XMVECTOR start = { tracer_from.x , tracer_from.y, tracer_from.z };// XMLoadFloat3(&tracer.startPos);
+			XMVECTOR end = { tracer_hit.x , tracer_hit.y, tracer_hit.z };// XMLoadFloat3(&tracer.endPos);
+			XMVECTOR dir = XMVectorSubtract(end, start);
+			float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
+			dir = XMVector3Normalize(dir);
+			if (length > 500)
+			{
+				end = start + (dir * 500.0f);
+				tracer_hit.x = XMVectorGetX(end);
+				tracer_hit.y = XMVectorGetY(end);
+				tracer_hit.z = XMVectorGetZ(end);
+			}
+
+			Tracers::AddTracer(
+				tracer_from,
+				tracer_hit,
+				t.gun[t.gunid].settings.tracer_lifetime, // Lifetime
+				XMFLOAT4(t.gun[t.gunid].settings.tracer_colorR, t.gun[t.gunid].settings.tracer_colorG, t.gun[t.gunid].settings.tracer_colorB, 1), // Color
+				t.gun[t.gunid].settings.tracer_glow, // 5.0f, // Glow
+				t.gun[t.gunid].settings.tracer_scrollV, // Scroll
+				t.gun[t.gunid].settings.tracer_scaleV, // scaleV
+				t.gun[t.gunid].settings.tracer_width, // width
+				t.gun[t.gunid].settings.tracer_maxlength, // max length
+				t.gunid //Image to use.
+			);
+		}
+	}
+
 	// raycast to entity
 	entity_hasbulletrayhit ( );
 }
@@ -5484,6 +5564,11 @@ void gun_load ( void )
 
 	//  reset this as only used when gun 'selected'
 	t.currentgunobj=0;
+
+	//PE: Load any bullet tracer. tracers::
+	cstr tracerimage = "";
+	tracerimage = tracerimage + "gamecore\\" + g.fpgchuds_s + "\\" + t.gun_s + "\\tracer.dds";
+	Tracers::LoadTracerImage(tracerimage.Get(), t.gunid);
 }
 
 void gun_updategunshaders ( void )

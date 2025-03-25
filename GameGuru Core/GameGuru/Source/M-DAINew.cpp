@@ -13,6 +13,9 @@ extern GGRecastDetour g_RecastDetour;
 #include "optick.h"
 #endif
 
+#include "tracers/TracerManager.h"
+using namespace Tracers;
+
 // Globals 
 bool g_bDormantCheckForThisCycle = true;
 
@@ -2478,6 +2481,48 @@ void darkai_shooteffect (void)
 		t.tdamage = g.firemodes[t.tgunid][0].settings.damage;
 		if (ee > 0)
 		{
+			if (t.entityelement[ee].obj > 0 && ObjectExist(t.entityelement[ee].obj))
+			{
+				if (t.gun[t.gunid].settings.tracer_active)
+				{
+					XMFLOAT3 tracer_from, tracer_hit;
+
+					tracer_from.x = t.tx_f;
+					tracer_from.y = t.ty_f;
+					tracer_from.z = t.tz_f;
+
+					int entid = t.entityelement[ee].bankindex;
+
+					float fTorseAreaX = t.entityelement[ee].x;
+					float fTorseAreaY = t.entityelement[ee].y + 50;
+					float fTorseAreaZ = t.entityelement[ee].z;
+					int torselimbindex = t.entityprofile[entid].spine2;
+					if (torselimbindex > 0)
+					{
+						fTorseAreaX = LimbPositionX(t.entityelement[ee].obj, torselimbindex);
+						fTorseAreaY = LimbPositionY(t.entityelement[ee].obj, torselimbindex);
+						fTorseAreaZ = LimbPositionZ(t.entityelement[ee].obj, torselimbindex);
+					}
+
+					tracer_hit.x = fTorseAreaX;
+					tracer_hit.y = fTorseAreaY;
+					tracer_hit.z = fTorseAreaZ;
+
+					Tracers::AddTracer(
+						tracer_from,
+						tracer_hit,
+						t.gun[t.tgunid].settings.tracer_lifetime, // Lifetime
+						XMFLOAT4(t.gun[t.tgunid].settings.tracer_colorR, t.gun[t.tgunid].settings.tracer_colorG, t.gun[t.tgunid].settings.tracer_colorB, 1), // Color
+						t.gun[t.tgunid].settings.tracer_glow, // 5.0f, // Glow
+						t.gun[t.tgunid].settings.tracer_scrollV, // Scroll
+						t.gun[t.tgunid].settings.tracer_scaleV, // scaleV
+						t.gun[t.tgunid].settings.tracer_width, // width
+						t.gun[t.tgunid].settings.tracer_maxlength, // max length
+						t.tgunid // TextureID
+					);
+				}
+			}
+
 			// another character is target
 			t.ttte = ee;
 			t.tdamageforce = 0;
@@ -2489,13 +2534,71 @@ void darkai_shooteffect (void)
 		}
 		else
 		{
+			float addheight = 25;
+			if (t.aisystem.playerducking > 0)
+				addheight -= 20;
+
 			if (t.ttdistanceaccuracy_f < 0.3 || Rnd(t.tchancetohit_f*t.ttdistanceaccuracy_f) == 0)
 			{
+				if (t.gun[t.gunid].settings.tracer_active)
+				{
+					//PE: Hit t.tplayerx_f
+					XMFLOAT3 tracer_from, tracer_hit;
+
+					tracer_from.x = t.tx_f;
+					tracer_from.y = t.ty_f;
+					tracer_from.z = t.tz_f;
+
+					tracer_hit.x = t.tplayerx_f + (-1 + Rnd(2));
+					tracer_hit.y = t.tplayery_f + addheight + (-1 + Rnd(2));;
+					tracer_hit.z = t.tplayerz_f + (-1 + Rnd(2));
+
+					Tracers::AddTracer(
+						tracer_from,
+						tracer_hit,
+						t.gun[t.tgunid].settings.tracer_lifetime, // Lifetime
+						XMFLOAT4(t.gun[t.tgunid].settings.tracer_colorR, t.gun[t.tgunid].settings.tracer_colorG, t.gun[t.tgunid].settings.tracer_colorB, 1), // Color
+						t.gun[t.tgunid].settings.tracer_glow, // 5.0f, // Glow
+						t.gun[t.tgunid].settings.tracer_scrollV, // Scroll
+						t.gun[t.tgunid].settings.tracer_scaleV, // scaleV
+						t.gun[t.tgunid].settings.tracer_width, // width
+						t.gun[t.tgunid].settings.tracer_maxlength, // max length
+						t.tgunid // TextureID
+					);
+				}
 				// player is target
 				physics_player_takedamage ();
 			}
 			else
 			{
+				if (t.gun[t.gunid].settings.tracer_active)
+				{
+					//PE: Miss t.tplayerx_f
+					XMFLOAT3 tracer_from, tracer_hit;
+
+					tracer_from.x = t.tx_f;
+					tracer_from.y = t.ty_f;
+					tracer_from.z = t.tz_f;
+
+					tracer_hit.x = t.tplayerx_f + (-5 + Rnd(10));
+					tracer_hit.y = t.tplayery_f + addheight + (-10 + Rnd(20));
+					tracer_hit.z = t.tplayerz_f + (-5 + Rnd(10));
+
+					Tracers::AddTracer(
+						tracer_from,
+						tracer_hit,
+						t.gun[t.tgunid].settings.tracer_lifetime, // Lifetime
+						XMFLOAT4(t.gun[t.tgunid].settings.tracer_colorR, t.gun[t.tgunid].settings.tracer_colorG, t.gun[t.tgunid].settings.tracer_colorB, 1), // Color
+						t.gun[t.tgunid].settings.tracer_glow, // 5.0f, // Glow
+						t.gun[t.tgunid].settings.tracer_scrollV, // Scroll
+						t.gun[t.tgunid].settings.tracer_scaleV, // scaleV
+						t.gun[t.tgunid].settings.tracer_width, // width
+						t.gun[t.tgunid].settings.tracer_maxlength, // max length
+						t.tgunid // TextureID
+					);
+				}
+
+
 				// play bullet whiz sound because the AI missed
 				//t.tSndID = t.playercontrol.soundstartindex + 25 + Rnd(3);
 				//if (SoundExist(t.tSndID) == 1)

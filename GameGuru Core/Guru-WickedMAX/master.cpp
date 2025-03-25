@@ -38,6 +38,8 @@
 #include "GGTerrain/GGTerrain.h"
 #include "GGTerrain/GGTrees.h"
 #include "GGTerrain/GGGrass.h"
+#include "tracers/TracerManager.h"
+using namespace Tracers;
 
 // For Steam authentication check
 #include "steam/steam_api.h"
@@ -2286,7 +2288,9 @@ void MasterRenderer::Update(float dt)
 			wiProfiler::EndRange(range3);
 			
 #ifdef WICKEDPARTICLESYSTEM
+			auto range4 = wiProfiler::BeginRangeCPU("Update - Emitters");
 			WickedCall_UpdateEmitters();
+			wiProfiler::EndRange(range4);
 #endif
 
 			// now just prepared IMGUI, but actual render called from Wicked hook

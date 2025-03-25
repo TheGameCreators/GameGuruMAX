@@ -2592,8 +2592,18 @@ int FillWeaponList(std::vector<std::string>& labels, char *filter)
 	return(iWeaponListIndex);
 }
 
+//PE: Cache available weapons , this list is really killing the fps.
+std::vector <cstr> cached_weapon_list[2][2][2][2][2];
+int cached_weapon_list_size[2][2][2][2][2];
+
 int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool bForMelee, bool bIncludeSlotNotUsedChoice)
 {
+	if (cached_weapon_list[forcharacters][bForShooting][bForMelee][bIncludeSlotNotUsedChoice][g_bCharacterCreatorPlusActivated].size() > 0)
+	{
+		t.list_s = cached_weapon_list[forcharacters][bForShooting][bForMelee][bIncludeSlotNotUsedChoice][g_bCharacterCreatorPlusActivated];
+		return cached_weapon_list_size[forcharacters][bForShooting][bForMelee][bIncludeSlotNotUsedChoice][g_bCharacterCreatorPlusActivated];
+	}
+
 	int retvalue = 0;
 	int gunid = 0;
 	Dim(t.list_s, 1 + g.gunmax);
@@ -2714,6 +2724,8 @@ int fillgloballistwithweaponsQuick(bool forcharacters, bool bForShooting, bool b
 		}
 	}
 
+	cached_weapon_list[forcharacters][bForShooting][bForMelee][bIncludeSlotNotUsedChoice][g_bCharacterCreatorPlusActivated] = t.list_s;
+	cached_weapon_list_size[forcharacters][bForShooting][bForMelee][bIncludeSlotNotUsedChoice][g_bCharacterCreatorPlusActivated] = iListCount;
 	// return valid gun name count
 	return iListCount;
 }

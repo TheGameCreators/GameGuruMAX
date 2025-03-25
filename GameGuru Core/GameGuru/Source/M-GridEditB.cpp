@@ -36487,9 +36487,9 @@ void About_Screen(void)
 		ImGui::TextCenter("");
 
 		ImGui::SetWindowFontScale(1.25);
-		ImGui::TextCenter("(c) Copyright 2020-2023 The Game Creators Ltd. All Rights Reserved");
+		ImGui::TextCenter("(c) Copyright 2020-2025 The Game Creators Ltd. All Rights Reserved");
 		ImGui::SetWindowFontScale(1.0);
-		ImGui::TextCenter("GameGuru MAX, TheGameCreators, and their respective logos are trademarks or registred trademarks of The Game Creators Ltd.");
+		ImGui::TextCenter("GameGuru MAX and the respective logos are trademarks or registred trademarks of The Game Creators Ltd.");
 		
 		ImGui::Text("");
 		ImGui::Text("");

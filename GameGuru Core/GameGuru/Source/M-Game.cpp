@@ -1510,11 +1510,9 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 		}
 	}
 
-	#ifdef WICKEDENGINE
-	sprintf_s(pProgressStr, 256, "FINALIZING LEVEL DATA - %d\\100 Complete", 15);
+	sprintf_s(pProgressStr, 256, "FINALIZING LEVEL DATA");// -% d\\100 Complete", 15);
 	void printscreenprompt(char*);
 	printscreenprompt(pProgressStr);
-	#endif
 	game_preparelevel_finally ( );
 
 	// Load any light map objects if available
@@ -3755,7 +3753,7 @@ void game_preparelevel ( void )
 
 	// if still generating LIP file, wait here
 	t.screenprompt_s="GENERATING LIP SYNC DATA";
-	if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5);
+	//if (  t.game.gameisexe == 0  )  printscreenprompt(t.screenprompt_s.Get()); else loadingpageprogress(5); looks wrong, most levels dont have any lips..
 	timestampactivity(0,t.screenprompt_s.Get());
 	float fProgressOfGeneration = GetWAVtoLIPProgress();
 	while ( fProgressOfGeneration > 0.0f && fProgressOfGeneration < 1.0f )

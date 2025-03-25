@@ -13,14 +13,15 @@
 
 template<typename T> static inline T PELerp(T a, T b, float t) { return (T)(a + (b - a) * t); }
 
-//PE: Tracers will now follow gunid.
+//PE: Tracers will now follow gunid (400) Added 100 for LUA only use.
 #define MAXTRACERS 400
+#define MAXLUATRACERS 100
 
 namespace Tracers
 {
     std::vector<Tracer> tracers;
     GPUBuffer constantBuffer;
-    Texture tracerTexture[MAXTRACERS];
+    Texture tracerTexture[MAXTRACERS + MAXLUATRACERS];
     PipelineState tracerPSO;
     GPUBuffer quadVB;
     GPUBuffer quadIB;
@@ -376,7 +377,7 @@ namespace Tracers
             device->BindConstantBuffer(VS, &constantBuffer, bindSlot, cmd);
             device->BindConstantBuffer(PS, &constantBuffer, bindSlot, cmd);
             uint32_t tID = tracer.tracerID;
-            if (tID > MAXTRACERS) tID = 0;
+            if (tID > MAXTRACERS + MAXLUATRACERS) tID = 0;
             if (tracerTexture[tID].IsValid())
                 device->BindResource(PS, &tracerTexture[tID], 0, cmd);
             else

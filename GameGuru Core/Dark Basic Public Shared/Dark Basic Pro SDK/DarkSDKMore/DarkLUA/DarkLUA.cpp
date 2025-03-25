@@ -60,6 +60,9 @@ using namespace wiGraphics;
 using namespace wiScene;
 using namespace wiECS;
 
+#include "..\tracers\TracerManager.h"
+using namespace Tracers;
+
 // Prototypes
 extern void DrawSpritesFirst(void);
 extern void DrawSpritesLast(void);
@@ -10029,6 +10032,16 @@ int WParticleEffectAction(lua_State* L)
 	WickedCall_PerformEmitterAction(iAction, root);
 	return 0;
 }
+//disableindoor
+// rotate
+// Stop
+// copy lua code from app.
+// add emitter with all settings.
+// follow mesh.
+// follow bone.
+
+#endif
+
 //PE: Missing command for position sound if different then entity position.
 int entity_lua_positionsound(lua_State* L)
 {
@@ -10048,14 +10061,73 @@ int entity_lua_positionsound(lua_State* L)
 	return 0;
 }
 
-//disableindoor
-// rotate
-// Stop
-// copy lua code from app.
-// add emitter with all settings.
-#endif
+//PE: Tracers commands.
+int LoadTracerImage(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 2) return 0;
+	char FileName[MAX_PATH];
+	strcpy(FileName, lua_tostring(L, 1));
+
+	int iImageID = lua_tonumber(L, 2);
+	if (iImageID < 0 || iImageID >= 100)
+		iImageID = 0;
+
+	iImageID += 400; //PE: LUA offset
+
+	Tracers::LoadTracerImage(FileName, iImageID);
+	return 0;
+}
+int AddTracer(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 16) return 0;
+
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fZ = lua_tonumber(L, 3);
+	float fXt = lua_tonumber(L, 4);
+	float fYt = lua_tonumber(L, 5);
+	float fZt = lua_tonumber(L, 6);
+
+	XMFLOAT3 tracer_from, tracer_hit;
+
+	tracer_from.x = fX;
+	tracer_from.y = fY;
+	tracer_from.z = fZ;
+	tracer_hit.x = fXt;
+	tracer_hit.y = fYt;
+	tracer_hit.z = fZt;
 
 
+	float lifetime = lua_tonumber(L, 7);
+	float colR = lua_tonumber(L, 8) / 255.0f;
+	float colG = lua_tonumber(L, 9) / 255.0f;
+	float colB = lua_tonumber(L, 10) / 255.0f;
+	float glow = lua_tonumber(L, 11);
+	float scrollV = lua_tonumber(L, 12);
+	float scaleV = lua_tonumber(L, 13);
+	float width = lua_tonumber(L, 14);
+	float maxlength = lua_tonumber(L, 15);
+	int iImageID = lua_tonumber(L, 16);
+	iImageID += 400; //PE: LUA offset
+
+	Tracers::AddTracer(
+		tracer_from,
+		tracer_hit,
+		lifetime, // Lifetime
+		XMFLOAT4(colR, colG, colB, 1), // Color
+		glow, // 5.0f, // Glow
+		scrollV, // Scroll
+		scaleV, // scaleV
+		width, // width
+		maxlength, // max length
+		iImageID // TextureID
+	);
+	return 0;
+}
 // Misc Commands
 
 int GetBulletHit(lua_State* L)
@@ -13127,11 +13199,13 @@ void addFunctions()
 	lua_register(lua, "WParticleEffectPosition", WParticleEffectPosition);
 	lua_register(lua, "WParticleEffectVisible", WParticleEffectVisible);
 	lua_register(lua, "WParticleEffectAction", WParticleEffectAction);
-	
+#endif
+
 	//PE: Other missing commands.
 	lua_register(lua, "PositionSound", entity_lua_positionsound);
+	lua_register(lua, "AddTracer", AddTracer);
+	lua_register(lua, "LoadTracerImage", LoadTracerImage);
 
-#endif
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
 	lua_register(lua, "SetFlashLight" , SetFlashLight );	

@@ -1791,8 +1791,10 @@ void update_env_particles(void)
 			else
 				int ttt = IntersectAll(g.lightmappedobjectoffset, g.lightmappedobjectoffsetfinish, 0, 0, 0, 0, 0, 0, -123);
 			#endif
-			int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, this_emitter->xPos, this_emitter->yPos, this_emitter->zPos, this_emitter->xPos, this_emitter->yPos + 2000.0f, this_emitter->zPos, 0, 0, 0, 0, 1, true);
-			if (iHitObj > 0) 
+			//PE: https://github.com/TheGameCreators/GameGuruRepo/issues/5917#issuecomment-2744470171
+			//PE: Bug Fix - Respect "no collision".
+			int iHitObj = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, this_emitter->xPos, this_emitter->yPos, this_emitter->zPos, this_emitter->xPos, this_emitter->yPos + 2000.0f, this_emitter->zPos, 0, 0, 0, 0, 1, false);
+			if (iHitObj > 0)
 			{
 				//Disable temp.
 				this_emitter->maxParticles = 0;

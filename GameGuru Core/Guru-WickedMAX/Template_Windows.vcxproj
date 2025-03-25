@@ -770,6 +770,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="tracers\TracerManager.cpp" />
     <ClCompile Include="Wicked-MAX\BulletDebugDrawer.cpp" />
     <ClCompile Include="wickedcalls.cpp" />
   </ItemGroup>
@@ -2287,6 +2288,16 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='ReleaseForEpic|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='ReleaseForEdu|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="tracers\BulletTracerPS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="tracers\BulletTracerVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

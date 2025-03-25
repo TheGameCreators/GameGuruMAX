@@ -60,6 +60,20 @@ void gun_loaddata ( void )
 	
 	t.gun[t.gunid].settings.fEmissiveStrength = 1.0f;
 
+	t.gun[t.gunid].settings.tracer_active = false;
+	t.gun[t.gunid].settings.tracer_lifetime = 0.15f;
+	t.gun[t.gunid].settings.tracer_glow = 8;
+	t.gun[t.gunid].settings.tracer_scrollV = 0;
+	t.gun[t.gunid].settings.tracer_scaleV = 1.0f;
+	t.gun[t.gunid].settings.tracer_width = 1.0f;
+	t.gun[t.gunid].settings.tracer_maxlength = 0;
+	t.gun[t.gunid].settings.tracer_imagefile = "tracer.dds";
+	t.gun[t.gunid].settings.tracer_WPEId = 0;
+	t.gun[t.gunid].settings.tracer_colorR = 1.0f;
+	t.gun[t.gunid].settings.tracer_colorG = 0.5f;
+	t.gun[t.gunid].settings.tracer_colorB = 0.1f;
+
+
 
 	// stores legacy ammo/clip values when move slot weapons to player containers for storage
 	t.gun[t.gunid].storeammo = 0;
@@ -1631,6 +1645,31 @@ void gun_loaddata ( void )
 					cmpStrConst(t_field_s, "emissivestrength");
 					if (matched) t.gun[t.gunid].settings.fEmissiveStrength = t.value1;
 
+					// tracers
+					cmpStrConst(t_field_s, "traceractive");
+					if (matched) t.gun[t.gunid].settings.tracer_active = t.value1;
+					cmpStrConst(t_field_s, "tracerlifetime");
+					if (matched) t.gun[t.gunid].settings.tracer_lifetime = t.value1;
+					cmpStrConst(t_field_s, "tracerglow");
+					if (matched) t.gun[t.gunid].settings.tracer_glow = t.value1;
+					cmpStrConst(t_field_s, "tracerscrollv");
+					if (matched) t.gun[t.gunid].settings.tracer_scrollV = t.value1;
+					cmpStrConst(t_field_s, "tracerscalev");
+					if (matched) t.gun[t.gunid].settings.tracer_scaleV = t.value1;
+					cmpStrConst(t_field_s, "tracerwidth");
+					if (matched) t.gun[t.gunid].settings.tracer_width = t.value1;
+					cmpStrConst(t_field_s, "tracermaxlength");
+					if (matched) t.gun[t.gunid].settings.tracer_maxlength = t.value1;
+					cmpStrConst(t_field_s, "tracercolorr");
+					if (matched) t.gun[t.gunid].settings.tracer_colorR = t.value1 / 255.0f;
+					cmpStrConst(t_field_s, "tracercolorg");
+					if (matched) t.gun[t.gunid].settings.tracer_colorG = t.value1 / 255.0f;
+					cmpStrConst(t_field_s, "tracercolorb");
+					if (matched) t.gun[t.gunid].settings.tracer_colorB = t.value1 / 255.0f;
+
+					//t.gun[t.gunid].settings.tracer_imagefile = "tracer.dds";
+					//t.gun[t.gunid].settings.tracer_WPEId = 0;
+					
 				}
 			}
 		}

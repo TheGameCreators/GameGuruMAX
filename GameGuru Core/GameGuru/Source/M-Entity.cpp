@@ -27,7 +27,7 @@ using namespace wiECS;
 
 #ifdef WICKEDPARTICLESYSTEM
 #define MAXREADYDECALS 7
-#define MAXUNIQUEDECALS 25
+#define MAXUNIQUEDECALS 100
 uint32_t ready_decals[MAXUNIQUEDECALS][MAXREADYDECALS] = { 0 };
 uint32_t decal_count[MAXUNIQUEDECALS] = { 0 };
 #endif
@@ -9321,6 +9321,8 @@ void delete_notused_decal_particles( void )
 	{
 		gpup_deleteEffect(delete_decal_particles[i]);
 	}
+	//PE: Clear all deleted particles.
+	delete_decal_particles.clear();
 }
 
 #ifdef WICKEDPARTICLESYSTEM
@@ -9467,7 +9469,8 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 			iParticleEmitter = gpup_loadEffect(pParticle->emittername.Get(), 0, 0, 0, 1.0);
 			gpup_emitterActive(iParticleEmitter, 0);
 			pParticle->emitterid = iParticleEmitter;
-			if(bAutoDelete)
+			//PE: Anything created in testgame (LUA) must be deleted after game.
+			if(bAutoDelete || bImGuiInTestGame == true)
 				delete_decal_particles.push_back(iParticleEmitter);
 		}
 	}

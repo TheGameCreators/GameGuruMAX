@@ -7729,6 +7729,18 @@ struct gunsettingstype
 	int weaponpropres1;
 	int weaponpropres2;
 	float fEmissiveStrength;
+	bool tracer_active;
+	float tracer_lifetime;
+	float tracer_glow;
+	float tracer_scrollV;
+	float tracer_scaleV;
+	float tracer_width;
+	float tracer_maxlength;
+	float tracer_colorR;
+	float tracer_colorG;
+	float tracer_colorB;
+	cStr tracer_imagefile;
+	uint32_t tracer_WPEId;
 
 	// Constructor
 	gunsettingstype ( )

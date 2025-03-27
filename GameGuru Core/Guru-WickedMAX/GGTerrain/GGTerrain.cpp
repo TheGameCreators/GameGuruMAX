@@ -3496,10 +3496,11 @@ public:
 			if ( ggterrain_global_render_params2.brushSize < 10 ) ggterrain_global_render_params2.brushSize = 10;
 			if ( ggterrain_global_render_params2.brushSize > 7000 ) ggterrain_global_render_params2.brushSize = 7000;
 
+			// no longer cap as we can now have completely empty level for space games
 			//allow 0.5-5km.
-			float meterValue = GGTerrain_UnitsToMeters( ggterrain_global_render_params2.editable_size * 2);
-			if ( meterValue < 500 ) ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits( 500.0f / 2);
-			if ( meterValue > 5000 ) ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits( 5000.0f / 2);
+			//float meterValue = GGTerrain_UnitsToMeters( ggterrain_global_render_params2.editable_size * 2);
+			//if ( meterValue < 500 ) ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits( 500.0f / 2);
+			//if ( meterValue > 5000 ) ggterrain_global_render_params2.editable_size = GGTerrain_MetersToUnits( 5000.0f / 2);
 
 			bool resized = false;
 			if ( ggterrain_local_render_params2.readBackTextureReduction != ggterrain_global_render_params2.readBackTextureReduction ) 
@@ -9721,6 +9722,16 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		GGTerrain_CreateUndoRedoAction(type, eUndoSys_UndoList);
 	}
 	#endif
+}
+
+void GGTerrain_Update_EmptyLevel(float playerX, float playerY, float playerZ)
+{
+	terrainlock.lock();
+	if (ggterrain_update_enabled)
+	{
+		ggterrain.CheckParams();
+	}
+	terrainlock.unlock();
 }
 
 int GGTerrain_IsReady()

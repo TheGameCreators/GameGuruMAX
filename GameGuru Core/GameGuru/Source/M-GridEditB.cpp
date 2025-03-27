@@ -35480,8 +35480,6 @@ void Welcome_Screen(void)
 				{
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x, vPreviewSize.x + 17.0f), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						//ExecuteFile("https://gameguru-max.document360.io/docs/test-topic", "", "", 0);
-						//ExecuteFile("https://bit.ly/MAXUserGuide", "", "", 0);
 						// User guide has been moved to offline only
 						ExecuteFile("..\\Guides\\User Manual\\GameGuru MAX - User Guide.pdf", "", "", 0);
 					}

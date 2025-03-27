@@ -275,25 +275,23 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 				HideObject(g.debugraycastvisual);
 		}
 
+		// get object facing angle, also apply any head turning activity
+		float fAIObjX = ObjectPositionX(t.charanimstate.obj);
+		float fAIObjY = ObjectPositionY(t.charanimstate.obj) + 5.0f;
+		float fAIObjZ = ObjectPositionZ(t.charanimstate.obj);
+		bool bWithinDebugViewRange = false;
+		float fAIObjAngleY = ObjectAngleY(t.charanimstate.obj);
+		fAIObjAngleY += t.charanimstate.neckRightAndLeft;
+		float fDX = fAIObjX - CameraPositionX(0);
+		float fDZ = fAIObjZ - CameraPositionZ(0);
+		float fDist = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+		float fViewRange = t.entityelement[t.charanimstate.e].eleprof.conerange;
+		if (fDist < fViewRange * 1.25f) bWithinDebugViewRange = true;
+
 		// Control cone of sight object
 		int iOuterViewObject = g.debugconeofsightstart + g.charanimindex;
 		if (ObjectExist(iOuterViewObject) == 1)
 		{
-			// takes t.charanimstate.e and t.charanimstate.obj
-			float fAIObjX = ObjectPositionX(t.charanimstate.obj);
-			float fAIObjY = ObjectPositionY(t.charanimstate.obj) + 5.0f;
-			float fAIObjZ = ObjectPositionZ(t.charanimstate.obj);
-
-			// get object facing angle, also apply any head turning activity
-			bool bWithinDebugViewRange = false;
-			float fAIObjAngleY = ObjectAngleY(t.charanimstate.obj);
-			fAIObjAngleY += t.charanimstate.neckRightAndLeft;
-			float fDX = fAIObjX - CameraPositionX(0);
-			float fDZ = fAIObjZ - CameraPositionZ(0);
-			float fDist = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
-			float fViewRange = t.entityelement[t.charanimstate.e].eleprof.conerange;
-			if (fDist < fViewRange * 1.25f) bWithinDebugViewRange = true;
-
 			// position and show/hide
 			PositionObject (iOuterViewObject, fAIObjX, fAIObjY, fAIObjZ);
 			YRotateObject (iOuterViewObject, fAIObjAngleY);
@@ -301,13 +299,6 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 			{
 				// cone of sight debug
 				ShowObject(iOuterViewObject);
-
-				// also show object entity ID (so can debug logic in behavior editor)
-				if (fDist < 500)
-				{
-					t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
-					t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
-				}
 
 				// if using an attachment, and it has a firespot debug object, show it
 				if (t.entityelement[t.charanimstate.e].attachmentobj > 0)
@@ -339,6 +330,17 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 						WickedCall_SetObjectRenderLayer(pDebugFirespotObj, GGRENDERLAYERS_CURSOROBJECT);
 					}
 				}
+			}
+		}
+
+		// always get to see ID so can do LUA logic work
+		if (g_bShowRecastDetourDebugVisuals == true)
+		{
+			// also show object entity ID (so can debug logic in behavior editor)
+			if (fDist < 500)
+			{
+				t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
+				t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
 			}
 		}
 	}
@@ -2164,6 +2166,12 @@ int darkai_canshoot (void)
 				// frequenty of fire
 				t.ttratecalc_f = (1.0 / (1.0 + g.firemodes[t.tgunid][0].settings.firerate))*g.timeelapsed_f*2.0;
 				t.ttratecalc_f *= 30.0f;// 10.0f; // increase rate of fire for MAX
+				// also to ensure a rate of fire reducing to zero goes faster
+				if (t.entityelement[t.charanimstate.e].eleprof.rateoffire < 50)
+				{
+					float fFasterPlease = 50.0f - t.entityelement[t.charanimstate.e].eleprof.rateoffire;
+					t.ttratecalc_f *= (fFasterPlease / 10.0f);
+				}
 				t.charanimstate.firerateaccumilator = t.charanimstate.firerateaccumilator - t.ttratecalc_f;
 				if (t.charanimstate.firerateaccumilator < 0.0)
 				{

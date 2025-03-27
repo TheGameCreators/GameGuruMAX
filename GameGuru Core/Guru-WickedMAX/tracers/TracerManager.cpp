@@ -174,7 +174,7 @@ namespace Tracers
     {
         Tracer_LoadTextureDDS(filename, &tracerTexture[gunid]);
     }
-
+    
     void Initialize()
     {
 #ifdef DISABLETEMP

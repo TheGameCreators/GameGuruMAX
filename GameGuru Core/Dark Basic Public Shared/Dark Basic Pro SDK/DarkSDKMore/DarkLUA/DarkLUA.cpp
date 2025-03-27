@@ -10079,6 +10079,7 @@ int LoadTracerImage(lua_State* L)
 	Tracers::LoadTracerImage(FileName, iImageID);
 	return 0;
 }
+
 int AddTracer(lua_State* L)
 {
 	lua = L;
@@ -10690,6 +10691,8 @@ int SetWeaponArmsVisible(lua_State* L)
 	extern bool bHideWeaponsMuzzle;
 	extern bool bHideWeaponsSmoke;
 	extern bool bHideWeapons;
+	extern int iTracerPosition;
+	iTracerPosition = 0;
 	bHideWeapons = lua_tonumber(L, 1);
 	if (n == 2)
 	{
@@ -10700,6 +10703,11 @@ int SetWeaponArmsVisible(lua_State* L)
 		bHideWeaponsMuzzle = lua_tonumber(L, 2);
 		bHideWeaponsSmoke = lua_tonumber(L, 3);
 	}
+	if (n >= 4)
+	{
+		iTracerPosition = lua_tonumber(L, 4);
+	}
+
 	return 1;
 }
 

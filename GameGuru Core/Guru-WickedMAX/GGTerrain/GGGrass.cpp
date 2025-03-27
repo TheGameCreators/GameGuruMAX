@@ -1736,6 +1736,7 @@ void GGGrass_Update( wiScene::CameraComponent* camera, CommandList cmd, bool bRe
 	}
 
 	grassConstantData.grass_lodDist = gggrass_global_params.lod_dist;
+	grassConstantData.grass_scale = gggrass_global_params.grass_scale;
 	grassConstantData.grass_flags = 0;
 	if ( gggrass_global_params.simplePBR ) grassConstantData.grass_flags |= GGGRASS_FLAGS_SIMPLE_PBR;
 	
@@ -1912,7 +1913,7 @@ extern "C" void GGGrass_Draw( const Frustum* frustum, int mode, CommandList cmd 
 		device->DrawIndexedInstanced( 6, pChunk->numValid, 0, 0, 0, cmd );
 	}
 	
-	wiProfiler::EndRange( range );
+	if (mode == 0) wiProfiler::EndRange( range );
 
 	device->EventEnd(cmd);
 }

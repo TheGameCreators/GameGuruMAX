@@ -37,7 +37,7 @@ VertexOut main( VertexIn IN )
 	uint grassType = GetGrassType( IN.data );
 	uint index = GetGrassVariation( IN.data );
 
-	float4 posOrig = float4( IN.position * GGGRASS_SCALE, 0, 0 );
+    float4 posOrig = float4(IN.position * grass_scale, 0, 0); //GGGRASS_SCALE
 	float scaleFactor = grass_type[ grassType ].scaleFactor;
 	posOrig.x *= scaleFactor;
 	

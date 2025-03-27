@@ -5368,7 +5368,8 @@ char* GGTerrain_SaveSettings(int water_height)
 	output += ",\n  \"paint_material\": ";		output += std::to_string(gggrass_global_params.paint_material);
 	output += ",\n  \"paint_type\": ";		output += std::to_string(gggrass_global_params.paint_type);
 
-
+	output += ",\n  \"grass_scale\": ";		output += std::to_string(gggrass_global_params.grass_scale);
+	
 	output += "\n}";
 
 	size_t length = output.length() + 1;
@@ -5383,6 +5384,10 @@ int GGTerrain_LoadSettings( const char* settingsJSON, bool bRestoreWater)
 {
 	JSONElement* pElement = JSONElement::LoadJSONFromData( settingsJSON );
 	if ( pElement->GetType() != JSON_OBJECT ) return 0;
+
+	//PE: Parameters that need to be reset.
+	gggrass_global_params.grass_scale = GGGRASS_SCALE;
+
 	JSONObject* pObject = (JSONObject*) pElement;
 
 	pElement = pObject->GetElement("iProceduralTerrainType");
@@ -5525,6 +5530,9 @@ int GGTerrain_LoadSettings( const char* settingsJSON, bool bRestoreWater)
 	if (pElement) { gggrass_global_params.paint_material = ((JSONNumber*)pElement)->m_iValue; }
 	pElement = pObject->GetElement("paint_type");
 	if (pElement) { gggrass_global_params.paint_type = ((JSONNumber*)pElement)->m_iValue; }
+
+	pElement = pObject->GetElement("grass_scale");
+	if (pElement) { gggrass_global_params.grass_scale = ((JSONNumber*)pElement)->m_fValue; }
 
 
 	if (bRestoreWater)

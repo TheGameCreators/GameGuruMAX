@@ -35,6 +35,7 @@ namespace GGGrass
 
 		float lod_dist = GGGRASS_INITIAL_LOD_DIST;
 		int simplePBR = 0;
+		float grass_scale = 40;
 	};
 
 	// these values must not be modified outside the tree module

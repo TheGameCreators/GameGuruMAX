@@ -40,7 +40,7 @@ cbuffer GrassCB : register( b2 )
 
 	float grass_lodDist;
 	uint grass_flags;
-	float grass_padding1;
+	float grass_scale;
 	float grass_padding2;
 };
 

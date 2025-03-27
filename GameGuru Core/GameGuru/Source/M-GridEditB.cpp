@@ -8742,7 +8742,8 @@ void Wicked_Update_Visuals(void *voidvisual)
 		weather->pp_alpha = visuals->pp_alpha;
 		weather->windRandomness = visuals->wind_randomness;
 		weather->tree_wind = visuals->tree_wind;
-		
+		weather->tree_sss = visuals->tree_sss;
+
 		if (t.game.set.ismapeditormode != 1)
 			weather->SetPPSnowEnabled(visuals->bPPSnow);
 		else if (bEnableWeather)

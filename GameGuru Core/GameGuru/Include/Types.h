@@ -3982,6 +3982,7 @@ struct visualstype
 	float wind_randomness;
 	bool bpp_disable_indoor;
 	float tree_wind;
+	float tree_sss;
 	float fLevelDifficulty;
 	cStr sFactionName[128];
 
@@ -4248,6 +4249,7 @@ struct visualstype
 		 wind_speed =  1.0f;
 		 wind_randomness = 1.0f;
 		 tree_wind = 0.0f;
+		 tree_sss = 0.0f;
 		 bpp_disable_indoor = true;
 
 		 fLevelDifficulty = 50.0;

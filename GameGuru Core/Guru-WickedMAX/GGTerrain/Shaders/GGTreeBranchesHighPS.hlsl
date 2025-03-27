@@ -1,3 +1,5 @@
+#define SUBSURFACESCATTERING
+
 Texture2D<float> texNoise : register( t51 );
 Texture2DArray texBranchesHigh : register( t54 );
 

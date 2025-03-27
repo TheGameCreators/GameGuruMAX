@@ -2851,6 +2851,18 @@ void imgui_terrain_loop_v3(void)
 						}
 					}
 
+					ImGui::TextCenter("Subsurface Scattering");
+					if (ImGui::SliderFloat("##TreeSSS", &t.visuals.tree_sss, 0.0f, 1.0f, "%.2f", 1.0f))
+					{
+						t.gamevisuals.tree_sss = t.visuals.tree_sss;
+						extern wiECS::Entity g_weatherEntityID;
+						wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+						if (weather)
+						{
+							weather->tree_sss = t.visuals.tree_sss; // t.visuals.tree_wind;
+						}
+					}
+
 					float but_gadget_size = ImGui::GetFontSize()*10.0;
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 

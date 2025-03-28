@@ -4197,22 +4197,37 @@ void gun_shoot_oneray ( void )
 				t.flakx_f = CameraPositionX();
 				t.flaky_f = CameraPositionY();
 				t.flakz_f = CameraPositionZ();
-				float fGrenadePosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
-				float fGrenadePosY = CameraPositionY();
-				float fGrenadePosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
+				float fTracerPosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
+				float fTracerPosY = CameraPositionY();
+				float fTracerPosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
+				//r_finger01
+				int iSmokeLimb = t.gun[t.gunid].settings.smokelimb;
+				if (iSmokeLimb <= 0)  iSmokeLimb = t.gun[t.gunid].settings.brasslimb;
+
 				if (t.gun[t.gunid].settings.flashlimb != -1)
 				{
 					if (LimbExist(t.currentgunobj, t.gun[t.gunid].settings.flashlimb) == 1)
 					{
-						fGrenadePosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
-						fGrenadePosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
-						fGrenadePosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+						fTracerPosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+						fTracerPosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+						fTracerPosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
 					}
 				}
+				else if (iSmokeLimb > 0)
+				{
+					// position from smoke or brass limb
+					fTracerPosX = LimbPositionX(t.currentgunobj, iSmokeLimb);
+					fTracerPosY = LimbPositionY(t.currentgunobj, iSmokeLimb);
+					fTracerPosZ = LimbPositionZ(t.currentgunobj, iSmokeLimb);
+				}
+				else
+				{
+					gun_flashbrass_position(&fTracerPosX, &fTracerPosY, &fTracerPosZ, 1, 1, 1);
+				}
 
-				tracer_from.x = fGrenadePosX;
-				tracer_from.y = fGrenadePosY;
-				tracer_from.z = fGrenadePosZ;
+				tracer_from.x = fTracerPosX;
+				tracer_from.y = fTracerPosY;
+				tracer_from.z = fTracerPosZ;
 
 				tracer_hit.x = t.x2_f; // t.brayx2_f;
 				tracer_hit.y = t.y2_f; // t.brayy2_f;

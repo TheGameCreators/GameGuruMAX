@@ -10762,6 +10762,13 @@ struct playerlighttype
 	float flashlightcontrol_colorB_f;
 	bool flashlightcontrol_cashshadow;
 
+	float flashlightcontrol_forward;
+	float flashlightcontrol_right;
+	float flashlightcontrol_down;
+	float flashlightcontrol_anglex;
+	float flashlightcontrol_angley;
+	float flashlightcontrol_anglez;
+
 	// Constructor
 	playerlighttype ( )
 	{
@@ -10771,6 +10778,13 @@ struct playerlighttype
 		 flashlightcontrol_colorG_f = 64;
 		 flashlightcontrol_colorB_f = 64;
 		 flashlightcontrol_cashshadow = true;
+		 flashlightcontrol_forward = 5;
+		 flashlightcontrol_right = 8;
+		 flashlightcontrol_down = -7;
+		 flashlightcontrol_anglex = 0;
+		 flashlightcontrol_angley = 0;
+		 flashlightcontrol_anglez = 0;
+
 		 flashlightcontrol_f = 0.0f;
 		 spotlightb_f = 0.0f;
 		 spotlightg_f = 0.0f;

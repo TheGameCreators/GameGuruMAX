@@ -36,6 +36,13 @@ void lighting_init ( void )
 	t.playerlight.flashlightcontrol_colorG_f = 64;
 	t.playerlight.flashlightcontrol_colorB_f = 64;
 	t.playerlight.flashlightcontrol_cashshadow = true;
+	t.playerlight.flashlightcontrol_forward = 5;
+	t.playerlight.flashlightcontrol_right = 8;
+	t.playerlight.flashlightcontrol_down = -7;
+	t.playerlight.flashlightcontrol_anglex = 0;
+	t.playerlight.flashlightcontrol_angley = 0;
+	t.playerlight.flashlightcontrol_anglez = 0;
+
 }
 
 void lighting_free ( void )
@@ -117,16 +124,18 @@ void lighting_loop(void)
 		if (iUpdateFlashLightMode != 3 )
 		{
 			//PE: Position light in the right hand.
-			MoveCamera(5.0);
-			MoveCameraRight(0, 8.0);
+			MoveCamera(t.playerlight.flashlightcontrol_forward);
+			//MoveCameraDown(0, t.playerlight.flashlightcontrol_down);
+			MoveCameraRight(0, t.playerlight.flashlightcontrol_right);
 			float fCamX = CameraPositionX(0);
-			float fCamY = CameraPositionY(0) - 7.0f;
+			float fCamY = CameraPositionY(0) + t.playerlight.flashlightcontrol_down;
 			float fCamZ = CameraPositionZ(0);
-			float fCamAX = CameraAngleX(0);
-			float fCamAY = CameraAngleY(0);
-			float fCamAZ = CameraAngleZ(0);
-			MoveCameraLeft(0, 8.0);
-			MoveCamera(-5.0);
+			float fCamAX = CameraAngleX(0) + t.playerlight.flashlightcontrol_anglex;
+			float fCamAY = CameraAngleY(0) + t.playerlight.flashlightcontrol_angley;
+			float fCamAZ = CameraAngleZ(0) + t.playerlight.flashlightcontrol_anglez;
+			MoveCameraLeft(0, t.playerlight.flashlightcontrol_right);
+			//MoveCameraUp(0, t.playerlight.flashlightcontrol_down);
+			MoveCamera(-t.playerlight.flashlightcontrol_forward);
 			float fFlashLightRange = t.playerlight.flashlightcontrol_range_f;
 			float fFlashLightRadius = t.playerlight.flashlightcontrol_radius_f;
 			float fFlashLightColR = t.playerlight.flashlightcontrol_colorR_f;

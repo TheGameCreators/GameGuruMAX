@@ -10221,6 +10221,40 @@ int SetFlashLight ( lua_State *L )
 		return 0;
 }
 
+int SetFlashLightPosition(lua_State* L)
+{
+	lua = L;
+
+	// get number of arguments
+	int n = lua_gettop(L);
+
+	// Not enough params, return out
+	if (n < 3)
+		return 0;
+	if (n >= 3)
+	{
+		t.playerlight.flashlightcontrol_forward = lua_tonumber(L, 1);
+		t.playerlight.flashlightcontrol_right = lua_tonumber(L, 2);
+		t.playerlight.flashlightcontrol_down = lua_tonumber(L, 3);
+	}
+	if (n == 6)
+	{
+		t.playerlight.flashlightcontrol_anglex = lua_tonumber(L, 4);
+		t.playerlight.flashlightcontrol_angley = lua_tonumber(L, 5);
+		t.playerlight.flashlightcontrol_anglez = lua_tonumber(L, 6);
+	}
+	
+	return 0;
+}
+int GetFlashLightPosition(lua_State* L)
+{
+	lua_pushnumber(L, t.playerlight.flashlightcontrol_forward);
+	lua_pushnumber(L, t.playerlight.flashlightcontrol_right);
+	lua_pushnumber(L, t.playerlight.flashlightcontrol_down);
+	return 3;
+}
+
+
 int SetPlayerRun ( lua_State *L )
 {
 	lua = L;
@@ -13216,7 +13250,10 @@ void addFunctions()
 
 
 	lua_register(lua, "GetBulletHit",             GetBulletHit);
-	lua_register(lua, "SetFlashLight" , SetFlashLight );	
+	lua_register(lua, "SetFlashLight" , SetFlashLight );
+	lua_register(lua, "SetFlashLightPosition", SetFlashLightPosition);
+	lua_register(lua, "GetFlashLightPosition", GetFlashLightPosition);
+
 	lua_register(lua, "SetAttachmentVisible" , SetAttachmentVisible );
 	lua_register(lua, "SetOcclusion" , SetOcclusion );
 	lua_register(lua, "SetPlayerWeapons", SetPlayerWeapons);

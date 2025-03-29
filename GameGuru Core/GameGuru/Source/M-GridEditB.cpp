@@ -6487,13 +6487,14 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					if ( t.visuals.CameraFAR_f < t.visuals.CameraNEAR_f + 0.1f ) t.visuals.CameraFAR_f = t.visuals.CameraNEAR_f + 0.1f;
 					t.gamevisuals.CameraNEAR_f = t.visuals.CameraNEAR_f;
+					g.projectmodified = t.storeprojectmodified = 1;
 					bUpdateCam = true;
 				}
 				if (ImGui::SliderFloat("##WickedCameraFar", &t.visuals.CameraFAR_f, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE, "%.2f", 2.0f))
 				{
 					if ( t.visuals.CameraNEAR_f > t.visuals.CameraFAR_f - 0.1f ) t.visuals.CameraNEAR_f = t.visuals.CameraFAR_f - 0.1f;
 					t.gamevisuals.CameraFAR_f = t.visuals.CameraFAR_f;
-					//bVisualUpdated = true;
+					g.projectmodified = t.storeprojectmodified = 1;
 					bUpdateCam = true;
 				}
 
@@ -6507,6 +6508,7 @@ void tab_tab_visuals(int iPage, int iMode)
 				{
 					t.visuals.CameraFOV_f = iCamFOV;
 					t.gamevisuals.CameraFOV_f = t.visuals.CameraFOV_f;
+					g.projectmodified = t.storeprojectmodified = 1;
 					bUpdateCam = true;
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Vertical Field Of View (FOV)");
@@ -33418,9 +33420,15 @@ void GetProjectSortData (std::vector<ProjectSortData>& output)
 						SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
 
 						// Build a string showing the date and time.
+						//StringCchPrintf(wWriteTime, MAX_PATH,
+						//	TEXT("%02d/%02d/%d  %02d:%02d:%02d"),
+						//	stLocal.wMonth, stLocal.wDay, stLocal.wYear,
+						//	stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+
+						// the sort system just uses string compare to work out which is the newest date, so make year/month more important
 						StringCchPrintf(wWriteTime, MAX_PATH,
-							TEXT("%02d/%02d/%d  %02d:%02d:%02d"),
-							stLocal.wMonth, stLocal.wDay, stLocal.wYear,
+							TEXT("%04d/%02d/%02d  %02d:%02d:%02d"),
+							stLocal.wYear, stLocal.wMonth, stLocal.wDay,
 							stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
 
 						// Convert from wide char.
@@ -34521,14 +34529,6 @@ void Welcome_Screen(void)
 					ImGui::SetWindowFontScale(1.0f);
 					ImGui::PopItemWidth();
 					
-
-					//PE: Always have a selection.
-					if (current_project_selected == "" && projectbank_list.size() > 0)
-					{
-						current_project_id = 0;
-						current_project_selected = projectbank_list[0];
-					}
-
 					iCurrentOpenTab = 1;
 					//My Games.
 					bool bTriggerLoad = false;
@@ -34706,6 +34706,14 @@ void Welcome_Screen(void)
 						bSortProjects = false;
 						SortProjects(iProjectSortMode);
 						bResetProjectThumbnails = true;
+					}
+
+					//PE: Always have a selection
+					//LB: moved down so can benefit from above sort call
+					if (current_project_selected == "" && projectbank_list.size() > 0)
+					{
+						current_project_id = 0;
+						current_project_selected = projectbank_list[0];
 					}
 
 					//PE: No trigger load here, moved to other column.

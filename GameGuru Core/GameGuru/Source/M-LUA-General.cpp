@@ -1044,6 +1044,11 @@ void lua_hidewater ( void )
 	t.hardwareinfoglobals.nowater=1;
 	if (  ObjectExist(t.terrain.objectstartindex+5) == 1  )  HideObject (  t.terrain.objectstartindex+5 );
 	ODESetDynamicCharacterController (  t.aisystem.objectstartindex,-10000,0,0,0,0,0,0 );
+
+	// Wicked Water
+	t.visuals.bWaterEnable = 0;
+	extern void Wicked_Update_Visuals(void* voidvisual);
+	Wicked_Update_Visuals((void*)&t.visuals);
 }
 
 void lua_showwater ( void )
@@ -1052,6 +1057,11 @@ void lua_showwater ( void )
 	if (  ObjectExist(t.terrain.objectstartindex+5) == 1  )  ShowObject (  t.terrain.objectstartindex+5 );
 	extern float g_fWaterLineY;
 	ODESetDynamicCharacterController (  t.aisystem.objectstartindex,g_fWaterLineY,0,0,0,0,0,0 );
+
+	// Wicked Water
+	t.visuals.bWaterEnable = 1;
+	extern void Wicked_Update_Visuals(void* voidvisual);
+	Wicked_Update_Visuals((void*)&t.visuals);
 }
 
 void lua_hidehuds ( void )

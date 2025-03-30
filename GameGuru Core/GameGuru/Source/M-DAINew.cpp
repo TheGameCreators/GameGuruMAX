@@ -2491,7 +2491,7 @@ void darkai_shooteffect (void)
 		{
 			if (t.entityelement[ee].obj > 0 && ObjectExist(t.entityelement[ee].obj))
 			{
-				if (t.gun[t.gunid].settings.tracer_active)
+				if (t.gun[t.tgunid].settings.tracer_active)
 				{
 					XMFLOAT3 tracer_from, tracer_hit;
 
@@ -2548,7 +2548,7 @@ void darkai_shooteffect (void)
 
 			if (t.ttdistanceaccuracy_f < 0.3 || Rnd(t.tchancetohit_f*t.ttdistanceaccuracy_f) == 0)
 			{
-				if (t.gun[t.gunid].settings.tracer_active)
+				if (t.gun[t.tgunid].settings.tracer_active)
 				{
 					//PE: Hit t.tplayerx_f
 					XMFLOAT3 tracer_from, tracer_hit;
@@ -2560,6 +2560,17 @@ void darkai_shooteffect (void)
 					tracer_hit.x = t.tplayerx_f + (-1 + Rnd(2));
 					tracer_hit.y = t.tplayery_f + addheight + (-1 + Rnd(2));;
 					tracer_hit.z = t.tplayerz_f + (-1 + Rnd(2));
+
+					if (t.gun[t.tgunid].settings.tracer_maxlength > 0)
+					{
+						//PE: Extent range so player see the tracer near by.
+						XMVECTOR start = XMLoadFloat3(&tracer_from);
+						XMVECTOR end = XMLoadFloat3(&tracer_hit);
+						XMVECTOR dir = XMVectorSubtract(end, start);
+						//float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
+						dir = XMVector3Normalize(dir);
+						XMStoreFloat3(&tracer_hit , end + (dir * t.gun[t.tgunid].settings.tracer_maxlength));
+					}
 
 					Tracers::AddTracer(
 						tracer_from,
@@ -2579,7 +2590,7 @@ void darkai_shooteffect (void)
 			}
 			else
 			{
-				if (t.gun[t.gunid].settings.tracer_active)
+				if (t.gun[t.tgunid].settings.tracer_active)
 				{
 					//PE: Miss t.tplayerx_f
 					XMFLOAT3 tracer_from, tracer_hit;
@@ -2591,6 +2602,17 @@ void darkai_shooteffect (void)
 					tracer_hit.x = t.tplayerx_f + (-5 + Rnd(10));
 					tracer_hit.y = t.tplayery_f + addheight + (-10 + Rnd(20));
 					tracer_hit.z = t.tplayerz_f + (-5 + Rnd(10));
+
+					if (t.gun[t.tgunid].settings.tracer_maxlength > 0)
+					{
+						//PE: Extent range so player see the tracer near by.
+						XMVECTOR start = XMLoadFloat3(&tracer_from);
+						XMVECTOR end = XMLoadFloat3(&tracer_hit);
+						XMVECTOR dir = XMVectorSubtract(end, start);
+						//float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
+						dir = XMVector3Normalize(dir);
+						XMStoreFloat3(&tracer_hit, end + (dir * t.gun[t.tgunid].settings.tracer_maxlength));
+					}
 
 					Tracers::AddTracer(
 						tracer_from,

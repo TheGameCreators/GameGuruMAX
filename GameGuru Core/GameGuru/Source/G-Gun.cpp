@@ -4125,74 +4125,140 @@ void gun_shoot_oneray ( void )
 	{
 		if (t.gun[t.gunid].settings.tracer_active)
 		{
-
-			t.flakangle_f = CameraAngleY();
-			t.flakpitch_f = CameraAngleX();
-
-			extern int g_iActivelyUsingVRNow;
-			if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
-			if (bNormalOrVRMode == true)
-			{
-				int iLaserGuideObj = GGVR_GetLaserGuideObject();
-				if (iLaserGuideObj > 0 && ObjectExist(iLaserGuideObj) == 1)
-				{
-					t.flakangle_f = ObjectAngleY(iLaserGuideObj);
-					t.flakpitch_f = ObjectAngleX(iLaserGuideObj);
-				}
-			}
-
-			// check if clearance in front of player, so can place grenade perfectly
-			t.flakx_f = CameraPositionX();
-			t.flaky_f = CameraPositionY();
-			t.flakz_f = CameraPositionZ();
-			float fGrenadePosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
-			float fGrenadePosY = CameraPositionY();
-			float fGrenadePosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
-			if (t.gun[t.gunid].settings.flashlimb != -1)
-			{
-				if (LimbExist(t.currentgunobj, t.gun[t.gunid].settings.flashlimb) == 1)
-				{
-					fGrenadePosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
-					fGrenadePosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
-					fGrenadePosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
-				}
-			}
-
 			XMFLOAT3 tracer_from, tracer_hit;
-
-			tracer_from.x = fGrenadePosX;
-			tracer_from.y = fGrenadePosY;
-			tracer_from.z = fGrenadePosZ;
-
-			tracer_hit.x = t.x2_f; // t.brayx2_f;
-			tracer_hit.y = t.y2_f; // t.brayy2_f;
-			tracer_hit.z = t.z2_f; // t.brayz2_f;
-
-			XMVECTOR start = { tracer_from.x , tracer_from.y, tracer_from.z };// XMLoadFloat3(&tracer.startPos);
-			XMVECTOR end = { tracer_hit.x , tracer_hit.y, tracer_hit.z };// XMLoadFloat3(&tracer.endPos);
-			XMVECTOR dir = XMVectorSubtract(end, start);
-			float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
-			dir = XMVector3Normalize(dir);
-			if (length > 500)
+			bool bFireTracer = true;
+			//PE: If zoom mode ? you can't see it.
+			if (g.gdisablerightmousehold > 0)
 			{
-				end = start + (dir * 500.0f);
-				tracer_hit.x = XMVectorGetX(end);
-				tracer_hit.y = XMVectorGetY(end);
-				tracer_hit.z = XMVectorGetZ(end);
-			}
+				bFireTracer = false;
+				//PE: Weapon always zoom.
+				extern int iTracerPosition;
+				if (iTracerPosition == 1)
+				{
+					//PE: From below.
+					MoveCameraDown(0,-30);
+					MoveCamera(0, 20);
+					tracer_from.x = CameraPositionX();
+					tracer_from.y = CameraPositionY();
+					tracer_from.z = CameraPositionZ();
+					MoveCamera(0, -20);
+					MoveCameraDown(0,30);
 
-			Tracers::AddTracer(
-				tracer_from,
-				tracer_hit,
-				t.gun[t.gunid].settings.tracer_lifetime, // Lifetime
-				XMFLOAT4(t.gun[t.gunid].settings.tracer_colorR, t.gun[t.gunid].settings.tracer_colorG, t.gun[t.gunid].settings.tracer_colorB, 1), // Color
-				t.gun[t.gunid].settings.tracer_glow, // 5.0f, // Glow
-				t.gun[t.gunid].settings.tracer_scrollV, // Scroll
-				t.gun[t.gunid].settings.tracer_scaleV, // scaleV
-				t.gun[t.gunid].settings.tracer_width, // width
-				t.gun[t.gunid].settings.tracer_maxlength, // max length
-				t.gunid //Image to use.
-			);
+					tracer_hit.x = t.x2_f; // t.brayx2_f;
+					tracer_hit.y = t.y2_f; // t.brayy2_f;
+					tracer_hit.z = t.z2_f; // t.brayz2_f;
+
+					XMVECTOR start = { tracer_from.x , tracer_from.y, tracer_from.z };// XMLoadFloat3(&tracer.startPos);
+					XMVECTOR end = { tracer_hit.x , tracer_hit.y, tracer_hit.z };// XMLoadFloat3(&tracer.endPos);
+					XMVECTOR dir = XMVectorSubtract(end, start);
+					float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
+					dir = XMVector3Normalize(dir);
+					if (length > 500)
+					{
+						end = start + (dir * 500.0f);
+						tracer_hit.x = XMVectorGetX(end);
+						tracer_hit.y = XMVectorGetY(end);
+						tracer_hit.z = XMVectorGetZ(end);
+					}
+
+					Tracers::AddTracer(
+						tracer_from,
+						tracer_hit,
+						t.gun[t.gunid].settings.tracer_lifetime, // Lifetime
+						XMFLOAT4(t.gun[t.gunid].settings.tracer_colorR, t.gun[t.gunid].settings.tracer_colorG, t.gun[t.gunid].settings.tracer_colorB, 1), // Color
+						t.gun[t.gunid].settings.tracer_glow, // 5.0f, // Glow
+						t.gun[t.gunid].settings.tracer_scrollV, // Scroll
+						t.gun[t.gunid].settings.tracer_scaleV, // scaleV
+						t.gun[t.gunid].settings.tracer_width, // width
+						t.gun[t.gunid].settings.tracer_maxlength, // max length
+						t.gunid //Image to use.
+					);
+
+				}
+			}
+			else
+			{
+				t.flakangle_f = CameraAngleY();
+				t.flakpitch_f = CameraAngleX();
+
+				extern int g_iActivelyUsingVRNow;
+				if (g.vrglobals.GGVREnabled > 0 && g_iActivelyUsingVRNow == 1) bNormalOrVRMode = true;
+				if (bNormalOrVRMode == true)
+				{
+					int iLaserGuideObj = GGVR_GetLaserGuideObject();
+					if (iLaserGuideObj > 0 && ObjectExist(iLaserGuideObj) == 1)
+					{
+						t.flakangle_f = ObjectAngleY(iLaserGuideObj);
+						t.flakpitch_f = ObjectAngleX(iLaserGuideObj);
+					}
+				}
+
+				// check if clearance in front of player, so can place grenade perfectly
+				t.flakx_f = CameraPositionX();
+				t.flaky_f = CameraPositionY();
+				t.flakz_f = CameraPositionZ();
+				float fTracerPosX = CameraPositionX() + NewXValue(0, t.flakangle_f + 45, 40);
+				float fTracerPosY = CameraPositionY();
+				float fTracerPosZ = CameraPositionZ() + NewZValue(0, t.flakangle_f + 45, 40);
+				//r_finger01
+				int iSmokeLimb = t.gun[t.gunid].settings.smokelimb;
+				if (iSmokeLimb <= 0)  iSmokeLimb = t.gun[t.gunid].settings.brasslimb;
+
+				if (t.gun[t.gunid].settings.flashlimb != -1)
+				{
+					if (LimbExist(t.currentgunobj, t.gun[t.gunid].settings.flashlimb) == 1)
+					{
+						fTracerPosX = LimbPositionX(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+						fTracerPosY = LimbPositionY(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+						fTracerPosZ = LimbPositionZ(t.currentgunobj, t.gun[t.gunid].settings.flashlimb);
+					}
+				}
+				else if (iSmokeLimb > 0)
+				{
+					// position from smoke or brass limb
+					fTracerPosX = LimbPositionX(t.currentgunobj, iSmokeLimb);
+					fTracerPosY = LimbPositionY(t.currentgunobj, iSmokeLimb);
+					fTracerPosZ = LimbPositionZ(t.currentgunobj, iSmokeLimb);
+				}
+				else
+				{
+					gun_flashbrass_position(&fTracerPosX, &fTracerPosY, &fTracerPosZ, 1, 1, 1);
+				}
+
+				tracer_from.x = fTracerPosX;
+				tracer_from.y = fTracerPosY;
+				tracer_from.z = fTracerPosZ;
+
+				tracer_hit.x = t.x2_f; // t.brayx2_f;
+				tracer_hit.y = t.y2_f; // t.brayy2_f;
+				tracer_hit.z = t.z2_f; // t.brayz2_f;
+
+				XMVECTOR start = { tracer_from.x , tracer_from.y, tracer_from.z };// XMLoadFloat3(&tracer.startPos);
+				XMVECTOR end = { tracer_hit.x , tracer_hit.y, tracer_hit.z };// XMLoadFloat3(&tracer.endPos);
+				XMVECTOR dir = XMVectorSubtract(end, start);
+				float length = XMVectorGetX(XMVector3Length(dir)); //Hit weapon ? *0.97;
+				dir = XMVector3Normalize(dir);
+				if (length > 500)
+				{
+					end = start + (dir * 500.0f);
+					tracer_hit.x = XMVectorGetX(end);
+					tracer_hit.y = XMVectorGetY(end);
+					tracer_hit.z = XMVectorGetZ(end);
+				}
+
+				Tracers::AddTracer(
+					tracer_from,
+					tracer_hit,
+					t.gun[t.gunid].settings.tracer_lifetime, // Lifetime
+					XMFLOAT4(t.gun[t.gunid].settings.tracer_colorR, t.gun[t.gunid].settings.tracer_colorG, t.gun[t.gunid].settings.tracer_colorB, 1), // Color
+					t.gun[t.gunid].settings.tracer_glow, // 5.0f, // Glow
+					t.gun[t.gunid].settings.tracer_scrollV, // Scroll
+					t.gun[t.gunid].settings.tracer_scaleV, // scaleV
+					t.gun[t.gunid].settings.tracer_width, // width
+					t.gun[t.gunid].settings.tracer_maxlength, // max length
+					t.gunid //Image to use.
+				);
+			}
 		}
 	}
 

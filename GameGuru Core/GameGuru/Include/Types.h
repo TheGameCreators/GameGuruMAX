@@ -3982,6 +3982,7 @@ struct visualstype
 	float wind_randomness;
 	bool bpp_disable_indoor;
 	float tree_wind;
+	float tree_sss;
 	float fLevelDifficulty;
 	cStr sFactionName[128];
 
@@ -4250,6 +4251,7 @@ struct visualstype
 		 wind_speed =  1.0f;
 		 wind_randomness = 1.0f;
 		 tree_wind = 0.0f;
+		 tree_sss = 0.0f;
 		 bpp_disable_indoor = true;
 
 		 fLevelDifficulty = 50.0;
@@ -10760,6 +10762,13 @@ struct playerlighttype
 	float flashlightcontrol_colorB_f;
 	bool flashlightcontrol_cashshadow;
 
+	float flashlightcontrol_forward;
+	float flashlightcontrol_right;
+	float flashlightcontrol_down;
+	float flashlightcontrol_anglex;
+	float flashlightcontrol_angley;
+	float flashlightcontrol_anglez;
+
 	// Constructor
 	playerlighttype ( )
 	{
@@ -10769,6 +10778,13 @@ struct playerlighttype
 		 flashlightcontrol_colorG_f = 64;
 		 flashlightcontrol_colorB_f = 64;
 		 flashlightcontrol_cashshadow = true;
+		 flashlightcontrol_forward = 5;
+		 flashlightcontrol_right = 8;
+		 flashlightcontrol_down = -7;
+		 flashlightcontrol_anglex = 0;
+		 flashlightcontrol_angley = 0;
+		 flashlightcontrol_anglez = 0;
+
 		 flashlightcontrol_f = 0.0f;
 		 spotlightb_f = 0.0f;
 		 spotlightg_f = 0.0f;

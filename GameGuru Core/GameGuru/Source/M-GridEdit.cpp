@@ -18086,7 +18086,8 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.wind_speed = t.gamevisuals.wind_speed;
 	t.visuals.wind_randomness = t.gamevisuals.wind_randomness;
 	t.visuals.tree_wind = t.gamevisuals.tree_wind;
-	
+	t.visuals.tree_sss = t.gamevisuals.tree_sss;
+
 
 	t.visuals.fLevelDifficulty = t.gamevisuals.fLevelDifficulty;
 	

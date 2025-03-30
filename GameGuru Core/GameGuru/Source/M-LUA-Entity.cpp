@@ -687,6 +687,7 @@ bool entity_lua_manageactivationresult (int iEntityID)
 
 void entity_lua_activateifused ( void )
 {
+	if (t.e > t.entityelement.size()) return; //PE: Got Crash Here.
 	t.tstore = t.e;
 	if ( t.game.runasmultiplayer == 1 && t.tLuaDontSendLua == 0 ) 
 	{
@@ -3151,6 +3152,7 @@ int g_iSuggestedSlot = 0;
 
 void entity_lua_addplayerweapon(void)
 {
+	if (t.e > t.entityelement.size()) return; //PE: Got Crash Here.
 	// collect this weapon
 	t.tentid = t.entityelement[t.e].bankindex;
 	t.weaponindex = t.entityprofile[t.tentid].isweapon;

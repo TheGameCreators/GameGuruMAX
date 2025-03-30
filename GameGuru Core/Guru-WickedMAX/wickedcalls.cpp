@@ -137,7 +137,7 @@ bool bHideWeapons = false;
 bool bHideWeaponsMuzzle = false;
 bool bHideWeaponsSmoke = false;
 bool bReflectionsLowestLOD = false;
-
+int iTracerPosition = 0;
 int iEnterGodMode = 0;
 bool bTmpTesting = false;
 

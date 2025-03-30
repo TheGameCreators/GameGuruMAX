@@ -10,6 +10,10 @@
 #include "preprocessor-moreflags.h"
 #include "gameguru.h"
 #include "Utility/tinyddsloader.h"
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 
 template<typename T> static inline T PELerp(T a, T b, float t) { return (T)(a + (b - a) * t); }
 
@@ -174,7 +178,7 @@ namespace Tracers
     {
         Tracer_LoadTextureDDS(filename, &tracerTexture[gunid]);
     }
-
+    
     void Initialize()
     {
 #ifdef DISABLETEMP
@@ -289,6 +293,10 @@ namespace Tracers
 
     extern "C" void tracer_draw(const wiScene::CameraComponent& camera, wiGraphics::CommandList cmd)
     {
+#ifdef OPTICK_ENABLE
+        OPTICK_EVENT();
+#endif
+
 #ifdef DISABLETEMP
         return;
 #endif
@@ -363,6 +371,8 @@ namespace Tracers
 
             //PE: Final World-View-Projection matrix
             XMMATRIX wvp = world * myViewProj;
+
+            alpha = PELerp(alpha, 1.0f, alpha); //PE: Make it fade faster at the end.
 
             TracerCB cb;
             cb.g_mWorldViewProj = XMMatrixTranspose(wvp);

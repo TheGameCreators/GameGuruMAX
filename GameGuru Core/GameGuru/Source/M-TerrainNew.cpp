@@ -2755,9 +2755,15 @@ void imgui_terrain_loop_v3(void)
 						if (gggrass_global_params.min_height_underwater < g.gdefaultwaterheight - 2000.0) gggrass_global_params.min_height_underwater = g.gdefaultwaterheight - 2000.0;
 						if (gggrass_global_params.max_height_underwater < g.gdefaultwaterheight - 2000.0) gggrass_global_params.max_height_underwater = g.gdefaultwaterheight - 2000.0;
 
+						ImGui::TextCenter("Grass Scale");
+						if (ImGui::SliderFloat("##Grassgrass_scale", &gggrass_global_params.grass_scale, 1.0f, 200.0f, "%.2f", 1.0f))
+						{
+							ggterrain_extra_params.iUpdateGrass = 2;
+						}
+
 						ImGui::TextCenter("Grass Start/End Height");
 
-						ImGui::TextCenter("Grass Min Height");
+						//ImGui::TextCenter("Grass Min Height");
 						if (ImGui::MaxSliderInputFloatPower("##GrassMinHeight", &gggrass_global_params.min_height, g.gdefaultwaterheight, 30000.0, "Grass Start Height", 0, 100, 30, 3.0f))
 						{
 							ggterrain_extra_params.iUpdateGrass = 2;
@@ -2848,6 +2854,18 @@ void imgui_terrain_loop_v3(void)
 						if (weather)
 						{
 							weather->tree_wind = t.visuals.tree_wind;
+						}
+					}
+
+					ImGui::TextCenter("Subsurface Scattering");
+					if (ImGui::SliderFloat("##TreeSSS", &t.visuals.tree_sss, 0.0f, 1.0f, "%.2f", 1.0f))
+					{
+						t.gamevisuals.tree_sss = t.visuals.tree_sss;
+						extern wiECS::Entity g_weatherEntityID;
+						wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
+						if (weather)
+						{
+							weather->tree_sss = t.visuals.tree_sss; // t.visuals.tree_wind;
 						}
 					}
 

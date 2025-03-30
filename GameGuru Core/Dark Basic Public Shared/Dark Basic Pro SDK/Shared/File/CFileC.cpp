@@ -353,6 +353,8 @@ int GG_GetRealPath( char* fullPath, int create )
 
 FILE* GG_fopen( const char* filename, const char* mode )
 {
+	FILE* filereturn = nullptr;
+
 	FileRedirectSetup();
 
 	char fullPath[ MAX_PATH ]; fullPath[0] = 0;
@@ -361,6 +363,21 @@ FILE* GG_fopen( const char* filename, const char* mode )
 		getcwd( fullPath, MAX_PATH );
 		strcat_s( fullPath, MAX_PATH, "\\" );
 		strcat_s( fullPath, MAX_PATH, filename );
+
+		int get_gameisexe(void);
+		if (get_gameisexe() != 0)
+		{
+			//PE: In standalone where files is not crypted like "gunspec.txt", prefer standalone folder not docwrite folder.
+			const char* pestrcasestr(const char* arg1, const char* arg2);
+			if (pestrcasestr(fullPath, "gunspec.txt"))
+			{
+				int create = 0;
+				if (strchr(mode, 'w') != 0 || strchr(mode, 'a') != 0) create = 1;
+				filereturn = fopen(fullPath, mode);
+				if (filereturn)
+					return(filereturn);
+			}
+		}
 	}
 	else
 	{

@@ -509,6 +509,16 @@ inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Li
 
 	SurfaceToLight surfaceToLight;
 	surfaceToLight.create(surface, L);
+	
+#ifdef SUBSURFACESCATTERING
+	//PE: Crysis subsurface scattering
+	//https://developer.nvidia.com/gpugems/gpugems3/part-iii-rendering/chapter-16-vegetation-procedural-animation-and-shading-crysis
+    const float3 lightcolor = light.GetColor().rgb;
+	const float lightenergy = light.GetEnergy();
+	const float dotsNL = max(0, dot(-surface.N, L));
+	const float dotEL = max(0, dot(L, -surface.V));
+	const float DotELNL = pow(dotEL, 8) * dotsNL;
+#endif
 
 	[branch]
 	if (any(surfaceToLight.NdotL_sss))
@@ -588,9 +598,14 @@ inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Li
 				atmosphereTransmittance = GetAtmosphericLightTransmittance(g_xFrame_Atmosphere, surface.P, L, texture_transmittancelut);
 			}
 			
+            //shadow = lerp(shadow, 1.0, 0.5);
+#ifdef SUBSURFACESCATTERING
+			float3 lightColor = lightcolor * lightenergy * shadow * atmosphereTransmittance;
+#else
 			float3 lightColor = light.GetColor().rgb * light.GetEnergy() * shadow * atmosphereTransmittance;
+#endif
 
-			lighting.direct.diffuse += max(0, lightColor * surfaceToLight.NdotL_sss * BRDF_GetDiffuse(surface, surfaceToLight));
+            lighting.direct.diffuse += max(0, lightColor * surfaceToLight.NdotL_sss * BRDF_GetDiffuse(surface, surfaceToLight));
 
 			if ( !simple )
 			{
@@ -610,8 +625,22 @@ inline void DirectionalLight(in ShaderEntity light, in Surface surface, inout Li
 #endif
 
 		}
-	}
+		
+    }
+
+#ifdef SUBSURFACESCATTERING
+	//PE: Crysis subsurface scattering
+#ifdef GRASSPS
+	float3 lightColor = lightcolor * lightenergy; //* shadow * atmosphereTransmittance 
+	lighting.direct.diffuse += max(0, lightColor * (dotEL*0.2) * g_xFrame_TreeSubSurfaceScattering);
+#else
+	float3 lightColor = lightcolor * lightenergy; //* shadow * atmosphereTransmittance 
+	lighting.direct.diffuse += max(0, lightColor * DotELNL * g_xFrame_TreeSubSurfaceScattering);
+#endif
+#endif
+
 }
+
 inline void PointLight(in ShaderEntity light, in Surface surface, inout Lighting lighting, in float shadow_mask = 1)
 {
 	float3 L = light.position - surface.P;

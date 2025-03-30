@@ -229,10 +229,26 @@ void decal_load(void)
 	t.strwork = ""; t.strwork = t.strwork + "gamecore\\decals\\" + t.decal_s + "\\wpe.pe";
 	t.decal[t.decalid].newparticle.emitterid = -1;
 	t.decal[t.decalid].newparticle.emittername = t.strwork.Get();
+
 	char pAbsPathToParticle[MAX_PATH];
 	strcpy(pAbsPathToParticle, t.decal[t.decalid].newparticle.emittername.Get());
-	GG_GetRealPath(pAbsPathToParticle, 0);
-	if (FileExist(pAbsPathToParticle) == 1)
+
+	bool bNotInStandalone = false;
+	int get_gameisexe(void);
+	if (get_gameisexe() != 0)
+	{
+		//PE: in standalone only check standalone folder , dont use from docwrite.
+		DWORD attrib = GetFileAttributesA(pAbsPathToParticle);
+		if (attrib == INVALID_FILE_ATTRIBUTES || attrib == FILE_ATTRIBUTE_DIRECTORY)
+		{
+			bNotInStandalone = true;
+		}
+	}
+	else
+	{
+		GG_GetRealPath(pAbsPathToParticle, 0);
+	}
+	if (!bNotInStandalone && FileExist(pAbsPathToParticle) == 1)
 	{
 		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
 		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;

@@ -589,9 +589,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
    haveammotofire = 0
   end
   if output_e['target'] == "player" then
-   if GetEntityCanFire(e) == 1 then 
-    return haveammotofire
-   end
+   return haveammotofire
   end
   if output_e['target'] == "flag" then
    return haveammotofire
@@ -676,7 +674,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   end  
   if allegiance == 1 then
    -- this is an ally (friends with player)
-   local anywilldo = 1
+   local anywilldo = 0 -- 1 will select any, at ANY distance!
    local resultofthis = masterinterpreter_scanforenemy (e, output_e, anywilldo)
    if resultofthis > 0 then 
 	local thowclosex = g_Entity[ resultofthis ]['x'] - g_Entity[ e ]['x']

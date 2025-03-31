@@ -17926,6 +17926,14 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	g.gdefaultwaterheight = GGORIGIN_Y;
 	#endif
 
+	// LUA may have changed fog, restore it
+	t.visuals.FogNearest_f = t.editorvisuals.FogNearest_f;
+	t.visuals.FogDistance_f = t.editorvisuals.FogDistance_f;
+	t.visuals.FogR_f = t.editorvisuals.FogR_f;
+	t.visuals.FogG_f = t.editorvisuals.FogG_f;
+	t.visuals.FogB_f = t.editorvisuals.FogB_f;
+	t.visuals.FogA_f = t.editorvisuals.FogA_f;
+
 	// remember game states for next time
 	visuals_save ( );
 
@@ -24489,13 +24497,8 @@ void editor_camera(void)
 			}
 			if ( t.editorfreeflight.mode == 1 ) 
 			{
-				#ifdef WICKEDENGINE
 				static float fAccelerationTimer = 0.0f;
-
 				if (t.inputsys.k_s == "f"  && bPressedFKey == false && t.inputsys.keycontrol == 0 && t.importer.importerActive == 0)
-				#else
-				if ( t.inputsys.k_s == "g"  && t.inputsys.keycontrol == 0 )
-				#endif
 				{
 					// free flight to top down
 					bPressedFKey = true;
@@ -24549,14 +24552,18 @@ void editor_camera(void)
 				// Only increase movement speed when not in the importer or CCP.
 				if (t.importer.importerActive == 0 && !g_bCharacterCreatorPlusActivated)
 				{
-					if (t.visuals.bEnableEmptyLevelMode == true)
+					// Feedback is that changing camera speed based on distance to ground is jerky and not good
+					// so change to a method where the longer you hold down the shift key, the faster you go
+					bool bBetterCameraSpeedOverTime = true;
+					if (bBetterCameraSpeedOverTime==true)//t.visuals.bEnableEmptyLevelMode == true)
 					{
 						// modify movement speed based on time holding down shift
-						float modifier =  50 * fAccelerationTimer;
-						if (modifier > 50) modifier = 50;
+						float modifier =  100 * fAccelerationTimer;
+						if (modifier > 150) modifier = 150;
 						if (modifier < 2) modifier = 2;
 						t.tffcspeed_f *= modifier;
 					}
+					/*
 					else
 					{
 						// modify movement speed based on camera height
@@ -24569,6 +24576,7 @@ void editor_camera(void)
 						if (modifier < 2) modifier = 2;
 						t.tffcspeed_f *= modifier;
 					}
+					*/
 				}
 
 				// speed up wheel movement

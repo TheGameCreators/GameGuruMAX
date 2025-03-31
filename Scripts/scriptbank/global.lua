@@ -365,24 +365,32 @@ local abs  = math.abs
 
 function GetPlayerDistance( e )
     local Ent = g_Entity[ e ]
-    local PDX, PDY, PDZ = Ent.x - g_PlayerPosX, 
-                          Ent.y - g_PlayerPosY,
-						  Ent.z - g_PlayerPosZ;
-  
-    --if abs( PDY ) > 100 then PDY = PDY * 4 end messes up when player on hill, range not intuitive!
-    if abs( PDY ) > 100 then PDY = PDY * 1.25 end
-    return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
+	if Ent ~= nil then
+		local PDX, PDY, PDZ = Ent.x - g_PlayerPosX, 
+							  Ent.y - g_PlayerPosY,
+							  Ent.z - g_PlayerPosZ;
+	  
+		--if abs( PDY ) > 100 then PDY = PDY * 4 end messes up when player on hill, range not intuitive!
+		if abs( PDY ) > 100 then PDY = PDY * 1.25 end
+		return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
+	else
+		return 999999
+	end
 end
 
 function GetDistanceTo( e, tx, ty, tz )
     local Ent = g_Entity[ e ]
-    local PDX, PDY, PDZ = Ent.x - tx, 
-                          Ent.y - ty,
-						  Ent.z - tz;
-  
-    --if abs( PDY ) > 100 then PDY = PDY * 4 end messes up when player on hill, range not intuitive!
-    if abs( PDY ) > 100 then PDY = PDY * 1.25 end
-    return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
+	if Ent ~= nil then
+		local PDX, PDY, PDZ = Ent.x - tx, 
+							  Ent.y - ty,
+							  Ent.z - tz;
+	  
+		--if abs( PDY ) > 100 then PDY = PDY * 4 end messes up when player on hill, range not intuitive!
+		if abs( PDY ) > 100 then PDY = PDY * 1.25 end
+		return sqrt( PDX*PDX + PDY*PDY + PDZ*PDZ )
+	else
+		return 999999
+	end
 end
 
 function GetPlrLookingAtExThreshold( e, uselineofsight, detectthreshold )

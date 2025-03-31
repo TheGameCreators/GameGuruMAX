@@ -26,7 +26,7 @@ using namespace wiScene;
 using namespace wiECS;
 
 #ifdef WICKEDPARTICLESYSTEM
-#define MAXREADYDECALS 7
+#define MAXREADYDECALS 6
 #define MAXUNIQUEDECALS 100
 uint32_t ready_decals[MAXUNIQUEDECALS][MAXREADYDECALS] = { 0 };
 uint32_t decal_count[MAXUNIQUEDECALS] = { 0 };
@@ -3069,7 +3069,8 @@ void entity_loaddata ( void )
 
 					//  entity decal refs
 					cmpStrConst( t_field_s, "decalmax" );
-					if (  matched  )  t.entityprofile[t.entid].decalmax = t.value1;
+					if (  matched  )
+						t.entityprofile[t.entid].decalmax = t.value1;
 					if (  t.entityprofile[t.entid].decalmax>0 ) 
 					{
 						cmpNStrConst( t_field_s, "decal" );
@@ -9330,13 +9331,17 @@ uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2, char* filename, bool attach
 void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 {
 	//PE: Preload effects so there is no delays.
+	int MaxCachedDecals = MAXREADYDECALS;
+	if (pParticle->iMaxCache > 0 && pParticle->iMaxCache < MAXREADYDECALS)
+		MaxCachedDecals = pParticle->iMaxCache;
+
 	int iParticleEmitter = pParticle->emitterid;
 	if (iParticleEmitter == -1)
 	{
 		if (pParticle->bWPE)
 		{
 			Scene& scene = wiScene::GetScene();
-			for (int i = 0; i < MAXREADYDECALS; i++)
+			for (int i = 0; i < MaxCachedDecals; i++)
 			{
 				if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][i] == 0)
 				{
@@ -9402,6 +9407,10 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 #ifdef WICKEDPARTICLESYSTEM
 		if (pParticle->bWPE)
 		{
+			int MaxCachedDecals = MAXREADYDECALS;
+			if (pParticle->iMaxCache > 0 && pParticle->iMaxCache < MAXREADYDECALS)
+				MaxCachedDecals = pParticle->iMaxCache;
+
 			Scene& scene = wiScene::GetScene();
 			if (bShowThisParticle == true)
 			{
@@ -9410,7 +9419,7 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 				{
 					iParticleEmitter = pParticle->emitterid = ready_decals[decal_id][decal_count[decal_id]];
 					decal_count[decal_id]++;
-					if (decal_count[decal_id] >= MAXREADYDECALS)
+					if (decal_count[decal_id] >= MaxCachedDecals)
 						decal_count[decal_id] = 0;
 				}
 				else
@@ -9455,8 +9464,9 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 							if (bAutoDelete)
 								delete_decal_particles.push_back(iParticleEmitter);
 						}
+						//PE: Not cached effects (not active at start) only use 2 cached versions.
 						decal_count[decal_id]++;
-						if (decal_count[decal_id] >= MAXREADYDECALS)
+						if (decal_count[decal_id] >= MaxCachedDecals)
 							decal_count[decal_id] = 0;
 					}
 				}

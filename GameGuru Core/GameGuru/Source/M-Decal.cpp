@@ -1182,8 +1182,18 @@ void decal_activatedecalsfromentities ( void )
 				for ( t.tq = 0 ; t.tq<=  t.entityprofile[t.entid].decalmax-1; t.tq++ )
 				{
 					t.tdecalid=t.entitydecal[t.entid][t.tq];
-					if(t.tdecalid < t.entityprofile[t.entid].decalmax)
-						t.decal[t.tdecalid].active=1;
+					//PE: Bug was never activated. t.entityprofile[t.entid].decalmax)
+					if (t.tdecalid <= g.decalmax)
+					{
+						//PE: Never cache activate default.
+						if (t.decal[t.tdecalid].newparticle.emittername != "particlesbank/default")
+						{
+							//particlesbank/default
+							t.decal[t.tdecalid].active = 1;
+							if (t.entityprofile[t.entid].bloodscorch == 0)
+								t.decal[t.tdecalid].newparticle.iMaxCache = 2; //PE: Only cache 2 custom decals.
+						}
+					}
 				}
 			}
 			//  decals through associated weapon

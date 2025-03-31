@@ -5575,6 +5575,7 @@ struct newparticletype
 	float fParticle_Lifespan_Original;
 	float fParticle_Lifespan;
 	bool bWPE;
+	int iMaxCache;
 	// Constructor
 	newparticletype ( )
 	{
@@ -5622,6 +5623,7 @@ struct newparticletype
 		fParticle_B_Original = -123.0f;
 		fParticle_Lifespan_Original = -123.0f;
 		bWPE = false;
+		iMaxCache = 0;
 	}
 };
 

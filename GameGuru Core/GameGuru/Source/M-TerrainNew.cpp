@@ -12113,7 +12113,7 @@ void procedural_new_level(void)
 							else
 								t.gamevisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode = false;
 						}
-						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Additionally removes navmesh generation (prevents any AI logic from detecting walkable areas");
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Additionally removes navmesh generation (system used to detect walkable areas)");
 					}
 				}
 				if(t.visuals.bEnableEmptyLevelMode==false)

@@ -1535,7 +1535,7 @@ void importer_loadmodel_wicked(void)
 	}
 	if (bConvertedBoneNames==true && bBatchConverting==false)
 	{
-		strcpy(cTriggerMessage, "The imported model had unconventional bone names (included spaces, etc), these have been converted to standard MAX rig bone names.");
+		strcpy(cTriggerMessage, "Unconventional bone names (included spaces, etc), converted to standard MAX rig");
 		bTriggerMessage = true;
 	}
 
@@ -3562,6 +3562,43 @@ void UpdateObjectWithAnimSlotList ( sObject* pObject )
 	}
 }
 
+bool g_bIgnoreDBOAsAlreadyConverted = false;
+
+void imgui_importer_refreshbatchlist (void)
+{
+	// collect list of models to convert
+	batchFileList.clear();
+	cstr pOldDir = GetDir();
+	SetDir(cImportPath);
+	ChecklistForFiles();
+	for (int c = 1; c <= ChecklistQuantity(); c++)
+	{
+		LPSTR pFileName = ChecklistString(c);
+		if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
+		{
+			bool bPermittedFormat = false;
+			const char* pExtension = strrchr(pFileName, '.');
+			if (stricmp(pExtension, ".x") == NULL) bPermittedFormat = true;
+			if (g_bIgnoreDBOAsAlreadyConverted == false)
+			{
+				// want to avoid converting the converted (most of the time) :)
+				if (stricmp(pExtension, ".dbo") == NULL) bPermittedFormat = true;
+			}
+			if (stricmp(pExtension, ".obj") == NULL) bPermittedFormat = true;
+			if (stricmp(pExtension, ".fbx") == NULL) bPermittedFormat = true;
+			if (stricmp(pExtension, ".gltf") == NULL) bPermittedFormat = true;
+			if (stricmp(pExtension, ".glb") == NULL) bPermittedFormat = true;
+			//if (stricmp(pExtension, ".dae") == NULL) bPermittedFormat = true;
+			//if (stricmp(pExtension, ".3ds") == NULL) bPermittedFormat = true;
+			if (bPermittedFormat == true)
+			{
+				batchFileList.push_back(pFileName);
+			}
+		}
+	}
+	SetDir(pOldDir.Get());
+}
+
 void imgui_importer_loop(void)
 {
 	switch (iDelayedExecute) 
@@ -3741,14 +3778,15 @@ void imgui_importer_loop(void)
 		}
 		case 5:
 		{
+			// no longer does the preview thumb adjustment when in batch mode
 			// batch conversion process
-			extern cstr sGotoPreviewWithFile;
-			if (sGotoPreviewWithFile.Len() > 0)
-			{
-				// wait for preview to be created in UI before proceeding to next load
-			}
-			else
-			{
+			//extern cstr sGotoPreviewWithFile;
+			//if (sGotoPreviewWithFile.Len() > 0)
+			//{
+			//	// wait for preview to be created in UI before proceeding to next load
+			//}
+			//else
+			//{
 				iDelayedExecute = 0;
 				importer_storeobjectdata();
 				extern char pLaunchAfterSyncPreSelectModel[MAX_PATH];
@@ -3758,7 +3796,7 @@ void imgui_importer_loop(void)
 				extern int iLaunchAfterSync;
 				iLaunchAfterSync = 8;
 				bBatchConverting = true;
-			}
+			//}
 			break;
 		}
 
@@ -4939,7 +4977,11 @@ void imgui_importer_loop(void)
 						UpdateObjectWithAnimSlotList(pObject);
 
 						// Trigger save Object to happen
-						iDelayedExecute = 3;
+						if (iDelayedExecute != 5)
+						{
+							// if not already tasked with batch conversion and moving to next one (skipping preview thumb adjustment)
+							iDelayedExecute = 3;
+						}
 
 						// now check if we need to END the batch process
 						if (batchFileList.size() == 0)
@@ -5015,32 +5057,7 @@ void imgui_importer_loop(void)
 							strcpy(cImportPathCropped, pNewCroppedStr);
 
 							// collect list of models to convert
-							batchFileList.clear();
-							cstr pOldDir = GetDir();
-							SetDir(cImportPath);
-							ChecklistForFiles();
-							for (int c = 1; c <= ChecklistQuantity(); c++)
-							{
-								LPSTR pFileName = ChecklistString(c);
-								if (strcmp(pFileName, ".") != NULL && strcmp(pFileName, "..") != NULL)
-								{
-									bool bPermittedFormat = false;
-									const char* pExtension = strrchr(pFileName, '.');
-									if (stricmp(pExtension, ".x") == NULL) bPermittedFormat = true;
-									if (stricmp(pExtension, ".dbo") == NULL) bPermittedFormat = true;
-									if (stricmp(pExtension, ".obj") == NULL) bPermittedFormat = true;
-									if (stricmp(pExtension, ".fbx") == NULL) bPermittedFormat = true;
-									if (stricmp(pExtension, ".gltf") == NULL) bPermittedFormat = true;
-									if (stricmp(pExtension, ".glb") == NULL) bPermittedFormat = true;
-									//if (stricmp(pExtension, ".dae") == NULL) bPermittedFormat = true;
-									//if (stricmp(pExtension, ".3ds") == NULL) bPermittedFormat = true;
-									if (bPermittedFormat == true)
-									{
-										batchFileList.push_back(pFileName);
-									}
-								}
-							}
-							SetDir(pOldDir.Get());
+							imgui_importer_refreshbatchlist();
 						}
 						else
 						{
@@ -5068,6 +5085,17 @@ void imgui_importer_loop(void)
 						break;
 					}
 				}
+
+				// allow artist to ignore already exported DBOs
+				ImGui::Text("");
+				ImGui::Indent(30);
+				if (ImGui::Checkbox("Ignore DBO Models", &g_bIgnoreDBOAsAlreadyConverted))
+				{
+					// and refresh the list
+					imgui_importer_refreshbatchlist();
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("You may wish to skip any models already converted to DBO using this toggle");
+				ImGui::Indent(-30);
 
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size * 0.5), 0.0f));
 				if (ImGui::Button("Batch Convert All##ImporterSaveUniqueId", ImVec2(but_gadget_size, 0)))
@@ -8223,12 +8251,20 @@ void importer_save_fpe(void)
 		extern bool bMarketplace_Init;
 		bMarketplace_Init = false; //Make sure to update import list in marketplace.
 
-		extern cstr sGotoPreviewWithFile;
-		extern int iGotoPreviewType;
-		//Open preview to set thumb.
-		sGotoPreviewWithFile = find;
-		iGotoPreviewType = 2;
-
+		// only present preview thumb adjustment creator if NOT using batch convert
+		extern bool bBatchConverting;
+		if (bBatchConverting == true)
+		{
+			// with batch mode, we do not need a thumb adjustment, that can be done by artist later
+		}
+		else
+		{
+			//Open preview to set thumb.
+			extern cstr sGotoPreviewWithFile;
+			extern int iGotoPreviewType;
+			sGotoPreviewWithFile = find;
+			iGotoPreviewType = 2;
+		}
 	}
 }
 

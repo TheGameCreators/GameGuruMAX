@@ -3993,7 +3993,10 @@ void entity_loadactivesoundsandvideo ( void )
 		t.entid=t.entityelement[t.e].bankindex;
 		if ( t.entid>0 ) 
 		{
-			if ( t.entityelement[t.e].active == 1 ) 
+			bool bNeedAssetsLoading = false;
+			if (t.entityelement[t.e].active == 1) bNeedAssetsLoading = true;
+			if (t.entityelement[t.e].eleprof.spawnatstart == 0) bNeedAssetsLoading = true;
+			if ( bNeedAssetsLoading == true )
 			{
 				// original base filenames for sound
 				strcpy(pSoundSet0, t.entityelement[t.e].eleprof.soundset_s.Get());

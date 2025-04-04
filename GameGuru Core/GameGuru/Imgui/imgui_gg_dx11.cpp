@@ -6107,10 +6107,10 @@ void GetMainEntityList(char* folder_s, char* rel_s, void *pFolder, char* folder_
 						// compare entity with legacy whitelist, and skip if on list (slowly hiding older models)
 						cstr pComboRelandFile = cstr(rel_s) + file_s;
 
-						if (strnicmp(rel_s, "user\\lee", 8) == NULL)
-						{
-							pComboRelandFile = cstr(rel_s) + file_s;
-						}
+						//if (strnicmp(rel_s, "user\\lee", 8) == NULL)
+						//{
+						//	pComboRelandFile = cstr(rel_s) + file_s;
+						//}
 
 						LPSTR pFilePtr = pComboRelandFile.Get();
 						int iLegacyWhiteListCount = g_pLegacyWhiteList.size();

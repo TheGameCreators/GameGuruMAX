@@ -1937,6 +1937,17 @@ luaMessage** ppLuaMessages = NULL;
 
  int GetEntityParentID(lua_State* L) { return GetEntityData (L, 24); }
 
+ int SetEntityIfUsed(lua_State* L) 
+ { 
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 const char* pString = lua_tostring(L, 2);
+	 t.entityelement[iEntityIndex].eleprof.ifused_s = pString;
+	 return 0;
+ }
+
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
  int GetEntityHasWeapon(lua_State *L) { return GetEntityData (L, 102); }
@@ -12345,14 +12356,13 @@ void addFunctions()
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
 	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 	lua_register(lua, "GetEntityMarkerMode", GetEntityMarkerMode);
-	
 	lua_register(lua, "SetEntityAlwaysActive", SetEntityAlwaysActive);
 	lua_register(lua, "GetEntityAlwaysActive", GetEntityAlwaysActive);
-
 	lua_register(lua, "SetEntityUnderwaterMode", SetEntityUnderwaterMode);
 	lua_register(lua, "GetEntityUnderwaterMode", GetEntityUnderwaterMode);
-
 	lua_register(lua, "GetEntityParentID", GetEntityParentID);
+
+	lua_register(lua, "SetEntityIfUsed", SetEntityIfUsed);
 
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);

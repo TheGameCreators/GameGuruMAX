@@ -1,4 +1,4 @@
--- Teleport v17 - by Necrym59 and Lee
+-- Teleport v18 - by Necrym59 and Lee
 -- DESCRIPTION: Allows for a teleport to a local connected point or to another level.
 -- DESCRIPTION: [TELEPORT_ZONEHEIGHT=100]
 -- DESCRIPTION: [@TELEPORT_TYPE=1(1=Instant, 2=Delayed, 3=Delayed + Countdown)]
@@ -56,7 +56,7 @@ function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mod
 	g_teleport[e].teleport_level = player_level or 0	
 	g_teleport[e].destination = destination
 	g_teleport[e].spawn_marker_user_global = spawn_marker_user_global
-	g_teleport[e].spawn_marker_name = spawn_marker_name
+	g_teleport[e].spawn_marker_name = lower(spawn_marker_name)
 	g_teleport[e].resetstates = resetstates	
 end
 
@@ -75,7 +75,6 @@ function teleport_init(e)
 	g_teleport[e].spawn_marker_user_global = ""
 	g_teleport[e].spawn_marker_name = ""
 	g_teleport[e].resetstates = 0
-
 	g_teleport[e].particle_no = 0
 	g_teleport[e].teleport_timer = 0	
 	fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
@@ -91,6 +90,25 @@ end
 function teleport_main(e)
 
 	if status[e] == "init" then
+	
+		if g_teleport[e].spawn_marker_name ~= nil then
+			if g_teleport[e].spawn_marker_name ~= "" then
+				local findspawnmarkerE = -1			
+				for n = 1, g_EntityElementMax do
+					if n ~= nil and g_Entity[n] ~= nil then
+						if lower(GetEntityName(n)) == g_teleport[e].spawn_marker_name then
+							findspawnmarkerE = n
+							break
+						end
+					end
+				end			
+				if findspawnmarkerE > -1 then
+					SetEntityIfUsed(e,g_teleport[e].spawn_marker_name)
+					g_teleport[e].teleport_exit_angle = g_Entity[findspawnmarkerE]['angley']
+				end
+			end
+		end
+	
 		tlevelrequired[e] = g_teleport[e].teleport_level
 		fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
 		dest_angle[e] = g_teleport[e].teleport_exit_angle

@@ -1517,6 +1517,8 @@ GetMovementDeltaManually : GetMovementDeltaManually ( e ) -- useful command
 SetEntityUnderwaterMode: SetEntityUnderwaterMode ( e, mode ) -- Set mode to 1 to allow character entity to survive underwater
 GetEntityUnderwaterMode: mode = GetEntityUnderwaterMode ( e ) -- Get the underwater mode, a value of 1 means character entity can survive underwater
 
+SetEntityIfUsed: SetEntityIfUsed(e, string) -- Overrites the IFUSED string of the entity (useful for changing teleport destination marker)
+
 AdjustLookSettingHorizLimit : AdjustLookSettingHorizLimit ( e, hlimit ) -- where e is the entity number and param sets the horizontal limit
 AdjustLookSettingHorizOffset : AdjustLookSettingHorizOffset ( e, hoffset ) -- where e is the entity number and param sets the horizontal offset
 AdjustLookSettingVertLimit : AdjustLookSettingVertLimit ( e, vlimit ) -- where e is the entity number and param sets the vertical limit

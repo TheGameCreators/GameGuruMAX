@@ -10903,6 +10903,14 @@ int lua_set_lut(lua_State* L)
 			t.gamevisuals.ColorGradingLUT = "None";
 			t.gamevisuals.bColorGrading = false;
 		}
+
+		// if in standalone game, also adjust visuals so graphics settings screen does not revert these changes
+		if ( t.game.gameisexe == 1 )
+		{
+			t.visuals.ColorGradingLUT = t.gamevisuals.ColorGradingLUT;
+			t.visuals.bColorGrading = t.gamevisuals.bColorGrading;
+		}
+
 		//PE: g.gdefaultwaterheight must be = t.terrain.waterliney_f
 		float oldgdefaultwaterheight = g.gdefaultwaterheight;
 		g.gdefaultwaterheight = t.terrain.waterliney_f;

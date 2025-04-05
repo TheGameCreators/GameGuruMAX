@@ -33530,10 +33530,18 @@ void GetProjectThumbnails()
 				if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 				{
 					cstr bestfound = "";
-					//Valid Sig - Cleanup old project.
-					if (strlen(checkproject.game_thumb) > 0 && FileExist(checkproject.game_thumb))
+					char pFindGameThumb[MAX_PATH];
+					strcpy(pFindGameThumb, "");
+					if (strlen(checkproject.customprojectfolder) > 0)
 					{
-						bestfound = checkproject.game_thumb;
+						strcat(pFindGameThumb, checkproject.customprojectfolder);
+						strcat(pFindGameThumb, checkproject.gamename);
+						strcat(pFindGameThumb, "\\Files\\");
+					}
+					strcat(pFindGameThumb, checkproject.game_thumb);
+					if (strlen(checkproject.game_thumb) > 0 && FileExist(pFindGameThumb))
+					{
+						bestfound = pFindGameThumb;
 					}
 					else
 					{
@@ -46892,10 +46900,18 @@ void GetProjectList(char *path, bool bGetThumbs)
 						if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 						{
 							cstr bestfound = "";
-							//Valid Sig - Cleanup old project.
-							if (strlen(checkproject.game_thumb) > 0 && FileExist(checkproject.game_thumb) )
+							char pFindGameThumb[MAX_PATH];
+							strcpy(pFindGameThumb, "");
+							if (strlen(checkproject.customprojectfolder) > 0)
 							{
-								bestfound = checkproject.game_thumb;
+								strcat(pFindGameThumb, checkproject.customprojectfolder);
+								strcat(pFindGameThumb, checkproject.gamename);
+								strcat(pFindGameThumb, "\\Files\\");
+							}
+							strcat(pFindGameThumb, checkproject.game_thumb);
+							if (strlen(checkproject.game_thumb) > 0 && FileExist(pFindGameThumb) )
+							{
+								bestfound = pFindGameThumb;
 							}
 							else
 							{
@@ -46946,7 +46962,6 @@ void GetProjectList(char *path, bool bGetThumbs)
 												}
 											}
 										}
-
 									}
 								}
 							}

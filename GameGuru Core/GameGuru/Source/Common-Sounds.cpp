@@ -248,9 +248,10 @@ void loopinternal3dsound ( int id, int x_f, int y_f, int z_f )
 	{
 		if (  SoundExist(id) == 1 ) 
 		{
-			PositionSound (  id,x_f,y_f,z_f );
 			SetSoundVolume (  id,soundtruevolume(100.0) );
 			if (  SoundPlaying(id) == 0  )  LoopSound (  id );
+			//PE: Positon should be after we start playing.
+			PositionSound(id, x_f, y_f, z_f);
 		}
 	}
 }

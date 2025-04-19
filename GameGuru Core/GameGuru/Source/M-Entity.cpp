@@ -1,4 +1,4 @@
-#pragma optimize("", off)
+//#pragma optimize("", off)
 
 //----------------------------------------------------
 //--- GAMEGURU - M-Entity

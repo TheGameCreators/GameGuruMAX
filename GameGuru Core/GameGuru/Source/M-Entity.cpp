@@ -1,3 +1,5 @@
+#pragma optimize("", off)
+
 //----------------------------------------------------
 //--- GAMEGURU - M-Entity
 //----------------------------------------------------
@@ -9341,18 +9343,28 @@ void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 		if (pParticle->bWPE)
 		{
 			Scene& scene = wiScene::GetScene();
+			uint32_t master_root = 0;
 			for (int i = 0; i < MaxCachedDecals; i++)
 			{
 				if (decal_id >= 1 && decal_id < MAXUNIQUEDECALS && ready_decals[decal_id][i] == 0)
 				{
 					uint32_t root = 0;
+					Entity new_root = 0;
 					uint32_t count_before = scene.emitters.GetCount();
 
 					char path[MAX_PATH];
 					strcpy(path, pParticle->emittername.Get());
 					GG_GetRealPath(path, 0);
 
-					WickedCall_LoadWiScene(path, false, NULL, NULL);
+					if (master_root > 0)
+					{
+						new_root = GetScene().Entity_Duplicate(master_root);
+					}
+					else
+					{
+						WickedCall_LoadWiScene(path, false, NULL, NULL);
+					}
+
 					uint32_t count_after = scene.emitters.GetCount();
 					if (count_before != count_after)
 					{
@@ -9383,6 +9395,8 @@ void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 						{
 							iParticleEmitter = pParticle->emitterid = root;
 						}
+						if (master_root == 0)
+							master_root = root;
 					}
 				}
 			}

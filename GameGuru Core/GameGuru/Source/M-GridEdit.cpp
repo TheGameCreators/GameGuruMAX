@@ -7101,19 +7101,20 @@ void mapeditorexecutable_loop(void)
 				#endif
 
 				float fdone = (float)mapfile_savestandalone_getprogress() / 100.0f;
-
 				if (iStandaloneCycle == 1) fdone = 0.01f;
 
-				if (fdone > 0.0f) {
-					#ifdef WICKEDENGINE
+				if (fdone > 0.0f) 
+				{
 					ImGui::SetWindowFontScale(1.2);
-					#endif
 					char tmp[32];
 					sprintf(tmp, "Progress: %.0f%%", fdone*100.0f);
-					ImGui::ProgressBar(fdone, ImVec2(ImGui::GetContentRegionAvail().x - 10, 28), tmp); //, ""
-					#ifdef WICKEDENGINE
+					ImGui::ProgressBar(fdone, ImVec2(ImGui::GetContentRegionAvail().x - 10, 28), tmp);
 					ImGui::SetWindowFontScale(1.0);
-					#endif
+
+					// log save standalone progress
+					char pSaveStandaloneLog[256];
+					sprintf(pSaveStandaloneLog, "Save Standalone %d : %s", iStandaloneCycle, tmp);
+					timestampactivity(0, pSaveStandaloneLog);
 				}
 
 				if (iStandaloneCycle == 2)

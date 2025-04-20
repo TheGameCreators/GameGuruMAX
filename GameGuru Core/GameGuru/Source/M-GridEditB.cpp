@@ -544,6 +544,7 @@ bool bResetProjectThumbnails = true;
 int g_iCheckExistingFilesModifiedDelayed = 0;
 ImRect g_rStealMonitorArea;
 bool bUpgradeAndBackupOldProject = false;
+bool g_bTemporarilyDisableFullDecalEffectLoading = false;
 
 std::vector<cstr> lutImages_s;
 
@@ -11395,6 +11396,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				pref.iEnableFpsMemMonitor = bTmp;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show Live FPS And Memory Stats");
+
+			// new decal particles effect system (Preben may remove this if we can speed up/preload the loading here)
+			if (ImGui::Checkbox("Disable Full Decal Effect Loading (Temporary)", &g_bTemporarilyDisableFullDecalEffectLoading)) 
+			{
+				// Either keep this option in the prefs, or better to speed up the loading of these effects
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Improved decal particle system takes time to load effects, can skip this temporarily");
 
 			bTmp = pref.iEnableAutoExposureInEditor;
 			if (ImGui::Checkbox("Use Auto Exposure in Editor", &bTmp)) {

@@ -3751,6 +3751,10 @@ void game_preparelevel ( void )
 	decal_activatedecalsfromentities ( );
 	material_activatedecals ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
+
+	// load in decals (and new particle decals)
+	t.screenprompt_s = "LOADING DECAL EFFECTS";
+	timestampactivity(0, t.screenprompt_s.Get());
 	decal_loadonlyactivedecals ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 

@@ -3992,8 +3992,75 @@ int RDBlockNavMeshCore(lua_State* L,int iWithShape)
 		t.e = e; entity_lua_findcharanimstate();
 		if (t.tcharanimindex != -1)
 		{
-			// this triggers follow call in script to set new target (old one not valid any more after this)
-			t.entityelement[e].lua.interuptpath = 50;
+			// before we trigger a path update, ensure this AIs current axtive path (if any), goes THROUGH the above blocker
+			bool bThisPathWasAffected = false;
+			int iPointCount = t.charanimstates[t.tcharanimindex].pathPointCount;
+			int iPointIndex = t.charanimstates[t.tcharanimindex].moveToMode;
+			if (iPointIndex > 0 && iPointCount > 0)
+			{
+				float fCurrentX = t.entityelement[e].x;
+				float fCurrentZ = t.entityelement[e].z;
+				bool bTradingToEndOfPath = true;
+				while (bTradingToEndOfPath)
+				{
+					// point in path
+					float thisPoint[3] = { -1, -1, -1 };
+					thisPoint[0] = t.charanimstate.pointx[iPointIndex];
+					thisPoint[1] = t.charanimstate.pointy[iPointIndex];
+					thisPoint[2] = t.charanimstate.pointz[iPointIndex];
+
+					// trace from current to point, does it pass through the blocker?
+					float fDistX = thisPoint[0] - fCurrentX;
+					float fDistZ = thisPoint[2] - fCurrentZ;
+					float fDist = sqrt((fDistX * fDistX) + (fDistZ * fDistZ));
+					if (fDist > 0.1f)
+					{
+						// step through the sliced up path line and see if at each point we entered the blocker area
+						for (int iSlice = 0; iSlice < 100; iSlice++)
+						{
+							float fSliceX = fCurrentX + (fDistX * ((float)iSlice / 100.0f));
+							float fSliceZ = fCurrentZ + (fDistZ * ((float)iSlice / 100.0f));
+							if (iWithShape == 1)
+							{
+								// rectangle formed by fRadius as X and fRadius2 as Z and the angle
+								float fRelativeToCenterOfBlockerX = fSliceX - fX;
+								float fRelativeToCenterOfBlockerZ = fSliceZ - fZ;
+								float fRelativeDist = sqrt(fabs(fRelativeToCenterOfBlockerX * fRelativeToCenterOfBlockerX) + fabs(fRelativeToCenterOfBlockerZ * fRelativeToCenterOfBlockerZ));
+								float fFinalAngle = GGToDegree(atan2(fRelativeToCenterOfBlockerX, fRelativeToCenterOfBlockerZ)) + fAngle;
+								fRelativeToCenterOfBlockerX = NewXValue(0, fFinalAngle, fRelativeDist);
+								fRelativeToCenterOfBlockerZ = NewZValue(0, fFinalAngle, fRelativeDist);
+								if (fabs(fRelativeToCenterOfBlockerX) < fRadius && fabs(fRelativeToCenterOfBlockerZ) < fRadius2)
+								{
+									// this point is within the blocker defined above
+									if(iBlockMode!=0) bThisPathWasAffected = true;
+									break;
+								}
+							}
+							else
+							{
+								// simple radius check
+								if ( fabs(fSliceX - fX) < fRadius && fabs(fSliceZ - fZ) < fRadius )
+								{
+									// this point is within blocker defined above
+									if (iBlockMode != 0) bThisPathWasAffected = true;
+									break;
+								}
+							}
+						}
+					}
+
+					// move through all points to end of full path
+					fCurrentX = thisPoint[0];
+					fCurrentZ = thisPoint[2];
+					iPointIndex++;
+					if (iPointIndex >= iPointCount) bTradingToEndOfPath = false;
+				}
+			}
+			if (bThisPathWasAffected == true)
+			{
+				// this triggers follow call in script to set new target (old one not valid any more after this)
+				t.entityelement[e].lua.interuptpath = 5;// 50; prevent jiggling about looking for new path!
+			}
 		}
 	}
 	t.tcharanimindex = storecharanimindex;

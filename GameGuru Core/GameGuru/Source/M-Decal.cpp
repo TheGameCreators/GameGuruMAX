@@ -250,15 +250,19 @@ void decal_load(void)
 	}
 	if (!bNotInStandalone && FileExist(pAbsPathToParticle) == 1)
 	{
-		t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
-		t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
-		t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
-		t.decal[t.decalid].newparticle.bWPE = true;
-		//PE: Preload some effects.
-		void preload_wicked_particle_effect(newparticletype * pParticle, int decal_id);
-		preload_wicked_particle_effect(&t.decal[t.decalid].newparticle, t.decalid);
+		// this load creates a large delay each time test game is used, so allow user to skip this new effect for quicker testing
+		extern bool g_bTemporarilyDisableFullDecalEffectLoading;
+		if ( g_bTemporarilyDisableFullDecalEffectLoading == false )
+		{
+			t.decal[t.decalid].newparticle.iParticle_Floor_Active = 1;
+			t.decal[t.decalid].newparticle.bParticle_Show_At_Start = false;
+			t.decal[t.decalid].newparticle.bParticle_Looping_Animation = false;
+			t.decal[t.decalid].newparticle.bWPE = true;
+			//PE: Preload some effects.
+			void preload_wicked_particle_effect(newparticletype * pParticle, int decal_id);
+			preload_wicked_particle_effect(&t.decal[t.decalid].newparticle, t.decalid);
+		}
 	}
-
 	if (!t.decal[t.decalid].newparticle.bWPE)
 	#endif
 	{

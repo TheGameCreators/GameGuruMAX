@@ -1662,9 +1662,10 @@ void visuals_load ( void )
 		}
 	}
 
+	// Yikes, remove this stuff!!
 	//  Right away we cap 'VERTICAL' CameraFOV# for legacy levels which could set it VERY high
-	if (  t.visuals.CameraFOV_f>62.14f  )  t.visuals.CameraFOV_f = 62.14f;
-	if (  t.visuals.WeaponFOV_f>62.14f  )  t.visuals.WeaponFOV_f = 62.14f;
+	//if (  t.visuals.CameraFOV_f>62.14f  )  t.visuals.CameraFOV_f = 62.14f;
+	//if (  t.visuals.WeaponFOV_f>62.14f  )  t.visuals.WeaponFOV_f = 62.14f;
 
 	//  Restore any settings we want when IDE first starts (that might have been changed by load/save code)
 	if (  t.tresetforstartofeditor == 1 ) 

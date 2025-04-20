@@ -2761,16 +2761,16 @@ void imgui_terrain_loop_v3(void)
 							ggterrain_extra_params.iUpdateGrass = 2;
 						}
 
-						ImGui::TextCenter("Grass Start/End Height");
+						ImGui::TextCenter("Grass Start/End Altitude");
 
 						//ImGui::TextCenter("Grass Min Height");
-						if (ImGui::MaxSliderInputFloatPower("##GrassMinHeight", &gggrass_global_params.min_height, g.gdefaultwaterheight, 30000.0, "Grass Start Height", 0, 100, 30, 3.0f))
+						if (ImGui::MaxSliderInputFloatPower("##GrassMinHeight", &gggrass_global_params.min_height, g.gdefaultwaterheight, 30000.0, "Sets the global altitude at which grass should be rendered, zero overlaps underwater depths", 0, 100, 30, 3.0f))
 						{
 							ggterrain_extra_params.iUpdateGrass = 2;
 							g.projectmodified = 1;
 						}
 
-						if (ImGui::MaxSliderInputFloatPower("##GrassMaxHeight", &gggrass_global_params.max_height, g.gdefaultwaterheight, 30000.0, "Grass End Height", 0, 100, 30, 3.0f))
+						if (ImGui::MaxSliderInputFloatPower("##GrassMaxHeight", &gggrass_global_params.max_height, g.gdefaultwaterheight, 30000.0, "Sets the global altitude at which the grass no longer draws", 0, 100, 30, 3.0f))
 						{
 							ggterrain_extra_params.iUpdateGrass = 2;
 							g.projectmodified = 1;
@@ -2782,14 +2782,14 @@ void imgui_terrain_loop_v3(void)
 							gggrass_global_params.min_height = fTmp;
 						}
 
-						ImGui::TextCenter("Grass Start/End Height Underwater");
-						if (ImGui::MaxSliderInputFloatPower("##GrassMinHeightWater", &gggrass_global_params.min_height_underwater, g.gdefaultwaterheight-2000.0, g.gdefaultwaterheight, "Grass Start Height Underwater", 0, 100, 30, 1.0f))
+						ImGui::TextCenter("Grass Start/End Altitude Underwater");
+						if (ImGui::MaxSliderInputFloatPower("##GrassMinHeightWater", &gggrass_global_params.min_height_underwater, g.gdefaultwaterheight-2000.0, g.gdefaultwaterheight, "Sets the global altitude at which underwater grass should be rendered", 0, 100, 30, 1.0f))
 						{
 							ggterrain_extra_params.iUpdateGrass = 2;
 							g.projectmodified = 1;
 						}
 
-						if (ImGui::MaxSliderInputFloatPower("##GrassMaxHeightWater", &gggrass_global_params.max_height_underwater, g.gdefaultwaterheight-2000.0, g.gdefaultwaterheight, "Grass End Height Underwater", 0, 100, 30, 1.0f))
+						if (ImGui::MaxSliderInputFloatPower("##GrassMaxHeightWater", &gggrass_global_params.max_height_underwater, g.gdefaultwaterheight-2000.0, g.gdefaultwaterheight, "Sets the global altitude at which the underwater grass no longer draws", 0, 100, 30, 1.0f))
 						{
 							ggterrain_extra_params.iUpdateGrass = 2;
 							g.projectmodified = 1;

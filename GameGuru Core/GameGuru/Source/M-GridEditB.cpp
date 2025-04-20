@@ -9103,6 +9103,18 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bSetting = t.visuals.bEndableGrassDrawing;
 	gggrass_global_params.draw_enabled = bSetting;
 
+	// can disable terrain drawing in graphics engine
+	if (t.visuals.bEnableEmptyLevelMode == false)
+	{
+		GGTerrain::ggterrain_draw_enabled = (int)bSetting;
+		GGTrees::ggtrees_draw_enabled = 1;
+	}
+	else
+	{
+		GGTerrain::ggterrain_draw_enabled = 0;
+		GGTrees::ggtrees_draw_enabled = 0;
+	}
+
 	// can call this to affect some visibles without causing water to flicker
 	Wicked_Update_Visibles(voidvisual);
 }
@@ -9125,7 +9137,6 @@ void Wicked_Update_Visibles(void* voidvisual)
 			if (t.hardwareinfoglobals.noterrain == 1) bSetting = false;
 		}
 	}
-	GGTerrain::ggterrain_draw_enabled = (int)bSetting;
 }
 
 #endif

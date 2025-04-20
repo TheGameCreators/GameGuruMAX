@@ -1098,8 +1098,16 @@ void entity_lua_refreshentity ( void )
 					sObject* pObject = g_ObjectList[t.obj];
 					if (pObject->bVisible == true)
 					{
-						// entity needs creating
-						iRefreshMode = 2;
+						// hmm, this seems to recreate entities that a fresh level already prepared and set up,
+						// so when for example FISH are recreated, they go nuts due to collision changes, etc
+						// but this still seems to be needed for particles, so for now only allow through for
+						// particle use, and return here when disabling this for other scenarios demands a 
+						// closer look as to why FISH are corrupted, but XX is/may not..
+						if (t.entityprofile[t.entityelement[t.e].bankindex].ismarker == 10)
+						{
+							// entity needs creating?!
+							iRefreshMode = 2;
+						}
 					}
 				}
 			}

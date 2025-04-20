@@ -594,6 +594,9 @@
     <ClInclude Include="..\GameGuru\Include\M-Workshop.h">
       <Filter>GameGuruEngine\GameGuruSourceCode</Filter>
     </ClInclude>
+    <ClInclude Include="CrashLogger.h">
+      <Filter>Code</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1037,6 +1040,9 @@
     </ClCompile>
     <ClCompile Include="tracers\TracerManager.cpp">
       <Filter>GGTerrain</Filter>
+    </ClCompile>
+    <ClCompile Include="CrashLogger.cpp">
+      <Filter>Code</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -507,6 +507,7 @@
     <ClInclude Include="..\GameGuru\Include\Types.h" />
     <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h" />
     <ClInclude Include="..\SDK\OpenXR\include\openxr.h" />
+    <ClInclude Include="CrashLogger.h" />
     <ClInclude Include="Encryptor.h" />
     <ClInclude Include="GameGuruEngine.h" />
     <ClInclude Include="GameGuruMain.h" />
@@ -693,6 +694,7 @@
     <ClCompile Include="..\SDK\DirectX\directx-macros.cpp" />
     <ClCompile Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.cpp" />
     <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp" />
+    <ClCompile Include="CrashLogger.cpp" />
     <ClCompile Include="Encryptor.cpp" />
     <ClCompile Include="GameGuruMain.cpp" />
     <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp" />

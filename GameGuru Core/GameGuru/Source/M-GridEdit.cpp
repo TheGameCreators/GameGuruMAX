@@ -24051,6 +24051,10 @@ void editor_camera(void)
 			//Trigger warning.
 			sprintf(cSmallTriggerMessage, "Outside of editable area, you cannot add objects or change the terrain here. Press spacebar to recenter.");
 			
+			// test new unhandled exception crash report system
+			// int crashme = 0;
+			// crashme = crashme / crashme;
+
 			if(t.inputsys.keyspace == 1)
 			{
 				// Recentre camera.
@@ -28770,7 +28774,7 @@ void gridedit_load_map ( void )
 	terrain_paintselector_hide(); Sync();
 
 	// ensure NO old flat area items in list
-	timestampactivity(0, "GGTerrain_RemoveAllFlatAreas");
+	timestampactivity(0, "GGTerrain_RemoveAllFlatAreas:1");
 	GGTerrain_RemoveAllFlatAreas();
 
 	//  Use large prompt

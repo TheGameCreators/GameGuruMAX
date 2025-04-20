@@ -1169,7 +1169,7 @@ void imgui_terrain_loop_v2(void)
 
 							if ( ImGui::Button( "Reset Flat Areas" ) )
 							{
-								timestampactivity(0, "GGTerrain_RemoveAllFlatAreas");
+								timestampactivity(0, "GGTerrain_RemoveAllFlatAreas:2");
 								GGTerrain_RemoveAllFlatAreas();
 							}
 						}
@@ -11468,7 +11468,7 @@ void procedural_new_level(void)
 					extern bool bProceduralLevelStartup;
 					if (bProceduralLevelStartup == true)
 					{
-						timestampactivity(0, "GGTerrain_RemoveAllFlatAreas");
+						timestampactivity(0, "GGTerrain_RemoveAllFlatAreas:3");
 						GGTerrain_RemoveAllFlatAreas(); //PE: Remove all flat areas.
 						iRandomThemeChoice = 7; //PE: new design always rainforest.
 						bProceduralLevelStartup = false;

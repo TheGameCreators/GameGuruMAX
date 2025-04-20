@@ -20,6 +20,9 @@
 #include "optick.h"
 #endif
 
+// make it easy to locate silent crashes using MAP and PDB files (see SetUnhandledExceptionFilter(CrashHandler);)
+#include "CrashLogger.h"
+
 // Defines
 #define MAX_LOADSTRING 100
 
@@ -76,6 +79,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	//wcscpy(tmp, L"debugdevice");
 	//wiStartupArguments::Parse(&tmp[0]);
 	//MessageBoxA(NULL, "WinMain", "Log", MB_OK);
+
+	// Keep an eye for Unhandled Exceptions!
+	//SetUnhandledExceptionFilter(CrashHandler);
+	InitCrashHandler();
 
 	// Command line store
 	std::wstring your_wchar_in_ws(lpCmdLine);

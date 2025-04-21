@@ -1362,6 +1362,19 @@ void entity_lua_setsoundspeed ( void )
 	}
 }
 
+std::unordered_map<int,float> luavolumes;
+void restore_last_lua_volumes_settings( void )
+{
+	for (const auto& pair : luavolumes) {
+		int snd = pair.first;
+		float volume = pair.second;
+		if (SoundExist(snd) == 1)
+		{
+			SetSoundVolume(snd, volume);
+		}
+	}
+	luavolumes.clear();
+}
 void entity_lua_setsoundvolume ( void )
 {
 	t.tsnd=t.luaglobal.lastsoundnumber;
@@ -1374,6 +1387,12 @@ void entity_lua_setsoundvolume ( void )
 			if (  t.tvolume_f>100  )  t.tvolume_f = 100;
 			t.tvolume_f = t.tvolume_f * t.audioVolume.soundFloat;
 			SetSoundVolume (  t.tsnd,t.tvolume_f );
+			//luavolumes[t.tsnd] = t.tvolume_f;
+			if (luavolumes.size() == 0)
+			{
+				luavolumes.reserve(100);
+			}
+			luavolumes.insert_or_assign(t.tsnd, t.tvolume_f);
 		}
 	}
 }

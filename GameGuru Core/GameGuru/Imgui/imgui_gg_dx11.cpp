@@ -7184,6 +7184,72 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
 												}
 											}
+											if (stricmp(labels[1].c_str(), "globallist") == NULL)
+											{
+												static std::vector<std::string> globallist_labels;
+												extern StoryboardStruct Storyboard;
+												extern std::vector<int> g_gameGlobalListNodeId;
+												extern std::vector<int> g_gameGlobalListIndex;
+												extern std::vector<int> g_gameGlobalListValue;
+
+												bool bUpdate = false;
+												if (g_gameGlobalListNodeId.size() == 0 && globallist_labels.size() == 0)
+													bUpdate = true;
+												else if (g_gameGlobalListNodeId.size() > 0 && g_gameGlobalListNodeId.size() != (globallist_labels.size()-1))
+												{
+													bUpdate = true;
+												}
+												if (bUpdate)
+												{
+													globallist_labels.clear();
+													globallist_labels.push_back(cVariable);
+													for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+													{
+														//PE: Need custom ? stricmp(readout.c_str(), "User Defined Global Statusbar") == NULL
+														if (strlen(Storyboard.Nodes[allhudscreensnodeid].lua_name) > 0 && strnicmp(Storyboard.Nodes[allhudscreensnodeid].lua_name, "hud", 3) == NULL)
+														{
+															for (int i = STORYBOARD_MAXWIDGETS; i >= 0; i--)
+															{
+																if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
+																{
+																	std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
+																	if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+																		//"User Defined Global Statusbar"
+																	{
+																		//"User Defined Global Statusbar"
+																		// only add unique ones to game global list
+																		LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
+																		if (strlen(pNewName) > 0)
+																		{
+																			for (int n = 0; n < globallist_labels.size(); n++)
+																			{
+																				if (strcmp(pNewName, globallist_labels[n].c_str()) == NULL)
+																				{
+																					// already exists
+																					pNewName = "";
+																					break;
+																				}
+																			}
+																			globallist_labels.push_back(pNewName);
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+												labels = globallist_labels;
+												if (labels.size() > 0)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
+											}
 										}
 									}
 

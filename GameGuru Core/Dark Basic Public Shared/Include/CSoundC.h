@@ -89,8 +89,8 @@ DARKSDK float  SoundPositionZ     ( int iID );								// get z position
 
 DARKSDK void GetSoundData( int iID, DWORD* dwBitsPerSecond, DWORD* Frequency, DWORD* Duration, LPSTR* pData, DWORD* dwDataSize, bool bLockData, WAVEFORMATEX* wfx );
 DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWORD Duration, LPSTR pData, DWORD dwDataSize, WAVEFORMATEX wfx );
-DARKSDK LPDIRECTSOUND8 GetSoundInterface ( void );
-DARKSDK IDirectSound3DBuffer8* GetSoundBuffer ( int iID );
+//DARKSDK LPDIRECTSOUND8 GetSoundInterface ( void ); //PE: Not used.
+//DARKSDK IDirectSound3DBuffer8* GetSoundBuffer ( int iID ); //PE: Not used.
 
 #endif _CMATRIX_H_
 

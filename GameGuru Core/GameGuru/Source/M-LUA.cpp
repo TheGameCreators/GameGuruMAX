@@ -698,7 +698,16 @@ void lua_loop_begin ( void )
 		t.strwork = t.tchar_s;
 	}
 	LuaSetString("g_InKey", t.strwork.Get());
-	LuaSetString("g_LevelFilename", g.projectfilename_s.Get()+strlen("mapbank\\"));
+	//PE: Got a exception , g.projectfilename_s (mem read exception) was never set in standalone.
+	if (g.projectfilename_s.Len() > 0)
+	{
+		LuaSetString("g_LevelFilename", g.projectfilename_s.Get() + strlen("mapbank\\"));
+	}
+	else
+	{
+		g.projectfilename_s = "";
+		LuaSetString("g_LevelFilename", g.projectfilename_s.Get());
+	}
 	LuaSetInt("g_LevelTerrainSize", GGTerrain::ggterrain_global_render_params2.editable_size);
 
 	// pass in values from projectileexplosionevents

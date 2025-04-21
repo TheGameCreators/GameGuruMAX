@@ -2704,6 +2704,9 @@ bool game_masterroot_gameloop_loopcode(int iUseVRTest)
 
 			// and update internal volume values so music update can use volumes!
 			audio_volume_update ( );
+			//PE: LUA first calls has already been made, so restore the settings after this reset.
+			void restore_last_lua_volumes_settings(void);
+			restore_last_lua_volumes_settings();
 		}
 		//PE: Wicked seams a littler faster then classic , strange ?
 		t.postprocessings.fadeinvalue_f = t.postprocessings.fadeinvalue_f + (g.timeelapsed_f*0.08f);

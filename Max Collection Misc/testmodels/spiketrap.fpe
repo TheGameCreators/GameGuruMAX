@@ -1,0 +1,72 @@
+;Saved by Model Importer
+;header
+desc             = Spike Trap
+
+
+;orientation
+model            = spiketrap.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = 0
+matrixmode       = 
+cullmode         = 1
+isimmobile       = 1
+
+;visualinfo
+textured         = spiketrap_color.dds
+baseColorMap     = spiketrap_color.dds
+normalMap        = spiketrap_normal.dds
+normalStrength   = 1.00
+surfaceMap       = spiketrap_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.00
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = spiketrap_color.dds
+textureref2       = spiketrap_normal.dds
+textureref3       = spiketrap_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 1
+physics0         = "0,162.932754517,120.6612854,140.325698853,0,0,0,0,0,0"
+phyweight 	 = 0
+phyfriction 	 = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 1
+cantakeweapon    = 0
+
+;statistics
+strength         = 25
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = puzzle\spiketrap.lua
+
+;spawn
+spawnmax         = 0
+spawndelay       = 0
+spawnqty         = 0
+
+;anim
+animmax          = 1
+anim0            = 0,200
+anim1            = 201,400
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 25.992176
+thumbnailcamleft = 1.074111
+thumbnailcamup = -6.554213
+thumbnailrotatex = 5.922585
+thumbnailrotatey = 13.672494
+thumbnailanimset = 0

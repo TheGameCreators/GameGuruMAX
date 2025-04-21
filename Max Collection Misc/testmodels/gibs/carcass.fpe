@@ -1,0 +1,57 @@
+;Saved by Model Importer
+;header
+desc             = carcass
+
+;orientation
+model            = carcass.dbo
+scale            = 91.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 0
+
+;visualinfo
+textured         = carcass_color.dds
+baseColorMap     = carcass_color.dds
+alpharef         = 1.00
+normalMap        = carcass_normal.dds
+normalStrength   = 1.00
+surfaceMap       = carcass_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+doublesided      = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = carcass_color.dds
+textureref2       = carcass_normal.dds
+textureref3       = carcass_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 346.812927
+thumbnailrotatey = 322.844543

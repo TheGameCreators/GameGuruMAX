@@ -1,0 +1,55 @@
+;header
+desc             = Trapdoor
+
+;orientation
+model            = trapdoor.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 3
+cullmode         = 1
+isimmobile       = 1
+rotx             = 90
+roty             = 0
+rotz             = 0
+
+;visualinfo
+textured         = trapdoor.dds
+baseColorMap     = trapdoor.dds
+normalMap        = trapdoor_normal.dds
+normalStrength   = 1.00
+surfaceMap       = trapdoor_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.00
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1      = trapdoor.dds
+textureref2      = trapdoor_normal.dds
+textureref3      = trapdoor_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+isobjective      = 0
+
+;statistics
+strength         = 0
+
+;ai
+aimain           = objects\trapdoor.lua
+soundset         = audiobank\misc\open.wav
+soundset1        = audiobank\misc\close.wav
+
+;anim
+animspeed        = 400.00
+animmax          = 1
+anim0            = 0,0
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+
+keywords = Structure

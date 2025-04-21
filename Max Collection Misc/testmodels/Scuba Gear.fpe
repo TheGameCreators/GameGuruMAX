@@ -1,0 +1,116 @@
+;Saved by Model Importer
+;header
+desc             = Scuba Gear
+
+
+;orientation
+model            = Scuba Gear.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = scuba mask_color.dds
+alphaRef0        = 1.00
+normalMap0       = scuba mask_normal.dds
+normalStrength0  = 1.00
+surfaceMap0      = scuba mask_surface.dds
+roughnessStrength0= 1.00
+metalnessStrength0= 1.00
+transparency0    = 1
+renderorderbias0 = 0.00
+reflectance0     = 0.1880
+basecolor0       = 4294967295
+emissivecolor0   = 0
+baseColorMap1    = scuba-grey_color.dds
+alphaRef1        = 1.00
+normalMap1       = scuba-grey_normal.dds
+normalStrength1  = 1.00
+surfaceMap1      = scuba-grey_surface.dds
+roughnessStrength1= 1.00
+metalnessStrength1= 1.00
+transparency1    = 1
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 0
+baseColorMap2    = scuba_flipper_shiny_color.dds
+alphaRef2        = 1.00
+normalMap2       = scuba_flipper_shiny_normal.dds
+normalStrength2  = 1.15
+surfaceMap2      = scuba_flipper_shiny_surface.dds
+roughnessStrength2= 1.00
+metalnessStrength2= 1.00
+transparency2    = 0
+renderorderbias2 = 0.00
+reflectance2     = 0.0400
+basecolor2       = 4294967295
+emissivecolor2   = 0
+baseColorMap3    = scuba_flipper_shiny_color.dds
+alphaRef3        = 1.00
+normalMap3       = scuba_flipper_shiny_normal.dds
+normalStrength3  = 1.15
+surfaceMap3      = scuba_flipper_shiny_surface.dds
+roughnessStrength3= 1.00
+metalnessStrength3= 1.00
+transparency3    = 0
+renderorderbias3 = 0.00
+reflectance3     = 0.0400
+basecolor3       = 4294967295
+emissivecolor3   = 0
+textureref1       = scuba mask_color.dds
+textureref2       = scuba mask_normal.dds
+textureref3       = scuba mask_surface.dds
+textureref4       = scuba-grey_color.dds
+textureref5       = scuba-grey_normal.dds
+textureref6       = scuba-grey_surface.dds
+textureref7       = scuba_flipper_shiny_color.dds
+textureref8       = scuba_flipper_shiny_normal.dds
+textureref9       = scuba_flipper_shiny_surface.dds
+effect            = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 = 1
+phyweight 	 = 1
+phyfriction 	 = 1
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+alwaysactive	 = 1
+isimmobile	 = 1
+
+;statistics
+strength         = 50
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = rpg\scuba.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Light grey spotlight.dds
+thumbnailzoom = -14.312683
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.198647
+thumbnailrotatey = 72.719742
+keywords = Scuba,Gear,Oxygen,Mask,Flippers,Diving,Swiming

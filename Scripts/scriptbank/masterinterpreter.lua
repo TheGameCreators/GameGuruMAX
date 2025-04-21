@@ -1,4 +1,7 @@
--- MASTER INTERPRETER - V2 - Contributors; Necrym59
+--
+-- MASTER INTERPRETER - Contributors; Lee, Necrym59 
+--
+
 local master_interpreter_core = {}
 
 -- Slows down logic for closer debugging

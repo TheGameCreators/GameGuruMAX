@@ -1,0 +1,55 @@
+;Saved by Model Importer
+;header
+desc             = Mission Typewriter
+
+
+;orientation
+model            = Mission Typewriter.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = Mission Typewriter_color.dds
+baseColorMap     = Mission Typewriter_color.dds
+alpharef         = 1.00
+normalMap        = Mission Typewriter_normal.dds
+normalStrength   = 1.00
+surfaceMap       = Mission Typewriter_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.00
+basecolor        = 1600086015
+emissivecolor    = 0
+textureref1       = Mission Typewriter_color.dds
+textureref2       = Mission Typewriter_normal.dds
+textureref3       = Mission Typewriter_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+isimmobile       = 1
+
+;ai
+aimain           = puzzle\message.lua
+soundset         = audiobank\misc\testaudio\keystroke.wav
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Grey gradient.dds
+thumbnailzoom = -9.663900
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

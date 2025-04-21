@@ -1,0 +1,56 @@
+;Saved by Model Importer
+;header
+desc             = TeleVatorScroller One
+
+;orientation
+model            = TeleVatorScroller One.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 1
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = LiftOne_color.dds
+baseColorMap     = LiftOne_color.dds
+alpharef         = 1.00
+normalMap        = LiftOne_normal.dds
+normalStrength   = 1.00
+surfaceMap       = LiftOne_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = LiftOne_color.dds
+textureref2       = LiftOne_normal.dds
+textureref3       = LiftOne_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Naelurec Grey.png
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

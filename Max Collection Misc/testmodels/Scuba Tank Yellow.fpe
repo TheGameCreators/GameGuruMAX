@@ -1,0 +1,68 @@
+;Saved by Model Importer
+;header
+desc             = Scuba Tank Yellow
+
+
+;orientation
+model            = Scuba Tank Yellow.dbo
+scale            = 100.00
+collisionmode    = 3
+defaultstatic    = 1
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = scuba-yellow_color.dds
+baseColorMap     = scuba-yellow_color.dds
+alpharef         = 1.00
+normalMap        = scuba-yellow_normal.dds
+normalStrength   = 1.00
+surfaceMap       = scuba-yellow_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = scuba-yellow_color.dds
+textureref2       = scuba-yellow_normal.dds
+textureref3       = scuba-yellow_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = 
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Yellow showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 1.006741
+thumbnailrotatey = 76.035072
+keywords = Scuba,Oxygen,Tanks,Yellow

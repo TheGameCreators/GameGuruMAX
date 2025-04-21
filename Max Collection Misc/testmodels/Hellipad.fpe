@@ -1,0 +1,59 @@
+;Saved by Model Importer
+;header
+desc             = Hellipad
+
+;orientation
+model            = Hellipad.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = 1
+cullmode         = 1
+
+;visualinfo
+textured         = Hellipad_color.dds
+baseColorMap     = Hellipad_color.dds
+alpharef         = 1.00
+normalMap        = Hellipad_normal.dds
+normalStrength   = 1.00
+surfaceMap       = Hellipad_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+emissiveMap      = Hellipad_emissive.dds
+emissiveStrength = 5.20
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 1058740992
+textureref1       = Hellipad_color.dds
+textureref2       = Hellipad_normal.dds
+textureref3       = Hellipad_surface.dds
+textureref4       = Hellipad_emissive.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 331.623108
+thumbnailrotatey = 40.998810

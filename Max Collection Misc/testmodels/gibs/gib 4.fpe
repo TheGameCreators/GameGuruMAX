@@ -1,0 +1,56 @@
+;Saved by Model Importer
+;header
+desc             = gib 4
+
+;orientation
+model            = gib 4.dbo
+scale            = 100.00
+collisionmode    = 1
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = gib_4_color.dds
+baseColorMap     = gib_4_color.dds
+alpharef         = 1.00
+normalMap        = gib_4_normal.dds
+normalStrength   = 1.99
+surfaceMap       = gib_4_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = gib_4_color.dds
+textureref2       = gib_4_normal.dds
+textureref3       = gib_4_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

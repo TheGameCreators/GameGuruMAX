@@ -1,0 +1,18 @@
+TeleVator models and textures provided by OldFlak
+Copywrite 2023 cdasi - all rights reserved.
+
+Licence Terms for:
+- Models:	TeleVator (Block, Doors, Scroller)
+- Textures:	TeleVatorBlock (_color, _normal, _surface)
+- Textures:	TeleVator (_color, _emissive, _normal, _surface)
+
+These assets are supplied free to the GameGuru Max community by OldFlak. 
+Contact cdasi@live.com.au
+
+You have the rights to use the specified image files and models in any GameGuru MAX game you create and are free to distribute your games for free or commercially.
+
+You may not distribute these files on their own or part of an asset pack. 
+
+You may not use these files with any other game creation tool (eg Unity, Unreal, etc). 
+
+If you wish to license these assets in other formats or for any other means, please contact the original author at cdasi@live.com.au to enquire about distribution rights.

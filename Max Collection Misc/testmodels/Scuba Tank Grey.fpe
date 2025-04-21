@@ -1,0 +1,68 @@
+;Saved by Model Importer
+;header
+desc             = Scuba Tank Grey
+
+
+;orientation
+model            = Scuba Tank Grey.dbo
+scale            = 100.00
+collisionmode    = 3
+defaultstatic    = 1
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = scuba-grey_color.dds
+baseColorMap     = scuba-grey_color.dds
+alpharef         = 1.00
+normalMap        = scuba-grey_normal.dds
+normalStrength   = 1.00
+surfaceMap       = scuba-grey_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = scuba-grey_color.dds
+textureref2       = scuba-grey_normal.dds
+textureref3       = scuba-grey_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = 
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Grey showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.422321
+thumbnailrotatey = 73.754532
+keywords = Scuba,Oxygen,Tanks,Grey

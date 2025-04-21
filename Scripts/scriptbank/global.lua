@@ -1,6 +1,4 @@
--- 
 -- LUA Globals Common Header 
---
 -- DESCRIPTION: A global script that controls game & player logic. Do not assign to an entity.
 
 -- Constants

@@ -1,0 +1,56 @@
+;Saved by Model Importer
+;header
+desc             = quest_scroll
+
+;orientation
+model            = quest_scroll.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = quest_scroll_color.dds
+baseColorMap     = quest_scroll_color.dds
+alpharef         = 0.65
+normalMap        = quest_scroll_normal.dds
+normalStrength   = 1.00
+surfaceMap       = quest_scroll_surface.dds
+roughnessStrength= 0.00
+metalnessStrength= 0.00
+transparency     = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = quest_scroll_color.dds
+textureref2       = quest_scroll_normal.dds
+textureref3       = quest_scroll_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 304.339661
+thumbnailrotatey = 341.562958

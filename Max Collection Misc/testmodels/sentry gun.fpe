@@ -1,0 +1,74 @@
+;Saved by Model Importer
+;header
+desc             = sentry gun
+
+
+;orientation
+model            = sentry gun.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = sentry_gun_color.dds
+baseColorMap     = sentry_gun_color.dds
+alpharef         = 1.00
+normalMap        = sentry_gun_normal.dds
+normalStrength   = 1.00
+surfaceMap       = sentry_gun_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = sentry_gun_color.dds
+textureref2       = sentry_gun_normal.dds
+textureref3       = sentry_gun_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 = 0
+phyweight 	 = 1
+phyfriction 	 = 1
+isimmobile	 = 1
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 60
+explodable       = 1
+debrisshape      = 
+
+;ai
+aimain           = objects\sentry.lua
+soundset         = audiobank\misc\testaudio\sentry_scanning.wav
+soundset1        = audiobank\misc\testaudio\sentry_firing.wav
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

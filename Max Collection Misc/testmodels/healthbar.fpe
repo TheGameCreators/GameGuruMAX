@@ -1,0 +1,69 @@
+;Saved by Model Importer
+;header
+desc             = Health Bar
+
+
+;orientation
+model            = healthbar.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = healthbar.png
+baseColorMap     = healthbar.png
+alpharef         = 1.00
+emissiveMap      = healthbar.png
+emissiveStrength = 1.00
+transparency     = 0
+castshadow       = -1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 4294967295
+textureref1       = healthBar.png
+textureref2       = healthbar.png
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+isimmobile       = 0
+phyweight 	 = 0
+phyfriction 	 = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+alwaysactive     = 1
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = objects\healthbar.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 57.165668
+thumbnailcamleft = 1.337368
+thumbnailcamup = 19.685246
+thumbnailrotatex = 36.684029
+thumbnailrotatey = 359.494812

@@ -1,0 +1,54 @@
+;Saved by Model Importer
+;header
+desc             = blood_splat
+
+;orientation
+model            = blood_splat.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 0
+
+;visualinfo
+textured         = blood_splat.dds
+baseColorMap     = blood_splat.dds
+alpharef         = 1.00
+surfaceMap       = blood_splat_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 1
+doublesided      = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = blood_splat.dds
+textureref2       = blood_splat_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 25.00
+animmax          = 0
+anim0            = 0,1
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

@@ -9106,7 +9106,9 @@ void Wicked_Update_Visuals(void *voidvisual)
 	// can disable terrain drawing in graphics engine
 	if (t.visuals.bEnableEmptyLevelMode == false)
 	{
-		GGTerrain::ggterrain_draw_enabled = (int)bSetting;
+		//GGTerrain::ggterrain_draw_enabled = (int)bSetting; //PE: Cant set it here as bSetting = grass.
+		// can call this to affect some visibles without causing water to flicker
+		Wicked_Update_Visibles(voidvisual);
 		GGTrees::ggtrees_draw_enabled = 1;
 	}
 	else
@@ -9115,8 +9117,6 @@ void Wicked_Update_Visuals(void *voidvisual)
 		GGTrees::ggtrees_draw_enabled = 0;
 	}
 
-	// can call this to affect some visibles without causing water to flicker
-	Wicked_Update_Visibles(voidvisual);
 }
 
 void Wicked_Update_Visibles(void* voidvisual)
@@ -9124,18 +9124,27 @@ void Wicked_Update_Visibles(void* voidvisual)
 	// vars
 	bool bSetting = false;
 
-	// If in Test Level or in standalone, use visual settings, otherwise just use the temporary editor setting.
-	if (t.game.set.ismapeditormode == 1)
+	if (t.visuals.bEnableEmptyLevelMode == false)
 	{
-		bSetting = t.showeditorterrain;
+		// If in Test Level or in standalone, use visual settings, otherwise just use the temporary editor setting.
+		if (t.game.set.ismapeditormode == 1)
+		{
+			bSetting = t.showeditorterrain;
+		}
+		else
+		{
+			bSetting = t.visuals.bEndableTerrainDrawing;
+			if (bSetting == true)
+			{
+				if (t.hardwareinfoglobals.noterrain == 1) bSetting = false;
+			}
+		}
+		GGTerrain::ggterrain_draw_enabled = (int)bSetting;
 	}
 	else
 	{
-		bSetting = t.visuals.bEndableTerrainDrawing;
-		if (bSetting == true)
-		{
-			if (t.hardwareinfoglobals.noterrain == 1) bSetting = false;
-		}
+		//PE: Can be called from LUA. so also disable here.
+		GGTerrain::ggterrain_draw_enabled = 0;
 	}
 }
 

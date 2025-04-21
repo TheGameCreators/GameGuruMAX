@@ -1,3 +1,10 @@
+#pragma optimize("", off)
+ 
+//PE: Really slow , switched to wicked xaudio2.
+#define WICKEDAUDIO
+
+//PE: reverB works.
+//#define REVERBTEST
 
 //////////////////////////////////////////////////////////////////////////////////
 // INCLUDES / LIBS ///////////////////////////////////////////////////////////////
@@ -30,6 +37,15 @@
 #include ".\..\Core\SteamCheckForWorkshop.h"
 
 #include "CFileC.h"
+
+#ifdef WICKEDAUDIO
+#include "..\..\..\..\WickedRepo\WickedEngine\WickedEngine.h"
+#include <xaudio2.h>
+using namespace wiGraphics;
+using namespace wiScene;
+using namespace wiECS;
+using namespace wiAudio;
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +96,8 @@ void timestampactivity(int i, char* desc_s);
 
 DARKSDK void SoundConstructor ( void )
 {
+#ifdef WICKEDAUDIO
+#else
 	// NOTE: No hardware mixing for Direct X 11 DirectSound!
 
 	// store the window handle
@@ -95,6 +113,20 @@ DARKSDK void SoundConstructor ( void )
 		return;
 	}
 
+	
+	//DSCAPS dsCaps;
+	//ZeroMemory(&dsCaps, sizeof(DSCAPS));
+	//dsCaps.dwSize = sizeof(DSCAPS);
+	//if (FAILED(g_pSoundManager->m_pDS->GetCaps(&dsCaps))) {
+	//}
+	//else {
+	//	if (dsCaps.dwFlags & DSCAPS_HARDWARE) {
+	//	}
+	//	else {
+	//	}
+	//}
+
+
     // Get the 3D listener, so we can control its params
     hr |= g_pSoundManager->Get3DListenerInterface( &pDSListener );
     if( FAILED(hr) )
@@ -109,10 +141,14 @@ DARKSDK void SoundConstructor ( void )
 	pDSListener->SetRolloffFactor(1.0f, DS3D_DEFERRED );
 	pDSListener->SetVelocity(0.0f, 0.0f, 0.0f, DS3D_DEFERRED );
 	pDSListener->SetDopplerFactor(DS3D_MINDOPPLERFACTOR, DS3D_DEFERRED );
+#endif
 }
 
 DARKSDK void SoundDestructor ( void )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// reduce to non priority
 	if ( g_pSoundManager )
 		if ( g_pSoundManager->m_pDS )
@@ -126,6 +162,7 @@ DARKSDK void SoundDestructor ( void )
 
 	// release ds
     SAFE_DELETE( g_pSoundManager );
+#endif
 }
 
 DARKSDK bool UpdateSoundPtr ( int iID )
@@ -153,13 +190,19 @@ DARKSDK sSoundData* GetSound( int iID )
 
 DARKSDK void SetSoundErrorHandler ( LPVOID pErrorHandlerPtr )
 {
+#ifdef WICKEDAUDIO
+#else
 	// Update error handler pointer
 	g_pErrorHandler = (CRuntimeErrorHandler*)pErrorHandlerPtr;
+#endif
 }
 
 DARKSDK void PassSoundCoreData( LPVOID pGlobPtr )
 {
+#ifdef WICKEDAUDIO
+#else
 	g_pGlob = (GlobStruct*)pGlobPtr;
+#endif
 }
 
 DARKSDK void SoundRefreshGRAFIX ( int iMode )
@@ -168,6 +211,24 @@ DARKSDK void SoundRefreshGRAFIX ( int iMode )
 
 DARKSDK float GetSoundPosition(int iID)
 {
+#ifdef WICKEDAUDIO
+
+	if (iID < 1 || iID > MAXIMUMVALUE)
+	{
+		return 0;
+	}
+	if (!UpdateSoundPtr(iID))
+	{
+		return 0;
+	}
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		float percent = wiAudio::PlayedPercent(&sound->soundinstance);
+		return(percent);
+	}
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
@@ -190,10 +251,14 @@ DARKSDK float GetSoundPosition(int iID)
 			return(100.0f);
 		return(( (float) pos/ (float) dwSoundSize)*100.0f);
 	}
+#endif
 	return 0.0f;
 }
+
 DARKSDK void UpdateSound ( void )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
@@ -210,7 +275,7 @@ DARKSDK void UpdateSound ( void )
 		sSoundData* ptr = NULL;
 		//ptr = m_SDKSoundManager.GetData ( check->id ); // U74 - 080509 - faster!
 		ptr = (sSoundData*)check->data;
-		if (ptr == NULL) {
+		if (ptr == NULL || !ptr->bPlaying) {
 			//PE: This would produce a endless loop.
 			check = check->next;
 			continue;
@@ -283,6 +348,7 @@ DARKSDK void UpdateSound ( void )
 			HRESULT hr = g_pSoundManager->m_pDS->SetCooperativeLevel(hWnd, DSSCL_PRIORITY);
 		}
 	}
+#endif
 }
 
 //
@@ -291,6 +357,8 @@ DARKSDK void UpdateSound ( void )
 
 DARKSDK float SoundPositionX ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
@@ -305,6 +373,7 @@ DARKSDK float SoundPositionX ( int iID )
 		Error1 ( "GetSoundPositionX - sound does not exist" );
 		return 0.0f;
 	}
+#endif
 
 	// return x position
 	return m_ptr->vecPosition.x;
@@ -312,6 +381,9 @@ DARKSDK float SoundPositionX ( int iID )
 
 DARKSDK float SoundPositionY ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// get sound y position
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
@@ -326,11 +398,15 @@ DARKSDK float SoundPositionY ( int iID )
 	}
 
 	// return y position
+#endif
 	return m_ptr->vecPosition.y;
 }
 
 DARKSDK float SoundPositionZ ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// get sound z position
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
@@ -345,25 +421,43 @@ DARKSDK float SoundPositionZ ( int iID )
 	}
 
 	// return z position
+#endif
 	return m_ptr->vecPosition.z;
 }
 
 DARKSDK float ListenerPositionX ( void )
 {
+#ifdef WICKEDAUDIO
+	const wiScene::CameraComponent& camera = wiScene::GetCamera();
+	return(camera.Eye.x);
+#else
+
 	// get listener x position
 	return vecListenerPosition.x;
+#endif
 }
 
 DARKSDK float ListenerPositionY ( void )
 {
+#ifdef WICKEDAUDIO
+	const wiScene::CameraComponent& camera = wiScene::GetCamera();
+	return(camera.Eye.y);
+#else
+
 	// get listener y position
 	return vecListenerPosition.y;
+#endif
 }
 
 DARKSDK float ListenerPositionZ ( void )
 {
+#ifdef WICKEDAUDIO
+	const wiScene::CameraComponent& camera = wiScene::GetCamera();
+	return(camera.Eye.z);
+#else
 	// get listener z position
 	return vecListenerPosition.z;
+#endif
 }
 
 DARKSDK float ListenerAngleX ( void )
@@ -426,8 +520,62 @@ DARKSDK void DB_GetWinTemp(LPSTR pWindowsTempDirectory)
 	}
 }
 
+#ifdef WICKEDAUDIO
+bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail)
+{
+#ifdef WICKEDAUDIO
+	std::string fileName = szFilename;
+	std::string soundName = wiHelper::GetFileNameFromPath(szFilename);
+	Entity entity = GetScene().Entity_CreateSound(soundName, fileName, XMFLOAT3(0, 0, 0));
+	DBPRO_GLOBAL sSoundData* mptr;
+	if ((mptr = m_SDKSoundManager.GetData(iID)))
+	{
+		mptr->wickedEntity = entity;
+		mptr->wickedFilename = fileName;
+	}
+
+	SoundComponent* sound = GetScene().sounds.GetComponent(entity);
+	if (sound != nullptr)
+	{
+		//PE: Defaults. 
+		//b3DSound = true; //PE:Test 3d sound ogg. works.
+		sound->SetDisable3D(1 - b3DSound);
+		sound->SetLooped(false);
+#ifdef REVERBTEST
+		static bool breverbinit = true;
+		if (breverbinit)
+		{
+			wiAudio::SetReverb(REVERB_PRESET_CAVE);
+			breverbinit = false;
+		}
+		sound->soundinstance.SetEnableReverb(true);
+#else
+		sound->soundinstance.SetEnableReverb(false);
+#endif
+		sound->volume = 1.0f; //0-1
+		if(b3DSound)
+			sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_SOUNDEFFECT; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+		else
+			sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_MUSIC; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+		wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+		if (sound->IsPlaying())
+		{
+			sound->Stop();
+		}
+		return true;
+	}
+#else
+#endif
+	return false;
+}
+#endif
 DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int iSilentFail )
 {
+#ifdef WICKEDAUDIO
+	bLoadWickedSound(szFilename, iID,b3DSound,iSilentFail);
+	return;
+#else
+
 	// load a sound into a buffer
 	
 	GUID    guid3DAlgorithm = SOUND_GUID_NULL;
@@ -485,73 +633,78 @@ DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int
 	{
 		m_ptr->pDSBuffer3D=NULL;
 	}
+#endif
 }
 
-DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound, int iSilentFail, int iGlobalSound )
+DARKSDK void LoadRawSoundCore(LPSTR szPassedInFilename, int iID, bool b3DSound, int iSilentFail, int iGlobalSound)
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
-
+#endif
 	// first check if this file is actually in writable area
 	char szFilename[MAX_PATH];
 	strcpy(szFilename, szPassedInFilename);
 	GG_GetRealPath(szFilename, 0);
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
-	g_pGlob->dwInternalFunctionCode=15001;
-	if ( !g_pSoundManager->GetExists ( ) )
+	g_pGlob->dwInternalFunctionCode = 15001;
+#ifdef WICKEDAUDIO
+#else
+	if (!g_pSoundManager->GetExists())
 		return;
-
+#endif
 	// checks
-	if ( iID < 1 || iID > MAXIMUMVALUE )
+	if (iID < 1 || iID > MAXIMUMVALUE)
 	{
-		#ifndef IGNOREALLSOUNDERRORS
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDNUMBERILLEGAL);
-		#endif
+#ifndef IGNOREALLSOUNDERRORS
+		if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDNUMBERILLEGAL);
+#endif
 		return;
 	}
-	if ( UpdateSoundPtr ( iID ) )
+	if (UpdateSoundPtr(iID))
 	{
-		#ifndef IGNOREALLSOUNDERRORS
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDALREADYEXISTS);
-		#else
+#ifndef IGNOREALLSOUNDERRORS
+		if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDALREADYEXISTS);
+#else
 		char cError[MAX_PATH + 20];
 		sprintf(cError, "RUNTIMEERROR_SOUNDALREADYEXISTS: ID %d , file %s", iID, szFilename);
 		timestampactivity(0, cError);
-		#endif	
+#endif	
 		return;
 	}
 	//PE: Added additional info for silence.wav missing Max bug.
-	if ( strlen ( szFilename ) < 1 || !szFilename )
+	if (strlen(szFilename) < 1 || !szFilename)
 	{
 		char cError[MAX_PATH + 20];
-		sprintf(cError,"(flen) %s", szFilename);
-		#ifndef IGNOREALLSOUNDERRORS
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, cError);
-		#else
+		sprintf(cError, "(flen) %s", szFilename);
+#ifndef IGNOREALLSOUNDERRORS
+		if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, cError);
+#else
 		timestampactivity(0, cError);
-		#endif
+#endif
 		return;
 	}
 
 	// add structure to sound manager
-	g_pGlob->dwInternalFunctionCode=15002;
+	g_pGlob->dwInternalFunctionCode = 15002;
 	sSoundData		m_Data;							// all sound data
-	memset ( &m_Data, 0, sizeof ( m_Data ) );
-	m_SDKSoundManager.Add ( &m_Data, iID );
+	memset(&m_Data, 0, sizeof(m_Data));
+	m_SDKSoundManager.Add(&m_Data, iID);
 
 	// update list
-	g_pGlob->dwInternalFunctionCode=15003;
-	if ( !UpdateSoundPtr ( iID ) )
+	g_pGlob->dwInternalFunctionCode = 15003;
+	if (!UpdateSoundPtr(iID))
 	{
-		m_SDKSoundManager.Delete ( iID );
+		m_SDKSoundManager.Delete(iID);
 		char cError[MAX_PATH + 20];
 		sprintf(cError, "(updatesoundptr) %s", szFilename);
-		#ifndef IGNOREALLSOUNDERRORS
-		if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, cError);
-		#else
+#ifndef IGNOREALLSOUNDERRORS
+		if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, cError);
+#else
 		timestampactivity(0, cError);
-		#endif
+#endif
 		return;
 	}
 
@@ -559,33 +712,54 @@ DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound
 	m_ptr->b3D = b3DSound;
 
 	// mike - 260705
-	g_pGlob->dwInternalFunctionCode=15004;
-	if ( strnicmp ( (char*)szFilename+strlen((char*)szFilename)-4, ".ogg", 4 )==NULL )
+	g_pGlob->dwInternalFunctionCode = 15004;
+	if (strnicmp((char*)szFilename + strlen((char*)szFilename) - 4, ".ogg", 4) == NULL)
 	{
+#ifdef WICKEDAUDIO
+		bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail);
+		if (!bOK)
+#else
 		//char pLookSee[1024];
 		//GetCurrentDirectory ( 1024, pLookSee );
-		LoadRawSoundCoreOgg ( szFilename, iID, b3DSound, iSilentFail );
-		if ( m_ptr->pDSBuffer3D==NULL && m_ptr->pSound->m_apDSBuffer==NULL )
+		LoadRawSoundCoreOgg(szFilename, iID, b3DSound, iSilentFail);
+		if (m_ptr->pDSBuffer3D == NULL && m_ptr->pSound->m_apDSBuffer == NULL)
+#endif
 		{
-			m_SDKSoundManager.Delete ( iID );
+			m_SDKSoundManager.Delete(iID);
 			char cError[MAX_PATH + 20];
 			sprintf(cError, "OGG-RUNTIMEERROR_SOUNDLOADFAILED: %s", szFilename);
-			#ifndef IGNOREALLSOUNDERRORS
-			if ( iSilentFail==0 ) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED,szFilename);
-			#else
+#ifndef IGNOREALLSOUNDERRORS
+			if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, szFilename);
+#else
 			timestampactivity(0, cError);
-			#endif
+#endif
 			return;
 		}
 		return;
 	}
 
 	// load a sound into a buffer
-	g_pGlob->dwInternalFunctionCode=15005;
+	g_pGlob->dwInternalFunctionCode = 15005;
 	GUID    guid3DAlgorithm = SOUND_GUID_NULL;
-    HRESULT hr; 
+	HRESULT hr;
 
-    // Free any previous sound, and make a new one
+	// Free any previous sound, and make a new one
+#ifdef WICKEDAUDIO
+	bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail);
+	if (!bOK)
+	{
+		// Invalid WAV format
+		m_SDKSoundManager.Delete(iID);
+		char cError[MAX_PATH + 20];
+		sprintf(cError, "Failed: %s", szFilename);
+		#ifndef IGNOREALLSOUNDERRORS
+		if (iSilentFail == 0) RunTimeError(RUNTIMEERROR_SOUNDLOADFAILED, cError);
+		#else
+		timestampactivity(0, cError);
+		#endif
+		return;
+	}
+#else
     if( m_ptr->pSound )
     {
         m_ptr->pSound->Stop();
@@ -640,7 +814,17 @@ DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound
 
     // Load the wave file into a DirectSound buffer
 	g_pGlob->dwInternalFunctionCode=15008;
-    hr = g_pSoundManager->Create( &m_ptr->pSound, szFilename, dwFlags, guid3DAlgorithm );  
+	//PE: Pri. hardware buffers.
+	//PE: Getting E_NOTIMPL Not implemented. ?
+
+    //hr = g_pSoundManager->Create( &m_ptr->pSound, szFilename, dwFlags | DSBCAPS_LOCHARDWARE, guid3DAlgorithm);
+	//if (FAILED(hr))
+	//{
+	//	hr = g_pSoundManager->Create(&m_ptr->pSound, szFilename, dwFlags, guid3DAlgorithm);
+	//}
+
+	hr = g_pSoundManager->Create(&m_ptr->pSound, szFilename, dwFlags, guid3DAlgorithm);
+
     if( FAILED( hr ) || hr == DS_NO_VIRTUALIZATION )
     {
 		// no sound buffer
@@ -655,11 +839,16 @@ DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound
         return; 
     }
 
+#endif
+
 	// LEEFIX - 191102 - fill with default sound data
 	g_pGlob->dwInternalFunctionCode=15022;
 	m_ptr->iVolume	= 100;
 	m_ptr->iPan		= 100;
+	m_ptr->b3D = b3DSound;
 
+#ifdef WICKEDAUDIO
+#else
     // Get the 3D buffer from the secondary buffer
 	if(b3DSound)
 	{
@@ -687,13 +876,16 @@ DARKSDK void LoadRawSoundCore ( LPSTR szPassedInFilename, int iID, bool b3DSound
 	{
 		m_ptr->pDSBuffer3D=NULL;
 	}
-
+#endif
 	// got to end of command without crash
 	g_pGlob->dwInternalFunctionCode=15031;
 }
 
 DARKSDK BOOL SaveWAVDataToFile(HANDLE hfile, char* wavedata, DWORD sizeofdata, DWORD nSamplesPerSec, WAVEFORMATEX wfx  )
 {
+#ifdef WICKEDAUDIO
+	return false;
+#else
 	DWORD bw;
 
 	// Prepare header
@@ -744,10 +936,14 @@ DARKSDK BOOL SaveWAVDataToFile(HANDLE hfile, char* wavedata, DWORD sizeofdata, D
 	WriteFile(hfile, wavedata, dwLength, &bw, FALSE);
 
 	return TRUE;
+#endif
 }
 
 DARKSDK BOOL DB_SaveWAVFile(char* filename, LPSTR pData, DWORD dwDataSize, DWORD nSamplesPerSec, WAVEFORMATEX wfx  )
 {
+#ifdef WICKEDAUDIO
+	return false;
+#else
 	BOOL		bResult		= FALSE;
 	HANDLE		hFile;
 
@@ -764,6 +960,7 @@ DARKSDK BOOL DB_SaveWAVFile(char* filename, LPSTR pData, DWORD dwDataSize, DWORD
 	CloseHandle(hFile);
 
 	return bResult;
+#endif
 }
 
 //
@@ -815,12 +1012,15 @@ DARKSDK void LoadSound ( LPSTR szFilename, int iID, int iFlag, int iSilentFail, 
 
 DARKSDK void PlaySound ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -844,6 +1044,20 @@ DARKSDK void PlaySound ( int iID )
 	m_ptr->bPlaying = true;
 	m_ptr->bLoop = false;
 
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		sound->SetLooped(false);
+		wiAudio::Stop(&sound->soundinstance); //Flush so restart.
+		sound->Play();
+	}
+	else
+	{
+		m_ptr->bPlaying = false;
+	}
+#else
+
 	// mike - 2320604 - added in these 2 extra lines
 	m_ptr->pSound->Stop();
 	m_ptr->pSound->Reset();
@@ -853,10 +1067,16 @@ DARKSDK void PlaySound ( int iID )
 
 	// now play the sound
 	m_ptr->pSound->Play(0, NULL );
+#endif
 }
 
 DARKSDK void PlaySoundOffset ( int iID, int iOffset )
 {
+#ifdef WICKEDAUDIO
+	//PE: MAX always use iOffset=0 , so just use normal playsound.
+	PlaySound(iID);
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
@@ -900,16 +1120,20 @@ DARKSDK void PlaySoundOffset ( int iID, int iOffset )
 
 	// now play the sound
 	m_ptr->pSound->Play(0, NULL );
+#endif
 }
 
 DARKSDK void CloneSound ( int iDestination, int iSource )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iSource < 1 || iSource > MAXIMUMVALUE )
 	{
@@ -961,6 +1185,48 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 	// to prevent my source data being freed!
 	memset ( &m_Data, 0, sizeof ( sSoundData ) );
 
+#ifdef WICKEDAUDIO
+	//PE: Check if we can do a clone.
+	bool bCloneFailed = true;
+	if (pSrcPtr->wickedEntity > 0)
+	{
+		const Entity entity = GetScene().Entity_Duplicate(pSrcPtr->wickedEntity);
+		if (entity > 0)
+		{
+			m_ptr->wickedEntity = entity;
+			m_ptr->wickedFilename = pSrcPtr->wickedFilename;
+			m_ptr->b3D = pSrcPtr->b3D;
+			SoundComponent* sound = GetScene().sounds.GetComponent(entity);
+			if (sound != nullptr)
+			{
+				//PE: Defaults. 
+				sound->SetDisable3D(1 - pSrcPtr->b3D);
+				sound->SetLooped(false);
+#ifdef REVERBTEST
+				sound->soundinstance.SetEnableReverb(true);
+#else
+				sound->soundinstance.SetEnableReverb(false);
+#endif
+				sound->volume = 1.0f; //0-1
+				if (pSrcPtr->b3D)
+					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_SOUNDEFFECT; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+				else
+					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_MUSIC; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+				wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+				if (sound->IsPlaying())
+				{
+					sound->Stop();
+				}
+				bCloneFailed = false;
+			}
+		}
+	}
+	if(bCloneFailed)
+	{
+		bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1);
+	}
+#else
+
 	// For the copy process
     if( pSrcPtr->pSound ) pSrcPtr->pSound->Stop();
 
@@ -981,16 +1247,46 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 	{
 		m_ptr->pDSBuffer3D=NULL;
 	}
+#endif
 }
 
+void setReverB(int iID, uint32_t index)
+{
+	if (iID < 1 || iID > MAXIMUMVALUE)
+	{
+		return;
+	}
+	if (!UpdateSoundPtr(iID))
+	{
+		return;
+	}
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		if (index > 0)
+		{
+			sound->soundinstance.SetEnableReverb(true);
+			wiAudio::SetReverb(REVERB_PRESET_CAVE);
+		}
+		else
+		{
+			sound->soundinstance.SetEnableReverb(false);
+			wiAudio::SetReverb(REVERB_PRESET_DEFAULT);
+		}
+	}
+	return;
+}
 DARKSDK void DeleteSound ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1006,6 +1302,12 @@ DARKSDK void DeleteSound ( int iID )
 		#endif
 		return;
 	}
+#ifdef WICKEDAUDIO
+	StopSound(iID);
+	//PE: Delete wicked entity.
+	GetScene().Entity_Remove(m_ptr->wickedEntity);
+	m_ptr->wickedEntity = 0;
+#endif
 
 	// deletes a sound
 	m_SDKSoundManager.Delete ( iID );
@@ -1013,12 +1315,15 @@ DARKSDK void DeleteSound ( int iID )
 
 DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1038,9 +1343,24 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 	// loops with boundaries and an initail start position
 
 	// setup properties
-	m_ptr->bPause = false;
+	m_ptr->bPause = false; 
 	m_ptr->bPlaying  = true;
 	m_ptr->bLoop  = true;
+
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		sound->SetLooped(true);
+		wiAudio::Stop(&sound->soundinstance); //Flush and restart.
+		sound->Play();
+	}
+	else
+	{
+		m_ptr->bPlaying = false;
+		m_ptr->bLoop = false;
+	}
+#else
 
 	// Values used in controlling loop (in update function)
 	m_ptr->iLoopStartPos = iStart;
@@ -1054,6 +1374,7 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 	if(iInitialPos!=-1) m_ptr->pSound->GetBuffer(0)->SetCurrentPosition(iInitialPos);
 
 	m_ptr->pSound->Play(0, DSBPLAY_LOOPING );
+#endif
 }
 
 DARKSDK void LoopSound ( int iID )
@@ -1076,12 +1397,15 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd )
 
 DARKSDK void StopSound ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1101,6 +1425,16 @@ DARKSDK void StopSound ( int iID )
 	// stop the sound from playing
 	m_ptr->bPlaying = false;
 
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		if (sound->IsPlaying())
+		{
+			sound->Stop();
+		}
+	}
+#else
 	// mike - 230604 - added in these 2 extra lines
 	m_ptr->pSound->Stop();
 	m_ptr->pSound->Reset();
@@ -1111,16 +1445,20 @@ DARKSDK void StopSound ( int iID )
 
 	// call the stop commands
 	m_ptr->pSound->Stop();
+#endif
 }
 
 DARKSDK void ResumeSound ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1142,21 +1480,32 @@ DARKSDK void ResumeSound ( int iID )
 	// set pause to false
 	m_ptr->bPause = false;
 
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		sound->Play();
+	}
+#else
 	// resume playing
     if (m_ptr->bLoop)
     	m_ptr->pSound->Play(0, DSBPLAY_LOOPING );
     else
     	m_ptr->pSound->Play(0, NULL );
+#endif
 }
 
 DARKSDK void PauseSound	( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1177,13 +1526,26 @@ DARKSDK void PauseSound	( int iID )
 
 	// save the pause state
 	m_ptr->bPause = true;
+#ifdef WICKEDAUDIO
+	//PE: Pause sound.
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		wiAudio::Pause(&sound->soundinstance); //PE: preserves position
+	}
+#else
 
 	// get the current play position
 	m_ptr->pSound->Stop();
+#endif
 }
 
+/*
 DARKSDK void SetSoundPan ( int iID, int iPan )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
@@ -1217,10 +1579,17 @@ DARKSDK void SetSoundPan ( int iID, int iPan )
 
 	// now set the pan
 	m_ptr->pSound->GetBuffer(0)->SetPan ( iPan );
+#endif
 }
+*/
 
 DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 {
+#ifdef WICKEDAUDIO
+	//PE: Need doodler.
+	printf("tmp");
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
@@ -1257,16 +1626,21 @@ DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 
 	// set the speed
 	m_ptr->pSound->GetBuffer(0)->SetFrequency ( iFrequency );
+#endif
 }
 
 DARKSDK void SetSoundVolume ( int iID, int iVolume )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1292,6 +1666,16 @@ DARKSDK void SetSoundVolume ( int iID, int iVolume )
 	// set the volume property
 	m_ptr->iVolume=iVolume;
 
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		float fVol = (float) iVolume;
+		if (fVol < 0) fVol = 0;
+		if (fVol > 100) fVol = 100;
+		sound->volume = fVol / 100.0f; //0-1 range.
+	}
+#else
 	float newvolume = (int)( (float) -9600.0f * (float) ( (float) (100.0f - iVolume) / 100.0f));
 
 	if (newvolume < DSBVOLUME_MIN) newvolume = DSBVOLUME_MIN;
@@ -1307,10 +1691,14 @@ DARKSDK void SetSoundVolume ( int iID, int iVolume )
 		newvolume *= 0.75; //Get it closer to zero.
 	}
 	m_ptr->pSound->GetBuffer(0)->SetVolume (newvolume);
+#endif
 }
 
+/*
 void dbSetSoundVolumeEx ( int iID, int iDecibels )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
@@ -1338,16 +1726,22 @@ void dbSetSoundVolumeEx ( int iID, int iDecibels )
 	// set the volume property
 	m_ptr->iVolume=iDecibels;
 	m_ptr->pSound->GetBuffer(0)->SetVolume ( iDecibels );
+#endif
 }
+*/
 
 DARKSDK void RecordSound ( int iID, int iCaptureDuration )
 {
+#ifdef WICKEDAUDIO
+#else
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	// lee, this should eventually be replaced with soundcapture code!!
 
@@ -1406,12 +1800,15 @@ DARKSDK void RecordSound ( int iID )
 
 DARKSDK void StopRecordingSound ( void )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
     // u74b7 - if not currently recording, silently fail
     if (g_iSoundToRecordOver == 0)
@@ -1452,12 +1849,15 @@ DARKSDK void StopRecordingSound ( void )
 
 DARKSDK void SaveSound ( LPSTR szFilename, int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1521,12 +1921,18 @@ DARKSDK void Load3DSound ( LPSTR szFilename, int iID, int iSilentFail, int iGlob
 
 DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 {
+#ifdef WICKEDAUDIO
+#else
+
+	//return;
+
 	// if no sound card, leave now
 	if (!g_pSoundManager) return;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1542,7 +1948,27 @@ DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 		#endif
 		return;
 	}
+#ifdef WICKEDAUDIO
+	m_ptr->vecPosition = GGVECTOR3(fX / 100.0f, fY / 100.0f, fZ / 100.0f);
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{
+		Entity entity = m_ptr->wickedEntity;
+		TransformComponent* transform = GetScene().transforms.GetComponent(entity);
+		if (transform != nullptr)
+		{
+			transform->scale_local = XMFLOAT3(1, 1, 1);
+			transform->rotation_local = XMFLOAT4(0, 0, 0, 0);
+			transform->translation_local = XMFLOAT3(fX, fY, fZ);
+			transform->SetDirty();
+			transform->UpdateTransform();
+		}
+	}
+#else
 	if ( m_ptr->pDSBuffer3D==NULL )
+		return;
+
+	if (!m_ptr->bPlaying)
 		return;
 
 	// Adjust distance
@@ -1559,6 +1985,7 @@ DARKSDK void PositionSound ( int iID, float fX, float fY, float fZ )
 		#endif
 		m_ptr->vecLast = m_ptr->vecPosition;
 	}
+#endif
 }
 
 // listener is a hog - only update if changes
@@ -1575,6 +2002,12 @@ DARKSDK void ResetListener ( void )
 
 DARKSDK void PositionListener ( float fX, float fY, float fZ )
 {
+#ifdef WICKEDAUDIO
+	//PE: Always camera for now.
+	const wiScene::CameraComponent& camera = wiScene::GetCamera();
+	vecListenerPosition = GGVECTOR3(fX / 100.0f, fY / 100.0f, fZ / 100.0f);
+#else
+	//return;
 	if ( pDSListener )
 	{
 		// Adjust distance
@@ -1593,10 +2026,18 @@ DARKSDK void PositionListener ( float fX, float fY, float fZ )
 			#endif
 		}
 	}
+#endif
 }
 
 DARKSDK void RotateListener ( float fX, float fY, float fZ )
 {
+#ifdef WICKEDAUDIO
+	//PE: Always camera for now.
+	vecListenerAngle.x = fX;
+	vecListenerAngle.y = fY;
+	vecListenerAngle.z = fZ;
+#else
+	//return;
 	if ( pDSListener )
 	{
 		// for reference
@@ -1649,10 +2090,15 @@ DARKSDK void RotateListener ( float fX, float fY, float fZ )
 			#endif
 		}
 	}
+#endif
 }
 
 DARKSDK void ScaleListener ( float fScale )
 {
+#ifdef WICKEDAUDIO
+	//PE: Always camera for now.
+#else
+
 	if ( pDSListener )
 	{
 		if (fScale != g_fListenQuickScale )
@@ -1680,6 +2126,7 @@ DARKSDK void ScaleListener ( float fScale )
 			}
 		}
 	}
+#endif
 }
 
 DARKSDK void SetEAX ( int iEffect ) 
@@ -1692,12 +2139,15 @@ DARKSDK void SetEAX ( int iEffect )
 
 DARKSDK int SoundExist ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1718,12 +2168,15 @@ DARKSDK int SoundExist ( int iID )
 
 DARKSDK int SoundType ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1751,12 +2204,15 @@ DARKSDK int SoundType ( int iID )
 
 DARKSDK int SoundPlaying ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1773,21 +2229,37 @@ DARKSDK int SoundPlaying ( int iID )
 		return 0;
 	}
 
+#ifdef WICKEDAUDIO
+	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	if (sound != nullptr)
+	{ 
+		//PE: This is not correct need to check if it has finish.
+		//PE: OnStreamEnd fixed it :)
+		//uint32_t cf = wiAudio::GetCallBackF(&sound->soundinstance);
+		//uint32_t cs = wiAudio::GetCallBackS(&sound->soundinstance);
+		bool bPlaying = wiAudio::bIsReallyPlaying(&sound->soundinstance); //Flush so restart.
+		return(bPlaying);
+	}
+#else
 	// is the sound playing
 	if (m_ptr->bPlaying)
 		return 1;
 	else
 		return 0;
+#endif
 }
 
 DARKSDK int SoundLooping ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1812,12 +2284,15 @@ DARKSDK int SoundLooping ( int iID )
 
 DARKSDK int SoundPaused ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1842,12 +2317,15 @@ DARKSDK int SoundPaused ( int iID )
 
 DARKSDK int SoundPan ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1868,6 +2346,10 @@ DARKSDK int SoundPan ( int iID )
 	if ( m_ptr->b3D )
 		return 0;
 
+#ifdef WICKEDAUDIO
+	return 0;
+#else
+
 	long pan;
 	
 	// get the pan
@@ -1875,17 +2357,20 @@ DARKSDK int SoundPan ( int iID )
 
 	// return
 	return ( int ) pan;
+#endif
 }
 
 DARKSDK int SoundSpeed ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
-
+#endif
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
 		#ifndef IGNOREALLSOUNDERRORS
@@ -1903,22 +2388,28 @@ DARKSDK int SoundSpeed ( int iID )
 
 	// get speed of a sound
 	DWORD dwSpeed;
-	
+#ifdef WICKEDAUDIO
+	return(0);
+#else
 	// get the speed
 	m_ptr->pSound->GetBuffer(0)->GetFrequency ( &dwSpeed );
 
 	// return
 	return ( int ) dwSpeed;
+#endif
 }
 
 DARKSDK int SoundVolume ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1943,12 +2434,15 @@ DARKSDK int SoundVolume ( int iID )
 
 DARKSDK DWORD SoundPositionXEx ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -1974,12 +2468,15 @@ DARKSDK DWORD SoundPositionXEx ( int iID )
 
 DARKSDK DWORD SoundPositionYEx ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -2005,12 +2502,15 @@ DARKSDK DWORD SoundPositionYEx ( int iID )
 
 DARKSDK DWORD SoundPositionZEx ( int iID )
 {
+#ifdef WICKEDAUDIO
+#else
 	// if no sound card, leave now
 	if (!g_pSoundManager) return 0;
 
 	// mike - 010904 - 5.7 - silent return if sound card does not exist
 	if ( !g_pSoundManager->GetExists ( ) )
 		return 0;
+#endif
 
 	if ( iID < 1 || iID > MAXIMUMVALUE )
 	{
@@ -2079,6 +2579,10 @@ DARKSDK DWORD ListenerAngleZEx ( void )
 
 DARKSDK void GetSoundData( int iID, DWORD* dwBitsPerSecond, DWORD* Frequency, DWORD* Duration, LPSTR* pData, DWORD* dwDataSize, bool bLockData, WAVEFORMATEX* wfx )
 {
+#ifdef WICKEDAUDIO
+	//PE: Only used by memblocks that we do not use in MAX.
+#else
+
 	// mike - 300305 - new param for waveformat
 
 	// Read Data
@@ -2117,10 +2621,15 @@ DARKSDK void GetSoundData( int iID, DWORD* dwBitsPerSecond, DWORD* Frequency, DW
 		// free memory
 		delete *pData;
 	}
+#endif
 }
 
 DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWORD Duration, LPSTR pData, DWORD dwDataSize, WAVEFORMATEX wfx )
 {
+#ifdef WICKEDAUDIO
+	//PE: Only used by memblocks that we do not use in MAX.
+#else
+
 	// mike - 300305 - new param for waveformat
 
 	// Delete if exists
@@ -2167,9 +2676,12 @@ DARKSDK void SetSoundData( int iID, DWORD dwBitsPerSecond, DWORD Frequency, DWOR
 
 	// Delete temo sound file
 	DeleteFile(szFilename);
+#endif
 }
 
 // MIKE - 090104
+//PE: Not used.
+/*
 DARKSDK LPDIRECTSOUND8 GetSoundInterface ( void )
 {
 	// if no sound card, leave now
@@ -2177,8 +2689,10 @@ DARKSDK LPDIRECTSOUND8 GetSoundInterface ( void )
 
 	return g_pSoundManager->m_pDS;
 }
-
+*/
 // MIKE - 100204
+//PE: Not used.
+/*
 DARKSDK IDirectSound3DBuffer8* GetSoundBuffer ( int iID )
 {
 	if ( iID < 1 || iID > MAXIMUMVALUE )
@@ -2198,6 +2712,7 @@ DARKSDK IDirectSound3DBuffer8* GetSoundBuffer ( int iID )
 
 	return m_ptr->pDSBuffer3D;
 }
+*/
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////

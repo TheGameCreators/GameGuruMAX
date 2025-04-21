@@ -3,6 +3,7 @@
 
 #include "directx-macros.h"
 #include "dsutil.h"
+#include <string>
 
 struct sSoundData
 {
@@ -23,6 +24,9 @@ struct sSoundData
 	GGVECTOR3					vecPosition;
 	GGVECTOR3					vecLast;
 
+	uint32_t wickedEntity;
+	std::string wickedFilename;
+
 	sSoundData ( )
 	{
 		pSound	     = NULL;
@@ -37,6 +41,8 @@ struct sSoundData
 
 		vecPosition         = GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
 		vecLast				= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
+		wickedEntity = 0;
+		wickedFilename = "";
 	}
 
 	~sSoundData ( )

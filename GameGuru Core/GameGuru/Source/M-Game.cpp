@@ -61,6 +61,7 @@ int g_iMasterRootState = 0;
 int g_iActivelyUsingVRNow = 0;
 int g_iInGameMenuState = 0;
 extern Master master;
+bool g_bResetHasForLevelGeneration = false;
 
 // 
 //  Game Module to manage all game flow
@@ -432,6 +433,12 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 	
 	// exit early if no change detected in static arrangement
 	static double dLastSuperHash = -1;
+	if(g_bResetHasForLevelGeneration == true)
+	{
+		dLastSuperHash = -1;
+		bForceGeneration = true;
+		g_bResetHasForLevelGeneration = false;
+	}
 	if (bForceGeneration == false)
 	{
 		if (dLastSuperHash != -1 && dSuperHash == dLastSuperHash) return;
@@ -3747,6 +3754,10 @@ void game_preparelevel ( void )
 	decal_activatedecalsfromentities ( );
 	material_activatedecals ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
+
+	// load in decals (and new particle decals)
+	t.screenprompt_s = "LOADING DECAL EFFECTS";
+	timestampactivity(0, t.screenprompt_s.Get());
 	decal_loadonlyactivedecals ( );
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 

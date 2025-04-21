@@ -55,6 +55,8 @@ namespace GGTrees
 
 	extern GGTreesParams ggtrees_global_params; // modify this anywhere
 
+	extern int ggtrees_draw_enabled;
+
 	struct GGTreePoint
 	{
 		float x;

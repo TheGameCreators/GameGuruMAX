@@ -3175,34 +3175,6 @@ void mapeditorexecutable_loop(void)
 		ImGui::SameLine();
 		#endif
 
-		#ifndef WICKEDENGINE
-		#ifndef PRODUCTV3
-		CheckTutorialAction("TOOL_IMPORT", -10.0f); //Tutorial: check if we are waiting for this action
-		drawCol_Selection = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-		if (current_mode == TOOL_IMPORT) drawCol_tmp = drawCol_back_tools * drawCol_back_active; else drawCol_tmp = drawCol_back_tools;
-		if (current_mode == TOOL_IMPORT && pref.current_style == 25) drawCol_Selection = drawCol_Divider_Selected;
-		if (current_mode == TOOL_IMPORT && pref.current_style >= 0) window->DrawList->AddRect((window->DC.CursorPos - tool_selected_padding), window->DC.CursorPos + tool_selected_padding + iToolbarIconSize, ImGui::GetColorU32(tool_selected_col), 0.0f, 15, 2.0f);
-		if (ImGui::ImgBtn(TOOL_IMPORT, iToolbarIconSize, drawCol_tmp, drawCol_normal*drawCol_Selection, drawCol_hover, drawCol_Down, 0, 0, 0, 0, false, toolbar_gradiant))
-		{
-			CloseAllOpenTools();
-			if (bTutorialCheckAction) TutorialNextAction();
-
-			//Make sure any selection are removed
-			t.gridentity = 0;
-			t.inputsys.constructselection = 0;
-			t.inputsys.domodeentity = 1;
-			t.grideditselect = 5;
-			editor_refresheditmarkers();
-
-			iLaunchAfterSync = 8; //Import model
-			iSkibFramesBeforeLaunch = 5;
-			ImGui::SetWindowFocus(TABENTITYNAME);
-		}
-		if (ImGui::IsItemHovered() && iSkibFramesBeforeLaunch == 0) ImGui::SetTooltip("%s", "Importer");
-		ImGui::SameLine();
-		#endif
-		#endif
-
 		ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 2.0f, ImGui::GetCursorPos().y));
 		float precise_icon_width = ImGui::GetCursorPos().x;
 
@@ -3740,146 +3712,6 @@ void mapeditorexecutable_loop(void)
 					iLaunchAfterSync = 4; 
 					iSkibFramesBeforeLaunch = 5;
 				}
-
-				#ifndef WICKEDENGINE
-				ImGui::Separator();
-				if (ImGui::MenuItem("Save Standalone")) 
-				{
-					// Save Standalone
-					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-					if (t.ebe.on == 1) ebe_hide();
-					int iRet;
-					iRet = AskSaveBeforeNewAction();
-					if (iRet != 2)
-					{
-						bExport_Standalone_Window = true;
-					}
-				}
-				#ifdef WICKEDENGINE
-				// Feature not viable (creating an entire player to mimic MAX) - we now have Oculus Quest Link via OpenXR - yay and phew!
-				#else
-				if (ImGui::MenuItem("Save to Level Cloud"))
-				{
-					#ifdef ALPHAEXPIRESYSTEM
-					MessageBoxA ( NULL, "Save to Level Cloud has been disabled for this Build", "Build Message", MB_OK );
-					#else
-					if (bWaypointDrawmode) { bWaypointDrawmode = false; }
-					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-					if (t.ebe.on == 1) ebe_hide();
-
-					// Save Standalone
-					int iRet;
-					iRet = AskSaveBeforeNewAction();
-					if (iRet != 2)
-					{
-						bExport_SaveToGameCloud_Window = true;
-					}
-					#endif
-				}
-				#endif
-				#ifdef WICKEDENGINE
-				if (g.includeassetstore == 1)
-				{
-					if (ImGui::MenuItem("Download Store Items"))
-					{
-						if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-						if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-						if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-						if (t.ebe.on == 1) ebe_hide();
-						//Code Missing
-						extern int iDownloadStoreProgress;
-						extern bool bDownloadStoreError;
-						extern char cDownloadStoreError[4096];
-
-						iDownloadStoreProgress = 0;
-						bDownloadStoreError = false;
-						strcpy(cDownloadStoreError, "");
-						bDownloadStore_Window = true;
-					}
-				}
-				#endif
-				if (ImGui::MenuItem("Character Creator")) 
-				{
-					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-					if (t.ebe.on == 1) ebe_hide();
-
-					//#ifdef WICKEDENGINE
-					//MessageBoxA(NULL, "CCP will return when model loading working", "Not In Alpha", MB_OK);
-					//#else
-					g_bCharacterCreatorPlusActivated = true;
-					//#endif
-				}
-				if (ImGui::MenuItem("Structure Editor")) 
-				{
-					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-					if (t.ebe.on == 1) ebe_hide();
-
-					//#ifdef WICKEDENGINE
-					//MessageBoxA(NULL, "Structure Editor will return when model loading working", "Not In Alpha", MB_OK);
-					//#else
-					DeleteWaypointsAddedToCurrentCursor();
-					//CheckTooltipObjectDelete();
-					CloseDownEditorProperties();
-					t.inputsys.constructselection = 0;
-					#ifdef WICKEDENGINE
-					iLastEntityOnCursor = 0;
-					#endif
-					if (t.ebebank_s[1].Len() > 0) 
-					{
-						t.addentityfile_s = t.ebebank_s[1].Get();
-						if (t.addentityfile_s != "")
-						{
-							entity_adduniqueentity(false);
-							t.tasset = t.entid;
-							if (t.talreadyloaded == 0)
-							{
-								editor_filllibrary();
-							}
-						}
-						#ifdef WICKEDENGINE
-						iExtractMode = 0; //PE: Always start in find floor mode.
-						#endif
-						t.inputsys.constructselection = t.tasset;
-						t.gridentity = t.entid;
-						t.inputsys.constructselection = t.entid;
-						t.inputsys.domodeentity = 1;
-						t.grideditselect = 5;
-						editor_refresheditmarkers();
-
-						//NewSite, make sure we are in entity mode.
-						bForceKey = true;
-						csForceKey = "e";
-						bBuilder_Left_Window = true;
-						#ifdef USELEFTPANELSTRUCTUREEDITOR
-						ImGui::SetWindowFocus("Structure Editor##LeftPanel");
-						#endif
-					}
-					//#endif
-				}
-				#ifndef PRODUCTV3
-				if (ImGui::MenuItem("Import Model")) 
-				{
-					if (bWaypointDrawmode || bWaypoint_Window) { bWaypointDrawmode = false; bWaypoint_Window = false; }
-					if (bImporter_Window) { importer_quit(); bImporter_Window = false; }
-					if (g_bCharacterCreatorPlusActivated) g_bCharacterCreatorPlusActivated = false;
-					if (bEntity_Properties_Window) bEntity_Properties_Window = false;
-					if (t.ebe.on == 1) ebe_hide();
-
-					iLaunchAfterSync = 8; //Import model
-					iSkibFramesBeforeLaunch = 5;
-				}
-				#endif
-				#endif
 
 				ImGui::Separator();
 
@@ -7269,19 +7101,20 @@ void mapeditorexecutable_loop(void)
 				#endif
 
 				float fdone = (float)mapfile_savestandalone_getprogress() / 100.0f;
-
 				if (iStandaloneCycle == 1) fdone = 0.01f;
 
-				if (fdone > 0.0f) {
-					#ifdef WICKEDENGINE
+				if (fdone > 0.0f) 
+				{
 					ImGui::SetWindowFontScale(1.2);
-					#endif
 					char tmp[32];
 					sprintf(tmp, "Progress: %.0f%%", fdone*100.0f);
-					ImGui::ProgressBar(fdone, ImVec2(ImGui::GetContentRegionAvail().x - 10, 28), tmp); //, ""
-					#ifdef WICKEDENGINE
+					ImGui::ProgressBar(fdone, ImVec2(ImGui::GetContentRegionAvail().x - 10, 28), tmp);
 					ImGui::SetWindowFontScale(1.0);
-					#endif
+
+					// log save standalone progress
+					char pSaveStandaloneLog[256];
+					sprintf(pSaveStandaloneLog, "Save Standalone %d : %s", iStandaloneCycle, tmp);
+					timestampactivity(0, pSaveStandaloneLog);
 				}
 
 				if (iStandaloneCycle == 2)
@@ -17228,7 +17061,6 @@ void editor_previewmapormultiplayer_initcode ( int iUseVRTest )
 	t.gamevisuals.ColorGradingLUT = t.visuals.ColorGradingLUT;
 	t.gamevisuals.bColorGrading = t.visuals.bColorGrading;
 
-
 	// copy game visuals to visuals for use in level play
 	t.visuals = t.gamevisuals;
 
@@ -24223,6 +24055,10 @@ void editor_camera(void)
 			//Trigger warning.
 			sprintf(cSmallTriggerMessage, "Outside of editable area, you cannot add objects or change the terrain here. Press spacebar to recenter.");
 			
+			// test new unhandled exception crash report system
+			// int crashme = 0;
+			// crashme = crashme / crashme;
+
 			if(t.inputsys.keyspace == 1)
 			{
 				// Recentre camera.
@@ -28942,7 +28778,7 @@ void gridedit_load_map ( void )
 	terrain_paintselector_hide(); Sync();
 
 	// ensure NO old flat area items in list
-	timestampactivity(0, "GGTerrain_RemoveAllFlatAreas");
+	timestampactivity(0, "GGTerrain_RemoveAllFlatAreas:1");
 	GGTerrain_RemoveAllFlatAreas();
 
 	//  Use large prompt

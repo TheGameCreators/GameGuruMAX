@@ -544,6 +544,7 @@ bool bResetProjectThumbnails = true;
 int g_iCheckExistingFilesModifiedDelayed = 0;
 ImRect g_rStealMonitorArea;
 bool bUpgradeAndBackupOldProject = false;
+bool g_bTemporarilyDisableFullDecalEffectLoading = false;
 
 std::vector<cstr> lutImages_s;
 
@@ -7852,7 +7853,19 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Toggle whether the navigation system debug visuals should be shown");
 				ImGui::PopItemWidth();
-				
+
+				ImGui::PushItemWidth(-10);
+
+				extern bool g_bResetHasForLevelGeneration;
+				if (ImGui::Checkbox("Disable Navmesh Generation", &t.visuals.bEnableZeroNavMeshMode))
+				{
+					t.gamevisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode;
+					t.editorvisuals.bEnableZeroNavMeshMode = t.visuals.bEnableZeroNavMeshMode;
+					g_bResetHasForLevelGeneration = true;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Toggle navmesh generation (enables system to detecting walkable areas) (needs to rebuild level)");
+				ImGui::PopItemWidth();
+
 				float but_gadget_size = ImGui::GetFontSize()*10.0;
 				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
 				if (ImGui::StyleButton("Edit Behaviors##TabTabEditBehaviors", ImVec2(but_gadget_size, 0)))
@@ -9090,6 +9103,18 @@ void Wicked_Update_Visuals(void *voidvisual)
 		bSetting = t.visuals.bEndableGrassDrawing;
 	gggrass_global_params.draw_enabled = bSetting;
 
+	// can disable terrain drawing in graphics engine
+	if (t.visuals.bEnableEmptyLevelMode == false)
+	{
+		GGTerrain::ggterrain_draw_enabled = (int)bSetting;
+		GGTrees::ggtrees_draw_enabled = 1;
+	}
+	else
+	{
+		GGTerrain::ggterrain_draw_enabled = 0;
+		GGTrees::ggtrees_draw_enabled = 0;
+	}
+
 	// can call this to affect some visibles without causing water to flicker
 	Wicked_Update_Visibles(voidvisual);
 }
@@ -9112,7 +9137,6 @@ void Wicked_Update_Visibles(void* voidvisual)
 			if (t.hardwareinfoglobals.noterrain == 1) bSetting = false;
 		}
 	}
-	GGTerrain::ggterrain_draw_enabled = (int)bSetting;
 }
 
 #endif
@@ -11383,6 +11407,13 @@ if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", "Select your preferred user 
 				pref.iEnableFpsMemMonitor = bTmp;
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Show Live FPS And Memory Stats");
+
+			// new decal particles effect system (Preben may remove this if we can speed up/preload the loading here)
+			if (ImGui::Checkbox("Disable Full Decal Effect Loading (Temporary)", &g_bTemporarilyDisableFullDecalEffectLoading)) 
+			{
+				// Either keep this option in the prefs, or better to speed up the loading of these effects
+			}
+			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Improved decal particle system takes time to load effects, can skip this temporarily");
 
 			bTmp = pref.iEnableAutoExposureInEditor;
 			if (ImGui::Checkbox("Use Auto Exposure in Editor", &bTmp)) {
@@ -15674,7 +15705,6 @@ void process_entity_library(void)
 									}
 									if (pNewFolder->m_pFirstFile)
 									{
-
 										bool bHeaderDisplayed = false;
 										bool bDisplayText = true;
 										float fWinWidth = ImGui::GetWindowSize().x - 10.0; // Flicker - ImGui::GetCurrentWindow()->ScrollbarSizes.x;
@@ -16280,13 +16310,14 @@ void process_entity_library(void)
 					if (finde) bDoubleEntityBank = true;
 				}
 
-				if (!bDoubleEntityBank && path.Right(11) == "\\entitybank") {
+				if (!bDoubleEntityBank && path.Right(11) == "\\entitybank") 
+				{
 					ipath_remove_len = path.Len();
 				}
 				else
 				{
-					if (pSearchFolder->m_pFirstFile) {
-
+					if (pSearchFolder->m_pFirstFile) 
+					{
 						cFolderItem::sFolderFiles * searchfiles = pSearchFolder->m_pFirstFile->m_pNext;
 						while (searchfiles) 
 						{
@@ -17876,40 +17907,6 @@ void process_entity_library_v2(void)
 				bLoopBackBuffer = true;
 				WickedCall_EnableThumbLight(true);
 				ImGui::Columns(1);
-
-				/* this is not fully possible, the object has already been created by this point - may improve in the future
-				// Load the importer back up with the last imported model
-				extern sImportedObjectData g_Data;
-				char previewName[MAX_PATH] = { 0 };
-				if (pPreviewFile)
-				{
-					strcpy(previewName, pPreviewFile->m_sNameFinal.Get());
-				}
-				if(strcmp(g_Data.cName, previewName) == 0)
-				{
-					ImGui::SetCursorPos(ImVec2(5, 1));
-					int icon_size = ImGui::GetFontSize() * 1.75;
-					ImVec2 VIconSize = { (float)icon_size, (float)icon_size };
-					ImVec2 cursor = ImGui::GetCursorPos();
-
-					if (ImGui::ImgBtn(TOOL_GOBACK, VIconSize, ImVec4(0, 0, 0, 0), ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ImVec4(1.0f, 1.0f, 1.0f, 0.5f),
-						ImVec4(0.5f, 0.5f, 0.5f, 0.5f), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
-					{
-						bExternal_Entities_Window = false;
-						bLargePreview = false;
-						sGotoPreviewWithFile = "";
-						bImporter_Window = true;
-						extern void importer_quit_for_reload(LPSTR pOptionalCopyModelFile);
-						iLaunchAfterSync = 8;
-						
-						cstr file = cstr(g_Data.cImportPath) + t.tSourceName_s;
-						strcpy(pLaunchAfterSyncPreSelectModel, file.Get());
-						strcpy(pLaunchAfterSyncPreSelectModel, pLaunchAfterSyncLastImportedModel);
-						importer_quit_for_reload(pLaunchAfterSyncPreSelectModel);
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Back to Importer");
-				}
-				*/
 
 				//Render titlebar centered.
 				cstr title = " Object Library Preview";
@@ -30321,7 +30318,8 @@ void StartDragDropFromEntityID(int iEntID,int iGroup,int iCustomImage)
 			}
 			else
 			{
-				if (pSearchFolder->m_pFirstFile) {
+				if (pSearchFolder->m_pFirstFile) 
+				{
 					cFolderItem::sFolderFiles * searchfiles = pSearchFolder->m_pFirstFile->m_pNext;
 					while (searchfiles) {
 						foundfiles = searchfiles;
@@ -33551,10 +33549,18 @@ void GetProjectThumbnails()
 				if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 				{
 					cstr bestfound = "";
-					//Valid Sig - Cleanup old project.
-					if (strlen(checkproject.game_thumb) > 0 && FileExist(checkproject.game_thumb))
+					char pFindGameThumb[MAX_PATH];
+					strcpy(pFindGameThumb, "");
+					if (strlen(checkproject.customprojectfolder) > 0)
 					{
-						bestfound = checkproject.game_thumb;
+						strcat(pFindGameThumb, checkproject.customprojectfolder);
+						strcat(pFindGameThumb, checkproject.gamename);
+						strcat(pFindGameThumb, "\\Files\\");
+					}
+					strcat(pFindGameThumb, checkproject.game_thumb);
+					if (strlen(checkproject.game_thumb) > 0 && FileExist(pFindGameThumb))
+					{
+						bestfound = pFindGameThumb;
 					}
 					else
 					{
@@ -46913,10 +46919,18 @@ void GetProjectList(char *path, bool bGetThumbs)
 						if (checkproject.sig[0] == 'S' && checkproject.sig[8] == 'r')
 						{
 							cstr bestfound = "";
-							//Valid Sig - Cleanup old project.
-							if (strlen(checkproject.game_thumb) > 0 && FileExist(checkproject.game_thumb) )
+							char pFindGameThumb[MAX_PATH];
+							strcpy(pFindGameThumb, "");
+							if (strlen(checkproject.customprojectfolder) > 0)
 							{
-								bestfound = checkproject.game_thumb;
+								strcat(pFindGameThumb, checkproject.customprojectfolder);
+								strcat(pFindGameThumb, checkproject.gamename);
+								strcat(pFindGameThumb, "\\Files\\");
+							}
+							strcat(pFindGameThumb, checkproject.game_thumb);
+							if (strlen(checkproject.game_thumb) > 0 && FileExist(pFindGameThumb) )
+							{
+								bestfound = pFindGameThumb;
 							}
 							else
 							{
@@ -46967,7 +46981,6 @@ void GetProjectList(char *path, bool bGetThumbs)
 												}
 											}
 										}
-
 									}
 								}
 							}
@@ -50600,7 +50613,16 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									}
 									else
 									{
-										Storyboard.Nodes[nodeid].widget_action[iCurrentSelectedWidget] = i;
+										if (Storyboard.Nodes[nodeid].type != STORYBOARD_TYPE_HUD && (i < STORYBOARD_ACTIONS_STARTGAME || i > STORYBOARD_ACTIONS_RESUMEGAME))
+										{
+											// non-HUD screens cannot use the HUD-control-actions inside a main storyboard screen
+											strcpy(cTriggerMessage, "You can only use this storyboard action in HUD screens!");
+											bTriggerMessage = true;
+										}
+										else
+										{
+											Storyboard.Nodes[nodeid].widget_action[iCurrentSelectedWidget] = i;
+										}
 									}
 								}
 							}

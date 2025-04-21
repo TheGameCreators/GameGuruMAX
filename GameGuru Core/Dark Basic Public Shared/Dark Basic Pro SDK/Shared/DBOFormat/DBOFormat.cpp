@@ -6175,11 +6175,6 @@ DARKSDK_DLL bool CalculateAllBounds ( sObject* pObject, bool bNotUsed )
 	pObject->collision.vecMin = GGVECTOR3 (  1000000.0f,  1000000.0f,  1000000.0f );
 	pObject->collision.vecMax = GGVECTOR3 ( -1000000.0f, -1000000.0f, -1000000.0f );
 
-	//if ( pObject->dwObjectNumber == 70002 )
-	//{
-	//	int lee=42;
-	//}
-
 	// set the initial values of the bounding sphere
 	GGVECTOR3 vecRealObjectCenter;
 	pObject->collision.vecCentre = GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
@@ -6188,8 +6183,9 @@ DARKSDK_DLL bool CalculateAllBounds ( sObject* pObject, bool bNotUsed )
 	// leeadd - 080305 - array to store bounboxes per frame
 	if ( pObject->pAnimationSet )
 	{
+		// LB: error trap for crazy lengths 4294322343 (poss -1 as unsigned)
 		// lee - 280306 - u6rc3 - can have animset tag but no frames data
-		if ( pObject->pAnimationSet->ulLength>0 )
+		if (pObject->pAnimationSet->ulLength > 0 && pObject->pAnimationSet->ulLength < 4001110000)
 		{
 			// lee - 150206 - u60 - always have at least one slot for bounds vectors
 			DWORD dwTotalFrames = pObject->pAnimationSet->ulLength;

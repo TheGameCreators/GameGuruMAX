@@ -1717,7 +1717,7 @@ function hud0.main()
 	local entitykilled = GetNearestEntityDestroyed(0)
 	if entitykilled > 0 then
 		-- determine what has been destroyed
-		local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-ally, 1-enemy, 2-neutral)
+		local allegiance = GetEntityAllegiance(entitykilled) -- get the allegiance value for this object (-1-none, 0-enemy, 1-ally, 2-neutral)
 		if allegiance == 0 then
 			local scoredXP = 100
 			currentXP = currentXP + scoredXP

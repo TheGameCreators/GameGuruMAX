@@ -62,6 +62,8 @@ namespace GGTrees
 GGTreesParams ggtrees_global_params;
 GGTreesInternalParams ggtrees_internal_params;
 
+int ggtrees_draw_enabled = 1;
+
 // billboard vertex
 struct VertexTree
 {
@@ -2811,6 +2813,7 @@ extern "C" void GGTrees_Draw_EnvProbe( const SPHERE* culler, const Frustum* frus
 	if (!ggtrees_initialised) return;
 	if ( !ggtrees_global_params.draw_enabled ) return;
 	if ( frustum_count > 255 ) frustum_count = 255; // limited to 8 bits in instance data
+	if (!GGTrees::ggtrees_draw_enabled) return;
 
 	GraphicsDevice* device = wiRenderer::GetDevice();
 	device->EventBegin("GGTerrain Draw Env Probe", cmd);

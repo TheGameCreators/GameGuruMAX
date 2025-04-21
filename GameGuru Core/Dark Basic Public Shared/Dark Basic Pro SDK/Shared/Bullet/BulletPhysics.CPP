@@ -181,7 +181,7 @@ void ODEAddObject ( int iID, sObject* pObject, btRigidBody* body, int iIsDynamic
 	// add object to list
 	sObjectList object;
 	object.iID = iID;
-	//object.pObject = pObject;
+
 	object.body = body;
 	if ( iIsDynamic==1 )
 		object.bDynamicUpdate = true;
@@ -207,15 +207,18 @@ void ODEAddObject ( int iID, sObject* pObject, btRigidBody* body, int iIsDynamic
 
 		// 200516 - set some safety caps for friction
 		if (fFriction < 0.0f) fFriction = 0.0f;
-		if (fFriction > 100.0f) fFriction = 100.0f;
+		//if (fFriction > 100.0f) fFriction = 100.0f; no upper limt, can make physics objects sticky
 
-		if (zero_gravity) {
+		if (zero_gravity) 
+		{
 			body->setSleepingThresholds(0.10f, 0.0025f);
+
 			// set physics friction
 			fRealFriction = fFriction / 200.0f;
 			body->setFriction(fRealFriction);
 			body->setDamping(0.1f, 0.05f);
 
+			// and mass
 			object.fMass = fMass * btScalar(0.25);
 
 			// submitted by Frank Boyle (stab in the dark software)
@@ -230,14 +233,26 @@ void ODEAddObject ( int iID, sObject* pObject, btRigidBody* body, int iIsDynamic
 				body->setCcdMotionThreshold(diameter / 8.0f);
 				body->setCcdSweptSphereRadius(diameter);
 			}
-
 		}
-		else {
+		else 
+		{
 			body->setSleepingThresholds(1.0f, 0.25f);
+
 			// set physics friction
 			fRealFriction = fFriction / 100.0f;
 			body->setFriction(fRealFriction);
-			body->setDamping(0.01f, 0.05f);
+
+			// for very small things, increase damping so they do not move forever (small tins)
+			if (fMass < 1.0f)
+			{
+				// more damping on angular velocity, and sleep threshold
+				body->setDamping(0.01f, 0.75f);
+				body->setSleepingThresholds(1.0f, 0.5f);
+			}
+			else
+			{
+				body->setDamping(0.01f, 0.05f);
+			}
 
 			// submitted by Frank Boyle (stab in the dark software)
 			if (body->getInvMass() > 0.0)
@@ -251,11 +266,7 @@ void ODEAddObject ( int iID, sObject* pObject, btRigidBody* body, int iIsDynamic
 				body->setCcdMotionThreshold(diameter / 2.0f);
 				body->setCcdSweptSphereRadius(diameter);
 			}
-
 		}
-
-
-
 	}
 }
 
@@ -1432,7 +1443,11 @@ void CreateBox ( int iObjectNumber, int isDynamic, int iLimbNumber, int iTipOver
 	}
 	else
 	{
+		// max
 		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+
+		// also handle min - ensure MASS not SO SMALL THINGS FLY MILLIONS OF MILES!
+		if (fVolume < 0.1f) fVolume = 0.1f;
 	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
@@ -1865,7 +1880,11 @@ void CreateSphere ( int iObjectNumber, int isDynamic, float fWeight, float fFric
 	}
 	else
 	{
+		// max
 		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+
+		// also handle min - ensure MASS not SO SMALL THINGS FLY MILLIONS OF MILES!
+		if (fVolume < 0.1f) fVolume = 0.1f;
 	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
@@ -1946,7 +1965,11 @@ void CreateCylinder ( int iObjectNumber, int isDynamic, float fXPos, float fYPos
 	}
 	else
 	{
+		// max
 		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+
+		// also handle min - ensure MASS not SO SMALL THINGS FLY MILLIONS OF MILES!
+		if (fVolume < 0.1f) fVolume = 0.1f;
 	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);
@@ -2985,7 +3008,11 @@ void CreateCapsule ( int iObjectNumber, int isDynamic, float fScaleModifier, flo
 	}
 	else
 	{
+		// max
 		if (fVolume > maxDynamicVolume) fVolume = maxDynamicVolume;
+
+		// also handle min - ensure MASS not SO SMALL THINGS FLY MILLIONS OF MILES!
+		if (fVolume < 0.1f) fVolume = 0.1f;
 	}
 	btScalar mass(fVolume/gMs);
 	btVector3 localInertia(0,0,0);

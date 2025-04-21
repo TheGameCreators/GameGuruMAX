@@ -1937,6 +1937,17 @@ luaMessage** ppLuaMessages = NULL;
 
  int GetEntityParentID(lua_State* L) { return GetEntityData (L, 24); }
 
+ int SetEntityIfUsed(lua_State* L) 
+ { 
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 2) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 const char* pString = lua_tostring(L, 2);
+	 t.entityelement[iEntityIndex].eleprof.ifused_s = pString;
+	 return 0;
+ }
+
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
  int GetEntityHasWeapon(lua_State *L) { return GetEntityData (L, 102); }
@@ -3981,8 +3992,75 @@ int RDBlockNavMeshCore(lua_State* L,int iWithShape)
 		t.e = e; entity_lua_findcharanimstate();
 		if (t.tcharanimindex != -1)
 		{
-			// this triggers follow call in script to set new target (old one not valid any more after this)
-			t.entityelement[e].lua.interuptpath = 50;
+			// before we trigger a path update, ensure this AIs current axtive path (if any), goes THROUGH the above blocker
+			bool bThisPathWasAffected = false;
+			int iPointCount = t.charanimstates[t.tcharanimindex].pathPointCount;
+			int iPointIndex = t.charanimstates[t.tcharanimindex].moveToMode;
+			if (iPointIndex > 0 && iPointCount > 0)
+			{
+				float fCurrentX = t.entityelement[e].x;
+				float fCurrentZ = t.entityelement[e].z;
+				bool bTradingToEndOfPath = true;
+				while (bTradingToEndOfPath)
+				{
+					// point in path
+					float thisPoint[3] = { -1, -1, -1 };
+					thisPoint[0] = t.charanimstate.pointx[iPointIndex];
+					thisPoint[1] = t.charanimstate.pointy[iPointIndex];
+					thisPoint[2] = t.charanimstate.pointz[iPointIndex];
+
+					// trace from current to point, does it pass through the blocker?
+					float fDistX = thisPoint[0] - fCurrentX;
+					float fDistZ = thisPoint[2] - fCurrentZ;
+					float fDist = sqrt((fDistX * fDistX) + (fDistZ * fDistZ));
+					if (fDist > 0.1f)
+					{
+						// step through the sliced up path line and see if at each point we entered the blocker area
+						for (int iSlice = 0; iSlice < 100; iSlice++)
+						{
+							float fSliceX = fCurrentX + (fDistX * ((float)iSlice / 100.0f));
+							float fSliceZ = fCurrentZ + (fDistZ * ((float)iSlice / 100.0f));
+							if (iWithShape == 1)
+							{
+								// rectangle formed by fRadius as X and fRadius2 as Z and the angle
+								float fRelativeToCenterOfBlockerX = fSliceX - fX;
+								float fRelativeToCenterOfBlockerZ = fSliceZ - fZ;
+								float fRelativeDist = sqrt(fabs(fRelativeToCenterOfBlockerX * fRelativeToCenterOfBlockerX) + fabs(fRelativeToCenterOfBlockerZ * fRelativeToCenterOfBlockerZ));
+								float fFinalAngle = GGToDegree(atan2(fRelativeToCenterOfBlockerX, fRelativeToCenterOfBlockerZ)) + fAngle;
+								fRelativeToCenterOfBlockerX = NewXValue(0, fFinalAngle, fRelativeDist);
+								fRelativeToCenterOfBlockerZ = NewZValue(0, fFinalAngle, fRelativeDist);
+								if (fabs(fRelativeToCenterOfBlockerX) < fRadius && fabs(fRelativeToCenterOfBlockerZ) < fRadius2)
+								{
+									// this point is within the blocker defined above
+									if(iBlockMode!=0) bThisPathWasAffected = true;
+									break;
+								}
+							}
+							else
+							{
+								// simple radius check
+								if ( fabs(fSliceX - fX) < fRadius && fabs(fSliceZ - fZ) < fRadius )
+								{
+									// this point is within blocker defined above
+									if (iBlockMode != 0) bThisPathWasAffected = true;
+									break;
+								}
+							}
+						}
+					}
+
+					// move through all points to end of full path
+					fCurrentX = thisPoint[0];
+					fCurrentZ = thisPoint[2];
+					iPointIndex++;
+					if (iPointIndex >= iPointCount) bTradingToEndOfPath = false;
+				}
+			}
+			if (bThisPathWasAffected == true)
+			{
+				// this triggers follow call in script to set new target (old one not valid any more after this)
+				t.entityelement[e].lua.interuptpath = 5;// 50; prevent jiggling about looking for new path!
+			}
 		}
 	}
 	t.tcharanimindex = storecharanimindex;
@@ -10892,6 +10970,14 @@ int lua_set_lut(lua_State* L)
 			t.gamevisuals.ColorGradingLUT = "None";
 			t.gamevisuals.bColorGrading = false;
 		}
+
+		// if in standalone game, also adjust visuals so graphics settings screen does not revert these changes
+		if ( t.game.gameisexe == 1 )
+		{
+			t.visuals.ColorGradingLUT = t.gamevisuals.ColorGradingLUT;
+			t.visuals.bColorGrading = t.gamevisuals.bColorGrading;
+		}
+
 		//PE: g.gdefaultwaterheight must be = t.terrain.waterliney_f
 		float oldgdefaultwaterheight = g.gdefaultwaterheight;
 		g.gdefaultwaterheight = t.terrain.waterliney_f;
@@ -12345,14 +12431,13 @@ void addFunctions()
 	lua_register(lua, "GetMovementDelta", GetMovementDelta);
 	lua_register(lua, "GetMovementDeltaManually", GetMovementDeltaManually);
 	lua_register(lua, "GetEntityMarkerMode", GetEntityMarkerMode);
-	
 	lua_register(lua, "SetEntityAlwaysActive", SetEntityAlwaysActive);
 	lua_register(lua, "GetEntityAlwaysActive", GetEntityAlwaysActive);
-
 	lua_register(lua, "SetEntityUnderwaterMode", SetEntityUnderwaterMode);
 	lua_register(lua, "GetEntityUnderwaterMode", GetEntityUnderwaterMode);
-
 	lua_register(lua, "GetEntityParentID", GetEntityParentID);
+
+	lua_register(lua, "SetEntityIfUsed", SetEntityIfUsed);
 
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);

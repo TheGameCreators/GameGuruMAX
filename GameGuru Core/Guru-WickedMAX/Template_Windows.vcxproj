@@ -137,8 +137,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugTEST|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IntDir>$(ProjectName)\$(Platform)\Debug</IntDir>
-    <OutDir>C:\Users\leeba\Documents\GameGuruApps\GameGuruMAX\My Games\demo\</OutDir>
-    <TargetName>demo</TargetName>
+    <OutDir>C:\Users\leeba\Documents\GGMAXWriteArea2\My Games\NEWNEWUSER</OutDir>
+    <TargetName>NEWNEWUSER</TargetName>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)SDK\DirectXTex\DirectXTex;$(SolutionDir)SDK\OGG\include;$(SolutionDir)SDK\DirectX\Include;$(SolutionDir)SDK\DirectX;$(SolutionDir)SDK\DB3\;$(SolutionDir)SDK\BaseClasses\;$(SolutionDir)SDK\OpenXR\include;$(SolutionDir)SDK\OPTICK\include;$(IncludePath)</IncludePath>
     <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(SolutionDir)SDK\PhotonSDK\Common-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\LoadBalancing-cpp\lib\;$(SolutionDir)SDK\PhotonSDK\Photon-cpp\lib\;$(SolutionDir)SDK\DirectX\Lib\x64\;$(SolutionDir)SDK\OGG\lib64\Debug\;$(SolutionDir)SDK\Steamworks SDK\redistributable_bin\win64\;$(SolutionDir)SDK\DirectXTex\DirectXTex\Bin\Desktop_2022\x64\Debug\;$(SolutionDir)SDK\OpenXR\lib64\Debug\;$(SolutionDir)SDK\OPTICK\lib\x64\debug;$(LibraryPath)</LibraryPath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
@@ -507,6 +507,7 @@
     <ClInclude Include="..\GameGuru\Include\Types.h" />
     <ClInclude Include="..\GameGuru\WickedPlaceholders\GGPlaceholders.h" />
     <ClInclude Include="..\SDK\OpenXR\include\openxr.h" />
+    <ClInclude Include="CrashLogger.h" />
     <ClInclude Include="Encryptor.h" />
     <ClInclude Include="GameGuruEngine.h" />
     <ClInclude Include="GameGuruMain.h" />
@@ -693,6 +694,7 @@
     <ClCompile Include="..\SDK\DirectX\directx-macros.cpp" />
     <ClCompile Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.cpp" />
     <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp" />
+    <ClCompile Include="CrashLogger.cpp" />
     <ClCompile Include="Encryptor.cpp" />
     <ClCompile Include="GameGuruMain.cpp" />
     <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp" />

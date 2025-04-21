@@ -8869,117 +8869,9 @@ public:
 terrainlockclass terrainlock;
 #endif
 
-// update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
-void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
+void GGTerrain_EnvProbeWork (float playerX, float playerY, float playerZ)
 {
-#ifdef OPTICK_ENABLE
-	OPTICK_EVENT();
-#endif
-	if (g_iDeferTextureUpdateToNow > 0 && ggterrain_initialised)
-	{
-		cstr oldDir = GetDir();
-		if (g_iDeferTextureUpdateToNow == 1)
-		{
-#ifdef ONLYLOADWHENUSED
-			//PE: Reload textures here.
-			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
-			{
-				bTextureUploaded[i] = false;
-			}
-#endif
-
-			SetDir(g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
-			GGTerrain_ReloadTextures(cmd);
-			SetDir(oldDir.Get());
-			g_iDeferTextureUpdateToNow = 0;
-
-		}
-		if (g_iDeferTextureUpdateToNow == 2)
-		{
-			// Update the textures for the terrain
-#ifdef ONLYLOADWHENUSED
-			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
-			{
-				bTextureUploaded[i] = false;
-			}
-#endif
-
-			g_DeferTextureUpdateIncompatibleTextures.clear();
-			if(strlen(g_DeferTextureUpdateCurrentFolder_s.Get())>0) SetDir(g_DeferTextureUpdateCurrentFolder_s.Get());
-			GGTerrain_ReloadTextures(cmd, &g_DeferTextureUpdate, &g_DeferTextureUpdateIncompatibleTextures, g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
-			SetDir(oldDir.Get());
-			g_iDeferTextureUpdateToNow = 3;
-
-#ifdef ONLYLOADWHENUSED
-			//PE: All will be loaded correct here.
-			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
-			{
-				bTextureUploaded[i] = true;
-			}
-#endif
-
-		}
-	}
-#ifdef ONLYLOADWHENUSED
-	if (bCheckForNewTerrainTextures && ggterrain_initialised)
-	{
-		GGTerrain_CheckMaterialUsed(cmd);
-	}
-#endif
-	if ( !bImGuiGotFocus && ggterrain_initialised)
-	{
-		GGTerrain_CheckKeys();
-
-		if (GGTerrain_GetKeyPressed(GGKEY_ESCAPE)) GGTerrain_CancelRamp();
-		if (pref.iTerrainDebugMode)
-		{
-			if ( GGTerrain_GetKeyPressed( GGKEY_Q ) ) ggtrees_global_params.draw_enabled = 1 - ggtrees_global_params.draw_enabled;
-			if ( GGTerrain_GetKeyPressed( GGKEY_Z ) && !GGTerrain_GetKeyPressed(GGKEY_CONTROL)) gggrass_global_params.draw_enabled = 1 - gggrass_global_params.draw_enabled;
-			if ( GGTerrain_GetKeyPressed( GGKEY_J ) ) ggterrain_render_wireframe = 1 - ggterrain_render_wireframe;
-			if ( GGTerrain_GetKeyPressed( GGKEY_Y ) && !GGTerrain_GetKeyPressed(GGKEY_CONTROL)) ggterrain_render_debug = 1 - ggterrain_render_debug;
-			if ( GGTerrain_GetKeyPressed( GGKEY_U ) ) ggterrain_update_enabled = 1 - ggterrain_update_enabled;
-			//if ( GGTerrain_GetKeyPressed( GGKEY_E ) ) wiRenderer::SetToDrawDebugEnvProbes( !wiRenderer::GetToDrawDebugEnvProbes() );
-
-			// increase/decrease LOD
-			if (GGTerrain_GetKeyPressed(GGKEY_O))
-			{
-				if (ggterrain_global_params.lod_levels < 16)
-				{
-					ggterrain_global_params.lod_levels++;
-				}
-			}
-			if (GGTerrain_GetKeyPressed(GGKEY_L))
-			{
-				if (ggterrain_global_params.lod_levels > 1)
-				{
-					ggterrain_global_params.lod_levels--;
-				}
-			}
-
-			// increase/decrease num segments
-			if (GGTerrain_GetKeyPressed(GGKEY_I))
-			{
-				if (ggterrain_global_params.segments_per_chunk < 128)
-				{
-					ggterrain_global_params.segments_per_chunk *= 2;
-				}
-			}
-			if (GGTerrain_GetKeyPressed(GGKEY_K))
-			{
-				if (ggterrain_global_params.segments_per_chunk > 1)
-				{
-					ggterrain_global_params.segments_per_chunk /= 2;
-				}
-
-			}
-		}
-	}
-
-	//
-	// Environmental Light Probe System
-	// 
-
-	if(!ggprobe_initialised)
+	if (!ggprobe_initialised)
 	{
 		ggprobe_initialised = 1;
 		float globalrange = 50000;
@@ -9022,7 +8914,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 	// find the eight closest env light probes to the player
 	bool bUseOld2SwapSystem = true;
-	if (g_envProbeList.size() > 0 || bImGuiInTestGame==true)
+	if (g_envProbeList.size() > 0 || bImGuiInTestGame == true)
 	{
 		// using env probe placement approach (best), and always use when in editor mode (so 2-way trick not seen as not useful in editor)
 		bUseOld2SwapSystem = false;
@@ -9213,7 +9105,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 						{
 							g_bEnvProbeTrackingUpdate[iRealProbeIndex] = false;
 						}
-						if (g_bEnvProbeTrackingUpdate[iRealProbeIndex] == false )
+						if (g_bEnvProbeTrackingUpdate[iRealProbeIndex] == false)
 						{
 							// update probe with correct scaling
 							pTransform->ClearTransform();
@@ -9235,16 +9127,16 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	}
 	else
 	{
-		#ifdef PEOPTIMIZING
+#ifdef PEOPTIMIZING
 		static bool bInEditor = false;
-		#endif
+#endif
 		// Dynamic 2-probe swapping system (performant and stable but causes artifacts when moving from one extreme to another)
 		if (bImGuiInTestGame == true)
 		{
-			#ifdef PEOPTIMIZING
+#ifdef PEOPTIMIZING
 			bInEditor = false;
-			#endif
-			#define GGTERRAIN_ENV_TRANSITION_FRAMES 60
+#endif
+#define GGTERRAIN_ENV_TRANSITION_FRAMES 60
 			float diffX = playerX - localEnvProbePos[currLocalEnvProbe].x;
 			float diffY = playerY - localEnvProbePos[currLocalEnvProbe].y;
 			float diffZ = playerZ - localEnvProbePos[currLocalEnvProbe].z;
@@ -9344,7 +9236,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 		}
 		else
 		{
-			#ifdef PEOPTIMIZING
+#ifdef PEOPTIMIZING
 			//PE: OPT1 Only run this once, each time its dirty both probes updates even if range=1. (objects,terrain,trees...).
 			if (!bInEditor)
 			{
@@ -9364,7 +9256,7 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 					pTransform->SetDirty();
 				}
 			}
-			#else
+#else
 			// when in editor, and no probes
 			for (int twoway = 0; twoway < 2; twoway++)
 			{
@@ -9378,12 +9270,12 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 				pTransform->UpdateTransform();
 				pTransform->SetDirty();
 			}
-			#endif
+#endif
 		}
 	}
 
 	// update global probe and local env probe when flagged
-	if ( ggterrain_extra_params.bUpdateProbes )
+	if (ggterrain_extra_params.bUpdateProbes)
 	{
 		// also clear all real probes so can be updated
 		for (int scan = 0; scan < LOCALENVPROBECOUNT; scan++)
@@ -9399,22 +9291,132 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 	//GGTerrain_GetHeight( 0, 0, &height );
 	//height += GGTerrain_MetersToUnits(30);
 	float height = ggterrain_local_params.height;
-	float heightDiff = fabs( height - globalEnvProbePos.y ); // can refresh global probe by setting globalEnvProbePos.y to 0
-	if ( heightDiff > 50 )
+	float heightDiff = fabs(height - globalEnvProbePos.y); // can refresh global probe by setting globalEnvProbePos.y to 0
+	if (heightDiff > 50)
 	{
-		globalEnvProbePos = XMFLOAT3( 0, height, 0 );
-		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent( globalEnvProbe );
+		globalEnvProbePos = XMFLOAT3(0, height, 0);
+		EnvironmentProbeComponent* probe = wiScene::GetScene().probes.GetComponent(globalEnvProbe);
 		probe->position = globalEnvProbePos;
 		probe->range = globalrange;
 		probe->userdata = 255;
 		probe->SetDirty();
-		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent( globalEnvProbe );
+		wiScene::TransformComponent* pTransform = wiScene::GetScene().transforms.GetComponent(globalEnvProbe);
 		pTransform->ClearTransform();
-		pTransform->Translate( globalEnvProbePos );
-		pTransform->Scale( XMFLOAT3(probe->range, probe->range, probe->range) );
+		pTransform->Translate(globalEnvProbePos);
+		pTransform->Scale(XMFLOAT3(probe->range, probe->range, probe->range));
 		pTransform->UpdateTransform();
 		pTransform->SetDirty();
 	}
+}
+
+// update the terrain, generates new chunks if necessary, and updates the virtual texture and page tables
+void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::CommandList cmd, bool bRenderTargetFocus )
+{
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+	if (g_iDeferTextureUpdateToNow > 0 && ggterrain_initialised)
+	{
+		cstr oldDir = GetDir();
+		if (g_iDeferTextureUpdateToNow == 1)
+		{
+#ifdef ONLYLOADWHENUSED
+			//PE: Reload textures here.
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = false;
+			}
+#endif
+
+			SetDir(g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
+			GGTerrain_ReloadTextures(cmd);
+			SetDir(oldDir.Get());
+			g_iDeferTextureUpdateToNow = 0;
+
+		}
+		if (g_iDeferTextureUpdateToNow == 2)
+		{
+			// Update the textures for the terrain
+#ifdef ONLYLOADWHENUSED
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = false;
+			}
+#endif
+
+			g_DeferTextureUpdateIncompatibleTextures.clear();
+			if(strlen(g_DeferTextureUpdateCurrentFolder_s.Get())>0) SetDir(g_DeferTextureUpdateCurrentFolder_s.Get());
+			GGTerrain_ReloadTextures(cmd, &g_DeferTextureUpdate, &g_DeferTextureUpdateIncompatibleTextures, g_DeferTextureUpdateMAXRootFolder_s.Get());// g.fpscrootdir_s.Get());
+			SetDir(oldDir.Get());
+			g_iDeferTextureUpdateToNow = 3;
+
+#ifdef ONLYLOADWHENUSED
+			//PE: All will be loaded correct here.
+			for (int i = 0; i < GGTERRAIN_MAX_SOURCE_TEXTURES; i++)
+			{
+				bTextureUploaded[i] = true;
+			}
+#endif
+
+		}
+	}
+#ifdef ONLYLOADWHENUSED
+	if (bCheckForNewTerrainTextures && ggterrain_initialised)
+	{
+		GGTerrain_CheckMaterialUsed(cmd);
+	}
+#endif
+	if ( !bImGuiGotFocus && ggterrain_initialised)
+	{
+		GGTerrain_CheckKeys();
+
+		if (GGTerrain_GetKeyPressed(GGKEY_ESCAPE)) GGTerrain_CancelRamp();
+		if (pref.iTerrainDebugMode)
+		{
+			if ( GGTerrain_GetKeyPressed( GGKEY_Q ) ) ggtrees_global_params.draw_enabled = 1 - ggtrees_global_params.draw_enabled;
+			if ( GGTerrain_GetKeyPressed( GGKEY_Z ) && !GGTerrain_GetKeyPressed(GGKEY_CONTROL)) gggrass_global_params.draw_enabled = 1 - gggrass_global_params.draw_enabled;
+			if ( GGTerrain_GetKeyPressed( GGKEY_J ) ) ggterrain_render_wireframe = 1 - ggterrain_render_wireframe;
+			if ( GGTerrain_GetKeyPressed( GGKEY_Y ) && !GGTerrain_GetKeyPressed(GGKEY_CONTROL)) ggterrain_render_debug = 1 - ggterrain_render_debug;
+			if ( GGTerrain_GetKeyPressed( GGKEY_U ) ) ggterrain_update_enabled = 1 - ggterrain_update_enabled;
+			//if ( GGTerrain_GetKeyPressed( GGKEY_E ) ) wiRenderer::SetToDrawDebugEnvProbes( !wiRenderer::GetToDrawDebugEnvProbes() );
+
+			// increase/decrease LOD
+			if (GGTerrain_GetKeyPressed(GGKEY_O))
+			{
+				if (ggterrain_global_params.lod_levels < 16)
+				{
+					ggterrain_global_params.lod_levels++;
+				}
+			}
+			if (GGTerrain_GetKeyPressed(GGKEY_L))
+			{
+				if (ggterrain_global_params.lod_levels > 1)
+				{
+					ggterrain_global_params.lod_levels--;
+				}
+			}
+
+			// increase/decrease num segments
+			if (GGTerrain_GetKeyPressed(GGKEY_I))
+			{
+				if (ggterrain_global_params.segments_per_chunk < 128)
+				{
+					ggterrain_global_params.segments_per_chunk *= 2;
+				}
+			}
+			if (GGTerrain_GetKeyPressed(GGKEY_K))
+			{
+				if (ggterrain_global_params.segments_per_chunk > 1)
+				{
+					ggterrain_global_params.segments_per_chunk /= 2;
+				}
+
+			}
+		}
+	}
+
+	// Environmental Light Probe System
+	GGTerrain_EnvProbeWork(playerX, playerY, playerZ);
 
 	if ( !ggterrain_initialised ) return;
 	
@@ -9726,12 +9728,17 @@ void GGTerrain_Update( float playerX, float playerY, float playerZ, wiGraphics::
 
 void GGTerrain_Update_EmptyLevel(float playerX, float playerY, float playerZ)
 {
+	// most basic transfers of values
 	terrainlock.lock();
 	if (ggterrain_update_enabled)
 	{
 		ggterrain.CheckParams();
 	}
 	terrainlock.unlock();
+
+	// also need to handle env probe refreshes
+	// Environmental Light Probe System
+	GGTerrain_EnvProbeWork(playerX, playerY, playerZ);
 }
 
 int GGTerrain_IsReady()

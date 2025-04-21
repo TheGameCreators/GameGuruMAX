@@ -5291,10 +5291,11 @@ void common_loadcommonassets(int iShowScreenPrompts)
 
 void common_loadcommonassets_delayed(int iShowScreenPrompts)
 {
-	t.tsplashstatusprogress_s = "INIT SKY ASSETS";
-	timestampactivity(0, t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate();
-	sky_init();
+	//see below - now done as a per project load in case of remote project assets
+	//t.tsplashstatusprogress_s = "INIT SKY ASSETS";
+	//timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	//version_splashtext_statusupdate();
+	//sky_init();
 
 	t.tsplashstatusprogress_s = "INIT TERRAIN ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
@@ -5431,11 +5432,25 @@ void common_loadcommonassets_delayed(int iShowScreenPrompts)
 	version_splashtext_statusupdate ( );
 	ravey_particles_load_images ( );
 
-	//  Load all resources
-	t.tsplashstatusprogress_s="CREATING B-LIST";
-	timestampactivity(0,t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate ( );
-	blood_damage_init ( );
+	// load any resources that could be different if sitting inside a remote project rather than stock assets
+	common_mustreload_foreachnewproject();
+}
+
+void common_mustreload_foreachnewproject(void)
+{
+	// this is required as remote projects may have their own completely different 'stock' resources
+ 
+	// also refresh SKY LIST as custom skies might exist there
+	t.tsplashstatusprogress_s = "REFRESH SKY ASSETS";
+	timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate();
+	sky_init();
+
+	// Load all blood splat resources from databank
+	t.tsplashstatusprogress_s = "REFRESH B-LIST ASSETS";
+	timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate ();
+	blood_damage_init ();
 }
 
 void common_hide_mouse ( void )

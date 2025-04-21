@@ -83,6 +83,7 @@ g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the cur
 g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
 g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
 g_masterinterpreter_cond_coverzonewithin = 69 -- Cover Zone Within (Is true if there is a cover zone within the specified range)
+g_masterinterpreter_cond_ifseeplayer = 70 -- If See Player (Is true when see the player within given distance)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -427,6 +428,7 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
  if conditiontype == g_masterinterpreter_cond_targetpathvalid then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_targetreachable then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_istargetname then usestarget = 1 end
+ if conditiontype == g_masterinterpreter_cond_ifseeplayer then usestarget = 3 end
  if usestarget ~= 0 then
   local usetargetXYZ = 0
   if usestarget == 1 then
@@ -459,6 +461,14 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
 	 -- Ally (scan for enemy and distance check done inside g_masterinterpreter_cond_ifseeenemy)
 	 usetargetXYZ = 1
     end  
+   end
+  end
+  if usestarget == 3 then 
+   -- looking for player
+   TargetDistance = GetPlayerDistance(e)
+   GetEntityPlayerVisibility(e)
+   if TargetDistance <= GetEntityViewRange(e) then
+    TargetVisible = g_Entity[e]['plrvisible']
    end
   end
   if usetargetXYZ == 1 then
@@ -948,6 +958,14 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if havecovere > 0 then
    return 1
   end
+ end
+ if conditiontype == g_masterinterpreter_cond_ifseeplayer then
+  if g_Entity[ e ]['active'] == 0 then return 0 end
+  if conditionparam1value == nil then conditionparam1value = GetEntityViewRange(e) end
+  if TargetDistance <= conditionparam1value then
+   GetEntityPlayerVisibility(e)
+   return g_Entity[e]['plrvisible']
+  end  
  end
  
  -- Condition is false

@@ -46518,11 +46518,8 @@ void load_storyboard(char *name)
 		ReloadLensFlareImages();
 	}
 
-	// also refresh SKY LIST as custom skies might exist there
-	t.tsplashstatusprogress_s = "REFRESH SKY ASSETS";
-	timestampactivity(0, t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate();
-	sky_init();
+	// project can bounce between stock and remote resources, so always reload on new storyboard project load
+	common_mustreload_foreachnewproject();
 
 	// complete
 	iLastNode = -1;

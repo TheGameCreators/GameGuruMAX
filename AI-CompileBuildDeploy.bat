@@ -33,11 +33,11 @@ call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\titlesbank\default" "D:\DEV\GAMEGURUMAXREPO\Scripts\titlesbank\default"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\imagebank\crosshairs" "D:\DEV\GAMEGURUMAXREPO\Scripts\imagebank\crosshairs"
 call :copyOverThisFolder "D:\DEV\BUILDS\GameGuru Wicked MAX Build Area\Max\Files\imagebank\navbar" "D:\DEV\GAMEGURUMAXREPO\Scripts\imagebank\navbar"
-echo Completed of all scripts from BUILD Area (check GITHUB Desktop for issues).
+echo Completed of all scripts from BUILD Area (check GITHUB Desktop issues).
 ::pause
 
 echo UseENCRYPTIONANDSECURITYCODES (secure compile begin)
-echo Compile MAX ReleaseForSteam (and Sign)
+echo Compile MAX ReleaseForSteam (and Sign) [CURRENTLY DONE MANUALLY]
 echo UseNONE (secure compile ends)
 echo .
 
@@ -86,12 +86,9 @@ echo Run Steam deploy script to send DEPLOY Area files to Steam
 C:
 cd "C:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder"
 call "UPDATE JUST MAX.bat"
-echo .
-
 echo Control back to Command Line..
 echo .
 cmd.exe
-
 
 :: Subroutine to take two folders A and B, and copy over all files that exist in B from A
 :copyOverThisFolder

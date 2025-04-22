@@ -65,8 +65,8 @@ hud0_itemindexscrolloffset = 0
 hud0_scrollpanel_mainrow = 0
 hud0_scrollpanel_maincolumn = 0
 
-hud0_sounds = 1000
-hud0_sounds_levelup = 1001
+-- reserved 29000-29999
+hud0_sounds_levelup = 29000
 
 hud0_quest_qty = 0
 hud0_quest_status = {}

@@ -1,4 +1,4 @@
-#pragma optimize("", off)
+//#pragma optimize("", off)
  
 //PE: Really slow , switched to wicked xaudio2.
 #define WICKEDAUDIO

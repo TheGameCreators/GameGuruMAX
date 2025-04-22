@@ -557,12 +557,15 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail)
 			sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_SOUNDEFFECT; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
 		else
 			sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_MUSIC; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
-		wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
-		if (sound->IsPlaying())
+		if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
 		{
-			sound->Stop();
+			wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+			if (sound->IsPlaying())
+			{
+				sound->Stop();
+			}
+			return true;
 		}
-		return true;
 	}
 #else
 #endif
@@ -1212,12 +1215,15 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_SOUNDEFFECT; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
 				else
 					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_MUSIC; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
-				wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
-				if (sound->IsPlaying())
+				if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
 				{
-					sound->Stop();
+					wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+					if (sound->IsPlaying())
+					{
+						sound->Stop();
+					}
+					bCloneFailed = false;
 				}
-				bCloneFailed = false;
 			}
 		}
 	}

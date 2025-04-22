@@ -526,7 +526,7 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail,
 {
 #ifdef WICKEDAUDIO
 	std::string fileName = szFilename;
-	std::string soundName = std::to_string(rand()); //wiHelper::GetFileNameFromPath(szFilename);
+	std::string soundName = wiHelper::GetFileNameFromPath(realname);
 	//Entity entity = GetScene().Entity_CreateSound(soundName, fileName, XMFLOAT3(0, 0, 0));
 	Entity entity = GetScene().Entity_CreateSound_GG(soundName, fileName, XMFLOAT3(0, 0, 0),realname, data);
 
@@ -1624,7 +1624,7 @@ DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 {
 #ifdef WICKEDAUDIO
 	//PE: Need doodler.
-	printf("tmp");
+	//printf("tmp");
 #else
 
 	// if no sound card, leave now

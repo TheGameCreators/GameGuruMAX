@@ -3922,6 +3922,7 @@ void FPSC_Setup(void)
 	g.gversion = 10000;
 	if (FileExist("versionauto.ini") == 1)
 	{
+		/* this is now done when the "AI-CompileBuildDeploy.bat" script is run (helps tie the EXE/PDB files to the build better)
 		// auto generate todays version number
 		time_t now = time(0);
 		tm* ltm = localtime(&now);
@@ -3940,6 +3941,7 @@ void FPSC_Setup(void)
 		WriteString(1, pMAXBuildVersionString);
 		CloseFile(1);
 		SetWriteAsRootTemp(false);
+		*/
 	}
 	if (FileExist("version.ini") == 1)
 	{
@@ -3955,6 +3957,10 @@ void FPSC_Setup(void)
 		g.gversion = ValF(t.version_s.Get());
 		UnDim(t.data_s);
 	}
+
+	// store version.ini for potential crash log
+	extern char g_pCrashVersionINIValue[256];
+	strcpy ( g_pCrashVersionINIValue, g.version_s.Get() );
 
 	//  defeat 'cumilative virtual memory limit of 1.8GB' by terminating
 	//  FPSC-Game.exe each complete level, and re-launching to start new heap each time

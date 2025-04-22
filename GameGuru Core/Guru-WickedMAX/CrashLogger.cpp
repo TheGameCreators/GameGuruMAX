@@ -4,8 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
 #pragma comment(lib, "dbghelp.lib")
+
+// global we can populate with the current running version to match EXE/PDB pairs
+char g_pCrashVersionINIValue[256];
 
 // What time is it
 std::string GetTimestamp()
@@ -84,12 +86,13 @@ LONG WINAPI CrashHandler(EXCEPTION_POINTERS* pExceptionInfo)
     std::ostringstream log;
     log << "\r\n==== GAMEGURU MAX CRASH DETECTED ====\r\n";
     log << "Time:            " << GetTimestamp() << "\r\n";
+    log << "Build:           " << g_pCrashVersionINIValue << "\r\n";
     log << "Exception code:  0x" << std::hex << pExceptionInfo->ExceptionRecord->ExceptionCode << "\r\n";
-    log << "Module address:   0x" << std::hex << moduleBase << "\r\n";
+    log << "Module address:  0x" << std::hex << moduleBase << "\r\n";
     log << "Crash address:   0x" << std::hex << crashAddress << "\r\n";
-    log << "Base address:   0x" << std::hex << baseAddress << "\r\n";
-    log << "Offset value:   0x" << std::hex << offset << "\r\n";
-    log << "Lookup address:   0x" << std::hex << lookupAddress << "\r\n";
+    log << "Base address:    0x" << std::hex << baseAddress << "\r\n";
+    log << "Offset value:    0x" << std::hex << offset << "\r\n";
+    log << "Lookup address:  0x" << std::hex << lookupAddress << "\r\n";
     if (!lineInfo.empty())
     {
         log << "Source Code:     " << lineInfo << "\r\n";

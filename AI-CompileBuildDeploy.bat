@@ -37,8 +37,32 @@ echo Completed of all scripts from BUILD Area (check GITHUB Desktop issues).
 ::pause
 
 echo UseENCRYPTIONANDSECURITYCODES (secure compile begin)
-echo Compile MAX ReleaseForSteam (and Sign) [CURRENTLY DONE MANUALLY]
-echo UseNONE (secure compile ends)
+echo Compile MAX ReleaseForSteam (this configuration also Signs the EXE)
+setlocal
+set OLD_DIR=%CD%
+D:
+cd "D:\DEV\GAMEGURUMAXREPO\GameGuru Core"
+call "UseENCRYPTIONANDSECURITYCODES.bat"
+set MSBUILD_PATH="C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+set SOLUTION_PATH="D:\DEV\GAMEGURUMAXREPO\GameGuru Core\GameGuruWickedMAX.sln"
+set CONFIGURATION=ReleaseForSteam
+set PLATFORM=x64
+%MSBUILD_PATH% %SOLUTION_PATH% /p:Configuration=%CONFIGURATION% /p:Platform=%PLATFORM%
+call "UseNONE.bat"
+if %ERRORLEVEL% neq 0 (
+    echo.
+    color 4F
+    echo =====================================
+    echo          BUILD FAILED!
+    echo       Exit Code: %ERRORLEVEL%
+    echo =====================================
+    timeout /t 5 >nul
+    color 07
+    exit /b %ERRORLEVEL%
+)
+cd /d "%OLD_DIR%"
+endlocal
+::pause
 echo .
 
 @echo off

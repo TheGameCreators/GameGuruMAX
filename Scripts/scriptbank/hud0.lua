@@ -66,7 +66,8 @@ hud0_scrollpanel_mainrow = 0
 hud0_scrollpanel_maincolumn = 0
 
 -- reserved 29000-29999
-hud0_sounds_levelup = 29000
+hud0_sounds_levelup = 29001
+hud0_sounds_silence = 29999
 
 hud0_quest_qty = 0
 hud0_quest_status = {}
@@ -80,6 +81,7 @@ function hud0.init()
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
  -- load sound resources
  LoadGlobalSound("audiobank\\misc\\levelup.wav",hud0_sounds_levelup)
+ LoadGlobalSound("audiobank\\misc\\silence.wav",hud0_sounds_silence)
  hud0_gridSpriteID = CreateSprite ( LoadImage("imagebank\\HUD\\blank.png") )
  -- init in-game HUD base container for hotkeys panel if any
  hud0_playercontainer_screenID = 0

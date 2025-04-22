@@ -109,10 +109,8 @@ echo .
 echo Run Steam deploy script to send DEPLOY Area files to Steam
 C:
 cd "C:\Dropbox\MAXMASTER\Steam Upload\Steamworks SDK\tools\ContentBuilder"
-call "UPDATE JUST MAX.bat"
-echo Control back to Command Line..
-echo .
-cmd.exe
+call "UPDATE JUST MAX FOR DEVTEST.bat"
+exit /p
 
 :: Subroutine to take two folders A and B, and copy over all files that exist in B from A
 :copyOverThisFolder

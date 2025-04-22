@@ -1055,6 +1055,7 @@ void common_init_globals ( void )
 	g.projectilesoundoffset = 25000;
 	g.steamsoundoffset = 30000;
 	g.globalsoundoffset = 40000;
+	// reserve 100 sound slots for HUD0.lua (40000 + 29000 (to29999) = hud0_sounds_levelup, etc)
 
 	//  Object Resources
 	//  1-10 - editor objects

@@ -45,6 +45,7 @@ using namespace wiGraphics;
 using namespace wiScene;
 using namespace wiECS;
 using namespace wiAudio;
+std::string realname = "";
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -521,12 +522,14 @@ DARKSDK void DB_GetWinTemp(LPSTR pWindowsTempDirectory)
 }
 
 #ifdef WICKEDAUDIO
-bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail)
+bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail, std::vector<uint8_t>& data)
 {
 #ifdef WICKEDAUDIO
 	std::string fileName = szFilename;
-	std::string soundName = wiHelper::GetFileNameFromPath(szFilename);
-	Entity entity = GetScene().Entity_CreateSound(soundName, fileName, XMFLOAT3(0, 0, 0));
+	std::string soundName = std::to_string(rand()); //wiHelper::GetFileNameFromPath(szFilename);
+	//Entity entity = GetScene().Entity_CreateSound(soundName, fileName, XMFLOAT3(0, 0, 0));
+	Entity entity = GetScene().Entity_CreateSound_GG(soundName, fileName, XMFLOAT3(0, 0, 0),realname, data);
+
 	DBPRO_GLOBAL sSoundData* mptr;
 	if ((mptr = m_SDKSoundManager.GetData(iID)))
 	{
@@ -537,8 +540,14 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail)
 	SoundComponent* sound = GetScene().sounds.GetComponent(entity);
 	if (sound != nullptr)
 	{
+		//PE: Make it work like old GGM , but 3D stereo is supported.
+		uint32_t channels = GetSoundChannels(&sound->soundinstance);
+		if (channels > 1)
+		{
+			b3DSound = false;
+		}
+
 		//PE: Defaults. 
-		//b3DSound = true; //PE:Test 3d sound ogg. works.
 		sound->SetDisable3D(1 - b3DSound);
 		sound->SetLooped(false);
 #ifdef REVERBTEST
@@ -575,7 +584,8 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail)
 DARKSDK void LoadRawSoundCoreOgg ( LPSTR szFilename, int iID, bool b3DSound, int iSilentFail )
 {
 #ifdef WICKEDAUDIO
-	bLoadWickedSound(szFilename, iID,b3DSound,iSilentFail);
+	std::vector<uint8_t> emptydata;
+	bLoadWickedSound(szFilename, iID,b3DSound,iSilentFail, emptydata);
 	return;
 #else
 
@@ -719,7 +729,8 @@ DARKSDK void LoadRawSoundCore(LPSTR szPassedInFilename, int iID, bool b3DSound, 
 	if (strnicmp((char*)szFilename + strlen((char*)szFilename) - 4, ".ogg", 4) == NULL)
 	{
 #ifdef WICKEDAUDIO
-		bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail);
+		std::vector<uint8_t> emptydata;
+		bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail,emptydata);
 		if (!bOK)
 #else
 		//char pLookSee[1024];
@@ -748,7 +759,8 @@ DARKSDK void LoadRawSoundCore(LPSTR szPassedInFilename, int iID, bool b3DSound, 
 
 	// Free any previous sound, and make a new one
 #ifdef WICKEDAUDIO
-	bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail);
+	std::vector<uint8_t> emptydata;
+	bool bOK = bLoadWickedSound(szFilename, iID, b3DSound, iSilentFail, emptydata);
 	if (!bOK)
 	{
 		// Invalid WAV format
@@ -974,6 +986,7 @@ DARKSDK void LoadRawSound ( LPSTR szFilename, int iID, bool bFlag, int iSilentFa
 {
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
+	realname = szFilename;
 	strcpy(VirtualFilename, szFilename);
 	//g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
@@ -1191,8 +1204,18 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 #ifdef WICKEDAUDIO
 	//PE: Check if we can do a clone.
 	bool bCloneFailed = true;
-	if (pSrcPtr->wickedEntity > 0)
+	if(pSrcPtr->wickedEntity > 0)
 	{
+		SoundComponent* soundsrc = GetScene().sounds.GetComponent(pSrcPtr->wickedEntity);
+		if (soundsrc)
+		{
+			//soundsrc->soundResource->filedata.data()
+			if (soundsrc->soundResource->filedata.size() > 0)
+			{
+				bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1, soundsrc->soundResource->filedata);
+				return;
+			}
+		}
 		const Entity entity = GetScene().Entity_Duplicate(pSrcPtr->wickedEntity);
 		if (entity > 0)
 		{
@@ -1202,8 +1225,15 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 			SoundComponent* sound = GetScene().sounds.GetComponent(entity);
 			if (sound != nullptr)
 			{
+				//PE: Make it work like old GGM , but 3D stereo is supported.
+				uint32_t channels = GetSoundChannels(&sound->soundinstance);
+				if (channels > 1)
+				{
+					m_ptr->b3D = false;
+				}
+
 				//PE: Defaults. 
-				sound->SetDisable3D(1 - pSrcPtr->b3D);
+				sound->SetDisable3D(1 - m_ptr->b3D);
 				sound->SetLooped(false);
 #ifdef REVERBTEST
 				sound->soundinstance.SetEnableReverb(true);
@@ -1229,7 +1259,8 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 	}
 	if(bCloneFailed)
 	{
-		bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1);
+		std::vector<uint8_t> emptydata;
+		bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1, emptydata);
 	}
 #else
 

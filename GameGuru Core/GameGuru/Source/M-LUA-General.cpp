@@ -61,9 +61,6 @@ void lua_prompt ( void )
 	// changes press E for press trigger
 	lua_correct_for_VR();
 
-	#ifdef VRTECH
-	#ifdef WICKEDENGINE
-	//PE: Sorry quick hack to get custom message from storyboard into prompt. EA rush.
 	char *tmp = t.s_s.Get();
 	if (tmp[0] == 'Y' && tmp[11] == 'l') //Quickest way to compare.
 	{
@@ -75,15 +72,7 @@ void lua_prompt ( void )
 			}
 		}
 	}
-	
-	//Storyboard.game_world_edge_text
 	if ( g_iActivelyUsingVRNow != 0 )
-	#else
-	if ( g.vrqcontrolmode != 0 )
-	#endif
-	#else
-	if ( g.gvrmode > 0 )
-	#endif
 	{
 		// use VR prompt instead
 		lua_prompt3d ( t.s_s.Get(), Timer(), 0 );

@@ -2369,10 +2369,14 @@ struct luaglobaltype
 	float scriptprompt3dZ;
 	float scriptprompt3dAY;
 	bool scriptprompt3dFaceCamera;
+	cstr gurumeditationprompt_s;
+	DWORD gurumeditationprompttime;
 
 	// Constructor
 	luaglobaltype ( )
 	{
+		 gurumeditationprompt_s = "";
+		 gurumeditationprompttime = 0;
 		 scriptprompt3dFaceCamera = false;
 		 scriptprompttextsize = 0;
 		 scriptprompttype = 0;

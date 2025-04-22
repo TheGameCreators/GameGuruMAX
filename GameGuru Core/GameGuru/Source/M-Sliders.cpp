@@ -946,6 +946,21 @@ void sliders_draw ( void )
 		}
 	}
 
+	// GURU MEDITATION : Internal Errors From LUA (helps users work out any of their logic issues)
+	if (t.luaglobal.gurumeditationprompttime > 0 && t.conkit.editmodeactive == 0)
+	{
+		if ((DWORD)(Timer()) < t.luaglobal.gurumeditationprompttime + 5000)
+		{
+			int tgurumeditationprompttextsize = 5; // large!
+			int tgurumeditationpromptx = (GetDisplayWidth() - getbitmapfontwidth(t.luaglobal.gurumeditationprompt_s.Get(), tgurumeditationprompttextsize)) / 2;
+			pastebitmapfont(t.luaglobal.gurumeditationprompt_s.Get(), tgurumeditationpromptx, GetDisplayHeight()/2, tgurumeditationprompttextsize, 255);
+		}
+		else
+		{
+			t.luaglobal.gurumeditationprompttime = 0;
+		}
+	}
+
 	// 100316 - draw any scope HUD first (moved out of condition below so it ALWAYS renders for the game if active)
 	sliders_scope_draw ( );
 

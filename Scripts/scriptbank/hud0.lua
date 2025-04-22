@@ -1307,6 +1307,10 @@ function hud0.main()
 							g_UserGlobalQuestTitleActiveE = findee
 						end
 						ScreenToggle("")
+					else
+						-- Error, level did not specify an object for this quest!
+						PromptGuruMeditation("ERROR: This QUEST has not been given an OBJECT!")
+						ScreenToggle("")
 					end
 				end
 				if actionOnScreen == 105 then

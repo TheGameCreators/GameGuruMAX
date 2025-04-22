@@ -10925,8 +10925,16 @@ int PromptLocalOffset(lua_State* L)
 	t.e = storee;
 	t.s_s = stores;
 	return 0;
-
 }
+	
+int PromptGuruMeditation(lua_State * L)
+{
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	t.luaglobal.gurumeditationprompttime = Timer();
+	t.luaglobal.gurumeditationprompt_s = lua_tostring(L, 1);
+}
+
 
 //PE: USE - SetLutTo("editors\\lut\\sephia.png")
 //PE: USE - string = GetLut()
@@ -13528,7 +13536,9 @@ void addFunctions()
 
 	lua_register(lua, "SetLutTo", lua_set_lut);
 	lua_register(lua, "GetLut", lua_get_lut);
-	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);	
+	lua_register(lua, "PromptLocalOffset", PromptLocalOffset);
+	lua_register(lua, "PromptGuruMeditation", PromptGuruMeditation);
+
 }
 
  /*

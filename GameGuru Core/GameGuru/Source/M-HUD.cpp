@@ -323,7 +323,10 @@ void blood_damage_init ( void )
 		}
 		t.huddamage.bloodtotal=0;
 	}
-	if (ImageExist(t.huddamage.indicator) == 1) DeleteImage (t.huddamage.indicator);
+	if (t.huddamage.indicator > 0)
+	{
+		if (ImageExist(t.huddamage.indicator) == 1) DeleteImage (t.huddamage.indicator);
+	}
 
 	// set up with place holders for images
 	t.huddamage.bloodtimestart=500;
@@ -336,7 +339,7 @@ void blood_damage_init ( void )
 	t.huddamage.damagetrackshooter=1;
 
 	// blood splats
-	if ( t.huddamage.bloodtotal == 0 ) 
+	if ( t.huddamage.bloodtotal == 0 && t.huddamage.bloodstart > 0)
 	{
 		image_setlegacyimageloading(true);
 		t.huddamage.maxbloodsplats=7;
@@ -358,15 +361,18 @@ void blood_damage_init ( void )
 	}
 
 	//  directional indicator
-	image_setlegacyimageloading(true);
-	t.a_s="databank\\indicator.png";
-	if (  ImageExist(t.huddamage.indicator) == 0  )  LoadImage (  t.a_s.Get(),t.huddamage.indicator );
-	if (ImageExist(t.huddamage.indicator) == 1)
+	if (t.huddamage.indicator > 0)
 	{
-		Sprite(t.huddamage.indicator, -100000, -100000, t.huddamage.indicator);
-		OffsetSprite(t.huddamage.indicator, ImageWidth(t.huddamage.indicator) / 2, ImageHeight(t.huddamage.indicator) / 2);
+		image_setlegacyimageloading(true);
+		t.a_s = "databank\\indicator.png";
+		if (ImageExist(t.huddamage.indicator) == 0)  LoadImage (t.a_s.Get(), t.huddamage.indicator);
+		if (ImageExist(t.huddamage.indicator) == 1)
+		{
+			Sprite(t.huddamage.indicator, -100000, -100000, t.huddamage.indicator);
+			OffsetSprite(t.huddamage.indicator, ImageWidth(t.huddamage.indicator) / 2, ImageHeight(t.huddamage.indicator) / 2);
+		}
+		image_setlegacyimageloading(false);
 	}
-	image_setlegacyimageloading(false);
 
 	//  keep alive with steam server
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );

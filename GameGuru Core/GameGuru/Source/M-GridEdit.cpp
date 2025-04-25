@@ -12695,7 +12695,7 @@ void mapeditorexecutable_loop(void)
 			}
 
 			ImGui::SetCursorPos(ImVec2(restore_pos.x-8.0f, restore_pos.y));
-			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List", "Group List" };
+			const char* sortby_modes[] = { "A-Z", "Z-A", "Newest", "Oldest", "Detailed Object List", "Collection Items List", "Group List", "Instance List", "Behavior List" };
 
 			int isortbySize = IM_ARRAYSIZE(sortby_modes);
 			if (!pref.iEnableAdvancedEntityList)
@@ -12787,33 +12787,75 @@ void mapeditorexecutable_loop(void)
 					}
 					else
 					{
-						// Sort entity parent list.
-						for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+						if (current_sort_order == 7 || current_sort_order == 8)
 						{
-							//std::string stmp = t.entityprofile[t.entid].model_s.Get();
-							std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
-							if (current_sort_order == 2 || current_sort_order == 3)
+							if (current_sort_order == 7)
 							{
-								//Convert to sortable by string.
-								if (t.entid < 10)
-									stmp = "000" + std::to_string(t.entid);
-								else if (t.entid < 100)
-									stmp = "00" + std::to_string(t.entid);
-								else if (t.entid < 1000)
-									stmp = "0" + std::to_string(t.entid);
-								else
-									stmp = std::to_string(t.entid);
+								// Sort by instance ID order
+								for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+								{
+									cstr scriptname = t.entityelement[t.e].eleprof.name_s;
+									std::string stmp = Lower(scriptname.Get());
+									if (t.entityelement[t.e].bankindex > 0)
+									{
+										sorted_entity_files.push_back(std::make_pair(stmp, t.e));
+									}
+								}
 							}
-							stmp += "###"; //We need it to be unique so add this.
-							stmp += t.entityprofile[t.entid].model_s.Get();
-							stmp += "###";
-							stmp += std::to_string(t.entid);
-							int itmp = t.entid;
-							sorted_entity_files.push_back(std::make_pair(stmp, itmp));
+							if (current_sort_order == 8)
+							{
+								// Sort by behavior list
+								for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+								{
+									cstr scriptname = t.entityelement[t.e].eleprof.aimain_s;
+									std::string stmp = Lower(scriptname.Get());
+									bool bFoundThisScriptInList = false;
+									for (int i = 0; i < sorted_entity_files.size(); i++)
+									{
+										if (sorted_entity_files[i].first == stmp)
+										{
+											// only add a unique one (ie list of behaviours)
+											bFoundThisScriptInList = true;
+											break;
+										}
+									}
+									if (bFoundThisScriptInList == false)
+									{
+										sorted_entity_files.push_back(std::make_pair(stmp, t.e));
+									}
+								}
+							}
 						}
-						std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
-						if (current_sort_order == 1 || current_sort_order == 2)
-							std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+						else
+						{
+							// Sort entity parent list.
+							for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+							{
+								//std::string stmp = t.entityprofile[t.entid].model_s.Get();
+								std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
+								if (current_sort_order == 2 || current_sort_order == 3)
+								{
+									//Convert to sortable by string.
+									if (t.entid < 10)
+										stmp = "000" + std::to_string(t.entid);
+									else if (t.entid < 100)
+										stmp = "00" + std::to_string(t.entid);
+									else if (t.entid < 1000)
+										stmp = "0" + std::to_string(t.entid);
+									else
+										stmp = std::to_string(t.entid);
+								}
+								stmp += "###"; //We need it to be unique so add this.
+								stmp += t.entityprofile[t.entid].model_s.Get();
+								stmp += "###";
+								stmp += std::to_string(t.entid);
+								int itmp = t.entid;
+								sorted_entity_files.push_back(std::make_pair(stmp, itmp));
+							}
+							std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
+							if (current_sort_order == 1 || current_sort_order == 2)
+								std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+						}
 					}
 				}
 				last_entidmaster = iMasterEntid;
@@ -12853,7 +12895,7 @@ void mapeditorexecutable_loop(void)
 				iColumns_leftpanel = 1;
 
 			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-			if(current_sort_order == 4 || current_sort_order == 5 || current_sort_order == 6) //PE: Detailed display in one column.
+			if(current_sort_order == 8 || current_sort_order == 7 || current_sort_order == 4 || current_sort_order == 5 || current_sort_order == 6) //PE: Detailed display in one column.
 				iColumns_leftpanel = 1;
 			#endif
 
@@ -13012,6 +13054,117 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-5);
 										bool bMoveCameraToObjectPosition = true;
 										DoTreeNodeGroup(groupindex, bMoveCameraToObjectPosition);
+										ImGui::Indent(5);
+										ImGui::TreePop();
+									}
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
+							else if (iloop == 0 && current_sort_order == 7)
+							{
+								// Instance List (7)
+								ImGui::SetWindowFontScale(1.0);
+								int e = it->second;
+								bool DisplayEntry = true;
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char cName[512];
+									strcpy(cName, t.entityelement[e].eleprof.name_s.Get());
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_Leaf;
+									std::string treename = "#" + std::to_string(e);
+									treename = treename + " " + cName;
+									bool bAutoGenObject = false;
+									if (t.entityelement[e].x == -99999 && t.entityelement[e].y == -99999 && t.entityelement[e].z == -99999)
+									{
+										treename = treename + " (Auto-Gen) ";
+										bAutoGenObject = true;
+									}
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(e + 99000), node_flags, treename.c_str());
+									if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+									{
+										// DUPLICATED ESEWHERE (LOTS) SO EVENTUALLY MAKE ONE FUNCTION FOR DIS.
+										if (t.entityelement[e].obj > 0)
+										{
+											t.widget.pickedEntityIndex = e;
+											t.widget.pickedObject = t.entityelement[t.widget.pickedEntityIndex].obj;
+											g.entityrubberbandlist.clear();
+											bEditorInFreeFlightMode = true;
+											t.editorfreeflight.mode = 1;
+											int group = isEntityInGroupList(t.widget.pickedEntityIndex);
+											if (group >= 0)
+											{
+												//PE: Add all groups with entity to rubberband.
+												CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
+											}
+											if (bAutoGenObject == false)
+											{
+												float zoom = ObjectSize(t.entityelement[e].obj, 1) * 2.0;
+												if (zoom < 30.0f) zoom = 30.0f;
+												float realcamy = ObjectSizeY(t.entityelement[e].obj, 1) * 0.75;
+												float camy = realcamy;
+												if (camy < 30.0f) camy = 30.0f;
+												if (t.entityprofile[t.entityelement[e].bankindex].ismarker > 0)
+												{
+													zoom = 100.0;
+													camy = 50.0;
+												}
+												PositionCamera(t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+												PointCamera(t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+												MoveCamera(0, -zoom);
+												PositionCamera(CameraPositionX(0), t.entityelement[e].y + camy, CameraPositionZ(0));
+												PointCamera(t.entityelement[e].x, t.entityelement[e].y + (realcamy * 0.5), t.entityelement[e].z);
+												t.editorfreeflight.c.x_f = CameraPositionX();
+												t.editorfreeflight.c.y_f = CameraPositionY();
+												t.editorfreeflight.c.z_f = CameraPositionZ();
+												t.editorfreeflight.c.angx_f = CameraAngleX();
+												t.editorfreeflight.c.angy_f = CameraAngleY();
+												t.cx_f = t.editorfreeflight.c.x_f;
+												t.cy_f = t.editorfreeflight.c.z_f;
+											}
+										}
+									}
+									if (TreeNodeOpen) ImGui::TreePop();
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
+							else if (iloop == 0 && current_sort_order == 8)
+							{
+								// Behavior List (8)
+								ImGui::SetWindowFontScale(1.0);
+								int e = it->second;
+								bool DisplayEntry = true;
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char cName[512];
+									strcpy(cName, it->first.c_str());
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+									bool bSelected = false;
+									ImGui::PushItemWidth(-20.0);
+									std::string treename = cName;
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(e + 99000), node_flags, treename.c_str());
+									ImGui::PopItemWidth();
+									if (TreeNodeOpen)
+									{
+										ImGui::Indent(-5);
+										DoTreeNodeBehavior(cName, true);
 										ImGui::Indent(5);
 										ImGui::TreePop();
 									}

@@ -186,6 +186,7 @@ void Welcome_Screen(void);
 void About_Screen(void);
 bool DoTreeNodeEntity(int masterid, bool bMoveCameraToObjectPosition);
 bool DoTreeNodeGroup(int groupindex, bool bMoveCameraToObjectPosition);
+bool DoTreeNodeBehavior(LPSTR behaviorscriptname, bool bMoveCameraToObjectPosition);
 void SetupDecalObject(int obj, int elementID);
 void SetIconSet(bool bInstant = false);
 void SetIconSetCheck(bool bInstant = false);

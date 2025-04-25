@@ -2090,6 +2090,9 @@ void entity_loop ( void )
 					}
 				}
 
+				// and also hide the attachment (if any)
+				entity_freeattachment();
+
 				// attempt to remove collision object
 				entity_lua_collisionoff ( );
 

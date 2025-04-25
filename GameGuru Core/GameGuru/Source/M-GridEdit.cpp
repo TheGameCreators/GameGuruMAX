@@ -9918,6 +9918,7 @@ void mapeditorexecutable_loop(void)
 						//sprintf(pDebugMe, "%d", iWhereWeDetectedChange);
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
 						{
+							int thismasterid = t.entityelement[iEntityIndex].bankindex;
 							LPSTR pMasterEntityName = t.entityelement[iEntityIndex].eleprof.name_s.Get();
 							for (int ee = 1; ee <= g.entityelementmax; ee++)
 							{
@@ -9926,21 +9927,25 @@ void mapeditorexecutable_loop(void)
 									int masterid = t.entityelement[ee].bankindex;
 									if (masterid > 0)
 									{
-										if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+										// and essentially, ONLY copy into the SAME PARENT ID object (not ANYTHING named so!)
+										if (thismasterid == masterid)
 										{
-											// clone currently edited entity
-											t.entityelement[ee].eleprof = t.entityelement[iEntityIndex].eleprof;
-											sObject* pObject = GetObjectData(t.entityelement[ee].obj);
-											if (pObject)
+											if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
 											{
-												WickedSetEntityId(masterid);
-												WickedSetElementId(ee);
-												for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+												// clone currently edited entity
+												t.entityelement[ee].eleprof = t.entityelement[iEntityIndex].eleprof;
+												sObject* pObject = GetObjectData(t.entityelement[ee].obj);
+												if (pObject)
 												{
-													Wicked_Set_Material_From_grideleprof_ThisMesh (pObject, 0, &t.entityelement[ee].eleprof, iMesh);
+													WickedSetEntityId(masterid);
+													WickedSetElementId(ee);
+													for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+													{
+														Wicked_Set_Material_From_grideleprof_ThisMesh (pObject, 0, &t.entityelement[ee].eleprof, iMesh);
+													}
+													WickedSetEntityId(-1);
+													WickedSetElementId(0);
 												}
-												WickedSetEntityId(-1);
-												WickedSetElementId(0);
 											}
 										}
 									}

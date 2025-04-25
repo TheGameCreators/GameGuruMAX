@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hostile Zone v5 by Necrym59
+-- Hostile Zone v6 by Necrym59 and Lee
 -- DESCRIPTION: The player must be unarmed while in the Hostile Zone.
 -- DESCRIPTION: Link to a trigger Zone
--- DESCRIPTION: [PROMPT_TEXT$="In hostile zone, keep weapon holstered"]
+-- DESCRIPTION: [PROMPT_TEXT$="In hostile zone, carry no weapon"]
 -- DESCRIPTION: [HOSTILITY_RANGE=100(0,1000)]
 -- DESCRIPTION: [ZONEHEIGHT=100(0,1000)]
 
@@ -12,7 +12,7 @@ local hostility_range	= {}
 local zoneheight		= {}
 	
 local hostility 		= {}
-local entrange			= {}
+--local entrange			= {}
 local tableName			= {}	
 local status 			= {}
 local doonce			= {}
@@ -32,7 +32,7 @@ function hostile_zone_init(e)
 	hostilezone[e].zoneheight = 100	
 	hostility[e] = 2
 	exitzone[e] = 0
-	entrange[e] = 0
+	--entrange[e] = 0
 	doonce[e] = 0
 	promptonce[e] = 0
 	tableName[e] = "holstilelist" ..tostring(e)
@@ -46,7 +46,10 @@ function hostile_zone_main(e)
 		for n = 1, g_EntityElementMax do
 			if n ~= nil and g_Entity[n] ~= nil then
 				if GetEntityAllegiance(n) == 0 then
-					table.insert(_G[tableName[e]],n)
+					local tdistfromzonecenter = math.ceil(GetDistanceTo(e,g_Entity[n]['x'],g_Entity[e]['y'],g_Entity[n]['z']))
+					if g_Entity[n]["health"] > 0 and tdistfromzonecenter < hostilezone[e].hostility_range then
+						table.insert(_G[tableName[e]],n)
+					end
 				end
 			end
 		end	
@@ -83,7 +86,9 @@ function hostile_zone_main(e)
 		if doonce[e] == 0 then
 			for _,v in pairs (_G[tableName[e]]) do
 				if g_Entity[v] ~= nil then
-					SetEntityAllegiance(v,2)
+					if g_Entity[v]["health"] > 0 then
+						SetEntityAllegiance(v,2)
+					end
 				end
 			end
 		end	
@@ -93,13 +98,16 @@ function hostile_zone_main(e)
 	if hostility[e] == 1 then
 		for _,v in pairs (_G[tableName[e]]) do
 			if g_Entity[v] ~= nil then
-				entrange[e] = math.ceil(GetFlatDistanceToPlayer(v))
-				if g_Entity[v]["health"] > 0 and entrange[e] < hostilezone[e].hostility_range then
+				if g_Entity[v]["health"] > 0 then
 					SetEntityAllegiance(v,0)
 				end						
 			end
 		end
 	end
+	
+	-- debug hostile mode
+	-- PromptGuruMeditation("Hostile Mode = "..hostility[e])
+	
 end
  
 function GetFlatDistanceToPlayer(v)

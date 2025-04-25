@@ -878,9 +878,13 @@ void entity_lua_performlogicconnections_core ( int iMode )
 					if (bSkipResultsCode == false)
 					{
 						// if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-						if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+						if (t.entityelement[iRelationShipEntityID].eleprof.spawnatstart != 2)
 						{
-							t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+							// only if not already spawned previously (otherwise it ends up with characters facing backwards!)
+							if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+							{
+								t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+							}
 						}
 					}
 				}

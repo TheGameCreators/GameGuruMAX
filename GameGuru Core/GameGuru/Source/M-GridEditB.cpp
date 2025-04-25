@@ -28366,7 +28366,14 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			if (bSound1Mentioned == true) edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound2Mentioned == true) edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound3Mentioned == true) edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\", readonly);
-			if (bIfUsedMentioned == true) edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+			if (bIfUsedMentioned == true)
+			{
+				if (t.entityprofile[entid].ischaracter != 1)
+				{
+					// but not characters which now use IFUSED to contain LOOT information
+					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+				}
+			}
 			if (bUseKeyMentioned == true) edit_grideleprof->usekey_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get(), readonly);
 			bool readonly = false;
 			if (bShootingWeaponMentioned == true || bMeleeWeaponMentioned == true)
@@ -29178,7 +29185,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				{
 					edit_grideleprof->coneangle = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->coneangle), t.strarr_s[434].Get(), t.strarr_s[224].Get(),readonly));
 					edit_grideleprof->conerange = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->conerange), "View Range", "The range within which the AI may see the player. Zero triggers the characters default range.",readonly));
-					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
+					if (t.entityprofile[entid].ischaracter != 1)
+					{
+						// but not characters which now use IFUSED to contain LOOT information
+						edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+					}
 					edit_grideleprof->hasweapon_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->hasweapon_s.Get(), "Has Weapon", "The weapon assigned to this object", readonly);
 					if (g.quickparentalcontrolmode != 2)
 					{
@@ -29203,7 +29214,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						}
 						else
 						{
-							edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
+							if (t.entityprofile[entid].ischaracter != 1)
+							{
+								// but not characters which now use IFUSED to contain LOOT information
+								edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+							}
 						}
 					}
 				}
@@ -29220,7 +29235,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				}
 				else
 				{
-					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[438].Get(), t.strarr_s[227].Get(),readonly);
+					if (t.entityprofile[entid].ischaracter != 1)
+					{
+						// but not characters which now use IFUSED to contain LOOT information
+						edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[438].Get(), t.strarr_s[227].Get(), readonly);
+					}
 				}
 			}
 

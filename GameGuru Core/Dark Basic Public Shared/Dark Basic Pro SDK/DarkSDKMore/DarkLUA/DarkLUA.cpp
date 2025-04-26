@@ -1947,6 +1947,15 @@ luaMessage** ppLuaMessages = NULL;
 	 t.entityelement[iEntityIndex].eleprof.ifused_s = pString;
 	 return 0;
  }
+ int GetEntityIfUsed(lua_State* L)
+ {
+	 lua = L;
+	 int n = lua_gettop(L);
+	 if (n < 1) return 0;
+	 int iEntityIndex = lua_tonumber(L, 1);
+	 lua_pushstring(L, t.entityelement[iEntityIndex].eleprof.ifused_s.Get());
+	 return 1;
+ }
 
  #ifdef WICKEDENGINE
  int GetEntityCanFire(lua_State *L) { return GetEntityData (L, 101); }
@@ -12446,6 +12455,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityParentID", GetEntityParentID);
 
 	lua_register(lua, "SetEntityIfUsed", SetEntityIfUsed);
+	lua_register(lua, "GetEntityIfUsed", GetEntityIfUsed);
 
 	#ifdef WICKEDENGINE
 	lua_register(lua, "SetEntityAllegiance", SetEntityAllegiance);

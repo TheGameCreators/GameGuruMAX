@@ -20820,18 +20820,21 @@ void process_entity_library_v2(void)
 									ImVec2 opos = ImGui::GetCursorPos();
 									ImGui::SetCursorPos(ImVec2((opos.x + media_icon_size) - iImageSize - 2.0f, opos.y - 14.0f - iImageSize));
 									ImGui::SetItemAllowOverlap();
-
+									static int framesbeforestoppingsound = 0;
 									if (playingiles == myfiles)
 									{
 
 										//isoundplaying
 										float pos = GetSoundPosition(g.temppreviewsoundoffset);
-
+										if (framesbeforestoppingsound > 0) framesbeforestoppingsound--;
 										if (SoundExist(g.temppreviewsoundoffset) == 1 && SoundPlaying(g.temppreviewsoundoffset) == 0)
 										{
-											//Not playing.
-											StopSound(g.temppreviewsoundoffset);
-											playingiles = NULL;
+											if (framesbeforestoppingsound == 0)
+											{
+												//Not playing.
+												StopSound(g.temppreviewsoundoffset);
+												playingiles = NULL;
+											}
 										}
 										if (ImGui::ImgBtn(MEDIA_PAUSE, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 220), ImColor(255, 255, 255, 220), ImColor(255, 255, 255, 220), 0, 0, 0, 0, false, false, false, false, true, bBoostIconColors))
 										{
@@ -20890,6 +20893,7 @@ void process_entity_library_v2(void)
 										sSoundName = "audiobank\\";
 										sSoundName = sSoundName + path_for_filename.c_str();
 										sSoundName = sSoundName + "\\" + myfiles->m_sName.Get();
+										framesbeforestoppingsound = 5;
 										LoadSound((char *) sSoundName.c_str(), g.temppreviewsoundoffset);
 										if (SoundExist(g.temppreviewsoundoffset) == 1)
 										{

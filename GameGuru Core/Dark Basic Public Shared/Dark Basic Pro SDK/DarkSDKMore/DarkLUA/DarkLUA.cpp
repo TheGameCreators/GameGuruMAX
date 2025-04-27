@@ -5129,6 +5129,8 @@ int SetCombatMusicTrackVolume(lua_State* L)
 		float fVolumePercentage = lua_tonumber(L, 1) / 100.0f;
 		float fFinalVolume = t.visuals.iCombatMusicTrackVolume * fVolumePercentage;
 		SetSoundVolume(iFreeSoundID, fFinalVolume);
+		extern std::unordered_map<int, float> luavolumes;
+		luavolumes.insert_or_assign(iFreeSoundID, fFinalVolume);
 	}
 	return 0;
 }

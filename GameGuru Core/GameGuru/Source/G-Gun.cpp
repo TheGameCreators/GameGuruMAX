@@ -5785,6 +5785,66 @@ void gun_releaseresources ( void )
 				DeleteObject (  t.tobj );
 			}
 			t.gun[t.gunid].obj=0;
+
+			//PE: MemLeak - Changing level - Delete all gun sounds here.
+			for (int i = 0; i <= 15; i++)
+			{
+				if (t.gunid < t.gunsound.size())
+				{
+					t.tgname_s = t.gunsound[t.gunid][i].name_s;
+					if (t.tgname_s != "")
+					{
+						if (t.gunsound[t.gunid][i].soundid1 > 0)
+						{
+							if (SoundExist(t.gunsound[t.gunid][i].soundid1) == 1) { DeleteSound(t.gunsound[t.gunid][i].soundid1); }
+							t.gunsound[t.gunid][i].soundid1 = 0;
+						}
+						if (t.gunsound[t.gunid][i].soundid2 > 0)
+						{
+							if (SoundExist(t.gunsound[t.gunid][i].soundid2) == 1) { DeleteSound(t.gunsound[t.gunid][i].soundid2); }
+							t.gunsound[t.gunid][i].soundid2 = 0;
+						}
+						if (t.gunsound[t.gunid][i].soundid3 > 0)
+						{
+							if (SoundExist(t.gunsound[t.gunid][i].soundid3) == 1) { DeleteSound(t.gunsound[t.gunid][i].soundid3); }
+							t.gunsound[t.gunid][i].soundid3 = 0;
+						}
+						if (t.gunsound[t.gunid][i].soundid4 > 0)
+						{
+							if (SoundExist(t.gunsound[t.gunid][i].soundid4) == 1) { DeleteSound(t.gunsound[t.gunid][i].soundid4); }
+							t.gunsound[t.gunid][i].soundid4 = 0;
+						}
+
+						if (i <= 3)
+						{
+							if (t.gunsoundcompanion[t.gunid][i][0].soundid > 0)
+							{
+								if (SoundExist(t.gunsoundcompanion[t.gunid][i][0].soundid) == 1) { DeleteSound(t.gunsoundcompanion[t.gunid][i][0].soundid); }
+								t.gunsoundcompanion[t.gunid][i][0].soundid = 0;
+							}
+							if (t.gunsoundcompanion[t.gunid][i][1].soundid > 0)
+							{
+								if (SoundExist(t.gunsoundcompanion[t.gunid][i][1].soundid) == 1) { DeleteSound(t.gunsoundcompanion[t.gunid][i][1].soundid); }
+								t.gunsoundcompanion[t.gunid][i][1].soundid = 0;
+							}
+							if (t.gunsoundcompanion[t.gunid][i][2].soundid > 0)
+							{
+								if (SoundExist(t.gunsoundcompanion[t.gunid][i][2].soundid) == 1) { DeleteSound(t.gunsoundcompanion[t.gunid][i][2].soundid); }
+								t.gunsoundcompanion[t.gunid][i][2].soundid = 0;
+							}
+						}
+						if (i != 2)
+						{
+							if (t.gunsound[t.gunid][i].altsoundid > 0)
+							{
+								if (SoundExist(t.gunsound[t.gunid][i].altsoundid) == 1) { DeleteSound(t.gunsound[t.gunid][i].altsoundid); }
+								t.gunsound[t.gunid][i].altsoundid = 0;
+							}
+						}
+					}
+				}
+			}
+
 		}
 		//  remove images fully
 		removeinternaltexture(t.gun[t.gunid].texdid);

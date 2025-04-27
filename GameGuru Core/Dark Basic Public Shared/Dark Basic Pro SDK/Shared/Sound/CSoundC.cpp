@@ -527,14 +527,15 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail,
 #ifdef WICKEDAUDIO
 	std::string fileName = szFilename;
 	std::string soundName = wiHelper::GetFileNameFromPath(realname);
-	//Entity entity = GetScene().Entity_CreateSound(soundName, fileName, XMFLOAT3(0, 0, 0));
-	Entity entity = GetScene().Entity_CreateSound_GG(soundName, fileName, XMFLOAT3(0, 0, 0),realname, data);
+
+	Scene& myscene = GetScene();
+	Entity entity = myscene.Entity_CreateSound_GG(soundName, fileName, XMFLOAT3(0, 0, 0),realname, data);
 
 	DBPRO_GLOBAL sSoundData* mptr;
 	if ((mptr = m_SDKSoundManager.GetData(iID)))
 	{
 		mptr->wickedEntity = entity;
-		mptr->wickedFilename = fileName;
+		strcpy(&mptr->wickedFilename[0], fileName.c_str());
 	}
 
 	SoundComponent* sound = GetScene().sounds.GetComponent(entity);
@@ -569,10 +570,7 @@ bool bLoadWickedSound(LPSTR szFilename, int iID, bool b3DSound, int iSilentFail,
 		if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
 		{
 			wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
-			if (sound->IsPlaying())
-			{
-				sound->Stop();
-			}
+			sound->Stop();
 			return true;
 		}
 	}
@@ -986,7 +984,9 @@ DARKSDK void LoadRawSound ( LPSTR szFilename, int iID, bool bFlag, int iSilentFa
 {
 	// Uses actual or virtual file..
 	char VirtualFilename[_MAX_PATH];
+	#ifdef WICKEDAUDIO
 	realname = szFilename;
+	#endif
 	strcpy(VirtualFilename, szFilename);
 	//g_pGlob->UpdateFilenameFromVirtualTable( VirtualFilename);
 
@@ -1061,10 +1061,23 @@ DARKSDK void PlaySound ( int iID )
 	m_ptr->bLoop = false;
 
 #ifdef WICKEDAUDIO
-	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	Scene&  myscene = GetScene();
+	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
 		sound->SetLooped(false);
+		if (sound->soundinstance.IsLooped())
+		{
+			sound->soundinstance.SetLooped(false);
+			if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
+			{
+				if (!sound->IsDisable3D())
+					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_SOUNDEFFECT; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+				else
+					sound->soundinstance.type = wiAudio::SUBMIX_TYPE::SUBMIX_TYPE_MUSIC; //SUBMIX_TYPE_SOUNDEFFECT, SUBMIX_TYPE_MUSIC,
+				wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+			}
+		}
 		wiAudio::Stop(&sound->soundinstance); //Flush so restart.
 		sound->Play();
 	}
@@ -1138,7 +1151,7 @@ DARKSDK void PlaySoundOffset ( int iID, int iOffset )
 	m_ptr->pSound->Play(0, NULL );
 #endif
 }
-
+uint32_t Unique_Clones = 0;
 DARKSDK void CloneSound ( int iDestination, int iSource )
 {
 #ifdef WICKEDAUDIO
@@ -1206,13 +1219,17 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 	bool bCloneFailed = true;
 	if(pSrcPtr->wickedEntity > 0)
 	{
-		SoundComponent* soundsrc = GetScene().sounds.GetComponent(pSrcPtr->wickedEntity);
+		Scene& myscene = GetScene();
+		SoundComponent* soundsrc = myscene.sounds.GetComponent(pSrcPtr->wickedEntity);
 		if (soundsrc)
 		{
 			//soundsrc->soundResource->filedata.data()
 			if (soundsrc->soundResource->filedata.size() > 0)
 			{
-				bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1, soundsrc->soundResource->filedata);
+				//PE: In MAX filename is crypted.wav all the time , so need a unique name, or wicked will reuse the crypted.wav resource.
+				std::string ext = wiHelper::toUpper(wiHelper::GetExtensionFromFileName(pSrcPtr->wickedFilename));
+				realname = "Clone" + std::to_string(iSource) + " " + std::to_string(Unique_Clones++) + "." + ext;
+				bLoadWickedSound(pSrcPtr->wickedFilename, iDestination, pSrcPtr->b3D, 1, soundsrc->soundResource->filedata);
 				return;
 			}
 		}
@@ -1220,7 +1237,7 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 		if (entity > 0)
 		{
 			m_ptr->wickedEntity = entity;
-			m_ptr->wickedFilename = pSrcPtr->wickedFilename;
+			strcpy(&m_ptr->wickedFilename[0], pSrcPtr->wickedFilename);
 			m_ptr->b3D = pSrcPtr->b3D;
 			SoundComponent* sound = GetScene().sounds.GetComponent(entity);
 			if (sound != nullptr)
@@ -1248,10 +1265,7 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 				if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
 				{
 					wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
-					if (sound->IsPlaying())
-					{
-						sound->Stop();
-					}
+					sound->Stop();
 					bCloneFailed = false;
 				}
 			}
@@ -1260,7 +1274,7 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 	if(bCloneFailed)
 	{
 		std::vector<uint8_t> emptydata;
-		bLoadWickedSound((char*)pSrcPtr->wickedFilename.c_str(), iDestination, pSrcPtr->b3D, 1, emptydata);
+		bLoadWickedSound(pSrcPtr->wickedFilename, iDestination, pSrcPtr->b3D, 1, emptydata);
 	}
 #else
 
@@ -1287,6 +1301,7 @@ DARKSDK void CloneSound ( int iDestination, int iSource )
 #endif
 }
 
+#ifdef WICKEDAUDIO
 void setReverB(int iID, uint32_t index)
 {
 	if (iID < 1 || iID > MAXIMUMVALUE)
@@ -1313,6 +1328,7 @@ void setReverB(int iID, uint32_t index)
 	}
 	return;
 }
+#endif
 DARKSDK void DeleteSound ( int iID )
 {
 #ifdef WICKEDAUDIO
@@ -1385,11 +1401,26 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 	m_ptr->bLoop  = true;
 
 #ifdef WICKEDAUDIO
-	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	Scene& myscene = GetScene();
+	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
-		sound->SetLooped(true);
-		wiAudio::Stop(&sound->soundinstance); //Flush and restart.
+		const bool looped = true; //true
+		sound->SetLooped(looped);
+		if (!sound->soundinstance.IsLooped())
+		{
+			sound->soundinstance.SetLooped(looped);
+			if (sound && sound->soundResource && sound->soundResource->sound.IsValid() && sound->soundinstance.IsValid())
+			{
+				wiAudio::CreateSoundInstance(&sound->soundResource->sound, &sound->soundinstance);
+			}
+		}
+		bool bPlaying = wiAudio::bIsReallyPlaying(&sound->soundinstance); //Flush so restart.
+		if (!bPlaying || !sound->IsPlaying() || m_ptr->bLoopRestart)
+		{
+			wiAudio::Stop(&sound->soundinstance); //Flush and restart.
+			m_ptr->bLoopRestart = false;
+		}
 		sound->Play();
 	}
 	else
@@ -1466,10 +1497,7 @@ DARKSDK void StopSound ( int iID )
 	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
-		if (sound->IsPlaying())
-		{
-			sound->Stop();
-		}
+		sound->Stop();
 	}
 #else
 	// mike - 230604 - added in these 2 extra lines
@@ -1518,7 +1546,8 @@ DARKSDK void ResumeSound ( int iID )
 	m_ptr->bPause = false;
 
 #ifdef WICKEDAUDIO
-	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
+	Scene& myscene = GetScene();
+	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
 		sound->Play();
@@ -1711,6 +1740,7 @@ DARKSDK void SetSoundVolume ( int iID, int iVolume )
 		if (fVol < 0) fVol = 0;
 		if (fVol > 100) fVol = 100;
 		sound->volume = fVol / 100.0f; //0-1 range.
+		//wiAudio::SetVolume(sound->volume,&sound->soundinstance);
 	}
 #else
 	float newvolume = (int)( (float) -9600.0f * (float) ( (float) (100.0f - iVolume) / 100.0f));

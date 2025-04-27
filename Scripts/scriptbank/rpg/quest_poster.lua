@@ -54,6 +54,7 @@ function quest_poster_properties(e, range, questprompt, questscreen, questchoice
 end
 
 function quest_poster_main(e)
+	SetEntityAlwaysActive(e,1)
 	if g_quest_poster[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then

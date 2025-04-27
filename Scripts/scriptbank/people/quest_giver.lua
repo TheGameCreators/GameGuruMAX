@@ -72,6 +72,7 @@ function quest_giver_main(e)
 	--		g_quest_giver_behavior_count = returnvalue
 	--	end
 	--end
+	SetEntityAlwaysActive(e,1)
 	if g_quest_giver[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then

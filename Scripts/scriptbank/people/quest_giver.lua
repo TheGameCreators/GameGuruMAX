@@ -1,9 +1,10 @@
--- Quest Giver v10 by Necrym59 and Lee
+-- Quest Giver v11 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, will show [QUEST_PROMPT$="Press E to Interact"] 
--- DESCRIPTION: when E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
+-- DESCRIPTION: When E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: and play [SPEECH1$=""]
 -- DESCRIPTION: <Sound0> when quest completed.
+-- DESCRIPTION: [!SpawnQuestObj=1] when quest accepted.
 
 master_interpreter_core = require "scriptbank\\masterinterpreter"
 local U = require "scriptbank\\utillib"
@@ -40,11 +41,12 @@ function quest_giver_init_file(e,scriptfile)
 	g_ActivateQuestComplete = 0	
 end
 
-function quest_giver_properties(e, range, questprompt, questscreen, questchoice)
+function quest_giver_properties(e, range, questprompt, questscreen, questchoice, spawnquestobj)
 	g_quest_giver[e]['range'] = range
 	g_quest_giver[e]['questprompt'] = questprompt
 	g_quest_giver[e]['questscreen'] = questscreen
 	g_quest_giver[e]['questchoice'] = questchoice
+	g_quest_giver[e]['spawnquestobj'] = spawnquestobj
 	g_quest_giver[e]['questtitle'] = ""
 	g_quest_giver[e]['questtype'] = ""
 	g_quest_giver[e]['questobject'] = ""
@@ -134,11 +136,21 @@ function quest_giver_main(e)
 		if g_quest_giver[e]['questtitle'] == g_UserGlobalQuestTitleActive then			
 			-- hide in game, we have accepted this one and doing it now
 			if g_UserGlobalQuestTitleActiveE > 0 then
+			
 				local tquestcomplete = 0
 				if g_quest_giver[e]['queststarted'] == 1 then
 					if doonce[e] == 0 then
 						ActivateIfUsed(e)
 						doonce[e] = 1
+					end
+				end
+				
+				if quest_objno[e] > 0 then		
+					if g_quest_giver[e]['spawnquestobj'] ~= 0 then
+						if GetEntitySpawnAtStart(quest_objno[e]) == 0 then
+							Spawn(quest_objno[e])
+							g_quest_giver[e]['spawnquestobj'] = 0
+						end
 					end
 				end
 
@@ -147,9 +159,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 then						
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-									quest_objno[e] = a									
-									break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+										quest_objno[e] = a									
+										break
+									end
 								end
 							end
 						end
@@ -162,9 +176,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 then						
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-									quest_objno[e] = a
-									break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+										quest_objno[e] = a
+										break
+									end
 								end
 							end
 						end
@@ -209,9 +225,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 then
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-								quest_objno[e] = a
-								break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+									quest_objno[e] = a
+									break
+									end
 								end
 							end
 						end
@@ -225,9 +243,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 or nil then
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-								quest_objno[e] = a								
-								break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+									quest_objno[e] = a								
+									break
+									end
 								end
 							end
 						end

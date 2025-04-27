@@ -819,6 +819,28 @@ function hud0.main()
 		end
 	end
 	
+	-- useful to know current player level
+	local currentplayerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then currentplayerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+	if currentplayerlevel < 1 then currentplayerlevel = 1 end
+	
+	-- handle custom quest reward text (add 'quest:show:reward' and hide it, then add 'MyRewardText' and specify your reward text)
+	local customrrewardtext = nil
+	local iqty = GetScreenElements("quest:*")
+	for ti = 1, iqty, 1 do
+		local elementID = GetScreenElementID("quest:*",ti)
+		local elementName = GetScreenElementName(elementID)
+		if elementID > 0 then
+			if string.sub(elementName,1,11) == "quest:show:" then
+				if elementName == "quest:show:reward" then
+					customrrewardtext = _G["g_UserGlobal['".."MyRewardText".."']"]
+					if customrrewardtext == nil then
+						customrrewardtext = ""
+					end
+				end
+			end
+		end	
+	end			
+		
 	-- handle any quest text
 	local iqty = GetScreenElements("quest:*")
 	for ti = 1, iqty, 1 do
@@ -859,22 +881,34 @@ function hud0.main()
 					else
 						for tquestindex = 1, hud0_quest_qty, 1 do
 							if GetCollectionQuestAttribute(tquestindex,"title") == g_UserGlobalQuestTitleShowing then
+								local optionalrewardseperation = 0
 								if elementName == "quest:show:completed" then
 									if hud0_quest_status[tquestindex] == "complete" then
 										ttextvalue = "Quest Completed"
 									else
-										local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
-										local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-										if playerlevel >= tlevelrequired then
-											ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." XP points and "..GetCollectionQuestAttribute(tquestindex,"value").." money"
-										else
-											ttextvalue = "You need to be level "..tlevelrequired.." to start this quest"
+										if customrrewardtext == nil then
+											local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
+											if currentplayerlevel >= tlevelrequired then
+												ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." XP points and "..GetCollectionQuestAttribute(tquestindex,"value").." money"
+											else
+												ttextvalue = "You need to be level "..tlevelrequired.." to start this quest"
+											end
 										end
 									end
 								else
-									if elementName == "quest:show:desc1" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc1") end
-									if elementName == "quest:show:desc2" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc2") end
-									if elementName == "quest:show:desc3" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc3") end
+									if elementName == "quest:show:reward" then
+										-- custom reward prompt
+										local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
+										if currentplayerlevel >= tlevelrequired then
+											ttextvalue = "Quest worth "..GetCollectionQuestAttribute(tquestindex,"points").." "..customrrewardtext
+										else
+											ttextvalue = "You need to be level "..tlevelrequired.." to start this quest"
+										end
+									else
+										if elementName == "quest:show:desc1" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc1") end
+										if elementName == "quest:show:desc2" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc2") end
+										if elementName == "quest:show:desc3" then ttextvalue = GetCollectionQuestAttribute(tquestindex,"desc3") end
+									end
 								end
 								break
 							end
@@ -935,8 +969,7 @@ function hud0.main()
 										if hud0_quest_status[tquestindex] == "inactive" then
 											-- allow inactive quest to be accepted - if reached required level
 											local tlevelrequired = tonumber(GetCollectionQuestAttribute(tquestindex,"level"))
-											local playerlevel = 1 if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then playerlevel = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-											if playerlevel >= tlevelrequired then
+											if currentplayerlevel >= tlevelrequired then
 												SetScreenElementVisibility(elementID,1)
 											end
 											break

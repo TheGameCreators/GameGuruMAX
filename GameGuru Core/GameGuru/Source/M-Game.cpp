@@ -2441,7 +2441,9 @@ void game_masterroot_gameloop_initcode(int iUseVRTest)
 			if (SoundExist(iFreeSoundID) == 1)
 			{
 				LoopSound(iFreeSoundID);
-				SetSoundVolume(iFreeSoundID, t.visuals.iCombatMusicTrackVolume);
+				SetSoundVolume(iFreeSoundID, 0); //PE: Controlled in lua t.visuals.iCombatMusicTrackVolume);
+				extern std::unordered_map<int, float> luavolumes;
+				luavolumes.insert_or_assign(iFreeSoundID, 0);
 			}
 		}
 	}

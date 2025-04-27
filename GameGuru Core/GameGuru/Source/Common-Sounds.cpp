@@ -54,86 +54,95 @@ float soundtruevolume ( int tvolume_f )
 	return tvolume_f;
 }
 
-int loadinternalsoundcorecloneflag ( char* tfile_s, int mode, int clonesoundindex )
+int loadinternalsoundcorecloneflag(char* tfile_s, int mode, int clonesoundindex)
 {
-	cstr tfiletoload_s =  "";
+	cstr tfiletoload_s = "";
 	int tspecialogg = 0;
-	cstr tfileogg_s =  "";
+	cstr tfileogg_s = "";
 	unsigned char skipclone = 0;
 	int soundid = 0;
 
-//  Terry fix for build game crash when cloning sounds.
-//bool skipclone;
-skipclone = 0;
+	//  Terry fix for build game crash when cloning sounds.
+	//bool skipclone;
+	skipclone = 0;
 
-//  The file to actually load (can change)
-tfiletoload_s=tfile_s;
+	//  The file to actually load (can change)
+	tfiletoload_s = tfile_s;
 
-//  Default return
-soundid=0;
+	//  Default return
+	soundid = 0;
 
-//  No scan for existing - all sounds unique for overlay play
-int tt;
-tt=g.soundbankmax+1;
-if (  tt>g.soundbankmax ) 
-{
-	//  as we change WAV to OGG during build process, end game can try to load WAV but
-	//  only the OGG file exists in the standalone media, so detect any OGG and switch to that
-	if (  FileExist(tfile_s) == 0 ) 
+	//  No scan for existing - all sounds unique for overlay play
+	int tt;
+	tt = g.soundbankmax + 1;
+	if (tt > g.soundbankmax)
 	{
-		tfileogg_s=Left(tfile_s,Len(tfile_s)-4);
-		tfileogg_s += ".ogg";
-		if (  FileExist(tfileogg_s.Get()) == 1 ) 
+		//  as we change WAV to OGG during build process, end game can try to load WAV but
+		//  only the OGG file exists in the standalone media, so detect any OGG and switch to that
+		if (FileExist(tfile_s) == 0)
 		{
-			tfiletoload_s=tfileogg_s;
-		}
-	}
-	tspecialogg = 0 ; if ( cstr( Right(Lower(tfiletoload_s.Get()),4)) == ".ogg"  )  tspecialogg = 1;
-	if (  cstr(Right(Lower(tfile_s),4)) == ".wav" || tspecialogg == 1 ) 
-	{
-		if (  FileExist(tfiletoload_s.Get()) == 1 ) 
-		{
-			//  add this sound to game sound bank
-			++g.soundbankmax;
-			Dim (  t.soundbank_s,g.soundbankmax  );
-			soundid=g.soundbankoffset+g.soundbankmax;
-			if (  clonesoundindex > 0 ) 
+			tfileogg_s = Left(tfile_s, Len(tfile_s) - 4);
+			tfileogg_s += ".ogg";
+			if (FileExist(tfileogg_s.Get()) == 1)
 			{
-				//  special mode which clones existing sound (saves memory)
-				CloneSound (  soundid,clonesoundindex );
-				t.soundbank_s[g.soundbankmax]="cloned sound";
+				tfiletoload_s = tfileogg_s;
 			}
-			else
+		}
+		tspecialogg = 0; if (cstr(Right(Lower(tfiletoload_s.Get()), 4)) == ".ogg")  tspecialogg = 1;
+		if (cstr(Right(Lower(tfile_s), 4)) == ".wav" || tspecialogg == 1)
+		{
+			if (FileExist(tfiletoload_s.Get()) == 1)
 			{
-				if (  mode == 1 && tspecialogg == 0 ) 
+				//  add this sound to game sound bank
+				++g.soundbankmax;
+				Dim(t.soundbank_s, g.soundbankmax);
+				soundid = g.soundbankoffset + g.soundbankmax;
+				if (clonesoundindex > 0)
 				{
-					Load3DSound (  tfiletoload_s.Get(),soundid,1 );
-					if (  SoundExist(soundid) == 0  )  LoadSound (  tfiletoload_s.Get(),soundid,0,1 );
+					//  special mode which clones existing sound (saves memory)
+					CloneSound(soundid, clonesoundindex);
+					if (SoundExist(soundid) == 0)
+					{
+						//  sound could not loaded
+						t.soundbank_s[g.soundbankmax] = "";
+						--g.soundbankmax;
+						soundid = 0;
+					}
+					else
+					{
+						t.soundbank_s[g.soundbankmax] = "cloned sound";
+					}
 				}
 				else
 				{
-					LoadSound (  tfiletoload_s.Get(),soundid,0,1 );
-				}
-				if (  SoundExist(soundid) == 0 ) 
-				{
-					//  sound could not loaded
-					t.soundbank_s[g.soundbankmax]="";
-					--g.soundbankmax;
-					soundid=0;
-				}
-				else
-				{
-					//  success
-					t.soundbank_s[g.soundbankmax]=tfile_s;
+					if (mode == 1 && tspecialogg == 0)
+					{
+						Load3DSound(tfiletoload_s.Get(), soundid, 1);
+						if (SoundExist(soundid) == 0)  LoadSound(tfiletoload_s.Get(), soundid, 0, 1);
+					}
+					else
+					{
+						LoadSound(tfiletoload_s.Get(), soundid, 0, 1);
+					}
+					if (SoundExist(soundid) == 0)
+					{
+						//  sound could not loaded
+						t.soundbank_s[g.soundbankmax] = "";
+						--g.soundbankmax;
+						soundid = 0;
+					}
+					else
+					{
+						//  success
+						t.soundbank_s[g.soundbankmax] = tfile_s;
+					}
 				}
 			}
 		}
 	}
-}
 
-//endfunction soundid
-	return soundid
-;
+	//endfunction soundid
+	return soundid;
 }
 
 int loadinternalsoundcore ( char* tfile_s, int mode )

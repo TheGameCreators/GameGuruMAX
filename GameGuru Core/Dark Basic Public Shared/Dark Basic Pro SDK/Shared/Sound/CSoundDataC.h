@@ -25,7 +25,8 @@ struct sSoundData
 	GGVECTOR3					vecLast;
 
 	uint32_t wickedEntity;
-	std::string wickedFilename;
+	char wickedFilename[1024];
+	bool bLoopRestart = false;
 
 	sSoundData ( )
 	{
@@ -42,7 +43,8 @@ struct sSoundData
 		vecPosition         = GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
 		vecLast				= GGVECTOR3 ( 0.0f, 0.0f, 0.0f );
 		wickedEntity = 0;
-		wickedFilename = "";
+		wickedFilename[0] = 0;
+		bLoopRestart = false;
 	}
 
 	~sSoundData ( )

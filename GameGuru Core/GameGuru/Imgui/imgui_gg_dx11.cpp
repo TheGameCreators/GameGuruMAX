@@ -7184,6 +7184,39 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
 												}
 											}
+											if (stricmp(labels[1].c_str(), "hudscreenlist") == NULL)
+											{
+												static std::vector<std::string> globallist_labels;
+												extern StoryboardStruct Storyboard;
+												labels.clear();
+												labels.push_back(cVariable);
+
+												for (int allhudscreensnodeid = 0; allhudscreensnodeid < STORYBOARD_MAXNODES; allhudscreensnodeid++)
+												{
+													if (Storyboard.Nodes[allhudscreensnodeid].used)
+													{
+														if (Storyboard.Nodes[allhudscreensnodeid].type == STORYBOARD_TYPE_HUD)
+														{
+															if (strlen(Storyboard.Nodes[allhudscreensnodeid].title) > 0)
+															{
+																labels.push_back(Storyboard.Nodes[allhudscreensnodeid].title);
+
+															}
+														}
+													}
+												}
+												if (labels.size() > 1)
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();
+												}
+												else
+												{
+													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 0;
+													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = 0;
+												}
+
+											}
 											if (stricmp(labels[1].c_str(), "globallist") == NULL)
 											{
 												static std::vector<std::string> globallist_labels;
@@ -7239,7 +7272,7 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 													}
 												}
 												labels = globallist_labels;
-												if (labels.size() > 0)
+												if (labels.size() > 1)
 												{
 													tmpeleprof->PropertiesVariable.VariableValueFrom[tmpeleprof->PropertiesVariable.iVariables] = 1;
 													tmpeleprof->PropertiesVariable.VariableValueTo[tmpeleprof->PropertiesVariable.iVariables] = labels.size();

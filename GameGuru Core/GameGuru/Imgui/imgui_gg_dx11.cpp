@@ -6984,6 +6984,8 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 					#ifdef WICKEDENGINE
 					if (pestrcasestr(tmpVariable, "@"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 4; // labelled int[]
+					if (pestrcasestr(tmpVariable, "@@"))
+						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 7; // labelled string
 					if (pestrcasestr(tmpVariable, "*"))
 						tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] = 5; // user specified in seconds
 					if (pestrcasestr(tmpVariable, "&"))
@@ -7009,7 +7011,7 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 
 							#ifdef WICKEDENGINE
 							// Need to calculate the range differently for the dropdown type.
-							if (tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] == 4)
+							if (tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] == 4 || tmpeleprof->PropertiesVariable.VariableType[tmpeleprof->PropertiesVariable.iVariables] == 7)
 							{
 								// Count number of = symbols
 								int iFirstEqualsIndex = -1;
@@ -7846,11 +7848,15 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 				if (pTooltipForTickbox && ImGui::IsItemHovered()) ImGui::SetTooltip(pTooltipForTickbox);
 			}
 			#ifdef WICKEDENGINE
-			else if (tmpeleprof->PropertiesVariable.VariableType[i] == 4)
+			else if (tmpeleprof->PropertiesVariable.VariableType[i] == 4 || tmpeleprof->PropertiesVariable.VariableType[i] == 7)
 			{
 				// Dropdown of labelled integers.
 				std::vector<std::string> labels;
 				bool bGotLabels = false;
+				bool bAsString = false;
+				if (tmpeleprof->PropertiesVariable.VariableType[i] == 7)
+					bAsString = true;
+
 				// Retrieve the labels for this dropdown.
 				for (int l = 0; l < luadropdownlabels.size(); l++)
 				{
@@ -7870,14 +7876,20 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 					int iQuestIndex = 0;
 
 					// Determine the label for the currently selected value.
-					int iSelectedIndex = atol(tmpeleprof->PropertiesVariable.VariableValue[i]) - tmpeleprof->PropertiesVariable.VariableValueFrom[i];
-
-					// Since the first element of the labels is the variable number, add 1.
-					iSelectedIndex++;
-
-					// Ensure preview for combo is always valid
+					int iSelectedIndex = 0;
 					const char* preview = "";
-					if (iSelectedIndex < labels.size() ) preview = labels[iSelectedIndex].c_str();
+					if (bAsString)
+					{
+						preview = tmpeleprof->PropertiesVariable.VariableValue[i];
+					}
+					else
+					{
+						iSelectedIndex = atol(tmpeleprof->PropertiesVariable.VariableValue[i]) - tmpeleprof->PropertiesVariable.VariableValueFrom[i];
+						// Since the first element of the labels is the variable number, add 1.
+						iSelectedIndex++;
+						// Ensure preview for combo is always valid
+						if (iSelectedIndex < labels.size()) preview = labels[iSelectedIndex].c_str();
+					}
 
 					// No combi if no choices
 					if (tmpeleprof->PropertiesVariable.VariableValueTo[i] == 0 && tmpeleprof->PropertiesVariable.VariableValueFrom[i] == 0)
@@ -7897,16 +7909,28 @@ int DisplayLuaDescription(entityeleproftype *tmpeleprof)
 								int iValue = tmpeleprof->PropertiesVariable.VariableValueFrom[i] + j;
 								sprintf(labelID, "%d", iValue-1);
 
-								if (strcmp(labelID, tmpeleprof->PropertiesVariable.VariableValue[i]) == NULL)
-									bSelected = true;
-
 								char label[128];
-								
-								strcpy(label, labels[j].c_str());
-								
+								strcpy_s(label, 127,  labels[j].c_str());
+								label[127] = 0;
+
+								if (bAsString)
+								{
+									if (strcmp(label, tmpeleprof->PropertiesVariable.VariableValue[i]) == NULL)
+										bSelected = true;
+								}
+								else
+								{
+									if (strcmp(labelID, tmpeleprof->PropertiesVariable.VariableValue[i]) == NULL)
+										bSelected = true;
+								}
+							
 								if (ImGui::Selectable(label, bSelected))
 								{
-									strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], labelID);
+									if(bAsString)
+										strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], label);
+									else
+										strcpy(tmpeleprof->PropertiesVariable.VariableValue[i], labelID);
+
 									bUpdateMainString = true;
 								}
 								if (bSelected) ImGui::SetItemDefaultFocus();

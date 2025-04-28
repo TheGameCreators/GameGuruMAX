@@ -298,7 +298,7 @@ void lua_execute_properties_variable(char *string)
 					if (type == 1) {
 						LuaPushFloat( atof(find+1) );
 					}
-					else if (type == 2) {
+					else if (type == 2 || type == 7) {
 						LuaPushString(find+1);
 					}
 					else {

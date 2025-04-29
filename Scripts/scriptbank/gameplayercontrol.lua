@@ -2221,7 +2221,11 @@ end
 
 function gameplayercontrol.combatmusic()
  -- handle combat music track control (fades out after no combat)
- if g_CombatMusicMode == nil then g_CombatMusicMode = 0 end
+ if g_CombatMusicMode == nil then
+   g_CombatMusicVolume = 0.2
+   g_CombatMusicMode = 2
+   g_CombatMusicLatest = 0
+ end
  if g_PlayerHealth <= 0 then 
   StopCombatMusicTrack()
   g_CombatMusicMode = 0 

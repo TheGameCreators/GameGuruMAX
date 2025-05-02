@@ -4089,6 +4089,83 @@ int RDBlockNavMesh(lua_State *L)
 	return RDBlockNavMeshCore(L,0);
 }
 
+// TokenDrop functions (include RecastDetour for convenience of navmesh rendering system)
+
+int DoTokenDrop(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 5) return 0;
+	float fX = lua_tonumber(L, 1);
+	float fY = lua_tonumber(L, 2);
+	float fZ = lua_tonumber(L, 3);
+	int iType = lua_tonumber(L, 4);
+	float fDuration = lua_tonumber(L, 5);
+	g_RecastDetour.DoTokenDrop(fX, fY, fZ, iType, fDuration);
+	return 0;
+}
+
+int GetTokenDropCount(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n > 0) return 0;
+	int iTokenDropCount = g_RecastDetour.GetTokenDropCount();
+	lua_pushnumber (L, iTokenDropCount);
+	return 1;
+}
+int GetTokenDropX(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iIndex = lua_tonumber(L, 1);
+	float fValue = g_RecastDetour.GetTokenDropX(iIndex);
+	lua_pushnumber (L, fValue);
+	return 1;
+}
+int GetTokenDropY(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iIndex = lua_tonumber(L, 1);
+	float fValue = g_RecastDetour.GetTokenDropY(iIndex);
+	lua_pushnumber (L, fValue);
+	return 1;
+}
+int GetTokenDropZ(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iIndex = lua_tonumber(L, 1);
+	float fValue = g_RecastDetour.GetTokenDropZ(iIndex);
+	lua_pushnumber (L, fValue);
+	return 1;
+}
+int GetTokenDropType(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iIndex = lua_tonumber(L, 1);
+	float fValue = g_RecastDetour.GetTokenDropType(iIndex);
+	lua_pushnumber (L, fValue);
+	return 1;
+}
+int GetTokenDropTimeLeft(lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	int iIndex = lua_tonumber(L, 1);
+	float fValue = g_RecastDetour.GetTokenDropTimeLeft(iIndex);
+	lua_pushnumber (L, fValue);
+	return 1;
+}
+
+
 int AdjustPositionToGetLineOfSight (lua_State *L)
 {
 	lua = L;
@@ -12604,6 +12681,15 @@ void addFunctions()
 	lua_register(lua, "RDGetYFromMeshPosition", RDGetYFromMeshPosition);
 	lua_register(lua, "RDBlockNavMesh", RDBlockNavMesh);
 	lua_register(lua, "RDBlockNavMeshWithShape", RDBlockNavMeshWithShape);
+
+	lua_register(lua, "DoTokenDrop", DoTokenDrop);
+	lua_register(lua, "GetTokenDropCount", GetTokenDropCount);
+	lua_register(lua, "GetTokenDropX", GetTokenDropZ);
+	lua_register(lua, "GetTokenDropY", GetTokenDropY);
+	lua_register(lua, "GetTokenDropZ", GetTokenDropZ);
+	lua_register(lua, "GetTokenDropType", GetTokenDropType);
+	lua_register(lua, "GetTokenDropTimeLeft", GetTokenDropTimeLeft);
+
 	lua_register(lua, "AdjustPositionToGetLineOfSight", AdjustPositionToGetLineOfSight);
 	lua_register(lua, "SetCharacterMode", SetCharacterMode);
 	

@@ -3385,6 +3385,7 @@ struct globalstype
 	int hidelowfpswarning;
 	int deactivateconkit;
 	int disablefreeflight;
+	int fulldebugviewofkeymap;
 	int enableplrspeedmods;
 	int disableweaponjams;
 	int showdebugcollisonboxes;
@@ -3440,6 +3441,7 @@ struct globalstype
 		 disableweaponjams = 0;
 		 enableplrspeedmods = 0;
 		 disablefreeflight = 0;
+		 fulldebugviewofkeymap = 0;
 		 deactivateconkit = 0;
 		 hidelowfpswarning = 0;
 		 memorydetector = 0;

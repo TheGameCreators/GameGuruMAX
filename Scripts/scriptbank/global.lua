@@ -2403,6 +2403,15 @@ RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,an
 RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,angle,adjminy,adjmaxy) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 SetCharacterMode : success = SetCharacterMode (e,mode) -- returns 1 if a character objects 'mode' was successfully changed (mode 1=character, 0=non-character)
 
+NEW MAX TOKENDROP COMMANDS
+DoTokenDrop : DoTokenDrop(x,y,z,type,duration) -- creates a drop token at X, Y, Z position, with custom type and milliseconds life duration
+GetTokenDropCount : count = GetTokenDropCount() -- returns the total number of target drops
+GetTokenDropX : x = GetTokenDropX(index) -- returns the X coordinate of the specified target drop
+GetTokenDropY : y = GetTokenDropY(index) -- returns the Y coordinate of the specified target drop
+GetTokenDropZ : z = GetTokenDropZ(index) -- returns the Z coordinate of the specified target drop
+GetTokenDropType : type = GetTokenDropType(index) -- returns the Type coordinate of the specified target drop
+GetTokenDropTimeLeft : timeleft = GetTokenDropTimeLeft(index) -- returns the TimeLeft in milliseconds of the specified target drop
+
 OLD LEGACY AUTOMATIC COMMANDS
 AIEntityAssignPatrolPath AIEntityAssignPatrolPath(obj,pathid) -- where obj is the object number of the entity. See DarkAI docs for parameter descriptions
 AIEntityAddTarget: AIEntityAddTarget(obj,targetid) -- where obj is the object number of the entity. See DarkAI docs for parameter descriptions

@@ -34,6 +34,14 @@ struct sBlocker
 	bool bBlocking;
 	float fAngle;
 };
+struct sTokenDrop
+{
+	int iType;
+	float X;
+	float Y;
+	float Z;
+	float fTimeLeft;
+};
 
 /**
 @defgroup detour Detour

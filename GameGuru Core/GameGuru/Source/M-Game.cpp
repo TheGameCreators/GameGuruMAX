@@ -429,8 +429,9 @@ void game_createnavmeshfromlevel ( bool bForceGeneration )
 
 	// must still reset nav mesh system for new run (blocker list)
 	g_RecastDetour.ResetBlockerSystem();
+	g_RecastDetour.ResetTokenDropSystem();
 	g_RecastDetour.SetWaterTableY(t.terrain.waterliney_f);
-	
+
 	// exit early if no change detected in static arrangement
 	static double dLastSuperHash = -1;
 	if(g_bResetHasForLevelGeneration == true)
@@ -4893,6 +4894,9 @@ void game_main_loop ( void )
 					{
 						darkai_loop ( );
 					}
+
+					// handle anmy token drops once per cycle
+					g_RecastDetour.ManageTokenDropSystem(g.timeelapsed_f);
 				}
 				wiProfiler::EndRange(range3);
 

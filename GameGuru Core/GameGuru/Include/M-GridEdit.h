@@ -25,7 +25,7 @@ void editor_previewmap ( int iUseVRTest );
 void editor_previewmap_initcode(int iUseVRTest);
 bool editor_previewmap_loopcode(int iUseVRTest);
 void editor_previewmap_afterloopcode(int iUseVRTest);
-void input_getfilemapcontrols ( void );
+//void input_getfilemapcontrols ( void );
 void input_getcontrols ( void );
 void imgui_input_getcontrols(void);
 void input_calculatelocalcursor ( void );

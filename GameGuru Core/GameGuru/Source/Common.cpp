@@ -2592,6 +2592,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					// DOCDOC: disablefreeflight = Disables the ability to use the free flight mode in the editor
 					t.tryfield_s = "disablefreeflight"; if (t.field_s == t.tryfield_s)  g.globals.disablefreeflight = t.value1;
 
+					// DOCDOC: fulldebugview = When set to 1, will detect and post the key state value of any key pressed in test game
+					t.tryfield_s = "fulldebugview"; if (t.field_s == t.tryfield_s)  g.globals.fulldebugviewofkeymap = t.value1;	
+
 					// DOCDOC: enableplrspeedmods = Enable the ability of weapons to affect the total running speed of the player
 					t.tryfield_s = "enableplrspeedmods"; if (t.field_s == t.tryfield_s)  g.globals.enableplrspeedmods = t.value1;
 
@@ -3353,13 +3356,22 @@ LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename )
 
 void FPSC_LoadKEYMAP ( void )
 {
+	// first reset back to default no matter what
+	for (t.num = 256; t.num >= 1; t.num--)
+	{
+		g.keymap[t.num] = (unsigned char)t.num;
+	}
+
 	// look in editors\keymap\ to find a non-default.ini to prefer
-	if (PathExist("Files\\editors\\keymap") == 1 )
+	if (PathExist("editors\\keymap") == 1 )
 	{
 		LPSTR pOldDir = GetDir();
-		SetDir("Files\\editors\\keymap");
+		char pWritableKeyMapFile[MAX_PATH];
+		strcpy(pWritableKeyMapFile, "editors\\keymap\\");
+		GG_GetRealPath(pWritableKeyMapFile, 0);
+		SetDir(pWritableKeyMapFile);
 		ChecklistForFiles();
-		cstr useThisKeyMapFile = "Files\\editors\\keymap\\default.ini";
+		cstr useRelThisKeyMapFile = "editors\\keymap\\default.ini";
 		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 		{
 			t.tfile_s = ChecklistString(t.c);
@@ -3367,8 +3379,8 @@ void FPSC_LoadKEYMAP ( void )
 			{
 				if (stricmp(t.tfile_s.Get(), "default.ini") != NULL)
 				{
-					useThisKeyMapFile = "Files\\editors\\keymap\\";
-					useThisKeyMapFile += t.tfile_s;
+					useRelThisKeyMapFile = "editors\\keymap\\";
+					useRelThisKeyMapFile += t.tfile_s;
 					break;
 				}
 			}
@@ -3376,7 +3388,9 @@ void FPSC_LoadKEYMAP ( void )
 		SetDir(pOldDir);
 
 		//  editors\keymap\default.ini
-		t.tfile_s = useThisKeyMapFile;
+		strcpy(pWritableKeyMapFile, useRelThisKeyMapFile.Get());
+		GG_GetRealPath(pWritableKeyMapFile, 0);
+		t.tfile_s = pWritableKeyMapFile;
 		if ( FileExist(t.tfile_s.Get()) == 1 )
 		{
 			Dim (  t.data_s,999  );
@@ -4022,7 +4036,6 @@ void FPSC_Setup(void)
 	FPSC_LoadSETUPINI(false);
 	FPSC_LoadSETUPVRINI();
 
-#ifdef WICKEDENGINE
 	//PE: setup overwrite for standalone.
 	extern bool bSpecialStandalone;
 	extern int g_iDevToolsOpen;
@@ -4036,15 +4049,9 @@ void FPSC_Setup(void)
 	{
 		g_iDevToolsOpen = pref.iDevToolsOpen;
 	}
-	// using new DocWrite system
-	#else
-	if (g.mysystem.bUsingMySystemFolder == true)
-	{
-		FPSC_LoadSETUPINI(true);
-		FPSC_LoadSETUPVRINI();
-	}
-	#endif
-	FPSC_LoadKEYMAP();
+
+	// load key bindings - moved to common_mustreload_foreachnewproject so can be reloaded based on project
+	// FPSC_LoadKEYMAP();
 
 	// 250917 - set default CPU animation flag for engine
 	if ( g.allowcpuanimations == 0 )
@@ -5458,6 +5465,9 @@ void common_mustreload_foreachnewproject(void)
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
 	version_splashtext_statusupdate ();
 	blood_damage_init ();
+
+	// key bindings can change between local and remote project (each remote can have their own custom set)
+	FPSC_LoadKEYMAP();
 }
 
 void common_hide_mouse ( void )

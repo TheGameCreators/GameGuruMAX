@@ -562,6 +562,9 @@ int g_iRenameHUDScreenID = -1;
 char g_pRenameHUDName[256] = "\0";
 char g_pRenameHUDScreenError[256] = "\0";
 
+bool g_bMappingKeyWindow = false;
+int g_iMappingKeyToChange = -1;
+
 #ifdef ENABLEIMGUI
 void imgui_set_openproperty_flags(int iMasterID)
 {
@@ -38034,7 +38037,7 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 	Storyboard.vEditorPanning = ImVec2(0.0f, 0.0f);
 	strcpy(Storyboard.game_icon, "");
 	strcpy(Storyboard.game_thumb, "");
-	strcpy(Storyboard.game_description, "Game Description");
+	strcpy(Storyboard.game_description, "A game I made in GameGuru MAX");
 	strcpy(Storyboard.game_world_edge_text, "You cannot leave the area of play");
 	strcpy(Storyboard.game_developer_desc, "");
 	Storyboard.project_readonly = 0;
@@ -41355,7 +41358,7 @@ void process_storeboard(bool bInitOnly)
 					{
 						ImGui::SetWindowFontScale(1.4);
 						ImGui::Text("");
-						ImGui::TextCenter("Edit Text Description");
+						ImGui::TextCenter("Edit Game Description");
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(1.0);
 
@@ -41365,8 +41368,6 @@ void process_storeboard(bool bInitOnly)
 
 						ImGui::SetWindowFontScale(1.2);
 						float width = 586.0; //480.0;
-						//if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(480, 288), ImGuiInputTextFlags_CallbackAlways, CLB, &(width)))
-						//if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(width, 288 ),0,NULL,(void*)-1 ) )
 						if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(width, ImGui::GetFontSize()*19+12.0), 0, NULL, (void*)-1))
 						{
 							//PE: Simple Wrap input.
@@ -41435,12 +41436,64 @@ void process_storeboard(bool bInitOnly)
 					}
 
 					tabflags = 0;
+					if (iChangeTab == 6)
+					{
+						iChangeTab = 0;
+						tabflags = ImGuiTabItemFlags_SetSelected;
+					}
+					if (ImGui::BeginTabItem(" Key Bindings ", NULL, tabflags))
+					{
+						ImGui::SetWindowFontScale(1.4);
+						ImGui::Text("");
+						ImGui::TextCenter("Modify Global Key Bindings");
+						ImGui::Text("");
+						ImVec2 cPos = ImVec2(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (200), 0.0f));
+
+						ImGui::SetWindowFontScale(1.2);
+						int buttonwide = 200;
+						int iDefKey = 0;
+						char pButtonName[256];
+						char pBindingDesc[256];
+						for (int keyi = 0; keyi < 8; keyi++)
+						{
+							if (keyi == 0)      { iDefKey = 17;  sprintf(pButtonName, "Move Forward Key"); sprintf(pBindingDesc, "[W] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 1) { iDefKey = 31;  sprintf(pButtonName, "Move Backward Key"); sprintf(pBindingDesc, "[S] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 2) { iDefKey = 30;  sprintf(pButtonName, "Move Left Key"); sprintf(pBindingDesc, "[A] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 3) { iDefKey = 32;  sprintf(pButtonName, "Move Right Key"); sprintf(pBindingDesc, "[D] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 4) { iDefKey = 18;  sprintf(pButtonName, "Action Key"); sprintf(pBindingDesc, "[E] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 5) { iDefKey = 46;  sprintf(pButtonName, "Crouch Key"); sprintf(pBindingDesc, "[C] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 6) { iDefKey = 42;  sprintf(pButtonName, "Run Key"); sprintf(pBindingDesc, "[SHIFT] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 7) { iDefKey = 57;  sprintf(pButtonName, "Jump Key"); sprintf(pBindingDesc, "[SPACE] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 16;  sprintf(pButtonName, "[Q] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 19;  sprintf(pButtonName, "[R] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 12;  sprintf(pButtonName, "[MINUS1] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 74;  sprintf(pButtonName, "[MINUS2] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 13;  sprintf(pButtonName, "[PLUS1] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 78;  sprintf(pButtonName, "[PLUS2] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 28;  sprintf(pButtonName, "[RETURN] Key: %d", g.keymap[iDefKey]); }
+							ImGui::SetCursorPos(ImVec2(cPos.x, ImGui::GetCursorPos().y));
+							if (ImGui::StyleButton(pButtonName, ImVec2(buttonwide, 0.0f))) 
+							{ 
+								g_iMappingKeyToChange = iDefKey;
+								g_bMappingKeyWindow = true;
+							}
+							bool bModified = false;	if (g.keymap[iDefKey] != iDefKey) bModified = true;
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(cPos.x + buttonwide + 20.0f, ImGui::GetCursorPos().y));
+							if(bModified) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+							ImGui::Text(pBindingDesc);
+							if (bModified) ImGui::PopStyleColor();
+						}
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::EndTabItem();
+					}
+
+					tabflags = 0;
 					if (iChangeTab == 4)
 					{
 						iChangeTab = 0;
 						tabflags = ImGuiTabItemFlags_SetSelected;
 					}
-
 					if (strlen(Storyboard.gamename) > 0)
 					{
 						if (ImGui::BeginTabItem(" Icon ", NULL, tabflags))
@@ -41598,58 +41651,11 @@ void process_storeboard(bool bInitOnly)
 								}
 							}
 							ImGui::SetWindowFontScale(1.0);
-
-							//TEST
-							//#define TESTICONINJECT
-							#ifdef TESTICONINJECT
-							if (ImGui::StyleButton("TEST -> FISHLAKE.exe", ImVec2(buttonwide, 0.0f)))
-							{
-								void InjectIconToExe(char *icon, char *exe, int intresourcenumber);
-								char projectico[MAX_PATH];
-								char projectfinal_ico[MAX_PATH];
-								strcpy(projectico, "projectbank\\");
-								strcat(projectico, Storyboard.gamename);
-
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project256.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 1);
-
-								//strcpy(projectfinal_ico, projectico);
-								//strcat(projectfinal_ico, "\\project16.ico");
-								//GG_GetRealPath(projectfinal_ico, 1);
-								//InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 6);
-
-								//PE: Only 256 used for now.
-								/*
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project128.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe",2);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project64.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 3);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project48.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 4);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project32.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 5);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project16.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 6);
-								*/
-							}
-							#endif
 							ImGui::EndTabItem();
 						}
 					}
 					tabflags = 0;
-					if (iChangeTab == 4)
+					if (iChangeTab == 5)
 					{
 						iChangeTab = 0;
 						tabflags = ImGuiTabItemFlags_SetSelected;
@@ -41658,7 +41664,7 @@ void process_storeboard(bool bInitOnly)
 					{
 						ImGui::SetWindowFontScale(1.4);
 						ImGui::Text("");
-						ImGui::TextCenter("Game Developer Description");
+						ImGui::TextCenter("Edit Game Developer Description");
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(1.0);
 
@@ -41705,23 +41711,6 @@ void process_storeboard(bool bInitOnly)
 					}
 					ImGui::EndTabBar();
 				}
-				//####
-
-				/*
-				ImGui::Indent(10);
-				ImGui::Text("");
-				ImVec2 cPos = ImVec2(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
-				cPos.y = ImGui::GetWindowSize().y - 30.0;
-				ImGui::SetCursorPos(cPos);
-				if (ImGui::StyleButton("Close", ImVec2(buttonwide, 0.0f)))
-				{
-					//Close.
-					bEditGameSettings = false;
-				}
-				ImGui::Indent(-10);
-				*/
-
-				//####
 				ImGui::NextColumn();
 
 				if (ImGui::StyleCollapsingHeader("Game Description", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
@@ -41730,13 +41719,11 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Change Game Thumbnail", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 1;
 					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Edit Text Description", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 2;
 					}
 					ImGui::Indent(-10);
@@ -41747,12 +41734,15 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Edge of Game World Message", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 3;
+					}
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Key Bindings", ImVec2(buttonwide, 0.0f)))
+					{
+						iChangeTab = 6;
 					}
 					ImGui::Indent(-10);
 				}
-
 				if (strlen(Storyboard.gamename) > 0)
 				{
 					if (ImGui::StyleCollapsingHeader("Export Settings", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
@@ -41761,17 +41751,25 @@ void process_storeboard(bool bInitOnly)
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 						if (ImGui::StyleButton("Game Executable Icon", ImVec2(buttonwide, 0.0f)))
 						{
-							//code
 							iChangeTab = 4;
 						}
 						ImGui::Indent(-10);
 					}
 				}
+				if (ImGui::StyleCollapsingHeader("Developer Description", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
+				{
+					ImGui::Indent(10);
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Game Developer Description", ImVec2(buttonwide, 0.0f)))
+					{
+						iChangeTab = 5;
+					}
+					ImGui::Indent(-10);
+				}
 				ImGui::EndColumns();
 
 				bImGuiGotFocus = true;
 				ImGui::Indent(-10);
-				//ImGui::EndPopup();
 				bBlockNextMouseCheck = true;
 			}
 			ImGui::End();
@@ -41783,6 +41781,71 @@ void process_storeboard(bool bInitOnly)
 		}
 		#endif
 
+		// handle capture of new key for key binding
+		if (g_bMappingKeyWindow)
+		{
+			bImGuiGotFocus = true;
+			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(512, 256));
+			ImGui::OpenPopup("##mappingkeypopup");
+			ImGui::BeginPopupModal("##mappingkeypopup", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::TextCenter("Press the new key that you would like to use for this action.");
+			ImGui::Text("");
+			ImGui::TextCenter("Press ESCAPE to reset selection back to default.");
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
+			t.inputsys.kscancode = ScanCode();
+			if (t.inputsys.kscancode > 0)
+			{
+				if (g_iMappingKeyToChange > 0)
+				{
+					// make change in keymap
+					if (t.inputsys.kscancode != 57)
+					{
+						// use that new key
+						g.keymap[g_iMappingKeyToChange] = t.inputsys.kscancode;
+					}
+					else
+					{
+						// reset key to default
+						g.keymap[g_iMappingKeyToChange] = g_iMappingKeyToChange;
+					}
+
+					// save this change out to relevant file (Files\editors\keymap\custom.ini)
+					LPSTR pOldDir = GetDir();
+					char pWritableKeyMapFile[MAX_PATH];
+					strcpy(pWritableKeyMapFile, "editors\\keymap\\custom.ini");
+					GG_GetRealPath(pWritableKeyMapFile, 1);
+					if (FileExist(pWritableKeyMapFile) == 1) DeleteFileA(pWritableKeyMapFile);
+					OpenToWrite(1, pWritableKeyMapFile);
+					WriteString(1, ";Key binding created in Storyboard Key Bindings section");
+					WriteString(1, "");
+					WriteString(1, "[KEYMAP]");
+					char pKeyBindingLine[256];
+					for (int i = 0; i < 256; i++)
+					{
+						if (g.keymap[i] != i)
+						{
+							sprintf(pKeyBindingLine, "key%d = %d", i, g.keymap[i]);
+							WriteString(1, pKeyBindingLine);
+						}
+					}
+					CloseFile(1);
+
+					// finished binding
+					g_iMappingKeyToChange = -1;
+				}
+				ImGui::CloseCurrentPopup();
+				g_bMappingKeyWindow = false;
+			}
+			ImGui::PopStyleColor();
+			ImGui::Text("");
+			ImGui::EndPopup();
+		}
 
 		ImVec2 viewPortPos = ImGui::GetMainViewport()->Pos;
 		ImVec2 viewPortSize = ImGui::GetMainViewport()->Size;
@@ -42686,11 +42749,10 @@ void process_storeboard(bool bInitOnly)
 									//PE: Switch to normal message.
 									strcpy(cTriggerMessage, "Preparing the Terrain Generator. Please wait...");
 									bTriggerMessage = true;
-									//PE: We need the message in this frame so.
-									//bool bForceMessageNoFade = false;
-									//void gridedit_triggermessagehandler(bool bForceMessageNoFade);
-									//gridedit_triggermessagehandler(bForceMessageNoFade);
 
+									// refresh custom biomes before enter Terrain Generator
+									extern void imgui_populatecustombiomes(void);
+									imgui_populatecustombiomes();
 								}
 							}
 							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
@@ -47907,11 +47969,11 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return (void*)&t.slidersmenuvalue[1][2].value;
 	}
-	else if (strcmp(readoutTitle, "Ammo Panel") == 0 && t.gunid > 0 && t.gun[t.gunid].weapontype != 51)
+	else if (strcmp(readoutTitle, "Ammo Panel") == 0 )// && t.gunid > 0 && t.gun[t.gunid].weapontype != 51) may want to see weapon panel for melee
 	{
 		return (void*)&t.iTmpImgID;
 	}
-	else if (strcmp(readoutTitle, "Weapon Held") == 0 && t.gun[t.gunid].weapontype != 51)
+	else if (strcmp(readoutTitle, "Weapon Held") == 0 ) // may want to see weapon symbol panel for melee && t.gun[t.gunid].weapontype != 51)
 	{
 		return (void*)&g.firemodes[t.gunid][g.firemode].iconimg;
 	}
@@ -51677,7 +51739,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::SetNextWindowSize(ImVec2(512, 256));
 		ImGui::OpenPopup("##screenkeytogglepopup");
 		ImGui::BeginPopupModal("##screenkeytogglepopup", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
-
 		ImGui::Text("");
 		ImGui::Text("");
 		ImGui::Text("");
@@ -51685,7 +51746,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::TextCenter("Press the key that you would like to make this screen appear in-game.");
 		ImGui::Text("");
 		ImGui::TextCenter("Press SPACEBAR to reset selection back to NONE.");
-
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
 		t.inputsys.kscancode = ScanCode();
@@ -51709,7 +51769,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::Text("");
 		ImGui::EndPopup();
 	}
-
 	return iRet;
 }
 

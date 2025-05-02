@@ -2627,20 +2627,6 @@ void darkai_shooteffect (void)
 						t.tgunid // TextureID
 					);
 				}
-
-
-				// play bullet whiz sound because the AI missed
-				//t.tSndID = t.playercontrol.soundstartindex + 25 + Rnd(3);
-				//if (SoundExist(t.tSndID) == 1)
-				//{
-				//	t.tSndX_f = t.tplayerx_f - 100 + Rnd(200);
-				//	t.tSndY_f = t.tplayery_f - 100 + Rnd(200);
-				//	t.tSndZ_f = t.tplayerz_f - 100 + Rnd(200);
-				//	PositionSound(t.tSndID, t.tSndX_f, t.tSndY_f, t.tSndZ_f);
-				//	SetSoundVolume(t.tSndID, soundtruevolume(100));
-				//	SetSoundSpeed(t.tSndID, 36000 + Rnd(10000));
-				//	PlaySound(t.tSndID);
-				//}
 			}
 		}
 	}
@@ -2650,9 +2636,18 @@ void darkai_shooteffect (void)
 		t.tobj = t.entityelement[t.te].attachmentobj;
 		if (t.tobj > 0)
 		{
-			t.flakx_f = LimbPositionX(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
-			t.flaky_f = LimbPositionY(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
-			t.flakz_f = LimbPositionZ(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+			if(t.entityelement[t.te].attachmentobjfirespotlimb>-1)
+			{
+				t.flakx_f = LimbPositionX(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+				t.flaky_f = LimbPositionY(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+				t.flakz_f = LimbPositionZ(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+			}
+			else
+			{
+				t.flakx_f = t.tx_f;// t.entityelement[t.te].fFirespotOffsetX;
+				t.flaky_f = t.ty_f;// t.entityelement[t.te].fFirespotOffsetY;
+				t.flakz_f = t.tz_f;// t.entityelement[t.te].fFirespotOffsetZ;
+			}
 			t.tdx_f = t.tplayerx_f - t.flakx_f;
 			t.tdy_f = t.tplayery_f - t.flaky_f;
 			t.tdz_f = t.tplayerz_f - t.flakz_f;

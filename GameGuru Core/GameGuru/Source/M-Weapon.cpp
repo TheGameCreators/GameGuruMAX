@@ -889,7 +889,8 @@ void weapon_projectile_load ( void )
 	t.tInField_s = "scaleMinZ" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].baseObjScaleMinZ_f = t.value1_f ;
 	t.tInField_s = "scaleMaxZ" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].baseObjScaleMaxZ_f = t.value1_f ;
 	t.tInField_s = "avoidPlayerPenetration" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].avoidPlayerPenetration_f = t.value1_f ;
-	t.tInField_s = "attachToWeaponLimb" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].attachToWeaponLimb = (int)t.value1_f ;
+	t.tInField_s = "attachToWeaponLimb"; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].attachToWeaponLimb = (int)t.value1_f;
+	t.tInField_s = "vert"; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].vert_f = t.value1_f;	
 	t.tInField_s = "accuracyX" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].xAccuracy_f = t.value1_f ;
 	t.tInField_s = "accuracyY" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].yAccuracy_f = t.value1_f ;
 	t.tInField_s = "life" ; weapon_readfield(); t.WeaponProjectileBase[t.tNewProjBase].life = (int)t.value1_f ;
@@ -1305,6 +1306,9 @@ void weapon_projectile_make ( bool bUsingVRForAngle, bool bDoNotAdvanceToAvoidPe
 			}
 		}
 	}
+
+	//  modify start position
+	t.tStartY_f += t.WeaponProjectileBase[t.tProjectileType].vert_f;		
 
 	//  adjustment to start position to avoid penetrating
 	PositionObject (  t.tobj,t.tStartX_f,t.tStartY_f,t.tStartZ_f );

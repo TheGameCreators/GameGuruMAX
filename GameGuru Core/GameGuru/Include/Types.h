@@ -1376,6 +1376,8 @@ struct weaponProjectileBaseType
 	float avoidPlayerPenetration_f;
 	int attachToWeaponLimb;
 
+	float vert_f;
+
 	float xAccuracy_f;
 	float yAccuracy_f;
 
@@ -1520,6 +1522,7 @@ struct weaponProjectileBaseType
 		 yAccuracy_f = 0.0f;
 		 xAccuracy_f = 0.0f;
 		 attachToWeaponLimb = 0;
+		 vert_f = 0;
 		 avoidPlayerPenetration_f = 0.0f;
 		 baseObjScaleMaxZ_f = 0.0f;
 		 baseObjScaleMinZ_f = 0.0f;

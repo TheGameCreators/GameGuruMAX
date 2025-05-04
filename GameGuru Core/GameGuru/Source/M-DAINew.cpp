@@ -2758,6 +2758,13 @@ void darkai_shootcharacter (void)
 		t.tdamage = t.tdamage * t.bulletfinalstrengthmod;
 		t.tdamagesource = 1;
 		entity_applydamage ();
+
+		// and for extra viceral effect, play some thumps
+		if (t.bulletisinfactmeleestrike > 0)
+		{
+			extern void physics_play_thump_sound (float fX, float fY, float fZ, float fFreqStart, float fFreqRange);
+			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 44000, Rnd(6000));
+		}
 	}
 }
 

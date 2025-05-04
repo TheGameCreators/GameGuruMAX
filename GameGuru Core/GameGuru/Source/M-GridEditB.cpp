@@ -42585,8 +42585,8 @@ void process_storeboard(bool bInitOnly)
 						//#### Execute Edit With Pencil ####
 						if (bExecutePencelEdit)
 						{
-
-							Storyboard.iChanged = true;
+							// only for non game levels (ensures can open storyboard, open level, play, return without needing to save project on way back to hub)
+							if (strlen(Storyboard.Nodes[i].levelnumber) == 0) Storyboard.iChanged = true;
 
 							//ImGuiWindow* window = ImGui::GetCurrentWindow();
 							if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SPLASH)
@@ -42929,7 +42929,9 @@ void process_storeboard(bool bInitOnly)
 							//Need a down and release to trigger.
 							if (bGetMouseDown && ImGui::IsMouseReleased(0))
 							{
-								Storyboard.iChanged = true; //PE: Anything trigger a change in project.
+								//As outside of any specific node, cannot know if modification was to screen or level
+								//Storyboard.iChanged = true; //PE: Anything trigger a change in project.
+								//if (strlen(Storyboard.Nodes[i].levelnumber) == 0) Storyboard.iChanged = true; // Not for game levels
 								bGetMouseDown = false;
 							}
 							if (ImGui::IsMouseDown(0)) bGetMouseDown = true; //PE: Anything trigger a change in project.
@@ -45409,6 +45411,13 @@ int save_create_storyboard_project(void)
 								addtocollection ("audiobank\\misc\\bullet_flyby_02.wav");
 								addtocollection ("audiobank\\misc\\bullet_flyby_03.wav");
 								addtocollection ("audiobank\\misc\\bullet_flyby_04.wav");
+								addtocollection ("audiobank\\misc\\melee.wav");
+								addtocollection ("audiobank\\misc\\melee1.wav");
+								addtocollection ("audiobank\\misc\\melee2.wav");
+								addtocollection ("audiobank\\misc\\melee3.wav");
+								addtocollection ("audiobank\\misc\\melee4.wav");
+								addtocollection ("audiobank\\misc\\melee5.wav");
+								addtocollection ("audiobank\\misc\\melee6.wav");
 								addfoldertocollection ("charactercreatorplus\\skins");
 								addfoldertocollection ("databank");
 								addtocollection ("editors\\keymap\\default.ini");

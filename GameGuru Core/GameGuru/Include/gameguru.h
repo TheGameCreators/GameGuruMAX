@@ -456,6 +456,7 @@ struct Sglobals
 	int entityviewstartobj;
 	int explodedecalobjmax;
 	int explodesoundoffset;
+	int meleethumpsoundoffset;
 	int galwaysconfirmsave;
 	DWORD gameperfresttosync;
 	DWORD gameperftimestamp2;
@@ -1962,6 +1963,7 @@ struct Sglobals
 		 gameperfresttosync = 0;
 		 galwaysconfirmsave = 0;
 		 explodesoundoffset = 0;
+		 meleethumpsoundoffset = 0;
 		 explodedecalobjmax = 0;
 		 entityviewstartobj = 0;
 		 editorimagesoffset = 0;
@@ -3477,6 +3479,7 @@ struct Stemps
 	int bulletrayhite;
 	int bulletraytype;
 	float bulletfinalstrengthmod;
+	int bulletisinfactmeleestrike;
 	int ccobjToDelete;
 	charanimstatetype charanimstate;
 	float charseqcsia_f;
@@ -7962,6 +7965,7 @@ struct Stemps
 		 ccobjToDelete = 0;
 		 bulletraytype = 0;
 		 bulletfinalstrengthmod = 1.0f;
+		 bulletisinfactmeleestrike = 0;
 		 bulletrayhite = 0;
 		 bottomGreen_f = 0.0f;
 		 assetsequence = 0;

@@ -1048,6 +1048,7 @@ void common_init_globals ( void )
 	g.materialsoundoffset = 10001;
 	g.materialsoundoffsetend = 11000;
 	g.explodesoundoffset = 11001;
+	g.meleethumpsoundoffset = 11101;
 	g.musicsoundoffset = 22000;
 	g.musicsoundoffsetend = 22999;
 	g.charactersoundoffset = 23000;

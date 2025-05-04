@@ -4143,6 +4143,7 @@ void gun_shoot_oneray ( void )
 	t.tbullethitmaterial=0 ; t.tbullethitflesh=0;
 	t.bulletraytype=g.firemodes[t.gunid][g.firemode].settings.damagetype;
 	t.bulletfinalstrengthmod = 1.0f;
+	t.bulletisinfactmeleestrike = 0;
 	t.gunrange_f=t.range_f;
 
 	//PE: Do not make a tracer if melee.
@@ -4291,6 +4292,9 @@ void gun_shoot_oneray ( void )
 	// if this was a 'melee weapon' (51 or above)
 	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
 	{
+		// mark this as a melee weapon strike (will add a thump sound later on)
+		t.bulletisinfactmeleestrike = 1;
+
 		// and the ray did not quite find a surface to strike
 		bool bFullWickedAccuracy = true;
 		int tquickrayhitchecke = -1;

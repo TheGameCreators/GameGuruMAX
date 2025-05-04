@@ -3039,6 +3039,30 @@ void physics_player_handledeath ( void )
 	}
 }
 
+void physics_play_thump_sound (float fX, float fY, float fZ, float fStartFreq, float fFreqRange)
+{
+	int iThumpID = 1 + (rand() % 6);
+	#define SIXTHUMPSOUNDSFORMELEE 6
+	for (int iTryAll = 0; iTryAll < SIXTHUMPSOUNDSFORMELEE; iTryAll++)
+	{
+		if (SoundPlaying(g.meleethumpsoundoffset + iThumpID) == 0)
+			break;
+		iThumpID++;
+		if (iThumpID > SIXTHUMPSOUNDSFORMELEE)
+			iThumpID = 1;
+	}
+	int iThumpSound = g.meleethumpsoundoffset + iThumpID;
+	if (SoundPlaying(iThumpSound) == 0)
+	{
+		if (iThumpSound > 0 && SoundExist(iThumpSound) == 1)
+		{
+			PositionSound (iThumpSound, fX, fY, fZ);
+			SetSoundSpeed (iThumpSound, fStartFreq + Rnd(fFreqRange));
+			PlaySound (iThumpSound);
+		}
+	}
+}
+
 void physics_player_reset_underwaterstate ( void )
 {
 	visuals_underwater_off ( );
@@ -3185,6 +3209,9 @@ void physics_player_takedamage ( void )
 				}
 			}
 
+			// if melee damage, mark with a thump!
+			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 38000, Rnd(8000));
+
 			// Trigger player grunt noise or block sound
 			if(bSuccessfullyBlockingNow==false)
 			{
@@ -3192,7 +3219,7 @@ void physics_player_takedamage ( void )
 				{
 					if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
 					{
-						//  only every one in three or if been a while since we grunted
+						// only ever one in three or if been a while since we grunted
 						t.playercontrol.timesincelastgrunt = Timer();
 						int iLastOne = t.tplrhurt;
 						bool bHaveUniqueSound = false;
@@ -3224,7 +3251,7 @@ void physics_player_takedamage ( void )
 			}
 			else
 			{
-				//  if player is blocking, no damage
+				// if player is blocking, no damage
 				int iRandomBlockSnd = Rnd(3);
 				switch (iRandomBlockSnd)
 				{
@@ -3291,7 +3318,7 @@ void physics_player_takedamage ( void )
 			{
 				if ( t.tDrownDamageFlag == 0 ) 
 				{
-					//  player grunts in deadness if this isn't death by drowning
+					// player grunts in deadness if this isn't death by drowning
 					playinternalsound(t.playercontrol.soundstartindex+1);
 				}
 			}

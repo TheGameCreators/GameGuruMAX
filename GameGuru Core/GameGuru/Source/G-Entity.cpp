@@ -3459,7 +3459,7 @@ void entity_gettrueplayerpos(void)
 
 void entity_hasbulletrayhit(void)
 {
-	// bulletray is x1#,y1#,z1#,x2#,y2#,z2#,bulletrayhit,gunrange#,t.bulletfinalstrengthmod(1)
+	// bulletray is x1#,y1#,z1#,x2#,y2#,z2#,bulletrayhit,gunrange#,t.bulletfinalstrengthmod(1),bulletisinfactmeleestrike
 	t.brayx1_f = t.x1_f; t.brayy1_f = t.y1_f; t.brayz1_f = t.z1_f;
 	t.brayx2_f = t.x2_f; t.brayy2_f = t.y2_f; t.brayz2_f = t.z2_f;
 	t.bulletrayhit = 0; t.bulletraylimbhit = -1; t.tttriggerdecalimpact = 0;
@@ -3716,7 +3716,7 @@ void entity_hasbulletrayhit(void)
 			{
 				t.px_f=t.x1_f ; t.py_f=t.y1_f ; t.pz_f=t.z1_f;
 				entity_determinegunforce ( );
-				darkai_ischaracterhit ( ); // uses t.bulletfinalstrengthmod
+				darkai_ischaracterhit ( ); // uses t.bulletfinalstrengthmod,bulletisinfactmeleestrike
 				if ( t.darkaifirerayhitcharacter == 0 ) 
 				{
 					// also make sure it's not a beast (ragdoll)

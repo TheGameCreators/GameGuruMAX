@@ -202,6 +202,7 @@ g_masterinterpreter_act_showterrain = 109 -- Show Terrain (Switches on all terra
 g_masterinterpreter_act_gotocoverzone = 110 -- Go To Cover Zone (Plot a navigation path to nearest cover zone)
 g_masterinterpreter_act_allowzerohealth = 111 -- Allow Zero Health (Permits a destroy object when it reaches zero health)
 g_masterinterpreter_act_destroynoragdoll = 112 -- Destroy No Ragdoll (Destroy object instantly with no ragdoll or death animations)
+g_masterinterpreter_act_playsoundsparsely = 113 -- Play Sound Sparsely (Play the sound only after 3 seconds in the specified slot number 0-3)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -1338,10 +1339,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
     -- enemies prefer allies in range half the time
     output_e['target'] = "hostile"
    else
-    --for when hurt by sniping player, can still target the nasty ol' player
-    --if g_Entity[e]['plrvisible'] == 1 then
-     output_e['target'] = "player"
-	--end
+    output_e['target'] = "player"
    end
   end  
   if allegiance == 1 then
@@ -1730,39 +1728,25 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  -- Play Sound
  if actiontype == g_masterinterpreter_act_playsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   local allegianceindex = GetEntityAllegiance(e)
-  --if allegianceindex >= 0 and allegianceindex <= 1 then
-   -- special manager for enemy characters
-   local calloutindex = (allegianceindex*10)+actionparam1value
-   if g_calloutmanagertime[calloutindex] ~= nil then
-    if g_Time > g_calloutmanagertime[calloutindex] then
-	 g_calloutmanager[calloutindex] = 0
-	end
-   else
-    g_calloutmanager[calloutindex] = 0
-   end
-   if g_calloutmanager[calloutindex] == 0 then
-    g_calloutmanager[calloutindex] = e
-    g_calloutmanagertime[calloutindex] = g_Time + 3000
-    PlaySound(e,actionparam1value)
-   end
-  --else
-  -- PlaySound(e,actionparam1value)
-  --end
+  local calloutindex = (allegianceindex*10)+actionparam1value
+  g_calloutmanager[calloutindex] = e
+  g_calloutmanagertime[calloutindex] = g_Time + 3000
+  PlaySound(e,actionparam1value)
  end
  
  -- Loop Sound
  if actiontype == g_masterinterpreter_act_loopsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   LoopSound(e,actionparam1value)
  end
  
  -- Stop Sound
  if actiontype == g_masterinterpreter_act_stopsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   StopSound(e,actionparam1value)
  end
  
@@ -2304,7 +2288,27 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   g_Entity[e]['health'] = 0
   output_e['oldhealth'] = 0
  end  
-  
+ 
+ -- Play Sound Sparsely
+ if actiontype == g_masterinterpreter_act_playsoundsparsely and actionparam1value ~= nil then
+  if actionparam1value < 0 then actionparam1value = 0 end
+  if actionparam1value > 6 then actionparam1value = 6 end
+  local allegianceindex = GetEntityAllegiance(e)
+  local calloutindex = (allegianceindex*10)+actionparam1value
+  if g_calloutmanagertime[calloutindex] ~= nil then
+   if g_Time > g_calloutmanagertime[calloutindex] then
+	g_calloutmanager[calloutindex] = 0
+   end
+  else
+   g_calloutmanager[calloutindex] = 0
+  end
+  if g_calloutmanager[calloutindex] == 0 then
+   g_calloutmanager[calloutindex] = e
+   g_calloutmanagertime[calloutindex] = g_Time + 3000
+   PlaySound(e,actionparam1value)
+  end
+ end
+ 
 end
 
 function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )

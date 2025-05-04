@@ -856,58 +856,64 @@ function gameplayercontrol.lookmove()
 	  
       -- when camera overridden, do not allow movement
       if ( GetCameraOverride() ~= 1 and GetCameraOverride() ~= 3 ) then
-         if ( GetGamePlayerStateEditModeActive() ~= 0 ) then 
-            if ( GetGamePlayerStatePlrKeyShift() == 1 or GetGamePlayerStatePlrKeyShift2() == 1 ) then 
-			   SetGamePlayerControlBasespeed(4.0)
-            else
-               if ( GetGamePlayerStatePlrKeyControl() == 1 ) then 
-                  SetGamePlayerControlBasespeed(0.25)
-               else
-                  SetGamePlayerControlBasespeed(1.5)
-               end
-            end
-            SetGamePlayerControlIsRunning(0)
-         else
-            if ( GetGamePlayerStatePlayerDucking() == 1 ) then 
-               SetGamePlayerControlBasespeed(0.5)
-               SetGamePlayerControlIsRunning(0)
-            else
-               if ( GetGamePlayerControlCanRun() == 1 and (GetGamePlayerStatePlrKeyShift() == 1 or GetGamePlayerStatePlrKeyShift2() == 1) ) then 
-			   
-				  -- detect extra user defined global for MYSTAMINAMAXIMUM (moving)
-				  gameplayerspeed = require "scriptbank\\gameplayerspeed"
-				  local baserunningspeed = gameplayerspeed.movingspeed(2.0)
-                  SetGamePlayerControlBasespeed(baserunningspeed)
-				  
-                  if ( GetGamePlayerControlThirdpersonEnabled() == 1 and GetGamePlayerControlThirdpersonCameraFollow() == 1 ) then 
-                     -- WASD run speed
-                  else
-                     if ( g_PlrKeyS == 1 ) then 
-                        SetGamePlayerControlBasespeed(1.0)
-                     else
-                        if ( g_PlrKeyW  ==  1 ) then 
-                           if ( g_PlrKeyA == 1 or g_PlrKeyD == 1 ) then 
-                              SetGamePlayerControlBasespeed(baserunningspeed*0.75) -- 2 TO 1.5
-                           end
-                        else
-                           if ( g_PlrKeyA == 1 or g_PlrKeyD == 1 ) then 
-                              SetGamePlayerControlBasespeed(baserunningspeed*0.75) -- 2 TO 1.5
-                           end
-                        end
-                     end
-                  end
-                  SetGamePlayerControlIsRunning(1)
-               else
-                  SetGamePlayerControlBasespeed(1.0)
-                  SetGamePlayerControlIsRunning(0)
-				  
-				  -- detect extra user defined global for MYSTAMINAMAXIMUM (recover)
-				  gameplayerspeed = require "scriptbank\\gameplayerspeed"
-				  gameplayerspeed.recover()
-				 
-               end
-            end
-         end
+	     if GetCameraOverride() == 4 then
+			-- Gradually slows base speed down (caused by FreezePlayer with value > 1)
+			local currentbasespeed = GetGamePlayerControlBasespeed()
+			currentbasespeed = currentbasespeed * 0.99
+			SetGamePlayerControlBasespeed(currentbasespeed)
+			SetGamePlayerControlIsRunning(0)
+		 else
+			 if ( GetGamePlayerStateEditModeActive() ~= 0 ) then 
+				if ( GetGamePlayerStatePlrKeyShift() == 1 or GetGamePlayerStatePlrKeyShift2() == 1 ) then 
+				   SetGamePlayerControlBasespeed(4.0)
+				else
+				   if ( GetGamePlayerStatePlrKeyControl() == 1 ) then 
+					  SetGamePlayerControlBasespeed(0.25)
+				   else
+					  SetGamePlayerControlBasespeed(1.5)
+				   end
+				end
+				SetGamePlayerControlIsRunning(0)
+			 else
+				if ( GetGamePlayerStatePlayerDucking() == 1 ) then 
+				   SetGamePlayerControlBasespeed(0.5)
+				   SetGamePlayerControlIsRunning(0)
+				else
+				   if ( GetGamePlayerControlCanRun() == 1 and (GetGamePlayerStatePlrKeyShift() == 1 or GetGamePlayerStatePlrKeyShift2() == 1) ) then 
+				   
+					  -- detect extra user defined global for MYSTAMINAMAXIMUM (moving)
+					  gameplayerspeed = require "scriptbank\\gameplayerspeed"
+					  local baserunningspeed = gameplayerspeed.movingspeed(2.0)
+					  SetGamePlayerControlBasespeed(baserunningspeed)
+					  
+					  if ( GetGamePlayerControlThirdpersonEnabled() == 1 and GetGamePlayerControlThirdpersonCameraFollow() == 1 ) then 
+						 -- WASD run speed
+					  else
+						 if ( g_PlrKeyS == 1 ) then 
+							SetGamePlayerControlBasespeed(1.0)
+						 else
+							if ( g_PlrKeyW  ==  1 ) then 
+							   if ( g_PlrKeyA == 1 or g_PlrKeyD == 1 ) then 
+								  SetGamePlayerControlBasespeed(baserunningspeed*0.75) -- 2 TO 1.5
+							   end
+							else
+							   if ( g_PlrKeyA == 1 or g_PlrKeyD == 1 ) then 
+								  SetGamePlayerControlBasespeed(baserunningspeed*0.75) -- 2 TO 1.5
+							   end
+							end
+						 end
+					  end
+					  SetGamePlayerControlIsRunning(1)
+				   else
+					  SetGamePlayerControlBasespeed(1.0)
+					  SetGamePlayerControlIsRunning(0)	  
+					  -- detect extra user defined global for MYSTAMINAMAXIMUM (recover)
+					  gameplayerspeed = require "scriptbank\\gameplayerspeed"
+					  gameplayerspeed.recover()		 
+				   end
+				end
+			 end
+		 end
          SetGamePlayerControlMaxspeed(GetGamePlayerControlTopspeed()*GetGamePlayerControlBasespeed())
          SetGamePlayerControlMovement(0)
          if ( g_PlrKeyA == 1 ) then 

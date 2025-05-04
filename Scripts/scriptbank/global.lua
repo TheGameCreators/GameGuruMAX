@@ -294,6 +294,10 @@ function PlayerHealthSubtract(value)
  gameplayerhealth = require "scriptbank\\gameplayerhealth"
  gameplayerhealth.subtract(value)
 end
+function PlayerStaminaDrain(value)
+ gameplayerspeed = require "scriptbank\\gameplayerspeed"
+ gameplayerspeed.drain(value)
+end
 
 -- Common Updater Functions (called by Engine)
 

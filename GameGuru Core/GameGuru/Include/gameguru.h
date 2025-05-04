@@ -3476,6 +3476,7 @@ struct Stemps
 	float bottomGreen_f;
 	int bulletrayhite;
 	int bulletraytype;
+	float bulletfinalstrengthmod;
 	int ccobjToDelete;
 	charanimstatetype charanimstate;
 	float charseqcsia_f;
@@ -7960,6 +7961,7 @@ struct Stemps
 		 charseqcsia_f = 0.0f;
 		 ccobjToDelete = 0;
 		 bulletraytype = 0;
+		 bulletfinalstrengthmod = 1.0f;
 		 bulletrayhite = 0;
 		 bottomGreen_f = 0.0f;
 		 assetsequence = 0;

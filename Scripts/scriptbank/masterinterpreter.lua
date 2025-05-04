@@ -200,6 +200,8 @@ g_masterinterpreter_act_collisionon = 107 -- Turn Collision On (Switch on collis
 g_masterinterpreter_act_hideterrain = 108 -- Hide Terrain (Switches off all terrain rendering)
 g_masterinterpreter_act_showterrain = 109 -- Show Terrain (Switches on all terrain rendering)
 g_masterinterpreter_act_gotocoverzone = 110 -- Go To Cover Zone (Plot a navigation path to nearest cover zone)
+g_masterinterpreter_act_allowzerohealth = 111 -- Allow Zero Health (Permits a destroy object when it reaches zero health)
+g_masterinterpreter_act_destroynoragdoll = 112 -- Destroy No Ragdoll (Destroy object instantly with no ragdoll or death animations)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -753,7 +755,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if GetEntityAnimationNameExist(e,conditionparam1) > 0 then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_ifpushedback then
-  if conditionparam1value == nil then conditionparam1value = 0 end
+  if conditionparam1value == nil then conditionparam1value = 250 end
   if g_Entity [ e ]['avoid'] >= conditionparam1value then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_checkgoaltimer then
@@ -1241,14 +1243,22 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Freeze and UnFreeze Target (and ensure Target looking at e doing the attacking)
  if actiontype == g_masterinterpreter_act_freezetarget then
+  if actionparam1value == nil then actionparam1value = 0 end
   if output_e['target'] == "player" then
    if g_masterinterpreter_playerfrozenby == 0 then
-    FreezePlayer()
-    SetCameraOverride(3)
-	g_masterinterpreter_playerweaponid = g_PlayerGunID
-    ChangePlayerWeaponID(0)
-    output_e['frozentheplayer'] = 1
-	g_masterinterpreter_playerfrozenby = e
+    if actionparam1value == 0 then
+     -- total freeze in place
+	 FreezePlayer()
+     SetCameraOverride(3)
+	 g_masterinterpreter_playerweaponid = g_PlayerGunID
+     ChangePlayerWeaponID(0)
+     output_e['frozentheplayer'] = 1
+	 g_masterinterpreter_playerfrozenby = e
+    else
+	 -- for actionparam1value anything above zero requests a smooth freeze
+	 -- so not really a proper freeze (as above), just slow down player for things like spells cast or performed a run-away kill and do not want to overrun the fallen
+     SetCameraOverride(4)
+	end
    end
   end
   if output_e['target'] == "flag" then
@@ -1260,8 +1270,8 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  end
  if actiontype == g_masterinterpreter_act_unfreezetarget then
   if output_e['target'] == "player" then
+   SetCameraOverride(0)
    if g_masterinterpreter_playerfrozenby > 0 then
-    SetCameraOverride(0)
     UnFreezePlayer()
 	ChangePlayerWeaponID(g_masterinterpreter_playerweaponid)
     output_e['frozentheplayer'] = 0
@@ -2281,6 +2291,19 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
    masterinterpreter_setnewtarget ( e, output_e, nearTargetX, nearTargetY, nearTargetZ, 0 )   
   end
  end 
+  
+ -- Allow Zero Health
+ if actiontype == g_masterinterpreter_act_allowzerohealth then
+  SetEntityHealthSilent(e,-1)
+ end 
+
+ -- Destroy No Ragdoll
+ if actiontype == g_masterinterpreter_act_destroynoragdoll then
+  SetEntityHealthSilent(e,-12346)
+  SetEntityHealth(e,-12346)
+  g_Entity[e]['health'] = 0
+  output_e['oldhealth'] = 0
+ end  
   
 end
 

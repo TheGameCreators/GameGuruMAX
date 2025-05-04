@@ -1164,6 +1164,58 @@ bool gun_getzoomstartandfinish ( void )
 	return true;
 }
 
+bool gun_detectandperformquickrepeatattack(void)
+{
+	// takes all vars from gun_control (below)
+	bool bPerformingQuickRepeatAttack = false;
+	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
+	{
+		// for melee up-close combat weapons
+		//weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
+		// during the gunmode animation, and after the 'strike' frame has been passed,
+		// we can have a special follow-up animation for more responsive and rapid attacks
+		// and will also remove the sense that clicks are being missed (i.e. feels sluggish and faulty)
+		bool bTrgiggeredQuickRepeatAttack = false;	
+		if (t.gunclick == 0 && (KeyState(g.ggunmeleekey)==0)) t.gunmustreleasefirst = 0;
+		if (t.gunmustreleasefirst == 0)
+		{
+			if (t.gunclick != 0) bTrgiggeredQuickRepeatAttack = true;
+			if (t.gun[t.gunid].settings.ismelee == 2 && KeyState(g.ggunmeleekey)==1) bTrgiggeredQuickRepeatAttack = true;
+		}
+		if(bTrgiggeredQuickRepeatAttack==true)
+		{
+			// only permit after a few post-sprike frames so does not look glitchy
+			float fGraceAfterStrike = 5.0f;
+			if (GetFrame(t.currentgunobj) >= t.gfinish.s + fGraceAfterStrike)
+			{
+				// and only if have stamina for it
+				char pUserDefinedGlobal[256];
+				sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "MyStamina");
+				int iMyStaminaFromLUA = LuaGetInt(pUserDefinedGlobal);
+				int iStaminaCostOfRepeatAttack = 10;
+				if (iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack)
+				{
+					// t.gfinish.s is the strke frame, so we want to back up a little so we have some visual run-up to the repeated action
+					float fBackUpFrames = (t.gstart.e - t.gstart.s) / 3.0f; // X-way back from start of initial attack (rather than fixed value)
+					if (fBackUpFrames < 6)fBackUpFrames = 6;
+					float fStartFromRunUpFrame = t.gfinish.s - fBackUpFrames;
+					gun_StopObject (t.currentgunobj);
+					gun_SetObjectFrame (t.currentgunobj, fStartFromRunUpFrame);
+					gun_PlayObject (t.currentgunobj, fStartFromRunUpFrame, t.gfinish.e);
+					t.gunmustreleasefirst = 1;
+
+					// extract stamin as cost
+					LuaSetFunction ("PlayerStaminaDrain", 1, 0); LuaPushInt (iStaminaCostOfRepeatAttack); LuaCall ();
+
+					// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
+					bPerformingQuickRepeatAttack = true;
+				}
+			}
+		}
+	}
+	return bPerformingQuickRepeatAttack;
+}
+
 void gun_control ( void )
 {
 	//  trigger gun to show and play custom anim (custstart,custend)
@@ -2348,7 +2400,19 @@ void gun_control ( void )
 	{
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) {  t.gun[t.gunid].settings.ismelee = 0  ; t.gunmode = 5 ; t.tmeleeanim = 0; }
+		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) 
+		{  
+			t.gun[t.gunid].settings.ismelee = 0; t.gunmode = 5; t.tmeleeanim = 0; 
+		}
+		else
+		{
+			// check if can perform a quick-reepeat attack
+			if (gun_detectandperformquickrepeatattack() == true)
+			{
+				// and return to previous mode to allow start part to finish, and then gunshoot to do its thing again
+				t.gunmode = 1021;
+			}
+		}
 	}
 
 	//  Player presses mouse button but has no ammo (avoid model animation freezing)
@@ -2829,13 +2893,25 @@ void gun_control ( void )
 	}
 	if (  t.gunmode == 106 ) 
 	{
-#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe )  t.gunmode = 107;
+
+		// monitor for end of gunmode animation
+		if (GetFrame(t.currentgunobj) >= t.gunmodewaitforframe)
+		{
+			// finalise animation
+			t.gunmode = 107;
+		}
+		else
+		{
+			// check if can perform a quick-reepeat attack
+			if (gun_detectandperformquickrepeatattack() == true )
+			{
+				// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
+				t.gunmode = 102;
+			}
+		}
+
 		//  if a delayed flak, check when frame triggers it; Only one grenade, not SIX!!!
 		if (  t.gun[t.gunid].projectileframe>0 ) 
 		{
@@ -4066,6 +4142,7 @@ void gun_shoot_oneray ( void )
 	t.bullethit=0 ; t.bullethitstatic=0;
 	t.tbullethitmaterial=0 ; t.tbullethitflesh=0;
 	t.bulletraytype=g.firemodes[t.gunid][g.firemode].settings.damagetype;
+	t.bulletfinalstrengthmod = 1.0f;
 	t.gunrange_f=t.range_f;
 
 	//PE: Do not make a tracer if melee.
@@ -4207,6 +4284,86 @@ void gun_shoot_oneray ( void )
 					t.gun[t.gunid].settings.tracer_maxlength, // max length
 					t.gunid //Image to use.
 				);
+			}
+		}
+	}
+
+	// if this was a 'melee weapon' (51 or above)
+	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
+	{
+		// and the ray did not quite find a surface to strike
+		bool bFullWickedAccuracy = true;
+		int tquickrayhitchecke = -1;
+		t.thitvalue = IntersectAllEx (g.entityviewstartobj, g.entityviewendobj, t.x1_f, t.y1_f, t.z1_f, t.x2_f, t.y2_f, t.z2_f, 0, 0, 0, 0, 0, bFullWickedAccuracy);
+		if ( t.thitvalue == 0 )
+		{
+			// now lets find someone standing RIGHT in front of our sledgehammer :)
+			int tfoundalikelyvictim = -1;
+			float fStraightOnDamageRatio = 1.0;
+			float fClosest = 9999;
+			float fMostInFront = 180;
+			for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+			{
+				if (t.entityelement[t.tte].obj > 0)
+				{
+					int entid = t.entityelement[t.tte].bankindex;
+					if (entid > 0)
+					{
+						if (t.entityprofile[entid].ischaracter != 0)
+						{
+							if (t.entityelement[t.tte].health > 0)
+							{
+								float fDX = t.entityelement[t.tte].x - t.x1_f;
+								float fDZ = t.entityelement[t.tte].z - t.z1_f;
+								float fDD = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+								if (fDD < t.gunrange_f)
+								{
+									float fDA = atan2(fDX, fDZ) * 180.0f / 3.14159265358979323846f;
+									fDA = WrapValue(fDA);
+									float fDiffA = fDA - CameraAngleY();
+									if (fDiffA < 0) fDiffA += 360;
+									if (fDiffA > 180) fDiffA -= 360;
+									float fWindowOfOp = 35.0f;
+									fDiffA = fabs(fDiffA);
+									if (fDiffA < fWindowOfOp)
+									{
+										// stronger damage is head on
+										fStraightOnDamageRatio = 1.0f - (fDiffA / fWindowOfOp);
+										
+										// this victim is a character, alive, within range and less than 45 degrees in front of player
+										if (fDD < fClosest)
+										{
+											fClosest = fDD;
+											if (fDiffA < fMostInFront)
+											{
+												fMostInFront = fDiffA;
+												tfoundalikelyvictim = t.tte;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if (tfoundalikelyvictim > 0)
+			{
+				// if we have a character in front of us, find the chest area	
+				float fCharacterChestAreaX = t.entityelement[tfoundalikelyvictim].x;
+				float fCharacterChestAreaY = t.entityelement[tfoundalikelyvictim].y + 50.0f;
+				float fCharacterChestAreaZ = t.entityelement[tfoundalikelyvictim].z;
+
+				// and create an artificial hit on them to improve the fast-paced melee combat when up close
+				// (i.e. swinging a massive sledgehammer at a character, and the ray targets below the armpit will stil hurt like heck)
+				PositionObject (g.hudbankoffset + 3, fCharacterChestAreaX, fCharacterChestAreaY, fCharacterChestAreaZ);
+				DisableObjectZDepth (g.hudbankoffset + 3);
+				t.x2_f = ObjectPositionX (g.hudbankoffset + 3);
+				t.y2_f = ObjectPositionY (g.hudbankoffset + 3);
+				t.z2_f = ObjectPositionZ (g.hudbankoffset + 3);
+
+				// weaken final damage if player not quite lined up with character during the almost miss strike
+				t.bulletfinalstrengthmod = fStraightOnDamageRatio;
 			}
 		}
 	}

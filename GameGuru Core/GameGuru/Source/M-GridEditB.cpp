@@ -35120,6 +35120,158 @@ void Welcome_Screen(void)
 				ImGui::SetWindowFontScale(1.2);
 
 				//
+				// Live Change Log
+				//
+				rect.Min = TabStartPos;
+				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Live Changelog ", false);
+				TabStartPos.x += ImGui::TabItemCalcSize(" Live Changelog ", false).x + gui.Style.ItemInnerSpacing.x;
+				if (ImGui::BeginTabItem(" Live Changelog ", NULL, tabflags))
+				{
+					iCurrentOpenTab = 5;
+
+					// can be set every few months (or something better)
+					LPSTR pViewCommitsFrom = "2025-04-01";
+
+					ImGui::Text("");
+					ImGui::SetWindowFontScale(2.0);
+					char pBuildText[1024];
+					sprintf(pBuildText, "%s", g.version_s.Get());
+					ImGui::TextCenter(pBuildText);
+					ImGui::SetWindowFontScale(1.5);
+					ImGui::TextCenter("Showing All Recent Commits");// Commits Since% s", pViewCommitsFrom);
+					ImGui::TextCenter("");
+					ImGui::SetWindowFontScale(1.3);
+
+					float fImageWidth = ImGui::GetContentRegionAvailWidth() - 10.0f;
+					float fImageRatio = fImageWidth / 512.0f;
+					float box_height = (((float)288.0 * fImageRatio)) + 10.0f;
+					ImGui::Indent(2);
+					ImGui::BeginChild("##LiveChangeLogScrollView", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, box_height), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+		
+					// test GITHUB 
+					static std::vector<cstr> changeLogList;
+					static int iCheckChangeLogOncePerLaunch = 0;
+					if (iCheckChangeLogOncePerLaunch == 0)
+					{
+						// changeloglist
+						iCheckChangeLogOncePerLaunch = 1;
+						changeLogList.clear();
+
+						// call API to get featured items in list
+						char pDataReturned[200000];
+						char pDatatmp[10240];
+						memset(pDataReturned, 0, sizeof(pDataReturned));
+						memset(pDatatmp, 0, sizeof(pDatatmp));
+						DWORD dwDataReturnedSize = 0;
+						char cUrl[10240];
+						//sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?since=%sT00:00:00Z", pViewCommitsFrom);
+						sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?&per_page=100");
+
+						// access features list from store server
+						UINT iError = StoreOpenURLForDataOrFile("api.github.com", pDataReturned, &dwDataReturnedSize, "", "GET", cUrl, NULL);
+						if (iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0)
+						{
+							char pEnsureCombineDates[1024];
+							LPSTR pDataReturnedPtr = pDataReturned;
+							bool bFindAllMessagesContainingCommitNotes = true;
+							while (bFindAllMessagesContainingCommitNotes)
+							{
+								// find any preceding date entry
+								char pPrevDateEntry[1024];
+								strcpy(pPrevDateEntry, "");
+								LPSTR pDateToken = strstr(pDataReturnedPtr, "\"date\":");
+								if (pDateToken)
+								{
+									pDateToken += 8;
+									LPSTR pEndDateToken = strstr(pDateToken, "\"");
+									if (pEndDateToken)
+									{
+										*pEndDateToken = 0;
+										strcpy(pPrevDateEntry, pDateToken);
+										pPrevDateEntry[strlen("XXXX-XX-XX")] = 0;
+										pDataReturnedPtr = pEndDateToken + 1;
+									}
+								}
+
+								// now get following message
+								LPSTR pMessageToken = strstr(pDataReturnedPtr, "\"message\":");
+								if (pMessageToken)
+								{
+									if (strlen(pPrevDateEntry) > 0)
+									{
+										if (strcmp(pEnsureCombineDates, pPrevDateEntry) != NULL)
+										{
+											// only add date stamp if unique in log
+											changeLogList.push_back(cstr(pPrevDateEntry) + ":");
+											strcpy(pEnsureCombineDates, pPrevDateEntry);
+										}
+									}
+
+									pMessageToken += 11;
+									LPSTR pEndToken = strstr(pMessageToken, "\"");
+									if (pEndToken)
+									{
+										*pEndToken = 0;
+										LPSTR pTitleFound = strstr(pMessageToken, "\\n\\n");
+										if (pTitleFound) pMessageToken = pTitleFound + 4;
+										bool bMultipleLines = true;
+										while(bMultipleLines)
+										{
+											LPSTR pNewLineFound = strstr(pMessageToken, "\\n*");
+											if (pNewLineFound)
+											{
+												*pNewLineFound = 0;
+												if (*pMessageToken != '*')
+													sprintf(pDatatmp, "* %s", pMessageToken);
+												else
+													sprintf(pDatatmp, "%s", pMessageToken);
+												changeLogList.push_back(pDatatmp);
+												pMessageToken = pNewLineFound + 2;
+											}
+											else
+											{
+												bMultipleLines = false;
+											}
+										}
+
+										if ( *pMessageToken != '*' )
+											sprintf(pDatatmp, "* %s", pMessageToken);
+										else
+											sprintf(pDatatmp, "%s", pMessageToken);
+										changeLogList.push_back(pDatatmp);
+
+										pDataReturnedPtr = pEndToken + 1;
+									}
+								}
+								else
+								{
+									bFindAllMessagesContainingCommitNotes = false;
+								}
+							}
+						}
+					}
+					if (changeLogList.size() > 0)
+					{
+						for (int i = 0; i < changeLogList.size(); i++)
+						{
+							ImGui::TextWrapped(changeLogList[i].Get());
+						}
+					}
+					else
+					{
+						ImGui::SetWindowFontScale(1.5);
+						ImGui::TextWrapped("No changelog available.");
+					}
+					ImGui::Indent(-2);
+					ImGui::EndChild();
+
+					ImGui::EndTabItem();
+				}
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "View the changelog direct from the GitHub Repository");
+				ImGui::SetWindowFontScale(1.2);
+
+				/* now changelog (above)
+				//
 				// Websites & Social
 				//
 				rect.Min = TabStartPos;
@@ -35237,6 +35389,7 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Websites & Social");
 				ImGui::SetWindowFontScale(1.2);
+				*/
 
 				//
 				// Workshop Uploader and Workshop Viewer
@@ -35546,26 +35699,29 @@ void Welcome_Screen(void)
 			{
 				float image_size_sub_x = 310.0;
 				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x- 250.0;
-				int iTextureID = HUB_WEBSITE;
+				int iTextureID = HUB_DISCORD;// HUB_WEBSITE;
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 				float ratio = 394.0 / 700.0;
+				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
 				{
-					ImGui::SetWindowFontScale(1.6);
-					ImGui::TextCenter("Official Website");
+					ImGui::SetWindowFontScale(2.0);
+					ImGui::TextCenter("Official Discord");
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x - image_size_sub_x, (vPreviewSize.x- image_size_sub_x) * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
+						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
 					}
 					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
-					if (ImGui::StyleButton("Click Here to Visit The Website", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					/*
+					if (ImGui::StyleButton("Click Here to Visit Discord", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
 					{
-						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
+						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
 					}
+					*/
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 				}
@@ -35573,7 +35729,14 @@ void Welcome_Screen(void)
 				iTextureID = HUB_LIVEBROADCAST;
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 
-				ImGui::SetWindowFontScale(1.6);
+				ImGui::SetWindowFontScale(1.4);
+				cstr desc = "Visit our Discord Channel!";
+				{
+					ImGui::TextCenter(desc.Get());
+					ImGui::Text("");
+				}
+
+				ImGui::SetWindowFontScale(2.0);
 				ImGui::TextCenter("Official Broadcasts and Videos");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
@@ -35584,21 +35747,13 @@ void Welcome_Screen(void)
 						ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
 					}
 				}
+
 				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.4);
-
-				cstr desc = "Visit our YouTube Channel!";
+				cstr descforYT = "Visit our YouTube Channel!";
 				{
-					ImGui::Indent(2);
-					ImVec2 cp = ImGui::GetCursorPos();
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-					ImGui::BeginChild("##JustaFrameForLiveBroadcastDescription", ImVec2(fContentWidth-8.0, WelcomeFrameHeight - cp.y - 4.0), false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
-					ImGui::TextCenter(desc.Get());
+					ImGui::TextCenter(descforYT.Get());
 					ImGui::Text("");
-					ImGui::PopStyleVar(2);
-					ImGui::EndChild();
-					ImGui::Indent(-2);
 				}
 				ImGui::SetWindowFontScale(1.2);
 			}
@@ -36380,10 +36535,10 @@ void Welcome_Screen(void)
 			}
 			else if (iCurrentOpenTab == 5)
 			{
-				if (ImGui::StyleButton("Click here to view the GameGuru MAX YouTube Channel", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
-				{
-					ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
-				}
+				//if (ImGui::StyleButton("Click here to view the GameGuru MAX YouTube Channel", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
+				//{
+				//	ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
+				//}
 			}
 			#ifndef GGMAXEDU
 			else if (iCurrentOpenTab == 6)
@@ -39949,12 +40104,15 @@ void process_storeboard(bool bInitOnly)
 						welcome_init(1);
 						welcome_init(2);
 					}
+
+					/* replaced with live changelog
 					bool welcome_get_change_log(void);
 					if (welcome_get_change_log() == true)
 					{
 						welcome_runloop(WELCOME_ANNOUNCEMENTS);
 						iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 					}
+					*/
 
 					welcome_init(0);
 				}
@@ -40014,12 +40172,15 @@ void process_storeboard(bool bInitOnly)
 								welcome_init(1);
 								welcome_init(2);
 							}
+
+							/* replaced with live changelog
 							bool welcome_get_change_log(void);
 							if (welcome_get_change_log() == true)
 							{
 								welcome_runloop(WELCOME_ANNOUNCEMENTS);
 								iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 							}
+							*/
 
 							welcome_init(0);
 						}
@@ -46509,18 +46670,20 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 					if (ImGui::MenuItem("What's New?")) //Change Log
 					{
 						//welcome_show(WELCOME_ANNOUNCEMENTS);
-						bool welcome_get_change_log(void);
 						if (gbWelcomeSystemActive == false)
 						{
 							welcome_init(1);
 							welcome_init(2);
 						}
 						welcome_init(0);
+						/* replaced with live changelog
+						bool welcome_get_change_log(void);
 						if (welcome_get_change_log() == true)
 						{
 							welcome_runloop(WELCOME_ANNOUNCEMENTS);
 							iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 						}
+						*/
 					}
 				}
 

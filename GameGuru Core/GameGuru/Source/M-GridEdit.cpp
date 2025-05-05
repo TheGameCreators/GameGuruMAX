@@ -1284,7 +1284,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\scale_tree.png", TOOL_TREE_SCALE);
 
 	LoadImage("editors\\uiv3\\hub-livebroadcasts.png", HUB_LIVEBROADCAST);
-	LoadImage("editors\\uiv3\\hub-discord.png", HUB_DISCORD);
+	LoadImage("editors\\uiv3\\hub-discordwide.png", HUB_DISCORD);
 	LoadImage("editors\\uiv3\\hub-facebook.png", HUB_FACEBOOK);
 	LoadImage("editors\\uiv3\\hub-forum.png", HUB_FORUM);
 	LoadImage("editors\\uiv3\\hub-workshopitem.png", HUB_WORKSHOPITEM);

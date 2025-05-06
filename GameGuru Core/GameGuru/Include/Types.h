@@ -5759,6 +5759,13 @@ struct WickedMaterial
 	bool bPlanerReflection[MAXMESHMATERIALS];
 	bool bCastShadows[MAXMESHMATERIALS];
 	float fReflectance[MAXMESHMATERIALS];
+	int customShaderID[MAXMESHMATERIALS];
+	float customShaderParam1[MAXMESHMATERIALS];
+	float customShaderParam2[MAXMESHMATERIALS];
+	float customShaderParam3[MAXMESHMATERIALS];
+	float customShaderParam4[MAXMESHMATERIALS];
+	cStr WPEffect[MAXMESHMATERIALS];
+
 };
 struct CollectableType
 {

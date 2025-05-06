@@ -11647,6 +11647,53 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 					ImGui::PopID();
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object cast shadows.");
 
+					#ifdef CUSTOMSHADERS
+					//PE: Add custom shader support here:
+					void importer_set_all_material_shader_id(int shaderID, float p1, float p2, float p3, float p4);
+						std::vector<wiRenderer::CustomShader> cshaders = wiRenderer::GetCustomShaders();
+					int current_selection = pObjectMaterial->customShaderID;
+					std::string comboselection = "None";
+					if (pObjectMaterial->customShaderID >= 0 && pObjectMaterial->customShaderID < cshaders.size())
+						comboselection = cshaders[pObjectMaterial->customShaderID].name;
+					ImGui::PushItemWidth(-10);
+					ImGui::TextCenter("Custom Shaders");
+					if (ImGui::BeginCombo("##ImporterCustomShaders", comboselection.c_str(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
+					{
+						if (ImGui::Selectable("None"))
+						{
+							pObjectMaterial->customShaderID = -1;
+							importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4);
+							bHaveMaterialUpdate = true;
+						}
+						for (int i = 0; i < cshaders.size(); i++)
+						{
+							bool bSelected = false;
+							if (pObjectMaterial->customShaderID == i)
+								bSelected = true;
+							if (ImGui::Selectable(cshaders[i].name.c_str(), bSelected))
+							{
+								pObjectMaterial->customShaderID = i;
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4);
+								bHaveMaterialUpdate = true;
+							}
+							if (bSelected) ImGui::SetItemDefaultFocus();
+						}
+
+						ImGui::EndCombo();
+					}
+					ImGui::PopItemWidth();
+					if (pObjectMaterial->customShaderID != -1)
+					{
+						//PE: Parameters to shaders.
+						//edit_grideleprof->WEMaterial.customShaderParam1 = pObject->customShaderParam1;
+						//edit_grideleprof->WEMaterial.customShaderParam2 = pObject->customShaderParam2;
+						//edit_grideleprof->WEMaterial.customShaderParam3 = pObject->customShaderParam3;
+						//edit_grideleprof->WEMaterial.customShaderParam4 = pObject->customShaderParam4;
+						//bHaveMaterialUpdate = true;
+					}
+					#endif				
+
+
 					// gather for mode 6 (see later code)
 					if (bCloneChangesToAllObjectsInRubberBand == true)
 					{
@@ -11915,6 +11962,13 @@ void Wicked_Set_Material_From_grideleprof_ThisMesh(void* pVObject, int mode, ent
 			pObjectMaterial->baseColor.z = BaseColor[2];
 			pObjectMaterial->baseColor.w = BaseColor[3];
 
+
+			pObjectMaterial->customShaderID = edit_grideleprof->WEMaterial.customShaderID[iSelectedMesh];
+			pObjectMaterial->customShaderParam1 = edit_grideleprof->WEMaterial.customShaderParam1[iSelectedMesh];
+			pObjectMaterial->customShaderParam2 = edit_grideleprof->WEMaterial.customShaderParam2[iSelectedMesh];
+			pObjectMaterial->customShaderParam3 = edit_grideleprof->WEMaterial.customShaderParam3[iSelectedMesh];
+			pObjectMaterial->customShaderParam4 = edit_grideleprof->WEMaterial.customShaderParam4[iSelectedMesh];
+
 			// emissive color
 			if (edit_grideleprof->WEMaterial.dwEmmisiveColor[iSelectedMesh] == -1)
 			{
@@ -12171,6 +12225,12 @@ void Wicked_Copy_Material_To_Grideleprof(void* pVObject, int mode, entityeleprof
 					edit_grideleprof->WEMaterial.bCastShadows[iMeshIndex] = pObjectMaterial->IsCastingShadow();
 					edit_grideleprof->WEMaterial.bDoubleSided[iMeshIndex] = mesh->IsDoubleSided();
 					edit_grideleprof->WEMaterial.fRenderOrderBias[iMeshIndex] = 0.0f;
+					edit_grideleprof->WEMaterial.customShaderID[iMeshIndex] = pObjectMaterial->customShaderID;
+					edit_grideleprof->WEMaterial.customShaderParam1[iMeshIndex] = pObjectMaterial->customShaderParam1;
+					edit_grideleprof->WEMaterial.customShaderParam2[iMeshIndex] = pObjectMaterial->customShaderParam2;
+					edit_grideleprof->WEMaterial.customShaderParam3[iMeshIndex] = pObjectMaterial->customShaderParam3;
+					edit_grideleprof->WEMaterial.customShaderParam4[iMeshIndex] = pObjectMaterial->customShaderParam4;
+
 					sFrame* pFrame = pMesh->pFrameAttachedTo;
 					if (pFrame)
 					{
@@ -12550,6 +12610,58 @@ void importer_set_all_material_planar_reflection(bool planarReflection)
 	}
 }
 
+void importer_set_all_material_shader_id(int shaderID,float p1, float p2, float p3, float p4)
+{
+	if (!t.importer.bEditAllMesh)
+	{
+		return;
+	}
+
+	sObject* pObject = nullptr;// = GetObjectData(t.importer.objectnumber);
+	if (t.importer.importerActive == 1)
+	{
+		pObject = GetObjectData(t.importer.objectnumber);
+	}
+	else
+	{
+		// Need a way to get the object data for the current object being altered outside of the importer.
+		int e = t.widget.pickedEntityIndex;
+		if (e < 0) return;
+		int obj = t.entityelement[e].obj;
+		if (ObjectExist(obj))
+		{
+			pObject = GetObjectData(obj);
+		}
+	}
+
+	if (!pObject)
+	{
+		return;
+	}
+
+	for (int i = 0; i < pObject->iMeshCount; i++)
+	{
+		sMesh* mesh = pObject->ppMeshList[i];
+
+		if (mesh)
+		{
+			wiScene::MeshComponent* meshComponent = wiScene::GetScene().meshes.GetComponent(mesh->wickedmeshindex);
+
+			if (meshComponent)
+			{
+				// get material settings from mesh material or WEMaterial
+				uint64_t materialEntity = meshComponent->subsets[0].materialID;
+				wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+				pMeshMaterial->customShaderID = shaderID;
+				pMeshMaterial->customShaderParam1 = p1;
+				pMeshMaterial->customShaderParam2 = p2;
+				pMeshMaterial->customShaderParam3 = p3;
+				pMeshMaterial->customShaderParam4 = p4;
+			}
+		}
+	}
+}
+
 void importer_set_all_material_cast_shadow(bool bCastShadow)
 {
 	if (!t.importer.bEditAllMesh)
@@ -12888,8 +13000,11 @@ char* importer_selectfile(int texslot, std::string currentfilename, bool bPreset
 			texPath.resize(texPath.length() - count);
 		}
 	}
-
-	return (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0DDS\0*.dds\0PNG\0*.png\0JPEG\0*.jpg\0TGA\0*.tga\0BMP\0*.bmp\0\0\0", texPath.c_str(), NULL, bOpenCustomLocation);
+	//PE: Filepath was changed here, caused crash.
+	cStr tOldDir = GetDir();
+	char * selectfile = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0DDS\0*.dds\0PNG\0*.png\0JPEG\0*.jpg\0TGA\0*.tga\0BMP\0*.bmp\0\0\0", texPath.c_str(), NULL, bOpenCustomLocation);
+	SetDir(tOldDir.Get());
+	return selectfile;
 }
 
 void importer_collectmeshname(char* meshName)

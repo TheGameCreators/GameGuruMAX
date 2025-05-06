@@ -2174,6 +2174,17 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							float fRenderOrderBias = WickedRenderOrderBias();
 							WickedCall_SetRenderOrderBias(pMesh, fRenderOrderBias);
 
+							int iCustomShaderID = WickedCustomShaderID();
+							float iCustomShaderParam1 = WickedCustomShaderParam1();
+							float iCustomShaderParam2 = WickedCustomShaderParam2();
+							float iCustomShaderParam3 = WickedCustomShaderParam3();
+							float iCustomShaderParam4 = WickedCustomShaderParam4();
+							pObjectMaterial->customShaderID = iCustomShaderID;
+							pObjectMaterial->customShaderParam1 = iCustomShaderParam1;
+							pObjectMaterial->customShaderParam2 = iCustomShaderParam2;
+							pObjectMaterial->customShaderParam3 = iCustomShaderParam3;
+							pObjectMaterial->customShaderParam4 = iCustomShaderParam4;
+
 							bool bPlanerReflection = WickedPlanerReflection();
 							if (bPlanerReflection)
 							{
@@ -2236,6 +2247,17 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							float fRenderOrderBias = WickedRenderOrderBias();
 							WickedCall_SetRenderOrderBias(pMesh, fRenderOrderBias);
 
+							int iCustomShaderID = WickedCustomShaderID();
+							float iCustomShaderParam1 = WickedCustomShaderParam1();
+							float iCustomShaderParam2 = WickedCustomShaderParam2();
+							float iCustomShaderParam3 = WickedCustomShaderParam3();
+							float iCustomShaderParam4 = WickedCustomShaderParam4();
+							pObjectMaterial->customShaderID = iCustomShaderID;
+							pObjectMaterial->customShaderParam1 = iCustomShaderParam1;
+							pObjectMaterial->customShaderParam2 = iCustomShaderParam2;
+							pObjectMaterial->customShaderParam3 = iCustomShaderParam3;
+							pObjectMaterial->customShaderParam4 = iCustomShaderParam4;
+
 							bool bPlanerReflection = WickedPlanerReflection();
 							if (bPlanerReflection)
 							{
@@ -2297,6 +2319,17 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 
 						float fRenderOrderBias = WickedRenderOrderBias();
 						WickedCall_SetRenderOrderBias(pMesh, fRenderOrderBias);
+
+						int iCustomShaderID = WickedCustomShaderID();
+						float iCustomShaderParam1 = WickedCustomShaderParam1();
+						float iCustomShaderParam2 = WickedCustomShaderParam2();
+						float iCustomShaderParam3 = WickedCustomShaderParam3();
+						float iCustomShaderParam4 = WickedCustomShaderParam4();
+						pObjectMaterial->customShaderID = iCustomShaderID;
+						pObjectMaterial->customShaderParam1 = iCustomShaderParam1;
+						pObjectMaterial->customShaderParam2 = iCustomShaderParam2;
+						pObjectMaterial->customShaderParam3 = iCustomShaderParam3;
+						pObjectMaterial->customShaderParam4 = iCustomShaderParam4;
 
 						bool bPlanerReflection = WickedPlanerReflection();
 						if (bPlanerReflection)

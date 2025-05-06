@@ -695,6 +695,7 @@
     <ClCompile Include="..\SDK\EOS-SDK\SharedSourceCode\Platform.cpp" />
     <ClCompile Include="..\SDK\OpenXR\src\openxr.cpp" />
     <ClCompile Include="CrashLogger.cpp" />
+    <ClCompile Include="CustomShaders.cpp" />
     <ClCompile Include="Encryptor.cpp" />
     <ClCompile Include="GameGuruMain.cpp" />
     <ClCompile Include="GGRecastDetour\ChunkyTriMesh.cpp" />
@@ -784,6 +785,31 @@
     <Image Include="Wicked-MAX.ico" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_custom_water.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_hologram2.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectVS_common_tree.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectVS_prepass_trees.hlsl">
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\shadowVS_alphatest_tree.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="GGTerrain\Shaders\GGGrassPrepassPS.hlsl">
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(GG_MAX_BUILD_PATH)\Max\shaders\%(Filename).cso</ObjectFileOutput>
@@ -2339,6 +2365,9 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="GGTerrain\CustomShaders\objectHF.hlsli">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="GGTerrain\Shaders\GGCommonFunctions.hlsli" />
     <None Include="GGTerrain\Shaders\GGGrassConstants.hlsli" />
     <None Include="GGTerrain\Shaders\GGTerrainConstants.hlsli" />

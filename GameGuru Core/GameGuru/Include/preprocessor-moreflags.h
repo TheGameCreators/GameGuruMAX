@@ -140,7 +140,7 @@
 	#define DETECTANDUSENEWPARTICLEDECALS
 
 	#define WICKEDPARTICLESYSTEM
-
+	//#define CUSTOMSHADERS
   #else
    // Flags to compile the Classic version of GameGuru
    #define FPSEXCHANGE

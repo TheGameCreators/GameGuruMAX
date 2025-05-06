@@ -523,7 +523,45 @@ void Sample_TileMesh::handleRender()
 		}
 		m_dd.end();
 	}
-	
+
+	// draw all token drops (show in debugging)
+	m_dd.setDebugObjectSlot(5);
+	m_dd.begin(DU_DRAW_TRIS, 5.0f);
+	extern std::vector<sTokenDrop> g_TokenDropList;
+	if (g_TokenDropList.size() > 0)
+	{
+		int iTokenCount = g_TokenDropList.size();
+		for (int iTokenIndex = 0; iTokenIndex < iTokenCount; iTokenIndex++)
+		{
+			// simple rectangle when blocking
+			if (g_TokenDropList[iTokenIndex].fTimeLeft > 0.0f)
+			{
+				int iFadeValue = 128;
+				unsigned int tokenColor = duRGBA(0, 255, 128, 128);
+				float fCenterX = g_TokenDropList[iTokenIndex].X;
+				float fCenterY = g_TokenDropList[iTokenIndex].Y + 0.1f;
+				float fCenterZ = g_TokenDropList[iTokenIndex].Z;
+				float fDD = 1.5f + (g_TokenDropList[iTokenIndex].fTimeLeft / 1000.0f);
+				if (fDD > 10.0f) fDD = 10.0f;
+				float fX1 = fCenterX - fDD;
+				float fZ1 = fCenterZ - fDD;
+				float fX2 = fCenterX + fDD;
+				float fZ2 = fCenterZ - fDD;
+				float fX3 = fCenterX + fDD;
+				float fZ3 = fCenterZ + fDD;
+				float fX4 = fCenterX - fDD;
+				float fZ4 = fCenterZ + fDD;
+				m_dd.vertex(fX1, fCenterY, fZ1, tokenColor);
+				m_dd.vertex(fX2, fCenterY, fZ2, tokenColor);
+				m_dd.vertex(fX3, fCenterY, fZ3, tokenColor);
+				m_dd.vertex(fX1, fCenterY, fZ1, tokenColor);
+				m_dd.vertex(fX3, fCenterY, fZ3, tokenColor);
+				m_dd.vertex(fX4, fCenterY, fZ4, tokenColor);
+			}
+		}
+	}
+	m_dd.end();
+
 	/*
 	glDepthMask(GL_TRUE);
 	

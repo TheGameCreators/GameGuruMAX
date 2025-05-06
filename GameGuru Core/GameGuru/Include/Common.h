@@ -31,6 +31,7 @@ LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename );
 void common_loadfonts ( void );
 void common_loadcommonassets (int iShowScreenPrompts);
 void common_loadcommonassets_delayed (int iShowScreenPrompts);
+void common_mustreload_foreachnewproject(void);
 void common_hide_mouse ( void );
 void common_show_mouse ( void );
 void common_vectorsinit ( void );

@@ -311,6 +311,23 @@ void hud_updatehudlayerobjects ( void )
 
 void blood_damage_init ( void )
 {
+	// delete any previously loaded resouces (as can be called multiple times each time a new project is loaded)
+	if ( t.huddamage.bloodtotal > 0 ) 
+	{
+		for ( t.mb = 0 ; t.mb<=  t.huddamage.maxbloodsplats; t.mb++ )
+		{
+			if ( ImageExist(t.huddamage.bloodstart+t.mb) == 1 ) 
+			{
+				DeleteImage ( t.huddamage.bloodstart+t.mb );
+			}
+		}
+		t.huddamage.bloodtotal=0;
+	}
+	if (t.huddamage.indicator > 0)
+	{
+		if (ImageExist(t.huddamage.indicator) == 1) DeleteImage (t.huddamage.indicator);
+	}
+
 	// set up with place holders for images
 	t.huddamage.bloodtimestart=500;
 	t.huddamage.bloodtimeend=1500;
@@ -322,26 +339,18 @@ void blood_damage_init ( void )
 	t.huddamage.damagetrackshooter=1;
 
 	// blood splats
-	if ( t.huddamage.bloodtotal == 0 ) 
+	if ( t.huddamage.bloodtotal == 0 && t.huddamage.bloodstart > 0)
 	{
 		image_setlegacyimageloading(true);
 		t.huddamage.maxbloodsplats=7;
 		for ( t.mb = 0 ; t.mb<=  t.huddamage.maxbloodsplats; t.mb++ )
 		{
-			#ifdef PRODUCTV3
-			t.a_s = ""; t.a_s = t.a_s + "databank\\splash" + Str(t.mb + 1) + ".png";
-			#else
 			t.a_s = ""; t.a_s = t.a_s + "databank\\bloodsplash" + Str(t.mb + 1) + ".png";
-			#endif
 			if (  FileExist(t.a_s.Get()) == 1 ) 
 			{
 				LoadImage (  t.a_s.Get(),t.huddamage.bloodstart+t.mb,0,g.gdividetexturesize );
 				WickedCall_LoadImage(t.a_s.Get()); //PE: Also add to wicked for textureobject that cant use legacy image.
-				#ifdef WICKEDENGINE
 				Sprite(t.huddamage.bloodstart + t.mb, -100000, -100000, t.huddamage.bloodstart + t.mb);
-				#else
-				Sprite(t.huddamage.bloodstart + t.mb, -1000, -1000, t.huddamage.bloodstart + t.mb);
-				#endif // !WICKEDENGINE
 				++t.huddamage.bloodtotal;
 
 				//  keep alive with steam server
@@ -352,15 +361,19 @@ void blood_damage_init ( void )
 	}
 
 	//  directional indicator
-	image_setlegacyimageloading(true);
-	t.a_s="databank\\indicator.png";
-	if (  ImageExist(t.huddamage.indicator) == 0  )  LoadImage (  t.a_s.Get(),t.huddamage.indicator );
-	if (ImageExist(t.huddamage.indicator) == 1)
+	if (t.huddamage.indicator > 0)
 	{
-		Sprite(t.huddamage.indicator, -100000, -100000, t.huddamage.indicator);
-		OffsetSprite(t.huddamage.indicator, ImageWidth(t.huddamage.indicator) / 2, ImageHeight(t.huddamage.indicator) / 2);
+		image_setlegacyimageloading(true);
+		t.a_s = "databank\\indicator.png";
+		if (ImageExist(t.huddamage.indicator) == 0)  LoadImage (t.a_s.Get(), t.huddamage.indicator);
+		if (ImageExist(t.huddamage.indicator) == 1)
+		{
+			Sprite(t.huddamage.indicator, -100000, -100000, t.huddamage.indicator);
+			OffsetSprite(t.huddamage.indicator, ImageWidth(t.huddamage.indicator) / 2, ImageHeight(t.huddamage.indicator) / 2);
+		}
+		image_setlegacyimageloading(false);
 	}
-	image_setlegacyimageloading(false);
+
 	//  keep alive with steam server
 	if ( t.game.runasmultiplayer == 1 ) mp_refresh ( );
 }

@@ -1,0 +1,57 @@
+;Saved by Model Importer
+;header
+desc             = scroll
+
+;orientation
+model            = scroll.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = -1
+cullmode         = 0
+
+;visualinfo
+textured         = scroll_color.dds
+baseColorMap     = scroll_color.dds
+alpharef         = 1.00
+normalMap        = scroll_normal.dds
+normalStrength   = 0.24
+surfaceMap       = scroll_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 0.15
+transparency     = 0
+doublesided      = 1
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = scroll_color.dds
+textureref2       = scroll_normal.dds
+textureref3       = scroll_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 10
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 34.001320
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

@@ -1,0 +1,71 @@
+;Saved by Model Importer
+;header
+desc             = Jerrycan
+
+
+;orientation
+model            = Jerrycan.dbo
+scale            = 100.00
+collisionmode    = 1
+defaultstatic    = 0
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = Jerrycan_color.dds
+baseColorMap     = Jerrycan_color.dds
+alpharef         = 1.00
+normalMap        = Jerrycan_normal.dds
+normalStrength   = 0.42
+surfaceMap       = Jerrycan_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = Jerrycan_color.dds
+textureref2       = Jerrycan_normal.dds
+textureref3       = Jerrycan_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+isimmobile       = 0
+phyweight 	 = 1
+phyfriction 	 = 1
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 10
+explodable       = 1
+debrisshape      = 
+
+;ai
+aimain           = objects\fuel.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 4.421724
+thumbnailcamup = 11.585072
+thumbnailrotatex = 9.269684
+thumbnailrotatey = 339.670349

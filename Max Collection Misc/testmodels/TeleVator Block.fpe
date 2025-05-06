@@ -1,0 +1,69 @@
+;Saved by Model Importer
+;header
+desc             = TeleVator Block
+
+;orientation
+model            = TeleVator Block.dbo
+scale            = 100.00
+collisionmode    = 1
+defaultstatic    = 1
+materialindex    = 2
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = TeleVatorBlock_color.dds
+alphaRef0        = 0.95
+normalMap0       = TeleVatorBlock_normal.dds
+normalStrength0  = 0.60
+surfaceMap0      = TeleVatorBlock_surface.dds
+roughnessStrength0= 1.00
+metalnessStrength0= 0.80
+transparency0    = 0
+renderorderbias0 = 0.00
+reflectance0     = 0.0400
+basecolor0       = 4294967295
+emissivecolor0   = 0
+baseColorMap1    = TeleVatorBlock_color.dds
+alphaRef1        = 1.00
+normalMap1       = TeleVatorBlock_normal.dds
+normalStrength1  = 1.00
+surfaceMap1      = TeleVatorBlock_surface.dds
+roughnessStrength1= 1.00
+metalnessStrength1= 1.00
+transparency1    = 0
+doublesided1     = 1
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 0
+textureref1       = TeleVatorBlock_color.dds
+textureref2       = TeleVatorBlock_normal.dds
+textureref3       = TeleVatorBlock_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Naelurec Blue.png
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

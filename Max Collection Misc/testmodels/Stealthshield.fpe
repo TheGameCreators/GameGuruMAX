@@ -1,0 +1,74 @@
+;Saved by Model Importer
+;header
+desc             = Stealthshield
+
+
+;orientation
+model            = Stealthshield.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = stealthshield.dds
+alphaRef0        = 1.00
+transparency0    = 1
+castshadow0      = -1
+renderorderbias0 = 0.00
+reflectance0     = 0.0400
+basecolor0       = 4294967295
+emissivecolor0   = 0
+baseColorMap1    = stealthshield.dds
+alphaRef1        = 1.00
+transparency1    = 1
+castshadow1      = -1
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 0
+textureref1       = stealthshield.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+isimmobile       = 1
+phyweight 	 = 0
+phyfriction 	 = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+alwaysactive	 = 1
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = stealthshield\stealthshield.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = -3.233833
+thumbnailcamup = 26.632219
+thumbnailrotatex = 8.484356
+thumbnailrotatey = 9.478512

@@ -239,10 +239,39 @@ NewLevelCamera newLevelCamera;
 void PositionCameraForNewLevel();
 #endif
 
-/* g_bTerrainGeneratorChooseRealTerrain no longer used
-// terrain generator grey grid vs real terrain
-bool g_bTerrainGeneratorChooseRealTerrain = false;
-*/
+struct sCustomBiomeType
+{
+	char pName[260] = {};
+	int randomizetimeofday = 0;
+	int showtrees = 0;
+	int showgrass = 0;
+	int showterrain = 0;
+	int showwater = 1;
+	int treesbitfield = 9673113696;
+	int treesscalerandomlow = 40;
+	int treesscalerandomhigh = 200;
+	int treeschangedensity = 40;
+	int grasspainttype = 1;
+	int grasspaintdensity = 100;
+	int grasspaintmaterial = 0;
+	int waterline = -500;
+	int waterspeed = 0.06;
+	int waterred = 9;
+	int watergreen = 21;
+	int waterblue = 43;
+	int wateralpha = 0;
+	int waterwaveamplitude = 20;
+	int waterwinddependency = 0;
+	int waterpatchlength = 40;
+	int waterchoppyscale = 0;
+	int waterfogmindist = 0;
+	int waterfogmaxdist = 11500;
+	int waterfogminamount = 0;
+	int waterdistance = 400;
+	int waterenable = 1;
+	int proceduralterraintype = 6;
+};
+std::vector<sCustomBiomeType> g_sCustomBiomes;
 
 // Prototypes
 void set_inputsys_mclick(int value);
@@ -250,6 +279,111 @@ void set_inputsys_mclick(int value);
 #if defined(ENABLEIMGUI)
 int current_mode = 0;
 ImVec4 tool_selected_col;
+
+void imgui_populatecustombiomes(void)
+{
+	// store current dir
+	LPSTR pOldDir = GetDir();
+
+	// collect
+	g_sCustomBiomes.clear();
+	char pWritableCustomBiomeFolder[MAX_PATH];
+	strcpy (pWritableCustomBiomeFolder, "editors\\biomes\\custom\\");
+	GG_GetRealPath(pWritableCustomBiomeFolder, 0);
+	SetDir(pWritableCustomBiomeFolder);
+	ChecklistForFiles();
+	for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
+	{
+		t.tfile_s = ChecklistString(t.c);
+		LPSTR pThisFolder = t.tfile_s.Get();
+		if (Len(pThisFolder) > 2)
+		{
+			char pCheckCustomBiomeFile[MAX_PATH];
+			sprintf(pCheckCustomBiomeFile, "%s\\settings.ter", t.tfile_s.Get());
+			if (FileExist (pCheckCustomBiomeFile) == 1)
+			{
+				sCustomBiomeType item;
+				strcpy (item.pName, t.tfile_s.Get());
+
+				// read profile to fill in custom biome values
+				char pCheckCustomBiomeProfile[MAX_PATH];
+				sprintf(pCheckCustomBiomeProfile, "%s\\profile.dat", t.tfile_s.Get());
+				if (FileExist(pCheckCustomBiomeProfile) == 0)
+				{
+					// write out a template profile file to help out
+					OpenToWrite(1, pCheckCustomBiomeProfile);
+					WriteString(1, ";");
+					WriteString(1, ";Profile Template created by Terrain Generator");
+					WriteString(1, ";");
+					WriteString(1, ";Save a 'settings.ter' from the Save Terrain option in Terrain Generator");
+					WriteString(1, ";Include a WAV file called 'atmosloop.wav' to perform a looping atmospheric sound");
+					WriteString(1, ";Include a 'textures' folder containing an entire terraintextures folder set");
+					WriteString(1, "");
+					CloseFile(1);
+				}
+				else
+				{
+					// read an existing profile file to populate the custom biome values
+					OpenToRead(1, pCheckCustomBiomeProfile);
+					while (FileEnd(1) == 0)
+					{
+						LPSTR pLine = ReadString(1);
+						if (strlen(pLine) > 0)
+						{
+							if (pLine[0] != ';')
+							{
+								char pLineToCrop[256];
+								strcpy(pLineToCrop, pLine);
+								LPSTR pLine2 = pLineToCrop;
+								LPSTR pLine3 = strchr(pLine2, '=');
+								if (pLine3 != NULL)
+								{
+									*pLine3 = 0;
+									pLine3++;
+									if (stricmp(pLine2, "randomizetimeofday") == 0) { item.randomizetimeofday = atoi(pLine3); }
+									else if (stricmp(pLine2, "showtrees") == 0) { item.showtrees = atoi(pLine3); }
+									else if (stricmp(pLine2, "showgrass") == 0) { item.showgrass = atoi(pLine3); }
+									else if (stricmp(pLine2, "showterrain") == 0) { item.showterrain = atoi(pLine3); }
+									else if (stricmp(pLine2, "showwater") == 0) { item.showwater = atoi(pLine3); }
+									else if (stricmp(pLine2, "treesbitfield") == 0) { item.treesbitfield = atoi(pLine3); }
+									else if (stricmp(pLine2, "treesscalerandomlow") == 0) { item.treesscalerandomlow = atoi(pLine3); }
+									else if (stricmp(pLine2, "treesscalerandomhigh") == 0) { item.treesscalerandomhigh = atoi(pLine3); }
+									else if (stricmp(pLine2, "treeschangedensity") == 0) { item.treeschangedensity = atoi(pLine3); }
+									else if (stricmp(pLine2, "grasspainttype") == 0) { item.grasspainttype = atoi(pLine3); }
+									else if (stricmp(pLine2, "grasspaintdensity") == 0) { item.grasspaintdensity = atoi(pLine3); }
+									else if (stricmp(pLine2, "grasspaintmaterial") == 0) { item.grasspaintmaterial = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterline") == 0) { item.waterline = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterspeed") == 0) { item.waterspeed = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterred") == 0) { item.waterred = atoi(pLine3); }
+									else if (stricmp(pLine2, "watergreen") == 0) { item.watergreen = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterblue") == 0) { item.waterblue = atoi(pLine3); }
+									else if (stricmp(pLine2, "wateralpha") == 0) { item.wateralpha = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterwaveamplitude") == 0) { item.waterwaveamplitude = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterwinddependency") == 0) { item.waterwinddependency = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterpatchlength") == 0) { item.waterpatchlength = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterchoppyscale") == 0) { item.waterchoppyscale = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterfogmindist") == 0) { item.waterfogmindist = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterfogmaxdist") == 0) { item.waterfogmaxdist = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterfogminamount") == 0) { item.waterfogminamount = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterdistance") == 0) { item.waterdistance = atoi(pLine3); }
+									else if (stricmp(pLine2, "waterenable") == 0) { item.waterenable = atoi(pLine3); }
+									else if (stricmp(pLine2, "proceduralterraintype") == 0) { item.proceduralterraintype = atoi(pLine3); }
+								}
+							}
+						}
+					}
+					CloseFile(1);
+				}
+
+				// add custom biome to list
+				g_sCustomBiomes.push_back(item);
+			}
+		}
+	}
+
+	// restore dir
+	SetDir(pOldDir);
+}
 
 void imgui_terrain_loop_v2(void)
 {
@@ -11357,11 +11491,14 @@ void procedural_new_level(void)
 					wiScene::WeatherComponent* weather = wiScene::GetScene().weathers.GetComponent(g_weatherEntityID);
 
 					bool bForceDay = false;
-					if (bFirstBiomes[iSelectedThemeChoice] || bSelectDayRandomSkybox)
+					if (iSelectedThemeChoice < 10)
 					{
-						bFirstBiomes[iSelectedThemeChoice] = false;
-						bSelectDayRandomSkybox = false;
-						bForceDay = true;
+						if (bFirstBiomes[iSelectedThemeChoice] || bSelectDayRandomSkybox)
+						{
+							bFirstBiomes[iSelectedThemeChoice] = false;
+							bSelectDayRandomSkybox = false;
+							bForceDay = true;
+						}
 					}
 
 					if (((rand() % 3) == 0 || bForceDay) && bSelectNightSkybox == false)
@@ -11454,7 +11591,8 @@ void procedural_new_level(void)
 				int iRandomTimeOfDayChoice = -1;
 
 				static bool iLastTreeGrassSettings = -1;
-				if (ImGui::StyleCollapsingHeader("Terraform Terrain", ImGuiTreeNodeFlags_DefaultOpen))
+				ImGui::Text("");
+				if (ImGui::StyleCollapsingHeader("Terrain Biome", ImGuiTreeNodeFlags_DefaultOpen))
 				{
 					float feditable_size = ggterrain_global_render_params2.editable_size;
 
@@ -11478,6 +11616,7 @@ void procedural_new_level(void)
 						iLastTreeGrassSettings = -1;
 					}
 
+					ImGui::TextCenter("Default Choices");
 
 					ImVec4 outline_color = ImGui::GetStyle().Colors[ImGuiCol_PlotHistogram];
 					ImVec2 vSelectionDraw = ImGui::GetCurrentWindow()->DC.CursorPos;
@@ -12066,7 +12205,161 @@ void procedural_new_level(void)
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select a Empty Level consisting of a blank grey grid");
 
+					// for all stock default biomes, all use stock terrain textures, so remove any custom ones if selected
+					if (iSelectedThemeChoice < 10)
+					{
+						if (t.visuals.customTexturesFolder.Len() > 0)
+						{
+							t.visuals.customTexturesFolder = "";
+							ChooseTerrainTextureFolder("");
+						}
+					}
 
+					// optional custom biomes can go here
+					static int g_custombiome_item_count = 0;
+					static char** g_custombiome_items = NULL;
+					static char g_pCustomBiomeName[256];
+					if (g_custombiome_item_count != g_sCustomBiomes.size())
+					{
+						if (g_custombiome_items)
+						{
+							for (int i = 0; i < g_custombiome_item_count; i++) SAFE_DELETE(g_custombiome_items[i]);
+							SAFE_DELETE(g_custombiome_items);
+						}
+						g_custombiome_item_count = g_sCustomBiomes.size();
+						g_custombiome_items = new char* [g_custombiome_item_count];
+						for (int i = 0; i < g_custombiome_item_count; i++)
+						{
+							g_custombiome_items[i] = new char[256];
+							strcpy(g_custombiome_items[i], g_sCustomBiomes[i].pName);
+						}
+					}
+					int g_custombiome_selection = 0;
+					if (iSelectedThemeChoice < 10) strcpy(g_pCustomBiomeName, "");
+					for (int i = 0; i < g_custombiome_item_count; i++)
+					{
+						if (pestrcasestr(g_pCustomBiomeName, g_custombiome_items[i]))
+						{
+							g_custombiome_selection = i;
+							break;
+						}
+					}
+					if (g_custombiome_item_count>0)
+					{
+						ImGui::TextCenter("Custom Choices");
+
+						int iCustomThemeIDStartsAt = 10;
+						vSelectionDraw = ImGui::GetCurrentWindow()->DC.CursorPos;
+						if (ImGui::Combo("##ComboCustomBiomes", &g_custombiome_selection, g_custombiome_items, g_custombiome_item_count))
+						{
+							// set this selection
+							iSelectedThemeChoice = iCustomThemeIDStartsAt + g_custombiome_selection;
+							strcpy(g_pCustomBiomeName, g_custombiome_items[g_custombiome_selection]);
+							sCustomBiomeType item = g_sCustomBiomes[g_custombiome_selection];
+							
+							// do we randomise on selection
+							if (item.randomizetimeofday==1 && iRandomThemeChoice == 0) iRandomTimeOfDayChoice = (rand() % 7);
+							if (iRandomThemeChoice == 0) bSelectRandomSkybox = true;
+							iSelectedThemeChoice = iCustomThemeIDStartsAt;
+
+							// load in stock settings for this biome
+							char pSettingsFile[MAX_PATH];
+							sprintf(pSettingsFile, "editors\\biomes\\custom\\%s\\settings.ter", g_pCustomBiomeName);
+							GGTerrainFile_LoadTerrainData(pSettingsFile, false);
+
+							// starting seed
+							//ggterrain_global_params.seed = Random2();
+
+							// toggle trees, grass and terrain drawing
+							t.showeditortrees = t.gamevisuals.bEndableTreeDrawing = t.visuals.bEndableTreeDrawing = item.showtrees;
+							t.showeditorveg = t.gamevisuals.bEndableGrassDrawing = t.visuals.bEndableGrassDrawing = item.showgrass;
+							t.showeditorterrain = t.gamevisuals.bEndableTerrainDrawing = t.visuals.bEndableTerrainDrawing = item.showterrain;
+
+							// if switch biome, update trees and grass
+							if (iLastTreeGrassSettings != iCustomThemeIDStartsAt)
+							{
+								iLastTreeGrassSettings = iCustomThemeIDStartsAt;
+								ggtrees_global_params.paint_tree_bitfield = item.treesbitfield;
+								ggtrees_global_params.paint_scale_random_low = item.treesscalerandomlow;
+								ggtrees_global_params.paint_scale_random_high = item.treesscalerandomhigh;
+								GGTrees::GGTrees_ChangeDensity(item.treeschangedensity);
+								GGTrees::ggtrees_global_params.hide_until_update = 1;
+								GGTrees::ggtrees_global_params.draw_enabled = 0;
+								gggrass_global_params.paint_type = item.grasspainttype;
+								gggrass_global_params.paint_density = item.grasspaintdensity;
+								gggrass_global_params.paint_material = item.grasspaintmaterial;
+								GGGrass::GGGrass_AddAll();
+							}
+
+							// Water settings
+							t.terrain.waterliney_f = g.gdefaultwaterheight = item.waterline;
+							t.gamevisuals.WaterSpeed1 = t.visuals.WaterSpeed1 = item.waterspeed / 100.0f;
+							t.gamevisuals.WaterRed_f = t.visuals.WaterRed_f = item.waterred;
+							t.gamevisuals.WaterGreen_f = t.visuals.WaterGreen_f = item.watergreen;
+							t.gamevisuals.WaterBlue_f = t.visuals.WaterBlue_f = item.waterblue;
+							t.gamevisuals.WaterAlpha_f = t.visuals.WaterAlpha_f = item.wateralpha;
+							t.gamevisuals.fWaterWaveAmplitude = t.visuals.fWaterWaveAmplitude = item.waterwaveamplitude;
+							t.gamevisuals.fWaterWindDependency = t.visuals.fWaterWindDependency = item.waterwinddependency;
+							t.gamevisuals.fWaterPatchLength = t.visuals.fWaterPatchLength = item.waterpatchlength;
+							t.gamevisuals.fWaterChoppyScale = t.visuals.fWaterChoppyScale = item.waterchoppyscale;
+							t.gamevisuals.WaterFogMinDist = t.visuals.WaterFogMinDist = item.waterfogmindist;
+							t.gamevisuals.WaterFogMaxDist = t.visuals.WaterFogMaxDist = item.waterfogmaxdist;
+							t.gamevisuals.WaterFogMinAmount = t.visuals.WaterFogMinAmount = item.waterfogminamount / 100.0f;
+							t.visuals.bWaterEnable = item.waterenable = item.waterenable;
+							t.gamevisuals.bWaterEnable = t.visuals.bWaterEnable;
+
+							// update visuals once settings made
+							Wicked_Update_Visuals((void*)&t.visuals);
+
+							// more terrain settings
+							ggterrain_extra_params.iProceduralTerrainType = item.proceduralterraintype;
+							//ggterrain_global_params.fractal_initial_amplitude = 1.0f;
+
+							// set atmospheric loop
+							char pAtmosLoopFile[MAX_PATH];
+							sprintf(pAtmosLoopFile, "editors\\biomes\\custom\\%s\\atmosloop.wav", g_pCustomBiomeName);
+							t.visuals.sAmbientMusicTrack = pAtmosLoopFile;
+							t.gamevisuals.bEndableAmbientMusicTrack = t.visuals.bEndableAmbientMusicTrack = true;
+							t.gamevisuals.sAmbientMusicTrack = t.visuals.sAmbientMusicTrack;
+							t.gamevisuals.bEnableCombatMusicTrack = t.visuals.bEnableCombatMusicTrack = false;
+							t.visuals.sCombatMusicTrack = "";
+							t.gamevisuals.sCombatMusicTrack = t.visuals.sCombatMusicTrack;
+
+							// set water distance
+							ggtrees_global_params.water_dist = item.waterdistance;
+
+							// and also change terrain texture folder to custom one
+							char pCustomTerrainTextureFolder[MAX_PATH];
+							sprintf(pCustomTerrainTextureFolder, "editors\\biomes\\custom\\%s\\textures\\", g_pCustomBiomeName);
+							t.visuals.customTexturesFolder = pCustomTerrainTextureFolder;
+							char pCustomTerrainMaterialSoundFile[MAX_PATH];
+							sprintf(pCustomTerrainMaterialSoundFile, "editors\\biomes\\custom\\%s\\matsounds.txt", g_pCustomBiomeName);
+							extern void physics_loadmaterialsoundsintomapmat(LPSTR);
+							physics_loadmaterialsoundsintomapmat (pCustomTerrainMaterialSoundFile);
+							extern void physics_copymatmaptocustommat(void);
+							physics_copymatmaptocustommat();
+
+							// then save custom material settings in FPM of terrain generation so both terrain textures and material sounds are respected
+							cstr terrainMaterialFile = g.mysystem.levelBankTestMap_s + "custommaterials.dat";
+							SaveTerrainTextureFolder(terrainMaterialFile.Get());
+
+							// and then trigger the texture to be loaded right now in the Terrain Generator
+							ChooseTerrainTextureFolder(t.visuals.customTexturesFolder.Get());
+
+							// biome settings complete
+							bTriggerStableY = true;
+						}
+						if (iSelectedThemeChoice == iCustomThemeIDStartsAt)
+						{
+							ImVec2 padding = { 0.0, 0.0 };
+							const ImRect image_bb((vSelectionDraw - padding), vSelectionDraw + padding + ImVec2(230, 22));
+							ImGui::GetCurrentWindow()->DrawList->AddRect(image_bb.Min, image_bb.Max, ImGui::GetColorU32(outline_color), 0.0f, 15, 2.0f);
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Select Custom Biome Theme");
+
+						// more custom biomes?
+						//ImGui::SameLine();
+					}
 					ggterrain_global_render_params2.editable_size = feditable_size;
 					ImGui::PopItemWidth();
 				}
@@ -12118,7 +12411,7 @@ void procedural_new_level(void)
 				}
 				if(t.visuals.bEnableEmptyLevelMode==false)
 				{
-					if (ImGui::StyleCollapsingHeader("Terrain Shape", ImGuiTreeNodeFlags_DefaultOpen))
+					if (ImGui::StyleCollapsingHeader("Terrain Size", ImGuiTreeNodeFlags_DefaultOpen))
 					{
 						ImGui::Indent(10);
 
@@ -12186,7 +12479,7 @@ void procedural_new_level(void)
 					// allow terrain to be changed except for EMPTY mode
 					if (ggterrain_extra_params.iProceduralTerrainType != 0)
 					{
-						if (ImGui::StyleCollapsingHeader("Terrain Values", ImGuiTreeNodeFlags_DefaultOpen))
+						if (ImGui::StyleCollapsingHeader("Terrain Attributes", ImGuiTreeNodeFlags_DefaultOpen))
 						{
 							ImGui::Indent(10);
 
@@ -13842,6 +14135,10 @@ void ChooseTerrainTextureFolder(char* folder)
 					t.visuals.customTexturesFolder = destination;
 				}
 			}
+
+			// and as soon as change texture, create the custommaterials file so level has this when it is saved
+			cstr terrainMaterialFile = g.mysystem.levelBankTestMap_s + "custommaterials.dat";
+			SaveTerrainTextureFolder(terrainMaterialFile.Get());
 		}
 		else
 		{
@@ -13851,29 +14148,45 @@ void ChooseTerrainTextureFolder(char* folder)
 	else
 	{
 		// Determine full path to custom textures folder (writable or max install)
-		char fullPath[MAX_PATH];
-		strcpy(fullPath, writePath);
-		strcat(fullPath, folder);
-		if (PathExist(fullPath) == 0)
+		// so that we can load the textures during the refresh below (destination needs to point to valid area!!)
+		if (strlen(folder) > 0)
 		{
-			fullPath[0] = 0;
-			strcpy(fullPath, g.fpscrootdir_s.Get());
-			strcat(fullPath, "\\");
+			char fullPath[MAX_PATH];
+			strcpy(fullPath, writePath);
+			strcat(fullPath, "\\Files\\");
 			strcat(fullPath, folder);
 			if (PathExist(fullPath) == 0)
 			{
-				extern bool bTriggerMessage;
-				extern char cTriggerMessage[MAX_PATH];
-				bTriggerMessage = true;
-				strcpy(cTriggerMessage, "Could not load terrain materials. Reverting to default settings.");
-				ResetTextureSettings();
-				SetDir(oldDir.Get());
-				return;
+				fullPath[0] = 0;
+				strcpy(fullPath, g.fpscrootdir_s.Get());
+				strcat(fullPath, "\\Files\\");
+				strcat(fullPath, folder);
+				if (PathExist(fullPath) == 0)
+				{
+					// for now, no warning, just silent fail
+					//extern bool bTriggerMessage;
+					//extern char cTriggerMessage[MAX_PATH];
+					//bTriggerMessage = true;
+					//strcpy(cTriggerMessage, "Could not load terrain materials. Reverting to default settings.");
+					//ResetTextureSettings();
+					//SetDir(oldDir.Get());
+					return;
+				}
 			}
+
+			// Loading texture folder
+			t.visuals.customTexturesFolder = folder;
+			strcpy(destination, fullPath);
 		}
-		// Loading texture folder
-		t.visuals.customTexturesFolder = folder;
-		strcpy(destination, fullPath);
+		else
+		{
+			// passed in empty string, meaning we want to force a reset to stock terrain textures (used by Terrain Generator Biome selector)
+			ResetTextureSettings();
+			return;
+		}
+
+		// as loading direct, always in MAX folder
+		bInMaxFolder = true;
 	}
 
 	std::vector<std::string> files;
@@ -14021,6 +14334,7 @@ void LoadTerrainTextureFolder(LPSTR pFile)
 				t.visuals.customTexturesFolder = folder.c_str();
 				if (folder.length() > 0)
 				{
+					// trigger refresh of terrain textures from custom texture folder
 					ChooseTerrainTextureFolder(t.visuals.customTexturesFolder.Get());
 				}
 				else

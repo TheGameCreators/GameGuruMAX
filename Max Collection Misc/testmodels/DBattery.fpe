@@ -1,0 +1,67 @@
+;Saved by Model Importer
+;header
+desc             = DBattery
+
+
+;orientation
+model            = DBattery.dbo
+scale            = 28.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = DBattery_color.dds
+baseColorMap     = DBattery_color.dds
+alpharef         = 1.00
+normalMap        = DBattery_normal.dds
+normalStrength   = 1.00
+surfaceMap       = DBattery_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = DBattery_color.dds
+textureref2       = DBattery_normal.dds
+textureref3       = DBattery_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = rpg/battery.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 5.432010
+thumbnailrotatey = 27.449741

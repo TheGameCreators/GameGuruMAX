@@ -1,0 +1,69 @@
+;Saved by Model Importer
+;header
+desc             = zipline
+
+
+;orientation
+model            = zipline.dbo
+scale            = 50.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = zipline_color.dds
+baseColorMap     = zipline_color.dds
+alpharef         = 1.00
+normalMap        = zipline_normal.dds
+normalStrength   = 1.00
+surfaceMap       = zipline_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = zipline_color.dds
+textureref2       = zipline_normal.dds
+textureref3       = zipline_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 	 = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 5
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = 
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue spotlight.dds
+thumbnailzoom = 150.570099
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 21.399767
+thumbnailrotatey = 44.445930

@@ -1,0 +1,106 @@
+;Saved by Model Importer
+;header
+desc             = Combo Lock 01
+
+
+;orientation
+model            = Combo Lock 01.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 1
+materialindex    = -1
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = Combo_Lock_M_Color.png
+alphaRef0        = 1.00
+normalMap0       = Combo_Lock_M_normal.png
+normalStrength0  = 1.00
+emissiveMap0     = Combo_Lock_Close_M_emissive.png
+emissiveStrength0= 0.00
+surfaceMap0      = Combo_Lock_M_surface.dds
+roughnessStrength0= 1.00
+metalnessStrength0= 1.00
+transparency0    = 0
+renderorderbias0 = 0.00
+reflectance0     = 0.0400
+basecolor0       = 4294967295
+emissivecolor0   = 4294967040
+baseColorMap1    = Combo_Lock_Open_M_Color.png
+alphaRef1        = 1.00
+normalMap1       = Combo_Lock_Open_M_normal.png
+normalStrength1  = 1.00
+emissiveMap1     = Combo_Lock_Open_M_emissive.png
+emissiveStrength1= 1.00
+surfaceMap1      = Combo_Lock_Open_M_surface.dds
+roughnessStrength1= 1.00
+metalnessStrength1= 1.00
+transparency1    = 0
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 4294967040
+baseColorMap2    = Combo_Lock_Close_M_Color.png
+alphaRef2        = 1.00
+normalMap2       = Combo_Lock_Close_M_normal.png
+normalStrength2  = 1.00
+emissiveMap2     = Combo_Lock_Close_M_emissive.png
+emissiveStrength2= 1.00
+surfaceMap2      = Combo_Lock_Close_M_surface.dds
+roughnessStrength2= 1.00
+metalnessStrength2= 1.00
+transparency2    = 0
+renderorderbias2 = 0.00
+reflectance2     = 0.0400
+basecolor2       = 4294967295
+emissivecolor2   = 4294967040
+textureref1       = Combo_Lock_M_Color.png
+textureref2       = Combo_Lock_M_normal.png
+textureref3       = Combo_Lock_M_surface.dds
+textureref4       = Combo_Lock_Close_M_emissive.png
+textureref5       = Combo_Lock_Open_M_Color.png
+textureref6       = Combo_Lock_Open_M_normal.png
+textureref7       = Combo_Lock_Open_M_surface.dds
+textureref8       = Combo_Lock_Open_M_emissive.png
+textureref9       = Combo_Lock_Close_M_Color.png
+textureref10      = Combo_Lock_Close_M_normal.png
+textureref11      = Combo_Lock_Close_M_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = puzzle\codeswitch.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 25.00
+animmax          = 2
+anim0            = 0,4
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.097609
+thumbnailcamup = 5.176085
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000
+thumbnailanimset = 0

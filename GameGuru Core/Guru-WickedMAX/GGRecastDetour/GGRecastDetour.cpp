@@ -6,6 +6,7 @@
 // Globals
 bool g_bNavMeshChanged = false;
 std::vector<sBlocker> g_BlockerList;
+std::vector<sTokenDrop> g_TokenDropList;
 float g_fWaterTableY = 0.0f;
 
 // main functions
@@ -257,80 +258,25 @@ void GGRecastDetour::TogglePolys( float x, float y, float z, float radius, bool 
 	forceDebugUpdate();
 }
 
-void GGRecastDetour::ResetBlockerSystem(void)
+void GGRecastDetour::ResetTokenDropSystem(void)
 {
-	g_BlockerList.clear();
+	g_TokenDropList.clear();
 }
-
-void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool enable, float fRadius2, float fAngle, float fAdjMinY, float fAdjMaxY)
+void GGRecastDetour::DoTokenDrop(float x, float y, float z, int iType, float fDuration)
 {
-	bool bAnyNavMeshBlockerStateChanged = false;
-	float minX,maxX,minY,maxY,minZ,maxZ;
-	bool bFoundBlocker = false;
-	if (radius != fRadius2)
+	bool bAnyNavMeshTokenDropStateChanged = false;
+	if(iType>0)
 	{
-		// new fully cunstomizable and accurate
-		if (radius < 5) radius = 5;
-		if (fRadius2 < 5) fRadius2 = 5;
-		radius /= 2.0f;
-		fRadius2 /= 2.0f;
-		radius += 5.0f;
-		fRadius2 += 5.0f;
-		minX = x - radius;
-		maxX = x + radius;
-		minY = y + fAdjMinY;
-		maxY = y + fAdjMaxY;
-		minZ = z - fRadius2;
-		maxZ = z + fRadius2;
+		sTokenDrop item;
+		item.iType = iType;
+		item.X = x;
+		item.Y = y;
+		item.Z = z;
+		item.fTimeLeft = fDuration;
+		g_TokenDropList.push_back(item);
+		bAnyNavMeshTokenDropStateChanged = true;
 	}
-	else
-	{
-		// old default
-		if (radius < 5) radius = 5;
-		radius /= 2.0f;
-		radius += 5.0f;
-		minX = x - radius;
-		maxX = x + radius;
-		minY = y - 5;
-		maxY = y + 95;
-		minZ = z - radius;
-		maxZ = z + radius;
-	}
-	for (int b = 0; b < g_BlockerList.size(); b++)
-	{
-		sBlocker* blocker = &g_BlockerList[b];
-		if (blocker->minX == minX && blocker->maxX == maxX )
-		{
-			if (blocker->minY == minY && blocker->maxY == maxY)
-			{
-				if (blocker->minZ == minZ && blocker->maxZ == maxZ)
-				{
-					bFoundBlocker = true;
-					if (blocker->bBlocking != enable )
-					{
-						bAnyNavMeshBlockerStateChanged = true;
-					}
-					blocker->bBlocking = enable;
-					break;
-				}
-			}
-		}
-	}
-	if (bFoundBlocker == false)
-	{
-		sBlocker item;
-		item.minX = minX;
-		item.maxX = maxX;
-		item.minY = minY;
-		item.maxY = maxY;
-		item.minZ = minZ;
-		item.maxZ = maxZ;
-		item.bBlocking = enable;
-		item.fAngle = fAngle;
-		g_BlockerList.push_back(item);
-		bAnyNavMeshBlockerStateChanged = true;
-	}
-	if (bAnyNavMeshBlockerStateChanged == true)
+	if (bAnyNavMeshTokenDropStateChanged == true)
 	{
 		extern bool g_bShowRecastDetourDebugVisuals;
 		if (g_bShowRecastDetourDebugVisuals == true)
@@ -341,6 +287,31 @@ void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool
 		}
 	}
 }
+void GGRecastDetour::ManageTokenDropSystem(float fTimeDelta)
+{
+	// fTimeDelta comes in at 0.75 for 60fps, so for MS we *20
+	fTimeDelta *= 20.0f; // so now we get a nice 16.6ms chomp from the duration
+	int iTokenDropCount = g_TokenDropList.size();
+	if (iTokenDropCount > 0)
+	{
+		for (int iTokenDropIndex = 0; iTokenDropIndex < iTokenDropCount; iTokenDropIndex++)
+		{
+			g_TokenDropList[iTokenDropIndex].fTimeLeft -= fTimeDelta;
+			if (g_TokenDropList[iTokenDropIndex].fTimeLeft <= 0.0f)
+			{
+				g_TokenDropList.erase(g_TokenDropList.begin() + iTokenDropIndex);
+				iTokenDropCount--;
+				iTokenDropIndex--;
+			}
+		}
+	}
+}
+int GGRecastDetour::GetTokenDropCount() { return g_TokenDropList.size(); }
+float GGRecastDetour::GetTokenDropX(int iIndex) { return g_TokenDropList[iIndex].X; }
+float GGRecastDetour::GetTokenDropY(int iIndex) { return g_TokenDropList[iIndex].Y; }
+float GGRecastDetour::GetTokenDropZ(int iIndex) { return g_TokenDropList[iIndex].Z; }
+int GGRecastDetour::GetTokenDropType(int iIndex) { return g_TokenDropList[iIndex].iType; }
+float GGRecastDetour::GetTokenDropTimeLeft(int iIndex) { return g_TokenDropList[iIndex].fTimeLeft; }
 
 bool DoesLineGoThroughBlocker (float fFromOrigX, float fFromOrigY, float fFromOrigZ, float fToOrigX, float fToOrigY, float fToOrigZ)
 {
@@ -425,6 +396,92 @@ bool DoesLineGoThroughBlocker (float fFromOrigX, float fFromOrigY, float fFromOr
 	}
 	return bBlocked;
 }
+
+void GGRecastDetour::ResetBlockerSystem(void)
+{
+	g_BlockerList.clear();
+}
+
+void GGRecastDetour::ToggleBlocker(float x, float y, float z, float radius, bool enable, float fRadius2, float fAngle, float fAdjMinY, float fAdjMaxY)
+{
+	bool bAnyNavMeshBlockerStateChanged = false;
+	float minX, maxX, minY, maxY, minZ, maxZ;
+	bool bFoundBlocker = false;
+	if (radius != fRadius2)
+	{
+		// new fully cunstomizable and accurate
+		if (radius < 5) radius = 5;
+		if (fRadius2 < 5) fRadius2 = 5;
+		radius /= 2.0f;
+		fRadius2 /= 2.0f;
+		radius += 5.0f;
+		fRadius2 += 5.0f;
+		minX = x - radius;
+		maxX = x + radius;
+		minY = y + fAdjMinY;
+		maxY = y + fAdjMaxY;
+		minZ = z - fRadius2;
+		maxZ = z + fRadius2;
+	}
+	else
+	{
+		// old default
+		if (radius < 5) radius = 5;
+		radius /= 2.0f;
+		radius += 5.0f;
+		minX = x - radius;
+		maxX = x + radius;
+		minY = y - 5;
+		maxY = y + 95;
+		minZ = z - radius;
+		maxZ = z + radius;
+	}
+	for (int b = 0; b < g_BlockerList.size(); b++)
+	{
+		sBlocker* blocker = &g_BlockerList[b];
+		if (blocker->minX == minX && blocker->maxX == maxX)
+		{
+			if (blocker->minY == minY && blocker->maxY == maxY)
+			{
+				if (blocker->minZ == minZ && blocker->maxZ == maxZ)
+				{
+					bFoundBlocker = true;
+					if (blocker->bBlocking != enable)
+					{
+						bAnyNavMeshBlockerStateChanged = true;
+					}
+					blocker->bBlocking = enable;
+					break;
+				}
+			}
+		}
+	}
+	if (bFoundBlocker == false)
+	{
+		sBlocker item;
+		item.minX = minX;
+		item.maxX = maxX;
+		item.minY = minY;
+		item.maxY = maxY;
+		item.minZ = minZ;
+		item.maxZ = maxZ;
+		item.bBlocking = enable;
+		item.fAngle = fAngle;
+		g_BlockerList.push_back(item);
+		bAnyNavMeshBlockerStateChanged = true;
+	}
+	if (bAnyNavMeshBlockerStateChanged == true)
+	{
+		extern bool g_bShowRecastDetourDebugVisuals;
+		if (g_bShowRecastDetourDebugVisuals == true)
+		{
+			extern GGRecastDetour g_RecastDetour;
+			g_RecastDetour.cleanupDebugRender();
+			g_RecastDetour.handleDebugRender();
+		}
+	}
+}
+
 
 void GGRecastDetour::SetWaterTableY(float y)
 {

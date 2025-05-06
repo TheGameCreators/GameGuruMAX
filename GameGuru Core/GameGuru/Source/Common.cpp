@@ -1048,6 +1048,7 @@ void common_init_globals ( void )
 	g.materialsoundoffset = 10001;
 	g.materialsoundoffsetend = 11000;
 	g.explodesoundoffset = 11001;
+	g.meleethumpsoundoffset = 11101;
 	g.musicsoundoffset = 22000;
 	g.musicsoundoffsetend = 22999;
 	g.charactersoundoffset = 23000;
@@ -1055,6 +1056,7 @@ void common_init_globals ( void )
 	g.projectilesoundoffset = 25000;
 	g.steamsoundoffset = 30000;
 	g.globalsoundoffset = 40000;
+	// reserve 100 sound slots for HUD0.lua (40000 + 29000 (to29999) = hud0_sounds_levelup, etc)
 
 	//  Object Resources
 	//  1-10 - editor objects
@@ -2591,6 +2593,9 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					// DOCDOC: disablefreeflight = Disables the ability to use the free flight mode in the editor
 					t.tryfield_s = "disablefreeflight"; if (t.field_s == t.tryfield_s)  g.globals.disablefreeflight = t.value1;
 
+					// DOCDOC: fulldebugview = When set to 1, will detect and post the key state value of any key pressed in test game
+					t.tryfield_s = "fulldebugview"; if (t.field_s == t.tryfield_s)  g.globals.fulldebugviewofkeymap = t.value1;	
+
 					// DOCDOC: enableplrspeedmods = Enable the ability of weapons to affect the total running speed of the player
 					t.tryfield_s = "enableplrspeedmods"; if (t.field_s == t.tryfield_s)  g.globals.enableplrspeedmods = t.value1;
 
@@ -3352,13 +3357,22 @@ LPSTR FindFileFromEntityBank ( LPSTR pFindThisFilename )
 
 void FPSC_LoadKEYMAP ( void )
 {
+	// first reset back to default no matter what
+	for (t.num = 256; t.num >= 1; t.num--)
+	{
+		g.keymap[t.num] = (unsigned char)t.num;
+	}
+
 	// look in editors\keymap\ to find a non-default.ini to prefer
-	if (PathExist("Files\\editors\\keymap") == 1 )
+	if (PathExist("editors\\keymap") == 1 )
 	{
 		LPSTR pOldDir = GetDir();
-		SetDir("Files\\editors\\keymap");
+		char pWritableKeyMapFile[MAX_PATH];
+		strcpy(pWritableKeyMapFile, "editors\\keymap\\");
+		GG_GetRealPath(pWritableKeyMapFile, 0);
+		SetDir(pWritableKeyMapFile);
 		ChecklistForFiles();
-		cstr useThisKeyMapFile = "Files\\editors\\keymap\\default.ini";
+		cstr useRelThisKeyMapFile = "editors\\keymap\\default.ini";
 		for (t.c = 1; t.c <= ChecklistQuantity(); t.c++)
 		{
 			t.tfile_s = ChecklistString(t.c);
@@ -3366,8 +3380,8 @@ void FPSC_LoadKEYMAP ( void )
 			{
 				if (stricmp(t.tfile_s.Get(), "default.ini") != NULL)
 				{
-					useThisKeyMapFile = "Files\\editors\\keymap\\";
-					useThisKeyMapFile += t.tfile_s;
+					useRelThisKeyMapFile = "editors\\keymap\\";
+					useRelThisKeyMapFile += t.tfile_s;
 					break;
 				}
 			}
@@ -3375,7 +3389,9 @@ void FPSC_LoadKEYMAP ( void )
 		SetDir(pOldDir);
 
 		//  editors\keymap\default.ini
-		t.tfile_s = useThisKeyMapFile;
+		strcpy(pWritableKeyMapFile, useRelThisKeyMapFile.Get());
+		GG_GetRealPath(pWritableKeyMapFile, 0);
+		t.tfile_s = pWritableKeyMapFile;
 		if ( FileExist(t.tfile_s.Get()) == 1 )
 		{
 			Dim (  t.data_s,999  );
@@ -3922,6 +3938,7 @@ void FPSC_Setup(void)
 	g.gversion = 10000;
 	if (FileExist("versionauto.ini") == 1)
 	{
+		/* this is now done when the "AI-CompileBuildDeploy.bat" script is run (helps tie the EXE/PDB files to the build better)
 		// auto generate todays version number
 		time_t now = time(0);
 		tm* ltm = localtime(&now);
@@ -3940,6 +3957,7 @@ void FPSC_Setup(void)
 		WriteString(1, pMAXBuildVersionString);
 		CloseFile(1);
 		SetWriteAsRootTemp(false);
+		*/
 	}
 	if (FileExist("version.ini") == 1)
 	{
@@ -3955,6 +3973,10 @@ void FPSC_Setup(void)
 		g.gversion = ValF(t.version_s.Get());
 		UnDim(t.data_s);
 	}
+
+	// store version.ini for potential crash log
+	extern char g_pCrashVersionINIValue[256];
+	strcpy ( g_pCrashVersionINIValue, g.version_s.Get() );
 
 	//  defeat 'cumilative virtual memory limit of 1.8GB' by terminating
 	//  FPSC-Game.exe each complete level, and re-launching to start new heap each time
@@ -4015,7 +4037,6 @@ void FPSC_Setup(void)
 	FPSC_LoadSETUPINI(false);
 	FPSC_LoadSETUPVRINI();
 
-#ifdef WICKEDENGINE
 	//PE: setup overwrite for standalone.
 	extern bool bSpecialStandalone;
 	extern int g_iDevToolsOpen;
@@ -4029,15 +4050,9 @@ void FPSC_Setup(void)
 	{
 		g_iDevToolsOpen = pref.iDevToolsOpen;
 	}
-	// using new DocWrite system
-	#else
-	if (g.mysystem.bUsingMySystemFolder == true)
-	{
-		FPSC_LoadSETUPINI(true);
-		FPSC_LoadSETUPVRINI();
-	}
-	#endif
-	FPSC_LoadKEYMAP();
+
+	// load key bindings - moved to common_mustreload_foreachnewproject so can be reloaded based on project
+	// FPSC_LoadKEYMAP();
 
 	// 250917 - set default CPU animation flag for engine
 	if ( g.allowcpuanimations == 0 )
@@ -5291,10 +5306,11 @@ void common_loadcommonassets(int iShowScreenPrompts)
 
 void common_loadcommonassets_delayed(int iShowScreenPrompts)
 {
-	t.tsplashstatusprogress_s = "INIT SKY ASSETS";
-	timestampactivity(0, t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate();
-	sky_init();
+	//see below - now done as a per project load in case of remote project assets
+	//t.tsplashstatusprogress_s = "INIT SKY ASSETS";
+	//timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	//version_splashtext_statusupdate();
+	//sky_init();
 
 	t.tsplashstatusprogress_s = "INIT TERRAIN ASSETS";
 	timestampactivity(0, t.tsplashstatusprogress_s.Get());
@@ -5431,11 +5447,28 @@ void common_loadcommonassets_delayed(int iShowScreenPrompts)
 	version_splashtext_statusupdate ( );
 	ravey_particles_load_images ( );
 
-	//  Load all resources
-	t.tsplashstatusprogress_s="CREATING B-LIST";
-	timestampactivity(0,t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate ( );
-	blood_damage_init ( );
+	// load any resources that could be different if sitting inside a remote project rather than stock assets
+	common_mustreload_foreachnewproject();
+}
+
+void common_mustreload_foreachnewproject(void)
+{
+	// this is required as remote projects may have their own completely different 'stock' resources
+ 
+	// also refresh SKY LIST as custom skies might exist there
+	t.tsplashstatusprogress_s = "REFRESH SKY ASSETS";
+	timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate();
+	sky_init();
+
+	// Load all blood splat resources from databank
+	t.tsplashstatusprogress_s = "REFRESH B-LIST ASSETS";
+	timestampactivity(0, t.tsplashstatusprogress_s.Get());
+	version_splashtext_statusupdate ();
+	blood_damage_init ();
+
+	// key bindings can change between local and remote project (each remote can have their own custom set)
+	FPSC_LoadKEYMAP();
 }
 
 void common_hide_mouse ( void )

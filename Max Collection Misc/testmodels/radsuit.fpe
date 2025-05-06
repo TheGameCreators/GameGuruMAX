@@ -1,0 +1,56 @@
+;Saved by Model Importer
+;header
+desc             = radsuit
+
+;orientation
+model            = radsuit.dbo
+scale            = 95.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 0
+cullmode         = 1
+
+;visualinfo
+textured         = radsuit_color.dds
+baseColorMap     = radsuit_color.dds
+alpharef         = 1.00
+normalMap        = radsuit_normal.dds
+normalStrength   = 0.70
+surfaceMap       = radsuit_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = radsuit_color.dds
+textureref2       = radsuit_normal.dds
+textureref3       = radsuit_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 10
+explodable       = 0
+
+;ai
+aimain           = rpg\radsuit.lua
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

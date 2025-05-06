@@ -1284,7 +1284,7 @@ void mapeditorexecutable_init ( void )
 	LoadImage("editors\\uiv3\\scale_tree.png", TOOL_TREE_SCALE);
 
 	LoadImage("editors\\uiv3\\hub-livebroadcasts.png", HUB_LIVEBROADCAST);
-	LoadImage("editors\\uiv3\\hub-discord.png", HUB_DISCORD);
+	LoadImage("editors\\uiv3\\hub-discordwide.png", HUB_DISCORD);
 	LoadImage("editors\\uiv3\\hub-facebook.png", HUB_FACEBOOK);
 	LoadImage("editors\\uiv3\\hub-forum.png", HUB_FORUM);
 	LoadImage("editors\\uiv3\\hub-workshopitem.png", HUB_WORKSHOPITEM);
@@ -9918,6 +9918,7 @@ void mapeditorexecutable_loop(void)
 						//sprintf(pDebugMe, "%d", iWhereWeDetectedChange);
 						if (t.entityelement[iEntityIndex].eleprof.iscollectable != 0)
 						{
+							int thismasterid = t.entityelement[iEntityIndex].bankindex;
 							LPSTR pMasterEntityName = t.entityelement[iEntityIndex].eleprof.name_s.Get();
 							for (int ee = 1; ee <= g.entityelementmax; ee++)
 							{
@@ -9926,21 +9927,25 @@ void mapeditorexecutable_loop(void)
 									int masterid = t.entityelement[ee].bankindex;
 									if (masterid > 0)
 									{
-										if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
+										// and essentially, ONLY copy into the SAME PARENT ID object (not ANYTHING named so!)
+										if (thismasterid == masterid)
 										{
-											// clone currently edited entity
-											t.entityelement[ee].eleprof = t.entityelement[iEntityIndex].eleprof;
-											sObject* pObject = GetObjectData(t.entityelement[ee].obj);
-											if (pObject)
+											if (stricmp (t.entityelement[ee].eleprof.name_s.Get(), pMasterEntityName) == NULL)
 											{
-												WickedSetEntityId(masterid);
-												WickedSetElementId(ee);
-												for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+												// clone currently edited entity
+												t.entityelement[ee].eleprof = t.entityelement[iEntityIndex].eleprof;
+												sObject* pObject = GetObjectData(t.entityelement[ee].obj);
+												if (pObject)
 												{
-													Wicked_Set_Material_From_grideleprof_ThisMesh (pObject, 0, &t.entityelement[ee].eleprof, iMesh);
+													WickedSetEntityId(masterid);
+													WickedSetElementId(ee);
+													for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
+													{
+														Wicked_Set_Material_From_grideleprof_ThisMesh (pObject, 0, &t.entityelement[ee].eleprof, iMesh);
+													}
+													WickedSetEntityId(-1);
+													WickedSetElementId(0);
 												}
-												WickedSetEntityId(-1);
-												WickedSetElementId(0);
 											}
 										}
 									}
@@ -12543,47 +12548,54 @@ void mapeditorexecutable_loop(void)
 
 			ImVec2 search_icon_pos = window->DC.CursorPos + ImVec2(ImGui::GetContentRegionAvailWidth() - 10.0 - 16.0 - fDropDownWidth,2.0f);
 			ImGui::SetItemAllowOverlap();
-			// Force the keyboard focus to the input text field when the user presses the clear search button (set below).
 			static bool bSetKeyboardFocus = false;
+			// Force the keyboard focus to the input text field when the user presses the clear search button (set below).
 			if (bSetKeyboardFocus)
 			{
 				ImGui::SetKeyboardFocusHere(0);
 				bSetKeyboardFocus = false;
 			}
+			// only for object based lists, not groups/behaviors/etc
+			LPSTR pToolTipForSearch = "Cannot search this list!";
+			if (current_sort_order < 5)
+			{
+				pToolTipForSearch = "Type here to search for an object in your level";
+			}
 			if (ImGui::InputText(" ##cSearchEntities", &cSearchEntities[0], MAX_PATH, ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				if (strlen(cSearchEntities) > 1)
+				if (current_sort_order < 5)
 				{
-					bool already_there = false;
-					for (int l = 0; l < MAXSEARCHHISTORY; l++) {
-						if (strcmp(cSearchEntities, pref.small_search_history[l]) == 0) {
-							already_there = true;
-							break;
-						}
-					}
-					if (!already_there) {
-						bool foundspot = false;
+					if (strlen(cSearchEntities) > 1)
+					{
+						bool already_there = false;
 						for (int l = 0; l < MAXSEARCHHISTORY; l++) {
-							if (strlen(pref.small_search_history[l]) <= 0) {
-								strcpy(pref.small_search_history[l], cSearchEntities);
-								foundspot = true;
+							if (strcmp(cSearchEntities, pref.small_search_history[l]) == 0) {
+								already_there = true;
 								break;
 							}
 						}
-						if (!foundspot) {
-							//Move entry list.
+						if (!already_there) {
+							bool foundspot = false;
 							for (int l = 0; l < MAXSEARCHHISTORY; l++) {
-								strcpy(pref.small_search_history[l], pref.small_search_history[l + 1]);
+								if (strlen(pref.small_search_history[l]) <= 0) {
+									strcpy(pref.small_search_history[l], cSearchEntities);
+									foundspot = true;
+									break;
+								}
 							}
-							strcpy(pref.small_search_history[MAXSEARCHHISTORY - 1], cSearchEntities);
+							if (!foundspot) {
+								//Move entry list.
+								for (int l = 0; l < MAXSEARCHHISTORY; l++) {
+									strcpy(pref.small_search_history[l], pref.small_search_history[l + 1]);
+								}
+								strcpy(pref.small_search_history[MAXSEARCHHISTORY - 1], cSearchEntities);
+							}
 						}
 					}
 				}
-
 			}
-			if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered() && bToolTipActive ) ImGui::SetTooltip("%s", "Type here to search for an object in your level");
+			if (!pref.iTurnOffEditboxTooltip && ImGui::IsItemHovered() && bToolTipActive) ImGui::SetTooltip("%s", pToolTipForSearch);
 			if (ImGui::MaxIsItemFocused()) bImGuiGotFocus = true;
-
 			ImGui::PopItemWidth();
 			ImGui::SameLine();
 
@@ -12690,7 +12702,7 @@ void mapeditorexecutable_loop(void)
 			}
 
 			ImGui::SetCursorPos(ImVec2(restore_pos.x-8.0f, restore_pos.y));
-			const char* sortby_modes[] = { "A-Z", "Z-A","Newest", "Oldest", "Detailed Object List", "Collection Items List", "Group List" };
+			const char* sortby_modes[] = { "A-Z", "Z-A", "Newest", "Oldest", "Detailed Object List", "Collection Items List", "Group List", "Instance List", "Behavior List" };
 
 			int isortbySize = IM_ARRAYSIZE(sortby_modes);
 			if (!pref.iEnableAdvancedEntityList)
@@ -12782,33 +12794,75 @@ void mapeditorexecutable_loop(void)
 					}
 					else
 					{
-						// Sort entity parent list.
-						for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+						if (current_sort_order == 7 || current_sort_order == 8)
 						{
-							//std::string stmp = t.entityprofile[t.entid].model_s.Get();
-							std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
-							if (current_sort_order == 2 || current_sort_order == 3)
+							if (current_sort_order == 7)
 							{
-								//Convert to sortable by string.
-								if (t.entid < 10)
-									stmp = "000" + std::to_string(t.entid);
-								else if (t.entid < 100)
-									stmp = "00" + std::to_string(t.entid);
-								else if (t.entid < 1000)
-									stmp = "0" + std::to_string(t.entid);
-								else
-									stmp = std::to_string(t.entid);
+								// Sort by instance ID order
+								for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+								{
+									cstr scriptname = t.entityelement[t.e].eleprof.name_s;
+									std::string stmp = Lower(scriptname.Get());
+									if (t.entityelement[t.e].bankindex > 0)
+									{
+										sorted_entity_files.push_back(std::make_pair(stmp, t.e));
+									}
+								}
 							}
-							stmp += "###"; //We need it to be unique so add this.
-							stmp += t.entityprofile[t.entid].model_s.Get();
-							stmp += "###";
-							stmp += std::to_string(t.entid);
-							int itmp = t.entid;
-							sorted_entity_files.push_back(std::make_pair(stmp, itmp));
+							if (current_sort_order == 8)
+							{
+								// Sort by behavior list
+								for (t.e = 1; t.e <= g.entityelementlist; t.e++)
+								{
+									cstr scriptname = t.entityelement[t.e].eleprof.aimain_s;
+									std::string stmp = Lower(scriptname.Get());
+									bool bFoundThisScriptInList = false;
+									for (int i = 0; i < sorted_entity_files.size(); i++)
+									{
+										if (sorted_entity_files[i].first == stmp)
+										{
+											// only add a unique one (ie list of behaviours)
+											bFoundThisScriptInList = true;
+											break;
+										}
+									}
+									if (bFoundThisScriptInList == false)
+									{
+										sorted_entity_files.push_back(std::make_pair(stmp, t.e));
+									}
+								}
+							}
 						}
-						std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
-						if (current_sort_order == 1 || current_sort_order == 2)
-							std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+						else
+						{
+							// Sort entity parent list.
+							for (t.entid = 1; t.entid <= iMasterEntid; t.entid++)
+							{
+								//std::string stmp = t.entityprofile[t.entid].model_s.Get();
+								std::string stmp = Lower(t.entityprofileheader[t.entid].desc_s.Get());
+								if (current_sort_order == 2 || current_sort_order == 3)
+								{
+									//Convert to sortable by string.
+									if (t.entid < 10)
+										stmp = "000" + std::to_string(t.entid);
+									else if (t.entid < 100)
+										stmp = "00" + std::to_string(t.entid);
+									else if (t.entid < 1000)
+										stmp = "0" + std::to_string(t.entid);
+									else
+										stmp = std::to_string(t.entid);
+								}
+								stmp += "###"; //We need it to be unique so add this.
+								stmp += t.entityprofile[t.entid].model_s.Get();
+								stmp += "###";
+								stmp += std::to_string(t.entid);
+								int itmp = t.entid;
+								sorted_entity_files.push_back(std::make_pair(stmp, itmp));
+							}
+							std::sort(sorted_entity_files.begin(), sorted_entity_files.end());
+							if (current_sort_order == 1 || current_sort_order == 2)
+								std::reverse(sorted_entity_files.begin(), sorted_entity_files.end());
+						}
 					}
 				}
 				last_entidmaster = iMasterEntid;
@@ -12848,7 +12902,7 @@ void mapeditorexecutable_loop(void)
 				iColumns_leftpanel = 1;
 
 			#ifdef ADD_DETAIL_LEFT_PANEL_ENTITY_LIST
-			if(current_sort_order == 4 || current_sort_order == 5 || current_sort_order == 6) //PE: Detailed display in one column.
+			if(current_sort_order == 8 || current_sort_order == 7 || current_sort_order == 4 || current_sort_order == 5 || current_sort_order == 6) //PE: Detailed display in one column.
 				iColumns_leftpanel = 1;
 			#endif
 
@@ -13007,6 +13061,117 @@ void mapeditorexecutable_loop(void)
 										ImGui::Indent(-5);
 										bool bMoveCameraToObjectPosition = true;
 										DoTreeNodeGroup(groupindex, bMoveCameraToObjectPosition);
+										ImGui::Indent(5);
+										ImGui::TreePop();
+									}
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
+							else if (iloop == 0 && current_sort_order == 7)
+							{
+								// Instance List (7)
+								ImGui::SetWindowFontScale(1.0);
+								int e = it->second;
+								bool DisplayEntry = true;
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char cName[512];
+									strcpy(cName, t.entityelement[e].eleprof.name_s.Get());
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_Leaf;
+									std::string treename = "#" + std::to_string(e);
+									treename = treename + " " + cName;
+									bool bAutoGenObject = false;
+									if (t.entityelement[e].x == -99999 && t.entityelement[e].y == -99999 && t.entityelement[e].z == -99999)
+									{
+										treename = treename + " (Auto-Gen) ";
+										bAutoGenObject = true;
+									}
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(e + 99000), node_flags, treename.c_str());
+									if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+									{
+										// DUPLICATED ESEWHERE (LOTS) SO EVENTUALLY MAKE ONE FUNCTION FOR DIS.
+										if (t.entityelement[e].obj > 0)
+										{
+											t.widget.pickedEntityIndex = e;
+											t.widget.pickedObject = t.entityelement[t.widget.pickedEntityIndex].obj;
+											g.entityrubberbandlist.clear();
+											bEditorInFreeFlightMode = true;
+											t.editorfreeflight.mode = 1;
+											int group = isEntityInGroupList(t.widget.pickedEntityIndex);
+											if (group >= 0)
+											{
+												//PE: Add all groups with entity to rubberband.
+												CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
+											}
+											if (bAutoGenObject == false)
+											{
+												float zoom = ObjectSize(t.entityelement[e].obj, 1) * 2.0;
+												if (zoom < 30.0f) zoom = 30.0f;
+												float realcamy = ObjectSizeY(t.entityelement[e].obj, 1) * 0.75;
+												float camy = realcamy;
+												if (camy < 30.0f) camy = 30.0f;
+												if (t.entityprofile[t.entityelement[e].bankindex].ismarker > 0)
+												{
+													zoom = 100.0;
+													camy = 50.0;
+												}
+												PositionCamera(t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+												PointCamera(t.entityelement[e].x, t.entityelement[e].y, t.entityelement[e].z);
+												MoveCamera(0, -zoom);
+												PositionCamera(CameraPositionX(0), t.entityelement[e].y + camy, CameraPositionZ(0));
+												PointCamera(t.entityelement[e].x, t.entityelement[e].y + (realcamy * 0.5), t.entityelement[e].z);
+												t.editorfreeflight.c.x_f = CameraPositionX();
+												t.editorfreeflight.c.y_f = CameraPositionY();
+												t.editorfreeflight.c.z_f = CameraPositionZ();
+												t.editorfreeflight.c.angx_f = CameraAngleX();
+												t.editorfreeflight.c.angy_f = CameraAngleY();
+												t.cx_f = t.editorfreeflight.c.x_f;
+												t.cy_f = t.editorfreeflight.c.z_f;
+											}
+										}
+									}
+									if (TreeNodeOpen) ImGui::TreePop();
+									ImGui::PopID();
+									preview_count++;
+									ImGui::NextColumn();
+								}
+							}
+							else if (iloop == 0 && current_sort_order == 8)
+							{
+								// Behavior List (8)
+								ImGui::SetWindowFontScale(1.0);
+								int e = it->second;
+								bool DisplayEntry = true;
+								if (DisplayEntry == true)
+								{
+									ImGui::PushID(uniqueId++);
+									float fFramePadding = (iColumnsWidth_leftpanel - media_icon_size_leftpanel) * 0.5;
+									float fCenterX = ImGui::GetContentRegionAvail().x * 0.5;
+									ImVec2 vIconSize = { (float)media_icon_size_leftpanel , (float)media_icon_size_leftpanel };
+									float fRatio = 288.0f / 512.0f;
+									float fImageWidth = ImGui::GetContentRegionAvail().x - 4.0f;
+									vIconSize = { fImageWidth ,fImageWidth * fRatio };
+									char cName[512];
+									strcpy(cName, it->first.c_str());
+									ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_OpenOnArrow;
+									bool bSelected = false;
+									ImGui::PushItemWidth(-20.0);
+									std::string treename = cName;
+									bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(e + 99000), node_flags, treename.c_str());
+									ImGui::PopItemWidth();
+									if (TreeNodeOpen)
+									{
+										ImGui::Indent(-5);
+										DoTreeNodeBehavior(cName, true);
 										ImGui::Indent(5);
 										ImGui::TreePop();
 									}
@@ -18129,6 +18294,7 @@ void editor_previewmap_afterloopcode(int iUseVRTest)
 	editor_previewmapormultiplayer_afterloopcode ( iUseVRTest );
 }
 
+/*
 void input_getfilemapcontrols ( void )
 {
 	//  Update triggers and issue actions through filemapping system
@@ -18813,6 +18979,7 @@ void input_getfilemapcontrols ( void )
 		t.trecentfilechoice=0;
 	}
 }
+*/
 
 void editor_handlepguppgdn ( void )
 {
@@ -18942,6 +19109,23 @@ void editor_handlepguppgdn ( void )
 int last_xmousemove = 0, last_ymousemove = 0;
 void imgui_input_getcontrols(void)
 {
+	// when setup.ini sets fulldebugview to 1, record all key states pressed
+	if (g.globals.fulldebugviewofkeymap == 1)
+	{
+		int iRawKeyState = ScanCode();
+		if (iRawKeyState > 0)
+		{
+			static int lastinputsyskscancode = 0;
+			if (iRawKeyState != lastinputsyskscancode)
+			{
+				char pKeyMapDebugLog[256];
+				sprintf(pKeyMapDebugLog, "Raw Key State: %d", iRawKeyState);
+				timestampactivity(0, pKeyMapDebugLog);
+			}
+			lastinputsyskscancode = iRawKeyState;
+		}
+	}
+
 	//  Some actions are directly triggered by input subroutine
 	t.inputsys.doload = 0;
 	t.inputsys.domodeterrain = 0;
@@ -18956,15 +19140,16 @@ void imgui_input_getcontrols(void)
 	t.inputsys.tseldelete = 0;
 
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
 	#ifdef USERENDERTARGET
 	//PE: Take everything from imgui.
-
 	float itmpmousex = ImGui::GetMousePos().x;
 	float itmpmousey = ImGui::GetMousePos().y;
 	int iSecureZone = 4;
 	RECT winpos = { 0,0,0,0 };
 
-	if (pref.bDisableMultipleViewport) {
+	if (pref.bDisableMultipleViewport) 
+	{
 		//PE: Mouse coords is different when using non Multiple Viewport.
 		//PE: TODO we need to match the Multiple Viewport mouse coord system here:
 		//POINT p;
@@ -18976,37 +19161,14 @@ void imgui_input_getcontrols(void)
 	//PE: Must be relative to windows pos, or nothing work if you have a window placed at the rigth of the screen.
 	GetWindowRect(g_pGlob->hWnd, &winpos);
 
-	#ifdef WICKEDENGINE
 	bool bCanGetInput = bImGuiRenderTargetFocus;
 	if (pref.iEnableDragDropEntityMode && bDraggingActive)
 	{
 		bCanGetInput = true;
 	}
 
-	if (bCanGetInput && (itmpmousex + winpos.left) >= (renderTargetAreaPos.x+iSecureZone) && (itmpmousey+winpos.top) >= (renderTargetAreaPos.y + iSecureZone) &&
-		(itmpmousex - winpos.left) <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && (itmpmousey-winpos.top) <= renderTargetAreaPos.y + 30 + (renderTargetAreaSize.y - iSecureZone ))
-	#else
-	if (bImGuiRenderTargetFocus && itmpmousex >= (renderTargetAreaPos.x+iSecureZone) && itmpmousey >= (renderTargetAreaPos.y + iSecureZone) &&
-		itmpmousex <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && itmpmousey <= renderTargetAreaPos.y + (renderTargetAreaSize.y - ImGuiStatusBar_Size - iSecureZone ))
-	#endif
+	if (bCanGetInput && (itmpmousex + winpos.left) >= (renderTargetAreaPos.x+iSecureZone) && (itmpmousey+winpos.top) >= (renderTargetAreaPos.y + iSecureZone) && (itmpmousex - winpos.left) <= renderTargetAreaPos.x + (renderTargetAreaSize.x - iSecureZone) && (itmpmousey-winpos.top) <= renderTargetAreaPos.y + 30 + (renderTargetAreaSize.y - iSecureZone ))
 	{
-		#ifdef WICKEDENGINE
-		//PE: @Lee This system dont work, try making the window smaller and moving it to the right, then display welcome screen.
-		//PE: @Lee i think we need to use the system from V3 that adjust the mouse coords to the window pos/size. and somehow match it to the new 1:1 backdrop.
-
-		// commented this out as I want coordinates to be for the WHOLE SCREEN, not the renderable view
-		// as I have allowed wicked to render to the whole surface in the backdrop with UI overlayed
-		// and a single universal understanding of this helps with coordinates, rubber banding, 3D to 2D, etc
-		#else
-		// Figure out mouse scale values.
-		itmpmousex -= renderTargetAreaPos.x;
-		itmpmousey -= renderTargetAreaPos.y;
-		float RatioX = ((float) GetDisplayWidth() / (float) renderTargetAreaSize.x) * ((float)GetDisplayWidth() / (float)GetChildWindowWidth(-1) );
-		float RatioY = ((float) GetDisplayHeight() / (float) renderTargetAreaSize.y) * ((float)GetDisplayHeight() / (float)GetChildWindowHeight(-1) );
-		itmpmousex *= RatioX;
-		itmpmousey *= RatioY;
-		#endif 
-
 		t.inputsys.activemouse = 1;
 		t.inputsys.xmouse = (int)itmpmousex;
 		t.inputsys.ymouse = (int)itmpmousey;
@@ -19021,9 +19183,7 @@ void imgui_input_getcontrols(void)
 		ymouseold = t.inputsys.ymouse;
 
 		t.inputsys.wheelmousemove = io.MouseWheel; //MouseMoveZ();
-		#ifdef WICKEDENGINE
 		if (ImGui::IsMouseDown(2)) t.inputsys.wheelmousemove = 0;
-		#endif
 		set_inputsys_mclick(io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0));// t.inputsys.mclick = io.MouseDown[0] + (io.MouseDown[1] * 2.0) + (io.MouseDown[2] * 3.0) + (io.MouseDown[3] * 4.0); //  MouseClick();
 		t.inputsys.k_s = Lower(Inkey());
 
@@ -19052,7 +19212,6 @@ void imgui_input_getcontrols(void)
 				}
 			}
 		}
-
 	}
 	else 
 	{
@@ -19060,15 +19219,10 @@ void imgui_input_getcontrols(void)
 		t.inputsys.activemouse = 1;
 		t.inputsys.zmouse = 0;
 
-		#ifdef WICKEDENGINE
 		float fMouseDeltaX, fMouseDeltaZ;
 		WickedCall_GetMouseDeltas ( &fMouseDeltaX, &fMouseDeltaZ);
 		t.inputsys.xmousemove = fMouseDeltaX;
 		t.inputsys.ymousemove = fMouseDeltaZ;
-		#else
-		t.inputsys.xmousemove = 0;
-		t.inputsys.ymousemove = 0;
-		#endif
 
 		xmouseold = t.inputsys.xmouse;
 		ymouseold = t.inputsys.ymouse;
@@ -19078,7 +19232,6 @@ void imgui_input_getcontrols(void)
 		set_inputsys_mclick(0);// t.inputsys.mclick = 0;
 
 		t.inputsys.k_s = "";
-		//t.inputsys.kscancode = ScanCode();
 
 		//  Control keys direct from keyboard
 		t.inputsys.keyreturn = 0;
@@ -19212,9 +19365,6 @@ void imgui_input_getcontrols(void)
 
 	if (t.inputsys.keycontrol == 1)
 	{
-		#ifndef WICKEDENGINE
-		if (t.inputsys.k_s == "")  t.inputsys.undokeypress = 0;
-		#endif
 		if (t.inputsys.k_s == "z" && t.inputsys.undokeypress == 0) 
 		{
 			bForceUndo = true;
@@ -19229,37 +19379,36 @@ void imgui_input_getcontrols(void)
 	}
 
 	//  Convert to DX INPUT CODES
-//###
 	t.t_s = ""; t.tt = 0;
 	switch (t.inputsys.kscancode)
 	{
-	case 9: t.tt = 15; break;
-	case 32: t.tt = 57; break;
-	case 33: t.tt = 201; break;
-	case 34: t.tt = 209; break;
-	case 37: t.tt = 203; break;
-	case 38: t.tt = 200; break;
-	case 39: t.tt = 205; break;
-	case 40: t.tt = 208; break;
-	case 42: t.tt = 16; break;
-	case 46: t.tt = 211; break;
-	case 54: t.tt = 16; break;
-	case 112: t.tt = 59; break;
-	case 113: t.tt = 60; break;
-	case 114: t.tt = 61; break;
-	case 115: t.tt = 62; break;
-	case 123: t.tt = 88; break;
-	case 187: t.tt = 13; break;
-	case 188: t.tt = 51; break;
-	case 189: t.tt = 12; break;
-	case 190: t.tt = 52; break;
-	case 192: t.tt = 40; break;
-	case 219: t.tt = 26; break;
-	case 220: t.tt = 86; break;
-	case 221: t.tt = 27; break;
-	case 222: t.tt = 43; break;
-	case 1001: t.tt = 13; break;
-	case 1002: t.tt = 12; break;
+		case 9: t.tt = 15; break;
+		case 32: t.tt = 57; break;
+		case 33: t.tt = 201; break;
+		case 34: t.tt = 209; break;
+		case 37: t.tt = 203; break;
+		case 38: t.tt = 200; break;
+		case 39: t.tt = 205; break;
+		case 40: t.tt = 208; break;
+		case 42: t.tt = 16; break;
+		case 46: t.tt = 211; break;
+		case 54: t.tt = 16; break;
+		case 112: t.tt = 59; break;
+		case 113: t.tt = 60; break;
+		case 114: t.tt = 61; break;
+		case 115: t.tt = 62; break;
+		case 123: t.tt = 88; break;
+		case 187: t.tt = 13; break;
+		case 188: t.tt = 51; break;
+		case 189: t.tt = 12; break;
+		case 190: t.tt = 52; break;
+		case 192: t.tt = 40; break;
+		case 219: t.tt = 26; break;
+		case 220: t.tt = 86; break;
+		case 221: t.tt = 27; break;
+		case 222: t.tt = 43; break;
+		case 1001: t.tt = 13; break;
+		case 1002: t.tt = 12; break;
 	}
 	// 031215 - then remap to new scancodes (from keymap)
 	t.tt = g.keymap[t.tt];
@@ -19267,47 +19416,47 @@ void imgui_input_getcontrols(void)
 	int ttt = 0;
 	switch (t.tt)
 	{
-	case 15: ttt = 9; break;
-	case 57: ttt = 32; break;
-	case 201: ttt = 33; break;
-	case 209: ttt = 34; break;
-	case 203: ttt = 37; break;
-	case 200: ttt = 38; break;
-	case 205: ttt = 39; break;
-	case 208: ttt = 40; break;
-	case 16: ttt = 42; break;
-	case 211: ttt = 46; break;
-	case 59: ttt = 112; break;
-	case 60: ttt = 113; break;
-	case 61: ttt = 114; break;
-	case 62: ttt = 115; break;
-	case 88: ttt = 123; break;
-	case 13: ttt = 187; break;
-	case 51: ttt = 188; break;
-	case 12: ttt = 189; break;
-	case 52: ttt = 190; break;
-	case 40: ttt = 192; break;
-	case 26: ttt = 219; break;
-	case 86: ttt = 220; break;
-	case 27: ttt = 221; break;
-	case 43: ttt = 222; break;
+		case 15: ttt = 9; break;
+		case 57: ttt = 32; break;
+		case 201: ttt = 33; break;
+		case 209: ttt = 34; break;
+		case 203: ttt = 37; break;
+		case 200: ttt = 38; break;
+		case 205: ttt = 39; break;
+		case 208: ttt = 40; break;
+		case 16: ttt = 42; break;
+		case 211: ttt = 46; break;
+		case 59: ttt = 112; break;
+		case 60: ttt = 113; break;
+		case 61: ttt = 114; break;
+		case 62: ttt = 115; break;
+		case 88: ttt = 123; break;
+		case 13: ttt = 187; break;
+		case 51: ttt = 188; break;
+		case 12: ttt = 189; break;
+		case 52: ttt = 190; break;
+		case 40: ttt = 192; break;
+		case 26: ttt = 219; break;
+		case 86: ttt = 220; break;
+		case 27: ttt = 221; break;
+		case 43: ttt = 222; break;
 	}
 	// then create proper inkey chars from revised (if any) scancodes
 	switch (ttt)
 	{
-	case 16: t.t_s = "q"; break;
-	case 57: t.t_s = " "; break;
-	case 107: t.t_s = "="; break;
-	case 109: t.t_s = "-"; break;
-	case 187: t.t_s = "="; break;
-	case 188: t.t_s = ","; break;
-	case 189: t.t_s = "-"; break;
-	case 190: t.t_s = "."; break;
-	case 192: t.t_s = "'"; break;
-	case 219: t.t_s = "["; break;
-	case 220: t.t_s = "\\"; break;
-	case 221: t.t_s = "]"; break;
-	case 222: t.t_s = "#"; break;
+		case 16: t.t_s = "q"; break;
+		case 57: t.t_s = " "; break;
+		case 107: t.t_s = "="; break;
+		case 109: t.t_s = "-"; break;
+		case 187: t.t_s = "="; break;
+		case 188: t.t_s = ","; break;
+		case 189: t.t_s = "-"; break;
+		case 190: t.t_s = "."; break;
+		case 192: t.t_s = "'"; break;
+		case 219: t.t_s = "["; break;
+		case 220: t.t_s = "\\"; break;
+		case 221: t.t_s = "]"; break;
+		case 222: t.t_s = "#"; break;
 	}
 
 	if (t.inputsys.kscancode >= Asc("A") && t.inputsys.kscancode <= Asc("Z"))  t.t_s = Lower(Chr(t.inputsys.kscancode));
@@ -19315,18 +19464,20 @@ void imgui_input_getcontrols(void)
 	if (t.t_s != "")  t.tt = 1;
 
 	t.inputsys.k_s = t.t_s; t.inputsys.kscancode = t.tt;
-//####
 
-//  Input conditional flags
-	if (t.inputsys.kscancode == 0) {
+	//  Input conditional flags
+	if (t.inputsys.kscancode == 0) 
+	{
 		t.inputsys.keypress = 0;
-		if (iForceScancode > 0) {
+		if (iForceScancode > 0) 
+		{
 			if (iForceScancode == 13)
 				t.inputsys.keyreturn = 1;
 			t.inputsys.kscancode = iForceScancode;
 			iForceScancode = -1;
 		}
-		else if (bForceKey) {
+		else if (bForceKey) 
+		{
 			bForceKey = false;
 			t.inputsys.k_s = csForceKey;
 			t.inputsys.keycontrol = 0;
@@ -19334,7 +19485,8 @@ void imgui_input_getcontrols(void)
 			t.inputsys.keytab = 0;
 			t.inputsys.kscancode = Asc(csForceKey.Get());
 		}
-		else if (bForceKey2) {
+		else if (bForceKey2) 
+		{
 			bForceKey2 = false;
 			t.inputsys.k_s = csForceKey2;
 			t.inputsys.keycontrol = 0;
@@ -19342,7 +19494,6 @@ void imgui_input_getcontrols(void)
 			t.inputsys.keytab = 0;
 			t.inputsys.kscancode = Asc(csForceKey2.Get());
 		}
-
 	}
 	if (bForceUndo) 
 	{
@@ -19357,12 +19508,6 @@ void imgui_input_getcontrols(void)
 		bForceRedo = false;
 	}
 
-	#ifdef PRODUCTV3
-	// When old in welcome system, do not allow regular edit keys to work!
-	if (iTriggerWelcomeSystemStuff != 0)
-		return;
-	#endif
-
 	//  Construction Keys
 	if (t.inputsys.keycontrol == 0)
 	{
@@ -19375,11 +19520,7 @@ void imgui_input_getcontrols(void)
 
 		if ((t.grideditselect == 4 && t.gridentityinzoomview>0) || t.grideditselect == 5)
 		{
-			#ifdef WICKEDENGINE
 			if (t.inputsys.k_s == "g" && t.inputsys.keypress == 0)
-			#else
-			if (t.inputsys.k_s == "b" && t.inputsys.keypress == 0)
-			#endif
 			{
 				t.inputsys.keypress = 1; 
 				t.gridentitygridlock = t.gridentitygridlock + 1;
@@ -19443,29 +19584,13 @@ void imgui_input_getcontrols(void)
 		}
 		if (t.inputsys.k_s == "v")
 		{
-			/*
-			#ifdef WICKEDENGINE
-			if (!pref.iEnableSingleRightPanelAdvanced)
-			{
-				Weather_Tools_Window = false;
-				Visuals_Tools_Window = false;
-				//LB: shooter now a filter mode Shooter_Tools_Window = false;
-				Entity_Tools_Window = false;
-				bWaypoint_Window = false;
-				iRestoreLastWindow = 0;
-			}
-			bTerrain_Tools_Window = true;
-			t.inputsys.domodeterrain = 1; t.inputsys.dowaypointview = 0;
-			t.terrain.terrainpaintermode = 10;
-			#endif
-			*/
 		}
-			#ifdef WICKEDENGINE
-			if (t.inputsys.k_s == "o")
-			#else
-			if (t.inputsys.k_s == "e" || t.inputsys.k_s == "o")
-			#endif
-			{
+		#ifdef WICKEDENGINE
+		if (t.inputsys.k_s == "o")
+		#else
+		if (t.inputsys.k_s == "e" || t.inputsys.k_s == "o")
+		#endif
+		{
 			#ifdef WICKEDENGINE
 			if (!pref.iEnableSingleRightPanelAdvanced)
 			{
@@ -19480,27 +19605,6 @@ void imgui_input_getcontrols(void)
 			#endif
 			t.inputsys.domodeentity = 1; t.inputsys.dowaypointview = 0;
 		}
-		#ifdef WICKEDENGINE
-		// no waypoint painting in MAX
-		#else
-		if (t.inputsys.k_s == "p")
-		{
-			#ifdef WICKEDENGINE
-			if (!pref.iEnableSingleRightPanelAdvanced)
-			{
-				Weather_Tools_Window = false;
-				Visuals_Tools_Window = false;
-				//LB: shooter now a filter mode Shooter_Tools_Window = false;
-				bTerrain_Tools_Window = false;
-				Entity_Tools_Window = false;
-				iRestoreLastWindow = 0;
-			}
-			#endif
-			bWaypoint_Window = true;
-			t.inputsys.domodewaypoint = 1;
-			t.inputsys.dowaypointview = 0;
-		}
-		#endif
 		if (t.inputsys.keyspace == 1 && t.inputsys.keypress == 0) { t.inputsys.dowaypointview = 1 - t.inputsys.dowaypointview; t.inputsys.keypress = 1; t.lastgrideditselect = -1; editor_refresheditmarkers(); }
 
 		//  NUM-ROTATE CONTROLS
@@ -19774,15 +19878,8 @@ void imgui_input_getcontrols(void)
 			//  directly move entity (and detatch from terrain) PGUP and PGDN
 			if (t.inputsys.kscancode == 201 || t.inputsys.kscancode == 209)
 			{
-				#ifndef WICKEDENGINE
-				if (t.widget.activeObject == 0)
-				{
-				#endif
-					editor_handlepguppgdn();
-					t.gridentityposoffground = 1; t.gridentityautofind = 0; t.gridentityusingsoftauto = 0; t.gridentitysurfacesnap = 0;
-				#ifndef WICKEDENGINE
-				}
-				#endif
+				editor_handlepguppgdn();
+				t.gridentityposoffground = 1; t.gridentityautofind = 0; t.gridentityusingsoftauto = 0; t.gridentitysurfacesnap = 0;
 			}
 		}
 	}
@@ -19820,8 +19917,6 @@ void imgui_input_getcontrols(void)
 		t.editorfreeflight.c.angy_f = CameraAngleY();
 	}
 
-
-	
 	//  fake mousemove values for low-response systems (when in zoomed in mode)
 	if (t.grideditselect == 4)
 	{
@@ -19840,8 +19935,6 @@ void imgui_input_getcontrols(void)
 		}
 	}
 
-
-	//Update statusbar
 	//Update statusbar
 	++t.interfacestatusbarupdate;
 	if (t.interfacestatusbarupdate > 30)
@@ -20056,15 +20149,16 @@ void input_getcontrols ( void )
 	t.inputsys.tselcopy=0;
 	t.inputsys.tseldelete=0;
 
-	//  Obtain input data
-	if (  g.globals.ideinputmode == 1 ) 
-	{
-		input_getfilemapcontrols ( );
-	}
-	else
-	{
-		input_getdirectcontrols ( );
-	}
+	// Obtain input data
+	// ideinputmode always zero here
+	//if (  g.globals.ideinputmode == 1 ) 
+	//{
+	//	input_getfilemapcontrols ( );
+	//}
+	//else
+	//{
+	input_getdirectcontrols ( );
+	//}
 
 	//  Flag reset
 	t.inputsys.dorotation=0;

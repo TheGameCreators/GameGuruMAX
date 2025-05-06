@@ -1,0 +1,84 @@
+GameGuru MAX
+Standard End User Licence Agreement (EULA)
+
+By installing the software (the 'Software') on any computer, or otherwise using the Software, you agree that any use of the Software is subject to the terms of this End User Licence Agreement (this 'Agreement').  If you do not agree to these terms please do not install or otherwise use the Software and apply for a refund from the place of purchase.
+
+The copyright in the Software and its associated documentation is owned by The Game Creators Limited "the Owner".  All Rights Reserved.  By installing or otherwise using the Software, you (an individual or legal entity) agree with the Owner to be bound by the terms of this Agreement which will govern your use of the Software and your limited right to exploit a part of the Software. 
+
+1. Licence
+
+1.1  You are permitted on a non exclusive basis to:
+
+(a)  load the Software into and use it on a single computer which is under your control;
+
+(b)  transfer the Software from one computer to another provided it is used on only one computer at any one time; 
+
+(c)  use the Software on a computer network provided you have purchased such number of copies of the Software equal to the maximum number of copies of the Software in use on that network at any one time;
+
+(d)  create, in strict accordance with the associated documentation, unlimited Games (as defined below), and copy and issue copies of these Games to the public in object code format only, and subject always to the provisions of section 4 below.
+
+(e)  make a copy of the Software for back-up purposes only in support of the permitted use. The copies must reproduce and include the Owner's copyright notice; and
+
+1.2  You are not permitted:
+
+(a)  except as expressly permitted by this Agreement, to load the Software on to a network server for the purposes of distribution to one or more other computer(s) on that network or to effect such distribution;
+
+(b)  except as expressly permitted by this Agreement and save to the extent and in the circumstances expressly required to be permitted by law, to rent, lease, sub-license, loan, copy, modify, adapt, merge, translate, reverse engineer, decompile, disassemble or create derivative works based on the whole or any part of the Software or its associated documentation or use, reproduce, exploit or deal in the Software or any part of it in any way;
+
+(c)  to copy or distribute to the public or otherwise exploit (on either a commercial or a non-commercial basis) any part of the Software other than within and as an integral part of an object code format Game; 
+
+(d)  to sub-license any right granted to you in this Agreement unless expressly permitted to do so by the Owner in writing; or
+
+(e)  to transfer the Software or the benefit of this Agreement to any person.
+
+1.3  To the extent that local law gives you the right to decompile the Software in order to obtain information necessary to render the Software interoperable with other computer programs, the Owner undertakes to make that information readily available to you. The Owner shall have the right to impose reasonable conditions such as a reasonable fee for doing so. In order to ensure that you receive the appropriate information, you must first give the Owner sufficient details of your objectives and the other software concerned. Requests for the appropriate information should be made to support@thegamecreators.com.
+
+1.4  For the purposes of this Agreement the term 'Game' means an interactive entertainment software game whose sole purpose is to entertain its user without further modification and which is made using the Software in accordance with its associated documentation.  The term Game expressly excludes: 
+
+(a)  any software tool or software product which can (or might) be used in order to create further games or other software products; 
+
+(b)  any software library, compilation or collection of graphics and / or sounds from which a particular graphic or sound may be extracted to be used independently of the software in which it was first incorporated; in each case irrespective of whether or not the primary purpose of such software is to entertain its user.
+
+2. Term
+
+This Agreement is effective until you terminate it by destroying the Software and its documentation together with all copies.  It will also terminate if you fail to abide by its terms.  Upon termination you agree to destroy all copies of the Software and its documentation including any Software stored on any computer under your control.
+
+3. Ownership
+
+The Owner shall at all times retain ownership of the Software as delivered electronically and all subsequent copies of the same regardless of form.  Accordingly, the owner continues to own copyright in the Software including any part of the Software (whether modified or not) which is comprised within an object code Game.  This Agreement applies to the grant of the licence contained in this Agreement only.
+
+4. Exploitation of Games
+
+You shall ensure that, in respect of any Game which incorporates any part of the Software and which is created by you or with your permission: 
+
+(a)  each such Game is accompanied by an end-user licence agreement (EULA) which repeats the terms set out in the first line of section 5.4 below and which also contains the following term:
+
+'This product was made with, and incorporates part of, GameGuru MAX. All intellectual property rights (including copyright) in every part of GameGuru MAX (whether modified or not) are owned by and reserved to The Game Creators Limited.'
+
+(b)  the terms on which any such Game is used or exploited by any person include terms binding on all persons using or exploiting the Software which confirm the Owner’s ownership of the Software and the restrictions on the use or exploitation thereof set out in this Agreement; 
+
+(c)  is not unlawful or actionable and does not infringe the rights of any person or breach any law or regulation.
+
+5. Warranties
+
+5.1  The Owner warrants that during a period of 10 days after the date on which the Software is first purchased ("the Warranty Period"), the Software will perform substantially in accordance with its accompanying documentation (provided always that the Software is properly used on the computer and with the operating system for which it was designed) and that the documentation correctly describes the operation of the Software in all material respects. If a defect in shall occur during the Warranty Period it may be returned to Steam who have a policy in place to refund the purchase if the software is used for less than 2 hours and within 2 weeks (these terms are subject to change by Steam).
+
+5.2  The above represent your sole remedies for any breach of the Owner's warranties, which are given only to the original registered user.
+
+5.3  The express terms of this Agreement are in lieu of all warranties, conditions, undertakings, terms and obligations implied by statute, common law, trade usage, course of dealing or otherwise all of which are hereby excluded to the fullest extent permitted by law.
+
+5.4  The Owner does not warrant that the Software will meet your requirements or will be suitable for creating commercial products or that the operation of the Software will be uninterrupted or error free or that defects in the Software will be corrected. You shall load and use the Software at your own risk and in no event will the Owner be liable to you for any loss or damage of any kind (except personal injury or death resulting from the Owner's negligence or loss or damage resulting from any fraudulent misrepresentation made by the Owner) including lost profits or other economic loss or any consequential loss arising from your use of or inability to use the Software or from errors or deficiencies in it whether caused by negligence or otherwise except as expressly provided herein. Save in respect of personal injury or death resulting from the Owner's negligence or loss or damage resulting from any fraudulent misrepresentation made by the Owner, in no event shall the Owner's liability exceed the amount paid by you for the Software.
+
+6. Support
+
+The Owner's technical support staff will endeavour to answer using the TGC support mail system any queries in English the original registered user may have regarding the use of the Software or its application for a period of 30 days after the first support service query, which must be made within the Warranty Period. The Owner shall use its reasonable endeavours to respond within seven working days of receipt of your query.
+
+7. Law
+
+7.1  This Agreement shall be governed by and construed in accordance with English law.
+
+7.2  Each of the parties irrevocably submits for all purposes in connection with this Agreement to the exclusive jurisdiction of the courts of England.
+
+8. Exclusion of third party rights
+
+No term of this Agreement is enforceable pursuant to the Contracts (Rights of Third Parties) Act 1999 by any person who is not a party to it.

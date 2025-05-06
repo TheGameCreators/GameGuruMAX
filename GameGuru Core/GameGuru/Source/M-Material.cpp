@@ -130,7 +130,6 @@ void material_init ( void )
 
 void material_startup ( void )
 {
-	#ifdef WICKEDENGINE
 	for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
 	t.m = 0;  t.material[t.m].usedinlevel = 1;
 	t.m = 1;  t.material[t.m].usedinlevel = 1;
@@ -142,33 +141,10 @@ void material_startup ( void )
 	t.m = 13; t.material[t.m].usedinlevel = 1;
 	t.m = 17; t.material[t.m].usedinlevel = 1;
 	t.m = 18; t.material[t.m].usedinlevel = 1;
-	#else
-	// Speeds up IDE initial loading by 10 seconds
-	#ifdef VRTECH
-		for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
-		t.m=0 ; t.material[t.m].usedinlevel=1;
-		t.m=1 ; t.material[t.m].usedinlevel=1;
-		t.m=2 ; t.material[t.m].usedinlevel=1;
-		t.m=3 ; t.material[t.m].usedinlevel=1;
-		t.m=17 ; t.material[t.m].usedinlevel=1;
-		t.m=18 ; t.material[t.m].usedinlevel=1;
-	#else
-		#ifdef FREETRIALVERSION
-			for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 0;
-			t.m=0 ; t.material[t.m].usedinlevel=1;
-			t.m=1 ; t.material[t.m].usedinlevel=1;
-			t.m=2 ; t.material[t.m].usedinlevel=1;
-			t.m=3 ; t.material[t.m].usedinlevel=1;
-			t.m=17 ; t.material[t.m].usedinlevel=1;
-			t.m=18 ; t.material[t.m].usedinlevel=1;
-		#else
-			for ( t.m = 0; t.m <= 18; t.m++ ) t.material[t.m].usedinlevel = 1;
-		#endif
-	#endif
-	#endif
 }
 
 #define TENCLONESOUNDSFOREXPLOSIONS 10
+#define SIXTHUMPSOUNDSFORMELEE 6
 
 void material_loadsounds ( int iInitial )
 {
@@ -178,34 +154,38 @@ void material_loadsounds ( int iInitial )
 	// Load Explosion sound clones
 	if ( SoundExist(g.explodesoundoffset) == 0 ) 
 	{
-		Load3DSound (  "audiobank\\misc\\explode.wav",g.explodesoundoffset );
-		for ( t.t = 1 ; t.t <= TENCLONESOUNDSFOREXPLOSIONS; t.t++ ) CloneSound ( g.explodesoundoffset +t.t ,g.explodesoundoffset );
+		Load3DSound (  "audiobank\\misc\\explode.wav", g.explodesoundoffset );
+		for ( t.t = 1 ; t.t <= TENCLONESOUNDSFOREXPLOSIONS; t.t++ ) CloneSound ( g.explodesoundoffset + t.t, g.explodesoundoffset );
+	}
+
+	// Load Melee Thump - not clones, variants for more variantarynessness (use SIXTHUMPSOUNDSFORMELEE)
+	if ( SoundExist(g.meleethumpsoundoffset + 1) == 0 )
+	{
+		Load3DSound ("audiobank\\misc\\melee1.wav", g.meleethumpsoundoffset + 1);
+		Load3DSound ("audiobank\\misc\\melee2.wav", g.meleethumpsoundoffset + 2);
+		Load3DSound ("audiobank\\misc\\melee3.wav", g.meleethumpsoundoffset + 3);
+		Load3DSound ("audiobank\\misc\\melee4.wav", g.meleethumpsoundoffset + 4);
+		Load3DSound ("audiobank\\misc\\melee5.wav", g.meleethumpsoundoffset + 5);
+		Load3DSound ("audiobank\\misc\\melee6.wav", g.meleethumpsoundoffset + 6);
 	}
 
 	// Load material sounds into memory
-	#ifdef VRTECH
 	if ( iInitial == 0 )
-	#else
-	if(1)
-	#endif
 	{
 		timestampactivity(0, cstr(cstr("_material_loadsounds (")+Str(g.gmaterialmax)+")").Get() );
 		t.tbase = g.materialsoundoffset;
 		for ( t.m = 0 ; t.m <= g.gmaterialmax; t.m++ )
 		{
-			#ifdef VRTECH
 			// material sound loading SO slow for some reason!
 			char pPrompt[1024];
 			sprintf( pPrompt, "LOADING MATERIAL SOUND %d", 1+t.m );
 			t.tsplashstatusprogress_s = pPrompt;
 			timestampactivity(0,t.tsplashstatusprogress_s.Get());
 			version_splashtext_statusupdate ( );
-			#endif
 
 			// load material sound
 			if ( t.material[t.m].name_s != "" && t.material[t.m].usedinlevel == 1 ) 
 			{
-				#ifdef WICKEDENGINE
 				for ( int msoundtypes = 0; msoundtypes < matSound_Count; msoundtypes++)
 				{
 					// each sound type has diffetent variants
@@ -274,61 +254,6 @@ void material_loadsounds ( int iInitial )
 						}
 					}
 				}
-				#else
-				// speed up loading and don't need these extra sounds 
-				#ifdef VRTECH
-				 int iSoundTypesFullSupport = 3;
-				#else
-				 #ifdef FREETRIALVERSION
-				  int iSoundTypesFullSupport = 3;
-				 #else
-				  //int iSoundTypesFullSupport = 6;
-				  //PE: t.material[t.m].destroyid; is not used in code anywhere, guess it now always use explosion, anyway ignore it.
-				  int iSoundTypesFullSupport = 5;
-				#endif
-				#endif
-				for ( t.msoundtypes = 0; t.msoundtypes <= iSoundTypesFullSupport; t.msoundtypes++ )
-				{
-					if (t.msoundtypes == 4) //PE: scrapeid is not used in any code anywhere.
-						continue;
-
-					if (  t.msoundtypes == 0  )  t.snd_s = t.material[t.m].tred0_s;
-					if (  t.msoundtypes == 1  )  t.snd_s = t.material[t.m].tred1_s;
-					if (  t.msoundtypes == 2  )  t.snd_s = t.material[t.m].tred2_s;
-					if (  t.msoundtypes == 3  )  t.snd_s = t.material[t.m].tred3_s;
-					if (  t.msoundtypes == 4  )  t.snd_s = t.material[t.m].scrape_s;
-					if (  t.msoundtypes == 5  )  t.snd_s = t.material[t.m].impact_s;
-					if (  t.msoundtypes == 6  )  t.snd_s = t.material[t.m].destroy_s;
-					if (  t.msoundtypes == 0  )  t.msoundassign = t.material[t.m].tred0id;
-					if (  t.msoundtypes == 1  )  t.msoundassign = t.material[t.m].tred1id;
-					if (  t.msoundtypes == 2  )  t.msoundassign = t.material[t.m].tred2id;
-					if (  t.msoundtypes == 3  )  t.msoundassign = t.material[t.m].tred3id;
-					if (  t.msoundtypes == 4  )  t.msoundassign = t.material[t.m].scrapeid;
-					if (  t.msoundtypes == 5  )  t.msoundassign = t.material[t.m].impactid;
-					if (  t.msoundtypes == 6  )  t.msoundassign = t.material[t.m].destroyid;
-					if (  FileExist(t.snd_s.Get()) == 1 && t.msoundassign == 0 ) 
-					{
-						while (  SoundExist(t.tbase) == 1 && t.tbase<g.materialsoundoffsetend-5 ) 
-						{
-							++t.tbase;
-						}
-						if (  t.tbase<g.materialsoundoffsetend-5 ) 
-						{
-							Load3DSound (  t.snd_s.Get(),t.tbase );
-							SetSoundSpeed (  t.tbase,t.material[t.m].freq+g.soundfrequencymodifier );
-							t.msoundassign=t.tbase;
-							t.tbase += 5;
-						}
-					}
-					if (  t.msoundtypes == 0  )  t.material[t.m].tred0id = t.msoundassign;
-					if (  t.msoundtypes == 1  )  t.material[t.m].tred1id = t.msoundassign;
-					if (  t.msoundtypes == 2  )  t.material[t.m].tred2id = t.msoundassign;
-					if (  t.msoundtypes == 3  )  t.material[t.m].tred3id = t.msoundassign;
-					if (  t.msoundtypes == 4  )  t.material[t.m].scrapeid = t.msoundassign;
-					if (  t.msoundtypes == 5  )  t.material[t.m].impactid = t.msoundassign;
-					if (  t.msoundtypes == 6  )  t.material[t.m].destroyid = t.msoundassign;
-				}
-				#endif
 			}
 		}
 		if ( t.tbase > g.materialsoundoffset ) 

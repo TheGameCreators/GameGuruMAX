@@ -899,9 +899,13 @@ void entity_lua_performlogicconnections_core ( int iMode )
 					if (bSkipResultsCode == false)
 					{
 						// if object inactive, spawn it (only if have health, otherwise this entity was really destroyed/collected)
-						if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+						if (t.entityelement[iRelationShipEntityID].eleprof.spawnatstart != 2)
 						{
-							t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+							// only if not already spawned previously (otherwise it ends up with characters facing backwards!)
+							if (entity_lua_manageactivationresult(iRelationShipEntityID) == true)
+							{
+								t.entityelement[iRelationShipEntityID].eleprof.spawnatstart = 2;
+							}
 						}
 					}
 				}
@@ -2556,16 +2560,19 @@ void entity_lua_setanimationspeed ( void )
 
 // g_bForceRagdoll when calling 'entity_applydamage'
 bool g_bForceRagdoll = false;
+bool g_bForceNoRagdollJustDestroy = false;
 
 void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 {
 	// iSilentOrDamage  0 : none, 1 : silent, 2 : damage
-	if (t.v == -12345)
+	if (t.v == -12345 || t.v == -12346)
 	{
-		// set health to zero, but also force ragdoll over preferred death anim
-		g_bForceRagdoll = true;
+		// set health to zero
+		if (t.v == -12345) g_bForceRagdoll = true; // but also force ragdoll over preferred death anim
+		if (t.v == -12346) g_bForceNoRagdollJustDestroy = true; // but also DO NOT force ragdoll or any preferred death anim!
 		t.v = 0;
 	}
+	
 	// cannot set any health/damage if currently in ragdoll phase
 	if (t.entityelement[t.e].ragdollplusactivate != 0)
 	{
@@ -2631,13 +2638,22 @@ void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 			}
 			else
 			{
-				if (iSilentOrDamage == 1 && t.v == 0) t.entityelement[t.e].briefimmunity = 0;
-				t.entityelement[t.e].health = t.v;
+				if (iSilentOrDamage == 1 && t.v == -1)
+				{
+					// allow non-zero damage again (reverse of Prevent Zero Health)
+					t.entityelement[t.e].briefimmunity = 0;
+				}
+				else
+				{
+					if (iSilentOrDamage == 1 && t.v == 0) t.entityelement[t.e].briefimmunity = 0;
+					t.entityelement[t.e].health = t.v;
+				}
 			}
 		}
 	}
 	// and restore before leave
 	g_bForceRagdoll = false;
+	g_bForceNoRagdollJustDestroy = false;
 }
 void entity_lua_setentityhealth ( )
 {

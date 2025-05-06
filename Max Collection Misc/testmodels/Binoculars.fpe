@@ -1,0 +1,58 @@
+;Saved by GameGuru Object Importer v1.000
+;header
+desc             = Binoculars
+
+;visualinfo
+textured         = TX_Binoculars_01a_color.dds
+textureref1      = TX_Binoculars_01a_color.dds
+textureref2      = TX_Binoculars_01a_normal.dds
+textureref3      = TX_Binoculars_01a_metalness.dds
+textureref4      = TX_Binoculars_01a_gloss.dds
+textureref5      = TX_Binoculars_01a_ao.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+castshadow       = 0
+transparency     = 0
+
+;orientation
+model            = Binoculars.dbo
+offx             = 0
+offy             = 0
+offz             = 0
+rotx             = 0
+roty             = 0
+rotz             = 0
+scale            = 200
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 0
+matrixmode       = 0
+cullmode         = 0
+
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 25
+explodable       = 0
+debrisshape      = 0
+
+;ai
+aimain           = rpg\binoculars.lua
+
+
+;spawn
+spawnmax         = 0
+spawndelay       = 0
+spawnqty         = 0
+
+;anim
+animmax          = 0
+anim0            = 0,0
+playanimineditor = 0
+ignorecsirefs    = 1

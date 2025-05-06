@@ -2090,6 +2090,9 @@ void entity_loop ( void )
 					}
 				}
 
+				// and also hide the attachment (if any)
+				entity_freeattachment();
+
 				// attempt to remove collision object
 				entity_lua_collisionoff ( );
 
@@ -3092,33 +3095,10 @@ void entity_applydamage ( void )
 		}
 	}
 
-	#ifdef WICKEDENGINE
-	// preexit not used in MAX
-	#else
-	// when health drops to zero, and have a preexit LUA function for this entity, keep 
-	// entity alive long enough to run the logic in the preexit function
-	if ( t.entityelement[t.ttte].health <= 0 ) 
-	{
-		// this is only set to zero if the init call cleared it ready for preexit usage, otherwise ignore
-		if ( t.entityelement[t.ttte].eleprof.aipreexit == 0 )
-		{
-			t.entityelement[t.ttte].health = 1;
-			t.entityelement[t.ttte].eleprof.aipreexit = 1;
-		}
-	}
-	if ( t.entityelement[t.ttte].eleprof.aipreexit == 1 ) t.entityelement[t.ttte].health = 1;
-	if ( t.entityelement[t.ttte].eleprof.aipreexit == 2 ) t.entityelement[t.ttte].health = 0;
-	#endif
-
-	#ifdef WICKEDENGINE
 	// used when switch off auto matic destroy so can play anim before ragdoll, etc (or for damage invulnerability)
 	if (t.entityelement[t.ttte].briefimmunity != 0)
 		if (t.entityelement[t.ttte].health <= 0)
 			t.entityelement[t.ttte].health = 1;
-	#endif
-
-	// a system to allow the ragdoll force to be retained for MAX
-	//bool bAllowRagdollForceToBeRecorded = false;
 
 	// when health drops to zero
 	if (t.entityelement[t.ttte].health <= 0)
@@ -3186,32 +3166,28 @@ void entity_applydamage ( void )
 			t.tda_f = atan2deg(t.tdx_f, t.tdz_f);
 			t.relativeangle_f = WrapValue(ObjectAngleY(t.tobj) - t.tda_f);
 			t.impacting = 5;
-			#ifdef WICKEDENGINE
-			extern bool g_bForceRagdoll;
-			if (g_bForceRagdoll == true)
+			extern bool g_bForceNoRagdollJustDestroy;
+			if (g_bForceNoRagdollJustDestroy == true)
 			{
-				// trigger a forced ragdoll event
-				t.impacting = 6;
+				// no animation or ragdoll this time
+				t.impacting = 0;
 			}
 			else
 			{
-				if (t.relativeangle_f >= 315 || t.relativeangle_f < 45)  t.impacting = 1;
-				if (t.relativeangle_f >= 45 && t.relativeangle_f < 135)  t.impacting = 3;
-				if (t.relativeangle_f >= 135 && t.relativeangle_f < 225)  t.impacting = 2;
-				if (t.relativeangle_f >= 225 && t.relativeangle_f < 315)  t.impacting = 4;
+				extern bool g_bForceRagdoll;
+				if (g_bForceRagdoll == true)
+				{
+					// trigger a forced ragdoll event
+					t.impacting = 6;
+				}
+				else
+				{
+					if (t.relativeangle_f >= 315 || t.relativeangle_f < 45)  t.impacting = 1;
+					if (t.relativeangle_f >= 45 && t.relativeangle_f < 135)  t.impacting = 3;
+					if (t.relativeangle_f >= 135 && t.relativeangle_f < 225)  t.impacting = 2;
+					if (t.relativeangle_f >= 225 && t.relativeangle_f < 315)  t.impacting = 4;
+				}
 			}
-			#else
-			if (t.relativeangle_f >= 315 - 22 || t.relativeangle_f < 45 + 22)
-			{
-				t.impacting = 1;
-			}
-			else
-			{
-				if (t.relativeangle_f >= 45 + 22 && t.relativeangle_f < 135 - 22)  t.impacting = 3;
-				if (t.relativeangle_f >= 135 - 22 && t.relativeangle_f < 225 + 22)  t.impacting = 2;
-				if (t.relativeangle_f >= 225 + 22 && t.relativeangle_f < 315 - 22)  t.impacting = 4;
-			}
-			#endif
 
 			//  cannot use state engine - use instant animation for this
 			if (t.charanimstates[iCharacterIndexToUse].playcsi != g.csi_limbo)
@@ -3285,7 +3261,6 @@ void entity_applydamage ( void )
 			if (t.entityprofile[t.ttentid].ragdoll == 1)
 			{
 				//  create ragdoll and stop any further manipulation of the object
-				#ifdef WICKEDENGINE
 				if (t.entityelement[t.ttte].ragdollplusactivate == 0)
 				{
 					t.entityelement[t.ttte].ragdollplusactivate = t.impacting;
@@ -3295,20 +3270,7 @@ void entity_applydamage ( void )
 					else
 						t.entityelement[t.ttte].ragdollplusweapontypeused = 1;
 				}
-				#else
-				ragdoll_setcollisionmask (t.entityelement[t.ttte].eleprof.colondeath);
-				t.tphye = t.ttte; t.tphyobj = t.entityelement[t.ttte].obj; ragdoll_create ();
-				t.tapplyragdollforce = 1;
-				#endif
 			}
-
-			#ifdef WICKEDENGINE
-			// this is now done later when death anim finished
-			#else
-			// and make attachment object a physics object
-			t.tattobj = t.entityelement[t.ttte].attachmentobj;
-			if (t.tattobj > 0)  ODECreateDynamicBox (t.tattobj, -1, 1);
-			#endif
 
 			// only for regular characters
 			if (iThirdPersonCharacter == 0)
@@ -3497,7 +3459,7 @@ void entity_gettrueplayerpos(void)
 
 void entity_hasbulletrayhit(void)
 {
-	// bulletray is x1#,y1#,z1#,x2#,y2#,z2#,bulletrayhit,gunrange#
+	// bulletray is x1#,y1#,z1#,x2#,y2#,z2#,bulletrayhit,gunrange#,t.bulletfinalstrengthmod(1),bulletisinfactmeleestrike
 	t.brayx1_f = t.x1_f; t.brayy1_f = t.y1_f; t.brayz1_f = t.z1_f;
 	t.brayx2_f = t.x2_f; t.brayy2_f = t.y2_f; t.brayz2_f = t.z2_f;
 	t.bulletrayhit = 0; t.bulletraylimbhit = -1; t.tttriggerdecalimpact = 0;
@@ -3719,7 +3681,7 @@ void entity_hasbulletrayhit(void)
 		}
 	}
 
-	//  check if we hit a character
+	// check if we hit a character
 	if (  t.bulletrayhit>0 ) 
 	{
 		if (  ObjectExist(t.bulletrayhit) == 1 ) 
@@ -3754,7 +3716,7 @@ void entity_hasbulletrayhit(void)
 			{
 				t.px_f=t.x1_f ; t.py_f=t.y1_f ; t.pz_f=t.z1_f;
 				entity_determinegunforce ( );
-				darkai_ischaracterhit ( );
+				darkai_ischaracterhit ( ); // uses t.bulletfinalstrengthmod,bulletisinfactmeleestrike
 				if ( t.darkaifirerayhitcharacter == 0 ) 
 				{
 					// also make sure it's not a beast (ragdoll)

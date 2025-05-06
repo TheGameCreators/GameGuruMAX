@@ -1,0 +1,48 @@
+;header
+
+desc          = Compass
+
+;visualinfo
+textured      = compass.dds
+effect        = 
+castshadow    = 0
+
+;orientation
+model         = compass.dbo
+offx          = 0
+offy          = 0
+offz          = 0
+rotx          = 0
+roty          = 0
+rotz          = 0
+materialindex = 4
+defaultstatic = 0
+collisionmode = 0
+
+;physics shapes
+physicscount     = 0
+physics		 = 0
+phyweight 	 = 1
+phyfriction 	 = 1
+
+;statistics
+strength         = 15
+explodable       = 0
+debrisshape      = 0
+alwaysactive	 = 1
+
+;ai
+aimain	      = rpg\compass.lua
+
+;spawn
+spawnmax      = 0
+spawndelay    = 0
+spawnqty      = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 14.167068
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 329.505188
+thumbnailrotatey = 15.353193

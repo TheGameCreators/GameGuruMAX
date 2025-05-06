@@ -1376,6 +1376,8 @@ struct weaponProjectileBaseType
 	float avoidPlayerPenetration_f;
 	int attachToWeaponLimb;
 
+	float vert_f;
+
 	float xAccuracy_f;
 	float yAccuracy_f;
 
@@ -1520,6 +1522,7 @@ struct weaponProjectileBaseType
 		 yAccuracy_f = 0.0f;
 		 xAccuracy_f = 0.0f;
 		 attachToWeaponLimb = 0;
+		 vert_f = 0;
 		 avoidPlayerPenetration_f = 0.0f;
 		 baseObjScaleMaxZ_f = 0.0f;
 		 baseObjScaleMinZ_f = 0.0f;
@@ -2369,10 +2372,14 @@ struct luaglobaltype
 	float scriptprompt3dZ;
 	float scriptprompt3dAY;
 	bool scriptprompt3dFaceCamera;
+	cstr gurumeditationprompt_s;
+	DWORD gurumeditationprompttime;
 
 	// Constructor
 	luaglobaltype ( )
 	{
+		 gurumeditationprompt_s = "";
+		 gurumeditationprompttime = 0;
 		 scriptprompt3dFaceCamera = false;
 		 scriptprompttextsize = 0;
 		 scriptprompttype = 0;
@@ -3381,6 +3388,7 @@ struct globalstype
 	int hidelowfpswarning;
 	int deactivateconkit;
 	int disablefreeflight;
+	int fulldebugviewofkeymap;
 	int enableplrspeedmods;
 	int disableweaponjams;
 	int showdebugcollisonboxes;
@@ -3436,6 +3444,7 @@ struct globalstype
 		 disableweaponjams = 0;
 		 enableplrspeedmods = 0;
 		 disablefreeflight = 0;
+		 fulldebugviewofkeymap = 0;
 		 deactivateconkit = 0;
 		 hidelowfpswarning = 0;
 		 memorydetector = 0;

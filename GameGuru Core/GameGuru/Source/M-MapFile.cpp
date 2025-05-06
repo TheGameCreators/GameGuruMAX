@@ -2056,6 +2056,13 @@ void mapfile_collectfoldersandfiles (cstr levelpathfolder)
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_02.wav");
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_03.wav");
 	addtocollection("audiobank\\misc\\Bullet_FlyBy_04.wav");
+	addtocollection("audiobank\\misc\\melee.wav");
+	addtocollection("audiobank\\misc\\melee1.wav");
+	addtocollection("audiobank\\misc\\melee2.wav");
+	addtocollection("audiobank\\misc\\melee3.wav");
+	addtocollection("audiobank\\misc\\melee4.wav");
+	addtocollection("audiobank\\misc\\melee5.wav");
+	addtocollection("audiobank\\misc\\melee6.wav");
 	addtocollection("editors\\gfx\\14.png");
 	addtocollection("editors\\gfx\\14-white.png");
 	addtocollection("editors\\gfx\\14-red.png");

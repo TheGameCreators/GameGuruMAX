@@ -1,0 +1,120 @@
+;Saved by Model Importer
+;header
+desc             = nvgoggles
+
+
+;orientation
+model            = nvgoggles.dbo
+scale            = 25.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 2
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = nvgoggles.dds
+alphaRef0        = 1.00
+normalMap0       = nvgoggles_normal.dds
+normalStrength0  = 1.00
+surfaceMap0      = nvgoggles_surface.dds
+roughnessStrength0= 0.00
+metalnessStrength0= 0.00
+transparency0    = 0
+castshadow0      = -1
+renderorderbias0 = 0.00
+reflectance0     = 0.0020
+basecolor0       = 4294967295
+emissivecolor0   = 0
+baseColorMap1    = nvgoggles.dds
+alphaRef1        = 1.00
+normalMap1       = nvgoggles_normal.dds
+normalStrength1  = 1.00
+surfaceMap1      = nvgoggles_surface.dds
+roughnessStrength1= 0.00
+metalnessStrength1= 0.00
+transparency1    = 0
+castshadow1      = -1
+renderorderbias1 = 0.00
+reflectance1     = 0.0020
+basecolor1       = 4294967295
+emissivecolor1   = 0
+baseColorMap2    = nvgoggles.dds
+alphaRef2        = 1.00
+normalMap2       = nvgoggles_normal.dds
+normalStrength2  = 1.00
+surfaceMap2      = nvgoggles_surface.dds
+roughnessStrength2= 0.00
+metalnessStrength2= 0.00
+transparency2    = 0
+castshadow2      = -1
+renderorderbias2 = 0.00
+reflectance2     = 0.0020
+basecolor2       = 4294967295
+emissivecolor2   = 0
+baseColorMap3    = nvgoggles.dds
+alphaRef3        = 1.00
+normalMap3       = nvgoggles_normal.dds
+normalStrength3  = 1.00
+surfaceMap3      = nvgoggles_surface.dds
+roughnessStrength3= 0.00
+metalnessStrength3= 0.00
+transparency3    = 0
+castshadow3      = -1
+renderorderbias3 = 0.00
+reflectance3     = 0.0020
+basecolor3       = 4294967295
+emissivecolor3   = 0
+baseColorMap4    = nvgoggles.dds
+alphaRef4        = 1.00
+normalMap4       = nvgoggles_normal.dds
+normalStrength4  = 1.00
+surfaceMap4      = nvgoggles_surface.dds
+roughnessStrength4= 0.00
+metalnessStrength4= 0.00
+transparency4    = 0
+castshadow4      = -1
+renderorderbias4 = 0.00
+reflectance4     = 0.0020
+basecolor4       = 4294967295
+emissivecolor4   = 0
+textureref1       = nvgoggles.dds
+textureref2       = nvgoggles_normal.dds
+textureref3       = nvgoggles_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+;physics shapes
+physicscount     = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = nightvision\nightvision.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = -15.923233
+thumbnailcamleft = 2.442038
+thumbnailcamup = 12.236578
+thumbnailrotatex = 350.317200
+thumbnailrotatey = 239.440231

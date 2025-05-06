@@ -822,6 +822,7 @@ void welcome_whatyouget_page ( int iHighlightingButton )
 	}
 }
 
+/* old
 // CHANGE LOG PAGE
 
 struct welcomechangelogtype
@@ -867,6 +868,7 @@ void welcome_changelog_page ( int iHighlightingButton )
 		if ( iHighlightingButton == 1 ) t.tclosequick = 1;
 	}
 }
+*/
 
 // MAIN PAGE
 
@@ -1219,6 +1221,7 @@ void welcome_freetrialexitapp_page ( int iHighlightingButton )
 	}
 }
 
+/*
 void welcome_findbestpromotion ( LPSTR pReturnString )
 {
 	// connect to server, get best promotion, copy to return string
@@ -1276,6 +1279,7 @@ void welcome_findbestpromotion ( LPSTR pReturnString )
 		}
 	}
 }
+*/
 
 void welcome_freetrialintroapp_init ( void )
 {
@@ -1667,6 +1671,7 @@ bool welcome_announcements_init ( void )
 		fclose(showtestfile);
 	}				
 
+	/* disable announcements system - using live changelog instead
 	// LB: checking for announcement can take up to 30 seconds!!
 	// disable for now as we have changelog showing local changes for installed build
 	bool bDisableAnnouncementCheckRestoreWhenOnOwnThread = false;
@@ -1868,6 +1873,7 @@ bool welcome_announcements_init ( void )
 			}
 		}
 	}
+	*/
 
 	#ifdef WICKEDENGINE
 	#define ALWAYSSHOWANNOUNCEMENTIFBUILD
@@ -1875,13 +1881,16 @@ bool welcome_announcements_init ( void )
 	// new way pulls changelog.txt file if exists and uses that for announcement
 	// so the builds are tied to the changelog they represent
 	// do welcome announce stuff triggered above
+	/* replaced with live changelog
 	if (bDisableAnnouncementCheckRestoreWhenOnOwnThread == true)
 	{
 		bNewsIsAvailable = welcome_get_change_log();
 	}
+	*/
 	#endif
 	#endif
 
+	/* old
 	#ifdef VRTECH
 	// override any news if the user is about to expire
 	if (strlen(g_pCloudKeyExpiresDate) == 10)
@@ -1913,6 +1922,7 @@ bool welcome_announcements_init ( void )
 		}
 	}
 	#endif
+	*/
 
 	// detect if steam review reminder is required
 	#ifndef VRTECH
@@ -1932,6 +1942,7 @@ bool welcome_announcements_init ( void )
 	//}
 	#endif
 
+	/*
 	#ifdef WICKEDENGINE
 	if (g_bRunningForFirstTime == true)
 	{
@@ -1939,7 +1950,9 @@ bool welcome_announcements_init ( void )
 		bNewsIsAvailable = false;
 	}
 	#endif
+	*/
 
+	/* old
 	// if no news, skip the welcome dialog
 	if ( bNewsIsAvailable == true )
 	{
@@ -1964,9 +1977,10 @@ bool welcome_announcements_init ( void )
 		image_setlegacyimageloading(false);
 		g_welcomeCycle = 0; if ( strlen(g_welcomeLinkUrl) > 0 ) g_welcomeCycle = 1;		
 	}
+	*/
 
 	// false will skip the dialog altogether
-	return bNewsIsAvailable;
+	return false;// bNewsIsAvailable;
 }
 
 void welcome_announcements_steamreview_page(int iHighlightingButton)
@@ -2359,7 +2373,7 @@ bool welcome_setuppage ( int iPageIndex )
 	// clear page specific globals
 	if ( iPageIndex == WELCOME_SERIALCODE ) welcome_serialcode_init();
 	if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_init();
-	if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_init();
+	//if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_init();
 	if ( iPageIndex == WELCOME_MAIN ) welcome_main_init();
 	if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_init();
 	if ( iPageIndex == WELCOME_PLAY ) welcome_play_init();
@@ -2514,7 +2528,7 @@ bool welcome_cycle(void)
 		// display correct page
 		if ( iPageIndex == WELCOME_SERIALCODE ) welcome_serialcode_page ( iHighlightingButton );
 		if ( iPageIndex == WELCOME_WHATYOUGET ) welcome_whatyouget_page ( iHighlightingButton );
-		if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_page ( iHighlightingButton );
+		//if ( iPageIndex == WELCOME_CHANGELOG ) welcome_changelog_page ( iHighlightingButton );
 		if ( iPageIndex == WELCOME_MAIN ) welcome_main_page ( iHighlightingButton );
 		if ( iPageIndex == WELCOME_MAINVR ) welcome_mainvr_page ( iHighlightingButton );
 		if ( iPageIndex == WELCOME_PLAY ) g_welcomesystemclosedown = welcome_play_page ( iHighlightingButton );

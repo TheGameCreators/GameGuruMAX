@@ -485,10 +485,6 @@ void gun_manager ( void )
 			gun_shoot ( );
 			if (  t.playercontrol.thirdperson.enabled == 0 ) 
 			{
-				// allow flash as does noty need flashlimb (new weapon system)
-				//if ( t.gun[t.gunid].settings.flashlimb>=0 ) gun_flash ();
-				//if ( t.gun[t.gunid].settings.brasslimb>=0 ) gun_brass ( );
-				//if ( t.gun[t.gunid].settings.smokelimb>=0 ) gun_smoke ( );
 				gun_flash ();
 				gun_brass ();
 				gun_smoke ();
@@ -1168,6 +1164,58 @@ bool gun_getzoomstartandfinish ( void )
 	return true;
 }
 
+bool gun_detectandperformquickrepeatattack(void)
+{
+	// takes all vars from gun_control (below)
+	bool bPerformingQuickRepeatAttack = false;
+	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
+	{
+		// for melee up-close combat weapons
+		//weapontype ; 0-grenade, 1-pistol, 2-rocket, 3-shotgun, 4-uzi, 5-assault, 51-melee(noammo)
+		// during the gunmode animation, and after the 'strike' frame has been passed,
+		// we can have a special follow-up animation for more responsive and rapid attacks
+		// and will also remove the sense that clicks are being missed (i.e. feels sluggish and faulty)
+		bool bTrgiggeredQuickRepeatAttack = false;	
+		if (t.gunclick == 0 && (KeyState(g.ggunmeleekey)==0)) t.gunmustreleasefirst = 0;
+		if (t.gunmustreleasefirst == 0)
+		{
+			if (t.gunclick != 0) bTrgiggeredQuickRepeatAttack = true;
+			if (t.gun[t.gunid].settings.ismelee == 2 && KeyState(g.ggunmeleekey)==1) bTrgiggeredQuickRepeatAttack = true;
+		}
+		if(bTrgiggeredQuickRepeatAttack==true)
+		{
+			// only permit after a few post-sprike frames so does not look glitchy
+			float fGraceAfterStrike = 5.0f;
+			if (GetFrame(t.currentgunobj) >= t.gfinish.s + fGraceAfterStrike)
+			{
+				// and only if have stamina for it
+				char pUserDefinedGlobal[256];
+				sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "MyStamina");
+				int iMyStaminaFromLUA = LuaGetInt(pUserDefinedGlobal);
+				int iStaminaCostOfRepeatAttack = 10;
+				if (iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack)
+				{
+					// t.gfinish.s is the strke frame, so we want to back up a little so we have some visual run-up to the repeated action
+					float fBackUpFrames = (t.gstart.e - t.gstart.s) / 3.0f; // X-way back from start of initial attack (rather than fixed value)
+					if (fBackUpFrames < 6)fBackUpFrames = 6;
+					float fStartFromRunUpFrame = t.gfinish.s - fBackUpFrames;
+					gun_StopObject (t.currentgunobj);
+					gun_SetObjectFrame (t.currentgunobj, fStartFromRunUpFrame);
+					gun_PlayObject (t.currentgunobj, fStartFromRunUpFrame, t.gfinish.e);
+					t.gunmustreleasefirst = 1;
+
+					// extract stamin as cost
+					LuaSetFunction ("PlayerStaminaDrain", 1, 0); LuaPushInt (iStaminaCostOfRepeatAttack); LuaCall ();
+
+					// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
+					bPerformingQuickRepeatAttack = true;
+				}
+			}
+		}
+	}
+	return bPerformingQuickRepeatAttack;
+}
+
 void gun_control ( void )
 {
 	//  trigger gun to show and play custom anim (custstart,custend)
@@ -1375,62 +1423,9 @@ void gun_control ( void )
 
 	RotateObject ( t.currentgunobj, t.wox_f, 180-t.woy_f, t.woz_f );
 
-	/*
-	//PE: Display line from weapon to where bullet hits.
-	wiRenderer::RenderableLine line;
-	float fX, fY, fZ;
-	static float fLX, fLY, fLZ;
-
-	int iSmokeLimb = t.gun[t.gunid].settings.smokelimb;
-	if (iSmokeLimb <= 0)  iSmokeLimb = t.gun[t.gunid].settings.brasslimb;
-	if (iSmokeLimb > 0)
-	{
-		// position from smoke or brass limb
-		fX = LimbPositionX(t.currentgunobj, iSmokeLimb);
-		fY = LimbPositionY(t.currentgunobj, iSmokeLimb);
-		fZ = LimbPositionZ(t.currentgunobj, iSmokeLimb);
-	}
-	else
-	{
-		// gun flash position
-		float fWorldPosX, fWorldPosY, fWorldPosZ;
-		gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
-		fX = fWorldPosX;
-		fY = fWorldPosY;
-		fZ = fWorldPosZ;
-	}
-
-	fLX = PELerp(fLX, fX, 0.9f);
-	fLY = PELerp(fLY, fY, 0.9f);
-	fLZ = PELerp(fLZ, fZ, 0.9f);
-
-	MoveCamera(550.0);
-	line.color_start.x = 0.5f;
-	line.color_start.y = 0.3f;
-	line.color_start.z = 0.1f;
-	line.color_start.w = 0.2f;
-	line.color_end.x = 1.0f;
-	line.color_end.y = 0.3f;
-	line.color_end.z = 0.0f;
-	line.color_end.w = 0.9f;
-	line.start.x = fLX;
-	line.start.y = fLY;
-	line.start.z = fLZ;
-	line.end.x = CameraPositionX(0);
-	line.end.y = CameraPositionY(0);
-	line.end.z = CameraPositionZ(0);
-	MoveCamera(-550.0);
-	wiRenderer::DrawLine(line);
-	*/
-
-
 	//  hide the object if weapon-ammo and no qty left
 	//  OR a grenade with no ammo and not throwing at the time
 	t.tokay=0;
-	// `tpool=firemode(gunid,firemode).settings.poolindex
-
-	// `if tpool == 0 then ammo == weaponclipammo(weaponammoindex) else ammo == ammopool(tpool).ammo
-
 	if (  t.gun[t.gunid].settings.weaponisammo == 1 && t.weaponammo[g.weaponammoindex] == 0  )  t.tokay = 1;
 	if (  t.gun[t.gunid].projectileframe != 0 && t.weaponammo[g.weaponammoindex] == 0 && t.gunmode<100  )  t.tokay = 1;
 	if (  t.tokay == 1 ) 
@@ -1439,8 +1434,6 @@ void gun_control ( void )
 	}
 	else
 	{
-	//  `show object currentgunobj
-
 		gun_update_hud_visibility ( );
 	}
 
@@ -2407,7 +2400,19 @@ void gun_control ( void )
 	{
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) {  t.gun[t.gunid].settings.ismelee = 0  ; t.gunmode = 5 ; t.tmeleeanim = 0; }
+		if (  GetFrame(t.currentgunobj) >= t.gfinish.e ) 
+		{  
+			t.gun[t.gunid].settings.ismelee = 0; t.gunmode = 5; t.tmeleeanim = 0; 
+		}
+		else
+		{
+			// check if can perform a quick-reepeat attack
+			if (gun_detectandperformquickrepeatattack() == true)
+			{
+				// and return to previous mode to allow start part to finish, and then gunshoot to do its thing again
+				t.gunmode = 1021;
+			}
+		}
 	}
 
 	//  Player presses mouse button but has no ammo (avoid model animation freezing)
@@ -2888,13 +2893,25 @@ void gun_control ( void )
 	}
 	if (  t.gunmode == 106 ) 
 	{
-#ifdef WICKEDENGINE
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
-#else
-		t.currentgunanimspeed_f = g.timeelapsed_f*t.genericgunanimspeed_f;
-#endif
 		gun_SetObjectSpeed (  t.currentgunobj,t.currentgunanimspeed_f );
-		if ( GetFrame(t.currentgunobj) >= t.gunmodewaitforframe )  t.gunmode = 107;
+
+		// monitor for end of gunmode animation
+		if (GetFrame(t.currentgunobj) >= t.gunmodewaitforframe)
+		{
+			// finalise animation
+			t.gunmode = 107;
+		}
+		else
+		{
+			// check if can perform a quick-reepeat attack
+			if (gun_detectandperformquickrepeatattack() == true )
+			{
+				// and return to 102 to allow start part to finish, and then gunshoot to do its thing again
+				t.gunmode = 102;
+			}
+		}
+
 		//  if a delayed flak, check when frame triggers it; Only one grenade, not SIX!!!
 		if (  t.gun[t.gunid].projectileframe>0 ) 
 		{
@@ -3405,79 +3422,83 @@ void gun_flash ( void )
 	extern bool bHideWeaponsMuzzle;
 	if (bHideWeaponsMuzzle) return;
 
-	// hide muzzle if (  still visible (quick shot  )  zoom bug)
-	if ( t.plrzoomin_f != 0.0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom == 0 ) 
+	if (g.firemodes[t.gunid][g.firemode].settings.flashimg > 0)
 	{
-		if ( GetVisible(g.hudbankoffset+5) == 1  )  HideObject (  g.hudbankoffset+5 );
-		if ( GetVisible(g.hudbankoffset+32) == 1  )  HideObject (  g.hudbankoffset+32 );
-		t.gunflash=0;
-	}
-
-	// gun flash position
-	float fWorldPosX, fWorldPosY, fWorldPosZ;
-	gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
-	PositionObject(g.hudbankoffset + 5, fWorldPosX, fWorldPosY, fWorldPosZ);
-	PointObject(g.hudbankoffset + 5, CameraPositionX(), CameraPositionY(), CameraPositionZ());
-	sObject* pMuzzleFlashObj = GetObjectData(g.hudbankoffset + 5);
-	if (pMuzzleFlashObj && pMuzzleFlashObj->ppFrameList)
-	{
-		// adjust rotation of frame zero Z to spin the muzzle flash
-		pMuzzleFlashObj->ppFrameList[0]->vecRotation.z = Rnd(360);
-	}
-	if ( t.gunflash == 1 ) 
-	{
-		// fire flash init
-		t.gunflash=2;
-		g.gunflashcount=g.firemodes[t.gunid][g.firemode].settings.firerate/2;
-		ShowObject (  g.hudbankoffset+5 );
-		if (  t.gun[t.gunid].settings.flashlimb2 != -1 ) 
+		// but only if the gun has flash(muzzleflash) enabled
+		// hide muzzle if still visible (quick shot)
+		if (t.plrzoomin_f != 0.0 && g.firemodes[t.gunid][g.firemode].settings.simplezoom == 0)
 		{
-			RotateObject (  g.hudbankoffset+32,0,0,Rnd(360) );
-			ShowObject (  g.hudbankoffset+32 );
+			if (GetVisible(g.hudbankoffset + 5) == 1)  HideObject (g.hudbankoffset + 5);
+			if (GetVisible(g.hudbankoffset + 32) == 1)  HideObject (g.hudbankoffset + 32);
+			t.gunflash = 0;
 		}
 
-		// light flash init
-		if ( g.firemodes[t.gunid][g.firemode].settings.usespotlighting != 0 ) 
+		// gun flash position
+		float fWorldPosX, fWorldPosY, fWorldPosZ;
+		gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+		PositionObject(g.hudbankoffset + 5, fWorldPosX, fWorldPosY, fWorldPosZ);
+		PointObject(g.hudbankoffset + 5, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+		sObject* pMuzzleFlashObj = GetObjectData(g.hudbankoffset + 5);
+		if (pMuzzleFlashObj && pMuzzleFlashObj->ppFrameList)
 		{
-			RotateCamera(CameraAngleX(), CameraAngleY() - 45.0f, CameraAngleZ());
-			MoveCamera(10.0);
-			t.playerWeaponFlash.spotflashx_f = CameraPositionX();
-			t.playerWeaponFlash.spotflashy_f = CameraPositionY();
-			t.playerWeaponFlash.spotflashz_f = CameraPositionZ();
-			MoveCamera(-10.0);
-			RotateCamera(CameraAngleX(), CameraAngleY() + 45.0f, CameraAngleZ());
-			t.playerWeaponFlash.spotlightr_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr / 5;
-			t.playerWeaponFlash.spotlightg_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg / 5;
-			t.playerWeaponFlash.spotlightb_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb / 5 ;
-			t.playerWeaponFlash.flashlightcontrol_f = 1.0f;	
+			// adjust rotation of frame zero Z to spin the muzzle flash
+			pMuzzleFlashObj->ppFrameList[0]->vecRotation.z = Rnd(360);
 		}
-	}
-
-	if ( t.gunflash == 2 ) 
-	{
-		// Timer (  based deduction )
-		t.firerate=g.firemodes[t.gunid][g.firemode].settings.firerate/2;
-		if ( g.gunflashcount <= (t.firerate)-(g.timeelapsed_f*2) ) 
+		if (t.gunflash == 1)
 		{
-			// Just hide all of them early 
+			// fire flash init
+			t.gunflash = 2;
+			g.gunflashcount = g.firemodes[t.gunid][g.firemode].settings.firerate / 2;
+			ShowObject (g.hudbankoffset + 5);
+			if (t.gun[t.gunid].settings.flashlimb2 != -1)
+			{
+				RotateObject (g.hudbankoffset + 32, 0, 0, Rnd(360));
+				ShowObject (g.hudbankoffset + 32);
+			}
+
+			// light flash init
+			if (g.firemodes[t.gunid][g.firemode].settings.usespotlighting != 0)
+			{
+				RotateCamera(CameraAngleX(), CameraAngleY() - 45.0f, CameraAngleZ());
+				MoveCamera(10.0);
+				t.playerWeaponFlash.spotflashx_f = CameraPositionX();
+				t.playerWeaponFlash.spotflashy_f = CameraPositionY();
+				t.playerWeaponFlash.spotflashz_f = CameraPositionZ();
+				MoveCamera(-10.0);
+				RotateCamera(CameraAngleX(), CameraAngleY() + 45.0f, CameraAngleZ());
+				t.playerWeaponFlash.spotlightr_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorr / 5;
+				t.playerWeaponFlash.spotlightg_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorg / 5;
+				t.playerWeaponFlash.spotlightb_f = g.firemodes[t.gunid][g.firemode].settings.muzzlecolorb / 5;
+				t.playerWeaponFlash.flashlightcontrol_f = 1.0f;
+			}
+		}
+
+		if (t.gunflash == 2)
+		{
+			// Timer (  based deduction )
+			t.firerate = g.firemodes[t.gunid][g.firemode].settings.firerate / 2;
+			if (g.gunflashcount <= (t.firerate) - (g.timeelapsed_f * 2))
+			{
+				// Just hide all of them early 
+				t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
+				HideObject (g.hudbankoffset + 5);
+				HideObject (g.hudbankoffset + 32);
+			}
+			g.gunflashcount -= g.timeelapsed_f * 1.25; //PE: A little bit faster.
+			if (g.gunflashcount <= 0)
+			{
+				t.gunflash = 3;
+			}
+		}
+		if (t.gunflash == 3)
+		{
+			// final hide
+			t.gunflash = 0;
+			g.gunflashcount = 0;
 			t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-			HideObject (  g.hudbankoffset+5 );
-			HideObject (  g.hudbankoffset+32 );
+			HideObject (g.hudbankoffset + 5);
+			HideObject (g.hudbankoffset + 32);
 		}
-		g.gunflashcount -= g.timeelapsed_f * 1.25; //PE: A little bit faster.
-		if ( g.gunflashcount <= 0 ) 
-		{
-			t.gunflash=3;
-		}
-	}
-	if ( t.gunflash == 3 ) 
-	{
-		// final hide
-		t.gunflash=0;
-		g.gunflashcount=0;
-		t.playerWeaponFlash.flashlightcontrol_f = 0.0f;
-		HideObject (  g.hudbankoffset+5 );
-		HideObject (  g.hudbankoffset+32 );
 	}
 }
 
@@ -3617,77 +3638,81 @@ void gun_smoke ( void )
 	t.gunsmoke2 = 0 ; if (  t.gunsmoke == 1 && t.gun[t.gunid].settings.flashlimb2 != -1  )  t.gunsmoke2 = 1;
 
 	//  find free smoke and puff
-	for ( t.o = 21 ; t.o<=  30; t.o++ )
+	if (g.firemodes[t.gunid][0].settings.smokeimg > 0)
 	{
-		t.obj=g.hudbankoffset+t.o;
-		if ( GetVisible(t.obj) == 0 && t.gunsmoke == 1 ) 
+		// but only if the gun has smoke enabled
+		for (t.o = 21; t.o <= 30; t.o++)
 		{
-			t.ttsmokelimb=t.gun[t.gunid].settings.smokelimb;
-			if ( t.ttsmokelimb <= 0 )  t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
-			if (t.ttsmokelimb > 0)
+			t.obj = g.hudbankoffset + t.o;
+			if (GetVisible(t.obj) == 0 && t.gunsmoke == 1)
 			{
-				// position from smoke or brass limb
-				t.lx_f = LimbPositionX(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
-				t.ly_f = LimbPositionY(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
-				t.lz_f = LimbPositionZ(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+				t.ttsmokelimb = t.gun[t.gunid].settings.smokelimb;
+				if (t.ttsmokelimb <= 0)  t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
+				if (t.ttsmokelimb > 0)
+				{
+					// position from smoke or brass limb
+					t.lx_f = LimbPositionX(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+					t.ly_f = LimbPositionY(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+					t.lz_f = LimbPositionZ(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+				}
+				else
+				{
+					// gun flash position
+					float fWorldPosX, fWorldPosY, fWorldPosZ;
+					gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+					t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
+					t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
+					t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+				}
+				// no fixpivot logic
+				RotateObject (t.obj, 0, 0, 0);
+				PositionObject (t.obj, t.lx_f, t.ly_f, t.lz_f);
+				ShowObject (t.obj);
+				t.smokeframe_f[t.o] = 0.0;
+				t.gunsmoke = 0; t.smokeframe = 0;
 			}
-			else
+			if (GetVisible(t.obj) == 0 && t.gunsmoke == 0 && t.gunsmoke2 == 1)
 			{
-				// gun flash position
-				float fWorldPosX, fWorldPosY, fWorldPosZ;
-				gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
-				t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
-				t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
-				t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+				t.ttsmokelimb = t.gun[t.gunid].settings.smokelimb2;
+				if (t.ttsmokelimb <= 0) t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
+				if (t.ttsmokelimb > 0)
+				{
+					t.lx_f = LimbPositionX(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+					t.ly_f = LimbPositionY(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+					t.lz_f = LimbPositionZ(t.currentgunobj, t.ttsmokelimb) + 1.0 - (Rnd(20) / 10.0);
+				}
+				else
+				{
+					// gun flash position
+					float fWorldPosX, fWorldPosY, fWorldPosZ;
+					gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
+					t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
+					t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
+					t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
+				}
+				// no fixpivot logic
+				RotateObject (t.obj, 0, 0, 0);
+				PositionObject (t.obj, t.lx_f, t.ly_f, t.lz_f);
+				ShowObject (t.obj);
+				t.smokeframe_f[t.o] = 0.0;
+				t.gunsmoke2 = 0; t.smokeframe = 0;
 			}
-			// no fixpivot logic
-			RotateObject (t.obj, 0, 0, 0);
-			PositionObject (  t.obj,t.lx_f,t.ly_f,t.lz_f );
-			ShowObject (  t.obj );
-			t.smokeframe_f[t.o]=0.0;
-			t.gunsmoke=0 ; t.smokeframe=0;
-		}
-		if ( GetVisible(t.obj) == 0 && t.gunsmoke == 0 && t.gunsmoke2 == 1 ) 
-		{
-			t.ttsmokelimb=t.gun[t.gunid].settings.smokelimb2;
-			if ( t.ttsmokelimb <= 0 ) t.ttsmokelimb = t.gun[t.gunid].settings.brasslimb;
-			if(t.ttsmokelimb > 0)
+			if (GetVisible(t.obj) == 1)
 			{
-				t.lx_f=LimbPositionX(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-				t.ly_f=LimbPositionY(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-				t.lz_f=LimbPositionZ(t.currentgunobj,t.ttsmokelimb)+1.0-(Rnd(20)/10.0);
-			}
-			else
-			{
-				// gun flash position
-				float fWorldPosX, fWorldPosY, fWorldPosZ;
-				gun_flashbrass_position(&fWorldPosX, &fWorldPosY, &fWorldPosZ, 1, 1, 1);
-				t.lx_f = fWorldPosX + 1.0 - (Rnd(20) / 10.0);
-				t.ly_f = fWorldPosY + 1.0 - (Rnd(20) / 10.0);
-				t.lz_f = fWorldPosZ + 1.0 - (Rnd(20) / 10.0);
-			}
-			// no fixpivot logic
-			RotateObject (t.obj, 0, 0, 0);
-			PositionObject (  t.obj,t.lx_f,t.ly_f,t.lz_f );
-			ShowObject (  t.obj );
-			t.smokeframe_f[t.o]=0.0;
-			t.gunsmoke2=0 ; t.smokeframe=0;
-		}
-		if (  GetVisible(t.obj) == 1 ) 
-		{
-			PointObject ( t.obj, CameraPositionX(),CameraPositionY(),CameraPositionZ() );
-			t.smokerisespeed_f=g.firemodes[t.gunid][g.firemode].settings.smokespeed/100.0;
-			PositionObject ( t.obj, ObjectPositionX(t.obj),ObjectPositionY(t.obj)+t.smokerisespeed_f,ObjectPositionZ(t.obj) );
-			float fSmokeSize = g.firemodes[t.gunid][g.firemode].settings.smokesize;
-			ScaleObject ( t.obj, fSmokeSize, fSmokeSize, fSmokeSize );
-			t.smokeframe_f[t.o]=t.smokeframe_f[t.o]+(2.0*g.timeelapsed_f) ; t.smokeframe=t.smokeframe_f[t.o];
-			if ( GetInScreen(t.obj) == 1 && t.smokeframe <= 15 ) 
-			{
-				SetObjectUVManually(t.obj, t.smokeframe, 4, 4);
-			}
-			else
-			{
-				HideObject (  t.obj );
+				PointObject (t.obj, CameraPositionX(), CameraPositionY(), CameraPositionZ());
+				t.smokerisespeed_f = g.firemodes[t.gunid][g.firemode].settings.smokespeed / 100.0;
+				PositionObject (t.obj, ObjectPositionX(t.obj), ObjectPositionY(t.obj) + t.smokerisespeed_f, ObjectPositionZ(t.obj));
+				float fSmokeSize = g.firemodes[t.gunid][g.firemode].settings.smokesize;
+				ScaleObject (t.obj, fSmokeSize, fSmokeSize, fSmokeSize);
+				t.smokeframe_f[t.o] = t.smokeframe_f[t.o] + (2.0 * g.timeelapsed_f); t.smokeframe = t.smokeframe_f[t.o];
+				if (GetInScreen(t.obj) == 1 && t.smokeframe <= 15)
+				{
+					SetObjectUVManually(t.obj, t.smokeframe, 4, 4);
+				}
+				else
+				{
+					HideObject (t.obj);
+				}
 			}
 		}
 	}
@@ -4117,6 +4142,8 @@ void gun_shoot_oneray ( void )
 	t.bullethit=0 ; t.bullethitstatic=0;
 	t.tbullethitmaterial=0 ; t.tbullethitflesh=0;
 	t.bulletraytype=g.firemodes[t.gunid][g.firemode].settings.damagetype;
+	t.bulletfinalstrengthmod = 1.0f;
+	t.bulletisinfactmeleestrike = 0;
 	t.gunrange_f=t.range_f;
 
 	//PE: Do not make a tracer if melee.
@@ -4258,6 +4285,89 @@ void gun_shoot_oneray ( void )
 					t.gun[t.gunid].settings.tracer_maxlength, // max length
 					t.gunid //Image to use.
 				);
+			}
+		}
+	}
+
+	// if this was a 'melee weapon' (51 or above)
+	if (t.gun[t.gunid].weapontype >= 51 || t.gun[t.gunid].settings.ismelee != 0)
+	{
+		// mark this as a melee weapon strike (will add a thump sound later on)
+		t.bulletisinfactmeleestrike = 1;
+
+		// and the ray did not quite find a surface to strike
+		bool bFullWickedAccuracy = true;
+		int tquickrayhitchecke = -1;
+		t.thitvalue = IntersectAllEx (g.entityviewstartobj, g.entityviewendobj, t.x1_f, t.y1_f, t.z1_f, t.x2_f, t.y2_f, t.z2_f, 0, 0, 0, 0, 0, bFullWickedAccuracy);
+		if ( t.thitvalue == 0 )
+		{
+			// now lets find someone standing RIGHT in front of our sledgehammer :)
+			int tfoundalikelyvictim = -1;
+			float fStraightOnDamageRatio = 1.0;
+			float fClosest = 9999;
+			float fMostInFront = 180;
+			for (t.tte = 1; t.tte <= g.entityelementlist; t.tte++)
+			{
+				if (t.entityelement[t.tte].obj > 0)
+				{
+					int entid = t.entityelement[t.tte].bankindex;
+					if (entid > 0)
+					{
+						if (t.entityprofile[entid].ischaracter != 0)
+						{
+							if (t.entityelement[t.tte].health > 0)
+							{
+								float fDX = t.entityelement[t.tte].x - t.x1_f;
+								float fDZ = t.entityelement[t.tte].z - t.z1_f;
+								float fDD = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+								if (fDD < t.gunrange_f)
+								{
+									float fDA = atan2(fDX, fDZ) * 180.0f / 3.14159265358979323846f;
+									fDA = WrapValue(fDA);
+									float fDiffA = fDA - CameraAngleY();
+									if (fDiffA < 0) fDiffA += 360;
+									if (fDiffA > 180) fDiffA -= 360;
+									float fWindowOfOp = 35.0f;
+									fDiffA = fabs(fDiffA);
+									if (fDiffA < fWindowOfOp)
+									{
+										// stronger damage is head on
+										fStraightOnDamageRatio = 1.0f - (fDiffA / fWindowOfOp);
+										
+										// this victim is a character, alive, within range and less than 45 degrees in front of player
+										if (fDD < fClosest)
+										{
+											fClosest = fDD;
+											if (fDiffA < fMostInFront)
+											{
+												fMostInFront = fDiffA;
+												tfoundalikelyvictim = t.tte;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if (tfoundalikelyvictim > 0)
+			{
+				// if we have a character in front of us, find the chest area	
+				float fCharacterChestAreaX = t.entityelement[tfoundalikelyvictim].x;
+				float fCharacterChestAreaY = t.entityelement[tfoundalikelyvictim].y + 50.0f;
+				float fCharacterChestAreaZ = t.entityelement[tfoundalikelyvictim].z;
+
+				// and create an artificial hit on them to improve the fast-paced melee combat when up close
+				// (i.e. swinging a massive sledgehammer at a character, and the ray targets below the armpit will stil hurt like heck)
+				PositionObject (g.hudbankoffset + 3, fCharacterChestAreaX, fCharacterChestAreaY, fCharacterChestAreaZ);
+				DisableObjectZDepth (g.hudbankoffset + 3);
+				t.x2_f = ObjectPositionX (g.hudbankoffset + 3);
+				t.y2_f = ObjectPositionY (g.hudbankoffset + 3);
+				t.z2_f = ObjectPositionZ (g.hudbankoffset + 3);
+
+				// weaken final damage if player not quite lined up with character during the almost miss strike
+				t.bulletfinalstrengthmod = fStraightOnDamageRatio;
 			}
 		}
 	}
@@ -4547,28 +4657,21 @@ void gun_selectandorload ( void )
 		for ( t.o = 21 ; t.o<=  30; t.o++ )
 		{
 			t.obj=g.hudbankoffset+t.o;
-			TextureObject (  t.obj,g.firemodes[t.gunid][g.firemode].settings.smokeimg );
+			if (g.firemodes[t.gunid][g.firemode].settings.smokeimg == 0)
+			{
+				ScaleObject (t.obj,0,0,0);
+				SetObjectMask (t.obj, 0);
+			}
+			else
+			{
+				TextureObject (t.obj, g.firemodes[t.gunid][g.firemode].settings.smokeimg);
+				SetObjectEffect (t.obj, g.decaleffectoffset);
+				SetObjectMask (t.obj, 1);
+			}
 			HideObject (  t.obj );
-			//  apply decal shader
-			SetObjectEffect ( t.obj, g.decaleffectoffset );
 			SetObjectCull ( t.obj, 0 );
 			SetObjectTransparency ( t.obj, 6 );
 			DisableObjectZWrite ( t.obj );
-			SetObjectMask ( t.obj, 1 );
-			#ifdef WICKEDENGINE
-			// using manual UV data changes until GPU particles are added
-			#else
-			//  prep UV for shader anim
-			t.q_f=1.0/4.0;
-			LockVertexDataForLimb (  t.obj,0 );
-			SetVertexDataUV (  0,t.q_f,0 );
-			SetVertexDataUV (  1,0,0 );
-			SetVertexDataUV (  2,t.q_f,t.q_f );
-			SetVertexDataUV (  3,0,0 );
-			SetVertexDataUV (  4,0,t.q_f );
-			SetVertexDataUV (  5,t.q_f,t.q_f );
-			UnlockVertexData (  );
-			#endif
 		}
 	}
 
@@ -5462,63 +5565,87 @@ void gun_load ( void )
 	for ( t.i = 0 ; t.i <= 1; t.i++ )
 	{
 		// Mussle flash
-		t.num = g.firemodes[t.gunid][t.i].settings.muzzleflash ; if (  t.num == 0  )  t.num = 1;
-		t.size_f = g.firemodes[t.gunid][t.i].settings.muzzlesize_f ; if (  t.size_f == 0.0  )  t.size_f = 100.0;
-		t.muzzleflash_s="gamecore\\muzzleflash\\flash";
-		t.muzzleflash_s+=Str(t.num);
-		t.muzzleflash_s+=".dds";
-		t.imgid=loadmuzzle(t.muzzleflash_s.Get());
-		g.firemodes[t.gunid][t.i].settings.flashimg=t.imgid;
-
-		// Setup gun with brass models
-		t.num = g.firemodes[t.gunid][t.i].settings.brass ; if (  t.num == 0  )  t.num = 1;
-		t.brass_s = "";
-		t.brass_s=t.brass_s+"gamecore\\brass\\brass";
-		t.brass_s += Str(t.num);
-		t.brass_s += "\\brass";
-		t.brass_s += Str(t.num);
-		t.brass_s += ".x";
-		t.brassobj=loadbrass(t.brass_s.Get());
-		if ( t.brassobj == 0 ) 
+		t.num = g.firemodes[t.gunid][t.i].settings.muzzleflash;
+		if (t.num == 0)
 		{
-			// specifying a brass value that does not exist crashes engine
-			t.num=1 ; g.firemodes[t.gunid][t.i].settings.brass=0;
-			t.brass_s = "";
-			t.brass_s=t.brass_s+"gamecore\\brass\\brass"+Str(t.num)+"\\brass"+Str(t.num)+".x";
-			t.brassobj=loadbrass(t.brass_s.Get());
-		}
-		g.firemodes[t.gunid][t.i].settings.brassobjmaster=t.brassobj;
-
-		// Setup gun with smoke images
-		t.num=g.firemodes[t.gunid][t.i].settings.smoke;
-		if (  Len(g.firemodes[t.gunid][t.i].settings.smokedecal_s.Get())>0 ) 
-		{
-			t.smoke_s = "";
-			t.smoke_s=t.smoke_s+"gamecore\\decals\\"+g.firemodes[t.gunid][t.i].settings.smokedecal_s+"\\decal.dds";
-			t.imgid=loadsmoke(t.smoke_s.Get());
+			// when settings.muzzleflash is zero, disable the muzzleflash
+			g.firemodes[t.gunid][t.i].settings.flashimg = 0;
 		}
 		else
 		{
-			if (  t.num == 0  )  t.num = 1;
-			if (  t.num == 1 ) 
+			// standard muzzle flash
+			t.size_f = g.firemodes[t.gunid][t.i].settings.muzzlesize_f; 
+			if (t.size_f == 0.0)  t.size_f = 100.0;
+			t.muzzleflash_s = "gamecore\\muzzleflash\\flash";
+			t.muzzleflash_s += Str(t.num);
+			t.muzzleflash_s += ".dds";
+			t.imgid = loadmuzzle(t.muzzleflash_s.Get());
+			g.firemodes[t.gunid][t.i].settings.flashimg = t.imgid;
+		}
+
+		// Setup gun with brass models
+		t.num = g.firemodes[t.gunid][t.i].settings.brass; 
+		if (t.num == 0)
+		{
+			// when settings.brass is zero, disable the brass
+			g.firemodes[t.gunid][t.i].settings.brassobjmaster = 0;
+		}
+		else
+		{
+			// regular brass
+			if (t.num == 0)  t.num = 1;
+			t.brass_s = "";
+			t.brass_s = t.brass_s + "gamecore\\brass\\brass";
+			t.brass_s += Str(t.num);
+			t.brass_s += "\\brass";
+			t.brass_s += Str(t.num);
+			t.brass_s += ".x";
+			t.brassobj = loadbrass(t.brass_s.Get());
+			if (t.brassobj == 0)
 			{
-				t.smoke_s="gamecore\\decals\\gunsmoke\\decal.dds";
+				// specifying a brass value that does not exist crashes engine
+				t.num = 1; g.firemodes[t.gunid][t.i].settings.brass = 0;
+				t.brass_s = "";
+				t.brass_s = t.brass_s + "gamecore\\brass\\brass" + Str(t.num) + "\\brass" + Str(t.num) + ".x";
+				t.brassobj = loadbrass(t.brass_s.Get());
+			}
+			g.firemodes[t.gunid][t.i].settings.brassobjmaster = t.brassobj;
+		}
+
+		// Setup gun with smoke images
+		t.num=g.firemodes[t.gunid][t.i].settings.smoke;
+		if (t.num == 0)
+		{
+			// when settings.smoke is zero, disable the smoke
+			g.firemodes[t.gunid][t.i].settings.smokeimg = 0;
+		}
+		else
+		{
+			// regular smoke
+			if (Len(g.firemodes[t.gunid][t.i].settings.smokedecal_s.Get()) > 0)
+			{
+				t.smoke_s = "";
+				t.smoke_s = t.smoke_s + "gamecore\\decals\\" + g.firemodes[t.gunid][t.i].settings.smokedecal_s + "\\decal.dds";
+				t.imgid = loadsmoke(t.smoke_s.Get());
 			}
 			else
 			{
-				t.smoke_s="gamecore\\decals\\smoke";
-				t.smoke_s+=Str(t.num);
-				t.smoke_s+="\\decal.dds";
+				if (t.num == 0)  t.num = 1;
+				if (t.num == 1)
+				{
+					t.smoke_s = "gamecore\\decals\\gunsmoke\\decal.dds";
+				}
+				else
+				{
+					t.smoke_s = "gamecore\\decals\\smoke";
+					t.smoke_s += Str(t.num);
+					t.smoke_s += "\\decal.dds";
+				}
+				t.imgid = loadsmoke(t.smoke_s.Get());
 			}
-			t.imgid=loadsmoke(t.smoke_s.Get());
+			g.firemodes[t.gunid][t.i].settings.smokeimg = t.imgid;
 		}
-		g.firemodes[t.gunid][t.i].settings.smokeimg=t.imgid;
 	}
-
-	/// EXPERIMENTAL DECAL PROJECTION - NOT USEFUL FOR HAND STAINING!
-	//sObject* pSplatDecalOnThisObject = GetObjectData(t.currentgunobj);
-	//WickedCall_CreateDecal(pSplatDecalOnThisObject);
-	/// 
 
 	//  Setup gun with crosshair
 	t.crosshair_s = "";

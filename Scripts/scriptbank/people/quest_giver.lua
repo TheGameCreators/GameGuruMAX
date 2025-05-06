@@ -1,14 +1,16 @@
--- Quest Giver v8 by Necrym59 and Lee
+-- Quest Giver v11 by Necrym59 and Lee
 -- DESCRIPTION: When player is within [RANGE=100] distance, will show [QUEST_PROMPT$="Press E to Interact"] 
--- DESCRIPTION: when E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
+-- DESCRIPTION: When E is pressed, player will be shown [QUEST_SCREEN$="HUD Screen 8"] with
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: and play [SPEECH1$=""]
 -- DESCRIPTION: <Sound0> when quest completed.
+-- DESCRIPTION: [!SpawnQuestObj=1] when quest accepted.
 
 master_interpreter_core = require "scriptbank\\masterinterpreter"
 local U = require "scriptbank\\utillib"
-g_quest_giver_behavior = {}
-g_quest_giver_behavior_count = 0
+--g_quest_giver_behavior = {}
+--g_quest_giver_behavior_count = 0
+g_ActivateQuestComplete = {}
 
 local lower = string.lower
 local g_quest_giver 	= {}
@@ -24,9 +26,10 @@ local prompt_once		= {}
 
 function quest_giver_init_file(e,scriptfile)
 	g_quest_giver[e] = {}
-	g_quest_giver[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
-	g_quest_giver_behavior_count = master_interpreter_core.masterinterpreter_load (g_quest_giver[e],g_quest_giver_behavior )
-	quest_giver_properties(e,100,"Press E to Interact","HUD Screen 8","")
+	--a dangerous precident to run BYC and regular LUA alongside each other!
+	--g_quest_giver[e]["bycfilename"] = "scriptbank\\" .. scriptfile .. ".byc"
+	--g_quest_giver_behavior_count = master_interpreter_core.masterinterpreter_load (g_quest_giver[e],g_quest_giver_behavior )
+	quest_giver_properties(e,100,"Press E to Interact","HUD Screen 8","")	
 	quest_objno[e] = 0	
 	quest_recno[e] = 0
 	quest_quantity[e] = 0
@@ -35,13 +38,15 @@ function quest_giver_init_file(e,scriptfile)
 	play_once[e] = 0
 	doonce[e] = 0	
 	prompt_once[e] = 0
+	g_ActivateQuestComplete = 0	
 end
 
-function quest_giver_properties(e, range, questprompt, questscreen, questchoice)
+function quest_giver_properties(e, range, questprompt, questscreen, questchoice, spawnquestobj)
 	g_quest_giver[e]['range'] = range
 	g_quest_giver[e]['questprompt'] = questprompt
 	g_quest_giver[e]['questscreen'] = questscreen
 	g_quest_giver[e]['questchoice'] = questchoice
+	g_quest_giver[e]['spawnquestobj'] = spawnquestobj
 	g_quest_giver[e]['questtitle'] = ""
 	g_quest_giver[e]['questtype'] = ""
 	g_quest_giver[e]['questobject'] = ""
@@ -54,15 +59,20 @@ function quest_giver_properties(e, range, questprompt, questscreen, questchoice)
 	g_quest_giver[e]['questquantity'] = ""
 	g_quest_giver[e]['questendtext'] = "Quest Completed"
 	g_quest_giver[e]['ischaracter'] = 1
-	g_quest_giver[e]['name'] = "Quest Giver 57"
-	master_interpreter_core.masterinterpreter_restart (g_quest_giver[e], g_Entity[e])
+	g_quest_giver[e]['name'] = "Quest Giver 57"	
+	--a dangerous precident to run BYC and regular LUA alongside each other!
+	--master_interpreter_core.masterinterpreter_restart (g_quest_giver[e], g_Entity[e])
 end
 
 function quest_giver_main(e)
-	if g_quest_giver[e] ~= nil and g_quest_giver_behavior_count > 0 then
-		g_quest_giver_behavior_count = master_interpreter_core.masterinterpreter (g_quest_giver_behavior, g_quest_giver_behavior_count, e, g_quest_giver[e], g_Entity[e])
-	end
-
+	--a dangerous precident to run BYC and regular LUA alongside each other!
+	--if g_quest_giver[e] ~= nil and g_quest_giver_behavior_count > 0 then
+	--	local returnvalue = master_interpreter_core.masterinterpreter (g_quest_giver_behavior, g_quest_giver_behavior_count, e, g_quest_giver[e], g_Entity[e])
+	--    if returnvalue >= 0 then
+	--		g_quest_giver_behavior_count = returnvalue
+	--	end
+	--end
+	SetEntityAlwaysActive(e,1)
 	if g_quest_giver[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then
@@ -101,6 +111,12 @@ function quest_giver_main(e)
 				PromptDuration(g_quest_giver[e]['questprompt'] ,1000)
 				if g_KeyPressE == 1 then
 					-- set game to this quest
+					-- PromptGuruMeditation("PLAY SPEECH AND ANIM WITHIN REGULAR SCRIPT")
+					SetAnimationName(e,"idle")
+					LoopAnimation(e)
+					PlaySound(e,1)
+					PlaySpeech(e,1)
+					LookAtPlayer(e,10)
 					g_UserGlobalQuestTitleShowing = g_quest_giver[e]['questtitle']
 					g_UserGlobalQuestTitleShowingObject = g_quest_giver[e]['questobject']
 					g_UserGlobalQuestTitleShowingObject2 = g_quest_giver[e]['questreceiver']
@@ -121,6 +137,7 @@ function quest_giver_main(e)
 		if g_quest_giver[e]['questtitle'] == g_UserGlobalQuestTitleActive then			
 			-- hide in game, we have accepted this one and doing it now
 			if g_UserGlobalQuestTitleActiveE > 0 then
+			
 				local tquestcomplete = 0
 				if g_quest_giver[e]['queststarted'] == 1 then
 					if doonce[e] == 0 then
@@ -129,14 +146,42 @@ function quest_giver_main(e)
 					end
 				end
 				
+				if quest_objno[e] > 0 then		
+					if g_quest_giver[e]['spawnquestobj'] ~= 0 then
+						if GetEntitySpawnAtStart(quest_objno[e]) == 0 then
+							Spawn(quest_objno[e])
+							g_quest_giver[e]['spawnquestobj'] = 0
+						end
+					end
+				end
+
+				if g_quest_giver[e]['questtype'] == "activate" then
+					-- ACTIVATE
+					if quest_objno[e] == 0 then						
+						for a = 1, g_EntityElementMax do
+							if a ~= nil and g_Entity[a] ~= nil then
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+										quest_objno[e] = a									
+										break
+									end
+								end
+							end
+						end
+					end
+					if g_ActivateQuestComplete == 1 then tquestcomplete = 1 end
+				end				
+				
 				if g_quest_giver[e]['questtype'] == "collect" then
 					-- COLLECT
 					if quest_objno[e] == 0 then						
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-									quest_objno[e] = a
-									break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+										quest_objno[e] = a
+										break
+									end
 								end
 							end
 						end
@@ -181,9 +226,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 then
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-								quest_objno[e] = a
-								break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+									quest_objno[e] = a
+									break
+									end
 								end
 							end
 						end
@@ -197,9 +244,11 @@ function quest_giver_main(e)
 					if quest_objno[e] == 0 or nil then
 						for a = 1, g_EntityElementMax do
 							if a ~= nil and g_Entity[a] ~= nil then
-								if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
-								quest_objno[e] = a								
-								break
+								if g_Entity[a]['y'] > -99999 then
+									if lower(GetEntityName(a)) == lower(g_quest_giver[e]['questobject']) then
+									quest_objno[e] = a								
+									break
+									end
 								end
 							end
 						end
@@ -281,6 +330,7 @@ function quest_giver_main(e)
 					g_UserGlobalQuestTitleActiveE = 0					
 					quest_objno[e] = 0
 					quest_recno[e] = 0
+					g_ActivateQuestComplete = 0					
 				end				
 			end
 		end		

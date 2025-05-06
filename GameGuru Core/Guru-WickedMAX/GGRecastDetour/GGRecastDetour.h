@@ -25,6 +25,17 @@ public:
 	void TogglePolys( float x, float y, float z, float radius, bool enable );
 	void ResetBlockerSystem( void );
 	void ToggleBlocker(float x, float y, float z, float radius, bool enable, float fRadius2, float fAngle, float fAdjMinY, float fAdjMaxY);
+
+	void ResetTokenDropSystem(void);
+	void DoTokenDrop(float x, float y, float z, int iType, float fDuration);
+	void ManageTokenDropSystem(float fTimeDelta);
+	int GetTokenDropCount();
+	float GetTokenDropX(int iIndex);
+	float GetTokenDropY(int iIndex);
+	float GetTokenDropZ(int iIndex);
+	int GetTokenDropType(int iIndex);
+	float GetTokenDropTimeLeft(int iIndex);
+
 	void SetWaterTableY(float y);
 
 private:

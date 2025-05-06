@@ -557,6 +557,14 @@ std::vector<int> g_gameGlobalListValue;
 // storyboard screen animation control
 int g_iStoryboardScreenVideoID = 0;
 
+// can trigger a HUD Screen to be renamed
+int g_iRenameHUDScreenID = -1;
+char g_pRenameHUDName[256] = "\0";
+char g_pRenameHUDScreenError[256] = "\0";
+
+bool g_bMappingKeyWindow = false;
+int g_iMappingKeyToChange = -1;
+
 #ifdef ENABLEIMGUI
 void imgui_set_openproperty_flags(int iMasterID)
 {
@@ -28370,7 +28378,14 @@ void DisplayFPEBehavior(bool readonly, int entid, entityeleproftype* edit_gridel
 			if (bSound1Mentioned == true) edit_grideleprof->soundset1_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset1_s.Get(), "Sound1", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound2Mentioned == true) edit_grideleprof->soundset2_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset2_s.Get(), "Sound2", t.strarr_s[254].Get(), "audiobank\\", readonly);
 			if (bSound3Mentioned == true) edit_grideleprof->soundset3_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset3_s.Get(), "Sound3", t.strarr_s[254].Get(), "audiobank\\", readonly);
-			if (bIfUsedMentioned == true) edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+			if (bIfUsedMentioned == true)
+			{
+				if (t.entityprofile[entid].ischaracter != 1)
+				{
+					// but not characters which now use IFUSED to contain LOOT information
+					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+				}
+			}
 			if (bUseKeyMentioned == true) edit_grideleprof->usekey_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->usekey_s.Get(), t.strarr_s[436].Get(), t.strarr_s[225].Get(), readonly);
 			bool readonly = false;
 			if (bShootingWeaponMentioned == true || bMeleeWeaponMentioned == true)
@@ -29182,7 +29197,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				{
 					edit_grideleprof->coneangle = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->coneangle), t.strarr_s[434].Get(), t.strarr_s[224].Get(),readonly));
 					edit_grideleprof->conerange = atol(imgui_setpropertystring2_v2(t.group, Str(edit_grideleprof->conerange), "View Range", "The range within which the AI may see the player. Zero triggers the characters default range.",readonly));
-					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
+					if (t.entityprofile[entid].ischaracter != 1)
+					{
+						// but not characters which now use IFUSED to contain LOOT information
+						edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+					}
 					edit_grideleprof->hasweapon_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->hasweapon_s.Get(), "Has Weapon", "The weapon assigned to this object", readonly);
 					if (g.quickparentalcontrolmode != 2)
 					{
@@ -29207,7 +29226,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 						}
 						else
 						{
-							edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(),readonly);
+							if (t.entityprofile[entid].ischaracter != 1)
+							{
+								// but not characters which now use IFUSED to contain LOOT information
+								edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[437].Get(), t.strarr_s[226].Get(), readonly);
+							}
 						}
 					}
 				}
@@ -29224,7 +29247,11 @@ void DisplayFPEAdvanced(bool readonly, int entid, entityeleproftype *edit_gridel
 				}
 				else
 				{
-					edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[438].Get(), t.strarr_s[227].Get(),readonly);
+					if (t.entityprofile[entid].ischaracter != 1)
+					{
+						// but not characters which now use IFUSED to contain LOOT information
+						edit_grideleprof->ifused_s = imgui_setpropertystring2_v2(t.group, edit_grideleprof->ifused_s.Get(), t.strarr_s[438].Get(), t.strarr_s[227].Get(), readonly);
+					}
 				}
 			}
 
@@ -35093,6 +35120,158 @@ void Welcome_Screen(void)
 				ImGui::SetWindowFontScale(1.2);
 
 				//
+				// Live Change Log
+				//
+				rect.Min = TabStartPos;
+				rect.Max = rect.Min + ImGui::TabItemCalcSize(" Live Changelog ", false);
+				TabStartPos.x += ImGui::TabItemCalcSize(" Live Changelog ", false).x + gui.Style.ItemInnerSpacing.x;
+				if (ImGui::BeginTabItem(" Live Changelog ", NULL, tabflags))
+				{
+					iCurrentOpenTab = 5;
+
+					// can be set every few months (or something better)
+					LPSTR pViewCommitsFrom = "2025-04-01";
+
+					ImGui::Text("");
+					ImGui::SetWindowFontScale(2.0);
+					char pBuildText[1024];
+					sprintf(pBuildText, "%s", g.version_s.Get());
+					ImGui::TextCenter(pBuildText);
+					ImGui::SetWindowFontScale(1.5);
+					ImGui::TextCenter("Showing All Recent Commits");// Commits Since% s", pViewCommitsFrom);
+					ImGui::TextCenter("");
+					ImGui::SetWindowFontScale(1.3);
+
+					float fImageWidth = ImGui::GetContentRegionAvailWidth() - 10.0f;
+					float fImageRatio = fImageWidth / 512.0f;
+					float box_height = (((float)288.0 * fImageRatio)) + 10.0f;
+					ImGui::Indent(2);
+					ImGui::BeginChild("##LiveChangeLogScrollView", ImVec2(ImGui::GetContentRegionAvail().x - 2.0, box_height), false, iGenralWindowsFlags | ImGuiWindowFlags_NoSavedSettings);
+		
+					// test GITHUB 
+					static std::vector<cstr> changeLogList;
+					static int iCheckChangeLogOncePerLaunch = 0;
+					if (iCheckChangeLogOncePerLaunch == 0)
+					{
+						// changeloglist
+						iCheckChangeLogOncePerLaunch = 1;
+						changeLogList.clear();
+
+						// call API to get featured items in list
+						char pDataReturned[200000];
+						char pDatatmp[10240];
+						memset(pDataReturned, 0, sizeof(pDataReturned));
+						memset(pDatatmp, 0, sizeof(pDatatmp));
+						DWORD dwDataReturnedSize = 0;
+						char cUrl[10240];
+						//sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?since=%sT00:00:00Z", pViewCommitsFrom);
+						sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?&per_page=100");
+
+						// access features list from store server
+						UINT iError = StoreOpenURLForDataOrFile("api.github.com", pDataReturned, &dwDataReturnedSize, "", "GET", cUrl, NULL);
+						if (iError <= 0 && *pDataReturned != 0 && strchr(pDataReturned, '{') != 0)
+						{
+							char pEnsureCombineDates[1024];
+							LPSTR pDataReturnedPtr = pDataReturned;
+							bool bFindAllMessagesContainingCommitNotes = true;
+							while (bFindAllMessagesContainingCommitNotes)
+							{
+								// find any preceding date entry
+								char pPrevDateEntry[1024];
+								strcpy(pPrevDateEntry, "");
+								LPSTR pDateToken = strstr(pDataReturnedPtr, "\"date\":");
+								if (pDateToken)
+								{
+									pDateToken += 8;
+									LPSTR pEndDateToken = strstr(pDateToken, "\"");
+									if (pEndDateToken)
+									{
+										*pEndDateToken = 0;
+										strcpy(pPrevDateEntry, pDateToken);
+										pPrevDateEntry[strlen("XXXX-XX-XX")] = 0;
+										pDataReturnedPtr = pEndDateToken + 1;
+									}
+								}
+
+								// now get following message
+								LPSTR pMessageToken = strstr(pDataReturnedPtr, "\"message\":");
+								if (pMessageToken)
+								{
+									if (strlen(pPrevDateEntry) > 0)
+									{
+										if (strcmp(pEnsureCombineDates, pPrevDateEntry) != NULL)
+										{
+											// only add date stamp if unique in log
+											changeLogList.push_back(cstr(pPrevDateEntry) + ":");
+											strcpy(pEnsureCombineDates, pPrevDateEntry);
+										}
+									}
+
+									pMessageToken += 11;
+									LPSTR pEndToken = strstr(pMessageToken, "\"");
+									if (pEndToken)
+									{
+										*pEndToken = 0;
+										LPSTR pTitleFound = strstr(pMessageToken, "\\n\\n");
+										if (pTitleFound) pMessageToken = pTitleFound + 4;
+										bool bMultipleLines = true;
+										while(bMultipleLines)
+										{
+											LPSTR pNewLineFound = strstr(pMessageToken, "\\n*");
+											if (pNewLineFound)
+											{
+												*pNewLineFound = 0;
+												if (*pMessageToken != '*')
+													sprintf(pDatatmp, "* %s", pMessageToken);
+												else
+													sprintf(pDatatmp, "%s", pMessageToken);
+												changeLogList.push_back(pDatatmp);
+												pMessageToken = pNewLineFound + 2;
+											}
+											else
+											{
+												bMultipleLines = false;
+											}
+										}
+
+										if ( *pMessageToken != '*' )
+											sprintf(pDatatmp, "* %s", pMessageToken);
+										else
+											sprintf(pDatatmp, "%s", pMessageToken);
+										changeLogList.push_back(pDatatmp);
+
+										pDataReturnedPtr = pEndToken + 1;
+									}
+								}
+								else
+								{
+									bFindAllMessagesContainingCommitNotes = false;
+								}
+							}
+						}
+					}
+					if (changeLogList.size() > 0)
+					{
+						for (int i = 0; i < changeLogList.size(); i++)
+						{
+							ImGui::TextWrapped(changeLogList[i].Get());
+						}
+					}
+					else
+					{
+						ImGui::SetWindowFontScale(1.5);
+						ImGui::TextWrapped("No changelog available.");
+					}
+					ImGui::Indent(-2);
+					ImGui::EndChild();
+
+					ImGui::EndTabItem();
+				}
+				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "View the changelog direct from the GitHub Repository");
+				ImGui::SetWindowFontScale(1.2);
+
+				/* now changelog (above)
+				//
 				// Websites & Social
 				//
 				rect.Min = TabStartPos;
@@ -35210,6 +35389,7 @@ void Welcome_Screen(void)
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "Websites & Social");
 				ImGui::SetWindowFontScale(1.2);
+				*/
 
 				//
 				// Workshop Uploader and Workshop Viewer
@@ -35519,26 +35699,29 @@ void Welcome_Screen(void)
 			{
 				float image_size_sub_x = 310.0;
 				if (vPreviewSize.x - image_size_sub_x < 250.0) image_size_sub_x += vPreviewSize.x - image_size_sub_x- 250.0;
-				int iTextureID = HUB_WEBSITE;
+				int iTextureID = HUB_DISCORD;// HUB_WEBSITE;
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 				float ratio = 394.0 / 700.0;
+				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
 				{
-					ImGui::SetWindowFontScale(1.6);
-					ImGui::TextCenter("Official Website");
+					ImGui::SetWindowFontScale(2.0);
+					ImGui::TextCenter("Official Discord");
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x - image_size_sub_x, (vPreviewSize.x- image_size_sub_x) * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
+						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
 					}
 					ImGui::SetWindowFontScale(1.4);
-					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
-					if (ImGui::StyleButton("Click Here to Visit The Website", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
+					/*
+					if (ImGui::StyleButton("Click Here to Visit Discord", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
 					{
-						ExecuteFile("https://bit.ly/MAXWebsite", "", "", 0);
+						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
 					}
+					*/
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 				}
@@ -35546,7 +35729,14 @@ void Welcome_Screen(void)
 				iTextureID = HUB_LIVEBROADCAST;
 				if (!ImageExist(iTextureID)) iTextureID = WELCOME_FILLERROUNDED;
 
-				ImGui::SetWindowFontScale(1.6);
+				ImGui::SetWindowFontScale(1.4);
+				cstr desc = "Visit our Discord Channel!";
+				{
+					ImGui::TextCenter(desc.Get());
+					ImGui::Text("");
+				}
+
+				ImGui::SetWindowFontScale(2.0);
 				ImGui::TextCenter("Official Broadcasts and Videos");
 				ImGui::SetWindowFontScale(1.0);
 				if (iTextureID > 0)
@@ -35557,21 +35747,13 @@ void Welcome_Screen(void)
 						ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
 					}
 				}
+
 				ImGui::Text("");
 				ImGui::SetWindowFontScale(1.4);
-
-				cstr desc = "Visit our YouTube Channel!";
+				cstr descforYT = "Visit our YouTube Channel!";
 				{
-					ImGui::Indent(2);
-					ImVec2 cp = ImGui::GetCursorPos();
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.f, 0.f));
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-					ImGui::BeginChild("##JustaFrameForLiveBroadcastDescription", ImVec2(fContentWidth-8.0, WelcomeFrameHeight - cp.y - 4.0), false, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
-					ImGui::TextCenter(desc.Get());
+					ImGui::TextCenter(descforYT.Get());
 					ImGui::Text("");
-					ImGui::PopStyleVar(2);
-					ImGui::EndChild();
-					ImGui::Indent(-2);
 				}
 				ImGui::SetWindowFontScale(1.2);
 			}
@@ -36353,10 +36535,10 @@ void Welcome_Screen(void)
 			}
 			else if (iCurrentOpenTab == 5)
 			{
-				if (ImGui::StyleButton("Click here to view the GameGuru MAX YouTube Channel", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
-				{
-					ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
-				}
+				//if (ImGui::StyleButton("Click here to view the GameGuru MAX YouTube Channel", ImVec2(vPreviewSize.x + 4.0, fFontSize*2.6))) //*2.0
+				//{
+				//	ExecuteFile("https://bit.ly/MAXYouTubeChannel", "", "", 0);
+				//}
 			}
 			#ifndef GGMAXEDU
 			else if (iCurrentOpenTab == 6)
@@ -36986,7 +37168,6 @@ bool DoTreeNodeEntity(int masterid,bool bMoveCameraToObjectPosition)
 
 				ImGui::PushItemWidth(-20.0); //PE: Room for a icon.
 
-
 				std::string treename = "#" + std::to_string(i);
 				if (t.widget.pickedEntityIndex == i && t.gridentity == masterid)
 					treename = treename + " (Cursor) " + cName;
@@ -37096,10 +37277,7 @@ bool DoTreeNodeGroup(int groupindex, bool bMoveCameraToObjectPosition)
 					ImGui::PushItemWidth(-20.0);
 
 					std::string treename = "#" + std::to_string(i);
-					if (t.widget.pickedEntityIndex == i && t.gridentity == masterid)
-						treename = treename + " (Cursor) " + cName;
-					else
-						treename = treename + " " + cName;
+					treename = treename + " " + cName;
 
 					bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
 					ImGui::PopItemWidth();
@@ -37152,6 +37330,105 @@ bool DoTreeNodeGroup(int groupindex, bool bMoveCameraToObjectPosition)
 					{
 						ImGui::TreePop();
 					}
+				}
+			}
+		}
+	}
+	return(0);
+}
+
+bool DoTreeNodeBehavior(LPSTR behaviorscriptname, bool bMoveCameraToObjectPosition)
+{
+	for (int i = 1; i < t.entityelement.size(); i++)
+	{
+		bool bValid = true;
+		if (t.entityelement[i].iIsSmarkobjectDummyObj == 1) bValid = false;
+		if (bValid)
+		{
+			int masterid = t.entityelement[i].bankindex;
+			if (masterid  > 0)
+			{
+				char cName[512];
+				strcpy(cName, t.entityprofileheader[masterid].desc_s.Get());
+				if (t.entityelement[i].eleprof.name_s.Len() > 0)
+					strcpy(cName, t.entityelement[i].eleprof.name_s.Get());
+
+				// reject any that do not match the required behavior script
+				bool bBehaviorMatch = false;
+				if (t.entityelement[i].eleprof.aimain_s.Len() > 0)
+				{
+					if (stricmp(t.entityelement[i].eleprof.aimain_s.Get(), behaviorscriptname) == NULL)
+					{
+						bBehaviorMatch = true;
+					}
+				}
+				if (bBehaviorMatch == false) continue;
+
+				ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_Leaf;
+
+				ImGui::PushItemWidth(-20.0); //PE: Room for a icon.
+
+				std::string treename = "#" + std::to_string(i);
+				treename = treename + " " + cName;
+
+				bool bAutoGenObject = false;
+				if (t.entityelement[i].x == -99999 && t.entityelement[i].y == -99999 && t.entityelement[i].z == -99999)
+				{
+					treename = treename + " (Auto-Gen) ";
+					bAutoGenObject = true;
+				}
+
+				bool TreeNodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)(i + 90000), node_flags, treename.c_str());
+				ImGui::PopItemWidth();
+
+				//PE: Select on mouse release.
+				if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(0))
+				{
+					//PE: Find object in scene. and move camera. and select to cursor.
+					if (t.entityelement[i].obj > 0)
+					{
+						t.widget.pickedEntityIndex = i;
+						t.widget.pickedObject = t.entityelement[t.widget.pickedEntityIndex].obj;
+						g.entityrubberbandlist.clear();
+						bEditorInFreeFlightMode = true; //PE: Must be in freeflight mode.
+						t.editorfreeflight.mode = 1;
+						int group = isEntityInGroupList(t.widget.pickedEntityIndex);
+						if (group >= 0)
+						{
+							//PE: Add all groups with entity to rubberband.
+							CheckGroupListForRubberbandSelections(t.widget.pickedEntityIndex);
+						}
+						if (bMoveCameraToObjectPosition == true && bAutoGenObject == false)
+						{
+							float zoom = ObjectSize(t.entityelement[i].obj, 1) * 2.0;
+							if (zoom < 30.0f) zoom = 30.0f;
+							float realcamy = ObjectSizeY(t.entityelement[i].obj, 1) * 0.75;
+							float camy = realcamy;
+							if (camy < 30.0f) camy = 30.0f;
+							if (t.entityprofile[masterid].ismarker > 0)
+							{
+								zoom = 100.0;
+								camy = 50.0;
+							}
+							//PE: Move camera keep camera Y.
+							PositionCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y, t.entityelement[i].z);
+							MoveCamera(0, -zoom);
+							PositionCamera(CameraPositionX(0), t.entityelement[i].y + camy, CameraPositionZ(0));
+							PointCamera(t.entityelement[i].x, t.entityelement[i].y + (realcamy * 0.5), t.entityelement[i].z);
+							t.editorfreeflight.c.x_f = CameraPositionX();
+							t.editorfreeflight.c.y_f = CameraPositionY();
+							t.editorfreeflight.c.z_f = CameraPositionZ();
+							t.editorfreeflight.c.angx_f = CameraAngleX();
+							t.editorfreeflight.c.angy_f = CameraAngleY();
+							t.cx_f = t.editorfreeflight.c.x_f;
+							t.cy_f = t.editorfreeflight.c.z_f;
+						}
+					}
+				}
+				if (TreeNodeOpen)
+				{
+					ImGui::TreePop();
 				}
 			}
 		}
@@ -37769,6 +38046,80 @@ void reset_single_node(int node)
 	reset_single_node_interscreen(i);
 }
 
+void duplicate_single_node (int sourceid)
+{
+	// check if source valid
+	if (sourceid < 0 || sourceid > STORYBOARD_MAXNODES) return;
+
+	// create a new blank HUD screen correctly formatted
+	extern int process_createanewhudscreen(int iStartAt);
+	int iNewNode = process_createanewhudscreen(10);
+	if (iNewNode < 0) return;
+
+	// position next to source so know where duplicate is
+	Storyboard.Nodes[iNewNode].restore_position = Storyboard.Nodes[sourceid].restore_position + ImVec2(20, 20);
+	ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[iNewNode].id, Storyboard.Nodes[iNewNode].restore_position);
+	strcpy(Storyboard.Nodes[iNewNode].lua_name, Storyboard.Nodes[sourceid].lua_name);
+
+	// data chunk one
+	memcpy(Storyboard.Nodes[iNewNode].screen_title, Storyboard.Nodes[sourceid].screen_title, sizeof(Storyboard.Nodes[sourceid].screen_title));
+	memcpy(Storyboard.Nodes[iNewNode].screen_music, Storyboard.Nodes[sourceid].screen_music, sizeof(Storyboard.Nodes[sourceid].screen_music));
+	memcpy(Storyboard.Nodes[iNewNode].screen_backdrop, Storyboard.Nodes[sourceid].screen_backdrop, sizeof(Storyboard.Nodes[sourceid].screen_backdrop));
+	//assignedperHUDscr Storyboard.Nodes[iNewNode].screen_backdrop_id = Storyboard.Nodes[sourceid].screen_backdrop_id;
+	Storyboard.Nodes[iNewNode].screen_back_color = Storyboard.Nodes[sourceid].screen_back_color;
+	Storyboard.Nodes[iNewNode].screen_backdrop_placement = Storyboard.Nodes[sourceid].screen_backdrop_placement;
+	memcpy(Storyboard.Nodes[iNewNode].screen_thumb, Storyboard.Nodes[sourceid].screen_thumb, sizeof(Storyboard.Nodes[sourceid].screen_thumb));
+	memcpy(Storyboard.Nodes[iNewNode].screen_backdrop_ratio_placement, Storyboard.Nodes[sourceid].screen_backdrop_ratio_placement, sizeof(Storyboard.Nodes[sourceid].screen_backdrop_ratio_placement));
+	Storyboard.Nodes[iNewNode].screen_grid_size = Storyboard.Nodes[sourceid].screen_grid_size;
+	memcpy(Storyboard.Nodes[iNewNode].widget_used, Storyboard.Nodes[sourceid].widget_used, sizeof(Storyboard.Nodes[sourceid].widget_used));
+	memcpy(Storyboard.Nodes[iNewNode].widget_label, Storyboard.Nodes[sourceid].widget_label, sizeof(Storyboard.Nodes[sourceid].widget_label));
+	memcpy(Storyboard.Nodes[iNewNode].widget_size, Storyboard.Nodes[sourceid].widget_size, sizeof(Storyboard.Nodes[sourceid].widget_size));
+	memcpy(Storyboard.Nodes[iNewNode].widget_pos, Storyboard.Nodes[sourceid].widget_pos, sizeof(Storyboard.Nodes[sourceid].widget_pos));
+	memcpy(Storyboard.Nodes[iNewNode].widget_normal_thumb, Storyboard.Nodes[sourceid].widget_normal_thumb, sizeof(Storyboard.Nodes[sourceid].widget_normal_thumb));
+	//assignedperHUDscr memcpy(Storyboard.Nodes[iNewNode].widget_normal_thumb_id, Storyboard.Nodes[sourceid].widget_normal_thumb_id, sizeof(Storyboard.Nodes[sourceid].widget_normal_thumb_id));
+	memcpy(Storyboard.Nodes[iNewNode].widget_highlight_thumb, Storyboard.Nodes[sourceid].widget_highlight_thumb, sizeof(Storyboard.Nodes[sourceid].widget_highlight_thumb));
+	//assignedperHUDscr memcpy(Storyboard.Nodes[iNewNode].widget_highlight_thumb_id, Storyboard.Nodes[sourceid].widget_highlight_thumb_id, sizeof(Storyboard.Nodes[sourceid].widget_highlight_thumb_id));
+	memcpy(Storyboard.Nodes[iNewNode].widget_selected_thumb, Storyboard.Nodes[sourceid].widget_selected_thumb, sizeof(Storyboard.Nodes[sourceid].widget_selected_thumb));
+	//assignedperHUDscr memcpy(Storyboard.Nodes[iNewNode].widget_selected_thumb_id, Storyboard.Nodes[sourceid].widget_selected_thumb_id, sizeof(Storyboard.Nodes[sourceid].widget_selected_thumb_id));
+	memcpy(Storyboard.Nodes[iNewNode].widget_click_sound, Storyboard.Nodes[sourceid].widget_click_sound, sizeof(Storyboard.Nodes[sourceid].widget_click_sound));
+	memcpy(Storyboard.Nodes[iNewNode].widget_action, Storyboard.Nodes[sourceid].widget_action, sizeof(Storyboard.Nodes[sourceid].widget_action));
+	memcpy(Storyboard.Nodes[iNewNode].widget_font, Storyboard.Nodes[sourceid].widget_font, sizeof(Storyboard.Nodes[sourceid].widget_font));
+	memcpy(Storyboard.Nodes[iNewNode].widget_font_color, Storyboard.Nodes[sourceid].widget_font_color, sizeof(Storyboard.Nodes[sourceid].widget_font_color));
+	memcpy(Storyboard.Nodes[iNewNode].widget_font_size, Storyboard.Nodes[sourceid].widget_font_size, sizeof(Storyboard.Nodes[sourceid].widget_font_size));
+	memcpy(Storyboard.Nodes[iNewNode].widget_type, Storyboard.Nodes[sourceid].widget_type, sizeof(Storyboard.Nodes[sourceid].widget_type));
+	memcpy(Storyboard.Nodes[iNewNode].widget_read_only, Storyboard.Nodes[sourceid].widget_read_only, sizeof(Storyboard.Nodes[sourceid].widget_read_only));
+	memcpy(Storyboard.Nodes[iNewNode].widget_layer, Storyboard.Nodes[sourceid].widget_layer, sizeof(Storyboard.Nodes[sourceid].widget_layer));
+	memcpy(Storyboard.Nodes[iNewNode].widget_initial_value, Storyboard.Nodes[sourceid].widget_initial_value, sizeof(Storyboard.Nodes[sourceid].widget_initial_value));
+	memcpy(Storyboard.Nodes[iNewNode].widget_name, Storyboard.Nodes[sourceid].widget_name, sizeof(Storyboard.Nodes[sourceid].widget_name));
+	Storyboard.Nodes[iNewNode].screen_backdrop_transparent = Storyboard.Nodes[sourceid].screen_backdrop_transparent;
+	Storyboard.Nodes[iNewNode].readouts_available = Storyboard.Nodes[sourceid].readouts_available;
+	Storyboard.Nodes[iNewNode].widgets_available = Storyboard.Nodes[sourceid].widgets_available;
+	Storyboard.Nodes[iNewNode].toggleKey = Storyboard.Nodes[sourceid].toggleKey;
+	Storyboard.Nodes[iNewNode].showAtStart = Storyboard.Nodes[sourceid].showAtStart;
+	memcpy(Storyboard.Nodes[iNewNode].iFiller20, Storyboard.Nodes[sourceid].iFiller20, sizeof(Storyboard.Nodes[sourceid].iFiller20));
+	memcpy(Storyboard.Nodes[iNewNode].fFiller20, Storyboard.Nodes[sourceid].fFiller20, sizeof(Storyboard.Nodes[sourceid].fFiller20));
+	memcpy(Storyboard.Nodes[iNewNode].iFillerMaxOutputs20, Storyboard.Nodes[sourceid].iFillerMaxOutputs20, sizeof(Storyboard.Nodes[sourceid].iFillerMaxOutputs20));
+	memcpy(Storyboard.Nodes[iNewNode].FillerCharMaxOutput20, Storyboard.Nodes[sourceid].FillerCharMaxOutput20, sizeof(Storyboard.Nodes[sourceid].FillerCharMaxOutput20));
+
+	// data chunk two
+	memcpy(Storyboard.widget_colors[iNewNode], Storyboard.widget_colors[sourceid], sizeof(Storyboard.widget_colors[sourceid]));
+	memcpy(Storyboard.widget_readout[iNewNode], Storyboard.widget_readout[sourceid], sizeof(Storyboard.widget_readout[sourceid]));
+	memcpy(Storyboard.widget_textoffset[iNewNode], Storyboard.widget_textoffset[sourceid], sizeof(Storyboard.widget_textoffset[sourceid]));
+	memcpy(Storyboard.widget_ingamehidden[iNewNode], Storyboard.widget_ingamehidden[sourceid], sizeof(Storyboard.widget_ingamehidden[sourceid]));
+	memcpy(Storyboard.widget_drawordergroup[iNewNode], Storyboard.widget_drawordergroup[sourceid], sizeof(Storyboard.widget_drawordergroup[sourceid]));
+}
+
+void rename_single_node(int sourceid)
+{
+	// check if source valid
+	if (sourceid < 0 || sourceid > STORYBOARD_MAXNODES) return;
+
+	// trigger renaming of HUD Screen
+	g_iRenameHUDScreenID = sourceid;
+	strcpy (g_pRenameHUDName, Storyboard.Nodes[sourceid].title);
+	strcpy (g_pRenameHUDScreenError, "");
+}
+
 void storeboard_fix_uniqueids( void )
 {
 	int iUniqueId = STORYBOARD_THUMBS;
@@ -37841,7 +38192,7 @@ void storeboard_init_nodes(float area_width, float node_width, float node_height
 	Storyboard.vEditorPanning = ImVec2(0.0f, 0.0f);
 	strcpy(Storyboard.game_icon, "");
 	strcpy(Storyboard.game_thumb, "");
-	strcpy(Storyboard.game_description, "Game Description");
+	strcpy(Storyboard.game_description, "A game I made in GameGuru MAX");
 	strcpy(Storyboard.game_world_edge_text, "You cannot leave the area of play");
 	strcpy(Storyboard.game_developer_desc, "");
 	Storyboard.project_readonly = 0;
@@ -39625,6 +39976,102 @@ static bool bTestStandalone = false;
 
 #define INCLUDE_GAME_SETTINGS
 
+int process_createanewhudscreen(int iStartAt)
+{
+	int iLastKnownNode = -1;
+	int hudScreenCount = iStartAt;// 2;
+	if (hudScreenCount < 2) hudScreenCount = 2;
+	while (hudScreenCount < 2 + STORYBOARD_MAXNODES)
+	{
+		char pTryHUDScreenName[256];
+		sprintf(pTryHUDScreenName, "HUD Screen %d", hudScreenCount);
+		bool bHUDScreenExists = false;
+		for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+		{
+			if (Storyboard.Nodes[i].used && stricmp(Storyboard.Nodes[i].title, pTryHUDScreenName) == NULL)
+			{
+				bHUDScreenExists = true;
+				iLastKnownNode = i;
+				break;
+			}
+		}
+		if (bHUDScreenExists == false)
+		{
+			// found next available HUD Screen number
+			break;
+		}
+		else
+		{
+			// try next one
+			hudScreenCount++;
+		}
+	}
+
+	// the HUD ID
+	char cHudCount[8];
+	sprintf_s(cHudCount, "%d", hudScreenCount);
+
+	// Find first free storyboard node that we can use for the new screen.
+	int node = -1;
+	int iUniqueIdsAdd = 1000;
+	for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+	{
+		if (i == 100 || i == 200)
+			iUniqueIdsAdd += 100000;
+
+		if (Storyboard.Nodes[i].used == 0)
+		{
+			// Reset node to default state, in case any old data remains.
+			node = i;
+			reset_single_node(node);
+
+			//PE: Setup new unique id's
+			int iUniqueId = STORYBOARD_THUMBS + node;
+			Storyboard.Nodes[node].id = iUniqueId;
+			Storyboard.Nodes[node].thumb_id = iUniqueId;
+			for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
+			{
+				//PE: input_id,output_id ID's broken in checkproject.
+				Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
+				Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
+				Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
+			}
+			for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
+			{
+				Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
+				Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
+			}
+
+			Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
+
+			// New node defaults to a HUD screen
+			Storyboard.Nodes[node].used = true;
+			Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
+
+			// locate new screen next to last known HUD screen
+			if (iLastKnownNode >= 0)
+			{
+				Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iLastKnownNode].restore_position.x + 20, Storyboard.Nodes[iLastKnownNode].restore_position.y + 20);
+			}
+			else
+			{
+				Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iHUDScreenNodeID].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[iHUDScreenNodeID].restore_position.y);
+			}
+			ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
+			Storyboard.Nodes[node].iEditEnable = true;
+			strcpy(Storyboard.Nodes[node].title, "HUD Screen ");
+			strcat(Storyboard.Nodes[node].title, cHudCount);
+			strcpy(Storyboard.Nodes[node].lua_name, "hud.lua");
+			strcpy(Storyboard.Nodes[node].screen_backdrop, "");
+			Storyboard.Nodes[node].screen_backdrop_transparent = true;
+			Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE | ALLOW_BUTTON;
+			Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY | READOUT_GRAPHICS | READOUT_INPUT | READOUT_SOUND;
+			break;
+		}
+	}
+	return node;
+}
+
 void process_storeboard(bool bInitOnly)
 {
 	bool bModal = false; //Use a modal window.
@@ -39657,12 +40104,15 @@ void process_storeboard(bool bInitOnly)
 						welcome_init(1);
 						welcome_init(2);
 					}
+
+					/* replaced with live changelog
 					bool welcome_get_change_log(void);
 					if (welcome_get_change_log() == true)
 					{
 						welcome_runloop(WELCOME_ANNOUNCEMENTS);
 						iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 					}
+					*/
 
 					welcome_init(0);
 				}
@@ -39722,12 +40172,15 @@ void process_storeboard(bool bInitOnly)
 								welcome_init(1);
 								welcome_init(2);
 							}
+
+							/* replaced with live changelog
 							bool welcome_get_change_log(void);
 							if (welcome_get_change_log() == true)
 							{
 								welcome_runloop(WELCOME_ANNOUNCEMENTS);
 								iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 							}
+							*/
 
 							welcome_init(0);
 						}
@@ -41066,7 +41519,7 @@ void process_storeboard(bool bInitOnly)
 					{
 						ImGui::SetWindowFontScale(1.4);
 						ImGui::Text("");
-						ImGui::TextCenter("Edit Text Description");
+						ImGui::TextCenter("Edit Game Description");
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(1.0);
 
@@ -41076,8 +41529,6 @@ void process_storeboard(bool bInitOnly)
 
 						ImGui::SetWindowFontScale(1.2);
 						float width = 586.0; //480.0;
-						//if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(480, 288), ImGuiInputTextFlags_CallbackAlways, CLB, &(width)))
-						//if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(width, 288 ),0,NULL,(void*)-1 ) )
 						if (ImGui::InputTextMultiline("##Game Description", &Storyboard.game_description[0], 2048, ImVec2(width, ImGui::GetFontSize()*19+12.0), 0, NULL, (void*)-1))
 						{
 							//PE: Simple Wrap input.
@@ -41146,12 +41597,64 @@ void process_storeboard(bool bInitOnly)
 					}
 
 					tabflags = 0;
+					if (iChangeTab == 6)
+					{
+						iChangeTab = 0;
+						tabflags = ImGuiTabItemFlags_SetSelected;
+					}
+					if (ImGui::BeginTabItem(" Key Bindings ", NULL, tabflags))
+					{
+						ImGui::SetWindowFontScale(1.4);
+						ImGui::Text("");
+						ImGui::TextCenter("Modify Global Key Bindings");
+						ImGui::Text("");
+						ImVec2 cPos = ImVec2(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (200), 0.0f));
+
+						ImGui::SetWindowFontScale(1.2);
+						int buttonwide = 200;
+						int iDefKey = 0;
+						char pButtonName[256];
+						char pBindingDesc[256];
+						for (int keyi = 0; keyi < 8; keyi++)
+						{
+							if (keyi == 0)      { iDefKey = 17;  sprintf(pButtonName, "Move Forward Key"); sprintf(pBindingDesc, "[W] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 1) { iDefKey = 31;  sprintf(pButtonName, "Move Backward Key"); sprintf(pBindingDesc, "[S] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 2) { iDefKey = 30;  sprintf(pButtonName, "Move Left Key"); sprintf(pBindingDesc, "[A] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 3) { iDefKey = 32;  sprintf(pButtonName, "Move Right Key"); sprintf(pBindingDesc, "[D] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 4) { iDefKey = 18;  sprintf(pButtonName, "Action Key"); sprintf(pBindingDesc, "[E] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 5) { iDefKey = 46;  sprintf(pButtonName, "Crouch Key"); sprintf(pBindingDesc, "[C] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 6) { iDefKey = 42;  sprintf(pButtonName, "Run Key"); sprintf(pBindingDesc, "[SHIFT] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							else if (keyi == 7) { iDefKey = 57;  sprintf(pButtonName, "Jump Key"); sprintf(pBindingDesc, "[SPACE] Mapped To Scancode %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 16;  sprintf(pButtonName, "[Q] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 19;  sprintf(pButtonName, "[R] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 12;  sprintf(pButtonName, "[MINUS1] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 74;  sprintf(pButtonName, "[MINUS2] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 13;  sprintf(pButtonName, "[PLUS1] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 78;  sprintf(pButtonName, "[PLUS2] Key: %d", g.keymap[iDefKey]); }
+							//else if (keyi == 0) { iDefKey = 28;  sprintf(pButtonName, "[RETURN] Key: %d", g.keymap[iDefKey]); }
+							ImGui::SetCursorPos(ImVec2(cPos.x, ImGui::GetCursorPos().y));
+							if (ImGui::StyleButton(pButtonName, ImVec2(buttonwide, 0.0f))) 
+							{ 
+								g_iMappingKeyToChange = iDefKey;
+								g_bMappingKeyWindow = true;
+							}
+							bool bModified = false;	if (g.keymap[iDefKey] != iDefKey) bModified = true;
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(cPos.x + buttonwide + 20.0f, ImGui::GetCursorPos().y));
+							if(bModified) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.8f, 1.0f));
+							ImGui::Text(pBindingDesc);
+							if (bModified) ImGui::PopStyleColor();
+						}
+						ImGui::SetWindowFontScale(1.0);
+						ImGui::EndTabItem();
+					}
+
+					tabflags = 0;
 					if (iChangeTab == 4)
 					{
 						iChangeTab = 0;
 						tabflags = ImGuiTabItemFlags_SetSelected;
 					}
-
 					if (strlen(Storyboard.gamename) > 0)
 					{
 						if (ImGui::BeginTabItem(" Icon ", NULL, tabflags))
@@ -41309,58 +41812,11 @@ void process_storeboard(bool bInitOnly)
 								}
 							}
 							ImGui::SetWindowFontScale(1.0);
-
-							//TEST
-							//#define TESTICONINJECT
-							#ifdef TESTICONINJECT
-							if (ImGui::StyleButton("TEST -> FISHLAKE.exe", ImVec2(buttonwide, 0.0f)))
-							{
-								void InjectIconToExe(char *icon, char *exe, int intresourcenumber);
-								char projectico[MAX_PATH];
-								char projectfinal_ico[MAX_PATH];
-								strcpy(projectico, "projectbank\\");
-								strcat(projectico, Storyboard.gamename);
-
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project256.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 1);
-
-								//strcpy(projectfinal_ico, projectico);
-								//strcat(projectfinal_ico, "\\project16.ico");
-								//GG_GetRealPath(projectfinal_ico, 1);
-								//InjectIconToExe(projectfinal_ico, "C:\\Users\\leeba\\Documents\\GameGuruApps\\GameGuruMAX\\My Games\FISHLAKE\\FISHLAKE.exe", 6);
-
-								//PE: Only 256 used for now.
-								/*
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project128.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe",2);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project64.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 3);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project48.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 4);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project32.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 5);
-								strcpy(projectfinal_ico, projectico);
-								strcat(projectfinal_ico, "\\project16.ico");
-								GG_GetRealPath(projectfinal_ico, 1);
-								InjectIconToExe(projectfinal_ico, "c:\\DEV\\standalone\\char1\\char1.exe", 6);
-								*/
-							}
-							#endif
 							ImGui::EndTabItem();
 						}
 					}
 					tabflags = 0;
-					if (iChangeTab == 4)
+					if (iChangeTab == 5)
 					{
 						iChangeTab = 0;
 						tabflags = ImGuiTabItemFlags_SetSelected;
@@ -41369,7 +41825,7 @@ void process_storeboard(bool bInitOnly)
 					{
 						ImGui::SetWindowFontScale(1.4);
 						ImGui::Text("");
-						ImGui::TextCenter("Game Developer Description");
+						ImGui::TextCenter("Edit Game Developer Description");
 						ImGui::Text("");
 						ImGui::SetWindowFontScale(1.0);
 
@@ -41416,23 +41872,6 @@ void process_storeboard(bool bInitOnly)
 					}
 					ImGui::EndTabBar();
 				}
-				//####
-
-				/*
-				ImGui::Indent(10);
-				ImGui::Text("");
-				ImVec2 cPos = ImVec2(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
-				cPos.y = ImGui::GetWindowSize().y - 30.0;
-				ImGui::SetCursorPos(cPos);
-				if (ImGui::StyleButton("Close", ImVec2(buttonwide, 0.0f)))
-				{
-					//Close.
-					bEditGameSettings = false;
-				}
-				ImGui::Indent(-10);
-				*/
-
-				//####
 				ImGui::NextColumn();
 
 				if (ImGui::StyleCollapsingHeader("Game Description", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
@@ -41441,13 +41880,11 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Change Game Thumbnail", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 1;
 					}
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Edit Text Description", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 2;
 					}
 					ImGui::Indent(-10);
@@ -41458,12 +41895,15 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 					if (ImGui::StyleButton("Edge of Game World Message", ImVec2(buttonwide, 0.0f)))
 					{
-						//code
 						iChangeTab = 3;
+					}
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Key Bindings", ImVec2(buttonwide, 0.0f)))
+					{
+						iChangeTab = 6;
 					}
 					ImGui::Indent(-10);
 				}
-
 				if (strlen(Storyboard.gamename) > 0)
 				{
 					if (ImGui::StyleCollapsingHeader("Export Settings", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
@@ -41472,17 +41912,25 @@ void process_storeboard(bool bInitOnly)
 						ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x*0.5) - (buttonwide*0.5), 0.0f));
 						if (ImGui::StyleButton("Game Executable Icon", ImVec2(buttonwide, 0.0f)))
 						{
-							//code
 							iChangeTab = 4;
 						}
 						ImGui::Indent(-10);
 					}
 				}
+				if (ImGui::StyleCollapsingHeader("Developer Description", ImGuiTreeNodeFlags_DefaultOpen) || iStoryboardExecuteKey != 0) //"Add New"
+				{
+					ImGui::Indent(10);
+					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
+					if (ImGui::StyleButton("Game Developer Description", ImVec2(buttonwide, 0.0f)))
+					{
+						iChangeTab = 5;
+					}
+					ImGui::Indent(-10);
+				}
 				ImGui::EndColumns();
 
 				bImGuiGotFocus = true;
 				ImGui::Indent(-10);
-				//ImGui::EndPopup();
 				bBlockNextMouseCheck = true;
 			}
 			ImGui::End();
@@ -41494,6 +41942,71 @@ void process_storeboard(bool bInitOnly)
 		}
 		#endif
 
+		// handle capture of new key for key binding
+		if (g_bMappingKeyWindow)
+		{
+			bImGuiGotFocus = true;
+			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+			ImGui::SetNextWindowSize(ImVec2(512, 256));
+			ImGui::OpenPopup("##mappingkeypopup");
+			ImGui::BeginPopupModal("##mappingkeypopup", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::Text("");
+			ImGui::TextCenter("Press the new key that you would like to use for this action.");
+			ImGui::Text("");
+			ImGui::TextCenter("Press ESCAPE to reset selection back to default.");
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
+			t.inputsys.kscancode = ScanCode();
+			if (t.inputsys.kscancode > 0)
+			{
+				if (g_iMappingKeyToChange > 0)
+				{
+					// make change in keymap
+					if (t.inputsys.kscancode != 57)
+					{
+						// use that new key
+						g.keymap[g_iMappingKeyToChange] = t.inputsys.kscancode;
+					}
+					else
+					{
+						// reset key to default
+						g.keymap[g_iMappingKeyToChange] = g_iMappingKeyToChange;
+					}
+
+					// save this change out to relevant file (Files\editors\keymap\custom.ini)
+					LPSTR pOldDir = GetDir();
+					char pWritableKeyMapFile[MAX_PATH];
+					strcpy(pWritableKeyMapFile, "editors\\keymap\\custom.ini");
+					GG_GetRealPath(pWritableKeyMapFile, 1);
+					if (FileExist(pWritableKeyMapFile) == 1) DeleteFileA(pWritableKeyMapFile);
+					OpenToWrite(1, pWritableKeyMapFile);
+					WriteString(1, ";Key binding created in Storyboard Key Bindings section");
+					WriteString(1, "");
+					WriteString(1, "[KEYMAP]");
+					char pKeyBindingLine[256];
+					for (int i = 0; i < 256; i++)
+					{
+						if (g.keymap[i] != i)
+						{
+							sprintf(pKeyBindingLine, "key%d = %d", i, g.keymap[i]);
+							WriteString(1, pKeyBindingLine);
+						}
+					}
+					CloseFile(1);
+
+					// finished binding
+					g_iMappingKeyToChange = -1;
+				}
+				ImGui::CloseCurrentPopup();
+				g_bMappingKeyWindow = false;
+			}
+			ImGui::PopStyleColor();
+			ImGui::Text("");
+			ImGui::EndPopup();
+		}
 
 		ImVec2 viewPortPos = ImGui::GetMainViewport()->Pos;
 		ImVec2 viewPortSize = ImGui::GetMainViewport()->Size;
@@ -41701,6 +42214,9 @@ void process_storeboard(bool bInitOnly)
 					g.IO.MouseDelta = ImVec2(0, 0);
 					g_bAppActiveStat = true;
 				}
+
+				// can duplicate screen, but only do it outside the node loop
+				int iTriggerDuplicateOutsideOfLoop = -1;
 
 				ImNodes::BeginNodeEditor();
 
@@ -42030,12 +42546,12 @@ void process_storeboard(bool bInitOnly)
 							ImGui::PopStyleColor();
 							ImGui::PopStyleVar();
 							ImGui::PopStyleVar();
-							const char* items_storyboard_hud[] = { "Delete HUD Screen" };
+							const char* items_storyboard_hud[] = { "Delete HUD Screen", "Duplicate HUD Screen", "Rename HUD Screen"};
 							ImGui::SetCursorPos(ImVec2(cpos.x + fNodeWidth - 48.0f, cpos.y - 8.0));
 							int selection = 0;
 							char iUniqueString[255];
 							sprintf(iUniqueString, "##ComboStoryboardHUD%d", i);
-							int iComboEntries = 1;
+							int iComboEntries = 3;// 1;
 							int comboflags = ImGuiComboFlags_NoPreview | ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge;
 							ImGui::PushItemWidth(20);
 							if (ImGui::BeginCombo(iUniqueString, "", comboflags))
@@ -42052,10 +42568,23 @@ void process_storeboard(bool bInitOnly)
 											int iAction = askBoxCancel("This will delete the HUD screen from your storyboard, are you sure?", "Confirmation"); //1==Yes 2=Cancel 0=No
 											if (iAction == 1)
 											{
+												//Delete HUD.
 												reset_single_node(i);
 												Storyboard.Nodes[i].used = false;
 												bBlockNextMouseCheck = true;
 											}
+										}
+										if (selection == 1)
+										{
+											//Duplicate HUD.
+											iTriggerDuplicateOutsideOfLoop = i;
+											bBlockNextMouseCheck = true;
+										}
+										if (selection == 2)
+										{
+											//Rename HUD.
+											rename_single_node(i);
+											bBlockNextMouseCheck = true;
 										}
 									}
 								}
@@ -42065,7 +42594,7 @@ void process_storeboard(bool bInitOnly)
 							{
 								bBlockNextMouseCheck = true;
 								vTooltipPos = ImGui::GetCursorPos();
-								sTooltip = " Delete HUD screen ";
+								sTooltip = " Manage HUD screen";
 							}
 							ImGui::PopItemWidth();
 							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
@@ -42217,8 +42746,8 @@ void process_storeboard(bool bInitOnly)
 						//#### Execute Edit With Pencil ####
 						if (bExecutePencelEdit)
 						{
-
-							Storyboard.iChanged = true;
+							// only for non game levels (ensures can open storyboard, open level, play, return without needing to save project on way back to hub)
+							if (strlen(Storyboard.Nodes[i].levelnumber) == 0) Storyboard.iChanged = true;
 
 							//ImGuiWindow* window = ImGui::GetCurrentWindow();
 							if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_SPLASH)
@@ -42381,11 +42910,10 @@ void process_storeboard(bool bInitOnly)
 									//PE: Switch to normal message.
 									strcpy(cTriggerMessage, "Preparing the Terrain Generator. Please wait...");
 									bTriggerMessage = true;
-									//PE: We need the message in this frame so.
-									//bool bForceMessageNoFade = false;
-									//void gridedit_triggermessagehandler(bool bForceMessageNoFade);
-									//gridedit_triggermessagehandler(bForceMessageNoFade);
 
+									// refresh custom biomes before enter Terrain Generator
+									extern void imgui_populatecustombiomes(void);
+									imgui_populatecustombiomes();
 								}
 							}
 							else if (Storyboard.Nodes[i].type == STORYBOARD_TYPE_HUD)
@@ -42535,9 +43063,15 @@ void process_storeboard(bool bInitOnly)
 				}
 				no_duplicates.clear();
 
-
 				ImNodes::MiniMap(0.15f, ImNodesMiniMapLocation_BottomRight); //PE: size,corner.
 				ImNodes::EndNodeEditor();
+
+				// do not create new node elements in side the node loop!
+				if (iTriggerDuplicateOutsideOfLoop > 0)
+				{
+					duplicate_single_node(iTriggerDuplicateOutsideOfLoop);
+					iTriggerDuplicateOutsideOfLoop = -1;
+				}
 
 				ImVec2 vNodeAreaEnd = ImGui::GetCursorScreenPos();
 				vNodeAreaEnd.x += ImGui::GetContentRegionAvailWidth();
@@ -42556,7 +43090,9 @@ void process_storeboard(bool bInitOnly)
 							//Need a down and release to trigger.
 							if (bGetMouseDown && ImGui::IsMouseReleased(0))
 							{
-								Storyboard.iChanged = true; //PE: Anything trigger a change in project.
+								//As outside of any specific node, cannot know if modification was to screen or level
+								//Storyboard.iChanged = true; //PE: Anything trigger a change in project.
+								//if (strlen(Storyboard.Nodes[i].levelnumber) == 0) Storyboard.iChanged = true; // Not for game levels
 								bGetMouseDown = false;
 							}
 							if (ImGui::IsMouseDown(0)) bGetMouseDown = true; //PE: Anything trigger a change in project.
@@ -42979,107 +43515,10 @@ void process_storeboard(bool bInitOnly)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((ImGui::GetContentRegionAvail().x * 0.5) - (buttonwide * 0.5), 0.0f));
 					if (ImGui::StyleButton("Add New HUD Screen", ImVec2(buttonwide, 0.0f)))
 					{
-						int iLastKnownNode = -1;
-						int hudScreenCount = 2;
-						while (hudScreenCount < 2 + STORYBOARD_MAXNODES)
-						{
-							char pTryHUDScreenName[256];
-							sprintf(pTryHUDScreenName, "HUD Screen %d", hudScreenCount);
-							bool bHUDScreenExists = false;
-							for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-							{
-								if (Storyboard.Nodes[i].used && stricmp(Storyboard.Nodes[i].title, pTryHUDScreenName)==NULL)
-								{
-									bHUDScreenExists = true;
-									iLastKnownNode = i;
-									break;
-								}
-							}
-							if (bHUDScreenExists == false)
-							{
-								// found next available HUD Screen number
-								break;
-							}
-							else
-							{
-								// try next one
-								hudScreenCount++;
-							}
-						}
-						char cHudCount[8];
-						sprintf_s(cHudCount, "%d", hudScreenCount);
-						// Find first free storyboard node that we can use for the new screen.
-						int node = -1;
-						int iUniqueIdsAdd = 1000;
-						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
-						{
-							if (i == 100 || i == 200)
-								iUniqueIdsAdd += 100000;
-
-							if (Storyboard.Nodes[i].used == 0)
-							{
-								// Reset node to default state, in case any old data remains.
-								node = i;
-								reset_single_node(node);
-
-								//PE: Setup new unique id's
-								int iUniqueId = STORYBOARD_THUMBS + node;
-								Storyboard.Nodes[node].id = iUniqueId;
-								Storyboard.Nodes[node].thumb_id = iUniqueId;
-								for (int l = 0; l < STORYBOARD_MAXWIDGETS; l++)
-								{
-									//PE: input_id,output_id ID's broken in checkproject.
-									Storyboard.Nodes[node].widget_normal_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 600;
-									Storyboard.Nodes[node].widget_highlight_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 700;
-									Storyboard.Nodes[node].widget_selected_thumb_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 800;
-								}
-								for (int l = 0; l < STORYBOARD_MAXOUTPUTS; l++)
-								{
-									Storyboard.Nodes[node].input_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l);
-									Storyboard.Nodes[node].output_id[l] = iUniqueId + iUniqueIdsAdd + (1000 * l) + 500;
-								}
-
-								Storyboard.Nodes[node].screen_backdrop_id = iUniqueId + 500;
-
-								// New node defaults to a HUD screen
-								Storyboard.Nodes[node].used = true;
-								Storyboard.Nodes[node].type = STORYBOARD_TYPE_HUD;
-
-								// locate new screen next to last known HUD screen
-								if (iLastKnownNode >= 0)
-								{
-									Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iLastKnownNode].restore_position.x + 20, Storyboard.Nodes[iLastKnownNode].restore_position.y + 20);
-								}
-								else
-								{
-									Storyboard.Nodes[node].restore_position = ImVec2(Storyboard.Nodes[iHUDScreenNodeID].restore_position.x + 200 * hudScreenCount, Storyboard.Nodes[iHUDScreenNodeID].restore_position.y);
-								}
-								ImNodes::SetNodeGridSpacePos(Storyboard.Nodes[node].id, Storyboard.Nodes[node].restore_position);
-								Storyboard.Nodes[node].iEditEnable = true;
-								strcpy(Storyboard.Nodes[node].title, "HUD Screen ");
-								strcat(Storyboard.Nodes[node].title, cHudCount);
-								//strcpy(Storyboard.Nodes[node].thumb, "editors\\templates\\thumbs\\hud.lua.png");
-								strcpy(Storyboard.Nodes[node].lua_name, "hud.lua");
-								strcpy(Storyboard.Nodes[node].screen_backdrop, "");
-								Storyboard.Nodes[node].screen_backdrop_transparent = true;
-								Storyboard.Nodes[node].widgets_available = ALLOW_TEXT | ALLOW_TEXTAREA | ALLOW_IMAGE | ALLOW_BUTTON;
-								Storyboard.Nodes[node].readouts_available = READOUT_GAMEPLAY | READOUT_GRAPHICS | READOUT_INPUT | READOUT_SOUND;
-								break;
-							}
-						}
+						int node = process_createanewhudscreen(10);
 						if (node < 0)
 						{
 							bShowNoMoreScreensError = true;
-						}
-						else
-						{
-							// Trigger creation of a new thumbnail for the newly created screen
-							iWaitFor2DEditor = 5;
-							iWaitFor2DEditorNode = node;
-							if (BitmapExist(99))
-							{
-								DeleteBitmapEx(99);
-							}
 						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", pToolTipForAddingNewScreens);
@@ -44392,6 +44831,65 @@ void process_storeboard(bool bInitOnly)
 			//Close down everything.
 		}
 
+		// handle renaming of HUD Screen
+		if (g_iRenameHUDScreenID > 0)
+		{
+			ImGui::OpenPopup("Rename HUD Screen##Storyboard");
+			ImGui::SetNextWindowSize(ImVec2(380, 320), ImGuiCond_Always);
+			ImGui::SetNextWindowPosCenter(ImGuiCond_Always);
+			bool bRenameHUDScreenWindow = true;
+			if (ImGui::BeginPopupModal("Rename HUD Screen##Storyboard", &bRenameHUDScreenWindow, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings))
+			{
+				ImGui::Indent(10);
+				ImGui::Text("");
+				ImGui::SetWindowFontScale(1.4);
+				ImGui::TextCenter("Rename HUD Screen");
+				ImGui::SetWindowFontScale(1.0);
+				ImGui::Text("");
+				ImGui::SetWindowFontScale(1.4);
+				ImGui::Separator();
+				ImGui::SetWindowFontScale(1.0);
+
+				ImGui::TextWrapped("To rename this HUD Screen, please give it a new unique name and click 'Rename HUD Screen'.");
+				if (strlen(g_pRenameHUDScreenError) > 0)
+				{
+					ImGui::Text(g_pRenameHUDScreenError);
+					ImGui::Text("");
+				}
+				ImGui::Text("Rename HUD Screen to:");
+				ImGui::PushItemWidth(-10);
+				ImGui::InputText("##RenameHUDScreenNameStoryboard", g_pRenameHUDName, 250, ImGuiInputTextFlags_None);
+				ImGui::PopItemWidth();
+				ImGui::Text("");
+				ImGui::SetWindowFontScale(1.4);
+				if (ImGui::StyleButton("Rename HUD Screen", ImVec2(ImGui::GetContentRegionAvail().x * 1.0 - 10.0f, 0.0f)))
+				{
+					if (strlen(g_pRenameHUDName) > 0)
+					{
+						strcpy(g_pRenameHUDScreenError, "");
+						for (int i = 0; i < STORYBOARD_MAXNODES; i++)
+						{
+							if (Storyboard.Nodes[i].used && stricmp(Storyboard.Nodes[i].title, g_pRenameHUDName) == NULL)
+							{
+								// hmm, this name already existy
+								strcpy(g_pRenameHUDScreenError, "This HUD Screen name already exists, choose another!");
+								break;
+							}
+						}
+						if (strcmp(g_pRenameHUDScreenError, "") == NULL)
+						{
+							strcpy (Storyboard.Nodes[g_iRenameHUDScreenID].title, g_pRenameHUDName);
+							g_iRenameHUDScreenID = -1;
+						}
+					}
+				}
+				if (ImGui::StyleButton("Cancel", ImVec2(ImGui::GetContentRegionAvail().x * 1.0 - 10.0f, 0.0f)))
+				{
+					g_iRenameHUDScreenID = -1;
+				}
+			}
+		}
+
 		//Emulate standalone.
 		bool bBlackOut = false;
 		if (iFramesBeforeEmulate > 0)
@@ -45074,6 +45572,13 @@ int save_create_storyboard_project(void)
 								addtocollection ("audiobank\\misc\\bullet_flyby_02.wav");
 								addtocollection ("audiobank\\misc\\bullet_flyby_03.wav");
 								addtocollection ("audiobank\\misc\\bullet_flyby_04.wav");
+								addtocollection ("audiobank\\misc\\melee.wav");
+								addtocollection ("audiobank\\misc\\melee1.wav");
+								addtocollection ("audiobank\\misc\\melee2.wav");
+								addtocollection ("audiobank\\misc\\melee3.wav");
+								addtocollection ("audiobank\\misc\\melee4.wav");
+								addtocollection ("audiobank\\misc\\melee5.wav");
+								addtocollection ("audiobank\\misc\\melee6.wav");
 								addfoldertocollection ("charactercreatorplus\\skins");
 								addfoldertocollection ("databank");
 								addtocollection ("editors\\keymap\\default.ini");
@@ -46165,18 +46670,20 @@ void storyboard_menubar(float area_width, float node_width, float node_height)
 					if (ImGui::MenuItem("What's New?")) //Change Log
 					{
 						//welcome_show(WELCOME_ANNOUNCEMENTS);
-						bool welcome_get_change_log(void);
 						if (gbWelcomeSystemActive == false)
 						{
 							welcome_init(1);
 							welcome_init(2);
 						}
 						welcome_init(0);
+						/* replaced with live changelog
+						bool welcome_get_change_log(void);
 						if (welcome_get_change_log() == true)
 						{
 							welcome_runloop(WELCOME_ANNOUNCEMENTS);
 							iTriggerWelcomeSystemStuff = 99; //PE: Start welcome system.
 						}
+						*/
 					}
 				}
 
@@ -46522,11 +47029,8 @@ void load_storyboard(char *name)
 		ReloadLensFlareImages();
 	}
 
-	// also refresh SKY LIST as custom skies might exist there
-	t.tsplashstatusprogress_s = "REFRESH SKY ASSETS";
-	timestampactivity(0, t.tsplashstatusprogress_s.Get());
-	version_splashtext_statusupdate();
-	sky_init();
+	// project can bounce between stock and remote resources, so always reload on new storyboard project load
+	common_mustreload_foreachnewproject();
 
 	// complete
 	iLastNode = -1;
@@ -47637,11 +48141,11 @@ void* GetReadoutAddress(char* readoutTitle)
 	{
 		return (void*)&t.slidersmenuvalue[1][2].value;
 	}
-	else if (strcmp(readoutTitle, "Ammo Panel") == 0 && t.gunid > 0 && t.gun[t.gunid].weapontype != 51)
+	else if (strcmp(readoutTitle, "Ammo Panel") == 0 )// && t.gunid > 0 && t.gun[t.gunid].weapontype != 51) may want to see weapon panel for melee
 	{
 		return (void*)&t.iTmpImgID;
 	}
-	else if (strcmp(readoutTitle, "Weapon Held") == 0 && t.gun[t.gunid].weapontype != 51)
+	else if (strcmp(readoutTitle, "Weapon Held") == 0 ) // may want to see weapon symbol panel for melee && t.gun[t.gunid].weapontype != 51)
 	{
 		return (void*)&g.firemodes[t.gunid][g.firemode].iconimg;
 	}
@@ -51407,7 +51911,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::SetNextWindowSize(ImVec2(512, 256));
 		ImGui::OpenPopup("##screenkeytogglepopup");
 		ImGui::BeginPopupModal("##screenkeytogglepopup", 0, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoCollapse);
-
 		ImGui::Text("");
 		ImGui::Text("");
 		ImGui::Text("");
@@ -51415,7 +51918,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::TextCenter("Press the key that you would like to make this screen appear in-game.");
 		ImGui::Text("");
 		ImGui::TextCenter("Press SPACEBAR to reset selection back to NONE.");
-
 		ImGuiStyle& style = ImGui::GetStyle();
 		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.54f));
 		t.inputsys.kscancode = ScanCode();
@@ -51439,7 +51941,6 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 		ImGui::Text("");
 		ImGui::EndPopup();
 	}
-
 	return iRet;
 }
 

@@ -1,0 +1,71 @@
+;Saved by Model Importer
+;header
+desc             = arrow
+
+
+;orientation
+model            = arrow.dbo
+scale            = 100.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = 3
+matrixmode       = 
+cullmode         = 1
+
+;visualinfo
+textured         = arrow_color.dds
+baseColorMap     = arrow_color.dds
+alpharef         = 1.00
+normalMap        = arrow_color_normal.dds
+normalStrength   = 1.00
+surfaceMap       = arrow_surface.dds
+roughnessStrength= 1.00
+metalnessStrength= 1.00
+transparency     = 0
+renderorderbias  = 0.00
+reflectance      = 0.04
+basecolor        = 4294967295
+emissivecolor    = 0
+textureref1       = arrow_color.dds
+textureref2       = arrow_color_normal.dds
+textureref3       = arrow_surface.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 = 1
+phyweight 	 = 0
+phyfriction 	 = 0
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = puzzle\arrowtrap.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 155.133301
+thumbnailcamleft = 1.046940
+thumbnailcamup = -3.363976
+thumbnailrotatex = 207.727554
+thumbnailrotatey = 82.840652

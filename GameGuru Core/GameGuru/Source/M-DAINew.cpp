@@ -339,8 +339,22 @@ void darkai_updatedebugobjects_forcharacter (bool bCharIsActive)
 			// also show object entity ID (so can debug logic in behavior editor)
 			if (fDist < 500)
 			{
-				t.entityelement[t.charanimstate.e].overprompt_s = cstr(t.charanimstate.e);
-				t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 1000;
+				int e = t.charanimstate.e;
+				if (e > 0)
+				{
+					char pShowNavigationDebugVisualstext[256];
+					sprintf(pShowNavigationDebugVisualstext, "%d", t.charanimstate.e);
+					int entid = t.entityelement[e].bankindex;
+					if (entid > 0)
+					{
+						if (t.entityprofile[entid].ischaracter != 0)
+						{
+							sprintf(pShowNavigationDebugVisualstext, "%d (health=%d)", t.charanimstate.e, t.entityelement[t.charanimstate.e].health);
+						}
+					}
+					t.entityelement[t.charanimstate.e].overprompt_s = pShowNavigationDebugVisualstext;
+					t.entityelement[t.charanimstate.e].overprompttimer = Timer() + 250;
+				}
 			}
 		}
 	}
@@ -1009,6 +1023,7 @@ void darkai_handlegotomove(void)
 	// record old position
 	float fOldPosX = t.entityelement[t.charanimstate.e].x;
 	float fOldPosZ = t.entityelement[t.charanimstate.e].z;
+	float fOldMovementRequired = fAdvanceTheMovement;
 	// if we are advancing a move, do it here
 	if (fAdvanceTheMovement > 0.0f)
 	{
@@ -1166,10 +1181,25 @@ void darkai_handlegotomove(void)
 	}
 	t.smoothanim[iID].movedeltax = 0;
 	t.smoothanim[iID].movedeltaz = 0;
-	// ensure free of other characters
-	if (AdjustPositionSoNoOverlap(t.charanimstate.e, &t.entityelement[t.charanimstate.e].x, &t.entityelement[t.charanimstate.e].z, fOldPosX, fOldPosZ) == true)
+
+	// handle if actually moved or was dynamically blocked
+	bool bDynamicAvoidanceTriggered = false;
+	if (fOldMovementRequired > 0.0f)
 	{
-		// no overlap, or was allowed to shift around another character safely (still in nav mesh)
+		float fDX = t.entityelement[t.charanimstate.e].x - fOldPosX;
+		float fDZ = t.entityelement[t.charanimstate.e].z - fOldPosZ;
+		float fDDActuallyTravelled = sqrt(fabs(fDX * fDX) + fabs(fDZ * fDZ));
+		if (fDDActuallyTravelled < fOldMovementRequired * 0.25f)
+			bDynamicAvoidanceTriggered = true;
+	}
+	// ensure free of other characters
+	if (AdjustPositionSoNoOverlap(t.charanimstate.e, &t.entityelement[t.charanimstate.e].x, &t.entityelement[t.charanimstate.e].z, fOldPosX, fOldPosZ) == false)
+		bDynamicAvoidanceTriggered = true;
+
+	// was stopp4ed in moving as required
+	if (bDynamicAvoidanceTriggered == false)
+	{
+		// no overlap, no blockage, or was allowed to shift around another character safely (still in nav mesh)
 		t.entityelement[t.charanimstate.e].lua.dynamicavoidance = 0;
 		t.entityelement[t.charanimstate.e].lua.dynamicavoidancestuckclock = Timer();
 	}
@@ -1177,6 +1207,7 @@ void darkai_handlegotomove(void)
 	{
 		// shift did not take place, character heading THROUGH another one
 		// signal to AI so behavior can do something about walking through other people!
+		// or signal that the path has been blocked and cannot move onwards for some reason
 		t.entityelement[t.charanimstate.e].lua.dynamicavoidance = Timer() - t.entityelement[t.charanimstate.e].lua.dynamicavoidancestuckclock;
 	}
 	// special flag which interupts any path in progress
@@ -2627,20 +2658,6 @@ void darkai_shooteffect (void)
 						t.tgunid // TextureID
 					);
 				}
-
-
-				// play bullet whiz sound because the AI missed
-				//t.tSndID = t.playercontrol.soundstartindex + 25 + Rnd(3);
-				//if (SoundExist(t.tSndID) == 1)
-				//{
-				//	t.tSndX_f = t.tplayerx_f - 100 + Rnd(200);
-				//	t.tSndY_f = t.tplayery_f - 100 + Rnd(200);
-				//	t.tSndZ_f = t.tplayerz_f - 100 + Rnd(200);
-				//	PositionSound(t.tSndID, t.tSndX_f, t.tSndY_f, t.tSndZ_f);
-				//	SetSoundVolume(t.tSndID, soundtruevolume(100));
-				//	SetSoundSpeed(t.tSndID, 36000 + Rnd(10000));
-				//	PlaySound(t.tSndID);
-				//}
 			}
 		}
 	}
@@ -2650,9 +2667,18 @@ void darkai_shooteffect (void)
 		t.tobj = t.entityelement[t.te].attachmentobj;
 		if (t.tobj > 0)
 		{
-			t.flakx_f = LimbPositionX(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
-			t.flaky_f = LimbPositionY(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
-			t.flakz_f = LimbPositionZ(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+			if(t.entityelement[t.te].attachmentobjfirespotlimb>-1)
+			{
+				t.flakx_f = LimbPositionX(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+				t.flaky_f = LimbPositionY(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+				t.flakz_f = LimbPositionZ(t.tobj, t.entityelement[t.te].attachmentobjfirespotlimb);
+			}
+			else
+			{
+				t.flakx_f = t.tx_f;// t.entityelement[t.te].fFirespotOffsetX;
+				t.flaky_f = t.ty_f;// t.entityelement[t.te].fFirespotOffsetY;
+				t.flakz_f = t.tz_f;// t.entityelement[t.te].fFirespotOffsetZ;
+			}
 			t.tdx_f = t.tplayerx_f - t.flakx_f;
 			t.tdy_f = t.tplayery_f - t.flaky_f;
 			t.tdz_f = t.tplayerz_f - t.flakz_f;
@@ -2687,7 +2713,7 @@ void darkai_shooteffect (void)
 
 void darkai_ischaracterhit (void)
 {
-	// takes; px#,py#,pz#,tobj
+	// takes; px#,py#,pz#,tobj,t.bulletfinalstrengthmod
 	t.darkaifirerayhitcharacter = 0;
 	for (g.charanimindex = 1; g.charanimindex <= g.charanimindexmax; g.charanimindex++)
 	{
@@ -2714,7 +2740,6 @@ void darkai_shootcharacter (void)
 	{
 		// handle shooting of character
 		t.ttte = t.charanimstates[g.charanimindex].e;
-		#ifdef WICKEDENGINE
 		t.tdamage = 0; t.tdamageforce = t.tforce_f;
 		if (g.firemodes[t.gunid][g.firemode].settings.damage > 0)
 		{
@@ -2730,12 +2755,16 @@ void darkai_shootcharacter (void)
 				if (t.playercontrol.fWeaponDamageMultiplier > 0 && t.tdamage < 1) t.tdamage = 1;
 			}
 		}
-		#else
-		t.tdamage = g.firemodes[t.gunid][g.firemode].settings.damage; t.tdamageforce = t.tforce_f;
-		if (t.gun[t.gunid].settings.ismelee == 2) t.tdamage = g.firemodes[t.gunid][0].settings.meleedamage;
-		#endif
+		t.tdamage = t.tdamage * t.bulletfinalstrengthmod;
 		t.tdamagesource = 1;
 		entity_applydamage ();
+
+		// and for extra viceral effect, play some thumps
+		if (t.bulletisinfactmeleestrike > 0)
+		{
+			extern void physics_play_thump_sound (float fX, float fY, float fZ, float fFreqStart, float fFreqRange);
+			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 44000, Rnd(6000));
+		}
 	}
 }
 

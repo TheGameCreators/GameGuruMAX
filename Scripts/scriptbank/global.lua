@@ -1,6 +1,4 @@
--- 
 -- LUA Globals Common Header 
---
 -- DESCRIPTION: A global script that controls game & player logic. Do not assign to an entity.
 
 -- Constants
@@ -295,6 +293,10 @@ end
 function PlayerHealthSubtract(value)
  gameplayerhealth = require "scriptbank\\gameplayerhealth"
  gameplayerhealth.subtract(value)
+end
+function PlayerStaminaDrain(value)
+ gameplayerspeed = require "scriptbank\\gameplayerspeed"
+ gameplayerspeed.drain(value)
 end
 
 -- Common Updater Functions (called by Engine)
@@ -1517,7 +1519,8 @@ GetMovementDeltaManually : GetMovementDeltaManually ( e ) -- useful command
 SetEntityUnderwaterMode: SetEntityUnderwaterMode ( e, mode ) -- Set mode to 1 to allow character entity to survive underwater
 GetEntityUnderwaterMode: mode = GetEntityUnderwaterMode ( e ) -- Get the underwater mode, a value of 1 means character entity can survive underwater
 
-SetEntityIfUsed: SetEntityIfUsed(e, string) -- Overrites the IFUSED string of the entity (useful for changing teleport destination marker)
+SetEntityIfUsed: SetEntityIfUsed(e, string) -- Overwrites the IFUSED string of the entity (useful for changing teleport destination marker)
+GetEntityIfUsed: string = GetEntityIfUsed(e) -- Get the IFUSED string of the specified entity
 
 AdjustLookSettingHorizLimit : AdjustLookSettingHorizLimit ( e, hlimit ) -- where e is the entity number and param sets the horizontal limit
 AdjustLookSettingHorizOffset : AdjustLookSettingHorizOffset ( e, hoffset ) -- where e is the entity number and param sets the horizontal offset
@@ -2403,6 +2406,15 @@ RDBlockNavMesh : RDBlockNavMesh(x,y,z,radius,blockmode) -- blocks an area on the
 RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,angle) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 RDBlockNavMeshWithShape : RDBlockNavMeshWithShape(x,y,z,sizex,blockmode,sizez,angle,adjminy,adjmaxy) -- blocks an area on the nav mesh at specified position and radius, use blockmode of 1 to block
 SetCharacterMode : success = SetCharacterMode (e,mode) -- returns 1 if a character objects 'mode' was successfully changed (mode 1=character, 0=non-character)
+
+NEW MAX TOKENDROP COMMANDS
+DoTokenDrop : DoTokenDrop(x,y,z,type,duration) -- creates a drop token at X, Y, Z position, with custom type and milliseconds life duration
+GetTokenDropCount : count = GetTokenDropCount() -- returns the total number of target drops
+GetTokenDropX : x = GetTokenDropX(index) -- returns the X coordinate of the specified target drop
+GetTokenDropY : y = GetTokenDropY(index) -- returns the Y coordinate of the specified target drop
+GetTokenDropZ : z = GetTokenDropZ(index) -- returns the Z coordinate of the specified target drop
+GetTokenDropType : type = GetTokenDropType(index) -- returns the Type coordinate of the specified target drop
+GetTokenDropTimeLeft : timeleft = GetTokenDropTimeLeft(index) -- returns the TimeLeft in milliseconds of the specified target drop
 
 OLD LEGACY AUTOMATIC COMMANDS
 AIEntityAssignPatrolPath AIEntityAssignPatrolPath(obj,pathid) -- where obj is the object number of the entity. See DarkAI docs for parameter descriptions

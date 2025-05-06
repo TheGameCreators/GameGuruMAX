@@ -1,0 +1,59 @@
+;Saved by Model Importer
+;header
+desc             = gasmask
+
+;orientation
+model            = gasmask.dbo
+scale            = 120.00
+collisionmode    = 0
+defaultstatic    = 0
+materialindex    = -1
+cullmode         = 1
+
+;visualinfo
+textured         = 
+baseColorMap0    = gasmask.png
+alphaRef0        = 0.00
+transparency0    = 1
+castshadow0      = -1
+renderorderbias0 = 0.00
+planerreflection0= 1
+reflectance0     = 0.0400
+basecolor0       = 4294967295
+emissivecolor0   = 2610666240
+baseColorMap1    = gasmask.png
+alphaRef1        = 1.00
+transparency1    = 0
+doublesided1     = 1
+renderorderbias1 = 0.00
+reflectance1     = 0.0400
+basecolor1       = 4294967295
+emissivecolor1   = 0
+textureref1       = gasmask.png
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+
+;ai
+aimain           = rpg\gasmask.lua
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 1.000000
+thumbnailcamleft = 0.000000
+thumbnailcamup = 0.000000
+thumbnailrotatex = 0.000000
+thumbnailrotatey = 15.000000

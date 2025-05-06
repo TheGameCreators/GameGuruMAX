@@ -1,0 +1,7 @@
+Licence Terms for Entity: Combo Lock  
+
+These assets are supplied free to the GameGuru Max community by  Monkey Frog Studio (contact@monkeyfrogstudio.com). 
+
+You have the rights to use these dbo files and their related dds texture files in any GameGuru MAX game you create and are free to distribute your games for free or commercially. You may not distribute these files on theirs own or part of an asset model pack. You may not use these files with any other game creation tool (eg Unity, Unreal, etc). You can contact the author of these assets if you wish to license the models in other formats or for other means.
+
+To enquire about distribution rights, please contact the original author.

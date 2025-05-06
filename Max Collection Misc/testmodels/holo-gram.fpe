@@ -1,0 +1,70 @@
+;Saved by Model Importer
+;header
+desc             = Holo-gram
+
+
+;orientation
+model            = holo-gram.dbo
+scale            = 100.00
+collisionmode    = 11
+defaultstatic    = 0
+materialindex    = -1
+matrixmode       = 
+cullmode         = 0
+
+;visualinfo
+textured         = holo-gram.dds
+baseColorMap     = holo-gram.dds
+alpharef         = 1.00
+transparency     = 1
+castshadow       = -1
+doublesided      = 1
+renderorderbias  = 0.00
+reflectance      = 0.00
+basecolor        = 4294967295
+emissivecolor    = 4294967040
+emissiveMap      = holo-gram.dds
+emissiveStrength = 15.00
+textureref1      = holo-gram.dds
+effect           = effectbank\reloaded\apbr_basic.fx
+
+;physics shapes
+physicscount     = 0
+physics		 = 1
+phyweight 	 = 0
+phyfriction 	 = 0
+isimmobile	 = 1
+alwaysactive 	 = 1
+
+;identity details
+ischaracter      = 0
+hasweapon        = 
+isobjective      = 0
+cantakeweapon    = 0
+
+;statistics
+strength         = 0
+explodable       = 0
+debrisshape      = 
+
+;ai
+aimain           = hologram\hologram.lua
+
+;spawn
+spawnmax         = 
+spawndelay       = 
+spawnqty         = 
+
+;anim
+animspeed        = 100.00
+animmax          = 0
+anim0            = 
+playanimineditor = 0
+
+;thumbnail
+thumbnailbackdrop = Blue showroom.dds
+thumbnailzoom = 17.170315
+thumbnailcamleft = 3.006257
+thumbnailcamup = 26.906570
+thumbnailrotatex = 8.356506
+thumbnailrotatey = 8.126678

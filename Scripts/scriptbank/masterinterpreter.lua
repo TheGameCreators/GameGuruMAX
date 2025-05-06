@@ -1,4 +1,7 @@
--- MASTER INTERPRETER - V2 - Contributors; Necrym59
+--
+-- MASTER INTERPRETER - Contributors; Lee, Necrym59 
+--
+
 local master_interpreter_core = {}
 
 -- Slows down logic for closer debugging
@@ -83,6 +86,7 @@ g_masterinterpreter_cond_istargetname = 66 -- Is Target Name (Is true if the cur
 g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player enters the zone)
 g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
 g_masterinterpreter_cond_coverzonewithin = 69 -- Cover Zone Within (Is true if there is a cover zone within the specified range)
+g_masterinterpreter_cond_ifseeplayer = 70 -- If See Player (Is true when see the player within given distance)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -196,6 +200,9 @@ g_masterinterpreter_act_collisionon = 107 -- Turn Collision On (Switch on collis
 g_masterinterpreter_act_hideterrain = 108 -- Hide Terrain (Switches off all terrain rendering)
 g_masterinterpreter_act_showterrain = 109 -- Show Terrain (Switches on all terrain rendering)
 g_masterinterpreter_act_gotocoverzone = 110 -- Go To Cover Zone (Plot a navigation path to nearest cover zone)
+g_masterinterpreter_act_allowzerohealth = 111 -- Allow Zero Health (Permits a destroy object when it reaches zero health)
+g_masterinterpreter_act_destroynoragdoll = 112 -- Destroy No Ragdoll (Destroy object instantly with no ragdoll or death animations)
+g_masterinterpreter_act_playsoundsparsely = 113 -- Play Sound Sparsely (Play the sound only after 3 seconds in the specified slot number 0-3)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -427,6 +434,7 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
  if conditiontype == g_masterinterpreter_cond_targetpathvalid then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_targetreachable then usestarget = 1 end
  if conditiontype == g_masterinterpreter_cond_istargetname then usestarget = 1 end
+ if conditiontype == g_masterinterpreter_cond_ifseeplayer then usestarget = 3 end
  if usestarget ~= 0 then
   local usetargetXYZ = 0
   if usestarget == 1 then
@@ -459,6 +467,14 @@ function masterinterpreter_getconditiontarget ( e, output_e, conditiontype )
 	 -- Ally (scan for enemy and distance check done inside g_masterinterpreter_cond_ifseeenemy)
 	 usetargetXYZ = 1
     end  
+   end
+  end
+  if usestarget == 3 then 
+   -- looking for player
+   TargetDistance = GetPlayerDistance(e)
+   GetEntityPlayerVisibility(e)
+   if TargetDistance <= GetEntityViewRange(e) then
+    TargetVisible = g_Entity[e]['plrvisible']
    end
   end
   if usetargetXYZ == 1 then
@@ -740,7 +756,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if GetEntityAnimationNameExist(e,conditionparam1) > 0 then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_ifpushedback then
-  if conditionparam1value == nil then conditionparam1value = 0 end
+  if conditionparam1value == nil then conditionparam1value = 250 end
   if g_Entity [ e ]['avoid'] >= conditionparam1value then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_checkgoaltimer then
@@ -948,6 +964,14 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if havecovere > 0 then
    return 1
   end
+ end
+ if conditiontype == g_masterinterpreter_cond_ifseeplayer then
+  if g_Entity[ e ]['active'] == 0 then return 0 end
+  if conditionparam1value == nil then conditionparam1value = GetEntityViewRange(e) end
+  if TargetDistance <= conditionparam1value then
+   GetEntityPlayerVisibility(e)
+   return g_Entity[e]['plrvisible']
+  end  
  end
  
  -- Condition is false
@@ -1220,14 +1244,22 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  
  -- Freeze and UnFreeze Target (and ensure Target looking at e doing the attacking)
  if actiontype == g_masterinterpreter_act_freezetarget then
+  if actionparam1value == nil then actionparam1value = 0 end
   if output_e['target'] == "player" then
    if g_masterinterpreter_playerfrozenby == 0 then
-    FreezePlayer()
-    SetCameraOverride(3)
-	g_masterinterpreter_playerweaponid = g_PlayerGunID
-    ChangePlayerWeaponID(0)
-    output_e['frozentheplayer'] = 1
-	g_masterinterpreter_playerfrozenby = e
+    if actionparam1value == 0 then
+     -- total freeze in place
+	 FreezePlayer()
+     SetCameraOverride(3)
+	 g_masterinterpreter_playerweaponid = g_PlayerGunID
+     ChangePlayerWeaponID(0)
+     output_e['frozentheplayer'] = 1
+	 g_masterinterpreter_playerfrozenby = e
+    else
+	 -- for actionparam1value anything above zero requests a smooth freeze
+	 -- so not really a proper freeze (as above), just slow down player for things like spells cast or performed a run-away kill and do not want to overrun the fallen
+     SetCameraOverride(4)
+	end
    end
   end
   if output_e['target'] == "flag" then
@@ -1239,8 +1271,8 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  end
  if actiontype == g_masterinterpreter_act_unfreezetarget then
   if output_e['target'] == "player" then
+   SetCameraOverride(0)
    if g_masterinterpreter_playerfrozenby > 0 then
-    SetCameraOverride(0)
     UnFreezePlayer()
 	ChangePlayerWeaponID(g_masterinterpreter_playerweaponid)
     output_e['frozentheplayer'] = 0
@@ -1307,10 +1339,7 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
     -- enemies prefer allies in range half the time
     output_e['target'] = "hostile"
    else
-    --for when hurt by sniping player, can still target the nasty ol' player
-    --if g_Entity[e]['plrvisible'] == 1 then
-     output_e['target'] = "player"
-	--end
+    output_e['target'] = "player"
    end
   end  
   if allegiance == 1 then
@@ -1699,39 +1728,25 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
  -- Play Sound
  if actiontype == g_masterinterpreter_act_playsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   local allegianceindex = GetEntityAllegiance(e)
-  --if allegianceindex >= 0 and allegianceindex <= 1 then
-   -- special manager for enemy characters
-   local calloutindex = (allegianceindex*10)+actionparam1value
-   if g_calloutmanagertime[calloutindex] ~= nil then
-    if g_Time > g_calloutmanagertime[calloutindex] then
-	 g_calloutmanager[calloutindex] = 0
-	end
-   else
-    g_calloutmanager[calloutindex] = 0
-   end
-   if g_calloutmanager[calloutindex] == 0 then
-    g_calloutmanager[calloutindex] = e
-    g_calloutmanagertime[calloutindex] = g_Time + 3000
-    PlaySound(e,actionparam1value)
-   end
-  --else
-  -- PlaySound(e,actionparam1value)
-  --end
+  local calloutindex = (allegianceindex*10)+actionparam1value
+  g_calloutmanager[calloutindex] = e
+  g_calloutmanagertime[calloutindex] = g_Time + 3000
+  PlaySound(e,actionparam1value)
  end
  
  -- Loop Sound
  if actiontype == g_masterinterpreter_act_loopsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   LoopSound(e,actionparam1value)
  end
  
  -- Stop Sound
  if actiontype == g_masterinterpreter_act_stopsound and actionparam1value ~= nil then
   if actionparam1value < 0 then actionparam1value = 0 end
-  if actionparam1value > 3 then actionparam1value = 3 end
+  if actionparam1value > 6 then actionparam1value = 6 end
   StopSound(e,actionparam1value)
  end
  
@@ -2261,6 +2276,39 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   end
  end 
   
+ -- Allow Zero Health
+ if actiontype == g_masterinterpreter_act_allowzerohealth then
+  SetEntityHealthSilent(e,-1)
+ end 
+
+ -- Destroy No Ragdoll
+ if actiontype == g_masterinterpreter_act_destroynoragdoll then
+  SetEntityHealthSilent(e,-12346)
+  SetEntityHealth(e,-12346)
+  g_Entity[e]['health'] = 0
+  output_e['oldhealth'] = 0
+ end  
+ 
+ -- Play Sound Sparsely
+ if actiontype == g_masterinterpreter_act_playsoundsparsely and actionparam1value ~= nil then
+  if actionparam1value < 0 then actionparam1value = 0 end
+  if actionparam1value > 6 then actionparam1value = 6 end
+  local allegianceindex = GetEntityAllegiance(e)
+  local calloutindex = (allegianceindex*10)+actionparam1value
+  if g_calloutmanagertime[calloutindex] ~= nil then
+   if g_Time > g_calloutmanagertime[calloutindex] then
+	g_calloutmanager[calloutindex] = 0
+   end
+  else
+   g_calloutmanager[calloutindex] = 0
+  end
+  if g_calloutmanager[calloutindex] == 0 then
+   g_calloutmanager[calloutindex] = e
+   g_calloutmanagertime[calloutindex] = g_Time + 3000
+   PlaySound(e,actionparam1value)
+  end
+ end
+ 
 end
 
 function master_interpreter_core.masterinterpreter_restart( output_e, entity_e )

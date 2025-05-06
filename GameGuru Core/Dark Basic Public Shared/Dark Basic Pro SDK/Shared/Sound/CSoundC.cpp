@@ -1607,49 +1607,6 @@ DARKSDK void PauseSound	( int iID )
 #endif
 }
 
-/*
-DARKSDK void SetSoundPan ( int iID, int iPan )
-{
-#ifdef WICKEDAUDIO
-#else
-
-	// if no sound card, leave now
-	if (!g_pSoundManager) return;
-
-	// mike - 010904 - 5.7 - silent return if sound card does not exist
-	if ( !g_pSoundManager->GetExists ( ) )
-		return;
-
-	if ( iID < 1 || iID > MAXIMUMVALUE )
-	{
-		#ifndef IGNOREALLSOUNDERRORS
-		RunTimeError(RUNTIMEERROR_SOUNDNUMBERILLEGAL);
-		#endif
-		return;
-	}
-	if ( !UpdateSoundPtr ( iID ) )
-	{
-		#ifndef IGNOREALLSOUNDERRORS
-		RunTimeError(RUNTIMEERROR_SOUNDNOTEXIST);
-		#endif
-		return;
-	}
-	if ( iPan < -10000 || iPan > 10000 )
-	{
-		#ifndef IGNOREALLSOUNDERRORS
-		RunTimeError(RUNTIMEERROR_SOUNDPANVALUEILLEGAL);
-		#endif
-		return;
-	}
-
-	// set the pan for a sound
-
-	// now set the pan
-	m_ptr->pSound->GetBuffer(0)->SetPan ( iPan );
-#endif
-}
-*/
-
 DARKSDK void SetSoundSpeed ( int iID, int iFrequency )
 {
 #ifdef WICKEDAUDIO

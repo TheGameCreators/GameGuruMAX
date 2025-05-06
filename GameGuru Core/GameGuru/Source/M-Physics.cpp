@@ -73,14 +73,61 @@ void physics_inittweakables ( void )
 	t.playercontrol.thirdperson.camerareticle=1;
 }
 
+void physics_loadmaterialsoundsintomapmat ( LPSTR pOptionalMaterialSoundsFile )
+{
+	if (FileExist(pOptionalMaterialSoundsFile) == 1)
+	{
+		OpenToRead(1, pOptionalMaterialSoundsFile);
+		while (FileEnd(1) == 0)
+		{
+			LPSTR pLine = ReadString(1);
+			if (pLine != NULL)
+			{
+				if (pLine[0] != ';' && strlen(pLine) < 30)
+				{
+					char pNums[MAX_PATH];
+					memset(pNums, 0, sizeof(pNums));
+					if (strlen(pLine) > 3)
+					{
+						strcpy_s(pNums, MAX_PATH, pLine + 3); // skip 'mat'
+					}
+					LPSTR pEqual = strstr(pNums, "=");
+					if (pEqual)
+					{
+						char pMaterialIndex[32];
+						strcpy(pMaterialIndex, pEqual + 1);
+						*pEqual = 0;
+						char pTerrainMatID[32];
+						strcpy(pTerrainMatID, pNums);
+						int iMaterialIndex = atoi(pMaterialIndex);
+						int iMatID = atoi(pTerrainMatID);
+						if (iMatID >= 1 && iMatID <= 32)
+						{
+							g_iMapMatIDToMatIndex[iMatID - 1] = iMaterialIndex;
+						}
+					}
+				}
+			}
+		}
+		CloseFile(1);
+	}
+}
+
+void physics_copymatmaptocustommat (void)
+{
+	extern int g_iCustomTerrainMatSounds[32];
+	for (int i = 0; i < 32; i++)
+	{
+		g_iCustomTerrainMatSounds[i] = g_iMapMatIDToMatIndex[i];
+	}
+}
+
 void physics_init ( void )
 {
-	#ifdef WICKEDENGINE
 	// create material ID to material sound mapping
 	if (g_bMapMatIDToMatIndexAvailable == false)
 	{
 		g_bMapMatIDToMatIndexAvailable = true;
-#ifdef CUSTOMTEXTURES
 		if (t.visuals.customTexturesFolder.Len() > 0)
 		{
 			// Custom terrain materials are determined by user, not matsounds.txt
@@ -93,84 +140,9 @@ void physics_init ( void )
 		else
 		{
 			LPSTR pMatConvertTableFile = "terraintextures\\matsounds.txt";
-			if (FileExist(pMatConvertTableFile) == 1)
-			{
-				OpenToRead(1, pMatConvertTableFile);
-				while (FileEnd(1) == 0)
-				{
-					LPSTR pLine = ReadString(1);
-					if (pLine != NULL)
-					{
-						if (pLine[0] != ';' && strlen(pLine) < 30)
-						{
-							char pNums[MAX_PATH];
-							memset(pNums, 0, sizeof(pNums));
-							if (strlen(pLine) > 3)
-							{
-								strcpy_s(pNums, MAX_PATH, pLine + 3); // skip 'mat'
-							}
-							LPSTR pEqual = strstr(pNums, "=");
-							if (pEqual)
-							{
-								char pMaterialIndex[32];
-								strcpy(pMaterialIndex, pEqual + 1);
-								*pEqual = 0;
-								char pTerrainMatID[32];
-								strcpy(pTerrainMatID, pNums);
-								int iMaterialIndex = atoi(pMaterialIndex);
-								int iMatID = atoi(pTerrainMatID);
-								if (iMatID >= 1 && iMatID <= 32)
-								{
-									g_iMapMatIDToMatIndex[iMatID - 1] = iMaterialIndex;
-								}
-							}
-						}
-					}
-				}
-				CloseFile(1);
+			physics_loadmaterialsoundsintomapmat (pMatConvertTableFile);
 		}
 	}
-#else
-		LPSTR pMatConvertTableFile = "terraintextures\\matsounds.txt";
-		if (FileExist(pMatConvertTableFile) == 1)
-		{
-			OpenToRead(1, pMatConvertTableFile);
-			while (FileEnd(1) == 0)
-			{
-				LPSTR pLine = ReadString(1);
-				if (pLine != NULL)
-				{
-					if (pLine[0] != ';' && strlen(pLine) < 30)
-					{
-						char pNums[MAX_PATH];
-						memset(pNums, 0, sizeof(pNums));
-						if (strlen(pLine) > 3)
-						{
-							strcpy_s(pNums, MAX_PATH, pLine + 3); // skip 'mat'
-						}
-						LPSTR pEqual = strstr(pNums, "=");
-						if (pEqual)
-						{
-							char pMaterialIndex[32];
-							strcpy(pMaterialIndex, pEqual + 1);
-							*pEqual = 0;
-							char pTerrainMatID[32];
-							strcpy(pTerrainMatID, pNums);
-							int iMaterialIndex = atoi(pMaterialIndex);
-							int iMatID = atoi(pTerrainMatID);
-							if (iMatID >= 1 && iMatID <= 32)
-							{
-								g_iMapMatIDToMatIndex[iMatID - 1] = iMaterialIndex;
-							}
-						}
-					}
-				}
-			}
-			CloseFile(1);
-		}
-#endif
-	}
-	#endif
 
 	//  Player Control
 	t.playercontrol.wobble_f=0.0;
@@ -3067,6 +3039,30 @@ void physics_player_handledeath ( void )
 	}
 }
 
+void physics_play_thump_sound (float fX, float fY, float fZ, float fStartFreq, float fFreqRange)
+{
+	int iThumpID = 1 + (rand() % 6);
+	#define SIXTHUMPSOUNDSFORMELEE 6
+	for (int iTryAll = 0; iTryAll < SIXTHUMPSOUNDSFORMELEE; iTryAll++)
+	{
+		if (SoundPlaying(g.meleethumpsoundoffset + iThumpID) == 0)
+			break;
+		iThumpID++;
+		if (iThumpID > SIXTHUMPSOUNDSFORMELEE)
+			iThumpID = 1;
+	}
+	int iThumpSound = g.meleethumpsoundoffset + iThumpID;
+	if (SoundPlaying(iThumpSound) == 0)
+	{
+		if (iThumpSound > 0 && SoundExist(iThumpSound) == 1)
+		{
+			PositionSound (iThumpSound, fX, fY, fZ);
+			SetSoundSpeed (iThumpSound, fStartFreq + Rnd(fFreqRange));
+			PlaySound (iThumpSound);
+		}
+	}
+}
+
 void physics_player_reset_underwaterstate ( void )
 {
 	visuals_underwater_off ( );
@@ -3213,6 +3209,9 @@ void physics_player_takedamage ( void )
 				}
 			}
 
+			// if melee damage, mark with a thump!
+			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 38000, Rnd(8000));
+
 			// Trigger player grunt noise or block sound
 			if(bSuccessfullyBlockingNow==false)
 			{
@@ -3220,7 +3219,7 @@ void physics_player_takedamage ( void )
 				{
 					if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
 					{
-						//  only every one in three or if been a while since we grunted
+						// only ever one in three or if been a while since we grunted
 						t.playercontrol.timesincelastgrunt = Timer();
 						int iLastOne = t.tplrhurt;
 						bool bHaveUniqueSound = false;
@@ -3252,7 +3251,7 @@ void physics_player_takedamage ( void )
 			}
 			else
 			{
-				//  if player is blocking, no damage
+				// if player is blocking, no damage
 				int iRandomBlockSnd = Rnd(3);
 				switch (iRandomBlockSnd)
 				{
@@ -3319,7 +3318,7 @@ void physics_player_takedamage ( void )
 			{
 				if ( t.tDrownDamageFlag == 0 ) 
 				{
-					//  player grunts in deadness if this isn't death by drowning
+					// player grunts in deadness if this isn't death by drowning
 					playinternalsound(t.playercontrol.soundstartindex+1);
 				}
 			}

@@ -675,10 +675,31 @@ bool entity_lua_manageactivationresult (int iEntityID)
 		{
 			// show/hide if particle based on activation state
 			if (t.entityelement[iEntityID].activated == 1)
+			{
+				bool bJustCreated = false;
+				if (t.entityelement[iEntityID].eleprof.newparticle.bParticle_Show_At_Start == false)
+				{
+					bJustCreated = true;
+				}
 				t.entityelement[iEntityID].eleprof.newparticle.bParticle_Show_At_Start = true;
+				entity_updateparticleemitter(iEntityID);
+
+				if (bJustCreated)
+				{
+					int iParticleEmitter = t.entityelement[iEntityID].eleprof.newparticle.emitterid;
+					if (iParticleEmitter != -1)
+					{
+						GPUParticles::gpup_setParticleScale(iParticleEmitter, t.entityelement[iEntityID].eleprof.newparticle.bParticle_Size);
+						GPUParticles::gpup_setEffectAnimationSpeed(iParticleEmitter, t.entityelement[iEntityID].eleprof.newparticle.fParticle_Speed);
+						GPUParticles::gpup_setEffectOpacity(iParticleEmitter, t.entityelement[iEntityID].eleprof.newparticle.fParticle_Opacity);
+					}
+				}
+			}
 			else
+			{
 				t.entityelement[iEntityID].eleprof.newparticle.bParticle_Show_At_Start = false;
-			entity_updateparticleemitter(iEntityID);
+				entity_updateparticleemitter(iEntityID);
+			}
 		}
 	}
 

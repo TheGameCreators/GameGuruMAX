@@ -1079,6 +1079,7 @@ DARKSDK void PlaySound ( int iID )
 			}
 		}
 		wiAudio::Stop(&sound->soundinstance); //Flush so restart.
+		wiAudio::Play(&sound->soundinstance); //PE: Start immediately.
 		sound->Play();
 	}
 	else

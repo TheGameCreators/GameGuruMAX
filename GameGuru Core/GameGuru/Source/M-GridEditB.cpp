@@ -35128,17 +35128,13 @@ void Welcome_Screen(void)
 				if (ImGui::BeginTabItem(" Live Changelog ", NULL, tabflags))
 				{
 					iCurrentOpenTab = 5;
-
-					// can be set every few months (or something better)
-					LPSTR pViewCommitsFrom = "2025-04-01";
-
 					ImGui::Text("");
 					ImGui::SetWindowFontScale(2.0);
 					char pBuildText[1024];
 					sprintf(pBuildText, "%s", g.version_s.Get());
 					ImGui::TextCenter(pBuildText);
 					ImGui::SetWindowFontScale(1.5);
-					ImGui::TextCenter("Showing All Recent Commits");// Commits Since% s", pViewCommitsFrom);
+					ImGui::TextCenter("Showing All Recent Commits");
 					ImGui::TextCenter("");
 					ImGui::SetWindowFontScale(1.3);
 
@@ -35164,7 +35160,6 @@ void Welcome_Screen(void)
 						memset(pDatatmp, 0, sizeof(pDatatmp));
 						DWORD dwDataReturnedSize = 0;
 						char cUrl[10240];
-						//sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?since=%sT00:00:00Z", pViewCommitsFrom);
 						sprintf(cUrl, "repos/TheGameCreators/GameGuruMAX/commits?&per_page=100");
 
 						// access features list from store server
@@ -35264,7 +35259,6 @@ void Welcome_Screen(void)
 					}
 					ImGui::Indent(-2);
 					ImGui::EndChild();
-
 					ImGui::EndTabItem();
 				}
 				if (ImGui::IsMouseHoveringRect(rect.Min, rect.Max)) ImGui::SetTooltip("%s", "View the changelog direct from the GitHub Repository");

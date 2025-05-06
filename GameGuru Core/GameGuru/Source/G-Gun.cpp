@@ -21,6 +21,9 @@ cstr g_guns_customArms_s = "";
 int g_weaponbasicshadereffectindex = 0;
 int g_weaponboneshadereffectindex = 0;
 
+// is used to select a target for a player counter attack
+int g_iCounterAttackTargetForPlayer = 0;
+
 void gun_flashbrass_position(float* pfWorldPosX, float* pfWorldPosY, float* pfWorldPosZ, float fModX, float fModY, float fModZ);
 template<typename T> static inline T PELerp(T a, T b, float t) { return (T)(a + (b - a) * t); }
 
@@ -353,16 +356,6 @@ void gun_manager ( void )
 		}
 	}
 
-	// gun Blocking
-	//t.block = t.player[1].state.blockingaction;
-	//if ( t.block == 1 && t.gunmode < 100 ) 
-	//{
-	//	t.gunmode = 1001;
-	//}
-	//else
-	//{
-	//	if ( t.block != 2 ) t.player[1].state.blockingaction = 0;
-	//}
 	// trigger melee block
 	if (t.player[1].state.blockingaction > 0 && t.gunmode < 100)
 	{
@@ -2341,11 +2334,74 @@ void gun_control ( void )
 	}
 	if (  t.gunmode == 1002 ) 
 	{
+		// currently in mist of blocking
+		extern int g_iSuccessfullyBlockedAtTime;
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		if (g_iSuccessfullyBlockedAtTime > 0)
+		{
+			// when the block actually repelled a hit
+			float actualblockframe = g.firemodes[t.gunid][g.firemode].blockaction.start.e;
+			if (GetFrame(t.currentgunobj) >= actualblockframe)
+			{
+				// sometimes block has gone PAST the ideal block frame, and this throws
+				// off the expected counter phase timing
+				gun_SetObjectInterpolation (t.currentgunobj, 25);
+				if (g_iSuccessfullyBlockedAtTime == 1)
+				{
+					// so give the player a predicted start point for the block
+					// when it receives an attack hitso the counter can be 'easily' timed
+					gun_SetObjectFrame(t.currentgunobj, actualblockframe);
+					gun_PlayObject (t.currentgunobj, actualblockframe, g.firemodes[t.gunid][g.firemode].blockaction.finish.e);
+					g_iSuccessfullyBlockedAtTime = 2;
+				}
+
+				// slow down block animation during the remaining block animation (allows for the counter attack to be selected)
+				float lastblockframe = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
+				float halfthesize = (lastblockframe - actualblockframe)/2.0f;
+				bool bWithinCounterWindowPhase = false;
+				if (GetFrame(t.currentgunobj) <= actualblockframe + halfthesize)
+				{
+					// slow for 'bullet-time' chance to counter
+					t.currentgunanimspeed_f = t.currentgunanimspeed_f * 0.2f;
+					bWithinCounterWindowPhase = true;
+				}
+
+				// detect for attack trigger
+				bool bTriggerCounterAttack = false;
+				if (t.gunclick != 1 && t.gunclick != 3) t.gunmustreleasefirst = 0;
+				if (t.gunmustreleasefirst == 0)
+				{
+					if (t.gunclick == 1 || t.gunclick == 3) bTriggerCounterAttack = true;
+				}
+				if (bTriggerCounterAttack == true)
+				{
+					// counter attack triggered
+					t.gunmustreleasefirst = 0;
+					if (bWithinCounterWindowPhase == true)
+					{
+						// yes, we are within the counter window
+						t.gunmode = 1006;
+					}
+					else
+					{
+						// if miss counter phase window (waited too long after block), you
+						// get the counter fail animation so the player knows they just missed it
+						t.gunmode = 1008;
+					}
+				}
+			}
+			else
+			{
+				// or if block frame not reached yet, speed up to show it (as though we blocked on this frame)
+				t.currentgunanimspeed_f = t.currentgunanimspeed_f * 4.0f;
+			}
+			if (t.currentgunanimspeed_f < 1) t.currentgunanimspeed_f = 1.0f;
+		}
 		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
 		t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
 		if (GetFrame(t.currentgunobj) >= t.gblock.e)
 		{
+			g_iSuccessfullyBlockedAtTime = 0;
 			t.gunmode = 1003;
 		}
 		else
@@ -2356,16 +2412,19 @@ void gun_control ( void )
 				int blockfailstart = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.s;
 				int blockfailfinish = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.e;
 				gun_PlayObject (t.currentgunobj, blockfailstart, blockfailfinish);
+				g_iSuccessfullyBlockedAtTime = 0;
 				t.gunmode = 1004;
 			}
 		}
 	}
-	if (  t.gunmode == 1003 ) 
+	if ( t.gunmode == 1003 ) 
 	{
+		gun_SetObjectInterpolation ( t.currentgunobj,100 );
+		gun_SetObjectFrame( t.currentgunobj, g.firemodes[t.gunid][g.firemode].action.idle.s);
 		t.gunmode=5;
 		t.player[1].state.blockingaction=3;
 	}
-	if (t.gunmode == 1004)
+	if ( t.gunmode == 1004)
 	{
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
 		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
@@ -2373,6 +2432,97 @@ void gun_control ( void )
 		if (GetFrame(t.currentgunobj) >= blockfailfinish)
 		{
 			t.gunmode = 1003;
+		}
+	}
+
+	// block counter handling
+	if (t.gunmode == 1006 || t.gunmode == 1008)
+	{
+		// counter action triggered at right time, execute player animation for it
+		// blockaction.start2.s - counter (1006) inside counter window
+		// blockaction.finish2.s - counter fail (1008) outside counter window
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		gun_SetObjectInterpolation (t.currentgunobj, 100);
+		if (t.gunmode == 1006)
+		{
+			t.gblock.s = g.firemodes[t.gunid][g.firemode].blockaction.start2.s;
+			t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.start2.e;
+		}
+		if (t.gunmode == 1008)
+		{
+			t.gblock.s = g.firemodes[t.gunid][g.firemode].blockaction.finish2.s;
+			t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.finish2.e;
+		}
+		gun_PlayObject (t.currentgunobj, t.gblock.s, t.gblock.e);
+		if (t.gunmode == 1006) t.gunmode = 1007;
+		if (t.gunmode == 1008) t.gunmode = 1009;
+	}
+	if (t.gunmode == 1007 || t.gunmode == 1009)
+	{
+		// handle player animation of the counter attack
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		gun_SetObjectInterpolation (t.currentgunobj, 25);
+		if (GetFrame(t.currentgunobj) >= t.gblock.e)
+		{
+			g_iCounterAttackTargetForPlayer = 0;
+			t.gunmode = 1003;
+		}
+
+		// if have a target in sight (the one who originally hit the player and was blocked)
+		if (t.gunmode == 1007)
+		{
+			if (g_iCounterAttackTargetForPlayer > 0)
+			{
+				// make it a fast attack by default, not a tickle!
+				t.currentgunanimspeed_f = t.genericgunanimspeed_f * 1.25f;
+				gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+
+				// during the counter attack, the player locks onto the target
+				int e = g_iCounterAttackTargetForPlayer;
+				//needs to be smooth if this is to work!
+				float fDX = t.entityelement[e].x - CameraPositionX();
+				float fDZ = t.entityelement[e].z - CameraPositionZ();
+				float fDA = atan2deg(fDX, fDZ);
+				//t.playercontrol.cy_f = WrapValue(fDA);
+				//RotateCamera (0, t.playercontrol.cx_f, t.playercontrol.cy_f, t.playercontrol.cz_f);
+
+				// and forces forward as through stepping forward
+				t.playercontrol.pushangle_f = CameraAngleY();// fDA;
+				t.playercontrol.pushforce_f = 0.01f;
+
+				// when CONTACT (fist/etc) frame strikes
+				float fContactFrame = t.gblock.s + ((t.gblock.e - t.gblock.s) * 0.5f);
+				if (GetFrame(t.currentgunobj) >= fContactFrame)
+				{
+					// make a punch/thump sound
+					extern void physics_play_thump_sound (float fX, float fY, float fZ, float fFreqStart, float fFreqRange);
+					physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 44000, Rnd(6000));
+
+					// and a camera thumping shake
+					t.playercontrol.camerashake_f = 75.0f;
+
+					// until we get more char animations for the rollback, just ragdoll/deatrhanimit
+					t.ttte = e;
+					t.tdamage = t.entityelement[e].health;
+					t.tdamageforce = 0.0f;
+					t.brayx1_f = CameraPositionX();
+					t.brayy1_f = CameraPositionY();
+					t.brayz1_f = CameraPositionZ();
+					t.brayx2_f = t.entityelement[e].x;
+					t.brayy2_f = t.entityelement[e].y;
+					t.brayz2_f = t.entityelement[e].z;
+					t.tallowanykindofdamage = 0;
+					t.twhox_f = t.brayx1_f;
+					t.twhoz_f = t.brayz1_f;
+					t.tdamagesource = 1;
+					entity_applydamage();
+
+					// do this once
+					g_iCounterAttackTargetForPlayer = 0;
+				}
+			}
 		}
 	}
 

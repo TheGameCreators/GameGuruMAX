@@ -566,7 +566,7 @@ void gun_loaddata ( void )
 					{
 						int animfields = 0;
 						bool bAnimationField = false;
-						for (; animfields <= 84; animfields++)
+						for (; animfields <= 86; animfields++)
 						{
 							LPSTR pFieldName = "";
 							if (animfields == 0) pFieldName = "select";
@@ -654,6 +654,8 @@ void gun_loaddata ( void )
 							if (animfields == 82) pFieldName = "block loop";
 							if (animfields == 83) pFieldName = "block end";
 							if (animfields == 84) pFieldName = "block fail";
+							if (animfields == 85) pFieldName = "block counter";
+							if (animfields == 86) pFieldName = "block counterfail";
 							cmpStrConst(t_field_s, pFieldName);
 							if (matched)
 							{
@@ -695,7 +697,7 @@ void gun_loaddata ( void )
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 69) g.firemodes[t.gunid][iAltIndex].zoomaction.start2.e = t.value1 - 1; // pFieldName = "zoom start fire 2";
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 70) g.firemodes[t.gunid][iAltIndex].zoomaction.start3.e = t.value1 - 1; // pFieldName = "zoom start fire 3";
 									if (iModifyTheLastFinishFrameWhenKnowPerc == 75) g.firemodes[t.gunid][iAltIndex].zoomaction.laststart.e = t.value1 - 1; // pFieldName = "zoom last start fire";
-									if (iModifyTheLastFinishFrameWhenKnowPerc == 81) g.firemodes[t.gunid][iAltIndex].blockaction.start.e = t.value1 - 1; // pFieldName = "block start";
+									//if (iModifyTheLastFinishFrameWhenKnowPerc == 81) g.firemodes[t.gunid][iAltIndex].blockaction.start.e = t.value1 - 1; // pFieldName = "block start";
 									iModifyTheLastFinishFrameWhenKnowPerc = 0;
 								}
 								fLastFinishFrameFromAnimName = -1;
@@ -728,7 +730,7 @@ void gun_loaddata ( void )
 									if (animfields == 69) bPartOfStartEndSet = true; // pFieldName = "zoom start fire 2";
 									if (animfields == 70) bPartOfStartEndSet = true; // pFieldName = "zoom start fire 3";
 									if (animfields == 75) bPartOfStartEndSet = true; // pFieldName = "zoom last start fire";
-									if (animfields == 81) bPartOfStartEndSet = true; // pFieldName = "block start";
+									//if (animfields == 81) bPartOfStartEndSet = true; // pFieldName = "block start";
 									if (bPartOfStartEndSet == true)
 									{
 										fLastStartFrameFromAnimName = t.value1;
@@ -933,6 +935,10 @@ void gun_loaddata ( void )
 					if (matched) { g.firemodes[t.gunid][0].blockaction.finish.s = t.value1; g.firemodes[t.gunid][0].blockaction.finish.e = t.value2; }
 					cmpStrConst(t_field_s, "block fail");
 					if (matched) { g.firemodes[t.gunid][0].blockaction.dryfire.s = t.value1; g.firemodes[t.gunid][0].blockaction.dryfire.e = t.value2; }
+					cmpStrConst(t_field_s, "block counter");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.start2.s = t.value1; g.firemodes[t.gunid][0].blockaction.start2.e = t.value2; }
+					cmpStrConst(t_field_s, "block counterfail");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.finish2.s = t.value1; g.firemodes[t.gunid][0].blockaction.finish2.e = t.value2; }
 
 					//  Gun repeat-fire sound
 					cmpStrConst( t_field_s, "fireloop" );

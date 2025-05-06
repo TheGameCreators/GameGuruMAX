@@ -29,6 +29,8 @@ int g_iLastProgressPercentage = -1;
 bool g_bMapMatIDToMatIndexAvailable = false;
 int g_iMapMatIDToMatIndex[32];
 
+int g_iSuccessfullyBlockedAtTime = 0;
+
 #endif
 
 #ifdef OPTICK_ENABLE
@@ -3117,14 +3119,45 @@ void physics_player_takedamage ( void )
 	{
 		float protectedstart = g.firemodes[t.gunid][g.firemode].blockaction.idle.s;
 		float protectedend = g.firemodes[t.gunid][g.firemode].blockaction.idle.e;
+		if (protectedstart == 0 && protectedstart == 0)
+		{
+			// when block loop (idle) missing, use entire block sequence as more generous block
+			protectedstart = g.firemodes[t.gunid][g.firemode].blockaction.start.s;
+			protectedend = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
+		}
+		else
+		{
+			// be a 'little' lenient when using BLOCK LOOP phase, allowing for the block frame to rest
+			protectedstart -= 2; protectedend += 5;
+			if (protectedend > g.firemodes[t.gunid][g.firemode].blockaction.finish.e)
+			{
+				// however do not allow it to go beyond end of block finish frame
+				protectedend = g.firemodes[t.gunid][g.firemode].blockaction.finish.e;
+			}
+		}
 		float fFrameNow = GetFrame(t.currentgunobj);
 		if (fFrameNow >= protectedstart && fFrameNow <= protectedend)
 		{
+			// block has succeeded, player hurt within block range
 			bSuccessfullyBlockingNow = true;
+
+			// to give us an extra game cycle of bullet time!
+			SetObjectSpeed (t.currentgunobj, 1);
+
+			// if this entity hitteer was blocked, then it has opened itself up to being counter attacked :)
+			if (t.te > 0)
+			{
+				extern int g_iCounterAttackTargetForPlayer;
+				if (g_iCounterAttackTargetForPlayer == 0)
+				{
+					g_iCounterAttackTargetForPlayer = t.te;
+				}
+			}
 		}
 		else
 		{
 			// block has failed, player hurt outside of block range
+			// this can only trigger if BLOCK LOOP is specified, ie the window of ACTUAL block!
 			t.player[1].state.blockingaction = 4;
 		}
 	}
@@ -3252,6 +3285,8 @@ void physics_player_takedamage ( void )
 			else
 			{
 				// if player is blocking, no damage
+				
+				// and play shield style sound with subtle camera shake to show we took it well!
 				int iRandomBlockSnd = Rnd(3);
 				switch (iRandomBlockSnd)
 				{
@@ -3265,18 +3300,25 @@ void physics_player_takedamage ( void )
 				if (t.tdamage < 50) iMinDamage = 50;
 				t.playercontrol.camerashake_f = (iMinDamage / 100.0f) * 100.0f;
 
-				// but repel their damage back to the attacher
+				// but repel their damage back to the attacker
 				t.ttte = t.te;
 				t.tdamage = t.tdamage/2.0f;
 				t.tdamageforce = 0.0f;
-				t.tdamagesource = 0;
-				t.brayx1_f = t.entityelement[t.te].x;
+				t.brayx1_f = CameraPositionX();
+				t.brayy1_f = CameraPositionY();
+				t.brayz1_f = CameraPositionZ();
 				t.brayx2_f = t.entityelement[t.te].x;
-				t.brayy1_f = t.entityelement[t.te].y;
 				t.brayy2_f = t.entityelement[t.te].y;
-				t.brayz1_f = t.entityelement[t.te].z;
 				t.brayz2_f = t.entityelement[t.te].z;
+				t.tallowanykindofdamage = 0;
+				t.twhox_f = t.brayx1_f;
+				t.twhoz_f = t.brayz1_f;
+				t.tdamagesource = 1;
 				entity_applydamage ();
+
+				// and mark an actual player block
+				if (g_iSuccessfullyBlockedAtTime == 0)
+					g_iSuccessfullyBlockedAtTime = 1;
 
 				// no further player damage code
 				return;

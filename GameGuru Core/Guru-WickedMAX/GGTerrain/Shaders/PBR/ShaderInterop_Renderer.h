@@ -32,8 +32,8 @@ struct ShaderMaterial
 
 	float		transmission;
 	uint		options;
-	int			padding0;
-	int			padding1;
+	float		customShaderParam1;
+	float		customShaderParam2;
 
 	uint		layerMask;
 	int			uvset_baseColorMap;
@@ -52,8 +52,8 @@ struct ShaderMaterial
 
 	int			uvset_clearcoatNormalMap;
 	int			uvset_specularMap;
-	int			padding2;
-	int			padding3;
+	float		customShaderParam3;
+	float		customShaderParam4;
 
 	float		sheenRoughness;
 	float		clearcoat;

@@ -3084,14 +3084,11 @@ void physics_player_takedamage ( void )
 	// Uses tDrownDamageFlag to avoid blood splats and other non drowning damage effects.
 	// This is set to 0 after takedamage is called, so doesn't need to be unset elsewhere
 	// before calling this sub
-
-	#ifdef PRODUCTV3
-	// 090419 - special VR mode also disables concepts of being damaged
-	if (g.vrqcontrolmode != 0) return; //g.gvrmode == 3 ) return;
-	#endif
+	float fOriginalDamage = t.tdamage;
 
 	// Apply player shake, even if immune to damage
-	if ((t.tdamage > 0 && t.player[t.plrid].health > 0 && t.player[t.plrid].health < 99999) || t.tdamage > 65000)
+	//if ((t.tdamage > 0 && t.player[t.plrid].health > 0 && t.player[t.plrid].health < 99999) || t.tdamage > 65000)
+	if ((t.tdamage > 0 && t.player[t.plrid].health > 0) || t.tdamage > 65000)
 	{
 		float fMoreShakeIfMeleeBased = 1.0f;
 		if (t.te > 0)
@@ -3169,8 +3166,16 @@ void physics_player_takedamage ( void )
 	if ( t.conkit.editmodeactive != 0  )  return;
 
 	//  Apply player health damage
-	if (  (t.tdamage>0 && t.player[t.plrid].health>0 && t.player[t.plrid].health<99999) || t.tdamage>65000 ) 
+	if (  (t.tdamage>0 && t.player[t.plrid].health>0) || t.tdamage>65000 ) 
 	{
+		// aloow all player hit code to proceed (block/etc) but just deal no damage
+		bool bImmunityFromActualDamage = false;
+		if (t.player[t.plrid].health >= 99999)
+		{
+			bImmunityFromActualDamage = true;
+			t.tdamage = 0;
+		}
+
 		//  Flag player damage in health regen code
 		if (  t.playercontrol.regentime>0  )  t.playercontrol.regentime = Timer();
 
@@ -3226,17 +3231,20 @@ void physics_player_takedamage ( void )
 				}
 				else
 				{
-					if (  t.te != -1 ) 
+					if (bImmunityFromActualDamage == false)
 					{
-						// only if entity caused damage
-						new_damage_marker(t.te,ObjectPositionX(t.entityelement[t.te].obj),ObjectPositionY(t.entityelement[t.te].obj),ObjectPositionZ(t.entityelement[t.te].obj),t.tdamage);
-					}
-					else
-					{
-						// hurt from non-entity source
-						for ( t.iter = 0 ; t.iter<=  9; t.iter++ )
+						if (t.te != -1)
 						{
-							placeblood(50,0,0,0,0);
+							// only if entity caused damage
+							new_damage_marker(t.te, ObjectPositionX(t.entityelement[t.te].obj), ObjectPositionY(t.entityelement[t.te].obj), ObjectPositionZ(t.entityelement[t.te].obj), t.tdamage);
+						}
+						else
+						{
+							// hurt from non-entity source
+							for (t.iter = 0; t.iter <= 9; t.iter++)
+							{
+								placeblood(50, 0, 0, 0, 0);
+							}
 						}
 					}
 				}
@@ -3246,39 +3254,42 @@ void physics_player_takedamage ( void )
 			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 38000, Rnd(8000));
 
 			// Trigger player grunt noise or block sound
-			if(bSuccessfullyBlockingNow==false)
+			if (bSuccessfullyBlockingNow == false)
 			{
-				if ( t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2 ) 
+				if (bImmunityFromActualDamage == false)
 				{
-					if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
+					if (t.playercontrol.startviolent != 0 && g.quickparentalcontrolmode != 2)
 					{
-						// only ever one in three or if been a while since we grunted
-						t.playercontrol.timesincelastgrunt = Timer();
-						int iLastOne = t.tplrhurt;
-						bool bHaveUniqueSound = false;
-						while (bHaveUniqueSound == false)
+						if ((DWORD)(Timer() + 250) > t.playercontrol.timesincelastgrunt)
 						{
-							int iRandomHurt = Rnd(12);
-							switch (iRandomHurt)
+							// only ever one in three or if been a while since we grunted
+							t.playercontrol.timesincelastgrunt = Timer();
+							int iLastOne = t.tplrhurt;
+							bool bHaveUniqueSound = false;
+							while (bHaveUniqueSound == false)
 							{
-								case 0: t.tplrhurt = 1; break;
-								case 1: t.tplrhurt = 2; break;
-								case 2: t.tplrhurt = 3; break;
-								case 3: t.tplrhurt = 4; break;
-								case 4: t.tplrhurt = 8; break;
-								case 5: t.tplrhurt = 9; break;
-								case 6: t.tplrhurt = 10; break;
-								case 7: t.tplrhurt = 16; break;
-								case 8: t.tplrhurt = 21; break;
-								case 9: t.tplrhurt = 22; break;
-								case 10: t.tplrhurt = 23; break;
-								case 11: t.tplrhurt = 24; break;
-								case 12: t.tplrhurt = 25; break;
+								int iRandomHurt = Rnd(12);
+								switch (iRandomHurt)
+								{
+									case 0: t.tplrhurt = 1; break;
+									case 1: t.tplrhurt = 2; break;
+									case 2: t.tplrhurt = 3; break;
+									case 3: t.tplrhurt = 4; break;
+									case 4: t.tplrhurt = 8; break;
+									case 5: t.tplrhurt = 9; break;
+									case 6: t.tplrhurt = 10; break;
+									case 7: t.tplrhurt = 16; break;
+									case 8: t.tplrhurt = 21; break;
+									case 9: t.tplrhurt = 22; break;
+									case 10: t.tplrhurt = 23; break;
+									case 11: t.tplrhurt = 24; break;
+									case 12: t.tplrhurt = 25; break;
+								}
+								if (iLastOne != t.tplrhurt) bHaveUniqueSound = true;
 							}
-							if (iLastOne != t.tplrhurt) bHaveUniqueSound = true;
+							t.tsnd = t.playercontrol.soundstartindex + t.tplrhurt;
+							playinternalsound(t.tsnd);
 						}
-						t.tsnd = t.playercontrol.soundstartindex + t.tplrhurt;
-						playinternalsound(t.tsnd);
 					}
 				}
 			}
@@ -3300,9 +3311,13 @@ void physics_player_takedamage ( void )
 				if (t.tdamage < 50) iMinDamage = 50;
 				t.playercontrol.camerashake_f = (iMinDamage / 100.0f) * 100.0f;
 
+				// aloow all player hit code to proceed (block/etc) but just deal no damage
+				if (t.player[t.plrid].health >= 99999) t.tdamage = fOriginalDamage;
+				float fhalfdamagebacktoenemy = t.tdamage / 2.0f;
+
 				// but repel their damage back to the attacker
 				t.ttte = t.te;
-				t.tdamage = t.tdamage/2.0f;
+				t.tdamage = fhalfdamagebacktoenemy;
 				t.tdamageforce = 0.0f;
 				t.brayx1_f = CameraPositionX();
 				t.brayy1_f = CameraPositionY();

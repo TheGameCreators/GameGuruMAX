@@ -2112,7 +2112,7 @@ void charactercreatorplus_refreshtype(void)
 
 	// as character parts have no animations, wipe out ones they do have
 	// and replace with the latest animation set for this base mesh
-	cstr final_name = "charactercreatorplus\\parts\\";
+	cstr final_name = "charactercreatorplus\\animations\\sets\\";
 	final_name = final_name + CCP_Type;
 	final_name = final_name +"\\default animations" + CCPMODELEXT;
 	if (FileExist(final_name.Get()))

@@ -2786,7 +2786,7 @@ int fillgloballistwithCharAnimSetsQuick(int iSpecialValue)
 	// one time check to see if booster anims available
 	if (g_bCheckedBoosterAnims == false)
 	{
-		if (FileExist("charactercreatorplus\\parts\\adult male\\default animations-pistol-lowered.dbo"))
+		if (FileExist("charactercreatorplus\\animations\\sets\\adult male\\default animations-pistol-lowered.dbo"))
 		{
 			g_bDoWeHaveBoosterAnims = true;
 		}
@@ -29828,30 +29828,30 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 				thisLabel = t.list_s[n];
 			if (strlen (thisLabel.Get()) == 0) thisLabel = "Default Animation";
 			if (strlen (thisLabel.Get()) == 1) thisLabel = "Original Animation";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations.dbo") == NULL) thisLabel = "Adult Male Pistol";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-rifle.dbo") == NULL) thisLabel = "Adult Male Rifle";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-pistol-lowered.dbo") == NULL) thisLabel = "Adult Male Pistol Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-rifle-lowered.dbo") == NULL) thisLabel = "Adult Male Rifle Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-shotgun-lowered.dbo") == NULL) thisLabel = "Adult Male Shotgun Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-melee.dbo") == NULL) thisLabel = "Adult Male Melee";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-axe.dbo") == NULL) thisLabel = "Adult Male Axe";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult male\\default animations-spear.dbo") == NULL) thisLabel = "Adult Male Spear";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations.dbo") == NULL) thisLabel = "Adult Male Pistol";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-rifle.dbo") == NULL) thisLabel = "Adult Male Rifle";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-pistol-lowered.dbo") == NULL) thisLabel = "Adult Male Pistol Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-rifle-lowered.dbo") == NULL) thisLabel = "Adult Male Rifle Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-shotgun-lowered.dbo") == NULL) thisLabel = "Adult Male Shotgun Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-melee.dbo") == NULL) thisLabel = "Adult Male Melee";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-axe.dbo") == NULL) thisLabel = "Adult Male Axe";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult male\\default animations-spear.dbo") == NULL) thisLabel = "Adult Male Spear";
 
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations.dbo") == NULL) thisLabel = "Adult Female Pistol";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-rifle.dbo") == NULL) thisLabel = "Adult Female Rifle";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-pistol-lowered.dbo") == NULL) thisLabel = "Adult Female Pistol Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-rifle-lowered.dbo") == NULL) thisLabel = "Adult Female Rifle Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-shotgun-lowered.dbo") == NULL) thisLabel = "Adult Female Shotgun Lowered";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-melee.dbo") == NULL) thisLabel = "Adult Female Melee";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-axe.dbo") == NULL) thisLabel = "Adult Female Axe";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\adult female\\default animations-spear.dbo") == NULL) thisLabel = "Adult Female Spear";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations.dbo") == NULL) thisLabel = "Adult Female Pistol";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-rifle.dbo") == NULL) thisLabel = "Adult Female Rifle";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-pistol-lowered.dbo") == NULL) thisLabel = "Adult Female Pistol Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-rifle-lowered.dbo") == NULL) thisLabel = "Adult Female Rifle Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-shotgun-lowered.dbo") == NULL) thisLabel = "Adult Female Shotgun Lowered";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-melee.dbo") == NULL) thisLabel = "Adult Female Melee";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-axe.dbo") == NULL) thisLabel = "Adult Female Axe";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\adult female\\default animations-spear.dbo") == NULL) thisLabel = "Adult Female Spear";
 
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie male\\default animations.dbo") == NULL) thisLabel = "Zombie Male";
-			if (stricmp (thisLabel.Get(), "charactercreatorplus\\parts\\zombie female\\default animations.dbo") == NULL) thisLabel = "Zombie Female";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\zombie male\\default animations.dbo") == NULL) thisLabel = "Zombie Male";
+			if (stricmp (thisLabel.Get(), "charactercreatorplus\\animations\\sets\\zombie female\\default animations.dbo") == NULL) thisLabel = "Zombie Female";
 
-			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-melee.dbo") == NULL) thisLabel = "Low Poly Melee";
-			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-axe.dbo") == NULL) thisLabel = "Low Poly Axe";
-			if (stricmp(thisLabel.Get(), "charactercreatorplus\\parts\\low poly\\default animations-spear.dbo") == NULL) thisLabel = "Low Poly Spear";
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\animations\\sets\\low poly\\default animations-melee.dbo") == NULL) thisLabel = "Low Poly Melee";
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\animations\\sets\\low poly\\default animations-axe.dbo") == NULL) thisLabel = "Low Poly Axe";
+			if (stricmp(thisLabel.Get(), "charactercreatorplus\\animations\\sets\\low poly\\default animations-spear.dbo") == NULL) thisLabel = "Low Poly Spear";
 
 			if (n == -1)
 				ldata_s = thisLabel;
@@ -29958,30 +29958,30 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 				thisLabel = t.list_s[n];
 			if (stricmp (thisLabel.Get(), "Default Animation") == NULL) thisLabel = "";
 			if (stricmp (thisLabel.Get(), "Original Animation") == NULL) thisLabel = "-";
-			if (stricmp (thisLabel.Get(), "Adult Male Pistol") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Rifle") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-rifle.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Pistol Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-pistol-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Rifle Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-rifle-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Shotgun Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-shotgun-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Melee") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-melee.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Axe") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-axe.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Male Spear") == NULL) thisLabel = "charactercreatorplus\\parts\\adult male\\default animations-spear.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Pistol") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Rifle") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-rifle.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Pistol Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-pistol-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Rifle Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-rifle-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Shotgun Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-shotgun-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Melee") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-melee.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Axe") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-axe.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Male Spear") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult male\\default animations-spear.dbo";
 
-			if (stricmp (thisLabel.Get(), "Adult Female Pistol") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Rifle") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-rifle.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Pistol Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-pistol-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Rifle Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-rifle-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Shotgun Lowered") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-shotgun-lowered.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Melee") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-melee.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Axe") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-axe.dbo";
-			if (stricmp (thisLabel.Get(), "Adult Female Spear") == NULL) thisLabel = "charactercreatorplus\\parts\\adult female\\default animations-spear.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Pistol") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Rifle") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-rifle.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Pistol Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-pistol-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Rifle Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-rifle-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Shotgun Lowered") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-shotgun-lowered.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Melee") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-melee.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Axe") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-axe.dbo";
+			if (stricmp (thisLabel.Get(), "Adult Female Spear") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\adult female\\default animations-spear.dbo";
 
-			if (stricmp (thisLabel.Get(), "Zombie Male") == NULL) thisLabel = "charactercreatorplus\\parts\\zombie male\\default animations.dbo";
-			if (stricmp (thisLabel.Get(), "Zombie Female") == NULL) thisLabel = "charactercreatorplus\\parts\\zombie female\\default animations.dbo";
+			if (stricmp (thisLabel.Get(), "Zombie Male") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\zombie male\\default animations.dbo";
+			if (stricmp (thisLabel.Get(), "Zombie Female") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\zombie female\\default animations.dbo";
 
-			if (stricmp(thisLabel.Get(), "Low Poly Melee") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-melee.dbo";
-			if (stricmp(thisLabel.Get(), "Low Poly Axe") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-axe.dbo";
-			if (stricmp(thisLabel.Get(), "Low Poly Spear") == NULL) thisLabel = "charactercreatorplus\\parts\\low poly\\default animations-spear.dbo";
+			if (stricmp(thisLabel.Get(), "Low Poly Melee") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\low poly\\default animations-melee.dbo";
+			if (stricmp(thisLabel.Get(), "Low Poly Axe") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\low poly\\default animations-axe.dbo";
+			if (stricmp(thisLabel.Get(), "Low Poly Spear") == NULL) thisLabel = "charactercreatorplus\\animations\\sets\\low poly\\default animations-spear.dbo";
 
 			if (n == -1)
 				ldata_s = thisLabel;

@@ -2601,19 +2601,28 @@ void entity_lua_setentityhealth_core ( int iSilentOrDamage )
 			if (iSilentOrDamage == 2)
 			{
 				t.ttte = t.e;
-				t.tdamage = t.entityelement[t.e].health - t.v;
-				t.tdamageforce = 0.0f;
-				t.tdamagesource = 0;
-				t.brayx1_f = t.entityelement[t.e].x;
-				t.brayx2_f = t.entityelement[t.e].x;
-				t.brayy1_f = t.entityelement[t.e].y;
-				t.brayy2_f = t.entityelement[t.e].y;
-				t.brayz1_f = t.entityelement[t.e].z;
-				t.brayz2_f = t.entityelement[t.e].z;
-				t.tallowanykindofdamage = 1;
-				entity_applydamage ();
-				entity_applydecalfordamage(t.e, -1, -1, -1);
-				t.tallowanykindofdamage = 0;
+				// check if immunity effectively blocked this damage
+				if (t.entityelement[t.e].health > 99000)
+				{
+					// the entity t.e blocked this damage, allow them to
+					// counter attack having deflected the potential damage avoided
+				}
+				else
+				{
+					t.tdamage = t.entityelement[t.e].health - t.v;
+					t.tdamageforce = 0.0f;
+					t.tdamagesource = 0;
+					t.brayx1_f = t.entityelement[t.e].x;
+					t.brayx2_f = t.entityelement[t.e].x;
+					t.brayy1_f = t.entityelement[t.e].y;
+					t.brayy2_f = t.entityelement[t.e].y;
+					t.brayz1_f = t.entityelement[t.e].z;
+					t.brayz2_f = t.entityelement[t.e].z;
+					t.tallowanykindofdamage = 1;
+					entity_applydamage ();
+					entity_applydecalfordamage(t.e, -1, -1, -1);
+					t.tallowanykindofdamage = 0;
+				}
 			}
 			else
 			{

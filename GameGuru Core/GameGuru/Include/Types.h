@@ -8330,12 +8330,14 @@ struct playerstatetype
 	int moving;
 	int firingmode;
 	int blockingaction;
+	int counteredaction;
 	int empty;
 
 	// Constructor
 	playerstatetype ( )
 	{
 		 empty = 0;
+		 counteredaction = 0;
 		 blockingaction = 0;
 		 firingmode = 0;
 		 moving = 0;

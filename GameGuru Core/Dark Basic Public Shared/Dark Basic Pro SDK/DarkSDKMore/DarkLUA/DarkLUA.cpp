@@ -2543,28 +2543,67 @@ luaMessage** ppLuaMessages = NULL;
 	 {
 		 float fFoundStart = -1, fFoundFinish = -1;
 		 cstr pStr = (LPSTR)pAnimationName;
-		 extern int entity_lua_getanimationname(int, cstr, float*, float*);
-		 int iAnimSetIndex = entity_lua_getanimationname (iEntityIndex, pStr, &fFoundStart, &fFoundFinish);
-		 if (iAnimSetIndex > 0)
+		 if (iAnimQueryMode == 2)
 		 {
-			 if (iAnimQueryMode == 1)
+			 // find any anim that anim exists and matches keyword, and is playing
+			 char pSearchKeyword[MAX_PATH];
+			 strcpy (pSearchKeyword, pStr.Get());
+			 strlwr(pSearchKeyword);
+			 int iObj = t.entityelement[iEntityIndex].obj;
+			 if (iObj > 0)
 			 {
-				 // anim exists, and is playing?
-				 int iObj = t.entityelement[iEntityIndex].obj;
-				 if (iObj > 0)
+				 sObject* pObject = GetObjectData(iObj);
+				 sAnimationSet* pAnimSet = pObject->pAnimationSet;
+				 while (pAnimSet)
 				 {
-					 sObject* pObject = GetObjectData(iObj);
-					 float fCurrentFrame = WickedCall_GetObjectFrame(pObject);
-					 if (fCurrentFrame >= fFoundStart && fCurrentFrame <= fFoundFinish)
+					 char pAnimSetNameLower[MAX_PATH];
+					 strcpy (pAnimSetNameLower, pAnimSet->szName);
+					 strlwr(pAnimSetNameLower);
+					 if (strstr(pAnimSetNameLower, pSearchKeyword) != NULL)
 					 {
-						 iReturnValue = iAnimSetIndex;
+						 // found this keyword inside this anim name
+						 extern int entity_lua_getanimationname(int, cstr, float*, float*);
+						 int iAnimSetIndex = entity_lua_getanimationname (iEntityIndex, pAnimSet->szName, &fFoundStart, &fFoundFinish);
+						 if (iAnimSetIndex > 0)
+						 {
+							 float fCurrentFrame = WickedCall_GetObjectFrame(pObject);
+							 if (fCurrentFrame >= fFoundStart && fCurrentFrame <= fFoundFinish)
+							 {
+								 iReturnValue = iAnimSetIndex;
+								 break;
+							 }
+						 }
 					 }
+					 if (iReturnValue > 0) break;
+					 pAnimSet = pAnimSet->pNext;
 				 }
 			 }
-			 else
+		 }
+		 else
+		 {
+			 extern int entity_lua_getanimationname(int, cstr, float*, float*);
+			 int iAnimSetIndex = entity_lua_getanimationname (iEntityIndex, pStr, &fFoundStart, &fFoundFinish);
+			 if (iAnimSetIndex > 0)
 			 {
-				 // anim exists
-				 iReturnValue = iAnimSetIndex;
+				 if (iAnimQueryMode == 1)
+				 {
+					 // anim exists, and is playing?
+					 int iObj = t.entityelement[iEntityIndex].obj;
+					 if (iObj > 0)
+					 {
+						 sObject* pObject = GetObjectData(iObj);
+						 float fCurrentFrame = WickedCall_GetObjectFrame(pObject);
+						 if (fCurrentFrame >= fFoundStart && fCurrentFrame <= fFoundFinish)
+						 {
+							 iReturnValue = iAnimSetIndex;
+						 }
+					 }
+				 }
+				 else
+				 {
+					 // anim exists
+					 iReturnValue = iAnimSetIndex;
+				 }
 			 }
 		 }
 	 }
@@ -2581,6 +2620,11 @@ luaMessage** ppLuaMessages = NULL;
  int GetEntityAnimationNameExistAndPlaying(lua_State *L)
  {
 	 int iAnimQueryMode = 1;
+	 return GetEntityAnimationNameExistCore(L, iAnimQueryMode);
+ }
+ int GetEntityAnimationNameExistAndPlayingSearchAny(lua_State* L)
+ {
+	 int iAnimQueryMode = 2;
 	 return GetEntityAnimationNameExistCore(L, iAnimQueryMode);
  }
 
@@ -8586,6 +8630,8 @@ int SetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 503 : break;
 		case 504 : break;
 
+		case 601: t.player[t.plrid].state.counteredaction = lua_tonumber(L, 1); break;
+
 		case 700 :  iSrc = lua_tonumber(L, 1);
 					iDest = lua_tonumber(L, 2);
 					if ( iDest == 0 ) 
@@ -8968,6 +9014,8 @@ int GetGamePlayerControlData ( lua_State *L, int iDataMode )
 		case 503 : lua_pushnumber ( L, JoystickHatAngle(lua_tonumber(L, 1)) ); break;
 		case 504 : lua_pushnumber ( L, JoystickFireXL(lua_tonumber(L, 1)) ); break;
 
+		case 601: lua_pushnumber (L, t.player[t.plrid].state.counteredaction); break;
+			
 		case 701 :	iSrc = lua_tonumber(L, 1);
 					if ( iSrc == 0 )
 						lua_pushnumber ( L, t.charanimstate.playcsi ); 
@@ -9024,6 +9072,24 @@ int GetPlayerFov (lua_State* L)
 	lua_pushnumber (L, iPlayerFOVPerc);
 	return 1;
 }
+int GetPlayerAttacking (lua_State* L)
+{
+	int iPlayerIsAttackingNow = 0;
+	if (t.gunmode >= 101 && t.gunmode < 110) iPlayerIsAttackingNow = 1;
+	if(t.gunmode >= 1020 && t.gunmode < 1029 ) iPlayerIsAttackingNow = 1;
+	lua_pushnumber (L, iPlayerIsAttackingNow);
+	return 1;
+}
+int PushPlayer (lua_State* L)
+{
+	lua = L;
+	int n = lua_gettop(L);
+	if (n < 1) return 0;
+	// trigger short or long player arms animation (jerked back; typically when counter attacked)
+	t.gunmode = 1011;
+	return 0;
+}
+
 int GetGamePlayerControlJetpackMode ( lua_State *L ) { return GetGamePlayerControlData ( L, 1 ); }
 int GetGamePlayerControlJetpackFuel ( lua_State *L ) { return GetGamePlayerControlData ( L, 2 ); }
 int GetGamePlayerControlJetpackHidden ( lua_State *L ) { return GetGamePlayerControlData ( L, 3 ); }
@@ -9471,6 +9537,9 @@ int SetGamePlayerStateGunSound ( lua_State *L ) { return SetGamePlayerControlDat
 int GetGamePlayerStateGunSound ( lua_State *L ) { return GetGamePlayerControlData ( L, 501 ); }
 int SetGamePlayerStateGunAltSound ( lua_State *L ) { return SetGamePlayerControlData ( L, 502 ); }
 int GetGamePlayerStateGunAltSound ( lua_State *L ) { return GetGamePlayerControlData ( L, 502 ); }
+
+int SetGamePlayerStateCounteredAction (lua_State* L) { return SetGamePlayerControlData (L, 601); }
+int GetGamePlayerStateCounteredAction (lua_State* L) { return GetGamePlayerControlData (L, 601); }
 
 int CopyCharAnimState ( lua_State *L ) { return SetGamePlayerControlData ( L, 700 ); }
 int SetCharAnimStatePlayCsi ( lua_State *L ) { return SetGamePlayerControlData ( L, 701 ); }
@@ -12599,6 +12668,7 @@ void addFunctions()
 	lua_register(lua, "GetEntityFootfallKeyframe", GetEntityFootfallKeyframe);
 	lua_register(lua, "GetEntityAnimationNameExist", GetEntityAnimationNameExist);
 	lua_register(lua, "GetEntityAnimationNameExistAndPlaying", GetEntityAnimationNameExistAndPlaying);
+	lua_register(lua, "GetEntityAnimationNameExistAndPlayingSearchAny", GetEntityAnimationNameExistAndPlayingSearchAny);
 	lua_register(lua, "GetEntityAnimationTriggerFrame", GetEntityAnimationTriggerFrame);
 	lua_register(lua, "GetEntityAnimationStartFinish", GetEntityAnimationStartFinish);
 	
@@ -13149,7 +13219,11 @@ void addFunctions()
 	lua_register(lua, "GetGamePlayerStateLowFpsWarning" , GetGamePlayerStateLowFpsWarning );
 	lua_register(lua, "SetGamePlayerStateCameraFov" , SetGamePlayerStateCameraFov );
 	lua_register(lua, "GetGamePlayerStateCameraFov" , GetGamePlayerStateCameraFov );
+
 	lua_register(lua, "GetPlayerFov", GetPlayerFov);
+	lua_register(lua, "GetPlayerAttacking", GetPlayerAttacking);
+	lua_register(lua, "PushPlayer", PushPlayer);
+	
 	lua_register(lua, "SetGamePlayerStateCameraFovZoomed" , SetGamePlayerStateCameraFovZoomed );
 	lua_register(lua, "GetGamePlayerStateCameraFovZoomed" , GetGamePlayerStateCameraFovZoomed );
 	lua_register(lua, "SetGamePlayerStateMouseInvert" , SetGamePlayerStateMouseInvert );
@@ -13264,11 +13338,12 @@ void addFunctions()
 	lua_register(lua, "SetGamePlayerStateCharAnimIndex" , SetGamePlayerStateCharAnimIndex );
 	lua_register(lua, "GetGamePlayerStateCharAnimIndex" , GetGamePlayerStateCharAnimIndex );
 
-#ifdef WICKEDENGINE
-		lua_register(lua, "GetCharacterForwardX", GetCharacterForwardX);
-		lua_register(lua, "GetCharacterForwardY", GetCharacterForwardY);
-		lua_register(lua, "GetCharacterForwardZ", GetCharacterForwardZ);
-#endif
+	lua_register(lua, "SetGamePlayerStateCounteredAction", SetGamePlayerStateCounteredAction);
+	lua_register(lua, "GetGamePlayerStateCounteredAction", GetGamePlayerStateCounteredAction);
+
+	lua_register(lua, "GetCharacterForwardX", GetCharacterForwardX);
+	lua_register(lua, "GetCharacterForwardY", GetCharacterForwardY);
+	lua_register(lua, "GetCharacterForwardZ", GetCharacterForwardZ);
 
 	lua_register(lua, "GetGamePlayerStateMotionController" , GetGamePlayerStateMotionController );
 	lua_register(lua, "GetGamePlayerStateMotionControllerType" , GetGamePlayerStateMotionControllerType );

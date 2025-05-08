@@ -2089,9 +2089,11 @@ void animsystem_processallmannequins (void)
 						// save new DBO with replaced model
 						char pDestFilePath[MAX_PATH];
 						strcpy(pDestFilePath, pSrcFilePath);
+						//GG_SetWritablesToRoot(true);
 						GG_GetRealPath(pDestFilePath, 1);
 						if (FileExist(pDestFilePath) == 1) DeleteFileA(pDestFilePath);
 						SaveObject(pDestFilePath, g.tempobjectoffset);
+						//GG_SetWritablesToRoot(false);
 
 						// get name only
 						char pNameOnly[MAX_PATH];
@@ -2184,7 +2186,8 @@ void animsystem_loadanimtextfile (sObject* pObject, cstr pAbsPathToAnim, char* c
 		if (strnicmp(cFileSelected + strlen(cFileSelected) - strlen(pProcessFileTrigger), pProcessFileTrigger, strlen(pProcessFileTrigger)) == NULL )
 		{
 			// replace all DBOs in "charactercreatorplus\animations" with mannequin model (exclude non-character animations)
-			animsystem_processallmannequins();
+			animsystem_processallmannequins(); // GG_SetWritablesToRoot(true); handled inside
+
 			return;
 		}
 
@@ -2307,6 +2310,28 @@ void animsystem_loadanimtextfile (sObject* pObject, cstr pAbsPathToAnim, char* c
 		// also update main anim count (first slot always shows all frames)
 		g_pAnimSlotList[0].fFinish = pObject->fAnimTotalFrames;
 	}
+}
+
+void animsysten_clearset(sObject* pObject)
+{
+	// stop object anim, remove wicked anim components and clear all animation from object
+	animsystem_clearoldanimationfromobject(pObject);
+
+	// clear slot list
+	g_iCurrentAnimationSlotIndex = 0;
+	g_pAnimSlotList.clear();
+
+	// and create new blank All slot
+	// if successful, add to end of list
+	sAnimSlotStruct animslotitem;
+	animslotitem.fStep1 = 0;
+	animslotitem.fStep2 = 0;
+	animslotitem.fStep3 = 0;
+	strcpy(animslotitem.pName, "All");
+	animslotitem.fStart = 0;
+	animslotitem.fFinish = 0;
+	animslotitem.bLooped = true;
+	g_pAnimSlotList.push_back(animslotitem);
 }
 
 void animsystem_animationtoolui(int objectnumber)
@@ -2515,9 +2540,9 @@ void animsystem_animationtoolui(int objectnumber)
 
 			// create and load buttons
 			float w = ImGui::GetWindowContentRegionWidth();
-			float but_gadget_size = ImGui::GetFontSize()*10.0;
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-			if (ImGui::StyleButton("Create Animation Slot##AnimaionToolCreateNewSlot", ImVec2(but_gadget_size, 0)))
+			float but_gadget_size_animset = ImGui::GetFontSize()*15.0;
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size_animset *0.5), 0.0f));
+			if (ImGui::StyleButton("Create Animation Slot##AnimaionToolCreateNewSlot", ImVec2(but_gadget_size_animset, 0)))
 			{
 				sAnimSlotStruct animslotitem;
 				animslotitem.fStep1 = 0;
@@ -2531,8 +2556,8 @@ void animsystem_animationtoolui(int objectnumber)
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to create a new animation slot");
 
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-			if (ImGui::StyleButton("Load Animation File##AnimaionToolLoadAnimationFile", ImVec2(but_gadget_size, 0)))
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size_animset *0.5), 0.0f));
+			if (ImGui::StyleButton("Load Animation File##AnimaionToolLoadAnimationFile", ImVec2(but_gadget_size_animset, 0)))
 			{
 				// file requester to select animation file
 				cStr tOldDir = GetDir();
@@ -2554,27 +2579,11 @@ void animsystem_animationtoolui(int objectnumber)
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to append an animation from a file");
 
 			// Need a way to wipe out any old animation data
-			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-			if (ImGui::StyleButton("Clear All Animation##AnimaionToolClearAll", ImVec2(but_gadget_size, 0)))
+			ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size_animset *0.5), 0.0f));
+			if (ImGui::StyleButton("Clear All Animation##AnimaionToolClearAll", ImVec2(but_gadget_size_animset, 0)))
 			{
-				// stop object anim, remove wicked anim components and clear all animation from object
-				animsystem_clearoldanimationfromobject(pObject);
-
-				// clear slot list
-				g_iCurrentAnimationSlotIndex = 0;
-				g_pAnimSlotList.clear();
-
-				// and create new blank All slot
-				// if successful, add to end of list
-				sAnimSlotStruct animslotitem;
-				animslotitem.fStep1 = 0;
-				animslotitem.fStep2 = 0;
-				animslotitem.fStep3 = 0;
-				strcpy(animslotitem.pName, "All");
-				animslotitem.fStart = 0;
-				animslotitem.fFinish = 0;
-				animslotitem.bLooped = true;
-				g_pAnimSlotList.push_back(animslotitem);
+				// clears all animation data from object
+				animsysten_clearset(pObject);
 			}
 			if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to clear all animation data");
 
@@ -2582,8 +2591,8 @@ void animsystem_animationtoolui(int objectnumber)
 			extern int g_iDevToolsOpen;
 			if (g_iDevToolsOpen != 0 )
 			{
-				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size*0.5), 0.0f));
-				if (ImGui::StyleButton("Save Animation Template##AnimaionToolSaveTemplate", ImVec2(but_gadget_size, 0)))
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w*0.5) - (but_gadget_size_animset *0.5), 0.0f));
+				if (ImGui::StyleButton("Save Animation Template##AnimaionToolSaveTemplate", ImVec2(but_gadget_size_animset, 0)))
 				{
 					cstr sTempFileMakeLifeEasier = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\exportedtemplate.txt";
 					char pTempFileMakeLifeEasier[MAX_PATH];
@@ -2620,6 +2629,76 @@ void animsystem_animationtoolui(int objectnumber)
 					CloseFile(1);
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to save template of animation slots to writable 'charactercreatorplus\\animations'.");
+
+				// process ALL animation TXT files after a change (creates new charactercreatorplus\animations\sets)
+				ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2((w * 0.5) - (but_gadget_size_animset * 0.5), 0.0f));
+				if (ImGui::StyleButton("Regenerate Animation Sets##AnimaionToolSave", ImVec2(but_gadget_size_animset, 0)))
+				{
+					std::vector<cstr> DefaultAnimSetList;
+					DefaultAnimSetList.clear();
+					cstr AllAnimSetsToRegenerate_s = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\sets.txt";
+					char pAllAnimSetsToRegenerate[MAX_PATH];
+					strcpy (pAllAnimSetsToRegenerate, AllAnimSetsToRegenerate_s.Get());
+					GG_GetRealPath(pAllAnimSetsToRegenerate, 0);
+					OpenToRead(1, pAllAnimSetsToRegenerate);
+					while (FileEnd(1) == 0)
+					{
+						LPSTR pLine = ReadString(1);
+						DefaultAnimSetList.push_back(pLine);
+					}
+					CloseFile(1);
+					if (DefaultAnimSetList.size() > 0)
+					{
+						for ( int iSetID = 0; iSetID < DefaultAnimSetList.size(); iSetID++)
+						{
+							// get default filename 
+							char pAnimSetFile[MAX_PATH];
+							strcpy(pAnimSetFile, DefaultAnimSetList[iSetID].Get());
+							LPSTR pDefaultFilename = strstr(pAnimSetFile, "=");
+							if (pDefaultFilename)
+							{
+								// and TXT file to create animations from
+								*pDefaultFilename = 0;
+								char pTXTAnimFile[MAX_PATH];
+								cstr TXTAnimFile_s = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\";
+								strcpy (pTXTAnimFile, TXTAnimFile_s.Get());
+								//GG_GetRealPath(pTXTAnimFile, 0);
+								strcat(pTXTAnimFile, pDefaultFilename+1);
+								strcat(pTXTAnimFile, ".txt");
+
+								// clears all animation data from object
+								animsysten_clearset(pObject);
+
+								// handle DBO or TXT/DAT and append animations to imported model
+								cstr AbsPathToAnim_s = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\";
+								char pAbsPathToAnim[MAX_PATH];
+								strcpy (pAbsPathToAnim, AbsPathToAnim_s.Get());
+								//GG_GetRealPath(pAbsPathToAnim, 0);
+								animsystem_loadanimtextfile (pObject, pAbsPathToAnim, pTXTAnimFile);
+
+								// and ensure animset is detailed inside object!
+								extern void UpdateObjectWithAnimSlotList(sObject* pObject);
+								UpdateObjectWithAnimSlotList(pObject);
+
+								// and finally save the object as a default DBO
+								cstr SaveAnimSet_s = g.fpscrootdir_s + "\\Files\\charactercreatorplus\\animations\\sets\\" + pAnimSetFile + ".dbo";
+								char pSaveAnimSetDBO[MAX_PATH];
+								strcpy (pSaveAnimSetDBO, SaveAnimSet_s.Get());
+								//GG_GetRealPath(pSaveAnimSetDBO, 1);
+								if (FileExist(pSaveAnimSetDBO) == 1) DeleteFileA(pSaveAnimSetDBO);
+								GG_SetWritablesToRoot(true);
+								SaveObject(pSaveAnimSetDBO, objectnumber);
+								GG_SetWritablesToRoot(false);
+							}
+						}
+					}
+
+					// last one gets to preview appended animation
+					g_iCurrentAnimationSlotIndex = g_pAnimSlotList.size() - 1;
+					g_bUpdateAnimationPreview = true;
+
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Click to regenerate all animation sets. Advanced Feature!");
 			}
 
 			// if flagged, show extra bone info as list of bones
@@ -3144,11 +3223,11 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 		else
 		{
 			char pPathToWeaponAnim[MAX_PATH];
-			sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pCharTypeName, pWeaponType);
+			sprintf(pPathToWeaponAnim, "charactercreatorplus\\animations\\sets\\%s\\default animations%s.dbo", pCharTypeName, pWeaponType);
 			if (FileExist(pPathToWeaponAnim) == 0)
 			{
 				// if not weapon specific animation set, use regular base default
-				sprintf(pPathToWeaponAnim, "charactercreatorplus\\parts\\%s\\default animations.dbo", pCharTypeName);
+				sprintf(pPathToWeaponAnim, "charactercreatorplus\\animations\\sets\\%s\\default animations.dbo", pCharTypeName);
 			}
 			if (FileExist(pPathToWeaponAnim))
 			{
@@ -3312,9 +3391,9 @@ void animsystem_animationsetproperty (int characterbasetype, bool readonly, enti
 				if (pGender != NULL)
 				{
 					if (t.entityprofile[t.entid].characterbasetype >= 0 && t.entityprofile[t.entid].characterbasetype <= 1)
-						sprintf(pWeaponAnimFile, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pGender, pWeaponType);
+						sprintf(pWeaponAnimFile, "charactercreatorplus\\animations\\sets\\%s\\default animations%s.dbo", pGender, pWeaponType);
 					else
-						sprintf(pWeaponAnimFile, "charactercreatorplus\\parts\\%s\\default animations.dbo", pGender);
+						sprintf(pWeaponAnimFile, "charactercreatorplus\\animations\\sets\\%s\\default animations.dbo", pGender);
 				}
 			}
 

@@ -384,6 +384,9 @@ void gun_manager ( void )
 		}
 	}
 
+	// also reset counteredaction flag when blocking is reset (self resetting)
+	if (t.player[1].state.blockingaction==0 ) t.player[1].state.counteredaction = 0;
+
 	// trigger melee attack
 	if ( t.gun[t.gunid].settings.ismelee>0 && t.gunmode<100 ) 
 	{
@@ -1181,12 +1184,15 @@ bool gun_detectandperformquickrepeatattack(void)
 			float fGraceAfterStrike = 5.0f;
 			if (GetFrame(t.currentgunobj) >= t.gfinish.s + fGraceAfterStrike)
 			{
-				// and only if have stamina for it
+				// and only if not using stamina, or if using, that we only if have stamina for it
+				char pUserDefinedGlobalMAX[256];
+				sprintf(pUserDefinedGlobalMAX, "g_UserGlobal['%s']", "MyStaminaMax");
+				int iMyStaminaMAXFromLUA = LuaGetInt(pUserDefinedGlobalMAX);
 				char pUserDefinedGlobal[256];
 				sprintf(pUserDefinedGlobal, "g_UserGlobal['%s']", "MyStamina");
 				int iMyStaminaFromLUA = LuaGetInt(pUserDefinedGlobal);
 				int iStaminaCostOfRepeatAttack = 10;
-				if (iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack)
+				if (iMyStaminaMAXFromLUA==0 || (iMyStaminaMAXFromLUA>0 && iMyStaminaFromLUA >= iStaminaCostOfRepeatAttack))
 				{
 					// t.gfinish.s is the strke frame, so we want to back up a little so we have some visual run-up to the repeated action
 					float fBackUpFrames = (t.gstart.e - t.gstart.s) / 3.0f; // X-way back from start of initial attack (rather than fixed value)
@@ -2505,7 +2511,7 @@ void gun_control ( void )
 
 					// until we get more char animations for the rollback, just ragdoll/deatrhanimit
 					t.ttte = e;
-					t.tdamage = t.entityelement[e].health;
+					t.tdamage = 1;// t.entityelement[e].health;
 					t.tdamageforce = 0.0f;
 					t.brayx1_f = CameraPositionX();
 					t.brayy1_f = CameraPositionY();
@@ -2521,13 +2527,63 @@ void gun_control ( void )
 
 					// do this once
 					g_iCounterAttackTargetForPlayer = 0;
+
+					// and signal the counter striek frame has been reached,
+					// so logic can pick this up and do something (typically perform an animation in the DAMAGE state of the enemy)
+					// and this is naturally reset when the blocking value is zero (t.player[1].state.blockingaction)
+					t.player[1].state.counteredaction = 1;
 				}
 			}
 		}
 	}
 
+	// control player being pushed reaction
+	if (t.gunmode == 1011)
+	{
+		// thump to mark the impact
+		extern void physics_play_thump_sound (float fX, float fY, float fZ, float fFreqStart, float fFreqRange);
+		physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 44000, Rnd(6000));
+
+		// start player arms reaction
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		gun_SetObjectInterpolation (t.currentgunobj, 100);
+		if (rand()%2 == 0)
+		{
+			t.gblock.s = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.s;
+			t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.dryfire.e;
+		}
+		else
+		{
+			t.gblock.s = g.firemodes[t.gunid][g.firemode].blockaction.flattentochest.s;
+			t.gblock.e = g.firemodes[t.gunid][g.firemode].blockaction.flattentochest.e;
+		}
+		gun_PlayObject (t.currentgunobj, t.gblock.s, t.gblock.e);
+		t.gunmode = 1012;
+	}
+	if (t.gunmode == 1012)
+	{
+		// monitor arms reaction animation
+		t.currentgunanimspeed_f = t.genericgunanimspeed_f;
+		gun_SetObjectSpeed (t.currentgunobj, t.currentgunanimspeed_f);
+		gun_SetObjectInterpolation (t.currentgunobj, 25);
+		if (GetFrame(t.currentgunobj) >= t.gblock.e)
+		{
+			// reset player arms to idle
+			gun_SetObjectInterpolation (t.currentgunobj, 100);
+			gun_SetObjectFrame(t.currentgunobj, g.firemodes[t.gunid][g.firemode].action.idle.s);
+			t.gunmode = 5;
+		}
+		else
+		{
+			// and push player
+			t.playercontrol.pushangle_f = CameraAngleY() + 180;
+			t.playercontrol.pushforce_f = 0.1f;
+		}
+	}
+
 	// melee gun modes
-	if (  t.gunmode == 1020 ) 
+	if ( t.gunmode == 1020 ) 
 	{
 		t.gunmode=1021;
 		t.currentgunanimspeed_f = t.genericgunanimspeed_f;

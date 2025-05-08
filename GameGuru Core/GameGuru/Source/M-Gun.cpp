@@ -566,7 +566,7 @@ void gun_loaddata ( void )
 					{
 						int animfields = 0;
 						bool bAnimationField = false;
-						for (; animfields <= 86; animfields++)
+						for (; animfields <= 87; animfields++)
 						{
 							LPSTR pFieldName = "";
 							if (animfields == 0) pFieldName = "select";
@@ -656,6 +656,7 @@ void gun_loaddata ( void )
 							if (animfields == 84) pFieldName = "block fail";
 							if (animfields == 85) pFieldName = "block counter";
 							if (animfields == 86) pFieldName = "block counterfail";
+							if (animfields == 87) pFieldName = "block fail 2";
 							cmpStrConst(t_field_s, pFieldName);
 							if (matched)
 							{
@@ -939,6 +940,8 @@ void gun_loaddata ( void )
 					if (matched) { g.firemodes[t.gunid][0].blockaction.start2.s = t.value1; g.firemodes[t.gunid][0].blockaction.start2.e = t.value2; }
 					cmpStrConst(t_field_s, "block counterfail");
 					if (matched) { g.firemodes[t.gunid][0].blockaction.finish2.s = t.value1; g.firemodes[t.gunid][0].blockaction.finish2.e = t.value2; }
+					cmpStrConst(t_field_s, "block fail 2");
+					if (matched) { g.firemodes[t.gunid][0].blockaction.flattentochest.s = t.value1; g.firemodes[t.gunid][0].blockaction.flattentochest.e = t.value2; }
 
 					//  Gun repeat-fire sound
 					cmpStrConst( t_field_s, "fireloop" );

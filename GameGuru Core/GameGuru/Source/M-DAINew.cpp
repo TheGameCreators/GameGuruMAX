@@ -1836,7 +1836,7 @@ void darkai_refresh_characters ( bool bScanForNewlySpawned )
 							{
 								if (t.entityprofile[t.entid].characterbasetype >= 0 && t.entityprofile[t.entid].characterbasetype <= 1)
 								{
-									sprintf(pWeaponAnimFile, "charactercreatorplus\\parts\\%s\\default animations%s.dbo", pGender, pWeaponHeld);
+									sprintf(pWeaponAnimFile, "charactercreatorplus\\animations\\sets\\%s\\default animations%s.dbo", pGender, pWeaponHeld);
 								}
 							}
 						}

@@ -87,6 +87,9 @@ g_masterinterpreter_cond_withinzone = 67 -- Within Zone (Is true if the player e
 g_masterinterpreter_cond_wasblocked = 68 -- Was Blocked (Is true if an attack was very recently blocked)
 g_masterinterpreter_cond_coverzonewithin = 69 -- Cover Zone Within (Is true if there is a cover zone within the specified range)
 g_masterinterpreter_cond_ifseeplayer = 70 -- If See Player (Is true when see the player within given distance)
+g_masterinterpreter_cond_wascountered = 71 -- Was Countered (Is true if an attack was reversed with a counter attack)
+g_masterinterpreter_cond_iftargetattacking = 72 -- If Target Attacking (Is true when the target is in the act of attacking)
+g_masterinterpreter_cond_ifimmune = 73 -- If Immune (Is true when currently immune to any kind of damage set by Set Immune Time)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -203,6 +206,8 @@ g_masterinterpreter_act_gotocoverzone = 110 -- Go To Cover Zone (Plot a navigati
 g_masterinterpreter_act_allowzerohealth = 111 -- Allow Zero Health (Permits a destroy object when it reaches zero health)
 g_masterinterpreter_act_destroynoragdoll = 112 -- Destroy No Ragdoll (Destroy object instantly with no ragdoll or death animations)
 g_masterinterpreter_act_playsoundsparsely = 113 -- Play Sound Sparsely (Play the sound only after 3 seconds in the specified slot number 0-3)
+g_masterinterpreter_act_resetdamagecheck = 114 -- Reset Damage Check (Reset damage check tracker used by Check Damage condition)
+g_masterinterpreter_act_pushifplayer = 115 -- Push If Player (If target player, forces player back with suitable animation)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -807,7 +812,7 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if allegiance == 2 then return 1 end
  end 
  if conditiontype == g_masterinterpreter_cond_animationplaying then
-  if GetEntityAnimationNameExistAndPlaying(e,conditionparam1) == 1 then return 1 end
+  if GetEntityAnimationNameExistAndPlaying(e,conditionparam1) > 0 then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_istargetalive then
   local talive = masterinterpreter_gettargetalive ( e, output_e )
@@ -930,8 +935,19 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if g_Entity[e]['plrinzone'] == 1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+conditionparam1value then return 1 end
  end
  if conditiontype == g_masterinterpreter_cond_wasblocked then 
-  if GetGamePlayerStateBlockingAction() > 0 then return 1 end
- end 
+  if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "block" end
+  if output_e['target'] == "player" then
+   if GetGamePlayerStateBlockingAction() > 0 then return 1 end
+  end
+  if output_e['target'] == "hostile" then
+   if output_e['targete'] > 0 then
+    ee = output_e['targete']
+    if g_Entity[ee]['health'] > 0 and g_Entity[ee]['active'] ~= 0 then
+     if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) > 0 then return 1 end
+	end
+   end
+  end
+ end  
  if conditiontype == g_masterinterpreter_cond_coverzonewithin then 
   if conditionparam1value == nil then conditionparam1value = 1000 end
   local closestdist = 9999999
@@ -973,6 +989,28 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
    return g_Entity[e]['plrvisible']
   end  
  end
+ if conditiontype == g_masterinterpreter_cond_wascountered then 
+  if GetGamePlayerStateCounteredAction() > 0 then return 1 end
+ end 
+ if conditiontype == g_masterinterpreter_cond_iftargetattacking then 
+  if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "attack" end
+  if output_e['target'] == "player" then
+   -- special flag when player is in act of attacking
+   if GetPlayerAttacking() == 1 then return 1 end
+  end
+  if output_e['target'] == "hostile" then
+   -- takes any keyword, finds any anim that contains it (such as 'attack')
+   if output_e['targete'] > 0 then
+    ee = output_e['targete']
+    if g_Entity[ee]['health'] > 0 and g_Entity[ee]['active'] ~= 0 then
+     if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) > 0 then return 1 end
+	end
+   end
+  end
+ end
+ if conditiontype == g_masterinterpreter_cond_ifimmune then 
+  if output_e['immunitytimer'] > 0 then return 1 end
+ end 
  
  -- Condition is false
  return 0
@@ -2306,6 +2344,19 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
    g_calloutmanager[calloutindex] = e
    g_calloutmanagertime[calloutindex] = g_Time + 3000
    PlaySound(e,actionparam1value)
+  end
+ end
+
+ -- Reset Damage Check 
+ if actiontype == g_masterinterpreter_act_resetdamagecheck then
+  output_e['damagetaken'] = 0
+ end 
+ 
+ -- Push If Player
+ if actiontype == g_masterinterpreter_act_pushifplayer then
+  if actionparam1value == nil then actionparam1value = 10 end
+  if output_e['target'] == "player" then
+   PushPlayer(actionparam1value)
   end
  end
  

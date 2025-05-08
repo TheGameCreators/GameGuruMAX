@@ -6415,24 +6415,31 @@ void c_entity_loadelementsdata ( void )
 		}
 		c_CloseFile (  1 );
 
-		#ifndef WICKEDENGINE
-		// 050416 - remove any weapons from start marker if parental control, no weapon, no violence
-		if ( g.quickparentalcontrolmode == 2 )
+		// can change field values here if updates to engine move vital resources
+		// MAY2025 - moved all default animation files to animations\set folder so can centrally
+		// add new animations and all existing and new characters/logic can take advantage of new ones
+		for (t.e = 1; t.e <= g.entityelementlist; t.e++)
 		{
-			for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
+			if (t.entityelement[t.e].bankindex>0)
 			{
-				t.entid = t.entityelement[t.e].bankindex;
-				if (  t.entityprofile[t.entid].ismarker == 1 ) 
+				if ( t.entityelement[t.e].eleprof.overrideanimset_s.Len()>0)
 				{
-					//  Player Start Marker Settings
-					t.entityelement[t.e].eleprof.hasweapon_s = "";
-					t.entityelement[t.e].eleprof.hasweapon = 0;
-					t.entityelement[t.e].eleprof.quantity = 0;
-					t.entityelement[t.e].eleprof.isviolent = 0;
+					char pFileLocation[MAX_PATH];
+					strcpy(pFileLocation, t.entityelement[t.e].eleprof.overrideanimset_s.Get());
+					LPSTR pPartLocation = strstr(pFileLocation, "charactercreatorplus\\parts\\");
+					if (pPartLocation != NULL)
+					{
+						pPartLocation+=strlen("charactercreatorplus\\");
+						*pPartLocation = '\0';
+						char pDefAnimFileLocation[MAX_PATH];
+						strcpy(pDefAnimFileLocation, pFileLocation);
+						strcat(pDefAnimFileLocation, "animations\\sets\\");
+						strcat(pDefAnimFileLocation, pPartLocation+strlen("parts") + 1);
+						t.entityelement[t.e].eleprof.overrideanimset_s = pDefAnimFileLocation;
+					}
 				}
 			}
 		}
-		#endif
 
 		// If replacement file active, can swap in new SCRIPT and SOUND references
 		if(g_iAddEntityElementsMode==0)

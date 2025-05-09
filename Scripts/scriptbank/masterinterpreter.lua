@@ -90,6 +90,7 @@ g_masterinterpreter_cond_ifseeplayer = 70 -- If See Player (Is true when see the
 g_masterinterpreter_cond_wascountered = 71 -- Was Countered (Is true if an attack was reversed with a counter attack)
 g_masterinterpreter_cond_iftargetattacking = 72 -- If Target Attacking (Is true when the target is in the act of attacking)
 g_masterinterpreter_cond_ifimmune = 73 -- If Immune (Is true when currently immune to any kind of damage set by Set Immune Time)
+g_masterinterpreter_cond_iftargetonfloor = 74 -- If Target On Floor (Is true when the target is on the floor and vulnerable)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -990,7 +991,18 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   end  
  end
  if conditiontype == g_masterinterpreter_cond_wascountered then 
-  if GetGamePlayerStateCounteredAction() > 0 then return 1 end
+  if output_e['target'] == "player" then
+   if GetGamePlayerStateCounteredAction() > 0 then return 1 end
+  end
+  if output_e['target'] == "hostile" then
+   if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "block_to_counter" end
+   if output_e['targete'] > 0 then
+    ee = output_e['targete']
+    if g_Entity[ee]['health'] > 0 and g_Entity[ee]['active'] ~= 0 then
+     if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) > 0 then return 1 end
+	end
+   end
+  end
  end 
  if conditiontype == g_masterinterpreter_cond_iftargetattacking then 
   if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "attack" end
@@ -1011,6 +1023,20 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
  if conditiontype == g_masterinterpreter_cond_ifimmune then 
   if output_e['immunitytimer'] > 0 then return 1 end
  end 
+ if conditiontype == g_masterinterpreter_cond_iftargetonfloor then 
+  if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "ground" end
+  if output_e['target'] == "player" then
+   -- player never bows down to rebel scum!
+  end
+  if output_e['target'] == "hostile" then
+   if output_e['targete'] > 0 then
+    ee = output_e['targete']
+    if g_Entity[ee]['health'] > 0 and g_Entity[ee]['active'] ~= 0 then
+     if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) > 0 then return 1 end
+	end
+   end
+  end
+ end
  
  -- Condition is false
  return 0

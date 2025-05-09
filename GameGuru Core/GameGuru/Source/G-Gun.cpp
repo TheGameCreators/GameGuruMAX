@@ -2576,9 +2576,13 @@ void gun_control ( void )
 		}
 		else
 		{
-			// and push player
-			t.playercontrol.pushangle_f = CameraAngleY() + 180;
-			t.playercontrol.pushforce_f = 0.1f;
+			// and push player half the way
+			float fHalfWay = (t.gblock.e - t.gblock.s) / 2;
+			if (GetFrame(t.currentgunobj) <= t.gblock.e - fHalfWay)
+			{
+				t.playercontrol.pushangle_f = CameraAngleY() + 180;
+				t.playercontrol.pushforce_f = 0.05f;
+			}
 		}
 	}
 
@@ -4559,10 +4563,27 @@ void gun_shoot_oneray ( void )
 			}
 			if (tfoundalikelyvictim > 0)
 			{
-				// if we have a character in front of us, find the chest area	
-				float fCharacterChestAreaX = t.entityelement[tfoundalikelyvictim].x;
-				float fCharacterChestAreaY = t.entityelement[tfoundalikelyvictim].y + 50.0f;
-				float fCharacterChestAreaZ = t.entityelement[tfoundalikelyvictim].z;
+				//if we have a character in front of us, find the chest area	
+				int iObj = t.entityelement[tfoundalikelyvictim].obj;
+				t.headlimbofcharacter = t.entityprofile[t.entityelement[tfoundalikelyvictim].bankindex].headlimb;
+				t.spine2limbofcharacter = t.entityprofile[t.entityelement[tfoundalikelyvictim].bankindex].spine2;
+				int iChosenLimb = 0;
+				if (t.headlimbofcharacter > 0 && LimbExist(iObj, t.headlimbofcharacter) == 1) iChosenLimb = t.headlimbofcharacter;
+				if (t.spine2limbofcharacter > 0 && LimbExist(iObj, t.spine2limbofcharacter) == 1) iChosenLimb = t.spine2limbofcharacter;
+				float fCharacterChestAreaX, fCharacterChestAreaY, fCharacterChestAreaZ;
+				if (LimbExist(iObj, iChosenLimb) == 1)
+				{
+					fCharacterChestAreaX = LimbPositionX(iObj, iChosenLimb);
+					fCharacterChestAreaY = LimbPositionY(iObj, iChosenLimb);
+					fCharacterChestAreaZ = LimbPositionZ(iObj, iChosenLimb);
+				}
+				else
+				{
+					// this does not work if character flat on floor!
+					fCharacterChestAreaX = t.entityelement[tfoundalikelyvictim].x;
+					fCharacterChestAreaY = t.entityelement[tfoundalikelyvictim].y + 50.0f;
+					fCharacterChestAreaZ = t.entityelement[tfoundalikelyvictim].z;
+				}
 
 				// and create an artificial hit on them to improve the fast-paced melee combat when up close
 				// (i.e. swinging a massive sledgehammer at a character, and the ray targets below the armpit will stil hurt like heck)

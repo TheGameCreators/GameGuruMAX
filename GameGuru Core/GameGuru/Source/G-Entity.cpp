@@ -2287,18 +2287,8 @@ void entity_loop ( void )
 			}
 		}
 	}
-	if (iOnlySomePreScanEventPerCyce == PRESCANEVENTCOUNT)
-	{
-		// all prescan complete
-		//MessageBoxA(NULL,"dsadsa","dsadsa",MB_OK);
-		//int lee = 42;
-	}
 }
 
-//PE: No speed difference with normal usage.
-//#define SPEEDTESTOLDSYSTEM 
-//PE: All animations (master objects) will now animate independent of fps.
-//PE: Now allow "static" with animation to use AnimSpeed per object.
 void entity_loopanim ( void )
 {
 #ifdef OPTICK_ENABLE
@@ -2312,9 +2302,8 @@ void entity_loopanim ( void )
 	for ( t.e = 1 ; t.e <= g.entityelementlist; t.e++ )
 	{
 		t.entid = t.entityelement[t.e].bankindex;
-
-		if (t.entid <= 0) {
-			#ifdef WICKEDENGINE
+		if (t.entid <= 0)
+		{
 			//PE: Also control objects in properties.
 			extern bool bImGuiInTestGame;
 			if (t.game.gameisexe == 0 && t.gridentityinzoomview == t.e && !bImGuiInTestGame)
@@ -2322,24 +2311,20 @@ void entity_loopanim ( void )
 				t.entid = t.gridentity; //t.entityelement[t.gridentityinzoomview].bankindex;
 			}
 			else
-			#endif
+			{
 				continue;
+			}
 		}
-
 		t.tparentobj = g.entitybankoffset + t.entid;
 
 		// 011016 - scenes with LARGE number of static entities hitting perf hard
 		//PE: @Lee if the same master object is used without any per object animspeed changes , it will be like normal.
 		//PE: Only if animspeed is changed (per object) it will create a new clone , so should not bring down fps that bad.
-#ifdef SPEEDTESTOLDSYSTEM
-		if (t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.phyalways == 0)
-			continue;
-#else
 		if (t.entityelement[t.e].staticflag == 1 && t.entityelement[t.e].eleprof.phyalways == 0)
 		{
 			//Quickly skip entry, but still allow custom anim on static objects.
-			if ( t.entityelement[t.e].eleprof.animspeed == t.entityprofile[t.entid].animspeed) {
-
+			if ( t.entityelement[t.e].eleprof.animspeed == t.entityprofile[t.entid].animspeed) 
+			{
 				//PE: We still need to set speed on master object. once each sync.
 				if ( t.entityprofile[t.entid].synccount != currentsynccount && t.entityprofile[t.entid].ischaracter == 0 && t.entityelement[t.e].isclone == 0 && ObjectExist(t.tparentobj) == 1) {
 
@@ -2360,14 +2345,11 @@ void entity_loopanim ( void )
 				continue;
 			}
 		}
-#endif
+
 		// NOTE: Determine essential tasks static needs (i.e. plrdist??)
 		// only handle DYNAMIC entities 
 		if ( t.entid>0 ) 
 		{
-			//t.tparentobj=g.entitybankoffset+t.entid;
-
-			#ifdef WICKEDENGINE
 			//PE: Add decal support here.
 			if (t.entityprofile[t.entid].bIsDecal)
 			{
@@ -2395,35 +2377,9 @@ void entity_loopanim ( void )
 						UnlockVertexData();
 						SetObjectUVManually(t.tobj, t.entityelement[t.e].fDecalFrame, t.entityprofile[t.entid].iDecalRows, t.entityprofile[t.entid].iDecalColumns);
 					}
-
-
-					//Just for testing, this is done in lua.
-					//float camx = CameraPositionX();
-					//float camy = CameraPositionY();
-					//float camz = CameraPositionZ();
-					//PointObject(t.tobj, camx, camy, camz);
-					//XRotateObject(t.tobj, 0); ZRotateObject(t.tobj, 0);
-					//YRotateObject(t.tobj, ObjectAngleY(t.tobj)+ 180);
-
-					/*
-					sObject* pObject = g_ObjectList[t.tobj];
-					if (pObject)
-					{
-						//PE: SetObjectCull(t.tobj, 1); Dont work.
-						//PE: iCullMode need to be zero in wicked ?
-						for (int iMesh = 0; iMesh < pObject->iMeshCount; iMesh++)
-						{
-							if (pObject->ppMeshList[iMesh]) pObject->ppMeshList[iMesh]->iCullMode = 0;
-						}
-						WickedCall_SetObjectCullmode(pObject);
-					}
-					*/
 				}
 			}
 			else if (t.entityprofile[t.entid].ischaracter == 0)
-			#else
-			if ( t.entityprofile[t.entid].ischaracter == 0 ) 
-			#endif
 			{
 				// but not for characters which have their own speed control
 				t.tobj=t.entityelement[t.e].obj;
@@ -2472,19 +2428,12 @@ void entity_loopanim ( void )
 								}
 							}
 							bool isWicked = false;
-							#ifdef WICKEDENGINE
-							//PE: Wicked is always clone.
 							isWicked = true;
-							#endif
 							if ( t.entityelement[t.e].isclone == 1 || isWicked )
 							{
 								// Control animation speed of cloned object
 								t.tanimspeed_f = fFinalAnimSpeed * t.entityelement[t.e].speedmodulator_f;
-								#ifdef WICKEDENGINE
 								SetObjectSpeed (t.tobj, t.tanimspeed_f);
-								#else
-								SetObjectSpeed (t.tobj, g.timeelapsed_f*t.tanimspeed_f);
-								#endif
 							}
 							else
 							{
@@ -2493,11 +2442,7 @@ void entity_loopanim ( void )
 								t.tanimspeed_f = t.entityprofile[t.entid].animspeed;
 								if (ObjectExist(t.tparentobj) == 1)
 								{
-									#ifdef WICKEDENGINE
 									SetObjectSpeed (t.tparentobj, t.tanimspeed_f);
-									#else
-									SetObjectSpeed (t.tparentobj, g.timeelapsed_f*t.tanimspeed_f);
-									#endif
 								}
 							}
 							//  if animation in progress (handle any transitioning)
@@ -2511,7 +2456,6 @@ void entity_loopanim ( void )
 			}
 
 			// also handle entity footfall sounds from loopanim
-			#ifdef WICKEDENGINE
 			t.tobj = t.entityelement[t.e].obj;
 			if (t.tobj > 0)
 			{
@@ -2589,66 +2533,6 @@ void entity_loopanim ( void )
 					}
 				}
 			}
-			#else
-			int iFootFallMax = t.entityprofile[t.entid].footfallmax;
-			if (iFootFallMax > 0)
-			{
-				t.tobj = t.entityelement[t.e].obj;
-				if (t.tobj > 0)
-				{
-					for (int iFootFallIndex = 0; iFootFallIndex < iFootFallMax; iFootFallIndex++)
-					{
-						float fCurrentFrame = GetFrame(t.tobj);
-						int iFootFallKeyFrame = t.entityfootfall[t.entid][iFootFallIndex].leftfootkeyframe;
-						float fDistanceFromFrame = fabs(fCurrentFrame - iFootFallKeyFrame);
-						if (fCurrentFrame >= iFootFallKeyFrame && fDistanceFromFrame < 5.0f && iFootFallKeyFrame != t.entityelement[t.e].lastfootfallframeindex)
-						{
-							// okay to use this footfall (left one)
-						}
-						else
-						{
-							// if no luck, try the right foot
-							iFootFallKeyFrame = t.entityfootfall[t.entid][iFootFallIndex].rightfootkeyframe;
-							float fDistanceFromFrame = fabs(fCurrentFrame - iFootFallKeyFrame);
-						}
-						if (fCurrentFrame >= iFootFallKeyFrame && fDistanceFromFrame < 5.0f && iFootFallKeyFrame != t.entityelement[t.e].lastfootfallframeindex)
-						{
-							// ensure this footfall frame not triggered again until another one gets triggered
-							t.entityelement[t.e].lastfootfallframeindex = iFootFallKeyFrame;
-
-							// choose footfall sound for character
-							int iFootFallType = -1;
-
-							// above or below water line
-							if (t.entityelement[t.e].y > t.terrain.waterliney_f + 36 || t.hardwareinfoglobals.nowater != 0)
-							{
-								iFootFallType = ODEGetBodyAttribValue (t.tobj);
-							}
-							else
-							{
-								if (t.entityelement[t.e].y > t.terrain.waterliney_f - 33)
-								{
-									// Footfall water wading sound
-									iFootFallType = 17;
-								}
-								else
-								{
-									// underwater sound for character
-									iFootFallType = 18;
-								}
-							}
-
-							//  Manage trigger of footfall sound effects
-							if (iFootFallType != -1)
-							{
-								// play footfall sound effect at character position
-								sound_footfallsound (iFootFallType, t.entityelement[t.e].x, t.entityelement[t.e].y, t.entityelement[t.e].z, 0, &t.entityelement[t.e].lastfootfallsound);
-							}
-						}
-					}
-				}
-			}
-			#endif
 		}
 	}
 }

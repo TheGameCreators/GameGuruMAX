@@ -91,6 +91,8 @@ g_masterinterpreter_cond_wascountered = 71 -- Was Countered (Is true if an attac
 g_masterinterpreter_cond_iftargetattacking = 72 -- If Target Attacking (Is true when the target is in the act of attacking)
 g_masterinterpreter_cond_ifimmune = 73 -- If Immune (Is true when currently immune to any kind of damage set by Set Immune Time)
 g_masterinterpreter_cond_iftargetonfloor = 74 -- If Target On Floor (Is true when the target is on the floor and vulnerable)
+g_masterinterpreter_cond_iftargetplaying = 75 -- If Target Playing (Is true when the target is animating specified keyword)
+g_masterinterpreter_cond_navmeshclear = 76 -- Navmesh Clear (Is true if the object stands within a wide area of navmesh for strafe animations)
 
 -- Actions
 g_masterinterpreter_act_gotostate = 0 -- Go To State (Jumps immediately to the specified state if the state)
@@ -223,8 +225,8 @@ function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
    if g_Entity[ee] ~= nil then
     if g_Entity[ee]['active'] > 0 then
      if g_Entity[ee]['health'] > 0 then
-	  local thisvisible = GetEntityVisibility(ee)
-	  if thisvisible ~= 0 then
+	  --local thisvisible = GetEntityVisibility(ee) removed as a scan may find an enemy RIGHT BEHIND THEM!
+	  if 1 then --thisvisible ~= 0 then
        local thisallegiance = GetEntityAllegiance(ee)
        local foundenemy = 0
        if thisallegiance == 0 and GetEntityAllegiance(e) == 1 then foundenemy = 1 end
@@ -237,8 +239,8 @@ function masterinterpreter_scanforenemy ( e, output_e, anywilldo )
          local fromx = g_Entity[ e ]['x']
          local fromy = g_Entity[ e ]['y']+60
          local fromz = g_Entity[ e ]['z']
-		 --local ignoreplayer = 0
-         local hit = masterinterpreter_rayscan(e, output_e,fromx,fromy,fromz,g_Entity[ ee ]['x'],g_Entity[ ee ]['y']+60,g_Entity[ ee ]['z'],g_Entity[e]['obj'], 1)
+		 masterinterpreter_resetscan(e) -- force actual ray test as we need to check all candidates
+         local hit = masterinterpreter_rayscan(e,output_e,fromx,fromy,fromz,g_Entity[ ee ]['x'],g_Entity[ ee ]['y']+60,g_Entity[ ee ]['z'],g_Entity[e]['obj'], 1)
          if hit == 0 or hit == g_Entity[ee]['obj'] then
 	      bestdistance = thowclosedd
 	      bestentityindex = ee
@@ -410,7 +412,7 @@ function masterinterpreter_resetscan(e)
  IntersectStaticPerformant(0,0,0,0,0,0,0,e,-1,0)
 end
 
-function masterinterpreter_rayscan(e, output_e, fromx,fromy,fromz,tox,toy,toz,ignoreobj,ignoreplayer)
+function masterinterpreter_rayscan(e,output_e,fromx,fromy,fromz,tox,toy,toz,ignoreobj,ignoreplayer)
  local hit = 0
  if RayTerrain(fromx,fromy,fromz,tox,toy,toz) ~= 0 then hit = -1 end
  if hit == 0 then
@@ -1024,10 +1026,22 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
   if output_e['immunitytimer'] > 0 then return 1 end
  end 
  if conditiontype == g_masterinterpreter_cond_iftargetonfloor then 
-  if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "ground" end
   if output_e['target'] == "player" then
    -- player never bows down to rebel scum!
   end
+  if output_e['target'] == "hostile" then
+   if output_e['targete'] > 0 then
+    ee = output_e['targete']
+    if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "ground" end
+    if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) == 0 then
+     conditionparam1 = "death"
+     if GetEntityAnimationNameExistAndPlayingSearchAny(ee,conditionparam1) > 0 then return 1 end
+	end
+   end
+  end
+ end
+ if conditiontype == g_masterinterpreter_cond_iftargetplaying then
+  if conditionparam1 == nil or conditionparam1 == "" then conditionparam1 = "run" end
   if output_e['target'] == "hostile" then
    if output_e['targete'] > 0 then
     ee = output_e['targete']
@@ -1036,6 +1050,37 @@ function masterinterpreter_getconditionresult ( e, output_e, conditiontype, cond
 	end
    end
   end
+ end
+ if conditiontype == g_masterinterpreter_cond_navmeshclear then 
+  local mustpassalltests = 1
+  local radiuscheck = 65
+  local thisy = RDGetYFromMeshPosition(g_Entity[ e ]['x'],g_Entity[ e ]['y'],g_Entity[ e ]['z'])
+  local diff1y = RDGetYFromMeshPosition(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck)-thisy
+  local diff2y = RDGetYFromMeshPosition(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck)-thisy
+  local diff3y = RDGetYFromMeshPosition(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck)-thisy
+  local diff4y = RDGetYFromMeshPosition(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck)-thisy
+  if RDIsWithinMesh(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck) == 0 then diff1y = 99 end
+  if math.abs(diff1y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff2y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff3y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff4y) > 40 then mustpassalltests = 0 end
+  radiuscheck = 33
+  diff1y = RDGetYFromMeshPosition(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck)-thisy
+  diff2y = RDGetYFromMeshPosition(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck)-thisy
+  diff3y = RDGetYFromMeshPosition(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck)-thisy
+  diff4y = RDGetYFromMeshPosition(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck)-thisy
+  if RDIsWithinMesh(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']-radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']+radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck) == 0 then diff1y = 99 end
+  if RDIsWithinMesh(g_Entity[ e ]['x']-radiuscheck,g_Entity[ e ]['y'],g_Entity[ e ]['z']+radiuscheck) == 0 then diff1y = 99 end
+  if math.abs(diff1y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff2y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff3y) > 40 then mustpassalltests = 0 end
+  if math.abs(diff4y) > 40 then mustpassalltests = 0 end
+  return mustpassalltests
  end
  
  -- Condition is false
@@ -1396,14 +1441,27 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   local allegiance = GetEntityAllegiance(e)
   if allegiance == 0 then
    -- enemy (hates the player) 
-   output_e['targete'] = 0
-   output_e['recalctimer'] = 0
-   masterinterpreter_findnewenemytarget ( e, output_e )
-   if output_e['targete'] > 0 and math.random(0,1) > 0 then
-    -- enemies prefer allies in range half the time
-    output_e['target'] = "hostile"
+   if output_e['target'] == "hostile" and output_e['targete'] > 0 then
+    -- if already engaged with enemy, and within general vicinity, keep this target
+	local ee = output_e['targete']
+	local thisdistance = 9999
+	if g_Entity[ee]['health'] > 0 then
+	 thisdistance = GetDistanceTo(e,g_Entity[ee]['x'],g_Entity[ee]['y'],g_Entity[ee]['z'])
+	end
+	if thisdistance > 200 then 
+	 -- lose interest in this current target
+	 output_e['targete'] = 0
+	end	
    else
-    output_e['target'] = "player"
+    output_e['targete'] = 0
+    output_e['recalctimer'] = 0
+    masterinterpreter_findnewenemytarget ( e, output_e )
+    if output_e['targete'] > 0 and math.random(0,1) > 0 then
+     -- enemies prefer allies in range half the time
+     output_e['target'] = "hostile"
+    else
+     output_e['target'] = "player"
+    end
    end
   end  
   if allegiance == 1 then

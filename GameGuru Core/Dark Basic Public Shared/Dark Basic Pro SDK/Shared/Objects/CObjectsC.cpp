@@ -7341,126 +7341,6 @@ DARKSDK_DLL int IntersectAll_OLD ( int iPrimaryStart, int iPrimaryEnd, float fX,
 	GGVECTOR3 vec3value = GGVECTOR3(fX,fY,fZ) - GGVECTOR3(fNewX,fNewY,fNewZ);
 	float fDistanceBetweenPoints = GGVec3Length(&vec3value);
 
-	// LEE: Dave, now you commented back in the old code, this entire routine is redundant, nes pa?
-	// go through all objects and collect a shortlist of boxes intersected by ray
-	// DAVE: Good point :D
-	/*g_pIntersectShortList.clear();
-	for ( int iPass=0; iPass<3; iPass++ )
-	{
-		int iStart, iEnd;
-		if ( iPass==0 ) { iStart=iPrimaryStart; iEnd=iPrimaryEnd; }
-		if ( iPass==1 ) { iStart=g_iIntersectAllSecondStart; iEnd=g_iIntersectAllSecondEnd; }
-		if ( iPass==2 ) { iStart=g_iIntersectAllThirdStart; iEnd=g_iIntersectAllThirdEnd; if ( iStart == 0 ) break; }
-		for ( int iObjectID = iStart; iObjectID <= iEnd; iObjectID++ )
-		{
-			// make sure we have a valid object
-			sObject* pObject = g_ObjectList [ iObjectID ];
-			if ( !pObject ) 
-				continue;
-
-			// check if object is excluded
-			// check if object in dead state (non collisin detectable)
-			if ( pObject->dwObjectNumber==iIgnoreObjNo || pObject->collision.dwCollisionPropertyValue==1 || !pObject->bVisible )
-				continue;
-
-			// check if object in same 'region' as ray
-			float fDX=0, fDY=0, fDZ=0;
-			if ( pObject->position.iGluedToObj>0 )
-			{
-				// use parent object instead
-				sObject* pParentObject = g_ObjectList [ pObject->position.iGluedToObj ];
-				if ( pParentObject )
-				{
-					fDX = pParentObject->position.vecPosition.x - fX;
-					fDY = pParentObject->position.vecPosition.y - fY;
-					fDZ = pParentObject->position.vecPosition.z - fZ;
-				}
-			}
-			else
-			{
-				fDX = pObject->position.vecPosition.x - fX;
-				fDY = pObject->position.vecPosition.y - fY;
-				fDZ = pObject->position.vecPosition.z - fZ;
-			}
-			float fDist = sqrt(fabs(fDX*fDX)+fabs(fDY*fDY)+fabs(fDZ*fDZ));
-			if ( fDist <= ((pObject->collision.fLargestRadius*3)+fDistanceBetweenPoints) )
-			{
-				// instead of transforming box to object world orientation, transform ray
-				// on a per object basis back into object space, for quicker box checking
-				GGMATRIX matInvWorld;
-				float fDet;
-				GGMatrixInverse(&matInvWorld,&fDet,&pObject->position.matWorld);
-				GGVECTOR3 vecFrom = GGVECTOR3(fX,fY,fZ);
-				GGVECTOR3 vecTo = GGVECTOR3(fNewX,fNewY,fNewZ);
-				GGVec3TransformCoord(&vecFrom,&vecFrom,&matInvWorld);
-				GGVec3TransformCoord(&vecTo,&vecTo,&matInvWorld);
-				IntersectRay transformedray;
-				transformedray.origin[0] = vecFrom.x;
-				transformedray.origin[1] = vecFrom.y;
-				transformedray.origin[2] = vecFrom.z;
-				transformedray.direction[0] = vecTo.x-vecFrom.x;
-				transformedray.direction[1] = vecTo.y-vecFrom.y;
-				transformedray.direction[2] = vecTo.z-vecFrom.z;
-				transformedray.direction[0] /= fDistanceBetweenPoints;
-				transformedray.direction[1] /= fDistanceBetweenPoints;
-				transformedray.direction[2] /= fDistanceBetweenPoints;
-
-				// check if ray intersects object bound box (ray vs box) [using object space]
-				IntersectBox box;
-				box.min[0] = pObject->collision.vecMin.x;
-				box.min[1] = pObject->collision.vecMin.y;
-				box.min[2] = pObject->collision.vecMin.z;
-				box.max[0] = pObject->collision.vecMax.x;
-				box.max[1] = pObject->collision.vecMax.y;
-				box.max[2] = pObject->collision.vecMax.z;
-				int tnear, tfar;
-				if ( intersectRayAABox2(transformedray, box, tnear, tfar)==true )
-				{
-					g_pIntersectShortList.push_back ( pObject );
-				}
-			}
-		}
-	}
-
-	// for shortlist of object(boxes) that touch ray, check closest with full polygon check
-	float fBestDistance = 999999.9f;
-	GlobChecklistStruct pBestHit[10];
-	std::sort(g_pIntersectShortList.begin(), g_pIntersectShortList.end(), OrderByCamDistance() );
-	int iIntersectShortListMax = g_pIntersectShortList.size ( );*/
-	// DAVE 9/12/2014 Commented this out as sometimes the closer object isnt the one that gets hit by the ray first
-	// E.G. in the middle of a building which counts as closer but the player who is inside the building would be the one getting hit as he is infront of the wall that will get tested first
-	// Since the building counts as being closer, the test is a success and the player is never checked despite the polygon that would be hit of the player being closer
-	/*for ( int iShortListIndex=0; iShortListIndex<iIntersectShortListMax; iShortListIndex++ )
-	{
-		sObject* pObject = g_pIntersectShortList [ iShortListIndex ];
-		int iObjectID = pObject->dwObjectNumber;
-		float fDistance = IntersectObjectCore ( pObject, fX, fY, fZ, fNewX, fNewY, fNewZ, 0 );
-		if ( fDistance > 0 && fDistance < fBestDistance && fDistance < fDistanceBetweenPoints )
-		{
-			// object was intersected, return obj number
-			fBestDistance = fDistance;
-			iHitValue = iObjectID;
-
-			// populate checklist with extra hit info
-			// 0 - frame indexes (A = mesh number, B = related frame number (if A is bone mesh))
-			// 1 - vertex indexes
-			// 2 - object-space coordinate of V0
-			// 3 - object-space coordinate of V1
-			// 4 - object-space coordinate of V2
-			// 5 - world space coordinate where the collision struck!
-			// 6 - normal of polygon struck (from vertA)
-			// 7 - reflection normal based on angle of impact
-			// 8 - arbitary value from mesh collision structure (set using SetObjectArbitary)
-			for ( int iI=0; iI<9; iI++ ) pBestHit [ iI ] = g_pGlob->checklist [ iI ];
-
-			// first polygon hit wins (unless it has no camdistance such as consolidated LM objects)
-			if ( pObject->position.fCamDistance > 0.0f )
-			{
-				break;
-			}
-		}
-	}*/
-
 	// Dave - Added these declarations here, since the above routine isn't used anymore
 	float fBestDistance = 999999.9f;
 	GlobChecklistStruct pBestHit[10];
@@ -7598,6 +7478,7 @@ DARKSDK_DLL int IntersectAll_OLD ( int iPrimaryStart, int iPrimaryEnd, float fX,
 DWORD g_dwIntersectDatabaseSize = 0;
 DWORD* g_pIntersectDatabase = NULL;
 int* g_pIntersectDatabaseLastResult = NULL;
+bool g_bForceActualCheckNextTime = false;
 
 //This version combines the orignal method with the shortlist of boxes checked to provide the best of both versions
 DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, float fY, float fZ, float fNewX, float fNewY, float fNewZ, int iIgnoreObjNo, int iStaticOnly, int iIndexInIntersectDatabase, int iLifeInMilliseconds, int iIgnorePlayerCapsule, bool bFullWickedAccuracy, bool bThreadSafe)
@@ -7628,13 +7509,14 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 	}
 	if (iIndexInIntersectDatabase > 50000) iIndexInIntersectDatabase = 50000;
 	bool bUseHitResultFromIntersectDatabase = false;
-	if (iIndexInIntersectDatabase > 0)
+	if (iIndexInIntersectDatabase > 0 && g_bForceActualCheckNextTime == false)
 	{
 		// special code to wipe out database record for when switch targets
 		if (iLifeInMilliseconds == -1)
 		{
 			// skip database early exit so can generate new result right after target switch
-			g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() - 1.0;
+			g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() + 30.0f;// -1.0; need to ensure when reset then immediately call rayscan, we calculate the ray live!!
+			g_bForceActualCheckNextTime = true;
 			return g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase];
 		}
 		else
@@ -7674,6 +7556,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 	if (iStaticOnly == 2) iStaticOnly = 1;
 
 	// visible geometry ray detection
+	g_bForceActualCheckNextTime = false;
 	if (bFullWickedAccuracy==false)
 	{
 		GGVECTOR3 vecFrom = GGVECTOR3(fX, fY, fZ);
@@ -7813,8 +7696,12 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 	if (iIndexInIntersectDatabase > 0)
 	{
 		if (iLifeInMilliseconds < 0) iLifeInMilliseconds = 0;
-		g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() + iLifeInMilliseconds;
-		g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase] = iHitValue;
+		if (timeGetTime() > g_pIntersectDatabase[iIndexInIntersectDatabase])
+		{
+			// but ONLY when the previous time has expired (so the reset can affect ALL ray tests such as when scanning for new enemy)
+			g_pIntersectDatabase[iIndexInIntersectDatabase] = timeGetTime() + iLifeInMilliseconds;
+			g_pIntersectDatabaseLastResult[iIndexInIntersectDatabase] = iHitValue;
+		}
 	}
 
 	// ensure the checklist hack to carry results back ensure the checklist qty does not force a return of zero (nasty bug this one)!

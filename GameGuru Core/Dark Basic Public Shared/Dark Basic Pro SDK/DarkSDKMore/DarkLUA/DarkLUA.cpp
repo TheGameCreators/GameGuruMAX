@@ -5760,13 +5760,6 @@ int IntersectCore (lua_State* L, int iMode)
 	float fNewZ = lua_tonumber(L, 6);
 	int iIgnoreObjNo = lua_tonumber(L, 7);
 
-	// catch silly tests
-	if ((fX == 0 && fY == 0 && fZ == 0 && fNewX == 0 && fNewY == 0 && fNewZ == 0) || (fX == fNewX && fY == fNewY && fZ == fNewZ))
-	{
-		lua_pushnumber (L, 0);
-		return 1;
-	}
-
 	// use a database to store recent results, and pull from that before redoing a real intersect test
 	int iIndexInIntersectDatabase = 0;
 	int iLifeInMilliseconds = 0;
@@ -5790,6 +5783,20 @@ int IntersectCore (lua_State* L, int iMode)
 			iIgnoreTerrain = 0;
 		else
 			iIgnoreTerrain = lua_tonumber(L, 11);
+	}
+
+	// catch silly tests
+	if ((fX == 0 && fY == 0 && fZ == 0 && fNewX == 0 && fNewY == 0 && fNewZ == 0) || (fX == fNewX && fY == fNewY && fZ == fNewZ))
+	{
+		if (iMode == 2 && iLifeInMilliseconds == -1)
+		{
+			// resetting the database is not a silly test, it is a signal!
+		}
+		else
+		{
+			lua_pushnumber (L, 0);
+			return 1;
+		}
 	}
 
 	// do the expensive ray cast

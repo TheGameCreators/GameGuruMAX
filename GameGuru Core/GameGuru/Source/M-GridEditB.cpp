@@ -35706,16 +35706,11 @@ void Welcome_Screen(void)
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x*0.5, 0.0));
 					if (ImGui::ImgBtn(iTextureID, ImVec2(vPreviewSize.x - image_size_sub_x, (vPreviewSize.x- image_size_sub_x) * ratio), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 200), 0, 0, 0, 0, false, false, false))
 					{
-						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
+						// this link set to never expire!
+						ExecuteFile("https://discord.gg/3SnMj3WKDB", "", "", 0);
 					}
 					ImGui::SetWindowFontScale(1.4);
 					ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(image_size_sub_x * 0.5, 0.0));
-					/*
-					if (ImGui::StyleButton("Click Here to Visit Discord", ImVec2(vPreviewSize.x - image_size_sub_x, 0)))
-					{
-						ExecuteFile("https://discord.gg/Q3jjCHK3", "", "", 0);
-					}
-					*/
 					ImGui::SetWindowFontScale(1.0);
 					ImGui::Text("");
 				}

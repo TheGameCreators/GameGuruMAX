@@ -211,6 +211,8 @@ g_masterinterpreter_act_destroynoragdoll = 112 -- Destroy No Ragdoll (Destroy ob
 g_masterinterpreter_act_playsoundsparsely = 113 -- Play Sound Sparsely (Play the sound only after 3 seconds in the specified slot number 0-3)
 g_masterinterpreter_act_resetdamagecheck = 114 -- Reset Damage Check (Reset damage check tracker used by Check Damage condition)
 g_masterinterpreter_act_pushifplayer = 115 -- Push If Player (If target player, forces player back with suitable animation)
+g_masterinterpreter_act_disablecharacter = 116 -- Disable Character (Disables object as a character, shutting down basic character logic)
+g_masterinterpreter_act_enablecharacter = 117 -- Enable Character (Restores the object as a regular character)
 
 -- special callout manager to avoid insane chatter for characters
 g_calloutmanager = {}
@@ -2442,6 +2444,16 @@ function masterinterpreter_doaction ( e, output_e, actiontype, actionparam1, act
   if output_e['target'] == "player" then
    PushPlayer(actionparam1value)
   end
+ end
+ 
+ -- Disable Character
+ if actiontype == g_masterinterpreter_act_disablecharacter then
+  SetCharacterMode(e,0)
+ end 
+ 
+ -- Enable Character
+ if actiontype == g_masterinterpreter_act_enablecharacter then
+  SetCharacterMode(e,1)
  end
  
 end

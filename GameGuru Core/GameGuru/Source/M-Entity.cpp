@@ -2070,12 +2070,15 @@ void entity_loaddata ( void )
 		{
 			// per mesh textures and control values
 
-			t.entityprofile[t.entid].WEMaterial.customShaderID[i] = -1;
-			t.entityprofile[t.entid].WEMaterial.customShaderParam1[i] = 0;
-			t.entityprofile[t.entid].WEMaterial.customShaderParam2[i] = 0;
-			t.entityprofile[t.entid].WEMaterial.customShaderParam3[i] = 0;
-			t.entityprofile[t.entid].WEMaterial.customShaderParam4[i] = 0;
-			t.entityprofile[t.entid].WEMaterial.WPEffect[i] = "";
+			t.entityprofile[t.entid].WEMaterial.customShaderID = -1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam1 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam2 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam3 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam4 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam5 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam6 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam7 = 1;
+			t.entityprofile[t.entid].WEMaterial.WPEffect = "";
 
 			t.entityprofile[t.entid].WEMaterial.baseColorMapName[i] = "";
 			t.entityprofile[t.entid].WEMaterial.normalMapName[i] = "";
@@ -2549,52 +2552,54 @@ void entity_loaddata ( void )
 						cmpNStrConst(t_field_s, "customshaderid");
 						if (matched)
 						{
-							int index = atoi(t_field_s + 12);
-							if (index < MAXMESHMATERIALS)
-							{
-								t.entityprofile[t.entid].WEMaterial.customShaderID[index] = t.value1_f;
-								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							}
+							t.entityprofile[t.entid].WEMaterial.customShaderID = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 						}
 						cmpNStrConst(t_field_s, "customshaderparam1");
 						if (matched)
 						{
-							int index = atoi(t_field_s + 12);
-							if (index < MAXMESHMATERIALS)
-							{
-								t.entityprofile[t.entid].WEMaterial.customShaderParam1[index] = t.value1_f;
+							//int index = atoi(t_field_s + 12);
+							//if (index < MAXMESHMATERIALS)
+							//{
+								t.entityprofile[t.entid].WEMaterial.customShaderParam1 = t.value1_f;
 								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							}
+							//}
 						}
 						cmpNStrConst(t_field_s, "customshaderparam2");
 						if (matched)
 						{
-							int index = atoi(t_field_s + 12);
-							if (index < MAXMESHMATERIALS)
-							{
-								t.entityprofile[t.entid].WEMaterial.customShaderParam2[index] = t.value1_f;
-								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							}
+							t.entityprofile[t.entid].WEMaterial.customShaderParam2 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 						}
 						cmpNStrConst(t_field_s, "customshaderparam3");
 						if (matched)
 						{
-							int index = atoi(t_field_s + 12);
-							if (index < MAXMESHMATERIALS)
-							{
-								t.entityprofile[t.entid].WEMaterial.customShaderParam3[index] = t.value1_f;
-								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							}
+							t.entityprofile[t.entid].WEMaterial.customShaderParam3 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 						}
 						cmpNStrConst(t_field_s, "customshaderparam4");
 						if (matched)
 						{
-							int index = atoi(t_field_s + 12);
-							if (index < MAXMESHMATERIALS)
-							{
-								t.entityprofile[t.entid].WEMaterial.customShaderParam4[index] = t.value1_f;
-								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
-							}
+							t.entityprofile[t.entid].WEMaterial.customShaderParam4 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam5");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam5 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam6");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam6 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam7");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam7 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 						}
 
 
@@ -6329,36 +6334,15 @@ void c_entity_loadelementsdata ( void )
 					}
 					if (t.versionnumberload >= 339)
 					{
-						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderID[0] = t.a;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderID[i] = t.a;
-						}
-						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam1[0] = t.a;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam1[i] = t.a;
-						}
-						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam2[0] = t.a;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam2[i] = t.a;
-						}
-						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam3[0] = t.a;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam3[i] = t.a;
-						}
-						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam4[0] = t.a;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam4[i] = t.a;
-						}
-						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect[0] = t.a_s;
-						for (int i = 1; i < MAXMESHMATERIALS; i++)
-						{
-							t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect[i] = t.a_s;
-						}
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderID = t.a;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam1 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam2 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam3 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam4 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam5 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam6 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam7 = t.a_f;
+						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect = t.a_s;
 					}
 					#endif
 
@@ -7802,36 +7786,15 @@ void entity_saveelementsdata (bool bForCollectionELE)
 				}
 				if (t.versionnumbersave >= 339)
 				{
-					writer.WriteLong(t.entityelement[ent].eleprof.WEMaterial.customShaderID[0]);
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteLong(t.entityelement[ent].eleprof.WEMaterial.customShaderID[i]);
-					}
-					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam1[0]);
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam1[i]);
-					}
-					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam2[0]);
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam2[i]);
-					}
-					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam3[0]);
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam3[i]);
-					}
-					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam4[0]);
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam4[i]);
-					}
-					writer.WriteString(t.entityelement[ent].eleprof.WEMaterial.WPEffect[0].Get());
-					for (int i = 1; i < MAXMESHMATERIALS; i++)
-					{
-						writer.WriteString(t.entityelement[ent].eleprof.WEMaterial.WPEffect[i].Get());
-					}
+					writer.WriteLong(t.entityelement[ent].eleprof.WEMaterial.customShaderID);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam1);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam2);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam3);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam4);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam5);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam6);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam7);
+					writer.WriteString(t.entityelement[ent].eleprof.WEMaterial.WPEffect.Get());
 				}
 
 				#endif
@@ -10401,45 +10364,72 @@ int WickedCustomShaderID(void)
 	if (g_iWickedEntityId < 0) return -1;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
-		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderID[g_iWickedMeshNumber];
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderID;
 	}
-	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderID[g_iWickedMeshNumber];
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderID;
 }
 float WickedCustomShaderParam1(void)
 {
 	if (g_iWickedEntityId < 0) return 0;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
-		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam1[g_iWickedMeshNumber];
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam1;
 	}
-	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam1[g_iWickedMeshNumber];
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam1;
 }
 float WickedCustomShaderParam2(void)
 {
 	if (g_iWickedEntityId < 0) return 0;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
-		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam2[g_iWickedMeshNumber];
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam2;
 	}
-	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam2[g_iWickedMeshNumber];
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam2;
 }
 float WickedCustomShaderParam3(void)
 {
 	if (g_iWickedEntityId < 0) return 0;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
-		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam3[g_iWickedMeshNumber];
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam3;
 	}
-	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam3[g_iWickedMeshNumber];
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam3;
 }
 float WickedCustomShaderParam4(void)
 {
 	if (g_iWickedEntityId < 0) return 0;
 	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
 	{
-		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam4[g_iWickedMeshNumber];
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam4;
 	}
-	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam4[g_iWickedMeshNumber];
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam4;
+}
+float WickedCustomShaderParam5(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam5;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam5;
+}
+float WickedCustomShaderParam6(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam6;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam6;
+}
+float WickedCustomShaderParam7(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam7;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam7;
 }
 
 float WickedRenderOrderBias(void)

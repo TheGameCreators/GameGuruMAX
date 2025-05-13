@@ -2556,6 +2556,11 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 						g.globals.realshadowdistance = t.value1;
 						g.globals.realshadowdistancehigh = t.value1;
 					}
+					// DOCDOC: Change XAudio2 sound scaler , higher = you can hear 3d sounds further away. default = 180
+					t.tryfield_s = "curvedistancescaler"; if (t.field_s == t.tryfield_s)
+					{
+						g.globals.CurveDistanceScaler = t.value1;
+					}
 
 					// DOCDOC: editorusemediumshadows = Sets the editor to render medium level shadows while editing
 					t.tryfield_s = "editorusemediumshadows"; if (t.field_s == t.tryfield_s)  g.globals.editorusemediumshadows = t.value1;

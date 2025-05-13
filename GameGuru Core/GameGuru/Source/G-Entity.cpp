@@ -4617,7 +4617,7 @@ void entity_createobj ( void )
 							if (Master_WEMaterial->bTransparency[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bTransparency[iMesh] ||
 								Master_WEMaterial->fRenderOrderBias[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.fRenderOrderBias[iMesh] ||
 								#ifdef CUSTOMSHADERS
-								Master_WEMaterial->customShaderID[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.customShaderID[iMesh] ||
+								Master_WEMaterial->customShaderID != t.entityelement[t.tupdatee].eleprof.WEMaterial.customShaderID ||
 								#endif
 								Master_WEMaterial->bPlanerReflection[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bPlanerReflection[iMesh] ||
 								Master_WEMaterial->bCastShadows[iMesh] != t.entityelement[t.tupdatee].eleprof.WEMaterial.bCastShadows[iMesh])

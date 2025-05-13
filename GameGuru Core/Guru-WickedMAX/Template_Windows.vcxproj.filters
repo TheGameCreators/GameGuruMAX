@@ -1273,6 +1273,9 @@
     <FxCompile Include="GGTerrain\CustomShaders\shadowVS_alphatest_tree.hlsl">
       <Filter>CustomShaders</Filter>
     </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_transparent_glass.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
     <FxCompile Include="GGTerrain\CustomShaders\objectPS_custom_water.hlsl">
       <Filter>CustomShaders</Filter>
     </FxCompile>

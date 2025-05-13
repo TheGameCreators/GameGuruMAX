@@ -46,6 +46,7 @@ using namespace wiScene;
 using namespace wiECS;
 using namespace wiAudio;
 std::string realname = "";
+float GetCurveDistanceScaler(void);
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -1065,6 +1066,7 @@ DARKSDK void PlaySound ( int iID )
 	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
+		sound->CurveDistanceScaler = GetCurveDistanceScaler();
 		sound->SetLooped(false);
 		if (sound->soundinstance.IsLooped())
 		{
@@ -1406,6 +1408,7 @@ DARKSDK void LoopSound ( int iID, int iStart, int iEnd, int iInitialPos )
 	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
+		sound->CurveDistanceScaler = GetCurveDistanceScaler();
 		const bool looped = true; //true
 		sound->SetLooped(looped);
 		if (!sound->soundinstance.IsLooped())
@@ -1493,6 +1496,8 @@ DARKSDK void StopSound ( int iID )
 
 	// stop the sound from playing
 	m_ptr->bPlaying = false;
+	m_ptr->bLoop = false;
+	m_ptr->bPause = false;
 
 #ifdef WICKEDAUDIO
 	SoundComponent* sound = GetScene().sounds.GetComponent(m_ptr->wickedEntity);
@@ -1551,6 +1556,7 @@ DARKSDK void ResumeSound ( int iID )
 	SoundComponent* sound = myscene.sounds.GetComponent(m_ptr->wickedEntity);
 	if (sound != nullptr)
 	{
+		sound->CurveDistanceScaler = GetCurveDistanceScaler();
 		sound->Play();
 	}
 #else
@@ -2263,6 +2269,8 @@ DARKSDK int SoundPlaying ( int iID )
 		//uint32_t cf = wiAudio::GetCallBackF(&sound->soundinstance);
 		//uint32_t cs = wiAudio::GetCallBackS(&sound->soundinstance);
 		bool bPlaying = wiAudio::bIsReallyPlaying(&sound->soundinstance); //Flush so restart.
+		if (!m_ptr->bPlaying)
+			bPlaying = false;
 		return(bPlaying);
 	}
 #else

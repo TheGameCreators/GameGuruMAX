@@ -1280,11 +1280,16 @@ inline void ApplyFog(in float distance, float3 P, float3 V, inout float4 color)
 //PE: Animate the trees a bit.
 float TreeWaveX(float posy, float posx)
 {
-    if (g_xFrame_TreeWind <= 0)
-        return (0);
+	float treeWind = g_xFrame_TreeWind;
+	float materialWindParam = GetMaterial().customShaderParam1;
+	float isZeroWind = 1.0 - step(0.000001, abs(treeWind));
+	float isNonZeroWind = step(0.000001, abs(treeWind));
+	float baseWind = (isZeroWind * materialWindParam) + (isNonZeroWind * treeWind);
+	float wind = baseWind * materialWindParam;
+
 	const float clamped = clamp((posy - 120) * 0.35, 0, posy);
-    const float swayspeed = g_xFrame_TreeWind * 6.0; // (0.85)
-    const float swayamount = g_xFrame_TreeWind * 0.35; //0.075
+    const float swayspeed = wind * 6.0; // (0.85)
+    const float swayamount = wind * 0.35; //0.075
     const float time = g_xFrame_Time;
     const float sdat = sin((time * (swayspeed * 1.5)) + posx) + cos((time * (swayspeed * 0.8)) + posx) + sin((time * (swayspeed * 1.2)));
     const float wave = sdat * 0.335 * clamp((posy - 120) * 0.35, 0, 1);
@@ -1292,11 +1297,16 @@ float TreeWaveX(float posy, float posx)
 }
 float TreeWaveZ(float posy, float posx)
 {
-    if (g_xFrame_TreeWind <= 0)
-        return (0);
+	float treeWind = g_xFrame_TreeWind;
+	float materialWindParam = GetMaterial().customShaderParam1;
+	float isZeroWind = 1.0 - step(0.000001, abs(treeWind));
+	float isNonZeroWind = step(0.000001, abs(treeWind));
+	float baseWind = (isZeroWind * materialWindParam) + (isNonZeroWind * treeWind);
+	float wind = baseWind * materialWindParam;
+
 	const float clamped = clamp((posy - 120) * 0.35, 0, posy);
-    const float swayspeed = g_xFrame_TreeWind * 6.0; // (0.85)
-    const float swayamount = g_xFrame_TreeWind * 0.20; //0.055
+    const float swayspeed = wind * 6.0; // (0.85)
+    const float swayamount = wind * 0.20; //0.055
     const float time = g_xFrame_Time;
     const float sdat = sin((time * swayspeed) + posx) + cos((time * (swayspeed * 1.5)) + posx);
     const float wave = sdat * 0.5 * clamp((posy - 120) * 0.35, 0, 1);
@@ -1500,63 +1510,109 @@ struct OutputPrepass
 	float4 color = 1;
 
 #ifdef WATEROBJECT
-	float speed = 0.01f;
-	float speed2 = 0.02f;
-	float refractionAmount = 0.8f;
 
-   float2 WaterScale = { 155.0f , 155.0f}; // PE: wave size higher = smaller waves default 155.0,155.0
-   float distortion = 0.0055f; // PE: water distortion reflection default 0.0055f
-   float distortion2 = 0.030f; // PE: water distortion waves default 0.030f
-   float WaterSpeed1 = 30.0f; // PE: Speed 1 lower = faster default 30.0f
-   float WaterSpeed2 = 70.0f; // PE: Speed 2 lower = faster default 30.0f  
+	float uvscale = GetMaterial().customShaderParam1;
+	float uvspeed = GetMaterial().customShaderParam2;
+	float uvdistorsion = GetMaterial().customShaderParam3;
+	float uvdirection = GetMaterial().customShaderParam4;
+	float uvscroll = 0.03f * GetMaterial().customShaderParam5;
+	float2 newuv = input.uvsets.xy * uvscale;
 
-   float4 watermap = texture_basecolormap.Sample(sampler_objectshader, input.uvsets.xy+(g_xFrame_Time/WaterSpeed1));
-   float genericwave = (watermap.b-0.5*2.0)+0.5;
-   float3 dudv = normalize( watermap.rgb * 2.0 - 1.0) * distortion;
-   float3 dudv2 = normalize( watermap.rgb * 2.0 - 1.0) * distortion2;
-   float2 timeScaledUV = input.uvsets.xy+(g_xFrame_Time/WaterSpeed1);
-   float2 timeScaledUV2 = input.uvsets.xy+dudv2.rg+(g_xFrame_Time/WaterSpeed2);
-   watermap = texture_basecolormap.Sample(sampler_objectshader, input.uvsets.xy+dudv2.rg+(g_xFrame_Time/WaterSpeed2) );
-   float4 baseColorMap = lerp( watermap , texture_basecolormap.Sample(sampler_objectshader, (input.uvsets.xy/4.0)+dudv2.rg+(g_xFrame_Time/WaterSpeed2) ) , 0.5); // clamp( (cameraPos.z/9500.0)-0.1,0.0,0.50) );
-   baseColorMap.rgb = DEGAMMA(baseColorMap.rgb);
-   color *= baseColorMap;
+	float distortion = 0.0085f * uvdistorsion; // PE: water distortion reflection default 0.0055f
+	float distortion2 = 0.040f * uvdistorsion; // PE: water distortion waves default 0.030f
+	float WaterSpeed1 = 0.03f * uvspeed; // PE: Speed 1 lower = faster default 30.0f
+	float WaterSpeed2 = 0.0125f * uvspeed; // PE: Speed 2 lower = faster default 70.0f  
 
+    float angle = uvdirection * 2.0 * PI;
+    float2 direction;
+    direction.x = cos(angle);
+    direction.y = sin(angle);
+	float2 offset = direction * WaterSpeed1 * g_xFrame_Time;
+	float2 offset2 = direction * uvscroll * g_xFrame_Time;
 
-    // Sample the normal map with time-based scrolling
-	//float time = g_xFrame_Time;
-	//float2 timeScaledUV = 0;
-	//float2 timeScaledUV2 = 0;
-    //timeScaledUV = (input.uvsets.xy*0.8f) + (sin(time+input.uvsets.x) * speed) + (cos(time * 0.6 + input.uvsets.y) * speed2);
-	//timeScaledUV.x = (input.uvsets.x*0.9f) + (sin(time * 0.3 +input.uvsets.x) * speed2) + (cos(time * 1.2 + input.uvsets.y) * speed);
-    //timeScaledUV2 = (input.uvsets.xy*1.5f) + (cos(time+input.uvsets.y) * speed2) + (sin(time * 0.7 + input.uvsets.x) * speed);
-	//timeScaledUV2.x = (input.uvsets.x*1.2f) + (sin(time * 0.6 +input.uvsets.y) * speed) + (cos(time * 0.9 + input.uvsets.x) * speed2);
+	if ( uvdirection == 0)
+	{
+		offset = 0;
+		offset2 = 0;
+	}
+	newuv += offset;
 
-    //timeScaledUV = (input.uvsets.xy*0.8f) + ((time+input.uvsets.x) * speed);
-    //timeScaledUV2 = (input.uvsets.xy*1.5f) + ((time+input.uvsets.y) * speed2);
+	float3 normalwatermap = texture_normalmap.Sample(sampler_objectshader, newuv);
+	float3 normalwatermap3 = texture_normalmap.Sample(sampler_objectshader, newuv+(g_xFrame_Time*WaterSpeed1));
+	float genericwave = (normalwatermap.b-0.5*2.0)+0.5;
+	float3 dudv = normalize( normalwatermap.rgb * 2.0 - 1.0) * distortion;
+	float3 dudv2 = normalize( normalwatermap.rgb * 2.0 - 1.0) * distortion2;
+	float3 dudv3 = normalize( normalwatermap3.rgb * 2.0 - 1.0) * distortion;
 
+	float2 timeScaledUV = newuv+sin((g_xFrame_Time*WaterSpeed1));
+	float2 timeScaledUV2 = (newuv*0.5)+dudv2.rg+cos((g_xFrame_Time*WaterSpeed2));
+	float2 timeScaledUV3 = (newuv*0.25)+dudv2.rg+sin((g_xFrame_Time*WaterSpeed2));
+	float2 timeScaledUV4 = ((input.uvsets.xy+offset)*8)+dudv2.rg+sin((g_xFrame_Time*WaterSpeed1*2));
+	float2 timeScaledUV5 = ((input.uvsets.xy+offset)*6)+dudv.rg+sin((g_xFrame_Time*WaterSpeed2*2));
+	float2 timeScaledUV6 = ((input.uvsets.xy+offset)*5)+dudv.rg+cos((g_xFrame_Time*WaterSpeed2*2));
 
-	//timeScaledUV = lerp(timeScaledUV,timeScaledUV2,0.5);
-//    float3 normalSample = texture_normalmap.Sample(sampler_objectshader, timeScaledUV).rgb;
-//    float3 normalTS = normalize(normalSample * 2.0f - 1.0f);
+	float4 baseColorMap = texture_basecolormap.Sample(sampler_objectshader, (input.uvsets.xy)+dudv3.rg+offset2);
 
-//    float3 worldNormal = normalize(mul(normalTS, TBN));
-//    float3 viewDir = normalize(g_xCamera_CamPos - surface.P);
-//    float3 refractedDir = refract(viewDir, worldNormal, 1.0f / 1.33f);
+	float3 bumpColor2 = 0, bumpColor3 = 0, bumpColor4 = 0, bumpColor5 = 0, bumpColor6 = 0;
+	float3 normal2 = 0, normal3 = 0, normal4 = 0;
+	float2 orguv = input.uvsets.xy;
 
-//    float2 refractionUV = input.uvsets.xy + refractedDir.xy * refractionAmount;
+	input.uvsets.xy = timeScaledUV;
+	NormalMapping(input.uvsets, surface.N, TBN, bumpColor);
+	bumpColor4 = bumpColor;
+	input.uvsets.xy = timeScaledUV2;
+	NormalMapping(input.uvsets, normal2, TBN, bumpColor2);
+	input.uvsets.xy = timeScaledUV3;
+	NormalMapping(input.uvsets, normal3, TBN, bumpColor3);
+	input.uvsets.xy = orguv;
 
-	//float4 baseColorMap = texture_basecolormap.Sample(sampler_objectshader, refractionUV);
-	//float4 baseColorMap = texture_basecolormap.Sample(sampler_objectshader, timeScaledUV);
-	//float4 baseColorMap2 = texture_basecolormap.Sample(sampler_objectshader, timeScaledUV2);
-	//baseColorMap = lerp(baseColorMap,baseColorMap2,0.5f);
-	//baseColorMap.rgb = DEGAMMA(watermap.rgb); //baseColorMap.rgb);
-	//color *= baseColorMap;
+	surface.N = lerp(surface.N,normal2,0.5f);
+	surface.N = lerp(surface.N,normal3,0.5f);
+	bumpColor = lerp(bumpColor,bumpColor2,0.5f);
+	bumpColor = lerp(bumpColor,bumpColor3,0.5f);
 
-    //color *= texture_basecolormap.Sample(sampler_objectshader, refractionUV);
-	//input.uvsets.xy = timeScaledUV;
+	float sampled_lineardepth = texture_lineardepth.SampleLevel(sampler_point_clamp, ScreenCoord.xy , 0) * g_xCamera_ZFarP;
+
+	float depth_difference = sampled_lineardepth - lineardepth;
+	float3 foamColor = float3(2.0, 2.0, 2.0); // Define your foam color (e.g., white)
+	float foamThreshold = 4.0 * GetMaterial().customShaderParam6;
+	
+	float foamIntensity = saturate((foamThreshold - depth_difference) / foamThreshold);
+
+	[branch]
+    if (foamIntensity > 0.0)
+    {
+		input.uvsets.xy = timeScaledUV4;
+		NormalMapping(input.uvsets, normal4, TBN, bumpColor4);
+		input.uvsets.xy = timeScaledUV5;
+		NormalMapping(input.uvsets, normal4, TBN, bumpColor5);
+		input.uvsets.xy = timeScaledUV6;
+		NormalMapping(input.uvsets, normal4, TBN, bumpColor6);
+		bumpColor4 = lerp(bumpColor4,bumpColor5,0.5f);
+		bumpColor4 = lerp(bumpColor4,bumpColor6,0.5f);
+		input.uvsets.xy = orguv;
+
+		float normalInfluenceStrength = 3.0;
+        float upDotNormal = saturate(dot(bumpColor4*2, float3(0, 1, 0)));
+
+        foamIntensity *= lerp(0.0, 1.0, upDotNormal * normalInfluenceStrength);
+        baseColorMap.rgb = lerp(baseColorMap.rgb, foamColor, foamIntensity);
+	}
+
+	//PE: Looks better but needed ?
+	//float2 size;
+	//float mipLevels;
+	//texture_refraction.GetDimensions(0, size.x, size.y, mipLevels);
+	//float4 refractiveColor = texture_refraction.SampleLevel(sampler_linear_clamp, ScreenCoord.xy+dudv3.rg, 0); //surface.roughness * mipLevels);
+	//baseColorMap.rgb = lerp(refractiveColor.rgb,baseColorMap.rgb,input.color.a);
+	//input.color.a = 1;
+
+	baseColorMap.rgb = DEGAMMA(baseColorMap.rgb);
+	color *= baseColorMap;
 
 #endif
 
+#ifndef GLASSOBJECT
 #ifndef WATEROBJECT
 #ifdef OBJECTSHADER_USE_UVSETS
 #ifndef OBJECTLOD
@@ -1571,6 +1627,34 @@ struct OutputPrepass
 #endif
 #endif // OBJECTSHADER_USE_UVSETS
 #endif // WATEROBJECT
+#endif // GLASSOBJECT
+
+
+#ifdef GLASSOBJECT
+	[branch]
+	float4 baseColorMap = 0;
+	if (GetMaterial().uvset_baseColorMap >= 0 && (g_xFrame_Options & OPTION_BIT_DISABLE_ALBEDO_MAPS) == 0)
+	{
+		const float2 UV_baseColorMap = GetMaterial().uvset_baseColorMap == 0 ? input.uvsets.xy : input.uvsets.zw;
+		baseColorMap = texture_basecolormap.Sample(sampler_objectshader, UV_baseColorMap);
+	}
+
+	NormalMapping(input.uvsets, surface.N, TBN, bumpColor);
+
+	float transmission = 1 - clamp(0.5 * GetMaterial().customShaderParam1,0,1);
+	float refraction = clamp(0.1 * GetMaterial().customShaderParam2,0,1);
+	float brighten = GetMaterial().customShaderParam3;
+
+	float2 size;
+	float mipLevels;
+	texture_refraction.GetDimensions(0, size.x, size.y, mipLevels);
+	const float2 normal2D = mul((float3x3)g_xCamera_View, surface.N.xyz).xy;
+	float4 refractiveColor = texture_refraction.SampleLevel(sampler_linear_clamp, ScreenCoord.xy + normal2D * refraction, 0);//surface.roughness * mipLevels); //surface.roughness * mipLevels);
+	baseColorMap.rgb = lerp(refractiveColor.rgb * brighten,baseColorMap.rgb,transmission);
+
+	baseColorMap.rgb = DEGAMMA(baseColorMap.rgb);
+	color *= baseColorMap;
+#endif
 
 
 #ifdef OBJECTSHADER_USE_COLOR
@@ -1593,17 +1677,8 @@ struct OutputPrepass
 #endif
 #endif // DISABLE_ALPHATEST
 
-
-#ifdef WATEROBJECT
-	float3 bumpColor2 = 0;
-	float3 normal2 = 0;
-	input.uvsets.xy = timeScaledUV;
-	NormalMapping(input.uvsets, surface.N, TBN, bumpColor);
-	input.uvsets.xy = timeScaledUV2;
-	NormalMapping(input.uvsets, normal2, TBN, bumpColor2);
-	surface.N = lerp(surface.N,normal2,0.5f);
-	bumpColor = lerp(bumpColor,bumpColor2,0.5f);
-#else
+#ifndef GLASSOBJECT
+#ifndef WATEROBJECT
 #ifndef WATER
 #ifdef OBJECTSHADER_USE_TANGENT
 #ifndef OBJECTLOD
@@ -1611,7 +1686,8 @@ struct OutputPrepass
 #endif
 #endif // OBJECTSHADER_USE_TANGENT
 #endif // WATER
-#endif // else
+#endif // WATEROBJECT
+#endif // GLASSOBJECT
 
 	float4 surfaceMap = 1;
 
@@ -2105,7 +2181,6 @@ struct OutputPrepass
 	lighting.indirect.specular += texture_reflection.SampleLevel(sampler_linear_mirror, reflectionUV.xy + bumpColor.rg, 0).rgb * surface.F;
 #endif // WATER
 
-
 #ifdef TRANSPARENT
 	[branch]
 	if (GetMaterial().transmission > 0)
@@ -2134,7 +2209,6 @@ struct OutputPrepass
 		surface.refraction.a = surface.transmission;
 	}
 #endif // TRANSPARENT
-
 
 #ifdef OBJECTSHADER_USE_ATLAS
 	LightMapping(input.atl, lighting);

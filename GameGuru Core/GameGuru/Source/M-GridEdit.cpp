@@ -18020,6 +18020,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fAutoExposureKey = t.gamevisuals.fAutoExposureKey;
 	t.visuals.fExposure = t.gamevisuals.fExposure;
 	t.visuals.fGamma = t.gamevisuals.fGamma;
+	t.visuals.fDeSaturate = t.gamevisuals.fDeSaturate;
 
 	t.visuals.SkyCloudiness = t.gamevisuals.SkyCloudiness;
 	t.visuals.SkyCloudCoverage = t.gamevisuals.SkyCloudCoverage;
@@ -30335,6 +30336,11 @@ void gridedit_deletelevelobjects ( void )
 
 	//  270215 - 011 - Create new entities from the beginning
 	g.entityviewcurrentobj=g.entityviewstartobj;
+}
+
+float GetCurveDistanceScaler(void)
+{
+	return g.globals.CurveDistanceScaler;
 }
 
 void modifyplaneimagestrip ( int objno, int texmax, int texindex )

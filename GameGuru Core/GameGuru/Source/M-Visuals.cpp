@@ -261,6 +261,8 @@ void visuals_resetvalues (bool bNewLevel)
 	t.visuals.fAutoExposureKey = 0.15f;
 	t.visuals.fExposure = 1.0f;
 	t.visuals.fGamma = 2.2f;
+	t.visuals.fDeSaturate = 1.0f;
+	
 	t.visuals.iMSAASampleCount = 1;
 	t.visuals.iFSRMode = 0;
 	t.visuals.fFSRSharpness = 0.2f;
@@ -848,6 +850,9 @@ void visuals_save ( void )
 	WriteString(1, t.strwork.Get());
 	t.strwork = ""; t.strwork = t.strwork + "visuals.Gamma=" + Str(t.visuals.fGamma);
 	WriteString(1, t.strwork.Get());
+	t.strwork = ""; t.strwork = t.strwork + "visuals.DeSaturate=" + Str(t.visuals.fDeSaturate);
+	WriteString(1, t.strwork.Get());
+	
 	t.strwork = ""; t.strwork = t.strwork + "visuals.MSAASampleCount=" + Str(t.visuals.iMSAASampleCount);
 	WriteString(1, t.strwork.Get());
 
@@ -1162,6 +1167,8 @@ void visuals_load ( void )
 	t.visuals.fAutoExposureKey = 0.15f;
 	t.visuals.fExposure = 1.0f;
 	t.visuals.fGamma = 2.2f;
+	t.visuals.fDeSaturate = 1.0f;
+	
 	t.visuals.iMSAASampleCount = 1;
 	t.visuals.iFSRMode = 0;
 	t.visuals.fFSRSharpness = 0.2f;
@@ -1485,6 +1492,8 @@ void visuals_load ( void )
 			
 			//PE: Who removed gamme ? we need it when restoring saved levels ? it was commented out ?
 			t.try_s = "visuals.Gamma"; if (t.tfield_s == t.try_s)  t.visuals.fGamma = ValF(t.tvalue_s.Get());
+			t.try_s = "visuals.DeSaturate"; if (t.tfield_s == t.try_s)  t.visuals.fDeSaturate = ValF(t.tvalue_s.Get());
+			
 			t.try_s = "visuals.MSAASampleCount"; if (t.tfield_s == t.try_s)  t.visuals.iMSAASampleCount = ValF(t.tvalue_s.Get());
 
 			t.try_s = "visuals.FSRMode"; if (t.tfield_s == t.try_s)  t.visuals.iFSRMode = ValF(t.tvalue_s.Get());

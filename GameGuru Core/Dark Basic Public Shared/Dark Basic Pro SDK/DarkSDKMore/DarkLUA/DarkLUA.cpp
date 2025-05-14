@@ -5011,6 +5011,8 @@ int SetGlobalSoundVolume ( lua_State *L )
 	if ( SoundExist(iID)==1 )
 	{
 		SetSoundVolume(iID,iVolume);
+		extern std::unordered_map<int, float> luavolumes;
+		luavolumes.insert_or_assign(iID, iVolume);
 	}
 	return 0;
 }
@@ -5090,7 +5092,15 @@ int SetRawSoundData ( lua_State *L, int iDataMode )
 		case 1: PlaySound(lua_tonumber(L, 1)); break;
 		case 2: LoopSound(lua_tonumber(L, 1)); break;
 		case 3: StopSound(lua_tonumber(L, 1)); break;
-		case 4: SetSoundVolume(lua_tonumber(L, 1), soundtruevolume(lua_tonumber(L, 2))); break;
+		case 4:
+		{
+			int sndid = lua_tonumber(L, 1);
+			float volume = soundtruevolume(lua_tonumber(L, 2));
+			SetSoundVolume(sndid, volume);
+			extern std::unordered_map<int, float> luavolumes;
+			luavolumes.insert_or_assign(sndid, volume);
+			break;
+		}
 		case 5: SetSoundSpeed(lua_tonumber(L, 1), lua_tonumber(L, 2)); break;
 		}
 	}
@@ -5148,6 +5158,8 @@ int StartAmbientMusicTrack(lua_State* L)
 			{
 				LoopSound(iFreeSoundID);
 				SetSoundVolume(iFreeSoundID, t.visuals.iAmbientMusicTrackVolume);
+				extern std::unordered_map<int, float> luavolumes;
+				luavolumes.insert_or_assign(iFreeSoundID, t.visuals.iAmbientMusicTrackVolume);
 			}
 		}
 	}
@@ -5178,6 +5190,8 @@ int SetAmbientMusicTrackVolume(lua_State* L)
 			float fVolumePercentage = lua_tonumber(L, 1) / 100.0f;
 			float fFinalVolume = t.visuals.iAmbientMusicTrackVolume * fVolumePercentage;
 			SetSoundVolume(iFreeSoundID, fFinalVolume);
+			extern std::unordered_map<int, float> luavolumes;
+			luavolumes.insert_or_assign(iFreeSoundID, fFinalVolume);
 		}
 	}
 	return 0;
@@ -5191,6 +5205,8 @@ int StartCombatMusicTrack(lua_State* L)
 		{
 			LoopSound(iFreeSoundID);
 			SetSoundVolume(iFreeSoundID, t.visuals.iCombatMusicTrackVolume);
+			extern std::unordered_map<int, float> luavolumes;
+			luavolumes.insert_or_assign(iFreeSoundID, t.visuals.iCombatMusicTrackVolume);
 		}
 	}
 	return 0;

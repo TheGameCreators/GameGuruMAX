@@ -18020,6 +18020,7 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	t.visuals.fAutoExposureKey = t.gamevisuals.fAutoExposureKey;
 	t.visuals.fExposure = t.gamevisuals.fExposure;
 	t.visuals.fGamma = t.gamevisuals.fGamma;
+	t.visuals.fDeSaturate = t.gamevisuals.fDeSaturate;
 
 	t.visuals.SkyCloudiness = t.gamevisuals.SkyCloudiness;
 	t.visuals.SkyCloudCoverage = t.gamevisuals.SkyCloudCoverage;
@@ -30337,6 +30338,11 @@ void gridedit_deletelevelobjects ( void )
 	g.entityviewcurrentobj=g.entityviewstartobj;
 }
 
+float GetCurveDistanceScaler(void)
+{
+	return g.globals.CurveDistanceScaler;
+}
+
 void modifyplaneimagestrip ( int objno, int texmax, int texindex )
 {
 	float s_f = 0;
@@ -30482,4 +30488,48 @@ void init_readouts()
 	readoutLayers.push_back(READOUT_SOUND);
 	readoutTypes.push_back(READOUT_INT);
 	readoutCallbacks.push_back(titles_immediateupdatesound);*/
+}
+
+
+void display_profiler_data(ImDrawList* draw, char* filter,int startline)
+{
+	extern ImFont* customfont;
+	if (!customfont) return;
+	float wide = 300.0f;
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImVec2 window_pos = ImVec2((viewport->Pos.x + viewport->Size.x - 10.0f), (viewport->Pos.y + 10.0f));
+
+	bool bProfile = true;
+	//wiProfiler::SetEnabled(false); //PE: Clear stat.
+	bProfilerEnable = true;
+	//if (!wiProfiler::IsEnabled())
+	//{
+	wiProfiler::SetEnabled(true);
+	//}
+	std::string profiler_data = wiProfiler::GetProfilerDataFilter(filter);
+	float line = startline;
+	char* find = (char*)pestrcasestr(profiler_data.c_str(), "\n");
+	while (find)
+	{
+		char * find2 = (char*) pestrcasestr(find + 1, "\n");
+		char old = '\n';
+		if (find2)
+		{
+			old = find2[0];
+			find2[0] = 0;
+		}
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide - 2, viewport->Pos.y + 24.0 + (14.0f * line) - 2), IM_COL32(0, 0, 0, 255), find + 1);
+		draw->AddText(customfont, 15, ImVec2(window_pos.x - wide, viewport->Pos.y + 24.0 + (14.0f * line)), IM_COL32(255, 255, 255, 255), find + 1);
+		line++;
+		if (find2)
+		{
+			find2[0] = old;
+		}
+		find = (char*)pestrcasestr(find + 1, "\n");
+	}
+}
+
+int GetDrawCallsShadowsCube2(void)
+{
+	return(wiProfiler::GetDrawCallsShadowsCube());
 }

@@ -2065,9 +2065,21 @@ void entity_loaddata ( void )
 		#ifdef WICKEDENGINE
 		t.entityprofile[t.entid].thumbnailbackdrop = "";
 		t.entityprofile[t.entid].WEMaterial.MaterialActive = false;
+
 		for (int i = 0; i < MAXMESHMATERIALS; i++)
 		{
 			// per mesh textures and control values
+
+			t.entityprofile[t.entid].WEMaterial.customShaderID = -1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam1 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam2 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam3 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam4 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam5 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam6 = 1;
+			t.entityprofile[t.entid].WEMaterial.customShaderParam7 = 1;
+			t.entityprofile[t.entid].WEMaterial.WPEffect = "";
+
 			t.entityprofile[t.entid].WEMaterial.baseColorMapName[i] = "";
 			t.entityprofile[t.entid].WEMaterial.normalMapName[i] = "";
 			t.entityprofile[t.entid].WEMaterial.emissiveMapName[i] = "";
@@ -2536,6 +2548,60 @@ void entity_loaddata ( void )
 								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
+
+						cmpNStrConst(t_field_s, "customshaderid");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderID = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam1");
+						if (matched)
+						{
+							//int index = atoi(t_field_s + 12);
+							//if (index < MAXMESHMATERIALS)
+							//{
+								t.entityprofile[t.entid].WEMaterial.customShaderParam1 = t.value1_f;
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+							//}
+						}
+						cmpNStrConst(t_field_s, "customshaderparam2");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam2 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam3");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam3 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam4");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam4 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam5");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam5 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam6");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam6 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+						cmpNStrConst(t_field_s, "customshaderparam7");
+						if (matched)
+						{
+							t.entityprofile[t.entid].WEMaterial.customShaderParam7 = t.value1_f;
+							t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+						}
+
 
 						cmpNStrConst( t_field_s, "alpharef" );
 						if ( matched )
@@ -5568,6 +5634,9 @@ void c_entity_loadelementsdata ( void )
 	// load entity element list
 	t.failedtoload=0;
 	t.versionnumbersupported = 338;
+	#ifdef CUSTOMSHADERS
+	t.versionnumbersupported = 339;
+	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
 	{
@@ -6262,6 +6331,18 @@ void c_entity_loadelementsdata ( void )
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.clipcapacity = t.a;
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.weaponpropres1 = t.a;
 						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.weaponpropres2 = t.a;
+					}
+					if (t.versionnumberload >= 339)
+					{
+						t.a = c_ReadLong(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderID = t.a;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam1 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam2 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam3 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam4 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam5 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam6 = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam7 = t.a_f;
+						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect = t.a_s;
 					}
 					#endif
 
@@ -7158,6 +7239,9 @@ void entity_saveelementsdata (bool bForCollectionELE)
 
 	//  Save entity element list
 	t.versionnumbersave = 338;
+	#ifdef CUSTOMSHADERS
+	t.versionnumbersave = 339;
+	#endif
 
 	EntityWriter writer;
 
@@ -7707,6 +7791,19 @@ void entity_saveelementsdata (bool bForCollectionELE)
 					writer.WriteLong(t.entityelement[ent].eleprof.weaponpropres1);
 					writer.WriteLong(t.entityelement[ent].eleprof.weaponpropres2);
 				}
+				if (t.versionnumbersave >= 339)
+				{
+					writer.WriteLong(t.entityelement[ent].eleprof.WEMaterial.customShaderID);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam1);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam2);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam3);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam4);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam5);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam6);
+					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam7);
+					writer.WriteString(t.entityelement[ent].eleprof.WEMaterial.WPEffect.Get());
+				}
+
 				#endif
 			}
 		} 
@@ -10267,6 +10364,79 @@ bool WickedDoubleSided(void)
 		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.bDoubleSided[g_iWickedMeshNumber];
 	}
 	return t.entityprofile[g_iWickedEntityId].WEMaterial.bDoubleSided[g_iWickedMeshNumber];
+}
+
+int WickedCustomShaderID(void)
+{
+	if (g_iWickedEntityId < 0) return -1;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderID;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderID;
+}
+float WickedCustomShaderParam1(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam1;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam1;
+}
+float WickedCustomShaderParam2(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam2;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam2;
+}
+float WickedCustomShaderParam3(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam3;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam3;
+}
+float WickedCustomShaderParam4(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam4;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam4;
+}
+float WickedCustomShaderParam5(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam5;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam5;
+}
+float WickedCustomShaderParam6(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam6;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam6;
+}
+float WickedCustomShaderParam7(void)
+{
+	if (g_iWickedEntityId < 0) return 0;
+	if (g_iWickedElementId > 0 && t.entityelement[g_iWickedElementId].eleprof.WEMaterial.MaterialActive)
+	{
+		return t.entityelement[g_iWickedElementId].eleprof.WEMaterial.customShaderParam7;
+	}
+	return t.entityprofile[g_iWickedEntityId].WEMaterial.customShaderParam7;
 }
 
 float WickedRenderOrderBias(void)

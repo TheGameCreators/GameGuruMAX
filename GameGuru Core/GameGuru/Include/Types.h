@@ -3406,10 +3406,11 @@ struct globalstype
 	float realshadowdistance;
 	float realshadowdistancehigh;
 	int editorusemediumshadows;
-
+	float CurveDistanceScaler;
 	// Constructor
 	globalstype ( )
 	{
+		 CurveDistanceScaler = 200;
 		 realshadowdistance = 5000.0f;
 		 realshadowdistancehigh = 5000.0f;
 		 editorusemediumshadows = 1;
@@ -3934,6 +3935,7 @@ struct visualstype
 	float fAutoExposureKey;
 	float fExposure;
 	float fGamma;
+	float fDeSaturate;
 	int iMSAASampleCount;
 	int iFSRMode;
 	float fFSRSharpness;
@@ -4205,6 +4207,7 @@ struct visualstype
 		 fAutoExposureKey = 0.15f;
 		 fExposure = 1.0f;
 		 fGamma = 2.2f;
+		 fDeSaturate = 1.0f;
 		 iMSAASampleCount = 1;
 		 iFSRMode = 0;
 		 fFSRSharpness = 0.2f;
@@ -4369,6 +4372,7 @@ struct visualsdatastoragetype
 	bool bLensFlare;
 	bool bAutoExposure;
 	float fGamma;
+	float fDeSaturate;
 	float SunAngleX;
 	float SunAngleY;
 	float SunAngleZ;
@@ -4419,6 +4423,7 @@ struct visualsdatastoragetype
 		bLensFlare = false;
 		bAutoExposure = false;
 		fGamma = 2.0f;
+		fDeSaturate = 1.0f;
 		SunAngleX = 306.0f;	//Angle for the sun, imgui will convert into a percentage.
 		SunAngleY = 0.0f;
 		SunAngleZ = 0.0f;
@@ -4471,6 +4476,7 @@ struct visualsdatastoragetype
 		bLensFlare = visuals.bLensFlare;
 		bAutoExposure = visuals.bAutoExposure;
 		fGamma = visuals.fGamma;
+		fDeSaturate = visuals.fDeSaturate;
 		SunAngleX = visuals.SunAngleX;
 		SunAngleY = visuals.SunAngleY;
 		SunAngleZ = visuals.SunAngleZ;
@@ -5768,6 +5774,16 @@ struct WickedMaterial
 	bool bPlanerReflection[MAXMESHMATERIALS];
 	bool bCastShadows[MAXMESHMATERIALS];
 	float fReflectance[MAXMESHMATERIALS];
+	int customShaderID;
+	float customShaderParam1;
+	float customShaderParam2;
+	float customShaderParam3;
+	float customShaderParam4;
+	float customShaderParam5;
+	float customShaderParam6;
+	float customShaderParam7;
+	cStr WPEffect;
+
 };
 struct CollectableType
 {

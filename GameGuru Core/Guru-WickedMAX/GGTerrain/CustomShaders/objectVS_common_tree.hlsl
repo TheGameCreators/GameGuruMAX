@@ -1,0 +1,4 @@
+#define OBJECTSHADER_COMPILE_VS
+#define OBJECTSHADER_LAYOUT_COMMON
+#define TREEANIMNATE
+#include "objectHF.hlsli"

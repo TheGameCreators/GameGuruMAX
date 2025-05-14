@@ -7609,6 +7609,16 @@ void tab_tab_visuals(int iPage, int iMode)
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Gamma Correction alters how bright colors are perceived");
 
+				tab_tab_Column_text("De Saturate", fTabColumnWidth);
+				ImGui::PushItemWidth(-10);
+				if (ImGui::SliderFloat("##fDeSaturate:", &t.visuals.fDeSaturate, 0.0, 1.0))
+				{
+					t.gamevisuals.fDeSaturate = t.visuals.fDeSaturate;
+					wiRenderer::SetDeSaturate(t.visuals.fDeSaturate);
+					g.projectmodified = 1;
+				}
+				if (ImGui::IsItemHovered()) ImGui::SetTooltip("De Saturate colors");
+
 				ImGui::PopItemWidth();
 
 				const char* msaa_items_align[] = { "1 (disabled)", "2", "4", "8" };
@@ -9062,6 +9072,8 @@ void Wicked_Update_Visuals(void *voidvisual)
 		g_fGlobalGammaFadeIn = visuals->fGamma;
 	}
 	g_fGlobalGammaFadeInDest = visuals->fGamma;
+
+	wiRenderer::SetDeSaturate(visuals->fDeSaturate);
 
 	float fUsedFOV = visuals->CameraFOV_f;
 	if (bImGuiInTestGame == false) fUsedFOV = 45;

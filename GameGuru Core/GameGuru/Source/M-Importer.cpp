@@ -199,6 +199,8 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	storage.bLensFlare = currentVisuals.bLensFlare;
 	storage.bAutoExposure = currentVisuals.bAutoExposure;
 	storage.fGamma = currentVisuals.fGamma;
+	storage.fDeSaturate = currentVisuals.fDeSaturate;
+	
 	storage.SunAngleX = currentVisuals.SunAngleX;
 	storage.SunAngleY = currentVisuals.SunAngleY;
 	storage.SunAngleZ = currentVisuals.SunAngleZ;
@@ -229,6 +231,8 @@ void set_temp_visuals(visualstype& currentVisuals, visualsdatastoragetype& stora
 	currentVisuals.bLensFlare = desiredVisuals.bLensFlare;
 	currentVisuals.bAutoExposure = desiredVisuals.bAutoExposure;
 	currentVisuals.fGamma = desiredVisuals.fGamma;
+	currentVisuals.fDeSaturate = desiredVisuals.fDeSaturate;
+	
 	currentVisuals.SunAngleX = desiredVisuals.SunAngleX;
 	currentVisuals.SunAngleY = desiredVisuals.SunAngleY;
 	currentVisuals.SunAngleZ = desiredVisuals.SunAngleZ;
@@ -264,6 +268,8 @@ void restore_visuals(visualstype& currentVisuals, visualsdatastoragetype& storag
 	currentVisuals.bLensFlare = storage.bLensFlare;
 	currentVisuals.bAutoExposure = storage.bAutoExposure;
 	currentVisuals.fGamma = storage.fGamma;
+	currentVisuals.fDeSaturate = storage.fDeSaturate;
+	
 	currentVisuals.SunAngleX = storage.SunAngleX;
 	currentVisuals.SunAngleY = storage.SunAngleY;
 	currentVisuals.SunAngleZ = storage.SunAngleZ;
@@ -11598,133 +11604,326 @@ void Wicked_Change_Object_Material(void* pVObject, int mode, entityeleproftype *
 						ImGui::PopItemWidth();
 					}
 
-					//Object checkboxes.
-					bTransparent = pObjectMaterial->userBlendMode == BLENDMODE_ALPHA;
-					if (ImGui::Checkbox("Transparent", &bTransparent))
+					//PE: Disable pObjectMaterial->customShaderID
+					if (pObjectMaterial->customShaderID == -1)
 					{
-						if (bTransparent)
+						//Object checkboxes.
+						bTransparent = pObjectMaterial->userBlendMode == BLENDMODE_ALPHA;
+						if (ImGui::Checkbox("Transparent", &bTransparent))
 						{
-							pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
-							pObjectMaterial->SetDirty();
-						}
-						else
-						{
-							pObjectMaterial->userBlendMode = BLENDMODE_OPAQUE;
-							pObjectMaterial->SetDirty();
-						}
-						if (t.importer.bEditAllMesh)
-						{
-							importer_set_all_material_transparent(bTransparent);
-						}
-						else
-						{
-							// apply new state to current mesh
-							if (pChosenMesh)
+							if (bTransparent)
 							{
-								pChosenMesh->bTransparency = bTransparent;
+								pObjectMaterial->userBlendMode = BLENDMODE_ALPHA;
+								pObjectMaterial->SetDirty();
+							}
+							else
+							{
+								pObjectMaterial->userBlendMode = BLENDMODE_OPAQUE;
+								pObjectMaterial->SetDirty();
+							}
+							if (t.importer.bEditAllMesh)
+							{
+								importer_set_all_material_transparent(bTransparent);
+							}
+							else
+							{
+								// apply new state to current mesh
+								if (pChosenMesh)
+								{
+									pChosenMesh->bTransparency = bTransparent;
+								}
+							}
+							bCloneChangesToAllObjectsInRubberBand = true;
+							bHaveMaterialUpdate = true;
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Transparent");
+
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+						{
+							//Display additional information on click.
+							cInfoMessage = "Transparency controls how much of the surface is see-through, so a low transparency would make the surface opaque (solid) and a high transparency would allow you to see through it.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object transparent.");
+
+						bDoubleSided = mesh->IsDoubleSided();
+						if (ImGui::Checkbox("Double Sided", &bDoubleSided))
+						{
+							mesh->SetDoubleSided(bDoubleSided);
+							if (t.importer.bEditAllMesh)
+							{
+								importer_set_all_mesh_double_sided(bDoubleSided);
+							}
+							bCloneChangesToAllObjectsInRubberBand = true;
+							bHaveMaterialUpdate = true;
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set object to render both sides of its polygons");
+
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+						{
+							//Display additional information on click.
+							cInfoMessage = "Objects are made up of polygons, but are only visible from one side. By setting an object to render double sided, it will render both sides of all polygons. This could be used for things like leaves and cobwebs, among many other cases.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to set objects so they render both sides of their polygons");
+
+						bPlanerReflection = pObjectMaterial->shaderType == wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
+						if (ImGui::Checkbox("Planar Reflection", &bPlanerReflection))
+						{
+							if (bPlanerReflection)
+							{
+								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
+							}
+							else
+							{
+								if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
+									pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
+								else
+									pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+							}
+
+							importer_set_all_material_planar_reflection(bPlanerReflection);
+
+							bCloneChangesToAllObjectsInRubberBand = true;
+							bHaveMaterialUpdate = true;
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Planar Reflection");
+
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
+						{
+							//Display additional information on click.
+							cInfoMessage = "Planar reflection is a technique which assumes the reflective surface is horizontal, such as a puddle or reflective floor, and can improve the visuals when specified. However, this does come with an increased performance cost.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to enable planer reflection on the object.");
+
+						bCastShadows = pObjectMaterial->IsCastingShadow();
+						if (ImGui::Checkbox("Cast Shadows", &bCastShadows))
+						{
+							pObjectMaterial->SetCastShadow(bCastShadows);
+							importer_set_all_material_cast_shadow(bCastShadows);
+							bCloneChangesToAllObjectsInRubberBand = true;
+							bHaveMaterialUpdate = true;
+						}
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Cast Shadows");
+
+						ImGui::SameLine();
+						ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
+						ImGui::PushID(iInfoUniqueId++);
+						if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
+						{
+							//Display additional information on click.
+							cInfoMessage = "All objects have the ability to cast shadows, and this ability can be switched off. You may choose to switch off shadows for small objects, or effect objects such as a puddle that is so close to the floor it does not need to cast a shadow.";
+							cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
+							bInfo_Window = true; //Open information window.
+						}
+						ImGui::PopID();
+						if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object cast shadows.");
+
+					}
+
+					#ifdef CUSTOMSHADERS
+					//PE: Add custom shader support here:
+					void importer_set_all_material_shader_id(int shaderID, float p1, float p2, float p3, float p4, float p5, float p6, float p7);
+						std::vector<wiRenderer::CustomShader> cshaders = wiRenderer::GetCustomShaders();
+					int current_selection = pObjectMaterial->customShaderID;
+					std::string comboselection = "None";
+					if (pObjectMaterial->customShaderID >= 0 && pObjectMaterial->customShaderID < cshaders.size())
+						comboselection = cshaders[pObjectMaterial->customShaderID].name;
+					ImGui::PushItemWidth(-10);
+					ImGui::TextCenter("Custom Shaders");
+					if (ImGui::BeginCombo("##ImporterCustomShaders", comboselection.c_str(), ImGuiComboFlags_PopupAlignLeft | ImGuiComboFlags_HeightLarge))
+					{
+						if (ImGui::Selectable("None"))
+						{
+							pObjectMaterial->customShaderID = -1;
+							importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+							bHaveMaterialUpdate = true;
+						}
+						for (int i = 0; i < cshaders.size(); i++)
+						{
+							bool bSelected = false;
+							if (cshaders[i].bActive)
+							{
+								if (pObjectMaterial->customShaderID == i)
+									bSelected = true;
+								if (ImGui::Selectable(cshaders[i].name.c_str(), bSelected))
+								{
+									pObjectMaterial->customShaderID = i;
+									if (i == 1)
+									{
+										//PE: Default parameters.
+										if (t.visuals.tree_wind > 0)
+											pObjectMaterial->customShaderParam1 = 1.0f;
+										else
+											pObjectMaterial->customShaderParam1 = 0.20f;
+									}
+									if (i == 3)
+									{
+										//PE: Default glass parameters.
+										pObjectMaterial->customShaderParam1 = 1.3f;
+										pObjectMaterial->customShaderParam2 = 0.3f;
+										pObjectMaterial->customShaderParam3 = 2.0f;
+									}
+									importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+									bHaveMaterialUpdate = true;
+								}
+								if (bSelected) ImGui::SetItemDefaultFocus();
 							}
 						}
-						bCloneChangesToAllObjectsInRubberBand = true;
-						bHaveMaterialUpdate = true;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Transparent");
 
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY() ));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
-					{
-						//Display additional information on click.
-						cInfoMessage = "Transparency controls how much of the surface is see-through, so a low transparency would make the surface opaque (solid) and a high transparency would allow you to see through it.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
+						ImGui::EndCombo();
 					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object transparent.");
-
-					bDoubleSided = mesh->IsDoubleSided();
-					if (ImGui::Checkbox("Double Sided", &bDoubleSided)) 
+					ImGui::PopItemWidth();
+					if (pObjectMaterial->customShaderID != -1)
 					{
-						mesh->SetDoubleSided(bDoubleSided);
-						if (t.importer.bEditAllMesh)
+						ImGui::PushItemWidth(-10);
+						ImGui::TextCenter("Custom Shaders Parameters");
+						//PE: Parameters to shaders.
+						int numpar = 0;
+						std::string param1 = "Parameter 1";
+						std::string param2 = "Parameter 2";
+						std::string param3 = "Parameter 3";
+						std::string param4 = "Parameter 4";
+						std::string param5 = "Parameter 5";
+						std::string param6 = "Parameter 6";
+						std::string param7 = "Parameter 7";
+						if (pObjectMaterial->customShaderID == 1)
 						{
-							importer_set_all_mesh_double_sided(bDoubleSided);
+							numpar = 1;
+							param1 = "Object Wind";
 						}
-						bCloneChangesToAllObjectsInRubberBand = true;
-						bHaveMaterialUpdate = true;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set object to render both sides of its polygons");
-
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
-					{
-						//Display additional information on click.
-						cInfoMessage = "Objects are made up of polygons, but are only visible from one side. By setting an object to render double sided, it will render both sides of all polygons. This could be used for things like leaves and cobwebs, among many other cases.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
-					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to set objects so they render both sides of their polygons");
-
-					bPlanerReflection = pObjectMaterial->shaderType == wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
-					if (ImGui::Checkbox("Planar Reflection", &bPlanerReflection)) 
-					{
-						if (bPlanerReflection) 
+						if (pObjectMaterial->customShaderID == 2)
 						{
-							pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PLANARREFLECTION;
+							numpar = 6;
+							param1 = "UV Scale";
+							param2 = "UV Speed";
+							param3 = "Distorsion";
+							param4 = "Direction";
+							param5 = "TEX Scroll";
+							param6 = "Foam Size";
 						}
-						else 
+						if (pObjectMaterial->customShaderID == 3)
 						{
-							if (pObjectMaterial->parallaxOcclusionMapping > 0.0f)
-								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR_PARALLAXOCCLUSIONMAPPING;
-							else
-								pObjectMaterial->shaderType = wiScene::MaterialComponent::SHADERTYPE_PBR;
+							numpar = 3;
+							param1 = "Transmission";
+							param2 = "Refraction";
+							param3 = "Brighten";
+						}
+						
+						if (numpar > 0)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param1.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa1", &pObjectMaterial->customShaderParam1, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
 						}
 
-						importer_set_all_material_planar_reflection(bPlanerReflection);
+						if (numpar > 1)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param2.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa2", &pObjectMaterial->customShaderParam2, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
+						if (numpar > 2)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param3.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa3", &pObjectMaterial->customShaderParam3, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
+						if (numpar > 3)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param4.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa4", &pObjectMaterial->customShaderParam4, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
+						if (numpar > 4)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param5.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa5", &pObjectMaterial->customShaderParam5, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
+						if (numpar > 5)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param6.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa6", &pObjectMaterial->customShaderParam6, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
+						if (numpar > 6)
+						{
+							ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPosX(), ImGui::GetCursorPosY() + 3));
+							ImGui::Text(param7.c_str());
+							ImGui::SameLine();
+							ImGui::SetCursorPos(ImVec2(help_start + 20, ImGui::GetCursorPosY() - 5));
+							if (ImGui::SliderFloat("##CuShaPa7", &pObjectMaterial->customShaderParam7, 0.0, 2.0))
+							{
+								importer_set_all_material_shader_id(pObjectMaterial->customShaderID, pObjectMaterial->customShaderParam1, pObjectMaterial->customShaderParam2, pObjectMaterial->customShaderParam3, pObjectMaterial->customShaderParam4, pObjectMaterial->customShaderParam5, pObjectMaterial->customShaderParam6, pObjectMaterial->customShaderParam7);
+								pObjectMaterial->SetDirty();
+								bHaveMaterialUpdate = true;
+							}
+						}
 
-						bCloneChangesToAllObjectsInRubberBand = true;
-						bHaveMaterialUpdate = true;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Planar Reflection");
+						ImGui::PopItemWidth();
 
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false))
-					{
-						//Display additional information on click.
-						cInfoMessage = "Planar reflection is a technique which assumes the reflective surface is horizontal, such as a puddle or reflective floor, and can improve the visuals when specified. However, this does come with an increased performance cost.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
 					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to enable planer reflection on the object.");
+					#endif				
 
-					bCastShadows = pObjectMaterial->IsCastingShadow();
-					if (ImGui::Checkbox("Cast Shadows", &bCastShadows)) 
-					{
-						pObjectMaterial->SetCastShadow(bCastShadows);
-						importer_set_all_material_cast_shadow(bCastShadows);
-						bCloneChangesToAllObjectsInRubberBand = true;
-						bHaveMaterialUpdate = true;
-					}
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Set Cast Shadows");
-
-					ImGui::SameLine();
-					ImGui::SetCursorPos(ImVec2(help_start + 80, ImGui::GetCursorPosY()));
-					ImGui::PushID(iInfoUniqueId++);
-					if (ImGui::ImgBtn(ICON_INFO, ImVec2(preview_icon_size, preview_icon_size), ImColor(0, 0, 0, 0), ImColor(220, 220, 220, 220), ImColor(255, 255, 255, 255), ImColor(180, 180, 160, 255), -1, 0, 0, 0, false, false, false, false, false)) //, bBoostIconColors
-					{
-						//Display additional information on click.
-						cInfoMessage = "All objects have the ability to cast shadows, and this ability can be switched off. You may choose to switch off shadows for small objects, or effect objects such as a puddle that is so close to the floor it does not need to cast a shadow.";
-						cInfoImage = ""; //Image that descripe this information window. "tutorialbank\\information-default.jpg".
-						bInfo_Window = true; //Open information window.
-					}
-					ImGui::PopID();
-					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Allows you to make the object cast shadows.");
 
 					// gather for mode 6 (see later code)
 					if (bCloneChangesToAllObjectsInRubberBand == true)
@@ -11994,6 +12193,16 @@ void Wicked_Set_Material_From_grideleprof_ThisMesh(void* pVObject, int mode, ent
 			pObjectMaterial->baseColor.z = BaseColor[2];
 			pObjectMaterial->baseColor.w = BaseColor[3];
 
+
+			pObjectMaterial->customShaderID = edit_grideleprof->WEMaterial.customShaderID;
+			pObjectMaterial->customShaderParam1 = edit_grideleprof->WEMaterial.customShaderParam1;
+			pObjectMaterial->customShaderParam2 = edit_grideleprof->WEMaterial.customShaderParam2;
+			pObjectMaterial->customShaderParam3 = edit_grideleprof->WEMaterial.customShaderParam3;
+			pObjectMaterial->customShaderParam4 = edit_grideleprof->WEMaterial.customShaderParam4;
+			pObjectMaterial->customShaderParam5 = edit_grideleprof->WEMaterial.customShaderParam5;
+			pObjectMaterial->customShaderParam6 = edit_grideleprof->WEMaterial.customShaderParam6;
+			pObjectMaterial->customShaderParam7 = edit_grideleprof->WEMaterial.customShaderParam7;
+
 			// emissive color
 			if (edit_grideleprof->WEMaterial.dwEmmisiveColor[iSelectedMesh] == -1)
 			{
@@ -12250,6 +12459,15 @@ void Wicked_Copy_Material_To_Grideleprof(void* pVObject, int mode, entityeleprof
 					edit_grideleprof->WEMaterial.bCastShadows[iMeshIndex] = pObjectMaterial->IsCastingShadow();
 					edit_grideleprof->WEMaterial.bDoubleSided[iMeshIndex] = mesh->IsDoubleSided();
 					edit_grideleprof->WEMaterial.fRenderOrderBias[iMeshIndex] = 0.0f;
+					edit_grideleprof->WEMaterial.customShaderID = pObjectMaterial->customShaderID;
+					edit_grideleprof->WEMaterial.customShaderParam1 = pObjectMaterial->customShaderParam1;
+					edit_grideleprof->WEMaterial.customShaderParam2 = pObjectMaterial->customShaderParam2;
+					edit_grideleprof->WEMaterial.customShaderParam3 = pObjectMaterial->customShaderParam3;
+					edit_grideleprof->WEMaterial.customShaderParam4 = pObjectMaterial->customShaderParam4;
+					edit_grideleprof->WEMaterial.customShaderParam5 = pObjectMaterial->customShaderParam5;
+					edit_grideleprof->WEMaterial.customShaderParam6 = pObjectMaterial->customShaderParam6;
+					edit_grideleprof->WEMaterial.customShaderParam7 = pObjectMaterial->customShaderParam7;
+
 					sFrame* pFrame = pMesh->pFrameAttachedTo;
 					if (pFrame)
 					{
@@ -12629,6 +12847,64 @@ void importer_set_all_material_planar_reflection(bool planarReflection)
 	}
 }
 
+void importer_set_all_material_shader_id(int shaderID,float p1, float p2, float p3, float p4, float p5, float p6, float p7)
+{
+	//PE: Chaned per object , so always change all materials.
+	//if (!t.importer.bEditAllMesh)
+	//{
+	//	return;
+	//}
+
+	sObject* pObject = nullptr;// = GetObjectData(t.importer.objectnumber);
+	if (t.importer.importerActive == 1)
+	{
+		pObject = GetObjectData(t.importer.objectnumber);
+	}
+	else
+	{
+		// Need a way to get the object data for the current object being altered outside of the importer.
+		int e = t.widget.pickedEntityIndex;
+		if (e < 0) return;
+		int obj = t.entityelement[e].obj;
+		if (ObjectExist(obj))
+		{
+			pObject = GetObjectData(obj);
+		}
+	}
+
+	if (!pObject)
+	{
+		return;
+	}
+
+	for (int i = 0; i < pObject->iMeshCount; i++)
+	{
+		sMesh* mesh = pObject->ppMeshList[i];
+
+		if (mesh)
+		{
+			wiScene::MeshComponent* meshComponent = wiScene::GetScene().meshes.GetComponent(mesh->wickedmeshindex);
+
+			if (meshComponent)
+			{
+				// get material settings from mesh material or WEMaterial
+				uint64_t materialEntity = meshComponent->subsets[0].materialID;
+				wiScene::MaterialComponent* pMeshMaterial = wiScene::GetScene().materials.GetComponent(materialEntity);
+				pMeshMaterial->customShaderID = shaderID;
+				pMeshMaterial->customShaderParam1 = p1;
+				pMeshMaterial->customShaderParam2 = p2;
+				pMeshMaterial->customShaderParam3 = p3;
+				pMeshMaterial->customShaderParam4 = p4;
+				pMeshMaterial->customShaderParam5 = p5;
+				pMeshMaterial->customShaderParam6 = p6;
+				pMeshMaterial->customShaderParam7 = p7;
+
+				pMeshMaterial->SetDirty();
+			}
+		}
+	}
+}
+
 void importer_set_all_material_cast_shadow(bool bCastShadow)
 {
 	if (!t.importer.bEditAllMesh)
@@ -12967,8 +13243,11 @@ char* importer_selectfile(int texslot, std::string currentfilename, bool bPreset
 			texPath.resize(texPath.length() - count);
 		}
 	}
-
-	return (char *)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0DDS\0*.dds\0PNG\0*.png\0JPEG\0*.jpg\0TGA\0*.tga\0BMP\0*.bmp\0\0\0", texPath.c_str(), NULL, bOpenCustomLocation);
+	//PE: Filepath was changed here, caused crash.
+	cStr tOldDir = GetDir();
+	char * selectfile = (char*)noc_file_dialog_open(NOC_FILE_DIALOG_OPEN, "All\0*.*\0DDS\0*.dds\0PNG\0*.png\0JPEG\0*.jpg\0TGA\0*.tga\0BMP\0*.bmp\0\0\0", texPath.c_str(), NULL, bOpenCustomLocation);
+	SetDir(tOldDir.Get());
+	return selectfile;
 }
 
 void importer_collectmeshname(char* meshName)

@@ -65,6 +65,9 @@
     <Filter Include="EOS-SDK">
       <UniqueIdentifier>{14686ca8-10ef-404b-be2b-aeb2832335ad}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CustomShaders">
+      <UniqueIdentifier>{45dc57b9-acfb-4101-8531-78bf834c8089}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
@@ -1044,6 +1047,7 @@
     <ClCompile Include="CrashLogger.cpp">
       <Filter>Code</Filter>
     </ClCompile>
+    <ClCompile Include="CustomShaders.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
@@ -1257,6 +1261,24 @@
     <FxCompile Include="tracers\BulletTracerPS.hlsl">
       <Filter>GGTerrain\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_hologram2.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectVS_common_tree.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectVS_prepass_trees.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\shadowVS_alphatest_tree.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_transparent_glass.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
+    <FxCompile Include="GGTerrain\CustomShaders\objectPS_custom_water.hlsl">
+      <Filter>CustomShaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="GGTerrain\Shaders\PBR\brdf.hlsli">
@@ -1288,6 +1310,9 @@
     </None>
     <None Include="GGTerrain\Shaders\GGCommonFunctions.hlsli">
       <Filter>GGTerrain\Shaders</Filter>
+    </None>
+    <None Include="GGTerrain\CustomShaders\objectHF.hlsli">
+      <Filter>CustomShaders</Filter>
     </None>
   </ItemGroup>
 </Project>

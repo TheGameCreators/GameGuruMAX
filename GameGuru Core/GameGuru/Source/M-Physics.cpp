@@ -3251,7 +3251,19 @@ void physics_player_takedamage ( void )
 			}
 
 			// if melee damage, mark with a thump!
-			physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 38000, Rnd(8000));
+			//PE: Only if melee. it would play whenever hurtplayer was called from lua.
+			if (t.te > 0)
+			{
+				int gunid = t.entityelement[t.te].eleprof.hasweapon;
+				if (gunid > 0)
+				{
+					if (t.gun[gunid].weapontype == 51) // melee weapon type is 51
+					{
+						physics_play_thump_sound(CameraPositionX(), CameraPositionY(), CameraPositionZ(), 38000, Rnd(8000));
+					}
+				}
+			}
+
 
 			// Trigger player grunt noise or block sound
 			if (bSuccessfullyBlockingNow == false)

@@ -639,7 +639,7 @@ CBUFFER(FrameCB, CBSLOT_RENDERER_FRAME)
 
 	float		g_xFrame_ShadowResSpot2D;
 	float		g_xFrame_ShadowKernelSpot2D;
-	float		g_xFrame_TreeWind;
+	float       g_xFrame_TreeWind;
 	float		g_xFrame_TreeSubSurfaceScattering;
 
 	float3      g_xFrame_WaterColor;

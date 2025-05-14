@@ -1583,6 +1583,11 @@ void Master::RunCustom()
 	}
 	if ( !initializedSecondaries )
 	{
+		#ifdef CUSTOMSHADERS
+		void AddCustomShaders(void);
+		AddCustomShaders();
+		#endif
+
 		// Good time to check if we have all necessarily files for the editor, otherwise we call auto updater to repair us 
 		char pAppName[MAX_PATH];
 		GetModuleFileNameA(g_pGlob->hInstance, pAppName, MAX_PATH);

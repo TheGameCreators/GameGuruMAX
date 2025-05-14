@@ -46,7 +46,7 @@ function loop3dsound_multiple_main(e)
 				local SndVol = 0
 				local SndPerc = (MaxDist-PlayerDist)/MaxDist
 				if SndPerc > 0 then
-					SndVol = 50+(SndPerc*50)
+					SndVol = (SndPerc*100)
 				else
 					SndVol = 0
 				end	

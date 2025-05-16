@@ -35249,6 +35249,11 @@ void Welcome_Screen(void)
 
 										pDataReturnedPtr = pEndToken + 1;
 									}
+									else
+									{
+										// also a cut off signal!
+										bFindAllMessagesContainingCommitNotes = false;
+									}
 								}
 								else
 								{

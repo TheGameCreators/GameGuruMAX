@@ -21,6 +21,11 @@ extern Master master;
 #include "GGTerrain/GGTerrain.h"
 #include "gameguru.h"
 
+// OPTICK Performance
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #define ONLY_USE_OUTLINE_HIGHLIGHT
 #define MATCHCLASSICROTATION
 
@@ -271,16 +276,22 @@ void WickedCall_AddImageToList(std::shared_ptr<wiResource> image, eImageResType 
 }
 
 int total_mem_from_load = 0;
-std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eImageResType eType)
+std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, eImageResType eType)
 {
 	//PE: Prevent dublicate textures even if using different names.
 	//PE: Scan all our images and make a text file including filename+CRC64 of the file.
 	//PE: Load this text file into a vector.
 	//PE: Find filname in vector and add the CRC64 to g_imageList when adding a image.
 	//PE: Below also lookup filename CRC64 and check against the g_imageList CRC64 to also reused image.
-
-	if (pFilenameToLoad.length() <= 0)
+	if (pFilenameToLoadIN.length() <= 0)
 		return NULL; //PE: We get this alot from DISPLACEMENTMAP ... 
+
+	// when gdividetexturesize is 0, we are not using textures, so use a dummy texture (tests performance against using too LARGE a texture set)
+	std::string pFilenameToLoad = pFilenameToLoadIN;
+	if (g.gdividetexturesize == 0)
+	{
+		pFilenameToLoad = "editors\\gfx\\notexture.dds";
+	}
 
 	std::shared_ptr<wiResource> image = NULL;
 	char pFullRelativeLocationFilename[MAX_PATH];
@@ -6937,6 +6948,10 @@ void WickedCall_CreateDecal(sObject* pObject)
 #ifdef WICKEDPARTICLESYSTEM
 uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attached, char* changename, char* changenameto)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	Entity root = 0;
 
 	XMMATRIX& transformMatrix = XMMatrixIdentity();
@@ -7082,6 +7097,10 @@ uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attache
 }
 uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	Scene scene2;
 	Entity root = WickedCall_LoadWiSceneDirect(scene2, filename, attached, changename, changenameto);
 	GetScene().Merge(scene2);
@@ -7136,6 +7155,10 @@ void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root)
 //#define WPEDebug
 void WickedCall_UpdateEmitters(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//PE: Scan emitters.
 	std::vector< uint32_t> parent_used;
 	parent_used.clear();

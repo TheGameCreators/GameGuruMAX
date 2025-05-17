@@ -14,6 +14,11 @@
 #include "M-RPG.h"
 #include "M-Workshop.h"
 
+// OPTICK Performance
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #ifdef STORYBOARD
 //#include "..\..\GameGuru\Imgui\imnodes.cpp" now added to project to compile the CPP
 #include "..\..\GameGuru\Imgui\imnodes.h"
@@ -17528,7 +17533,6 @@ void editor_previewmapormultiplayer_afterloopcode ( int iUseVRTest )
 	//PE: This will make sure everything spawed is deleted , like physics / sound / waypoints / attachments ...
 	void CleanUpSpawedObject(void);
 	CleanUpSpawedObject();
-
 
 	#ifdef WICKEDPARTICLESYSTEM
 	//PE: Clear all wicked particle effects created by lua.

@@ -4245,7 +4245,7 @@ int AdjustPositionToGetLineOfSight (lua_State *L)
 			fNewZ = fZ + (sin(GGToRadian(fSpiralA))*fSpiralDistance);
 			tthitvalue = 0;
 			//PE: Optimizing - Snowy Mountain Stroll is getting hit by this in the tunnel. huge fps drop.
-			//PE: Optimizing , this is hitting WickedCall_SentRay3 many times (32 max calls currently) (25.0f / 8).
+			//PE: Optimizing , this is hitting WickedCall_ SentRay3 many times (32 max calls currently) (25.0f / 8).
 			if (ODERayTerrain(fNewX, fY, fNewZ, fTargetPosX, fTargetPosY, fTargetPosZ, true) == 1) tthitvalue = -1;
 			if (tthitvalue == 0) tthitvalue = IntersectAllEx(g.entityviewstartobj, g.entityviewendobj, fNewX, fY, fNewZ, fTargetPosX, fTargetPosY, fTargetPosZ, iIgnoreObjNo, iStaticOnly, 0, 0, 1, false);
 			if (tthitvalue != 0)
@@ -5301,7 +5301,7 @@ int SetSoundMusicMode(lua_State* L)
 	extern bool g_bSoundIsMusic[65536];
 	int iSoundIndex = lua_tonumber(L, 1);
 	g_bSoundIsMusic[iSoundIndex] = lua_tonumber(L, 2);
-	audio_volume_update();
+	//audio_volume_update(); this is a MASSIVE PERF HIT FOR LEVELS THAT USE LOTS OF SOUNDS
 	return 1;
 }
 int GetSoundMusicMode(lua_State* L)

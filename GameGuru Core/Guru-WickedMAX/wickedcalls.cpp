@@ -5411,7 +5411,7 @@ bool WickedCall_SentRay2(float originx, float originy, float originz, float dire
 	return false;
 }
 
-bool WickedCall_SentRay3(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit)
+bool WickedCall_SentRay4(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit, bool bOpaqueOnly)
 {
 	// ray cast specifically used by game loop to find accurate position of animating objects (performant?)
 	RAY pickRay;
@@ -5424,7 +5424,9 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 	pickRay.direction.z = directionz;
 	XMStoreFloat3(&direction_inverse, XMVectorDivide(XMVectorReplicate(1.0f), XMVectorSet(directionx, directiony, directionz, 1.0f)));
 	pickRay.direction_inverse = direction_inverse;
-	wiScene::PickResult hit = wiScene::Pick(pickRay, RENDERTYPE_ALL, GGRENDERLAYERS_NORMAL);
+	RENDERTYPE checkType = RENDERTYPE_ALL;
+	if (bOpaqueOnly == true) checkType = RENDERTYPE_OPAQUE;
+	wiScene::PickResult hit = wiScene::Pick(pickRay, checkType, GGRENDERLAYERS_NORMAL);
 	if (hit.entity > 0)
 	{
 		float fDX = hit.position.x - originx;
@@ -5448,6 +5450,11 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 		}
 	}
 	return false;
+}
+
+bool WickedCall_SentRay3(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit)
+{
+	return WickedCall_SentRay4(originx, originy, originz, directionx, directiony, directionz, fDistanceOfRay, pOutX, pOutY, pOutZ, pNormX, pNormY, pNormZ, pdwObjectNumberHit, false);
 }
 
 void WickedCall_GetMouseDeltas(float* pfX, float* pfY)

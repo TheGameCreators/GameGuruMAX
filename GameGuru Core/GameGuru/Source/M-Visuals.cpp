@@ -3019,10 +3019,12 @@ void visuals_shaderlevels_update_core (bool bUpdateEngine)
 		if (t.visuals.shaderlevels.vegetation == 4) GGGrass::gggrass_global_params.lod_dist = fInitialGrassDrawDistanceValue * 3;
 
 		// "terrain" controls camera distance (does not alter t.visuals.CameraFAR_f)
+		/* maybe ocne upon a time, now this can be set manually and users do NOT want it messed with!!
 		float fUseCameraFar = fInitialCameraFar;
 		if (t.visuals.shaderlevels.terrain >= 2) fUseCameraFar = fUseCameraFar / 2;
 		if (t.visuals.shaderlevels.terrain == 4) fUseCameraFar = fUseCameraFar / 4;
 		wiScene::GetCamera().zFarP = fUseCameraFar;
+		*/
 		extern CCameraManager m_CameraManager;
 		tagCameraData* m_ptr = m_CameraManager.GetData(0);
 		WickedCall_SetCameraFOV(m_ptr->fFOV);

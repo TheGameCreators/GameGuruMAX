@@ -598,7 +598,10 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 1 ) return 0;
 	int iWeaponSlot = lua_tonumber(L, 1);
-	lua_pushinteger ( L, t.weaponammo[iWeaponSlot] );
+	if(iWeaponSlot>=0 && iWeaponSlot<t.weaponammo.size())
+		lua_pushinteger ( L, t.weaponammo[iWeaponSlot] );
+	else
+		lua_pushinteger ( L, 0 );
 	return 1;
  }
  int SetWeaponAmmo(lua_State *L)
@@ -607,7 +610,10 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
 	int iWeaponSlot = lua_tonumber(L, 1);
-	t.weaponammo[iWeaponSlot] = lua_tonumber(L, 2);
+	if (iWeaponSlot >= 0 && iWeaponSlot < t.weaponammo.size())
+	{
+		t.weaponammo[iWeaponSlot] = lua_tonumber(L, 2);
+	}
 	return 0;
  }
  int GetWeaponClipAmmo(lua_State *L)
@@ -616,7 +622,10 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 1 ) return 0;
 	int iWeaponSlotClipIndex = lua_tonumber(L, 1);
-	lua_pushinteger ( L, t.weaponclipammo[iWeaponSlotClipIndex] );
+	if (iWeaponSlotClipIndex >= 0 && iWeaponSlotClipIndex < t.weaponclipammo.size())
+		lua_pushinteger ( L, t.weaponclipammo[iWeaponSlotClipIndex] );
+	else
+		lua_pushinteger ( L, 0 );
 	return 1;
  }
  int SetWeaponClipAmmo(lua_State *L)
@@ -625,13 +634,16 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
 	int iWeaponSlotClipIndex = lua_tonumber(L, 1);
-	t.weaponclipammo[iWeaponSlotClipIndex] = lua_tonumber(L, 2);
-	int iWeaponSlot = iWeaponSlotClipIndex;
-	if (iWeaponSlot >= 11) iWeaponSlot = iWeaponSlot - 10;
-	int iGunIndex = t.weaponslot[iWeaponSlot].got;
-	int iMaxClipCapacity = g.firemodes[iGunIndex][0].settings.clipcapacity * g.firemodes[iGunIndex][0].settings.reloadqty;
-	if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
-	if (t.weaponclipammo[iWeaponSlotClipIndex] > iMaxClipCapacity) t.weaponclipammo[iWeaponSlotClipIndex] = iMaxClipCapacity;
+	if (iWeaponSlotClipIndex >= 0 && iWeaponSlotClipIndex < t.weaponclipammo.size())
+	{
+		t.weaponclipammo[iWeaponSlotClipIndex] = lua_tonumber(L, 2);
+		int iWeaponSlot = iWeaponSlotClipIndex;
+		if (iWeaponSlot >= 11) iWeaponSlot = iWeaponSlot - 10;
+		int iGunIndex = t.weaponslot[iWeaponSlot].got;
+		int iMaxClipCapacity = g.firemodes[iGunIndex][0].settings.clipcapacity * g.firemodes[iGunIndex][0].settings.reloadqty;
+		if (iMaxClipCapacity == 0) iMaxClipCapacity = 99999;
+		if (t.weaponclipammo[iWeaponSlotClipIndex] > iMaxClipCapacity) t.weaponclipammo[iWeaponSlotClipIndex] = iMaxClipCapacity;
+	}
 	return 0;
  }
  int GetWeaponPoolAmmoIndex(lua_State* L)
@@ -640,9 +652,16 @@ luaMessage** ppLuaMessages = NULL;
 	 int n = lua_gettop(L);
 	 if (n < 1) return 0;
 	 int iWeaponSlot = lua_tonumber(L, 1);
-	 int iGunIndex = t.weaponslot[iWeaponSlot].got;
-	 int iPoolIndex = g.firemodes[iGunIndex][g.firemode].settings.poolindex;
-	 lua_pushinteger (L, iPoolIndex);
+	 if (iWeaponSlot >= 0 && iWeaponSlot < t.weaponslot.size())
+	 {
+		 int iGunIndex = t.weaponslot[iWeaponSlot].got;
+		 int iPoolIndex = g.firemodes[iGunIndex][g.firemode].settings.poolindex;
+		 lua_pushinteger (L, iPoolIndex);
+	 }
+	 else
+	 {
+		 lua_pushinteger (L, 0);
+	 }
 	 return 1;
  }
  int GetWeaponPoolAmmo(lua_State *L)
@@ -651,7 +670,14 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 1 ) return 0;
 	int iPoolIndex = lua_tonumber(L, 1);
-	lua_pushinteger ( L, t.ammopool[iPoolIndex].ammo );
+	if (iPoolIndex >= 0 && iPoolIndex < t.ammopool.size())
+	{
+		lua_pushinteger (L, t.ammopool[iPoolIndex].ammo);
+	}
+	else
+	{
+		lua_pushinteger (L, 0);	
+	}
 	return 1;
  }
  int SetWeaponPoolAmmo(lua_State *L)
@@ -660,7 +686,10 @@ luaMessage** ppLuaMessages = NULL;
 	int n = lua_gettop(L);
 	if ( n < 2 ) return 0;
 	int iPoolIndex = lua_tonumber(L, 1);
-	t.ammopool[iPoolIndex].ammo = lua_tonumber(L, 2);
+	if (iPoolIndex >= 0 && iPoolIndex < t.ammopool.size())
+	{
+		t.ammopool[iPoolIndex].ammo = lua_tonumber(L, 2);
+	}
 	return 0;
  }
  int GetWeaponSlot(lua_State *L)

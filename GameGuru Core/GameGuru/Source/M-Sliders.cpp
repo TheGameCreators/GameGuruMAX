@@ -92,6 +92,11 @@ void sliders_loop ( void )
 			tab_tab_visuals(2, 1);
 		}
 	}
+	if (g.tabmode == 0) {
+		if (bImGuiInTestGame) {
+			wiProfiler::ResetPeek();
+		}
+	}
 	return;
 	/*
 	// Show / Hide LUA Sprites

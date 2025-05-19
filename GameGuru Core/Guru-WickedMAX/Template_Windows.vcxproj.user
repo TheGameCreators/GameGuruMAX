@@ -36,7 +36,7 @@
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseTEST|x64'">
-    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\GGMAX USERS\Screos\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\DEV\DOWNLOADS\GGMAX USERS\Screos - Copy\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand>
   </PropertyGroup>

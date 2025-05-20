@@ -7227,14 +7227,7 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 												extern std::vector<int> g_gameGlobalListIndex;
 												extern std::vector<int> g_gameGlobalListValue;
 
-												bool bUpdate = false;
-												if (g_gameGlobalListNodeId.size() == 0 && globallist_labels.size() == 0)
-													bUpdate = true;
-												else if (g_gameGlobalListNodeId.size() > 0 && g_gameGlobalListNodeId.size() != (globallist_labels.size()-1))
-												{
-													bUpdate = true;
-												}
-												if (bUpdate)
+												if (1) //PE: Always update.
 												{
 													globallist_labels.clear();
 													globallist_labels.push_back(cVariable);

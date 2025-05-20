@@ -271,6 +271,8 @@ void WickedCall_AddImageToList(std::shared_ptr<wiResource> image, eImageResType 
 }
 
 int total_mem_from_load = 0;
+bool bCalledFromWickedLoadImage = false;
+
 std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eImageResType eType)
 {
 	//PE: Prevent dublicate textures even if using different names.
@@ -279,7 +281,8 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 	//PE: Find filname in vector and add the CRC64 to g_imageList when adding a image.
 	//PE: Below also lookup filename CRC64 and check against the g_imageList CRC64 to also reused image.
 
-	if (pFilenameToLoad.length() <= 0)
+	const int iLen = pFilenameToLoad.length();
+	if (iLen <= 4)
 		return NULL; //PE: We get this alot from DISPLACEMENTMAP ... 
 
 	std::shared_ptr<wiResource> image = NULL;
@@ -297,15 +300,48 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 		strcpy(pRealFilenameToLoad, pFilenameToLoad.c_str());
 		if ( pRealFilenameToLoad[strlen(pRealFilenameToLoad)-1] == '\\'
 		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.dds", 5 ) == NULL 
-		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5 ) == NULL 
-		|| strlen ( pRealFilenameToLoad ) <= 4 )
+		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5 ) == NULL )
 		{
 			// is not a filename that makes sense, reject load
 			return NULL;
 		}
 
+		//PE: Ignore all $NoName$_Color.png, alot of old dbo have this.
+		if (iLen >= 8 && pFilenameToLoad[0] == '$' && pFilenameToLoad[7] == '$')
+		{
+			return NULL;
+		}
+		if (iLen > 18 && pFilenameToLoad[iLen-11] == '$' && pFilenameToLoad[iLen - 18] == '$')
+		{
+			return NULL;
+		}
+
+		bool bFound = false;
+		if (t.game.gameisexe == 1)
+		{
+			//PE: All relative path like entitybank\tmp.dds 
+			//PE: Will result in GG_GetRealPath to change to docwrite in standalone, as we only have _e_ version in standalone.
+			//PE: So _e_ version in standalone is never used, prefer _e_ over docwrite.
+			std::string fullName = pRealFilenameToLoad;
+			std::string fileName = wiHelper::GetFileNameFromPath(fullName);
+			std::string dirName = wiHelper::GetDirectoryFromPath(fullName);
+			std::string codedName = dirName + "_e_" + fileName;
+			char CheckFile[MAX_PATH];
+			strcpy(CheckFile, codedName.c_str());
+			GG_GetRealPath(CheckFile, 0);
+			HANDLE hfile = GG_CreateFile(CheckFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			if (hfile != INVALID_HANDLE_VALUE)
+			{
+				CloseHandle(hfile);
+				//PE: Prefer this _e_ version.
+				strcpy(pRealFilenameToLoad, CheckFile);
+				bFound = true;
+			}
+		}
+		
 		// first get real filename
-		GG_GetRealPath(pRealFilenameToLoad, 0);
+		if(!bFound)
+			GG_GetRealPath(pRealFilenameToLoad, 0);
 		pFilenameToLoad = pRealFilenameToLoad;
 
 		bool bDecrypted = false;
@@ -319,7 +355,16 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eI
 		//else
 		//{
 		extern bool CheckForWorkshopFile(LPSTR);
+		bCalledFromWickedLoadImage = true;
 		CheckForWorkshopFile (VirtualFilename);
+		if ( pFilenameToLoad[ pFilenameToLoad.length() - 1] != VirtualFilename[strlen(VirtualFilename) - 1])
+		{
+			//PE: We changed from png to prefer .dds, change extension.
+			pFilenameToLoad[pFilenameToLoad.length() - 1] = VirtualFilename[strlen(VirtualFilename) - 1];
+			pFilenameToLoad[pFilenameToLoad.length() - 2] = VirtualFilename[strlen(VirtualFilename) - 2];
+			pFilenameToLoad[pFilenameToLoad.length() - 3] = VirtualFilename[strlen(VirtualFilename) - 3];
+		}
+		bCalledFromWickedLoadImage = false;
 		g_pGlob->Decrypt(VirtualFilename);
 		bDecrypted = true;
 		//}

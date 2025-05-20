@@ -7,6 +7,8 @@
 #include "SteamCheckForWorkshop.h"
 #include <stdio.h>
 #include "SteamCommands.h"
+#include <string>
+#include <CFileC.h>
 
 extern "C" 
 {
@@ -66,8 +68,68 @@ bool CheckForWorkshopFile ( LPSTR VirtualFilename )
 	// check it exists
 	if ( GG_FileExists( szEncryptedFilename ) )
 	{
+		extern bool bCalledFromWickedLoadImage;
+		if (bCalledFromWickedLoadImage)
+		{
+			//PE: Prefer dds over png. (color.png,basecolor.png...)
+			const char last = szEncryptedFilename[strlen(szEncryptedFilename) - 3];
+			if (last == 'p' || last == 'P') //PE: Quick png check.
+			{
+				const char* pestrcasestr(const char* arg1, const char* arg2);
+				if (pestrcasestr(szEncryptedFilename, "color.png")
+					|| pestrcasestr(szEncryptedFilename, "directx.png")
+					|| pestrcasestr(szEncryptedFilename, "normal.png")
+					|| pestrcasestr(szEncryptedFilename, "metallic.png")
+					|| pestrcasestr(szEncryptedFilename, "_arm.png")
+					|| pestrcasestr(szEncryptedFilename, "emissive.png")
+					|| pestrcasestr(szEncryptedFilename, "albedo.png"))
+				{
+					//PE: Check if a .dds version exists. and if so use it.
+					std::string checkfile = szEncryptedFilename;
+					checkfile[checkfile.length() - 1] = 's';
+					checkfile[checkfile.length() - 2] = 'd';
+					checkfile[checkfile.length() - 3] = 'd';
+					if (GG_FileExists(checkfile.c_str()))
+					{
+						strcpy(szEncryptedFilename, checkfile.c_str());
+					}
+				}
+			}
+		}
 		strcpy ( VirtualFilename , szEncryptedFilename );
 		return true;
+	}
+	else
+	{
+		extern bool bCalledFromWickedLoadImage;
+		if (bCalledFromWickedLoadImage)
+		{
+			//PE: Prefer dds over png.
+			const char last = VirtualFilename[strlen(VirtualFilename) - 3];
+			if (last == 'p' || last == 'P') //PE: Quick png check.
+			{
+				std::string checkfile = VirtualFilename;
+				const char* pestrcasestr(const char* arg1, const char* arg2);
+				if (pestrcasestr(szEncryptedFilename, "color.png")
+					|| pestrcasestr(szEncryptedFilename, "directx.png")
+					|| pestrcasestr(szEncryptedFilename, "normal.png")
+					|| pestrcasestr(szEncryptedFilename, "metallic.png")
+					|| pestrcasestr(szEncryptedFilename, "_arm.png")
+					|| pestrcasestr(szEncryptedFilename, "emissive.png")
+					|| pestrcasestr(szEncryptedFilename, "albedo.png"))
+				{
+					//PE: Check if a .dds version exists. and if so use it.
+					checkfile[checkfile.length() - 1] = 's';
+					checkfile[checkfile.length() - 2] = 'd';
+					checkfile[checkfile.length() - 3] = 'd';
+					if (GG_FileExists(checkfile.c_str()))
+					{
+						strcpy(VirtualFilename, checkfile.c_str());
+						return true;
+					}
+				}
+			}
+		}
 	}
 	// end of encrypted file check
 

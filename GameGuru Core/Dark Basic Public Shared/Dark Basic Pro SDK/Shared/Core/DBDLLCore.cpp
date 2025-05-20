@@ -5680,14 +5680,15 @@ DARKSDK void SetDataPointer(LPSTR Current)
 
 #ifdef INCLUDEVRAM
 #include <dxgi1_4.h>
+IDXGIFactory4* pFactory = nullptr;
+IDXGIAdapter3* adapter = nullptr;
 float GetVramUsage(void)
 {
 	extern uint32_t g_iActiveAdapterNumber;
-
-	IDXGIFactory4* pFactory;
-	CreateDXGIFactory1(__uuidof(IDXGIFactory4), (void**)&pFactory);
-	IDXGIAdapter3* adapter;
-	pFactory->EnumAdapters(0, reinterpret_cast<IDXGIAdapter**>(&adapter));
+	if(!pFactory)
+		CreateDXGIFactory1(__uuidof(IDXGIFactory4), (void**)&pFactory);
+	if(!adapter)
+		pFactory->EnumAdapters(0, reinterpret_cast<IDXGIAdapter**>(&adapter));
 	DXGI_QUERY_VIDEO_MEMORY_INFO videoMemoryInfo;
 	adapter->QueryVideoMemoryInfo(g_iActiveAdapterNumber, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &videoMemoryInfo);
 	return (float)videoMemoryInfo.CurrentUsage / 1024.0f / 1024.0f;

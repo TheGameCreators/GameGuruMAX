@@ -2791,6 +2791,8 @@ DARKSDK_DLL void AnimateBoneMeshMDL ( sObject* pObject, sFrame* pFrame )
 		// first time around, copy vertex data
 		if ( pMesh->pOriginalVertexData==NULL ) CollectOriginalVertexData ( pMesh );
 
+		if ( !pMesh->pOriginalVertexData )
+			return;
 		// get the offset map for the vertex data
 		sOffsetMap offsetMap;
 		GetFVFOffsetMap ( pMesh, &offsetMap );
@@ -2940,6 +2942,8 @@ DARKSDK_DLL void AnimateBoneMeshMDX ( sObject* pObject, sFrame* pFrame )
 void AnimateBoneMeshBONE ( sObject* pObject, sFrame* pFrame, sMesh* pMesh )
 {
 	// first time around, copy vertex data to original-store
+	#ifndef NEVERSTOREORIGINALVERTICES
+	//PE: pOriginalVertexData was allocated here.
 	if ( pMesh->pOriginalVertexData==NULL )
 	{
 		// first time around, copy vertex data to original-store
@@ -2947,6 +2951,7 @@ void AnimateBoneMeshBONE ( sObject* pObject, sFrame* pFrame, sMesh* pMesh )
 		pMesh->pOriginalVertexData = (BYTE*)new char [ dwTotalVertSize ];
 		memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
 	}
+	#endif
 
 	// 010303 - new vertex blending for bones (to take advantage of multiple weights)
 	GGMATRIX* matrices = new GGMATRIX [ pMesh->dwBoneCount ];

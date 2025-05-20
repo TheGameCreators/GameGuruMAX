@@ -9448,6 +9448,13 @@ void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 	OPTICK_EVENT();
 #endif
 
+	// disable wicked particles (for testing/etc)
+	extern int g_iDisableWParticleSystem;
+	if (g_iDisableWParticleSystem == 1)
+	{
+		return;
+	}
+
 	//PE: Preload effects so there is no delays.
 	int MaxCachedDecals = MAXREADYDECALS;
 	if (pParticle->iMaxCache > 0 && pParticle->iMaxCache < MAXREADYDECALS)

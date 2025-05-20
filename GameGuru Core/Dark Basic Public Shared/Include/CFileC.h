@@ -142,6 +142,7 @@ DARKSDK LPSTR	GetFileDate						( void );
 DARKSDK long	GetFileDateLong					( void );
 DARKSDK LPSTR	GetFileCreation					( void );
 DARKSDK int		FileExist						( LPSTR pFilename );
+DARKSDK int		FileExistPrefDDS				( LPSTR pFilename );
 DARKSDK int		FileSize						( LPSTR pFilename );
 DARKSDK int		PathExist						( LPSTR pFilename );
 DARKSDK int		FileOpen						( int f );

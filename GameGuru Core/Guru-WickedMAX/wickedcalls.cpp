@@ -1951,6 +1951,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					}
 				}
 
+				// will be using "FileExistPrefDDS" as file check which does a second check for DDS (ideal for optimized standalones)
 				bool bFoundTextureToLoad = false;
 				std::string sFoundFinalPathAndFilename = "";
 				std::string sTextureFileName;
@@ -1965,10 +1966,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					{
 						//PE: Better hit rate.
 						sFoundFinalPathAndFilename = g_pWickedTexturePath + sBaseColor.Get();
-						if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+						if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 						{
 							sFoundFinalPathAndFilename = sFoundTexturePath + sBaseColor.Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								sFoundFinalPathAndFilename = sBaseColor.Get();
 							else
 								bFound = true;
@@ -1979,10 +1980,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					else
 					{
 						sFoundFinalPathAndFilename = sFoundTexturePath + sBaseColor.Get();
-						if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+						if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 						{
 							sFoundFinalPathAndFilename = g_pWickedTexturePath + sBaseColor.Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								sFoundFinalPathAndFilename = sBaseColor.Get();
 							else
 								bFound = true;
@@ -1990,7 +1991,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						else
 							bFound = true;
 					}
-					if (bFound || FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 1)
+					if (bFound || FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 1)
 					{
 						if (pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource) //PE: Delete first if already active.
 						{
@@ -2018,7 +2019,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetNormalName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = WickedGetNormalName().Get();
 								}
@@ -2026,10 +2027,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetNormalName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetNormalName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetNormalName().Get();
 								}
 							}
@@ -2059,7 +2060,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetSurfaceName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = WickedGetSurfaceName().Get();
 								}
@@ -2067,10 +2068,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetSurfaceName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetSurfaceName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetSurfaceName().Get();
 								}
 							}
@@ -2104,10 +2105,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							// Parallax Occlusion Mapping (if HEIGHT TEXTURE used)
 							bool bPOMShaderRequired = false;
 							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetDisplacementName().Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 							{
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetDisplacementName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 									sFoundFinalPathAndFilename = WickedGetDisplacementName().Get();
 							}
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
@@ -2147,7 +2148,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetEmissiveName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									//PE: Check not needed sFoundTexturePath empty.
 									//sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetEmissiveName().Get();
@@ -2157,10 +2158,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetEmissiveName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetEmissiveName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetEmissiveName().Get();
 								}
 							}

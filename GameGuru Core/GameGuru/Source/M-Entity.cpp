@@ -7,6 +7,11 @@
 #include "stdafx.h"
 #include "gameguru.h"
 
+// OPTICK Performance
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #ifdef ENABLEIMGUI
 #include "..\Imgui\imgui.h"
 #include "..\Imgui\imgui_impl_win32.h"
@@ -9439,6 +9444,10 @@ void delete_notused_decal_particles( void )
 uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2, char* filename, bool attached, char* changename, char* changenameto);
 void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//PE: Preload effects so there is no delays.
 	int MaxCachedDecals = MAXREADYDECALS;
 	if (pParticle->iMaxCache > 0 && pParticle->iMaxCache < MAXREADYDECALS)
@@ -9514,6 +9523,10 @@ void preload_wicked_particle_effect(newparticletype* pParticle, int decal_id)
 
 void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScale, float fX, float fY, float fZ, float fRX, float fRY, float fRZ, GGMATRIX* pmatBaseRotation,bool bAutoDelete,int decal_id)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// show or hide based on editor vs test game
 	bool bShowThisParticle = false;
 	extern bool bImGuiInTestGame;
@@ -9787,6 +9800,10 @@ void newparticle_updateparticleemitter ( newparticletype* pParticle, float fScal
 
 void newparticle_deleteparticleemitter( int iParticleEffect )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	delete_decal_particles.erase(std::remove(delete_decal_particles.begin(), delete_decal_particles.end(), iParticleEffect), delete_decal_particles.end());
 	gpup_deleteEffect(iParticleEffect);
 }

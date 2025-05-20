@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- NPC Control v75 by Necrym 59
+-- NPC Control v83 by Necrym 59 and Preben
 -- DESCRIPTION: The attached NPC will be controlled by this behavior.
 -- DESCRIPTION: [SENSE_TEXT$="Who's that ..an intruder??"]
 -- DESCRIPTION: [SENSE_RANGE=500(0,2000)]
@@ -14,14 +14,14 @@
 -- DESCRIPTION: [#NPC_MOVE_SPEED=100(0,1000)]
 -- DESCRIPTION: [#NPC_RUN_SPEED=110(0,1000)]
 -- DESCRIPTION: [#NPC_TURN_SPEED=100(0,1000)]
--- DESCRIPTION: [@NPC_CAN_SHOOT=2(1=Yes,2=No)]
+-- DESCRIPTION: [@NPC_CAN_SHOOT=2(1=Yes,2=No,3=Yes-Weapon Hidden))]
 -- DESCRIPTION: [@IDLE1_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [@IDLE2_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [@WALK_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [@RUN_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [@THREAT_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [@ATTACK1_ANIMATION=-1(0=AnimSetList)]
--- DESCRIPTION: [ATTACK1_HITFRAME=10]
+-- DESCRIPTION: [ATTACK1_HITFRAME=10] and shoot hitframe adjustment
 -- DESCRIPTION: [@ATTACK2_ANIMATION=-1(0=AnimSetList)]
 -- DESCRIPTION: [ATTACK2_HITFRAME=10]
 -- DESCRIPTION: [@ATTACK3_ANIMATION=-1(0=AnimSetList)]
@@ -141,6 +141,7 @@ local plrwithinmesh = {}
 local allegiance = {}
 local avoidance = {}
 local svolume = {}
+local svolume_last = {}
 local root_time	= {}
 local resetstate = {}
 local staanim1 = {}
@@ -155,6 +156,9 @@ local frameadjust3 = {}
 local redirect = {}
 local chanceflee = {}
 local ishit = {}
+local setframes = {}
+local shooterrange = {}
+local dist = {}
 g_GibsEnabled = 0
 
 function npc_control_properties(e, sense_text, sense_range, npc_can_flee, idle_time, attack_range, attack_damage, random_damage, npc_can_roam, roam_range, npc_anim_speed, npc_move_speed, npc_run_speed, npc_turn_speed, npc_can_shoot, idle1_animation,  idle2_animation, walk_animation, run_animation, threat_animation, attack1_animation, attack1_hitframe, attack2_animation, attack2_hitframe, attack3_animation, attack3_hitframe, shoot_animation, hurt_animation, death1_animation, death2_animation, lastflag_animation, lastflag_time, lastflag_loop, force_move, npc_tilting, diagnostics)
@@ -288,6 +292,7 @@ function npc_control_init_name(e,name)
 	playgsound[e] = 0
 	plrwithinmesh[e] = 1	
 	svolume[e] = 0
+	svolume_last[e] = 0
 	resetstate[e] = 0
 	g_LegacyNPC = 0
 	g_GibsEnabled = 0
@@ -299,13 +304,16 @@ function npc_control_init_name(e,name)
 	chanceflee[e] = 0
 	diagnostics[e] = 0
 	ishit[e] = 0
+	setframes[e] = 0
+	dist[e] = 0
 	math.randomseed(os.time())
 end
 
 function npc_control_main(e)
 
-	CollisionOn(e)
-	if status[e] == "init" then		
+	CollisionOn(e)	
+	if status[e] == "init" then
+		shooterrange[e] = npc_control[e].attack_range
 		allegiance[e] = GetEntityAllegiance(e) -- (0-enemy, 1-ally, 2-neutral)		
 		SetAnimationSpeed(e,npc_control[e].npc_anim_speed)
 		SetEntityMoveSpeed(e,npc_control[e].npc_move_speed)
@@ -325,6 +333,7 @@ function npc_control_main(e)
 		regen[e] = g_Time + 3000
 		idlestate_choice[e] = math.random(1,5)
 		LoadGlobalSound("audiobank\\user\\" ..name1[e].. ".wav", g_Entity[e])
+		if npc_control[e].npc_can_shoot == 3 then SetAttachmentVisible(e,0) end -- 1 sets the entities attachment to be visible (such as their weapon), 0 switches it off
 		status[e] = "endinit"		
 	end
 
@@ -415,6 +424,7 @@ function npc_control_main(e)
 			if idlestate_choice[e] == 5 then
 				if npc_control[e].npc_can_roam == 1 then --Can Roam
 					state[e] = "roam"
+					wandonce[e] = 0
 					idlemonce[e] = 0
 				end
 			end
@@ -480,9 +490,8 @@ function npc_control_main(e)
 	
 	---------------------------------------------------------------------------------------------------------------------------------
 	if state[e] == "sensed" then		
-		GetEntityPlayerVisibility(e)		
 		--StopSound(e,0)
-		if GetPlayerDistance(e) < npc_control[e].sense_range or g_Entity[e]['plrvisible'] == 1 and allegiance[e] == 0 then
+		if GetPlayerDistance(e) < npc_control[e].sense_range and allegiance[e] == 0 then
 			issensed[e] = 1
 			RotateToPlayerSlowly(e,GetEntityTurnSpeed(e)/2)
 			if senseonce[e] == 0 then
@@ -491,6 +500,7 @@ function npc_control_main(e)
 					ModulateSpeed(e,npc_control[e].npc_anim_speed)
 					PlayAnimation(e)
 					PlaySound(e,2)
+					svolume_last[e] = 2
 					if sayonce[e] == 0 then
 						PromptDuration(npc_control[e].sense_text,1000)
 						sayonce[e] = 1
@@ -514,8 +524,8 @@ function npc_control_main(e)
 						aggro[e] = 1
 						scare[e] = 0					
 						hurtonce[e] = 0
-						attkonce[e] = 0
-						state[e] = "attack"
+						attkonce[e] = 0												
+						state[e] = "pursue"
 						pathdelay[e] = g_Time + 50
 						pointcount[e] = 0
 					end	
@@ -525,8 +535,8 @@ function npc_control_main(e)
 					scare[e] = 0
 					hurtonce[e] = 0
 					attkonce[e] = 0					
-					state[e] = "attack"
-					pathdelay[e] = g_Time + 50
+					state[e] = "pursue"
+					pathdelay[e] = g_Time + 50					
 					pointcount[e] = 0
 				end					
 			end
@@ -539,16 +549,25 @@ function npc_control_main(e)
 		playgsound[e] = 0
 	end	
 	
-	if state[e] == "attack" then	
-		-- Trigger Combat Music
-		if playgsound[e] == 0 then			
-			PlayGlobalSound(g_Entity[e])				
-			playgsound[e] = 1
-		end				
-		-----------------------
-		svolume[e] = (2000-GetPlayerDistance(e))/10		
-		SetSoundVolume(svolume[e])		
-		if GetPlayerDistance(e) > npc_control[e].attack_range and aggro[e] == 1 then			
+	if state[e] == "pursue" then
+		GetEntityPlayerVisibility(e)
+		if GetPlayerDistance(e) <= npc_control[e].attack_range and aggro[e] == 1 and npc_control[e].npc_can_shoot == 1 and g_Entity[e]['plrvisible'] == 1 then			
+			state[e] = "attack"
+			attkonce[e] = 0
+			ishit[e] = 2
+		end
+		if GetPlayerDistance(e) <= npc_control[e].attack_range and aggro[e] == 1 and npc_control[e].npc_can_shoot == 2 then
+			state[e] = "attack"
+			attkonce[e] = 0
+			ishit[e] = 2			
+		end
+		if GetPlayerDistance(e) <= npc_control[e].attack_range and aggro[e] == 1 and npc_control[e].npc_can_shoot == 3 and g_Entity[e]['plrvisible'] == 1 then			
+			state[e] = "attack"
+			attkonce[e] = 0
+			ishit[e] = 2			
+		end
+	
+		if GetPlayerDistance(e) > npc_control[e].attack_range or GetPlayerDistance(e) < npc_control[e].attack_range and aggro[e] == 1 then			
 			if g_Time > pathdelay[e] or hurtonce[e] == 1 then
 				local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
 				destx[e] = g_PlayerPosX
@@ -571,8 +590,7 @@ function npc_control_main(e)
 						currpause[e] = 0
 					end	
 				end	
-				if g_Entity[e]['plrvisible'] == 1 then currpause[e] = 0 end
-				
+				if g_Entity[e]['plrvisible'] == 1 then currpause[e] = 0 end				
 				if pointcount[e] == 0 or plrlost[e] == 1 then
 					if resetstate[e] == 0 then
 						local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
@@ -591,33 +609,23 @@ function npc_control_main(e)
 					aggro[e] = 0
 					issensed[e] = 0
 					plrseen[e] = 0
+					wandonce[e] = 0
 					state[e] = "idle"
 				end
 				pathdelay[e] = g_Time + 100 -- Check for new destination
-			end
+			end			
 			if animonce[e] == 0 then
 				SetAnimationName(e,npc_control[e].run_animation)
 				LoopAnimation(e)
 				LoopSound(e,0)
+				svolume_last[e] = 0
 				animonce[e] = 1
 				hurtonce[e] = 0
 			end
 			SetEntityMoveSpeed(e,npc_control[e].npc_run_speed)
 			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
-			MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))
-			
-			----------------------------------------------------------------
-			local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
-			local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)
-			colobj[e] = IntersectAll(ex,ey+35,ez,ex+ox,ey+oy+35,ez+oz,g_Entity[e]['obj'])
-			if colobj[e] == nil then colobj[e] = 0 end
-			if colobj[e] > 0 then
-				wandonce[e] = 0		
-				avoidance[e] = 1
-				root_time[e] = g_Time + 800
-				state[e] = "roam"
-			end			
-			----------------------------------------------------------------			
+			MoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e))		
+
 			if npc_control[e].force_move == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ox,oy,oz = U.Rotate3D(0,0,150, 0,math.rad(eay),0)
@@ -630,46 +638,62 @@ function npc_control_main(e)
 			end
 			shooting[e] = 0
 		else
-			SetEntityMoveSpeed(e,npc_control[e].npc_move_speed)
-		end
-		
+			SetEntityMoveSpeed(e,npc_control[e].npc_move_speed)			
+		end		
+	end
+	
+	if state[e] == "attack" then	
+		-- Trigger Combat Music
+		if playgsound[e] == 0 then			
+			PlayGlobalSound(g_Entity[e])				
+			playgsound[e] = 1
+		end				
+		-----------------------
+		svolume[e] = (2000-GetPlayerDistance(e))/10
+		SetSound(e,svolume_last[e])
+		SetSoundVolume(svolume[e])				
 		------------------------CHECK ANIMATION FRAMES --------------------------------------------------------------------------------------------------------------------------
-		staanim1[e], finanim1[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack1_animation) -- return the start and finish frame of the specified animation in the object
-		staanim2[e], finanim2[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack2_animation) -- return the start and finish frame of the specified animation in the object
-		staanim3[e], finanim3[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack3_animation) -- return the start and finish frame of the specified animation in the object
-		frameadjust1[e] = staanim1[e] + npc_control[e].attack1_hitframe
-		frameadjust2[e] = staanim2[e] + npc_control[e].attack2_hitframe
-		frameadjust3[e] = staanim3[e] + npc_control[e].attack3_hitframe
+		if setframes[e] == 0 then
+			staanim1[e], finanim1[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack1_animation) -- return the start and finish frame of the specified animation in the object
+			staanim2[e], finanim2[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack2_animation) -- return the start and finish frame of the specified animation in the object
+			staanim3[e], finanim3[e] = GetEntityAnimationStartFinish(e,npc_control[e].attack3_animation) -- return the start and finish frame of the specified animation in the object
+			frameadjust1[e] = staanim1[e] + npc_control[e].attack1_hitframe
+			frameadjust2[e] = staanim2[e] + npc_control[e].attack2_hitframe
+			frameadjust3[e] = staanim3[e] + npc_control[e].attack3_hitframe
+			setframes[e] = 1
+		end	
 		------------------------CHECK ANIMATION FRAMES --------------------------------------------------------------------------------------------------------------------------	
 		if GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack1_animation) > 0 and g_Entity[e]['frame'] == frameadjust1[e] then ishit[e] = 1 end
 		if GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack2_animation) > 0 and g_Entity[e]['frame'] == frameadjust2[e] then ishit[e] = 1 end
 		if GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack3_animation) > 0 and g_Entity[e]['frame'] == frameadjust3[e] then ishit[e] = 1 end
 		-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-		if GetPlayerDistance(e) <= npc_control[e].attack_range and g_Entity[e]['health'] > 0 and state[e] ~= "die" then			
-			animonce[e] = 0			
+		GetEntityPlayerVisibility(e)
+		if GetPlayerDistance(e) <= npc_control[e].attack_range and g_Entity[e]['health'] > 0 and state[e] ~= "die" and g_Entity[e]['plrvisible'] == 1 then				
+			animonce[e] = 0
 			RotateToPlayer(e)
 			if attkonce[e] == 0 then
 				if npc_control[e].npc_can_shoot == 2 then --can Melee
 					SetAnimationName(e,npc_control[e].attack1_animation)
 					ModulateSpeed(e,npc_control[e].npc_anim_speed)
-					PlayAnimation(e)				
+					PlayAnimation(e)
+					StopSound(e,0)
+					PlaySound(e,1)
+					svolume_last[e] = 1
 					anim_var[e] = 0
 				end
-				if npc_control[e].npc_can_shoot == 1 then --can Shoot
+				if npc_control[e].npc_can_shoot == 1 or npc_control[e].npc_can_shoot == 3 then --can Shoot
 					SetAnimationName(e,npc_control[e].shoot_animation)
 					ModulateSpeed(e,npc_control[e].npc_anim_speed)
 					PlayAnimation(e)
 					StopSound(e,0)
-					PlaySound(e,1)
 					if shooting[e] == 1 then FireWeapon(e) end
 					if shooting[e] == 1 and npc_control[e].force_move == 1 then
 						if npc_control[e].random_damage == 1 then HurtPlayer(-1,math.random(1,npc_control[e].attack_damage)) end
 						if npc_control[e].random_damage == 2 then HurtPlayer(-1,npc_control[e].attack_damage) end
-						PlaySound(e,1)
 					end
-				end
-				attkonce[e] = 1
-				anim_var[e] = 5
+					anim_var[e] = 5
+				end				
+				attkonce[e] = 1				
 			end
 			if GetTimer(e) >= attack_delay[e] then
 				if anim_var[e] == 1 then  -- Attack1
@@ -696,6 +720,7 @@ function npc_control_main(e)
 					PlayAnimation(e)
 					StopSound(e,0)
 					PlaySound(e,2)
+					svolume_last[e] = 2
 					anim_var[e] = 0
 				end
 				if anim_var[e] == 5 then
@@ -703,29 +728,36 @@ function npc_control_main(e)
 					ModulateSpeed(e,npc_control[e].npc_anim_speed)
 					PlayAnimation(e)
 					StopSound(e,0)
-					PlaySound(e,1)
 					if shooting[e] == 1 then FireWeapon(e) end
 					if shooting[e] == 1 and npc_control[e].force_move == 1 then
 						if npc_control[e].random_damage == 1 then HurtPlayer(-1,math.random(1,npc_control[e].attack_damage)) end
 						if npc_control[e].random_damage == 2 then HurtPlayer(-1,npc_control[e].attack_damage) end
-						PlaySound(e,1)
 					end					
 					ishit[e] = 2
 					anim_var[e] = 0
-				end								
+				end
 				if ishit[e] == 0 then attack_delay[e] = GetTimer(e) + 10000 end
-				if ishit[e] == 2 then attack_delay[e] = GetTimer(e) + 1000 end
+				if ishit[e] == 2 then					
+					if npc_control[e].npc_can_shoot == 1 or npc_control[e].npc_can_shoot == 3 then attack_delay[e] = (GetTimer(e) + 50)+(npc_control[e].attack1_hitframe*2) end
+					if npc_control[e].npc_can_shoot == 2 then attack_delay[e] = GetTimer(e) + 10000 end
+				end
 				anim_var[e] = math.random(1,3) -- Attack random animation variation
-				if npc_control[e].npc_can_shoot == 1 then
+				if npc_control[e].npc_can_shoot == 1 or npc_control[e].npc_can_shoot == 3 then
 					anim_var[e] = 5
 					shooting[e] = 1
-					if GetPlayerDistance(e) < 90 then anim_var[e] = 1 end
+					if npc_control[e].npc_can_shoot == 1 then 
+						if GetPlayerDistance(e) < 100 then
+							anim_var[e] = math.random(2,3)
+							ishit[e] = 0
+						end
+					end	
 				end				
 				animonce[e] = 0				
 			end
 			if ishit[e] == 1 then
 				StopSound(e,0)
 				PlaySound(e,1)
+				svolume_last[e] = 1
 				if npc_control[e].random_damage == 1 and ishit[e] == 1 then	HurtPlayer(-1,math.random(1,npc_control[e].attack_damage)) end
 				if npc_control[e].random_damage == 2 then HurtPlayer(-1,npc_control[e].attack_damage) end
 				GamePlayerControlAddShakeTrauma(math.random(30.9,35.9))
@@ -734,33 +766,44 @@ function npc_control_main(e)
 				GamePlayerControlSetShakeTrauma(2.4)
 				GamePlayerControlSetShakePeriod(100.0)
 				ishit[e] = 0
-				attack_delay[e] = GetTimer(e) + 1
-			end
+				attack_delay[e] = GetTimer(e) + 1000
+			end			
+		end
+		if GetPlayerDistance(e) < npc_control[e].attack_range and g_Entity[e]['plrvisible'] == 0 then
+			state[e] = "pursue"
+			attkonce[e] = 0
+			attack_delay[e] = GetTimer(e) + 100
+		end		
+		if GetPlayerDistance(e) > npc_control[e].attack_range or g_Entity[e]['plrvisible'] == 0 and aggro[e] == 1 then			
+			state[e] = "pursue"
+			attkonce[e] = 0
+			attack_delay[e] = GetTimer(e) + 100
 		end
 	end
 
 	if state[e] == "roam" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
+		SetSound(e,svolume_last[e])
 		SetSoundVolume(svolume[e])
 		
 		if wandonce[e] == 0 then -- get a random point on a circle around the current location
 			if avoidance[e] == 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(1,360))
-				local dist = npc_control[e].roam_range
-				if scare[e] == 0 then dist = npc_control[e].roam_range end
-				if scare[e] == 1 then dist = (npc_control[e].roam_range*2) end
-				destx[e] = startx[e] + math.cos(ang) * dist
+				dist[e] = npc_control[e].roam_range
+				if scare[e] == 0 then dist[e] = npc_control[e].roam_range end
+				if scare[e] == 1 then dist[e] = (npc_control[e].roam_range*2) end
+				destx[e] = startx[e] + math.cos(ang) * dist[e]
 				desty[e] = starty[e]
-				destz[e] = startz[e] + math.sin(ang) * dist
+				destz[e] = startz[e] + math.sin(ang) * dist[e]
 			end	
 			if avoidance[e] == 1 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
-				destx[e] = startx[e] + math.cos(ang) * dist
+				dist[e] = (npc_control[e].roam_range/90)
+				destx[e] = startx[e] + math.cos(ang) * dist[e]
 				desty[e] = starty[e]
-				destz[e] = startz[e] + math.sin(ang) * dist
+				destz[e] = startz[e] + math.sin(ang) * dist[e]
 			end
 			----------------------------------------------------------------
 			local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
@@ -770,16 +813,16 @@ function npc_control_main(e)
 			if colobj[e] > 0 then
 				local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
 				local ang = math.rad(math.random(-10,10))
-				local dist = (npc_control[e].roam_range/90)
-				destx[e] = startx[e] + math.cos(ang) * dist
+				dist[e] = (npc_control[e].roam_range/90)
+				destx[e] = startx[e] + math.cos(ang) * dist[e]
 				desty[e] = starty[e]
-				destz[e] = startz[e] + math.sin(ang) * dist
+				destz[e] = startz[e] + math.sin(ang) * dist[e]
 				avoidance[e] = 1
-			end			
+			end	
 			----------------------------------------------------------------			
 			RDFindPath(ex,ey,ez,destx[e],desty[e],destz[e])
 			local result = RDIsWithinMesh(destx[e],desty[e],destz[e])
-			if result == 0 then dist = dist-50 end
+			if result == 0 then dist[e] = dist[e]-50 end
 			pointcount[e] = RDGetPathPointCount()
 			if pointcount[e] > 0 then
 				if npc_control[e].npc_tilting == 1 then StartMoveAndRotateToXYZ(e,GetEntityMoveSpeed(e)/100,GetEntityTurnSpeed(e),1,0) end
@@ -791,6 +834,7 @@ function npc_control_main(e)
 				SetEntityMoveSpeed(e,npc_control[e].npc_move_speed)
 				LoopAnimation(e)
 				LoopSound(e,0)
+				svolume_last[e] = 0
 				wandonce[e] = 1
 				hurtonce[e] = 0
 			end
@@ -800,6 +844,7 @@ function npc_control_main(e)
 				SetEntityMoveSpeed(e,npc_control[e].npc_run_speed)
 				LoopAnimation(e)
 				PlaySound(e,0)
+				svolume_last[e] = 0
 				wandonce[e] = 1
 				hurtonce[e] = 0
 			end
@@ -867,7 +912,7 @@ function npc_control_main(e)
 			hurtonce[e] = 0
 			scareonce[e] = 0
 			scare[e] = 0
-			--avoidance[e] = 0
+			avoidance[e] = 0
 			state[e] = "idle"
 			idle_delay[e] = g_Time + npc_control[e].idle_time
 		end
@@ -908,12 +953,14 @@ function npc_control_main(e)
 
 	if state[e] == "patrol_flags" then
 		svolume[e] = (2000-GetPlayerDistance(e))/10
+		SetSound(e,svolume_last[e])
 		SetSoundVolume(svolume[e])
 		if patrolonce[e] == 0 then
 			ModulateSpeed(e,npc_control[e].npc_anim_speed)
 			SetAnimationName(e,npc_control[e].walk_animation)
 			LoopAnimation(e)
 			LoopSound(e,0)
+			svolume_last[e] = 0
 			patrolonce[e] = 1
 		end
 		local ex,ey,ez,eax,eay,eaz = GetEntityPosAng(e)
@@ -969,19 +1016,19 @@ function npc_control_main(e)
 		else
 			SetEntityHealth(e,999)
 		end	
-		if g_Entity[e]['animating'] == 0 then
+		if g_Entity[e]['animating'] == 0 or g_Entity[e]['health'] >= 1 then			
 			CollisionOff(e)
 			animonce[e] = 1
-			state[e] = "dead"
+			state[e] = "dead"			
 			StopSound(e,0)
 			StopSound(e,1)
 			StopSound(e,2)
-			StopSound(e,3)			
-			SetPreExitValue(e,2)
+			StopSound(e,3)
+			SetEntityHealth(e,0)			
+			SetPreExitValue(e,2)			
 			SwitchScript(e,"no_behavior_selected.lua")
 		end	
-	end
-
+	end		
 	--- Check Health and Hurt Animation -------------------------------------
 	
 	if g_Time > regen[e] and g_Entity[e]['health'] > 1000 and g_Entity[e]['health'] < init_health[e] then
@@ -989,7 +1036,7 @@ function npc_control_main(e)
 		regen[e] = g_Time + 2000
 	end
 	
-	if g_Entity[e]['health'] < 1000 and state[e] ~= "die" then
+	if g_Entity[e]['health'] < 1000 and state[e] ~= "die" then		
 		local ex,ey,ez,ax,ay,az = GetEntityPosAng(e)
 		destx[e] = ex
 		desty[e] = ey
@@ -1000,22 +1047,28 @@ function npc_control_main(e)
 		animonce[e] = 0
 		StopSound(e,0)
 		PlaySound(e,3)
+		svolume_last[e] = 3
 		state[e] = "die"		
 	end		
 	
-	if g_Entity[e]['health'] > 1000 then	
+	if g_Entity[e]['health'] > 1000 then
 		if g_Entity[e]['health'] < start_health[e] then			
 			SetEntityMoveSpeed(e,0)	
 			if hurtonce[e] == 0 then
+				if shooting[e] == 1 then npc_control[e].attack_range = npc_control[e].attack_range + 1 end
 				if g_Entity[e]['animating'] == 0 then MoveForward(e,-5) end
 				StopAnimation(e)
 				SetAnimationName(e,npc_control[e].hurt_animation)
 				StopSound(e,0)				
 				PlaySound(e,2)
+				svolume_last[e] = 2
 				PlayAnimation(e)
 				LookAtPlayer(e)
 				hurtonce[e] = 1
 				allegiance[e] = 0
+			end
+			if shooting[e] == 1 then				
+				npc_control[e].attack_range = npc_control[e].attack_range - 1
 			end
 			if GetObjectAnimationFinished(e) == 0 then g_Entity[e]['animating'] = 0	end
 			if GetObjectAnimationFinished(e) == 1 then g_Entity[e]['animating'] = 1 end
@@ -1027,7 +1080,7 @@ function npc_control_main(e)
 				wandonce[e] = 0
 				idlemonce[e] = 0
 				senseonce[e] = 0
-				anim_var[e] = 0
+				anim_var[e] = 0				
 				if aggro[e] == 1 then state_choice[e] = 2 end
 				if aggro[e] == 0 then state_choice[e] = math.random(1,2) end
 				if state_choice[e] == 1 then
@@ -1047,8 +1100,8 @@ function npc_control_main(e)
 					end
 					if allegiance[e] == 0 then
 						aggro[e] = 1
-						scare[e] = 0
-						state[e] = "idle"
+						scare[e] = 0						
+						state[e] = "idle"						
 						pathdelay[e] = g_Time + 10
 						animonce[e] = 0
 					end
@@ -1086,19 +1139,17 @@ function npc_control_main(e)
 			Text(2,66,3,"Attack 1")
 			Text(2,68,3,"Hit Frame1: " ..frameadjust1[e])
 			Text(2,70,3,"Current Frame: " ..g_Entity[e]['frame'])
-		end
-		if GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack2_animation) > 0 then
+		elseif GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack2_animation) > 0 then
 			Text(2,64,3,"---------------------------------")
 			Text(2,66,3,"Attack 2")
 			Text(2,68,3,"Hit Frame2: " ..frameadjust2[e])
 			Text(2,70,3,"Current Frame: " ..g_Entity[e]['frame'])
-		end
-		if GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack3_animation) > 0 then
+		elseif GetEntityAnimationNameExistAndPlaying(e,npc_control[e].attack3_animation) > 0 then
 			Text(2,64,3,"---------------------------------")	
 			Text(2,66,3,"Attack 3")
 			Text(2,68,3,"Hit Frame3: " ..frameadjust3[e])
 			Text(2,70,3,"Current Frame: " ..g_Entity[e]['frame'])			
-		end		
+		end
 	end
 end
 

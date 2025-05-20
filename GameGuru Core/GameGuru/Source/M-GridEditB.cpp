@@ -5336,10 +5336,8 @@ static void DisplayPerformanceData(bool* p_open)
 		int trisShadow = wiProfiler::GetPolygonsShadows();
 		int trisTransparent = wiProfiler::GetPolygonsTransparent();
 		
-		ImGui::Text("FPS: %.1f - Draw Calls: %5d, %5d, %5d", ImGui::GetIO().Framerate, dc, dcs, dct);
-		ImGui::Text("Triangles: %7d, %7d, %7d", tris, trisShadow, trisTransparent);
-		//ImGui::Text("Draw Calls Objects: %d", dc - dcs);
-		//ImGui::Text("Draw Calls Shadows: %d", dcs);
+		ImGui::Text("FPS: %.1f - Draw Calls: %5d, S:%5d, T:%5d", ImGui::GetIO().Framerate, dc, dcs, dct);
+		ImGui::Text("Triangles: %7d, S:%7d, T:%7d", tris, trisShadow, trisTransparent);
 
 		ImGui::Separator();
 
@@ -35248,6 +35246,11 @@ void Welcome_Screen(void)
 										changeLogList.push_back(pDatatmp);
 
 										pDataReturnedPtr = pEndToken + 1;
+									}
+									else
+									{
+										// also a cut off signal!
+										bFindAllMessagesContainingCommitNotes = false;
 									}
 								}
 								else

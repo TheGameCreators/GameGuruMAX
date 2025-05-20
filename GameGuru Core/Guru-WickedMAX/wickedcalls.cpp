@@ -21,6 +21,11 @@ extern Master master;
 #include "GGTerrain/GGTerrain.h"
 #include "gameguru.h"
 
+// OPTICK Performance
+#ifdef OPTICK_ENABLE
+#include "optick.h"
+#endif
+
 #define ONLY_USE_OUTLINE_HIGHLIGHT
 #define MATCHCLASSICROTATION
 
@@ -272,18 +277,23 @@ void WickedCall_AddImageToList(std::shared_ptr<wiResource> image, eImageResType 
 
 int total_mem_from_load = 0;
 bool bCalledFromWickedLoadImage = false;
-
-std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoad, eImageResType eType)
+std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, eImageResType eType)
 {
 	//PE: Prevent dublicate textures even if using different names.
 	//PE: Scan all our images and make a text file including filename+CRC64 of the file.
 	//PE: Load this text file into a vector.
 	//PE: Find filname in vector and add the CRC64 to g_imageList when adding a image.
 	//PE: Below also lookup filename CRC64 and check against the g_imageList CRC64 to also reused image.
-
-	const int iLen = pFilenameToLoad.length();
+	const int iLen = pFilenameToLoadIN.length();
 	if (iLen <= 4)
 		return NULL; //PE: We get this alot from DISPLACEMENTMAP ... 
+
+	// when gdividetexturesize is 0, we are not using textures, so use a dummy texture (tests performance against using too LARGE a texture set)
+	std::string pFilenameToLoad = pFilenameToLoadIN;
+	if (g.gdividetexturesize == 0)
+	{
+		pFilenameToLoad = "editors\\gfx\\notexture.dds";
+	}
 
 	std::shared_ptr<wiResource> image = NULL;
 	char pFullRelativeLocationFilename[MAX_PATH];
@@ -5456,7 +5466,7 @@ bool WickedCall_SentRay2(float originx, float originy, float originz, float dire
 	return false;
 }
 
-bool WickedCall_SentRay3(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit)
+bool WickedCall_SentRay4(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit, bool bOpaqueOnly)
 {
 	// ray cast specifically used by game loop to find accurate position of animating objects (performant?)
 	RAY pickRay;
@@ -5469,7 +5479,9 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 	pickRay.direction.z = directionz;
 	XMStoreFloat3(&direction_inverse, XMVectorDivide(XMVectorReplicate(1.0f), XMVectorSet(directionx, directiony, directionz, 1.0f)));
 	pickRay.direction_inverse = direction_inverse;
-	wiScene::PickResult hit = wiScene::Pick(pickRay, RENDERTYPE_ALL, GGRENDERLAYERS_NORMAL);
+	RENDERTYPE checkType = RENDERTYPE_ALL;
+	if (bOpaqueOnly == true) checkType = RENDERTYPE_OPAQUE;
+	wiScene::PickResult hit = wiScene::Pick(pickRay, checkType, GGRENDERLAYERS_NORMAL);
 	if (hit.entity > 0)
 	{
 		float fDX = hit.position.x - originx;
@@ -5493,6 +5505,11 @@ bool WickedCall_SentRay3(float originx, float originy, float originz, float dire
 		}
 	}
 	return false;
+}
+
+bool WickedCall_SentRay3(float originx, float originy, float originz, float directionx, float directiony, float directionz, float fDistanceOfRay, float* pOutX, float* pOutY, float* pOutZ, float* pNormX, float* pNormY, float* pNormZ, DWORD* pdwObjectNumberHit)
+{
+	return WickedCall_SentRay4(originx, originy, originz, directionx, directiony, directionz, fDistanceOfRay, pOutX, pOutY, pOutZ, pNormX, pNormY, pNormZ, pdwObjectNumberHit, false);
 }
 
 void WickedCall_GetMouseDeltas(float* pfX, float* pfY)
@@ -6975,6 +6992,10 @@ void WickedCall_CreateDecal(sObject* pObject)
 #ifdef WICKEDPARTICLESYSTEM
 uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attached, char* changename, char* changenameto)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	Entity root = 0;
 
 	XMMATRIX& transformMatrix = XMMatrixIdentity();
@@ -7120,6 +7141,10 @@ uint32_t WickedCall_LoadWiSceneDirect(Scene& scene2,char* filename, bool attache
 }
 uint32_t WickedCall_LoadWiScene(char* filename, bool attached, char* changename, char* changenameto)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	Scene scene2;
 	Entity root = WickedCall_LoadWiSceneDirect(scene2, filename, attached, changename, changenameto);
 	GetScene().Merge(scene2);
@@ -7174,6 +7199,10 @@ void WickedCall_PerformEmitterAction(int iAction, uint32_t emitter_root)
 //#define WPEDebug
 void WickedCall_UpdateEmitters(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//PE: Scan emitters.
 	std::vector< uint32_t> parent_used;
 	parent_used.clear();

@@ -1271,7 +1271,21 @@ void lua_loop_allentities ( void )
 			t.entityelement[t.e].lastz = t.entityelement[t.e].z;
 
 			// performance measure of ALL entity logic runs
-			if (t.e < TABLEOFPERFORMANCEMAX) g_tableofperformancetimers[t.e] = PerformanceTimer() - g_tableofperformancetimers[t.e];
+			if (t.e < TABLEOFPERFORMANCEMAX)
+			{
+				// record time taken for this entity LUA logic
+				g_tableofperformancetimers[t.e] = PerformanceTimer() - g_tableofperformancetimers[t.e];
+
+				// if extreme, and flagged, stop action and view this naughty script!
+				if (g.gproducelogfiles == 3)
+				{
+					int iUAsMillisecond = 30000;
+					if (g_tableofperformancetimers[t.e] > iUAsMillisecond)
+					{
+						g_iViewPerformanceTimers = 1;
+					}
+				}
+			}
 		}
 	}
 
@@ -1327,7 +1341,7 @@ void lua_loop_allentities ( void )
 			sprintf(pThisLine, "%s : %d = %s\n", pMeasure+1, e, t.entityelement[e].eleprof.aimain_s.Get());
 			strcat(pShowList, pThisLine);
 		}
-		MessageBoxA(NULL, pShowList, "Logic Performance View", MB_OK);
+		MessageBoxA(NULL, pShowList, "Logic Performance (auto-triggered using 'producelogfiles=3')", MB_OK);
 		g_iViewPerformanceTimers = 0;
 	}
 }

@@ -2289,6 +2289,12 @@ void entity_loop ( void )
 	}
 }
 
+// Manual UV Data changes are OH SO SLOW, so add a system that only does it once per
+// object per cycle, in sequence, to improve general performance while retaining the
+// visual effect of changing the UV of the object being rendered
+bool g_bUVDataChangeObjectSeqOnce = false;
+int g_iUVDataChangeObjectSeqE = -1;
+
 void entity_loopanim ( void )
 {
 #ifdef OPTICK_ENABLE
@@ -2334,11 +2340,7 @@ void entity_loopanim ( void )
 						t.tanimspeed_f = t.entityprofile[t.entid].animspeed;
 						if (ObjectExist(t.tparentobj) == 1) 
 						{
-							#ifdef WICKEDENGINE
 							SetObjectSpeed(t.tparentobj, t.tanimspeed_f);
-							#else
-							SetObjectSpeed(t.tparentobj, g.timeelapsed_f*t.tanimspeed_f);
-							#endif
 						}
 					}
 				}
@@ -2356,26 +2358,29 @@ void entity_loopanim ( void )
 				t.tobj = t.entityelement[t.e].obj;
 				if (t.tobj > 0)
 				{
-
 					float fNextFrame = g.timeelapsed_f*t.entityelement[t.e].fDecalSpeed;
 
 					t.entityelement[t.e].fDecalFrame = t.entityelement[t.e].fDecalFrame + fNextFrame;
-
 					if (t.entityelement[t.e].fDecalFrame < 0) t.entityelement[t.e].fDecalFrame = 0;
 					if (t.entityelement[t.e].fDecalFrame > (t.entityprofile[t.entid].iDecalRows*t.entityprofile[t.entid].iDecalColumns))
 						t.entityelement[t.e].fDecalFrame = 0;
 
-					if (ObjectExist(t.tobj) == 1)
+					if (g_bUVDataChangeObjectSeqOnce == false && t.e > g_iUVDataChangeObjectSeqE)
 					{
-						LockVertexDataForLimbCore(t.tobj, 0, 1);
-						SetVertexDataNormals(0, 0, 1, 0);
-						SetVertexDataNormals(1, 0, 1, 0);
-						SetVertexDataNormals(2, 0, 1, 0);
-						SetVertexDataNormals(3, 0, 1, 0);
-						SetVertexDataNormals(4, 0, 1, 0);
-						SetVertexDataNormals(5, 0, 1, 0);
-						UnlockVertexData();
-						SetObjectUVManually(t.tobj, t.entityelement[t.e].fDecalFrame, t.entityprofile[t.entid].iDecalRows, t.entityprofile[t.entid].iDecalColumns);
+						if (ObjectExist(t.tobj) == 1)
+						{
+							LockVertexDataForLimbCore(t.tobj, 0, 1);
+							SetVertexDataNormals(0, 0, 1, 0);
+							SetVertexDataNormals(1, 0, 1, 0);
+							SetVertexDataNormals(2, 0, 1, 0);
+							SetVertexDataNormals(3, 0, 1, 0);
+							SetVertexDataNormals(4, 0, 1, 0);
+							SetVertexDataNormals(5, 0, 1, 0);
+							UnlockVertexData();
+							SetObjectUVManually(t.tobj, t.entityelement[t.e].fDecalFrame, t.entityprofile[t.entid].iDecalRows, t.entityprofile[t.entid].iDecalColumns);
+						}
+						g_bUVDataChangeObjectSeqOnce = true;
+						g_iUVDataChangeObjectSeqE = t.e;
 					}
 				}
 			}
@@ -2399,6 +2404,7 @@ void entity_loopanim ( void )
 								{
 									// Entity must be unique to allow different speed from parent
 									t.tte = t.e ; entity_converttoclone ( );
+
 									//Start animation.
 									t.tobj = t.entityelement[t.e].obj;
 									if (GetNumberOfFrames(t.tobj) > 0)
@@ -2534,6 +2540,18 @@ void entity_loopanim ( void )
 				}
 			}
 		}
+	}
+
+	// resets for next UV Data change that may be required
+	if (g_bUVDataChangeObjectSeqOnce == false)
+	{
+		// detect if no UV event was made, so assume reached end of SeqE list, and should reset to -1
+		g_iUVDataChangeObjectSeqE = -1;
+	}
+	else
+	{
+		// ensure next cycle allows one more event to happen
+		g_bUVDataChangeObjectSeqOnce = false;
 	}
 }
 

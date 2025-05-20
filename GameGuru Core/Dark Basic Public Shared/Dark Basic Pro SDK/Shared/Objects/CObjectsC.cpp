@@ -565,6 +565,47 @@ DARKSDK_DLL void LoadCore ( char* szFilename, char* szOrgFilename, int iID, int 
 		sMesh* pMesh = pObject->ppMeshList[iMeshIndex];
 		if (pMesh)
 		{
+			// there is a chance an old DBO holds an absolute path to a texture
+			// not very useful for making standalones, etc so detect for this and correct
+			// if possible, otherwise allow absolute path through for deeper debugging
+			LPSTR pAbsPathTest = pMesh->pTextures[0].pName;
+			if (pAbsPathTest)
+			{
+				if (strlen(pAbsPathTest) > 2)
+				{
+					if (pAbsPathTest[1] == ':')
+					{
+						// this is an absolute path, now see if we can find the relative path in there
+						char pCompare1[MAX_PATH];
+						strcpy(pCompare1, pAbsPathTest);
+						strlwr(pCompare1);
+						char pCompare2[MAX_PATH];
+						strcpy(pCompare2, szPath);
+						strlwr(pCompare2);
+						LPSTR pRelPathDetect = strstr (pCompare1, pCompare2);
+						if (pRelPathDetect)
+						{
+							// found one, we can with confidence replace the absolute path with the relative path
+							int iLengthOfDiscard = pRelPathDetect - pCompare1;
+							if (iLengthOfDiscard > 0)
+							{
+								// now we can replace the absolute path with the relative path
+								char szNewPath[MAX_PATH];
+								strcpy(szNewPath, pAbsPathTest + iLengthOfDiscard);
+								strcpy(pMesh->pTextures[0].pName, szNewPath);
+							}
+						}
+						else
+						{
+							// this absolute path does not include the relative path to the DBO in the texture, which
+							// suggests it relied on a local file outside of the MAX model naming convention, so should
+							// be left as is to be picked up later to identify non compliant models
+						}
+					}
+				}
+			}
+
+			// load this texture into wicked mesh
 			WickedSetMeshNumber(iMeshIndex);
 			LoadInternalTextures(pObject, pMesh, szPath, iDBProMode, iDivideTextureSize);
 		}
@@ -7627,7 +7668,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 			}
 			float fDistanceOfRay = GGVec3Length(&vecDir);
 			DWORD dwObjectNumberHit = 0;
-			if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
+			if (WickedCall_SentRay4 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit, true) == true)
 			{
 				// only objects within given range (to exclude weapon HUDs)
 				if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)
@@ -7644,7 +7685,7 @@ DARKSDK_DLL int IntersectAllEx ( int iPrimaryStart, int iPrimaryEnd, float fX, f
 							vecFrom += vecDiff * 10.0f;
 							vecDir -= vecDiff * 10.0f;
 							dwObjectNumberHit = 0;
-							if (WickedCall_SentRay3 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit) == true)
+							if (WickedCall_SentRay4 (vecFrom.x, vecFrom.y, vecFrom.z, vecDir.x, vecDir.y, vecDir.z, fDistanceOfRay, &pOutX, &pOutY, &pOutZ, &pNormX, &pNormY, &pNormZ, &dwObjectNumberHit, true) == true)
 							{
 								// did we hit an object
 								if (dwObjectNumberHit >= iPrimaryStart && dwObjectNumberHit <= iPrimaryEnd)

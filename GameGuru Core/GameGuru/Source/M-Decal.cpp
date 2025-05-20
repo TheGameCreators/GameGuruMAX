@@ -217,6 +217,10 @@ void decal_loaddata ( void )
 
 void decal_load(void)
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	// Load decal data
 	decal_loaddata();
 
@@ -478,6 +482,10 @@ int g_iBlendMode = BLENDMODE_ALPHA;
 #endif
 void decalelement_create ( void )
 {
+#ifdef OPTICK_ENABLE
+	OPTICK_EVENT();
+#endif
+
 	//  Decal Orient Modes
 	//  0 - perfectly upright facing camera (X=Z=0)
 	//  1 - rotated to decalorient x y z#
@@ -1228,7 +1236,6 @@ void decal_activatedecalsfromentities ( void )
 
 void decal_triggerwatersplash ( void )
 {
-
 	//  location of water splash passed in decalx y z
 	//  SK Uses tInScale# to modify size.
 	t.originatore=-1;

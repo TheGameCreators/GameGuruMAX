@@ -2068,6 +2068,7 @@ void mapfile_collectfoldersandfiles (cstr levelpathfolder)
 	addtocollection("editors\\gfx\\14-red.png");
 	addtocollection("editors\\gfx\\14-green.png");
 	addtocollection("editors\\gfx\\dummy.png");
+	addtocollection("editors\\gfx\\notexture.dds");
 	addtocollection("editors\\keymap\\default.ini");
 	addtocollection("editors\\keymap\\weaponslots.dat");
 	addtocollection("editors\\templates\\ScreenEditor\\project.dat");

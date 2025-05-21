@@ -7404,5 +7404,22 @@ uint32_t WickedCall_CreateEmitter(std::string& name, float posX, float posY, flo
 	return entity;
 }
 
+uint32_t GetVisibleWEmitters( void )
+{
+	uint32_t total_visible = 0;
+	Scene& scene = wiScene::GetScene();
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		wiEmittedParticle& ec = scene.emitters[i];
+		if (!ec.IsVisible())
+			continue;
+		if (!ec.IsActive())
+			continue;
+		total_visible++;
+	}
+	return total_visible;
+}
+
 #endif
 

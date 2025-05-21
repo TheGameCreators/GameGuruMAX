@@ -51577,27 +51577,31 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 								{
 									std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-									if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+									if (stricmp(readout.c_str(), "User Defined Global") == NULL
+										|| stricmp(readout.c_str(), "User Defined Global Text") == NULL)
 									{
 										// only add unique ones to game global list
 										LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-										for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+										if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 										{
-											int thisnodeid = g_gameGlobalListNodeId[n];
-											int index = g_gameGlobalListIndex[n];
-											LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-											if (strcmp(pNewName, pThisName) == NULL)
+											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 											{
-												// already exists
-												pNewName = "";
-												break;
+												int thisnodeid = g_gameGlobalListNodeId[n];
+												int index = g_gameGlobalListIndex[n];
+												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+												if (strcmp(pNewName, pThisName) == NULL)
+												{
+													// already exists
+													pNewName = "";
+													break;
+												}
 											}
-										}
-										if (strlen(pNewName) > 0)
-										{
-											g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
-											g_gameGlobalListIndex.push_back(i);
-											g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+											if (strlen(pNewName) > 0)
+											{
+												g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
+												g_gameGlobalListIndex.push_back(i);
+												g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+											}
 										}
 									}
 								}
@@ -51634,19 +51638,23 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 									{
 										std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-										if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+										if (stricmp(readout.c_str(), "User Defined Global") == NULL
+											|| stricmp(readout.c_str(), "User Defined Global Text") == NULL)
 										{
 											// only add unique ones to game global list
 											LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+											if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 											{
-												int thisnodeid = g_gameGlobalListNodeId[n];
-												int index = g_gameGlobalListIndex[n];
-												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-												if (strcmp(pNewName, pThisName) == NULL)
+												for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 												{
-													Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
-													break;
+													int thisnodeid = g_gameGlobalListNodeId[n];
+													int index = g_gameGlobalListIndex[n];
+													LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+													if (strcmp(pNewName, pThisName) == NULL)
+													{
+														Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
+														break;
+													}
 												}
 											}
 										}

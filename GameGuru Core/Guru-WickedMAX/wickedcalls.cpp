@@ -276,6 +276,7 @@ void WickedCall_AddImageToList(std::shared_ptr<wiResource> image, eImageResType 
 }
 
 int total_mem_from_load = 0;
+bool bCalledFromWickedLoadImage = false;
 std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, eImageResType eType)
 {
 	//PE: Prevent dublicate textures even if using different names.
@@ -283,7 +284,8 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, 
 	//PE: Load this text file into a vector.
 	//PE: Find filname in vector and add the CRC64 to g_imageList when adding a image.
 	//PE: Below also lookup filename CRC64 and check against the g_imageList CRC64 to also reused image.
-	if (pFilenameToLoadIN.length() <= 0)
+	const int iLen = pFilenameToLoadIN.length();
+	if (iLen <= 4)
 		return NULL; //PE: We get this alot from DISPLACEMENTMAP ... 
 
 	// when gdividetexturesize is 0, we are not using textures, so use a dummy texture (tests performance against using too LARGE a texture set)
@@ -308,15 +310,48 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, 
 		strcpy(pRealFilenameToLoad, pFilenameToLoad.c_str());
 		if ( pRealFilenameToLoad[strlen(pRealFilenameToLoad)-1] == '\\'
 		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.dds", 5 ) == NULL 
-		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5 ) == NULL 
-		|| strlen ( pRealFilenameToLoad ) <= 4 )
+		|| strnicmp ( pRealFilenameToLoad + strlen(pRealFilenameToLoad) - 5, "\\.png", 5 ) == NULL )
 		{
 			// is not a filename that makes sense, reject load
 			return NULL;
 		}
 
+		//PE: Ignore all $NoName$_Color.png, alot of old dbo have this.
+		if (iLen >= 8 && pFilenameToLoad[0] == '$' && pFilenameToLoad[7] == '$')
+		{
+			return NULL;
+		}
+		if (iLen > 18 && pFilenameToLoad[iLen-11] == '$' && pFilenameToLoad[iLen - 18] == '$')
+		{
+			return NULL;
+		}
+
+		bool bFound = false;
+		if (t.game.gameisexe == 1)
+		{
+			//PE: All relative path like entitybank\tmp.dds 
+			//PE: Will result in GG_GetRealPath to change to docwrite in standalone, as we only have _e_ version in standalone.
+			//PE: So _e_ version in standalone is never used, prefer _e_ over docwrite.
+			std::string fullName = pRealFilenameToLoad;
+			std::string fileName = wiHelper::GetFileNameFromPath(fullName);
+			std::string dirName = wiHelper::GetDirectoryFromPath(fullName);
+			std::string codedName = dirName + "_e_" + fileName;
+			char CheckFile[MAX_PATH];
+			strcpy(CheckFile, codedName.c_str());
+			GG_GetRealPath(CheckFile, 0);
+			HANDLE hfile = GG_CreateFile(CheckFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+			if (hfile != INVALID_HANDLE_VALUE)
+			{
+				CloseHandle(hfile);
+				//PE: Prefer this _e_ version.
+				strcpy(pRealFilenameToLoad, CheckFile);
+				bFound = true;
+			}
+		}
+		
 		// first get real filename
-		GG_GetRealPath(pRealFilenameToLoad, 0);
+		if(!bFound)
+			GG_GetRealPath(pRealFilenameToLoad, 0);
 		pFilenameToLoad = pRealFilenameToLoad;
 
 		bool bDecrypted = false;
@@ -330,7 +365,16 @@ std::shared_ptr<wiResource> WickedCall_LoadImage(std::string pFilenameToLoadIN, 
 		//else
 		//{
 		extern bool CheckForWorkshopFile(LPSTR);
+		bCalledFromWickedLoadImage = true;
 		CheckForWorkshopFile (VirtualFilename);
+		if ( pFilenameToLoad[ pFilenameToLoad.length() - 1] != VirtualFilename[strlen(VirtualFilename) - 1])
+		{
+			//PE: We changed from png to prefer .dds, change extension.
+			pFilenameToLoad[pFilenameToLoad.length() - 1] = VirtualFilename[strlen(VirtualFilename) - 1];
+			pFilenameToLoad[pFilenameToLoad.length() - 2] = VirtualFilename[strlen(VirtualFilename) - 2];
+			pFilenameToLoad[pFilenameToLoad.length() - 3] = VirtualFilename[strlen(VirtualFilename) - 3];
+		}
+		bCalledFromWickedLoadImage = false;
 		g_pGlob->Decrypt(VirtualFilename);
 		bDecrypted = true;
 		//}
@@ -1907,6 +1951,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					}
 				}
 
+				// will be using "FileExistPrefDDS" as file check which does a second check for DDS (ideal for optimized standalones)
 				bool bFoundTextureToLoad = false;
 				std::string sFoundFinalPathAndFilename = "";
 				std::string sTextureFileName;
@@ -1921,10 +1966,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					{
 						//PE: Better hit rate.
 						sFoundFinalPathAndFilename = g_pWickedTexturePath + sBaseColor.Get();
-						if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+						if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 						{
 							sFoundFinalPathAndFilename = sFoundTexturePath + sBaseColor.Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								sFoundFinalPathAndFilename = sBaseColor.Get();
 							else
 								bFound = true;
@@ -1935,10 +1980,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 					else
 					{
 						sFoundFinalPathAndFilename = sFoundTexturePath + sBaseColor.Get();
-						if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+						if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 						{
 							sFoundFinalPathAndFilename = g_pWickedTexturePath + sBaseColor.Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								sFoundFinalPathAndFilename = sBaseColor.Get();
 							else
 								bFound = true;
@@ -1946,7 +1991,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 						else
 							bFound = true;
 					}
-					if (bFound || FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 1)
+					if (bFound || FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 1)
 					{
 						if (pObjectMaterial->textures[MaterialComponent::BASECOLORMAP].resource) //PE: Delete first if already active.
 						{
@@ -1974,7 +2019,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetNormalName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = WickedGetNormalName().Get();
 								}
@@ -1982,10 +2027,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetNormalName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetNormalName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetNormalName().Get();
 								}
 							}
@@ -2015,7 +2060,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetSurfaceName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = WickedGetSurfaceName().Get();
 								}
@@ -2023,10 +2068,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetSurfaceName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetSurfaceName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetSurfaceName().Get();
 								}
 							}
@@ -2060,10 +2105,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							// Parallax Occlusion Mapping (if HEIGHT TEXTURE used)
 							bool bPOMShaderRequired = false;
 							sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetDisplacementName().Get();
-							if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+							if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 							{
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetDisplacementName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 									sFoundFinalPathAndFilename = WickedGetDisplacementName().Get();
 							}
 							if (pObjectMaterial->textures[MaterialComponent::DISPLACEMENTMAP].resource)
@@ -2103,7 +2148,7 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							{
 								//PE: Best hit rate.
 								sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetEmissiveName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									//PE: Check not needed sFoundTexturePath empty.
 									//sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetEmissiveName().Get();
@@ -2113,10 +2158,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 							else
 							{
 								sFoundFinalPathAndFilename = sFoundTexturePath + WickedGetEmissiveName().Get();
-								if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+								if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 								{
 									sFoundFinalPathAndFilename = g_pWickedTexturePath + WickedGetEmissiveName().Get();
-									if (FileExist((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
+									if (FileExistPrefDDS((LPSTR)sFoundFinalPathAndFilename.c_str()) == 0)
 										sFoundFinalPathAndFilename = WickedGetEmissiveName().Get();
 								}
 							}

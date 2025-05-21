@@ -1464,6 +1464,7 @@ void mapeditorexecutable_loop_leavetestgame(void)
 	SetCameraToImage(0, g.postprocessimageoffset, GetDisplayWidth(), GetDisplayHeight(), 2); //switch back to render target.
 	iLaunchAfterSync = 0;
 	bImGuiInTestGame = false;
+	fpe_current_loaded_script = -1; //Refresh dlua after testgame.
 	sky_show(); //Restore skybox.
 	iLastUpdateVeg = 0; //Veg: update any changes from F9
 	bUpdateVeg = true;

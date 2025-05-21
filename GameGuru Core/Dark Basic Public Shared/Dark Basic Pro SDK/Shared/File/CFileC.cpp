@@ -2860,6 +2860,28 @@ DARKSDK int FileExist( LPSTR pFilename )
 		return 0;
 }
 
+DARKSDK int FileExistPrefDDS(LPSTR pFilename)
+{
+	if (DB_FileExist(pFilename))
+		return 1;
+	else
+	{
+		// additional check for DDS alternative (used in standalone post-optimization code)
+		int iLen = strlen(pFilename);
+		if (iLen > 4)
+		{
+			char pDDSCheck[MAX_PATH];
+			strcpy(pDDSCheck, pFilename);
+			pDDSCheck[iLen - 3] = 'd';
+			pDDSCheck[iLen - 2] = 'd';
+			pDDSCheck[iLen - 1] = 's';
+			if (DB_FileExist(pDDSCheck))
+				return 1;
+		}
+		return 0;
+	}
+}
+
 DARKSDK int FileSize( LPSTR pFilename )
 {
 	return DB_FileSize(pFilename);

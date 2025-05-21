@@ -8796,9 +8796,12 @@ void importer_save_entity ( char *filename )
 
 					// now record new vertex mesh shape
 					if ( pMesh->pOriginalVertexData ) SAFE_DELETE ( pMesh->pOriginalVertexData );
+					#ifndef NEVERSTOREORIGINALVERTICES
+					//PE: Not used.
 					DWORD dwTotalVertSize = pMesh->dwVertexCount * pMesh->dwFVFSize;
 					pMesh->pOriginalVertexData = (BYTE*)new char [ dwTotalVertSize ];
 					memcpy ( pMesh->pOriginalVertexData, pMesh->pVertexData, dwTotalVertSize );
+					#endif
 				}
 			}
 

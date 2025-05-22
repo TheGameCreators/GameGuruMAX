@@ -7039,12 +7039,29 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Lower Animation Speed will lower the updating of animation & LUA to 30 FPS for increased speed when using many animations.");
 				ImGui::PopItemWidth();
 
+				extern bool bEnableDelayPointShadow;
+				extern float pointShadowScaler;
+
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("Delayed Shadows##Animationsculling", &g_bDelayedShadows))
 				{
 					t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows = g_bDelayedShadows;
 					g.projectmodified = 1;
-
+					if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+					{
+						bEnableDelayPointShadow = true;
+						pointShadowScaler = 0.6f;
+					}
+					else if (g_bDelayedShadows)
+					{
+						bEnableDelayPointShadow = true;
+						pointShadowScaler = 1.0f;
+					}
+					else
+					{
+						bEnableDelayPointShadow = false;
+						pointShadowScaler = 1.0f;
+					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fewer cascade shadow updates and increase your FPS.");
 				if (g_bDelayedShadows)
@@ -7054,10 +7071,35 @@ void tab_tab_visuals(int iPage, int iMode)
 					{
 						t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop = g_bDelayedShadowsLaptop;
 						g.projectmodified = 1;
+						if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+						{
+							bEnableDelayPointShadow = true;
+							pointShadowScaler = 0.6f;
+						}
+						else if (g_bDelayedShadows)
+						{
+							bEnableDelayPointShadow = true;
+							pointShadowScaler = 1.0f;
+						}
+						else
+						{
+							bEnableDelayPointShadow = false;
+							pointShadowScaler = 1.0f;
+						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows (Laptop) will make even fever cascade shadow updates and increase your FPS.");
 				}
 				ImGui::PopItemWidth();
+
+				//extern bool bEnableDelayPointShadow;
+				//extern float pointShadowScaler;
+				//if (ImGui::Checkbox("Delay Point Shadows", &bEnableDelayPointShadow))
+				//{
+				//}
+				//if (ImGui::SliderFloat("pointShadowScaler", &pointShadowScaler, 0.1f, 4.0f, "%.2f", 1.0f))
+				//{
+				//}
+				//ImGui::Text("Max 2 sec = %ld", LastMaxInTimer);
 
 
 				extern bool bEnableObjectCulling;
@@ -7121,6 +7163,7 @@ void tab_tab_visuals(int iPage, int iMode)
 							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
 					}
+
 					if (ImGui::Checkbox("Spot Shadow Culling", &bEnableSpotShadowCulling))
 					{
 						t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
@@ -8931,6 +8974,26 @@ void Wicked_Update_Visuals(void *voidvisual)
 		g_bDelayedShadows = visuals->g_bDelayedShadows;
 		extern bool g_bDelayedShadowsLaptop;
 		g_bDelayedShadowsLaptop = visuals->g_bDelayedShadowsLaptop;
+
+
+		//PE: For now let it follow g_bDelayedShadows.
+		extern bool bEnableDelayPointShadow;
+		extern float pointShadowScaler;
+		if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+		{
+			bEnableDelayPointShadow = true;
+			pointShadowScaler = 0.6f;
+		}
+		else if (g_bDelayedShadows)
+		{
+			bEnableDelayPointShadow = true;
+			pointShadowScaler = 1.0f;
+		}
+		else
+		{
+			bEnableDelayPointShadow = false;
+			pointShadowScaler = 1.0f;
+		}
 
 		extern bool bShadowsLowestLOD;
 		extern bool bProbesLowestLOD;

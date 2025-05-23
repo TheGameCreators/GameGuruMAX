@@ -2962,6 +2962,22 @@ int fillgloballistwithcollectables (void)
 	return retvalue;
 }
 
+int fillgloballistwithdecals(void)
+{
+	Dim(t.list_s, g.decalmax);
+	t.list_s[0] = "None";
+	int retvalue = 1;
+	for (int i = 1; i <= g.decalmax; i++)
+	{
+		if (t.decal[i].name_s.Len() > 0)
+		{
+			t.list_s[retvalue] = t.decal[i].name_s;
+			retvalue++;
+		}
+	}
+	return retvalue;
+}
+
 void setpropertylist ( int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype )
 {
 	int listmax = 0;
@@ -29045,6 +29061,17 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 			ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
 			ImGui::TextCenter("Explosion Height");
 			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
+
+			//PE: Custom explosions.
+			edit_grideleprof->explodable_decalname = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->explodable_decalname.Get(), "Custom Explosion", "Use custom effect for explosion.", 31, readonly, false, false, false, 0);
+
+			//PE: TODO - Bind to mesh id , perhaps rotate area emitter to emit away from bullet. Select old particle effects.
+			if (edit_grideleprof->explodable_decalname.Len() > 0)
+			{
+				//PE: Custom explosion sound setup. always use soundset6_s.
+				edit_grideleprof->soundset6_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset6_s.Get(), "Custom Explosion Sound", t.strarr_s[254].Get(), "audiobank\\", readonly);
+
+			}
 		}
 		ImGui::Indent(-10);
 	}
@@ -29988,6 +30015,19 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 		}
 	}
 
+	if (listtype == 31)
+	{
+		listmax = fillgloballistwithdecals();
+		for (int n = 0; n < listmax; n++)
+		{
+			if (ldata_s == t.list_s[n])
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+
 	const char* current_item = t.list_s[current_selection].Get();
 
 	std::string uniquiField = "";
@@ -30064,19 +30104,27 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	}
 	else
 	{
-		for (int n = -1; n <= listmax; n++)
+		if (listtype == 31)
 		{
-			cstr thisLabel;
-			if (n == -1)
-				thisLabel = ldata_s;
-			else
-				thisLabel = t.list_s[n];
-			thisLabel = gun_names_tointernal(thisLabel.Get());
+			if (current_selection == 0)
+				return("");
+		}
+		else
+		{
+			for (int n = -1; n <= listmax; n++)
+			{
+				cstr thisLabel;
+				if (n == -1)
+					thisLabel = ldata_s;
+				else
+					thisLabel = t.list_s[n];
+				thisLabel = gun_names_tointernal(thisLabel.Get());
 
-			if (n == -1)
-				ldata_s = thisLabel;
-			else
-				t.list_s[n] = thisLabel;
+				if (n == -1)
+					ldata_s = thisLabel;
+				else
+					t.list_s[n] = thisLabel;
+			}
 		}
 	}
 	#else

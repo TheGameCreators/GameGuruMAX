@@ -1643,6 +1643,7 @@ void weapon_projectileresult_make ( void )
 	// t.tDamage_f, tRadius#, tAICharacter etc.
 	// tSoundID, tSourceEntity
 	t.tResult = 0;
+	int iCustomDecal = 0;
 	switch ( t.tProjectileResult ) 
 	{
 		case WEAPON_PROJECTILERESULT_DAMAGE:
@@ -1688,14 +1689,44 @@ void weapon_projectileresult_make ( void )
 				float fSmokeSize = (float)t.tProjectileResultSmokeSize / 100.0f;
 				float fSparksSize = (float)t.tProjectileResultSparksSize / 100.0f;
 #ifdef WICKEDPARTICLESYSTEM
-				if (t.decalglobal.newexplosion > 0 && t.decal[t.decalglobal.newexplosion].newparticle.bWPE)
+
+				//PE: Scan for custom explosion.
+				if (t.tSourceEntity > 0 && t.tSourceEntity < t.entityelement.size())
+				{
+					cstr explodename = t.entityelement[t.tSourceEntity].eleprof.explodable_decalname;
+					if (explodename.Len() > 0)
+					{
+						for (int i = 1; i <= g.decalmax; i++)
+						{
+							if (t.decal[i].name_s == explodename)
+							{
+								iCustomDecal = i;
+								break;
+							}
+						}
+					}
+				}
+				if (iCustomDecal > 0)
 				{
 					int olddecalrange = g.decalrange;
 					g.decalrange = 10000;
 					g.decalx = t.tXPos_f;
 					g.decaly = t.tYPos_f;
 					g.decalz = t.tZPos_f;
-					t.decalid = t.decalglobal.newexplosion; t.decalorient = 0;
+					t.decalorient = 0;
+					t.decalid = iCustomDecal;
+					decalelement_create();
+					g.decalrange = olddecalrange;
+				}
+				else if (t.decalglobal.newexplosion > 0 && t.decal[t.decalglobal.newexplosion].newparticle.bWPE)
+				{
+					int olddecalrange = g.decalrange;
+					g.decalrange = 10000;
+					g.decalx = t.tXPos_f;
+					g.decaly = t.tYPos_f;
+					g.decalz = t.tZPos_f;
+					t.decalid = t.decalglobal.newexplosion;
+					t.decalorient = 0;
 					decalelement_create();
 					g.decalrange = olddecalrange;
 				}
@@ -1721,7 +1752,13 @@ void weapon_projectileresult_make ( void )
 			}
 
 			// play explosion sound
-			if (t.tSoundID > 0 && SoundExist(t.tSoundID) == 1)
+			if (t.tSourceEntity > 0 && t.tSourceEntity < t.entityelement.size() && iCustomDecal > 0 && SoundExist(t.entityelement[t.tSourceEntity].soundset6))
+			{
+				PositionSound(t.entityelement[t.tSourceEntity].soundset6, t.tx_f, t.ty_f, t.tz_f);
+				SetSoundSpeed(t.entityelement[t.tSourceEntity].soundset6, 38000 + Rnd(8000));
+				PlaySound(t.entityelement[t.tSourceEntity].soundset6);
+			}
+			else if (t.tSoundID > 0 && SoundExist(t.tSoundID) == 1)
 			{
 				PositionSound ( t.tSoundID,t.tx_f,t.ty_f,t.tz_f );
 				SetSoundSpeed ( t.tSoundID,38000+Rnd(8000) );

@@ -3410,7 +3410,7 @@ struct globalstype
 	// Constructor
 	globalstype ( )
 	{
-		 CurveDistanceScaler = 200;
+		CurveDistanceScaler = 250; // 200;
 		 realshadowdistance = 5000.0f;
 		 realshadowdistancehigh = 5000.0f;
 		 editorusemediumshadows = 1;
@@ -6056,7 +6056,7 @@ struct entityprofiletype
 	int clipcapacity;
 	int weaponpropres1;
 	int weaponpropres2;
-
+	cstr explodable_decalname;
 	// Constructor
 	entityprofiletype ( )
 	{
@@ -6310,6 +6310,7 @@ struct entityprofiletype
 		 //aidestroy_s = "";
 		 aimain_s = "";
 		 //aiinit_s = "";
+		 explodable_decalname = "";
 	}
 	// End of Constructor
 
@@ -6492,7 +6493,7 @@ struct entityeleproftype
 	int weaponpropres1;
 	int weaponpropres2;
 	int blendmode;
-
+	cstr explodable_decalname;
 	// Constructor
 	entityeleproftype ( )
 	{
@@ -6648,6 +6649,7 @@ struct entityeleproftype
 		 //aiinitname_s = "";
 		 //aiinit_s = "";
 		 name_s = "";
+		 explodable_decalname = "";
 	}
 	// End of Constructor
 

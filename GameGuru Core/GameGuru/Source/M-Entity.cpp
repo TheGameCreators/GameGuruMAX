@@ -33,7 +33,7 @@ using namespace wiScene;
 using namespace wiECS;
 
 #ifdef WICKEDPARTICLESYSTEM
-#define MAXREADYDECALS 6
+#define MAXREADYDECALS 5
 #define MAXUNIQUEDECALS 100
 uint32_t ready_decals[MAXUNIQUEDECALS][MAXREADYDECALS] = { 0 };
 uint32_t decal_count[MAXUNIQUEDECALS] = { 0 };
@@ -1963,6 +1963,7 @@ void entity_loaddata ( void )
 		t.entityprofile[t.entid].cpuanims=0;
 		t.entityprofile[t.entid].ignoredefanim=0;
 		t.entityprofile[t.entid].explodeheight=0;
+		t.entityprofile[t.entid].explodable_decalname = "";
 		t.entityprofile[t.entid].scale=100;
 		t.entityprofile[t.entid].addhandle_s="";
 		t.entityprofile[t.entid].addhandlelimb=0;
@@ -4440,7 +4441,8 @@ void entity_fillgrideleproffromprofile ( void )
 	t.grideleprof.explodable=t.entityprofile[t.entid].explodable;
 	t.grideleprof.explodedamage=t.entityprofile[t.entid].explodedamage;
 	t.grideleprof.explodeheight =t.entityprofile[t.entid].explodeheight;
-
+	t.grideleprof.explodable_decalname = t.entityprofile[t.entid].explodable_decalname;
+	
 	// 301115 - data extracted from neighbors (LOD Modifiers are shared across all parent copies)
 	int iThisBankIndex = t.entid;
 	if ( t.entityprofile[iThisBankIndex].addhandlelimb==0 )
@@ -5640,7 +5642,7 @@ void c_entity_loadelementsdata ( void )
 	t.failedtoload=0;
 	t.versionnumbersupported = 338;
 	#ifdef CUSTOMSHADERS
-	t.versionnumbersupported = 339;
+	t.versionnumbersupported = 340;
 	#endif
 
 	if ( FileExist(t.elementsfilename_s.Get()) == 1 ) 
@@ -6347,8 +6349,29 @@ void c_entity_loadelementsdata ( void )
 						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam5 = t.a_f;
 						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam6 = t.a_f;
 						t.a = t.a_f = c_ReadFloat(1); t.entityelement[t.e].eleprof.WEMaterial.customShaderParam7 = t.a_f;
-						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect = t.a_s;
+						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.explodable_decalname = t.a_s;
 					}
+					if (t.versionnumberload >= 340)
+					{
+						//PE: For next version add: used_old_particle_effect. bindtoMeshID.
+						t.a_s = c_ReadString(1); t.entityelement[t.e].eleprof.WEMaterial.WPEffect = t.a_s;
+						//PE: Add some fillers we can use later.
+						float fFiller;
+						int iFiller;
+						cstr sFiller;
+						t.a = t.a_f = c_ReadFloat(1); fFiller = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); fFiller = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); fFiller = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); fFiller = t.a_f;
+						t.a = t.a_f = c_ReadFloat(1); fFiller = t.a_f;
+						t.a = c_ReadLong(1); iFiller = t.a;
+						t.a = c_ReadLong(1); iFiller = t.a;
+						t.a = c_ReadLong(1); iFiller = t.a;
+						t.a_s = c_ReadString(1); sFiller = t.a_s;
+						t.a_s = c_ReadString(1); sFiller = t.a_s;
+						t.a_s = c_ReadString(1); sFiller = t.a_s;
+					}
+
 					#endif
 
 					// get the index of the entity profile
@@ -7245,7 +7268,7 @@ void entity_saveelementsdata (bool bForCollectionELE)
 	//  Save entity element list
 	t.versionnumbersave = 338;
 	#ifdef CUSTOMSHADERS
-	t.versionnumbersave = 339;
+	t.versionnumbersave = 340;
 	#endif
 
 	EntityWriter writer;
@@ -7806,7 +7829,23 @@ void entity_saveelementsdata (bool bForCollectionELE)
 					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam5);
 					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam6);
 					writer.WriteFloat(t.entityelement[ent].eleprof.WEMaterial.customShaderParam7);
+					writer.WriteString(t.entityelement[ent].eleprof.explodable_decalname.Get());
+				}
+				if (t.versionnumbersave >= 340)
+				{
 					writer.WriteString(t.entityelement[ent].eleprof.WEMaterial.WPEffect.Get());
+					//PE: Fillers.
+					writer.WriteFloat(0.0f);
+					writer.WriteFloat(0.0f);
+					writer.WriteFloat(0.0f);
+					writer.WriteFloat(0.0f);
+					writer.WriteFloat(0.0f);
+					writer.WriteLong(0);
+					writer.WriteLong(0);
+					writer.WriteLong(0);
+					writer.WriteString("");
+					writer.WriteString("");
+					writer.WriteString("");
 				}
 
 				#endif

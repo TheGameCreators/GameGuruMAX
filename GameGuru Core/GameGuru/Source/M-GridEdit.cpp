@@ -9737,6 +9737,9 @@ void mapeditorexecutable_loop(void)
 						//gridedit_clearentityrubberbandlist(); // do not clear list, may want to toggle back!
 						iLastActiveEntityIndex = -1;
 						iLastActiveObj = -1;
+
+						// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+						t.widget.pickedObject = 0;
 					}
 				}
 				//##############################
@@ -9891,6 +9894,9 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 								vEntityLockedList.clear();
+
+								// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+								t.widget.pickedObject = 0;
 							}
 						}
 						ImGui::Indent(-10);
@@ -14074,36 +14080,19 @@ void mapeditorexecutable_loop(void)
 									}
 								}
 							}
-							if (isObjectInLocedList) {
+							if (isObjectInLocedList) 
+							{
 								int iImageSize = 20;
 								ImVec2 opos = ImGui::GetCursorPos();
-								#ifdef USEWIDEICONSEVERYWHERE
 								ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 17.0f, vToolsPos.y - 19.0f + vIconSize.y));
-								#else
-								ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 16.0f, vToolsPos.y - 16.0f + vIconSize.y));
-								#endif
 								ImGui::SetItemAllowOverlap();
 								if (ImGui::ImgBtn(TOOL_LOCK, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), 0, 0, 0, 0, false,false,false,false,false, bBoostIconColors))
 								{
-								#ifdef WICKEDENGINE
 									LockSelectedObject(false, iObjectLockedIndix);
-								#else
-									int e = t.widget.pickedEntityIndex;
-									if (iObjectLockedIndix >= 0) {
-										t.entityelement[e].editorlock = 0;
-										sObject* pObject;
-										if (t.entityelement[e].obj > 0) {
-											pObject = g_ObjectList[t.entityelement[e].obj];
-											if (pObject) {
-												WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-											}
-										}
-										vEntityLockedList.erase(vEntityLockedList.begin() + iObjectLockedIndix);
-									}
-								#endif
 								}
 								ImGui::SetCursorPos(opos);
-								if (ImGui::IsItemHovered() && bToolTipActive) {
+								if (ImGui::IsItemHovered() && bToolTipActive) 
+								{
 									isThumbHovered = false;
 									ImGui::SetTooltip("UnLock Object");
 								}
@@ -14112,49 +14101,15 @@ void mapeditorexecutable_loop(void)
 							{
 								int iImageSize = 20;
 								ImVec2 opos = ImGui::GetCursorPos();
-								#ifdef USEWIDEICONSEVERYWHERE
 								ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 17.0f, vToolsPos.y - 19.0f + vIconSize.y));
-								#else
-								ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 16.0f, vToolsPos.y - 16.0f + vIconSize.y));
-								#endif
 								ImGui::SetItemAllowOverlap();
 								if (ImGui::ImgBtn(TOOL_UNLOCK, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), 0, 0, 0, 0, false,false,false,false,false, bBoostIconColors))
 								{
-								#ifdef WICKEDENGINE
 									LockSelectedObject(true, iObjectLockedIndix);
-								#else
-									int e = t.widget.pickedEntityIndex;
-									t.entityelement[e].editorlock = 1 - t.entityelement[e].editorlock;
-									sObject* pObject;
-									if (t.entityelement[e].obj > 0) {
-										pObject = g_ObjectList[t.entityelement[e].obj];
-										if (pObject) {
-											if (t.entityelement[e].editorlock)
-											{
-												#ifndef ALLOWSELECTINGLOCKEDOBJECTS
-												WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_CURSOROBJECT);
-												#endif
-												sRubberBandType vEntityLockedItem;
-												vEntityLockedItem.e = e;
-												vEntityLockedList.push_back(vEntityLockedItem);
-											}
-											else {
-												//Delete from list.
-												for (int i = 0; i < vEntityLockedList.size(); i++)
-												{
-													if (vEntityLockedList[i].e == e) {
-														vEntityLockedList.erase(vEntityLockedList.begin() + i);
-														break;
-													}
-												}
-												WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
-											}
-										}
-									}
-								#endif
 								}
 								ImGui::SetCursorPos(opos);
-								if (ImGui::IsItemHovered() && bToolTipActive) {
+								if (ImGui::IsItemHovered() && bToolTipActive) 
+								{
 									isThumbHovered = false;
 									ImGui::SetTooltip("Lock Object");
 								}
@@ -14282,31 +14237,34 @@ void mapeditorexecutable_loop(void)
 											}
 										}
 									}
-									if (isObjectInLocedList) {
+									if (isObjectInLocedList) 
+									{
 										int iImageSize = 20;
 										ImVec2 opos = ImGui::GetCursorPos();
-#ifdef USEWIDEICONSEVERYWHERE
 										ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 17.0f, vToolsPos.y - 19.0f + vIconSize.y));
-#else
-										ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 16.0f, vToolsPos.y - 16.0f + vIconSize.y));
-#endif
 										ImGui::SetItemAllowOverlap();
 										if (ImGui::ImgBtn(TOOL_LOCK, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 										{
-											if (iObjectLockedIndix >= 0) {
+											if (iObjectLockedIndix >= 0) 
+											{
 												t.entityelement[e].editorlock = 0;
 												sObject* pObject;
-												if (t.entityelement[e].obj > 0) {
+												if (t.entityelement[e].obj > 0) 
+												{
 													pObject = g_ObjectList[t.entityelement[e].obj];
-													if (pObject) {
+													if (pObject) 
+													{
 														WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_NORMAL);
 													}
 												}
 												vEntityLockedList.erase(vEntityLockedList.begin() + iObjectLockedIndix);
 											}
+											// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+											t.widget.pickedObject = 0;
 										}
 										ImGui::SetCursorPos(opos);
-										if (ImGui::IsItemHovered() && bToolTipActive) {
+										if (ImGui::IsItemHovered() && bToolTipActive) 
+										{
 											isThumbHovered = false;
 											ImGui::SetTooltip("UnLock Object");
 										}
@@ -14315,29 +14273,27 @@ void mapeditorexecutable_loop(void)
 									{
 										int iImageSize = 20;
 										ImVec2 opos = ImGui::GetCursorPos();
-#ifdef USEWIDEICONSEVERYWHERE
 										ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 17.0f, vToolsPos.y - 19.0f + vIconSize.y));
-#else
-										ImGui::SetCursorPos(ImVec2(vToolsPos.x + vIconSize.x - 16.0f, vToolsPos.y - 16.0f + vIconSize.y));
-#endif
 										ImGui::SetItemAllowOverlap();
 										if (ImGui::ImgBtn(TOOL_UNLOCK, ImVec2(iImageSize, iImageSize), ImColor(0, 0, 0, 0), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), ImColor(255, 255, 255, 180), 0, 0, 0, 0, false, false, false, false, false, bBoostIconColors))
 										{
 											t.entityelement[e].editorlock = 1 - t.entityelement[e].editorlock;
 											sObject* pObject;
-											if (t.entityelement[e].obj > 0) {
+											if (t.entityelement[e].obj > 0) 
+											{
 												pObject = g_ObjectList[t.entityelement[e].obj];
 												if (pObject) {
 													if (t.entityelement[e].editorlock)
 													{
-#ifndef ALLOWSELECTINGLOCKEDOBJECTS
+														#ifndef ALLOWSELECTINGLOCKEDOBJECTS
 														WickedCall_SetObjectRenderLayer(pObject, GGRENDERLAYERS_CURSOROBJECT);
-#endif
+														#endif
 														sRubberBandType vEntityLockedItem;
 														vEntityLockedItem.e = e;
 														vEntityLockedList.push_back(vEntityLockedItem);
 													}
-													else {
+													else 
+													{
 														//Delete from list.
 														for (int i = 0; i < vEntityLockedList.size(); i++)
 														{
@@ -14350,9 +14306,12 @@ void mapeditorexecutable_loop(void)
 													}
 												}
 											}
+											// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+											t.widget.pickedObject = 0;
 										}
 										ImGui::SetCursorPos(opos);
-										if (ImGui::IsItemHovered() && bToolTipActive) {
+										if (ImGui::IsItemHovered() && bToolTipActive) 
+										{
 											isThumbHovered = false;
 											ImGui::SetTooltip("Lock Object");
 										}
@@ -14565,11 +14524,12 @@ void mapeditorexecutable_loop(void)
 														break;
 													}
 												}
-
 											}
 										}
-									}
 
+										// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+										t.widget.pickedObject = 0;
+									}
 								}
 								if (ImGui::IsItemHovered() && bToolTipActive) 
 								{
@@ -14604,8 +14564,10 @@ void mapeditorexecutable_loop(void)
 												vEntityLockedList.push_back(vEntityLockedItem);
 											}
 										}
-									}
 
+										// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+										t.widget.pickedObject = 0;
+									}
 								}
 								if (ImGui::IsItemHovered() && bToolTipActive) {
 									ImGui::SetTooltip("Lock Group");

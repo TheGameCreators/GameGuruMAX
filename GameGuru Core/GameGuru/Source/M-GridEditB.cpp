@@ -52570,6 +52570,9 @@ void LockSelectedObject(bool bLock, int iObjectLockedIndex)
 			vEntityLockedList.erase(vEntityLockedList.begin() + iObjectLockedIndex);
 		}
 	}
+
+	// any lock/unlock operations resets, avoids issue of duplcating a static object and unable to 'move' it
+	t.widget.pickedObject = 0;
 }
 #endif
 

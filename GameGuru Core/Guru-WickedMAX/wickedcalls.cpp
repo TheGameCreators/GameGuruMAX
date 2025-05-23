@@ -1,8 +1,7 @@
 //
 // Wicked Calls - place Wicked commands here so can compile (cannot call from old graphics engine modules, conflicts with its own data types)
 //
-
-//#pragma optimize("", off)
+#pragma optimize("", off)
 // Includes
 #include "stdafx.h"
 #include "wickedcalls.h"
@@ -128,6 +127,8 @@ uint32_t iRenderedSpotShadows = 0;
 bool bEnable30FpsAnimations = false;
 bool bEnableTerrainChunkCulling = true;
 bool bEnablePointShadowCulling = true;
+bool bEnableDelayPointShadow = false;
+float pointShadowScaler = 1.0f;
 bool bEnableSpotShadowCulling = true;
 bool bEnableObjectCulling = true;
 bool bEnableAnimationCulling = true;
@@ -5480,8 +5481,9 @@ bool WickedCall_SentRay4(float originx, float originy, float originz, float dire
 	pickRay.direction.z = directionz;
 	XMStoreFloat3(&direction_inverse, XMVectorDivide(XMVectorReplicate(1.0f), XMVectorSet(directionx, directiony, directionz, 1.0f)));
 	pickRay.direction_inverse = direction_inverse;
-	RENDERTYPE checkType = RENDERTYPE_ALL;
-	if (bOpaqueOnly == true) checkType = RENDERTYPE_OPAQUE;
+	uint32_t checkType = RENDERTYPE_ALL;
+	//PE: @Lee we have no checks on transparent objects, we cant shoot glass, no impact effects , no killing pradator ...
+	if (bOpaqueOnly == true) checkType = RENDERTYPE_OPAQUE | RENDERTYPE_TRANSPARENT;
 	wiScene::PickResult hit = wiScene::Pick(pickRay, checkType, GGRENDERLAYERS_NORMAL);
 	if (hit.entity > 0)
 	{
@@ -7402,6 +7404,23 @@ uint32_t WickedCall_CreateEmitter(std::string& name, float posX, float posY, flo
 	}
 
 	return entity;
+}
+
+uint32_t GetVisibleWEmitters( void )
+{
+	uint32_t total_visible = 0;
+	Scene& scene = wiScene::GetScene();
+	for (int i = 0; i < scene.emitters.GetCount(); i++)
+	{
+		Entity emitter = scene.emitters.GetEntity(i);
+		wiEmittedParticle& ec = scene.emitters[i];
+		if (!ec.IsVisible())
+			continue;
+		if (!ec.IsActive())
+			continue;
+		total_visible++;
+	}
+	return total_visible;
 }
 
 #endif

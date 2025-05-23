@@ -2962,6 +2962,22 @@ int fillgloballistwithcollectables (void)
 	return retvalue;
 }
 
+int fillgloballistwithdecals(void)
+{
+	Dim(t.list_s, g.decalmax);
+	t.list_s[0] = "None";
+	int retvalue = 1;
+	for (int i = 1; i <= g.decalmax; i++)
+	{
+		if (t.decal[i].name_s.Len() > 0)
+		{
+			t.list_s[retvalue] = t.decal[i].name_s;
+			retvalue++;
+		}
+	}
+	return retvalue;
+}
+
 void setpropertylist ( int group, int controlindex, char* data_s, char* field_s, char* desc_s, int listtype )
 {
 	int listmax = 0;
@@ -7039,12 +7055,29 @@ void tab_tab_visuals(int iPage, int iMode)
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Lower Animation Speed will lower the updating of animation & LUA to 30 FPS for increased speed when using many animations.");
 				ImGui::PopItemWidth();
 
+				extern bool bEnableDelayPointShadow;
+				extern float pointShadowScaler;
+
 				ImGui::PushItemWidth(-10);
 				if (ImGui::Checkbox("Delayed Shadows##Animationsculling", &g_bDelayedShadows))
 				{
 					t.gamevisuals.g_bDelayedShadows = t.visuals.g_bDelayedShadows = g_bDelayedShadows;
 					g.projectmodified = 1;
-
+					if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+					{
+						bEnableDelayPointShadow = true;
+						pointShadowScaler = 0.6f;
+					}
+					else if (g_bDelayedShadows)
+					{
+						bEnableDelayPointShadow = true;
+						pointShadowScaler = 1.0f;
+					}
+					else
+					{
+						bEnableDelayPointShadow = false;
+						pointShadowScaler = 1.0f;
+					}
 				}
 				if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows will make fewer cascade shadow updates and increase your FPS.");
 				if (g_bDelayedShadows)
@@ -7054,10 +7087,35 @@ void tab_tab_visuals(int iPage, int iMode)
 					{
 						t.gamevisuals.g_bDelayedShadowsLaptop = t.visuals.g_bDelayedShadowsLaptop = g_bDelayedShadowsLaptop;
 						g.projectmodified = 1;
+						if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+						{
+							bEnableDelayPointShadow = true;
+							pointShadowScaler = 0.6f;
+						}
+						else if (g_bDelayedShadows)
+						{
+							bEnableDelayPointShadow = true;
+							pointShadowScaler = 1.0f;
+						}
+						else
+						{
+							bEnableDelayPointShadow = false;
+							pointShadowScaler = 1.0f;
+						}
 					}
 					if (ImGui::IsItemHovered()) ImGui::SetTooltip("Enabling Delayed Shadows (Laptop) will make even fever cascade shadow updates and increase your FPS.");
 				}
 				ImGui::PopItemWidth();
+
+				//extern bool bEnableDelayPointShadow;
+				//extern float pointShadowScaler;
+				//if (ImGui::Checkbox("Delay Point Shadows", &bEnableDelayPointShadow))
+				//{
+				//}
+				//if (ImGui::SliderFloat("pointShadowScaler", &pointShadowScaler, 0.1f, 4.0f, "%.2f", 1.0f))
+				//{
+				//}
+				//ImGui::Text("Max 2 sec = %ld", LastMaxInTimer);
 
 
 				extern bool bEnableObjectCulling;
@@ -7121,6 +7179,7 @@ void tab_tab_visuals(int iPage, int iMode)
 							t.gamevisuals.bOcclusionCulling = t.visuals.bOcclusionCulling = true;
 						}
 					}
+
 					if (ImGui::Checkbox("Spot Shadow Culling", &bEnableSpotShadowCulling))
 					{
 						t.gamevisuals.bEnableSpotShadowCulling = t.visuals.bEnableSpotShadowCulling = bEnableSpotShadowCulling;
@@ -8931,6 +8990,26 @@ void Wicked_Update_Visuals(void *voidvisual)
 		g_bDelayedShadows = visuals->g_bDelayedShadows;
 		extern bool g_bDelayedShadowsLaptop;
 		g_bDelayedShadowsLaptop = visuals->g_bDelayedShadowsLaptop;
+
+
+		//PE: For now let it follow g_bDelayedShadows.
+		extern bool bEnableDelayPointShadow;
+		extern float pointShadowScaler;
+		if (g_bDelayedShadows && g_bDelayedShadowsLaptop)
+		{
+			bEnableDelayPointShadow = true;
+			pointShadowScaler = 0.6f;
+		}
+		else if (g_bDelayedShadows)
+		{
+			bEnableDelayPointShadow = true;
+			pointShadowScaler = 1.0f;
+		}
+		else
+		{
+			bEnableDelayPointShadow = false;
+			pointShadowScaler = 1.0f;
+		}
 
 		extern bool bShadowsLowestLOD;
 		extern bool bProbesLowestLOD;
@@ -28982,6 +29061,17 @@ void DisplayFPEGeneral(bool readonly, int entid, entityeleproftype *edit_gridele
 			ImGui::MaxSliderInputInt("##ExplodeDamageSimpleInput", &edit_grideleprof->explodedamage, 0, 500, "Sets the damage dealt when this object explodes");
 			ImGui::TextCenter("Explosion Height");
 			ImGui::MaxSliderInputInt("##damagephysicsheight", &edit_grideleprof->explodeheight, 0, 100, "Set the optional height at which the explosion occurs above default object center");
+
+			//PE: Custom explosions.
+			edit_grideleprof->explodable_decalname = imgui_setpropertylist2c_v2(t.group, t.controlindex, edit_grideleprof->explodable_decalname.Get(), "Custom Explosion", "Use custom effect for explosion.", 31, readonly, false, false, false, 0);
+
+			//PE: TODO - Bind to mesh id , perhaps rotate area emitter to emit away from bullet. Select old particle effects.
+			if (edit_grideleprof->explodable_decalname.Len() > 0)
+			{
+				//PE: Custom explosion sound setup. always use soundset6_s.
+				edit_grideleprof->soundset6_s = imgui_setpropertyfile2_v2(t.group, edit_grideleprof->soundset6_s.Get(), "Custom Explosion Sound", t.strarr_s[254].Get(), "audiobank\\", readonly);
+
+			}
 		}
 		ImGui::Indent(-10);
 	}
@@ -29925,6 +30015,19 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 		}
 	}
 
+	if (listtype == 31)
+	{
+		listmax = fillgloballistwithdecals();
+		for (int n = 0; n < listmax; n++)
+		{
+			if (ldata_s == t.list_s[n])
+			{
+				current_selection = n;
+				break;
+			}
+		}
+	}
+
 	const char* current_item = t.list_s[current_selection].Get();
 
 	std::string uniquiField = "";
@@ -30001,19 +30104,27 @@ char* imgui_setpropertylist2c_v2(int group, int controlindex, char* data_s, char
 	}
 	else
 	{
-		for (int n = -1; n <= listmax; n++)
+		if (listtype == 31)
 		{
-			cstr thisLabel;
-			if (n == -1)
-				thisLabel = ldata_s;
-			else
-				thisLabel = t.list_s[n];
-			thisLabel = gun_names_tointernal(thisLabel.Get());
+			if (current_selection == 0)
+				return("");
+		}
+		else
+		{
+			for (int n = -1; n <= listmax; n++)
+			{
+				cstr thisLabel;
+				if (n == -1)
+					thisLabel = ldata_s;
+				else
+					thisLabel = t.list_s[n];
+				thisLabel = gun_names_tointernal(thisLabel.Get());
 
-			if (n == -1)
-				ldata_s = thisLabel;
-			else
-				t.list_s[n] = thisLabel;
+				if (n == -1)
+					ldata_s = thisLabel;
+				else
+					t.list_s[n] = thisLabel;
+			}
 		}
 	}
 	#else
@@ -51577,27 +51688,31 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 								if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 								{
 									std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-									if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+									if (stricmp(readout.c_str(), "User Defined Global") == NULL
+										|| stricmp(readout.c_str(), "User Defined Global Text") == NULL)
 									{
 										// only add unique ones to game global list
 										LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-										for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+										if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 										{
-											int thisnodeid = g_gameGlobalListNodeId[n];
-											int index = g_gameGlobalListIndex[n];
-											LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-											if (strcmp(pNewName, pThisName) == NULL)
+											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 											{
-												// already exists
-												pNewName = "";
-												break;
+												int thisnodeid = g_gameGlobalListNodeId[n];
+												int index = g_gameGlobalListIndex[n];
+												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+												if (strcmp(pNewName, pThisName) == NULL)
+												{
+													// already exists
+													pNewName = "";
+													break;
+												}
 											}
-										}
-										if (strlen(pNewName) > 0)
-										{
-											g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
-											g_gameGlobalListIndex.push_back(i);
-											g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+											if (strlen(pNewName) > 0)
+											{
+												g_gameGlobalListNodeId.push_back(allhudscreensnodeid);
+												g_gameGlobalListIndex.push_back(i);
+												g_gameGlobalListValue.push_back(Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i]);
+											}
 										}
 									}
 								}
@@ -51634,19 +51749,23 @@ int screen_editor(int nodeid, bool standalone, char *screen)
 									if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 									{
 										std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-										if (stricmp(readout.c_str(), "User Defined Global") == NULL)
+										if (stricmp(readout.c_str(), "User Defined Global") == NULL
+											|| stricmp(readout.c_str(), "User Defined Global Text") == NULL)
 										{
 											// only add unique ones to game global list
 											LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
-											for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
+											if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 											{
-												int thisnodeid = g_gameGlobalListNodeId[n];
-												int index = g_gameGlobalListIndex[n];
-												LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
-												if (strcmp(pNewName, pThisName) == NULL)
+												for (int n = 0; n < g_gameGlobalListNodeId.size(); n++)
 												{
-													Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
-													break;
+													int thisnodeid = g_gameGlobalListNodeId[n];
+													int index = g_gameGlobalListIndex[n];
+													LPSTR pThisName = Storyboard.Nodes[thisnodeid].widget_label[index];
+													if (strcmp(pNewName, pThisName) == NULL)
+													{
+														Storyboard.Nodes[allhudscreensnodeid].widget_initial_value[i] = g_gameGlobalListValue[n];
+														break;
+													}
 												}
 											}
 										}

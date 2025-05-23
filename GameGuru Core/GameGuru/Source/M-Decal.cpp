@@ -1186,6 +1186,24 @@ void decal_activatedecalsfromentities ( void )
 	for ( t.e = 1 ; t.e<=  g.entityelementlist; t.e++ )
 	{
 		t.entid=t.entityelement[t.e].bankindex;
+
+		if (t.entityelement[t.e].eleprof.explodable_decalname.Len() > 0)
+		{
+			cstr explodename = t.entityelement[t.e].eleprof.explodable_decalname;
+			if (explodename.Len() > 0)
+			{
+				for (int i = 1; i <= g.decalmax; i++)
+				{
+					if (t.decal[i].name_s == explodename)
+					{
+						t.decal[i].active = 1;
+						t.decal[i].newparticle.iMaxCache = 2; //PE: For now only 2 cached custom explosions.
+						break;
+					}
+				}
+			}
+		}
+
 		if (  t.entid>0 ) 
 		{
 			//  per-entity decal list

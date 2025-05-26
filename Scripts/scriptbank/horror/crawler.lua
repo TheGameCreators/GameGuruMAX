@@ -59,7 +59,6 @@
 	local wait					= {}
 
 function crawler_properties(e, prompt_text, appearance_mode, appearance_level, appearance_speed, disappearance_mode, movement_speed, climb_height, idle_animation, move_animation1, move_animation2, animated_model, object_name, object_visibility, object_proximity)
-	crawler[e] = g_Entity[e]
 	crawler[e].prompt_text = prompt_text
 	crawler[e].appearance_mode	= appearance_mode
 	crawler[e].appearance_level = appearance_level

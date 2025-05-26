@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Campfire v11 by Necrym59
+-- Campfire v13 by Necrym59
 -- DESCRIPTION: This object will stow and deploy like a camp fire?
 -- DESCRIPTION: Apply to an object to be used as a campfire.
 -- DESCRIPTION: [USE_RANGE=120]
@@ -13,9 +13,11 @@
 -- DESCRIPTION: [LIGHT_NAME$=""] eg: Light1
 -- DESCRIPTION: [GLOW_EFFECT!=1] emmisive glow effect
 -- DESCRIPTION: [IS_DEPLOYED!=1] if campfire is deployed or carried at start
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg:(MyBodyTemp)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] eg:(MyBodyTemp)
 -- DESCRIPTION: [@AFFECT_TYPE=1(1=Add, 2=Deduct)]
 -- DESCRIPTION: [AFFECT_AMOUNT=1(1,100)] per heat delay seconds
+-- DESCRIPTION: [AFFECT_HEALTH!=0] if ON will affect players health by Affect Amount
+-- DESCRIPTION: [BURN_LIFE=30] in seconds (0=Continuous Burn)
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> for collection sound.
@@ -43,13 +45,17 @@ local is_deployed			= {}
 local user_global_affected	= {}
 local affect_type			= {}
 local affect_amount			= {}
+local affect_health			= {}
 local prompt_display		= {}
 local item_highlight		= {}
+local burn_life				= {}
 
 local particle_number		= {}
 local light_number			= {}
 local status 				= {}
 local currentvalue			= {}
+local calchealth			= {}
+local burntime				= {}
 local tEnt 					= {}
 local selectobj 			= {}	
 local campfire_deployed 	= {}
@@ -59,8 +65,9 @@ local height_difference		= {}
 local hurttime				= {}
 local keypressed			= {}
 local tobeused				= {}
+local svol					= {}
 	 
-function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, resource_required, heat_range, heat_delay, particle_name, light_name, glow_effect, is_deployed, user_global_affected, affect_type, affect_amount, prompt_display, item_highlight)
+function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, resource_required, heat_range, heat_delay, particle_name, light_name, glow_effect, is_deployed, user_global_affected, affect_type, affect_amount, affect_health, burn_life, prompt_display, item_highlight)
 	campfire[e].use_range = use_range
 	campfire[e].pickup_text = pickup_text
 	campfire[e].deploy_text = deploy_text
@@ -75,6 +82,8 @@ function campfire_properties(e, use_range, pickup_text, deploy_text, use_text, r
 	campfire[e].user_global_affected = user_global_affected
 	campfire[e].affect_type = affect_type
 	campfire[e].affect_amount = affect_amount
+	campfire[e].affect_health = affect_health or 0	
+	campfire[e].burn_life = burn_life
 	campfire[e].prompt_display = prompt_display
 	campfire[e].item_highlight = item_highlight
 end
@@ -96,6 +105,8 @@ function campfire_init(e)
 	campfire[e].user_global_affected = ""
 	campfire[e].affect_type = 1
 	campfire[e].affect_amount = 0
+	campfire[e].affect_health = 0
+	campfire[e].burn_life = 30
 	campfire[e].prompt_display = 1
 	campfire[e].item_highlight = 1
 	
@@ -103,14 +114,17 @@ function campfire_init(e)
 	campfire[e].light_number = 0
 
 	status[e] = "init"
+	svol[e] = 0
 	tEnt[e] = 0
 	g_tEnt = 0
 	campfire_deployed[e] = 0
 	campfire_state[e] = "out"
 	campfire_onoff[e] = "off"
+	burntime[e] = 0
 	height_difference[e] = 0
 	keypressed[e] = 0
 	tobeused[e] = 0
+	calchealth[e] = 0	
 	math.randomseed(os.time())	
 end
  
@@ -125,6 +139,7 @@ function campfire_main(e)
 		if campfire[e].is_deployed == 1 then campfire_deployed[e] = 1 end
 		if campfire[e].is_deployed == 1 then campfire_state[e] = "deployed" end
 		hurttime[e] = g_Time + 500
+		SetEntityAlwaysActive(e,1)
 		status[e] = "start"
 	end
 	
@@ -165,8 +180,11 @@ function campfire_main(e)
 	end	
 	
 	local PlayerDist = GetPlayerDistance(e)
-	
+		
 	if campfire_deployed[e] == 1 then
+		if PlayerDist > campfire[e].use_range and campfire_onoff[e] == "off" then
+			SetLightRange(campfire[e].light_number,0)
+		end
 		if PlayerDist < campfire[e].use_range then
 			--pinpoint select object--
 			module_misclib.pinpoint(e,campfire[e].use_range,campfire[e].item_highlight)
@@ -249,21 +267,25 @@ function campfire_main(e)
 				if tobeused[e] > 0 then
 					keypressed[e] = 1
 					SetEntityUsed(tobeused[e],1*-1)
-					campfire_onoff[e] = "on"					
+					campfire_onoff[e] = "on"
+					burntime[e] = g_Time + campfire[e].burn_life*1000
 				end
 			end
 		end	
 	end	
 	if keypressed[e] == 1 then
-		campfire_state[e] = "lit" 
+		svol[e] = (3000-GetPlayerDistance(e))/30
+		campfire_state[e] = "lit" 		
 		Show(campfire[e].particle_number)
+		calchealth[e] = g_PlayerHealth
 		local lvariance = math.random(50,100)
 		local lrange = GetLightRange(campfire[e].light_number)
 		if lrange < lvariance then lrange = lrange + 1 end
 		if lrange > lvariance then lrange = lrange - 1 end
 		SetLightRange(campfire[e].light_number,lrange)
 		LoopSound(e,2)
-		if GetPlayerDistance(e) < campfire[e].heat_range then
+		SetSoundVolume(svol[e])
+		if GetPlayerDistance(e) < campfire[e].heat_range and campfire_state[e] == "lit" then
 			if GetTimer(e) > campfire[e].heat_delay*1000 then
 				StartTimer(e)
 				if campfire[e].affect_type == 1 then
@@ -271,15 +293,25 @@ function campfire_main(e)
 						if _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] = currentvalue[e] + campfire[e].affect_amount
 						if _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] >= 100 then _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] = 100 end
-					end										
+					end
+					if campfire[e].affect_health == 1 then
+						calchealth[e] = calchealth[e] + campfire[e].affect_amount
+						if calchealth[e] > g_gameloop_StartHealth then calchealth[e] = g_gameloop_StartHealth end
+						SetPlayerHealth(calchealth[e])
+					end	
 				end
 				if campfire[e].affect_type == 2 then
 					if campfire[e].user_global_affected > "" then 
 						if _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] end
 						_G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] = currentvalue[e] - campfire[e].affect_amount
 						if _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] <= 0 then _G["g_UserGlobal['"..campfire[e].user_global_affected.."']"] = 0 end	
-					end					
-				end				
+					end						
+					if campfire[e].affect_health == 1 then
+						calchealth[e] = calchealth[e] - campfire[e].affect_amount
+						if calchealth[e] > g_gameloop_StartHealth then calchealth[e] = g_gameloop_StartHealth end
+						SetPlayerHealth(calchealth[e])
+					end	
+				end
 			end
 			if GetTimer(e) > campfire[e].heat_delay*100 then
 				if campfire[e].glow_effect == 1 then
@@ -290,14 +322,21 @@ function campfire_main(e)
 				if U.PlayerCloserThanPos(g_Entity[e]['x'], g_PlayerPosY, g_Entity[e]['z'],20) then HurtPlayer(-1,5) end
 				hurttime[e] = g_Time + 500
 			end
+			if campfire[e].burn_life > 0 and g_Time > burntime[e] then	
+				SetGamePlayerStatePlrKeyForceKeystate(16)				
+			end
 		end
 		if g_KeyPressQ == 1 and keypressed[e] == 1 then
+			SetGamePlayerStatePlrKeyForceKeystate(0)		
+			StopSound(e,2)
+			SetEntityEmissiveStrength(e,0)
+			SetLightRange(campfire[e].light_number,0)
 			keypressed[e] = 0
 			SetEntityCollected(tobeused[e],0)
 			Destroy(tobeused[e])
 			tobeused[e] = 0
 			campfire_onoff[e] = "off"
 			campfire_state[e] = "deployed"
-		end		
+		end
 	end
 end

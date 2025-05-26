@@ -1,7 +1,8 @@
--- Remover v2 by Necrym59
+-- Remover v3 by Necrym59
 -- DESCRIPTION: A global behavior that will remove all the same named entities in-game when activated by a switch or zone.
 -- DESCRIPTION: Attach to an object and link to a switch or zone. Set AlwaysActive=ON.
 -- DESCRIPTION: [ENTITY_NAME$=""] Name of entities.
+-- DESCRIPTION: <Sound0> Plays when triggered.
 
 local lower = string.lower
 local remover 			= {}
@@ -34,6 +35,7 @@ function remover_main(e)
 				end
 			end
 		end
-		status[e] = "endinit"	
+		PlaySound(e,0)
+		status[e] = "endinit"
 	end	
 end

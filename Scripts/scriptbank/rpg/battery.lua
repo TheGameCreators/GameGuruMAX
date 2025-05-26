@@ -1,12 +1,12 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Battery v8: by Necrym59
+-- Battery v9: by Necrym59
 -- DESCRIPTION: The attached object will give the player a battery energy resource if collected.
 -- DESCRIPTION: [PROMPT_TEXT$="E to collect"]
 -- DESCRIPTION: [COLLECTED_TEXT$="Battery collected"]
 -- DESCRIPTION: [ENERGY_LEVEL=10(1,30)]
 -- DESCRIPTION: [PICKUP_RANGE=90(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyBatteryEnergy"]
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] Eg: MyBatteryEnergy
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: Play the audio <Sound0> when picked up.

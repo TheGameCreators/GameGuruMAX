@@ -1,53 +1,56 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Lurker v10 by Necrym 59 
+-- Lurker v12 by Necrym 59 
 -- DESCRIPTION: The attached character entity will be a lurker and watch, follow or attack when not looked at.
 -- DESCRIPTION: [REACTION_TEXT$="What the.."]
 -- DESCRIPTION: [SENSE_RANGE=1000(1,2000)]
 -- DESCRIPTION: [SENSE_ANGLE=70(1,120)]
 -- DESCRIPTION: [APPROACH_SPEED=180(1,500)]
 -- DESCRIPTION: [ROTATION_SPEED=8(1,20)]
--- DESCRIPTION: [@MODE=1(1=Follow only, 2=Attack in range, 3=Watch 0nly, 4=Move then Disappear)]
+-- DESCRIPTION: [@MODE=1(1=Follow only, 2=Attack in range, 3=Watch 0nly, 4=Move then Disappear, 5=Move then Hide, 6=Watch + Proximity Hide)]
 -- DESCRIPTION: [ATTACK_RANGE=100(1,200)]
 -- DESCRIPTION: [ATTACK_DELAY=500(1,2000)]
 -- DESCRIPTION: [ATTACK_DAMAGE=10(1,100)]
 -- DESCRIPTION: [TRANSPARENCY=100(0,100)]
 -- DESCRIPTION: [EMISSIVENESS=0(0,5000)]
--- DESCRIPTION: [@IDLE_ANIMATION$=-1(0=AnimSetList)] [@ATTACK_ANIMATION$=-1(0=AnimSetList)]]
+-- DESCRIPTION: [@IDLE_ANIMATION$=-1(0=AnimSetList)] 
+-- DESCRIPTION: [@ATTACK_ANIMATION$=-1(0=AnimSetList)]
+-- DESCRIPTION: [HIDE_TIME=10(0,100)] Seconds
 -- DESCRIPTION: <Sound0> for movement sound
 -- DESCRIPTION: <Sound1> for lurking sound effect
 -- DESCRIPTION: <Sound2> for attacking sound effect
 -- DESCRIPTION: <Sound3> for disappearing sound effect
 
+local lurker 			= {}
+local reaction_text 	= {}
+local sense_range 		= {}
+local sense_angle 		= {}
+local approach_speed 	= {}
+local rotation_speed 	= {}
+local mode 				= {}	
+local attack_range 		= {}
+local attack_delay 		= {}
+local attack_damage 	= {}
+local status 			= {}
+local transparency 		= {}
+local emissiveness 		= {}
+local idle_animation	= {}
+local attack_animation	= {}
+local hide_time			= {}
+	
+local default_attack_delay 	= {}
+local default_sound_delay 	= {}
+local sound_delay 			= {}
+local start_x 				= {}
+local start_y 				= {}
+local start_z 				= {}
+local start_health 			= {}
+local scare 				= {}
+local surfaceY				= {}
+local movecount				= {}
+local hiddentime			= {}
+local doonce				= {}
 
-	local lurker 			= {}
-	local reaction_text 	= {}
-	local sense_range 		= {}
-	local sense_angle 		= {}
-	local approach_speed 	= {}
-	local rotation_speed 	= {}
-	local mode 				= {}	
-	local attack_range 		= {}
-	local attack_delay 		= {}
-	local attack_damage 	= {}
-	local status 			= {}
-	local transparency 		= {}
-	local emissiveness 		= {}
-	local idle_animation	= {}
-	local attack_animation	= {}
-		
-	local default_attack_delay 	= {}
-	local default_sound_delay 	= {}
-	local sound_delay 			= {}
-	local start_x 				= {}
-	local start_y 				= {}
-	local start_z 				= {}
-	local start_health 			= {}
-	local scare 				= {}
-	local surfaceY				= {}
-	local movecount				= {}
-	local doonce				= {}
-
-function lurker_properties(e, reaction_text, sense_range, sense_angle, approach_speed, rotation_speed, mode, attack_range, attack_delay, attack_damage, transparency, emissiveness, idle_animation, attack_animation)
+function lurker_properties(e, reaction_text, sense_range, sense_angle, approach_speed, rotation_speed, mode, attack_range, attack_delay, attack_damage, transparency, emissiveness, idle_animation, attack_animation, hide_time)
 	lurker[e].reaction_text = reaction_text
 	lurker[e].sense_range = sense_range
 	lurker[e].sense_angle = sense_angle
@@ -61,6 +64,7 @@ function lurker_properties(e, reaction_text, sense_range, sense_angle, approach_
 	lurker[e].emissiveness = emissiveness
 	lurker[e].idle_animation = "=" .. tostring(idle_animation)
 	lurker[e].attack_animation = "=" .. tostring(attack_animation)
+	lurker[e].hide_time = hide_time
 end
 
 function lurker_init(e)
@@ -76,13 +80,16 @@ function lurker_init(e)
 	lurker[e].attack_damage = 10
 	lurker[e].transparency = 100
 	lurker[e].emissiveness = 1
+	lurker[e].idle_animation = ""
+	lurker[e].attack_animation = ""
+	lurker[e].hide_time = 10
+	
 	sound_delay[e] = 1000
 	SetEntityBaseAlpha(e,100)
 	SetEntityTransparency(e,1)
-	SetEntityEmissiveStrength(e,0)
-	lurker[e].idle_animation = ""
-	lurker[e].attack_animation = ""
+	SetEntityEmissiveStrength(e,0)	
 	movecount[e] = 0
+	hiddentime[e] = 0
 	doonce[e] = 0
 	surfaceY[e] = 0
 	status[e] = "init"
@@ -131,15 +138,22 @@ function lurker_main(e)
 				if GetTimer(e) > lurker[e].attack_delay and PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then
 					if lurker[e].mode == 1 then
 						SetAnimationName(e,lurker[e].idle_animation)
-						PlayAnimation(e)						
+						PlayAnimation(e)
 					end
 					if lurker[e].mode == 2 then
 						SetAnimationName(e,lurker[e].attack_animation)
 						PlayAnimation(e)
 						HurtPlayer(-1,lurker[e].attack_damage)
 						lurker[e].attack_delay = GetTimer(e) + default_attack_delay[e]
-					end					
-				end				
+					end
+				end
+				if lurker[e].mode == 6 then
+					LookAtPlayer(e)
+					PlaySound(e,3)
+					Hide(e)
+					CollisionOff(e)
+					hiddentime[e] = g_Time + (lurker[e].hide_time*1000)
+				end 		
 				if GetTimer(e) > sound_delay[e] then
 					if lurker[e].mode == 1 then
 						PlaySound(e,1)
@@ -151,7 +165,7 @@ function lurker_main(e)
 			else				
 				if lurker[e].mode == 1 then MoveForward(e,math.random(1,lurker[e].approach_speed)) end
 				if lurker[e].mode == 2 then	MoveForward(e,lurker[e].approach_speed) end
-				if lurker[e].mode == 3 then	LookAtPlayer(e) end
+				if lurker[e].mode == 3 then LookAtPlayer(e) end
 				if lurker[e].mode == 4 then 
 					MoveForward(e,math.random(1,lurker[e].approach_speed))
 					if doonce[e] == 0 then
@@ -159,19 +173,39 @@ function lurker_main(e)
 						doonce[e] = 1
 					end
 				end
-				LookAtPlayer(e)				
-				PlaySound(e,0)				
+				if lurker[e].mode == 5 then 
+					MoveForward(e,math.random(1,lurker[e].approach_speed))
+					if doonce[e] == 0 then
+						movecount[e] = movecount[e] + 1
+						doonce[e] = 1
+					end
+				end
+				LookAtPlayer(e)
+				PlaySound(e,0)
 				sound_delay[e] = GetTimer(e) + (default_sound_delay[e] / 2)
 				lurker[e].attack_delay = GetTimer(e) + default_attack_delay[e]
-				if movecount[e] == 3 then
+				if movecount[e] == 3 and lurker[e].mode == 4 then
 					PlaySound(e,3)
 					Hide(e)
 					CollisionOff(e)					
 					Destroy(e)
 				end
+				if movecount[e] == 3 and lurker[e].mode == 5 then
+					PlaySound(e,3)
+					Hide(e)
+					CollisionOff(e)	
+					hiddentime[e] = g_Time + (lurker[e].hide_time*1000)
+				end
 			end			
 		end
-	end	
+	end
+	
+	if lurker[e].mode == 5 or lurker[e].mode == 6 and g_Time >= hiddentime[e] and PlayerLooking(e,lurker[e].sense_range,lurker[e].sense_angle) ~= 1 then
+		Show(e)
+		CollisionOn(e)
+		movecount[e] = 0
+	end
+	
 	if g_Entity[e]['health'] < start_health[e] then
 		scare[e]=math.random(1,2)
 		if scare[e] == 1 then

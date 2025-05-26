@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Hack v4 by Necrym59
+-- Hack v6 by Necrym59
 -- DESCRIPTION: Will this will enable player to hack and activate a Logic Linked or ActivateIfUsed Entity?
 -- DESCRIPTION: [USE_RANGE=80(1,100)]
 -- DESCRIPTION: [USE_TEXT$="E to Hack"]
@@ -13,26 +13,33 @@
 -- DESCRIPTION: [NOISE_RANGE=500(0,5000)]
 -- DESCRIPTION: [@HACK_TRIGGER=1(1=Off, 2=On)]
 -- DESCRIPTION: [IMAGEFILE$="imagebank\\misc\\testimages\\search-bar.png"]
+-- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] eg: MyGlobal
+-- DESCRIPTION: [AFFECT_VALUE=1(1,100)] Value to add to User Global upon successful hack.
+-- DESCRIPTION: [NO_FAILURES!=0] If set on will dissallow success only
 -- DESCRIPTION: <Sound0> Hacking sound
 -- DESCRIPTION: <Sound1> Success sound
 -- DESCRIPTION: <Sound2> Failure sound
 -- DESCRIPTION: <Sound3> Alarm sound
 
-local hack 			= {}
-local use_range 	= {}
-local use_text 		= {}
-local hack_time 	= {}
-local hack_text 	= {}
-local success_text 	= {}
-local failure_text 	= {}
-local failure_count	= {}
-local failure_alarm	= {}
-local alarm_reset	= {}
-local noise_range	= {}
-local hack_trigger	= {}
-local hackbar_image	= {}
+local hack 					= {}
+local use_range 			= {}
+local use_text 				= {}
+local hack_time 			= {}
+local hack_text 			= {}
+local success_text 			= {}
+local failure_text 			= {}
+local failure_count			= {}
+local failure_alarm			= {}
+local alarm_reset			= {}
+local noise_range			= {}
+local hack_trigger			= {}
+local hackbar_image			= {}
+local user_global_affected 	= {}
+local affect_value			= {}
+local no_failures			= {}
 
 local hackbar		= {}
+local currentvalue	= {}
 local htime 		= {}
 local status		= {}
 local hackresult	= {}
@@ -42,7 +49,7 @@ local wait			= {}
 local doonce		= {}
 local playonce		= {}
 
-function hack_properties(e, use_range, use_text, hack_time, hack_text, success_text, failure_text, failure_count, failure_alarm, alarm_reset, noise_range, hack_trigger, hackbar_image)
+function hack_properties(e, use_range, use_text, hack_time, hack_text, success_text, failure_text, failure_count, failure_alarm, alarm_reset, noise_range, hack_trigger, hackbar_image, user_global_affected, affect_value, no_failures)
 	hack[e].use_range = use_range
 	hack[e].use_text = use_text
 	hack[e].hack_time = hack_time
@@ -55,6 +62,9 @@ function hack_properties(e, use_range, use_text, hack_time, hack_text, success_t
 	hack[e].noise_range = noise_range
 	hack[e].hack_trigger = hack_trigger
 	hack[e].hackbar_image = hackbar_image or imagefile
+	hack[e].user_global_affected = user_global_affected
+	hack[e].affect_value = affect_value	
+	hack[e].no_failures = no_failures or 0
 end
 
 function hack_init(e)
@@ -71,10 +81,16 @@ function hack_init(e)
 	hack[e].noise_range = 500
 	hack[e].hack_trigger = 1
 	hack[e].hackbar_image = "imagebank\\misc\\testimages\\search-bar.png"
+	hack[e].user_global_affected = ""
+	hack[e].affect_value = 1
+	hack[e].no_failures = 0
+	
 	hackbar[e] = CreateSprite(LoadImage(hack[e].hackbar_image))
 	SetSpriteSize(hackbar[e],5,-1)
 	SetSpritePosition(hackbar[e],200,200)
+	
 	status[e] = "init"
+	currentvalue[e] = 0
 	wait[e] = math.huge
 	alarm[e] = math.huge
 	hackresult[e] = 0
@@ -114,7 +130,8 @@ function hack_main(e)
 						if htime[e] < 0 then htime[e] = 0 end
 					end
 					if hack[e].noise_range > 0 then MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,hack[e].noise_range,1,e) end
-					hackresult[e] = math.random(1,2)
+					if hack[e].no_failures == 0 then hackresult[e] = math.random(1,2) end
+					if hack[e].no_failures == 1 then hackresult[e] = 1 end
 					if htime[e] == 0 then
 						if hackresult[e] == 1 then -- Success
 							SetAnimationName(e,"on")
@@ -140,6 +157,10 @@ function hack_main(e)
 			if doonce[e] == 0 then
 				StopSound(e,0)
 				PlaySound(e,1)
+				if hack[e].user_global_affected > "" then 
+					if _G["g_UserGlobal['"..hack[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..hack[e].user_global_affected.."']"] end
+					_G["g_UserGlobal['"..hack[e].user_global_affected.."']"] = currentvalue[e] + hack[e].affect_value
+				end				
 				doonce[e] = 1
 			end
 			if g_Time > wait[e] then status[e] = "hacked" end
@@ -170,6 +191,7 @@ function hack_main(e)
 				PerformLogicConnections(e)
 				status[e] = "finish"
 			end
+			SetEntityHealth(e,0)
 		end
 	end
 	if g_Time > alarm[e] and failcount[e] == hack[e].failure_count then -- Alarm reset

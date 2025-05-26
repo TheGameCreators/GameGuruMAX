@@ -1,4 +1,4 @@
--- Freeze Player v15
+-- Freeze Player v16
 -- DESCRIPTION: When a player enters zone will freeze the player, and stay in a frozen state for
 -- DESCRIPTION: [FREEZETIME=3] in seconds. (0=infinite)
 -- DESCRIPTION: [ZONEHEIGHT=100(1,500)] controls how far above the zone the player can be before the zone is not triggered.
@@ -61,6 +61,7 @@ function FreezePlayer_main(e)
 		if g_Entity[e]['plrinzone'] == 1 and g_PlayerHealth > 0 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y'] + freeze[e].zoneheight then
 			if freeze[e].FreezeStyle == 1 then
 				if freeze[e].freezetime == 0 or freeze[e].freezetime == nil and frozenmode[e] == 0 then
+					--DisableBoundHudKeys()
 					SetCameraOverride(3)
 					frozentime[e] = g_Time * 2
 					if played[e] == 0 then 
@@ -80,18 +81,20 @@ function FreezePlayer_main(e)
 						PlaySound(e,1)
 						played[e] = 1
 					end	
-					SetCameraOverride(0)				
+					SetCameraOverride(0)
+					--EnableBoundHudKeys()
 					if freeze[e].MultiTrigger == 0 then Destroy(e) end
 				end
 			end
 			if freeze[e].FreezeStyle == 2 then
 				if freeze[e].freezetime == 0 or freeze[e].freezetime == nil and frozenmode[e] == 0 then
+					--DisableBoundHudKeys()
 					frozentime[e] = g_Time * 2
 					freezex[e] = g_PlayerPosX
 					freezey[e] = g_PlayerPosY
 					freezez[e] = g_PlayerPosZ
 					freezeangy[e] = g_PlayerAngY					
-					frozenmode[e] = 1
+					frozenmode[e] = 1					
 					if played[e] == 0 then 
 						PlaySound(e,0)
 						played[e] = 1
@@ -99,6 +102,7 @@ function FreezePlayer_main(e)
 					SetGamePlayerControlFinalCameraAngley(freezeangy[e])
 				end
 				if freeze[e].freezetime ~= nil and frozenmode[e] == 0 then
+					--DisableBoundHudKeys()
 					frozentime[e] = g_Time + (freeze[e].freezetime * 1000)
 					freezex[e] = g_PlayerPosX
 					freezey[e] = g_PlayerPosY
@@ -115,11 +119,12 @@ function FreezePlayer_main(e)
 					if GetGamePlayerControlFinalCameraAngley()>freeze[e].ViewAngleLimit+freezeangy[e] then SetGamePlayerControlFinalCameraAngley(freeze[e].ViewAngleLimit+freezeangy[e]) end
 					if GetGamePlayerControlFinalCameraAngley()<-freeze[e].ViewAngleLimit+freezeangy[e] then SetGamePlayerControlFinalCameraAngley(-freeze[e].ViewAngleLimit+freezeangy[e]) end
 				end
-				if g_Time > frozentime[e] and frozenmode[e] == 1 then
+				if g_Time > frozentime[e] and frozenmode[e] == 1 then					
 					if played[e] == 0 then 
 						PlaySound(e,1)
 						played[e] = 1
 					end	
+					--EnableBoundHudKeys()
 					if freeze[e].MultiTrigger == 0 then Destroy(e) end
 				end
 			end

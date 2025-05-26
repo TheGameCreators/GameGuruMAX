@@ -56,7 +56,8 @@ function crusher_init(e)
 	starty[e] = g_Entity[e]['y']
 	currentvalue[e] = 0
 	check_timer[e] = 0
-	trappedEnt[e] = 0	
+	trappedEnt[e] = 0
+	entrange[e] = math.huge	
 	status[e] = "init"
 	played = 0
 	tableName[e] = "crushlist" ..tostring(e)

@@ -11,6 +11,7 @@
 -- DESCRIPTION: [@DESTINATION=1(1=Local, 2=Level)]
 -- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$=""] user global required for using inter-level spawn markers (eg: MySpawnMarkers)
 -- DESCRIPTION: [SPAWN_MARKER_NAME$=""] for optional spawning using spawn markers
+-- DESCRIPTION: [SpawnAtStart!=1] if unchecked use a switch or other trigger to spawn this zone
 -- DESCRIPTION: [@GoToLevelMode=1(1=Use Storyboard Logic,2=Go to Specific Level)] controls whether the next level in the Storyboard, or another level is loaded after entry to the zone.
 -- DESCRIPTION: [ResetStates!=0] when entering the next level
 -- DESCRIPTION: Will play <Sound0> for local teleports to the location of the object you connected with the zone.
@@ -32,6 +33,7 @@ local particle_name = {}
 local destination = {}
 local spawn_marker_user_global	= {}
 local spawn_marker_name	= {}
+local SpawnAtStart = {}
 local resetstates = {}
 
 local particle_no = {}
@@ -44,7 +46,7 @@ local played = {}
 local doonce = {}
 local status = {}
 	
-function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mode, teleport_delay, teleport_effect, teleport_exit_angle, particle_name, player_level, destination, spawn_marker_user_global, spawn_marker_name, resetstates)
+function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mode, teleport_delay, teleport_effect, teleport_exit_angle, particle_name, player_level, destination, spawn_marker_user_global, spawn_marker_name, SpawnAtStart, resetstates)
 	g_teleport[e].teleport_target = GetEntityString(e,0)
 	g_teleport[e].teleport_zoneheight = teleport_zoneheight
 	g_teleport[e].teleport_type = teleport_type
@@ -56,8 +58,9 @@ function teleport_properties(e, teleport_zoneheight, teleport_type, teleport_mod
 	g_teleport[e].teleport_level = player_level or 0	
 	g_teleport[e].destination = destination
 	g_teleport[e].spawn_marker_user_global = spawn_marker_user_global
-	g_teleport[e].spawn_marker_name = lower(spawn_marker_name)
-	g_teleport[e].resetstates = resetstates	
+	g_teleport[e].spawn_marker_name = spawn_marker_name
+	g_teleport[e].SpawnAtStart = SpawnAtStart or 1
+	g_teleport[e].resetstates = resetstates	or 0
 end
 
 function teleport_init(e)
@@ -74,7 +77,9 @@ function teleport_init(e)
 	g_teleport[e].destination = 1
 	g_teleport[e].spawn_marker_user_global = ""
 	g_teleport[e].spawn_marker_name = ""
+	g_teleport[e].SpawnAtStart = 1
 	g_teleport[e].resetstates = 0
+
 	g_teleport[e].particle_no = 0
 	g_teleport[e].teleport_timer = 0	
 	fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
@@ -90,25 +95,9 @@ end
 function teleport_main(e)
 
 	if status[e] == "init" then
-	
-		if g_teleport[e].spawn_marker_name ~= nil then
-			if g_teleport[e].spawn_marker_name ~= "" then
-				local findspawnmarkerE = -1			
-				for n = 1, g_EntityElementMax do
-					if n ~= nil and g_Entity[n] ~= nil then
-						if lower(GetEntityName(n)) == g_teleport[e].spawn_marker_name then
-							findspawnmarkerE = n
-							break
-						end
-					end
-				end			
-				if findspawnmarkerE > -1 then
-					SetEntityIfUsed(e,g_teleport[e].spawn_marker_name)
-					g_teleport[e].teleport_exit_angle = g_Entity[findspawnmarkerE]['angley']
-				end
-			end
-		end
-	
+		if g_teleport[e].SpawnAtStart == 1 then SetActivated(e,1) end
+		if g_teleport[e].SpawnAtStart == 0 then SetActivated(e,0) end
+
 		tlevelrequired[e] = g_teleport[e].teleport_level
 		fov = g_PlayerFOV --GetGamePlayerStateCameraFov()
 		dest_angle[e] = g_teleport[e].teleport_exit_angle
@@ -129,174 +118,174 @@ function teleport_main(e)
 		end
 		status[e] = "endinit"
 	end
-
-	
-	if g_teleport[e].teleport_type == 1 then
-		if g_teleport[e].destination == 1 then
-			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then				
-				if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-				if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
-				if tplayerlevel[e] >= tlevelrequired[e] then					
-					if g_teleport[e].teleport_target ~= nil then
-						if g_teleport[e].teleport_effect == 1 then
-							PlaySound(e,1)
-							TransportToIfUsed(e)
-							SetGamePlayerControlFinalCameraAngley(dest_angle[e])
-							PerformLogicConnections(e)
-							SetPlayerFOV(fov)
-							effect[e] = 0
-							if g_teleport[e].teleport_mode == 1 then Destroy(e) end	
-							g_teleport[e].teleport_timer = 0
-						end
-						if g_teleport[e].teleport_effect == 2 then
-							local entID = GetEntityRelationshipID(e,0)
-							PointCamera(0, GetEntityPositionX(entID), GetEntityPositionY(entID), GetEntityPositionZ(entID))
-							if effect[e] > -50 then
-								SetPlayerFOV(fov+effect[e])
-								effect[e] = effect[e] - 5						
-							end
-							if effect[e] <= -50 then
-								PlaySound(e,0)
-								TransportToIfUsed(e)
-								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
-								SetPlayerFOV(fov)
-								effect[e] = 0
-								if g_teleport[e].teleport_mode == 1 then Destroy(e) end
-								g_teleport[e].teleport_timer = 0
-							end
-						end	
-						if g_teleport[e].teleport_effect == 3 then							
-							if doonce[e] == 0 then
-								ResetPosition(g_teleport[e].particle_no,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-								Show(g_teleport[e].particle_no)
-								SetCameraOverride(3)
-								doonce[e] = 1
-							end	
-							if effect[e] < 100 then	effect[e] = effect[e] + 0.5 end
-							if effect[e] >= 100 then
-								PlaySound(e,0)
-								TransportToIfUsed(e)
-								SetGamePlayerControlFinalCameraAngley(dest_angle[e])								
-								PerformLogicConnections(e)
-								effect[e] = 0
-								SetCameraOverride(0)
-								Hide(g_teleport[e].particle_no)
-								if g_teleport[e].teleport_mode == 1 then Destroy(e) end
-								doonce[e] = 0
-								g_teleport[e].teleport_timer = 0
-							end
-						end	
-					end
-				end
-			end
-		end
-		if g_teleport[e].destination == 2 then
-			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
-				if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-				if _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] = g_teleport[e].spawn_marker_name end
-				if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
-				if tplayerlevel[e] >= tlevelrequired[e] then
-					if played[e] == 0 then					
-						PlaySound(e,1)
-						played[e] = 1
-					end				
-					PerformLogicConnections(e)
-					JumpToLevelIfUsedEx(e,g_teleport[e].resetstates)					
-				end
-			end
-		end
-	end
-	
-	if g_teleport[e].teleport_type == 2 or 3 then
-		if g_teleport[e].destination == 1 then						
-			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
-				if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-				if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
-				if tplayerlevel[e] >= tlevelrequired[e] then
-					if g_teleport[e].teleport_target ~= nil then
-						g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
-						if g_teleport[e].teleport_type == 3 then Prompt("Teleport activating in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")	end
-						if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay and g_teleport[e].teleport_effect == 1 or g_teleport[e].teleport_effect == 2 then							
+	if g_Entity[e]['activated'] == 1 then	
+		if g_teleport[e].teleport_type == 1 then
+			if g_teleport[e].destination == 1 then
+				if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then				
+					if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+					if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
+					if tplayerlevel[e] >= tlevelrequired[e] then					
+						if g_teleport[e].teleport_target ~= nil then
 							if g_teleport[e].teleport_effect == 1 then
-								Prompt("")
-								PlaySound(e,0)
+								PlaySound(e,1)
 								TransportToIfUsed(e)
 								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
 								PerformLogicConnections(e)
 								SetPlayerFOV(fov)
 								effect[e] = 0
-								if g_teleport[e].teleport_mode == 1 then Destroy(e) end
-								g_teleport[e].teleport_timer = 0								
+								if g_teleport[e].teleport_mode == 1 then Destroy(e) end	
+								g_teleport[e].teleport_timer = 0
 							end
-							if g_teleport[e].teleport_effect == 2 and g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
+							if g_teleport[e].teleport_effect == 2 then
 								local entID = GetEntityRelationshipID(e,0)
 								PointCamera(0, GetEntityPositionX(entID), GetEntityPositionY(entID), GetEntityPositionZ(entID))
 								if effect[e] > -50 then
-									SetPlayerFOV(fov+effect[e])	
-									effect[e] = effect[e] - 5							
+									SetPlayerFOV(fov+effect[e])
+									effect[e] = effect[e] - 5						
 								end
 								if effect[e] <= -50 then
-									Prompt("")
 									PlaySound(e,0)
 									TransportToIfUsed(e)
-									SetGamePlayerControlFinalCameraAngley(dest_angle[e])									
-									PerformLogicConnections(e)
+									SetGamePlayerControlFinalCameraAngley(dest_angle[e])
+									SetPlayerFOV(fov)
 									effect[e] = 0
-									SetPlayerFOV(fov)																		
 									if g_teleport[e].teleport_mode == 1 then Destroy(e) end
 									g_teleport[e].teleport_timer = 0
-								end								
-							end
-						end
-						if g_teleport[e].teleport_effect == 3 and g_teleport[e].particle_no > 0 then
-							if doonce[e] == 0 then
-								ResetPosition(g_teleport[e].particle_no,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
-								Show(g_teleport[e].particle_no)
-								SetCameraOverride(3)
-								doonce[e] = 1
+								end
 							end	
-							if effect[e] < 100 then	effect[e] = effect[e] + 1 end
-							if effect[e] >= 100 and g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
-								Prompt("")
-								PlaySound(e,0)
-								TransportToIfUsed(e)
-								SetGamePlayerControlFinalCameraAngley(dest_angle[e])
-								PerformLogicConnections(e)
-								SetCameraOverride(0)
-								effect[e] = 0
-								Hide(g_teleport[e].particle_no)
-								if g_teleport[e].teleport_mode == 1 then Destroy(e) end
-								doonce[e] = 0
-								g_teleport[e].teleport_timer = 0
+							if g_teleport[e].teleport_effect == 3 then							
+								if doonce[e] == 0 then
+									ResetPosition(g_teleport[e].particle_no,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+									Show(g_teleport[e].particle_no)
+									SetCameraOverride(3)
+									doonce[e] = 1
+								end	
+								if effect[e] < 100 then	effect[e] = effect[e] + 0.5 end
+								if effect[e] >= 100 then
+									PlaySound(e,0)
+									TransportToIfUsed(e)
+									SetGamePlayerControlFinalCameraAngley(dest_angle[e])								
+									PerformLogicConnections(e)
+									effect[e] = 0
+									SetCameraOverride(0)
+									Hide(g_teleport[e].particle_no)
+									if g_teleport[e].teleport_mode == 1 then Destroy(e) end
+									doonce[e] = 0
+									g_teleport[e].teleport_timer = 0
+								end
 							end	
 						end
+					end
+				end
+			end
+			if g_teleport[e].destination == 2 then
+				if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
+					if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+					if _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] = g_teleport[e].spawn_marker_name end
+					if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
+					if tplayerlevel[e] >= tlevelrequired[e] then
+						if played[e] == 0 then					
+							PlaySound(e,1)
+							played[e] = 1
+						end				
+						PerformLogicConnections(e)
+						JumpToLevelIfUsedEx(e,g_teleport[e].resetstates)					
 					end
 				end
 			end
 		end
-
-		if g_teleport[e].destination == 2 then
-			if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
-				if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
-				if _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] = g_teleport[e].spawn_marker_name end
-				if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
-				if tplayerlevel[e] >= tlevelrequired[e] then
-					g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
-					if g_teleport[e].teleport_type == 3 then
-						Prompt("Level Teleport in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")
-					end
-					if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
-						if played[e] == 0 then					
-							PlaySound(e,1)
-							played[e] = 1						
-						end	
-						PerformLogicConnections(e)
-						JumpToLevelIfUsedEx(e,g_teleport[e].resetstates)
-						SetPlayerFOV(fov)
+		
+		if g_teleport[e].teleport_type == 2 or 3 then
+			if g_teleport[e].destination == 1 then						
+				if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
+					if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+					if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
+					if tplayerlevel[e] >= tlevelrequired[e] then
+						if g_teleport[e].teleport_target ~= nil then
+							g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
+							if g_teleport[e].teleport_type == 3 then Prompt("Teleport activating in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")	end
+							if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay and g_teleport[e].teleport_effect == 1 or g_teleport[e].teleport_effect == 2 then							
+								if g_teleport[e].teleport_effect == 1 then
+									Prompt("")
+									PlaySound(e,0)
+									TransportToIfUsed(e)
+									SetGamePlayerControlFinalCameraAngley(dest_angle[e])
+									PerformLogicConnections(e)
+									SetPlayerFOV(fov)
+									effect[e] = 0
+									if g_teleport[e].teleport_mode == 1 then Destroy(e) end
+									g_teleport[e].teleport_timer = 0								
+								end
+								if g_teleport[e].teleport_effect == 2 and g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
+									local entID = GetEntityRelationshipID(e,0)
+									PointCamera(0, GetEntityPositionX(entID), GetEntityPositionY(entID), GetEntityPositionZ(entID))
+									if effect[e] > -50 then
+										SetPlayerFOV(fov+effect[e])	
+										effect[e] = effect[e] - 5							
+									end
+									if effect[e] <= -50 then
+										Prompt("")
+										PlaySound(e,0)
+										TransportToIfUsed(e)
+										SetGamePlayerControlFinalCameraAngley(dest_angle[e])									
+										PerformLogicConnections(e)
+										effect[e] = 0
+										SetPlayerFOV(fov)																		
+										if g_teleport[e].teleport_mode == 1 then Destroy(e) end
+										g_teleport[e].teleport_timer = 0
+									end								
+								end
+							end
+							if g_teleport[e].teleport_effect == 3 and g_teleport[e].particle_no > 0 then
+								if doonce[e] == 0 then
+									ResetPosition(g_teleport[e].particle_no,g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ)
+									Show(g_teleport[e].particle_no)
+									SetCameraOverride(3)
+									doonce[e] = 1
+								end	
+								if effect[e] < 100 then	effect[e] = effect[e] + 1 end
+								if effect[e] >= 100 and g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
+									Prompt("")
+									PlaySound(e,0)
+									TransportToIfUsed(e)
+									SetGamePlayerControlFinalCameraAngley(dest_angle[e])
+									PerformLogicConnections(e)
+									SetCameraOverride(0)
+									effect[e] = 0
+									Hide(g_teleport[e].particle_no)
+									if g_teleport[e].teleport_mode == 1 then Destroy(e) end
+									doonce[e] = 0
+									g_teleport[e].teleport_timer = 0
+								end	
+							end
+						end
 					end
 				end
 			end
-		end		
-	end
+
+			if g_teleport[e].destination == 2 then
+				if g_Entity[e]['plrinzone']==1 and g_PlayerPosY > g_Entity[e]['y'] and g_PlayerPosY < g_Entity[e]['y']+g_teleport[e].teleport_zoneheight then
+					if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
+					if _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] ~= nil then _G["g_UserGlobal['"..g_teleport[e].spawn_marker_user_global.."']"] = g_teleport[e].spawn_marker_name end
+					if tplayerlevel[e] < tlevelrequired[e] then Prompt("You need to be level "..tlevelrequired[e].." to use this teleport") end
+					if tplayerlevel[e] >= tlevelrequired[e] then
+						g_teleport[e].teleport_timer = g_teleport[e].teleport_timer + GetElapsedTime()
+						if g_teleport[e].teleport_type == 3 then
+							Prompt("Level Teleport in "..math.floor(g_teleport[e].teleport_delay - g_teleport[e].teleport_timer).." seconds")
+						end
+						if g_teleport[e].teleport_timer >= g_teleport[e].teleport_delay then
+							if played[e] == 0 then					
+								PlaySound(e,1)
+								played[e] = 1						
+							end	
+							PerformLogicConnections(e)
+							JumpToLevelIfUsedEx(e,g_teleport[e].resetstates)
+							SetPlayerFOV(fov)
+						end
+					end
+				end
+			end		
+		end
+	end	
 end
 	

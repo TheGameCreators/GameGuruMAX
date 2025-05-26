@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- vendoror v18 by Necrym59
+-- vendoror v20 by Necrym59
 -- DESCRIPTION: Allows to use this object as a vendor to give the player the selected item.
 -- DESCRIPTION: [PROMPT_TEXT$="E to dispense item"]
 -- DESCRIPTION: [PROMPT_RANGE=90(0,100)]
@@ -12,10 +12,13 @@
 -- DESCRIPTION: [USER_GLOBAL_AFFECTED$=""] User global for payment (eg; MyMoney)
 -- DESCRIPTION: [@WHEN_EMPTY=1(1=Nothing, 2=Destroy Vendor, 3=Event Triggers, 4=Lose Game, 5=Win Game)]
 -- DESCRIPTION: [VENDING_DELAY=0(0,100)] in seconds
+-- DESCRIPTION: [VENDING_FORCE=0(0,100)] forced in the angle of the vended object
 -- DESCRIPTION: <Sound0> Activation sound
 -- DESCRIPTION: <Sound1> Vending sound
 -- DESCRIPTION: <Sound2> Empty sounds
 
+local V = require "scriptbank\\vectlib"
+local U = require "scriptbank\\utillib"
 local lower = string.lower
 g_CloneEntityNo = {}
 
@@ -32,10 +35,12 @@ local vendored_entity_no		= {}
 local user_global_affected 		= {}
 local when_empty				= {}
 local vending_delay				= {}
+local vending_force				= {}
 
 local origin_x		= {}
 local origin_y		= {}
 local origin_z		= {}
+local objdestAngle	= {}
 local newEntn		= {}
 local cntEntn		= {}
 local status		= {}
@@ -52,7 +57,7 @@ local wait			= {}
 local vdelay		= {}
 
 
-function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty, vending_delay)
+function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_animation, vendored_max_quantity, vendored_entity_cost, vendored_entity_lifespan, vendored_entity_name, user_global_affected, when_empty, vending_delay, vending_force)
 	vendor[e].prompt_text = prompt_text or ""
 	vendor[e].prompt_range = prompt_range
 	vendor[e].noise_range = noise_range
@@ -64,6 +69,7 @@ function vendor_properties(e, prompt_text, prompt_range, noise_range, vendor_ani
 	vendor[e].user_global_affected = user_global_affected
 	vendor[e].when_empty = when_empty
 	vendor[e].vending_delay = vending_delay or 0
+	vendor[e].vending_force = vending_force or 0
 	vendor[e].vendored_entity_no = 0
 end
 
@@ -80,6 +86,7 @@ function vendor_init(e)
 	vendor[e].user_global_affected = ""
 	vendor[e].when_empty = 1
 	vendor[e].vending_delay = 0	
+	vendor[e].vending_force = 20
 	vendor[e].vendored_entity_no = 0	
 
 	status[e] = "init"
@@ -106,7 +113,7 @@ function vendor_main(e)
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
 		end				
-		if vendor[e].vendored_max_quantity > 50 then vendor[e].vendored_max_quantity = 50 end
+		--if vendor[e].vendored_max_quantity > 50 then vendor[e].vendored_max_quantity = 50 end
 		if vendor[e].vendored_entity_lifespan > 100 then vendor[e].vendored_entity_lifespan = 100 end
 		if vendor[e].vendored_entity_no == 0 or vendor[e].vendored_entity_no == nil then
 			for ee = 1, g_EntityElementMax do
@@ -123,18 +130,18 @@ function vendor_main(e)
 					end
 				end
 			end
-		end		
+		end	
 	end
-	
+
 	local PlayerDist = GetPlayerDistance(e)
 	if status[e] == "vendor" then
 		if vendor[e].user_global_affected > "" then
 			if _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..vendor[e].user_global_affected.."']"] end
-		end		
+		end
 
 		if PlayerDist < vendor[e].prompt_range or g_Entity[e]['activated'] == 1 then
-			if dispensed[e] < vendor[e].vendored_max_quantity then PromptLocal(e,vendor[e].prompt_text) end
-			if dispensed[e] == vendor[e].vendored_max_quantity then PromptLocal(e,"") end			
+			if dispensed[e] < vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,vendor[e].prompt_text) end
+			if dispensed[e] == vendor[e].vendored_max_quantity and PlayerDist < vendor[e].prompt_range then PromptLocal(e,"") end			
 			if g_KeyPressE == 1 and currentvalue[e] < vendor[e].vendored_entity_cost then PromptLocal(e,"Insufficent Funds") end			
 			if currentvalue[e] >= vendor[e].vendored_entity_cost then				
 				if g_KeyPressE == 1 or g_Entity[e]['activated'] == 1 and pressed[e] == 0 then					
@@ -164,7 +171,7 @@ function vendor_main(e)
 			end
 		end
 	end
-
+	
 	if status[e] == "vendored" and g_Time > vdelay[e] then
 		if doonce[e] == 0 and dispensed[e] < vendor[e].vendored_max_quantity then
 			PlaySound(e,1)
@@ -181,7 +188,7 @@ function vendor_main(e)
 			local newposz = z		
 			ResetPosition(newEntn[e],newposx,newposy,newposz)
 			CollisionOn(newEntn[e])
-			GravityOn(newEntn[e])
+			GravityOn(newEntn[e])			
 			cntEntn[e] = cntEntn[e] + 1
 			dispensed[e] = dispensed[e] +1
 			if vendor[e].vendored_entity_lifespan > 0 then
@@ -192,7 +199,14 @@ function vendor_main(e)
 			wait[e] = g_Time + 600
 			doonce[e] = 1
 		end	
-		if g_Time > wait[e] then status[e] = "vended" end
+		if g_Time > wait[e] then
+			status[e] = "vended"
+			if vendor[e].vending_force > 0 then	
+				local paX, paY, paZ = math.rad( g_Entity[newEntn[e]]['anglex'] ), math.rad( g_Entity[newEntn[e]]['angley'] ),math.rad( g_Entity[newEntn[e]]['anglez'] )
+				local vx, vy, vz = U.Rotate3D( 0, 0, 1, paX, paY, paZ)
+				PushObject(g_Entity[newEntn[e]]['obj'],vx*vendor[e].vending_force, vy*vendor[e].vending_force, vz*vendor[e].vending_force, math.random()/100, math.random()/100, math.random()/100 )
+			end
+		end
 	end
 	
 	if status[e] == "vended" then		

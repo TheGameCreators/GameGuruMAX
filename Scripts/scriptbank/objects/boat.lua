@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Boat v18 by Necrym59
+-- Boat v20 by Necrym59
 -- DESCRIPTION: Creates a rideable boat object behavior: Set Physics=ON, Gravity=OFF, IsImobile=YES.
 -- DESCRIPTION: [PROMPT_TEXT$="E to embark"]
 -- DESCRIPTION: [USE_RANGE=80]
@@ -13,7 +13,7 @@
 -- DESCRIPTION: [BOAT_DRAFT=30]
 -- DESCRIPTION: [BOAT_POWER=5(0,50)]
 -- DESCRIPTION: [BOAT_BRAKE=5(0,50)]
--- DESCRIPTION: [BOAT_BUOYANCY=1(1,5)]
+-- DESCRIPTION: [BOAT_BUOYANCY=1(0,5)]
 -- DESCRIPTION: <Sound0> Entry/Exit 
 -- DESCRIPTION: <Sound1> Moving Loop
 -- DESCRIPTION: <Sound2> Run Aground
@@ -45,6 +45,7 @@ local colobj = {}
 local boatlength = {}
 local heightTerrain = {}
 local heightSurface = {}
+local startheight = {}
 local boatx = {}
 local boaty = {}
 local boatz = {}
@@ -92,8 +93,8 @@ function boat_init(e)
 	boaty[e]=g_Entity[e].y
 	boatz[e]=g_Entity[e].z
 	boatlength[e] = 0
-	--turn=0
 	onboatcheck[e]=0
+	startheight[e] = 0
 	floatangle[e]=0
 	colobj[e]=0
 	wobble[e] = GetGamePlayerControlWobbleHeight()
@@ -108,6 +109,7 @@ function boat_main(e)
 		local xmin, ymin, zmin, xmax, ymax, zmax = GetObjectColBox(g_Entity[e]['obj'])
 		local sx,sy,sz = GetObjectScales(g_Entity[e]['obj'])
 		boatlength[e] = ((zmax - zmin) * sz)/2
+		startheight[e] = g_Entity[e].y
 		status[e] = 'boating'
 	end	
 
@@ -133,21 +135,31 @@ function boat_main(e)
 		if boat_active[e]==0 then
 			SetGamePlayerControlWobbleHeight(wobble[e])
 			GravityOff(e)
-			CollisionOff(e)
-			local nfloatheight = boat[e].boat_buoyancy
-			floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)
-			local fFinalY = (GetWaterHeight()-1) + nfloatheight + (math.cos(floatangle[e])*nfloatheight)
-			local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)
-			SetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
-			ResetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
-			SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)			
+			CollisionOff(e)			
+			if GetWaterHeight() <= startheight[e] then
+				local nfloatheight = boat[e].boat_buoyancy/5
+				floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)				
+				local fFinalY = (GetWaterHeight()-1) + nfloatheight + (math.cos(floatangle[e])*nfloatheight)
+				local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)
+				SetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
+				ResetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
+				SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)				
+			else
+				local nfloatheight = boat[e].boat_buoyancy/5
+				floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)				
+				local fFinalY = (GetWaterHeight()-1) + nfloatheight + (math.cos(floatangle[e])*nfloatheight)
+				local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)
+				SetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
+				ResetPosition(e,g_Entity[e].x,fFinalY,g_Entity[e].z)
+				SetRotation(e,fSwayXZ/3,boatangle,fSwayXZ)
+			end
 			GravityOn(e)
 			CollisionOn(e)
 			StopSound(e,1)
-		end  
+		end
 		if boat_active[e]==1 then	
 			SetGamePlayerControlWobbleHeight(0)
-			local nfloatheight = boat[e].boat_buoyancy
+			local nfloatheight = boat[e].boat_buoyancy/5
 			floatangle[e] = floatangle[e] + (GetAnimationSpeed(e)/100.0)
 			local fFinalY = GetWaterHeight() + nfloatheight + (math.cos(floatangle[e])*nfloatheight)
 			local fSwayXZ = nfloatheight/2 + (math.cos(floatangle[e])*nfloatheight/2)

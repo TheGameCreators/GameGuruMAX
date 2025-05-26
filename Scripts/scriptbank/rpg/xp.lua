@@ -1,5 +1,5 @@
+-- XP v16
 -- DESCRIPTION: The object will give the player an xp addition or deduction if used.
--- XP v14
 -- DESCRIPTION: [PROMPT_TEXT$="E to consume"]
 -- DESCRIPTION: [PROMPT_IF_COLLECTABLE$="E to collect"]
 -- DESCRIPTION: [USAGE_TEXT$="XP consumed"]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [PICKUP_RANGE=80(1,100)]
 -- DESCRIPTION: [@PICKUP_STYLE=1(1=Automatic, 2=Manual)]
 -- DESCRIPTION: [@EFFECT=1(1=Add, 2=Deduct)]
--- DESCRIPTION: [USER_GLOBAL_AFFECTED$="MyXP"] User global to be affected (eg: MyXP)
+-- DESCRIPTION: [@@USER_GLOBAL_AFFECTED$=""(0=globallist)] User global to be affected (eg: MyXP)
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)]
 -- DESCRIPTION: <Sound0> for usage sound.
@@ -31,6 +31,7 @@ local item_highlight = {}
 local use_item_now = {}
 local tEnt = {}
 local selectobj = {}
+local currentvalue = {}
 
 function xp_properties(e, prompt_text, prompt_if_collectable, usage_text, quantity, pickup_range, pickup_style, effect, user_global_affected, prompt_display, item_highlight)
 	xp[e].prompt_text = prompt_text
@@ -62,6 +63,7 @@ function xp_init(e)
 	tEnt[e] = 0
 	g_tEnt = 0
 	selectobj[e] = 0
+	currentvalue[e] = 0
 end
 
 function xp_main(e)
@@ -117,17 +119,16 @@ function xp_main(e)
 		if xp[e].effect == 2 then addquantity = 2 end
 		Destroy(e) -- can only destroy resources that are qty zero
 	end
-	local currentvalue = 0
 	if addquantity == 1 then
 		if xp[e].user_global_affected > "" then 
-			if _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] ~= nil then currentvalue = _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] end
-			_G["g_UserGlobal['"..xp[e].user_global_affected.."']"] = currentvalue + xp[e].quantity
+			if _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] end
+			_G["g_UserGlobal['"..xp[e].user_global_affected.."']"] = currentvalue[e] + xp[e].quantity
 		end
 	end
 	if addquantity == 2 then
 		if xp[e].user_global_affected > "" then 
-			if _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] ~= nil then currentvalue = _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] end
-			_G["g_UserGlobal['"..xp[e].user_global_affected.."']"] = currentvalue - xp[e].quantity
+			if _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] ~= nil then currentvalue[e] = _G["g_UserGlobal['"..xp[e].user_global_affected.."']"] end
+			_G["g_UserGlobal['"..xp[e].user_global_affected.."']"] = currentvalue[e] - xp[e].quantity
 		end
 	end
 end

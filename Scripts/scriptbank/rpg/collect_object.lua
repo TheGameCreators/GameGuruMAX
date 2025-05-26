@@ -54,11 +54,11 @@ function collect_object_main(e)
 		if GetEntityCollectable(e) == 1 or GetEntityCollectable(e) == 2 then
 			if GetEntityCollected(e) == 0 then
 				if collect_object[e].prompt_display == 1 then PromptLocal(e,collect_object[e].collected_text) end
-				if collect_object[e].prompt_display == 2 then Prompt(collect_object[e].collected_text) end			
+				if collect_object[e].prompt_display == 2 then Prompt(collect_object[e].collected_text) end
+				PlaySound(e,0)
 				PerformLogicConnections(e)
 				SetEntityCollected(e,1)
-				g_ResnodeCollected = e
-				PlaySound(e,0)
+				g_ResnodeCollected = e				
 			end
 		end
 	end
@@ -74,16 +74,16 @@ function collect_object_main(e)
 				if GetEntityCollected(tEnt[e]) == 0 then
 					if collect_object[e].prompt_display == 1 then PromptLocal(e,collect_object[e].pickup_text) end
 					if collect_object[e].prompt_display == 2 then Prompt(collect_object[e].pickup_text) end				
-					if g_KeyPressE == 1 then				
+					if g_KeyPressE == 1 then
+						PlaySound(e,0)
 						if collect_object[e].prompt_display == 1 then PromptLocal(e,collect_object[e].collected_text) end
-						if collect_object[e].prompt_display == 2 then Prompt(collect_object[e].collected_text) end		
+						if collect_object[e].prompt_display == 2 then Prompt(collect_object[e].collected_text) end
 						PerformLogicConnections(e)
 						SetEntityCollected(tEnt[e],1)
-						g_ResnodeCollected = e
-						PlaySound(e,0)
+						g_ResnodeCollected = e						
 					end
 				end
-			end
-		end	
+			end			
+		end
 	end	
 end

@@ -1,4 +1,4 @@
--- Switch v17 by Necrym59 and Lee
+-- Switch v18 by Necrym59 and Lee
 -- DESCRIPTION: This object will be treated as a switch object for activating other objects or game elements.
 -- DESCRIPTION: Play the audio <Sound0> when the object is switched ON by the player, and <Sound1> when the object is switched OFF. 
 -- DESCRIPTION: Use the [SwitchedOn!=1] state to decide if the switch is initially off or on, and customize the [OnText$="E To Turn Switch ON"] and [OffText$="E To Turn Switch OFF"].
@@ -8,6 +8,10 @@
 -- DESCRIPTION: [@NPC_TRIGGER=2(1=On, 2=Off)]
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
+-- DESCRIPTION: [@ON_ANIMATION$=1(0=AnimSetList)] Select ON animation (Default=ON)
+-- DESCRIPTION: [@OFF_ANIMATION$=2(0=AnimSetList)] Select OFF animation (Default=OFF)
+-- DESCRIPTION: <Sound0> when switch activates
+-- DESCRIPTION: <Sound1> when switch deactivates
 
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
@@ -23,6 +27,9 @@ local switchtype 		= {}
 local npc_trigger 		= {}
 local item_highlight	= {}
 local prompt_display 	= {}
+local on_animation 		= {}
+local off_animation 	= {}
+
 
 local status 			= {}
 local tEnt 				= {}
@@ -36,7 +43,7 @@ local doonce			= {}
 -- when you wish the state to be preserved after a game save and reload, always use g_nameofscript, ie
 g_switch = {}
 
-function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel, switchtype, npc_trigger, item_highlight, prompt_display)
+function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel, switchtype, npc_trigger, item_highlight, prompt_display, on_animation, off_animation)
 	g_switch[e].initialstate = switchedon
 	switch[e].ontext = ontext
 	switch[e].offtext = offtext
@@ -45,7 +52,9 @@ function switch_properties(e, switchedon, ontext, offtext, userange, playerlevel
 	switch[e].switchtype = switchtype or 1
 	switch[e].npc_trigger = npc_trigger or 2
 	switch[e].item_highlight = item_highlight or 0
-	switch[e].prompt_display = prompt_display or 1	
+	switch[e].prompt_display = prompt_display or 1
+	switch[e].on_animation = "=" .. tostring(on_animation)	
+	switch[e].off_animation	= "=" .. tostring(off_animation)
 end 
 
 function switch_init(e)
@@ -59,7 +68,10 @@ function switch_init(e)
 	switch[e].switchtype = 1
 	switch[e].npc_trigger = 1
 	switch[e].item_highlight = 0
-	switch[e].prompt_display = 1	
+	switch[e].prompt_display = 1
+	switch[e].on_animation = ""
+	switch[e].off_animation	= ""
+	
 	tEnt[e] = 0
 	selectobj[e] = 0
 	switched[e] = 0
@@ -78,6 +90,7 @@ function switch_main(e)
 		sensecheck[e] = g_Time + 1000
 		status[e] = "endinit"
 	end
+
 	if switch[e].ontext == nil then switch[e].ontext = "To Turn Switch ON" end
 	if switch[e].offtext == nil then switch[e].offtext = "To Turn Switch OFF" end
 	if g_switch[e].initialstate ~= nil then
@@ -92,7 +105,7 @@ function switch_main(e)
 		module_misclib.pinpoint(e,switch[e].userange,switch[e].item_highlight)
 		tEnt[e] = g_tEnt
 		--end pinpoint select object--
-	end		
+	end
 	if PlayerDist < switch[e].userange and tEnt[e] ~= 0 then
 		if _G["g_UserGlobal['".."MyPlayerLevel".."']"] ~= nil then tplayerlevel[e] = _G["g_UserGlobal['".."MyPlayerLevel".."']"] end
 		if tplayerlevel[e] < tlevelrequired[e] then PromptLocal(e,"You need to be level "..tlevelrequired[e].." to use this switch") end
@@ -172,7 +185,7 @@ function switch_main(e)
 		SetActivated(e,0)
 	end
 	if g_Entity[e].activated == 101 then
-		SetAnimationName(e,"off")
+		SetAnimationName(e,switch[e].off_animation)
 		PlayAnimation(e)
 		if g_switch[e].initialstate == -1 then 
 			PerformLogicConnections(e)
@@ -185,7 +198,7 @@ function switch_main(e)
 		if g_KeyPressE == 0 then SetActivated(e,0) end
 	end
 	if g_Entity[e].activated == 201 then
-		SetAnimationName(e,"on")
+		SetAnimationName(e,switch[e].on_animation)
 		PlayAnimation(e)
 		if g_switch[e].initialstate == -1 then 
 			PerformLogicConnections(e)

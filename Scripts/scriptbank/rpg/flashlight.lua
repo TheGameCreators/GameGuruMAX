@@ -1,4 +1,4 @@
--- Flashlight v28: by Necrym59
+-- Flashlight v29: by Necrym59
 -- DESCRIPTION: Will give the player a Flashlight. Set AlwaysActive=ON.
 -- DESCRIPTION: [PICKUP_TEXT$="E to pickup"]
 -- DESCRIPTION: [PICKUP_RANGE=100(1,200)]
@@ -204,29 +204,37 @@ function flashlight_main(e)
 		end
 	end
 	
-	if have_flashlight[e] == 1 then
-		SetFlashLightKeyEnabled(1)
+	if have_flashlight[e] == 1 then 
 		SetGamePlayerStatePlrKeyForceKeystate(0)
-		if GetInKey() == "f" or GetInKey() == "F" then	
-			if (GetGamePlayerStateFlashlightControl() >= 0.89) then
-				status[e] = 'ON'
-				if flashswitch[e] == 0 then
-					PlaySound(e,1)
-					flashswitch[e] = 1
+		if CG_GetActiveCamera == nil or CG_GetActiveCamera() == nil then  -- allows for Cine Guru interaction
+			SetFlashLightKeyEnabled(1)
+			if GetInKey() == "f" or GetInKey() == "F" then	
+				if (GetGamePlayerStateFlashlightControl() >= 0.89) then
+					status[e] = 'ON'
+					if flashswitch[e] == 0 then
+						PlaySound(e,1)
+						flashswitch[e] = 1
+					end
+				end						
+				if (GetGamePlayerStateFlashlightControl() <= 0.89) then
+					status[e] = 'OFF'
+					if flashswitch[e] == 1 then
+						PlaySound(e,1)
+						flashswitch[e] = 0
+					end
 				end
-			end						
-			if (GetGamePlayerStateFlashlightControl() <= 0.89) then
-				status[e] = 'OFF'
-				if flashswitch[e] == 1 then
-					PlaySound(e,1)
-					flashswitch[e] = 0
-				end
+			end	
+			if flashlight[e].light_activation == 2 and doonce[e] == 0 then
+				SetGamePlayerStatePlrKeyForceKeystate(33)
+				status[e] = 'ON'			
+				doonce[e] = 1
 			end
-		end	
-		if flashlight[e].light_activation == 2 and doonce[e] == 0 then
+		elseif status[e] == 'ON' then
+			SetFlashLightKeyEnabled(1)
 			SetGamePlayerStatePlrKeyForceKeystate(33)
-			status[e] = 'ON'			
-			doonce[e] = 1
+			status[e] = 'OFF'
+		else
+			SetFlashLightKeyEnabled(0)
 		end
 	end	
 	if status[e] == 'ON' then

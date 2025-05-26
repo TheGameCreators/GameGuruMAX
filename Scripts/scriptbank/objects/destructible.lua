@@ -1,70 +1,91 @@
--- Destructible v1 by Lee
--- DESCRIPTION: Object has destruction fragment limbs that can be used to destroy an object and can block navmesh, also plays a <Sound0>. Set IsImmobile to YES.
+-- Destructible v3 by Lee and Necrym59
+-- DESCRIPTION: This object has destruction fragment limbs that can be used to destroy an object and can also block navmesh.
+-- DESCRIPTION: Set IsImmobile to YES.
 -- DESCRIPTION: [SOLID_LIMB=2]
--- DESCRIPTION: [ANIMATION_NAME$="break"]
+-- DESCRIPTION: [@ANIMATION_NAME$=-1(0=AnimSetList)]
 -- DESCRIPTION: [ANIMATION_SPEED=50]
 -- DESCRIPTION: [COLLISION_OFF_TIME=250]
 -- DESCRIPTION: [!DESTROY_AT_END=1]
 -- DESCRIPTION: [DESTROY_ANIM_TRIM=40]
+-- DESCRIPTION: <Sound0> plays when destroyed.
+
 local NAVMESH = require "scriptbank\\navmeshlib"
+local lower = string.lower
+local destructible = {}
+local solid_limb = {}
+local animation_name = {}
+local animation_speed = {}
+local collision_off_time = {}
+local destroy_at_end = {}
+local destroy_anim_trim = {}
 
-g_destructible = {}
+local status = {}
+local blocking = {}
 
-function destructible_properties(e, solidlimb, animationname, animationspeed, collisionofftime, destroyatend, destroyanimtrim)
-	g_destructible[e] = {}
-	g_destructible[e].solidlimb = solidlimb
-	g_destructible[e].animationname = animationname
-	g_destructible[e].animationspeed = animationspeed
-	g_destructible[e].collisionofftime = collisionofftime
-	g_destructible[e].destroyatend = destroyatend
-	g_destructible[e].destroyanimtrim = destroyanimtrim
-	g_destructible[e].status = "init"
-	g_destructible[e].blocking = 1
+function destructible_properties(e, solid_limb, animation_name, animation_speed, collision_off_time, destroy_at_end, destroy_anim_trim)
+	destructible[e].solid_limb = solid_limb
+	destructible[e].animation_name = "=" .. tostring(animation_name)
+	destructible[e].animation_speed = animation_speed
+	destructible[e].collision_off_time = collision_off_time
+	destructible[e].destroy_at_end = destroy_at_end
+	destructible[e].destroy_anim_trim = destroy_anim_trim
+end
+
+function destructible_init(e)
+	destructible[e] = {}
+	destructible[e].solid_limb = 2
+	destructible[e].animation_name = ""
+	destructible[e].animation_speed = 50
+	destructible[e].collision_off_time = 250
+	destructible[e].destroy_at_end = 1
+	destructible[e].destroy_anim_trim = 40
+	destructible[e].status = "init"
+	destructible[e].blocking = 1
 end
 
 function destructible_main(e)
-	if g_destructible[e].status == "init" then
-		g_destructible[e].status = "alive"
+	if destructible[e].status == "init" then		
 		StopAnimation(e)
-		HideLimbsExcept(e,g_destructible[e].solidlimb)
-		ShowLimb(e,g_destructible[e].solidlimb)
+		HideLimbsExcept(e,destructible[e].solid_limb)
+		ShowLimb(e,destructible[e].solid_limb)
+		destructible[e].status = "alive"
 	end
-	if g_destructible[e].status == "alive" then
+	if destructible[e].status == "alive" then
 		if g_Entity[e]['activated'] == 1 then
-			g_destructible[e].status = "break"
+			destructible[e].status = "destruct"
 		end
 		if g_Entity[e]['health'] <= 0 then
-			g_destructible[e].status = "break"
+			destructible[e].status = "destruct"
 		end
 	end
-	if g_destructible[e].status == "break" then
+	if destructible[e].status == "destruct" then
 		PlaySound(e,0)
 		PerformLogicConnections(e)
-		SetAnimationSpeed(e,g_destructible[e].animationspeed/25.0)
-		SetAnimationName(e,g_destructible[e].animationname)
+		SetAnimationName(e,destructible[e].animation_name)
+		SetAnimationSpeed(e,destructible[e].animation_speed/25.0)
 		PlayAnimation(e)
 		SetAnimationFrame(e,0)
-		ShowLimbsExcept(e,g_destructible[e].solidlimb)
-		HideLimb(e,g_destructible[e].solidlimb)
+		ShowLimbsExcept(e,destructible[e].solid_limb)
+		HideLimb(e,destructible[e].solid_limb)
 		StartTimer(e)
-		g_destructible[e].status = "breaking1"
+		destructible[e].status = "destructed"
 	end
-	if g_destructible[e].status == "breaking1" then
-		if GetTimer(e) > g_destructible[e].collisionofftime then
+	if destructible[e].status == "destructed" then
+		if GetTimer(e) > destructible[e].collision_off_time then
 			CollisionOff(e)
-			g_destructible[e].status = "breaking2"
-			g_destructible[e].blocking = 2
+			destructible[e].status = "destroy"
+			destructible[e].blocking = 2
 		end
 	end
-	if g_destructible[e].status == "breaking2" then
-		if g_destructible[e].destroyatend == 1 then
-			if GetObjectAnimationFinished(e,g_destructible[e].destroyanimtrim) == 1 then 
+	if destructible[e].status == "destroy" then
+		if destructible[e].destroy_at_end == 1 then
+			if GetObjectAnimationFinished(e,destructible[e].destroy_anim_trim) == 1 then 
 				Destroy(e)
 			end
 		end
 	end
 	-- navmesh blocker system
-	g_destructible[e].blocking = NAVMESH.HandleBlocker(e,g_destructible[e].blocking,g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'])	
+	destructible[e].blocking = NAVMESH.HandleBlocker(e,destructible[e].blocking,g_Entity[e]['x'],g_Entity[e]['y'],g_Entity[e]['z'])	
 end
 
 function destructible_exit(e)

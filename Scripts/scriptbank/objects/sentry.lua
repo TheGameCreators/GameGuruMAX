@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Sentry v16
+-- Sentry v18
 -- DESCRIPTION: The applied object will create a rotatable security device? Static Mode = No, Physics = On, Explodable = Yes, IsImobile = Yes
 -- DESCRIPTION: Change the [PROMPT_TEXT$="Secuity alert was started"], the detection [SCAN_RANGE=1000], [SCAN_RADIUS=136(1,360)], [SCAN_SPEED=3(1,10)]. Detection [@ALARM=2(1=Off, 2=On)] and [ALARM_RANGE=500(1,3000)] [SENTRY_DAMAGE=60] inflicted on player, [MUZZLE_FLASH_NAME$="sentry muzzleflash"], [MUZZLE_Y=46(1,100)],[MUZZLE_Z=47(1,100)], Change its [@Allegiance=0(0=Enemy,1=Ally,2=Neutral)] also [@VISIBILITY=1(1=Visible, 2=Invisible)] <Sound0> - Sentry scan Loop  <Sound1> - Sentry Firing
 
@@ -279,6 +279,7 @@ function sentry_main(e)
 			end			
 		end
 		--if player in range
+		GetEntityPlayerVisibility(e)
 		if GetPlayerDistance(e) <= g_sentry[e]['scan_range'] and g_Entity[e]['health'] > 1 then
 			if current_angle[e] < g_sentry[e]['scan_radius'] + start_angle[e] and sweep[e] == 0 then
 				current_angle[e] = current_angle[e] + (g_sentry[e]['scan_speed']/10)
@@ -315,7 +316,7 @@ function sentry_main(e)
 					ResetRotation(g_sentry[e]['muzzle_flash'], xa,ya-180,za)
 				end		
 			end
-			if EntityLookingAtPlayer(e,g_sentry[e]['scan_range'],g_sentry[e]['scan_radius']/8) == 1 then					
+			if EntityLookingAtPlayer(e,g_sentry[e]['scan_range'],g_sentry[e]['scan_radius']/8) == 1 and g_Entity[e]['plrvisible'] == 1 then					
 				x = g_PlayerPosX - g_Entity[e]['x']
 				z = g_PlayerPosZ - g_Entity[e]['z']
 				target_angle[e] = math.atan2(x,z)

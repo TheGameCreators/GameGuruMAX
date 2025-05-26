@@ -1,4 +1,4 @@
--- LUT_Changer v6 by Necrym59 with thanks to Preben and Graphix
+-- LUT_Changer v7 by Necrym59 with thanks to Preben and Graphix
 -- DESCRIPTION: LUT will be changed when activated.
 -- DESCRIPTION: Atach to an object and link to a switch or zone
 -- DESCRIPTION: [PROMPT_TEXT$="LUT Changed"] displayed when activated.
@@ -18,6 +18,7 @@ local increment_delay		= {}
 local status		= {}
 local newlut		= {}
 local oldlut		= {}
+local lutswitch		= {}
 local lutcount		= {}
 local luttimer		= {}
 local doonce		= {}
@@ -44,7 +45,8 @@ function lut_changer_init(e)
 	status[e] = "init"
 	doonce[e] = 0
 	newlut[e] = ""
-	oldlut[e] = ""
+	oldlut[e] = GetLut()
+	lutswitch[e] = 0
 	lutcount[e] = 0
 	luttimer[e] = math.huge
 	fadeexposure[e] = 0
@@ -54,9 +56,9 @@ end
 
 function lut_changer_main(e)
 
-	if status[e] == "init" then		
-		oldlut[e] = GetLut()
-		newlut[e] = lutchanger[e].lut_group
+	if status[e] == "init" then
+		if lutswitch[e] == 0 then newlut[e] = lutchanger[e].lut_group end
+		if lutswitch[e] == 1 then newlut[e] = oldlut[e]	end
 		luttimer[e] = g_Time + 10
 		fadeexposure[e] = GetExposure()
 		fadeoutlut[e] = fadeexposure[e]
@@ -70,10 +72,15 @@ function lut_changer_main(e)
 			PlaySound(e,0)
 			PerformLogicConnections(e)
 			ActivateIfUsed(e)
-			doonce[e] = 1			
+			doonce[e] = 1
 		end
 		
-		if doonce[e] == 1 then
+		if doonce[e] == 1 then	
+			if lutswitch[e] == 0 then
+				lutswitch[e] = 1
+			else
+				lutswitch[e] = 0
+			end
 			if lutchanger[e].transition == 1 then  -- Instant Change
 				SetLutTo(newlut[e].. ".png")
 				doonce[e] = 2
@@ -95,7 +102,7 @@ function lut_changer_main(e)
 						doonce[e] = 2
 					end
 					SetExposure(fadeinlut[e])
-				end				
+				end
 			end				
 			if lutchanger[e].transition == 3 then  -- Incremental Plus
 				if lutcount[e] < lutchanger[e].no_of_increments and g_Time > luttimer[e] then
@@ -104,15 +111,15 @@ function lut_changer_main(e)
 					luttimer[e] = g_Time + lutchanger[e].increment_delay
 					if lutcount[e] == lutchanger[e].no_of_increments then
 						SetLutTo(newlut[e].. ".png")					
-						doonce[e] = 2
+						doonce[e] = 2						
 					end
 				end
 			end
 		end
-		if doonce[e] == 2 then			
+		if doonce[e] == 2 then
 			SetActivated(e,0)
 			fadeinlut[e] = 9999
-			doonce[e] = 0
+			doonce[e] = 0			
 			status[e] = "init"
 		end		
 	end	

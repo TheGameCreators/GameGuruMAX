@@ -1,4 +1,4 @@
--- Loop 3d Sound Multiple v2
+-- Loop 3d Sound Multiple v3
 -- DESCRIPTION: Loop all audio specified in <Sound0>, <Sound1>, <Sound2>, and <Sound3> at the volume based on the
 -- DESCRIPTION: [RANGE=1000(100,3000)] distance the player is away from the object, between
 -- DESCRIPTION: [MinVolume=0(0,99)] and [MaxVolume=100(1,100)]

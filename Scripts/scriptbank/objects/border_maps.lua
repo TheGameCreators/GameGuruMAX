@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Border Maps v5 by Necrym59
+-- Border Maps v6 by Necrym59
 -- DESCRIPTION: A global behavior to check when player is near the map edge and will prompt to load the named next map.
 -- DESCRIPTION: Attach to an object and set to AlwaysActive. Use the behavior diagram for map# borders. 
 -- DESCRIPTION: [NOTIFICATION_TEXT$="Press E if you wish to leave the area"]
@@ -9,7 +9,7 @@
 -- DESCRIPTION: [MAP4$=""]
 -- DESCRIPTION: [BORDER_DISTANCE=200(100,1000)]
 -- DESCRIPTION: [@LOAD_TYPE=1(1=Ask, 2=Auto)]
--- DESCRIPTION: [SPAWN_MARKER_USER_GLOBAL$="MySpawnMarkers"] user global for using spawn markers
+-- DESCRIPTION: [@@SPAWN_MARKER_USER_GLOBAL$=""(0=globallist)] user global for using spawn markers eg: 'MySpawnMarker'
 -- DESCRIPTION: [SPAWN_MARKER_NAME1$=""] for spawn marker on map 1
 -- DESCRIPTION: [SPAWN_MARKER_NAME2$=""] for spawn marker on map 2
 -- DESCRIPTION: [SPAWN_MARKER_NAME3$=""] for spawn marker on map 3

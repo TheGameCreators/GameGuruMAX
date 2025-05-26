@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Security Camera v12 by Necrym59
+-- Security Camera v14 by Necrym59
 -- DESCRIPTION: The applied object will create a rotatable security device? Static Mode = No, Physics = On, Explodable = Yes, IsImobile = Yes
 -- DESCRIPTION: Change the [PROMPT_TEXT$="Secuity alert was started"], the detection [SCAN_RANGE=500], [SCAN_RADIUS=136(1,360)], [SCAN_SPEED=3(1,10)]. 
 -- DESCRIPTION: Set the detection [@ALARM=2(1=Off, 2=On)] and [ALARM_RANGE=500(1,3000)]
@@ -32,6 +32,7 @@
 	local status = {}
 	local alert = {}
 	local svol = {}
+	local doonce = {}
 	
 
 function seccam_properties(e, prompt_text, scan_range, scan_radius, scan_speed, alarm, alarm_range, visibility, active)
@@ -64,6 +65,7 @@ function seccam_init(e)
 	status[e] = 'init'
 	alert[e] = 0
 	svol[e] = 0
+	doonce[e] = 0
 end
 
 function seccam_main(e)
@@ -106,6 +108,7 @@ function seccam_main(e)
 		end
 		
 		--check target enters range
+		GetEntityPlayerVisibility(e)
 		if GetPlayerDistance(e) <= g_seccam[e]['scan_range'] and g_Entity[e]['health'] > 1 then
 			if current_angle[e] < g_seccam[e]['scan_radius'] + start_angle[e] and sweep[e] == 0 then
 				current_angle[e] = current_angle[e] + (g_seccam[e]['scan_speed']/10)
@@ -125,7 +128,7 @@ function seccam_main(e)
 				SetSoundVolume(svol[e])
 				if current_angle[e] <= start_angle[e] then sweep[e] = 0 end
 			end			
-			if EntityLookingAtPlayer(e,g_seccam[e]['scan_range'],g_seccam[e]['scan_radius']/8) == 1 then		 
+			if EntityLookingAtPlayer(e,g_seccam[e]['scan_range'],g_seccam[e]['scan_radius']/8) == 1 and g_Entity[e]['plrvisible'] == 1 then		 
 				x = g_PlayerPosX - g_Entity[e]['x']
 				z = g_PlayerPosZ - g_Entity[e]['z']
 				target_angle[e] = math.atan2(x,z)
@@ -148,21 +151,35 @@ function seccam_main(e)
 				if current_angle[e] < 0 then current_angle[e] = 0 end
 				CollisionOff(e)
 				SetRotation(e,0,current_angle[e],0)
-				CollisionOn(e)		
+				CollisionOn(e)
+				if g_seccam[e]['alarm'] == 1 then
+					if g_Entity[e]['plrvisible'] == 1 then 
+						RotateToPlayer(e)
+						current_angle[e] = g_Entity[e]['angley']
+					end	
+				end	
 				if g_seccam[e]['alarm'] == 2 then
-					RotateToPlayer(e)
-					current_angle[e] = g_Entity[e]['angley']
-					status[e] = 'alarm'				
-					--Alert Soldiers here
-					SetActivatedWithMP(e,201)				
-					ActivateIfUsed(e)
-					PerformLogicConnections(e)
-					MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_seccam[e]['alarm_range'],1,-1) 
-					Prompt(g_seccam[e]['prompt_text'])
-					LoopSound(e,1)
-					SetSoundVolume(120)
-					CollisionOn(e);								
-					--Can modify here for other damage			
+					if g_Entity[e]['plrvisible'] == 1 then 
+						RotateToPlayer(e)
+						current_angle[e] = g_Entity[e]['angley']
+						status[e] = 'alarm'
+						--Alert Soldiers here
+						MakeAISound(g_PlayerPosX,g_PlayerPosY,g_PlayerPosZ,g_seccam[e]['alarm_range'],1,-1) 
+						Prompt(g_seccam[e]['prompt_text'])
+						LoopSound(e,1)
+						SetSoundVolume(120)						
+						if doonce[e] == 1 then
+							SetActivatedWithMP(e,201)				
+							ActivateIfUsed(e)
+							PerformLogicConnections(e)
+							doonce[e] = 1
+						end	
+						CollisionOn(e)
+					else
+						status[e] = 'scanning'
+						target_angle[e] = -1			
+						StopSound(e,1)
+					end		
 				end	
 			end
 			if EntityLookingAtPlayer(e,g_seccam[e]['scan_range'],g_seccam[e]['scan_radius']/8) == 0 and status[e] == 'alarm' then			

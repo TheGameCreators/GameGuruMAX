@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Variable Switch v4: by Necrym59
+-- Variable Switch v5: by Necrym59
 -- DESCRIPTION: This object will be treated as a variable switch to change the state of an object or light.
 -- DESCRIPTION: [PROMPT_TEXT$="+ to increase, - to decrease"]
 -- DESCRIPTION: [@PROMPT_DISPLAY=1(1=Local,2=Screen)]
@@ -7,7 +7,7 @@
 -- DESCRIPTION: [#STARTER VALUE=0.0(0.0,100.0)] Base Starting value
 -- DESCRIPTION: [#MINIMUM VALUE=0.0(0.0,100.0)] Minimum variable value
 -- DESCRIPTION: [#MAXIMUM VALUE=100.0(1.0,1000.0)] Maximum variable value
--- DESCRIPTION: [VARIABLE_SWITCH_USER_GLOBAL$="Variable_Switch#1"] Unique User Global for this switch.
+-- DESCRIPTION: [@@VARIABLE_SWITCH_USER_GLOBAL$=""(0=globallist)] The unique user global for this switch (eg; Variable_Switch1)
 -- DESCRIPTION: [@ITEM_HIGHLIGHT=0(0=None,1=Shape,2=Outline)] Use emmisive color for shape option
 -- DESCRIPTION: <Sound0> when the object is used by the player.
 

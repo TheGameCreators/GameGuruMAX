@@ -1,8 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Resource Node v15 by Necrym59
+-- Resource Node v16 by Necrym59
 -- DESCRIPTION: Allows to use this object as a resource node to give the player the selected resource item.
 -- DESCRIPTION: [@NODE_TYPE=1(1=Growth, 2=Extraction)]
--- DESCRIPTION: [NODE_TOOL_NAME$="Any"] Weapon Name (eg: enhanced\ak)
+-- DESCRIPTION: [@NODE_TOOL_NAME$=-1(0=AnyWeaponList)] Specific Weapon/Tool to use - (No Weapon=Any)
 -- DESCRIPTION: [NODE_RESPAWN_TIME=0(0,100)] Minutes (if 0 then destroyed)
 -- DESCRIPTION: [NODE_RESPAWNS=1(1,20)] number of resource node respawns
 -- DESCRIPTION: [NODE_RESOURCE_QUANTITY=3(1,10)]
@@ -60,7 +60,7 @@ local wait			= {}
 
 function resource_node_properties(e, node_type, node_tool_name, node_respawn_time, node_respawns, node_resource_quantity, resource_spawn_time, resource_spawn_spread, resource_entity_name, node_use_range,  node_use_prompt, node_tool_prompt, node_scaler, hide_node)
 	resnode[e].node_type = node_type
-	resnode[e].node_tool_name = lower(node_tool_name)
+	resnode[e].node_tool_name = tostring(GetWeaponName(node_tool_name-1))
 	resnode[e].node_respawn_time = node_respawn_time
 	resnode[e].node_respawns = node_respawns or 1	
 	resnode[e].node_resource_quantity = node_resource_quantity
@@ -78,7 +78,7 @@ end
 function resource_node_init(e)
 	resnode[e] = {}
 	resnode[e].node_type = 1
-	resnode[e].node_tool_name = "Any"
+	resnode[e].node_tool_name = ""
 	resnode[e].node_respawn_time = 1
 	resnode[e].node_respawns = 1	
 	resnode[e].node_resource_quantity = 1
@@ -112,7 +112,7 @@ end
 function resource_node_main(e)
 
 	if status[e] == "init" then
-		if resnode[e].node_tool_name == "" then resnode[e].node_tool_name = "none" end
+		if resnode[e].node_tool_name == "" then resnode[e].node_tool_name = "Any" end
 		if resnode[e].node_type == 1 then		
 			if resnode[e].hide_node == 0 then
 				CollisionOn(e)
@@ -185,9 +185,9 @@ function resource_node_main(e)
 			if g_Entity[e]['health'] <= 0 then PromptLocal(e,"") end
 			if PlayerDist < resnode[e].node_use_range and g_Entity[e]['health'] > 0 then
 				if resnode[e].node_tool_name ~= g_PlayerGunName and resnode[e].node_resource_quantity > 0 then PromptLocal(e,resnode[e].node_tool_prompt) end
-				if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "any" and created[e] < resnode[e].node_resource_quantity then PromptLocal(e,resnode[e].node_use_prompt) end
+				if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "Any" and created[e] < resnode[e].node_resource_quantity then PromptLocal(e,resnode[e].node_use_prompt) end
 			end	
-			if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "any" then
+			if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "Any" then
 				if g_Entity[e]['health'] < healthcheck[e] then				
 					local drop = math.random(1,2)
 					if drop == 2 then
@@ -200,7 +200,7 @@ function resource_node_main(e)
 						status[e] = "create_resource"
 						PlaySound(e,0)						
 						healthcheck[e] = g_Entity[e]['health']
-						if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "any" then
+						if resnode[e].node_tool_name == g_PlayerGunName or resnode[e].node_tool_name == "Any" then
 							SetEntityHealth(e,healthcheck[e])
 						else
 							SetEntityHealth(e,starthealth[e])

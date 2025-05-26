@@ -1,5 +1,5 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Speeder v14 by Necrym59 and smallg
+-- Speeder v15 by Necrym59 and smallg
 -- DESCRIPTION: Will create a speeder vehicle object. Set IsImmobile ON.
 -- DESCRIPTION: [PROMPT_TEXT$="E to mount speeder"]
 -- DESCRIPTION: [ENTER_RANGE=150]
@@ -123,6 +123,7 @@ end
 
 function speeder_main(e)
 	if status[e] == "init" then
+		radioswitch[e] = "Off"
 		keypause[e] = g_Time + 1000
 		shealth[e] = speeder[e].speeder_health
 		status[e] = "wait"
@@ -212,6 +213,7 @@ function UpdatePlayerPosition(e)
 		SetFreezeAngle(g_Entity[e]['anglex'],g_Entity[e]['angley']+speeder[e].player_angle_adjustment,g_Entity[e]['anglez'])
 		TransportToFreezePosition()
 	end
+	if g_PlayerHealth <= 0 then status[e] = "init" end
 end 
 
 function Controlspeeder(e)

@@ -1,4 +1,4 @@
--- Quest Poster v14
+-- Quest Poster v15
 -- DESCRIPTION: When player is within [RANGE=100] distance, show [QUEST_PROMPT$="Press E to view this quest"] and when E is pressed, player will be shown the [QUEST_SCREEN$="HUD Screen 8"].
 -- DESCRIPTION: [@QuestChoice=1(0=QuestList)]
 -- DESCRIPTION: <Sound0> when viewing the quest.
@@ -7,6 +7,7 @@
 local module_misclib = require "scriptbank\\module_misclib"
 local U = require "scriptbank\\utillib"
 g_tEnt = {}
+g_ActivateQuestComplete = {}
 
 local lower = string.lower
 local g_quest_poster 	= {}
@@ -33,6 +34,8 @@ function quest_poster_init(e)
 	g_tEnt = 0
 	tEnt[e] = 0
 	selectobj[e] = 0
+	g_ActivateQuestComplete = 0
+	SetEntityAlwaysActive(e,1)
 end
 
 function quest_poster_properties(e, range, questprompt, questscreen, questchoice)
@@ -54,7 +57,6 @@ function quest_poster_properties(e, range, questprompt, questscreen, questchoice
 end
 
 function quest_poster_main(e)
-	SetEntityAlwaysActive(e,1)
 	if g_quest_poster[e]['questtitle'] == "" then
 		local totalquests = GetCollectionQuestQuantity()
 		if totalquests ~= nil then
@@ -131,7 +133,22 @@ function quest_poster_main(e)
 						ActivateIfUsed(e)
 						doonce[e] = 1
 					end
-				end				
+				end
+
+				if g_quest_poster[e]['questtype'] == "activate" then
+					-- ACTIVATE
+					if quest_objno[e] == 0 then						
+						for a = 1, g_EntityElementMax do
+							if a ~= nil and g_Entity[a] ~= nil then
+								if lower(GetEntityName(a)) == lower(g_quest_poster[e]['questobject']) then
+									quest_objno[e] = a									
+									break
+								end
+							end
+						end
+					end
+					if g_ActivateQuestComplete == 1 then tquestcomplete = 1 end
+				end					
 
 				if g_quest_poster[e]['questtype'] == "collect" then
 					-- COLLECT
@@ -282,6 +299,7 @@ function quest_poster_main(e)
 					g_UserGlobalQuestTitleActiveE = 0					
 					quest_objno[e] = 0
 					quest_recno[e] = 0
+					g_ActivateQuestComplete = 0
 				end				
 			end
 		end		

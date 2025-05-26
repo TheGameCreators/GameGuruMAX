@@ -8,7 +8,7 @@
 -- DESCRIPTION: [ZIP_SPEED#=0.10(0.01,2.00)]
 -- DESCRIPTION: [@ZIP_RELEASE=2(1=Manual Release, 2=Auto Release)]
 -- DESCRIPTION: [ZIP_RELEASE_TEXT$="Q to release"]
--- DESCRIPTION: [ZIPLINE_OBJECT$="zipline"]
+-- DESCRIPTION: [ZIPLINE_OBJECT$=""] eg: zipline
 -- DESCRIPTION: [@ANCHOR_STATE=1(1=Visible, 2=Invisible)]
 -- DESCRIPTION: [#RELEASE_ADJUSTMENT=0.10(0.10,3.00)]
 -- DESCRIPTION: <Sound0> loop for zipline travel
@@ -60,7 +60,7 @@ function zipline_init_name(e,name)
 	zipline[e].zip_speed = 0.2
 	zipline[e].zip_release = 2
 	zipline[e].zip_release_text = ""
-	zipline[e].zipline_object = "zipline"
+	zipline[e].zipline_object = ""
 	zipline[e].anchor_state = 1
 	zipline[e].release_adjustment = 1.03	
 	zipline_name[e] = name
@@ -77,6 +77,7 @@ function zipline_main(e)
 	PlayerDist = GetPlayerDistance(e)
 	
 	if state[e] == "init" then
+		line_distance[e] = 0
 		if zipline[e].anchor_state == nil then zipline[e].anchor_state = 1 end
 		if zipline[e].zip_release == nil then zipline[e].zip_release = 1 end
 		if zipline[e].zip_type == nil then zipline[e].zip_type = 1 end

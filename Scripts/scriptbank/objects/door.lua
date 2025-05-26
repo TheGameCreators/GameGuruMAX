@@ -1,4 +1,4 @@
--- Door v27 by Lee and Necrym59
+-- Door v28 by Lee and Necrym59
 -- DESCRIPTION: Open and closes an 'animating' door when the player is within [Range=70(50,500)],
 -- DESCRIPTION: and when triggered will open the door, play <Sound0> and turn collision off after a delay of [DELAY=1000].
 -- DESCRIPTION: When the door is closed, play <Sound1> is played. You can elect to keep the door [Unlocked!=1], and customize the [LockedText$="Door locked. Find key"].
@@ -22,7 +22,6 @@ local cannotclose		= {}
 local toopentext 		= {}
 local autoclose 		= {}
 local autoclosedelay 	= {}
-local prompt_display 	= {}
 local use_switch 		= {}
 local switch_text 		= {}
 
@@ -30,6 +29,8 @@ local door_pressed 		= {}
 local autodelay			= {}
 local tEnt 				= {}
 local selectobj 		= {}
+
+local defaultPromptDisplay= 2
 
 function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, toopentext, autoclose, autoclosedelay, prompt_display, use_switch, switch_text)
 	door[e]['range'] = range
@@ -40,7 +41,7 @@ function door_properties(e, range, delay, unlocked, lockedtext, cannotclose, too
 	door[e]['toopentext'] = toopentext
 	door[e]['autoclose'] = autoclose
 	door[e]['autoclosedelay'] = autoclosedelay or 0
-	door[e]['prompt_display'] = prompt_display
+	door[e]['prompt_display'] = prompt_display or defaultPromptDisplay
 	door[e]['use_switch'] = use_switch or 0
 	door[e]['switch_text'] = switch_text
 end
@@ -74,6 +75,7 @@ function door_main(e)
 	end
 	
 	local PlayerDist = GetPlayerDistance(e)
+
 	local nRange = door[e]['range']
 	if nRange == nil then nRange = 100 end
 	
@@ -83,7 +85,7 @@ function door_main(e)
 		g_Entity[e]['haskey'] = 1
 	else
 		-- if was spawned at start, and it was locked, and then activated, this means we want to unlock the door
-		if GetEntitySpawnAtStart(e) == 1 and g_Entity[e]['activated'] == 1 then
+		if GetEntitySpawnAtStart(e) ~= 0 and g_Entity[e]['activated'] == 1 then
 			SetEntityHasKey(e,1)
 			g_Entity[e]['haskey'] = 1
 		end
@@ -91,6 +93,7 @@ function door_main(e)
 	
 	if door[e]['use_switch'] == 0 then
 		local LookingAt = GetPlrLookingAtEx(e,1)
+
 		if PlayerDist < nRange and GetEntityVisibility(e) == 1 and LookingAt == 1 then
 			--pinpoint select object--
 			module_misclib.pinpoint(e,nRange,0)

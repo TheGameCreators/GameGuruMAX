@@ -1,9 +1,8 @@
 -- LUA Script - precede every function and global member with lowercase name of script + '_main'
--- Day_Night v18 by Necrym59 and Lee
+-- Day_Night v19 by Necrym59 and Lee
 -- DESCRIPTION: A Day/Night Time Cycler. Set ALWAYS ON
 -- DESCRIPTION: [#START_ANGLE=-95(-180,180)]
 -- DESCRIPTION: [TIME_DILATION=1(1,1000)]
--- DESCRIPTION: [DIAGNOSTICS!=0]
 -- DESCRIPTION: [MIN_AMBIENCE_R=10(1,255)]
 -- DESCRIPTION: [MIN_AMBIENCE_G=25(1,255)]
 -- DESCRIPTION: [MIN_AMBIENCE_B=75(1,255)]
@@ -17,12 +16,14 @@
 -- DESCRIPTION: [MAX_AMBIENCE_B=255(1,255)]
 -- DESCRIPTION: [MAX_EXPOSURE#=1.00(0.01,1.00)]
 -- DESCRIPTION: [MAX_INTENSITY#=7.40(0.01,50.00)]
--- DESCRIPTION: [@TRIGGER_EVENT=27(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=7 Days,26=28 Days, 27=None)]
+-- DESCRIPTION: [@TRIGGER_EVENT_A=27(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=7 Days,26=28 Days, 27=None)]
+-- DESCRIPTION: [@TRIGGER_EVENT_B=27(1=1am,2=2am,3=3am,4=4am,5=5am,6=6am,7=7am,8=8am,9=9am,10=10am,11=11am,12=12am,13=1pm,14=2pm,15=3pm,16=4pm,17=5pm,18=6pm,19=7pm,20=8pm,21=9pm,22=10pm,23=11pm,24=12pm,25=7 Days,26=28 Days, 27=None)]
 -- DESCRIPTION: [@START_DAY=1(1=Sunday, 2=Monday, 3=Tuesday, 4=Wednesday, 5=Thursday, 6=Friday, 7=Saturday)]
 -- DESCRIPTION: [@@READOUT_USER_GLOBAL$=""(0=globallist)] User Global for displaying day and time (eg: MyUserGlobal)
 -- DESCRIPTION: [LIGHT_CONTROL!=0] Control day/night lights
 -- DESCRIPTION: [LIGHT_NAME$="Light"] Name of Light(s) to turn on/off
 -- DESCRIPTION: [LIGHT_RANGE=300(1,5000)] Strength of light
+-- DESCRIPTION: [DIAGNOSTICS!=0]
 
 
 local lower = string.lower
@@ -46,7 +47,8 @@ local max_ambience_g = {}
 local max_ambience_b = {}
 local max_exposure = {}
 local max_intensity = {}
-local trigger_event = {}
+local trigger_event_a = {}
+local trigger_event_b = {}
 local start_day = {}
 local readout_user_global = {}
 
@@ -83,11 +85,10 @@ local weekcount = {}
 local mode = {}
 local event_trig = {}
 
-function day_night_properties(e, start_angle, time_dilation, diagnostics, min_ambience_r, min_ambience_g, min_ambience_b, min_exposure, sun_roll, sun_pitch, sun_yaw, min_intensity, max_ambience_r, max_ambience_g, max_ambience_b, max_exposure, max_intensity, trigger_event, start_day, readout_user_global, light_control, light_name, light_range)
+function day_night_properties(e, start_angle, time_dilation, min_ambience_r, min_ambience_g, min_ambience_b, min_exposure, sun_roll, sun_pitch, sun_yaw, min_intensity, max_ambience_r, max_ambience_g, max_ambience_b, max_exposure, max_intensity, trigger_event_a, trigger_event_b, start_day, readout_user_global, light_control, light_name, light_range, diagnostics,)
 	-- start_angle in legacy version now replaced with RPY below but retained for compatability
 	day_night[e].start_angle = start_angle
 	day_night[e].time_dilation = time_dilation
-	day_night[e].diagnostics = diagnostics
 	day_night[e].min_ambience_r = min_ambience_r
 	day_night[e].min_ambience_g = min_ambience_g
 	day_night[e].min_ambience_b = min_ambience_b
@@ -110,13 +111,15 @@ function day_night_properties(e, start_angle, time_dilation, diagnostics, min_am
 	day_night[e].max_exposure = max_exposure
 	if max_intensity == nil then max_intensity = 7.4 end
 	day_night[e].max_intensity = max_intensity
-	if trigger_event == nil then trigger_event = 25 end
-	day_night[e].trigger_event = trigger_event
+	if trigger_event_a == nil then trigger_event_a = 25 end
+	day_night[e].trigger_event_a = trigger_event_a
+	day_night[e].trigger_event_b = trigger_event_b	
 	day_night[e].start_day = start_day
 	day_night[e].readout_user_global = readout_user_global
 	day_night[e].light_control = light_control or 0
 	day_night[e].light_name = light_name
 	day_night[e].light_range = light_range
+	day_night[e].diagnostics = diagnostics	
 end
 
 function day_night_init(e)
@@ -126,7 +129,6 @@ function day_night_init(e)
 	day_night[e].sun_pitch = 75
 	day_night[e].sun_yaw = 0
 	day_night[e].time_dilation = 1
-	day_night[e].diagnostics = 1
 	day_night[e].min_ambience_r = 0
 	day_night[e].min_ambience_g = 0
 	day_night[e].min_ambience_b = 0
@@ -137,12 +139,14 @@ function day_night_init(e)
 	day_night[e].max_ambience_b = 255
 	day_night[e].max_exposure = 1.00
 	day_night[e].max_intensity = 7.4
-	day_night[e].trigger_event = 25
+	day_night[e].trigger_event_a = 27
+	day_night[e].trigger_event_b = 27
 	day_night[e].start_day = 1
 	day_night[e].readout_user_global = ""
 	day_night[e].light_control = 1
 	day_night[e].light_name = ""
 	day_night[e].light_range = 300
+	day_night[e].diagnostics = 1	
 
 	status[e] = "init"
 	state[e] = ""
@@ -281,99 +285,123 @@ function day_night_main(e)
 	end
 	if sunmoonroll[e] > -150.0 then
 		tod[e] = "1am"
-		if day_night[e].trigger_event == 1 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 1 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 1 then event_trig[e] = 1 end		
 	end
 	if sunmoonroll[e] > -135.0 then
 		tod[e] = "2am"
-		if day_night[e].trigger_event == 2 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 2 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 2 then event_trig[e] = 1 end			
 	end
 	if sunmoonroll[e] > -120.0 then
 		tod[e] = "3am"
-		if day_night[e].trigger_event == 3 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 3 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 3 then event_trig[e] = 1 end			
 	end
 	if sunmoonroll[e] > -105.0 then
 		tod[e] = "4am"
-		if day_night[e].trigger_event == 4 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 4 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 4 then event_trig[e] = 1 end			
 	end
 	if sunmoonroll[e] > -90.0 then
 		tod[e] = "5am"
-		if day_night[e].trigger_event == 5 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 5 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 5 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -75.0 then
 		tod[e] = "6am"
-		if day_night[e].trigger_event == 6 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 6 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 6 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -60.0 then
 		tod[e] = "7am"
-		if day_night[e].trigger_event == 7 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 7 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 7 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -50.0 then
 		tod[e] = "8am"
-		if day_night[e].trigger_event == 8 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 8 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 8 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -45.0 then
 		tod[e] = "9am"
-		if day_night[e].trigger_event == 9 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 9 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 9 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -30.0 then
 		tod[e] = "10am"
-		if day_night[e].trigger_event == 10 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 10 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 10 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > -15.0 then
 		tod[e] = "11am"
-		if day_night[e].trigger_event == 11 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 11 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 11 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] >= 0 then
 		tod[e] = "12pm"
-		if day_night[e].trigger_event == 12 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 12 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 12 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 15.0 then
 		tod[e] = "1pm"
-		if day_night[e].trigger_event == 13 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 13 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 13 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 30.0 then
 		tod[e] = "2pm"
-		if day_night[e].trigger_event == 14 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 14 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 14 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 45.0 then
 		tod[e] = "3pm"
-		if day_night[e].trigger_event == 15 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 15 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 15 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 50.0 then
 		tod[e] = "4pm"
-		if day_night[e].trigger_event == 16 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 16 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 16 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 60.0 then
 		tod[e] = "5pm"
-		if day_night[e].trigger_event == 17 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 17 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 17 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 75.0 then
 		tod[e] = "6pm"
-		if day_night[e].trigger_event == 18 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 18 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 18 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 90.0 then
 		tod[e] = "7pm"
-		if day_night[e].trigger_event == 19 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 19 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 19 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 105.0 then
 		tod[e] = "8pm"
-		if day_night[e].trigger_event == 20 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 20 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 20 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 120.0 then
 		tod[e] = "9pm"
-		if day_night[e].trigger_event == 21 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 21 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 21 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 135.0 then
 		tod[e] = "10pm"
-		if day_night[e].trigger_event == 22 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 22 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 22 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 150.0 then
 		tod[e] = "11pm"
-		if day_night[e].trigger_event == 23 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 23 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 23 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] > 165.5 then
 		tod[e] = "12am"
-		if day_night[e].trigger_event == 24 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_a == 24 then event_trig[e] = 1 end
+		if day_night[e].trigger_event_b == 24 then event_trig[e] = 1 end
 	end
 	if sunmoonroll[e] >= 165.5 and changeday[e] == 0 then
 		day_night[e].start_day = day_night[e].start_day + 1
@@ -382,9 +410,9 @@ function day_night_main(e)
 		daycount[e] = daycount[e] + 1
 		changeday[e] = 1
 	end
-	if daycount[e] == 28 then event_trig[e] = 1 end
-	if weekcount[e] == 1 then event_trig[e] = 1 end
-
+	if day_night[e].trigger_event_a == 25 or day_night[e].trigger_event_b == 25 and weekcount[e] == 1 then event_trig[e] = 1 end
+	if day_night[e].trigger_event_a == 26 or day_night[e].trigger_event_b == 26 and daycount[e] == 28 then event_trig[e] = 1 end
+	
 	if day_night[e].start_day == 1 then currentdaytime[e] = ("Sunday  " ..tod[e]) end
 	if day_night[e].start_day == 2 then currentdaytime[e] = ("Monday  " ..tod[e]) end
 	if day_night[e].start_day == 3 then currentdaytime[e] = ("Tuesday  " ..tod[e]) end

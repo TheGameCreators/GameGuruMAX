@@ -7241,24 +7241,28 @@ void ParseLuaScriptWithElementID(entityeleproftype *tmpeleprof, char * script, i
 																if (Storyboard.Nodes[allhudscreensnodeid].widget_type[i] == STORYBOARD_WIDGET_TEXT)
 																{
 																	std::string readout = Storyboard.widget_readout[allhudscreensnodeid][i];
-																	if (stricmp(readout.c_str(), "User Defined Global") == NULL)
-																		//"User Defined Global Statusbar"
+																	if (   stricmp(readout.c_str(), "User Defined Global") == NULL
+																		|| stricmp(Storyboard.widget_readout[allhudscreensnodeid][i], "User Defined Global Text") == NULL)
 																	{
 																		//"User Defined Global Statusbar"
 																		// only add unique ones to game global list
 																		LPSTR pNewName = Storyboard.Nodes[allhudscreensnodeid].widget_label[i];
 																		if (strlen(pNewName) > 0)
 																		{
-																			for (int n = 0; n < globallist_labels.size(); n++)
+																			if (!pestrcasestr(pNewName, ":")) //PE: Do not show : rpginventorykinds.
 																			{
-																				if (strcmp(pNewName, globallist_labels[n].c_str()) == NULL)
+																				for (int n = 0; n < globallist_labels.size(); n++)
 																				{
-																					// already exists
-																					pNewName = "";
-																					break;
+																					if (strcmp(pNewName, globallist_labels[n].c_str()) == NULL)
+																					{
+																						// already exists
+																						pNewName = "";
+																						break;
+																					}
 																				}
+																				if (strlen(pNewName) > 0)
+																					globallist_labels.push_back(pNewName);
 																			}
-																			globallist_labels.push_back(pNewName);
 																		}
 																	}
 																}

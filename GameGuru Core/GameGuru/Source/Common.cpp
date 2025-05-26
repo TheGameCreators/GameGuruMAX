@@ -3275,14 +3275,15 @@ void FPSC_LoadSETUPINI (bool bUseMySystemFolder)
 					}
 					extern int g_iUseLODObjects;
 					t.tryfield_s = "uselodobjects"; if (t.field_s == t.tryfield_s) g_iUseLODObjects = t.value1;
-						
-					extern int g_iDisableTerrainSystem;
-					t.tryfield_s = "disableterrainsystem"; if (t.field_s == t.tryfield_s) g_iDisableTerrainSystem = t.value1;
-
 
 					// DOCDOC: graphicshighgrass = Pre-assign the grass shader level to use when the in-game menu selects HIGH for graphics.
 					t.tryfield_s = "globalhudscale"; if (t.field_s == t.tryfield_s)  g.globalhudscale = t.value1 / 100.0f;
-					
+
+					extern int g_iDisableTerrainSystem;
+					t.tryfield_s = "disableterrainsystem"; if (t.field_s == t.tryfield_s) g_iDisableTerrainSystem = t.value1;
+
+					extern int g_iDisableWParticleSystem;
+					t.tryfield_s = "disablewparticlesystem"; if (t.field_s == t.tryfield_s) g_iDisableWParticleSystem = t.value1;
 				}
 			}
 		}
@@ -6975,14 +6976,19 @@ void GetSetupIniEarly( void )
 						extern int g_iDisableTerrainSystem;
 						g_iDisableTerrainSystem = 1;
 					}
-					break;
 				}
+				if (pestrcasestr(t, "disablewparticlesystem"))
+				{
+					if (pestrcasestr(t, "1"))
+					{
+						extern int g_iDisableWParticleSystem;
+						g_iDisableWParticleSystem = 1;
+					}
+				}				
 			}
 			fclose(file);
 		}
-
 	}
-
 }
 
 

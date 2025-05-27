@@ -9621,45 +9621,9 @@ void mapeditorexecutable_loop(void)
 											WickedSetEntityId(-1);
 											WickedSetElementId(0);
 										}
-										//WickedSetEntityId(iMasterID);
-										//WickedSetElementId(iEntityIndex);
-										//Wicked_Change_Object_Material((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-										//WickedSetEntityId(-1);
-										//WickedSetElementId(0);
 									}
 									ImGui::Indent(-10);
 								}
-								//if (bNeedMaterialUpdate==true)
-								//{
-									/* done using mode 6 inside change_object_material so can focus change rather than a blanket copy!
-									for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
-									{
-										int iEntityIndex = g.entityrubberbandlist[ii].e;
-										int iMasterID = t.entityelement[iEntityIndex].bankindex;
-										sObject* pObject = g_ObjectList[t.entityelement[iEntityIndex].obj];
-										if (pObject)
-										{
-											if (!t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
-											{
-												// Set material settings from master object.
-												sObject* pMasterObject = g_ObjectList[g.entitybankoffset + iMasterID];
-												Wicked_Copy_Material_To_Grideleprof((void*)pMasterObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												if (t.entityprofile[iMasterID].WEMaterial.dwBaseColor[0] == -1)
-													SetObjectDiffuse(iActiveObj, Rgb(255, 255, 255));
-												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												t.grideleprof.WEMaterial.MaterialActive = false;
-											}
-											else
-											{
-												// Set custom material settings.
-												Wicked_Copy_Material_To_Grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												Wicked_Set_Material_From_grideleprof((void*)pObject, 0, &t.entityelement[iEntityIndex].eleprof);
-												t.grideleprof.WEMaterial.MaterialActive = true;
-											}
-										}
-									}
-									*/
-								//}
 							}
 						}
 

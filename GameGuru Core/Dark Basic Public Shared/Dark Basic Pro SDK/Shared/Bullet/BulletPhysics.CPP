@@ -4090,24 +4090,6 @@ int ODERayTerrainEx (float fX, float fY, float fZ, float fToX, float fToY, float
 	else
 		iResult = 0;
 
-	// show debug if active
-	#ifdef PRODUCTCONVERTER
-	#else
-	/*
-	if (g_debugraycastvisual > 0 && bUpdateDebugObj == true)
-	{
-		if (ObjectExist(g_debugraycastvisual) == 1)
-		{
-			sObject* pObject = GetObjectData(g_debugraycastvisual);
-			if ( iResult == 1 )
-				WickedCall_SetObjectEmissiveStrength(pObject, 50);
-			else
-				WickedCall_SetObjectEmissiveStrength(pObject, 1);
-		}
-	}
-	*/
-	#endif
-
 	// return result
 	return iResult;
 }

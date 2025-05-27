@@ -2551,7 +2551,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.baseColorMapName[index] = t.value_s; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2612,7 +2612,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fAlphaRef[index] = t.value1_f; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2623,7 +2623,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.normalMapName[index] = t.value_s; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2634,7 +2634,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fNormal[index] = t.value1_f; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2645,7 +2645,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.surfaceMapName[index] = t.value_s;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2656,7 +2656,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fRoughness[index] = t.value1_f;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2667,7 +2667,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fMetallness[index] = t.value1_f;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2678,7 +2678,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.displacementMapName[index] = t.value_s;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2689,7 +2689,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.emissiveMapName[index] = t.value_s;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2700,7 +2700,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fEmissive[index] = t.value1_f;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2712,7 +2712,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.occlusionMapName[index] = t.value_s;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 						#endif
@@ -2726,7 +2726,7 @@ void entity_loaddata ( void )
 								unsigned long ulValue = 0;
 								sscanf(t.value_s.Get(), "%lu", &ulValue);
 								t.entityprofile[t.entid].WEMaterial.dwEmmisiveColor[index] = ulValue;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2739,7 +2739,7 @@ void entity_loaddata ( void )
 								unsigned long ulValue = 0;
 								sscanf(t.value_s.Get(), "%lu", &ulValue);
 								t.entityprofile[t.entid].WEMaterial.dwBaseColor[index] = ulValue;
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true; unticked by default now
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2811,7 +2811,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.bPlanerReflection[index] = t.value1_f; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 
@@ -2822,7 +2822,7 @@ void entity_loaddata ( void )
 							if ( index < MAXMESHMATERIALS )
 							{
 								t.entityprofile[t.entid].WEMaterial.fReflectance[index] = t.value1_f; 
-								//t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
+								t.entityprofile[t.entid].WEMaterial.MaterialActive = true;
 							}
 						}
 						#endif
@@ -4443,11 +4443,12 @@ void entity_fillgrideleproffromprofile ( void )
 	// LB: Preben, OLDFLAK argues that users WANT this off by default and was the previous default behavior
 	// so we will make this false for default and fix any new issues that may arise, including the new demand
 	// that other users want if ON by default :)  Perhaps something in editor pref settings ;)
-	//t.grideleprof.bCustomWickedMaterialActive = true;
-	if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
-		t.grideleprof.bCustomWickedMaterialActive = true;
-	else
-		t.grideleprof.bCustomWickedMaterialActive = false;
+	// LB: Additional - Preben notes doing the above breaks many things, including FPE material settings, so restore and rethink
+	t.grideleprof.bCustomWickedMaterialActive = true;
+	//if (t.entityprofile[t.entid].WEMaterial.MaterialActive)
+	//	t.grideleprof.bCustomWickedMaterialActive = true;
+	//else
+	//	t.grideleprof.bCustomWickedMaterialActive = false;
 	t.grideleprof.WEMaterial = t.entityprofile[t.entid].WEMaterial;
 
 	//Need default particle setup here. or if will use the last inside "t.grideleprof".

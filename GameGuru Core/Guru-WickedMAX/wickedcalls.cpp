@@ -2729,7 +2729,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 									pObjectMaterial->emissiveColor.x = pMesh->mMaterial.Emissive.r;
 									pObjectMaterial->emissiveColor.y = pMesh->mMaterial.Emissive.g;
 									pObjectMaterial->emissiveColor.z = pMesh->mMaterial.Emissive.b;
-									pObjectMaterial->emissiveColor.w = 1.0f;
+
+									// this ensures we do not wipe out previously set emissive strength set inside FPE!
+									pObjectMaterial->emissiveColor.w = pMesh->mMaterial.Emissive.a;
+									if (pObjectMaterial->emissiveColor.w == 0) pObjectMaterial->emissiveColor.w = 1.0f;
 								}
 								else
 								{
@@ -2745,7 +2748,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 										pObjectMaterial->emissiveColor.x = pMesh->mMaterial.Emissive.r;
 										pObjectMaterial->emissiveColor.y = pMesh->mMaterial.Emissive.g;
 										pObjectMaterial->emissiveColor.z = pMesh->mMaterial.Emissive.b;
-										pObjectMaterial->emissiveColor.w = 1.0f;
+
+										// this ensures we do not wipe out previously set emissive strength set inside FPE!
+										pObjectMaterial->emissiveColor.w = pMesh->mMaterial.Emissive.a;
+										if (pObjectMaterial->emissiveColor.w == 0) pObjectMaterial->emissiveColor.w = 1.0f;
 									}
 									else
 									{
@@ -2761,7 +2767,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 											pObjectMaterial->emissiveColor.x = pMesh->mMaterial.Emissive.r;
 											pObjectMaterial->emissiveColor.y = pMesh->mMaterial.Emissive.g;
 											pObjectMaterial->emissiveColor.z = pMesh->mMaterial.Emissive.b;
-											pObjectMaterial->emissiveColor.w = 1.0f;
+
+											// this ensures we do not wipe out previously set emissive strength set inside FPE!
+											pObjectMaterial->emissiveColor.w = pMesh->mMaterial.Emissive.a;
+											if (pObjectMaterial->emissiveColor.w == 0) pObjectMaterial->emissiveColor.w = 1.0f;
 										}
 										else
 										{
@@ -2778,7 +2787,10 @@ void WickedCall_TextureMesh(sMesh* pMesh)
 												pObjectMaterial->emissiveColor.x = pMesh->mMaterial.Emissive.r;
 												pObjectMaterial->emissiveColor.y = pMesh->mMaterial.Emissive.g;
 												pObjectMaterial->emissiveColor.z = pMesh->mMaterial.Emissive.b;
-												pObjectMaterial->emissiveColor.w = 1.0f;
+
+												// this ensures we do not wipe out previously set emissive strength set inside FPE!
+												pObjectMaterial->emissiveColor.w = pMesh->mMaterial.Emissive.a;
+												if (pObjectMaterial->emissiveColor.w == 0) pObjectMaterial->emissiveColor.w = 1.0f;
 											}
 											else
 											{

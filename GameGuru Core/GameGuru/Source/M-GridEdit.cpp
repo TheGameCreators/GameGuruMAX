@@ -9534,12 +9534,13 @@ void mapeditorexecutable_loop(void)
 
 									ImGui::Indent(10);
 
-									if (ImGui::Checkbox("Enable Custom Materials##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
+									if (ImGui::Checkbox("Custom Materials Used##2", &t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive))
 									{
 										bNeedMaterialUpdate = true;
 										t.importer.bModelMeshNamesSet = false;
 										t.importer.cModelMeshNames.clear();
 									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
 									if (t.entityelement[iEntityIndex].eleprof.bCustomWickedMaterialActive)
 									{
@@ -9597,7 +9598,7 @@ void mapeditorexecutable_loop(void)
 											break;
 										}
 									}
-									if (ImGui::Checkbox("Enable Custom Materials##3", &bAnyCustomMaterials))
+									if (ImGui::Checkbox("Custom Materials Used##3", &bAnyCustomMaterials))
 									{
 										// set all materials as custom or not
 										for (int ii = 0; ii < g.entityrubberbandlist.size(); ii++)
@@ -9605,8 +9606,8 @@ void mapeditorexecutable_loop(void)
 											int ee = g.entityrubberbandlist[ii].e;
 											t.entityelement[ee].eleprof.bCustomWickedMaterialActive = bAnyCustomMaterials;
 										}
-										//bNeedMaterialUpdate = true;
 									}
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
 									// if custom materials, opens up options to mass change certain properties
 									if (bAnyCustomMaterials==true)
@@ -11653,7 +11654,7 @@ void mapeditorexecutable_loop(void)
 								ImGui::Indent(10);
 								if (!t.grideleprof.bCustomWickedMaterialActive) 
 								{
-									ImGui::Checkbox("Enable Custom Materials", &t.grideleprof.bCustomWickedMaterialActive);
+									ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
 									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This can break instancing and add additional draw calls");
 
 									//PE: Copy master material settings to t.grideleprof.WEMaterial
@@ -11669,7 +11670,8 @@ void mapeditorexecutable_loop(void)
 								}
 								else 
 								{
-									ImGui::Checkbox("Enable Custom Materials", &t.grideleprof.bCustomWickedMaterialActive);
+									ImGui::Checkbox("Custom Materials Used", &t.grideleprof.bCustomWickedMaterialActive);
+									if (ImGui::IsItemHovered()) ImGui::SetTooltip("This flag indicates the object has modified the original model, either through FPE level additions or changes within the level editor");
 
 									//sMesh * pMesh = NULL;
 									Wicked_Change_Object_Material((void*)pObject, 0);
